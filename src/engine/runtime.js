@@ -82,7 +82,7 @@ export class Runtime {
     this.renderer.shadowMap.type = quality === 'low' ? THREE.PCFShadowMap : THREE.PCFSoftShadowMap;
     // la sombra se recalcula en cada fotograma (a la mitad de ritmo, la de los personajes que andan iba a saltos);
     // solo en calidad baja (móviles) un fotograma sí y otro no
-    this.shadowEvery = quality === 'low' ? 2 : 1; this.renderer.shadowMap.autoUpdate = false;
+    this.renderer.shadowMap.autoUpdate = true;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
@@ -274,8 +274,6 @@ export class Runtime {
     if (this.frameNo % 10 === 0) this.checkCover();
     if (this.frames % 15 === 0) this.sound.setMood?.(this.moodOf(g));
     try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
-    // sombras un fotograma sí y otro no (también en las escenas propias, como el encierro)
-    if (this.frames % this.shadowEvery === 0) this.renderer.shadowMap.needsUpdate = true;
     // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
     if (!this.covered) {
@@ -320,7 +318,9 @@ export class Runtime {
     this.onLighten?.(this.lite);
   }
   applyLite() {
-    if (this.lite >= 2) { this.shadowEvery = 2; this.liteFloor = 0.75; }
+    // (las sombras, en cada fotograma: un fotograma sí y otro no, la sombra del personaje al andar se quedaba atrás y daba
+    // saltitos, y sobre su ropa parpadeaba. Se aligeran haciéndolas llegar menos lejos)
+    if (this.lite >= 2) { this.liteFloor = 0.75; if (this.nature) this.nature.shadowDist = Math.min(this.nature.shadowDist, 9); }
     if (this.lite >= 1) {
       this.detailQ = 'low';
       if (this.nature) { this.nature.lodDist = Math.min(this.nature.lodDist, 60); this.nature.shadowDist = Math.min(this.nature.shadowDist, 15); this.nature.rockFar = Math.min(this.nature.rockFar, 170); }
@@ -401,7 +401,7 @@ export class Runtime {
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
     groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value);   // (agua de las fuentes)
-    this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos);
+    this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos, P.obj.visible && g.mode === 'play' && !this.follow.cinematic);
     updateDetail(this.camera.position, this.detailQ);
     { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)
     this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound, this.sky.floodK(), this.camera.position);   // (en el partido, sin luciérnagas)

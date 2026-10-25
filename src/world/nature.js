@@ -11,7 +11,8 @@ import { groundUniforms } from './builder.js';
 import { snowable } from './weather.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
 
-export const windUniforms = { uTime: { value: 0 }, uWind: { value: 1 } };
+// (uVer: el pecho del personaje, y uVerOn, si se está jugando con él a la vista: lo que hay entre la cámara y él se abre)
+export const windUniforms = { uTime: { value: 0 }, uWind: { value: 1 }, uVer: { value: new THREE.Vector3() }, uVerOn: { value: 0 } };
 
 // ---------- Geometrías de árboles ----------
 function colorize(g, fn) {
@@ -364,12 +365,13 @@ function makeApple(rnd, detail) {
 //  · low: en móvil, una sola capa de ruido y sin relieve
 function windMaterial(opts = {}, { bark = false, fern = false, low = false } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, ...opts });
+  m.userData.abreVista = true;   // (se abre entre la cámara y el personaje: las pruebas no lo cuentan como que lo tapa)
   m.onBeforeCompile = (sh) => {
     sh.defines = { ...(sh.defines || {}), ...(bark ? { BARK: 1 } : {}), ...(fern ? { FERN: 1 } : {}), ...(low ? { LOWQ: 1 } : {}) };
-    sh.uniforms.uTime = windUniforms.uTime; sh.uniforms.uWind = windUniforms.uWind; useFill(sh);
+    sh.uniforms.uTime = windUniforms.uTime; sh.uniforms.uWind = windUniforms.uWind; sh.uniforms.uVer = windUniforms.uVer; sh.uniforms.uVerOn = windUniforms.uVerOn; useFill(sh);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>${FILL_DECL}
-varying vec3 vWPos;
+varying vec3 vWPos; uniform vec3 uVer; uniform float uVerOn;
 #if defined(BARK) || defined(FERN)
 varying vec2 vTUv; varying vec3 vTP;
 #endif
@@ -391,6 +393,13 @@ float bkN(vec3 x) {
         float b = (fc.x * 4.0 + fc.y) / 16.0;
         b = fract(b * 7.0 / 16.0 * 16.0 / 7.0 + fc.x * 0.37 + fc.y * 0.61);
         if (a < 0.999 && a < b) discard;
+        // y lo que se pone entre la cámara y el personaje (un árbol de la calle, un seto), abierto en la misma trama de
+        // puntos: antes lo tapaba a ratos al andar entre árboles y se veía como un parpadeo
+        if (uVerOn > 0.5) {
+          vec3 ab = uVer - cameraPosition; float t = clamp(dot(vWPos - cameraPosition, ab) / max(dot(ab, ab), 1e-3), 0.0, 1.0);
+          float k = (1.0 - smoothstep(0.8, 1.7, distance(vWPos, cameraPosition + ab * t))) * (1.0 - smoothstep(0.78, 0.92, t));
+          if (k * 0.9 > b) discard;
+        }
       }
 #ifdef FERN
       float fernS = 0.0;
@@ -777,8 +786,9 @@ export class Nature {
       this.addChunked(list, makeShrooms(rnd, red), null, mat, (o) => m4.compose(v.set(o.x, terrainHeight(o.x, o.z) - 0.02, o.z), q.setFromEuler(e.set(0, o.r, 0)), sc.setScalar(o.s)), { name: 'setas' });
     }
   }
-  update(camPos, focus, elapsed, player) {
+  update(camPos, focus, elapsed, player, ver = false) {
     windUniforms.uTime.value = elapsed;
+    windUniforms.uVerOn.value = ver && player ? 1 : 0; if (ver && player) windUniforms.uVer.value.set(player.x, player.y + 1.2, player.z);
     for (const c of this.chunks) {
       const d = Math.max(Math.abs(camPos.x - c.cx), Math.abs(camPos.z - c.cz)) - CHUNK / 2;
       const near = d < this.lodDist, shade = d < this.shadowDist;

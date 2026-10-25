@@ -374,6 +374,11 @@ export class PelotaCourt {
     else if (HALL) this.buildHall(T, M, th, W, CONTRA, EXT, L, opts);
     else if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
     if (!opts.labrit && !HALL) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT);
+    // dónde cabe la cámara del partido (match.js, cabe): bajo la cubierta, sin llegar a su estructura (más arriba, las
+    // vigas, los tirantes y la chapa quedaban delante y tapaban la imagen entera); en el cubierto, sin pasar del rebote,
+    // que llega al techo; en el Labrit, sin meterse en la grada del fondo. En el pueblo, Fronton añade las casas de detrás
+    this.camTecho = opts.labrit ? 11.6 : HALL ? HALL_H - 2 : th.roof ? C.FRONT_H : Infinity;
+    this.camZMax = opts.labrit ? EXT + 3.8 : HALL ? C.REBOTE - 0.7 : Infinity;
 
     // --- pelota, sombra, estela y ayudas
     const ball = this.ball = new T.Group();

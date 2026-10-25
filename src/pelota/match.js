@@ -70,16 +70,25 @@ export class PelotaMatch {
   // el plano del panel del partido: un paseo lento por lo alto, en las medidas de la cancha (t, segundos desde que empieza)
   introCam(t) {
     const C = this.court, a = t * 0.25, L = COURT.L;
-    if (C.hall) return [[3.5 + Math.sin(a) * 3, 8.5 + Math.sin(a * 0.7), 30 + Math.cos(a) * 2.5], [0, 3, 8]];   // (dentro del pabellón, desde lo alto del fondo)
-    if (C.labrit) return [[2 + Math.sin(a) * 5, 9 + Math.sin(a * 0.7) * 0.6, 38 + Math.cos(a) * 1.5], [0, 2.5, 12]];   // (sobre la grada del fondo del Labrit)
-    // (al aire libre, de lado a lado por detrás de la cancha; antes daba la vuelta entera y pasaba por detrás de la pared
-    // izquierda y por las casas de al lado)
-    return [[2 + Math.sin(a) * 6, 9, L * 0.5 + 22 + Math.cos(a) * 2], [0, 2, L * 0.4]];
+    const r = C.hall ? [[3.5 + Math.sin(a) * 3, 8.5 + Math.sin(a * 0.7), 30 + Math.cos(a) * 2.5], [0, 3, 8]]   // (dentro del pabellón, desde lo alto del fondo)
+      : C.labrit ? [[2 + Math.sin(a) * 5, 9 + Math.sin(a * 0.7) * 0.6, 38 + Math.cos(a) * 1.5], [0, 2.5, 12]]   // (sobre la grada del fondo del Labrit)
+      // (al aire libre, de lado a lado por detrás de la cancha; antes daba la vuelta entera y pasaba por detrás de la
+      // pared izquierda y por las casas de al lado)
+        : [[2 + Math.sin(a) * 6, 9, L * 0.5 + 22 + Math.cos(a) * 2], [0, 2, L * 0.4]];
+    this.cabe(r[0], r[1]); return r;
+  }
+  // la cámara, donde cabe (PelotaCourt.camTecho y camZMax): si no cabe más atrás, sube lo que le sobra; y nunca por encima
+  // de la cubierta ni de su estructura. Antes, en las pelotas largas y en el plano desde lo alto, subía hasta 12-16 m y,
+  // con cubierta, la estructura tapaba la imagen entera; o retrocedía hasta meterse en una casa de detrás del rebote
+  cabe(p, l) {
+    const C = this.court, over = p[2] - Math.min(COURT.L + 11, C.camZMax ?? Infinity);
+    if (over > 0) { p[2] -= over; p[1] += over * 0.32; if (l) l[2] -= over * 0.4; }
+    p[1] = Math.min(p[1], C.camTecho ?? Infinity);
   }
   // dónde empieza ese plano, en el mundo (el vuelo de la llegada acaba justo ahí): posición, a dónde mira y apertura
   introPose() {
     const [p, l] = this.introCam(0), g = this.court.group; g.updateMatrixWorld(true);
-    return { pos: g.localToWorld(new this.T.Vector3(p[0], p[1], Math.min(p[2], COURT.L + 11))), look: g.localToWorld(new this.T.Vector3(l[0], l[1], l[2])),
+    return { pos: g.localToWorld(new this.T.Vector3(p[0], p[1], p[2])), look: g.localToWorld(new this.T.Vector3(l[0], l[1], l[2])),
       fov: (innerWidth < innerHeight ? 62 : 54) + (this.game.pairs || this.o.forcePairs ? 4 : 0) };
   }
   // la física del partido: la del frontón por la de la pelota elegida
@@ -274,6 +283,7 @@ export class PelotaMatch {
     const bz = Math.max(2, Math.min(COURT.L, f.b[2])), front = R.n % 2 === 0;
     const lp = front ? [2.6, 2.3, 1.4] : [COURT.W / 2 + 3, 6.2, Math.max(7, Math.min(COURT.L + 1, bz + 6.5))];
     const ll = front ? [f.b[0] * 0.6, Math.max(0.8, Math.min(3, f.b[1])), Math.max(5, bz)] : [f.b[0] * 0.4, 1.1, bz - 2.5];
+    this.cabe(lp, ll);
     const wp = grp.localToWorld(new T.Vector3(lp[0], lp[1], lp[2])), wl = grp.localToWorld(new T.Vector3(ll[0], ll[1], ll[2]));
     if (!this.camInit) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }
     const k = 1 - Math.exp(-4 * dt); this.camPos.lerp(wp, k); this.camLook.lerp(wl, k);
@@ -714,7 +724,6 @@ export class PelotaMatch {
     const abre = this.camDyn ? Math.max(0, Math.min(1, ((this.rallyN || 0) - 5) / 6)) * (g.phase === 'rally' ? 1 : 0) : 0;
     this.abreK = (this.abreK || 0) + (abre - (this.abreK || 0)) * Math.min(1, dt * 1.5);
     { const L2 = this.largoK, A2 = this.abreK; lp[2] += L2 * 7 + A2 * 2.5; lp[1] += L2 * 2.8 + A2 * 1.6; ll[2] += L2 * 9; ll[1] -= L2 * 0.2; }
-    if (C.hall && g.phase !== 'intro') { const zMax = COURT.REBOTE - 0.7, over = Math.max(0, lp[2] - zMax); lp[2] -= over; lp[1] += over * 0.32; ll[2] -= over * 0.4; }
     // los cambios de plano (con la cámara dinámica): tras cada tanto, mientras se canta, un plano distinto del de juego,
     // uno cada vez: desde la contracancha a la altura de la grada, desde el frontis de cara a los pelotaris o desde lo
     // alto. Es un corte de verdad (sin deslizar), y al sacar se vuelve de golpe al de juego
@@ -739,7 +748,8 @@ export class PelotaMatch {
       dyn = kk; this.roll += ((Math.max(-1, Math.min(1, -(B.v?.x || 0) / 14)) * 0.018) - this.roll) * Math.min(1, dt * 3);
     } else this.roll += (0 - this.roll) * Math.min(1, dt * 4);
     if (this.kick > 0) this.kick = Math.max(0, this.kick - dt * 2.2);
-    const wp = this.v3.set(lp[0], lp[1], Math.min(lp[2], COURT.L + 11)); grp.localToWorld(wp);
+    this.cabe(lp, ll);
+    const wp = this.v3.set(lp[0], lp[1], lp[2]); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
     if (!this.camInit) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }
     const k = 1 - Math.exp(-5 * dt);
