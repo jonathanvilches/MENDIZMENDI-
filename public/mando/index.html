@@ -28,8 +28,10 @@
 <style>
 :root { --fondo: #12052a; --panel: rgba(40, 16, 80, .9); --borde: rgba(201, 178, 255, .35); --rosa: #ff7ac8; --lila: #cbc2e0; --ok: #3ee07a; --aviso: #f2c230; --mal: #ff5d5d; --cta: linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7); --m: 16px; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; overflow: hidden; background: radial-gradient(circle at 50% 30%, #3a1680, var(--fondo) 70%); color: #f6f3fc; font-family: Nunito, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
-button { font: inherit; color: inherit; cursor: pointer; }
+/* (fija: ni zoom, ni desplazarse, ni la letra que el iPhone agranda en horizontal; movil.js frena además el pellizco) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { position: fixed; inset: 0; margin: 0; height: 100%; overflow: hidden; background: radial-gradient(circle at 50% 30%, #3a1680, var(--fondo) 70%); color: #f6f3fc; font-family: Nunito, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
 .hide { display: none !important; }
 img { pointer-events: none; }
 
@@ -76,7 +78,6 @@ img { pointer-events: none; }
 #est i { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--aviso); box-shadow: 0 0 0 4px rgba(242, 194, 48, .18); }
 #est.ok i { background: var(--ok); box-shadow: 0 0 0 4px rgba(62, 224, 122, .18); }
 #est b { font-weight: 900; color: #fff; }
-#est small { flex: none; color: var(--lila); font-size: 13px; font-weight: 700; }
 /* la misión que sigues, como el recuadro de arriba a la izquierda del juego; al tocarla, todas */
 #qst { flex: 0 1 380px; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 14px 4px 4px; border-radius: 26px; border: 1px solid var(--borde); background: rgba(14, 10, 24, .66); color: #fff; text-align: left; touch-action: manipulation; }
 #qst img { width: 36px; height: 36px; flex: none; }
@@ -89,6 +90,8 @@ img { pointer-events: none; }
 #inst img, #instP img { width: 48px; height: 48px; border-radius: 12px; }
 #inst b, #instP b { font-weight: 900; font-size: 15px; }
 #inst p, #instP p { margin: 4px 0 8px; color: var(--lila); font-size: 14px; line-height: 1.35; }
+#inst p + p { margin-top: -4px; color: #fff; }
+#inst p:empty { display: none; }
 #instP { position: fixed; z-index: 55; left: 50%; top: max(64px, calc(env(safe-area-inset-top) + 56px)); transform: translateX(-50%); width: min(560px, calc(100% - 32px)); display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 12px; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--rosa); background: rgba(30, 10, 64, .97); box-shadow: 0 10px 30px rgba(0, 0, 0, .45); }
 #instP p { margin-bottom: 0; }
 #instP .bts { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px; }
@@ -121,8 +124,6 @@ img { pointer-events: none; }
 
 #zonas { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); min-height: 0; }
 #izq, #der { position: relative; min-height: 0; touch-action: none; overflow: hidden; }
-.hint { position: absolute; margin: 0; color: rgba(203, 194, 224, .72); font-size: 13px; font-weight: 800; line-height: 1.3; text-align: center; pointer-events: none; }
-#hDer { left: var(--m); right: var(--m); top: 8px; }
 /* la mano izquierda: la palanca del juego. En reposo, el círculo de trazos con las flechas y MOVER; al apoyar el pulgar,
    donde sea de la mitad, el aro con el botón blanco */
 #base { position: absolute; left: 0; top: 0; width: var(--db, 104px); height: var(--db, 104px); border-radius: 50%; border: 1.5px dashed rgba(255, 255, 255, .55); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font: 800 13px/1.15 'MZ Cond', Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 6px rgba(0, 0, 0, .6); transform: translate(-50%, -50%); pointer-events: none; transition: opacity .2s; }
@@ -132,9 +133,7 @@ img { pointer-events: none; }
 #knob i { position: absolute; left: 50%; top: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px; border-radius: 50%; background: rgba(255, 255, 255, .88); box-shadow: 0 4px 12px rgba(0, 0, 0, .3); }
 /* el panel táctil (menús y ventanas): mover la flecha del ordenador */
 #tp { position: absolute; inset: 8px; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 16px; border-radius: 16px; border: 1px solid rgba(201, 178, 255, .25); background: repeating-linear-gradient(45deg, rgba(255, 255, 255, .025) 0 12px, transparent 12px 24px); pointer-events: none; }
-#tp svg { width: 40px; height: 40px; opacity: .8; }
-#tp ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; color: var(--lila); font-size: 14px; line-height: 1.3; text-align: center; }
-#tp b { color: #fff; font-weight: 900; }
+#tp svg { width: 48px; height: 48px; opacity: .55; }
 /* la mano derecha: los mismos botones del juego (movil.js los coloca: --d, su tamaño; --u, la escala del fútbol y la
    pelota). Cada uno con su icono y su nombre dentro; si el nombre no cabe, solo el icono (.solo) */
 #bts { position: absolute; inset: 0; pointer-events: none; }
@@ -177,14 +176,16 @@ img { pointer-events: none; }
 .pel.down { transform: translate(-50%, -50%) translateY(4px); box-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
 .txt { padding: 0 8px; font-weight: 800; font-size: 13px; line-height: 1.15; white-space: nowrap; }   /* (el nombre de un botón de arriba que no tuviera icono) */
 /* la copia de los botones del minijuego */
-#esp { position: absolute; inset: 8px var(--m) var(--m) 8px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; align-content: safe center; overflow: auto; touch-action: pan-y; }   /* (safe: si no caben, se llega al primero desplazando) */
+/* (solo el nombre de cada botón, como un mando: todos a la vista, las filas reparten el alto entre 44 y 72 px; el nombre,
+   entero, en dos líneas como mucho, con la letra más pequeña si no cabe) */
+#esp { position: absolute; inset: 8px var(--m) var(--m) 8px; display: grid; grid-template-columns: minmax(0, 1fr); grid-auto-rows: minmax(44px, 72px); gap: 8px; align-content: safe center; overflow: auto; touch-action: pan-y; overscroll-behavior: contain; }   /* (safe: si no caben, se llega al primero desplazando) */
 #esp.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-#esp button { min-height: 52px; padding: 8px 16px; border-radius: 12px; border: 1px solid var(--borde); background: var(--panel); font-weight: 800; font-size: 15px; line-height: 1.25; text-align: center; touch-action: none; }
+#esp button { min-width: 0; min-height: 0; padding: 6px 12px; border-radius: 12px; border: 1px solid var(--borde); background: var(--panel); font-weight: 800; font-size: 16px; line-height: 1.2; text-align: center; text-wrap: balance; overflow: hidden; overflow-wrap: normal; touch-action: none; }
 #esp button.prim { background: var(--cta); border-color: transparent; font-weight: 900; }
+#esp button.on { border: 2px solid var(--rosa); box-shadow: 0 0 0 2px rgba(255, 122, 200, .35); }
 #esp button.cierra { background: rgba(255, 255, 255, .04); }
 #esp button.down { transform: scale(.97); filter: brightness(1.2); }
 #jugar { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 16px; padding: 16px; text-align: center; }
-#jugar p { margin: 0; max-width: 340px; color: var(--lila); font-size: 15px; line-height: 1.4; }
 #giro { display: none; }
 /* en vertical: los dos pulgares abajo igual y el aviso de girar debajo de la barra */
 @media (orientation: portrait) {
@@ -215,7 +216,7 @@ img { pointer-events: none; }
       </div>
       <button id="otro" class="link hide" data-t="Escribir el código a mano">Escribir el código a mano</button>
       <div id="vias" aria-label="Servidores"></div>
-      <div id="inst" class="hide"><img src="icon-192.png" alt=""><div><b data-t="Instala la app «Mando»">Instala la app «Mando»</b><p id="instT"></p><button id="instB" class="link hide" data-t="Instalar">Instalar</button></div></div>
+      <div id="inst" class="hide"><img src="icon-192.png" alt=""><div><b data-t="Instala la app «Mando»">Instala la app «Mando»</b><p id="instT"></p><p id="instF"></p><button id="instB" class="link hide" data-t="Instalar">Instalar</button></div></div>
     </div>
   </div>
 </div>
@@ -229,15 +230,14 @@ img { pointer-events: none; }
   <div id="giro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M2 14a8 8 0 0 0 5 6M22 10a8 8 0 0 0-5-6"/></svg><span data-t="Mejor con el móvil en horizontal">Mejor con el móvil en horizontal</span></div>
   <div id="zonas">
     <div id="izq">
-      <div id="tp" class="hide"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 8-6 1.5L10 19z"/></svg><ul id="tpL"></ul></div>
+      <div id="tp" class="hide"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M5 3l14 8-6 1.5L10 19z"/></svg></div>
       <div id="base" class="hide"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg><span data-t="Mover">Mover</span></div>
       <div id="knob" class="hide"><i></i></div>
     </div>
     <div id="der">
-      <p class="hint" id="hDer"></p>
       <div id="bts"></div>
       <div id="esp" class="hide"></div>
-      <div id="jugar" class="hide"><p data-t="Elige en el ordenador con la flecha, o sigue tu aventura:">Elige en el ordenador con la flecha, o sigue tu aventura:</p><button class="big" id="bJugar" data-t="¡A jugar!">¡A jugar!</button></div>
+      <div id="jugar" class="hide"><button class="big" id="bJugar" data-t="¡A jugar!">¡A jugar!</button></div>
     </div>
   </div>
 </div>

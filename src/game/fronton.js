@@ -8,7 +8,7 @@ import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
-import { addBox, rectFree, removeMover } from '../world/colliders.js';
+import { addBox, rectFree, removeMover, nearby } from '../world/colliders.js';
 import { rx, pathQuery, cercaDeYacimiento } from '../world/layout.js';
 import { clearGrass, clearTrees } from '../world/nature.js';
 import { isEU } from '../i18n.js';
@@ -193,12 +193,28 @@ export class Fronton {
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
-    if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); }
+    // (y los árboles de detrás del rebote, donde se pone la cámara en las pelotas largas: su copa tapaba la cancha)
+    if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1 + (court.hall || court.labrit ? 0 : 9), spot.ry); }
+    if (!court.hall && !court.labrit) court.camZMax = Math.min(court.camZMax, this.fondoLibre(E.z1 + 0.2, COURT.L + 11));
     for (const b of court.boxes) { const p = this.toWorld(b.x, b.z); addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); }
     const PF = court.platform || { x0: E.x0, x1: E.x1 - 3.3, z0: E.z0, z1: E.z1 };
     addPlatform(spot.x, spot.z, spot.ry, PF.x0, PF.x1, PF.z0, PF.z1, spot.y);   // la cancha es suelo (sin las gradas)
     this.entry = this.toWorld(court.entry.x, court.entry.z);
     this.out = court.out ? this.toWorld(court.out.x, court.out.z) : null;   // (al salir, mirando a la calle y no a la pared)
+  }
+  /** Hasta dónde puede ir la cámara del partido por detrás del rebote (en metros desde el frontis, como la cancha): hasta
+   *  la primera casa o muro del pueblo, con 1,5 m de margen. Antes retrocedía en las pelotas largas hasta 11 m detrás de
+   *  la última raya y, si había una casa cerca, se metía dentro y la pared tapaba la imagen entera. */
+  fondoLibre(z0, z1) {
+    for (let lz = z0; lz <= z1; lz += 0.5) for (let lx = -4.5; lx <= 8.5; lx += 1) {
+      const p = this.toWorld(lx, lz);
+      for (const c of nearby(p.x, p.z, 1.5)) {
+        if (c.type !== 'box' || !c.solidView) continue;
+        const dx = p.x - c.x, dz = p.z - c.z, u = dx * c.cos - dz * c.sin, v = dx * c.sin + dz * c.cos;
+        if (Math.abs(u) < c.hw + 1.5 && Math.abs(v) < c.hd + 1.5) return Math.max(z0, lz - 0.5);
+      }
+    }
+    return z1;
   }
   toWorld(lx, lz) { const v = new THREE.Vector3(lx, 0, lz); this.court.group.localToWorld(v); return v; }
   play(G, rival, opts) { return playPelota(G, this, rival, opts); }

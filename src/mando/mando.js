@@ -106,7 +106,7 @@ async function recibe(m) {
     const pc = S.pc = new RTCPeerConnection({ iceServers: ICE, ...(SIN_P2P ? { iceTransportPolicy: 'relay' } : {}) }); let dicho = false;
     pc.onicecandidate = (e) => { if (e.candidate && dicho) S.sig?.send(m.src, 'CANDIDATE', { candidate: e.candidate.toJSON() }, m.fuerte); };   // (las que lleguen tarde)
     pc.onconnectionstatechange = () => { if (pc === S.pc && !S.relevo && ['failed', 'closed', 'disconnected'].includes(pc.connectionState)) caido(); };
-    pc.ondatachannel = (e) => abre(e.channel);
+    pc.ondatachannel = (e) => { if (e.channel.label === 'rapido') rapido(e.channel); else abre(e.channel); };
     await pc.setRemoteDescription(m.payload.sdp);
     for (const c of antes.get(m.src) || []) if (c.fuerte === m.fuerte) { try { await pc.addIceCandidate(c.payload.candidate); } catch (e) { } }
     antes.delete(m.src);
@@ -136,8 +136,14 @@ function abre(dc) {
   dc.onclose = () => { if (dc === S.dc && !S.relevo) caido(); };
   dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } usa(m); };
 }
-// conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo
-function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; ultimo.clear(); mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es' });
+// el canal rápido del móvil: la palanca, la cámara y la flecha, sin orden ni reenvíos. Por el canal de siempre, si un
+// mensaje se perdía por la wifi, los siguientes esperaban a que se reenviara (un cuarto de segundo o más) y el jugador
+// andaba a tirones. Aquí, uno perdido no frena a los demás: vale el más nuevo, por su número (nuevo)
+const RAPIDO = new Set(['ej', 'mira', 'cur', 'rueda']);
+function rapido(dc) { dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } if (RAPIDO.has(m?.t)) usa(m); }; }
+// conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo (y sabe que puede abrir
+// el canal rápido: uno de antes no lo conoce)
+function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; ultimo.clear(); mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es', rapido: true });
   guardar({ code: S.code, secreto: S.secreto, emparejado: true }); pareja(); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
 // (el móvil se queda con este ordenador: el código y su secreto, solo por la conexión directa, que va cifrada de punta a
 // punta; si entró con el código a mano, la próxima vez entra directamente, sin pedir permiso)
@@ -247,7 +253,7 @@ export function abrirMando() {
     <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando. Funciona con Android y con iPhone.</p>
     <div class="mnd-qr wait" aria-label="Código QR del mando"></div>
     <ol class="mnd-pasos"><li>Conecta el móvil a internet: mejor, a la misma wifi que el ordenador.</li><li>Abre la cámara del móvil y apunta al código.</li>
-      <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li><li>Para no repetirlo: en el móvil, instala la app «Mando». La próxima vez, ábrela y se conecta sola en cuanto el juego esté abierto.</li></ol>
+      <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li><li>Para no repetirlo: en el móvil, instala la app «Mando». Se abre desde su icono, sin el navegador, y la próxima vez se conecta sola en cuanto el juego esté abierto.</li></ol>
     <p class="mnd-est"><i></i><span></span></p>
     <p class="mnd-vias" data-notr aria-label="Servidores"></p>
     <div class="mnd-pide" hidden><p>Un móvil ha escrito el código a mano y quiere ser el mando. ¿Es el tuyo?</p><div><button data-no>No, no lo conozco</button><button class="go" data-si>Sí, dejarle</button></div></div>

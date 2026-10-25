@@ -36,23 +36,52 @@ const nombre = (b) => { const n = b.firstElementChild && /^\d+$/.test(b.firstEle
 // (un título largo, con las palabras enteras que quepan en n letras)
 const palabras = (t, n) => t.length <= n ? t : t.slice(0, n + 1).replace(/\s+\S*$/, '').replace(/[\s,;:·–-]+$/, '');
 const CERRAR = /^(✕|×|x)$|salir|cerrar|volver|atrás|ahora no|itxi|irten|itzuli/i;
+// el nombre de un botón para el móvil, solo su título (el móvil es un mando: nada de descripciones). Cada caja de dentro
+// es un trozo y el título es el que va en negrita, o el primero: con textContent, la tarjeta del Manomanista
+// («Individual», «Manomanista», «Cuartos de final») salía pegada, «IndividualManomanistaCuartos…»
+const FUERA = 'svg, style, script, [aria-hidden=true], .sr', FUERTE = 'b, strong, h1, h2, h3, h4';
+function trozos(n, L, ac) {
+  const corta = () => { L.push({ t: ac.t, f: ac.f }); ac.t = ''; ac.f = false; };
+  for (const c of n.childNodes) {
+    if (c.nodeType === 3) { ac.t += c.textContent; continue; }
+    if (c.nodeType !== 1 || c.matches(FUERA)) continue;
+    const d = getComputedStyle(c).display; if (d === 'none') continue;
+    if (d === 'inline' || d === 'contents') { if (c.matches(FUERTE) && !ac.t.trim()) ac.f = true; trozos(c, L, ac); continue; }
+    corta(); ac.f = c.matches(FUERTE); trozos(c, L, ac); corta();
+  }
+}
+function rotulo(b) {
+  const L = [], ac = { t: '', f: false }; trozos(b, L, ac); L.push(ac);
+  // (sin el número de delante de las respuestas, que va en su propia etiqueta, ni los trozos que son solo signos)
+  const P = L.map(x => ({ t: x.t.replace(/\s+/g, ' ').trim(), f: x.f })).filter(x => x.t && !/^[\d\s.,;:·•()–-]*$/.test(x.t));
+  // (y si es largo y va en partes, la primera: «Gorri · Euskal artzain txakurra» es «Gorri»)
+  let t = (P.find(x => x.f) || P[0])?.t || ''; if (t.length > 18 && t.includes(' · ')) t = t.split(' · ')[0];
+  return t.length < 2 ? nombre(b) : palabras(t, 36);
+}
+const MAX = 10;
+const PRIM = '.primary, .go, [data-go], [data-ok], .pel-go:not(.alt)';
 
-/** Los botones que se ven en una ventana, para copiarlos en el móvil (como mucho 8, el de cerrar al final). */
+/** Los botones que se ven en una ventana, para copiarlos en el móvil (como mucho 10, el de cerrar al final). Si hay más,
+ *  se quedan siempre el principal y el de cerrar: en «Elige a tu perro», con ocho razas, ¡Este! se quedaba fuera. */
 function botones(root) {
   const L = [], seen = new Set();
   for (const b of root.querySelectorAll('button, [role=button]')) {
     if (!vis(b) || b.disabled || b.closest('details:not([open]) > :not(summary)')) continue;
     const t = nombre(b); if (!t || seen.has(t)) continue;
-    seen.add(t); L.push({ el: b, t });   // (entero: el móvil lo parte en líneas, nunca a media palabra)
+    seen.add(t); L.push({ el: b, t });
   }
-  const cierra = L.filter(x => CERRAR.test(x.t)), resto = L.filter(x => !CERRAR.test(x.t));
-  return [...resto.slice(0, 8 - Math.min(1, cierra.length)), ...cierra.slice(0, 1)];
+  const cierra = L.find(x => CERRAR.test(x.t)), resto = L.filter(x => !CERRAR.test(x.t));
+  const hueco = MAX - (cierra ? 1 : 0), fijos = resto.filter(x => x.el.matches(PRIM)).slice(0, 2);
+  const otros = resto.filter(x => !fijos.includes(x)).slice(0, hueco - fijos.length);
+  const sale = resto.filter(x => fijos.includes(x) || otros.includes(x)).concat(cierra ? [cierra] : []);
+  for (const x of sale) { x.r = rotulo(x.el); x.on = x.el.matches('.on, .sel, [aria-pressed=true], [aria-selected=true], [aria-checked=true]'); }
+  return sale;
 }
 function fijo(m, extra = {}) { const F = FIJOS[m]; return { m, tit: F.tit, pal: F.pal || '', mira: !!F.mira, tac: false, nativo: !!F.nativo, b: F.b, fijo: F.fijo || [], der: F.der || [], arriba: F.arriba || [], estilo: F.estilo || '', esp: [], ...extra }; }
 function espejo(m, root, tit) {
-  const esp = botones(root), prim = esp.find(x => x.el.matches('.primary, .go, [data-go], .pel-go:not(.alt)')) || esp.find(x => !CERRAR.test(x.t)) || esp[0];
+  const esp = botones(root), prim = esp.find(x => x.el.matches(PRIM)) || esp.find(x => !CERRAR.test(x.t)) || esp[0];
   const h = root.querySelector('h1, h2, h3');
-  return { m, tit: tit || (h ? palabras(nombre(h), 48) : ''), pal: '', mira: false, tac: true, nativo: false, b: { 9: ['Atrás', 'Escape', 'back'] }, fijo: [], esp, prim };
+  return { m, tit: tit || (h ? rotulo(h) : ''), pal: '', mira: false, tac: true, nativo: false, b: { 9: ['Atrás', 'Escape', 'back'] }, fijo: [], esp, prim };
 }
 
 // (en el fútbol, PASE y TIRO dicen lo que dice su pantalla en cada momento: al defender, ROBAR y ENTRADA; con el portero,
@@ -89,7 +118,7 @@ let C = null, t = 0;
 export function ctxActual() { const n = performance.now(); if (!C || n - t > 200) { C = calcula(); t = n; } return C; }
 /** Lo que se le cuenta al móvil: los nombres de los botones, sin las teclas ni los elementos de la página. */
 export function ctxMovil(c = ctxActual()) {
-  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, der: c.der || [], arriba: c.arriba || [], estilo: c.estilo || '', modo: c.modo || '', jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => x.t) };
+  return { t: 'ctx', m: c.m, tit: c.tit, pal: c.pal, mira: c.mira, tac: c.tac, fijo: c.fijo, der: c.der || [], arriba: c.arriba || [], estilo: c.estilo || '', modo: c.modo || '', jugar: !!c.jugar, b: Object.fromEntries(Object.entries(c.b).map(([i, [n]]) => [i, n])), ic: Object.fromEntries(Object.entries(c.b).filter(([, x]) => x[2]).map(([i, x]) => [i, x[2]])), esp: c.esp.map(x => ({ t: x.r || x.t, on: !!x.on, p: x === c.prim })) };
 }
 /** Las misiones del pueblo, para el móvil (como el cuaderno del juego): cuántas van, la que sigues con todos sus pasos y
  *  las demás con el siguiente; null fuera de un pueblo. Los textos, ya en el idioma del juego. */
