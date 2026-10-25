@@ -212,10 +212,19 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pl[disabled]{opacity:.5;cursor:default}
 @media (max-width:640px) and (orientation:portrait){.fb-subs{grid-template-columns:1fr;grid-template-areas:'hf' 'sf' 'hb' 'sb'}}
 /* ordenador (pantalla grande): el marcador, los avisos y la ayuda de teclas, más grandes y legibles */
-@media (min-width:1200px) and (min-height:700px){
+@media (min-width:1200px) and (min-height:560px){
 .fb-team{padding:8px 16px;gap:12px;font-size:var(--fs-md)}.fb-team b{font-size:var(--fs-2xl)}.fb-team img.fb-em{width:28px;height:32px}
 .fb-clock{padding:4px 16px;font-size:var(--fs-lg)}.fb-clock small{font-size:var(--fs-sm)}
 .fb-say{font-size:var(--fs-md);max-width:560px}.fb-keys{font-size:var(--fs-sm);padding:8px 12px}
+/* (los paneles, más anchos; el menú del partido, a dos columnas y con los botones grandes: antes era una columna estrecha
+   en medio de la pantalla) */
+.fb-card{width:min(760px,100%);padding:24px 32px 20px}.fb-card h2{font-size:var(--fs-3xl)}.fb-card p{font-size:var(--fs-md)}
+.fb-menu .fb-card{width:min(1180px,100%)}
+.fb-menu .fb-body{display:grid;grid-template-columns:1fr 1fr;column-gap:40px;align-content:start}
+.fb-menu .fb-body>*{grid-column:1/-1}.fb-menu .fb-body .fb-row:not(:first-of-type){grid-column:auto}.fb-menu .fb-body .fb-row[data-row=reto]{grid-column:1/-1}
+.fb-menu .fb-row{margin:8px 0 16px;gap:12px}.fb-menu .fb-row label{font-size:var(--fs-sm)}
+.fb-menu .fb-chip{min-height:56px;min-width:72px;padding:8px 24px;font-size:var(--fs-md)}
+.fb-foot{gap:16px;padding-top:16px}.fb-foot .fb-go,.fb-foot .fb-alt{min-height:60px;font-size:var(--fs-xl)}
 }
 `;
 // iconos de los botones: los símbolos de los controles del autor (trazo blanco grueso, 24 × 24)

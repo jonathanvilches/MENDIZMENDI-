@@ -215,9 +215,18 @@ const CSS = `
 @media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;min-height:72px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
 /* ordenador (pantalla grande): tarjetas más anchas y holgadas, letra y figuras a su tamaño y los clubes en rejilla, todos a
    la vista (en tira de lado, sin barra, con el ratón no se veía que había más clubes que los siete primeros) */
-@media (min-width:1200px) and (min-height:700px){
+@media (min-width:1200px) and (min-height:560px){
 .lg-root{padding:24px}
 .lg-card{width:min(1040px,100%);padding:24px 32px;gap:16px}
+/* (la liga, en dos columnas como en el móvil tumbado: el partido y la explicación a la izquierda y la
+   clasificación a la derecha, todo a la vista sin desplazar) */
+.lg-card.lg-two:not(.tq-card){width:min(1560px,100%);grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);grid-auto-rows:min-content;align-items:start;gap:16px 40px}
+.lg-card.lg-two:not(.tq-card)>.lg-head{grid-column:1/-1}
+.lg-card.lg-two:not(.tq-card)>.lg-next,.lg-card.lg-two:not(.tq-card)>.lg-how,.lg-card.lg-two:not(.tq-card)>.lg-res,.lg-card.lg-two:not(.tq-card)>.lg-champ,.lg-card.lg-two:not(.tq-card)>.lg-btns,.lg-card.lg-two:not(.tq-card)>.lg-note{grid-column:1}
+.lg-card.lg-two:not(.tq-card)>.lg-table{grid-column:2;grid-row:2/span 5;align-self:start}
+.lg-card.lg-two:not(.tq-card)>.lg-foot{position:static;margin:0;padding:0;background:none}
+.lg-card.lg-two:not(.tq-card) .lg-next .lg-jf{width:clamp(72px,calc(7vw / var(--z, 1)),116px)}
+.lg-card.pc-card{width:min(1560px,100%)}
 .lg-head h2{font-size:var(--fs-3xl)}.lg-head small{font-size:var(--fs-md)}.lg-note{font-size:var(--fs-sm)}
 .lg-next{padding:16px}.lg-next .lg-jf{width:116px;min-height:160px}.lg-next b{font-size:var(--fs-2xl)}.lg-next em{font-size:var(--fs-md)}.lg-vs{font-size:var(--fs-4xl)}
 .lg-table{font-size:var(--fs-md)}.lg-table td{padding:8px 8px}.lg-table th{font-size:var(--fs-sm)}
@@ -230,6 +239,12 @@ const CSS = `
 .eq-teams.mb{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent)}
 .eq-team{min-height:clamp(250px,calc(30vh / var(--z, 1)),300px)}.eq-team b{font-size:var(--fs-xl)}
 .lg-champ .duo{height:150px}
+}
+/* (portátil con la ventana baja: lo mismo, algo más compacto, para que quepa sin desplazar) */
+@media (min-width:1200px) and (min-height:560px) and (max-height:760px){
+.lg-card{padding:16px 28px;gap:12px}.lg-head h2{font-size:var(--fs-2xl)}
+.lg-next{padding:8px 12px}.lg-next .lg-jf{min-height:104px}.lg-vs{font-size:var(--fs-3xl)}.lg-next b{font-size:var(--fs-xl)}
+.lg-how,.lg-res{font-size:var(--fs-sm)}.lg-table td{padding:6px 8px}.lg-btn{min-height:48px}.lg-note{font-size:var(--fs-xs)}
 }
 `;
 function panel(html) {

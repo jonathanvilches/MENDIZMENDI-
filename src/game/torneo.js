@@ -255,11 +255,13 @@ const CSS = `
 @media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,calc(32vh / var(--z, 1)),300px)}}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
    con tres pelotaris, ya no se corta) y las cartas del próximo partido más grandes */
-@media (min-width:1200px) and (min-height:700px){
-.lg-card.tq-card{width:min(1280px,100%);gap:16px 32px}
+@media (min-width:1200px) and (min-height:560px){
+.lg-card.tq-card{width:min(1560px,100%);gap:16px 40px}
 .lg-card.tq-menu-card{width:min(1640px,100%)}
 .tq-tiles{gap:16px}
-.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:clamp(280px,calc(46vh / var(--z, 1)),560px)}
+.tq-tile{padding-left:24px;padding-right:24px}.tq-tile .figs{min-height:0}
+/* (el menú, a toda la pantalla: las losas ocupan el alto que queda y las figuras crecen con ellas, sin desplazar) */
+.lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}.lg-card.tq-menu-card .tq-tiles{min-height:0;height:100%}.lg-card.tq-menu-card .tq-tile{min-height:0;height:100%}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
 .tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}

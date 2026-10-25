@@ -239,8 +239,8 @@ const CSS = `
 .pel-hit .pel-hl{position:relative;z-index:1}
 
 /* ordenador (pantalla grande): las ventanas del partido más anchas y con la letra a su tamaño */
-@media (min-width:1200px) and (min-height:700px){
-  .pel-card{width:min(700px,100%);padding:32px 32px 24px}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
+@media (min-width:1200px) and (min-height:560px){
+  .pel-card{width:min(1000px,100%);padding:32px 40px 24px}.pel-card ol{columns:2;column-gap:40px}.pel-card li{break-inside:avoid}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
   .pel-card li,.pel-card .pel-ctrl,.pel-rv,.pel-rv p,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
 }
 `;
