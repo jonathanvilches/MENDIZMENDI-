@@ -34,7 +34,7 @@ export class PelotaMatch {
     this.camDyn = o.camDyn ?? ls('herrizherri-pelota-cam') !== '0';
     this.pairs = false; this.role = 'delantero'; this.mateObjs = null;   // por parejas: qué juegas tú y los otros dos
     this.names = { you: o.you?.name || this.txt.you, rival: o.rival?.name || 'Rival' };
-    // el Cuatro y Medio (mano a mano, hasta la raya naranja); los colores, como en los frontones: viste de colorado quien
+    // el Cuatro y Medio (mano a mano, hasta la raya del 4 y medio); los colores, como en los frontones: viste de colorado quien
     // debutó antes y el otro de azul (o.colors, con sus temporadas en o.seasons); y la repetición de cada tanto
     this.cuatro = !!o.cuatro; this.cols = o.colors || { you: 'azul', rival: 'rojo' }; this.seasons = o.seasons || null;
     this.repe = ls('herrizherri-pelota-repe') !== '0';
@@ -93,7 +93,7 @@ export class PelotaMatch {
     const M = this.pairs ? this.mateObjs : null;
     this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
       pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M });
-    this.court.setCuatro?.(!!this.game.cuatro);   // (la raya naranja del 4 y medio, solo en el Cuatro y Medio)
+    this.court.setCuatro?.(!!this.game.cuatro);   // (la raya del 4 y medio, solo en el Cuatro y Medio)
     this.rec = null; this.repAt = 0;
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
     this.hud.setNames?.(this.label('you'), this.label('rival'));

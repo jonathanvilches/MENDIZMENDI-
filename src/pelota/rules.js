@@ -58,7 +58,8 @@ export function temporadas(name, lv = 2) {
   return base + (h % span);
 }
 /** El Cuatro y Medio: el saque bota entre la raya del 3 (falta) y la del 5 (pasa) y, en el tanto, nunca más allá de la
- *  raya naranja del 4 y medio (Federación Española de Pelota, mano individual cuatro y medio) */
+ *  raya del 4 y medio, pintada en el suelo entre el 4 y el 5 (Federación Española de Pelota, mano individual cuatro y
+ *  medio) */
 export const CUATRO = { FALTA: 10.5, PASA: 17.5, LIMITE: 15.75 };
 
 // El frontón también juega: cómo es (a cubierto o al aire libre, con el frontis de piedra, con el suelo mojado por la
@@ -242,7 +243,7 @@ export const TEXT = {
       largo: ['¡Fuera!', 'Ha botado más allá de la última raya.'],
       falta: ['¡Falta!', 'El saque ha botado antes de la raya del 4.'],
       pasa: ['¡Pasa!', 'El saque ha botado más allá de la raya del 7.'],
-      cuatro: ['¡Pasa del 4 y medio!', 'Ha botado más allá de la raya naranja.'],
+      cuatro: ['¡Pasa del 4 y medio!', 'Ha botado más allá de la raya del 4 y medio.'],
       falta45: ['¡Falta!', 'El saque ha botado antes de la raya del 3.'],
       pasa45: ['¡Pasa!', 'El saque ha botado más allá de la raya del 5.'],
       bote: ['¡Dos botes!', 'Hay que devolverla antes del segundo bote.'],
@@ -266,7 +267,7 @@ export const TEXT = {
       why: 'Viste de colorado quien debutó antes', seasons: (n) => (n ? `${n} ${n === 1 ? 'temporada' : 'temporadas'}` : 'Debutante'), auto: 'La chapa decide quién saca primero' },
     replay: { label: 'Repetición', slow: 'Cámara lenta', skip: 'Toca para seguir' },
     repe: ['Repeticiones', 'Cada tanto se repite desde otro plano, a cámara lenta al final.'],
-    cuatro: { name: 'Cuatro y Medio', rule: 'Cuatro y Medio: la pelota no puede botar más allá de la raya naranja del 4 y medio. El saque bota entre la raya del 3 y la del 5.' },
+    cuatro: { name: 'Cuatro y Medio', rule: 'Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5. El saque bota entre la raya del 3 y la del 5.' },
     pairs: { label: 'Partido', single: 'Mano a mano', front: 'Parejas: delantero', back: 'Parejas: zaguero', four: 'Cuatro y Medio', frontName: 'delantero', backName: 'zaguero',
       how: (front) => front ? 'Juegas de delantero: tuyas las de delante, hasta el cuadro 5, y sacas tú. Tu compañero zaguero coge las de atrás.' : 'Juegas de zaguero: tuyas las de atrás, desde el cuadro 5. Tu compañero delantero coge las de delante y saca él.',
       rivals: (a, b) => `Así juegan ${a} y ${b}`, loading: 'Preparando…', mateServe: 'Saca tu compañero.', mateBall: 'Esa es de tu compañero.', rivalServe: 'Saca el rival: el resto lo coge tu zaguero.',
@@ -346,7 +347,7 @@ export const TEXT = {
       largo: ['Kanpo!', 'Azken marratik haratago egin du bote.'],
       falta: ['Falta!', 'Sakeak 4ko marra baino lehen egin du bote.'],
       pasa: ['Pasa!', 'Sakeak 7ko marratik haratago egin du bote.'],
-      cuatro: ['Lau eta erdia pasa!', 'Marra laranjatik haratago egin du bote.'],
+      cuatro: ['Lau eta erdia pasa!', 'Lau eta erdiko marratik haratago egin du bote.'],
       falta45: ['Falta!', 'Sakeak 3ko marra baino lehen egin du bote.'],
       pasa45: ['Pasa!', 'Sakeak 5eko marratik haratago egin du bote.'],
       bote: ['Bi bote!', 'Bigarren botea baino lehen itzuli behar da.'],
@@ -367,7 +368,7 @@ export const TEXT = {
       why: 'Lehenago debutatu zuenak gorriz janzten du', seasons: (n) => (n ? `${n} denboraldi` : 'Debutantea'), auto: 'Txapak erabakitzen du nork ateratzen duen lehenik' },
     replay: { label: 'Errepikapena', slow: 'Kamera geldoa', skip: 'Ukitu jarraitzeko' },
     repe: ['Errepikapenak', 'Tanto bakoitza beste plano batetik errepikatzen da, amaieran geldoan.'],
-    cuatro: { name: 'Lau t\'erdi', rule: 'Lau t\'erdi: pilotak ezin du lau eta erdiko marra laranjatik haratago bote egin. Sakeak 3ko eta 5eko marren artean egiten du bote.' },
+    cuatro: { name: 'Lau t\'erdi', rule: 'Lau t\'erdi: pilotak ezin du lau eta erdiko marratik haratago bote egin (lurreko marra da, 4 eta 5 artean). Sakeak 3ko eta 5eko marren artean egiten du bote.' },
     pairs: { label: 'Partida', single: 'Buruz buru', front: 'Binaka: aurrelari', back: 'Binaka: atzelari', four: 'Lau t\'erdi', frontName: 'aurrelaria', backName: 'atzelaria',
       how: (front) => front ? 'Aurrelari zara: aurrekoak zureak dira, 5. koadroraino, eta zuk ateratzen duzu. Zure atzelari lagunak atzekoak hartzen ditu.' : 'Atzelari zara: atzekoak zureak dira, 5. koadrotik aurrera. Zure aurrelari lagunak aurrekoak hartzen ditu eta berak ateratzen du.',
       rivals: (a, b) => `${a} eta ${b}: honela jokatzen dute`, loading: 'Prestatzen…', mateServe: 'Zure lagunak ateratzen du.', mateBall: 'Hori zure lagunarena da.', rivalServe: 'Aurkariak ateratzen du: zure atzelariak hartzen du.',

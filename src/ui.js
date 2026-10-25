@@ -68,7 +68,9 @@ export class UI {
   // info: { comarca, avatar, missions: [iconos], left, intro, caption }
   showLoading(title, tip = '', image = '', info = {}) {
     const L = this.loading;
-    L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
+    // (entra con un fundido corto sobre lo que hubiera debajo, el menú o los Torneos: antes aparecía de golpe)
+    const ya = !L.classList.contains('hidden'); L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
+    if (!ya) { L.classList.remove('entra'); void L.offsetWidth; L.classList.add('entra'); }
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
     const pic = $('.ld-pic img', L); L.classList.toggle('no-pic', !image); if (image) pic.src = image; else pic.removeAttribute('src');
     $('.ld-pic figcaption', L).textContent = info.caption || '';
