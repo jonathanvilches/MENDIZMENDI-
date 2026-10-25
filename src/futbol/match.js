@@ -696,11 +696,17 @@ export class FutbolMatch {
         // el campo entero desde lo alto (por dentro del hueco de la cubierta), bajando a la cámara de televisión
         const e = ss((t - 6) / 2.2), k = F.L / 105, tv = this.tvCam(true);
         const p0 = new THREE.Vector3(-40 * k, 36 * Math.max(k, 0.5), 16 * k), l0 = new THREE.Vector3(4 * k, 0, -3 * k);
-        pos = p0.lerp(tv.pos, e); look = l0.lerp(tv.look, e); fov = 55 + (tv.fov - 55) * e;
+        // (baja primero por el hueco de la cubierta y luego se abre hacia la grada, ya por debajo: en línea recta, la
+        // cámara de televisión está bajo la cubierta y el plano la atravesaba)
+        const eY = ss(e * 1.6), eZ = e * e;
+        pos = new THREE.Vector3(p0.x + (tv.pos.x - p0.x) * e, p0.y + (tv.pos.y - p0.y) * eY, p0.z + (tv.pos.z - p0.z) * eZ);
+        look = l0.lerp(tv.look, e); fov = 55 + (tv.fov - 55) * e;
       } else {
-        // llega desde fuera, por encima de la cubierta (se ve el estadio entero), y baja hacia el centro del campo
+        // llega desde fuera, por encima de la cubierta (se ve el estadio entero), y baja hacia el centro del campo. Con la
+        // presentación de los equipos se queda alto, con todo el estadio a la vista, y corta a pie de campo (antes bajaba
+        // hasta rozar la cubierta y se veía media pantalla de tejado rojo)
         const k = clamp(this.lineup ? t / 3 : 1 - this.intro / this.introLen, 0, 1), e = k * k * (3 - 2 * k), a = -0.75 + e * 0.55;
-        const sk = Math.max(F.L / 105, 0.45), r = (205 - e * (this.lineup ? 150 : 165)) * sk, h = (95 - e * (this.lineup ? 60 : 50)) * Math.max(sk, 0.6);
+        const sk = Math.max(F.L / 105, 0.45), r = (205 - e * (this.lineup ? 115 : 165)) * sk, h = (95 - e * (this.lineup ? 23 : 50)) * Math.max(sk, 0.6);
         pos = new THREE.Vector3(Math.sin(a) * r * 1.1, h, Math.cos(a) * r); look = new THREE.Vector3(0, 6 - e * 5, this.lineup ? e * 6 : 0); fov = 46;
       }
     } else if (g.mode === 'penalties' || g.restart?.type === 'penalty' && g.phase !== 'play') {

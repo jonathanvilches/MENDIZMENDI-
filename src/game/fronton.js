@@ -388,14 +388,18 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; G.pelotaLoading = false;
       // el marcador y los botones del partido, fuera siempre (también si algo falló al montarlo)
       try { match?.destroy(); } catch (e) { console.warn('frontón', e); }
-      document.querySelectorAll('.pel-root').forEach(el => el.remove());
+      document.querySelectorAll('.pel-root:not(.pel-fuera)').forEach(el => el.remove());   // (el que se está desvaneciendo, que acabe)
       // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
       const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
       // la vuelta, sin ver cómo se recoge la cancha ni cómo salta la cámara a la puerta del frontón: en los campeonatos,
       // el fondo de sus menús delante al momento; en el pueblo, un fundido a negro y, al volver la imagen, ya junto al
       // frontón (si algo falló, sin esperas)
       if (stay && G.sportMode) { safe(() => G.sportBackdrop?.(true, false, true)); vuelve(); }
-      else if (!r.error && G.ui?.fadeOut) G.ui.fadeOut().catch(() => {}).then(() => { vuelve(); G.ui.fadeIn?.(); });
+      else if (!r.error && G.ui?.fadeOut) {
+        // (la cámara, quieta donde estaba mientras se funde: si no, saltaba a la del pueblo, a ras de suelo junto al jugador)
+        safe(() => { G.follow.cinematic = { t: 0, fly: () => {} }; });
+        G.ui.fadeOut().catch(() => {}).then(() => { vuelve(); G.ui.fadeIn?.(); });
+      }
       else vuelve();
       function vuelve() {
         safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });

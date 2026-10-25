@@ -48,6 +48,7 @@ const CSS = `
 @keyframes pel-flip{0%{transform:translateY(0) rotateX(70deg)}50%{transform:translateY(-96px) rotateX(990deg)}100%{transform:translateY(0) rotateX(calc(1870deg + var(--fin,0deg)))}}
 @keyframes pel-flipsh{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.45);opacity:.4}}
 @keyframes pel-land{30%{translate:0 -10px}}
+.pel-root.pel-fuera{animation:pel-fuera .3s ease-in both}.pel-root.pel-fuera *{pointer-events:none!important}@keyframes pel-fuera{to{opacity:0}}
 @keyframes pel-tossbg{from{opacity:0}}@keyframes pel-tossout{to{opacity:0;transform:scale(1.04)}}
 @keyframes pel-tl{from{opacity:0;transform:translateX(-40px)}}@keyframes pel-tr{from{opacity:0;transform:translateX(40px)}}
 @keyframes pel-kin{from{opacity:0;letter-spacing:.5em}}@keyframes pel-res{from{opacity:0;transform:scale(.5)}}
@@ -369,7 +370,8 @@ export class PelotaHud {
   }
   closePanel() { if (this.panelEl) { this.panelEl.remove(); this.panelEl = null; } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
-  destroy() { removeEventListener('resize', this.onFit); cancelAnimationFrame(this.tipRaf); this.root.remove(); }
+  // (se desvanece con lo que tuviera delante, el aviso de salir o el resultado, mientras entra lo siguiente)
+  destroy() { removeEventListener('resize', this.onFit); cancelAnimationFrame(this.tipRaf); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
 }
 // el nombre sin su pueblo entre paréntesis («Jokin (Altsasu)» → «Jokin»): en el marcador y en la energía, que son
 // estrechos (el pueblo ya sale en la pantalla VS y en el frontón)

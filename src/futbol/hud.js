@@ -15,6 +15,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 @media (max-width:520px){.fb-tac{grid-template-columns:1fr}.fb-board{max-width:200px;margin:0 auto}}
 
 .fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.fb-root.fb-fuera{animation:fbFuera .25s ease-in both}.fb-root.fb-fuera *{pointer-events:none!important}@keyframes fbFuera{to{opacity:0}}
 .fb-root *{box-sizing:border-box}
 .fb-root.fb-intro>:not(.fb-msg,.pvs){visibility:hidden}
 .fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
@@ -525,7 +526,9 @@ export class FutbolHud {
   }
   /** Fundido breve a negro: tapa los cambios de sitio de golpe (saque de centro tras un gol, descanso). */
   dispose() {
-    clearTimeout(this.mt); clearTimeout(this.st); this.root.remove();
+    // (se desvanece con lo que tuviera delante, la pausa o el resultado, mientras entra lo siguiente: antes se quitaba de
+    // golpe y asomaba un momento el campo)
+    clearTimeout(this.mt); clearTimeout(this.st); const r = this.root; r.classList.add('fb-fuera'); setTimeout(() => r.remove(), 260);
     removeEventListener('touchend', this.onAllUp, true); removeEventListener('touchcancel', this.onAllUp, true);
     removeEventListener('pointerup', this.onWinUp, true); removeEventListener('pointercancel', this.onWinUp, true);
     removeEventListener('blur', this.onHide); document.removeEventListener('visibilitychange', this.onHide); removeEventListener('resize', this.onFit);

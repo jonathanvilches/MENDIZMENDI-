@@ -291,7 +291,7 @@ async function boot() {
       }
     } catch (e) { console.error('[fútbol] campeonato', e); }
     finally {
-      document.querySelectorAll('.lg-root').forEach(r => r.remove()); fade.remove();
+      document.querySelectorAll('.lg-root:not(.out)').forEach(r => r.remove()); fade.remove();   // (el que se está desvaneciendo, que acabe)
       rt.active = false; rt.game = null; if (ownScene && rt.scene === blank) rt.scene = null;
       canvas.style.visibility = 'hidden'; loading = false;
       sound.setMood('inicio'); queueMode('all'); hub.show('sports');   // (de vuelta a Torneos, de donde se vino)
