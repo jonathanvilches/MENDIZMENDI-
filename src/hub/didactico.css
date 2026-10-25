@@ -12,7 +12,8 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-tema { display: flex; align-items: center; gap: 12px; min-height: 88px; padding: 12px 16px; text-align: left; border-radius: var(--rL); background: var(--glass); border: 1px solid var(--line); color: var(--ink); font: inherit; cursor: pointer; transition: border-color .2s, background .2s; }
 .dd-tema:hover, .dd-tema:focus-visible { border-color: var(--line2); background: rgba(80, 30, 150, .6); }
 .dd-tema > span { flex: 1; min-width: 0; display: grid; gap: 4px; } .dd-tema > span b { font-size: var(--fs-md); color: #fff; } .dd-tema > span small { color: var(--mute); font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; }
-.dd-tema i { flex: none; display: grid; justify-items: center; font-style: normal; } .dd-tema i b { font-size: var(--fs-xl); line-height: 1; color: var(--gold); } .dd-tema i small { font-size: var(--fs-xs); color: var(--mute); }
+.dd-tema i { flex: none; display: grid; justify-items: center; font-style: normal; } .dd-tema i b { font-size: var(--fs-xl); line-height: 1; color: color-mix(in srgb, var(--cat, #ff7ac8) 75%, #fff); }
+.dd-tema { border-left: 3px solid var(--cat, var(--line)); } .dd-tema:hover, .dd-tema:focus-visible { border-color: var(--cat, var(--line2)); }   /* (cada tema, en el color de su parte) */ .dd-tema i small { font-size: var(--fs-xs); color: var(--mute); }
 .dd-datos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 8px; }
 .dd-datos li { padding: 12px 16px; border-radius: var(--rL); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); color: #eae4f6; font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; }
 .dd-cc .cbody small b { color: #fff; }
@@ -20,7 +21,6 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .armorial.dd .sec { margin: 16px 0 0; }
 .dd .adot { display: inline-block; flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--c, var(--gold)); }
 .dd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 12px; align-items: start; }
-.dd-grid.dd-wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 540px), 1fr)); }
 .dd-b { min-width: 0; display: grid; gap: 8px; align-content: start; padding: 12px 16px 16px; border-radius: var(--rL); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); overflow: hidden; }
 .dd-b > header { display: flex; align-items: center; gap: 12px; min-width: 0; } .dd-b > header > div { min-width: 0; }
 .dd-b > header small { display: block; color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs)/1.2 var(--f-cond, inherit); letter-spacing: .1em; text-transform: uppercase; }
@@ -46,7 +46,6 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-ofarms { display: flex; align-items: center; gap: 12px; } .dd-ofarms img { width: 64px; height: auto; }
 .dd-sp { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; } .dd-sp li { display: grid; gap: 4px; justify-items: start; } .dd-sp span { color: var(--mute); font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; }
 .dd-pk .pcard { margin: 0; }
-.dd-tipb { grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px; }
 /* la página de un pueblo */
 .dd-hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 24px; align-items: center; }
 .dd-hero > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--rL); border: 1px solid var(--line); }
@@ -58,14 +57,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-arms > img, .dd-arms > canvas { flex: none; width: 120px; height: auto; } .dd-arms > div { display: grid; gap: 8px; justify-items: start; } .dd-arms b { color: #fff; } .dd-arms p { margin: 0; color: #eae4f6; font-weight: 600; font-size: var(--fs-sm); line-height: 1.5; }
 .dd-town .figuras { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; }
 /* tradiciones, producto, euskera */
-.dd-com { display: grid; gap: 8px; } .dd-com h3 { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; } .dd-com .cultgrid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
-.dd-goods { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.dd-goods li { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 10px; background: rgba(0, 0, 0, .25); border: 1px solid var(--line); } .dd-goods i { font-style: normal; color: var(--gold); font-weight: 800; }
 .dd-more { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
-.dd-vsec { padding: 4px 16px; border-radius: var(--rL); background: rgba(0, 0, 0, .25); border: 1px solid var(--line); }
-.dd-vsec summary { display: flex; align-items: center; gap: 12px; min-height: 48px; cursor: pointer; list-style: none; color: #fff; } .dd-vsec summary::-webkit-details-marker { display: none; } .dd-vsec summary small { margin-left: auto; color: var(--mute); }
-.dd-voc { width: 100%; margin: 0 0 12px; border-collapse: collapse; font-size: var(--fs-sm); overflow-wrap: anywhere; }
-.dd-voc th, .dd-voc td { padding: 6px 12px 6px 0; border-top: 1px solid var(--line); text-align: left; vertical-align: top; } .dd-voc th { color: var(--gold); } .dd-voc td { color: #eae4f6; font-weight: 700; } .dd-voc td.dd-vd { color: var(--mute); font-weight: 600; }
 /* la galería (ddgal.js), como Naturaleza: pestañas con su icono y cuántos hay, y una tarjeta por cosa con su ilustración (o
    su icono grande sobre su color), el rótulo pequeño encima y el nombre en grande; legible también en la tele */
 .ddg .dd-tabs { margin-top: 8px; } .ddg .dd-tabs button { display: inline-flex; align-items: center; gap: 8px; font-size: var(--fs-md); }
@@ -117,8 +109,8 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 /* móvil de pie y móvil tumbado */
 @media (max-width: 720px) {
   .dd-hero { grid-template-columns: 1fr; gap: 12px; }
-  .dd-tools tr, .dd-voc tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--line); }
-  .dd-tools th, .dd-tools td, .dd-voc th, .dd-voc td { border-top: 0; } .dd-tools td:last-child, .dd-voc td.dd-vd { grid-column: 1 / -1; padding-top: 0; }
+  .dd-tools tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--line); }
+  .dd-tools th, .dd-tools td { border-top: 0; } .dd-tools td:last-child { grid-column: 1 / -1; padding-top: 0; }
   .dd-arms > img, .dd-arms > canvas { width: 84px; }
 }
 /* (en el móvil de pie, las tarjetas de dos en dos) */

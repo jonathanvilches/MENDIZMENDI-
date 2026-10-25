@@ -468,7 +468,6 @@ export const EU_ARMAS = {
   'Saberes · Escudos': 'Jakintzak · Armarriak',
   'Lo más importante': 'Garrantzitsuena',
   'Aprende Navarra jugando': 'Ikasi Nafarroa jolastuz',
-  'Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. En cada pueblo, el escudo está en la fachada del ayuntamiento o en un pilar de la plaza: léelo allí para guardarlo en tu armorial. Toca un escudo para ver su ficha.': 'Armarriak marrazkiekin idazteko modu bat dira: kolore bakoitzak, irudi bakoitzak eta toki bakoitzak zerbait esan nahi du. Hemen daude erresumaren, hirien, haranen eta jokoko herrien armarri ofizialak. Herri bakoitzean, armarria udaletxeko fatxadan edo plazako zutabe batean dago: irakurri han zure armarri-bilduman gordetzeko. Ukitu armarri bat bere fitxa ikusteko.',
   'De estos pueblos del juego aún no hemos podido comprobar el escudo en una fuente fiable. Por eso no lo dibujamos: preferimos no inventarlo.': 'Jokoko herri hauen armarria ezin izan dugu oraindik iturri fidagarri batean egiaztatu. Horregatik ez dugu marrazten: nahiago dugu ez asmatu.',
   'Cómo se lee un escudo': 'Nola irakurri armarri bat',
   'Cómo se lee y qué significa': 'Nola irakurri eta zer esan nahi duen',
