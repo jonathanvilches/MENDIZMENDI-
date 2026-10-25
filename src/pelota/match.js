@@ -179,7 +179,7 @@ export class PelotaMatch {
   vsThenPlay() {
     const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
     // (después de la presentación, el sorteo del saque con la chapa: saca el del color que sale)
-    const sorteo = () => { if (!this.active) return; this.tossChapa().then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
+    const sorteo = () => { if (!this.active) return; this.tossChapa(true).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
     const V = this.o.vsImg;
     if (!V || this.o.autostart || window.__autoWin || (navigator.webdriver && !window.__vs)) return go();
     const t = this.txt, L = t.levels || TEXT.es.levels, M = this.pairs && this.mateObjs, P = t.pairs || TEXT.es.pairs, g = this.game;
@@ -202,12 +202,13 @@ export class PelotaMatch {
   }
   // el sorteo del saque: el juez echa al aire la chapa (una cara azul y otra colorada) y saca el del color que sale. Se
   // lanza tocando el botón (o sola a los pocos segundos); devuelve el lado que saca, 'you' o 'rival'
-  tossChapa() {
+  // (directo: viene de la presentación, que se desvanece encima; su fondo ya está, sin un momento de la cancha entre las dos)
+  tossChapa(directo = false) {
     const t = this.txt, TS = t.toss || TEXT.es.toss, C = this.cols, de = (col) => (C.you === col ? 'you' : 'rival');
     const nom = (sd) => this.nomLimpio(sd), temp = (sd) => this.tempDe(sd);
     const lado = (col) => `<div class="pel-toss-p ${col}"><i aria-hidden="true"></i><b>${esc(nom(de(col)))}</b><small>${esc([col === 'azul' ? TS.azul : TS.rojo, temp(de(col))].filter(Boolean).join(' · '))}</small></div>`;
     return new Promise(res => {
-      const el = document.createElement('div'); el.className = 'pel-toss'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', TS.title);
+      const el = document.createElement('div'); el.className = directo ? 'pel-toss directo' : 'pel-toss'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', TS.title);
       el.innerHTML = `<div class="pel-toss-card"><small class="pel-toss-k">${esc(TS.title)}</small>
         <div class="pel-toss-row">${lado('azul')}<div class="pel-toss-coin" aria-hidden="true"><div class="coin"><span class="f azul"></span><span class="f rojo"></span></div><div class="sh"></div></div>${lado('rojo')}</div>
         <p class="pel-toss-why">${esc(this.seasons ? TS.why : TS.auto)}</p><button class="pel-go pel-toss-go">${esc(TS.throw)}</button><p class="pel-toss-res" aria-live="polite"></p></div>`;

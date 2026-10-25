@@ -194,7 +194,7 @@ export class Hub {
     this.buildNav(); this.sound?.ui('open'); this.go('home', undefined, true);
     if (!on && !profile().name) this.primeraVez();
   }
-  show(screen = this.screen, arg = this.arg) { this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
+  show(screen = this.screen, arg = this.arg) { if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
   // (quien empieza: primero cómo quiere jugar y después su nombre y su personaje)
   primeraVez() { if (vistoComoJugar()) return this.onboarding(); comoJugar(this.root, { primera: true, despues: () => { if (!profile().name && !isDidactico()) this.onboarding(); } }); }
   hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); this.stage = null; releaseOffscreen(); }
