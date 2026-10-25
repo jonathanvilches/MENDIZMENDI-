@@ -139,16 +139,16 @@ export function mountMapView(ui, box, opts = {}) {
     if (!it) { card.hidden = true; return; }
     const tracked = it.act === 'track' && (game.kind === 'town' ? game.tracked === it.id : game.state?.tracked === it.id);
     const btn = [];
-    // la brújula de arriba marca una misión: aquí se elige cuál (y se dice claro qué hace)
-    if (it.act === 'track') btn.push(tracked ? `<button class="btn on" disabled title="La flecha de la brújula te lleva hasta esta misión">${iconSVG('compass', 20)} La brújula te lleva aquí</button>` : `<button class="btn primary" data-a="track" title="La flecha de la brújula te llevará hasta esta misión">${iconSVG('compass', 20)} Llévame con la brújula</button>`);
-    if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${iconSVG('navigate', 20)} Viajar ahora</button>`);
+    // (en una misión, un solo botón que te lleva a empezarla: junto al vecino que la da o, si ya está en marcha, al sitio
+    // de su paso siguiente. Antes había que elegir «la brújula te lleva aquí» y después ir andando)
+    if (it.act === 'track') btn.push(`<button class="btn primary" data-a="mission">${iconSVG('play', 20)} ${/^Habla con/.test(it.text || '') ? 'Empezar la misión' : 'Ir al siguiente paso'}</button>`);
+    else if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${iconSVG('navigate', 20)} Viajar ahora</button>`);
     card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${iconSVG('close', 18)}</button>`;
     card.hidden = false;
     card.querySelector('.mc-x').onclick = () => select(null);
     card.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
       ui.sound?.ui('click');
       const a = b.dataset.a;
-      if (a === 'track') { game.mapAct?.('track', it); select(it); return; }
       ui.closeModal(); game.mapAct?.(a, it);
     });
   }
