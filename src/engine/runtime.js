@@ -101,6 +101,7 @@ export class Runtime {
     this.warmed = new WeakSet(); this.holds = 0; this.lite = 0; this.slowN = 0; this.covered = false; this.detailQ = quality;
     // (al abrir o cerrar un panel se mira enseguida: si no, al cerrarlo se veía un momento la imagen vieja de debajo)
     try { new MutationObserver(() => this.checkCover()).observe(document.body, { childList: true }); } catch (e) { }
+    addEventListener('herrizherri-cubre', () => this.checkCover());   // (un panel que empieza a irse: liga.js)
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
@@ -196,7 +197,8 @@ export class Runtime {
       if (/debug/.test(location.search)) console.log('[compilar]', obj.name || obj.type, Math.round(performance.now() - t0), 'ms');
     });
   }
-  checkCover() { this.covered = !!document.querySelector('.lg-root.gx-bg, .champ, .sport-bg.on'); }
+  // (el panel que se está desvaneciendo, .out, ya no tapa: debajo se dibuja lo que viene)
+  checkCover() { this.covered = !!document.querySelector('.lg-root.gx-bg:not(.out), .champ, .sport-bg.on'); }
   // ¿trae algún material que aún no tiene su programa en la tarjeta gráfica? (los ya usados se dibujan sin esperar)
   needsWarm(obj) {
     if (this.warmed.has(obj)) return false;

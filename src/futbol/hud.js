@@ -30,7 +30,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-clock small{font-size:var(--fs-xs);color:var(--lila,#c9b2ff);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
 .fb-say{display:none;font-size:var(--fs-sm);font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(calc(92vw / var(--z, 1)),480px);text-align:center;line-height:1.3}
 .fb-say.on{display:block;animation:fbin .18s ease-out}
-@keyframes fbin{from{opacity:0;transform:translateY(-4px)}}
+@keyframes fbin{from{opacity:0;transform:translateY(-4px)}}@keyframes fbPanelIn{from{opacity:0}}
 .fb-pen{display:none;gap:8px;font-size:var(--fs-xs);font-weight:800;padding:4px 8px;border-radius:10px;background:rgba(16,10,30,.7)}
 .fb-pen.on{display:grid;grid-template-columns:auto auto;align-items:center}
 .fb-pen u{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:rgba(255,255,255,.25);text-decoration:none;vertical-align:middle}
@@ -96,7 +96,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-fouls{display:none;align-self:center;gap:8px;align-items:center;padding:2px 8px;border-radius:9px;background:rgba(14,10,30,.72);font:900 var(--fs-xs) Nunito,sans-serif;letter-spacing:.1em;color:#cbbcf0}
 .fb-fouls.show{display:flex}.fb-fouls span{display:flex;gap:2px}.fb-fouls u{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);text-decoration:none}
 .fb-fouls u.on{background:#ff9bd8}.fb-fouls u.x{background:#ff4a4a}
-.fb-panel{position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
+.fb-panel{animation:fbPanelIn .15s ease-out;position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
 .fb-card h2{margin:0 0 var(--t-mb);font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-2xl);line-height:1}.fb-card .fb-kick+h2{margin-top:var(--t-mt)}
 .fb-card p{margin:0 0 8px;color:#e6def7;font-weight:600;font-size:var(--fs-sm);line-height:1.3}
@@ -504,7 +504,7 @@ export class FutbolHud {
       tap(p, async (b, e) => {
         e.stopPropagation();
         if (b.classList.contains('fb-go')) { p.remove(); res('resume'); }
-        else if (b.classList.contains('fb-quit')) { p.remove(); res('quit'); }
+        else if (b.classList.contains('fb-quit')) res('quit');   // (la pausa se queda: se desvanece con todo el marcador al salir)
         else if (b.classList.contains('fb-tac-btn')) { p.style.display = 'none'; const id = await this.tactic(T); if (id) b.textContent = `Táctica · ${id}`; p.style.display = ''; }
         else if (b.classList.contains('fb-ctl')) { p.style.display = 'none'; await this.controls(); p.style.display = ''; }
         else if (b.classList.contains('fb-subs-btn')) { p.style.display = 'none'; await this.subs(SB.model); b.textContent = SB.label(); p.style.display = ''; }
