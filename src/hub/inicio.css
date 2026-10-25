@@ -109,3 +109,152 @@
 }
 @media (max-width: 420px) { .ih-bar { grid-template-columns: minmax(0, 1fr); justify-items: start; } .ih-ctl { justify-self: center; } .ih-title { font-size: var(--fs-xl); } }
 @media (prefers-reduced-motion: reduce) { .ini-hero *, .ig-card, .ih-play { animation: none !important; } }
+
+/* ---------- el estilo del inicio: un libro de aventuras ----------
+   Noche de bosque, oro viejo y pergamino; los títulos en letras romanas de inscripción (Cinzel), con su orla; los marcos
+   con doble filete dorado; los colores vivos, en las láminas y en cada comarca. Solo en el inicio: el resto del menú sigue
+   como estaba */
+#hub[data-screen="home"] .hub-bg::after { background:
+  linear-gradient(180deg, rgba(10, 20, 17, .62) 0%, rgba(11, 18, 15, .86) 42%, rgba(8, 11, 10, .96) 100%),
+  radial-gradient(120% 80% at 50% 0%, rgba(214, 170, 82, .14) 0%, transparent 45%, rgba(0, 0, 0, .5) 100%); }
+#hub[data-screen="home"] .hub-top { background: linear-gradient(180deg, rgba(10, 18, 15, .92), rgba(10, 18, 15, .55)); border-bottom-color: rgba(226, 189, 99, .3); }
+#hub[data-screen="home"] .brand { font-family: 'Cinzel', 'Times New Roman', serif; font-weight: 700; letter-spacing: .08em; color: #f7dd96; text-shadow: 0 2px 0 rgba(0, 0, 0, .5), 0 0 18px rgba(226, 189, 99, .35); }
+#hub[data-screen="home"] .hub-nav { background: linear-gradient(90deg, rgba(10, 18, 15, .82), rgba(10, 18, 15, .4)); border-right-color: rgba(226, 189, 99, .22); }
+#hub[data-screen="home"] .hub-nav button.on { background: linear-gradient(90deg, rgba(226, 189, 99, .3), rgba(226, 189, 99, .04)); box-shadow: inset 3px 0 0 #e2bd63; }
+.ini-epic { --oro: #e2bd63; --oro2: #f7dd96; --oro-o: #8a6a2a; --perg: #f1e3bd; --perg2: #d9c08a; --tinta: #2b1d0e; --noche: rgba(13, 22, 19, .86); --vino: #8e2a35;
+  --filete: inset 0 0 0 1px rgba(226, 189, 99, .55), inset 0 0 0 4px rgba(13, 22, 19, .9), inset 0 0 0 5px rgba(226, 189, 99, .28); }
+/* (los títulos: Cinzel en oro, con el icono delante y la orla detrás) */
+.ini-epic .ep-h { font-family: 'Cinzel', 'Times New Roman', serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; font-size: var(--fs-lg); }
+.ini-epic .ep-h > span { background: linear-gradient(180deg, var(--oro2), var(--oro) 60%, #b58a37); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .6)); }
+.ep-orla { flex: 0 1 96px; min-width: 40px; height: 12px; color: var(--oro); opacity: .8; }
+.ini-epic .ini-h .sec-more { color: var(--oro2); }
+/* (botones de jugar y de ir: oro con letra de tinta) */
+.ep-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 24px; border-radius: 999px; border: 1px solid var(--oro2); cursor: pointer;
+  background: linear-gradient(180deg, var(--oro2), var(--oro) 55%, #b88a35); color: var(--tinta); font: 700 var(--fs-md) 'Cinzel', 'Times New Roman', serif; letter-spacing: .04em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .5); transition: transform .15s, filter .15s; }
+.ep-btn:hover, .ep-btn:focus-visible { transform: translateY(-2px); filter: brightness(1.08); }
+.ep-btn svg, .ep-btn img { width: 22px; height: 22px; }
+
+/* el saludo y el buscador, con filete dorado */
+.ini-epic .ini-me { background: conic-gradient(var(--oro2), var(--oro-o), var(--oro2), var(--oro-o), var(--oro2)); }
+.ini-epic .ini-hola b { font-family: 'Cinzel', serif; letter-spacing: .04em; color: var(--perg); }
+.ini-epic .ini-busca, .ini-epic .ini-sq { background: var(--noche); border-color: rgba(226, 189, 99, .4); }
+.ini-epic .ini-busca:focus-within { border-color: var(--oro2); box-shadow: 0 0 0 3px rgba(226, 189, 99, .22); }
+.ini-epic .ib-res { background: rgba(16, 24, 20, .97); border-color: rgba(226, 189, 99, .4); }
+
+/* el destacado: la lámina en su marco dorado, el título en Cinzel y el botón de jugar en oro */
+.ini-epic .ini-hero { box-shadow: 0 24px 60px rgba(0, 0, 0, .6), 0 0 0 1px rgba(226, 189, 99, .5); }
+.ini-epic .ini-hero::after { border: 0; box-shadow: var(--filete); background: linear-gradient(180deg, rgba(8, 12, 10, 0) 45%, rgba(8, 12, 10, .78) 100%); }
+.ini-epic .ih-bar { background: linear-gradient(180deg, rgba(14, 22, 18, .9), rgba(10, 16, 13, .95)); border: 1px solid rgba(226, 189, 99, .45); box-shadow: 0 10px 30px rgba(0, 0, 0, .5), inset 0 1px 0 rgba(247, 221, 150, .15); }
+.ini-epic .ih-txt .kicker, .ini-epic .ih-chip small { color: var(--oro2); }
+.ini-epic .ih-title { font-family: 'Cinzel', 'Times New Roman', serif; font-weight: 700; letter-spacing: .03em; color: var(--perg); text-shadow: 0 2px 0 rgba(0, 0, 0, .5); }
+.ini-epic .ih-chip { background: rgba(12, 20, 16, .82); border-color: rgba(226, 189, 99, .5); }
+.ini-epic .ih-play { background: radial-gradient(circle at 50% 35%, var(--oro2), var(--oro) 55%, #9c7430); box-shadow: 0 0 0 6px rgba(226, 189, 99, .2), 0 10px 30px rgba(0, 0, 0, .55); animation: ep-late 2.4s ease-in-out infinite; }
+.ini-epic .ih-play svg, .ini-epic .ih-play img { filter: brightness(.2) sepia(1) saturate(3) hue-rotate(-10deg); }
+@keyframes ep-late { 50% { box-shadow: 0 0 0 12px rgba(226, 189, 99, .07), 0 10px 30px rgba(0, 0, 0, .55); } }
+.ini-epic .ih-arrow { background: rgba(247, 221, 150, .1); border-color: rgba(226, 189, 99, .4); }
+.ini-epic .ih-ms i.ok { background: rgba(226, 189, 99, .28); border-color: var(--oro2); }
+.ini-epic .ih-stat b { font-family: 'Cinzel', serif; color: var(--oro2); }
+
+/* la columna de lo que hay ahora: pergamino oscuro con filete */
+.ini-epic .ini-live, .ini-epic .ip, .ini-epic .ig-card { background: var(--noche); border-color: rgba(226, 189, 99, .3); }
+.ini-epic .ini-live { box-shadow: var(--filete), 0 14px 34px rgba(0, 0, 0, .4); }
+.ini-epic .ini-live li.on { background: rgba(226, 189, 99, .12); border-color: rgba(226, 189, 99, .45); }
+.ini-epic .il-pick img { box-shadow: 0 0 0 1px rgba(226, 189, 99, .5); }
+.ini-epic .ip:hover, .ini-epic .ip:focus-visible, .ini-epic .ig-card:hover, .ini-epic .ig-card:focus-visible { border-color: var(--oro); }
+.ini-epic .ip-av { border-color: var(--oro); background: radial-gradient(circle at 50% 35%, #3f5a3a, #121c16); }
+.ini-epic .ig-tabs { border-bottom-color: rgba(226, 189, 99, .25); }
+.ini-epic .ig-tabs button { font-family: 'Cinzel', 'Times New Roman', serif; font-weight: 700; letter-spacing: .04em; }
+.ini-epic .ig-tabs button.on { color: var(--oro2); border-bottom-color: var(--oro); }
+.ini-epic .ig-arrow { border-color: rgba(226, 189, 99, .4); } .ini-epic .ig-arrow:first-child { background: linear-gradient(180deg, var(--oro2), var(--oro)); }
+.ini-epic .ig-tx b { font-family: 'Cinzel', 'Times New Roman', serif; font-weight: 700; color: var(--perg); }
+.ini-epic .ig-tx em i { background: rgba(226, 189, 99, .14); border-color: rgba(226, 189, 99, .4); color: var(--oro2); }
+.ini-epic .ig-img { background: radial-gradient(circle at 50% 40%, #3b5a3e, #121c16); }
+
+/* ---------- el reino de Navarra ---------- */
+.ini-reino { display: grid; gap: 16px; margin-top: 36px; padding: 24px; border-radius: 22px; position: relative;
+  background: radial-gradient(120% 90% at 50% 0%, rgba(226, 189, 99, .1), transparent 55%), linear-gradient(180deg, rgba(16, 26, 21, .92), rgba(10, 16, 13, .95));
+  box-shadow: var(--filete), 0 24px 60px rgba(0, 0, 0, .5); }
+.ir-head { display: grid; gap: 8px; justify-items: center; text-align: center; }
+.ir-head .ep-h { font-size: var(--fs-2xl); justify-content: center; }
+.ir-head .ep-h::before { content: ''; flex: 0 1 96px; min-width: 40px; height: 12px; background: currentColor; color: var(--oro); opacity: .8;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 12'%3E%3Cpath d='M0 6h24M40 6h24' stroke='black' stroke-width='1.5'/%3E%3Cpath d='M32 1l5 5-5 5-5-5z'/%3E%3Ccircle cx='20' cy='6' r='1.6'/%3E%3Ccircle cx='44' cy='6' r='1.6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 12'%3E%3Cpath d='M0 6h24M40 6h24' stroke='black' stroke-width='1.5'/%3E%3Cpath d='M32 1l5 5-5 5-5-5z'/%3E%3Ccircle cx='20' cy='6' r='1.6'/%3E%3Ccircle cx='44' cy='6' r='1.6'/%3E%3C/svg%3E") center / contain no-repeat; order: -1; }
+.ir-head .ep-h > svg:not(.ep-orla), .ir-head .ep-h > img { display: none; }
+.ir-head .ep-h > span { white-space: nowrap; }
+.ir-lead { margin: 0; max-width: 60ch; color: var(--perg2); font-size: var(--fs-md); line-height: 1.45; }
+.ir-cifras { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 4px; }
+.ir-cifras > span { display: flex; align-items: center; gap: 8px; padding: 6px 16px 6px 8px; border-radius: 999px; background: rgba(247, 221, 150, .07); border: 1px solid rgba(226, 189, 99, .35); }
+.ir-cifras svg, .ir-cifras img { flex: none; width: 28px; height: 28px; }
+.ir-cifras b { font: 700 var(--fs-xl) 'Cinzel', 'Times New Roman', serif; color: var(--oro2); line-height: 1; }
+.ir-cifras small { color: var(--perg2); font-weight: 800; font-size: var(--fs-sm); }
+/* (los capítulos: una pestaña por comarca, con su número romano, su sello y lo que llevas; en su color) */
+.ir-tabs { display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px 8px; scroll-snap-type: x proximity; scrollbar-width: thin; }
+.ir-tab { flex: none; scroll-snap-align: center; display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 4px 16px 4px 4px; border-radius: 14px; cursor: pointer; color: var(--perg);
+  background: linear-gradient(180deg, rgba(255, 255, 255, .05), rgba(0, 0, 0, .2)), color-mix(in srgb, var(--c) 30%, #0d1613); border: 1px solid color-mix(in srgb, var(--c) 60%, var(--oro) 40%); transition: transform .15s, box-shadow .2s; }
+.ir-tab i { flex: none; min-width: 36px; height: 36px; padding: 0 4px; display: grid; place-items: center; border-radius: 10px; font: 700 var(--fs-sm) 'Cinzel', serif; font-style: normal; color: var(--tinta); background: linear-gradient(180deg, var(--oro2), var(--oro)); }
+.ir-tab img { flex: none; width: 34px; height: 34px; }
+.ir-tab span { display: grid; text-align: left; line-height: 1.15; } .ir-tab b { font-size: var(--fs-sm); white-space: nowrap; } .ir-tab small { color: var(--perg2); font-size: var(--fs-xs); font-weight: 800; }
+.ir-tab:hover, .ir-tab:focus-visible { transform: translateY(-2px); }
+.ir-tab.on { box-shadow: 0 0 0 2px var(--oro2), 0 8px 22px rgba(0, 0, 0, .45), 0 0 22px color-mix(in srgb, var(--c) 60%, transparent); }
+.ir-body { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr); gap: 20px; align-items: start; }
+/* (el mapa en pergamino: papel claro con los bordes tostados, las comarcas en sus colores como acuarela, los pueblos como
+   medallas, la cartela con el nombre y la rosa de los vientos) */
+.ir-mapa { position: relative; border-radius: 16px; padding: 12px; overflow: hidden; color: var(--tinta);
+  background: radial-gradient(ellipse at 50% 45%, #f7ecd0 0%, #ecd9ab 55%, #c9a865 100%);
+  box-shadow: inset 0 0 40px rgba(110, 72, 20, .45), inset 0 0 0 1px rgba(110, 72, 20, .6), 0 0 0 1px rgba(226, 189, 99, .6), 0 16px 40px rgba(0, 0, 0, .5); }
+.ir-mapa::before { content: ''; position: absolute; inset: 0; pointer-events: none; opacity: .35; mix-blend-mode: multiply;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .32 0 0 0 0 .14 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.ir-mapa svg.navarra { display: block; width: 100%; height: auto; max-height: min(640px, calc(70dvh / var(--z, 1))); margin: 0 auto; filter: none; }
+.ir-mapa .cpath { stroke: rgba(70, 44, 14, .85); stroke-width: 1.6; stroke-linejoin: round; mix-blend-mode: multiply; fill-opacity: .55 !important; transition: fill-opacity .25s, filter .25s; }
+.ir-mapa .cpath:hover { fill-opacity: .8 !important; filter: none; }
+.ir-mapa .cpath.sel { fill-opacity: .95 !important; stroke: #6b3d0c; stroke-width: 3; filter: drop-shadow(0 0 6px rgba(255, 220, 140, .9)); mix-blend-mode: normal; }
+.ir-mapa .clabel { display: inline; fill: var(--tinta); stroke: rgba(247, 236, 208, .85); stroke-width: 3px; font-family: 'Cinzel', serif; font-size: 11px; letter-spacing: .06em; }
+.ir-mapa .cnum { display: none; }
+.ir-mapa .pin circle { r: 5.5; fill: #fbf3dd; stroke: var(--tinta); stroke-width: 1.8; }
+.ir-mapa .pin.go circle { fill: var(--oro); } .ir-mapa .pin.ok circle { fill: #4c9a52; }
+.ir-mapa .pin:hover circle { r: 8; } .ir-mapa .pin text { display: none; }
+.ir-cartela { position: absolute; left: 20px; bottom: 18px; display: grid; justify-items: center; padding: 6px 14px; border-radius: 6px; color: var(--tinta);
+  background: linear-gradient(180deg, #fbf1d6, #ead39b); box-shadow: inset 0 0 0 1px rgba(110, 72, 20, .6), inset 0 0 0 3px #fbf1d6, inset 0 0 0 4px rgba(110, 72, 20, .45), 0 4px 10px rgba(60, 36, 8, .35); pointer-events: none; }
+.ir-cartela small { font: 700 var(--fs-xs) 'Cinzel', serif; letter-spacing: .2em; opacity: .75; } .ir-cartela b { font: 700 var(--fs-lg) 'Cinzel', serif; letter-spacing: .08em; }
+.ir-rosa { position: absolute; right: 16px; bottom: 16px; width: 84px; height: 84px; color: #5a3b14; opacity: .8; pointer-events: none; font-family: 'Cinzel', serif; }
+/* (el capítulo abierto: su lámina con el número y el nombre, la barra de sellos y sus pantallas) */
+.ir-cap { display: grid; gap: 12px; min-width: 0; }
+.ir-cap.cambia > * { animation: ih-sube .4s ease both; }
+.ic-banner { position: relative; min-height: 170px; display: grid; align-content: end; gap: 2px; padding: 16px 96px 16px 20px; border-radius: 16px; overflow: hidden; background: #1a2a22 center / cover no-repeat;
+  box-shadow: var(--filete), 0 14px 34px rgba(0, 0, 0, .45); isolation: isolate; }
+.ic-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(8, 12, 10, .88), rgba(8, 12, 10, .45) 60%, rgba(8, 12, 10, .15)), linear-gradient(0deg, color-mix(in srgb, var(--c) 55%, transparent), transparent 70%); }
+.ic-num { color: var(--oro2); font: 700 var(--fs-sm) 'Cinzel', serif; letter-spacing: .2em; text-transform: uppercase; }
+.ic-name { color: var(--perg); font: 700 var(--fs-2xl) 'Cinzel', 'Times New Roman', serif; line-height: 1.1; letter-spacing: .03em; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); }
+.ic-meta { display: flex; align-items: center; gap: 6px; color: var(--perg2); font-weight: 800; font-size: var(--fs-sm); } .ic-meta svg, .ic-meta img { width: 20px; height: 20px; }
+.ic-sello { position: absolute; right: 16px; top: 50%; width: 72px; height: 72px; transform: translateY(-50%) rotate(-8deg); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .6)); }
+.ic-sello.gris { filter: grayscale(1) brightness(.85) drop-shadow(0 4px 8px rgba(0, 0, 0, .6)); opacity: .7; }
+.ic-barra { display: block; height: 8px; border-radius: 4px; background: rgba(247, 221, 150, .12); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(226, 189, 99, .3); }
+.ic-barra u { display: block; height: 100%; background: linear-gradient(90deg, var(--oro), var(--oro2)); }
+.ic-towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 10px; }
+.ic-town { display: grid; gap: 4px; justify-items: start; min-width: 0; padding: 6px 6px 8px; border-radius: 14px; cursor: pointer; text-align: left; color: var(--perg); font: inherit;
+  background: rgba(13, 22, 19, .9); border: 1px solid rgba(226, 189, 99, .28); transition: transform .15s, border-color .2s, box-shadow .2s; animation: ig-in .35s ease both; animation-delay: var(--d, 0s); }
+.ic-town:hover, .ic-town:focus-visible { transform: translateY(-3px); border-color: var(--oro); box-shadow: 0 10px 22px rgba(0, 0, 0, .45); }
+.ic-img { position: relative; display: block; width: 100%; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #1a2a22; }
+.ic-img img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.ic-town:not(.go):not(.ok) .ic-img img { filter: saturate(.75) brightness(.9); }
+.ic-n { position: absolute; left: 6px; top: 6px; min-width: 26px; height: 26px; padding: 0 6px; display: grid; place-items: center; border-radius: 8px; font: 700 var(--fs-sm) 'Cinzel', serif; font-style: normal; color: var(--tinta); background: linear-gradient(180deg, var(--oro2), var(--oro)); box-shadow: 0 2px 6px rgba(0, 0, 0, .5); }
+.ic-bq { position: absolute; right: 6px; top: 6px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: rgba(13, 22, 19, .85); } .ic-bq svg, .ic-bq img { width: 18px; height: 18px; }
+.ic-town b { max-width: 100%; font-size: var(--fs-sm); line-height: 1.2; color: var(--perg); }
+.ic-town small { display: flex; align-items: center; gap: 4px; color: var(--perg2); font-weight: 800; font-size: var(--fs-xs); } .ic-town small svg, .ic-town small img { width: 16px; height: 16px; }
+.ic-town.ok { border-color: rgba(76, 154, 82, .7); } .ic-town.ok small { color: #9fe0a3; }
+.ic-town.go { border-color: rgba(226, 189, 99, .6); } .ic-town.go small { color: var(--oro2); }
+.ir-cap > .ep-btn { justify-self: start; }
+
+/* (con poco sitio: el mapa encima del capítulo; en el móvil tumbado, mapa y capítulo de lado, más bajos) */
+@media (max-width: 1099px) { .ir-body { grid-template-columns: minmax(0, 1fr); } .ir-mapa svg.navarra { max-height: min(520px, 60dvh); } }
+@media (max-height: 520px) { .ir-head .ep-h { font-size: var(--fs-xl); } .ir-lead { font-size: var(--fs-sm); } .ir-cifras b { font-size: var(--fs-lg); } .ir-cifras svg, .ir-cifras img { width: 24px; height: 24px; } }
+@media (max-height: 520px) and (min-width: 700px) { .ir-body { grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); } .ir-mapa svg.navarra { max-height: 72dvh; } .ini-reino { margin-top: 16px; padding: 16px; } .ic-banner { min-height: 120px; } .ic-name { font-size: var(--fs-xl); } }
+@media (max-width: 760px) {
+  .ini-reino { padding: 16px 12px; } .ir-head .ep-h { font-size: var(--fs-lg); } .ir-head .ep-h > span { white-space: normal; } .ir-head .ep-h::before, .ir-head .ep-orla { flex-basis: 40px; }
+  .ir-cifras > span { padding: 4px 12px 4px 6px; } .ir-cifras b { font-size: var(--fs-lg); }
+  .ic-banner { min-height: 140px; padding-right: 80px; } .ic-sello { width: 58px; height: 58px; } .ic-name { font-size: var(--fs-xl); }
+  .ic-towns { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); } .ir-rosa { width: 60px; height: 60px; }
+}
+@media (max-width: 420px) { .ini-epic .ep-h { font-size: var(--fs-md); letter-spacing: .04em; } .ini-epic .ep-h > span { white-space: nowrap; } .ep-orla { flex-basis: 40px; } .ep-h:has(.sec-more) .ep-orla { display: none; } .ir-cartela { left: 12px; bottom: 12px; padding: 4px 10px; } .ir-cartela b { font-size: var(--fs-md); } }
+@media (prefers-reduced-motion: reduce) { .ini-epic .ih-play, .ic-town, .ir-cap.cambia > * { animation: none !important; } }

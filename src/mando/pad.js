@@ -7,8 +7,10 @@
 import { ctxActual } from './contextos.js';
 import { verFlecha, mueve, pulsar } from './cursor.js';
 
-/** Palanca para andar (de -1 a 1; y: adelante) y giro de cámara acumulado en píxeles, como si se arrastrara el ratón. */
-export const PAD = { x: 0, y: 0, lx: 0, ly: 0 };
+/** Palanca para andar (de -1 a 1; y: adelante) y giro de cámara acumulado en píxeles, como si se arrastrara el ratón;
+ *  mx, my: el giro que manda el móvil, que Input reparte entre varios fotogramas (llega a golpes, unas 30 veces por
+ *  segundo y desigual por la wifi: aplicado de una vez, la cámara giraba un fotograma sí y otro no y la imagen parpadeaba). */
+export const PAD = { x: 0, y: 0, lx: 0, ly: 0, mx: 0, my: 0 };
 /** El móvil, con la forma de un mando estándar: 4 ejes y 17 botones. */
 export const VPAD = { id: 'Herrizherri: mando del móvil', index: 7, connected: false, mapping: 'standard', timestamp: 0, axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, touched: false, value: 0 })) };
 
@@ -26,7 +28,10 @@ function accion(C, i) {
   const k = C.b[i]?.[1]; return k ? { key: k } : null;
 }
 const prev = new Map(), held = new Map(), flechas = new Map();
-let raf = 0, quieto = 0;
+let raf = 0, quieto = 0, antes = 0;
+// (la palanca del móvil, suavizada: llega a saltos, cuando llega cada mensaje; aquí sigue a lo último que llegó en unos
+// 50 ms, de fotograma en fotograma)
+const suave = { x: 0, y: 0 };
 const dz = (v) => (Math.abs(v) < 0.15 ? 0 : v);
 function suelta(a) { if (a.key) tecla('keyup', a.key); else if (a.el) pulsar(a.el, false); }
 // (todo suelto: los botones que se mantenían, las flechas de la palanca y el andar; al quedarse sin mandos, al irse uno
@@ -42,11 +47,14 @@ function frame() {
   if (!L.length && ++quieto > 120) { raf = 0; PAD.x = PAD.y = 0; verFlecha(false); return; }   // (sin mandos, deja de mirar)
   if (L.length) quieto = 0;
   raf = requestAnimationFrame(frame);
+  const ahora = performance.now(), k = 1 - Math.exp(-Math.min(0.1, (ahora - (antes || ahora)) / 1000) / 0.05); antes = ahora;
+  suave.x += (VPAD.axes[0] - suave.x) * k; suave.y += (VPAD.axes[1] - suave.y) * k;
+  if (!VPAD.axes[0] && !VPAD.axes[1] && Math.abs(suave.x) + Math.abs(suave.y) < 0.02) suave.x = suave.y = 0;
   const C = ctxActual();
   verFlecha(L.length > 0 && C.tac);
   let x = 0, y = 0;
   for (const gp of L) {
-    const ax = dz(gp.axes[0] || 0), ay = dz(gp.axes[1] || 0);
+    const ax = dz((gp === VPAD ? suave.x : gp.axes[0]) || 0), ay = dz((gp === VPAD ? suave.y : gp.axes[1]) || 0);
     if (Math.abs(ax) + Math.abs(ay) > Math.abs(x) + Math.abs(y)) { x = ax; y = -ay; }
     if (gp.mapping === 'standard' && C.mira) { PAD.lx += dz(gp.axes[2] || 0) * 12; PAD.ly += dz(gp.axes[3] || 0) * 9; }
     if (gp === VPAD) continue;   // (los botones del móvil se atienden al llegar: botonMovil)

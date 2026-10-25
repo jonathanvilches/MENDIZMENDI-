@@ -7,3 +7,5 @@
 @font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 800; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-800-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 900; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-900-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Nunito'; font-style: italic; font-display: swap; font-weight: 700; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-700-italic.woff2') format('woff2'); }
+/* (los títulos épicos del inicio: Cinzel, letras romanas de inscripción, OFL; un solo grosor) */
+@font-face { font-family: 'Cinzel'; font-style: normal; font-display: swap; font-weight: 700; src: url('../../node_modules/@fontsource/cinzel/files/cinzel-latin-700-normal.woff2') format('woff2'); }

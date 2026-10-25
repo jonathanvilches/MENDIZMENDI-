@@ -63,7 +63,7 @@ export class Input {
     if (e.pointerId === this.lookPtr.id) this.lookPtr.id = null;
   }
   stickEnd() { this.stick = { id: null, ox: 0, oy: 0, x: 0, y: 0 }; this.onStick?.(false); }
-  update() {
+  update(dt = 1 / 60) {
     const k = this.keys;
     let x = 0, y = 0;
     if (this.enabled) {
@@ -74,7 +74,11 @@ export class Input {
       if (this.stick.id !== null) { x += this.stick.x; y += this.stick.y; }
       x += PAD.x; y += PAD.y;
       this.look.dx += PAD.lx; this.look.dy += PAD.ly;
-    }
+      // (el giro del móvil, repartido: cada fotograma, la parte que toca en unos 60 ms, según lo que ha durado)
+      const f = 1 - Math.exp(-Math.min(dt, 0.1) / 0.06), mx = PAD.mx * f, my = PAD.my * f;
+      this.look.dx += mx; this.look.dy += my; PAD.mx -= mx; PAD.my -= my;
+      if (Math.abs(PAD.mx) < 0.05) PAD.mx = 0; if (Math.abs(PAD.my) < 0.05) PAD.my = 0;
+    } else PAD.mx = PAD.my = 0;
     PAD.lx = PAD.ly = 0;
     const l = Math.hypot(x, y);
     if (l > 1) { x /= l; y /= l; }
