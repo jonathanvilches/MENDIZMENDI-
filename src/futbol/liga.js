@@ -242,7 +242,7 @@ function panel(html) {
   return r;
 }
 // (al elegir, el panel se desvanece mientras empieza lo siguiente, que entra por debajo o encima: antes se quitaba de golpe)
-function fuera(r) { r.classList.add('out'); setTimeout(() => r.remove(), 220); }
+function fuera(r) { r.classList.add('out'); dispatchEvent(new Event('herrizherri-cubre')); setTimeout(() => r.remove(), 220); }
 // (en el móvil, solo PJ · DG · Pts; las demás columnas se ven en pantallas anchas)
 function tableHtml(S) {
   return `<table class="lg-table"><tr><th></th><th style="text-align:left">Club</th><th>PJ</th><th class="x">G</th><th class="x">E</th><th class="x">P</th><th class="x">GF</th><th class="x">GC</th><th>DG</th><th>Pts</th></tr>${table(S).map((t, i) => {
