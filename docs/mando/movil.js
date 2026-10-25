@@ -13,9 +13,8 @@ const EU = {
   'No llego a ningún servidor para presentarme al ordenador. Comprueba internet en el móvil: lo vuelvo a intentar…': 'Ez dut ordenagailuari aurkezteko zerbitzaririk lortzen. Begiratu mugikorraren internet: berriro saiatzen…',
   'Buscando el ordenador…': 'Ordenagailua bilatzen…', 'Acepta en el ordenador que este móvil sea el mando.': 'Onartu ordenagailuan mugikor hau agintea izatea.', 'El ordenador ha contestado: conectando…': 'Ordenagailuak erantzun du: konektatzen…',
   'El código tiene cinco letras o números.': 'Kodeak bost letra edo zenbaki ditu.', 'El juego ha cerrado el mando.': 'Jokoak agintea itxi du.',
-  'Mover': 'Mugitu', 'Desliza para mirar': 'Irristatu begiratzeko',
-  'Desliza': 'Irristatu', 'para mover la flecha': 'gezia mugitzeko', 'Toca': 'Ukitu', 'para pulsar': 'sakatzeko', 'Dos dedos': 'Bi hatzekin', 'para subir y bajar': 'gora eta behera egiteko',
-  'Elige en el ordenador con la flecha, o sigue tu aventura:': 'Aukeratu ordenagailuan geziarekin, edo jarraitu zure abenturarekin:', '¡A jugar!': 'Jolastera!',
+  'Mover': 'Mugitu',
+  '¡A jugar!': 'Jolastera!',
   'Acción': 'Ekintza', 'Saltar': 'Jauzi', 'Prismáticos': 'Prismatikoak', 'Mochila': 'Motxila', 'Correr': 'Korrika', 'Mapa': 'Mapa', 'Cuaderno': 'Koadernoa', 'Menú': 'Menua', 'Perro': 'Txakurra',
   'Seguir': 'Jarraitu', 'Anotar': 'Idatzi', 'Salir': 'Irten', 'Atrás': 'Atzera', 'Golpe': 'Kolpea', 'Cortada': 'Moztua', 'Dejada': 'Utzia', 'Globo': 'Globoa', 'Pausa': 'Pausa',
   'Pase': 'Pasea', 'Tiro': 'Jaurtiketa', 'Cambiar': 'Aldatu', 'Sprint': 'Korrika', 'Robar': 'Kendu', 'Entrada': 'Sarrera', 'Saque largo': 'Sake luzea', 'Cámara': 'Kamera', 'Coser': 'Josi',
@@ -23,8 +22,14 @@ const EU = {
   'Fútbol': 'Futbola', 'El esquileo': 'Ardi-mozketa', 'La costura': 'Josketa', 'En el menú': 'Menuan',
   'Misiones': 'Misioak', 'Hecha': 'Eginda', 'En curso': 'Martxan', 'Nueva': 'Berria', 'La sigues': 'Jarraitzen', 'Toca una para seguirla': 'Ukitu bat jarraitzeko',
   'Instala la app «Mando»': 'Instalatu «Mando» aplikazioa', 'Instalar': 'Instalatu', 'Ahora no': 'Orain ez',
-  'Ocupa toda la pantalla y, la próxima vez, se conecta sola al ordenador.': 'Pantaila osoa hartzen du eta, hurrengoan, berez konektatzen da ordenagailura.',
-  'En Safari, toca Compartir y luego «Añadir a pantalla de inicio». Después, ábrela desde su icono: ocupa toda la pantalla y se conecta sola.': 'Safarin, ukitu Partekatu eta gero «Gehitu hasierako pantailan». Gero, ireki bere ikonotik: pantaila osoa hartzen du eta berez konektatzen da.',
+  'Se abre desde su icono, sin el navegador, a toda la pantalla y, la próxima vez, se conecta sola al ordenador.': 'Bere ikonotik irekitzen da, nabigatzailerik gabe, pantaila osoan, eta hurrengoan berez konektatzen da ordenagailura.',
+  'Después, ábrela desde su icono: se abre sin el navegador, a toda la pantalla, y se conecta sola.': 'Gero, ireki bere ikonotik: nabigatzailerik gabe irekitzen da, pantaila osoan, eta berez konektatzen da.',
+  'Estás dentro de otra app. Abre este enlace en Safari o en Chrome, desde su menú, y allí podrás instalarla.': 'Beste aplikazio baten barruan zaude. Ireki esteka hau Safarin edo Chromen, bere menutik, eta han instalatu ahal izango duzu.',
+  'Toca Compartir (el cuadrado con la flecha; en iOS 26, dentro del botón «⋯») y luego «Añadir a pantalla de inicio», con «Abrir como app web» activado.': 'Ukitu Partekatu (gezidun karratua; iOS 26n, «⋯» botoiaren barruan) eta gero «Gehitu hasierako pantailan», «Ireki web aplikazio gisa» aktibatuta.',
+  'Toca Compartir, arriba a la derecha junto a la dirección, y luego «Añadir a pantalla de inicio».': 'Ukitu Partekatu, goian eskuinean helbidearen ondoan, eta gero «Gehitu hasierako pantailan».',
+  'Abre el menú del navegador, toca Compartir y luego «Añadir a pantalla de inicio».': 'Ireki nabigatzailearen menua, ukitu Partekatu eta gero «Gehitu hasierako pantailan».',
+  'Abre el menú del navegador (los tres puntos) y toca «Instalar app» o «Añadir a pantalla de inicio».': 'Ireki nabigatzailearen menua (hiru puntuak) eta ukitu «Instalatu aplikazioa» edo «Gehitu hasierako pantailan».',
+  'Abre el menú (las tres rayas), toca «Añadir página a» y luego «Pantalla de inicio».': 'Ireki menua (hiru marrak), ukitu «Gehitu orria hona» eta gero «Hasierako pantaila».',
   'Abre Herrizherri en el ordenador: el mando se conecta solo en cuanto esté.': 'Ireki Herrizherri ordenagailuan: agintea berez konektatuko da prest dagoenean.',
   '¡Todas hechas!': 'Denak eginda!', 'sello conseguido': 'zigilua lortuta', 'completa todas para ganar el sello': 'osatu denak zigilua irabazteko', 'Con': 'Nork:', 'Cerrar': 'Itxi',
 };
@@ -49,7 +54,7 @@ const { senal, ICE, SIN_P2P, CAMINOS, SECRETO } = M || { senal: () => Promise.re
 const LETRAS = /^[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{5}$/;
 const NOHAY = 'No encuentro el juego con ese código. Mira el código en el ordenador y que su ventana del mando siga abierta.';
 const RUTAS = 1000, DIRECTO = 700;   // (ms: lo que se espera, como mucho, a las rutas de red y a hablar directamente)
-let fuerte = false, code = '', sig = null, pc = null, dc = null, conectado = false, intentos = 0, espera = 0, cerrado = false, repite = 0, respondido = false, relevo = false, pasoT = 0, oido = 0, otra = 0, sinRed = 0, dicha = false, intento = 0, tardaT = 0;
+let fuerte = false, code = '', sig = null, pc = null, dc = null, dr = null, rapOk = false, conectado = false, intentos = 0, espera = 0, cerrado = false, repite = 0, respondido = false, relevo = false, pasoT = 0, oido = 0, otra = 0, sinRed = 0, dicha = false, intento = 0, tardaT = 0;
 let sueltas = [];   // (las rutas del ordenador que llegan antes que su respuesta)
 // lo de esta sesión, guardado en el móvil mientras la pestaña siga abierta: el código, el secreto del QR (si se llegó por
 // él) y el nombre de este móvil, el mismo en cada reconexión (así, si el ordenador ya le dio permiso, no vuelve a preguntar)
@@ -148,11 +153,18 @@ const rutas = (p, ms) => new Promise((ok) => {
 });
 // el plan B: los mensajes del mando por el saludo (el primero, para que el ordenador lo sepa y conteste con sus botones)
 function porElSaludo() { if (conectado || !sig) return; relevo = true; oido = performance.now(); abierto(); envia({ t: 'ping' }); }
-function limpia() { clearTimeout(repite); clearTimeout(pasoT); relevo = false; dicha = false; sueltas = []; try { dc?.close(); } catch (e) { } try { pc?.close(); } catch (e) { } try { sig?.close(); } catch (e) { } dc = pc = sig = null; }
+function limpia() { clearTimeout(repite); clearTimeout(pasoT); relevo = false; dicha = false; sueltas = []; try { dr?.close(); } catch (e) { } try { dc?.close(); } catch (e) { } try { pc?.close(); } catch (e) { } try { sig?.close(); } catch (e) { } dr = dc = pc = sig = null; }
+// el canal rápido (si el juego lo conoce: lo dice al saludar): la palanca, la cámara y la flecha, sin orden ni reenvíos.
+// Por el canal de siempre, un mensaje perdido por la wifi frenaba a los siguientes hasta reenviarse y el jugador andaba a
+// tirones; aquí vale el más nuevo y uno perdido no frena a nadie
+function abreRapido() {
+  if (!rapOk || !pc || dc?.readyState !== 'open' || (dr && dr.readyState !== 'closed' && dr.pc === pc)) return;
+  try { dr = pc.createDataChannel('rapido', { ordered: false, maxRetransmits: 0 }); dr.pc = pc; } catch (e) { dr = null; }
+}
 function abierto() {
   const ya = conectado;
   conectado = true; intentos = 0; clearTimeout(espera); clearTimeout(pasoT); clearTimeout(tardaT);
-  if (dc?.readyState === 'open') { relevo = false; sig?.close(); sig = null; }   // (ya hablan directamente: el saludo sobra)
+  if (dc?.readyState === 'open') { relevo = false; sig?.close(); sig = null; abreRapido(); }   // (ya hablan directamente: el saludo sobra)
   envia({ t: 'repite' });   // (desde ahora el ordenador suelta lo que no se repita: ver «lo que se mantiene, se repite»; también al pasar del saludo a la conexión directa)
   if (ya) { estado(); return; }
   msg(''); $('#go').disabled = false; vista(true); estado(); despierta(); ofrece();
@@ -167,28 +179,30 @@ function caido() {
 }
 // (la palanca y los botones van numerados: por el saludo pueden llegar desordenados y el ordenador se queda con el más nuevo)
 let sec = 0;
+// (por el rápido, lo que se mueve; el «quieto» de la palanca, por el de siempre, que no se pierde)
+const RAPIDO = new Set(['ej', 'mira', 'cur', 'rueda']);
 const envia = (m) => {
   if (m.t === 'ej' || m.t === 'bt' || m.t === 'esp') m = { ...m, s: ++sec };
+  if (dr?.readyState === 'open' && RAPIDO.has(m.t) && !(m.t === 'ej' && !m.x && !m.y)) { try { dr.send(JSON.stringify(m)); return; } catch (e) { } }
   if (dc?.readyState === 'open') dc.send(JSON.stringify(m)); else if (relevo) sig?.send('hzh-' + code, 'DATA', m);
 };
 // (por el saludo no hay aviso de corte: si el ordenador no contesta en 8 s —se le pregunta cada 2—, se ha ido)
 setInterval(() => { if (relevo && conectado && performance.now() - oido > 8000) caido(); }, 2000);
 // lo que dice el ordenador
-let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, lat = 0, pingT = 0, ctxK = '', demo = false, MIS = null;
+let C = { m: 'juego', tit: '', pal: 'andar', mira: true, tac: false, b: {}, fijo: [], esp: [] }, ctxK = '', demo = false, MIS = null;
 function del(m) {
-  if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; traduce(); pinta(); pintaMis(); }
+  if (m.t === 'hola') { LANG = m.lang === 'eu' ? 'eu' : 'es'; rapOk = !!m.rapido; abreRapido(); traduce(); pinta(); pintaMis(); }
   else if (m.t === 'ctx') { const k = JSON.stringify(m); if (k === ctxK) return; const igual = forma(m) === forma(C) && ctxK; ctxK = k; C = m; if (igual) retoca(); else { soltarTodo(); pinta(); } }
-  else if (m.t === 'pong') { lat = Math.round(performance.now() - pingT); estado(); }
   else if (m.t === 'mis') { MIS = m.lista?.length ? m : null; pintaMis(); estado(); }
   else if (m.t === 'pareja') { if (m.code === code && SECRETO.test(m.secreto || '')) { const s = sesion(); guarda({ ...s, code, secreto: m.secreto }); emparejar({ code, secreto: m.secreto, yo: s.yo }); } }
   else if (m.t === 'adios') { emparejar(null); auto = false; cerrado = true; conectado = false; soltarTodo(); limpia(); vista(false); msg('El juego ha cerrado el mando.', true); pantalla(false); }
 }
-setInterval(() => { if (conectado) { pingT = performance.now(); envia({ t: 'ping' }); } }, 2000);
-// (arriba a la izquierda: verde y en qué se está, con lo que tarda en llegar; amarillo mientras se vuelve a conectar)
+setInterval(() => { if (conectado) envia({ t: 'ping' }); }, 2000);   // (señal de vida, para el ordenador)
+// (arriba a la izquierda: verde y en qué se está; amarillo mientras se vuelve a conectar)
 function estado() {
   const ok = conectado || demo;
   $('#est').classList.toggle('ok', ok);
-  $('#estT').innerHTML = ok ? '<b></b>' + (lat ? ` <small>${lat} ms</small>` : '') : '';
+  $('#estT').innerHTML = ok ? '<b></b>' : '';
   if (ok) $('#estT b').textContent = T(C.tit || 'Conectado'); else $('#estT').textContent = T('Reconectando…');
   // (en el pueblo, en vez de «En el pueblo», la misión que sigues)
   const q = ok && MIS && C.m === 'juego'; $('#qst').classList.toggle('hide', !q); $('#estT').classList.toggle('hide', !!q);
@@ -271,6 +285,8 @@ function accion(i, prim) {
   x.querySelector('.nom').textContent = n; if (e !== 'futbol' && e !== 'pelota' && ico(i)) x.classList.add('icono'); return x;
 }
 const CIERRA = /cerrar|salir|volver|atrás|ahora no|itxi|irten|itzuli|^(✕|×|x)$/i;
+// (cada botón copiado: su nombre, si es el elegido y si es el principal; de un juego anterior, solo el nombre)
+const boton = (x) => typeof x === 'string' ? { t: x } : { t: String(x?.t || ''), on: !!x?.on, p: typeof x?.p === 'boolean' ? x.p : undefined };
 function pinta() {
   const b = C.b || {}, esp = C.esp || [], fijos = (C.fijo || []).filter(i => b[i]), der = C.der || [], e = C.estilo;
   // arriba, los de sistema (cuaderno, mapa, perro, menú, pausa, salir…) y, delante, los de acción que se usan poco (en el
@@ -284,7 +300,6 @@ function pinta() {
   // izquierda: la palanca, o el panel táctil
   $('#base').classList.toggle('hide', !C.pal);
   $('#tp').classList.toggle('hide', !C.tac || !!C.pal);
-  $('#tpL').innerHTML = [['Desliza', 'para mover la flecha'], ['Toca', 'para pulsar'], ['Dos dedos', 'para subir y bajar']].map(([a, z]) => `<li><b>${T(a)}</b> ${T(z)}</li>`).join('');
   // derecha: los botones de acción, la copia de los del minijuego o «¡A jugar!»
   const bts = $('#bts'); bts.innerHTML = ''; bts.className = e === 'futbol' ? C.modo || 'atk' : '';
   acc.forEach((i, n) => {
@@ -293,20 +308,26 @@ function pinta() {
     bts.appendChild(x); enlaza(x, bt(i, 1), bt(i, 0), q);
   });
   const E = $('#esp'); E.innerHTML = ''; E.classList.toggle('hide', !esp.length); E.classList.toggle('dos', esp.length > 4);
-  esp.forEach((t, n) => { const x = document.createElement('button'); x.textContent = t; if (!n) x.className = 'prim'; else if (CIERRA.test(t)) x.className = 'cierra'; E.appendChild(x); enlaza(x, { t: 'esp', n, d: 1 }, { t: 'esp', n, d: 0 }); });
+  esp.map(boton).forEach(({ t, on, p }, n) => {
+    // (solo su nombre: el móvil es un mando, la explicación está en la pantalla del ordenador)
+    const x = document.createElement('button'); x.textContent = t;
+    x.className = (p ?? !n) ? 'prim' : CIERRA.test(t) ? 'cierra' : ''; x.classList.toggle('on', !!on);
+    E.appendChild(x); enlaza(x, { t: 'esp', n, d: 1 }, { t: 'esp', n, d: 0 });
+  });
   $('#jugar').classList.toggle('hide', !C.jugar || !!esp.length);
-  $('#hDer').textContent = C.mira && !esp.length ? T('Desliza para mirar') : '';
   estado(); coloca();
 }
 // (en el mismo momento solo cambian los nombres, como PASE, que al defender es ROBAR: se cambian en su sitio, sin soltar lo
 // que se tiene pulsado, como el Sprint)
-const forma = (c) => JSON.stringify([c.m, c.estilo, Object.keys(c.b || {}), c.fijo, c.der, c.arriba, c.esp, c.pal, c.tac, c.mira, c.jugar]);
+// (y en una lista para elegir, como las razas del perro, solo cuál está elegida: se marca en su sitio)
+const forma = (c) => JSON.stringify([c.m, c.estilo, Object.keys(c.b || {}), c.fijo, c.der, c.arriba, (c.esp || []).map(x => { const o = boton(x); return [o.t, o.p]; }), c.pal, c.tac, c.mira, c.jugar]);
 function retoca() {
   $('#bts').className = C.estilo === 'futbol' ? C.modo || 'atk' : '';
   for (const x of document.querySelectorAll('#bts .bt')) {
     const i = +x.dataset.b, n = T(C.b[i]); x.setAttribute('aria-label', n); x.querySelector('.nom').textContent = n;
     if (C.estilo === 'futbol' && FBI[C.ic?.[i]]) { x.querySelector('svg')?.remove(); x.insertAdjacentHTML('afterbegin', FBI[C.ic[i]]); }
   }
+  const E = [...$('#esp').children]; (C.esp || []).forEach((o, n) => E[n]?.classList.toggle('on', !!boton(o).on));
   estado(); encaja();
 }
 // dónde va cada cosa, a la medida de cada mitad: la palanca abajo a la izquierda; a la derecha, en el fútbol y en la
@@ -343,8 +364,8 @@ function coloca() {
   encaja();
 }
 // cada nombre, entero dentro de su botón (las cuatro esquinas del rótulo dentro del círculo): si no cabe, la letra baja
-// hasta 11 px y, si aun así no cabe, se queda solo el icono (con su nombre para el lector de pantalla). Los textos de los
-// botones copiados del minijuego, enteros: si no caben, la letra baja hasta 10 px.
+// hasta 11 px y, si aun así no cabe, se queda solo el icono (con su nombre para el lector de pantalla). Los nombres de los
+// botones copiados del minijuego, enteros: si no caben, la letra baja hasta 12 px.
 function enCirculo(c, s) {
   const r = c.getBoundingClientRect(), R = r.width / 2 - 6, cx = r.left + r.width / 2, cy = r.top + r.height / 2, rg = document.createRange(); rg.selectNodeContents(s); const t = rg.getBoundingClientRect();   // (lo que ocupa el texto de verdad, aunque se salga de su caja)
   return [[t.left, t.top], [t.right, t.top], [t.left, t.bottom], [t.right, t.bottom]].every(([px, py]) => Math.hypot(px - cx, py - cy) <= R);
@@ -355,11 +376,19 @@ function encaja() {
     for (let f = parseFloat(getComputedStyle(s).fontSize); !enCirculo(x, s) && f > 11; f--) s.style.fontSize = (f - 1) + 'px';
     if (!enCirculo(x, s) && x.querySelector('img, svg')) x.classList.add('solo');
   }
-  for (const s of document.querySelectorAll('.txt, #esp button')) {
+  for (const s of document.querySelectorAll('.txt')) {
     s.style.fontSize = ''; if (!s.textContent) continue;
     const cabe = () => s.scrollWidth <= s.clientWidth + 1 && s.scrollHeight <= s.clientHeight + 1;
     for (let f = parseFloat(getComputedStyle(s).fontSize); !cabe() && f > 10; f--) s.style.fontSize = (f - 1) + 'px';
   }
+  for (const x of document.querySelectorAll('#esp button')) {
+    x.style.fontSize = '';
+    const cabe = () => x.scrollWidth <= x.clientWidth + 1 && x.scrollHeight <= x.clientHeight + 1;
+    for (let f = parseFloat(getComputedStyle(x).fontSize); !cabe() && f > 12; f--) x.style.fontSize = (f - 1) + 'px';
+  }
+  // (y todos con la misma letra, la del que menos cabe: si no, uno se veía grande y el de al lado pequeño)
+  const E = [...document.querySelectorAll('#esp button')], f = Math.min(...E.map(x => parseFloat(getComputedStyle(x).fontSize)));
+  for (const x of E) x.style.fontSize = f + 'px';
 }
 addEventListener('resize', () => requestAnimationFrame(coloca));
 document.fonts?.addEventListener?.('loadingdone', () => requestAnimationFrame(encaja));   // (con la letra del juego ya cargada, se mide otra vez)
@@ -447,6 +476,21 @@ setInterval(() => {
   if (Math.abs(rue) >= 1) { envia({ t: 'rueda', dy: -Math.round(rue) * 3 }); rue = 0; }
 }, 33);
 
+// ---------- fija: sin zoom ni desplazarse ----------
+// El iPhone no hace caso a «user-scalable=no» de la página: con el pellizco o el doble toque se agrandaba y los botones se
+// salían de la pantalla (el SPRINT, cortado). Se frenan el pellizco y el doble toque fuera de los botones y, si aun así se
+// agranda (un gesto del sistema), la página vuelve a su tamaño. Los dos dedos del panel táctil siguen funcionando: van
+// por los eventos de puntero, que no se frenan.
+const noZoom = (e) => e.preventDefault();
+for (const ev of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(ev, noZoom, { passive: false });
+document.addEventListener('touchmove', (e) => { if (e.touches.length > 1 || (e.scale && e.scale !== 1)) e.preventDefault(); }, { passive: false });
+let toqueT = 0;
+document.addEventListener('touchend', (e) => { const n = e.timeStamp; if (n - toqueT < 320 && e.touches.length === 0 && !e.target.closest('button, input, a')) e.preventDefault(); toqueT = n; }, { passive: false });
+const VP = document.querySelector('meta[name=viewport]'), VPC = VP.content;
+const encoge = () => { if ((visualViewport?.scale || 1) <= 1.01) return; VP.content = VPC.replace('maximum-scale=1', 'maximum-scale=1.01'); requestAnimationFrame(() => { VP.content = VPC; scrollTo(0, 0); }); };
+visualViewport?.addEventListener('resize', encoge); visualViewport?.addEventListener('scroll', () => { if (visualViewport.scale <= 1.01 && (visualViewport.offsetTop || visualViewport.offsetLeft)) scrollTo(0, 0); });
+addEventListener('scroll', () => { if (scrollX || scrollY) scrollTo(0, 0); });
+
 // ---------- arranque ----------
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 $('#go').onclick = () => conectar();
@@ -459,19 +503,34 @@ const [hc = '', hs = ''] = location.hash.slice(1).split('.'), h = hc.toUpperCase
 if (LETRAS.test(h)) { if (SECRETO.test(hs)) guarda({ code: h, secreto: hs, yo: sesion().code === h ? sesion().yo : '' }); $('#code').value = h; conectar(); }
 else { const p = pareja(); if (p) { guarda({ code: p.code, secreto: p.secreto, yo: p.yo }); $('#code').value = p.code; auto = true; conectar(); } }   // (la app, sin enlace: el ordenador de siempre)
 // ---------- la app «Mando» ----------
-// Instalada, ocupa toda la pantalla, en horizontal, y se conecta sola. En Android (Chrome), con su botón; en el iPhone,
-// desde Safari: Compartir y «Añadir a pantalla de inicio». Se ofrece en la pantalla de conectar y, una vez, al conectar
+// Instalada, se abre desde su icono como una app más, sin la barra del navegador, en horizontal y a toda la pantalla, y se
+// conecta sola. En Android (Chrome, Edge), con su botón; en lo demás, con los pasos de cada navegador: en el iPhone, desde
+// Compartir, también en Chrome (iOS 16.4 o más nuevo); dentro de otra app (Instagram, WhatsApp…), abriendo antes el enlace
+// en el navegador. Se ofrece en la pantalla de conectar y, una vez, al conectar
 const instalada = () => ['fullscreen', 'standalone'].some(d => matchMedia(`(display-mode: ${d})`).matches) || navigator.standalone === true;
-const IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const UA = navigator.userAgent, IOS = /iP(hone|ad|od)/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const MOVIL = IOS || /Android|Mobi/i.test(UA) || matchMedia('(pointer: coarse)').matches;
+const PASOS = {
+  dentro: 'Estás dentro de otra app. Abre este enlace en Safari o en Chrome, desde su menú, y allí podrás instalarla.',
+  safari: 'Toca Compartir (el cuadrado con la flecha; en iOS 26, dentro del botón «⋯») y luego «Añadir a pantalla de inicio», con «Abrir como app web» activado.',
+  chromeIos: 'Toca Compartir, arriba a la derecha junto a la dirección, y luego «Añadir a pantalla de inicio».',
+  otroIos: 'Abre el menú del navegador, toca Compartir y luego «Añadir a pantalla de inicio».',
+  android: 'Abre el menú del navegador (los tres puntos) y toca «Instalar app» o «Añadir a pantalla de inicio».',
+  samsung: 'Abre el menú (las tres rayas), toca «Añadir página a» y luego «Pantalla de inicio».',
+};
+const navegador = () => /FBAN|FBAV|Instagram|Line\/|WhatsApp|Snapchat|TikTok|; wv\)/.test(UA) || (IOS && /GSA\//.test(UA)) ? 'dentro'
+  : IOS ? (/CriOS/.test(UA) ? 'chromeIos' : /FxiOS|EdgiOS|OPiOS|DuckDuckGo|YaBrowser/.test(UA) ? 'otroIos' : 'safari')
+    : /SamsungBrowser/.test(UA) ? 'samsung' : 'android';
 const VISTO = 'herrizherri-mando-instalar';
 let aviso = null;   // (el de Android para instalar)
 addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); aviso = e; ofrece(); });
 addEventListener('appinstalled', () => { aviso = null; ofrece(); });
 function ofrece() {
-  const ver = !instalada() && (!!aviso || IOS), txt = T(aviso ? 'Ocupa toda la pantalla y, la próxima vez, se conecta sola al ordenador.' : 'En Safari, toca Compartir y luego «Añadir a pantalla de inicio». Después, ábrela desde su icono: ocupa toda la pantalla y se conecta sola.');
-  $('#inst').classList.toggle('hide', !ver); $('#instT').textContent = txt; $('#instB').classList.toggle('hide', !aviso);
+  const ver = !instalada() && (!!aviso || MOVIL), txt = T(aviso ? 'Se abre desde su icono, sin el navegador, a toda la pantalla y, la próxima vez, se conecta sola al ordenador.' : PASOS[navegador()]);
+  const fin = aviso ? '' : T('Después, ábrela desde su icono: se abre sin el navegador, a toda la pantalla, y se conecta sola.');
+  $('#inst').classList.toggle('hide', !ver); $('#instT').textContent = txt; $('#instF').textContent = fin; $('#instB').classList.toggle('hide', !aviso);
   let visto = false; try { visto = !!localStorage.getItem(VISTO); } catch (e) { }
-  $('#instP').classList.toggle('hide', !ver || visto || !conectado); $('#instPT').textContent = txt; $('#instPsi').classList.toggle('hide', !aviso);
+  $('#instP').classList.toggle('hide', !ver || visto || !conectado); $('#instPT').textContent = txt + (fin ? ' ' + fin : ''); $('#instPsi').classList.toggle('hide', !aviso);
 }
 async function instala() { if (!aviso) return; const a = aviso; aviso = null; a.prompt(); try { await a.userChoice; } catch (e) { } ofrece(); }
 $('#instB').onclick = instala; $('#instPsi').onclick = () => { vibra(); instala(); };
@@ -479,4 +538,4 @@ $('#instPno').onclick = () => { try { localStorage.setItem(VISTO, '1'); } catch 
 ofrece();
 // (su service worker: para poder instalarla y que abra al momento; la página, siempre de la red si la hay)
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => { });
-window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get ctx() { return C; }, get mis() { return MIS; }, prueba(m) { demo = true; del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
+window.__mandoMovil = { get conectado() { return conectado; }, get relevo() { return relevo; }, get rapido() { return dr?.readyState === 'open'; }, get ctx() { return C; }, get mis() { return MIS; }, prueba(m) { demo = true; del(m); vista(true); } };   // (para las pruebas: prueba pinta un momento sin conexión)
