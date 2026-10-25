@@ -45,6 +45,8 @@ const CSS = `
 .pc-lock{position:absolute;z-index:2;right:7%;top:5%;width:24px;height:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}   /* (en la esquina: la cara de la figura se ve) */
 .pc-note{margin:0;font-size:var(--fs-xs);line-height:1.3;color:var(--lila2)}
 @media (orientation:landscape) and (max-height:500px){.pc-note{display:none}.pc-head h2{font-size:var(--fs-xl)}}
+/* ordenador: las cartas más grandes y todas las de la comarca a la vista, en filas, sin desplazar de lado */
+@media (min-width:1200px) and (min-height:560px){.pc-grid{flex-wrap:wrap;gap:20px;overflow:visible;-webkit-mask-image:none;mask-image:none}.pc-head h2{font-size:var(--fs-3xl)}.pc-tabs button{min-height:52px;font-size:var(--fs-md)}.pc-note{font-size:var(--fs-sm)}}
 `;
 const LOCK = '<svg class="pc-lock" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2" fill="#ff7ac8"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="#ff7ac8" stroke-width="2.4"/><circle cx="12" cy="15.5" r="1.6" fill="#2a0638"/></svg>';
 
@@ -57,7 +59,7 @@ export function pelotarisPanel(start = null) {
   const { have, total } = pelotarisCount();
   return new Promise(res => {
     // (en el móvil tumbado, la carta con la altura que queda: en los más bajos, algo menor, para que «Cerrar» se vea sin desplazar)
-    const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? Math.max(96, Math.min(112, Math.floor((innerHeight - 221) / 1.38))) : 128, tw = short(l.name);
+    const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? Math.max(96, Math.min(112, Math.floor((innerHeight - 221) / 1.38))) : innerWidth >= 1200 && innerHeight >= 560 ? Math.max(120, Math.min(220, Math.floor((innerHeight - 420) / 1.38))) : 128, tw = short(l.name);
       return p ? `<div class="pc-it">${pelotariCard({ name: p.name, town: tw, stats: p.stats, side: 'rojo', w, tag: 'button', attr: `data-t="${l.id}"`, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' })}<em>${p.won} G · ${p.lost} P</em></div>`
         : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', fig: pelotariDe(l), town: tw, side: 'rojo', w, lock: true, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' }).replace('<span class="gx-ovr">', LOCK + '<span class="gx-ovr">')}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
     const grid = () => groups[cur].towns.map((l, i) => card(l, i)).join('');
@@ -66,7 +68,7 @@ export function pelotarisPanel(start = null) {
       <div class="pc-tabs" role="tablist">${tabs()}</div><div class="pc-grid" role="tabpanel">${grid()}</div>
       <p class="pc-note">${eu ? 'Herri bakoitzeko pilotari bat. Asmatutako pilotariak eta datuak.' : 'Un pelotari por pueblo: juega contra él y queda su carta. Pelotaris y datos inventados para el juego.'}</p>
       <div class="lg-btns lg-foot"><button class="lg-btn go" data-a="close">${eu ? 'Itxi' : 'Cerrar'}</button></div>`);
-    r.classList.add('pc-root');
+    r.classList.add('pc-root'); r.firstElementChild.classList.add('pc-card');
     requestAnimationFrame(() => r.querySelector('.pc-tabs [aria-selected=true]')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }));
     const close = () => { removeEventListener('keydown', key, true); r.remove(); res(); };
     const key = (e) => { if (document.querySelector('.pfx')) return; if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); close(); } };

@@ -29,7 +29,7 @@
    tarjetas pequeñas, --relleno-s), entre las tarjetas de una rejilla (--hueco) y entre bloques grandes que van juntos
    (--hueco-m). En el ordenador, con sitio de sobra, todo respira más */
 #hub { --esp: 16px; --relleno: 16px 20px; --relleno-s: 8px 12px; --hueco: 8px; --hueco-m: 16px; }
-@media (min-width: 1200px) and (min-height: 700px) { #hub { --esp: 32px; --relleno: 24px 32px; --relleno-s: 16px; --hueco: 16px; --hueco-m: 24px; } }
+@media (min-width: 1200px) and (min-height: 560px) { #hub { --esp: 32px; --relleno: 24px 32px; --relleno-s: 16px; --hueco: 16px; --hueco-m: 24px; } }
 @supports (width: round(1px, 4px)) { #hub { --gut: round(clamp(16px, calc(3vw / var(--z, 1)), 44px), 4px); } }
 /* barra superior */
 .hub-top { grid-column: 1 / 3; min-width: 0; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--gut) 0 24px; padding-top: env(safe-area-inset-top, 0px);
@@ -1083,6 +1083,15 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .frs-list h3 { margin: 0 0 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
 .frs-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .frs .fr-chip { min-height: 44px; }
+/* (ordenador: las dos cartas una al lado de la otra, cada una con su portada entera arriba, a todo su ancho, y el texto, la
+   elección y el botón debajo. En una fila cada una dejaba un hueco vacío en medio y había que bajar para ver la segunda) */
+@media (min-width: 1200px) and (min-height: 560px) {
+  .sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m); }
+  .sport { --pad: 28px; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "cov" "txt" "bar"; gap: 16px; padding-top: 0; }
+  .sport .sp-cover { position: relative; grid-area: cov; display: block; width: calc(100% + 2 * var(--pad)); height: auto; max-height: max(200px, calc(100dvh / var(--z, 1) - 420px)); margin: 0 calc(-1 * var(--pad)); transform: none; background-position: center 35%; -webkit-mask-image: linear-gradient(180deg, #000 76%, transparent); mask-image: linear-gradient(180deg, #000 76%, transparent); }
+  .sport::after { background: none; }
+  .sp-bar { align-self: end; } .sp-bar .sp-row { flex: 1; } .sp-bar .sp-box { width: 100%; }
+}
 /* (en vertical: el texto y la figura arriba; la elección y el botón debajo, a todo lo ancho) */
 @media (max-width: 599px), (orientation: portrait) {
   /* (la portada entera arriba, en 16:9 y fundida por abajo; el texto, la elección y el botón debajo, a todo lo ancho) */
@@ -1466,7 +1475,7 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .armorial .vm-btn + .ar-count { display: block; }   /* (la cifra, debajo del «Ver más»: en euskera es larga y se partía alrededor del botón) */
 /* en el ordenador, las rejillas con el aire común y tarjetas con sitio para su nombre en una línea (menos columnas, más
    anchas, y más relleno dentro); al final del todo, para que mande sobre las reglas de cada rejilla */
-@media (min-width: 1200px) and (min-height: 700px) {
+@media (min-width: 1200px) and (min-height: 560px) {
   .saberes .sb-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
   .species, .badges, .armorial .ar-grid, .figuras, .ins-grid, .cultgrid { gap: var(--hueco); }
   .towns, .peaks, .passport { gap: var(--hueco-m); }
