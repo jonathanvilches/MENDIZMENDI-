@@ -170,13 +170,14 @@ async function boot() {
     const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
     const sub = pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : opt.sport ? (eu ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
     const lam = opt.sport ? 'dep-fronton' : d.id, left = (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d));
-    ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
+    const entrada = ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
       comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
-    // (el menú se queda debajo mientras la pantalla de carga entra con su fundido, y luego se va; si la carga acaba antes,
-    // se va entonces: que no asome a través de la pantalla de carga cuando se desvanece)
-    const fueraHub = setTimeout(() => hub.hide(), 320), sinHub = () => { clearTimeout(fueraHub); if (hub.visible) hub.hide(); };
+    // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga
+    // acaba antes, se va entonces: que no asome a través de la pantalla de carga cuando se desvanece)
+    let conHub = true; const sinHub = () => { if (!conHub) return; conHub = false; if (hub.visible) hub.hide(); };
+    entrada.then(sinHub);
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
       await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
@@ -244,7 +245,7 @@ async function boot() {
       try { rt.unload(); } catch (e2) { }
       const S = P.settings, lowered = (S.quality || rt.quality) !== 'low';
       if (lowered) { S.quality = 'low'; S.qualityAuto = true; saveProfile(); }
-      clearTimeout(fueraHub); hub.show('home');
+      conHub = false; hub.show('home');
       showLoadError(d, e, lowered);
       return;
     }
