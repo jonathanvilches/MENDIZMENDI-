@@ -566,7 +566,9 @@ export class UI {
     $('#mQ', s).onchange = e => { S.quality = e.target.value; S.qualityAuto = false; delete S.slowPc; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
-    $('#mExit', s).onclick = () => { this.closeModal(); g.save(); this.fadeOut().then(() => { g.onExit?.(); this.fadeIn(); }); };   // (fundido a negro y, detrás, el menú)
+    // (fundido a negro por encima de la pausa, que ya no se toca, y detrás, el menú: antes se cerraba la pausa y asomaba
+    // un momento el pueblo antes del fundido)
+    $('#mExit', s).onclick = () => { g.save(); s.style.pointerEvents = 'none'; this.fadeOut().then(() => { this.closeModal(); g.onExit?.(); this.fadeIn(); }); };
     const mp = $('#mPad', s); if (mp) mp.onclick = () => { this.closeModal(); import('./mando/mando.js').then(m => m.abrirMando()); };   // (en el ordenador: el móvil como mando)
     const rb = $('#mReset', s);
     if (rb) rb.onclick = () => { if (rb.dataset.sure) { this.closeModal(); g.resetState(st.name); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar'; this.sound.ui('error'); } };
