@@ -817,7 +817,7 @@ export class Hub {
       <section class="two"><div class="panel"><h2>${I('gear', 30)} Ajustes</h2>${mode}
         <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
-        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label></div></section>`;
+        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label></div></section>${this.creditos()}`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
       <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
@@ -838,7 +838,18 @@ export class Hub {
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>`;
+        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.creditos()}`;
+  }
+  // de quién es cada cosa y con qué licencia (las de three.js y del código QR piden llevar su aviso, que va en inglés tal cual)
+  creditos() {
+    return `<details class="panel creditos"><summary>${I('scroll', 26)} Créditos y licencias</summary><ul>
+      <li>Ilustraciones, iconos y personajes: creados por el autor del juego con ayuda de herramientas de inteligencia artificial.</li>
+      <li>Modelos 3D de base: hechos con Meshy (meshy.ai) y adaptados para el juego.</li>
+      <li>Fotos de las plantas: iNaturalist, de dominio público (CC0).</li>
+      <li>Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).</li>
+      <li>Letras: Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>
+      <li>Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:</li></ul>
+      <p class="mit" data-notr>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></details>`;
   }
 
   // ---------- Primera vez: el idioma (antes que nada; en los dos idiomas, porque aún no se sabe cuál) ----------
