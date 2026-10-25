@@ -273,7 +273,7 @@ export class Runtime {
     // iban a tirones
     if (this.frameNo % 10 === 0) this.checkCover();
     if (this.frames % 15 === 0) this.sound.setMood?.(this.moodOf(g));
-    try { if (alt) { input.enabled = !g.ui.busy; input.update(); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
+    try { if (alt) { input.enabled = !g.ui.busy; input.update(dt); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
     if (!this.covered) {
@@ -381,7 +381,7 @@ export class Runtime {
   }
   step(dt, g, input) {
     input.enabled = !g.ui.busy && g.mode !== 'cine' && g.mode !== 'dance' && g.mode !== 'mini' && g.mode !== 'pelota';
-    input.update();
+    input.update(dt);
     const P = this.player;
     P.update(dt, input, this.follow.yaw);
     if (g.mode !== 'bino') this.follow.update(dt, P, input);

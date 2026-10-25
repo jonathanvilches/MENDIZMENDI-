@@ -176,7 +176,7 @@ function usa(m) {
   if ((m.t === 'ej' || m.t === 'bt' || m.t === 'esp') && !nuevo(m)) return;
   if (m.t === 'ej') palancaMovil(n(m.x), n(m.y));
   else if (m.t === 'repite') { vigilaMovil(true); repite = true; }   // (el móvil repite lo que mantiene pulsado: lo que no se repita, se suelta)
-  else if (m.t === 'mira') { PAD.lx += n(m.dx, 400) * 2; PAD.ly += n(m.dy, 400) * 2; }
+  else if (m.t === 'mira') { PAD.mx += n(m.dx, 400) * 2; PAD.my += n(m.dy, 400) * 2; }   // (Input lo reparte en varios fotogramas)
   else if (m.t === 'bt') botonMovil(+m.i, !!m.d);
   else if (m.t === 'esp') {   // (el botón n de la copia: se apoya y se levanta el dedo sobre el botón de verdad)
     if (!m.d) sueltaEsp(m.n);

@@ -75,6 +75,8 @@ export const EU_MAS = { ...MAS, ...T };
 export const EU_RX_MAS = [
   // (el inicio: la columna y las tarjetas de «Descubre Navarra»)
   [/^Bosque · (.+)$/, 'Basoa · $1'], [/^Yacimiento · (.+)$/, 'Aztarnategia · $1'], [/^Misión en (.+)$/, 'Misioa: $1'],
+  // (el reino de Navarra del inicio: cada comarca, un capítulo con sus pantallas)
+  [/^Capítulo ([IVXL]+)$/, '$1. kapitulua'], [/^(\d+) pantallas · (\d+) sellos?$/, '$1 pantaila · $2 zigilu'],
   // herriko fitxak, oroigarriak, mendiak eta begiratokiak (2026-10, bigarren itzulia)
   [/^Patrimonio de (.+)$/, (m, a) => `${loc(e(a))} ondarea`],
   // herriko liburua, mapa, motxila eta denda

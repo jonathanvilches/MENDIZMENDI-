@@ -1,7 +1,9 @@
-// El inicio del menú: el saludo con el buscador, el destacado grande (su lámina, el título, el botón de jugar y las flechas
-// para pasar al siguiente, con tu personaje saliendo por fuera del marco), la columna de lo que hay ahora en Navarra (la
-// fila marcada es la del destacado), los personajes de leyenda y «Descubre Navarra» con sus pestañas y sus flechas. Todo
-// con lo del juego: sus pueblos, bosques, yacimientos, leyendas y campeonatos
+// El inicio del menú, como la primera página de un libro de aventuras: el saludo con el buscador, el destacado grande
+// (su lámina, el título, el botón de jugar y las flechas para pasar al siguiente, con tu personaje saliendo por fuera del
+// marco), la columna de lo que hay ahora en Navarra (la fila marcada es la del destacado), el reino de Navarra (el mapa
+// en pergamino con sus doce capítulos, uno por comarca, y en cada capítulo sus pantallas, una por pueblo), los personajes
+// de leyenda y «Descubre Navarra» con sus pestañas y sus flechas. Todo con lo del juego: sus pueblos, bosques,
+// yacimientos, leyendas y campeonatos
 import './inicio.css';
 import COMARCAS from '../data/comarcas.json';
 import { LEVELS, levelById } from '../data/levels.js';
@@ -9,7 +11,7 @@ import { SITES } from '../data/dolmen.js';
 import { CUENTOS, KIND_LABEL } from '../data/cuentos.js';
 import { FIGURAS } from '../data/figuras.js';
 import { figuraRecorte } from '../ui/figuras.js';
-import { townImg, townCover, laminaUrl, leyendaUrl } from '../ui/laminas.js';
+import { townImg, townCover, comarcaCover, laminaUrl, leyendaUrl } from '../ui/laminas.js';
 import { stampImg } from '../assets.js';
 import { avatarPortrait } from '../ui/portraits.js';
 import { iconSVG } from '../ui/icons.js';
@@ -17,6 +19,10 @@ import { profile, townProgress, comarcaProgress, comarcaTowns } from '../game/pr
 import { esc } from '../util/html.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
+const ROMANO = (n) => ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV'][n - 1] || String(n);
+// (el adorno de los títulos: dos trazos con un rombo, como en los mapas antiguos)
+const ADORNO = '<svg class="ep-orla" viewBox="0 0 64 12" aria-hidden="true"><path d="M0 6h24M40 6h24" stroke="currentColor" stroke-width="1.5"/><path d="M32 1l5 5-5 5-5-5z" fill="currentColor"/><circle cx="20" cy="6" r="1.6" fill="currentColor"/><circle cx="44" cy="6" r="1.6" fill="currentColor"/></svg>';
+const titulo = (ic, t, mas = '') => `<h2 class="ini-h ep-h">${I(ic, 26)}<span>${t}</span>${ADORNO}${mas}</h2>`;
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 const corto = (l) => l.name.split(' /')[0];
 // (la excavación de un yacimiento: su pueblo y si ya está hecha)
@@ -73,6 +79,43 @@ function tarjetas(tab, p) {
   return LEVELS.filter(l => !l.bosque).sort((a, b) => orden(a) - orden(b)).slice(0, 14).map(l => lugar(l)).join('');
 }
 
+// ---------- el reino de Navarra: los capítulos (comarcas) y sus pantallas (pueblos y bosques) ----------
+const CAPS = () => COMARCAS.filter(c => comarcaTowns(c.id).length);
+const estadoDe = (p, l) => { const t = townProgress(p, l); return t.stamp ? 'ok' : t.done || p.towns[l.id]?.visits ? 'go' : ''; };
+// (un capítulo: su lámina con el número y el nombre, cuánto llevas y sus pantallas, cada una con su portada y su número)
+function capitulo(c, p) {
+  const k = CAPS().indexOf(c) + 1, ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
+  const est = { ok: ['stamp', 'Sellado'], go: ['compass', 'En camino'], '': ['star', 'Por descubrir'] };
+  return `<div class="ic-banner" style="--c:${c.color};background-image:url(${comarcaCover(c.id, true) || townImg(ts[0], true)})">
+      <span class="ic-num">Capítulo ${ROMANO(k)}</span><b class="ic-name">${esc(c.name)}</b>
+      <span class="ic-meta">${I('church', 20)}${ts.length} pantallas · ${pr.stamps} ${pr.stamps === 1 ? 'sello' : 'sellos'}</span>
+      <img class="ic-sello${pr.stamps ? '' : ' gris'}" src="${stampImg(c.id)}" alt=""></div>
+    <i class="ic-barra" style="--c:${c.color}"><u style="width:${Math.round(pr.stamps / ts.length * 100)}%"></u></i>
+    <div class="ic-towns">${ts.map((l, i) => { const e = estadoDe(p, l), [ic, tx] = est[e];
+      return `<button class="ic-town ${e}" data-town="${l.id}" style="--d:${(i * 0.04).toFixed(2)}s"><span class="ic-img"><img src="${townImg(l, true)}" alt="" loading="lazy" decoding="async"><i class="ic-n">${i + 1}</i>${l.bosque ? `<i class="ic-bq">${I('tree', 18)}</i>` : ''}</span><b>${esc(corto(l))}</b><small>${I(ic, 16)}${tx}</small></button>`; }).join('')}</div>
+    <button class="ep-btn" data-comarca="${c.id}">${I('map', 22)}<span>Ver la comarca</span></button>`;
+}
+// (el capítulo que se abre al entrar: el del último pueblo jugado o el primero sin sellar)
+const capInicial = (p) => { const l = levelById(p.last); return CAPS().find(c => c.id === l?.comarca) || CAPS().find(c => comarcaProgress(p, c.id).stamps < comarcaTowns(c.id).length) || CAPS()[0]; };
+function reino(p) {
+  const caps = CAPS(), sel = capInicial(p), pueblos = LEVELS.filter(l => !l.bosque).length, bosques = LEVELS.filter(l => l.bosque).length;
+  const sellos = LEVELS.filter(l => townProgress(p, l).stamp).length;
+  const cifra = (ic, n, t) => `<span>${ic}<b>${n}</b><small>${t}</small></span>`;
+  return `<section class="ini-reino">
+      <div class="ir-head">${titulo('map', 'El reino de Navarra')}
+        <p class="ir-lead">Cada comarca es un capítulo y cada pueblo, una pantalla. Elige en el mapa adónde viajar.</p>
+        <div class="ir-cifras">${cifra(I('shield', 28), caps.length, 'capítulos')}${cifra(I('church', 28), pueblos, 'pueblos')}${cifra(I('tree', 28), bosques, 'bosques')}${cifra(`<img src="${stampImg(sel.id)}" alt="">`, sellos, sellos === 1 ? 'sello' : 'sellos')}</div></div>
+      <div class="ir-tabs" role="tablist">${caps.map((c, i) => { const pr = comarcaProgress(p, c.id);
+        return `<button role="tab" class="ir-tab${c === sel ? ' on' : ''}" data-cap="${c.id}" aria-selected="${c === sel}" style="--c:${c.color}"><i>${ROMANO(i + 1)}</i><img src="${stampImg(c.id)}" alt=""><span><b>${esc(c.name)}</b><small>${pr.stamps}/${comarcaTowns(c.id).length}</small></span></button>`; }).join('')}</div>
+      <div class="ir-body">
+        <div class="ir-mapa" data-sel="${sel.id}">${OPC.mapa ? OPC.mapa() : ''}<span class="ir-cartela" data-notr><small>Nafarroa</small><b>Navarra</b></span>${ROSA}</div>
+        <div class="ir-cap" aria-live="polite">${capitulo(sel, p)}</div>
+      </div>
+    </section>`;
+}
+// (la rosa de los vientos de la esquina del mapa)
+const ROSA = '<svg class="ir-rosa" viewBox="-50 -50 100 100" aria-hidden="true"><circle r="34" fill="none" stroke="currentColor" stroke-width="1.2"/><circle r="27" fill="none" stroke="currentColor" stroke-width=".8" stroke-dasharray="2 3"/><path d="M0-46L7 0 0 46-7 0z" fill="currentColor"/><path d="M-46 0L0-7 46 0 0 7z" fill="currentColor" opacity=".7"/><path d="M0-46L7 0H-7z" fill="#a8322d"/><text y="-36" text-anchor="middle" font-size="11" fill="currentColor">N</text></svg>';
+
 // ---------- el buscador: pueblos, bosques y yacimientos ----------
 const QUITA = (t) => (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 function buscar(q) {
@@ -90,24 +133,25 @@ export function inicioHTML(opc) {
   const p = profile(), items = ahora(p), it = items[0];
   inicioHTML.items = items;
   const pop = avatarPortrait(p.avatar, 'hero');
-  return `<header class="ini-head">
+  return `<div class="ini-epic"><header class="ini-head">
       <span class="ini-me"><img src="${avatarPortrait(p.avatar)}" alt=""></span><span class="ini-hola"><small>Kaixo,</small><b>${esc(p.name || 'Aventurero')}</b></span>
       <label class="ini-busca">${I('search', 22)}<input type="search" placeholder="Busca un pueblo o un yacimiento" aria-label="Buscar en Navarra" autocomplete="off"><span class="ib-res" hidden></span></label>
       <button class="ini-sq" data-go="map" aria-label="Mapa">${I('map', 28)}</button>
     </header>
     <section class="ini-top">
       <div class="ini-hero" data-i="0">${destacado(it, p)}${pop ? `<img class="ih-pop" src="${pop}" alt="" aria-hidden="true">` : ''}</div>
-      <aside class="ini-live"><h2 class="ini-h">${I('compass', 26)}<span>Ahora en Navarra</span></h2>
+      <aside class="ini-live">${titulo('compass', 'Ahora en Navarra')}
         <ul>${items.map((x, i) => `<li class="${i ? '' : 'on'}" data-i="${i}" style="--t:var(--k-${x.tone})"><button class="il-pick" data-i="${i}" aria-label="${esc(x.title)}"><img src="${x.thumb}" alt="" loading="lazy" decoding="async"><span><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></span></button><button class="il-btn" ${x.attr}>${esc(x.btn)}</button></li>`).join('')}</ul>
       </aside>
     </section>
-    <section class="ini-people"><h2 class="ini-h">${I('legend', 26)}<span>Personajes de leyenda</span><button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
+    ${reino(p)}
+    <section class="ini-people">${titulo('legend', 'Personajes de leyenda', '<button class="lnk sec-more" data-go="personajes">Ver todos</button>')}
       <div class="ip-rail">${FIGURAS.filter(f => figuraRecorte(f.id)).map(f => `<button class="ip" data-figura="${f.id}"><span class="ip-av"><img src="${figuraRecorte(f.id)}" alt="" loading="lazy" decoding="async"></span><span class="ip-tx"><b>${esc(f.name)}</b><small>${esc(f.where.split(' · ')[0])}</small></span></button>`).join('')}</div>
     </section>
-    <section class="ini-games"><div class="ig-head"><h2 class="ini-h">${I('map', 26)}<span>Descubre Navarra</span></h2><span class="ig-arrows"><button class="ig-arrow" data-dir="-1" aria-label="Anteriores">${I('back', 22)}</button><button class="ig-arrow sig" data-dir="1" aria-label="Siguientes">${I('back', 22)}</button></span></div>
+    <section class="ini-games"><div class="ig-head">${titulo('compass', 'Descubre Navarra')}<span class="ig-arrows"><button class="ig-arrow" data-dir="-1" aria-label="Anteriores">${I('back', 22)}</button><button class="ig-arrow sig" data-dir="1" aria-label="Siguientes">${I('back', 22)}</button></span></div>
       <div class="ig-tabs" role="tablist">${PESTANAS.map(([k, ic, t], i) => `<button role="tab" data-tab="${k}" aria-selected="${!i}" class="${i ? '' : 'on'}">${I(ic, 22)}<span>${t}</span></button>`).join('')}</div>
       <div class="ig-cards">${tarjetas('pueblos', p)}</div>
-    </section>`;
+    </section></div>`;
 }
 
 // tu personaje, recortado a su silueta (los retratos traen aire alrededor, más o menos según el personaje): así sus pies
@@ -148,6 +192,23 @@ export function inicioOn(root) {
     cards.innerHTML = tarjetas(b.dataset.tab, p); cards.scrollLeft = 0;
   });
   root.querySelectorAll('.ig-arrow').forEach(b => b.onclick = () => cards.scrollBy({ left: +b.dataset.dir * cards.clientWidth * 0.85, behavior: 'smooth' }));
+  // (el reino: un capítulo se abre con su pestaña o tocando su comarca en el mapa, sin salir del inicio; los pueblos del
+  // mapa y las pantallas abren la ficha del pueblo, como en el resto del menú)
+  const mapa = root.querySelector('.ir-mapa'), cap = root.querySelector('.ir-cap');
+  if (mapa && cap) {
+    mapa.querySelectorAll('.cnum text').forEach((t, i) => { t.textContent = ROMANO(i + 1); });
+    const abre = (id) => {
+      const c = CAPS().find(x => x.id === id); if (!c || mapa.dataset.sel === id) return;
+      mapa.dataset.sel = id; cap.innerHTML = capitulo(c, p);
+      cap.classList.remove('cambia'); void cap.offsetWidth; cap.classList.add('cambia');
+      root.querySelectorAll('.ir-tab').forEach(b => { const on = b.dataset.cap === id; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); if (on) b.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' }); });
+      marca();
+    };
+    const marca = () => mapa.querySelectorAll('.cpath, .cnum').forEach(x => x.classList.toggle('sel', x.dataset.comarca === mapa.dataset.sel));
+    mapa.addEventListener('click', (e) => { const z = e.target.closest('.cpath, .cnum'); if (!z) return; e.stopPropagation(); abre(z.dataset.comarca); }, true);
+    root.querySelectorAll('.ir-tab').forEach(b => b.onclick = () => abre(b.dataset.cap));
+    marca();
+  }
   // (el buscador: lo que coincide, con su portada; Intro abre el primero)
   const inp = root.querySelector('.ini-busca input'), res = root.querySelector('.ib-res');
   const pinta = () => { const r = buscar(inp.value); res.hidden = !inp.value.trim();
