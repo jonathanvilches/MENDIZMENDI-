@@ -28,6 +28,13 @@ export const EU_EXACT = {
  'Capítulos: las comarcas': 'Kapituluak: eskualdeak',
  'Próximamente': 'Laster', 'Leyendas y carnaval': 'Kondairak eta inauteriak', 'Elegir en el mapa': 'Aukeratu mapan',
   // --- mapa ---
+  // (las sierras, los ríos y los embalses del mapa 3D del inicio)
+  'Aralar': 'Aralar', 'Urbasa': 'Urbasa', 'Andia': 'Andia', 'Sierra de Codés': 'Kodes mendilerroa', 'Sierra de Lokiz': 'Lokiz mendilerroa',
+  'Sierra del Perdón': 'Erreniega', 'Sierra de Alaiz': 'Alaitz mendilerroa', 'Sierra de Izco': 'Izko mendilerroa', 'Sierra de Leyre': 'Leire mendilerroa',
+  'Abodi': 'Abodi', 'Quinto Real': 'Kintoa', 'Saioa': 'Saioa',
+  'Ebro': 'Ebro', 'Aragón': 'Aragoi', 'Arga': 'Arga', 'Ega': 'Ega', 'Irati': 'Irati', 'Bidasoa': 'Bidasoa', 'Salazar': 'Zaraitzu', 'Esca': 'Ezka',
+  'Arakil': 'Arakil', 'Cidacos': 'Zidakos', 'Alhama': 'Alhama', 'Queiles': 'Queiles', 'Ultzama': 'Ultzama',
+  'Embalse de Yesa': 'Yesako urtegia', 'Embalse de Itoiz': 'Itoizko urtegia', 'Embalse de Alloz': 'Allozko urtegia', 'Embalse de Eugi': 'Eugiko urtegia', 'Embalse de Irabia': 'Irabiako urtegia',
   'Toca una comarca para ver sus pueblos. Las comarcas se iluminan a medida que completas sus pueblos.': 'Ukitu eskualde bat bertako herriak ikusteko. Eskualdeak argitu egiten dira herriak osatu ahala.',
   'de Navarra sellada': 'Nafarroatik zigilatuta', 'Por descubrir': 'Ezagutzeko', 'Empezado': 'Hasita', 'Sellado': 'Zigilatuta',
   // --- herriak ---
@@ -153,6 +160,7 @@ export const EU_EXACT = {
   'Modelos 3D de base: hechos con Meshy (meshy.ai) y adaptados para el juego.': 'Oinarrizko 3D ereduak: Meshy-rekin (meshy.ai) eginak eta jokorako egokituak.',
   'Fotos de las plantas: iNaturalist, de dominio público (CC0).': 'Landareen argazkiak: iNaturalist, jabari publikokoak (CC0).',
   'Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).': 'Herrien mapak: © OpenStreetMap-en laguntzaileak (ODbL), Overture Maps eta Copernicusen EU-DEM erliebea (Europar Batasuna).',
+  'Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público); ríos y embalses © colaboradores de OpenStreetMap (ODbL), con Overture Maps.': 'Hasierako Nafarroako mapa: SRTM eta GMTED2010 erliebea (U.S. Geological Survey, jabari publikoa); ibaiak eta urtegiak © OpenStreetMap-en laguntzaileak (ODbL), Overture Mapsekin.',
   'Letras: Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.': 'Letrak: Barlow Condensed, Lilita One eta Nunito, SIL Open Font License 1.1 lizentziarekin.',
   'Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:': 'Programak: three.js (© 2010-2025 Three.js Authors) eta qrcode-generator (© 2009 Kazuhiko Arase), MIT lizentziarekin:',
   'Fútbol': 'Futbola', 'Fútbol 11': '11ko futbola', 'Fútbol sala': 'Areto futbola', 'Modo': 'Modua', 'Retos de entrenamiento': 'Entrenamendu erronkak', 'Rival': 'Aurkaria',

@@ -1570,7 +1570,7 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .pg-fotos button::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(20, 6, 40, .9)); }
 .pg-fotos button:hover { transform: translateY(-3px); border-color: var(--cat); } .pg-fotos button:active { transform: scale(.97); }
 .pg-fotos b { position: relative; display: flex; align-items: center; gap: 8px; font: 400 var(--fs-lg)/1 var(--f-display); text-transform: uppercase; text-shadow: 0 2px 8px #000; }
-.progreso .pg-more { margin-top: auto; align-self: flex-start; }
+.progreso .pg-more { margin-top: auto; align-self: flex-start; max-width: 100%; white-space: normal; text-wrap: balance; }   /* (en el móvil estrecho, en dos líneas antes que cortado) */
 @media (max-width: 1100px) { .dash-gauges { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .pg-grid, .dash-core { grid-template-columns: minmax(0, 1fr); } .dash-core > .dash-tag { justify-self: center; } .dial { max-width: 260px; }
   .dash-mini .dash-gauges { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
