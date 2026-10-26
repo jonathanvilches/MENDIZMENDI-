@@ -140,6 +140,8 @@ function panelHTML(p, id) {
 let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
 export function cierraMapa() { MAPA?.dispose(); MAPA = null; }
+// (al darle a jugar en un pueblo con el mapa a la vista: el vuelo hasta él; una promesa, o null si no hay)
+export const entraMapa = (id) => MAPA?.entrar?.(id) || null;
 /** El principio del inicio: el saludo, el destacado con su columna, los personajes y «Descubre Navarra». */
 /** El inicio, como la pantalla del mapa del mundo de un juego: Navarra en 3D a toda la pantalla y, encima, la misión de
  *  ahora con su botón de continuar, lo conquistado, el buscador, las comarcas y el botón de «Tu aventura». */
