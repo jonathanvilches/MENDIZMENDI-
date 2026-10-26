@@ -1,0 +1,1 @@
+var e=new URL(`pamplona-Dih0Vm9M.webp`,import.meta.url).href;export{e as default};

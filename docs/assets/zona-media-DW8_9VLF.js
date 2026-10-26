@@ -1,0 +1,1 @@
+var e=new URL(`zona-media-BXorn3Jy.webp`,import.meta.url).href;export{e as default};

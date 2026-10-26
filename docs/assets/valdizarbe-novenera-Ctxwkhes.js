@@ -1,0 +1,1 @@
+var e=new URL(`valdizarbe-novenera-BA2YC5wG.webp`,import.meta.url).href;export{e as default};

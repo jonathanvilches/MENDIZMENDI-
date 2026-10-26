@@ -1,0 +1,1 @@
+var e=new URL(`sakana-CUQbi3g1.webp`,import.meta.url).href;export{e as default};
