@@ -72,6 +72,7 @@ export class UI {
     const ya = !L.classList.contains('hidden'); L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
     if (!ya) { L.classList.remove('entra'); void L.offsetWidth; L.classList.add('entra'); }
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
+    L.classList.toggle('ld-min', !!info.min);
     const pic = $('.ld-pic img', L); L.classList.toggle('no-pic', !image); if (image) pic.src = image; else pic.removeAttribute('src');
     $('.ld-pic figcaption', L).textContent = info.caption || '';
     $('.ld-k', L).textContent = info.comarca ? 'Comarca · ' + info.comarca : 'Navarra';

@@ -51,7 +51,7 @@ import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
-import { inicioHTML, aventuraHTML, inicioOn, cierraMapa } from './inicio.js';
+import { inicioHTML, aventuraHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 
@@ -586,7 +586,11 @@ export class Hub {
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
   }
   play(id) { const l = levelById(id); if (!l) return; if (isDidactico()) return this.go('pueblo', id);   // (en el modo didáctico no se entra al juego: su página)
-    const p = profile(); p.last = id; saveProfile(); this.sound?.ui('open'); this.onPlay?.(l); }
+    if (this.entrando) return;
+    const p = profile(); p.last = id; saveProfile(); this.sound?.ui('open');
+    // (desde el mapa del inicio, primero el vuelo hasta el pueblo; luego, la partida)
+    const vuelo = entraMapa(id); if (!vuelo) return this.onPlay?.(l);
+    this.entrando = true; vuelo.then(() => { this.entrando = false; this.onPlay?.(l, { desdeMapa: true }); }); }
 
   // ---------- Pueblos ----------
   s_towns(filter = 'all') {

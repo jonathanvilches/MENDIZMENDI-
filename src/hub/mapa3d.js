@@ -16,6 +16,7 @@ import { REAL_IDS, loadReal } from '../data/reales/index.js';
 import { MAPA_RELIEVE, MAPA_ALTURAS } from '../data/mapa-relieve.js';
 import SOMBRA from '../assets/relieve/sombra.webp?url';
 import { webUrl } from '../web/hd.js';
+import { haceMaqueta } from './maqueta.js';
 
 // (las coordenadas son las del mapa de comarcas de comarcas.json, viewBox 10 10 725 780: se centran y se pasan a metros
 // del mundo 3D, con el norte hacia el fondo)
@@ -169,7 +170,7 @@ const RELIEVE_VS = `varying vec2 vXZ; varying float vH, vSom;
 void main() { vXZ = position.xz; vH = position.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
-const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3; uniform vec4 uRect, uDetRect, uPR[4]; uniform float uPK[4], uCerca, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
+const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3; uniform vec4 uRect, uDetRect, uPR[4], uHueco; uniform float uPK[4], uCerca, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
 varying vec2 vXZ; varying float vH, vSom;
 #include <fog_pars_fragment>
 // (un pueblo pintado encima, si el punto cae en su recuadro)
@@ -178,6 +179,7 @@ vec4 pue(sampler2D t, vec4 r, float k, vec2 sv) { vec2 u = (sv - r.xy) / r.zw; i
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
 void main() {
+  if (uHueco.w > 0.5 && distance(vXZ, uHueco.xy) < uHueco.z) discard;   // (donde está la maqueta de un pueblo)
   float m = max(0.0, (vH - uGrosor) / uExa);
   vec3 c = uPal[0];
   for (int i = 1; i < ${PALETA.length}; i++) c = mix(c, uPal[i], clamp((m - uCota[i - 1]) / (uCota[i] - uCota[i - 1]), 0.0, 1.0));
@@ -194,6 +196,9 @@ void main() {
   gl_FragColor = vec4(mix(c, uTinte, uTintK) * uBrillo, 1.0);
 #include <fog_fragment>
 }`;
+// (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
+const PARCHE_VS = RELIEVE_VS.replace('varying vec2 vXZ;', 'attribute float hd; uniform float uMaqK; varying vec2 vXZ;')
+  .replace('vH = position.y;', 'vec3 q = vec3(position.x, mix(position.y, hd, uMaqK), position.z); vH = q.y;').replace('vec4(position, 1.0)', 'vec4(q, 1.0)');
 const enPoligono = (P, x, z) => { let inn = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inn = !inn; } return inn; };
 
 /**
@@ -234,7 +239,7 @@ export function mapa3d(host, o) {
   const CERCA = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true,
     uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uCerca: CERCA,
-      uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 } } });
+      uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
   // las comarcas
@@ -313,8 +318,11 @@ export function mapa3d(host, o) {
   // (cada comarca, con su copia de los materiales del agua: se apaga con ella cuando pasa al fondo)
   // (el ancho de los ríos, según la distancia: de lejos, bien visibles; de cerca, más o menos el de verdad)
   const ANCHO_RIO = { value: 1 };
-  const anchoRio = (m) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.vertexShader = 'attribute vec3 lado; uniform float uAncho;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho;'); }; m.customProgramCacheKey = () => 'rio-ancho'; };
-  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM); c.lagoM = lagoM.clone(); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
+  // (y donde está la maqueta de un pueblo, el río no se pinta: allí va el suyo, pintado en el suelo)
+  const anchoRio = (m, hueco) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco;
+    sh.vertexShader = 'attribute vec3 lado; uniform float uAncho; varying vec2 vHx;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; vHx = transformed.xz;');
+    sh.fragmentShader = 'uniform vec4 uHueco; varying vec2 vHx;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (uHueco.w > 0.5 && distance(vHx, uHueco.xy) < uHueco.z) discard;'); }; m.customProgramCacheKey = () => 'rio-ancho'; };
+  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco); c.lagoM = lagoM.clone(); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
   for (const [c, a] of cintas) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3)); g.setAttribute('lado', new THREE.Float32BufferAttribute(a.lado, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2)); g.setIndex(a.i); geos.push(g); const m = new THREE.Mesh(g, c.rioM); m.renderOrder = 1; c.mesh.add(m); }
   // los nombres de las sierras, de los ríos y de los embalses, como en los mapas (por debajo de los de las comarcas y los
   // pueblos: si no caben, se esconden)
@@ -371,6 +379,7 @@ export function mapa3d(host, o) {
     return { ...t, k: 1, g, pin, bola, ring, haz, hs: GROSOR + alto(X, Z), c: byId.get(t.comarca), lab, X, Z, ph: i * 0.7 };
   });
   const tById = new Map(T.map(t => [t.id, t]));
+  const TR = T.filter(t => REAL_IDS.includes(t.id));   // (los que tienen su trazado de verdad: a esos se puede uno acercar mucho más)
 
   // la capa de los nombres y los controles
   const capa = document.createElement('div'); capa.className = 'm3-capa';
@@ -381,13 +390,16 @@ export function mapa3d(host, o) {
   // ---------- la cámara: un punto del mapa al que mira, la distancia, el giro y la inclinación ----------
   // (la vista de toda Navarra: la distancia a la que cabe entera en lo que queda libre, más inclinada en las pantallas
   // anchas, para que se vea la profundidad, y más desde arriba en el móvil de pie)
-  const libre = () => { const w = host.clientWidth || 1, h = host.clientHeight || 1, hu = o.hueco?.() || {}; return { w: Math.max(80, w - (hu.r || 0)), h: Math.max(80, h - (hu.t || 0) - (hu.b || 0)), W: w, H: h }; };
+  // (al entrar a jugar, lo de encima se va y la vista es toda la pantalla)
+  let entrada = null;
+  const huecoAhora = () => entrada ? {} : o.hueco?.() || {};
+  const libre = () => { const w = host.clientWidth || 1, h = host.clientHeight || 1, hu = huecoAhora(); return { w: Math.max(80, w - (hu.r || 0)), h: Math.max(80, h - (hu.t || 0) - (hu.b || 0)), W: w, H: h }; };
   const camPos = (s, out = new THREE.Vector3()) => out.set(s.x + Math.sin(s.yaw) * Math.cos(s.pitch) * s.d, Math.sin(s.pitch) * s.d + (s.hy || 0), s.z + Math.cos(s.yaw) * Math.cos(s.pitch) * s.d);
   // (se prueba a qué distancia caben todas las esquinas de Navarra en el hueco libre, con la misma cámara)
   // (fb: cuánto de lo de abajo cuenta: con toda Navarra, puede pasar por debajo de la fila de comarcas, que es translúcida)
   const prueba = new THREE.PerspectiveCamera(cam.fov, 1, 0.5, 2000), pq = new THREE.Vector3();
   function encaja(pts, x, z, pitch, fb) {
-    const L = libre(), hu = o.hueco?.() || {};
+    const L = libre(), hu = huecoAhora();
     prueba.aspect = L.W / L.H; prueba.setViewOffset(L.W, L.H, (hu.r || 0) / 2, ((hu.b || 0) - (hu.t || 0)) / 2, L.W, L.H);
     const s = { x, z, yaw: 0, pitch, d: 0, hy: 0.8 }, m = 0.025;
     const cabe = (d) => { s.d = d; camPos(s, prueba.position); prueba.lookAt(x, s.hy, z); prueba.updateMatrixWorld(); prueba.updateProjectionMatrix();
@@ -407,7 +419,8 @@ export function mapa3d(host, o) {
   let bajoC = null;   // (la comarca que queda debajo del punto al que mira la cámara)
   let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t0, dur })
   const volar = (a, dur = 0.9) => { vuelo = { de: { ...v }, a: { ...v, ...a }, t: 0, dur }; Object.assign(goal, vuelo.a); };
-  const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch)); };
+  const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.22 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
+    if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   // (el comienzo: desde muy alto, la cámara baja y se inclina mientras las comarcas crecen una tras otra)
   Object.assign(v, { d: goal.d * 1.45, pitch: 1.25 }); DMAX = Math.max(150, goal.d * 1.35);
   vuelo = { de: { ...v }, a: { ...goal }, t: 0, dur: 1.8 };
@@ -437,6 +450,7 @@ export function mapa3d(host, o) {
   const ptrs = new Map(); let arr = null, gesto = null;
   const usado = () => host.classList.add('m3-usado');   // (la ayuda de los controles se va en cuanto se usan)
   const onDown = (e) => {
+    if (entrada) return;
     usado(); cv.focus({ preventScroll: true }); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { cv.setPointerCapture(e.pointerId); } catch (x) { }
     vuelo = null; plano.constant = -v.hy;
     if (ptrs.size === 1) arr = { x: e.clientX, y: e.clientY, p: enSuelo(e), rot: e.button === 2 || e.ctrlKey, yaw: goal.yaw, pitch: goal.pitch, movido: false };
@@ -472,7 +486,7 @@ export function mapa3d(host, o) {
   // (la rueda del ratón acerca y aleja; en el panel táctil del portátil, deslizar con dos dedos mueve el mapa, como en
   // los mapas de verdad, y pellizcar acerca: el deslizar llega con desplazamiento a los lados o en fracciones, la rueda no)
   cv.addEventListener('wheel', (e) => {
-    e.preventDefault(); usado(); vuelo = null;
+    e.preventDefault(); if (entrada) return; usado(); vuelo = null;
     if (!e.ctrlKey && e.deltaMode === 0 && (e.deltaX !== 0 || !Number.isInteger(e.deltaY))) {
       const k = goal.d * 0.0016, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       goal.x += (-fz * e.deltaX - fx * e.deltaY) * k; goal.z += (fx * e.deltaX - fz * e.deltaY) * k; lim(); return;
@@ -499,7 +513,7 @@ export function mapa3d(host, o) {
   const B = [['in', 'Acercar', 'M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z'], ['home', 'Ver toda Navarra', 'M4 11l8-7 8 7v9h-5v-6H9v6H4z'], ['out', 'Alejar', 'M5 11h14v2H5z']];
   pad.innerHTML = B.map(([k, t, d]) => `<button type="button" class="m3-b b-${k}" data-k="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg></button>`).join('');
   host.append(pad);
-  pad.addEventListener('pointerdown', (e) => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); usado(); vuelo = null; if (b.dataset.k === 'home') { vista(); return; } keys.add(b.dataset.k); b.setPointerCapture?.(e.pointerId); const fin = () => { keys.delete(b.dataset.k); b.removeEventListener('pointerup', fin); b.removeEventListener('pointercancel', fin); }; b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); });
+  pad.addEventListener('pointerdown', (e) => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); usado(); vuelo = null; if (b.dataset.k === 'home') { vista(); return; } keys.add(b.dataset.k); try { b.setPointerCapture(e.pointerId); } catch (x) { } const fin = () => { keys.delete(b.dataset.k); b.removeEventListener('pointerup', fin); b.removeEventListener('pointercancel', fin); }; b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); });
 
   // (un pueblo: si su comarca no estaba elegida, primero la comarca entera; si ya lo estaba, o desde el buscador, de cerca,
   // con su núcleo y lo de alrededor)
@@ -570,41 +584,68 @@ export function mapa3d(host, o) {
   const tono = (b, pizarra) => { const v = ((b.x * 7 + b.z * 13) % 9 + 9) % 9 / 9;
     return b.k === 'industrial' || b.k === 'shed' ? [0.58, 0.06, 0.6 + v * 0.1] : b.k === 'church' || b.k === 'tower' ? [0.09, 0.18, 0.56 + v * 0.06]
       : pizarra ? [0.06, 0.08, 0.32 + v * 0.1] : [0.04 + v * 0.02, 0.5, 0.48 + v * 0.08]; };
-  // (el núcleo pintado: un lienzo de un metro y medio por píxel, tres en el móvil; los tejados, de teja en casi toda
-  // Navarra y de pizarra en el Pirineo)
-  function pintaNucleo(D, R, pizarra) {
-    const N = LENTO ? 512 : 1024, k = N / (2 * R), c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d');
+  // (el núcleo pintado: un lienzo de un metro y medio por píxel, tres en el móvil, y el doble de fino en la maqueta; los
+  // campos, huertas y parques, las calles y los ríos con su ancho de verdad, los puentes, la cancha de los frontones y
+  // los tejados, de teja en casi toda Navarra y de pizarra en el Pirineo; hacia el borde se funde con el relieve)
+  const USO = { cultivo: 'rgba(222, 204, 140, .55)', huerta: 'rgba(118, 168, 84, .6)', prado: 'rgba(140, 192, 98, .45)', vina: 'rgba(160, 150, 92, .55)', frutales: 'rgba(122, 165, 86, .55)',
+    cesped: 'rgba(134, 192, 106, .6)', parque: 'rgba(110, 170, 92, .65)', deporte: 'rgba(104, 168, 96, .65)', juegos: 'rgba(206, 192, 160, .7)', escuela: 'rgba(214, 200, 170, .6)',
+    cementerio: 'rgba(154, 165, 138, .65)', industria: 'rgba(185, 180, 172, .5)', plaza: 'rgba(230, 220, 203, .9)' };
+  function pintaNucleo(D, R, pizarra, N = LENTO ? 512 : 1024, velo = true) {
+    // (el de la maqueta, en el procesador y no en la tarjeta gráfica: son muchos trazos, y en ella se encolaban y paraban el mapa)
+    const k = N / (2 * R), c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d', velo ? undefined : { willReadFrequently: true });
     const P = (x, z) => [(x + R) * k, (z + R) * k];
     const linea = (pts, w, color) => { if (pts.length < 2) return; g.beginPath(); pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.lineWidth = Math.max(1, w * k); g.strokeStyle = color; g.lineCap = g.lineJoin = 'round'; g.stroke(); };
     const area = (pts, color) => { if (pts.length < 3) return; g.beginPath(); pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.closePath(); g.fillStyle = color; g.fill(); };
     const casa = (b, dx, dz, color) => { g.save(); const [a, bb] = P(b.x + dx, b.z + dz); g.translate(a, bb); g.rotate(-b.ry); g.fillStyle = color; g.fillRect(-b.w * k / 2, -b.d * k / 2, b.w * k, b.d * k); g.restore(); };
     // (un velo claro bajo lo edificado, que de lejos se lee como el núcleo)
-    g.filter = `blur(${Math.round(N / 50)}px)`; for (const b of D.casas) casa(b, 0, 0, 'rgba(246, 236, 214, .5)'); g.filter = 'none';
+    if (velo) { g.filter = `blur(${Math.round(N / 50)}px)`; for (const b of D.casas) casa(b, 0, 0, 'rgba(246, 236, 214, .5)'); g.filter = 'none'; }
+    for (const u of D.usos || []) if (USO[u.k]) area(u.pts, USO[u.k]);
+    // (en la maqueta, la textura de cada campo: surcos en los cereales, hileras en viñas y frutales, bancales en las
+    // huertas, las pasadas del corte en los prados y las rayas de los campos de deporte; cada uno con su dirección)
+    // (cada textura, un dibujo pequeño que se repite, girado a la dirección de cada campo: un solo relleno por campo)
+    const rayas = new Map(), raya = (paso, ancho, color) => { const key = paso + ancho + color; let pt = rayas.get(key);
+      if (!pt) { const t = document.createElement('canvas'), pp = Math.max(2, Math.round(paso * k)); t.width = pp; t.height = 2; const tg = t.getContext('2d'); tg.fillStyle = color; tg.fillRect(0, 0, Math.max(1, Math.round(ancho * k)), 2); rayas.set(key, pt = g.createPattern(t, 'repeat')); }
+      return pt; };
+    if (!velo) for (const u of D.usos || []) {
+      const s0 = Math.abs(Math.sin(u.pts[0][0] * 12.9898 + u.pts[0][1] * 78.233)) % 1, ang = s0 * 180;
+      const hileras = (paso, ancho, color) => { const pt = raya(paso, ancho, color); pt.setTransform(new DOMMatrix().rotateSelf(ang)); area(u.pts, pt); };
+      if (u.k === 'cultivo') { area(u.pts, ['rgba(222, 196, 112, .45)', 'rgba(150, 176, 92, .4)', 'rgba(168, 128, 86, .4)'][Math.floor(s0 * 2.99)]); hileras(2.4, 0.7, 'rgba(90, 70, 40, .18)'); }
+      else if (u.k === 'vina') hileras(2.6, 1, 'rgba(70, 92, 40, .5)');
+      else if (u.k === 'huerta') { hileras(3.6, 1.6, 'rgba(56, 120, 48, .35)'); hileras(3.6, 0.5, 'rgba(120, 90, 60, .3)'); }
+      else if (u.k === 'frutales') hileras(7, 2.2, 'rgba(80, 112, 52, .25)');
+      else if (u.k === 'prado') hileras(6, 3, 'rgba(255, 255, 255, .06)');
+      else if (u.k === 'deporte') { g.beginPath(); u.pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.closePath(); g.lineWidth = Math.max(1, 0.8 * k); g.strokeStyle = 'rgba(255, 255, 255, .7)'; g.stroke(); }
+    }
     for (const p of D.lugares.plazas || []) area(p.pts, 'rgba(236, 226, 206, .9)');
-    for (const r of D.rios) linea(r.pts, Math.max(3, r.w || 4), '#5ab8f0');
+    // (los anchos de los datos son la mitad: de la orilla al centro)
+    for (const r of D.rios) linea(r.pts, Math.max(4, 2 * (r.w || 2)), '#5ab8f0');
     for (const b of D.balsas || []) area(b.pts, '#5ab8f0');
-    for (const s of D.calles) linea(s.pts, (s.w || 4) + 1.5, 'rgba(120, 104, 90, .55)');
-    for (const s of D.calles) linea(s.pts, s.w || 4, '#f1e9da');
+    for (const b of D.piscinas || []) area(b.pts, '#7fd6f6');
+    for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) + 1.5, s.t === 'trail' ? 'rgba(150, 128, 96, .35)' : 'rgba(120, 104, 90, .55)');
+    for (const s of D.calles) linea(s.pts, 2 * (s.w || 2), s.t === 'trail' ? 'rgba(214, 198, 166, .85)' : '#e7dfd0');
+    for (const s of D.puentes || []) { linea(s.pts, 2 * (s.w || 2) + 2, 'rgba(90, 76, 62, .6)'); linea(s.pts, 2 * (s.w || 2), '#d6c8ae'); }
     for (const b of D.casas) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
-    for (const b of D.casas) { const [h, sa, l] = tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); }
-    const t = new THREE.CanvasTexture(c); t.anisotropy = aniso; return t;
+    for (const b of D.casas) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); }
+    g.globalCompositeOperation = 'destination-in';
+    const fin = g.createRadialGradient(N / 2, N / 2, N * 0.4, N / 2, N / 2, N / 2); fin.addColorStop(0, '#000'); fin.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    g.fillStyle = fin; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
+    const t = new THREE.CanvasTexture(c); t.anisotropy = aniso; t.flipY = false; t.colorSpace = THREE.NoColorSpace; return t;
   }
   // (el núcleo de un pueblo: su lienzo va pintado en el propio relieve de su comarca, en uno de sus cuatro huecos, y así
   // queda pegado al terreno; las casas en pie, una caja por casa con su altura algo exagerada, como el relieve)
   function haceNucleo(t, D) {
     const [cx, cy] = mapaXY(D.lat, D.lon), [X0, Z0] = W(cx, cy); let R = 120;
-    for (const b of D.casas) R = Math.max(R, Math.abs(b.x) + b.w, Math.abs(b.z) + b.d);
-    for (const s of D.calles) for (const [x, z] of s.pts) R = Math.max(R, Math.abs(x), Math.abs(z));
+    for (const b of D.casas) R = Math.max(R, Math.hypot(b.x, b.z) + Math.max(b.w, b.d) / 2);
+    for (const s of D.calles) for (const [x, z] of s.pts) R = Math.max(R, Math.hypot(x, z));
     R = Math.min(700, R + 20);
     const pizarra = t.comarca === 'pirineo', tex = pintaNucleo(D, R, pizarra), Rs = R / 207.6;
-    tex.flipY = false; tex.colorSpace = THREE.NoColorSpace;
     const cm2 = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
     const casas = new THREE.InstancedMesh(cajaG, cm2, D.casas.length), M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), col = new THREE.Color(), up = new THREE.Vector3(0, 1, 0);
     D.casas.forEach((b, i) => { const x = X0 + b.x * MU, z = Z0 + b.z * MU;
       M4.compose(e3.set(x, GROSOR + sobre(t.c, x, z) - 0.004, z), q.setFromAxisAngle(up, b.ry), sc.set(b.w * MU, (b.h || 7) * MU * 2.5, b.d * MU)); casas.setMatrixAt(i, M4);
       casas.setColorAt(i, col.setHSL(...tono(b, pizarra))); });
     casas.visible = false; t.c.mesh.add(casas);
-    return { tex, rect: [cx - Rs, cy - Rs, 2 * Rs, 2 * Rs], casas, c: t.c, X: t.X, Z: t.Z, slot: -1, op: 0, op2: 0 };
+    return { tex, rect: [cx - Rs, cy - Rs, 2 * Rs, 2 * Rs], casas, c: t.c, X: t.X, Z: t.Z, slot: -1, op: 0, op2: 0, t, D, X0, Z0, R, pizarra };
   }
   // (un hueco libre en el relieve de su comarca; si no lo hay, se deja el del pueblo más lejos de la vista)
   function ponNucleo(e) {
@@ -615,8 +656,9 @@ export function mapa3d(host, o) {
     return true;
   }
   function nucleos(now, quieto) {
-    if (now - nucT < 500 || !quieto) return; nucT = now;
-    const quiere = v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
+    if (now - nucT < 500 || !quieto && !entrada) return; nucT = now;
+    // (al entrar a jugar, solo el del pueblo: lo demás, después)
+    const quiere = entrada ? (entrada.real ? [entrada.t] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
       .sort((a, b) => Math.hypot(a.X - v.x, a.Z - v.z) - Math.hypot(b.X - v.x, b.Z - v.z)).slice(0, 6);
     for (const t of quiere) {
       const e = nuc.get(t.id); if (e) { e.t = now; continue; } if (nucPide) continue;
@@ -629,13 +671,97 @@ export function mapa3d(host, o) {
     while (nuc.size > 8 && viejos.length) { const [id, e] = viejos.shift(); quitaNucleo(e); nuc.delete(id); }
   }
   function quitaNucleo(e) {
+    if (maq?.e === e) quitaMaqueta();
     if (e.slot >= 0) { const u = e.c.top.uniforms; u['uP' + e.slot].value = nada; u.uPK.value[e.slot] = 0; e.c.pue[e.slot] = null; e.slot = -1; }
     e.tex?.dispose(); e.tex = null;
     if (e.casas) { e.casas.removeFromParent(); e.casas.material.dispose(); e.casas.dispose(); e.casas = null; }
     for (const [id, x] of nuc) if (x === e) nuc.delete(id);
   }
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal };   // (para las pruebas en el servidor de desarrollo)
+  // ---------- la maqueta: muy cerca de un pueblo, su relieve de verdad, sus casas en pie con tejado y sus árboles ----------
+  // (una a la vez, la del pueblo del centro de la vista; se hace por pasos con la cámara quieta; entra subiendo el relieve
+  // del pueblo y luego las casas, y se va al revés al alejarse: src/hub/maqueta.js)
+  const MAQ_D = 3.2, MAQ_K = 1.6;   // (la distancia a la que se levanta, y lo que se exageran en alto casas y árboles: como el relieve de cerca)
+  let maq = null, calentado = false;
+  // (los dos programas de la maqueta, compilados de antemano al acercarse, para que al levantarla no se pare el mapa)
+  function calienta() {
+    calentado = true;
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
+    const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
+    const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 } }, res);
+    while (!pasos.next().done);
+    const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
+    const im = new THREE.InstancedMesh(caja, res.mat, 1); im.setColorAt(0, new THREE.Color());
+    const grupo = new THREE.Group(); grupo.add(new THREE.Mesh(g, pm), im);
+    geos.push(g, caja, res.geo); mats.push(pm, res.mat);
+    r.compileAsync(grupo, cam, scene).catch(() => { });
+  }
+  function maqueta(dt, quieto) {
+    if (!calentado && v.d < 8) calienta();
+    const quiere = entrada ? (maq?.e.t === entrada.t ? maq.e : null) : v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
+      .sort((a, b) => Math.hypot(a.X0 - v.x, a.Z0 - v.z) - Math.hypot(b.X0 - v.x, b.Z0 - v.z))[0] : null;
+    if (!maq) {
+      if (quiere && quieto) maq = { e: quiere, k: { value: 0 }, alz: { value: 1 }, op: 0, res: {}, pasos: null, tex: null, malla: null };
+      return;
+    }
+    const m = maq, e = m.e, c = e.c, sigue = quiere === e;
+    if (!m.malla) {   // (aún haciéndose: un paso por imagen, con la cámara quieta; si ya no se quiere, se deja)
+      if (!sigue) { quitaMaqueta(); return; }
+      if (!quieto) return;
+      if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return; }
+      if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz }, m.res);
+      if (!m.hecha) { m.hecha = m.pasos.next().done; return; }
+      // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
+      if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
+        for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R + rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, 0.5, 0, 6.2832); }
+        g.fill(); m.tex.needsUpdate = true; r.initTexture(m.tex); return; }
+      const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
+      m.malla = new THREE.Mesh(m.res.geo, pm); c.mesh.add(m.malla); c.mesh.add(m.res.casas);
+      u.uHueco.value.set(e.X0, e.Z0, e.R * MU * 0.97, 1); if (e.slot >= 0) u['uP' + e.slot].value = m.tex;
+      m.labs = m.res.monumentos.map(x => { const lab = document.createElement('div'); lab.className = 'm3-ml'; lab.textContent = x.n; lab.hidden = true; capa.append(lab); return { ...x, lab }; });
+      return;
+    }
+    // (el relieve del pueblo sube; luego, las casas)
+    m.k.value += ((sigue ? 1 : 0) - m.k.value) * (1 - Math.exp(-dt * 3));
+    m.op += ((sigue && m.k.value > 0.85 ? 1 : 0) - m.op) * (1 - Math.exp(-dt * 4));
+    m.res.mat.opacity = m.op; m.res.casas.visible = m.op > 0.01; m.alz.value = 1 / Math.max(0.05, c.sy);
+    if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
+  }
+  function quitaMaqueta() {
+    const m = maq; if (!m) return; maq = null;
+    const e = m.e, u = e.c.top.uniforms;
+    if (m.malla) { m.malla.removeFromParent(); m.malla.material.dispose(); u.uHueco.value.set(0, 0, 0, 0); if (e.slot >= 0 && e.tex) u['uP' + e.slot].value = e.tex; }
+    m.res.geo?.dispose();
+    if (m.res.casas) { m.res.casas.removeFromParent(); for (const x of m.res.casas.children) x.geometry.dispose(); m.res.mat.dispose(); }
+    m.tex?.dispose(); for (const x of m.labs || []) x.lab.remove();
+  }
+  // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
+  const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
+
+  // ---------- entrar a jugar: un zoom rápido. Lo de encima se va, la cámara se lanza hasta el pueblo girando un poco y la
+  // pantalla se funde; entonces empieza la partida (devuelve una promesa; null si no hay vuelo: sin movimiento) ----------
+  function entrar(id) {
+    const t = tById.get(id);
+    if (!t || !vivo || !host.isConnected || !cv.offsetParent || matchMedia?.('(prefers-reduced-motion: reduce)').matches) return null;
+    return new Promise((fin) => {
+      if (sel !== t.comarca) select(t.comarca, false);
+      host.classList.add('m3-entra'); keys.clear(); ptrs.clear(); arr = null; gesto = null; hover = null;
+      entrada = { t, fin, t0: performance.now(), fase: 0, real: TR.includes(t) };
+      const lejos = Math.hypot(v.x - t.X, v.z - t.Z) > 1 || v.d > 10; entrada.fase = lejos ? 0 : 1;
+      if (lejos) volar({ x: t.X, z: t.Z, d: Math.min(Math.max(v.d, 3), 8), yaw: v.yaw, pitch: Math.min(v.pitch, 0.85) }, 0.6); else vuelo = null;
+    });
+  }
+  function sigueEntrada(now) {
+    const en = entrada; if (!en) return;
+    if (en.fase === 1 && !en.va) { en.va = true; volar({ x: en.t.X, z: en.t.Z, d: en.real ? 0.2 : 1.2, yaw: v.yaw + 0.3, pitch: 0.55 }, 1.0); }
+    else if (en.fase === 0 && !vuelo) en.fase = 1;
+    else if (en.fase === 1 && (!vuelo || vuelo.t > 0.7)) { en.fase = 2; en.t2 = now; host.classList.add('m3-negro'); }
+    else if ((en.fase === 2 && now - en.t2 > 320) || now - en.t0 > 4000) {
+      entrada = null; en.fin(); setTimeout(() => host.classList.remove('m3-entra', 'm3-negro'), 4000);
+    }
+  }
+
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, maqueta: () => maq };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
@@ -654,12 +780,13 @@ export function mapa3d(host, o) {
     if ((LENTO || quieto) && now - last < 30) return;
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
-    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
+    // (al entrar a jugar, al ritmo del reloj aunque vaya a tirones)
+    const dt = Math.max(0, Math.min(entrada ? 0.1 : 0.05, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
     // tamaño del lienzo
     const w = host.clientWidth, h = host.clientHeight, z = escala();
     if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(2, (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
     // movimiento con las teclas y los botones
-    if (keys.size) {
+    if (keys.size && !entrada) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }
       if (keys.has('l')) { goal.x += fz * sp; goal.z -= fx * sp; } if (keys.has('r')) { goal.x -= fz * sp; goal.z += fx * sp; }
@@ -673,13 +800,13 @@ export function mapa3d(host, o) {
       if (vuelo.t >= 1) vuelo = null;
     } else { const k = 1 - Math.exp(-dt * 9); for (const q of ['x', 'z', 'd', 'yaw', 'pitch']) v[q] += (goal[q] - v[q]) * k; }
     // (con el panel abierto, el centro de la vista se corre a lo que queda libre, poco a poco)
-    const hu = o.hueco?.() || {}, kk = 1 - Math.exp(-dt * 8);
+    const hu = huecoAhora(), kk = 1 - Math.exp(-dt * 8);
     off.x += ((hu.r || 0) / 2 - off.x) * kk; off.y += (((hu.b || 0) - (hu.t || 0)) / 2 - off.y) * kk;
     if (Math.abs(off.x) > 0.5 || Math.abs(off.y) > 0.5) cam.setViewOffset(w, h, off.x, off.y, w, h); else if (cam.view?.enabled) cam.clearViewOffset();
     // (de cerca, la cámara mira a la altura del suelo que tiene debajo: con una altura fija, el pueblo quedaba por encima del
     // centro, bajo la cabecera; de lejos, a la de siempre, con la que se calcula la vista de toda Navarra)
     const bajo = deQuien(v.x, v.z, bajoC); if (bajo) bajoC = bajo;
-    const kh = Math.min(1, Math.max(0, (40 - v.d) / 24)), hs = bajo?.sy ? (GROSOR + alto(v.x, v.z)) * bajo.sy + bajo.py : 0.8;
+    const kh = Math.min(1, Math.max(0, (40 - v.d) / 24)), hs = bajo?.sy ? pisoEn(bajo, v.x, v.z) * bajo.sy + bajo.py : 0.8;
     v.hy += (0.8 + (hs - 0.8) * kh - v.hy) * (1 - Math.exp(-dt * 4));
     camPos(v, cam.position); cam.lookAt(v.x, v.hy, v.z);
     scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); cam.near = Math.min(0.5, v.d * 0.2); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
@@ -687,7 +814,8 @@ export function mapa3d(host, o) {
     detalles(now, quieto);
     // (la altura, exagerada cinco veces de lejos para que se lean las sierras, y menos al acercarse, donde con tanta
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
-    const exa = 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32));
+    // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
+    const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
     CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
     for (const c of C) {
       const nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7)));
@@ -705,24 +833,24 @@ export function mapa3d(host, o) {
     }
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
     // pueblo; flotan un poco)
-    const lejos = Math.max(0.035, Math.min(1.7, v.d / 45));
+    const lejos = v.d < 1.4 ? 0.035 * (v.d / 1.4) ** 1.5 : Math.max(0.035, Math.min(1.7, v.d / 45));
     for (const x of T) {
       const nace = ease(Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
       // (con una comarca elegida, solo quedan las suyas: las demás se encogen hasta desaparecer)
       x.k += ((sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));
       const big = hover === 't:' + x.id ? 1.35 : 1;
-      x.g.position.y = x.hs * x.c.sy + x.c.py + 0.04; x.g.scale.setScalar(Math.max(0.01, nace * big * lejos * x.k));
+      x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4); x.g.scale.setScalar(Math.max(0.01, nace * big * lejos * x.k));
       const bob = Math.sin(t * 2.2 + x.ph) * 0.12; x.pin.position.y = bob; x.bola.position.y = 1.4 + bob;
       if (x.ring) { const p = (t * 0.8) % 1; x.ring.scale.setScalar(1 + p * 1.8); ringM.opacity = 0.9 * (1 - p); }
       if (x.haz) { const kh = Math.min(1, lejos); x.haz.scale.set(kh, Math.max(0.01, nace * kh), kh); x.haz.position.y = x.g.position.y + 6 * nace * kh; hazM.opacity = (0.4 + Math.sin(t * 2.4) * 0.12) * nace * x.k; }
     }
     // los núcleos: el pintado entra al acercarse y las casas en pie, ya muy cerca
-    nucleos(now, quieto);
+    nucleos(now, quieto); maqueta(dt, quieto); sigueEntrada(now);
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)
       e.op += (kN * f - e.op) * (1 - Math.exp(-dt * 5)); e.c.top.uniforms.uPK.value[e.slot] = e.op;
-      e.op2 += (kC * f - e.op2) * (1 - Math.exp(-dt * 5)); e.casas.material.opacity = e.op2; e.casas.visible = e.op2 > 0.01;
+      e.op2 += ((maq?.e === e && maq.malla ? 0 : kC) * f - e.op2) * (1 - Math.exp(-dt * 5)); e.casas.material.opacity = e.op2; e.casas.visible = e.op2 > 0.01;
     }
     // la niebla: aparece tras las comarcas, se mece despacio y se abre sobre la comarca elegida y al acercarse
     const cercaN = v.d < 40 ? 0.4 : v.d < 60 ? 0.7 : 1;
@@ -746,6 +874,7 @@ export function mapa3d(host, o) {
       lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.1 * x.g.scale.y, x.Z, on]); }
     for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !sel || sel === c.id]);
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, sel ? x.c?.id === sel : v.d < 55]);
+    if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     lista.sort((a, b) => a[0] - b[0]);
     for (const [, el, x, y, z, on] of lista) etiqueta(el, x, y, z, on, ocupado);
   }
@@ -778,9 +907,9 @@ export function mapa3d(host, o) {
   function dispose() {
     if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect();
     removeEventListener('keydown', kd); removeEventListener('keyup', ku);
-    for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); for (const e of [...nuc.values()]) quitaNucleo(e);
+    for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }
-  return { select, vista, dispose, volar: (id) => irPueblo(id, true) };
+  return { select, vista, dispose, volar: (id) => irPueblo(id, true), entrar };
 }

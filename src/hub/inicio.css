@@ -121,8 +121,11 @@
 .m3-capa { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
 .m3d .ini-head { position: absolute; z-index: 4; left: 16px; right: 16px; top: 16px; margin: 0; }
 /* (los nombres encima del mapa: el de cada comarca en su color; el de cada pueblo, pequeño, al acercarse) */
-.m3-cl, .m3-tl, .m3-sl, .m3-rl { position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: none; will-change: transform; }
-.m3-cl[hidden], .m3-tl[hidden], .m3-sl[hidden], .m3-rl[hidden] { display: none; }
+.m3-cl, .m3-tl, .m3-sl, .m3-rl, .m3-ml { position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: none; will-change: transform; }
+.m3-cl[hidden], .m3-tl[hidden], .m3-sl[hidden], .m3-rl[hidden], .m3-ml[hidden] { display: none; }
+/* (los monumentos de la maqueta de un pueblo: pequeños, con un punto debajo) */
+.m3-ml { padding-bottom: 7px; color: #fff8e8; font: 800 10px/1.15 'Nunito', sans-serif; text-shadow: 0 1px 2px #1a0b2e, 0 0 6px #1a0b2e, 0 0 10px rgba(26, 11, 46, .8); }
+.m3-ml::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 0 1.5px #1a0b2e; }
 /* (las sierras y los ríos, como en los mapas: sin caja, las sierras en mayúsculas espaciadas y los ríos en cursiva azul) */
 .m3-sl { color: rgba(240, 232, 255, .82); font: 800 10px/1.1 'Nunito', sans-serif; letter-spacing: .2em; text-transform: uppercase; text-shadow: 0 1px 2px #0d0420, 0 0 6px #0d0420, 0 0 12px rgba(13, 4, 32, .8); }
 .m3-rl { color: #a6ecff; font: italic 800 11px/1.1 'Nunito', sans-serif; letter-spacing: .04em; text-shadow: 0 1px 2px #06122a, 0 0 6px #0d0420, 0 0 10px rgba(13, 4, 32, .8); }
@@ -358,3 +361,6 @@
   .m3-pad { bottom: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .m3-aro .ar, .m3-panel.entra, .m3t { animation: none !important; } }
+/* al entrar a jugar: lo de encima del mapa se va mientras la cámara baja al pueblo, y al final la pantalla se funde */
+.m3d.m3-entra :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-panel, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; transition: opacity .35s; }
+.m3d.m3-negro .m3-cv { opacity: 0; transition: opacity .3s ease-in; }

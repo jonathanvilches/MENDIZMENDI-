@@ -128,7 +128,7 @@ async function boot() {
   window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
 
   let game = null, def = null, loading = false;
-  const hub = new Hub({ sound, onPlay: (d) => play(d) });
+  const hub = new Hub({ sound, onPlay: (d, o) => play(d, o) });
   // campeonatos desde el menú, sin misiones: la pelota en el frontón del pueblo elegido; el fútbol, en su propia escena
   hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(townId) || LEVELS[0], { sport: kind === 'pasaka' ? 'pasaka' : 'pelota' });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
@@ -170,8 +170,10 @@ async function boot() {
     const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
     const sub = pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : opt.sport ? (eu ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
     const lam = opt.sport ? 'dep-fronton' : d.id, left = (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d));
-    const entrada = ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
-      comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
+    // (desde el mapa del inicio, tras su zoom rápido: una carga corta, solo el nombre y la barra, y luego directamente el
+    // avatar en el pueblo, sin el vuelo de llegada, que ya ha hecho el mapa)
+    const entrada = ui.showLoading(title, sub, opt.desdeMapa ? '' : (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
+      min: !!opt.desdeMapa, comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
     // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga
@@ -208,7 +210,7 @@ async function boot() {
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
         if (!st.introDone && !q.get('skipintro')) await game.intro(d);
         else {   // (las siguientes veces, la llegada: el vuelo por encima de Otsagabia con su nombre y su comarca)
-          if (!q.get('skipintro')) { game.mode = 'cine'; rt.player.frozen = true; const g0 = game;
+          if (!q.get('skipintro') && !opt.desdeMapa) { game.mode = 'cine'; rt.player.frozen = true; const g0 = game;
             await vueloPueblo({ follow: rt.follow, player: rt.player, ui, def: d, centro: PLACES.crucero, iglesia: PLACES.church }).catch(e => console.warn('llegada', e));
             if (game !== g0) { loading = false; return; }   // (se salió del pueblo durante el vuelo: lo de después ya no es de este)
             rt.follow.snap(rt.player); rt.player.frozen = false; }
@@ -233,7 +235,7 @@ async function boot() {
         if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly(); return; }
         if (opt.resumed) { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast('Imagen recuperada: sigues donde estabas', 'exclaim', 3600); }, 700); }
         else {   // (primero, la llegada: el vuelo por encima del pueblo con su nombre y su comarca; luego, a quién buscar)
-          const g = game; (q.get('skipintro') ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
+          const g = game; (q.get('skipintro') || opt.desdeMapa ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
             .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
         }
       }
