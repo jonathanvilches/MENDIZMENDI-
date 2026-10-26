@@ -199,6 +199,8 @@ function mapaOn(root, p) {
     onTown: (id) => { const card = panel.querySelector(`[data-t="${id}"]`), list = panel.querySelector('.m3p-towns'); if (!card) return;
       panel.querySelectorAll('.m3t.on').forEach(x => x.classList.remove('on')); card.classList.add('on');
       list.scrollTo({ top: card.offsetTop - list.offsetTop - 8, left: card.offsetLeft - list.offsetLeft - 8, behavior: 'smooth' }); } });
+  // (lo que mide lo conquistado, para que en el móvil tumbado el buscador empiece justo a su lado, en cualquier idioma)
+  const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
   if (!MAPA) { sec.classList.add('plano'); sec.insertAdjacentHTML('afterbegin', `<div class="m3-plano">${OPC.plano()}</div>`); }
   sec.addEventListener('click', (e) => {
     const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abre(ch.dataset.sel); return; }

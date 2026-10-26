@@ -226,18 +226,54 @@
   .m3p-head { min-height: 96px; padding: 12px; } .m3-sello.grande { width: 52px; height: 52px; } .m3-sello.grande > img { width: 38px; height: 38px; }
   .m3t { grid-template-columns: 80px minmax(0, 1fr) auto; } .m3t-img { width: 80px; }
 }
-/* teléfono tumbado y pantallas bajas: el mapa entero en la pantalla, el aro pequeño y sin la ayuda */
+/* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo conquistado y el
+   buscador; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
+   columna, para que el mapa tenga casi toda la pantalla */
 @media (max-height: 520px) {
-  .m3d { --hud: 68px; height: max(300px, calc(100dvh - var(--top-h, 48px) - 28px)); }
-  .m3d .ini-head { top: 10px; } .m3d .ini-hola { display: none; } .m3d .ini-busca { height: 44px; }
-  .m3-tot { grid-template-columns: 48px auto; padding: 4px 14px 4px 4px; } .m3-tot > .m3-aro { width: 48px; height: 48px; } .m3-pct { font-size: var(--fs-md); } .m3-tt i { display: none; }
+  .m3d { --hud: 60px; height: max(280px, calc(100dvh - var(--top-h, 48px) - 24px)); border-radius: 18px; }
+  .m3-tot { left: 8px; top: 8px; grid-template-columns: 40px auto; column-gap: 8px; padding: 3px 12px 3px 3px; }
+  .m3-tot > .m3-aro { width: 40px; height: 40px; } .m3-pct { font-size: var(--fs-sm); }
+  .m3-tt { gap: 0; min-width: 0; } .m3-tt small { font-size: 12px; letter-spacing: .02em; white-space: nowrap; } .m3-tt b { font-size: var(--fs-sm); white-space: nowrap; } .m3-tt i { display: none; }
+  .m3d .ini-head { top: 8px; left: calc(var(--totw, 200px) + 16px); right: 8px; gap: 8px; flex-wrap: nowrap; }   /* (--totw: lo que mide lo conquistado; inicio.js) */ .m3d :is(.ini-me, .ini-hola) { display: none; }
+  .m3d .ini-busca { order: 0; flex: 1 1 auto; max-width: 360px; height: 40px; padding: 0 12px; } .m3d .ini-busca input { font-size: var(--fs-sm); }
+  .m3d .ini-sq { width: 40px; height: 40px; border-radius: 12px; } .m3d .ini-sq :is(svg, img) { width: 24px; height: 24px; }
   .m3-ayuda { display: none; }
-  .m3-panel { top: 10px; bottom: 10px; width: min(380px, 48%); } .m3d.con-sel { --pr: calc(min(380px, 48%) + 16px); }
-  .m3p-head { min-height: 84px; padding: 10px 12px; } .m3-sello.grande { width: 48px; height: 48px; } .m3-sello.grande > img { width: 34px; height: 34px; }
-  .m3-pad { bottom: 12px; } .m3-rail { bottom: 8px; }
-  /* (con el panel abierto, el saludo se encoge a su izquierda y lo demás deja sitio al mapa) */
-  .m3d.con-sel .ini-head { right: calc(var(--pr) + 4px); } .m3d.con-sel :is(.m3-rail, .m3-tot, .ini-sq) { display: none; }
-  .m3-sello { width: 40px; height: 40px; } .m3-sello > img { width: 28px; height: 28px; } .m3-chip { padding-right: 12px; }
+  .m3-rail { left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
+  .m3-chip { gap: 6px; padding: 2px 12px 2px 2px; } .m3-sello { width: 36px; height: 36px; } .m3-sello > img { width: 26px; height: 26px; }
+  .m3-lock { width: 18px; height: 18px; } .m3-lock :is(svg, img) { width: 12px; height: 12px; }
+  .m3-ct b { font-size: var(--fs-xs); } .m3-ct small { font-size: 10px; }
+  .m3-pad { right: calc(8px + var(--pr)); bottom: 6px; gap: 6px; } .m3d.con-sel .m3-pad { bottom: 6px; } .m3-b { width: 40px; height: 40px; border-radius: 12px; } .m3-b svg { width: 20px; height: 20px; }
+  .m3-panel { top: 8px; bottom: 8px; right: 8px; left: auto; height: auto; width: min(360px, 50%); border-radius: 16px; }   /* (también en los móviles estrechos tumbados, que cumplen las reglas del móvil de pie) */
+  @keyframes m3-entra { from { opacity: 0; transform: translateX(28px); } } .m3d.con-sel { --pr: calc(min(360px, 50%) + 8px); }
+  .m3p-head { min-height: 76px; padding: 8px 10px; gap: 8px; } .m3-sello.grande { width: 46px; height: 46px; } .m3-sello.grande > img { width: 32px; height: 32px; }
+  .m3p-tt b { font-size: var(--fs-lg); } .m3p-x { top: 8px; right: 8px; width: 36px; height: 36px; }
+  .m3p-towns { padding: 8px; gap: 6px; } .m3t { grid-template-columns: 72px minmax(0, 1fr) auto; gap: 8px; padding: 4px 6px 4px 4px; } .m3t-img { width: 72px; }
+  .m3t-ms i { width: 22px; height: 22px; } .m3t-ms :is(svg, img) { width: 14px; height: 14px; } .m3t-go { width: 42px; height: 42px; }
+  .m3p-more { min-height: 40px; margin: 0 8px 8px; font-size: var(--fs-sm); }
+  /* (con el panel abierto, el buscador se encoge a su izquierda y lo demás deja sitio al mapa) */
+  .m3d.con-sel .ini-head { left: 8px; right: calc(var(--pr) + 8px); } .m3d.con-sel :is(.m3-rail, .m3-tot, .ini-sq) { display: none; }
+}
+@media (max-height: 520px) and (pointer: coarse) { .m3-pad { bottom: 6px; } .m3-b { width: 40px; height: 40px; } .m3-rail { right: calc(56px + var(--pr)); } }
+
+/* teléfono tumbado: el destacado y lo que hay ahora en Navarra, uno al lado del otro y de la altura de la pantalla (antes
+   uno debajo del otro, con el destacado más alto que la pantalla); las flechas y la cifra del destacado, fuera: la
+   columna de al lado ya elige */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) {
+  .ini-top { grid-template-columns: minmax(0, 1.45fr) minmax(210px, 1fr); gap: 12px; margin-top: 12px; }
+  .ini-hero, .ini-live { height: clamp(240px, calc(100dvh - var(--top-h, 48px) - 32px), 340px); min-height: 0; }
+  .ih-bar { left: 8px; right: 8px; bottom: 8px; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; padding: 8px 10px; border-radius: 14px; }
+  .ih-arrow, .ih-stat { display: none; }
+  .ih-play { width: 52px; height: 52px; } .ih-play :is(svg, img) { width: 26px; height: 26px; }
+  .ih-title { font-size: var(--fs-lg); } .ih-ms i { width: 24px; height: 24px; border-radius: 6px; } .ih-ms :is(svg, img) { width: 16px; height: 16px; }
+  .ih-chip { right: 8px; top: 8px; padding: 2px 12px 2px 2px; } .ih-chip img { width: 32px; height: 32px; }
+  .ini-live { padding: 10px; gap: 6px; overflow: hidden; } .ini-live .ini-h { font-size: var(--fs-md); gap: 8px; } .ini-live .ini-h > :is(svg, img) { width: 22px; height: 22px; }
+  .ini-live ul { flex: 1 1 auto; min-height: 0; grid-template-columns: minmax(0, 1fr); gap: 4px; overflow-y: auto; scrollbar-width: none; }
+  .ini-live li { padding: 4px 6px 4px 4px; gap: 6px; } .il-pick { gap: 8px; } .il-pick img { width: 56px; height: 32px; border-radius: 8px; }
+  .il-pick b { font-size: var(--fs-sm); } .il-pick small { font-size: var(--fs-xs); } .il-btn { min-height: 32px; padding: 4px 12px; font-size: var(--fs-xs); }
+  .ig-cards { grid-auto-columns: minmax(200px, calc((100% - 32px) / 3)); } .ig-img { aspect-ratio: 16 / 9; }
+}
+/* (en los móviles más estrechos, la columna sin botones: tocar una fila la pone en el destacado, que ya tiene el de jugar) */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) and (max-width: 760px) {
+  .ini-top { grid-template-columns: minmax(0, 1.35fr) minmax(200px, 1fr); } .il-btn { display: none; } .il-pick img { width: 52px; height: 30px; }
 }
 @media (prefers-reduced-motion: reduce) { .m3-aro .ar, .m3-panel.entra, .m3t { animation: none !important; } }
-@media (max-height: 520px) and (pointer: coarse) { .m3-rail { right: calc(76px + var(--pr)); } }
