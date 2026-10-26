@@ -3,12 +3,11 @@
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { icon3DReady } from '../ui/icon3d.js';
 import { esc } from '../util/html.js';
-import { enCss } from '../util/tele.js';
 export { esc };
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root.vuelo>*{visibility:hidden!important}
-.pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-myen,.pel-en,.pel-exit,.pel-call){visibility:hidden}
+.pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-myen,.pel-exit,.pel-call){visibility:hidden}
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
    misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
    lenta, su aviso. Debajo, cómo saltarla. En un móvil de pie no caben los dos en la misma fila: baja justo debajo */
@@ -144,17 +143,17 @@ const CSS = `
 .pel-tour p{margin:4px 0 8px;font-size:var(--fs-sm);line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
 .pel-tour button{border-radius:12px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 16px;min-height:44px;cursor:pointer}
 .pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2a0638;border:0}
-/* energía de cada pelotari: arriba a la izquierda, bajo el botón de salir (verde, amarilla y roja al cansarse) */
-.pel-en{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 52px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;flex-direction:column;gap:4px;padding:4px 8px;border-radius:10px;background:rgba(14,10,24,.58);font-size:var(--fs-xs);font-weight:800;line-height:1}
-.pel-en[hidden]{display:none}.pel-en div{display:flex;align-items:center;gap:8px}
-.pel-en span{min-width:62px;white-space:nowrap;opacity:.9}.pel-en .me span{opacity:1;color:#ff7ac8}
-.pel-en em{width:7px;height:7px;border-radius:50%;flex:none}.pel-en .c-azul em{background:#5b4bff}.pel-en .c-rojo em{background:#ff2e88}
-.pel-en i{width:64px;height:6px;border-radius:3px;background:rgba(255,255,255,.18);overflow:hidden;position:relative;display:block}
-.pel-en i b{position:absolute;inset:0;transform-origin:left;background:#c9b2ff;transition:transform .2s}.pel-en .mid i b{background:#ff9bd8}.pel-en .low i b{background:#ff5a3a}
+/* la energía de los demás pelotaris, en el marcador: una raya fina al pie del lado de cada uno (blanca; amarilla y luego
+   parpadeando al cansarse). Antes iba en un recuadro con sus nombres arriba a la izquierda, debajo de la X de salir:
+   se pisaban y tapaban la cancha */
+.pel-side{position:relative}
+.pel-sen{position:absolute;left:12px;right:12px;bottom:calc(2px + var(--k,0) * 3.5px);height:2.5px;border-radius:2px;background:rgba(7,2,15,.45);overflow:hidden;pointer-events:none}
+.pel-sen b{position:absolute;inset:0;transform-origin:left;background:rgba(255,255,255,.92);transition:transform .2s}
+.pel-sen.mid b{background:#ffe066}.pel-sen.low b{background:#ffe066;animation:pel-sen .5s ease-in-out infinite alternate}@keyframes pel-sen{to{opacity:.3}}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 8px}.pel-side span{max-width:calc(20vw / var(--z, 1))}
-  .pel-tip{max-width:min(calc(calc(100vw / var(--z, 1)) - 32px),var(--pel-tip-w,calc(100vw / var(--z, 1))));bottom:auto;top:var(--pel-tip-top,calc(env(safe-area-inset-top,0px) + 64px))}}
+  .pel-tip{max-width:calc(calc(100vw / var(--z, 1)) - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
 @media (max-height:520px){.pel-hit{width:94px;height:94px;font-size:var(--fs-lg)}.pel-drop{width:68px;height:68px}
-  .pel-tip{bottom:auto;top:var(--pel-tip-top,calc(env(safe-area-inset-top,0px) + 48px));max-width:min(calc(calc(100vw / var(--z, 1)) - 240px),var(--pel-tip-w,calc(100vw / var(--z, 1))));font-size:var(--fs-sm);padding:8px 12px}
+  .pel-tip{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 48px);max-width:calc(calc(100vw / var(--z, 1)) - 240px);font-size:var(--fs-sm);padding:8px 12px}
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:8px 16px}
   .pel-card{width:min(780px,100%);padding:16px 16px 12px}.pel-card h2{font-size:var(--fs-xl)}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:24px;font-size:var(--fs-sm);margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
@@ -273,42 +272,34 @@ export class PelotaHud {
       <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span></button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span></button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
-    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => { fitCircles(r.querySelector('.pel-btns')); this.placeTip(); }; addEventListener('resize', this.onFit);
+    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => fitCircles(r.querySelector('.pel-btns')); addEventListener('resize', this.onFit);
     this.callT = 0; this.qT = 0;
   }
-  // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me }; null la esconde
+  // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me, color }; null la esconde. La tuya, grande abajo en el
+  // centro, que se lee de un vistazo; la de los demás, una raya en el marcador, en su lado (por parejas, dos)
   energy(rows) {
-    let el = this.enEl;
-    if (!rows) { if (el && !el.hidden) { el.hidden = true; this.placeTip(); } if (this.myEn) this.myEn.hidden = true; return; }
-    const key = rows.map(r => r.id + r.name).join();
-    // (la tuya, grande abajo en el centro, que se lee de un vistazo; la de los demás, pequeña arriba con su nombre)
+    if (!rows) { for (const b of this.root.querySelectorAll('.pel-sen')) b.hidden = true; if (this.myEn) this.myEn.hidden = true; return; }
     if (!this.myEn) { const m = this.myEn = document.createElement('div'); m.className = 'pel-myen you'; m.dataset.en = 'you'; m.innerHTML = `<span>${esc(this.txt.energy || 'Energía')}</span><i><b></b></i>`; this.root.appendChild(m); }
     this.myEn.hidden = !rows.some(r => r.me);
-    if (!el || this.enKey !== key) {
-      el?.remove(); el = this.enEl = document.createElement('div'); el.className = 'pel-en'; this.enKey = key;
-      el.innerHTML = rows.filter(r => !r.me).map(r => `<div class="${r.side} c-${r.color || (r.side === 'rival' ? 'rojo' : 'azul')}" data-en="${r.id}"><em></em><span>${esc(short(r.name))}</span><i><b></b></i></div>`).join('');
-      this.root.insertBefore(el, this.root.querySelector('.pel-call'));
+    const key = rows.map(r => r.id + r.side).join();
+    if (this.enKey !== key) {
+      this.enKey = key; for (const b of this.root.querySelectorAll('.pel-sen')) b.remove();
+      // (por parejas, dos rayas en el mismo lado: arriba la del primer nombre del marcador y debajo la de su compañero)
+      const n = {}, k = {}; for (const r of rows) if (!r.me) n[r.side] = (n[r.side] || 0) + 1;
+      for (const r of rows) {
+        if (r.me) continue;
+        const side = this.root.querySelector(`.pel-side[data-side="${r.side}"]`); if (!side) continue;
+        const e = document.createElement('i'); e.className = 'pel-sen'; e.dataset.en = r.id; e.title = `${this.txt.energy || 'Energía'}: ${short(r.name)}`;
+        k[r.side] = (k[r.side] || 0) + 1; e.style.setProperty('--k', n[r.side] - k[r.side]); e.innerHTML = '<b></b>'; side.appendChild(e);
+      }
     }
-    if (el.hidden !== false) { el.hidden = false; this.placeTip(); } else if (this.tipFor !== key) this.placeTip();
-    this.tipFor = key;
     for (const r of rows) {
-      const row = r.me ? this.myEn : el.querySelector(`[data-en="${r.id}"]`); if (!row) continue;
+      const row = r.me ? this.myEn : this.root.querySelector(`.pel-sen[data-en="${r.id}"]`); if (!row) continue;
+      row.hidden = false;
       const v = Math.round(r.en * 50) / 50; if (row._v === v) continue; row._v = v;
       row.querySelector('b').style.transform = `scaleX(${v})`;
       row.classList.toggle('mid', v < 0.5 && v >= 0.25); row.classList.toggle('low', v < 0.25);
     }
-  }
-  // el aviso de arriba no pisa la etiqueta de energía de los demás (arriba a la izquierda): si cabe a su lado con al menos
-  // 280 px, se estrecha lo justo; si no, baja por debajo de ella. Solo cuenta cuando el aviso va arriba (móvil)
-  placeTip() {
-    cancelAnimationFrame(this.tipRaf);
-    this.tipRaf = requestAnimationFrame(() => {
-      const st = this.root.style, e = this.enEl;
-      st.removeProperty('--pel-tip-w'); st.removeProperty('--pel-tip-top');
-      if (!e || e.hidden) return;
-      const r = e.getBoundingClientRect(), w = Math.floor(enCss(innerWidth - 2 * r.right) - 16);   // (en píxeles del CSS: util/tele.js)
-      if (w >= 280) st.setProperty('--pel-tip-w', w + 'px'); else st.setProperty('--pel-tip-top', Math.ceil(enCss(r.bottom) + 8) + 'px');
-    });
   }
   setNames(you, rival) { const a = this.root.querySelector('[data-side=you] span'), b = this.root.querySelector('[data-side=rival] span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
   setScore(you, rival, server, mid) {
@@ -375,7 +366,7 @@ export class PelotaHud {
   closePanel() { const p = this.panelEl; if (p) { this.panelEl = null; p.classList.add('pel-fuera'); setTimeout(() => p.remove(), 220); } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
   // (se desvanece con lo que tuviera delante, el aviso de salir o el resultado, mientras entra lo siguiente)
-  destroy() { removeEventListener('resize', this.onFit); cancelAnimationFrame(this.tipRaf); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
+  destroy() { removeEventListener('resize', this.onFit); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
 }
 // el nombre sin su pueblo entre paréntesis («Jokin (Altsasu)» → «Jokin»): en el marcador y en la energía, que son
 // estrechos (el pueblo ya sale en la pantalla VS y en el frontón)
