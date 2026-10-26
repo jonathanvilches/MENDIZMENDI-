@@ -1,0 +1,1 @@
+var e=new URL(`bidasoa-Cf653s4x.webp`,import.meta.url).href;export{e as default};

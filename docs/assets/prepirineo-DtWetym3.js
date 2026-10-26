@@ -1,0 +1,1 @@
+var e=new URL(`prepirineo-BJ3sNgLR.webp`,import.meta.url).href;export{e as default};

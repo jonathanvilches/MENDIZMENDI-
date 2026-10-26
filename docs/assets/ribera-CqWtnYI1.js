@@ -1,0 +1,1 @@
+var e=new URL(`ribera-DNTT6bWM.webp`,import.meta.url).href;export{e as default};
