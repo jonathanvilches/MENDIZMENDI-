@@ -316,7 +316,7 @@ export class Hub {
   }
   // lo que el inicio le pasa a inicio.js: el icono de cada misión, las que tocan por la edad, dónde cae cada pueblo en el
   // mapa y el mapa plano para cuando no hay 3D
-  opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) }; }
+  opcInicio(p) { return { icono: mIcon, nombre: (m) => m.title || m.name || TYPE_NAME[m.type] || '', slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) }; }
   // el inicio: el mapa del mundo, a toda la pantalla, como en un juego (inicio.js); sin desplazarse
   s_home() {
     if (isDidactico()) return this.d_home();

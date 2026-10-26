@@ -91,9 +91,10 @@ XY = lambda lat, lon: (19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.4
 LATLON = lambda x, y: (43.325 - (y - 17) / 765 * 1.43, (x - 19) / 709 * 1.80 - 2.52)
 PASO = 3.0
 
-def mosaico(teselas, Z, X0, X1, Y0, Y1, fuentes, sueltas=False):
+def mosaico(teselas, Z, X0, X1, Y0, Y1, fuentes, sueltas=False, mar=False):
     """Las teselas «terrarium» de una zona, juntas (como perfiles.py); devuelve la altura (m) de cualquier punto. Con
-    sueltas, la zona puede tener huecos (solo se bajan las que tocan Navarra): lo que falta, a cero."""
+    sueltas, la zona puede tener huecos (solo se bajan las que tocan Navarra): lo que falta, a cero. Con mar, la
+    profundidad del mar queda en negativo (si no, a cero)."""
     import numpy as np
     from PIL import Image
     ok_src = re.compile(fuentes)
@@ -107,7 +108,7 @@ def mosaico(teselas, Z, X0, X1, Y0, Y1, fuentes, sueltas=False):
             if not srcs or bad: sys.exit(f'tesela {x},{y}: fuentes no previstas {bad or "(ninguna)"}')
             im = np.asarray(Image.open(os.path.join(teselas, f'{Z}-{x}-{y}.png')).convert('RGB'), np.float32)
             H[(y - Y0) * 256:(y - Y0 + 1) * 256, (x - X0) * 256:(x - X0 + 1) * 256] = im[..., 0] * 256 + im[..., 1] + im[..., 2] / 256 - 32768
-    H = np.maximum(H, 0)
+    if not mar: H = np.maximum(H, 0)
     def elev(lat, lon):
         n = 256 * 2 ** Z; la = np.radians(lat)
         px = (lon + 180) / 360 * n - X0 * 256 - 0.5; py = (1 - np.log(np.tan(la) + 1 / np.cos(la)) / math.pi) / 2 * n - Y0 * 256 - 0.5
@@ -188,6 +189,59 @@ def detalle(elev, com, carpeta):
         out[cid] = {'x0': x0, 'y0': y0, 'paso': P, 'w': w, 'h': h}
         print(f'detalle {cid}: {w}x{h}, {tam[0] // 1024} KB y {tam[1] // 1024} KB')
     return out
+
+def pinta_suelo(elev, gx, gy, m):
+    """El suelo de alrededor, como un mapa físico apagado: el color de la altura, medio gris y más oscuro, con la luz del
+    noroeste (la pendiente exagerada cuatro veces); el mar, azul, más oscuro cuanto más hondo. m: metros por punto."""
+    import numpy as np
+    lat, lon = LATLON(gx, gy); alt = elev(lat, lon).astype(np.float64); tierra = np.maximum(alt, 0)
+    dz, dx = np.gradient(tierra * 4, m)
+    n = np.stack([-dx, np.ones_like(dx), -dz], -1); n /= np.linalg.norm(n, axis=-1, keepdims=True)
+    L = np.array([-0.6, 0.62, -0.5]); L /= np.linalg.norm(L); d = np.clip((n * L).sum(-1), 0, 1)
+    ks = np.array([p[0] for p in PALETA], float); cs = np.array([p[1] for p in PALETA], float) / 255
+    col = np.stack([np.interp(tierra, ks, cs[:, i]) for i in range(3)], -1)
+    gris = (col @ np.array([0.299, 0.587, 0.114]))[..., None]
+    c = (col + (gris - col) * 0.5) * 0.64 * (0.32 + 1.0 * d)[..., None]
+    prof = np.clip(-alt / 2000, 0, 1)[..., None]
+    return np.where((alt < 0)[..., None], np.array([30, 66, 104]) / 255 * (1 - 0.45 * prof), c)
+
+def borde(gx, gy, cx, cy, X, Y):
+    """De 0 a 1 hacia el borde de un rectángulo de esquinas redondas (una superelipse): para fundir el suelo."""
+    import numpy as np
+    r = ((np.abs(gx - cx) / X) ** 4 + (np.abs(gy - cy) / Y) ** 4) ** 0.25
+    k = np.clip((r - 0.72) / 0.28, 0, 1); return (k * k * (3 - 2 * k))[..., None]
+
+def entorno(teselas, salida):
+    """Lo que rodea a Navarra, el suelo del mapa 3D: de Bilbao a Zaragoza y del mar Cantábrico al Moncayo, con su relieve
+    (unos 450 m, SRTM y GMTED; el fondo del mar, ETOPO1). Hacia el borde se vuelve transparente y deja ver el de toda la
+    península (espana). Cubre 2000 x 1520 unidades del mapa alrededor de su centro (372, 400): en el juego, un plano de
+    200 x 152 en el centro del mundo."""
+    import numpy as np
+    from PIL import Image
+    X, Y, W = 1000, 760, 1280; H = round(W * Y / X)
+    elev = mosaico(teselas, 8, 125, 128, 93, 95, r'^(srtm|gmted|etopo1)/', mar=True)
+    gx, gy = np.meshgrid(372 - X + (np.arange(W) + 0.5) * 2 * X / W, 400 - Y + (np.arange(H) + 0.5) * 2 * Y / H)
+    c = pinta_suelo(elev, gx, gy, 2 * X / W * 207.6); a = 1 - borde(gx, gy, 372, 400, X, Y)
+    Image.fromarray((np.clip(np.concatenate([c, a], -1), 0, 1) * 255).astype(np.uint8), 'RGBA').save(salida, 'WEBP', quality=78, method=6)
+    print('entorno', W, 'x', H, os.path.getsize(salida), 'bytes')
+
+# (la península entera, para la entrada del mapa: el rectángulo, en unidades del mapa)
+ESPANA = (-3006, -451, 2824, 4150)
+
+def espana(teselas, salida):
+    """Toda la península, de Galicia a Cataluña y del Cantábrico a Gibraltar, con su relieve (nivel 7, unos 900 m) en los
+    mismos colores apagados que el entorno de Navarra, que va encima; hacia el borde se funde con el fondo del mapa
+    (FONDO). Es el suelo de la entrada: Navarra se despega de aquí."""
+    import numpy as np
+    from PIL import Image
+    FONDO = np.array([16, 22, 38], float) / 255
+    x0, y0, x1, y1 = ESPANA; W = 2048; H = round(W * (y1 - y0) / (x1 - x0))
+    elev = mosaico(teselas, 7, 60, 65, 46, 50, r'^(srtm|gmted|etopo1)/', mar=True)
+    gx, gy = np.meshgrid(x0 + (np.arange(W) + 0.5) * (x1 - x0) / W, y0 + (np.arange(H) + 0.5) * (y1 - y0) / H)
+    c = pinta_suelo(elev, gx, gy, (x1 - x0) / W * 207.6)
+    c = c + (FONDO - c) * borde(gx, gy, (x0 + x1) / 2, (y0 + y1) / 2, (x1 - x0) / 2, (y1 - y0) / 2)
+    Image.fromarray((np.clip(c, 0, 1) * 255).astype(np.uint8), 'RGB').save(salida, 'WEBP', quality=76, method=6)
+    print('españa', W, 'x', H, os.path.getsize(salida), 'bytes')
 
 def mapa(teselas, teselas10, teselas12, rios_json, raiz, salida, salida_sombra, carpeta_detalle):
     import numpy as np
@@ -292,4 +346,6 @@ def mapa(teselas, teselas10, teselas12, rios_json, raiz, salida, salida_sombra, 
 if __name__ == '__main__':
     if sys.argv[1:2] == ['rios']: rios(*sys.argv[2:4])
     elif sys.argv[1:2] == ['mapa']: mapa(*sys.argv[2:10])
-    else: sys.exit('uso: mapa-relieve.py rios <agua.json> <rios.json> | mapa <teselas> <teselas10> <teselas12> <rios.json> <raíz> <salida.js> <sombra.webp> <carpeta detalle>')
+    elif sys.argv[1:2] == ['entorno']: entorno(*sys.argv[2:4])
+    elif sys.argv[1:2] == ['espana']: espana(*sys.argv[2:4])
+    else: sys.exit('uso: mapa-relieve.py rios <agua.json> <rios.json> | entorno <teselas> <entorno.webp> | espana <teselas7> <espana.webp> | mapa <teselas> <teselas10> <teselas12> <rios.json> <raíz> <salida.js> <sombra.webp> <carpeta detalle>')

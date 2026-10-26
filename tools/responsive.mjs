@@ -2,6 +2,8 @@
 // y tele): lo que se sale de la pantalla, textos cortados, letra diminuta, botones demasiado pequeños para el dedo y lo
 // de encima del mapa 3D que se pisa. Con OUT=carpeta guarda la primera pantalla de cada tamaño y una hoja con todas.
 // Uso: node tools/responsive.mjs [pantalla] [tamaños separados por comas]   (URL=http://127.0.0.1:5173/)
+// (home+olite: el inicio con la ficha de un pueblo abierta, como al tocar su chincheta; solo en el servidor de desarrollo.
+// La captura espera hasta 2 min: en el navegador de pruebas, sin gráfica, el sombreado de la maqueta tarda en compilarse)
 import { chromium } from '/home/user/mendimendiz/node_modules/playwright-core/index.mjs';
 import { createRequire } from 'module';
 const sharp = createRequire('/home/user/mendimendiz/package.json')('sharp');
@@ -16,9 +18,10 @@ for (const sz of lista.split(',')) {
   await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'nerea', last: 'lesaka', xp: 120, seen: { heroBenat: true, dog: true, comoJugar: true }, towns: { lesaka: { visits: 2, done: { 0: true, 1: true } } } })); });
   await p.goto(URL + '?screen=home', { timeout: 300000 });
   await p.waitForSelector('#hMain', { timeout: 120000 }); await p.waitForTimeout(1500);
-  const [s, arg] = scr.split(':'); if (s !== 'home' || arg) await p.evaluate(([s, a]) => window.__hub?.go(s, a, true), [s, arg]);
+  const [pant, pueblo] = scr.split('+'), [s, arg] = pant.split(':'); if (s !== 'home' || arg) await p.evaluate(([s, a]) => window.__hub?.go(s, a, true), [s, arg]);
   await p.waitForTimeout(s === 'home' ? 6000 : 2000);
-  if (OUT) { const f = `${OUT}/${scr.replace(':', '-')}-${sz}.png`; await p.screenshot({ path: f }); fotos.push({ f, w, h, sz }); }
+  if (pueblo) { await p.evaluate((id) => window.__mapa3d?.ir(id), pueblo); await p.waitForTimeout(6000); }
+  if (OUT) { const f = `${OUT}/${scr.replace(/[:+]/g, '-')}-${sz}.png`; await p.screenshot({ path: f, timeout: 120000 }); fotos.push({ f, w, h, sz }); }
   const r = await p.evaluate((tactil) => {
     const main = document.querySelector('#hMain'), out = { sale: [], cortado: [], diminuta: [], diana: [], pisa: [] };
     const vis = (e) => { if (!e.offsetParent && getComputedStyle(e).position !== 'fixed') return false; const r = e.getBoundingClientRect(); if (r.width < 1 || r.height < 1) return false; const st = getComputedStyle(e); return st.visibility !== 'hidden' && +st.opacity > 0.05; };
@@ -41,7 +44,7 @@ for (const sz of lista.split(',')) {
       if (tactil && e.matches('button, a[href], [role=button], select, input:not([type=hidden])') && !e.closest('.sheet') && (r.width < 36 || r.height < 36)) out.diana.push(nombre(e) + ` ${Math.round(r.width)}x${Math.round(r.height)}`);
     }
     // (lo de encima del mapa 3D, que no se pise)
-    const A = [...document.querySelectorAll('.m3-tot, .m3-pad, .m3-rail, .m3-panel:not([hidden]), .m3d .ini-head, .m3-ayuda')].filter(vis).map(x => [x.className.split(' ')[0], x.getBoundingClientRect()]);
+    const A = [...document.querySelectorAll('.m3-tot, .m3-pad, .m3-rail, .m3-cb:not([hidden]), .m3-ft:not([hidden]), .m3d .ini-head, .m3-ayuda')].filter(vis).map(x => [x.className.split(' ')[0], x.getBoundingClientRect()]);
     for (let i = 0; i < A.length; i++) for (let j = i + 1; j < A.length; j++) { const [na, a] = A[i], [nb, c] = A[j]; if (a.left < c.right - 1 && c.left < a.right - 1 && a.top < c.bottom - 1 && c.top < a.bottom - 1) out.pisa.push(na + ' y ' + nb); }
     for (const k in out) out[k] = [...new Set(out[k])];
     return out;
@@ -56,7 +59,7 @@ if (OUT && fotos.length) {
   const H = 300, items = await Promise.all(fotos.map(async x => ({ ...x, buf: await sharp(x.f).resize({ height: H }).toBuffer(), ww: Math.round(x.w * H / x.h) })));
   let X = 0, Y = 0, rowW = 0; const comp = [], maxW = 2400; let ancho = 0;
   for (const it of items) { if (X + it.ww > maxW) { X = 0; Y += H + 30; } comp.push({ input: it.buf, left: X, top: Y + 24 }, { input: Buffer.from(`<svg width="${it.ww}" height="24" xmlns="http://www.w3.org/2000/svg"><text x="4" y="18" font-size="18" font-family="sans-serif">${it.sz}</text></svg>`), left: X, top: Y }); X += it.ww + 12; ancho = Math.max(ancho, X); }
-  await sharp({ create: { width: ancho, height: Y + H + 30, channels: 3, background: '#ffffff' } }).composite(comp).png().toFile(`${OUT}/hoja-${scr.replace(':', '-')}.png`);
+  await sharp({ create: { width: ancho, height: Y + H + 30, channels: 3, background: '#ffffff' } }).composite(comp).png().toFile(`${OUT}/hoja-${scr.replace(/[:+]/g, '-')}.png`);
 }
 console.log(total ? `total ${total} avisos` : 'Todo correcto');
 await b.close();
