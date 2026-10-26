@@ -40,7 +40,9 @@ function contorno(path) {
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
-const color = (hex, gris) => { const c = new THREE.Color(hex), g = new THREE.Color('#2a2140'); return c.lerp(g, gris); };
+// (sin descubrir, todas en el mismo violeta, con un toque de su color; las paredes, violeta oscuro: mezclar los amarillos y
+// los ocres con oscuro los volvía marrones)
+const VIOLETA = new THREE.Color('#3f2d7c'), PARED = new THREE.Color('#1d1240');
 
 /**
  * host: la caja donde va el mapa. o: { comarcas: [{ id, name, color, path, pct, done }], towns: [{ id, name, comarca,
@@ -75,20 +77,21 @@ export function mapa3d(host, o) {
     const sh = new THREE.Shape(P.map(([x, y]) => { const [X, Z] = W(x, y); return new THREE.Vector2(X, -Z); }));
     const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.14, bevelSegments: 2, curveSegments: 4 });
     g.rotateX(-Math.PI / 2); geos.push(g);
-    const gris = c.pct > 0 ? mezcla(0.3, 0, c.pct) : 0.5;   // (sin descubrir, apagada; con cada sello, más su color)
-    const top = M({ color: color(c.color, gris), emissive: new THREE.Color(c.color), emissiveIntensity: c.done ? 0.28 : c.pct * 0.12 });
-    const side = M({ color: color(c.color, Math.min(0.8, gris + 0.25)).multiplyScalar(0.6) });
+    // (empezada, con su color entero y su propio brillo, que crece con los sellos)
+    const vivo = c.pct > 0 || c.done, base = vivo ? new THREE.Color(c.color).lerp(new THREE.Color('#ffffff'), 0.1) : VIOLETA.clone().lerp(new THREE.Color(c.color), 0.14);
+    const top = M({ color: base, emissive: new THREE.Color(c.color), emissiveIntensity: c.done ? 0.38 : vivo ? 0.16 + c.pct * 0.16 : 0.05 });
+    const side = M({ color: PARED.clone().lerp(new THREE.Color(c.color), vivo ? 0.18 : 0.06) });
     const mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
     const alto = TOP0 + TOPX * c.pct + (c.done ? 0.5 : 0);
     mesh.scale.y = 0.01; scene.add(mesh);
     // (el borde de arriba, una línea clara del color de la comarca)
     const lg = new THREE.BufferGeometry().setFromPoints(P.map(([x, y]) => { const [X, Z] = W(x, y); return new THREE.Vector3(X, 0, Z); })); geos.push(lg);
-    const linea = new THREE.LineLoop(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(c.color).lerp(new THREE.Color('#ffffff'), 0.55), transparent: true, opacity: c.pct > 0 ? 0.95 : 0.55, toneMapped: false })); mats.push(linea.material);
+    const linea = new THREE.LineLoop(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(c.color).lerp(new THREE.Color('#ffffff'), 0.55), transparent: true, opacity: c.pct > 0 ? 0.95 : 0.75, toneMapped: false })); mats.push(linea.material);
     scene.add(linea);
     const [X, Z] = W(cx, cy);
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : c.pct > 0 ? ' go' : ''); lab.style.setProperty('--c', c.color);
     lab.innerHTML = `<b>${esc(c.name)}</b>${c.towns ? `<small>${c.stamps}/${c.towns}</small>` : ''}`;
-    return { ...c, mesh, top, linea, alto, h: 0.01, lift: 0, X, Z, lab, d: 0.25 + i * 0.07 };
+    return { ...c, mesh, top, linea, alto, brillo: top.emissiveIntensity, h: 0.01, lift: 0, X, Z, lab, d: 0.25 + i * 0.07 };
   });
   const byId = new Map(C.map(c => [c.id, c]));
   // (lo que ocupa Navarra: sus esquinas, para encajarla en la pantalla)
@@ -300,7 +303,7 @@ export function mapa3d(host, o) {
       c.lift += (quiere - c.lift) * (1 - Math.exp(-dt * 10));
       c.h = Math.max(0.01, (c.alto + c.lift) * nace + (sel && sel !== c.id ? -0.25 : 0) * nace);
       c.mesh.scale.y = c.h; c.linea.position.y = c.h * 1.12 + 0.13;
-      c.top.emissiveIntensity = (c.done ? 0.28 : c.pct * 0.12) + c.lift * 0.22 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.06 : 0);
+      c.top.emissiveIntensity = c.brillo + c.lift * 0.22 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.06 : 0);
     }
     for (const x of T) {
       const nace = ease(Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
