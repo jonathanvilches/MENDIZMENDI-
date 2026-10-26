@@ -12,7 +12,8 @@ import { hubRenderer, rendererVivo } from './stage.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
-import { REAL_IDS, loadReal } from '../data/reales/index.js';
+import { MAPA_IDS, loadMapa } from '../data/reales/index.js';
+import { CENTROS } from '../data/reales/centros.js';
 import { MAPA_RELIEVE, MAPA_ALTURAS } from '../data/mapa-relieve.js';
 import SOMBRA from '../assets/relieve/sombra.webp?url';
 import ENTORNO from '../assets/relieve/entorno.webp?url';
@@ -248,7 +249,7 @@ const RELIEVE_VS = `varying vec2 vXZ; varying float vH, vSom;
 void main() { vXZ = position.xz; vH = position.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
-const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3; uniform vec4 uRect, uDetRect, uPR[4], uHueco; uniform float uPK[4], uCerca, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
+const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3; uniform vec4 uRect, uDetRect, uPR[4], uHueco; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
 varying vec2 vXZ; varying float vH, vSom;
 #include <fog_pars_fragment>
 // (un pueblo pintado encima, si el punto cae en su recuadro)
@@ -256,6 +257,17 @@ vec4 pue(sampler2D t, vec4 r, float k, vec2 sv) { vec2 u = (sv - r.xy) / r.zw; i
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+// (una parcela de cultivo, en una rejilla girada de casillas de t de lado: su color, trigo, verde, barbecho, viña u olivo o
+// arado, y lo cerca que está de su linde; en el sur, las viñas en hileras, si se ven)
+vec4 parcela(vec2 sv, float t) {
+  vec2 zc = floor(sv / 46.0);   // (cada zona, con su rumbo: girar toda la rejilla en torno a un punto hacía círculos)
+  float ga = hash(zc + 3.7) * 3.1416, cg = cos(ga), sg = sin(ga);
+  vec2 pr = mat2(cg, -sg, sg, cg) * (sv - zc * 46.0) / t * vec2(1.1, 1.9), fr = fract(pr), aw = fwidth(pr) * 0.9 + 0.006;
+  float hp = hash(floor(pr) + t * 7.0 + zc * 13.0), linde = 1.0 - smoothstep(0.0, 1.0, min(min(fr.x, 1.0 - fr.x) / aw.x, min(fr.y, 1.0 - fr.y) / aw.y));
+  vec3 tono = hp < 0.24 ? vec3(0.88, 0.76, 0.42) : hp < 0.44 ? vec3(0.46, 0.62, 0.3) : hp < 0.58 ? vec3(0.7, 0.6, 0.42) : hp < 0.76 ? vec3(0.56, 0.6, 0.34) : vec3(0.58, 0.44, 0.32);
+  float h9 = fract(pr.x * 9.0), vina = step(0.58, hp) * step(hp, 0.76) * smoothstep(430.0, 560.0, sv.y) * (1.0 - smoothstep(0.25, 0.6, fwidth(pr.x * 9.0)));
+  return vec4(tono * (1.0 - vina * 0.3 * smoothstep(0.35, 0.65, abs(h9 - 0.5) * 2.0)), linde);
+}
 void main() {
   if (uHueco.w > 0.5 && distance(vXZ, uHueco.xy) < uHueco.z) discard;   // (donde está la maqueta de un pueblo)
   float m = max(0.0, (vH - uGrosor) / uExa);
@@ -265,7 +277,24 @@ void main() {
   float s = mix(vSom * 0.95, texture2D(uSombra, (sv - uRect.xy) / uRect.zw).r * 1.7, uListo);
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   c = mix(c, texture2D(uDet, (sv - uDetRect.xy) / uDetRect.zw).rgb, uDetK);
-  if (uCerca > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
+  // (las texturas del terreno, desde la vista de una comarca: en el llano, parcelas de cultivo de colores, con sus lindes, en
+  // una rejilla que cambia de rumbo por zonas y de tamaño con la distancia, para que nunca tiemble; en el sur, viñas en
+  // hileras; en el monte del norte, el moteado de las copas del bosque; en las cumbres y en lo muy pendiente, roca; y de
+  // muy cerca, el grano fino)
+  if (uTex > 0.0) {
+    float pend = fwidth(vH) / (length(fwidth(vXZ)) + 1e-6), sur = smoothstep(430.0, 560.0, sv.y), lum = dot(c, vec3(0.3, 0.59, 0.11));
+    float llano = (1.0 - smoothstep(0.18, 0.55, pend)) * (1.0 - smoothstep(750.0, 1050.0, m));
+    float bosque = smoothstep(0.42, 0.62, ruido(sv * 0.18)) * smoothstep(380.0, 650.0, m) * (1.0 - smoothstep(1650.0, 1900.0, m)) * (1.0 - sur * 0.85);
+    float lv = log2(max(length(fwidth(sv)) * 30.0, 0.9)), l0 = floor(lv), fl = smoothstep(0.38, 0.62, fract(lv));
+    vec4 pa = mix(parcela(sv, exp2(l0)), parcela(sv, exp2(l0 + 1.0)), fl);
+    vec3 tono = pa.rgb;
+    c = mix(c, tono * (lum / dot(tono, vec3(0.3, 0.59, 0.11))) * (1.0 - 0.2 * pa.a), llano * (1.0 - bosque) * 0.62 * uTex);
+    float ko = exp2(-l0) * 2.4, copas = ruido(sv * ko) * 0.6 + ruido(sv * ko * 2.7) * 0.4;
+    c = mix(c, vec3(0.2, 0.36, 0.16) * (lum * 1.9) * (0.72 + 0.56 * copas), bosque * 0.55 * uTex);
+    float roca = clamp(smoothstep(1450.0, 1750.0, m) + smoothstep(0.9, 1.7, pend) * 0.6, 0.0, 1.0);
+    c = mix(c, vec3(dot(c, vec3(0.34))) * vec3(1.02, 1.0, 0.98) * (0.84 + 0.32 * ruido(sv * ko * 4.0)), roca * 0.4 * uTex);
+    if (uCerca > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
+  }
   vec4 p = pue(uP0, uPR[0], uPK[0], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP1, uPR[1], uPK[1], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP2, uPR[2], uPK[2], sv); c = mix(c, p.rgb, p.a);
@@ -318,9 +347,9 @@ export function mapa3d(host, o) {
   const UNI = { uSombra: { value: sombra }, uListo: LISTO, uRect: { value: new THREE.Vector4(R.x0 - R.paso / 2, R.y0 - R.paso / 2, R.w * R.paso, R.h * R.paso) },
     uGrosor: { value: GROSOR }, uExa: { value: EXA }, uPal: { value: PALETA.map(([, h]) => srgb(h)) }, uCota: { value: PALETA.map(([m]) => m) } };
   const nada = new THREE.DataTexture(new Uint8Array([128, 140, 90, 255]), 1, 1); nada.needsUpdate = true;
-  const CERCA = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno)
+  const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true,
-    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uCerca: CERCA,
+    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uCerca: CERCA, uTex: TEXK,
       uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
@@ -446,7 +475,8 @@ export function mapa3d(host, o) {
   const hazG = new THREE.CylinderGeometry(0.16, 0.3, 12, 20, 1, true); geos.push(hazG);
   const hazM = new THREE.MeshBasicMaterial({ color: 0xff2bd6, alphaMap: hazTex(), transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }); mats.push(hazM);
   const T = o.towns.filter(t => byId.has(t.comarca)).map((t, i) => {
-    const [X, Z] = W(t.sx, t.sy), g = new THREE.Group();
+    // (en los pueblos con su trazado, en su plaza, que es donde se levanta su maqueta)
+    const [X, Z] = CENTROS[t.id] ? W(...mapaXY(...CENTROS[t.id])) : W(t.sx, t.sy), g = new THREE.Group();
     const bola = new THREE.Object3D(); bola.position.y = CRISTAL_Y;   // (el cristal: lo que se toca)
     g.add(bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
     let haz = null; if (t.here) { haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
@@ -477,7 +507,7 @@ export function mapa3d(host, o) {
   const halo = new THREE.Points(haloG, balM(HALO_VS, HALO_FS, { blending: THREE.AdditiveBlending })); halo.frustumCulled = false; halo.renderOrder = 4; scene.add(halo);
   const BM = new THREE.Matrix4(), BV = new THREE.Vector3(), BS = new THREE.Vector3(), BQ = new THREE.Quaternion(), Q0 = new THREE.Quaternion(), ARRIBA = new THREE.Vector3(0, 1, 0), BE = new THREE.Euler();
   const tById = new Map(T.map(t => [t.id, t]));
-  const TR = T.filter(t => REAL_IDS.includes(t.id));   // (los que tienen su trazado de verdad: a esos se puede uno acercar mucho más)
+  const TR = T.filter(t => MAPA_IDS.includes(t.id));   // (los que tienen su trazado de verdad: a esos se puede uno acercar mucho más)
 
   // la capa de los nombres y los controles
   const capa = document.createElement('div'); capa.className = 'm3-capa';
@@ -494,7 +524,7 @@ export function mapa3d(host, o) {
   const libre = () => { const w = host.clientWidth || 1, h = host.clientHeight || 1, hu = huecoAhora(); return { w: Math.max(80, w - (hu.r || 0)), h: Math.max(80, h - (hu.t || 0) - (hu.b || 0)), W: w, H: h }; };
   const camPos = (s, out = new THREE.Vector3()) => out.set(s.x + Math.sin(s.yaw) * Math.cos(s.pitch) * s.d, Math.sin(s.pitch) * s.d + (s.hy || 0), s.z + Math.cos(s.yaw) * Math.cos(s.pitch) * s.d);
   // (se prueba a qué distancia caben todas las esquinas de Navarra en el hueco libre, con la misma cámara)
-  // (fb: cuánto de lo de abajo cuenta: con toda Navarra, puede pasar por debajo de la fila de comarcas, que es translúcida)
+  // (fb: cuánto de lo de abajo cuenta: con toda Navarra, casi todo, porque la tira de fotos de abajo tapa)
   const prueba = new THREE.PerspectiveCamera(cam.fov, 1, 0.5, 2000), pq = new THREE.Vector3();
   function encaja(pts, x, z, pitch, fb) {
     const L = libre(), hu = huecoAhora();
@@ -508,7 +538,7 @@ export function mapa3d(host, o) {
   }
   function casa() {
     const L = libre(), pitch = L.w / L.h < 1.05 ? 1.02 : L.w / L.h < 1.6 ? 0.82 : 0.7;
-    return { x: centro.x, z: centro.z, d: encaja(esquinas, centro.x, centro.z, pitch, 0.35), yaw: 0, pitch };
+    return { x: centro.x, z: centro.z, d: encaja(esquinas, centro.x, centro.z, pitch, 0.9), yaw: 0, pitch };
   }
   // (una comarca: sus esquinas, con lo que sube al elegirla)
   for (const c of C) { const bb = c.mesh.geometry.boundingBox.clone(); bb.max.y = GROSOR + c.hmax + c.alzado + 1.1; c.esq = []; for (const x of [bb.min.x, bb.max.x]) for (const y of [0, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) c.esq.push(new THREE.Vector3(x, y, z)); c.mid = bb.getCenter(new THREE.Vector3()); }
@@ -516,7 +546,7 @@ export function mapa3d(host, o) {
   const v = { x: 0, z: 4, d: 132, yaw: 0, pitch: 1.18, hy: 0.8 }, goal = casa();
   let bajoC = null;   // (la comarca que queda debajo del punto al que mira la cámara)
   let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t0, dur })
-  const volar = (a, dur = 0.9) => { vuelo = { de: { ...v }, a: { ...v, ...a }, t: 0, dur }; Object.assign(goal, vuelo.a); };
+  const volar = (a, dur = 0.9) => { inercia = null; vuelo = { de: { ...v }, a: { ...v, ...a }, t: 0, dur }; Object.assign(goal, vuelo.a); };
   const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.22 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
     if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   DMAX = Math.max(150, goal.d * 1.35);
@@ -643,7 +673,7 @@ export function mapa3d(host, o) {
       t.bola.getWorldPosition(bw).project(cam); if (bw.z > 1) continue;
       const px = (bw.x + 1) / 2 * sz.w, py = (1 - bw.y) / 2 * sz.h, dd = Math.hypot(px - mx, py - my);
       if (dd < bd) { bd = dd; best = t; }
-      if (!t.lab.hidden && t.lab._w) { const ly = t.lab._y ?? py; if (Math.abs(mx - t.lab._x) < t.lab._w / 2 && my < ly && my > ly - t.lab._h) { best = t; bd = 0; } }
+      if (t.lab._on && t.lab._w) { const ly = t.lab._y ?? py; if (Math.abs(mx - t.lab._x) < t.lab._w / 2 && my < ly && my > ly - t.lab._h) { best = t; bd = 0; } }
     }
     if (best) return { t: best.id };
     ray.setFromCamera(aNdc(e), cam);
@@ -651,34 +681,63 @@ export function mapa3d(host, o) {
     return null;
   }
   let hover = null, sel = null;
-  const ptrs = new Map(); let arr = null, gesto = null;
+  // Un dedo (o el ratón) agarra el mapa: el punto tocado se queda bajo el dedo. Se mide con la cámara de cuando se tocó: con la
+  // de cada imagen, varios movimientos del dedo entre imagen e imagen sumaban el arrastre dos veces y el mapa daba saltos. Al
+  // soltar, sigue un poco y frena. Dos dedos: pellizcar acerca o aleja hacia el punto de entre los dedos, que se queda debajo
+  // de ellos, moverlos arrastra y girarlos gira. Al levantar uno, el otro sigue arrastrando
+  const ptrs = new Map(); let arr = null, gesto = null, inercia = null;
   const usado = () => host.classList.add('m3-usado');   // (la ayuda de los controles se va en cuanto se usan)
+  const camT = new THREE.PerspectiveCamera(), sT = { x: 0, z: 0, d: 1, yaw: 0, pitch: 1, hy: 0.8 };
+  const aNdcXY = (x, y) => { const b = cv.getBoundingClientRect(); return ndc.set((x - b.left) / b.width * 2 - 1, -((y - b.top) / b.height) * 2 + 1); };
+  const sueloCon = (c, x, y) => { ray.setFromCamera(aNdcXY(x, y), c); return ray.ray.intersectPlane(plano, new THREE.Vector3()); };
+  // (la cámara de un estado de la vista, aparte, para saber dónde cae con ella un punto de la pantalla)
+  const camDe = (s) => { camT.copy(cam); camPos(s, camT.position); camT.lookAt(s.x, s.hy, s.z); camT.updateMatrixWorld(); return camT; };
+  const agarra = (id) => { const q = ptrs.get(id), c0 = cam.clone(); plano.constant = -v.hy; goal.x = v.x; goal.z = v.z;
+    arr = { id, x: q.x, y: q.y, c0, p: sueloCon(c0, q.x, q.y), x0: v.x, z0: v.z, rot: q.rot, yaw: goal.yaw, pitch: goal.pitch, movido: q.movido, h: [] }; };
+  const pellizca = () => { const [a, b] = [...ptrs.values()]; plano.constant = -v.hy;
+    gesto = { dist: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), ang: Math.atan2(b.y - a.y, b.x - a.x), s0: { ...v }, p: sueloCon(cam, (a.x + b.x) / 2, (a.y + b.y) / 2) }; };
+  function mueveGesto() {
+    const [a, b] = [...ptrs.values()], g = gesto, ang = Math.atan2(b.y - a.y, b.x - a.x);
+    goal.d = g.s0.d * g.dist / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)); goal.yaw = g.s0.yaw - (ang - g.ang); goal.pitch = g.s0.pitch; lim();
+    Object.assign(sT, g.s0, { d: goal.d, yaw: goal.yaw, pitch: goal.pitch });
+    const q = g.p && sueloCon(camDe(sT), (a.x + b.x) / 2, (a.y + b.y) / 2);
+    goal.x = g.s0.x + (q ? g.p.x - q.x : 0); goal.z = g.s0.z + (q ? g.p.z - q.z : 0); lim();
+    for (const k of ['x', 'z', 'd', 'yaw', 'pitch']) v[k] = goal[k];
+  }
   const onDown = (e) => {
     if (entrada || saltaIntro()) return;
-    usado(); cv.focus({ preventScroll: true }); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); try { cv.setPointerCapture(e.pointerId); } catch (x) { }
-    vuelo = null; plano.constant = -v.hy;
-    if (ptrs.size === 1) arr = { x: e.clientX, y: e.clientY, p: enSuelo(e), rot: e.button === 2 || e.ctrlKey, yaw: goal.yaw, pitch: goal.pitch, movido: false };
-    else { arr = null; const [a, b] = [...ptrs.values()]; gesto = { d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), d0: goal.d, yaw0: goal.yaw }; }
+    usado(); cv.focus({ preventScroll: true }); try { cv.setPointerCapture(e.pointerId); } catch (x) { }
+    vuelo = null; inercia = null;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, rot: e.button === 2 || e.ctrlKey, movido: false });
+    if (ptrs.size === 1) agarra(e.pointerId); else { arr = null; pellizca(); }
   };
   const onMove = (e) => {
-    if (!ptrs.has(e.pointerId)) { if (e.pointerType === 'mouse') { const q = quien(e); const h = q?.t ? 't:' + q.t : q?.c ? 'c:' + q.c : null; if (h !== hover) { hover = h; cv.style.cursor = h ? 'pointer' : 'grab'; } } return; }
-    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (gesto && ptrs.size === 2) {
-      const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x);
-      goal.d = gesto.d0 * gesto.d / Math.max(20, d); goal.yaw = gesto.yaw0 - (ang - gesto.ang); lim(); return;
-    }
-    if (!arr) return;
-    if (Math.hypot(e.clientX - arr.x, e.clientY - arr.y) > 6) arr.movido = true;
-    if (!arr.movido) return;
+    const q = ptrs.get(e.pointerId);
+    if (!q) { if (e.pointerType === 'mouse') { const w = quien(e); const h = w?.t ? 't:' + w.t : w?.c ? 'c:' + w.c : null; if (h !== hover) { hover = h; cv.style.cursor = h ? 'pointer' : 'grab'; } } return; }
+    q.x = e.clientX; q.y = e.clientY;
+    if (gesto && ptrs.size >= 2) { mueveGesto(); return; }
+    if (!arr || arr.id !== e.pointerId) return;
+    // (hasta que el dedo se mueve unos píxeles es un toque; entonces se agarra desde ahí, sin saltar)
+    if (!arr.movido) { if (Math.hypot(q.x - arr.x, q.y - arr.y) <= (e.pointerType === 'mouse' ? 4 : 9)) return; q.movido = true; const r0 = arr; agarra(e.pointerId); arr.movido = true; arr.x = r0.x; arr.y = r0.y; arr.p0 = r0.p; }
     cv.style.cursor = 'grabbing';
-    if (arr.rot) { const b = cv.getBoundingClientRect(); goal.yaw = arr.yaw - (e.clientX - arr.x) / b.width * 3.2; goal.pitch = arr.pitch + (e.clientY - arr.y) / b.height * 1.6; lim(); return; }
-    // (arrastrar agarra el mapa: el punto que tocaste se queda bajo el dedo)
-    const p = enSuelo(e); if (p && arr.p) { goal.x += arr.p.x - p.x; goal.z += arr.p.z - p.z; v.x = goal.x; v.z = goal.z; lim(); }
+    if (arr.rot) { const b = cv.getBoundingClientRect(); goal.yaw = arr.yaw - (q.x - arr.x) / b.width * 3.2; goal.pitch = arr.pitch + (q.y - arr.y) / b.height * 1.6; lim(); return; }
+    const p = arr.p && sueloCon(arr.c0, q.x, q.y); if (!p) return;
+    goal.x = arr.x0 + arr.p.x - p.x; goal.z = arr.z0 + arr.p.z - p.z; lim(); v.x = goal.x; v.z = goal.z;
+    // (las últimas posiciones, para la inercia al soltar)
+    const now = performance.now(); arr.h.push([now, goal.x, goal.z]); while (arr.h.length > 2 && now - arr.h[0][0] > 110) arr.h.shift();
   };
   const onUp = (e) => {
-    const era = arr; ptrs.delete(e.pointerId); if (ptrs.size < 2) gesto = null;
-    if (!ptrs.size) arr = null; cv.style.cursor = hover ? 'pointer' : 'grab';
-    if (e.type !== 'pointerup' || !era || era.movido || era.rot) return;
+    if (!ptrs.has(e.pointerId)) return;
+    const era = arr && arr.id === e.pointerId ? arr : null; ptrs.delete(e.pointerId);
+    if (ptrs.size >= 2) { pellizca(); return; }
+    if (ptrs.size === 1) { gesto = null; const [id] = ptrs.keys(); ptrs.get(id).movido = true; agarra(id); return; }   // (de dos dedos a uno: el que queda sigue)
+    arr = null; gesto = null; cv.style.cursor = hover ? 'pointer' : 'grab';
+    if (!era) return;
+    if (era.movido && !era.rot && e.type === 'pointerup' && era.h.length > 1) {
+      const [t0, x0, z0] = era.h[0], [t1, x1, z1] = era.h.at(-1), s = (t1 - t0) / 1000;
+      if (s > 0.012 && performance.now() - t1 < 90) { const vx = (x1 - x0) / s, vz = (z1 - z0) / s; if (Math.hypot(vx, vz) > goal.d * 0.12) inercia = { vx, vz }; }
+    }
+    if (e.type !== 'pointerup' || era.movido || era.rot) return;
     const q = quien(e);
     if (q?.t) irPueblo(q.t);
     else if (q?.c) { if (elegido && q.c === sel) cierraPueblo(); else select(q.c); }   // (con un pueblo elegido, tocar su comarca solo cierra su ficha)
@@ -690,7 +749,7 @@ export function mapa3d(host, o) {
   // (la rueda del ratón acerca y aleja; en el panel táctil del portátil, deslizar con dos dedos mueve el mapa, como en
   // los mapas de verdad, y pellizcar acerca: el deslizar llega con desplazamiento a los lados o en fracciones, la rueda no)
   cv.addEventListener('wheel', (e) => {
-    e.preventDefault(); if (entrada || saltaIntro()) return; usado(); vuelo = null;
+    e.preventDefault(); if (entrada || saltaIntro()) return; usado(); vuelo = null; inercia = null;
     if (!e.ctrlKey && e.deltaMode === 0 && (e.deltaX !== 0 || !Number.isInteger(e.deltaY))) {
       const k = goal.d * 0.0016, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       goal.x += (-fz * e.deltaX - fx * e.deltaY) * k; goal.z += (fx * e.deltaX - fz * e.deltaY) * k; lim(); return;
@@ -711,7 +770,7 @@ export function mapa3d(host, o) {
     if (!(k || e.key === ' ' || e.key === 'Enter') || e.ctrlKey || e.metaKey || e.altKey || !visible || document.hidden || e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) return;
     if (saltaIntro()) { e.preventDefault(); return; }
     if (!k) return;
-    e.preventDefault(); usado(); vuelo = null; keys.add(k); };
+    e.preventDefault(); usado(); vuelo = null; inercia = null; keys.add(k); };
   const ku = (e) => { const k = MOV[e.key.toLowerCase()]; if (k) keys.delete(k); };
   addEventListener('keydown', kd); addEventListener('keyup', ku); addEventListener('blur', () => keys.clear());
 
@@ -730,7 +789,9 @@ export function mapa3d(host, o) {
     const t = tById.get(id); if (!t || entrada) return;
     if (sel !== t.comarca) select(t.comarca, false);
     elegido = t; o.onTown?.(id);   // (antes de volar: la ficha cambia el hueco donde se encaja)
-    volar({ x: t.X, z: t.Z, d: TR.includes(t) ? 2.6 : 4, yaw: v.yaw, pitch: 0.85 }, 1.2);
+    // (hasta lo más cerca, donde se ven sus casas en pie, algo de lado; los bosques, sin maqueta, desde algo más arriba)
+    const real = TR.includes(t), d = real ? 0.6 : 2.4;
+    volar({ x: t.X, z: t.Z, d, yaw: v.yaw, pitch: real ? 0.62 + 0.11 * d : 0.85 }, Math.min(2.2, 1.1 + 0.16 * Math.log2(Math.max(1, v.d / d))));
   }
   function cierraPueblo() { if (!elegido) return; elegido = null; o.onTown?.(null); }
   // (toda Navarra, desde arriba)
@@ -784,7 +845,7 @@ export function mapa3d(host, o) {
   // Solo los pueblos del juego, con su trazado de verdad (src/data/reales: casas, calles, ríos y plazas de OpenStreetMap):
   // al acercarse, su núcleo pintado sobre el relieve (las calles, las plazas, el agua y los tejados con su sombra) y, más
   // cerca aún, cada casa en pie. Los de alrededor, de uno en uno y con la cámara quieta; los lejanos se sueltan
-  const REALES = new Set(REAL_IDS), MU = 1 / 2076;   // (metros → unidades del mundo: una unidad son 2.076 m)
+  const REALES = new Set(MAPA_IDS), MU = 1 / 2076;   // (metros → unidades del mundo: una unidad son 2.076 m)
   const NUC_LEJOS = 26, NUC_CERCA = 16, CASAS_D = 10;
   const nuc = new Map(), cajaG = new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0); geos.push(cajaG);
   let nucT = -1e9, nucPide = 0;
@@ -864,14 +925,15 @@ export function mapa3d(host, o) {
     return true;
   }
   function nucleos(now, quieto) {
-    if (now - nucT < 500 || !quieto && !entrada) return; nucT = now;
+    const va = elegido && vuelo;   // (volando hasta un pueblo: el suyo se pide ya, para que sus casas estén al llegar)
+    if (now - nucT < 500 || !quieto && !entrada && !va) return; nucT = now;
     // (al entrar a jugar, solo el del pueblo: lo demás, después)
-    const quiere = entrada ? (entrada.real ? [entrada.t] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
+    const quiere = entrada ? (entrada.real ? [entrada.t] : []) : va ? (REALES.has(elegido.id) ? [elegido] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
       .sort((a, b) => Math.hypot(a.X - v.x, a.Z - v.z) - Math.hypot(b.X - v.x, b.Z - v.z)).slice(0, 6);
     for (const t of quiere) {
       const e = nuc.get(t.id); if (e) { e.t = now; continue; } if (nucPide) continue;
       const nuevo = { t: now }; nuc.set(t.id, nuevo); nucPide++;
-      loadReal(t.id).then(D => { nucPide--; if (!vivo || nuc.get(t.id) !== nuevo || !D?.casas) return;
+      loadMapa(t.id).then(D => { nucPide--; if (!vivo || nuc.get(t.id) !== nuevo || !D?.casas) return;
         Object.assign(nuevo, haceNucleo(t, D)); if (!ponNucleo(nuevo)) { quitaNucleo(nuevo); nuc.delete(t.id); } }).catch(() => { nucPide = Math.max(0, nucPide - 1); });
     }
     // (si hay más de ocho, se sueltan los que hace más que no se ven)
@@ -975,6 +1037,7 @@ export function mapa3d(host, o) {
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
   const io = new IntersectionObserver((en) => { visible = en[0]?.isIntersecting ?? true; if (visible && !raf) raf = requestAnimationFrame(frame); }, { threshold: 0.02 }); io.observe(host);
   const sz = { w: 0, h: 0, z: 0 }, off = { x: 0, y: 0 };
+  let prMax = 2, prT = 0, prN = 0;   // (la resolución máxima del lienzo, que baja si el móvil no llega)
   const pv = new THREE.Vector3();
   function frame(now) {
     raf = 0;
@@ -982,10 +1045,14 @@ export function mapa3d(host, o) {
     if (!host.isConnected || !rendererVivo(r)) { dispose(); return; }
     if (!visible || document.hidden) return;
     raf = requestAnimationFrame(frame);
+    if (o.pausado?.()) { last = now; return; }   // (con algo a pantalla completa encima, no se pinta)
     // (en el móvil, y en el ordenador mientras nada se mueve, 30 imágenes por segundo: las chinchetas que flotan no
     // necesitan más, y así el resto del menú va más suelto)
-    const quieto = !keys.size && !vuelo && !ptrs.size && Math.abs(goal.d - v.d) < 0.05 * v.d && Math.abs(goal.x - v.x) + Math.abs(goal.z - v.z) < 0.05;
-    if ((LENTO || quieto) && now - last < 30) return;
+    const quieto = !keys.size && !vuelo && !ptrs.size && !inercia && Math.abs(goal.d - v.d) < 0.05 * v.d && Math.abs(goal.x - v.x) + Math.abs(goal.z - v.z) < 0.05;
+    // (mientras se toca o se mueve, todas las imágenes; en el móvil, si no van a tiempo, el lienzo baja un poco su resolución)
+    const toca = ptrs.size || inercia || vuelo || keys.size;
+    if ((quieto || (LENTO && !toca)) && now - last < 30) return;
+    if (LENTO && toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > 1) { prMax = Math.max(1, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
     // (al entrar a jugar, al ritmo del reloj aunque vaya a tirones)
@@ -995,7 +1062,7 @@ export function mapa3d(host, o) {
     if (intro) { if (!intro.t && ((cargas < 3 && intro.espera < 2.5) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
     // tamaño del lienzo
     const w = host.clientWidth, h = host.clientHeight, z = escala();
-    if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(2, (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
+    if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
     // movimiento con las teclas y los botones
     if (keys.size && !entrada) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
@@ -1005,6 +1072,8 @@ export function mapa3d(host, o) {
       if (keys.has('in')) goal.d *= Math.exp(-dt * 1.6); if (keys.has('out')) goal.d *= Math.exp(dt * 1.6);
       lim();
     }
+    // (la inercia al soltar el mapa: sigue y frena)
+    if (inercia) { goal.x += inercia.vx * dt; goal.z += inercia.vz * dt; const f = Math.exp(-dt * 4.2); inercia.vx *= f; inercia.vz *= f; lim(); v.x = goal.x; v.z = goal.z; if (Math.hypot(inercia.vx, inercia.vz) < goal.d * 0.02) inercia = null; }
     if (intro && !intro.hecho) {
       // (en la entrada, la cámara baja desde lo alto de la península; la distancia, en proporción, para que el zoom no se frene)
       const a = intro.de, k = ease(rampa(tI, IT.vuelo, IT.vuelo + IT.vueloD)), d0 = a.d * (1 - 0.05 * Math.min(1, tI / IT.vuelo));
@@ -1012,8 +1081,13 @@ export function mapa3d(host, o) {
       v.d = Math.exp(mezcla(Math.log(d0), Math.log(goal.d), k));
       if (tI >= IT.fin) acabaIntro();
     } else if (vuelo) {
-      vuelo.t += dt / vuelo.dur; const k = ease(Math.min(1, vuelo.t));
-      for (const q of ['x', 'z', 'd', 'yaw', 'pitch']) v[q] = mezcla(vuelo.de[q], vuelo.a[q], k);
+      vuelo.t += dt / vuelo.dur; const k = ease(Math.min(1, vuelo.t)), de = vuelo.de, a = vuelo.a;
+      // (la distancia, en proporción, para que al acercarse mucho no frene de golpe; y al acercarse, el sitio llega antes que
+      // la distancia: de cerca ya no barre de lado)
+      const kx = a.d < de.d * 0.5 ? ease(Math.min(1, vuelo.t / 0.7)) : k;
+      for (const q of ['x', 'z']) v[q] = mezcla(de[q], a[q], kx);
+      for (const q of ['yaw', 'pitch']) v[q] = mezcla(de[q], a[q], k);
+      v.d = Math.exp(mezcla(Math.log(de.d), Math.log(a.d), k));
       if (vuelo.t >= 1) vuelo = null;
     } else { const k = 1 - Math.exp(-dt * 9); for (const q of ['x', 'z', 'd', 'yaw', 'pitch']) v[q] += (goal[q] - v[q]) * k; }
     // (con el panel abierto, el centro de la vista se corre a lo que queda libre, poco a poco)
@@ -1036,7 +1110,7 @@ export function mapa3d(host, o) {
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
     const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
-    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
+    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0;
       if (intro) {
@@ -1101,12 +1175,12 @@ export function mapa3d(host, o) {
     if (now - tapas.t > 400) medirTapas(now);
     const cerca = v.d < 46, ocupado = tapas.r.slice(), lista = [];
     for (const x of T) { const on = sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id;
-      lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on]); }
+      lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on, x.g.position.y]); }
     for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !sel || sel === c.id]);
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, sel ? x.c?.id === sel : v.d < 55]);
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     lista.sort((a, b) => a[0] - b[0]);
-    for (const [, el, x, y, z, on] of lista) etiqueta(el, x, y, z, on, ocupado);
+    for (const [, el, x, y, z, on, y2] of lista) etiqueta(el, x, y, z, on, ocupado, y2);
     // (dónde queda la cabeza de la chincheta del pueblo elegido: ahí se ancla su ficha)
     if (elegido && o.sigue) { elegido.bola.getWorldPosition(bw).project(cam); o.sigue((bw.x + 1) / 2 * sz.w, (1 - bw.y) / 2 * sz.h, bw.z < 1); }
   }
@@ -1118,19 +1192,27 @@ export function mapa3d(host, o) {
     for (const e of host.querySelectorAll(o.tapa)) { if (e.hidden || !e.offsetParent) continue; const r = e.getBoundingClientRect(); if (!r.width) continue;
       tapas.r.push([(r.left - b.left) / k, (r.top - b.top) / k, (r.right - b.left) / k, (r.bottom - b.top) / k]); }
   }
-  function etiqueta(el, x, y, z, on, ocupado) {
+  // (cada nombre aparece y se va fundiéndose, y el que ya se ve guarda su sitio con algo de margen: al mover el mapa, los que
+  // rozan a otro no parpadean. Solo se mueve si se ha movido de verdad)
+  // (los de los pueblos, si encima no caben, debajo de su baliza: así se leen aunque dos pueblos estén muy juntos)
+  const libreEn = (R, g, ocupado) => !(R[0] < -g || R[2] > sz.w + g || R[1] < -g || R[3] > sz.h + g || ocupado.some(q => R[0] < q[2] && q[0] < R[2] && R[1] < q[3] && q[1] < R[3]));
+  function etiqueta(el, x, y, z, on, ocupado, y2) {
     pv.set(x, y, z).project(cam);
-    let ok = on && pv.z < 1 && Math.abs(pv.x) < 1.1 && Math.abs(pv.y) < 1.1;
-    const px = (pv.x + 1) / 2 * sz.w, py = (1 - pv.y) / 2 * sz.h;
+    let ok = on && pv.z < 1 && Math.abs(pv.x) < 1.1 && Math.abs(pv.y) < 1.1, px = (pv.x + 1) / 2 * sz.w, py = (1 - pv.y) / 2 * sz.h, abajo = false;
     if (ok) {
-      if (!el._w) { if (el.hidden) el.hidden = false; el._w = el.offsetWidth; el._h = el.offsetHeight; }
-      const R = [px - el._w / 2 - 3, py - el._h - 3, px + el._w / 2 + 3, py + 1];
-      if (R[0] < 0 || R[2] > sz.w || R[1] < 0 || R[3] > sz.h || ocupado.some(q => R[0] < q[2] && q[0] < R[2] && R[1] < q[3] && q[1] < R[3])) ok = false;
-      else ocupado.push(R);
+      if (!el._w) { el.hidden = false; el.classList.add('fuera'); el._w = el.offsetWidth; el._h = el.offsetHeight; }
+      const g = el._on ? -3 : 4, w = el._w / 2;
+      if (!libreEn([px - w - g, py - el._h - g, px + w + g, py + 1 + g], g, ocupado)) {
+        ok = false;
+        if (y2 != null) { pv.set(x, y2, z).project(cam); const qx = (pv.x + 1) / 2 * sz.w, qy = (1 - pv.y) / 2 * sz.h + 6 + el._h;
+          if (pv.z < 1 && libreEn([qx - w - g, qy - el._h - g, qx + w + g, qy + 1 + g], g, ocupado)) { ok = abajo = true; px = qx; py = qy; } }
+      }
+      if (ok) ocupado.push([px - w - 3, py - el._h - 3, px + w + 3, py + 1]);
     }
-    if (!ok) { if (!el.hidden) el.hidden = true; return; }
-    if (el.hidden) el.hidden = false;
-    el._x = px; el._y = py; el.style.transform = `translate(${px.toFixed(1)}px, ${py.toFixed(1)}px) translate(-50%, -100%)`;
+    if (ok !== !!el._on || !el._ya) { el._on = ok; el._ya = 1; el.classList.toggle('fuera', !ok); }   // (los que nunca se han visto, también fuera)
+    if (!ok) return;
+    if (Math.abs(px - (el._x ?? -1e9)) + Math.abs(py - (el._y ?? -1e9)) < 0.3) return;
+    el._x = px; el._y = py; el.classList.toggle('abajo', abajo); el.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0) translate(-50%, -100%)`;
   }
   // (los tamaños de los nombres, otra vez cuando llega la letra)
   document.fonts?.ready.then(() => { for (const e of capa.children) e._w = 0; });
