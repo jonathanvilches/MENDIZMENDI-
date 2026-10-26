@@ -9,14 +9,17 @@ const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root.vuelo>*{visibility:hidden!important}
 .pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-myen,.pel-en,.pel-exit,.pel-call){visibility:hidden}
-/* la repetición: el rótulo arriba a la izquierda con su punto rojo que late; en cámara lenta, su aviso */
-.pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 60px);display:flex;flex-direction:column;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-rep-b{display:flex;align-items:center;gap:10px;padding:8px 16px 8px 12px;border-radius:6px;background:linear-gradient(100deg,rgba(30,10,68,.92),rgba(91,52,196,.86));box-shadow:0 6px 18px rgba(0,0,0,.4),inset 0 0 0 1px rgba(255,255,255,.18);transform:skewX(-8deg)}
-.pel-rep-b>*{transform:skewX(8deg)}.pel-rep-b i{width:12px;height:12px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 10px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
-.pel-rep-b b{font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em}
-.pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
+/* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
+   misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
+   lenta, su aviso. Debajo, cómo saltarla. En un móvil de pie no caben los dos en la misma fila: baja justo debajo */
+.pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-rep-b{display:flex;align-items:center;gap:8px;height:30px;padding:0 16px 0 12px;border-radius:3px;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pel-rep-b i{flex:none;width:8px;height:8px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 8px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
+.pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
 .pel-rep.slow .sl{display:inline-block;animation:pel-repin .3s ease-out both}
-.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:4px}
+.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:8px}
+@media (max-width:620px){.pel-rep{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 38px)}}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
 /* el sorteo del saque: la chapa (azul por una cara y colorada por la otra) sube girando y cae; brilla el lado que saca */
 .pel-toss{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;pointer-events:auto;background:radial-gradient(ellipse at 50% 45%,rgba(40,14,92,.78),rgba(7,2,15,.92));animation:pel-tossbg .3s ease-out both}.pel-toss.directo{animation:none}

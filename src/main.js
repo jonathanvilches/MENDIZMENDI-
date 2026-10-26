@@ -178,7 +178,10 @@ async function boot() {
     });
     // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga
     // acaba antes, se va entonces: que no asome a través de la pantalla de carga cuando se desvanece)
-    let conHub = true; const sinHub = () => { if (!conHub) return; conHub = false; if (hub.visible) hub.hide(); };
+    // (entrando directamente en un pueblo, sin pasar por el menú —al recargar tras perder la imagen en el iPhone—, el menú
+    // no se había abierto pero estaba en la página: se quedaba encima del pueblo y del partido, como si el juego te hubiera
+    // sacado al inicio. Se quita igual)
+    let conHub = true; const sinHub = () => { if (!conHub) return; conHub = false; if (hub.visible || !hub.root.classList.contains('hidden')) hub.hide(); };
     entrada.then(sinHub);
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
@@ -233,7 +236,9 @@ async function boot() {
         saveProfile();
         if (opt.resumeAt) { rt.player.place(opt.resumeAt.x, opt.resumeAt.z, opt.resumeAt.h ?? 0); rt.follow.snap(rt.player); }
         if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly(); return; }
-        if (opt.resumed) { const g = game; setTimeout(() => { if (g && g === game) g.ui.toast('Imagen recuperada: sigues donde estabas', 'exclaim', 3600); }, 700); }
+        // (si se perdió en un partido de pelota del pueblo, otra vez su menú: antes te quedabas en la puerta del frontón y
+        // parecía que el juego te había echado del partido)
+        if (opt.resumed) { const g = game; setTimeout(() => { if (!g || g !== game) return; g.ui.toast(opt.pelota ? 'Imagen recuperada: el partido se ha cortado, vuelve a empezar' : 'Imagen recuperada: sigues donde estabas', 'exclaim', 3600); if (opt.pelota) g.freePelota?.(); }, 700); }
         else {   // (primero, la llegada: el vuelo por encima del pueblo con su nombre y su comarca; luego, a quién buscar)
           const g = game; (q.get('skipintro') || opt.desdeMapa ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
             .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
@@ -344,13 +349,13 @@ async function boot() {
     if (!pelota && (game.mode !== 'play' || game.altScene || ui.dialogOpen || document.querySelector('.mg-overlay:not(.ctxlost), .fb-root'))) { rt.onReload(); return; }
     const d = def, F = game.fronton, pp = rt.player?.pos;
     const resumeAt = pelota ? (() => { const e = F.entry, c = F.out || F.toWorld(0, 12); return { x: e.x, z: e.z, h: Math.atan2(c.x - e.x, c.z - e.z) }; })() : pp ? { x: pp.x, z: pp.z, h: rt.player.heading } : null;
-    const sport = game.sportMode ? 'pelota' : undefined;
+    const sport = game.sportMode ? 'pelota' : undefined, pelotaOtra = !!pelota && !game.sportMode;
     try { game.save?.(); } catch (e) { }
     try { game.dispose?.(); } catch (e) { }
     ui.destroyHUD(); ui.setCinematic(false);
     try { rt.unload(); } catch (e) { }
     game = null;
-    play(d, { resumeAt, sport, resumed: true });   // (donde estabas, y no en la llegada del pueblo)
+    play(d, { resumeAt, sport, resumed: true, pelota: pelotaOtra });   // (donde estabas, y no en la llegada del pueblo)
   };
   rt.onReload = () => {
     try { game?.save?.(); } catch (e) { }

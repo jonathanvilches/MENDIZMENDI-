@@ -7,8 +7,8 @@ import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
-import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
-import { addBox, rectFree, removeMover, nearby } from '../world/colliders.js';
+import { terrainHeight, waterLevelAt, addPlatform, removePlatform, onPlatform } from '../world/heightfield.js';
+import { addBox, removeCollider, rectFree, removeMover, nearby } from '../world/colliders.js';
 import { rx, pathQuery, cercaDeYacimiento } from '../world/layout.js';
 import { clearGrass, clearTrees } from '../world/nature.js';
 import { isEU } from '../i18n.js';
@@ -196,9 +196,9 @@ export class Fronton {
     // (y los árboles de detrás del rebote, donde se pone la cámara en las pelotas largas: su copa tapaba la cancha)
     if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1 + (court.hall || court.labrit ? 0 : 9), spot.ry); }
     if (!court.hall && !court.labrit) court.camZMax = Math.min(court.camZMax, this.fondoLibre(E.z1 + 0.2, COURT.L + 11));
-    for (const b of court.boxes) { const p = this.toWorld(b.x, b.z); addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); }
+    this.colls = court.boxes.map(b => { const p = this.toWorld(b.x, b.z); return addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); });
     const PF = court.platform || { x0: E.x0, x1: E.x1 - 3.3, z0: E.z0, z1: E.z1 };
-    addPlatform(spot.x, spot.z, spot.ry, PF.x0, PF.x1, PF.z0, PF.z1, spot.y);   // la cancha es suelo (sin las gradas)
+    this.plat = addPlatform(spot.x, spot.z, spot.ry, PF.x0, PF.x1, PF.z0, PF.z1, spot.y);   // la cancha es suelo (sin las gradas)
     this.entry = this.toWorld(court.entry.x, court.entry.z);
     this.out = court.out ? this.toWorld(court.out.x, court.out.z) : null;   // (al salir, mirando a la calle y no a la pared)
   }
@@ -218,6 +218,12 @@ export class Fronton {
   }
   toWorld(lx, lz) { const v = new THREE.Vector3(lx, 0, lz); this.court.group.localToWorld(v); return v; }
   play(G, rival, opts) { return playPelota(G, this, rival, opts); }
+  /** Lo quita del todo: de la escena, de la tarjeta gráfica y sus paredes y su suelo del mundo */
+  dispose() {
+    const g = this.court.group; g.parent?.remove(g);
+    try { this.court.dispose(); } catch (e) { console.warn('frontón', e); }
+    for (const c of this.colls || []) removeCollider(c); if (this.plat) removePlatform(this.plat); this.colls = []; this.plat = null;
+  }
 }
 
 // El frontón Labrit de Iruña, donde se juegan las finales: se monta una vez, muy por encima del pueblo y fuera de sus
@@ -244,11 +250,19 @@ let HALL = null;
 const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contra: '#7c8583', line: '#f3f2ec', mark: '#d8333f', chapa: CHAPA_CAMP, chapaMetal: true, cap: '#2b6a56', stone: null, brick: false, roof: null, stands: '#8c8794' };
 export function hallVenue(scene, out, def) {
   if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
-  if (HALL) { try { HALL.court.group.parent?.remove(HALL.court.group); HALL.court.dispose?.(); } catch (e) { console.warn('frontón cubierto', e); } }
+  if (HALL) { try { HALL.dispose(); } catch (e) { console.warn('frontón cubierto', e); } }
   const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
   HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, look: HALL_LOOK, hall: true, wallSub: 'FRONTÓN CUBIERTO', hallName: `Frontón ${town}`, hallSub: 'Pilotaleku estalia', noClear: true });
   HALL.town = def?.id;
   return HALL;
+}
+// En el móvil (calidad baja), un solo frontón aparte a la vez, el que se va a usar (keep; ninguno al volver al pueblo).
+// Montados los dos, el cubierto y el Labrit, junto al pueblo entero, ocupaban en la tarjeta gráfica casi tanto como el
+// pueblo, y al entrar en un campeonato tras otro el iPhone se quedaba sin memoria: perdía la imagen y te devolvía al
+// pueblo. Se vuelven a montar al elegirlos (unos segundos, tapados por el fondo de los campeonatos)
+export function freeVenues(keep = null) {
+  if (HALL && HALL !== keep) { HALL.dispose(); HALL = null; }
+  if (LABRIT && LABRIT !== keep) { LABRIT.dispose(); LABRIT = null; }
 }
 // En Iruña, el frontón de la ciudad es el Labrit de verdad: el edificio entero en la calle, junto a la plaza de toros
 export function labritInTown(scene, near) {

@@ -133,10 +133,19 @@ export const PLATFORMS = [];   // (exportada para revisar solapes: tools/solapes
 const PCELL = 8, PGRID = new Map(), pkey = (i, j) => i * 73856093 ^ j * 19349663;
 export function addPlatform(x, z, ry, x0, x1, z0, z1, y, y1) {
   const p = { x, z, c: Math.cos(ry), s: Math.sin(ry), x0, x1, z0, z1, y, y1 }; PLATFORMS.push(p);
-  const r = Math.hypot(Math.max(Math.abs(x0), Math.abs(x1)), Math.max(Math.abs(z0), Math.abs(z1)));
-  for (let i = Math.floor((x - r) / PCELL); i <= Math.floor((x + r) / PCELL); i++) for (let j = Math.floor((z - r) / PCELL); j <= Math.floor((z + r) / PCELL); j++) {
-    const k = pkey(i, j); let l = PGRID.get(k); if (!l) PGRID.set(k, l = []); l.push(p);
+  platCells(p, (l) => l.push(p), true);
+  return p;
+}
+function platCells(p, fn, make = false) {
+  const r = Math.hypot(Math.max(Math.abs(p.x0), Math.abs(p.x1)), Math.max(Math.abs(p.z0), Math.abs(p.z1)));
+  for (let i = Math.floor((p.x - r) / PCELL); i <= Math.floor((p.x + r) / PCELL); i++) for (let j = Math.floor((p.z - r) / PCELL); j <= Math.floor((p.z + r) / PCELL); j++) {
+    const k = pkey(i, j); let l = PGRID.get(k); if (!l && make) PGRID.set(k, l = []); if (l) fn(l);
   }
+}
+/** Quita una superficie (la que devuelve addPlatform) */
+export function removePlatform(p) {
+  const k = PLATFORMS.indexOf(p); if (k < 0) return; PLATFORMS.splice(k, 1);
+  platCells(p, (l) => { const n = l.indexOf(p); if (n >= 0) l.splice(n, 1); });
 }
 export function clearPlatforms() { PLATFORMS.length = 0; PGRID.clear(); }
 /** ¿Cae (x, z) sobre una cancha o tarima, con margen m? Para no poner encima árboles, plantas, puestos ni otra pista. */
