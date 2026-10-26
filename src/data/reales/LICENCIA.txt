@@ -1,4 +1,4 @@
-Datos de los pueblos con su trazado de verdad (los *.json de esta carpeta)
+Datos de los pueblos con su trazado de verdad (los *.json de esta carpeta y de mapa/, que solo usa el mapa del inicio)
 
 Casas, calles, caminos, ríos, puentes, plazas, usos del suelo y nombres de lugares:
   © OpenStreetMap contributors, disponibles bajo la Open Database License (ODbL) 1.0

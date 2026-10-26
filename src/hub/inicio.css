@@ -113,6 +113,9 @@
 /* (los nombres encima del mapa: el de cada comarca en su color; el de cada pueblo, pequeño, al acercarse) */
 .m3-cl, .m3-tl, .m3-sl, .m3-rl, .m3-ml { position: absolute; left: 0; top: 0; white-space: nowrap; pointer-events: none; will-change: transform; }
 .m3-cl[hidden], .m3-tl[hidden], .m3-sl[hidden], .m3-rl[hidden], .m3-ml[hidden] { display: none; }
+/* (los nombres aparecen y se van fundiéndose: al mover el mapa no parpadean) */
+.m3-capa > * { transition: opacity .18s ease, background .25s; }
+.m3-capa > .fuera { opacity: 0; visibility: hidden; transition: opacity .18s ease, visibility 0s linear .18s; }
 /* (los monumentos de la maqueta de un pueblo: pequeños, con un punto debajo) */
 .m3-ml { padding-bottom: 7px; color: #fff8e8; font: 800 10px/1.15 'Nunito', sans-serif; text-shadow: 0 1px 2px #1a0b2e, 0 0 6px #1a0b2e, 0 0 10px rgba(26, 11, 46, .8); }
 .m3-ml::after { content: ''; position: absolute; left: 50%; bottom: 0; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: #ffd27a; box-shadow: 0 0 0 1.5px #1a0b2e; }
@@ -120,7 +123,7 @@
 .m3-sl { color: rgba(240, 232, 255, .82); font: 800 10px/1.1 'Nunito', sans-serif; letter-spacing: .2em; text-transform: uppercase; text-shadow: 0 1px 2px #0d0420, 0 0 6px #0d0420, 0 0 12px rgba(13, 4, 32, .8); }
 .m3-rl { color: #a6ecff; font: italic 800 11px/1.1 'Nunito', sans-serif; letter-spacing: .04em; text-shadow: 0 1px 2px #06122a, 0 0 6px #0d0420, 0 0 10px rgba(13, 4, 32, .8); }
 @media (min-width: 1200px) and (min-height: 560px) { .m3-sl { font-size: 11px; } .m3-rl { font-size: 13px; } }
-.m3-cl { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 10px; background: rgba(13, 4, 32, .66); border: 1px solid color-mix(in srgb, var(--c) 70%, transparent); color: #fff; line-height: 1.1; transition: background .25s; }
+.m3-cl { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 10px; background: rgba(13, 4, 32, .66); border: 1px solid color-mix(in srgb, var(--c) 70%, transparent); color: #fff; line-height: 1.1; transition: background .25s, opacity .18s ease; }
 .m3-cl b { font: 400 var(--fs-sm)/1.1 'MZ Display', 'Nunito', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
 .m3-cl small { color: var(--mute); font: 800 var(--fs-xs)/1.2 'Nunito', sans-serif; }
 .m3-cl i { display: grid; place-items: center; align-self: center; } .m3-cl i :is(svg, img) { width: 14px; height: 14px; }
@@ -151,19 +154,29 @@
 .m3-ayuda { animation: m3-ayuda-fuera .6s 8s forwards; } @keyframes m3-ayuda-fuera { to { opacity: 0; visibility: hidden; } }   /* (y si no se usa, se va sola) */
 @media (pointer: coarse) { .m3-ayuda .fino { display: none; } .m3-ayuda .dedo { display: inline; } }
 
-/* las comarcas, abajo: su sello dentro de un aro que se llena con sus sellos; las que faltan, apagadas y con candado */
-.m3-rail { position: absolute; z-index: 3; left: 16px; right: 76px; bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; transition: right .35s; }
+/* las comarcas, abajo, en una tira de fotos: cada una con su foto, su sello en un aro que se llena con sus sellos y cuántos
+   lleva (las que faltan, con candado y la foto algo apagada); al principio, el botón de todas en fotos */
+.m3-rail { --chw: 150px; --chh: 64px; position: absolute; z-index: 3; left: 16px; right: 76px; bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
 .m3-rail::-webkit-scrollbar { display: none; }
-.m3-chip { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 16px 4px 4px; border-radius: 999px; background: rgba(16, 6, 40, .74); border: 1px solid var(--line2); color: var(--ink); font: inherit; text-align: left; cursor: pointer; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: border-color .2s, background .2s, transform .2s; }
-.m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); border-color: var(--c); }
-.m3-chip.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 30%, rgba(16, 6, 40, .85)); }
+.m3-chip, .m3-todas { position: relative; flex: none; width: var(--chw); height: var(--chh); display: flex; align-items: flex-end; padding: 0; border-radius: 16px; overflow: hidden; background: #1c0b3a; border: 1px solid color-mix(in srgb, var(--c, var(--pink)) 55%, var(--line2)); color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); transition: border-color .2s, transform .2s, box-shadow .2s; }
+.m3-chip::after, .m3-todas::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 4, 32, 0) 25%, rgba(13, 4, 32, .88)); pointer-events: none; }
+.m3-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s, filter .3s; }
+.m3-chip:hover, .m3-chip:focus-visible, .m3-todas:hover, .m3-todas:focus-visible { transform: translateY(-3px); border-color: var(--c, var(--pink)); }
+.m3-chip:hover .m3-foto { transform: scale(1.06); }
+.m3-chip.on { border: 2px solid var(--c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 40%, transparent), 0 8px 22px rgba(0, 0, 0, .5); }
+.m3-chip:not(.go):not(.ok) .m3-foto { filter: saturate(.6) brightness(.82); }
 .m3-sello { position: relative; flex: none; width: 48px; height: 48px; display: grid; place-items: center; }
 .m3-sello > .m3-aro { position: absolute; inset: 0; } .m3-sello > img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+.m3-chip .m3-sello { position: absolute; z-index: 1; left: 4px; top: 4px; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); } .m3-chip .m3-sello > img { width: 22px; height: 22px; }
 .m3-chip.ok .m3-aro .ar { stroke: var(--gold); } .m3-chip.ok .m3-sello { filter: drop-shadow(0 0 6px rgba(255, 209, 102, .6)); }
 .m3-chip:not(.go):not(.ok) .m3-sello > img { filter: grayscale(1) brightness(.7); }
-.m3-lock { position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #1c0b3a; border: 1px solid var(--line2); }
-.m3-lock :is(svg, img) { width: 14px; height: 14px; }
-.m3-ct { display: grid; line-height: 1.2; } .m3-ct b { color: #fff; font-size: var(--fs-sm); white-space: nowrap; } .m3-ct small { color: var(--mute); font-weight: 800; font-size: var(--fs-xs); white-space: nowrap; }
+.m3-lock { position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: #1c0b3a; border: 1px solid var(--line2); }
+.m3-lock :is(svg, img) { width: 11px; height: 11px; }
+.m3-ct { position: relative; z-index: 1; display: grid; min-width: 0; padding: 0 10px 6px; line-height: 1.15; } .m3-ct b { color: #fff; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #0d0420; } .m3-ct small { color: #e4dcff; font-weight: 800; font-size: 11px; white-space: nowrap; }
+.m3-todas { --c: var(--pink); border: 2px solid var(--pink); box-shadow: 0 0 18px rgba(255, 43, 214, .35), 0 6px 18px rgba(0, 0, 0, .4); }
+.m3-mos { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: #0d0420; }
+.m3-mos img { width: 100%; height: 100%; object-fit: cover; }
+.m3-todas .m3-ct b { font: 400 var(--fs-md)/1.05 'MZ Display', 'Nunito', sans-serif; letter-spacing: .03em; text-transform: uppercase; } .m3-todas .m3-ct small { color: #ffb6ec; }
 
 /* los botones de la cámara: acercar, ver toda Navarra y alejar (moverse y girar van con el dedo, el ratón y el teclado) */
 .m3-pad { position: absolute; z-index: 3; right: 16px; bottom: 16px; display: grid; grid-template-columns: 40px; grid-template-rows: repeat(3, 40px); gap: 6px;
@@ -193,7 +206,7 @@
   .m3-tt b { font-size: var(--fs-md); }
   .m3-ayuda { left: 12px; right: auto; top: auto; bottom: 84px; max-width: calc(100% - 88px); }
   .m3d.con-sel :is(.m3-rail, .m3-tot) { display: none; }
-  .m3-rail { left: 12px; bottom: 12px; }
+  .m3-rail { --chw: 124px; --chh: 56px; left: 12px; bottom: 12px; }
 }
 /* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo conquistado y el
    botón de tu aventura; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
@@ -207,10 +220,10 @@
 
   .m3d .ini-sq { width: 40px; height: 40px; border-radius: 12px; } .m3d .ini-sq :is(svg, img) { width: 24px; height: 24px; }
   .m3-ayuda { display: none; }
-  .m3-rail { left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
-  .m3-chip { gap: 6px; padding: 2px 12px 2px 2px; } .m3-sello { width: 36px; height: 36px; } .m3-sello > img { width: 26px; height: 26px; }
-  .m3-lock { width: 18px; height: 18px; } .m3-lock :is(svg, img) { width: 12px; height: 12px; }
-  .m3-ct b { font-size: var(--fs-xs); } .m3-ct small { font-size: 11px; }
+  .m3-rail { --chw: 116px; --chh: 50px; left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
+  .m3-chip { border-radius: 12px; } .m3-chip .m3-sello { width: 24px; height: 24px; left: 3px; top: 3px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
+  .m3-ct { padding: 0 7px 4px; } .m3-ct b { font-size: 12px; } .m3-ct small { font-size: 11px; }
+  .m3-todas { border-radius: 12px; } .m3-todas .m3-ct b { font-size: var(--fs-sm); }
   .m3-pad { right: 8px; bottom: 6px; gap: 6px; } .m3-b { width: 40px; height: 40px; border-radius: 12px; } .m3-b svg { width: 20px; height: 20px; }
   /* (con una comarca elegida, lo demás deja sitio al mapa) */
   .m3d.con-sel :is(.m3-rail, .m3-tot, .ini-sq) { display: none; }
@@ -248,7 +261,7 @@
 .ini-av:hover { border-color: var(--pink); }
 
 /* la misión de ahora: por defecto, una barra abajo (encima de las comarcas): su portada, el pueblo y lo que toca, y el botón */
-.m3-mision { --padw: 60px; position: absolute; z-index: 4; left: 16px; right: calc(16px + var(--padw)); bottom: 78px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "img tt go" "img sig go"; align-items: center; column-gap: 12px; row-gap: 2px;
+.m3-mision { --padw: 60px; position: absolute; z-index: 4; left: 16px; right: calc(16px + var(--padw)); bottom: 98px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "img tt go" "img sig go"; align-items: center; column-gap: 12px; row-gap: 2px;
   padding: 8px; border-radius: 18px; background: rgba(16, 6, 40, .84); border: 1px solid color-mix(in srgb, var(--t, var(--pink)) 55%, var(--line2)); box-shadow: 0 14px 34px rgba(0, 0, 0, .45), 0 0 24px color-mix(in srgb, var(--t, var(--pink)) 22%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); animation: mm-entra .6s .4s cubic-bezier(.2, .9, .3, 1.1) both; }
 @keyframes mm-entra { from { opacity: 0; transform: translateY(16px) scale(.97); } }
 .m3d.con-sel .m3-mision { display: none; }
@@ -267,18 +280,18 @@
 .mm-go > :is(svg, img) { flex: none; width: 24px; height: 24px; }
 .mm-go small { position: absolute; top: -8px; right: -6px; padding: 2px 7px; border-radius: 999px; background: #fff; color: #2a0b52; font: 900 11px/1.3 'Nunito', sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
 @keyframes mm-late { 50% { box-shadow: 0 0 0 7px rgba(255, 43, 214, .07), 0 8px 24px rgba(123, 47, 247, .55); } }
-@media (pointer: coarse) { .m3-mision { --padw: 60px; } .m3-pad { bottom: 150px; } }
-.m3-ayuda { top: auto; bottom: 150px; left: 16px; right: auto; }
+@media (pointer: coarse) { .m3-mision { --padw: 60px; } .m3-pad { bottom: 176px; } }
+.m3-ayuda { top: auto; bottom: 176px; left: 16px; right: auto; }
 
 /* en el ordenador: la misión, una barra compacta abajo a la izquierda, encima de las comarcas: el mapa es lo primero */
-@media (min-width: 1200px) and (min-height: 600px) { .m3-mision { right: auto; width: min(520px, 46%); } .m3-ayuda { bottom: 86px; } }
+@media (min-width: 1200px) and (min-height: 600px) { .m3-mision { right: auto; width: min(520px, 46%); } .m3-ayuda { bottom: 106px; } }
 /* teléfono de pie: la barra de la misión de lado a lado, encima de las comarcas; los botones de la cámara, encima de ella */
 @media (max-width: 760px) {
-  .m3-mision { left: 12px; right: 12px; bottom: 70px; column-gap: 10px; } .mm-img { width: 64px; height: 44px; }
+  .m3-mision { left: 12px; right: 12px; bottom: 84px; column-gap: 10px; } .mm-img { width: 64px; height: 44px; }
   .mm-go { min-height: 48px; padding: 0 14px 0 12px; font-size: var(--fs-md); }
-  .m3-pad { bottom: 184px; }
+  .m3-pad { bottom: 198px; }
   .ini-av span { display: none; } .ini-av { padding: 0; width: 44px !important; justify-content: center; }
-  .m3-ayuda { bottom: 142px; }
+  .m3-ayuda { bottom: 200px; }
 }
 /* teléfono tumbado: la misión en una píldora arriba a la derecha (su portada, el pueblo y el botón de jugar) */
 @media (max-height: 520px) {
@@ -360,3 +373,84 @@
 @media (max-height: 520px) { .m3d.con-ficha :is(.m3-cb, .m3-rail, .m3-tot) { display: none; } }
 @media (prefers-reduced-motion: reduce) { .m3-cb.entra, .m3-ft.entra > *, .ft-go { animation: none !important; } }
 
+
+/* ================= Las comarcas en fotos =================
+   Encima del mapa (que mientras no se pinta): una fila de tarjetas grandes que se pasa deslizando, con la rueda o con las
+   flechas. Las doce comarcas, cada una con su foto, su sello, sus sellos y las fotos de sus pueblos; al tocar una, la
+   comarca y sus pueblos, cada uno con su foto, cómo va, su barra y los botones de jugar y de verlo en el mapa */
+.m3-ex { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; outline: 0; color: #fff;
+  background: radial-gradient(120% 80% at 20% 0%, rgba(123, 47, 247, .35), transparent 60%), radial-gradient(90% 70% at 100% 100%, rgba(255, 43, 214, .18), transparent 60%), #0d0620;
+  animation: ex-entra .28s ease-out both; }
+.m3-ex[hidden] { display: none; }
+@keyframes ex-entra { from { opacity: 0; transform: scale(1.02); } }
+.ex-head { flex: none; display: flex; align-items: center; gap: 12px; padding: 16px 20px 8px; padding-left: max(20px, env(safe-area-inset-left, 0px)); }
+.ex-tt { display: grid; min-width: 0; line-height: 1.05; }
+.ex-tt small { color: var(--gold); font: 900 var(--fs-xs)/1.2 'Nunito', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.ex-tt b { font: 400 var(--fs-2xl)/1.05 'MZ Display', 'Nunito', sans-serif; letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-sub { flex: none; display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 8px; border-radius: 999px; background: rgba(255, 255, 255, .08); color: var(--gold); font: 900 var(--fs-sm)/1 'Nunito', sans-serif; }
+.ex-sub :is(svg, img) { width: 18px; height: 18px; }
+.ex-fl { display: flex; gap: 8px; margin-left: auto; }
+.ex-ar, .ex-back { width: 44px; height: 44px; display: grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid var(--line2); background: rgba(255, 255, 255, .06); color: #fff; cursor: pointer; transition: background .15s, transform .15s; }
+.ex-ar:hover, .ex-back:hover { background: rgba(255, 255, 255, .14); } .ex-ar:active, .ex-back:active { transform: scale(.92); }
+.ex-ar.sig :is(svg, img) { transform: scaleX(-1); } .ex-ar :is(svg, img), .ex-back :is(svg, img) { width: 22px; height: 22px; }
+.ex-back { flex: none; }
+.ex-x { flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px 0 14px; border: 0; border-radius: 999px; cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--pink), var(--violet)); font: 900 var(--fs-sm)/1 'Nunito', sans-serif; box-shadow: 0 6px 18px rgba(123, 47, 247, .45); }
+.ex-x :is(svg, img) { width: 20px; height: 20px; }
+@media (pointer: coarse) { .ex-fl { display: none; } .ex-x { margin-left: auto; } }
+.ex-track { --w: clamp(220px, 23vw, 320px); flex: 1; min-height: 0; display: flex; align-items: center; gap: 14px; overflow-x: auto; overflow-y: hidden; padding: 8px 20px 20px; padding-left: max(20px, env(safe-area-inset-left, 0px)); scroll-snap-type: x mandatory; scroll-padding-inline: 20px; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+.ex-track::-webkit-scrollbar { display: none; }
+.ex-track::after { content: ''; flex: 0 0 4px; }
+/* (cada tarjeta: la foto entera, oscurecida abajo para leer encima; entran una tras otra) */
+.ex-c, .ex-t { position: relative; flex: 0 0 var(--w); height: min(100%, calc(var(--w) * 1.5)); scroll-snap-align: start; border-radius: 22px; overflow: hidden; padding: 0; text-align: left; color: #fff; font: inherit;
+  background: #1c0b3a; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); box-shadow: 0 16px 34px rgba(0, 0, 0, .5); animation: ex-carta .45s calc(var(--i, 0) * 45ms) cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes ex-carta { from { opacity: 0; transform: translateY(18px) scale(.97); } }
+button.ex-c { cursor: pointer; transition: transform .2s, border-color .2s; } button.ex-c:hover, button.ex-c:focus-visible { transform: translateY(-4px); border-color: var(--c); }
+.ex-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .9, .3, 1); }
+button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { transform: scale(1.05); }
+.ex-c::after, .ex-t::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(13, 4, 32, .35) 0, rgba(13, 4, 32, 0) 22%, rgba(13, 4, 32, 0) 42%, rgba(13, 4, 32, .94) 86%); }
+.ex-sello { position: absolute; z-index: 1; left: 12px; top: 12px; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: rgba(13, 4, 32, .7); }
+.ex-sello > .m3-aro { position: absolute; inset: 0; } .ex-sello > img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+.ex-c.ok .ex-sello .ar { stroke: var(--gold); }
+.ex-tx { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; display: grid; gap: 6px; padding: 16px; pointer-events: none; }
+.ex-tx > * { pointer-events: auto; }
+.ex-tx b { font: 400 var(--fs-2xl)/1 'MZ Display', 'Nunito', sans-serif; letter-spacing: .02em; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0, 0, 0, .6); overflow-wrap: anywhere; }
+.ex-tx small { color: #e4dcff; font: 800 var(--fs-sm)/1.25 'Nunito', sans-serif; }
+.ex-tx .ex-k { color: var(--gold); font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; }
+.ex-mini { display: flex; align-items: center; margin-top: 2px; }
+.ex-mini img, .ex-mini i { width: 34px; height: 34px; margin-right: -8px; border-radius: 50%; object-fit: cover; border: 2px solid #1c0b3a; }
+.ex-mini i { display: grid; place-items: center; background: color-mix(in srgb, var(--c) 60%, #1c0b3a); color: #fff; font: 900 11px/1 'Nunito', sans-serif; font-style: normal; }
+.ex-ver { justify-self: start; display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 4px; padding: 0 16px 0 12px; border: 1px solid color-mix(in srgb, var(--c) 70%, #fff); border-radius: 999px; cursor: pointer; color: #fff; background: rgba(13, 4, 32, .55); font: 900 var(--fs-sm)/1 'Nunito', sans-serif; }
+.ex-ver :is(svg, img) { width: 20px; height: 20px; }
+.ex-hero { --w: clamp(240px, 28vw, 380px); }
+/* (un pueblo: la foto entera es un botón que lo enseña en el mapa; abajo, cómo va y los botones) */
+.ex-fot { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.ex-st { position: absolute; z-index: 2; left: 12px; top: 12px; display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 999px; background: rgba(13, 4, 32, .78); font: 900 var(--fs-xs)/1 'Nunito', sans-serif; pointer-events: none; }
+.ex-st :is(svg, img) { width: 16px; height: 16px; } .ex-st.ok { color: var(--gold); } .ex-st.go { color: #ff9be0; }
+.ex-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .16); overflow: hidden; } .ex-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--pink), var(--gold)); }
+.ex-bts { display: flex; gap: 8px; margin-top: 4px; }
+.ex-go { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border: 0; border-radius: 14px; cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--pink), var(--violet)); font: 400 var(--fs-lg)/1 'MZ Display', 'Nunito', sans-serif; text-transform: uppercase; letter-spacing: .03em; box-shadow: 0 8px 20px rgba(123, 47, 247, .5); transition: transform .15s; }
+.ex-go:active { transform: scale(.96); } .ex-go :is(svg, img) { width: 22px; height: 22px; }
+.ex-pin { flex: none; width: 48px; min-height: 48px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line2); border-radius: 14px; cursor: pointer; color: #fff; background: rgba(13, 4, 32, .6); }
+.ex-pin :is(svg, img) { width: 22px; height: 22px; }
+/* (el móvil de pie: tarjetas más anchas, una y algo de la siguiente) */
+@media (max-width: 640px) { .ex-track { --w: min(76vw, 320px); gap: 12px; padding: 4px 16px 16px; scroll-padding-inline: 16px; } .ex-head { padding: 12px 16px 6px; gap: 8px; } .ex-tt b { font-size: var(--fs-xl); } .ex-hero { --w: min(80vw, 340px); } }
+@media (prefers-reduced-motion: reduce) { .m3-ex, .ex-c, .ex-t { animation: none !important; } }
+
+/* ================= El móvil tumbado =================
+   El inicio a toda la pantalla, sin la barra de arriba (lo de ella está en «Más»): el mapa gana su altura. Encima, en una
+   fila arriba, lo conquistado, tu aventura y la misión; abajo, la tira de fotos de las comarcas; a la derecha, la cámara.
+   Las comarcas en fotos, en tarjetas de la altura de la pantalla */
+@media (orientation: landscape) and (max-height: 520px) {
+  #hub[data-screen="home"] { grid-template-rows: 0 minmax(0, 1fr); }
+  #hub[data-screen="home"] .hub-top { display: none; }
+  .m3-ex .ex-head { padding: 8px 12px 4px; padding-left: max(12px, env(safe-area-inset-left, 0px)); gap: 8px; }
+  .m3-ex .ex-tt small { display: none; } .m3-ex .ex-tt b { font-size: var(--fs-lg); }
+  .m3-ex :is(.ex-ar, .ex-back) { width: 40px; height: 40px; } .m3-ex .ex-x { min-height: 40px; }
+  .ex-track { --w: 196px; align-items: stretch; gap: 10px; padding: 4px 12px 10px; padding-left: max(12px, env(safe-area-inset-left, 0px)); scroll-padding-inline: 12px; }
+  .ex-c, .ex-t { height: auto; border-radius: 18px; }
+  .ex-hero { --w: 240px; }
+  .ex-sello { width: 42px; height: 42px; left: 8px; top: 8px; } .ex-sello > img { width: 30px; height: 30px; }
+  .ex-tx { gap: 4px; padding: 10px; } .ex-tx b { font-size: var(--fs-xl); } .ex-tx small { font-size: var(--fs-xs); }
+  .ex-mini img, .ex-mini i { width: 28px; height: 28px; }
+  .ex-go { min-height: 42px; font-size: var(--fs-md); } .ex-pin { width: 42px; min-height: 42px; } .ex-ver { min-height: 40px; }
+}

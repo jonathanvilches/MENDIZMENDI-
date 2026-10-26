@@ -2,7 +2,8 @@
 // y tele): lo que se sale de la pantalla, textos cortados, letra diminuta, botones demasiado pequeños para el dedo y lo
 // de encima del mapa 3D que se pisa. Con OUT=carpeta guarda la primera pantalla de cada tamaño y una hoja con todas.
 // Uso: node tools/responsive.mjs [pantalla] [tamaños separados por comas]   (URL=http://127.0.0.1:5173/)
-// (home+olite: el inicio con la ficha de un pueblo abierta, como al tocar su chincheta; solo en el servidor de desarrollo.
+// (home+olite: el inicio con la ficha de un pueblo abierta, como al tocar su chincheta; solo en el servidor de desarrollo;
+// home+comarcas y home+comarcas:zona-media, con las comarcas en fotos.
 // La captura espera hasta 2 min: en el navegador de pruebas, sin gráfica, el sombreado de la maqueta tarda en compilarse)
 import { chromium } from '/home/user/mendimendiz/node_modules/playwright-core/index.mjs';
 import { createRequire } from 'module';
@@ -20,7 +21,9 @@ for (const sz of lista.split(',')) {
   await p.waitForSelector('#hMain', { timeout: 120000 }); await p.waitForTimeout(1500);
   const [pant, pueblo] = scr.split('+'), [s, arg] = pant.split(':'); if (s !== 'home' || arg) await p.evaluate(([s, a]) => window.__hub?.go(s, a, true), [s, arg]);
   await p.waitForTimeout(s === 'home' ? 6000 : 2000);
-  if (pueblo) { await p.evaluate((id) => window.__mapa3d?.ir(id), pueblo); await p.waitForTimeout(6000); }
+  // (home+comarcas: con las comarcas en fotos abiertas; home+comarcas:zona-media, con una de ellas)
+  if (pueblo?.startsWith('comarcas')) { await p.click('.m3-todas'); const c = pueblo.split(':')[1]; if (c) await p.click(`.ex-c[data-exc="${c}"]`); await p.waitForTimeout(2500); }
+  else if (pueblo) { await p.evaluate((id) => window.__mapa3d?.ir(id), pueblo); await p.waitForTimeout(6000); }
   if (OUT) { const f = `${OUT}/${scr.replace(/[:+]/g, '-')}-${sz}.png`; await p.screenshot({ path: f, timeout: 120000 }); fotos.push({ f, w, h, sz }); }
   const r = await p.evaluate((tactil) => {
     const main = document.querySelector('#hMain'), out = { sale: [], cortado: [], diminuta: [], diana: [], pisa: [] };
