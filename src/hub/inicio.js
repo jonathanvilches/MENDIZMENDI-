@@ -118,7 +118,6 @@ function mapaHTML(p, items) {
   const K = conquista(p), pct = Math.round(K.f * 100);
   return `${misionHTML(p, items)}<div class="m3-tot">${aro(K.f, 'grande')}<b class="m3-pct">${pct}<small>%</small></b>
       <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>
-    <span class="m3-ley" aria-hidden="true"><i class="n"></i><span>Por descubrir</span><i class="g"></i><span>Empezado</span><i class="o"></i><span>Sellado</span></span>
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = r.stamps === r.towns ? 'ok' : r.done || LEVELS.some(l => l.comarca === c.id && estado(p, l)) ? 'go' : '';
       return `<button class="m3-chip ${st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><span class="m3-sello">${aro(r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${r.stamps}/${r.towns} sellos</small></span></button>`; }).join('')}</div>
@@ -225,7 +224,7 @@ function mapaOn(root, p) {
     const T2 = sec.querySelector('.m3-tot'); if (!panel.hidden && T2?.offsetParent) t = Math.max(t, (T2.getBoundingClientRect().bottom - a.top) / k + 8);
     return (hu = { t, r, b });
   };
-  MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-panel, .m3-mision, .m3-ley', onSelect: abre,
+  MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-panel, .m3-mision', onSelect: abre,
     onTown: (id) => { const card = panel.querySelector(`[data-t="${id}"]`), list = panel.querySelector('.m3p-towns'); if (!card) return;
       panel.querySelectorAll('.m3t.on').forEach(x => x.classList.remove('on')); card.classList.add('on');
       list.scrollTo({ top: card.offsetTop - list.offsetTop - 8, left: card.offsetLeft - list.offsetLeft - 8, behavior: 'smooth' }); } });
