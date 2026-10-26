@@ -17,6 +17,10 @@ function renderer() {
   R.shadowMap.enabled = true; R.shadowMap.type = THREE.PCFSoftShadowMap;
   return R;
 }
+/** El mismo renderizador para el mapa 3D del inicio (src/hub/mapa3d.js): así el menú tiene un solo contexto WebGL, y el
+ *  inicio y el selector de personaje nunca están a la vez. vivo(r): si sigue siendo el de ahora (al jugar se suelta). */
+export const hubRenderer = () => renderer();
+export const rendererVivo = (r) => !!r && r === R;
 let pendingCompile = null;
 /** Al entrar a jugar: se suelta el escenario del menú (su contexto WebGL y el personaje). En el móvil, tener a la vez
  *  este, el de los retratos y el del juego agotaba la memoria y el navegador cerraba la página. */
