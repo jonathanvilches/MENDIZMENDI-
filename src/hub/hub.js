@@ -51,7 +51,7 @@ import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
-import { inicioHTML, inicioOn, cierraMapa } from './inicio.js';
+import { inicioHTML, aventuraHTML, inicioOn, cierraMapa } from './inicio.js';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 
@@ -61,7 +61,7 @@ const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 s
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 // el color de cada parte del juego, para distinguirlas de un vistazo (hub.css, --cat): la aventura, en fucsia; los torneos,
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
-const KC = { sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
+const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
 const kc = (id) => KC[id] || 'av';
 const bg = (u, v = 'background-image') => u ? ` style="${v}:url(${u})"` : '';   // (una imagen de fondo, solo si la hay)
 const SBK = { producto: '#ffc23d', agricultura: '#b9e34a', ganaderia: '#ff9b4a', oficios: '#4fd1ff', arquitectura: '#6ea8ff', escudos: '#2dd4ff', historia: '#a78bfa', tradiciones: '#ff4fd8', fauna: '#3ee07a', flora: '#7be05a', montes: '#5eead4' };
@@ -314,9 +314,19 @@ export class Hub {
     lines.push('Las páginas del Pasaporte Herri están en blanco. ¡Cada pueblo guarda un sello!');
     return lines;
   }
+  // lo que el inicio le pasa a inicio.js: el icono de cada misión, las que tocan por la edad, dónde cae cada pueblo en el
+  // mapa y el mapa plano para cuando no hay 3D
+  opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) }; }
+  // el inicio: el mapa del mundo, a toda la pantalla, como en un juego (inicio.js); sin desplazarse
   s_home() {
     if (isDidactico()) return this.d_home();
-    const p = profile(), N = navarraProgress(p), L = levelOf(p.xp);
+    this.after = () => inicioOn(this.root);
+    return inicioHTML(this.opcInicio(profile()));
+  }
+  // «Tu aventura»: lo que antes iba debajo del mapa (el destacado, los personajes, «Descubre Navarra», cómo vas, los saberes,
+  // la historia, lo que te espera, las comarcas y las mujeres de Navarra)
+  s_aventura() {
+    const p = profile(), N = navarraProgress(p);
     const last = levelById(p.last) || LEVELS.find(l => !townProgress(p, l).stamp) || LEVELS[0];
     let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
     this.after = () => {
@@ -326,10 +336,11 @@ export class Hub {
       inicioOn(this.root);
     };
     const next = this.suggestions();
-    // (en cuanto se ha jugado algo, el resumen de cómo vas va debajo de la portada)
+    // (en cuanto se ha jugado algo, el resumen de cómo vas)
     const empezado = doneM > 0 || p.xp > 0 || Object.values(p.towns || {}).some(t => t.visits) || ligasGuardadas().some(S => S.j > 0) || torneosGuardados().length > 0;
     return `
-    ${inicioHTML({ icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) })}
+    <div class="av-head"><button class="back" data-go="home">${I('back', 26)} Mapa</button><h1 class="title">${I('book', 40)} Tu aventura</h1></div>
+    ${aventuraHTML(this.opcInicio(p))}
     ${empezado ? this.progreso(p, last) : ''}
     <section class="saberes" data-cat="sab">
       <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2></div>
@@ -894,6 +905,7 @@ export class Hub {
       <li>Modelos 3D de base: hechos con Meshy (meshy.ai) y adaptados para el juego.</li>
       <li>Fotos de las plantas: iNaturalist, de dominio público (CC0).</li>
       <li>Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).</li>
+      <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público); ríos y embalses © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Letras: Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>
       <li>Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:</li></ul>
       <p class="mit" data-notr>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></details>`;

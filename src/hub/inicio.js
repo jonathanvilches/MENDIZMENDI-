@@ -98,10 +98,27 @@ function conquista(p) {
   const sell = C.reduce((a, x) => a + x.r.stamps, 0), tot = C.reduce((a, x) => a + x.r.towns, 0), comp = C.filter(x => x.r.stamps === x.r.towns).length;
   return { C, sell, tot, comp, f: tot ? sell / tot : 0 };
 }
-function mapaHTML(p) {
+// la misión de ahora, como en un juego: la portada, lo que toca (la misión siguiente con su icono), las misiones hechas y el
+// botón grande de continuar; debajo, los próximos destinos
+function misionHTML(p, items) {
+  const it = items[0]; if (!it) return '';
+  const done = it.l ? p.towns[it.l.id]?.done || {} : {}, slots = it.l && !it.site ? OPC.slots(it.l) : [];
+  const sig = slots.find(({ si }) => !done[si]), m = sig?.m;
+  const que = m ? `${I(OPC.icono(m) || 'star', 20)}<span>${esc(m.title || m.name || it.sub)}${m.host?.name ? ` · <i>${esc(m.host.name.split(',')[0])}</i>` : ''}</span>` : `${it.icon ? I(it.icon, 20) : ''}<span>${esc(it.sub)}</span>`;
+  const ms = slots.length ? `<span class="mm-ms">${slots.map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}">${I(OPC.icono(m) || 'star', 16)}</i>`).join('')}</span>` : '';
+  const btn = it.tone === 'av' ? 'Continuar' : it.btn;
+  return `<div class="m3-mision" style="--t:var(--k-${it.tone})">
+      <div class="mm-cab"><img class="mm-img" src="${it.thumb}" alt="" decoding="async"><span class="mm-tt"><small>${esc(it.kicker)}</small><b>${esc(it.title)}</b></span></div>
+      <span class="mm-sig">${que}</span>${ms}
+      <button class="mm-go" ${it.attr}>${I('play', 26)}<span>${esc(btn)}</span>${it.t ? `<small>${it.t.done}/${it.t.total}</small>` : ''}</button>
+      <div class="mm-mas"><small>Próximos destinos</small>${items.slice(1, 4).map(x => `<button class="mm-x" ${x.attr} style="--t:var(--k-${x.tone})"><img src="${x.thumb}" alt="" loading="lazy" decoding="async"><span><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></span>${I('play', 18)}</button>`).join('')}</div>
+    </div>`;
+}
+function mapaHTML(p, items) {
   const K = conquista(p), pct = Math.round(K.f * 100);
-  return `<div class="m3-tot">${aro(K.f, 'grande')}<b class="m3-pct">${pct}<small>%</small></b>
+  return `${misionHTML(p, items)}<div class="m3-tot">${aro(K.f, 'grande')}<b class="m3-pct">${pct}<small>%</small></b>
       <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>
+    <span class="m3-ley" aria-hidden="true"><i class="n"></i><span>Por descubrir</span><i class="g"></i><span>Empezado</span><i class="o"></i><span>Sellado</span></span>
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = r.stamps === r.towns ? 'ok' : r.done || LEVELS.some(l => l.comarca === c.id && estado(p, l)) ? 'go' : '';
       return `<button class="m3-chip ${st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><span class="m3-sello">${aro(r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${r.stamps}/${r.towns} sellos</small></span></button>`; }).join('')}</div>
@@ -125,17 +142,25 @@ let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
 export function cierraMapa() { MAPA?.dispose(); MAPA = null; }
 /** El principio del inicio: el saludo, el destacado con su columna, los personajes y «Descubre Navarra». */
+/** El inicio, como la pantalla del mapa del mundo de un juego: Navarra en 3D a toda la pantalla y, encima, la misión de
+ *  ahora con su botón de continuar, lo conquistado, el buscador, las comarcas y el botón de «Tu aventura». */
 export function inicioHTML(opc) {
+  if (opc) OPC = { ...OPC, ...opc };
+  const p = profile(), items = ahora(p);
+  inicioHTML.items = items;
+  return `<section class="m3d">${mapaHTML(p, items)}<header class="ini-head">
+      <label class="ini-busca">${I('search', 22)}<input type="search" placeholder="Busca un pueblo o un yacimiento" aria-label="Buscar en Navarra" autocomplete="off"><span class="ib-res" hidden></span></label>
+      <button class="ini-sq ini-av" data-go="aventura" aria-label="Tu aventura">${I('book', 26)}<span>Tu aventura</span></button>
+    </header></section>`;
+}
+/** «Tu aventura»: lo que antes iba debajo del mapa (el destacado con lo que hay ahora en Navarra, los personajes de
+ *  leyenda y «Descubre Navarra»), en su propia pantalla. */
+export function aventuraHTML(opc) {
   if (opc) OPC = { ...OPC, ...opc };
   const p = profile(), items = ahora(p), it = items[0];
   inicioHTML.items = items;
   const pop = avatarPortrait(p.avatar, 'hero');
-  return `<section class="m3d">${mapaHTML(p)}<header class="ini-head">
-      <span class="ini-me"><img src="${avatarPortrait(p.avatar)}" alt=""></span><span class="ini-hola"><small>Kaixo,</small><b>${esc(p.name || 'Aventurero')}</b></span>
-      <label class="ini-busca">${I('search', 22)}<input type="search" placeholder="Busca un pueblo o un yacimiento" aria-label="Buscar en Navarra" autocomplete="off"><span class="ib-res" hidden></span></label>
-      <button class="ini-sq" data-go="map" aria-label="Mapa">${I('map', 28)}</button>
-    </header></section>
-    <section class="ini-top">
+  return `<section class="ini-top">
       <div class="ini-hero" data-i="0">${destacado(it, p)}${pop ? `<img class="ih-pop" src="${pop}" alt="" aria-hidden="true">` : ''}</div>
       <aside class="ini-live"><h2 class="ini-h">${I('compass', 26)}<span>Ahora en Navarra</span></h2>
         <ul>${items.map((x, i) => `<li class="${i ? '' : 'on'}" data-i="${i}" style="--t:var(--k-${x.tone})"><button class="il-pick" data-i="${i}" aria-label="${esc(x.title)}"><img src="${x.thumb}" alt="" loading="lazy" decoding="async"><span><b>${esc(x.title)}</b><small>${esc(x.sub)}</small></span></button><button class="il-btn" ${x.attr}>${esc(x.btn)}</button></li>`).join('')}</ul>
@@ -191,16 +216,22 @@ function mapaOn(root, p) {
     let t = H ? (H.bottom - a.top) / k + 8 : 0; const rr = R && R.offsetParent ? R.getBoundingClientRect() : null;
     let r = 0, b = rr ? (a.bottom - rr.top) / k + 8 : 0;
     if (!panel.hidden) { const q = panel.getBoundingClientRect(); if (q.width > a.width * 0.7) b = Math.max(b, (a.bottom - q.top) / k + 8); else r = (a.right - q.left) / k + 8; }
+    // (la misión de ahora: a la derecha en el ordenador, abajo en el móvil de pie, arriba en el tumbado)
+    const Q = sec.querySelector('.m3-mision');
+    if (panel.hidden && Q?.offsetParent) { const q = Q.getBoundingClientRect();
+      if (q.left > a.left + a.width * 0.5 && q.height > a.height * 0.35) r = Math.max(r, (a.right - q.left) / k + 8);
+      else if (q.top > a.top + a.height * 0.5) b = Math.max(b, (a.bottom - q.top) / k + 8); }
     // (con una comarca elegida, también el círculo de lo conquistado, para que nada de ella quede debajo)
     const T2 = sec.querySelector('.m3-tot'); if (!panel.hidden && T2?.offsetParent) t = Math.max(t, (T2.getBoundingClientRect().bottom - a.top) / k + 8);
     return (hu = { t, r, b });
   };
-  MAPA = mapa3d(sec, { comarcas, towns, hueco, tapa: '.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-panel', onSelect: abre,
+  MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-panel, .m3-mision, .m3-ley', onSelect: abre,
     onTown: (id) => { const card = panel.querySelector(`[data-t="${id}"]`), list = panel.querySelector('.m3p-towns'); if (!card) return;
       panel.querySelectorAll('.m3t.on').forEach(x => x.classList.remove('on')); card.classList.add('on');
       list.scrollTo({ top: card.offsetTop - list.offsetTop - 8, left: card.offsetLeft - list.offsetLeft - 8, behavior: 'smooth' }); } });
   // (lo que mide lo conquistado, para que en el móvil tumbado el buscador empiece justo a su lado, en cualquier idioma)
   const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
+  const mis = sec.querySelector('.m3-mision'); if (mis) new ResizeObserver(() => sec.style.setProperty('--misw', mis.offsetWidth + 'px')).observe(mis);
   if (!MAPA) { sec.classList.add('plano'); sec.insertAdjacentHTML('afterbegin', `<div class="m3-plano">${OPC.plano()}</div>`); }
   sec.addEventListener('click', (e) => {
     const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abre(ch.dataset.sel); return; }
@@ -210,8 +241,9 @@ function mapaOn(root, p) {
 
 /** Lo que se mueve: el mapa 3D, elegir fila, las flechas del destacado y de las tarjetas, las pestañas y el buscador. */
 export function inicioOn(root) {
-  const p = profile(), items = inicioHTML.items || [], hero = root.querySelector('.ini-hero'); if (!hero) return;
-  mapaOn(root, p);
+  const p = profile(), items = inicioHTML.items || [], hero = root.querySelector('.ini-hero');
+  mapaOn(root, p); buscaOn(root);
+  if (!hero) return;
   const pop0 = hero.querySelector('.ih-pop'); if (pop0) recorta(pop0, hero);
   const pon = (i) => {
     i = (i + items.length) % items.length; if (+hero.dataset.i === i) return;
@@ -229,10 +261,15 @@ export function inicioOn(root) {
     cards.innerHTML = tarjetas(b.dataset.tab, p); cards.scrollLeft = 0;
   });
   root.querySelectorAll('.ig-arrow').forEach(b => b.onclick = () => cards.scrollBy({ left: +b.dataset.dir * cards.clientWidth * 0.85, behavior: 'smooth' }));
-  // (el buscador: lo que coincide, con su portada; Intro abre el primero)
-  const inp = root.querySelector('.ini-busca input'), res = root.querySelector('.ib-res');
+}
+// el buscador: lo que coincide, con su portada; Intro abre el primero. Con el mapa 3D, la cámara vuela hasta el pueblo y se
+// abre su comarca (como en el mapa de un juego); sin él, la ficha del pueblo
+function buscaOn(root) {
+  const inp = root.querySelector('.ini-busca input'), res = root.querySelector('.ib-res'); if (!inp || !res) return;
+  const attr = MAPA ? 'data-ir' : 'data-town';
   const pinta = () => { const r = buscar(inp.value); res.hidden = !inp.value.trim();
-    res.innerHTML = r.length ? r.map(x => `<button type="button" data-town="${x.id}">${x.img ? `<img src="${x.img}" alt="">` : I('church', 30)}<span><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span></button>`).join('') : `<span class="ib-no">No hay nada con ese nombre</span>`; };
+    res.innerHTML = r.length ? r.map(x => `<button type="button" ${attr}="${x.id}">${x.img ? `<img src="${x.img}" alt="">` : I('church', 30)}<span><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span></button>`).join('') : `<span class="ib-no">No hay nada con ese nombre</span>`; };
   inp.addEventListener('input', pinta);
-  inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') res.querySelector('[data-town]')?.click(); if (e.key === 'Escape') { inp.value = ''; pinta(); } });
+  inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') res.querySelector(`[${attr}]`)?.click(); if (e.key === 'Escape') { inp.value = ''; pinta(); } });
+  res.addEventListener('click', (e) => { const b = e.target.closest('[data-ir]'); if (!b || !MAPA) return; MAPA.volar(b.dataset.ir); inp.value = ''; pinta(); inp.blur(); });
 }
