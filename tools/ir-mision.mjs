@@ -1,11 +1,11 @@
 // «Empezar la misión»: en el libro de misiones del pueblo, cada misión lleva su botón; al pulsarlo, el personaje aparece
 // junto al vecino que la da, mirándole, y la misión queda seguida. Comprueba la distancia al vecino tras cada viaje, que
 // el libro se cierra y que no hay errores; con OUT=carpeta, capturas del libro y de la llegada.
-// Uso: node tools/ir-mision.mjs [pueblo]
+// Uso: node tools/ir-mision.mjs [pueblo] [ancho x alto, p. ej. 844x390 para el móvil tumbado]
 import { chromium } from '/home/user/mendimendiz/node_modules/playwright-core/index.mjs';
-const [,, town = 'lesaka'] = process.argv;
+const [,, town = 'lesaka', tam = '1280x720'] = process.argv, [W, H] = tam.split('x').map(Number), movil = W < 900 || H < 500;
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await b.newPage({ viewport: { width: 1280, height: 720 } }); const errs = [];
+const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: movil, hasTouch: movil }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true, comoJugar: true }, settings: { quality: 'low' } })); });
 await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1`, { timeout: 300000 });
