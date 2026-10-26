@@ -1,7 +1,7 @@
 node_modules
 dist
-HERRIZHERRI-jugar.html
-HERRIZHERRI-jugar-ligero.html
+/HERRIZHERRI-jugar.html
+/HERRIZHERRI-jugar-ligero.html
 herrizherri-codigo.zip
 captura-*.png
 lab/ref/
