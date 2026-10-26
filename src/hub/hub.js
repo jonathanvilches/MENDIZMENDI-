@@ -51,7 +51,7 @@ import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
-import { inicioHTML, inicioOn } from './inicio.js';
+import { inicioHTML, inicioOn, cierraMapa } from './inicio.js';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 
@@ -261,7 +261,7 @@ export class Hub {
   show(screen = this.screen, arg = this.arg) { if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
   // (quien empieza: primero cómo quiere jugar y después su nombre y su personaje)
   primeraVez() { if (vistoComoJugar()) return this.onboarding(); comoJugar(this.root, { primera: true, despues: () => { if (!profile().name && !isDidactico()) this.onboarding(); } }); }
-  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); releaseStage(); this.stage = null; releaseOffscreen(); }
+  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); cierraMapa(); releaseStage(); this.stage = null; releaseOffscreen(); }
   go(screen, arg, silent) {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
@@ -274,7 +274,7 @@ export class Hub {
     const m = $('#hMain', this.root);
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     m.dataset.cat = kc(screen);
-    m.innerHTML = this['s_' + screen](arg);
+    cierraMapa(); m.innerHTML = this['s_' + screen](arg);
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound);
@@ -329,7 +329,7 @@ export class Hub {
     // (en cuanto se ha jugado algo, el resumen de cómo vas va debajo de la portada)
     const empezado = doneM > 0 || p.xp > 0 || Object.values(p.towns || {}).some(t => t.visits) || ligasGuardadas().some(S => S.j > 0) || torneosGuardados().length > 0;
     return `
-    ${inicioHTML({ icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)) })}
+    ${inicioHTML({ icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) })}
     ${empezado ? this.progreso(p, last) : ''}
     <section class="saberes" data-cat="sab">
       <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2></div>
@@ -522,7 +522,7 @@ export class Hub {
     return `
     <section class="chero" style="--c:${c.color};--bg:url(${comarcaCover(id)})">
       <button class="back" data-go="map">${I('back', 26)} Mapa</button>
-      <img class="bigstamp ${pr.stamps || dd ? '' : 'gray'}" src="${stampImg(id)}" alt="">
+      <img class="bigstamp ${pr.stamps || dd ? '' : 'gray'}${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}">
       <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${dd ? `<b>${ts.length}</b> <span>${ts.length === 1 ? 'pueblo' : 'pueblos'}</span> · ${I('river', 20)} <span>${esc(c.river || '')}</span>` : `${cnt(ts.length, 'pueblo', 'pueblos')} · ${cnt(pr.stamps, 'sellado', 'sellados')} · río ${esc(c.river || '')}`}</p></div>
       ${comarcaCover(id) ? `<img class="chero-img" src="${comarcaCover(id)}" alt="" decoding="async">` : ''}
     </section>
