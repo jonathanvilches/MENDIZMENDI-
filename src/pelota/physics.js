@@ -95,11 +95,12 @@ function aimVelocityTo(p, t, T) {
 // fzs: dónde se busca el punto de la pared, como fracción de la distancia al frontis (poco: la pared pronto y sale más
 // cruzada; mucho: la pared cerca del frontis y sale más recta)
 // opts.low: cuánto se premia que pegue bajo en el frontis (la cortada a dos paredes, rasa y cerca de la chapa);
-// opts.maxFront: lo más alto que puede pegar en el frontis
+// opts.maxFront: lo más alto que puede pegar en el frontis; opts.spin: el de la cortada (sale del frontis de otra manera:
+// antes se calculaba como un golpe normal y la cortada a dos paredes, más rápida al salir, botaba fuera por el ancho)
 // (el recorrido de una dos paredes: pared izquierda, frontis sin botar antes y el bote. Solo lo que hace falta y parando
 // en cuanto se sabe: null si toca el frontis antes que la pared, si bota antes del frontis o si no llega a botar)
-function twoWallsPath(p, v) {
-  const b = new Ball(); b.set(p, v); let left = false, front = null;
+function twoWallsPath(p, v, spin = 0) {
+  const b = new Ball(); b.set(p, v); b.spin = spin; let left = false, front = null;
   for (let t = 0; t < 4; t += 1 / 120) {
     _out.length = 0; b.step(1 / 120, _out);
     for (const e of _out) {
@@ -121,7 +122,7 @@ export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64
     const T = Math.max(0.1, d / speed);
     for (let yw = 1; yw <= 7; yw += 0.25) {
       const v = aimVelocityTo(p, { x: xw, y: yw, z: zw }, T);
-      const r = twoWallsPath(p, v); if (!r) continue;
+      const r = twoWallsPath(p, v, opts.spin || 0); if (!r) continue;
       const F = r.front, land = r.land; if (F.y < COURT.CHAPA + 0.35 || F.y > maxFront) continue;
       if (land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) continue;
       const score = -Math.abs(land.z - landZ) * (opts.cross ? 0.5 : 1) - Math.max(0, 1 - land.x) * 1.5 + (opts.cross || 0) * land.x - low * (F.y - COURT.CHAPA);   // mejor cuanto más cruzado (hacia la derecha); con cross, cuanto más, mejor
@@ -136,9 +137,10 @@ export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64
 // se calcula al golpear (el golpe prueba decenas de trayectorias), así que no guarda el recorrido como predict(): solo
 // los eventos que hacen falta, y para en cuanto bota tras el frontis. Mismo resultado, mucho menos trabajo y memoria
 // (antes cada golpe costaba de 1 a 12 ms; en el móvil, algún fotograma perdido al golpear)
-export function landingOf(p, v) {
-  const b = new Ball(); b.set(p, v);
-  let front = null, land = null, floorBefore = null, back = null;
+// (spin: el de la cortada, que sale del frontis de otra manera; left: si entre el frontis y el bote toca la pared izquierda)
+export function landingOf(p, v, spin = 0) {
+  const b = new Ball(); b.set(p, v); b.spin = spin;
+  let front = null, land = null, floorBefore = null, back = null, left = null;
   for (let t = 0; t < 4; t += 1 / 120) {
     _out.length = 0; b.step(1 / 120, _out);
     for (const e of _out) {
@@ -146,10 +148,11 @@ export function landingOf(p, v) {
       if (e.type === 'front') front ||= e;
       else if (e.type === 'floor') { if (front) { if (!land) { e.n = 1; land = e; } } else floorBefore ||= e; }
       else if (e.type === 'back') back ||= e;
+      else if (e.type === 'left' && front && !land) left ||= e;
     }
     if (land) break;
   }
-  return { front, land, floorBefore, back: back && (!land || back.t < land.t) ? back : null };
+  return { front, land, floorBefore, left, back: back && (!land || back.t < land.t) ? back : null };
 }
 
 // Busca la altura en el frontis (ty) para que el primer bote caiga cerca de landZ
@@ -163,7 +166,7 @@ export function solveShot(p, tx, landZ, speed, tyMin = COURT.CHAPA + 0.25, tyMax
     // frontis. Antes los golpes muy rápidos acababan arriba del todo y la pelota pasaba por encima del rebote, fuera)
     const backFirst = r.back;
     const z = r.land && !backFirst ? r.land.z : 99;
-    best = { ty, v, land: backFirst ? null : r.land };
+    best = { ty, v, land: backFirst ? null : r.land, left: r.left };
     // más alto en el frontis → bote más lejano
     if (z < landZ) lo = ty; else hi = ty;
   }

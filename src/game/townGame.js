@@ -66,7 +66,7 @@ import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.j
 import { GearProps } from '../actors/gear3d.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird } from '../actors/beasts.js';
-import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue, freeVenues } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
@@ -1075,7 +1075,7 @@ export class TownGame {
       if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       this.player.frozen = true;
       await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
-    } finally { if (!this.disposed) { this.sportBusy = false; this.player.frozen = false; a.talking = 0; this.sportBackdrop(false); this.ui.hudVisible(true); } }
+    } finally { if (!this.disposed) { this.sportBusy = false; this.player.frozen = false; a.talking = 0; this.sportBackdrop(false); this.ui.hudVisible(true); if (this.rt?.quality === 'low') freeVenues(); } }   // (de vuelta al pueblo, en el móvil, sin los frontones de los campeonatos)
   }
   // Campeonato de pelota desde el menú (sin misiones): el frontón del pueblo elegido con su menú de pelota (partido
   // libre o torneo por la txapela, todos los partidos aquí, sin viajar). Al salir del menú, de vuelta al inicio
@@ -1192,6 +1192,7 @@ export class TownGame {
   async venuePrep(v) {
     if (window.__autoWin) return;
     this.sportBackdrop(true, true);
+    if (this.rt?.quality === 'low') freeVenues(v);   // (en el móvil, solo el frontón que se va a usar: fronton.js)
     if (v === this.fronton) return;
     await this.rt?.warm?.(v.court.group);   // (sus sombreadores, antes de verlo: si no, la llegada se quedaba congelada un momento)
     if (this.disposed) return;

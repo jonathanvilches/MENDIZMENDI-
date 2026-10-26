@@ -59,7 +59,8 @@ for (const pairs of [false, true]) {
   ok(r.errors === 0, 'sin errores');
   ok(r.start.every(p => Math.abs(p.z - C7) < 0.6 && Math.abs(p.x) < 1.5), 'el que saca empieza en el cuadro 7');
   ok(r.recv.every(p => p.x < WALL + 1.6 && Math.abs(p.z - C7) < 1.2), 'el que resta espera junto a la pared, sobre el 7');
-  ok(r.drop.length > 0 && r.drop.every(z => z > C4 && z < C4 + 1.6), 'corre hasta poco antes del 4 y ahí bota la pelota');
+  // (bota dentro del cuadro de antes del 4, más antes cuanto más deprisa llega, y la golpea ya en el 4: el saque continuo)
+  ok(r.drop.length > 0 && r.drop.every(z => z > C4 && z < C4 + COURT.CUADRO), 'corre hacia el 4 y bota la pelota en el cuadro de antes');
   ok(r.strike.length > 0 && r.strike.every(z => z > C4 - 0.7 && z < C4 + 1.6), 'y saca desde ahí');
   ok(r.vmax > 4, 'se le ve correr');
   ok(avg(r.runT) < 3.4, 'sin hacerse largo');

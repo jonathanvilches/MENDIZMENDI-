@@ -457,19 +457,24 @@ export class PelotaMatch {
     zone.addEventListener('pointerdown', (e) => {
       // (otro dedo en la zona manda él: si el anterior se quedó enganchado sin su «soltar», tocar otra vez lo arregla)
       if (I.stick.id === e.pointerId) return;
-      I.stick = { id: e.pointerId, ox: e.clientX, oy: e.clientY, x: 0, y: 0 };
+      // (el centro, con sitio alrededor para llevarlo casi del todo a cualquier lado: tocando pegado al borde izquierdo o al
+      // de abajo, el dedo no tenía por dónde ir y a la izquierda no pasaba de un tercio; ahí, ya cuenta como algo empujado
+      // hacia ese lado)
+      const zr = zone.getBoundingClientRect(), ox = Math.max(e.clientX, zr.left + R * 0.75), oy = Math.min(e.clientY, zr.bottom - R * 0.75);
+      I.stick = { id: e.pointerId, ox, oy, x: 0, y: 0 };
       try { zone.setPointerCapture?.(e.pointerId); } catch { /* (un puntero sintético de las pruebas) */ }
-      const zr = zone.getBoundingClientRect(); knob.style.display = 'block'; knob.style.left = (e.clientX - zr.left) + 'px'; knob.style.top = (e.clientY - zr.top) + 'px';
-      knob.firstElementChild.style.transform = '';
+      knob.style.display = 'block'; knob.style.left = (ox - zr.left) + 'px'; knob.style.top = (oy - zr.top) + 'px';
+      knob.firstElementChild.style.transform = ''; mueve(e);
       const h = hud.$('.pel-stickhint'); if (h) h.remove();
     });
-    zone.addEventListener('pointermove', (e) => {
+    function mueve(e) {
       if (e.pointerId !== I.stick.id) return;
       let dx = e.clientX - I.stick.ox, dy = e.clientY - I.stick.oy; const d = Math.hypot(dx, dy);
       if (d > R) { dx *= R / d; dy *= R / d; }
       I.stick.x = dx / R; I.stick.y = -dy / R;
       knob.firstElementChild.style.transform = `translate(${dx}px,${dy}px)`;
-    });
+    }
+    zone.addEventListener('pointermove', mueve);
     const reset = this.resetStick = () => { I.stick = { id: null, x: 0, y: 0 }; knob.style.display = 'none'; };
     const end = (e) => { if (e.pointerId === I.stick.id) reset(); };
     zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);
@@ -605,21 +610,22 @@ export class PelotaMatch {
       const you = g.players.you, inside = Math.hypot(you.x - h.spot.x, you.z - h.spot.z) < 0.8;
       C.spotRing.material.color.set(inside ? '#ffc2ec' : '#ff2bd6'); C.spotRing.material.opacity = inside ? 1 : 0.7;
     }
+    // el golpe apuntado (mientras se carga): su camino, para la marca del frontis y el camino a trazos
+    const ch = this.input.charge, keys = this.input.keys, stk = this.input.stick;
+    const ax = clamp1((keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0) + stk.x), ay = clamp1((keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) + stk.y);
+    const pv = ch && (C.aimPath || C.aimMark) && (g.phase === 'rally' || g.phase === 'servePrep') ? g.previewShot?.({ x: ax, y: ay }, ch.kind === 'cut' ? 'cortada' : ch.kind === 'drop' ? 'dejada' : false, 0.15 + this.chargeLevel() * 0.85) : null;
     // marca de puntería en el frontis mientras se carga la cortada o la dejada: sube con la fuerza (poca carga, rozando
-    // la chapa; a tope, a media altura) y se mueve a lo ancho con el joystick
-    const ch = this.input.charge;
+    // la chapa; a tope, a media altura) y se mueve a lo ancho con el joystick, justo donde va a dar
     if (C.aimMark) {
       const on = !!ch && (ch.kind === 'cut' || ch.kind === 'drop') && (g.phase === 'rally' || g.phase === 'servePrep');
       C.aimMark.visible = on;
-      if (on) { const k = this.input.stick, ax = clamp1((this.input.keys.d || this.input.keys.arrowright ? 1 : 0) - (this.input.keys.a || this.input.keys.arrowleft ? 1 : 0) + k.x), ay = clamp1((this.input.keys.w || this.input.keys.arrowup ? 1 : 0) - (this.input.keys.s || this.input.keys.arrowdown ? 1 : 0) + k.y), pow = 0.15 + this.chargeLevel() * 0.85, you = g.players.you;
-        const x = ch.kind === 'cut' ? aimSide(ax) * 2.8 : you.x * 0.4 + aimSide(ax) * 2.2, y = ch.kind === 'cut' ? cutHeight(pow, ay) : dropHeight(pow, ay);
+      if (on) { const pow = 0.15 + this.chargeLevel() * 0.85, you = g.players.you;
+        // (en la cortada a dos paredes, el frontis llega después de la pared: la marca va donde da de verdad)
+        const x = pv?.front ? pv.front.x : ch.kind === 'cut' ? aimSide(ax) * 2.8 : you.x * 0.4 + aimSide(ax) * 2.2, y = pv?.front ? pv.front.y : ch.kind === 'cut' ? cutHeight(pow, ay) : dropHeight(pow, ay);
         C.aimMark.position.set(Math.max(-4.6, Math.min(4.8, x)), y, 0.06); C.aimMark.scale.setScalar(1 + 0.08 * Math.sin(this.t * 12)); }
     }
     // camino previsto del golpe apuntado: a trazos hasta el primer bote, con el bote y (a dos paredes) la pared marcados
     if (C.aimPath) {
-      const k = this.input.stick, keys = this.input.keys;
-      const ax = clamp1((keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0) + k.x), ay = clamp1((keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) + k.y);
-      const pv = ch && (g.phase === 'rally' || g.phase === 'servePrep') ? g.previewShot?.({ x: ax, y: ay }, ch.kind === 'cut' ? 'cortada' : ch.kind === 'drop' ? 'dejada' : false, 0.15 + this.chargeLevel() * 0.85) : null;
       C.aimPath.visible = !!pv; C.aimLand.visible = !!pv?.land; C.aimWall.visible = !!pv?.wall;
       if (pv) {
         const pos = C.aimPath.geometry.attributes.position, n = Math.min(pv.pts.length, pos.count);
