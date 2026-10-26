@@ -12,6 +12,7 @@ import { hubRenderer, rendererVivo } from './stage.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { MAPA_RELIEVE, MAPA_ALTURAS } from '../data/mapa-relieve.js';
+import SOMBRA from '../assets/relieve/sombra.webp?url';
 
 // (las coordenadas son las del mapa de comarcas de comarcas.json, viewBox 10 10 725 780: se centran y se pasan a metros
 // del mundo 3D, con el norte hacia el fondo)
@@ -41,9 +42,8 @@ function contorno(path) {
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
-// (sin descubrir, su color pasado a lavanda, bajo la niebla; las paredes, violeta oscuro: mezclar los amarillos y los ocres
-// con oscuro los volvía marrones, con lavanda quedan malvas)
-const LAVANDA = new THREE.Color('#8f7fd0'), PARED = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
+// (las paredes de cada comarca, violeta oscuro con un toque de su color)
+const PARED = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
 // (un dibujo en un lienzo, como textura)
 function lienzo(w, h, pinta) { const c = document.createElement('canvas'); c.width = w; c.height = h; pinta(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
 // la nube de la niebla: varias bolas blandas juntas
@@ -65,7 +65,7 @@ const rioTex = () => lienzo(4, 64, (g) => { const gr = g.createLinearGradient(0,
 const hazTex = () => lienzo(4, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.5, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 4, 128); });
 // ---------- el relieve ----------
 // El de verdad (src/data/mapa-relieve.js: SRTM y GMTED2010, una altura cada 600 m), exagerado unas cinco veces para
-// que las sierras se lean desde arriba
+// que las sierras se lean desde arriba; el detalle de cada ladera lo pone el sombreado fino (EU-DEM de Copernicus)
 const GROSOR = 0.6, EXA = 0.0026;
 let ALTS = null;
 function hacerRelieve() {
@@ -138,16 +138,42 @@ function losa(P, alto, paso) {
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
   g.addGroup(0, nTop, 0); g.addGroup(nTop, idx.length - nTop, 1); g.computeVertexNormals(); g.computeBoundingBox();
-  // (el color, como en los mapas de relieve: más oscuro en los valles y más claro en las cumbres, y cada ladera sombreada
-  // con una luz del noroeste, con la pendiente algo más marcada, para que las sierras se lean también desde lejos)
+  // (la sombra de cada ladera, con una luz del noroeste y la pendiente algo más marcada: la que se ve mientras llega la
+  // imagen del sombreado fino, y si no llega)
   const nor = g.attributes.normal.array, col = new Float32Array(pos.length).fill(1);
   for (let v = 0; v < nV; v++) {
     const ny = Math.max(0.05, nor[v * 3 + 1]), dx = -nor[v * 3] / ny * 2.6, dz = -nor[v * 3 + 2] / ny * 2.6, luz = Math.max(0, (0.6 * dx + 0.62 + 0.5 * dz) / Math.hypot(dx, 1, dz));
-    const k = Math.min(1, Math.max(0, (pos[v * 3 + 1] - GROSOR - 0.6) / 4.4)), f = (0.66 + 0.62 * k * k * (3 - 2 * k)) * (0.45 + 0.88 * luz); col[v * 3] = col[v * 3 + 1] = col[v * 3 + 2] = f;
+    col[v * 3] = col[v * 3 + 1] = col[v * 3 + 2] = 0.45 + 0.88 * luz;
   }
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return { g, hmax };
 }
+// ---------- el color del relieve, como en los mapas físicos ----------
+// La altura da el color (verde en los valles, ocre y pardo en las sierras, gris y blanco en las cumbres) y la imagen del
+// sombreado fino (tools/relieve/mapa-relieve.py: cada ladera según su pendiente, con luz del noroeste) le pone la luz y
+// las sombras de cada barranco. Las cuentas van en sRGB, como en un mapa impreso. Las comarcas por descubrir, algo
+// apagadas y hacia el malva; uBrillo, lo que se aclara al pasar por encima o al elegirla.
+const PALETA = [[0, '#3e8c3a'], [250, '#5ca03e'], [450, '#80ac4e'], [650, '#aab266'], [850, '#b8a070'], [1100, '#a07e5a'], [1400, '#846852'], [1700, '#8c8078'], [2000, '#cdc8c6'], [2400, '#f5f4f4']];
+const srgb = (hex) => new THREE.Color(hex).getRGB(new THREE.Color(), THREE.SRGBColorSpace);
+const RELIEVE_VS = `varying vec2 vXZ; varying float vH, vSom;
+#include <fog_pars_vertex>
+void main() { vXZ = position.xz; vH = position.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;
+#include <fog_vertex>
+}`;
+const RELIEVE_FS = `uniform sampler2D uSombra; uniform vec4 uRect; uniform float uListo, uGrosor, uExa, uGris, uTintK, uBrillo; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
+varying vec2 vXZ; varying float vH, vSom;
+#include <fog_pars_fragment>
+void main() {
+  float m = max(0.0, (vH - uGrosor) / uExa);
+  vec3 c = uPal[0];
+  for (int i = 1; i < ${PALETA.length}; i++) c = mix(c, uPal[i], clamp((m - uCota[i - 1]) / (uCota[i] - uCota[i - 1]), 0.0, 1.0));
+  vec2 uv = (vXZ / ${S.toFixed(1)} + vec2(${CX.toFixed(1)}, ${CY.toFixed(1)}) - uRect.xy) / uRect.zw;
+  float s = mix(vSom * 0.95, texture2D(uSombra, uv).r * 1.7, uListo);
+  c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
+  c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))) * vec3(0.95, 0.92, 1.1), uGris);
+  gl_FragColor = vec4(mix(c, uTinte, uTintK) * uBrillo, 1.0);
+#include <fog_fragment>
+}`;
 const enPoligono = (P, x, z) => { let inn = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inn = !inn; } return inn; };
 
 /**
@@ -178,15 +204,24 @@ export function mapa3d(host, o) {
   const base = new THREE.Mesh(sg, new THREE.MeshBasicMaterial({ map: suelo, toneMapped: false })); mats.push(base.material); base.material.map.dispose = suelo.dispose.bind(suelo);
   base.rotation.x = -Math.PI / 2; scene.add(base);
 
+  // el sombreado fino, compartido por todas las comarcas (mientras llega, el de cada vértice)
+  const R = MAPA_RELIEVE.sombra, LISTO = { value: 0 };
+  const sombra = new THREE.TextureLoader().load(SOMBRA, () => { LISTO.value = 1; });
+  sombra.flipY = false; sombra.colorSpace = THREE.NoColorSpace; sombra.anisotropy = 4;
+  const UNI = { uSombra: { value: sombra }, uListo: LISTO, uRect: { value: new THREE.Vector4(R.x0 - R.paso / 2, R.y0 - R.paso / 2, R.w * R.paso, R.h * R.paso) },
+    uGrosor: { value: GROSOR }, uExa: { value: EXA }, uPal: { value: PALETA.map(([, h]) => srgb(h)) }, uCota: { value: PALETA.map(([m]) => m) } };
+  const relieveM = (c, vivo) => { const m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true,
+    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 } } });
+    mats.push(m); return m; };
+
   // las comarcas
   const LENTO = matchMedia?.('(pointer: coarse)').matches;   // (en el móvil, 30 imágenes por segundo y el relieve algo menos fino)
   const alto = hacerRelieve();
   const C = o.comarcas.map((c, i) => {
     const { P, cx, cy } = contorno(c.path);
     const Pw = P.map(([x, y]) => W(x, y)), { g, hmax } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g);
-    // (empezada, con su color entero y su propio brillo, que crece con los sellos; sin descubrir, malva, bajo la niebla)
-    const vivo = c.pct > 0 || c.done, base = vivo ? new THREE.Color(c.color).lerp(BLANCO, 0.1) : new THREE.Color(c.color).lerp(LAVANDA, 0.6);
-    const top = M({ color: base, vertexColors: true, roughness: 0.85, emissive: new THREE.Color(c.color), emissiveIntensity: c.done ? 0.42 : vivo ? 0.22 + c.pct * 0.18 : 0.1 });
+    // (empezada, con los colores del mapa y un toque del suyo; sin descubrir, apagada y hacia el malva, bajo la niebla)
+    const vivo = c.pct > 0 || c.done, top = relieveM(c, vivo);
     const side = M({ color: PARED.clone().lerp(new THREE.Color(c.color), vivo ? 0.28 : 0.16), side: THREE.DoubleSide });
     const mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
     // (lo que se levanta la comarca con sus sellos)
@@ -199,7 +234,7 @@ export function mapa3d(host, o) {
     const [X, Z] = W(cx, cy);
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
     lab.innerHTML = `${!vivo && o.icono ? `<i>${o.icono('lock')}</i>` : c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name)}</b>${c.towns ? `<small>${c.stamps}/${c.towns}</small>` : ''}`;
-    return { ...c, vivo, Pw, hmax, hc: GROSOR + alto(X, Z), mesh, top, linea, alzado, brillo: top.emissiveIntensity, lift: 0, X, Z, lab, d: 0.25 + i * 0.07 };
+    return { ...c, vivo, Pw, hmax, hc: GROSOR + alto(X, Z), mesh, top, linea, alzado, lift: 0, X, Z, lab, d: 0.25 + i * 0.07 };
   });
   const byId = new Map(C.map(c => [c.id, c]));
   // (la comarca de un punto; antes que ninguna, la del punto anterior, que casi siempre es la misma)
@@ -207,8 +242,8 @@ export function mapa3d(host, o) {
   const deQuien = (x, z, antes) => antes && en(antes, x, z) ? antes : C.find(c => c !== antes && en(c, x, z));
 
   // los ríos: una cinta de luz azul sobre el relieve, cortada por comarcas (cada trozo va con la suya cuando se levanta)
-  const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x8fe6ff, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
-  const ANCHO = [0, 0.7, 0.52, 0.36], cintas = new Map();
+  const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x7cd0ff, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
+  const ANCHO = [0, 0.58, 0.44, 0.32], cintas = new Map();
   const cinta = (c, Q, w) => {
     let a = cintas.get(c); if (!a) cintas.set(c, a = { p: [], uv: [], i: [] });
     const b = a.p.length / 3;
@@ -228,7 +263,7 @@ export function mapa3d(host, o) {
     if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]);
   }
   // los embalses: una lámina de agua a su nivel (el relieve, alrededor, no pasa de él)
-  const lagoM = new THREE.MeshBasicMaterial({ color: 0x74dcff, transparent: true, opacity: 0.9, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(lagoM);
+  const lagoM = new THREE.MeshBasicMaterial({ color: 0x5ab8f0, transparent: true, opacity: 0.92, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(lagoM);
   for (const lago of MAPA_RELIEVE.lagos) lago.p.forEach((tr, n) => {
     const P = []; for (let i = 0; i + 1 < tr.length; i += 2) P.push(W(tr[i], tr[i + 1]));
     let mx = 0, mz = 0; for (const [x, z] of P) { mx += x / P.length; mz += z / P.length; }
@@ -481,7 +516,7 @@ export function mapa3d(host, o) {
       // (crece del suelo al empezar; se levanta con sus sellos, al pasar por encima y al elegirla; las demás bajan un poco)
       c.sy = Math.max(0.01, nace); c.py = (c.alzado + c.lift + (sel && sel !== c.id ? -0.25 : 0)) * nace;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py;
-      c.top.emissiveIntensity = c.brillo + c.lift * 0.22 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.06 : 0);
+      c.top.uniforms.uBrillo.value = (c.vivo ? 1 : 0.9) + c.lift * 0.16 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0);
     }
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra; flotan un poco)
     const lejos = Math.max(1, Math.min(1.7, v.d / 50));
@@ -546,7 +581,7 @@ export function mapa3d(host, o) {
   function dispose() {
     if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect();
     removeEventListener('keydown', kd); removeEventListener('keyup', ku);
-    for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); }
+    for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose();
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }
