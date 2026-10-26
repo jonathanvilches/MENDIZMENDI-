@@ -55,17 +55,60 @@ const rampa = (s, a, b) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 const FONDO = 0x101626, PARED = new THREE.Color('#3a3128'), BLANCO = new THREE.Color('#ffffff');
 // (un dibujo en un lienzo, como textura)
 function lienzo(w, h, pinta) { const c = document.createElement('canvas'); c.width = w; c.height = h; pinta(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
-// la chincheta de cada pueblo: blanca por descubrir, fucsia empezado, dorada sellado (con su estrella)
-const PIN = { '': ['#f4efff', '#b9a8ee'], go: ['#ff8fd3', '#ff2bd6'], ok: ['#ffe28a', '#ffae1f'] };
-const pinTex = (k) => lienzo(64, 84, (g) => {
-  const [c1, c2] = PIN[k], gr = g.createLinearGradient(0, 4, 0, 60); gr.addColorStop(0, c1); gr.addColorStop(1, c2);
-  g.shadowColor = c2; g.shadowBlur = 8;
-  g.beginPath(); g.arc(32, 30, 24, Math.PI * 0.82, Math.PI * 2.18); g.lineTo(32, 80); g.closePath(); g.fillStyle = gr; g.fill();
-  g.shadowBlur = 0; g.lineWidth = 4; g.strokeStyle = 'rgba(255,255,255,.95)'; g.stroke();
-  g.fillStyle = '#ffffff';
-  if (k === 'ok') { g.beginPath(); for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? 6 : 13; g.lineTo(32 + Math.cos(a) * rr, 30 + Math.sin(a) * rr); } g.closePath(); g.fill(); }
-  else { g.beginPath(); g.arc(32, 30, 9, 0, Math.PI * 2); g.fill(); if (k === '') { g.fillStyle = '#b9a8ee'; g.beginPath(); g.arc(32, 30, 4, 0, Math.PI * 2); g.fill(); } }
-});
+// ---------- la baliza de cada pueblo ----------
+// Una baliza holográfica: en el suelo, una mira que se proyecta sobre el terreno (un anillo de trazos que gira, un círculo
+// fino, cuatro marcas que giran al revés y una onda que se abre); un hilo de luz que sube; y arriba, flotando y girando, un
+// cristal tallado de seis caras que se llena de luz con las misiones hechas, con su halo y una órbita inclinada por la que
+// corre un punto de luz (dos, en los sellados). Cian y hueco por descubrir, fucsia y a medias
+// empezado, dorado y lleno sellado: de frío a caliente. De lejos, la mira se simplifica (un anillo y su onda) para que no
+// titile. Al señalarla, la mira gira más deprisa y todo brilla más; al elegir el pueblo, cuatro
+// esquinas se cierran sobre él, como al fijar un blanco. En el pueblo donde estás, dos ondas. Cada pieza, un solo dibujo
+// para todos los pueblos (aCol: su color; aInf: su fase, más 10 en el pueblo donde estás, lo lleno, lo señalado y lo elegido)
+const BALIZA = { '': '#4fe0ff', go: '#ff3fd8', ok: '#ffc640' }, CRISTAL_Y = 1.3;
+const BAL_VS = 'attribute vec3 aCol; attribute vec4 aInf; varying vec3 vCol; varying vec4 vInf;\n';
+const MIRA_VS = BAL_VS + 'varying vec2 vP; void main() { vCol = aCol; vInf = aInf; vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }';
+const MIRA_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec2 vP;
+float aro(float r, float a, float b, float w) { return smoothstep(a - w, a, r) * (1.0 - smoothstep(b, b + w, r)); }
+void main() {
+  float r = length(vP), w = fwidth(r) * 1.2 + 0.004, aqui = step(9.5, vInf.x), fase = vInf.x - 10.0 * aqui;
+  float an = atan(vP.y, vP.x) / 6.2831853 + 0.5, giro = uT * (0.06 + 0.3 * vInf.z) + fase, det = smoothstep(0.03, 0.012, fwidth(r));
+  float c = aro(r, 0.66, 0.76, w) * mix(0.55, step(0.32, fract(an * 18.0 + giro * 3.0)), det) + aro(r, 0.42, 0.45, w) * 0.5 * det;
+  float m = fract(an * 4.0 - giro * 1.5); c += det * aro(r, 0.84, 0.98, w) * (1.0 - smoothstep(0.04, 0.04 + fwidth(m) * 1.5, abs(m - 0.5)));
+  float p = fract(uT * (0.4 + 0.3 * aqui) + fase * 0.37), q = fract(p + 0.5);
+  c += aro(r, p - 0.04, p, w) * (1.0 - p) * 0.9 + aqui * aro(r, q - 0.04, q, w) * (1.0 - q) * 0.9 + exp(-r * r * 90.0) * 0.8;
+  float s = mix(1.28, 1.02, vInf.w); vec2 a2 = abs(vP); float mx = max(a2.x, a2.y);
+  c += step(0.01, vInf.w) * vInf.w * aro(mx, s - 0.06, s, w) * step(s - 0.34, min(a2.x, a2.y));
+  if (c < 0.004) discard;
+  gl_FragColor = vec4(mix(vCol, vec3(1.0), 0.2 * vInf.z), c * (0.7 + 0.5 * vInf.z));
+}`;
+const HILO_VS = BAL_VS + 'varying float vY; void main() { vCol = aCol; vInf = aInf; vY = position.y; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }';
+const HILO_FS = 'uniform float uT; varying vec3 vCol; varying vec4 vInf; varying float vY; void main() { float a = (1.0 - vY * 0.7) * (0.35 + 0.65 * step(0.45, fract(vY * 4.0 - uT * 1.6 + vInf.x))); gl_FragColor = vec4(vCol, a * (0.7 + 0.3 * vInf.z)); }';
+const CRISTAL_VS = BAL_VS + `attribute vec3 bary; varying vec3 vB, vN, vV, vL;
+void main() { vCol = aCol; vInf = aInf; vB = bary; vL = position;
+  vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vN = normalize(mat3(modelMatrix * instanceMatrix) * normal); vV = normalize(cameraPosition - w.xyz);
+  gl_Position = projectionMatrix * viewMatrix * w; }`;
+const CRISTAL_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec3 vB, vN, vV, vL;
+void main() {
+  float e = min(vB.x, min(vB.y, vB.z)), borde = 1.0 - smoothstep(0.0, fwidth(e) * 1.5 + 0.03, e);
+  vec3 n = normalize(vN); float fres = pow(1.0 - abs(dot(n, normalize(vV))), 2.0), luz = 0.55 + 0.45 * max(0.0, dot(n, normalize(vec3(-0.5, 0.8, -0.35))));
+  // (lo lleno, de abajo arriba, con la superficie ondulando como un líquido de luz)
+  float medio = step(0.01, vInf.y) * step(vInf.y, 0.99), nivel = -1.0 + 2.0 * vInf.y + medio * 0.07 * sin(vL.x * 7.0 + vL.z * 5.0 + uT * 3.0);
+  float lleno = 1.0 - smoothstep(nivel - 0.02, nivel + 0.02, vL.y), sup = medio * (1.0 - smoothstep(0.0, 0.06, abs(vL.y - nivel)));
+  vec3 col = vCol * (lleno * luz * 0.85 + fres * 0.6 + borde * 1.1) + vec3(1.0) * (borde * 0.3 + sup * 0.7 + lleno * fres * fres * 0.25);
+  gl_FragColor = vec4(col * (1.0 + 0.4 * vInf.z), clamp(max(lleno * 0.95, 0.28 + fres * 0.45) + borde + sup, 0.0, 1.0));
+}`;
+// (la órbita: un anillo fino a trazos, con uno o dos puntos de luz que corren por él)
+const ORBITA_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec2 vP;
+void main() {
+  float r = length(vP), w = fwidth(r) * 1.2 + 0.01, an = atan(vP.y, vP.x) / 6.2831853 + 0.5, dos = step(0.999, vInf.y);
+  float c = smoothstep(0.84 - w, 0.84, r) * (1.0 - smoothstep(0.9, 0.9 + w, r)) * (0.35 + 0.4 * step(0.5, fract(an * 3.0 + uT * 0.2)));
+  float d = abs(fract(an - uT * 0.35 - vInf.x) - 0.5), d2 = abs(fract(an - uT * 0.35 - vInf.x + 0.5) - 0.5);
+  c += exp(-pow((r - 0.87) * 9.0, 2.0)) * (exp(-pow((0.5 - d) * 40.0, 2.0)) + dos * exp(-pow((0.5 - d2) * 40.0, 2.0))) * 1.6;
+  if (c < 0.004) discard;
+  gl_FragColor = vec4(mix(vCol, vec3(1.0), 0.3), c * (0.75 + 0.4 * vInf.z));
+}`;
+const HALO_VS = BAL_VS + 'attribute float aS; uniform float uEsc; void main() { vCol = aCol; vInf = aInf; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uEsc / -mv.z; }';
+const HALO_FS = 'varying vec3 vCol; varying vec4 vInf; void main() { float r = length(gl_PointCoord - 0.5) * 2.0; if (r > 1.0) discard; gl_FragColor = vec4(vCol, (1.0 - r) * (1.0 - r) * (0.3 + 0.25 * vInf.z)); }';
 // (la cinta de un río: clara en el centro y difuminada a los lados)
 const rioTex = () => lienzo(4, 64, (g) => { const gr = g.createLinearGradient(0, 0, 0, 64); for (const [k, a] of [[0, 0], [0.22, 0.25], [0.36, 1], [0.64, 1], [0.78, 0.25], [1, 0]]) gr.addColorStop(k, `rgba(255,255,255,${a})`); g.fillStyle = gr; g.fillRect(0, 0, 4, 64); });
 const hazTex = () => lienzo(4, 128, (g) => { const gr = g.createLinearGradient(0, 128, 0, 0); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.5, 'rgba(255,255,255,.35)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, 4, 128); });
@@ -398,21 +441,41 @@ export function mapa3d(host, o) {
   const centro = caja.getCenter(new THREE.Vector3());
 
 
-  // los pueblos: una chincheta de luz que mira siempre a la cámara (blanca por descubrir, fucsia empezado, dorada sellado) y,
-  // en el pueblo donde estás, un haz de luz que se ve desde toda Navarra
-  const PMAT = {}; for (const k of ['', 'go', 'ok']) { PMAT[k] = new THREE.SpriteMaterial({ map: pinTex(k), transparent: true, depthWrite: false, toneMapped: false }); mats.push(PMAT[k]); }
-  const ringG = new THREE.RingGeometry(0.75, 0.95, 32), hazG = new THREE.CylinderGeometry(0.16, 0.3, 12, 20, 1, true); geos.push(ringG, hazG);
-  const ringM = new THREE.MeshBasicMaterial({ color: 0xff7ac8, transparent: true, opacity: 0.9, side: THREE.DoubleSide, toneMapped: false, depthWrite: false }); mats.push(ringM);
+  // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo
+  // lleva un grupo vacío, que solo marca su sitio y su tamaño: de ahí salen las piezas de su baliza y su nombre
+  const hazG = new THREE.CylinderGeometry(0.16, 0.3, 12, 20, 1, true); geos.push(hazG);
   const hazM = new THREE.MeshBasicMaterial({ color: 0xff2bd6, alphaMap: hazTex(), transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false }); mats.push(hazM);
   const T = o.towns.filter(t => byId.has(t.comarca)).map((t, i) => {
     const [X, Z] = W(t.sx, t.sy), g = new THREE.Group();
-    const pin = new THREE.Sprite(PMAT[t.state] || PMAT['']); pin.center.set(0.5, 0); pin.scale.set(1.3, 1.7, 1);
-    const bola = new THREE.Object3D(); bola.position.y = 1.4;   // (la cabeza de la chincheta: lo que se toca)
-    g.add(pin, bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
-    let ring = null, haz = null; if (t.here) { ring = new THREE.Mesh(ringG, ringM); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; g.add(ring); haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
+    const bola = new THREE.Object3D(); bola.position.y = CRISTAL_Y;   // (el cristal: lo que se toca)
+    g.add(bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
+    let haz = null; if (t.here) { haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
     const lab = document.createElement('div'); lab.className = 'm3-tl' + (t.state ? ' ' + t.state : '') + (t.here ? ' here' : ''); lab.innerHTML = `<span>${esc(t.name)}</span>`;
-    return { ...t, k: 1, g, pin, bola, ring, haz, hs: GROSOR + alto(X, Z), c: byId.get(t.comarca), lab, X, Z, ph: i * 0.7 };
+    return { ...t, k: 1, g, bola, haz, hs: GROSOR + alto(X, Z), c: byId.get(t.comarca), lab, X, Z, ph: (i * 0.7) % 6.28, sen: 0, fija: 0,
+      lleno: t.state === 'ok' ? 1 : t.state === 'go' ? Math.max(0.2, Math.min(0.85, t.pct || 0)) : 0 };
   });
+  // (las cuatro piezas de las balizas de todos los pueblos: la mira, el hilo, el cristal y su halo)
+  const NT = T.length, aCol = new THREE.InstancedBufferAttribute(new Float32Array(NT * 3), 3), aInf = new THREE.InstancedBufferAttribute(new Float32Array(NT * 4), 4).setUsage(THREE.DynamicDrawUsage);
+  T.forEach((x, i) => { const c = srgb(BALIZA[x.state] || BALIZA['']); aCol.setXYZ(i, c.r, c.g, c.b); });
+  const UT = { value: 0 }, UESC = { value: 1 };
+  const balM = (vs, fs, o2) => { const m = new THREE.ShaderMaterial({ vertexShader: vs, fragmentShader: fs, uniforms: { uT: UT, uEsc: UESC }, transparent: true, depthWrite: false, ...o2 }); mats.push(m); return m; };
+  const pieza = (g, m, orden) => { g.setAttribute('aCol', aCol); g.setAttribute('aInf', aInf); geos.push(g);
+    const im = new THREE.InstancedMesh(g, m, NT); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.frustumCulled = false; im.renderOrder = orden; scene.add(im); return im; };
+  // (la mira, siempre encima del relieve: es luz proyectada; el cristal, con sus aristas marcadas)
+  const mira = pieza(new THREE.PlaneGeometry(2.6, 2.6).rotateX(-Math.PI / 2), balM(MIRA_VS, MIRA_FS, { blending: THREE.AdditiveBlending, depthTest: false }), 3);
+  const hilo = pieza(new THREE.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, 0.5, 0), balM(HILO_VS, HILO_FS, { blending: THREE.AdditiveBlending, side: THREE.DoubleSide }), 3);
+  // (el cristal: dos pirámides de seis caras unidas por la base, con cada triángulo suelto para marcar sus aristas)
+  const crisG = new THREE.BufferGeometry(), cp = [], bary = [];
+  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, b = a + Math.PI / 3, A = [Math.cos(a), 0, Math.sin(a)], B = [Math.cos(b), 0, Math.sin(b)];
+    cp.push(...A, 0, 1, 0, ...B, ...B, 0, -1, 0, ...A); bary.push(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1); }
+  crisG.setAttribute('position', new THREE.Float32BufferAttribute(cp, 3)); crisG.setAttribute('bary', new THREE.Float32BufferAttribute(bary, 3)); crisG.computeVertexNormals();
+  const cristal = pieza(crisG, balM(CRISTAL_VS, CRISTAL_FS, {}), 5);
+  const orbita = pieza(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), balM(MIRA_VS, ORBITA_FS, { blending: THREE.AdditiveBlending, side: THREE.DoubleSide }), 6);
+  const haloG = new THREE.BufferGeometry(), haloP = new THREE.BufferAttribute(new Float32Array(NT * 3), 3).setUsage(THREE.DynamicDrawUsage), haloS = new THREE.BufferAttribute(new Float32Array(NT), 1).setUsage(THREE.DynamicDrawUsage);
+  const haloI = new THREE.BufferAttribute(aInf.array, 4).setUsage(THREE.DynamicDrawUsage);
+  haloG.setAttribute('position', haloP); haloG.setAttribute('aS', haloS); haloG.setAttribute('aCol', new THREE.BufferAttribute(aCol.array, 3)); haloG.setAttribute('aInf', haloI); geos.push(haloG);
+  const halo = new THREE.Points(haloG, balM(HALO_VS, HALO_FS, { blending: THREE.AdditiveBlending })); halo.frustumCulled = false; halo.renderOrder = 4; scene.add(halo);
+  const BM = new THREE.Matrix4(), BV = new THREE.Vector3(), BS = new THREE.Vector3(), BQ = new THREE.Quaternion(), Q0 = new THREE.Quaternion(), ARRIBA = new THREE.Vector3(0, 1, 0), BE = new THREE.Euler();
   const tById = new Map(T.map(t => [t.id, t]));
   const TR = T.filter(t => REAL_IDS.includes(t.id));   // (los que tienen su trazado de verdad: a esos se puede uno acercar mucho más)
 
@@ -906,7 +969,7 @@ export function mapa3d(host, o) {
     }
   }
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, maqueta: () => maq, ir: irPueblo, intro: () => intro };   // (para las pruebas en el servidor de desarrollo)
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, maqueta: () => maq, ir: irPueblo, intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
@@ -997,19 +1060,28 @@ export function mapa3d(host, o) {
       c.rioM.opacity = 1 - 0.8 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.7 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.8 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
-    // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
-    // pueblo; flotan un poco)
-    const lejos = v.d < 1.4 ? 0.035 * (v.d / 1.4) ** 1.5 : Math.max(0.035, Math.min(1.7, v.d / 45));
-    for (const x of T) {
+    // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
+    // pueblo; el cristal flota y gira)
+    // (a media distancia, no menos de 0,42, para que se lean; dentro de la maqueta, diminutas)
+    const lejos = v.d < 1.4 ? 0.035 * (v.d / 1.4) ** 1.5 : Math.min(1.7, Math.max(v.d / 45, Math.min(0.42, 0.035 + (v.d - 1.4) * 0.2)));
+    UT.value = t; UESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
+    T.forEach((x, i) => {
       const nace = ease(intro ? rampa(tI, IT.pines + x.c.d * 0.4, IT.pines + x.c.d * 0.4 + 0.5) : Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
       // (con una comarca elegida, solo quedan las suyas: las demás se encogen hasta desaparecer)
       x.k += ((sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));
-      const big = hover === 't:' + x.id ? 1.35 : 1;
-      x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4); x.g.scale.setScalar(Math.max(0.01, nace * big * lejos * x.k));
-      const bob = Math.sin(t * 2.2 + x.ph) * 0.12; x.pin.position.y = bob; x.bola.position.y = 1.4 + bob;
-      if (x.ring) { const p = (t * 0.8) % 1; x.ring.scale.setScalar(1 + p * 1.8); ringM.opacity = 0.9 * (1 - p); }
-      if (x.haz) { const kh = Math.min(1, lejos); x.haz.scale.set(kh, Math.max(0.01, nace * kh), kh); x.haz.position.y = x.g.position.y + 6 * nace * kh; hazM.opacity = (0.4 + Math.sin(t * 2.4) * 0.12) * nace * x.k; }
-    }
+      // (señalada, crece y brilla; elegida, la mira lo fija)
+      x.sen += ((hover === 't:' + x.id ? 1 : 0) - x.sen) * (1 - Math.exp(-dt * 10)); x.fija += ((elegido === x ? 1 : 0) - x.fija) * (1 - Math.exp(-dt * 6));
+      const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
+      const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), bob = Math.sin(t * 2.2 + x.ph) * 0.08, cy = gy + s * (CRISTAL_Y + bob);
+      x.g.scale.setScalar(s);   // (la bola, lo que se toca y donde se ancla la ficha, se queda quieta: la ficha no se mece con el cristal)
+      mira.setMatrixAt(i, BM.compose(BV.set(x.X, gy + 0.02, x.Z), Q0, BS.set(s * 0.85, 1, s * 0.85)));
+      hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.06, s * (CRISTAL_Y - 0.6 + bob), s * 0.06)));
+      cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), BQ.setFromAxisAngle(ARRIBA, t * 0.9 + x.ph), BS.set(s * 0.38, s * 0.64, s * 0.38)));
+      orbita.setMatrixAt(i, BM.compose(BV, BQ.setFromEuler(BE.set(0.95, t * 0.5 + x.ph, 0.35, 'YXZ')), BS.set(s * 0.62, 1, s * 0.62)));
+      haloP.setXYZ(i, x.X, cy, x.Z); haloS.setX(i, s * 2.3); aInf.setXYZW(i, x.ph + (x.here ? 10 : 0), x.lleno, x.sen, x.fija);
+      if (x.haz) { const kh = Math.min(1, lejos); x.haz.scale.set(kh, Math.max(0.01, nace * kh), kh); x.haz.position.y = gy + 6 * nace * kh; hazM.opacity = (0.4 + Math.sin(t * 2.4) * 0.12) * nace * x.k; }
+    });
+    for (const a of [mira.instanceMatrix, hilo.instanceMatrix, cristal.instanceMatrix, orbita.instanceMatrix, aInf, haloP, haloS, haloI]) a.needsUpdate = true;
     // (los terrones y el polvo de la entrada; cuando ya no queda ninguno, se quitan)
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
@@ -1029,7 +1101,7 @@ export function mapa3d(host, o) {
     if (now - tapas.t > 400) medirTapas(now);
     const cerca = v.d < 46, ocupado = tapas.r.slice(), lista = [];
     for (const x of T) { const on = sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id;
-      lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.1 * x.g.scale.y, x.Z, on]); }
+      lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on]); }
     for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !sel || sel === c.id]);
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, sel ? x.c?.id === sel : v.d < 55]);
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }

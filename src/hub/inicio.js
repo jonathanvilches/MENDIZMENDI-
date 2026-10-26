@@ -225,7 +225,7 @@ function mapaOn(root, p) {
     ficha.classList.toggle('abajo', abajo); ficha.classList.toggle('izq', !abajo && l < x);
     ficha.style.setProperty('--px', Math.round(Math.max(20, Math.min(w - 20, x - l))) + 'px'); ficha.style.setProperty('--py', Math.round(Math.max(20, Math.min(h - 20, y - t))) + 'px');
   };
-  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: estado(p, l), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
+  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
   const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: r.towns ? r.pct : 0, done: !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
   // (lo que tapa lo de encima: arriba, el botón de tu aventura y el rótulo de la comarca; abajo, las comarcas y la misión de
   // ahora; y la ficha del pueblo, que deja el pueblo a su izquierda o, en el móvil de pie, encima de ella. Medido cada poco)
