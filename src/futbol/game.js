@@ -418,21 +418,30 @@ export class FutbolGame {
     // cambio automático (como en los juegos de fútbol): con el balón suelto, al que antes llega a él; defendiendo, al más cercano al
     // balón (nunca mientras se presiona, a mitad de un robo o de una entrada)
     const loose = !this.owner && this.passTo !== p;
-    if ((this.defending() || loose) && this.switchCD <= 0 && !p.robo && !p.slide && !I.contain && !this.noAuto) {
+    if ((this.defending() || loose) && !p.robo && !p.slide && !I.contain && !this.noAuto) {
       const b = this.ball.p; let best = null;
-      // mientras mueves a tu jugador, solo cambia si otro llega claramente antes (no te quita el control a cada momento)
-      // (al compañero que llegará antes a donde va el balón, aunque estés moviendo al tuyo: solo se le da medio segundo
-      // de ventaja, para que no salte de uno a otro)
-      const steering = I.mag > 0.2;
-      if (loose) {
-        let bt = this.interceptPoint(p).t - (steering ? 0.5 : 0.25);
-        for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const t = this.interceptPoint(q).t; if (t < bt) { bt = t; best = q; } }
-      } else {
-        // defendiendo: el más cercano a donde va el balón (dentro de medio segundo), con unos metros de ventaja para el tuyo
-        const bv = this.ball.v || { x: 0, z: 0 }, fx = b.x + (bv.x || 0) * 0.5, fz = b.z + (bv.z || 0) * 0.5;
-        const dme = hyp(p.x - fx, p.z - fz);
-        let bd = steering ? dme - 5 * SC : dme - 2.5 * SC;
-        for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - fx, q.z - fz); if (d < bd) { bd = d; best = q; } }
+      // el balón encima de un compañero (a menos de 3 m de él) y el tuyo lejos: a ese, ya, aunque se acabe de cambiar
+      // (pasado un momento; tras un cambio que eliges tú, algo más). Es cuando más se nota no poder cogerlo
+      const dme0 = hyp(p.x - b.x, p.z - b.z);
+      if (dme0 > 3.5 * SC && this.switchCD < 0.2) {
+        let bd = Math.min(3 * SC, dme0 - 3 * SC);
+        for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - b.x, q.z - b.z); if (d < bd) { bd = d; best = q; } }
+      }
+      if (!best && this.switchCD <= 0) {
+        // mientras mueves a tu jugador, solo cambia si otro llega claramente antes (no te quita el control a cada momento)
+        // (al compañero que llegará antes a donde va el balón, aunque estés moviendo al tuyo: solo se le da medio segundo
+        // de ventaja, para que no salte de uno a otro)
+        const steering = I.mag > 0.2;
+        if (loose) {
+          let bt = this.interceptPoint(p).t - (steering ? 0.5 : 0.25);
+          for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const t = this.interceptPoint(q).t; if (t < bt) { bt = t; best = q; } }
+        } else {
+          // defendiendo: el más cercano a donde va el balón (dentro de medio segundo), con unos metros de ventaja para el tuyo
+          const bv = this.ball.v || { x: 0, z: 0 }, fx = b.x + (bv.x || 0) * 0.5, fz = b.z + (bv.z || 0) * 0.5;
+          const dme = hyp(p.x - fx, p.z - fz);
+          let bd = steering ? dme - 5 * SC : dme - 2.5 * SC;
+          for (const q of this.team(p.team)) if (q.role !== 'POR' && q !== p && q.down <= 0) { const d = hyp(q.x - fx, q.z - fz); if (d < bd) { bd = d; best = q; } }
+        }
       }
       if (best) this.setMe(best, 'auto');
     }
@@ -440,8 +449,9 @@ export class FutbolGame {
   setMe(q, why = 'manual') {
     if (!q || q === this.me || (q.role === 'POR' && why !== 'gk')) return;
     if (this.noSwitch && why !== 'force') return;   // en los retos siempre llevas al mismo
-    // (tras un cambio que eliges tú, el automático espera más: no te quita al que acabas de coger)
-    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = why === 'manual' || why === 'gk' ? 1.6 : why === 'auto' ? 1.1 : 0.6; q.plan = null;
+    // (tras un cambio que eliges tú, el automático espera algo más: no te quita al que acabas de coger. Entre cambios
+    // automáticos, poco menos de un segundo, para que no salte de uno a otro)
+    const old = this.me; old.wx = old.vx; old.wz = old.vz; this.me = q; this.switchCD = why === 'gk' ? 1.6 : why === 'manual' ? 0.9 : why === 'auto' ? 0.8 : 0.6; q.plan = null;
     if (old.role === 'POR') old.threat = null;
     this.emit({ t: 'switch', p: q.id, why });
   }

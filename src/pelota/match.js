@@ -553,7 +553,7 @@ export class PelotaMatch {
       case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
         this.rallyN = 0; A.mood(0.2, 0.5);
-        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.crowd('oh', 0.5); }
+        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara

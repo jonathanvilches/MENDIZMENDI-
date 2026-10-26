@@ -5,6 +5,8 @@ import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, landingOf, vec } 
 import { clamp } from '../util/math.js';
 
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
+// lo que corres tú (m/s): algo más que antes, ahora que la pelota va más deprisa
+const YOU_RUN = 6.8;
 // el saque, como en el frontón: el que saca sale del cuadro 7, corre hasta poco antes del 4, bota la pelota y saca; el
 // que resta espera junto a la pared izquierda, sobre el 7
 const SERVE_FROM = COURT.CUADRO * 7, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 5.8;
@@ -14,7 +16,7 @@ const SERVE_DOWN = 3, SERVE_UP = 2.4, SERVE_LEAD = 0.24;   // (LEAD: cuánto ant
 const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
 // pelotari del nivel normal
-const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.05 };
+const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 };
 // energía (de 0 a 1), como en el frontón de verdad: correr a tope y los golpes que deciden (la cortada sobre todo, las
 // dos paredes y el gancho) la gastan; pelotear normal, sin cargar del todo, la recupera poco a poco, y entre tanto y
 // tanto se recupera más. Por debajo de la mitad se nota: se corre menos, se llega peor y los golpes salen peor (cansado,
@@ -490,7 +492,7 @@ export class PelotaGame {
   previewShot(aim, req, pow) {
     const you = this.players.you; let at = null;
     if (this.phase === 'servePrep' && this.serverP() === 'you') at = { ...this.ball.p };
-    else if (this.phase === 'rally' && this.rally?.turn === 'you') { const c = this.interceptFor('you', 6.2, 0.1); if (c) at = { x: c.x, y: 1.0, z: c.z - 0.25 }; }
+    else if (this.phase === 'rally' && this.rally?.turn === 'you') { const c = this.interceptFor('you', YOU_RUN, 0.1); if (c) at = { x: c.x, y: 1.0, z: c.z - 0.25 }; }
     if (!at) return null;
     const key = [Math.round(aim.x * 12), Math.round(aim.y * 12), req || '', Math.round(pow * 10), Math.round(at.x * 3), Math.round(at.z * 3)].join();
     if (this._pv?.key === key) return this._pv;
@@ -710,7 +712,7 @@ export class PelotaGame {
     // jugador humano (o piloto automático)
     if (this.autoplay) this.driveAI('you', dt);
     else {
-      const spd = 6.2 * (1 - this.tired('you') * 0.3), mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);   // (cansado, corres bastante menos)
+      const spd = YOU_RUN * (1 - this.tired('you') * 0.3), mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);   // (cansado, corres bastante menos)
       // por parejas, mantener el golpe con la pelota de tu compañero en el aire es pedirla («¡mía!»): si llegas, es tuya
       // y él se aparta (para que descanse si está cansado)
       if (this.pairs && inp.aiming && this.phase === 'rally' && this.rally.turn === 'you' && !this.rally.claim && this.takerOf('you') !== 'you') {
@@ -722,7 +724,7 @@ export class PelotaGame {
       // golpe, en cambio, siempre lo das tú)
       const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) * (1 - this.tired('you') * 0.3) : this.lvl.assist;
       if (help > 0 && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {   // (por parejas, solo si es tuya)
-        const c = this.interceptFor('you', 6.2, 0.1);
+        const c = this.interceptFor('you', YOU_RUN, 0.1);
         if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
@@ -814,7 +816,7 @@ export class PelotaGame {
     for (const e of pr.events) if (e.type === 'floor' && e.n === 1) { land = e; break; }
     // (por parejas, «te toca» solo si la pelota es tuya; si es de tu compañero, él va a por ella)
     const mine = R.turn === 'you' && this.takerOf('you') === 'you';
-    const spot = mine ? this.interceptFor('you', 6.2, 0.1) : null;
+    const spot = mine ? this.interceptFor('you', YOU_RUN, 0.1) : null;
     // (y para el botón de golpe: cuánto falta para el momento justo, y si saldrá de volea o de gancho)
     const you = this.players.you, toIdeal = mine && you.idealAt?.b != null ? you.idealAt.b - this.clock : null, toVolley = mine && you.idealAt?.v != null ? you.idealAt.v - this.clock : null;
     return { land, spot, yourTurn: mine, mate: R.turn === 'you' && !mine, hittable: this.hittable('you'), tired: this.tired('you'), mateTired: this.pairs ? this.tired('youMate') : 0,

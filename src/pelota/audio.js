@@ -24,15 +24,26 @@ export class PelotaAudio {
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
   mood(v, tc) { this.crowdN?.setLevel(v, tc); }
   stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; }
-  /** Un tanto: si es limpio (dos botes, un tanto ganador), todo el frontón aplaude a la vez; si es un fallo (chapa,
-   *  fuera, falta), primero el «¡oooh!» y luego un aplauso más corto. El último tanto, la ovación */
+  /** Un tanto: su señal, distinta si es tuyo o del rival (cue), y el aplauso de todo el frontón, más corto si fue un
+   *  fallo (chapa, fuera, falta). El último tanto, la ovación. Antes, en cada fallo sonaba el «¡oooh!» de la grada, hecho
+   *  de voces sintetizadas, y se oía como un zumbido */
   point(clean, mine, final) {
-    const c = this.ensure(); if (!c || !PUBLICO) return;
-    if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
+    const c = this.ensure(); if (!c) return;
+    if (final) { if (PUBLICO) { this.ovation(); this.mood(0.6, 0.2); } return; }
+    this.cue(mine);
+    if (!PUBLICO) return;
     const C = this.crowdN;
-    if (!C?.B) { this.crowd(clean && mine ? 'clap' : 'oh'); return; }
-    if (!clean) C.ooh(0.75);
-    C.applause(clean ? (mine ? 1 : 0.85) : 0.6, clean ? 0.04 : 0.45); C.setLevel(0.55, 0.15);
+    if (!C?.B) { this.crowd('clap', mine ? 1 : 0.6); return; }
+    C.applause(clean ? (mine ? 1 : 0.8) : (mine ? 0.85 : 0.55), clean ? 0.04 : 0.2); C.setLevel(0.55, 0.15);
+  }
+  /** La señal del tanto: dos notas de madera, como de txalaparta afinada, que suben si el tanto es tuyo (falla el rival
+   *  o le ganas) y bajan, más suaves, si es del rival (fallas tú) */
+  cue(mine) {
+    const c = this.ctx, t = c.currentTime + 0.02;
+    (mine ? [659, 988] : [494, 370]).forEach((f, i) => {
+      const u = t + i * 0.11, g = mine ? 0.16 : 0.11;
+      this.tone(u, 0.32, f, g, 'sine'); this.tone(u, 0.12, f * 2, g * 0.25, 'sine'); this.tone(u, 0.04, f * 3.01, g * 0.2, 'triangle');
+    });
   }
   noise(t, dur, freq, q, gain, type = 'bandpass') {
     const c = this.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
@@ -50,12 +61,17 @@ export class PelotaAudio {
   hit(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }
   // pelota en el frontis: golpe con eco de pared
   front(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
-  // chapa: metálica, con parciales inarmónicos
-  chapa() { const c = this.ensure(); if (!c) return; const t = c.currentTime; for (const [f, g] of [[620, 0.16], [1033, 0.12], [1710, 0.09], [2630, 0.06]]) this.tone(t, 0.55, f, g, 'triangle'); this.noise(t, 0.05, 3000, 1, 0.3); }
+  // chapa: la pelota contra la chapa de metal, un «¡clonc!» seco y corto, con sus parciales inarmónicos apagándose enseguida
+  // (antes eran cuatro notas sostenidas medio segundo y sonaba a zumbido de error)
+  chapa() {
+    const c = this.ensure(); if (!c) return; const t = c.currentTime;
+    this.noise(t, 0.05, 2200, 0.9, 0.32); this.noise(t, 0.16, 700, 2.5, 0.1); this.tone(t, 0.08, 95, 0.3, 'sine', 0.6);
+    for (const [f, g, d] of [[310, 0.15, 0.16], [487, 0.1, 0.12], [823, 0.06, 0.09], [1290, 0.035, 0.07]]) this.tone(t, d, f, g, 'sine', 0.97);
+  }
   floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
   wall() { this.front(0.6); }
   // el golpe del «VS» de la presentación: un bombo seco con chasquido y el público que ruge (largo y más grave sonaba a trueno)
-  slam() { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.tone(t, 0.35, 72, 0.6, 'sine', 0.35); this.tone(t, 0.25, 110, 0.3, 'triangle', 0.5); this.noise(t, 0.12, 2600, 0.7, 0.4); if (!PUBLICO) return; if (!this.crowdN?.roar(0.55)) this.crowd('oh'); else this.crowdN.applause(0.7, 0.25); }
+  slam() { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.tone(t, 0.35, 72, 0.6, 'sine', 0.35); this.tone(t, 0.25, 110, 0.3, 'triangle', 0.5); this.noise(t, 0.12, 2600, 0.7, 0.4); if (!PUBLICO) return; if (!this.crowdN?.roar(0.55)) this.crowd('clap', 0.7); else this.crowdN.applause(0.7, 0.25); }
   // el público: «¡oooh!» y el aplauso de todo el frontón (si aún no están calculados, ruido filtrado como antes)
   crowd(kind = 'oh', k = 1) {
     const c = this.ensure(); if (!c || !PUBLICO) return; const t = c.currentTime;
