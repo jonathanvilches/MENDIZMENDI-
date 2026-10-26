@@ -7,12 +7,15 @@
 #   Overture Maps Foundation»), unidos, recortados al contorno de Navarra y simplificados; y los embalses grandes.
 # - Sombreado: el relieve fino (unos 155 m) en una imagen gris, de las teselas de nivel 10, que en Navarra salen de
 #   Copernicus EU-DEM («Produced using Copernicus data and information funded by the European Union - EU-DEM layers»).
+# - Detalle: el relieve de cada comarca a unos 28 m (EU-DEM, teselas de nivel 12), ya pintado; solo para la web.
 # - Sierras: dónde va el nombre de cada una (puesto a mano, comprobado con el relieve: se imprime su altura).
 #
 # Uso:  python -I tools/relieve/mapa-relieve.py rios <índice agua.json de pueblo-real.py> <rios.json>
 #           (lee de Overture los tramos de río con nombre de la zona; necesita pyarrow, fsspec y shapely)
-#       python -I tools/relieve/mapa-relieve.py mapa <teselas> <teselas10> <rios.json> <raíz del proyecto> <salida .js> <sombra .webp>
-#           (teselas: las de descargar.sh; teselas10: las mismas de nivel 10, x 504 a 510 e y 375 a 380)
+#       python -I tools/relieve/mapa-relieve.py mapa <teselas> <teselas10> <teselas12> <rios.json> <raíz del proyecto> <salida .js>
+#           <sombra .webp> <carpeta del detalle>
+#           (teselas: las de descargar.sh; teselas10: las mismas de nivel 10, x 504 a 510 e y 375 a 380; teselas12: las de
+#           nivel 12 que tocan Navarra, x 2018 a 2041 e y 1499 a 1523)
 import sys, os, re, json, math, base64
 
 def rios(indice, salida):
@@ -88,14 +91,16 @@ XY = lambda lat, lon: (19 + (lon + 2.52) / 1.80 * 709, 17 + (43.325 - lat) / 1.4
 LATLON = lambda x, y: (43.325 - (y - 17) / 765 * 1.43, (x - 19) / 709 * 1.80 - 2.52)
 PASO = 3.0
 
-def mosaico(teselas, Z, X0, X1, Y0, Y1, fuentes):
-    """Las teselas «terrarium» de una zona, juntas (como perfiles.py); devuelve la altura (m) de cualquier punto."""
+def mosaico(teselas, Z, X0, X1, Y0, Y1, fuentes, sueltas=False):
+    """Las teselas «terrarium» de una zona, juntas (como perfiles.py); devuelve la altura (m) de cualquier punto. Con
+    sueltas, la zona puede tener huecos (solo se bajan las que tocan Navarra): lo que falta, a cero."""
     import numpy as np
     from PIL import Image
     ok_src = re.compile(fuentes)
     H = np.zeros(((Y1 - Y0 + 1) * 256, (X1 - X0 + 1) * 256), np.float32)
     for x in range(X0, X1 + 1):
         for y in range(Y0, Y1 + 1):
+            if sueltas and not os.path.exists(os.path.join(teselas, f'{Z}-{x}-{y}.png')): continue
             hdr = open(os.path.join(teselas, f'{Z}-{x}-{y}.txt'), encoding='latin-1').read()
             srcs = [s.strip() for m in re.findall(r'x-amz-meta-x-imagery-sources:\s*(.*)', hdr, re.I) for s in m.split(',')]
             bad = [s for s in srcs if not ok_src.match(s)]
@@ -138,7 +143,53 @@ def sombreado(elev, nav, salida):
     print('sombreado', w, 'x', h, os.path.getsize(salida), 'bytes')
     return {'x0': x0, 'y0': y0, 'paso': P, 'w': w, 'h': h}
 
-def mapa(teselas, teselas10, rios_json, raiz, salida, salida_sombra):
+# la paleta de los mapas físicos (la misma que PALETA de src/hub/mapa3d.js): metros y color
+PALETA = [(0, (62, 140, 58)), (250, (92, 160, 62)), (450, (128, 172, 78)), (650, (170, 178, 102)), (850, (184, 160, 112)),
+          (1100, (160, 126, 90)), (1400, (132, 104, 82)), (1700, (140, 128, 120)), (2000, (205, 200, 198)), (2400, (245, 244, 244))]
+
+def desenfoque(a, r):
+    """Casi gaussiano: tres pasadas de una media de radio r en cada eje."""
+    import numpy as np
+    def caja(a, eje):
+        p = np.pad(a, [(r + 1, r) if i == eje else (0, 0) for i in range(2)], mode='edge'); c = np.cumsum(p, axis=eje)
+        n = c.shape[eje]; return (np.take(c, range(2 * r + 1, n), axis=eje) - np.take(c, range(0, n - 2 * r - 1), axis=eje)) / (2 * r + 1)
+    for _ in range(3): a = caja(caja(a, 0), 1)
+    return a
+
+def detalle(elev, com, carpeta):
+    """El relieve de cada comarca a la resolución de los datos (unos 28 m, EU-DEM): ya pintado como un mapa físico (el
+    color de su altura, la luz del noroeste en cada ladera con la pendiente exagerada dos veces y media, y los fondos de
+    valle algo más oscuros), en color, en dos tamaños: «full» (28 m) y «medio» (56 m, para el móvil). Fuera de la comarca,
+    liso. Va solo en la web: el archivo único lo pide a ella cuando hay conexión (src/web/hd.js)."""
+    import numpy as np
+    from PIL import Image, ImageDraw
+    P = 0.135; ks = np.array([p[0] for p in PALETA], float); cs = np.array([p[1] for p in PALETA], float) / 255
+    L = np.array([-0.6, 0.62, -0.5]); L /= np.linalg.norm(L); out = {}
+    for cid, pol in com:
+        bx0, by0, bx1, by1 = pol.buffer(2).bounds
+        x0 = math.floor(bx0); y0 = math.floor(by0); w = int(math.ceil((bx1 - x0) / P)); h = int(math.ceil((by1 - y0) / P))
+        gx, gy = np.meshgrid(x0 + (np.arange(w) + 0.5) * P, y0 + (np.arange(h) + 0.5) * P)
+        lat, lon = LATLON(gx, gy); alt = elev(lat, lon).astype(np.float64)
+        m = P * 207.6; dz, dx = np.gradient(alt * 2.5, m)
+        n = np.stack([-dx, np.ones_like(dx), -dz], -1); n /= np.linalg.norm(n, axis=-1, keepdims=True)
+        d = np.clip((n * L).sum(-1), 0, 1)
+        b = desenfoque(alt, 3); lap = (np.roll(b, 1, 0) + np.roll(b, -1, 0) + np.roll(b, 1, 1) + np.roll(b, -1, 1) - 4 * b) * (207 / (m * 3)) ** 2
+        ao = np.clip(1 + np.clip(lap, -60, 60) / 200, 0.7, 1.25)
+        col = np.stack([np.interp(alt, ks, cs[:, i]) for i in range(3)], -1)
+        c = col * ((0.3 + 1.05 * d) * ao)[..., None] + 0.35 * (d ** 8)[..., None]
+        a = (np.clip(c, 0, 1) * 255).astype(np.uint8)
+        masc = Image.new('L', (w, h), 0); dib = ImageDraw.Draw(masc)
+        for g in (lambda z: z.geoms if hasattr(z, 'geoms') else [z])(pol.buffer(1.5)): dib.polygon([((x - x0) / P, (y - y0) / P) for x, y in g.exterior.coords], fill=255)
+        a[np.asarray(masc) == 0] = (120, 140, 90)
+        im = Image.fromarray(a, 'RGB'); tam = []
+        for nombre, k in (('full', 1), ('medio', 2)):
+            f = os.path.join(carpeta, nombre, cid + '.webp'); os.makedirs(os.path.dirname(f), exist_ok=True)
+            (im if k == 1 else im.resize((w // 2, h // 2), Image.LANCZOS)).save(f, 'WEBP', quality=80, method=6); tam.append(os.path.getsize(f))
+        out[cid] = {'x0': x0, 'y0': y0, 'paso': P, 'w': w, 'h': h}
+        print(f'detalle {cid}: {w}x{h}, {tam[0] // 1024} KB y {tam[1] // 1024} KB')
+    return out
+
+def mapa(teselas, teselas10, teselas12, rios_json, raiz, salida, salida_sombra, carpeta_detalle):
     import numpy as np
     from PIL import Image
     from shapely import wkt
@@ -152,6 +203,7 @@ def mapa(teselas, teselas10, rios_json, raiz, salida, salida_sombra):
         if not c.get('path'): continue
         n = [float(v) for v in re.findall(r'-?\d+(?:\.\d+)?', c['path'])]
         pols.append(Polygon(list(zip(n[0::2], n[1::2]))).buffer(0))
+    com = [(c['id'], p) for c, p in zip([c for c in COM if c.get('path')], pols)]
     nav = unary_union(pols)
     bx0, by0, bx1, by1 = nav.bounds
     x0 = math.floor(bx0 / PASO) * PASO - PASO; y0 = math.floor(by0 / PASO) * PASO - PASO
@@ -220,7 +272,9 @@ def mapa(teselas, teselas10, rios_json, raiz, salida, salida_sombra):
         sierras.append({'n': nombre, 'x': round(x, 1), 'y': round(y, 1)})
     # --- el sombreado fino, de las teselas de nivel 10 (Copernicus EU-DEM y, en los bordes, SRTM y GMTED2010) ---
     sombra = sombreado(mosaico(teselas10, 10, 504, 510, 375, 380, r'^(eudem|srtm|gmted|etopo1)/'), nav, salida_sombra)
-    D = {'x0': x0, 'y0': y0, 'paso': PASO, 'nx': nx, 'ny': ny, 'u': 10, 'filas': filas, 'sombra': sombra, 'rios': rios_out, 'lagos': lagos_out, 'sierras': sierras}
+    # --- el relieve fino de cada comarca, de las teselas de nivel 12 (EU-DEM, unos 28 m) ---
+    det = detalle(mosaico(teselas12, 12, 2018, 2041, 1499, 1523, r'^(eudem|srtm|gmted|etopo1)/', sueltas=True), com, carpeta_detalle)
+    D = {'x0': x0, 'y0': y0, 'paso': PASO, 'nx': nx, 'ny': ny, 'u': 10, 'filas': filas, 'sombra': sombra, 'detalle': det, 'rios': rios_out, 'lagos': lagos_out, 'sierras': sierras}
     with open(salida, 'w', encoding='utf-8') as f:
         f.write('// El relieve y los ríos del mapa 3D del inicio, en las coordenadas del mapa de comarcas. Lo calcula\n'
                 '// tools/relieve/mapa-relieve.py. Relieve: SRTM y GMTED2010 (U.S. Geological Survey, dominio público), una altura cada\n'
@@ -237,5 +291,5 @@ def mapa(teselas, teselas10, rios_json, raiz, salida, salida_sombra):
 
 if __name__ == '__main__':
     if sys.argv[1:2] == ['rios']: rios(*sys.argv[2:4])
-    elif sys.argv[1:2] == ['mapa']: mapa(*sys.argv[2:8])
-    else: sys.exit('uso: mapa-relieve.py rios <agua.json> <rios.json> | mapa <teselas> <teselas10> <rios.json> <raíz> <salida.js> <sombra.webp>')
+    elif sys.argv[1:2] == ['mapa']: mapa(*sys.argv[2:10])
+    else: sys.exit('uso: mapa-relieve.py rios <agua.json> <rios.json> | mapa <teselas> <teselas10> <teselas12> <rios.json> <raíz> <salida.js> <sombra.webp> <carpeta detalle>')
