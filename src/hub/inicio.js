@@ -1,6 +1,7 @@
-// El inicio del menú: arriba, a toda la pantalla, el mapa 3D de Navarra por comarcas (mapa3d.js), con el saludo, el
-// buscador, el círculo de lo conquistado y las comarcas encima, como en un juego; al elegir una comarca, su panel con sus
-// pueblos, sus fotos y sus misiones. Debajo, el destacado grande (su lámina, el título, el botón de jugar y las flechas
+// El inicio del menú: el mapa 3D de Navarra por comarcas (mapa3d.js) a toda la pantalla, que es por donde se elige todo,
+// como el mapa del mundo de un juego, con el círculo de lo conquistado, la misión de ahora y las comarcas encima; al elegir
+// una comarca, su rótulo arriba; al tocar un pueblo, la cámara se acerca y su ficha (lo que es, sus misiones y el botón de
+// jugar) sale junto a su chincheta. Debajo, el destacado grande (su lámina, el título, el botón de jugar y las flechas
 // para pasar al siguiente, con tu personaje saliendo por fuera del marco), la columna de lo que hay ahora en Navarra (la
 // fila marcada es la del destacado), los personajes de leyenda y «Descubre Navarra» con sus pestañas y sus flechas. Todo
 // con lo del juego: sus pueblos, bosques, yacimientos, leyendas y campeonatos
@@ -76,20 +77,11 @@ function tarjetas(tab, p) {
   return LEVELS.filter(l => !l.bosque).sort((a, b) => orden(a) - orden(b)).slice(0, 14).map(l => lugar(l)).join('');
 }
 
-// ---------- el buscador: pueblos, bosques y yacimientos ----------
-const QUITA = (t) => (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
-function buscar(q) {
-  q = QUITA(q.trim()); if (q.length < 2) return [];
-  const r = LEVELS.filter(l => QUITA(l.name).includes(q)).map(l => ({ id: l.id, img: townCover(l.id, true), t: corto(l), s: l.bosque ? 'Bosque' : comarca(l.comarca)?.name || '' }));
-  for (const S of Object.values(SITES)) if (S.town && QUITA((S.title || '') + ' ' + (S.lugar || '')).includes(q)) { const l = levelById(S.town); if (l) r.push({ id: l.id, img: townCover(l.id, true), t: S.title || S.whatTitle, s: 'Yacimiento · ' + corto(l) }); }
-  return r.slice(0, 7);
-}
-
 // (lo que pone el menú: el icono de cada misión, las misiones que tocan por la edad, dónde cae cada pueblo en el mapa de
 // comarcas y el mapa plano, para cuando no hay 3D; hub.js)
-let OPC = { icono: () => 'star', slots: (l) => (l.missions || []).map((m, si) => ({ m, si })), xy: () => null, plano: () => '' };
+let OPC = { icono: () => 'star', nombre: (m) => m.title || m.name || '', slots: (l) => (l.missions || []).map((m, si) => ({ m, si })), xy: () => null, plano: () => '' };
 
-// ---------- el mapa 3D: el círculo de lo conquistado, las comarcas de abajo y el panel de la comarca elegida ----------
+// ---------- el mapa 3D: el círculo de lo conquistado, las comarcas de abajo, el rótulo de la comarca y la ficha del pueblo ----------
 // (un aro que se llena: f de 0 a 1)
 const aro = (f, cls = '') => `<svg class="m3-aro ${cls}" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="21"/><circle class="ar" cx="24" cy="24" r="21" stroke-dasharray="${(131.9 * Math.min(1, f)).toFixed(1)} 131.9" transform="rotate(-90 24 24)"/></svg>`;
 const estado = (p, l) => { const t = townProgress(p, l); return t.stamp ? 'ok' : t.done || p.towns[l.id]?.visits ? 'go' : ''; };
@@ -121,21 +113,28 @@ function mapaHTML(p, items) {
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = r.stamps === r.towns ? 'ok' : r.done || LEVELS.some(l => l.comarca === c.id && estado(p, l)) ? 'go' : '';
       return `<button class="m3-chip ${st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><span class="m3-sello">${aro(r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${r.stamps}/${r.towns} sellos</small></span></button>`; }).join('')}</div>
-    <aside class="m3-panel" hidden></aside>`;
+    <div class="m3-cb" hidden></div><div class="m3-ft" hidden aria-live="polite"></div>`;
 }
-function panelHTML(p, id) {
-  const c = comarca(id), r = comarcaProgress(p, id), ts = comarcaTowns(id); if (!c) return '';
-  return `<header class="m3p-head" style="--c:${c.color}">${(u => u ? `<img class="m3p-bg" src="${u}" alt="" decoding="async">` : '')(comarcaCover(id, true) || townCover(ts[0]?.id, true))}
-      <button class="m3p-x" data-cierra aria-label="Cerrar">${I('close', 22)}</button>
-      <span class="m3-sello grande">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(id)}" alt=""></span>
-      <span class="m3p-tt"><small>Comarca</small><b>${esc(c.name)}</b><i>${r.stamps}/${r.towns} sellos · ${Math.round(r.pct * 100)}% misiones</i></span></header>
-    <div class="m3p-towns">${ts.map(l => { const st = estado(p, l), done = p.towns[l.id]?.done || {}, t = townProgress(p, l);
-      const ms = OPC.slots(l).map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}">${I(OPC.icono(m) || 'star', 18)}</i>`).join('');
-      return `<article class="m3t ${st}" data-t="${l.id}">
-        <button class="m3t-img" data-town="${l.id}" aria-label="Ficha de ${esc(corto(l))}">${(u => u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : I(l.bosque ? 'tree' : 'church', 40))(townCover(l.id, true) || townImg(l))}<span class="m3t-st">${I(st === 'ok' ? 'stamp' : st === 'go' ? 'exclaim' : l.bosque ? 'tree' : 'compass', 18)}</span></button>
-        <span class="m3t-tx"><b>${esc(corto(l))}</b><small>${l.bosque ? 'Bosque · ' : ''}${t.done}/${t.total} misiones</small><span class="m3t-ms">${ms}</span></span>
-        <button class="m3t-go" data-play="${l.id}" aria-label="Jugar en ${esc(corto(l))}">${I('play', 26)}</button></article>`; }).join('')}</div>
-    <button class="m3p-more" data-comarca="${id}">${I('map', 22)}<span>Toda la comarca</span></button>`;
+// el rótulo de la comarca elegida: su sello en su aro, su nombre, sus sellos, su página y el botón de volver a toda Navarra
+function bandaHTML(p, id) {
+  const c = comarca(id), r = comarcaProgress(p, id); if (!c) return '';
+  return `<span class="m3-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(id)}" alt=""></span>
+    <span class="cb-tt"><small>Comarca</small><b>${esc(c.name)}</b><i>${r.stamps}/${r.towns} sellos</i></span>
+    <button class="cb-b" data-comarca="${id}" aria-label="Todo sobre ${esc(c.name)}" title="Todo sobre ${esc(c.name)}">${I('book', 20)}</button>
+    <button class="cb-b" data-cierra aria-label="Ver toda Navarra" title="Ver toda Navarra">${I('close', 20)}</button>`;
+}
+// la ficha de un pueblo, junto a su chincheta: su portada, su comarca, lo que es, sus misiones (las hechas, marcadas) y la
+// siguiente, y el botón de jugar, que hace el zoom hasta tu personaje en el pueblo; y el de su página
+function fichaHTML(p, l) {
+  const c = comarca(l.comarca), t = townProgress(p, l), done = p.towns[l.id]?.done || {}, slots = OPC.slots(l), st = estado(p, l), img = townCover(l.id, true) || townImg(l);
+  const sig = slots.find(({ si }) => !done[si])?.m, nombre = esc(corto(l));
+  return `<button class="ft-x" data-ftx aria-label="Cerrar">${I('close', 18)}</button>
+    <div class="ft-img"${img ? ` style="background-image:url(${img})"` : ''}><span class="ft-st ${st}">${I(st === 'ok' ? 'stamp' : st === 'go' ? 'exclaim' : l.bosque ? 'tree' : 'compass', 18)}</span></div>
+    <div class="ft-body"><small class="ft-k">${l.bosque ? 'Bosque · ' : ''}${esc(c?.name || '')}</small><b class="ft-n">${nombre}</b>${l.intro ? `<p class="ft-in">${esc(l.intro)}</p>` : ''}
+      <div class="ft-ms"><span>${t.done}/${t.total} misiones</span><div>${slots.map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}">${I(OPC.icono(m) || 'star', 20)}</i>`).join('')}</div></div>
+      ${sig ? `<span class="ft-sig">${I(OPC.icono(sig) || 'star', 18)}<span>${esc(OPC.nombre(sig))}${sig.host?.name ? ` · <i>${esc(sig.host.name.split(',')[0])}</i>` : ''}</span></span>` : ''}
+      <div class="ft-bot"><button class="ft-go" data-play="${l.id}">${I('play', 24)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button>
+        <button class="ft-info" data-town="${l.id}" aria-label="Todo sobre ${nombre}" title="Todo sobre ${nombre}">${I('book', 22)}</button></div></div>`;
 }
 let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
@@ -144,13 +143,12 @@ export function cierraMapa() { MAPA?.dispose(); MAPA = null; }
 export const entraMapa = (id) => MAPA?.entrar?.(id) || null;
 /** El principio del inicio: el saludo, el destacado con su columna, los personajes y «Descubre Navarra». */
 /** El inicio, como la pantalla del mapa del mundo de un juego: Navarra en 3D a toda la pantalla y, encima, la misión de
- *  ahora con su botón de continuar, lo conquistado, el buscador, las comarcas y el botón de «Tu aventura». */
+ *  ahora con su botón de continuar, lo conquistado, las comarcas y el botón de «Tu aventura». */
 export function inicioHTML(opc) {
   if (opc) OPC = { ...OPC, ...opc };
   const p = profile(), items = ahora(p);
   inicioHTML.items = items;
   return `<section class="m3d">${mapaHTML(p, items)}<header class="ini-head">
-      <label class="ini-busca">${I('search', 22)}<input type="search" placeholder="Busca un pueblo o un yacimiento" aria-label="Buscar en Navarra" autocomplete="off"><span class="ib-res" hidden></span></label>
       <button class="ini-sq ini-av" data-go="aventura" aria-label="Tu aventura">${I('book', 26)}<span>Tu aventura</span></button>
     </header></section>`;
 }
@@ -194,56 +192,74 @@ function recorta(img, hero) {
   new ResizeObserver(mide).observe(hero);
 }
 
-// el mapa 3D y lo de encima: las comarcas de abajo lo llevan a cada una, y el panel sale con sus pueblos
+// el mapa 3D y lo de encima: las comarcas de abajo llevan a cada una, con su rótulo arriba; tocar un pueblo acerca la cámara
+// y abre su ficha junto a su chincheta
 function mapaOn(root, p) {
   const sec = root.querySelector('.m3d'); if (!sec) return;
   cierraMapa();
-  const panel = sec.querySelector('.m3-panel');
+  const banda = sec.querySelector('.m3-cb'), ficha = sec.querySelector('.m3-ft');
+  const entra = (el) => { el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); };
   const abre = (id) => {
     sec.querySelectorAll('.m3-chip').forEach(b => b.classList.toggle('on', b.dataset.sel === id));
-    sec.classList.toggle('con-sel', !!id);
-    huT = 0;
-    if (!id) { panel.hidden = true; panel.innerHTML = ''; return; }
-    if (panel.dataset.c !== id || panel.hidden) { panel.dataset.c = id; panel.innerHTML = panelHTML(p, id); panel.hidden = false; panel.classList.remove('entra'); void panel.offsetWidth; panel.classList.add('entra'); }
+    sec.classList.toggle('con-sel', !!id); huT = 0;
+    if (!id) { banda.hidden = true; banda.innerHTML = ''; delete banda.dataset.c; return; }
+    if (banda.dataset.c !== id) { banda.dataset.c = id; banda.style.setProperty('--c', comarca(id)?.color || '#fff'); banda.innerHTML = bandaHTML(p, id); banda.hidden = false; entra(banda); }
+  };
+  const pueblo = (id) => {
+    const l = id && levelById(id); huT = 0;
+    sec.classList.toggle('con-ficha', !!l);
+    if (!l) { ficha.hidden = true; ficha.innerHTML = ''; delete ficha.dataset.t; return; }
+    ficha.dataset.t = id; ficha.style.setProperty('--c', comarca(l.comarca)?.color || '#fff'); ficha.innerHTML = fichaHTML(p, l);
+    ficha.hidden = false; ficha.style.visibility = 'hidden'; entra(ficha);
+  };
+  // (la ficha, junto a la chincheta, que mapa3d.js dice dónde queda en cada imagen: a su derecha en las pantallas anchas, o a
+  // su izquierda si no cabe; debajo del pueblo en el móvil de pie; siempre dentro, con su pico señalándola)
+  const ESTRECHA = 640, m = 12, lim = { t: m, b: 0 };   // (lim: entre lo de arriba y las comarcas de abajo, medido con el hueco)
+  const sigue = (x, y, ok) => {
+    if (ficha.hidden) return;
+    const W = sec.clientWidth, H = sec.clientHeight, w = ficha.offsetWidth, h = ficha.offsetHeight, abajo = W < ESTRECHA;
+    let l = abajo ? x - w / 2 : x + 40, t = abajo ? y + 64 : y - h * 0.3;
+    if (!abajo && l + w > W - m) l = x - 40 - w;
+    l = Math.max(m, Math.min(W - w - m, l)); t = Math.max(lim.t, Math.min((lim.b || H - m) - h, t));
+    ficha.style.transform = `translate(${Math.round(l)}px, ${Math.round(t)}px)`; ficha.style.visibility = ok ? '' : 'hidden';
+    ficha.classList.toggle('abajo', abajo); ficha.classList.toggle('izq', !abajo && l < x);
+    ficha.style.setProperty('--px', Math.round(Math.max(20, Math.min(w - 20, x - l))) + 'px'); ficha.style.setProperty('--py', Math.round(Math.max(20, Math.min(h - 20, y - t))) + 'px');
   };
   const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: estado(p, l), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
   const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: r.towns ? r.pct : 0, done: !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
-  // (lo que tapa lo de encima: el saludo arriba, las comarcas abajo y el panel a la derecha o, en el móvil de pie, abajo;
-  // medido cada poco, no en cada imagen)
+  // (lo que tapa lo de encima: arriba, el botón de tu aventura y el rótulo de la comarca; abajo, las comarcas y la misión de
+  // ahora; y la ficha del pueblo, que deja el pueblo a su izquierda o, en el móvil de pie, encima de ella. Medido cada poco)
   let hu = null, huT = 0;
   const hueco = () => {
     const now = performance.now(); if (hu && now - huT < 250) return hu; huT = now;
-    const a = sec.getBoundingClientRect(), k = a.height / (sec.clientHeight || 1) || 1, H = sec.querySelector('.ini-head')?.getBoundingClientRect(), R = sec.querySelector('.m3-rail');
-    let t = H ? (H.bottom - a.top) / k + 8 : 0; const rr = R && R.offsetParent ? R.getBoundingClientRect() : null;
-    let r = 0, b = rr ? (a.bottom - rr.top) / k + 8 : 0;
-    if (!panel.hidden) { const q = panel.getBoundingClientRect(); if (q.width > a.width * 0.7) b = Math.max(b, (a.bottom - q.top) / k + 8); else r = (a.right - q.left) / k + 8; }
-    // (la misión de ahora: a la derecha en el ordenador, abajo en el móvil de pie, arriba en el tumbado)
+    const a = sec.getBoundingClientRect(), k = a.height / (sec.clientHeight || 1) || 1, R = sec.querySelector('.m3-rail');
+    let t = 0, r = 0, b = 0;
+    for (const e of [sec.querySelector('.ini-head'), banda]) if (e && !e.hidden && e.offsetParent) t = Math.max(t, (e.getBoundingClientRect().bottom - a.top) / k + 8);
+    if (R?.offsetParent) b = (a.bottom - R.getBoundingClientRect().top) / k + 8;
     const Q = sec.querySelector('.m3-mision');
-    if (panel.hidden && Q?.offsetParent) { const q = Q.getBoundingClientRect();
-      if (q.left > a.left + a.width * 0.5 && q.height > a.height * 0.35) r = Math.max(r, (a.right - q.left) / k + 8);
-      else if (q.top > a.top + a.height * 0.5) b = Math.max(b, (a.bottom - q.top) / k + 8); }
+    if (Q?.offsetParent) { const q = Q.getBoundingClientRect(); if (q.top > a.top + a.height * 0.5) b = Math.max(b, (a.bottom - q.top) / k + 8); }
+    if (!ficha.hidden) { if (a.width / k < ESTRECHA) b = Math.max(b, ficha.offsetHeight + 64 + 2 * m); else r = ficha.offsetWidth + 40 + 2 * m; }
     // (con una comarca elegida, también el círculo de lo conquistado, para que nada de ella quede debajo)
-    const T2 = sec.querySelector('.m3-tot'); if (!panel.hidden && T2?.offsetParent) t = Math.max(t, (T2.getBoundingClientRect().bottom - a.top) / k + 8);
+    const T2 = sec.querySelector('.m3-tot'); if (!banda.hidden && T2?.offsetParent) t = Math.max(t, (T2.getBoundingClientRect().bottom - a.top) / k + 8);
+    lim.t = banda.offsetParent ? (banda.getBoundingClientRect().bottom - a.top) / k + m : m; lim.b = R?.offsetParent ? (R.getBoundingClientRect().top - a.top) / k - m : 0;
     return (hu = { t, r, b });
   };
-  MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-panel, .m3-mision', onSelect: abre,
-    onTown: (id) => { const card = panel.querySelector(`[data-t="${id}"]`), list = panel.querySelector('.m3p-towns'); if (!card) return;
-      panel.querySelectorAll('.m3t.on').forEach(x => x.classList.remove('on')); card.classList.add('on');
-      list.scrollTo({ top: card.offsetTop - list.offsetTop - 8, left: card.offsetLeft - list.offsetLeft - 8, behavior: 'smooth' }); } });
-  // (lo que mide lo conquistado, para que en el móvil tumbado el buscador empiece justo a su lado, en cualquier idioma)
+  MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision', onSelect: abre, onTown: pueblo, sigue });
+  // (lo que mide lo conquistado, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)
   const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
   const mis = sec.querySelector('.m3-mision'); if (mis) new ResizeObserver(() => sec.style.setProperty('--misw', mis.offsetWidth + 'px')).observe(mis);
   if (!MAPA) { sec.classList.add('plano'); sec.insertAdjacentHTML('afterbegin', `<div class="m3-plano">${OPC.plano()}</div>`); }
   sec.addEventListener('click', (e) => {
     const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abre(ch.dataset.sel); return; }
+    if (e.target.closest('[data-ftx]')) { MAPA?.cierraPueblo(); return; }
     if (e.target.closest('[data-cierra]')) { if (MAPA) MAPA.vista(); else abre(null); }
   });
 }
 
-/** Lo que se mueve: el mapa 3D, elegir fila, las flechas del destacado y de las tarjetas, las pestañas y el buscador. */
+/** Lo que se mueve: el mapa 3D, elegir fila, las flechas del destacado y de las tarjetas y las pestañas. */
 export function inicioOn(root) {
   const p = profile(), items = inicioHTML.items || [], hero = root.querySelector('.ini-hero');
-  mapaOn(root, p); buscaOn(root);
+  mapaOn(root, p);
   if (!hero) return;
   const pop0 = hero.querySelector('.ih-pop'); if (pop0) recorta(pop0, hero);
   const pon = (i) => {
@@ -262,15 +278,4 @@ export function inicioOn(root) {
     cards.innerHTML = tarjetas(b.dataset.tab, p); cards.scrollLeft = 0;
   });
   root.querySelectorAll('.ig-arrow').forEach(b => b.onclick = () => cards.scrollBy({ left: +b.dataset.dir * cards.clientWidth * 0.85, behavior: 'smooth' }));
-}
-// el buscador: lo que coincide, con su portada; Intro abre el primero. Con el mapa 3D, la cámara vuela hasta el pueblo y se
-// abre su comarca (como en el mapa de un juego); sin él, la ficha del pueblo
-function buscaOn(root) {
-  const inp = root.querySelector('.ini-busca input'), res = root.querySelector('.ib-res'); if (!inp || !res) return;
-  const attr = MAPA ? 'data-ir' : 'data-town';
-  const pinta = () => { const r = buscar(inp.value); res.hidden = !inp.value.trim();
-    res.innerHTML = r.length ? r.map(x => `<button type="button" ${attr}="${x.id}">${x.img ? `<img src="${x.img}" alt="">` : I('church', 30)}<span><b>${esc(x.t)}</b><small>${esc(x.s)}</small></span></button>`).join('') : `<span class="ib-no">No hay nada con ese nombre</span>`; };
-  inp.addEventListener('input', pinta);
-  inp.addEventListener('keydown', (e) => { e.stopPropagation(); if (e.key === 'Enter') res.querySelector(`[${attr}]`)?.click(); if (e.key === 'Escape') { inp.value = ''; pinta(); } });
-  res.addEventListener('click', (e) => { const b = e.target.closest('[data-ir]'); if (!b || !MAPA) return; MAPA.volar(b.dataset.ir); inp.value = ''; pinta(); inp.blur(); });
 }
