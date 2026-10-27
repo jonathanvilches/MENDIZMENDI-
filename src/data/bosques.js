@@ -50,7 +50,7 @@ export const BOSQUES = [
           card: 'El Basajaun es el Señor del Bosque de la mitología vasca: grande, peludo y con bastón. Cuida los rebaños y avisa de las tormentas.',
         } },
       { type: 'trade', kind: 'aizkolari', title: 'Mástiles para los barcos', host: H('Patxi, aizkolari', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', hair: '#2a1a12', beard: '#2a1a12' }),
-        text: 'Hace siglos, los abetos más altos y rectos de Irati se cortaban para hacer mástiles de barco, y los troncos bajaban por el río en almadías. Da cada hachazo en el momento justo.' },
+        text: 'Hace siglos, los abetos más altos y rectos de Irati se cortaban para hacer mástiles de barco, y los troncos bajaban por el río en almadías. Da cada hachazo con fuerza, a un lado y a otro.' },
       { type: 'quiz' },
     ] },
   { id: 'sierra-urbasa', name: 'Sierra de Urbasa', comarca: 'sakana', family: 'atlantic', relief: 'plain', size: 3, bosque: 'urbasa', lat: 42.83, lon: -2.16,

@@ -27,6 +27,22 @@ const FIJOS = {
   // (minijuegos 3D que se juegan con teclas: el esquileo con las flechas, la costura con un botón)
   shearGame: { tit: 'El esquileo', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
   stitchGame: { tit: 'La costura', b: { 0: ['Coser', ' ', 'wool'], 9: ['Salir', 'Escape', 'close'] } },
+  // (los pasos de los talleres con gestos, mini3d/gestos.js: en el móvil se juegan con los dedos; con el mando, con las
+  // flechas y, si hace falta, un botón)
+  gTajo: { tit: 'Hachazos', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
+  gPico: { tit: 'Desbastar', pal: 'flechas', b: { 0: ['Golpe', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gGolpe: { tit: 'Golpes', b: { 0: ['Golpe', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gCincel: { tit: 'Tallar la piedra', pal: 'flechas', b: { 0: ['Maceta', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gAros: { tit: 'Los aros', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
+  gTenazas: { tit: 'Al agua', pal: 'flechas', b: { 0: ['Tenazas', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gTrenzar: { tit: 'Tejer la cesta', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
+  gHuso: { tit: 'Hilar', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
+  gPala: { tit: 'Al horno', pal: 'flechas', b: { 0: ['Tirón', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gPaleta: { tit: 'La paleta', pal: 'flechas', b: { 0: ['Lanzar', ' ', 'shoot'], 9: ['Salir', 'Escape', 'close'] } },
+  gRed: { tit: 'Las redes', b: { 0: ['Tirar', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gAlzar: { tit: 'Levantar la piedra', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
+  gFugas: { tit: 'La carbonera', pal: 'flechas', b: { 0: ['Tapar', ' ', 'hand'], 9: ['Salir', 'Escape', 'close'] } },
+  gAmasar: { tit: 'Amasar', pal: 'flechas', b: { 9: ['Salir', 'Escape', 'close'] } },
 };
 // las ventanas que, abiertas, mandan sobre el juego (la última en la página es la de encima)
 const VENTANAS = '.mnd-ov, .mg-overlay, .mg3d, .screen, #reward, .champ, .lg-root, .tn-root, .pfx, .pel-panel, .fb-panel, .shop, .bagpanel, .sheet, .hub-sheet, [role=dialog]';
