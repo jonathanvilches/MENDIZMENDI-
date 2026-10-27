@@ -44,6 +44,9 @@ export function galeria(m, o) {
   // (el radio del anillo: las tarjetas casi tocándose; con pocos pueblos, como si fueran seis, para que el anillo no se
   // cierre tanto y los de los lados no se tapen)
   function mide() {
+    // (la carta entera, con lo que se adelanta la de delante y lo que flota, dentro de su hueco: si no cabe de alto, más estrecha)
+    const dh = parseFloat(getComputedStyle(G).getPropertyValue('--dh')) || 50;
+    G.style.setProperty('--gwmax', Math.max(140, ((escena.clientHeight - 16) / 1.05 - dh - 6) * 16 / 9) + 'px');
     const w = T[0]?.offsetWidth || 220, n = Math.max(N, 3);
     paso = 360 / n; R = Math.round((w / 2 + Math.max(14, w * 0.1)) / Math.tan(Math.PI / n));
     G.style.setProperty('--R', R + 'px');

@@ -12,7 +12,9 @@ import { iconSVG } from '../ui/icons.js';
 import { profile, townProgress, comarcaProgress } from '../game/profile.js';
 import { esc } from '../util/html.js';
 import { mapa3d } from './mapa3d.js';
-import { sencillo, sencilloAuto, ponSencillo } from '../util/sencillo.js';
+import { sencillo } from '../util/sencillo.js';
+import { isDidactico } from '../util/modo.js';
+import { releaseStage } from './stage.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
 const comarca = (id) => COMARCAS.find(c => c.id === id);
@@ -38,13 +40,17 @@ function ahora(p) {
   return out;
 }
 
-// (lo que pone el menú: el icono de cada misión, las misiones que tocan por la edad, dónde cae cada pueblo en el mapa de
-// comarcas y el mapa plano, para cuando no hay 3D; hub.js)
-let OPC = { icono: () => 'star', nombre: (m) => m.title || m.name || '', slots: (l) => (l.missions || []).map((m, si) => ({ m, si })), xy: () => null, plano: () => '' };
+// (lo que pone el menú: el icono de cada misión, las misiones que tocan por la edad y dónde cae cada pueblo en el mapa de
+// comarcas; hub.js)
+let OPC = { icono: () => 'star', nombre: (m) => m.title || m.name || '', slots: (l) => (l.missions || []).map((m, si) => ({ m, si })), xy: () => null };
+// (en el modo didáctico, el mapa vive en su sección, Mapa: sin la misión, lo conquistado ni los sellos, y cada pueblo lleva a
+// su página)
+let DD = false;
 
 // ---------- el mapa 3D: el círculo de lo conquistado, las comarcas de abajo, el rótulo de la comarca y la ficha del pueblo ----------
 // (un aro que se llena: f de 0 a 1)
 const aro = (f, cls = '') => `<svg class="m3-aro ${cls}" viewBox="0 0 48 48" aria-hidden="true"><circle class="tr" cx="24" cy="24" r="21"/><circle class="ar" cx="24" cy="24" r="21" stroke-dasharray="${(131.9 * Math.min(1, f)).toFixed(1)} 131.9" transform="rotate(-90 24 24)"/></svg>`;
+const pueblos = (n) => `${n} ${n === 1 ? 'pueblo' : 'pueblos'}`;
 const estado = (p, l) => { const t = townProgress(p, l); return t.stamp ? 'ok' : t.done || p.towns[l.id]?.visits ? 'go' : ''; };
 function conquista(p) {
   const C = COMARCAS.map(c => ({ c, r: comarcaProgress(p, c.id) })).filter(x => x.r.towns);
@@ -69,11 +75,11 @@ function misionHTML(p, items) {
 }
 function mapaHTML(p, items) {
   const K = conquista(p), pct = Math.round(K.f * 100);
-  return `${misionHTML(p, items)}<div class="m3-tot">${aro(K.f, 'grande')}<b class="m3-pct">${pct}<small>%</small></b>
-      <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>
+  return `${DD ? '' : `${misionHTML(p, items)}<div class="m3-tot">${aro(K.f, 'grande')}<b class="m3-pct">${pct}<small>%</small></b>
+      <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>`}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list"><button class="m3-todas" data-ex role="listitem" aria-label="Todas las comarcas en fotos"><span class="m3-mos">${K.C.slice(0, 4).map(({ c }) => `<img src="${comarcaCover(c.id, true)}" alt="" decoding="async">`).join('')}</span><span class="m3-ct"><b>Comarcas</b><small>En fotos</small></span></button>${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
-      return `<button class="m3-chip ${st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async"><span class="m3-sello">${aro(r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${r.stamps}/${r.towns} sellos</small></span></button>`; }).join('')}</div>
+      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async"><span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
     <div class="m3-cb" hidden></div><div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
 const estadoC = (p, c, r) => r.stamps === r.towns ? 'ok' : r.done || LEVELS.some(l => l.comarca === c.id && estado(p, l)) ? 'go' : '';
@@ -84,35 +90,35 @@ const flechas = () => `<span class="ex-fl"><button class="ex-ar" data-exdir="-1"
 const alMapa = `<button class="ex-x" data-exx aria-label="Volver al mapa">${I('map', 20)}<span>Mapa</span></button>`;
 function exComarcasHTML(p) {
   const K = conquista(p);
-  return `<div class="ex-head"><span class="ex-tt"><small>Navarra</small><b>Las comarcas</b></span><span class="ex-sub">${I('stamp', 18)}${K.sell}/${K.tot}</span>${flechas()}${alMapa}</div>
+  return `<div class="ex-head"><span class="ex-tt"><small>Navarra</small><b>Las comarcas</b></span>${DD ? '' : `<span class="ex-sub">${I('stamp', 18)}${K.sell}/${K.tot}</span>`}${flechas()}${alMapa}</div>
     <div class="ex-track">${K.C.map(({ c, r }, i) => { const st = estadoC(p, c, r), ts = LEVELS.filter(l => l.comarca === c.id && OPC.xy(l));
       return `<button class="ex-c ${st}" data-exc="${c.id}" style="--c:${c.color};--i:${i}" aria-label="${esc(c.name)}">
         <img class="ex-img" src="${comarcaCover(c.id, true)}" alt="" loading="${i < 5 ? 'eager' : 'lazy'}" decoding="async">
         <span class="ex-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(c.id)}" alt=""></span>
-        <span class="ex-tx"><b>${esc(c.name)}</b><small>${ts.length} ${ts.length === 1 ? 'pueblo' : 'pueblos'} · ${r.stamps}/${r.towns} sellos</small>
+        <span class="ex-tx"><b>${esc(c.name)}</b><small>${pueblos(ts.length)}${DD ? '' : ` · ${r.stamps}/${r.towns} sellos`}</small>
           <span class="ex-mini">${ts.slice(0, 5).map(l => `<img src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">`).join('')}${ts.length > 5 ? `<i>+${ts.length - 5}</i>` : ''}</span></span>
       </button>`; }).join('')}</div>`;
 }
 function exComarcaHTML(p, id) {
   const c = comarca(id), r = comarcaProgress(p, id), ts = LEVELS.filter(l => l.comarca === id && OPC.xy(l));
-  return `<div class="ex-head"><button class="ex-back" data-exback aria-label="Todas las comarcas">${I('back', 22)}</button><span class="ex-tt"><small>Comarca</small><b>${esc(c.name)}</b></span><span class="ex-sub">${I('stamp', 18)}${r.stamps}/${r.towns}</span>${flechas()}${alMapa}</div>
+  return `<div class="ex-head"><button class="ex-back" data-exback aria-label="Todas las comarcas">${I('back', 22)}</button><span class="ex-tt"><small>Comarca</small><b>${esc(c.name)}</b></span>${DD ? '' : `<span class="ex-sub">${I('stamp', 18)}${r.stamps}/${r.towns}</span>`}${flechas()}${alMapa}</div>
     <div class="ex-track"><article class="ex-c ex-hero" style="--c:${c.color};--i:0"><img class="ex-img" src="${comarcaCover(id, true)}" alt="" decoding="async">
         <span class="ex-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(id)}" alt=""></span>
-        <span class="ex-tx"><small class="ex-k">${c.river ? `Río ${esc(c.river)}` : 'Comarca'}</small><b>${esc(c.full || c.name)}</b><small>${ts.length} ${ts.length === 1 ? 'pueblo' : 'pueblos'} por descubrir</small>
+        <span class="ex-tx"><small class="ex-k">${c.river ? `Río ${esc(c.river)}` : 'Comarca'}</small><b>${esc(c.full || c.name)}</b><small>${pueblos(ts.length)}${DD ? '' : ' por descubrir'}</small>
           <button class="ex-ver" data-excm="${id}">${I('map', 20)}<span>Ver en el mapa</span></button></span></article>
-      ${ts.map((l, i) => { const t = townProgress(p, l), st = estado(p, l), nombre = esc(corto(l));
+      ${ts.map((l, i) => { const t = townProgress(p, l), st = DD ? '' : estado(p, l), nombre = esc(corto(l));
         return `<article class="ex-t ${st}" style="--c:${c.color};--i:${i + 1}">
           <button class="ex-fot" data-exmapa="${l.id}" aria-label="Ver ${nombre} en el mapa"><img class="ex-img" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="${i < 4 ? 'eager' : 'lazy'}" decoding="async"></button>
-          <span class="ex-st ${st}">${I(st === 'ok' ? 'stamp' : st === 'go' ? 'exclaim' : l.bosque ? 'tree' : 'compass', 16)}<span>${st === 'ok' ? 'Sellado' : st === 'go' ? 'Empezado' : l.bosque ? 'Bosque' : 'Por descubrir'}</span></span>
-          <span class="ex-tx"><b>${nombre}</b><small>${t.done}/${t.total} misiones</small><span class="ex-bar"><i style="width:${t.total ? Math.round(t.done / t.total * 100) : 0}%"></i></span>
-            <span class="ex-bts"><button class="ex-go" data-play="${l.id}">${I('play', 20)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button><button class="ex-pin" data-exmapa="${l.id}" aria-label="Ver ${nombre} en el mapa" title="Ver en el mapa">${I('pin', 20)}</button></span></span>
+          ${DD ? '' : `<span class="ex-st ${st}">${I(st === 'ok' ? 'stamp' : st === 'go' ? 'exclaim' : l.bosque ? 'tree' : 'compass', 16)}<span>${st === 'ok' ? 'Sellado' : st === 'go' ? 'Empezado' : l.bosque ? 'Bosque' : 'Por descubrir'}</span></span>`}
+          <span class="ex-tx"><b>${nombre}</b>${DD ? `<small>${esc(c.name)}</small>` : `<small>${t.done}/${t.total} misiones</small><span class="ex-bar"><i style="width:${t.total ? Math.round(t.done / t.total * 100) : 0}%"></i></span>`}
+            <span class="ex-bts">${DD ? `<button class="ex-go" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button class="ex-go" data-play="${l.id}">${I('play', 20)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button>`}<button class="ex-pin" data-exmapa="${l.id}" aria-label="Ver ${nombre} en el mapa" title="Ver en el mapa">${I('pin', 20)}</button></span></span>
         </article>`; }).join('')}</div>`;
 }
 // el rótulo de la comarca elegida: su sello en su aro, su nombre, sus sellos, su página y el botón de volver a toda Navarra
 function bandaHTML(p, id) {
   const c = comarca(id), r = comarcaProgress(p, id); if (!c) return '';
   return `<span class="m3-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(id)}" alt=""></span>
-    <span class="cb-tt"><small>Comarca</small><b>${esc(c.name)}</b><i>${r.stamps}/${r.towns} sellos</i></span>
+    <span class="cb-tt"><small>Comarca</small><b>${esc(c.name)}</b><i>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</i></span>
     <button class="cb-b" data-comarca="${id}" aria-label="Todo sobre ${esc(c.name)}" title="Todo sobre ${esc(c.name)}">${I('book', 20)}</button>
     <button class="cb-b" data-cierra aria-label="Ver toda Navarra" title="Ver toda Navarra"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
 }
@@ -124,8 +130,8 @@ function fichaHTML(p, l) {
   const txt = l.bosque ? 'Explorar' : t.stamp ? 'Volver a jugar' : t.done ? 'Seguir misión' : 'Empezar misión';
   const img = townImg(l, true);
   return `${img ? `<span class="ft-fondo"><img src="${img}" alt="" decoding="async"></span>` : ''}<span class="ft-n"><small>${esc(comarca(l.comarca)?.name || '')}</small><b>${nombre}</b></span>
-    ${slots.length ? `<span class="ft-ms">${slots.map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}" title="${esc(OPC.nombre(m))}">${I(OPC.icono(m) || 'star', 16)}</i>`).join('')}<em>${t.done}/${t.total}</em></span>` : ''}
-    <button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`;
+    ${slots.length && !DD ? `<span class="ft-ms">${slots.map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}" title="${esc(OPC.nombre(m))}">${I(OPC.icono(m) || 'star', 16)}</i>`).join('')}<em>${t.done}/${t.total}</em></span>` : ''}
+    ${DD ? `<button class="ft-go" data-town="${l.id}">${I('book', 18)}<span>Ver el pueblo</span></button>` : `<button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`}`;
 }
 let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
@@ -134,18 +140,20 @@ export function cierraMapa() { MAPA?.dispose(); MAPA = null; }
 export const entraMapa = (id) => MAPA?.entrar?.(id) || null;
 /** El inicio, como la pantalla del mapa del mundo de un juego: Navarra en 3D a toda la pantalla y, encima, la misión de
  *  ahora con su botón de continuar, lo conquistado y las comarcas. */
-export function inicioHTML(opc) {
+export function inicioHTML(opc, pantalla = 'home') {
   if (opc) OPC = { ...OPC, ...opc };
-  const p = profile(), items = ahora(p);
-  return `<section class="m3d">${mapaHTML(p, items)}</section>`;
+  DD = isDidactico();
+  const p = profile(), items = DD ? [] : ahora(p);
+  return `<section class="m3d${DD ? ' m3-dd' : ''}" data-pantalla="${pantalla}">${mapaHTML(p, items)}</section>`;
 }
 // el mapa 3D y lo de encima: las comarcas de abajo llevan a cada una, con su rótulo arriba; tocar un pueblo acerca la cámara
 // y abre su ficha junto a su chincheta
 function mapaOn(root, p) {
   const sec = root.querySelector('.m3d'); if (!sec) return;
   cierraMapa();
-  // (jugando, con una sección abierta encima o el menú, el mapa no se pinta ni se mueve: está tapado)
-  const hub = sec.closest('#hub'), tapado = () => !!hub && ((hub.dataset.screen || 'home') !== 'home' || hub.classList.contains('menu-on'));
+  // (jugando, con una sección abierta encima o el menú, el mapa no se pinta ni se mueve: está tapado. En el didáctico vive
+  // en su sección, Mapa)
+  const hub = sec.closest('#hub'), aqui = sec.dataset.pantalla || 'home', tapado = () => !!hub && ((hub.dataset.screen || 'home') !== aqui || hub.classList.contains('menu-on'));
   const banda = sec.querySelector('.m3-cb'), ficha = sec.querySelector('.m3-ft');
   const entra = (el) => { el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); };
   const abre = (id) => {
@@ -174,8 +182,8 @@ function mapaOn(root, p) {
     ficha.classList.toggle('abajo', abajo); ficha.classList.toggle('izq', !abajo && l < x);
     ficha.style.setProperty('--px', Math.round(Math.max(20, Math.min(w - 20, x - l))) + 'px'); ficha.style.setProperty('--py', Math.round(Math.max(20, Math.min(h - 20, y - t))) + 'px');
   };
-  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
-  const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: r.towns ? r.pct : 0, done: !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
+  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
+  const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: !DD && r.towns ? r.pct : 0, done: !DD && !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
   // (lo que tapa lo de encima: arriba, la fila del HUD (lo conquistado, la misión de ahora y el rótulo de la comarca); abajo,
   // las comarcas y, en el móvil de pie, la misión; y la ficha del pueblo, que deja el pueblo a su izquierda o, en el móvil de
   // pie, encima de ella. Medido cada poco)
@@ -203,22 +211,24 @@ function mapaOn(root, p) {
   };
   const abreEx = (id = null) => { pintaEx(id); if (ex.hidden) { ex.hidden = false; sec.classList.add('con-ex'); ex.focus({ preventScroll: true }); } };
   const cierraEx = () => { if (ex.hidden) return; ex.hidden = true; ex.innerHTML = ''; delete ex.dataset.c; sec.classList.remove('con-ex'); };
-  ex.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; e.stopPropagation(); if (ex.dataset.c) abreEx(null); else cierraEx(); });
-  // (en el modo sencillo, o si el mapa 3D no se puede montar o deja de pintarse, el mapa en plano con las comarcas)
-  // (en el modo sencillo, debajo, por qué y cómo volver al 3D)
-  const aPlano = () => { if (sec.classList.contains('plano')) return; sec.classList.add('plano');
-    const nota = sencillo() ? `<p class="m3-sencillo">${sencilloAuto() ? 'El móvil se cerraba al arrancar: va en modo sencillo.' : 'Modo sencillo: el mapa en plano y la imagen más ligera.'} <button type="button" data-sin-sencillo>Volver al mapa 3D</button></p>` : '';
-    sec.insertAdjacentHTML('afterbegin', `<div class="m3-plano">${OPC.plano()}${nota}</div>`); };
-  const falla = () => { cierraMapa(); aPlano(); };
-  if (!sencillo()) try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, falla, pausado: () => !ex.hidden || tapado() }); }
-  catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
+  ex.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; e.stopPropagation(); if (ex.dataset.c) abreEx(null); else if (MAPA) cierraEx(); });
+  // (el mapa 3D siempre. En el modo sencillo, más ligero y sin la entrada. Si deja de pintarse o pierde la tarjeta gráfica,
+  // se vuelve a hacer con un renderizador nuevo, hasta dos veces; si aun así no puede, o el navegador no tiene WebGL, las
+  // comarcas en fotos, que no necesitan 3D)
+  let rehechos = 0;
+  const sin3d = () => { sec.classList.add('sin-3d'); abreEx(null); };
+  const falla = () => { cierraMapa(); releaseStage(); if (++rehechos > 2) return sin3d(); setTimeout(() => { if (sec.isConnected) monta(); }, 400); };
+  const monta = () => {
+    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo(), intro: !DD, abiertas: DD }); }
+    catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
+    if (!MAPA) sin3d();
+  };
+  monta();
   // (lo que mide lo conquistado, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)
   const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
   const mis = sec.querySelector('.m3-mision'); if (mis) new ResizeObserver(() => sec.style.setProperty('--misw', mis.offsetWidth + 'px')).observe(mis);
-  if (!MAPA) aPlano();
   sec.addEventListener('click', (e) => {
-    if (e.target.closest('[data-sin-sencillo]')) { ponSencillo(false); location.reload(); return; }
-    const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abre(ch.dataset.sel); return; }
+    const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abreEx(ch.dataset.sel); return; }
     // (las comarcas en fotos: abrir, una comarca, volver, al mapa, verla o ver un pueblo en él, pasar tarjetas; y jugar, que
     // cierra esto y sigue, con el vuelo hasta el pueblo, en el menú)
     const x = e.target.closest('[data-ex],[data-exc],[data-exback],[data-exx],[data-excm],[data-exmapa],[data-exdir]');

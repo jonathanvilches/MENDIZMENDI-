@@ -53,8 +53,8 @@ const mezcla = (a, b, t) => a + (b - a) * t;
 // (la entrada grande, con Navarra despegándose de la península, solo la primera vez que se abre el mapa)
 let ENTRADA_VISTA = false;
 const rampa = (s, a, b) => Math.min(1, Math.max(0, (s - a) / (b - a)));
-// (el fondo del mapa, el mismo que el borde del suelo; y las paredes de las comarcas, de tierra oscura)
-const FONDO = 0x101626, PARED = new THREE.Color('#3a3128'), BLANCO = new THREE.Color('#ffffff');
+// (el fondo del mapa, el mismo que el borde del suelo; y el borde de las comarcas, morado muy oscuro)
+const FONDO = 0x101626, OSCURO = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
 // (un dibujo en un lienzo, como textura)
 function lienzo(w, h, pinta) { const c = document.createElement('canvas'); c.width = w; c.height = h; pinta(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
 // ---------- la baliza de cada pueblo ----------
@@ -186,7 +186,7 @@ function losa(P, alto, paso) {
   }
   let hmax = 0; const nV = pos.length / 3;
   for (let v = 0; v < pos.length; v += 3) { const h = alto(pos[v], pos[v + 2]); hmax = Math.max(hmax, h); pos[v + 1] = GROSOR + h; }
-  const nTop = idx.length, tope = [];   // (en las paredes, la altura de arriba en cada punto: de ahí salen las capas de tierra)
+  const nTop = idx.length, tope = [];   // (en las paredes, la altura de arriba en cada punto: de ahí sale cuánto se apagan hacia abajo)
   for (let v = 0; v < nV; v++) tope.push(pos[v * 3 + 1]);
   for (let i = 0; i < P.length; i++) {
     const j = (i + 1) % P.length, [ax, az] = P[i], [bx, bz] = P[j], ha = GROSOR + alto(ax, az), hb = GROSOR + alto(bx, bz), k = pos.length / 3;
@@ -205,8 +205,8 @@ function losa(P, alto, paso) {
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   return { g, hmax, malla: { x0, z0, paso } };
 }
-// (la panza de una comarca, que solo se ve en la entrada, al despegarse del mapa: tierra y roca que se estrechan hacia
-// abajo, en anillos cada vez más pequeños y hondos, ondulados para que no sea lisa, hasta una punta)
+// (la panza de una comarca, que solo se ve en la entrada, al despegarse del mapa: como el borde, se estrecha hacia abajo,
+// en anillos cada vez más pequeños y hondos, ondulados para que no sea lisa, hasta una punta)
 function panza(P) {
   let cx = 0, cz = 0, r = 0; for (const [x, z] of P) { cx += x / P.length; cz += z / P.length; }
   for (const [x, z] of P) r = Math.max(r, Math.hypot(x - cx, z - cz));
@@ -223,20 +223,13 @@ function panza(P) {
   g.setAttribute('tope', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3).fill(GROSOR), 1)); g.setIndex(idx); g.computeVertexNormals();
   return g;
 }
-// (las paredes de cada comarca, y su panza: capas de tierra, como en un corte del terreno. Arriba la hierba, luego la
-// tierra negra, las vetas de arcilla, de arena y de marga, y abajo la roca, con un toque del color de la comarca y algo de
-// luz propia, para que la panza, a la sombra, no quede negra)
-const CAPAS_VS = ['attribute float tope; varying float vProf; varying vec3 vPl;\n', '#include <begin_vertex>\nvProf = tope - position.y; vPl = position;'];
-const CAPAS_FS = ['uniform float uLuzP; varying float vProf; varying vec3 vPl;\nfloat hashC(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\nfloat ruidoC(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hashC(i), hashC(i + vec2(1, 0)), f.x), mix(hashC(i + vec2(0, 1)), hashC(i + vec2(1, 1)), f.x), f.y); }\n', `#include <color_fragment>
-  float pq = vProf + (ruidoC(vPl.xz * 1.3) - 0.5) * 0.24 + (ruidoC(vPl.xz * 6.0) - 0.5) * 0.07;
-  vec3 cap = mix(vec3(0.36, 0.47, 0.2), vec3(0.25, 0.18, 0.12), step(0.035, pq));
-  float b = (pq - 0.17) * 3.1, f = fract(b), i = mod(floor(b), 4.0);
-  vec3 veta = i < 0.5 ? vec3(0.64, 0.46, 0.3) : i < 1.5 ? vec3(0.48, 0.34, 0.23) : i < 2.5 ? vec3(0.72, 0.6, 0.43) : vec3(0.44, 0.33, 0.26);
-  veta *= 0.86 + 0.14 * smoothstep(0.0, 0.18, f) * smoothstep(1.0, 0.82, f);
-  cap = mix(cap, veta, step(0.17, pq));
-  cap = mix(cap, vec3(0.4, 0.38, 0.37), smoothstep(1.5, 3.0, pq));
-  cap *= 0.8 + 0.4 * ruidoC(vPl.xz * 21.0 + vPl.y * 17.0);
-  diffuseColor.rgb = mix(pow(cap, vec3(2.2)), diffuseColor.rgb, 0.2);`, '#include <emissivemap_fragment>\n  totalEmissiveRadiance += diffuseColor.rgb * uLuzP;'];
+// (el borde de cada comarca, y su panza: una losa limpia, como una pieza de cristal oscuro, del morado del juego con el
+// color de la comarca, que se apaga hacia abajo; arriba, un filo fino que brilla con su color y un halo suave debajo. Algo
+// de luz propia, para que la panza, a la sombra, no quede negra)
+const BORDE_VS = ['attribute float tope; varying float vProf;\n', '#include <begin_vertex>\nvProf = tope - position.y;'];
+const BORDE_FS = ['uniform float uLuzP; uniform vec3 uFilo; varying float vProf;\n', `#include <color_fragment>
+  diffuseColor.rgb *= mix(1.0, 0.42, smoothstep(0.0, 1.6, vProf));`, `#include <emissivemap_fragment>
+  totalEmissiveRadiance += uFilo * (1.0 - smoothstep(0.0, 0.05, vProf) + 0.35 * (1.0 - smoothstep(0.0, 0.5, vProf))) + diffuseColor.rgb * uLuzP;`];
 // ---------- el color del relieve, como en los mapas físicos ----------
 // La altura da el color (verde en los valles, ocre y pardo en las sierras, gris y blanco en las cumbres) y la imagen del
 // sombreado fino (tools/relieve/mapa-relieve.py: cada ladera según su pendiente, con luz del noroeste) le pone la luz y
@@ -331,13 +324,15 @@ const enPoligono = (P, x, z) => { let inn = false; for (let i = 0, j = P.length 
 
 /**
  * host: la caja donde va el mapa. o: { comarcas: [{ id, name, color, path, pct, done }], towns: [{ id, name, comarca,
- * sx, sy, state: ''|'go'|'ok', bosque, here }], onTown(id), onSelect(comarcaId|null), hueco(), tapa, icono(nombre) }.
+ * sx, sy, state: ''|'go'|'ok', bosque, here }], onTown(id), onSelect(comarcaId|null), hueco(), tapa, icono(nombre), falla(),
+ * ligero, intro, abiertas }. falla: el mapa dejó de pintarse y se soltó (quien lo puso lo vuelve a hacer); ligero: el modo
+ * sencillo; intro: false, sin la entrada grande; abiertas: todas las comarcas encendidas, como en el didáctico.
  * hueco: los píxeles que tapa lo de encima ({ t: arriba, r: a la derecha, b: abajo }): Navarra se encaja y lo elegido
  * se centra en lo que queda libre. tapa: un selector de lo de encima (el saludo, los botones…), para que ningún nombre quede debajo.
  * Devuelve { select(id), vista(), dispose() }.
  */
 export function mapa3d(host, o) {
-  let r; try { r = hubRenderer(); } catch (e) { return null; }   // (sin WebGL: quien llama pone el mapa plano)
+  let r; try { r = hubRenderer(); } catch (e) { return null; }   // (sin WebGL: quien llama pone las comarcas en fotos)
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(FONDO, 90, 190);
   const cam = new THREE.PerspectiveCamera(42, 1, 0.5, 400);
@@ -379,17 +374,20 @@ export function mapa3d(host, o) {
       uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
-  // (las paredes, de tierra en capas; luz: la propia, para lo que queda a la sombra)
-  const capasM = (c, vivo, luz) => {
-    const m = M({ color: PARED.clone().lerp(new THREE.Color(c.color), vivo ? 0.28 : 0.16), side: THREE.DoubleSide });
-    m.onBeforeCompile = (sh) => { sh.uniforms.uLuzP = { value: luz }; sh.vertexShader = CAPAS_VS[0] + sh.vertexShader.replace('#include <begin_vertex>', CAPAS_VS[1]);
-      sh.fragmentShader = CAPAS_FS[0] + sh.fragmentShader.replace('#include <color_fragment>', CAPAS_FS[1]).replace('#include <emissivemap_fragment>', CAPAS_FS[2]); };
-    m.customProgramCacheKey = () => 'pared-capas'; return m;
+  // (el borde: luz, la propia, para lo que queda a la sombra; filo, cuánto brilla su canto de arriba)
+  const bordeM = (c, vivo, luz, filo) => {
+    const m = M({ color: OSCURO.clone().lerp(new THREE.Color(c.color), vivo ? 0.3 : 0.14), roughness: 0.4, metalness: 0.2, side: THREE.DoubleSide });
+    const uFilo = new THREE.Color(c.color).lerp(BLANCO, 0.35).multiplyScalar(filo * (vivo ? 1 : 0.5));
+    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uLuzP: { value: luz }, uFilo: { value: uFilo } }); sh.vertexShader = BORDE_VS[0] + sh.vertexShader.replace('#include <begin_vertex>', BORDE_VS[1]);
+      sh.fragmentShader = BORDE_FS[0] + sh.fragmentShader.replace('#include <color_fragment>', BORDE_FS[1]).replace('#include <emissivemap_fragment>', BORDE_FS[2]); };
+    m.customProgramCacheKey = () => 'borde-comarca'; return m;
   };
   // las comarcas
-  const LENTO = matchMedia?.('(pointer: coarse)').matches;   // (en el móvil, 30 imágenes por segundo y el relieve algo menos fino)
+  // (en el móvil, y en el modo sencillo (o.ligero, src/util/sencillo.js), 30 imágenes por segundo y el relieve algo menos fino)
+  const LENTO = !!o.ligero || matchMedia?.('(pointer: coarse)').matches;
   // (la entrada grande: solo la primera vez y sin movimiento reducido; en las pruebas automáticas, solo si se pide)
-  const INTRO = !ENTRADA_VISTA && !matchMedia?.('(prefers-reduced-motion: reduce)').matches && !(navigator.webdriver && !window.__intro); ENTRADA_VISTA = true;
+  // (ni en el modo sencillo ni en el didáctico, o.intro false, donde el mapa no es la portada)
+  const INTRO = o.intro !== false && !o.ligero && !ENTRADA_VISTA && !matchMedia?.('(prefers-reduced-motion: reduce)').matches && !(navigator.webdriver && !window.__intro); if (o.intro !== false) ENTRADA_VISTA = true;
   const CINE = host.closest('#hub') || document.body; if (INTRO) CINE.classList.add('m3-cine');   // (en el menú, a toda la pantalla mientras dura)
   const alto = hacerRelieve();
   // (dónde hay bosque: a rodales, en el monte de la mitad norte, entre unos 380 y 1.800 m. Una imagen pequeña de toda
@@ -405,10 +403,10 @@ export function mapa3d(host, o) {
     const { P, cx, cy } = contorno(c.path);
     const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g);
     // (empezada, con los colores del mapa y un toque del suyo; sin descubrir, apagada y hacia el malva, bajo la niebla)
-    const vivo = c.pct > 0 || c.done, top = relieveM(c, vivo);
-    const side = capasM(c, vivo, 0.25), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
-    // (la panza, solo en la entrada: a la sombra, con más luz propia para que se lean sus capas)
-    let bajo = null; if (INTRO) { const pg = panza(Pw); geos.push(pg); bajo = new THREE.Mesh(pg, capasM(c, vivo, 0.85)); mesh.add(bajo); }
+    const vivo = !!o.abiertas || c.pct > 0 || c.done, top = relieveM(c, vivo);
+    const side = bordeM(c, vivo, 0.2, 0.9), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
+    // (la panza, solo en la entrada: a la sombra, con más luz propia para que se vea su forma)
+    let bajo = null; if (INTRO) { const pg = panza(Pw); geos.push(pg); bajo = new THREE.Mesh(pg, bordeM(c, vivo, 0.6, 0)); mesh.add(bajo); }
     // (lo que se levanta la comarca con sus sellos)
     const alzado = 0.35 * c.pct + (c.done ? 0.35 : 0);
     mesh.scale.y = 0.01; scene.add(mesh);
@@ -623,8 +621,8 @@ export function mapa3d(host, o) {
   if (!INTRO) { Object.assign(v, { d: goal.d * 1.45, pitch: 1.25 }); vuelo = { de: { ...v }, a: { ...goal }, t: 0, dur: 1.8 }; }
 
   // ---------- la entrada grande ----------
-  // Navarra, pintada en el mapa de España, tiembla, se despega en una ola de noroeste a sureste con su panza de tierra y
-  // roca, soltando terrones y polvo por los bordes, sube y se vuelve a posar en su sitio con un botecito, mientras la cámara
+  // Navarra, pintada en el mapa de España, tiembla, se despega en una ola de noroeste a sureste con su panza, soltando
+  // fragmentos y polvo morados por los bordes, sube y se vuelve a posar en su sitio con un botecito, mientras la cámara
   // baja desde lo alto de la península; luego salen las chinchetas y lo de encima. Con cualquier toque pasa deprisa. Su
   // reloj solo corre con el mapa a la vista, con las imágenes del suelo ya llegadas (o pasados 2,5 s) y sin la bienvenida
   const IT = { tiembla: 0.4, sube: 1.1, ola: 0.6, subeD: 1.3, alto: 8, baja: 3.3, bajaD: 0.85, vuelo: 0.7, vueloD: 3.9, pines: 4.4, fin: 5.1 };
@@ -723,7 +721,7 @@ export function mapa3d(host, o) {
       quita() { E.remove(); },
     };
   })();
-  // los terrones y el polvo que caen por los bordes al despegarse: de los puntos del contorno de fuera de Navarra (los que
+  // los fragmentos y el polvo que caen por los bordes al despegarse: de los puntos del contorno de fuera de Navarra (los que
   // no dan a otra comarca), hacia fuera; botan una vez en el mapa y se deshacen
   const terr = intro && (() => {
     const borde = [];
@@ -735,14 +733,14 @@ export function mapa3d(host, o) {
     const NP = LENTO ? 320 : 820, ND = LENTO ? 160 : 360, paso = Math.max(1, Math.round(borde.length / (ND * 0.45)));
     const tg = new THREE.DodecahedronGeometry(0.5, 0), tm = new THREE.MeshLambertMaterial({ color: 0xffffff, toneMapped: false }); geos.push(tg); mats.push(tm);
     const im = new THREE.InstancedMesh(tg, tm, NP); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.frustumCulled = false;
-    const TIERRA = ['#6b4c34', '#7d5a3c', '#8f6a45', '#a47b50', '#b8925f', '#8a837a', '#76706a', '#6f8c42'].map(h => new THREE.Color(h)), M0 = new THREE.Matrix4().makeScale(0, 0, 0);
-    for (let i = 0; i < NP; i++) { im.setColorAt(i, TIERRA[(Math.random() * TIERRA.length) | 0]); im.setMatrixAt(i, M0); }
+    const TONOS = ['#2a1a4e', '#3a2468', '#4b3184', '#5d3fa0', '#7b5cc4', '#9a86d6'].map(h => new THREE.Color(h)), M0 = new THREE.Matrix4().makeScale(0, 0, 0);
+    for (let i = 0; i < NP; i++) { im.setColorAt(i, TONOS[(Math.random() * TONOS.length) | 0]); im.setMatrixAt(i, M0); }
     const p = new Float32Array(NP * 3), vel = new Float32Array(NP * 3), rot = new Float32Array(NP * 4), tam = new Float32Array(NP), vida = new Float32Array(NP), bote = new Uint8Array(NP);
     // (el polvo: puntos grandes y blandos que se abren, suben un poco y se deshacen)
     const pg = new THREE.BufferGeometry(), dp = new Float32Array(ND * 3), dv = new Float32Array(ND * 3), dS = new Float32Array(ND), dA = new Float32Array(ND), dEd = new Float32Array(ND), dVi = new Float32Array(ND), dS0 = new Float32Array(ND), dS1 = new Float32Array(ND);
     pg.setAttribute('position', new THREE.BufferAttribute(dp, 3).setUsage(THREE.DynamicDrawUsage));
     pg.setAttribute('aS', new THREE.BufferAttribute(dS, 1).setUsage(THREE.DynamicDrawUsage)); pg.setAttribute('aA', new THREE.BufferAttribute(dA, 1).setUsage(THREE.DynamicDrawUsage));
-    const ESC = { value: 1 }, pm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uEsc: ESC, uCol: { value: srgb('#8c7457') } },
+    const ESC = { value: 1 }, pm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uEsc: ESC, uCol: { value: srgb('#8a76c8') } },
       vertexShader: 'attribute float aS, aA; uniform float uEsc; varying float vA; void main() { vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aA > 0.0 ? aS * uEsc / -mv.z : 0.0; vA = aA; }',
       fragmentShader: 'uniform vec3 uCol; varying float vA; void main() { vec2 q = gl_PointCoord - 0.5; float r = dot(q, q) * 4.0; if (r > 1.0) discard; gl_FragColor = vec4(uCol, vA * (1.0 - r) * (1.0 - r)); }' });
     geos.push(pg); mats.push(pm);
@@ -763,7 +761,7 @@ export function mapa3d(host, o) {
       im, nube, ESC,
       // (una nube de polvo por todo el contorno de una comarca, al soltarse y al posarse)
       anillo(c, fuerza, vi) { for (let i = (Math.random() * paso) | 0; i < borde.length; i += paso) { const b = borde[i], k = 0.6 + Math.random() * 0.8; if (b.c === c && Math.random() < 0.7) polvo(b.x + b.nx * 0.6, 0.4, b.z + b.nz * 0.6, b.nx * fuerza * k, 0.4 + Math.random() * 0.5, b.nz * fuerza * k, 2.5 * k, 7 * k, vi * k); } },
-      // (los terrones que se sueltan, más mientras sube: c.suelta, de 0 a 1)
+      // (los fragmentos que se sueltan, más mientras sube: c.suelta, de 0 a 1)
       suelta(dt) {
         acum = Math.min(40, acum + dt * NP / 2.3);
         for (; acum >= 1; acum--) { const b = borde[(Math.random() * borde.length) | 0]; if (Math.random() < b.c.suelta) terron(b); }
@@ -1201,7 +1199,7 @@ export function mapa3d(host, o) {
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
   const io = new IntersectionObserver((en) => { visible = en[0]?.isIntersecting ?? true; if (visible && !raf) raf = requestAnimationFrame(frame); }, { threshold: 0.02 }); io.observe(host);
   const sz = { w: 0, h: 0, z: 0 }, off = { x: 0, y: 0 };
-  let prMax = 2, prT = 0, prN = 0;   // (la resolución máxima del lienzo, que baja si el móvil no llega)
+  let prMax = o.ligero ? 1 : 2, prT = 0, prN = 0;   // (la resolución máxima del lienzo, que baja si el móvil no llega)
   const pv = new THREE.Vector3();
   // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
   // gráfica y no la devuelve, el mapa se suelta y quien lo puso deja el plano: o.falla. Nunca una pantalla vacía)
@@ -1292,7 +1290,7 @@ export function mapa3d(host, o) {
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
-        // (en la entrada: tiembla, crece mientras sube y se posa; suelta terrones mientras sube y aún algo arriba)
+        // (en la entrada: tiembla, crece mientras sube y se posa; suelta fragmentos mientras sube y aún algo arriba)
         const [k, y, sube, baja, tl] = despegue(c, tI), tb = 0.12 * rampa(tI, IT.tiembla, IT.sube) * (1 - sube);
         nace = k; alza = y; posa = tl > 0 ? Math.exp(-tl * 3.5) : 0; c.suelta = sube > 0.02 && baja < 0.3 ? (sube < 1 ? 1 : 0.4) * (1 - baja / 0.3) : 0;
         if (!intro.hecho) { c.mesh.position.x = c.linea.position.x = Math.sin(tI * 63 + c.d * 13) * tb; c.mesh.position.z = c.linea.position.z = Math.cos(tI * 49 + c.d * 7) * tb; }
@@ -1336,7 +1334,7 @@ export function mapa3d(host, o) {
       if (x.haz) { const kh = Math.min(1, lejos); x.haz.scale.set(kh, Math.max(0.01, nace * kh), kh); x.haz.position.y = gy + 6 * nace * kh; hazM.opacity = (0.4 + Math.sin(t * 2.4) * 0.12) * nace * x.k; }
     });
     for (const a of [mira.instanceMatrix, hilo.instanceMatrix, cristal.instanceMatrix, orbita.instanceMatrix, aInf, haloP, haloS, haloI]) a.needsUpdate = true;
-    // (los terrones y el polvo de la entrada; cuando ya no queda ninguno, se quitan)
+    // (los fragmentos y el polvo de la entrada; cuando ya no queda ninguno, se quitan)
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
     // los núcleos: el pintado entra al acercarse y las casas en pie, ya muy cerca
