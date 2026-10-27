@@ -182,15 +182,16 @@ const afAlias = (a) => !AF ? a : { ...a,
   '@icons3d-big': afDir('icons3d/none'), '@personajes': afDir('personajes/artefacto'), '@tradiciones': afDir('tradiciones/artefacto'),
   '@relieve-medio': afDir('relieve/none') };
 // (lo que va dentro del código en el artefacto: las imágenes pequeñas que se repiten mucho, y las fuentes)
-const AF_DENTRO = /[\\/]src[\\/]assets[\\/](relieve[\\/]hd[\\/]full|icons3d[\\/]256|escudos[\\/](heraldica|equipos|casas|oficios)[\\/]512|laminas[\\/]web[\\/][^\\/]+-s\.webp|fauna[\\/]512|leyendas[\\/]768|cimas[\\/]1024|sellos[\\/]web|meshy[\\/]portraits|figuras[\\/]web|jugadores[\\/]web[\\/](busto[\\/]|duo-s[\\/]|[^\\/]+\.webp$)|pelotaris[\\/]web[\\/](azul|rojo))[\\/]?/;
+const AF_DENTRO = /[\\/]src[\\/]assets[\\/](sonidos|relieve[\\/]hd[\\/]full|icons3d[\\/]256|escudos[\\/](heraldica|equipos|casas|oficios)[\\/]512|laminas[\\/]web[\\/][^\\/]+-s\.webp|fauna[\\/]512|leyendas[\\/]768|cimas[\\/]1024|sellos[\\/]web|meshy[\\/]portraits|figuras[\\/]web|jugadores[\\/]web[\\/](busto[\\/]|duo-s[\\/]|[^\\/]+\.webp$)|pelotaris[\\/]web[\\/](azul|rojo))[\\/]?/;
 const afInline = (file) => (/\.woff2$/.test(file) || AF_DENTRO.test(file) ? true : undefined);
 // (cada grupo de imágenes de dentro, en su propio archivo de código: ninguno pasa de los 16 MB que admite un artefacto)
 const AF_GRUPOS = [['img-laminas', /laminas[\\/]web[\\/]/], ['img-iconos', /icons3d[\\/]/],
   // (los escudos de casa, aparte y en dos: con los 192 no caben en un solo bloque)
   ['img-casas-1', /escudos[\\/]casas[\\/][^\\/]+[\\/][a-l]/], ['img-casas-2', /escudos[\\/]casas[\\/]/], ['img-escudos', /escudos[\\/]/], ['img-jugadores', /jugadores[\\/]/],
   ['img-pelotaris', /pelotaris[\\/]/], ['img-varias', /(fauna|leyendas|cimas|sellos|portraits|figuras)[\\/]/], ['img-relieve', /relieve[\\/]hd[\\/]/],
-  // (el relieve de detalle de los 12 miradores, en un solo archivo: el artefacto no admite más de 511)
-  ['relieve-miradores', /data[\\/]polar[\\/]/]].map(([name, test]) => ({ name, test }));
+  // (el relieve de detalle de los 12 miradores, en un solo archivo: el artefacto no admite más de 511; y por lo mismo,
+  // las músicas y los sonidos grabados, juntos en otro)
+  ['relieve-miradores', /data[\\/]polar[\\/]/], ['sonidos', /assets[\\/]sonidos[\\/]/]].map(([name, test]) => ({ name, test }));
 // (en el artefacto no hay app instalable ni service worker: el visor de Claude no los deja. Tampoco se cuenta con
 // WebAssembly, que el descompresor meshopt necesita: los modelos y los parches de las chicas van ya descomprimidos, y
 // el descompresor es src/web/meshopt-sin.js. La cuantización de los modelos se queda: three.js la lee sin ayuda)
