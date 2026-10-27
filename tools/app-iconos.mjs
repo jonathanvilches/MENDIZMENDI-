@@ -4,7 +4,7 @@
 //  · public/icon-180.png (iPhone y iPad), icon-192.png e icon-512.png: la ilustración entera; e icon-maskable-512.png
 //    (Android, que recorta el icono en círculo o en otras formas): la ilustración más pequeña, dentro de la zona que ningún
 //    recorte toca, sobre su mismo cielo desenfocado, para que no se corte el pelo del protagonista
-//  · el icono de la portada con la que arranca la página y el de la pestaña, dentro de index.html (#portada-app)
+//  · el icono y el título de la portada con la que arranca la página, y el de la pestaña, dentro de index.html (#portada-app)
 //  · public/girar.webp: el rótulo «Gira la pantalla · Biratu pantaila» de la pantalla de girar (#girar-app en
 //    index.html), como imagen con la letra del juego: sale antes de que cargue la letra y es el mismo que el de la
 //    pantalla de arranque
@@ -60,6 +60,21 @@ const font = readFileSync('node_modules/@fontsource/barlow-condensed/files/barlo
   // (en public/: solo lo pide la app instalada, el archivo único no la necesita y no pesa más)
   const webp = await sharp(png).webp({ quality: 90, alphaQuality: 90 }).toBuffer(); writeFileSync('public/girar.webp', webp);
   TXT = 'data:image/webp;base64,' + webp.toString('base64');
+  await ctx.close();
+}
+// el título de la portada: HERRIZHERRI con la letra del juego, en blanco hacia el lila, con su sombra y un brillo rosa, y el
+// lema debajo en dorado (como imagen: sale antes de que cargue la letra)
+{
+  const ctx = await b.newContext({ viewport: { width: 520, height: 200 }, deviceScaleFactor: 3 }), p = await ctx.newPage();
+  await p.setContent(`<!doctype html><meta charset="utf-8"><style>@font-face{font-family:MZD;src:url(data:font/woff2;base64,${font}) format('woff2')}
+    html,body{margin:0;background:transparent}#t{width:520px;display:flex;flex-direction:column;align-items:center;gap:8px;padding:10px 0 14px;font-family:MZD;text-transform:uppercase;text-align:center;line-height:.9}
+    b{font-weight:400;font-size:88px;letter-spacing:.01em;background:linear-gradient(180deg,#fff 35%,#e5d6ff 70%,#c9b2ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 5px 0 #3b1580) drop-shadow(0 0 18px rgba(255,122,200,.6))}
+    span{font-size:22px;color:#ffd36a;letter-spacing:.24em;text-shadow:0 2px 8px rgba(10,2,30,.85)}</style>
+    <div id="t"><b>Herrizherri</b><span>Navarra, pueblo a pueblo</span></div>`);
+  await p.evaluate(() => document.fonts.ready);
+  const png = await p.locator('#t').screenshot({ omitBackground: true });
+  const tit = await sharp(png).resize(1040).webp({ quality: 88, alphaQuality: 90 }).toBuffer();
+  html = html.replace(/<img class="pa-tit" src="[^"]*"/, `<img class="pa-tit" src="data:image/webp;base64,${tit.toString('base64')}"`);
   await ctx.close();
 }
 writeFileSync('index.html', html);

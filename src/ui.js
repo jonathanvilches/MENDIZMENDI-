@@ -53,16 +53,15 @@ export class UI {
     this.buildLoading();
   }
   // ---------- Carga ----------
-  // (en horizontal, una retícula de dos columnas en proporción áurea: a la izquierda el pueblo, su comarca, su
-  // presentación y sus misiones; a la derecha su lámina, enmarcada y entera. Debajo, en la misma retícula, el consejo
-  // bajo el texto y la barra de carga bajo la lámina. De fondo, la misma lámina desenfocada. En vertical, en columna)
+  // (como la carga de un videojuego: la lámina del pueblo a toda la pantalla, con el visor, las motas de luz y las líneas
+  // de pantalla encima; el pueblo abajo a la izquierda, el consejo arriba a la derecha y la barra a todo el ancho. style.css)
   buildLoading() {
-    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div>
+    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div><div class="ld-fx"></div><div class="ld-marco"></div>
       <div class="ld-in">
-        <section class="ld-txt"><div class="ld-head"><small class="ld-k"></small><div class="ld-name"></div><p class="ld-intro"></p></div><div class="ld-ms"></div></section>
-        <figure class="ld-pic"><img alt=""><figcaption></figcaption></figure>
         <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
-        <div class="ld-prog"><div class="bar"><i></i><img class="ld-av" alt=""></div><div class="ld-row"><span class="msg">Preparando…</span><span class="ld-pc">0%</span></div></div>
+        <section class="ld-txt"><div class="ld-head"><small class="ld-k"></small><div class="ld-name"></div><p class="ld-intro"></p></div><div class="ld-ms"></div></section>
+        <figure class="ld-pic"><figcaption></figcaption></figure>
+        <div class="ld-prog"><div class="ld-row"><span class="msg">Preparando…</span><span class="ld-pc">0%</span></div><div class="ld-barra"><div class="bar"><i></i></div><img class="ld-av" alt=""></div></div>
       </div></div>`);
     document.body.appendChild(this.loading);
   }
@@ -74,7 +73,7 @@ export class UI {
     if (!ya) { L.classList.remove('entra'); void L.offsetWidth; L.classList.add('entra'); }
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
     L.classList.toggle('ld-min', !!info.min);
-    const pic = $('.ld-pic img', L); L.classList.toggle('no-pic', !image); if (image) pic.src = image; else pic.removeAttribute('src');
+    L.classList.toggle('no-pic', !image);
     $('.ld-pic figcaption', L).textContent = info.caption || '';
     $('.ld-k', L).textContent = info.comarca ? 'Comarca · ' + info.comarca : 'Navarra';
     $('.ld-name', L).textContent = title.split(' /')[0];
