@@ -1,6 +1,6 @@
 # Auditoría de todo lo pedido · HERRIZHERRI
 
-Actualizada el 27 de octubre de 2026. Repasa los 379 mensajes del proyecto, desde el 28 de septiembre.
+Actualizada el 27 de octubre de 2026 por la noche. Repasa los 380 mensajes del proyecto, desde el 28 de septiembre.
 
 - **Hecho**: está en el juego y se ha comprobado con capturas o pruebas automáticas.
 - **Parcial**: está, pero no del todo como se pidió, o no se ha podido comprobar a fondo.
@@ -138,7 +138,8 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
 | Petición | Estado | Notas |
 |---|---|---|
 | Móvil en horizontal perfecto | Hecho | Revisado con capturas a 844 × 390 y 568 × 320 |
-| Que no se cierre ni se ponga la pantalla en negro en el móvil | Parcial | No se reproduce aquí; necesito que lo pruebes en el iPhone |
+| Que no se cierre ni se ponga la pantalla en negro en el móvil | Parcial | No se reproduce aquí. Desde hoy, si se cierra dos veces al arrancar, abre en modo sencillo; necesito que lo pruebes en el iPhone |
+| Que la app instalada y el archivo arranquen en el móvil | Parcial | Arreglado lo que se ha encontrado; sin probar en tu iPhone. Ver el apartado 9 |
 | Escritorio fluido | Parcial | Mejorado varias veces; sin medir en tu ordenador |
 | Instalar el juego y la app Mando en el móvil y el ordenador | Hecho | |
 | Mando del móvil seguro y que conecte rápido, también con iPhone | Hecho | |
@@ -150,12 +151,21 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
 
 - **Galería de pueblos:**
   - cada comarca, un carrusel circular en 3D, con la portada de cada pueblo como una pantalla;
-  - el de delante encendido y adelantado, los demás alrededor en penumbra, con reflejo en el suelo;
-  - la portada de la comarca de fondo, desenfocada, con un halo de su color;
+  - el de delante encendido y adelantado, los demás alrededor en penumbra;
+  - de fondo, el morado del juego limpio, con una luz suave del color de la comarca en el suelo;
+  - las flechas, a media altura de las pantallas en todos los móviles, sin tapar la tarjeta;
   - se gira arrastrando, con flechas, rueda o teclado; las comarcas, arriba;
   - abajo, el pueblo de delante con sus misiones y los botones Ficha y Jugar.
 - **Menú:** más grande, cinco columnas en el ordenador, tres de pie en el móvil.
-- **Mapa:** la maqueta del pueblo se monta durante el vuelo y sus programas gráficos se preparan al abrir el mapa. Antes se compilaban al llegar y paraban la imagen.
+- **Mapa:** la maqueta del pueblo se monta durante el vuelo. En el ordenador sus programas gráficos se preparan al abrir el mapa; en el móvil, al acercarse.
+- **Arranque en el móvil:**
+  - el enlace Jugar abría el archivo único de 46 MB; ahora ese archivo, abierto desde la web, pasa a la versión web, que se guarda y se instala como app;
+  - si el móvil cierra la página dos veces al arrancar, el juego abre en modo sencillo: imagen ligera y mapa del inicio en plano. Se quita en Ajustes;
+  - si el mapa 3D deja de pintarse o pierde la tarjeta gráfica, sale el mapa plano en vez de una pantalla vacía;
+  - el aviso de arranque trae botones para volver a cargar, pasar al modo sencillo y borrar la caché;
+  - fuera dos expresiones de texto que los iPhone antiguos no entienden y que no dejaban arrancar el juego.
+- **Didáctico:** las 16 secciones y la ficha de tres pueblos, revisadas en castellano y en euskera, en tres tamaños, sin errores ni imágenes rotas. La galería cabe entera con el móvil tumbado.
+- **Canciones:** las seis pistas de Envato suenan donde tocan y tienen su licencia en LICENCIAS.md. La pista «Soccer S1105_49» que mandaste no se usa.
 
 ## 10. Pendiente o depende de ti
 
@@ -167,7 +177,8 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
   - fuente Froople, cuando llegue su certificado;
   - imagen del Zarratrako;
   - tiendas de producto local con vales y cromos: la propuesta está hecha, falta tu visto bueno y el permiso de las tiendas;
-  - probar en el iPhone y en tu ordenador los cierres y la fluidez;
+  - probar en el iPhone la app instalada desde la web nueva; si algo falla, una captura del aviso de arranque;
+  - probar en tu ordenador los cierres y la fluidez;
   - la música o la canción: tu último mensaje se cortó.
 - **De la auditoría del 22 de octubre, sin noticias:**
   - el puente de Ochagavía esperaba tu visto bueno;
