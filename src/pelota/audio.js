@@ -1,6 +1,8 @@
-// Sonidos sintetizados (sin archivos): golpe de mano, frontis, chapa metálica, bote y el público (la gente de la grada:
-// su murmullo, el «¡oooh!» y el aplauso de todos a la vez, de src/crowdAudio.js).
+// Sonidos sintetizados: golpe de mano, frontis, chapa metálica, bote y el público (la gente de la grada: su murmullo, el
+// «¡oooh!» y el aplauso de todos a la vez, de src/crowdAudio.js). Debajo, grabados (src/audio/pistas.js): el rumor de la
+// grada llena durante todo el partido y la ovación del último tanto.
 import { Crowd, PUBLICO } from '../crowdAudio.js';
+import { Grada, carga, efecto } from '../audio/pistas.js';
 const SHARED = { ctx: null };
 export class PelotaAudio {
   constructor(ctx) { this.ctx = ctx || null; this.muted = false; }
@@ -19,17 +21,19 @@ export class PelotaAudio {
     } catch (e) { return null; }
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
     if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.ctx.destination); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
+    // (la grada grabada suena siempre; la sintetizada, solo con PUBLICO)
+    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.ctx.destination); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); }
     return this.ctx;
   }
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
-  mood(v, tc) { this.crowdN?.setLevel(v, tc); }
-  stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; }
+  mood(v, tc) { this.crowdN?.setLevel(v, tc); this.grada?.nivel(v, tc); }
+  stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; this.grada?.para(0.8); this.grada = null; }
   /** Un tanto: su señal, distinta si es tuyo o del rival (cue), y el aplauso de todo el frontón, más corto si fue un
    *  fallo (chapa, fuera, falta). El último tanto, la ovación. Antes, en cada fallo sonaba el «¡oooh!» de la grada, hecho
    *  de voces sintetizadas, y se oía como un zumbido */
   point(clean, mine, final) {
     const c = this.ensure(); if (!c) return;
-    if (final) { if (PUBLICO) { this.ovation(); this.mood(0.6, 0.2); } return; }
+    if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
     this.cue(mine);
     if (!PUBLICO) return;
     const C = this.crowdN;
@@ -83,10 +87,12 @@ export class PelotaAudio {
     g.gain.setValueAtTime(0.0008, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0008, t + 1.1);
     s.connect(f); f.connect(g); g.connect(c.destination); s.start(t); s.stop(t + 1.2);
   }
-  // ovación del último tanto: todo el frontón en pie, cuatro segundos de aplausos que crecen y se apagan, y el rugido
+  // ovación del último tanto: todo el frontón en pie y aplaudiendo, grabado (once segundos que se apagan); si aún no está
+  // a punto, la sintetizada: aplausos que crecen y se apagan, y el rugido
   ovation() {
-    const c = this.ensure(); if (!c || !PUBLICO) return; const t = c.currentTime;
-    if (this.crowdN?.ovation()) return;
+    const c = this.ensure(); if (!c) return; const t = c.currentTime;
+    if (efecto(c, 'aplausos-final', c.destination, 0.7)) { this.grada?.nivel(0.7, 0.3); return; }
+    if (!PUBLICO || this.crowdN?.ovation()) return;
     for (let i = 0; i < 160; i++) { const u = Math.random() * 4.2, k = Math.min(1, u / 0.5) * Math.min(1, (4.4 - u) / 1.4); this.noise(t + u, 0.035, 2000 + Math.random() * 1800, 1.4, 0.14 * k); }
     const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
     s.buffer = this.noiseBuf; s.loop = true; f.type = 'bandpass'; f.frequency.value = 650; f.Q.value = 0.8;

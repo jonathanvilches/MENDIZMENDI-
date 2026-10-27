@@ -297,6 +297,7 @@ export class Hub {
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
     this.root.dataset.screen = screen;
+    if (this.visible) this.sound?.setMood?.(screen === 'sports' ? 'torneos' : 'inicio');   // (Torneos, con su propia música)
     const m = $('#hMain', this.root);
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     m.dataset.cat = kc(screen);
@@ -941,6 +942,7 @@ export class Hub {
       <li>Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).</li>
       <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ríos y embalses © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Paisaje de los prismáticos en los miradores: relieve EU-DEM de Copernicus (Unión Europea), SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y ETOPO1 (NOAA, dominio público).</li>
+      <li>Músicas, público y gol: de Envato Elements, con licencia solo para este juego («Epic» de MrClaps y de MDFactory, «Game» de cinematic-alex, «Brazil Soccer crowd steady» de rhumphriesDC, «Crowd Cheering and Applauding» de GameChestAudio y «Football Goal» de WistanSound). No se pueden usar fuera del juego.</li>
       <li>Letras: Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>
       <li>Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:</li></ul>
       <p class="mit" data-notr>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></details>`;

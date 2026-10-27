@@ -461,7 +461,7 @@ export class FutbolMatch {
       case 'second': H.msg(TEXT.second, RU.foulLimit ? 'Se cambia de campo y las faltas vuelven a cero' : 'Se cambia de campo', 1800); if (RU.foulLimit) H.setFouls?.(0, 0, RU.foulLimit); break;
       case 'toPenalties': H.msg('¡Penaltis!', 'Empate: se decide en la tanda', 2400); break;
       case 'penTurn': this.penTurn(e); break;
-      case 'penResult': H.pens(e.log, g.pen.kicks); H.say(e.res === 'goal' ? (e.team === 0 ? '¡Gol!' : 'Gol del rival') : e.res === 'save' ? (e.team === 0 ? 'Lo ha parado el portero' : '¡Lo has parado!') : '¡Fuera!', 1500); if (e.res !== 'goal') (e.team === 1 ? A.roar(0.8) : A.groan()); else (e.team === 0 ? A.roar(0.9) : A.groan()); break;
+      case 'penResult': H.pens(e.log, g.pen.kicks); H.say(e.res === 'goal' ? (e.team === 0 ? '¡Gol!' : 'Gol del rival') : e.res === 'save' ? (e.team === 0 ? 'Lo ha parado el portero' : '¡Lo has parado!') : '¡Fuera!', 1500); if (e.res !== 'goal') (e.team === 1 ? A.roar(0.8) : A.groan()); else if (e.team === 0) { A.roar(0.9); A.gol(); } else A.groan(); break;
       case 'end': this.onEnd(e.result); break;
       case 'switch': { const p = g.players[e.p]; if (p && e.why !== 'pass' && p.team === 0) this.hud.say(`${p.num} · ${p.puesto || p.role}`, 900); break; }
       case 'gkCtl': if (e.on && e.hands) H.say('Tu portero tiene el balón: apunta y PASE para sacar con la mano, o mantén TIRO para un saque largo', 2600); else if (e.on) H.say('Llevas al portero: sin tocar el joystick se coloca solo. Con un tiro, elige lado y pulsa PASE o TIRO', 2600); break;
@@ -475,7 +475,7 @@ export class FutbolMatch {
     const mine = e.team === 0;
     H.msg(TEXT.goal, e.own ? 'En propia puerta' : `${mine ? this.home.name : this.away.name}: ${sc ? 'el ' + sc.num : ''}`, 3000, 'goal');
     // (El Sadar es de los tuyos: tu gol, el estallido y todo el estadio aplaudiendo; el del rival, el lamento)
-    if (mine) this.audio.roar(); else { this.audio.groan(); this.audio.clap(0.4); }
+    if (mine) { this.audio.roar(); this.audio.gol(); } else { this.audio.groan(); this.audio.clap(0.4); }
     this.field.cheer(true); this.cheerT = 3.2;
     this.goalAt = g.time; this.goalTeam = e.team;
   }
