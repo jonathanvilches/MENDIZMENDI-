@@ -255,35 +255,88 @@
 .filters button:hover { color: #fff; }
 .filters button.on { color: #fff; }
 .filters button.on::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }
-.towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 12px; }
-.tcard { position: relative; text-align: left; --tp-l: 20px; --tp-r: 16px; padding: 16px var(--tp-r) 16px var(--tp-l); border-radius: var(--r); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 22%, rgba(38, 24, 76, .75)), rgba(34, 12, 70, .84) 70%); border: 1px solid var(--line); transition: transform .15s, border-color .15s; display: flex; flex-direction: column; gap: 8px; }
-.tcard.has-cov { padding-top: 0; overflow: hidden; } .tcard .tcov { display: block; width: calc(100% + var(--tp-l) + var(--tp-r)); margin: 0 calc(-1 * var(--tp-r)) 2px calc(-1 * var(--tp-l));   /* (de borde a borde de la tarjeta, sea cual sea su relleno) */ aspect-ratio: 16 / 7; object-fit: cover; object-position: 50% 80%; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
-.tcard.has-cov .tstamp { top: auto; }
-.tcard::before { content: ''; position: absolute; left: 0; top: 16px; bottom: 16px; width: 3px; border-radius: 0 3px 3px 0; background: var(--c); }
-.tcard:hover { transform: translateY(-3px); border-color: var(--line2); }
-.tcard .thead { display: flex; gap: 8px; align-items: center; position: relative; } .tcard b { font-size: var(--fs-md); font-weight: 900; display: block; } .tcard small { color: var(--mute); font-size: var(--fs-sm); }
-.tcard p { flex: none; margin: 0; color: #d6cdea; font-size: var(--fs-sm); line-height: 1.45; font-weight: 600; }   /* (la descripción entera: son dos o tres líneas; antes se cortaba con puntos suspensivos) */
-.tcard .ticons { display: flex; gap: 4px; flex-wrap: wrap; } .tcard .ticons span { background: rgba(0, 0, 0, .25); border-radius: 8px; padding: 4px; display: grid; }
-.tcard .tstamp { position: absolute; right: -4px; top: -8px; width: 54px; transform: rotate(12deg); }
-.tcard.stamped { border-color: var(--cyan); box-shadow: 0 0 0 1px var(--cyan) inset; }
-.tcard .mini-prog { margin-top: 2px; }
+/* la fila de las comarcas, fija arriba al desplazarse: pastillas finas, y la comarca que se está viendo encendida */
+.tidx { position: sticky; top: 0; z-index: 3; gap: 4px; margin: 0 0 12px; padding: 8px 0; border-bottom: 0; transition: background .2s, box-shadow .2s; }
+.tidx.pegada { background: rgba(18, 6, 43, .97); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 16px rgba(6, 2, 16, .4); }
+.tidx button { min-height: 40px; padding: 4px 12px; border: 1px solid transparent; background: rgba(255, 255, 255, .05); font-size: var(--fs-xs); transition: color .15s, background .15s, border-color .15s; }
+.tidx button.on { background: rgba(255, 43, 214, .16); border-color: rgba(255, 43, 214, .55); }
+.tidx button.on::after { display: none; }
+@media (min-width: 900px) { .tidx { flex-wrap: nowrap; overflow-x: auto; } }   /* (una sola fila siempre: se corre con el dedo o sola) */
+/* cada comarca, su grupo: el nombre y sus sellos en una línea fina, sin marcos ni colores */
+.tgrp + .tgrp { margin-top: 24px; }
+.tg-h { margin: 0 0 8px; font: 800 var(--fs-sm)/1.2 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.tg-h small { display: block; margin-top: 4px; font: 700 var(--fs-xs)/1.2 Nunito, sans-serif; letter-spacing: 0; text-transform: none; color: var(--mute); }   /* (debajo del nombre: todas empiezan en el mismo sitio) */
+/* tarjetas de pueblo: todas iguales. La lámina entera (16:9) arriba, el nombre y una línea con las misiones; las filas,
+   tan altas como su tarjeta más alta, para que ninguna sea mayor que otra */
+.towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); grid-auto-rows: 1fr; gap: 12px; }
+.tcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 8px; text-align: left; border-radius: var(--r); background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); }
+.tcard .tc-img { position: relative; display: grid; place-items: center; flex: none; aspect-ratio: 16 / 9; overflow: hidden; border-radius: calc(var(--r) - 2px); background: #1c0b3a; color: var(--mute); }
+.tcard .tcov { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.tcard .tstamp { position: absolute; right: 8px; top: 8px; width: 40px; transform: rotate(12deg); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
+.tcard .tc-n { position: absolute; left: 8px; bottom: 8px; padding: 2px 8px; border-radius: 4px; background: rgba(10, 6, 24, .72); font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; font-style: normal; letter-spacing: .04em; color: #fff; }
+.tcard .tc-n.ok { color: var(--cyan); }
+.tcard .tc-nm { --nm: var(--fs-md); display: block; min-height: calc(var(--nm) * 1.2 + var(--fs-xs) * 1.3); font-size: var(--nm); font-weight: 800; line-height: 1.2; text-wrap: balance; }   /* (siempre el sitio de dos líneas: el nombre y el de la otra lengua) */
+.tcard .tc-nm small { display: block; font-size: var(--fs-xs); font-weight: 700; line-height: 1.3; color: var(--mute); }
+.tcard .ticons { margin-top: auto; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 18px); justify-content: start; gap: 4px; }   /* (siempre en una línea: si no caben, menguan) */
+.tcard .ticons i { display: grid; min-width: 0; height: 18px; opacity: .5; filter: grayscale(.6); } .tcard .ticons i.ok { opacity: 1; filter: none; }   /* (las hechas, encendidas) */
+.tcard .ticons :is(svg, img) { width: 100%; height: 100%; object-fit: contain; }   /* (más estrechos, no más bajos: la línea mide lo mismo en todas) */
+.tcard.stamped { border-color: rgba(201, 178, 255, .4); }
+@media (max-width: 560px) { .towns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .tcard .tc-nm { --nm: var(--fs-sm); } }
+@media (orientation: landscape) and (max-height: 520px) {
+  .towns { grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 8px; }
+  .tcard .tc-nm { --nm: var(--fs-sm); } .tcard .tstamp { width: 32px; }
+  .tgrp + .tgrp { margin-top: 16px; } .tidx { margin-bottom: 8px; padding: 4px 0; }
+}
 
-/* ficha de pueblo */
+/* ficha del pueblo: pequeña y ligera. La lámina entera arriba, el nombre y su presentación; debajo, las misiones en
+   filas finas y el botón para jugar. En horizontal, dos columnas: la lámina, el texto y el botón a la izquierda, y las
+   misiones y lo demás a la derecha, con su propio desplazamiento. Sin rayas de color de la comarca */
 .sheet { position: fixed; inset: 0; z-index: 30; background: rgba(6, 4, 12, .6); display: grid; place-items: center; padding: 16px; animation: fadein .2s; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
-.sheet-in { position: relative; width: min(700px, 100%); max-height: calc(92dvh / var(--z, 1)); display: flex; flex-direction: column; background: var(--plum); border-radius: var(--rL); overflow: hidden; border: 1px solid var(--line2); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
-.sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--c); z-index: 3; }
-.sheet .x { position: absolute; right: 12px; top: 12px; z-index: 2; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); border-radius: 50%; width: 40px; height: 40px; display: grid; place-items: center; }
-.sh-hero { padding: 56px 24px 16px; background: linear-gradient(180deg, transparent, var(--plum)), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #000), transparent), var(--bg) center/cover; }
-.sh-hero h1 { margin: var(--t-mt) 0 var(--t-mb); font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-3xl); line-height: 1; } .sh-hero p { margin: 0; color: #eae4f6; font-weight: 600; }
-.sh-body { padding: 4px 24px 8px; overflow-y: auto; touch-action: pan-y; }
-.sh-body h3 { display: flex; align-items: center; gap: 8px; color: var(--gold); font-size: var(--fs-xs); letter-spacing: .1em; text-transform: uppercase; }
-.mlist { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--hueco); }
-.mlist li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
-.mlist li div { flex: 1; } .mlist li b { display: block; } .mlist li small { color: var(--mute); }
-.mlist li.ok { background: rgba(194, 28, 255, .12); border-color: rgba(201, 178, 255, .45); }
-.plist { margin: 0; padding-left: 16px; color: var(--mute); font-weight: 600; } .plist li { margin-bottom: 8px; } .plist b { color: #fff; }
-.sh-foot { padding: 16px 24px calc(env(safe-area-inset-bottom, 0px) + 16px); border-top: 1px solid var(--line); }
-.sh-foot .btn { width: 100%; }
+.sheet-in { position: relative; width: min(560px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 32px); display: flex; flex-direction: column; overflow: hidden; background: var(--plum); border: 1px solid var(--line2); box-shadow: 0 24px 64px rgba(0, 0, 0, .55); animation: pop .25s cubic-bezier(.2, 1.3, .4, 1); }
+.sheet .x { position: absolute; right: 8px; top: 8px; z-index: 4; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 50%; background: rgba(10, 8, 16, .6); border: 1px solid var(--line2); }
+.sh-hero { flex: none; display: flex; flex-direction: column; min-height: 0; }
+.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: calc(34dvh / var(--z, 1)); object-fit: cover; object-position: 50% 80%; background: #1c0b3a; }
+.sh-hero .sh-txt { padding: 12px 16px 0; min-height: 0; }
+.sh-hero .kicker { margin: 0; font-size: var(--fs-xs); }
+.sh-hero h1 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-xl)/1 'MZ Display', 'Nunito', sans-serif; }
+.sh-intro { margin: 0 0 4px; color: #d6cdea; font-size: var(--fs-sm); line-height: 1.45; font-weight: 600; }   /* (en horizontal, encima de las misiones: a la izquierda solo la lámina, el nombre y el botón) */
+.sh-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 0 16px 12px; }
+.sh-body h3 { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.sh-body h3 span { color: var(--mute); letter-spacing: .04em; }
+.mlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.mlist li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(255, 255, 255, .04); }
+.mlist li > :first-child { flex: none; }
+.mlist li div { flex: 1; min-width: 0; } .mlist li b { display: block; font-size: var(--fs-sm); line-height: 1.25; } .mlist li small { display: block; color: var(--mute); font-size: var(--fs-xs); line-height: 1.3; }
+.mlist li.ok { background: rgba(194, 28, 255, .12); }
+.plist { margin: 0; padding-left: 16px; color: var(--mute); font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; } .plist li { margin-bottom: 8px; } .plist b { color: #fff; }
+.sh-foot { flex: none; padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 12px); border-top: 1px solid var(--line); }
+.sh-foot .btn { width: 100%; min-height: 44px; padding: 8px 16px; font-size: var(--fs-md); }
+/* en vertical, en el móvil: sube desde abajo, a lo ancho */
+@media (orientation: portrait) and (max-width: 760px) {
+  .sheet.pueblo { padding: 0; place-items: end center; }
+  .sheet.pueblo .sheet-in { width: 100%; max-height: calc(80dvh / var(--z, 1)); border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
+}
+/* en horizontal (móvil tumbado, iPad y ordenador): dos columnas */
+@media (orientation: landscape) and (min-width: 600px) {
+  .sheet { align-items: center; }   /* (también las otras ventanas: en medio, no pegadas abajo) */
+  /* (a la izquierda, la lámina, el nombre y justo debajo el botón; si no caben, la lámina y el nombre se desplazan) */
+  .sheet.pueblo .sheet-in { width: min(720px, 100%); max-height: min(480px, calc(calc(100dvh / var(--z, 1)) - 32px)); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, max-content) auto minmax(0, 1fr); }
+  .sh-hero { grid-column: 1; grid-row: 1; overflow-y: auto; overscroll-behavior: contain; }
+  .sh-hero .sh-cov { max-height: none; } .sh-hero .sh-txt { padding-bottom: 12px; }
+  .sh-body { grid-column: 2; grid-row: 1 / 4; padding: 16px; border-left: 1px solid var(--line); }
+  .sh-body > :first-child { margin-top: 0; margin-right: 36px; }   /* (sin meterse bajo la X) */
+  .sh-foot { grid-column: 1; grid-row: 2; padding: 4px 16px 16px; border-top: 0; }
+}
+/* el móvil tumbado: más estrecha y algo más pequeña */
+@media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) {
+  .sheet.pueblo .sheet-in { width: min(560px, 100%); max-height: min(320px, calc(calc(100dvh / var(--z, 1)) - 24px)); grid-template-columns: minmax(0, 40%) minmax(0, 1fr); }
+  .sh-hero .sh-txt { padding: 8px 12px; } .sh-hero h1 { font-size: var(--fs-lg); }
+  .sh-body { padding: 12px; } .sh-body h3 { margin: 16px 0 8px; }
+  .mlist li { padding: 8px; gap: 8px; }
+  .sh-foot { padding: 0 12px 12px; } .sh-foot .btn { min-height: 40px; font-size: var(--fs-sm); }
+}
+/* en el ordenador, con más aire entre las misiones */
+@media (min-width: 1200px) and (min-height: 700px) { .mlist { gap: 16px; } .sh-body h3 { margin-bottom: 12px; } }
 @keyframes pop { from { transform: scale(.94); opacity: 0; } }
 @keyframes fadein { from { opacity: 0; } }
 
@@ -471,11 +524,11 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .hub-nav button.on { background: none; }
   .hub-nav button.on::before { left: 28%; right: 28%; top: -4px; bottom: auto; width: auto; height: 3px; }
   .hub-main { grid-row: 2; padding: 16px 16px 32px; }
-  .towns, .peaks, .passport, .folk, .species, .badges, .avatars { gap: 16px; }
+  .peaks, .passport, .folk, .species, .badges, .avatars { gap: 16px; }
   .panel { padding: 16px 16px; } .two { gap: 16px; margin-top: 16px; } .sec { margin: 32px 0 16px; }
   .scard { padding: 16px 12px 16px; } .bcard { padding: 16px 12px; } .pcard { padding: 16px 16px; gap: 8px; }
   .sugg { gap: 8px; } .sg { padding: 16px 16px; } .clist button { padding: 12px 12px; }
-  .mlist li { padding: 12px 12px; } .cult { padding: 16px; }
+  .cult { padding: 16px; }
   .lead { line-height: 1.45; }
   .title { font-size: var(--fs-2xl); } .lead { font-size: var(--fs-sm); margin-bottom: 16px; }
   .hero { grid-template-columns: minmax(0, 1fr); grid-template-areas: "txt" "fig" "cta"; min-height: 0; padding: 20px 16px 16px; background: linear-gradient(180deg, rgba(12, 9, 20, .75) 0%, rgba(12, 9, 20, .15) 45%, rgba(12, 9, 20, .85) 100%), var(--bg) center/cover; }
@@ -489,13 +542,11 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .clist { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .chero { padding: 56px 16px 16px; gap: 16px; } .bigstamp { width: 84px; height: 84px; }
   .chero h1 { font-size: var(--fs-2xl); }
-  .towns, .peaks, .passport, .folk:not(.rail), .comarcas:not(.rail) { grid-template-columns: minmax(0, 1fr); }
+  .peaks, .passport, .folk:not(.rail), .comarcas:not(.rail) { grid-template-columns: minmax(0, 1fr); }
   .species, .badges { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .cname { font-size: var(--fs-4xl); }
   .prof { flex-direction: column; align-items: center; } .prof > img { height: 170px; }
   .sheet { padding: 0; place-items: end center; }
-  .sheet-in { width: 100%; max-height: calc(94dvh / var(--z, 1)); border-radius: var(--rL) var(--rL) 0 0; border-bottom: 0; animation: up .3s cubic-bezier(.2, 1, .3, 1); }
-  .sh-hero { padding: 56px 16px 16px; } .sh-hero h1 { font-size: var(--fs-2xl); } .sh-body { padding: 4px 16px 8px; } .sh-foot { padding-left: 16px; padding-right: 16px; }
   .onb-in { grid-template-columns: minmax(0, 1fr); grid-template-areas: "head" "stage" "side"; align-content: start; gap: 8px; }
   .onb .logo { font-size: var(--fs-4xl); } .onb .tag { font-size: var(--fs-xs); }
   .onb .cstrip { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
@@ -524,7 +575,6 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .map-wrap { grid-template-columns: minmax(0, 1fr) 240px; } .bigmap { max-height: calc(calc(100dvh / var(--z, 1)) - 110px); display: flex; justify-content: center; } .bigmap .navarra { width: auto; height: calc(calc(100dvh / var(--z, 1)) - 130px); max-width: 100%; }
   .chero { padding: 52px 20px 16px; } .bigstamp { width: 90px; height: 90px; }
   .cname { font-size: var(--fs-3xl); } .csel-info p { font-size: var(--fs-sm); }
-  .sheet-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px); } .sh-hero { padding: 44px 20px 8px; } .sh-hero h1 { font-size: var(--fs-xl); }
   .onb-in { grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); grid-template-areas: "stage head" "stage side"; align-content: center; gap: 8px 20px; }
   .onb-head { text-align: left; } .onb .logo { font-size: var(--fs-3xl); }
   .onb .cstrip { flex-wrap: nowrap; overflow-x: auto; }
@@ -1219,22 +1269,10 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
   .onb-foot > label { min-width: 0; }
   .onb-foot > .onb-age button { padding: 4px 8px; text-align: center; place-items: center; } .onb-foot > .onb-age button b { font-size: var(--fs-sm); line-height: 1.1; text-wrap: balance; }
   .onb .csel-info p { display: none; }
-  /* pueblos: tres columnas con portadas más bajas */
-  .towns { grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; }
-  .tcard.has-cov .tcov { aspect-ratio: 16 / 6; }
-  .tcard { --tp-l: 16px; --tp-r: 16px; padding: 12px var(--tp-r) 12px var(--tp-l); gap: 8px; } .tcard b { font-size: var(--fs-md); } .tcard p { font-size: var(--fs-sm); }
-  /* ficha del pueblo: imagen a la izquierda; misiones y botón a la derecha, siempre a la vista */
   .sheet { align-items: center; }
-  .sheet-in { width: min(920px, calc(calc(100vw / var(--z, 1)) - 24px)); max-height: calc(calc(100dvh / var(--z, 1)) - 16px); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; border-radius: 18px; }
-  .sh-hero { grid-row: 1 / 3; grid-column: 1; min-height: 0; padding: 16px 16px 16px; justify-content: flex-end; overflow-y: auto; }   /* (el texto entero: si no cabe, se desplaza) */
-  .sh-hero h1 { font-size: var(--fs-xl); } .sh-hero p { font-size: var(--fs-sm); }
-  .sh-body { grid-column: 2; grid-row: 1; padding: 12px 16px 8px; min-height: 0; }
-  .sh-foot { grid-column: 2; grid-row: 2; padding: 8px 16px calc(env(safe-area-inset-bottom, 0px) + 8px); }
-  .sheet-in > .x { z-index: 4; }
   /* dianas táctiles y textos pequeños */
   .fr-chip { min-height: 44px; padding: 8px 16px; }
   .set select { min-height: 44px; } .set input[type=checkbox] { width: 30px; height: 30px; }
-  .tcard small { font-size: var(--fs-xs); }
   /* (el texto «¿Cómo te llamas?» queda dentro del campo, para que el nombre tenga sitio) */
   .onb-foot > label { font-size: 0; gap: 0; } .onb-foot > label input { font-size: var(--fs-md); }
   .onb .langsel button { min-height: 44px; }
@@ -1252,8 +1290,6 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
   .hub-nav { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 4px); }
   .hub-main { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
   .sheet { padding: max(8px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); }
-  .sheet-in { max-height: calc(calc(100dvh / var(--z, 1)) - max(16px, env(safe-area-inset-bottom, 0px) + 8px)); }
-  .sheet:not(.more) .sheet-in { width: min(920px, 100%); }
   .onb { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 }
 /* muy poca altura (iPhone con la barra de Safari): la barra lateral, más apretada, para que quepan los seis botones */
@@ -1317,8 +1353,6 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
    degradado es siempre el mismo: oscuro y neutro solo detrás del texto, y la lámina con sus colores en el resto. */
 :root { --cov-side: linear-gradient(90deg, rgba(14, 7, 32, .84) 0%, rgba(14, 7, 32, .58) 28%, rgba(14, 7, 32, .16) 52%, rgba(14, 7, 32, 0) 66%);
   --cov-foot: linear-gradient(0deg, rgba(14, 7, 32, .72) 0%, rgba(14, 7, 32, 0) 42%); --cov-head: linear-gradient(180deg, rgba(14, 7, 32, .42) 0%, rgba(14, 7, 32, 0) 24%); }
-/* tarjetas de pueblo: la lámina entera; solo su borde de abajo se funde con la tarjeta */
-.tcard.has-cov .tcov { aspect-ratio: 16 / 9; object-position: 50% 50%; -webkit-mask: linear-gradient(180deg, #000 82%, transparent); mask: linear-gradient(180deg, #000 82%, transparent); }
 /* tarjetas de comarca */
 .ccard .cimg { background-size: cover; background-position: center 80%; opacity: 1; }
 .ccard .cimg::after { background: linear-gradient(180deg, transparent 55%, var(--plum) 100%); }
@@ -1342,26 +1376,6 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
   .chero .bigstamp { grid-column: 1; grid-row: 2; align-self: start; margin: -24px 0 16px 16px; width: 84px; }
   .chero > div { grid-column: 2; grid-row: 2; padding: 4px 16px 16px 12px; }
   .chero h1 { font-size: var(--fs-2xl); }
-}
-/* ficha del pueblo: la lámina entera arriba y, debajo, el nombre y la presentación */
-.sh-hero { padding: 0; background: none; display: flex; flex-direction: column; justify-content: flex-start; min-height: 0; flex: none; }   /* (en vertical no se encoge: las misiones bajan) */
-.sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: calc(42dvh / var(--z, 1)); object-fit: cover; object-position: 50% 80%; background: #1c0b3a;
-  -webkit-mask: linear-gradient(180deg, #000 84%, transparent); mask: linear-gradient(180deg, #000 84%, transparent); }
-.sh-hero .sh-txt { padding: 8px 24px 12px; min-height: 0; }
-.sh-hero .sh-txt .kicker { margin-top: 0; }
-@media (max-width: 760px) { .sh-hero .sh-txt { padding-left: 16px; padding-right: 16px; } }   /* (el mismo margen que las misiones y el botón de debajo) */
-/* en horizontal (iPhone tumbado e iPad): dos columnas, la lámina con su texto a la izquierda y las misiones a la derecha */
-@media (orientation: landscape) and (min-width: 600px) {
-  .sheet { align-items: center; }
-  .sheet-in { width: min(980px, calc(calc(100vw / var(--z, 1)) - 32px)); max-height: min(760px, calc(calc(100dvh / var(--z, 1)) - 16px)); display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .sh-hero { grid-row: 1 / 3; grid-column: 1; overflow-y: auto; border-right: 1px solid var(--line); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 14%, var(--plum)), var(--plum) 70%); }
-  .sh-hero .sh-cov { max-height: none; }
-  .sh-hero .sh-txt { padding: 8px 16px 16px; }
-  .sh-hero h1 { font-size: var(--fs-xl); }
-  .sh-hero p { font-size: var(--fs-sm); display: block; -webkit-line-clamp: unset; overflow: visible; }
-  .sh-body { grid-column: 2; grid-row: 1; padding: 16px 16px 8px; min-height: 0; }
-  .sh-foot { grid-column: 2; grid-row: 2; }
-  .sheet-in > .x { z-index: 4; }
 }
 /* tarjeta de comarca: su lámina entera, en 16:9, y el sello a caballo entre la lámina y el texto */
 .ccard { container-type: inline-size; }
@@ -1644,17 +1658,9 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
   .comarcas.rail::-webkit-scrollbar { display: none; } .comarcas.rail > * { scroll-snap-align: start; }
 }
 
-/* ================= Pueblos y pasaporte en el móvil tumbado =================
-   Cada pueblo, en horizontal: su foto a la izquierda y, a la derecha, el nombre, sus misiones y lo hecho, en dos
-   columnas (antes, una tarjeta casi de una pantalla de alto por pueblo). En el pasaporte, tres sellos por fila */
+/* ================= Pasaporte en el móvil tumbado =================
+   Tres sellos por fila */
 @media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) {
-  .towns { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 8px; }
-  .tcard.has-cov { display: grid; grid-template-columns: clamp(108px, 34%, 150px) minmax(0, 1fr); grid-auto-rows: auto; align-content: start; column-gap: 12px; row-gap: 6px; padding: 8px 12px 8px 8px; }
-  .tcard.has-cov > :not(.tcov) { grid-column: 2; }
-  .tcard.has-cov .tcov { grid-column: 1; grid-row: 1 / span 4; align-self: stretch; width: 100%; height: auto; min-height: 84px; margin: 0; aspect-ratio: auto; border-radius: 10px; object-position: 60% 50%; -webkit-mask: none; mask: none; }
-  .tcard.has-cov .thead > :is(svg, img):first-child { display: none; } .tcard.has-cov .tstamp { width: 40px; right: -6px; top: -4px; }
-  .tcard .ticons { gap: 3px; } .tcard .ticons span { padding: 2px; border-radius: 6px; } .tcard .ticons :is(svg, img) { width: 20px; height: 20px; }
-  .tcard::before { top: 8px; bottom: 8px; }
   .pstamps { grid-template-columns: repeat(auto-fill, minmax(min(100%, 96px), 1fr)); gap: 6px; margin-top: 8px; }
   .pst { min-height: 72px; padding: 6px 8px; } .ppage { padding: 12px; } .ppage header img { width: 48px; height: 48px; }
 }

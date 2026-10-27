@@ -20,7 +20,7 @@ const CSS = `
 .vm-btn{position:relative;justify-self:start;align-self:flex-start;width:auto;display:inline-flex;align-items:center;gap:4px;margin:8px 0;padding:4px 12px;min-height:30px;border-radius:999px;border:1px solid rgba(255,122,200,.4);background:rgba(255,255,255,.07);color:#ff9bd8;font:800 var(--fs-xs)/1 Nunito,system-ui,sans-serif;letter-spacing:.02em;cursor:pointer;pointer-events:auto}
 .vm-btn::after{content:'';width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:translateY(-2px) rotate(45deg);transition:transform .15s}
 .vm-btn[aria-expanded="true"]::after{transform:translateY(2px) rotate(-135deg)}
-li>.vm-btn{margin-top:0}
+li>.vm-btn{margin-top:8px}
 .vm-btn::before{content:'';position:absolute;inset:-8px -4px}
 `;
 let started = false;
@@ -39,8 +39,13 @@ export function startVerMas(root = document.body) {
       el.classList.remove('vm-clamp'); el.dataset.vm = 'ok'; return;
     }
     el.dataset.vm = 'ok';
+    // (en un elemento de lista, el botón va dentro: se pliega solo su texto, metido en una caja, y el botón queda debajo,
+    // a la vista; antes se plegaba la línea entera con el botón dentro y el botón salía recortado)
+    let t = el;
+    if (el.tagName === 'LI') { t = document.createElement('div'); t.className = 'vm-clamp'; t.style.setProperty('--vm-lines', el.style.getPropertyValue('--vm-lines'));
+      t.append(...el.childNodes); el.classList.remove('vm-clamp'); el.appendChild(t); }
     const b = document.createElement('button'); b.type = 'button'; b.className = 'vm-btn'; b.textContent = 'Ver más'; b.setAttribute('aria-expanded', 'false');
-    b.addEventListener('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); const open = el.classList.toggle('vm-open'); b.textContent = open ? 'Ver menos' : 'Ver más'; b.setAttribute('aria-expanded', String(open)); });
+    b.addEventListener('click', (ev) => { ev.stopPropagation(); ev.preventDefault(); const open = t.classList.toggle('vm-open'); b.textContent = open ? 'Ver menos' : 'Ver más'; b.setAttribute('aria-expanded', String(open)); });
     if (el.tagName === 'LI') el.appendChild(b); else el.after(b);
   };
   const apply = (el) => {

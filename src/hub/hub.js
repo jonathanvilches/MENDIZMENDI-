@@ -128,6 +128,32 @@ function fitMaps(root) {
   if (!fitMaps.on) { fitMaps.on = true; addEventListener('resize', () => fitMaps.root && requestAnimationFrame(() => fitMaps(fitMaps.root))); }
   fitMaps.root = root;
 }
+// la fila de comarcas de Pueblos, fija arriba: tocar una baja hasta sus pueblos y, al desplazarse, se enciende la que se
+// está viendo (y la fila se corre para tenerla a la vista). `ir`: la comarca con que se abre
+function indiceComarcas(m, ir) {
+  const bar = $('.tidx', m), B = [...bar.querySelectorAll('button')], G = [...m.querySelectorAll('.tgrp')];
+  let destino = null, hasta = 0;   // (mientras baja sola hasta una comarca tocada, no se cambia la encendida)
+  const marca = (id) => { for (const b of B) { const on = b.dataset.f === id; if (on === b.classList.contains('on')) continue; b.classList.toggle('on', on);
+    if (on) bar.scrollTo({ left: b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' }); } };
+  // (pegada al borde de arriba, sobre el relleno de la lista, y con fondo solo cuando está pegada)
+  const pega = () => { bar.style.top = -parseFloat(getComputedStyle(m).paddingTop) + 'px'; bar.classList.toggle('pegada', m.scrollTop > 0 && bar.getBoundingClientRect().top <= m.getBoundingClientRect().top + 1); };
+  // (cada grupo, justo debajo de la fila ya pegada arriba)
+  const baja = (id, suave) => { const g = G.find(x => x.dataset.c === id); if (!g) return; marca(id);
+    const y = m.scrollTop + enCss(g.getBoundingClientRect().top - m.getBoundingClientRect().top) - bar.offsetHeight - 8;
+    destino = Math.max(0, Math.min(Math.round(y), m.scrollHeight - m.clientHeight)); hasta = performance.now() + 2000;
+    m.scrollTo({ top: destino, behavior: suave ? 'smooth' : 'instant' }); if (!suave) pega(); };
+  B.forEach(b => b.onclick = (e) => { e.stopPropagation(); baja(b.dataset.f, true); });
+  m.onscroll = () => { pega();
+    if (destino != null) { if (Math.abs(m.scrollTop - destino) > 2 && performance.now() < hasta) return; destino = null; }
+    const y = m.getBoundingClientRect().top + bar.getBoundingClientRect().height + 16; let g = G[0]; for (const x of G) if (x.getBoundingClientRect().top <= y) g = x;
+    if (m.scrollTop + m.clientHeight >= m.scrollHeight - 4) g = G[G.length - 1];   // (abajo del todo, la última, aunque no llegue arriba)
+    marca(g.dataset.c); };
+  pega(); marca(G[0]?.dataset.c);
+  // (con una comarca pedida, se baja hasta ella cuando la página ya tiene sus letras y ha terminado de entrar: mientras
+  // sube, todo está algo más abajo)
+  const entra = [...m.children].flatMap(e => e.getAnimations?.() || []).map(a => a.finished.catch(() => {}));
+  if (ir && G.some(g => g.dataset.c === ir)) Promise.all([document.fonts?.ready, ...entra]).then(() => bar.isConnected && baja(ir, false));
+}
 function spark(profile, w = 160, h = 44) {
   if (!profile?.length) return '';
   const xs = profile.map(p => p[0]), ys = profile.map(p => p[1]);
@@ -274,7 +300,7 @@ export class Hub {
     const m = $('#hMain', this.root);
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
     m.dataset.cat = kc(screen);
-    cierraMapa(); m.innerHTML = this['s_' + screen](arg);
+    cierraMapa(); m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound);
@@ -550,16 +576,17 @@ export class Hub {
     </section>
     ${mts.length ? `<h2 class="sec">${I('peak', 30)} Cimas para subir</h2><section class="peaks">${mts.map(m => this.peakCard(m, dd ? null : LEVELS.find(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)))).join('')}</section>` : ''}`;
   }
+  // un pueblo: su lámina entera arriba (la misma medida en todas las tarjetas), con la cuenta de lo hecho en una esquina;
+  // debajo, el nombre (el otro, en la otra lengua, debajo y en pequeño) y una línea con un icono por misión, encendido si
+  // ya está hecha. La comarca la dice el grupo en que va; la presentación, su ficha
   townCard(l) {
-    const p = profile(), t = townProgress(p, l), c = comarca(l.comarca);
-    const types = (l.missions || []).map(m => m.type);
+    const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), hecho = p.towns[l.id]?.done || {};
+    const types = l.special ? ['visit', 'herd', 'legend', 'dance', 'observe', 'carnival'] : (l.missions || []).map(m => m.type);
     const cov = townCover(l.id, true);
-    return `<button class="tcard ${t.stamp ? 'stamped' : ''}${cov ? ' has-cov' : ''}" data-town="${l.id}" style="--c:${c?.color}">
-      ${cov ? `<img class="tcov" src="${cov}" alt="" loading="lazy" decoding="async">` : ''}
-      <div class="thead">${I(l.special ? 'castle' : ({ romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church?.style] || 'church'), 44)}<div><b>${esc(l.name)}</b><small>${esc(c?.name)}</small></div>${t.stamp ? `<img class="tstamp" src="${stampImg(l.comarca)}" alt="">` : ''}</div>
-      ${isDidactico() ? `<p>${esc(l.intro || '')}</p>` : ''}
-      <div class="ticons">${(l.special ? ['visit', 'herd', 'legend', 'dance', 'observe', 'carnival'] : types).map(ty => `<span title="${TYPE_NAME[ty]}">${I(TYPE_ICON[ty], 24)}</span>`).join('')}</div>
-      ${isDidactico() ? '' : `<div class="mini-prog"><div class="bar"><i style="width:${t.total ? t.done / t.total * 100 : 0}%"></i></div><span>${t.done}/${t.total}</span></div>`}</button>`;
+    return `<button class="tcard${t.stamp ? ' stamped' : ''}" data-town="${l.id}">
+      <span class="tc-img">${cov ? `<img class="tcov" src="${cov}" alt="" loading="lazy" decoding="async">` : I(l.special ? 'castle' : ({ fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church?.style] || 'church'), 48)}${t.stamp ? `<img class="tstamp" src="${stampImg(l.comarca)}" alt="">` : ''}${dd ? '' : `<i class="tc-n${t.done ? ' ok' : ''}">${t.done}/${t.total}</i>`}</span>
+      <b class="tc-nm">${esc(n1)}${n2 ? `<small>${esc(n2)}</small>` : ''}</b>
+      <span class="ticons">${types.map((ty, i) => `<i title="${TYPE_NAME[ty]}"${dd || hecho[i] ? ' class="ok"' : ''}>${I(TYPE_ICON[ty], 20)}</i>`).join('')}</span></button>`;
   }
   townSheet(id) {
     const l = levelById(id); if (!l) return;
@@ -569,18 +596,18 @@ export class Hub {
       : missionSlots(l, edadDe(p)).map(x => x.m);
     const title = (m) => m.title || (m.type === 'visit' ? `Conoce ${l.name}` : m.type === 'quiz' ? `El sabio de ${l.name}` : m.name || m.product || TYPE_NAME[m.type]);
     const lams = laminasDe({ town: l.id });
-    const s = el(`<div class="sheet"><div class="sheet-in" style="--c:${c?.color}">
-      <button class="x" aria-label="Cerrar">${I('close', 22)}</button>
-      <div class="sh-hero"><img class="sh-cov" src="${townImg(l)}" alt=""><div class="sh-txt"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1><p>${esc(l.intro || '')}</p></div></div>
-      <div class="sh-body">
-        <h3>${I('check', 24)} Misiones (${t.done}/${t.total})</h3>
-        <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(mIcon(m), 34)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 26) : ''}</li>`; }).join('')}</ul>
-        ${lams.length > 1 ? `<h3>${I('scroll', 24)} Láminas</h3>${laminaRail(lams)}` : ''}
-        ${armsOfTown(l.id) ? `<h3>${I('shield', 24)} Su escudo</h3><div class="sh-arms">${armsImg(armsOfTown(l.id).id) ? `<img class="sh-armimg" src="${armsImg(armsOfTown(l.id).id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas>`}<p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)}</p><button class="lnk" data-go="escudos">Ver todos los escudos</button></div>` : ''}
-        ${l.church ? `<h3>${I('church', 24)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}
+    const s = el(`<div class="sheet pueblo"><div class="sheet-in" role="dialog" aria-label="${esc(l.name)}">
+      <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
+      <div class="sh-hero"><img class="sh-cov" src="${townImg(l)}" alt=""><div class="sh-txt"><small class="kicker">${esc(c?.name)}</small><h1>${esc(l.name)}</h1></div></div>
+      <div class="sh-body">${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
+        <h3>${I('check', 18)} Misiones <span>${t.done}/${t.total}</span></h3>
+        <ul class="mlist">${ms.map((m, i) => { const k = l.missions?.includes(m) ? l.missions.indexOf(m) : i; return `<li class="${ts?.done?.[k] ? 'ok' : ''}">${I(mIcon(m), 26)}<div><b>${esc(title(m))}</b><small>${TYPE_NAME[m.type]}${m.host ? ' · con ' + esc(m.host.name) : ''}</small></div>${ts?.done?.[k] ? I('check', 18) : ''}</li>`; }).join('')}</ul>
+        ${lams.length > 1 ? `<h3>${I('scroll', 18)} Láminas</h3>${laminaRail(lams)}` : ''}
+        ${armsOfTown(l.id) ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms">${armsImg(armsOfTown(l.id).id) ? `<img class="sh-armimg" src="${armsImg(armsOfTown(l.id).id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, armsOfTown(l.id))) + 6}"></canvas>`}<p><b>${esc(armsOfTown(l.id).name)}.</b> ${esc(armsOfTown(l.id).read)}</p><button class="lnk" data-go="escudos">Ver todos los escudos</button></div>` : ''}
+        ${l.church ? `<h3>${I('church', 18)} Qué visitar</h3><ul class="plist"><li><b>${esc(l.church.name)}</b> ${esc(l.church.text)}</li>${(l.landmarks || []).map(x => `<li><b>${esc(x.name)}</b> ${esc(x.text)}</li>`).join('')}</ul>` : ''}
         ${REAL_IDS.includes(l.id) ? `<p class="sh-src"><span>Trazado real del pueblo</span>: ${esc(ATRIBUCION)}</p>` : ''}
       </div>
-      <div class="sh-foot"><button class="btn primary big" data-play="${l.id}">${I('play', 28)} <span>${t.done ? 'Seguir jugando' : 'Empezar a jugar'}</span></button></div></div></div>`);
+      <div class="sh-foot"><button class="btn primary" data-play="${l.id}">${I('play', 22)} <span>${t.done ? 'Seguir jugando' : 'Empezar a jugar'}</span></button></div></div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s); bindLaminas(s, this.sound);
     { const A = armsOfTown(l.id), c = s.querySelector('.sh-arms canvas'); if (A && c) drawOfficial(c.getContext('2d'), c.width / 2, 3, 90, A); }
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
@@ -593,12 +620,15 @@ export class Hub {
     this.entrando = true; vuelo.then(() => { this.entrando = false; this.onPlay?.(l, { desdeMapa: true }); }); }
 
   // ---------- Pueblos ----------
-  s_towns(filter = 'all') {
-    const list = LEVELS.filter(l => filter === 'all' || l.comarca === filter);
-    this.after = () => this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('towns', b.dataset.f); });
-    return `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1>${isDidactico() ? '<p class="lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>' : ''}
-      <div class="filters"><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
-      <section class="towns">${list.map(l => this.townCard(l)).join('')}</section>`;
+  // todos, por comarcas, en una sola lista; arriba, fija, la fila de las comarcas para saltar a la que se quiera (con
+  // `ir`, se abre ya en esa comarca)
+  s_towns(ir) {
+    const p = profile(), dd = isDidactico(), grupos = COMARCAS.map(c => ({ c, ts: comarcaTowns(c.id) })).filter(g => g.ts.length);
+    this.after = () => indiceComarcas($('#hMain', this.root), ir);
+    return `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1>${dd ? '<p class="lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>' : ''}
+      <nav class="filters tidx" aria-label="Comarcas">${grupos.map(({ c }) => `<button data-f="${c.id}">${esc(c.name)}</button>`).join('')}</nav>
+      ${grupos.map(({ c, ts }) => { const r = comarcaProgress(p, c.id); return `<section class="tgrp" data-c="${c.id}"><h2 class="tg-h">${esc(c.name)} <small>${dd ? cnt(ts.length, 'pueblo', 'pueblos') : `${r.stamps}/${r.towns} sellos`}</small></h2>
+        <div class="towns">${ts.map(l => this.townCard(l)).join('')}</div></section>`; }).join('')}`;
   }
 
   // ---------- Cimas ----------

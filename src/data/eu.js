@@ -335,7 +335,7 @@ export const EU_RX = [
   [/^Misión en (.+)$/, 'Misioa: $1'], [/^Jugar en (.+)$/, 'Jolastu: $1'], [/^Jugar con (.+)$/, 'Jolastu: $1'],
   [/^Has ganado (\d+) de (\d+)\.$/, '$2tik $1 irabazi dituzu.'],
   [/^(\d+) de (\d+) tocados$/, '$1/$2 jota'],
-  [/^(\d+) sellos?$/, '$1 zigilu'], [/^(\d+) (?:misión|misiones)$/, '$1 misio'], [/^(\d+) cartas?$/, '$1 karta'], [/^(\d+) cimas?$/, '$1 gailur'], [/^(\d+) especies?$/, '$1 espezie'],
+  [/^(\d+) sellos?$/, '$1 zigilu'], [/^(\d+) pueblos?$/, '$1 herri'], [/^(\d+) (?:misión|misiones)$/, '$1 misio'], [/^(\d+) cartas?$/, '$1 karta'], [/^(\d+) cimas?$/, '$1 gailur'], [/^(\d+) especies?$/, '$1 espezie'],
   [/^(\d+) estrellas?$/, '$1 izar'], [/^Te quedan? (\d+) (?:misión|misiones) para ganar el sello de (.+)\.$/, (m, n, t) => `${n} misio ${n === '1' ? 'falta zaizu' : 'falta zaizkizu'} ${loc(t)} zigilua irabazteko.`], [/^¡Una estrella! Tienes (\d+) estrellas$/, 'Izar bat! $1 izar dituzu'], [/^¡Tu primera estrella!$/, 'Zure lehen izarra!'],
   [/^Te faltan? (\d+) escudos?\. Busca casas grandes de piedra, con balcón de hierro\.$/, (m, n) => `${n} armarri ${n === '1' ? 'falta zaizu' : 'falta zaizkizu'}. Bilatu harrizko etxe handiak, burdinazko balkoiarekin.`],
   [/^(\d+)\/(\d+) cintas de Muskilda$/, 'Muskildako $1/$2 zinta'], [/^(\d+)\/(\d+) XP para el siguiente nivel$/, '$1/$2 XP hurrengo mailarako'],
