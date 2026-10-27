@@ -1,9 +1,9 @@
-// Icono y pantallas de arranque de la app instalada (la web). El icono dice de qué va el juego, explorar Navarra: el
-// explorador, con su mochila, de rodillas sobre el mapa y señalando (lámina del autor, src/assets/cimas/1536/ezkaba.webp),
-// y donde señala, Navarra como una pegatina con un marcador (el contorno de sus comarcas, src/data/comarcas.json, el
-// mismo del mapa del juego). Se compone en una página y se captura a 1024 px:
-//  · public/icon-180.png (iPhone y iPad), icon-192.png e icon-512.png, e icon-maskable-512.png (Android: con más
-//    paisaje alrededor y la pegatina más adentro, dentro de la zona que ningún recorte toca)
+// Icono y pantallas de arranque de la app instalada (la web). El icono es la ilustración del autor para la app
+// (tools/app/icono-herrizherri.png, 1254 × 1254): el protagonista corriendo sobre un pequeño mundo de Navarra con el
+// basajaun, los personajes del carnaval, el frontón, el puente y el cielo azul alrededor. De ella salen:
+//  · public/icon-180.png (iPhone y iPad), icon-192.png e icon-512.png: la ilustración entera; e icon-maskable-512.png
+//    (Android, que recorta el icono en círculo o en otras formas): la ilustración más pequeña, dentro de la zona que ningún
+//    recorte toca, sobre su mismo cielo desenfocado, para que no se corte el pelo del protagonista
 //  · el icono de la portada con la que arranca la página y el de la pestaña, dentro de index.html (#portada-app)
 //  · public/girar.webp: el rótulo «Gira la pantalla · Biratu pantaila» de la pantalla de girar (#girar-app en
 //    index.html), como imagen con la letra del juego: sale antes de que cargue la letra y es el mismo que el de la
@@ -11,44 +11,23 @@
 //  · public/splash/*.jpg: la pantalla de arranque del iPhone y del iPad de cada tamaño (src/web/splash.js). En horizontal,
 //    la misma portada de index.html; en vertical, la pantalla de girar (la app se juega en horizontal). Así al abrir la
 //    app no salta de una a otra
-// Los iconos de antes se guardan en tools/app/antes/, antes-busto/ y antes-isaba/ (no se borran). Uso: node tools/app-iconos.mjs
+// Los iconos de antes se guardan en tools/app/antes/, antes-busto/, antes-isaba/ y antes-explorador/ (no se borran).
+// Uso: node tools/app-iconos.mjs
 import { chromium } from 'playwright-core';
 import sharp from 'sharp';
-import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync, mkdtempSync, rmSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from 'node:fs';
 import { DISPOSITIVOS } from '../src/web/splash.js';
 
-const A = pathToFileURL(process.cwd() + '/src/assets/').href;
-const COM = JSON.parse(readFileSync('src/data/comarcas.json', 'utf8')), PATHS = COM.map(c => c.path).join(' ');
-// v: recorte cuadrado de la lámina (x, y, lado, sobre 1536 × 864) y sitio de la pegatina (nx, ny, ancho) en el icono de 1024
-// (la pegatina va en el hueco de arriba a la derecha, sin pisar al explorador: con aire hasta el pelo y hasta la punta del
-// dedo, y dentro de la esquina redondeada del icono del iPhone; en el de Android, dentro del círculo que ningún recorte toca)
-const ICONO = { x: 100, y: 250, side: 480, nx: 715, ny: 34, nw: 280 };
-const ANDROID = { x: 30, y: 160, side: 680, nx: 620, ny: 160, nw: 170 };
-const nav = (v) => `<svg class="nav" viewBox="-20 -20 765 820" style="left:${v.nx}px;top:${v.ny}px;width:${v.nw}px">
-  <defs><linearGradient id="gf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5ad0"/><stop offset=".55" stop-color="#c21cff"/><stop offset="1" stop-color="#6a2bf0"/></linearGradient>
-  <filter id="sh" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#12062e" flood-opacity=".55"/></filter></defs>
-  <g filter="url(#sh)"><path d="${PATHS}" fill="#fff" stroke="#fff" stroke-width="44" stroke-linejoin="round"/></g>
-  <path d="${PATHS}" fill="url(#gf)" stroke="url(#gf)" stroke-width="2" stroke-linejoin="round"/>
-  ${COM.map(c => `<path d="${c.path}" fill="none" stroke="rgba(255,255,255,.38)" stroke-width="3" stroke-linejoin="round"/>`).join('')}
-  <g transform="translate(367 283) scale(1.8)"><ellipse cx="0" cy="4" rx="26" ry="9" fill="rgba(18,6,46,.45)"/>
-    <path d="M0 0 C-14 -26 -46 -52 -46 -92 A46 46 0 1 1 46 -92 C46 -52 14 -26 0 0 Z" fill="#fff" stroke="#12062e" stroke-opacity=".18" stroke-width="3"/>
-    <circle cx="0" cy="-92" r="22" fill="#ff2bd6"/></g>
-</svg>`;
-const iconPage = (v) => { const k = 1024 / v.side; return `<!doctype html><meta charset="utf-8"><style>html,body{margin:0;width:1024px;height:1024px;overflow:hidden;background:#12062e}
-  .bg{position:absolute;left:${-v.x * k}px;top:${-v.y * k}px;width:${1536 * k}px;height:${864 * k}px;background:url(${A}cimas/1536/ezkaba.webp) 0 0/100% 100%;filter:saturate(1.05) contrast(1.03)}
-  .tint{position:absolute;inset:0;background:linear-gradient(200deg,rgba(120,60,255,.45) 0%,rgba(194,28,255,0) 45%,rgba(30,10,68,.55) 100%);mix-blend-mode:multiply}
-  .vig{position:absolute;inset:0;background:radial-gradient(80% 80% at 45% 50%,rgba(0,0,0,0) 55%,rgba(18,6,46,.5) 100%)}
-  .nav{position:absolute;overflow:visible}</style><div class="bg"></div><div class="tint"></div><div class="vig"></div>${nav(v)}`; };
+const ORIGEN = 'tools/app/icono-herrizherri.png';
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
-const tmp = mkdtempSync(join(tmpdir(), 'icono-'));
-async function icon(v) {
-  const f = join(tmp, 'icono.html'); writeFileSync(f, iconPage(v));
-  const p = await (await b.newContext({ viewport: { width: 1024, height: 1024 } })).newPage();
-  await p.goto(pathToFileURL(f).href); await p.waitForTimeout(400);   // (la lámina va de fondo: se espera a que esté)
-  const png = await p.screenshot({ type: 'png' }); await p.context().close(); return png;
+// (para Android: la zona segura es el círculo central del 80 %; la ilustración, al 80 % y centrada, con el borde fundido en
+// un círculo suave sobre un cielo del mismo azul que el suyo: sin ninguna raya donde se juntan)
+async function maskable(n) {
+  const fondo = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${n}" height="${n}"><defs><linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#078cfd"/><stop offset="1" stop-color="#3aaefd"/></linearGradient><radialGradient id="l" cx=".5" cy=".42" r=".6"><stop offset="0" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><rect width="${n}" height="${n}" fill="url(#c)"/><rect width="${n}" height="${n}" fill="url(#l)"/></svg>`);
+  const k = Math.round(n * 0.8), r = k / 2;
+  const funde = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${k}" height="${k}"><defs><radialGradient id="g"><stop offset=".86" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs><circle cx="${r}" cy="${r}" r="${r * 1.04}" fill="url(#g)"/></svg>`);
+  const dentro = await sharp(ORIGEN).resize(k, k, { kernel: 'lanczos3' }).ensureAlpha().composite([{ input: funde, blend: 'dest-in' }]).png().toBuffer();
+  return sharp(fondo).composite([{ input: dentro, left: (n - k) >> 1, top: (n - k) >> 1 }]).png({ compressionLevel: 9 }).toBuffer();
 }
 
 mkdirSync('tools/app/antes', { recursive: true }); mkdirSync('public/splash', { recursive: true });
@@ -56,9 +35,11 @@ for (const f of ['icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) if (e
 // (y los del 2026-10-13: el busto del protagonista sobre morado, que ya están en antes-busto/, y el protagonista en Isaba)
 mkdirSync('tools/app/antes-isaba', { recursive: true });
 for (const f of ['icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) if (existsSync(`public/${f}`) && !existsSync(`tools/app/antes-isaba/${f}`)) copyFileSync(`public/${f}`, `tools/app/antes-isaba/${f}`);
-const big = await icon(ICONO);
+mkdirSync('tools/app/antes-explorador', { recursive: true });
+for (const f of ['icon-180.png', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png']) if (existsSync(`public/${f}`) && !existsSync(`tools/app/antes-explorador/${f}`)) copyFileSync(`public/${f}`, `tools/app/antes-explorador/${f}`);
+const big = await sharp(ORIGEN).resize(1024, 1024, { kernel: 'lanczos3' }).png().toBuffer();
 for (const n of [180, 192, 512]) await sharp(big).resize(n, n, { kernel: 'lanczos3' }).png({ compressionLevel: 9 }).toFile(`public/icon-${n}.png`);
-await sharp(await icon(ANDROID)).resize(512, 512, { kernel: 'lanczos3' }).png({ compressionLevel: 9 }).toFile('public/icon-maskable-512.png');
+writeFileSync('public/icon-maskable-512.png', await maskable(512));
 // la portada de index.html y la pestaña: el icono dentro de la página (también va en el archivo único)
 const uri = async (n, q) => 'data:image/webp;base64,' + (await sharp(big).resize(n, n, { kernel: 'lanczos3' }).webp({ quality: q }).toBuffer()).toString('base64');
 let html = readFileSync('index.html', 'utf8');
@@ -97,5 +78,5 @@ for (const [id, w, h, d] of DISPOSITIVOS) for (const [o, W, H] of [['v', w, h], 
   const buf = await p.screenshot({ type: 'jpeg', quality: 88 }); writeFileSync(`public/splash/${id}-${o}.jpg`, buf); n++; bytes += buf.length;
   await ctx.close();
 }
-await b.close(); rmSync(tmp, { recursive: true, force: true });
+await b.close();
 console.log(`iconos 180, 192, 512 y maskable · portada, rótulo de girar e icono de la pestaña en index.html · ${n} pantallas de arranque · ${(bytes / 1048576).toFixed(1)} MB`);
