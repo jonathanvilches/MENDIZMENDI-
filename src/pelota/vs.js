@@ -10,7 +10,7 @@ import { enCss } from '../util/tele.js';
 
 const CSS = `
 /* (la gama y las letras van aquí también: el fútbol se puede abrir solo, sin el resto del juego) */
-.pvs{--v0:#07020f;--v2:#1e0a44;--azul:#5b4bff;--azul2:#24127a;--rojo:#ff2e88;--rojo2:#6e0b4c;--lila:#c9b2ff;--rosa:#ff7ac8;--fx:#ff2bd6;--fx2:#c21cff;--cta:linear-gradient(100deg,#ff2bd6 0%,#c21cff 55%,#7b2ff7 100%);--f-display:'MZ Display',Nunito,system-ui,sans-serif;--f-cond:'MZ Cond',Nunito,system-ui,sans-serif;
+.pvs{--v0:#07020f;--v2:#1e0a44;--azul:#5b4bff;--azul2:#24127a;--rojo:#ff2e88;--rojo2:#6e0b4c;--lila:#c9b2ff;--rosa:#ff7ac8;--fx:#ff2bd6;--fx2:#c21cff;--cta:linear-gradient(100deg,#ff2bd6 0%,#c21cff 55%,#7b2ff7 100%);--f-display:'MZ Display','MZ Texto',system-ui,sans-serif;--f-cond:'MZ Cond','MZ Texto',system-ui,sans-serif;
   position:fixed;inset:0;z-index:2000;overflow:hidden;pointer-events:auto;cursor:pointer;color:#fff;font-family:var(--f-cond);background:var(--v0);animation:pvs-in .2s ease-out both}
 .pvs.shake{animation:pvs-shake .42s cubic-bezier(.36,.07,.19,.97) both}
 .pvs-side{position:absolute;top:0;bottom:0;width:60%;overflow:hidden}

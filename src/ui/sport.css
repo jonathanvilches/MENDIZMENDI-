@@ -9,8 +9,9 @@
 @font-face { font-family: 'MZ Cond'; font-style: normal; font-weight: 651 900; font-display: swap;
   src: url('../../node_modules/@fontsource/barlow-condensed/files/barlow-condensed-latin-800-normal.woff2') format('woff2'); }
 :root {
-  --f-display: 'MZ Display', 'Nunito', system-ui, sans-serif;
-  --f-cond: 'MZ Cond', 'Nunito', system-ui, sans-serif;
+  --f-display: 'MZ Display', 'MZ Texto', system-ui, sans-serif;
+  --f-cond: 'MZ Cond', 'MZ Texto', system-ui, sans-serif;
+  --f-ui: 'MZ Texto', system-ui, sans-serif;
   /* morados (del casi negro al violeta eléctrico), lila para los textos secundarios, fucsia y rosa para destacar */
   --v0: #07020f; --v1: #12052a; --v2: #1e0a44; --v3: #31106b; --v4: #4c1a9e; --v5: #7b2ff7;
   --lila: #c9b2ff; --lila2: #9d86d6; --fx: #ff2bd6; --fx2: #c21cff; --rosa: #ff7ac8; --hot: #ff2e88;
@@ -36,7 +37,6 @@
 
 /* ---------- títulos y rótulos */
 .gx-kick { display: inline-flex; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--rosa); }
-.gx-kick::before { content: ''; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
 
 /* ---------- botón principal: paralelogramo fucsia con brillo que pasa */
 .gx-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 28px; border: 0; border-radius: 6px;
@@ -102,7 +102,6 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 #hub .ar-head h1 { font: 400 var(--fs-hero)/1 var(--f-display); text-transform: uppercase; letter-spacing: .01em; }
 @media (orientation: landscape) and (max-height: 560px) { #hub .ar-head h1 { font-size: var(--fs-xl); } }
 #hub .sec { font-family: var(--f-cond); font-weight: 800; letter-spacing: .12em; }
-#hub .sec::after { content: ''; flex: 1; height: 2px; margin-left: 8px; background: linear-gradient(90deg, rgba(255, 43, 214, .6), transparent); }
 /* botones: el mismo sistema en todo el juego (menú, pueblo, ventanas y deportes). El principal, en la letra de rótulos
    grandes y en mayúsculas sobre el degradado, con los lados inclinados; los demás, en la letra estrecha en mayúsculas
    sobre cristal, con las esquinas casi rectas, como los de los torneos. El rótulo se parte en dos líneas antes que

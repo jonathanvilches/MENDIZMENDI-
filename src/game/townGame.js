@@ -31,11 +31,12 @@ import MOUNTAINS from '../data/mountains.json';
 import { viewFrom } from '../data/panorama.js';
 import { buildAgro } from '../world/agro.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
-import { greet, weatherNow } from './saludo.js';
+import { greet, weatherNow, kaixo } from './saludo.js';
+import { enCss } from '../util/tele.js';
 import { nextWord, reviewWord, choicesFor, nextHizketa, HITZ_TXT } from '../data/hitzak.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
-import { makeTrailSign, makeSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
+import { makeTrailSign, makeSignpost, makeTownSignpost, makeBalizas, signSVG, ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from './senales.js';
 import { FOOD, foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
 import { Mercado, marketDay } from './mercado.js';
@@ -325,6 +326,8 @@ export class TownGame {
     }
     // la tienda del pueblo (productos locales, producto estrella y trueque)
     try { this.tienda = new Tienda(this); } catch (e) { console.warn('tienda', e); }
+    // los postes indicadores: en la plaza y, si se llega lejos de ella, también donde se aparece
+    try { this.carteles(); } catch (e) { console.warn('carteles', e); }
     // (antes que los vecinos: la compra se hace en ella)
     // los vecinos: cada uno con su tarea del día (ir a misa, la compra, la charla en la plaza, jugar a pillar, la fuente,
     // el pan, el paseo), con sus paradas y lo que hace en cada una; nadie pasea porque sí (rutinas.js)
@@ -668,6 +671,7 @@ export class TownGame {
       const dd = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z); if (dd < 14 && !a.saludo) { a.saludo = true; a.wave = 2.2; } else if (dd > 30) a.saludo = false;
     }
     for (const f of this.folk) this.updateFolk(f, dt);
+    if (this.mode === 'play') this.bocadillos(dt); if (this._boc?.capa) this._boc.capa.hidden = this.mode !== 'play';   // (en los vídeos, los diálogos y los minijuegos, sin bocadillos)
     // objetos
     for (const it of this.items) {
       const o = it.obj; o.visible = Math.abs(it.x - P.pos.x) + Math.abs(it.z - P.pos.z) < 120;
@@ -763,6 +767,52 @@ export class TownGame {
     }
     if (this.fronton) out.push({ x: this.fronton.entry.x, z: this.fronton.entry.z, icon: 'pelota', small: true, title: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true });
     return out;
+  }
+  // Bocadillos de los vecinos: al pasar junto a uno que va por la calle, te dice algo corto encima de la cabeza, en euskera
+  // y a la hora que es («Egun on!», «Kaixo!», «Zer moduz?»…), como en una plaza de verdad. Dos a la vez como mucho y
+  // cada vecino, una vez por minuto; se van solos a los dos segundos y medio
+  bocadillos(dt) {
+    const P = this.player.pos, cam = this.camera, B = this._boc ||= { t: 0, on: [], capa: null };
+    B.t += dt;
+    if (!B.capa) { B.capa = document.createElement('div'); B.capa.className = 'boc-capa'; document.body.appendChild(B.capa); }
+    if (B.on.length < 2 && !this.ui.busy) for (const a of this.walkers) {
+      if (B.on.length >= 2 || !a.pos || (a.bocT && B.t - a.bocT < 60) || B.on.some(o => o.a === a)) continue;
+      const d = Math.hypot(a.pos.x - P.x, a.pos.z - P.z); if (d > 6 || d < 1.2) continue;
+      const k = kaixo(this), frases = [k + '!', 'Kaixo!', 'Zer moduz?', 'Aupa!', k + '!', 'Ongi etorri!'];
+      const el = document.createElement('div'); el.className = 'boc'; el.textContent = frases[Math.floor(this.rnd() * frases.length)];
+      B.capa.appendChild(el); a.bocT = B.t; B.on.push({ a, el, t: 0 });
+    }
+    for (const o of B.on) {
+      o.t += dt; const a = o.a, q = _to.set(a.pos.x, (a.pos.y ?? groundHeight(a.pos.x, a.pos.z)) + 2.25, a.pos.z).project(cam);
+      const fuera = q.z > 1 || Math.abs(q.x) > 1.1 || Math.abs(q.y) > 1.1;
+      o.el.style.transform = `translate(${enCss((q.x + 1) / 2 * innerWidth).toFixed(1)}px, ${enCss((1 - q.y) / 2 * innerHeight).toFixed(1)}px) translate(-50%, -100%)`;   // (en la tele, con la interfaz ampliada)
+      o.el.classList.toggle('fuera', fuera || o.t > 2.5);
+      if (o.t > 2.9) o.el.remove();
+    }
+    B.on = B.on.filter(o => o.t <= 2.9);
+  }
+  // Postes indicadores del pueblo: desde la plaza (y desde donde se llega, si queda lejos), una tablilla hacia cada sitio
+  // que importa, con su nombre y su distancia: el frontón, la iglesia, la tienda, la pista y dos monumentos. Lo más
+  // cerca, arriba; nada a menos de 20 m (se ve) ni a más de 400 (no se va andando)
+  carteles() {
+    if (this.def.bosque) return;
+    // (los nombres largos, por palabra entera y sin acabar en «de los», «del» o «y»)
+    const corto = (n) => { n = tr(n); if (n.length <= 18) return n; n = n.slice(0, 18).replace(/\s+\S*$/, ''); while (/\s(de|del|la|las|los|el|y|eta)$/i.test(n)) n = n.replace(/\s\S+$/, ''); return n; };
+    const dest = [];
+    if (this.fronton) dest.push({ name: tr('Frontón'), p: this.fronton.entry || this.fronton.spot });
+    if (TOWN.church) dest.push({ name: corto(this.def.church?.label || 'Iglesia'), p: TOWN.church.door || PLACES.church });
+    if (this.tienda?.pos) dest.push({ name: tr('Tienda'), p: this.tienda.pos });
+    if (this.pista?.center) dest.push({ name: tr('Pista'), p: this.pista.center });
+    for (const l of TOWN.landmarks.filter(l => l.spot && !['wall', 'house', 'stelae', 'cross'].includes(l.kind)).slice(0, 3)) dest.push({ name: corto(l.name), p: l.spot });
+    const pon = (c) => {
+      const at = this.spot(c, 4), y = groundHeight(at.x, at.z);
+      const sitios = dest.filter(d => d.p).map(d => ({ name: d.name, dist: Math.hypot(d.p.x - at.x, d.p.z - at.z), ang: Math.atan2(d.p.x - at.x, d.p.z - at.z) }))
+        .filter(s => s.dist > 20 && s.dist < 400).sort((a, b) => a.dist - b.dist).slice(0, 5);
+      if (sitios.length < 2) return;
+      const g = makeTownSignpost(sitios); g.position.set(at.x, y, at.z); this.scene.add(g); (this._carteles ||= []).push(g);
+    };
+    pon({ x: PLACES.plaza.x + 6, z: PLACES.plaza.z + 6 });
+    if (PLACES.spawn && Math.hypot(PLACES.spawn.x - PLACES.plaza.x, PLACES.spawn.z - PLACES.plaza.z) > 45) pon({ x: PLACES.spawn.x + 3, z: PLACES.spawn.z + 3 });
   }
   mapLabels() {
     const L = [{ x: PLACES.plaza.x, z: PLACES.plaza.z - 18, label: this.def.name }];
@@ -2573,6 +2623,8 @@ export class TownGame {
     document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg, .cartel').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
     if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
+    for (const c of this._carteles || []) c.userData.dispose?.();
+    this._boc?.capa?.remove();
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
     if (this.ui.onDialogLine) this.ui.onDialogLine = null; this.ui.onMiniHit = null; if (this.ui.stage3d?.show) this.ui.stage3d = null;
     this.flora?.dispose(); document.querySelectorAll('.mg-overlay, .dogpick, .bagpanel').forEach(o => o.remove()); this.ui.closeModal?.(); this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }

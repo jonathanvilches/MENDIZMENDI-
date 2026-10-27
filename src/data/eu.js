@@ -12,6 +12,8 @@ export const EU_EXACT = {
   'Seres de leyenda': 'Kondairako izakiak', 'Carnavales': 'Inauteriak', 'Quién es': 'Nor den', 'Cómo viste': 'Nola janzten den', 
   'Los seres de las leyendas de Navarra, tal como salen de noche en el juego. Toca uno para leer su ficha.': 'Nafarroako kondairetako izakiak, jokoan gauez agertzen diren bezala. Ukitu bat bere fitxa irakurtzeko.',
   'Los personajes de los carnavales de Navarra, con el traje de verdad de cada pueblo.': 'Nafarroako inauterietako pertsonaiak, herri bakoitzaren benetako jantziarekin.',
+  // los postes indicadores de los pueblos (game/senales.js)
+  'Frontón': 'Frontoia', 'Tienda': 'Denda', 'Pista': 'Kantxa',
   'Inicio': 'Hasiera', 'Mapa': 'Mapa', 'Pueblos': 'Herriak', 'Personajes': 'Pertsonaiak', 'Cimas': 'Gailurrak', 'Naturaleza': 'Natura',
   'Insignias': 'Intsigniak', 'Pasaporte': 'Pasaportea', 'Perfil': 'Profila', 'Más': 'Gehiago', 'Más secciones': 'Atal gehiago',
   'Montañas de Navarra con su perfil': 'Nafarroako mendiak eta haien profila', 'Fauna, árboles, plantas y flores': 'Fauna, zuhaitzak, landareak eta loreak',

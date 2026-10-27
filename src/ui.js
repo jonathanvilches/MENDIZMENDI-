@@ -21,7 +21,7 @@ const I = (n, s = 22) => iconSVG(n, s);
 const ICON = {
   book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.2)"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#ff7ac8"/></g></svg>',
   map: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 5.6l6.2-2.4 6.6 2.4 6.2-2.4v15.2l-6.2 2.4-6.6-2.4-6.2 2.4z" fill="#fff"/><path d="M8.7 3.2v15.2M15.3 5.6v15.2" fill="none" stroke-width="1.2"/><path d="M5 15.5c2-2.4 4.4-.5 6.4-2.6s3.4-3.6 5.6-2.8" fill="none" stroke="#8a2be2" stroke-width="1.6" stroke-dasharray="1.8 1.4" stroke-linecap="round"/><path d="M18 3.8a2.6 2.6 0 00-2.6 2.6c0 1.9 2.6 4.4 2.6 4.4s2.6-2.5 2.6-4.4A2.6 2.6 0 0018 3.8z" fill="#ff5a4e"/></svg>',
-  menu: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.4" stroke-linejoin="round" fill="#fff"><rect x="3.5" y="4.6" width="17" height="3.4" rx="1.7"/><rect x="3.5" y="10.3" width="17" height="3.4" rx="1.7"/><rect x="3.5" y="16" width="17" height="3.4" rx="1.7"/></svg>',
+  menu: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.4" stroke-linejoin="round" fill="#fff"><rect x="6" y="4.5" width="4.4" height="15" rx="1.6"/><rect x="13.6" y="4.5" width="4.4" height="15" rx="1.6"/></svg>',
   bino: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 5.4a2 2 0 013.9 0l.8 7H3.9zM14.1 12.4l.8-7a2 2 0 013.9 0l1.3 7z" fill="#fff"/><path d="M9.6 10.4h4.8v3.2H9.6z" fill="#e3d6ff"/><circle cx="6.6" cy="15.6" r="4.4" fill="#fff"/><circle cx="17.4" cy="15.6" r="4.4" fill="#fff"/><circle cx="6.6" cy="15.6" r="2.4" fill="#7fd6ff"/><circle cx="17.4" cy="15.6" r="2.4" fill="#7fd6ff"/></svg>',
   // controles: glifos macizos con contorno oscuro (se leen sobre hierba, cielo o piedra)
   run: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"><g transform="translate(0.25 0.55)"><path d="M.9 9.4h4.2M.4 13h3.6M1.2 16.6h3" fill="none" stroke="#ff7ac8" stroke-width="2.3"/><path d="M9 2.4h5.4a.9.9 0 01.9.9v6.9c0 .6.3 1.1.8 1.4l3.2 1.9a4.9 4.9 0 012.4 4.2v.5H6.6c-.1-1.7.3-3.3.9-4.8L7.9 3.4c.1-.6.5-1 1.1-1z" fill="#fff"/><path d="M6.6 18.2h16.1v1.3a1 1 0 01-1 1H7.6a1 1 0 01-1-1z" fill="#ff7ac8"/><path d="M7.8 5.6h7.5M14 11.4l2-1.5M16 12.8l2-1.5" fill="none" stroke-width="1.3"/></g></svg>',
@@ -41,7 +41,8 @@ const ICON = {
 // prismáticos, cuaderno, correr, saltar, y en el botón de acción la mano, hablar, beber, mirar (la lupa) y pelota.
 // Si faltara alguno, se queda el dibujo de antes.
 { const IMG = (n) => { const u = icon3DReady(n); return u ? `<img class="hico" src="${u}" alt="" aria-hidden="true">` : null; };
-  for (const [k, n] of [['map', 'map'], ['menu', 'menu'], ['bino', 'binoculars'], ['book', 'book'], ['run', 'run'], ['jump', 'jump'], ['hand', 'hand'], ['talk', 'talk'], ['wave', 'hand'], ['drop', 'water'], ['look', 'zoom_in'], ['pelota', 'pelota']]) ICON[k] = IMG(n) || ICON[k]; }
+  // (el menú del pueblo es la pausa del juego: con su icono de pausa, no con las tres rayas de una página web)
+  for (const [k, n] of [['map', 'map'], ['menu', 'pause'], ['bino', 'binoculars'], ['book', 'book'], ['run', 'run'], ['jump', 'jump'], ['hand', 'hand'], ['talk', 'talk'], ['wave', 'hand'], ['drop', 'water'], ['look', 'zoom_in'], ['pelota', 'pelota']]) ICON[k] = IMG(n) || ICON[k]; }
 
 export class UI {
   constructor(input, sound) {
@@ -118,7 +119,7 @@ export class UI {
           <button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
           <button class="round" id="bBook" aria-label="Cuaderno (C)">${ICON.book}</button>
           <button class="round" id="bMap" aria-label="Mapa (M)">${ICON.map}</button>
-          <button class="round" id="bMenu" aria-label="Menú (Esc)">${ICON.menu}</button>
+          <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
         <div id="mini"><canvas width="248" height="248"></canvas><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
       </div>

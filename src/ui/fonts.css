@@ -7,3 +7,10 @@
 @font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 800; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-800-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Nunito'; font-style: normal; font-display: swap; font-weight: 900; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-900-normal.woff2') format('woff2'); }
 @font-face { font-family: 'Nunito'; font-style: italic; font-display: swap; font-weight: 700; src: url('../../node_modules/@fontsource/nunito/files/nunito-latin-700-italic.woff2') format('woff2'); }
+/* La letra de los textos del juego: Barlow (licencia OFL), de la familia de la de los títulos y las cifras, más limpia y
+   tecnológica que la redonda de antes. Los pesos se agrupan en tres para que pese poco: los textos (hasta 650), los
+   rótulos y las negritas (hasta 850) y lo más grueso. (Nunito sigue para lo que se dibuja en los lienzos 3D.) */
+@font-face { font-family: 'MZ Texto'; font-style: normal; font-display: swap; font-weight: 100 650; src: url('../../node_modules/@fontsource/barlow/files/barlow-latin-500-normal.woff2') format('woff2'); }
+@font-face { font-family: 'MZ Texto'; font-style: normal; font-display: swap; font-weight: 651 850; src: url('../../node_modules/@fontsource/barlow/files/barlow-latin-600-normal.woff2') format('woff2'); }
+@font-face { font-family: 'MZ Texto'; font-style: normal; font-display: swap; font-weight: 851 1000; src: url('../../node_modules/@fontsource/barlow/files/barlow-latin-700-normal.woff2') format('woff2'); }
+@font-face { font-family: 'MZ Texto'; font-style: italic; font-display: swap; font-weight: 100 1000; src: url('../../node_modules/@fontsource/barlow/files/barlow-latin-600-italic.woff2') format('woff2'); }

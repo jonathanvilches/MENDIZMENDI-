@@ -83,14 +83,14 @@ function card(p, lang) {
 }
 
 const CSS = `
-.pfx{position:fixed;inset:0;z-index:30010;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 16px);background:rgba(10,4,24,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;font-family:Nunito,system-ui,sans-serif;color:#f6f3fc;animation:pfxIn .18s ease-out}
+.pfx{position:fixed;inset:0;z-index:30010;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 16px);background:rgba(10,4,24,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;font-family:'MZ Texto',system-ui,sans-serif;color:#f6f3fc;animation:pfxIn .18s ease-out}
 @keyframes pfxIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
 .pfx-card{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;border-radius:4px;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.22),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 75%);border:1px solid rgba(201,178,255,.25);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pfx-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .pfx-top{display:flex;align-items:center;gap:12px}
 .pfx-top>small{flex:1;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0}
 .pfx-tabs{flex:1;display:flex;gap:8px;min-width:0;overflow-x:auto}
-.pfx-tabs button{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1 Nunito,system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px}
+.pfx-tabs button{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1 'MZ Texto',system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px}
 .pfx-tabs button i{width:8px;height:8px;border-radius:50%;background:#5b4bff}.pfx-tabs button i.red{background:#ff2e88}
 .pfx-tabs button[aria-selected=true]{background:var(--cta);border-color:transparent}
 .pfx-x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);display:grid;place-items:center;cursor:pointer}
@@ -120,7 +120,7 @@ const CSS = `
 /* tarjeta de un pelotari (en el partido y en el torneo): al tocarla se abre su ficha */
 .pfx-pl{display:flex;align-items:center;gap:8px;min-width:0;min-height:48px;padding:4px 8px 4px 4px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;text-align:left;font:inherit;cursor:pointer}
 .pfx-pl.blue{border-color:rgba(74,163,255,.55)}.pfx-pl.red{border-color:rgba(255,106,74,.55)}.pfx-pl:active{transform:translateY(1px)}
-.pfx-pl-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-md);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
+.pfx-pl-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display','MZ Texto',sans-serif;font-weight:400;font-size:var(--fs-md);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
 .pfx-pl.blue .pfx-pl-av{background:linear-gradient(180deg,#2a6fe0,#17419e)}.pfx-pl.red .pfx-pl-av{background:linear-gradient(180deg,#d9412a,#9c1f17)}
 /* (con cara: el retrato de tu avatar o la cabeza de la figura del pelotari, en vez de la inicial) */
 .pfx-pl-av.img{position:relative;overflow:hidden;width:48px;height:48px}.pfx-pl-av.img>img{position:absolute;left:50%;transform:translateX(-50%)}.pfx-pl-av.img>img:not(.pf){top:0;width:100%;height:100%;object-fit:cover}.pfx-pl-av.img>img.pf{top:4%;height:330%;width:auto;max-width:none}

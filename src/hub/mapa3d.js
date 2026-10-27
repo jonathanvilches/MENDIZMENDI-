@@ -421,7 +421,7 @@ export function mapa3d(host, o) {
     lab.innerHTML = `${!vivo && o.icono ? `<i>${o.icono('lock')}</i>` : c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name)}</b>`;
     // (y su sitio en el mapa, sin encoger: el hueco que deja)
     const Ph = P.map(([x, y]) => W(cx + (x - cx) * 1.022, cy + (y - cy) * 1.022));
-    return { ...c, vivo, Pw, Ph, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07 };
+    return { ...c, vivo, Pw, Ph, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
   });
   // el hueco de Navarra en el mapa de España: oscuro, bajo las comarcas (entre una y otra queda una raya oscura que las
   // separa, y alrededor, un borde). Va con lo transparente, después del suelo de alrededor y antes que lo demás
@@ -649,7 +649,7 @@ export function mapa3d(host, o) {
     // el mapa, de la pantalla entera a su sitio en el menú poco a poco, mientras aparecen la barra y la cabecera: antes,
     // de golpe, se veía el salto. Se mide dónde va (en su sitio del menú), se deja a pantalla entera y se le da ese sitio
     // (inicio.css lo lleva con una transición); al llegar, vuelve a su sitio de siempre, que es el mismo
-    const main = CINE.id === 'hub' ? CINE.querySelector('.hub-main') : null;
+    const main = CINE.id === 'hub' && !CINE.classList.contains('juego') ? CINE.querySelector('.hub-main') : null;   // (jugando, el mapa ya está siempre a toda la pantalla)
     CINE.classList.remove('m3-cine');
     if (main) {
       const L = main.offsetLeft, T = main.offsetTop, R = CINE.clientWidth - L - main.offsetWidth, B = CINE.clientHeight - T - main.offsetHeight;
@@ -1267,15 +1267,17 @@ export function mapa3d(host, o) {
         if (!c.solto && sube > 0.03) { c.solto = true; terr.anillo(c, 1.2, 1.6); }
         if (!c.posada && tl > 0) { c.posada = true; terr.anillo(c, 2.6, 1.9); }
       }
-      const quiere = (hover === 'c:' + c.id ? 0.45 : 0) + (sel === c.id ? 0.9 : 0);
-      c.lift += (quiere - c.lift) * (1 - Math.exp(-dt * 10));
+      // (solo la elegida se levanta; la de debajo del ratón solo se aclara: si se levantaba, dejaba de estar debajo del
+      // puntero, bajaba y volvía a subir, y el mapa daba saltos al pasar por encima)
+      c.lift += ((sel === c.id ? 0.9 : 0) - c.lift) * (1 - Math.exp(-dt * 10));
+      c.hov += ((hover === 'c:' + c.id ? 1 : 0) - c.hov) * (1 - Math.exp(-dt * 12));
       // (con otra elegida, pasa al fondo: más baja, oscura y casi gris, y su agua y su borde casi no se ven)
       c.fondo += ((sel && sel !== c.id ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6));
-      // (crece del suelo al empezar; se levanta con sus sellos, al pasar por encima y al elegirla)
+      // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.7 - c.gris) * c.fondo;
-      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.55 * c.fondo)
+      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.55 * c.fondo)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.8 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.7 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.8 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
@@ -1336,7 +1338,8 @@ export function mapa3d(host, o) {
   function medirTapas(now) {
     tapas.t = now; tapas.r = []; if (!o.tapa) return;
     const b = host.getBoundingClientRect(), k = escala() || 1;
-    for (const e of host.querySelectorAll(o.tapa)) { if (e.hidden || !e.offsetParent) continue; const r = e.getBoundingClientRect(); if (!r.width) continue;
+    // (también lo que el menú pone encima del mapa, fuera de él: el botón del menú y tu ficha)
+    for (const e of (host.closest('#hub') || host).querySelectorAll(o.tapa)) { if (e.hidden || !e.offsetParent) continue; const r = e.getBoundingClientRect(); if (!r.width) continue;
       tapas.r.push([(r.left - b.left) / k, (r.top - b.top) / k, (r.right - b.left) / k, (r.bottom - b.top) / k]); }
   }
   // (cada nombre aparece y se va fundiéndose, y el que ya se ve guarda su sitio con algo de margen: al mover el mapa, los que

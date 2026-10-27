@@ -54,7 +54,7 @@
 .ap-steps .ap-me { border-radius: 22%; overflow: hidden; box-shadow: 0 0 0 1px rgba(255, 255, 255, .12); }
 .ap-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .ap-steps li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; border-radius: 14px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
-.ap-steps .ap-n { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 Nunito, sans-serif; }
+.ap-steps .ap-n { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; }
 .ap-steps .ap-g { flex: none; width: 36px; height: 36px; color: #fff; } .ap-steps .ap-g svg { width: 100%; height: 100%; }
 .ap-steps b { display: block; font-size: var(--fs-md); line-height: 1.2; } .ap-steps small { color: var(--mute); font-size: var(--fs-sm); }
 .ap-row { display: flex; gap: 8px; margin-top: 4px; } .ap-row a.btn { text-decoration: none; color: #fff; } .ap-row .btn { flex: 1; min-height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; } .ap-row .btn svg { width: 22px; height: 22px; flex: none; }
@@ -102,17 +102,16 @@
 @keyframes rise { from { opacity: 0; transform: translateY(14px); } }
 
 /* tipografía */
-.title { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 2px 0 var(--t-mb); display: flex; align-items: center; gap: 12px; color: #fff; letter-spacing: 0; text-shadow: 0 3px 0 rgba(0, 0, 0, .3); }
+.title { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 2px 0 var(--t-mb); display: flex; align-items: center; gap: 12px; color: #fff; letter-spacing: 0; }
 /* (el icono del título, nunca más alto que la letra: si no, alarga la línea y el texto de debajo queda más lejos que en
    las demás pantallas) */
 .title > :is(svg, img) { flex: none; width: min(36px, 1em); height: min(36px, 1em); }
 .lead { color: var(--mute); max-width: 720px; margin: 0 0 20px; font-weight: 600; font-size: var(--fs-sm); }
 .sec { display: flex; align-items: center; gap: 8px; margin: calc(var(--esp) + 16px) 0 var(--hueco-m); font-size: var(--fs-sm); font-weight: 900; letter-spacing: .1em; text-transform: uppercase; color: var(--ink); }
-.sec::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); }
 .panel > .sec:first-child { margin-top: 0; }
-/* rótulo: el de las fichas en todo el juego (raya inclinada y letra estrecha en rosa), en su propia línea */
+/* rótulo: el de las fichas en todo el juego (letra estrecha en mayúsculas espaciadas, en rosa), en su propia línea; sin
+   la raya de delante */
 .kicker { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: 8px; margin: 0; color: var(--rosa, #ff7ac8); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
-.kicker::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
 .kicker > svg { display: none; }
 .hint { color: var(--dim); font-size: var(--fs-sm); font-weight: 600; }
 .empty { color: var(--mute); }
@@ -125,10 +124,8 @@
 .btn.big { font-size: var(--fs-lg); padding: 16px 24px; }
 .btn.small { min-height: 40px; padding: 8px 16px; font-size: var(--fs-sm); }
 .btn.ghost { background: rgba(10, 8, 16, .35); }
-.btn.primary { color: #fff; border: 0; background: linear-gradient(100deg, #ff2bd6 0%, #c21cff 55%, #7b2ff7 100%); box-shadow: 0 4px 0 var(--gold-d), 0 10px 26px rgba(255, 43, 214, .28), inset 0 1px 0 rgba(255, 255, 255, .6); text-shadow: 0 1px 0 rgba(255, 255, 255, .45); }
+.btn.primary { color: #fff; border: 0; background: linear-gradient(135deg, #ff3fcf 0%, #9c3bff 100%); box-shadow: 0 8px 22px rgba(194, 28, 255, .22); }
 .btn.primary:hover { filter: brightness(1.06); }
-.btn.primary::after { content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%; background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .5), transparent); transform: skewX(-20deg); animation: shine 3.4s ease-in-out infinite; }
-@keyframes shine { 0%, 60% { left: -60%; } 100% { left: 130%; } }
 .btn.danger { background: rgba(255, 99, 71, .18); border-color: var(--tomato); color: #ffd9d2; }
 
 /* paneles y tarjetas */
@@ -141,7 +138,7 @@
 /* ---------- Inicio ---------- */
 .hero { position: relative; display: grid; grid-template-columns: 1.3fr 1fr; grid-template-areas: "txt fig" "cta fig"; align-items: end; column-gap: 20px; min-height: 360px; border-radius: var(--rL); overflow: hidden; padding: 32px 32px;
   background: linear-gradient(90deg, rgba(12, 9, 20, .9) 0%, rgba(12, 9, 20, .55) 50%, rgba(12, 9, 20, .05) 100%), var(--bg) center/cover; border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 0, 0, .45); }
-.hero h1 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 8px 0 12px; text-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
+.hero h1 { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 8px 0 12px; text-shadow: 0 4px 0 rgba(0, 0, 0, .3); }
 .hero p { color: #eae4f6; max-width: 500px; font-weight: 600; margin: 0; }
 .mini-prog { display: flex; align-items: center; gap: 8px; flex-basis: 100%; font-size: var(--fs-sm); color: var(--mute); }
 .mini-prog .bar, .tprog .bar { flex: 1; max-width: 260px; height: 6px; background: rgba(255, 255, 255, .12); border-radius: 6px; overflow: hidden; }
@@ -231,7 +228,7 @@
 /* ---------- Comarca ---------- */
 .chero { position: relative; display: grid; grid-template-columns: auto 1fr; gap: 24px; align-items: center; padding: 64px 32px 24px; border-radius: var(--rL); overflow: hidden;
   background: linear-gradient(90deg, color-mix(in srgb, var(--c) 85%, #000) 0%, color-mix(in srgb, var(--c) 45%, transparent) 55%, transparent 100%), linear-gradient(0deg, rgba(0, 0, 0, .35), transparent 50%), var(--bg) center/cover; border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0, 0, 0, .4); }
-.chero h1 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: var(--t-mt) 0 var(--t-mb); text-shadow: 0 3px 0 rgba(0, 0, 0, .3); }
+.chero h1 { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: var(--t-mt) 0 var(--t-mb); text-shadow: 0 3px 0 rgba(0, 0, 0, .3); }
 .chero p { margin: 0; color: #fff; opacity: .9; }
 .bigstamp { width: 130px; height: 130px; object-fit: contain; filter: drop-shadow(0 8px 12px rgba(0, 0, 0, .5)); }
 /* (el sello de la comarca dentro de un aro que se llena con sus sellos, como en el mapa del inicio) */
@@ -248,39 +245,39 @@
 .nchip { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 12px 4px 8px; border-radius: 20px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); font-size: var(--fs-sm); }
 
 /* ---------- Pueblos ---------- */
-.filters { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--line); touch-action: pan-x; }
+.filters { display: flex; gap: 4px; margin-bottom: 16px; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
 .filters::-webkit-scrollbar { display: none; }
 @media (min-width: 900px) { .filters { flex-wrap: wrap; overflow-x: visible; } }   /* (con sitio, en dos filas si hace falta: ninguna pestaña cortada por el borde) */
-.filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px 12px; background: none; font-weight: 800; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; }
+/* (las pestañas: solo texto; la elegida, en una cápsula de cristal con borde fino. Sin rayas debajo: antes, la línea de
+   la fila, la de la pestaña y la del color de la sección se sumaban) */
+.filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; background: none; font-weight: 600; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; transition: color .15s, background .15s, border-color .15s; }
 .filters button:hover { color: #fff; }
-.filters button.on { color: #fff; }
-.filters button.on::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -1px; height: 3px; border-radius: 3px 3px 0 0; background: var(--c, var(--cyan)); box-shadow: 0 0 10px var(--c, var(--cyan)); }
+.filters button.on { color: #fff; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .16); }
 /* la fila de las comarcas, fija arriba al desplazarse: pastillas finas, y la comarca que se está viendo encendida */
 .tidx { position: sticky; top: 0; z-index: 3; gap: 4px; margin: 0 0 12px; padding: 8px 0; border-bottom: 0; transition: background .2s, box-shadow .2s; }
 .tidx.pegada { background: rgba(18, 6, 43, .97); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 16px rgba(6, 2, 16, .4); }
-.tidx button { min-height: 40px; padding: 4px 12px; border: 1px solid transparent; background: rgba(255, 255, 255, .05); font-size: var(--fs-xs); transition: color .15s, background .15s, border-color .15s; }
-.tidx button.on { background: rgba(255, 43, 214, .16); border-color: rgba(255, 43, 214, .55); }
-.tidx button.on::after { display: none; }
+.tidx button { min-height: 40px; padding: 4px 14px; font-size: var(--fs-xs); }
 @media (min-width: 900px) { .tidx { flex-wrap: nowrap; overflow-x: auto; } }   /* (una sola fila siempre: se corre con el dedo o sola) */
 /* cada comarca, su grupo: el nombre y sus sellos en una línea fina, sin marcos ni colores */
 .tgrp + .tgrp { margin-top: 24px; }
-.tg-h { margin: 0 0 8px; font: 800 var(--fs-sm)/1.2 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
-.tg-h small { display: block; margin-top: 4px; font: 700 var(--fs-xs)/1.2 Nunito, sans-serif; letter-spacing: 0; text-transform: none; color: var(--mute); }   /* (debajo del nombre: todas empiezan en el mismo sitio) */
+.tg-h { margin: 0 0 8px; font: 800 var(--fs-sm)/1.2 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.tg-h small { display: block; margin-top: 4px; font: 700 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: 0; text-transform: none; color: var(--mute); }   /* (debajo del nombre: todas empiezan en el mismo sitio) */
 /* tarjetas de pueblo: todas iguales. La lámina entera (16:9) arriba, el nombre y una línea con las misiones; las filas,
    tan altas como su tarjeta más alta, para que ninguna sea mayor que otra */
 .towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); grid-auto-rows: 1fr; gap: 12px; }
-.tcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 8px; text-align: left; border-radius: var(--r); background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .07); }
-.tcard .tc-img { position: relative; display: grid; place-items: center; flex: none; aspect-ratio: 16 / 9; overflow: hidden; border-radius: calc(var(--r) - 2px); background: #1c0b3a; color: var(--mute); }
+.tcard { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 0 0 4px; text-align: left; border-radius: var(--r); background: none; border: 0; }
+.tcard .tcov { transition: transform .4s cubic-bezier(.2, .9, .3, 1); } .tcard:hover .tcov, .tcard:focus-visible .tcov { transform: scale(1.04); }
+.tcard .tc-img { position: relative; display: grid; place-items: center; flex: none; aspect-ratio: 16 / 9; overflow: hidden; border-radius: var(--r); background: #1c0b3a; color: var(--mute); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
 .tcard .tcov { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .tcard .tstamp { position: absolute; right: 8px; top: 8px; width: 40px; transform: rotate(12deg); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
-.tcard .tc-n { position: absolute; left: 8px; bottom: 8px; padding: 2px 8px; border-radius: 4px; background: rgba(10, 6, 24, .72); font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; font-style: normal; letter-spacing: .04em; color: #fff; }
+.tcard .tc-n { position: absolute; left: 8px; bottom: 8px; padding: 2px 8px; border-radius: 4px; background: rgba(10, 6, 24, .72); font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; font-style: normal; letter-spacing: .04em; color: #fff; }
 .tcard .tc-n.ok { color: var(--cyan); }
 .tcard .tc-nm { --nm: var(--fs-md); display: block; min-height: calc(var(--nm) * 1.2 + var(--fs-xs) * 1.3); font-size: var(--nm); font-weight: 800; line-height: 1.2; text-wrap: balance; }   /* (siempre el sitio de dos líneas: el nombre y el de la otra lengua) */
 .tcard .tc-nm small { display: block; font-size: var(--fs-xs); font-weight: 700; line-height: 1.3; color: var(--mute); }
 .tcard .ticons { margin-top: auto; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 18px); justify-content: start; gap: 4px; }   /* (siempre en una línea: si no caben, menguan) */
 .tcard .ticons i { display: grid; min-width: 0; height: 18px; opacity: .5; filter: grayscale(.6); } .tcard .ticons i.ok { opacity: 1; filter: none; }   /* (las hechas, encendidas) */
 .tcard .ticons :is(svg, img) { width: 100%; height: 100%; object-fit: contain; }   /* (más estrechos, no más bajos: la línea mide lo mismo en todas) */
-.tcard.stamped { border-color: rgba(201, 178, 255, .4); }
+.tcard.stamped .tc-img { box-shadow: inset 0 0 0 1px rgba(201, 178, 255, .45); }
 @media (max-width: 560px) { .towns { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; } .tcard .tc-nm { --nm: var(--fs-sm); } }
 @media (orientation: landscape) and (max-height: 520px) {
   .towns { grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 8px; }
@@ -298,10 +295,10 @@
 .sh-hero .sh-cov { display: block; flex: none; width: 100%; aspect-ratio: 16 / 9; max-height: calc(34dvh / var(--z, 1)); object-fit: cover; object-position: 50% 80%; background: #1c0b3a; }
 .sh-hero .sh-txt { padding: 12px 16px 0; min-height: 0; }
 .sh-hero .kicker { margin: 0; font-size: var(--fs-xs); }
-.sh-hero h1 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-xl)/1 'MZ Display', 'Nunito', sans-serif; }
+.sh-hero h1 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-xl)/1 'MZ Display', 'MZ Texto', sans-serif; }
 .sh-intro { margin: 0 0 4px; color: #d6cdea; font-size: var(--fs-sm); line-height: 1.45; font-weight: 600; }   /* (en horizontal, encima de las misiones: a la izquierda solo la lámina, el nombre y el botón) */
 .sh-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 0 16px 12px; }
-.sh-body h3 { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.sh-body h3 { display: flex; align-items: center; gap: 8px; margin: 16px 0 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
 .sh-body h3 span { color: var(--mute); letter-spacing: .04em; }
 .mlist { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .mlist li { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: rgba(255, 255, 255, .04); }
@@ -427,7 +424,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .hub-nav button span { max-width: 100%; overflow-x: clip; overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; }   /* (se recorta solo a lo ancho: lo que baja de la línea, como la «j» de «Personajes», se ve entero) */ .prof > img { height: 240px; filter: drop-shadow(0 12px 14px rgba(0, 0, 0, .5)); }
 .prof > div { flex: 1 1 220px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .prof label, .onb label { display: flex; flex-direction: column; gap: 8px; color: var(--mute); font-size: var(--fs-sm); letter-spacing: .04em; text-transform: uppercase; font-weight: 900; }
-.prof input, .onb input { font: 800 var(--fs-lg) 'Nunito', sans-serif; letter-spacing: 0; text-transform: none; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(0, 0, 0, .35); color: #fff; outline: none; -webkit-user-select: text; user-select: text; width: 100%; }
+.prof input, .onb input { font: 800 var(--fs-lg) 'MZ Texto', sans-serif; letter-spacing: 0; text-transform: none; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--line2); background: rgba(0, 0, 0, .35); color: #fff; outline: none; -webkit-user-select: text; user-select: text; width: 100%; }
 .prof input:focus, .onb input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(201, 178, 255, .25); }
 .xp.big { height: 10px; border-radius: 10px; background: rgba(255, 255, 255, .12); overflow: hidden; margin: 8px 0 4px; }
 .pstats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; } .pstats span { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); }
@@ -452,7 +449,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .mg-overlay.ctxlost { z-index: 30000; }   /* (el aviso de la imagen perdida o del partido que no carga, encima de todo: del fútbol, de la pelota y del fundido negro;
    antes quedaba debajo y solo se veía la pantalla negra) */
 .mg-card { width: min(560px, 100%); max-height: calc(94dvh / var(--z, 1)); overflow-y: auto; background: linear-gradient(180deg, #32136f, #1c0b3a); border-radius: var(--rL); padding: 24px; text-align: center; color: #f7f0e6; border: 1px solid rgba(255, 244, 228, .22); box-shadow: 0 30px 80px rgba(0, 0, 0, .6); animation: pop .3s cubic-bezier(.2, 1.3, .4, 1); display: flex; flex-direction: column; gap: 12px; align-items: center; }
-.mg-card h2 { margin: 0; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; } .mg-card p { margin: 0; color: #eae4f6; font-weight: 600; }
+.mg-card h2 { margin: 0; font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; } .mg-card p { margin: 0; color: #eae4f6; font-weight: 600; }
 .mg-card .btn { min-width: 220px; min-height: 50px; }
 .mg-top { display: flex; gap: 12px; align-items: center; text-align: left; align-self: stretch; } .mg-top h3 { margin: 0; font-size: var(--fs-xl); } .mg-top small { color: #c4b8a8; }
 /* fichas de información (planta, animal, lugar, misión cumplida, escudo): ver src/ui/infocard.css */
@@ -599,7 +596,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .story:has(.st-img) { grid-template-columns: auto minmax(0, .8fr) minmax(0, 1.3fr); }
 .st-img { display: block; height: 132px; width: auto; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); }
 .story h2 { text-shadow: 0 2px 10px rgba(0, 0, 0, .7); }
-.story h2 { margin: var(--t-mt) 0 var(--t-mb); font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; }
+.story h2 { margin: var(--t-mt) 0 var(--t-mb); font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-xl); line-height: 1; }
 .story p { margin: 0; color: var(--mute); font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; }
 .hsteps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--hueco); counter-reset: st; }
 .hsteps li { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 12px 8px 12px; border-radius: 14px; background: rgba(20, 6, 48, .55); border: 1px solid var(--line); counter-increment: st; min-width: 0; }
@@ -764,7 +761,7 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .pbadge { display: inline-flex; gap: 8px; align-items: center; font-weight: 900; font-size: var(--fs-sm); color: #c9b2ff; }
 /* ================= Intro cinemática ================= */
 .langsel { display: inline-flex; margin-top: 8px; padding: 4px; border-radius: 24px; background: rgba(255, 255, 255, .1); border: 1px solid var(--line2); gap: 4px; }
-.langsel button { min-height: 40px; padding: 8px 16px; border-radius: 20px; font: 900 var(--fs-sm) 'Nunito', sans-serif; color: var(--mute); background: none; border: 0; cursor: pointer; }
+.langsel button { min-height: 40px; padding: 8px 16px; border-radius: 20px; font: 900 var(--fs-sm) 'MZ Texto', sans-serif; color: var(--mute); background: none; border: 0; cursor: pointer; }
 .langsel button.on { background: #ff7ac8; color: #2a0638; }
 /* barra lateral: los nombres completos caben sin cortarse (Naturaleza, Personajes, Pasaporte) */
 .hub-nav button span { font-family: var(--f-cond); font-weight: 700; font-size: var(--fs-sm); letter-spacing: .02em; }   /* (la letra de los botones del juego: estrecha, los nombres largos en euskera caben con aire) */
@@ -820,7 +817,6 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .bp-sec { display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 24px; align-items: center; min-width: 0; padding: 24px 0; border-top: 1px solid rgba(201, 178, 255, .16); }
 .bp-sec:first-child { padding-top: 0; border-top: 0; } .bp-sec:last-child { padding-bottom: 0; }
 .bagpanel h4 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
-.bagpanel h4::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: var(--cta); transform: skewX(-20deg); }
 .bp-line { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; min-width: 0; }
 .bp-line .bp-grp { display: flex; flex-wrap: wrap; gap: 16px; }
 /* (ir con perro o sin él: como las pestañas de las fichas, la elegida en el degradado) */
@@ -873,14 +869,14 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .castlelist b { display: block; font-size: var(--fs-sm); color: #ff7ac8; }
 
 /* ---------- Encierro ---------- */
-.enc-hud { position: fixed; inset: 0; pointer-events: none; z-index: 40; font-family: Nunito, sans-serif; color: #fff; }
+.enc-hud { position: fixed; inset: 0; pointer-events: none; z-index: 40; font-family: 'MZ Texto', sans-serif; color: #fff; }
 .enc-top { position: absolute; top: max(12px, env(safe-area-inset-top)); left: 16px; right: 16px; display: flex; gap: 16px; align-items: center; }
 .enc-hearts { display: flex; gap: 8px; } .enc-hearts span { width: 26px; height: 26px; border-radius: 50%; background: rgba(0, 0, 0, .35); border: 2px solid rgba(255, 255, 255, .5); }
 .enc-hearts span.on { background: #d42f2f; border-color: #fff; box-shadow: 0 0 10px rgba(212, 47, 47, .7); }
 .enc-bar { flex: 1; height: 16px; border-radius: 9px; background: rgba(0, 0, 0, .35); border: 2px solid rgba(255, 255, 255, .55); position: relative; overflow: hidden; }
 .enc-bar i { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, #f7f3ea, #d42f2f); }
 .enc-bar b { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: var(--fs-xs); text-shadow: 0 1px 2px #000; }
-.enc-msg { position: absolute; left: 50%; top: 22%; transform: translate(-50%, -10px); max-width: min(calc(92vw / var(--z, 1)), 560px); text-align: center; font: 900 clamp(18px, calc(4.4vw / var(--z, 1)), 28px) Nunito, sans-serif; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); opacity: 0; transition: .25s; }
+.enc-msg { position: absolute; left: 50%; top: 22%; transform: translate(-50%, -10px); max-width: min(calc(92vw / var(--z, 1)), 560px); text-align: center; font: 900 clamp(18px, calc(4.4vw / var(--z, 1)), 28px) 'MZ Texto', sans-serif; text-shadow: 0 2px 6px rgba(0, 0, 0, .7); opacity: 0; transition: .25s; }
 .enc-msg.on { opacity: 1; transform: translate(-50%, 0); }
 .enc-warn { position: absolute; left: 50%; bottom: 22%; transform: translateX(-50%); padding: 8px 16px; border-radius: 14px; background: #d42f2f; font-weight: 900; font-size: var(--fs-lg); opacity: 0; transition: .15s; box-shadow: 0 0 22px rgba(212, 47, 47, .8); }
 .enc-warn.on { opacity: 1; animation: encPulse .5s infinite alternate; }
@@ -888,7 +884,7 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .enc-help { position: absolute; left: 50%; bottom: max(14px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 8px 16px; border-radius: 12px; background: rgba(0, 0, 0, .4); font-size: var(--fs-sm); white-space: nowrap; max-width: calc(92vw / var(--z, 1)); overflow: hidden; text-overflow: ellipsis; }
 
 /* aviso de error discreto */
-.errnote { position: fixed; left: 8px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 90; max-width: min(calc(92vw / var(--z, 1)), 520px); padding: 8px 12px; border-radius: 10px; border: 0; background: rgba(140, 30, 30, .92); color: #fff; font: 700 var(--fs-xs) Nunito, sans-serif; text-align: left; opacity: 0; transform: translateY(8px); transition: .25s; pointer-events: none; }
+.errnote { position: fixed; left: 8px; bottom: max(10px, env(safe-area-inset-bottom)); z-index: 90; max-width: min(calc(92vw / var(--z, 1)), 520px); padding: 8px 12px; border-radius: 10px; border: 0; background: rgba(140, 30, 30, .92); color: #fff; font: 700 var(--fs-xs) 'MZ Texto', sans-serif; text-align: left; opacity: 0; transform: translateY(8px); transition: .25s; pointer-events: none; }
 .errnote.on { opacity: 1; transform: none; pointer-events: auto; }
 
 /* partido en El Sadar: marcador arriba; se ocultan brújula, misión y minimapa (los controles táctiles siguen) */
@@ -952,7 +948,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 }
 /* encierro: botones de saltar, periódico y cámara */
 .enc-btns { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 8px; z-index: 30; pointer-events: auto; }
-.enc-b { width: 84px; height: 84px; padding: 0 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); display: grid; place-items: center; touch-action: none; }
+.enc-b { width: 84px; height: 84px; padding: 0 12px; border-radius: 50%; border: 3px solid rgba(255,255,255,.9); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; box-shadow: 0 6px 16px rgba(0,0,0,.35); display: grid; place-items: center; touch-action: none; }
 .enc-jump { background: radial-gradient(circle at 50% 30%, #ff9bd8, #ff2bd6 60%, #c21cff); text-shadow: 0 2px 0 rgba(74,10,94,.6); box-shadow: 0 0 0 4px rgba(255,122,200,.35), 0 6px 0 #8a1c8f, 0 10px 22px rgba(0,0,0,.35); }
 /* la palanca táctil (como la de la pelota): zona en la mitad izquierda, mando donde se apoya el dedo y una pista hasta el primer toque */
 .enc-stick { position: absolute; left: 0; bottom: 0; width: calc(46vw / var(--z, 1)); height: calc(62dvh / var(--z, 1)); pointer-events: auto; touch-action: none; z-index: 30; }
@@ -960,11 +956,11 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .enc-knob i { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(255,255,255,.85); }
 .enc-stickhint { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 16px); bottom: calc(env(safe-area-inset-bottom, 0px) + 70px); width: 120px; height: 120px; border-radius: 50%; border: 3px dashed rgba(255,255,255,.55); display: grid; place-items: center; opacity: .8; pointer-events: none; z-index: 31; }
 @media (hover: hover) and (pointer: fine) { .enc-stick, .enc-stickhint { display: none; } }
-.enc-quit { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 32; pointer-events: auto; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); background: rgba(16,10,30,.55); color: #fff; font: 900 var(--fs-md)/1 Nunito, sans-serif; display: grid; place-items: center; padding: 0; cursor: pointer; }
-.enc-cam { position: fixed; right: max(14px, env(safe-area-inset-right)); top: calc(56px + env(safe-area-inset-top)); z-index: 30; pointer-events: auto; padding: 8px 12px; border: 0; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
+.enc-quit { position: fixed; left: max(12px, env(safe-area-inset-left)); bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 32; pointer-events: auto; width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,.6); background: rgba(16,10,30,.55); color: #fff; font: 900 var(--fs-md)/1 'MZ Texto', sans-serif; display: grid; place-items: center; padding: 0; cursor: pointer; }
+.enc-cam { position: fixed; right: max(14px, env(safe-area-inset-right)); top: calc(56px + env(safe-area-inset-top)); z-index: 30; pointer-events: auto; padding: 8px 12px; border: 0; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 @media (max-width: 600px) { .enc-b { width: 70px; height: 70px; } }
 /* aviso «EN DIRECTO» de la cámara de la tele en el encierro */
-.enc-live { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 64px); left: 16px; display: none; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(20, 20, 24, .78); font: 900 var(--fs-sm) Nunito, sans-serif; letter-spacing: .1em; }
+.enc-live { position: absolute; top: calc(max(12px, env(safe-area-inset-top)) + 64px); left: 16px; display: none; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; background: rgba(20, 20, 24, .78); font: 900 var(--fs-sm) 'MZ Texto', sans-serif; letter-spacing: .1em; }
 .enc-live.on { display: flex; }
 .enc-live i { width: 10px; height: 10px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 8px #ff2a2a; animation: encLive 1s steps(2) infinite; }
 @keyframes encLive { 50% { opacity: .25; } }
@@ -982,11 +978,11 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .cj-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .cj-ico { flex: none; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: linear-gradient(135deg, #ff2bd6, #7b2ff7); color: #fff; } .cj-ico svg { width: 34px; height: 34px; }
 .cj-top h3 { flex: 1; min-width: 0; margin: 0; font: 400 var(--fs-xl)/1.05 var(--f-display); text-transform: uppercase; color: #fff; }
-.cj-aqui { position: absolute; top: -12px; right: 16px; padding: 4px 10px; border-radius: 999px; background: #ff7ac8; color: #1e0a44; font: 900 var(--fs-xs)/1.2 Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.cj-aqui { position: absolute; top: -12px; right: 16px; padding: 4px 10px; border-radius: 999px; background: #ff7ac8; color: #1e0a44; font: 900 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
 .cj-txt { margin: 0; color: #ece4ff; font-size: var(--fs-sm); font-weight: 700; line-height: 1.4; }
 .cj-pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
 .cj-pasos li { display: flex; align-items: flex-start; gap: 12px; }
-.cj-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 Nunito, sans-serif; }
+.cj-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; }
 .cj-pasos b { display: block; color: #fff; font-size: var(--fs-md); line-height: 1.25; } .cj-pasos small { display: block; color: var(--mute); font-size: var(--fs-sm); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 .cj-qr { display: flex; align-items: center; gap: 12px; } .cj-qr small { min-width: 0; color: var(--mute); font-size: var(--fs-xs); font-weight: 700; overflow-wrap: anywhere; }
 .cj-qrimg { flex: none; width: 128px; height: 128px; border-radius: 10px; background: #fff; } .cj-qrimg svg { display: block; width: 100%; height: 100%; }
@@ -1013,7 +1009,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .lp-in h2 { margin: 16px 0 24px; font-size: var(--fs-xl); font-weight: 900; }
 .lp-in h2 span { color: var(--mute); font-weight: 800; }
 .lp-opts { display: grid; gap: 12px; }
-.lp-opts button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; padding: 16px 24px; border-radius: 18px; border: 2px solid var(--line2); background: rgba(255, 255, 255, .08); color: #fff; text-align: left; cursor: pointer; font-family: 'Nunito', sans-serif; transition: transform .15s, background .15s, border-color .15s; }
+.lp-opts button { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; width: 100%; padding: 16px 24px; border-radius: 18px; border: 2px solid var(--line2); background: rgba(255, 255, 255, .08); color: #fff; text-align: left; cursor: pointer; font-family: 'MZ Texto', sans-serif; transition: transform .15s, background .15s, border-color .15s; }
 .lp-opts button b { font-size: var(--fs-xl); font-weight: 900; }
 .lp-opts button small { font-size: var(--fs-sm); font-weight: 700; color: var(--mute); }
 .lp-opts button:hover, .lp-opts button:focus-visible { transform: translateY(-2px); border-color: #ff7ac8; background: rgba(255, 122, 200, .12); }
@@ -1419,13 +1415,13 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .ins-tx em { color: var(--cyan); font-style: normal; font-size: var(--fs-xs); font-weight: 800; }
 .ix-foot .tc-oir, .ix-foot .tc-tocar { min-width: 0; } .ix-foot .tc-oir.on { border-color: #ff7ac8; color: #ff7ac8; }
 .mg-card.tocar-card { gap: 10px; position: relative; } .tocar-card .mg-top { padding-right: 44px; }   /* (sitio para la cruz de salir) */
-.tocar-card .tc-score { margin-left: auto; font: 800 var(--fs-lg)/1 var(--f-cond, 'Nunito'); color: #fff; white-space: nowrap; }
+.tocar-card .tc-score { margin-left: auto; font: 800 var(--fs-lg)/1 var(--f-cond, 'MZ Texto'); color: #fff; white-space: nowrap; }
 .tc-stage { position: relative; width: 100%; height: min(320px, calc(50dvh / var(--z, 1))); border-radius: var(--rL); background: linear-gradient(180deg, rgba(14, 7, 32, .45), rgba(14, 7, 32, .85)); border: 1px solid var(--line); overflow: hidden; }
 .tc-lanes { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); }
 .tc-lane { position: relative; border-left: 1px solid rgba(255, 255, 255, .1); } .tc-lane:first-child { border-left: 0; }
 .tc-tag { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); padding: 2px 10px; border-radius: 4px; background: rgba(255, 255, 255, .08); font-size: var(--fs-xs); font-weight: 800; color: rgba(255, 255, 255, .6); white-space: nowrap; max-width: calc(100% - 8px); overflow: hidden; text-overflow: ellipsis; }
 .tc-notes { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
-.tc-note { position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: linear-gradient(180deg, #ff7ac8, #c21cff); box-shadow: 0 4px 10px rgba(0, 0, 0, .45); display: grid; place-items: center; font: 800 var(--fs-sm)/1 'Nunito', sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
+.tc-note { position: absolute; width: 52px; height: 52px; margin: -26px 0 0 -26px; border-radius: 50%; background: linear-gradient(180deg, #ff7ac8, #c21cff); box-shadow: 0 4px 10px rgba(0, 0, 0, .45); display: grid; place-items: center; font: 800 var(--fs-sm)/1 'MZ Texto', sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); }
 .tc-note.hit { background: linear-gradient(180deg, #ffe08a, #f2a51a); transform: scale(1.3); opacity: 0; transition: transform .2s, opacity .2s; }
 .tc-note.miss { background: #666; opacity: .35; }
 .tc-fb { position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 400 var(--fs-2xl)/1 var(--f-display); text-shadow: 0 3px 8px #000; pointer-events: none; color: #fff; }
@@ -1433,13 +1429,13 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 /* los botones, dentro del escenario y al pie de su carril: la nota baja hasta el centro del botón y ahí se pulsa */
 .tc-pads { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 1; display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); padding: 0 6px; }
 /* (redondos, como los botones de los partidos, y con la letra de los botones; el rótulo se ajusta al círculo con fitCircles) */
-.tc-pads button { position: relative; justify-self: center; width: 76px; height: 76px; padding: 0 8px; border-radius: 50%; background: rgba(34, 26, 44, .85); border: 2px solid rgba(255, 255, 255, .45); color: #fff; display: grid; place-items: center; font: 800 var(--fs-xs)/1.1 var(--f-cond, 'Nunito'), sans-serif; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; touch-action: manipulation; transition: transform .06s, box-shadow .12s, border-color .12s; }
+.tc-pads button { position: relative; justify-self: center; width: 76px; height: 76px; padding: 0 8px; border-radius: 50%; background: rgba(34, 26, 44, .85); border: 2px solid rgba(255, 255, 255, .45); color: #fff; display: grid; place-items: center; font: 800 var(--fs-xs)/1.1 var(--f-cond, 'MZ Texto'), sans-serif; text-transform: uppercase; letter-spacing: .04em; cursor: pointer; touch-action: manipulation; transition: transform .06s, box-shadow .12s, border-color .12s; }
 .tc-pads button span { text-align: center; pointer-events: none; }
 .tc-pads button .tc-k { position: absolute; top: 7px; left: 50%; transform: translateX(-50%); font-size: 10px; font-weight: 800; color: rgba(255, 255, 255, .5); letter-spacing: 0; }
 .tc-pads button.near { border-color: #ffe08a; box-shadow: 0 0 0 4px rgba(255, 224, 138, .35), 0 0 18px rgba(255, 224, 138, .5); }
 .tc-pads button.flash { background: rgba(255, 122, 200, .8); border-color: #fff; transform: scale(.96); }
 .tc-hint { margin: 0; color: var(--mute); font-size: var(--fs-xs); }
-.tocar-card .tc-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font: 400 16px/1 var(--f-cond, 'Nunito'); display: grid; place-items: center; cursor: pointer; }
+.tocar-card .tc-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .3); color: #fff; font: 400 16px/1 var(--f-cond, 'MZ Texto'); display: grid; place-items: center; cursor: pointer; }
 .tocar .tc-pads { --n: inherit; }
 @media (max-height: 470px) { .tc-stage { height: calc(44dvh / var(--z, 1)); } .tc-pads button { width: 64px; height: 64px; } .tc-hint { display: none; } .mg-card.tocar-card { padding: 14px 16px; gap: 8px; } .tc-tag { top: 4px; } }
 
@@ -1541,8 +1537,8 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .dl-trk { fill: none; stroke: rgba(255, 255, 255, .1); stroke-width: 8; }
 .dl-arc { fill: none; stroke: url(#dlG); stroke-width: 8; stroke-linecap: round; filter: drop-shadow(0 0 6px rgba(255, 43, 214, .7)); }
 .dl-disc { fill: url(#dlD); stroke: rgba(255, 122, 200, .4); stroke-width: 1; }
-.dl-pct { fill: #fff; font: 400 48px/1 'MZ Display', Nunito, sans-serif; } .dl-pct .u { font-size: 22px; fill: var(--gold); }
-.dl-t, .dl-b { font: 700 12px/1 var(--f-cond), Nunito, sans-serif; letter-spacing: .14em; text-transform: uppercase; } .dl-t { fill: var(--mute); } .dl-b { fill: var(--gold); }
+.dl-pct { fill: #fff; font: 400 48px/1 'MZ Display', 'MZ Texto', sans-serif; } .dl-pct .u { font-size: 22px; fill: var(--gold); }
+.dl-t, .dl-b { font: 700 12px/1 var(--f-cond), 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; } .dl-t { fill: var(--mute); } .dl-b { fill: var(--gold); }
 .dash-gauges { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--hueco); align-self: center; }
 .gauge { position: relative; width: 100%; max-width: 140px; aspect-ratio: 1; justify-self: center; animation: gEntra .5s var(--d, 0s) both; }
 @keyframes gEntra { from { opacity: 0; transform: scale(.8); } }
@@ -1550,8 +1546,8 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .g-trk { fill: none; stroke: rgba(255, 255, 255, .09); stroke-width: 7; }
 .g-arc { fill: none; stroke: var(--cat); stroke-width: 7; stroke-linecap: round; filter: drop-shadow(0 0 4px var(--cat)); }
 .g-disc { fill: rgba(16, 5, 38, .78); stroke: rgba(255, 255, 255, .1); stroke-width: 1; }
-.g-n { fill: #fff; font: 400 25px/1 'MZ Display', Nunito, sans-serif; } .g-de { fill: var(--dim); font-size: 12px; }
-.g-l { fill: var(--mute); font: 700 10px/1 var(--f-cond), Nunito, sans-serif; letter-spacing: .1em; text-transform: uppercase; }
+.g-n { fill: #fff; font: 400 25px/1 'MZ Display', 'MZ Texto', sans-serif; } .g-de { fill: var(--dim); font-size: 12px; }
+.g-l { fill: var(--mute); font: 700 10px/1 var(--f-cond), 'MZ Texto', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
 .g-ico { position: absolute; left: 50%; top: 18%; width: 24%; aspect-ratio: 1; transform: translateX(-50%); display: grid; place-items: center; pointer-events: none; }
 .g-ico :is(svg, img) { width: 100%; height: 100%; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cat) 60%, transparent)); }
 .dash .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -1604,16 +1600,9 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .hub-nav button.on[data-cat] :is(svg, img) { filter: drop-shadow(0 0 8px var(--cat)); }
 .hub-nav button.on[data-cat]::before { background: var(--cat); box-shadow: 0 0 10px var(--cat); }
 @media (max-width: 760px) { .hub-nav button.on[data-cat] { background: linear-gradient(180deg, color-mix(in srgb, var(--cat) 28%, transparent), transparent); } }   /* (en la barra de abajo, desde arriba) */
-.more-in button[data-cat] { border-left: 3px solid var(--cat); }
-.hub-main .kicker { color: color-mix(in srgb, var(--cat) 75%, #fff); } .hub-main .kicker::before { background: var(--cat); }
-.hub-main .sec::after { background: linear-gradient(90deg, color-mix(in srgb, var(--cat) 60%, transparent), transparent); }
-.hub-main .title, .armorial .ar-head h1 { text-shadow: 0 3px 0 rgba(0, 0, 0, .3), 0 0 26px color-mix(in srgb, var(--cat) 45%, transparent); }
+.hub-main .kicker { color: color-mix(in srgb, var(--cat) 75%, #fff); }
 .armorial .ar-count, .lead-chip b { color: color-mix(in srgb, var(--cat) 75%, #fff); }
-.hub-main .filters button.on { box-shadow: inset 0 -3px 0 var(--cat); }
-/* (en el inicio, cada bloque con su franja de color arriba y un brillo suave) */
-.hub-main :is(.panel, .saberes, .sports-cta)[data-cat], .hub-main .progreso .panel, .hub-main .two > .panel { border-top: 3px solid var(--cat); }
-.hub-main .panel:is([data-cat], .progreso *, .two > *) { background-image: radial-gradient(90% 60% at 0% 0%, color-mix(in srgb, var(--cat) 16%, transparent), transparent 70%); }
-.saberes .sb { border-left: 3px solid var(--cat); } .saberes .sb b { color: color-mix(in srgb, var(--cat) 80%, #fff); }
+.saberes .sb { border-color: color-mix(in srgb, var(--cat) 30%, transparent); } .saberes .sb b { color: color-mix(in srgb, var(--cat) 80%, #fff); }
 .saberes .sb.on { background: color-mix(in srgb, var(--cat) 14%, transparent); border-color: color-mix(in srgb, var(--cat) 45%, transparent); }
 .saberes .sb.link:hover { border-color: var(--cat); }
 /* (los números de las comarcas, en su color, como en el mapa) */
@@ -1664,3 +1653,39 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
   .pstamps { grid-template-columns: repeat(auto-fill, minmax(min(100%, 96px), 1fr)); gap: 6px; margin-top: 8px; }
   .pst { min-height: 72px; padding: 6px 8px; } .ppage { padding: 12px; } .ppage header img { width: 48px; height: 48px; }
 }
+
+/* ================= Imagen, título e icono en un solo bloque =================
+   En las tarjetas con ilustración, el nombre, su dato y sus iconos van encima de la imagen, abajo, sobre una sombra suave
+   que sube desde el borde: una sola pieza, sin la caja de la foto dentro de la caja de la tarjeta ni el texto suelto debajo */
+/* los pueblos: su nombre y los iconos de sus misiones, encima de su portada; lo hecho, arriba a la izquierda */
+.tcard { padding: 0; gap: 0; }
+.tcard .tc-img::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(10, 4, 24, 0) 38%, rgba(10, 4, 24, .55) 62%, rgba(10, 4, 24, .9) 100%); }
+.tcard .tc-n { left: 8px; top: 8px; bottom: auto; z-index: 1; }
+.tcard .tc-nm, .tcard .ticons { position: absolute; z-index: 1; left: 10px; right: 10px; }
+.tcard .tc-nm { bottom: 34px; min-height: 0; color: #fff; font-weight: 600; text-shadow: 0 1px 8px rgba(4, 1, 12, .6); }
+.tcard .tc-nm small { color: rgba(236, 228, 255, .75); font-weight: 500; }
+.tcard .ticons { bottom: 10px; margin: 0; }
+.tcard .ticons i { opacity: .55; } .tcard .ticons i.ok { opacity: 1; }
+.tcard .tc-img { aspect-ratio: 4 / 3; }
+/* las cimas: su icono, su nombre, su zona y su altura, encima de su escena; debajo, en el mismo bloque, el perfil y el texto */
+.pcard { padding: 0 0 14px; overflow: hidden; border-top-width: 1px; border-top-color: var(--line); }
+.pcard > :not(.pc-img) { margin-left: 14px; margin-right: 14px; }
+.pcard .pc-img { border-radius: 0; }
+.pcard .pc-img::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(10, 4, 24, 0) 45%, rgba(10, 4, 24, .88) 100%); }
+.pcard .pc-img .phead { position: absolute; z-index: 1; left: 12px; right: 12px; bottom: 10px; }
+.pcard .pc-img .phead > :is(svg, img) { width: 24px; height: 24px; }
+.pcard .pc-img .phead small { color: rgba(236, 228, 255, .75); }
+.pcard .alt { font-weight: 600; color: #fff; }
+/* las leyendas: su tipo y su título, encima de su ilustración */
+.cuentos .ct-lam figcaption { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; display: grid; gap: 2px; padding: 32px 14px 12px; text-align: left; background: linear-gradient(180deg, rgba(10, 4, 24, 0), rgba(10, 4, 24, .88)); }
+.cuentos .ct-lam figcaption small { color: #ffb1e3; font: 600 11px/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+.cuentos .ct-lam figcaption h3 { margin: 0; color: #fff; font: 400 var(--fs-lg)/1.1 var(--f-display); }
+.cuentos .ct-lam.locked figcaption h3 { color: rgba(255, 255, 255, .85); }
+/* los personajes de Navarra con ilustración: su nombre, su campo y sus años, encima */
+.fcard.pers.ilus { position: relative; padding: 0; overflow: hidden; }
+.fcard.pers.ilus .fpic { aspect-ratio: 4 / 3; } .fcard.pers.ilus .fpic img { border-radius: 0; }
+.fcard.pers.ilus .ftx { position: absolute; left: 0; right: 0; bottom: 0; padding: 36px 12px 10px; text-align: left; background: linear-gradient(180deg, rgba(10, 4, 24, 0), rgba(10, 4, 24, .9)); }
+.fcard.pers.ilus .ftx small { color: rgba(236, 228, 255, .75); } .fcard.pers.ilus .ftx b { color: #fff; } .fcard.pers.ilus .ftx i { color: rgba(236, 228, 255, .7); }
+/* las láminas: su título, encima */
+.lam-rail .lam { position: relative; }
+.lam-rail .lam span { position: absolute; left: 1px; right: 1px; bottom: 1px; padding: 28px 12px 10px; border-radius: 0 0 4px 4px; text-align: left; color: #fff; background: linear-gradient(180deg, rgba(10, 4, 24, 0), rgba(10, 4, 24, .85)); pointer-events: none; }

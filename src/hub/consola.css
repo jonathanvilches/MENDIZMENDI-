@@ -1,0 +1,238 @@
+/* ================= La pantalla única del juego =================
+   Jugando, el menú no es una página: el mapa de Navarra ocupa toda la pantalla y lo demás va encima, como en un
+   videojuego. Arriba, una sola fila a la misma altura: tu retrato con tu nivel (que abre el menú, como en los juegos de
+   rol), lo conquistado (o el rótulo de la comarca elegida) y la misión de ahora. El menú es una ventana flotante que
+   entra por la izquierda con tu ficha, todas las secciones, «Cómo jugar» y el mando del móvil; cada sección se abre en otra ventana encima del mapa, con su nombre
+   arriba y el botón de cerrar. Todo con el mismo cristal oscuro, bordes de un píxel y sin cajas dentro de cajas.
+   (El modo didáctico no se juega y sigue con su barra arriba y su menú al lado: hub.css) */
+#hub.juego {
+  --hud-t: max(12px, env(safe-area-inset-top, 0px)); --hud-b: max(12px, env(safe-area-inset-bottom, 0px));
+  --hud-l: max(12px, env(safe-area-inset-left, 0px)); --hud-r: max(12px, env(safe-area-inset-right, 0px));
+  --hud-h: 48px; --hud-g: 8px;
+  /* (el cristal: un solo tono, un borde fino y el desenfoque de lo de detrás) */
+  --cr: rgba(15, 7, 32, .64); --cr2: rgba(13, 6, 28, .9); --cr-l: rgba(255, 255, 255, .1); --cr-l2: rgba(255, 255, 255, .2); --cr-r: 12px;
+  --tx2: rgba(236, 228, 255, .66);
+  display: block; grid-template-columns: none; grid-template-rows: none;
+}
+@media (min-width: 1200px) and (min-height: 600px) { #hub.juego { --hud-t: max(16px, env(safe-area-inset-top, 0px)); --hud-l: max(16px, env(safe-area-inset-left, 0px)); --hud-r: max(16px, env(safe-area-inset-right, 0px)); --hud-b: 16px; --hud-h: 52px; --hud-g: 10px; } }
+@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, env(safe-area-inset-bottom, 0px)); --hud-l: max(8px, env(safe-area-inset-left, 0px)); --hud-r: max(8px, env(safe-area-inset-right, 0px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 10px; } }
+#hub:not(.juego) :is(.hub-menu-btn, .hub-velo, .hub-panel-x, .hub-x, .hub-cab) { display: none; }
+#hub:not(.juego) .hub-panel { display: contents; }
+.hub-mapa:empty { display: none; }
+
+/* el mapa, a toda la pantalla y siempre debajo */
+#hub.juego .hub-mapa { position: absolute; inset: 0; z-index: 0; }
+#hub.juego .hub-mapa .m3d { --sr: env(safe-area-inset-right, 0px); height: 100%; border-radius: 0; border: 0; box-shadow: none; }
+/* (el velo de arriba y abajo, para leer lo de encima: suave, sin franjas marcadas) */
+#hub.juego .m3d::after { background: linear-gradient(180deg, rgba(13, 4, 32, .34) 0, rgba(13, 4, 32, 0) 22%), linear-gradient(0deg, rgba(13, 4, 32, .3) 0, rgba(13, 4, 32, 0) 20%), radial-gradient(130% 100% at 50% 50%, transparent 62%, rgba(8, 2, 20, .32) 100%); }
+
+/* ---------- la fila de arriba ---------- */
+#hub.juego :is(.hub-menu-btn, .hub-x),
+#hub.juego .m3d :is(.m3-tot, .m3-mision, .m3-cb) {
+  position: absolute; top: var(--hud-t); height: var(--hud-h); box-sizing: border-box; border-radius: var(--cr-r); background: var(--cr); border: 1px solid var(--cr-l);
+  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); box-shadow: 0 8px 24px rgba(4, 1, 12, .22); color: #fff;
+}
+#hub.juego .hub-x { width: var(--hud-h); display: grid; place-items: center; padding: 0; }
+#hub.juego :is(.hub-menu-btn, .hub-x) { z-index: 30; cursor: pointer; transition: top .28s cubic-bezier(.2, .9, .3, 1), left .28s cubic-bezier(.2, .9, .3, 1), border-color .15s, background .15s; }
+#hub.juego :is(.hub-menu-btn, .hub-x) svg { width: 22px; height: 22px; }
+#hub.juego :is(.hub-menu-btn, .hub-x):hover, #hub.juego :is(.hub-menu-btn, .hub-x):focus-visible { border-color: var(--cr-l2); background: rgba(40, 18, 80, .7); }
+/* tu retrato: abre el menú. Tu cara con tu nivel en un círculo y, si hay sitio, tu nombre, tu rango y la experiencia */
+#hub.juego .hub-menu-btn { left: var(--hud-l); display: flex; align-items: center; gap: 10px; padding: 3px 14px 3px 3px; font: inherit; text-align: left; }
+.yo-c { position: relative; flex: none; width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); }
+.yo-c img { display: block; width: 100%; height: 100%; border-radius: calc(var(--cr-r, 12px) - 3px); object-fit: cover; object-position: center 18%; background: #2a1458; }
+.yo-n { position: absolute; right: -5px; bottom: -5px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; border-radius: 9px; background: linear-gradient(135deg, #ff3fcf, #9c3bff); color: #fff; font: 700 11px/1 var(--f-ui); box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); }
+.yo-t { display: grid; gap: 2px; min-width: 0; line-height: 1.1; }
+.yo-t b { color: #fff; font: 600 var(--fs-sm)/1.1 var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+.yo-t small { color: var(--tx2); font: 500 11px/1.1 var(--f-ui); white-space: nowrap; }
+.yo-xp { display: block; width: 100%; min-width: 72px; height: 2px; margin-top: 2px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.yo-xp > i { display: block; height: 100%; background: linear-gradient(90deg, #c9b2ff, #ff7ac8); }
+
+/* lo conquistado: el aro con el tanto por ciento y, al lado, cuántas comarcas */
+#hub.juego .m3d .m3-tot { z-index: 3; left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); grid-template-columns: calc(var(--hud-h) - 8px) auto; column-gap: 10px; padding: 0 16px 0 3px; }
+#hub.juego .m3d .m3-tot > .m3-aro { width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); filter: none; }
+#hub.juego .m3-aro .tr { stroke: rgba(255, 255, 255, .12); stroke-width: 3; } #hub.juego .m3-aro .ar { stroke-width: 3; }
+#hub.juego .m3d .m3-pct { font: 600 13px/1 var(--f-ui); letter-spacing: 0; } #hub.juego .m3d .m3-pct small { font-size: 10px; color: var(--tx2); }
+#hub.juego .m3d .m3-tt { display: grid; grid-template-columns: auto auto; align-items: baseline; column-gap: 10px; row-gap: 2px; line-height: 1.1; }
+#hub.juego .m3d .m3-tt small { grid-column: 1 / -1; color: var(--tx2); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+#hub.juego .m3d .m3-tt b { color: #fff; font: 600 var(--fs-md)/1.1 var(--f-ui); white-space: nowrap; }
+#hub.juego .m3d .m3-tt i { display: flex; color: var(--tx2); font: 500 var(--fs-xs)/1.1 var(--f-ui); white-space: nowrap; } #hub.juego .m3d .m3-tt i :is(svg, img) { width: 14px; height: 14px; opacity: .8; }
+
+/* el rótulo de la comarca elegida, en la misma fila */
+#hub.juego .m3d .m3-cb { z-index: 4; gap: 10px; padding: 3px 4px 3px 3px; border-color: color-mix(in srgb, var(--c, #fff) 38%, var(--cr-l)); max-width: min(560px, calc(100% - 2 * var(--hud-l) - 2 * var(--hud-h) - 32px)); }
+#hub.juego .m3d .m3-cb .m3-sello { width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); } #hub.juego .m3d .m3-cb .m3-sello > img { width: 64%; height: 64%; }
+#hub.juego .m3d .cb-tt { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: baseline; column-gap: 8px; row-gap: 2px; }
+#hub.juego .m3d .cb-tt small { display: block; color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego .m3d .cb-tt i { color: var(--tx2); font: 500 11px/1.1 var(--f-ui); font-style: normal; }
+#hub.juego .m3d .cb-tt b { grid-column: 1 / -1; font: 400 var(--fs-lg)/1.05 var(--f-display); letter-spacing: .01em; }
+#hub.juego .m3d .cb-b { width: calc(var(--hud-h) - 10px); height: calc(var(--hud-h) - 10px); border-radius: calc(var(--cr-r) - 3px); background: transparent; border: 1px solid var(--cr-l); }
+#hub.juego .m3d .cb-b:hover, #hub.juego .m3d .cb-b:focus-visible { border-color: var(--cr-l2); background: rgba(255, 255, 255, .06); } #hub.juego .m3d .cb-b :is(svg, img) { width: 18px; height: 18px; }
+
+/* la misión de ahora: su portada, el pueblo y el botón, arriba a la derecha */
+#hub.juego .m3d .m3-mision { z-index: 4; left: auto; right: calc(var(--hud-r) + var(--sr, 0px)); bottom: auto; width: auto; max-width: min(420px, 40%);
+  grid-template-columns: auto minmax(0, auto) auto; grid-template-areas: "img tt go"; column-gap: 10px; padding: 3px; animation: mm-entra .5s .3s cubic-bezier(.2, .9, .3, 1) both; }
+#hub.juego .m3d .mm-img { width: calc((var(--hud-h) - 8px) * 1.4); height: calc(var(--hud-h) - 8px); border-radius: calc(var(--cr-r) - 3px); }
+#hub.juego .m3d .mm-tt { gap: 2px; }
+#hub.juego .m3d .mm-tt small { color: color-mix(in srgb, var(--t, var(--pink)) 60%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; }
+#hub.juego .m3d .mm-tt b { font: 600 var(--fs-md)/1.1 var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub.juego .m3d .mm-sig { display: none; }
+#hub.juego .m3d .mm-go { min-height: 0; height: calc(var(--hud-h) - 8px); padding: 0 14px 0 10px; border-radius: calc(var(--cr-r) - 3px); gap: 6px; font: 600 13px/1 var(--f-cond); letter-spacing: .1em;
+  background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; animation: none; }
+#hub.juego .m3d .mm-go > :is(svg, img) { width: 18px; height: 18px; } #hub.juego .m3d .mm-go small { display: none; }
+
+/* ---------- abajo: las comarcas en su tira de fotos, la ayuda y los botones de la cámara ---------- */
+#hub.juego .m3d .m3-rail { left: var(--hud-l); bottom: var(--hud-b); right: calc(var(--hud-r) + 56px + var(--sr, 0px)); }
+#hub.juego .m3d :is(.m3-chip, .m3-todas) { border-radius: var(--cr-r); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 6px 18px rgba(4, 1, 12, .28); }
+#hub.juego .m3d :is(.m3-chip, .m3-todas)::after { background: linear-gradient(180deg, rgba(13, 4, 32, 0) 30%, rgba(13, 4, 32, .78)); }
+#hub.juego .m3d :is(.m3-chip, .m3-todas):hover, #hub.juego .m3d :is(.m3-chip, .m3-todas):focus-visible { border-color: color-mix(in srgb, var(--c, #fff) 70%, transparent); }
+#hub.juego .m3d .m3-chip.on { border: 1px solid var(--c); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 50%, transparent), 0 8px 22px rgba(4, 1, 12, .4); }
+#hub.juego .m3d .m3-todas { --c: #fff; }
+/* (el nombre de la comarca, el título; los sellos, su dato: más pequeños, más finos y de otro tono) */
+#hub.juego .m3d .m3-ct { gap: 1px; } #hub.juego .m3d .m3-ct b { font: 600 var(--fs-sm)/1.15 var(--f-ui); letter-spacing: 0; text-transform: none; }
+#hub.juego .m3d .m3-ct small { color: rgba(236, 228, 255, .7); font: 500 11px/1.15 var(--f-ui); }
+#hub.juego .m3d .m3-todas .m3-ct b { font: 600 var(--fs-sm)/1.15 var(--f-ui); } #hub.juego .m3d .m3-todas .m3-ct small { color: rgba(236, 228, 255, .7); }
+#hub.juego .m3d .m3-chip .m3-sello { background: rgba(13, 4, 32, .6); }
+#hub.juego .m3d .m3-pad { right: calc(var(--hud-r) + var(--sr, 0px)); bottom: var(--hud-b); }
+#hub.juego .m3d .m3-b { border-radius: var(--cr-r); background: var(--cr); border: 1px solid var(--cr-l); }
+#hub.juego .m3d .m3-b:hover { background: rgba(40, 18, 80, .72); border-color: var(--cr-l2); } #hub.juego .m3d .m3-b:active { background: rgba(255, 63, 207, .5); }
+#hub.juego .m3d .b-home { background: var(--cr); border-color: rgba(255, 122, 200, .4); color: #ffb1e3; }
+#hub.juego .m3d .m3-ayuda { left: var(--hud-l); bottom: calc(var(--hud-b) + 80px); border-radius: var(--cr-r); background: var(--cr); border-color: var(--cr-l); color: var(--tx2); font: 500 var(--fs-xs)/1.3 var(--f-ui); }
+
+/* ---------- la etiqueta del pueblo, junto a su chincheta: su portada de fondo, su nombre, los iconos de sus misiones y
+   el botón de empezar, con el mismo peso que el nombre ---------- */
+#hub.juego .m3d .m3-ft { width: 248px; max-width: 248px; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(13, 6, 28, .78); border: 1px solid color-mix(in srgb, var(--c, #fff) 34%, var(--cr-l)); box-shadow: 0 14px 36px rgba(4, 1, 12, .45); }
+.ft-fondo { position: absolute; inset: 0; z-index: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
+.ft-fondo img { width: 100%; height: 100%; object-fit: cover; opacity: .62; }
+.ft-fondo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 6, 28, .2) 0%, rgba(13, 6, 28, .55) 45%, rgba(13, 6, 28, .92) 100%); }
+#hub.juego .m3d .m3-ft > :not(.ft-fondo) { position: relative; z-index: 1; }
+#hub.juego .m3d .ft-n { display: grid; gap: 2px; padding: 0; justify-content: start; }
+#hub.juego .m3d .ft-n small { color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego .m3d .ft-n b { font: 400 var(--fs-xl)/1.05 var(--f-display); letter-spacing: .01em; text-shadow: 0 2px 12px rgba(4, 1, 12, .6); white-space: normal; }
+.ft-ms { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.ft-ms i { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; background: rgba(13, 6, 28, .5); border: 1px solid rgba(255, 255, 255, .14); }
+.ft-ms i :is(svg, img) { width: 16px; height: 16px; } .ft-ms i:not(.ok) :is(svg, img) { opacity: .72; }
+.ft-ms i.ok { border-color: color-mix(in srgb, var(--c, #ffd166) 70%, #fff); background: color-mix(in srgb, var(--c, #ffd166) 30%, rgba(13, 6, 28, .5)); }
+.ft-ms em { margin-left: 4px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-xs)/1 var(--f-ui); font-style: normal; }
+#hub.juego .m3d .ft-go { min-height: 40px; padding: 0 14px; border-radius: 10px; gap: 8px; font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .1em; background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
+#hub.juego .m3d .ft-go > :is(svg, img) { width: 18px; height: 18px; }
+
+/* ---------- las comarcas en fotos: el mismo fondo oscuro, sin manchas de color ---------- */
+#hub.juego .m3d .m3-ex { background: linear-gradient(180deg, #120827, #0c0519); }
+#hub.juego .m3d .ex-head { padding-top: var(--hud-t); padding-left: var(--hud-l); padding-right: var(--hud-r); }
+#hub.juego .m3d :is(.ex-c, .ex-t) { border-radius: 16px; border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 12px 28px rgba(4, 1, 12, .4); }
+#hub.juego .m3d :is(.ex-c, .ex-t)::after { background: linear-gradient(180deg, rgba(13, 4, 32, .2) 0, rgba(13, 4, 32, 0) 25%, rgba(13, 4, 32, 0) 45%, rgba(13, 4, 32, .88) 88%); }
+#hub.juego .m3d .ex-x { border: 1px solid var(--cr-l2); background: rgba(255, 255, 255, .06); box-shadow: none; font: 600 var(--fs-sm)/1 var(--f-ui); }
+#hub.juego .m3d :is(.ex-go) { background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
+
+/* ---------- el menú flotante: entra por la izquierda, encima de todo, con el nombre del juego, la X, todas las secciones y,
+   abajo, cómo jugar y el mando del móvil ---------- */
+#hub.juego .hub-velo { position: absolute; inset: 0; z-index: 35; background: rgba(6, 2, 14, .42); opacity: 0; pointer-events: none; transition: opacity .25s ease; }
+#hub.juego.menu-on .hub-velo { opacity: 1; pointer-events: auto; }
+#hub.juego .hub-panel { position: absolute; z-index: 40; top: var(--hud-t); left: var(--hud-l); width: min(392px, calc(100% - var(--hud-l) - var(--hud-r))); max-height: calc(100% - var(--hud-t) - var(--hud-b));
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "yo yo" "nav nav" "cj mando"; column-gap: 8px;
+  padding: 8px; border-radius: 16px; background: rgba(13, 6, 28, .9); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(20px) saturate(1.2); backdrop-filter: blur(20px) saturate(1.2); box-shadow: 0 24px 60px rgba(4, 1, 12, .5);
+  transform: translateX(-24px); opacity: 0; visibility: hidden; transition: transform .3s cubic-bezier(.2, .9, .3, 1), opacity .2s ease, visibility 0s linear .3s; }
+#hub.juego.menu-on .hub-panel { transform: none; opacity: 1; visibility: visible; transition: transform .3s cubic-bezier(.2, .9, .3, 1), opacity .2s ease; }
+#hub.juego .hub-top { display: contents; }
+#hub.juego .hub-top .brand { display: none; }
+#hub.juego .hub-panel-x { position: absolute; top: 8px; right: 8px; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 10px; background: transparent; border: 1px solid var(--cr-l); color: #fff; cursor: pointer; }
+#hub.juego .hub-panel-x:hover, #hub.juego .hub-panel-x:focus-visible { border-color: var(--cr-l2); background: rgba(255, 255, 255, .06); } #hub.juego .hub-panel-x svg { width: 18px; height: 18px; }
+/* (tu ficha, arriba: tu cara, tu nombre, tu nivel y rango con la experiencia y tus sellos; lleva a tu perfil) */
+#hub.juego .hub-top #hChip { grid-area: yo; align-self: center; justify-self: start; max-width: calc(100% - 48px); min-height: 44px; min-width: 0; gap: 10px; padding: 0 4px; background: none; border: 0; border-radius: 0; }
+#hub.juego .hub-top #hChip img { width: 44px; height: 44px; border-radius: 10px; border: 0; object-position: center 18%; }
+#hub.juego .hub-top #hChip b { font: 600 var(--fs-md)/1.15 var(--f-ui); } #hub.juego .hub-top #hChip small { color: var(--tx2); font: 500 var(--fs-xs)/1.2 var(--f-ui); }
+#hub.juego .hub-top #hChip .xp { width: 120px; height: 2px; margin-top: 4px; } #hub.juego .hub-top #hChip .xp i { box-shadow: none; }
+#hub.juego .hub-top #hChip .stamps { color: #fff; font: 600 var(--fs-sm)/1 var(--f-ui); border-left-color: var(--cr-l); }
+#hub.juego .hub-top .app-btn { margin: 8px 0 0; min-height: 44px; padding: 0 12px; justify-content: center; gap: 8px; border-radius: 10px; background: transparent; box-shadow: none; border: 1px solid var(--cr-l); font: 600 var(--fs-sm)/1.1 var(--f-ui); letter-spacing: 0; text-transform: none; }
+#hub.juego .hub-top .app-btn:hover, #hub.juego .hub-top .app-btn:focus-visible { border-color: var(--cr-l2); background: rgba(255, 255, 255, .05); }
+#hub.juego .hub-top .app-btn svg, #hub.juego .hub-top .app-btn .ico { width: 20px; height: 20px; }
+#hub.juego .hub-top [data-cj-abre] { grid-area: cj; } #hub.juego .hub-top [data-mando] { grid-area: mando; }
+#hub.juego .hub-top .app-btn.alt.ok { border-color: #3ee07a; }
+#hub.juego .hub-panel:has([data-mando][hidden]) [data-cj-abre], #hub.juego .hub-panel:has([data-cj-abre][hidden]) [data-mando] { grid-column: 1 / -1; }
+@media (max-width: 560px) { #hub.juego .hub-top .app-btn:not([hidden]) { display: flex; } }
+/* (las secciones, en una rejilla de iconos con su nombre debajo: todas a la vista, sin «Más») */
+#hub.juego .hub-nav { grid-area: nav; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 4px; margin-top: 8px; padding: 8px 0 0;
+  border: 0; border-top: 1px solid var(--cr-l); background: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+#hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 72px; padding: 10px 4px 8px; border-radius: 10px; color: var(--tx2); background: none; }
+#hub.juego .hub-nav .more-btn { display: none; }
+#hub.juego .hub-nav button :is(svg, img) { width: 26px; height: 26px; opacity: .9; transform: none; filter: none; }
+#hub.juego .hub-nav button span { font: 600 var(--fs-sm)/1.1 var(--f-ui); letter-spacing: 0; }
+#hub.juego .hub-nav button:hover, #hub.juego .hub-nav button:focus-visible { color: #fff; background: rgba(255, 255, 255, .05); }
+#hub.juego .hub-nav button.on { color: #fff; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cat, #fff) 45%, transparent); }
+#hub.juego .hub-nav button.on :is(svg, img) { transform: none; filter: none; opacity: 1; }
+#hub.juego .hub-nav button::before, #hub.juego .hub-nav button.on::before { display: none; }
+
+/* ---------- cada sección: una ventana encima del mapa (que se oscurece y se queda quieto), con su nombre arriba entre el
+   botón del menú y el de cerrar; lo de dentro se desplaza por debajo de esa cabecera ---------- */
+#hub.juego::before { content: ''; position: absolute; inset: 0; z-index: 20; background: rgba(6, 2, 14, .5); opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+#hub.juego:not([data-screen="home"])::before { opacity: 1; }
+#hub.juego[data-screen="home"] :is(.hub-main, .hub-cab, .hub-x) { display: none; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn .yo-t { display: none; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { padding-right: 3px; }
+#hub.juego:not([data-screen="home"]) {
+  --sh-t: var(--hud-t); --sh-b: var(--hud-b); --sh-l: max(var(--hud-l), calc((100% - 1400px) / 2)); --sh-r: max(var(--hud-r), calc((100% - 1400px) / 2)); }
+#hub.juego .hub-main { position: absolute; z-index: 25; inset: var(--sh-t) var(--sh-r) var(--sh-b) var(--sh-l); grid-row: auto; grid-column: auto;
+  padding: 0 24px 32px; border-radius: 16px; background: var(--cr2); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(4, 1, 12, .45);
+  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-padding-top: calc(var(--hud-h) + 16px); animation: hubVentana .3s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes hubVentana { from { opacity: 0; transform: translateY(10px) scale(.992); } }
+#hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px); margin: 0 -24px 8px; background: linear-gradient(180deg, rgba(13, 6, 28, .98) 70%, rgba(13, 6, 28, 0)); pointer-events: none; }
+#hub.juego .hub-cab { position: absolute; z-index: 26; top: var(--sh-t); left: calc(var(--sh-l) + var(--hud-h) + 20px); right: calc(var(--sh-r) + var(--hud-h) + 20px); height: calc(var(--hud-h) + 16px);
+  display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--tx2); font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; pointer-events: none; }
+#hub.juego .hub-cab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hub.juego .hub-cab :is(svg, img) { flex: none; width: 20px; height: 20px; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { top: calc(var(--sh-t) + 8px); left: calc(var(--sh-l) + 8px); background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+#hub.juego .hub-x { top: calc(var(--sh-t) + 8px); right: calc(var(--sh-r) + 8px); background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (max-height: 520px) { #hub.juego .hub-main { padding: 0 16px 20px; border-radius: 14px; } #hub.juego .hub-main::before { margin: 0 -16px 4px; height: calc(var(--hud-h) + 12px); } #hub.juego .hub-cab { height: calc(var(--hud-h) + 12px); }
+  #hub.juego:not([data-screen="home"]) .hub-menu-btn, #hub.juego .hub-x { top: calc(var(--sh-t) + 6px); } #hub.juego:not([data-screen="home"]) .hub-menu-btn { left: calc(var(--sh-l) + 6px); } #hub.juego .hub-x { right: calc(var(--sh-r) + 6px); } }
+@media (max-width: 760px) { #hub.juego .hub-main { padding: 0 16px 24px; } #hub.juego .hub-main::before { margin: 0 -16px 4px; } }
+/* (dentro de la ventana, sin el fondo de la página de antes ni sus márgenes de pantalla entera) */
+#hub.juego .hub-main > * { animation: none; }
+
+/* ---------- mientras el mapa hace su entrada, se va a un pueblo o enseña las comarcas en fotos: lo de encima, fuera ---------- */
+#hub.juego.m3-cine .hub-menu-btn { opacity: 0; pointer-events: none; }
+#hub.juego.m3-cine-fin .hub-menu-btn { animation: m3-aparece .7s ease-out both; }
+#hub.juego:has(.m3d.m3-intro, .m3d.m3-entra, .m3d.con-ex) .hub-menu-btn { opacity: 0; pointer-events: none; transition: opacity .35s; }
+
+/* ---------- el móvil tumbado: todo más bajo y, en la fila de arriba, lo justo ---------- */
+@media (max-height: 520px) {
+  #hub.juego .m3d .m3-tt i, #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 3px; }
+  #hub.juego .m3d .m3-tt { grid-template-columns: auto; } #hub.juego .m3d .m3-tt small { font-size: 10px; }
+  #hub.juego .m3d .m3-tot { padding-right: 12px; column-gap: 8px; }
+  #hub.juego .m3d .m3-mision { max-width: 42%; } #hub.juego .m3d .mm-tt small { display: none; }
+  #hub.juego .m3d .mm-go { width: calc(var(--hud-h) - 8px); padding: 0; justify-content: center; } #hub.juego .m3d .mm-go span { display: none; }
+  #hub.juego .m3d .m3-cb { left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); right: auto; transform: none; } #hub.juego .m3d .cb-tt i { display: none; }
+  #hub.juego .m3d .cb-tt b { font-size: var(--fs-md); }
+  #hub.juego .m3d .m3-rail { right: calc(var(--hud-r) + 48px + var(--sr, 0px)); }
+  #hub.juego .m3d .m3-ft { width: 216px; max-width: 216px; gap: 8px; padding: 10px; } #hub.juego .m3d .ft-n b { font-size: var(--fs-lg); }
+  #hub.juego .m3d .ft-go { min-height: 36px; } .ft-ms i { width: 22px; height: 22px; border-radius: 6px; } .ft-ms i :is(svg, img) { width: 14px; height: 14px; }
+  /* (el menú, más ancho que alto: las secciones en cinco columnas, para que quepan sin desplazarse) */
+  #hub.juego .hub-panel { width: min(600px, calc(100% - var(--hud-l) - var(--hud-r))); padding: 6px; }
+  #hub.juego .hub-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; margin-top: 6px; padding-top: 6px; }
+  #hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) { min-height: 56px; padding: 6px 2px; gap: 4px; }
+  #hub.juego .hub-nav button :is(svg, img) { width: 22px; height: 22px; }
+  #hub.juego .hub-top .app-btn { margin-top: 6px; min-height: 40px; }
+  #hub.juego .hub-top #hChip img { width: 36px; height: 36px; }
+}
+/* (el móvil de pie: arriba, el botón, lo conquistado y tu cara; la misión, abajo encima de las comarcas) */
+@media (max-width: 760px) and (min-height: 521px) {
+  #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 3px; }
+  #hub.juego .m3d .m3-tt i { display: none; } #hub.juego .m3d .m3-tt { grid-template-columns: auto; }
+  #hub.juego .m3d .m3-mision { top: auto; right: var(--hud-r); left: var(--hud-l); bottom: calc(var(--hud-b) + 68px); max-width: none; grid-template-columns: auto minmax(0, 1fr) auto; }
+  #hub.juego .m3d .m3-cb { left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); right: var(--hud-r); transform: none; max-width: none; }
+  #hub.juego .m3d .m3-rail { right: var(--hud-r); }
+  #hub.juego .m3d .m3-pad { bottom: calc(var(--hud-b) + 136px); }
+}
+@media (prefers-reduced-motion: reduce) { #hub.juego :is(.hub-panel, .hub-main, .hub-velo, .hub-menu-btn) { transition: none; animation: none; } }
+
+/* ---------- dentro de las ventanas: el título, sin su icono (ya va arriba con el nombre de la sección) y sin brillos ---------- */
+#hub.juego .hub-main .title { font-size: var(--fs-3xl, 40px); text-shadow: none; margin-top: 0; }
+#hub.juego .hub-main .title > :is(svg, img) { display: none; }
+#hub.juego .hub-main .ar-head h1 { font-size: var(--fs-3xl, 40px); text-shadow: none; }
+@media (max-height: 520px) { #hub.juego .hub-main :is(.title, .ar-head h1) { font-size: var(--fs-xl); } }
+/* (con una ventana abierta, del mapa solo queda el relieve, quieto y oscurecido: sus nombres y botones no se transparentan) */
+#hub.juego:not([data-screen="home"]) .hub-mapa .m3d > :not(.m3-cv) { visibility: hidden; }
+/* (en el móvil tumbado, el nombre de la sección ya va en la cabecera de la ventana: el título grande y su rótulo, fuera, para
+   que lo primero que se vea sea lo de dentro) */
+@media (max-height: 520px) {
+  #hub.juego .hub-main > :is(.title, h1.title), #hub.juego .hub-main .ar-head > :is(h1, .kicker) { display: none; }
+  #hub.juego .hub-main .ar-head { margin-top: 0; }
+}

@@ -31,7 +31,7 @@
 /* (en horizontal, el iPhone agranda la letra por su cuenta y la saca de los botones: el tamaño es siempre el que pone aquí) */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; font-kerning: normal; font-feature-settings: 'kern' 1, 'liga' 1; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 h1, h2, h3, .title { text-wrap: balance; } p, dd, li { text-wrap: pretty; }
-html, body { margin: 0; height: 100%; overflow: hidden; background: #12062b; color: var(--ink); font: 600 var(--fs-md)/1.45 'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: #12062b; color: var(--ink); font: 600 var(--fs-md)/1.45 'MZ Texto', system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
 canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
 /* zona táctil de 44 px como mínimo (lo que pide el dedo): en los botones redondos pequeños del HUD y de las ventanas, una
    capa invisible alrededor; el dibujo no cambia. Los botones de texto, en cambio, miden ya 44 px de alto */
@@ -51,7 +51,7 @@ summary { line-height: 1.3; }
 #ui > * { pointer-events: auto; }
 .hidden { display: none !important; }
 .glass { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 6px 24px rgba(0, 0, 0, .18); }
-.logo { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; letter-spacing: 0; }
+.logo { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; letter-spacing: 0; }
 
 /* ---------- Carga ---------- */
 /* Retícula: márgenes P iguales en los cuatro lados (con la muesca del iPhone sumada por igual a izquierda y derecha) y
@@ -70,7 +70,7 @@ summary { line-height: 1.3; }
 #loading .ld-txt { grid-area: txt; min-width: 0; min-height: 0; display: flex; flex-direction: column; justify-content: space-between; gap: 16px; overflow: hidden; }
 #loading .ld-head { display: flex; flex-direction: column; gap: 8px; min-height: 0; }
 #loading .ld-k { color: #c9b2ff; font-size: var(--fs-xs); font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
-#loading .ld-name { font-family: 'MZ Display', 'Nunito', sans-serif; font-size: var(--fs-display); line-height: 1; text-shadow: 0 4px 0 rgba(30, 8, 70, .9); overflow-wrap: anywhere; }
+#loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: var(--fs-display); line-height: 1; text-shadow: 0 4px 0 rgba(30, 8, 70, .9); overflow-wrap: anywhere; }
 #loading .ld-intro { margin: 0; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #eae4f6; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
@@ -137,12 +137,12 @@ summary { line-height: 1.3; }
 #title .place { font-size: var(--fs-xl); color: var(--sun); margin: 12px 0 8px; font-weight: 800; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
 #title p { color: #f3eadb; margin: 0 0 16px; text-shadow: 0 1px 2px rgba(0, 0, 0, .5); font-weight: 600; }
 #title label { display: block; font-size: var(--fs-sm); color: var(--muted); margin-bottom: 8px; }
-#title input { width: 100%; font: 800 var(--fs-lg) 'Nunito', sans-serif; padding: 12px 16px; border-radius: 14px; border: 2px solid rgba(255, 255, 255, .25); background: rgba(0, 0, 0, .35); color: #fff; outline: none; -webkit-user-select: text; user-select: text; }
+#title input { width: 100%; font: 800 var(--fs-lg) 'MZ Texto', sans-serif; padding: 12px 16px; border-radius: 14px; border: 2px solid rgba(255, 255, 255, .25); background: rgba(0, 0, 0, .35); color: #fff; outline: none; -webkit-user-select: text; user-select: text; }
 #title input:focus { border-color: var(--sun); }
 .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
 .btn { border-radius: 16px; padding: 12px 24px; font-weight: 900; font-size: var(--fs-md); background: rgba(255, 255, 255, .14); border: 1px solid var(--line); color: #fff; transition: transform .1s; }
 .btn:active { transform: translateY(2px) scale(.98); }
-.btn.primary { background: linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7); color: #fff; border: 0; box-shadow: 0 5px 0 #4c1a9e, 0 0 18px rgba(255, 43, 214, .35); font-family: var(--f-display, 'Nunito'); font-weight: 400; text-transform: uppercase; letter-spacing: .04em; }
+.btn.primary { background: linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7); color: #fff; border: 0; box-shadow: 0 5px 0 #4c1a9e, 0 0 18px rgba(255, 43, 214, .35); font-family: var(--f-display, 'MZ Texto'); font-weight: 400; text-transform: uppercase; letter-spacing: .04em; }
 .btn.primary:active { box-shadow: 0 2px 0 #8a1c8f; }
 .btn.small { padding: 8px 16px; font-size: var(--fs-md); }
 .btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }   /* (el foco del teclado, en blanco: antes, un aro azul fuera de la gama) */
@@ -155,7 +155,7 @@ summary { line-height: 1.3; }
 /* brújula */
 #compass { position: absolute; left: 50%; top: calc(var(--st) + 8px); transform: translateX(-50%); width: min(440px, calc(38vw / var(--z, 1))); height: 38px; pointer-events: none;
   border-radius: 19px; background: linear-gradient(180deg, rgba(24, 8, 56, .72), rgba(14, 4, 34, .62)); border: 1px solid rgba(190, 150, 255, .35); box-shadow: 0 4px 14px rgba(0, 0, 0, .3); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-#cdist { position: absolute; top: calc(100% + 3px); transform: translateX(-50%); padding: 1px 8px; border-radius: 8px; background: #ff7ac8; color: #2a0638; font: 900 var(--fs-xs) Nunito, sans-serif; white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
+#cdist { position: absolute; top: calc(100% + 3px); transform: translateX(-50%); padding: 1px 8px; border-radius: 8px; background: #ff7ac8; color: #2a0638; font: 900 var(--fs-xs) 'MZ Texto', sans-serif; white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); }
 #compass canvas { width: calc(100% - 16px); height: 100%; margin: 0 8px; display: block; }
 /* misión: arriba a la izquierda, sin caja */
 #tl { position: absolute; left: calc(var(--sl) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; flex-direction: column; gap: 8px; max-width: min(340px, calc(30vw / var(--z, 1))); pointer-events: none; }
@@ -166,7 +166,7 @@ summary { line-height: 1.3; }
 #quest .ic .qe { display: grid; place-items: center; }
 #quest .ic svg, #quest .ic img { width: 30px; height: 30px; }
 #quest .qtxt { min-width: 0; }
-#quest small { display: flex; align-items: center; gap: 8px; color: #ff7ac8; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'Nunito'); text-transform: uppercase; letter-spacing: .1em; text-shadow: 0 1px 2px rgba(0, 0, 0, .9); }
+#quest small { display: flex; align-items: center; gap: 8px; color: #ff7ac8; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Texto'); text-transform: uppercase; letter-spacing: .1em; text-shadow: 0 1px 2px rgba(0, 0, 0, .9); }
 #quest small::before { content: ''; width: 6px; height: 6px; transform: rotate(45deg); background: #ff7ac8; flex: none; }
 #quest b.qt { display: block; font-size: var(--fs-md); line-height: 1.15; font-weight: 900; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 12px rgba(0, 0, 0, .6); }
 .qrow { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
@@ -192,19 +192,19 @@ summary { line-height: 1.3; }
 .round.badge::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #FF69B4; top: -1px; right: -1px; }
 #mini { width: 112px; height: 112px; border-radius: 50%; overflow: hidden; position: relative; background: #5b8a3c; cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(12, 9, 20, .45), 0 6px 18px rgba(0, 0, 0, .35); }
 #mini canvas { width: 100%; height: 100%; display: block; }
-#mini::after { content: 'N'; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font: 900 var(--fs-xs) Nunito, sans-serif; color: #ff7ac8; text-shadow: 0 1px 2px #000; }
+#mini::after { content: 'N'; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font: 900 var(--fs-xs) 'MZ Texto', sans-serif; color: #ff7ac8; text-shadow: 0 1px 2px #000; }
 #clock { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; background: rgba(12, 9, 20, .75); padding: 1px 8px; border-radius: 10px; font-size: var(--fs-xs); font-weight: 900; white-space: nowrap; }
 #clock .ci svg { width: 12px; height: 12px; display: block; }
 /* acción contextual */
 #prompt { position: absolute; left: 50%; bottom: calc(var(--sb) + 110px); transform: translateX(-50%); padding: 8px 16px 8px 8px; font-size: var(--fs-md); font-weight: 900; white-space: nowrap; display: flex; gap: 8px; align-items: center; cursor: pointer; border-radius: 40px;
   background: linear-gradient(90deg, rgba(12, 9, 20, .8), rgba(12, 9, 20, .55)); border: 1px solid rgba(255, 122, 200, .55); box-shadow: 0 6px 20px rgba(0, 0, 0, .3); animation: promptIn .25s cubic-bezier(.2, 1.4, .4, 1); }
 @keyframes promptIn { from { transform: translateX(-50%) scale(.85); opacity: 0; } }
-#prompt kbd { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #ff7ac8; color: #2a0638; font: 900 var(--fs-sm) 'Nunito', sans-serif; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .2); }
+#prompt kbd { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #ff7ac8; color: #2a0638; font: 900 var(--fs-sm) 'MZ Texto', sans-serif; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .2); }
 .touch #prompt { bottom: calc(var(--sb) + 180px); right: calc(var(--sr) + 16px); left: auto; transform: none; animation: none; padding-left: 16px; }
 .touch #prompt kbd { display: none; }
 /* avisos: un solo carril (aviso arriba, narrador debajo), mismo ancho, mismos márgenes y la misma letra */
 #lane { position: absolute; left: 50%; top: calc(var(--st) + 76px); transform: translateX(-50%); width: min(520px, calc(calc(100vw / var(--z, 1)) - var(--sl) - var(--sr) - 32px)); display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; z-index: 3; }
-#lane .note { box-sizing: border-box; max-width: 100%; display: flex; gap: 8px; align-items: center; padding: 8px 16px; border-radius: 4px; font: 800 var(--fs-md)/1.3 'Nunito', sans-serif; letter-spacing: 0; text-wrap: balance;
+#lane .note { box-sizing: border-box; max-width: 100%; display: flex; gap: 8px; align-items: center; padding: 8px 16px; border-radius: 4px; font: 800 var(--fs-md)/1.3 'MZ Texto', sans-serif; letter-spacing: 0; text-wrap: balance;
   opacity: 0; transform: translateY(-8px); transition: opacity .3s, transform .35s cubic-bezier(.2, 1.3, .4, 1); }
 #lane .note.on { opacity: 1; transform: none; }
 #lane .note[hidden] { display: none; }
@@ -219,7 +219,7 @@ summary { line-height: 1.3; }
 #cAct { grid-column: 2; grid-row: 2; }
 .cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
 .cbtn :is(svg, .hico) { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
-.cbtn b { font: 900 var(--fs-xs)/1 Nunito, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
+.cbtn b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
 .cbtn:active { transform: translateY(3px) scale(.95); box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 2px 0 rgba(10, 4, 24, .55), 0 4px 10px rgba(0, 0, 0, .3); }
 .cbtn.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #ff2e88 70%); box-shadow: 0 0 0 3px rgba(255, 122, 200, .8), 0 5px 0 rgba(120, 30, 10, .6), 0 0 18px rgba(255, 99, 71, .6); }
 .cbtn.big { width: 80px; height: 80px; background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff7ac8 60%, #ff3dbd); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35), 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); animation: actPulse 1.6s ease-in-out infinite; }
@@ -247,7 +247,7 @@ html:not(.tactil) :is(.fb-btns, .pel-bcol, .enc-btns, #bino .bbtn),
    cuando llegas a la pelota) */
 :is(html:not(.tactil), .con-mando) .pel-btns { pointer-events: none; }
 :is(html:not(.tactil), .con-mando) .pel-hit { width: 72px; height: 72px; font-size: var(--fs-sm); opacity: .92; }
-.pel-hk { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 800 var(--fs-xs)/1 Nunito, sans-serif; text-transform: none; opacity: .85; }
+.pel-hk { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; text-transform: none; opacity: .85; }
 html:not(.con-mando) .pel-hit:has(.pel-hk) .pel-hl { transform: translateY(-5px); }
 .con-mando .pel-hk { display: none; }   /* (con el mando, GOLPE es su botón: la tecla sobra) */
 .con-mando .touch #prompt { bottom: calc(var(--sb) + 110px); left: 50%; right: auto; transform: translateX(-50%); }
@@ -264,13 +264,12 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 #dialog { position: absolute; left: 50%; bottom: calc(var(--sb, 0px) + 14px); transform: translateX(-50%); width: min(760px, calc(calc(100vw / var(--z, 1)) - 24px)); padding: 16px 16px 12px; display: flex; gap: 16px; align-items: flex-start;
   background: linear-gradient(180deg, rgba(16, 12, 24, .82), rgba(10, 8, 16, .92)) !important; border: 1px solid rgba(255, 244, 228, .18) !important; border-top: 2px solid rgba(255, 122, 200, .75) !important; border-radius: 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, .45); animation: dlgIn .3s cubic-bezier(.2, 1.2, .4, 1); }
 @keyframes dlgIn { from { transform: translate(-50%, 20px); opacity: 0; } }
-#dialog.solo { position: fixed; z-index: 30001; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); color: #fff; font-family: Nunito, system-ui, sans-serif; }
+#dialog.solo { position: fixed; z-index: 30001; bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); color: #fff; font-family: 'MZ Texto', system-ui, sans-serif; }
 #dialog .face { flex: 0 0 68px; height: 68px; border-radius: 50%; overflow: hidden; display: grid; place-items: center; background: radial-gradient(#6d5a9a, #2d2448); box-shadow: 0 0 0 2px #ff7ac8, 0 6px 16px rgba(0, 0, 0, .4); margin-top: -32px; }
 #dialog .face img { width: 100%; height: 100%; object-fit: cover; }
 #dialog .body { flex: 1; min-width: 0; }
-/* (quien habla, con el rótulo de todo el juego: raya inclinada y letra estrecha en rosa) */
-#dialog h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'Nunito'); color: #ff7ac8; letter-spacing: .1em; text-transform: uppercase; }
-#dialog h3::before { content: ''; flex: none; width: 18px; height: 4px; border-radius: 2px; background: linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7); transform: skewX(-20deg); }
+/* (quien habla, con el rótulo de todo el juego: letra estrecha en mayúsculas, en rosa) */
+#dialog h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Texto'); color: #ff7ac8; letter-spacing: .1em; text-transform: uppercase; }
 #dialog h3:empty { display: none; }
 #dialog p { margin: 0; font-size: var(--fs-md); line-height: 1.45; font-weight: 700; min-height: 52px; color: #fff; }
 #dialog .choices { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
@@ -317,7 +316,7 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 .screen { position: fixed; inset: 0; z-index: 8; display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px); background: rgba(16, 12, 24, .55); }
 .paper { background: var(--paper); color: var(--paper-ink); border-radius: 22px; width: min(860px, 100%); max-height: 100%; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0, 0, 0, .4), inset 0 0 0 6px #efe2c4; overflow: hidden; }
 .paper header { display: flex; align-items: center; gap: 12px; padding: 12px 12px 8px; }   /* (12 px arriba y a los lados, como el margen del cuerpo de abajo) */
-.paper header h2 { margin: 0; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-xl); flex: 1; color: #6d3b5c; }
+.paper header h2 { margin: 0; font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-xl); flex: 1; color: #6d3b5c; }
 .paper header .close { width: 42px; height: 42px; border-radius: 50%; background: #efe2c4; color: var(--paper-ink); font-size: var(--fs-xl); font-weight: 900; }
 .tabs { display: flex; gap: 8px; padding: 0 12px; flex-wrap: wrap; }   /* (la primera pestaña, pegada al borde del cuerpo, que empieza a 12 px) */
 .tabs button { min-height: 44px; padding: 8px 16px; border-radius: 12px 12px 0 0; background: #efe2c4; font-weight: 900; color: #7a6450; font-size: var(--fs-md); }
@@ -360,7 +359,7 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
    entera se salía por la derecha) */
 @media (max-width: 400px) { .menu label { flex-wrap: wrap; } .menu label select { max-width: 100%; } .menu .pbody .btn { white-space: normal; } }
 .menu label { min-height: 44px; display: flex; justify-content: space-between; align-items: center; gap: 12px; font-weight: 800; background: #fff; padding: 12px 16px; border-radius: 12px; border: 2px solid var(--paper-line); }
-.menu select, .menu input[type=range] { font: 800 var(--fs-md) 'Nunito', sans-serif; }
+.menu select, .menu input[type=range] { font: 800 var(--fs-md) 'MZ Texto', sans-serif; }
 .menu .btn { color: var(--paper-ink); background: #efe2c4; border: 0; }
 .menu .btn.primary { color: #fff; background: linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7); }
 .keys { margin: 16px 0; font-size: var(--fs-sm); color: #6b5a48; line-height: 1.45; }
@@ -371,9 +370,9 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 #reward .card2 { width: min(420px, 100%); text-align: center; background: var(--paper); color: var(--paper-ink); border-radius: 26px; padding: 24px 24px 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45), inset 0 0 0 6px #efe2c4; animation: pop .5s cubic-bezier(.2, 1.5, .4, 1); }
 #reward .big { display: flex; justify-content: center; font-size: var(--fs-5xl); line-height: 1; margin-bottom: 8px; filter: drop-shadow(0 6px 6px rgba(0, 0, 0, .2)); animation: bob 2s ease-in-out infinite; }
 #reward .rib { width: 44px; height: 96px; margin: 0 auto 8px; clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%); box-shadow: inset 0 -10px 0 rgba(0, 0, 0, .12); animation: bob 2s ease-in-out infinite; }
-#reward h2 { font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: var(--fs-2xl); line-height: 1; margin: 4px 0 var(--t-mb); color: #6d3b5c; }
+#reward h2 { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-2xl); line-height: 1; margin: 4px 0 var(--t-mb); color: #6d3b5c; }
 #reward p { margin: 0 0 16px; font-weight: 700; }
-#reward .stamp { width: 180px; height: 180px; margin: 8px auto 16px; border-radius: 50%; border: 6px double #c2334d; color: #c2334d; display: grid; place-items: center; transform: rotate(-9deg); font-family: 'MZ Display', 'Nunito', sans-serif; font-size: var(--fs-xl); line-height: 1; padding: 20px; animation: stamp .6s cubic-bezier(.2, 1.6, .4, 1); }
+#reward .stamp { width: 180px; height: 180px; margin: 8px auto 16px; border-radius: 50%; border: 6px double #c2334d; color: #c2334d; display: grid; place-items: center; transform: rotate(-9deg); font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: var(--fs-xl); line-height: 1; padding: 20px; animation: stamp .6s cubic-bezier(.2, 1.6, .4, 1); }
 @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes bob { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-8px) rotate(3deg); } }
 @keyframes stamp { from { transform: scale(2.4) rotate(-20deg); opacity: 0; } to { transform: scale(1) rotate(-9deg); opacity: 1; } }
@@ -392,7 +391,7 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 /* el nombre de lo que queda en la marca, justo debajo */
 #bino .label { position: absolute; left: 50%; top: calc(50% + 52px); transform: translateX(-50%); max-width: min(calc(60vw / var(--z, 1)), 480px); padding: 8px 16px; border-radius: 12px; background: rgba(10, 12, 20, .88); border: 2px solid rgba(255, 122, 200, .7); color: #fff; font-weight: 900; font-size: var(--fs-md); line-height: 1.25; text-align: center; text-shadow: none; }
 /* el recuadro: lo que buscas y hacia dónde miras, pequeño y en la esquina */
-#bino .bgoal { position: absolute; left: calc(var(--bl) + 12px); top: calc(var(--bs) + 10px); max-width: min(calc(44vw / var(--z, 1)), 330px); padding: 8px 14px 9px; border-radius: 14px; background: rgba(10, 12, 20, .84); border: 1px solid rgba(255, 244, 228, .14); color: #fff; font: 800 var(--fs-sm)/1.3 Nunito, sans-serif; }
+#bino .bgoal { position: absolute; left: calc(var(--bl) + 12px); top: calc(var(--bs) + 10px); max-width: min(calc(44vw / var(--z, 1)), 330px); padding: 8px 14px 9px; border-radius: 14px; background: rgba(10, 12, 20, .84); border: 1px solid rgba(255, 244, 228, .14); color: #fff; font: 800 var(--fs-sm)/1.3 'MZ Texto', sans-serif; }
 #bino .bgoal b { display: flex; align-items: center; gap: 8px; color: #ff9bd8; font-size: var(--fs-md); margin-bottom: 2px; }
 #bino .bgoal .pips { display: inline-flex; gap: 4px; }
 #bino .bgoal .pips i { width: 9px; height: 9px; border-radius: 50%; border: 2px solid #ff9bd8; }
@@ -401,7 +400,7 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 #bino .bgoal .bcomp { display: block; margin-top: 2px; color: #cbc2e0; font-weight: 800; letter-spacing: .02em; }
 #bino .bgoal .bcomp.note { display: inline-block; padding: 0 8px; border-radius: 8px; background: #ff7ac8; color: #1c0b3a; }
 /* los dos botones del visor, propios y por encima de él: salir (arriba) y anotar (abajo, donde va el pulgar) */
-#bino .bbtn { position: absolute; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: rgba(10, 12, 20, .78); color: #fff; font: 900 11px/1 Nunito, sans-serif; letter-spacing: .02em; padding: 0; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
+#bino .bbtn { position: absolute; pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .7); background: rgba(10, 12, 20, .78); color: #fff; font: 900 11px/1 'MZ Texto', sans-serif; letter-spacing: .02em; padding: 0; cursor: pointer; touch-action: none; -webkit-tap-highlight-color: transparent; }
 #bino .bbtn :is(svg, .hico) { width: 30px; height: 30px; }
 #bino .bexit { right: calc(var(--br) + 12px); top: calc(var(--bs) + 10px); width: 60px; height: 60px; }
 #bino .bact { right: calc(var(--br) + 16px); bottom: calc(var(--bb) + 16px); width: 80px; height: 80px; font-size: 12px; opacity: .6; transition: opacity .15s, transform .15s; }
@@ -489,7 +488,7 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 .qitem .state { background: rgba(255, 99, 71, .22); color: #ffc2b6; }
 .qitem.available .state { background: #FF69B4; color: #3d0623; } .qitem.done .state { background: #c9b2ff; color: #06243a; } .qitem.active .state { background: #ff7ac8; color: #2a0638; }
 /* (el botón de cada misión: viajar junto al vecino que la da, o al paso siguiente si ya está en marcha) */
-.qitem .qgo { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; min-height: 44px; padding: 8px 18px 8px 12px; border: 0; border-radius: 4px; color: #fff; font: 800 var(--fs-sm)/1.1 var(--f-cond, Nunito), sans-serif; letter-spacing: .04em; text-transform: uppercase; background: var(--cta, linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7)); box-shadow: 0 0 14px rgba(255, 43, 214, .35); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); cursor: pointer; }
+.qitem .qgo { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; min-height: 44px; padding: 8px 18px 8px 12px; border: 0; border-radius: 4px; color: #fff; font: 800 var(--fs-sm)/1.1 var(--f-cond, 'MZ Texto'), sans-serif; letter-spacing: .04em; text-transform: uppercase; background: var(--cta, linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7)); box-shadow: 0 0 14px rgba(255, 43, 214, .35); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); cursor: pointer; }
 .qitem .qgo svg, .qitem .qgo img { width: 22px; height: 22px; } .qitem .qgo:active { transform: scale(.97); }
 .qitem .qgo.done { background: rgba(255, 255, 255, .1); box-shadow: none; border: 1px solid rgba(190, 160, 255, .35); }
 .card .f, .card .b { border: 1px solid rgba(190, 160, 255, .25); }
@@ -596,7 +595,7 @@ img[data-pk] { opacity: 0; }
 .job-pick .btn { width: 100%; justify-content: center; }
 
 /* ---------- minijuegos en 3D: la escena a pantalla completa, panel arriba y botones abajo ---------- */
-.mg3d { position: fixed; inset: 0; z-index: 40; pointer-events: none; color: #fff; font-family: Nunito, system-ui, sans-serif; }
+.mg3d { position: fixed; inset: 0; z-index: 40; pointer-events: none; color: #fff; font-family: 'MZ Texto', system-ui, sans-serif; }
 .mg3d.out { opacity: 0; transition: opacity .25s; }
 .mg3d .m3-cap { position: absolute; inset: 0; pointer-events: auto; touch-action: none; }
 .mg3d .m3-top { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 8px); left: 50%; transform: translateX(-50%); width: min(calc(94vw / var(--z, 1)), 640px);
@@ -608,7 +607,7 @@ img[data-pk] { opacity: 0; }
 .mg3d .m3-txt { cursor: pointer; } .mg3d .m3-top.abre small { -webkit-line-clamp: 8; }
 .mg3d .m3-clock { font-size: var(--fs-md); color: #ff9bd8; min-width: 3.6em; text-align: right; }
 .mg3d .m3-top { grid-template-columns: auto 1fr auto auto; }
-.mg3d .m3-x { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.08); color: #fff; font: 900 var(--fs-md)/1 Nunito, sans-serif; cursor: pointer; pointer-events: auto; display: grid; place-items: center; padding: 0; }
+.mg3d .m3-x { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,.55); background: rgba(255,255,255,.08); color: #fff; font: 900 var(--fs-md)/1 'MZ Texto', sans-serif; cursor: pointer; pointer-events: auto; display: grid; place-items: center; padding: 0; }
 .mg3d .m3-load .m3-xl { margin-top: 8px; min-height: 44px; }
 .mg3d .m3-prog { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; }
 .mg3d .m3-prog i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, #ff9bd8, #7be07b); transition: width .2s; }
@@ -698,7 +697,7 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 /* el calor del hierro en la fragua: zonas (frío · al rojo · se quema) y el color de la pieza ahora */
 .mg3d .m3-heat { position: relative; height: 26px; border-radius: 99px; overflow: hidden; display: grid; grid-template-columns: 48fr 35fr 17fr; background: rgba(22, 12, 34, .82); box-shadow: inset 0 0 0 2px rgba(255,255,255,.22); }
 .mg3d .m3-heat i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-right: 3px solid #fff; opacity: .9; }
-.mg3d .m3-heat span { position: relative; z-index: 1; font: 800 var(--fs-xs)/1.45px Nunito, sans-serif; text-align: center; color: #fff; text-shadow: 0 1px 2px #000; border-left: 1px dashed rgba(255,255,255,.4); }
+.mg3d .m3-heat span { position: relative; z-index: 1; font: 800 var(--fs-xs)/1.45px 'MZ Texto', sans-serif; text-align: center; color: #fff; text-shadow: 0 1px 2px #000; border-left: 1px dashed rgba(255,255,255,.4); }
 .mg3d .m3-heat span:first-of-type { border-left: 0; }
 
 /* pantallas grandes (tableta en horizontal, escritorio): el HUD algo más grande, que no quede diminuto en una pantalla
@@ -786,7 +785,7 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 .cartel-in::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .38) 50%, transparent 70%); transform: translateX(-130%); animation: cartelBrillo 1.3s .55s ease-out both; pointer-events: none; }
 .cartel-txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .cartel-k { font-weight: 900; font-size: var(--fs-sm); line-height: 1.2; text-transform: uppercase; letter-spacing: .16em; color: #ffd6f6; animation: cartelK .8s .15s ease-out both; }
-.cartel-t { margin: 0; font-family: 'MZ Display', 'Nunito', sans-serif; font-weight: 400; font-size: clamp(34px, calc(6.6vw / var(--z, 1)), 68px); line-height: 1; color: #fff; text-shadow: 0 4px 0 rgba(30, 8, 70, .9); overflow-wrap: anywhere; }
+.cartel-t { margin: 0; font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: clamp(34px, calc(6.6vw / var(--z, 1)), 68px); line-height: 1; color: #fff; text-shadow: 0 4px 0 rgba(30, 8, 70, .9); overflow-wrap: anywhere; }
 .cartel-t .w { display: inline-block; white-space: nowrap; }
 .cartel-t .w > span { display: inline-block; animation: cartelLetra .6s calc(.25s + var(--i, 0) * 45ms) cubic-bezier(.2, 1.6, .4, 1) both; }
 .cartel-s { margin: 0; font-weight: 800; font-size: var(--fs-md); line-height: 1.3; color: #f3eaff; animation: cartelFade .6s .75s ease-out both; }
@@ -822,3 +821,12 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   .cartel-mapa { width: 56px; }
 }
 @media (prefers-reduced-motion: reduce) { .cartel-in, .cartel-in::after, .cartel-t .w > span, .cartel-k, .cartel-s, .cartel-mapa, .cartel-mapa * { animation: none !important; } }
+
+/* los bocadillos de los vecinos por la calle (townGame.js): una frase corta encima de la cabeza, blanca y con su pico,
+   que aparece y se va sola */
+.boc-capa { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.boc { position: absolute; left: 0; top: 0; padding: 6px 12px; border-radius: 12px; background: rgba(255, 252, 245, .96); color: #2a1a3a; font: 600 var(--fs-sm)/1.2 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; box-shadow: 0 6px 16px rgba(10, 4, 24, .25); animation: bocIn .25s cubic-bezier(.2, .9, .3, 1.3) both; transition: opacity .35s; will-change: transform; }
+.boc::after { content: ''; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; margin-left: -5px; background: inherit; transform: rotate(45deg); border-radius: 0 0 3px 0; }
+.boc.fuera { opacity: 0; }
+@keyframes bocIn { from { opacity: 0; scale: .7; } }
+body.bino-on .boc-capa { display: none; }
