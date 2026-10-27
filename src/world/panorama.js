@@ -114,21 +114,29 @@ uniform float uHazeL, uSnow; varying float vAlt, vSlope, vFld, vFor, vWet, vBand
 float gh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(gh(i), gh(i + vec2(1, 0)), f.x), mix(gh(i + vec2(0, 1)), gh(i + vec2(1, 1)), f.x), f.y); }
+// el mismo ruido, que se queda en su media cuando un píxel abarca más de una celda: en lo que se ve muy de canto (una
+// ladera medio tapada, el llano lejano) un píxel cubre cientos de metros y el dibujo fino salía en puntitos y rayitas
+float aaf(vec2 p){ return 1.0 - smoothstep(0.4, 1.0, length(fwidth(p))); }
+float gnf(vec2 p){ return mix(0.5, gn(p), aaf(p)); }
 // (cresta redondeada: con la punta afilada, la luz cambiaba de golpe en cada lomo y salían rayas oscuras)
-float rdg(vec2 p){ float t = gn(p) * 2.0 - 1.0, k = 1.0 - t * t; return k * k; }
+float rdg(vec2 p){ float t = gn(p) * 2.0 - 1.0, k = 1.0 - t * t; return mix(0.55, k * k, aaf(p)); }
 // manchas de bosque y prado: de unos 250 m con el borde irregular (dos octavas más finas). Torcidas y giradas: el ruido
 // va por una cuadrícula y, en la lejanía (rumbo y ángulo), el borde del bosque salía en rayas verticales rectas
-float fpat(vec2 q){ q = mat2(0.8, -0.6, 0.6, 0.8) * q + vec2(gn(q / 170.0 + 3.7), gn(q / 170.0 - 5.1)) * 110.0;
-  return gn(q / 260.0) * 0.55 + gn(mat2(0.8, 0.6, -0.6, 0.8) * q / 70.0) * 0.3 + gn(q / 22.0 + 1.3) * 0.15; }
+float fpat(vec2 q){ q = mat2(0.8, -0.6, 0.6, 0.8) * q + vec2(gnf(q / 170.0 + 3.7), gnf(q / 170.0 - 5.1)) * 110.0;
+  return gnf(q / 260.0) * 0.55 + gnf(mat2(0.8, 0.6, -0.6, 0.8) * q / 70.0) * 0.3 + gnf(q / 22.0 + 1.3) * 0.15; }
 // en una ladera: lomos y barrancos (alargados hacia abajo) y menudo; en lo llano, ondulaciones y matas
 // (lomos y barrancos con el trazado torcido: rectos parecían rayas; y más suaves lejos, que en una cara entera de monte
 // también lo parecían)
-float gully(vec2 q){ return rdg(vec2(q.x / 110.0 + (gn(q / 300.0) - 0.5) * 2.2, q.y / 420.0)); }
-float slopeH(vec2 q, float d){ return gully(q) * 34.0 * (1.0 - 0.55 * smoothstep(2000.0, 10000.0, d)) * (1.0 - smoothstep(45000.0, 95000.0, d)) + gn(q / 38.0) * 7.0 * (1.0 - smoothstep(7000.0, 18000.0, d)) + gn(q / 9.0) * 1.6 * (1.0 - smoothstep(1500.0, 4000.0, d)); }
-float flatH(vec2 q, float d){ return gn(q / 240.0) * 16.0 * (1.0 - smoothstep(20000.0, 50000.0, d)) + gn(q / 45.0) * 4.0 * (1.0 - smoothstep(6000.0, 15000.0, d)) + gn(q / 7.0) * 1.0 * (1.0 - smoothstep(800.0, 2500.0, d)); }
+float gully(vec2 q){ return rdg(vec2(q.x / 110.0 + (gnf(q / 300.0) - 0.5) * 2.2, q.y / 420.0)); }
+float slopeH(vec2 q, float d){ return gully(q) * 34.0 * (1.0 - 0.55 * smoothstep(2000.0, 10000.0, d)) * (1.0 - smoothstep(45000.0, 95000.0, d)) + gnf(q / 38.0) * 7.0 * (1.0 - smoothstep(7000.0, 18000.0, d)) + gnf(q / 9.0) * 1.6 * (1.0 - smoothstep(1500.0, 4000.0, d)); }
+float flatH(vec2 q, float d){ return gnf(q / 240.0) * 16.0 * (1.0 - smoothstep(20000.0, 50000.0, d)) + gnf(q / 45.0) * 4.0 * (1.0 - smoothstep(6000.0, 15000.0, d)) + gnf(q / 7.0) * 1.0 * (1.0 - smoothstep(800.0, 2500.0, d)); }
+// (la normal, torcida como mucho unos 30°, y nada donde se ve muy de canto: allí las derivadas de un píxel abarcan
+// cientos de metros, la normal se disparaba y, con el sol bajo de la tarde, salían rayitas claras sueltas)
 vec3 bumpN(vec3 sp, vec3 n, float H){
-  vec3 sx = dFdx(sp), sy = dFdy(sp), r1 = cross(sy, n), r2 = cross(n, sx); float det = dot(sx, r1);
-  return normalize(abs(det) * n - sign(det) * (dFdx(H) * r1 + dFdy(H) * r2));
+  vec3 sx = dFdx(sp), sy = dFdy(sp), r1 = cross(sy, n), r2 = cross(n, sx); float det = dot(sx, r1), ad = abs(det);
+  vec3 g = sign(det) * (dFdx(H) * r1 + dFdy(H) * r2) * smoothstep(0.08, 0.25, abs(dot(normalize(sp), n)));
+  float gl = length(g); if (gl > ad * 0.6) g *= ad * 0.6 / gl;
+  return normalize(ad * n - g);
 }`)
       .replace('#include <color_fragment>', `#include <color_fragment>
 {
@@ -140,9 +148,9 @@ vec3 bumpN(vec3 sp, vec3 n, float H){
   vec2 qa = vec2(sa * vBand, vv), qb = vec2(ca * vBand, vv); float wa = ca * ca, wb = sa * sa;
   float hNear = slopeH(vec2(vWP.z, vAlt), dist) * w.x + slopeH(vec2(vWP.x, vAlt), dist) * w.z + flatH(P, dist) * w.y;
   gH = mix(hNear, slopeH(qa, dist) * wa + slopeH(qb, dist) * wb, far);
-  gG = mix(rdg(vec2(vWP.z / 110.0, vAlt / 420.0)) * w.x + rdg(vec2(vWP.x / 110.0, vAlt / 420.0)) * w.z + gn(P / 240.0) * w.y, gully(qa) * wa + gully(qb) * wb, far);   // (0 barranco, 1 lomo)
+  gG = mix(rdg(vec2(vWP.z / 110.0, vAlt / 420.0)) * w.x + rdg(vec2(vWP.x / 110.0, vAlt / 420.0)) * w.z + gnf(P / 240.0) * w.y, gully(qa) * wa + gully(qb) * wb, far);   // (0 barranco, 1 lomo)
   // manchas grandes y menudas del suelo (cuando aún son más gruesas que un píxel): verdes y secas en los campos y el brillo
-  float p1 = mix(0.5, gn(P / 1400.0 + 5.0) * 0.7 + gn(P / 500.0) * 0.3, 1.0 - smoothstep(50000.0, 110000.0, dist)), p2 = mix(0.5, gn(P / 300.0), 1.0 - smoothstep(15000.0, 40000.0, dist));
+  float p1 = mix(0.5, gnf(P / 1400.0 + 5.0) * 0.7 + gnf(P / 500.0) * 0.3, 1.0 - smoothstep(50000.0, 110000.0, dist)), p2 = mix(0.5, gnf(P / 300.0), 1.0 - smoothstep(15000.0, 40000.0, dist));
   float lowK = 1.0 - smoothstep(1350.0, 1650.0, vAlt);
   diffuseColor.rgb = mix(diffuseColor.rgb, pow(vec3(0.53, 0.57, 0.31), vec3(2.2)), smoothstep(0.42, 0.6, p2) * clamp(vFld * 1.4, 0.0, 1.0) * 0.8);
   diffuseColor.rgb = mix(diffuseColor.rgb, pow(vec3(0.69, 0.61, 0.44), vec3(2.2)), (1.0 - clamp(vWet, 0.0, 1.0)) * smoothstep(0.5, 0.7, p1) * 0.6 * lowK);
@@ -167,25 +175,25 @@ vec3 bumpN(vec3 sp, vec3 n, float H){
   // bosque: manchas con su borde (triplanar: también en las laderas), más en los barrancos que en los lomos; robles y
   // encinas abajo, hayas a media altura y pinos en lo alto y seco; copas cerca y umbría lejos
   float tf = mix(fpat(vec2(vWP.z, vAlt)) * w.x + fpat(vec2(vWP.x, vAlt)) * w.z + fpat(P) * w.y, fpat(qa) * wa + fpat(qb) * wb, far);
-  float steep = mix(1.0 - w.y, 1.0, far * 0.7), fo = smoothstep(0.49, 0.52, tf + (clamp(vFor, 0.0, 1.0) + (p1 - 0.5) * 0.5 - 0.5) * 0.9 - (gG - 0.5) * 0.3 * steep) * (1.0 - fk * 0.9);
+  float steep = mix(1.0 - w.y, 1.0, far * 0.7), fx = tf + (clamp(vFor, 0.0, 1.0) + (p1 - 0.5) * 0.5 - 0.5) * 0.9 - (gG - 0.5) * 0.3 * steep, ex = fwidth(fx), fo = smoothstep(0.49 - ex, 0.52 + ex, fx) * (1.0 - fk * 0.9);
   vec3 fc = mix(vec3(0.075, 0.1, 0.045), vec3(0.04, 0.075, 0.03), smoothstep(650.0, 1050.0, vAlt));
   fc = mix(fc, vec3(0.035, 0.05, 0.035), (1.0 - clamp(vWet, 0.0, 1.0)) * smoothstep(1000.0, 1400.0, vAlt));
-  float cn = mix(gn(P / 140.0), gn(P / 11.0) * 0.6 + gn(P / 4.0) * 0.4, 1.0 - smoothstep(1500.0, 6000.0, dist));
+  float cn = mix(gnf(P / 140.0), gnf(P / 11.0) * 0.6 + gnf(P / 4.0) * 0.4, 1.0 - smoothstep(1500.0, 6000.0, dist));
   fc *= 0.7 + 0.6 * mix(0.5, cn, 1.0 - smoothstep(9000.0, 30000.0, dist));
   diffuseColor.rgb = mix(diffuseColor.rgb, fc, fo * 0.92);
   diffuseColor.rgb *= mix(1.0, 0.78 + 0.4 * gG, steep * 0.8 * (1.0 - smoothstep(12000.0, 40000.0, dist) * 0.6));
   // roca: en lo empinado y en los lomos de lo alto, con estratos y alguna grieta
   float rk = max(smoothstep(0.55, 0.95, vSlope + (p2 - 0.5) * 0.3) * (1.0 - fo * 0.7), smoothstep(1550.0, 1900.0, vAlt + (gG - 0.5) * 350.0 + (p1 - 0.5) * 300.0) * (0.45 + 0.55 * gG));
-  vec3 rock = pow(vec3(0.6, 0.58, 0.54), vec3(2.2)) * (0.85 + 0.3 * gn(P / 60.0 + vAlt / 50.0));
-  float strata = 0.82 + 0.26 * (0.5 + 0.5 * sin(mix(vAlt, vv, far) * 0.11 + gn(P / 400.0) * 5.0)), crack = smoothstep(0.7, 0.9, gn(vec2(mix(P.x + P.y, qa.x, far), mix(vAlt, vv, far) * 2.0) / 35.0));
+  vec3 rock = pow(vec3(0.6, 0.58, 0.54), vec3(2.2)) * (0.85 + 0.3 * gnf(P / 60.0 + vAlt / 50.0));
+  float sv = mix(vAlt, vv, far) * 0.11, strata = 0.82 + 0.26 * (0.5 + 0.5 * sin(sv + gnf(P / 400.0) * 5.0) * (1.0 - smoothstep(0.8, 2.5, fwidth(sv)))), crack = smoothstep(0.7, 0.9, gnf(vec2(mix(P.x + P.y, qa.x, far), mix(vAlt, vv, far) * 2.0) / 35.0));
   rock *= mix(1.0, strata * (1.0 - crack * 0.35), 1.0 - smoothstep(3000.0, 12000.0, dist));
   diffuseColor.rgb = mix(diffuseColor.rgb, rock, rk * 0.75);
   // nieve por encima de su cota, con el borde en manchas y más en los barrancos que en los lomos; no en lo muy empinado,
   // y en el bosque, entre los árboles
-  float sn = smoothstep(uSnow, uSnow + 180.0, vAlt + (p1 - 0.5) * 260.0 + (0.5 - gG) * 90.0 * steep) * (1.0 - smoothstep(0.75, 1.1, vSlope + (p2 - 0.5) * 0.2));
+  float sx = vAlt + (p1 - 0.5) * 260.0 + (0.5 - gG) * 90.0 * steep, es = fwidth(sx), sn = smoothstep(uSnow - es, uSnow + 180.0 + es, sx) * (1.0 - smoothstep(0.75, 1.1, vSlope + (p2 - 0.5) * 0.2));
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.88, 0.9, 0.93) * (0.94 + 0.06 * gG), sn * (0.95 - fo * 0.35));
   // sombras de nubes
-  diffuseColor.rgb *= 0.8 + 0.2 * smoothstep(0.32, 0.6, gn(P / 5200.0 + 3.0));
+  diffuseColor.rgb *= 0.8 + 0.2 * smoothstep(0.32, 0.6, gnf(P / 5200.0 + 3.0));
 }`)
       .replace('#include <normal_fragment_begin>', `#include <normal_fragment_begin>
   normal = bumpN(-vViewPosition, normal, gH);`)
