@@ -50,3 +50,40 @@ export function horizonteReal(id) {
   for (let b = 0; b < 360; b++) { const x = b / st, i = Math.floor(x), f = x - i; out[b] = Math.max(0.003, Math.tan((a[i % n] * (1 - f) + a[(i + 1) % n] * f) * Math.PI / 180)); }   // (no por debajo del pueblo)
   return out;
 }
+
+// ---------- Relieve de detalle de los miradores (tools/relieve/polar.py) ----------
+// Las alturas reales alrededor del ojo del mirador en una malla polar: cada anillo (km) con sus alturas (m) rumbo a rumbo.
+// Un archivo por mirador, que solo se abre en su pueblo (en la web, se descarga entonces).
+const POLAR = import.meta.glob('../data/polar/*.js', { import: 'default' });
+const polares = new Map();
+/** Promesa con { alt, lat, lon, rs (km), rows (alturas de cada anillo, rumbo a rumbo desde el norte) } o null. */
+export function relievePolar(id) {
+  if (polares.has(id)) return polares.get(id);
+  const load = POLAR[`../data/polar/${id}.js`];
+  const p = !load || typeof DecompressionStream === 'undefined' ? Promise.resolve(null) : load().then(descifrarPolar).catch((e) => { console.warn('relieve de detalle', e); return null; });
+  polares.set(id, p); return p;
+}
+async function descifrarPolar(D) {
+  const bin = Uint8Array.from(atob(D.data), c => c.charCodeAt(0));
+  const b = new Uint8Array(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer());
+  // (lo mismo que polar.py: anillos, rumbos de cada uno y precisión; y lo esperado, la mediana de las vecinas)
+  const rs = []; for (let r = D.r0; r <= D.rmax; r += Math.max(D.step, r * (r < D.rsplit ? D.f1 : D.f2))) rs.push(r);
+  const nbOf = (r) => r < D.near[0] ? Math.floor(D.nb / 4) : r < D.near[1] || r >= D.rsplit ? Math.floor(D.nb / 2) : D.nb;
+  const qOf = (r) => Math.min(D.qmax, Math.max(D.qmin, r * D.qk));
+  const up = (a, n) => { if (a.length === n) return a; const o = new Float64Array(n), la = a.length; for (let i = 0; i < n; i++) { const x = i * la / n, k = Math.floor(x), f = x - k; o[i] = a[k % la] * (1 - f) + a[(k + 1) % la] * f; } return o; };
+  let p = 0; const next = () => { let v = 0, s = 0, c; do { c = b[p++]; v += (c & 127) * 2 ** s; s += 7; } while (c & 128); return v % 2 ? -(v + 1) / 2 : v / 2; };
+  const rows = []; let prev = null;
+  for (let j = 0; j < rs.length; j++) {
+    const n = nbOf(rs[j]), q = qOf(rs[j]), r = new Float64Array(n), pv = j ? up(prev, n) : null; let last = 0;
+    for (let i = 0; i < n; i++) {
+      let pred;
+      if (!j) pred = last;
+      else if (!i) pred = pv[0];
+      else { const a = last, bb = pv[i], c = pv[i - 1]; pred = c >= Math.max(a, bb) ? Math.min(a, bb) : c <= Math.min(a, bb) ? Math.max(a, bb) : a + bb - c; }
+      r[i] = pred + next() * q; last = r[i];
+    }
+    rows.push(r); prev = r;
+  }
+  if (p !== b.length) throw new Error(`relieve de detalle: sobran ${b.length - p} bytes`);
+  return { alt: D.alt, lat: D.lat, lon: D.lon, rs: Float64Array.from(rs), rows: rows.map(r => Float32Array.from(r)) };
+}

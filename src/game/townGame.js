@@ -47,8 +47,8 @@ import { SABIOS, STYLE_TIP, LABEL_TIP, KIND_TIP, NO_SABIO } from '../data/sabios
 // el encierro y el fútbol (motores grandes) se descargan al entrar en ellos, no al abrir el juego
 const loadEncierro = () => import('./encierro.js').then(m => m.Encierro);
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
-import { montesFrom, townLatLon } from '../data/miradores.js';
-import { relieveMirador } from '../world/relieve.js';
+import { montesFrom, townLatLon, MIRADOR_TOWNS, montesConocidos } from '../data/miradores.js';
+import { relieveMirador, relievePolar } from '../world/relieve.js';
 import { Panorama } from '../world/panorama.js';
 import { houseArms } from '../data/blasones.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -65,7 +65,8 @@ import { PASAKA } from '../data/pasaka.js';
 import { PARTS, CASTLE_QUIZ, CASTLE_TOWNS, CASTILLOS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
-import { bird } from '../actors/beasts.js';
+import { bird, BIRDS } from '../actors/beasts.js';
+import { SKY } from '../actors/animals.js';
 import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue, freeVenues } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
@@ -140,6 +141,8 @@ export class TownGame {
   constructor(ctx, def) {
     Object.assign(this, ctx);        // scene, camera, player, follow, ui, sound, input, sky, fauna, particles, beacon, onExit
     this.def = def;
+    // (en los pueblos con mirador, el relieve de detalle se abre ya, para tenerlo cuando se saquen los prismáticos)
+    if (def.id in MIRADOR_TOWNS) relievePolar(def.id).then((G) => { this.polarG = G; });
     // los minijuegos en 3D se dibujan con el renderer del juego, en una escena propia (el pueblo queda en pausa)
     const G = this;
     this.ui.stage3d = {
@@ -2301,19 +2304,26 @@ export class TownGame {
     this.binoYaw = this.follow.yaw + Math.PI; this.binoPitch = 0.25;
     // en el mirador: la vista lejana con los montes de verdad en su dirección
     const v = this.miradorSpot(), P = this.player.pos, montes = this.panoMontes();
-    // (con la misión de las aves y sin la de los montes, el pueblo de verdad: en la vista lejana no hay aves que buscar)
+    // (con la misión de las aves y sin la de los montes, el pueblo de verdad, salvo con el relieve de detalle: en esa vista
+    // lejana también vuelan aves)
     const aves = this.missions.some(x => x.type === 'observe' && x.step === 1), mir = this.missions.some(x => x.type === 'mirador' && x.step === 1);
-    if (v && montes.length && Math.hypot(P.x - v.x, P.z - v.z) < 30 && (mir || !aves)) {
+    if (v && montes.length && Math.hypot(P.x - v.x, P.z - v.z) < 30 && (mir || !aves || this.polarG)) {
       try {
         // colores del cielo según la hora (los del pueblo pueden venir sin actualizar)
         const sk = this.sky?.sample?.(this.sky.time ?? 10);
-        if (!this.pano) this.pano = new Panorama(montes, { quality: this.rt?.quality, sun: this.sky?.sunDir, zenith: sk?.zen, horizon: sk?.hor, relieve: relieveMirador(this.def.id), snow: this.rt?.weather?.kind === 'snow' });
+        if (!this.pano) this.pano = new Panorama(montes, { quality: this.rt?.quality, sun: this.sky?.sunDir, zenith: sk?.zen, horizon: sk?.hor, relieve: relieveMirador(this.def.id), polar: this.polarG, conocidos: montesConocidos(), birds: this.panoBirdKinds(), snow: this.rt?.weather?.kind === 'snow' });
         this.panoOn = true; this.altScene = this.pano.scene; this.altCamera = this.pano.camera; this.altUpdate = (dt) => this.updateBino(dt);
         const M = this.missions.find(x => x.type === 'mirador'), next = this.pano.peaks.find(pk => !(M?.seenIds?.has(pk.m.id))) || this.pano.peaks[0];
-        this.binoYaw = Math.PI - next.m.bearing * Math.PI / 180 + 0.12; this.binoPitch = this.pano.real ? Math.atan2(next.summit.y - this.pano.eye.y, next.ds) - 0.02 : Math.atan2(next.summit.y * 0.6 - this.pano.eye.y, next.ds);
+        this.binoYaw = Math.PI - (next.b ?? next.m.bearing * Math.PI / 180) + 0.12; this.binoPitch = this.pano.real ? Math.atan2(next.summit.y - this.pano.eye.y, next.ds) - 0.02 : Math.atan2(next.summit.y * 0.6 - this.pano.eye.y, next.ds);
         this.pano.camera.fov = 45;
       } catch (e) { console.warn('vista del mirador', e); this.panoOn = false; }
     }
+  }
+  // aves que vuelan delante del mirador: las del cielo de la comarca y las que pide la misión de las aves (con modelo)
+  panoBirdKinds() {
+    const M = this.missions.find(x => x.type === 'observe'), want = [].concat(M?.species || []).filter(k => k in BIRDS);
+    const sky = SKY[this.def.comarca] || ['buitre', 'milano'];
+    return [...new Set([...want, ...sky])];
   }
   // montes que se ven desde el mirador: los de la misión o, si no la hay, los cuatro más vistosos desde el pueblo
   panoMontes() {
@@ -2337,7 +2347,9 @@ export class TownGame {
     // lo que queda en la marca (best) y, cerca de ella, lo que todavía no has anotado (near): la ayuda al apuntar lo
     // acaba de centrar (sin ella, con el dedo, acertar con un ave que vuela o con la cumbre era casi imposible)
     let best = null, ba = 1, near = null, na = Infinity, nearDir = null;
-    const obs = pano ? this.monteObs(eye) : [...this.fauna.observables(), ...this.monteObs(eye)];
+    if (pano) pano.update(dt);
+    const obs = pano ? [...this.monteObs(eye), ...pano.birdObs()] : [...this.fauna.observables(), ...this.monteObs(eye)];
+    if (pano) pano.placeLabels(this.panoPins);
     for (const o of obs) {
       // (en los montes del paisaje real se apunta a la cumbre; en los de siempre, a su marca, que está en el cielo)
       const at = o.monte && o.pin && !o.pano ? o.pin.position : null;
@@ -2356,7 +2368,7 @@ export class TownGame {
       this.binoPitch = clamp(this.binoPitch + (pitT - this.binoPitch) * k, -0.6, 1.3);
     }
     // un ave detrás de una casa o de la iglesia no se puede anotar: comprobamos que no haya nada en medio
-    if (best && best.far && !best.monte) {
+    if (best && best.far && !best.monte && !best.pano) {
       // solo las piezas grandes conservan sus posiciones (el resto se liberó al subirlo a la tarjeta): se comprueba con una copia que solo tiene posiciones
       const town = this.townMeshes ||= (this.scene.getObjectByName('town')?.children || []).filter(m => m.isMesh && m.geometry.attributes.position?.array).map(m => { const g = new THREE.BufferGeometry(); g.setAttribute('position', m.geometry.attributes.position); g.setIndex(m.geometry.index); g.boundingSphere = m.geometry.boundingSphere; g.boundingBox = m.geometry.boundingBox; const r = new THREE.Mesh(g, m.material); r.matrixWorld.copy(m.matrixWorld); r.matrixAutoUpdate = false; return r; });
       const to = _to.set(best.pos.x - eye.x, best.pos.y - eye.y, best.pos.z - eye.z), d = to.length();
@@ -2386,12 +2398,12 @@ export class TownGame {
     } else if (M) {
       // las aves (o los animales) de la misión: el más cercano que te falta, con su distancia
       const t = this.obsNearest(M), aves = want.length && want.every(id => FAUNA[id]?.kind === 'ave');
-      goal = `<b>${aves ? 'Aves' : 'Animales'} ${M.count}/${M.need} ${pips(M.count, M.need)}</b><span class="bnext">${t ? `Busca: ${FAUNA[t.id]?.name || t.id} · ${Math.round(Math.hypot(t.pos.x - P.x, t.pos.z - P.z))} m` : 'Mira al cielo y a los riscos'}</span>`;
+      goal = `<b>${aves ? 'Aves' : 'Animales'} ${M.count}/${M.need} ${pips(M.count, M.need)}</b><span class="bnext">${t ? `Busca: ${FAUNA[t.id]?.name || t.id} · ${Math.round(Math.hypot(t.pos.x - eye.x, t.pos.z - eye.z))} m` : 'Mira al cielo y a los riscos'}</span>`;
     }
     this.ui.binoInfo?.(goal, 'Miras al ' + DIRS[Math.round(brg / 45) % 8].toLowerCase());
     // sin nada en el visor: flecha hacia el animal buscado más cercano
     let hint = monteHint;
-    if (!best && M) { const t = this.obsNearest(M); if (t) { const v = _to.set(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
+    if (!best && M && hint == null) { const t = this.obsNearest(M); if (t) { const v = _to.set(t.pos.x, t.pos.y + (t.h || 0.4), t.pos.z).project(cam); const behind = v.z > 1; hint = Math.atan2(behind ? -v.y : v.y, behind ? -v.x : v.x); } }
     const label = best ? (best.monte ? (best.seen ? `${best.monte.name} · ${best.monte.altitude} m` : F.name) : `${F?.name || best.id}${isNew ? (counts || !M ? ` · ${NOTE}` : ' · no es de los que buscas') : ' · ya anotado'}`) : '';
     this.ui.binoTarget(label, !!best, hint, !!best && isNew && (!!best.monte || counts || !M));
     if (this.input.consume('e') || this.input.consume(' ')) {
@@ -2449,8 +2461,9 @@ export class TownGame {
   }
   // animal buscado más cercano (para la brújula y la flecha del visor)
   obsNearest(M) {
-    const P = this.player.pos; let b = null, bd = 1e9;
-    for (const o of this.fauna.observables()) {
+    // (con la vista lejana del mirador, las aves que vuelan delante de él)
+    const pano = this.panoOn && this.pano, P = pano ? pano.eye : this.player.pos; let b = null, bd = 1e9;
+    for (const o of pano ? pano.birdObs() : this.fauna.observables()) {
       if (M.species.length && !M.species.includes(o.id)) continue;
       const k = o.obj?.uuid || o.id + ':' + Math.round(o.pos.x) + ',' + Math.round(o.pos.z); if (this.obsSeen?.has(k)) continue;
       const d = Math.hypot(o.pos.x - P.x, o.pos.z - P.z); if (d < bd) { bd = d; b = o; }
