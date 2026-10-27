@@ -1,6 +1,6 @@
 # Auditoría de todo lo pedido · HERRIZHERRI
 
-Actualizada el 27 de octubre de 2026 por la noche. Repasa los 380 mensajes del proyecto, desde el 28 de septiembre.
+Actualizada el 27 de octubre de 2026 por la noche. Repasa los 381 mensajes del proyecto, desde el 28 de septiembre.
 
 - **Hecho**: está en el juego y se ha comprobado con capturas o pruebas automáticas.
 - **Parcial**: está, pero no del todo como se pidió, o no se ha podido comprobar a fondo.
@@ -16,6 +16,8 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
 |---|---|---|
 | Rehacer el inicio con estilo de videojuego y la identidad morada | Hecho | Un solo mapa a pantalla completa con el menú flotante encima |
 | Mapa 3D de Navarra navegable, por comarcas | Hecho | Relieve real, ríos y sierras; entrada en la que Navarra se despega del mapa de España |
+| Borde de las comarcas sin capas de tierra | Hecho (hoy) | Losa de morado oscuro con el color de la comarca y un filo de luz arriba |
+| Nunca el mapa antiguo de colores | Hecho (hoy) | El 3D siempre, también en el modo sencillo y en la sección Mapa del didáctico |
 | Punto del pueblo original, no el de Google Maps | Hecho | Baliza holográfica |
 | Tocar un pueblo: zoom máximo hasta ver sus casas y empezar | Hecho | Sin ventana; la etiqueta lleva portada, iconos de misiones y el botón |
 | Que cada pueblo cargue mucho más rápido en el mapa | Hecho (hoy) | La maqueta se monta durante el vuelo y ya no se para la imagen al llegar |
@@ -153,6 +155,7 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
   - cada comarca, un carrusel circular en 3D, con la portada de cada pueblo como una pantalla;
   - el de delante encendido y adelantado, los demás alrededor en penumbra;
   - de fondo, el morado del juego limpio, con una luz suave del color de la comarca en el suelo;
+  - cada pueblo, una carta de estilo tecnológico: la portada entera en 16:9, sin recortar, y debajo su nombre y una raya por misión;
   - las flechas, a media altura de las pantallas en todos los móviles, sin tapar la tarjeta;
   - se gira arrastrando, con flechas, rueda o teclado; las comarcas, arriba;
   - abajo, el pueblo de delante con sus misiones y los botones Ficha y Jugar.
@@ -160,8 +163,8 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
 - **Mapa:** la maqueta del pueblo se monta durante el vuelo. En el ordenador sus programas gráficos se preparan al abrir el mapa; en el móvil, al acercarse.
 - **Arranque en el móvil:**
   - el enlace Jugar abría el archivo único de 46 MB; ahora ese archivo, abierto desde la web, pasa a la versión web, que se guarda y se instala como app;
-  - si el móvil cierra la página dos veces al arrancar, el juego abre en modo sencillo: imagen ligera y mapa del inicio en plano. Se quita en Ajustes;
-  - si el mapa 3D deja de pintarse o pierde la tarjeta gráfica, sale el mapa plano en vez de una pantalla vacía;
+  - si el móvil cierra la página dos veces al arrancar, el juego abre en modo sencillo: imagen y mapa 3D más ligeros. Se quita en Ajustes;
+  - si el mapa 3D pierde la tarjeta gráfica, se vuelve a hacer solo; si no puede, salen las comarcas en fotos;
   - el aviso de arranque trae botones para volver a cargar, pasar al modo sencillo y borrar la caché;
   - fuera dos expresiones de texto que los iPhone antiguos no entienden y que no dejaban arrancar el juego.
 - **Didáctico:** las 16 secciones y la ficha de tres pueblos, revisadas en castellano y en euskera, en tres tamaños, sin errores ni imágenes rotas. La galería cabe entera con el móvil tumbado.
