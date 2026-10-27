@@ -56,9 +56,9 @@
   var box = document.getElementById('arranque'), errs = [], t0 = Date.now(), soloWeb = false;
   // si el móvil cierra la página al arrancar (sin memoria), se vuelve a abrir sola y no llega a ningún aviso: cada arranque
   // se apunta y se borra al salir bien o tras 25 s de juego. Si los dos anteriores no acabaron, el juego arranca en modo
-  // sencillo (src/util/sencillo.js: calidad baja y el mapa del inicio en plano), que se quita en Ajustes
+  // sencillo (src/util/sencillo.js: calidad baja y el mapa 3D más ligero), que se quita en Ajustes
   var KA = 'herrizherri-arranque', KS = 'herrizherri-sencillo';
-  try { var n = +(localStorage.getItem(KA) || 0) + 1; localStorage.setItem(KA, n); if (n >= 3 && !localStorage.getItem(KS)) { localStorage.setItem(KS, 'auto'); window.__sencilloAuto = true; } } catch (e) { }
+  try { var n = +(localStorage.getItem(KA) || 0) + 1; localStorage.setItem(KA, n); if (n >= 3 && !localStorage.getItem(KS)) localStorage.setItem(KS, 'auto'); } catch (e) { }
   var bien = function () { try { localStorage.removeItem(KA); } catch (e) { } };
   addEventListener('pagehide', bien);
   addEventListener('error', function (e) {

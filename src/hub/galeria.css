@@ -1,7 +1,7 @@
 /* La galería de los pueblos: cada comarca, un carrusel circular en 3D (src/hub/galeria.js). De fondo, el morado del juego,
    limpio, con una luz suave del color de la comarca en el suelo; arriba, las comarcas; en medio, el anillo de pantallas con
    las flechas a su altura; abajo, el pueblo de delante con sus misiones y los botones de jugar y de ver su ficha */
-.gal { --c: #b56cff; --gh: min(48vh, 400px); --gw: min(calc(var(--gh) * 1.22), 74vw); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: 14px; color: #fff;
+.gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: 14px; color: #fff;
   background: radial-gradient(120% 90% at 50% 38%, #2c1470 0%, #170a3a 48%, #0a0418 100%); }
 #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 24px); margin: 0 -24px; border-radius: 0 0 16px 16px; }
 #hub.juego .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
@@ -20,27 +20,47 @@
 .gal-centro { position: relative; display: grid; min-height: 0; }
 .gal-escena { position: relative; z-index: 1; display: grid; place-items: center; min-height: 0; perspective: 1150px; perspective-origin: 50% 50%; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
 .gal-escena:active { cursor: grabbing; }
-.gal-anillo { position: relative; width: var(--gw); height: var(--gh); transform-style: preserve-3d; transition: opacity .25s ease, filter .25s ease; }
+.gal-anillo { position: relative; width: var(--gw); height: var(--ch); transform-style: preserve-3d; transition: opacity .25s ease, filter .25s ease; }
 .gal-anillo.sale { opacity: 0; filter: blur(6px); transition: opacity .22s ease, filter .22s ease; }
 .gal-anillo.entra { animation: galEntra .6s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes galEntra { from { opacity: 0; filter: blur(8px); } }
 /* (el suelo: una luz suave del color de la comarca bajo el anillo, que cambia con ella) */
-.gal-escena::after { content: ''; position: absolute; left: 50%; top: calc(50% + var(--gh) / 2 - 10px); width: calc(var(--gw) * 2.6); height: calc(var(--gh) * .3); transform: translateX(-50%); z-index: -1; border-radius: 50%; pointer-events: none;
+.gal-escena::after { content: ''; position: absolute; left: 50%; top: calc(50% + var(--ch) / 2 - 10px); width: calc(var(--gw) * 2.6); height: calc(var(--ch) * .3); transform: translateX(-50%); z-index: -1; border-radius: 50%; pointer-events: none;
   background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--c) 30%, transparent), transparent 70%); transition: background .6s ease; }
 
-/* cada pantalla: la portada del pueblo, su nombre abajo y lo que lleva hecho; en penumbra según se aparta de delante */
-.gal-t { position: absolute; inset: 0; width: var(--gw); height: var(--gh); padding: 0; border-radius: 18px; overflow: hidden; background: #1a0c33; border: 1px solid rgba(255, 255, 255, .14); color: #fff; text-align: left; cursor: pointer; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  box-shadow: 0 22px 44px rgba(4, 1, 12, .5); transition: border-color .3s ease, box-shadow .3s ease; }
-.gal-t::after { content: ''; position: absolute; inset: 0; z-index: 3; background: rgba(8, 3, 20, .88); opacity: calc(var(--d, 1) * .92); pointer-events: none; }
-.gal-t img.gt-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 64% 45%; transform: scale(1.02); transition: transform .8s cubic-bezier(.2, .9, .3, 1); }
-.gal-t .gt-pie { position: absolute; inset: auto 0 0; z-index: 2; display: grid; gap: 4px; padding: 40px 14px 14px; background: linear-gradient(180deg, transparent, rgba(10, 4, 24, .55) 35%, rgba(10, 4, 24, .94)); }
-.gal-t .gt-pie b { font: 400 var(--fs-xl)/1.02 var(--f-display); letter-spacing: .01em; text-shadow: 0 2px 10px rgba(4, 1, 12, .7); overflow-wrap: anywhere; }
-.gal-t .gt-pie small { color: rgba(255, 255, 255, .75); font: 500 var(--fs-xs)/1.2 var(--f-ui); }
-.gal-t .gt-n { position: absolute; z-index: 2; top: 10px; left: 10px; min-width: 40px; padding: 5px 8px; border-radius: 8px; background: rgba(10, 4, 24, .66); border: 1px solid rgba(255, 255, 255, .16); font: 600 var(--fs-xs)/1 var(--f-ui); text-align: center; }
-.gal-t .gt-n.ok { border-color: #ffd166; color: #ffd166; }
-.gal-t .gt-sello { position: absolute; z-index: 2; top: 8px; right: 8px; width: 46px; height: 46px; transform: rotate(-12deg); filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .5)); }
-.gal-t.frente { border-color: color-mix(in srgb, var(--c) 65%, #fff); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c) 40%, transparent), 0 0 46px color-mix(in srgb, var(--c) 50%, transparent), 0 26px 50px rgba(4, 1, 12, .55); animation: galFlota 4s ease-in-out infinite; }
-.gal-t.frente img.gt-img { transform: scale(1.07); }
+/* cada pantalla, como una carta: la portada entera, sin recortar (las láminas son 16:9 y la foto de la carta también) y,
+   debajo, su franja de datos: el nombre, el nombre en euskera o la comarca y una raya por misión, encendidas las hechas.
+   Marco fino que brilla con el color de la comarca y dos esquinas cortadas; las de los lados, en penumbra según se apartan
+   (--d). La forma es propia del juego, no la de ninguna marca. Su ancho, como mucho el que deja caberla de alto en su hueco
+   (--gwmax, galeria.js) */
+.gal-t { position: absolute; inset: 0; width: var(--gw); height: var(--ch); padding: 0; border: 0; border-radius: 4px; background: none; color: #fff; text-align: left; cursor: pointer; container-type: inline-size; backface-visibility: hidden; -webkit-backface-visibility: hidden;
+  box-shadow: 0 22px 44px rgba(4, 1, 12, .5); transition: box-shadow .3s ease; }
+.gt-marco { --k: 14px; position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 2px; padding: 2px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 80%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c) 65%, #fff) 100%);
+  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
+.gt-marco::after { content: ''; position: absolute; inset: 0; z-index: 3; background: rgba(8, 3, 20, .88); opacity: calc(var(--d, 1) * .92); pointer-events: none; }
+.gt-foto { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #1a0c33; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); }
+.gt-foto img.gt-img { display: block; width: 100%; height: 100%; object-fit: cover; }
+/* (en la de delante, un brillo que la cruza de vez en cuando) */
+.gt-foto::after { content: ''; position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .22) 50%, transparent 60%) 130% 0 / 250% 100% no-repeat; }
+.gal-t.frente .gt-foto::after { opacity: 1; animation: gtBrillo 5s ease-in-out infinite; }
+@keyframes gtBrillo { 0%, 55% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
+/* (la franja: oscura, con líneas tenues de pantalla, y la esquina de abajo cortada) */
+.gt-dato { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 0 calc(var(--k) + 2px) 0 12px; background: linear-gradient(180deg, #1d1142, #110926);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%); }
+.gt-dato::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 4px); }
+.gt-nom { position: relative; display: grid; gap: 3px; flex: 1; min-width: 0; }
+.gt-nom b { font: 400 min(var(--fs-lg), 7.4cqw)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
+.gt-nom small { color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 min(10px, 4cqw)/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+.gt-mis { position: relative; display: grid; justify-items: end; gap: 5px; flex: none; }
+.gt-mis em { font: 700 var(--fs-xs)/1 var(--f-ui); font-style: normal; letter-spacing: .04em; }
+.gt-rayas { display: flex; gap: 2px; }
+.gt-rayas i { width: 5px; height: 10px; transform: skewX(-18deg); background: rgba(255, 255, 255, .18); }
+.gt-rayas i.on { background: color-mix(in srgb, var(--c) 55%, #fff); box-shadow: 0 0 6px color-mix(in srgb, var(--c) 70%, transparent); }
+.gt-mis.ok em { color: #ffd166; } .gt-mis.ok .gt-rayas i { background: #ffd166; box-shadow: none; }
+.gt-sello { position: relative; flex: none; width: 30px; height: 30px; transform: rotate(-12deg); filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .5)); }
+.gal-t.frente { box-shadow: 0 0 34px color-mix(in srgb, var(--c) 45%, transparent), 0 26px 50px rgba(4, 1, 12, .55); animation: galFlota 4s ease-in-out infinite; }
+.gal-t.frente .gt-marco { background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--c) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--c) 90%, #fff) 100%); }
 @keyframes galFlota { 50% { translate: 0 -6px; } }
 .gal-t:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
@@ -76,12 +96,11 @@
 
 /* ---------- el móvil tumbado: todo más bajo; el pueblo de delante, en una sola fila ---------- */
 @media (max-height: 520px) {
-  .gal { --gh: min(47vh, 196px); }
+  .gal { --gh: min(47vh, 196px); --dh: 40px; }
   #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 16px); margin: 0 -16px; }
   .gal .gal-cm { padding: 6px 16px 0; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
-  .gal-t { border-radius: 14px; }
-  .gal-t .gt-pie { padding: 26px 10px 10px; gap: 2px; } .gal-t .gt-pie b { font-size: var(--fs-lg); } .gal-t .gt-pie small { display: none; }
-  .gal-t .gt-n { top: 6px; left: 6px; min-width: 34px; padding: 4px 6px; font-size: 11px; } .gal-t .gt-sello { width: 34px; height: 34px; }
+  .gt-marco { --k: 10px; } .gt-dato { gap: 8px; padding-left: 10px; } .gt-nom { gap: 2px; } .gt-sello { width: 24px; height: 24px; }
+  .gt-rayas i { width: 4px; height: 8px; } .gt-mis { gap: 4px; }
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
   .gal-puntos { display: none; }
   .gal-info { padding: 4px 16px 10px; gap: 12px; }
@@ -98,7 +117,7 @@
 @media (max-height: 520px) and (max-width: 640px) { .gi-ms { display: none; } }
 /* ---------- el móvil de pie: el pueblo de delante, debajo del anillo, a lo ancho ---------- */
 @media (max-width: 760px) and (min-height: 521px) {
-  .gal { --gh: min(34vh, 290px); --gw: min(calc(var(--gh) * 1.22), 100vw - 132px); }   /* (las flechas, a los lados sin tapar la pantalla) */
+  .gal { --gh: min(34vh, 290px); --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 100vw - 132px, var(--gwmax, 100vw)); }   /* (las flechas, a los lados sin tapar la pantalla) */
   #hub.juego .hub-main > .gal { margin: 0 -16px; }
   .gal .gal-cm { padding: 10px 16px 4px; }
   .gal-info { flex-direction: column; align-items: stretch; padding: 8px 16px 16px; }
@@ -107,5 +126,5 @@
   .gal-fl { width: 40px; height: 40px; } .gal-fl.ant { left: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); } .gal-fl.sig { right: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); }
 }
 /* ---------- ordenador grande: las pantallas, más grandes ---------- */
-@media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(52vh, 480px); } .gal-t .gt-pie b { font-size: var(--fs-2xl); } }
-@media (prefers-reduced-motion: reduce) { .gal-t.frente { animation: none; } .gal-anillo.entra { animation: none; } }
+@media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(52vh, 480px); --dh: 60px; } .gt-nom b { font-size: min(var(--fs-xl), 7.4cqw); } .gt-nom small { font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { .gal-t.frente, .gal-t.frente .gt-foto::after { animation: none; } .gal-anillo.entra { animation: none; } }

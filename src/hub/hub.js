@@ -41,7 +41,7 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
 import { comoJugar, vistoComoJugar } from './comojugar.js';
 import { puedeDescargar, queFalta, descargarTodo } from '../web/todo.js';
-import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, navarraProgress, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
+import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, comarcaTowns, stampCount, BADGES, checkBadges, resetProfile, salazarState } from '../game/profile.js';
 import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
@@ -65,7 +65,6 @@ const comarca = (id) => COMARCAS.find(c => c.id === id);
 const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
 const kc = (id) => KC[id] || 'av';
 const bg = (u, v = 'background-image') => u ? ` style="${v}:url(${u})"` : '';   // (una imagen de fondo, solo si la hay)
-const SBK = { producto: '#ffc23d', agricultura: '#b9e34a', ganaderia: '#ff9b4a', oficios: '#4fd1ff', arquitectura: '#6ea8ff', escudos: '#2dd4ff', historia: '#a78bfa', tradiciones: '#ff4fd8', fauna: '#3ee07a', flora: '#7be05a', montes: '#5eead4' };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
 // (una excavación, con el icono de su yacimiento: el crómlech, la cueva, la columna romana…)
@@ -84,43 +83,8 @@ function townXY(lv) {
   const c = comarca(lv.comarca); return c ? [c.label.x, c.label.y + 20] : [380, 400];
 }
 const XY = new Map(LEVELS.map(l => [l.id, townXY(l)]));
-// Colocación sin solapes: número de cada comarca en un hueco libre dentro de ella y nombres de pueblo
-// sólo donde caben (arriba, abajo o a un lado del punto)
-let MAPL = null;
-function mapLayout() {
-  if (MAPL) return MAPL;
-  const cv = document.createElement('canvas').getContext('2d');
-  const pins = LEVELS.map(l => XY.get(l.id));
-  const badges = {}, placed = [];
-  for (const c of COMARCAS) {
-    if (!comarcaTowns(c.id).length) continue;
-    const path = new Path2D(c.path), cx = c.label.x, cy = c.label.y - 4;
-    let best = [cx, cy], bs = -1e9;
-    for (let r = 0; r <= 110; r += 5) for (let a = 0; a < 6.283; a += r ? 0.35 : 7) {
-      const x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r;
-      if (!cv.isPointInPath(path, x, y)) continue;
-      let dmin = 99; for (const p of pins) dmin = Math.min(dmin, Math.hypot(p[0] - x, p[1] - y)); for (const q of placed) dmin = Math.min(dmin, Math.hypot(q[0] - x, q[1] - y) - 12);
-      // lejos de los puntos (≥ 28) y lo más cerca posible del centro de la comarca
-      const score = Math.min(dmin, 30) * 3 - r * 0.25;
-      if (score > bs) { bs = score; best = [x, y]; }
-    }
-    badges[c.id] = best; placed.push(best);
-  }
-  const boxes = [];
-  for (const p of pins) boxes.push([p[0] - 10, p[1] - 10, p[0] + 10, p[1] + 10]);
-  for (const b of Object.values(badges)) boxes.push([b[0] - 20, b[1] - 20, b[0] + 20, b[1] + 20]);
-  const hit = (r) => boxes.some(b => r[0] < b[2] && r[2] > b[0] && r[1] < b[3] && r[3] > b[1]);
-  const names = {};
-  for (const l of LEVELS) {
-    const [x, y] = XY.get(l.id), t = l.name.split(' /')[0], w = t.length * 6.7 + 4, h = 14;
-    const cand = [[x - w / 2, y - 12 - h, 'middle', x, y - 14], [x - w / 2, y + 12, 'middle', x, y + 23], [x + 11, y - h / 2, 'start', x + 12, y + 4], [x - 11 - w, y - h / 2, 'end', x - 12, y + 4]];
-    for (const [rx, ry, anchor, tx, ty] of cand) { const r = [rx, ry, rx + w, ry + h]; if (rx < 12 || rx + w > 733 || hit(r)) continue; boxes.push(r); names[l.id] = { anchor, x: tx - x, y: ty - y }; break; }
-  }
-  return (MAPL = { badges, names });
-}
-
-// el mapa de Navarra se dibuja en su propia escala (725 de ancho) y en el móvil se ve a menos de la mitad: --k es cuántas
-// unidades del mapa hay en un píxel, para que los números de las comarcas nunca bajen de 12 px en la pantalla
+// el mapa de los yacimientos se dibuja en su propia escala (725 de ancho) y en el móvil se ve a menos de la mitad: --k es
+// cuántas unidades del mapa hay en un píxel, para que sus números nunca bajen de 12 px en la pantalla
 function fitMaps(root) {
   const fit = () => { for (const s of root.querySelectorAll('svg.navarra')) { const w = enCss(s.getBoundingClientRect().width); if (!w) continue; const k = s.viewBox.baseVal.width / w; s.style.setProperty('--k', k.toFixed(3)); s.classList.toggle('tiny', k > 1.6);
     // (también en el atributo: así el círculo tiene su tamaño aunque el navegador no lea «r» en el CSS)
@@ -315,7 +279,7 @@ export class Hub {
   // ---------- Inicio ----------
   // lo que el inicio le pasa a inicio.js: el icono de cada misión, las que tocan por la edad, dónde cae cada pueblo en el
   // mapa y el mapa plano para cuando no hay 3D
-  opcInicio(p) { return { icono: mIcon, nombre: (m) => m.title || m.name || TYPE_NAME[m.type] || '', slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) }; }
+  opcInicio(p) { return { icono: mIcon, nombre: (m) => m.title || m.name || TYPE_NAME[m.type] || '', slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id) }; }
   // el inicio: el mapa del mundo, a toda la pantalla, como en un juego (inicio.js); sin desplazarse
   s_home() {
     if (isDidactico()) return this.d_home();
@@ -371,38 +335,18 @@ export class Hub {
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
     s.querySelector('.fr-chip.on')?.scrollIntoView({ block: 'nearest' });
   }
-  navarraSVG({ pins = true, small = false, focus = null } = {}) {
-    const p = profile();
-    const paths = COMARCAS.map(c => {
-      const pr = comarcaProgress(p, c.id), done = pr.towns && pr.stamps === pr.towns, dd = isDidactico();
-      // (cada comarca en su color, el mismo de su tarjeta y su página del pasaporte: más viva cuanto más sellada)
-      const op = dd ? 0.85 : done ? 1 : 0.6 + pr.pct * 0.3;
-      return `<path d="${c.path}" data-comarca="${c.id}" class="cpath ${done ? 'done' : ''} ${focus && focus !== c.id ? 'dim' : ''}" style="fill:${c.color};fill-opacity:${op}"/>`;
-    }).join('');
-    const labels = small ? '' : COMARCAS.map(c => `<text x="${c.label.x}" y="${c.label.y}" class="clabel" text-anchor="middle">${c.label.lines.map((l, i) => `<tspan x="${c.label.x}" dy="${i ? 12 : 0}">${esc(l)}</tspan>`).join('')}</text>`).join('')
-      // en el móvil, números en lugar de nombres (la lista de debajo lleva los mismos números)
-      + COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const [bx, by] = mapLayout().badges[c.id]; return `<g class="cnum" data-comarca="${c.id}" transform="translate(${bx.toFixed(1)} ${by.toFixed(1)})"><circle r="15" fill="${c.color}"/><text dy=".36em" text-anchor="middle">${i + 1}</text></g>`; }).join('');
-    const pinsSvg = pins ? LEVELS.filter(l => !focus || l.comarca === focus).map(l => { const [x, y] = XY.get(l.id), t = isDidactico() ? {} : townProgress(p, l), nm = mapLayout().names[l.id]; return `<g class="pin ${t.stamp ? 'ok' : t.done ? 'go' : ''}" data-town="${l.id}" transform="translate(${x} ${y})"><circle r="${small ? 5 : 7}"/>${small || !nm ? '' : `<text x="${nm.x}" y="${nm.y}" text-anchor="${nm.anchor}">${esc(l.name.split(' /')[0])}</text>`}</g>`; }).join('') : '';
-    return `<svg class="navarra" viewBox="10 10 725 780">${paths}${labels}${pinsSvg}</svg>`;
-  }
-
   // ---------- Mapa ----------
+  // (en el didáctico, el mismo mapa 3D del inicio, en su propia sección: cada comarca lleva a su página y cada pueblo a la
+  // suya. Jugando, el mapa ya es el inicio)
   s_map() {
-    if (isDidactico()) return `<h1 class="title map-title">${I('map', 36)} Mapa de Navarra</h1><p class="lead map-lead">Toca una comarca para ver su material: sus pueblos, su cultura, su naturaleza y sus montes.</p>
-      <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}</div>
-      <aside class="legend2"><div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => `<button data-comarca="${c.id}" style="--d:${(i * 0.04).toFixed(2)}s;--c:${c.color}"><i>${i + 1}</i><b>${esc(c.name)}</b><small>${comarcaTowns(c.id).length}</small></button>`).join('')}</div></aside></div>`;
-    const p = profile(), pct = Math.round(navarraProgress(p).stamps / LEVELS.length * 100);
-    // (en el móvil tumbado, el mapa a toda la altura y al lado lo que llevas sellado y las comarcas, sin desplazar)
-    return `<h1 class="title map-title">${I('map', 36)} Mapa de Navarra</h1><p class="lead map-lead">Toca una comarca para ver sus pueblos. Las comarcas se iluminan a medida que completas sus pueblos.</p>
-      <div class="map-wrap"><div class="bigmap">${this.navarraSVG({ pins: true })}<div class="map-ov" aria-hidden="true"><small>Navarra sellada</small><b>${pct}<small>%</small></b></div></div>
-      <aside class="legend2"><div class="map-head"><small class="gx-kick">Navarra sellada</small><b class="map-pct">${pct}<small>%</small></b><i class="map-bar"><u style="width:${pct}%"></u></i></div>
-        <div class="lg"><span><i class="pin0"></i> Por descubrir</span><span><i class="pin1"></i> Empezado</span><span><i class="pin2"></i> Sellado</span></div>
-        <div class="clist">${COMARCAS.filter(c => comarcaTowns(c.id).length).map((c, i) => { const pr = comarcaProgress(p, c.id); return `<button data-comarca="${c.id}" style="--d:${(i * 0.04).toFixed(2)}s;--c:${c.color}"><i>${i + 1}</i><b>${esc(c.name)}</b><small>${pr.stamps}/${pr.towns}</small><em class="cbar2"><u style="width:${pr.towns ? pr.stamps / pr.towns * 100 : 0}%"></u></em></button>`; }).join('')}</div></aside></div>`;
+    if (!isDidactico()) return this.s_home();
+    this.after = () => inicioOn(this.root);
+    return inicioHTML(this.opcInicio(profile()), 'map');
   }
 
   // ---------- Comarca ----------
   s_comarca(id) {
-    const c = comarca(id); if (!c) return this.s_map();
+    const c = comarca(id); if (!c) return this.s_towns();
     const p = profile(), pr = comarcaProgress(p, id), ts = comarcaTowns(id), C = c.culture || {}, dd = isDidactico(), star = dd && STAR[id];
     // (la danza de la comarca, con su ilustración si la hay: se abre en grande al tocarla)
     const danza = tradicionUrl('danza-' + id);
@@ -505,8 +449,12 @@ export class Hub {
   }
   // (una pantalla de la galería: la portada del pueblo, su nombre y lo que lleva hecho)
   galTarjeta(l) {
-    const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), cov = townImg(l);
-    return `<button type="button" class="gal-t" data-gt="${l.id}" aria-label="${esc(n1)}">${cov ? `<img class="gt-img" src="${cov}" alt="" decoding="async" draggable="false">` : ''}${dd ? '' : `<i class="gt-n${t.total && t.done === t.total ? ' ok' : ''}">${t.done}/${t.total}</i>`}${t.stamp ? `<img class="gt-sello" src="${stampImg(l.comarca)}" alt="">` : ''}<span class="gt-pie"><b>${esc(n1)}</b>${n2 ? `<small>${esc(n2)}</small>` : ''}</span></button>`;
+    const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), cov = townImg(l), lleno = t.total && t.done === t.total;
+    // (una raya por misión, encendidas las hechas; en el didáctico no hay misiones)
+    const mis = dd || !t.total ? '' : `<span class="gt-mis${lleno ? ' ok' : ''}"><span class="gt-rayas">${Array.from({ length: t.total }, (_, i) => `<i${i < t.done ? ' class="on"' : ''}></i>`).join('')}</span><em>${t.done}/${t.total}</em></span>`;
+    return `<button type="button" class="gal-t" data-gt="${l.id}" aria-label="${esc(n1)}${dd ? '' : `, ${t.done} de ${t.total} misiones`}"><span class="gt-marco">
+      <span class="gt-foto">${cov ? `<img class="gt-img" src="${cov}" alt="" decoding="async" draggable="false">` : ''}</span>
+      <span class="gt-dato"><span class="gt-nom"><b>${esc(n1)}</b><small>${esc(n2 || comarca(l.comarca)?.name || '')}</small></span>${mis}${t.stamp ? `<img class="gt-sello" src="${stampImg(l.comarca)}" alt="">` : ''}</span></span></button>`;
   }
   // (el pueblo de delante: su comarca y su sitio en ella, su nombre, sus misiones hechas y los botones de jugar y de ver la ficha)
   galInfo(id, i, n) {
@@ -802,7 +750,7 @@ export class Hub {
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
-        <p class="set-note">Para los móviles que se cierran o no enseñan el mapa: imagen más ligera y el mapa del inicio en plano. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}`;
+        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
       <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
@@ -823,7 +771,7 @@ export class Hub {
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
-        <p class="set-note">Para los móviles que se cierran o no enseñan el mapa: imagen más ligera y el mapa del inicio en plano. Al cambiarlo, el juego vuelve a abrirse.</p>
+        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.creditos()}`;
   }

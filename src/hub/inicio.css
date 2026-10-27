@@ -193,12 +193,8 @@
 
 .m3-sello.grande { width: 64px; height: 64px; } .m3-sello.grande > img { width: 46px; height: 46px; }
 
-/* (sin 3D: el mapa plano de siempre, en el mismo sitio) */
-.m3-plano { position: absolute; z-index: 0; inset: calc(var(--hud) + 64px) 16px 92px; display: grid; place-items: center; }
-.m3-plano svg { width: auto; height: 100%; max-width: 100%; }
-.m3-plano:has(.m3-sencillo) { grid-template-rows: minmax(0, 1fr) auto; }
-.m3-sencillo { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 10px; margin: 6px 0 0; color: var(--tx2, #cbc2e0); font: 500 var(--fs-xs)/1.3 var(--f-ui); text-align: center; }
-.m3-sencillo button { min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .2); background: rgba(255, 255, 255, .06); color: #fff; font: 600 var(--fs-xs)/1 var(--f-ui); cursor: pointer; }
+/* (sin 3D, las comarcas en fotos en su sitio: sin el botón de volver al mapa ni la ayuda para moverlo) */
+.m3d.sin-3d :is(.ex-x, .m3-ayuda) { display: none; }
 
 /* teléfono de pie: el saludo en una fila, el mapa hasta la barra de abajo y el panel como una hoja que sube */
 @media (max-width: 760px) {
@@ -380,7 +376,6 @@
 /* (en las pantallas bajas, con la ficha abierta, ella sola: lleva el nombre de la comarca) */
 @media (max-height: 520px) { .m3d.con-ficha :is(.m3-cb, .m3-rail, .m3-tot) { display: none; } }
 @media (prefers-reduced-motion: reduce) { .m3-cb.entra, .m3-ft.entra > *, .ft-go { animation: none !important; } }
-
 
 /* ================= Las comarcas en fotos =================
    Encima del mapa (que mientras no se pinta): una fila de tarjetas grandes que se pasa deslizando, con la rueda o con las

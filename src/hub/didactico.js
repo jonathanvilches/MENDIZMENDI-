@@ -105,7 +105,7 @@ function mapaYacimientos() {
     if (d < 48) { const k = (48 - d) / 2 / d; a.xy[0] -= dx * k; a.xy[1] -= dy * k; b.xy[0] += dx * k; b.xy[1] += dy * k; }
   }
   for (const a of P) { a.xy[0] = Math.min(705, Math.max(40, a.xy[0])); a.xy[1] = Math.min(760, Math.max(40, a.xy[1])); }   // (y dentro del marco)
-  const svg = `<svg class="navarra yac-mapa" viewBox="10 10 725 780" role="img" aria-label="Mapa de los yacimientos de Navarra">${COMARCAS.map(c => `<path d="${c.path}" style="fill:${c.color}"/>`).join('')}${P.map((p, i) => `<g class="ynum" transform="translate(${p.xy[0].toFixed(1)} ${p.xy[1].toFixed(1)})"><circle r="14"/><text dy=".36em" text-anchor="middle">${i + 1}</text></g>`).join('')}</svg>`;
+  const svg = `<svg class="navarra yac-mapa" viewBox="10 10 725 780" role="img" aria-label="Mapa de los yacimientos de Navarra">${COMARCAS.map(c => `<path d="${c.path}"/>`).join('')}${P.map((p, i) => `<g class="ynum" transform="translate(${p.xy[0].toFixed(1)} ${p.xy[1].toFixed(1)})"><circle r="14"/><text dy=".36em" text-anchor="middle">${i + 1}</text></g>`).join('')}</svg>`;
   const li = P.map((p, i) => `<li><i>${i + 1}</i><span><b>${esc(p.n)}</b><small>${esc(p.l)}</small>${p.txt ? `<em>${esc(p.txt)}</em>` : ''}</span>${p.t && levelById(p.t) ? `<button type="button" class="lnk" data-town="${p.t}">${I('pin', 20)}${esc(tn(p.t))}</button>` : ''}</li>`).join('');
   return `<section class="yac"><h3>${I('map', 30)}<span>El mapa de los yacimientos</span></h3><p class="dd-intro">En Navarra hay catalogados más de 400 dólmenes y muchos otros yacimientos. Estos son algunos de ellos, con el pueblo donde está su misión.</p><div class="yac-in">${svg}<ol class="yac-lista">${li}</ol></div></section>`;
 }
