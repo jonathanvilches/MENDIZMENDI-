@@ -3,6 +3,9 @@
 //  · escudos de casa (pueblo-n): src/assets/escudos/casas/{1024,512,192,96}, encajados como los de tools/escudos-importar.mjs
 //  · personajes de Navarra (ids de data/personajes.js): src/assets/personajes/{1536,320}
 //  · tradiciones (pueblo-tipo, como lesaka-dance, y la danza de cada comarca, danza-<comarca>): src/assets/tradiciones/{1536,320}
+//  · las ilustraciones del material didáctico (productos, iglesias, monumentos, castillo, campanas, encierro) y de los
+//    carnavales: con las tradiciones, src/assets/tradiciones/{1536,320}
+//  · cimas (ids de data/mountains.json): src/assets/cimas/{1536,1024,320}
 //  · cuentos y leyendas (ids de data/cuentos.js): src/assets/leyendas/{1536,768,640}
 //  · figuras de leyenda y carnaval (ids de data/figuras.js): con tools/figuras-ilus.mjs (src/assets/figuras/ilus)
 //  · iconos: src/assets/icons3d/{512,256,128}, recortados a su dibujo y centrados con el lado mayor al 89 % del cuadro, como
@@ -26,7 +29,10 @@ const PERSONAJES = new Set([...readFileSync('src/data/personajes.js', 'utf8').ma
 const CUENTOS = new Set([...readFileSync('src/data/cuentos.js', 'utf8').matchAll(/id: '([a-z0-9-]+)'/g)].map(m => m[1]));
 const FIGURAS = ['lamia', 'basajaun', 'sorgina', 'tartalo', 'roldan', 'joaldun', 'momotxorro', 'cascabobo', 'zipotero', 'lagunero', 'irasko', 'paloki'];
 const GRANDES = new Set([...readdirSync(`${A}/icons3d/1024`).map(f => f.replace('.webp', '')), 'txistu', 'txapela-campeon']);   // (instrumentos y trofeos)
-const clase = (n) => /^[a-z]+(-[a-z]+)*-\d+$/.test(n) ? 'escudo' : /^danza-|-(dance|feria|tradition)$/.test(n) ? 'tradicion' : FIGURAS.includes(n) ? 'figura'
+// (las ilustraciones del material didáctico y de los carnavales: con las tradiciones, que se buscan por su nombre)
+const ILUS = /^(prod|como|iglesia|portada|casa|romeria|comparsa)-|^(campanas|castillo-partes|ruinas|ermita|crucero|monolito|mirador|puerto-montana|horreo|estelas|mozorro|miel-otxin|zarratrako)$/;
+const MONTES = new Set(JSON.parse(readFileSync('src/data/mountains.json', 'utf8')).map(m => m.id));
+const clase = (n) => /^[a-z]+(-[a-z]+)*-\d+$/.test(n) ? 'escudo' : /^danza-|-(dance|feria|tradition)$/.test(n) || ILUS.test(n) ? 'tradicion' : MONTES.has(n) ? 'cima' : FIGURAS.includes(n) ? 'figura'
   : PERSONAJES.has(n) ? 'personaje' : CUENTOS.has(n) ? 'leyenda' : existsSync(`${A}/icons3d/512/${n}.webp`) || GRANDES.has(n) || ['mando', 'globo', 'periodico'].includes(n) ? 'icono' : '';
 
 // de cada archivo de la carpeta, su nombre en el juego (el suyo, o el que se diga)
@@ -63,6 +69,8 @@ for (const [f, n] of lista) {
     const base = c === 'personaje' ? 'personajes' : 'tradiciones';
     await lamina(ruta, join(dir(`${A}/${base}/1536`), `${n}.webp`), 1536, 864, 82);
     if (unico) await lamina(ruta, join(dir(`${A}/${base}/320`), `${n}.webp`), 320, 180, 80);
+  } else if (c === 'cima') {
+    for (const [w, h, q] of [[1536, 864, 82], [1024, 576, 80], ...(unico ? [[320, 180, 80]] : [])]) await lamina(ruta, join(dir(`${A}/cimas/${w}`), `${n}.webp`), w, h, q);
   } else if (c === 'leyenda') {
     for (const [w, h, q] of [[1536, 864, 82], [768, 432, 82], ...(unico ? [[640, 360, 78]] : [])]) await lamina(ruta, join(dir(`${A}/leyendas/${w}`), `${n}.webp`), w, h, q);
   } else if (c === 'figura') figuras.push([ruta, n]);
