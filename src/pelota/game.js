@@ -258,6 +258,7 @@ export class PelotaGame {
       const c0 = clamp(p.x * 0.4, -3, 3), lx = clamp((aim.x < 0 ? c0 + aim.x * (c0 + 4.6) : c0 + aim.x * (4.3 - c0)) + gauss(rnd) * err * 1.2, -4.75, 4.75);
       const ty = dropHeight(pow, aim.y) + err * 0.6 + gauss(rnd) * err * 0.45, T = p.z / (12 + q * 3 + pow * 4);
       v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T));
+      sub = lx < -3.4 ? 'dejadaTxoko' : lx > 3.2 ? 'dejadaAncho' : '';   // (al rincón de la pared o junto a la raya del ancho)
     } else if (req === 'cortada') {
       // cortada: fuerte y raso, muy ajustada a la chapa: vuelve baja y rápida, botando pronto y corriendo. Cuanto peor
       // el golpe, más se arriesga: uno flojo puede dar en la chapa
@@ -280,7 +281,7 @@ export class PelotaGame {
         const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y * 2.5, 6.5, 16), [fz, fz - 0.06, fz + 0.06, fz + 0.12], { low: 2, maxFront: ty + 1.4, cross: 1 + ang * 5, spin: 1 });
         if (r) { v = r.v; sub = 'cortDos'; }
       }
-      if (!v) { const T = Math.max(0.2, p.z / speed); v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1); }
+      if (!v) { const T = Math.max(0.2, p.z / speed); v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1); sub = lx < -2.4 ? 'cortPared' : lx > 3.2 ? 'cortAncho' : ''; }
     } else {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
@@ -525,14 +526,36 @@ export class PelotaGame {
     if (this.mode === 'rally' && who === 'rival') return { aim: { x: (op.x - me.x) * 0.15, y: 0 }, drop: false };  // en el peloteo, pelotas fáciles
     // un pelotari fuerte, con el rival adelantado, la manda al rebote
     if (S >= 4 && op.z < 23 && me.z > 13 && rnd() < 0.18 + (S - 4) * 0.12) return { aim: { x: gauss(rnd) * 0.3, y: 1 }, drop: false, pow: 1 };
-    if (rnd() < smart) {
-      if (op.z > 21 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
-      if (op.z < 16 && rnd() < 0.4) return { aim: { x: op.x > 0 ? -0.6 : 0.6, y: 0 }, drop: 'cortada' };   // rival adelantado: cortada que le pase
-      if (op.x > 1) return { aim: me.x > -2 && rnd() < smart ? { x: -0.85, y: -0.55 } : { x: -0.9, y: 0 } };   // rival a la derecha: a dos paredes o a la pared
-      if (op.x < -1.2) return { aim: { x: 1, y: 0 } };
-      if (op.z < 15) return { aim: { x: 0, y: 1 } };
-    }
-    return { aim: { x: gauss(rnd) * 0.6, y: rnd() < 0.2 ? 1 : 0 }, drop: false };
+    return this.repertorio(who, me, op, smart);
+  }
+  // El repertorio entero de la pelota a mano: pelotear, fuerte hacia atrás (al rebote si tiene fuerza), dejada al txoko y
+  // al ancho, cortada a la pared, al ancho y a dos paredes, dos paredes, a la pared, al ancho hacia la contracancha y, si la
+  // pelota le llega alta, el gancho a la pared y el gancho de izquierda al ancho. Cada uno con más ganas según la jugada
+  // (dónde está el otro, desde dónde golpea él) y lo listo que es (los niveles altos atacan más); sale uno al azar con
+  // esas ganas, así varía y no se le adivina. Antes solo buscaba la dejada, la cortada o las dos paredes en pocos casos y
+  // casi todo era pelotear
+  repertorio(who, me, op, smart) {
+    const rnd = this.rnd, g = gauss(rnd), ataque = 0.25 + smart * 0.75;
+    // (la dejada, sobre todo cuando él está delante y el otro, atrás; desde atrás, nunca)
+    const atras = op.z > 20, delante = op.z < 15.5, dcha = op.x > 1, izda = op.x < -1, lejos = me.z > 22, corto = op.z > 19 && me.z < 19.5 ? 0.6 : me.z < 15 ? 0.25 : 0;
+    const G = [
+      [3.4 - smart, { aim: { x: g * 0.5, y: rnd() < 0.3 ? 0.4 : 0 } }],                                                       // pelotear
+      [(delante ? 1.6 : 0.45) * ataque, { aim: { x: g * 0.3, y: 1 }, pow: 0.85 + rnd() * 0.15 }],                           // fuerte hacia atrás
+      [corto * 1.4 * ataque, { aim: { x: -1, y: -1 }, drop: true, pow: rnd() * 0.25 }],                                       // dejada al txoko
+      [corto * (izda ? 1.6 : 0.9) * ataque, { aim: { x: 1, y: -1 }, drop: true, pow: rnd() * 0.25 }],                         // dejada al ancho
+      [(dcha ? 1.2 : 0.5) * ataque * (lejos ? 0.5 : 1), { aim: { x: -0.38, y: g * 0.2 }, drop: 'cortada', pow: 0.25 + rnd() * 0.45 }],   // cortada a la pared
+      [(op.x < 0 ? 1.2 : 0.45) * ataque * (lejos ? 0.5 : 1), { aim: { x: 0.85, y: g * 0.2 }, drop: 'cortada', pow: 0.25 + rnd() * 0.45 }], // cortada al ancho
+      [(dcha && me.x > -3 ? 1.1 : 0.35) * ataque * (lejos ? 0.4 : 1), { aim: { x: -0.95, y: 0 }, drop: 'cortada', pow: 0.3 + rnd() * 0.4 }], // cortada a dos paredes
+      [(me.x > -3.6 && op.x > -0.5 ? 1.3 : 0) * ataque, { aim: { x: -0.88 - rnd() * 0.12, y: -0.3 - rnd() * 0.5 }, pow: 0.4 + rnd() * 0.5 }], // dos paredes
+      [dcha ? 0.9 : 0.4, { aim: { x: -0.8, y: 0.2 } }],                                                                         // a la pared
+      [(izda ? 1.2 : 0.5) * ataque, { aim: { x: 1, y: 0.15 + rnd() * 0.3 }, pow: 0.7 + rnd() * 0.3 }],                          // al ancho, a la contracancha
+    ];
+    // (alta, por encima del hombro: el gancho, pegado a la pared o cruzado de izquierda hacia el ancho)
+    // (de gancho también a media altura, por encima del pecho: el pelotari de verdad lo busca, no espera a que baje)
+    if (this.ball.p.y >= GANCHO_Y - 0.4) G.push([2 * ataque, { aim: { x: -0.95, y: 0.1 }, gancho: true }], [(op.x < 0.5 ? 2 : 1) * ataque, { aim: { x: 0.85, y: 0 }, gancho: true }]);
+    let tot = 0; for (const [w] of G) tot += Math.max(0, w);
+    let x = rnd() * tot; for (const [w, s] of G) { x -= Math.max(0, w); if (x <= 0) return s; }
+    return G[0][1];
   }
   // sus golpes preferidos (los de su ficha): los busca a menudo, más cuantos más tiene
   styleShot(who, me) {
@@ -554,8 +577,10 @@ export class PelotaGame {
     // si uno de los dos está mucho más cansado, se le busca a él: corta si es el de delante, larga si es el de atrás
     if (Math.abs(front.en - back.en) > 0.2 && rnd() < smart * 0.5) return front.en < back.en ? { aim: { x: front.x > 0 ? 0.4 : -0.4, y: -0.6 }, drop: rnd() < 0.3 } : { aim: { x: back.x > 0 ? 0.35 : -0.35, y: 0.9 } };
     if (S >= 4 && back.z < 23 && me.z > 13 && rnd() < 0.18 + (S - 4) * 0.12) return { aim: { x: gauss(rnd) * 0.3, y: 1 }, drop: false, pow: 1 };
+    if (this.overhead() && rnd() < 0.3 + smart * 0.4) return { aim: { x: rnd() < 0.55 ? 0.85 : -0.95, y: 0 } };   // (alta: el gancho, al ancho o a la pared)
     if (rnd() < smart) {
-      if (front.z > 17 && me.z < 20 && rnd() < 0.55) return { aim: { x: 0, y: -1 }, drop: true };
+      if (front.z > 17 && me.z < 20 && rnd() < 0.55) return { aim: { x: rnd() < 0.5 ? -1 : 1, y: -1 }, drop: true, pow: rnd() * 0.25 };   // (al txoko o al ancho)
+      if (me.x > -3.6 && front.x > -0.5 && rnd() < 0.3) return { aim: { x: -0.9, y: -0.5 } };   // (dos paredes)
       if (back.z < 20 && rnd() < 0.5) return { aim: { x: gauss(rnd) * 0.3, y: 1 } };
       if (front.x > 0.5 && back.x > 0.5) return { aim: me.x > -2 && rnd() < smart ? { x: -0.85, y: -0.55 } : { x: -0.9, y: 0 } };
       if (front.x < -1 && back.x < -1) return { aim: { x: 1, y: 0 } };
@@ -623,7 +648,7 @@ export class PelotaGame {
         const q = bad ? 0.1 + this.rnd() * 0.2 : 0.55 + this.rnd() * 0.4 - tir * 0.2;
         const s = this.aiShot(who);
         // fuerza: cuanto más fuerte, más cargados los golpes; de volea si le llega de aire y de gancho si le llega alta
-        return this.strike(who, q, s.aim, s.drop, s.pow ?? clamp(0.18 + Q.fuerza * 0.1 + this.rnd() * 0.5, 0.15, 1), false, null, { volea: this.volley(), gancho: this.overhead() && !s.drop });
+        return this.strike(who, q, s.aim, s.drop, s.pow ?? clamp(0.18 + Q.fuerza * 0.1 + this.rnd() * 0.5, 0.15, 1), false, null, { volea: this.volley(), gancho: (this.overhead() || !!s.gancho) && !s.drop });
       }
     } else if (this.phase === 'rally' && this.pairs) {
       const p = this.basePos(who); tx = p.x; tz = p.z;

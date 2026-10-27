@@ -2,6 +2,7 @@
 // Origen del grupo: suelo, centro del frontis. La cancha crece hacia +z; la pared izquierda en x = −W/2.
 import { COURT, CUATRO } from './rules.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
+import { buildEntorno, entornoExtent, casas } from './entorno.js';
 
 function srgb(THREE, tex) {
   if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
@@ -10,7 +11,7 @@ function srgb(THREE, tex) {
 }
 // escala de las texturas pintadas (opts.texScale): en los móviles se pintan a la mitad (cuatro veces menos memoria)
 let TEX_K = 1;
-function canvasTex(THREE, w, h, draw, repeat) {
+export function canvasTex(THREE, w, h, draw, repeat) {
   const c = document.createElement('canvas'); c.width = Math.round(w * TEX_K); c.height = Math.round(h * TEX_K);
   const g = c.getContext('2d'); g.scale(TEX_K, TEX_K);
   draw(g, w, h);
@@ -19,7 +20,7 @@ function canvasTex(THREE, w, h, draw, repeat) {
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
   return t;
 }
-function grain(g, w, h, n, a, dark = true) {
+export function grain(g, w, h, n, a, dark = true) {
   for (let i = 0; i < n; i++) {
     const v = dark ? (Math.random() * 60) | 0 : 200 + ((Math.random() * 55) | 0);
     g.fillStyle = `rgba(${v},${v},${v},${a})`; g.fillRect(Math.random() * w, Math.random() * h, 2 + Math.random() * 2, 2 + Math.random() * 2);
@@ -28,7 +29,7 @@ function grain(g, w, h, n, a, dark = true) {
 
 // pared de hormigón pintada: juntas de encofrado muy suaves y chorreones de lluvia desde arriba. dry: la cara de dentro
 // de un frontón con cubierta o cerrado, donde no llueve: solo las juntas (con chorreones parecía que llovía dentro)
-function weather(c, w, h, mH, mW, dry = false) {
+export function weather(c, w, h, mH, mW, dry = false) {
   c.strokeStyle = 'rgba(0,0,0,.07)'; c.lineWidth = Math.max(1, w / 400);
   for (let y = 2.5; y < mH; y += 2.5) { const Y = h - y / mH * h; c.beginPath(); c.moveTo(0, Y); c.lineTo(w, Y); c.stroke(); }
   for (let x = 3.3; x < mW; x += 3.3) { const X = x / mW * w; c.beginPath(); c.moveTo(X, 0); c.lineTo(X, h); c.stroke(); }
@@ -56,7 +57,7 @@ const rgb = (s) => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16));
 const tone = (c, k) => `rgb(${c.map(v => Math.max(0, Math.min(255, Math.round(v * k)))).join(',')})`;
 // sillería: hiladas de unos 45 cm con sillares de largo distinto, cada uno con su tono, llagas de mortero y una sombra
 // fina bajo cada piedra (mW × mH: metros que cubre el lienzo)
-function ashlar(c, w, h, mW, mH, base) {
+export function ashlar(c, w, h, mW, mH, base) {
   const B = rgb(base), px = w / mW, py = h / mH;
   c.fillStyle = tone(B, 1.12); c.fillRect(0, 0, w, h);
   for (let y = 0, row = 0; y < mH; row++) {
@@ -84,7 +85,7 @@ function bricks(c, w, h, mW, mH, base) {
 }
 
 // junta muchas cajas (o planos) en una sola geometría: {w, h, d, x, y, z, rz} (giro sobre z) o {plane, w, d, up}
-function boxesGeo(T, list) {
+export function boxesGeo(T, list) {
   const pos = [], nrm = [], uv = [], m = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), v = new T.Vector3(), one = new T.Vector3(1, 1, 1);
   for (const b of list) {
     const g = b.plane ? new T.PlaneGeometry(b.w, b.d) : new T.BoxGeometry(b.w, b.h, b.d).toNonIndexed();
@@ -129,6 +130,9 @@ export class PelotaCourt {
     const HALL = !!opts.hall && !opts.labrit;   // (frontón cubierto y cerrado: el de los campeonatos)
     const DRY = HALL || !!opts.labrit || !!th.roof;   // (bajo techo: las caras de dentro, sin chorreones de lluvia)
     const W = C.W, L = C.L, EXT = L + 3, CONTRA = opts.labrit ? LABRIT_CONTRA : HALL ? HALL_CONTRA : 2.6;   // (el Labrit, con su contracancha ancha de tarima)
+    // (lo que rodea al frontón de la calle de cada pueblo: la plaza con su grada, la iglesia, la casa consistorial o la
+    // calle entre casas: src/pelota/entorno.js)
+    const EST = this.estilo = !opts.labrit && !HALL ? (opts.estilo || 'plaza') : null, CALLE = EST === 'calle';
     const std = (o) => new T.MeshStandardMaterial(Object.assign({ roughness: 0.88, metalness: 0 }, o));
     this.materials = [];
     const M = (o) => { const m = std(o); this.materials.push(m); return m; };
@@ -196,7 +200,9 @@ export class PelotaCourt {
       else if (th.brick) bricks(c, w, h, W + 0.6, C.FRONT_H, '#a85c3e');
       else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false); }
       weather(c, w, h, C.FRONT_H, W + 0.6);
-      paintName(c, title ? 'FRONTÓN' : '', w / 2, h * 0.36, w * 0.5, h * 0.07, '#fdfaf2');   // (el nombre del pueblo, solo en la pared izquierda)
+      // (el escudo del pueblo con su nombre, como en la pared izquierda; nunca el rótulo «FRONTÓN»)
+      if (opts.shield) opts.shield(c, w / 2, h * 0.16, h * 0.17);
+      paintName(c, opts.wallName || '', w / 2, h * 0.39, w * 0.6, h * 0.05, '#fdfaf2');
     });
     const frontEnd = canvasTex(T, 256, 1024, (c, w, h) => { if (th.stone) ashlar(c, w, h, 0.8, C.FRONT_H, th.stone); else { c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.06); grain(c, w, h, 2000, 0.05, false); } weather(c, w, h, C.FRONT_H, 0.8); });
     const front = new T.Mesh(new T.BoxGeometry(W + 0.6, C.FRONT_H, 0.8), [M({ map: frontEnd }), M({ map: frontEnd }), M({ color: th.stone || th.frontis }), M({ color: th.stone || th.frontis }), M({ map: frontTex }), M({ map: backTex })]);
@@ -248,8 +254,8 @@ export class PelotaCourt {
 
     // --- pared izquierda (lisa, con la raya roja de arriba)
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
-      c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false);
-      weather(c, w, h, C.LEFT_H, EXT, DRY);
+      if (CALLE) casas(c, w, h, EXT, C.LEFT_H, 11);   // (en la calle, la pared izquierda es la fila de casas)
+      else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false); weather(c, w, h, C.LEFT_H, EXT, DRY); }
       const Y = (y) => h - y / C.LEFT_H * h;
       c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_LINE) - 6, w, 12);   // raya roja: por encima es mala
     });
@@ -348,7 +354,7 @@ export class PelotaCourt {
     back.position.set(-0.3, RH / 2, EXT + 0.2); back.castShadow = true; back.receiveShadow = true; g.add(back);
     if (!opts.labrit && !HALL) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); }
     this.rebMats = [rebIn, rebOut, rebCap]; this.rebFade = 1; this.contra = CONTRA;
-    if (!opts.labrit && !HALL) for (let i = 0; i < 3; i++) {
+    if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
@@ -358,13 +364,14 @@ export class PelotaCourt {
     // Antes el banco iba en medio del escalón, a 8 cm del suelo, y se sentaban casi en cuclillas
     const benchM = M({ color: '#8a5a34', roughness: 0.7 }), benchG = new T.BoxGeometry(0.44, 0.06, L * 0.76);
     this.standSpots = [];
-    if (!opts.labrit && !HALL) for (let i = 0; i < 3; i++) {
+    if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
       const xe = W / 2 + CONTRA + i * 1.1, y = 0.42 * (i + 1);   // (el borde del escalón, del lado de la cancha, y su altura)
       const b = new T.Mesh(benchG, benchM); b.position.set(xe + 0.21, y + 0.03, L * 0.52); b.castShadow = true; b.receiveShadow = true; g.add(b);
       for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([xe + 0.48, y + 0.06, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
     }
-    if (!opts.labrit && !HALL) this.seated = true;
-    this.extent = { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + 3.3, z0: -0.8, z1: EXT + 0.4 };
+    if (!opts.labrit && !HALL && !CALLE) this.seated = true;   // (en la calle, de pie en la acera y en los balcones)
+    this.extent = EST ? entornoExtent(EST, CONTRA) : { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + 3.3, z0: -0.8, z1: EXT + 0.4 };
+    if (EST && EST !== 'plaza') this.platform = { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + (CALLE ? 1.5 : 0), z0: -0.8, z1: EXT + 0.4 };   // (se anda por la cancha, no por los edificios)
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 0.6 };   // por donde se entra a la cancha (esquina de la contracancha)
     // cajas de colisión (locales): frontis, pared izquierda, fondo, gradas
     this.boxes = [
@@ -373,10 +380,16 @@ export class PelotaCourt {
       { x: -0.3, z: EXT + 0.2, w: W + 0.6, d: 0.4 },
       { x: W / 2 + CONTRA + 1.65, z: L * 0.52, w: 3.3, d: L * 0.78 },
     ];
+    if (CALLE) this.boxes.pop();   // (sin grada)
+    if (EST && EST !== 'plaza') {
+      // (el tejado, del color de los del pueblo: teja o pizarra)
+      const roofCol = opts.roofCol || (th.roofTop === '#4b4f55' ? '#5a5e66' : '#a4553c');
+      buildEntorno(EST, { T, M, g, th, CONTRA, EXT, boxes: this.boxes, spots: this.standSpots, roofCol, shield: opts.shield, seed: opts.seed || 7 });
+    }
     if (opts.labrit) this.buildLabrit(T, M, th, W, CONTRA, EXT, L, opts);
     else if (HALL) this.buildHall(T, M, th, W, CONTRA, EXT, L, opts);
     else if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
-    if (!opts.labrit && !HALL) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT);
+    if (!opts.labrit && !HALL) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT, CALLE);
     // dónde cabe la cámara del partido (match.js, cabe): bajo la cubierta, sin llegar a su estructura (más arriba, las
     // vigas, los tirantes y la chapa quedaban delante y tapaban la imagen entera); en el cubierto, sin pasar del rebote,
     // que llega al techo; en el Labrit, sin meterse en la grada del fondo. En el pueblo, Fronton añade las casas de detrás
@@ -719,15 +732,16 @@ export class PelotaCourt {
     // el fondo, detrás de la contracancha y de la grada (el rebote ya llega al techo)
     box(xr - (W / 2 + 0.3), H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, H / 2, zb);
     // la pared derecha, detrás de la grada: el nombre del frontón en grande y ventanales arriba
-    const name = (opts.hallName || 'FRONTÓN').toUpperCase(), sub = (opts.hallSub || '').toUpperCase();
+    // (el escudo del pueblo y su nombre, nada más: antes «FRONTÓN …» en grande y su nombre en euskera debajo)
+    const name = (opts.hallName || opts.wallName || '').toUpperCase();
     const rTex = canvasTex(T, 2048, 512, (c, w, h) => {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.05); grain(c, w, h, 4000, 0.04, false);
       const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); }
-      c.fillStyle = '#fbf8f0'; let fs = h * 0.26; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
-      const tw = c.measureText(name).width; if (tw > w * 0.8) { fs *= w * 0.8 / tw; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
-      c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(name, w / 2, h * 0.42);
-      if (sub) { c.font = `700 ${h * 0.09}px "Lilita One", Nunito, Arial, sans-serif`; c.fillText(sub, w / 2, h * 0.6); }
-      c.fillStyle = th.mark; c.fillRect(w * 0.2, h * 0.66, w * 0.6, h * 0.012);
+      let fs = h * 0.24; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
+      const sw = opts.shield ? h * 0.48 : 0, tw0 = c.measureText(name).width; if (tw0 > w * 0.7 - sw) { fs *= (w * 0.7 - sw) / tw0; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
+      const tw = c.measureText(name).width, x0 = (w - sw - tw - (sw ? h * 0.06 : 0)) / 2;
+      if (opts.shield) opts.shield(c, x0 + sw / 2, h * 0.22, h * 0.5);
+      c.fillStyle = '#fbf8f0'; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(name, x0 + sw + (sw ? h * 0.06 : 0), h * 0.47);
     });
     const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, M({ map: rTex }), wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
     rw.position.set(xr + 0.3, H / 2, (za + zb) / 2); g.add(rw);
@@ -753,7 +767,7 @@ export class PelotaCourt {
     const seatM = M({ color: '#ffffff', roughness: 0.6 }), col = new T.Color();
     for (const [geo, nm] of [[seatG, 'asientos'], [backG, 'respaldos'], [legG, 'patas']]) {
       const SI = new T.InstancedMesh(geo, nm === 'patas' ? steel : seatM, seats.length);
-      seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(i % 11 === 0 ? '#8e6ae8' : '#5b34c4')); });
+      seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(i % 11 === 0 ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
       SI.receiveShadow = true; SI.name = nm; g.add(SI);
     }
     this.seated = true;   // (el público, sentado en sus asientos)
@@ -795,7 +809,7 @@ export class PelotaCourt {
   // focos: proyectores sobre la pared izquierda y en torres junto a la grada (con cubierta, colgados de ella). De día
   // son hierro gris; de noche (setLights) la cara se enciende blanca con su halo. La luz de la cancha la ponen el cielo
   // y el juego (sin luces nuevas: en el móvil rehacen todos los sombreadores)
-  buildFloods(T, M, roof, W, CONTRA, EXT) {
+  buildFloods(T, M, roof, W, CONTRA, EXT, noTowers = false) {
     const C = COURT, housing = M({ color: '#3a3f44', roughness: 0.5, metalness: 0.4 }), pole = M({ color: '#6b7176', roughness: 0.6, metalness: 0.3 });
     const face = this.floodFace = new T.MeshBasicMaterial({ color: '#8a8d90' });
     const gc = document.createElement('canvas'); gc.width = gc.height = 64; const gx = gc.getContext('2d'), gr = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -820,9 +834,9 @@ export class PelotaCourt {
         const up = new T.Mesh(new T.BoxGeometry(0.12, 1.0, 0.12), pole); up.position.set(-W / 2 - 0.25, C.LEFT_H + 0.45, z); g.add(up);
         head(-W / 2 + 1.25, C.LEFT_H + 0.75, z, 0, 0.45);
       }
-      // torres detrás de la grada
+      // torres detrás de la grada (en la calle no hay: los focos van en las paredes de las casas)
       const px = W / 2 + CONTRA + 3.6, ph = 11.5;
-      for (const z of [6, 17, 28].filter(z => z < EXT)) {
+      if (!noTowers) for (const z of [6, 17, 28].filter(z => z < EXT)) {
         const m = new T.Mesh(new T.CylinderGeometry(0.11, 0.16, ph, 8), pole); m.position.set(px, ph / 2, z); g.add(m);
         head(px - 0.4, ph, z, 0, -0.55);
       }

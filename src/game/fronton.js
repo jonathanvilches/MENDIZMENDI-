@@ -6,6 +6,7 @@ import { hairTint } from '../actors/hairColor.js';
 import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
+import { entornoExtent } from '../pelota/entorno.js';
 import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, removePlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, removeCollider, rectFree, removeMover, nearby } from '../world/colliders.js';
@@ -113,13 +114,28 @@ export function frontonLook(def = {}) {
   return { ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) };
 }
 
-// nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad)
-// y cómo es el frontón de allí (look)
+// Lo que rodea al frontón de la calle de cada pueblo (src/pelota/entorno.js): junto a la iglesia, en la plaza del
+// ayuntamiento, en la calle entre casas o en la plaza con su grada (el de siempre). Comprobado en las fuentes: Etxalar,
+// en la plaza mayor junto a la iglesia; Leitza, en la plaza del ayuntamiento; Elizondo, el cubierto (pilotaleku Juanjo
+// Atxa, 1975). En los demás, el de su comarca: en los pueblos pequeños de la montaña, junto a la iglesia; en las villas,
+// en la plaza del ayuntamiento o en la calle, como se jugaba antes de que hubiera frontones. Los cubiertos, con su cubierta
+const ESTILO_TOWN = {
+  etxalar: 'iglesia', zugarramurdi: 'iglesia', 'amaiur-maya-del-baztan': 'calle', ituren: 'consistorio', lesaka: 'calle',
+  leitza: 'consistorio', 'orreaga-roncesvalles': 'iglesia', aribe: 'iglesia', 'otsagabia-ochagavia': 'iglesia', 'burgui-burgi': 'calle',
+  aoiz: 'consistorio', lumbier: 'calle', viana: 'consistorio', 'puente-la-reina': 'calle', artajona: 'iglesia', ujue: 'iglesia',
+  olite: 'calle', cortes: 'consistorio',
+};
+// (los de la lista, al aire libre aunque los de su comarca suelan ser cubiertos, salvo que su pueblo tenga cubierta propia)
+export const frontonEstilo = (def = {}) => ESTILO_TOWN[def.id] && !LOOK_TOWN[def.id]?.roof ? ESTILO_TOWN[def.id] : 'plaza';
+// nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad),
+// cómo es el frontón de allí (look) y lo que lo rodea (estilo). Solo el escudo y el nombre: sin «AYUNTAMIENTO» ni «FRONTÓN»
 export function frontonWall(def) {
   // el escudo oficial del pueblo o de su valle cuando está comprobado; si no, uno propio del juego
   const spec = shieldSpec(def), A = armsOfTown(def.id);
   const shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : (g, cx, top, h) => drawShield(g, cx, top, h, spec);
-  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), wallSub: 'AYUNTAMIENTO · UDALA', shield, look: frontonLook(def) };
+  const estilo = frontonEstilo(def), look = { ...frontonLook(def), ...(estilo !== 'plaza' ? { roof: null } : {}) }, seed = [...(def.id || '')].reduce((a, ch) => a * 31 + ch.charCodeAt(0) >>> 0, 7) % 9973;
+  return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), shield, look, estilo, seed,
+    roofCol: def.family === 'pyrenean' ? '#5a5e66' : '#a4553c' };   // (en el Pirineo, pizarra; en el resto, teja)
 }
 
 // lo que has ganado a pelota (para tu ficha): los partidos ganados en todos los pueblos y tus txapelas
@@ -137,9 +153,11 @@ export function frontonCond(G, fronton) {
 // nombres para los compañeros de los partidos por parejas
 const MATE_NAMES = RIVALES;   // (los compañeros y los rivales por parejas: de la plantilla del autor, cada uno con su figura)
 
-// huella del frontón en coordenadas locales (se calcula una vez)
+// huella del frontón en coordenadas locales (se calcula una vez; con su iglesia, su casa consistorial o sus casas de la
+// calle, la de cada estilo: entorno.js)
 let EXTENT = null;
 function extent() { if (!EXTENT) { const c = new PelotaCourt(THREE, { texScale: 0.25 }); EXTENT = c.extent; c.dispose(); } return EXTENT; }
+export const frontonExtent = (estilo) => !estilo || estilo === 'plaza' ? extent() : entornoExtent(estilo);
 
 // Busca un sitio llano y libre cerca de la plaza
 export function findFrontonSpot(plaza, E = extent(), exact = false) {
@@ -188,7 +206,7 @@ export class Fronton {
   // spot: centro del frontis a ras de suelo; ry: giro (la cancha crece hacia +z local); sin y, se calcula
   // extra: { wallName, wallSub, shield } → nombre y escudo pintados en la pared izquierda
   constructor(scene, spot, title = '', extra = {}) {
-    if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry, extra.inTown ? labritExtent() : undefined) };
+    if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry, extra.inTown ? labritExtent() : frontonExtent(extra.estilo)) };
     this.spot = spot;
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
@@ -235,7 +253,7 @@ const CHAPA_CAMP = '#c8763a';
 function labritOpts() {
   // (en la pared izquierda, el escudo de Pamplona y su nombre, como en el de verdad, sin el logotipo del ayuntamiento)
   const A = armsOfTown('pamplona'), shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : null;
-  return { labrit: true, wallName: 'IRUÑA · PAMPLONA', wallSub: 'FRONTÓN LABRIT', shield, signAt: { y: 5.4 },
+  return { labrit: true, wallName: 'IRUÑA · PAMPLONA', shield, signAt: { y: 5.4 },
     look: { frontis: '#1d5846', wall: '#1d5846', floor: '#1a1f21', contra: '#d49a5c', parquet: true, line: '#f3f2ec', mark: '#f3f2ec', chapa: CHAPA_CAMP, chapaMetal: true, stone: null, brick: false, roof: null, cap: '#1d5846' } };
 }
 export function labrit(scene, out) {
@@ -248,11 +266,18 @@ export function labrit(scene, out) {
 // el Labrit (dentro no se ve nada de fuera). Los frontones de la calle quedan para las misiones y los partidos sueltos.
 let HALL = null;
 const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contra: '#7c8583', line: '#f3f2ec', mark: '#d8333f', chapa: CHAPA_CAMP, chapaMetal: true, cap: '#2b6a56', stone: null, brick: false, roof: null, stands: '#8c8794' };
+// (cada cubierto con sus colores: las paredes, del color del frontón de la calle del pueblo si son de color, o uno de los
+// de los reglamentos; las butacas, de otro. Antes eran todos verdes con butacas moradas, iguales en todos los pueblos)
+const HALL_PARED = [GREEN, BLUE, '#2b6a56', '#3d5f8a', '#4f7a5c', '#6a5a8c'], HALL_SILLA = [['#5b34c4', '#8e6ae8'], ['#b0262c', '#e0565c'], ['#1f5fa8', '#5a8fd8'], ['#1f7a4a', '#4fb07a'], ['#c06a12', '#eba04a'], ['#2a2a32', '#6a6a78']];
+function hallLook(def, seed = 0) {
+  const L = frontonLook(def), col = L.frontis && !L.stone && L.frontis !== PLASTER ? L.frontis : HALL_PARED[seed % HALL_PARED.length], [s1, s2] = HALL_SILLA[(seed >> 3) % HALL_SILLA.length];
+  return { ...HALL_LOOK, frontis: col, wall: col, cap: col, seat: s1, seat2: s2 };
+}
 export function hallVenue(scene, out, def) {
   if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
   if (HALL) { try { HALL.dispose(); } catch (e) { console.warn('frontón cubierto', e); } }
   const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
-  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, look: HALL_LOOK, hall: true, wallSub: 'FRONTÓN CUBIERTO', hallName: `Frontón ${town}`, hallSub: 'Pilotaleku estalia', noClear: true });
+  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed), hall: true, hallName: W.wallName, noClear: true });
   HALL.town = def?.id;
   return HALL;
 }
@@ -268,6 +293,28 @@ export function freeVenues(keep = null) {
 export function labritInTown(scene, near) {
   const sp = findFrontonSpot(near, labritExtent());
   return sp ? new Fronton(scene, sp, 'LABRIT', { ...labritOpts(), inTown: true }) : null;
+}
+
+// Las pancartas de la grada, sostenidas en alto por la gente (en la calle, en los balcones): «¡Aupa…!» para ti y para
+// el rival, cada una de su color, y la de los pelotazales del pueblo. Devuelve con qué quitarlas
+const COL_PANC = { azul: '#4b3cff', rojo: '#d8243c' };
+function pancartasDe(C, you, riv, town, colors) {
+  const S = (C.standSpots || []).filter(p => p[1] > 0.3).sort((a, b) => a[2] - b[2]); if (S.length < 6) return null;
+  const txt = [[`¡AUPA ${you}!`.toUpperCase(), COL_PANC[colors.you] || COL_PANC.azul], [`¡AUPA ${riv}!`.toUpperCase(), COL_PANC[colors.rival] || COL_PANC.rojo], [`${town} · PILOTAZALEAK`.toUpperCase(), '#1c1630']];
+  const out = [];
+  txt.forEach(([t, col], i) => {
+    const sp = S[Math.floor(S.length * (0.22 + i * 0.28))]; if (!sp) return;
+    const c = document.createElement('canvas'); c.width = 512; c.height = 120; const g = c.getContext('2d');
+    g.fillStyle = col; g.fillRect(0, 0, 512, 120); g.fillStyle = 'rgba(255,255,255,.9)'; g.fillRect(6, 6, 500, 4); g.fillRect(6, 110, 500, 4);
+    let fs = 64; g.font = `400 ${fs}px "MZ Display", "Lilita One", Nunito, Arial, sans-serif`; const w = g.measureText(t).width; if (w > 470) { fs *= 470 / w; g.font = `400 ${fs}px "MZ Display", "Lilita One", Nunito, Arial, sans-serif`; }
+    g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(t, 256, 62);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(2.6, 0.61), new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, side: THREE.DoubleSide }));
+    // (delante de quien la sostiene, hacia donde mira: la cancha)
+    m.position.set(sp[0] + Math.sin(sp[3]) * 0.55, sp[1] + 0.95, sp[2] + Math.cos(sp[3]) * 0.55); m.rotation.y = sp[3]; m.rotation.z = (Math.random() - 0.5) * 0.06; m.name = 'pancarta';
+    C.group.add(m); out.push(m);
+  });
+  return () => { for (const m of out) { m.parent?.remove(m); m.geometry.dispose(); m.material.map.dispose(); m.material.dispose(); } };
 }
 
 /**
@@ -334,7 +381,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
     // (en el Labrit, donde se juegan las finales, todas las butacas ocupadas: los lejanos van con la figura de lejos, ver
     // crowd3d.js; en el frontón cubierto, casi lleno; en el del pueblo, los que caben según la calidad)
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.6 : 3) : 1, cap = C?.labrit ? all.length : Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);
+    // (más gente que antes: en el del pueblo, de 44, 64 y 90 a 64, 100 y 140; en el cubierto, casi lleno; en la calle,
+    // todos los balcones y la acera)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.6 : 2.4) : 1, cap = C?.labrit || C?.estilo === 'calle' ? all.length : Math.round((QUALITY === 'low' ? 64 : QUALITY === 'mid' ? 100 : 140) * full);
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
@@ -350,6 +399,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         seated.add(crew); const tick0 = seated.tick, dispose0 = seated.dispose;
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
       } } catch (e) { console.warn('público del frontón', e); }
+    // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
+    let pancartas = null;
+    try { pancartas = pancartasDe(fronton.court, profile().name || (isEU() ? 'Zu' : 'Tú'), rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
@@ -405,6 +457,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
+      // (la presentación con los focos, a cubierto o de noche: la luz de la imagen baja y vuelve; show.js)
+      focos: frontonCond(G, fronton).covered || (G.sky?.night ?? 0) > 0.5, exposure: (v) => { const R = G.rt?.renderer; if (R) R.toneMappingExposure = v ?? 1.05; },
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${(G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${(G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
@@ -444,6 +498,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       else vuelve();
       function vuelve() {
         safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
+        safe(() => { pancartas?.(); pancartas = null; });
         safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
         safe(() => { if (mates) for (const m of Object.values(mates)) m.dispose(); mates = null; });
         safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });

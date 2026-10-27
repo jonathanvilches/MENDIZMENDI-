@@ -31,14 +31,32 @@ export class PelotaAudio {
   /** Un tanto: su señal, distinta si es tuyo o del rival (cue), y el aplauso de todo el frontón, más corto si fue un
    *  fallo (chapa, fuera, falta). El último tanto, la ovación. Antes, en cada fallo sonaba el «¡oooh!» de la grada, hecho
    *  de voces sintetizadas, y se oía como un zumbido */
-  point(clean, mine, final) {
+  point(clean, mine, final, big = 0) {
     const c = this.ensure(); if (!c) return;
     if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
     this.cue(mine);
+    // el aplauso de todo el frontón en cada tanto (antes solo con el público sintetizado, que está apagado: el tanto
+    // sonaba con la señal y nada más). Más fuerte y más largo si el tanto ha sido bueno o el peloteo largo (big, de 0 a 1)
+    this.aplauso((clean ? (mine ? 0.75 : 0.6) : (mine ? 0.55 : 0.4)) + big * 0.3, (clean ? 2.6 : 1.8) + big * 1.6);
+    this.mood(0.55 + big * 0.15, 0.15);
     if (!PUBLICO) return;
     const C = this.crowdN;
     if (!C?.B) { this.crowd('clap', mine ? 1 : 0.6); return; }
     C.applause(clean ? (mine ? 1 : 0.8) : (mine ? 0.85 : 0.55), clean ? 0.04 : 0.2); C.setLevel(0.55, 0.15);
+  }
+  /** Un aplauso de la grada: un trozo de la ovación grabada (de un sitio distinto cada vez, para que no se repita igual),
+   *  de dur segundos y apagándose al final; v, cuánto se oye. Si la grabación aún no está, palmas sueltas sintetizadas */
+  aplauso(v = 0.6, dur = 2.4) {
+    const c = this.ensure(); if (!c) return; const t = c.currentTime;
+    const b = carga(c, 'aplausos-final').buf;
+    if (b) {
+      const s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 2.2);
+      s.buffer = b; s.connect(g); g.connect(c.destination);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.min(0.95, v), t + 0.12);
+      g.gain.setValueAtTime(Math.min(0.95, v), t + Math.max(0.2, dur - 1.1)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+      s.start(t, off); s.stop(t + dur + 0.05); return;
+    }
+    const n = Math.round(30 * dur); for (let i = 0; i < n; i++) { const u = Math.random() * dur, k = Math.min(1, u / 0.25) * Math.min(1, (dur - u) / 0.9); this.noise(t + u, 0.035, 2000 + Math.random() * 1800, 1.4, 0.13 * v * k); }
   }
   /** La señal del tanto: dos notas de madera, como de txalaparta afinada, que suben si el tanto es tuyo (falla el rival
    *  o le ganas) y bajan, más suaves, si es del rival (fallas tú) */

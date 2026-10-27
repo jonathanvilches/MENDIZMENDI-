@@ -68,7 +68,7 @@ import { GearProps } from '../actors/gear3d.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { bird, BIRDS } from '../actors/beasts.js';
 import { SKY } from '../actors/animals.js';
-import { Fronton, findFrontonSpot, frontonWall, labrit, labritInTown, hallVenue, freeVenues } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall, frontonExtent, labrit, labritInTown, hallVenue, freeVenues } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
@@ -290,7 +290,13 @@ export class TownGame {
   ensureFronton() {
     // (en Iruña, el Labrit: el edificio entero junto a la plaza de toros; si no cupiera, el frontón de siempre)
     if (!this.fronton && this.def.id === 'pamplona') try { this.fronton = labritInTown(this.scene, PLACES.frontonNear || PLACES.plaza); } catch (e) { console.warn('labrit', e); }
-    if (!this.fronton && !this.def.bosque) { const sp = findFrontonSpot(PLACES.frontonNear || PLACES.plaza, undefined, !!PLACES.frontonReal); if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], frontonWall(this.def)); }
+    // (con lo que lo rodea: la iglesia, la casa consistorial o las casas de la calle; si eso no cabe, el de la plaza con su grada)
+    if (!this.fronton && !this.def.bosque) {
+      const W = frontonWall(this.def), at = PLACES.frontonNear || PLACES.plaza;
+      let sp = findFrontonSpot(at, frontonExtent(W.estilo), !!PLACES.frontonReal);
+      if (!sp && W.estilo !== 'plaza') { W.estilo = 'plaza'; sp = findFrontonSpot(at, undefined, !!PLACES.frontonReal); }
+      if (sp) this.fronton = new Fronton(this.scene, sp, this.def.name.split(' /')[0], W);
+    }
     return this.fronton;
   }
   // pista polideportiva del pueblo (donde espera el entrenador; el partido se juega en el campo del pueblo), si hay sitio llano cerca de la plaza (en Pamplona se juega en El
@@ -1144,14 +1150,15 @@ export class TownGame {
       const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
       // (el frontón cubierto se monta ya, tapado por el fondo: así la llegada no espera a montarlo ni a compilarlo)
-      if (!this.fronton.court.labrit) await this.rt?.warm?.(this.hallVenue().court.group);
+      // (solo si es el elegido: las rondas y los partidos se juegan ya en el frontón del pueblo)
+      if (!this.fronton.court.labrit && P.pelotaSede === 'cubierto') await this.rt?.warm?.(this.hallVenue().court.group);
       for (;;) {
         // (entre partido y partido, el jugador quieto en la puerta del frontón y sin el perro, que vuelve al acabar
         // cada partido; delante, el fondo de los campeonatos: el pueblo no se ve ni se dibuja)
         this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.(); this.sportBackdrop(true);
         const you = { name: P.name || 'Tú', town };
         // (el frontón del partido libre, a elegir: el de la plaza, el cubierto, el Labrit u otro pueblo; se recuerda)
-        const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : 'cubierto', otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
+        const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : 'plaza', otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
         const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'));
         if (this.disposed || pick === 'exit') return;
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
