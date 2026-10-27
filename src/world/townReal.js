@@ -3,6 +3,7 @@
 // muros del cauce en el casco. La iglesia, los monumentos, la plaza y la granja los pone townBuilder.js como siempre.
 import * as THREE from 'three';
 import { box, M, MM, builderQuality } from './builder.js';
+import { climber } from './houses.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { addBox } from './colliders.js';
 import { riverInfo, villageMask, MOD } from './layout.js';
@@ -195,19 +196,19 @@ class Lienzo {
 // (sin gastar el rnd del pueblo: un número por casa, de su posición)
 const hashRnd = (x, z) => { let s = (Math.imul(Math.round(x * 10), 73856093) ^ Math.imul(Math.round(z * 10), 19349663)) >>> 0; return () => ((s = Math.imul(s ^ (s >>> 15), 2246822507) + 0x6d2b79f5 >>> 0) % 10000) / 10000; };
 /** La fachada sencilla de una casa de w × d con el alero a h (en el sistema de la casa, T: la puerta mira a +z). o: fam
- *  (familia de la comarca), wall (material de la pared), kind (house, industrial, school, shed, tower), tier (3: solo de
+ *  (familia de la comarca), wall (material de la pared), kind (house, industrial, school, templo, shed, tower), tier (3: solo de
  *  lejos, para las casas con todo su detalle), floors (plantas, si la casa ya las tiene contadas). */
 function fachada(B, T, w, d, h, o) {
   const E = ESTILO[o.fam] || ESTILO.pyrenean, r = o.rnd, kind = o.kind || 'house', off = o.tier === 3 ? 0.09 : 0.03;
   const vid = new Lienzo(false), car = new Lienzo(true), forja = new Lienzo(false);
   const piedra = o.wall === 'stone' || o.wall === 'ashlar', marco = piedra ? '#cfc5b0' : o.wall === 'brick' ? '#e2d6bf' : E.marco;
   const contra = E.contra[Math.floor(r() * E.contra.length)];
-  const caras = [
+  const V = o.vecinas || [], caras = [
     { L: w, ox: 0, oz: d / 2, ux: 1, uz: 0, nx: 0, nz: 1, frente: true },
-    { L: w, ox: 0, oz: -d / 2, ux: -1, uz: 0, nx: 0, nz: -1 },
-    { L: d, ox: w / 2, oz: 0, ux: 0, uz: -1, nx: 1, nz: 0, lado: true },
-    { L: d, ox: -w / 2, oz: 0, ux: 0, uz: 1, nx: -1, nz: 0, lado: true },
-  ];
+    !V[2] && { L: w, ox: 0, oz: -d / 2, ux: -1, uz: 0, nx: 0, nz: -1 },
+    !V[1] && { L: d, ox: w / 2, oz: 0, ux: 0, uz: -1, nx: 1, nz: 0, lado: true },
+    !V[0] && { L: d, ox: -w / 2, oz: 0, ux: 0, uz: 1, nx: -1, nz: 0, lado: true },
+  ].filter(Boolean);   // (las paredes pegadas a otra casa, sin ventanas: son medianeras)
   // (de lejos y en calidad baja, sin marcos: a esa distancia no se distinguen y son la mitad de las piezas)
   const sinMarco = o.tier === 3 && builderQuality() === 'low';
   const ventana = (F, u, y, ww, wh, conContra) => {
@@ -239,6 +240,18 @@ function fachada(B, T, w, d, h, o) {
         if (F.frente && f === 0 && i === Math.floor(nb / 2)) { puerta(F, u, kind === 'school' ? 2.2 : 3.6, Math.min(h - 0.8, kind === 'school' ? 2.6 : 3.8), kind === 'school' ? E.puerta : '#6b6f73'); continue; }
         if (kind === 'school') ventana(F, u, f * (h / nf) + h / nf * 0.55, 2.0, 1.5, false);
         else vid.rect(F, u - 1.6, u + 1.6, h - 1.5, h - 0.6, off);
+      }
+    }
+  } else if (kind === 'templo') {
+    // iglesia o convento: ventanales altos y estrechos, uno cada siete metros, y la portada grande en el frente
+    for (const F of caras) {
+      if (F.L < 6) continue;
+      const nb = Math.max(1, Math.floor(F.L / 7));
+      for (let i = 0; i < nb; i++) {
+        const u = -F.L / 2 + F.L / nb * (i + 0.5), y0 = Math.max(3.2, h * 0.42), y1 = Math.min(h - 0.8, y0 + 2.8);
+        if (F.frente && i === Math.floor(nb / 2)) { puerta(F, u, 2.4, Math.min(h - 1, 3.8), E.puerta); continue; }
+        vid.rect(F, u - 0.42, u + 0.42, y0, y1, off);
+        car.rect(F, u - 0.6, u + 0.6, y0 - 0.18, y0, off, marco); car.rect(F, u - 0.6, u + 0.6, y1, y1 + 0.2, off, marco);
       }
     }
   } else if (kind === 'shed') {
@@ -283,23 +296,57 @@ function fachada(B, T, w, d, h, o) {
 
 /** La fachada sencilla de una casa con todo su detalle (ho, la de buildHouse), solo para verla de lejos. */
 export function fachadaLejana(B, T, ho, fam, x, z) {
-  fachada(B, T, ho.w, ho.d, ho.h, { fam, wall: ho.wall, kind: 'house', floors: Math.max(2, Math.round(ho.h / 2.9)), tier: 3, rnd: hashRnd(x, z) });
+  fachada(B, T, ho.w, ho.d, ho.h, { fam, wall: ho.wall, kind: 'house', floors: Math.max(2, Math.round(ho.h / 2.9)), tier: 3, rnd: hashRnd(x, z), vecinas: ho.vecinas });
 }
 
-// bloque sencillo con tejado a dos aguas (almacenes, naves, casetas y las casas del monte lejanas)
-function block(B, x, y, z, ry, w, d, h, wall, roof, pitch = 0.45) {
+// bloque sencillo con tejado a dos aguas (almacenes, naves, casetas y las casas del monte lejanas). vec: lados pegados a
+// otra casa ([−x, +x, −z]): ahí la cumbrera va hacia ellos, para que el hastial sea la medianera y el alero no se meta
+// en la casa de al lado
+function block(B, x, y, z, ry, w, d, h, wall, roof, pitch = 0.45, vec) {
   const T = M(x, y, z, ry);
   B.add(wall, box(w, h + 3, d, 2.6), MM(T, M(0, (h + 3) / 2 - 3, 0)));
-  const rise = Math.min(w, d) / 2 * pitch, span = Math.min(w, d), along = Math.max(w, d), wideX = w >= d;
+  const wideX = vec?.[0] || vec?.[1] ? true : w >= d, span = wideX ? d : w, along = wideX ? w : d, rise = span / 2 * pitch;
+  const e0 = vec?.[0] ? 0.02 : 0.3, e1 = vec?.[1] ? 0.02 : 0.3;
   const sl = Math.hypot(span / 2 + 0.4, rise), a = Math.atan2(rise, span / 2 + 0.4);
   for (const s of [-1, 1]) {
-    if (wideX) B.add(roof, box(along + 0.6, 0.2, sl, 2), MM(T, M(0, h + rise / 2, s * (span / 4 + 0.2), 0, s * a)));
+    if (wideX) B.add(roof, box(along + e0 + e1, 0.2, sl, 2), MM(T, M((e1 - e0) / 2, h + rise / 2, s * (span / 4 + 0.2), 0, s * a)));
     else B.add(roof, box(sl, 0.2, along + 0.6, 2), MM(T, M(s * (span / 4 + 0.2), h + rise / 2, 0, 0, 0, -s * a)));
   }
   // los piñones
   const tri = new THREE.Shape(); tri.moveTo(-span / 2, 0); tri.lineTo(span / 2, 0); tri.lineTo(0, rise); tri.closePath();
   const g = new THREE.ShapeGeometry(tri);
   for (const s of [-1, 1]) B.add(wall, g, MM(T, wideX ? M(s * along / 2, h, 0, s * Math.PI / 2) : M(0, h, s * along / 2, s > 0 ? 0 : Math.PI)));
+}
+
+// Casas pegadas: qué lados de cada casa dan contra otra ([−x, +x, −z] en su sistema; el +z es la fachada de la puerta).
+// Se mira medio metro más allá de cada pared, en tres puntos a lo largo
+function pegadas(casas) {
+  const CEL = 24, g = new Map(), key = (i, j) => i * 4096 + j;
+  for (const b of casas) { const k = key(Math.floor(b.x / CEL), Math.floor(b.z / CEL)); let a = g.get(k); if (!a) g.set(k, a = []); a.push(b); }
+  const dentro = (b, x, z) => { const c = Math.cos(b.ry), s = Math.sin(b.ry), dx = x - b.x, dz = z - b.z; return Math.abs(dx * c - dz * s) < b.w / 2 + 0.05 && Math.abs(dx * s + dz * c) < b.d / 2 + 0.05; };
+  const otra = (yo, x, z) => { const i0 = Math.floor(x / CEL), j0 = Math.floor(z / CEL); for (let i = i0 - 2; i <= i0 + 2; i++) for (let j = j0 - 2; j <= j0 + 2; j++) for (const b of g.get(key(i, j)) || []) if (b !== yo && dentro(b, x, z)) return true; return false; };
+  const out = new Map();
+  for (const b of casas) {
+    const c = Math.cos(b.ry), s = Math.sin(b.ry), P = (u, v) => [b.x + u * c + v * s, b.z - u * s + v * c];
+    const lado = (pts) => pts.some(([u, v]) => otra(b, ...P(u, v)));
+    const u = b.w / 2 + 0.5, v = b.d / 2 + 0.5, fu = [-0.35, 0, 0.35].map(f => f * b.d), fv = [-0.35, 0, 0.35].map(f => f * b.w);
+    const vec = [lado(fu.map(t => [-u, t])), lado(fu.map(t => [u, t])), lado(fv.map(t => [t, -v]))];
+    if (vec.some(Boolean)) out.set(b, vec);
+  }
+  return out;
+}
+
+// las paredes de las casas grandes del casco, según la comarca
+const MUROS = { atlantic: ['plaster', 'stone', 'plaster'], pyrenean: ['stone', 'plaster'], central: ['ashlar', 'plasterOcher', 'plasterCream'], ribera: ['brick', 'plasterOcher', 'plasterCream'], city: ['plasterOcher', 'plasterRose', 'plasterCream', 'ashlar'] };
+// Las plantas de cada casa (sin gastar el rnd del pueblo: de su posición): macetas con geranios en la puerta y, en una
+// de cada tres o cuatro, una trepadora por la fachada; hiedra en la montaña, y hacia el sur también buganvillas fucsias y
+// glicinias lilas
+const TREPAS = { atlantic: [['hiedra', 0.8], ['glicinia', 1]], pyrenean: [['hiedra', 1]], central: [['hiedra', 0.45], ['buganvilla', 0.7], ['glicinia', 1]], ribera: [['hiedra', 0.3], ['buganvilla', 0.75], ['glicinia', 1]], city: [['hiedra', 0.35], ['buganvilla', 0.7], ['glicinia', 1]] };
+function plantas(x, z, fam) {
+  const r = hashRnd(x + 0.37, z - 0.71), out = {};
+  if (r() < 0.55) out.macetas = [FLOR[Math.floor(r() * FLOR.length)], FLOR[Math.floor(r() * FLOR.length)]];
+  if (r() < 0.3) { const t = r(), L = TREPAS[fam] || TREPAS.pyrenean; out.trepa = { kind: L.find(q => t < q[1])[0], side: r() < 0.5 ? -1 : 1, w: 1.1 + r() * 0.5, h: 3.5 + r() * 3.5, r }; }
+  return out;
 }
 
 /** Las casas de los datos. H: lo que hace falta de townBuilder (buildHouse, houseStyle, minGround, slopeBase, houseShield…). */
@@ -321,6 +368,7 @@ export function realHouses(B, def, rnd, H) {
   // para que el azar del resto del pueblo no cambie)
   const LEJOS = builderQuality() === 'low' ? 220 : builderQuality() === 'mid' ? 270 : 330;
   const lista = real.casas.map(b => ({ b, dist: Math.min(...A.map(a => Math.hypot(b.x - a.x, b.z - a.z))) })).sort((a, c) => a.dist - c.dist);
+  const PEG = pegadas(real.casas);
   let n = 0;
   for (const { b, dist } of lista) {
     if (real.taken.has(b) || b.k === 'church') continue;
@@ -331,14 +379,19 @@ export function realHouses(B, def, rnd, H) {
     if (g.mx - g.mn > 6) continue;                   // (en un barranco: los datos no cuadran con el relieve)
     const vm = villageMask(x, z);
     if (++n > NMAX) break;
-    const isHall = hall && Math.abs(hall.x - x) < 0.5 && Math.abs(hall.z - z) < 0.5;
+    const isHall = hall && Math.abs(hall.x - x) < 0.5 && Math.abs(hall.z - z) < 0.5, vec = PEG.get(b);
     if (b.k === 'industrial' || b.k === 'shed' || (b.k === 'school' && b.a > 600)) {
       const h = b.k === 'shed' ? 2.6 + Math.min(1.2, b.a / 40) : clamp(b.h ? b.h * 0.85 : 7.5, 4.5, 14);
-      const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : 'plasterCream';
+      // (una nave o un colegio grande en el casco viejo, como casa grande de la comarca: pared, tejado de teja y ventanas
+      // con contraventanas. Antes era una caja de chapa crema con una tira de ventanas en mitad de la plaza)
+      // (y si tiene nombre de iglesia o convento —en los datos alguna va como nave—, de sillería y con ventanales altos)
+      const templo = /^(san|santa|santo|santiago|nuestra|iglesia|parroquia|ermita|bas[ií]lica|convento|monasterio|colegiata)\b/i.test(b.n || '');
+      const casco = b.k !== 'shed' && (vm > 0.45 || dist < 160 || templo), hr = hashRnd(x - 0.3, z + 0.9);
+      const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : templo ? 'ashlar' : casco ? MUROS[fam]?.[Math.floor(hr() * MUROS[fam].length)] || 'plaster' : 'plasterCream';
       if (b.k === 'shed' && dist > 150) { lejos++; continue; }   // (las naves grandes y las escuelas, sí: se ven de lejos)
       const hb = slopeBase(B, x, z, w, d, ry, g);
-      block(B, x, hb, z, ry, w, d, h, wall, b.k === 'shed' ? 'tile' : 'zinc', b.k === 'shed' ? 0.5 : 0.18);
-      fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall, kind: b.k === 'shed' ? 'shed' : b.k === 'school' ? 'school' : 'industrial', rnd: hashRnd(x, z) });
+      block(B, x, hb, z, ry, w, d, h, wall, b.k === 'shed' || casco ? 'tile' : 'zinc', b.k === 'shed' ? 0.5 : templo ? 0.5 : casco ? 0.4 : 0.18, vec);
+      fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall, kind: b.k === 'shed' ? 'shed' : templo ? 'templo' : casco ? 'house' : b.k === 'school' ? 'school' : 'industrial', rnd: hashRnd(x, z), vecinas: vec });
       addBox(x, z, w + 0.2, d + 0.2, ry, { solidView: true });
       simple++; continue;
     }
@@ -359,13 +412,14 @@ export function realHouses(B, def, rnd, H) {
     if (sencilla && (dist > LEJOS || (vm < 0.3 && dist > LEJOS * 0.7))) { lejos++; continue; }
     const hb = slopeBase(B, x, z, w, d, ry, g);
     if (sencilla) {
-      block(B, x, hb, z, ry, w, d, h, st.wall, st.roof || 'tile', st.pitch || 0.45);
-      fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall: st.wall, kind: b.k, rnd: hashRnd(x, z) });
+      block(B, x, hb, z, ry, w, d, h, st.wall, st.roof || 'tile', st.pitch || 0.45, vec);
+      fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall: st.wall, kind: b.k, rnd: hashRnd(x, z), vecinas: vec });
+      { const pl = plantas(x, z, fam); if (pl.trepa && w >= 5) climber(B, MM(M(x, hb, z, ry), M(0, 0, d / 2)), { ...pl.trepa, x: pl.trepa.side * (w / 2 - 0.8), w: Math.min(pl.trepa.w, 1.5), h: Math.min(h * 0.92, pl.trepa.h) }); }
       addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
       addHouse(x, z, ry, w, d, { real: b.n || null });
       simple++; continue;
     }
-    const ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1 && w > 6, cornice: rnd() < 0.4, ...st, w, d, h };
+    const ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1 && w > 6, cornice: rnd() < 0.4, ...st, w, d, h, vecinas: vec, ...plantas(x, z, fam) };
     if (w < 6.5) Object.assign(ho, { balcony: false, gallery: false, balconyW: Math.max(1, w - 2), arch: false });
     if (isHall) Object.assign(ho, HALL(w, h));
     buildHouse(B, M(x, hb, z, ry), ho, rnd);
