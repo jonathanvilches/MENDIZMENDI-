@@ -250,8 +250,8 @@ export const EU_EXACT = {
   'Fuera. En el partido sacará el rival; ahora, sigue practicando': 'Kanpora. Partidan aurkariak aterako du; orain, jarraitu praktikatzen',
   // --- liga eta klubaren menua ---
   'Club': 'Kluba', 'Cómo funciona:': 'Nola dabil:', 'MEDIA': 'MAILA', 'Fin de temporada': 'Denboraldiaren amaiera', 'VS': 'VS', 'En casa': 'Etxean', 'Fuera de casa': 'Kanpoan',
-  'siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.':
-    'zazpi jardunaldi, denak denen aurka zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Partida guztiak El Sadarren jokatzen dira. Hiru puntu irabaziz gero eta bat berdinduz gero.',
+  'catorce jornadas, todos contra todos a ida y vuelta con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.':
+    'hamalau jardunaldi, denak denen aurka joan-etorrian zure taldeko klubekin. Zure partidak zuk jokatzen dituzu (edo simulatu); gainerakoak berez simulatzen dira. Partida guztiak El Sadarren jokatzen dira. Hiru puntu irabaziz gero eta bat berdinduz gero.',
   'EN CASA · EL SADAR': 'ETXEAN · EL SADAR', 'EN CASA': 'ETXEAN', 'FUERA': 'KANPOAN', 'FUERA · EL SADAR': 'KANPOAN · EL SADAR', 'En El Sadar': 'El Sadarren', 'en El Sadar': 'El Sadarren',
   'Ver más': 'Gehiago ikusi', 'Ver menos': 'Gutxiago ikusi',
   // (fichas de información: pestañas y fotos)
@@ -274,7 +274,7 @@ export const EU_EXACT = {
   'ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre; antes de cada partido eliges si vas de delantero o de zaguero. La final, en el frontón Labrit de Iruña.': 'aurrelari eta atzelariko zortzi bikote kanporaketetan (final-laurdenak eta finalerdiak 5 tantora, finala 7ra). Betiko lagunarekin jokatzen duzu; partida bakoitzaren aurretik aukeratzen duzu aurrelari edo atzelari zoazen. Finala, Iruñeko Labrit frontoian.', 'TXAPELDUN · CAMPEÓN DEL TORNEO': 'TXAPELDUNA · TXAPELKETAKO IRABAZLEA', '¡La txapela es tuya! Zorionak!': 'Txapela zurea da! Zorionak!',
   'ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los cuartos y las semifinales se juegan en este frontón: los rivales vienen aquí. La final, en el frontón Labrit de Iruña. Los demás partidos se simulan.':
     'zortzi pilotari kanporaketetan (final-laurdenak eta finalerdiak 5 tantora, finala 7ra). Final-laurdenak eta finalerdiak frontoi honetan jokatzen dira: aurkariak hona etortzen dira. Finala, Iruñeko Labrit frontoian. Gainerako partidak simulatu egiten dira.',
-  'CUARTOS DE FINAL': 'FINAL-LAURDENAK', 'SEMIFINALES': 'FINALERDIAK', 'FINAL': 'FINALA', 'Cuartos de final': 'Final-laurdenak', 'Semifinales': 'Finalerdiak', 'Final': 'Finala',
+  'OCTAVOS DE FINAL': 'FINAL-ZORTZIRENAK', 'Octavos de final': 'Final-zortzirenak', 'CUARTOS DE FINAL': 'FINAL-LAURDENAK', 'SEMIFINALES': 'FINALERDIAK', 'FINAL': 'FINALA', 'Cuartos de final': 'Final-laurdenak', 'Semifinales': 'Finalerdiak', 'Final': 'Finala',
   'ELIMINADO': 'KANPORATUTA', 'El torneo sigue sin ti: mira quién se lleva la txapela.': 'Txapelketak zu gabe jarraitzen du: ikusi nork eramaten duen txapela.', 'Nuevo torneo': 'Txapelketa berria',
   'Siguiente ronda': 'Hurrengo erronda', 'Pelotaris inventados para el juego.': 'Jokorako asmatutako pilotariak.', 'Por jugar': 'Jokatzeko', 'Frontón del pueblo': 'Herriko frontoia', 'Pelota a mano': 'Esku pilota',
   'Partido libre o torneo por la txapela': 'Partida librea edo txapelketa txapelaren alde', 'Pelotaris': 'Pilotariak', 'Nueva edición': 'Edizio berria', 'Partido libre': 'Partida librea', 'A 5 tantos': '5 tantora',
@@ -322,7 +322,7 @@ export const EU_RX = [
   [/^Foto: (.+) · iNaturalist · CC0$/, 'Argazkia: $1 · iNaturalist · CC0'], [/^Foto: iNaturalist · CC0$/, 'Argazkia: iNaturalist · CC0'],
   [/^(\d+) personajes$/, '$1 pertsonaia'], [/^Frontón cubierto de (.+)$/, (m, a) => `${loc(a)} frontoi estalia`], [/^Torneo de mano · (.+)$/, (m, a) => `Buruz buruko txapelketa · ${eu(a)}`], [/^Torneo por parejas · (.+)$/, (m, a) => `Binakako txapelketa · ${eu(a)}`],
   [/^Liga Navarra · Jornada (\d+)$/, 'Nafarroako Liga · $1. jardunaldia'], [/^Fútbol 11 · (.+)$/, (m, a) => `11ko futbola · ${eu(a)}`], [/^Fútbol sala · (.+)$/, (m, a) => `Areto futbola · ${eu(a)}`],
-  [/^(\d+)\/(\d+) descubiertos$/, '$1/$2 aurkituak'], [/^(\d+) txapelas$/, '$1 txapela'], [/^A (\d+) tantos$/, '$1 tantora'], [/^(Cuartos de final|Semifinales|Final) · rival: (.+)$/, (m, a, b) => `${eu(a)} · aurkaria: ${b}`],
+  [/^(\d+)\/(\d+) descubiertos$/, '$1/$2 aurkituak'], [/^(\d+) txapelas$/, '$1 txapela'], [/^A (\d+) tantos$/, '$1 tantora'], [/^Liguilla · jornada (\d+)$/, 'Ligaxka · $1. jardunaldia'], [/^(Cuartos de final|Semifinales|Final) · rival: (.+)$/, (m, a, b) => `${eu(a)} · aurkaria: ${b}`],
   [/^Tu colección · (\d+)\/(\d+)$/, 'Zure bilduma · $1/$2'],
   [/^Paso (\d+) de (\d+)$/, '$1/$2 urratsa'], [/^(\d+) pasos hechos$/, '$1 urrats eginda'],
   [/^Teclado (.+) · Mando (.+)$/, 'Teklatua $1 · Mandoa $2'], [/^Teclado (.+)$/, 'Teklatua $1'],

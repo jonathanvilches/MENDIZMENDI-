@@ -1,5 +1,5 @@
 // Liga Navarra (como el modo carrera de los juegos de fútbol): juegas con el club de tu pueblo contra los clubes de tu zona (grupo
-// Norte o Sur), todos contra todos a una vuelta (siete jornadas). Tu partido lo juegas tú; los demás de la jornada se
+// Norte o Sur), todos contra todos a ida y vuelta (catorce jornadas). Tu partido lo juegas tú; los demás de la jornada se
 // simulan según la media de cada club. Clasificación con puntos, goles y diferencia; al final, el campeón.
 // La temporada se guarda en localStorage ('herrizherri-liga-v1'), una por club.
 import { clubImg } from '../ui/escudoImg.js';
@@ -24,7 +24,8 @@ function rivalsOf(id) {
   for (const k of ids) if (out.length < N_TEAMS - 1 && k !== id && !out.includes(k)) out.push(k);   // (por si un grupo se queda corto)
   return out;
 }
-// calendario de todos contra todos (método del círculo); en cada jornada, quién juega en casa
+// calendario de todos contra todos a ida y vuelta (método del círculo): en cada jornada, quién juega en casa; la vuelta,
+// los mismos partidos en el mismo orden con el campo cambiado
 function schedule(teams) {
   const n = teams.length, arr = teams.slice(), rounds = [];
   for (let r = 0; r < n - 1; r++) {
@@ -33,15 +34,18 @@ function schedule(teams) {
     rounds.push(pairs);
     arr.splice(1, 0, arr.pop());
   }
-  return rounds;
+  return [...rounds, ...rounds.map(p => p.map(([h, a]) => [a, h]))];
 }
 
 /** La temporada del club (la crea si no existe). */
 export function season(club) {
   const all = load();
+  // (una temporada de antes, a una vuelta y sin ninguna jornada jugada, se rehace a ida y vuelta)
+  const prev = all[club];
+  if (prev?.rounds && !prev.j && prev.rounds.length < (N_TEAMS - 1) * 2) delete all[club];
   if (!all[club] || !all[club].rounds) {
     const teams = [club, ...rivalsOf(club)];
-    all[club] = { club, year: 1, teams, rounds: schedule(teams).map(p => p.map(([h, a]) => ({ h, a, g: null }))), j: 0, champion: null, titles: all[club]?.titles || 0 };
+    all[club] = { club, year: prev?.year || 1, teams, rounds: schedule(teams).map(p => p.map(([h, a]) => ({ h, a, g: null }))), j: 0, champion: null, titles: prev?.titles || 0 };
     save(all);
   }
   return all[club];
@@ -264,7 +268,7 @@ function tableHtml(S) {
     const c = CLUBS[t.id], dg = t.gf - t.gc; return `<tr class="${t.id === S.club ? 'me' : ''}"><td>${i + 1}</td><td class="n">${clubImg(t.id) ? `<img class="lg-dot" src="${clubImg(t.id)}" alt="">` : `<i style="background:${c.shirt}"></i>`}${esc(c.name)}</td><td>${t.pj}</td><td class="x">${t.g}</td><td class="x">${t.e}</td><td class="x">${t.p}</td><td class="x">${t.gf}</td><td class="x">${t.gc}</td><td class="dg">${dg > 0 ? '+' + dg : dg}</td><td class="pts">${t.pts}</td></tr>`; }).join('')}</table>`;
 }
 // cómo funciona (solo al empezar la temporada, para no repetirlo en cada jornada)
-const HOW = '<p class="lg-how"><b>Cómo funciona:</b> siete jornadas, todos contra todos con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.</p>';
+const HOW = '<p class="lg-how"><b>Cómo funciona:</b> catorce jornadas, todos contra todos a ida y vuelta con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.</p>';
 function head(S, sub) {
   const c = CLUBS[S.club];
   return `<div class="lg-head">${crest(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
