@@ -16,7 +16,7 @@ const ANDROID = /Android/.test(UA);
 export const instalada = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 /** ¿Se puede ofrecer instalarla desde aquí? (en la web y sin estar ya instalada) */
 export const offer = () => typeof __WEB__ !== 'undefined' && __WEB__ && !instalada();
-const link = () => new URL('./', location.href).href;
+const link = () => new URL(/\/descargas\/[^/]*$/.test(location.pathname) ? '../' : './', location.href).href;   // (desde el archivo de descargas/, la web)
 
 // los dibujos de los pasos: el botón Compartir de Safari, el de añadir a la pantalla de inicio, el menú de tres puntos
 // y el de instalar de la barra de direcciones; el último paso, con el icono de la app tal cual sale en el móvil

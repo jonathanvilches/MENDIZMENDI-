@@ -48,14 +48,18 @@ self.addEventListener('fetch', (e) => {
   // (el mando del móvil, mando/, va siempre a la red: solo funciona con internet, y así nunca se guarda una copia vieja
   // ni, sin red, se abre el juego en su lugar)
   if (u.pathname.includes('/mando/')) return;
+  // (los archivos para descargar, docs/descargas, tampoco: son de más de 40 MB y no se guardan en la caché del juego. Ni
+  // lo que se pide por trozos, como las músicas de un <audio> en el iPhone: Safari solo las toca si le llega el trozo
+  // pedido, y una copia entera guardada no le vale)
+  if (u.pathname.includes('/descargas/') || r.headers.has('range')) return;
   if (u.pathname.includes('/assets/')) {
     // con huella: caché primero; lo que no esté se descarga y se guarda
-    e.respondWith(caches.open(ASSETS).then(async c => (await c.match(r)) || fetch(r).then(res => { if (res.ok) c.put(r, res.clone()); return res; })));
+    e.respondWith(caches.open(ASSETS).then(async c => (await c.match(r)) || fetch(r).then(res => { if (res.status === 200) c.put(r, res.clone()).catch(() => {}); return res; })));
     return;
   }
   // la página: red primero (versión nueva), y si no hay red, la guardada. Se pide sin la copia del navegador
   // (GitHub Pages deja guardar la página 10 minutos: la app instalada abría a veces la versión de antes)
   const net = r.mode === 'navigate' || u.pathname.endsWith('/') || u.pathname.endsWith('.html') ? fetch(r.url, { cache: 'no-cache', credentials: 'same-origin' }) : fetch(r);
-  e.respondWith(net.then(res => { if (res.ok) caches.open(CACHE).then(c => c.put(r, res.clone())); return res; })
+  e.respondWith(net.then(res => { if (res.status === 200) caches.open(CACHE).then(c => c.put(r, res.clone())).catch(() => {}); return res; })
     .catch(async () => (await caches.match(r)) || (await caches.match('./'))));
 });

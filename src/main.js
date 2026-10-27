@@ -48,6 +48,7 @@ import { startVerMas } from './ui/vermas.js';
 import { startFrames } from './ui/frames.js';
 import { watchUpdates } from './web/update.js';
 import { startHD } from './web/hd.js';
+import { sencillo } from './util/sencillo.js';
 
 const q = new URLSearchParams(location.search);
 const TIPS = [
@@ -112,7 +113,8 @@ async function boot() {
   // en ordenador, una calidad bajada sola (por un fallo de carga o de memoria) no se queda para siempre: se vuelve a
   // la automática una vez (las elegidas a mano en Ajustes se respetan)
   if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
-  const quality = q.get('q') || P.settings.quality || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier(P.settings.slowPc));
+  // (en el modo sencillo, src/util/sencillo.js, siempre la baja)
+  const quality = q.get('q') || (sencillo() ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier(P.settings.slowPc));
   const rt = new Runtime({ canvas, input, sound, quality });
   // si el ordenador no llega a la fluidez mínima, el juego se aligera solo (runtime.lighten): se avisa una vez y se
   // apunta para arrancar la próxima vez en calidad media (si la calidad se eligió a mano en Ajustes, se respeta)

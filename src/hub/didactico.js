@@ -43,6 +43,7 @@ import { drawOfficial, officialHeight } from '../world/armas.js';
 import { iconSVG } from '../ui/icons.js';
 import { isEU, tr } from '../i18n.js';
 import { esc } from '../util/html.js';
+import { frases } from '../util/text.js';
 import { galeria, palabras } from './ddgal.js';
 import { faunaImg } from '../ui/faunaImg.js';
 import { floraFoto } from '../ui/floraFoto.js';
@@ -71,14 +72,13 @@ const where = (ids) => ids?.length ? `<p class="dd-where">${I('pin', 18)}${ids.m
 // las frases que son instrucciones del juego («Recoge las vainas.», «¡Síguelos por el ruido!») no van en el material; en
 // euskera se quitan las mismas frases de la traducción entera, si tiene las mismas
 const ORDEN = /^¡?(Recoge|Golpea|Pulsa|Llév|Lleva|Guía|Sigue|Síg|Encuentra|Encuéntr|Busca|Búsca|Observa|Obsérva|Descubre|Repite|Ayuda|Ayúda|Recorre|Sube|Baja|Vendimia|Escucha|Gana|Corre|Pasa|Toca|Ve |Ven )/;
-const SPLIT = /(?<=[.!?])\s+/;
 function sinOrdenes(s) {
   if (!s) return '';
-  const S = s.split(SPLIT), keep = S.map(x => !ORDEN.test(x));
+  const S = frases(s), keep = S.map(x => !ORDEN.test(x));
   if (keep.every(Boolean)) return P(s);
   if (!keep.some(Boolean)) return '';
   if (!isEU()) return P(S.filter((_, i) => keep[i]).join(' '));
-  const E = tr(s).split(SPLIT);
+  const E = frases(tr(s));
   return E.length === S.length ? `<p data-notr>${esc(E.filter((_, i) => keep[i]).join(' '))}</p>` : P(s);
 }
 // las ilustraciones que ya hay para cada producto, cosecha, animal y yacimiento (láminas del autor); lo que no la tiene

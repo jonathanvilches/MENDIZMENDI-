@@ -4,6 +4,7 @@
 // plantillas con huecos (nombres de pueblo, números…).
 import { EU_CUENTOS, cuentosRx } from './data/cuentos.js';
 import { EU_LAMINAS } from './data/laminas.js';
+import { frases } from './util/text.js';
 // Los diccionarios de euskera (unos 550 KB de frases) se cargan aparte y solo en los modos de euskera: en castellano no
 // hacen falta, y así el juego arranca antes y gasta menos memoria. startI18n() los espera antes de pintar nada.
 let EU_EXACT = {}, EU_RX = [], euReady = null;
@@ -66,7 +67,7 @@ function one(core) {
 // varias frases que el juego junta en un solo texto («Aspecto. Costumbre.», «Presentación. Altitud: …»): se busca el
 // reparto en trozos más largos que estén todos traducidos; si falta uno, el texto se queda como está
 function parts(core) {
-  const S = core.split(/(?<=[.!?…])\s+(?=[¡¿«A-ZÁÉÍÓÚÑ0-9])/);
+  const S = frases(core, '.!?…', /[¡¿«A-ZÁÉÍÓÚÑ0-9]/);
   if (S.length < 2 || S.length > 12) return null;
   const best = new Array(S.length + 1).fill(null); best[0] = [];
   for (let i = 0; i < S.length; i++) if (best[i]) for (let j = S.length - (i ? 0 : 1); j > i; j--) {   // (el texto entero ya se probó)

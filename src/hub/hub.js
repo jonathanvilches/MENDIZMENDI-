@@ -52,6 +52,7 @@ import { galeria } from './galeria.js';
 import './consola.css';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
+import { sencillo, ponSencillo } from '../util/sencillo.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -490,15 +491,15 @@ export class Hub {
   s_towns(ir) {
     const p = profile(), dd = isDidactico(), grupos = COMARCAS.filter(c => comarcaTowns(c.id).length);
     const ultimo = levelById(p.last), ini = grupos.some(c => c.id === ir) ? ir : ultimo?.comarca || grupos[0]?.id;
-    this.after = () => galeria($('#hMain', this.root), { comarcas: grupos.map(c => ({ id: c.id, nombre: c.name, color: c.color, portada: comarcaCover(c.id) })), inicial: ini, pueblo: ini === ultimo?.comarca ? ultimo.id : null,
+    this.after = () => galeria($('#hMain', this.root), { comarcas: grupos.map(c => ({ id: c.id, nombre: c.name, color: c.color })), inicial: ini, pueblo: ini === ultimo?.comarca ? ultimo.id : null,
       tarjetas: (id) => comarcaTowns(id).map(l => this.galTarjeta(l)).join(''), info: (id, i, n) => this.galInfo(id, i, n),
       abre: (id) => (isDidactico() ? this.go('pueblo', id) : this.townSheet(id)), sonido: (k) => this.sound?.ui(k) });
     const fl = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
-    return `${dd ? `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1><p class="lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>` : ''}
-      <div class="gal"><div class="gal-fondo" aria-hidden="true"></div>
+    return `${dd ? `<h1 class="title gal-lead">${I('church', 40)} Pueblos y ciudades</h1><p class="lead gal-lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>` : ''}
+      <div class="gal">
         <nav class="filters gal-cm" aria-label="Comarcas">${grupos.map(c => `<button type="button" data-gc="${c.id}" aria-pressed="false"><img src="${stampImg(c.id)}" alt="">${esc(c.name)}</button>`).join('')}</nav>
-        <div class="gal-escena" role="group" aria-roledescription="carrusel" aria-label="Pueblos de la comarca"><div class="gal-anillo"></div></div>
-        <button type="button" class="gal-fl ant" data-gal="-1" aria-label="Pueblo anterior">${fl('M15 5l-7 7 7 7')}</button><button type="button" class="gal-fl sig" data-gal="1" aria-label="Pueblo siguiente">${fl('M9 5l7 7-7 7')}</button>
+        <div class="gal-centro"><div class="gal-escena" role="group" aria-roledescription="carrusel" aria-label="Pueblos de la comarca"><div class="gal-anillo"></div></div>
+        <button type="button" class="gal-fl ant" data-gal="-1" aria-label="Pueblo anterior">${fl('M15 5l-7 7 7 7')}</button><button type="button" class="gal-fl sig" data-gal="1" aria-label="Pueblo siguiente">${fl('M9 5l7 7-7 7')}</button></div>
         <div class="gal-puntos" aria-hidden="true"></div>
         <div class="gal-info" aria-live="polite"></div></div>`;
   }
@@ -769,6 +770,7 @@ export class Hub {
       $('#pVol', r).oninput = e => { S.volume = +e.target.value; saveProfile(); this.onSettings?.(S); };
       $('#pLang', r).value = getLang(); $('#pLang', r).onchange = e => setLang(e.target.value);
       $('#pMode', r).value = isDidactico() ? 'didactico' : 'juego'; $('#pMode', r).onchange = e => this.setDidactico(e.target.value === 'didactico');
+      $('#pSencillo', r).onchange = e => { ponSencillo(e.target.checked); location.reload(); };   // (la calidad se elige al arrancar)
       if (isDidactico()) return;   // (en el modo didáctico no hay nombre, edad, calidad ni progreso que borrar)
       $('#pName', r).onchange = e => { p.name = e.target.value.trim().slice(0, 14) || p.name; saveProfile(); this.renderChip(); };
       $('#pName', r).addEventListener('keydown', e => e.stopPropagation());
@@ -798,7 +800,9 @@ export class Hub {
       <section class="two"><div class="panel"><h2>${I('gear', 30)} Ajustes</h2>${mode}
         <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
-        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label></div></section>${this.creditos()}`;
+        <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
+        <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
+        <p class="set-note">Para los móviles que se cierran o no enseñan el mapa: imagen más ligera y el mapa del inicio en plano. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
       <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
@@ -818,6 +822,8 @@ export class Hub {
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
+        <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
+        <p class="set-note">Para los móviles que se cierran o no enseñan el mapa: imagen más ligera y el mapa del inicio en plano. Al cambiarlo, el juego vuelve a abrirse.</p>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
         <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.creditos()}`;
   }

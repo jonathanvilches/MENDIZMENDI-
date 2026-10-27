@@ -1118,7 +1118,9 @@ export function mapa3d(host, o) {
   let estreno = null;   // (lo calentado, en la escena una sola imagen; luego fuera)
   function maqueta(dt, quieto) {
     if (estreno && estreno.n++) { estreno.grupo.removeFromParent(); estreno = null; }   // (ya pintado una vez, con sus programas estrenados: fuera)
-    if (!calentado && (v.d < 8 || ((!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > 4000))) calienta();   // (el mapa siempre se mueve un poco: no se espera a que esté quieto)
+    // (en el ordenador, a los 4 s; en el móvil, solo al acercarse, para no cargarle memoria nada más abrir. El mapa siempre se
+    // mueve un poco: no se espera a que esté quieto)
+    if (!calentado && (v.d < 8 || (!LENTO && (!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > 4000))) calienta();
     // (volando a un pueblo tocado, la suya se va haciendo por el camino: al llegar ya está y solo tiene que levantarse)
     const vaE = !entrada && elegido && vuelo ? nuc.get(elegido.id) : null, va = vaE?.D && vaE.slot >= 0 ? vaE : null;
     const quiere = entrada ? (maq?.e.t === entrada.t ? maq.e : null) : va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
@@ -1201,12 +1203,24 @@ export function mapa3d(host, o) {
   const sz = { w: 0, h: 0, z: 0 }, off = { x: 0, y: 0 };
   let prMax = 2, prT = 0, prN = 0;   // (la resolución máxima del lienzo, que baja si el móvil no llega)
   const pv = new THREE.Vector3();
+  // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
+  // gráfica y no la devuelve, el mapa se suelta y quien lo puso deja el plano: o.falla. Nunca una pantalla vacía)
+  let fallos = 0, perdido = 0;
+  const cae = () => { if (!vivo) return; if (document.hidden) { perdido = setTimeout(cae, 3000); return; } dispose(); o.falla?.(); };   // (con la app en segundo plano, se espera a volver)
+  const pierde = () => { clearTimeout(perdido); perdido = setTimeout(cae, 3000); }, vuelve = () => clearTimeout(perdido);
+  cv.addEventListener('webglcontextlost', pierde); cv.addEventListener('webglcontextrestored', vuelve);
   function frame(now) {
     raf = 0;
     if (!vivo) return;
     if (!host.isConnected || !rendererVivo(r)) { dispose(); return; }
     if (!visible || document.hidden) return;
     raf = requestAnimationFrame(frame);
+    try { pinta(now); fallos = 0; } catch (e) {
+      if (!fallos++) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); }
+      if (fallos > 20) cae();
+    }
+  }
+  function pinta(now) {
     if (o.pausado?.()) { last = now; return; }   // (con algo a pantalla completa encima, no se pinta)
     // (en el móvil, y en el ordenador mientras nada se mueve, 30 imágenes por segundo: las chinchetas que flotan no
     // necesitan más, y así el resto del menú va más suelto)
@@ -1387,7 +1401,7 @@ export function mapa3d(host, o) {
   raf = requestAnimationFrame(frame);
 
   function dispose() {
-    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
+    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku);
     for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
