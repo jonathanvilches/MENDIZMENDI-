@@ -121,6 +121,9 @@ export function makeMaterials() {
     iron: std({ color: '#2a2a2e', roughness: 0.5, metalness: 0.6 }),
     dark: std({ color: '#141216', roughness: 1 }),
     leaf: snowable(std({ vertexColors: true, roughness: 0.85 }), 0.7),
+    // plantas trepadoras por las fachadas (hiedra, buganvilla, glicinia): tarjetas de hojas recortadas, del color de cada
+    // vértice, pegadas a la pared y con prioridad de profundidad sobre ella
+    trepa: snowable(std({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide, vertexColors: true, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }), 0.6),
     lamp: std({ color: '#fff3c4', emissive: new THREE.Color('#ffcf73'), emissiveIntensity: 0 }),
     shield: std({ map: shieldTexture(), transparent: true, alphaTest: 0.5, roughness: 0.9 }),
     // barandilla de forja calada (una sola cara con transparencia recortada): balcones, kioscos, barreras
@@ -238,19 +241,41 @@ export function archPanel(w, h, depth) {
 }
 
 // Piezas de detalle registradas por los constructores: se ocultan cuando la cámara se aleja
-export const DETAIL = [];
-export function resetDetail() { DETAIL.length = 0; }
+const DETAIL = [];
+// las manzanas: todas las piezas de detalle de una manzana (menudas, medianas y la fachada de lejos) cambian a la vez,
+// con una sola esfera que las abarca a todas
+const CELLS = new Map();
+export function resetDetail() { DETAIL.length = 0; CELLS.clear(); }
 // (las menudas —lamas, marcos, macetas— miden menos de un píxel más allá de unos 50 m; las medianas, a 150 m, uno o dos:
 // antes se dibujaban hasta 80 y 180 m y eran casi la mitad de los triángulos de un pueblo grande en alta)
 const DETAIL_DIST = { low: [45, 110], mid: [48, 130], high: [55, 150] };
+// (margen: lo que hay que alejarse de más para que algo deje de dibujarse una vez visible, o acercarse de más para que
+// vuelva. Sin él, andando justo por la raya, las ventanas y la fachada de lejos se turnaban fotograma a fotograma)
+const HIST = 6;
+/** Una pieza de detalle (tier 1: mediana, 2: menuda, 3: solo de lejos) de la manzana ck, con su esfera. */
+export function addDetail(m, tier, bs, ck) {
+  let c = CELLS.get(ck);
+  if (!c) CELLS.set(ck, c = { c: bs.center.clone(), r: bs.radius, n1: true, n2: true });
+  else {
+    // (la esfera que abarca las dos)
+    const dd = c.c.distanceTo(bs.center);
+    if (dd + bs.radius > c.r) {
+      if (dd + c.r <= bs.radius) { c.c.copy(bs.center); c.r = bs.radius; }
+      else { const R = (dd + c.r + bs.radius) / 2; c.c.lerp(bs.center, (R - c.r) / dd); c.r = R; }
+    }
+  }
+  DETAIL.push({ m, tier, cell: c });
+}
 export function updateDetail(cam, quality = 'high') {
   const [d2, d1] = DETAIL_DIST[quality] || DETAIL_DIST.high;
-  for (const e of DETAIL) {
-    const dx = cam.x - e.c.x, dz = cam.z - e.c.z, d = Math.sqrt(dx * dx + dz * dz) - e.r;
-    // (tier 3: lo contrario de las medianas, solo de lejos: la fachada sencilla que sustituye a las ventanas de verdad cuando
-    // estas ya no se dibujan; con unos metros de solape para que no quede un hueco al pasar de una a otra)
-    e.m.visible = e.tier === 3 ? d >= d1 - 6 : d < (e.tier === 2 ? d2 : d1);
+  for (const c of CELLS.values()) {
+    const dx = cam.x - c.c.x, dz = cam.z - c.c.z, d = Math.sqrt(dx * dx + dz * dz) - c.r;
+    if (c.n1 ? d > d1 + HIST : d < d1 - HIST) c.n1 = !c.n1;
+    if (c.n2 ? d > d2 + HIST : d < d2 - HIST) c.n2 = !c.n2;
   }
+  // (tier 3: lo contrario de las medianas, solo de lejos: la fachada sencilla que sustituye a las ventanas de verdad
+  // cuando estas ya no se dibujan. Las dos dependen del mismo estado de su manzana: o unas u otra, sin hueco ni solape)
+  for (const e of DETAIL) e.m.visible = e.tier === 3 ? !e.cell.n1 : e.tier === 2 ? e.cell.n2 : e.cell.n1;
 }
 // Calidad: en «low» no se crean las piezas menudas (marcos, macetas, lamas…) para ahorrar memoria en móviles
 let TINY = true;
@@ -357,8 +382,8 @@ export class Builder {
       for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
       if (tier !== 0) g.index.onUpload(free);
       const m = new THREE.Mesh(g, this.mats[mat]);
-      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing'].includes(mat);
-      if (tier) DETAIL.push({ m, tier, c: g.boundingSphere.center.clone(), r: g.boundingSphere.radius });
+      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing', 'trepa'].includes(mat);
+      if (tier) addDetail(m, tier, g.boundingSphere, key.split('|')[1]);
       m.receiveShadow = true;
       m.matrixAutoUpdate = false; m.name = key;
       parent.add(m); meshes.push(m);

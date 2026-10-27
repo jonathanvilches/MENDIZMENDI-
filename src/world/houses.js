@@ -112,9 +112,51 @@ function balconyAt(B, T, x, y, w, o) {
   }
 }
 
+// Macetas de barro con geranios a los lados de la puerta (en las puntas del escalón)
+function doorPots(B, T, x, dw, cols) {
+  const F = (mx) => MM(T, mx);
+  for (const s of [-1, 1]) {
+    const px = x + s * (dw / 2 + 0.22), fc = cols[s > 0 ? 1 : 0];
+    B.add('tile', new THREE.CylinderGeometry(0.2, 0.14, 0.36, 8), F(M(px, 0.3, 0.45)));
+    B.add('leaf', colored(new THREE.IcosahedronGeometry(0.26, 0), '#3f8a34'), F(M(px, 0.62, 0.45, s)));
+    for (let k = 0; k < 4; k++) B.add('paint', colored(new THREE.IcosahedronGeometry(0.11, 0), fc), F(M(px + Math.cos(k * 1.7) * 0.15, 0.72 + (k % 2) * 0.09, 0.45 + Math.sin(k * 1.7) * 0.15, k)));
+  }
+}
+// Planta trepadora por la fachada (t: { kind: 'hiedra' | 'buganvilla' | 'glicinia', x, w, h, r }): tarjetas de hojas
+// encima de la pared, más anchas abajo y deshilachadas arriba. La hiedra, verde oscura; la buganvilla, fucsia sobre
+// verde; la glicinia, racimos lilas que cuelgan
+const _c2 = new THREE.Color();
+const TREPA = { hiedra: [['#2c5e22', '#4f8a32']], buganvilla: [['#3a7a2c', '#5c9a3a'], ['#e3127e', '#ff4fa8'], ['#e3127e', '#ff4fa8']], glicinia: [['#3f7a30', '#6aa042'], ['#8a5fd0', '#b998f0']] };
+export function climber(B, T, t) {
+  const P = [], N = [], U = [], C = [], I = [], cols = TREPA[t.kind] || TREPA.hiedra, r = t.r, c = new THREE.Color();
+  const quad = (x, y, z, s, a, col) => {
+    const k = P.length / 3, ca = Math.cos(a) * s / 2, sa = Math.sin(a) * s / 2;
+    // (las hojas del atlas, el racimo de arriba a la izquierda)
+    for (const [dx, dy, u, v] of [[-1, -1, 0, 0.5], [1, -1, 0.5, 0.5], [1, 1, 0.5, 1], [-1, 1, 0, 1]]) {
+      P.push(x + dx * ca - dy * sa, y + dx * sa + dy * ca, z); N.push(0, 0, 1); U.push(u, v); C.push(col.r, col.g, col.b);
+    }
+    I.push(k, k + 1, k + 2, k, k + 2, k + 3);
+  };
+  for (let y = 0.3; y < t.h; y += 0.42) {
+    const hw = t.w / 2 * (1 - 0.45 * y / t.h) * (0.85 + r() * 0.3);
+    for (let x = -hw; x <= hw; x += 0.5) {
+      if (y > t.h * 0.7 && r() < 0.35) continue;
+      const ci = Math.floor(r() * cols.length), [a0, a1] = cols[ci], hang = t.kind === 'glicinia' && ci > 0 ? -0.25 : 0;
+      c.set(a0).lerp(_c2.set(a1), r());
+      quad(t.x + x + (r() - 0.5) * 0.3, y + hang + (r() - 0.5) * 0.2, 0.1 + r() * 0.08, 0.75 + r() * 0.4, r() * 6.28, c);
+    }
+  }
+  if (!I.length) return;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(U, 2)); g.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); g.setIndex(I);
+  B.add('trepa', g, T);
+}
+
 // Esquinales de sillar en casas revocadas
-function quoins(B, T, w, d, h) {
+function quoins(B, T, w, d, h, vec = []) {
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    if (vec[sx > 0 ? 1 : 0] || (sz < 0 && vec[2])) continue;   // (no en las esquinas pegadas a otra casa)
     for (let y = 0.25, k = 0; y < h - 0.2; y += 0.42, k++) {
       const long = k % 2 === 0;
       const lx = long ? 0.62 : 0.36, lz = long ? 0.36 : 0.62;
@@ -129,39 +171,46 @@ function chimney(B, T, x, y, z) {
   B.add('stone', box(0.3, 0.3, 0.3, 1), MM(T, M(x, y + 1.25, z)));
 }
 
+// Vuelo del tejado por cada lado: el de la casa o, donde la casa está pegada a otra (o.vecinas: [−x, +x, −z]), casi nada:
+// en una hilera, el alero de cada casa se metía en la de al lado (hasta 1,1 m en las atlánticas) y los tejados se
+// cruzaban, o se pisaban en el mismo plano y parpadeaban
+const PEGADO = 0.02;
+function vuelos(ov, vec) { return { x0: vec?.[0] ? PEGADO : ov, x1: vec?.[1] ? PEGADO : ov, z0: vec?.[2] ? PEGADO : ov, z1: ov }; }
 // Tejado a dos aguas con cumbrera paralela a X (aleros delante y detrás)
 function roofGableX(B, T, w, d, h, pitch, mat, o = {}) {
-  const ov = o.overhang ?? 0.6, t = 0.22;
-  const rise = Math.tan(pitch) * d / 2;
-  const slope = Math.hypot(d / 2, rise) + ov;
+  const V = vuelos(o.overhang ?? 0.6, o.vecinas), t = 0.22;
+  const rise = Math.tan(pitch) * d / 2, L = w + V.x0 + V.x1, cx = (V.x1 - V.x0) / 2;
   for (const s of [-1, 1]) {
-    const m = MM(T, M(0, h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, s * (d / 4 + ov / 2 * Math.cos(pitch)), 0, s * pitch));
-    B.add(mat, box(w + ov * 2, t, slope, 2), m);
+    const ov = s > 0 ? V.z1 : V.z0, slope = Math.hypot(d / 2, rise) + ov;
+    const m = MM(T, M(cx, h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, s * (d / 4 + ov / 2 * Math.cos(pitch)), 0, s * pitch));
+    B.add(mat, box(L, t, slope, 2), m);
     // tablas del alero
-    B.add('woodDark', box(w + ov * 2, 0.22, 0.08), MM(T, M(0, h - Math.tan(pitch) * ov + 0.02, s * (d / 2 + ov - 0.02))));
+    if (ov > 0.1) B.add('woodDark', box(L, 0.22, 0.08), MM(T, M(cx, h - Math.tan(pitch) * ov + 0.02, s * (d / 2 + ov - 0.02))));
   }
-  B.add(mat, box(w + ov * 2 + 0.05, 0.2, 0.36, 1), MM(T, M(0, h + rise + 0.12, 0)));
+  B.add(mat, box(L + 0.05, 0.2, 0.36, 1), MM(T, M(cx, h + rise + 0.12, 0)));
   const gmat = o.gableMat || 'stone';
   for (const s of [-1, 1]) B.add(gmat, gable(d, rise, 0.5), MM(T, M(s * (w / 2 - 0.25), h, 0, Math.PI / 2)));
   // canecillos bajo el alero
-  const bl = ov * Math.cos(pitch) - 0.08;
-  for (let i = 0; i < Math.floor(w / 0.9); i++) for (const s of [-1, 1]) B.add('woodDark', box(0.12, 0.14, bl), MM(T, M(-w / 2 + 0.5 + i * 0.9, h - 0.14, s * (d / 2 + bl / 2))));
+  for (const s of [-1, 1]) {
+    const bl = (s > 0 ? V.z1 : V.z0) * Math.cos(pitch) - 0.08; if (bl < 0.1) continue;
+    for (let i = 0; i < Math.floor(w / 0.9); i++) B.add('woodDark', box(0.12, 0.14, bl), MM(T, M(-w / 2 + 0.5 + i * 0.9, h - 0.14, s * (d / 2 + bl / 2))));
+  }
   return rise;
 }
 // Cumbrera paralela a Z (hastial hacia la calle)
 function roofGableZ(B, T, w, d, h, pitch, mat, o = {}) {
-  const ov = o.overhang ?? 0.6, t = 0.22;
-  const rise = Math.tan(pitch) * w / 2;
-  const slope = Math.hypot(w / 2, rise) + ov;
+  const V = vuelos(o.overhang ?? 0.6, o.vecinas), t = 0.22;
+  const rise = Math.tan(pitch) * w / 2, L = d + V.z0 + V.z1, cz = (V.z1 - V.z0) / 2;
   for (const s of [-1, 1]) {
-    B.add(mat, box(slope, t, d + ov * 2, 2), MM(T, M(s * (w / 4 + ov / 2 * Math.cos(pitch)), h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, 0, 0, 0, -s * pitch)));
-    B.add('woodDark', box(0.08, 0.22, d + ov * 2), MM(T, M(s * (w / 2 + ov - 0.02), h - Math.tan(pitch) * ov + 0.02, 0)));
+    const ov = s > 0 ? V.x1 : V.x0, slope = Math.hypot(w / 2, rise) + ov;
+    B.add(mat, box(slope, t, L, 2), MM(T, M(s * (w / 4 + ov / 2 * Math.cos(pitch)), h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, cz, 0, 0, -s * pitch)));
+    if (ov > 0.1) B.add('woodDark', box(0.08, 0.22, L), MM(T, M(s * (w / 2 + ov - 0.02), h - Math.tan(pitch) * ov + 0.02, cz)));
   }
-  B.add(mat, box(0.36, 0.2, d + ov * 2 + 0.05, 1), MM(T, M(0, h + rise + 0.12, 0)));
+  B.add(mat, box(0.36, 0.2, L + 0.05, 1), MM(T, M(0, h + rise + 0.12, cz)));
   const gmat = o.gableMat || 'stone';
   for (const s of [-1, 1]) B.add(gmat, gable(w, rise, 0.5), MM(T, M(0, h, s * (d / 2 - 0.25))));
   // tablas del hastial delantero (típicas)
-  for (const s of [-1, 1]) B.add('woodDark', box(Math.hypot(w / 2, rise) + ov, 0.26, 0.1), MM(T, M(s * (w / 4 + ov / 2 * Math.cos(pitch)), h + rise / 2 - Math.sin(pitch) * ov / 2 + 0.05, d / 2 + ov - 0.03, 0, 0, -s * pitch)));
+  for (const s of [-1, 1]) { const ov = s > 0 ? V.x1 : V.x0; B.add('woodDark', box(Math.hypot(w / 2, rise) + ov, 0.26, 0.1), MM(T, M(s * (w / 4 + ov / 2 * Math.cos(pitch)), h + rise / 2 - Math.sin(pitch) * ov / 2 + 0.05, d / 2 + V.z1 - 0.03, 0, 0, -s * pitch))); }
   return rise;
 }
 // Tejado a cuatro aguas
@@ -200,13 +249,15 @@ export function buildHouse(B, T, o, rnd) {
   const wallMat = o.wall;
   // cuerpo (se prolonga hacia abajo para asentarse en pendiente)
   B.add(wallMat, box(w, h + 3, d, 2.6), MM(T, M(0, (h + 3) / 2 - 3, 0)));
-  // zócalo de piedra
-  B.add('stoneDark', box(w + 0.12, 0.7 + 3, d + 0.12, 2), MM(T, M(0, (0.7 + 3) / 2 - 3, 0)));
-  if (wallMat !== 'stone' && wallMat !== 'ashlar' && !o.noQuoins) quoins(B, T, w, d, h);
+  // zócalo de piedra (sin sobresalir por los lados pegados a otra casa: los dos zócalos se pisaban en el mismo plano y
+  // la junta parpadeaba)
+  const vec = o.vecinas || [], z0 = vec[0] ? 0 : 0.06, z1 = vec[1] ? 0 : 0.06, zb = vec[2] ? 0 : 0.06;
+  B.add('stoneDark', box(w + z0 + z1, 0.7 + 3, d + 0.06 + zb, 2), MM(T, M((z1 - z0) / 2, (0.7 + 3) / 2 - 3, (0.06 - zb) / 2)));
+  if (wallMat !== 'stone' && wallMat !== 'ashlar' && !o.noQuoins) quoins(B, T, w, d, h, vec);
   // imposta entre plantas
   const floors = Math.max(2, Math.round(h / 2.9));
   const fh = h / floors;
-  if (o.cornice) B.add('ashlar', box(w + 0.1, 0.16, d + 0.1), MM(T, M(0, fh + 0.05, 0)));
+  if (o.cornice) B.add('ashlar', box(w + (vec[0] ? 0 : 0.05) + (vec[1] ? 0 : 0.05), 0.16, d + 0.1), MM(T, M(((vec[1] ? 0 : 0.05) - (vec[0] ? 0 : 0.05)) / 2, fh + 0.05, 0)));
   // puerta
   const doorX = o.doorX ?? (rnd() < 0.5 ? 0 : (rnd() < 0.5 ? -1 : 1) * (w / 2 - 1.6));
   doorAt(B, MM(T, M(0, 0, d / 2)), doorX, { arch: o.arch, w: o.arch ? 1.9 : 1.4, h: o.arch ? 2.9 : 2.4 });
@@ -249,11 +300,12 @@ export function buildHouse(B, T, o, rnd) {
   // ventanas traseras y laterales (sencillas; casi siempre, para que no queden paredes lisas a la vista. Con el mismo
   // número de tiradas de rnd que antes, que de él sale también el resto del pueblo)
   const back = MM(T, M(0, 0, -d / 2, Math.PI));
-  for (let f = 0; f < floors; f++) for (let c = 0; c < cols; c++) if (rnd() < 0.88) windowAt(B, back, -w / 2 + (w / cols) * (c + 0.5), f * fh + fh * 0.58, 0.75, 1.1, { shutter });
+  // (en las paredes pegadas a otra casa, ninguna: son medianeras)
+  for (let f = 0; f < floors; f++) for (let c = 0; c < cols; c++) if (rnd() < 0.88 && !vec[2]) windowAt(B, back, -w / 2 + (w / cols) * (c + 0.5), f * fh + fh * 0.58, 0.75, 1.1, { shutter });
   for (const s of [-1, 1]) {
     const side = MM(T, M(s * w / 2, 0, 0, s * Math.PI / 2));
     const sc = Math.max(1, Math.floor(d / 3.2));
-    for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.85) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
+    for (let f = 1; f < floors; f++) for (let c = 0; c < sc; c++) if (rnd() < 0.85 && !vec[s > 0 ? 1 : 0]) windowAt(B, side, -d / 2 + (d / sc) * (c + 0.5), f * fh + fh * 0.55, 0.7, 1.0, { shutter });
   }
   // escudo: una piedra armera en relieve (losa de sillería con su moldura, que sobresale del muro) y el escudo tallado
   // encima; en la casa consistorial, más grande y con cornisa. shieldLocal: el centro de su cara, para pintarlo y leerlo
@@ -269,12 +321,17 @@ export function buildHouse(B, T, o, rnd) {
   const roofMat = o.roof;
   let rise;
   const gableMat = wallMat;
+  // (una casa pegada a otra no lleva tejado a cuatro aguas: su alero de todo alrededor se metía en la de al lado)
+  if (o.roofType === 'hip' && o.vecinas?.some(Boolean)) o.roofType = 'gableX';
   if (o.roofType === 'hip') rise = roofHip(B, T, w, d, h, o.hipRise ?? w * 0.45, roofMat);
-  else if (o.roofType === 'gableZ') rise = roofGableZ(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
-  else rise = roofGableX(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang });
+  else if (o.roofType === 'gableZ') rise = roofGableZ(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang, vecinas: o.vecinas });
+  else rise = roofGableX(B, T, w, d, h, pitch, roofMat, { gableMat, overhang: o.overhang, vecinas: o.vecinas });
   if (o.timber && o.roofType === 'gableZ') for (let i = -2; i <= 2; i++) B.add('woodDark', box(0.14, Math.max(0.3, rise * (1 - Math.abs(i) / 2.6) - 0.3), 0.08), MM(front, M(i * w / 6, h + (rise * (1 - Math.abs(i) / 2.6)) / 2, 0.06)));
   // canalones de cinc bajo los aleros y bajantes por la fachada hasta el suelo
-  if (o.roofType !== 'hip' && !o.noGutter) gutters(B, T, w, d, h, pitch, o.overhang ?? 0.6, o.roofType === 'gableZ');
+  if (o.roofType !== 'hip' && !o.noGutter) gutters(B, T, w, d, h, pitch, vuelos(o.overhang ?? 0.6, o.vecinas), o.roofType === 'gableZ');
+  // macetas en la puerta y una trepadora por la fachada (las elige quien levanta la casa, sin gastar rnd)
+  if (o.macetas) doorPots(B, front, doorX, o.arch ? 1.9 : 1.4, o.macetas);
+  if (o.trepa && w >= 5) { const sd = doorX > 0.1 ? -1 : doorX < -0.1 ? 1 : o.trepa.side || 1; climber(B, front, { ...o.trepa, x: sd * (w / 2 - 0.8), w: Math.min(o.trepa.w, 1.5), h: Math.min(h * 0.92, o.trepa.h) }); }
   // placa del número de la casa junto a la puerta
   { const px = doorX + (doorX > 0 ? -1 : 1) * (o.arch ? 1.75 : 1.4); B.add('paint', colored(box(0.28, 0.21, 0.03), '#2f5b8a'), MM(front, M(px, 2.05, 0.02))); B.add('paint', colored(box(0.22, 0.15, 0.03), '#f2efe6'), MM(front, M(px, 2.05, 0.035))); }
   // chimenea
@@ -290,12 +347,14 @@ export function buildHouse(B, T, o, rnd) {
 }
 
 // Canalón (media caña de cinc) a lo largo de cada alero y una bajante con su codo hasta la pared y el suelo
-function gutters(B, T, w, d, h, pitch, ov, alongZ) {
-  const ye = h - Math.tan(pitch) * ov - 0.12, len = (alongZ ? d : w) + ov * 2, half = (alongZ ? w : d) / 2;
+function gutters(B, T, w, d, h, pitch, V, alongZ) {
+  const len = alongZ ? d + V.z0 + V.z1 : w + V.x0 + V.x1, c0 = alongZ ? (V.z1 - V.z0) / 2 : (V.x1 - V.x0) / 2, half = (alongZ ? w : d) / 2;
   for (const s of [-1, 1]) {
-    const out = half + ov - 0.06;
+    // (sin canalón por el lado pegado a otra casa: ahí no hay alero)
+    const ov = alongZ ? (s > 0 ? V.x1 : V.x0) : (s > 0 ? V.z1 : V.z0); if (ov < 0.2) continue;
+    const ye = h - Math.tan(pitch) * ov - 0.12, out = half + ov - 0.06;
     const g = new THREE.CylinderGeometry(0.09, 0.09, len, 8, 1, true, alongZ ? -Math.PI / 2 : Math.PI, Math.PI); // media caña abierta arriba
-    B.add('zinc', g, MM(T, alongZ ? M(s * out, ye, 0, 0, Math.PI / 2, 0) : M(0, ye, s * out, 0, 0, Math.PI / 2)));
+    B.add('zinc', g, MM(T, alongZ ? M(s * out, ye, c0, 0, Math.PI / 2, 0) : M(c0, ye, s * out, 0, 0, Math.PI / 2)));
     // bajante en un extremo (uno por alero, en esquinas opuestas)
     const a = s * ((alongZ ? d : w) / 2 - 0.3), wall = half + 0.07, mid = (out + wall) / 2;
     const P = (along, across, y) => alongZ ? M(s * across, y, along) : M(along, y, s * across);

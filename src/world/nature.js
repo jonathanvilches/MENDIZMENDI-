@@ -541,7 +541,45 @@ function treeSpots(rnd) {
     const p = pathQuery(x, z); if (p.d < p.w + 2) continue;
     spots.push({ x: x + (rnd() - 0.5), z: z + (rnd() - 0.5), y: terrainHeight(x, z), type: fi.type === 6 ? 'olive' : 'apple', s: 0.7 + rnd() * 0.25, rot: rnd() * 6.28, crop: true });
   }
+  spots.push(...townTrees(fits));
   return spots.filter(s => s.special || (isFree(s.x, s.z, s.crop ? 1 : 1.6) && villageMask(s.x, s.z) < 0.35));
+}
+// Árboles del casco (con su propio azar: el resto del valle sale como antes). En las plazas, en hilera a unos metros del
+// borde, como los plátanos, tilos y castaños de Indias de las plazas de Navarra; y en los huertos y jardines de detrás de
+// las casas, algún frutal o un árbol pequeño. Antes el casco no tenía ni un árbol: plazas de adoquín y prados pelados
+function townTrees(fits) {
+  if (MOD?.bosque || !PLACES?.plaza) return [];
+  const rnd = mulberry32(777), out = [], cerca = (x, z, r) => out.some(o => Math.hypot(o.x - x, o.z - z) < r);
+  const plazas = MOD?.real?.plazas?.length ? MOD.real.plazas.map(p => p.pts) : [Array.from({ length: 16 }, (_, i) => [PLACES.plaza.x + Math.cos(i / 16 * 6.283) * PLACES.plaza.r, PLACES.plaza.z + Math.sin(i / 16 * 6.283) * PLACES.plaza.r])];
+  const dentro = (P, x, z) => { let c = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, zi] = P[i], [xj, zj] = P[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
+  for (const P of plazas) {
+    let per = 0, area = 0;
+    for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; per += Math.hypot(b[0] - a[0], b[1] - a[1]); area += a[0] * b[1] - b[0] * a[1]; }
+    if (Math.abs(area) / 2 < 350) continue;   // (en las plazuelas, no)
+    const n = Math.min(14, Math.round(per / 9)), paso = per / n, sg = Math.sign(area);
+    let acc = paso / 2, k = 0;
+    for (let i = 0; i < P.length && k < n; i++) {
+      const a = P[i], b = P[(i + 1) % P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 0.01) continue;
+      const tx = (b[0] - a[0]) / L, tz = (b[1] - a[1]) / L, nx = -tz * sg, nz = tx * sg;   // (n, hacia dentro)
+      for (; acc < L && k < n; acc += paso, k++) {
+        const x = a[0] + tx * acc + nx * 3.6, z = a[1] + tz * acc + nz * 3.6;
+        if (!dentro(P, x, z) || cerca(x, z, 6) || !fits(x, z)) continue;
+        out.push({ x, z, y: terrainHeight(x, z), type: 'chestnut', s: 0.85 + rnd() * 0.2, rot: rnd() * 6.28, special: true });
+      }
+      acc -= L;
+    }
+  }
+  // huertos y jardines: en el casco, en la hierba y cerca de una casa (pero con sitio)
+  const P0 = PLACES.plaza, cap = out.length + 60;
+  for (let k = 0; k < 5000 && out.length < cap; k++) {
+    const x = P0.x + (rnd() - 0.5) * 520, z = P0.z + (rnd() - 0.5) * 520;
+    if (villageMask(x, z) < 0.45 || surfAt('street', x, z) > 0.05 || surfAt('dirt', x, z) > 0.2) continue;
+    const p = pathQuery(x, z); if (p.d < p.w + 3) continue;
+    if (cerca(x, z, 9) || !isFree(x, z, 3.2) || isFree(x, z, 10) || onPlatform(x, z, 2)) continue;
+    const t = TONE === 'arid' ? (rnd() < 0.6 ? 'olive' : 'apple') : rnd() < 0.6 ? 'apple' : 'oak';
+    out.push({ x, z, y: terrainHeight(x, z), type: t, s: t === 'oak' ? 0.55 + rnd() * 0.2 : 0.7 + rnd() * 0.25, rot: rnd() * 6.28, special: true });
+  }
+  return out;
 }
 
 export class Nature {
@@ -571,7 +609,7 @@ export class Nature {
     // (en los bosques, más y, sobre todo, cerca de donde se juega: la espesura se va aclarando hacia lo lejos)
     const bq = MOD?.bosque, P0 = PLACES?.plaza || { x: 0, z: 0 };
     const cap = (quality === 'low' ? 1800 : quality === 'mid' ? 2600 : 3200) * (bq ? 1.35 : 1);
-    if (spots.length > cap) { const crop = spots.filter(s => s.crop || s.special), rest = spots.filter(s => !s.crop && !s.special); if (bq) { for (const s of rest) s.k = Math.hypot(s.x - P0.x, s.z - P0.z) + rnd() * 170; rest.sort((a, b) => a.k - b.k); } else rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
+    if (spots.length > cap) { const crop = spots.filter(s => s.special).concat(spots.filter(s => s.crop && !s.special)), rest = spots.filter(s => !s.crop && !s.special); if (bq) { for (const s of rest) s.k = Math.hypot(s.x - P0.x, s.z - P0.z) + rnd() * 170; rest.sort((a, b) => a.k - b.k); } else rest.sort(() => rnd() - 0.5); spots = crop.slice(0, cap * 0.4).concat(rest.slice(0, cap - Math.min(crop.length, cap * 0.4))); }
     // agrupar por trozo
     const chunks = new Map();
     for (const s of spots) {
@@ -612,6 +650,7 @@ export class Nature {
     this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
     this.buildRocks(rnd);
     this.buildBushes(rnd);
+    this.buildGardens();
     this.buildForestFloor(rnd);
     this.buildCrops(rnd, quality);
     scene.add(this.group);
@@ -763,6 +802,34 @@ export class Nature {
       this.addChunked(list, geo, null, mat, (s) => m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s)), { name: 'matas' });
     }
   }
+  // Jardines del casco: matas y arbustos en flor (azaleas, hortensias, adelfas, lavanda) pegados a las casas y a las tapias,
+  // donde hay hierba y no es calle ni plaza. Con su propio azar, para no cambiar el resto del valle
+  buildGardens() {
+    if (MOD?.bosque || !PLACES?.plaza) return;
+    const rnd = mulberry32(778), P0 = PLACES.plaza;
+    const verde = ['#3a6428', '#7fae45'];
+    const flor = [['#b3245f', '#ff6fae'], ['#4f4fb8', '#9bb4ff'], ['#c2410c', '#ff9a3d'], ['#e8e3ef', '#ffffff'], ['#7a3fb0', '#c79bff'], ['#c81e3a', '#ff5a6e']];
+    // (una mata verde con flores por encima: dos copas, la de color algo más pequeña y asomando)
+    const geos = [makeBush(rnd), ...flor.map(([a, b]) => mergeKeep([blobCanopy(rnd, [[0, 0.62, 0, 0.78]], 0, verde[0], verde[1], 1, 0.6), blobCanopy(rnd, [[0.12, 0.82, 0.06, 0.6], [-0.3, 0.7, -0.18, 0.46]], -1, a, b, 1, 0.75)]))];
+    const lists = geos.map(() => []), q = this.quality, cap = q === 'low' ? 380 : q === 'mid' ? 700 : 1000, cel = new Set();
+    let n = 0;
+    for (let k = 0; k < cap * 14 && n < cap; k++) {
+      const x = P0.x + (rnd() - 0.5) * 560, z = P0.z + (rnd() - 0.5) * 560;
+      const c = Math.floor(x / 2.2) * 8192 + Math.floor(z / 2.2); if (cel.has(c)) continue;
+      if (villageMask(x, z) < 0.4 || surfAt('street', x, z) > 0.08 || surfAt('water', x, z) > 0) continue;
+      const p = pathQuery(x, z); if (p.d < p.w + 1.2) continue;
+      if (!isFree(x, z, 0.9) || isFree(x, z, 3.6) || onPlatform(x, z, 1)) continue;   // (pegadas a una pared, una tapia o un árbol)
+      cel.add(c); n++;
+      lists[rnd() < 0.4 ? 0 : 1 + Math.floor(rnd() * flor.length)].push({ x, z, s: 0.55 + rnd() * 0.5, r: rnd() * 6.28 });
+    }
+    const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
+    const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
+    geos.forEach((g, i) => {
+      const list = lists[i]; if (!list.length) return;
+      for (const b of list) addCircle(b.x, b.z, 0.34 * b.s, { bush: true });
+      this.addChunked(list, g, null, matB, (b) => m4.compose(v.set(b.x, terrainHeight(b.x, b.z) - 0.08, b.z), qq.setFromEuler(e.set(0, b.r, 0)), sc.setScalar(b.s)), { name: 'jardin' });
+    });
+  }
   // El suelo del bosque: troncos caídos con musgo (no se atraviesan) y corrillos de setas, la roja de puntos blancos
   // (la matamoscas, venenosa: se mira y no se toca) y el hongo pardo. Solo de cerca, como las matas
   buildForestFloor(rnd) {
@@ -791,11 +858,15 @@ export class Nature {
     windUniforms.uVerOn.value = ver && player ? 1 : 0; if (ver && player) windUniforms.uVer.value.set(player.x, player.y + 1.2, player.z);
     for (const c of this.chunks) {
       const d = Math.max(Math.abs(camPos.x - c.cx), Math.abs(camPos.z - c.cz)) - CHUNK / 2;
-      const near = d < this.lodDist, shade = d < this.shadowDist;
+      // (con unos metros de margen a cada lado de la raya: andando por ella, los árboles cambiaban de versión y de sombra
+      // una y otra vez y parpadeaban)
+      const near = c.near = c.near ? d < this.lodDist + 6 : d < this.lodDist - 6;
+      const shade = c.shade = c.shade ? d < this.shadowDist + 6 : d < this.shadowDist - 6;
+      const rf = c.rf = c.rf ? d < this.rockFar + 6 : d < this.rockFar - 6;
       for (const m of c.hi) { m.visible = near; m.castShadow = shade && m.userData.shadow !== false; }
       // de lejos, las piedras solo hasta cierta distancia: más allá miden menos de un píxel y eran casi la quinta parte
       // de todos los triángulos de la escena (los árboles lejanos sí se dibujan: forman la silueta del bosque)
-      for (const m of c.lo) m.visible = !near && (d < this.rockFar || !m.userData.rock);
+      for (const m of c.lo) m.visible = !near && (rf || !m.userData.rock);
     }
     this.grass?.update(focus, elapsed, player);
     this.flowers.update(focus, elapsed, player);

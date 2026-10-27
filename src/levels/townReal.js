@@ -160,6 +160,19 @@ export function createRealTownLevel(def, D) {
     return m;
   }
 
+  // (la altura de cada plaza, la del terreno en su centro)
+  const centro = (P) => { let x = 0, z = 0; for (const [a, b] of P) { x += a; z += b; } return [x / P.length, z / P.length]; };
+  const NIVEL = PLAZAS.length ? PLAZAS.map(p => { const [cx, cz] = centro(p.pts); return { p, h: BASE + dem(cx, cz) }; }) : [{ p: null, h: BASE + dem(PL.x, PL.z) }];
+  function plazaLlana(x, z, h) {
+    for (const { p, h: ph } of NIVEL) {
+      if (p && (x < p.bb.x0 - 18 || x > p.bb.x1 + 18 || z < p.bb.z0 - 18 || z > p.bb.z1 + 18)) continue;
+      const d = p ? polyDist(x, z, p.pts) : Math.hypot(x - PL.x, z - PL.z) - (PL.r - 0.5), dh = Math.abs(ph - h) * 0.7;
+      const k = 1 - smoothstep(-0.6, 0.8 + Math.min(16, dh * 3), d);
+      if (k > 0) h = lerp(h, ph, k * 0.7);
+    }
+    return h;
+  }
+
   // ---------- Usos del suelo: prados, huertas y frutales de verdad ----------
   const USOS = (D.usos || []).filter(u => ['prado', 'cesped', 'cultivo', 'frutales', 'huerta', 'vina'].includes(u.k)).map((u, k) => ({ ...u, i: k, bb: bbox(u.pts) }));
   const usoAt = buckets(USOS.map(u => ({ pts: [...u.pts, u.pts[0]], u })), 30, 0);
@@ -464,9 +477,10 @@ export function createRealTownLevel(def, D) {
       const k = 1 - smoothstep(pathInfo.w * 0.6, pathInfo.w + 4, pathInfo.d);
       h = lerp(h, s, k * 0.9);
     }
-    // las plazas, llanas (al nivel de su centro: en los pueblos de ladera la plaza es un rellano)
-    const pm = plazaMask(x, z);
-    if (pm > 0) h = lerp(h, BASE + dem(PL.x, PL.z), pm * 0.7);
+    // las plazas, llanas (al nivel de su centro: en los pueblos de ladera la plaza es un rellano). Cada una al suyo, y con
+    // un talud que se ensancha con el desnivel: antes todas al de la plaza mayor y con el borde de metro y medio, y en los
+    // pueblos de ladera las otras quedaban metros por encima o por debajo de sus calles, con un muro de adoquín
+    h = plazaLlana(x, z, h);
     // el cauce: el agua a su nivel y la orilla un metro y pico por encima; en el casco, con muro (el escalón es recto)
     const r = riverInfo(x, z);
     if (r.edge < 7) {

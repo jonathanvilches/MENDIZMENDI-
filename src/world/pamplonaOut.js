@@ -2,7 +2,7 @@
 // murallas con el Portal de Francia y el baluarte del Redín, Ciudadela en estrella y estadio de El Sadar.
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { box, archRing, archPanel, gable, colored, M, MM, DETAIL, builderQuality } from './builder.js';
+import { box, archRing, archPanel, gable, colored, M, MM, addDetail, builderQuality } from './builder.js';
 import { roofHip } from './houses.js';
 import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle } from './colliders.js';
@@ -501,7 +501,7 @@ export function stadium(B, S, group, cx, cz, TOWN) {
       const im = new THREE.InstancedMesh(sg, mat, list.length);
       list.forEach(([x, yy, z, ry, c], i) => { im.setMatrixAt(i, m4.compose(v.set(cx + x, y + yy, cz + z), q.setFromEuler(e.set(0, ry, 0)), sc)); im.setColorAt(i, col.set(c)); });
       im.computeBoundingSphere(); im.receiveShadow = true; im.name = 'asientos'; group.add(im);
-      DETAIL.push({ m: im, tier: 2, c: im.boundingSphere.center.clone(), r: im.boundingSphere.radius });   // solo de cerca (de lejos no se distinguen)
+      addDetail(im, 2, im.boundingSphere, 'asientos-' + im.id);   // solo de cerca (de lejos no se distinguen)
     }
     // vomitorios: boca oscura con dintel, laterales y barandilla
     for (const vv of VOM) {

@@ -393,7 +393,12 @@ export class Runtime {
     try { g.update(dt); } catch (e) { this.reportError(e); }   // (si falla el juego, el cielo, la luz y lo demás siguen)
     navTick(this.quality === 'low' ? 1.5 : 2.5);   // caminos de los vecinos, unos milisegundos por fotograma
     this.terrain.update(this.camera.position);
-    { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()); c.getWorldDirection(f); f.y = 0; if (f.lengthSq() < 1e-4) f.set(0, 0, 0); else f.normalize(); this.sky.camPos = c.position; }   // (las sombras, por delante de la cámara)
+    // (las sombras, por delante de la cámara; el centro sigue al giro despacio: si saltaba con la cámara, la raya donde
+    // acaban las sombras barría las fachadas y las casas lejanas se veían con sombra y sin ella a cada giro)
+    { const c = this.camera, f = this.sky.ahead || (this.sky.ahead = new THREE.Vector3()), t = this._ahead || (this._ahead = new THREE.Vector3());
+      c.getWorldDirection(t); t.y = 0; if (t.lengthSq() < 1e-4) t.set(0, 0, 0); else t.normalize();
+      if (this.follow.cinematic || f.lengthSq() < 1e-4) f.copy(t); else { f.lerp(t, 1 - Math.exp(-dt * 1.5)); if (f.lengthSq() > 1) f.normalize(); }
+      this.sky.camPos = c.position; }
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
     // (en los partidos y bajo techo no cae nada: antes, en la llegada al frontón cubierto llovía dentro del pabellón; y
     // en los deportes, con sus menús, no se oye la lluvia: antes sonaba a toda fuerza durante los partidos)

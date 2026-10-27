@@ -2,6 +2,15 @@ import * as THREE from 'three';
 import { lerp, smoothstep } from '../util/math.js';
 import { groundHeight } from './heightfield.js';
 
+// las sombras del sol se apagan poco a poco hacia el borde de su mapa (antes acababan de golpe en una raya: al andar o
+// girar, esa raya pasaba por las casas y sus sombras aparecían y desaparecían)
+{ const K = THREE.ShaderChunk, a = 'float getShadow( sampler2D shadowMap, vec2 shadowMapSize', r = 'return mix( 1.0, shadow, shadowIntensity );', i = K.shadowmap_pars_fragment.indexOf(a), j = K.shadowmap_pars_fragment.indexOf(r, i);
+  if (i >= 0 && j > i) K.shadowmap_pars_fragment = K.shadowmap_pars_fragment.slice(0, j) + 'vec2 eg = min( shadowCoord.xy, 1.0 - shadowCoord.xy );\n\t\treturn mix( 1.0, shadow, shadowIntensity * smoothstep( 0.0, 0.14, min( eg.x, eg.y ) ) );' + K.shadowmap_pars_fragment.slice(j + r.length); }
+// colores algo más vivos: el tono de cine (ACES) apaga los verdes, los rojos de las tejas y los colores de las fachadas;
+// después de él se les devuelve un poco de saturación
+{ const K = THREE.ShaderChunk, a = 'color = ACESOutputMat * color;';
+  if (K.tonemapping_pars_fragment.includes(a)) K.tonemapping_pars_fragment = K.tonemapping_pars_fragment.replace(a, a + '\n\tcolor = max( mix( vec3( dot( color, vec3( 0.2126, 0.7152, 0.0722 ) ) ), color, 1.12 ), 0.0 );'); }
+
 // texturas pintadas a mano en un lienzo: la luna con sus mares y su fase de hoy, su halo y niebla suave
 // la fase de la luna del día de hoy (0 = nueva, 0,5 = llena), contada desde una luna nueva conocida (6-1-2000)
 export function moonPhase(date = new Date()) { const syn = 29.530588853, d = (date.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 864e5; return ((d / syn) % 1 + 1) % 1; }

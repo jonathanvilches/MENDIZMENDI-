@@ -3,7 +3,8 @@
 // a otros, se meten en la calle o en el río y algunas puertas dan contra la casa de al lado. Y los puentes son el tramo de
 // calle marcado como puente, que a veces se queda corto y acaba dentro del agua, o falta donde una calle cruza una regata.
 // Aquí, antes de levantar nada:
-//  · las casas junto a una calle se alinean con ella si casi lo están (hasta 20°): la fachada sigue la calle
+//  · las casas junto a una calle se alinean con ella si casi lo están (hasta 20°): la fachada sigue la calle; y dos casas
+//    que se tocan casi en paralelo, del todo
 //  · cada casa se recorta lo justo para dejar libres la calle, el puente, el río y su muro, y la plaza; si casi no queda
 //    casa, no se levanta (en los datos, la calle pasaba por debajo: un pasadizo; o era el mercado en mitad de la plaza)
 //  · dos casas que se pisan quedan pared con pared: la pequeña se recorta por el lado de la grande, o no se levanta si
@@ -96,7 +97,7 @@ export function ordenarCasas(casas, o) {
   const libre = (h) => !fijas.has(h);
   const urbana = (c) => c.type !== 'trail' || c.cls === 'footway' || c.cls === 'pedestrian' || c.cls === 'steps';
   const rCalle = (c) => c.cls === 'service' ? Math.max(1.1, c.w * 0.65) : c.type === 'trail' ? Math.max(0.9, c.w * 0.7) : Math.max(1.3, c.w * 0.8);
-  const quedan = new Set(casas);
+  const quedan = new Set(casas), alineada = new Set();
   // 1) la fachada con la calle: si la casa está junto a una calle y casi alineada con ella, del todo
   for (const h of casas) {
     if (!libre(h) || h.k === 'shed' || h.k === 'industrial') continue;
@@ -109,7 +110,25 @@ export function ordenarCasas(casas, o) {
     if (!best || bd > 5) continue;
     const t = Math.atan2(best.b[0] - best.a[0], best.b[1] - best.a[1]), q = Math.PI / 2;
     const dlt = vuelta(t - h.ry), dq = dlt - Math.round(dlt / q) * q;
-    if (Math.abs(dq) < 0.35) h.ry = vuelta(h.ry + dq);
+    if (Math.abs(dq) < 0.35) { h.ry = vuelta(h.ry + dq); alineada.add(h); }
+  }
+  // 1b) dos casas que se tocan casi en paralelo (menos de 15°) quedan en paralelo: la que no sigue una calle gira como la
+  //     otra (de las dos, la pequeña). Si no, en las hileras las paredes y los tejados de al lado se cruzaban en ángulo
+  {
+    const CEL = 20, g = new Map(), q = Math.PI / 2;
+    for (const h of casas) { const k = Math.floor(h.x / CEL) * 4096 + Math.floor(h.z / CEL); let a = g.get(k); if (!a) g.set(k, a = []); a.push(h); }
+    for (const A of [...casas].sort((a, b) => b.w * b.d - a.w * a.d)) {
+      if (A.k === 'shed') continue;
+      const i0 = Math.floor(A.x / CEL), j0 = Math.floor(A.z / CEL), An = { ...A, w: A.w + 1, d: A.d + 1 };
+      for (let i = i0 - 2; i <= i0 + 2; i++) for (let j = j0 - 2; j <= j0 + 2; j++) for (const B of g.get(i * 4096 + j) || []) {
+        if (B === A || B.k === 'shed' || Math.hypot(A.x - B.x, A.z - B.z) > radio(A) + radio(B) + 1 || !pisan(An, B)) continue;
+        const dlt = vuelta(B.ry - A.ry), dq = dlt - Math.round(dlt / q) * q;
+        if (Math.abs(dq) < 0.004 || Math.abs(dq) > 0.26) continue;
+        // (gira la que se puede tocar y no va con su calle; si las dos van con la suya, se quedan)
+        if (libre(B) && !alineada.has(B)) { B.ry = vuelta(B.ry - dq); alineada.add(B); }
+        else if (libre(A) && !alineada.has(A)) { A.ry = vuelta(A.ry + dq); alineada.add(A); }
+      }
+    }
   }
   // 2) libres la calle, el puente y el río (con su muro)
   for (const h of casas) {

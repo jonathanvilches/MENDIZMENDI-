@@ -35,7 +35,10 @@ export function bake() {
       }
       SURF.water[k] = inWater || inPond ? 1 : 0;
       let street = 0, dirt = 0;
-      if (p.type === 'street') street = 1 - smoothstep(p.w - 0.6, p.w + 0.4, p.d);
+      // (en el casco, la calle empedrada llega hasta las fachadas: con la calzada sola, entre la calle y las casas quedaba
+      // una franja de prado y las calles parecían caminos entre el césped)
+      const acera = f.vm > 0.5 ? 1.6 * smoothstep(0.5, 0.8, f.vm) : 0;
+      if (p.type === 'street') street = 1 - smoothstep(p.w - 0.6 + acera, p.w + 0.4 + acera, p.d);
       else if (p.type) dirt = 1 - smoothstep(p.w - 0.7, p.w + 0.5, p.d);
       street = Math.max(street, plazaMask(x, z));
       // cancha del frontón
@@ -77,7 +80,10 @@ export function bake() {
     const xw = -HALF + i * CELL, zw = -HALF + j * CELL;
     const re = riverInfo(xw, zw).edge;
     const rock = Math.max((smoothstep(0.75, 1.25, s) + smoothstep(115, 150, H[k]) * 0.5), RM ? RM(xw, zw) : 0) * smoothstep(1, 7, re);
-    SURF.rock[k] = clamp(rock, 0, 1) * 255;
+    // (el empedrado no sube por un talud: donde la calle o la plaza se cortan en cuesta muy fuerte, piedra)
+    const st = SURF.street[k] / 255, talud = st * smoothstep(0.42, 0.7, s);
+    if (talud > 0) SURF.street[k] = (st - talud) * 255;
+    SURF.rock[k] = clamp(Math.max(rock, talud), 0, 1) * 255;
     if (rock > 0.5) { SURF.grass[k] *= 0.3; SURF.forest[k] *= 0.5; }
   }
 }
