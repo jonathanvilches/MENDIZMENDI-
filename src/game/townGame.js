@@ -9,7 +9,7 @@ import { Jornales } from './jornales.js';
 import { groundHeight, terrainHeight, waterLevelAt, onPlatform } from '../world/heightfield.js';
 import { TOWN } from '../world/townBuilder.js';
 import { isFree, segmentBlocked, addCircle, addBox } from '../world/colliders.js';
-import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
+import { clamp, lerp, smoothstep, angleDiff, mulberry32 } from '../util/math.js';
 import { profile, saveProfile, townState, addXP, checkBadges, addCard, comarcaDone, levelOf } from './profile.js';
 import { infoCard, timingGame, mashGame, sequenceGame, simonGame, choiceGame, missionComplete, townFinale, play3d } from '../ui/minigames.js';
 import { OFICIOS } from '../data/oficios.js';
@@ -2339,8 +2339,8 @@ export class TownGame {
     let best = null, ba = 1, near = null, na = Infinity, nearDir = null;
     const obs = pano ? this.monteObs(eye) : [...this.fauna.observables(), ...this.monteObs(eye)];
     for (const o of obs) {
-      // (en los montes se apunta a su marca, el «?» o el nombre que se ve encima de la cumbre)
-      const at = o.monte && o.pin ? o.pin.position : null;
+      // (en los montes del paisaje real se apunta a la cumbre; en los de siempre, a su marca, que está en el cielo)
+      const at = o.monte && o.pin && !o.pano ? o.pin.position : null;
       const to = at ? _to.copy(at).sub(eye) : _to.set(o.pos.x - eye.x, o.pos.y + (o.h || 0.5) - eye.y, o.pos.z - eye.z);
       const d = to.length(); if ((!o.pano && d > (o.far ? 320 : 110)) || d < 1) continue;
       const ang = to.normalize().angleTo(dir), tol = o.pano ? 0.08 : Math.max(0.045, (o.far ? 3.5 : 1.6) / d);
@@ -2417,9 +2417,14 @@ export class TownGame {
     if (this.panoOn && this.pano) {
       const M = this.missions.find(x => x.type === 'mirador'), S = this.pano.scene;
       if (!this.panoPins) this.panoPins = this.pano.peaks.map(pk => { const seen = this.P.montes?.includes(pk.m.id) && (!M || M.seenIds?.has(pk.m.id)); const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: pinTex(seen ? pk.m.name : '?'), depthTest: false, transparent: true, fog: false })); sp.renderOrder = 20; sp.userData.named = seen; S.add(sp); return sp; });
+      // la marca de cada cumbre, siempre del mismo tamaño en la pantalla, justo encima de ella; cuando la cumbre entra en
+      // la marca del visor, sube por encima del anillo (lo tapaba)
+      const cam = this.pano.camera, wpp = 2 * Math.tan(cam.fov * Math.PI / 360) / innerHeight;   // (por cada metro de distancia, lo que mide un píxel)
       return this.pano.peaks.map((pk, i) => {
-        const pin = this.panoPins[i], s = pk.ds * 0.026, named = pin.userData.named;
-        pin.scale.set(named ? s * 3.4 : s, named ? s * 0.85 : s, 1); pin.position.copy(pk.summit); pin.position.y += s * 0.75 + pk.H * 0.05;
+        const pin = this.panoPins[i], named = pin.userData.named, px = wpp * pk.ds, s = 30 * px;
+        const q = _to.copy(pk.summit).project(cam), dpx = q.z > 1 ? Infinity : Math.hypot(q.x * innerWidth, q.y * innerHeight) / 2;
+        const gap = 8 + 40 * (1 - smoothstep(40, 110, dpx));
+        pin.scale.set(named ? s * 3.4 : s, named ? s * 0.85 : s, 1); pin.position.copy(pk.summit); pin.position.y += gap * px + pin.scale.y / 2;
         return { pos: pk.summit, h: 0, far: true, pano: true, id: 'monte:' + pk.m.id, monte: pk.m, seen: named, pin, i };
       });
     }
