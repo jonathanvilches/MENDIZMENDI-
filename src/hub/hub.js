@@ -48,6 +48,7 @@ import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
 import { inicioHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
+import { galeria } from './galeria.js';
 import './consola.css';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
@@ -126,32 +127,6 @@ function fitMaps(root) {
   requestAnimationFrame(fit);
   if (!fitMaps.on) { fitMaps.on = true; addEventListener('resize', () => fitMaps.root && requestAnimationFrame(() => fitMaps(fitMaps.root))); }
   fitMaps.root = root;
-}
-// la fila de comarcas de Pueblos, fija arriba: tocar una baja hasta sus pueblos y, al desplazarse, se enciende la que se
-// está viendo (y la fila se corre para tenerla a la vista). `ir`: la comarca con que se abre
-function indiceComarcas(m, ir) {
-  const bar = $('.tidx', m), B = [...bar.querySelectorAll('button')], G = [...m.querySelectorAll('.tgrp')];
-  let destino = null, hasta = 0;   // (mientras baja sola hasta una comarca tocada, no se cambia la encendida)
-  const marca = (id) => { for (const b of B) { const on = b.dataset.f === id; if (on === b.classList.contains('on')) continue; b.classList.toggle('on', on);
-    if (on) bar.scrollTo({ left: b.offsetLeft - (bar.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' }); } };
-  // (pegada al borde de arriba, sobre el relleno de la lista, y con fondo solo cuando está pegada)
-  const pega = () => { bar.style.top = -parseFloat(getComputedStyle(m).paddingTop) + 'px'; bar.classList.toggle('pegada', m.scrollTop > 0 && bar.getBoundingClientRect().top <= m.getBoundingClientRect().top + 1); };
-  // (cada grupo, justo debajo de la fila ya pegada arriba)
-  const baja = (id, suave) => { const g = G.find(x => x.dataset.c === id); if (!g) return; marca(id);
-    const y = m.scrollTop + enCss(g.getBoundingClientRect().top - m.getBoundingClientRect().top) - bar.offsetHeight - 8;
-    destino = Math.max(0, Math.min(Math.round(y), m.scrollHeight - m.clientHeight)); hasta = performance.now() + 2000;
-    m.scrollTo({ top: destino, behavior: suave ? 'smooth' : 'instant' }); if (!suave) pega(); };
-  B.forEach(b => b.onclick = (e) => { e.stopPropagation(); baja(b.dataset.f, true); });
-  m.onscroll = () => { pega();
-    if (destino != null) { if (Math.abs(m.scrollTop - destino) > 2 && performance.now() < hasta) return; destino = null; }
-    const y = m.getBoundingClientRect().top + bar.getBoundingClientRect().height + 16; let g = G[0]; for (const x of G) if (x.getBoundingClientRect().top <= y) g = x;
-    if (m.scrollTop + m.clientHeight >= m.scrollHeight - 4) g = G[G.length - 1];   // (abajo del todo, la última, aunque no llegue arriba)
-    marca(g.dataset.c); };
-  pega(); marca(G[0]?.dataset.c);
-  // (con una comarca pedida, se baja hasta ella cuando la página ya tiene sus letras y ha terminado de entrar: mientras
-  // sube, todo está algo más abajo)
-  const entra = [...m.children].flatMap(e => e.getAnimations?.() || []).map(a => a.finished.catch(() => {}));
-  if (ir && G.some(g => g.dataset.c === ir)) Promise.all([document.fonts?.ready, ...entra]).then(() => bar.isConnected && baja(ir, false));
 }
 function spark(profile, w = 160, h = 44) {
   if (!profile?.length) return '';
@@ -510,14 +485,38 @@ export class Hub {
   // ---------- Pueblos ----------
   // todos, por comarcas, en una sola lista; arriba, fija, la fila de las comarcas para saltar a la que se quiera (con
   // `ir`, se abre ya en esa comarca)
+  // Pueblos: una galería en 3D, un carrusel circular por comarca (src/hub/galeria.js). ir: la comarca que se abre (si no,
+  // la del último pueblo jugado, con ese pueblo delante)
   s_towns(ir) {
-    const p = profile(), dd = isDidactico(), grupos = COMARCAS.map(c => ({ c, ts: comarcaTowns(c.id) })).filter(g => g.ts.length);
-    this.after = () => indiceComarcas($('#hMain', this.root), ir);
-    return `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1>${dd ? '<p class="lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>' : ''}
-      <nav class="filters tidx" aria-label="Comarcas">${grupos.map(({ c }) => `<button data-f="${c.id}">${esc(c.name)}</button>`).join('')}</nav>
-      ${grupos.map(({ c, ts }) => { const r = comarcaProgress(p, c.id); return `<section class="tgrp" data-c="${c.id}"><h2 class="tg-h">${esc(c.name)} <small>${dd ? cnt(ts.length, 'pueblo', 'pueblos') : `${r.stamps}/${r.towns} sellos`}</small></h2>
-        <div class="towns">${ts.map(l => this.townCard(l)).join('')}</div></section>`; }).join('')}`;
+    const p = profile(), dd = isDidactico(), grupos = COMARCAS.filter(c => comarcaTowns(c.id).length);
+    const ultimo = levelById(p.last), ini = grupos.some(c => c.id === ir) ? ir : ultimo?.comarca || grupos[0]?.id;
+    this.after = () => galeria($('#hMain', this.root), { comarcas: grupos.map(c => ({ id: c.id, nombre: c.name, color: c.color, portada: comarcaCover(c.id) })), inicial: ini, pueblo: ini === ultimo?.comarca ? ultimo.id : null,
+      tarjetas: (id) => comarcaTowns(id).map(l => this.galTarjeta(l)).join(''), info: (id, i, n) => this.galInfo(id, i, n),
+      abre: (id) => (isDidactico() ? this.go('pueblo', id) : this.townSheet(id)), sonido: (k) => this.sound?.ui(k) });
+    const fl = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
+    return `${dd ? `<h1 class="title">${I('church', 40)} Pueblos y ciudades</h1><p class="lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>` : ''}
+      <div class="gal"><div class="gal-fondo" aria-hidden="true"></div>
+        <nav class="filters gal-cm" aria-label="Comarcas">${grupos.map(c => `<button type="button" data-gc="${c.id}" aria-pressed="false"><img src="${stampImg(c.id)}" alt="">${esc(c.name)}</button>`).join('')}</nav>
+        <div class="gal-escena" role="group" aria-roledescription="carrusel" aria-label="Pueblos de la comarca"><div class="gal-anillo"></div></div>
+        <button type="button" class="gal-fl ant" data-gal="-1" aria-label="Pueblo anterior">${fl('M15 5l-7 7 7 7')}</button><button type="button" class="gal-fl sig" data-gal="1" aria-label="Pueblo siguiente">${fl('M9 5l7 7-7 7')}</button>
+        <div class="gal-puntos" aria-hidden="true"></div>
+        <div class="gal-info" aria-live="polite"></div></div>`;
   }
+  // (una pantalla de la galería: la portada del pueblo, su nombre y lo que lleva hecho)
+  galTarjeta(l) {
+    const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), cov = townImg(l);
+    return `<button type="button" class="gal-t" data-gt="${l.id}" aria-label="${esc(n1)}">${cov ? `<img class="gt-img" src="${cov}" alt="" decoding="async" draggable="false">` : ''}${dd ? '' : `<i class="gt-n${t.total && t.done === t.total ? ' ok' : ''}">${t.done}/${t.total}</i>`}${t.stamp ? `<img class="gt-sello" src="${stampImg(l.comarca)}" alt="">` : ''}<span class="gt-pie"><b>${esc(n1)}</b>${n2 ? `<small>${esc(n2)}</small>` : ''}</span></button>`;
+  }
+  // (el pueblo de delante: su comarca y su sitio en ella, su nombre, sus misiones hechas y los botones de jugar y de ver la ficha)
+  galInfo(id, i, n) {
+    const l = levelById(id); if (!l) return '';
+    const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), hecho = p.towns[l.id]?.done || {}, c = comarca(l.comarca);
+    const types = l.special ? ['visit', 'herd', 'legend', 'dance', 'observe', 'carnival'] : (l.missions || []).map(m => m.type);
+    return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><h2>${esc(n1)}${n2 ? `<em>${esc(n2)}</em>` : ''}</h2>
+      <span class="gi-ms">${types.map((ty, k) => `<i title="${TYPE_NAME[ty]}"${dd || hecho[k] ? ' class="ok"' : ''}>${I(TYPE_ICON[ty], 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div>
+      <div class="gi-b">${dd ? `<button type="button" class="btn primary" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button type="button" class="btn" data-town="${l.id}">${I('scroll', 20)}<span>Ficha</span></button><button type="button" class="btn primary" data-play="${l.id}">${I('play', 20)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>`}</div>`;
+  }
+
 
   // ---------- Cimas ----------
   // Cimas: las que se suben en el juego (misión de montaña en un pueblo) y el resto como guía

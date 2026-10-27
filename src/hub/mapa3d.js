@@ -929,6 +929,7 @@ export function mapa3d(host, o) {
     const t = tById.get(id); if (!t || entrada) return;
     if (sel !== t.comarca) select(t.comarca, false);
     elegido = t; o.onTown?.(id);   // (antes de volar: la ficha cambia el hueco donde se encaja)
+    nucT = -1e9;   // (su núcleo, en la imagen siguiente: así sus casas se van haciendo durante el vuelo)
     // (hasta lo más cerca, donde se ven sus casas en pie, algo de lado; los bosques, sin maqueta, desde algo más arriba)
     const real = TR.includes(t), d = real ? 0.6 : 2.4;
     volar({ x: t.X, z: t.Z, d, yaw: v.yaw, pitch: real ? 0.62 + 0.11 * d : 0.85 }, Math.min(2.2, 1.1 + 0.16 * Math.log2(Math.max(1, v.d / d))));
@@ -1097,7 +1098,9 @@ export function mapa3d(host, o) {
   // del pueblo y luego las casas, y se va al revés al alejarse: src/hub/maqueta.js)
   const MAQ_D = 3.2, MAQ_K = 1.6;   // (la distancia a la que se levanta, y lo que se exageran en alto casas y árboles: como el relieve de cerca)
   let maq = null, calentado = false;
-  // (los dos programas de la maqueta, compilados de antemano al acercarse, para que al levantarla no se pare el mapa)
+  // (los programas de la maqueta y de las casas de los núcleos, compilados de antemano en cuanto el mapa está tranquilo
+  // y estrenados en una imagen, debajo de todo: si no, se compilaban al llegar al pueblo, de golpe, y la imagen se paraba
+  // medio segundo justo cuando se levantaban sus casas)
   function calienta() {
     calentado = true;
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
@@ -1106,40 +1109,55 @@ export function mapa3d(host, o) {
     while (!pasos.next().done);
     const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
     const im = new THREE.InstancedMesh(caja, res.mat, 1); im.setColorAt(0, new THREE.Color());
-    const grupo = new THREE.Group(); grupo.add(new THREE.Mesh(g, pm), im);
-    geos.push(g, caja, res.geo); mats.push(pm, res.mat);
-    compilarAsync(r, grupo, cam, scene);
+    const cm2 = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0 }), cn = new THREE.InstancedMesh(cajaG, cm2, 1); cn.setColorAt(0, new THREE.Color());
+    const grupo = new THREE.Group(); grupo.add(new THREE.Mesh(g, pm), im, cn);
+    geos.push(g, caja, res.geo); mats.push(pm, res.mat, cm2);
+    compilarAsync(r, grupo, cam, scene).then(() => { if (!vivo) return;
+      grupo.position.y = -500; grupo.traverse(x => { x.frustumCulled = false; }); scene.add(grupo); estreno = { grupo, n: 0 }; });
   }
+  let estreno = null;   // (lo calentado, en la escena una sola imagen; luego fuera)
   function maqueta(dt, quieto) {
-    if (!calentado && v.d < 8) calienta();
-    const quiere = entrada ? (maq?.e.t === entrada.t ? maq.e : null) : v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
-      .sort((a, b) => Math.hypot(a.X0 - v.x, a.Z0 - v.z) - Math.hypot(b.X0 - v.x, b.Z0 - v.z))[0] : null;
+    if (estreno && estreno.n++) { estreno.grupo.removeFromParent(); estreno = null; }   // (ya pintado una vez, con sus programas estrenados: fuera)
+    if (!calentado && (v.d < 8 || ((!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > 4000))) calienta();   // (el mapa siempre se mueve un poco: no se espera a que esté quieto)
+    // (volando a un pueblo tocado, la suya se va haciendo por el camino: al llegar ya está y solo tiene que levantarse)
+    const vaE = !entrada && elegido && vuelo ? nuc.get(elegido.id) : null, va = vaE?.D && vaE.slot >= 0 ? vaE : null;
+    const quiere = entrada ? (maq?.e.t === entrada.t ? maq.e : null) : va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
+      .sort((a, b) => Math.hypot(a.X0 - v.x, a.Z0 - v.z) - Math.hypot(b.X0 - v.x, b.Z0 - v.z))[0] : null);
     if (!maq) {
-      if (quiere && quieto) maq = { e: quiere, k: { value: 0 }, alz: { value: 1 }, op: 0, res: {}, pasos: null, tex: null, malla: null };
+      if (quiere && (quieto || va)) maq = { e: quiere, k: { value: 0 }, alz: { value: 1 }, op: 0, res: {}, pasos: null, tex: null, malla: null };
       return;
     }
     const m = maq, e = m.e, c = e.c, sigue = quiere === e;
-    if (!m.malla) {   // (aún haciéndose: un paso por imagen, con la cámara quieta; si ya no se quiere, se deja)
+    if (!m.malla) {   // (aún haciéndose: unos pasos por imagen, los que quepan en unos milisegundos; si ya no se quiere, se deja)
       if (!sigue) { quitaMaqueta(); return; }
-      if (!quieto) return;
-      if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return; }
-      if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz }, m.res);
-      if (!m.hecha) { m.hecha = m.pasos.next().done; return; }
-      // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
-      if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
-        for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R + rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, 0.5, 0, 6.2832); }
-        g.fill(); m.tex.needsUpdate = true; r.initTexture(m.tex); return; }
-      const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
-      m.malla = new THREE.Mesh(m.res.geo, pm); c.mesh.add(m.malla); c.mesh.add(m.res.casas);
-      u.uHueco.value.set(e.X0, e.Z0, e.R * MU * 0.97, 1); if (e.slot >= 0) u['uP' + e.slot].value = m.tex;
-      m.labs = m.res.monumentos.map(x => { const lab = document.createElement('div'); lab.className = 'm3-ml'; lab.textContent = x.n; lab.hidden = true; capa.append(lab); return { ...x, lab }; });
+      if (!quieto && !va) return;
+      const hasta = performance.now() + (quieto ? 14 : 7);
+      do { if (pasoMaqueta(m)) return; } while (performance.now() < hasta);
       return;
     }
-    // (el relieve del pueblo sube; luego, las casas)
-    m.k.value += ((sigue ? 1 : 0) - m.k.value) * (1 - Math.exp(-dt * 3));
-    m.op += ((sigue && m.k.value > 0.85 ? 1 : 0) - m.op) * (1 - Math.exp(-dt * 4));
+    // (el relieve del pueblo sube, ya al llegar; luego, las casas)
+    const sube = sigue && v.d < MAQ_D * 1.6;
+    m.k.value += ((sube ? 1 : 0) - m.k.value) * (1 - Math.exp(-dt * (sube ? 6 : 3)));
+    m.op += ((sube && m.k.value > 0.6 ? 1 : 0) - m.op) * (1 - Math.exp(-dt * 8));
     m.res.mat.opacity = m.op; m.res.casas.visible = m.op > 0.01; m.alz.value = 1 / Math.max(0.05, c.sy);
     if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
+  }
+  // (un paso de la maqueta: el suelo pintado, sus piezas, las sombras de los árboles y, al final, la malla en la comarca;
+  // devuelve true cuando ya está)
+  function pasoMaqueta(m) {
+    const e = m.e, c = e.c;
+    if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return false; }
+    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz }, m.res);
+    if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
+    // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
+    if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
+      for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R + rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, 0.5, 0, 6.2832); }
+      g.fill(); m.tex.needsUpdate = true; r.initTexture(m.tex); return true; }
+    const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
+    m.malla = new THREE.Mesh(m.res.geo, pm); c.mesh.add(m.malla); c.mesh.add(m.res.casas);
+    u.uHueco.value.set(e.X0, e.Z0, e.R * MU * 0.97, 1); if (e.slot >= 0) u['uP' + e.slot].value = m.tex;
+    m.labs = m.res.monumentos.map(x => { const lab = document.createElement('div'); lab.className = 'm3-ml'; lab.textContent = x.n; lab.hidden = true; capa.append(lab); return { ...x, lab }; });
+    return true;
   }
   function quitaMaqueta() {
     const m = maq; if (!m) return; maq = null;
@@ -1175,7 +1193,7 @@ export function mapa3d(host, o) {
     }
   }
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, maqueta: () => maq, ir: irPueblo, intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
