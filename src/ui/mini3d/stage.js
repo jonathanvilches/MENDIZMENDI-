@@ -11,11 +11,11 @@ let LAB = null;   // en la página de pruebas (sin juego) hay un renderer propio
 export function labHost() {
   if (LAB) return LAB;
   const r = new THREE.WebGLRenderer({ antialias: true });
-  r.setPixelRatio(Math.min(2, devicePixelRatio)); r.setSize(innerWidth, innerHeight);
+  r.setPixelRatio(Math.min(2, devicePixelRatio)); r.setSize(innerWidth, innerHeight, false);
   r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05;
   r.shadowMap.enabled = true; r.shadowMap.type = THREE.PCFSoftShadowMap;
-  Object.assign(r.domElement.style, { position: 'fixed', inset: '0', zIndex: '0' }); r.domElement.className = 'pantalla3d';
-  addEventListener('resize', () => r.setSize(innerWidth, innerHeight));
+  Object.assign(r.domElement.style, { position: 'fixed', inset: '0', zIndex: '0', width: '100%', height: '100%' }); r.domElement.className = 'pantalla3d';
+  addEventListener('resize', () => r.setSize(innerWidth, innerHeight, false));
   let cur = null, last = performance.now();
   const loop = (now) => { requestAnimationFrame(loop); const dt = Math.min(0.1, (now - last) / 1000); last = now; if (!cur) return; cur.update(dt); r.render(cur.scene, cur.camera); };
   requestAnimationFrame(loop);

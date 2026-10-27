@@ -74,7 +74,7 @@ export class Runtime {
     canvas.addEventListener('webglcontextrestored', () => { this.contextLost = false; this.sizeDirty = true; document.querySelector('.ctxlost')?.remove(); this.renderer.shadowMap.needsUpdate = true; this.onContextRestored?.(); }, false);
     this.renderer.debug.checkShaderErrors = /debug/.test(location.search);
     this.renderer.setPixelRatio(this.pixelRatio);
-    this.renderer.setSize(innerWidth, innerHeight);
+    this.renderer.setSize(innerWidth, innerHeight, false);   // (el lienzo ocupa la pantalla por su estilo: canvas#c)
     // en móviles (calidad baja) sin sombras en tiempo real: obligan a dibujar la escena dos veces y el iPhone se quedaba
     // en 15-25 imágenes por segundo. Los personajes llevan una sombra redonda (util/blob.js)
     this.renderer.shadowMap.enabled = quality !== 'low';
@@ -267,6 +267,8 @@ export class Runtime {
     // (la primera vez que sale una escena propia, antes se compila: warm)
     if (alt && !this.warmed.has(alt)) { this.warm(alt, g.altCamera || this.camera); return; }
     this.elapsed += dt;
+    // (de vez en cuando, que el dibujo tenga la medida de la pantalla: si se perdió un aviso al girar, se corrige solo)
+    if (this.frameNo % 20 === 0) { const sz = this.renderer.getSize(this._sz ||= new THREE.Vector2()); if (sz.x !== innerWidth || sz.y !== innerHeight) this.sizeDirty = true; }
     this.applySize();
     // ventana opaca a pantalla completa (los paneles de los campeonatos, la celebración del campeón): lo de debajo no
     // se ve y no se dibuja. Antes el pueblo entero se seguía dibujando detrás y, en los ordenadores modestos, los menús
@@ -349,7 +351,9 @@ export class Runtime {
       this.maxRatio = this.boosted ? this.boostRatio() : this.ratioFor(this.quality);
       if (this.pixelRatio > this.maxRatio) this.pixelRatio = this.maxRatio;
       if (r.getPixelRatio() !== this.pixelRatio) r.setPixelRatio(this.pixelRatio);
-      r.setSize(innerWidth, innerHeight);
+      // (sin tocar el estilo del lienzo: con su ancho en píxeles, una medida vieja al girar el móvil dejaba media pantalla
+      // en negro; por estilo ocupa siempre la pantalla entera)
+      r.setSize(innerWidth, innerHeight, false);
       const c = this.camera; c.aspect = innerWidth / innerHeight; c.fov = c.userData.fov0 = this.fovFor(c.aspect); c.updateProjectionMatrix();
     } else if (this.ratioDirty) { this.ratioDirty = false; if (r.getPixelRatio() !== this.pixelRatio) r.setPixelRatio(this.pixelRatio); }
   }
