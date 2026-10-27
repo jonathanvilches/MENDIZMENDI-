@@ -580,7 +580,7 @@ function doveScene(S, net) {
   return {
     ready, frame: { box: [[-2.95, 0.1, -3.0], [2.95, 5.6, -1.6]], dir: [0, 0.1, 1], fov: 44 },
     // el centro del bando (las que vuelan), la mano del paletero, el plano por el que vuela el bando y el ancho de las redes
-    bando() { mid.set(0, 0, 0); let n = 0; for (const B of birds) if (B.libre) { mid.add(B.b.position); n++; } return n ? mid.clone().divideScalar(n) : V(0, 4, NZ + 0.9); },
+    bando() { mid.set(0, 0, 0); let n = 0; for (const B of birds) if (B.libre !== false) { mid.add(B.b.position); n++; } return n ? mid.clone().divideScalar(n) : V(0, 4, NZ + 0.9); },
     torre: () => from.clone(), planoZ: NZ + 0.9, redX: 2.6,
     set(p, hit, ok, dt, o) {
       const caught = net ? Math.floor(p * 10) : 0;
