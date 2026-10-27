@@ -2296,6 +2296,7 @@ export class TownGame {
     if (this.mode === 'bino') {
       this.mode = 'play'; this.fauna.farView = false; this.ui.binoculars(false); this.camera.fov = this.camera.userData.fov0 || 55; this.camera.updateProjectionMatrix(); this.player.obj.visible = true; this.player.frozen = false;
       if (this.panoOn) { this.panoOn = false; this.altScene = null; this.altCamera = null; this.altUpdate = null; }
+      this._binoBest = null;
       return;
     }
     if (this.mode !== 'play') return;
@@ -2336,7 +2337,9 @@ export class TownGame {
     const sens = (this.input.touch ? 0.0012 : 0.0009) * (pano ? cam.fov / 10 : 1);
     this.binoYaw -= this.input.look.dx * sens; this.binoPitch = clamp(this.binoPitch - this.input.look.dy * sens, -0.6, 1.3);
     const mv = this.input.move; this.binoYaw -= mv.x * dt * 0.8; this.binoPitch = clamp(this.binoPitch + mv.y * dt * 0.6, -0.6, 1.3);
-    const fov = lerp(cam.fov, pano ? (pano.real ? 20 : 24) : 10, 1 - Math.exp(-(pano ? 2.5 : 8) * dt));
+    // (con un ave en la marca, en la vista lejana, los prismáticos se acercan a ella: se ven su silueta y sus colores)
+    const zoomAve = pano && this._binoBest && !this._binoBest.monte;
+    const fov = lerp(cam.fov, pano ? (zoomAve ? 8 : pano.real ? 20 : 24) : 10, 1 - Math.exp(-(pano ? 2.5 : 8) * dt));
     const eye = pano ? _eye.copy(pano.eye) : _eye.set(P.x, P.y + 1.55, P.z);
     const dir = _dir.set(Math.sin(this.binoYaw) * Math.cos(this.binoPitch), Math.sin(this.binoPitch), Math.cos(this.binoYaw) * Math.cos(this.binoPitch));
     if (pano) pano.look(this.binoYaw, this.binoPitch, fov);
@@ -2361,6 +2364,7 @@ export class TownGame {
       if (ang < tol && ang < ba) { ba = ang; best = o; }
       if (fresh(o) && ang / tol < na) { na = ang / tol; near = o; nearDir = _near.copy(to); }
     }
+    this._binoBest = best;
     const dragging = this.input.look.dx || this.input.look.dy || mv.x || mv.y;
     if (near && nearDir && !dragging) {
       const yawT = Math.atan2(nearDir.x, nearDir.z), pitT = Math.asin(clamp(nearDir.y, -1, 1)), k = Math.min(1, dt * (near === best ? 5 : 3));

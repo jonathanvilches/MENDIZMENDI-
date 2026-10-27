@@ -286,8 +286,9 @@ export function panoBirds(scene, grid, kinds, n) {
     o.scale.setScalar(id === 'ciguena' || id === 'milano' ? 2.6 : 3); scene.add(o);
     // alrededor del mirador, entre 100 y 450 m, sobre lo que haya debajo (los buitres, más arriba)
     const b = (i * 137.5 + 20) % 360, r = 0.1 + ((i * 0.37) % 1) * 0.35, j = grid.ring(r);
-    const gy = grid.hAt(j, b) - grid.alt - curv(r * 1000), c = grid.pos(b, r, 0); c.y = Math.max(gy + (low ? 40 : 90) + (i % 3) * 35, (low ? -10 : 15) + (i % 4) * 18);
-    out.push({ id, obj: o, c, r: (low ? 35 : 55) + (i % 5) * 18, a: i * 1.7, w: (low ? 0.2 : 0.13) * (i % 2 ? 1 : -1), flapK: o.userData.flap, pos: o.position });
+    // (por encima del ojo, entre 18° y 39°: desde abajo se ve la silueta con las alas abiertas, como en la realidad)
+    const gy = grid.hAt(j, b) - grid.alt - curv(r * 1000), c = grid.pos(b, r, 0); c.y = Math.max(gy + (low ? 40 : 90), r * 1000 * Math.tan((18 + (i % 4) * 7) * Math.PI / 180));
+    out.push({ id, obj: o, c, r: (low ? 30 : 40) + (i % 5) * 10, a: i * 1.7, w: (low ? 0.24 : 0.17) * (i % 2 ? 1 : -1), flapK: o.userData.flap, pos: o.position });
   }
   return out;
 }
