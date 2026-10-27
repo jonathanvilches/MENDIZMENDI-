@@ -1,10 +1,9 @@
-// Los pasos de los talleres que se hacen con la barra de precisión (golpe en el momento justo) o pulsando deprisa,
-// en 3D: cada oficio tiene su escena y el trabajo avanza con cada golpe bueno (la muesca del tronco se hace más honda,
+// Las escenas 3D de los pasos de los talleres (los juegos con gestos que las mueven están en gestos.js): cada oficio
+// tiene su escena y el trabajo avanza con cada gesto bueno (la muesca del tronco se hace más honda,
 // la piedra queda escuadrada, la cesta sube, el huso se llena, los panes entran al horno, la masa queda lisa, los aros
 // bajan, el hierro se enfría en el agua, las palomas bajan a las redes, la piedra sube al hombro, la carbonera se tapa,
 // la herradura se dobla, la suela se cose). Todo con curvas: tornos, tubos, extrusiones y piezas redondeadas.
 import * as THREE from 'three';
-import { play3d } from './play.js';
 import { workshop, outdoors, texMat, uvScale, rbox, lathe, lumpy, particles, puffs, tube, stool, tree } from './kit.js';
 import { anvil, hammer, tongs, shoeCurve, heatColor } from './forge.js';
 import { soleMesh, soleOutline } from './stitch.js';
@@ -113,6 +112,8 @@ function chopScene(S, side) {
   const hi = V(0, 0, 0), lo = V(0, 0, 0), pl = V(0, 0, 0), dir = V(0, 0, 0), hl = V(0, 0, 0), hr = V(0, 0, 0), q = new THREE.Quaternion();
   return {
     ready, frame: { box: [[-0.75, 0, -0.5], [0.75, 1.95, 0.5]], dir: [0.42, 0.3, side ? -1 : 1] },
+    // (la marca del hachazo: la boca de la muesca, que se va hundiendo)
+    punto: () => V(0, Y + R * 0.45, (side ? -1 : 1) * (R * 0.75 - shown * R * 0.45)),
     set(p, hit, ok) {
       if (hit >= 0.14) shown = p;   // la muesca crece cuando el hacha llega
       const qd = shown, d1 = side ? 0.5 : qd * 0.5, d2 = side ? qd * 0.5 : 0, apart = side && qd >= 1 ? 0.06 : 0, key = Math.round(d1 * 400) + Math.round(d2 * 400) * 1000 + apart;
@@ -202,12 +203,15 @@ function stoneScene(S, stage) {
   const E = V(0, 0, 0), H = V(0, 0, 0), hi = V(0, 0, 0), dir = V(0, 0, 0), q = new THREE.Quaternion(), hr = V(0, 0, 0), ct = V(0, 0, 0), ax = V(0, 0, 0);
   const L1 = 0.34, L2 = 0.13, TI = Math.PI / 2 + 0.3, UP = -0.8;
   return {
-    ready, frame: { box: [[-0.55, 0, -0.75], [0.4, 1.45, 0.3]], dir: [-0.85, 0.5, 0.8] },
-    set(p, hit, ok) {
+    ready, frame: { box: [[-0.32, 0.18, -0.3], [0.32, 0.95, 0.22]], dir: [0.1, 0.55, 1] },
+    // la cara de arriba: un punto (f de 0 a 1 de izquierda a derecha, z hacia delante) y su altura
+    BX, BZ, alto: B0 + BY, cara: (f, z = BZ * 0.4) => V(-BX + 0.04 + f * (BX * 2 - 0.08), B0 + BY, z),
+    // o.tx: dónde pega el pico (desbaste); o.cx y o.cz: dónde está el puntero (talla)
+    set(p, hit, ok, dt, o) {
       const shown = hit >= 0.14 ? p : this._p ?? 0; this._p = shown;
       const rough = stage === 0 ? 1 - shown : 0, key = Math.round(rough * 60) * 100 + Math.round(shown * 60);
       if (key !== last) { shape(rough, shown); last = key; }
-      if (prev >= 0.14 && hit < 0.14) tx = ok ? (Math.random() - 0.5) * 0.24 : 0.3;   // dónde va este golpe
+      if (prev >= 0.14 && hit < 0.14) tx = o?.tx ?? (ok ? (Math.random() - 0.5) * 0.24 : 0.3);   // dónde va este golpe
       const top = B0 + BY * (stage === 0 ? 1 + 0.035 * rough : 1);
       if (stage === 0) {
         // el pico cae en arco desde encima del hombro y muerde el borde de arriba
@@ -225,8 +229,8 @@ function stoneScene(S, stage) {
         if (prev < 0.14 && hit >= 0.14) { chips.emit([E.x, E.y, E.z + 0.05], ok ? 14 : 5, { speed: 1.6, spread: 1.8, dir: [0, 1, 0.8], life: 1.4 }); if (ok) dust.emit([E.x, E.y, E.z + 0.05], 2, { size: 0.08, life: 1, spread: 0.1 }); }
       } else {
         // el puntero apoyado en la cara de arriba (inclinado hacia el cantero) y la maceta que le pega en la cabeza
-        const cx = -BX + 0.04 + Math.min(1, shown + 0.04) * (BX * 2 - 0.08);
-        ax.set(0.15, 1, -0.4).normalize(); chisel.position.set(cx, top - 0.004, 0.02); chisel.quaternion.setFromUnitVectors(V(0, 1, 0), ax);
+        const cx = -BX + 0.04 + (o?.cx ?? Math.min(1, shown + 0.04)) * (BX * 2 - 0.08);
+        ax.set(0.15, 1, -0.4).normalize(); chisel.position.set(cx, top - 0.004, o?.cz ?? 0.02); chisel.quaternion.setFromUnitVectors(V(0, 1, 0), ax);
         ct.copy(chisel.position).addScaledVector(ax, 0.162);
         const th = swingAngle(hit, -0.3, Math.PI / 2, S.t), k = THREE.MathUtils.clamp((th + 0.3) / (Math.PI / 2 + 0.3), 0, 1);
         // la maceta: mango hacia delante desde la mano derecha; al golpear, la cara de abajo cae sobre el puntero
@@ -271,7 +275,9 @@ function basketScene(S) {
   const ready = worker(S, 'pastor', { height: 1.7 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0, 0, -0.44); } });
   const lh = V(0, 0, 0), rh = V(0, 0, 0), from = V(0, 0, 0); let lastKey = '';
   return {
-    ready, frame: { box: [[-0.32, 0, -2.08], [0.6, 1.35, -1.35]], dir: [0.3, 0.45, 1] },
+    ready, frame: { box: [[-0.32, 0, -2.08], [0.5, 1.35, -1.35]], dir: [0.3, 0.45, 1] },
+    // (los dos bordes de la cesta, izquierda y derecha, a la altura de la vuelta n: por ahí va la tira)
+    fila: (n) => { const y = 0.025 + Math.min(n, ROWS - 1) * (H - 0.03) / ROWS, r = rad(y) + 0.01; g.updateMatrixWorld(true); return [g.localToWorld(V(-r, SY + y, 0.02)), g.localToWorld(V(r, SY + y, 0.02))]; },
     set(p, hit) {
       const n = Math.round(p * ROWS); rows.forEach((m, i) => { m.visible = i < n; }); rim.visible = p >= 1;
       // la mano derecha tira de la tira hacia fuera tras cada pasada; la izquierda sujeta el borde
@@ -322,13 +328,15 @@ function spinScene(S) {
   let a = 0; const lh = V(0, 0, 0), rh = V(0, 0, 0), wb = V(0, 0, 0), top = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.5, 0, -1.75], [0.68, 1.42, -1.25]], dir: [0.12, 0.22, 1] },
-    set(p, hit, ok, dt) {
-      a += dt * (5 + (hit < 0.6 && ok ? 22 * (1 - hit / 0.6) : 0)); spindle.rotation.y = a;
+    huso: () => spindle.getWorldPosition(V(0, 0, 0)), lana: () => g.localToWorld(lh.clone()),
+    // o.spin: lo que gira el huso (rad/s); o.draw: lo que estira la mano izquierda (0 a 1)
+    set(p, hit, ok, dt, o) {
+      a += dt * (o ? o.spin : 5 + (hit < 0.6 && ok ? 22 * (1 - hit / 0.6) : 0)); spindle.rotation.y = a;
       cop.scale.set(0.5 + p * 1.0, 0.5 + p * 0.6, 0.5 + p * 1.0); wool.scale.set(1 - p * 0.45, 1.7 * (1 - p * 0.35), 1 - p * 0.45);
       // las manos: la izquierda estira las fibras bajo la lana; la derecha sujeta el hilo encima del huso (y lo hace girar)
       const tw = hit < 0.3 ? Math.sin(hit / 0.3 * Math.PI) : 0;
       wb.copy(D0).addScaledVector(dAx, dLen * (0.68 - p * 0.05));
-      lh.set(wb.x - 0.08, wb.y - 0.12 - Math.sin(S.t * 2) * 0.01, wb.z + 0.06);
+      lh.set(wb.x - 0.08, wb.y - 0.12 - Math.sin(S.t * 2) * 0.01 - (o ? Math.min(1, o.draw) * 0.06 : 0), wb.z + 0.06);
       rh.set(-0.3 - tw * 0.04, 0.5 + tw * 0.04, 0.2);
       if (W) { W.pose({ crouch: 0.06, bend: 0.12, nod: 0.12, twist: 0.05, hands: [g.localToWorld(lh.clone()), g.localToWorld(rh.clone())] }); W.handAt(0, lh); g.worldToLocal(lh); W.handAt(1, rh); g.worldToLocal(rh); }
       spindle.position.set(rh.x, rh.y - 0.07, rh.z); spindle.rotation.z = Math.sin(S.t * 1.3) * 0.05;
@@ -375,13 +383,24 @@ function ovenScene(S) {
   });
   const bp = V(0, 0, 0), out = V(0, 0.8, 0.95), hd = V(0, 0, 0), h1 = V(0, 0, 0), h2 = V(0, 0, 0), fw = V(0, 0, 0);
   return {
-    ready, frame: { box: [[-0.9, 0, -2.85], [0.85, 1.5, -0.3]], dir: [-0.85, 0.34, 1] },
-    set(p, hit, ok) {
-      const n = Math.min(4, Math.floor(p * 4 + 1e-6)); loaves.forEach((l, i) => { l.visible = i < n; });
-      // empuje: la hoja entra hasta el sitio del pan siguiente, lo deja y vuelve a la boca
-      const k = hit < 0.25 ? ease(hit / 0.25) : hit < 0.7 ? 1 - ease((hit - 0.25) / 0.45) : 0, slot = SLOTS[Math.min(3, ok ? Math.max(0, n - 1) : n)];
-      bp.lerpVectors(out, V(slot[0], 0.762, slot[1]), k);
-      carried.visible = n < 4 && !(ok && hit < 0.7 && hit > 0.25);
+    ready, frame: { box: [[-0.72, 0.45, -2.6], [0.8, 1.55, -0.45]], dir: [-0.55, 0.42, 1] },
+    // los sitios de los panes y la hoja de la pala, en el mundo; la hondura de cada sitio (0 fuera, 1 al fondo)
+    nSitios: SLOTS.length, sitio: (i) => g.localToWorld(V(SLOTS[i][0], 0.79, SLOTS[i][1])), hondo: (i) => (out.z - SLOTS[i][1]) / (out.z + 0.1),
+    pala: () => g.localToWorld(bp.clone().setY(0.79)),
+    set(p, hit, ok, dt, o) {
+      const n = Math.min(4, Math.floor(p * 4 + 1e-6)); loaves.forEach((l, i) => { l.visible = o?.puestos ? !!o.puestos[i] : i < n; });
+      let k;
+      if (o?.peel) {
+        // la pala, donde la lleva el dedo: de la boca (fuera) al fondo, un poco más baja dentro (sobre la solera)
+        const P = o.peel, z = out.z - P.d * (out.z + 0.1); k = P.d;
+        bp.set(P.x * THREE.MathUtils.smoothstep(P.d, 0.1, 0.35), out.y + (0.765 - out.y) * THREE.MathUtils.smoothstep(P.d, 0.25, 0.45), z);
+        carried.visible = !!P.carry;
+      } else {
+        // empuje: la hoja entra hasta el sitio del pan siguiente, lo deja y vuelve a la boca
+        k = hit < 0.25 ? ease(hit / 0.25) : hit < 0.7 ? 1 - ease((hit - 0.25) / 0.45) : 0; const slot = SLOTS[Math.min(3, ok ? Math.max(0, n - 1) : n)];
+        bp.lerpVectors(out, V(slot[0], 0.762, slot[1]), k);
+        carried.visible = n < 4 && !(ok && hit < 0.7 && hit > 0.25);
+      }
       hd.subVectors(V(BASE.x - 0.05, 0.86, BASE.z - 0.42), bp).normalize();   // el mango apunta a las manos
       peel.position.copy(bp); peel.lookAt(g.localToWorld(bp.clone().add(hd))); 
       h1.copy(bp).addScaledVector(hd, 0.95); h2.copy(bp).addScaledVector(hd, 1.25);
@@ -414,7 +433,10 @@ function kneadScene(S) {
   let last = -1, prev = 9; const L = V(0, 0, 0), R = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.5, 0, -2.1], [0.66, 1.3, -1.3]], dir: [0.85, 0.5, 0.75] },
-    set(p, hit) {
+    masa: () => g.localToWorld(V(0, TY + 0.12, 0.02)),
+    // o.giro: las vueltas que se le dan a la masa (cada cuarto de vuelta, un gesto)
+    set(p, hit, ok, dt, o) {
+      if (o?.giro != null) dough.rotation.y += (o.giro - dough.rotation.y) * Math.min(1, dt * 10);
       const key = Math.round(p * 40); if (key !== last) { last = key; const rough = 1 - p;
         for (let i = 0; i < P.count; i++) { v.set(base[i * 3], base[i * 3 + 1], base[i * 3 + 2]); const n = Math.sin(v.x * 50 + 1) * Math.sin(v.y * 47 + 2) * Math.sin(v.z * 53 + 3) + 0.6 * Math.sin(v.x * 110) * Math.sin(v.z * 97); v.multiplyScalar(1 + n * 0.12 * rough); P.setXYZ(i, v.x, v.y, v.z); }
         P.needsUpdate = true; dg.computeVertexNormals(); }
@@ -451,11 +473,15 @@ function hoopsScene(S) {
   let W = null; const WP = V(-0.36, 0, -0.38), F = V(-WP.x, 0, -WP.z).normalize(), RT = V(-F.z, 0, F.x);
   const ready = worker(S, 'pastor', { height: 1.7 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.copy(WP); W.obj.rotation.y = Math.atan2(F.x, F.z); } });
   let prev = 9; const top = V(0, 0, 0), dp = V(0, 0, 0), hh = V(0, 0, 0), d = V(0, 0, 0), Y = V(0, 1, 0);
+  // (la inclinación del aro: sobre el eje que va hacia quien mira, para que se vea qué lado queda alto)
+  const flat = new THREE.Quaternion().setFromAxisAngle(V(1, 0, 0), Math.PI / 2), qt = new THREE.Quaternion(), TA = V(0.5, 0, 1).normalize();
   return {
     ready, frame: { box: [[-0.72, 0, -2.0], [0.3, 1.35, -1.25]], dir: [0.5, 0.45, 1] },
-    set(p, hit, ok) {
+    punto: () => g.localToWorld(V(0, H + 0.2, 0)),
+    set(p, hit, ok, dt, o) {
       // los aros empiezan flojos (más arriba de la panza) y bajan a su sitio
-      goal.forEach((gy, i) => { const start = i < 2 ? H * 0.42 : H * 0.62, y = start + (gy - start) * Math.min(1, p * (i < 2 ? 1 : 1.25)), r = radAt(y) + 0.008; hoops[i].position.y = y; hoops[i].scale.set(r, r, 1); });
+      goal.forEach((gy, i) => { const start = i < 2 ? H * 0.42 : H * 0.62, y = start + (gy - start) * Math.min(1, p * (i < 2 ? 1 : 1.25)), r = radAt(y) + 0.008; hoops[i].position.y = y; hoops[i].scale.set(r, r, 1);
+        hoops[i].quaternion.copy(qt.setFromAxisAngle(TA, i >= 2 ? (o?.tilt || 0) : 0)).multiply(flat); });
       // la tajadera apoyada en el aro de arriba, del lado del tonelero, algo inclinada hacia él
       const ty = hoops[3].position.y, r = radAt(ty) + 0.012; dp.copy(F).multiplyScalar(-r).setY(ty);
       drv.position.copy(dp); drv.quaternion.setFromUnitVectors(Y, V(0, 1, 0).addScaledVector(F, -0.3).normalize());
@@ -491,18 +517,20 @@ function quenchScene(S) {
   const ready = worker(S, 'pastor', { height: 1.72 }).then(w => { W = w; if (W) { g.add(W.obj); W.obj.position.set(0.05, 0, -0.86); } });
   return {
     ready, frame: { box: [[-0.55, 0.15, -2.45], [0.55, 1.4, -1.2]], dir: [0.3, 0.45, 1] },
-    set(p, hit, ok) {
-      const dip = ok && hit < 0.9 ? Math.sin(Math.min(1, hit / 0.9) * Math.PI) : 0;
-      shoe.position.set(0, 0.86 - dip * 0.3, 0.06); shoe.rotation.set(0.12 + dip * 0.2, 0.2, 0);
+    punto: () => g.localToWorld(V(0, 0.62, 0.06)),
+    set(p, hit, ok, dt, o) {
+      const dip = o ? o.dip : ok && hit < 0.9 ? Math.sin(Math.min(1, hit / 0.9) * Math.PI) : 0, sw = o?.swirl || 0;
+      shoe.position.set(Math.cos(sw) * 0.08 * dip, 0.86 - dip * 0.3, 0.06 + Math.sin(sw) * 0.05 * dip); shoe.rotation.set(0.12 + dip * 0.2, 0.2 + sw * 0.15, 0);
       // las tenazas muerden un talón y sus mangos van hacia las manos del herrero
       shoe.updateMatrixWorld(true); g.worldToLocal(shoe.localToWorld(heel.copy(curve.getPoint(1))));
       td.set(0, 0.28, -1).normalize(); TG.position.copy(heel); TG.quaternion.setFromUnitVectors(X, td);
       hand.copy(heel).addScaledVector(td, 0.58);
       if (W) W.pose({ crouch: 0.02 + dip * 0.08, bend: 0.2 + dip * 0.25, nod: 0.15, hands: [g.localToWorld(hand.clone().add(V(0.035, 0, 0.04))), g.localToWorld(hand.clone().add(V(-0.035, 0.01, -0.02)))] });
       const h = 0.95 - p * 0.9; heatColor(h, col); ironM.emissive.copy(col); ironM.emissiveIntensity = THREE.MathUtils.smoothstep(h, 0.3, 0.8) * 1.3; ironM.color.copy(col).multiplyScalar(0.3);
-      for (let i = 0; i < WP.count; i++) { const x = WP.getX(i), z = WP.getZ(i), d = Math.hypot(x, z); WP.setY(i, Math.sin(d * 40 - S.t * 8) * 0.004 * Math.exp(-d * 4) * (dip > 0.1 ? 3 : 0.4)); }
+      const stir = o ? Math.min(2, o.stir || 0) : 1;
+      for (let i = 0; i < WP.count; i++) { const x = WP.getX(i), z = WP.getZ(i), d = Math.hypot(x, z); WP.setY(i, Math.sin(d * 40 - S.t * 8) * 0.004 * Math.exp(-d * 4) * (dip > 0.1 ? 1.5 + 1.5 * stir : 0.4)); }
       WP.needsUpdate = true; waterG.computeVertexNormals();
-      if (dip > 0.6 && Math.random() < 0.5) steam.emit([g.position.x + (Math.random() - 0.5) * 0.2, 0.65, g.position.z], 2, { size: 0.07, life: 1.4, spread: 0.2 });
+      if (dip > 0.6 && Math.random() < 0.5 * Math.min(1, stir) * (1 - p * 0.7)) steam.emit([g.position.x + (Math.random() - 0.5) * 0.2, 0.65, g.position.z], 2, { size: 0.07, life: 1.4, spread: 0.2 });
     },
   };
 }
@@ -541,31 +569,41 @@ function doveScene(S, net) {
     // cada ala en su bisagra (gira sobre el eje del cuerpo); la forma del ala, tumbada
     const wl = new THREE.Group(), wr = new THREE.Group(); wl.position.set(0.03, 0.02, 0.02); wr.position.set(-0.03, 0.02, 0.02); wr.scale.x = -1;
     for (const w of [wl, wr]) { const m = new THREE.Mesh(wingG, wingM); m.rotation.x = -Math.PI / 2; w.add(m); } b.add(wl, wr);
-    b.scale.setScalar(1.7); S.add(b); return { b, wl, wr, ph: Math.random() * 6, off: i / 18, lane: (Math.random() - 0.5) * 2, h: Math.random() };
+    b.scale.setScalar(2.2); S.add(b); return { b, wl, wr, ph: Math.random() * 6, off: i / 18 * 0.16, lane: (Math.random() - 0.5) * 2, h: Math.random() };
   });
   const paleta = S.mesh(rbox(0.36, 0.025, 0.14, 0.012), S.mat('#f4f1ea', { roughness: 0.6 }));
   // el paletero en lo alto de la torre: lanza la paleta con el brazo por encima de la cabeza
   let W = null;
   const ready = worker(S, 'pastor', { height: 1.7 }).then(w => { W = w; if (W) { tower.add(W.obj); W.obj.position.set(0.1, 3.34, 0.05); W.obj.rotation.y = -Math.PI / 2 - 0.25; } });
-  const rh = V(0, 0, 0), lh = V(0, 0, 0);
+  const rh = V(0, 0, 0), lh = V(0, 0, 0), from = V(3.5, 4.3, -1.5), mid = V(0, 0, 0);
   return {
     ready, frame: { box: [[-2.95, 0.1, -3.0], [2.95, 5.6, -1.6]], dir: [0, 0.1, 1], fov: 44 },
-    set(p, hit, ok, dt) {
+    // el centro del bando (las que vuelan), la mano del paletero, el plano por el que vuela el bando y el ancho de las redes
+    bando() { mid.set(0, 0, 0); let n = 0; for (const B of birds) if (B.libre) { mid.add(B.b.position); n++; } return n ? mid.clone().divideScalar(n) : V(0, 4, NZ + 0.9); },
+    torre: () => from.clone(), planoZ: NZ + 0.9, redX: 2.6,
+    set(p, hit, ok, dt, o) {
       const caught = net ? Math.floor(p * 10) : 0;
       birds.forEach((B, i) => {
         B.ph += dt * 14; const flap = Math.sin(B.ph) * 0.9;
+        B.libre = !(net && i < caught);
         if (net && i < caught) {   // enredadas en la red: quietas y caídas hacia el fondo de la bolsa
           const k = i % 3; B.b.position.set(-1.9 + k * 1.9 + ((i * 37) % 10 / 10 - 0.5) * 1.2, 0.5 + (i % 4) * 0.25, NZ + 0.12); B.b.rotation.set(0.9, 0.3 * (i % 2 ? 1 : -1), 0.4); B.wl.rotation.z = 0.7; B.wr.rotation.z = 0.7; return;
         }
         B.wl.rotation.z = flap; B.wr.rotation.z = flap;
         // el bando cruza el collado; con cada paletazo bueno baja más (en la segunda parte, rozando las redes)
-        const u = (S.t * 0.1 + B.off) % 1, x = -7 + u * 14, low = net ? 1 : p, y = 6.2 + B.lane * 0.5 + B.h * 0.4 - low * 4.0 + Math.sin(S.t * 1.3 + i) * 0.12;
+        const u = o?.fase != null ? o.fase + B.off - 0.08 : (S.t * 0.1 + B.off) % 1, x = -7 + u * 14, low = net ? 1 : p, y = (net || !o ? 6.2 : 4.5) + B.lane * 0.5 + B.h * 0.4 - low * (net || !o ? 4.0 : 2.6) + (o?.alto || 0) * 3.0 + Math.sin(S.t * 1.3 + i) * 0.12;
         B.b.position.set(x, Math.max(1.0, y), NZ + 0.9 + B.lane * 0.7); B.b.rotation.set(0, Math.PI / 2, Math.sin(S.t * 2 + i) * 0.15);
       });
-      nets.forEach(n => { n.position.y = net ? n.userData.top - Math.min(1, p * 1.2) * 0.35 : n.userData.top; });
-      // la paleta blanca vuela desde la torre por encima del bando (las palomas la toman por un halcón y bajan)
-      const k = !net && hit < 1.2 ? hit / 1.2 : 1; paleta.visible = k < 1;
-      paleta.position.set(3.6 - k * 5.5, 3.8 + Math.sin(k * Math.PI) * 2.2, -1.6 + k * 0.4); paleta.rotation.set(k * 14, k * 9, 0);
+      nets.forEach(n => { n.position.y = (net ? n.userData.top - Math.min(1, p * 1.2) * 0.35 : n.userData.top) - (o?.cae || 0) * 1.4; });
+      // la paleta blanca vuela desde la torre por encima del bando (las palomas la toman por un halcón y bajan); con
+      // o.aim, adonde la ha lanzado el dedo
+      if (o?.aim) {
+        const k = Math.min(1, o.tiro / 0.6); paleta.visible = !net && o.tiro < 0.9;
+        paleta.position.lerpVectors(from, o.aim, k); paleta.position.y += Math.sin(k * Math.PI) * 1.2; paleta.rotation.set(k * 14, k * 9, 0);
+      } else {
+        const k = !net && hit < 1.2 ? hit / 1.2 : 1; paleta.visible = k < 1;
+        paleta.position.set(3.6 - k * 5.5, 3.8 + Math.sin(k * Math.PI) * 2.2, -1.6 + k * 0.4); paleta.rotation.set(k * 14, k * 9, 0);
+      }
       if (W) {   // el brazo: atrás, arriba al lanzar y vuelve
         const th = !net && hit < 0.6 ? Math.sin(hit / 0.6 * Math.PI) : 0;
         tower.localToWorld(rh.set(0.1 - 0.15 * th, 4.25 + 0.25 * th, 0.2 - 0.1 * th)); tower.localToWorld(lh.set(0.0, 4.0, -0.15));
@@ -602,6 +640,7 @@ function liftScene(S) {
   const cur = { pos: V(0, 0, 0) }, L = V(0, 0, 0), R = V(0, 0, 0), elL = V(0, 0, 0), elR = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.7, 0, -0.5], [0.7, 1.95, 0.45]], dir: [0.35, 0.18, 1] },
+    piedra: () => stone.position.clone(),
     set(p, hit) {
       const KEYS = keys();
       let i = 0; while (i < KEYS.length - 2 && p > KEYS[i + 1].p) i++;
@@ -651,10 +690,14 @@ function moundScene(S) {
   let prev = 9; const blade = V(0, 0, 0), h1 = V(0, 0, 0), h2 = V(0, 0, 0), ax = V(0, 0, 0), side = V(0, 0, 0), fwd = V(0, 0, 0);
   return {
     ready, frame: { box: [[-1.2, 0, -1.9], [1.75, 1.35, 0.5]], dir: [0.3, 0.38, 1] },
-    set(p, hit) {
-      const open = Math.ceil((1 - p) * holes.length - 1e-6), target = holes[Math.max(0, Math.min(holes.length - 1, holes.length - open))];
-      holes.forEach((h, i) => { const on = i >= holes.length - open; h.glow.visible = on; h.patch.visible = !on; if (on) { h.glow.scale.setScalar(0.9 + Math.sin(S.t * 9 + i) * 0.1); h.glow.scale.y *= 0.6; } });
-      if (Math.random() < 0.25) { const h = holes.filter(h => h.glow.visible)[Math.random() * open | 0]; smoke.emit(h ? [h.hp.x, h.hp.y + 0.05, h.hp.z] : [MC.x, 0.85, MC.z], 1, { size: 0.1, life: 2, spread: 0.06 }); }
+    nFugas: holes.length, fuga: (i) => holes[i].hp.clone(),
+    set(p, hit, ok, dt, o) {
+      const open = o?.open ? o.open.filter(Boolean).length : Math.ceil((1 - p) * holes.length - 1e-6);
+      const target = holes[o?.open ? (o.target ?? 0) : Math.max(0, Math.min(holes.length - 1, holes.length - open))];
+      holes.forEach((h, i) => { const st = o?.open ? o.open[i] : i >= holes.length - open ? 1 : 0, on = st > 0; h.glow.visible = on; h.patch.visible = !on;
+        // (una llama: más grande y viva)
+        if (on) { h.glow.scale.setScalar((st === 2 ? 1.7 : 0.9) + Math.sin(S.t * (st === 2 ? 17 : 9) + i) * (st === 2 ? 0.25 : 0.1)); h.glow.scale.y *= st === 2 ? 1.1 : 0.6; } });
+      if (Math.random() < 0.25 + open * 0.06) { const L = holes.filter(h => h.glow.visible), h = L[Math.random() * L.length | 0]; smoke.emit(h ? [h.hp.x, h.hp.y + 0.05, h.hp.z] : [MC.x, 0.85, MC.z], 1, { size: 0.1, life: 2, spread: 0.06 }); }
       if (Math.random() < 0.12) smoke.emit([MC.x, 0.88, MC.z], 1, { size: 0.14, life: 2.6, spread: 0.08 });
       // la palada: la hoja baja a coger tierra junto a los pies y sube en arco hasta la fuga
       fwd.set(MC.x - WP.x, 0, MC.z - WP.z).normalize(); side.set(fwd.z, 0, -fwd.x);
@@ -688,6 +731,7 @@ function anvilScene(S) {
   let prev = 9; const hh = V(0, 0, 0), at = V(0, 0, 0), d = V(0, 0, 0), lh = V(0, 0, 0);
   return {
     ready, frame: { box: [[-0.42, 0, -2.1], [0.42, 1.35, -1.15]], dir: [0.55, 0.5, 1] },
+    punto: () => V(piece.position.x - 0.02, FY + 0.03, -1.4),
     set(p, hit, ok) {
       const k0 = Math.round(p * 20) / 20; if (k0 !== lastK) { lastK = k0; if (pm) { piece.remove(pm); pm.geometry.dispose(); } const c = shoeCurve(k0); pm = new THREE.Mesh(new THREE.TubeGeometry(c, 40, 0.011, 10), ironM); piece.add(pm); TG.position.copy(c.getPoint(1)); }
       const th = swingAngle(hit, -1.2, 0, S.t), k = THREE.MathUtils.clamp((th + 1.2) / 1.2, 0, 1);
@@ -714,7 +758,10 @@ function soleScene(S) {
   S.mesh(lathe([[0.001, 0], [0.0016, 0.004], [0.0018, 0.06], [0.0024, 0.072], [0.0016, 0.08], [0.001, 0.081]], 10), S.mat('#dfe3e8', { metalness: 0.9, roughness: 0.2 }), 0, -0.012, 0, needle);
   let thread = null, lastN = -1; S.own({ dispose: () => thread?.geometry.dispose() });
   const base = V(0, 0, 0), dir = V(0, 0, 0);
-  return { frame: { box: sole.mesh, dir: [0.12, 1.2, 0.7] }, set(p, hit) {
+  return { frame: { box: sole.mesh, dir: [0.12, 1.2, 0.7] },
+  // (la puntada siguiente)
+  punto: () => { root.updateMatrixWorld(true); return root.localToWorld(pts[Math.max(0, Math.min(N - 1, lastN))].p.clone()); },
+  set(p, hit) {
     const n = Math.round(p * N); done.forEach((m, i) => { m.visible = i < n; });
     if (n !== lastN) { lastN = n; needle.visible = n < N;
       if (n < N) { const { p: q, out } = pts[n]; base.copy(q).addScaledVector(out, 0.007); base.y = sole.top + 0.006; dir.copy(q).sub(base).normalize();
@@ -726,75 +773,14 @@ function soleScene(S) {
   } };
 }
 
-// ------------------------------------------------------------------------------------------------ los juegos
-export const has3DArt = (art) => !!SCENES[art];
-// encuadre: [centro, radio, dirección, fov] o { box: [[mín], [máx]] o un objeto, dir, fov } (la caja entera en la zona libre)
-async function mount(S, art) {
+// ------------------------------------------------------------------------------------------------ montaje
+/** Las luces y el fondo de la escena de cada paso. */
+export const escenario = (art) => STAGE[STAGE_OF[art] || 'shop'];
+/** Monta la escena de un paso y la encuadra. Encuadre: [centro, radio, dirección, fov] o { box: [[mín], [máx]] o un
+ *  objeto, dir, fov } (la caja entera en la zona libre). */
+export async function montar(S, art) {
   const sc = SCENES[art](S); await sc.ready; const F = sc.frame;
   if (Array.isArray(F)) S.frame(...F);
   else { S.scene.updateMatrixWorld(true); const b = F.box.isObject3D ? new THREE.Box3().setFromObject(F.box) : new THREE.Box3(V(...F.box[0]), V(...F.box[1])); S.frameBox(b, F.dir, F.fov || 40); }
   return sc;
-}
-
-/** Barra de precisión en 3D: golpe cuando la marca pasa por la zona; el trabajo avanza con cada golpe bueno. */
-export function timing3d(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18, speed = 0.7, need = 3, verb = 'Golpear', art }) {
-  return play3d(ui, { title, hint, icon, buttons: `<button class="btn primary big" data-go>${verb}</button>`,
-    extra: `<div class="m3-bar"><div class="tbar"><div class="zone"></div><div class="cursor"></div></div><div class="pips">${Array.from({ length: rounds }, () => '<i></i>').join('')}</div></div>`,
-    stage: STAGE[STAGE_OF[art] || 'shop'] }, async (S, H, end, isOver) => {
-    const sc = await mount(S, art);
-    const zoneEl = H.o.querySelector('.zone'), cur = H.o.querySelector('.cursor'), pips = H.o.querySelectorAll('.pips i');
-    let zc = 0.5, t = 0, round = 0, hits = 0, locked = 0, sp = speed, hitT = 9, ok = true;
-    const place = () => { zc = 0.15 + Math.random() * 0.7; zoneEl.style.left = ((zc - zone / 2) * 100) + '%'; zoneEl.style.width = (zone * 100) + '%'; };
-    place();
-    const pos = () => 0.5 - 0.5 * Math.cos(t * Math.PI * 2 * sp);
-    const hit = () => {
-      if (isOver() || locked > 0) return;
-      const p = pos(), good = Math.abs(p - zc) <= zone / 2 + 0.01;
-      pips[round].className = good ? 'ok' : 'ko';
-      if (good) { hits++; H.fb.textContent = Math.abs(p - zc) < zone * 0.2 ? '¡Perfecto!' : '¡Bien!'; ui.sound?.tone?.(660 + hits * 60, 0.12, 'square', 0.12, ui.sound.sfx); ui.sound?.noiseBurst?.(0.05, 3000, 1.5, 0.3, ui.sound.sfx); }
-      else { H.fb.textContent = p < zc ? '¡Demasiado pronto!' : '¡Demasiado tarde!'; ui.sound?.ui?.('error'); }
-      ui.onMiniHit?.(good); hitT = 0; ok = good; round++; locked = 0.55;
-      if (round >= rounds) { const win = hits >= need; end({ win, hits }, win ? `¡Lo has conseguido! ${hits}/${rounds}` : `${hits}/${rounds}: necesitas ${need}. ¡Otra vez!`, 1500); }
-    };
-    H.o.querySelector('[data-go]').addEventListener('pointerdown', e => { e.preventDefault(); hit(); });
-    H.cap.addEventListener('pointerdown', hit);
-    H.keys((e) => { if ([' ', 'e', 'enter'].includes(e.key.toLowerCase())) { e.preventDefault(); hit(); } });
-    S.every((dt) => {
-      hitT += dt;
-      if (locked > 0 && (locked -= dt) <= 0 && round < rounds) { sp *= 1.1; place(); }
-      if (locked <= 0 && !isOver()) t += dt;
-      cur.style.left = (pos() * 100) + '%';
-      const D = H.o.debug;   // (laboratorio) forzar el avance y el golpe para ver la escena
-      sc.set(D ? D.p : Math.min(1, hits / need), D ? D.hit : hitT, ok, dt);
-      H.prog(hits / need);
-    });
-    H.clock.textContent = '';
-    H.o.state = () => ({ pos: pos(), zc, zone, locked, hits, round });
-  });
-}
-
-/** Pulsar deprisa en 3D: cada pulsación empuja el trabajo (subir la piedra, amasar, tapar las fugas). */
-export function mash3d(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, verb = '¡Empuja!', art }) {
-  return play3d(ui, { title, hint, icon, buttons: `<button class="btn primary big" data-go>${verb}</button>`, stage: STAGE[STAGE_OF[art] || 'shop'] }, async (S, H, end, isOver) => {
-    const sc = await mount(S, art);
-    let n = 0, t = 0, started = false, hitT = 9;
-    const press = () => {
-      if (isOver()) return; started = true; n++; hitT = 0;
-      ui.sound?.tone?.(200 + n * 12, 0.05, 'triangle', 0.08, ui.sound.sfx); ui.onMiniHit?.(true);
-      H.fb.textContent = n < goal * 0.3 ? '¡Vamos!' : n < goal * 0.7 ? '¡Más fuerte!' : '¡Ya casi!';
-      if (n >= goal) end({ win: true, n }, '¡Hecho! ¡Qué fuerza!');
-    };
-    H.o.querySelector('[data-go]').addEventListener('pointerdown', e => { e.preventDefault(); press(); });
-    H.cap.addEventListener('pointerdown', press);
-    H.keys((e) => { if ([' ', 'e', 'enter'].includes(e.key.toLowerCase())) { e.preventDefault(); if (!e.repeat) press(); } });
-    H.fb.textContent = 'Pulsa muchas veces seguidas';
-    S.every((dt) => {
-      hitT += dt;
-      if (started && !isOver()) { t += dt; if (t >= seconds) end({ win: false, n }, '¡Casi! Prueba otra vez'); }
-      const D = H.o.debug;
-      H.time(seconds - t); sc.set(D ? D.p : Math.min(1, n / goal), D ? D.hit : hitT, true, dt); H.prog(n / goal);
-    });
-    H.time(seconds);
-    H.o.state = () => ({ n, goal });
-  });
 }

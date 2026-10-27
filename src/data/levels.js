@@ -45,7 +45,7 @@ export const LEVELS = [
     missions: [
       { type: 'visit' },
       { type: 'trade', kind: 'palomero', title: 'Los palomeros', host: H('Patxi, palomero', { shirt: '#f0ebe0', vest: '#3a4a3a', pants: '#3a3530', txapela: '#1d1d24', hair: '#bdb6aa', old: true }),
-        text: 'Los palomeros avisan desde lo alto cuando llega el bando de palomas y agitan paletas blancas. Pulsa en el momento justo para agitar la paleta.' },
+        text: 'Los palomeros avisan desde lo alto cuando llega el bando de palomas y agitan paletas blancas. Lanza la paleta con el dedo adonde va a pasar el bando.' },
       { type: 'herd', animal: 'sheep', n: 5, host: H('Maddi, pastora', { shirt: '#e8e0cc', vest: '#3a2a4a', skirt: '#3a3530', pants: '#3a3530', hair: '#6b3b1f', bun: true, staff: true }),
         text: 'Las ovejas latxas pastan en los montes. Llévalas al redil antes de que llegue la niebla.' },
       { type: 'quiz' },
@@ -122,9 +122,9 @@ export const LEVELS = [
     missions: [
       { type: 'visit' },
       { type: 'trade', kind: 'harrijasotzaile', title: 'Levantar la piedra', host: H('Iñaki, harrijasotzaile', { shirt: '#ffffff', vest: '#2b2630', pants: '#ffffff', sash: '#2b2630', hair: '#2a1a12', beard: '#2a1a12', build: 1.3 }),
-        text: 'Los harrijasotzaileak levantan piedras de cientos de kilos. ¡Pulsa muy rápido para subirla al hombro!' },
+        text: 'Los harrijasotzaileak levantan piedras de cientos de kilos. ¡Súbela con una mano y otra, y luego al hombro!' },
       { type: 'trade', kind: 'aizkolari', title: 'Corta el tronco', host: H('Maialen, aizkolari', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', hair: '#2a1a12', bun: true }),
-        text: 'Los aizkolaris cortan troncos con el hacha. Golpea cuando la marca esté en la zona verde.' },
+        text: 'Los aizkolaris cortan troncos con el hacha. Da tajos con el dedo, a un lado y a otro de la muesca.' },
       { type: 'quiz' },
     ] },
   { id: 'lekunberri', name: 'Lekunberri', comarca: 'larraun-leitzaldea', family: 'atlantic', relief: 'valley', size: 40,
@@ -374,7 +374,7 @@ export const LEVELS = [
     missions: [
       { type: 'visit' },
       { type: 'race', kind: 'camino', title: 'Los caminos se juntan', host: H('Peregrina', { shirt: '#3a8fd6', pants: '#3a3530', hair: '#c9772f', bun: true, staff: true }), text: 'Sigue las flechas amarillas hasta el puente.' },
-      { type: 'trade', kind: 'cantero', title: 'El cantero', host: H('Cantero', { shirt: '#c9b99a', apron: '#8a7a5e', pants: '#6b5a48', hair: '#bdb6aa', moustache: '#bdb6aa' }), text: 'Los canteros tallaban los sillares de los puentes. Golpea con el cincel en el momento justo.' },
+      { type: 'trade', kind: 'cantero', title: 'El cantero', host: H('Cantero', { shirt: '#c9b99a', apron: '#8a7a5e', pants: '#6b5a48', hair: '#bdb6aa', moustache: '#bdb6aa' }), text: 'Los canteros tallaban los sillares de los puentes. Sujeta el cincel con una mano y golpea con la otra.' },
       { type: 'harvest', crop: 'uva', n: 8, host: H('Viticultor', VITI), text: 'Los viñedos rodean el pueblo. Vendimia los racimos.' },
       { type: 'quiz' },
     ] },

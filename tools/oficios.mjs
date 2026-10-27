@@ -1,6 +1,7 @@
 // Jornales y minijuegos de los oficios: qué trabajos hay en cada pueblo y, en uno, se juega cada minijuego 3D simulando
 // las pulsaciones (con foto a mitad de partida) para comprobar que se puede ganar y que luego vuelve el pueblo.
-// Uso: node tools/oficios.mjs [pueblos] [carpeta]   (GAMES=forgeGame,timing3d:chop para probar solo esos)
+// Uso: node tools/oficios.mjs [pueblos] [carpeta]   (GAMES=forgeGame,oficio3d:chop para probar solo esos)
+// (los pasos de los talleres con gestos, uno a uno y con dedos y con teclas, en lab/oficios.html)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, towns = 'etxalar,olite,tudela,isaba-izaba', out = '/tmp/claude-0/oficios'] = process.argv; mkdirSync(out, { recursive: true });
@@ -16,11 +17,11 @@ for (const [ti, town] of list.entries()) {
   if (ti === 0) {
     // cada minijuego 3D (con el renderer del juego: el pueblo se pausa y vuelve): se lanza, se juega como lo haría una
     // persona leyendo su estado (state()) y se mira si se gana; al final, el pueblo tiene que volver a verse
-    const G3 = process.env.GAMES ? process.env.GAMES.split(',') : ['milkGame', 'forgeGame', 'stitchGame', 'shearGame', 'pickGame', 'timing3d:chop', 'mash3d:lift'];
+    const G3 = process.env.GAMES ? process.env.GAMES.split(',') : ['milkGame', 'forgeGame', 'stitchGame', 'shearGame', 'pickGame', 'oficio3d:chop', 'oficio3d:lift'];
     for (const spec of G3) {
       const [game, art] = spec.split(':');
       await p.evaluate(([game, art]) => { (async () => { const G = window.__game, M = await import('/src/ui/mini3d/index.js');
-        window.__res ||= {}; window.__res[game + (art || '')] = await M[game](G.ui, art ? { art, title: 'Prueba', hint: 'Prueba', rounds: 4, need: 3, zone: 0.22, speed: 0.6, seconds: 7, goal: 28 } : {}); })(); }, [game, art]);
+        window.__res ||= {}; window.__res[game + (art || '')] = await M[game](G.ui, art ? { art, title: 'Prueba', hint: 'Prueba' } : {}); })(); }, [game, art]);
       const key = game + (art || '');
       await p.waitForSelector('.mg3d:not(.loading):not(.out)', { timeout: 120000 });
       await p.waitForTimeout(600);
@@ -34,8 +35,9 @@ for (const [ti, town] of list.entries()) {
       if (game === 'stitchGame') for (let i = 0; !(await fin()); i++) { const s = await st(); if (!s?.next) break; await touch(s.next.x, s.next.y); await p.waitForTimeout(150); if (i === 6) await snap(); }
       if (game === 'shearGame') for (let k = 0; !(await fin()); k++) { const s = await st(); const q = s?.left?.[0]; if (!q) break; await touch(q.x, q.y); await touch(q.x + 6, q.y + 4, 'pointermove'); await touch(q.x + 6, q.y + 4, 'pointerup'); await p.waitForTimeout(60); if (k === 20) await snap(); }
       if (game === 'pickGame') for (let k = 0; !(await fin()); k++) { const s = await st(); const it = s?.items.find(i => i.ripe); if (it) await touch(it.x, it.y); await p.waitForTimeout(150); if (k === 5) await snap(); }
-      if (game === 'timing3d') for (let k = 0; !(await fin()); k++) { const s = await st(); if (s && s.locked <= 0 && Math.abs(s.pos - s.zc) < s.zone * 0.3) { await tap('[data-go]'); if (s.hits === 1) await snap(); } await p.waitForTimeout(25); }
-      if (game === 'mash3d') for (let k = 0; !(await fin()); k++) { await tap('[data-go]'); await p.waitForTimeout(60); if (k === 14) await snap(); }
+      // (con las teclas, como en el ordenador o con el mando: el hachazo hacia su lado; la piedra, izquierda y derecha y arriba)
+      if (game === 'oficio3d' && art === 'chop') for (let k = 0; !(await fin()); k++) { const s = await st(); if (s && s.espera <= 0) { await p.keyboard.press(s.lado > 0 ? 'ArrowRight' : 'ArrowLeft'); if (k === 3) await snap(); } await p.waitForTimeout(200); }
+      if (game === 'oficio3d' && art === 'lift') for (let k = 0; !(await fin()); k++) { const s = await st(); await p.keyboard.press(s?.fase ? 'ArrowUp' : k % 2 ? 'ArrowRight' : 'ArrowLeft'); await p.waitForTimeout(80); if (k === 8) await snap(); }
       const r = await p.waitForFunction((k) => window.__res?.[k], key, { timeout: 120000 }).then(h => h.jsonValue()).catch(() => 'sin terminar');
       // (el cierre tiene una pequeña animación: en este navegador de pruebas, sin tarjeta gráfica, puede tardar)
       await p.waitForFunction(() => !window.__game.altScene && !document.querySelector('.mg3d'), null, { timeout: 8000 }).catch(() => {});

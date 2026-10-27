@@ -87,10 +87,10 @@ const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
 const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'], pigs: ['cerdos', 'pig'] };
 const TRADE = {
-  herrero: { art: 'anvil', title: 'El herrero', game: 'timing', verb: 'Golpear', icon: 'anvil', hint: 'Golpea el hierro cuando la marca esté en la zona roja.', act: 'hammer', look: { shirt: '#5a4a3a', apron: '#3a2a1a', pants: '#2b2630', hammer: true } },
+  herrero: { art: 'anvil', title: 'El herrero', game: 'timing', verb: 'Golpear', icon: 'anvil', hint: 'Golpea el hierro al rojo para darle forma.', act: 'hammer', look: { shirt: '#5a4a3a', apron: '#3a2a1a', pants: '#2b2630', hammer: true } },
   palomero: { art: 'dove', title: 'Los palomeros', game: 'timing', verb: 'Agitar la paleta', icon: 'net', hint: 'Agita la paleta blanca justo cuando pasa el bando de palomas.', act: 'wave' },
-  harrijasotzaile: { art: 'lift', title: 'Levantar la piedra', game: 'mash', verb: '¡Arriba!', icon: 'stone', hint: 'Pulsa muy rápido para subir la piedra al hombro.', act: 'lift' },
-  aizkolari: { art: 'chop', title: 'Aizkolari', game: 'timing', verb: 'Hachazo', icon: 'axe', hint: 'Da cada hachazo en el momento justo para cortar el tronco.', act: 'chop' },
+  harrijasotzaile: { art: 'lift', title: 'Levantar la piedra', game: 'mash', verb: '¡Arriba!', icon: 'stone', hint: 'Sube la piedra con una mano y otra, y luego al hombro.', act: 'lift' },
+  aizkolari: { art: 'chop', title: 'Aizkolari', game: 'timing', verb: 'Hachazo', icon: 'axe', hint: 'Corta el tronco a hachazos, a un lado y a otro.', act: 'chop' },
   cantero: { art: 'stone', title: 'El cantero', game: 'timing', verb: 'Tallar', icon: 'hammer', hint: 'Talla la piedra con golpes precisos.', act: 'hammer' },
   alpargatero: { art: 'sole', title: 'Alpargatas de esparto', game: 'timing', verb: 'Coser', icon: 'espadrille', hint: 'Cose la suela de esparto con puntadas precisas.', act: 'pick' },
 };

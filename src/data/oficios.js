@@ -1,8 +1,8 @@
 // Oficios de antes: cómo se hacían las cosas. Cada oficio tiene quién lo hacía, las herramientas (castellano y
 // euskera), los pasos del trabajo (cada paso se explica y luego se hace con una acción corta) y el «antes y ahora».
-// Juegos de cada paso: timing (golpe en el momento justo), mash (pulsar deprisa) —los dos con un dibujo (art) del
-// trabajo que avanza con cada golpe bueno—, order (ordenar), choice (elegir) y
-// los que imitan la tarea de verdad: forge (fuelle y martillo en la fragua), stitch (coser la suela) y shear (esquilar).
+// Juegos de cada paso: timing y mash —con un dibujo (art) del trabajo, que se juega con el gesto de su oficio
+// (mini3d/gestos.js: el tajo del hacha, el puntero y la maceta, la pala y el tirón…)—, order (ordenar), choice (elegir)
+// y los que imitan la tarea de verdad: forge (fuelle y martillo en la fragua), stitch (coser la suela) y shear (esquilar).
 // Textos para niños de 7 a 11 años, con datos generales y contrastados.
 
 export const OFICIOS = {

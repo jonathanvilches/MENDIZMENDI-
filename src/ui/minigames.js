@@ -55,10 +55,11 @@ function infoCard_(ui, { icon = 'church', kicker = '', title, text, extra = '', 
 
 // ---------- Barra de precisión (herrero, palomero, aizkolari, cantero…) ----------
 // rounds: nº de golpes; zone: anchura de la zona buena (0..1); speed: vueltas por segundo
-// con «art» (el paso de un oficio) y el escenario 3D del juego, se juega en su diorama 3D; si algo falla, la barra sola
+// con «art» (el paso de un oficio) y el escenario 3D del juego, se juega en su diorama 3D con el gesto de su oficio
+// (mini3d/gestos.js); la barra queda solo por si la escena 3D no se puede montar
 export async function timingGame(ui, opts) {
   if (window.__autoWin) { window.__autoSeen?.(opts); return { win: true, hits: 5, errors: 0 }; }
-  if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.timing3d(ui, opts); if (!r.error) return r; } }
+  if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.oficio3d(ui, opts); if (!r.error) return r; } }
   return timingGame_(ui, opts);
 }
 function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18, speed = 0.7, need = 3, verb = 'Golpear' }) {
@@ -96,7 +97,7 @@ function timingGame_(ui, { title, hint, icon = 'hammer', rounds = 5, zone = 0.18
 // ---------- Pulsar rápido (harrijasotzaile, subir la piedra; remar la almadía…) ----------
 export async function mashGame(ui, opts) {
   if (window.__autoWin) { window.__autoSeen?.(opts); return { win: true, hits: 5, errors: 0 }; }
-  if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.mash3d(ui, opts); if (!r.error) return r; } }
+  if (opts.art && ui.stage3d) { const M = await mini3d().catch(() => null); if (M?.has3DArt(opts.art)) { const r = await M.oficio3d(ui, opts); if (!r.error) return r; } }
   return mashGame_(ui, opts);
 }
 function mashGame_(ui, { title, hint, icon = 'stone', seconds = 6, goal = 30, verb = '¡Empuja!' }) {
