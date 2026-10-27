@@ -467,6 +467,9 @@ export class Hub {
   play(id) { const l = levelById(id); if (!l) return; if (isDidactico()) return this.go('pueblo', id);   // (en el modo didáctico no se entra al juego: su página)
     if (this.entrando) return;
     const p = profile(); p.last = id; saveProfile(); this.sound?.ui('open');
+    // (jugando, si hay una sección o el menú abiertos encima del mapa, se cierran antes: debajo el mapa está quieto y el
+    // vuelo no avanzaría nunca; así se ve cómo la ventana se va y la cámara vuela hasta el pueblo)
+    if (this.root.classList.contains('juego') && (this.screen !== 'home' || this.root.classList.contains('menu-on'))) this.go('home', undefined, true);
     // (desde el mapa del inicio, primero el vuelo hasta el pueblo; luego, la partida)
     const vuelo = entraMapa(id); if (!vuelo) return this.onPlay?.(l);
     this.entrando = true; vuelo.then(() => { this.entrando = false; this.onPlay?.(l, { desdeMapa: true }); }); }

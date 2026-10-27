@@ -236,3 +236,36 @@
   #hub.juego .hub-main > :is(.title, h1.title), #hub.juego .hub-main .ar-head > :is(h1, .kicker) { display: none; }
   #hub.juego .hub-main .ar-head { margin-top: 0; }
 }
+
+/* ---------- movimiento: todo entra y sale con la misma curva suave (rápida al empezar, sin rebotes bruscos) ----------
+   el menú: sus iconos aparecen uno tras otro; las ventanas: el nombre de arriba se asienta y las tarjetas suben en
+   cascada; al pasar por encima, la tarjeta se levanta un poco y su imagen se acerca; al pulsar, todo cede un poco */
+#hub.juego { --ease: cubic-bezier(.2, .9, .3, 1); }
+@keyframes hubSube { from { opacity: 0; transform: translateY(10px); } }
+@keyframes hubAsienta { from { opacity: 0; letter-spacing: .3em; } }
+#hub.juego.menu-on .hub-nav button { animation: hubSube .38s var(--ease) both; }
+#hub.juego.menu-on .hub-nav button:nth-child(2) { animation-delay: .02s; } #hub.juego.menu-on .hub-nav button:nth-child(3) { animation-delay: .04s; }
+#hub.juego.menu-on .hub-nav button:nth-child(4) { animation-delay: .06s; } #hub.juego.menu-on .hub-nav button:nth-child(5) { animation-delay: .08s; }
+#hub.juego.menu-on .hub-nav button:nth-child(6) { animation-delay: .1s; } #hub.juego.menu-on .hub-nav button:nth-child(7) { animation-delay: .12s; }
+#hub.juego.menu-on .hub-nav button:nth-child(8) { animation-delay: .14s; } #hub.juego.menu-on .hub-nav button:nth-child(9) { animation-delay: .16s; }
+#hub.juego.menu-on .hub-nav button:nth-child(n+10) { animation-delay: .18s; }
+#hub.juego:not([data-screen="home"]) .hub-cab span { animation: hubAsienta .5s var(--ease) both; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > * { animation: hubSube .45s var(--ease) both; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(2) { animation-delay: .03s; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(3) { animation-delay: .06s; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(4) { animation-delay: .09s; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(5) { animation-delay: .12s; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(6) { animation-delay: .15s; }
+#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(n+7) { animation-delay: .18s; }
+/* (al pasar por encima: la tarjeta sube dos píxeles y su imagen se acerca; al pulsar, cede) */
+@media (hover: hover) {
+  #hub.juego :is(.tcard, .pcard, .fcard, .lam, .ar, .m3-chip, .m3-todas) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
+  #hub.juego :is(.tcard, .pcard, .fcard, .lam, .ar):hover { transform: translateY(-2px); }
+  #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic) img { transition: transform .5s var(--ease); }
+  #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic) img { transform: scale(1.04); }
+}
+#hub.juego :is(.hub-menu-btn, .hub-x, .hub-panel-x, .hub-nav button, .mm-go, .ft-go, .cb-b, .m3-b, .tcard, .fcard, .lam, .btn, .filters button):active { transform: scale(.96); transition: transform .08s; }
+/* (la etiqueta del pueblo y el rótulo de la comarca entran con un pequeño impulso) */
+#hub.juego .m3d .m3-ft.entra > * { animation: hubSube .32s var(--ease) both; }
+#hub.juego .m3d .m3-ft.entra > .ft-ms { animation-delay: .05s; } #hub.juego .m3d .m3-ft.entra > .ft-go { animation-delay: .1s; }
+@media (prefers-reduced-motion: reduce) { #hub.juego * { animation-duration: .01s !important; animation-delay: 0s !important; transition-duration: .01s !important; } }
