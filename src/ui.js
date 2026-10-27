@@ -165,21 +165,49 @@ export class UI {
     this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), clock: $('#clock .ct', h), clockI: $('#clock .ci', h), cdist: $('#cdist', h) };
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
+    // la brújula se recoloca al cambiar la pantalla, el texto de la misión o los botones (la mochila, los prismáticos)
+    this._fitTopR = () => this.queueFitTop(); addEventListener('resize', this._fitTopR);
+    // (también la propia brújula: al salir de una escena con el panel oculto, aparece y se coloca; colocarla no cambia su
+    // tamaño final, así que no se repite)
+    this.roTop = typeof ResizeObserver === 'function' ? new ResizeObserver(this._fitTopR) : null; this.roTop?.observe($('#topright .rbtns', h)); this.roTop?.observe($('#compass', h));
+    this.queueFitTop();
+  }
+  queueFitTop() { clearTimeout(this._fitTopT); this._fitTopT = setTimeout(() => { this._fitTopT = 0; if (this.hud) this.fitTop(); }, 30); }
+  // El panel de arriba: la brújula, en el hueco libre entre la misión y los botones. En el móvil tumbado, con el hueco de
+  // la cámara a los lados, centrada en la pantalla pisaba las dos cosas; si el hueco es muy estrecho, la misión se
+  // estrecha un poco (su texto pasa a otra línea). En vertical (la misión, debajo de la brújula) se queda como está.
+  fitTop() {
+    const h = this.hud; if (!h) return;
+    const C = $('#compass', h), T = $('#tl', h), B = $('#topright .rbtns', h); if (!C || !T || !B) return;
+    C.style.left = ''; C.style.width = ''; T.style.maxWidth = '';
+    const cr = C.getBoundingClientRect(); if (!cr.width) return;
+    const top = cr.top, bot = cr.bottom + 22;   // (con la distancia que va debajo)
+    const band = (e) => { if (!e || !e.offsetParent) return null; const r = e.getBoundingClientRect(); return r.top < bot && r.bottom > top ? r : null; };
+    const txt = (e) => { if (!band(e) || !e.textContent.trim()) return 0; const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect().right; };
+    const left = () => { const ic = band($('#quest .ic', h)), rb = band($('#ribbons', h)), tn = $('#ribbons .tname', h), dots = $('#ribbons .dots', h);
+      return Math.max(T.getBoundingClientRect().left, ic ? ic.right : 0, txt($('#quest small', h)), txt($('#quest .qt', h)), rb ? Math.max(txt(tn), dots?.getBoundingClientRect().right || 0) : 0) + 12; };
+    const W = innerWidth, R = B.getBoundingClientRect().left - 12, MIN = 170;
+    let L = left();
+    if (R - L < MIN && band($('#quest', h))) { T.style.maxWidth = Math.max(140, R - MIN - 12 - T.getBoundingClientRect().left) + 'px'; L = left(); }
+    // (centrada en la pantalla si cabe; si no, del ancho del hueco y en medio de él)
+    if (W / 2 - cr.width / 2 >= L && W / 2 + cr.width / 2 <= R) return;
+    const w = Math.max(120, Math.min(cr.width, R - L)), cx = Math.min(Math.max(W / 2, L + w / 2), R - w / 2);
+    C.style.width = w + 'px'; C.style.left = cx + 'px';
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
-  destroyHUD() { this.ro?.disconnect(); this.ro = null; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
+  destroyHUD() { this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
   refreshDots() { if (!this.hud || this.game.kind !== 'town') return; for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; } }
   setQuest(q) {
     const b = $('#quest', this.hud), E = this.questEls;
-    if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; } return; }
-    if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; }
+    if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; this.queueFitTop(); } return; }
+    if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; this.queueFitTop(); }
     // (solo se toca lo que cambia: escribir el mismo texto en cada fotograma también obliga a redibujar la página. Lo
     // último escrito se guarda en el propio elemento (_t): en euskera, lo que se lee del elemento ya está traducido y no
     // coincidiría nunca con el texto en castellano, y se reescribía y volvía a latir en cada fotograma)
     if (this.lastQuestIcon !== q.icon) { E.qe.innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
-    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); }
-    if (E.small._t !== q.title) { E.small._t = q.title; E.small.textContent = q.title; }
+    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); this.queueFitTop(); }
+    if (E.small._t !== q.title) { E.small._t = q.title; E.small.textContent = q.title; this.queueFitTop(); }
     const pips = E.pips, key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
     if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
     const dt = q.dist != null ? (q.dist < 1000 ? `${Math.round(q.dist)} m` : '') : '';
@@ -220,7 +248,7 @@ export class UI {
   toast(text, icon = 'sparkle', ms = 2800) { this.note('toast', `${I(icon, 26)}<span>${esc(text)}</span>`, text, ms); }
   // Voz del narrador: frase en cursiva (pistas y momentos de misterio)
   whisper(text, ms = 4000) { this.note('whisper', `<span>${esc(text)}</span>`, text, ms); }
-  hudVisible(v) { if (this.hud) this.hud.style.display = v ? '' : 'none'; }
+  hudVisible(v) { if (this.hud) { this.hud.style.display = v ? '' : 'none'; if (v) this.queueFitTop(); } }
   setMG(html) { if (!this.hud) return; const m = $('#mg', this.hud); if (!html) m.classList.add('hidden'); else { m.innerHTML = html; m.classList.remove('hidden'); } }
   setCinematic(on, text) { if (!this.cine) return; this.cine.classList.toggle('on', on); this.subtitle.textContent = text || ''; }
   // (msg: en vez del negro, el fondo de los deportes con una pelota que bota y lo que se prepara, mientras se carga)
