@@ -165,10 +165,11 @@ if (AF) {
   mkdirSync(D, { recursive: true });
   for (const f of readdirSync('./src/assets/laminas/grande')) if (f.endsWith('.webp') && !existsSync(`${D}/${f}`)) symlinkSync(`../grande/${f}`, `${D}/${f}`);
   for (const f of readdirSync('./src/assets/laminas/web')) if (f.endsWith('-s.webp') && !existsSync(`${D}/${f}`)) symlinkSync(`../web/${f}`, `${D}/${f}`);
-  // (los personajes, las tradiciones y las leyendas en grande: la de 2560 de cada una y, si no la hay, la de 1536; de las
-  // leyendas, solo las de 2560: las demás se ven en grande con la de 768, que va dentro del código, y así el artefacto no
-  // pasa de sus 511 archivos). Sin la de Induráin: es una persona viva y no sale dibujada (src/ui/laminas.js)
-  for (const t of ['personajes', 'tradiciones', 'leyendas']) {
+  // (los personajes y las leyendas en grande: la de 2560 de cada uno y, si no la hay, la de 1536; de las leyendas, solo
+  // las de 2560: las demás se ven en grande con la de 768, que va dentro del código, y así el artefacto no pasa de sus 511
+  // archivos; las tradiciones, igual, con la de 768 dentro). Sin la de Induráin: es una persona viva y no sale dibujada
+  // (src/ui/laminas.js)
+  for (const t of ['personajes', 'leyendas']) {
     const A = `./src/assets/${t}/artefacto`; mkdirSync(A, { recursive: true });
     for (const g of t === 'leyendas' ? ['2560'] : ['2560', '1536']) for (const f of readdirSync(`./src/assets/${t}/${g}`)) if (f.endsWith('.webp') && f !== 'indurain.webp' && !existsSync(`${A}/${f}`)) symlinkSync(`../${g}/${f}`, `${A}/${f}`);
   }
@@ -179,16 +180,20 @@ const afAlias = (a) => !AF ? a : { ...a,
   '@leyendas-big': afDir('leyendas/artefacto'), '@cimas-big': afDir('cimas/2560'),
   '@escudos-big': afDir('escudos/heraldica/512'), '@escudos-casas-big': afDir('escudos/casas/none'), '@escudos-oficios-big': afDir('escudos/oficios/none'),
   'three/examples/jsm/libs/meshopt_decoder.module.js': fileURLToPath(new URL('./src/web/meshopt-sin.js', import.meta.url)),
-  '@icons3d-big': afDir('icons3d/none'), '@personajes': afDir('personajes/artefacto'), '@tradiciones': afDir('tradiciones/artefacto'),
+  '@icons3d-big': afDir('icons3d/none'), '@personajes': afDir('personajes/artefacto'),
+  // (las cimas y las tradiciones, a 768 y dentro del código: tools/artefacto-medias.mjs)
+  '@cimas': afDir('cimas/768'), '@tradiciones': afDir('tradiciones/768'),
   '@relieve-medio': afDir('relieve/none') };
 // (lo que va dentro del código en el artefacto: las imágenes pequeñas que se repiten mucho, y las fuentes)
-const AF_DENTRO = /[\\/]src[\\/]assets[\\/](sonidos|relieve[\\/]hd[\\/]full|icons3d[\\/]256|escudos[\\/](heraldica|equipos|casas|oficios)[\\/]512|laminas[\\/]web[\\/][^\\/]+-s\.webp|fauna[\\/]512|leyendas[\\/]768|cimas[\\/]1024|sellos[\\/]web|meshy[\\/]portraits|figuras[\\/]web|jugadores[\\/]web[\\/](busto[\\/]|duo-s[\\/]|[^\\/]+\.webp$)|pelotaris[\\/]web[\\/](azul|rojo))[\\/]?/;
+const AF_DENTRO = /[\\/]src[\\/]assets[\\/](sonidos|relieve[\\/]hd[\\/]full|icons3d[\\/]256|escudos[\\/](heraldica|equipos|casas|oficios)[\\/]512|laminas[\\/]web[\\/][^\\/]+-s\.webp|fauna[\\/]512|leyendas[\\/]768|cimas[\\/]768|tradiciones[\\/]768|sellos[\\/]web|meshy[\\/]portraits|figuras[\\/]web|jugadores[\\/]web[\\/](busto[\\/]|duo-s[\\/]|[^\\/]+\.webp$)|pelotaris[\\/]web[\\/](azul|rojo))[\\/]?/;
 const afInline = (file) => (/\.woff2$/.test(file) || AF_DENTRO.test(file) ? true : undefined);
 // (cada grupo de imágenes de dentro, en su propio archivo de código: ninguno pasa de los 16 MB que admite un artefacto)
 const AF_GRUPOS = [['img-laminas', /laminas[\\/]web[\\/]/], ['img-iconos', /icons3d[\\/]/],
   // (los escudos de casa, aparte y en dos: con los 192 no caben en un solo bloque)
   ['img-casas-1', /escudos[\\/]casas[\\/][^\\/]+[\\/][a-l]/], ['img-casas-2', /escudos[\\/]casas[\\/]/], ['img-escudos', /escudos[\\/]/], ['img-jugadores', /jugadores[\\/]/],
-  ['img-pelotaris', /pelotaris[\\/]/], ['img-varias', /(fauna|leyendas|cimas|sellos|portraits|figuras)[\\/]/], ['img-relieve', /relieve[\\/]hd[\\/]/],
+  ['img-pelotaris', /pelotaris[\\/]/],
+  // (las 120 cimas, en dos, como los escudos de casa; las tradiciones, en otro)
+  ['img-cimas-1', /cimas[\\/][^\\/]+[\\/][a-l]/], ['img-cimas-2', /cimas[\\/]/], ['img-tradiciones', /tradiciones[\\/]/], ['img-varias', /(fauna|leyendas|cimas|sellos|portraits|figuras)[\\/]/], ['img-relieve', /relieve[\\/]hd[\\/]/],
   // (el relieve de detalle de los 12 miradores, en un solo archivo: el artefacto no admite más de 511; y por lo mismo,
   // las músicas y los sonidos grabados, juntos en otro)
   ['relieve-miradores', /data[\\/]polar[\\/]/], ['sonidos', /assets[\\/]sonidos[\\/]/]].map(([name, test]) => ({ name, test }));
