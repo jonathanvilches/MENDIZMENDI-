@@ -1,95 +1,178 @@
-# Auditoría de peticiones — HERRIZHERRI
+# Auditoría de todo lo pedido · HERRIZHERRI
 
-Estado de todo lo pedido hasta ahora: **hecho** (comprobado en el juego con capturas o pruebas), **parcial** o **pendiente**.
+Actualizada el 27 de octubre de 2026. Repasa los 379 mensajes del proyecto, desde el 28 de septiembre.
 
-## Personajes
+- **Hecho**: está en el juego y se ha comprobado con capturas o pruebas automáticas.
+- **Parcial**: está, pero no del todo como se pidió, o no se ha podido comprobar a fondo.
+- **Pendiente**: falta.
+- **Depende de ti**: necesita una decisión, un permiso o un archivo tuyo.
+- **Descartado**: lo pediste y luego dijiste que no.
 
-| Petición | Estado | Notas |
-|---|---|---|
-| Personajes jugables | Hecho | Solo los seis importados (Iñigo, Ainhoa, Oier, Sancho, Mattin y Mari), con su aspecto original; sin Beñat, Nerea ni Haritz, sin creador y sin elegir traje |
-| Todos los personajes unificados | Hecho | Vecinos, público, jugadores, carnaval (joaldunak, momotxorros…), seres de leyenda y retratos de los diálogos |
-| Toque navarro en los personajes nuevos | Hecho | Txapela, pañuelico, faja; sin cascos ni capas de fantasía |
-| Traje tradicional de cada comarca | Hecho | Basado en los datos de cultura de cada comarca (Lesaka, Leitza, Lakuntza, Ochagavía, Aoiz, Jota Vieja de Sangüesa, Baile de la Era, Paloteado de Cortes…) |
-| Todos los vecinos con la fisiología de los personajes nuevos | Hecho | Los vecinos usan el cuerpo KayKit; la mayoría lleva el traje de su comarca y las mujeres, falda |
-| Seres de leyenda con el cuerpo de los personajes nuevos | Hecho | Basajaun (melena, barba y manto de pelo), Lamia (pelo de oro, peine y patas de pato), Sorgina y Roldán; los de carnaval siguen con su traje propio |
-| Vecinos, jugadores y público de pelota con los personajes nuevos | Hecho | Cuerpo KayKit con ropa cambiada |
-| Público real en las gradas (fútbol y plaza de toros) | Hecho | Personajes reales dibujados en lámina; celebran los goles y la llegada a la plaza |
-| Ropa, calzado, pelo y cara con más detalle, más expresiones | Parcial | Trajes y prendas, sí; los KayKit no tienen expresiones faciales |
+Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son en un navegador sin tarjeta gráfica.
 
-## Animales
+## 1. Inicio, mapa y menú
 
 | Petición | Estado | Notas |
 |---|---|---|
-| Animales Quaternius en todo el juego | Hecho | Pueblos, encierro, menú de inicio e iconos |
-| Oveja, cabra, cerdo y jabalí a partir de ellos | Hecho | Derivados en Blender |
-| Sin «cuadrículas de colores»: más orgánicos | Hecho | Cada animal es una sola malla con normales suavizadas (y cuesta 1 llamada de dibujo en vez de 6) |
-| Perro sentado esperando en el fútbol | Hecho | Pose «Sentado» hecha en Blender |
-| Sin perro en la pelota | Hecho | Se queda en casa durante el partido y vuelve contigo al acabar |
+| Rehacer el inicio con estilo de videojuego y la identidad morada | Hecho | Un solo mapa a pantalla completa con el menú flotante encima |
+| Mapa 3D de Navarra navegable, por comarcas | Hecho | Relieve real, ríos y sierras; entrada en la que Navarra se despega del mapa de España |
+| Punto del pueblo original, no el de Google Maps | Hecho | Baliza holográfica |
+| Tocar un pueblo: zoom máximo hasta ver sus casas y empezar | Hecho | Sin ventana; la etiqueta lleva portada, iconos de misiones y el botón |
+| Que cada pueblo cargue mucho más rápido en el mapa | Hecho (hoy) | La maqueta se monta durante el vuelo y ya no se para la imagen al llegar |
+| Pueblos como una galería 3D, carrusel circular por comarca | Hecho (hoy) | Ver el apartado 9 |
+| Menú más grande | Hecho (hoy) | Casillas altas, iconos de 44 px, cinco columnas |
+| Sin buscador, sin sección Mapa ni Tu aventura, todo en una pantalla | Hecho | |
+| Resumen de cómo vas: comarcas, partidas y campeonatos | Hecho | Arriba en el inicio |
+| Otra forma de ver las comarcas con fotos | Hecho | «Comarcas en fotos» |
+| Pueblos fronterizos | Hecho | La maqueta se recorta a su comarca |
+| Navegación con los dedos fluida | Hecho | Sin atascos en las pruebas; sin probar en un móvil real |
+| Ninguna palabra cortada, mismos márgenes, jerarquía de textos | Hecho | Revisado en varias pasadas; puede quedar algún caso suelto |
+| Sin emojis: gráficos e iconos propios, en alta calidad | Hecho | Iconos 3D tuyos |
+| Imágenes nítidas en todos los formatos | Parcial | En la web, grandes; en el archivo único, las portadas son de 640 px salvo con conexión |
 
-## Encierro
-
-| Petición | Estado | Notas |
-|---|---|---|
-| Adoquín de Pamplona y muchas más texturas | Hecho | Granito, sillería, revoco, madera, ladrillo; bares, tiendas, portales, ventanas, forja, placas |
-| Calle menos triste | Hecho | Banderines, geranios, pañuelos, banderas de Navarra |
-| Llegar a una plaza de toros real y llena | Hecho | Túnel, ruedo de albero, barrera, tendidos llenos, galería de arcos |
-| Sin vacíos sin arquitectura | Hecho | Casas en el callejón y público tras el vallado |
-| Saltar a los caídos, más habilidades | Hecho | SALTAR y PERIÓDICO (guía al toro) |
-| Cambio de cámara | Hecho | Detrás, balcón, aérea, mirando a los toros y la de la tele («EN DIRECTO») |
-| Estafeta con más relieve | Hecho | Balcones volados con losa moldurada, ménsulas y barandilla con laterales; recercos de piedra, esquinales y canecillos bajo el alero |
-| Público que saluda y salta | Hecho | Saltan y agitan los brazos, más cuanto más cerca pasa la manada |
-| Cámaras de televisión | Hecho | 7 cámaras con trípode y operador en balcones y junto a la plaza |
-
-## Fútbol y pelota
+## 2. Pueblos y arquitectura
 
 | Petición | Estado | Notas |
 |---|---|---|
-| Controlar a todos los jugadores | Hecho | Botón CAMBIAR o tecla Q; el control pasa al que recibe el pase |
-| Porteros que se muevan y paren | Hecho | Se colocan, se estiran, blocan o despejan, salen a por balones sueltos y sacan (paran unos 6 de cada 10 tiros) |
-| Que sea un buen reto | Hecho | Rivales más rápidos y que roban más |
-| Pelota: rival más competitivo | Hecho | Menos fallos en todos los niveles; empieza en «Normal» |
-| Pelota: que no bote tanto | Hecho | Bota a 1,2-1,5 m (antes 2,2-2,7) y se frena al botar: el segundo bote cae dentro de la cancha |
-| Botón de correr | Hecho | Sin energía ya no deja de correr: corre algo más despacio y el botón se pone naranja; la energía dura el doble |
-| Fútbol en el móvil en vertical | Hecho | CAMBIAR ya no tapa el marcador y la cámara empieza detrás del jugador |
-| Equipación de Osasuna mejorada | Parcial | Colores y dorsales; sin escudos ni marcas (propiedad del club) |
+| Una pantalla por pueblo con sus misiones; completar comarca y luego Navarra | Hecho | |
+| Estructura real de cada pueblo, con mapas cartográficos | Parcial | 30 pueblos con su trazado de OpenStreetMap y 2 más solo en el mapa; el resto, generados |
+| Calles coherentes, casas sin cruzarse, puentes terminados | Hecho | Barridos de todos los pueblos; puede quedar algún choque aislado |
+| Más plantas, colores vivos, vecinos en balcones | Hecho | |
+| Sin parpadeos al andar | Hecho | |
+| Carteles indicadores hacia el frontón, la iglesia y demás | Hecho | |
+| Castillos de Olite y Javier, Ciudadela, catedral, murallas, Plaza del Castillo, Estafeta, El Sadar, Dos Hermanas, Irulegi, monasterios | Parcial | Están todos; no son copias exactas de la realidad |
+| Sin reflejos raros en las ventanas | Hecho | |
+| Quitar pueblos o casas lejanas para ir más fluido | Hecho | |
+| Bosques: Irati, Urbasa, Aralar, Orgi, Bertiz y Sotos del Ebro | Hecho | Con misiones, niebla y sonidos |
+| Dólmenes y yacimientos | Hecho | |
 
-## Pueblos y vida
-
-| Petición | Estado | Notas |
-|---|---|---|
-| Tiendas de productos locales con trueque | Hecho | Producto estrella de la comarca y su historia, compra con txanponak, trueque con leche, lana, huevos, trigo, patatas o maíz |
-| Avisar a dónde ir con hambre y la mochila vacía | Hecho | Te dice a cuántos metros está la tienda y en qué dirección |
-| Tarea rural con el ganadero o la ganadera | Hecho | Esquilar y ordeñar a mano, explicando cómo se hacía |
-| Mercado en la plaza algunos días, con productos reales | Hecho | Productos navarros modelados a mano + frutas y verduras del pack Food (CC0) |
-| Corro de baile fuera de la fuente | Hecho | Busca un hueco libre en la plaza |
-
-## Ambiente
+## 3. Personajes y animales
 
 | Petición | Estado | Notas |
 |---|---|---|
-| Música según la escena | Hecho | Explorar, noche, misterio, tensión, juego y fiesta |
-| Lluvia, nieve y tejados nevados | Hecho | En el norte nieva a menudo (Pirineo 7 de cada 10 visitas, resto del norte 4 de cada 10) y al llegar ya está todo blanco |
-| Sin lluvia ni nieve durante los partidos | Hecho | En el fútbol y la pelota se despeja; al acabar vuelve el tiempo que hacía |
-| Luna rara | Hecho | Disco nítido con mares, cráteres y halo |
+| Personajes elegibles, chico y chica | Hecho | Los importados, con toque navarro |
+| Quitar Beñat, Nerea, Haritz, Miquel, el explorador y Cara Vinagre | Hecho | Fuera los modelos antiguos; la Nerea de ahora es la pelotari nueva |
+| Vecinos, público y jugadores con los personajes nuevos | Hecho | Trajes de cada comarca |
+| Distintos colores de pelo | Hecho | |
+| Pelo con mechones y movimiento al caminar | Pendiente | |
+| Caras con expresiones y detalle máximo de ropa | Parcial | Ropa y trajes mejorados; los vecinos no cambian de expresión |
+| Animales de Navarra: latxa, pirenaica, pottoka, buitre, cerdo, jabalí | Hecho | Una malla suave por animal, sin collares |
+| Animales que pastan, giran la cabeza y huyen | Hecho | |
+| Seres de leyenda de noche, grandes, con halo y niebla, que se escapan | Hecho | |
+| Perro a tu lado, varias razas, con o sin perro, fuera de los partidos | Hecho | |
+| Mujeres y hombres importantes de Navarra, en su propia sección | Hecho | |
 
-## Idioma
+## 4. Misiones y material didáctico
 
 | Petición | Estado | Notas |
 |---|---|---|
-| Modo «Aprende euskera» con traducción al instante | Hecho | Opción de idioma y botón ES (6 s en castellano) |
-| Todo el juego en euskera | Parcial | Interfaz y textos principales, sí; parte de los diálogos de misiones aún sale en castellano |
+| Producto local, agricultura, ganadería, danzas, carnavales y oficios | Hecho | |
+| Ganar dinero ayudando en un oficio; tienda con trueque; mochila | Hecho | |
+| Subir montes con consejos de orientación y señales | Hecho | |
+| Prismáticos: montes legibles, con relieve, y más aves | Hecho | |
+| Sabio o sabia que explica cada lugar histórico | Hecho | |
+| Cuentos y leyendas de cada pueblo | Hecho | |
+| Escudos de las fachadas: la cámara mira al escudo y sale su ficha, sin preguntas | Hecho | |
+| Escudos de los pueblos que mandaste | Hecho | |
+| Instrumentos navarros: ficha, escuchar y minijuego | Hecho | |
+| Canciones de aquí en el minijuego | Parcial | Frases propias al estilo de cada música, no piezas conocidas |
+| Pasaka | Hecho | |
+| Modo didáctico solo con el material | Hecho | |
+| Elegir la edad para quitar o añadir misiones | Hecho | |
+| Bailes y danzas típicas | Hecho | |
+| Elegir euskera o castellano y el modo Aprende euskera | Hecho | |
+| Vecinos que enseñan palabras y conversan en euskera | Hecho | |
+| Todo el juego traducido al euskera | Parcial | Menús e interfaz, sí; no he podido repasar todos los diálogos de todas las misiones |
+| Minijuegos de barra cambiados por gestos con dos manos | Hecho | |
+| Encierro: toros, Estafeta, plaza llena, cámaras, saltar, joystick y sin periódico | Hecho | |
 
-## Auditoría y optimización (2 de octubre)
+## 5. Pelota
 
-- Corregido: los cuerpos de personajes y animales no se unían en una sola malla; las caras de los diálogos no salían.
-- Pamplona: de 702 a 486 llamadas de dibujo por fotograma. Juego: de 27,3 a 21,4 MB.
-- Pruebas: 31 pueblos, frontón, fútbol, encierro, tienda, mercado, carnaval, seres de leyenda y creador, sin errores.
+| Petición | Estado | Notas |
+|---|---|---|
+| Control fino: dirección, potencia al pulsar, golpe alto y cortada baja | Hecho | |
+| Cortada, dejada, gancho, volea y dos paredes | Hecho | |
+| Rivales con todos los golpes | Hecho | |
+| Saque desde el 7, sin parón en el 4 | Hecho | |
+| Energía que baja al cortar y correr | Hecho | |
+| Partido por parejas sin estorbarse | Hecho | |
+| Ficha de cada pelotari con cualidades, debut, peso y altura | Hecho | |
+| Pantalla VS, chapa roja y azul, colorado el más veterano | Hecho | |
+| Repetición de cada tanto y jueces que levantan la mano | Hecho | |
+| Labrit para la final, lleno, con butacas y cámaras de televisión | Hecho | |
+| Frontones distintos por pueblo, con escudo y nombre | Hecho | |
+| Focos de presentación, más planos y más público | Hecho | |
+| Aplausos en cada tanto | Hecho | Sonido sin comprobar de oído |
+| Manomanista, Parejas y Cuatro y Medio | Hecho | |
+| Campeonatos más largos | Hecho | 4, 6 y 9 partidos |
+| Elegir pelota y elegir frontón | Hecho | |
+| Que no se cierre al entrar en los campeonatos | Hecho | Sin cierres en las pruebas; sin probar en un iPhone real |
 
-## Pendiente
+## 6. Fútbol
 
-- **Puente de Ochagavía (encargo técnico):** el blockout espera tu visto bueno para pasar al detalle.
-- **Texturas del Fantasy Props MegaKit:** solo llegaron como imágenes sueltas; hace falta el zip para usarlas en los edificios.
-- **Pendientes de antes:**
-  - Noche más rica (farolas, luciérnagas…).
-  - Olite, monasterios y Dos Hermanas.
-  - Pelo con movimiento.
+| Petición | Estado | Notas |
+|---|---|---|
+| Todo en El Sadar, once contra once, porteros y árbitro | Hecho | |
+| Faltas, tarjetas, penaltis y fuera de juego | Hecho | |
+| Elegir formación | Hecho | |
+| Centrar y rematar de cabeza; potencia al pulsar | Hecho | |
+| Cambio automático al jugador más cercano | Hecho | |
+| Energía, lesiones y cambios | Hecho | |
+| Chicas y chicos jugando | Hecho | |
+| Liga con los clubes de tu zona | Hecho | Desde hoy a ida y vuelta, 14 jornadas |
+| Equipación de Osasuna | Parcial | Solo los colores: el escudo y las marcas son del club |
+
+## 7. Ambiente y sonido
+
+| Petición | Estado | Notas |
+|---|---|---|
+| Lluvia a ratos, más fina; nieve en el norte con huellas y árboles nevados | Hecho | |
+| Sin lluvia ni su sonido en los partidos | Hecho | |
+| Noche: luna, farolas, ventanas encendidas y luciérnagas | Hecho | |
+| Niebla baja de noche en los pueblos | Parcial | La niebla está en los bosques y con los seres de leyenda |
+| Sin cambios de luz al mover la cámara | Parcial | Corregidos los casos que vimos; hay que vigilarlo |
+| Tus músicas de inicio, juego y torneos, gol, público y aplausos | Hecho | |
+
+## 8. Dispositivos, apps y seguridad
+
+| Petición | Estado | Notas |
+|---|---|---|
+| Móvil en horizontal perfecto | Hecho | Revisado con capturas a 844 × 390 y 568 × 320 |
+| Que no se cierre ni se ponga la pantalla en negro en el móvil | Parcial | No se reproduce aquí; necesito que lo pruebes en el iPhone |
+| Escritorio fluido | Parcial | Mejorado varias veces; sin medir en tu ordenador |
+| Instalar el juego y la app Mando en el móvil y el ordenador | Hecho | |
+| Mando del móvil seguro y que conecte rápido, también con iPhone | Hecho | |
+| Versión para la tele, sin controles en pantalla con el mando | Hecho | |
+| Enlace para jugar y descargar | Hecho | |
+| Marco legal: licencias, sin marcas, revisión de imágenes | Hecho | Borradores a revisar por un abogado |
+
+## 9. Lo de hoy
+
+- **Galería de pueblos:**
+  - cada comarca, un carrusel circular en 3D, con la portada de cada pueblo como una pantalla;
+  - el de delante encendido y adelantado, los demás alrededor en penumbra, con reflejo en el suelo;
+  - la portada de la comarca de fondo, desenfocada, con un halo de su color;
+  - se gira arrastrando, con flechas, rueda o teclado; las comarcas, arriba;
+  - abajo, el pueblo de delante con sus misiones y los botones Ficha y Jugar.
+- **Menú:** más grande, cinco columnas en el ordenador, tres de pie en el móvil.
+- **Mapa:** la maqueta del pueblo se monta durante el vuelo y sus programas gráficos se preparan al abrir el mapa. Antes se compilaban al llegar y paraban la imagen.
+
+## 10. Pendiente o depende de ti
+
+- **Pendiente:**
+  - pelo con mechones y movimiento;
+  - expresiones de cara en los vecinos;
+  - niebla baja de noche en los pueblos.
+- **Depende de ti:**
+  - fuente Froople, cuando llegue su certificado;
+  - imagen del Zarratrako;
+  - tiendas de producto local con vales y cromos: la propuesta está hecha, falta tu visto bueno y el permiso de las tiendas;
+  - probar en el iPhone y en tu ordenador los cierres y la fluidez;
+  - la música o la canción: tu último mensaje se cortó.
+- **De la auditoría del 22 de octubre, sin noticias:**
+  - el puente de Ochagavía esperaba tu visto bueno;
+  - faltaba el zip de texturas del Fantasy Props MegaKit.
+- **Descartado:**
+  - creador de avatar y elegir traje de danzas;
+  - quitar lo religioso;
+  - carreteras.
