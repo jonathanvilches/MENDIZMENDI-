@@ -253,15 +253,6 @@
 .filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; background: none; font-weight: 600; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; transition: color .15s, background .15s, border-color .15s; }
 .filters button:hover { color: #fff; }
 .filters button.on { color: #fff; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .16); }
-/* la fila de las comarcas, fija arriba al desplazarse: pastillas finas, y la comarca que se está viendo encendida */
-.tidx { position: sticky; top: 0; z-index: 3; gap: 4px; margin: 0 0 12px; padding: 8px 0; border-bottom: 0; transition: background .2s, box-shadow .2s; }
-.tidx.pegada { background: rgba(18, 6, 43, .97); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 8px 16px rgba(6, 2, 16, .4); }
-.tidx button { min-height: 40px; padding: 4px 14px; font-size: var(--fs-xs); }
-@media (min-width: 900px) { .tidx { flex-wrap: nowrap; overflow-x: auto; } }   /* (una sola fila siempre: se corre con el dedo o sola) */
-/* cada comarca, su grupo: el nombre y sus sellos en una línea fina, sin marcos ni colores */
-.tgrp + .tgrp { margin-top: 24px; }
-.tg-h { margin: 0 0 8px; font: 800 var(--fs-sm)/1.2 var(--f-cond, 'MZ Cond'), 'MZ Texto', sans-serif; letter-spacing: .1em; text-transform: uppercase; }
-.tg-h small { display: block; margin-top: 4px; font: 700 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: 0; text-transform: none; color: var(--mute); }   /* (debajo del nombre: todas empiezan en el mismo sitio) */
 /* tarjetas de pueblo: todas iguales. La lámina entera (16:9) arriba, el nombre y una línea con las misiones; las filas,
    tan altas como su tarjeta más alta, para que ninguna sea mayor que otra */
 .towns { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); grid-auto-rows: 1fr; gap: 12px; }
@@ -282,7 +273,6 @@
 @media (orientation: landscape) and (max-height: 520px) {
   .towns { grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr)); gap: 8px; }
   .tcard .tc-nm { --nm: var(--fs-sm); } .tcard .tstamp { width: 32px; }
-  .tgrp + .tgrp { margin-top: 16px; } .tidx { margin-bottom: 8px; padding: 4px 0; }
 }
 
 /* ficha del pueblo: pequeña y ligera. La lámina entera arriba, el nombre y su presentación; debajo, las misiones en

@@ -1,20 +1,11 @@
-/* La galería de los pueblos: cada comarca, un carrusel circular en 3D (src/hub/galeria.js). De fondo, la portada de la
-   comarca desenfocada y un halo de su color; arriba, las comarcas; en medio, el anillo de pantallas con su reflejo en el
-   suelo; abajo, el pueblo de delante con sus misiones y los botones de jugar y de ver su ficha */
-.gal { --c: #b56cff; --gh: min(48vh, 400px); --gw: min(calc(var(--gh) * 1.22), 74vw); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: 14px; color: #fff; }
+/* La galería de los pueblos: cada comarca, un carrusel circular en 3D (src/hub/galeria.js). De fondo, el morado del juego,
+   limpio, con una luz suave del color de la comarca en el suelo; arriba, las comarcas; en medio, el anillo de pantallas con
+   las flechas a su altura; abajo, el pueblo de delante con sus misiones y los botones de jugar y de ver su ficha */
+.gal { --c: #b56cff; --gh: min(48vh, 400px); --gw: min(calc(var(--gh) * 1.22), 74vw); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: 14px; color: #fff;
+  background: radial-gradient(120% 90% at 50% 38%, #2c1470 0%, #170a3a 48%, #0a0418 100%); }
 #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 24px); margin: 0 -24px; border-radius: 0 0 16px 16px; }
 #hub.juego .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
 #hub:not(.juego) .gal { height: min(72vh, 680px); margin-top: 16px; }
-
-/* el fondo: la portada de la comarca, desenfocada, que se cruza con la de antes; el halo de su color y una luz que pasa */
-.gal-fondo { position: absolute; inset: 0; z-index: -2; overflow: hidden; background: #0d061c; }
-.gal-fondo img { position: absolute; inset: -8%; width: 116%; height: 116%; object-fit: cover; filter: blur(22px) saturate(1.3) brightness(.46); transform: scale(1.04); transition: opacity .8s ease, transform 6s ease; }
-.gal-fondo img.nueva { opacity: 0; transform: scale(1.12); }
-.gal::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(ellipse 60% 46% at 50% 58%, color-mix(in srgb, var(--c) 34%, transparent), transparent 70%), linear-gradient(180deg, rgba(10, 4, 24, .55) 0%, rgba(10, 4, 24, .1) 32%, rgba(10, 4, 24, .2) 62%, rgba(10, 4, 24, .92) 100%);
-  transition: background .6s ease; }
-.gal::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(105deg, transparent 38%, rgba(255, 255, 255, .06) 50%, transparent 62%); background-size: 260% 100%; animation: galLuz 9s ease-in-out infinite; }
-@keyframes galLuz { 0%, 100% { background-position: 120% 0; } 50% { background-position: -20% 0; } }
 
 /* las comarcas, arriba: la pastilla de las pestañas del menú (se desliza hasta la elegida) */
 .gal .gal-cm { position: relative; z-index: 3; display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 12px 24px 4px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
@@ -24,20 +15,22 @@
 .gal .gal-cm button.on { color: #fff; }
 .gal .gal-cm button:hover, .gal .gal-cm button:focus-visible { color: #fff; }
 
-/* el escenario y el anillo: en perspectiva, algo desde arriba; se arrastra de lado */
-.gal-escena { position: relative; z-index: 1; display: grid; place-items: center; min-height: 0; perspective: 1150px; perspective-origin: 50% 42%; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
+/* el escenario y el anillo: en perspectiva, de frente; se arrastra de lado. Las flechas van en su misma caja,
+   a media altura: así quedan siempre a la altura del centro de las pantallas, en cualquier móvil */
+.gal-centro { position: relative; display: grid; min-height: 0; }
+.gal-escena { position: relative; z-index: 1; display: grid; place-items: center; min-height: 0; perspective: 1150px; perspective-origin: 50% 50%; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
 .gal-escena:active { cursor: grabbing; }
 .gal-anillo { position: relative; width: var(--gw); height: var(--gh); transform-style: preserve-3d; transition: opacity .25s ease, filter .25s ease; }
 .gal-anillo.sale { opacity: 0; filter: blur(6px); transition: opacity .22s ease, filter .22s ease; }
 .gal-anillo.entra { animation: galEntra .6s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes galEntra { from { opacity: 0; filter: blur(8px); } }
-/* (el suelo: un círculo de luz del color de la comarca bajo el anillo) */
-.gal-escena::after { content: ''; position: absolute; left: 50%; top: calc(50% + var(--gh) / 2 - 6px); width: calc(var(--gw) * 3.2); height: calc(var(--gh) * .34); transform: translateX(-50%); z-index: -1; border-radius: 50%; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--c) 42%, transparent), transparent 70%); filter: blur(6px); }
+/* (el suelo: una luz suave del color de la comarca bajo el anillo, que cambia con ella) */
+.gal-escena::after { content: ''; position: absolute; left: 50%; top: calc(50% + var(--gh) / 2 - 10px); width: calc(var(--gw) * 2.6); height: calc(var(--gh) * .3); transform: translateX(-50%); z-index: -1; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--c) 30%, transparent), transparent 70%); transition: background .6s ease; }
 
 /* cada pantalla: la portada del pueblo, su nombre abajo y lo que lleva hecho; en penumbra según se aparta de delante */
 .gal-t { position: absolute; inset: 0; width: var(--gw); height: var(--gh); padding: 0; border-radius: 18px; overflow: hidden; background: #1a0c33; border: 1px solid rgba(255, 255, 255, .14); color: #fff; text-align: left; cursor: pointer; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  box-shadow: 0 22px 44px rgba(4, 1, 12, .5); -webkit-box-reflect: below 10px linear-gradient(transparent 72%, rgba(255, 255, 255, .2)); transition: border-color .3s ease, box-shadow .3s ease; }
+  box-shadow: 0 22px 44px rgba(4, 1, 12, .5); transition: border-color .3s ease, box-shadow .3s ease; }
 .gal-t::after { content: ''; position: absolute; inset: 0; z-index: 3; background: rgba(8, 3, 20, .88); opacity: calc(var(--d, 1) * .92); pointer-events: none; }
 .gal-t img.gt-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 64% 45%; transform: scale(1.02); transition: transform .8s cubic-bezier(.2, .9, .3, 1); }
 .gal-t .gt-pie { position: absolute; inset: auto 0 0; z-index: 2; display: grid; gap: 4px; padding: 40px 14px 14px; background: linear-gradient(180deg, transparent, rgba(10, 4, 24, .55) 35%, rgba(10, 4, 24, .94)); }
@@ -51,8 +44,9 @@
 @keyframes galFlota { 50% { translate: 0 -6px; } }
 .gal-t:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
 
-/* las flechas, a los lados del anillo */
-.gal-fl { position: absolute; z-index: 4; top: 50%; width: 52px; height: 52px; display: grid; place-items: center; padding: 0; transform: translateY(-50%); border-radius: 50%; border: 1px solid rgba(255, 255, 255, .2); background: rgba(13, 6, 28, .55); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: background .15s, border-color .15s, transform .15s; }
+/* las flechas, a los lados del anillo y a media altura de las pantallas (van en .gal-centro; 3 px más arriba, la altura
+   media de la de delante, que flota) */
+.gal-fl { position: absolute; z-index: 4; top: calc(50% - 3px); width: 52px; height: 52px; display: grid; place-items: center; padding: 0; transform: translateY(-50%); border-radius: 50%; border: 1px solid rgba(255, 255, 255, .2); background: rgba(13, 6, 28, .55); color: #fff; cursor: pointer; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: background .15s, border-color .15s, transform .15s; }
 .gal-fl.ant { left: 20px; } .gal-fl.sig { right: 20px; }
 .gal .gal-fl svg { width: 22px; height: 22px; transform: none; }
 .gal-fl:hover, .gal-fl:focus-visible { background: color-mix(in srgb, var(--c) 40%, rgba(13, 6, 28, .7)); border-color: color-mix(in srgb, var(--c) 70%, #fff); }
@@ -85,7 +79,7 @@
   .gal { --gh: min(47vh, 196px); }
   #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 16px); margin: 0 -16px; }
   .gal .gal-cm { padding: 6px 16px 0; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
-  .gal-t { border-radius: 14px; -webkit-box-reflect: below 6px linear-gradient(transparent 76%, rgba(255, 255, 255, .18)); }
+  .gal-t { border-radius: 14px; }
   .gal-t .gt-pie { padding: 26px 10px 10px; gap: 2px; } .gal-t .gt-pie b { font-size: var(--fs-lg); } .gal-t .gt-pie small { display: none; }
   .gal-t .gt-n { top: 6px; left: 6px; min-width: 34px; padding: 4px 6px; font-size: 11px; } .gal-t .gt-sello { width: 34px; height: 34px; }
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
@@ -97,18 +91,21 @@
   .gi-ms i { width: 24px; height: 24px; border-radius: 6px; } .gi-ms i :is(svg, img) { width: 14px; height: 14px; } .gi-ms em { font-size: var(--fs-xs); }
   .gi-b .btn { min-height: 40px; padding: 0 16px; font-size: var(--fs-sm); }
 }
+/* (en el didáctico con el móvil tumbado, la galería entera a la vista, sin el título ni la explicación de arriba, como
+   jugando: la sección ya va marcada en la barra) */
+@media (max-height: 520px) { #hub:not(.juego) .gal-lead { display: none; } #hub:not(.juego) .gal { height: calc(100vh - 76px); height: calc(100dvh - 76px); margin-top: 0; } }
 /* (en el más pequeño, solo el nombre y los botones: las misiones ya van contadas en la tarjeta) */
 @media (max-height: 520px) and (max-width: 640px) { .gi-ms { display: none; } }
 /* ---------- el móvil de pie: el pueblo de delante, debajo del anillo, a lo ancho ---------- */
 @media (max-width: 760px) and (min-height: 521px) {
-  .gal { --gh: min(34vh, 290px); }
+  .gal { --gh: min(34vh, 290px); --gw: min(calc(var(--gh) * 1.22), 100vw - 132px); }   /* (las flechas, a los lados sin tapar la pantalla) */
   #hub.juego .hub-main > .gal { margin: 0 -16px; }
   .gal .gal-cm { padding: 10px 16px 4px; }
   .gal-info { flex-direction: column; align-items: stretch; padding: 8px 16px 16px; }
   .gi-t h2 { font-size: var(--fs-2xl); }
   .gi-b .btn { flex: 1; justify-content: center; }
-  .gal-fl { width: 44px; height: 44px; } .gal-fl.ant { left: 10px; } .gal-fl.sig { right: 10px; }
+  .gal-fl { width: 40px; height: 40px; } .gal-fl.ant { left: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); } .gal-fl.sig { right: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); }
 }
 /* ---------- ordenador grande: las pantallas, más grandes ---------- */
 @media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(52vh, 480px); } .gal-t .gt-pie b { font-size: var(--fs-2xl); } }
-@media (prefers-reduced-motion: reduce) { .gal::after, .gal-t.frente { animation: none; } .gal-anillo.entra { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .gal-t.frente { animation: none; } .gal-anillo.entra { animation: none; } }

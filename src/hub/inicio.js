@@ -12,6 +12,7 @@ import { iconSVG } from '../ui/icons.js';
 import { profile, townProgress, comarcaProgress } from '../game/profile.js';
 import { esc } from '../util/html.js';
 import { mapa3d } from './mapa3d.js';
+import { sencillo, sencilloAuto, ponSencillo } from '../util/sencillo.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
 const comarca = (id) => COMARCAS.find(c => c.id === id);
@@ -203,12 +204,20 @@ function mapaOn(root, p) {
   const abreEx = (id = null) => { pintaEx(id); if (ex.hidden) { ex.hidden = false; sec.classList.add('con-ex'); ex.focus({ preventScroll: true }); } };
   const cierraEx = () => { if (ex.hidden) return; ex.hidden = true; ex.innerHTML = ''; delete ex.dataset.c; sec.classList.remove('con-ex'); };
   ex.addEventListener('keydown', (e) => { if (e.key !== 'Escape') return; e.stopPropagation(); if (ex.dataset.c) abreEx(null); else cierraEx(); });
-  MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, pausado: () => !ex.hidden || tapado() });
+  // (en el modo sencillo, o si el mapa 3D no se puede montar o deja de pintarse, el mapa en plano con las comarcas)
+  // (en el modo sencillo, debajo, por qué y cómo volver al 3D)
+  const aPlano = () => { if (sec.classList.contains('plano')) return; sec.classList.add('plano');
+    const nota = sencillo() ? `<p class="m3-sencillo">${sencilloAuto() ? 'El móvil se cerraba al arrancar: va en modo sencillo.' : 'Modo sencillo: el mapa en plano y la imagen más ligera.'} <button type="button" data-sin-sencillo>Volver al mapa 3D</button></p>` : '';
+    sec.insertAdjacentHTML('afterbegin', `<div class="m3-plano">${OPC.plano()}${nota}</div>`); };
+  const falla = () => { cierraMapa(); aPlano(); };
+  if (!sencillo()) try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, falla, pausado: () => !ex.hidden || tapado() }); }
+  catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
   // (lo que mide lo conquistado, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)
   const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
   const mis = sec.querySelector('.m3-mision'); if (mis) new ResizeObserver(() => sec.style.setProperty('--misw', mis.offsetWidth + 'px')).observe(mis);
-  if (!MAPA) { sec.classList.add('plano'); sec.insertAdjacentHTML('afterbegin', `<div class="m3-plano">${OPC.plano()}</div>`); }
+  if (!MAPA) aPlano();
   sec.addEventListener('click', (e) => {
+    if (e.target.closest('[data-sin-sencillo]')) { ponSencillo(false); location.reload(); return; }
     const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abre(ch.dataset.sel); return; }
     // (las comarcas en fotos: abrir, una comarca, volver, al mapa, verla o ver un pueblo en él, pasar tarjetas; y jugar, que
     // cierra esto y sigue, con el vuelo hasta el pueblo, en el menú)

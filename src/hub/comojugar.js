@@ -16,8 +16,8 @@ const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
 const AF = typeof __AF__ !== 'undefined' && __AF__;
 const UA = navigator.userAgent;
 const IOS = /iP(hone|ad|od)/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
-// (la dirección del juego: la de esta misma web si se juega en ella; si no, la web publicada)
-const juego = () => (/^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname) ? new URL('./', location.href).href : WEB);
+// (la dirección del juego: la de esta misma web si se juega en ella, también desde el archivo de descargas/; si no, la web publicada)
+const juego = () => (/^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname) ? new URL(/\/descargas\/[^/]*$/.test(location.pathname) ? '../' : './', location.href).href : WEB);
 const mandoApp = () => juego() + 'mando/';
 const corta = (u) => u.replace(/^https?:\/\//, '').replace(/\/$/, '');
 

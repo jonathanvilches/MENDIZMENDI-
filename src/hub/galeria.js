@@ -2,21 +2,21 @@
 // pueblo, como una sala de pantallas que gira. El de delante, grande y encendido, con su nombre, sus misiones y los
 // botones de jugar y de ver su ficha; los demás, alrededor, más lejos y en penumbra. Se gira arrastrando, con las
 // flechas, la rueda del ratón o el teclado (← →); las comarcas, arriba (o ↑ ↓). Al cambiar de comarca, su anillo sale
-// girando y entra el de la otra, con su portada de fondo. Todo con transformaciones 3D del navegador: va suelto también
+// girando y entra el de la otra, con la luz del suelo de su color. Todo con transformaciones 3D del navegador: va suelto también
 // en el móvil, sin otro lienzo 3D encima del mapa.
 import './galeria.css';
 
 const reduce = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
- * m: el contenedor (la ventana de la sección). o: { comarcas: [{ id, nombre, color, portada }], tarjetas(id) → html de
+ * m: el contenedor (la ventana de la sección). o: { comarcas: [{ id, nombre, color }], tarjetas(id) → html de
  * las tarjetas de sus pueblos (botones .gal-t con data-gt), info(townId, i, n) → html de la ficha del de delante,
  * inicial (id de la comarca), pueblo (id del pueblo de delante al entrar), abre(townId), sonido(nombre) }.
  */
 export function galeria(m, o) {
   const G = m.querySelector('.gal'); if (!G) return;
   const anillo = G.querySelector('.gal-anillo'), escena = G.querySelector('.gal-escena'), info = G.querySelector('.gal-info');
-  const fondo = G.querySelector('.gal-fondo'), puntos = G.querySelector('.gal-puntos'), cms = [...G.querySelectorAll('[data-gc]')];
+  const puntos = G.querySelector('.gal-puntos'), cms = [...G.querySelectorAll('[data-gc]')];
   let ci = Math.max(0, o.comarcas.findIndex(c => c.id === o.inicial)), T = [], N = 0, N0 = 0, paso = 60, R = 400;
   let rot = 0, meta = 0, frente = -1, raf = 0, last = 0, arrastre = null, cambiando = false;
 
@@ -28,10 +28,6 @@ export function galeria(m, o) {
     // (la comarca elegida, en medio de su fila; sin scrollIntoView, que también corría de lado la ventana de la sección)
     const fila = cms[i]?.parentElement, b = cms[i];
     if (fila && b) fila.scrollTo({ left: b.offsetLeft - (fila.clientWidth - b.offsetWidth) / 2, behavior: reduce() ? 'auto' : 'smooth' });
-    // (la portada de la comarca, de fondo, cruzándose con la de antes)
-    const img = document.createElement('img'); img.alt = ''; img.decoding = 'async'; img.src = c.portada; img.className = 'nueva';
-    fondo.append(img); requestAnimationFrame(() => requestAnimationFrame(() => { img.classList.remove('nueva'); }));
-    setTimeout(() => { while (fondo.children.length > 1) fondo.firstElementChild.remove(); }, 900);
     // (con menos de seis pueblos, se repiten hasta llenar el anillo: así siempre es un círculo entero y al girar no se ve
     // ningún hueco ni una tarjeta de espaldas)
     const html = o.tarjetas(c.id); anillo.innerHTML = html;
@@ -51,6 +47,8 @@ export function galeria(m, o) {
     const w = T[0]?.offsetWidth || 220, n = Math.max(N, 3);
     paso = 360 / n; R = Math.round((w / 2 + Math.max(14, w * 0.1)) / Math.tan(Math.PI / n));
     G.style.setProperty('--R', R + 'px');
+    // (el hueco a cada lado de la de delante, que se adelanta un 4 %: en el móvil de pie, las flechas van en medio de él)
+    G.style.setProperty('--hueco', Math.max(0, (escena.clientWidth - w * 1.04) / 2) + 'px');
   }
   // (cada tarjeta, en su sitio del anillo; las de los lados, más oscuras; la de delante, encendida)
   function pinta() {
