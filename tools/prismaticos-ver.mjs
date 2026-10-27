@@ -1,6 +1,7 @@
 // El visor de los prismáticos en el iPhone 12 tumbado (844 × 390): la misión del mirador (buscando y con un monte en la
 // marca) y la de las aves. Mira que los botones que hacen falta se ven y se pueden tocar (nada del visor encima), que los
-// rótulos del visor no se pisan entre ellos ni con los botones y que no asoma el marcador del pueblo por detrás. Capturas.
+// rótulos del visor no se pisan entre ellos ni con los botones, que el rótulo de la cumbre no queda debajo del anillo de la
+// marca y que no asoma el marcador del pueblo por detrás. Capturas.
 // Uso: node tools/prismaticos-ver.mjs [pueblo] [carpeta]   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
@@ -57,6 +58,11 @@ else {
   await frames(40);
   const m = await revisar('2-mirador-centrado');
   ok(m.lock, 'con el monte casi en la marca, la marca lo coge');
+  // el rótulo de la cumbre («?» o el nombre) queda por encima del anillo de la marca, sin que lo pise
+  const pin = await p.evaluate(() => { const G = window.__game, cam = G.pano?.camera, sp = G.panoPins?.[0], cr = document.querySelector('#bino .cross'); if (!cam || !sp || !cr) return null;
+    const v = sp.position.clone(); v.y -= sp.scale.y / 2; v.project(cam); const r = cr.getBoundingClientRect();
+    return { abajo: (1 - v.y) / 2 * innerHeight, anillo: r.top - 5 }; });
+  if (pin) ok(pin.abajo <= pin.anillo, `el rótulo de la cumbre queda encima del anillo (${Math.round(pin.abajo)} y ${Math.round(pin.anillo)} px)`);
   await p.evaluate(() => window.__game.toggleBinoculars());
 }
 // 2. misión de las aves
