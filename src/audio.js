@@ -1,6 +1,7 @@
 // Sonido procedural con Web Audio: ambiente (río, viento, pájaros), pasos, animales, campanas y música
 import { riverInfo, PLACES } from './world/layout.js';
 import { clamp } from './util/math.js';
+import { Musica } from './audio/pistas.js';
 
 // --- la música por ambientes (startMusic y musicTick) ---
 const D_DOR = [293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25, 587.33, 659.25];      // re dórico
@@ -41,7 +42,7 @@ const INICIO = {
   ],
 };
 const MOOD = {
-  explore: { sc: D_DOR, beat: 0.3, lead: 'flute', oct: 2, drum: 'tamboril', drone: 0.05 },
+  explore: { sc: D_DOR, beat: 0.3, lead: 'flute', oct: 2, drum: 'tamboril', drone: 0.05, pista: 'musica-juego' },
   night: { sc: D_DOR, beat: 0.42, lead: 'harp', oct: 1, drum: null, drone: 0.035, pad: true },
   mystery: { sc: LA_MIN, beat: 0.38, lead: 'bell', oct: 2, drum: 'heart', drone: 0.06, pad: true, tritone: true },
   tension: { sc: LA_MIN, beat: 0.16, lead: 'pluck', oct: 1, drum: 'timpani', drone: 0.07, bass: true },
@@ -51,8 +52,11 @@ const MOOD = {
   // en cada corchea (re, si, sol, la) y batería de estadio (bombo, palmada en el segundo y el cuarto, charles)
   sport: { sc: [293.66, 329.63, 369.99, 392.0, 440.0, 493.88, 554.37, 587.33, 659.25], beat: 0.21, lead: 'brass', oct: 1, drum: 'stadium', drone: 0, drive: [0, 5, 3, 4] },
   // el menú: el tema de inicio (inicioBar), a 120 por minuto
-  inicio: { sc: INICIO.sc, beat: 0.25, tema: true },
+  inicio: { sc: INICIO.sc, beat: 0.25, tema: true, pista: 'musica-inicio' },
+  // Torneos, en el menú: su propia música grabada (si no puede sonar, el tema de inicio)
+  torneos: { sc: INICIO.sc, beat: 0.25, tema: true, pista: 'musica-torneos' },
 };
+// (pista: la música grabada de ese ambiente, src/audio/pistas.js; la sintetizada queda para cuando no puede sonar)
 
 export class Sound {
   constructor() {
@@ -76,6 +80,8 @@ export class Sound {
     // viento
     this.wind = this.loopNoise(300, 0.4); this.wind.g.gain.value = 0.02;
     this.startMusic();   // (su reloj, cada cuarto de segundo, también apaga el ambiente que el pueblo ya no manda: quietAmbient)
+    // (las músicas grabadas; la del menú empieza aquí, dentro del primer toque, que es cuando el iPhone deja sonar)
+    this.pistas = new Musica(ctx, this.musicBus); if (this.musicOn && MOOD[this.mood]?.pista) this.pistas.arranca(MOOD[this.mood].pista);
   }
   impulse(sec) {
     const ctx = this.ctx, len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -224,7 +230,8 @@ export class Sound {
   // explore: txistu y tamboril (día) · night: arpa lenta y bordón suave · mystery: notas sueltas, tritono y
   // un latido grave (leyendas) · tension: ostinato rápido en menor con timbal (encierro, persecuciones) ·
   // game: aire alegre y saltarín con bajo (minijuegos) · fiesta: charanga (San Fermín, carnaval) · sport: tema de
-  // estadio (partidos de pelota y fútbol y campeonatos) · inicio: el tema de aventura del menú (INICIO) · none: nada
+  // estadio (partidos de pelota y fútbol y campeonatos) · inicio: el tema de aventura del menú (INICIO) · torneos: la
+  // pantalla de Torneos · none: nada. explore, inicio y torneos suenan con su música grabada (MOOD, pista)
   setMood(m) { if (m && m !== this.mood) { this.mood = m; this.moodT = 0; } }
   startMusic() {
     this.mood = this.mood || 'explore';
@@ -236,7 +243,10 @@ export class Sound {
   musicTick() {
     const ctx = this.ctx, S = this.mus;
     this.quietAmbient();
-    if (!this.musicOn || document.hidden) { S.next = ctx.currentTime + 0.5; return; }
+    if (!this.musicOn || document.hidden) { this.pistas?.pausa(true); S.next = ctx.currentTime + 0.5; return; }
+    this.pistas?.pausa(false);
+    // (con su música grabada sonando, la sintetizada calla)
+    const grabada = !!this.pistas?.quiere(this.mood === 'none' ? null : MOOD[this.mood]?.pista || null);
     while (S.next < ctx.currentTime + 1.2) {
       // cambio de ambiente al empezar compás, con un pequeño fundido del bus
       if (this.mood !== S.cur) {
@@ -245,7 +255,7 @@ export class Sound {
         else if ((this.duckUntil || 0) > S.next) { g.setTargetAtTime(0, ctx.currentTime, 0.08); g.setTargetAtTime(v, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
         else { g.setValueAtTime(v * 0.25, S.next); g.linearRampToValueAtTime(v, S.next + 1.2); }
       }
-      if (S.cur === 'none') { S.next += 0.5; continue; }   // (sin música: en los partidos se oye el público)
+      if (S.cur === 'none' || (grabada && MOOD[S.cur]?.pista)) { S.next += 0.5; continue; }   // (sin música: en los partidos se oye el público)
       const M = MOOD[S.cur] || MOOD.explore, sc = M.sc, beat = M.beat, next = S.next, bar = S.bar, cur = S.cur;
       S.next += beat * 8; S.bar++;
       if (M.tema) { this.inicioBar(bar, next - ctx.currentTime); continue; }   // (el tema de inicio, compás a compás)
