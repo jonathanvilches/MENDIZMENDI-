@@ -249,7 +249,7 @@
 #hub.juego.menu-on .hub-nav button:nth-child(6) { animation-delay: .1s; } #hub.juego.menu-on .hub-nav button:nth-child(7) { animation-delay: .12s; }
 #hub.juego.menu-on .hub-nav button:nth-child(8) { animation-delay: .14s; } #hub.juego.menu-on .hub-nav button:nth-child(9) { animation-delay: .16s; }
 #hub.juego.menu-on .hub-nav button:nth-child(n+10) { animation-delay: .18s; }
-#hub.juego:not([data-screen="home"]) .hub-cab span { animation: hubAsienta .5s var(--ease) both; }
+#hub.juego:not([data-screen="home"]) .hub-cab .cab-t > span { animation: hubAsienta .5s var(--ease) both; }
 #hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > * { animation: hubSube .45s var(--ease) both; }
 #hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(2) { animation-delay: .03s; }
 #hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(3) { animation-delay: .06s; }
@@ -269,3 +269,44 @@
 #hub.juego .m3d .m3-ft.entra > * { animation: hubSube .32s var(--ease) both; }
 #hub.juego .m3d .m3-ft.entra > .ft-ms { animation-delay: .05s; } #hub.juego .m3d .m3-ft.entra > .ft-go { animation-delay: .1s; }
 @media (prefers-reduced-motion: reduce) { #hub.juego * { animation-duration: .01s !important; animation-delay: 0s !important; transition-duration: .01s !important; } }
+
+/* ================= Movimiento con muelles =================
+   Todo lo que se abre lo hace con un muelle con apenas un pelo de rebote (nada de botes); lo que se cierra, rápido y
+   sin rebote. Una pieza no se corta: el menú crece desde tu retrato, la pastilla de las pestañas se desliza estirándose
+   y lo de dentro aparece con un desenfoque corto. Los botones, de un solo color, sin degradados ni brillos */
+@property --l { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+#hub.juego { --muelle: cubic-bezier(.22, 1.12, .36, 1); --sale: cubic-bezier(.4, 0, .2, 1); --acento: #ff3fcf; --acento2: #ff62d9; }
+@keyframes hubDesenfoca { from { opacity: 0; filter: blur(6px); } }
+/* el menú: crece desde tu retrato hasta su tamaño; lo de dentro llega desenfocado y se aclara */
+#hub.juego .hub-panel { transform: none; opacity: 1; clip-path: inset(0 calc(100% - var(--menuw, var(--hud-h))) calc(100% - var(--hud-h)) 0 round var(--cr-r));
+  transition: clip-path .3s var(--sale), visibility 0s linear .3s; }
+#hub.juego.menu-on .hub-panel { clip-path: inset(0 0 0 0 round 16px); transition: clip-path .5s var(--muelle); }
+#hub.juego.menu-on .hub-panel :is(.hub-nav, #hChip, .app-btn, .hub-panel-x) { animation: hubDesenfoca .4s .08s var(--sale) both; }
+/* la pastilla de las pestañas */
+#hub.juego .filters { position: relative; }
+#hub.juego .filters button { z-index: 1; }
+#hub.juego .filters button.on { background: none; border-color: transparent; }
+#hub.juego .fl-ind { position: absolute; z-index: 0; left: var(--l); top: var(--t, 0); width: calc(var(--r) - var(--l)); height: var(--h, 44px); border-radius: 999px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); pointer-events: none;
+  transition: --l .46s var(--muelle), --r .28s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
+#hub.juego .fl-ind.izq { transition: --l .28s var(--muelle), --r .46s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
+/* la cabecera de la ventana: la sección en medio y, a los lados, la de antes y la de después */
+#hub.juego .hub-cab { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
+#hub.juego .hub-cab .cab-t { grid-column: 2; display: flex; align-items: center; gap: 10px; min-width: 0; color: #fff; }
+#hub.juego .cab-v { grid-column: 1; justify-self: start; pointer-events: auto; display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; min-height: 36px; padding: 0 10px; border-radius: 10px; background: none; border: 1px solid transparent; color: var(--tx2); font: 600 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .15s, border-color .15s; }
+#hub.juego .cab-v.sig { grid-column: 3; justify-self: end; }
+#hub.juego .cab-v span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#hub.juego .cab-v:hover, #hub.juego .cab-v:focus-visible { color: #fff; border-color: var(--cr-l); }
+#hub.juego :is(.cab-v, .hub-pista) kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; border: 1px solid var(--cr-l2); color: #fff; font: 600 11px/1 var(--f-ui); letter-spacing: 0; }
+html.tactil #hub.juego .cab-v kbd { display: none; }
+html.tactil #hub.juego .cab-v::before { content: '‹'; font-size: 20px; line-height: 1; } html.tactil #hub.juego .cab-v.sig::before { content: none; } html.tactil #hub.juego .cab-v.sig::after { content: '›'; font-size: 20px; line-height: 1; }
+@media (max-width: 760px) { #hub.juego .cab-v span { display: none; } }
+/* la pista de los botones, abajo a la derecha de la ventana, solo con teclado */
+#hub.juego .hub-pista { display: none; }
+html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-pista { position: absolute; z-index: 27; right: calc(var(--sh-r) + 18px); bottom: calc(var(--sh-b) + 10px); display: flex; gap: 18px; padding: 6px 10px; border-radius: 10px; background: rgba(13, 6, 28, .82); color: var(--tx2); font: 500 12px/1 var(--f-ui); pointer-events: none; }
+html:not(.tactil) #hub.juego .hub-pista span { display: flex; align-items: center; gap: 6px; }
+html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main { padding-bottom: 56px; }
+/* los botones de jugar: de un color, sin degradado ni brillo */
+#hub.juego :is(.mm-go, .ft-go, .ex-go, .btn.primary) { background: var(--acento); box-shadow: none; text-shadow: none; transition: background .15s, transform .15s var(--muelle); }
+#hub.juego :is(.mm-go, .ft-go, .ex-go, .btn.primary):hover { background: var(--acento2); filter: none; }
+@media (prefers-reduced-motion: reduce) { #hub.juego .hub-panel, #hub.juego.menu-on .hub-panel, #hub.juego .fl-ind { transition-duration: .01s; } }
