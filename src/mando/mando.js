@@ -142,9 +142,10 @@ function abre(dc) {
 const RAPIDO = new Set(['ej', 'mira', 'cur', 'rueda']);
 function rapido(dc) { dc.onmessage = (e) => { let m; try { m = JSON.parse(e.data); } catch (er) { return; } if (RAPIDO.has(m?.t)) usa(m); }; }
 // conectado: el panel lo dice, el móvil recibe el idioma y sus botones, y el panel se cierra solo (y sabe que puede abrir
-// el canal rápido: uno de antes no lo conoce)
+// el canal rápido: uno de antes no lo conoce). Solo el que estaba abierto al conectar: uno abierto después, para olvidar
+// el móvil, se queda
 function listo() { S.estado = 'ok'; S.ctx = S.mis = ''; ultimo.clear(); mandoMovil(true); envia({ t: 'hola', lang: isEU() ? 'eu' : 'es', rapido: true });
-  guardar({ code: S.code, secreto: S.secreto, emparejado: true }); pareja(); pinta(); setTimeout(() => { if (S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
+  guardar({ code: S.code, secreto: S.secreto, emparejado: true }); pareja(); pinta(); const u = S.ui; setTimeout(() => { if (u && S.ui === u && S.estado === 'ok' && !S.pide) cierraPanel(); }, 1600); }
 // (el móvil se queda con este ordenador: el código y su secreto, solo por la conexión directa, que va cifrada de punta a
 // punta; si entró con el código a mano, la próxima vez entra directamente, sin pedir permiso)
 function pareja() { if (S.dc?.readyState === 'open') S.dc.send(JSON.stringify({ t: 'pareja', code: S.code, secreto: S.secreto })); }
