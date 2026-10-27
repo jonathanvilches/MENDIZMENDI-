@@ -63,7 +63,7 @@ for (const sz of sizes.split(',')) {
     await p.evaluate((lang) => { const T = window.__PR.TEXT[lang]; const h = window.__ph = new window.__PH.PelotaHud(document.body, T, { you: 'Ane', rival: 'Garazi' }, true);
       h.setScore(14, 12, 'you', T.to(22)); h.energy([{ id: 'a', name: 'Ane', en: 0.7, side: 'you', me: true }, { id: 'b', name: 'Garazi', en: 0.4, side: 'rival' }]); }, lang);
     const P = [['golpe', 'h.hitLabel(T.hit)'], ['gancho', 'h.hitLabel(T.hitGancho || T.hit)'], ['volea', 'h.hitLabel(T.hitVolley || T.hit)'],
-      ['juez', 'h.hitLabel(T.hit); h.call(T.matchPoint || "Tanto de partido", T.matchPointSub || "", "", 9)'], ['consejo', 'h.call(""); h.tip(T.tipServe || "Toca GOLPE para sacar")']];
+      ['juez', 'h.hitLabel(T.hit); h.call(T.matchPoint || "Tanto de partido", T.matchPointSub || "", "", 9)'], ['aviso', 'h.$(".pel-call").classList.remove("on"); h.root.classList.remove("calling"); h.quality(T.quality.perfect, "", "perfect")'], ['consejo', 'h.quality(""); h.tip(T.tipServe || "Toca GOLPE para sacar")']];
     for (const [n, code] of P) { await p.evaluate((code) => { const h = window.__ph, T = h.txt; eval(code); }, code); await audit(`pelota-${lang}-${n}`, '.pel-root'); }
     await p.evaluate(() => { window.__ph.destroy(); });
   }

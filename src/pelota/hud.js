@@ -75,11 +75,11 @@ const CSS = `
 .pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
 .pel-call p{margin:4px 0 0;font-size:var(--fs-sm);line-height:1.3;opacity:.95}
 .pel-call .pel-kantari{margin-top:8px;font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
-.pel-q{position:absolute;left:50%;top:40%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-2xl);text-shadow:0 3px 10px rgba(0,0,0,.45);opacity:0;transition:opacity .15s;pointer-events:none}
+.pel-q{position:absolute;left:50%;top:24%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);text-shadow:0 2px 8px rgba(0,0,0,.45);opacity:0;transition:opacity .2s;pointer-events:none}
 .pel-q.on{opacity:1}
 /* el aviso de cada golpe, como en los juegos de deportes: grande, con rebote, y su color según cómo le has dado */
-.pel-q b{font:400 var(--fs-4xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:0;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
-.pel-q.on b{animation:pel-qpop .45s cubic-bezier(.2,1.7,.4,1) both}
+.pel-q b{font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:0;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
+.pel-q.on b{animation:pel-qpop .25s cubic-bezier(.2,1.5,.4,1) both}
 .pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
 .pel-q small:empty{display:none}
 .pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
@@ -317,7 +317,7 @@ export class PelotaHud {
   quality(text, sub = '', kind = '') {
     const q = this.$('.pel-q'); q.className = 'pel-q' + (kind ? ' k-' + kind : '');
     q.innerHTML = text ? `<b>${esc(text)}</b><small>${esc(sub)}</small>` : '';
-    void q.offsetWidth; q.classList.toggle('on', !!text); this.qT = kind ? 1 : 0.8;   // (se vuelve a poner para que rebote cada vez)
+    void q.offsetWidth; q.classList.toggle('on', !!text); this.qT = 0.6;   // (se vuelve a poner para que rebote cada vez; breve: no tapa la jugada)
   }
   // (lo último escrito va en el propio elemento, _t: en euskera, el texto que se lee ya está traducido y no coincidiría)
   tip(text) { const t = this.$('.pel-tip'), v = text || ''; if (t._t !== v) { t._t = v; t.textContent = v; } t.classList.toggle('on', !!text); }

@@ -352,15 +352,18 @@ export class PelotaCourt {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
     }
-    // bancos corridos de tablas de madera sobre cada escalón (como en las gradas de los frontones de pueblo) y los sitios
-    // del público que viene a ver el partido (sentado en ellos, mirando a la cancha)
-    const benchM = M({ color: '#8a5a34', roughness: 0.7 }), benchG = new T.BoxGeometry(0.42, 0.06, L * 0.76);
+    // un banco corrido de tablas de madera al borde de cada escalón (como en las gradas de los frontones de pueblo) y los
+    // sitios del público: sentado en el banco, con los pies en el escalón de abajo (o en el suelo, la primera fila), como
+    // en una silla. El sitio va en la forma de las butacas del Labrit (fronton.js lo adelanta y lo baja al sentarlo).
+    // Antes el banco iba en medio del escalón, a 8 cm del suelo, y se sentaban casi en cuclillas
+    const benchM = M({ color: '#8a5a34', roughness: 0.7 }), benchG = new T.BoxGeometry(0.44, 0.06, L * 0.76);
     this.standSpots = [];
     if (!opts.labrit && !HALL) for (let i = 0; i < 3; i++) {
-      const x = W / 2 + CONTRA + 0.42 + i * 1.1, y = 0.42 * (i + 1);
-      for (const dx of [0, 0.2]) { const b = new T.Mesh(benchG, benchM); b.position.set(x + dx - 0.1, y + 0.05, L * 0.52); b.castShadow = true; b.receiveShadow = true; g.add(b); }
-      for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([x + 0.05, y + 0.02, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
+      const xe = W / 2 + CONTRA + i * 1.1, y = 0.42 * (i + 1);   // (el borde del escalón, del lado de la cancha, y su altura)
+      const b = new T.Mesh(benchG, benchM); b.position.set(xe + 0.21, y + 0.03, L * 0.52); b.castShadow = true; b.receiveShadow = true; g.add(b);
+      for (let z = L * 0.52 - L * 0.37; z < L * 0.52 + L * 0.37; z += 0.58) this.standSpots.push([xe + 0.48, y + 0.06, z + (Math.random() - 0.5) * 0.12, -Math.PI / 2]);
     }
+    if (!opts.labrit && !HALL) this.seated = true;
     this.extent = { x0: -W / 2 - 0.6, x1: W / 2 + CONTRA + 3.3, z0: -0.8, z1: EXT + 0.4 };
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 0.6 };   // por donde se entra a la cancha (esquina de la contracancha)
     // cajas de colisión (locales): frontis, pared izquierda, fondo, gradas
@@ -461,14 +464,18 @@ export class PelotaCourt {
     // butacas de madera, una a una, como las del Labrit: concha de tablero curvado color miel (asiento y respaldo),
     // reposabrazos de madera y pie de hierro; abajo, claras; en los anfiteatros, algo más oscuras
     const seatsLo = [], seatsHi = [];
+    // (los huecos de las dos tarimas de la tele en la grada baja: ni butacas ni público; ver más abajo)
+    const tvA = { x: xr + 7.2, z: 16 }, tvB = { x: -2.6, z: zf + 7.2 };
+    const hueco = (x, z) => (Math.abs(x - tvA.x) < 1.05 && Math.abs(z - tvA.z) < 1.5) || (Math.abs(x - tvB.x) < 1.5 && Math.abs(z - tvB.z) < 1.05);
     const row = (off, y, seats = true, step = 0.8, hi = false) => { for (const s of segs(off)) {
       box(s.l, y, step, grey, s.x + s.nx * step / 2, y / 2, s.z + s.nz * step / 2, s.ry + Math.PI / 2);
       box(s.l, 0.04, 0.05, cream, s.x + s.nx * 0.02, y + 0.02, s.z + s.nz * 0.02, s.ry + Math.PI / 2);   // el canto del escalón
       if (!seats) continue;
       const n = Math.floor(s.l / 0.54), fy = Math.atan2(-s.nx, -s.nz), dx = Math.sin(s.ry), dz = Math.cos(s.ry);
       for (let k = 0; k < n; k++) { const t = (k + 0.5) / n - 0.5, x = s.x + dx * t * s.l + s.nx * 0.4, z = s.z + dz * t * s.l + s.nz * 0.4;
+        if (!hi && hueco(x, z)) continue;
         (hi ? seatsHi : seatsLo).push([x, y, z, fy]);
-        if (k % 2 === 0) this.standSpots.push([x - s.nx * 0.05, y + 0.44, z - s.nz * 0.05, fy]); } } };
+        this.standSpots.push([x - s.nx * 0.05, y + 0.44, z - s.nz * 0.05, fy]); } } };   // (todas las butacas: en la final, lleno)
     // grada baja: el antepecho de madera junto a la contracancha y diez filas de butacas de madera
     // (el antepecho, forrado de tablas verticales de madera barnizada, como la tarima)
     const panelTex = canvasTex(T, 512, 128, (c, w, h) => { const n = 16, bw = w / n; for (let i = 0; i < n; i++) { const t = 0.86 + Math.random() * 0.2; c.fillStyle = `rgb(${Math.round(214 * t)},${Math.round(152 * t)},${Math.round(88 * t)})`; c.fillRect(i * bw + 1, 0, bw - 2, h);
@@ -485,6 +492,29 @@ export class PelotaCourt {
     };
     balc(8.2, 5.2, 4); balc(10.4, 8.6, 4);
     this.seated = true;   // (el público, sentado en sus butacas: de pie se subía al asiento y las piernas atravesaban el respaldo)
+    // --- la tele, que retransmite la final: una cámara en una tarima en lo alto de la grada baja, frente a la pared
+    // izquierda (el plano general); otra en el fondo, detrás del rebote, mirando al frontis; y una a pie de cancha, en la
+    // esquina del frontis. Cada una sobre su trípode, con su operador detrás (this.tvCrew: fronton.js lo pone en el partido)
+    this.tvCrew = [];
+    { const dk = [], bk = [], rd = [], plat = [];
+      const tvCam = (x, y, z, ry) => {
+        const sn = Math.sin(ry), cs = Math.cos(ry), H = 1.25, P = (u, h, w, b) => ({ ...b, x: x + u * cs + w * sn, y: y + h, z: z - u * sn + w * cs, ry: (b.ry || 0) + ry });
+        for (const a of [Math.PI, Math.PI / 3, -Math.PI / 3]) { const r = 0.42, L = Math.hypot(r, H);   // (las tres patas, abiertas)
+          bk.push({ ...P(Math.sin(a) * r / 2, H / 2, Math.cos(a) * r / 2, {}), w: 0.035, h: L, d: 0.035, rx: Math.atan2(r, H), ry: a + ry + Math.PI }); }
+        dk.push(P(0, H + 0.04, 0, { w: 0.16, h: 0.08, d: 0.16 }), P(0, H + 0.24, 0.02, { w: 0.24, h: 0.3, d: 0.5 }));   // la rótula y el cuerpo
+        bk.push(P(0, H + 0.22, 0.36, { w: 0.15, h: 0.15, d: 0.26 }), P(0, H + 0.22, 0.52, { w: 0.21, h: 0.19, d: 0.08 }),   // el objetivo y su parasol
+          P(-0.17, H + 0.33, -0.12, { w: 0.1, h: 0.1, d: 0.16 }), P(0, H + 0.43, 0.02, { w: 0.04, h: 0.06, d: 0.3 }),   // el visor y el asa
+          P(0.1, H + 0.02, -0.36, { w: 0.03, h: 0.03, d: 0.46, rx: -0.3 }), P(-0.1, H + 0.02, -0.36, { w: 0.03, h: 0.03, d: 0.46, rx: -0.3 }));   // los mangos
+        rd.push(P(0, H + 0.41, 0.2, { w: 0.06, h: 0.04, d: 0.04 }));   // el piloto rojo: en el aire
+        this.tvCrew.push([x - 0.62 * sn, y, z - 0.62 * cs, ry]);   // el operador, detrás
+      };
+      // (las tarimas, de madera oscura, a la altura de la última fila; la de la pared izquierda mira a la cancha, la del
+      // fondo, al frontis)
+      plat.push({ w: 1.9, h: 3.9, d: 2.8, x: tvA.x, y: 1.95, z: tvA.z }, { w: 2.8, h: 3.9, d: 1.9, x: tvB.x, y: 1.95, z: tvB.z });
+      tvCam(tvA.x - 0.2, 3.9, tvA.z, -Math.PI / 2); tvCam(tvB.x, 3.9, tvB.z - 0.2, Math.PI); tvCam(xr - 0.9, 0, 1.1, -Math.PI / 2 + 0.6);
+      const mk = (list, mat) => { const m = new T.Mesh(boxesGeo(T, list), mat); m.castShadow = true; m.receiveShadow = true; g.add(m); };
+      mk(plat, M({ color: '#3b3330', roughness: 0.85 })); mk(dk, M({ color: '#3a3e44', roughness: 0.45, metalness: 0.35 })); mk(bk, M({ color: '#141619', roughness: 0.4, metalness: 0.3 }));
+      mk(rd, new T.MeshBasicMaterial({ color: '#ff2a1f' })); }
     { const shell = boxesGeo(T, [{ w: 0.46, h: 0.045, d: 0.42, x: 0, y: 0.44, z: 0.04 }, { w: 0.46, h: 0.5, d: 0.04, x: 0, y: 0.72, z: -0.2, rx: -0.2 },
         { w: 0.05, h: 0.04, d: 0.36, x: -0.255, y: 0.64, z: 0.02 }, { w: 0.05, h: 0.04, d: 0.36, x: 0.255, y: 0.64, z: 0.02 }]);
       const frame = boxesGeo(T, [{ w: 0.05, h: 0.44, d: 0.05, x: -0.255, y: 0.22, z: -0.08 }, { w: 0.05, h: 0.44, d: 0.05, x: 0.255, y: 0.22, z: -0.08 },
@@ -610,8 +640,12 @@ export class PelotaCourt {
       for (const z of [za - 0.55, zb + 0.15]) { const t = new T.Mesh(new T.ExtrudeGeometry(tri, { depth: 0.4, bevelEnabled: false }), M({ color: '#e6dfcd', roughness: 0.9 })); t.position.set(xm, HW, z); g.add(t); } }
     const xc = (xa + xb) / 2;
     const door = new T.Mesh(new T.PlaneGeometry(3.6, 3.4), dark); door.position.set(xc, 1.7, zb + 0.66); g.add(door);
-    const signTex = canvasTex(T, 1024, 256, (c, w, h) => { c.fillStyle = '#d6cbaa'; c.fillRect(0, 0, w, h); c.strokeStyle = '#a89a76'; c.lineWidth = 10; c.strokeRect(8, 8, w - 16, h - 16); paintName(c, 'FRONTÓN LABRIT', w / 2, h * 0.5, w * 0.86, h * 0.48, '#5d5240'); });
-    const sign = new T.Mesh(new T.PlaneGeometry(7, 1.5), M({ map: signTex, roughness: 0.8 })); sign.position.set(xc, 4.5, zb + 0.66); g.add(sign);
+    // el rótulo, grande, sobre la puerta y a todo lo ancho del vano central: se lee entero desde la avenida (en la
+    // llegada, la cámara acaba delante de él). Antes, una placa de 7 m que el vuelo dejaba por debajo de la imagen
+    const signTex = canvasTex(T, 1280, 256, (c, w, h) => { c.fillStyle = '#ddd2b4'; c.fillRect(0, 0, w, h); grain(c, w, h, 3000, 0.04); c.strokeStyle = '#a89a76'; c.lineWidth = 12; c.strokeRect(10, 10, w - 20, h - 20); paintName(c, 'FRONTÓN LABRIT', w / 2, h * 0.53, w * 0.88, h * 0.62, '#4a3f30'); });
+    // (por delante de las pilastras, que sobresalen hasta 0,72 m: antes una tapaba la R)
+    box(10.5, 2.5, 0.18, stone, xc, 5, zb + 0.8);
+    const sign = new T.Mesh(new T.PlaneGeometry(10, 2), M({ map: signTex, roughness: 0.8 })); sign.position.set(xc, 5, zb + 0.9); g.add(sign);
     if (!inTown) {   // (fuera de la ciudad, en la final: la calle, la muralla, los árboles y las casas alrededor)
     const pave = new T.Mesh(new T.PlaneGeometry(220, 220), M({ color: '#8f8b83', roughness: 0.95 })); pave.rotation.x = -Math.PI / 2; pave.position.set(xc, -0.04, (za + zb) / 2); pave.receiveShadow = true; g.add(pave);
     const wallTex = canvasTex(T, 1024, 256, (c, w, h) => ashlar(c, w, h, 40, 10, '#b9a27e'), [3, 1]);

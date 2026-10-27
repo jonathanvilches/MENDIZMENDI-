@@ -32,8 +32,11 @@ export async function vueloFronton(G, v, m) {
   } else if (C.labrit) {
     // el Labrit: bajando por la avenida, entre las casas, hasta su fachada con los torreones y, de un corte, dentro, sobre
     // la grada
-    const F = labritFront();
-    tramos = [{ pts: [V(F.x + 4, 34, F.z + 64), V(F.x + 3, 15, F.z + 26), V(F.x + 1, 7.5, F.z + 11)], looks: [V(F.x, 8, F.z), V(F.x, 9, F.z), V(F.x, 10, F.z)], dur: 3.4, ease: 'inOut' },
+    // (acaba delante del rótulo «FRONTÓN LABRIT», de 10 m, a la distancia a la que cabe entero a lo ancho, también con la
+    // pantalla en vertical; antes acababa a 11 m mirando arriba y el rótulo se quedaba fuera, por debajo)
+    const F = labritFront(), cam = G.follow.cam, ancho = 2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(cam.fov) / 2) * cam.aspect);
+    const d = Math.min(40, Math.max(16, 6.6 / Math.tan(ancho / 2)));
+    tramos = [{ pts: [V(F.x + 4, 34, F.z + d + 48), V(F.x + 3, 13, F.z + d + 14), V(F.x + 0.6, 5.4, F.z + d)], looks: [V(F.x, 8, F.z), V(F.x, 7, F.z), V(F.x, 6.2, F.z)], dur: 3.8, ease: 'inOut' },
       { pts: [V(15, 11.5, 4), V(9, 10.5, 24), E.pos], looks: [V(2, 0, 20), V(0, 1, 13), E.look], dur: 3.4, fov: E.fov }];
     const sky = G.sky; onTramo = (i) => { if (sky) { sky.indoor = i > 0; sky.floodCur = 1; } };   // (fuera, la luz de la calle; dentro, la del Labrit)
   } else {

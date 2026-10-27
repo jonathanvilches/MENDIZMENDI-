@@ -1,7 +1,7 @@
 // El inicio del menú: el mapa 3D de Navarra por comarcas (mapa3d.js) a toda la pantalla, que es por donde se elige todo,
 // como el mapa del mundo de un juego, con el círculo de lo conquistado, la misión de ahora y las comarcas encima; al elegir
-// una comarca, su rótulo arriba; al tocar un pueblo, la cámara se acerca y su ficha (lo que es, sus misiones y el botón de
-// jugar) sale junto a su chincheta. Debajo, el destacado grande (su lámina, el título, el botón de jugar y las flechas
+// una comarca, su rótulo arriba; al tocar un pueblo, la cámara se acerca, se levanta su maqueta y junto a su chincheta sale
+// el botón de empezar la misión. Debajo, el destacado grande (su lámina, el título, el botón de jugar y las flechas
 // para pasar al siguiente, con tu personaje saliendo por fuera del marco), la columna de lo que hay ahora en Navarra (la
 // fila marcada es la del destacado), los personajes de leyenda y «Descubre Navarra» con sus pestañas y sus flechas. Todo
 // con lo del juego: sus pueblos, bosques, yacimientos, leyendas y campeonatos
@@ -155,18 +155,14 @@ function bandaHTML(p, id) {
     <button class="cb-b" data-comarca="${id}" aria-label="Todo sobre ${esc(c.name)}" title="Todo sobre ${esc(c.name)}">${I('book', 20)}</button>
     <button class="cb-b" data-cierra aria-label="Ver toda Navarra" title="Ver toda Navarra">${I('close', 20)}</button>`;
 }
-// la ficha de un pueblo, junto a su chincheta: su portada, su comarca, lo que es, sus misiones (las hechas, marcadas) y la
-// siguiente, y el botón de jugar, que hace el zoom hasta tu personaje en el pueblo; y el de su página
+// lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: solo su nombre, cuántas misiones
+// lleva y el botón de empezar, que hace el zoom hasta tu personaje en el pueblo (antes, una ficha con su foto, lo que es,
+// sus misiones y la siguiente: tapaba el pueblo que se estaba formando)
 function fichaHTML(p, l) {
-  const c = comarca(l.comarca), t = townProgress(p, l), done = p.towns[l.id]?.done || {}, slots = OPC.slots(l), st = estado(p, l), img = townCover(l.id, true) || townImg(l);
-  const sig = slots.find(({ si }) => !done[si])?.m, nombre = esc(corto(l));
-  return `<button class="ft-x" data-ftx aria-label="Cerrar">${I('close', 18)}</button>
-    <div class="ft-img"${img ? ` style="background-image:url(${img})"` : ''}><span class="ft-st ${st}">${I(st === 'ok' ? 'stamp' : st === 'go' ? 'exclaim' : l.bosque ? 'tree' : 'compass', 18)}</span></div>
-    <div class="ft-body"><small class="ft-k">${l.bosque ? 'Bosque · ' : ''}${esc(c?.name || '')}</small><b class="ft-n">${nombre}</b>${l.intro ? `<p class="ft-in">${esc(l.intro)}</p>` : ''}
-      <div class="ft-ms"><span>${t.done}/${t.total} misiones</span><div>${slots.map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}">${I(OPC.icono(m) || 'star', 20)}</i>`).join('')}</div></div>
-      ${sig ? `<span class="ft-sig">${I(OPC.icono(sig) || 'star', 18)}<span>${esc(OPC.nombre(sig))}${sig.host?.name ? ` · <i>${esc(sig.host.name.split(',')[0])}</i>` : ''}</span></span>` : ''}
-      <div class="ft-bot"><button class="ft-go" data-play="${l.id}">${I('play', 24)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button>
-        <button class="ft-info" data-town="${l.id}" aria-label="Todo sobre ${nombre}" title="Todo sobre ${nombre}">${I('book', 22)}</button></div></div>`;
+  const t = townProgress(p, l), nombre = esc(corto(l));
+  const txt = l.bosque ? 'Explorar' : t.stamp ? 'Volver a jugar' : t.done ? 'Seguir misión' : 'Empezar misión';
+  return `<span class="ft-n"><b>${nombre}</b>${t.total ? `<small>${t.done}/${t.total}</small>` : ''}</span>
+    <button class="ft-go" data-play="${l.id}">${I('play', 22)}<span>${txt}</span></button>`;
 }
 let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
@@ -306,7 +302,6 @@ function mapaOn(root, p) {
       return;
     }
     if (e.target.closest('.m3-ex [data-play]')) cierraEx();
-    if (e.target.closest('[data-ftx]')) { MAPA?.cierraPueblo(); return; }
     if (e.target.closest('[data-cierra]')) { if (MAPA) MAPA.vista(); else abre(null); }
   });
 }
