@@ -23,7 +23,7 @@ function bend(root, bone, angle) {
   _qa.identity(); for (let b = bone; b && b !== root; b = b.parent) _qa.premultiply(b.quaternion);
   bone.quaternion.multiply(_qb.setFromAxisAngle(_ax.copy(_X).applyQuaternion(_qa.invert()), angle));
 }
-export function sitPose(root) {
+export function sitPose(root, { brazosArriba = false } = {}) {
   // huesos KayKit (upperleg.l…) o de Mixamo (los personajes nuevos: LeftUpLeg…)
   const B = {}; root.traverse(o => { if (o.isBone) B[o.name.replace(/[.:]/g, '').replace(/^mixamorig/, '')] = o; });
   const S = { l: 'Left', r: 'Right' }, up = (s) => B['upperleg' + s] || B[S[s] + 'UpLeg'], lo = (s) => B['lowerleg' + s] || B[S[s] + 'Leg'], arm = (s) => B['upperarm' + s] || B[S[s] + 'Arm'];
@@ -36,8 +36,12 @@ export function sitPose(root) {
   // la cadera baja lo que mide el muslo (en el mundo, y se pasa al espacio de su padre)
   const hips = B.hips || B.Hips;
   if (hips) { hips.getWorldPosition(a); a.y -= thigh * 0.95; hips.position.copy(hips.parent.worldToLocal(a)); }
-  // brazos sobre las piernas
-  for (const sd of ['l', 'r']) if (arm(sd)) bend(root, arm(sd), -0.35);
+  // brazos sobre las piernas; o, celebrando el tanto sin levantarse, en alto (algo abiertos y los codos doblados)
+  const fore = (s) => B['lowerarm' + s] || B[S[s] + 'ForeArm'];
+  for (const sd of ['l', 'r']) if (arm(sd)) {
+    if (!brazosArriba) { bend(root, arm(sd), -0.35); continue; }
+    bend(root, arm(sd), -2.55); if (fore(sd)) bend(root, fore(sd), -0.45);
+  }
   root.updateMatrixWorld(true);
 }
 export const FIGS = 8;

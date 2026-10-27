@@ -78,9 +78,35 @@ function texMat(map) {
 }
 const shown = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
 
-// las figuras de un conjunto, cada una quieta (pose 0) y celebrando (pose 1), como en las láminas
-function bakeSet(set, sit) {
-  const key = set + (sit ? ':sit' : '');
+// la misma figura para lejos (el Labrit lleno): los vértices que caen en la misma celda de una rejilla de «cell» metros se
+// juntan en uno, en su punto medio y con el color medio (sin textura: de lejos, el color de cada parte basta y no se
+// emborrona en las costuras), y se van los triángulos que se quedan sin área. Con «corte», también los que quedan del todo
+// por debajo de esa altura: sentados en una grada llena, las espinillas y los pies los tapa la fila de delante
+function lejos(g, cell, corte = -1) {
+  const P = g.attributes.position.array, N = g.attributes.normal.array, C = g.attributes.color.array, I = g.index.array, n = P.length / 3;
+  const id = new Uint32Array(n), celdas = new Map(); let m = 0;
+  for (let i = 0; i < n; i++) {
+    const k = `${Math.floor(P[i * 3] / cell)},${Math.floor(P[i * 3 + 1] / cell)},${Math.floor(P[i * 3 + 2] / cell)}`;
+    let r = celdas.get(k); if (r === undefined) celdas.set(k, r = m++); id[i] = r;
+  }
+  const pos = new Float32Array(m * 3), nor = new Float32Array(m * 3), col = new Float32Array(m * 3), cnt = new Float32Array(m);
+  for (let i = 0; i < n; i++) { const r = id[i]; cnt[r]++; for (let a = 0; a < 3; a++) { pos[r * 3 + a] += P[i * 3 + a]; nor[r * 3 + a] += N[i * 3 + a]; col[r * 3 + a] += C[i * 3 + a]; } }
+  for (let r = 0; r < m; r++) { const k = 1 / cnt[r], l = Math.hypot(nor[r * 3], nor[r * 3 + 1], nor[r * 3 + 2]) || 1; for (let a = 0; a < 3; a++) { pos[r * 3 + a] *= k; col[r * 3 + a] *= k; nor[r * 3 + a] /= l; } }
+  const out = [];
+  for (let t = 0; t < I.length; t += 3) {
+    const a = id[I[t]], b = id[I[t + 1]], c = id[I[t + 2]];
+    if (a !== b && b !== c && a !== c && Math.max(pos[a * 3 + 1], pos[b * 3 + 1], pos[c * 3 + 1]) >= corte) out.push(a, b, c);
+  }
+  const h = new THREE.BufferGeometry();
+  h.setAttribute('position', new THREE.BufferAttribute(pos, 3)); h.setAttribute('normal', new THREE.BufferAttribute(nor, 3)); h.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  h.setIndex(m < 65536 ? new THREE.Uint16BufferAttribute(out, 1) : new THREE.Uint32BufferAttribute(out, 1)); h.computeBoundingSphere();
+  return h;
+}
+
+// las figuras de un conjunto, cada una quieta (pose 0) y celebrando (pose 1), como en las láminas. Sentadas, con
+// arriba = true, celebran sin levantarse, con los brazos en alto (en las gradas de escalones, de pie se metían en el de detrás)
+function bakeSet(set, sit, arriba = false) {
+  const key = set + (sit ? ':sit' : '') + (sit && arriba ? ':arriba' : '');
   if (baked.has(key)) return baked.get(key);
   const pr = (async () => {
     const out = [];
@@ -89,8 +115,9 @@ function bakeSet(set, sit) {
       for (let r = 0; r < 2; r++) {
         const c = new GlbChar(gl, MESHY_GAIT);
         c.root.scale.setScalar(gl.userData.fit || 1);
-        if (r === 1) c.playOnce?.('Celebrate', 1); c.update(r === 1 ? 0.45 : 0.3);
-        if (r === 0 && sit) sitPose(c.root);
+        const sentada = sit && arriba;   // (celebra sentada: la misma postura de quieta, con los brazos arriba)
+        if (r === 1 && !sentada) c.playOnce?.('Celebrate', 1); c.update(r === 1 && !sentada ? 0.45 : 0.3);
+        if (sit && (r === 0 || sentada)) sitPose(c.root, { brazosArriba: r === 1 });
         c.root.rotation.y = (f % 3 - 1) * 0.12; c.root.updateMatrixWorld(true);
         const parts = []; let map = null; c.root.traverse(o => { if (o.isMesh && !o.userData.outline && shown(o)) { parts.push(bakeMesh(o)); map ||= [].concat(o.material)[0].map || null; } });
         const g = mergeGeometries(parts); parts.forEach(p => p.dispose()); g.computeBoundingSphere(); g.userData.map = map;
@@ -108,7 +135,7 @@ function bakeSet(set, sit) {
  * Público: spots = [[x, y, z, ry], …] (y = pies). Devuelve un grupo con .tick(t, ánimo, zFoco, cámara) y .cheer(on),
  * igual que las láminas: de cerca, figuras 3D (que saltan, saludan y celebran); de lejos, láminas.
  */
-export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false } = {}) {
+export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
@@ -123,12 +150,22 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   if (all3d) sprites.visible = false;
   const TT = sprites.geometry.attributes.aTint.array, tc = new THREE.Color();   // (de cerca, el mismo tono que en la lámina)
   const A = sprites.geometry.attributes.aAnim.array, C = sprites.geometry.attributes.aCell.array, IM = sprites.instanceMatrix, orig = IM.array.slice();
+  // (con todos en 3D, tres niveles según lo cerca que estén de la cámara: los KC más cercanos, con la figura entera; los KM
+  // siguientes, con la de lejos fina; y el resto, al fondo de la grada, con la de lejos gruesa. En un Labrit lleno, unos
+  // 2.800 espectadores: con todos enteros eran 2,3 millones de triángulos)
+  const KC = all3d ? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100) : K, KM = Q === 'low' ? 120 : Q === 'mid' ? 300 : 600;
+  const C1 = Q === 'low' ? 0.08 : Q === 'mid' ? 0.06 : 0.05, C2 = Q === 'low' ? 0.1 : Q === 'mid' ? 0.09 : 0.08;   // (más gruesa, las figuras se rompen)
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
   const rot = new Float32Array(n), sc = new Float32Array(n);
   for (let i = 0; i < n; i++) { rot[i] = spots[i][3] + (Math.random() - 0.5) * 0.3; sc[i] = (0.92 + Math.random() * 0.16) * height / 1.5; }
-  bakeSet(set, sit).then(G => {
-    meshes = G.map(poses => poses.map(g => { const im = new THREE.InstancedMesh(g, all3d ? texMat(g.userData.map) : MAT, K); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.frustumCulled = false; group.add(im); return im; }));
+  const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, tex ? texMat(g.userData.map) : MAT, k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.frustumCulled = false; group.add(im); return im; };
+  let mid = null, far = null, capas = [];
+  bakeSet(set, sit, arriba).then(G => {
+    meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
+    if (K > KC) mid = G.map(poses => poses.map(g => inst(g.userData.lejos1 ||= lejos(g, C1), Math.min(K - KC, KM), false)));
+    if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), K - KC - KM, false)));
+    capas = [meshes, mid, far].filter(Boolean);
   }).catch(err => console.warn('público 3D', err));
   const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.2);
   // elige los K espectadores más cercanos a la cámara (dentro de R) que se ven, para dibujarlos en 3D (los que quedan
@@ -142,38 +179,45 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       sph.center.set(s[0], s[1] + 0.7, s[2]); if (frustum.intersectsSphere(sph)) cand.push([d, i]);
     }
     cand.sort((a, b) => a[0] - b[0]);
-    const keep = new Uint8Array(n); nNear = Math.min(K, cand.length);
-    for (let k = 0; k < nNear; k++) { near[k] = cand[k][1]; keep[cand[k][1]] = 1; }
+    const keep = new Uint8Array(n), antes = nNear; nNear = Math.min(K, cand.length);
+    let otros = antes !== nNear;
+    for (let k = 0; k < nNear; k++) { if (near[k] !== cand[k][1]) otros = true; near[k] = cand[k][1]; keep[cand[k][1]] = 1; }
     let dirty = false;
     for (let i = 0; i < n; i++) if (keep[i] !== hide[i]) {
       hide[i] = keep[i]; dirty = true;
       if (keep[i]) IM.array.fill(0, i * 16, i * 16 + 16); else IM.array.set(orig.subarray(i * 16, i * 16 + 16), i * 16);
     }
     if (dirty) IM.needsUpdate = true;
+    return otros;   // (si han cambiado los que se dibujan en 3D)
   }
+  let cheerAntes = -1;
   group.tick = (t, excite = 1, focus = 0, camera = null) => {
     // la ola: cada 50 s, si el partido está tranquilo, 14 s dando vuelta y media a la grada
     const ot = t % 50; olaA = olaOn && t > 20 && ot < 14 && excite < 0.7 ? ot / 14 * Math.PI * 3 - Math.PI : -99;
     sprites.tick(t, excite, focus, olaA);
     props?.tick(t, excite);
     if (!meshes || !camera) return;
-    if ((pick -= 1) <= 0) { pick = 12; choose(camera); }   // cada 12 fotogramas
-    for (const fig of meshes) for (const im of fig) im.count = 0;
+    let otros = false; if ((pick -= 1) <= 0) { pick = 12; otros = choose(camera); }   // cada 12 fotogramas
+    // (sentados y tranquilos, o quietos, nadie se mueve: si no ha cambiado quién se ve ni el ánimo, se quedan como estaban
+    // y no se vuelven a mandar a la tarjeta gráfica. En un Labrit lleno, eso es casi todo el partido)
+    if ((quietos || (sit && arriba && excite <= 0.15 && olaA < -50)) && !otros && cheer === cheerAntes) return;
+    cheerAntes = cheer;
+    for (const c of capas) for (const fig of c) for (const im of fig) im.count = 0;
     for (let k = 0; k < nNear; k++) {
       const i = near[k], s = spots[i];
       // como las láminas: el ánimo crece cerca del foco; unos saltan y otros saludan alternando la pose
       const ex = excite * (0.35 + 0.65 * Math.exp(-Math.abs(s[2] - focus) / 14));
       let ola = 0; if (olaA > -50) { const d = ((Math.atan2(s[2], s[0]) - olaA) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; ola = Math.exp(-d * d / 0.05); }
       const wave = (A[i * 3 + 2] && ex > 0.15 && Math.sin(t * 7 + A[i * 3 + 1]) >= 0) || ola > 0.3 ? 1 : 0;
-      const pose = Math.max((C[i * 2 + 1] + cheer) % 2, wave), im = meshes[figs[i] % meshes.length][pose];
-      const jump = A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;
+      const pose = quietos ? 0 : Math.max((C[i * 2 + 1] + cheer) % 2, wave), im = (k < KC || !mid ? meshes : k < KC + KM || !far ? mid : far)[figs[i] % meshes.length][pose];
+      const jump = quietos || (sit && arriba) ? 0 : A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;   // (los que celebran sentados no saltan)
       m4.compose(v.set(s[0], s[1] + jump, s[2]), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
       if (all3d) { const l = 0.9 + 0.1 * Math.abs(Math.sin(i * 12.9898)); tc.setRGB(l, l, l); } else tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2]);
       im.setColorAt(im.count, tc); im.setMatrixAt(im.count++, m4);
     }
-    for (const fig of meshes) for (const im of fig) if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
+    for (const c of capas) for (const fig of c) for (const im of fig) if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
   };
   group.cheer = (on) => { cheer = on ? 1 : 0; sprites.cheer(on); props?.cheer(on); };
-  group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const fig of meshes || []) for (const im of fig) im.dispose(); };
+  group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const c of capas) for (const fig of c) for (const im of fig) im.dispose(); };
   return group;
 }

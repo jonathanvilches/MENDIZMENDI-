@@ -16,7 +16,7 @@ export const EU_EXACT = {
   'Insignias': 'Intsigniak', 'Pasaporte': 'Pasaportea', 'Perfil': 'Profila', 'Más': 'Gehiago', 'Más secciones': 'Atal gehiago',
   'Montañas de Navarra con su perfil': 'Nafarroako mendiak eta haien profila', 'Fauna, árboles, plantas y flores': 'Fauna, zuhaitzak, landareak eta loreak',
   'Tus logros': 'Zure lorpenak', 'Los sellos de tus pueblos': 'Zure herrietako zigiluak', 'Nombre, nivel y ajustes': 'Izena, maila eta ezarpenak',
-  'Aventurero': 'Abenturazalea', 'La final, en el frontón Labrit de Iruña': 'Finala, Iruñeko Labrit frontoian', 'Frontón Labrit · Iruña': 'Labrit frontoia · Iruña', 'Cerrar': 'Itxi', 'Seguir': 'Jarraitu', 'Anterior': 'Aurrekoa', 'Siguiente': 'Hurrengoa', 'Saltar ▸▸': 'Saltatu ▸▸',
+  'Aventurero': 'Abenturazalea', 'La final, en el frontón Labrit de Iruña': 'Finala, Iruñeko Labrit frontoian', 'Frontón Labrit · Iruña': 'Labrit frontoia · Iruña', 'Cerrar': 'Itxi', 'Seguir': 'Jarraitu', 'Empezar misión': 'Misioa hasi', 'Seguir misión': 'Misioarekin jarraitu', 'Volver a jugar': 'Berriro jokatu', 'Explorar': 'Esploratu', 'Anterior': 'Aurrekoa', 'Siguiente': 'Hurrengoa', 'Saltar ▸▸': 'Saltatu ▸▸',
   '¿Sabías que…?': 'Ba al zenekien…?', 'Preparando…': 'Prestatzen…', '¡Listo!': 'Prest!', 'Navarra, pueblo a pueblo': 'Nafarroa, herriz herri',
   // --- hasiera ---
   'Próxima parada': 'Hurrengo geltokia', 'Sigue tu aventura en': 'Jarraitu zure abentura hemen:', 'misiones': 'misio', '¡A la aventura!': 'Abenturara!', '¡Seguimos!': 'Jarraitu dezagun!',

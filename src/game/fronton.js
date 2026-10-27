@@ -332,15 +332,24 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.labrit || C?.hall ? (QUALITY === 'low' ? 1.6 : 3) : 1, cap = Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);   // (en el Labrit, la final: lleno)
+    // (en el Labrit, donde se juegan las finales, todas las butacas ocupadas: los lejanos van con la figura de lejos, ver
+    // crowd3d.js; en el frontón cubierto, casi lleno; en el del pueblo, los que caben según la calidad)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.6 : 3) : 1, cap = C?.labrit ? all.length : Math.round((QUALITY === 'low' ? 44 : QUALITY === 'mid' ? 64 : 90) * full);
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
       const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
       if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
-      // (en el frontón cubierto, sentados en sus asientos: el sitio es el asiento y la figura, algo adelantada y más baja)
+      // (sentados en sus asientos, en todos los frontones: el sitio es el asiento y la figura, algo adelantada y más baja;
+      // en cada tanto celebran sin levantarse, con los brazos en alto)
       const sit = !!C.seated, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * 0.3, y - 0.4, z + Math.cos(ry) * 0.3, ry]) : wsp;
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true }); /* en las gradas de pueblo, de pie en los escalones: sentados en cuclillas se veían raros */ G.scene.add(seated); } } catch (e) { console.warn('público del frontón', e); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true, arriba: true }); G.scene.add(seated); }
+      // los operadores de las cámaras de la tele (en el Labrit), de pie detrás de ellas: con el público, en el mismo grupo
+      if (seated && C.tvCrew?.length) {
+        const crew = crowd3d(C.tvCrew.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; }), 'pelota', 1.36, { all3d: true, quietos: true });
+        seated.add(crew); const tick0 = seated.tick, dispose0 = seated.dispose;
+        seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
+      } } catch (e) { console.warn('público del frontón', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
@@ -409,7 +418,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     for (const o of [pel?.char.root, red?.char.root, seated]) if (o) G.rt?.warm?.(o);
     G.pelotaTick = (dt) => {
       try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
-      try { if (seated) { seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
+      // (en la llegada al Labrit, mientras la cámara va por la calle, el público de dentro no se ve: ni se mueve ni se dibuja)
+      try { if (seated) { seated.visible = !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
       try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); jueces = []; }
     };

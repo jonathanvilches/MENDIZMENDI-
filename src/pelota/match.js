@@ -563,15 +563,12 @@ export class PelotaMatch {
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
         // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
         if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
-        if (e.who === 'you') {
-          // el aviso: cómo ha salido (perfecto, pronto, tarde…) y, debajo, el golpe, la fuerza y lo que ha costado en energía
-          const T0 = TEXT.es, s = t.shots[e.sub] || t.shots[e.shot] || '', vol = e.volea ? (t.volea || T0.volea) : '';
-          const en = e.cost > 0.04 ? (t.costs || T0.costs) : e.cost < -0.01 ? (t.gains || T0.gains) : '';
-          this.hud.quality(t.quality[e.label] || T0.quality[e.label], [vol && s ? `${s} ${vol.toLowerCase()}` : vol || s, `${t.force || T0.force} ${Math.round(pw * 100)} %`, en].filter(Boolean).join(' · '), e.label);
-        }
+        // el aviso de cómo ha salido: una sola palabra, pequeña y rápida (perfecto, bien, justo, pronto, tarde). Antes era
+        // grande en el centro y llevaba debajo el golpe, la fuerza y la energía: tapaba la jugada en cada golpe
+        if (e.who === 'you') this.hud.quality(t.quality[e.label] || TEXT.es.quality[e.label], '', e.label);
         this.swingAnim(e.who); break;
       }
-      case 'whiff': this.hud.quality(t.quality.whiff, e.early ? (t.quality.early || TEXT.es.quality.early) : '', 'whiff'); break;
+      case 'whiff': this.hud.quality(e.early ? (t.quality.early || TEXT.es.quality.early) : t.quality.whiff, '', 'whiff'); break;
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       case 'front': if (e.chapa) { A.chapa(); C.chapaT = 0.6; this.shake = 0.35; } else A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
       case 'wall': A.wall(); break;

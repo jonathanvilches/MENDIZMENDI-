@@ -270,7 +270,8 @@ export class Hub {
   buildNav() {
     this.nav = isDidactico()
       ? [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
-      : [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
+      // (jugando, sin «Mapa»: el inicio ya es el mapa de Navarra en 3D; en el didáctico, que no lo tiene, sí)
+      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
@@ -293,7 +294,7 @@ export class Hub {
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;
     const secScreen = this.nav.some(n => n[0] === screen) && this.navHidden(screen);
-    this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'map') || (b.dataset.s === 'more' && secScreen))));
+    this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === (isDidactico() ? 'map' : 'home')) || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
     this.root.dataset.screen = screen;
@@ -384,7 +385,7 @@ export class Hub {
       ['badge', 'Insignias', p.badges.length, BADGES.length, 'yo'], ['star', 'Puntos', p.xp, null, 'yo']].map(gaugeHTML).join('')}</div></section>`}
     <section class="two">
       <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>
-      <div class="panel map-panel" data-go="map"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div></div>
+      <div class="panel map-panel" data-go="home"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div></div>
     </section>
     <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
     <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
@@ -559,7 +560,7 @@ export class Hub {
     };
     return `
     <section class="chero" style="--c:${c.color};--bg:url(${comarcaCover(id)})">
-      <button class="back" data-go="map">${I('back', 26)} Mapa</button>
+      <button class="back" data-go="${dd ? 'map' : 'home'}">${I('back', 26)} Mapa</button>
       <img class="bigstamp ${pr.stamps || dd ? '' : 'gray'}${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}">
       <div><small class="kicker">Comarca</small><h1>${esc(c.full || c.name)}</h1><p>${dd ? `<b>${ts.length}</b> <span>${ts.length === 1 ? 'pueblo' : 'pueblos'}</span> · ${I('river', 20)} <span>${esc(c.river || '')}</span>` : `${cnt(ts.length, 'pueblo', 'pueblos')} · ${cnt(pr.stamps, 'sellado', 'sellados')} · río ${esc(c.river || '')}`}</p></div>
       ${comarcaCover(id) ? `<img class="chero-img" src="${comarcaCover(id)}" alt="" decoding="async">` : ''}
