@@ -73,6 +73,11 @@ export function* haceMaqueta(D, o, res) {
   // (si el pueblo cae cerca del borde de su comarca, lo que queda fuera no se dibuja)
   const P = o.P; let borde = false;
   for (let i = 0, j = P.length - 1; i < P.length && !borde; j = i++) borde = segDist(X0, Z0, P[j][0], P[j][1], P[i][0], P[i][1]).d < R * MU * 1.05;
+  // (y lo que se levanta encima, casas, árboles, coches y rótulos, tampoco: un punto, en metros desde el centro del pueblo,
+  // y lo que mide a su alrededor, r, dentro de la comarca. Antes solo se recortaba el suelo, y en los pueblos de la raya,
+  // como Irurtzun, las casas y los árboles quedaban en el aire sobre la comarca de al lado o colgando de la pared)
+  const cabe = (x, z, r = 0) => { if (!borde) return true; const X = X0 + x * MU, Z = Z0 + z * MU, d = r * MU;
+    return enPoligono(P, X, Z) && (!d || (enPoligono(P, X + d, Z) && enPoligono(P, X - d, Z) && enPoligono(P, X, Z + d) && enPoligono(P, X, Z - d))); };
   const S = lento ? 20 : 10, n = Math.ceil(2 * R / S) + 1, pos = new Float32Array(n * n * 3), hd = new Float32Array(n * n), dentro = new Uint8Array(n * n);
   for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
     const k = j * n + i, x = -R + i * S, z = -R + j * S, X = X0 + x * MU, Z = Z0 + z * MU;
@@ -164,7 +169,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0]]) m = Math.min(m, alto(X0 + (x + a * c + b * s) * MU, Z0 + (z - a * s + b * c) * MU));
     return m - hund;
   };
-  const casas = D.casas.filter(b => Math.hypot(b.x, b.z) < R * 0.94);
+  const casas = D.casas.filter(b => Math.hypot(b.x, b.z) < R * 0.94 && cabe(b.x, b.z, Math.hypot(b.w, b.d) / 2));
   for (const b of casas) {
     const v = varia(b), k = b.k, X = X0 + b.x * MU, Z = Z0 + b.z * MU, base = pie(b.x, b.z, b.w, b.d, b.ry);
     const hM = clamp(b.h || ALTO[k] || 8, 3, 45), H = (hM + 2) * MU * K, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d);
@@ -214,7 +219,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     for (let p = -1; p <= 1; p++) for (let q2 = -1; q2 <= 1; q2++) for (const it of ocupa.get((cx + p) * 8192 + cz + q2) || []) {
       if (it.c ? Math.hypot(x - it.c.x, z - it.c.z) < it.r : segDist(x, z, it.a[0], it.a[1], it.b[0], it.b[1]).d < it.r) return false;
     }
-    return Math.hypot(x, z) < R * 0.93;
+    return Math.hypot(x, z) < R * 0.93 && cabe(x, z, 4);
   };
   const sombras = res.sombras = [];   // (cada árbol, su sombra en el suelo pintado: [x, z, radio], en metros)
   const arbol = (x, z, r, alto2, tono = verde, lista = piezas.arboles) => {
@@ -266,7 +271,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       const [ax, az] = s.pts[i], [bx, bz] = s.pts[i + 1], L = Math.hypot(bx - ax, bz - az); if (L < 6) continue;
       const dx = (bx - ax) / L, dz = (bz - az) / L, ry = Math.atan2(-dz, dx);
       for (let t = 3; t < L - 3; t += 14) if (rnd() < 0.3) {
-        const sd = rnd() < 0.5 ? -1 : 1, o2 = (s.w || 2) - 1.1, x = ax + dx * t - dz * o2 * sd, z = az + dz * t + dx * o2 * sd; if (Math.hypot(x, z) > R * 0.9) continue;
+        const sd = rnd() < 0.5 ? -1 : 1, o2 = (s.w || 2) - 1.1, x = ax + dx * t - dz * o2 * sd, z = az + dz * t + dx * o2 * sd; if (Math.hypot(x, z) > R * 0.9 || !cabe(x, z, 3)) continue;
         const X = X0 + x * MU, Z = Z0 + z * MU; pon(piezas.coches, X, Z, alto(X, Z) - hund * 0.2, ry, 4.3 * MU, 1.5 * MU * K, 1.8 * MU, 0, COCHE[Math.floor(rnd() * COCHE.length)]);
       }
     }
@@ -288,7 +293,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   res.casas = grupo;
   // (sin repetir: de dos a menos de 60 m, el primero; como mucho seis, los más cerca del centro)
   const mon = [];
-  for (const x of (D.monumentos || []).filter(x => x.n && x.n.length <= 44 && !/[\d,]/.test(x.n) && MONUMENTO.test(x.n) && Math.hypot(x.x, x.z) < R * 0.8).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z)))
+  for (const x of (D.monumentos || []).filter(x => x.n && x.n.length <= 44 && !/[\d,]/.test(x.n) && MONUMENTO.test(x.n) && Math.hypot(x.x, x.z) < R * 0.8 && cabe(x.x, x.z)).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z)))
     if (mon.length < 6 && !mon.some(y => Math.hypot(y.x - x.x, y.z - x.z) < 60)) mon.push(x);
   res.monumentos = mon.map(x => ({ n: x.n, X: X0 + x.x * MU, Z: Z0 + x.z * MU }));
 }

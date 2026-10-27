@@ -325,6 +325,8 @@ void main() {
 // (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
 const PARCHE_VS = RELIEVE_VS.replace('varying vec2 vXZ;', 'attribute float hd; uniform float uMaqK; varying vec2 vXZ;')
   .replace('vH = position.y;', 'vec3 q = vec3(position.x, mix(position.y, hd, uMaqK), position.z); vH = q.y;').replace('vec4(position, 1.0)', 'vec4(q, 1.0)');
+// (un punto y lo que mide a su alrededor, r, dentro del contorno de una comarca: el centro y cuatro puntos a esa distancia)
+const enComarca = (P, x, z, r = 0) => enPoligono(P, x, z) && (!r || (enPoligono(P, x + r, z) && enPoligono(P, x - r, z) && enPoligono(P, x, z + r) && enPoligono(P, x, z - r)));
 const enPoligono = (P, x, z) => { let inn = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inn = !inn; } return inn; };
 
 /**
@@ -483,7 +485,9 @@ export function mapa3d(host, o) {
   // los bosques: árboles diminutos, como en una maqueta, donde dice la máscara (más en lo espeso; en el móvil, la mitad).
   // Van con su comarca (se levantan y se apagan con ella) y con su alto de siempre aunque el relieve se exagere más o
   // menos; donde se levanta la maqueta de un pueblo, no salen (allí van sus propios árboles)
-  const INVEXA = { value: 1 }, arbolG = new THREE.ConeGeometry(0.07, 0.24, 6, 1, true), arboles = []; arbolG.translate(0, 0.12, 0); geos.push(arbolG);
+  // (TAM: de cerca, junto a la maqueta de un pueblo, los árboles del mapa menguan hasta irse: son maqueta de comarca, de
+  // cientos de metros, y al lado de las casas de verdad parecían montañas)
+  const INVEXA = { value: 1 }, TAM = { value: 1 }, arbolG = new THREE.ConeGeometry(0.07, 0.24, 6, 1, true), arboles = []; arbolG.translate(0, 0.12, 0); geos.push(arbolG);
   { let semilla = 7; const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
     const tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = LENTO ? 1.1 : 2.2, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
     for (const c of C) {
@@ -499,8 +503,8 @@ export function mapa3d(host, o) {
       }
       if (!L.length) continue;
       const fondo = { value: 0 }, m = M({ roughness: 0.9 }); c.arbolFondo = fondo;
-      m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uFondo: fondo, uHueco: c.top.uniforms.uHueco });
-        sh.vertexShader = 'uniform float uInvExa; uniform vec4 uHueco;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y *= uInvExa;\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;');
+      m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco });
+        sh.vertexShader = 'uniform float uInvExa, uTam; uniform vec4 uHueco;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed *= uTam; transformed.y *= uInvExa;\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;');
         sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, vec3(dot(diffuseColor.rgb, vec3(0.3, 0.59, 0.11))) * 0.6, uFondo * 0.8);'); };
       m.customProgramCacheKey = () => 'mapa-arboles';
       const im = new THREE.InstancedMesh(arbolG, m, L.length); im.raycast = () => {};
@@ -1045,8 +1049,12 @@ export function mapa3d(host, o) {
     R = Math.min(700, R + 20);
     const pizarra = t.comarca === 'pirineo', tex = pintaNucleo(D, R, pizarra), Rs = R / 207.6;
     const cm2 = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
-    const casas = new THREE.InstancedMesh(cajaG, cm2, D.casas.length), M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), col = new THREE.Color(), up = new THREE.Vector3(0, 1, 0);
-    D.casas.forEach((b, i) => { const x = X0 + b.x * MU, z = Z0 + b.z * MU;
+    // (en los pueblos junto al borde de su comarca, solo las casas que caen dentro: las demás quedaban en el aire, sobre la
+    // comarca de al lado o colgando de la pared)
+    const dentro = D.casas.filter(b => enComarca(t.c.Pw, X0 + b.x * MU, Z0 + b.z * MU, Math.hypot(b.w, b.d) / 2 * MU));
+    const casas = new THREE.InstancedMesh(cajaG, cm2, Math.max(1, dentro.length)), M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), col = new THREE.Color(), up = new THREE.Vector3(0, 1, 0);
+    casas.count = dentro.length;
+    dentro.forEach((b, i) => { const x = X0 + b.x * MU, z = Z0 + b.z * MU;
       M4.compose(e3.set(x, GROSOR + sobre(t.c, x, z) - 0.004, z), q.setFromAxisAngle(up, b.ry), sc.set(b.w * MU, (b.h || 7) * MU * 2.5, b.d * MU)); casas.setMatrixAt(i, M4);
       casas.setColorAt(i, col.setHSL(...tono(b, pizarra))); });
     casas.visible = false; t.c.mesh.add(casas);
@@ -1248,7 +1256,7 @@ export function mapa3d(host, o) {
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
     const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
     CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.6, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
-    TIEMPO.value = t; INVEXA.value = 1 / exa;   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
+    TIEMPO.value = t; INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
