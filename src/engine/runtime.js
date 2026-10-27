@@ -27,6 +27,7 @@ import { Player } from '../actors/player.js';
 import { Fauna } from '../actors/animals.js';
 import { FollowCamera } from '../camera.js';
 import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
+import { compilarAsync } from '../util/compilar.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
@@ -167,7 +168,7 @@ export class Runtime {
     onProgress(0.95, 'Saludando a los vecinos…'); await frame();
     // compila los shaders mientras sigue la pantalla de carga (en paralelo si el navegador puede),
     // para que el primer fotograma del pueblo no se quede congelado
-    try { await Promise.race([this.renderer.compileAsync(scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
+    try { await Promise.race([compilarAsync(this.renderer, scene, this.camera), new Promise(r => setTimeout(r, 5000))]); } catch (e) { }
     this.warmed.add(scene);
     // (el aligerado de un pueblo anterior sigue: si el ordenador no podía con aquel, tampoco con este)
     if (this.lite) this.applyLite();
@@ -189,7 +190,7 @@ export class Runtime {
     this.warmed.add(obj); this.holds++;
     const R = this.renderer, t0 = performance.now();
     let job;
-    try { job = R.compileAsync(obj, cam, obj.isScene || !this.scene ? null : this.scene); } catch (e) { job = Promise.resolve(); }
+    try { job = compilarAsync(R, obj, cam, obj.isScene || !this.scene ? null : this.scene); } catch (e) { job = Promise.resolve(); }
     // (las texturas, también ahora: subirlas la primera vez que se ven daba otro tirón; en el móvil no, por la memoria)
     if (this.quality !== 'low') this.upload(obj);
     return Promise.race([job, new Promise(r => setTimeout(r, ms))]).catch(() => { }).finally(() => {

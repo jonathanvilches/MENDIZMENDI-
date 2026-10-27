@@ -20,6 +20,7 @@ import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
 import { haceMaqueta } from './maqueta.js';
+import { compilarAsync } from '../util/compilar.js';
 
 // (las coordenadas son las del mapa de comarcas de comarcas.json, viewBox 10 10 725 780: se centran y se pasan a metros
 // del mundo 3D, con el norte hacia el fondo)
@@ -576,13 +577,84 @@ export function mapa3d(host, o) {
   // (el temblor: al soltarse y al posarse)
   const temblor = (s) => { const p = IT.baja + IT.bajaD; return Math.max(rampa(s, IT.tiembla, IT.sube) * (1 - rampa(s, IT.sube + 0.3, IT.sube + 1)), 0.8 * rampa(s, p - 0.05, p) * (1 - rampa(s, p + 0.1, p + IT.ola * 0.7 + 0.5))); };
   function acabaIntro() {
-    intro.hecho = true; host.classList.remove('m3-intro'); host.classList.add('m3-aparece'); CINE.classList.replace('m3-cine', 'm3-cine-fin');
-    setTimeout(() => { host.classList.remove('m3-aparece'); CINE.classList.remove('m3-cine-fin'); }, 900);
+    intro.hecho = true; host.classList.remove('m3-intro'); host.classList.add('m3-aparece');
+    // el mapa, de la pantalla entera a su sitio en el menú poco a poco, mientras aparecen la barra y la cabecera: antes,
+    // de golpe, se veía el salto. Se mide dónde va (en su sitio del menú), se deja a pantalla entera y se le da ese sitio
+    // (inicio.css lo lleva con una transición); al llegar, vuelve a su sitio de siempre, que es el mismo
+    const main = CINE.id === 'hub' ? CINE.querySelector('.hub-main') : null;
+    CINE.classList.remove('m3-cine');
+    if (main) {
+      const L = main.offsetLeft, T = main.offsetTop, R = CINE.clientWidth - L - main.offsetWidth, B = CINE.clientHeight - T - main.offsetHeight;
+      CINE.classList.add('m3-cine-sale'); void main.offsetWidth;
+      Object.assign(main.style, { left: L + 'px', top: T + 'px', right: R + 'px', bottom: B + 'px' });
+    }
+    CINE.classList.add('m3-cine-fin');
+    salida = setTimeout(() => { host.classList.remove('m3-aparece'); CINE.classList.remove('m3-cine-fin', 'm3-cine-sale'); if (main) for (const k of ['left', 'top', 'right', 'bottom']) main.style[k] = ''; show?.quita(); }, 900);
     // (la ayuda de los controles cuenta su tiempo desde ahora)
     const ay = host.querySelector('.m3-ayuda'); if (ay) { ay.style.animation = 'none'; void ay.offsetWidth; ay.style.animation = ''; }
     for (const c of C) { if (c.bajo) c.bajo.visible = false; c.mesh.position.x = c.mesh.position.z = c.linea.position.x = c.linea.position.z = 0; }
   }
   const saltaIntro = () => { if (!intro || intro.hecho) return false; intro.rapido = 5; return true; };
+  let salida = 0;
+  // ---------- el espectáculo de la entrada ----------
+  // Encima del mapa: las nubes, que al empezar lo tapan casi todo y que la cámara atraviesa al bajar (se abren hacia los
+  // lados); el nombre del juego, letra a letra, con un brillo que lo recorre y el lema debajo, que se aleja hacia la
+  // cámara cuando esta baja; la luz dorada bajo Navarra mientras está en el aire y el destello al posarse. Todo va con el
+  // reloj de la entrada (si se toca para pasar deprisa, también deprisa)
+  const show = intro && (() => {
+    const E = document.createElement('div'); E.className = 'm3-show'; E.setAttribute('aria-hidden', 'true');
+    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div>`;
+    host.append(E);
+    const nc = E.querySelector('.m3-nubes'), g2 = nc.getContext('2d'), sol = E.querySelector('.m3-sol'), luz = E.querySelector('.m3-luz'), tit = E.querySelector('.m3-titulo'), letras = [...tit.querySelectorAll('i')], lema = tit.querySelector('small'), dest = E.querySelector('.m3-destello');
+    // (una nube de bolas difusas, dibujada una vez; luego se pinta muchas veces, más grande cuanto más cerca de la cámara)
+    const nube = document.createElement('canvas'); nube.width = nube.height = 256;
+    // (con volumen: cada bola, su sombra malva un poco más abajo y su luz blanca encima)
+    { const x = nube.getContext('2d'), B = Array.from({ length: 26 }, () => { const a = Math.random() * 6.28, rr = Math.random() * 70; return [128 + Math.cos(a) * rr, 128 + Math.sin(a) * rr * 0.6, 40 + Math.random() * 50]; });
+      for (const [col, dy] of [['178,160,222', 10], ['255,250,244', -6]]) for (const [px, py, s] of B) { const gr = x.createRadialGradient(px, py + dy, 0, px, py + dy, s); gr.addColorStop(0, `rgba(${col},.5)`); gr.addColorStop(1, `rgba(${col},0)`); x.fillStyle = gr; x.fillRect(0, 0, 256, 256); } }
+    const NB = Array.from({ length: 22 }, (_, i) => ({ a: i / 22 * 6.28 + Math.random() * 0.3, r: 0.12 + Math.random() * 0.9, z: 0.9 + Math.random() * 1.6, s: 0.7 + Math.random() * 0.8 }));
+    // (el centro de Navarra, para la luz de debajo)
+    const NC = new THREE.Vector3(); { let n = 0; for (const c of C) for (const q of c.Pw) { NC.x += q[0]; NC.z += q[1]; n++; } NC.divideScalar(n || 1); }
+    const pc = new THREE.Vector3(); let w0 = 0, h0 = 0;
+    const tPosa = IT.baja + IT.bajaD;
+    return {
+      tick(tI) {
+        const W = host.clientWidth, H = host.clientHeight, M = Math.max(W, H);
+        // las nubes
+        const q = rampa(tI, 0.1, 1.9);
+        if (q < 1) {
+          const dpr = Math.min(1.5, devicePixelRatio || 1);
+          if (W !== w0 || H !== h0) { w0 = W; h0 = H; nc.width = Math.round(W * dpr); nc.height = Math.round(H * dpr); }
+          g2.setTransform(dpr, 0, 0, dpr, 0, 0); g2.clearRect(0, 0, W, H);
+          g2.fillStyle = `rgba(206,196,234,${(0.5 * (1 - ease(q))).toFixed(3)})`; g2.fillRect(0, 0, W, H);
+          for (const c of NB) {
+            const z = c.z - q * 2.2; if (z <= 0.12) continue;
+            const d = c.r * M * 0.32 / z, s = c.s * M * 0.55 / z;
+            g2.globalAlpha = Math.min(1, z * 1.4) * (1 - q * q);
+            g2.drawImage(nube, W / 2 + Math.cos(c.a) * d - s / 2, H / 2 + Math.sin(c.a) * d * 0.75 - s / 2, s, s);
+          }
+          g2.globalAlpha = 1; nc.style.display = '';
+        } else nc.style.display = 'none';
+        // el nombre: las letras caen una tras otra en medio de la pantalla, mientras se abren las nubes; luego el brillo y el
+        // lema; cuando Navarra se suelta, sube a lo alto, más pequeño (sin el lema), para dejarla ver en el aire; al
+        // posarse, se va hacia arriba y se desvanece
+        const arriba = ease(rampa(tI, 2.2, 2.9)), sale = ease(rampa(tI, 3.9, 4.5)), y0 = H * 0.3, y1 = Math.max(8, H * 0.03);
+        letras.forEach((l, i) => { const p = rampa(tI, 0.35 + i * 0.07, 0.85 + i * 0.07), e = ease(p); l.style.opacity = Math.min(1, p * 1.8).toFixed(3); l.style.transform = `translateY(${((1 - e) * -0.5).toFixed(3)}em) scale(${(1 + (1 - e) * 1.8).toFixed(3)})`; });
+        tit.style.setProperty('--brillo', rampa(tI, 1.3, 2.3).toFixed(3));
+        lema.style.opacity = (rampa(tI, 1.4, 1.9) * (1 - rampa(tI, 2.1, 2.5))).toFixed(3); lema.style.letterSpacing = (0.2 + 0.5 * (1 - ease(rampa(tI, 1.4, 2.2)))).toFixed(3) + 'em';
+        tit.style.opacity = (1 - sale).toFixed(3);
+        tit.style.transform = `translate(-50%, ${(mezcla(y0, y1, arriba) - sale * 30).toFixed(1)}px) scale(${(mezcla(1, 0.55, arriba) * (1 + sale * 0.25)).toFixed(3)})`;
+        // el sol que asoma entre las nubes
+        sol.style.opacity = (rampa(tI, 0.6, 1.6) * (1 - rampa(tI, 3.0, 4.2))).toFixed(3);
+        // la luz dorada en el suelo, bajo Navarra en el aire
+        const lz = rampa(tI, IT.sube, IT.sube + 0.8) * (1 - rampa(tI, IT.baja, tPosa));
+        luz.style.opacity = lz.toFixed(3);
+        if (lz > 0) { pc.copy(NC).project(cam); const k = 0.9 + 0.1 * Math.sin(tI * 6); luz.style.transform = `translate(${((pc.x + 1) / 2 * W).toFixed(1)}px, ${((1 - pc.y) / 2 * H).toFixed(1)}px) scale(${k.toFixed(3)})`; }
+        // el destello al posarse
+        dest.style.opacity = (tI > tPosa ? 0.55 * Math.exp(-(tI - tPosa) * 4.5) : 0).toFixed(3);
+      },
+      quita() { E.remove(); },
+    };
+  })();
   // los terrones y el polvo que caen por los bordes al despegarse: de los puntos del contorno de fuera de Navarra (los que
   // no dan a otra comarca), hacia fuera; botan una vez en el mapa y se deshacen
   const terr = intro && (() => {
@@ -964,7 +1036,7 @@ export function mapa3d(host, o) {
     const im = new THREE.InstancedMesh(caja, res.mat, 1); im.setColorAt(0, new THREE.Color());
     const grupo = new THREE.Group(); grupo.add(new THREE.Mesh(g, pm), im);
     geos.push(g, caja, res.geo); mats.push(pm, res.mat);
-    r.compileAsync(grupo, cam, scene).catch(() => { });
+    compilarAsync(r, grupo, cam, scene);
   }
   function maqueta(dt, quieto) {
     if (!calentado && v.d < 8) calienta();
@@ -1078,6 +1150,7 @@ export function mapa3d(host, o) {
       // (en la entrada, la cámara baja desde lo alto de la península; la distancia, en proporción, para que el zoom no se frene)
       const a = intro.de, k = ease(rampa(tI, IT.vuelo, IT.vuelo + IT.vueloD)), d0 = a.d * (1 - 0.05 * Math.min(1, tI / IT.vuelo));
       for (const q of ['x', 'z', 'yaw', 'pitch']) v[q] = mezcla(a[q], goal[q], k);
+      v.yaw += Math.sin(k * Math.PI) * 0.35;   // (baja girando un poco, como un avión que entra a tomar tierra)
       v.d = Math.exp(mezcla(Math.log(d0), Math.log(goal.d), k));
       if (tI >= IT.fin) acabaIntro();
     } else if (vuelo) {
@@ -1112,11 +1185,11 @@ export function mapa3d(host, o) {
     const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
     CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
     for (const c of C) {
-      let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0;
+      let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
         // (en la entrada: tiembla, crece mientras sube y se posa; suelta terrones mientras sube y aún algo arriba)
         const [k, y, sube, baja, tl] = despegue(c, tI), tb = 0.12 * rampa(tI, IT.tiembla, IT.sube) * (1 - sube);
-        nace = k; alza = y; c.suelta = sube > 0.02 && baja < 0.3 ? (sube < 1 ? 1 : 0.4) * (1 - baja / 0.3) : 0;
+        nace = k; alza = y; posa = tl > 0 ? Math.exp(-tl * 3.5) : 0; c.suelta = sube > 0.02 && baja < 0.3 ? (sube < 1 ? 1 : 0.4) * (1 - baja / 0.3) : 0;
         if (!intro.hecho) { c.mesh.position.x = c.linea.position.x = Math.sin(tI * 63 + c.d * 13) * tb; c.mesh.position.z = c.linea.position.z = Math.cos(tI * 49 + c.d * 7) * tb; }
         if (!c.solto && sube > 0.03) { c.solto = true; terr.anillo(c, 1.2, 1.6); }
         if (!c.posada && tl > 0) { c.posada = true; terr.anillo(c, 2.6, 1.9); }
@@ -1130,7 +1203,7 @@ export function mapa3d(host, o) {
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py;
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.7 - c.gris) * c.fondo;
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.55 * c.fondo)
-        + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse)
+        + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.8 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.7 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.8 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
@@ -1168,6 +1241,7 @@ export function mapa3d(host, o) {
       e.op2 += ((maq?.e === e && maq.malla ? 0 : kC) * f - e.op2) * (1 - Math.exp(-dt * 5)); e.casas.material.opacity = e.op2; e.casas.visible = e.op2 > 0.01;
     }
     r.setClearColor(FONDO, 1);
+    if (show && !intro.hecho) show.tick(tI);
     r.render(scene, cam);
     // los nombres encima, sin pisarse nunca ni quedar debajo de lo de encima: primero el pueblo donde estás y el que señalas;
     // de cerca, los pueblos antes que las comarcas; de lejos, al revés. El que no cabe, se esconde. Con una comarca
@@ -1219,7 +1293,8 @@ export function mapa3d(host, o) {
   raf = requestAnimationFrame(frame);
 
   function dispose() {
-    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); CINE.classList.remove('m3-cine', 'm3-cine-fin');
+    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
+    const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku);
     for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
