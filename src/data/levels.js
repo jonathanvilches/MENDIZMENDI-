@@ -274,7 +274,7 @@ export const LEVELS = [
     ],
     missions: [
       { type: 'visit' },
-      { type: 'race', kind: 'encierro', title: 'El encierro de San Fermín', host: H('Pastor del encierro', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', scarf: '#d42f2f', hair: '#2a1a12', staff: true }),
+      { type: 'race', kind: 'encierro', title: 'El encierro de San Fermín', ilus: 'romeria-encierro', host: H('Pastor del encierro', { shirt: '#ffffff', pants: '#ffffff', sash: '#d42f2f', scarf: '#d42f2f', hair: '#2a1a12', staff: true }),
         text: 'Cada 7 de julio empieza San Fermín y, cada mañana a las ocho, el encierro: seis toros y los cabestros corren por la Estafeta hasta la plaza de toros. Corre delante de ellos y esquívalos.' },
       { type: 'process', id: 'chistorra', title: 'La txistorra', host: H('Carnicera Itziar', { shirt: '#ffffff', apron: '#c0392b', pants: '#3a3530', hair: '#6b3b1f', bun: true }), product: 'Txistorra',
         text: 'La txistorra es un embutido fino y alargado típico de Navarra, con pimentón.',
