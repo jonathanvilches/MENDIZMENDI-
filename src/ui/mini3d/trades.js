@@ -569,7 +569,8 @@ function doveScene(S, net) {
     // cada ala en su bisagra (gira sobre el eje del cuerpo); la forma del ala, tumbada
     const wl = new THREE.Group(), wr = new THREE.Group(); wl.position.set(0.03, 0.02, 0.02); wr.position.set(-0.03, 0.02, 0.02); wr.scale.x = -1;
     for (const w of [wl, wr]) { const m = new THREE.Mesh(wingG, wingM); m.rotation.x = -Math.PI / 2; w.add(m); } b.add(wl, wr);
-    b.scale.setScalar(2.2); S.add(b); return { b, wl, wr, ph: Math.random() * 6, off: i / 18 * 0.16, lane: (Math.random() - 0.5) * 2, h: Math.random() };
+    // (fuera, a la izquierda, hasta que vuelan)
+    b.scale.setScalar(2.2); b.position.set(-9, 4, NZ + 0.9); S.add(b); return { b, wl, wr, ph: Math.random() * 6, off: i / 18 * 0.16, lane: (Math.random() - 0.5) * 2, h: Math.random() };
   });
   const paleta = S.mesh(rbox(0.36, 0.025, 0.14, 0.012), S.mat('#f4f1ea', { roughness: 0.6 }));
   // el paletero en lo alto de la torre: lanza la paleta con el brazo por encima de la cabeza
