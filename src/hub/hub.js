@@ -172,7 +172,7 @@ export class Hub {
       <button type="button" class="hub-menu-btn" data-menu aria-label="Menú" aria-expanded="false"></button>
       <div class="hub-velo" data-menu-x></div>
       <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú">${XF}</button></header>
-      <nav class="hub-nav" id="hNav"></nav></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab" aria-hidden="true"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa">${XF}</button></div>`);
+      <nav class="hub-nav" id="hNav"></nav></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><div class="hub-pista" aria-hidden="true"><span><kbd>Esc</kbd>Volver al mapa</span><span><kbd>Q</kbd><kbd>E</kbd>Otra sección</span></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa">${XF}</button></div>`);
     document.body.appendChild(this.root);
     // (en el archivo único: en cuanto se sabe que se llega a la web, la pantalla del menú se repinta con las ilustraciones
     // que no van dentro, src/web/hd.js; solo si no se ha bajado en ella ni hay nada abierto encima)
@@ -194,6 +194,8 @@ export class Hub {
     this.root.addEventListener('click', e => { if (e.target.closest('[data-menu]')) this.menu(!this.root.classList.contains('menu-on')); else if (e.target.closest('[data-menu-x]')) this.menu(false); });
     addEventListener('keydown', e => { if (e.key !== 'Escape' || !this.visible || !this.root.classList.contains('juego') || document.querySelector('.sheet, .onb, .mg-overlay')) return;
       if (this.root.classList.contains('menu-on')) { e.stopImmediatePropagation(); this.menu(false); } else if (this.screen !== 'home') { e.stopImmediatePropagation(); this.go('home'); } }, true);
+    addEventListener('keydown', e => { const k = e.key.toLowerCase(); if ((k !== 'q' && k !== 'e') || e.ctrlKey || e.metaKey || e.altKey || !this.visible || !this.root.classList.contains('juego') || this.screen === 'home' || this.root.classList.contains('menu-on') || e.target.closest?.('input, textarea, select, [contenteditable]') || document.querySelector('.sheet, .onb, .mg-overlay')) return;
+      const v = this.vecinas(this.screen); if (v) { e.preventDefault(); this.go(v[k === 'q' ? 0 : 1][0]); } });
     // cómo jugar (en el ordenador, con el móvil de mando o en el móvil) e instalar el juego o la app Mando: siempre a mano
     // arriba (en el móvil de pie, en «Más»), salvo en el modo didáctico, que no se juega
     const cb = this.root.querySelector('[data-cj-abre]');
@@ -272,16 +274,47 @@ export class Hub {
       else if (!mapa.firstElementChild) { this.after = null; mapa.innerHTML = this.s_home(); this.after?.(); this.after = null; }
       if (screen === 'home') { m.innerHTML = ''; m.removeAttribute('role'); this.renderChip(); return; }
       // (la sección, en una ventana encima del mapa, con su nombre arriba entre el botón del menú y el de cerrar)
+      // A los lados, como en el menú de pausa de un juego, la sección de antes y la de después: se pasa de una a otra
+      // tocándolas o con Q y E, sin volver al mapa
       const n = this.nav.find(x => x[0] === screen) || (screen === 'comarca' ? [, COMARCAS.find(c => c.id === arg)?.name || 'Comarca', 'map'] : [, '', 'home']);
       m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', n[1]);
-      $('#hCab', this.root).innerHTML = `${I(n[2], 20)}<span>${esc(n[1])}</span>`; $('#hCab', this.root).dataset.cat = kc(screen);
+      const [ant, sig] = this.vecinas(screen) || [];
+      $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}"><kbd>Q</kbd><span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t">${I(n[2], 20)}<span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}"><span>${esc(sig[1])}</span><kbd>E</kbd></button>` : ''}`;
+      $('#hCab', this.root).dataset.cat = kc(screen);
     } else cierraMapa();
     m.dataset.cat = kc(screen);
     m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
-    this.after?.(); this.after = null; bindLaminas(m, this.sound);
+    this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
     this.renderChip();
+  }
+  // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas
+  vecinas(screen) {
+    const L = this.nav.filter(x => x[0] !== 'home'), i = L.findIndex(x => x[0] === screen);
+    return i < 0 || L.length < 3 ? null : [L[(i - 1 + L.length) % L.length], L[(i + 1) % L.length]];
+  }
+  // La pastilla de las pestañas (.filters), jugando: una sola pieza que se desliza hasta la elegida con el borde de delante
+  // más rápido que el de detrás, así que se estira al moverse y se recoge al llegar. Recuerda dónde estaba en cada
+  // pantalla: al cambiar de pestaña la pantalla se vuelve a pintar, y la pastilla sale de la de antes
+  pastillas(m) {
+    if (!this.root.classList.contains('juego')) return;
+    const mem = this._pasti ||= {};
+    m.querySelectorAll('.filters').forEach((f, k) => {
+      const ind = document.createElement('i'); ind.className = 'fl-ind'; ind.setAttribute('aria-hidden', 'true'); f.prepend(ind);
+      const key = this.screen + ':' + k;
+      const pon = () => {
+        const b = f.querySelector('button.on'); ind.style.opacity = b ? 1 : 0; if (!b) return;
+        const l = b.offsetLeft, r = l + b.offsetWidth, a = mem[key];
+        ind.classList.toggle('izq', !!a && l < a.l);
+        ind.style.setProperty('--l', l + 'px'); ind.style.setProperty('--r', r + 'px'); ind.style.setProperty('--t', b.offsetTop + 'px'); ind.style.setProperty('--h', b.offsetHeight + 'px');
+        mem[key] = { l, r };
+      };
+      // (sale de donde estaba y, en el cuadro siguiente, va a la nueva; luego sigue a la elegida, también al desplazar)
+      const a = mem[key]; if (a) { ind.style.setProperty('--l', a.l + 'px'); ind.style.setProperty('--r', a.r + 'px'); }
+      requestAnimationFrame(() => requestAnimationFrame(pon));
+      new MutationObserver(pon).observe(f, { subtree: true, attributes: true, attributeFilter: ['class'] });
+    });
   }
   // ¿el botón de esa sección no cabe en la barra con este tamaño de pantalla? (entonces va en «Más»)
   navHidden(id) { const b = this.root.querySelector(`#hNav [data-s="${id}"]`); return !b || getComputedStyle(b).display === 'none'; }
