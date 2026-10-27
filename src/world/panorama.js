@@ -3,6 +3,8 @@
 // sus colores (bosque abajo, pastos, roca en las pendientes, nieve arriba en los altos), con una textura de detalle y
 // la bruma de la distancia. Delante, colinas y valles. Pocos montes, pero bien hechos.
 import * as THREE from 'three';
+import { PolarGrid, polarMaterial, labelTex, montesVisibles, panoBirds, moveBirds } from './miradorReal.js';
+import { rel } from '../util/geo.js';
 import { mulberry32, smoothstep, hashStr } from '../util/math.js';
 
 // ruido de valor 2D suave y fBm (sumas de octavas); «ridged» para crestas afiladas
@@ -249,7 +251,9 @@ export class Panorama {
     S.add(new THREE.HemisphereLight(zen.clone().lerp(C('#ffffff'), 0.5), C('#6a7a50'), 1.5));
     const sun = new THREE.DirectionalLight('#fff1dc', 2.2); sun.position.copy((o.sun || new THREE.Vector3(0.4, 0.7, -0.3)).clone().normalize().multiplyScalar(1000)); S.add(sun);
     this.detail = detailTexture(); this.owned.push(this.detail);
-    // con el relieve real del mirador (src/world/relieve.js), el paisaje de verdad; si no, los montes hechos a mano
+    // con el relieve de detalle del mirador (las alturas reales: miradorReal.js), el paisaje de verdad; si no ha llegado,
+    // el de las siluetas del relieve general (src/world/relieve.js) y, si tampoco, los montes hechos a mano
+    if (o.polar) { try { this.buildPolar(o.polar, hor, zen); return; } catch (e) { console.warn('relieve de detalle del mirador', e); } }
     if (o.relieve) { try { this.buildReal(o.relieve, hor, zen); return; } catch (e) { console.warn('relieve del mirador', e); } }
     // los montes de verdad
     // relieve general del terreno (antes de los montes, que se asientan sobre él)
@@ -550,11 +554,79 @@ export class Panorama {
       return { m, mesh, summit, H: r * Math.tan(Math.max(0.4, deg - below) * VX * D2R), ds: r, type: 'real', b, base: 0, aw: Math.atan(3000 / r) };
     });
   }
+  // Paisaje con el relieve de detalle (miradorReal.js): el terreno de verdad hasta 110 km, los montes de la misión en su
+  // cumbre real, el nombre de los demás montes conocidos que se ven y aves volando delante
+  buildPolar(G, hor, zen) {
+    const S = this.scene, low = this.o.quality === 'low', grid = this.grid = new PolarGrid(G, low), D2R = Math.PI / 180;
+    const mat = polarMaterial({ eyeAlt: grid.alt, lat: grid.lat, haze: this.o.haze ?? 1, snow: this.o.snow ? 1150 : 9000, hazeColor: hor.clone().lerp(zen, 0.25).multiplyScalar(0.95) });
+    const meshes = this.sectors = grid.meshes(mat); for (const m of meshes) { S.add(m); this.owned.push(m.geometry); } this.owned.push(mat);
+    this.real = true; this.eye.set(0, 0, 0); S.fog = null;
+    // la luz: el sol entre unos 12° y 35° sobre el horizonte (muy alto, el relieve no se lee; muy bajo, todo a oscuras), y
+    // menos luz del cielo para que los lomos y las laderas en sombra se distingan
+    const sunL = S.children.find(c => c.isDirectionalLight), hemi = S.children.find(c => c.isHemisphereLight);
+    if (sunL) {
+      const d = sunL.position.clone().normalize(), hz = Math.hypot(d.x, d.z) || 1, el = Math.min(35, Math.max(12, Math.asin(Math.max(-1, Math.min(1, d.y))) / D2R)) * D2R;
+      d.set(d.x / hz * Math.cos(el), Math.sin(el), d.z / hz * Math.cos(el)); if (Math.hypot(d.x, d.z) < 1e-3) d.set(0, Math.sin(el), Math.cos(el));
+      sunL.position.copy(d.multiplyScalar(1000)); sunL.intensity = 2.6;
+    }
+    if (hemi) hemi.intensity = 1.3;
+    const cam = this.camera; cam.near = 20; cam.far = 150000; cam.updateProjectionMatrix();
+    const sky = S.children.find(c => c.isMesh && !meshes.includes(c)); if (sky) sky.scale.setScalar(12);
+    // los montes de la misión: en su cumbre real (lo más alto del relieve junto a sus coordenadas), vistos desde este ojo
+    // (polar.py lo pone donde se ven todos: puede estar algo apartado del de relieve.js)
+    const byId = new Map((this.o.conocidos || []).map(m => [m.id, m]));
+    this.peaks = this.montes.map((m) => {
+      const k = byId.get(m.id), at = k ? rel(grid.lat, grid.lon, k.lat, k.lon) : { bearing: m.bearing, km: m.km }, c = grid.summit(at.bearing, at.km);
+      return { m, summit: grid.pos(c.b, c.r, c.h), H: 200, ds: c.r * 1000, type: 'real', b: c.b * D2R };
+    });
+    // los demás montes conocidos que se ven, con su nombre
+    const skip = new Set(this.montes.map(m => m.id));
+    this.labels = montesVisibles(grid, this.o.conocidos || [], skip).map((v) => {
+      const L = labelTex(v.m.name, v.m.altitude), sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: L.tex, depthTest: false, transparent: true, fog: false }));
+      sp.center.set(0.5, 0); sp.renderOrder = 15; sp.visible = false; S.add(sp); this.owned.push(L.tex, sp.material);
+      return { ...v, sp, w: L.w, h: L.h, at: grid.pos(v.b, v.r, v.h) };
+    });
+    // aves de la comarca
+    this.birds = panoBirds(S, grid, this.o.birds?.length ? this.o.birds : ['buitre', 'milano'], low ? 5 : 8);
+  }
+  /** Mueve las aves (cada fotograma, con los prismáticos puestos). */
+  update(dt) { this.t = (this.t || 0) + dt; if (this.birds) moveBirds(this.birds, dt, this.t); }
+  /** Las aves que se pueden anotar con los prismáticos. */
+  birdObs() { return (this.birds || []).map(v => ({ id: v.id, pos: v.obj.position, h: 0, far: true, pano: true, obj: v.obj })); }
+  /**
+   * Coloca los rótulos de los montes: del mismo tamaño en la pantalla, sin pisarse entre ellos ni con las marcas (pins) ni
+   * con el anillo del visor; el de una cumbre que entra en el anillo sube por encima de él.
+   */
+  placeLabels(pins = []) {
+    if (!this.labels) return;
+    const cam = this.camera, W = innerWidth, H = innerHeight, wpp = 2 * Math.tan(cam.fov * Math.PI / 360) / H, v = new THREE.Vector3();
+    const rectOf = (sp) => { v.copy(sp.position).project(cam); const px = wpp * sp.position.length(), w = sp.scale.x / px, h = sp.scale.y / px, sx = (v.x + 1) / 2 * W, sy = (1 - v.y) / 2 * H; return { x: sx - w * sp.center.x, y: sy - h * (1 - sp.center.y), w, h }; };
+    const used = [{ x: W / 2 - 48, y: H / 2 - 48, w: 96, h: 96 }, ...pins.filter(p => p.visible !== false).map(rectOf)];
+    // (dentro de los círculos del visor: la máscara de ui.js, viewBox 160 × 100 recortado a la pantalla)
+    const ms = Math.max(W / 160, H / 100), inside = (x, y) => [58, 102].some(cx => Math.hypot(x - (W / 2 + (cx - 80) * ms), y - H / 2) < 36 * ms - 6);
+    const hit = (a) => used.some(r => a.x < r.x + r.w && r.x < a.x + a.w && a.y < r.y + r.h && r.y < a.y + a.h);
+    for (const L of this.labels) {
+      v.copy(L.at).project(cam);
+      if (v.z > 1 || Math.abs(v.x) > 1.05 || Math.abs(v.y) > 1.05) { L.sp.visible = false; continue; }
+      const sx = (v.x + 1) / 2 * W, sy = (1 - v.y) / 2 * H, dpx = Math.hypot(sx - W / 2, sy - H / 2);
+      const hp = 54, wp = hp * L.w / L.h, gap = dpx < 110 ? 50 * (1 - Math.max(0, (dpx - 40) / 70)) : 0;
+      const r = { x: sx - wp / 2, y: sy - gap - hp, w: wp, h: hp * 0.66 };   // (la raya de abajo puede cruzar otras cosas)
+      if (hit(r) || !inside(r.x, r.y) || !inside(r.x + r.w, r.y) || !inside(r.x, r.y + r.h) || !inside(r.x + r.w, r.y + r.h)) { L.sp.visible = false; continue; }
+      used.push(r); L.sp.visible = true;
+      const px = wpp * L.at.length(); L.sp.scale.set(wp * px, hp * px, 1); L.sp.position.copy(L.at); L.sp.position.y += gap * px;
+    }
+  }
   /** Mira con el ángulo de los prismáticos (yaw como en el juego: dirección (sin yaw, cos yaw)). */
   look(yaw, pitch, fov) {
     const c = this.camera, e = this.eye;
     c.fov = fov; c.aspect = innerWidth / innerHeight; c.updateProjectionMatrix();
     c.position.copy(e); c.lookAt(e.x + Math.sin(yaw) * Math.cos(pitch), e.y + Math.sin(pitch), e.z + Math.cos(yaw) * Math.cos(pitch));
+    // (del relieve de detalle, solo los sectores que caen en el visor: su rumbo cerca del de la mirada, con el ancho del
+    // visor, que se abre al mirar hacia abajo o hacia arriba)
+    if (this.sectors) {
+      const hv = fov * Math.PI / 360, hw = Math.atan(Math.tan(hv) * c.aspect / Math.max(0.2, Math.cos(Math.min(1.35, Math.abs(pitch) + hv)))), brg = Math.PI - yaw;
+      for (const m of this.sectors) { const d = Math.abs(Math.atan2(Math.sin(m.userData.b - brg), Math.cos(m.userData.b - brg))); m.visible = d < hw + m.userData.hw + 0.06; }
+    }
   }
   dispose() { for (const o of this.owned) o.dispose(); }
 }

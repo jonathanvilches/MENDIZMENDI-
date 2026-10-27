@@ -193,7 +193,8 @@ export class Animal {
 
 const buildSquirrel = squirrel, buildWoodpecker = woodpecker, buildFish = trout;
 // Aves que se ven en el cielo de cada comarca (para los prismáticos)
-const SKY = {
+// aves del cielo de cada comarca (también las que vuelan delante del mirador, con los prismáticos)
+export const SKY = {
   pirineo: ['buitre', 'buitre', 'quebrantahuesos', 'aguila', 'buitre'], prepirineo: ['buitre', 'buitre', 'aguila', 'milano'], sanguesa: ['buitre', 'buitre', 'buitre', 'milano', 'aguila'],
   bidasoa: ['milano', 'buitre', 'milano', 'aguila'], 'larraun-leitzaldea': ['milano', 'buitre', 'aguila'], sakana: ['milano', 'buitre', 'milano'], pamplona: ['milano', 'milano', 'ciguena'],
   'tierra-estella': ['milano', 'buitre', 'milano', 'aguila'], 'valdizarbe-novenera': ['milano', 'ciguena', 'buitre'], 'zona-media': ['milano', 'ciguena', 'ciguena', 'buitre'],
@@ -284,7 +285,8 @@ export class Fauna {
     if (fam === 'atlantic' || fam === 'pyrenean') for (let i = 0; i < 2 && trees.length; i++) { const t = trees[Math.floor(rnd() * trees.length)]; const o = buildWoodpecker(); scene.add(o); const a = rnd() * 6.28; o.position.set(t.x + Math.sin(a) * 0.38 * t.s, t.y + 2.4 * t.s, t.z + Math.cos(a) * 0.38 * t.s); o.rotation.y = a + Math.PI; this.peckers.push({ obj: o, t: rnd() * 3, id: 'pito', pos: o.position }); }
     this.vultures = [];
     const gorge = (P.landmarks || []).find(l => l.kind === 'gorge');
-    const list = SKY[com] || ['buitre', 'milano'];
+    // (con los prismáticos tiene que haber aves que buscar: las del cielo de la comarca y unas cuantas más)
+    const sky = SKY[com] || ['buitre', 'milano'], list = [...sky, ...sky.slice(0, 3)];
     list.forEach((k, i) => {
       const o = bird(k); scene.add(o);
       const low = k === 'ciguena' || k === 'milano';

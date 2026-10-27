@@ -75,7 +75,8 @@ if (aves) {
   await revisar('3-aves');
   // cerca del ave más cercana de las que faltan: la ayuda al apuntar la tiene que centrar y decir su nombre
   const ave = await p.evaluate(() => { const G = window.__game, M = G.missions.find(M => M.type === 'observe'), t = G.obsNearest(M); if (!t) return null;
-    const P = G.player.pos, e = { x: P.x, y: P.y + 1.55, z: P.z }, dx = t.pos.x - e.x, dy = t.pos.y + (t.h || 0.5) - e.y, dz = t.pos.z - e.z, d = Math.hypot(dx, dy, dz);
+    // (en el mirador, las aves vuelan delante de la vista lejana: se apunta desde su ojo)
+    const P = G.player.pos, e = G.panoOn && G.pano ? G.pano.eye : { x: P.x, y: P.y + 1.55, z: P.z }, dx = t.pos.x - e.x, dy = t.pos.y + (t.h || 0.5) - e.y, dz = t.pos.z - e.z, d = Math.hypot(dx, dy, dz);
     G.binoYaw = Math.atan2(dx, dz) + 0.05; G.binoPitch = Math.asin(dy / d) - 0.03; return t.id; });
   if (ave) { await frames(30); const m = await revisar('4-ave-centrada'); ok(m.lock && /[A-Za-zÁÉÍÓÚáéíóú]/.test(m.label), `la marca coge el ave (${ave}) y dice su nombre: ${m.label}`); }
 }

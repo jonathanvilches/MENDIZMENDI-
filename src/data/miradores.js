@@ -33,6 +33,8 @@ export function montesFrom(lat, lon, n = 6, id = null) {
   for (const x of all) { if (out.length >= n) break; if (!out.some(o => Math.abs(((o.bearing - x.bearing + 540) % 360) - 180) < 22)) out.push(x); }
   return out.map(x => ({ id: x.m.id, name: x.m.name, alt: x.m.altName, altitude: x.m.altitude, zone: x.m.zone, intro: x.m.intro, km: x.km, dir: x.dir, bearing: x.bearing }));
 }
+/** Todos los montes con coordenadas (los de Navarra y las cimas famosas de fuera que se ven desde muchos pueblos). */
+export const montesConocidos = () => [...MOUNTAINS, ...EXTRA].filter(m => m.lat);
 // pueblos con mirador (y el nombre del mirador cuando lo tiene)
 export const MIRADOR_TOWNS = {
   pamplona: 'Mirador del Caballo Blanco', ujue: null, irurtzun: null, artajona: null, estella: null, irulegi: null,
