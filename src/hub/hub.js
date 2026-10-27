@@ -1,8 +1,5 @@
 // Centro de mando: inicio, mapa de Navarra, comarcas, pueblos, cimas, naturaleza, personajes, insignias, pasaporte y perfil.
 import COMARCAS from '../data/comarcas.json';
-import { txapelas as TXAPELAS, torneosGuardados, KINDS, yourMatch } from '../game/torneo.js';
-import { ligasGuardadas, table as ligaTabla } from '../futbol/liga.js';
-import { pelotarisCount } from '../game/pelotaris.js';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import SETTLEMENTS from '../data/settlements.json';
@@ -36,7 +33,6 @@ import { getLang, setLang, langChosen } from '../i18n.js';
 import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
-import { SABERES, saberCounts } from '../data/saberes.js';
 import { STAR } from '../data/tiendas.js';
 import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, GUIA, armsOfTown } from '../data/armas-navarra.js';
@@ -51,11 +47,14 @@ import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { DIDACTICO } from './didactico.js';
-import { inicioHTML, aventuraHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
+import { inicioHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
+import './consola.css';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 
 const $ = (s, r = document) => r.querySelector(s);
+// (la X fina de cerrar el menú flotante y las ventanas de las secciones)
+const XF = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
 const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
 const comarca = (id) => COMARCAS.find(c => c.id === id);
@@ -162,69 +161,18 @@ function spark(profile, w = 160, h = 44) {
   return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><path d="M0 ${h} ${P.map(p => 'L' + p.join(' ')).join(' ')} L${w} ${h}Z" fill="rgba(201,178,255,.22)"/><path d="M${P.map(p => p.join(' ')).join(' L')}" fill="none" stroke="#c9b2ff" stroke-width="2.5"/></svg>`;
 }
 
-// ---------- Panel de control del inicio: el dial de Navarra y los medidores ----------
-// Todo texto va dentro de su figura y centrado; en los círculos, curvado por dentro del borde, sin tocar nunca un aro.
-// Ángulos en grados, 0 arriba y en el sentido del reloj
-const pol = (c, r, a) => [c + r * Math.sin(a * Math.PI / 180), c - r * Math.cos(a * Math.PI / 180)].map(v => +v.toFixed(1));
-const arcoArriba = (c, r, a0, a1) => { const [x0, y0] = pol(c, r, a0), [x1, y1] = pol(c, r, a1); return `M${x0} ${y0}A${r} ${r} 0 ${a1 - a0 > 180 ? 1 : 0} 1 ${x1} ${y1}`; };
-// (el de abajo va de izquierda a derecha por debajo del centro: así sus letras se leen derechas, con la cabeza hacia dentro)
-const arcoAbajo = (c, r, m) => { const [x0, y0] = pol(c, r, 180 + m), [x1, y1] = pol(c, r, 180 - m); return `M${x0} ${y0}A${r} ${r} 0 0 0 ${x1} ${y1}`; };
-// (html: el rótulo ya escrito, con sus trozos en tspan para que el traductor los lea por separado)
-const curvo = (id, cls, txt, max, html = false) => `<text class="${cls} arc" data-max="${max}"><textPath href="#${id}">${html ? txt : esc(txt)}</textPath></text>`;   // (centrado al pintarse: dashOn)
-// el dial: un tramo por comarca con su color (se llena con sus sellos), el aro de lo descubierto y, en el disco del centro,
-// el tanto por ciento con un rótulo curvado arriba y otro abajo
-function dialSVG(all, coms, nivel) {
-  const C = 120, seg = 360 / coms.length, R = 92, L = +(2 * Math.PI * R).toFixed(1);
-  const tramos = coms.map((c, i) => { const a0 = i * seg + 2, a1 = (i + 1) * seg - 2;
-    return `<g class="dl-c" data-comarca="${c.id}" style="--c:${c.color}" role="button" tabindex="0" aria-label="${esc(c.name)}"><title>${esc(c.name)}</title><path class="dl-cb" d="${arcoArriba(C, 108, a0, a1)}"/>${c.k > 0 ? `<path class="dl-cf" d="${arcoArriba(C, 108, a0, a0 + (a1 - a0) * c.k)}"/>` : ''}</g>`; }).join('');
-  let ticks = ''; for (let i = 0; i < 72; i++) { const [x0, y0] = pol(C, 116, i * 5), [x1, y1] = pol(C, i % 6 ? 118 : 119.5, i * 5); ticks += `M${x0} ${y0}L${x1} ${y1}`; }
-  return `<svg class="dial" viewBox="0 0 240 240">
-    <defs><path id="dlTop" d="${arcoArriba(C, 61, -64, 64)}"/><path id="dlBot" d="${arcoAbajo(C, 67, 62)}"/>
-      <linearGradient id="dlG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff2bd6"/><stop offset=".55" stop-color="#ff7ac8"/><stop offset="1" stop-color="#ffd166"/></linearGradient>
-      <radialGradient id="dlD" cx=".5" cy=".38" r=".7"><stop offset="0" stop-color="#4a1a8f"/><stop offset="1" stop-color="#1a0838"/></radialGradient></defs>
-    <path class="dl-ticks" d="${ticks}"/>${tramos}
-    <circle class="dl-trk" cx="${C}" cy="${C}" r="${R}"/><circle class="dl-arc" cx="${C}" cy="${C}" r="${R}" stroke-dasharray="${+(L * all / 100).toFixed(1)} ${L}" transform="rotate(-90 ${C} ${C})"/>
-    <circle class="dl-disc" cx="${C}" cy="${C}" r="78"/><circle class="dl-scan" cx="${C}" cy="${C}" r="74"/>
-    <text class="dl-pct" x="${C}" y="${C + 15}" text-anchor="middle"><tspan class="cnt" data-n="${all}">${all}</tspan><tspan class="u" dx="2">%</tspan></text>
-    ${curvo('dlTop', 'dl-t', 'Navarra descubierta', 128)}${curvo('dlBot', 'dl-b', nivel, 136, true)}</svg>`;
-}
-// un medidor: el aro se llena con lo hecho (sin total, entero); dentro del disco, el icono arriba, la cifra en el centro y
-// el rótulo curvado por dentro del borde de abajo
-function gaugeHTML([ic, k, v, de, cat], i) {
-  const L = +(2 * Math.PI * 52).toFixed(1), f = de ? Math.min(1, v / de) : v > 0 ? 1 : 0, id = 'gb' + i;
-  return `<div class="gauge" data-cat="${cat}" style="--d:${(i * 0.06).toFixed(2)}s"><svg viewBox="0 0 120 120" aria-hidden="true"><defs><path id="${id}" d="${arcoAbajo(60, 35, 60)}"/></defs>
-    <circle class="g-trk" cx="60" cy="60" r="52"/><circle class="g-arc" cx="60" cy="60" r="52" stroke-dasharray="${+(L * f).toFixed(1)} ${L}" transform="rotate(-90 60 60)"/><circle class="g-disc" cx="60" cy="60" r="44"/>
-    <text class="g-n" x="60" y="70" text-anchor="middle"><tspan class="cnt" data-n="${v}">${v}</tspan>${de != null ? `<tspan class="g-de" dx="1">/${de}</tspan>` : ''}</text>${curvo(id, 'g-l', k, 62)}</svg>
-    <span class="g-ico">${I(ic, 26)}</span><span class="sr">${esc(k)}: ${v}${de != null ? ' / ' + de : ''}</span></div>`;
-}
-// al pintarse: los rótulos curvados que no quepan en su arco se encogen (también en euskera, que suele ser más largo), las
-// cifras suben desde cero y los aros se dibujan
-function dashOn(root) {
-  const dash = root.querySelectorAll('.dash'); if (!dash.length) return;
-  // (y cada uno se centra a mano en su arco, medido, y otra vez al cargar la letra: con el centrado del navegador, Chrome
-  // dejaba los rótulos largos corridos hacia un lado y montados sobre la cifra)
-  const fit = () => { for (const t of root.querySelectorAll('.dash text.arc')) {
-    const tp = t.firstElementChild, path = t.ownerSVGElement?.querySelector(tp?.getAttribute('href')); if (!path || !t.getComputedTextLength) continue;
-    t.style.fontSize = ''; const max = +t.dataset.max; let w = t.getComputedTextLength();
-    if (w > max) { t.style.fontSize = (parseFloat(getComputedStyle(t).fontSize) * max / w).toFixed(2) + 'px'; w = t.getComputedTextLength(); }
-    const ls = parseFloat(getComputedStyle(t).letterSpacing) || 0;
-    tp.setAttribute('startOffset', Math.max(0, (path.getTotalLength() - w + ls) / 2).toFixed(2)); } };
-  requestAnimationFrame(() => { fit(); setTimeout(fit, 400); dash.forEach(d => d.classList.add('on')); });
-  document.fonts?.ready.then(() => requestAnimationFrame(fit));
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  for (const n of root.querySelectorAll('.dash .cnt')) {
-    const to = +n.dataset.n; if (!(to > 0)) continue; const t0 = performance.now(), dur = 900 + Math.min(600, to * 4);
-    const step = (t) => { const k = Math.min(1, (t - t0) / dur); n.textContent = Math.round(to * (1 - (1 - k) ** 3)); if (k < 1) requestAnimationFrame(step); };
-    n.textContent = '0'; requestAnimationFrame(step);
-  }
-}
-
 export class Hub {
   constructor({ sound, onPlay }) {
     this.sound = sound; this.onPlay = onPlay;
-    this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div></div>
-      <header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div></header>
-      <nav class="hub-nav" id="hNav"></nav><main class="hub-main" id="hMain"></main></div>`);
+    // (jugando, #hub.juego: una sola pantalla, como en un juego. Debajo, siempre, el mapa de Navarra (#hMapa); el menú, un
+    // botón flotante que abre un panel con la barra de arriba y las secciones (.hub-panel); y cada sección, un panel encima
+    // del mapa (#hMain) que se cierra con la X y deja el mapa como estaba. En el modo didáctico, la barra de arriba y la de
+    // al lado de siempre: .hub-panel no cuenta en la rejilla)
+    this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div></div><div class="hub-mapa" id="hMapa"></div>
+      <button type="button" class="hub-menu-btn" data-menu aria-label="Menú" aria-expanded="false"></button>
+      <div class="hub-velo" data-menu-x></div>
+      <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú">${XF}</button></header>
+      <nav class="hub-nav" id="hNav"></nav></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab" aria-hidden="true"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa">${XF}</button></div>`);
     document.body.appendChild(this.root);
     // (en el archivo único: en cuanto se sabe que se llega a la web, la pantalla del menú se repinta con las ilustraciones
     // que no van dentro, src/web/hd.js; solo si no se ha bajado en ella ni hay nada abierto encima)
@@ -239,7 +187,13 @@ export class Hub {
     // el modo didáctico (util/modo.js): se elige en la primera pantalla o en Ajustes, o con ?didactico=1 (?didactico=0, quitarlo)
     { const S = profile().settings, u = new URLSearchParams(location.search).get('didactico');
       if (u != null) { S.didactic = u !== '0'; saveProfile(); }
-      markDidactico(S.didactic); }
+      markDidactico(S.didactic); this.root.classList.toggle('juego', !S.didactic); }
+    // (lo que mide tu retrato de arriba a la izquierda, que abre el menú: lo conquistado empieza justo a su lado)
+    { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (this.screen === 'home') this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }
+    // (el menú flotante: se abre y se cierra con su botón, con la X, tocando fuera o con Escape; al elegir una sección, se cierra)
+    this.root.addEventListener('click', e => { if (e.target.closest('[data-menu]')) this.menu(!this.root.classList.contains('menu-on')); else if (e.target.closest('[data-menu-x]')) this.menu(false); });
+    addEventListener('keydown', e => { if (e.key !== 'Escape' || !this.visible || !this.root.classList.contains('juego') || document.querySelector('.sheet, .onb, .mg-overlay')) return;
+      if (this.root.classList.contains('menu-on')) { e.stopImmediatePropagation(); this.menu(false); } else if (this.screen !== 'home') { e.stopImmediatePropagation(); this.go('home'); } }, true);
     // cómo jugar (en el ordenador, con el móvil de mando o en el móvil) e instalar el juego o la app Mando: siempre a mano
     // arriba (en el móvil de pie, en «Más»), salvo en el modo didáctico, que no se juega
     const cb = this.root.querySelector('[data-cj-abre]');
@@ -281,14 +235,22 @@ export class Hub {
   }
   /** Pone o quita el modo didáctico y vuelve a la portada. */
   setDidactico(on) {
-    const S = profile().settings; S.didactic = !!on; saveProfile(); markDidactico(on); this.root.querySelector('[data-cj-abre]').hidden = !!on;
+    const S = profile().settings; S.didactic = !!on; saveProfile(); markDidactico(on); this.root.querySelector('[data-cj-abre]').hidden = !!on; this.root.classList.toggle('juego', !on);
+    cierraMapa(); $('#hMapa', this.root).innerHTML = '';
     this.buildNav(); this.sound?.ui('open'); this.go('home', undefined, true);
     if (!on && !profile().name) this.primeraVez();
   }
   show(screen = this.screen, arg = this.arg) { if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
   // (quien empieza: primero cómo quiere jugar y después su nombre y su personaje)
   primeraVez() { if (vistoComoJugar()) return this.onboarding(); comoJugar(this.root, { primera: true, despues: () => { if (!profile().name && !isDidactico()) this.onboarding(); } }); }
-  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); cierraMapa(); releaseStage(); this.stage = null; releaseOffscreen(); }
+  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); this.menu(false); cierraMapa(); $('#hMapa', this.root).innerHTML = ''; releaseStage(); this.stage = null; releaseOffscreen(); }
+  /** El menú flotante (jugando): abierto o cerrado. */
+  menu(on) {
+    const r = this.root; if (!r.classList.contains('juego')) on = false;
+    if (on === r.classList.contains('menu-on')) return;
+    r.classList.toggle('menu-on', on); r.querySelector('[data-menu]')?.setAttribute('aria-expanded', on);
+    const pn = $('#hPanel', r); if (on) { pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', 'Menú'); this.sound?.ui('open'); } else pn.removeAttribute('role');
+  }
   go(screen, arg, silent) {
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
@@ -299,10 +261,23 @@ export class Hub {
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
     this.root.dataset.screen = screen;
     if (this.visible) this.sound?.setMood?.(screen === 'sports' ? 'torneos' : 'inicio');   // (Torneos, con su propia música)
-    const m = $('#hMain', this.root);
+    const m = $('#hMain', this.root), juego = this.root.classList.contains('juego');
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
+    this.menu(false);
+    if (juego) {
+      // (jugando: el mapa, debajo y siempre el mismo; se hace solo si no está, y así al cerrar una sección se vuelve a él tal
+      // como se dejó. Elegir personaje usa el mismo lienzo 3D que el mapa: mientras, el mapa se suelta)
+      const mapa = $('#hMapa', this.root);
+      if (screen === 'avatars') { cierraMapa(); mapa.innerHTML = ''; }
+      else if (!mapa.firstElementChild) { this.after = null; mapa.innerHTML = this.s_home(); this.after?.(); this.after = null; }
+      if (screen === 'home') { m.innerHTML = ''; m.removeAttribute('role'); this.renderChip(); return; }
+      // (la sección, en una ventana encima del mapa, con su nombre arriba entre el botón del menú y el de cerrar)
+      const n = this.nav.find(x => x[0] === screen) || (screen === 'comarca' ? [, COMARCAS.find(c => c.id === arg)?.name || 'Comarca', 'map'] : [, '', 'home']);
+      m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', n[1]);
+      $('#hCab', this.root).innerHTML = `${I(n[2], 20)}<span>${esc(n[1])}</span>`; $('#hCab', this.root).dataset.cat = kc(screen);
+    } else cierraMapa();
     m.dataset.cat = kc(screen);
-    cierraMapa(); m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
+    m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound);
@@ -323,25 +298,12 @@ export class Hub {
     const p = profile(), L = levelOf(p.xp);
     $('#hChip', this.root).innerHTML = `<img src="${avatarPortrait(p.avatar)}" alt=""><div class="cinfo"><b>${esc(p.name || 'Aventurero')}</b><small>Nv ${L.lv} · ${rankOf(L.lv)}</small><div class="xp"><i style="width:${L.cur / L.need * 100}%"></i></div></div><span class="stamps">${I('stamp', 22)}${stampCount(p)}</span>`;
     $('#hChip', this.root).onclick = () => this.go('profile');
+    // (jugando, el menú se abre con tu retrato, arriba a la izquierda, como en los juegos de rol: tu cara con tu nivel y, si
+    // hay sitio, tu nombre, tu rango y la barra de experiencia. Nada de iconos de página web)
+    $('[data-menu]', this.root).innerHTML = `<span class="yo-c"><img src="${avatarPortrait(p.avatar)}" alt=""><b class="yo-n">${L.lv}</b></span><span class="yo-t"><b>${esc(p.name || 'Aventurero')}</b><small>${rankOf(L.lv)}</small><i class="yo-xp"><i style="width:${L.cur / L.need * 100}%"></i></i></span>`;
   }
 
   // ---------- Inicio ----------
-  // frases de la historia que cuenta el personaje en la portada
-  storyLines(p, av, last) {
-    const town = last.name.split(' /')[0], lp = townProgress(p, last), done = p.towns[last.id]?.done || {};
-    const next = missionSlots(last, edadDe(p)).map(({ m, si }) => ({ m, i: si })).find(x => !done[x.i]);
-    const lines = [`¡Kaixo, ${p.name || 'amiga, amigo'}! Soy ${av.name}, ${av.role.toLowerCase()} de ${av.from.split(' /')[0]}.`];
-    if (next) {
-      const m = next.m, who = m.host?.name?.split(',')[0];
-      if (m.type === 'visit') lines.push(`Primero vamos a conocer ${town}: ${last.church?.name ? 'su ' + last.church.name.replace(/^Iglesia/, 'iglesia') : 'sus calles'} y sus rincones.`);
-      else lines.push(`${who ? who + ' nos espera en ' + town : 'En ' + town + ' nos esperan'}: «${m.title || m.name || TYPE_NAME[m.type]}». ¡Hay que ayudar!`);
-    }
-    // (si ya has hecho alguna, las que te quedan: antes decía «si completas las 6» aunque ya llevaras 4)
-    const left = lp.total - lp.done;
-    lines.push(lp.stamp ? `¡El sello de ${town} ya es tuyo! Elige otro pueblo en el mapa.` : lp.done ? `Te ${left === 1 ? 'queda 1 misión' : `quedan ${left} misiones`} para ganar el sello de ${town}.` : `Si completas las ${lp.total} misiones, el sello de ${town} será tuyo.`);
-    lines.push('Las páginas del Pasaporte Herri están en blanco. ¡Cada pueblo guarda un sello!');
-    return lines;
-  }
   // lo que el inicio le pasa a inicio.js: el icono de cada misión, las que tocan por la edad, dónde cae cada pueblo en el
   // mapa y el mapa plano para cuando no hay 3D
   opcInicio(p) { return { icono: mIcon, nombre: (m) => m.title || m.name || TYPE_NAME[m.type] || '', slots: (l) => missionSlots(l, edadDe(p)), xy: (l) => XY.get(l.id), plano: () => this.navarraSVG({ pins: true }) }; }
@@ -350,87 +312,6 @@ export class Hub {
     if (isDidactico()) return this.d_home();
     this.after = () => inicioOn(this.root);
     return inicioHTML(this.opcInicio(profile()));
-  }
-  // «Tu aventura»: lo que antes iba debajo del mapa (el destacado, los personajes, «Descubre Navarra», cómo vas, los saberes,
-  // la historia, lo que te espera, las comarcas y las mujeres de Navarra)
-  s_aventura() {
-    const p = profile(), N = navarraProgress(p);
-    const last = levelById(p.last) || LEVELS.find(l => !townProgress(p, l).stamp) || LEVELS[0];
-    let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
-    this.after = () => {
-      this.drawMiniMap($('#homeMap', this.root));
-      this.cabeSugg($('.next-panel .sugg', this.root));
-      dashOn(this.root);
-      inicioOn(this.root);
-    };
-    const next = this.suggestions();
-    // (en cuanto se ha jugado algo, el resumen de cómo vas)
-    const empezado = doneM > 0 || p.xp > 0 || Object.values(p.towns || {}).some(t => t.visits) || ligasGuardadas().some(S => S.j > 0) || torneosGuardados().length > 0;
-    return `
-    <div class="av-head"><button class="back" data-go="home">${I('back', 26)} Mapa</button><h1 class="title">${I('book', 40)} Tu aventura</h1></div>
-    ${aventuraHTML(this.opcInicio(p))}
-    ${empezado ? this.progreso(p, last) : ''}
-    <section class="saberes" data-cat="sab">
-      <div class="sb-head"><small class="kicker">${I('book', 20)} Lo más importante</small><h2>Aprende Navarra jugando</h2></div>
-      <div class="sb-links">${[['escudos', 'shield', 'Escudos', armsImg('navarra'), 1], ['cuentos', 'legend', 'Leyendas', leyendaUrl('aralar')], ['instrumentos', 'music', 'Instrumentos', tradicionUrl('trovadores_olite')], ['pasaka', 'pelota', 'Pasaka', laminaUrl('dep-pasaka', true)]]
-        .map(([go, ic, t, img, fit], i) => `<button class="sb-tile" data-go="${go}" style="--d:${i * 0.07}s"><span class="sb-img${fit ? ' fit' : ''}"${bg(img)}>${img ? '' : I(ic, 52)}</span><b>${I(ic, 28)}${t}</b></button>`).join('')}</div>
-      <div class="sb-grid">${(() => { const n = saberCounts(p); return SABERES.map(sb => `<div class="sb ${n[sb.id] ? 'on' : ''}${sb.id === 'escudos' ? ' link' : ''}" style="--cat:${SBK[sb.id] || ''}" title="${esc(sb.text)}"${sb.id === 'escudos' ? ' data-go="escudos" role="button" tabindex="0"' : ''}>${I(sb.icon, 40)}<b>${n[sb.id]}</b><span>${esc(sb.name)}</span></div>`).join(''); })()}</div>
-    </section>
-    <section class="story">${(u => u ? `<img class="st-img" src="${u}" alt="" loading="lazy" decoding="async">` : '')(comarcaCover(last.comarca, true))}
-      <div class="st-txt"><small class="kicker">${I('book', 20)} La historia</small><h2>El Pasaporte Herri</h2></div>
-      <ol class="hsteps"><li>${I('map', 60)}<b>Viaja</b></li><li>${I('exclaim', 60)}<b>Ayuda</b></li><li><img src="${stampImg(last.comarca)}" alt=""><b>Gana el sello</b></li></ol>
-    </section>
-    ${empezado ? '' : `<button class="sports-cta" data-go="sports" data-cat="dep"><span class="cta-fotos" aria-hidden="true">${['dep-pelotari', 'dep-futbol'].map(f => `<i${bg(laminaUrl(f, true))}></i>`).join('')}</span>${I('trophy', 44)}<div><b>Campeonatos</b></div>${I('play', 26)}</button>
-    <section class="dash dash-mini"><div class="dash-gauges">${[['stamp', 'Sellos', N.stamps, N.towns, 'av'], ['shield', 'Comarcas', N.comarcas, N.comarcasTotal, 'av'], ['check', 'Misiones', doneM, totM, 'av'],
-      ['badge', 'Insignias', p.badges.length, BADGES.length, 'yo'], ['star', 'Puntos', p.xp, null, 'yo']].map(gaugeHTML).join('')}</div></section>`}
-    <section class="two">
-      <div class="panel next-panel"><h2 class="sec">${I('exclaim', 34)} Te esperan</h2>${next}</div>
-      <div class="panel map-panel" data-go="home"><h2 class="sec">${I('map', 34)} Mapa de Navarra</h2><div id="homeMap" class="mini-map"></div></div>
-    </section>
-    <h2 class="sec">${I('shield', 34)} Capítulos: las comarcas</h2>
-    <section class="comarcas rail">${COMARCAS.map(c => this.comarcaCard(c)).join('')}</section>
-    <h2 class="sec" data-cat="ley">${I('person', 34)} Mujeres de Navarra<button class="lnk sec-more" data-go="personajes">Ver todos</button></h2>
-    <section class="figuras rail">${personajesHTML(MUJERES)}</section>
-`;
-  }
-  // ---------- Cómo vas: el panel de control del inicio ----------
-  // de un vistazo, al empezar o al volver: el dial de Navarra (lo descubierto y un tramo por comarca que se llena con sus
-  // sellos), un medidor por cada cosa, los pueblos empezados (para seguir donde lo dejaste) y los campeonatos abiertos de
-  // fútbol y de pelota, con su botón para seguir. Cada texto, dentro de su figura (nunca encima de una línea)
-  progreso(p, last) {
-    const N = navarraProgress(p), L = levelOf(p.xp);
-    let doneM = 0, totM = 0; for (const l of LEVELS) { const t = townProgress(p, l); doneM += t.done; totM += t.total; }
-    const pct = (a, b) => (b ? Math.round(100 * a / b) : 0), all = pct(doneM, totM);
-    const coms = COMARCAS.filter(c => comarcaTowns(c.id).length).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, color: c.color, name: c.name, k: r.towns ? r.stamps / r.towns : 0 }; });
-    const heard = CUENTOS.filter(Cu => (p.cards || []).includes('cuento:' + Cu.id)).length, pc = pelotarisCount();
-    const total = `<div class="panel dash-core"><h2 class="dash-tag">${I('compass', 26)}<span>Tu Navarra</span></h2>${dialSVG(all, coms, `<tspan>Nivel ${L.lv}</tspan> · <tspan>${esc(rankOf(L.lv))}</tspan>`)}
-      <div class="dash-gauges">${[['stamp', 'Sellos', N.stamps, N.towns, 'av'], ['check', 'Misiones', doneM, totM, 'av'], ['shield', 'Comarcas', N.comarcas, N.comarcasTotal, 'av'], ['book', 'Cartas', (p.cards || []).length, null, 'sab'],
-        ['legend', 'Cuentos', heard, CUENTOS.length, 'ley'], ['pelota', 'Pelotaris', pc.have, pc.total, 'dep'], ['badge', 'Insignias', p.badges.length, BADGES.length, 'yo'], ['star', 'Puntos', p.xp, null, 'yo']].map(gaugeHTML).join('')}</div></div>`;
-    // los pueblos empezados y sin sello: primero el último en el que jugaste, después los que van más adelantados
-    const started = LEVELS.map(l => ({ l, t: townProgress(p, l), v: p.towns[l.id]?.visits || 0 })).filter(x => !x.t.stamp && (x.t.done || x.v))
-      .sort((a, b) => (b.l.id === p.last) - (a.l.id === p.last) || b.t.done / (b.t.total || 1) - a.t.done / (a.t.total || 1));
-    // (cada dato en su línea, sin «·» que se quede suelto al principio de una; el botón de seguir, con su rótulo, que en una
-    // columna estrecha se queda en el icono: así el nombre no se parte palabra a palabra)
-    const go = (attr) => `<button class="btn primary small pg-go" ${attr} aria-label="Seguir">${I('play', 18)}<span>Seguir</span></button>`;
-    // (la placa de cada pueblo: su portada en un círculo con el aro de lo hecho alrededor y un segmento por misión)
-    const orb = (inner, f) => `<span class="pg-orb">${inner}<svg viewBox="0 0 64 64" aria-hidden="true"><circle class="o-trk" cx="32" cy="32" r="30"/>${f > 0 ? `<circle class="o-arc" cx="32" cy="32" r="30" stroke-dasharray="${(188.5 * f).toFixed(1)} 188.5" transform="rotate(-90 32 32)"/>` : ''}</svg></span>`;
-    const row = ({ l, t }) => { const c = comarca(l.comarca), cov = townCover(l.id, true); return `<li style="--c:${c?.color}">${orb(cov ? `<img src="${cov}" alt="" loading="lazy" decoding="async">` : I('church', 30), t.total ? t.done / t.total : 0)}<div><b>${esc(l.name.split(' /')[0])}</b><small>${esc(c?.name || '')}</small><span class="pg-seg" aria-hidden="true">${Array.from({ length: t.total }, (_, i) => `<i${i < t.done ? ' class="ok"' : ''}></i>`).join('')}</span><em>${t.done}/${t.total} misiones</em></div>${go(`data-play="${l.id}"`)}</li>`; };
-    const sellos = LEVELS.filter(l => townProgress(p, l).stamp).length;
-    const partidas = `<div class="panel pg-partidas"><h2 class="dash-tag">${I('play', 26)}<span>Partidas empezadas</span></h2>${started.length
-      ? `<ul class="pg-list">${started.slice(0, 5).map(row).join('')}</ul>${started.length > 5 ? `<button class="btn ghost small pg-more" data-go="towns">Y ${cnt(started.length - 5, 'pueblo más', 'pueblos más')}</button>` : ''}`
-      : `<p class="pg-empty"><span>${sellos ? 'Ningún pueblo a medias.' : 'Aún no has empezado ningún pueblo.'}</span> <span>Próxima parada</span>: <b>${esc(last.name.split(' /')[0])}</b></p><button class="btn primary small pg-more" data-play="${last.id}">${I('play', 18)} Ir</button>`}</div>`;
-    // los campeonatos: tu liga de fútbol (la del club de Campeonatos, primero) y los torneos de pelota de cada comarca
-    const ligas = ligasGuardadas().filter(S => S.j > 0 || S.titles).sort((a, b) => (b.club === p.futbolClub) - (a.club === p.futbolClub) || b.j - a.j).slice(0, 2);
-    const ord = (n) => `${n}.º`, fut = ligas.map(S => { const T = ligaTabla(S), pos = T.findIndex(x => x.id === S.club) + 1, me = T[pos - 1], fin = S.j >= S.rounds.length, Cl = CLUBS[S.club];
-      const estado = fin ? (pos === 1 ? '<span>¡Campeones de liga!</span>' : `<span>Liga terminada: ${ord(pos)}</span>`) : `<span>Jornada ${S.j + 1} de ${S.rounds.length}</span><span>${ord(pos)} con ${cnt(me?.pts || 0, 'punto', 'puntos')}</span>`;
-      return `<li>${orb(`<img class="pg-crest" src="${clubImg(S.club) || ''}" alt="">`, fin ? 1 : S.j / S.rounds.length)}<div><b>${esc(Cl.name)}</b><small class="pg-sub"><span><span>Liga Navarra</span>${S.titles ? ` · <span>${cnt(S.titles, 'título', 'títulos')}</span>` : ''}</span>${estado}</small></div>${go('data-sport="futbol"')}</li>`; });
-    const tors = torneosGuardados().sort((a, b) => (a.done - b.done) || (b.past?.length || 0) - (a.past?.length || 0)).slice(0, 3), pel = tors.map(T => {
-      const m = yourMatch(T), yo = T.players.findIndex(x => x.you), en = (last.comarca === T.comarca ? last : LEVELS.find(l => l.comarca === T.comarca))?.id || '';
-      const estado = T.done ? (T.champion === yo ? '¡Txapela ganada!' : 'Terminado') : m ? `${m.round} contra ${m.pairs ? m.rival.mates[0] : m.rival.name}` : 'Eliminado: el torneo sigue';
-      return `<li>${orb(I('txapela', 34), T.done ? 1 : (T.past?.length || 0) / Math.max(1, (T.past?.length || 0) + 1))}<div><b>Txapela de ${esc(T.comarcaName)}</b><small class="pg-sub"><span><span>${(KINDS[T.kind] || KINDS.mano).name}</span>${T.txapelas ? ` · <span>${cnt(T.txapelas, 'txapela', 'txapelas')}</span>` : ''}</span><span>${esc(estado)}</span></small></div>${en ? go(`data-sport="pelota" data-en="${en}"`) : ''}</li>`; });
-    const camp = `<div class="panel pg-camp" data-cat="dep"><h2 class="dash-tag">${I('trophy', 26)}<span>Campeonatos</span></h2>${fut.length || pel.length
-      ? `<ul class="pg-list">${[...fut, ...pel].join('')}</ul>` : `<div class="pg-fotos">${[['pelota', 'dep-pelotari', 'Pelota'], ['futbol', 'dep-futbol', 'Fútbol']].map(([s, f, t]) => `<button data-sport="${s}"${bg(laminaUrl(f, true))}><b>${I(s === 'pelota' ? 'pelota' : 'balon', 28)}${t}</b></button>`).join('')}</div>`}<button class="btn ${fut.length || pel.length ? 'ghost' : 'primary'} small pg-more" data-go="sports">${I('trophy', 18)} Ir a Campeonatos</button></div>`;
-    return `<section class="dash progreso" aria-label="Cómo vas"><h2 class="dash-tag big">${I('flag', 30)}<span>Cómo vas</span></h2><div class="pg-grid">${total}${partidas}${camp}</div></section>`;
   }
   // ---------- Campeonatos ----------
   // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se
@@ -480,37 +361,6 @@ export class Hub {
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
     s.querySelector('.fr-chip.on')?.scrollIntoView({ block: 'nearest' });
-  }
-  // «Te esperan»: junto al mapa, los pueblos que quepan enteros en su alto (tres como poco); en una columna, cuatro
-  cabeSugg(sg) {
-    if (!sg) return;
-    const cabe = () => {
-      if (!sg.isConnected) { ro.disconnect(); return; }
-      const L = [...sg.children]; L.forEach(x => { x.hidden = false; });
-      if (!getComputedStyle(sg).contain.includes('size')) { L.forEach((x, i) => { x.hidden = i >= 4; }); return; }
-      const lim = sg.getBoundingClientRect().bottom + 1, i = L.findIndex((x, k) => k >= 3 && x.getBoundingClientRect().bottom > lim);
-      if (i >= 0) L.slice(i).forEach(x => { x.hidden = true; });
-    };
-    const ro = new ResizeObserver(cabe); ro.observe(sg); cabe();
-  }
-  suggestions() {
-    const p = profile();
-    // (los pueblos sin sello y, si ya hay alguno empezado, los que faltan por empezar: los otros salen en «Partidas
-    // empezadas». Salen los que quepan junto al mapa: cabeSugg)
-    const nuevo = (l) => !(p.towns[l.id]?.visits || townProgress(p, l).done), alguno = LEVELS.some(l => !nuevo(l));
-    const list = LEVELS.filter(l => !townProgress(p, l).stamp && (!alguno || nuevo(l))).slice(0, 8);
-    return `<div class="sugg">${list.map(l => { const t = townProgress(p, l), c = comarca(l.comarca), cov = townCover(l.id, true); return `<button class="sg" data-town="${l.id}" style="--c:${c?.color}">${cov ? `<img class="sg-img" src="${cov}" alt="" loading="lazy" decoding="async">` : '<span class="dot"></span>'}<div><b>${esc(l.name)}</b><small>${esc(c?.name)} · ${t.done}/${t.total} misiones</small></div>${I('play', 26)}</button>`; }).join('')}</div>`;
-  }
-  comarcaCard(c) {
-    const p = profile(), pr = comarcaProgress(p, c.id), ts = comarcaTowns(c.id), tx = TXAPELAS()[c.id];
-    return `<button class="ccard ${ts.length ? '' : 'soon'}" data-comarca="${c.id}" style="--c:${c.color}">
-      <div class="cimg ready" style="background-image:url(${comarcaCover(c.id, true)})"></div>
-      <img class="cstamp ${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt="">
-      <div class="cbody"><b>${esc(c.name)}</b>${ts.length ? `<span class="cchips"><span>${I('church', 22)}${ts.length}</span><span>${I('stamp', 22)}${pr.stamps}/${ts.length}</span><span class="tx${tx ? ' won' : ''}" title="${tx ? 'Txapela ganada' : 'Txapela por ganar'}">${I('txapela', 24)}</span></span><span class="cbar"><i style="width:${Math.round(pr.pct * 100)}%"></i></span>` : `<small>Próximamente</small>`}</div></button>`;
-  }
-  drawMiniMap(box) {
-    if (!box) return;
-    box.innerHTML = this.navarraSVG({ pins: true, small: true });
   }
   navarraSVG({ pins = true, small = false, focus = null } = {}) {
     const p = profile();
@@ -651,7 +501,9 @@ export class Hub {
   peakCard(m, town = null) {
     const done = profile().peaks.includes(m.id), c = comarca(m.region);
     // (las cimas de las misiones llevan arriba su escena, entera en 16:9, como las tarjetas de los pueblos)
-    return `<div class="pcard ${done ? 'done' : ''}" style="--c:${c?.color || '#6d3b5c'}">${(u => u ? `<figure class="pc-img"><img src="${u}" alt="" loading="lazy" decoding="async"></figure>` : '')(cimaUrl(m.id))}<div class="phead">${I('peak', 40)}<div><b>${esc(m.name)}</b><small>${esc(m.zone || '')}</small></div><span class="alt">${m.altitude} m</span></div>
+    // (y encima de ella, en el mismo bloque, su icono, su nombre, su zona y su altura)
+    const cab = `<div class="phead">${I('peak', 40)}<div><b>${esc(m.name)}</b><small>${esc(m.zone || '')}</small></div><span class="alt">${m.altitude} m</span></div>`;
+    return `<div class="pcard ${done ? 'done' : ''}" style="--c:${c?.color || '#6d3b5c'}">${(u => u ? `<figure class="pc-img"><img src="${u}" alt="" loading="lazy" decoding="async">${cab}</figure>` : cab)(cimaUrl(m.id))}
       ${spark(m.profile)}<div class="pmeta"><span>${String(Math.round(m.distance * 10) / 10).replace('.', ',')} km</span><span>+${m.gain} m</span><span class="diff">${'<i></i>'.repeat(m.difficulty)}${'<i class="o"></i>'.repeat(Math.max(0, 5 - m.difficulty))}</span></div>
       <p>${esc(m.intro || '')}</p>
       ${town ? (done ? `<span class="pbadge ok">${I('check', 18)} Cima conseguida</span>` : `<button class="btn small primary" data-town="${town.id}">${I('play', 18)} Misión en ${esc(town.name.split(' /')[0])}</button>`) : ''}</div>`;
@@ -826,8 +678,8 @@ export class Hub {
       <div class="ar-head"><small class="kicker">${I('legend', 20)} Saberes · Leyendas</small><h1>Cuentos y leyendas de Navarra</h1>
         <b class="ar-count">${heard} de ${CUENTOS.length} escuchados</b></div>
       <div class="ar-grid">${CUENTOS.map(C => { const on = seen.has('cuento:' + C.id); return `<article class="ar ct${on ? ' on' : ''}">
-        ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"${on ? ` data-ley="${C.id}"` : ''}><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}</figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div>`)(leyendaUrl(C.id))}
-        <div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3><p class="ct-pl">${esc(C.place)}</p>
+        ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"${on ? ` data-ley="${C.id}"` : ''}><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}<figcaption><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3></figcaption></figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div><div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3></div>`)(leyendaUrl(C.id))}
+        <div class="ar-tx"><p class="ct-pl">${esc(C.place)}</p>
           ${on ? `<span class="ar-ok">${I('check', 16)} Escuchado</span><details><summary>Volver a leerlo</summary>${C.parts.map(t => `<p>${esc(t)}</p>`).join('')}<p><b>Lo que puedes ver hoy.</b> ${esc(C.today)}</p></details>`
             : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p><button class="btn ct-go" data-play="${C.towns[0]}">${I('play', 20)} Ir a ${esc(tn(C.towns[0]))}</button>`}</div></article>`; }).join('')}</div>
       <p class="ar-src">Fuentes: Cátedra de Patrimonio de la Universidad de Navarra, Auñamendi Eusko Entziklopedia, Senditur, Noticias de Navarra, culturanavarra.es, las Leyendas de Gustavo Adolfo Bécquer y los santuarios y ayuntamientos de cada lugar. Las leyendas tienen muchas versiones: aquí está la más contada, adaptada para niños y niñas.</p>
@@ -944,7 +796,7 @@ export class Hub {
       <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ríos y embalses © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Paisaje de los prismáticos en los miradores: relieve EU-DEM de Copernicus (Unión Europea), SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y ETOPO1 (NOAA, dominio público).</li>
       <li>Músicas, público y gol: de Envato Elements, con licencia solo para este juego («Epic» de MrClaps y de MDFactory, «Game» de cinematic-alex, «Brazil Soccer crowd steady» de rhumphriesDC, «Crowd Cheering and Applauding» de GameChestAudio y «Football Goal» de WistanSound). No se pueden usar fuera del juego.</li>
-      <li>Letras: Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>
+      <li>Letras: Barlow, Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>
       <li>Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:</li></ul>
       <p class="mit" data-notr>Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p></details>`;
   }

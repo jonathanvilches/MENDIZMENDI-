@@ -5,7 +5,7 @@ import { icon3DReady } from '../ui/icon3d.js';
 import { esc } from '../util/html.js';
 export { esc };
 const CSS = `
-.pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,Nunito,sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,'MZ Texto',sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root.vuelo>*{visibility:hidden!important}
 .pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-myen,.pel-exit,.pel-call){visibility:hidden}
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
@@ -14,10 +14,10 @@ const CSS = `
 .pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
 .pel-rep-b{display:flex;align-items:center;gap:8px;height:30px;padding:0 16px 0 12px;border-radius:3px;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pel-rep-b i{flex:none;width:8px;height:8px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 8px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
-.pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
-.pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
+.pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
 .pel-rep.slow .sl{display:inline-block;animation:pel-repin .3s ease-out both}
-.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:8px}
+.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:8px}
 @media (max-width:620px){.pel-rep{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 38px)}}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
 /* el sorteo del saque: la chapa (azul por una cara y colorada por la otra) sube girando y cae; brilla el lado que saca */
@@ -25,13 +25,13 @@ const CSS = `
 .pel-root:has(>.pel-toss)>:not(.pel-toss){visibility:hidden}
 .pel-toss.out{animation:pel-tossout .32s ease-in both}
 .pel-toss-card{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(640px,100%);text-align:center}
-.pel-toss-k{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ffd6f6;animation:pel-kin .6s ease-out both}
+.pel-toss-k{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ffd6f6;animation:pel-kin .6s ease-out both}
 .pel-toss-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:16px;width:100%;margin-top:24px}
 .pel-toss-p{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:8px;border:2px solid transparent;transition:transform .3s,box-shadow .3s,border-color .3s;min-width:0}
 .pel-toss-p i{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),0 0 0 3px rgba(255,255,255,.25)}
 .pel-toss-p.azul i{background:radial-gradient(circle at 35% 30%,#9c92ff,#5b4bff 50%,#2a1a9e)}.pel-toss-p.rojo i{background:radial-gradient(circle at 35% 30%,#ff8fc0,#ff2e88 50%,#9e0f52)}
-.pel-toss-p b{font:400 var(--fs-xl)/1.05 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;max-width:100%;overflow-wrap:anywhere}
-.pel-toss-p small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#d8cff0}
+.pel-toss-p b{font:400 var(--fs-xl)/1.05 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;max-width:100%;overflow-wrap:anywhere}
+.pel-toss-p small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#d8cff0}
 .pel-toss-p.azul{animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}.pel-toss-p.rojo{animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
 .pel-toss-p.gana{transform:scale(1.1)}.pel-toss-p.azul.gana{border-color:#8f84ff;box-shadow:0 0 28px rgba(91,75,255,.8),inset 0 0 18px rgba(91,75,255,.4)}.pel-toss-p.rojo.gana{border-color:#ff7ac8;box-shadow:0 0 28px rgba(255,46,136,.8),inset 0 0 18px rgba(255,46,136,.4)}
 .pel-toss-coin{position:relative;width:104px;height:150px;perspective:600px;display:flex;align-items:flex-end;justify-content:center}
@@ -42,10 +42,10 @@ const CSS = `
 .pel-toss-coin .sh{position:absolute;bottom:8px;left:50%;width:70px;height:12px;margin-left:-35px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(3px)}
 .pel-toss.aire .coin{animation:pel-flip 1.45s cubic-bezier(.25,.6,.35,1) both}.pel-toss.aire .sh{animation:pel-flipsh 1.45s cubic-bezier(.25,.6,.35,1) both}
 .pel-toss.cae .coin{animation:pel-flip 1.45s cubic-bezier(.25,.6,.35,1) both,pel-land .35s 1.45s ease-out}
-.pel-toss-why{margin:0;font:700 var(--fs-sm)/1.3 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.04em;color:#e8dcff}
+.pel-toss-why{margin:0;font:700 var(--fs-sm)/1.3 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;color:#e8dcff}
 .pel-toss.aire .pel-toss-go{opacity:0;pointer-events:none;transform:scale(.9);transition:opacity .2s,transform .2s}
 .pel-toss-go{animation:pel-kin .5s .35s ease-out both}
-.pel-toss-res{margin:0;min-height:1.2em;font:400 var(--fs-3xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.pel-toss-res{margin:0;min-height:1.2em;font:400 var(--fs-3xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .pel-toss-res.azul{color:#b3aaff;text-shadow:0 0 18px rgba(91,75,255,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}.pel-toss-res.rojo{color:#ff9ccc;text-shadow:0 0 18px rgba(255,46,136,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes pel-flip{0%{transform:translateY(0) rotateX(70deg)}50%{transform:translateY(-96px) rotateX(990deg)}100%{transform:translateY(0) rotateX(calc(1870deg + var(--fin,0deg)))}}
 @keyframes pel-flipsh{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.45);opacity:.4}}
@@ -61,10 +61,10 @@ const CSS = `
 .pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}.pel-exit .pel-xi{width:22px;height:22px;display:block;pointer-events:none}
 .pel-score{display:flex;align-items:stretch;gap:0;border-radius:3px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pel-side{display:flex;align-items:center;gap:4px;padding:2px 8px;min-width:0;height:28px}
-.pel-side b{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);line-height:1;min-width:1em;text-align:center}
-.pel-side span{font:800 var(--fs-sm)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(calc(16vw / var(--z, 1)),90px)}
+.pel-side b{font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);line-height:1;min-width:1em;text-align:center}
+.pel-side span{font:800 var(--fs-sm)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(calc(16vw / var(--z, 1)),90px)}
 .pel-red{background:linear-gradient(180deg,#ff2e88,#a8135f)}.pel-blue{background:linear-gradient(180deg,#5b4bff,#3121b0)}
-.pel-mid{display:grid;place-items:center;padding:0 8px;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;color:var(--lila,#c9b2ff);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+.pel-mid{display:grid;place-items:center;padding:0 8px;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:var(--lila,#c9b2ff);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
 .pel-serve{width:7px;height:7px;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px rgba(0,0,0,.25);visibility:hidden;flex:none}
 .pel-serve.on{visibility:visible}
 .pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:8px 16px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
@@ -72,15 +72,15 @@ const CSS = `
 .pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7));border-color:#ffc2ec;color:#fff;box-shadow:0 0 0 4px rgba(255,122,200,.25),0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
 .pel-root.final .pel-call .pel-kantari{color:#fff}
 @keyframes pelFinal{0%{transform:translateX(-50%) scale(.5)}100%{transform:translateX(-50%) scale(1)}}
-.pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
+.pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
 .pel-call p{margin:4px 0 0;font-size:var(--fs-sm);line-height:1.3;opacity:.95}
 .pel-call .pel-kantari{margin-top:8px;font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
-.pel-q{position:absolute;left:50%;top:24%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);text-shadow:0 2px 8px rgba(0,0,0,.45);opacity:0;transition:opacity .2s;pointer-events:none}
+.pel-q{position:absolute;left:50%;top:24%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);text-shadow:0 2px 8px rgba(0,0,0,.45);opacity:0;transition:opacity .2s;pointer-events:none}
 .pel-q.on{opacity:1}
 /* el aviso de cada golpe, como en los juegos de deportes: grande, con rebote, y su color según cómo le has dado */
-.pel-q b{font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:0;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
+.pel-q b{font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:0;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
 .pel-q.on b{animation:pel-qpop .25s cubic-bezier(.2,1.5,.4,1) both}
-.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
 .pel-q small:empty{display:none}
 .pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
 .pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
@@ -95,7 +95,7 @@ const CSS = `
 .pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.8;padding:8px}
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
-.pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
+.pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
 .pel-btn:active,.pel-btn.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
 .pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 2px 0 rgba(74,10,94,.6);background:radial-gradient(circle at 50% 30%,#ff9bd8,#ff2bd6 60%,#c21cff);box-shadow:0 0 0 4px rgba(255,122,200,.35),0 6px 0 #8a1c8f,0 10px 22px rgba(0,0,0,.35)}
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
@@ -112,19 +112,19 @@ const CSS = `
 .pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 .pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);border-radius:4px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
-.pel-card h2{margin:0 0 var(--t-mb);font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
-.pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;color:#ff7ac8;letter-spacing:.04em;text-transform:uppercase}
+.pel-card h2{margin:0 0 var(--t-mb);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
+.pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;color:#ff7ac8;letter-spacing:.04em;text-transform:uppercase}
 .pel-card ol{margin:0 0 12px;padding-left:24px;color:#e6def7}.pel-card li{margin:0 0 8px;line-height:1.3}.pel-card li::marker{color:#ff7ac8;font-weight:900}
 .pel-card .pel-ctrl{font-size:var(--fs-sm);line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.22);color:#cbc2e0;border-radius:12px;padding:8px 12px;margin:0 0 16px}
-.pel-card .pel-big{font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-weight:400;font-size:var(--fs-4xl);text-align:center;margin:8px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.pel-card .pel-big{font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-4xl);text-align:center;margin:8px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 .pel-card .pel-fact{background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);color:#fff3c4;border-radius:12px;padding:8px 12px;margin:8px 0 16px;font-size:var(--fs-sm);line-height:1.3}.pel-card .pel-fact b{color:#ff7ac8}
 .pel-force{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px) + 180px);min-width:190px;padding:8px 8px 8px;border-radius:12px;background:rgba(20,8,40,.82);color:#fff;font-weight:900;font-size:var(--fs-sm);opacity:0;transform:translateY(6px);transition:opacity .12s,transform .12s;pointer-events:none;z-index:6}.pel-force.on{opacity:1;transform:none}.pel-force i{display:block;height:7px;margin-top:4px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden}.pel-force u{display:block;height:100%;width:0;background:var(--fc,#ff9bd8);border-radius:4px}.pel-force i{position:relative;overflow:visible}.pel-force i::after{content:'';position:absolute;left:88%;top:-3px;bottom:-3px;width:2px;background:#fff;opacity:0;border-radius:1px}.pel-force.hit i::after{opacity:.75}.pel-force.reb i::after{opacity:1;box-shadow:0 0 6px #fff}@media (max-height:520px){.pel-force{bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px) + 156px)}}.pel-row{display:flex;gap:8px;position:sticky;bottom:-16px;z-index:1;margin:0 -4px -8px;padding:8px 4px 8px;background:linear-gradient(180deg,rgba(28,11,58,0),#1c0b3a 35%)}.pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}@media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
 .pel-lbl{display:block;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px}
 .pel-levels{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
 .pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
-.pel-go{border:0;border-radius:4px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),Nunito,sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
-.pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),Nunito,sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
+.pel-go{border:0;border-radius:4px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
+.pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
 .pel-rv{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;background:rgba(255,122,200,.08);border:1px solid rgba(255,122,200,.32);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:var(--fs-sm);color:#f3ecff}
@@ -139,7 +139,7 @@ const CSS = `
 /* las partes del frontón: el botón junto al título y la ficha de cada parte, abajo */
 .pel-chip{position:relative;min-height:40px;margin-left:8px;border:1px solid rgba(255,122,200,.6);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:inherit;font-size:var(--fs-xs);font-weight:900;letter-spacing:0;cursor:pointer;vertical-align:middle}
 .pel-tour{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(560px,calc(calc(100vw / var(--z, 1)) - 32px));padding:8px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(50,19,111,.95),rgba(28,11,58,.95));border:1px solid rgba(255,122,200,.45);pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
-.pel-tour b{display:block;font-family:var(--pel-display,'MZ Display',Nunito,sans-serif);font-size:var(--fs-lg);font-weight:400;color:#ff7ac8}
+.pel-tour b{display:block;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);font-weight:400;color:#ff7ac8}
 .pel-tour p{margin:4px 0 8px;font-size:var(--fs-sm);line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
 .pel-tour button{border-radius:12px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 16px;min-height:44px;cursor:pointer}
 .pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2a0638;border:0}
@@ -182,7 +182,7 @@ const CSS = `
 /* quién juega contra quién: una tarjeta por pelotari que abre su ficha (azules contra colorados) */
 .pel-rv.pel-vs,.pel-rv.pel-vs.pel-rv2{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:0;margin:0 0 12px;background:none;border:0}
 .pel-team{display:flex;flex-direction:column;gap:8px;min-width:0}
-.pel-vs-x{font:400 var(--fs-lg)/1 var(--pel-display,'MZ Display',Nunito,sans-serif);color:#ff7ac8;letter-spacing:.04em}
+.pel-vs-x{font:400 var(--fs-lg)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#ff7ac8;letter-spacing:.04em}
 .pel-wide{display:block;width:100%;margin:0 0 12px}
 /* el frontón: su dibujo, su nombre y lo que se nota al jugar en él (al tocarlo, qué pasa con cada cosa) */
 .pel-court{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,122,200,.32);background:rgba(255,122,200,.08);color:#fff;font:inherit;text-align:left;cursor:pointer}
@@ -200,7 +200,7 @@ const CSS = `
 .pel-card.opts>.pel-rv,.pel-card.opts>.pel-court,.pel-card.opts>.pel-court-what,.pel-card.opts>.pel-more{display:none}
 .pel-opts[hidden],.pel-opane[hidden]{display:none}
 .pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px;border-bottom:1px solid rgba(190,160,255,.25)}
-.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .pel-otabs button[aria-selected=true]{color:#fff;border-bottom-color:#ff2bd6}
 .pel-otabs .pel-back{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 12px 0 4px;color:#ff7ac8;letter-spacing:.04em}
 .pel-otabs .pel-back::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:0 0 2px 2px;transform:rotate(45deg)}
@@ -215,7 +215,7 @@ const CSS = `
 @media (orientation:portrait) and (max-width:360px){.pel-vs .pfx-pl{flex-direction:column;text-align:center;padding:8px 4px}.pel-vs .pfx-pl-t b,.pel-vs .pfx-pl-t small{white-space:normal;overflow-wrap:anywhere}.pel-vs .pfx-pl-t b{font-size:var(--fs-sm)}.pel-row .pel-go{white-space:normal;font-size:var(--fs-lg);line-height:1.1}}
 /* tu energía: grande, abajo en el centro (entre el joystick y los botones); verde, amarilla y roja al cansarte */
 .pel-myen{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));transform:translateX(-50%);width:min(280px,calc(34vw / var(--z, 1)));display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none}
-.pel-myen[hidden]{display:none}.pel-myen span{font:800 var(--fs-xs)/1.3 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+.pel-myen[hidden]{display:none}.pel-myen span{font:800 var(--fs-xs)/1.3 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.7)}
 .pel-myen i{position:relative;display:block;width:100%;height:10px;border-radius:2px;background:rgba(7,2,15,.7);box-shadow:0 0 0 2px rgba(255,255,255,.7);overflow:hidden;transform:skewX(-20deg)}
 .pel-myen i b{position:absolute;inset:0;transform-origin:left;border-radius:999px;background:linear-gradient(90deg,#7b2ff7,#c9b2ff);transition:transform .2s}
 .pel-myen.mid i b{background:linear-gradient(90deg,#ff3dbd,#ff9bd8)}.pel-myen.low i b{background:linear-gradient(90deg,#ff2e88,#ff6fb5)}.pel-myen.low i{animation:pel-low .6s infinite alternate}

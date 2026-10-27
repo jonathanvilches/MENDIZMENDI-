@@ -286,7 +286,10 @@ export class PelotaGame {
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
       // la fuerza se nota: flojo, lento y corto (bota hacia el cuadro 4); a tope, rápido y largo (hacia el 7)
       const S = this.qual[who].fuerza;   // (la fuerza del pelotari: de 1 a 5)
-      let tx, landZ, speed = (17 + q * 4 + pow * 15 + (S - 3) * 1.5) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);   // (golpe tenso: da en el frontis a 3–5 m, no en globo; de volea y de gancho, más rápido)
+      // (el golpe, con bombeo: da en el frontis por encima de la mitad, a unos 6 m desde el cuadro 4 y más arriba desde atrás,
+      // y la pelota vuelve alta; la cortada es la que va de media pared abajo. De volea y de gancho, más tenso)
+      // (desde más atrás, más fuerte: si no, para llegar tendría que dar arriba del todo)
+      let tx, landZ, speed = (14 + q * 3 + pow * 13 + (S - 3) * 1.3) * (0.72 + clamp(p.z, 8, 30) / 50) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
       if (gancho) aim = { x: rawX > 0.35 ? Math.max(aim.x, 0.7) : -0.9, y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
@@ -315,7 +318,9 @@ export class PelotaGame {
         // atrás), que la devuelve; uno flojo no llega
         const rebote = !this.cuatro && pow > 0.88 && aim.y > 0.3 && q > 0.5 && S >= 2;
         if (rebote) { shot = 'rebote'; landZ = clamp(28.8 + (S - 3) * 0.9 + (pow - 0.88) * 6, 26.5, 30.8); speed += 5 + (S - 3) * 2; }
-        else if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 19 + pow * 4); speed += 1.5; }
+        // (con el joystick arriba, más arriba en el frontis: un globo que pasa por encima del rival, para cuando está delante
+        // tras una dejada o para que no la coja de aire; cuanto más arriba, más alto y más largo)
+        else if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 19 + pow * 4); speed -= (aim.y - 0.6) * 9; }
         else landZ = depth;
         if (aim.x < -0.6) shot = 'pared'; else if (aim.x > 0.6) { shot = 'ancho'; landZ -= 1; }
         if (gancho) { shot = 'gancho'; sub = aim.x > 0 ? 'ganchoCruzado' : ''; landZ = clamp(landZ, 12, 18.5); }

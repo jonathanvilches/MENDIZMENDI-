@@ -14,7 +14,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-tac-r .fb-row{justify-content:flex-start}   /* (los sistemas, alineados a la izquierda con su explicación) */
 @media (max-width:520px){.fb-tac{grid-template-columns:1fr}.fb-board{max-width:200px;margin:0 auto}}
 
-.fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:Nunito,system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.fb-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:'MZ Texto',system-ui,sans-serif;color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .fb-root.fb-fuera{animation:fbFuera .25s ease-in both}.fb-root.fb-fuera *{pointer-events:none!important}@keyframes fbFuera{to{opacity:0}}
 .fb-root *{box-sizing:border-box}
 .fb-root.fb-intro>:not(.fb-msg,.pvs){visibility:hidden}
@@ -22,11 +22,11 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 /* el marcador, el mismo de la pelota y de las pantallas de deporte: placa en ángulo, filete fucsia arriba, nombres en
    letra estrecha y mayúsculas, el reloj en lila (como en las retransmisiones y en los juegos de fútbol) */
 .fb-score{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
-.fb-team{display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 var(--fs-sm)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;min-width:0}
+.fb-team{display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 var(--fs-sm)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;min-width:0}
 .fb-team img.fb-em{width:20px;height:24px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
 .fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(22vw / var(--z, 1))}.fb-team span.fb-sn{display:none}
-.fb-team b{font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
-.fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px 12px;background:linear-gradient(180deg,rgba(123,47,247,.55),rgba(49,16,107,.7));font:800 var(--fs-md)/1 var(--f-cond,Nunito),sans-serif;font-variant-numeric:tabular-nums}
+.fb-team b{font-family:'MZ Display','MZ Texto',sans-serif;font-weight:400;font-size:var(--fs-xl);line-height:1;min-width:1em;text-align:center}
+.fb-clock{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:2px 12px;background:linear-gradient(180deg,rgba(123,47,247,.55),rgba(49,16,107,.7));font:800 var(--fs-md)/1 var(--f-cond,'MZ Texto'),sans-serif;font-variant-numeric:tabular-nums}
 .fb-clock small{font-size:var(--fs-xs);color:var(--lila,#c9b2ff);font-weight:800;text-transform:uppercase;letter-spacing:.1em}
 .fb-say{display:none;font-size:var(--fs-sm);font-weight:800;padding:4px 12px;border-radius:12px;background:rgba(16,10,30,.62);max-width:min(calc(92vw / var(--z, 1)),480px);text-align:center;line-height:1.3}
 .fb-say.on{display:block;animation:fbin .18s ease-out}
@@ -44,20 +44,20 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 /* (mientras se ve el rótulo grande, el aviso y el consejo de debajo del marcador esperan escondidos: en el móvil tumbado se
    pisaban; vuelven al quitarse el rótulo, si les queda tiempo) */
 .fb-root:has(>.fb-msg.on) :is(.fb-say,.fb-tip).on{visibility:hidden}
-.fb-msg h2{margin:0;font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
+.fb-msg h2{margin:0;font-family:'MZ Display','MZ Texto',sans-serif;font-weight:400;font-size:var(--fs-display);line-height:1;text-shadow:0 4px 0 rgba(0,0,0,.35),0 8px 26px rgba(0,0,0,.45);letter-spacing:0}
 .fb-msg p{margin:8px 0 0;font-size:var(--fs-lg);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .fb-msg.goal h2{color:#ff9bd8}
 .fb-stick{position:absolute;left:0;bottom:0;width:calc(50vw / var(--z, 1));height:calc(78dvh / var(--z, 1));pointer-events:auto;touch-action:none}
 .fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
 /* (la ayuda del joystick, como en el pueblo y en la pelota: las flechas y «Mover» en la letra estrecha) */
-.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 var(--fs-xs)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
+.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 var(--fs-xs)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
 /* cuatro botones minimalistas: un aro blanco fino, el icono de trazo fino y el nombre en pequeño. TIRO (el mayor) en la
    esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal, entre los dos (siempre en su sitio; con el
    balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
    --u (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
 .fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:calc(240px * var(--u));height:calc(178px * var(--u));pointer-events:none}
-.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid #f2dcff;padding:0;border-radius:50%;background:linear-gradient(155deg,var(--mm-top),var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,Nunito),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.27),inset 0 -3px 0 rgba(22,7,37,.5),0 3px 0 #12061b,0 5px 10px rgba(14,6,29,.4);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
+.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid #f2dcff;padding:0;border-radius:50%;background:linear-gradient(155deg,var(--mm-top),var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,'MZ Texto'),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.27),inset 0 -3px 0 rgba(22,7,37,.5),0 3px 0 #12061b,0 5px 10px rgba(14,6,29,.4);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
 /* (los símbolos de los controles del autor: trazo blanco grueso, nunca por debajo de 20 px) */
 .fb-b svg{width:max(20px,calc(24px * var(--u)));height:max(20px,calc(24px * var(--u)));flex:none;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
 /* (el rótulo, en la letra estrecha del juego y en mayúsculas, siempre dentro del círculo y nunca por debajo de 12 px, la
@@ -90,23 +90,23 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
    se recoge en un botón «?» que lo vuelve a abrir */
 .fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,calc(64vw / var(--z, 1)));padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,122,200,.45);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
 .fb-tip.on{display:flex;animation:fbin .18s ease-out}.fb-tip b{color:#ff9bd8}
-.fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ff9bd8;color:#2a0638;font:900 var(--fs-sm)/20px Nunito,sans-serif;font-style:normal;text-align:center}
+.fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ff9bd8;color:#2a0638;font:900 var(--fs-sm)/20px 'MZ Texto',sans-serif;font-style:normal;text-align:center}
 .fb-tip.mini{padding:4px;border-radius:50%;background:rgba(36,14,80,.6)}.fb-tip.mini span{display:none}
 .fb-keys{position:absolute;left:calc(env(safe-area-inset-left,0px) + 12px);bottom:calc(env(safe-area-inset-bottom,0px) + 8px);font-size:var(--fs-xs);font-weight:800;padding:4px 8px;border-radius:10px;background:rgba(16,10,30,.6);max-width:calc(calc(100vw / var(--z, 1)) - 24px)}
-.fb-fouls{display:none;align-self:center;gap:8px;align-items:center;padding:2px 8px;border-radius:9px;background:rgba(14,10,30,.72);font:900 var(--fs-xs) Nunito,sans-serif;letter-spacing:.1em;color:#cbbcf0}
+.fb-fouls{display:none;align-self:center;gap:8px;align-items:center;padding:2px 8px;border-radius:9px;background:rgba(14,10,30,.72);font:900 var(--fs-xs) 'MZ Texto',sans-serif;letter-spacing:.1em;color:#cbbcf0}
 .fb-fouls.show{display:flex}.fb-fouls span{display:flex;gap:2px}.fb-fouls u{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);text-decoration:none}
 .fb-fouls u.on{background:#ff9bd8}.fb-fouls u.x{background:#ff4a4a}
 .fb-panel{animation:fbPanelIn .15s ease-out;position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
 .fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
-.fb-card h2{margin:0 0 var(--t-mb);font-family:'MZ Display',Nunito,sans-serif;font-weight:400;font-size:var(--fs-2xl);line-height:1}.fb-card .fb-kick+h2{margin-top:var(--t-mt)}
+.fb-card h2{margin:0 0 var(--t-mb);font-family:'MZ Display','MZ Texto',sans-serif;font-weight:400;font-size:var(--fs-2xl);line-height:1}.fb-card .fb-kick+h2{margin-top:var(--t-mt)}
 .fb-card p{margin:0 0 8px;color:#e6def7;font-weight:600;font-size:var(--fs-sm);line-height:1.3}
-.fb-card .fb-card .fb-kick{display:block;color:#ff7ac8;font:800 var(--fs-sm)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;margin:0}
+.fb-card .fb-card .fb-kick{display:block;color:#ff7ac8;font:800 var(--fs-sm)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;margin:0}
 .fb-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:8px 0 8px;align-items:center}
 .fb-row label{width:100%;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em}
-.fb-chip{border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.07);color:#fff;border-radius:999px;padding:8px 16px;font:800 var(--fs-sm)/1.3 Nunito,sans-serif;cursor:pointer;min-height:40px;min-width:44px}
+.fb-chip{border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.07);color:#fff;border-radius:999px;padding:8px 16px;font:800 var(--fs-sm)/1.3 'MZ Texto',sans-serif;cursor:pointer;min-height:40px;min-width:44px}
 .fb-chip.on{background:#ff7ac8;border-color:#ff7ac8;color:#2a0638}
-.fb-go{display:block;width:100%;margin-top:8px;border:0;border-radius:16px;padding:16px;font:400 var(--fs-lg) 'MZ Display',Nunito,sans-serif;color:#2a0638;background:linear-gradient(180deg,#ffc2ec,#ff7ac8 55%,#ff3dbd);box-shadow:0 5px 0 #8a1c8f;cursor:pointer;min-height:52px}
-.fb-alt{display:block;width:100%;margin-top:8px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:12px;font:800 var(--fs-md) Nunito,sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
+.fb-go{display:block;width:100%;margin-top:8px;border:0;border-radius:16px;padding:16px;font:400 var(--fs-lg) 'MZ Display','MZ Texto',sans-serif;color:#2a0638;background:linear-gradient(180deg,#ffc2ec,#ff7ac8 55%,#ff3dbd);box-shadow:0 5px 0 #8a1c8f;cursor:pointer;min-height:52px}
+.fb-alt{display:block;width:100%;margin-top:8px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:12px;font:800 var(--fs-md) 'MZ Texto',sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
 /* (los botones de seguir y salir, siempre a la vista: si la tarjeta no cabe y se desplaza, se quedan pegados abajo) */
 .fb-card{display:flex;flex-direction:column;overflow:hidden}.fb-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
 .fb-foot{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding-top:8px;margin-top:2px;border-top:1px solid rgba(190,160,255,.18)}.fb-foot.n4{grid-template-columns:1fr 1fr}
@@ -114,7 +114,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:4px;background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);color:#fff3fb!important;font-size:var(--fs-sm);line-height:1.45;text-align:left}.fb-fact b{display:block;color:#ff9bd8;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 8px;font-size:var(--fs-md)}
 .fb-stats td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:var(--fs-sm)}
-.fb-ctabs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.fb-ctabs button{min-width:max-content;padding:4px 12px}.fb-ctabs button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1.15 Nunito,system-ui,sans-serif;cursor:pointer}.fb-ctabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
+.fb-ctabs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.fb-ctabs button{min-width:max-content;padding:4px 12px}.fb-ctabs button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1.15 'MZ Texto',system-ui,sans-serif;cursor:pointer}.fb-ctabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
 .fb-cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;text-align:left}
 .fb-ck{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(190,160,255,.16);min-width:0}
 .fb-ck>i{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid #f2dcff;background:linear-gradient(155deg,#6551b5,#24154a);box-shadow:inset 0 1px 0 rgba(255,255,255,.27),0 2px 0 #12061b}.fb-ck>i:empty{visibility:hidden}.fb-ck>i.k-shoot{background:linear-gradient(155deg,#b12bb7,#4a1559);border-color:#ffd8fa}.fb-ck>i.k-pass,.fb-ck>i.k-through{background:linear-gradient(155deg,#2a61b5,#10294f);border-color:#d8ecff}.fb-ck>i.k-swap{background:linear-gradient(155deg,#81552e,#352033);border-color:#ffe0a0}.fb-ck>i svg{width:20px;height:20px}
@@ -122,7 +122,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 @media (max-width:520px){.fb-cgrid{grid-template-columns:1fr}}
 .fb-ctrl{width:100%;border-collapse:collapse;font-size:var(--fs-sm);text-align:left;margin:8px 0}.fb-ctrl th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px}
 .fb-ctrl td{padding:4px;border-top:1px solid rgba(255,255,255,.1);vertical-align:middle;font-weight:800}.fb-ctrl td small{font-weight:600;color:#cbbcf0;font-size:var(--fs-xs)}.fb-ctrl td.ic{width:30px}.fb-ctrl td.ic svg{width:22px;height:22px}
-.fb-big{font-family:'MZ Display',Nunito,sans-serif;font-size:var(--fs-4xl);line-height:1;margin:8px 0}
+.fb-big{font-family:'MZ Display','MZ Texto',sans-serif;font-size:var(--fs-4xl);line-height:1;margin:8px 0}
 @media (max-width:640px) and (orientation:portrait){
   .fb-top{left:58px;right:58px}.fb-team{padding:4px 8px;font-size:var(--fs-xs)}.fb-team b{font-size:var(--fs-xl)}.fb-team span{max-width:calc(18vw / var(--z, 1))}
   .fb-team span.fb-ln{display:none}.fb-team span.fb-sn{display:inline}
@@ -170,17 +170,17 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-card{position:relative;border-radius:4px;border:1px solid rgba(201,178,255,.25);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
 .fb-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 24px rgba(255,43,214,.45);pointer-events:none;z-index:1}
 .fb-card h2{text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
-.fb-card .fb-kick{font-family:var(--f-cond,Nunito),sans-serif;font-weight:800;letter-spacing:.1em}
+.fb-card .fb-kick{font-family:var(--f-cond,'MZ Texto'),sans-serif;font-weight:800;letter-spacing:.1em}
 .fb-go{border-radius:4px;color:#fff;text-transform:uppercase;letter-spacing:.04em;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5);clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .fb-go:active{transform:translateY(2px)}
-.fb-alt,.fb-card .fb-alt{border-radius:4px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.08);font-family:var(--f-cond,Nunito),sans-serif;text-transform:uppercase;letter-spacing:.04em;font-weight:800;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.fb-alt,.fb-card .fb-alt{border-radius:4px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.08);font-family:var(--f-cond,'MZ Texto'),sans-serif;text-transform:uppercase;letter-spacing:.04em;font-weight:800;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
 .fb-chip{border-radius:4px;border:1px solid rgba(190,160,255,.35)}
 .fb-chip.on{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
 /* tu jugador, abajo: dorsal, línea (POR, DEF, MED, DEL), su energía (la barra) y la forma que le queda (lo rayado del
    final es el cansancio del partido, que ya no vuelve); en naranja cuando le queda poca. Con su tarjeta y una cruz si
    está lesionado */
-.fb-me{display:flex;align-items:center;gap:8px;padding:2px 8px 2px 2px;border-radius:4px;background:rgba(14,8,30,.74);border:1px solid rgba(201,178,255,.3);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
-.fb-me>b{flex:none;width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));font:400 var(--fs-sm)/1 'MZ Display',Nunito,sans-serif;letter-spacing:0}
+.fb-me{display:flex;align-items:center;gap:8px;padding:2px 8px 2px 2px;border-radius:4px;background:rgba(14,8,30,.74);border:1px solid rgba(201,178,255,.3);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.fb-me>b{flex:none;width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));font:400 var(--fs-sm)/1 'MZ Display','MZ Texto',sans-serif;letter-spacing:0}
 .fb-me-e{position:relative;flex:1 1 auto;min-width:32px;height:6px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
 .fb-me-e i{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#c9b2ff,#efe8ff);transform-origin:left}
 .fb-me-e s{position:absolute;top:0;bottom:0;right:0;width:0;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 2px,transparent 2px 5px)}
@@ -190,20 +190,20 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-me-ic u{width:8px;height:11px;border-radius:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.4)}.fb-me-ic u.y{background:#ffd400}.fb-me-ic u.r{background:#e3262b}
 .fb-me-ic i{position:relative;width:12px;height:12px;border-radius:2px;background:#fff}.fb-me-ic i::before,.fb-me-ic i::after{content:'';position:absolute;left:5px;top:2px;width:2px;height:8px;background:#e3262b}.fb-me-ic i::after{transform:rotate(90deg)}
 /* aviso de cambio: bajo la pausa, cuando uno de los tuyos está lesionado o agotado; abre los cambios */
-.fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid #ff7ac8;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,Nunito),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
+.fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid #ff7ac8;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
 .fb-subalert[hidden]{display:none}.fb-subalert svg{width:22px;height:22px;flex:none;pointer-events:none}.fb-subalert span{pointer-events:none}
 @keyframes fbpulse{50%{box-shadow:0 0 0 6px rgba(255,122,200,.28)}}
 /* lesión y cambio: el cartel lleva su señal (la cruz del médico o las flechas del cuarto árbitro) */
 .fb-msg.inj h2::before{content:'+';display:inline-grid;place-items:center;width:.86em;height:.86em;margin-right:.3em;border-radius:.12em;background:#fff;color:#e3262b;font-size:.9em;line-height:1;vertical-align:-.06em}
 .fb-msg.sub h2{color:#ffd9f1}
 /* cambios: los once (en dos columnas) y el banquillo; cada uno con su dorsal, su línea, su energía, su forma y su estado */
-.fb-subs-n{margin:0 0 8px!important;font:800 var(--fs-xs)/1.3 var(--f-cond,Nunito),sans-serif!important;color:#cbbcf0!important;text-transform:uppercase;letter-spacing:.06em}
+.fb-subs-n{margin:0 0 8px!important;font:800 var(--fs-xs)/1.3 var(--f-cond,'MZ Texto'),sans-serif!important;color:#cbbcf0!important;text-transform:uppercase;letter-spacing:.06em}
 .fb-subs{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-areas:'hf hb' 'sf sb';column-gap:12px;row-gap:4px;text-align:left}
 .fb-hf{grid-area:hf}.fb-hb{grid-area:hb}.fb-sf{grid-area:sf}.fb-sb{grid-area:sb}
 .fb-sf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-content:start}.fb-sb{display:grid;gap:8px;align-content:start}
-.fb-subs small.h{align-self:end;font:800 var(--fs-xs)/1.2 var(--f-cond,Nunito),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
-.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1px solid rgba(190,160,255,.22);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,Nunito),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
-.fb-pl>b{width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:rgba(255,255,255,.12);font:400 var(--fs-sm)/1 'MZ Display',Nunito,sans-serif;letter-spacing:0}
+.fb-subs small.h{align-self:end;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
+.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1px solid rgba(190,160,255,.22);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
+.fb-pl>b{width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:rgba(255,255,255,.12);font:400 var(--fs-sm)/1 'MZ Display','MZ Texto',sans-serif;letter-spacing:0}
 .fb-pl .fb-me-e{min-width:20px}
 .fb-pl em{font-style:normal;font-variant-numeric:tabular-nums;color:#e6def7;display:flex;gap:4px;align-items:center;justify-content:flex-end}
 .fb-pl small{color:#ff9bd8;font-weight:800;font-size:var(--fs-xs);line-height:1.1;white-space:normal;min-width:0}

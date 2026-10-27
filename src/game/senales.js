@@ -63,8 +63,8 @@ function boardTexture(lines, col, left) {
   const x0 = left ? 18 : 440; g.fillStyle = '#ffffff'; g.fillRect(x0, 16, 22, 96); g.fillStyle = col; g.fillRect(x0 + 26, 16, 22, 96);
   g.fillStyle = '#2b1a0c'; g.textBaseline = 'middle'; g.textAlign = left ? 'left' : 'right';
   const tx = left ? 84 : 428;
-  g.font = '800 46px Nunito, Arial, sans-serif'; g.fillText(lines[0], tx, lines[1] ? 46 : 64, 330);
-  if (lines[1]) { g.font = '700 30px Nunito, Arial, sans-serif'; g.fillText(lines[1], tx, 94, 330); }
+  g.font = "800 46px 'MZ Texto', Nunito, Arial, sans-serif"; g.fillText(lines[0], tx, lines[1] ? 46 : 64, 330);
+  if (lines[1]) { g.font = "600 30px 'MZ Texto', Nunito, Arial, sans-serif"; g.fillText(lines[1], tx, 94, 330); }
   g.strokeStyle = 'rgba(60,35,15,.6)'; g.lineWidth = 6; g.strokeRect(3, 3, 506, 122);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
@@ -94,6 +94,22 @@ export function makeSignpost({ peak, alt, info, town, col = RUTA.PR }) {
   q.fillStyle = '#2b1a0c'; q.font = '900 34px Nunito, Arial, sans-serif'; q.textAlign = 'center'; q.fillText('PR-NA', 64, 104); q.font = '700 20px Nunito, Arial, sans-serif'; q.fillText('Sendero', 64, 138);
   const pt = new THREE.CanvasTexture(c); pt.colorSpace = THREE.SRGBColorSpace;
   for (const s of [1, -1]) { const pl = new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.16), new THREE.MeshStandardMaterial({ map: pt, roughness: 0.8 })); pl.position.set(s * 0.071, 1.3, 0); pl.rotation.y = s * Math.PI / 2; g.add(pl); }
+  g.userData.dispose = () => g.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(m => { m.map?.dispose(); m.dispose(); }); } });
+  return g;
+}
+/** Poste indicador del pueblo, como los de las plazas y los cruces de Navarra: una tablilla de madera por sitio (el
+ *  frontón, la iglesia, la tienda, los monumentos…), cada una apuntando hacia él, con su nombre y a cuántos metros. Para
+ *  saber dónde estás y hacia dónde ir sin abrir el mapa. sitios: [{ name, dist, ang }] (ang: el rumbo, atan2(dx, dz)). */
+export function makeTownSignpost(sitios, col = '#b8322a') {
+  const g = new THREE.Group(), woodM = new THREE.MeshStandardMaterial({ color: '#6e4b2c', roughness: 0.92 });
+  const H = 1.7 + sitios.length * 0.42;
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.16, H, 0.16), woodM); post.position.y = H / 2; post.castShadow = true; g.add(post);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.16, 4), woodM); cap.rotation.y = Math.PI / 4; cap.position.y = H + 0.08; g.add(cap);
+  sitios.forEach((s, i) => {
+    const b = arrowBoard([s.name, `${s.dist < 1000 ? Math.round(s.dist / 10) * 10 + ' m' : (s.dist / 1000).toFixed(1).replace('.', ',') + ' km'}`], col, false);
+    // (la tablilla sale del poste hacia su sitio: su punta, la flecha, señala hacia allí)
+    b.rotation.y = s.ang - Math.PI / 2; b.position.set(Math.sin(s.ang) * 0.82, H - 0.32 - i * 0.42, Math.cos(s.ang) * 0.82); g.add(b);
+  });
   g.userData.dispose = () => g.traverse(o => { if (o.isMesh) { o.geometry.dispose(); [].concat(o.material).forEach(m => { m.map?.dispose(); m.dispose(); }); } });
   return g;
 }

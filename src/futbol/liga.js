@@ -104,7 +104,7 @@ export function kitSvgOf(c, size = 44, key = 'kit') {
   return `<svg class="lg-kit" viewBox="0 0 48 64" width="${size * 0.75}" height="${size}">${defs}<path d="M14 4 L22 2 Q24 6 26 2 L34 4 L44 12 L38 20 L35 17 L35 40 L13 40 L13 17 L10 20 L4 12 Z" fill="${fill}" stroke="#1a1426" stroke-width="1.6" stroke-linejoin="round"/>${band}<path d="M13 41 L35 41 L36 50 L26 50 L24 46 L22 50 L12 50 Z" fill="${c.shorts}" stroke="#1a1426" stroke-width="1.6" stroke-linejoin="round"/><rect x="14" y="51" width="7" height="10" rx="2" fill="${c.socks}" stroke="#1a1426" stroke-width="1.4"/><rect x="27" y="51" width="7" height="10" rx="2" fill="${c.socks}" stroke="#1a1426" stroke-width="1.4"/></svg>`;
 }
 const CSS = `
-.lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 8px);font-family:Nunito,system-ui,sans-serif;color:#fff;animation:lgIn .25s}
+.lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 8px);font-family:'MZ Texto',system-ui,sans-serif;color:#fff;animation:lgIn .25s}
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
 .lg-root.out{animation:lgOut .2s ease-in both;pointer-events:none}@keyframes lgOut{to{opacity:0}}
 /* (la tarjeta, como un rótulo de retransmisión: cristal morado, esquinas cortadas y una raya fucsia arriba) */
@@ -140,11 +140,11 @@ const CSS = `
 .lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}.lg-list.more{-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
 .lg-how{font-size:var(--fs-sm);line-height:1.45;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,155,216,.08);border:1px solid rgba(255,155,216,.25)}.lg-how b{color:#ff9bd8}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
-.lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 8px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:var(--fs-sm)}.lg-rv small{font:700 var(--fs-xs) Nunito,sans-serif;opacity:.75}
+.lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 8px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:var(--fs-sm)}.lg-rv small{font:700 var(--fs-xs) 'MZ Texto',sans-serif;opacity:.75}
 /* (en el móvil en vertical no caben los jugadores a los lados del próximo partido: se quedan los nombres) */
 @media (max-width:560px){.lg-next .lg-jf{display:none}.lg-next.con-j{grid-template-columns:1fr auto 1fr;padding:12px}}
 @media (max-width:560px){.lg-card{padding:16px 12px;gap:8px}.lg-head h2{font-size:var(--fs-xl)}.lg-table .x{display:none}.lg-table{font-size:var(--fs-sm)}.lg-table td{padding:8px 4px}.lg-table th{padding:4px}.lg-btns{grid-template-columns:1fr 1fr}.lg-btns .lg-btn.go{grid-column:1/-1}}
-.lg-champ{text-align:center;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,155,216,.25),rgba(255,155,216,.05))}.lg-champ b{font:400 var(--fs-xl) 'MZ Display',Nunito,sans-serif;color:#ff9bd8}
+.lg-champ{text-align:center;padding:8px;border-radius:16px;background:linear-gradient(180deg,rgba(255,155,216,.25),rgba(255,155,216,.05))}.lg-champ b{font:400 var(--fs-xl) 'MZ Display','MZ Texto',sans-serif;color:#ff9bd8}
 @media (orientation:landscape) and (max-height:520px){
 .lg-root{padding:8px}.lg-card{gap:8px 12px;padding:8px 16px}.lg-card>.lg-foot{bottom:-8px;margin-bottom:-8px;padding-bottom:8px}.lg-adapt{display:none}
 .lg-card.lg-two{grid-template-columns:1fr 1.15fr;grid-auto-rows:min-content;align-items:start}
