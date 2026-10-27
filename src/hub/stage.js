@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { escala } from '../util/tele.js';
+import { compilarAsync } from '../util/compilar.js';
 
 let R = null;
 const COARSE = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
@@ -58,7 +59,7 @@ export class Stage {
     // para no congelar la pantalla; mientras tanto el escenario aparece con un fundido
     this.ready = false; el.style.opacity = 0; el.style.transition = 'opacity .4s';
     const go = () => { this.ready = true; el.style.opacity = 1; };
-    try { const pc = pendingCompile = this.r.compileAsync(this.scene, this.cam); pc.then(go, go).finally(() => { if (pendingCompile === pc) pendingCompile = null; }); } catch (e) { go(); }
+    try { const pc = pendingCompile = compilarAsync(this.r, this.scene, this.cam); pc.then(go, go).finally(() => { if (pendingCompile === pc) pendingCompile = null; }); } catch (e) { go(); }
     this.loop = this.loop.bind(this); requestAnimationFrame(this.loop);
   }
   poke() { this.wave = 1.6; this.jump = 0.5; this.anim?.setExpr(Math.random() < 0.3 ? 'surprised' : 'happy', 1.8); this.onPoke?.(); }

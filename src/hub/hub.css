@@ -10,7 +10,9 @@
 }
 #hub {
   --nav-w: 102px; --top-h: 64px;
-  position: fixed; inset: 0; z-index: 12; color: var(--ink); display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr); grid-template-rows: var(--top-h) minmax(0, 1fr);
+  /* (el alto, el que se ve de verdad: en Safari con el iPhone tumbado, al esconderse su barra, inset 0 se quedaba con el alto
+     de antes y abajo quedaba una franja vacía) */
+  position: fixed; inset: 0; height: calc(100dvh / var(--z, 1)); z-index: 12; color: var(--ink); display: grid; grid-template-columns: var(--nav-w) minmax(0, 1fr); grid-template-rows: var(--top-h) minmax(0, 1fr);
   font-weight: 700; -webkit-user-select: none; user-select: none; background: #12062b;
 }
 #hub.hidden { display: none; }
