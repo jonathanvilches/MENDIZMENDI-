@@ -262,7 +262,7 @@ export const TEXT = {
       botona: ['De mucho bote', 'Bota más alto: da más tiempo, pero cuesta pegarla abajo.'],
       rasa: ['De poco bote', 'Bota bajo y corre por el suelo: las cortadas hacen más daño.'],
     } },
-    shots: { rebote: 'Al rebote', dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', ancho: 'Al ancho', largo: 'Largo', gancho: 'Gancho', ganchoCruzado: 'Gancho cruzado', normal: '' },
+    shots: { rebote: 'Al rebote', dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', cortPared: 'Cortada a la pared', cortAncho: 'Cortada al ancho', dejadaTxoko: 'Dejada al txoko', dejadaAncho: 'Dejada al ancho', ancho: 'Al ancho', largo: 'Largo', gancho: 'Gancho a la pared', ganchoCruzado: 'Gancho al ancho', saque: '', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
     // el sorteo del saque con la chapa (una cara roja y otra azul), los colores por antigüedad, las repeticiones y el
     // Cuatro y Medio
@@ -365,7 +365,7 @@ export const TEXT = {
       botona: ['Bote handikoa', 'Gorago egiten du bote: denbora gehiago ematen du, baina behetik jotzea kostatzen da.'],
       rasa: ['Bote txikikoa', 'Baxu egiten du bote eta lurrean korrika doa: cortadek kalte handiagoa egiten dute.'],
     } },
-    shots: { rebote: 'Errebotera', dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', gancho: 'Ganchoa', ganchoCruzado: 'Gancho zeharkakoa', ancho: 'Zabalera', largo: 'Luzea', normal: '' },
+    shots: { rebote: 'Errebotera', dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', cortPared: 'Paretarako cortada', cortAncho: 'Zabalerako cortada', dejadaTxoko: 'Txokorako dejada', dejadaAncho: 'Zabalerako dejada', gancho: 'Paretarako ganchoa', ganchoCruzado: 'Zabalerako ganchoa', ancho: 'Zabalera', largo: 'Luzea', saque: '', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     toss: { title: 'Sakearen zozketa', throw: 'Bota txapa!', azul: 'Urdina', rojo: 'Gorria', serves: (n) => `Sakea: ${n}`,
       why: 'Lehenago debutatu zuenak gorriz janzten du', seasons: (n) => (n ? `${n} denboraldi` : 'Debutantea'), auto: 'Txapak erabakitzen du nork ateratzen duen lehenik' },

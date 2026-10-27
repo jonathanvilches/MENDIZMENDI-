@@ -75,6 +75,13 @@ const CSS = `
 .pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
 .pel-call p{margin:4px 0 0;font-size:var(--fs-sm);line-height:1.3;opacity:.95}
 .pel-call .pel-kantari{margin-top:8px;font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
+.pel-pres{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 14%);display:flex;align-items:stretch;gap:12px;max-width:min(78vw,560px);padding:12px 22px 12px 0;background:linear-gradient(90deg,rgba(7,2,15,.92),rgba(7,2,15,.6) 85%,transparent);opacity:0;transform:translateX(-40px);transition:opacity .25s,transform .45s cubic-bezier(.22,1.12,.36,1);pointer-events:none}
+.pel-pres.on{opacity:1;transform:none}.pel-pres i{width:8px;flex:none;background:#e8247c}.pel-pres.azul i{background:#4b3cff}
+.pel-pres b{display:block;font:400 var(--fs-hero,40px)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.01em;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pel-pres small{display:block;margin-top:6px;font:700 var(--fs-sm)/1.2 var(--f-ui,'MZ Texto',sans-serif);letter-spacing:.08em;text-transform:uppercase;color:#ffc2ec}
+.pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
+.pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none}
+.pel-root.repe .pel-golpe,.pel-root.paneled .pel-golpe{visibility:hidden}
 .pel-q{position:absolute;left:50%;top:24%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);text-shadow:0 2px 8px rgba(0,0,0,.45);opacity:0;transition:opacity .2s;pointer-events:none}
 .pel-q.on{opacity:1}
 /* el aviso de cada golpe, como en los juegos de deportes: grande, con rebote, y su color según cómo le has dado */
@@ -265,6 +272,8 @@ export class PelotaHud {
         <div class="pel-side ${cols.rival === 'azul' ? 'pel-blue' : 'pel-red'}" data-side="rival"><b data-pel-n="rival">0</b><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div>
       </div></div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div></div>
+      <div class="pel-golpe" aria-live="off"></div>
+      <div class="pel-pres" aria-live="polite"><i></i><div><b></b><small></small></div></div>
       <div class="pel-q"></div>
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
@@ -352,7 +361,21 @@ export class PelotaHud {
       f.querySelector('u').style.width = (pw * 100).toFixed(0) + '%'; f.style.setProperty('--fc', `hsl(${Math.round(120 - pw * 120)} 85% 55%)`);
     }
   }
+  /** El nombre del golpe que se acaba de dar (dos paredes, gancho al ancho, dejada al txoko…), como el rótulo de la tele:
+   *  pequeño, bajo el marcador y del color de quien lo da (col: 'azul' o 'rojo') */
+  golpe(text, col) {
+    const g = this._g ||= this.$('.pel-golpe'); if (!g || !text) return;
+    g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 1.5;
+  }
+  /** La presentación de cada pelotari con los focos: su nombre abajo, como en la tele (col: 'rojo' o 'azul'); sin
+   *  nombre, se quita */
+  presenta(name, sub = '', col = 'rojo') {
+    const p = this.$('.pel-pres'); if (!p) return;
+    if (!name) { p.classList.remove('on'); return; }
+    p.className = 'pel-pres ' + col; p.querySelector('b').textContent = name; p.querySelector('small').textContent = sub; void p.offsetWidth; p.classList.add('on');
+  }
   tick(dt) {
+    if (this.gT > 0 && (this.gT -= dt) <= 0) this._g?.classList.remove('on');
     if (this.callT > 0 && (this.callT -= dt) <= 0) { this.$('.pel-call').classList.remove('on'); this.root.classList.remove('calling'); }
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');
   }

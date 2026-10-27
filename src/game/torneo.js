@@ -319,10 +319,10 @@ const rivalBonus = (p) => ((p.lv || 2) - 2) * 3;
 // el frontón de cada partido, a elegir antes de jugar: el de la plaza del pueblo (cada pueblo tiene el suyo, de su
 // comarca), el cubierto del pueblo o el Labrit de Iruña; en Campeonatos, también el de otro pueblo (se va allí)
 // (los textos, ya en su idioma: el traductor no sabe poner el nombre del pueblo delante en euskera)
-const SEDE = { plaza: (h) => isEU() ? `Plaza · ${h || 'herria'}` : `Plaza de ${h || 'tu pueblo'}`, cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit · Iruña',
+const SEDE = { plaza: (h) => h || (isEU() ? 'Herria' : 'Tu pueblo'), cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit · Iruña',
   otro: () => isEU() ? 'Beste herri bat' : 'Otro pueblo' };
-const SEDE_CORTO = { plaza: () => 'Plaza', cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit' };
-const SEDE_SUB = { plaza: () => isEU() ? 'Aire zabalean, herrian' : 'Al aire libre, en el pueblo', cubierto: () => isEU() ? 'Harmailak dituen pilotalekua' : 'Pabellón con grada',
+const SEDE_CORTO = { plaza: (h) => h || (isEU() ? 'Herria' : 'Pueblo'), cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit' };
+const SEDE_SUB = { plaza: () => isEU() ? 'Herriko frontoia: elizaren ondoan, udaletxeko plazan edo kalean' : 'El del pueblo: junto a la iglesia, en la plaza del ayuntamiento o en la calle', cubierto: () => isEU() ? 'Harmailak dituen pilotalekua' : 'Pabellón con grada',
   labrit: () => isEU() ? 'Finalen frontoia' : 'El frontón de las finales', otro: () => isEU() ? 'Jokatu beste herri bateko frontoian' : 'Juega en el frontón de otro pueblo' };
 const FRONTON = () => isEU() ? 'Frontoia' : 'Frontón';
 const sedeHtml = (o, here) => !o?.sedes?.length ? '' : `<button type="button" class="tq-sede" data-sede aria-haspopup="dialog" aria-expanded="false" data-notr><span>${FRONTON()}</span>${esc(SEDE_CORTO[o.sede](here))}</button>`;
@@ -401,7 +401,9 @@ export function torneoPanel(T, here = null, o = null) {
   });
 }
 /** El frontón de tu partido del torneo: el que elegiste para esta ronda o el de siempre (la final, en el Labrit). */
-export const sedeDe = (T, m) => (T.sede?.round === m.round && T.sede.edition === T.edition ? T.sede.kind : m.round === 'Final' ? 'labrit' : 'cubierto');
+// (las rondas, en el frontón del pueblo, cada uno con lo suyo: junto a la iglesia, en la plaza del ayuntamiento o en la
+// calle; la final, en el Labrit. Antes las rondas eran en el cubierto, el mismo pabellón en todos los pueblos)
+export const sedeDe = (T, m) => (T.sede?.round === m.round && T.sede.edition === T.edition ? T.sede.kind : m.round === 'Final' ? 'labrit' : 'plaza');
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */

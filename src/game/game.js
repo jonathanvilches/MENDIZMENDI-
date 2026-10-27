@@ -747,7 +747,7 @@ export class Game {
   ensureFronton() {
     if (this.fronton) return this.fronton;
     const f = PLACES.fronton;
-    this.fronton = new Fronton(this.scene, { x: f.x + 15, z: f.z, ry: -Math.PI / 2 }, 'Otsagabia', frontonWall({ id: 'otsagabia', name: 'Otsagabia / Ochagavía', family: 'pyrenean', relief: 'valley', river: {}, landmarks: [] }));
+    this.fronton = new Fronton(this.scene, { x: f.x + 15, z: f.z, ry: -Math.PI / 2 }, 'Otsagabia', { ...frontonWall({ id: 'otsagabia', name: 'Otsagabia / Ochagavía', family: 'pyrenean', relief: 'valley', river: {}, landmarks: [] }), estilo: 'plaza' });
     return this.fronton;
   }
   startPelota() {
