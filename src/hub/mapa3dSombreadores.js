@@ -145,3 +145,14 @@ void main() {
 // (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
 export const PARCHE_VS = RELIEVE_VS.replace('varying vec2 vXZ;', 'attribute float hd; uniform float uMaqK; varying vec2 vXZ;')
   .replace('vH = position.y;', 'vec3 q = vec3(position.x, mix(position.y, hd, uMaqK), position.z); vH = q.y;').replace('vec4(position, 1.0)', 'vec4(q, 1.0)');
+// (el halo de la comarca elegida: una cortina de luz morada que sube desde su contorno y se desvanece hacia arriba, con un
+// brillo rosa que la recorre. aT: 0 abajo, 1 arriba; aS: lo andado por el contorno. La altura, uAlto, va en unidades del
+// mundo y crece con la distancia de la cámara, para que en pantalla mida siempre lo mismo)
+export const AURA_VS = `attribute float aT, aS; uniform float uAlto; varying float vT, vS;
+void main() { vec4 w = modelMatrix * vec4(position, 1.0); w.y += aT * uAlto; vT = aT; vS = aS / max(uAlto, 0.001); gl_Position = projectionMatrix * viewMatrix * w; }`;
+export const AURA_FS = `uniform float uK, uT; uniform vec3 uCol, uCol2; varying float vT, vS;
+void main() {
+  float ola = 0.5 + 0.5 * sin(vS * 0.9 - uT * 2.6), base = smoothstep(0.1, 0.0, vT);
+  float a = pow(1.0 - vT, 1.5) * (0.55 + 0.35 * ola) + 0.6 * base;
+  gl_FragColor = vec4(mix(uCol, uCol2, ola * (1.0 - vT) * 0.8) + base * 0.25, min(1.0, a) * uK);
+}`;

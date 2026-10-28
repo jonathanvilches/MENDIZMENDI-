@@ -49,6 +49,7 @@ import { watchUpdates } from './web/update.js';
 import { startHD } from './web/hd.js';
 import { sencillo } from './util/sencillo.js';
 import { apuntaPerdida } from './util/diag.js';
+import { calidadOrdenador, apuntaGpu, fijaCalidad } from './util/gpu.js';
 
 const q = new URLSearchParams(location.search);
 // el código de jugar en los pueblos (Otsagabia y los demás, con la pelota, las misiones y los minijuegos) va en archivos
@@ -66,21 +67,6 @@ const TIPS = [
 const TIP_TOQUE = 'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.';
 // el icono de cada misión en la pantalla de carga (si la misión no trae el suyo)
 const MISSION_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-
-// ordenador: alta con una tarjeta gráfica de verdad; media con la gráfica del procesador (Intel, las Radeon de los
-// procesadores AMD, GeForce MX), con pocos núcleos o si en este ordenador el juego ya tuvo que aligerarse solo
-// (runtime.lighten: slow); sin aceleración gráfica, baja. En alta, esos portátiles se quedaban en 15-20 imágenes por
-// segundo y se paraban
-function desktopTier(slow) {
-  try {
-    const gl = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl');
-    const ext = gl?.getExtension('WEBGL_debug_renderer_info'), r = String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl?.getParameter(gl.RENDERER) || '');
-    gl?.getExtension('WEBGL_lose_context')?.loseContext();
-    if (/swiftshader|llvmpipe|software|microsoft basic/i.test(r)) return 'low';
-    const igpu = /intel|radeon\(tm\) graphics|radeon graphics|vega \d+ graphics|radeon(\(tm\))? \d{3}m\b|geforce mx/i.test(r) && !/arc(\(tm\))? a\d/i.test(r);
-    return slow || igpu || (navigator.hardwareConcurrency || 8) <= 4 ? 'mid' : 'high';
-  } catch (e) { return 'high'; }
-}
 
 // retratos de los vecinos con los que se habla, hechos durante la carga (con el renderizador oculto, que se suelta
 // antes de jugar): antes se hacían al abrir cada diálogo y el juego se paraba un momento (en el iPhone, crear ese
@@ -111,17 +97,18 @@ async function boot() {
   const ui = new UI(input, sound);
   vigilaEncaje();   // (ninguna palabra partida ni cortada con «…»: src/ui/encaje.js)
   const P = profile();
-  // calidad automática: ordenador alta; móvil baja (en iPhone no se puede saber la memoria y Safari cierra la página
+  // calidad automática: ordenador según su tarjeta gráfica (src/util/gpu.js); móvil baja (en iPhone no se puede saber la memoria y Safari cierra la página
   // si se pasa), salvo móviles que dicen tener mucha memoria (6 GB o más), que van en media
   const bigMem = navigator.deviceMemory && navigator.deviceMemory >= 6;
   // en ordenador, una calidad bajada sola (por un fallo de carga o de memoria) no se queda para siempre: se vuelve a
   // la automática una vez (las elegidas a mano en Ajustes se respetan)
   if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
   // (en el modo sencillo, src/util/sencillo.js, siempre la baja)
-  const quality = q.get('q') || (sencillo() ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : desktopTier(P.settings.slowPc));
+  const quality = q.get('q') || (sencillo() ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : calidadOrdenador(P.settings.slowPc));
   const rt = new Runtime({ canvas, input, sound, quality });
+  fijaCalidad(quality); if (!input.touch) apuntaGpu(rt.renderer.getContext());   // (src/util/gpu.js)
   // si el ordenador no llega a la fluidez mínima, el juego se aligera solo (runtime.lighten): se avisa una vez y se
-  // apunta para arrancar la próxima vez en calidad media (si la calidad se eligió a mano en Ajustes, se respeta)
+  // apunta para arrancar la próxima vez un escalón más abajo (si la calidad se eligió a mano en Ajustes, se respeta)
   rt.onLighten = (n) => {
     const S = P.settings;
     if (!input.touch && !S.quality && !q.get('q') && !S.slowPc) { S.slowPc = true; saveProfile(); }
