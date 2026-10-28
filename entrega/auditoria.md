@@ -169,6 +169,16 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
   - fuera dos expresiones de texto que los iPhone antiguos no entienden y que no dejaban arrancar el juego.
 - **Didáctico:** las 16 secciones y la ficha de tres pueblos, revisadas en castellano y en euskera, en tres tamaños, sin errores ni imágenes rotas. La galería cabe entera con el móvil tumbado.
 - **Canciones:** las seis pistas de Envato suenan donde tocan y tienen su licencia en LICENCIAS.md. La pista «Soccer S1105_49» que mandaste no se usa.
+- **Icono de la app:** tu ilustración, en todos los tamaños y en las pantallas de arranque del iPhone y el iPad. Para verlo hay que quitar la app y volver a instalarla.
+- **Arranque y carga:**
+  - portada con el icono que late, rayos de luz, el título y una barra por segmentos;
+  - pantalla de carga de cada pueblo con marco de juego, consejo, nombre grande, misiones en una fila y barra con tu avatar;
+  - entrada del mapa con barras de cine, visor, raya de luz en el título, onda y temblor al posarse Navarra.
+- **Fichas:**
+  - pueblo: la misma carta de la galería con la lámina entera, marcador de sello, río y leyenda, misiones en casillas, qué visitar, su leyenda, escudo y láminas;
+  - Otsagabia: sus nueve misiones reales del valle de Salazar con lo que llevas hecho, y sus lugares para visitar;
+  - comarca: cabecera como carta, sello en su aro, marcador, sus pueblos con la carta nueva, cultura, naturaleza, cuentos y leyendas, láminas y cimas;
+  - en euskera, el segundo nombre es el de castellano y ya no se repite.
 
 ## 10. Pendiente o depende de ti
 
