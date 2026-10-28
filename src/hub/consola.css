@@ -126,10 +126,6 @@
 .ft-ms-g i.ok :is(svg, img), .ft-ms-g i.sig :is(svg, img) { opacity: 1; }
 .ft-ms-g i { position: relative; } .ft-ms-g i.ok::after { content: '✓'; position: absolute; right: -4px; top: -4px; width: 13px; height: 13px; border-radius: 50%; background: #3ddc84; color: #0d061c; font: 900 9px/13px var(--f-ui), sans-serif; text-align: center; }
 .ft-ms-g i.sig { border-color: #ff7ac8; box-shadow: 0 0 0 1px #ff7ac8, 0 0 10px rgba(255, 43, 214, .45); }
-.ft-ms-sig { display: flex; align-items: center; gap: 8px; min-width: 0; }
-.ft-ms-sig > :is(svg, img) { flex: none; width: 16px; height: 16px; }
-.ft-ms-sig > span { display: grid; min-width: 0; font: 600 var(--fs-xs)/1.2 var(--f-ui); color: #fff; }
-.ft-ms-sig small { font: 600 10px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: #ff7ac8; }
 #hub.juego .m3d .ft-go { min-height: 40px; padding: 0 14px; border-radius: 4px; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); gap: 8px; font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .1em; background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
 #hub.juego .m3d .ft-go > :is(svg, img) { width: 18px; height: 18px; }
 

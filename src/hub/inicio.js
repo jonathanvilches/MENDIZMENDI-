@@ -133,13 +133,12 @@ function fichaHTML(p, l) {
     ${ms.length && !DD ? misionesHTML(ms, t) : ''}
     ${DD ? `<button class="ft-go" data-town="${l.id}">${I('book', 18)}<span>Ver el pueblo</span></button>` : `<button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`}`;
 }
-// (las misiones del pueblo en su ficha: cuántas van con su barra, una casilla igual para cada una en una o dos filas
-// parejas, hechas con su color y la siguiente marcada, y debajo cuál toca ahora)
+// (las misiones del pueblo en su ficha: cuántas van con su barra y una casilla igual para cada una en una o dos filas
+// parejas, hechas con su color y la siguiente marcada; sin más texto: es la ficha corta para empezar a jugar)
 function misionesHTML(ms, t) {
   const sig = ms.find(m => !m.done), cols = ms.length > 8 ? Math.ceil(ms.length / 2) : ms.length, pct = Math.round(100 * t.done / Math.max(1, t.total));
   return `<span class="ft-ms"><span class="ft-ms-h"><b>Misiones</b><em>${t.done}/${t.total}</em></span><i class="ft-ms-bar"><u style="width:${pct}%"></u></i>
-    <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span>
-    ${sig ? `<span class="ft-ms-sig">${I(sig.icon || 'star', 14)}<span><small>Ahora</small>${esc(sig.title)}</span></span>` : ''}</span>`;
+    <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span></span>`;
 }
 let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
