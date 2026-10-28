@@ -1,7 +1,8 @@
 // La maqueta de un pueblo en el mapa del inicio (mapa3d.js): al acercarse mucho a uno de los pueblos con su trazado de
 // verdad (src/data/reales: OpenStreetMap y EU-DEM), el relieve de debajo pasa a ser el del pueblo, con un punto cada
 // 10 m (20 m en el móvil), y se levantan sus casas con paredes y tejado a dos aguas, la iglesia con su torre, las naves,
-// el frontón y los árboles de parques, frutales, cementerios, lindes y orillas (y en los valles del norte, sus bosquetes).
+// el frontón y los árboles de parques, frutales, cementerios, lindes y orillas (y en los valles del norte, sus bosquetes),
+// con la vida del pueblo y del campo: balcones con geranios, leña, muros de piedra, pacas, rebaños y fuentes (coches, no).
 // Va en las coordenadas de su comarca: x y z en unidades del mapa (1 = 2.076 m) y la altura del relieve en metros por
 // EXA, como la comarca. Las alturas de las casas y los árboles, en cambio, van en unidades del mundo: el relieve se
 // exagera más o menos según la distancia (la comarca se escala en y), y las casas no se estiran con él (ver alzado).
@@ -49,7 +50,7 @@ function tejadoG() {
  */
 export function* haceMaqueta(D, o, res) {
   const { X0, Z0, MU, EXA, GROSOR, R, sobre, lento, K } = o, rnd = mulberry32(hashStr(D.id || 'pueblo'));
-  const estilo = ESTILO[o.comarca] || 'centro', pizarra = o.comarca === 'pirineo';
+  const estilo = ESTILO[o.comarca] || 'centro', pizarra = o.comarca === 'pirineo', norte = estilo === 'atlantico' || estilo === 'pirineo';
 
   // ---------- el relieve del pueblo: EU-DEM a 20 m hasta medio kilómetro y a 60 m más allá, con interpolación cúbica;
   // hacia el borde se mezcla con el de la comarca, y en el borde es el mismo ----------
@@ -73,7 +74,7 @@ export function* haceMaqueta(D, o, res) {
   // (si el pueblo cae cerca del borde de su comarca, lo que queda fuera no se dibuja)
   const P = o.P; let borde = false;
   for (let i = 0, j = P.length - 1; i < P.length && !borde; j = i++) borde = segDist(X0, Z0, P[j][0], P[j][1], P[i][0], P[i][1]).d < R * MU * 1.05;
-  // (y lo que se levanta encima, casas, árboles, coches y rótulos, tampoco: un punto, en metros desde el centro del pueblo,
+  // (y lo que se levanta encima, casas, árboles, detalles y rótulos, tampoco: un punto, en metros desde el centro del pueblo,
   // y lo que mide a su alrededor, r, dentro de la comarca. Antes solo se recortaba el suelo, y en los pueblos de la raya,
   // como Irurtzun, las casas y los árboles quedaban en el aire sobre la comarca de al lado o colgando de la pared)
   const cabe = (x, z, r = 0) => { if (!borde) return true; const X = X0 + x * MU, Z = Z0 + z * MU, d = r * MU;
@@ -104,11 +105,15 @@ export function* haceMaqueta(D, o, res) {
   // 6 tejado de teja, 7 de pizarra, 8 árbol de hoja, 9 abeto, 0 nada. En las fachadas: ventanas cada 3,4 m y una planta
   // cada 3 m, puertas abajo, zócalo, sombra del alero, esquinas de sillería en las encaladas, sillares en las de piedra y,
   // en la mitad de las del norte, un balcón corrido de madera; en los tejados, hileras de tejas o losas y la cumbrera.
-  // De lejos, el detalle fino se funde en su color medio, para que no titile)
+  // De lejos, el detalle fino se funde en su color medio, para que no titile.
+  // Los detalles del pueblo, de 21 en adelante: 21 balcón con su barandilla (y geranios en la mitad), 22 muro o pilar de
+  // piedra, 23 leña apilada, 24 paca de hierba, 25 oveja o vaca, 26 pila de fuente con su agua)
   const mat = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0 });
   const hastial = new THREE.Color().setHSL(...PARED[estilo][0]);
+  // (el musgo en los tejados: mucho en los valles húmedos del norte, algo en el Pirineo, casi nada en la Ribera)
+  const musgo = { atlantico: 1, pirineo: 0.6, centro: 0.25, ribera: 0.1 }[estilo];
   mat.onBeforeCompile = (sh) => {
-    Object.assign(sh.uniforms, { uAlzado: o.alzado, uMetro: { value: 1 / MU }, uK: { value: K }, uHastial: { value: hastial } });
+    Object.assign(sh.uniforms, { uAlzado: o.alzado, uMetro: { value: 1 / MU }, uK: { value: K }, uHastial: { value: hastial }, uMusgo: { value: musgo } });
     sh.vertexShader = 'attribute float aOff, aVent; uniform float uAlzado; varying vec3 vObj, vEsc, vNo; varying float vVent, vSemilla;\n' + sh.vertexShader
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 vObj = position; vNo = normal; vVent = aVent; vEsc = vec3(1.0); vSemilla = 0.5;
@@ -121,10 +126,42 @@ vSemilla = fract(sin(dot(instanceMatrix[3].xz * 97.0, vec2(12.9898, 78.233))) * 
   mvPosition = instanceMatrix * mvPosition; float b0 = instanceMatrix[3].y; mvPosition.y = b0 + (aOff + mvPosition.y - b0) * uAlzado;
 #endif
 mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;`);
-    sh.fragmentShader = `uniform float uMetro, uK; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo; varying float vVent, vSemilla;
+    sh.fragmentShader = `uniform float uMetro, uK, uMusgo; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo; varying float vVent, vSemilla;
 float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 ` + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
-{
+if (vVent > 20.5) {
+  // (los detalles: u, a lo largo de la cara; w, la altura, los dos en metros)
+  float c = vVent - 20.0, la = vEsc.x * uMetro, al = vEsc.y * uMetro / uK, fo = vEsc.z * uMetro;
+  bool lx = abs(vNo.x) > 0.5, arriba = vNo.y > 0.5;
+  float u = lx ? (vObj.z + 0.5) * fo : (vObj.x + 0.5) * la, w = vObj.y * al, px = max(fwidth(u), fwidth(w)), fino = 1.0 - smoothstep(0.08, 0.3, px);
+  if (c < 1.5) {   // (el balcón: barrotes, pasamanos y suelo; detrás, la sombra)
+    if (arriba) diffuseColor.rgb *= 0.72;
+    else {
+      float m = max(max(step(fract(u / 0.16), 0.42), step(0.86, w)), step(w, 0.14));
+      vec3 b = mix(vec3(0.06, 0.05, 0.06), diffuseColor.rgb, m);
+      float k = floor(u / 0.3), fl = step(0.5, vSemilla) * step(0.62, w) * step(w, 0.98) * step(0.4, h21(vec2(k, floor(w / 0.12)) + vSemilla * 9.0));
+      b = mix(b, mix(vec3(0.86, 0.12, 0.16), vec3(0.95, 0.42, 0.62), step(0.7, h21(vec2(k, 3.0)))), fl);
+      b = mix(b, vec3(0.2, 0.42, 0.16), step(0.5, vSemilla) * step(0.58, w) * step(w, 0.66));   // (las hojas de las macetas)
+      diffuseColor.rgb = mix(diffuseColor.rgb * 0.7, b, fino);
+    }
+  } else if (c < 2.5) {   // (la piedra: hiladas de mampuestos y la albardilla encima)
+    float fila = floor(w / 0.32), pz = (0.84 + 0.26 * h21(vec2(floor(u / 0.55 + fila * 0.5), fila))) * mix(0.78, 1.0, step(0.1, fract(w / 0.32)));
+    diffuseColor.rgb *= arriba ? 1.08 : mix(0.95, pz, fino);
+  } else if (c < 3.5) {   // (la leña: las testas de los troncos, por delante)
+    if (lx || arriba) diffuseColor.rgb *= 0.78;
+    else { vec2 q = fract(vec2(u, w) / 0.2) - 0.5; float r = length(q) + 0.12 * h21(floor(vec2(u, w) / 0.2));
+      vec3 t = mix(vec3(0.8, 0.62, 0.4), vec3(0.58, 0.4, 0.22), smoothstep(0.08, 0.34, r));
+      diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.12, 0.08, 0.05), t, step(r, 0.44)), fino); }
+  } else if (c < 4.5) {   // (la paca: la espiral de la hierba en las caras y las vueltas de la cuerda)
+    if (lx) diffuseColor.rgb *= 0.86 + 0.16 * sin(length(vObj.yz - vec2(0.5, 0.0)) * 46.0);
+    else diffuseColor.rgb *= 0.92 + 0.1 * step(0.9, fract(vObj.x * 3.0));
+  } else if (c < 5.5) diffuseColor.rgb *= mix(0.62, 1.06, vObj.y);   // (los animales, con la tripa en sombra)
+  else {   // (la pila de la fuente: piedra por fuera y el agua dentro)
+    float r = length(vObj.xz) * 2.0;
+    if (arriba) diffuseColor.rgb = r < 0.8 ? vec3(0.3, 0.52, 0.64) * (0.9 + 0.12 * sin(r * 30.0)) : diffuseColor.rgb * 1.08;
+    else diffuseColor.rgb *= mix(0.8, 1.0, step(0.12, fract(w / 0.35)));
+  }
+} else {
   float t = vVent > 9.5 ? vVent - 10.0 : vVent, piedra = vVent > 9.5 || (t > 3.5 && t < 5.5) ? 1.0 : 0.0;
   if (t > 0.5 && t < 5.5 && abs(vNo.y) < 0.5) {
     bool lx = abs(vNo.x) > 0.5; float ancho = (lx ? vEsc.z : vEsc.x) * uMetro, u = ((lx ? vObj.z : vObj.x) + 0.5) * ancho;
@@ -132,17 +169,31 @@ float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); 
     float nitido = 1.0 - smoothstep(0.45, 1.1, px), fino = 1.0 - smoothstep(0.15, 0.5, px);
     vec3 base = diffuseColor.rgb;
     if (piedra > 0.5) { float fila = floor(v / 0.55); base *= mix(1.0, (0.88 + 0.22 * h21(vec2(floor(u / 1.3 + fila * 0.5), fila))) * mix(0.82, 1.0, step(0.08, fract(v / 0.55))), fino); }
-    else base = mix(base, base * vec3(0.84, 0.8, 0.74), (1.0 - step(0.8, u) * step(u, ancho - 0.8)) * step(0.8, v) * nitido);
-    float hueco = 0.0, marco = 0.0, fx = fract(u / 3.4);
+    else {
+      base = mix(base, base * vec3(0.84, 0.8, 0.74), (1.0 - step(0.8, u) * step(u, ancho - 0.8)) * step(0.8, v) * nitido);
+      base *= mix(1.0, 0.94 + 0.1 * h21(floor(vec2(u, v) / 1.3) + vSemilla * 5.0), fino);   // (el revoco, a manchas)
+    }
+    float hueco = 0.0, marco = 0.0, chorreo = 0.0, dovela = 0.0, escudo = 0.0, fx = fract(u / 3.4);
     if (t < 3.5) {
-      float fy = fract(v / 3.0), alto = step(2.6, v) * step(v, hM - 4.4) * step(0.28, fy) * step(fy, 0.8), pu = fract(u / 7.0);
+      float fy = fract(v / 3.0), alto = step(2.6, v) * step(v, hM - 4.4) * step(0.28, fy) * step(fy, 0.8), pu = fract(u / 7.0), dx = (pu - 0.49) * 7.0;
       marco = (step(0.24, fx) * step(fx, 0.36) + step(0.64, fx) * step(fx, 0.76)) * alto;
-      hueco = max(step(0.36, fx) * step(fx, 0.64) * alto, step(v, 2.2) * step(0.42, pu) * step(pu, 0.56));
+      // (la puerta: en las casas de piedra, un portal de arco de medio punto con sus dovelas y, en algunas, el escudo encima)
+      float rp = length(vec2(dx, max(v - 1.9, 0.0)));
+      float puerta = piedra > 0.5 ? step(rp, 0.62) * step(v, 2.6) : step(v, 2.2) * step(abs(dx), 0.49);
+      if (piedra > 0.5) {
+        dovela = step(1.9, v) * step(0.62, rp) * step(rp, 0.95) * mix(1.0, step(0.14, fract(atan(v - 1.9, dx) * 2.86)), fino);
+        vec2 e = vec2(dx / 0.34, (v - 3.25) / 0.36); float dentro = step(abs(e.x), 1.0) * step(e.y, 1.0) * step(length(vec2(e.x, min(e.y + 0.2, 0.0) / 0.8)), 1.0);
+        escudo = step(0.6, vSemilla) * dentro * (0.75 + 0.25 * step(0.8, max(abs(e.x), abs(e.y + 0.1))));
+      }
+      hueco = max(step(0.36, fx) * step(fx, 0.64) * alto, puerta);
+      // (bajo cada ventana, el chorreón del agua que escurre del alféizar)
+      chorreo = step(3.0, v) * step(v, hM - 4.4) * step(fy, 0.28) * (fy / 0.28) * step(0.38, fx) * step(fx, 0.62);
     } else if (t < 4.5) { float f6 = fract(u / 6.0); hueco = step(0.44, f6) * step(f6, 0.56) * step(hM * 0.4, v) * step(v, hM * 0.72); }
     else { float f3 = fract(u / 3.0); hueco = step(0.3, f3) * step(f3, 0.7) * step(hM - 8.0, v) * step(v, hM - 4.8); }
     vec3 cont = t < 1.5 ? vec3(0.34, 0.21, 0.12) : t < 2.5 ? vec3(0.12, 0.34, 0.2) : vec3(0.52, 0.12, 0.09);
-    vec3 det = mix(mix(base, cont, marco), vec3(0.09, 0.08, 0.1), hueco);
+    vec3 det = mix(mix(mix(base, base * 1.18, max(dovela, escudo)), cont, marco), vec3(0.09, 0.08, 0.1), hueco);
     if (t > 1.5 && t < 3.5 && vSemilla < 0.5) det = mix(det, vec3(0.3, 0.18, 0.1), step(2.6, v) * step(v, 3.15) * step(0.4, u) * step(u, ancho - 0.4));
+    det *= (1.0 - 0.13 * chorreo * fino) * mix(0.9, 1.0, smoothstep(0.8, 1.8, v));   // (y la humedad que sube del suelo)
     det *= mix(0.78, 1.0, step(0.8, v)) * mix(1.0, 0.72, smoothstep(hM - 2.7, hM - 2.0, v));
     diffuseColor.rgb = mix(base * (t < 3.5 ? 0.86 : 0.96), det, nitido);
   } else if (t > 5.5 && t < 7.5) {
@@ -154,6 +205,9 @@ float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); 
       // (de más lejos, en vez de cada teja, sus hileras de tres en tres y las manchas de musgo y de teja nueva)
       float hilera = mix(1.0, 0.86 + 0.14 * smoothstep(0.0, 0.35, fract(sl / (paso * 3.0))), medio * (1.0 - fino));
       diffuseColor.rgb *= mix(0.95, teja, fino) * hilera * (0.86 + 0.2 * h21(floor(vec2(u, sl) / 2.2) + vSemilla * 7.0)) * mix(0.8, 1.0, smoothstep(0.0, 0.4, L - sl));
+      // (el musgo y el liquen, a manchas, y la sombra del alero abajo)
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.34, 0.4, 0.2), uMusgo * 0.42 * medio * smoothstep(0.55, 0.85, h21(floor(vec2(u, sl) / 1.4) + vSemilla * 3.0)));
+      diffuseColor.rgb *= mix(0.74, 1.0, smoothstep(0.0, 0.5, sl));
     }
   } else if (t > 7.5) diffuseColor.rgb *= mix(0.58, 1.12, vObj.y) * (0.9 + 0.2 * vSemilla);
 }`).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
@@ -161,7 +215,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   };
   mat.customProgramCacheKey = () => 'maqueta';
   res.mat = mat;
-  const piezas = { paredes: [], tejados: [], agujas: [], arboles: [], abetos: [], coches: [] };
+  const piezas = { paredes: [], tejados: [], agujas: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();
   const pon = (lista, X, Z, base, ry, w, h, d, off, hsl, vent = 0) => { M4.compose(e3.set(X, base, Z), q.setFromAxisAngle(up, ry), sc.set(w, h, d)); lista.push([M4.toArray(), off, col.setHSL(...hsl).toArray(), vent]); };
   const varia = (b) => ((b.x * 7 + b.z * 13) % 9 + 9) % 9 / 9;
@@ -198,6 +252,20 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     // (una chimenea en la mitad de las casas, junto a la cumbrera)
     if (!nave && k !== 'church' && corto < 30 && v > 0.5) { const ax = Math.cos(rx), az = -Math.sin(rx), f = (v - 0.75) * largo * 0.8;
       pon(piezas.paredes, X + ax * f * MU, Z + az * f * MU, base, rx, 0.9 * MU, (rh * 0.75 + 1.4) * MU * K, 0.9 * MU, H, [pared[0], pared[1], pared[2] * 0.85]); }
+    // (el balcón del primer piso, en la fachada larga que da al sur, la solana: de madera en los valles del norte y el
+    // Pirineo, de forja en la Zona Media y la Ribera; muchos, con geranios)
+    const casa = !nave && !piedra && k !== 'fronton' && k !== 'school' && k !== 'townhall';
+    if (casa && corto >= 6 && largo >= 7 && hM >= 6 && rnd() < { atlantico: 0.65, pirineo: 0.4, centro: 0.3, ribera: 0.22 }[estilo]) {
+      const enX = b.w >= b.d, nx = enX ? Math.sin(b.ry) : Math.cos(b.ry), nz = enX ? Math.cos(b.ry) : -Math.sin(b.ry), s = nz >= 0 ? 1 : -1, sep = corto / 2 + 0.45;
+      pon(piezas.detalles, X + nx * s * sep * MU, Z + nz * s * sep * MU, base, enX ? b.ry : b.ry + Math.PI / 2, clamp(largo * 0.62, 3, 14) * MU, 1.0 * MU * K, 0.9 * MU, 5.6 * MU * K,
+        norte ? [0.06, 0.42, 0.24 + v * 0.08] : [0.62, 0.06, 0.15], 21);
+    }
+    // (y en el norte, la leña apilada contra el hastial)
+    if (casa && norte && rnd() < 0.35) {
+      const enX = b.w >= b.d, ax = enX ? Math.cos(b.ry) : -Math.sin(b.ry), az = enX ? -Math.sin(b.ry) : -Math.cos(b.ry), s = v < 0.5 ? 1 : -1, sep = largo / 2 + 0.4;
+      const lx2 = b.x + ax * s * sep, lz2 = b.z + az * s * sep, LX = X0 + lx2 * MU, LZ = Z0 + lz2 * MU;
+      if (cabe(lx2, lz2, 2)) pon(piezas.detalles, LX, LZ, alto(LX, LZ) - hund * 0.2, enX ? b.ry + Math.PI / 2 : b.ry, Math.min(corto * 0.6, 4) * MU, 1.6 * MU * K, 0.7 * MU, 0, [0.07, 0.4, 0.3], 23);
+    }
     if (k === 'church' && corto > 6) {   // (la torre, al oeste, que es donde suelen tener la fachada)
       const ax = Math.cos(rx), az = -Math.sin(rx), s = ax > 0 ? -1 : 1, tw = clamp(corto * 0.5, 4, 9), off = (largo / 2 - tw / 2) * s;
       const tx = b.x + ax * off, tz = b.z + az * off, tb = pie(tx, tz, tw, tw, rx), TH = (hM * 2.1 + 2) * MU * K;
@@ -265,26 +333,54 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   }
   yield;
 
-  // ---------- los coches aparcados en las calles, a un lado y a otro ----------
-  const COCHE = [[0, 0, 0.92], [0.6, 0.04, 0.72], [0.6, 0.05, 0.18], [0, 0.62, 0.42], [0.6, 0.5, 0.4], [0.33, 0.25, 0.32], [0.1, 0.3, 0.7]];
-  for (const s of D.calles) {
-    if (s.t === 'trail' || (s.w || 2) < 2.2 || piezas.coches.length >= (lento ? 250 : 900)) continue;
-    for (let i = 0; i + 1 < s.pts.length; i++) {
-      const [ax, az] = s.pts[i], [bx, bz] = s.pts[i + 1], L = Math.hypot(bx - ax, bz - az); if (L < 6) continue;
-      const dx = (bx - ax) / L, dz = (bz - az) / L, ry = Math.atan2(-dz, dx);
-      for (let t = 3; t < L - 3; t += 14) if (rnd() < 0.3) {
-        const sd = rnd() < 0.5 ? -1 : 1, o2 = (s.w || 2) - 1.1, x = ax + dx * t - dz * o2 * sd, z = az + dz * t + dx * o2 * sd; if (Math.hypot(x, z) > R * 0.9 || !cabe(x, z, 3)) continue;
-        const X = X0 + x * MU, Z = Z0 + z * MU; pon(piezas.coches, X, Z, alto(X, Z) - hund * 0.2, ry, 4.3 * MU, 1.5 * MU * K, 1.8 * MU, 0, COCHE[Math.floor(rnd() * COCHE.length)]);
+  // ---------- el campo y la vida del pueblo (nada de coches: es un juego de pueblos y de campo): muros de piedra seca en
+  // las lindes de prados y huertas del norte, pacas de hierba en prados y rastrojos (en el norte, muchas envueltas en
+  // plástico negro o blanco), rebaños de ovejas y, en los valles del norte y el Pirineo, vacas pirenaicas, y las fuentes
+  // del pueblo (OpenStreetMap) con su pila y su caño ----------
+  const suelo = (lista, x, z, ry, w, h, d, hsl, vent) => { const X = X0 + x * MU, Z = Z0 + z * MU; pon(lista, X, Z, alto(X, Z) - hund * 0.2, ry, w * MU, h * MU * K, d * MU, 0, hsl, vent); };
+  const TOPE_D = lento ? 0.4 : 1;
+  for (const u of D.usos || []) {
+    if (!['prado', 'huerta', 'cultivo', 'vina'].includes(u.k)) continue;
+    // (los muros, a tramos a lo largo de la linde, con huecos para pasar)
+    if ((norte && u.k !== 'cultivo') || (estilo === 'centro' && u.k === 'vina')) for (let i = 0; i < u.pts.length; i++) {
+      const [ax, az] = u.pts[i], [bx, bz] = u.pts[(i + 1) % u.pts.length], L = Math.hypot(bx - ax, bz - az), ry = Math.atan2(-(bz - az), bx - ax);
+      for (let t = 0; t + 3 < L && piezas.detalles.length < 1600 * TOPE_D; t += 13) {
+        const l = Math.min(10, L - t), f = (t + l / 2) / L, x = ax + (bx - ax) * f, z = az + (bz - az) * f;
+        if (rnd() < 0.25 || !libre(x, z) || !libre(ax + (bx - ax) * t / L, az + (bz - az) * t / L)) continue;
+        suelo(piezas.detalles, x, z, ry, l, 0.9, 0.6, [0.1, 0.08, 0.46 + rnd() * 0.1], 22);
       }
     }
+    const dentro = (f) => relleno(u.pts, u.k === 'prado' ? 34 : 46, 0.16, f);
+    // (las pacas, de dos a cuatro juntas)
+    if ((u.k === 'prado' || u.k === 'cultivo') && piezas.pacas.length < 500 * TOPE_D) dentro((x, z) => {
+      const ry = rnd() * 6.28, n = 2 + Math.floor(rnd() * 3), env = norte && u.k === 'prado' && rnd() < 0.45, tono = env ? (rnd() < 0.7 ? [0, 0, 0.1] : [0, 0, 0.92]) : u.k === 'cultivo' ? [0.12, 0.5, 0.66] : [0.15, 0.38, 0.56];
+      for (let i = 0; i < n; i++) { const px = x + Math.cos(ry) * i * 1.9, pz = z - Math.sin(ry) * i * 1.9; if (libre(px, pz) && enPoligono(u.pts, px, pz)) suelo(piezas.pacas, px, pz, ry + Math.PI / 2, 1.2, 1.5, 1.5, tono, 24); }
+    });
+    // (los rebaños, en los prados: ovejas latxas en todas partes; vacas, en el norte)
+    if (u.k === 'prado' && piezas.animales.length < 900 * TOPE_D) dentro((x, z) => {
+      if (rnd() < 0.5) return;
+      const vacas = norte && rnd() < 0.35, n = vacas ? 3 + Math.floor(rnd() * 4) : 8 + Math.floor(rnd() * 12);
+      for (let i = 0; i < n; i++) { const a = rnd() * 6.28, r = Math.sqrt(rnd()) * (vacas ? 9 : 7), px = x + Math.cos(a) * r, pz = z + Math.sin(a) * r;
+        if (!libre(px, pz) || !enPoligono(u.pts, px, pz)) continue;
+        if (vacas) suelo(piezas.animales, px, pz, rnd() * 6.28, 2.3, 1.45, 0.95, [0.08, 0.45, 0.5 + rnd() * 0.1], 25);
+        else suelo(piezas.animales, px, pz, rnd() * 6.28, 1.3, 0.85, 0.75, [0.12, 0.25, 0.86 + rnd() * 0.06], 25); }
+    });
+  }
+  for (const f of (D.lugares?.fuentes || []).slice(0, 40)) {
+    if (Math.hypot(f.x, f.z) > R * 0.93 || !cabe(f.x, f.z, 2)) continue;
+    const ry = rnd() * 6.28; suelo(piezas.pilas, f.x, f.z, ry, 2.6, 0.75, 2.6, [0.1, 0.12, 0.66], 26);
+    suelo(piezas.detalles, f.x - Math.sin(ry) * 1.1, f.z - Math.cos(ry) * 1.1, ry, 0.6, 1.7, 0.45, [0.1, 0.12, 0.62], 22);
   }
   yield;
 
-  // ---------- las piezas, cuatro mallas con instancias ----------
+  // ---------- las piezas, una malla con instancias por forma ----------
   const caja = new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), aguja = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4).translate(0, 0.5, 0);
   const copa = new THREE.IcosahedronGeometry(0.5, lento ? 0 : 1).translate(0, 0.5, 0), cono = new THREE.ConeGeometry(0.5, 1, 7).translate(0, 0.5, 0);
+  // (la paca, tumbada: su eje a lo largo de x; la pila de la fuente, de pie)
+  const rulo = new THREE.CylinderGeometry(0.5, 0.5, 1, 14).rotateZ(Math.PI / 2).translate(0, 0.5, 0), pila = new THREE.CylinderGeometry(0.5, 0.5, 1, 18).translate(0, 0.5, 0);
   const grupo = new THREE.Group();
-  for (const [nombre, g0] of [['paredes', caja], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['arboles', copa], ['abetos', cono], ['coches', caja.clone()]]) {
+  for (const [nombre, g0] of [['paredes', caja], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['arboles', copa], ['abetos', cono],
+    ['detalles', caja.clone()], ['pacas', rulo], ['animales', copa.clone()], ['pilas', pila]]) {
     const L = piezas[nombre]; if (!L.length) { g0.dispose(); continue; }
     const off = new Float32Array(L.length), vent = new Float32Array(L.length); L.forEach((p, i) => { off[i] = p[1]; vent[i] = p[3]; });
     g0.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 1)); g0.setAttribute('aVent', new THREE.InstancedBufferAttribute(vent, 1));
