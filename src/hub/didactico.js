@@ -263,7 +263,7 @@ export const DIDACTICO = {
   d_cuentos() {
     this.after = () => this.d_bindLey();
     const by = COMARCAS.map(c => ({ c, list: CUENTOS.filter(C => levelById(C.towns[0])?.comarca === c.id) })).filter(g => g.list.length);
-    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('legend', 20)} Material didáctico</small><h1>Cuentos y leyendas de Navarra</h1>
+    return `<section class="armorial dd"><div class="ar-head dd-head"><small class="kicker">${I('legend', 20)} Saberes · Leyendas</small><h1>Cuentos y leyendas de Navarra</h1>
       <p>Las leyendas de cada pueblo, lo que cuenta la tradición, y las historias que pasaron de verdad. Cada relato dice qué puedes ver hoy en ese lugar y lleva una pregunta para repasar, con su respuesta.</p></div>
       ${by.map(g => `<h2 class="sec dd-csec" style="--c:${g.c.color}"><i class="adot"></i>${esc(g.c.name)}</h2><div class="dd-grid dd-cts">${g.list.map(C => this.d_cuento(C)).join('')}</div>`).join('')}
       ${sec('legend', 'Leyendas de noche')}<p class="lead">Las que en el juego se viven al anochecer, con sus pistas y su encuentro.</p><div class="dd-grid">${Object.keys(LEGENDS).map(k => this.d_leyendaNoche(k)).join('')}</div>
@@ -299,7 +299,7 @@ export const DIDACTICO = {
         { k: 'pasaka', img: laminaUrl('dep-pasaka', true) || '', icon: 'pelota', kicker: PASAKA.kicker, title: 'Pasaka', secs: PASAKA.secs.filter(([t]) => t !== 'En el juego').map(([t, x]) => [t, P(x)]).concat([['Fuentes', `<p class="ar-src">${esc(PASAKA.sources)}</p>`]]) }] },
       { k: 'campanas', name: 'Las campanas', icon: 'bell', items: [{ k: 'campanas', img: tradicionUrl('campanas') || '', icon: 'bell', kicker: 'Tradición', title: BELL.title, secs: [['Qué es', P(BELL.fact)]] }] },
     ];
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Material didáctico</small><h1>Tradiciones de Navarra</h1>
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Saberes · Tradiciones</small><h1>Tradiciones de Navarra</h1>
       <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música. Toca una para ver su ficha.</p></div>`;
     grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="instrumentos">${I('music', 22)} Los instrumentos de la música de siempre</button><button type="button" class="btn ghost" data-go="personajes">${I('mask', 22)} Las fichas de los personajes de leyenda y carnaval</button></p>`;
     return galeria(this, 'tradiciones', tab, head, grupos);
@@ -316,7 +316,7 @@ export const DIDACTICO = {
           ['Antes y ahora', aa(O.then, O.now)]],
         towns: towns(m => m.type === 'trade' && m.kind === k) };
     });
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Material didáctico</small><h1>Oficios de antes</h1>
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('anvil', 20)} Saberes · Oficios</small><h1>Oficios de antes</h1>
       <p>Cómo se hacían las cosas cuando no había máquinas. Cada oficio tiene su ficha: qué hacía, sus herramientas en castellano y en euskera, cómo se trabajaba paso a paso, con una pregunta en cada paso, y cómo es hoy.</p></div>`;
     return galeria(this, 'oficios', tab, head, [{ k: 'oficios', name: 'Oficios', icon: 'anvil', items }]);
   },
@@ -347,7 +347,7 @@ export const DIDACTICO = {
       { k: 'monte', name: 'Comida para el monte', icon: 'backpack', items: Object.values(FOOD).filter(f => f.fact).map(f => ({ k: 'm-' + f.name, img: '', icon: f.icon, kicker: 'Para el monte', title: f.name, secs: [['Qué es', P(f.fact)]] })) },
       { k: 'campo', name: 'Del campo', icon: 'basket', items: Object.values(GOODS).map(g => ({ k: 'c-' + g.name, img: '', icon: g.icon, kicker: 'Del campo y la ganadería', title: g.name, eu: g.eu, secs: [['De dónde sale', P(cap(g.from || ''))]] })) },
     ];
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('cheese', 20)} Material didáctico</small><h1>Producto local y campo</h1>
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('cheese', 20)} Saberes · Productos</small><h1>Producto local y campo</h1>
       <p>Lo que se cultiva, se cría y se elabora en cada comarca: cómo se hace, cómo era antes y cómo es ahora. Toca uno para ver su ficha.</p></div>`;
     return galeria(this, 'productos', tab, head, grupos);
   },
@@ -373,7 +373,7 @@ export const DIDACTICO = {
       { k: 'historias', name: 'Historias que pasaron', icon: 'book', intro: 'Lo que pasó de verdad en los pueblos de Navarra.',
         items: H.map(C => ({ k: 'h-' + C.id, img: leyendaUrl(C.id) || '', icon: C.icon, kicker: KIND_LABEL[C.kind], title: C.title, sub: C.place, secs: [['La historia', Ps(C.parts)], ['Lo que puedes ver hoy', P(C.today)], ['Pregunta', quiz(C.q)]], towns: C.towns })) },
     ];
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('castle', 20)} Material didáctico</small><h1>Historia y arquitectura</h1>
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('castle', 20)} Saberes · Historia</small><h1>Historia y arquitectura</h1>
       <p>De los primeros pastores que levantaron los dólmenes a los vascones de Irulegi, los castillos del reino y los monumentos de los pueblos: qué son y cómo reconocerlos. Toca uno para ver su ficha.</p></div>`;
     grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="personajes">${I('book', 22)} Los personajes de la historia de Navarra</button><button type="button" class="btn ghost" data-go="escudos">${I('shield', 22)} Los escudos y cómo se leen</button></p>`;
     return galeria(this, 'historia', tab, head, grupos);
@@ -403,7 +403,7 @@ export const DIDACTICO = {
       { k: 'pueblos', name: 'Pueblos', icon: 'church', items: LEVELS.map(l => { const n = both(l.name); return n && W(n[0], n[1], { img: townImg(l, true), icon: 'church' }); }).filter(Boolean) },
       { k: 'comarcas', name: 'Comarcas', icon: 'map', items: COMARCAS.map(c => { const n = both(c.full || c.name); return n && W(n[0], n[1], { img: comarcaCover(c.id, true) || '', icon: 'map' }); }).filter(Boolean) },
     ];
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('talk', 20)} Material didáctico</small><h1>Palabras en euskera</h1>
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('talk', 20)} Saberes · Euskera</small><h1>Palabras en euskera</h1>
       <p>Las palabras en euskera que salen en el juego, por temas: cada una con su dibujo, en euskera en grande y en castellano debajo.</p></div>`;
     return palabras(this, 'euskera', tab, head, grupos);
   },

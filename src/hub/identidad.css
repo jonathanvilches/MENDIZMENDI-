@@ -52,3 +52,5 @@
 :is(.dd-b, .dd-arms) { border-radius: var(--r); background-color: var(--glass); border-color: var(--line); }
 .antes-ahora div { border-radius: 0 var(--r) var(--r) 0; border-left: 3px solid #b79cff; background: rgba(255, 255, 255, .05); }
 .antes-ahora div + div { border-left-color: #ff7ac8; }
+/* (la cabecera de las secciones sin .ar-head, hub.js cabeza(): el rótulo y el título, a la misma distancia que en las demás) */
+.kicker + .title { margin-top: var(--t-mt); }

@@ -63,6 +63,9 @@ const $ = (s, r = document) => r.querySelector(s);
 const XF = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
 const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
+// la cabecera de cada sección, la misma en todas: el rótulo, con el grupo, la sección y su icono, y el título grande, sin
+// icono (ya va en el rótulo). Las de los saberes, «Saberes · …»; las de tu partida, «Tu partida · …»
+const cabeza = (rotulo, ic, titulo, cls = '') => `<small class="kicker${cls}">${I(ic, 20)} ${rotulo}</small><h1 class="title${cls}">${titulo}</h1>`;
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 // el otro nombre de un pueblo o de una comarca, el de la otra lengua: en euskera el nombre se traduce solo (Olite pasa a ser
 // Erriberri), así que debajo va el de castellano, sin traducir (data-notr)
@@ -311,7 +314,7 @@ export class Hub {
     // tumbado, cada una cabe entera a la vista. En vertical, la portada entera arriba y lo demás debajo)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     return `
-    <h2 class="sec">${I('trophy', 34)} Campeonatos</h2>
+    ${cabeza('Torneos · Pelota y fútbol', 'trophy', 'Campeonatos')}
     <section class="sports">
       <div class="sport sp-pelota">
         <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl)})"></span>
@@ -475,7 +478,7 @@ export class Hub {
       tarjetas: (id) => comarcaTowns(id).map(l => this.galTarjeta(l)).join(''), info: (id, i, n) => this.galInfo(id, i, n),
       abre: (id) => (isDidactico() ? this.go('pueblo', id) : this.townSheet(id)), sonido: (k) => this.sound?.ui(k) });
     const fl = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
-    return `${dd ? `<h1 class="title gal-lead">${I('church', 40)} Pueblos y ciudades</h1><p class="lead gal-lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>` : ''}
+    return `${dd ? `${cabeza('Saberes · Pueblos', 'church', 'Pueblos y ciudades', ' gal-lead')}<p class="lead gal-lead">Toca un pueblo para ver todo lo que enseña: qué visitar, su escudo, sus cuentos, sus productos, sus oficios, sus danzas y su carnaval.</p>` : ''}
       <div class="gal">
         <nav class="filters gal-cm" aria-label="Comarcas">${grupos.map(c => `<button type="button" data-gc="${c.id}" aria-pressed="false"><img src="${stampImg(c.id)}" alt="">${esc(c.name)}</button>`).join('')}</nav>
         <div class="gal-centro"><div class="gal-escena" role="group" aria-roledescription="carrusel" aria-label="Pueblos de la comarca"><div class="gal-anillo"></div></div>
@@ -515,7 +518,7 @@ export class Hub {
     this.after = () => this.root.querySelectorAll('.filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('peaks', b.dataset.f); });
     const won = [...inGame.keys()].filter(id => p.peaks.includes(id)).length;
     const dd = isDidactico();
-    return `<h1 class="title">${I('peak', 40)} Cimas de Navarra</h1>${dd ? '<p class="lead">Los montes de Navarra con su altura, su recorrido y su perfil. Debajo, cómo se leen las señales de los senderos y cómo ir al monte.</p>' : `<p class="lead-chip">${I('peak', 24)}<b>${won}/${inGame.size}</b> cimas</p>`}
+    return `${cabeza('Saberes · Cimas', 'peak', 'Cimas de Navarra')}${dd ? '<p class="lead">Los montes de Navarra con su altura, su recorrido y su perfil. Debajo, cómo se leen las señales de los senderos y cómo ir al monte.</p>' : `<p class="lead-chip">${I('peak', 24)}<b>${won}/${inGame.size}</b> cimas</p>`}
       <div class="filters"><button data-f="game" class="${filter === 'game' ? 'on' : ''}">${I('flag', 20)} En el juego</button><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.filter(c => MOUNTAINS.some(m => m.region === c.id)).map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
       <section class="peaks">${list.map(m => this.peakCard(m, dd ? null : inGame.get(m.id))).join('')}</section>
       ${dd ? `<h2 class="sec">${I('flag', 30)} Las señales de los senderos</h2><div class="dd-grid">${ORIENTA.map(o => `<article class="dd-b"><header>${I('flag', 34)}<div><h3>${esc(o.title)}</h3></div></header><p>${esc(o.text)}</p></article>`).join('')}</div>
@@ -554,7 +557,7 @@ export class Hub {
     const fb = { trees: 'tree', plants: 'herbs', flowers: 'flower' };
     // (de las plantas, la foto de la planta entera de borde a borde por arriba y su hoja en un círculo encima)
     const pic = (d) => d.type === 'fauna' ? (fi => fi ? `<img class="fpic" src="${fi.small}" alt="" loading="lazy" decoding="async">` : I(d.F.icon || speciesIcon(d.F.name) || 'bird', 64))(faunaImg(d.id)) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}<img alt="" loading="lazy" decoding="async" data-flora="${d.id}"><img class="sleaf" alt="" decoding="async"></span>`;
-    return `<h1 class="title">${I('leaf', 40)} Naturaleza de Navarra</h1>${isDidactico() ? '<p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha.</p>' : ''}
+    return `${cabeza('Saberes · Naturaleza', 'leaf', 'Naturaleza de Navarra')}${isDidactico() ? '<p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha.</p>' : ''}
       ${isDidactico() ? '' : `<div class="nprog"><span>${I('leaf', 22)} Herbario <b>${gotFl}</b> / ${nFl}</span><span>${I('binoculars', 22)} Cuaderno de fauna <b>${gotFa}</b> / ${nFa}</span></div>`}
       <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Arbustos y plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
       <section class="species">${list.map(d => { const got = cards.has(type + ':' + d.id); return `<button class="scard ${type === 'flora' ? 'fl' : ''} ${got ? 'seen' : ''}" data-k="${type}:${d.id}">${pic(d)}<b>${esc(d.F.name)}</b><small class="seu">${esc(d.F.eu || '')}${d.F.eu && d.F.sci ? ' · ' : ''}<i>${esc(d.F.sci || '')}</i></small><div class="where">${d.comarcas.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${got ? `<span class="seenb">${I(type === 'flora' ? 'check' : 'binoculars', 18)} ${type === 'flora' ? 'Identificada' : 'Observado'}</span>` : ''}</button>`; }).join('')}</section>`;
@@ -686,7 +689,7 @@ export class Hub {
   s_album() {
     const groups = [...COMARCAS.map(c => ({ name: c.name, color: c.color, list: this.comarcaLaminas(c.id) })),
       { name: 'Oficios de antes', list: laminasDe({ group: 'oficios' }) }, { name: 'Deportes', list: laminasDe({ group: 'deportes' }) }].filter(g => g.list.length);
-    return `<h1 class="title">${I('scroll', 40)} Láminas de Navarra</h1>
+    return `${cabeza('Saberes · Láminas', 'scroll', 'Láminas de Navarra')}
       ${groups.map(g => `<section class="album-sec" style="--c:${g.color || '#c9b2ff'}"><h2 class="sec"><i class="adot"></i>${esc(g.name)}</h2>${laminaRail(g.list)}</section>`).join('')}`;
   }
   // ---------- Cuentos y leyendas ----------
@@ -735,14 +738,14 @@ export class Hub {
   }
   s_badges() {
     const p = profile(); checkBadges(); saveProfile();
-    return `<h1 class="title">${I('badge', 40)} Insignias</h1><p class="lead-chip">${I('badge', 24)}<b>${p.badges.length}/${BADGES.length}</b></p>
+    return `${cabeza('Tu partida · Insignias', 'badge', 'Insignias')}<p class="lead-chip">${I('badge', 24)}<b>${p.badges.length}/${BADGES.length}</b></p>
       <section class="badges">${BADGES.map(b => { const on = p.badges.includes(b.id); return `<div class="bcard ${on ? 'on' : ''}"><div class="bic">${I(b.icon, 64)}${on ? '' : `<i class="blk">${I('lock', 24)}</i>`}</div><b>${esc(b.name)}</b><p>${esc(b.text)}</p></div>`; }).join('')}</section>`;
   }
 
   // ---------- Pasaporte ----------
   s_passport() {
     const p = profile();
-    return `<h1 class="title">${I('stamp', 40)} Pasaporte Herri</h1>
+    return `${cabeza('Tu partida · Pasaporte', 'stamp', 'Pasaporte Herri')}
       <section class="passport">${COMARCAS.map(c => { const ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
         return `<div class="ppage" style="--c:${c.color}"><header><img class="${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt=""><div><b>${esc(c.name)}</b><small>${pr.stamps}/${ts.length} sellos</small></div></header>
         <div class="pstamps">${ts.length ? ts.map(l => { const t = townProgress(p, l), fut = p.towns?.[l.id]?.futsal?.sello; return `<button class="pst ${t.stamp ? 'on' : ''}" data-town="${l.id}">${(u => u ? `<img class="pst-img" src="${u}" alt="" loading="lazy" decoding="async">` : '')(townCover(l.id, true))}<span class="ink">${t.stamp ? `<img src="${stampImg(c.id)}" alt="">` : I('lock', 30)}</span>${fut ? `<i class="fsello" title="Sello de fútbol">${I('balon', 18)}</i>` : ''}<small>${esc(l.name.split(' /')[0])}</small></button>`; }).join('') : '<small class="empty">Próximamente</small>'}</div></div>`; }).join('')}</section>`;
@@ -783,7 +786,7 @@ export class Hub {
     };
     const mode = `<label class="set">Modo <select id="pMode"><option value="juego">Juego</option><option value="didactico">Material didáctico</option></select></label>
         <p class="set-note">${isDidactico() ? 'Solo el material para aprender, sin el juego: todo abierto para leer y estudiar.' : 'Con «Material didáctico» se oculta el juego y queda todo lo que se aprende, abierto para leer y estudiar. Tu partida no se borra.'}</p>`;
-    if (isDidactico()) return `<h1 class="title">${I('gear', 40)} Ajustes</h1>
+    if (isDidactico()) return `${cabeza('Material didáctico · Ajustes', 'gear', 'Ajustes')}
       <section class="two"><div class="panel"><h2>${I('gear', 30)} Ajustes</h2>${mode}
         <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
@@ -791,7 +794,7 @@ export class Hub {
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
         <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}${this.diagnostico()}`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
-    return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
+    return `${cabeza('Tu partida · Perfil', 'gear', 'Perfil y ajustes')}
       <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
         <label>Tu nombre<input id="pName" maxlength="14" value="${esc(p.name)}" autocomplete="off"></label>
         <div class="lvl"><b>Nivel ${L.lv}</b> · ${rankOf(L.lv)}<div class="xp big"><i style="width:${L.cur / L.need * 100}%"></i></div><small>${L.cur}/${L.need} XP para el siguiente nivel</small></div>
