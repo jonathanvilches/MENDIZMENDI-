@@ -200,7 +200,7 @@ export const TEXT = {
       'Correr a tope, la cortada, las dos paredes y el gancho gastan energía. Peloteando normal la recuperas. Cansado, corres menos, llegas peor y fallas más.',
       'Si bota dentro y llega a la pared de atrás (el rebote), vuelve y se puede jugar antes del segundo bote. Si da en el rebote sin botar, es fuera.',
     ],
-    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', optTabs: ['Partido', 'Reglas', 'Controles'], optBack: 'Volver', energy: 'Energía', camDyn: ['Cámara dinámica', 'La cámara sigue la pelota y se mueve con los golpes fuertes.'], vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`, card: ['Vel', 'Pot', 'Man'], ovr: 'Media', friendly: 'Partido amistoso',
+    level: 'Nivel', rulesTitle: 'Reglas y controles', moreTitle: 'Más opciones', optTabs: ['Partido', 'Reglas', 'Controles'], optBack: 'Volver', energy: 'Energía', estadoEn: ['Fresco', 'Se cansa', '¡Agotado!'], pot: 'Potencia', camDyn: ['Cámara dinámica', 'La cámara sigue la pelota y se mueve con los golpes fuertes.'], vsTap: 'Toca para empezar', fronton: (t) => `Frontón de ${t}`, card: ['Vel', 'Pot', 'Man'], ovr: 'Media', friendly: 'Partido amistoso',
     levels: { iniciacion: 'Iniciación', facil: 'Fácil', normal: 'Normal', dificil: 'Difícil', experto: 'Experto' },
     // las partes del frontón, una a una con la cámara (cada zona tiene su nombre, y hay que saberlo para seguir el juego)
     tour: { btn: 'Partes del frontón', next: 'Siguiente', prev: 'Anterior', end: 'Volver', parts: [
@@ -308,7 +308,7 @@ export const TEXT = {
       'Bizkor korrika egiteak, cortadak, bi paretek eta ganchoak energia gastatzen dute. Ohiko pilotakadekin berreskuratzen duzu. Nekatuta, gutxiago korrika egiten duzu, okerrago iristen zara eta gehiago huts egiten duzu.',
       'Barruan bote egin eta atzeko paretara (errebotera) iristen bada, itzuli egiten da eta bigarren botea baino lehen jo daiteke. Bote egin gabe errebotean jotzen badu, kanpo da.',
     ],
-    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', optTabs: ['Partida', 'Arauak', 'Kontrolak'], optBack: 'Itzuli', energy: 'Energia', camDyn: ['Kamera dinamikoa', 'Kamerak pilotari jarraitzen dio eta kolpe indartsuekin mugitzen da.'], vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`, card: ['Abi', 'Ind', 'Esk'], ovr: 'Batez', friendly: 'Lagunarteko partida',
+    level: 'Maila', rulesTitle: 'Arauak eta kontrolak', moreTitle: 'Aukera gehiago', optTabs: ['Partida', 'Arauak', 'Kontrolak'], optBack: 'Itzuli', energy: 'Energia', estadoEn: ['Freskoa', 'Nekatzen', 'Lehertuta!'], pot: 'Indarra', camDyn: ['Kamera dinamikoa', 'Kamerak pilotari jarraitzen dio eta kolpe indartsuekin mugitzen da.'], vsTap: 'Ukitu hasteko', fronton: (t) => `Frontoia · ${t}`, card: ['Abi', 'Ind', 'Esk'], ovr: 'Batez', friendly: 'Lagunarteko partida',
     levels: { iniciacion: 'Hasiera', facil: 'Erraza', normal: 'Normala', dificil: 'Zaila', experto: 'Aditua' },
     tour: { btn: 'Frontoiaren atalak', next: 'Hurrengoa', prev: 'Aurrekoa', end: 'Itzuli', parts: [
       ['Frontisa', 'Aurreko horma. Pilota orok bertan jo behar du, goiko marraren azpitik.'],
