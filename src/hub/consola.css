@@ -15,7 +15,10 @@
   display: block; grid-template-columns: none; grid-template-rows: none;
 }
 @media (min-width: 1200px) and (min-height: 600px) { #hub.juego { --hud-t: max(16px, env(safe-area-inset-top, 0px)); --hud-l: max(16px, env(safe-area-inset-left, 0px)); --hud-r: max(16px, env(safe-area-inset-right, 0px)); --hud-b: 16px; --hud-h: 52px; --hud-g: 10px; } }
-@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, env(safe-area-inset-bottom, 0px)); --hud-l: max(8px, env(safe-area-inset-left, 0px)); --hud-r: max(8px, env(safe-area-inset-right, 0px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 10px; } }
+/* (el móvil tumbado: el iPhone reserva 47 puntos a cada lado por la muesca, pero la muesca solo entra unos 34 en el centro
+   del borde: los paneles y el HUD se acercan al borde hasta pasar justo la muesca, y abajo pisan la mitad de la raya de
+   inicio, que no tapa nada. Así se aprovecha toda la pantalla) */
+@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, calc(env(safe-area-inset-bottom, 0px) - 12px)); --hud-l: max(8px, calc(env(safe-area-inset-left, 0px) - 26px)); --hud-r: max(8px, calc(env(safe-area-inset-right, 0px) - 26px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 10px; } }
 #hub:not(.juego) :is(.hub-menu-btn, .hub-velo, .hub-panel-x, .hub-x, .hub-cab) { display: none; }
 #hub:not(.juego) .hub-panel { display: contents; }
 .hub-mapa:empty { display: none; }
@@ -23,6 +26,8 @@
 /* el mapa, a toda la pantalla y siempre debajo */
 #hub.juego .hub-mapa { position: absolute; inset: 0; z-index: 0; }
 #hub.juego .hub-mapa .m3d { --sr: env(safe-area-inset-right, 0px); height: 100%; border-radius: 0; border: 0; box-shadow: none; }
+/* (en el móvil tumbado, el margen de la muesca ya va en --hud-r: sin sumarlo dos veces) */
+@media (max-height: 520px) { #hub.juego .hub-mapa .m3d, #hub.juego .m3d { --sr: 0px; } }
 /* (el velo de arriba y abajo, para leer lo de encima: suave, sin franjas marcadas) */
 #hub.juego .m3d::after { background: linear-gradient(180deg, rgba(13, 4, 32, .34) 0, rgba(13, 4, 32, 0) 22%), linear-gradient(0deg, rgba(13, 4, 32, .3) 0, rgba(13, 4, 32, 0) 20%), radial-gradient(130% 100% at 50% 50%, transparent 62%, rgba(8, 2, 20, .32) 100%); }
 
