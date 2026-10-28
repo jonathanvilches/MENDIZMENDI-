@@ -21,6 +21,7 @@ import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
 import { haceMaqueta } from './maqueta.js';
 import { compilarAsync } from '../util/compilar.js';
+import { apunta } from '../util/diag.js';
 
 // (las coordenadas son las del mapa de comarcas de comarcas.json, viewBox 10 10 725 780: se centran y se pasan a metros
 // del mundo 3D, con el norte hacia el fondo)
@@ -387,7 +388,10 @@ export function mapa3d(host, o) {
   const LENTO = !!o.ligero || matchMedia?.('(pointer: coarse)').matches;
   // (la entrada grande: solo la primera vez y sin movimiento reducido; en las pruebas automáticas, solo si se pide)
   // (ni en el modo sencillo ni en el didáctico, o.intro false, donde el mapa no es la portada)
-  const INTRO = o.intro !== false && !o.ligero && !ENTRADA_VISTA && !matchMedia?.('(prefers-reduced-motion: reduce)').matches && !(navigator.webdriver && !window.__intro); if (o.intro !== false) ENTRADA_VISTA = true;
+  // (con «Reducir movimiento» en el móvil, también, pero suave: sin el temblor, el destello ni la onda; antes no salía, y en
+  // muchos iPhone está puesto)
+  const INTRO = o.intro !== false && !o.ligero && !ENTRADA_VISTA && !(navigator.webdriver && !window.__intro); if (o.intro !== false) ENTRADA_VISTA = true;
+  const SUAVE = !!matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const CINE = host.closest('#hub') || document.body; if (INTRO) CINE.classList.add('m3-cine');   // (en el menú, a toda la pantalla mientras dura)
   const alto = hacerRelieve();
   // (dónde hay bosque: a rodales, en el monte de la mitad norte, entre unos 380 y 1.800 m. Una imagen pequeña de toda
@@ -721,16 +725,16 @@ export function mapa3d(host, o) {
         luz.style.opacity = lz.toFixed(3);
         if (lz > 0) { pc.copy(NC).project(cam); const k = 0.9 + 0.1 * Math.sin(tI * 6); luz.style.transform = `translate(${((pc.x + 1) / 2 * W).toFixed(1)}px, ${((1 - pc.y) / 2 * H).toFixed(1)}px) scale(${k.toFixed(3)})`; }
         // el destello al posarse
-        dest.style.opacity = (tI > tPosa ? 0.55 * Math.exp(-(tI - tPosa) * 4.5) : 0).toFixed(3);
+        dest.style.opacity = (tI > tPosa && !SUAVE ? 0.55 * Math.exp(-(tI - tPosa) * 4.5) : 0).toFixed(3);
         // las barras de cine y el visor: entran al empezar y se van con el nombre; el aviso de pasar, mientras tanto
         barras.style.setProperty('--b', cine.toFixed(3)); visor.style.opacity = (cine * 0.9).toFixed(3); pasa.style.opacity = (rampa(tI, 0.8, 1.2) * (1 - rampa(tI, 3.4, 3.8)) * 0.85).toFixed(3);
         // la raya de luz que cruza el nombre cuando le llega el brillo
         const ry = rampa(tI, 1.25, 1.95); raya.style.opacity = (Math.sin(ry * Math.PI)).toFixed(3); raya.style.setProperty('--x', (ry * 140 - 20).toFixed(1) + '%');
         // la onda al posarse, desde el centro de Navarra, y el temblor de la cámara
         const od = tI - tPosa;
-        if (od > 0 && od < 1.2) { pc.copy(NC).project(cam); onda.style.opacity = (0.9 * (1 - od / 1.2)).toFixed(3);
+        if (od > 0 && od < 1.2 && !SUAVE) { pc.copy(NC).project(cam); onda.style.opacity = (0.9 * (1 - od / 1.2)).toFixed(3);
           onda.style.transform = `translate(${((pc.x + 1) / 2 * W).toFixed(1)}px, ${((1 - pc.y) / 2 * H).toFixed(1)}px) scale(${(0.2 + od * 3.2).toFixed(3)})`; } else onda.style.opacity = '0';
-        const tb = od > 0 && od < 0.6 ? 7 * Math.exp(-od * 7) : 0;
+        const tb = od > 0 && od < 0.6 && !SUAVE ? 7 * Math.exp(-od * 7) : 0;
         cv.style.transform = tb > 0.2 ? `translate(${(Math.sin(tI * 83) * tb).toFixed(1)}px, ${(Math.cos(tI * 71) * tb).toFixed(1)}px)` : '';
       },
       quita() { E.remove(); cv.style.transform = ''; },
@@ -1222,6 +1226,59 @@ export function mapa3d(host, o) {
   const cae = () => { if (!vivo) return; if (document.hidden) { perdido = setTimeout(cae, 3000); return; } dispose(); o.falla?.(); };   // (con la app en segundo plano, se espera a volver)
   const pierde = () => { clearTimeout(perdido); perdido = setTimeout(cae, 3000); }, vuelve = () => clearTimeout(perdido);
   cv.addEventListener('webglcontextlost', pierde); cv.addEventListener('webglcontextrestored', vuelve);
+  // ---------- ¿se ve? ----------
+  // En un iPhone el lienzo se limpiaba pero no salía nada encima: el fondo liso y los nombres de las comarcas flotando.
+  // Pasa si la tarjeta gráfica no acepta un sombreador (sin ningún aviso). Con el mapa ya cargado, y otra vez al volver a
+  // la app, se miran unos puntos de la imagen recién pintada: si todos son del color del fondo, se miran los programas de
+  // la tarjeta gráfica y se apunta lo que ha fallado (Ajustes › Diagnóstico, src/util/diag.js); los materiales que no han
+  // podido compilar se cambian por otros sencillos y, si aun así no sale nada, el mapa se rehace (o.falla)
+  const revisa = { cuando: 0, veces: 0, listo: false, malos: [] };
+  const otraVez = () => { if (!document.hidden && revisa.listo) revisa.cuando = performance.now() + 1500; };
+  document.addEventListener('visibilitychange', otraVez);
+  const fondo = [(FONDO >> 16) & 255, (FONDO >> 8) & 255, FONDO & 255], PUNTOS = [[0.5, 0.5], [0.35, 0.42], [0.65, 0.42], [0.5, 0.33], [0.42, 0.62], [0.58, 0.62], [0.25, 0.55], [0.75, 0.55]];
+  const gpu = (gl) => { const e = gl.getExtension('WEBGL_debug_renderer_info'); return String(e ? gl.getParameter(e.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)).slice(0, 80); };
+  function revisaImagen() {
+    revisa.cuando = 0;
+    const gl = r.getContext(); if (gl.isContextLost()) return;
+    const W = gl.drawingBufferWidth, H = gl.drawingBufferHeight, px = new Uint8Array(4); let liso = 0;
+    for (const [x, y] of PUNTOS) { gl.readPixels(Math.floor(W * x), Math.floor(H * y), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); if (Math.abs(px[0] - fondo[0]) + Math.abs(px[1] - fondo[1]) + Math.abs(px[2] - fondo[2]) < 12) liso++; }
+    const base = { cuando: new Date().toISOString().slice(0, 19), gpu: gpu(gl), lienzo: W + '×' + H, ligero: !!o.ligero };
+    if (liso < PUNTOS.length) { apunta(revisa.veces ? { ...base, ve: true, intento: revisa.veces, malos: revisa.malos } : { ...base, ve: true }); return; }
+    revisa.veces++;
+    const malos = (r.info.programs || []).filter(pr => pr.program && !gl.getProgramParameter(pr.program, gl.LINK_STATUS));
+    revisa.malos = malos.slice(0, 6).map(pr => ({ nombre: pr.name || pr.cacheKey?.slice(0, 30) || '?',
+      log: ((gl.getShaderInfoLog(pr.fragmentShader) || '') + ' ' + (gl.getShaderInfoLog(pr.vertexShader) || '') + ' ' + (gl.getProgramInfoLog(pr.program) || '')).trim().slice(0, 240) }));
+    apunta({ ...base, ve: false, intento: revisa.veces, malos: revisa.malos });
+    (window.__errors ||= []).push('mapa 3D: no se ve (' + malos.length + ' sombreadores rechazados)');
+    if (revisa.veces === 1) { if (malos.length) sencillos(new Set(malos)); revisa.cuando = performance.now() + 2000; return; }
+    cae();
+  }
+  // (cada material que la tarjeta gráfica no ha aceptado, por uno de los de siempre: el relieve, con el color de su altura y
+  // su sombreado puestos en cada vértice; las balizas y los halos, puntos o líneas de su color; lo demás, mate)
+  function sencillos(malos) {
+    const cambia = (ob, m) => {
+      const op = { transparent: !!m.transparent, opacity: m.opacity ?? 1, side: m.side ?? THREE.FrontSide, depthWrite: m.depthWrite !== false };
+      const col = m.color || m.uniforms?.uCol?.value || m.uniforms?.uTinte?.value || new THREE.Color('#8a7fb0');
+      if (ob.isPoints) return new THREE.PointsMaterial({ ...op, color: col, size: 3, sizeAttenuation: false });
+      if (ob.isLine) return new THREE.LineBasicMaterial({ ...op, color: col });
+      const U = m.uniforms, g = ob.geometry, pos = g?.attributes.position, som = g?.attributes.color;
+      if (U?.uPal && pos && som) {
+        const pal = U.uPal.value.map(c => c.clone().convertSRGBToLinear()), cota = U.uCota.value, cc = new THREE.Color();
+        for (let i = 0; i < pos.count; i++) {
+          const h = Math.max(0, (pos.getY(i) - U.uGrosor.value) / U.uExa.value); cc.copy(pal[0]);
+          for (let k = 1; k < pal.length; k++) cc.lerp(pal[k], Math.min(1, Math.max(0, (h - cota[k - 1]) / (cota[k] - cota[k - 1]))));
+          cc.multiplyScalar(Math.min(1.4, som.getX(i) * 1.2)); som.setXYZ(i, cc.r, cc.g, cc.b);
+        }
+        som.needsUpdate = true; return new THREE.MeshLambertMaterial({ ...op, vertexColors: true });
+      }
+      return new THREE.MeshLambertMaterial({ ...op, color: col, map: m.map || null, vertexColors: !!m.vertexColors });
+    };
+    scene.traverse((ob) => {
+      if (!ob.material) return;
+      const lista = Array.isArray(ob.material) ? ob.material : [ob.material];
+      lista.forEach((m, i) => { if (!malos.has(r.properties.get(m)?.currentProgram)) return; const n = cambia(ob, m); mats.push(n); if (Array.isArray(ob.material)) ob.material[i] = n; else ob.material = n; });
+    });
+  }
   function frame(now) {
     raf = 0;
     if (!vivo) return;
@@ -1363,6 +1420,8 @@ export function mapa3d(host, o) {
     r.setClearColor(FONDO, 1);
     if (show && !intro.hecho) show.tick(tI);
     r.render(scene, cam);
+    if (!revisa.listo && cargas >= 3 && (!intro || intro.hecho)) { revisa.listo = true; otraVez(); }
+    if (revisa.cuando && now >= revisa.cuando) revisaImagen();
     // los nombres encima, sin pisarse nunca ni quedar debajo de lo de encima: primero el pueblo donde estás y el que señalas;
     // de cerca, los pueblos antes que las comarcas; de lejos, al revés. El que no cabe, se esconde. Con una comarca
     // elegida, solo los suyos; sin elegir, de lejos solo las comarcas (y el pueblo donde estás), y al acercarse, lo demás
@@ -1414,7 +1473,7 @@ export function mapa3d(host, o) {
   raf = requestAnimationFrame(frame);
 
   function dispose() {
-    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
+    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku);
     for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);

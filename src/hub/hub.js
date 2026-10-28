@@ -55,6 +55,7 @@ import './consola.css';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 import { sencillo, ponSencillo } from '../util/sencillo.js';
+import { datos as diagnostico } from '../util/diag.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -784,7 +785,7 @@ export class Hub {
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
-        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}`;
+        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}${this.diagnostico()}`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `<h1 class="title">${I('gear', 40)} Perfil y ajustes</h1>
       <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
@@ -807,7 +808,12 @@ export class Hub {
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
         <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.creditos()}`;
+        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.creditos()}${this.diagnostico()}`;
+  }
+  // (para arreglar un fallo en un móvil: lo que ve el juego de él, para hacerle una captura y mandarla; src/util/diag.js)
+  diagnostico() {
+    return `<details class="panel creditos diag"><summary>${I('gear', 26)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>
+      <dl data-notr>${diagnostico().map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>`;
   }
   // de quién es cada cosa y con qué licencia (las de three.js y del código QR piden llevar su aviso, que va en inglés tal cual)
   creditos() {

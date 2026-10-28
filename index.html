@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#1e1830">
+<!-- la app instalada en el iPhone: iOS 26 le da una ventana una barra de estado más corta que la pantalla (47 puntos en
+     un iPhone 12 a 14; WebKit 301108) mientras la página no sea más alta que la pantalla, y abajo queda una franja vacía.
+     Con la página tan alta como la pantalla entera, iOS le da la pantalla entera. Se mide con el tamaño de la pantalla,
+     que en el iPhone no cambia al girarlo (en el iPad la ventana puede ser menor que la pantalla: allí no se toca) -->
+<script id="alto-app">(function () {
+  if (navigator.standalone !== true || !/iPhone|iPod/.test(navigator.userAgent)) return;
+  var d = document.documentElement, mq = matchMedia('(orientation: landscape)');
+  function alto() { var a = Math.min(screen.width, screen.height), b = Math.max(screen.width, screen.height); d.style.minHeight = (mq.matches ? a : b) + 'px'; }
+  alto(); if (mq.addEventListener) mq.addEventListener('change', alto); else mq.addListener(alto);
+  addEventListener('orientationchange', function () { setTimeout(alto, 300); });
+})();</script>
 <title>HERRIZHERRI</title>
 <!-- el archivo único abierto desde la web (docs/descargas): pasa a la versión web, que es la misma pero carga solo lo que
      hace falta, queda guardada y se instala como app (el archivo entero son más de 40 MB en cada arranque). Con ?unico, se
@@ -55,12 +66,16 @@
   // solo decir qué archivo abrir. El archivo único lleva todo dentro y no pasa por aquí)
   var box = document.getElementById('arranque'), errs = [], t0 = Date.now(), soloWeb = false;
   // si el móvil cierra la página al arrancar (sin memoria), se vuelve a abrir sola y no llega a ningún aviso: cada arranque
-  // se apunta y se borra al salir bien o tras 25 s de juego. Si los dos anteriores no acabaron, el juego arranca en modo
-  // sencillo (src/util/sencillo.js: calidad baja y el mapa 3D más ligero), que se quita en Ajustes
-  var KA = 'herrizherri-arranque', KS = 'herrizherri-sencillo';
+  // se apunta y se borra al salir bien, al dejar la app con el menú ya a la vista o tras 10 s de menú. Si los dos
+  // anteriores no acabaron, el juego arranca en modo sencillo (src/util/sencillo.js: calidad baja y el mapa 3D más
+  // ligero), que se quita en Ajustes. (Antes se borraba a los 25 s: en el iPhone, abrir la app y salir enseguida dos
+  // veces la dejaba en modo sencillo, sin la entrada del mapa. Quien quedó así sale de él una vez, KS2)
+  var KA = 'herrizherri-arranque', KS = 'herrizherri-sencillo', KS2 = 'herrizherri-sencillo-revisado';
+  try { if (!localStorage.getItem(KS2)) { if (localStorage.getItem(KS) === 'auto') localStorage.removeItem(KS); localStorage.removeItem(KA); localStorage.setItem(KS2, '1'); } } catch (e) { }
   try { var n = +(localStorage.getItem(KA) || 0) + 1; localStorage.setItem(KA, n); if (n >= 3 && !localStorage.getItem(KS)) localStorage.setItem(KS, 'auto'); } catch (e) { }
   var bien = function () { try { localStorage.removeItem(KA); } catch (e) { } };
   addEventListener('pagehide', bien);
+  document.addEventListener('visibilitychange', function () { if (document.hidden && listo) bien(); });
   addEventListener('error', function (e) {
     var t = e.target;
     if (t && t !== window && t.tagName) { errs.push('No carga un ' + t.tagName.toLowerCase()); if (t.tagName === 'SCRIPT' && location.protocol === 'file:') soloWeb = true; }
@@ -75,7 +90,7 @@
   function webgl() { try { var c = document.createElement('canvas'), g = c.getContext('webgl2'); if (!g) return 'no'; var x = g.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); return 'sí'; } catch (e) { return 'no'; } }
   var listo = 0, iv = setInterval(function () {
     var ui = document.getElementById('ui');
-    if (window.__hub || window.__game || (ui && ui.childElementCount)) { box.style.display = 'none'; clearInterval(iv); if (!listo) { listo = 1; setTimeout(bien, 25000); } return; }
+    if (window.__hub || window.__game || (ui && ui.childElementCount)) { box.style.display = 'none'; clearInterval(iv); if (!listo) { listo = 1; setTimeout(bien, 10000); } return; }
     if (Date.now() - t0 < (soloWeb ? 2000 : 20000)) return;
     // (con el aviso ya puesto, solo se rehace si llega otro error: así no se pierde un toque en sus botones)
     if (box.style.display === 'grid' && +box.dataset.n === errs.length) return; box.dataset.n = errs.length;
