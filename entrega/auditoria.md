@@ -180,7 +180,21 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
   - los tres campeonatos jugados enteros, ronda a ronda, sin salirse, sin errores y con la memoria estable;
   - menú en tres tamaños, ventanas, marcadores de pelota y fútbol en castellano y euskera, y el HUD del pueblo: nada cortado ni encima de otra cosa.
 
-## 10. Pendiente o depende de ti
+## 10. Lo de la tarde (28 de octubre)
+
+- **Más rápido:** medido con cifras que no dependen de la tarjeta gráfica, en el móvil y en el ordenador simulados:
+  - en el móvil, Pamplona pasa de 821 a 419 dibujos por imagen y Lesaka de 569 a 403; el trabajo de dibujo de Lesaka baja un tercio;
+  - los árboles de lejos, uno por especie en vez de trozo a trozo; el suelo de lejos, una sola malla; las piezas del frontón, juntas por material; en el móvil, manzanas del pueblo más grandes;
+  - lo escondido ya no se recoloca en cada imagen: los vecinos lejanos tenían miles de huesos;
+  - el mapa del inicio, a 1,5 de resolución como mucho, y se ajusta solo también en el ordenador;
+  - no ha hecho falta quitar ningún pueblo: lo que pesaba no era el número de pueblos.
+- **Sin franjas de cine:** la entrada del mapa y las escenas del pueblo, a toda la pantalla.
+- **Mapa:** al tocar un pueblo, el dron vuela mucho más cerca y la ficha se queda quieta a la derecha. Las maquetas llevan grano de hierba, adoquín en las calles, tierra en los caminos y losas en las plazas; ventanas y tejas se ven desde más lejos.
+- **Pelota, elección de material:** como en el reglamento de la LEP.M que enviaste. Antes de cada partido, un lote de 10 pelotas de 102 a 107 g y de 61,5 a 63 mm; cada uno elige 2 (por parejas, 3) y van al cestaño. Quien saca elige con cuál: tú, tocando tu pelota arriba a la izquierda o con la B; el rival, por su estilo y por el marcador. La viva sale más del frontis y bota más; la pesada, menos.
+- **Misiones en la pantalla de juego:** la de ahora en una tarjeta, y debajo una casilla con el icono de cada misión del pueblo. En el libro, en orden y con una barra de pasos. En la ficha del mapa, igual.
+- **Código:** el pueblo, el fútbol y el mapa 3D, repartidos por temas en archivos más pequeños; el juego del pueblo se carga al entrar en él. Falta repartir los trajes y uniformar las líneas largas.
+
+## 11. Pendiente o depende de ti
 
 - **Pendiente:**
   - pelo con mechones y movimiento;
