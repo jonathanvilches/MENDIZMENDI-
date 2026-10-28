@@ -368,6 +368,7 @@
 .m3-ft::before { content: ''; position: absolute; left: -8px; top: calc(var(--py, 40px) - 8px); width: 14px; height: 14px; background: inherit; border: inherit; border-width: 0 0 1px 1px; transform: rotate(45deg); }
 .m3-ft.izq::before { left: auto; right: -8px; border-width: 1px 1px 0 0; }
 .m3-ft.abajo::before { left: calc(var(--px, 50%) - 8px); top: -8px; border-width: 1px 0 0 1px; }
+.m3-ft.fija::before { display: none; }   /* (quieta, sin pico que señale la chincheta) */
 .m3-ft.entra > * { animation: ft-entra .3s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes ft-entra { from { opacity: 0; transform: translateY(8px); } }
 .ft-n { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 0 4px; min-width: 0; }

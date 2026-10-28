@@ -129,7 +129,7 @@ float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); 
   if (t > 0.5 && t < 5.5 && abs(vNo.y) < 0.5) {
     bool lx = abs(vNo.x) > 0.5; float ancho = (lx ? vEsc.z : vEsc.x) * uMetro, u = ((lx ? vObj.z : vObj.x) + 0.5) * ancho;
     float hM = vEsc.y * uMetro / uK, v = vObj.y * hM - 2.0, px = max(fwidth(u), fwidth(v));
-    float nitido = 1.0 - smoothstep(0.25, 0.7, px), fino = 1.0 - smoothstep(0.08, 0.3, px);
+    float nitido = 1.0 - smoothstep(0.45, 1.1, px), fino = 1.0 - smoothstep(0.15, 0.5, px);
     vec3 base = diffuseColor.rgb;
     if (piedra > 0.5) { float fila = floor(v / 0.55); base *= mix(1.0, (0.88 + 0.22 * h21(vec2(floor(u / 1.3 + fila * 0.5), fila))) * mix(0.82, 1.0, step(0.08, fract(v / 0.55))), fino); }
     else base = mix(base, base * vec3(0.84, 0.8, 0.74), (1.0 - step(0.8, u) * step(u, ancho - 0.8)) * step(0.8, v) * nitido);
@@ -149,9 +149,11 @@ float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); 
     if (abs(vNo.y) < 0.2) diffuseColor.rgb = uHastial * mix(0.9, 1.0, vSemilla);   // (el hastial, de pared)
     else {
       float dm = vEsc.z * uMetro, rh = vEsc.y * uMetro / uK, L = length(vec2(0.5 * dm, rh)), sl = (0.5 - abs(vObj.z)) * 2.0 * L, u = vObj.x * vEsc.x * uMetro;
-      float fino = 1.0 - smoothstep(0.1, 0.35, max(fwidth(u), fwidth(sl))), paso = t < 6.5 ? 0.42 : 0.32, fila = floor(sl / paso);
+      float px = max(fwidth(u), fwidth(sl)), fino = 1.0 - smoothstep(0.2, 0.6, px), medio = 1.0 - smoothstep(0.6, 1.6, px), paso = t < 6.5 ? 0.42 : 0.32, fila = floor(sl / paso);
       float teja = (0.86 + 0.24 * h21(vec2(floor(u / (t < 6.5 ? 0.5 : 0.7) + fila * 0.5), fila))) * (0.8 + 0.2 * smoothstep(0.0, 0.18, fract(sl / paso)));
-      diffuseColor.rgb *= mix(0.95, teja, fino) * (0.9 + 0.14 * h21(floor(vec2(u, sl) / 3.0) + vSemilla * 7.0)) * mix(0.8, 1.0, smoothstep(0.0, 0.4, L - sl));
+      // (de más lejos, en vez de cada teja, sus hileras de tres en tres y las manchas de musgo y de teja nueva)
+      float hilera = mix(1.0, 0.86 + 0.14 * smoothstep(0.0, 0.35, fract(sl / (paso * 3.0))), medio * (1.0 - fino));
+      diffuseColor.rgb *= mix(0.95, teja, fino) * hilera * (0.86 + 0.2 * h21(floor(vec2(u, sl) / 2.2) + vSemilla * 7.0)) * mix(0.8, 1.0, smoothstep(0.0, 0.4, L - sl));
     }
   } else if (t > 7.5) diffuseColor.rgb *= mix(0.58, 1.12, vObj.y) * (0.9 + 0.2 * vSemilla);
 }`).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
