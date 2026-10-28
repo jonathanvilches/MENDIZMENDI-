@@ -3,60 +3,13 @@ import { riverInfo, PLACES } from './world/layout.js';
 import { clamp } from './util/math.js';
 import { Musica } from './audio/pistas.js';
 
-// --- la música por ambientes (startMusic y musicTick) ---
-const D_DOR = [293.66, 329.63, 349.23, 392.0, 440.0, 493.88, 523.25, 587.33, 659.25];      // re dórico
-const LA_MIN = [220.0, 246.94, 261.63, 293.66, 329.63, 349.23, 392.0, 440.0, 493.88];      // la menor (eólico)
-const SOL = [392.0, 440.0, 493.88, 523.25, 587.33, 659.25, 739.99, 783.99, 880.0];         // sol mayor
-const PH = {
-  explore: [[4, 5, 6, 7, 6, 5, 4, 2, 3, 4, 3, 2, 1, 0, 1, 2], [7, 7, 6, 5, 6, 4, 5, 3, 4, 4, 2, 3, 1, 2, 0, -1], [0, 2, 4, 4, 5, 4, 3, 2, 4, 5, 6, 5, 4, 3, 2, 1], [4, 6, 7, 8, 7, 6, 5, 4, 5, 4, 3, 1, 2, 1, 0, -1]],
-  night: [[0, -1, 2, -1, 4, -1, 2, -1, 3, -1, 5, -1, 4, -1, -1, -1], [4, -1, 3, -1, 2, -1, 0, -1, 1, -1, 2, -1, 0, -1, -1, -1]],
-  mystery: [[0, -1, -1, 3, -1, -1, -1, -1, 5, -1, -1, 4, -1, -1, -1, -1], [6, -1, -1, -1, 5, -1, -1, 2, -1, -1, -1, -1, 1, -1, -1, -1]],
-  tension: [[0, 0, 3, 0, 4, 0, 3, 2, 0, 0, 3, 0, 5, 4, 3, 2], [0, 0, 2, 0, 3, 0, 2, 1, 0, 0, 2, 0, 4, 3, 1, 0]],
-  game: [[0, 2, 4, 2, 5, 4, 2, 4, 3, 5, 7, 5, 4, 2, 1, 2], [4, 4, 5, 7, 5, 4, 2, 0, 1, 2, 4, 2, 1, 0, 1, -1]],
-  fiesta: [[4, 4, 4, 2, 4, 5, 7, -1, 7, 6, 5, 4, 5, 4, 2, -1], [2, 2, 2, 0, 2, 4, 5, -1, 5, 4, 2, 1, 2, 4, 0, -1]],
-  // (los partidos: un tema de estadio, con estribillo que se pega)
-  sport: [[7, -1, 7, 6, 4, -1, 4, 5, 6, -1, 6, 5, 4, 2, 4, -1], [4, -1, 4, 5, 7, -1, 5, 4, 2, -1, 2, 4, 5, 4, 2, -1], [0, 2, 4, 7, 6, 4, 5, -1, 4, 5, 7, 8, 7, 5, 4, -1], [7, 7, 6, 5, 4, 4, 5, 6, 7, -1, 8, 7, 6, 5, 4, -1]],
-};
-// El tema de inicio: música propia de aventura, como la de los juegos de mundo abierto, en re mayor a 120 por minuto
-// (compases de 2 s, de 8 corcheas) con la orquesta sintetizada de Sound (horn, strings, choir, bass, timpani, snare,
-// cymbal, y el arpa y las campanillas de voice). Dos compases de entrada (redoble de timbal, platillo que crece y
-// fanfarria de trompas) y una forma de 32 que luego se repite sin la entrada: A, la melodía en las trompas con el coro
-// de fondo y el bajo en negras; A', con las cuerdas y las campanillas una octava arriba, la caja de marcha y el bajo en
-// corcheas; B, más suave, la melodía en las cuerdas sobre el coro y el arpa; y A'', todos a la vez. Cada nota de las
-// melodías: [corchea en la que empieza, grado de la escala (re4 es 0), corcheas que dura].
-const INICIO = {
-  sc: [293.66, 329.63, 369.99, 392.0, 440.0, 493.88, 554.37, 587.33, 659.25, 739.99, 783.99, 880.0, 987.77, 1108.73, 1174.66],   // re mayor, de re4 a re6
-  chords: { D: [0, 2, 4], A: [4, 6, 8], Bm: [5, 7, 9], G: [3, 5, 7], Fm: [2, 4, 6] },
-  A: ['D', 'A', 'Bm', 'G', 'D', 'A', 'G', 'A'], B: ['Bm', 'Fm', 'G', 'D', 'Bm', 'G', 'A', 'A'],
-  melA: [
-    [[0, 7, 3], [3, 4, 1], [4, 5, 2], [6, 7, 2]], [[0, 8, 3], [3, 7, 1], [4, 6, 2], [6, 4, 2]],
-    [[0, 5, 2], [2, 7, 2], [4, 9, 3], [7, 8, 1]], [[0, 7, 4], [4, 5, 2], [6, 4, 2]],
-    [[0, 7, 3], [3, 4, 1], [4, 5, 2], [6, 7, 2]], [[0, 8, 3], [3, 7, 1], [4, 6, 2], [6, 8, 2]],
-    [[0, 10, 3], [3, 10, 1], [4, 9, 2], [6, 8, 2]], [[0, 8, 2], [2, 6, 4], [6, 4, 1], [7, 6, 1]],
-  ],
-  melB: [
-    [[0, 9, 4], [4, 8, 2], [6, 7, 2]], [[0, 6, 6], [6, 7, 1], [7, 8, 1]],
-    [[0, 10, 4], [4, 9, 2], [6, 8, 2]], [[0, 9, 6], [6, 4, 2]],
-    [[0, 5, 2], [2, 7, 2], [4, 9, 2], [6, 11, 2]], [[0, 10, 4], [4, 9, 2], [6, 8, 2]],
-    [[0, 8, 3], [3, 9, 1], [4, 8, 2], [6, 6, 2]], [[0, 8, 4], [4, 11, 2], [6, 10, 1], [7, 9, 1]],
-  ],
-};
-const MOOD = {
-  explore: { sc: D_DOR, beat: 0.3, lead: 'flute', oct: 2, drum: 'tamboril', drone: 0.05, pista: 'musica-juego' },
-  night: { sc: D_DOR, beat: 0.42, lead: 'harp', oct: 1, drum: null, drone: 0.035, pad: true },
-  mystery: { sc: LA_MIN, beat: 0.38, lead: 'bell', oct: 2, drum: 'heart', drone: 0.06, pad: true, tritone: true },
-  tension: { sc: LA_MIN, beat: 0.16, lead: 'pluck', oct: 1, drum: 'timpani', drone: 0.07, bass: true },
-  game: { sc: SOL, beat: 0.2, lead: 'flute', oct: 1, drum: 'pop', drone: 0, bass: true },
-  fiesta: { sc: SOL, beat: 0.24, lead: 'brass', oct: 1, drum: 'banda', drone: 0, bass: true },
-  // la música de los partidos de fútbol y pelota y de los campeonatos: rápida (143 por minuto), metales, bajo que empuja
-  // en cada corchea (re, si, sol, la) y batería de estadio (bombo, palmada en el segundo y el cuarto, charles)
-  sport: { sc: [293.66, 329.63, 369.99, 392.0, 440.0, 493.88, 554.37, 587.33, 659.25], beat: 0.21, lead: 'brass', oct: 1, drum: 'stadium', drone: 0, drive: [0, 5, 3, 4] },
-  // el menú: el tema de inicio (inicioBar), a 120 por minuto
-  inicio: { sc: INICIO.sc, beat: 0.25, tema: true, pista: 'musica-inicio' },
-  // Torneos, en el menú: su propia música grabada (si no puede sonar, el tema de inicio)
-  torneos: { sc: INICIO.sc, beat: 0.25, tema: true, pista: 'musica-torneos' },
-};
-// (pista: la música grabada de ese ambiente, src/audio/pistas.js; la sintetizada queda para cuando no puede sonar)
+// --- la música por ambientes: solo las canciones grabadas (src/assets/sonidos, src/audio/pistas.js). La música
+// sintetizada de antes ya no está: sonaba en los ambientes que no tenían canción y se mezclaba con las nuevas ---
+// (explore: el pueblo de día · night y mystery: de noche, las leyendas y el monte · tension: el encierro y las
+// persecuciones · game: los minijuegos · fiesta: San Fermín, el carnaval y los bailes · sport: los partidos y los
+// campeonatos · inicio: el menú · torneos: la pantalla de Torneos · none: nada)
+const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-juego', game: 'musica-juego', fiesta: 'musica-juego',
+  sport: 'musica-torneos', inicio: 'musica-inicio', torneos: 'musica-torneos' };
 
 export class Sound {
   constructor() {
@@ -80,8 +33,10 @@ export class Sound {
     // viento
     this.wind = this.loopNoise(300, 0.4); this.wind.g.gain.value = 0.02;
     this.startMusic();   // (su reloj, cada cuarto de segundo, también apaga el ambiente que el pueblo ya no manda: quietAmbient)
-    // (las músicas grabadas; la del menú empieza aquí, dentro del primer toque, que es cuando el iPhone deja sonar)
-    this.pistas = new Musica(ctx, this.musicBus); if (this.musicOn && MOOD[this.mood]?.pista) this.pistas.arranca(MOOD[this.mood].pista);
+    // (las canciones; la que toca empieza aquí, dentro del primer toque, que es cuando el iPhone deja sonar, y las otras
+    // se van cargando ya: al cambiar de pantalla, la nueva entra sin esperar a que llegue)
+    this.pistas = new Musica(ctx, this.musicBus); if (this.musicOn && MUSICA[this.mood]) this.pistas.arranca(MUSICA[this.mood]);
+    this.pistas.prepara(new Set(Object.values(MUSICA)));
   }
   impulse(sec) {
     const ctx = this.ctx, len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -226,194 +181,25 @@ export class Sound {
       if (Math.random() < 0.6) this.woodpecker(p); else this.cuckoo(p);
     }
   }
-  // ---- música generativa por ambiente ----
-  // explore: txistu y tamboril (día) · night: arpa lenta y bordón suave · mystery: notas sueltas, tritono y
-  // un latido grave (leyendas) · tension: ostinato rápido en menor con timbal (encierro, persecuciones) ·
-  // game: aire alegre y saltarín con bajo (minijuegos) · fiesta: charanga (San Fermín, carnaval) · sport: tema de
-  // estadio (partidos de pelota y fútbol y campeonatos) · inicio: el tema de aventura del menú (INICIO) · torneos: la
-  // pantalla de Torneos · none: nada. explore, inicio y torneos suenan con su música grabada (MOOD, pista)
+  // ---- la música: la canción de cada ambiente (MUSICA), que cambia con un fundido ----
   setMood(m) { if (m && m !== this.mood) { this.mood = m; this.moodT = 0; } }
   startMusic() {
-    this.mood = this.mood || 'explore';
-    this.mus = { bar: 0, next: this.ctx.currentTime + 1, cur: this.mood };
+    this.mood = this.mood || 'explore'; this.musCur = this.mood;
     this.musicTimer = setInterval(() => this.musicTick(), 250);
   }
-  // cada cuarto de segundo programa los compases que empiezan en los próximos 1,2 s (tools/musica-inicio.mjs lo llama a
-  // mano sobre un contexto fuera de línea para grabar la música y medirla)
+  // cada cuarto de segundo, la canción que toca; al pasar a sin música o al volver, el bus se funde
   musicTick() {
-    const ctx = this.ctx, S = this.mus;
+    const ctx = this.ctx;
     this.quietAmbient();
-    if (!this.musicOn || document.hidden) { this.pistas?.pausa(true); S.next = ctx.currentTime + 0.5; return; }
+    if (!this.musicOn || document.hidden) { this.pistas?.pausa(true); return; }
     this.pistas?.pausa(false);
-    // (con su música grabada sonando, la sintetizada calla)
-    const grabada = !!this.pistas?.quiere(this.mood === 'none' ? null : MOOD[this.mood]?.pista || null);
-    while (S.next < ctx.currentTime + 1.2) {
-      // cambio de ambiente al empezar compás, con un pequeño fundido del bus
-      if (this.mood !== S.cur) {
-        S.cur = this.mood; S.bar = 0; const g = this.musicBus.gain, v = this.musicOn ? 0.32 : 0; g.cancelScheduledValues(ctx.currentTime);
-        if (S.cur === 'none') g.setTargetAtTime(0, ctx.currentTime, 0.35);
-        else if ((this.duckUntil || 0) > S.next) { g.setTargetAtTime(0, ctx.currentTime, 0.08); g.setTargetAtTime(v, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
-        else { g.setValueAtTime(v * 0.25, S.next); g.linearRampToValueAtTime(v, S.next + 1.2); }
-      }
-      if (S.cur === 'none' || (grabada && MOOD[S.cur]?.pista)) { S.next += 0.5; continue; }   // (sin música: en los partidos se oye el público)
-      const M = MOOD[S.cur] || MOOD.explore, sc = M.sc, beat = M.beat, next = S.next, bar = S.bar, cur = S.cur;
-      S.next += beat * 8; S.bar++;
-      if (M.tema) { this.inicioBar(bar, next - ctx.currentTime); continue; }   // (el tema de inicio, compás a compás)
-      const list = PH[cur] || PH.explore;
-      const ph = list[(bar >> 1) % list.length], half = (bar % 2) * 8;
-      for (let i = 0; i < 8; i++) {
-        const n = ph[half + i], t = next + i * beat - ctx.currentTime;
-        if (n >= 0 && (i % 2 === 0 || Math.random() < 0.85)) this.voice(M.lead, sc[n] * M.oct, beat * (i === 7 ? 1.8 : 0.95), t);
-        if (M.tritone && n >= 0 && Math.random() < 0.25) this.voice('bell', sc[n] * M.oct * Math.SQRT2, beat * 3, t + beat * 0.5);
-        const dr = M.drum;
-        if (dr === 'tamboril') { if (i % 2 === 0) this.noiseBurst(0.08, 180, 1, i % 4 === 0 ? 0.45 : 0.25, this.musicBus, t, 'lowpass'); if (i % 4 === 2) this.noiseBurst(0.05, 2400, 2, 0.12, this.musicBus, t + beat * 0.5); }
-        else if (dr === 'timpani') { this.tone(sc[0] / 4, 0.18, 'sine', i % 2 ? 0.12 : 0.22, this.musicBus, t, 0.003, sc[0] / 5); if (i % 2) this.noiseBurst(0.04, 3200, 1.5, 0.08, this.musicBus, t); }
-        else if (dr === 'heart') { if (i === 0 || i === 1) this.tone(55, 0.22, 'sine', 0.18, this.musicBus, t + (i ? 0.05 : 0), 0.004, 42); }
-        else if (dr === 'pop') { if (i % 2 === 0) this.noiseBurst(0.06, 160, 1, 0.3, this.musicBus, t, 'lowpass'); else this.noiseBurst(0.04, 3000, 2, 0.1, this.musicBus, t); }
-        else if (dr === 'stadium') {
-          if (i % 4 === 0) this.tone(62, 0.18, 'sine', 0.5, this.musicBus, t, 0.002, 36);   // bombo
-          if (i % 4 === 2) { this.noiseBurst(0.13, 1700, 0.7, 0.3, this.musicBus, t); this.noiseBurst(0.05, 3200, 1.2, 0.12, this.musicBus, t + 0.012); }   // palmada
-          this.noiseBurst(0.03, 8000, 1.6, i % 2 ? 0.045 : 0.075, this.musicBus, t + (i % 2 ? beat * 0.04 : 0), 'highpass');   // charles
-          if (i === 0 && bar % 4 === 0) this.noiseBurst(0.7, 6500, 0.5, 0.1, this.musicBus, t, 'highpass');   // platillo al empezar la frase
-        }
-        else if (dr === 'banda') { if (i % 2 === 0) this.noiseBurst(0.09, 120, 1, 0.42, this.musicBus, t, 'lowpass'); if (i % 2 === 1) this.noiseBurst(0.12, 5000, 0.8, 0.12, this.musicBus, t); }   // bombo y platillos
-        if (M.drive) this.tone(sc[M.drive[bar % 4]] / (i % 2 ? 2 : 4), beat * 0.9, 'triangle', 0.1, this.musicBus, t, 0.004);
-        if (M.bass && i % 2 === 0) this.tone(sc[[0, 0, 4, 3][(bar + (i >> 1)) % 4] % sc.length] / (cur === 'tension' ? 4 : 2), beat * 1.6, cur === 'tension' ? 'sawtooth' : 'triangle', cur === 'tension' ? 0.035 : 0.06, this.musicBus, t, 0.01);
-      }
-      if (M.drone) this.tone(sc[0] / 2, beat * 8, 'triangle', M.drone, this.musicBus, next - ctx.currentTime, 0.3);
-      if (M.pad) { for (const k of [0, 2, 4]) this.tone(sc[k] / 2, beat * 8, 'sine', 0.025, this.musicBus, next - ctx.currentTime, beat * 2); }
+    this.pistas?.quiere(this.mood === 'none' ? null : MUSICA[this.mood] || MUSICA.explore);
+    if (this.mood !== this.musCur) {
+      this.musCur = this.mood; const g = this.musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t);
+      if (this.mood === 'none') g.setTargetAtTime(0, t, 0.35);
+      else if ((this.duckUntil || 0) > t) { g.setTargetAtTime(0, t, 0.08); g.setTargetAtTime(0.32, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
+      else g.setTargetAtTime(0.32, t, 0.3);
     }
-  }
-  // Un compás del tema de inicio (INICIO), que empieza dentro de t0 segundos. Los dos primeros son la entrada; luego, la
-  // forma de 32 compases (A, A', B y A'': sec 0 a 3, k el compás dentro de cada una), que se repite sin la entrada.
-  inicioBar(bar, t0) {
-    const RE = INICIO.sc, beat = 0.25, b = bar < 2 ? bar : 2 + (bar - 2) % 32, sec = (b - 2) >> 3, k = (b - 2) & 7;
-    const at = (slot) => t0 + slot * beat, deg = (d) => d < RE.length ? RE[d] : RE[d - 7] * 2, D2 = RE[0] / 4;
-    if (b === 0) {   // entrada: redoble de timbal con el platillo creciendo y la fanfarria que sube (la, re, fa, la)
-      for (let i = 0; i < 16; i++) this.timpani(D2, at(i / 2), 0.2 + 0.05 * i);
-      this.swell(at(0), beat * 8);
-      [4, 7, 9, 11].forEach((d, i) => this.horn(deg(d), beat * (i === 3 ? 0.98 : 0.92), at(4 + i), 0.55 + 0.15 * i));
-      return;
-    }
-    if (b === 1) {   // el acorde de re tenido en las trompas y las cuerdas, con el platillo, y el redoble de caja que lleva a la melodía
-      this.cymbal(at(0), 1); this.timpani(D2, at(0), 1.2); this.bass(D2, beat * 7.5, at(0), 1);
-      for (const d of [7, 9, 11]) this.horn(deg(d), beat * 7.3, at(0), 0.8);
-      for (const d of [0, 2, 4, 7]) this.strings(deg(d), beat * 7.3, at(0), 0.6, 0.2);
-      for (let i = 0; i < 8; i++) this.snare(at(4 + i / 2), 0.25 + 0.09 * i);
-      return;
-    }
-    const prog = sec === 2 ? INICIO.B : INICIO.A, chord = INICIO.chords[prog[k]], root = RE[chord[0]] / 4, fifth = RE[chord[2]] / 4;
-    // la melodía: trompas en A, A' y A''; cuerdas (una octava arriba en A' y A'', a la misma altura en B) y campanillas
-    for (const [s, d, len] of (sec === 2 ? INICIO.melB : INICIO.melA)[k]) {
-      const f = deg(d), dur = len * beat * 0.95, t = at(s);
-      if (sec !== 2) this.horn(f, dur, t, sec === 3 ? 1.1 : 0.9);
-      if (sec === 2) this.strings(f, dur + beat * 0.1, t, 1.3, 0.1);
-      else if (sec >= 1) this.strings(f * 2, dur, t, 0.6, 0.05);
-      if ((sec === 1 || sec === 3) && len >= 2) this.voice('bell', f * 2, beat * 2, t, 0.6);
-    }
-    // el acorde de fondo: coro en A y B, cuerdas en A' y A''; en B, el arpa sube y baja por el acorde en semicorcheas
-    const pad = chord.map(d => RE[d] / 2);
-    if (sec === 0 || sec === 2) for (const f of pad) this.choir(f, beat * 8, t0, sec === 2 ? 1 : 0.55);
-    else for (const f of pad) this.strings(f, beat * 8, t0, sec === 3 ? 0.5 : 0.45, 0.3);
-    if (sec === 2) { const up = [1, 1, 1, 2, 2, 2, 4, 4].map((o, i) => RE[chord[i % 3]] * o); up.concat(up.slice(0, 7).reverse()).forEach((f, j) => this.voice('harp', f, beat * 1.5, at(j / 2), 0.3)); }
-    // el bajo: negras en A, blancas en B, corcheas con la quinta antes de cada tiempo fuerte en A' y A''
-    if (sec === 0) for (const s of [0, 2, 4, 6]) this.bass(root, beat * 1.8, at(s), 0.9);
-    else if (sec === 2) for (const s of [0, 4]) this.bass(root, beat * 3.8, at(s), 0.8);
-    else for (let s = 0; s < 8; s++) this.bass(s % 4 === 3 ? fifth : root, beat * 0.9, at(s), s % 2 ? 0.7 : 1);
-    // timbales en el primer tiempo (y el tercero, con la caja), caja de marcha en A' y A'', platillo al empezar las frases
-    this.timpani(root, at(0), sec === 2 ? 0.5 : 1); if (sec === 1 || sec === 3) this.timpani(root, at(4), 0.6);
-    if (sec === 1 || sec === 3) { if (k === 0 || k === 4) this.cymbal(at(0), sec === 3 ? 1 : 0.6); for (const [s, v] of [[2, 1], [3, 0.35], [6, 1], [7, 0.4], [7.5, 0.45]]) if (k < 7 || s < 4) this.snare(at(s), v); }
-    if (sec === 0 && k === 0) this.cymbal(at(0), 0.5);
-    if (sec === 2 && k >= 6) for (let i = 0; i < 16; i++) this.snare(at(i / 2), (k === 6 ? 0.08 : 0.3) + 0.03 * i);   // (el redoble que crece hacia A'')
-    if (k === 7) for (let i = 0; i < 8; i++) this.timpani(root, at(4 + i / 2), 0.3 + 0.08 * i);   // (redoble de timbal al acabar cada frase)
-  }
-  // --- la orquesta del tema de inicio ---
-  toMusic(node, verb) { node.connect(this.musicBus); const s = this.ctx.createGain(); s.gain.value = verb; node.connect(s); s.connect(this.verb); }
-  // trompa: dos sierras casi al unísono por un filtro que se abre al atacar (el brillo del metal), con vibrato tardío
-  horn(freq, dur, t0, vol = 1) {
-    const ctx = this.ctx, t = ctx.currentTime + t0, g = ctx.createGain(), f = ctx.createBiquadFilter(), v = 0.07 * vol;
-    f.type = 'lowpass'; f.Q.value = 0.9; f.frequency.setValueAtTime(500, t); f.frequency.linearRampToValueAtTime(2000 + freq, t + 0.09); f.frequency.setTargetAtTime(1200 + freq, t + 0.1, 0.25);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.045); g.gain.setTargetAtTime(v * 0.8, t + 0.05, 0.3); g.gain.setValueAtTime(v * 0.8, t + dur); g.gain.linearRampToValueAtTime(0, t + dur + 0.1);
-    const vib = ctx.createOscillator(); vib.frequency.value = 5; const vg = ctx.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(freq * 0.006, t + 0.35); vib.connect(vg);
-    for (const d of [-0.004, 0.004]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq * (1 + d); vg.connect(o.frequency); o.connect(f); o.start(t); o.stop(t + dur + 0.15); }
-    vib.start(t); vib.stop(t + dur + 0.15);
-    f.connect(g); this.toMusic(g, 0.3);
-  }
-  // cuerdas: tres sierras desafinadas entre sí (la sección), filtro suave, ataque lento y vibrato
-  strings(freq, dur, t0, vol = 1, attack = 0.12) {
-    const ctx = this.ctx, t = ctx.currentTime + t0, g = ctx.createGain(), f = ctx.createBiquadFilter(), v = 0.028 * vol;
-    f.type = 'lowpass'; f.frequency.value = Math.min(6000, 1800 + freq * 2); f.Q.value = 0.5;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + attack); g.gain.setValueAtTime(v, t + dur); g.gain.linearRampToValueAtTime(0, t + dur + 0.25);
-    const vib = ctx.createOscillator(); vib.frequency.value = 5.5; const vg = ctx.createGain(); vg.gain.setValueAtTime(0, t); vg.gain.linearRampToValueAtTime(freq * 0.004, t + 0.4); vib.connect(vg);
-    for (const d of [-0.007, 0, 0.007]) { const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq * (1 + d); vg.connect(o.frequency); o.connect(f); o.start(t); o.stop(t + dur + 0.3); }
-    vib.start(t); vib.stop(t + dur + 0.3);
-    f.connect(g); this.toMusic(g, 0.45);
-  }
-  // coro: dos sierras por tres filtros de formantes (la vocal «a»), con ataque muy lento y mucha reverberación
-  choir(freq, dur, t0, vol = 1) {
-    const ctx = this.ctx, t = ctx.currentTime + t0, g = ctx.createGain(), v = 0.07 * vol;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.35); g.gain.setValueAtTime(v, t + dur); g.gain.linearRampToValueAtTime(0, t + dur + 0.4);
-    for (const d of [-0.006, 0.006]) {
-      const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq * (1 + d);
-      for (const [fc, q, k] of [[700, 6, 1], [1150, 8, 0.5], [2600, 10, 0.12]]) { const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = fc; f.Q.value = q; const fg = ctx.createGain(); fg.gain.value = k; o.connect(f); f.connect(fg); fg.connect(g); }
-      o.start(t); o.stop(t + dur + 0.45);
-    }
-    this.toMusic(g, 0.6);
-  }
-  // bajo: sierra con su octava grave en seno, por un filtro que se va cerrando
-  bass(freq, dur, t0, vol = 1) {
-    const ctx = this.ctx, t = ctx.currentTime + t0, g = ctx.createGain(), f = ctx.createBiquadFilter(), v = 0.08 * vol;
-    f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(250, t + dur);
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v, t + 0.01); g.gain.setValueAtTime(v, t + dur * 0.8); g.gain.linearRampToValueAtTime(0, t + dur);
-    const o = ctx.createOscillator(); o.type = 'sawtooth'; o.frequency.value = freq; o.connect(f);
-    const s = ctx.createOscillator(); s.type = 'sine'; s.frequency.value = freq / 2; const sg = ctx.createGain(); sg.gain.value = 0.7; s.connect(sg); sg.connect(f);
-    f.connect(g); g.connect(this.musicBus); o.start(t); s.start(t); o.stop(t + dur + 0.05); s.stop(t + dur + 0.05);
-  }
-  // timbal: seno que cae de tono, con el golpe de la baqueta · caja: ruido claro con el cuerpo del parche · platillo: ruido
-  // agudo largo · swell: el platillo que crece (ruido agudo que sube y se corta)
-  timpani(freq, t0, vol = 1) { this.tone(freq * 1.3, 0.6, 'sine', 0.26 * vol, this.musicBus, t0, 0.004, freq); this.noiseBurst(0.05, 900, 0.8, 0.1 * vol, this.musicBus, t0, 'lowpass'); }
-  snare(t0, vol = 1) { this.noiseBurst(0.14, 2200, 0.6, 0.32 * vol, this.musicBus, t0, 'highpass'); this.tone(190, 0.08, 'triangle', 0.14 * vol, this.musicBus, t0, 0.002, 120); }
-  cymbal(t0, vol = 1, dur = 1.4) { this.noiseBurst(dur, 6000, 0.4, 0.3 * vol, this.musicBus, t0, 'highpass'); }
-  swell(t0, dur) {
-    const ctx = this.ctx, t = ctx.currentTime + t0, s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
-    s.buffer = this.noiseBuf; s.loop = true; f.type = 'highpass'; f.frequency.value = 5000; f.Q.value = 0.5;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.1, t + dur); g.gain.linearRampToValueAtTime(0, t + dur + 0.06);
-    s.connect(f); f.connect(g); g.connect(this.musicBus); s.start(t); s.stop(t + dur + 0.1);
-  }
-  // instrumentos: txistu (flauta), arpa, campana, cuerda pulsada, metales de charanga; vol, para los que acompañan
-  voice(kind, freq, dur, t0, vol = 1) {
-    if (kind === 'flute') return this.flute(freq, dur, t0);
-    const ctx = this.ctx, t = ctx.currentTime + t0, g = ctx.createGain(), o = ctx.createOscillator();
-    if (kind === 'harp' || kind === 'pluck') {
-      o.type = kind === 'harp' ? 'triangle' : 'sawtooth'; o.frequency.setValueAtTime(freq, t);
-      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(kind === 'harp' ? 2400 : 1800, t); f.frequency.exponentialRampToValueAtTime(400, t + dur);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime((kind === 'harp' ? 0.12 : 0.07) * vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * (kind === 'harp' ? 2.2 : 0.9));
-      o.connect(f); f.connect(g);
-    } else if (kind === 'bell') {
-      o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
-      const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.value = freq * 2.76; const g2 = ctx.createGain(); g2.gain.value = 0.3; o2.connect(g2); g2.connect(g); o2.start(t); o2.stop(t + dur * 2.5);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.07 * vol, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 2.4);
-      o.connect(g);
-    } else {   // brass
-      o.type = 'square'; o.frequency.setValueAtTime(freq, t);
-      const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(900, t); f.frequency.linearRampToValueAtTime(2200, t + 0.06);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.06 * vol, t + 0.03); g.gain.setValueAtTime(0.05 * vol, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(f); f.connect(g);
-    }
-    g.connect(this.musicBus); const vg = ctx.createGain(); vg.gain.value = kind === 'brass' ? 0.12 : 0.35; g.connect(vg); vg.connect(this.verb);
-    o.start(t); o.stop(t + dur * 2.6);
-  }
-  flute(freq, dur, t0) {
-    const ctx = this.ctx, t = ctx.currentTime + t0;
-    const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(freq, t);
-    const vib = ctx.createOscillator(); vib.frequency.value = 5.5; const vg = ctx.createGain(); vg.gain.value = freq * 0.008; vib.connect(vg); vg.connect(o.frequency);
-    const o2 = ctx.createOscillator(); o2.type = 'triangle'; o2.frequency.setValueAtTime(freq * 2, t);
-    const g2 = ctx.createGain(); g2.gain.value = 0.15; o2.connect(g2);
-    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.12, t + 0.03); g.gain.setValueAtTime(0.1, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g2.connect(g); g.connect(this.musicBus);
-    const vgv = ctx.createGain(); vgv.gain.value = 0.3; g.connect(vgv); vgv.connect(this.verb);
-    o.start(t); o2.start(t); vib.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); vib.stop(t + dur + 0.05);
-    this.noiseBurst(0.05, 3000, 1, 0.03, this.musicBus, t0);
   }
   setMusic(on) { this.musicOn = on; if (this.musicBus) { const t = this.ctx.currentTime, g = this.musicBus.gain, d = (this.duckUntil || 0) > t; g.cancelScheduledValues(t); g.setTargetAtTime(on && !d ? 0.32 : 0, t, 0.3); if (on && d) g.setTargetAtTime(0.32, this.duckUntil, 0.4); } }
   /** La música se aparta s segundos (al escuchar un instrumento en su ficha: antes sonaban los dos a la vez) y vuelve sola. */

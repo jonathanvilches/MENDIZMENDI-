@@ -65,8 +65,9 @@ summary { line-height: 1.3; }
   position: fixed; inset: 0; z-index: 20; overflow: hidden; background: #0d0420; color: #fff; pointer-events: auto; }
 #loading .ld-bg { position: absolute; inset: 0; background: #2b1062 center/cover no-repeat; transform-origin: 62% 45%; animation: ldKen 16s cubic-bezier(.2, .6, .3, 1) both; }
 @keyframes ldKen { from { transform: scale(1.14); filter: saturate(1.25) brightness(.7); } 12% { filter: saturate(1.1) brightness(1); } to { transform: scale(1.02); filter: saturate(1.1); } }
-#loading .ld-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 3, 26, .94) 0%, rgba(10, 3, 26, .72) 32%, rgba(10, 3, 26, .1) 62%, rgba(10, 3, 26, 0) 100%),
-  linear-gradient(0deg, rgba(10, 3, 26, .96) 0%, rgba(10, 3, 26, .55) 22%, rgba(10, 3, 26, 0) 44%), linear-gradient(180deg, rgba(10, 3, 26, .55) 0%, rgba(10, 3, 26, 0) 22%); }
+/* (el velo sobre la lámina, muy suave y largo, sin morado: solo lo justo para leer el nombre y la barra; la lámina se ve) */
+#loading .ld-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 4, 16, .5) 0%, rgba(8, 4, 16, .3) 30%, rgba(8, 4, 16, .08) 58%, rgba(8, 4, 16, 0) 80%),
+  linear-gradient(0deg, rgba(8, 4, 16, .55) 0%, rgba(8, 4, 16, .22) 24%, rgba(8, 4, 16, 0) 50%), linear-gradient(180deg, rgba(8, 4, 16, .25) 0%, rgba(8, 4, 16, 0) 20%); }
 /* (las motas de luz que suben y las líneas de pantalla con la viñeta) */
 #loading .ld-fx { position: absolute; inset: 0; pointer-events: none; }
 #loading .ld-fx::before { content: ''; position: absolute; inset: -40% 0 0; opacity: .7; animation: ldMotas 14s linear infinite;
@@ -75,7 +76,7 @@ summary { line-height: 1.3; }
     radial-gradient(1.5px 1.5px at 6% 38%, #c9b2ff, transparent), radial-gradient(2px 2px at 52% 30%, #fff, transparent), radial-gradient(2px 2px at 70% 20%, #ffd6f2, transparent), radial-gradient(1.5px 1.5px at 35% 12%, #c9b2ff, transparent);
   background-size: 100% 50%; }
 @keyframes ldMotas { to { transform: translateY(-50%); } }
-#loading .ld-fx::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px), radial-gradient(120% 90% at 50% 50%, transparent 60%, rgba(5, 1, 14, .6) 100%); }
+#loading .ld-fx::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px), radial-gradient(130% 100% at 50% 50%, transparent 65%, rgba(5, 1, 14, .28) 100%); }
 /* (las cuatro esquinas del visor, finas y rosas) */
 #loading .ld-marco { --m: calc(var(--P) * .45); --l: clamp(20px, 3.2vmin, 40px); position: absolute; inset: calc(var(--m) + var(--sy)) calc(var(--m) + var(--sx)); pointer-events: none; opacity: .85;
   background: linear-gradient(#ff7ac8, #ff7ac8) 0 0 / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 0 0 / 2px var(--l), linear-gradient(#ff7ac8, #ff7ac8) 100% 0 / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 100% 0 / 2px var(--l),
@@ -89,25 +90,25 @@ summary { line-height: 1.3; }
 #loading .ld-k::before { content: ''; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 4px 0 rgba(40, 10, 90, .9)) drop-shadow(0 0 22px rgba(255, 122, 200, .45)); }
+  filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35)); }
 #loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #ece6f8; text-shadow: 0 1px 6px rgba(5, 1, 14, .8); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 /* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas cortadas) */
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
 #loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; }
 #loading .ld-ms div { display: flex; flex-wrap: wrap; gap: 6px; }
-#loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; background: linear-gradient(160deg, rgba(60, 26, 120, .85), rgba(18, 8, 40, .85)); border-bottom: 2px solid #ff7ac8;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+#loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .45); border: 1px solid rgba(255, 255, 255, .22);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 /* (de la lámina solo queda su nombre, como una etiqueta abajo a la derecha: la lámina ya es el fondo) */
 #loading .ld-pic { grid-area: pic; align-self: end; justify-self: end; margin: 0; }
-#loading .ld-pic figcaption { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: rgba(13, 6, 28, .66); border: 1px solid rgba(255, 255, 255, .18); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em;
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-#loading .ld-pic figcaption::before { content: ''; width: 7px; height: 7px; transform: rotate(45deg); background: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; }
+#loading .ld-pic figcaption { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: rgba(13, 6, 28, .4); border: 1px solid rgba(255, 255, 255, .18); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em;
+  border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+#loading .ld-pic figcaption::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; }
 #loading .ld-pic figcaption:empty { display: none; }
 #loading.no-pic .ld-bg { background-image: radial-gradient(120% 90% at 50% 40%, #3a1a8a 0%, #1e0a44 45%, #07020f 100%) !important; }
 /* (el consejo, como un mensaje en una esquina de la pantalla) */
-#loading .ld-tip { grid-area: tip; justify-self: end; max-width: 380px; min-width: 0; display: flex; gap: 12px; align-items: center; padding: 10px 14px; background: rgba(13, 6, 28, .62); border: 1px solid rgba(201, 178, 255, .25); border-left: 3px solid #ff7ac8;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%); }
+#loading .ld-tip { grid-area: tip; justify-self: end; max-width: 380px; min-width: 0; display: flex; gap: 12px; align-items: center; padding: 12px 18px 12px 14px; background: rgba(13, 6, 28, .38); border: 1px solid rgba(255, 255, 255, .16); border-radius: 18px;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 #loading .ld-tip b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ff9ad8; }
 #loading .ld-tip p { margin: 5px 0 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.4; color: #f6f3fc; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 #loading .ld-bulb { flex: none; display: grid; }
@@ -118,7 +119,7 @@ summary { line-height: 1.3; }
 #loading .ld-row .msg { min-width: 0; overflow: hidden; white-space: nowrap; color: #d8cff0; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; }
 #loading .ld-row .msg::after { content: ''; display: inline-block; width: .55em; height: 1em; margin-left: 4px; vertical-align: -2px; background: #ff7ac8; animation: ldCursor .8s steps(1) infinite; }
 @keyframes ldCursor { 50% { opacity: 0; } }
-#loading .ld-pc { flex: none; font: 400 clamp(28px, min(6vw, 9vh), 64px)/.85 'MZ Display', 'MZ Texto', sans-serif; color: #fff; text-shadow: 0 0 18px rgba(255, 122, 200, .7), 0 3px 0 rgba(40, 10, 90, .9); font-variant-numeric: tabular-nums; }
+#loading .ld-pc { flex: none; font: 400 clamp(28px, min(6vw, 9vh), 64px)/.85 'MZ Display', 'MZ Texto', sans-serif; color: #fff; text-shadow: 0 0 18px rgba(255, 122, 200, .6), 0 2px 10px rgba(8, 4, 16, .5); font-variant-numeric: tabular-nums; }
 #loading .bar { position: relative; height: 14px; background: rgba(255, 255, 255, .1);
   -webkit-mask: repeating-linear-gradient(105deg, #000 0 10px, transparent 10px 13px); mask: repeating-linear-gradient(105deg, #000 0 10px, transparent 10px 13px); }
 #loading .bar i { position: relative; display: block; height: 100%; width: 0; overflow: hidden; background: linear-gradient(90deg, #7b2ff7, #c21cff 45%, #ff2bd6 80%, #ffd6f2); box-shadow: 0 0 18px rgba(255, 43, 214, .7); transition: width .25s; }
@@ -132,7 +133,8 @@ summary { line-height: 1.3; }
 #loading.entra { animation: ldIn .3s ease-out; }
 @keyframes ldIn { from { opacity: 0; } }
 #loading.entra .ld-name { animation: ldNombre .8s .1s cubic-bezier(.2, .9, .3, 1) both; }
-@keyframes ldNombre { from { clip-path: inset(0 100% 0 0); transform: translateX(-16px); } to { clip-path: inset(0 0 0 0); transform: none; } }
+/* (el recorte deja sitio al brillo del nombre: recortado a su caja, el brillo dibujaba un rectángulo detrás) */
+@keyframes ldNombre { from { clip-path: inset(-48px 100% -48px -48px); transform: translateX(-16px); } to { clip-path: inset(-48px -48px -48px -48px); transform: none; } }
 #loading.entra :is(.ld-k, .ld-intro, .ld-ms, .ld-tip, .ld-pic, .ld-prog) { animation: ldSube .6s cubic-bezier(.2, .9, .3, 1) both; }
 #loading.entra .ld-k { animation-delay: .05s; } #loading.entra .ld-intro { animation-delay: .3s; } #loading.entra .ld-ms { animation-delay: .4s; }
 #loading.entra .ld-tip { animation-delay: .5s; } #loading.entra .ld-pic { animation-delay: .55s; } #loading.entra .ld-prog { animation-delay: .2s; }
@@ -164,7 +166,7 @@ summary { line-height: 1.3; }
   #loading .ld-pic { display: none; }
   /* (las misiones en una sola fila, aunque sean ocho: los iconos encogen un poco si no caben) */
   #loading .ld-ms div { flex-wrap: nowrap; gap: 5px; } #loading .ld-ms .ico { flex: 0 1 38px; width: auto; height: auto; aspect-ratio: 1; min-width: 0; padding: 6px; }
-  #loading .ld-shade { background: linear-gradient(0deg, rgba(10, 3, 26, .97) 0%, rgba(10, 3, 26, .8) 38%, rgba(10, 3, 26, 0) 66%), linear-gradient(180deg, rgba(10, 3, 26, .6) 0%, rgba(10, 3, 26, 0) 24%); }
+  #loading .ld-shade { background: linear-gradient(0deg, rgba(8, 4, 16, .66) 0%, rgba(8, 4, 16, .4) 30%, rgba(8, 4, 16, .1) 55%, rgba(8, 4, 16, 0) 70%), linear-gradient(180deg, rgba(8, 4, 16, .28) 0%, rgba(8, 4, 16, 0) 22%); }
 }
 @media (prefers-reduced-motion: reduce) { #loading .ld-bg, #loading .ld-fx::before, #loading .bar i::after, #loading.entra *, #loading .ld-row .msg::after { animation: none !important; } }
 .mountains { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; pointer-events: none; opacity: .9; }

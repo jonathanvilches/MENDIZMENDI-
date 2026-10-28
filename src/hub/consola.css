@@ -99,7 +99,7 @@
 #hub.juego .m3d .m3-ft::after { content: ''; position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--c, #fff) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
 .ft-fondo { position: absolute; inset: 0; z-index: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 .ft-fondo img { width: 100%; height: 100%; object-fit: cover; opacity: .62; }
-.ft-fondo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 6, 28, .2) 0%, rgba(13, 6, 28, .55) 45%, rgba(13, 6, 28, .92) 100%); }
+.ft-fondo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 6, 28, .05) 0%, rgba(13, 6, 28, .3) 45%, rgba(13, 6, 28, .7) 100%); }
 #hub.juego .m3d .m3-ft > :not(.ft-fondo) { position: relative; z-index: 1; }
 /* (de arriba abajo, por orden de importancia: la comarca, el nombre del pueblo en grande, sus misiones y, abajo, a todo el
    ancho, el botón de jugar) */
