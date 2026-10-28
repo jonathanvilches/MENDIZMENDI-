@@ -15,6 +15,7 @@ import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
 import { pin45Svg } from '../pelota/pin45.js';
+import { tusCualidades, tuPelotari } from './pelotariProgreso.js';
 import { pelotariCard } from '../ui/sportCard.js';
 // los pelotaris del autor (src/ui/pelotariFig.js): sus nombres y sus figuras, también en las portadas del menú de pelota
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
@@ -421,11 +422,11 @@ function drawLines(root) {
 // uno abre su ficha entera (cualidades, golpes preferidos, cómo jugarle y sus datos)
 function fichaList(T, m) {
   const yp = T.players.find(p => p.you), rv = m.rival;
-  if (T.kind === 'parejas') return [{ id: 'you', name: yp.mates[0], town: yp.town, side: 'you', role: 'delantero', you: true, record: { txapelas: T.txapelas || 0 } },
+  if (T.kind === 'parejas') return [{ id: 'you', name: yp.mates[0], town: yp.town, side: 'you', role: 'delantero', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } },
     { id: 'youMate', name: yp.mates[1], town: yp.town, stats: mateStats(yp, 1), side: 'you', role: 'zaguero' },
     { id: 'rival', name: rv.mates[0], town: rv.town, stats: mateStats(rv, 0), side: 'rival', role: 'delantero' },
     { id: 'rivalMate', name: rv.mates[1], town: rv.town, stats: mateStats(rv, 1), side: 'rival', role: 'zaguero' }];
-  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, record: { txapelas: T.txapelas || 0 } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano' }];
+  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano' }];
 }
 /** La media de un pelotari del torneo en su carta: la tuya sube con cada txapela; la de los rivales, con su nivel */
 export const youBonus = (T) => Math.min(20, 2 + (T?.txapelas || 0) * 2);
@@ -512,7 +513,7 @@ export function torneoPanel(T, here = null, o = null) {
     const how = comoFunciona(T);
     // (las cartas del duelo, con el color que cada uno viste en el partido)
     const col = m ? coloresPartido(`${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, m.level, m.mate?.name, m.partner?.name).colors : { you: 'azul', rival: 'rojo' };
-    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: { fuerza: 3, agilidad: 3, velocidad: 3 }, pop: true, lang });
+    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: tusCualidades(), pop: true, lang });
     let left;
     if (T.done) { const C = T.players[T.champion]; left = `<div class="tq-banner"><small>Txapeldun · campeón del torneo</small>${pelotariCard({ name: C.name, town: C.town, side: C.you ? (T.tuColor || 'azul') : (T.tuColor === 'rojo' ? 'azul' : 'rojo'), role: pairs ? 'Par' : 'Mano', w: 110, bonus: C.you ? youBonus(T) : rivalBonus(C), stats: C.you ? {} : pairs ? mateStats(C, 0) : statsOf(C), pop: true, lang })}<p>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</p></div>`; }
     else if (m) {

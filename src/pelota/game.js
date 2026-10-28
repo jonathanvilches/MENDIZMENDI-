@@ -92,8 +92,9 @@ export class PelotaGame {
     this.mode = o.mode || 'match';
     this.target = o.target || (this.mode === 'rally' ? 6 : 7);
     this.lvl = LEVELS[o.level] || LEVELS.normal; this.tol = TOL[o.level] || TOL.normal;
-    // cualidades (de 1 a 5): tú, un pelotari de los del medio; el rival, las suyas (fuerza, agilidad y velocidad)
-    const Q = (s) => ({ fuerza: s?.fuerza ?? 3, agilidad: s?.agilidad ?? 3, velocidad: s?.velocidad ?? 3, style: s?.style || null });
+    // cualidades (de 1 a 5): tú, las que has ido ganando partido a partido (game/pelotariProgreso.js); el rival, las suyas
+    // (fuerza, agilidad y velocidad). La precisión, la de los golpes: sin ella, 3, la media
+    const Q = (s) => ({ fuerza: s?.fuerza ?? 3, agilidad: s?.agilidad ?? 3, velocidad: s?.velocidad ?? 3, precision: s?.precision ?? 3, style: s?.style || null });
     this.qual = { you: Q(o.youStats), rival: Q(o.rivalStats), youMate: Q(o.youMateStats), rivalMate: Q(o.rivalMateStats) };
     // por parejas: cada lado con un delantero y un zaguero (tú eliges qué juegas; tu compañero, lo otro). El rival del
     // pueblo juega de delantero y saca
@@ -120,7 +121,7 @@ export class PelotaGame {
     this.phase = 'intro'; this.phaseT = 0;
     this.events = [];
     this.pred = null; this.predT = 0;
-    this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0 };
+    this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0, fuertes: 0 };
     this.placeForServe();
   }
   emit(e) { this.events.push(e); }
@@ -243,8 +244,9 @@ export class PelotaGame {
     // derecha, cruzado hacia el ancho). Con el joystick arriba, en cambio, la alta se manda larga: decides tú
     const gancho = !serve && !!o.gancho && !req && !((aim.y || 0) > 0.6);
     if (!serve) aim = { x: aimSide(rawX), y: (aim.y || 0) - (tm > 0 ? tk * 0.25 : 0) };
-    // (a tope cuesta más afinar; menos a quien tiene fuerza, más a quien no)
-    const err = (1 - q) + Math.max(0, pow - 0.85) * 0.3 * (1.6 - this.qual[who].fuerza * 0.2), forceDrop = req === true || req === 'dejada';
+    // (a tope cuesta más afinar; menos a quien tiene fuerza, más a quien no. Y con precisión, todo un poco más fino: a 5,
+    // un décimo menos de error que a 3)
+    const err = ((1 - q) + Math.max(0, pow - 0.85) * 0.3 * (1.6 - this.qual[who].fuerza * 0.2)) * (1.15 - this.qual[who].precision * 0.05), forceDrop = req === true || req === 'dejada';
     if (serve) {
       const tx = clamp(aim.x * 2.5 + gauss(rnd) * err * 1.2, -3.5, 3.5);
       const landZ = this.cuatro ? 13.4 + pow * 2.4 + gauss(rnd) * err * 4.5 : 18.3 + pow * 2 + gauss(rnd) * err * 7.5;
@@ -385,7 +387,7 @@ export class PelotaGame {
     for (const id of this.ids) this.players[id].idealAt = null;   // (el momento justo del golpe siguiente se mira de nuevo)
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
     this.stats.hits[sd]++;
-    if (who === 'you') { if (o.volea) this.stats.voleas++; if (shot === 'gancho') this.stats.ganchos++; }
+    if (who === 'you') { if (o.volea) this.stats.voleas++; if (shot === 'gancho') this.stats.ganchos++; if (pow > 0.75) this.stats.fuertes++; }
     // el aviso: perfecto si lo tocas en su momento; si no, pronto o tarde (y lo justo, si apenas llegas)
     const off = o.timing != null && Math.abs(o.timing) > this.tol * 0.35;
     const label = q > 0.85 && !off ? 'perfect' : off && q < 0.75 ? (o.timing < 0 ? 'early' : 'late') : q > 0.6 ? 'good' : q > 0.35 ? 'ok' : o.timing > 0 ? 'late' : 'early';

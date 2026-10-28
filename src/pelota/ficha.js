@@ -9,11 +9,11 @@ import { SHOTS, TEXT, statsTips, pelotariRating } from './rules.js';
 import { esc } from '../util/html.js';
 
 const L = {
-  es: { title: 'Ficha del pelotari', close: 'Cerrar', you: 'Tú', yours: 'Tu ficha', town: 'Pueblo', role: 'Puesto', age: 'Edad', height: 'Altura', weight: 'Peso',
+  es: { title: 'Ficha del pelotari', close: 'Cerrar', level: 'Nivel', aim: 'Precisión', you: 'Tú', yours: 'Tu ficha', town: 'Pueblo', role: 'Puesto', age: 'Edad', height: 'Altura', weight: 'Peso',
     hand: 'Mano', debut: 'Debut', played: 'Partidos', won: 'Victorias', txapelas: 'Txapelas', skills: 'Cualidades', shots: 'Golpes preferidos', how: 'Cómo jugarle',
     yourHow: 'Cómo jugar', years: (n) => `${n} años`, right: 'Derecha', left: 'Izquierda', single: 'Manomanista', front: 'Delantero', back: 'Zaguero',
     any: 'Todos por igual', none: 'Aún ninguna', winsHere: 'Partidos ganados', blue: 'Azul', red: 'Colorado', yourTip: 'Equilibrado: corres, pegas y colocas igual de bien. Busca el punto flojo del rival en su ficha.', invented: 'Pelotari y datos inventados para el juego.' },
-  eu: { title: 'Pilotariaren fitxa', close: 'Itxi', you: 'Zu', yours: 'Zure fitxa', town: 'Herria', role: 'Postua', age: 'Adina', height: 'Altuera', weight: 'Pisua',
+  eu: { level: 'Maila', aim: 'Zehaztasuna', title: 'Pilotariaren fitxa', close: 'Itxi', you: 'Zu', yours: 'Zure fitxa', town: 'Herria', role: 'Postua', age: 'Adina', height: 'Altuera', weight: 'Pisua',
     hand: 'Eskua', debut: 'Estreinaldia', played: 'Partidak', won: 'Garaipenak', txapelas: 'Txapelak', skills: 'Ezaugarriak', shots: 'Kolpe gogokoenak', how: 'Nola jokatu haren aurka',
     yourHow: 'Nola jokatu', years: (n) => `${n} urte`, right: 'Eskuina', left: 'Ezkerra', single: 'Buruz burukoa', front: 'Aurrelaria', back: 'Atzelaria',
     any: 'Denak berdin', none: 'Bat ere ez oraindik', winsHere: 'Irabazitako partidak', blue: 'Urdina', red: 'Gorria', yourTip: 'Orekatua: berdin korrika egin, jo eta kokatzen duzu. Bilatu aurkariaren alde ahula bere fitxan.', invented: 'Jokorako asmatutako pilotaria eta datuak.' },
@@ -56,14 +56,15 @@ function card(p, lang) {
   let data;
   if (p.you) {
     const R = p.record || {};
-    data = [[T.town, town || '—'], [T.winsHere, String(R.won ?? 0)], [T.txapelas, R.txapelas ? String(R.txapelas) : T.none]];
+    data = [[T.town, town || '—'], ...(R.nivel ? [[T.level || 'Nivel', String(R.nivel)], [T.played, String(R.partidos ?? 0)]] : []), [T.winsHere, String(R.won ?? 0)], [T.txapelas, R.txapelas ? String(R.txapelas) : T.none]];
   } else {
     const B = pelotariBio(name, st, town), m = (B.height / 100).toFixed(2).replace('.', lang === 'eu' ? ',' : ',');
     // (el puesto ya va en la cabecera; el debut, en su pueblo)
     data = [[T.town, town || '—'], [T.age, T.years(B.age)], [T.height, `${m} m`], [T.weight, `${B.weight} kg`], [T.hand, B.left ? T.left : T.right],
       [T.debut, String(B.debut)], [T.played, String(B.played)], [T.won, `${B.won} · ${Math.round(100 * B.won / B.played)} %`], [T.txapelas, String(B.txapelas)]];
   }
-  const bar = (k, v) => `<div class="pfx-bar"><span>${k}</span><i aria-hidden="true">${[1, 2, 3, 4, 5].map(n => `<u class="${n <= v ? 'on' : ''}"></u>`).join('')}</i><b>${v}</b></div>`;
+  // (las tuyas van con decimales: las casillas llenas, la que estás llenando a medias y la cifra con una cifra decimal)
+  const bar = (k, v) => `<div class="pfx-bar"><span>${k}</span><i aria-hidden="true">${[1, 2, 3, 4, 5].map(n => `<u class="${n <= v ? 'on' : ''}"${n > v && n - 1 < v ? ` style="--p:${Math.round((v - n + 1) * 100)}%"` : ''}></u>`).join('')}</i><b>${Number.isInteger(v) ? v : String(v.toFixed(1)).replace('.', ',')}</b></div>`;
   const shots = fav.length ? fav.map(k => `<li>${PT.names[k]}<i aria-label="${sty[k]}">${'★'.repeat(sty[k])}</i></li>`).join('') : `<li>${T.any}</li>`;
   // (un solo consejo: de qué tener cuidado o, si no hay, cómo ganarle)
   const warn = !p.you && top && sty[top] >= 3 ? PT.warn[top] : '', tip = warn ? '' : p.you ? T.yourTip : statsTips(st, lang)[0] || '';
@@ -76,7 +77,7 @@ function card(p, lang) {
       ${p.you ? '' : `<p class="pfx-note">${T.invented}</p>`}
     </section>
     <section class="pfx-sk">
-      <h4>${T.skills}</h4>${bar(PT.run, st.velocidad)}${bar(PT.power, st.fuerza)}${bar(PT.hands, st.agilidad)}
+      <h4>${T.skills}</h4>${bar(PT.run, st.velocidad)}${bar(PT.power, st.fuerza)}${bar(PT.hands, st.agilidad)}${st.precision != null ? bar(T.aim || 'Precisión', st.precision) : ''}
       <h4>${T.shots}</h4><ul class="pfx-shots">${shots}</ul>
       ${warn || tip ? `<h4>${p.you ? T.yourHow : T.how}</h4><p class="pfx-tip">${warn ? `<strong>${warn}</strong> ` : ''}${tip}</p>` : ''}
     </section>`;
@@ -109,8 +110,8 @@ const CSS = `
 .pfx-data dd{margin:0;font:400 var(--fs-lg)/1.2 var(--f-display);color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pfx-sk h4{margin:0 0 8px;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0;line-height:1.3}
 .pfx-sk h4:not(:first-child){margin-top:12px}
-.pfx-bar{display:grid;grid-template-columns:88px 1fr 20px;align-items:center;gap:12px;min-height:28px;font-size:var(--fs-sm);font-weight:800}
-.pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;transform:skewX(-20deg)}.pfx-bar u{height:10px;border-radius:1px;background:rgba(255,255,255,.12)}.pfx-bar u.on{background:var(--cta);box-shadow:0 0 8px rgba(255,43,214,.5)}
+.pfx-bar{display:grid;grid-template-columns:88px 1fr 34px;align-items:center;gap:12px;min-height:28px;font-size:var(--fs-sm);font-weight:800}
+.pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;transform:skewX(-20deg)}.pfx-bar u{height:10px;border-radius:1px;background:rgba(255,255,255,.12)}.pfx-bar u.on{background:var(--cta);box-shadow:0 0 8px rgba(255,43,214,.5)}.pfx-bar u[style]{background:linear-gradient(90deg,#ff2bd6 var(--p),rgba(255,255,255,.12) var(--p))}
 .pfx-bar b{text-align:right;color:#fff;font:400 var(--fs-lg)/1 var(--f-display)}
 .pfx-shots{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .pfx-shots li{padding:4px 12px;border-radius:999px;background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);font-size:var(--fs-sm);font-weight:800;line-height:1.45;display:flex;gap:4px;align-items:center}

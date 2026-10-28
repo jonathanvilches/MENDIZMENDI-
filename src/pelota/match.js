@@ -546,8 +546,10 @@ export class PelotaMatch {
     // el botón dice a dónde se vuelve: al pueblo, al menú del campeonato o al cuadro del torneo (en el torneo, el
     // resultado cuenta: sin «otra partida» para repetirlo)
     const cont = this.o.back === 'torneo' ? (t.contTorneo || TEXT.es.contTorneo) : this.o.back === 'menu' ? (t.contMenu || TEXT.es.contMenu) : t.cont;
+    // (lo que ha dado el partido: la experiencia, el nivel y lo que ha subido cada cualidad; game/pelotariProgreso.js)
+    const gano = this.o.progreso?.(e, g.stats, g.mode), xpHtml = gano ? this.xpBloque(gano) : '';
     const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}${g.mode === 'rally' ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
-      <div class="pel-big">${big}</div><div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>
+      <div class="pel-big">${big}</div>${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
@@ -558,6 +560,13 @@ export class PelotaMatch {
       if (b.hasAttribute('data-pel-fichas')) this.ficha('rival');
     });
     this.result = e;
+  }
+  /** El bloque de la experiencia en el panel del final: el nivel con su barra, lo ganado y lo que ha subido cada cualidad. */
+  xpBloque(g) {
+    const X = this.txt.xp || TEXT.es.xp, sub = g.ahora.n > g.antes.n, dec = (v) => String(v).replace('.', ',');
+    const q = Object.entries(g.subidas).filter(([, v]) => v > 0).map(([k, v]) => `<li><b>${esc(X.q[k] || k)}</b><span>+${dec(v.toFixed(2))}</span><small>${dec(g.cualidades[k].toFixed(2))}</small></li>`).join('');
+    return `<div class="pel-xp${sub ? ' sube' : ''}"><div class="pel-xp-top"><b>${esc(sub ? X.up(g.ahora.n) : X.level(g.ahora.n))}</b><span>${esc(X.gained(g.xp))}</span></div>
+      <i class="pel-xp-bar" aria-hidden="true"><u style="width:${Math.round(100 * g.ahora.en / g.ahora.falta)}%"></u></i>${q ? `<ul>${q}</ul>` : ''}</div>`;
   }
   confirmExit() {
     const t = this.txt; const wasPaused = this.paused; this.paused = true;
