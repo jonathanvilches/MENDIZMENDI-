@@ -41,6 +41,29 @@ function tejadoG() {
   g.computeVertexNormals(); return g;
 }
 
+/** Las casas de la maqueta, con los bloques grandes ya partidos en casas y sin las naves de los polígonos: las mismas para
+ *  levantarlas y para pintar en el suelo su huella y su sombra (mapa3d.js pintaNucleo). Una vez por pueblo.
+ *  (los bloques grandes, una manzana entera o una nave en una sola caja, salían como cajas blancas y lisas de hasta 130 m,
+ *  sin tejado ni ventanas, y tapaban las calles; en Tafalla, en pleno centro. En el pueblo se parten en casas de unos
+ *  12 × 13 m, cada una con su tejado, su color y su altura, y se dejan huecos, como patios, en la proporción de lo que de
+ *  verdad está construido; las naves grandes lejos del centro, las de los polígonos, fuera: es un juego rural) */
+export function casasMaqueta(D) {
+  if (D._maq) return D._maq;
+  const rnd = mulberry32(hashStr((D.id || 'pueblo') + ':bloques'));
+  const parte = (b) => {
+    if (Math.max(b.w, b.d) <= 24 || !['house', 'industrial', 'shed'].includes(b.k)) return [b];
+    if (b.k !== 'house' && Math.hypot(b.x, b.z) > 300) return [];
+    const lleno = b.a > 0 ? Math.min(1, b.a / (b.w * b.d)) : 0.8, nx = Math.max(1, Math.round(b.w / 12)), nz = Math.max(1, Math.round(b.d / 13));
+    const c = Math.cos(b.ry), s = Math.sin(b.ry), out = [];
+    for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
+      if (lleno < 0.9 && rnd() > lleno) continue;
+      const lx = ((i + 0.5) / nx - 0.5) * b.w, lz = ((j + 0.5) / nz - 0.5) * b.d;
+      out.push({ ...b, k: 'house', x: b.x + lx * c + lz * s, z: b.z - lx * s + lz * c, w: b.w / nx * 0.96, d: b.d / nz * 0.96, a: 0, h: (b.h || ALTO.house) * (0.8 + 0.4 * rnd()) });
+    }
+    return out;
+  };
+  return (D._maq = D.casas.flatMap(parte));
+}
 /**
  * D: el pueblo (expandido). o: { X0, Z0 (su centro en el mapa), MU (unidades por metro), EXA, GROSOR, R (su radio, m),
  * sobre(X, Z) (la altura de la comarca en ese punto, sin GROSOR), P (el contorno de la comarca), comarca, lento, K (lo que
@@ -225,13 +248,14 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0]]) m = Math.min(m, alto(X0 + (x + a * c + b * s) * MU, Z0 + (z - a * s + b * c) * MU));
     return m - hund;
   };
-  const casas = D.casas.filter(b => Math.hypot(b.x, b.z) < R * 0.94 && cabe(b.x, b.z, Math.hypot(b.w, b.d) / 2));
+  const casas = casasMaqueta(D).filter(b => Math.hypot(b.x, b.z) < R * 0.94 && cabe(b.x, b.z, Math.hypot(b.w, b.d) / 2));
   for (const b of casas) {
     const v = varia(b), k = b.k, X = X0 + b.x * MU, Z = Z0 + b.z * MU, base = pie(b.x, b.z, b.w, b.d, b.ry);
     const hM = clamp(b.h || ALTO[k] || 8, 3, 45), H = (hM + 2) * MU * K, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d);
     const nave = k === 'industrial' || k === 'shed', piedra = k === 'church' || k === 'tower' || k === 'borda';
-    const pared = nave ? [0.6, 0.05, 0.7 + v * 0.06] : piedra ? [0.1, 0.2, 0.52 + v * 0.08] : k === 'fronton' ? [0.1, 0.12, 0.9] : PARED[estilo][Math.floor(v * 2.99)];
-    const teja = nave ? [0.58, 0.07, 0.56 + v * 0.08] : pizarra ? [0.63, 0.1, 0.18 + v * 0.07] : [0.025 + v * 0.02, 0.55, 0.36 + v * 0.07];
+    // (los pajares y las naves pequeñas, de piedra parda y con su tejado de teja: antes, gris claro y lisos, como bloques blancos)
+    const pared = nave ? [0.08, 0.14, 0.5 + v * 0.08] : piedra ? [0.1, 0.2, 0.52 + v * 0.08] : k === 'fronton' ? [0.1, 0.12, 0.9] : PARED[estilo][Math.floor(v * 2.99)];
+    const teja = nave ? [0.035, 0.32, 0.36 + v * 0.06] : pizarra ? [0.63, 0.1, 0.18 + v * 0.07] : [0.025 + v * 0.02, 0.55, 0.36 + v * 0.07];
     if (k === 'fronton') {   // (el frontis y la pared izquierda; la cancha va pintada en el suelo)
       const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, ax = Math.cos(rx), az = -Math.sin(rx), bx = Math.sin(rx), bz = Math.cos(rx);
       pon(piezas.paredes, X - ax * (largo / 2 - 0.8) * MU, Z - az * (largo / 2 - 0.8) * MU, base, rx, 1.6 * MU, (10 + 2) * MU * K, corto * MU, 0, pared);
@@ -246,9 +270,9 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     // (las contraventanas: rojas y verdes en los valles del norte, verdes y pardas en el Pirineo y la Ribera, pardas en la Zona Media)
     const vent = nave ? 0 : k === 'church' ? 4 : (estilo === 'atlantico' ? (v < 0.5 ? 3 : 2) : estilo === 'centro' ? 1 : v < 0.4 ? 2 : 1) + (piedra || (estilo === 'pirineo' && v < 0.6) || (estilo === 'centro' && v < 0.35) ? 10 : 0);
     pon(piezas.paredes, X, Z, base, b.ry, b.w * MU, H, b.d * MU, 0, pared, vent);
-    // (el tejado: la cumbrera a lo largo del lado largo, con alero; casi plano en las naves y en los bloques grandes)
-    const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, rh = nave || corto > 30 ? Math.min(1.2, corto * 0.06) : Math.min(9, corto * 0.36);
-    pon(piezas.tejados, X, Z, base, rx, (largo * 1.04 + 0.8) * MU, rh * MU * K, (corto * 1.08 + 0.8) * MU, H, teja, nave ? 0 : pizarra ? 7 : 6);
+    // (el tejado: la cumbrera a lo largo del lado largo, con alero; poco inclinado en los pajares y las naves; casi plano en los bloques grandes que quedan)
+    const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, rh = nave ? Math.min(2.4, corto * 0.16) : corto > 30 ? Math.min(1.2, corto * 0.06) : Math.min(9, corto * 0.36);
+    pon(piezas.tejados, X, Z, base, rx, (largo * 1.04 + 0.8) * MU, rh * MU * K, (corto * 1.08 + 0.8) * MU, H, teja, pizarra ? 7 : 6);
     // (una chimenea en la mitad de las casas, junto a la cumbrera)
     if (!nave && k !== 'church' && corto < 30 && v > 0.5) { const ax = Math.cos(rx), az = -Math.sin(rx), f = (v - 0.75) * largo * 0.8;
       pon(piezas.paredes, X + ax * f * MU, Z + az * f * MU, base, rx, 0.9 * MU, (rh * 0.75 + 1.4) * MU * K, 0.9 * MU, H, [pared[0], pared[1], pared[2] * 0.85]); }
