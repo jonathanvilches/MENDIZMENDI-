@@ -349,6 +349,9 @@ function pancartasDe(C, you, riv, town, colors) {
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
 // rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
 // stay: al acabar no se vuelve al pueblo (los campeonatos y el torneo siguen con su menú)
+// (los fallos que el partido recoge para no quedarse colgado, también al informe, util/informe.js: si no, en el móvil el
+// partido «se sale solo» sin que se sepa por qué)
+const apunta = (donde, e) => { const l = String(e?.stack || '').split('\n').find(x => /\.js/.test(x))?.trim().slice(0, 140) || ''; (window.__errors ||= []).push(`${donde}: ${e?.message || e}${l ? ' @ ' + l : ''}`.slice(0, 300)); };
 export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
@@ -367,7 +370,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const marca = (a, b, sa, sb) => (colors.you === 'azul' ? fronton.court.setScore?.(a, b, sa, sb) : fronton.court.setScore?.(b, a, sb, sa));
     // si algo falla al montar el partido, de vuelta al pueblo con todo como estaba (nunca congelado en la cancha)
     const fail = (e) => {
-      console.warn('frontón', e);
+      console.warn('frontón', e); apunta('frontón', e);
       try { done({ win: false, error: true }); }
       catch (e2) { console.warn('frontón', e2); P.rig = rig0; P.frozen = false; G.mode = 'play'; G.pelotaTick = null; G.ui.hudVisible?.(true); res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); }   // (resolver dos veces no hace nada)
     };
@@ -380,11 +383,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
     const ella = avatarIsGirl(profile().avatar);
-    if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { fullTexFor(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); }
+    if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { fullTexFor(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // y el rival, con el color que le toca (azules contra colorados, como en los partidos de verdad)
-    if (hasMeshy(rivModel)) try { red = await rigPelotari(rivModel, rivName); } catch (e) { console.warn('pelotari rival', e); }
+    if (hasMeshy(rivModel)) try { red = await rigPelotari(rivModel, rivName); } catch (e) { console.warn('pelotari rival', e); apunta('pelotari rival', e); }
     // (si mientras se preparaban los pelotaris el pueblo se ha rehecho —en el iPhone, al quedarse sin memoria gráfica—,
     // este partido ya no se juega: antes salían sus controles sobre el pueblo nuevo, en la llegada)
     if (G.disposed) { pel?.dispose(); red?.dispose(); G.pelotaLoading = false; res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); return; }
@@ -425,9 +428,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         const crew = crowd3d(C.tvCrew.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; }), 'pelota', 1.36, { all3d: true, quietos: true });
         seated.add(crew); const tick0 = seated.tick, dispose0 = seated.dispose;
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
-      } } catch (e) { console.warn('público del frontón', e); }
+      } } catch (e) { console.warn('público del frontón', e); apunta('público del frontón', e); }
     // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
-    try { pancartas = pancartasDe(fronton.court, profile().name || (isEU() ? 'Zu' : 'Tú'), rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); }
+    try { pancartas = pancartasDe(fronton.court, profile().name || (isEU() ? 'Zu' : 'Tú'), rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
@@ -456,7 +459,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       const free = MATE_NAMES.filter(n => n !== youName && n !== rivName), n1 = pairs?.partner?.name || free.splice(Math.floor(Math.random() * free.length), 1)[0], n2 = pairs?.rivalMate?.name || free.filter(n => n !== n1)[Math.floor(Math.random() * (free.length - 1))];
       const mk = async (model, name, lv, stats = null) => {
         let r = null;
-        if (hasMeshy(model)) try { r = await rigPelotari(model, name); } catch (e) { console.warn('pareja', e); }
+        if (hasMeshy(model)) try { r = await rigPelotari(model, name); } catch (e) { console.warn('pareja', e); apunta('pareja', e); }
         const obj = new THREE.Group(); obj.visible = false; G.scene.add(obj);
         if (r) { obj.add(r.char.root); r.setStance?.('Ready'); }
         else { const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.1, 4, 8), new THREE.MeshStandardMaterial({ color: model === 'pelotari_rojo' ? '#c0392b' : '#f2f2f2' })); m.position.y = 0.8; obj.add(m); }
@@ -472,7 +475,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     };
     marca(youName, rivName, 0, 0);
     // los jueces, en la contracancha (a la altura de la chapa, del 4 y del 7): levantan la mano en cada falta
-    try { jueces = G.pelotaJueces = makeJueces(G, fronton.court); } catch (e) { console.warn('jueces', e); }
+    try { jueces = G.pelotaJueces = makeJueces(G, fronton.court); } catch (e) { console.warn('jueces', e); apunta('jueces', e); }
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
@@ -493,28 +496,28 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
         if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; }
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p); },
-    }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
+    }); } catch (e) { console.warn('frontón', e); apunta('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
     let bad = 0;
     G.pelotaAbort = () => done({ win: false, quit: true, error: true }); G.pelotaLoading = false;
     // (los pelotaris, sus parejas y el público, compilados antes del primer saque: si no, la imagen se paraba al empezar)
     for (const o of [pel?.char.root, red?.char.root, seated]) if (o) G.rt?.warm?.(o);
     G.pelotaTick = (dt) => {
-      try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
+      try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (!bad) apunta('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
       // (en la llegada al Labrit, mientras la cámara va por la calle, el público de dentro no se ve: ni se mueve ni se dibuja)
-      try { if (seated) { seated.visible = !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); seated = null; }
+      try { if (seated) { seated.visible = !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
-      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); jueces = []; }
+      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
     })().catch(fail);
     function done(r) {
       if (ended) return; ended = true;
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; G.pelotaLoading = false;
       // el marcador y los botones del partido, fuera siempre (también si algo falló al montarlo)
-      try { match?.destroy(); } catch (e) { console.warn('frontón', e); }
+      try { match?.destroy(); } catch (e) { console.warn('frontón', e); apunta('frontón', e); }
       document.querySelectorAll('.pel-root:not(.pel-fuera)').forEach(el => el.remove());   // (el que se está desvaneciendo, que acabe)
       // (cada paso por su cuenta: si uno falla, los demás se hacen igual y se vuelve al pueblo con todo en su sitio)
-      const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); } };
+      const safe = (f) => { try { f(); } catch (e) { console.warn('frontón', e); apunta('frontón', e); } };
       // la vuelta, sin ver cómo se recoge la cancha ni cómo salta la cámara a la puerta del frontón: en los campeonatos,
       // el fondo de sus menús delante al momento; en el pueblo, un fundido a negro y, al volver la imagen, ya junto al
       // frontón (si algo falló, sin esperas)

@@ -343,9 +343,15 @@ export class Runtime {
     this.pixelRatio = on ? this.maxRatio : Math.min(this.pixelRatio, this.maxRatio);
     this.ratioDirty = true; this.lowFps = this.highFps = 0;
   }
-  // resolución de los partidos: en calidad baja (móvil) 1,6 y no 2: a 2 el móvil no llegaba, la resolución dinámica la
-  // bajaba a saltos durante el partido y los pelotaris se veían cada vez más borrosos. A 1,6 se queda fija
-  boostRatio() { return Math.max(this.ratioFor(this.quality), Math.min(devicePixelRatio, this.quality === 'low' ? (this.def?.id === 'pamplona' ? 1.5 : 1.8) : 2)); }   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
+  // resolución de los partidos: en calidad baja 1,8 y no 2: a 2 el móvil no llegaba, la resolución dinámica la bajaba a
+  // saltos durante el partido y los pelotaris se veían cada vez más borrosos. En los móviles (pantalla táctil), 1,5 en
+  // baja y 1,7 en media: el iPhone perdía la imagen al empezar el partido, con el pueblo entero ya en la memoria, y en la
+  // práctica la resolución dinámica lo dejaba en 1,45 (informes de octubre de 2026)
+  boostRatio() {
+    const tactil = matchMedia('(pointer: coarse)').matches, q = this.quality;
+    const tope = q === 'low' ? (this.def?.id === 'pamplona' ? 1.35 : tactil ? 1.5 : 1.8) : tactil ? 1.7 : 2;   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
+    return Math.max(this.ratioFor(q), Math.min(devicePixelRatio, tope));
+  }
   /** Tamaño y resolución del lienzo: se aplican justo antes de dibujar (si no, un fotograma con el lienzo vacío). */
   applySize() {
     const r = this.renderer;

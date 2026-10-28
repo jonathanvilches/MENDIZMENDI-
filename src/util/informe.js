@@ -17,9 +17,18 @@ const vistos = new Map();
 function lugar() {
   if (window.__futbol) return 'fútbol';
   const g = window.__game;
-  if (g) return [g.def?.id || g.kind || 'pueblo', g.pelotaMatch ? 'pelota' : g.sportMode ? 'campeonatos' : g.mode].filter(Boolean).join(' · ');
+  // (la pelota, por partes: cargando a los pelotaris, preparando el partido o jugando; así se sabe dónde se corta)
+  const pel = g?.pelotaMatch ? (g.pelotaMatch.active === false ? 'pelota preparando' : 'pelota') : g?.pelotaLoading ? 'pelota cargando' : '';
+  if (g) return [g.def?.id || g.kind || 'pueblo', pel || (g.sportMode ? 'campeonatos' : g.mode)].filter(Boolean).join(' · ');
   const h = document.getElementById('hub');
   return h && !h.classList.contains('hidden') ? `menú · ${h.dataset.screen || 'home'}` : 'cargando';
+}
+// lo último que se sabe de esta partida, guardado en el aparato: si el móvil cierra la página de golpe (sin memoria), al
+// volver a abrir el juego sale en el informe y en Ajustes › Diagnóstico como «La vez anterior» (util/diag.js)
+let cerrado = false;
+function rastro(m) {
+  if (cerrado) return;
+  try { const r = JSON.parse(localStorage.getItem('herrizherri-rastro') || '{}'); localStorage.setItem('herrizherri-rastro', JSON.stringify({ ...(r.id === doc?.empieza ? r : {}), ...m, id: doc?.empieza, cuando: new Date().toISOString(), t: seg(), lugar: m.lugar || lugar() })); } catch (e) { /* sin almacenamiento */ }
 }
 // (los pasos por las pantallas van con la muestra siguiente; lo que avisa de un fallo, enseguida)
 function evento(que, ya) {
@@ -58,13 +67,14 @@ function mide(t) {
   if (antes) { const d = t - antes; fr++; if (d > peor) peor = d; if (d > 50) tirones++; }
   antes = t; desde ||= t;
   const ahora = lugar();
-  if (ahora !== sitio) { sitio = ahora; evento(ahora); }
+  if (ahora !== sitio) { sitio = ahora; evento(ahora); rastro({ lugar: ahora }); }
   if (t - desde < CADA * 1000) return;
   const s = (t - desde) / 1000, rt = window.__rt, info = window.__game && rt?.renderer?.info.render, mem = performance.memory;
   doc.calidad ||= rt?.quality || '';
   doc.muestras.push({ t: seg(), lugar: ahora, fps: Math.round(fr / s * 10) / 10, peor: Math.round(peor), tirones,
-    ...(info ? { dibujos: info.calls, triangulos: info.triangles, resolucion: Math.round(rt.pixelRatio * 100) / 100 } : {}),
+    ...(info ? { dibujos: info.calls, triangulos: info.triangles, resolucion: Math.round(rt.pixelRatio * 100) / 100, geometrias: rt.renderer.info.memory.geometries, texturas: rt.renderer.info.memory.textures } : {}),
     ...(mem ? { memoria: Math.round(mem.usedJSHeapSize / 1048576) } : {}) });
+  rastro(doc.muestras[doc.muestras.length - 1]);
   if (doc.muestras.length > MAX_MUESTRAS) doc.muestras.shift();
   for (const m of (window.__errors || []).slice(-10)) if (!vistos.has(String(m).slice(0, 300))) error(m);
   fr = 0; peor = 0; tirones = 0; desde = t;
@@ -87,7 +97,9 @@ function empieza(db) {
   // (y lo que no carga: una imagen, un trozo del juego)
   addEventListener('error', (e) => e.error || e.message ? error(e.error?.message || e.message, e.error?.stack) : e.target?.src && error(`no carga ${e.target.src}`), true);
   addEventListener('unhandledrejection', (e) => error(e.reason?.message || e.reason, e.reason?.stack), true);
-  addEventListener('webglcontextlost', (e) => evento(`imagen perdida (${e.target?.id || e.target?.className || 'lienzo'})`, true), true);
+  addEventListener('webglcontextlost', (e) => { evento(`imagen perdida (${e.target?.id || e.target?.className || 'lienzo'})`, true); rastro({ perdida: true }); }, true);
+  addEventListener('pagehide', () => { rastro({ bien: true }); cerrado = true; });
+  addEventListener('pageshow', (e) => { if (e.persisted) { cerrado = false; rastro({ bien: false }); } });
   addEventListener('webglcontextrestored', () => evento('imagen recuperada', true), true);
   addEventListener('visibilitychange', () => { deNuevo(); evento(document.hidden ? 'oculta' : 'vuelve', document.hidden); });
   addEventListener('resize', () => { clearTimeout(pronto); pronto = setTimeout(() => evento(`ventana ${innerWidth} × ${innerHeight}`), 800); });

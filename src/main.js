@@ -360,7 +360,8 @@ async function boot() {
   };
   rt.onReload = () => {
     try { game?.save?.(); } catch (e) { }
-    try { if (game && def) sessionStorage.setItem('herrizherri-volver', def.id); } catch (e) { }
+    // (de vuelta al mismo pueblo; si se estaba en los campeonatos de pelota, a su menú y no a la llegada del pueblo)
+    try { if (game && def) sessionStorage.setItem('herrizherri-volver', def.id + (game.sportMode ? '|pelota' : '')); } catch (e) { }
     location.reload();
   };
 
@@ -369,9 +370,9 @@ async function boot() {
 
   // parámetros de prueba: ?town=olite (&autostart)
   let back = null; try { back = sessionStorage.getItem('herrizherri-volver'); sessionStorage.removeItem('herrizherri-volver'); } catch (e) { }
-  const t = q.get('town') || back;
+  const [volver, volverA] = (back || '').split('|'), t = q.get('town') || volver;
   if (t && levelById(t) && isDidactico()) hub.show('pueblo', t);   // (en el modo didáctico, su página)
-  else if (t && levelById(t)) { if (!P.name) { P.name = 'Iñigo'; saveProfile(); } play(levelById(t)); }
+  else if (t && levelById(t)) { if (!P.name) { P.name = 'Iñigo'; saveProfile(); } play(levelById(t), volverA === 'pelota' && !q.get('town') ? { sport: 'pelota' } : undefined); }
   else {
     hub.show(q.get('screen') || 'home', q.get('arg') || undefined);
   }
