@@ -308,30 +308,26 @@ export class Hub {
     let fb = null; try { fb = JSON.parse(localStorage.getItem('herrizherri-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
     const sadar = levelById('pamplona');
-    // (una carta por fila con su portada: la lámina del protagonista en acción, a todo color, a la derecha; a la izquierda,
-    // en una sola columna, el rótulo con tu marca a su derecha, el título y el texto, y abajo lo que se elige (el frontón,
-    // que abre la lista por comarcas, o tu club) con el botón de jugar al lado. Las dos cartas, iguales; en el iPhone
-    // tumbado, cada una cabe entera a la vista. En vertical, la portada entera arriba y lo demás debajo)
+    // (las dos cartas, iguales y una al lado de la otra, como las demás tarjetas del menú: arriba su lámina, con tu marca en
+    // la esquina; debajo el rótulo, el título y los campeonatos que tiene, en etiquetas pequeñas; y abajo lo que se elige,
+    // el frontón, que abre la lista por comarcas, o tu club, con el botón de jugar al lado. En el móvil tumbado se ven las
+    // dos enteras sin desplazar; en vertical, una debajo de la otra)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
+    const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${I(ic, 16)}${t}</span>`).join('')}</p>`;
+    const carta = (cls, img, stat, kick, tit, tg, row) => `<article class="sport ${cls}">
+        <div class="sp-cover" style="background-image:url(${img})"><span class="sp-stat">${stat}</span></div>
+        <div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
+        <div class="sp-bar">${row}</div></article>`;
+    const fp = fb?.played || 0, fw = fb?.won || 0;
     return `
     ${cabeza('Torneos · Pelota y fútbol', 'trophy', 'Campeonatos')}
     <section class="sports">
-      <div class="sport sp-pelota">
-        <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl)})"></span>
-        <div class="sp-txt"><small class="kicker">Tres campeonatos</small><h3>Pelota a mano</h3>
-          <p class="sp-chips"><span>${I('pelota', 22)}Manomanista</span><span>${I('person', 22)}Parejas</span><span>${I('target', 22)}4½</span></p>
-          <span class="sp-stat">${I('txapela', 22)} ${tx} ${tx === 1 ? 'txapela' : 'txapelas'}</span></div>
-        <div class="sp-bar"><div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div>
-          <button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
-      </div>
-      <div class="sport sp-futbol">
-        <span class="sp-cover" aria-hidden="true" style="background-image:url(${laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar)})"></span>
-        <div class="sp-txt"><small class="kicker">Liga Navarra</small><h3>Fútbol</h3>
-          <p class="sp-chips"><span>${I('trophy', 22)}Liga</span><span>${I('balon', 22)}Amistosos</span><span>${I('pin', 22)}El Sadar</span></p>
-          <span class="sp-stat">${I('balon', 22)} ${fb?.played || 0} ${(fb?.played || 0) === 1 ? 'partido' : 'partidos'} · ${fb?.won || 0} ${(fb?.won || 0) === 1 ? 'ganado' : 'ganados'}</span></div>
-        <div class="sp-bar"><div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div>
-          <button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar</span></button></div><span class="sp-shine"></span>
-      </div>
+      ${carta('sp-pelota', laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl), `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
+        'Tres campeonatos', 'Pelota a mano', [['pelota', 'Manomanista'], ['person', 'Parejas'], ['target', '4½']],
+        `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button>`)}
+      ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${fw === 1 ? 'ganado' : 'ganados'}`,
+        'Liga Navarra', 'Fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
+        `<div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar</span></button>`)}
     </section>`;
   }
   // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas

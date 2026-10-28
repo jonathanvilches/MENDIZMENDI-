@@ -967,38 +967,39 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   .cta-fotos::after { content: none; }
 }
 .sports-cta:hover .cta-fotos i { transform: scale(1.05); }
-.sports { display: flex; flex-direction: column; gap: 24px; }   /* (una carta por fila, ancha y con aire: si no caben las dos, se desplaza) */
-/* cada carta, igual que la otra, con su portada: la lámina del protagonista en acción, a todo color, a la derecha y
-   fundida con el fondo; a la izquierda, en una sola columna, el rótulo con tu marca, el título y el texto, y abajo lo que
-   se elige (frontón o club) con el botón de jugar al lado, a la misma altura: primero se elige y luego se juega */
-.sport { --pad: 32px; --col: 460px; position: relative; overflow: hidden; isolation: isolate; min-height: 0; padding: var(--pad); border: 1px solid transparent; border-radius: 4px; display: grid; grid-template-columns: minmax(0, var(--col)) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "txt ." "bar ."; gap: 24px; align-items: start; clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px); animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
+/* las dos cartas de los campeonatos, una al lado de la otra y como las demás tarjetas del menú (marco fino, el radio de
+   siempre y el filo de color arriba): arriba su lámina, con tu marca en la esquina; debajo el rótulo, el título y los
+   campeonatos que tiene; y abajo lo que se elige, con el botón de jugar al lado. Antes, una por fila, con las esquinas
+   cortadas y tan alta que en el móvil la segunda no se veía */
+.sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m); }
+.sport { --pad: 20px; --pos: 50% 22%; position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; border-radius: var(--r); border: 1px solid var(--line2);
+  background: linear-gradient(170deg, rgba(42, 15, 94, .92), rgba(16, 6, 40, .96)); animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
 .sport + .sport { animation-delay: .1s; }
-.sport::before { content: ''; position: absolute; inset: 0; z-index: -3; background: radial-gradient(90% 120% at 0% 100%, rgba(123, 47, 247, .35), transparent 60%), linear-gradient(160deg, #2b1062, #12052a 70%); }
-/* (la portada: tan alta como la carta y pegada a la derecha, con su borde izquierdo fundido con el fondo. La del fútbol,
-   un poco más a la derecha, para que el jugador no quede detrás del texto) */
-.sport .sp-cover { position: absolute; z-index: -2; top: 0; right: 0; height: 100%; aspect-ratio: 16 / 9; background: center / cover no-repeat; transform: translateX(var(--sx, 0%)); -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 42%); mask-image: linear-gradient(90deg, transparent 0, #000 42%); pointer-events: none; }
-.sport.sp-pelota { --sx: 9%; } .sport.sp-futbol { --sx: 12%; }
-/* (la sombra que deja leer el texto de la izquierda sin tapar al protagonista) */
-.sport::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(18, 5, 42, .94) 0, rgba(18, 5, 42, .8) 40%, rgba(18, 5, 42, .2) 60%, rgba(18, 5, 42, 0) 74%), linear-gradient(180deg, transparent 60%, rgba(7, 2, 15, .5)); }
-/* (el marco de la tarjeta, con sus esquinas en ángulo, va en la capa del brillo: el fondo de la tarjeta, que es su ::before,
-   se pinta por encima de su propio borde y lo tapaba arriba a la izquierda. Ver src/ui/frames.js) */
-.sport .sp-shine { position: absolute; inset: -1px; z-index: 0; pointer-events: none; overflow: hidden; border: 0 solid transparent; } .sport .sp-shine::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 30%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .16), transparent); transform: translateX(-150%) skewX(-18deg); animation: gx-sweep 6s ease-in-out 1s infinite; }
-.sp-txt { position: relative; z-index: 1; grid-area: txt; min-width: 0; }
-.sp-txt h3 { margin: var(--t-mt) 0 var(--t-mb); font: 400 var(--fs-4xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; text-shadow: 0 4px 0 rgba(7, 2, 15, .6); }
-.sp-txt p { margin: 0; color: var(--mute); font-size: var(--fs-sm); line-height: 1.45; }
-.sp-stat { display: inline-flex; align-items: center; gap: 8px; padding: 4px 8px; background: rgba(7, 2, 15, .7); border: 1px solid rgba(201, 178, 255, .3); font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
-.sport .sp-stat { white-space: nowrap; }
-/* (tu marca, a la derecha de la línea del rótulo y centrada con él, sin empujar el título: así el rótulo y el título
-   guardan su distancia común) */
-.sport .sp-stat { position: absolute; top: -8px; right: 0; }
-.sp-bar { grid-area: bar; align-self: end; position: relative; z-index: 1; display: flex; align-items: flex-end; gap: 16px; min-width: 0; }   /* (abajo, a la altura de los pies de la figura) */
-.sp-row { min-width: 0; }
-.sp-row > small { display: block; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 12px; }
-.sport .gx-go { flex: none; min-height: 48px; padding: 8px 32px; }
+.sport::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 2; background: linear-gradient(90deg, color-mix(in srgb, var(--cat, #ff7ac8) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
+.sport.sp-pelota { --pos: 72% 24%; }
+/* (la lámina: a todo el ancho y algo más baja que su 16:9, centrada en el protagonista; tu marca, arriba a la izquierda,
+   donde no tapa la cabeza de nadie) */
+.sp-cover { position: relative; flex: none; height: clamp(140px, calc(24vw / var(--z, 1)), 340px); background: var(--pos) / cover no-repeat; }
+.sp-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 55%, rgba(16, 6, 40, .92)); }
+.sp-stat { position: absolute; top: 10px; left: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 2px 12px 2px 8px; border-radius: var(--r);
+  background: rgba(13, 6, 28, .74); border: 1px solid var(--line2); color: #fff; font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.sp-stat > :is(svg, img) { flex: none; width: 18px; height: 18px; }
+.sp-stat b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: 0; color: color-mix(in srgb, var(--cat, #ff7ac8) 75%, #fff); }
+.sp-txt { position: relative; z-index: 1; display: grid; gap: 8px; min-width: 0; margin-top: -18px; padding: 0 var(--pad); }
+.sp-txt h3 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; text-shadow: 0 3px 0 rgba(7, 2, 15, .6); }
+/* (los campeonatos que tiene: etiquetas pequeñas, para leer, que no parezcan botones) */
+.sp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 6px; border-radius: var(--r); background: rgba(255, 255, 255, .06); border: 1px solid var(--line);
+  color: var(--tx2, #d9d0ee); font: 700 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.sp-chips > span > :is(svg, img) { flex: none; width: 16px; height: 16px; }
+.sp-bar { margin-top: auto; display: flex; align-items: flex-end; gap: 12px; min-width: 0; padding: 16px var(--pad) var(--pad); }
+.sp-row { flex: 1; min-width: 0; }
+.sp-row > small { display: block; margin-bottom: 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
+.sport .gx-go { flex: none; min-height: 48px; padding: 8px 28px; }
 /* lo elegido, en una caja del alto del botón: su imagen, el nombre y debajo de dónde es. La del frontón se toca para
    cambiarlo: abre la lista de todos los frontones por comarcas. (Del mismo ancho en las dos cartas: así los dos botones
    de jugar quedan uno encima del otro) */
-.sp-box { display: flex; align-items: center; gap: 12px; width: 224px; height: 48px; max-width: 100%; padding: 4px 16px 4px 4px; background: rgba(7, 2, 15, .7); border: 1px solid rgba(201, 178, 255, .3); border-radius: 2px; color: #fff; text-align: left; }
+.sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 48px; max-width: 100%; padding: 4px 16px 4px 4px; background: rgba(7, 2, 15, .7); border: 1px solid var(--line2); border-radius: var(--r); color: #fff; text-align: left; }
 .sp-box > span { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; }
 .sp-box small { font: 600 var(--fs-xs)/1 var(--f-cond); color: var(--mute); white-space: nowrap; }
@@ -1019,30 +1020,25 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .frs-list h3 { margin: 0 0 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
 .frs-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .frs .fr-chip { min-height: 44px; }
-/* (ordenador: las dos cartas una al lado de la otra, cada una con su portada entera arriba, a todo su ancho, y el texto, la
-   elección y el botón debajo. En una fila cada una dejaba un hueco vacío en medio y había que bajar para ver la segunda) */
-@media (min-width: 1200px) and (min-height: 560px) {
-  .sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m); }
-  .sport { --pad: 28px; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto 1fr; grid-template-areas: "cov" "txt" "bar"; gap: 16px; padding-top: 0; }
-  .sport .sp-cover { position: relative; grid-area: cov; display: block; width: calc(100% + 2 * var(--pad)); height: auto; max-height: max(200px, calc(100dvh / var(--z, 1) - 420px)); margin: 0 calc(-1 * var(--pad)); transform: none; background-position: center 35%; -webkit-mask-image: linear-gradient(180deg, #000 76%, transparent); mask-image: linear-gradient(180deg, #000 76%, transparent); }
-  .sport::after { background: none; }
-  .sp-bar { align-self: end; } .sp-bar .sp-row { flex: 1; } .sp-bar .sp-box { width: 100%; }
-}
+/* (en el ordenador, algo más de aire dentro de cada carta) */
+@media (min-width: 1200px) and (min-height: 560px) { .sport { --pad: 24px; } }
 /* (en vertical: el texto y la figura arriba; la elección y el botón debajo, a todo lo ancho) */
 @media (max-width: 599px), (orientation: portrait) {
-  /* (la portada entera arriba, en 16:9 y fundida por abajo; el texto, la elección y el botón debajo, a todo lo ancho) */
-  .sport { --pad: 24px; grid-template-columns: minmax(0, 1fr); grid-template-areas: "cov" "txt" "bar"; gap: 16px; padding-top: 0; }
-  .sport .sp-cover { position: relative; grid-area: cov; display: block; width: calc(100% + 2 * var(--pad)); height: auto; margin: 0 calc(-1 * var(--pad)); transform: none; -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent); mask-image: linear-gradient(180deg, #000 72%, transparent); }
-  .sport::after { background: none; }
-  .sport .sp-stat { position: static; margin-top: 12px; }   /* (en la columna estrecha, debajo del texto) */
+  /* (una carta debajo de la otra, con su lámina entera en 16:9; la elección y el botón, a todo lo ancho) */
+  .sports { grid-template-columns: minmax(0, 1fr); }
+  .sp-cover { height: auto; aspect-ratio: 16 / 9; background-position: center; }
   .sp-bar { flex-direction: column; align-items: stretch; } .sp-bar .sp-box { width: 100%; }
   .frs-in { width: 100%; max-height: calc(80dvh / var(--z, 1)); }
 }
 /* (en el móvil tumbado: la carta entera a la vista, también con la barra de Sitecase o de Safari) */
 @media (orientation: landscape) and (max-height: 560px) {
-  .sport { --pad: 20px 24px; --col: 400px; gap: 12px 24px; }
-  .sport .sp-txt p { max-width: 360px; }   /* (el párrafo acaba antes de la portada) */
-  .sp-txt h3 { font-size: var(--fs-2xl); white-space: nowrap; }
+  /* (las dos cartas enteras a la vista, una al lado de la otra, sin desplazar) */
+  .sports { gap: 12px; } .sport { --pad: 14px; }
+  .sp-cover { height: 112px; } .sp-stat { top: 8px; left: 8px; min-height: 28px; }
+  .sp-txt { gap: 6px; margin-top: -14px; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
+  .sp-bar { gap: 10px; padding-top: 10px; } .sp-row > small { margin-bottom: 6px; }
+  .sport .gx-go { min-height: 40px; padding: 6px 18px; font-size: var(--fs-md); }
+  .sp-box { height: 40px; } .sp-media { width: 32px; height: 32px; } img.sp-media:not(.sp-em) { width: 56px; height: 32px; }
   .frs-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
   .frs-head { padding: 12px 64px 12px 20px; } .frs-head h2 { font-size: var(--fs-xl); } .frs-list { padding: 12px 20px 16px; gap: 12px; }
 }
@@ -1350,7 +1346,7 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
    arriba, a lo ancho, tu Navarra (el aro y los datos en fila); debajo, las partidas empezadas y los campeonatos uno al
    lado del otro, y las comarcas; de pie, todo en una columna */
 /* (Campeonatos: lo que se juega, en pastillas con su icono en vez de una frase) */
-.sp-chips { display: flex; flex-wrap: wrap; gap: 8px; } .sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 4px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); font-weight: 900; font-size: var(--fs-sm); color: #fff; }
+/* (las etiquetas de los campeonatos de cada carta, en «.sp-chips > span», más arriba) */
 /* (lo que antes era una frase, un dato con su icono: cimas subidas, insignias ganadas) */
 .lead-chip { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--hueco-m); padding: 6px 16px 6px 10px; border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); font-weight: 900; font-size: var(--fs-md); }
 .lead-chip b { font-size: var(--fs-lg); color: var(--gold); }
