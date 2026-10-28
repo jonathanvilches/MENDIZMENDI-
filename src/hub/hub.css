@@ -242,7 +242,8 @@
 .pcard .phead { display: flex; align-items: center; gap: 8px; } .pcard .phead div { flex: 1; } .pcard b { font-size: var(--fs-md); display: block; } .pcard small { color: var(--mute); font-size: var(--fs-xs); }
 .pcard .alt { font-weight: 900; color: var(--gold); font-size: var(--fs-md); white-space: nowrap; }
 .pcard .pc-img { position: relative; margin: 0; width: 100%; aspect-ratio: 16 / 9; border-radius: 4px; overflow: hidden; background: rgba(255, 255, 255, .06); }
-.pcard .pc-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+/* (solo la foto: el icono de la montaña, en el rótulo de encima, se quedaba estirado sobre el nombre) */
+.pcard .pc-img > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .spark { width: 100%; height: 44px; }
 .pmeta { display: flex; gap: 12px; align-items: center; font-size: var(--fs-sm); color: var(--mute); flex-wrap: wrap; } .pmeta span { display: inline-flex; align-items: center; gap: 4px; }
 .diff i { display: inline-block; width: 9px; height: 9px; transform: rotate(45deg); border-radius: 2px; background: #ff8c42; margin-right: 4px; } .diff i.o { background: rgba(255, 255, 255, .15); }
@@ -581,6 +582,11 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   /* (el selector llena la pantalla; debajo, las figuras de leyenda y carnaval: se llega a ellas deslizando, y nada del selector se encoge) */
   .hub-main:has(> .csel2:not(.onbsel)) { overflow-y: auto; overflow-x: hidden; padding-top: 8px; padding-bottom: 8px; display: flex; flex-direction: column; }
   .hub-main:has(> .csel2:not(.onbsel)) > * { flex: none; }
+  /* (jugando, la franja de la barra de arriba tampoco se encoge: sin ella, el selector se metía debajo del nombre de la
+     sección y de los botones de los lados) */
+  #hub.juego .hub-main:has(> .csel2:not(.onbsel))::before { flex: none; }
+  /* (y el selector, justo del alto que queda debajo: el botón de jugar, siempre a la vista sin desplazar) */
+  #hub.juego .hub-main:has(> .csel2:not(.onbsel)) > .csel2 { height: calc(100% - var(--hud-h) - 16px); }
   .cs-title { display: none; }
   .csel2:not(.onbsel) { flex: 1; min-height: 0; grid-template-columns: 76px minmax(0, 1fr) minmax(300px, 44%); grid-template-rows: minmax(0, 1fr); grid-template-areas: "roster stage side"; }
   .csel2:not(.onbsel) .cs-stage { height: auto; min-height: 0; }

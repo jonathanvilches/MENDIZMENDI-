@@ -70,6 +70,8 @@ const otroNombre = (n1, n2) => (isEU() ? n1 : n2);
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
 const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
 const kc = (id) => KC[id] || 'av';
+// (el nombre y el icono, en la barra de arriba, de las secciones del material que no van en el menú del juego)
+const OTRAS = { tradiciones: [, 'Tradiciones', 'mask'], oficios: [, 'Oficios', 'anvil'], productos: [, 'Productos', 'cheese'], historia: [, 'Historia', 'castle'], euskera: [, 'Euskera', 'talk'] };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
 // (una excavación, con el icono de su yacimiento: el crómlech, la cueva, la columna romana…)
@@ -221,7 +223,9 @@ export class Hub {
       // (la sección, en una ventana encima del mapa, con su nombre arriba entre el botón del menú y el de cerrar)
       // A los lados, como en el menú de pausa de un juego, la sección de antes y la de después: se pasa de una a otra
       // tocándolas o con Q y E, sin volver al mapa
-      const n = this.nav.find(x => x[0] === screen) || (screen === 'comarca' ? [, COMARCAS.find(c => c.id === arg)?.name || 'Comarca', 'map'] : [, '', 'home']);
+      // (las que no van en el menú del juego, con su nombre igual: la comarca, el pueblo y las del material didáctico)
+      const n = this.nav.find(x => x[0] === screen) || (screen === 'comarca' ? [, COMARCAS.find(c => c.id === arg)?.name || 'Comarca', 'map']
+        : screen === 'pueblo' ? [, levelById(arg)?.name.split(' / ')[0] || 'Pueblo', 'church'] : OTRAS[screen] || [, '', 'home']);
       m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', n[1]);
       const [ant, sig] = this.vecinas(screen) || [];
       $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}"><kbd>Q</kbd><span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t">${I(n[2], 20)}<span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}"><span>${esc(sig[1])}</span><kbd>E</kbd></button>` : ''}`;

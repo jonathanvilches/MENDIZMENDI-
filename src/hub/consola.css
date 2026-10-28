@@ -279,8 +279,8 @@
 @media (hover: hover) {
   #hub.juego :is(.pcard, .fcard, .lam, .ar, .m3-chip, .m3-todas) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
   #hub.juego :is(.pcard, .fcard, .lam, .ar):hover { transform: translateY(-2px); }
-  #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic) img { transition: transform .5s var(--ease); }
-  #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic) img { transform: scale(1.04); }
+  #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic) > img { transition: transform .5s var(--ease); }
+  #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic) > img { transform: scale(1.04); }
 }
 #hub.juego :is(.hub-menu-btn, .hub-x, .hub-panel-x, .hub-nav button, .mm-go, .ft-go, .cb-b, .m3-b, .cm-t, .fcard, .lam, .btn, .filters button):active { transform: scale(.96); transition: transform .08s; }
 /* (la etiqueta del pueblo y el rótulo de la comarca entran con un pequeño impulso) */
