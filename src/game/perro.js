@@ -1,7 +1,8 @@
 // Gorri, el perro que acompaña en las misiones (un euskal artzain txakurra, perro pastor vasco).
-// Va detrás del jugador; si se queda lejos, aparece a su lado. Cuando el jugador parece perdido (lleva un rato
-// sin acercarse al objetivo) o se lo pide (tecla H o botón de la mochila), corre por delante hacia el objetivo,
-// ladra y deja huellas para enseñar el camino.
+// Va detrás del jugador; si se queda lejos, aparece a su lado. Cuando el jugador parece atascado (lleva un rato sin
+// acercarse a lo que toca, andando o quieto, o se aleja mucho) le pregunta «¿Necesitas ayuda?»; si dice que sí, o si la
+// pide él (tecla H o botón de la mochila), el perro corre por delante hacia lo que busca, o hacia el vecino al que
+// preguntar, ladra y deja huellas para enseñar el camino. Sin perro, le dice hacia dónde ir.
 import * as THREE from 'three';
 import { groundHeight } from '../world/heightfield.js';
 import { infoCard } from '../ui/minigames.js';
@@ -9,6 +10,7 @@ import { saveProfile } from './profile.js';
 import { DOG_BREEDS } from '../actors/beasts.js';
 import { animalSpec } from '../actors/animalGlb.js';
 import { iconSVG } from '../ui/icons.js';
+import { esc } from '../util/html.js';
 
 export class Perro {
   constructor(game) {
@@ -16,7 +18,7 @@ export class Perro {
     // punto al lado del jugador (a su izquierda, un poco adelantado): el perro camina a la par
     this.side = { pos: new THREE.Vector3(), companion: true, speed: 0, face: 0 };
     if (this.on) this.spawnDog(P.x + 1.2, P.z);
-    this.lead = null; this.best = null; this.stuck = 0; this.cool = 20; this.printT = 0;
+    this.lead = null; this.best = null; this.atasco = 0; this.coolAyuda = 40; this.printT = 0;
     this.goal = { pos: new THREE.Vector3() };
   }
   // ¿vamos con perro? (se puede elegir ir solo)
@@ -72,24 +74,68 @@ export class Perro {
     await infoCard(this.g.ui, { icon: 'dog', kicker: 'Tu compañero de aventuras', title: 'Tu compañero de cuatro patas', text: `Tu perro te espera. Puedes elegir entre varias razas de Navarra y del Pirineo. Irá siempre a tu lado en las misiones. Si te pierdes, se adelantará para enseñarte el camino. También puedes pedírselo con la tecla H o desde la mochila. Si prefieres ir solo, elige «Ir sin perro»: podrás llamarlo cuando quieras desde la mochila.`, button: 'Elegir mi perro' });
     await this.choose();
   }
-  // el jugador pide ayuda
-  help() {
-    if (!this.dog) { this.g.ui.toast('Vas sin perro. Puedes llamarlo desde la mochila.', 'dog', 2400); return; }
-    const t = this.g.target();
-    if (!t) { this.g.ui.toast(`${this.name} mueve la cola: ahora no hay nada que buscar`, 'dog', 2200); return; }
-    this.chain = 3; this.startLead(t);
+  // lo que toca ahora: lo de la misión seguida (o del trabajo de pastor o de jornalero) y, si es un vecino, quién; si la
+  // misión no tiene un sitio adonde ir (una pista por descubrir, la noche del carnaval), su vecino, que dirá qué hacer
+  objetivo() {
+    const g = this.g, M = g.missions?.[g.tracked], t = g.jobTarget?.() || g.target?.();
+    if (t) { const h = M && !M.done && M.host && Math.hypot(t.x - M.host.pos.x, t.z - M.host.pos.z) < 1.5 ? M.host : null;
+      return { x: t.x, z: t.z, key: `${g.tracked}:${M?.step}`, quien: h?.name?.split(',')[0] || null }; }
+    if (M && !M.done && M.host) return { x: M.host.pos.x, z: M.host.pos.z, key: `${g.tracked}:${M.step}:h`, quien: M.host.name?.split(',')[0] || null, pregunta: true };
+    return null;
   }
-  startLead(t) {
+  // hacia dónde queda, mirando como mira la cámara: delante, a la derecha, a la izquierda o detrás, y a cuántos metros
+  rumbo(t) {
+    const g = this.g, P = g.player.pos, f = g.camera?.getWorldDirection?.(new THREE.Vector3()) || new THREE.Vector3(0, 0, -1);
+    const dx = t.x - P.x, dz = t.z - P.z, d = Math.hypot(dx, dz), a = Math.atan2(f.x * dz - f.z * dx, f.x * dx + f.z * dz);
+    const lado = Math.abs(a) < 0.6 ? 'delante de ti' : Math.abs(a) > 2.4 ? 'detrás de ti' : a > 0 ? 'a tu derecha' : 'a tu izquierda';
+    return `${lado}, a unos ${Math.max(5, Math.round(d / 5) * 5)} m`;
+  }
+  // «¿Necesitas ayuda?»: una tarjeta pequeña abajo, sin parar el juego; si no se contesta, se va sola a los 12 s
+  ofrece() {
+    const g = this.g; this.cierraOferta();
+    const o = this.oferta = document.createElement('div'); o.className = 'dog-ayuda'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', '¿Necesitas ayuda?');
+    o.innerHTML = `<span class="da-ic">${iconSVG('dog', 34)}</span><span class="da-tx"><b>¿Necesitas ayuda?</b><small>${this.dog ? `${esc(this.name)} te enseña el camino` : 'Te digo hacia dónde ir'}</small></span>
+      <button type="button" class="btn primary small" data-si>Sí, ayúdame</button><button type="button" class="btn small" data-no>No, gracias</button>`;
+    o.addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; g.sound?.ui?.('click');
+      if (b.hasAttribute('data-si')) this.help(); else { this.coolAyuda = 90; this.cierraOferta(); } });
+    document.body.appendChild(o); if (this.dog) g.sound?.bark?.(this.dog.pos);
+    this.ofertaT = setTimeout(() => { this.coolAyuda = 60; this.cierraOferta(); }, 12000);
+  }
+  cierraOferta() { clearTimeout(this.ofertaT); const o = this.oferta; if (!o) return; this.oferta = null; o.classList.add('fuera'); setTimeout(() => o.remove(), 300); }
+  // el jugador pide ayuda (o dice que sí): el perro le lleva; sin perro, le dice hacia dónde ir
+  help() {
+    this.cierraOferta(); this.coolAyuda = 45; this.atasco = 0;
+    const g = this.g, t = this.objetivo();
+    if (!t) { g.ui.toast(this.dog ? `${this.name} mueve la cola: ahora no hay nada que buscar` : 'Ahora no hay nada que buscar', 'dog', 2200); return; }
+    const que = t.quien ? (t.pregunta ? `${t.quien}, que te dirá qué hacer,` : t.quien) : 'Lo que buscas';
+    if (!this.dog) { g.ui.toast(`${que} está ${this.rumbo(t)}`, 'compass', 4200); return; }
+    this.chain = 4; this.startLead(t, t.quien ? `${this.name} te lleva con ${t.quien}${t.pregunta ? ': pregúntale qué hacer' : ''}. ¡Síguelo!` : null);
+  }
+  startLead(t, msg = null) {
     const P = this.g.player.pos, dx = t.x - P.x, dz = t.z - P.z, d = Math.hypot(dx, dz);
-    if (d < 8) { this.g.ui.toast(`${this.name} ladra: ¡está aquí mismo!`, 'dog', 2000); this.g.sound.bark?.(this.dog.pos); return; }
+    if (d < 8) { this.g.ui.toast(t.quien ? `${this.name} ladra: ¡${t.quien} está aquí mismo!` : `${this.name} ladra: ¡está aquí mismo!`, 'dog', 2200); this.g.sound.bark?.(this.dog.pos); return; }
     const k = Math.min(1, 14 / d);
     this.goal.pos.set(P.x + dx * k, 0, P.z + dz * k); this.goal.t = t;
-    this.dog.follow = this.goal; this.lead = 6; this.cool = 25;
+    this.dog.follow = this.goal; this.lead = 6;
     this.g.sound.bark?.(this.dog.pos);
-    this.g.ui.toast(`${this.name} te enseña el camino: ¡síguelo!`, 'dog', 2600);
+    this.g.ui.toast(msg || `${this.name} te enseña el camino: ¡síguelo!`, 'dog', 3000);
+  }
+  // ¿atascado? Unos 35 s sin acercarse a lo que toca (andando; quieto cuenta algo menos) o alejándose mucho (el doble de
+  // deprisa): «¿Necesitas ayuda?». Con una conversación o una ventana abiertas, o mientras el perro guía, no cuenta; y
+  // también sin perro (entonces dice hacia dónde ir)
+  vigila(dt) {
+    const g = this.g, P = g.player.pos;
+    this.coolAyuda -= dt;
+    const t = g.mode === 'play' && !g.ui.busy && !g.player.frozen && this.lead == null && !this.waiting ? this.objetivo() : null;
+    if (!t) { this.best = null; this.atasco = 0; if (this.oferta && g.mode !== 'play') this.cierraOferta(); return; }
+    const d = Math.hypot(t.x - P.x, t.z - P.z);
+    if (this.best == null || d < this.best - 4 || this.tKey !== t.key) { this.best = d; this.atasco = 0; this.tKey = t.key; }
+    else if (d > 6) this.atasco += dt * (g.player.speed > 0.5 ? 1 : 0.7) * (d > this.best + 25 ? 2 : 1);
+    if (this.atasco > 35 && this.coolAyuda < 0 && !this.oferta) { this.atasco = 0; this.ofrece(); }
   }
   update(dt) {
     const g = this.g, P = g.player.pos, D = this.dog;
+    this.vigila(dt);
     if (!D || this.waiting) return;
     { const h = g.player.heading ?? 0, sp = g.player.speed || 0, lead = Math.min(1.2, sp * 0.18);
       const off = 0.82 + D.radius;   // a su lado, con sitio para su cuerpo (el mastín, un poco más lejos)
@@ -108,17 +154,9 @@ export class Perro {
       // cuando el jugador llega cerca del perro, vuelve a su lado; si el objetivo sigue lejos, se adelanta otra vez
       if (Math.hypot(P.x - D.pos.x, P.z - D.pos.z) < 4 || this.lead < 0) {
         this.lead = null; this.barked = false; D.follow = this.side;
-        const t = g.target(); if (t && Math.hypot(t.x - P.x, t.z - P.z) > 20 && this.chain-- > 0) this.startLead(t);
+        const t = this.objetivo(); if (t && Math.hypot(t.x - P.x, t.z - P.z) > 20 && this.chain-- > 0) this.startLead(t);
       }
       return;
     }
-    // ¿perdido? lleva 30 s andando sin acercarse al objetivo
-    this.cool -= dt;
-    const t = g.mode === 'play' ? g.target() : null;
-    if (!t) { this.best = null; this.stuck = 0; return; }
-    const d = Math.hypot(t.x - P.x, t.z - P.z);
-    if (this.best == null || d < this.best - 4 || this.tKey !== t.x + ',' + t.z) { this.best = d; this.stuck = 0; this.tKey = t.x + ',' + t.z; }
-    else if (g.player.speed > 0.5 && d > 30) this.stuck += dt;
-    if (this.stuck > 30 && this.cool < 0) { this.stuck = 0; this.chain = 2; this.startLead(t); }
   }
 }
