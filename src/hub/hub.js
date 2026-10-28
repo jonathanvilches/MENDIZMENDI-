@@ -314,10 +314,11 @@ export class Hub {
     // dos enteras sin desplazar; en vertical, una debajo de la otra)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${I(ic, 16)}${t}</span>`).join('')}</p>`;
+    // (la lámina entera, en 16:9, en su marco redondeado: el personaje se ve de pies a cabeza; debajo, el texto y la barra)
     const carta = (cls, img, stat, kick, tit, tg, row) => `<article class="sport ${cls}">
-        <div class="sp-cover" style="background-image:url(${img})"><span class="sp-stat">${stat}</span></div>
-        <div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
-        <div class="sp-bar">${row}</div></article>`;
+        <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}<span class="sp-stat">${stat}</span></div>
+        <div class="sp-body"><div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
+        <div class="sp-bar">${row}</div></div></article>`;
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `
     ${cabeza('Torneos · Pelota y fútbol', 'trophy', 'Campeonatos')}

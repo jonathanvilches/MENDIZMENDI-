@@ -973,45 +973,50 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
    siempre y el filo de color arriba): arriba su lámina, con tu marca en la esquina; debajo el rótulo, el título y los
    campeonatos que tiene; y abajo lo que se elige, con el botón de jugar al lado. Antes, una por fila, con las esquinas
    cortadas y tan alta que en el móvil la segunda no se veía */
-.sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m); }
-.sport { --pad: 20px; --pos: 50% 22%; position: relative; display: flex; flex-direction: column; min-width: 0; overflow: hidden; border-radius: var(--r); border: 1px solid var(--line2);
-  background: linear-gradient(170deg, rgba(42, 15, 94, .92), rgba(16, 6, 40, .96)); animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
+.sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m); align-items: start; }
+/* (cada carta, un panel redondeado con la luz de su deporte; la lámina en su marco y, al pasar por encima, la carta se
+   levanta y la lámina se acerca un poco) */
+.sport { --pad: 20px; --acc: #ff2bd6; position: relative; display: grid; grid-template-rows: auto 1fr; gap: 0; min-width: 0; padding: 10px; border-radius: 26px; isolation: isolate;
+  background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--acc) 26%, transparent), transparent 62%), radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 70%), linear-gradient(165deg, #2b0f60, #12052a 75%);
+  border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 22px 50px rgba(4, 1, 12, .4), inset 0 1px 0 rgba(255, 255, 255, .1);
+  transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), box-shadow .3s; animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
 .sport + .sport { animation-delay: .1s; }
-.sport::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 2; background: linear-gradient(90deg, color-mix(in srgb, var(--cat, #ff7ac8) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
-.sport.sp-pelota { --pos: 72% 24%; }
-/* (la lámina: a todo el ancho y algo más baja que su 16:9, centrada en el protagonista; tu marca, arriba a la izquierda,
-   donde no tapa la cabeza de nadie) */
-.sp-cover { position: relative; flex: none; height: clamp(140px, calc(24vw / var(--z, 1)), 340px); background: var(--pos) / cover no-repeat; }
-.sp-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(16, 6, 40, .25) 72%, rgba(16, 6, 40, .62)); }
-.sp-stat { position: absolute; top: 10px; left: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 2px 12px 2px 8px; border-radius: var(--r);
-  background: rgba(13, 6, 28, .74); border: 1px solid var(--line2); color: #fff; font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.sport.sp-futbol { --acc: #7b5cff; }
+.sport:hover { transform: translateY(-4px); box-shadow: 0 28px 60px rgba(4, 1, 12, .45), 0 0 0 1px color-mix(in srgb, var(--acc) 45%, transparent), 0 0 36px color-mix(in srgb, var(--acc) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .12); }
+.sp-cover { position: relative; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #1a0c33; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+.sp-cover img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .8, .3, 1); }
+.sport:hover .sp-cover img { transform: scale(1.04); }
+.sp-stat { position: absolute; top: 10px; left: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 2px 14px 2px 8px; border-radius: 999px;
+  background: rgba(13, 6, 28, .55); border: 1px solid rgba(255, 255, 255, .18); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .sp-stat > :is(svg, img) { flex: none; width: 18px; height: 18px; }
-.sp-stat b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: 0; color: color-mix(in srgb, var(--cat, #ff7ac8) 75%, #fff); }
-.sp-txt { position: relative; z-index: 1; display: grid; gap: 8px; min-width: 0; margin-top: -18px; padding: 0 var(--pad); }
-.sp-txt h3 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; text-shadow: 0 3px 0 rgba(7, 2, 15, .6); }
-/* (los campeonatos que tiene: etiquetas pequeñas, para leer, que no parezcan botones) */
+.sp-stat b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: 0; color: color-mix(in srgb, var(--acc) 45%, #fff); }
+.sp-body { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-width: 0; padding: 16px 10px 6px; }
+.sp-txt { display: grid; gap: 8px; min-width: 0; }
+.sp-txt .kicker { color: color-mix(in srgb, var(--acc) 55%, #fff); }
+.sp-txt h3 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; color: #fff; }
+/* (los campeonatos que tiene: pastillas para leer, del color de su deporte, que no parezcan botones) */
 .sp-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
-.sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 6px; border-radius: var(--r); background: rgba(255, 255, 255, .06); border: 1px solid var(--line);
-  color: var(--tx2, #d9d0ee); font: 700 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
-.sp-chips > span > :is(svg, img) { flex: none; width: 16px; height: 16px; }
-.sp-bar { margin-top: auto; display: flex; align-items: flex-end; gap: 12px; min-width: 0; padding: 16px var(--pad) var(--pad); }
-.sp-row { flex: 1; min-width: 0; }
-.sp-row > small { display: block; margin-bottom: 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
-.sport .gx-go { flex: none; min-height: 48px; padding: 8px 28px; }
-/* lo elegido, en una caja del alto del botón: su imagen, el nombre y debajo de dónde es. La del frontón se toca para
-   cambiarlo: abre la lista de todos los frontones por comarcas. (Del mismo ancho en las dos cartas: así los dos botones
-   de jugar quedan uno encima del otro) */
-.sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 48px; max-width: 100%; padding: 4px 16px 4px 4px; background: rgba(7, 2, 15, .7); border: 1px solid var(--line2); border-radius: var(--r); color: #fff; text-align: left; }
+.sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 999px; background: color-mix(in srgb, var(--acc) 12%, rgba(255, 255, 255, .03)); border: 1px solid color-mix(in srgb, var(--acc) 32%, transparent);
+  color: #ece4ff; font: 700 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.sp-chips > span > :is(svg, img) { flex: none; width: 18px; height: 18px; }
+/* (abajo, en una barra de cristal: lo que se elige y el botón de jugar) */
+.sp-bar { align-self: end; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; min-width: 0; padding: 10px; border-radius: 20px; background: rgba(7, 2, 15, .38); border: 1px solid rgba(255, 255, 255, .08); }
+.sp-row { min-width: 0; }
+.sp-row > small { display: block; margin: 0 0 6px 6px; color: color-mix(in srgb, var(--acc) 50%, #fff); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
+.sport .gx-go { flex: none; min-height: 52px; padding: 8px 28px; }
+/* lo elegido, en una pastilla del alto del botón: su imagen en redondo, el nombre y debajo de dónde es. La del frontón se
+   toca para cambiarlo: abre la lista de todos los frontones por comarcas */
+.sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; max-width: 100%; padding: 4px 18px 4px 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; color: #fff; text-align: left; }
 .sp-box > span { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; }
-.sp-box small { font: 600 var(--fs-xs)/1 var(--f-cond); color: var(--mute); white-space: nowrap; }
-.sp-media { flex: none; display: block; width: 40px; height: 40px; border-radius: 2px; object-fit: cover; }
-img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del frontón, entera en 16:9) */
+.sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-box small { font: 600 var(--fs-xs)/1 var(--f-cond); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-media { flex: none; display: block; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
+img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del frontón, en redondo) */
 .sp-media.sp-em { object-fit: contain; padding: 4px; background: rgba(255, 255, 255, .08); }
 .sp-media.sp-kit { background: linear-gradient(135deg, var(--a) 50%, var(--b) 50%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
 .sp-media.sp-ico { display: grid; place-items: center; background: rgba(255, 255, 255, .08); }
-.sp-pick { cursor: pointer; transition: border-color .15s, transform .12s; } .sp-pick:hover, .sp-pick:focus-visible { border-color: var(--rosa); } .sp-pick:active { transform: translateY(1px); }
-.sp-chev { flex: none; width: 8px; height: 8px; margin: -4px 0 0 4px; border-right: 2px solid var(--rosa); border-bottom: 2px solid var(--rosa); transform: rotate(45deg); }
+.sp-pick { cursor: pointer; transition: border-color .15s, background .15s, transform .12s; } .sp-pick:hover, .sp-pick:focus-visible { border-color: color-mix(in srgb, var(--acc) 70%, #fff); background: rgba(255, 255, 255, .1); } .sp-pick:active { transform: translateY(1px); }
+.sp-chev { flex: none; width: 8px; height: 8px; margin: -4px 0 0 4px; border-right: 2px solid color-mix(in srgb, var(--acc) 60%, #fff); border-bottom: 2px solid color-mix(in srgb, var(--acc) 60%, #fff); transform: rotate(45deg); }
 .fr-chip { flex: none; padding: 8px 16px; border-radius: 2px; background: rgba(7, 2, 15, .6); border: 1px solid rgba(201, 178, 255, .3); color: var(--ink); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .fr-chip.on { background: var(--cta); color: #fff; border-color: transparent; box-shadow: var(--glow); }
 /* la lista de frontones: los pueblos de cada comarca juntos, con el elegido en fucsia; se desliza si no cabe */
@@ -1023,24 +1028,35 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
 .frs-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .frs .fr-chip { min-height: 44px; }
 /* (en el ordenador, algo más de aire dentro de cada carta) */
-@media (min-width: 1200px) and (min-height: 560px) { .sport { --pad: 24px; } }
+@media (min-width: 1200px) and (min-height: 560px) { .sport { padding: 12px; } .sp-body { padding: 18px 12px 6px; } }
+/* (tumbado y sin mucha altura, como un portátil de 1280 × 720: cada carta en horizontal, con la lámina entera a la
+   izquierda, y una encima de la otra; así se ven las dos enteras sin desplazar) */
+@media (orientation: landscape) and (max-height: 860px) and (min-width: 600px) {
+  .sports { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .sport { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; }
+  .sp-cover { width: min(400px, 32vw, calc((100dvh - 240px) / 2 * 16 / 9 / var(--z, 1))); align-self: center; }
+  .sp-body { padding: 8px 8px 4px 20px; align-content: center; } .sp-bar { align-self: end; }
+}
 /* (en vertical: el texto y la figura arriba; la elección y el botón debajo, a todo lo ancho) */
 @media (max-width: 599px), (orientation: portrait) {
   /* (una carta debajo de la otra, con su lámina entera en 16:9; la elección y el botón, a todo lo ancho) */
   .sports { grid-template-columns: minmax(0, 1fr); }
-  .sp-cover { height: auto; aspect-ratio: 16 / 9; background-position: center; }
-  .sp-bar { flex-direction: column; align-items: stretch; } .sp-bar .sp-box { width: 100%; }
+  .sp-bar { grid-template-columns: minmax(0, 1fr); } .sport .gx-go { width: 100%; }
   .frs-in { width: 100%; max-height: calc(80dvh / var(--z, 1)); }
 }
 /* (en el móvil tumbado: la carta entera a la vista, también con la barra de Sitecase o de Safari) */
 @media (orientation: landscape) and (max-height: 560px) {
   /* (las dos cartas enteras a la vista, una al lado de la otra, sin desplazar) */
-  .sports { gap: 12px; } .sport { --pad: 14px; }
-  .sp-cover { height: 112px; } .sp-stat { top: 8px; left: 8px; min-height: 28px; }
-  .sp-txt { gap: 6px; margin-top: -14px; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
-  .sp-bar { gap: 10px; padding-top: 10px; } .sp-row > small { margin-bottom: 6px; }
+  /* (cada carta en horizontal, con la lámina entera a la izquierda, y una encima de la otra: las dos a la vista) */
+  .sports { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .sport { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; padding: 8px; border-radius: 22px; }
+  .sp-cover { width: min(232px, calc(28vw / var(--z, 1))); align-self: center; border-radius: 15px; }
+  .sp-stat { top: 6px; left: 6px; min-height: 26px; padding: 2px 10px 2px 6px; }
+  .sp-body { gap: 8px; padding: 2px 4px 2px 14px; } .sp-txt { gap: 4px; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
+  .sp-chips > span { padding: 2px 10px 2px 4px; } .sp-chips > span > :is(svg, img) { width: 16px; height: 16px; }
+  .sp-bar { gap: 8px; padding: 6px; border-radius: 999px; align-items: center; } .sp-row > small { display: none; }
   .sport .gx-go { min-height: 40px; padding: 6px 18px; font-size: var(--fs-md); }
-  .sp-box { height: 40px; } .sp-media { width: 32px; height: 32px; } img.sp-media:not(.sp-em) { width: 56px; height: 32px; }
+  .sp-box { height: 40px; } .sp-media, img.sp-media:not(.sp-em) { width: 32px; height: 32px; }
   .frs-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
   .frs-head { padding: 12px 64px 12px 20px; } .frs-head h2 { font-size: var(--fs-xl); } .frs-list { padding: 12px 20px 16px; gap: 12px; }
 }
