@@ -2,15 +2,15 @@
 // las músicas del menú, de Torneos y de los pueblos, el público de los partidos, la ovación del último tanto de pelota
 // y el gol. Las músicas suenan desde un elemento <audio> conectado al bus de música del juego (src/audio.js): se leen
 // a medida que suenan, sin descomprimirlas enteras (cada una, más de 30 MB en memoria; el iPhone cierra la página si se
-// pasa). El público y los efectos, cortos, sí se descomprimen. Si una pista no puede sonar, el juego sigue con su
-// sonido sintetizado de antes.
+// pasa). El público y los efectos, cortos, sí se descomprimen. Si una música no puede sonar, no suena nada (la
+// sintetizada de antes ya no existe: se mezclaba con estas); si un efecto no puede, su sonido sintetizado.
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/sonidos/*.mp3', { eager: true, query: '?url', import: 'default' }))
   .map(([p, u]) => [p.split('/').pop().replace('.mp3', ''), u]));
 // (el volumen de cada una, para que suenen como la música sintetizada, unos −33 dB a la salida)
 const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5 };
 
-/** Las músicas grabadas de un contexto de audio: quiere(nombre) cada cuarto de segundo con la que toca (o null), y
- *  devuelve si esa ya suena (entonces la sintetizada calla). Cambia de una a otra con un fundido. */
+/** Las músicas grabadas de un contexto de audio: quiere(nombre) cada cuarto de segundo con la que toca (o null). Cambia
+ *  de una a otra con un fundido corto. */
 export class Musica {
   constructor(ctx, dest) {
     this.ctx = ctx; this.dest = dest; this.P = {}; this.cur = null;
@@ -40,14 +40,15 @@ export class Musica {
       addEventListener('pointerup', toque, true); addEventListener('keydown', toque, true);
     });
   }
+  /** Las crea ya, sin sonar, para que se vayan cargando: al pedir una, entra enseguida */
+  prepara(ns) { for (const n of ns) this.pista(n); }
   quiere(n) {
     const p = n ? this.pista(n) : null, t = this.ctx.currentTime;
     if (p !== this.cur) {
       const q = this.cur; this.cur = p;
       if (q) { q.g.gain.cancelScheduledValues(t); q.g.gain.setTargetAtTime(0, t, 0.4); clearTimeout(q.calla); q.calla = setTimeout(() => { if (this.cur !== q) { q.a.pause(); q.estado = q.estado === 'fallo' ? 'fallo' : 'nada'; } }, 2000); }
-      if (p) { clearTimeout(p.calla); if (p.estado !== 'suena') try { p.a.currentTime = 0; } catch (e) { } p.g.gain.cancelScheduledValues(t); p.g.gain.setValueAtTime(p.g.gain.value, t); p.g.gain.linearRampToValueAtTime(VOL[n] || 0.4, t + 1.5); this.suena(p); }
+      if (p) { clearTimeout(p.calla); if (p.estado !== 'suena') try { p.a.currentTime = 0; } catch (e) { } p.g.gain.cancelScheduledValues(t); p.g.gain.setValueAtTime(p.g.gain.value, t); p.g.gain.linearRampToValueAtTime(VOL[n] || 0.4, t + 0.8); this.suena(p); }
     }
-    return !!p && (p.estado === 'suena' || p.estado === 'pide');   // (mientras arranca, tampoco la sintetizada: no se pisan)
   }
   // (con la página escondida, calla y luego sigue donde iba)
   pausa(si) { const p = this.cur; if (!p || p.estado === 'fallo') return; if (si) { if (!p.a.paused) p.a.pause(); p.estado = 'nada'; } else if (p.estado === 'nada') this.suena(p); }

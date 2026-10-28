@@ -13,7 +13,7 @@
 .ini-top { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(300px, 1fr); gap: 24px; align-items: stretch; margin-top: 28px; }
 .ini-hero { position: relative; min-height: clamp(380px, calc(58dvh / var(--z, 1)), 560px); border-radius: 20px; isolation: isolate; box-shadow: 0 20px 50px rgba(0, 0, 0, .45); }
 .ih-img { position: absolute; inset: 0; z-index: -2; border-radius: inherit; background: #1c0b3a center 70% / cover no-repeat; }
-.ini-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; border: 1px solid var(--line2); background: linear-gradient(180deg, rgba(14, 7, 32, 0) 50%, rgba(14, 7, 32, .7) 100%); }
+.ini-hero::after { content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none; border: 1px solid var(--line2); background: linear-gradient(180deg, rgba(14, 7, 32, 0) 45%, rgba(14, 7, 32, .2) 75%, rgba(14, 7, 32, .46) 100%); }
 .ini-hero.cambia .ih-img { animation: ih-in .5s ease both; } .ini-hero.cambia .ih-bar { animation: ih-sube .45s ease both; }
 @keyframes ih-in { from { opacity: 0; transform: scale(1.03); } }
 @keyframes ih-sube { from { opacity: 0; transform: translateY(12px); } }
