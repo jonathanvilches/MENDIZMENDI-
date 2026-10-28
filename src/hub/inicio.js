@@ -160,7 +160,9 @@ function mapaOn(root, p) {
   cierraMapa();
   // (jugando, con una sección abierta encima o el menú, el mapa no se pinta ni se mueve: está tapado. En el didáctico vive
   // en su sección, Mapa)
-  const hub = sec.closest('#hub'), aqui = sec.dataset.pantalla || 'home', tapado = () => !!hub && ((hub.dataset.screen || 'home') !== aqui || hub.classList.contains('menu-on'));
+  // (tapado también con la bienvenida encima, .onb: su selector de personaje usa el mismo lienzo que el mapa, stage.js, y
+  // el mapa, que seguía pintando debajo, se lo quitaba en cada imagen; en el móvil no salía el personaje)
+  const hub = sec.closest('#hub'), aqui = sec.dataset.pantalla || 'home', tapado = () => !!hub && ((hub.dataset.screen || 'home') !== aqui || hub.classList.contains('menu-on') || !!hub.querySelector('.onb'));
   const banda = sec.querySelector('.m3-cb'), ficha = sec.querySelector('.m3-ft');
   const entra = (el) => { el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); };
   const abre = (id) => {
