@@ -124,7 +124,7 @@ function bandaHTML(p, id) {
 }
 // lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
-// zoom hasta tu personaje en el pueblo. Pequeña y fina, para no tapar el pueblo que se está formando
+// zoom hasta tu personaje en el pueblo. Ancha y baja, a un lado, para no tapar el pueblo que se está formando
 function fichaHTML(p, l) {
   const t = townProgress(p, l), nombre = esc(corto(l)), ms = OPC.misiones(l);
   const txt = l.bosque ? 'Explorar' : t.stamp ? 'Volver a jugar' : t.done ? 'Seguir misión' : 'Empezar misión';
