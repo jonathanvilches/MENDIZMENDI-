@@ -180,6 +180,14 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
   - comarca: cabecera como carta, sello en su aro, marcador, sus pueblos con la carta nueva, cultura, naturaleza, cuentos y leyendas, láminas y cimas;
   - en euskera, el segundo nombre es el de castellano y ya no se repite.
 
+- **App instalada en el iPhone:**
+  - las capturas que mandaste eran de la versión 82: la app no se había puesto al día. Al cerrarla del todo y abrirla, se pone al día;
+  - la franja vacía de abajo es un fallo de iOS 26 con las apps de la pantalla de inicio: la página mide ahora lo que la pantalla, que es lo que hace que iOS dé la pantalla entera;
+  - en el móvil tumbado, paneles y botones se acercan al borde hasta pasar justo la muesca;
+  - la entrada del mapa sale también con «Reducir movimiento», más suave;
+  - abrir la app y salir enseguida ya no la deja en modo sencillo, que quitaba la entrada;
+  - el mapa 3D mira si se ve: si no, cambia lo que la tarjeta gráfica rechaza por materiales sencillos y lo apunta en Ajustes › Diagnóstico.
+
 ## 10. Pendiente o depende de ti
 
 - **Pendiente:**
