@@ -1,71 +1,66 @@
-/* Las fichas del pueblo y de la comarca (hub.js townSheet y s_comarca, y la página del pueblo del didáctico), con el
-   mismo lenguaje que las cartas de la galería (galeria.css): la lámina entera, sin recortar, en un marco fino que brilla
-   con el color de la comarca (--c) y dos esquinas cortadas; rótulos en la letra estrecha con una raya delante; marcadores
-   de cifras como los de un juego; casillas con la esquina cortada para las misiones y los lugares. Nada de cajas
-   redondeadas ni pastillas */
+/* Las fichas del pueblo y de la comarca (hub.js townSheet y s_comarca, y la página del pueblo del didáctico): arriba, la
+   portada grande, a todo lo ancho, con el nombre encima; debajo, las cifras en pastillas y lo demás en tarjetas de
+   cristal con el borde fino, el icono en su círculo del color de la comarca (--c) y los títulos en la letra de los
+   rótulos del juego */
 
 /* ---------- piezas comunes ---------- */
 /* el rótulo pequeño, con su raya delante */
 .fh-k { display: flex; align-items: center; gap: 8px; margin: 0; color: color-mix(in srgb, var(--c, #ff7ac8) 45%, #fff); font: 700 11px/1.1 var(--f-cond); letter-spacing: .16em; text-transform: uppercase; }
 .fh-k::before { content: ''; flex: none; width: 22px; height: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff)); }
-/* el marcador: casillas oscuras con su icono, el rótulo y la cifra (lo conseguido, en dorado) */
-.fh-hud { display: flex; flex-wrap: wrap; gap: 6px; }
-.fh-st { position: relative; flex: 1 1 0; min-width: min(100%, 104px); display: flex; align-items: center; gap: 8px; padding: 7px 10px 7px 8px; background: linear-gradient(180deg, rgba(40, 20, 84, .72), rgba(14, 7, 32, .82));
-  border-left: 2px solid color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%); }
-.fh-st > :is(svg, img) { flex: none; width: 22px; height: 22px; }
-.fh-st > span { display: grid; gap: 2px; min-width: 0; }
+/* las cifras: pastillas con el icono en su círculo, el rótulo y la cifra (lo conseguido, en dorado) */
+.fh-hud { display: flex; flex-wrap: wrap; gap: 8px; }
+.fh-st { display: inline-flex; align-items: center; gap: 10px; min-width: 0; padding: 5px 16px 5px 5px; border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line2); }
+.fh-st > :is(svg, img) { flex: none; box-sizing: border-box; width: 34px; height: 34px; padding: 6px; border-radius: 50%; background: color-mix(in srgb, var(--c, #c21cff) 32%, rgba(13, 6, 28, .7)); }
+.fh-st > span { display: grid; gap: 3px; min-width: 0; }
 .fh-st small { color: var(--mute); font: 600 10px/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; white-space: nowrap; }
 .fh-st b { font: 400 var(--fs-md)/1.05 var(--f-display); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fh-st b i { font-style: normal; opacity: .55; font-size: .8em; }
-.fh-st.ok { border-left-color: #ffd166; } .fh-st.ok b { color: #ffd166; }
-/* (en la columna de la carta, de pie: el icono arriba y la cifra debajo, que puede ir en dos líneas) */
-.fh-izq .fh-hud { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-.fh-izq .fh-st { flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
-.fh-izq .fh-st b { white-space: normal; text-wrap: balance; overflow: visible; }
-/* el icono de una casilla, en su rombo de color */
-.fh-mi { flex: none; display: grid; place-items: center; width: 40px; height: 40px; background: linear-gradient(150deg, color-mix(in srgb, var(--c, #c21cff) 55%, #2a1260), #140830);
-  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+.fh-st.ok { border-color: rgba(255, 209, 102, .55); } .fh-st.ok b { color: #ffd166; }
+/* el icono de una tarjeta, en su círculo del color de la comarca */
+.fh-mi { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c, #c21cff) 70%, #fff 0%), color-mix(in srgb, var(--c, #c21cff) 40%, #1a0a3c) 70%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .16); }
 .fh-mi > :is(svg, img) { width: 26px; height: 26px; }
-/* la carta del pueblo fuera de la galería: la misma, quieta, encendida y con el brillo que la cruza de vez en cuando */
-:is(.fh-carta, .cm-t) { position: relative; display: block; container-type: inline-size; color: #fff; filter: drop-shadow(0 14px 22px rgba(4, 1, 12, .45)); }
-:is(.fh-carta, .cm-t) .gt-marco { position: relative; inset: auto; grid-template-rows: auto var(--dh, 48px); }
-:is(.fh-carta, .cm-t) .gt-marco::after { display: none; }
-.fh-carta .gt-marco { background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--c) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--c) 90%, #fff) 100%); }
-.fh-carta .gt-foto::after { opacity: 1; animation: gtBrillo 6s ease-in-out infinite; }
+/* la carta del pueblo fuera de la galería, en la comarca: la misma, quieta */
+.cm-t { position: relative; display: block; container-type: inline-size; color: #fff; filter: drop-shadow(0 14px 22px rgba(4, 1, 12, .45)); }
+.cm-t .gt-marco { position: relative; inset: auto; grid-template-rows: auto var(--dh, 48px); }
+.cm-t .gt-marco::after { display: none; }
 
 /* ---------- la ficha del pueblo ---------- */
-.sheet.pueblo .sheet-in { width: min(600px, 100%); border: 0; border-radius: 0; isolation: isolate;
-  background: radial-gradient(90% 70% at 0% 0%, color-mix(in srgb, var(--c) 26%, transparent), transparent 70%), radial-gradient(70% 60% at 100% 100%, rgba(255, 43, 214, .14), transparent 70%), linear-gradient(170deg, #2a0f5e 0%, #12052a 75%);
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
-/* (la raya de luz de arriba, como en las ventanas del juego, y las líneas tenues de pantalla) */
-.sheet.pueblo .sheet-in::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 3px; z-index: 5; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
-.sheet.pueblo .sheet-in::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 4px); }
-.sheet.pueblo .x { right: 10px; top: 10px; border-radius: 4px; background: rgba(10, 6, 22, .72); }
+.sheet.pueblo .sheet-in { width: min(880px, 100%); max-height: min(900px, calc(calc(100dvh / var(--z, 1)) - 32px)); overflow: hidden; isolation: isolate; border: 1px solid var(--line2); border-radius: var(--rL);
+  background: radial-gradient(90% 40% at 0% 0%, color-mix(in srgb, var(--c) 20%, transparent), transparent 70%), linear-gradient(175deg, #241050 0%, #12052a 80%); }
+.sheet.pueblo .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 5; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
+.sheet.pueblo .x { right: 12px; top: 12px; z-index: 6; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 6, 22, .62); border: 1px solid rgba(255, 255, 255, .22); }
 .fh-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
-.fh-izq { display: grid; align-content: start; gap: 12px; padding: 16px 16px 0; min-width: 0; }
-.sheet.pueblo .sh-body { overflow: visible; padding: 16px; }
-.sheet.pueblo .sh-body > .fh-k { margin-right: 44px; }   /* (sin meterse bajo la X) */
-.sheet.pueblo .sh-intro { margin: 10px 0 0; color: #e4dcf4; }
-.sheet.pueblo .sh-body h3 { margin: 20px 0 10px; }
+/* la portada: la lámina de lado a lado, y abajo un velo que se funde con la ficha, con el nombre encima */
+.fh-cab { position: relative; aspect-ratio: 16 / 9; max-height: calc(58dvh / var(--z, 1)); width: 100%; overflow: hidden; background: #1a0c33; }
+.fh-portada { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; }
+.fh-cab::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 55%; pointer-events: none; background: linear-gradient(180deg, transparent, rgba(22, 9, 52, .7) 55%, #1d0b44); }
+.fh-tit { position: absolute; z-index: 1; left: 24px; right: 72px; bottom: 18px; display: grid; gap: 8px; }
+.fh-tit h2 { margin: 0; color: #fff; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 3px 18px rgba(4, 1, 12, .6); }
+.fh-tit h2 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: none; }
+.fh-cab:not(:has(.fh-portada)) { aspect-ratio: auto; height: 132px; }
+.sheet.pueblo .fh-hud { padding: 16px 24px 0; }
+.sheet.pueblo .sh-body { overflow: visible; padding: 4px 24px 24px; }
+.sheet.pueblo .sh-intro { margin: 16px 0 0; color: #ebe4f7; font-size: var(--fs-md); line-height: 1.55; }
+.sheet.pueblo .sh-body h3 { margin: 24px 0 12px; }
 .sheet.pueblo .sh-body h3::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); }
-/* las misiones, en casillas: hechas, con el borde y la marca en dorado */
-.fh-ms { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: 8px; }
-.fh-ms li { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 6px 30px 6px 6px; background: rgba(255, 255, 255, .045); border-left: 2px solid rgba(255, 255, 255, .14);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
-.fh-ms li div { flex: 1; min-width: 0; } .fh-ms li b { display: block; font-size: var(--fs-sm); line-height: 1.25; } .fh-ms li small { display: block; color: var(--mute); font-size: var(--fs-xs); line-height: 1.3; }
-.fh-ms li.ok { background: linear-gradient(90deg, rgba(255, 209, 102, .14), rgba(255, 255, 255, .03)); border-left-color: #ffd166; }
-.fh-ms li:not(.ok) .fh-mi > :is(svg, img) { opacity: .8; }
-.fh-hecha { position: absolute; right: 8px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 20px; height: 20px; color: #ffd166; }
-.fh-hecha :is(svg, img) { width: 16px; height: 16px; }
-/* qué visitar */
-.fh-vis { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.fh-vis li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 12px 10px 10px; background: rgba(255, 255, 255, .035); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
-.fh-vis li div { min-width: 0; } .fh-vis b { display: block; font-size: var(--fs-sm); line-height: 1.3; } .fh-vis p { margin: 2px 0 0; color: var(--mute); font-size: var(--fs-sm); font-weight: 600; line-height: 1.45; }
+/* las misiones, en tarjetas: hechas, con el borde en dorado y su marca */
+.fh-ms { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; }
+.fh-ms li { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; padding: 10px 38px 10px 10px; border-radius: 14px; background: rgba(255, 255, 255, .05); border: 1px solid var(--line); }
+.fh-ms li div { flex: 1; min-width: 0; } .fh-ms li b { display: block; font: 400 var(--fs-md)/1.1 var(--f-display); letter-spacing: .01em; } .fh-ms li small { display: block; margin-top: 3px; color: var(--mute); font-size: var(--fs-xs); line-height: 1.3; }
+.fh-ms li.ok { background: linear-gradient(135deg, rgba(255, 209, 102, .14), rgba(255, 255, 255, .03)); border-color: rgba(255, 209, 102, .5); }
+.fh-ms li:not(.ok) .fh-mi > :is(svg, img) { opacity: .85; }
+.fh-hecha { position: absolute; right: 12px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #ffd166; color: #2a1200; }
+.fh-hecha :is(svg, img) { width: 14px; height: 14px; }
+/* qué visitar: tarjetas con el icono, el nombre y lo que tiene */
+.fh-vis { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 10px; }
+.fh-vis li { display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px 14px 12px; border-radius: 14px; background: rgba(255, 255, 255, .045); border: 1px solid var(--line); }
+.fh-vis li div { min-width: 0; } .fh-vis b { display: block; font: 400 var(--fs-md)/1.15 var(--f-display); letter-spacing: .01em; } .fh-vis p { margin: 6px 0 0; color: var(--mute); font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; }
 /* los cuentos: escuchados, con su ilustración entera (se abre en grande); por escuchar, a oscuras con un candado */
-.fh-ley { display: grid; gap: 10px; }
-.fh-ct { display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr); align-items: center; gap: 12px; padding: 6px; background: rgba(255, 255, 255, .035); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
-.fh-ct:not(:has(figure)) { grid-template-columns: minmax(0, 1fr); padding: 10px 12px; }
-.fh-ct figure { position: relative; margin: 0; aspect-ratio: 16 / 9; overflow: hidden; background: #1a0c33; clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+.fh-ley { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 10px; }
+.fh-ct { display: grid; grid-template-columns: minmax(0, 42%) minmax(0, 1fr); align-items: center; gap: 14px; padding: 8px; border-radius: 14px; background: rgba(255, 255, 255, .045); border: 1px solid var(--line); }
+.fh-ct:not(:has(figure)) { grid-template-columns: minmax(0, 1fr); padding: 12px 14px; }
+.fh-ct figure { position: relative; margin: 0; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 10px; background: #1a0c33; }
 .fh-ct figure > img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .fh-ct figure[data-ley] { cursor: zoom-in; }
 .fh-ct figure > span { position: absolute; inset: 0; display: grid; place-items: center; }
@@ -75,77 +70,64 @@
 .fh-ct b { display: block; margin-top: 4px; font: 400 var(--fs-md)/1.1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; }
 .fh-ct p { margin: 4px 0 0; color: var(--mute); font-size: var(--fs-xs); font-weight: 600; line-height: 1.4; }
 .sheet.pueblo .sh-foot { border-top: 1px solid var(--line); }
-/* en vertical (y en las pantallas estrechas), una columna: la carta arriba y todo se desplaza menos el botón; en el
-   móvil sube desde abajo, a lo ancho */
+.sheet.pueblo .sh-foot .btn { width: min(100%, 420px); margin: 0 auto; display: flex; justify-content: center; }
+/* en el móvil de pie, sube desde abajo, a lo ancho */
 @media (orientation: portrait) and (max-width: 760px) {
-  .sheet.pueblo .sheet-in { width: 100%; max-height: calc(88dvh / var(--z, 1)); clip-path: polygon(16px 0, 100% 0, 100% 100%, 0 100%, 0 16px); }
+  .sheet.pueblo .sheet-in { width: 100%; max-height: calc(92dvh / var(--z, 1)); border-radius: var(--rL) var(--rL) 0 0; }
+  .fh-tit { left: 16px; right: 16px; bottom: 14px; } .fh-tit h2 { font-size: var(--fs-2xl); }
+  .sheet.pueblo .fh-hud { padding: 14px 16px 0; } .sheet.pueblo .sh-body { padding: 4px 16px 20px; }
 }
-/* en horizontal (móvil tumbado, iPad y ordenador): dos columnas. A la izquierda la carta, el marcador y justo debajo el
-   botón (si no caben, la carta y el marcador se desplazan); a la derecha, lo demás, que se desplaza solo */
-@media (orientation: landscape) and (min-width: 600px) {
-  .sheet.pueblo .sheet-in { width: min(940px, 100%); max-height: min(620px, calc(calc(100dvh / var(--z, 1)) - 32px)); display: grid; grid-template-columns: minmax(0, 40%) minmax(0, 1fr); grid-template-rows: minmax(0, max-content) auto minmax(0, 1fr); }
-  .fh-scroll { display: contents; }
-  .fh-izq { grid-column: 1; grid-row: 1; overflow-y: auto; overscroll-behavior: contain; padding: 18px 16px 0 18px; }
-  .sheet.pueblo .sh-body { grid-column: 2; grid-row: 1 / 4; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 18px 18px 18px 16px; border-left: 1px solid var(--line); }
-  .sheet.pueblo .sh-foot { grid-column: 1; grid-row: 2; padding: 12px 16px 18px 18px; border-top: 0; }
+/* el móvil tumbado: la portada más baja, para que debajo se vea ya algo; todo un paso más pequeño */
+@media (orientation: landscape) and (max-height: 520px) {
+  .sheet.pueblo .sheet-in { width: min(760px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 16px); }
+  .fh-cab { max-height: calc(52dvh / var(--z, 1)); } .fh-tit { left: 16px; bottom: 12px; gap: 4px; } .fh-tit h2 { font-size: var(--fs-xl); } .fh-tit h2 em { font-size: var(--fs-xs); margin-top: 2px; }
+  .sheet.pueblo .x { width: 40px; height: 40px; top: 8px; right: 8px; }
+  .sheet.pueblo .fh-hud { gap: 6px; padding: 10px 16px 0; } .fh-st { padding: 3px 12px 3px 3px; gap: 8px; } .fh-st > :is(svg, img) { width: 28px; height: 28px; padding: 5px; } .fh-st b { font-size: var(--fs-sm); } .fh-st small { font-size: 9px; }
+  .sheet.pueblo .sh-body { padding: 2px 16px 16px; } .sheet.pueblo .sh-intro { margin-top: 10px; font-size: var(--fs-sm); } .sheet.pueblo .sh-body h3 { margin: 16px 0 8px; }
+  .sheet.pueblo .sh-foot { padding: 8px 16px 10px; } .sheet.pueblo .sh-foot .btn { min-height: 40px; font-size: var(--fs-sm); }
+  .fh-mi { width: 36px; height: 36px; } .fh-mi > :is(svg, img) { width: 22px; height: 22px; }
 }
-/* el móvil tumbado: todo un paso más pequeño para que la carta, el marcador y el botón quepan sin desplazarse */
-@media (orientation: landscape) and (max-height: 520px) and (min-width: 600px) {
-  .sheet.pueblo .sheet-in { width: min(780px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 16px); grid-template-columns: minmax(0, 41%) minmax(0, 1fr); }
-  .fh-izq { gap: 8px; padding: 14px 12px 0 14px; } .fh-carta { --dh: 38px; }
-  .fh-st { padding: 5px 8px 5px 6px; gap: 4px; min-width: 0; } .fh-st > :is(svg, img) { width: 18px; height: 18px; } .fh-st b { font-size: var(--fs-sm); } .fh-st small { font-size: 9px; }
-  .sheet.pueblo .sh-body { padding: 14px 14px 14px 12px; } .sheet.pueblo .sh-body h3 { margin: 16px 0 8px; }
-  .sheet.pueblo .sh-foot { padding: 8px 12px 14px 14px; } .sheet.pueblo .sh-foot .btn { min-height: 40px; font-size: var(--fs-sm); }
-  .fh-mi { width: 34px; height: 34px; } .fh-mi > :is(svg, img) { width: 22px; height: 22px; }
-}
-@media (min-width: 1200px) and (min-height: 700px) { .sheet.pueblo .sheet-in { width: min(1040px, 100%); } .fh-carta { --dh: 56px; } .fh-ms { gap: 10px; } }
 
 /* ---------- la comarca ---------- */
-/* la cabecera de la comarca, como las demás tarjetas del menú: marco fino con el radio de siempre y el filo de color
-   arriba, sin esquinas cortadas. A la derecha, su lámina entera (16:9, sin cortar a nadie); a la izquierda, sobre la misma
-   lámina difuminada y oscurecida, el sello en su aro, el rótulo, el nombre y las cifras en pastillas. Baja y ancha: en el
-   móvil tumbado deja ver los pueblos debajo (antes ocupaba la pantalla entera, con medio panel morado vacío). En vertical,
-   la lámina arriba y lo demás debajo */
-/* (--h, su alto: la lámina mide de ancho lo que le toca a ese alto, y nunca más de tres quintos de la tarjeta) */
-.chero { --h: clamp(220px, 24vw, 330px); position: relative; display: grid; grid-template-columns: minmax(0, 1fr) min(calc(var(--h) * 16 / 9), 60%); grid-template-rows: 100%; height: var(--h); margin: 0 0 var(--hueco-m); overflow: hidden; isolation: isolate;
-  border-radius: var(--r); border: 1px solid var(--line2); background: #160a34; color: #fff; }
-.chero::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
-.ch-fondo { position: absolute; inset: -40px; z-index: -2; background: center / cover no-repeat; filter: blur(26px) saturate(1.1) brightness(.5); }
-.chero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgba(22, 8, 52, .9) 0%, rgba(22, 8, 52, .72) 55%, rgba(22, 8, 52, .25) 100%); }
-.chero-img { grid-column: 2; grid-row: 1; display: block; width: 100%; height: 100%; min-height: 0; object-fit: cover; -webkit-mask: linear-gradient(90deg, transparent, #000 18%); mask: linear-gradient(90deg, transparent, #000 18%); }
-.ch-tx { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; justify-content: center; gap: var(--hueco-m); min-width: 0; padding: 24px 8px 24px 32px; }
-.ch-tx .back { position: static; align-self: flex-start; }
+/* la cabecera de la comarca, como la ficha de un pueblo: arriba su lámina grande, de lado a lado, con el sello, el rótulo
+   y el nombre encima, sobre un velo que se funde con la tarjeta; debajo, las cifras en pastillas. Marco fino con el filo
+   de color arriba. (La cabecera es una rejilla de una columna: la lámina y el nombre van en la misma casilla, uno encima
+   de otro, y las cifras en la de debajo; .ch-tx no hace caja) */
+.chero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); margin: 0 0 var(--hueco-m); overflow: hidden; isolation: isolate; border-radius: var(--rL); border: 1px solid var(--line2); color: #fff;
+  background: radial-gradient(70% 140% at 0% 100%, color-mix(in srgb, var(--c, #ff2bd6) 20%, transparent), transparent 70%), linear-gradient(175deg, #241050 0%, #160737 100%); }
+.chero::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 3; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
+.chero-img { grid-area: 1 / 1; display: block; width: 100%; height: auto; aspect-ratio: 21 / 9; max-height: calc(50dvh / var(--z, 1)); object-fit: cover; object-position: 50% 40%; }
+.chero::before { content: ''; grid-area: 1 / 1; align-self: end; z-index: 1; height: 60%; pointer-events: none; background: linear-gradient(180deg, transparent, rgba(22, 9, 52, .72) 55%, #1f0c47); }
+.chero:not(:has(.chero-img))::before { display: none; }
+.ch-tx { display: contents; }
+.ch-tx .back { grid-area: 1 / 1; align-self: start; justify-self: start; z-index: 2; position: static; margin: 16px; }
 /* (jugando, sin «Mapa»: la X de arriba ya vuelve al mapa) */
 #hub.juego .ch-tx .back { display: none; }
-.ch-nom { display: flex; align-items: center; gap: 16px; min-width: 0; max-width: 100%; }
+.ch-nom { grid-area: 1 / 1; align-self: end; z-index: 2; display: flex; align-items: center; gap: 16px; min-width: 0; padding: 0 28px 22px; }
+.chero:not(:has(.chero-img)) .ch-nom { padding-top: 72px; }
 .ch-nom > div { display: grid; gap: 6px; min-width: 0; }
-.chero .bigstamp { flex: none; width: clamp(64px, calc(6vw / var(--z, 1)), 96px); height: auto; aspect-ratio: 1; }
-.chero h1 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 12px rgba(4, 1, 12, .5); }
+.chero .bigstamp { flex: none; width: clamp(64px, calc(6vw / var(--z, 1)), 92px); height: auto; aspect-ratio: 1; filter: drop-shadow(0 6px 16px rgba(4, 1, 12, .6)); }
+.chero h1 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 3px 18px rgba(4, 1, 12, .65); }
 .chero h1 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: none; }
-/* las cifras: pastillas como los contadores del resto del menú (identidad.css, .lead-chip) */
-.ch-datos { display: flex; flex-wrap: wrap; gap: 8px; }
-.ch-dato { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px 4px 8px; border-radius: var(--r); background: rgba(13, 6, 28, .55); border: 1px solid var(--line2); }
-.ch-dato > :is(svg, img) { flex: none; width: 20px; height: 20px; }
+/* las cifras: pastillas como las de la ficha del pueblo */
+.ch-datos { grid-row: 2; display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 28px 20px; }
+.ch-dato { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 5px 16px 5px 5px; border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line2); }
+.ch-dato > :is(svg, img) { flex: none; box-sizing: border-box; width: 34px; height: 34px; padding: 6px; border-radius: 50%; background: color-mix(in srgb, var(--c, #c21cff) 32%, rgba(13, 6, 28, .7)); }
 .ch-dato b { font: 400 var(--fs-lg)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #ff7ac8) 60%, #fff); white-space: nowrap; }
 .ch-dato b i { font-style: normal; opacity: .6; font-size: .8em; }
 .ch-dato small { font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--tx2, #cfc6e6); white-space: nowrap; }
-.chero:not(:has(.chero-img)) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; }
-/* (en el móvil tumbado, baja: debajo se ven ya los pueblos) */
+/* (en el móvil tumbado, la lámina más baja: debajo se ven ya los pueblos) */
 @media (orientation: landscape) and (max-height: 520px) {
-  .chero { --h: 168px; }
-  .ch-tx { gap: 10px; padding: 12px 4px 12px 16px; }
-  .ch-nom { gap: 12px; } .chero .bigstamp { width: 52px; }
+  .chero-img { max-height: calc(46dvh / var(--z, 1)); }
+  .ch-nom { gap: 12px; padding: 0 16px 12px; } .chero .bigstamp { width: 48px; }
   .chero h1 { font-size: var(--fs-xl); } .chero h1 em { font-size: var(--fs-xs); margin-top: 4px; }
-  .ch-datos { gap: 6px; } .ch-dato { min-height: 30px; gap: 6px; padding: 2px 10px 2px 6px; } .ch-dato > :is(svg, img) { width: 16px; height: 16px; } .ch-dato b { font-size: var(--fs-md); }
+  .ch-datos { gap: 6px; padding: 10px 16px 12px; } .ch-dato { min-height: 34px; gap: 8px; padding: 3px 12px 3px 3px; } .ch-dato > :is(svg, img) { width: 28px; height: 28px; padding: 5px; } .ch-dato b { font-size: var(--fs-md); }
 }
+/* (de pie, la lámina en 16:9 y el nombre debajo de ella: encima tapaba la lámina entera) */
 @media (max-width: 599px), (orientation: portrait) {
-  .chero { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; height: auto; }
-  .chero-img { grid-column: 1; grid-row: 1; width: 100%; height: auto; aspect-ratio: 16 / 9; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
-  .ch-tx { grid-row: 2; padding: 0 16px 16px; margin-top: -40px; z-index: 1; }
-  .ch-nom { align-items: flex-end; }
-  .ch-tx .back { position: absolute; top: 12px; left: 12px; z-index: 2; }
-  .chero:not(:has(.chero-img)) .ch-tx { margin-top: 0; padding-top: 64px; }
-  .chero .bigstamp { width: 64px; } .chero h1 { font-size: var(--fs-2xl); }
+  .chero-img { aspect-ratio: 16 / 9; } .chero::before { height: 30%; }
+  .ch-nom { grid-area: 2 / 1; align-self: start; padding: 14px 16px 0; } .chero .bigstamp { width: 56px; } .chero h1 { font-size: var(--fs-2xl); }
+  .ch-datos { grid-row: 3; padding: 12px 16px 16px; }
 }
 /* los pueblos de la comarca: la misma carta que en la galería, en una retícula; al pasar por encima, se encienden */
 .cm-ts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px; }
@@ -165,7 +147,6 @@
 .cm-ley { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 
 /* ---------- la página del pueblo del didáctico: su carta a la izquierda (arriba, de pie) ---------- */
-.dd-hero > .fh-carta { --dh: 52px; }
 .dd-hero h1 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .16em; }
 
-@media (prefers-reduced-motion: reduce) { .fh-carta .gt-foto::after, .cm-t .gt-foto::after { animation: none; } .cm-t { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .cm-t .gt-foto::after { animation: none; } .cm-t { transition: none; } }

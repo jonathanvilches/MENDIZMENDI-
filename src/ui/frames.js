@@ -3,7 +3,7 @@
 // cada caja con borde y esquinas en ángulo lleva su marco dibujado entero, con las diagonales, como border-image (un
 // SVG que se adapta al tamaño de la caja). No cambia el fondo de nadie ni usa ::before ni ::after, que ya tienen uso.
 //   · cut: dos esquinas cortadas (arriba a la izquierda y abajo a la derecha), de c px: tarjetas y paneles
-//   · skew: paralelogramo, con los lados inclinados k px: botones, chips y etiquetas
+//   · skew: paralelogramo, con los lados inclinados k px: chips, pestañas y etiquetas (los botones, en pastilla: sport.css)
 // Cada regla repite el color del borde de su caja (el borde de siempre queda debajo, sin verse).
 const num = (n) => +n.toFixed(2);
 function rgbA(c) {
@@ -36,7 +36,6 @@ const RULES = [
   ['.bigmap', cut, 16, LILA(0.2)], ['.pel-card', cut, 16, LILA(0.25)], ['.fb-card', cut, 16, LILA(0.25)],
   ['.tq-tile', cut, 14, LILA(0.25)], ['.eq-tile', cut, 14, LILA(0.25)], ['.eq-team', cut, 12, LILA(0.25)], ['.eq-team.on', cut, 12, FX], ['.tq-m', cut, 6, LILA(0.22)], ['.tq-m.me', cut, 6, FX],
   ['.csel2 .cstrip button img', cut, 10, LILA(0.25), 2], ['.csel2 .cstrip button.on img', cut, 10, FX, 2],
-  ['.lg-btn:not(.go)', skew, 10, LILA(0.3)], ['.pel-go.alt', skew, 10, 'rgba(190,160,255,.35)'], ['.fb-alt', skew, 10, 'rgba(190,160,255,.35)'], ['.fb-card .fb-alt', skew, 10, 'rgba(190,160,255,.35)'],
   ['.clist button', skew, 8, LILA(0.16)], ['.clist button:hover', skew, 8, FX], ['.pc-tabs button:not([aria-selected=true])', skew, 8, LILA(0.3)],
   ['.abil', skew, 8, 'rgba(255,122,200,.35)'], ['.screen .paper', cut, 16, 'rgba(190,160,255,.3)'], ['.pvs-tags span', skew, 5, 'rgba(201,178,255,.35)'], ['#reward .card2', cut, 16, 'rgba(190,160,255,.35)'],
   ['.fr-chip:not(.on)', skew, 6, LILA(0.3)], ['.crole', skew, 6, LILA(0.35)],

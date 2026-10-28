@@ -328,7 +328,7 @@ export class PelotaMatch {
     const sorteo = () => { if (!this.active) return; this.tossChapa(true).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
     const V = this.o.vsImg;
     if (!V || this.o.autostart || window.__autoWin || (navigator.webdriver && !window.__vs)) return go();
-    // (a cubierto o de noche, antes la presentación con los focos: show.js)
+    // (en la final de un campeonato, antes la presentación con los focos: show.js)
     if (this.o.focos && !this.focosHechos && (!navigator.webdriver || window.__focos)) { this.focosHechos = true; this.presentacion().then(() => { if (this.active) this.vsThenPlay(); }); return; }
     const t = this.txt, L = t.levels || TEXT.es.levels, M = this.pairs && this.mateObjs, P = t.pairs || TEXT.es.pairs, g = this.game;
     const rt = splitName(this.names.rival).town || this.o.town || '';

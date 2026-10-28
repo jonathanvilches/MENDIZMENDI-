@@ -278,7 +278,7 @@ export class PuebloDeportes {
         // (stay: del partido, al cuadro del torneo, sin volver al pueblo entre ronda y ronda)
         const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
-          comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => vueloFronton(this, venue, pm), cuatro: kind === 'cuatro' });
+          comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => vueloFronton(this, venue, pm), cuatro: kind === 'cuatro' });
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         played = true;

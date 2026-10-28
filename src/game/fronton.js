@@ -349,7 +349,7 @@ function pancartasDe(C, you, riv, town, colors) {
 // pairs: { partner: { name, stats }, rivalMate: { name, stats } } (el torneo por parejas: el partido es por parejas)
 // rivalTown: { id, name } del pueblo del rival (en el torneo, el suyo; si no, el del frontón): para la colección
 // stay: al acabar no se vuelve al pueblo (los campeonatos y el torneo siguen con su menú)
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -485,8 +485,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
-      // (la presentación con los focos, a cubierto o de noche: la luz de la imagen baja y vuelve; show.js)
-      focos: frontonCond(G, fronton).covered || (G.sky?.night ?? 0) > 0.5, exposure: (v) => { const R = G.rt?.renderer; if (R) R.toneMappingExposure = v ?? 1.05; },
+      // (la presentación con los focos, solo en la final de un campeonato: la luz de la imagen baja y vuelve; show.js)
+      focos: final, exposure: (v) => { const R = G.rt?.renderer; if (R) R.toneMappingExposure = v ?? 1.05; },
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
