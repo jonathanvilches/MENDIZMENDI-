@@ -10,6 +10,15 @@ const lee = (k) => { try { return localStorage.getItem(k); } catch (e) { return 
 export function apuntaPerdida(donde) { try { const n = +(lee('herrizherri-perdidas') || '0|').split('|')[0] + 1; localStorage.setItem('herrizherri-perdidas', `${n}|${new Date().toLocaleString()} · ${donde}`); } catch (e) { /* sin almacenamiento */ } }
 const version = () => (document.querySelector('script[type="module"][src*="assets/index-"]')?.getAttribute('src') || '').match(/index-([\w-]+)\.js/)?.[1] || 'desarrollo';
 const instalada = () => navigator.standalone === true || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches;
+// (lo último que apuntó el informe de la partida anterior, util/informe.js: dónde estaba y si se cerró bien o de golpe)
+function anterior() {
+  let r = null; try { r = JSON.parse(lee('herrizherri-rastro') || 'null'); } catch (e) { /* roto */ }
+  if (!r?.lugar) return 'sin datos';
+  const d = [r.lugar, `${r.t ?? '?'} s`, r.bien ? 'se cerró bien' : 'se cortó de golpe', r.perdida ? 'con la imagen perdida' : '',
+    r.fps ? `${r.fps} fps` : '', r.triangulos ? `${Math.round(r.triangulos / 1000)} mil triángulos` : '', r.resolucion ? `×${r.resolucion}` : '',
+    r.texturas ? `${r.texturas} texturas · ${r.geometrias} geometrías` : '', r.cuando ? new Date(r.cuando).toLocaleString() : ''];
+  return d.filter(Boolean).join(' · ');
+}
 /** Las filas del diagnóstico: [rótulo, valor] */
 export function datos() {
   const f = [['Versión', version()],
@@ -17,7 +26,7 @@ export function datos() {
     ['App instalada', instalada() ? 'sí' : 'no'],
     ['Reducir movimiento', matchMedia('(prefers-reduced-motion: reduce)').matches ? 'sí' : 'no'],
     ['Modo sencillo', lee('herrizherri-sencillo') || 'no'], ['Arranques sin acabar', lee('herrizherri-arranque') || '0'],
-    ['Imagen perdida', (lee('herrizherri-perdidas') || '0').replace('|', ' veces · la última, ')]];
+    ['Imagen perdida', (lee('herrizherri-perdidas') || '0').replace('|', ' veces · la última, ')], ['La vez anterior', anterior()]];
   let m = null; try { m = JSON.parse(lee(K) || 'null'); } catch (e) { /* roto */ }
   if (m) {
     f.push(['Mapa 3D', `${m.ve ? 'se ve' : 'no se ve'} · ${m.cuando || ''} · ${m.gpu || ''} · lienzo ${m.lienzo || ''}${m.intento ? ' · intento ' + m.intento : ''}${m.ligero ? ' · ligero' : ''}`]);
