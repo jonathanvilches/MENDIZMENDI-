@@ -58,7 +58,7 @@ const fitOf = () => p.evaluate(() => { const c = document.querySelector('.pel-ca
   const hit = (a, b) => !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top);
   return { card: c.scrollHeight - c.clientHeight, pane: pane ? pane.scrollHeight - pane.clientHeight : null, goIn: go.bottom <= innerHeight + 1, overGo: [...pane.querySelectorAll('button,p,li')].some(e => hit(e.getBoundingClientRect(), go)) }; });
 const BA = await p.evaluate(() => ({ on: document.querySelector('.pel-panel [data-pel-ball][aria-pressed="true"]')?.dataset.pelBall, what: document.querySelector('.pel-panel .pel-ballwhat')?.innerText, sum: document.querySelector('.pel-panel .pel-sum')?.innerText,
-  game: window.__game.pelotaMatch?.ballKind, front: window.__game.pelotaMatch?.feel?.front, saved: localStorage.getItem('herrizherri-pelota-bola'), cam: document.querySelector('.pel-panel [data-pel-cam]')?.getAttribute('aria-checked'),
+  game: window.__game.pelotaMatch?.bola?.n, front: window.__game.pelotaMatch?.feel?.front, saved: localStorage.getItem('herrizherri-pelota-bola'), cam: document.querySelector('.pel-panel [data-pel-cam]')?.getAttribute('aria-checked'),
   vsHidden: getComputedStyle(document.querySelector('.pel-panel .pel-rv')).display === 'none',
   names: [...document.querySelectorAll('.pel-panel [data-pel-ball] span')].map(e => [e.innerText, e.scrollWidth <= e.clientWidth + 1 && e.getBoundingClientRect().height < 40]) }));
 const F0 = await fitOf();
