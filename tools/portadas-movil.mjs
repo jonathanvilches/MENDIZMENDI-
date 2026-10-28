@@ -14,12 +14,12 @@ const info = (sel) => p.evaluate((sel) => [...document.querySelectorAll(sel)].sl
 await p.waitForTimeout(2500); await p.screenshot({ path: `${out}/inicio.png` }); console.log('inicio imgs', JSON.stringify(await info('.hub-main img')));
 console.log('inicio fondos', JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.hub-main [style*="url("], .hub-main .hero, .hub-main [class*=hero]')].filter(e => getComputedStyle(e).backgroundImage !== 'none').slice(0, 4).map(e => { const r = e.getBoundingClientRect(); return { cls: e.className.toString().slice(0, 40), bg: getComputedStyle(e).backgroundImage.split('/').pop().slice(0, 50), css: [Math.round(r.width), Math.round(r.height)], size: getComputedStyle(e).backgroundSize, pos: getComputedStyle(e).backgroundPosition }; }))));
 await p.evaluate(() => window.__hub.show('towns')); await p.waitForTimeout(2500); await p.evaluate(() => scrollTo(0, 0));
-await p.screenshot({ path: `${out}/pueblos.png` }); console.log('pueblos', JSON.stringify(await info('.tcard .tcov')));
-await p.waitForTimeout(3000); console.log('pueblos tras hd', JSON.stringify((await info('.tcard .tcov')).map(x => [x.src, x.nat[0], x.falta])));
+await p.screenshot({ path: `${out}/pueblos.png` }); console.log('pueblos', JSON.stringify(await info('.gal-t .gt-img')));
+await p.waitForTimeout(3000); console.log('pueblos tras hd', JSON.stringify((await info('.gal-t .gt-img')).map(x => [x.src, x.nat[0], x.falta])));
 const bg = await p.evaluate(() => [...document.querySelectorAll('[style*="url("]')].slice(0, 4).map(e => ({ cls: e.className.toString().slice(0, 30), st: e.getAttribute('style').slice(0, 120) })));
 console.log('fondos', JSON.stringify(bg));
 try { await p.evaluate((t) => window.__hub.townSheet(t), town); } catch (e) { await p.evaluate((t) => document.querySelector(`[data-town="${t}"]`)?.click(), town); }
 await p.waitForTimeout(3000); await p.screenshot({ path: `${out}/ficha-${town}.png` });
-console.log('ficha imgs', JSON.stringify(await info('.sheet img, .sh-hero img, .ppage img')));
-console.log('ficha fondos', JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.sh-hero, [class*=sh-]')].filter(e => getComputedStyle(e).backgroundImage !== 'none').slice(0, 3).map(e => { const r = e.getBoundingClientRect(); return { cls: e.className.toString().slice(0, 30), bg: getComputedStyle(e).backgroundImage.split('/').pop().slice(0, 50), css: [Math.round(r.width), Math.round(r.height)], size: getComputedStyle(e).backgroundSize, pos: getComputedStyle(e).backgroundPosition }; }))));
+console.log('ficha imgs', JSON.stringify(await info('.sheet img, .fh-carta img, .ppage img')));
+console.log('ficha fondos', JSON.stringify(await p.evaluate(() => [...document.querySelectorAll('.fh-carta, [class*=sh-]')].filter(e => getComputedStyle(e).backgroundImage !== 'none').slice(0, 3).map(e => { const r = e.getBoundingClientRect(); return { cls: e.className.toString().slice(0, 30), bg: getComputedStyle(e).backgroundImage.split('/').pop().slice(0, 50), css: [Math.round(r.width), Math.round(r.height)], size: getComputedStyle(e).backgroundSize, pos: getComputedStyle(e).backgroundPosition }; }))));
 await b.close();

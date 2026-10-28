@@ -4,7 +4,7 @@
 // información, el cuadro de los torneos, la ficha del pueblo...), nunca a los diálogos ni a los avisos del juego.
 // Un bloque que ya cabe en sus líneas se queda como está, sin botón.
 const SEL = [
-  '#hub .hub-main p', '#hub .hub-main dd', '#hub .sheet p', '#hub .sheet .plist li',
+  '#hub .hub-main p', '#hub .hub-main dd', '#hub .sheet p',
   '.mg-card p', '.ficha dd', '.ficha p', '.escudo p', '.escudo dd',
   '.lg-root .lg-how', '.tq-st p', '.shop-star p', '.pel-card .pel-pairs', '.fb-card p',
   '#loading .ld-intro',

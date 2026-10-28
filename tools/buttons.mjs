@@ -64,7 +64,7 @@ if (!only || only === 'hub') {
   for (const s of ['map', 'avatars', 'profile', 'peaks']) await go(s, s);
   await p.evaluate(() => document.querySelector('[data-s="map"]')?.click()); await p.waitForTimeout(2000);
   await p.evaluate(() => document.querySelector('.ccard')?.click()); await p.waitForTimeout(2000);
-  await p.evaluate(() => document.querySelector('.tcard')?.click()); await p.waitForTimeout(2000);
+  await p.evaluate(() => document.querySelector('.cm-t')?.click()); await p.waitForTimeout(2000);
   console.log(await measure(p, 'hub-ficha-pueblo')); await shot(p, 'hub-ficha-pueblo');
   await p.close();
 }
