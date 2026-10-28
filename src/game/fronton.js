@@ -412,9 +412,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
     // (en el Labrit, donde se juegan las finales, todas las butacas ocupadas: los lejanos van con la figura de lejos, ver
     // crowd3d.js; en el frontón cubierto, casi lleno; en el del pueblo, los que caben según la calidad)
-    // (más gente que antes: en el del pueblo, de 44, 64 y 90 a 64, 100 y 140; en el cubierto, casi lleno; en la calle,
-    // todos los balcones y la acera)
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.6 : 2.4) : 1, cap = C?.labrit || C?.estilo === 'calle' ? all.length : Math.round((QUALITY === 'low' ? 64 : QUALITY === 'mid' ? 100 : 140) * full);
+    // (menos gente que antes, para que el partido vaya fluido: en el del pueblo, 40, 72 y 110; en el cubierto, algo más; en
+    // el Labrit y en la calle, que se llenaban enteros, como mucho 90 en el móvil y 160 en calidad media)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.4 : 2) : 1, lleno = QUALITY === 'low' ? 90 : QUALITY === 'mid' ? 160 : all.length;
+      const cap = C?.labrit || C?.estilo === 'calle' ? Math.min(all.length, lleno) : Math.round((QUALITY === 'low' ? 40 : QUALITY === 'mid' ? 72 : 110) * full);
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
