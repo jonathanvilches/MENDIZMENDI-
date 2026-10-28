@@ -24,7 +24,7 @@ import { compilarAsync } from '../util/compilar.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
 import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
-import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, CRISTAL_VS, CRISTAL_FS, ORBITA_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS, AURA_VS, AURA_FS } from './mapa3dSombreadores.js';
+import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, CRISTAL_VS, CRISTAL_FS, ORBITA_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS } from './mapa3dSombreadores.js';
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
@@ -35,7 +35,7 @@ const rampa = (s, a, b) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 const FONDO = 0x101626, OSCURO = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
 // (las comarcas que no son la elegida se quedan con sus colores de mapa, más suaves, como bajo una bruma clara: en negro,
 // el mapa se quedaba a oscuras, y en lila no gustaba)
-const BRUMA = '#f1ead9';
+const BRUMA = '#d8ccb2';
 // (un dibujo en un lienzo, como textura)
 function lienzo(w, h, pinta) { const c = document.createElement('canvas'); c.width = w; c.height = h; pinta(c.getContext('2d'), w, h); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t; }
 // (la cinta de un río: clara en el centro y difuminada a los lados)
@@ -133,20 +133,6 @@ export function mapa3d(host, o) {
   for (let j = 0; j < BOSQ.ny; j++) for (let i = 0; i < BOSQ.nx; i++) bqD[j * BOSQ.nx + i] = Math.round(255 * bosqueEn(BOSQ.x0 + (i + 0.5) * BOSQ.w / BOSQ.nx, BOSQ.y0 + (j + 0.5) * BOSQ.h / BOSQ.ny));
   const bqTex = new THREE.DataTexture(bqD, BOSQ.nx, BOSQ.ny, THREE.RedFormat); bqTex.magFilter = bqTex.minFilter = THREE.LinearFilter; bqTex.needsUpdate = true;
   Object.assign(UNI, { uBosque: { value: bqTex }, uBosqueR: { value: new THREE.Vector4(BOSQ.x0, BOSQ.y0, BOSQ.w, BOSQ.h) } });
-  // (el halo morado de la comarca elegida, a lo largo de su contorno: mapa3dSombreadores.js, AURA)
-  const AURA_ALTO = { value: 1 }, AURA_C = srgb('#9b4dff'), AURA_C2 = srgb('#ff4fd8');
-  const auraDe = (Pw) => {
-    const n = Pw.length, pos = new Float32Array((n + 1) * 6), aT = new Float32Array((n + 1) * 2), aS = new Float32Array((n + 1) * 2), idx = [];
-    for (let i = 0, s = 0; i <= n; i++) {
-      const [X, Z] = Pw[i % n], y = GROSOR + alto(X, Z) + 0.05; if (i) s += Math.hypot(X - Pw[i - 1][0], Z - Pw[i - 1][1]);
-      pos.set([X, y, Z, X, y, Z], i * 6); aT.set([0, 1], i * 2); aS.set([s, s], i * 2);
-      if (i < n) idx.push(i * 2, i * 2 + 2, i * 2 + 1, i * 2 + 1, i * 2 + 2, i * 2 + 3);
-    }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aT', new THREE.BufferAttribute(aT, 1)); g.setAttribute('aS', new THREE.BufferAttribute(aS, 1)); g.setIndex(idx); geos.push(g);
-    const m = new THREE.ShaderMaterial({ vertexShader: AURA_VS, fragmentShader: AURA_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-      uniforms: { uAlto: AURA_ALTO, uT: TIEMPO, uK: { value: 0 }, uCol: { value: AURA_C }, uCol2: { value: AURA_C2 } } }); mats.push(m);
-    const me = new THREE.Mesh(g, m); me.frustumCulled = false; me.visible = false; me.renderOrder = 3; scene.add(me); return me;
-  };
   const C = o.comarcas.map((c, i) => {
     const { P, cx, cy } = contorno(c);
     const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g);
@@ -162,11 +148,10 @@ export function mapa3d(host, o) {
     const lg = new THREE.BufferGeometry().setFromPoints(Pw.map(([X, Z]) => new THREE.Vector3(X, GROSOR + alto(X, Z) + 0.05, Z))); geos.push(lg);
     const linea = new THREE.LineLoop(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(c.color).lerp(BLANCO, 0.4), transparent: true, opacity: vivo ? 1 : 0.85, toneMapped: false })); mats.push(linea.material);
     scene.add(linea);
-    const aura = auraDe(Pw);
     const [X, Z] = W(cx, cy);
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
     lab.innerHTML = `${!vivo && o.icono ? `<i>${o.icono('lock')}</i>` : c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name)}</b>`;
-    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, aura, auraK: 0, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
+    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
   });
   // el hueco de Navarra en el mapa de España: oscuro, bajo las comarcas, justo de su tamaño (las comarcas encajan sin raya
   // entre ellas: solo se ve el de la que se levanta). Va con lo transparente, después del suelo de alrededor y antes que lo demás
@@ -1141,9 +1126,8 @@ export function mapa3d(host, o) {
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
     const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
-    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.6, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
+    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
     TIEMPO.value = t; INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
-    AURA_ALTO.value = v.d * (TACTIL ? 0.075 : 0.055);   // (el halo de la elegida, siempre del mismo alto en la pantalla; en el móvil, algo más)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
@@ -1158,19 +1142,17 @@ export function mapa3d(host, o) {
       // puntero, bajaba y volvía a subir, y el mapa daba saltos al pasar por encima)
       c.lift += ((sel === c.id ? 0.9 : 0) - c.lift) * (1 - Math.exp(-dt * 10));
       c.hov += ((hover === 'c:' + c.id ? 1 : 0) - c.hov) * (1 - Math.exp(-dt * 12));
-      // (con otra elegida, pasa al fondo: más baja, con sus colores bajo una bruma clara, y su agua y su borde casi no se ven)
+      // (con otra elegida, pasa al fondo: más baja, con sus colores apagados bajo una bruma de piedra templada, y su agua y su
+      // borde casi no se ven; la elegida, un punto más viva)
       c.fondo += ((sel && sel !== c.id ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6));
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
-      const u = c.top.uniforms; u.uGris.value = c.gris + (0.4 - c.gris) * c.fondo;
-      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK + (0.42 - c.tintK) * c.fondo;
-      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 + 0.08 * c.fondo)
+      const u = c.top.uniforms; u.uGris.value = c.gris + (0.32 - c.gris) * c.fondo - 0.12 * c.lift;
+      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK + (0.3 - c.tintK) * c.fondo;
+      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.04 * c.fondo)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.8 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.7 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.8 * c.fondo);
-      // (el halo morado, en la elegida: entra y sale fundiéndose, y sube y baja con ella)
-      c.auraK += ((sel === c.id && !entrada ? 1 : 0) - c.auraK) * (1 - Math.exp(-dt * 5));
-      c.aura.visible = c.auraK > 0.01; if (c.aura.visible) { c.aura.material.uniforms.uK.value = c.auraK; c.aura.scale.y = c.sy; c.aura.position.y = c.py; }
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
     // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el

@@ -102,7 +102,8 @@
 
 /* ---------- el mapa 3D de Navarra (mapa3d.js), a casi toda la pantalla, con el saludo, lo conquistado y las comarcas
    encima, como el mapa de un juego ---------- */
-.m3d { --hud: 84px; position: relative; height: max(360px, calc(100dvh / var(--z, 1) - var(--top-h, 64px) - 48px)); border-radius: var(--rL); overflow: hidden; isolation: isolate; user-select: none; -webkit-user-select: none;
+/* (--chw, el ancho de las fotos de las comarcas de abajo, y --railh, lo que ocupa su tira de alto: lo de encima va sobre ella) */
+.m3d { --hud: 84px; --chw: clamp(150px, min(15vw, 26vh), 250px); --railh: calc(var(--chw) * 9 / 16 + 52px); position: relative; height: max(360px, calc(100dvh / var(--z, 1) - var(--top-h, 64px) - 48px)); border-radius: var(--rL); overflow: hidden; isolation: isolate; user-select: none; -webkit-user-select: none;
   background: #101626; border: 1px solid var(--line2); box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
 
 .m3d::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
@@ -159,9 +160,12 @@
 /* (cada comarca, como la carta de un pueblo en la galería: su lámina entera, en 16:9, sin recortarla, y debajo la franja
    oscura de datos con su nombre y sus sellos; el marco fino con dos esquinas cortadas y un toque de su color. Las que
    faltan, con candado, la foto apagada y el marco sin color; la elegida, con el marco encendido) */
-.m3-rail { --chw: 150px; --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(76px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
+.m3-rail { --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; scroll-padding: 0 2px; transition: right .35s; }
 .m3-rail::-webkit-scrollbar { display: none; }
-.m3-chip { position: relative; flex: none; width: var(--chw); display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+/* (con una comarca elegida, la tira se va y la comarca queda en grande en medio de la pantalla) */
+.m3d.con-sel .m3-rail { display: none; }
+.m3-chip { position: relative; flex: none; width: var(--chw); scroll-snap-align: start; display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
   background: linear-gradient(135deg, color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c, #ff7ac8) 55%, #fff) 100%);
   clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k));
   filter: drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); transition: transform .2s, filter .2s; }
@@ -180,21 +184,20 @@
 .m3-lock :is(svg, img) { width: 11px; height: 11px; }
 /* (la franja de datos, la de las cartas de los pueblos: oscura, con su esquina de abajo cortada) */
 .m3-ct { grid-row: 2; display: grid; gap: 3px; min-width: 0; padding: 6px calc(var(--k) + 2px) 7px 8px; background: linear-gradient(180deg, #1d1142, #110926); clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%); }
-.m3-ct b { font: 400 var(--fs-sm)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m3-ct b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m3-ct small { font: 600 10px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #ff7ac8) 45%, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* los botones de la cámara: acercar, ver toda Navarra y alejar (moverse y girar van con el dedo, el ratón y el teclado) */
-.m3-pad { position: absolute; z-index: 3; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: grid; grid-template-columns: 40px; grid-template-rows: repeat(3, 40px); gap: 6px;
-  grid-template-areas: "in" "h" "out"; transition: right .35s; }
-.m3-b { width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 12px; background: rgba(16, 6, 40, .74); border: 1px solid var(--line2); color: #fff; cursor: pointer; touch-action: none; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: background .15s, transform .15s; }
-.m3-b svg { width: 22px; height: 22px; fill: currentColor; } .m3-b:hover { background: rgba(60, 24, 120, .85); } .m3-b:active { transform: scale(.92); background: var(--pink); }
+/* los botones de la cámara: acercar, ver toda Navarra y alejar (moverse y girar van con el dedo, el ratón y el teclado).
+   En una columna de cristal en forma de pastilla, a media altura del borde derecho, grandes y redondos: antes iban pequeños
+   en la esquina de abajo, entre las comarcas, y no se veían */
+.m3-pad { --b: 48px; position: absolute; z-index: 3; right: calc(16px + var(--sr, 0px)); top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: var(--b); grid-template-rows: repeat(3, var(--b)); gap: 6px;
+  grid-template-areas: "in" "h" "out"; padding: 6px; border-radius: 999px; background: rgba(16, 6, 40, .66); border: 1px solid var(--line2); box-shadow: 0 10px 30px rgba(4, 1, 12, .45);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: right .35s; }
+.m3-b { width: var(--b); height: var(--b); display: grid; place-items: center; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); color: #fff; cursor: pointer; touch-action: none; transition: background .15s, transform .15s; }
+.m3-b svg { width: 24px; height: 24px; fill: currentColor; } .m3-b:hover { background: rgba(255, 255, 255, .18); } .m3-b:active { transform: scale(.92); background: var(--pink); }
+.m3-b:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .b-in { grid-area: in; } .b-out { grid-area: out; }
-.b-home { grid-area: h; background: linear-gradient(135deg, var(--pink), var(--violet)); border-color: transparent; }
-@media (pointer: coarse) {
-  .m3-pad { grid-template-columns: 44px; grid-template-rows: repeat(3, 44px); bottom: 84px; }
-  .m3-b { width: 44px; height: 44px; }
-  .m3-rail { right: calc(16px + var(--sr, 0px)); }
-}
+.b-home { grid-area: h; background: var(--cta, linear-gradient(135deg, var(--pink), var(--violet))); border-color: transparent; box-shadow: 0 4px 14px rgba(194, 28, 255, .45); }
 
 .m3-sello.grande { width: 64px; height: 64px; } .m3-sello.grande > img { width: 46px; height: 46px; }
 
@@ -203,20 +206,20 @@
 
 /* teléfono de pie: el saludo en una fila, el mapa hasta la barra de abajo y el panel como una hoja que sube */
 @media (max-width: 760px) {
-  .m3d { --hud: 76px; height: max(420px, calc(100dvh - var(--top-h, 56px) - 64px - env(safe-area-inset-bottom, 0px) - 48px)); border-radius: 20px; }
+  .m3d { --hud: 76px; --chw: 160px; height: max(420px, calc(100dvh - var(--top-h, 56px) - 64px - env(safe-area-inset-bottom, 0px) - 48px)); border-radius: 20px; }
   .m3d .ini-head { left: auto; right: calc(12px + var(--sr, 0px)); top: 12px; flex-wrap: nowrap; gap: 8px; } .m3d .ini-hola { display: none; }
   .m3d .ini-me { width: 44px; height: 44px; } .m3d .ini-sq { width: 44px; height: 44px; }
   .m3-tot { left: 12px; grid-template-columns: 56px auto; padding-right: 16px; } .m3-tot > .m3-aro { width: 56px; height: 56px; } .m3-pct { font-size: var(--fs-lg); }
   .m3-tt b { font-size: var(--fs-md); }
   .m3-ayuda { left: 12px; right: auto; top: auto; bottom: 84px; max-width: calc(100% - 88px); }
   .m3d.con-sel :is(.m3-rail, .m3-tot) { display: none; }
-  .m3-rail { --chw: 124px; left: 12px; bottom: 12px; }
+  .m3-rail { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 12px; }
 }
 /* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo conquistado y el
    botón de tu aventura; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
    columna, para que el mapa tenga casi toda la pantalla */
 @media (max-height: 520px) {
-  .m3d { --hud: 60px; height: max(280px, calc(100dvh - var(--top-h, 48px) - 24px)); border-radius: 18px; }
+  .m3d { --hud: 60px; --chw: 132px; --railh: calc(var(--chw) * 9 / 16 + 40px); height: max(280px, calc(100dvh - var(--top-h, 48px) - 24px)); border-radius: 18px; }
   .m3-tot { left: 8px; top: 8px; grid-template-columns: 40px auto; column-gap: 8px; padding: 3px 12px 3px 3px; }
   .m3-tot > .m3-aro { width: 40px; height: 40px; } .m3-pct { font-size: var(--fs-sm); } .m3-pct small { font-size: 11px; }
   .m3-tt { gap: 0; min-width: 0; } .m3-tt small { font-size: 12px; letter-spacing: .02em; white-space: nowrap; } .m3-tt b { font-size: var(--fs-sm); white-space: nowrap; } .m3-tt i { display: none; }
@@ -224,14 +227,13 @@
 
   .m3d .ini-sq { width: 40px; height: 40px; border-radius: 12px; } .m3d .ini-sq :is(svg, img) { width: 24px; height: 24px; }
   .m3-ayuda { display: none; }
-  .m3-rail { --chw: 104px; --k: 8px; left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
+  .m3-rail { --k: 8px; left: 8px; right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 8px; padding: 2px; }
   .m3-chip .m3-sello { width: 24px; height: 24px; left: 5px; top: 5px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
-  .m3-ct { gap: 2px; padding: 4px calc(var(--k) + 2px) 5px 6px; } .m3-ct b { font-size: 12px; } .m3-ct small { font-size: 9px; letter-spacing: .1em; }
-  .m3-pad { right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 6px; } .m3-b { width: 40px; height: 40px; border-radius: 12px; } .m3-b svg { width: 20px; height: 20px; }
+  .m3-ct { gap: 2px; padding: 4px calc(var(--k) + 2px) 5px 6px; } .m3-ct b { font-size: 13px; } .m3-ct small { font-size: 9px; letter-spacing: .1em; }
+  .m3-pad { --b: 40px; right: calc(8px + var(--sr, 0px)); top: calc(50% - 24px); gap: 4px; padding: 4px; } .m3-b svg { width: 20px; height: 20px; }
   /* (con una comarca elegida, lo demás deja sitio al mapa) */
   .m3d.con-sel :is(.m3-rail, .m3-tot, .ini-sq) { display: none; }
 }
-@media (max-height: 520px) and (pointer: coarse) { .m3-pad { bottom: 6px; } .m3-b { width: 40px; height: 40px; } .m3-rail { right: calc(56px + var(--sr, 0px)); } }
 
 /* teléfono tumbado: el destacado y lo que hay ahora en Navarra, uno al lado del otro y de la altura de la pantalla (antes
    uno debajo del otro, con el destacado más alto que la pantalla); las flechas y la cifra del destacado, fuera: la
@@ -266,7 +268,7 @@
 .ini-av:hover { border-color: var(--pink); }
 
 /* la misión de ahora: por defecto, una barra abajo (encima de las comarcas): su portada, el pueblo y lo que toca, y el botón */
-.m3-mision { --padw: 60px; position: absolute; z-index: 4; left: 16px; right: calc(16px + var(--padw) + var(--sr, 0px)); bottom: 98px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "img tt go" "img sig go"; align-items: center; column-gap: 12px; row-gap: 2px;
+.m3-mision { --padw: 60px; position: absolute; z-index: 4; left: 16px; right: calc(16px + var(--padw) + var(--sr, 0px)); bottom: calc(var(--railh) + 24px); display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "img tt go" "img sig go"; align-items: center; column-gap: 12px; row-gap: 2px;
   padding: 8px; border-radius: 18px; background: rgba(16, 6, 40, .84); border: 1px solid color-mix(in srgb, var(--t, var(--pink)) 55%, var(--line2)); box-shadow: 0 14px 34px rgba(0, 0, 0, .45), 0 0 24px color-mix(in srgb, var(--t, var(--pink)) 22%, transparent); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); animation: mm-entra .6s .4s cubic-bezier(.2, .9, .3, 1.1) both; }
 @keyframes mm-entra { from { opacity: 0; transform: translateY(16px) scale(.97); } }
 .m3d.con-sel .m3-mision { display: none; }
@@ -285,18 +287,17 @@
 .mm-go > :is(svg, img) { flex: none; width: 24px; height: 24px; }
 .mm-go small { position: absolute; top: -8px; right: -6px; padding: 2px 7px; border-radius: 999px; background: #fff; color: #2a0b52; font: 900 11px/1.3 'MZ Texto', sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
 @keyframes mm-late { 50% { box-shadow: 0 0 0 7px rgba(255, 43, 214, .07), 0 8px 24px rgba(123, 47, 247, .55); } }
-@media (pointer: coarse) { .m3-mision { --padw: 60px; } .m3-pad { bottom: 176px; } }
-.m3-ayuda { top: auto; bottom: 176px; left: 16px; right: auto; }
+@media (pointer: coarse) { .m3-mision { --padw: 60px; } }
+.m3-ayuda { top: auto; bottom: calc(var(--railh) + 100px); left: 16px; right: auto; }
 
 /* en el ordenador: la misión, una barra compacta abajo a la izquierda, encima de las comarcas: el mapa es lo primero */
-@media (min-width: 1200px) and (min-height: 600px) { .m3-mision { right: auto; width: min(520px, 46%); } .m3-ayuda { bottom: 106px; } }
-/* teléfono de pie: la barra de la misión de lado a lado, encima de las comarcas; los botones de la cámara, encima de ella */
+@media (min-width: 1200px) and (min-height: 600px) { .m3-mision { right: auto; width: min(520px, 46%); } .m3-ayuda { bottom: calc(var(--railh) + 28px); } }
+/* teléfono de pie: la barra de la misión de lado a lado, encima de las comarcas */
 @media (max-width: 760px) {
-  .m3-mision { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 84px; column-gap: 10px; } .mm-img { width: 78px; height: 44px; }
+  .m3-mision { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: calc(var(--railh) + 20px); column-gap: 10px; } .mm-img { width: 78px; height: 44px; }
   .mm-go { min-height: 48px; padding: 0 14px 0 12px; font-size: var(--fs-md); }
-  .m3-pad { bottom: 198px; }
   .ini-av span { display: none; } .ini-av { padding: 0; width: 44px !important; justify-content: center; }
-  .m3-ayuda { bottom: 200px; }
+  .m3-ayuda { bottom: calc(var(--railh) + 116px); }
 }
 /* teléfono tumbado: la misión en una píldora arriba a la derecha (su portada, el pueblo y el botón de jugar) */
 @media (max-height: 520px) {
@@ -304,7 +305,6 @@
   .mm-img { width: 34px; height: 34px; border-radius: 50%; } .mm-tt small, .mm-sig { display: none; } .mm-tt b { font-size: var(--fs-md); white-space: nowrap; }
   .mm-go { min-height: 40px; width: 40px; padding: 0; border-radius: 50%; } .mm-go span { display: none; } .mm-go > :is(svg, img) { width: 20px; height: 20px; margin-left: 2px; } .mm-go small { top: -6px; right: -8px; font-size: 11px; }
   .m3d .ini-head { right: calc(var(--misw, 150px) + 16px + var(--sr, 0px)); } .ini-av span { display: none; } .ini-av { padding: 0; width: 40px !important; justify-content: center; }
-  .m3-pad { bottom: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .m3-aro .ar { animation: none !important; } }
 /* al entrar a jugar: lo de encima del mapa se va mientras la cámara baja al pueblo, y al final la pantalla se funde */

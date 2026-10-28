@@ -276,7 +276,7 @@ const CSS = `
 .tq-tile .figs{flex:1 1 0;min-height:0;align-self:stretch;display:flex;justify-content:center;align-items:flex-end;margin:0 -8px 8px;pointer-events:none;position:relative}
 /* (las figuras, todas del mismo alto en las cuatro losas: --fh, el mayor que cabe en todas, lo pone el menú. Apoyadas
    abajo y, con dos o tres, en fila al mismo paso, un tercio de su alto, con la del centro delante; nunca se salen) */
-.tq-tile .figs img.pf{position:absolute;bottom:0;left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));transform-origin:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:translate .3s}
+.tq-tile .figs img.pf{position:absolute;bottom:calc((100% - var(--fh,100%)) / 2);left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));transform-origin:50% 100%;filter:drop-shadow(0 6px 14px rgba(0,0,0,.5));transition:translate .3s}
 .tq-tile:hover .figs img.pf{translate:0 -3px}
 .tq-tile .figs.duo img.pf:first-child{--o:-.16}.tq-tile .figs.duo img.pf:last-child{--o:.16}
 .tq-tile .figs.trio img.pf:nth-child(1){--o:-.32}.tq-tile .figs.trio img.pf:nth-child(2){z-index:1}.tq-tile .figs.trio img.pf:nth-child(3){--o:.32}
@@ -590,14 +590,16 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');
-    // las figuras de las cuatro losas, del mismo alto: el mayor que cabe en todas. Las ilustraciones tienen el mismo
-    // encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
+    // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
+    // la más apretada, la de los tres de la colección: en el ordenador salían pequeñas y abajo). Las ilustraciones tienen el
+    // mismo encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
     const tiles = r.querySelector('.tq-tiles');
     const iguala = () => {
       if (!r.isConnected) { ro.disconnect(); return; }
-      let h = Infinity;
-      for (const f of tiles.querySelectorAll('.figs')) { const n = f.children.length || 1; h = Math.min(h, f.clientHeight, f.clientWidth * 0.94 / (0.36 + (n - 1) * 0.32)); }
-      if (h > 0 && h < Infinity) tiles.style.setProperty('--fh', Math.floor(h) + 'px');
+      for (const f of tiles.querySelectorAll('.figs')) {
+        const n = f.children.length || 1, h = Math.min(f.clientHeight, f.clientWidth * 0.94 / (0.36 + (n - 1) * 0.32));
+        if (h > 0) f.style.setProperty('--fh', Math.floor(h) + 'px');
+      }
     };
     const ro = new ResizeObserver(iguala); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); iguala();
     // (la colección se abre encima y, al cerrarla, el menú sigue ahí)

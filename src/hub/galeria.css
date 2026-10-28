@@ -1,7 +1,7 @@
 /* La galería de los pueblos: cada comarca, un carrusel circular en 3D (src/hub/galeria.js). De fondo, el morado del juego,
    limpio, con una luz suave del color de la comarca en el suelo; arriba, las comarcas; en medio, el anillo de pantallas con
    las flechas a su altura; abajo, el pueblo de delante con sus misiones y los botones de jugar y de ver su ficha */
-.gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: var(--rL); color: #fff;
+.gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; min-height: 0; overflow: hidden; border-radius: var(--rL); color: #fff;
   background: radial-gradient(120% 90% at 50% 38%, #2c1470 0%, #170a3a 48%, #0a0418 100%); }
 #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 24px); margin: 0 -24px; border-radius: 0 0 var(--cr-r) var(--cr-r); }
 #hub.juego .hub-main:has(> .gal), html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
@@ -10,7 +10,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 #hub:not(.juego) .gal { height: min(72vh, 680px); margin-top: 16px; }
 
 /* las comarcas, arriba: la pastilla de las pestañas del menú (se desliza hasta la elegida) */
-.gal .gal-cm { position: relative; z-index: 3; display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 14px 28px 10px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
+.gal .gal-cm { position: relative; z-index: 3; display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 14px 28px 0; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
 .gal .gal-cm::-webkit-scrollbar { display: none; }
 .gal .gal-cm button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border-radius: 4px; border: 1px solid transparent; background: none; color: var(--tx2, #cbc2e0); font: 600 var(--fs-sm)/1 var(--f-ui); letter-spacing: 0; white-space: nowrap; cursor: pointer; }
 .gal .gal-cm button img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
@@ -22,10 +22,13 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gal-centro { position: relative; display: grid; min-height: 0; }
 .gal-escena { position: relative; z-index: 1; display: grid; place-items: center; min-height: 0; perspective: 1150px; perspective-origin: 50% 50%; touch-action: pan-y; cursor: grab; -webkit-user-select: none; user-select: none; }
 .gal-escena:active { cursor: grabbing; }
-.gal-anillo { position: relative; width: var(--gw); height: var(--ch); transform-style: preserve-3d; transition: opacity .25s ease, filter .25s ease; }
-.gal-anillo.sale { opacity: 0; filter: blur(6px); transition: opacity .22s ease, filter .22s ease; }
-.gal-anillo.entra { animation: galEntra .6s cubic-bezier(.2, .9, .3, 1) both; }
-@keyframes galEntra { from { opacity: 0; filter: blur(8px); } }
+.gal-anillo { position: relative; width: var(--gw); height: var(--ch); transform-style: preserve-3d; }
+/* (al cambiar de comarca, se apagan y se encienden las tarjetas, cada una: con la transparencia o el desenfoque en el
+   anillo, el navegador lo aplanaba mientras duraba y las tarjetas salían primero planas y luego en 3D) */
+.gal-anillo .gal-t { transition: opacity .22s ease, box-shadow .3s ease; }
+.gal-anillo.sale .gal-t { opacity: 0; }
+.gal-anillo.entra .gal-t { animation: galEntra .6s cubic-bezier(.2, .9, .3, 1) both; }
+@keyframes galEntra { from { opacity: 0; scale: .94; } }
 /* (el suelo: una luz suave del color de la comarca bajo el anillo, que cambia con ella) */
 .gal-escena::after { content: ''; position: absolute; left: 50%; top: calc(50% + var(--ch) / 2 - 10px); width: calc(var(--gw) * 2.6); height: calc(var(--ch) * .3); transform: translateX(-50%); z-index: -1; border-radius: 50%; pointer-events: none;
   background: radial-gradient(ellipse at 50% 35%, color-mix(in srgb, var(--c) 30%, transparent), transparent 70%); transition: background .6s ease; }
@@ -74,13 +77,15 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gal-fl:hover, .gal-fl:focus-visible { background: color-mix(in srgb, var(--c) 40%, rgba(13, 6, 28, .7)); border-color: color-mix(in srgb, var(--c) 70%, #fff); }
 .gal-fl:active { transform: translateY(-50%) scale(.94); }
 
-/* los puntos: cuántos pueblos tiene la comarca y cuál está delante */
-.gal-puntos { position: relative; z-index: 2; display: flex; justify-content: center; gap: 6px; padding: 4px 0 0; }
+/* los puntos: cuántos pueblos tiene la comarca y cuál está delante. Van en medio del hueco de debajo de la carta de
+   delante (que mide --ch y se adelanta un 4 %), sin fila propia: así la carta queda con el mismo aire arriba, hasta las
+   comarcas, que abajo, hasta el pueblo */
+.gal-puntos { position: absolute; z-index: 2; left: 0; right: 0; top: calc(75% + var(--ch) * .26 - 4px); display: flex; justify-content: center; gap: 6px; }
 .gal-puntos i { width: 7px; height: 7px; border-radius: 99px; background: rgba(255, 255, 255, .28); cursor: pointer; transition: width .3s cubic-bezier(.2, .9, .3, 1), background .3s; }
 .gal-puntos i.on { width: 26px; background: color-mix(in srgb, var(--c) 70%, #fff); }
 
 /* el pueblo de delante: su nombre, su comarca, sus misiones y los botones */
-.gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 32px 28px; }
+.gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 0 32px 28px; }
 .gal-info.cambia > * { animation: galSube .4s cubic-bezier(.2, .9, .3, 1) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
 @keyframes galSube { from { opacity: 0; transform: translateY(8px); } }
 .gi-t { display: grid; gap: 6px; min-width: 0; }
@@ -100,12 +105,12 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 @media (max-height: 520px) {
   .gal { --gh: min(41vh, 180px); --dh: 40px; }
   #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 16px); margin: 0 -16px; }
-  .gal .gal-cm { padding: 8px 20px 2px; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
+  .gal .gal-cm { padding: 8px 20px 0; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
   .gt-marco { --k: 10px; } .gt-dato { gap: 8px; padding-left: 10px; } .gt-nom { gap: 2px; } .gt-sello { width: 24px; height: 24px; }
   .gt-rayas i { width: 4px; height: 8px; } .gt-mis { gap: 4px; }
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
   .gal-puntos { display: none; }
-  .gal-info { padding: 6px 22px max(14px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
+  .gal-info { padding: 0 22px max(14px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
   .gi-t { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 2px; }
   .gi-t small { grid-column: 1 / -1; font-size: 11px; }
   .gi-t h2 { font-size: var(--fs-xl); } .gi-t h2 em { display: none; }
@@ -123,12 +128,12 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 @media (max-width: 760px) and (min-height: 521px) {
   .gal { --gh: min(34vh, 290px); --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 100vw - 132px, var(--gwmax, 100vw)); }   /* (las flechas, a los lados sin tapar la pantalla) */
   #hub.juego .hub-main > .gal { margin: 0 -16px; }
-  .gal .gal-cm { padding: 10px 16px 4px; }
-  .gal-info { flex-direction: column; align-items: stretch; padding: 8px 16px 16px; }
+  .gal .gal-cm { padding: 10px 16px 0; }
+  .gal-info { flex-direction: column; align-items: stretch; padding: 0 16px 16px; }
   .gi-t h2 { font-size: var(--fs-2xl); }
   .gi-b .btn { flex: 1; justify-content: center; }
   .gal-fl { width: 40px; height: 40px; } .gal-fl.ant { left: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); } .gal-fl.sig { right: max(2px, calc(var(--hueco, 48px) / 2 - 20px)); }
 }
 /* ---------- ordenador grande: las pantallas, más grandes ---------- */
 @media (min-width: 1200px) and (min-height: 760px) { .gal { --gh: min(52vh, 480px); --dh: 60px; } .gt-nom b { font-size: min(var(--fs-xl), 7.4cqw); } .gt-nom small { font-size: 11px; } }
-@media (prefers-reduced-motion: reduce) { .gal-t.frente, .gal-t.frente .gt-foto::after { animation: none; } .gal-anillo.entra { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .gal-t.frente, .gal-t.frente .gt-foto::after { animation: none; } .gal-anillo.entra .gal-t { animation: none; } }

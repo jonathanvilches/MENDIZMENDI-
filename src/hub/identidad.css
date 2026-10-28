@@ -2,7 +2,8 @@
    Lo que se repite en todas las secciones del menú, con una sola forma: así se reconoce el juego en cualquier pantalla.
    Se carga la última (hub.js), después de las demás hojas del menú, y manda sobre ellas. Las medidas son las comunes de
    hub.css (los espacios --esp, --hueco y --hueco-m; el cristal --glass y sus bordes --line; el radio --r) y siguen la
-   regla de todo el juego (src/ui/sport.css): esquinas casi rectas, cortadas en ángulo o círculos; nada de pastillas.
+   regla de todo el juego (src/ui/sport.css): esquinas casi rectas, cortadas en ángulo o círculos; los botones, en
+   pastilla.
    · Las tarjetas de las listas (personajes, cimas, naturaleza, escudos, leyendas, instrumentos, insignias…): el mismo
      cristal morado, el mismo borde fino y el mismo radio. La esquina cortada queda para lo grande y lo destacado: la
      cabecera de la comarca y sus paneles, las cartas de los pueblos, el selector de Avatar y las fichas.

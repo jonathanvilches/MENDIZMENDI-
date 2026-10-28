@@ -175,7 +175,7 @@ export const DIDACTICO = {
       this.d_bindLey();
     };
     return `<section class="armorial dd dd-town" style="--c:${c?.color}">
-      <header class="dd-hero"><div class="fh-carta">${this.carta(l)}</div><div><button class="back" data-go="towns">${I('back', 24)} Pueblos</button>
+      <header class="dd-hero">${townImg(l) ? `<img class="dd-cov" src="${townImg(l)}" alt="" decoding="async">` : ''}<div><button class="back" data-go="towns">${I('back', 24)} Pueblos</button>
         <button type="button" class="kicker lnk" data-comarca="${l.comarca}">${esc(c?.full || c?.name || '')}</button><h1>${esc(l.name.split(' / ')[0])}${l.name.includes(' / ') ? `<em data-notr>${esc(l.name.split(' / ')[isEU() ? 0 : 1])}</em>` : ''}</h1>${P(l.intro)}
         ${l.river ? `<p class="dd-river">${I('river', 20)}<span>${esc(l.river.name)}</span></p>` : ''}</div></header>
       ${visit.length ? sec('visit', 'Qué visitar') + `<div class="dd-grid">${visit.join('')}</div>` : ''}

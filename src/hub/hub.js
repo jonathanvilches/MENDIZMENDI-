@@ -381,7 +381,7 @@ export class Hub {
     // río, con su nombre detrás)
     const dato = (ic, v, k, antes) => `<span class="ch-dato">${I(ic, 20)}${antes ? `<small>${k}</small><b>${v}</b>` : `<b>${v}</b><small>${k}</small>`}</span>`;
     return `
-    <section class="chero" style="--c:${c.color}">${cov ? `<div class="ch-fondo" style="background-image:url(${cov})"></div><img class="chero-img" src="${cov}" alt="" decoding="async">` : ''}
+    <section class="chero" style="--c:${c.color}">${cov ? `<img class="chero-img" src="${cov}" alt="" decoding="async">` : ''}
       <div class="ch-tx"><button class="back" data-go="${dd ? 'map' : 'home'}">${I('back', 22)} Mapa</button>
         <div class="ch-nom"><img class="bigstamp${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}"><div><small class="kicker">Comarca</small><h1>${esc(cn1)}${cn2 ? `<em data-notr>${esc(otroNombre(cn1, cn2))}</em>` : ''}</h1></div></div>
         <div class="ch-datos">${dato('church', ts.length, ts.length === 1 ? 'Pueblo' : 'Pueblos')}${dd ? '' : dato('stamp', `${pr.stamps}<i>/${pr.towns}</i>`, 'Sellos') + dato('check', `${pr.done}<i>/${pr.total}</i>`, 'Misiones')}${c.river ? dato('river', esc(c.river), 'Río', true) : ''}</div></div>
@@ -421,9 +421,9 @@ export class Hub {
     root.querySelectorAll('.fh-ct [data-ley]').forEach(f => { const ve = () => openVisor(list, Math.max(0, on.findIndex(K => K.id === f.dataset.ley)), this.sound);
       f.onclick = ve; f.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ve(); } }; });
   }
-  // la ficha de un pueblo, como una carta de juego: a la izquierda (arriba, de pie) su carta, la misma de la galería, con la
-  // lámina entera; debajo, su marcador (sello, río y leyenda) y el botón de jugar. A la derecha, su presentación, sus
-  // misiones en casillas, qué visitar, su leyenda, su escudo y sus láminas
+  // la ficha de un pueblo o de una zona, en una sola columna: arriba su portada grande, a todo lo ancho, con el nombre
+  // encima; debajo, sus cifras (misiones, sello, río y leyenda) y su presentación, sus misiones, qué visitar, su leyenda,
+  // su escudo y sus láminas, en tarjetas; abajo, fijo, el botón de jugar
   townSheet(id) {
     const l = levelById(id); if (!l) return;
     this.sound?.ui('open');
@@ -432,13 +432,14 @@ export class Hub {
     const vis = l.special === 'salazar' ? CARDS.filter(x => x.cat === 'Patrimonio').map(x => [x.icon, x.title, x.text])
       : [l.church && [{ fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church.style] || 'church', l.church.name, l.church.text], ...(l.landmarks || []).map(x => [LM_ICON[x.kind] || x.kind, x.name, x.text])].filter(Boolean);
     const oidas = cts.filter(K => (p.cards || []).includes('cuento:' + K.id)).length;
-    const st = (ic, k, v, cls = '') => `<span class="fh-st${cls}">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`;
+    const st = (ic, k, v, cls = '') => `<span class="fh-st${cls}">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`, [n1, n2] = l.name.split(' / '), cov = townImg(l);
     const s = el(`<div class="sheet pueblo" style="--c:${c?.color || '#c21cff'}"><div class="sheet-in" role="dialog" aria-label="${esc(l.name)}">
       <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
       <div class="fh-scroll">
-        <aside class="fh-izq"><div class="fh-carta">${this.carta(l, p)}</div>
-          <div class="fh-hud">${st('stamp', 'Sello', t.stamp ? 'Conseguido' : 'Por ganar', t.stamp ? ' ok' : '')}${l.river ? st('river', 'Río', esc(l.river.name)) : ''}${cts.length ? st('legend', cts.length === 1 ? 'Leyenda' : 'Leyendas', cts.length === 1 ? (oidas ? 'Escuchada' : 'Por escuchar') : `${oidas}<i>/${cts.length}</i>`, oidas === cts.length ? ' ok' : '') : ''}</div></aside>
-        <div class="sh-body"><small class="fh-k">${esc(c?.name || '')}</small>${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
+        <header class="fh-cab">${cov ? `<img class="fh-portada" src="${cov}" alt="" decoding="async">` : ''}
+          <div class="fh-tit"><small class="fh-k">${esc(c?.name || '')}</small><h2>${esc(n1)}${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2></div></header>
+        <div class="fh-hud">${t.total ? st('check', 'Misiones', `${t.done}<i>/${t.total}</i>`, t.done === t.total ? ' ok' : '') : ''}${st('stamp', 'Sello', t.stamp ? 'Conseguido' : 'Por ganar', t.stamp ? ' ok' : '')}${l.river ? st('river', 'Río', esc(l.river.name)) : ''}${cts.length ? st('legend', cts.length === 1 ? 'Leyenda' : 'Leyendas', cts.length === 1 ? (oidas ? 'Escuchada' : 'Por escuchar') : `${oidas}<i>/${cts.length}</i>`, oidas === cts.length ? ' ok' : '') : ''}</div>
+        <div class="sh-body">${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
           <h3>${I('check', 18)} Misiones <span>${t.done}/${t.total}</span></h3>
           <ul class="fh-ms">${ms.map(m => `<li class="${m.done ? 'ok' : ''}"><span class="fh-mi">${I(m.icon, 26)}</span><div><b>${esc(m.title)}</b><small>${esc(m.sub)}</small></div>${m.done ? `<i class="fh-hecha">${I('check', 16)}</i>` : ''}</li>`).join('')}</ul>
           ${vis.length ? `<h3>${I('church', 18)} Qué visitar</h3><ul class="fh-vis">${vis.map(([ic, n, tx]) => `<li><span class="fh-mi">${I(ic, 24)}</span><div><b>${esc(n)}</b><p>${esc(tx)}</p></div></li>`).join('')}</ul>` : ''}
@@ -479,8 +480,8 @@ export class Hub {
       <div class="gal">
         <nav class="filters gal-cm" aria-label="Comarcas">${grupos.map(c => `<button type="button" data-gc="${c.id}" aria-pressed="false"><img src="${stampImg(c.id)}" alt="">${esc(c.name)}</button>`).join('')}</nav>
         <div class="gal-centro"><div class="gal-escena" role="group" aria-roledescription="carrusel" aria-label="Pueblos de la comarca"><div class="gal-anillo"></div></div>
-        <button type="button" class="gal-fl ant" data-gal="-1" aria-label="Pueblo anterior">${fl('M15 5l-7 7 7 7')}</button><button type="button" class="gal-fl sig" data-gal="1" aria-label="Pueblo siguiente">${fl('M9 5l7 7-7 7')}</button></div>
-        <div class="gal-puntos" aria-hidden="true"></div>
+        <button type="button" class="gal-fl ant" data-gal="-1" aria-label="Pueblo anterior">${fl('M15 5l-7 7 7 7')}</button><button type="button" class="gal-fl sig" data-gal="1" aria-label="Pueblo siguiente">${fl('M9 5l7 7-7 7')}</button>
+        <div class="gal-puntos" aria-hidden="true"></div></div>
         <div class="gal-info" aria-live="polite"></div></div>`;
   }
   // la carta de un pueblo (la galería, la comarca y su ficha): su portada entera, sin recortar, y su franja con el nombre, el
@@ -727,7 +728,7 @@ export class Hub {
       <div class="ar-head"><small class="kicker">${I('pelota', 20)} Saberes · Tradiciones</small><h1>Pasaka</h1>
         <p>${esc(PASAKA.lead)}</p>
         <b class="ar-count">${played ? `<b>${won}</b> ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}` : 'Todavía no has jugado'}${has ? ' · carta de tradiciones' : ''}</b></div>
-      <div class="pk-hero"${laminaUrl('dep-pasaka') ? ` style="--bg:url(${laminaUrl('dep-pasaka')})"` : ''}>${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
+      <div class="pk-hero">${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
         <div class="pk-hero-tx"><small class="kicker">${esc(PASAKA.kicker)}</small><b>Dos parejas, una red por medio y un guante de cuero</b><button class="btn primary big" data-pasaka="jugar">${I('play', 26)} <span>Jugar a pasaka</span></button></div></div>
       <div class="ar-grid pk-secs">${PASAKA.secs.map(([t, x], i) => `<article class="ar-guia pk-sec"><h3>${I(['book', 'castle', 'pelota', 'pin', 'cathedral', 'play'][i] || 'book', 30)}${esc(t)}</h3><p>${esc(x)}</p></article>`).join('')}</div>
       <p class="ar-src">${esc(PASAKA.sources)}</p>

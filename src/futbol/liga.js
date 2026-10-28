@@ -136,7 +136,7 @@ const CSS = `
    pulgar de las acciones; en dos filas, la principal abajo y a todo lo ancho */
 .lg-foot>[data-a="exit"]{order:-1}.lg-foot>.lg-btn.go{order:2}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
 .lg-card>.lg-foot{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding:12px 0 16px;background:linear-gradient(180deg,rgba(12,4,30,0),rgba(12,4,30,.96) 12px)}
-.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:4px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:999px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer}
 .lg-btn.go{border:0;background:var(--cta);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);box-shadow:var(--glow)}.lg-btn.go::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-150%) skewX(-20deg);animation:gx-sweep 3.2s ease-in-out .6s infinite;pointer-events:none}
 .lg-btn:active{transform:translateY(1px) scale(.98)}
 .lg-note{font-size:var(--fs-xs);color:#a99cc9;margin:0}.lg-head small+h2{margin-top:var(--t-mt)}.lg-head h2:not(:last-child){margin-bottom:var(--t-mb)}.lg-head .lg-note{display:block}

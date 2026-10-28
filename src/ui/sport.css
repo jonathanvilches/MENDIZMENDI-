@@ -38,10 +38,10 @@
 /* ---------- títulos y rótulos */
 .gx-kick { display: inline-flex; align-items: center; gap: 8px; font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--rosa); }
 
-/* ---------- botón principal: paralelogramo fucsia con brillo que pasa */
-.gx-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 28px; border: 0; border-radius: 6px;
+/* ---------- botón principal: pastilla fucsia con brillo que pasa (la forma y el color, comunes a todos los botones: al final) */
+.gx-go { position: relative; overflow: hidden; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 8px 28px; border: 0; border-radius: 999px;
   background: var(--cta); color: #fff; font: 400 var(--fs-lg)/1 var(--f-display); text-transform: uppercase; letter-spacing: .04em; cursor: pointer;
-  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); box-shadow: var(--glow); transition: transform .12s, filter .12s; }
+  box-shadow: var(--glow); transition: transform .12s, filter .12s; }
 .gx-go::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); transform: translateX(-150%) skewX(-20deg); animation: gx-sweep 3.2s ease-in-out .6s infinite; pointer-events: none; }
 .gx-go:active { transform: translateY(1px) scale(.98); filter: brightness(1.1); }
 
@@ -121,7 +121,7 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
   .fb-fouls, .fb-ck, .fb-ctabs button, .pads4 button, .ebar, #mapbox, .pel-tip, .pel-card .pel-ctrl, .pel-card .pel-fact, .pel-force,
   .pel-levels button, .pel-rv, .pel-chip, .pel-tour, .pel-tour button, .pel-court, .pel-court-t i, .pfx-tabs button, .pfx-shots li, .pfx-pl,
   .pfx-pl-go) { border-radius: 4px; }
-.btn.primary { font-weight: 400; background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%); border-radius: 4px; }
+.btn.primary { font-weight: 400; background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); border-radius: 999px; }
 @media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .cm-t, .cult) { animation: none; } }
 
 /* ---------- ventanas del juego (pausa, libro de misiones, mapa…): el mismo cristal morado con esquinas cortadas */
@@ -148,3 +148,21 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
   /* (al tocar un sitio sale su ficha abajo: la leyenda se aparta mientras tanto) */
   .mapscr .pbody:has(.mapcard:not([hidden])) .legend { display: none; }
 }
+
+/* ---------- los botones: pastillas, con los extremos en media circunferencia, en todo el juego y el menú.
+   Los de jugar, empezar, seguir o continuar llevan el degradado fucsia y morado de la identidad, un filo de luz arriba y
+   su sombra de color; se levantan un poco al pasar el ratón y se hunden al pulsarlos. Los demás, con su cristal y su
+   borde fino. Antes eran paralelogramos y esquinas cortadas, y se veían bruscos.
+   (#hub.juego en la lista sube la regla por encima de las de cada pantalla: el menú del mapa pintaba los suyos lisos) */
+:root :is(.btn, .back, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .fb-alt, .pel-go, .lg-btn) { border-radius: 999px; clip-path: none; }
+:root :is(.btn.primary, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo:not(.done), .fb-go, .pel-go:not(.alt), .lg-btn.go) {
+  background: var(--cta); color: #fff; border: 0; text-shadow: 0 1px 2px rgba(60, 8, 90, .35);
+  box-shadow: 0 6px 18px rgba(194, 28, 255, .32), inset 0 1px 0 rgba(255, 255, 255, .32), inset 0 0 0 1px rgba(255, 255, 255, .08);
+  transition: transform .18s cubic-bezier(.22, 1.12, .36, 1), filter .18s, box-shadow .18s; }
+@media (hover: hover) {
+  :root :is(.btn.primary, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo:not(.done), .fb-go, .pel-go:not(.alt), .lg-btn.go):hover {
+    transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 10px 26px rgba(194, 28, 255, .42), inset 0 1px 0 rgba(255, 255, 255, .36), inset 0 0 0 1px rgba(255, 255, 255, .12); }
+  :root :is(.btn:not(.primary), .fb-alt, .pel-go.alt, .lg-btn:not(.go)):hover { border-color: rgba(255, 122, 200, .6); }
+}
+:root :is(.btn, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .fb-alt, .pel-go, .lg-btn):active { transform: translateY(1px) scale(.98); filter: brightness(.96); }
+:root :is(.btn, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .fb-alt, .pel-go, .lg-btn):focus-visible { outline: 2px solid #fff; outline-offset: 3px; }

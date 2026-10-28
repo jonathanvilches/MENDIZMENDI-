@@ -115,6 +115,12 @@ void main() {
   float surC = smoothstep(380.0, 600.0, sv.y), norC = 1.0 - smoothstep(120.0, 300.0, sv.y);
   c = mix(c, c * vec3(1.16, 1.02, 0.74) + vec3(0.04, 0.02, 0.0), surC * 0.55);
   c = mix(c, c * vec3(0.88, 1.06, 0.86), norC * 0.5);
+  // (de lejos, en la vista de toda Navarra: manchas grandes de tono, unas tierras más claras y otras más oscuras, unas
+  // más doradas y otras más verdes, como los campos, los pastos y los montes vistos desde un avión)
+  float mk = ruido(sv * 0.09) * 0.6 + ruido(sv * 0.31) * 0.4 - 0.5, mh = ruido(sv * 0.17 + 7.3) - 0.5;
+  c *= 1.0 + mk * 0.34 * uTex;
+  c = mix(c, c * vec3(1.1, 1.0, 0.82), clamp(mh * 1.8, 0.0, 1.0) * 0.55 * uTex);
+  c = mix(c, c * vec3(0.88, 1.07, 0.88), clamp(-mh * 1.8, 0.0, 1.0) * 0.55 * uTex);
   // (las texturas del terreno, desde la vista de una comarca: en el llano, parcelas de cultivo de colores, con sus lindes, en
   // una rejilla que cambia de rumbo por zonas y de tamaño con la distancia, para que nunca tiemble; en el sur, viñas en
   // hileras; en el monte del norte, el moteado de las copas del bosque; en las cumbres y en lo muy pendiente, roca; y de
@@ -149,14 +155,3 @@ void main() {
 // (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
 export const PARCHE_VS = RELIEVE_VS.replace('varying vec2 vXZ;', 'attribute float hd; uniform float uMaqK; varying vec2 vXZ;')
   .replace('vH = position.y;', 'vec3 q = vec3(position.x, mix(position.y, hd, uMaqK), position.z); vH = q.y;').replace('vec4(position, 1.0)', 'vec4(q, 1.0)');
-// (el halo de la comarca elegida: una cortina de luz morada que sube desde su contorno y se desvanece hacia arriba, con un
-// brillo rosa que la recorre. aT: 0 abajo, 1 arriba; aS: lo andado por el contorno. La altura, uAlto, va en unidades del
-// mundo y crece con la distancia de la cámara, para que en pantalla mida siempre lo mismo)
-export const AURA_VS = `attribute float aT, aS; uniform float uAlto; varying float vT, vS;
-void main() { vec4 w = modelMatrix * vec4(position, 1.0); w.y += aT * uAlto; vT = aT; vS = aS / max(uAlto, 0.001); gl_Position = projectionMatrix * viewMatrix * w; }`;
-export const AURA_FS = `uniform float uK, uT; uniform vec3 uCol, uCol2; varying float vT, vS;
-void main() {
-  float ola = 0.5 + 0.5 * sin(vS * 0.9 - uT * 2.6), base = smoothstep(0.1, 0.0, vT);
-  float a = pow(1.0 - vT, 1.5) * (0.55 + 0.35 * ola) + 0.6 * base;
-  gl_FragColor = vec4(mix(uCol, uCol2, ola * (1.0 - vT) * 0.8) + base * 0.25, min(1.0, a) * uK);
-}`;
