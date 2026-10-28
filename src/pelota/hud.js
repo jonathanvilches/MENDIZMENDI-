@@ -14,13 +14,13 @@ const CSS = `
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
    misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
    lenta, su aviso. Debajo, cómo saltarla. En un móvil de pie no caben los dos en la misma fila: baja justo debajo */
-.pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-rep{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
 .pel-rep-b{display:flex;align-items:center;gap:8px;height:30px;padding:0 16px 0 12px;border-radius:3px;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pel-rep-b i{flex:none;width:8px;height:8px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 8px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
 .pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
 .pel-rep.slow .sl{display:inline-block;animation:pel-repin .3s ease-out both}
-.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding-left:8px}
+.pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding:3px 12px;border-radius:999px;background:rgba(7,2,15,.55)}
 @media (max-width:620px){.pel-rep{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 38px)}}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
 /* el sorteo del saque: la chapa (azul por una cara y colorada por la otra) sube girando y cae; brilla el lado que saca */
@@ -84,6 +84,32 @@ const CSS = `
 .pel-pres small{display:block;margin-top:6px;font:700 var(--fs-sm)/1.2 var(--f-ui,'MZ Texto',sans-serif);letter-spacing:.08em;text-transform:uppercase;color:#ffc2ec}
 .pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
 .pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none}
+.pel-root:has(.pel-riv:not([hidden])) .pel-golpe{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 42px + var(--rivh,62px) + 8px)}
+.pel-root:has(.pr-row + .pr-row){--rivh:116px}
+/* la tarjeta del rival: bajo el marcador, del color que viste; la barra de energía grande y, encima de ella, la fuerza de
+   su último golpe, que se llena y se apaga */
+.pel-riv{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 42px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));width:min(236px,calc(34vw / var(--z, 1)));display:grid;gap:6px;pointer-events:none;--rc:#e8247c}
+.pel-riv.azul{--rc:#4b3cff}.pel-riv[hidden]{display:none}
+.pr-row{display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;gap:10px;padding:7px 12px 7px 7px;border-radius:16px;background:rgba(10,4,24,.72);border:1px solid rgba(255,255,255,.14);border-left:4px solid var(--rc);box-shadow:0 6px 18px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.pr-fig{width:40px;height:40px;border-radius:50%;overflow:hidden;background:color-mix(in srgb,var(--rc) 45%,#12052a);display:grid;place-items:end center}
+.pr-fig :is(img,svg){width:100%;height:auto;display:block}
+.pr-tx{min-width:0;display:grid;gap:4px}
+.pr-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;min-width:0}
+.pr-top b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:400 var(--fs-md)/1 var(--pel-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.pr-top em{flex:none;font:800 10px/1 var(--f-cond,'MZ Cond'),sans-serif;font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:#cbbcf0}
+.pr-top em strong{font:400 var(--fs-md)/1 var(--pel-display,'MZ Display'),sans-serif;color:#fff;margin-left:2px}
+.pr-bar{position:relative;display:block;height:10px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}
+.pr-bar u{position:absolute;inset:0;transform-origin:left;border-radius:inherit;background:linear-gradient(90deg,color-mix(in srgb,var(--rc) 70%,#fff),var(--rc));transition:transform .25s}
+.pr-bar s{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p,0) * 100%);border-radius:inherit;background:linear-gradient(90deg,rgba(255,224,138,0),#ffe08a);opacity:0}
+.pr-row.golpe .pr-bar s{animation:pr-golpe 1.1s ease-out both}.pr-row.fuerte{animation:pr-sacude .35s ease-out}
+@keyframes pr-golpe{0%{opacity:0}15%{opacity:1}100%{opacity:0}}
+@keyframes pr-sacude{30%{transform:translateX(-3px)}60%{transform:translateX(2px)}}
+.pr-est{font:700 10px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e7defa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-row.mid .pr-bar u{background:linear-gradient(90deg,#ffe08a,#ffb347)}.pr-row.mid .pr-est{color:#ffe08a}
+.pr-row.low .pr-bar u{background:linear-gradient(90deg,#ff8a8a,#ff3b5c)}.pr-row.low .pr-est{color:#ff9aa8}.pr-row.low .pr-bar{animation:pel-low .6s infinite alternate}
+.pel-root.repe .pel-riv,.pel-root.paneled .pel-riv{visibility:hidden}
+@media (max-height:500px){.pel-riv{width:min(210px,calc(30vw / var(--z, 1)))}.pr-row{grid-template-columns:32px minmax(0,1fr);padding:5px 10px 5px 5px;gap:8px}.pr-fig{width:32px;height:32px}.pr-bar{height:8px}.pel-root:has(.pel-riv:not([hidden])) .pel-golpe{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 40px + var(--rivh,52px) + 6px)}.pel-root:has(.pr-row + .pr-row){--rivh:98px}}
+@media (prefers-reduced-motion:reduce){.pr-row.fuerte,.pr-row.golpe .pr-bar s{animation:none}}
 .pel-root.repe .pel-golpe,.pel-root.paneled .pel-golpe{visibility:hidden}
 .pel-q{position:absolute;left:50%;top:40%;display:flex;flex-direction:column;align-items:center;gap:2px;white-space:nowrap;transform:translate(-50%,-50%);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-2xl);text-shadow:0 3px 10px rgba(0,0,0,.45);opacity:0;transition:opacity .15s;pointer-events:none}
 .pel-q.on{opacity:1}
@@ -287,9 +313,9 @@ const CSS = `
 /* el cestaño en el partido, arriba a la izquierda bajo la X (lejos del aviso del saque, que en el móvil va arriba y en el
    ordenador abajo): un botón redondo con la pelota en juego; al tocarlo se despliegan las pelotas, y mientras sacas tú
    se puede cambiar (antes era la lista entera siempre a la vista, con el peso de cada una, encima de la cancha) */
-.pel-bolas{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));top:calc(env(safe-area-inset-top,0px) + 76px);z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:auto;color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;white-space:nowrap}
-.pel-bolas .pb-yo{position:relative;display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid rgba(190,160,255,.35);background:rgba(20,8,40,.72);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .18s cubic-bezier(.22,1.12,.36,1),box-shadow .18s}
-.pel-bolas .pb-yo svg{width:32px;height:32px}
+.pel-bolas{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 54px);z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:auto;color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;white-space:nowrap}
+.pel-bolas .pb-yo{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(190,160,255,.35);background:rgba(20,8,40,.72);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .18s cubic-bezier(.22,1.12,.36,1),box-shadow .18s}
+.pel-bolas .pb-yo svg{width:28px;height:28px}
 .pel-bolas .pb-yo i{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--cta,#c21cff);font:900 11px/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
 .pel-bolas.abre .pb-yo{border-color:#ff7ac8;box-shadow:0 0 0 3px rgba(255,43,214,.25),0 0 16px rgba(255,43,214,.45)}
 .pel-bolas.on .pb-yo{transform:scale(.94)}
@@ -303,7 +329,7 @@ const CSS = `
 .pel-bolas .pb-menu button[aria-pressed=true]{background:rgba(131,56,236,.55);border-color:#c9a6ff}
 .pel-bolas .pb-menu button:disabled{cursor:default;opacity:1}.pel-bolas .pb-menu button:disabled:not([aria-pressed=true]){opacity:.6}
 .pel-root.paneled .pel-bolas,.pel-root.repe .pel-bolas{visibility:hidden}
-@media (max-height:500px){.pel-bolas{top:calc(env(safe-area-inset-top,0px) + 64px)}.pel-bolas .pb-yo{width:44px;height:44px}.pel-bolas .pb-yo svg{width:28px;height:28px}.pel-bolas .pb-menu button{min-height:34px}}
+@media (max-height:500px){.pel-bolas .pb-yo svg{width:26px;height:26px}.pel-bolas .pb-menu button{min-height:34px}}
 `;
 const BOLA = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="2" fill="none"/></svg>';
 
@@ -340,28 +366,61 @@ export class PelotaHud {
   // energía: filas { id, name, en (0 a 1), side ('you'|'rival'), me, color }; null la esconde. La tuya, grande abajo en el
   // centro, que se lee de un vistazo; la de los demás, una raya en el marcador, en su lado (por parejas, dos)
   energy(rows) {
-    if (!rows) { for (const b of this.root.querySelectorAll('.pel-sen')) b.hidden = true; if (this.myEn) this.myEn.hidden = true; return; }
+    if (!rows) { for (const b of this.root.querySelectorAll('.pel-sen')) b.hidden = true; if (this.myEn) this.myEn.hidden = true; if (this.riv) this.riv.hidden = true; return; }
+    this.rivales(rows.filter(r => r.side === 'rival'));
     if (!this.myEn) { const m = this.myEn = document.createElement('div'); m.className = 'pel-myen you'; m.dataset.en = 'you'; m.innerHTML = `<span>${esc(this.txt.energy || 'Energía')}</span><i><b></b></i>`; this.root.appendChild(m); }
     this.myEn.hidden = !rows.some(r => r.me);
     const key = rows.map(r => r.id + r.side).join();
     if (this.enKey !== key) {
       this.enKey = key; for (const b of this.root.querySelectorAll('.pel-sen')) b.remove();
       // (por parejas, dos rayas en el mismo lado: arriba la del primer nombre del marcador y debajo la de su compañero)
-      const n = {}, k = {}; for (const r of rows) if (!r.me) n[r.side] = (n[r.side] || 0) + 1;
+      const n = {}, k = {}; for (const r of rows) if (!r.me && r.side !== 'rival') n[r.side] = (n[r.side] || 0) + 1;
       for (const r of rows) {
-        if (r.me) continue;
+        if (r.me || r.side === 'rival') continue;
         const side = this.root.querySelector(`.pel-side[data-side="${r.side}"]`); if (!side) continue;
         const e = document.createElement('i'); e.className = 'pel-sen'; e.dataset.en = r.id; e.title = `${this.txt.energy || 'Energía'}: ${short(r.name)}`;
         k[r.side] = (k[r.side] || 0) + 1; e.style.setProperty('--k', n[r.side] - k[r.side]); e.innerHTML = '<b></b>'; side.appendChild(e);
       }
     }
     for (const r of rows) {
+      if (r.side === 'rival') continue;
       const row = r.me ? this.myEn : this.root.querySelector(`.pel-sen[data-en="${r.id}"]`); if (!row) continue;
       row.hidden = false;
       const v = Math.round(r.en * 50) / 50; if (row._v === v) continue; row._v = v;
       row.querySelector('b').style.transform = `scaleX(${v})`;
       row.classList.toggle('mid', v < 0.5 && v >= 0.25); row.classList.toggle('low', v < 0.25);
     }
+  }
+  // la tarjeta del rival, arriba a la derecha bajo el marcador: su figura, su nombre y su potencia, la barra de energía
+  // grande con cómo está (fresco, se cansa, agotado) y, en cada golpe suyo, lo fuerte que ha sido. Por parejas, los dos.
+  // (antes, su energía era una raya de 2 píxeles bajo su nombre en el marcador: no se veía)
+  rivales(rows) {
+    if (!rows.length) { if (this.riv) this.riv.hidden = true; return; }
+    const key = rows.map(r => r.id).join();
+    if (!this.riv || this.riv._k !== key) {
+      this.riv?.remove();
+      const T = this.txt, c = this.riv = document.createElement('div'); c._k = key;
+      c.className = 'pel-riv ' + (rows[0].color === 'azul' ? 'azul' : 'rojo');
+      c.innerHTML = rows.map(r => `<div class="pr-row" data-en="${r.id}"><span class="pr-fig">${r.fig || ''}</span><div class="pr-tx">
+        <div class="pr-top"><b>${esc(short(r.name))}</b><em>${esc(T.pot || 'Potencia')} <strong>${r.pot ?? ''}</strong></em></div>
+        <i class="pr-bar"><u></u><s></s></i><small class="pr-est"></small></div></div>`).join('');
+      this.root.appendChild(c);
+    }
+    this.riv.hidden = false;
+    const E = this.txt.estadoEn || ['Fresco', 'Se cansa', '¡Agotado!'];
+    for (const r of rows) {
+      const row = this.riv.querySelector(`[data-en="${r.id}"]`); if (!row) continue;
+      const v = Math.round(r.en * 50) / 50; if (row._v === v) continue; row._v = v;
+      row.querySelector('.pr-bar u').style.transform = `scaleX(${v})`;
+      const est = v < 0.25 ? 2 : v < 0.5 ? 1 : 0; row.classList.toggle('mid', est === 1); row.classList.toggle('low', est === 2);
+      row.querySelector('.pr-est').textContent = `${this.txt.energy || 'Energía'} ${Math.round(v * 100)} % · ${E[est]}`;
+    }
+  }
+  /** La fuerza del golpe que acaba de dar el rival (0 a 1): se llena y se apaga en su tarjeta. */
+  potencia(id, pow) {
+    const row = this.riv?.querySelector(`[data-en="${id}"]`); if (!row) return;
+    const s = row.querySelector('.pr-bar s'); s.style.setProperty('--p', Math.max(0.05, Math.min(1, pow)));
+    row.classList.remove('golpe'); void row.offsetWidth; row.classList.add('golpe'); row.classList.toggle('fuerte', pow > 0.8);
   }
   setNames(you, rival) { const a = this.root.querySelector('[data-side=you] span'), b = this.root.querySelector('[data-side=rival] span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
   setScore(you, rival, server, mid) {

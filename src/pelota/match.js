@@ -545,6 +545,13 @@ export class PelotaMatch {
     try { await openFicha(L, Math.max(0, L.findIndex(p => p.id === id)), this.lang, this.hud.root); }
     finally { this.fichaOpen = false; if (this.active) this.paused = was; }
   }
+  /** La tarjeta del rival (y la de su compañero): su potencia, la de su carta, y su figura; se calcula una vez. */
+  fichaRival(id) {
+    const c = (this._fr ||= {}); if (c[id]) return c[id];
+    const name = id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '', st = id === 'rival' ? this.o.rivalStats : this.mateObjs?.[id]?.stats;
+    const { name: n, town } = splitName(name), r = pelotariRating(st || {}, `${n} ${town || splitName(this.names.rival).town || this.o.town || ''}`);
+    return (c[id] = { pot: r.pot, fig: this.o.caras?.fig?.(n, this.cols.rival) || '' });
+  }
   endPanel(e) {
     const t = this.txt, g = this.game;
     this.hud.controls(false); this.hud.tip('');
@@ -742,6 +749,7 @@ export class PelotaMatch {
         // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
         this.rallyN = (this.rallyN || 0) + 1; A.mood(Math.min(0.52, 0.2 + this.rallyN * 0.03), 0.8);
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
+        if (this.game.side(e.who) === 'rival') this.hud.potencia?.(e.who, pw);   // (la fuerza de su golpe, en su tarjeta)
         // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
         if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
         // el aviso de cómo ha salido: una sola palabra, pequeña y rápida (perfecto, bien, justo, pronto, tarde). Antes era
@@ -850,7 +858,7 @@ export class PelotaMatch {
     this.hud.tip(tip);
     // la energía de cada uno (tú, en amarillo)
     this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), color: this.cols[g.side(id)], me: id === 'you', en: g.players[id].en,
-      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })));
+      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '', ...(g.side(id) === 'rival' ? this.fichaRival(id) : {}) })));
     // pelotaris
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
