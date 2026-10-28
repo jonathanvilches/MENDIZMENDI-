@@ -176,9 +176,10 @@ export class PelotaMatch {
     this.cesta = { you: tuyas, rival: delRival }; this.bolaTuya = media(tuyas); this.bola = this.bolaTuya; this.applyFeel(); this.pintaBolas();
   }
   // la elección antes del partido (el reglamento: cada pelotari elige 2 del lote de 10; por parejas, 3 cada pareja). El
-  // sorteo dice quién elige antes; el rival, por su estilo. Tú, en un desplegable: cómo las quieres (de todo, las más vivas
+  // sorteo dice quién elige antes; el rival, por su estilo. Tú, con tres botones: cómo las quieres (de todo, las más vivas
   // o las más pesadas) y el juego coge las de ese tipo que quedan libres; debajo, cuáles son. (Antes, el lote entero en
-  // diez casillas para elegirlas una a una: costaba entenderlo)
+  // diez casillas, que costaba entender; luego, un desplegable, que en el iPhone dejaba la pantalla movida al cerrarse y
+  // el toque en «Al cestaño» caía fuera: no se pasaba de aquí. El botón, siempre a la vista al pie de la tarjeta)
   eleccion() {
     return new Promise(res => {
       const t = this.txt.mat || TEXT.es.mat, n = POR_LADO(this.pairs), lot = this.lote = lote(((Date.now() % 1e6) * 13 + 5) >>> 0);
@@ -187,9 +188,9 @@ export class PelotaMatch {
       const icono = (b) => `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd" stroke="${clase(b) === 'viva' ? '#ff7ac8' : clase(b) === 'pesada' ? '#7fb2ff' : '#c9b2ff'}" stroke-width="2.5"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="1.6" fill="none"/></svg>`;
       const chip = (b) => `<span class="pel-mchip">${icono(b)}<b>Nº ${b.n}</b><small>${t.kinds[clase(b)]} · ${pesoTxt(b)}</small></span>`;
       const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${tuPrimero ? t.first : t.second(rn)}</p><p class="pel-mat-what">${t.sub(n)}</p>
-        <label class="pel-msel"><span>${t.tuyas}</span><select data-mat-sel>${['mixto', 'pegador', 'manos'].map(k => `<option value="${k}">${t.estilos[k](n)}</option>`).join('')}</select></label>
+        <div class="pel-msel"><span>${t.tuyas}</span><div class="pel-mseg" role="radiogroup">${['mixto', 'pegador', 'manos'].map(k => `<button type="button" role="radio" data-mat-k="${k}" aria-checked="${k === 'mixto'}">${esc((t.cortos || TEXT.es.mat.cortos)[k])}</button>`).join('')}</div></div>
         <div class="pel-mchips" data-mat-tuyas></div><p class="pel-mat-what" data-mat-what></p><p class="pel-mrv" data-mat-rv></p>
-        <div class="pel-row"><button class="pel-go" data-mat-go>${t.go}</button></div>`);
+        <div class="pel-row pel-mgo"><button class="pel-go" data-mat-go>${t.go}</button></div>`);
       p.querySelector('.pel-card')?.classList.add('pel-matcard');
       const pinta = () => {
         mias = elige(lot, n, mio, new Set(rv.map(b => b.n)));
@@ -197,14 +198,20 @@ export class PelotaMatch {
         p.querySelector('[data-mat-what]').textContent = t.que[mio];
         p.querySelector('[data-mat-rv]').textContent = rv.length ? `${t.rival}: ${rv.map(b => `Nº ${b.n} (${t.kinds[clase(b)].toLowerCase()})`).join(' · ')}` : '';
       };
-      const sel = p.querySelector('[data-mat-sel]');
-      sel.addEventListener('change', () => { mio = sel.value; pinta(); this.audio.ui?.('tick'); });
-      tap(p, (b) => {
-        if (!b.hasAttribute('data-mat-go')) return;
+      let hecho = false;
+      const vale = () => {
+        if (hecho) return; hecho = true;
         if (!rv.length) rv = elige(lot, n, estilo, new Set(mias.map(x => x.n)));
         pinta(); this.ponCesta(mias, rv);
         setTimeout(() => { if (this.active) { this.hud.closePanel(); res(); } }, tuPrimero ? 900 : 250);   // (lo que elige el rival, un momento a la vista)
+      };
+      tap(p, (b) => {
+        if (b.dataset.matK) { mio = b.dataset.matK; for (const x of p.querySelectorAll('[data-mat-k]')) x.setAttribute('aria-checked', String(x === b)); pinta(); this.audio.ui?.('tick'); return; }
+        if (b.hasAttribute('data-mat-go')) vale();
       });
+      // (y por si el toque no llega entero al botón, también con su clic; pero no el que el móvil manda justo después del
+      // toque de «¡A jugar!», que caía aquí mismo y se saltaba la elección)
+      const desde = performance.now(); p.querySelector('[data-mat-go]').addEventListener('click', () => { if (performance.now() - desde > 600) vale(); });
       pinta();
     });
   }

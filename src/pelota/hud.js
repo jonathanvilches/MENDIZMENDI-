@@ -260,16 +260,18 @@ const CSS = `
    su número, lo viva que es y su peso */
 .pel-card.pel-matcard{width:min(560px,100%)}
 .pel-msel{display:grid;gap:6px;margin:0 0 12px}.pel-msel>span{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff9ad8}
-.pel-msel select{appearance:none;-webkit-appearance:none;width:100%;min-height:48px;padding:0 44px 0 18px;border-radius:14px;border:1px solid rgba(190,160,255,.4);color:#fff;font:700 var(--fs-md)/1.2 'MZ Texto',sans-serif;cursor:pointer;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23ff9ad8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 16px center/18px no-repeat,rgba(255,255,255,.07)}
-.pel-msel select:focus-visible{outline:2px solid #fff;outline-offset:2px}.pel-msel option{color:#1c0b3a}
+.pel-mseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.pel-mseg button{min-height:44px;padding:4px 8px;border-radius:999px;border:1px solid rgba(190,160,255,.4);background:rgba(20,8,40,.55);color:#fff;font:700 var(--fs-md)/1.1 'MZ Texto',sans-serif;cursor:pointer;touch-action:manipulation}
+.pel-mseg button[aria-checked=true]{background:rgba(131,56,236,.6);border-color:#c9a6ff;box-shadow:0 0 0 2px rgba(201,166,255,.25)}
+.pel-matcard .pel-mgo{position:sticky;bottom:-16px;margin:0 -24px -16px;padding:8px 24px 16px;background:linear-gradient(180deg,rgba(18,5,42,0),#12052a 14px)}
+.pel-matcard .pel-mgo .pel-go{touch-action:manipulation}
 .pel-mchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
 .pel-mchip{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(190,160,255,.3)}
 .pel-mchip svg{width:30px;height:30px}.pel-mchip b{font:900 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}.pel-mchip small{font-size:var(--fs-xs);color:#cbc2e0;white-space:nowrap}
 .pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.35}
 .pel-mrv{margin:-4px 0 12px;font-size:var(--fs-xs);color:#b9addb}.pel-mrv:empty{display:none}
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
-@media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-msel select{min-height:42px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
+@media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-mseg button{min-height:40px}.pel-matcard .pel-mgo{bottom:-12px;margin:0 -16px -12px;padding:6px 16px 12px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
 /* la experiencia en el panel del final: el nivel con su barra y lo que ha subido cada cualidad, en cuatro casillas */
 .pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-xp.sube{border-color:#ffd36a;box-shadow:0 0 0 3px rgba(255,211,106,.15),0 0 18px rgba(255,211,106,.25)}
