@@ -101,45 +101,51 @@
 @media (min-width: 1200px) and (min-height: 700px) { .sheet.pueblo .sheet-in { width: min(1040px, 100%); } .fh-carta { --dh: 56px; } .fh-ms { gap: 10px; } }
 
 /* ---------- la comarca ---------- */
-/* la cabecera, como la carta de la comarca: marco fino con dos esquinas cortadas; dentro, su lámina entera a la derecha
-   (16:9, sin cortar a nadie) y, a la izquierda, sobre la misma lámina difuminada, el sello en su aro, el nombre y el
-   marcador. El fondo, el morado del juego con la lámina en gris debajo, como el del menú: con el color de la comarca y la
-   lámina en color, en la Ribera (las Bardenas) salía marrón y dorado. Su color, solo en un toque del marco. En vertical,
+/* la cabecera de la comarca, como las demás tarjetas del menú: marco fino con el radio de siempre y el filo de color
+   arriba, sin esquinas cortadas. A la derecha, su lámina entera (16:9, sin cortar a nadie); a la izquierda, sobre la misma
+   lámina difuminada y oscurecida, el sello en su aro, el rótulo, el nombre y las cifras en pastillas. Baja y ancha: en el
+   móvil tumbado deja ver los pueblos debajo (antes ocupaba la pantalla entera, con medio panel morado vacío). En vertical,
    la lámina arriba y lo demás debajo */
-.chero { --k: 18px; position: relative; margin: 0 0 8px; padding: 2px; color: #fff;
-  background: linear-gradient(135deg, rgba(255, 255, 255, .5) 0%, rgba(201, 178, 255, .22) 30%, rgba(255, 255, 255, .06) 62%, color-mix(in srgb, var(--c) 35%, #c9b2ff) 100%);
-  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
-.chero::after { content: ''; position: absolute; left: calc(var(--k) + 2px); right: 2px; top: 2px; height: 3px; z-index: 3; background: linear-gradient(90deg, #ff3fcf, #9c3bff 55%, transparent); pointer-events: none; }
-.ch-in { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 58%); align-items: center; overflow: hidden; isolation: isolate; background: #1a0a3c;
-  clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%, 0 calc(var(--k) - 1px)); }
-.ch-fondo { position: absolute; inset: -40px; z-index: -1; background: left center / cover no-repeat; filter: blur(22px) grayscale(1) brightness(.8); opacity: .5; }
-.ch-in::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgba(36, 12, 80, .9) 0%, rgba(26, 9, 58, .6) 60%), repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
-.ch-tx { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; min-width: 0; padding: 20px 16px 20px 28px; }
-.ch-tx .back { position: static; }
+/* (--h, su alto: la lámina mide de ancho lo que le toca a ese alto, y nunca más de tres quintos de la tarjeta) */
+.chero { --h: clamp(220px, 24vw, 330px); position: relative; display: grid; grid-template-columns: minmax(0, 1fr) min(calc(var(--h) * 16 / 9), 60%); grid-template-rows: 100%; height: var(--h); margin: 0 0 var(--hueco-m); overflow: hidden; isolation: isolate;
+  border-radius: var(--r); border: 1px solid var(--line2); background: #160a34; color: #fff; }
+.chero::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; z-index: 3; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
+.ch-fondo { position: absolute; inset: -40px; z-index: -2; background: center / cover no-repeat; filter: blur(26px) saturate(1.1) brightness(.5); }
+.chero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgba(22, 8, 52, .9) 0%, rgba(22, 8, 52, .72) 55%, rgba(22, 8, 52, .25) 100%); }
+.chero-img { grid-column: 2; grid-row: 1; display: block; width: 100%; height: 100%; min-height: 0; object-fit: cover; -webkit-mask: linear-gradient(90deg, transparent, #000 18%); mask: linear-gradient(90deg, transparent, #000 18%); }
+.ch-tx { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; justify-content: center; gap: var(--hueco-m); min-width: 0; padding: 24px 8px 24px 32px; }
+.ch-tx .back { position: static; align-self: flex-start; }
 /* (jugando, sin «Mapa»: la X de arriba ya vuelve al mapa) */
 #hub.juego .ch-tx .back { display: none; }
-.ch-nom { display: flex; align-items: center; gap: 14px; min-width: 0; max-width: 100%; }
+.ch-nom { display: flex; align-items: center; gap: 16px; min-width: 0; max-width: 100%; }
 .ch-nom > div { display: grid; gap: 6px; min-width: 0; }
-.chero .bigstamp { flex: none; width: clamp(64px, calc(7vw / var(--z, 1)), 112px); height: auto; aspect-ratio: 1; }
-.chero h1 { margin: 0; font: 400 clamp(var(--fs-2xl), calc(3.2vw / var(--z, 1)), var(--fs-hero))/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; text-shadow: 0 3px 0 rgba(0, 0, 0, .3); overflow-wrap: anywhere; }
-.chero h1 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .16em; text-shadow: none; }
-.ch-tx .fh-hud { align-self: stretch; }
-.chero-img { grid-column: 2; grid-row: 1; display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; -webkit-mask: linear-gradient(90deg, transparent, #000 14%); mask: linear-gradient(90deg, transparent, #000 14%); }
-.ch-in:not(:has(.chero-img)) { grid-template-columns: minmax(0, 1fr); }
+.chero .bigstamp { flex: none; width: clamp(64px, calc(6vw / var(--z, 1)), 96px); height: auto; aspect-ratio: 1; }
+.chero h1 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 12px rgba(4, 1, 12, .5); }
+.chero h1 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: none; }
+/* las cifras: pastillas como los contadores del resto del menú (identidad.css, .lead-chip) */
+.ch-datos { display: flex; flex-wrap: wrap; gap: 8px; }
+.ch-dato { display: inline-flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 12px 4px 8px; border-radius: var(--r); background: rgba(13, 6, 28, .55); border: 1px solid var(--line2); }
+.ch-dato > :is(svg, img) { flex: none; width: 20px; height: 20px; }
+.ch-dato b { font: 400 var(--fs-lg)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #ff7ac8) 60%, #fff); white-space: nowrap; }
+.ch-dato b i { font-style: normal; opacity: .6; font-size: .8em; }
+.ch-dato small { font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--tx2, #cfc6e6); white-space: nowrap; }
+.chero:not(:has(.chero-img)) { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; height: auto; }
+/* (en el móvil tumbado, baja: debajo se ven ya los pueblos) */
 @media (orientation: landscape) and (max-height: 520px) {
-  .ch-tx { gap: 10px; padding: 14px 8px 14px 18px; } .chero .bigstamp { width: 58px; } .chero h1 { font-size: var(--fs-xl); } .chero h1 em { font-size: var(--fs-xs); margin-top: 4px; }
-  .ch-tx .fh-hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
-  .ch-tx .fh-st { padding: 4px 6px 4px 5px; gap: 6px; } .ch-tx .fh-st > :is(svg, img) { width: 18px; height: 18px; } .ch-tx .fh-st b { font-size: var(--fs-sm); } .ch-tx .fh-st small { font-size: 9px; }
+  .chero { --h: 168px; }
+  .ch-tx { gap: 10px; padding: 12px 4px 12px 16px; }
+  .ch-nom { gap: 12px; } .chero .bigstamp { width: 52px; }
+  .chero h1 { font-size: var(--fs-xl); } .chero h1 em { font-size: var(--fs-xs); margin-top: 4px; }
+  .ch-datos { gap: 6px; } .ch-dato { min-height: 30px; gap: 6px; padding: 2px 10px 2px 6px; } .ch-dato > :is(svg, img) { width: 16px; height: 16px; } .ch-dato b { font-size: var(--fs-md); }
 }
 @media (max-width: 599px), (orientation: portrait) {
-  .ch-in { grid-template-columns: minmax(0, 1fr); }
-  .chero-img { grid-column: 1; grid-row: 1; -webkit-mask: linear-gradient(180deg, #000 78%, transparent); mask: linear-gradient(180deg, #000 78%, transparent); }
-  .ch-tx { grid-row: 2; padding: 0 16px 16px; margin-top: -30px; z-index: 1; }
+  .chero { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto; height: auto; }
+  .chero-img { grid-column: 1; grid-row: 1; width: 100%; height: auto; aspect-ratio: 16 / 9; -webkit-mask: linear-gradient(180deg, #000 70%, transparent); mask: linear-gradient(180deg, #000 70%, transparent); }
+  .ch-tx { grid-row: 2; padding: 0 16px 16px; margin-top: -40px; z-index: 1; }
   .ch-nom { align-items: flex-end; }
   .ch-tx .back { position: absolute; top: 12px; left: 12px; z-index: 2; }
-  .ch-in:not(:has(.chero-img)) .ch-tx { margin-top: 0; padding-top: 64px; }
-  .chero .bigstamp { width: 76px; } .chero h1 { font-size: var(--fs-2xl); }
-  .ch-tx .fh-hud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chero:not(:has(.chero-img)) .ch-tx { margin-top: 0; padding-top: 64px; }
+  .chero .bigstamp { width: 64px; } .chero h1 { font-size: var(--fs-2xl); }
 }
 /* los pueblos de la comarca: la misma carta que en la galería, en una retícula; al pasar por encima, se encienden */
 .cm-ts { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 16px; }
