@@ -27,8 +27,6 @@ import { UI } from './ui.js';
 import { vigilaEncaje } from './ui/encaje.js';
 import { Hub } from './hub/hub.js';
 import { isDidactico } from './util/modo.js';
-import { Game } from './game/game.js';
-import { TownGame } from './game/townGame.js';
 import { profile, saveProfile, townState, checkBadges, salazarState, townProgress } from './game/profile.js';
 import { missionSlots, edadDe } from './data/edad.js';
 import { levelById, LEVELS } from './data/levels.js';
@@ -52,6 +50,10 @@ import { sencillo } from './util/sencillo.js';
 import { apuntaPerdida } from './util/diag.js';
 
 const q = new URLSearchParams(location.search);
+// el código de jugar en los pueblos (Otsagabia y los demás, con la pelota, las misiones y los minijuegos) va en archivos
+// aparte: el menú arranca sin él, se descarga cuando el navegador está desocupado (más abajo, idle) y, si aún no está, al
+// entrar en un pueblo, mientras se monta (antes iba todo en el archivo principal, 2,8 MB)
+const juego = () => Promise.all([import('./game/game.js'), import('./game/townGame.js')]);
 const TIPS = [
   'Sigue la luz dorada: te lleva al siguiente objetivo de tu misión.',
   'Las personas con una exclamación amarilla encima tienen una misión para ti.',
@@ -149,7 +151,7 @@ async function boot() {
   // sin prisa cuando el navegador está desocupado, así quedan guardados para jugar sin conexión y no esperan al tocarlos
   const idle = window.requestIdleCallback || ((f) => setTimeout(f, 1));
   // (en el modo didáctico no se juega: no hace falta)
-  if (!isDidactico()) setTimeout(() => idle(() => { import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); import('./ui/mini3d/index.js').catch(() => {}); import('./world/pamplona.js').catch(() => {}); }, { timeout: 20000 }), 15000);
+  if (!isDidactico()) setTimeout(() => idle(() => { juego().catch(() => {}); import('./game/futbol.js').catch(() => {}); import('./game/encierro.js').catch(() => {}); import('./ui/mini3d/index.js').catch(() => {}); import('./world/pamplona.js').catch(() => {}); }, { timeout: 20000 }), 15000);
 
   // pasos, saltos y salpicaduras
   const hookPlayer = (player) => {
@@ -194,7 +196,8 @@ async function boot() {
       await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
       // (en los campeonatos, los mensajes de la carga hablan del frontón, no de plantar árboles ni de saludar a los vecinos)
       const sportMsg = (p) => pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : p < 0.3 ? (eu ? 'Frontoia irekitzen…' : 'Abriendo el frontón…') : p < 0.6 ? (eu ? 'Kantxa prestatzen…' : 'Preparando la cancha…') : p < 0.9 ? (eu ? 'Harmailak betetzen…' : 'Llenando la grada…') : (eu ? 'Pilotariak berotzen…' : 'Calentando a los pelotaris…');
-      const npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m)), npcP]);
+      const modP = juego(), npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m)), npcP]);
+      const [{ Game }, { TownGame }] = await modP;
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
