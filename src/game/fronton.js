@@ -17,7 +17,6 @@ import { profile } from './profile.js';
 import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
 import { QUALITY } from '../util/quality.js';
 import { crowd3d } from '../actors/crowd3d.js';
-import { shieldSpec, drawShield } from '../world/heraldry.js';
 import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -150,9 +149,10 @@ export const frontonEstilo = (def = {}) => ESTILO_TOWN[def.id] && !LOOK_TOWN[def
 // nombre del pueblo y su escudo para la pared izquierda (como el letrero del ayuntamiento en los frontones de verdad),
 // cómo es el frontón de allí (look) y lo que lo rodea (estilo). Solo el escudo y el nombre: sin «AYUNTAMIENTO» ni «FRONTÓN»
 export function frontonWall(def) {
-  // el escudo oficial del pueblo o de su valle cuando está comprobado; si no, uno propio del juego
-  const spec = shieldSpec(def), A = armsOfTown(def.id);
-  const shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : (g, cx, top, h) => drawShield(g, cx, top, h, spec);
+  // el escudo oficial del pueblo o de su valle, con el acabado del autor; si no lo tiene, ninguno, solo el nombre (antes,
+  // uno inventado por el juego, que no era el suyo)
+  const A = armsOfTown(def.id);
+  const shield = A ? (g, cx, top, h) => drawTownArms(g, cx, top, h / officialHeight(1, A), A) : null;
   const estilo = frontonEstilo(def), look = { ...frontonLook(def), ...(estilo !== 'plaza' ? { roof: null } : {}) }, seed = [...(def.id || '')].reduce((a, ch) => a * 31 + ch.charCodeAt(0) >>> 0, 7) % 9973;
   return { wallName: (def.name || '').split(/\s*\/\s*/).join(' · ').toUpperCase(), shield, look, estilo, seed,
     roofCol: def.family === 'pyrenean' ? '#5a5e66' : '#a4553c' };   // (en el Pirineo, pizarra; en el resto, teja)

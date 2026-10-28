@@ -207,8 +207,7 @@ export class PelotaCourt {
       else if (th.brick) bricks(c, w, h, W + 0.6, C.FRONT_H, '#a85c3e');
       else { c.fillStyle = FUERA; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false); }
       weather(c, w, h, C.FRONT_H, W + 0.6);
-      // (el escudo del pueblo con su nombre, como en la pared izquierda; nunca el rótulo «FRONTÓN»)
-      if (opts.shield) opts.shield(c, w / 2, h * 0.16, h * 0.17);
+      // (solo el nombre del pueblo, nunca el rótulo «FRONTÓN»: el escudo va solo en la pared izquierda)
       paintName(c, opts.wallName || '', w / 2, h * 0.39, w * 0.6, h * 0.05, '#fdfaf2');
     });
     const frontEnd = canvasTex(T, 256, 1024, (c, w, h) => { if (th.stone) ashlar(c, w, h, 0.8, C.FRONT_H, th.stone); else { c.fillStyle = FUERA; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.06); grain(c, w, h, 2000, 0.05, false); } weather(c, w, h, C.FRONT_H, 0.8); });
@@ -392,7 +391,7 @@ export class PelotaCourt {
     if (EST && EST !== 'plaza') {
       // (el tejado, del color de los del pueblo: teja o pizarra)
       const roofCol = opts.roofCol || (th.roofTop === '#4b4f55' ? '#5a5e66' : '#a4553c');
-      buildEntorno(EST, { T, M, g, th, CONTRA, EXT, boxes: this.boxes, spots: this.standSpots, roofCol, shield: opts.shield, seed: opts.seed || 7 });
+      buildEntorno(EST, { T, M, g, th, CONTRA, EXT, boxes: this.boxes, spots: this.standSpots, roofCol, shield: null, seed: opts.seed || 7 });   // (el escudo, solo en la pared izquierda: la casa consistorial, sin él)
     }
     if (opts.labrit) this.buildLabrit(T, M, th, W, CONTRA, EXT, L, opts);
     else if (HALL) this.buildHall(T, M, th, W, CONTRA, EXT, L, opts);
@@ -751,15 +750,14 @@ export class PelotaCourt {
     box(xr - (W / 2 + 0.3), C.FRONT_H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, C.FRONT_H / 2, za);
     // el fondo, detrás de la contracancha y de la grada (el rebote ya llega al techo)
     box(xr - (W / 2 + 0.3), H, 0.6, fondoM, (xr + W / 2 + 0.3) / 2, H / 2, zb);
-    // la pared derecha, detrás de la grada: ventanales arriba y el escudo del pueblo en medio, sin su nombre (el autor no
-    // quería el nombre del pueblo en la parte derecha del frontón; antes, el escudo con el nombre en grande al lado)
+    // la pared derecha, detrás de la grada: ventanales arriba, sin escudo ni nombre (el autor los quiere solo en la pared
+    // izquierda; antes llevaba el escudo grande en medio)
     const rTex = canvasTex(T, 2048, 512, (c, w, h) => {
       // (tablas verticales de pino barnizado, cada una de su tono, con su junta)
       const nt = 96, tw = w / nt;
       for (let i = 0; i < nt; i++) { const k = 0.9 + ((i * 37) % 11) / 55; c.fillStyle = `rgb(${Math.round(176 * k)},${Math.round(124 * k)},${Math.round(74 * k)})`; c.fillRect(i * tw, 0, tw, h); c.fillStyle = 'rgba(60,32,12,.35)'; c.fillRect(i * tw, 0, 2, h); }
       grain(c, w, h, 9000, 0.04); grain(c, w, h, 3000, 0.04, false);
       const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); }
-      if (opts.shield) opts.shield(c, w / 2, h * 0.22, h * 0.5);
     });
     const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, M({ map: rTex }), wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
     rw.position.set(xr + 0.3, H / 2, (za + zb) / 2); g.add(rw);
