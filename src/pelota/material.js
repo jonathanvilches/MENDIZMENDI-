@@ -49,4 +49,3 @@ export function saqueRival(cesta, estilo, nos, ellos) {
 }
 const coma = (x) => String(x).replace('.', ',');
 export const pesoTxt = (b) => `${coma(b.peso.toFixed(1))} g`;
-export const diamTxt = (b) => `${coma(b.diam.toFixed(1))} mm`;
