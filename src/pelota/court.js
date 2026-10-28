@@ -4,6 +4,7 @@ import { COURT, CUATRO } from './rules.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 import { buildEntorno, entornoExtent } from './entorno.js';
 import { juntaQuietas, guardadas } from '../util/juntar.js';
+import { pintaPin45 } from './pin45.js';
 
 function srgb(THREE, tex) {
   if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
@@ -437,18 +438,25 @@ export class PelotaCourt {
   }
   /** El Cuatro y Medio: la raya del 4 y medio y la zona del saque entre la raya del 3 y la del 5; sin él, todo como
    *  siempre. La raya, como en los frontones: pintada en el suelo, paralela al frontis, de la pared izquierda a la
-   *  contracancha, entre los números 4 y 5 de la pared, del color y del ancho de las de falta y pasa (15 cm). Antes era
-   *  naranja y con brillo propio, subía por la pared hasta la raya de arriba y llevaba encima un cartel «4½»: en los
-   *  frontones no se pinta nada de eso. */
+   *  contracancha, entre los números 4 y 5 de la pared, blanca y del ancho de las demás (15 cm). Y en la pared izquierda,
+   *  como en el campeonato, su cartel: la gota verde con el borde amarillo y el «4½», con la punta hacia donde la raya
+   *  llega a la pared (pin45.js). La raya no sube por la pared ni brilla: así no se pinta en ningún frontón. */
   setCuatro(on) {
     const T = this.THREE, C = COURT;
     if (on && !this.cuatroMark) {
-      const mat = new T.MeshStandardMaterial({ color: this.look.mark, roughness: 0.92, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+      const mat = new T.MeshStandardMaterial({ color: this.look.line, roughness: 0.92, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
       const m = this.cuatroMark = new T.Mesh(new T.PlaneGeometry(C.W, 0.15), mat); m.name = 'cuatro-y-medio';
       m.rotation.x = -Math.PI / 2; m.position.set(0, 0.012, CUATRO.LIMITE); m.receiveShadow = true;
       this.group.add(m); this.materials?.push(mat);
+      // (el cartel: del ancho de los números de los cuadros y por debajo de ellos, con la punta a 70 cm del suelo; la
+      // pintura, algo viva, para que el amarillo se lea de lejos)
+      const PW = 0.9, PH = PW * 384 / 224, PUNTA = 0.7, tex = canvasTex(T, 224, 384, (c, w, h) => pintaPin45(c, w, h, 1.3));
+      const pm = new T.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: '#474747', alphaTest: 0.5, roughness: 0.7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
+      const pin = this.cuatroPin = new T.Mesh(new T.PlaneGeometry(PW, PH), pm); pin.name = 'cartel-4-y-medio';
+      pin.rotation.y = Math.PI / 2; pin.position.set(-C.W / 2 + 0.016, PUNTA - PH * 14 / 192 + PH / 2, CUATRO.LIMITE); pin.receiveShadow = true;
+      this.group.add(pin); this.materials?.push(pm);
     }
-    if (this.cuatroMark) this.cuatroMark.visible = !!on;
+    if (this.cuatroMark) this.cuatroMark.visible = this.cuatroPin.visible = !!on;
     // (la zona del saque que se ilumina al sacar: entre el 3 y el 5 en el Cuatro y Medio; entre el 4 y el 7, si no)
     const z0 = on ? CUATRO.FALTA : C.FALTA, z1 = on ? CUATRO.PASA : C.PASA;
     if (this.serveZone) { this.serveZone.scale.y = (z1 - z0) / (C.PASA - C.FALTA); this.serveZone.position.z = (z0 + z1) / 2; }
