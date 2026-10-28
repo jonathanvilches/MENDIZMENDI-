@@ -137,7 +137,6 @@ export function mountMapView(ui, box, opts = {}) {
   function select(it) {
     sel = it; redraw();
     if (!it) { card.hidden = true; return; }
-    const tracked = it.act === 'track' && (game.kind === 'town' ? game.tracked === it.id : game.state?.tracked === it.id);
     const btn = [];
     // (en una misión, un solo botón que te lleva a empezarla: junto al vecino que la da o, si ya está en marcha, al sitio
     // de su paso siguiente. Antes había que elegir «la brújula te lleva aquí» y después ir andando)

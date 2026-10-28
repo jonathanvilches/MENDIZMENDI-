@@ -111,7 +111,26 @@ const LOOK_TOWN = {
 export function frontonLook(def = {}) {
   const cid = LOOK_COMARCA[def.comarca] ? def.comarca : FAMILY[def.family], c = LOOK_COMARCA[cid] || {};
   const i = Math.max(0, LEVELS.filter(l => l.comarca === cid && !l.special && !l.bosque).findIndex(l => l.id === def.id)), V = VARIANTS[cid] || [{}];
-  return { ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) };
+  return legible({ ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) });
+}
+// que la pelota se vea siempre bien: contra el frontis, la pared izquierda y el suelo, la pelota (casi blanca) ha de ser
+// al menos tres veces más clara (el cociente de luminancias de las pautas de legibilidad; 2,6 contra el suelo, que se ve
+// de lado). Si un color de la comarca es más claro, se oscurece sin cambiarle el tono. Antes, en los frontones de pared de
+// yeso o de frontis de piedra dorada (Lesaka, Ituren, Orreaga, Lumbier, Ujué, Olite, Marcilla…), la pelota casi no se veía.
+// El frontis, cuatro: le da el sol de cara y en la imagen sale más claro que su color (la pared izquierda suele estar a
+// la sombra)
+const BOLA = '#f4eedd', MIN_CONTRASTE = { frontis: 4, stone: 4, wall: 3, floor: 2.6 };
+const luminancia = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;   // (THREE.Color guarda el color en lineal)
+const cociente = (a, b) => { const x = luminancia(a), y = luminancia(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+function legible(L) {
+  const o = { ...L }, bola = new THREE.Color(BOLA), hsl = {};
+  for (const [k, min] of Object.entries(MIN_CONTRASTE)) {
+    if (!o[k]) continue;
+    const c = new THREE.Color(o[k]);
+    for (let n = 0; n < 40 && cociente(bola, c) < min; n++) { c.getHSL(hsl); c.setHSL(hsl.h, hsl.s, hsl.l * 0.95); }
+    o[k] = '#' + c.getHexString();
+  }
+  return o;
 }
 
 // Lo que rodea al frontón de la calle de cada pueblo (src/pelota/entorno.js): junto a la iglesia, en la plaza del
@@ -196,17 +215,21 @@ function frontonSearch(plaza, r0, r1, gap, da, noRoad, E) {
 }
 
 // Altura para que la cancha quede por encima del terreno en toda su huella
+// (el terreno, mirado cada medio metro: cada metro y medio, entre punto y punto asomaba algún montículo por el suelo de la
+// cancha, como el bulto verde junto al frontis de Javier)
 export function courtHeight(x, z, ry, E = extent()) {
   const c = Math.cos(ry), s = Math.sin(ry); let mx = -1e9;
-  for (let lx = E.x0; lx <= E.x1 + 0.01; lx += 1.5) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 1.5) mx = Math.max(mx, terrainHeight(x + lx * c + lz * s, z - lx * s + lz * c));
-  return mx + 0.05;
+  for (let lx = E.x0; lx <= E.x1 + 0.01; lx += 0.5) for (let lz = E.z0; lz <= E.z1 + 0.01; lz += 0.5) mx = Math.max(mx, terrainHeight(x + lx * c + lz * s, z - lx * s + lz * c));
+  return mx + 0.06;
 }
 
 export class Fronton {
   // spot: centro del frontis a ras de suelo; ry: giro (la cancha crece hacia +z local); sin y, se calcula
   // extra: { wallName, wallSub, shield } → nombre y escudo pintados en la pared izquierda
   constructor(scene, spot, title = '', extra = {}) {
-    if (spot.y == null) spot = { ...spot, y: courtHeight(spot.x, spot.z, spot.ry, extra.inTown ? labritExtent() : frontonExtent(extra.estilo)) };
+    // (la del sitio elegido, findFrontonSpot, se miraba cada 2,5 m: por eso asomaba el montículo de Javier. Los de muy
+    // por encima del pueblo, el cubierto y el Labrit, noClear, van a su altura)
+    if (spot.y == null || !extra.noClear) spot = { ...spot, y: Math.max(spot.y ?? -1e9, courtHeight(spot.x, spot.z, spot.ry, extra.inTown ? labritExtent() : frontonExtent(extra.estilo))) };
     this.spot = spot;
     const court = this.court = new PelotaCourt(THREE, { title, texScale: QUALITY === 'low' ? 0.5 : 1, ...extra });
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
@@ -278,7 +301,7 @@ export function hallVenue(scene, out, def) {
   if (HALL) { try { HALL.dispose(); } catch (e) { console.warn('frontón cubierto', e); } }
   const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
   HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed), hall: true, hallName: W.wallName, noClear: true });
-  HALL.town = def?.id;
+  HALL.town = def?.id; HALL.townName = town;   // (el de otro pueblo, en los campeonatos: su nombre en el partido)
   return HALL;
 }
 // En el móvil (calidad baja), un solo frontón aparte a la vez, el que se va a usar (keep; ninguno al volver al pueblo).
@@ -331,7 +354,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
-    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = []; const hidden = [], hiddenR = [];
+    // (pancartas, aquí y no dentro del montaje: si no, al acabar no se veían y se quedaban en la grada de partido en
+    // partido, cada una con su textura, gastando memoria gráfica)
+    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = [], pancartas = null; const hidden = [], hiddenR = [];
+    // (si el rival se llama como tú, con la inicial de su pueblo detrás, «Ane I.»: si no, en el marcador salían dos «Ane»)
+    { const yo = String(profile().name || '').trim().toLowerCase(), tw = String(rivalTown?.name || G.def?.name || '').trim(); if (yo && rivName.trim().toLowerCase() === yo) rivName = `${rivName.trim()} ${(tw[0] || 'B').toUpperCase()}.`; }
     // los colores, como en los frontones: viste de colorado quien debutó antes y el otro de azul. Tú empiezas de
     // debutante: cada campeonato que acabas es una temporada más
     const { colors, seasons } = coloresPartido(rivName, level, pairs?.rivalMate?.name, pairs?.partner?.name);
@@ -400,7 +427,6 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
       } } catch (e) { console.warn('público del frontón', e); }
     // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
-    let pancartas = null;
     try { pancartas = pancartasDe(fronton.court, profile().name || (isEU() ? 'Zu' : 'Tú'), rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     const stYou = { v: null }, stRival = { v: null };
@@ -449,7 +475,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
-      rival: { obj: rival.obj, name: rivalName || String(rival.name).split(',')[0], animate: animRival },
+      rival: { obj: rival.obj, name: rivName, animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       colors, seasons, cuatro,   // (quién viste de cada color y sus temporadas; el Cuatro y Medio)
       fly: intro,   // (la llegada: el vuelo de la cámara hasta la cancha, con los pelotaris y el público ya en su sitio)
@@ -459,7 +485,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
       // (la presentación con los focos, a cubierto o de noche: la luz de la imagen baja y vuelve; show.js)
       focos: frontonCond(G, fronton).covered || (G.sky?.night ?? 0) > 0.5, exposure: (v) => { const R = G.rt?.renderer; if (R) R.toneMappingExposure = v ?? 1.05; },
-      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${(G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${(G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
+      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
       onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; }
@@ -517,7 +543,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
         // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
         safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, color: colors.you });
+        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you });
       }
     }
   });

@@ -982,10 +982,19 @@ export const TREE_MAKERS = { beech: makeBeech, oak: makeOak, fir: makeFir, bush:
 // Quita los árboles que hayan quedado dentro de un rectángulo girado (mismo criterio que clearGrass: ancho w centrado
 // y fondo d desde el punto): al levantar un frontón o una pista, un árbol podía quedar en medio de la cancha (Tafalla)
 const _zero = new THREE.Matrix4().makeScale(0, 0, 0);
+// (la copa, con su anchura de verdad, la de su forma por su escala: antes se tomaba 0,6 m por escala, y en Elizondo las
+// copas de dos castaños de junto a la pared izquierda entraban en la cancha, a 4 y 5 m de altura)
+const COPA = new WeakMap();
+function copaDe(t) {
+  const g = t.inst?.[0]?.[0]?.geometry; if (!g) return 0.6 * t.s;
+  let R = COPA.get(g);
+  if (R == null) { if (!g.boundingBox) g.computeBoundingBox(); const b = g.boundingBox; R = Math.max(0.6, -b.min.x, b.max.x, -b.min.z, b.max.z); COPA.set(g, R); }
+  return R * t.s;
+}
 export function clearTrees(cx, cz, w, d, ry, m = 1) {
   const c = Math.cos(ry), s = Math.sin(ry);
   for (let k = TREES.length - 1; k >= 0; k--) {
-    const t = TREES[k], dx = t.x - cx, dz = t.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + 0.6 * t.s;   // (con la copa)
+    const t = TREES[k], dx = t.x - cx, dz = t.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + copaDe(t);   // (con la copa)
     if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
     for (const [im, i] of t.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
     if (t.col) removeCollider(t.col);

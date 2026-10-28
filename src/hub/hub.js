@@ -70,7 +70,6 @@ const otroNombre = (n1, n2) => (isEU() ? n1 : n2);
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
 const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
 const kc = (id) => KC[id] || 'av';
-const bg = (u, v = 'background-image') => u ? ` style="${v}:url(${u})"` : '';   // (una imagen de fondo, solo si la hay)
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
 // (una excavación, con el icono de su yacimiento: el crómlech, la cueva, la columna romana…)

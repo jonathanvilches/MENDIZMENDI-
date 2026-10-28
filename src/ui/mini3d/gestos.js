@@ -347,7 +347,7 @@ function tenazas(c) {
 // puntos): se sigue con el dedo desde la bolita, de un lado a otro; cada pasada, una vuelta más en la cesta (y la
 // siguiente, al revés). Con teclas: arriba (por delante) y abajo (por detrás), una y otra.
 function trenzar(c) {
-  const { ui, S, sc, J, D, C, K } = c, PAS = 5, ONDAS = 7;
+  const { ui, J, D, C, K } = c, PAS = 5, ONDAS = 7;
   J.limite = 45;
   let s = 0, sentido = 1, mano = null;
   const fondo = C.f('rect', 'g-fondo'), camino = C.f('path', 'g-camino'), hecho = C.f('path', 'g-hecho'), varas = Array.from({ length: ONDAS }, () => C.f('circle', 'g-vara')), bola = anillo(C);
@@ -593,7 +593,7 @@ function red(c) {
 // resbala; si se para, baja. Al pecho, el golpe de piernas: deslizar hacia arriba con los dos dedos a la vez. Con
 // teclas: izquierda y derecha, y arriba.
 function alzar(c) {
-  const { ui, S, sc, J, D, C, K } = c;
+  const { ui, J, D, C, K } = c;
   J.limite = 12;
   const M = manos(C, 'Izquierda', 'Derecha'), fl = [flecha(C, 'ok'), flecha(C, 'ok')];
   let ultimo = null, fase = 0, quieto = 0, sube = 0;

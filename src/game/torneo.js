@@ -430,19 +430,21 @@ const rivalBonus = (p) => ((p.lv || 2) - 2) * 3;
 // el frontón de cada partido, a elegir antes de jugar: el de la plaza del pueblo (cada pueblo tiene el suyo, de su
 // comarca), el cubierto del pueblo o el Labrit de Iruña; en Campeonatos, también el de otro pueblo (se va allí)
 // (los textos, ya en su idioma: el traductor no sabe poner el nombre del pueblo delante en euskera)
+// (fuera: el cubierto de otro pueblo, el del rival o uno de la comarca, o.fuera; solo en el torneo)
 const SEDE = { plaza: (h) => h || (isEU() ? 'Herria' : 'Tu pueblo'), cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit · Iruña',
-  otro: () => isEU() ? 'Beste herri bat' : 'Otro pueblo' };
-const SEDE_CORTO = { plaza: (h) => h || (isEU() ? 'Herria' : 'Pueblo'), cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit' };
+  fuera: (h, o) => isEU() ? `${o?.fuera} · estalia` : `Cubierto de ${o?.fuera}`, otro: () => isEU() ? 'Beste herri bat' : 'Otro pueblo' };
+const SEDE_CORTO = { plaza: (h) => h || (isEU() ? 'Herria' : 'Pueblo'), cubierto: () => isEU() ? 'Estalia' : 'Cubierto', labrit: () => 'Labrit', fuera: (h, o) => o?.fuera || '' };
 const SEDE_SUB = { plaza: () => isEU() ? 'Herriko frontoia: elizaren ondoan, udaletxeko plazan edo kalean' : 'El del pueblo: junto a la iglesia, en la plaza del ayuntamiento o en la calle', cubierto: () => isEU() ? 'Harmailak dituen pilotalekua' : 'Pabellón con grada',
-  labrit: () => isEU() ? 'Finalen frontoia' : 'El frontón de las finales', otro: () => isEU() ? 'Jokatu beste herri bateko frontoian' : 'Juega en el frontón de otro pueblo' };
+  labrit: () => isEU() ? 'Finalen frontoia' : 'El frontón de las finales', fuera: () => isEU() ? 'Beste herri bateko pilotaleku estalia' : 'El pabellón de otro pueblo de la comarca',
+  otro: () => isEU() ? 'Jokatu beste herri bateko frontoian' : 'Juega en el frontón de otro pueblo' };
 const FRONTON = () => isEU() ? 'Frontoia' : 'Frontón';
-const sedeHtml = (o, here) => !o?.sedes?.length ? '' : `<button type="button" class="tq-sede" data-sede aria-haspopup="dialog" aria-expanded="false" data-notr><span>${FRONTON()}</span>${esc(SEDE_CORTO[o.sede](here))}</button>`;
+const sedeHtml = (o, here) => !o?.sedes?.length ? '' : `<button type="button" class="tq-sede" data-sede aria-haspopup="dialog" aria-expanded="false" data-notr><span>${FRONTON()}</span>${esc(SEDE_CORTO[o.sede](here, o))}</button>`;
 // (al tocarlo, la lista; lo elegido se apunta en o.sede; «Otro pueblo» abre la lista de pueblos y devuelve su id)
 async function sedeClick(e, r, o, here) {
   const b = e.target.closest('[data-sede]'); if (!b) return false;
   const k = await sedeLista(b, o, here);
   if (k === 'otro') return { otro: await otroPueblo(here) };
-  if (k && k !== o.sede) { o.sede = k; o.onSede?.(k); b.lastChild.textContent = SEDE_CORTO[k](here); }
+  if (k && k !== o.sede) { o.sede = k; o.onSede?.(k); b.lastChild.textContent = SEDE_CORTO[k](here, o); }
   return true;
 }
 /** La lista de los frontones, junto al botón (encima si cabe): devuelve el elegido, 'otro' o null (tocando fuera o
@@ -451,7 +453,7 @@ function sedeLista(btn, o, here) {
   return new Promise(res => {
     const ks = [...o.sedes, ...(o.otro ? ['otro'] : [])], pop = document.createElement('div');
     pop.className = 'tq-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', FRONTON()); pop.dataset.notr = '';
-    pop.innerHTML = `<div>${ks.map(k => `<button type="button" class="${k === o.sede ? 'on' : ''}" aria-pressed="${k === o.sede}" data-k="${k}"><b>${esc(SEDE[k](here))}</b><small>${esc(SEDE_SUB[k]())}</small></button>`).join('')}</div>`;
+    pop.innerHTML = `<div>${ks.map(k => `<button type="button" class="${k === o.sede ? 'on' : ''}" aria-pressed="${k === o.sede}" data-k="${k}"><b>${esc(SEDE[k](here, o))}</b><small>${esc(SEDE_SUB[k]())}</small></button>`).join('')}</div>`;
     document.body.appendChild(pop); btn.setAttribute('aria-expanded', 'true');
     // (en píxeles del CSS: en la tele, la interfaz va ampliada y lo que se mide sale en píxeles de la pantalla)
     const L = pop.firstElementChild, q = btn.getBoundingClientRect(), P = L.getBoundingClientRect(), c = enCss, W = c(innerWidth), H = c(innerHeight);
@@ -499,8 +501,10 @@ export function torneoPanel(T, here = null, o = null) {
   css();
   return new Promise(res => {
     const m = yourMatch(T), pairs = T.kind === 'parejas', lang = isEU() ? 'eu' : 'es', yp = T.players.find(p => p.you);
-    // (el frontón del partido: el elegido para esta ronda o, si no, el de siempre: el cubierto y, la final, el Labrit)
-    if (o && m) { o.sede = sedeDe(T, m); o.onSede = (k) => { T.sede = { ri: T.round, round: m.round, edition: T.edition, kind: k }; }; }
+    // (el frontón del partido: el elegido para esta ronda o, si no, el que le toca: ver sedeRonda)
+    // (y el cubierto de otro pueblo: el del rival o, si no es de un pueblo del juego, uno de la comarca; ver fueraDe)
+    const fu = o && m ? fueraDe(T) : null; if (fu && !o.sedes.includes('fuera')) { o.sedes = [...o.sedes, 'fuera']; o.fuera = fu.name; }
+    if (o && m) { o.sede = sedeDe(T, m, o.sedes); o.onSede = (k) => { T.sede = { ri: T.round, round: m.round, edition: T.edition, kind: k }; }; }
     const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div><button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
     const how = comoFunciona(T);
     // (las cartas del duelo, con el color que cada uno viste en el partido)
@@ -530,11 +534,39 @@ export function torneoPanel(T, here = null, o = null) {
       const b = e.target.closest('[data-a]'); if (!b) return; ro.disconnect(); lgFuera(r); res(b.dataset.a); });
   });
 }
-/** El frontón de tu partido del torneo: el que elegiste para esta ronda o el de siempre (la final, en el Labrit). */
-// (las rondas, en el frontón del pueblo, cada uno con lo suyo: junto a la iglesia, en la plaza del ayuntamiento o en la
-// calle; la final, en el Labrit. Antes las rondas eran en el cubierto, el mismo pabellón en todos los pueblos)
+/** El frontón de tu partido del torneo: el que elegiste para esta ronda o el que le toca (la final, en el Labrit).
+ *  sedes: los frontones que hay (townGame.sedes(): en Iruña, el del pueblo ya es el Labrit). */
 // (el elegido vale para su ronda: por su número; los guardados antes, por su nombre)
-export const sedeDe = (T, m) => { const S = T.sede, suya = S && S.edition === T.edition && (S.ri != null ? S.ri === T.round : S.round === m.round); return suya ? S.kind : m.round === 'Final' ? 'labrit' : 'plaza'; };
+export const sedeDe = (T, m, sedes = ['plaza', 'cubierto', 'labrit']) => { const S = T.sede, suya = S && S.edition === T.edition && (S.ri != null ? S.ri === T.round : S.round === m.round); return suya ? S.kind : sedeRonda(T, T.round, sedes); };
+// El que le toca a cada ronda: cambia de ronda en ronda, a suertes, y nunca es el de la ronda anterior: el frontón del
+// pueblo, su cubierto o el cubierto de otro pueblo (fueraDe); la final, siempre en el Labrit. A suertes con la edición:
+// la misma ronda, el mismo frontón aunque se salga y se vuelva. Antes todas las rondas se jugaban en el frontón del
+// pueblo («dos partidos en el mismo frontón»)
+// (a suertes, pero siempre lo mismo para el mismo torneo y la misma ronda: un número de 0 a 1 de la comarca, la modalidad,
+// la edición y la ronda. Con minstd las ediciones salían con los mismos frontones de dos en dos)
+const azar = (T, i, k = 0) => { let h = [...`${T.comarca}${T.kind}`].reduce((a, c) => Math.imul(a, 31) + c.charCodeAt(0) | 0, T.edition * 7919 + k);
+  h = Math.imul(h ^ 0x9E3779B9, 0x85EBCA6B) ^ Math.imul(i + 0x632BE5AB, 0xC2B2AE35); h ^= h >>> 16; h = Math.imul(h, 0x7FEB352D); h ^= h >>> 15; h = Math.imul(h, 0x846CA68B); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
+const rivalEn = (T, ms) => { const x = ms?.find(q => T.players[q.a]?.you || T.players[q.b]?.you); return x ? T.players[T.players[x.a].you ? x.b : x.a] : null; };
+/** El pueblo del cubierto de fuera en una ronda: { id, name } del rival si es de un pueblo del juego; si no, uno de la
+ *  comarca (o de alrededor) que no sea el tuyo, a suertes. null si no hay ninguno. */
+export function fueraDe(T, ri = T.round) {
+  const rv = rivalEn(T, ri < T.round ? T.past[ri]?.matches : T.matches), yo = T.players.find(q => q.you)?.town;
+  if (rv?.townId) return { id: rv.townId, name: rv.town };
+  const vs = (T.venues || []).filter(v => v.id && v.name !== yo); if (!vs.length) return null;
+  return vs[Math.floor(azar(T, ri, 1) * vs.length)];
+}
+export function sedeRonda(T, ri, sedes = ['plaza', 'cubierto', 'labrit']) {
+  const plan = planOf(T), S = T.sede?.edition === T.edition ? T.sede : null; let k = null, k2 = null;
+  for (let i = 0; i <= ri; i++) {
+    const prev = k, dosCubiertos = !!prev && !!k2 && prev !== 'plaza' && k2 !== 'plaza'; k2 = prev;
+    if (S && S.ri === i && i < ri) { k = S.kind; continue; }   // (lo elegido para una ronda ya jugada, para no repetirlo en la siguiente)
+    if (plan[i]?.name === 'Final') { k = 'labrit'; continue; }
+    // (tras un cubierto, mejor el del pueblo, al aire libre, que es el que más se nota: cuenta por dos)
+    const ops = [...sedes.filter(x => x !== 'labrit' && x !== 'fuera'), ...(fueraDe(T, i) ? ['fuera'] : [])], libres = ops.filter(x => x !== prev).flatMap(x => x === 'plaza' && prev ? [x, x] : [x]), L = libres.length ? libres : ops;
+    k = dosCubiertos && L.includes('plaza') ? 'plaza' : L[Math.floor(azar(T, i) * L.length)] || 'plaza';   // (y tras dos cubiertos seguidos, el del pueblo)
+  }
+  return k;
+}
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */

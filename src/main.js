@@ -49,6 +49,7 @@ import { startFrames } from './ui/frames.js';
 import { watchUpdates } from './web/update.js';
 import { startHD } from './web/hd.js';
 import { sencillo } from './util/sencillo.js';
+import { apuntaPerdida } from './util/diag.js';
 
 const q = new URLSearchParams(location.search);
 const TIPS = [
@@ -126,7 +127,9 @@ async function boot() {
   // retratos, fichas, iconos y figuras del público se dibujan con este mismo renderizador (sin un segundo contexto WebGL)
   setOffscreenHost(rt.renderer);
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
-  canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; S.qualityAuto = true; saveProfile(); } });
+  canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; S.qualityAuto = true; saveProfile(); }
+    // (y se apunta dónde estabas, para Ajustes › Diagnóstico: «se me sale solo del partido» suele ser esto)
+    apuntaPerdida(`${def?.id || 'menú'} · ${game?.pelotaMatch ? 'partido de pelota' : game?.sportMode ? 'campeonatos' : game?.mode || 'menú'} · calidad ${S.quality || quality}`); });
   canvas.style.visibility = 'hidden';
   window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
 

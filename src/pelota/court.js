@@ -2,7 +2,7 @@
 // Origen del grupo: suelo, centro del frontis. La cancha crece hacia +z; la pared izquierda en x = −W/2.
 import { COURT, CUATRO } from './rules.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
-import { buildEntorno, entornoExtent, casas } from './entorno.js';
+import { buildEntorno, entornoExtent } from './entorno.js';
 
 function srgb(THREE, tex) {
   if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
@@ -183,7 +183,6 @@ export class PelotaCourt {
     base.position.set((bx0 + bx1) / 2, -BH / 2 - 0.02, fl / 2 - 0.3); base.receiveShadow = true; g.add(base);
 
     // --- frontis con la chapa y la raya de arriba
-    const title = (opts.title || '').toUpperCase();
     const frontTex = canvasTex(T, 1024, 1024, (c, w, h) => {
       if (th.stone) ashlar(c, w, h, W + 0.6, C.FRONT_H, th.stone);
       else { c.fillStyle = th.frontis; c.fillRect(0, 0, w, h); grain(c, w, h, 16000, 0.06); grain(c, w, h, 5000, 0.05, false); }
@@ -252,10 +251,11 @@ export class PelotaCourt {
     const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.07), M({ color: th.mark, roughness: 0.6 }));
     chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);   // (la raya, donde siempre: lo que da por debajo es chapa)
 
-    // --- pared izquierda (lisa, con la raya roja de arriba)
+    // --- pared izquierda (lisa, con la raya roja de arriba). También en la calle: antes era la fila de casas, con fachadas
+    // casi blancas, ventanas y geranios, y la pelota, casi blanca, no se veía contra ellas; ahora la pared es de frontón,
+    // pintada, y las casas asoman por encima (entorno.js)
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
-      if (CALLE) casas(c, w, h, EXT, C.LEFT_H, 11);   // (en la calle, la pared izquierda es la fila de casas)
-      else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false); weather(c, w, h, C.LEFT_H, EXT, DRY); }
+      c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false); weather(c, w, h, C.LEFT_H, EXT, DRY);
       const Y = (y) => h - y / C.LEFT_H * h;
       c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_LINE) - 6, w, 12);   // raya roja: por encima es mala
     });
@@ -933,8 +933,12 @@ export class PelotaCourt {
     if (this.flashT > 0) { this.flashT -= dt; const k = 1 - this.flashT / 0.35; this.flash.scale.setScalar(0.6 + k * 2.2); this.flash.material.opacity = 0.9 * (1 - k); if (this.flashT <= 0) this.flash.visible = false; }
     if (this.chapaT > 0) { this.chapaT = Math.max(0, this.chapaT - dt); this.chapaMat.emissive.setRGB(this.chapaT * 1.6, 0.1 * this.chapaT, 0.1 * this.chapaT); }
   }
+  // (todo lo de la cancha es suyo: también los materiales sueltos, el marcador, el cielo del cubierto, los focos y sus
+  // texturas. Antes solo se soltaban los de this.materials y su map: al cambiar de cubierto entre ronda y ronda de un
+  // campeonato, lo demás se quedaba en la tarjeta gráfica)
   dispose() {
-    this.group.traverse(o => { if (o.geometry) o.geometry.dispose(); });
-    for (const m of this.materials) { if (m.map) m.map.dispose(); m.dispose(); }
+    const mats = new Set(this.materials);
+    this.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (!o.isSkinnedMesh) for (const m of [].concat(o.material || [])) mats.add(m); });
+    for (const m of mats) { for (const v of Object.values(m)) if (v?.isTexture) v.dispose(); m.dispose(); }
   }
 }

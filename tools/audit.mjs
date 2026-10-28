@@ -61,6 +61,8 @@ async function auditSize(sz) {
   const page = await ctx.newPage();
   // sin transiciones: se mide la posición final, no un fotograma a medio animar (swiftshader va a 1-2 fps)
   await page.addInitScript(() => addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '*,*::before,*::after{transition:none!important}'; document.head.appendChild(st); }));
+  // (con el idioma ya elegido: si no, la pantalla de elegir idioma tapaba todo y se medía lo de debajo)
+  await page.addInitScript(() => { try { if (!localStorage.getItem('herrizherri-lang')) localStorage.setItem('herrizherri-lang', 'es'); } catch (e) { } });
   const errs = [];
   page.on('pageerror', e => errs.push('PAGEERROR ' + e.message));
   const shot = (n) => page.screenshot({ path: `${dir}/${sz}-${n}.png`, timeout: 240000 });

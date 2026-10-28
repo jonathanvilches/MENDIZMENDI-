@@ -72,7 +72,7 @@ import { Fronton, findFrontonSpot, frontonWall, frontonExtent, labrit, labritInT
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown, teamOfClub, CLUBS } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
-import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus, sedeDe, KINDS } from './torneo.js';
+import { torneo, yourMatch, playTorneoRound, torneoPanel, pelotaMenu, youBonus, sedeDe, fueraDe, KINDS } from './torneo.js';
 import { showChampion } from '../ui/champion.js';
 import { makeClue, makeAura } from './legendFx.js';
 import { Chase } from './chase.js';
@@ -1129,7 +1129,7 @@ export class TownGame {
       const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m) });
       if (this.disposed) return;   // (el pueblo se rehízo durante el partido: el fondo de los campeonatos ya es del nuevo)
       this.sportBackdrop(false);
-      if (r.quit) return;
+      if (r.quit || r.error) return;
       const best = (townState(profile(), this.def.id).best ||= {});
       if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       this.player.frozen = true;
@@ -1171,7 +1171,7 @@ export class TownGame {
         const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true, intro: (m) => vueloFronton(this, hv, m) });
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
-        if (r.quit) continue;
+        if (r.quit || r.error) continue;
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       }
@@ -1207,9 +1207,9 @@ export class TownGame {
         if (act === 'new') { T = torneo({ name: P.name || 'Tú', town }, ctx, true, kind); continue; }
         if (act === 'sim') { playTorneoRound(T); continue; }
         const m = yourMatch(T);
-        // (en el frontón elegido para este partido; si no, los cuartos y las semifinales en el cubierto del pueblo y la
-        // final en el Labrit de Iruña)
-        const venue = this.venueDe(sedeDe(T, m));
+        // (en el frontón elegido para este partido; si no, en el que le toca a la ronda, distinto del de la anterior: el
+        // del pueblo, su cubierto o el cubierto de otro pueblo; la final, en el Labrit de Iruña)
+        const venue = this.venueDe(sedeDe(T, m, this.sedes()), fueraDe(T));
         await this.venuePrep(venue);
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
@@ -1221,6 +1221,9 @@ export class TownGame {
         this.sportBackdrop(true);
         played = true;
         if (r.quit && r.later) continue;   // («Ahora no» antes de empezar: de vuelta al cuadro del torneo, de donde se vino)
+        // (si el partido no se pudo montar o falló jugando, de vuelta al cuadro sin apuntar nada: antes contaba como un
+        // 0 a 0 perdido o te sacaba del torneo al pueblo, «se me sale solo de la partida»)
+        if (r.error) { this.ui.toast?.(isEU() ? 'Partidak ezin izan du jarraitu. Saiatu berriro.' : 'El partido no ha podido seguir. Vuelve a intentarlo.', 'pelota', 3200); continue; }
         if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
         if (r.color) T.tuColor = r.color;   // (el color con que jugaste: el de tu carta de campeón)
         playTorneoRound(T, r.you, r.cpu);
@@ -1240,8 +1243,11 @@ export class TownGame {
   }
   // el frontón de un partido: el de la plaza (el de la calle del pueblo, cada uno de su comarca), el cubierto o el Labrit
   // (en Iruña, el de la calle ya es el Labrit)
+  // (fuera: el cubierto de otro pueblo, { id, name } de torneo.js fueraDe)
   sedes() { return this.fronton?.court.labrit ? ['labrit', 'cubierto'] : ['plaza', 'cubierto', 'labrit']; }
-  venueDe(sede) {
+  venueDe(sede, fuera = null) {
+    const otro = sede === 'fuera' && fuera ? LEVELS.find(l => l.id === fuera.id) : null;
+    if (otro) return this.hallVenue(otro);
     if (this.fronton?.court.labrit) return sede === 'cubierto' ? this.hallVenue() : this.fronton;
     return sede === 'plaza' ? this.fronton : sede === 'labrit' ? this.labritVenue() : this.hallVenue();
   }
@@ -1262,7 +1268,7 @@ export class TownGame {
   // el frontón Labrit: muy por encima del pueblo y fuera de sus límites (solo se ve por dentro y en la llegada)
   labritVenue() { return labrit(this.scene, { x: PLACES.plaza.x + 2600, z: PLACES.plaza.z }); }
   // el frontón cubierto del pueblo (los campeonatos): también muy por encima y fuera de sus límites, al otro lado
-  hallVenue() { return hallVenue(this.scene, { x: PLACES.plaza.x - 2600, z: PLACES.plaza.z }, this.def); }
+  hallVenue(def = this.def) { return hallVenue(this.scene, { x: PLACES.plaza.x - 2600, z: PLACES.plaza.z }, def); }
   say(a, lines) {
     const look = a.obj?.userData.look;
     return this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)

@@ -537,7 +537,7 @@ export class PelotaGame {
   repertorio(who, me, op, smart) {
     const rnd = this.rnd, g = gauss(rnd), ataque = 0.25 + smart * 0.75;
     // (la dejada, sobre todo cuando él está delante y el otro, atrás; desde atrás, nunca)
-    const atras = op.z > 20, delante = op.z < 15.5, dcha = op.x > 1, izda = op.x < -1, lejos = me.z > 22, corto = op.z > 19 && me.z < 19.5 ? 0.6 : me.z < 15 ? 0.25 : 0;
+    const delante = op.z < 15.5, dcha = op.x > 1, izda = op.x < -1, lejos = me.z > 22, corto = op.z > 19 && me.z < 19.5 ? 0.6 : me.z < 15 ? 0.25 : 0;
     const G = [
       [3.4 - smart, { aim: { x: g * 0.5, y: rnd() < 0.3 ? 0.4 : 0 } }],                                                       // pelotear
       [(delante ? 1.6 : 0.45) * ataque, { aim: { x: g * 0.3, y: 1 }, pow: 0.85 + rnd() * 0.15 }],                           // fuerte hacia atrás
