@@ -339,7 +339,7 @@ export function mapa3d(host, o) {
   let bajoC = null;   // (la comarca que queda debajo del punto al que mira la cámara)
   let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t0, dur })
   const volar = (a, dur = 0.9) => { inercia = null; vuelo = { de: { ...v }, a: { ...v, ...a }, t: 0, dur }; Object.assign(goal, vuelo.a); };
-  const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.22 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
+  const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.12 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
     if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   DMAX = Math.max(150, goal.d * 1.35);
   // (el comienzo, sin la entrada grande: desde muy alto, la cámara baja y se inclina mientras las comarcas crecen una tras otra)
@@ -668,7 +668,7 @@ export function mapa3d(host, o) {
     nucT = -1e9;   // (su núcleo, en la imagen siguiente: así sus casas se van haciendo durante el vuelo)
     // (hasta lo más cerca, casi a la altura de los tejados y de lado, para ver sus casas en pie; los bosques, sin maqueta,
     // desde algo más arriba). Al llegar, el vuelo de dron
-    const real = TR.includes(t), d = real ? DRON_D : 2.4, pitch = real ? 0.56 : 0.85;
+    const real = TR.includes(t), d = real ? DRON_D : 2.4, pitch = real ? 0.5 : 0.85;
     volar({ x: t.X, z: t.Z, d, yaw: v.yaw, pitch }, Math.min(2.6, 1.3 + 0.18 * Math.log2(Math.max(1, v.d / d))));
     dron = { t: 0, id: t.id, X: t.X, Z: t.Z, d, pitch, yaw: v.yaw, real, listo: false };
   }
@@ -676,7 +676,7 @@ export function mapa3d(host, o) {
   // La cámara pasa por encima del pueblo muy despacio, como un dron: le da la vuelta poco a poco (una vuelta en unos dos
   // minutos), se acerca y se aleja un poco y va y viene sobre sus calles, sin perderlo nunca de vista. Empieza al acabar el
   // vuelo hasta él y se para en cuanto se toca el mapa, se mueve con las teclas o la rueda, o se cierra el pueblo
-  const DRON_D = 0.32;
+  const DRON_D = 0.18;   // (cerca, casi entre los tejados: de más lejos el pueblo se veía pequeño)
   let dron = null;
   function sigueDron(dt) {
     if (!dron.listo) { if (vuelo) return; dron.listo = true; }
@@ -760,6 +760,9 @@ export function mapa3d(host, o) {
     const casa = (b, dx, dz, color) => { g.save(); const [a, bb] = P(b.x + dx, b.z + dz); g.translate(a, bb); g.rotate(-b.ry); g.fillStyle = color; g.fillRect(-b.w * k / 2, -b.d * k / 2, b.w * k, b.d * k); g.restore(); };
     // (un velo claro bajo lo edificado, que de lejos se lee como el núcleo)
     if (velo) { g.filter = `blur(${Math.round(N / 50)}px)`; for (const b of D.casas) casa(b, 0, 0, 'rgba(246, 236, 214, .5)'); g.filter = 'none'; }
+    // (en la maqueta, el suelo con su grano: motas de hierba más oscura y más clara, en un dibujo pequeño que se repite)
+    const dibujo = (w, h, pinta) => { const t = document.createElement('canvas'); t.width = w; t.height = h; pinta(t.getContext('2d'), w, h); return g.createPattern(t, 'repeat'); };
+    if (!velo) { g.fillStyle = dibujo(64, 64, (q, w, h) => { for (let i = 0; i < 260; i++) { q.fillStyle = Math.random() < 0.6 ? `rgba(36, 70, 28, ${0.1 + Math.random() * 0.14})` : `rgba(255, 250, 220, ${0.06 + Math.random() * 0.1})`; q.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1 + Math.random() * 2); } }); g.fillRect(0, 0, N, N); }
     for (const u of D.usos || []) if (USO[u.k]) area(u.pts, USO[u.k]);
     // (en la maqueta, la textura de cada campo: surcos en los cereales, hileras en viñas y frutales, bancales en las
     // huertas, las pasadas del corte en los prados y las rayas de los campos de deporte; cada uno con su dirección)
@@ -778,12 +781,21 @@ export function mapa3d(host, o) {
       else if (u.k === 'deporte') { g.beginPath(); u.pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.closePath(); g.lineWidth = Math.max(1, 0.8 * k); g.strokeStyle = 'rgba(255, 255, 255, .7)'; g.stroke(); }
     }
     for (const p of D.lugares.plazas || []) area(p.pts, 'rgba(236, 226, 206, .9)');
+    // (y en las plazas, las losas: una cuadrícula de unos 2,5 m)
+    if (!velo) { const L = Math.max(3, Math.round(2.5 * k)); const losas = dibujo(L, L, (q, w, h) => { q.fillStyle = 'rgba(120, 104, 84, .28)'; q.fillRect(0, 0, w, 1); q.fillRect(0, 0, 1, h); });
+      for (const p of D.lugares.plazas || []) area(p.pts, losas); }
     // (los anchos de los datos son la mitad: de la orilla al centro)
     for (const r of D.rios) linea(r.pts, Math.max(4, 2 * (r.w || 2)), '#5ab8f0');
     for (const b of D.balsas || []) area(b.pts, '#5ab8f0');
     for (const b of D.piscinas || []) area(b.pts, '#7fd6f6');
     for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) + 1.5, s.t === 'trail' ? 'rgba(150, 128, 96, .35)' : 'rgba(120, 104, 90, .55)');
     for (const s of D.calles) linea(s.pts, 2 * (s.w || 2), s.t === 'trail' ? 'rgba(214, 198, 166, .85)' : '#e7dfd0');
+    // (en la maqueta, el empedrado de las calles, adoquines de algo más de un metro con sus juntas, y la tierra de los caminos)
+    if (!velo) {
+      const A = Math.max(3, Math.round(1.2 * k)), adoquin = dibujo(A * 2, A * 2, (q, w, h) => { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { const o = j % 2 ? A / 2 : 0; q.fillStyle = `rgba(${150 + Math.random() * 40}, ${134 + Math.random() * 34}, ${112 + Math.random() * 30}, .5)`; q.fillRect((i * A + o) % w + 1, j * A + 1, A - 1, A - 1); q.fillRect((i * A + o) % w + 1 - w, j * A + 1, A - 1, A - 1); } });
+      const tierra = dibujo(32, 32, (q, w, h) => { for (let i = 0; i < 90; i++) { q.fillStyle = Math.random() < 0.5 ? 'rgba(120, 92, 60, .25)' : 'rgba(250, 238, 210, .2)'; q.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1); } });
+      for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) - 0.6, s.t === 'trail' ? tierra : adoquin);
+    }
     for (const s of D.puentes || []) { linea(s.pts, 2 * (s.w || 2) + 2, 'rgba(90, 76, 62, .6)'); linea(s.pts, 2 * (s.w || 2), '#d6c8ae'); }
     for (const b of D.casas) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
     for (const b of D.casas) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); }

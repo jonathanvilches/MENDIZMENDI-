@@ -169,18 +169,18 @@ function mapaOn(root, p) {
     ficha.dataset.t = id; ficha.style.setProperty('--c', comarca(l.comarca)?.color || '#fff'); ficha.innerHTML = fichaHTML(p, l);
     ficha.hidden = false; ficha.style.visibility = 'hidden'; entra(ficha);
   };
-  // (la ficha, junto a la chincheta, que mapa3d.js dice dónde queda en cada imagen: a su derecha en las pantallas anchas, o a
-  // su izquierda si no cabe; debajo del pueblo en el móvil de pie; siempre dentro, con su pico señalándola)
+  // (la ficha, quieta en su sitio mientras el dron vuela sobre el pueblo: a la derecha en las pantallas anchas, en lo que
+  // el mapa deja libre con el hueco, y abajo en el móvil de pie. Antes iba pegada a la chincheta y se movía con la cámara)
   const ESTRECHA = 640, m = 12, lim = { t: m, b: 0 };   // (lim: entre lo de arriba y las comarcas de abajo, medido con el hueco)
-  const sigue = (x, y, ok) => {
+  let ya = '';
+  // (lo que ocupan a la derecha los botones del mapa: la ficha va a su izquierda)
+  const padR = () => { const P = sec.querySelector('.m3-pad'); return P?.offsetParent ? sec.clientWidth - P.offsetLeft + 8 : m; };
+  const sigue = () => {
     if (ficha.hidden) return;
-    const W = sec.clientWidth, H = sec.clientHeight, w = ficha.offsetWidth, h = ficha.offsetHeight, abajo = W < ESTRECHA;
-    let l = abajo ? x - w / 2 : x + 40, t = abajo ? y + 64 : y - h * 0.3;
-    if (!abajo && l + w > W - m) l = x - 40 - w;
-    l = Math.max(m, Math.min(W - w - m, l)); t = Math.max(lim.t, Math.min((lim.b || H - m) - h, t));
-    ficha.style.transform = `translate(${Math.round(l)}px, ${Math.round(t)}px)`; ficha.style.visibility = ok ? '' : 'hidden';
-    ficha.classList.toggle('abajo', abajo); ficha.classList.toggle('izq', !abajo && l < x);
-    ficha.style.setProperty('--px', Math.round(Math.max(20, Math.min(w - 20, x - l))) + 'px'); ficha.style.setProperty('--py', Math.round(Math.max(20, Math.min(h - 20, y - t))) + 'px');
+    const W = sec.clientWidth, H = sec.clientHeight, w = ficha.offsetWidth, h = ficha.offsetHeight, abajo = W < ESTRECHA, fondo = lim.b || H - m;
+    const l = abajo ? (W - w) / 2 : W - w - padR(), t = Math.max(lim.t, abajo ? fondo - h : Math.min(fondo - h, (lim.t + fondo - h) / 2));
+    const k = `translate(${Math.round(l)}px, ${Math.round(t)}px)`;
+    if (k !== ya || ficha.style.visibility) { ya = k; ficha.style.transform = k; ficha.style.visibility = ''; ficha.classList.add('fija'); }
   };
   const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
   const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: !DD && r.towns ? r.pct : 0, done: !DD && !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
@@ -196,7 +196,7 @@ function mapaOn(root, p) {
     for (const e of [sec.querySelector('.m3-tot'), sec.querySelector('.m3-mision'), banda]) if (e && !e.hidden && e.offsetParent) {
       const q = e.getBoundingClientRect(); if (q.top < a.top + a.height * 0.5) t = Math.max(t, (q.bottom - a.top) / k + 8); else b = Math.max(b, (a.bottom - q.top) / k + 8);
     }
-    if (!ficha.hidden) { if (a.width / k < ESTRECHA) b = Math.max(b, ficha.offsetHeight + 64 + 2 * m); else r = ficha.offsetWidth + 40 + 2 * m; }
+    if (!ficha.hidden) { if (a.width / k < ESTRECHA) b = Math.max(b, ficha.offsetHeight + 64 + 2 * m); else r = ficha.offsetWidth + padR() + 40 + m; }
     lim.t = Math.max(m, t + 4); lim.b = R?.offsetParent ? (R.getBoundingClientRect().top - a.top) / k - m : 0;
     return (hu = { t, r, b });
   };
