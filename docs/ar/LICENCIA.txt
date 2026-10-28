@@ -1,0 +1,8 @@
+Detección de manos de la txalaparta con la cámara (src/ui/txalapartaAR.js)
+
+- wasm/: el motor de MediaPipe Tasks Vision 0.10.21 (paquete npm @mediapipe/tasks-vision), de Google.
+- hand_landmarker.task: el modelo Hand Landmarker (float16, versión 1) de MediaPipe, de Google.
+
+Los dos con licencia Apache 2.0: https://www.apache.org/licenses/LICENSE-2.0
+https://github.com/google-ai-edge/mediapipe
+Funcionan en el propio aparato: la imagen de la cámara no sale de él.
