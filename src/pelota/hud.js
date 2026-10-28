@@ -270,6 +270,18 @@ const CSS = `
 .pel-mrv{margin:-4px 0 12px;font-size:var(--fs-xs);color:#b9addb}.pel-mrv:empty{display:none}
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
 @media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-msel select{min-height:42px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
+/* la experiencia en el panel del final: el nivel con su barra y lo que ha subido cada cualidad, en cuatro casillas */
+.pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-xp.sube{border-color:#ffd36a;box-shadow:0 0 0 3px rgba(255,211,106,.15),0 0 18px rgba(255,211,106,.25)}
+.pel-xp-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-xp-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.pel-xp.sube .pel-xp-top b{color:#ffd36a}.pel-xp-top span{font:800 var(--fs-sm)/1 var(--f-cond,'MZ Cond'),sans-serif;color:#ffb1e3;white-space:nowrap}
+.pel-xp-bar{display:block;height:8px;margin:10px 0 0;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.pel-xp-bar u{display:block;height:100%;border-radius:inherit;background:var(--cta,#c21cff);animation:pel-xpin 1s cubic-bezier(.2,.9,.3,1) both}
+@keyframes pel-xpin{from{width:0}}
+.pel-xp ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.pel-xp li{display:grid;justify-items:center;gap:2px;padding:6px 4px;border-radius:12px;background:rgba(20,8,40,.5)}
+.pel-xp li b{font:800 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#cbbcf0}
+.pel-xp li span{font:400 var(--fs-md)/1 var(--f-display,'MZ Display'),sans-serif;color:#7dffa8}.pel-xp li small{font:700 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),sans-serif;color:#e7defa}
+@media (max-height:500px){.pel-xp{padding:8px 10px;margin-bottom:8px}.pel-xp ul{margin-top:6px}.pel-xp li{padding:4px}}
 /* el cestaño en el partido, arriba a la izquierda bajo la X (lejos del aviso del saque, que en el móvil va arriba y en el
    ordenador abajo): un botón redondo con la pelota en juego; al tocarlo se despliegan las pelotas, y mientras sacas tú
    se puede cambiar (antes era la lista entera siempre a la vista, con el peso de cada una, encima de la cancha) */

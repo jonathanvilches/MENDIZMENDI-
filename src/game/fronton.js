@@ -14,6 +14,7 @@ import { rx, pathQuery, cercaDeYacimiento } from '../world/layout.js';
 import { clearGrass, clearTrees } from '../world/nature.js';
 import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
+import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
 import { QUALITY } from '../util/quality.js';
 import { crowd3d } from '../actors/crowd3d.js';
 import { shieldSpec, drawShield } from '../world/heraldry.js';
@@ -159,7 +160,7 @@ export function frontonWall(def) {
 
 // lo que has ganado a pelota (para tu ficha): los partidos ganados en todos los pueblos y tus txapelas
 function myRecord() {
-  try { const P = profile(), won = Object.values(P.towns || {}).reduce((a, t) => a + (t?.best?.pelota || 0), 0), tx = Object.values(txapelas()).reduce((a, n) => a + n, 0); return { won, txapelas: tx }; }
+  try { const P = profile(), won = Object.values(P.towns || {}).reduce((a, t) => a + (t?.best?.pelota || 0), 0), tx = Object.values(txapelas()).reduce((a, n) => a + n, 0), yo = tuPelotari(); return { won, txapelas: tx, nivel: yo.n, partidos: yo.partidos }; }
   catch (e) { return { won: 0, txapelas: 0 }; }
 }
 // cómo es el frontón para jugar: con cubierta o al aire libre, con el frontis de sillería, el suelo mojado si llueve
@@ -487,6 +488,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
+      // (tus cualidades, las que vas ganando; y cada partido acabado suma experiencia: lo enseña el panel del final)
+      youStats: tusCualidades(), progreso: (e, st, modo) => sumaPartido(e, st, modo),
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
       // (la presentación con los focos, solo en la final de un campeonato: la luz de la imagen baja y vuelve; show.js)
       focos: final, exposure: (v) => { const R = G.rt?.renderer; if (R) R.toneMappingExposure = v ?? 1.05; },
