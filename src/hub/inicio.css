@@ -156,28 +156,35 @@
 
 /* las comarcas, abajo, en una tira de fotos: cada una con su foto, su sello en un aro que se llena con sus sellos y cuántos
    lleva (las que faltan, con candado y la foto algo apagada); al principio, el botón de todas en fotos */
-/* (cada comarca, con su lámina entera: la tarjeta en 16:9, como la imagen, para no recortarla) */
-.m3-rail { --chw: 150px; --chh: calc(var(--chw) * 9 / 16); position: absolute; z-index: 3; left: 16px; right: calc(76px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
+/* (cada comarca, como la carta de un pueblo en la galería: su lámina entera, en 16:9, sin recortarla, y debajo la franja
+   oscura de datos con su nombre y sus sellos; el marco fino con dos esquinas cortadas y un toque de su color. Las que
+   faltan, con candado, la foto apagada y el marco sin color; la elegida, con el marco encendido) */
+.m3-rail { --chw: 150px; --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(76px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
 .m3-rail::-webkit-scrollbar { display: none; }
-.m3-chip, .m3-todas { position: relative; flex: none; width: var(--chw); height: var(--chh); display: flex; align-items: flex-end; padding: 0; border-radius: 16px; overflow: hidden; background: #1c0b3a; border: 1px solid color-mix(in srgb, var(--c, var(--pink)) 55%, var(--line2)); color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); transition: border-color .2s, transform .2s, box-shadow .2s; }
-.m3-chip::after, .m3-todas::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 4, 32, 0) 25%, rgba(13, 4, 32, .88)); pointer-events: none; }
-.m3-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .4s, filter .3s; }
-.m3-chip:hover, .m3-chip:focus-visible, .m3-todas:hover, .m3-todas:focus-visible { transform: translateY(-3px); border-color: var(--c, var(--pink)); }
-.m3-chip:hover .m3-foto { transform: scale(1.06); }
-.m3-chip.on { border: 2px solid var(--c); box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 40%, transparent), 0 8px 22px rgba(0, 0, 0, .5); }
+.m3-chip, .m3-todas { position: relative; flex: none; width: var(--chw); display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c, #ff7ac8) 55%, #fff) 100%);
+  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k));
+  filter: drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); transition: transform .2s, filter .2s; }
+.m3-foto { grid-row: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); transition: filter .3s; }
+.m3-chip:hover, .m3-chip:focus-visible, .m3-todas:hover, .m3-todas:focus-visible { transform: translateY(-3px); }
+.m3-chip.on { background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--c) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--c) 90%, #fff) 100%);
+  filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 45%, transparent)) drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); }
+.m3-chip:not(.go):not(.ok) { background: linear-gradient(135deg, rgba(255, 255, 255, .32) 0%, rgba(255, 255, 255, .08) 50%, rgba(255, 255, 255, .2) 100%); }
 .m3-chip:not(.go):not(.ok) .m3-foto { filter: saturate(.6) brightness(.82); }
 .m3-sello { position: relative; flex: none; width: 48px; height: 48px; display: grid; place-items: center; }
 .m3-sello > .m3-aro { position: absolute; inset: 0; } .m3-sello > img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
-.m3-chip .m3-sello { position: absolute; z-index: 1; left: 4px; top: 4px; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); } .m3-chip .m3-sello > img { width: 22px; height: 22px; }
+.m3-chip .m3-sello { position: absolute; z-index: 1; left: 6px; top: 6px; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); } .m3-chip .m3-sello > img { width: 22px; height: 22px; }
 .m3-chip.ok .m3-aro .ar { stroke: var(--gold); } .m3-chip.ok .m3-sello { filter: drop-shadow(0 0 6px rgba(255, 209, 102, .6)); }
 .m3-chip:not(.go):not(.ok) .m3-sello > img { filter: grayscale(1) brightness(.7); }
 .m3-lock { position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%; background: #1c0b3a; border: 1px solid var(--line2); }
 .m3-lock :is(svg, img) { width: 11px; height: 11px; }
-.m3-ct { position: relative; z-index: 1; display: grid; min-width: 0; padding: 0 10px 6px; line-height: 1.15; } .m3-ct b { color: #fff; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 3px #0d0420; } .m3-ct small { color: #e4dcff; font-weight: 800; font-size: 11px; white-space: nowrap; }
-.m3-todas { --c: var(--pink); border: 2px solid var(--pink); box-shadow: 0 0 18px rgba(255, 43, 214, .35), 0 6px 18px rgba(0, 0, 0, .4); }
-.m3-mos { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; background: #0d0420; }
-.m3-mos img { width: 100%; height: 100%; object-fit: cover; }
-.m3-todas .m3-ct b { font: 400 var(--fs-md)/1.05 'MZ Display', 'MZ Texto', sans-serif; letter-spacing: .03em; text-transform: uppercase; } .m3-todas .m3-ct small { color: #ffb6ec; }
+/* (la franja de datos, la de las cartas de los pueblos: oscura, con su esquina de abajo cortada) */
+.m3-ct { grid-row: 2; display: grid; gap: 3px; min-width: 0; padding: 6px calc(var(--k) + 2px) 7px 8px; background: linear-gradient(180deg, #1d1142, #110926); clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%); }
+.m3-ct b { font: 400 var(--fs-sm)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m3-ct small { font: 600 10px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #ff7ac8) 45%, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m3-todas { --c: var(--pink); }
+.m3-mos { grid-row: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; height: var(--chh); background: #0d0420; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); }
+.m3-mos img { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
 
 /* los botones de la cámara: acercar, ver toda Navarra y alejar (moverse y girar van con el dedo, el ratón y el teclado) */
 .m3-pad { position: absolute; z-index: 3; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: grid; grid-template-columns: 40px; grid-template-rows: repeat(3, 40px); gap: 6px;
@@ -220,10 +227,9 @@
 
   .m3d .ini-sq { width: 40px; height: 40px; border-radius: 12px; } .m3d .ini-sq :is(svg, img) { width: 24px; height: 24px; }
   .m3-ayuda { display: none; }
-  .m3-rail { --chw: 104px; left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
-  .m3-chip { border-radius: 12px; } .m3-chip .m3-sello { width: 24px; height: 24px; left: 3px; top: 3px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
-  .m3-ct { padding: 0 7px 4px; } .m3-ct b { font-size: 12px; } .m3-ct small { font-size: 11px; }
-  .m3-todas { border-radius: 12px; } .m3-todas .m3-ct b { font-size: var(--fs-sm); }
+  .m3-rail { --chw: 104px; --k: 8px; left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
+  .m3-chip .m3-sello { width: 24px; height: 24px; left: 5px; top: 5px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
+  .m3-ct { gap: 2px; padding: 4px calc(var(--k) + 2px) 5px 6px; } .m3-ct b { font-size: 12px; } .m3-ct small { font-size: 9px; letter-spacing: .1em; }
   .m3-pad { right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 6px; } .m3-b { width: 40px; height: 40px; border-radius: 12px; } .m3-b svg { width: 20px; height: 20px; }
   /* (con una comarca elegida, lo demás deja sitio al mapa) */
   .m3d.con-sel :is(.m3-rail, .m3-tot, .ini-sq) { display: none; }

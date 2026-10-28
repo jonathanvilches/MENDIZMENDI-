@@ -86,15 +86,7 @@
 
 /* ---------- abajo: las comarcas en su tira de fotos, la ayuda y los botones de la cámara ---------- */
 #hub.juego .m3d .m3-rail { left: var(--hud-l); bottom: var(--hud-b); right: calc(var(--hud-r) + 56px + var(--sr, 0px)); }
-#hub.juego .m3d :is(.m3-chip, .m3-todas) { border-radius: var(--cr-r); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 6px 18px rgba(4, 1, 12, .28); }
-#hub.juego .m3d :is(.m3-chip, .m3-todas)::after { background: linear-gradient(180deg, rgba(13, 4, 32, 0) 30%, rgba(13, 4, 32, .78)); }
-#hub.juego .m3d :is(.m3-chip, .m3-todas):hover, #hub.juego .m3d :is(.m3-chip, .m3-todas):focus-visible { border-color: color-mix(in srgb, var(--c, #fff) 70%, transparent); }
-#hub.juego .m3d .m3-chip.on { border: 1px solid var(--c); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 50%, transparent), 0 8px 22px rgba(4, 1, 12, .4); }
-#hub.juego .m3d .m3-todas { --c: #fff; }
-/* (el nombre de la comarca, el título; los sellos, su dato: más pequeños, más finos y de otro tono) */
-#hub.juego .m3d .m3-ct { gap: 1px; } #hub.juego .m3d .m3-ct b { font: 600 var(--fs-sm)/1.15 var(--f-ui); letter-spacing: 0; text-transform: none; }
-#hub.juego .m3d .m3-ct small { color: rgba(236, 228, 255, .7); font: 500 11px/1.15 var(--f-ui); }
-#hub.juego .m3d .m3-todas .m3-ct b { font: 600 var(--fs-sm)/1.15 var(--f-ui); } #hub.juego .m3d .m3-todas .m3-ct small { color: rgba(236, 228, 255, .7); }
+/* (cada comarca, la carta de los pueblos: src/hub/inicio.css; aquí, el sello sobre la foto, en su círculo de cristal) */
 #hub.juego .m3d .m3-chip .m3-sello { background: rgba(13, 4, 32, .6); }
 #hub.juego .m3d .m3-pad { right: calc(var(--hud-r) + var(--sr, 0px)); bottom: var(--hud-b); }
 #hub.juego .m3d .m3-b { border-radius: var(--cr-r); background: var(--cr); border: 1px solid var(--cr-l); }
