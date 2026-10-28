@@ -2,6 +2,7 @@
 // cada comarca con sus paredes y su panza. Sin dibujar nada: solo cuentas y geometrías.
 import * as THREE from 'three';
 import { MAPA_RELIEVE, MAPA_ALTURAS } from '../data/mapa-relieve.js';
+import ENCAJE from '../data/comarcas-encaje.json';
 
 // (las coordenadas son las del mapa de comarcas de comarcas.json, viewBox 10 10 725 780: se centran y se pasan a metros
 // del mundo 3D, con el norte hacia el fondo)
@@ -21,12 +22,14 @@ function simplifica(P, eps) {
   const out = []; rec(0, P.length - 1, out); return out;
 }
 const chaikin = (P) => P.flatMap((p, i) => { const q = P[(i + 1) % P.length]; return [[p[0] * 0.75 + q[0] * 0.25, p[1] * 0.75 + q[1] * 0.25], [p[0] * 0.25 + q[0] * 0.75, p[1] * 0.25 + q[1] * 0.75]]; });
-export function contorno(path) {
-  let P = puntos(path); if (P.length > 2 && P[0][0] === P.at(-1)[0] && P[0][1] === P.at(-1)[1]) P.pop();
-  P = chaikin(chaikin(simplifica(P, 1.1)));
+// (el de cada comarca, encajado con sus vecinas: cada borde, una sola línea que comparten las dos, sin raya entre ellas;
+// tools/comarcas-encaje.mjs. Una comarca que no esté ahí, con el suyo de siempre, suavizado)
+export function contorno(c) {
+  let P;
+  if (ENCAJE[c.id]) { const a = ENCAJE[c.id]; P = []; for (let i = 0; i + 1 < a.length; i += 2) P.push([a[i], a[i + 1]]); }
+  else { P = puntos(c.path); if (P.length > 2 && P[0][0] === P.at(-1)[0] && P[0][1] === P.at(-1)[1]) P.pop(); P = chaikin(chaikin(simplifica(P, 1.1))); }
   let cx = 0, cy = 0; for (const [x, y] of P) { cx += x; cy += y; } cx /= P.length; cy /= P.length;
-  // (un poco encogida hacia su centro: entre comarca y comarca queda una raya oscura que las separa)
-  const k = 0.982; return { P: P.map(([x, y]) => [cx + (x - cx) * k, cy + (y - cy) * k]), cx, cy };
+  return { P, cx, cy };
 }
 // ---------- el relieve ----------
 // El de verdad (src/data/mapa-relieve.js: SRTM y GMTED2010, una altura cada 600 m), exagerado unas cinco veces para
