@@ -6,7 +6,7 @@
   --ink: #f6f3fc; --mute: #cbc2e0; --dim: #a097bd; --gold: #ff7ac8; --gold-d: #8a1c8f; --leaf: #c9b2ff;
   --violet: #7b2ff7; --violet-d: #4c1a9e; --plum: #1c0b3a; --plum2: #2b1062;
   --cyan: #c9b2ff; --tomato: #ff2e88; --pink: #ff2bd6;
-  --glass: rgba(52, 18, 104, .56); --glass2: rgba(30, 10, 64, .9); --line: rgba(190, 160, 255, .16); --line2: rgba(190, 160, 255, .34); --r: 6px; --rL: 8px;   /* (el mismo corte seco de las fichas y las cartas de deporte; antes, 16 px) */
+  --glass: rgba(52, 18, 104, .56); --glass2: rgba(30, 10, 64, .9); --line: rgba(190, 160, 255, .16); --line2: rgba(190, 160, 255, .34); --r: 4px; --rL: 8px;   /* (el mismo corte seco de las fichas y las cartas de deporte, el de todo el juego: src/ui/sport.css) */
 }
 #hub {
   --nav-w: 102px; --top-h: 64px;
@@ -31,9 +31,10 @@
 #hub { --gut: clamp(16px, calc(3vw / var(--z, 1)), 44px); }
 /* el aire del menú, el mismo en todas las pantallas: entre secciones (--esp), dentro de los paneles (--relleno y, en las
    tarjetas pequeñas, --relleno-s), entre las tarjetas de una rejilla (--hueco) y entre bloques grandes que van juntos
-   (--hueco-m). En el ordenador, con sitio de sobra, todo respira más */
-#hub { --esp: 16px; --relleno: 16px 20px; --relleno-s: 8px 12px; --hueco: 8px; --hueco-m: 16px; }
-@media (min-width: 1200px) and (min-height: 560px) { #hub { --esp: 32px; --relleno: 24px 32px; --relleno-s: 16px; --hueco: 16px; --hueco-m: 24px; } }
+   (--hueco-m). En el ordenador, con sitio de sobra, todo respira más. (Más amplios que antes: el juego pedía aire; las
+   rejillas de tarjetas de todas las secciones los usan, src/hub/identidad.css) */
+#hub { --esp: 24px; --relleno: 16px 20px; --relleno-s: 12px 16px; --hueco: 12px; --hueco-m: 16px; }
+@media (min-width: 1200px) and (min-height: 560px) { #hub { --esp: 40px; --relleno: 24px 32px; --relleno-s: 16px 20px; --hueco: 16px; --hueco-m: 24px; } }
 @supports (width: round(1px, 4px)) { #hub { --gut: round(clamp(16px, calc(3vw / var(--z, 1)), 44px), 4px); } }
 /* barra superior */
 .hub-top { grid-column: 1 / 3; min-width: 0; overflow: hidden; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 var(--gut) 0 24px; padding-top: env(safe-area-inset-top, 0px);
@@ -202,7 +203,7 @@
 @media (min-width: 900px) { .filters { flex-wrap: wrap; overflow-x: visible; } }   /* (con sitio, en dos filas si hace falta: ninguna pestaña cortada por el borde) */
 /* (las pestañas: solo texto; la elegida, en una cápsula de cristal con borde fino. Sin rayas debajo: antes, la línea de
    la fila, la de la pestaña y la del color de la sección se sumaban) */
-.filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px; border-radius: 999px; border: 1px solid transparent; background: none; font-weight: 600; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; transition: color .15s, background .15s, border-color .15s; }
+.filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px; border-radius: 4px; border: 1px solid transparent; background: none; font-weight: 600; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; transition: color .15s, background .15s, border-color .15s; }
 .filters button:hover { color: #fff; }
 .filters button.on { color: #fff; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .16); }
 
@@ -1159,7 +1160,7 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
   .tile { padding: 8px 8px; column-gap: 8px; } .tile img.ico { width: 32px; height: 32px; } .tile span { letter-spacing: .04em; }
   .story { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 16px 20px; } .story p { max-width: none; }
   .story:has(.st-img) { grid-template-columns: 128px minmax(0, 1fr); } .st-img { width: 100%; height: auto; } .story .hsteps { grid-column: 1 / -1; }
-  .hub-main h2.sec { margin-top: 8px; margin-bottom: 8px; }
+  .hub-main h2.sec { margin-top: var(--esp); margin-bottom: var(--hueco); }
 }
 
 /* ================= iPhone en horizontal (Safari): el notch y la barra de inicio =================
@@ -1349,9 +1350,9 @@ img.sp-media:not(.sp-em) { width: 64px; height: 36px; }   /* (la lámina del fro
    arriba, a lo ancho, tu Navarra (el aro y los datos en fila); debajo, las partidas empezadas y los campeonatos uno al
    lado del otro, y las comarcas; de pie, todo en una columna */
 /* (Campeonatos: lo que se juega, en pastillas con su icono en vez de una frase) */
-.sp-chips { display: flex; flex-wrap: wrap; gap: 8px; } .sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 99px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); font-weight: 900; font-size: var(--fs-sm); color: #fff; }
+.sp-chips { display: flex; flex-wrap: wrap; gap: 8px; } .sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 6px; border-radius: 4px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .18); font-weight: 900; font-size: var(--fs-sm); color: #fff; }
 /* (lo que antes era una frase, un dato con su icono: cimas subidas, insignias ganadas) */
-.lead-chip { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--hueco-m); padding: 6px 16px 6px 10px; border-radius: 99px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); font-weight: 900; font-size: var(--fs-md); }
+.lead-chip { display: inline-flex; align-items: center; gap: 8px; margin: 0 0 var(--hueco-m); padding: 6px 16px 6px 10px; border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); font-weight: 900; font-size: var(--fs-md); }
 .lead-chip b { font-size: var(--fs-lg); color: var(--gold); }
 /* el panel: rótulos dentro de su pastilla (sin la raya de al lado), paneles de cristal con una rejilla técnica que se
    desvanece hacia abajo y un brillo que recorre el borde de arriba */

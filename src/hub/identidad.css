@@ -1,0 +1,33 @@
+/* ================= La identidad del menú =================
+   Lo que se repite en todas las secciones del menú, con una sola forma: así se reconoce el juego en cualquier pantalla.
+   Se carga la última (hub.js), después de las demás hojas del menú, y manda sobre ellas. Las medidas son las comunes de
+   hub.css (los espacios --esp, --hueco y --hueco-m; el cristal --glass y sus bordes --line; el radio --r) y siguen la
+   regla de todo el juego (src/ui/sport.css): esquinas casi rectas, cortadas en ángulo o círculos; nada de pastillas.
+   · Las tarjetas de las listas (personajes, cimas, naturaleza, escudos, leyendas, instrumentos, insignias…): el mismo
+     cristal morado, el mismo borde fino y el mismo radio. La esquina cortada queda para lo grande y lo destacado: la
+     cabecera de la comarca y sus paneles, las cartas de los pueblos, el selector de Avatar y las fichas.
+   · Las rejillas de tarjetas, todas con el mismo hueco; las piezas pequeñas que van juntas, con el suyo.
+   · Los contadores («0 de 29 escuchados», «0/16 cimas», el herbario): la misma etiqueta, con la cifra en el color de la
+     sección.
+   · Las pestañas del material didáctico, del tamaño de las demás pestañas del menú. */
+
+/* ---------- las tarjetas ---------- */
+:is(.fcard, .pcard, .scard, .bcard, .ins, .armorial .ar, .armorial .ar-guia, .armorial .ar-btn) { border-radius: var(--r); }
+:is(.ins, .armorial .ar, .armorial .ar-guia) { background-color: var(--glass); border-color: var(--line); }
+/* (la que lleva a otra página, como «Cómo se lee un escudo», con el borde algo más claro: se toca) */
+.armorial .ar-btn { background-color: var(--glass); border-color: var(--line2); }
+
+/* ---------- las rejillas ---------- */
+:is(.figuras, .peaks, .species, .badges, .armorial .ar-grid, .ins-grid, .cm-ts, .cultgrid, .fh-ley, .two) { gap: var(--hueco-m); }
+.pstamps { gap: var(--hueco); }
+.fh-hud, .ch-tx .fh-hud { gap: 8px; }
+
+/* ---------- los contadores ---------- */
+:is(.armorial .ar-count, .lead-chip, .nprog > span) { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 40px; margin: 0 0 var(--hueco-m);
+  padding: 4px 16px 4px 12px; border-radius: var(--r); background: rgba(255, 255, 255, .06); border: 1px solid var(--line2); color: var(--ink); font: 700 var(--fs-sm)/1.2 var(--f-ui); }
+:is(.armorial .ar-count, .lead-chip, .nprog > span) b { font: 400 var(--fs-lg)/1 var(--f-display); color: color-mix(in srgb, var(--cat, #ff7ac8) 75%, #fff); }
+.nprog { gap: var(--hueco); margin: 0 0 var(--hueco-m); } .nprog > span { margin: 0; }
+
+/* ---------- las pestañas del material ---------- */
+.ddg .dd-tabs button { font-size: var(--fs-sm); } .ddg .dd-tabs button .ico { width: 20px; height: 20px; }
+.ddg .dd-tabs button small { border-radius: var(--r); }

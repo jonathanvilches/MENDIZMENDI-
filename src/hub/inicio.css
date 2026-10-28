@@ -102,7 +102,7 @@
 
 /* ---------- el mapa 3D de Navarra (mapa3d.js), a casi toda la pantalla, con el saludo, lo conquistado y las comarcas
    encima, como el mapa de un juego ---------- */
-.m3d { --hud: 84px; position: relative; height: max(360px, calc(100dvh / var(--z, 1) - var(--top-h, 64px) - 48px)); border-radius: 24px; overflow: hidden; isolation: isolate; user-select: none; -webkit-user-select: none;
+.m3d { --hud: 84px; position: relative; height: max(360px, calc(100dvh / var(--z, 1) - var(--top-h, 64px) - 48px)); border-radius: var(--rL); overflow: hidden; isolation: isolate; user-select: none; -webkit-user-select: none;
   background: #101626; border: 1px solid var(--line2); box-shadow: 0 24px 60px rgba(0, 0, 0, .5); }
 
 .m3d::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;

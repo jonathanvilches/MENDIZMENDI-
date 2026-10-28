@@ -88,7 +88,7 @@
 .mg-card.ix :is(ul.tools, ul.peaklist, ul.castles) li { padding: 4px 8px; border-radius: 4px; background: rgba(255, 255, 255, .05); font-size: var(--fs-sm); }
 
 /* 4. las etiquetas */
-.ix-chips { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.ix-chips { flex: none; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 6px; }
 .ix-chips > small { margin-right: 4px; color: var(--lila2); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
 .ix-chips > span { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, .08); color: #fff; white-space: nowrap;
   font: 700 var(--fs-xs)/1.5 'MZ Texto', sans-serif; }
@@ -199,7 +199,7 @@
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main { overflow-y: auto; overscroll-behavior: contain; }
   /* (el botón de seguir, pegado abajo aunque la columna se desplace) */
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end { display: contents; }
-  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 12px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
   .ix-main .ix-pane { min-height: min(120px, calc(22dvh / var(--z, 1))); }
 }
 /* móvil tumbado muy bajo (iPhone SE de primera generación, 320 px de alto): la columna del texto se desplaza entera y el
@@ -207,7 +207,7 @@
 @media (orientation: landscape) and (max-height: 400px) {
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main { overflow-y: auto; overscroll-behavior: contain; }
   .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end { display: contents; }
-  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 8px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
+  .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-foot, .mg-overlay.ix-ov > .mg-card.ix > .ix-main > .ix-end > .ix-foot { position: sticky; bottom: 0; z-index: 2; padding-top: 12px; background: linear-gradient(180deg, transparent, var(--v1) 8px); }
   .ix-main .ix-pane { flex: none; }
   /* (la ficha que se ajusta a su contenido no tiene alto fijo: su columna, con tope, para que se desplace dentro) */
   .mg-overlay.ix-ov > .mg-card.ix.fit > .ix-main { max-height: calc(calc(100dvh / var(--z, 1)) - 40px); }

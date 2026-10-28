@@ -1,9 +1,9 @@
 /* La galería de los pueblos: cada comarca, un carrusel circular en 3D (src/hub/galeria.js). De fondo, el morado del juego,
    limpio, con una luz suave del color de la comarca en el suelo; arriba, las comarcas; en medio, el anillo de pantallas con
    las flechas a su altura; abajo, el pueblo de delante con sus misiones y los botones de jugar y de ver su ficha */
-.gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: 14px; color: #fff;
+.gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: var(--rL); color: #fff;
   background: radial-gradient(120% 90% at 50% 38%, #2c1470 0%, #170a3a 48%, #0a0418 100%); }
-#hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 24px); margin: 0 -24px; border-radius: 0 0 16px 16px; }
+#hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 24px); margin: 0 -24px; border-radius: 0 0 var(--cr-r) var(--cr-r); }
 #hub.juego .hub-main:has(> .gal), html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
 /* (sin la pista de las teclas de abajo: tapaba el botón de jugar y su hueco dejaba una franja vacía bajo la galería) */
 html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { display: none; }
@@ -12,7 +12,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 /* las comarcas, arriba: la pastilla de las pestañas del menú (se desliza hasta la elegida) */
 .gal .gal-cm { position: relative; z-index: 3; display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 14px 28px 10px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
 .gal .gal-cm::-webkit-scrollbar { display: none; }
-.gal .gal-cm button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border-radius: 999px; border: 1px solid transparent; background: none; color: var(--tx2, #cbc2e0); font: 600 var(--fs-sm)/1 var(--f-ui); letter-spacing: 0; white-space: nowrap; cursor: pointer; }
+.gal .gal-cm button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border-radius: 4px; border: 1px solid transparent; background: none; color: var(--tx2, #cbc2e0); font: 600 var(--fs-sm)/1 var(--f-ui); letter-spacing: 0; white-space: nowrap; cursor: pointer; }
 .gal .gal-cm button img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
 .gal .gal-cm button.on { color: #fff; }
 .gal .gal-cm button:hover, .gal .gal-cm button:focus-visible { color: #fff; }
