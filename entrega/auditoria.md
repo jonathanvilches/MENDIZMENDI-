@@ -154,44 +154,31 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
 | Enlace para jugar y descargar | Hecho | |
 | Marco legal: licencias, sin marcas, revisión de imágenes | Hecho | Borradores a revisar por un abogado |
 
-## 9. Lo de hoy
+## 9. Lo de hoy (28 de octubre)
 
-- **Galería de pueblos:**
-  - cada comarca, un carrusel circular en 3D, con la portada de cada pueblo como una pantalla;
-  - el de delante encendido y adelantado, los demás alrededor en penumbra;
-  - de fondo, el morado del juego limpio, con una luz suave del color de la comarca en el suelo;
-  - cada pueblo, una carta de estilo tecnológico: la portada entera en 16:9, sin recortar, y debajo su nombre y una raya por misión;
-  - las flechas, a media altura de las pantallas en todos los móviles, sin tapar la tarjeta;
-  - se gira arrastrando, con flechas, rueda o teclado; las comarcas, arriba;
-  - abajo, el pueblo de delante con sus misiones y los botones Ficha y Jugar.
-- **Menú:** más grande, cinco columnas en el ordenador, tres de pie en el móvil.
-- **Mapa:** la maqueta del pueblo se monta durante el vuelo. En el ordenador sus programas gráficos se preparan al abrir el mapa; en el móvil, al acercarse.
-- **Arranque en el móvil:**
-  - el enlace Jugar abría el archivo único de 46 MB; ahora ese archivo, abierto desde la web, pasa a la versión web, que se guarda y se instala como app;
-  - si el móvil cierra la página dos veces al arrancar, el juego abre en modo sencillo: imagen y mapa 3D más ligeros. Se quita en Ajustes;
-  - si el mapa 3D pierde la tarjeta gráfica, se vuelve a hacer solo; si no puede, salen las comarcas en fotos;
-  - el aviso de arranque trae botones para volver a cargar, pasar al modo sencillo y borrar la caché;
-  - fuera dos expresiones de texto que los iPhone antiguos no entienden y que no dejaban arrancar el juego.
-- **Didáctico:** las 16 secciones y la ficha de tres pueblos, revisadas en castellano y en euskera, en tres tamaños, sin errores ni imágenes rotas. La galería cabe entera con el móvil tumbado.
-- **Canciones:** las seis pistas de Envato suenan donde tocan y tienen su licencia en LICENCIAS.md. La pista «Soccer S1105_49» que mandaste no se usa.
-- **Icono de la app:** tu ilustración, en todos los tamaños y en las pantallas de arranque del iPhone y el iPad. Para verlo hay que quitar la app y volver a instalarla.
-- **Arranque y carga:**
-  - portada con el icono que late, rayos de luz, el título y una barra por segmentos;
-  - pantalla de carga de cada pueblo con marco de juego, consejo, nombre grande, misiones en una fila y barra con tu avatar;
-  - entrada del mapa con barras de cine, visor, raya de luz en el título, onda y temblor al posarse Navarra.
-- **Fichas:**
-  - pueblo: la misma carta de la galería con la lámina entera, marcador de sello, río y leyenda, misiones en casillas, qué visitar, su leyenda, escudo y láminas;
-  - Otsagabia: sus nueve misiones reales del valle de Salazar con lo que llevas hecho, y sus lugares para visitar;
-  - comarca: cabecera como carta, sello en su aro, marcador, sus pueblos con la carta nueva, cultura, naturaleza, cuentos y leyendas, láminas y cimas;
-  - en euskera, el segundo nombre es el de castellano y ya no se repite.
-
-- **App instalada en el iPhone:**
-  - las capturas que mandaste eran de la versión 82: la app no se había puesto al día. Al cerrarla del todo y abrirla, se pone al día;
-  - la franja vacía de abajo es un fallo de iOS 26 con las apps de la pantalla de inicio: la página mide ahora lo que la pantalla, que es lo que hace que iOS dé la pantalla entera;
-  - en el móvil tumbado, paneles y botones se acercan al borde hasta pasar justo la muesca;
-  - la entrada del mapa sale también con «Reducir movimiento», más suave;
-  - abrir la app y salir enseguida ya no la deja en modo sencillo, que quitaba la entrada;
-  - el mapa 3D mira si se ve: si no, cambia lo que la tarjeta gráfica rechaza por materiales sencillos y lo apunta en Ajustes › Diagnóstico.
+- **Carrusel y tarjetas de pueblos:** todas las portadas a 16:9, su forma de verdad; el texto va debajo de la imagen, nunca encima, y nada se recorta en el mapa, la galería, las comarcas en fotos ni las fichas.
+- **Elegir un pueblo en el mapa:** la cámara baja casi a la altura de los tejados y, al llegar, pasa por encima del pueblo muy despacio, como un dron. Se para al tocar el mapa.
+- **Menú:** en el móvil de pie, la ayuda «Arrastra para moverte» se pintaba unos segundos encima de «Próxima parada»; ahora va encima. En el ordenador, el aviso de teclas de abajo tapaba el botón Jugar del fútbol con la ventana de 720 de alto; ahora se va a los seis segundos.
+- **Pelota:**
+  - «Perfecto» y «Pronto» otra vez grandes y en medio, con rebote, en cada golpe;
+  - los consejos de cómo jugar solo salen en los primeros tantos de los dos primeros partidos;
+  - contraste mínimo con la pelota en el frontis, las paredes y el suelo de los 31 frontones;
+  - en los seis frontones de calle, la pared izquierda era la fila de casas, casi blanca, y la pelota no se veía contra ella: ahora es pared de frontón pintada, y las casas asoman por encima;
+  - nada dentro de la cancha: revisados los 31 frontones por dentro y con rayos sobre el suelo. Había un montículo de tierra junto al frontis de Javier, dos copas de castaño que asomaban por la pared de Elizondo y un dedo de terreno en Sangüesa; arreglados;
+  - si el rival se llama como tú, lleva la inicial de su pueblo detrás.
+- **Campeonatos:**
+  - cada partido en un frontón distinto del anterior, a suertes: el del pueblo, su cubierto o el cubierto de otro pueblo de la comarca; la final, en el Labrit;
+  - las pancartas de la grada no se quitaban al acabar cada partido: se iban acumulando y gastando memoria gráfica;
+  - al cambiar de cubierto, el anterior soltaba solo parte de su memoria gráfica; ahora la suelta toda;
+  - si un partido falla al montarse, vuelves al cuadro del torneo con un aviso; antes contaba como un 0 a 0 perdido o te sacaba al pueblo;
+  - Ajustes › Diagnóstico apunta cuántas veces se ha perdido la imagen y dónde: si el iPhone te vuelve a sacar de un partido, una captura de esa pantalla dirá por qué.
+- **Imágenes:** ver encargo-pendiente-2026-10-23.md. Falta el Zarratrako, 4 escudos de casas y 11 iconos que hoy dibuja el juego; la flora es opcional.
+- **Auditoría global:**
+  - código: análisis estático de todo src, sin variables sin definir ni usadas antes de tiempo; quitados seis restos sin usar;
+  - los 37 niveles, 32 pueblos y 5 bosques, sin errores, con todas las misiones con su vecino, el jugador en el suelo y objetivo;
+  - los 31 frontones por dentro y con rayos sobre el suelo;
+  - los tres campeonatos jugados enteros, ronda a ronda, sin salirse, sin errores y con la memoria estable;
+  - menú en tres tamaños, ventanas, marcadores de pelota y fútbol en castellano y euskera, y el HUD del pueblo: nada cortado ni encima de otra cosa.
 
 ## 10. Pendiente o depende de ti
 
@@ -201,11 +188,12 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
   - niebla baja de noche en los pueblos.
 - **Depende de ti:**
   - fuente Froople, cuando llegue su certificado;
-  - imagen del Zarratrako;
+  - imagen del Zarratrako, 4 escudos de casas y 11 iconos;
   - tiendas de producto local con vales y cromos: la propuesta está hecha, falta tu visto bueno y el permiso de las tiendas;
   - probar en el iPhone la app instalada desde la web nueva; si algo falla, una captura del aviso de arranque;
   - probar en tu ordenador los cierres y la fluidez;
-  - la música o la canción: tu último mensaje se cortó.
+  - la música o la canción: un mensaje anterior se cortó;
+  - «La gente lo que está pidiendo no es»: tu último mensaje se cortó ahí.
 - **De la auditoría del 22 de octubre, sin noticias:**
   - el puente de Ochagavía esperaba tu visto bueno;
   - faltaba el zip de texturas del Fantasy Props MegaKit.
