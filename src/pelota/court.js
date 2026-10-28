@@ -714,8 +714,8 @@ export class PelotaCourt {
   // ---------- frontón cubierto (los campeonatos) ----------
   // Como los frontones municipales cubiertos de Navarra: cerrado por todas partes, con el frontis, la pared izquierda y el
   // rebote verdes hasta el techo (la pelota no se sale), la grada a lo largo de la contracancha con sus asientos, la pared
-  // derecha con ventanales altos, el techo con sus cerchas y las filas de luces del pabellón, y el nombre del pueblo en
-  // grande. Sin anuncios ni escudos de clubes. Dentro no se ve nada de fuera: no hace falta paisaje.
+  // derecha con ventanales altos y el escudo del pueblo, y el techo con sus cerchas y las filas de luces del pabellón.
+  // Sin anuncios ni escudos de clubes. Dentro no se ve nada de fuera: no hace falta paisaje.
   buildHall(T, M, th, W, CONTRA, EXT, L, opts = {}) {
     const C = COURT, g = this.group, H = HALL_H, xs = W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
@@ -734,17 +734,12 @@ export class PelotaCourt {
     box(xr - (W / 2 + 0.3), C.FRONT_H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, C.FRONT_H / 2, za);
     // el fondo, detrás de la contracancha y de la grada (el rebote ya llega al techo)
     box(xr - (W / 2 + 0.3), H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, H / 2, zb);
-    // la pared derecha, detrás de la grada: el nombre del frontón en grande y ventanales arriba
-    // (el escudo del pueblo y su nombre, nada más: antes «FRONTÓN …» en grande y su nombre en euskera debajo)
-    const name = (opts.hallName || opts.wallName || '').toUpperCase();
+    // la pared derecha, detrás de la grada: ventanales arriba y el escudo del pueblo en medio, sin su nombre (el autor no
+    // quería el nombre del pueblo en la parte derecha del frontón; antes, el escudo con el nombre en grande al lado)
     const rTex = canvasTex(T, 2048, 512, (c, w, h) => {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.05); grain(c, w, h, 4000, 0.04, false);
       const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); }
-      let fs = h * 0.24; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`;
-      const sw = opts.shield ? h * 0.48 : 0, tw0 = c.measureText(name).width; if (tw0 > w * 0.7 - sw) { fs *= (w * 0.7 - sw) / tw0; c.font = `900 ${fs}px "Lilita One", Nunito, "Arial Black", sans-serif`; }
-      const tw = c.measureText(name).width, x0 = (w - sw - tw - (sw ? h * 0.06 : 0)) / 2;
-      if (opts.shield) opts.shield(c, x0 + sw / 2, h * 0.22, h * 0.5);
-      c.fillStyle = '#fbf8f0'; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillText(name, x0 + sw + (sw ? h * 0.06 : 0), h * 0.47);
+      if (opts.shield) opts.shield(c, w / 2, h * 0.22, h * 0.5);
     });
     const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, M({ map: rTex }), wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
     rw.position.set(xr + 0.3, H / 2, (za + zb) / 2); g.add(rw);

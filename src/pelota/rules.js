@@ -187,6 +187,7 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 export const TEXT = {
   es: {
     title: 'Pelota a mano', to: (n) => `a ${n} tantos`, rally: (n) => `Peloteo: ${n} seguidas`,
+    entra: ['¡Salen los pelotaris!'],   // (la salida de los pelotaris a la cancha: match.js saleEntrada)
     you: 'Tú', red: 'Gorriak', blue: 'Urdinak',
     rules: [
       'Golpea con la mano: la pelota tiene que dar en el frontis por encima de la chapa (la raya roja).',
@@ -290,6 +291,7 @@ export const TEXT = {
   },
   eu: {
     title: 'Esku pilota', to: (n) => `${n} tantora`, rally: (n) => `Pilotakada: ${n} jarraian`,
+    entra: ['Pilotariak kantxara!'],
     you: 'Zu', red: 'Gorriak', blue: 'Urdinak',
     rules: [
       'Jo eskuarekin: pilotak frontisean jo behar du, txaparen gainetik (marra gorria).',

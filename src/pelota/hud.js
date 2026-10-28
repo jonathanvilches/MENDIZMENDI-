@@ -8,6 +8,8 @@ export { esc };
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,'MZ Texto',sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 .pel-root.vuelo>*{visibility:hidden!important}
+/* (en la salida de los pelotaris a la cancha, solo su rótulo: match.js saleEntrada) */
+.pel-root.sale>*:not(.pel-call){visibility:hidden!important}
 .pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-myen,.pel-exit,.pel-call){visibility:hidden}
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
    misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
@@ -92,9 +94,9 @@ const CSS = `
 .pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
 .pel-q small:empty{display:none}
 .pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
-.pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qshake .4s ease both}
+.pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qfuera .3s ease both}
 @keyframes pel-qpop{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
-@keyframes pel-qshake{0%{transform:scale(1.4);opacity:0}30%{transform:translateX(-8px);opacity:1}60%{transform:translateX(6px)}100%{transform:none}}
+@keyframes pel-qfuera{from{transform:scale(1.25);opacity:0}to{transform:none;opacity:1}}
 .pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px + var(--pel-tip-sube,0px));width:max-content;max-width:min(560px,calc(calc(100vw / var(--z, 1)) - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
 /* (con tu energía abajo en el centro, el consejo, encima de ella) */
 .pel-root:has(.pel-myen:not([hidden])){--pel-tip-sube:48px}
