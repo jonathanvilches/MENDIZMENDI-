@@ -48,7 +48,8 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .dd-pk .pcard { margin: 0; }
 /* la página de un pueblo: arriba su portada grande, de lado a lado; debajo, su nombre, su presentación y su río */
 .dd-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
-.dd-cov { display: block; width: 100%; aspect-ratio: 21 / 9; max-height: calc(54dvh / var(--z, 1)); object-fit: cover; object-position: 50% 40%; border-radius: var(--rL); border: 1px solid var(--line2); box-shadow: 0 18px 40px rgba(4, 1, 12, .4); }
+/* (la lámina entera, 16:9, con el personaje de pies a cabeza; estrecha si de lado a lado sería muy alta) */
+.dd-cov { display: block; width: min(100%, calc(54dvh * 16 / 9 / var(--z, 1))); aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--rL); border: 1px solid var(--line2); box-shadow: 0 18px 40px rgba(4, 1, 12, .4); }
 .dd-hero > div { display: grid; gap: 8px; justify-items: start; min-width: 0; } .dd-hero .back { position: static; }
 .dd-hero h1 { margin: 0; font: 400 var(--fs-hero)/1 var(--f-display, 'MZ Display', 'MZ Texto', sans-serif); text-transform: uppercase; color: #fff; overflow-wrap: anywhere; }
 .dd-hero p { margin: 0; color: #eae4f6; font-weight: 600; line-height: 1.5; } .dd-hero .kicker.lnk { min-height: 40px; padding: 0; color: var(--rosa, #ff7ac8); text-decoration: none; }
@@ -108,7 +109,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 
 /* móvil de pie y móvil tumbado */
 @media (max-width: 720px) {
-  .dd-hero { gap: 12px; } .dd-cov { aspect-ratio: 16 / 9; }
+  .dd-hero { gap: 12px; }
   .dd-tools tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--line); }
   .dd-tools th, .dd-tools td { border-top: 0; } .dd-tools td:last-child { grid-column: 1 / -1; padding-top: 0; }
   .dd-arms > img, .dd-arms > canvas { width: 84px; }
@@ -119,7 +120,7 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
   .ddc-txt { padding: 8px 12px 12px; } .ddc-txt b { font-size: var(--fs-md); } .ddw-txt { padding: 8px 8px 12px; } .ddw-txt i { font-size: var(--fs-sm); }
 }
 @media (orientation: landscape) and (max-height: 500px) {
-  .dd-hero { gap: 12px; } .dd-cov { max-height: calc(48dvh / var(--z, 1)); } .dd-hero h1, .dd-portada h1 { font-size: var(--fs-2xl); }
+  .dd-hero { gap: 12px; } .dd-cov { width: min(100%, calc(48dvh * 16 / 9 / var(--z, 1))); } .dd-hero h1, .dd-portada h1 { font-size: var(--fs-2xl); }
   .dd-tema { min-height: 72px; padding: 8px 12px; }
   /* (y tumbado, más tarjetas por fila y más bajas: se ven enteras) */
   .ddc-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; } .ddw-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }

@@ -31,19 +31,19 @@
 .sheet.pueblo .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 5; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
 .sheet.pueblo .x { right: 12px; top: 12px; z-index: 6; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 6, 22, .62); border: 1px solid rgba(255, 255, 255, .22); }
 .fh-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
-/* la portada: la lámina de lado a lado, que abajo se va desvaneciendo poco a poco en la ficha (sin velo oscuro: la
-   lámina se ve entera), con el nombre encima */
-.fh-cab { position: relative; aspect-ratio: 16 / 9; max-height: calc(58dvh / var(--z, 1)); width: 100%; overflow: hidden; background: #1a0c33; }
-.fh-portada { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 40%; -webkit-mask: linear-gradient(180deg, #000 50%, rgba(0, 0, 0, .55) 80%, transparent); mask: linear-gradient(180deg, #000 50%, rgba(0, 0, 0, .55) 80%, transparent); }
-.fh-tit { position: absolute; z-index: 1; left: 24px; right: 72px; bottom: 18px; display: grid; gap: 8px; }
+/* la portada: la lámina entera, con el personaje de pies a cabeza (nunca recortada ni con el nombre encima). Si de lado a
+   lado sería más alta de la cuenta, se estrecha y a sus lados queda la misma lámina desenfocada; sus bordes se funden
+   un poco con ella. Debajo, el nombre */
+.fh-cab { position: relative; display: grid; justify-items: center; width: 100%; overflow: hidden; isolation: isolate; background: #1a0c33; }
+.fh-cab::before { content: ''; position: absolute; inset: -40px; z-index: -1; background: var(--fondo, none) center / cover; filter: blur(26px) saturate(1.1) brightness(.55);
+  -webkit-mask: linear-gradient(180deg, #000 55%, transparent); mask: linear-gradient(180deg, #000 55%, transparent); }
+.fh-portada { display: block; width: min(100%, calc(58dvh * 16 / 9 / var(--z, 1))); height: auto; aspect-ratio: 16 / 9; object-fit: cover;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, #000 86%, transparent); -webkit-mask-composite: source-in;
+  mask: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, #000 86%, transparent); mask-composite: intersect; }
+.fh-tit { position: relative; z-index: 1; justify-self: stretch; display: grid; gap: 8px; padding: 6px 72px 0 24px; }
 .fh-tit h2 { margin: 0; color: #fff; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 4px rgba(8, 4, 16, .45), 0 4px 22px rgba(8, 4, 16, .55); }
 .fh-tit h2 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 35%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: 0 1px 8px rgba(8, 4, 16, .6); }
-.fh-cab:not(:has(.fh-portada)) { aspect-ratio: auto; height: 132px; }
-/* (detrás del nombre, un velo muy suave que sale de la esquina de abajo; sin él, la zona y el otro nombre se perdían en
-   las láminas claras. Al pie se apaga, como la lámina: si no, dejaba una raya recta en el borde) */
-.fh-cab::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(85% 80% at 0% 100%, var(--velo)); opacity: .58;
-  -webkit-mask: linear-gradient(0deg, transparent, #000 24%); mask: linear-gradient(0deg, transparent, #000 24%); }
-.fh-cab:not(:has(.fh-portada))::after { display: none; }
+.fh-cab:not(:has(.fh-portada)) .fh-tit { padding-top: 56px; }
 .fh-tit .fh-k, .fh-tit h2 em { text-shadow: var(--letra-foto); }
 .sheet.pueblo .fh-hud { padding: 16px 24px 0; }
 .sheet.pueblo .sh-body { overflow: visible; padding: 4px 24px 24px; }
@@ -80,13 +80,13 @@
 /* en el móvil de pie, sube desde abajo, a lo ancho */
 @media (orientation: portrait) and (max-width: 760px) {
   .sheet.pueblo .sheet-in { width: 100%; max-height: calc(92dvh / var(--z, 1)); border-radius: var(--rL) var(--rL) 0 0; }
-  .fh-tit { left: 16px; right: 16px; bottom: 14px; } .fh-tit h2 { font-size: var(--fs-2xl); }
+  .fh-tit { padding: 4px 16px 0; } .fh-tit h2 { font-size: var(--fs-2xl); }
   .sheet.pueblo .fh-hud { padding: 14px 16px 0; } .sheet.pueblo .sh-body { padding: 4px 16px 20px; }
 }
 /* el móvil tumbado: la portada más baja, para que debajo se vea ya algo; todo un paso más pequeño */
 @media (orientation: landscape) and (max-height: 520px) {
   .sheet.pueblo .sheet-in { width: min(760px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 16px); }
-  .fh-cab { max-height: calc(52dvh / var(--z, 1)); } .fh-tit { left: 16px; bottom: 12px; gap: 4px; } .fh-tit h2 { font-size: var(--fs-xl); } .fh-tit h2 em { font-size: var(--fs-xs); margin-top: 2px; }
+  .fh-portada { width: min(100%, calc(56dvh * 16 / 9 / var(--z, 1))); } .fh-tit { padding: 2px 56px 0 16px; gap: 4px; } .fh-tit h2 { font-size: var(--fs-xl); } .fh-tit h2 em { font-size: var(--fs-xs); margin-top: 2px; }
   .sheet.pueblo .x { width: 40px; height: 40px; top: 8px; right: 8px; }
   .sheet.pueblo .fh-hud { gap: 6px; padding: 10px 16px 0; } .fh-st { padding: 3px 12px 3px 3px; gap: 8px; } .fh-st > :is(svg, img) { width: 28px; height: 28px; padding: 5px; } .fh-st b { font-size: var(--fs-sm); } .fh-st small { font-size: 9px; }
   .sheet.pueblo .sh-body { padding: 2px 16px 16px; } .sheet.pueblo .sh-intro { margin-top: 10px; font-size: var(--fs-sm); } .sheet.pueblo .sh-body h3 { margin: 16px 0 8px; }
@@ -95,32 +95,33 @@
 }
 
 /* ---------- la comarca ---------- */
-/* la cabecera de la comarca, como la ficha de un pueblo: arriba su lámina grande, de lado a lado, que abajo se desvanece
-   poco a poco en la tarjeta, con el sello, el rótulo y el nombre encima; debajo, las cifras en pastillas. Marco fino con el filo
-   de color arriba. (La cabecera es una rejilla de una columna: la lámina y el nombre van en la misma casilla, uno encima
-   de otro, y las cifras en la de debajo; .ch-tx no hace caja) */
+/* la cabecera de la comarca, como la ficha de un pueblo: arriba su lámina entera, con el personaje de pies a cabeza
+   (estrecha si de lado a lado sería muy alta, con la misma lámina desenfocada a los lados); debajo, el sello, el rótulo y
+   el nombre, y las cifras en pastillas. Marco fino con el filo de color arriba. (Una rejilla de una columna; .ch-tx no
+   hace caja. Antes la lámina iba recortada a 21:9 y con el nombre encima: al personaje le faltaban los pies) */
 .chero { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); margin: 0 0 var(--hueco-m); overflow: hidden; isolation: isolate; border-radius: var(--rL); border: 1px solid var(--line2); color: #fff;
   background: radial-gradient(70% 140% at 0% 100%, color-mix(in srgb, var(--c, #ff2bd6) 20%, transparent), transparent 70%), linear-gradient(175deg, #241050 0%, #160737 100%); }
 .chero::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 3; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
-.chero-img { grid-area: 1 / 1; display: block; width: 100%; height: auto; aspect-ratio: 21 / 9; max-height: calc(50dvh / var(--z, 1)); object-fit: cover; object-position: 50% 40%;
-  -webkit-mask: linear-gradient(180deg, #000 50%, rgba(0, 0, 0, .55) 80%, transparent); mask: linear-gradient(180deg, #000 50%, rgba(0, 0, 0, .55) 80%, transparent); }
+.chero-img { grid-area: 1 / 1; justify-self: center; z-index: 1; display: block; width: min(100%, calc(54dvh * 16 / 9 / var(--z, 1))); height: auto; aspect-ratio: 16 / 9; object-fit: cover;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, #000 86%, transparent); -webkit-mask-composite: source-in;
+  mask: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent), linear-gradient(180deg, #000 86%, transparent); mask-composite: intersect; }
 .ch-tx { display: contents; }
 .ch-tx .back { grid-area: 1 / 1; align-self: start; justify-self: start; z-index: 2; position: static; margin: 16px; }
 /* (jugando, sin «Mapa»: la X de arriba ya vuelve al mapa) */
 #hub.juego .ch-tx .back { display: none; }
-.ch-nom { grid-area: 1 / 1; align-self: end; z-index: 2; display: flex; align-items: center; gap: 16px; min-width: 0; padding: 0 28px 22px; }
+.ch-nom { grid-area: 2 / 1; align-self: start; z-index: 2; display: flex; align-items: center; gap: 16px; min-width: 0; padding: 12px 28px 0; }
 .chero:not(:has(.chero-img)) .ch-nom { padding-top: 72px; }
 .ch-nom > div { display: grid; gap: 6px; min-width: 0; }
 .chero .bigstamp { flex: none; width: clamp(64px, calc(6vw / var(--z, 1)), 92px); height: auto; aspect-ratio: 1; filter: drop-shadow(0 6px 16px rgba(4, 1, 12, .6)); }
 .chero h1 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 4px rgba(8, 4, 16, .45), 0 4px 22px rgba(8, 4, 16, .55); }
 .chero h1 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: var(--letra-foto); }
 .chero .ch-nom .kicker { text-shadow: var(--letra-foto); }
-/* (el mismo velo suave de las fichas, detrás del nombre; de pie, el nombre va debajo de la lámina y no hace falta) */
-.chero::before { content: ''; grid-area: 1 / 1; z-index: 1; pointer-events: none; background: radial-gradient(85% 85% at 0% 100%, var(--velo)); opacity: .58;
-  -webkit-mask: linear-gradient(0deg, transparent, #000 24%); mask: linear-gradient(0deg, transparent, #000 24%); }
+/* (a los lados de la lámina, ella misma desenfocada, que se apaga hacia abajo en la tarjeta) */
+.chero::before { content: ''; grid-area: 1 / 1; z-index: 0; margin: -40px -40px 0; pointer-events: none; background: var(--fondo, none) center / cover; filter: blur(26px) saturate(1.1) brightness(.55);
+  -webkit-mask: linear-gradient(180deg, #000 55%, transparent); mask: linear-gradient(180deg, #000 55%, transparent); }
 .chero:not(:has(.chero-img))::before { display: none; }
 /* las cifras: pastillas como las de la ficha del pueblo */
-.ch-datos { grid-row: 2; display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 28px 20px; }
+.ch-datos { grid-row: 3; display: flex; flex-wrap: wrap; gap: 8px; padding: 16px 28px 20px; }
 .ch-dato { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 5px 16px 5px 5px; border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line2); }
 .ch-dato > :is(svg, img) { flex: none; box-sizing: border-box; width: 34px; height: 34px; padding: 6px; border-radius: 50%; background: color-mix(in srgb, var(--c, #c21cff) 32%, rgba(13, 6, 28, .7)); }
 .ch-dato b { font: 400 var(--fs-lg)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #ff7ac8) 60%, #fff); white-space: nowrap; }
@@ -128,15 +129,14 @@
 .ch-dato small { font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: var(--tx2, #cfc6e6); white-space: nowrap; }
 /* (en el móvil tumbado, la lámina más baja: debajo se ven ya los pueblos) */
 @media (orientation: landscape) and (max-height: 520px) {
-  .chero-img { max-height: calc(46dvh / var(--z, 1)); }
-  .ch-nom { gap: 12px; padding: 0 16px 12px; } .chero .bigstamp { width: 48px; }
+  .chero-img { width: min(100%, calc(52dvh * 16 / 9 / var(--z, 1))); }
+  .ch-nom { gap: 12px; padding: 8px 16px 0; } .chero .bigstamp { width: 48px; }
   .chero h1 { font-size: var(--fs-xl); } .chero h1 em { font-size: var(--fs-xs); margin-top: 4px; }
   .ch-datos { gap: 6px; padding: 10px 16px 12px; } .ch-dato { min-height: 34px; gap: 8px; padding: 3px 12px 3px 3px; } .ch-dato > :is(svg, img) { width: 28px; height: 28px; padding: 5px; } .ch-dato b { font-size: var(--fs-md); }
 }
-/* (de pie, la lámina en 16:9 y el nombre debajo de ella: encima tapaba la lámina entera) */
+/* (de pie, todo un paso más pequeño) */
 @media (max-width: 599px), (orientation: portrait) {
-  .chero-img { aspect-ratio: 16 / 9; } .chero::before { display: none; }
-  .ch-nom { grid-area: 2 / 1; align-self: start; padding: 14px 16px 0; } .chero .bigstamp { width: 56px; } .chero h1 { font-size: var(--fs-2xl); }
+  .ch-nom { padding: 14px 16px 0; } .chero .bigstamp { width: 56px; } .chero h1 { font-size: var(--fs-2xl); }
   .ch-datos { grid-row: 3; padding: 12px 16px 16px; }
 }
 /* los pueblos de la comarca: la misma carta que en la galería, en una retícula; al pasar por encima, se encienden */
