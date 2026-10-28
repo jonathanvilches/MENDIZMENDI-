@@ -6,6 +6,7 @@ import SETTLEMENTS from '../data/settlements.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { REAL_IDS, ATRIBUCION } from '../data/reales/index.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
+import { pin45Svg } from '../pelota/pin45.js';
 import { showFicha, allFichas } from '../ui/ficha.js';
 import { floraId } from '../data/flora.js';
 import { faunaId } from '../data/fauna.js';
@@ -313,7 +314,7 @@ export class Hub {
     // el frontón, que abre la lista por comarcas, o tu club, con el botón de jugar al lado. En el móvil tumbado se ven las
     // dos enteras sin desplazar; en vertical, una debajo de la otra)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
-    const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${I(ic, 16)}${t}</span>`).join('')}</p>`;
+    const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${ic === 'pin45' ? pin45Svg() : I(ic, 16)}${t}</span>`).join('')}</p>`;
     const carta = (cls, img, stat, kick, tit, tg, row) => `<article class="sport ${cls}">
         <div class="sp-cover" style="background-image:url(${img})"><span class="sp-stat">${stat}</span></div>
         <div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
@@ -323,7 +324,7 @@ export class Hub {
     ${cabeza('Torneos · Pelota y fútbol', 'trophy', 'Campeonatos')}
     <section class="sports">
       ${carta('sp-pelota', laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl), `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
-        'Tres campeonatos', 'Pelota a mano', [['pelota', 'Manomanista'], ['person', 'Parejas'], ['target', '4½']],
+        'Tres campeonatos', 'Pelota a mano', [['pelota', 'Manomanista'], ['person', 'Parejas'], ['pin45', 'Cuatro y Medio']],
         `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button>`)}
       ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${fw === 1 ? 'ganado' : 'ganados'}`,
         'Liga Navarra', 'Fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],

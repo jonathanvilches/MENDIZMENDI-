@@ -992,6 +992,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sp-chips > span { display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px 3px 6px; border-radius: var(--r); background: rgba(255, 255, 255, .06); border: 1px solid var(--line);
   color: var(--tx2, #d9d0ee); font: 700 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
 .sp-chips > span > :is(svg, img) { flex: none; width: 16px; height: 16px; }
+.sp-chips > span > svg.pin45 { width: auto; height: 22px; margin: -4px 0; }
 .sp-bar { margin-top: auto; display: flex; align-items: flex-end; gap: 12px; min-width: 0; padding: 16px var(--pad) var(--pad); }
 .sp-row { flex: 1; min-width: 0; }
 .sp-row > small { display: block; margin-bottom: 8px; color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
