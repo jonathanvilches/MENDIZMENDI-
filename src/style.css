@@ -918,3 +918,18 @@ html.sin-cristal body .pel-panel { background: rgba(14, 4, 34, .78); }
 .boc.fuera { opacity: 0; }
 @keyframes bocIn { from { opacity: 0; scale: .7; } }
 body.bino-on .boc-capa { display: none; }
+
+/* «¿Necesitas ayuda?» del perro (src/game/perro.js): una tarjeta de cristal abajo, en medio, que no para el juego */
+.dog-ayuda { position: fixed; z-index: 30; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 112px); transform: translateX(-50%); display: flex; align-items: center; gap: 12px;
+  max-width: calc(100vw - 32px); padding: 8px 10px 8px 8px; border-radius: 999px; background: rgba(20, 8, 44, .7); border: 1px solid rgba(255, 255, 255, .18); color: #fff;
+  box-shadow: 0 12px 30px rgba(4, 1, 12, .35); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); animation: daIn .35s cubic-bezier(.22, 1.12, .36, 1) both; }
+.dog-ayuda.fuera { opacity: 0; transform: translate(-50%, 12px); transition: opacity .25s, transform .25s; }
+@keyframes daIn { from { opacity: 0; transform: translate(-50%, 16px); } }
+.dog-ayuda .da-ic { flex: none; display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; background: var(--cta, linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7)); }
+.dog-ayuda .da-tx { display: grid; gap: 3px; min-width: 0; padding-right: 4px; }
+.dog-ayuda .da-tx b { font: 400 var(--fs-lg)/1 var(--f-display, 'MZ Display'), 'MZ Texto', sans-serif; text-transform: uppercase; letter-spacing: .02em; white-space: nowrap; }
+.dog-ayuda .da-tx small { font: 700 var(--fs-xs)/1.25 'MZ Texto', sans-serif; color: #e6dcf8; }
+.dog-ayuda .btn { min-height: 44px; padding: 8px 18px; white-space: nowrap; }
+@media (max-width: 600px) { .dog-ayuda { flex-wrap: wrap; justify-content: center; border-radius: 24px; padding: 10px 12px; } }
+@media (max-height: 520px) { .dog-ayuda { bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); } .dog-ayuda .da-ic { width: 40px; height: 40px; } .dog-ayuda .btn { min-height: 40px; } }
+@media (prefers-reduced-motion: reduce) { .dog-ayuda { animation: none; } }
