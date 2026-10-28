@@ -155,18 +155,18 @@
 @media (pointer: coarse) { .m3-ayuda .fino { display: none; } .m3-ayuda .dedo { display: inline; } }
 
 /* las comarcas, abajo, en una tira de fotos: cada una con su foto, su sello en un aro que se llena con sus sellos y cuántos
-   lleva (las que faltan, con candado y la foto algo apagada); al principio, el botón de todas en fotos */
+   lleva (las que faltan, con candado y la foto algo apagada) */
 /* (cada comarca, como la carta de un pueblo en la galería: su lámina entera, en 16:9, sin recortarla, y debajo la franja
    oscura de datos con su nombre y sus sellos; el marco fino con dos esquinas cortadas y un toque de su color. Las que
    faltan, con candado, la foto apagada y el marco sin color; la elegida, con el marco encendido) */
 .m3-rail { --chw: 150px; --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(76px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
 .m3-rail::-webkit-scrollbar { display: none; }
-.m3-chip, .m3-todas { position: relative; flex: none; width: var(--chw); display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+.m3-chip { position: relative; flex: none; width: var(--chw); display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
   background: linear-gradient(135deg, color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c, #ff7ac8) 55%, #fff) 100%);
   clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k));
   filter: drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); transition: transform .2s, filter .2s; }
 .m3-foto { grid-row: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); transition: filter .3s; }
-.m3-chip:hover, .m3-chip:focus-visible, .m3-todas:hover, .m3-todas:focus-visible { transform: translateY(-3px); }
+.m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); }
 .m3-chip.on { background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--c) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--c) 90%, #fff) 100%);
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 45%, transparent)) drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); }
 .m3-chip:not(.go):not(.ok) { background: linear-gradient(135deg, rgba(255, 255, 255, .32) 0%, rgba(255, 255, 255, .08) 50%, rgba(255, 255, 255, .2) 100%); }
@@ -182,9 +182,6 @@
 .m3-ct { grid-row: 2; display: grid; gap: 3px; min-width: 0; padding: 6px calc(var(--k) + 2px) 7px 8px; background: linear-gradient(180deg, #1d1142, #110926); clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%); }
 .m3-ct b { font: 400 var(--fs-sm)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .m3-ct small { font: 600 10px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #ff7ac8) 45%, #fff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.m3-todas { --c: var(--pink); }
-.m3-mos { grid-row: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 2px; height: var(--chh); background: #0d0420; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); }
-.m3-mos img { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
 
 /* los botones de la cámara: acercar, ver toda Navarra y alejar (moverse y girar van con el dedo, el ratón y el teclado) */
 .m3-pad { position: absolute; z-index: 3; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: grid; grid-template-columns: 40px; grid-template-rows: repeat(3, 40px); gap: 6px;
