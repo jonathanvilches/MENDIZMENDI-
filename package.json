@@ -14,7 +14,7 @@
     "@fontsource/barlow-condensed": "^5.2.6",
     "@fontsource/lilita-one": "^5.3.0",
     "@fontsource/nunito": "^5.3.0",
-    "@vercel/speed-insights": "^2.0.0",
+    "@vercel/analytics": "^2.0.1",
     "qrcode-generator": "^2.0.4",
     "three": "^0.180.0"
   },

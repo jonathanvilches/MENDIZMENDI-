@@ -90,7 +90,7 @@ async function boot() {
   await startI18n();   // (en euskera, espera a sus diccionarios: se cargan aparte)
   startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
   startHD();   // (archivo único con conexión: las imágenes grandes, de la web publicada)
-  startVercel();   // (servido desde Vercel: sus medidas de velocidad, src/web/vercel.js)
+  startVercel();   // (servido desde Vercel: sus visitas, src/web/vercel.js)
   // (con tope de 2,5 s: en algunos visores de iPhone la base de datos del navegador no responde nunca)
   await Promise.race([loadStore(), new Promise(r => setTimeout(r, 2500))]);
   const canvas = document.getElementById('c');
