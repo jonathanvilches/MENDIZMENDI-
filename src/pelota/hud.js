@@ -3,6 +3,7 @@
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { icon3DReady } from '../ui/icon3d.js';
 import { esc } from '../util/html.js';
+import { tap } from '../util/tap.js';
 export { esc };
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,'MZ Texto',sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -253,7 +254,32 @@ const CSS = `
   .pel-card{width:min(1000px,100%);padding:32px 40px 24px}.pel-card ol{columns:2;column-gap:40px}.pel-card li{break-inside:avoid}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
   .pel-card li,.pel-card .pel-ctrl,.pel-rv,.pel-rv p,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
 }
+/* la elección de material (material.js): el lote de diez pelotas en dos filas; cada una con su número, su peso, su
+   diámetro y lo viva que es. Las tuyas, de tu color; las del rival, apagadas */
+.pel-card.pel-matcard{width:min(640px,100%)}
+.pel-mat{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 12px}
+.pel-mb{position:relative;display:grid;justify-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:1px solid rgba(190,160,255,.3);background:rgba(255,255,255,.05);color:#fff;font:inherit;cursor:pointer;min-width:0}
+.pel-mb svg{width:32px;height:32px}.pel-mb b{font:900 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}
+.pel-mb small{font-size:var(--fs-xs);color:#cbc2e0;line-height:1.1;white-space:nowrap}
+.pel-mb i{display:block;width:80%;height:4px;margin:2px 0;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}.pel-mb i u{display:block;height:100%;background:linear-gradient(90deg,#7fb2ff,#ff7ac8)}
+.pel-mb em{font-style:normal;font-weight:900;font-size:var(--fs-xs);color:#ff7ac8;text-transform:uppercase;letter-spacing:.04em}
+.pel-mb[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
+.pel-mb.rv{opacity:.5;cursor:default}.pel-mb.rv::after{content:attr(data-rv);position:absolute;top:4px;right:6px;font-size:10px;font-weight:900;color:#ff8f8f;text-transform:uppercase}
+.pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.3;min-height:2.6em}
+.pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
+@media (max-height:500px){.pel-mat{gap:4px}.pel-mb{padding:4px 2px;gap:0}.pel-mb svg{width:22px;height:22px}.pel-mat-what{min-height:0;margin-bottom:8px}}
+/* el cestaño en el partido, arriba a la izquierda bajo la X (lejos del aviso del saque, que en el móvil va arriba y en el
+   ordenador abajo): la pelota en juego y, mientras sacas tú, tus pelotas para cambiar */
+.pel-bolas{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));top:calc(env(safe-area-inset-top,0px) + 72px);z-index:4;display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:6px;border-radius:14px;background:rgba(20,8,40,.72);border:1px solid rgba(190,160,255,.28);color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;pointer-events:auto;white-space:nowrap}
+.pel-bolas>span{opacity:.8;padding:2px 4px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pel-bolas button{display:flex;align-items:center;gap:4px;border:1px solid transparent;background:none;color:#fff;font:inherit;padding:4px 8px;border-radius:999px;min-height:30px;cursor:pointer}
+.pel-bolas button:disabled{cursor:default;opacity:1}.pel-bolas button[aria-pressed=true]{background:rgba(131,56,236,.55);border-color:#c9a6ff}
+.pel-bolas svg{width:16px;height:16px;flex:none}
+.pel-bolas.abre{border-color:#ff7ac8;box-shadow:0 0 14px rgba(255,43,214,.35)}
+.pel-root.paneled .pel-bolas{visibility:hidden}
+@media (max-height:500px){.pel-bolas{top:calc(env(safe-area-inset-top,0px) + 62px)}.pel-bolas>span{display:none}.pel-bolas button{min-height:28px;padding:2px 8px}}
 `;
+const BOLA = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="2" fill="none"/></svg>';
 
 /** Mete en la página los estilos del partido (una vez). La pasaka (src/game/pasaka3d.js) usa la misma interfaz. */
 export function pelotaStyle() { if (!document.getElementById('pel-style')) { const st = document.createElement('style'); st.id = 'pel-style'; st.textContent = CSS; document.head.appendChild(st); } }
@@ -332,6 +358,16 @@ export class PelotaHud {
   // (lo último escrito va en el propio elemento, _t: en euskera, el texto que se lee ya está traducido y no coincidiría)
   tip(text) { const t = this.$('.pel-tip'), v = text || ''; if (t._t !== v) { t._t = v; t.textContent = v; } t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
+  // el cestaño (material.js): la pelota en juego y, mientras sacas tú, las tuyas para cambiar (tocando o con la tecla B).
+  // rotulo(b): su nombre corto; pista: lo que se puede hacer
+  bolas(lista, actual, editable, rotulo, pista) {
+    let el = this.bolasEl;
+    if (!el) { el = this.bolasEl = document.createElement('div'); el.className = 'pel-bolas'; this.root.appendChild(el); tap(el, (b) => this.onBola?.(+b.dataset.bola)); }
+    const k = lista.map(b => b.n).join() + '|' + (actual?.n ?? '') + '|' + editable;
+    if (el._k === k) return; el._k = k;
+    el.innerHTML = `<span>${esc(pista)}</span>` + lista.map(b => `<button data-bola="${b.n}" aria-pressed="${b === actual}"${editable ? '' : ' disabled'}>${BOLA}<b>${esc(rotulo(b))}</b></button>`).join('');
+    el.classList.toggle('abre', !!editable);
+  }
   /** El aro del momento justo: t, segundos hasta el momento de soltar el golpe (null, sin aro). Llega al botón a tiempo */
   timing(t) {
     const r = this._tr ||= this.$('.pel-tring'); if (!r) return;

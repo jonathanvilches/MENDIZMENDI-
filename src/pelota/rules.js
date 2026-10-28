@@ -80,10 +80,6 @@ const FEEL_TXT = {
     snow: ['Lurra elurtuta', 'Elurra ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
     labrit: ['Labrit', 'Finaletako frontoia: pilota bizia, frontisetik azkar ateratzen da eta alai botatzen du.'] },
 };
-// las pelotas que se pueden elegir: cuánto sale del frontis (front), cuánto bota (floor) y cuánto corre al botar (run)
-export const BALLS = { normal: { front: 1, floor: 1, run: 1 }, viva: { front: 1.08, floor: 1.05, run: 1 }, muerta: { front: 0.9, floor: 0.94, run: 0.98 },
-  botona: { front: 1, floor: 1.12, run: 0.97 }, rasa: { front: 1, floor: 0.86, run: 1.06 } };
-export const BALL_ORDER = ['normal', 'viva', 'muerta', 'botona', 'rasa'];
 export function courtFeel({ covered = false, stone = false, wet = false, snow = false, labrit = false, hall = false } = {}, lang = 'es') {
   const T = FEEL_TXT[lang] || FEEL_TXT.es, f = { front: 1, floor: 1, run: 1 }, tags = [];
   // (cerrado por todas partes: el rebote llega al techo y la pelota no se sale por detrás)
@@ -222,8 +218,8 @@ export const TEXT = {
       warn: { cortada: '¡Cuidado con su cortada: rasa y rápida!', dosparedes: '¡Cuidado con sus dos paredes: cúbrete a la derecha!', gancho: '¡Cuidado con sus ganchos a la izquierda: no te despegues de la pared!', dejada: '¡Cuidado con sus dejadas: no te quedes atrás!', largo: '¡Cuidado: pega largo, al rebote! No te adelantes.' } },
     tips: { slow: 'Es lento: hazle dejadas cuando esté al fondo.', clumsy: 'Le cuesta lo pegado a la pared izquierda y lo muy bajo: ajústala a la pared.', strong: 'Pega muy fuerte: puede mandarla al rebote. No te adelantes.', fast: 'Es muy rápido: llega casi a todo. Busca la pared o las dos paredes.', weak: 'Le falta fuerza: juega largo, lejos del frontis.', agile: 'Tiene buenas manos: hasta lo pegado a la pared lo devuelve.' },
     rebote: '¡Al rebote!',
-    ctrlTouch: 'Joystick: moverte · mantén GOLPE para cargar y apuntar: el pelotari va solo a la pelota y la línea marca el camino y el bote · suelta cuando el aro se cierre sobre el botón: ese es el momento justo · a la izquierda va a la izquierda y a la derecha, a la derecha; arriba larga, abajo corta · a tope y arriba: al rebote · izquierda del todo: dos paredes · CORTADA rasa y rápida · DEJADA, junto al frontis.',
-    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe (mantén para cargar: cuanto más, más fuerte; suéltalo cuando el aro se cierre sobre el botón) · L: cortada (tan fuerte o más que el golpe, pero baja, cerca de la chapa) · Mayúsculas: dejada (suave, cae junto al frontis) · mientras mantienes el golpe, la dirección apunta y el pelotari va solo a la pelota (la línea enseña el camino): izquierda a la izquierda, derecha a la derecha, arriba larga, abajo corta; izquierda del todo, dos paredes; arriba-izquierda, pegada a la pared.',
+    ctrlTouch: 'Joystick: moverte · mantén GOLPE para cargar y apuntar: el pelotari va solo a la pelota y la línea marca el camino y el bote · suelta cuando el aro se cierre sobre el botón: ese es el momento justo · a la izquierda va a la izquierda y a la derecha, a la derecha; arriba larga, abajo corta · a tope y arriba: al rebote · izquierda del todo: dos paredes · CORTADA rasa y rápida · DEJADA, junto al frontis. · antes de sacar, toca tu pelota arriba a la izquierda para cambiarla.',
+    ctrlKeys: 'WASD o flechas para moverte · Espacio: golpe (mantén para cargar: cuanto más, más fuerte; suéltalo cuando el aro se cierre sobre el botón) · L: cortada (tan fuerte o más que el golpe, pero baja, cerca de la chapa) · Mayúsculas: dejada (suave, cae junto al frontis) · mientras mantienes el golpe, la dirección apunta y el pelotari va solo a la pelota (la línea enseña el camino): izquierda a la izquierda, derecha a la derecha, arriba larga, abajo corta; izquierda del todo, dos paredes; arriba-izquierda, pegada a la pared. · B: cambiar de pelota antes de sacar (las tuyas del cestaño)',
     play: '¡A jugar!', later: 'Ahora no', again: 'Otra partida', cont: 'Volver al pueblo', contMenu: 'Volver al menú', contTorneo: 'Seguir con el torneo', exit: 'Salir', sure: '¿Seguro que quieres dejar el partido?', yes: 'Sí, salir', no: 'Seguir jugando', ficha: 'Ficha', fichas: 'Fichas de los pelotaris', vsYou: 'Tú', vsEven: 'Equilibrado',
     hit: 'GOLPE', drop: 'DEJADA', cut: 'CORTADA', hitVolley: 'VOLEA', hitGancho: 'GANCHO', hitKey: 'espacio',
     tipServe: 'Te toca sacar: mantén GOLPE y suéltalo.',
@@ -254,14 +250,12 @@ export const TEXT = {
     },
     quality: { perfect: '¡Perfecto!', good: '¡Bien!', ok: 'Justo', late: 'Tarde', early: 'Pronto', whiff: '¡Al aire!' },
     force: 'fuerza', volea: 'De volea', costs: 'gasta energía', gains: 'recuperas energía',
-    // la pelota se elige: cuánto sale del frontis y cuánto bota cambian el juego (el rival juega con la misma)
-    ball: { label: 'Pelota', kinds: {
-      normal: ['Normal', 'La de siempre: sale del frontis y bota lo justo.'],
-      viva: ['Viva', 'Sale más del frontis y bota algo más: el peloteo va más rápido.'],
-      muerta: ['Muerta', 'Sale menos del frontis y bota menos: hay que llegar antes.'],
-      botona: ['De mucho bote', 'Bota más alto: da más tiempo, pero cuesta pegarla abajo.'],
-      rasa: ['De poco bote', 'Bota bajo y corre por el suelo: las cortadas hacen más daño.'],
-    } },
+    // la elección de material (material.js): el lote de diez pelotas, el cestaño y la pelota de cada saque
+    mat: { title: 'Elección de material', sub: (n) => `Un lote de 10 pelotas, todas de 102 a 107 g. Elige ${n} para el cestaño: sacarás con ellas y podrás cambiarlas en cada saque.`,
+      first: 'Eliges tú primero', second: (r) => `${r} ya ha elegido`, pick: (k, n) => `${k} de ${n}`, auto: 'Elige por mí', go: 'Al cestaño', rival: 'Del rival',
+      kinds: { viva: 'Viva', media: 'Media', pesada: 'Pesada' },
+      what: { viva: 'Sale más del frontis y bota más: el peloteo va más rápido.', media: 'Entre la viva y la pesada.', pesada: 'Sale menos y bota menos: queda baja y hay que llegar antes.' },
+      viveza: 'Viveza', cesta: 'Cestaño', change: 'Cambiar de pelota (B)', changeTouch: 'Toca para cambiar de pelota', rivalSaca: (k) => `Saca con la ${k.toLowerCase()}` },
     shots: { rebote: 'Al rebote', dejada: 'Dejada', cortada: 'Cortada', pared: 'A la pared', dosparedes: 'Dos paredes', dpCorta: 'Dos paredes corta', dpCruzada: 'Dos paredes cruzada', dpLarga: 'Dos paredes larga', dpPegada: 'Dos paredes pegada', cortDos: 'Cortada a dos paredes', cortPared: 'Cortada a la pared', cortAncho: 'Cortada al ancho', dejadaTxoko: 'Dejada al txoko', dejadaAncho: 'Dejada al ancho', ancho: 'Al ancho', largo: 'Largo', gancho: 'Gancho a la pared', ganchoCruzado: 'Gancho al ancho', saque: '', normal: '' },
     pointYou: 'Tanto para ti', pointRival: (n) => `Tanto para ${n}`,
     // el sorteo del saque con la chapa (una cara roja y otra azul), los colores por antigüedad, las repeticiones y el
@@ -326,8 +320,8 @@ export const TEXT = {
       warn: { cortada: 'Kontuz bere cortadarekin: baxua eta azkarra!', dosparedes: 'Kontuz bere bi paretekin: babestu eskuinaldea!', gancho: 'Kontuz bere ezkerrerako ganchoekin: ez urrundu paretatik!', dejada: 'Kontuz bere dejadekin: ez geratu atzean!', largo: 'Kontuz: luze jotzen du, errebotera! Ez aurreratu.' } },
     tips: { slow: 'Motela da: egin dejadak atzean dagoenean.', clumsy: 'Ezkerreko paretari itsatsitakoak eta oso baxuak kostatzen zaizkio: paretara estutu.', strong: 'Oso gogor jotzen du: errebotera bidal dezake. Ez aurreratu.', fast: 'Oso azkarra da: ia guztira iristen da. Bilatu pareta edo bi pareta.', weak: 'Indarra falta zaio: jokatu luze, frontisetik urrun.', agile: 'Esku onak ditu: paretari itsatsitakoak ere itzultzen ditu.' },
     rebote: 'Errebotera!',
-    ctrlTouch: 'Joysticka: mugitu · eutsi JO kargatzeko eta zuzentzeko: pilotaria bera doa pilotara eta marrak bidea eta botea erakusten ditu · askatu eraztuna botoiaren gainean ixten denean: hori da une zuzena · ezkerrera ezkerrera doa eta eskuinera eskuinera; gora luzea, behera motza · ezkerrera erabat: bi pareta · CORTADA baxua eta azkarra · DEJADA, frontisaren ondoan.',
-    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo (eutsi kargatzeko; askatu eraztuna botoiaren gainean ixten denean) · L: cortada (joa bezain indartsua edo gehiago, baina baxua, txapatik gertu) · Maiuskula: dejada (leuna, frontisaren ondoan erortzen da) · jokoari eusten diozun bitartean, norabideak zuzentzen du eta pilotaria bera doa pilotara (marrak bidea erakusten du): ezkerra ezkerrera, eskuina eskuinera, gora luzea, behera motza; ezkerra erabat, bi pareta; gora-ezkerra, paretari itsatsita.',
+    ctrlTouch: 'Joysticka: mugitu · eutsi JO kargatzeko eta zuzentzeko: pilotaria bera doa pilotara eta marrak bidea eta botea erakusten ditu · askatu eraztuna botoiaren gainean ixten denean: hori da une zuzena · ezkerrera ezkerrera doa eta eskuinera eskuinera; gora luzea, behera motza · ezkerrera erabat: bi pareta · CORTADA baxua eta azkarra · DEJADA, frontisaren ondoan. · atera aurretik, ukitu zure pilota goian ezkerrean aldatzeko.',
+    ctrlKeys: 'WASD edo geziak mugitzeko · Zuriunea: jo (eutsi kargatzeko; askatu eraztuna botoiaren gainean ixten denean) · L: cortada (joa bezain indartsua edo gehiago, baina baxua, txapatik gertu) · Maiuskula: dejada (leuna, frontisaren ondoan erortzen da) · jokoari eusten diozun bitartean, norabideak zuzentzen du eta pilotaria bera doa pilotara (marrak bidea erakusten du): ezkerra ezkerrera, eskuina eskuinera, gora luzea, behera motza; ezkerra erabat, bi pareta; gora-ezkerra, paretari itsatsita. · B: pilota aldatu atera aurretik (saskiko zureak)',
     play: 'Jolastera!', later: 'Orain ez', again: 'Beste partida bat', cont: 'Herrira itzuli', contMenu: 'Menura itzuli', contTorneo: 'Txapelketarekin jarraitu', exit: 'Irten', sure: 'Ziur partida utzi nahi duzula?', yes: 'Bai, irten', no: 'Jolasten jarraitu', ficha: 'Fitxa', fichas: 'Pilotarien fitxak', vsYou: 'Zu', vsEven: 'Orekatua',
     hit: 'JO', drop: 'DEJADA', cut: 'CORTADA', hitVolley: 'BOLEIA', hitGancho: 'GANCHOA', hitKey: 'zuriunea',
     tipServe: 'Zuri dagokizu sakea: eutsi JO eta askatu.',
@@ -358,13 +352,11 @@ export const TEXT = {
     },
     quality: { perfect: 'Primeran!', good: 'Ondo!', ok: 'Justu', late: 'Berandu', early: 'Goiz', whiff: 'Airera!' },
     force: 'indarra', volea: 'Boleaz', costs: 'energia gastatzen du', gains: 'energia berreskuratzen duzu',
-    ball: { label: 'Pilota', kinds: {
-      normal: ['Arrunta', 'Betikoa: frontisetik eta lurretik behar bezala ateratzen da.'],
-      viva: ['Bizia', 'Frontisetik gehiago ateratzen da eta gehiago egiten du bote: pilotakada azkarragoa da.'],
-      muerta: ['Hila', 'Frontisetik gutxiago ateratzen da eta gutxiago egiten du bote: lehenago iritsi behar da.'],
-      botona: ['Bote handikoa', 'Gorago egiten du bote: denbora gehiago ematen du, baina behetik jotzea kostatzen da.'],
-      rasa: ['Bote txikikoa', 'Baxu egiten du bote eta lurrean korrika doa: cortadek kalte handiagoa egiten dute.'],
-    } },
+    mat: { title: 'Materiala aukeratzea', sub: (n) => `10 pilotako sorta, denak 102 eta 107 g artekoak. Aukeratu ${n} saskirako: haiekin aterako duzu eta sake bakoitzean alda ditzakezu.`,
+      first: 'Zuk aukeratzen duzu lehenik', second: (r) => `${r}: aukeratuta`, pick: (k, n) => `${k} / ${n}`, auto: 'Aukeratu nire ordez', go: 'Saskira', rival: 'Aurkariarena',
+      kinds: { viva: 'Bizia', media: 'Erdikoa', pesada: 'Astuna' },
+      what: { viva: 'Frontisetik gehiago ateratzen da eta gehiago egiten du bote: pilotakada azkarragoa da.', media: 'Biziaren eta astunaren artekoa.', pesada: 'Gutxiago ateratzen da eta gutxiago egiten du bote: baxu geratzen da eta lehenago iritsi behar da.' },
+      viveza: 'Bizitasuna', cesta: 'Saskia', change: 'Pilota aldatu (B)', changeTouch: 'Ukitu pilota aldatzeko', rivalSaca: (k) => `Sakea: ${k.toLowerCase()}` },
     shots: { rebote: 'Errebotera', dejada: 'Dejada', cortada: 'Cortada', pared: 'Paretara', dosparedes: 'Bi pareta', dpCorta: 'Bi pareta motza', dpCruzada: 'Bi pareta zeharka', dpLarga: 'Bi pareta luzea', dpPegada: 'Bi pareta itsatsia', cortDos: 'Bi paretako cortada', cortPared: 'Paretarako cortada', cortAncho: 'Zabalerako cortada', dejadaTxoko: 'Txokorako dejada', dejadaAncho: 'Zabalerako dejada', gancho: 'Paretarako ganchoa', ganchoCruzado: 'Zabalerako ganchoa', ancho: 'Zabalera', largo: 'Luzea', saque: '', normal: '' },
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     toss: { title: 'Sakearen zozketa', throw: 'Bota txapa!', azul: 'Urdina', rojo: 'Gorria', serves: (n) => `Sakea: ${n}`,

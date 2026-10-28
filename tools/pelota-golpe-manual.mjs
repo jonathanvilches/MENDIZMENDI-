@@ -7,7 +7,8 @@
 //   · cada pelota cambia el bote y la salida del frontis.
 // Uso: node tools/pelota-golpe-manual.mjs
 import { PelotaGame } from '../src/pelota/game.js';
-import { BALLS, courtFeel } from '../src/pelota/rules.js';
+import { courtFeel } from '../src/pelota/rules.js';
+import { lote, siente, clase, elige, LIMITES } from '../src/pelota/material.js';
 
 let fails = 0;
 const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
@@ -69,12 +70,16 @@ console.log('4. energía');
   ok(C.enMin < 0.75, 'las cortadas seguidas gastan energía');
   ok(A.en >= 0.9, 'peloteando normal la energía se mantiene o se recupera'); }
 
-console.log('5. las pelotas');
-{ const base = courtFeel({}), out = {};
-  for (const k of Object.keys(BALLS)) { const M = BALLS[k]; out[k] = { front: +(base.front * M.front).toFixed(3), floor: +(base.floor * M.floor).toFixed(3) }; }
+console.log('5. las pelotas (el material: lote de 10, de 102 a 107 g y de 61,5 a 63 mm)');
+{ const base = courtFeel({}), lot = lote(1234), out = {};
+  for (const b of lot) { const M = siente(b); out[b.n] = { peso: b.peso, viva: b.viva, clase: clase(b), front: +(base.front * M.front).toFixed(3), floor: +(base.floor * M.floor).toFixed(3) }; }
   console.log('  ', JSON.stringify(out));
-  ok(out.viva.front > out.normal.front && out.muerta.front < out.normal.front, 'la viva sale más del frontis y la muerta menos');
-  ok(out.botona.floor > out.normal.floor && out.rasa.floor < out.normal.floor, 'la botona bota más y la rasa menos'); }
+  ok(lot.length === 10 && lot.every(b => b.peso >= LIMITES.peso[0] && b.peso <= LIMITES.peso[1] && b.diam >= LIMITES.diam[0] && b.diam <= LIMITES.diam[1]), 'las diez, dentro del peso y del diámetro del reglamento');
+  const s = [...lot].sort((a, b) => a.viva - b.viva), vv = siente(s[9]), mm = siente(s[0]);
+  ok(vv.front > mm.front && vv.floor > mm.floor, 'la más viva sale más del frontis y bota más que la más pesada');
+  ok(lot.some(b => clase(b) === 'viva') && lot.some(b => clase(b) === 'pesada'), 'en el lote hay vivas y pesadas');
+  const rv = elige(lot, 2, 'pegador'), yo = elige(lot, 2, 'mixto', new Set(rv.map(b => b.n)));
+  ok(rv.length === 2 && yo.length === 2 && !yo.some(b => rv.includes(b)), 'cada uno elige 2 y ninguna se repite'); }
 
 console.log(fails ? `\n${fails} FALLOS` : '\nTodo correcto');
 process.exit(fails ? 1 : 0);
