@@ -9,7 +9,12 @@
    · Las rejillas de tarjetas, todas con el mismo hueco; las piezas pequeñas que van juntas, con el suyo.
    · Los contadores («0 de 29 escuchados», «0/16 cimas», el herbario): la misma etiqueta, con la cifra en el color de la
      sección.
-   · Las pestañas del material didáctico, del tamaño de las demás pestañas del menú. */
+   · Las pestañas del material didáctico, del tamaño de las demás pestañas del menú.
+   · Lo de dentro de las tarjetas, con la misma letra en todas: el rótulo pequeño de encima (qué es: comarca, leyenda,
+     reino, viento…) en la letra estrecha, en mayúsculas y del color de la sección; el nombre, en la letra de los rótulos
+     del juego, como en las cartas de los pueblos y de las comarcas; lo demás, en la de texto.
+   · Las fichas de los pueblos y del material (los bloques de «Qué visitar», el escudo, el antes y el ahora), con el
+     mismo cristal, el mismo borde y el mismo radio que las tarjetas. */
 
 /* ---------- las tarjetas ---------- */
 :is(.fcard, .pcard, .scard, .bcard, .ins, .armorial .ar, .armorial .ar-guia, .armorial .ar-btn) { border-radius: var(--r); }
@@ -31,3 +36,19 @@
 /* ---------- las pestañas del material ---------- */
 .ddg .dd-tabs button { font-size: var(--fs-sm); } .ddg .dd-tabs button .ico { width: 20px; height: 20px; }
 .ddg .dd-tabs button small { border-radius: var(--r); }
+
+/* ---------- lo de dentro de las tarjetas ---------- */
+:is(.ddc-txt, .armorial .ar-tx, .ins-tx, .dd-b > header) small { font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase;
+  color: color-mix(in srgb, var(--cat, #ff7ac8) 80%, #fff); }
+:is(.ddc-txt > b, .armorial .ar-nm, .ar-tx > h3, .dd-b h3, .ins-tx > b, .pcard .phead b, .scard > b, .fcard .ftx > b, .bcard > b) { font-family: var(--f-display); font-weight: 400; letter-spacing: .01em; line-height: 1.1; }
+/* (el nombre grande en las tarjetas anchas; algo menor en las de las rejillas apretadas) */
+:is(.ddc-txt > b, .armorial .ar-nm, .ar-tx > h3, .dd-b h3) { font-size: var(--fs-lg); }
+:is(.ins-tx > b, .pcard .phead b, .scard > b, .fcard .ftx > b, .bcard > b) { font-size: calc(var(--fs-md) + 2px); }
+/* (y los nombres de las listas de las fichas, del pasaporte y de la guía de los escudos: misiones, qué visitar, la
+   tradición, el producto, la comarca) */
+:is(.ppage header b, .armorial .ar-guia b, .fh-ms li b, .fh-vis li b, .cult b) { font: 400 calc(var(--fs-md) + 2px)/1.1 var(--f-display); letter-spacing: .01em; }
+
+/* ---------- las fichas de los pueblos y del material ---------- */
+:is(.dd-b, .dd-arms) { border-radius: var(--r); background-color: var(--glass); border-color: var(--line); }
+.antes-ahora div { border-radius: 0 var(--r) var(--r) 0; border-left: 3px solid #b79cff; background: rgba(255, 255, 255, .05); }
+.antes-ahora div + div { border-left-color: #ff7ac8; }
