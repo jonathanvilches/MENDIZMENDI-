@@ -97,7 +97,7 @@ export function mapa3d(host, o) {
     uGrosor: { value: GROSOR }, uExa: { value: EXA }, uPal: { value: PALETA.map(([, h]) => srgb(h)) }, uCota: { value: PALETA.map(([m]) => m) } };
   const nada = new THREE.DataTexture(new Uint8Array([128, 140, 90, 255]), 1, 1); nada.needsUpdate = true;
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
-  const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true,
+  const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true,
     uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO,
       uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
@@ -114,6 +114,8 @@ export function mapa3d(host, o) {
   // (en el móvil, en el modo sencillo (o.ligero, src/util/sencillo.js) y en los ordenadores con una gráfica floja (el juego
   // en calidad baja, src/util/gpu.js), 30 imágenes por segundo y el relieve algo menos fino)
   const TACTIL = !!matchMedia?.('(pointer: coarse)').matches, LENTO = !!o.ligero || TACTIL || calidadJuego() === 'low';
+  // (en el ordenador de calidad baja, el relieve sin la sombra de las nubes ni el grano fino de cerca: mapa3dSombreadores.js)
+  const PC_LENTO = LENTO && !TACTIL, LIGERO = PC_LENTO ? { LIGERO: '' } : {};
   // (la entrada grande: solo la primera vez y sin movimiento reducido; en las pruebas automáticas, solo si se pide)
   // (ni en el modo sencillo ni en el didáctico, o.intro false, donde el mapa no es la portada)
   // (con «Reducir movimiento» en el móvil, también, pero suave: sin el temblor, el destello ni la onda; antes no salía, y en
@@ -887,7 +889,7 @@ export function mapa3d(host, o) {
   function calienta() {
     calentado = true;
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
-    const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
+    const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
     const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 } }, res);
     while (!pasos.next().done);
     const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
@@ -938,7 +940,7 @@ export function mapa3d(host, o) {
     if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
       for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R + rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, 0.5, 0, 6.2832); }
       g.fill(); m.tex.needsUpdate = true; r.initTexture(m.tex); return true; }
-    const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
+    const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
     m.malla = new THREE.Mesh(m.res.geo, pm); c.mesh.add(m.malla); c.mesh.add(m.res.casas);
     u.uHueco.value.set(e.X0, e.Z0, e.R * MU * 0.97, 1); if (e.slot >= 0) u['uP' + e.slot].value = m.tex;
     m.labs = m.res.monumentos.map(x => { const lab = document.createElement('div'); lab.className = 'm3-ml'; lab.textContent = x.n; lab.hidden = true; capa.append(lab); return { ...x, lab }; });
@@ -978,14 +980,18 @@ export function mapa3d(host, o) {
     }
   }
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
   const io = new IntersectionObserver((en) => { visible = en[0]?.isIntersecting ?? true; if (visible && !raf) raf = requestAnimationFrame(frame); }, { threshold: 0.02 }); io.observe(host);
   const sz = { w: 0, h: 0, z: 0 }, off = { x: 0, y: 0 };
   // (la resolución máxima del lienzo, que baja si no llega: a 2 en las pantallas de retina el relieve iba a tirones)
+  // (la resolución del lienzo: hasta 1,5; en el ordenador de calidad baja, con un presupuesto de unos 0,9 millones de píxeles
+  // y, si mientras se mueve no llega, puede bajar hasta 0,75. En un portátil con una Intel UHD, a 1920 × 868 iba a 9
+  // imágenes por segundo)
   let prMax = o.ligero ? 1 : 1.5, prT = 0, prN = 0;
+  const prSuelo = PC_LENTO ? 0.75 : 1, prPres = (w, h) => PC_LENTO ? Math.max(prSuelo, Math.sqrt(0.9e6 / Math.max(1, w * h))) : 9;
   const pv = new THREE.Vector3();
   // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
   // gráfica y no la devuelve, el mapa se suelta y quien lo puso deja el plano: o.falla. Nunca una pantalla vacía)
@@ -1069,7 +1075,7 @@ export function mapa3d(host, o) {
     // (mientras se toca o se mueve, todas las imágenes; si no van a tiempo, el lienzo baja un poco su resolución)
     const toca = ptrs.size || inercia || vuelo || keys.size;
     if ((quieto || (LENTO && !toca)) && now - last < 30) return;
-    if (toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > 1) { prMax = Math.max(1, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
+    if (toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > prSuelo) { prMax = Math.max(prSuelo, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
     // (al entrar a jugar, al ritmo del reloj aunque vaya a tirones)
@@ -1079,7 +1085,7 @@ export function mapa3d(host, o) {
     if (intro) { if (!intro.t && ((cargas < 3 && intro.espera < 2.5) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
     // tamaño del lienzo
     const w = host.clientWidth, h = host.clientHeight, z = escala();
-    if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
+    if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, prPres(w, h), (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
     // movimiento con las teclas y los botones
     if (dron && (ptrs.size || keys.size || inercia || entrada || elegido?.id !== dron.id)) dron = null;
     if (dron) sigueDron(dt);

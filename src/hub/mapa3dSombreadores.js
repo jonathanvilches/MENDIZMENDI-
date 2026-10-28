@@ -131,14 +131,18 @@ void main() {
     c = mix(c, vec3(0.2, 0.36, 0.16) * (lum * 1.9) * (0.72 + 0.56 * copas), bosque * 0.55 * uTex);
     float roca = clamp(smoothstep(1450.0, 1750.0, m) + smoothstep(0.9, 1.7, pend) * 0.6, 0.0, 1.0);
     c = mix(c, vec3(dot(c, vec3(0.34))) * vec3(1.02, 1.0, 0.98) * (0.84 + 0.32 * ruido(sv * ko * 4.0)), roca * 0.4 * uTex);
+#ifndef LIGERO
     if (uCerca > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
+#endif
   }
   vec4 p = pue(uP0, uPR[0], uPK[0], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP1, uPR[1], uPK[1], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP2, uPR[2], uPK[2], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP3, uPR[3], uPK[3], sv); c = mix(c, p.rgb, p.a);
   c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))) * vec3(0.95, 0.92, 1.1), uGris);
-  c *= 1.0 - 0.3 * nubes(vXZ);
+#ifndef LIGERO
+  c *= 1.0 - 0.3 * nubes(vXZ);   // (en el ordenador de calidad baja, LIGERO, sin la sombra de las nubes ni el grano fino)
+#endif
   gl_FragColor = vec4(mix(c, uTinte, uTintK) * uBrillo, 1.0);
 #include <fog_fragment>
 }`;

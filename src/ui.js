@@ -18,6 +18,13 @@ import { escala } from './util/tele.js';
 const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
 
+// (la flecha fina del botón que pliega y despliega las misiones del pueblo, como la del menú del inicio)
+const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>';
+// las misiones del pueblo, arriba a la izquierda: en el móvil, plegadas (solo la misión de ahora, con lo hecho en su
+// insignia); en el ordenador, abiertas. Lo que elija cada uno se recuerda
+const TL_K = 'herrizherri-misiones-abiertas';
+const tlAbierto = () => { try { const v = localStorage.getItem(TL_K); if (v) return v === '1'; } catch (e) { } return !matchMedia('(pointer: coarse)').matches; };
+
 const ICON = {
   book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.2)"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#ff7ac8"/></g></svg>',
   map: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><path d="M2.5 5.6l6.2-2.4 6.6 2.4 6.2-2.4v15.2l-6.2 2.4-6.6-2.4-6.2 2.4z" fill="#fff"/><path d="M8.7 3.2v15.2M15.3 5.6v15.2" fill="none" stroke-width="1.2"/><path d="M5 15.5c2-2.4 4.4-.5 6.4-2.6s3.4-3.6 5.6-2.8" fill="none" stroke="#8a2be2" stroke-width="1.6" stroke-dasharray="1.8 1.4" stroke-linecap="round"/><path d="M18 3.8a2.6 2.6 0 00-2.6 2.6c0 1.9 2.6 4.4 2.6 4.4s2.6-2.5 2.6-4.4A2.6 2.6 0 0018 3.8z" fill="#ff5a4e"/></svg>',
@@ -109,7 +116,7 @@ export class UI {
     const h = el(`<div id="hud">
       <div id="compass"><canvas></canvas><span id="cdist"></span></div>
       <div id="tl">
-        <div id="quest"><div class="ic"><span class="qe"></span></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
+        <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div><button type="button" class="tl-pl" aria-label="Misiones del pueblo">${CHEV}</button></div>
         <div id="ribbons"${town ? ' class="mis"' : ''}>${town ? `<span class="mh"><span class="tname">${esc(game.def.name.split(' /')[0])}</span><b class="mc"></b></span><span class="dots" style="--n:${game.missions.length}">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}">${I(M.icon || 'star', 14)}</i>`).join('')}</span>`
           : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
       </div>
@@ -143,6 +150,8 @@ export class UI {
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
     tap('#quest', () => this.openBook('misiones'));
+    tap('#quest .tl-pl', () => this.pliegaMisiones(!this.tlAbierto, true));
+    this.doneN = null; this.pliegaMisiones(tlAbierto());
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
     tap('#cJump', () => this.input.press(' '));
@@ -184,13 +193,16 @@ export class UI {
     const band = (e) => { if (!e || !e.offsetParent) return null; const r = e.getBoundingClientRect(); return r.top < bot && r.bottom > top ? r : null; };
     const txt = (e) => { if (!band(e) || !e.textContent.trim()) return 0; const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect().right; };
     const left = () => { const ic = band($('#quest .ic', h)), rb = band($('#ribbons', h)), tn = $('#ribbons .tname', h), dots = $('#ribbons .dots', h);
-      return Math.max(T.getBoundingClientRect().left, ic ? ic.right : 0, txt($('#quest small', h)), txt($('#quest .qt', h)), rb ? Math.max(txt(tn), dots?.getBoundingClientRect().right || 0) : 0) + 12; };
+      // (y el borde de la caja de las misiones, que ya tiene fondo: la brújula, siempre a 12 px de ella)
+      const caja = band(T)?.right || 0;
+      return Math.max(T.getBoundingClientRect().left, caja, ic ? ic.right : 0, txt($('#quest small', h)), txt($('#quest .qt', h)), rb ? Math.max(txt(tn), dots?.getBoundingClientRect().right || 0) : 0) + 12; };
     const W = innerWidth, R = B.getBoundingClientRect().left - 12, MIN = 170;
     let L = left();
     if (R - L < MIN && band($('#quest', h))) { T.style.maxWidth = Math.max(140, R - MIN - 12 - T.getBoundingClientRect().left) + 'px'; L = left(); }
     // (centrada en la pantalla si cabe; si no, del ancho del hueco y en medio de él)
     if (W / 2 - cr.width / 2 >= L && W / 2 + cr.width / 2 <= R) return;
-    const w = Math.max(120, Math.min(cr.width, R - L)), cx = Math.min(Math.max(W / 2, L + w / 2), R - w / 2);
+    // (en medio del hueco: el mismo espacio a cada lado)
+    const w = Math.max(120, Math.min(cr.width, R - L)), cx = (L + R) / 2;
     C.style.width = w + 'px'; C.style.left = cx + 'px';
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
@@ -200,7 +212,25 @@ export class UI {
   refreshDots() {
     if (!this.hud || this.game.kind !== 'town') return;
     for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; }
-    const c = $('#ribbons .mc', this.hud), ms = this.game.missions; if (c) c.textContent = `${ms.filter(M => M.done).length}/${ms.length}`;
+    const ms = this.game.missions, n = ms.filter(M => M.done).length, t = `${n}/${ms.length}`;
+    for (const c of this.hud.querySelectorAll('#ribbons .mc, #quest .qn')) c.textContent = t;
+    // (al acabar una misión con las misiones plegadas, se abren un momento para ver lo que falta)
+    if (this.doneN != null && n > this.doneN && !this.tlAbierto) this.muestraMisiones();
+    this.doneN = n;
+  }
+  /** Pliega (solo la misión de ahora) o despliega (con todas las del pueblo) el panel de arriba a la izquierda. */
+  pliegaMisiones(abre, elegido) {
+    const T = this.hud && $('#tl', this.hud); if (!T) return;
+    clearTimeout(this.tlT); this.tlT = 0; T.classList.remove('asoma');
+    this.tlAbierto = !!abre; T.classList.toggle('plegado', !abre);
+    const b = $('.tl-pl', T); b?.setAttribute('aria-expanded', String(!!abre));
+    if (elegido) { try { localStorage.setItem(TL_K, abre ? '1' : '0'); } catch (e) { } this.sound?.ui?.(abre ? 'open' : 'click'); }
+    this.queueFitTop();
+  }
+  muestraMisiones() {
+    const T = this.hud && $('#tl', this.hud); if (!T) return;
+    T.classList.add('asoma'); this.queueFitTop(); clearTimeout(this.tlT);
+    this.tlT = setTimeout(() => { this.tlT = 0; T.classList.remove('asoma'); this.queueFitTop(); }, 4000);
   }
   setQuest(q) {
     const b = $('#quest', this.hud), E = this.questEls;

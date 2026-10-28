@@ -5,13 +5,16 @@ import { castById } from '../data/cast.js';
 import { GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
 import { escala } from '../util/tele.js';
 import { compilarAsync } from '../util/compilar.js';
+import { calidadJuego } from '../util/gpu.js';
 
 let R = null;
 const COARSE = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
 function renderer() {
   if (R) return R;
   const c = document.createElement('canvas');
-  R = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true });
+  // (en un ordenador de calidad baja, sin suavizado de bordes: con una Intel UHD el mapa del menú no llegaba a 10 imágenes
+  // por segundo; y la gráfica potente, si el portátil tiene dos, como el juego: src/engine/runtime.js)
+  R = new THREE.WebGLRenderer({ canvas: c, antialias: COARSE || calidadJuego() !== 'low', alpha: true, powerPreference: 'high-performance' });
   R.debug.checkShaderErrors = false;
   R.setPixelRatio(Math.min(devicePixelRatio, 2));
   R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;
