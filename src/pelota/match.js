@@ -229,7 +229,7 @@ export class PelotaMatch {
   pintaBolas() {
     if (!this.hud?.bolas || !this.cesta) return;
     const t = this.txt.mat || TEXT.es.mat, mio = this.puedesCambiar();
-    this.hud.bolas(mio ? this.cesta.you : [this.bola], this.bola, mio, (b) => `${t.kinds[clase(b)]} · ${pesoTxt(b)}`, mio ? (this.touch ? t.changeTouch : t.change) : t.cesta);
+    this.hud.bolas(mio ? this.cesta.you : [this.bola], this.bola, mio, (b) => [t.kinds[clase(b)], pesoTxt(b)], mio ? (this.touch ? t.changeTouch : t.change) : t.cesta);
   }
   newGame() {
     this.hud?.root?.classList.remove('final');
