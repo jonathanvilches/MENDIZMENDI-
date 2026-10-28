@@ -335,10 +335,7 @@
 .m3-sol { position: absolute; right: -20vmin; top: -30vmin; width: 90vmin; height: 90vmin; border-radius: 50%; opacity: 0; mix-blend-mode: screen;
   background: radial-gradient(closest-side, rgba(255, 244, 214, .9), rgba(255, 214, 150, .45) 30%, rgba(255, 170, 200, .12) 62%, rgba(255, 170, 200, 0)); }
 .m3-destello { position: absolute; inset: 0; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse at 50% 58%, rgba(255, 250, 235, .95), rgba(255, 220, 170, .35) 45%, rgba(255, 220, 170, 0) 75%); }
-.m3-barras { --b: 0; position: absolute; inset: 0; pointer-events: none; }
-.m3-barras::before, .m3-barras::after { content: ''; position: absolute; left: 0; right: 0; height: calc(var(--b) * min(10vh, 64px)); background: #05010d; box-shadow: 0 0 24px rgba(5, 1, 13, .8); }
-.m3-barras::before { top: 0; } .m3-barras::after { bottom: 0; }
-.m3-visor { --l: clamp(22px, 3.4vmin, 44px); position: absolute; inset: calc(min(10vh, 64px) + 14px) calc(18px + env(safe-area-inset-right, 0px)) calc(min(10vh, 64px) + 14px) calc(18px + env(safe-area-inset-left, 0px)); opacity: 0; pointer-events: none;
+.m3-visor { --l: clamp(22px, 3.4vmin, 44px); position: absolute; inset: calc(10px + env(safe-area-inset-top, 0px)) calc(10px + env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) calc(10px + env(safe-area-inset-left, 0px)); opacity: 0; pointer-events: none;
   background: linear-gradient(#ff7ac8, #ff7ac8) 0 0 / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 0 0 / 2px var(--l), linear-gradient(#ff7ac8, #ff7ac8) 100% 0 / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 100% 0 / 2px var(--l),
     linear-gradient(#ff7ac8, #ff7ac8) 0 100% / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 0 100% / 2px var(--l), linear-gradient(#ff7ac8, #ff7ac8) 100% 100% / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 100% 100% / 2px var(--l);
   background-repeat: no-repeat; }
@@ -346,7 +343,7 @@
   background: radial-gradient(closest-side, #fff, rgba(255, 210, 240, .7) 30%, rgba(255, 122, 200, 0)) var(--x) 50% / 45% 100% no-repeat; filter: blur(1px); }
 .m3-onda { position: absolute; left: 0; top: 0; width: 40vmin; height: 16vmin; margin: -8vmin 0 0 -20vmin; border-radius: 50%; opacity: 0; pointer-events: none; mix-blend-mode: screen;
   border: 3px solid rgba(255, 214, 242, .9); box-shadow: 0 0 24px rgba(255, 122, 200, .8), inset 0 0 18px rgba(255, 122, 200, .6); }
-.m3-pasa { position: absolute; right: calc(24px + env(safe-area-inset-right, 0px)); bottom: calc(min(10vh, 64px) + 22px); opacity: 0; color: #e5d6ff; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 6px rgba(5, 1, 14, .9); }
+.m3-pasa { position: absolute; right: calc(24px + env(safe-area-inset-right, 0px)); bottom: calc(22px + env(safe-area-inset-bottom, 0px)); opacity: 0; color: #e5d6ff; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; letter-spacing: .14em; text-transform: uppercase; text-shadow: 0 1px 6px rgba(5, 1, 14, .9); }
 .m3-pasa::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 8px; vertical-align: 1px; transform: rotate(45deg); background: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; animation: m3Late 1s ease-in-out infinite alternate; }
 @keyframes m3Late { to { opacity: .3; } }
 

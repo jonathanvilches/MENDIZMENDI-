@@ -299,7 +299,7 @@ html.tele :is(.pel-card, .fb-card, .screen > .paper, .lg-card.tq-card) { zoom: 1
 /* (el diálogo va pegado abajo: se amplía por dentro, para que siga en su sitio) */
 html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); } html.tele #dialog > * { zoom: 1.2; }
 
-/* ---------- Diálogo: franja inferior de cine ---------- */
+/* ---------- Diálogo: la caja de abajo ---------- */
 #dialog { position: absolute; left: 50%; bottom: calc(var(--sb, 0px) + 14px); transform: translateX(-50%); width: min(760px, calc(calc(100vw / var(--z, 1)) - 24px)); padding: 16px 16px 12px; display: flex; gap: 16px; align-items: flex-start;
   background: linear-gradient(180deg, rgba(16, 12, 24, .82), rgba(10, 8, 16, .92)) !important; border: 1px solid rgba(255, 244, 228, .18) !important; border-top: 2px solid rgba(255, 122, 200, .75) !important; border-radius: 18px; box-shadow: 0 16px 40px rgba(0, 0, 0, .45); animation: dlgIn .3s cubic-bezier(.2, 1.2, .4, 1); }
 @keyframes dlgIn { from { transform: translate(-50%, 20px); opacity: 0; } }
@@ -476,12 +476,7 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 .fade-msg { display: flex; flex-direction: column; align-items: center; gap: 16px; color: #fff; font-weight: 900; font-size: var(--fs-lg); letter-spacing: .04em; text-transform: uppercase; text-align: center; padding: 0 16px; }
 .fade-msg i { width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle at 35% 32%, #fff, #e6e6e6 55%, #9c9c9c); box-shadow: 0 10px 18px rgba(0, 0, 0, .35); animation: fadeBota .62s cubic-bezier(.35, 0, .65, 1) infinite alternate; }
 @keyframes fadeBota { from { transform: translateY(-22px); } to { transform: translateY(6px) scale(1.06, .9); } }
-#cine { position: fixed; left: 0; right: 0; z-index: 3; pointer-events: none; }
-#cine::before, #cine::after { content: ''; position: fixed; left: 0; right: 0; height: calc(10dvh / var(--z, 1)); background: #000; transition: transform .6s; }
-#cine::before { top: 0; transform: translateY(-100%); }
-#cine::after { bottom: 0; transform: translateY(100%); }
-#cine.on::before, #cine.on::after { transform: none; }
-#subtitle { position: fixed; left: 50%; bottom: calc(12dvh / var(--z, 1)); transform: translateX(-50%); z-index: 4; font-size: var(--fs-lg); font-weight: 800; text-shadow: 0 2px 6px #000; text-align: center; width: min(640px, calc(90vw / var(--z, 1))); pointer-events: none; }
+#subtitle { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 24px); transform: translateX(-50%); z-index: 4; font-size: var(--fs-lg); font-weight: 800; text-shadow: 0 2px 6px #000; text-align: center; width: min(640px, calc(90vw / var(--z, 1))); pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 #title { overflow-y: auto; }
 @media (max-height: 560px) {
@@ -730,7 +725,7 @@ img[data-pk] { opacity: 0; }
 }
 /* durante un minijuego 3D no se ve el HUD del pueblo (brújula, minimapa, avisos, mandos), que quedaría encima del panel;
    el botón de traducir del modo «Aprende euskera» sube junto al panel de arriba para no tapar los botones */
-body.mg3d-on #hud, body.mg3d-on #bino, body.mg3d-on #cine, body.mg3d-on #subtitle { visibility: hidden; }
+body.mg3d-on #hud, body.mg3d-on #bino, body.mg3d-on #subtitle { visibility: hidden; }
 body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) + 112px); left: 8px; width: 46px; height: 46px; }
 @media (orientation: landscape) and (max-height: 540px) { body.mg3d-on .learn-btn { top: calc(env(safe-area-inset-top, 0px) + 8px); } }
 /* el calor del hierro en la fragua: zonas (frío · al rojo · se quema) y el color de la pieza ahora */
@@ -817,7 +812,7 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 
 /* Las llegadas (ui/vuelo.js): el cartel con el nombre del sitio sobre el vuelo de la cámara, arriba y centrado. Entra
    de abajo, cruza un destello, el nombre sale letra a letra y, con el mapa, la comarca se enciende y cae el punto del pueblo */
-.cartel { position: fixed; left: 0; right: 0; top: calc(12dvh / var(--z, 1) + env(safe-area-inset-top, 0px)); z-index: 950; display: flex; justify-content: center; pointer-events: none; padding: 0 16px; }
+.cartel { position: fixed; left: 0; right: 0; top: calc(14px + env(safe-area-inset-top, 0px)); z-index: 950; display: flex; justify-content: center; pointer-events: none; padding: 0 16px; }
 .cartel-in { position: relative; overflow: hidden; display: flex; align-items: center; gap: 16px; max-width: min(780px, calc(94vw / var(--z, 1))); padding: 14px 28px 16px 18px; border-radius: 22px;
   background: linear-gradient(100deg, rgba(40, 14, 92, .9), rgba(91, 52, 196, .84) 58%, rgba(194, 28, 255, .74)); box-shadow: 0 12px 40px rgba(20, 0, 60, .5), inset 0 0 0 2px rgba(255, 255, 255, .16);
   animation: cartelIn .7s cubic-bezier(.2, 1.3, .4, 1) both; }
