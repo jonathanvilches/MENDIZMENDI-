@@ -113,11 +113,23 @@
 #hub.juego .m3d .ft-n { display: grid; gap: 2px; padding: 0; justify-content: start; }
 #hub.juego .m3d .ft-n small { color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
 #hub.juego .m3d .ft-n b { font: 400 var(--fs-xl)/1.05 var(--f-display); letter-spacing: .01em; text-shadow: 0 2px 12px rgba(4, 1, 12, .6); white-space: normal; }
-.ft-ms { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.ft-ms i { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 4px; background: rgba(13, 6, 28, .5); border: 1px solid rgba(255, 255, 255, .14); }
-.ft-ms i :is(svg, img) { width: 16px; height: 16px; } .ft-ms i:not(.ok) :is(svg, img) { opacity: .72; }
-.ft-ms i.ok { border-color: color-mix(in srgb, var(--c, #ffd166) 70%, #fff); background: color-mix(in srgb, var(--c, #ffd166) 30%, rgba(13, 6, 28, .5)); }
-.ft-ms em { margin-left: 4px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-xs)/1 var(--f-ui); font-style: normal; }
+.ft-ms { display: grid; gap: 6px; padding: 8px; border-radius: 4px; background: rgba(13, 6, 28, .55); border: 1px solid rgba(255, 255, 255, .1); }
+.ft-ms-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.ft-ms-h b { font: 600 11px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #fff) 55%, #fff); }
+.ft-ms-h em { font: 700 var(--fs-sm)/1 var(--f-ui); font-style: normal; color: #fff; }
+.ft-ms-bar { display: block; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.ft-ms-bar u { display: block; height: 100%; background: linear-gradient(90deg, var(--c, #ffd166), #ff2bd6); text-decoration: none; }
+.ft-ms-g { display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 1fr)); gap: 4px; }
+.ft-ms-g i { aspect-ratio: 1; display: grid; place-items: center; border-radius: 4px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .14); }
+.ft-ms-g i :is(svg, img) { width: 60%; height: 60%; opacity: .6; }
+.ft-ms-g i.ok { border-color: color-mix(in srgb, var(--c, #ffd166) 70%, #fff); background: color-mix(in srgb, var(--c, #ffd166) 35%, rgba(13, 6, 28, .5)); }
+.ft-ms-g i.ok :is(svg, img), .ft-ms-g i.sig :is(svg, img) { opacity: 1; }
+.ft-ms-g i { position: relative; } .ft-ms-g i.ok::after { content: '✓'; position: absolute; right: -4px; top: -4px; width: 13px; height: 13px; border-radius: 50%; background: #3ddc84; color: #0d061c; font: 900 9px/13px var(--f-ui), sans-serif; text-align: center; }
+.ft-ms-g i.sig { border-color: #ff7ac8; box-shadow: 0 0 0 1px #ff7ac8, 0 0 10px rgba(255, 43, 214, .45); }
+.ft-ms-sig { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ft-ms-sig > :is(svg, img) { flex: none; width: 16px; height: 16px; }
+.ft-ms-sig > span { display: grid; min-width: 0; font: 600 var(--fs-xs)/1.2 var(--f-ui); color: #fff; }
+.ft-ms-sig small { font: 600 10px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: #ff7ac8; }
 #hub.juego .m3d .ft-go { min-height: 40px; padding: 0 14px; border-radius: 4px; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); gap: 8px; font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .1em; background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
 #hub.juego .m3d .ft-go > :is(svg, img) { width: 18px; height: 18px; }
 
@@ -210,7 +222,7 @@
   #hub.juego .m3d .cb-tt b { font-size: var(--fs-md); }
   #hub.juego .m3d .m3-rail { right: calc(var(--hud-r) + 48px + var(--sr, 0px)); }
   #hub.juego .m3d .m3-ft { width: 216px; max-width: 216px; gap: 8px; padding: 10px; } #hub.juego .m3d .ft-n b { font-size: var(--fs-lg); }
-  #hub.juego .m3d .ft-go { min-height: 36px; } .ft-ms i { width: 22px; height: 22px; border-radius: 4px; } .ft-ms i :is(svg, img) { width: 14px; height: 14px; }
+  #hub.juego .m3d .ft-go { min-height: 36px; } .ft-ms { padding: 6px; gap: 4px; }
   /* (el menú, más ancho que alto: las secciones en cinco columnas, para que quepan sin desplazarse) */
   #hub.juego .hub-panel { width: min(780px, calc(100% - var(--hud-l) - var(--hud-r))); padding: 8px; }
   #hub.juego .hub-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin-top: 6px; padding-top: 6px; }
