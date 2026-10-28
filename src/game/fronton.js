@@ -300,7 +300,7 @@ export function hallVenue(scene, out, def) {
   if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
   if (HALL) { try { HALL.dispose(); } catch (e) { console.warn('frontón cubierto', e); } }
   const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
-  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed), hall: true, hallName: W.wallName, noClear: true });
+  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed), hall: true, noClear: true });
   HALL.town = def?.id; HALL.townName = town;   // (el de otro pueblo, en los campeonatos: su nombre en el partido)
   return HALL;
 }
@@ -437,6 +437,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (rig.char) rig.char.back = st.back; rig.update(dt, st.speed, true, 0);
       once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5));
       once('you', 'won', st.won, () => rig.doCheer?.());
+      once('you', 'saluda', st.saluda, () => rig.doWave?.());   // (al salir a la cancha, saluda a la grada)
     };
     const animRival = (obj, st, dt = 1 / 60) => {
       stRival.v = st;
@@ -444,6 +445,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (red) { red.char.back = st.back; red.update(dt, st.speed, true, 0); }
       once('rival', 'swing', st.swing >= 0, () => red ? red.doAct('hit', 0.5) : rival.anim?.doAct?.('throw', 0.35));
       once('rival', 'won', st.won, () => red?.doCheer());
+      once('rival', 'saluda', st.saluda, () => red ? red.doWave() : rival.anim?.doWave?.());
       if (st.won) rival.cheer = 0.6;
     };
     const youName = profile().name || (isEU() ? 'Zu' : 'Tú');
@@ -461,7 +463,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
         const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
         return { obj, name, stats: stats || pelotariStats(name, lv),
-          animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); } },
+          animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); flag('saluda', s2.saluda, () => r.doWave()); } },
           dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
       };
       const m = { youMate: await mk(youModel, n1, 2, pairs?.partner?.stats), rivalMate: await mk(rivModel, n2, levelTier(level), pairs?.rivalMate?.stats) };
@@ -488,7 +490,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
-      onEvent: (e) => { if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; }
+      onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
+        if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; }
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p); },
     }); } catch (e) { console.warn('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)
