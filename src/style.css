@@ -66,8 +66,10 @@ summary { line-height: 1.3; }
 #loading .ld-bg { position: absolute; inset: 0; background: #2b1062 center/cover no-repeat; transform-origin: 62% 45%; animation: ldKen 16s cubic-bezier(.2, .6, .3, 1) both; }
 @keyframes ldKen { from { transform: scale(1.14); filter: saturate(1.25) brightness(.7); } 12% { filter: saturate(1.1) brightness(1); } to { transform: scale(1.02); filter: saturate(1.1); } }
 /* (el velo sobre la lámina, muy suave y largo, sin morado: solo lo justo para leer el nombre y la barra; la lámina se ve) */
-#loading .ld-shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8, 4, 16, .5) 0%, rgba(8, 4, 16, .3) 30%, rgba(8, 4, 16, .08) 58%, rgba(8, 4, 16, 0) 80%),
-  linear-gradient(0deg, rgba(8, 4, 16, .55) 0%, rgba(8, 4, 16, .22) 24%, rgba(8, 4, 16, 0) 50%), linear-gradient(180deg, rgba(8, 4, 16, .25) 0%, rgba(8, 4, 16, 0) 20%); }
+#loading .ld-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 4, 16, .25) 0%, rgba(8, 4, 16, 0) 20%); }
+/* (detrás del nombre y de las misiones, el velo suave de sport.css, --velo, desde la esquina de abajo: se apaga poco a
+   poco, sin la raya que dejaban los dos degradados rectos de antes) */
+#loading .ld-shade::before { content: ''; position: absolute; inset: 0; background: radial-gradient(90% 120% at 0% 100%, var(--velo)); opacity: .8; }
 /* (las motas de luz que suben y las líneas de pantalla con la viñeta) */
 #loading .ld-fx { position: absolute; inset: 0; pointer-events: none; }
 #loading .ld-fx::before { content: ''; position: absolute; inset: -40% 0 0; opacity: .7; animation: ldMotas 14s linear infinite;
@@ -86,7 +88,7 @@ summary { line-height: 1.3; }
   grid-template-columns: minmax(0, 1fr) minmax(0, .72fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: ". tip" "txt pic" "prog prog"; gap: 16px 32px; }
 #loading .ld-txt { grid-area: txt; align-self: end; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 #loading .ld-head { display: flex; flex-direction: column; gap: 6px; }
-#loading .ld-k { display: flex; align-items: center; gap: 10px; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; }
+#loading .ld-k { display: flex; align-items: center; gap: 10px; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-foto); }
 #loading .ld-k::before { content: ''; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
@@ -95,7 +97,7 @@ summary { line-height: 1.3; }
 /* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas cortadas) */
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
-#loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; }
+#loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; text-shadow: var(--letra-foto); }
 #loading .ld-ms div { display: flex; flex-wrap: wrap; gap: 6px; }
 #loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .45); border: 1px solid rgba(255, 255, 255, .22);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -166,7 +168,8 @@ summary { line-height: 1.3; }
   #loading .ld-pic { display: none; }
   /* (las misiones en una sola fila, aunque sean ocho: los iconos encogen un poco si no caben) */
   #loading .ld-ms div { flex-wrap: nowrap; gap: 5px; } #loading .ld-ms .ico { flex: 0 1 38px; width: auto; height: auto; aspect-ratio: 1; min-width: 0; padding: 6px; }
-  #loading .ld-shade { background: linear-gradient(0deg, rgba(8, 4, 16, .66) 0%, rgba(8, 4, 16, .4) 30%, rgba(8, 4, 16, .1) 55%, rgba(8, 4, 16, 0) 70%), linear-gradient(180deg, rgba(8, 4, 16, .28) 0%, rgba(8, 4, 16, 0) 22%); }
+  #loading .ld-shade { background: linear-gradient(180deg, rgba(8, 4, 16, .28) 0%, rgba(8, 4, 16, 0) 22%); }
+  #loading .ld-shade::before { inset: 25% 0 0; background: linear-gradient(0deg, var(--velo)); opacity: .8; }
 }
 @media (prefers-reduced-motion: reduce) { #loading .ld-bg, #loading .ld-fx::before, #loading .bar i::after, #loading.entra *, #loading .ld-row .msg::after { animation: none !important; } }
 .mountains { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; pointer-events: none; opacity: .9; }
