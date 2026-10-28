@@ -10,6 +10,8 @@ import { addXP, checkBadges, profile, saveProfile, townState } from './profile.j
 import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
 import { freeVenues, hallVenue, labrit } from './fronton.js';
+import { armsOfTown } from '../data/armas-navarra.js';
+import { armsReady } from '../ui/escudoImg.js';
 import { infoCard } from '../ui/minigames.js';
 import { isEU, tr } from '../i18n.js';
 import { laminaUrl } from '../ui/laminas.js';
@@ -186,7 +188,7 @@ export class PuebloDeportes {
       if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
-      const v = this.venueDe(sel.sede); await this.venuePrep(v);
+      const v = await this.venueListo(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
       const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m) });
       if (this.disposed) return;   // (el pueblo se rehízo durante el partido: el fondo de los campeonatos ya es del nuevo)
@@ -227,7 +229,7 @@ export class PuebloDeportes {
         if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : 'mano'); if (this.disposed) return; continue; }
         // (el fondo sigue delante mientras se preparan los pelotaris: lo quita el vuelo de la llegada; antes se veía al
         // jugador quieto en la puerta del frontón hasta que empezaba el partido)
-        const hv = this.venueDe(sel.sede); await this.venuePrep(hv);
+        const hv = await this.venueListo(sel.sede); await this.venuePrep(hv);
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
         const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true, intro: (m) => vueloFronton(this, hv, m) });
@@ -271,7 +273,7 @@ export class PuebloDeportes {
         const m = yourMatch(T);
         // (en el frontón elegido para este partido; si no, en el que le toca a la ronda, distinto del de la anterior: el
         // del pueblo, su cubierto o el cubierto de otro pueblo; la final, en el Labrit de Iruña)
-        const venue = this.venueDe(sedeDe(T, m, this.sedes()), fueraDe(T));
+        const venue = await this.venueListo(sedeDe(T, m, this.sedes()), fueraDe(T));
         await this.venuePrep(venue);
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
@@ -307,6 +309,13 @@ export class PuebloDeportes {
   // (en Iruña, el de la calle ya es el Labrit)
   // (fuera: el cubierto de otro pueblo, { id, name } de torneo.js fueraDe)
   sedes() { return this.fronton?.court.labrit ? ['labrit', 'cubierto'] : ['plaza', 'cubierto', 'labrit']; }
+  // (igual, pero con el escudo de ese pueblo ya cargado: si no, la pared izquierda del cubierto de otro pueblo salía con
+  // el escudo dibujado de antes y no con el del autor; el del pueblo en el que estás ya lo carga main.js al entrar)
+  async venueListo(sede, fuera = null) {
+    const otro = sede === 'fuera' && fuera ? fuera.id : null, A = otro && armsOfTown(otro);
+    if (A) await Promise.race([armsReady(A.id), new Promise(r => setTimeout(r, 4000))]);
+    return this.venueDe(sede, fuera);
+  }
   venueDe(sede, fuera = null) {
     const otro = sede === 'fuera' && fuera ? LEVELS.find(l => l.id === fuera.id) : null;
     if (otro) return this.hallVenue(otro);

@@ -56,7 +56,7 @@ export const ARMAS = [
     figs: ['olive', 'castle', 'bordura'],
   },
   {
-    id: 'sanguesa', name: 'Sangüesa / Zangoza', kind: 'ciudad', towns: [], conf: 'alta', timbre: 'corona',
+    id: 'sanguesa', name: 'Sangüesa / Zangoza', kind: 'ciudad', towns: ['sanguesa'], conf: 'alta', timbre: 'corona',
     part: 'partido', bordura: { t: 'gules', c: 'cadenas' },
     q: [{ f: 'plata', ch: [{ c: 'castle', t: 'natural', at: [0.5, 0.45], s: 0.7 }, { c: 'letters', t: 'gules', text: 'S · A', at: [0.5, 0.82], s: 0.5 }] },
       { f: 'plata', ch: [{ c: 'pales4', t: 'gules' }] }],
@@ -311,7 +311,7 @@ export const ARMAS = [
     figs: ['lamb'],
   },
   {
-    id: 'aranguren', name: 'Valle de Aranguren', kind: 'valle', towns: ['ilundain'], conf: 'media', timbre: 'corona',
+    id: 'aranguren', name: 'Valle de Aranguren', kind: 'valle', towns: ['ilundain', 'irulegi'], conf: 'media', timbre: 'corona',
     part: 'entero', q: [{ f: 'azur', ch: [{ c: 'castle', t: 'oro', s: 0.85, flags: true }] }],
     blazon: 'De azur, un castillo de oro de tres torres, la del centro mayor, con banderolas de plata. Timbrado de corona real abierta.',
     read: 'Un castillo de oro con tres torres y banderas, sobre azul.',
