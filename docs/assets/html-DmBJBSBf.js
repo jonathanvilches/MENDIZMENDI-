@@ -1,0 +1,1 @@
+var e={"&":`&amp;`,"<":`&lt;`,">":`&gt;`,'"':`&quot;`},t=t=>String(t??``).replace(/[&<>"]/g,t=>e[t]),n=e=>{let t=document.createElement(`template`);return t.innerHTML=e.trim(),t.content.firstElementChild};export{t as n,n as t};
