@@ -1,8 +1,11 @@
-// El informe en directo para Claude: en el artefacto de claude.ai, y solo ahí, lo que pasa en cada partida queda en la
-// base de datos del artefacto, para que Claude lo lea mientras se juega en un móvil de verdad: el aparato (las filas de
-// Ajustes › Diagnóstico, util/diag.js), la fluidez de cada pantalla cada 15 s, los tirones, los errores, las pérdidas de
-// la imagen y por dónde se ha ido pasando. Un documento por partida, en «informes»; solo lo leen quien puede editar el
-// artefacto y Claude (la regla va al publicarlo). Fuera de claude.ai no hace nada.
+// El informe en directo para Claude: lo que pasa en cada partida, para que Claude lo lea mientras se juega en un aparato
+// de verdad: el aparato (las filas de Ajustes › Diagnóstico, util/diag.js), la fluidez de cada pantalla cada 15 s, los
+// tirones, los errores, las pérdidas de la imagen y por dónde se ha ido pasando.
+//  · En el artefacto de claude.ai, en su base de datos: un documento por partida, en «informes»; solo lo leen quien puede
+//    editar el artefacto y Claude (la regla va al publicarlo).
+//  · Servido desde Vercel, a la función del proyecto (public/api/informe.js), que lo escribe en sus registros, de donde
+//    lo lee Claude: cada vez, solo lo nuevo, para que cada línea sea corta.
+// En los demás sitios (GitHub Pages, el archivo único) no hace nada.
 import { datos } from './diag.js';
 
 const CADA = 15, MAX_MUESTRAS = 120, MAX_ERRORES = 40, MAX_EVENTOS = 80;
@@ -68,9 +71,17 @@ function mide(t) {
   guarda();
 }
 
+// (en Vercel: lo que aún no se ha mandado de las muestras, los errores y los pasos, y el aparato la primera vez; si la
+// función no está, se deja de mandar)
+const mandados = new WeakSet(), nuevos = (l) => l.filter(x => !mandados.has(x) && mandados.add(x));
+const aVercel = (id) => async (d) => {
+  const parte = { id, t: seg(), lugar: lugar(), calidad: d.calidad, muestras: nuevos(d.muestras), errores: nuevos(d.errores), eventos: nuevos(d.eventos), ...(mandados.has(d) ? {} : (mandados.add(d), { aparato: d.aparato })) };
+  const r = await fetch('/api/informe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(parte), keepalive: true });
+  if (r.status === 404) throw { code: 'revoked' };
+};
 function empieza(db) {
   const id = `${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 6)}`;
-  try { ref = db.collection('informes').doc(id); } catch (e) { return; }
+  try { ref = db ? db.collection('informes').doc(id) : { set: aVercel(id) }; } catch (e) { return; }
   // (el aparato, como filas {k, v}: la base de datos no guarda listas dentro de listas)
   doc = { empieza: new Date().toISOString(), aparato: datos().map(([k, v]) => ({ k, v })), calidad: '', muestras: [], errores: [], eventos: [] };
   // (y lo que no carga: una imagen, un trozo del juego)
@@ -92,3 +103,4 @@ async function arranca() {
   if (st === 'prompt') addEventListener('pointerdown', async () => { const r = await permiso.request(['db']); if (r.db === 'granted') empieza(db); }, { once: true, capture: true });
 }
 if (typeof __AF__ !== 'undefined' && __AF__ && typeof window.claude?.use === 'function') arranca().catch(() => { /* sin informe */ });
+else if (/\.vercel\.app$/i.test(location.hostname)) empieza(null);
