@@ -52,10 +52,10 @@ export function comoJugar(root, { primera = false, despues } = {}) {
     { k: 'pc', aqui: aquiPc, t: 'En el ordenador', s: 'Con el teclado y el ratón o con un mando de consola. También en la tele, con el ordenador conectado.',
       pasos: aquiPc ? [['Juega aquí mismo', 'En este navegador, sin instalar nada'], ['Instálalo si quieres', 'Se abre en su propia ventana, a pantalla completa y también sin conexión'], ['Las teclas', 'WASD o flechas para andar, E para hablar, espacio para saltar y Mayús para correr']]
         : [['Abre el juego en el ordenador', `En el navegador, en ${corta(WEB)}`], ['Instálalo allí si quieres', 'Con el botón «Instalar en el ordenador» de esta misma pantalla']],
-      btns: aquiPc ? instalar('el ordenador') : btn('share', 'Mandar el enlace al ordenador', 'data-cj="compartir"') },
+      btns: aquiPc ? instalar('el ordenador') : btn('share', 'Enviar al ordenador', 'data-cj="compartir"') },
     { k: 'mando', t: 'Con el móvil de mando', s: 'El juego en el ordenador o en la tele y tu móvil como mando, por la wifi de casa.',
       pasos: [[aquiPc ? 'Pulsa «Conectar el móvil»' : 'En el ordenador, pulsa «Mando del móvil»', 'En la pantalla sale un código QR'], ['Escanéalo con la cámara del móvil', 'Se abre el mando, sin instalar nada'], ['Instala la app Mando', 'El móvil te la ofrece: la próxima vez se conecta sola y ocupa toda la pantalla']],
-      btns: !conMando ? enlace('web', 'Abrir la web del juego', WEB) : aquiPc ? btn('mando', 'Conectar el móvil', 'data-cj="mando"', 'primary') : enlace('mando', 'Descargar la app Mando', mandoApp(), 'primary') },
+      btns: !conMando ? enlace('web', 'Abrir la web del juego', WEB) : aquiPc ? btn('mando', 'Conectar el móvil', 'data-cj="mando"', 'primary') : enlace('mando', 'Descargar app Mando', mandoApp(), 'primary') },
     { k: 'movil', aqui: TACTIL, t: 'En el móvil o la tableta', s: 'Con los botones de la pantalla. Se juega mejor con el móvil en horizontal.',
       pasos: TACTIL ? [['Instálalo en este móvil', IOS ? 'En Safari, toca Compartir y luego «Añadir a pantalla de inicio»' : 'Con el botón de abajo: se queda junto a tus apps'], ['Ábrelo desde su icono', 'A pantalla completa, sin las barras del navegador'], ['Gira el móvil', 'A la izquierda, andar; a la derecha, los botones']]
         : [['Ábrelo en el móvil', 'Escanea este código con la cámara'], ['Instálalo', 'Android: menú ⋮ e «Instalar app». iPhone: Compartir y «Añadir a pantalla de inicio»'], ['Juega desde su icono', 'A pantalla completa y en horizontal']],

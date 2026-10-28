@@ -873,11 +873,13 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .cj-qr { display: flex; align-items: center; gap: 12px; } .cj-qr small { min-width: 0; color: var(--mute); font-size: var(--fs-xs); font-weight: 700; overflow-wrap: anywhere; }
 .cj-qrimg { flex: none; width: 128px; height: 128px; border-radius: 10px; background: #fff; } .cj-qrimg svg { display: block; width: 100%; height: 100%; }
 .cj-btns { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-.cj .btn { min-height: 48px; text-decoration: none; color: #fff; } .cj .btn svg { width: 22px; height: 22px; }
+.cj .btn { min-height: 48px; max-width: 100%; text-decoration: none; color: #fff; } .cj .btn svg { flex: none; width: 22px; height: 22px; }
+/* (el texto de los botones en una sola línea: partido en dos, junto al icono, se montaba) */
+.cj .btn > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cj-hecho { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; color: #3ee07a; font-weight: 900; } .cj-hecho svg { width: 22px; height: 22px; }
 .cj-cards { padding-top: 12px; }   /* (sitio para la etiqueta «Estás aquí», que asoma por arriba) */
 .cj-foot { position: sticky; z-index: 1; bottom: calc(-16px - env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px)); } .cj-foot .btn { min-width: 240px; }   /* (siempre a la vista, abajo) */
-.cj-foot::before { content: ''; position: absolute; z-index: -1; top: 0; bottom: -48px; left: calc(50% - 50vw / var(--z, 1)); right: calc(50% - 50vw / var(--z, 1)); background: linear-gradient(180deg, transparent, rgba(12, 9, 20, .9) 45%); pointer-events: none; }   /* (su fondo, de lado a lado: lo de debajo se ve pasar sin estorbar) */
+.cj-foot::before { content: ''; position: absolute; z-index: -1; top: -28px; bottom: -48px; left: calc(50% - 50vw / var(--z, 1)); right: calc(50% - 50vw / var(--z, 1)); background: linear-gradient(180deg, rgba(12, 9, 20, 0), rgba(12, 9, 20, .7) 14px, rgba(12, 9, 20, .98) 28px); pointer-events: none; }   /* (su fondo, de lado a lado: lo de debajo se ve pasar sin estorbar) */
 .app-sheet { z-index: 45; }   /* (los pasos de instalar, encima de esta pantalla) */
 @media (orientation: portrait) and (max-width: 900px), (max-width: 700px) { .cj-cards { grid-template-columns: minmax(0, 1fr); } .cj-head h2 { font-size: var(--fs-2xl); } }
 /* (móvil tumbado, con poca altura: más justas, para ver más de un vistazo) */
