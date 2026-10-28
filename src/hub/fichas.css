@@ -101,19 +101,23 @@
 @media (min-width: 1200px) and (min-height: 700px) { .sheet.pueblo .sheet-in { width: min(1040px, 100%); } .fh-carta { --dh: 56px; } .fh-ms { gap: 10px; } }
 
 /* ---------- la comarca ---------- */
-/* la cabecera, como la carta de la comarca: marco fino en su color con dos esquinas cortadas; dentro, su lámina entera a la
-   derecha (16:9, sin cortar a nadie) y, sobre la misma lámina difuminada, el sello en su aro, el nombre y el marcador. En
-   vertical, la lámina arriba y lo demás debajo */
+/* la cabecera, como la carta de la comarca: marco fino con dos esquinas cortadas; dentro, su lámina entera a la derecha
+   (16:9, sin cortar a nadie) y, a la izquierda, sobre la misma lámina difuminada, el sello en su aro, el nombre y el
+   marcador. El fondo, el morado del juego con la lámina en gris debajo, como el del menú: con el color de la comarca y la
+   lámina en color, en la Ribera (las Bardenas) salía marrón y dorado. Su color, solo en un toque del marco. En vertical,
+   la lámina arriba y lo demás debajo */
 .chero { --k: 18px; position: relative; margin: 0 0 8px; padding: 2px; color: #fff;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 80%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c) 65%, #fff) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, .5) 0%, rgba(201, 178, 255, .22) 30%, rgba(255, 255, 255, .06) 62%, color-mix(in srgb, var(--c) 35%, #c9b2ff) 100%);
   clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
-.chero::after { content: ''; position: absolute; left: calc(var(--k) + 2px); right: 2px; top: 2px; height: 3px; z-index: 3; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
-.ch-in { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 58%); align-items: center; overflow: hidden; isolation: isolate; background: #150a30;
+.chero::after { content: ''; position: absolute; left: calc(var(--k) + 2px); right: 2px; top: 2px; height: 3px; z-index: 3; background: linear-gradient(90deg, #ff3fcf, #9c3bff 55%, transparent); pointer-events: none; }
+.ch-in { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 58%); align-items: center; overflow: hidden; isolation: isolate; background: #1a0a3c;
   clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%, 0 calc(var(--k) - 1px)); }
-.ch-fondo { position: absolute; inset: -40px; z-index: -1; background: left center / cover no-repeat; filter: blur(22px) saturate(1.15); opacity: .6; }
-.ch-in::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 32%, rgba(14, 7, 32, .88)) 0%, rgba(14, 7, 32, .55) 60%), repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
+.ch-fondo { position: absolute; inset: -40px; z-index: -1; background: left center / cover no-repeat; filter: blur(22px) grayscale(1) brightness(.8); opacity: .5; }
+.ch-in::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(90deg, rgba(36, 12, 80, .9) 0%, rgba(26, 9, 58, .6) 60%), repeating-linear-gradient(0deg, rgba(255, 255, 255, .03) 0 1px, transparent 1px 4px); }
 .ch-tx { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; align-items: flex-start; gap: 14px; min-width: 0; padding: 20px 16px 20px 28px; }
 .ch-tx .back { position: static; }
+/* (jugando, sin «Mapa»: la X de arriba ya vuelve al mapa) */
+#hub.juego .ch-tx .back { display: none; }
 .ch-nom { display: flex; align-items: center; gap: 14px; min-width: 0; max-width: 100%; }
 .ch-nom > div { display: grid; gap: 6px; min-width: 0; }
 .chero .bigstamp { flex: none; width: clamp(64px, calc(7vw / var(--z, 1)), 112px); height: auto; aspect-ratio: 1; }

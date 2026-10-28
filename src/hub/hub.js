@@ -56,6 +56,7 @@ import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 import { sencillo, ponSencillo } from '../util/sencillo.js';
 import { datos as diagnostico } from '../util/diag.js';
+import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -256,11 +257,11 @@ export class Hub {
         const b = f.querySelector('button.on'); ind.style.opacity = b ? 1 : 0; if (!b) return;
         const l = b.offsetLeft, r = l + b.offsetWidth, a = mem[key];
         ind.classList.toggle('izq', !!a && l < a.l);
-        ind.style.setProperty('--l', l + 'px'); ind.style.setProperty('--r', r + 'px'); ind.style.setProperty('--t', b.offsetTop + 'px'); ind.style.setProperty('--h', b.offsetHeight + 'px');
+        ind.style.setProperty('--fl-l', l + 'px'); ind.style.setProperty('--fl-r', r + 'px'); ind.style.setProperty('--t', b.offsetTop + 'px'); ind.style.setProperty('--h', b.offsetHeight + 'px');
         mem[key] = { l, r };
       };
       // (sale de donde estaba y, en el cuadro siguiente, va a la nueva; luego sigue a la elegida, también al desplazar)
-      const a = mem[key]; if (a) { ind.style.setProperty('--l', a.l + 'px'); ind.style.setProperty('--r', a.r + 'px'); }
+      const a = mem[key]; if (a) { ind.style.setProperty('--fl-l', a.l + 'px'); ind.style.setProperty('--fl-r', a.r + 'px'); }
       requestAnimationFrame(() => requestAnimationFrame(pon));
       new MutationObserver(pon).observe(f, { subtree: true, attributes: true, attributeFilter: ['class'] });
     });
@@ -628,7 +629,7 @@ export class Hub {
     return `<section class="armorial pj">
       <div class="ar-head"><small class="kicker">${I('book', 20)} Saberes · Personajes</small><h1>Personajes de Navarra</h1>
         ${isDidactico() ? '<p>Las mujeres y los hombres que hicieron historia, los seres de las leyendas y las figuras de los carnavales, con la ficha de cada uno.</p>' : ''}
-        <b class="ar-count">${total} personajes</b></div>
+        <b class="ar-count"><b>${total}</b> personajes</b></div>
       <div class="filters">${[['all', 'Todos', total], ...G.map(g => [g[0], g[1], g[6]])].map(([k, n, c]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n} <small>${c}</small></button>`).join('')}</div>
       ${G.filter(g => tab === 'all' || g[0] === tab).map(g => `<div class="pj-g"><h2 class="sec">${I(g[3], 34)} ${g[2]}</h2>${isDidactico() ? `<p class="lead">${g[4]}</p>` : ''}<section class="figuras">${g[5]}</section></div>`).join('')}
     </section>`;
@@ -669,7 +670,7 @@ export class Hub {
     return `<section class="armorial">
       <div class="ar-head"><small class="kicker">${I('shield', 20)} Saberes · Escudos</small><h1>Escudos de Navarra</h1>
         ${dd ? '<p>Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. Toca un escudo para ver su ficha.</p>' : ''}
-        ${dd ? `<b class="ar-count">${ARMAS.length} <span>escudos</span></b>` : `<b class="ar-count">${read} de ${ARMAS.length} leídos en el juego</b>`}</div>
+        ${dd ? `<b class="ar-count"><b>${ARMAS.length}</b> <span>escudos</span></b>` : `<b class="ar-count"><b>${read}</b> de ${ARMAS.length} leídos en el juego</b>`}</div>
       <button type="button" class="ar-btn" data-guia>${I('book', 32)}<span><b>Cómo se lee un escudo</b><small>Siete pasos para leer cualquier escudo</small></span>${I('play', 20)}</button>
       <div class="ar-grid">${ARMAS.map(A => `<button type="button" class="ar${seen.has('armas:' + A.id) ? ' on' : ''}" data-arm="${A.id}">
         ${armsImg(A.id) ? `<img class="ar-img" src="${armsImg(A.id)}" alt="Escudo de ${esc(A.name)}" loading="lazy" decoding="async">` : `<canvas data-draw="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>`}
@@ -698,7 +699,7 @@ export class Hub {
       this.root.querySelectorAll('.ct-lam[data-ley]').forEach(f => f.onclick = () => openVisor(list, Math.max(0, on.findIndex(C => C.id === f.dataset.ley)), this.sound)); };
     return `<section class="armorial cuentos">
       <div class="ar-head"><small class="kicker">${I('legend', 20)} Saberes · Leyendas</small><h1>Cuentos y leyendas de Navarra</h1>
-        <b class="ar-count">${heard} de ${CUENTOS.length} escuchados</b></div>
+        <b class="ar-count"><b>${heard}</b> de ${CUENTOS.length} escuchados</b></div>
       <div class="ar-grid">${CUENTOS.map(C => { const on = seen.has('cuento:' + C.id); return `<article class="ar ct${on ? ' on' : ''}">
         ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"${on ? ` data-ley="${C.id}"` : ''}><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}<figcaption><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3></figcaption></figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div><div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3></div>`)(leyendaUrl(C.id))}
         <div class="ar-tx"><p class="ct-pl">${esc(C.place)}</p>
@@ -713,7 +714,7 @@ export class Hub {
     return `<section class="armorial instrumentos">
       <div class="ar-head"><small class="kicker">${I('music', 20)} Saberes · Instrumentos</small><h1>Instrumentos de Navarra</h1>
         ${isDidactico() ? '<p>Los instrumentos de la música de siempre: qué son, cómo se tocan y dónde se oyen. Toca uno para leer su ficha y escucharlo.</p>' : ''}
-        ${isDidactico() ? '' : `<b class="ar-count">${played} de ${INSTRUMENTOS.length} tocados</b>`}</div>
+        ${isDidactico() ? '' : `<b class="ar-count"><b>${played}</b> de ${INSTRUMENTOS.length} tocados</b>`}</div>
       ${instrumentosHTML(INSTRUMENTOS)}
       <p class="ar-src">Fuentes: Auñamendi Eusko Entziklopedia, Museo Etnológico de Navarra «Julio Caro Baroja», Soinuenea (Herri Musikaren Txokoa), Euskal Herriko Txistularien Elkartea, Ortzadar Euskal Folklore Taldea y los ayuntamientos y grupos de cada zona. Las frases que se tocan son del juego, al estilo de cada música.</p>
     </section>`;
@@ -725,7 +726,7 @@ export class Hub {
     return `<section class="armorial pasaka">
       <div class="ar-head"><small class="kicker">${I('pelota', 20)} Saberes · Tradiciones</small><h1>Pasaka</h1>
         <p>${esc(PASAKA.lead)}</p>
-        <b class="ar-count">${played ? `${won} ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}` : 'Todavía no has jugado'}${has ? ' · carta de tradiciones' : ''}</b></div>
+        <b class="ar-count">${played ? `<b>${won}</b> ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}` : 'Todavía no has jugado'}${has ? ' · carta de tradiciones' : ''}</b></div>
       <div class="pk-hero"${laminaUrl('dep-pasaka') ? ` style="--bg:url(${laminaUrl('dep-pasaka')})"` : ''}>${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
         <div class="pk-hero-tx"><small class="kicker">${esc(PASAKA.kicker)}</small><b>Dos parejas, una red por medio y un guante de cuero</b><button class="btn primary big" data-pasaka="jugar">${I('play', 26)} <span>Jugar a pasaka</span></button></div></div>
       <div class="ar-grid pk-secs">${PASAKA.secs.map(([t, x], i) => `<article class="ar-guia pk-sec"><h3>${I(['book', 'castle', 'pelota', 'pin', 'cathedral', 'play'][i] || 'book', 30)}${esc(t)}</h3><p>${esc(x)}</p></article>`).join('')}</div>

@@ -10,7 +10,7 @@
   --hud-l: max(12px, env(safe-area-inset-left, 0px)); --hud-r: max(12px, env(safe-area-inset-right, 0px));
   --hud-h: 48px; --hud-g: 8px;
   /* (el cristal: un solo tono, un borde fino y el desenfoque de lo de detrás) */
-  --cr: rgba(15, 7, 32, .64); --cr2: rgba(13, 6, 28, .9); --cr-l: rgba(255, 255, 255, .1); --cr-l2: rgba(255, 255, 255, .2); --cr-r: 12px;
+  --cr: rgba(15, 7, 32, .64); --cr2: rgba(13, 6, 28, .9); --cr-l: rgba(255, 255, 255, .1); --cr-l2: rgba(255, 255, 255, .2); --cr-r: 8px;
   --tx2: rgba(236, 228, 255, .66);
   display: block; grid-template-columns: none; grid-template-rows: none;
 }
@@ -18,7 +18,7 @@
 /* (el móvil tumbado: el iPhone reserva 47 puntos a cada lado por la muesca, pero la muesca solo entra unos 34 en el centro
    del borde: los paneles y el HUD se acercan al borde hasta pasar justo la muesca, y abajo pisan la mitad de la raya de
    inicio, que no tapa nada. Así se aprovecha toda la pantalla) */
-@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, calc(env(safe-area-inset-bottom, 0px) - 12px)); --hud-l: max(8px, calc(env(safe-area-inset-left, 0px) - 26px)); --hud-r: max(8px, calc(env(safe-area-inset-right, 0px) - 26px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 10px; } }
+@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, calc(env(safe-area-inset-bottom, 0px) - 12px)); --hud-l: max(8px, calc(env(safe-area-inset-left, 0px) - 26px)); --hud-r: max(8px, calc(env(safe-area-inset-right, 0px) - 26px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 8px; } }
 #hub:not(.juego) :is(.hub-menu-btn, .hub-velo, .hub-panel-x, .hub-x, .hub-cab) { display: none; }
 #hub:not(.juego) .hub-panel { display: contents; }
 .hub-mapa:empty { display: none; }
@@ -132,7 +132,7 @@
 /* ---------- las comarcas en fotos: el mismo fondo oscuro, sin manchas de color ---------- */
 #hub.juego .m3d .m3-ex { background: linear-gradient(180deg, #120827, #0c0519); }
 #hub.juego .m3d .ex-head { padding-top: var(--hud-t); padding-left: var(--hud-l); padding-right: var(--hud-r); }
-#hub.juego .m3d :is(.ex-c, .ex-t) { border-radius: 16px; border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 12px 28px rgba(4, 1, 12, .4); }
+#hub.juego .m3d :is(.ex-c, .ex-t) { border-radius: var(--cr-r); border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 12px 28px rgba(4, 1, 12, .4); }
 #hub.juego .m3d :is(.ex-c, .ex-t)::after { background: linear-gradient(180deg, rgba(13, 4, 32, .4), rgba(13, 4, 32, 0)); }
 #hub.juego .m3d .ex-x { border: 1px solid var(--cr-l2); background: rgba(255, 255, 255, .06); box-shadow: none; font: 600 var(--fs-sm)/1 var(--f-ui); }
 #hub.juego .m3d :is(.ex-go) { background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
@@ -186,7 +186,7 @@
 #hub.juego:not([data-screen="home"]) {
   --sh-t: var(--hud-t); --sh-b: var(--hud-b); --sh-l: max(var(--hud-l), calc((100% - 1400px) / 2)); --sh-r: max(var(--hud-r), calc((100% - 1400px) / 2)); }
 #hub.juego .hub-main { position: absolute; z-index: 25; inset: var(--sh-t) var(--sh-r) var(--sh-b) var(--sh-l); grid-row: auto; grid-column: auto;
-  padding: 0 24px 32px; border-radius: 16px; background: var(--cr2); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(4, 1, 12, .45);
+  padding: 0 24px 32px; border-radius: var(--cr-r); background: var(--cr2); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(4, 1, 12, .45);
   overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-padding-top: calc(var(--hud-h) + 16px); animation: hubVentana .3s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes hubVentana { from { opacity: 0; transform: translateY(10px) scale(.992); } }
 #hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px); margin: 0 -24px 8px; background: linear-gradient(180deg, rgba(13, 6, 28, .98) 70%, rgba(13, 6, 28, 0)); pointer-events: none; }
@@ -196,7 +196,7 @@
 #hub.juego .hub-cab :is(svg, img) { flex: none; width: 20px; height: 20px; }
 #hub.juego:not([data-screen="home"]) .hub-menu-btn { top: calc(var(--sh-t) + 8px); left: calc(var(--sh-l) + 8px); background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 #hub.juego .hub-x { top: calc(var(--sh-t) + 8px); right: calc(var(--sh-r) + 8px); background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-@media (max-height: 520px) { #hub.juego .hub-main { padding: 0 16px 20px; border-radius: 14px; } #hub.juego .hub-main::before { margin: 0 -16px 4px; height: calc(var(--hud-h) + 12px); } #hub.juego .hub-cab { height: calc(var(--hud-h) + 12px); }
+@media (max-height: 520px) { #hub.juego .hub-main { padding: 0 16px 20px; border-radius: var(--cr-r); } #hub.juego .hub-main::before { margin: 0 -16px 4px; height: calc(var(--hud-h) + 12px); } #hub.juego .hub-cab { height: calc(var(--hud-h) + 12px); }
   #hub.juego:not([data-screen="home"]) .hub-menu-btn, #hub.juego .hub-x { top: calc(var(--sh-t) + 6px); } #hub.juego:not([data-screen="home"]) .hub-menu-btn { left: calc(var(--sh-l) + 6px); } #hub.juego .hub-x { right: calc(var(--sh-r) + 6px); } }
 @media (max-width: 760px) { #hub.juego .hub-main { padding: 0 16px 24px; } #hub.juego .hub-main::before { margin: 0 -16px 4px; } }
 /* (dentro de la ventana, sin el fondo de la página de antes ni sus márgenes de pantalla entera) */
@@ -292,22 +292,24 @@
    Todo lo que se abre lo hace con un muelle con apenas un pelo de rebote (nada de botes); lo que se cierra, rápido y
    sin rebote. Una pieza no se corta: el menú crece desde tu retrato, la pastilla de las pestañas se desliza estirándose
    y lo de dentro aparece con un desenfoque corto. Los botones, de un solo color, sin degradados ni brillos */
-@property --l { syntax: '<length>'; inherits: false; initial-value: 0px; }
-@property --r { syntax: '<length>'; inherits: false; initial-value: 0px; }
+/* (los bordes de la pastilla, con nombre propio: registrada como --r, que no se hereda, dejaba sin el radio común --r a
+   todas las tarjetas del menú, que salían con las esquinas rectas) */
+@property --fl-l { syntax: '<length>'; inherits: false; initial-value: 0px; }
+@property --fl-r { syntax: '<length>'; inherits: false; initial-value: 0px; }
 #hub.juego { --muelle: cubic-bezier(.22, 1.12, .36, 1); --sale: cubic-bezier(.4, 0, .2, 1); --acento: #ff3fcf; --acento2: #ff62d9; }
 @keyframes hubDesenfoca { from { opacity: 0; filter: blur(6px); } }
 /* el menú: crece desde tu retrato hasta su tamaño; lo de dentro llega desenfocado y se aclara */
 #hub.juego .hub-panel { transform: none; opacity: 1; clip-path: inset(0 calc(100% - var(--menuw, var(--hud-h))) calc(100% - var(--hud-h)) 0 round var(--cr-r));
   transition: clip-path .3s var(--sale), visibility 0s linear .3s; }
-#hub.juego.menu-on .hub-panel { clip-path: inset(0 0 0 0 round 16px); transition: clip-path .5s var(--muelle); }
+#hub.juego.menu-on .hub-panel { clip-path: inset(0 0 0 0 round var(--cr-r)); transition: clip-path .5s var(--muelle); }
 #hub.juego.menu-on .hub-panel :is(.hub-nav, #hChip, .app-btn, .hub-panel-x) { animation: hubDesenfoca .4s .08s var(--sale) both; }
 /* la pastilla de las pestañas */
 #hub.juego .filters { position: relative; }
 #hub.juego .filters button { z-index: 1; }
 #hub.juego .filters button.on { background: none; border-color: transparent; }
-#hub.juego .fl-ind { position: absolute; z-index: 0; left: var(--l); top: var(--t, 0); width: calc(var(--r) - var(--l)); height: var(--h, 44px); border-radius: 999px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); pointer-events: none;
-  transition: --l .46s var(--muelle), --r .28s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
-#hub.juego .fl-ind.izq { transition: --l .28s var(--muelle), --r .46s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
+#hub.juego .fl-ind { position: absolute; z-index: 0; left: var(--fl-l); top: var(--t, 0); width: calc(var(--fl-r) - var(--fl-l)); height: var(--h, 44px); border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); pointer-events: none;
+  transition: --fl-l .46s var(--muelle), --fl-r .28s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
+#hub.juego .fl-ind.izq { transition: --fl-l .28s var(--muelle), --fl-r .46s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
 /* la cabecera de la ventana: la sección en medio y, a los lados, la de antes y la de después */
 #hub.juego .hub-cab { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
 #hub.juego .hub-cab .cab-t { grid-column: 2; display: flex; align-items: center; gap: 10px; min-width: 0; color: #fff; }
