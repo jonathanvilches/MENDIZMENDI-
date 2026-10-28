@@ -1,0 +1,1 @@
+var e=e=>String(e||``).toLowerCase().normalize(`NFD`).replace(/[̀-ͯ]/g,``).trim(),t=t=>e(t).replace(/[^a-z]/g,``);function n(e,t=`.!?`,n=null){let r=RegExp(`([${t}])\\s+`+(n?`(?=${n.source})`:``),`g`),i=[],a=0;for(let t of e.matchAll(r))i.push(e.slice(a,t.index+1)),a=t.index+t[0].length;return i.push(e.slice(a)),i}export{n,t as r,e as t};
