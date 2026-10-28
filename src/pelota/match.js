@@ -1,7 +1,7 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
 import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating } from './rules.js';
-import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt, diamTxt } from './material.js';
+import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
 import { openFicha, playerChip, splitName } from './ficha.js';
@@ -176,37 +176,34 @@ export class PelotaMatch {
     this.cesta = { you: tuyas, rival: delRival }; this.bolaTuya = media(tuyas); this.bola = this.bolaTuya; this.applyFeel(); this.pintaBolas();
   }
   // la elección antes del partido (el reglamento: cada pelotari elige 2 del lote de 10; por parejas, 3 cada pareja). El
-  // sorteo dice quién elige antes; el rival, por su estilo. Se puede dejar en manos del juego
+  // sorteo dice quién elige antes; el rival, por su estilo. Tú, en un desplegable: cómo las quieres (de todo, las más vivas
+  // o las más pesadas) y el juego coge las de ese tipo que quedan libres; debajo, cuáles son. (Antes, el lote entero en
+  // diez casillas para elegirlas una a una: costaba entenderlo)
   eleccion() {
     return new Promise(res => {
       const t = this.txt.mat || TEXT.es.mat, n = POR_LADO(this.pairs), lot = this.lote = lote(((Date.now() % 1e6) * 13 + 5) >>> 0);
       const estilo = perfil(this.o.rivalStats), tuPrimero = Math.random() < 0.5, rn = this.nomLimpio('rival');
-      let rv = tuPrimero ? [] : elige(lot, n, estilo), mias = [];
+      let rv = tuPrimero ? [] : elige(lot, n, estilo), mio = 'mixto', mias = [];
       const icono = (b) => `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd" stroke="${clase(b) === 'viva' ? '#ff7ac8' : clase(b) === 'pesada' ? '#7fb2ff' : '#c9b2ff'}" stroke-width="2.5"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="1.6" fill="none"/></svg>`;
-      const carta = (b) => `<button class="pel-mb" data-mb="${b.n}" aria-pressed="false">${icono(b)}<b>Nº ${b.n}</b><small>${pesoTxt(b)}</small><small>${diamTxt(b)}</small><i><u style="width:${Math.round(b.viva * 100)}%"></u></i><em>${t.kinds[clase(b)]}</em></button>`;
-      const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub" data-mat-sub></p><p class="pel-mat-what" data-mat-what>${t.sub(n)}</p>
-        <div class="pel-mat" role="group" aria-label="${t.title}">${lot.map(carta).join('')}</div>
-        <div class="pel-row"><button class="pel-go alt" data-mat-auto>${t.auto}</button><button class="pel-go" data-mat-go>${t.go}</button></div>`);
+      const chip = (b) => `<span class="pel-mchip">${icono(b)}<b>Nº ${b.n}</b><small>${t.kinds[clase(b)]} · ${pesoTxt(b)}</small></span>`;
+      const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${tuPrimero ? t.first : t.second(rn)}</p><p class="pel-mat-what">${t.sub(n)}</p>
+        <label class="pel-msel"><span>${t.tuyas}</span><select data-mat-sel>${['mixto', 'pegador', 'manos'].map(k => `<option value="${k}">${t.estilos[k](n)}</option>`).join('')}</select></label>
+        <div class="pel-mchips" data-mat-tuyas></div><p class="pel-mat-what" data-mat-what></p><p class="pel-mrv" data-mat-rv></p>
+        <div class="pel-row"><button class="pel-go" data-mat-go>${t.go}</button></div>`);
       p.querySelector('.pel-card')?.classList.add('pel-matcard');
       const pinta = () => {
-        const rs = new Set(rv.map(b => b.n)), ms = new Set(mias.map(b => b.n));
-        for (const e of p.querySelectorAll('[data-mb]')) { const k = +e.dataset.mb; e.setAttribute('aria-pressed', String(ms.has(k))); e.classList.toggle('rv', rs.has(k)); e.disabled = rs.has(k); if (rs.has(k)) e.dataset.rv = t.rival; else delete e.dataset.rv; }
-        p.querySelector('[data-mat-sub]').textContent = `${tuPrimero ? t.first : t.second(rn)} · ${t.pick(mias.length, n)}`;
-        p.querySelector('[data-mat-go]').disabled = mias.length < n;
+        mias = elige(lot, n, mio, new Set(rv.map(b => b.n)));
+        p.querySelector('[data-mat-tuyas]').innerHTML = mias.map(chip).join('');
+        p.querySelector('[data-mat-what]').textContent = t.que[mio];
+        p.querySelector('[data-mat-rv]').textContent = rv.length ? `${t.rival}: ${rv.map(b => `Nº ${b.n} (${t.kinds[clase(b)].toLowerCase()})`).join(' · ')}` : '';
       };
-      const fin = () => {
-        if (!rv.length) rv = elige(lot, n, estilo, new Set(mias.map(b => b.n)));
+      const sel = p.querySelector('[data-mat-sel]');
+      sel.addEventListener('change', () => { mio = sel.value; pinta(); this.audio.ui?.('tick'); });
+      tap(p, (b) => {
+        if (!b.hasAttribute('data-mat-go')) return;
+        if (!rv.length) rv = elige(lot, n, estilo, new Set(mias.map(x => x.n)));
         pinta(); this.ponCesta(mias, rv);
         setTimeout(() => { if (this.active) { this.hud.closePanel(); res(); } }, tuPrimero ? 900 : 250);   // (lo que elige el rival, un momento a la vista)
-      };
-      tap(p, (b) => {
-        if (b.dataset.mb) {
-          const bola = lot.find(x => x.n === +b.dataset.mb); if (!bola || rv.includes(bola)) return;
-          mias = mias.includes(bola) ? mias.filter(x => x !== bola) : [...mias, bola].slice(-n);
-          p.querySelector('[data-mat-what]').textContent = `Nº ${bola.n} · ${t.kinds[clase(bola)]}. ${t.what[clase(bola)]}`; pinta(); return;
-        }
-        if (b.hasAttribute('data-mat-auto')) { mias = elige(lot, n, 'mixto', new Set(rv.map(x => x.n))); fin(); return; }
-        if (b.hasAttribute('data-mat-go') && mias.length === n) fin();
       });
       pinta();
     });

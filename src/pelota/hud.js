@@ -111,9 +111,9 @@ const CSS = `
 .pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 2px 0 rgba(74,10,94,.6);background:radial-gradient(circle at 50% 30%,#ff9bd8,#ff2bd6 60%,#c21cff);box-shadow:0 0 0 4px rgba(255,122,200,.35),0 6px 0 #8a1c8f,0 10px 22px rgba(0,0,0,.35)}
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
 @keyframes pel-pulse{from{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 14px rgba(255,220,80,0)}}
-.pel-drop{width:80px;height:80px;font-size:var(--fs-sm);color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(138,43,226,.45),0 5px 0 rgba(10,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
+/* (cortada y dejada, con la misma letra: antes la cortada iba un tamaño más pequeña) */
+.pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(138,43,226,.45),0 5px 0 rgba(10,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
 .pel-bcol{display:flex;flex-direction:column;align-items:center;gap:8px}
-.pel-cut{font-size:var(--fs-xs);line-height:1;padding:0 4px;text-align:center}
 .pel-cut{background:radial-gradient(circle at 50% 30%,rgba(255,60,150,.95),rgba(120,10,70,.96));box-shadow:0 0 0 3px rgba(255,46,136,.45),0 5px 0 rgba(40,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
 .pel-hit,.pel-cut,.pel-drop{position:relative}
 .pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
@@ -163,7 +163,7 @@ const CSS = `
 .pel-sen.mid b{background:#ffe066}.pel-sen.low b{background:#ffe066;animation:pel-sen .5s ease-in-out infinite alternate}@keyframes pel-sen{to{opacity:.3}}
 @media (max-width:560px){.pel-mid{display:none}.pel-side{padding:2px 8px}.pel-side span{max-width:calc(20vw / var(--z, 1))}
   .pel-tip{max-width:calc(calc(100vw / var(--z, 1)) - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
-@media (max-height:520px){.pel-hit{width:94px;height:94px;font-size:var(--fs-lg)}.pel-drop{width:68px;height:68px}
+@media (max-height:520px){.pel-hit{width:94px;height:94px;font-size:var(--fs-lg)}.pel-drop{width:68px;height:68px;font-size:var(--fs-xs)}
   .pel-tip{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 48px);max-width:calc(calc(100vw / var(--z, 1)) - 240px);font-size:var(--fs-sm);padding:8px 12px}
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:8px 16px}
   .pel-card{width:min(780px,100%);padding:16px 16px 12px}.pel-card h2{font-size:var(--fs-xl)}.pel-card .pel-sub{margin-bottom:8px}
@@ -256,20 +256,20 @@ const CSS = `
   .pel-card{width:min(1000px,100%);padding:32px 40px 24px}.pel-card ol{columns:2;column-gap:40px}.pel-card li{break-inside:avoid}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
   .pel-card li,.pel-card .pel-ctrl,.pel-rv,.pel-rv p,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
 }
-/* la elección de material (material.js): el lote de diez pelotas en dos filas; cada una con su número, su peso, su
-   diámetro y lo viva que es. Las tuyas, de tu color; las del rival, apagadas */
-.pel-card.pel-matcard{width:min(640px,100%)}
-.pel-mat{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:0 0 12px}
-.pel-mb{position:relative;display:grid;justify-items:center;gap:2px;padding:8px 4px;border-radius:12px;border:1px solid rgba(190,160,255,.3);background:rgba(255,255,255,.05);color:#fff;font:inherit;cursor:pointer;min-width:0}
-.pel-mb svg{width:32px;height:32px}.pel-mb b{font:900 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}
-.pel-mb small{font-size:var(--fs-xs);color:#cbc2e0;line-height:1.1;white-space:nowrap}
-.pel-mb i{display:block;width:80%;height:4px;margin:2px 0;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}.pel-mb i u{display:block;height:100%;background:linear-gradient(90deg,#7fb2ff,#ff7ac8)}
-.pel-mb em{font-style:normal;font-weight:900;font-size:var(--fs-xs);color:#ff7ac8;text-transform:uppercase;letter-spacing:.04em}
-.pel-mb[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
-.pel-mb.rv{opacity:.5;cursor:default}.pel-mb.rv::after{content:attr(data-rv);position:absolute;top:4px;right:6px;font-size:10px;font-weight:900;color:#ff8f8f;text-transform:uppercase}
-.pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.3;min-height:2.6em}
+/* la elección de material (material.js): un desplegable con cómo quieres tus pelotas y, debajo, cuáles son, cada una con
+   su número, lo viva que es y su peso */
+.pel-card.pel-matcard{width:min(560px,100%)}
+.pel-msel{display:grid;gap:6px;margin:0 0 12px}.pel-msel>span{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff9ad8}
+.pel-msel select{appearance:none;-webkit-appearance:none;width:100%;min-height:48px;padding:0 44px 0 18px;border-radius:14px;border:1px solid rgba(190,160,255,.4);color:#fff;font:700 var(--fs-md)/1.2 'MZ Texto',sans-serif;cursor:pointer;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%23ff9ad8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") right 16px center/18px no-repeat,rgba(255,255,255,.07)}
+.pel-msel select:focus-visible{outline:2px solid #fff;outline-offset:2px}.pel-msel option{color:#1c0b3a}
+.pel-mchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
+.pel-mchip{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(190,160,255,.3)}
+.pel-mchip svg{width:30px;height:30px}.pel-mchip b{font:900 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}.pel-mchip small{font-size:var(--fs-xs);color:#cbc2e0;white-space:nowrap}
+.pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.35}
+.pel-mrv{margin:-4px 0 12px;font-size:var(--fs-xs);color:#b9addb}.pel-mrv:empty{display:none}
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
-@media (max-height:500px){.pel-mat{gap:4px}.pel-mb{padding:4px 2px;gap:0}.pel-mb svg{width:22px;height:22px}.pel-mat-what{min-height:0;margin-bottom:8px}}
+@media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-msel select{min-height:42px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
 /* el cestaño en el partido, arriba a la izquierda bajo la X (lejos del aviso del saque, que en el móvil va arriba y en el
    ordenador abajo): la pelota en juego y, mientras sacas tú, tus pelotas para cambiar */
 .pel-bolas{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));top:calc(env(safe-area-inset-top,0px) + 72px);z-index:4;display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:6px;border-radius:14px;background:rgba(20,8,40,.72);border:1px solid rgba(190,160,255,.28);color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;pointer-events:auto;white-space:nowrap}
