@@ -44,6 +44,10 @@ export class PelotaMatch {
     this.hud.onPanel = () => this.resetStick?.();
     this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 }, charge: null, power: 0.5 };
     this.active = true; this.t = 0;
+    // (los consejos de cómo jugar, solo para aprender: en los primeros tantos de los dos primeros partidos; luego, ninguno.
+    // Se cuenta el partido al empezar a jugarlo, en vsThenPlay: no los que se dejan con «Ahora no»)
+    try { this.consejosN = +(localStorage.getItem('herrizherri-pelota-consejos') || 0); } catch (e) { this.consejosN = 0; }
+    this.conConsejos = this.consejosN < 2;
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
     this.fov0 = this.cam.fov; this.roll = 0; this.kick = 0;
     this.court.group.updateMatrixWorld(true);
@@ -187,7 +191,8 @@ export class PelotaMatch {
   // «¡A jugar!»: antes, la pantalla VS (azules contra colorados, el frontón y cómo juega el rival); después, el saque.
   // (sin ella en el partido que empieza solo y en las pruebas automáticas, salvo que la pidan con window.__vs)
   vsThenPlay() {
-    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
+    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6);
+      if (!this.contado) { this.contado = true; try { localStorage.setItem('herrizherri-pelota-consejos', this.consejosN + 1); } catch (e) { /* sin almacenamiento */ } } };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
     // (después de la presentación, el sorteo del saque con la chapa: saca el del color que sale)
     const sorteo = () => { if (!this.active) return; this.tossChapa(true).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
     const V = this.o.vsImg;
@@ -673,11 +678,13 @@ export class PelotaMatch {
     const toV = h?.toVolley, airNow = h?.volea && toV != null && toV > -0.05;
     this.hud.timing(h?.yourTurn ? (airNow ? toV : h.toIdeal) : null);
     const T1 = this.txt; this.hud.hitLabel(h?.gancho ? (T1.hitGancho || TEXT.es.hitGancho) : h?.volea ? (T1.hitVolley || TEXT.es.hitVolley) : T1.hit);
-    // consejos
+    // consejos: solo mientras se aprende (los primeros tantos de los dos primeros partidos, o el primer medio minuto del
+    // peloteo); después, nada: el autor no quería instrucciones todo el rato
     const tt = this.txt;
     let tip = '';
-    const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP();
-    if (g.phase === 'serveWait' && sp === 'you') tip = g.runUp ? tt.tipServeRun : tt.tipServe;
+    const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP(), aprende = this.conConsejos && (g.mode === 'rally' ? this.t < 30 : ((g.score?.you || 0) + (g.score?.rival || 0)) < 4);
+    if (!aprende) tip = '';
+    else if (g.phase === 'serveWait' && sp === 'you') tip = g.runUp ? tt.tipServeRun : tt.tipServe;
     else if (g.phase === 'servePrep' && sp === 'you') tip = g.saque ? tt.tipServeRun : g.hittable('you') ? tt.tipServe2 : '';   // (el saque sale solo; si se escapa la pelota, lo das tú)
     else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
     else if (g.phase === 'serveWait' && g.server === 'rival') tip = g.pairs && this.role === 'delantero' ? PT.rivalServe : g.cuatro ? tt.tipRivalServe45 || tt.tipRivalServe : tt.tipRivalServe;

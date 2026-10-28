@@ -1,5 +1,13 @@
 # Herrizherri · todo lo que falta de imágenes (2026-10-23)
 
+**28 de octubre:** revisado otra vez todo lo que enseña el juego, pueblo por pueblo, con tools/encargo-total.mjs y la cuenta real de escudos de cada pueblo. Falta esto:
+
+- **Imprescindible (1):** zarratrako.png, el Zarratrako del carnaval de Salazar, a la espera de una foto fiable del traje; mientras, sale con su figura en 3D.
+- **Escudos de casas (4):** sierra-urbasa-1.png (casa Iriartea), sierra-urbasa-2.png (casa Errekaldea), erronkari-roncal-8.png (casa Elizaldea) y senorio-bertiz-1.png (casa Elizaldea). Su blasón está en encargo-total; te lo paso cuando quieras.
+- **Iconos que hoy dibuja el juego (11):** campana, corzo, crómlech, cabra, grulla, lechuza, milano real y quebrantahuesos, que son capturas del propio juego, y castro, columna y mosaico, que son modelos sencillos. Funcionan, pero no son de tu familia de iconos.
+- **Opcional:** la flora en tu estilo (parte C, 51) y, si quieres más leyendas, las cuatro de la parte E, cada una con su lámina cuando estén escritas.
+- **Fuera por decisión tuya:** el dibujo de Induráin. El escudo de Bigüézal sigue sin generarse hasta tener una fuente fiable.
+
 **27 de octubre:** han llegado 138 imágenes en 16 ZIP, ya en el juego en todos sus tamaños: las 34 que quedaban de la parte A (las dos danzas, los cinco productos, cuatro carnavales, el encierro, las campanas y las 21 de historia y arquitectura) y las 104 cimas de la parte D. Ahora las 120 cimas tienen escena. Solo falta **zarratrako.png**: el autor pide una fotografía fiable del traje antes de dibujarlo, y mientras tanto el Zarratrako sigue con su figura. La flora (parte C) sigue siendo opcional.
 
 **24 de octubre:** han llegado 26 de la parte A, ya en el juego: los 14 cuentos, 9 danzas, los iconos del mando y del globo y la txapela de campeón. De las danzas faltan dos: la del Prepirineo llegó cortada (el segundo zip estaba incompleto) y la de Sangüesa no llegó. Quedan 35 en la parte A; la lista para pegar, `encargo-pendiente-para-pegar.txt`, ya está al día.

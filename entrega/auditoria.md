@@ -1,6 +1,6 @@
 # Auditoría de todo lo pedido · HERRIZHERRI
 
-Actualizada el 27 de octubre de 2026 por la noche. Repasa los 381 mensajes del proyecto, desde el 28 de septiembre.
+Actualizada el 28 de octubre de 2026. Repasa los 382 mensajes del proyecto, desde el 28 de septiembre.
 
 - **Hecho**: está en el juego y se ha comprobado con capturas o pruebas automáticas.
 - **Parcial**: está, pero no del todo como se pidió, o no se ha podido comprobar a fondo.
@@ -108,7 +108,12 @@ Nada se ha probado en un móvil, una tele o un ordenador reales. Las pruebas son
 | Manomanista, Parejas y Cuatro y Medio | Hecho | |
 | Campeonatos más largos | Hecho | 4, 6 y 9 partidos |
 | Elegir pelota y elegir frontón | Hecho | |
-| Que no se cierre al entrar en los campeonatos | Hecho | Sin cierres en las pruebas; sin probar en un iPhone real |
+| Que no se cierre al entrar en los campeonatos | Parcial (hoy) | Arreglados tres fallos que podían sacarte del partido; sin probar en un iPhone real. Ver el apartado 9 |
+| Cada partido del campeonato en un frontón distinto | Hecho (hoy) | A suertes, nunca el de la ronda anterior; la final, en el Labrit |
+| «Perfecto» y «Pronto» grandes en cada golpe, como antes | Hecho (hoy) | |
+| Sin instrucciones de cómo jugar todo el rato | Hecho (hoy) | Solo en los primeros tantos de los dos primeros partidos |
+| Contraste y legibilidad en todos los frontones | Hecho (hoy) | Paredes, frontis y suelo con contraste mínimo con la pelota; la pared de los frontones de calle, lisa |
+| Sin trozos dentro de la cancha | Hecho (hoy) | Revisados los 31 frontones, por dentro y con rayos sobre el suelo: un montículo de tierra junto al frontis de Javier, dos copas de castaño en la pared de Elizondo y un dedo de terreno en Sangüesa. Arreglados |
 
 ## 6. Fútbol
 

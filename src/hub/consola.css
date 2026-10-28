@@ -75,7 +75,7 @@
 /* la misión de ahora: su portada, el pueblo y el botón, arriba a la derecha */
 #hub.juego .m3d .m3-mision { z-index: 4; left: auto; right: calc(var(--hud-r) + var(--sr, 0px)); bottom: auto; width: auto; max-width: min(420px, 40%);
   grid-template-columns: auto minmax(0, auto) auto; grid-template-areas: "img tt go"; column-gap: 10px; padding: 3px; animation: mm-entra .5s .3s cubic-bezier(.2, .9, .3, 1) both; }
-#hub.juego .m3d .mm-img { width: calc((var(--hud-h) - 8px) * 1.4); height: calc(var(--hud-h) - 8px); border-radius: calc(var(--cr-r) - 3px); }
+#hub.juego .m3d .mm-img { width: calc((var(--hud-h) - 8px) * 16 / 9); height: calc(var(--hud-h) - 8px); border-radius: calc(var(--cr-r) - 3px); }
 #hub.juego .m3d .mm-tt { gap: 2px; }
 #hub.juego .m3d .mm-tt small { color: color-mix(in srgb, var(--t, var(--pink)) 60%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; }
 #hub.juego .m3d .mm-tt b { font: 600 var(--fs-md)/1.1 var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -125,7 +125,7 @@
 #hub.juego .m3d .m3-ex { background: linear-gradient(180deg, #120827, #0c0519); }
 #hub.juego .m3d .ex-head { padding-top: var(--hud-t); padding-left: var(--hud-l); padding-right: var(--hud-r); }
 #hub.juego .m3d :is(.ex-c, .ex-t) { border-radius: 16px; border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 12px 28px rgba(4, 1, 12, .4); }
-#hub.juego .m3d :is(.ex-c, .ex-t)::after { background: linear-gradient(180deg, rgba(13, 4, 32, .2) 0, rgba(13, 4, 32, 0) 25%, rgba(13, 4, 32, 0) 45%, rgba(13, 4, 32, .88) 88%); }
+#hub.juego .m3d :is(.ex-c, .ex-t)::after { background: linear-gradient(180deg, rgba(13, 4, 32, .4), rgba(13, 4, 32, 0)); }
 #hub.juego .m3d .ex-x { border: 1px solid var(--cr-l2); background: rgba(255, 255, 255, .06); box-shadow: none; font: 600 var(--fs-sm)/1 var(--f-ui); }
 #hub.juego .m3d :is(.ex-go) { background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
 
@@ -228,6 +228,8 @@
   #hub.juego .m3d .m3-cb { left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); right: var(--hud-r); transform: none; max-width: none; }
   #hub.juego .m3d .m3-rail { right: var(--hud-r); }
   #hub.juego .m3d .m3-pad { bottom: calc(var(--hud-b) + 136px); }
+  /* (la ayuda de cómo moverse, encima de la misión: en los primeros segundos se pintaba sobre «Próxima parada») */
+  #hub.juego .m3d .m3-ayuda { bottom: calc(var(--hud-b) + 126px); }
 }
 @media (prefers-reduced-motion: reduce) { #hub.juego :is(.hub-panel, .hub-main, .hub-velo, .hub-menu-btn) { transition: none; animation: none; } }
 
@@ -313,6 +315,9 @@ html.tactil #hub.juego .cab-v::before { content: '‹'; font-size: 20px; line-he
 #hub .hub-pista { display: none; }   /* (solo jugando y con teclado; en el didáctico salía su texto suelto abajo a la izquierda) */
 html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-pista { position: absolute; z-index: 27; right: calc(var(--sh-r) + 18px); bottom: calc(var(--sh-b) + 10px); display: flex; gap: 18px; padding: 6px 10px; border-radius: 10px; background: rgba(13, 6, 28, .82); color: var(--tx2); font: 500 12px/1 var(--f-ui); pointer-events: none; }
 html:not(.tactil) #hub.juego .hub-pista span { display: flex; align-items: center; gap: 6px; }
+/* (unos segundos y se va: con la ventana de 720 de alto tapaba el botón Jugar del fútbol y otros de abajo; las teclas
+   Q y E siguen junto a las secciones de arriba) */
+html:not(.tactil) #hub.juego .hub-pista { animation: pista-fuera .6s 6s forwards; } @keyframes pista-fuera { to { opacity: 0; visibility: hidden; } }
 html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main { padding-bottom: 56px; }
 /* los botones de jugar: de un color, sin degradado ni brillo */
 #hub.juego :is(.mm-go, .ft-go, .ex-go, .btn.primary) { background: var(--acento); box-shadow: none; text-shadow: none; transition: background .15s, transform .15s var(--muelle); }

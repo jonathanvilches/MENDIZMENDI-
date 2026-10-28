@@ -156,7 +156,8 @@
 
 /* las comarcas, abajo, en una tira de fotos: cada una con su foto, su sello en un aro que se llena con sus sellos y cuántos
    lleva (las que faltan, con candado y la foto algo apagada); al principio, el botón de todas en fotos */
-.m3-rail { --chw: 150px; --chh: 64px; position: absolute; z-index: 3; left: 16px; right: calc(76px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
+/* (cada comarca, con su lámina entera: la tarjeta en 16:9, como la imagen, para no recortarla) */
+.m3-rail { --chw: 150px; --chh: calc(var(--chw) * 9 / 16); position: absolute; z-index: 3; left: 16px; right: calc(76px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 8px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; transition: right .35s; }
 .m3-rail::-webkit-scrollbar { display: none; }
 .m3-chip, .m3-todas { position: relative; flex: none; width: var(--chw); height: var(--chh); display: flex; align-items: flex-end; padding: 0; border-radius: 16px; overflow: hidden; background: #1c0b3a; border: 1px solid color-mix(in srgb, var(--c, var(--pink)) 55%, var(--line2)); color: var(--ink); font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgba(0, 0, 0, .4); transition: border-color .2s, transform .2s, box-shadow .2s; }
 .m3-chip::after, .m3-todas::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 4, 32, 0) 25%, rgba(13, 4, 32, .88)); pointer-events: none; }
@@ -205,7 +206,7 @@
   .m3-tt b { font-size: var(--fs-md); }
   .m3-ayuda { left: 12px; right: auto; top: auto; bottom: 84px; max-width: calc(100% - 88px); }
   .m3d.con-sel :is(.m3-rail, .m3-tot) { display: none; }
-  .m3-rail { --chw: 124px; --chh: 56px; left: 12px; bottom: 12px; }
+  .m3-rail { --chw: 124px; left: 12px; bottom: 12px; }
 }
 /* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo conquistado y el
    botón de tu aventura; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
@@ -219,7 +220,7 @@
 
   .m3d .ini-sq { width: 40px; height: 40px; border-radius: 12px; } .m3d .ini-sq :is(svg, img) { width: 24px; height: 24px; }
   .m3-ayuda { display: none; }
-  .m3-rail { --chw: 116px; --chh: 50px; left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
+  .m3-rail { --chw: 104px; left: 8px; bottom: 6px; gap: 6px; padding: 2px; }
   .m3-chip { border-radius: 12px; } .m3-chip .m3-sello { width: 24px; height: 24px; left: 3px; top: 3px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
   .m3-ct { padding: 0 7px 4px; } .m3-ct b { font-size: 12px; } .m3-ct small { font-size: 11px; }
   .m3-todas { border-radius: 12px; } .m3-todas .m3-ct b { font-size: var(--fs-sm); }
@@ -267,7 +268,7 @@
 @keyframes mm-entra { from { opacity: 0; transform: translateY(16px) scale(.97); } }
 .m3d.con-sel .m3-mision { display: none; }
 .mm-cab { display: contents; }
-.mm-img { grid-area: img; width: 84px; height: 52px; border-radius: 12px; object-fit: cover; }
+.mm-img { grid-area: img; width: 92px; height: 52px; border-radius: 12px; object-fit: cover; }
 .mm-tt { grid-area: tt; display: grid; min-width: 0; line-height: 1.1; }
 .mm-tt small { color: color-mix(in srgb, var(--t, var(--pink)) 80%, #fff); font: 900 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; }
 .mm-tt b { color: #fff; font: 400 var(--fs-lg)/1.1 'MZ Display', 'MZ Texto', sans-serif; }
@@ -288,7 +289,7 @@
 @media (min-width: 1200px) and (min-height: 600px) { .m3-mision { right: auto; width: min(520px, 46%); } .m3-ayuda { bottom: 106px; } }
 /* teléfono de pie: la barra de la misión de lado a lado, encima de las comarcas; los botones de la cámara, encima de ella */
 @media (max-width: 760px) {
-  .m3-mision { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 84px; column-gap: 10px; } .mm-img { width: 64px; height: 44px; }
+  .m3-mision { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 84px; column-gap: 10px; } .mm-img { width: 78px; height: 44px; }
   .mm-go { min-height: 48px; padding: 0 14px 0 12px; font-size: var(--fs-md); }
   .m3-pad { bottom: 198px; }
   .ini-av span { display: none; } .ini-av { padding: 0; width: 44px !important; justify-content: center; }
@@ -414,23 +415,26 @@
 .ex-x { flex: none; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px 0 14px; border: 0; border-radius: 999px; cursor: pointer; color: #fff; background: linear-gradient(135deg, var(--pink), var(--violet)); font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; box-shadow: 0 6px 18px rgba(123, 47, 247, .45); }
 .ex-x :is(svg, img) { width: 20px; height: 20px; }
 @media (pointer: coarse) { .ex-fl { display: none; } .ex-x { margin-left: auto; } }
-.ex-track { --w: clamp(220px, 23vw, 320px); flex: 1; min-height: 0; display: flex; align-items: center; gap: 14px; overflow-x: auto; overflow-y: hidden; padding: 8px 20px 20px; padding-left: max(20px, env(safe-area-inset-left, 0px)); scroll-snap-type: x mandatory; scroll-padding-inline: 20px; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
+.ex-track { --w: clamp(240px, min(30vw, calc((100dvh - 290px) * 16 / 9)), 460px); flex: 1; min-height: 0; display: flex; align-items: center; gap: 14px; overflow-x: auto; overflow-y: hidden; padding: 8px 20px 20px; padding-left: max(20px, env(safe-area-inset-left, 0px)); scroll-snap-type: x mandatory; scroll-padding-inline: 20px; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; touch-action: pan-x; }
 .ex-track::-webkit-scrollbar { display: none; }
 .ex-track::after { content: ''; flex: 0 0 4px; }
-/* (cada tarjeta: la foto entera, oscurecida abajo para leer encima; entran una tras otra) */
-.ex-c, .ex-t { position: relative; flex: 0 0 var(--w); height: min(100%, calc(var(--w) * 1.5)); scroll-snap-align: start; border-radius: 22px; overflow: hidden; padding: 0; text-align: left; color: #fff; font: inherit;
+/* (cada tarjeta: arriba su lámina entera, en 16:9 como la imagen, sin recortar; debajo, en su franja, el nombre, cómo va y
+   los botones; entran una tras otra) */
+.ex-c, .ex-t { position: relative; flex: 0 0 var(--w); display: flex; flex-direction: column; scroll-snap-align: start; border-radius: 22px; overflow: hidden; padding: 0; text-align: left; color: #fff; font: inherit;
   background: #1c0b3a; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); box-shadow: 0 16px 34px rgba(0, 0, 0, .5); animation: ex-carta .45s calc(var(--i, 0) * 45ms) cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes ex-carta { from { opacity: 0; transform: translateY(18px) scale(.97); } }
 button.ex-c { cursor: pointer; transition: transform .2s, border-color .2s; } button.ex-c:hover, button.ex-c:focus-visible { transform: translateY(-4px); border-color: var(--c); }
-.ex-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .9, .3, 1); }
-button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { transform: scale(1.05); }
-.ex-c::after, .ex-t::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(13, 4, 32, .35) 0, rgba(13, 4, 32, 0) 22%, rgba(13, 4, 32, 0) 42%, rgba(13, 4, 32, .94) 86%); }
+.ex-c > .ex-img { flex: none; }
+.ex-img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; transition: filter .3s; }
+button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
+.ex-c::after, .ex-t::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: calc(var(--w) * 9 / 16 * .4); pointer-events: none; background: linear-gradient(180deg, rgba(13, 4, 32, .45), rgba(13, 4, 32, 0)); }
 .ex-sello { position: absolute; z-index: 1; left: 12px; top: 12px; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; background: rgba(13, 4, 32, .7); }
 .ex-sello > .m3-aro { position: absolute; inset: 0; } .ex-sello > img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 .ex-c.ok .ex-sello .ar { stroke: var(--gold); }
-.ex-tx { position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; display: grid; gap: 6px; padding: 16px; pointer-events: none; }
+.ex-tx { position: relative; z-index: 2; flex: 1; display: grid; align-content: start; gap: 6px; min-height: 112px; padding: 12px 14px 14px; pointer-events: none;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 18%, #1d1142), #110926); border-top: 2px solid color-mix(in srgb, var(--c) 70%, #fff); }
 .ex-tx > * { pointer-events: auto; }
-.ex-tx b { font: 400 var(--fs-2xl)/1 'MZ Display', 'MZ Texto', sans-serif; letter-spacing: .02em; text-transform: uppercase; text-shadow: 0 2px 10px rgba(0, 0, 0, .6); overflow-wrap: anywhere; }
+.ex-tx b { font: 400 var(--fs-xl)/1 'MZ Display', 'MZ Texto', sans-serif; letter-spacing: .02em; text-transform: uppercase; overflow-wrap: anywhere; }
 .ex-tx small { color: #e4dcff; font: 800 var(--fs-sm)/1.25 'MZ Texto', sans-serif; }
 .ex-tx .ex-k { color: var(--gold); font-size: var(--fs-xs); letter-spacing: .08em; text-transform: uppercase; }
 .ex-mini { display: flex; align-items: center; margin-top: 2px; }
@@ -438,9 +442,9 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { transform: scale(1.05); }
 .ex-mini i { display: grid; place-items: center; background: color-mix(in srgb, var(--c) 60%, #1c0b3a); color: #fff; font: 900 11px/1 'MZ Texto', sans-serif; font-style: normal; }
 .ex-ver { justify-self: start; display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 4px; padding: 0 16px 0 12px; border: 1px solid color-mix(in srgb, var(--c) 70%, #fff); border-radius: 999px; cursor: pointer; color: #fff; background: rgba(13, 4, 32, .55); font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; }
 .ex-ver :is(svg, img) { width: 20px; height: 20px; }
-.ex-hero { --w: clamp(240px, 28vw, 380px); }
+.ex-hero { --w: clamp(260px, min(34vw, calc((100dvh - 270px) * 16 / 9)), 500px); }
 /* (un pueblo: la foto entera es un botón que lo enseña en el mapa; abajo, cómo va y los botones) */
-.ex-fot { position: absolute; inset: 0; padding: 0; border: 0; background: none; cursor: pointer; }
+.ex-fot { position: relative; flex: none; display: block; width: 100%; padding: 0; border: 0; background: #1a0c33; cursor: pointer; }
 .ex-st { position: absolute; z-index: 2; left: 12px; top: 12px; display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 6px; border-radius: 999px; background: rgba(13, 4, 32, .78); font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; pointer-events: none; }
 .ex-st :is(svg, img) { width: 16px; height: 16px; } .ex-st.ok { color: var(--gold); } .ex-st.go { color: #ff9be0; }
 .ex-bar { height: 6px; border-radius: 999px; background: rgba(255, 255, 255, .16); overflow: hidden; } .ex-bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--pink), var(--gold)); }
@@ -450,7 +454,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { transform: scale(1.05); }
 .ex-pin { flex: none; width: 48px; min-height: 48px; display: grid; place-items: center; padding: 0; border: 1px solid var(--line2); border-radius: 14px; cursor: pointer; color: #fff; background: rgba(13, 4, 32, .6); }
 .ex-pin :is(svg, img) { width: 22px; height: 22px; }
 /* (el móvil de pie: tarjetas más anchas, una y algo de la siguiente) */
-@media (max-width: 640px) { .ex-track { --w: min(76vw, 320px); gap: 12px; padding: 4px 16px 16px; scroll-padding-inline: 16px; } .ex-head { padding: 12px 16px 6px; gap: 8px; } .ex-tt b { font-size: var(--fs-xl); } .ex-hero { --w: min(80vw, 340px); } }
+@media (max-width: 640px) { .ex-track { --w: min(80vw, 340px); gap: 12px; padding: 4px 16px 16px; scroll-padding-inline: 16px; } .ex-head { padding: 12px 16px 6px; gap: 8px; } .ex-tt b { font-size: var(--fs-xl); } .ex-hero { --w: min(80vw, 340px); } }
 @media (prefers-reduced-motion: reduce) { .m3-ex, .ex-c, .ex-t { animation: none !important; } }
 
 /* ================= El móvil tumbado =================
@@ -463,11 +467,11 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { transform: scale(1.05); }
   .m3-ex .ex-head { padding: 8px 12px 4px; padding-left: max(12px, env(safe-area-inset-left, 0px)); gap: 8px; }
   .m3-ex .ex-tt small { display: none; } .m3-ex .ex-tt b { font-size: var(--fs-lg); }
   .m3-ex :is(.ex-ar, .ex-back) { width: 40px; height: 40px; } .m3-ex .ex-x { min-height: 40px; }
-  .ex-track { --w: 196px; align-items: stretch; gap: 10px; padding: 4px 12px 10px; padding-left: max(12px, env(safe-area-inset-left, 0px)); scroll-padding-inline: 12px; }
-  .ex-c, .ex-t { height: auto; border-radius: 18px; }
-  .ex-hero { --w: 240px; }
+  .ex-track { --w: min(280px, calc((100dvh - 168px) * 16 / 9)); gap: 10px; padding: 4px 12px 10px; padding-left: max(12px, env(safe-area-inset-left, 0px)); scroll-padding-inline: 12px; }
+  .ex-c, .ex-t { border-radius: 18px; }
+  .ex-hero { --w: min(300px, calc((100dvh - 168px) * 16 / 9)); }
   .ex-sello { width: 42px; height: 42px; left: 8px; top: 8px; } .ex-sello > img { width: 30px; height: 30px; }
-  .ex-tx { gap: 4px; padding: 10px; } .ex-tx b { font-size: var(--fs-xl); } .ex-tx small { font-size: var(--fs-xs); }
+  .ex-tx { gap: 4px; padding: 8px 10px 10px; min-height: 0; } .ex-tx b { font-size: var(--fs-lg); } .ex-tx small { font-size: var(--fs-xs); }
   .ex-mini img, .ex-mini i { width: 28px; height: 28px; }
   .ex-go { min-height: 42px; font-size: var(--fs-md); } .ex-pin { width: 42px; min-height: 42px; } .ex-ver { min-height: 40px; }
 }

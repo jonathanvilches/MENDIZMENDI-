@@ -819,7 +819,6 @@ export function mapa3d(host, o) {
   // ---------- tocar y arrastrar ----------
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plano = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.5);
   const aNdc = (e) => { const b = cv.getBoundingClientRect(); ndc.set((e.clientX - b.left) / b.width * 2 - 1, -((e.clientY - b.top) / b.height) * 2 + 1); return ndc; };
-  const enSuelo = (e) => { ray.setFromCamera(aNdc(e), cam); return ray.ray.intersectPlane(plano, new THREE.Vector3()); };
   // (qué hay debajo del dedo: el pueblo cuya chincheta o cuyo nombre queda más cerca en la pantalla y, si no, la comarca)
   const bw = new THREE.Vector3();
   function quien(e) {
@@ -906,7 +905,7 @@ export function mapa3d(host, o) {
   // (la rueda del ratón acerca y aleja; en el panel táctil del portátil, deslizar con dos dedos mueve el mapa, como en
   // los mapas de verdad, y pellizcar acerca: el deslizar llega con desplazamiento a los lados o en fracciones, la rueda no)
   cv.addEventListener('wheel', (e) => {
-    e.preventDefault(); if (entrada || saltaIntro()) return; usado(); vuelo = null; inercia = null;
+    e.preventDefault(); if (entrada || saltaIntro()) return; usado(); vuelo = null; inercia = null; dron = null;
     if (!e.ctrlKey && e.deltaMode === 0 && (e.deltaX !== 0 || !Number.isInteger(e.deltaY))) {
       const k = goal.d * 0.0016, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       goal.x += (-fz * e.deltaX - fx * e.deltaY) * k; goal.z += (fx * e.deltaX - fz * e.deltaY) * k; lim(); return;
@@ -947,11 +946,26 @@ export function mapa3d(host, o) {
     if (sel !== t.comarca) select(t.comarca, false);
     elegido = t; o.onTown?.(id);   // (antes de volar: la ficha cambia el hueco donde se encaja)
     nucT = -1e9;   // (su núcleo, en la imagen siguiente: así sus casas se van haciendo durante el vuelo)
-    // (hasta lo más cerca, donde se ven sus casas en pie, algo de lado; los bosques, sin maqueta, desde algo más arriba)
-    const real = TR.includes(t), d = real ? 0.6 : 2.4;
-    volar({ x: t.X, z: t.Z, d, yaw: v.yaw, pitch: real ? 0.62 + 0.11 * d : 0.85 }, Math.min(2.2, 1.1 + 0.16 * Math.log2(Math.max(1, v.d / d))));
+    // (hasta lo más cerca, casi a la altura de los tejados y de lado, para ver sus casas en pie; los bosques, sin maqueta,
+    // desde algo más arriba). Al llegar, el vuelo de dron
+    const real = TR.includes(t), d = real ? DRON_D : 2.4, pitch = real ? 0.56 : 0.85;
+    volar({ x: t.X, z: t.Z, d, yaw: v.yaw, pitch }, Math.min(2.6, 1.3 + 0.18 * Math.log2(Math.max(1, v.d / d))));
+    dron = { t: 0, id: t.id, X: t.X, Z: t.Z, d, pitch, yaw: v.yaw, real, listo: false };
   }
-  function cierraPueblo() { if (!elegido) return; elegido = null; o.onTown?.(null); }
+  // ---------- el vuelo de dron sobre el pueblo elegido ----------
+  // La cámara pasa por encima del pueblo muy despacio, como un dron: le da la vuelta poco a poco (una vuelta en unos dos
+  // minutos), se acerca y se aleja un poco y va y viene sobre sus calles, sin perderlo nunca de vista. Empieza al acabar el
+  // vuelo hasta él y se para en cuanto se toca el mapa, se mueve con las teclas o la rueda, o se cierra el pueblo
+  const DRON_D = 0.32;
+  let dron = null;
+  function sigueDron(dt) {
+    if (!dron.listo) { if (vuelo) return; dron.listo = true; }
+    const u = (dron.t += dt), k = Math.min(1, u / 4), r = dron.d * (dron.real ? 0.45 : 0.25);   // (arranca poco a poco)
+    goal.yaw = dron.yaw + u * 0.05 * k;
+    goal.x = dron.X + Math.sin(u * 0.083) * r * k; goal.z = dron.Z + Math.sin(u * 0.121 + 1.1) * r * 0.7 * k;
+    goal.d = dron.d * (1 + 0.22 * Math.sin(u * 0.097) * k); goal.pitch = dron.pitch + 0.05 * Math.sin(u * 0.067) * k;
+  }
+  function cierraPueblo() { dron = null; if (!elegido) return; elegido = null; o.onTown?.(null); }
   // (toda Navarra, desde arriba)
   function vista() { select(null); volar(casa(), 1.1); }
   // ---------- elegir una comarca: vuela hasta ella y se levanta ----------
@@ -1310,6 +1324,8 @@ export function mapa3d(host, o) {
     const w = host.clientWidth, h = host.clientHeight, z = escala();
     if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
     // movimiento con las teclas y los botones
+    if (dron && (ptrs.size || keys.size || inercia || entrada || elegido?.id !== dron.id)) dron = null;
+    if (dron) sigueDron(dt);
     if (keys.size && !entrada) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }
