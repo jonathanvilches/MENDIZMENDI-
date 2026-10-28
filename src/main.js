@@ -4,6 +4,7 @@ import './util/migra.js';   // (lo primero: lo guardado con el nombre de antes p
 import './util/tactil.js';   // (<html class="tactil"> en el móvil y la tableta: los controles de pantalla)
 import './util/tele.js';   // (en una pantalla grande, la interfaz crece con ella)
 import './util/giro.js';   // (al girar el móvil, se vuelve a medir la pantalla hasta que da la medida nueva)
+import './util/fantasma.js';   // (los clics fantasma del móvil: el clic de un toque no cae en lo que aparece al levantar el dedo)
 import './util/informe.js';   // (en el artefacto de claude.ai, el informe en directo para Claude: errores y fluidez)
 import * as THREE from 'three';
 // muchas piezas llaman a toNonIndexed() sobre geometría que ya lo es: three.js devuelve la misma y avisa en la consola
