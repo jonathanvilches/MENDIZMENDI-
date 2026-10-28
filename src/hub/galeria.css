@@ -4,11 +4,13 @@
 .gal { --c: #b56cff; --gh: min(48vh, 400px); --dh: 50px; --gw: min(calc((var(--gh) - var(--dh)) * 16 / 9), 74vw, var(--gwmax, 74vw)); --ch: calc(var(--gw) * 9 / 16 + var(--dh) + 6px); position: relative; isolation: isolate; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; min-height: 0; overflow: hidden; border-radius: 14px; color: #fff;
   background: radial-gradient(120% 90% at 50% 38%, #2c1470 0%, #170a3a 48%, #0a0418 100%); }
 #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 24px); margin: 0 -24px; border-radius: 0 0 16px 16px; }
-#hub.juego .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
+#hub.juego .hub-main:has(> .gal), html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main:has(> .gal) { padding-bottom: 0; overflow: hidden; }
+/* (sin la pista de las teclas de abajo: tapaba el botón de jugar y su hueco dejaba una franja vacía bajo la galería) */
+html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { display: none; }
 #hub:not(.juego) .gal { height: min(72vh, 680px); margin-top: 16px; }
 
 /* las comarcas, arriba: la pastilla de las pestañas del menú (se desliza hasta la elegida) */
-.gal .gal-cm { position: relative; z-index: 3; display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 12px 24px 4px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
+.gal .gal-cm { position: relative; z-index: 3; display: flex; flex-wrap: nowrap; gap: 4px; margin: 0; padding: 14px 28px 10px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(90deg, transparent 0, #000 24px, #000 calc(100% - 24px), transparent); }
 .gal .gal-cm::-webkit-scrollbar { display: none; }
 .gal .gal-cm button { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border-radius: 999px; border: 1px solid transparent; background: none; color: var(--tx2, #cbc2e0); font: 600 var(--fs-sm)/1 var(--f-ui); letter-spacing: 0; white-space: nowrap; cursor: pointer; }
 .gal .gal-cm button img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
@@ -78,7 +80,7 @@
 .gal-puntos i.on { width: 26px; background: color-mix(in srgb, var(--c) 70%, #fff); }
 
 /* el pueblo de delante: su nombre, su comarca, sus misiones y los botones */
-.gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 12px 28px 20px; }
+.gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 16px 32px 28px; }
 .gal-info.cambia > * { animation: galSube .4s cubic-bezier(.2, .9, .3, 1) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
 @keyframes galSube { from { opacity: 0; transform: translateY(8px); } }
 .gi-t { display: grid; gap: 6px; min-width: 0; }
@@ -96,14 +98,14 @@
 
 /* ---------- el móvil tumbado: todo más bajo; el pueblo de delante, en una sola fila ---------- */
 @media (max-height: 520px) {
-  .gal { --gh: min(47vh, 196px); --dh: 40px; }
+  .gal { --gh: min(41vh, 180px); --dh: 40px; }
   #hub.juego .hub-main > .gal { height: calc(100% - var(--hud-h) - 16px); margin: 0 -16px; }
-  .gal .gal-cm { padding: 6px 16px 0; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
+  .gal .gal-cm { padding: 8px 20px 2px; } .gal .gal-cm button { min-height: 34px; padding: 0 12px 0 4px; gap: 6px; font-size: var(--fs-xs); } .gal .gal-cm button img { width: 24px; height: 24px; }
   .gt-marco { --k: 10px; } .gt-dato { gap: 8px; padding-left: 10px; } .gt-nom { gap: 2px; } .gt-sello { width: 24px; height: 24px; }
   .gt-rayas i { width: 4px; height: 8px; } .gt-mis { gap: 4px; }
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
   .gal-puntos { display: none; }
-  .gal-info { padding: 4px 16px 10px; gap: 12px; }
+  .gal-info { padding: 6px 22px max(14px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
   .gi-t { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 2px; }
   .gi-t small { grid-column: 1 / -1; font-size: 11px; }
   .gi-t h2 { font-size: var(--fs-xl); } .gi-t h2 em { display: none; }
@@ -113,6 +115,8 @@
 /* (en el didáctico con el móvil tumbado, la galería entera a la vista, sin el título ni la explicación de arriba, como
    jugando: la sección ya va marcada en la barra) */
 @media (max-height: 520px) { #hub:not(.juego) .gal-lead { display: none; } #hub:not(.juego) .gal { height: calc(100vh - 76px); height: calc(100dvh - 76px); margin-top: 0; } }
+/* (en los móviles más bajos, la tarjeta algo más pequeña: que quede aire con las comarcas de arriba y el pueblo de abajo) */
+@media (max-height: 380px) { .gal { --gh: min(37vh, 160px); } }
 /* (en el más pequeño, solo el nombre y los botones: las misiones ya van contadas en la tarjeta) */
 @media (max-height: 520px) and (max-width: 640px) { .gi-ms { display: none; } }
 /* ---------- el móvil de pie: el pueblo de delante, debajo del anillo, a lo ancho ---------- */
