@@ -21,9 +21,10 @@ import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
 import { haceMaqueta } from './maqueta.js';
 import { compilarAsync } from '../util/compilar.js';
+import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
 import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
-import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, CRISTAL_VS, CRISTAL_FS, ORBITA_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS } from './mapa3dSombreadores.js';
+import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, CRISTAL_VS, CRISTAL_FS, ORBITA_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS, AURA_VS, AURA_FS } from './mapa3dSombreadores.js';
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
@@ -110,8 +111,9 @@ export function mapa3d(host, o) {
     m.customProgramCacheKey = () => 'borde-comarca'; return m;
   };
   // las comarcas
-  // (en el móvil, y en el modo sencillo (o.ligero, src/util/sencillo.js), 30 imágenes por segundo y el relieve algo menos fino)
-  const LENTO = !!o.ligero || matchMedia?.('(pointer: coarse)').matches;
+  // (en el móvil, en el modo sencillo (o.ligero, src/util/sencillo.js) y en los ordenadores con una gráfica floja (el juego
+  // en calidad baja, src/util/gpu.js), 30 imágenes por segundo y el relieve algo menos fino)
+  const TACTIL = !!matchMedia?.('(pointer: coarse)').matches, LENTO = !!o.ligero || TACTIL || calidadJuego() === 'low';
   // (la entrada grande: solo la primera vez y sin movimiento reducido; en las pruebas automáticas, solo si se pide)
   // (ni en el modo sencillo ni en el didáctico, o.intro false, donde el mapa no es la portada)
   // (con «Reducir movimiento» en el móvil, también, pero suave: sin el temblor, el destello ni la onda; antes no salía, y en
@@ -129,6 +131,20 @@ export function mapa3d(host, o) {
   for (let j = 0; j < BOSQ.ny; j++) for (let i = 0; i < BOSQ.nx; i++) bqD[j * BOSQ.nx + i] = Math.round(255 * bosqueEn(BOSQ.x0 + (i + 0.5) * BOSQ.w / BOSQ.nx, BOSQ.y0 + (j + 0.5) * BOSQ.h / BOSQ.ny));
   const bqTex = new THREE.DataTexture(bqD, BOSQ.nx, BOSQ.ny, THREE.RedFormat); bqTex.magFilter = bqTex.minFilter = THREE.LinearFilter; bqTex.needsUpdate = true;
   Object.assign(UNI, { uBosque: { value: bqTex }, uBosqueR: { value: new THREE.Vector4(BOSQ.x0, BOSQ.y0, BOSQ.w, BOSQ.h) } });
+  // (el halo morado de la comarca elegida, a lo largo de su contorno: mapa3dSombreadores.js, AURA)
+  const AURA_ALTO = { value: 1 }, AURA_C = srgb('#9b4dff'), AURA_C2 = srgb('#ff4fd8');
+  const auraDe = (Pw) => {
+    const n = Pw.length, pos = new Float32Array((n + 1) * 6), aT = new Float32Array((n + 1) * 2), aS = new Float32Array((n + 1) * 2), idx = [];
+    for (let i = 0, s = 0; i <= n; i++) {
+      const [X, Z] = Pw[i % n], y = GROSOR + alto(X, Z) + 0.05; if (i) s += Math.hypot(X - Pw[i - 1][0], Z - Pw[i - 1][1]);
+      pos.set([X, y, Z, X, y, Z], i * 6); aT.set([0, 1], i * 2); aS.set([s, s], i * 2);
+      if (i < n) idx.push(i * 2, i * 2 + 2, i * 2 + 1, i * 2 + 1, i * 2 + 2, i * 2 + 3);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aT', new THREE.BufferAttribute(aT, 1)); g.setAttribute('aS', new THREE.BufferAttribute(aS, 1)); g.setIndex(idx); geos.push(g);
+    const m = new THREE.ShaderMaterial({ vertexShader: AURA_VS, fragmentShader: AURA_FS, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+      uniforms: { uAlto: AURA_ALTO, uT: TIEMPO, uK: { value: 0 }, uCol: { value: AURA_C }, uCol2: { value: AURA_C2 } } }); mats.push(m);
+    const me = new THREE.Mesh(g, m); me.frustumCulled = false; me.visible = false; me.renderOrder = 3; scene.add(me); return me;
+  };
   const C = o.comarcas.map((c, i) => {
     const { P, cx, cy } = contorno(c);
     const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g);
@@ -144,10 +160,11 @@ export function mapa3d(host, o) {
     const lg = new THREE.BufferGeometry().setFromPoints(Pw.map(([X, Z]) => new THREE.Vector3(X, GROSOR + alto(X, Z) + 0.05, Z))); geos.push(lg);
     const linea = new THREE.LineLoop(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(c.color).lerp(BLANCO, 0.4), transparent: true, opacity: vivo ? 1 : 0.85, toneMapped: false })); mats.push(linea.material);
     scene.add(linea);
+    const aura = auraDe(Pw);
     const [X, Z] = W(cx, cy);
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
     lab.innerHTML = `${!vivo && o.icono ? `<i>${o.icono('lock')}</i>` : c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name)}</b>`;
-    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
+    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, aura, auraK: 0, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
   });
   // el hueco de Navarra en el mapa de España: oscuro, bajo las comarcas, justo de su tamaño (las comarcas encajan sin raya
   // entre ellas: solo se ve el de la que se levanta). Va con lo transparente, después del suelo de alrededor y antes que lo demás
@@ -399,7 +416,7 @@ export function mapa3d(host, o) {
     const E = document.createElement('div'); E.className = 'm3-show'; E.setAttribute('aria-hidden', 'true');
     // (como el arranque de un videojuego, a toda la pantalla: las esquinas del visor, una raya de luz que
     // cruza el nombre, la onda que levanta Navarra al posarse con un temblor de la cámara, y el aviso de que se puede pasar)
-    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-onda"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><span class="m3-raya"></span><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div><div class="m3-visor"></div><span class="m3-pasa">${LENTO ? 'Toca para pasar' : 'Clic para pasar'}</span>`;
+    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-onda"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><span class="m3-raya"></span><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div><div class="m3-visor"></div><span class="m3-pasa">${TACTIL ? 'Toca para pasar' : 'Clic para pasar'}</span>`;
     host.append(E);
     const nc = E.querySelector('.m3-nubes'), g2 = nc.getContext('2d'), sol = E.querySelector('.m3-sol'), luz = E.querySelector('.m3-luz'), tit = E.querySelector('.m3-titulo'), letras = [...tit.querySelectorAll('.logo i')], lema = tit.querySelector('small'), dest = E.querySelector('.m3-destello');
     const visor = E.querySelector('.m3-visor'), raya = E.querySelector('.m3-raya'), onda = E.querySelector('.m3-onda'), pasa = E.querySelector('.m3-pasa');
@@ -964,7 +981,7 @@ export function mapa3d(host, o) {
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
-  let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
+  let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
   const io = new IntersectionObserver((en) => { visible = en[0]?.isIntersecting ?? true; if (visible && !raf) raf = requestAnimationFrame(frame); }, { threshold: 0.02 }); io.observe(host);
   const sz = { w: 0, h: 0, z: 0 }, off = { x: 0, y: 0 };
   // (la resolución máxima del lienzo, que baja si no llega: a 2 en las pantallas de retina el relieve iba a tirones)
@@ -1041,7 +1058,7 @@ export function mapa3d(host, o) {
     }
   }
   function pinta(now) {
-    if (o.pausado?.()) { last = now; return; }   // (con algo a pantalla completa encima, no se pinta)
+    if (o.pausado?.() || !compilado) { last = now; return; }   // (con algo a pantalla completa encima, no se pinta)
     // (en el móvil, y en el ordenador mientras nada se mueve, 30 imágenes por segundo: las chinchetas que flotan no
     // necesitan más, y así el resto del menú va más suelto)
     const quieto = !keys.size && !vuelo && !ptrs.size && !inercia && Math.abs(goal.d - v.d) < 0.05 * v.d && Math.abs(goal.x - v.x) + Math.abs(goal.z - v.z) < 0.05;
@@ -1111,6 +1128,7 @@ export function mapa3d(host, o) {
     const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
     CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.6, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
     TIEMPO.value = t; INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
+    AURA_ALTO.value = v.d * (TACTIL ? 0.075 : 0.055);   // (el halo de la elegida, siempre del mismo alto en la pantalla; en el móvil, algo más)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
@@ -1135,6 +1153,9 @@ export function mapa3d(host, o) {
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 + 0.08 * c.fondo)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.8 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.7 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.8 * c.fondo);
+      // (el halo morado, en la elegida: entra y sale fundiéndose, y sube y baja con ella)
+      c.auraK += ((sel === c.id && !entrada ? 1 : 0) - c.auraK) * (1 - Math.exp(-dt * 5));
+      c.aura.visible = c.auraK > 0.01; if (c.aura.visible) { c.aura.material.uniforms.uK.value = c.auraK; c.aura.scale.y = c.sy; c.aura.position.y = c.py; }
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
     // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
@@ -1223,6 +1244,9 @@ export function mapa3d(host, o) {
   }
   // (los tamaños de los nombres, otra vez cuando llega la letra)
   document.fonts?.ready.then(() => { for (const e of capa.children) e._w = 0; });
+  // (los programas de la tarjeta gráfica, compilados antes de la primera imagen y en paralelo si el navegador puede: en un
+  // portátil con gráfica Intel, la primera imagen paraba el menú dos o tres segundos. Mientras, el fondo; como mucho 4 s)
+  Promise.race([compilarAsync(r, scene, cam), new Promise(res => setTimeout(res, 4000))]).catch(() => { }).then(() => { compilado = true; t0 = last = performance.now(); });
   raf = requestAnimationFrame(frame);
 
   function dispose() {
