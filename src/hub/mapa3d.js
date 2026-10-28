@@ -19,7 +19,7 @@ import SOMBRA from '../assets/relieve/sombra.webp?url';
 import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
-import { haceMaqueta } from './maqueta.js';
+import { haceMaqueta, casasMaqueta } from './maqueta.js';
 import { compilarAsync } from '../util/compilar.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
@@ -771,8 +771,10 @@ export function mapa3d(host, o) {
   // campos, huertas y parques, las calles y los ríos con su ancho de verdad, los puentes, la cancha de los frontones y
   // los tejados, de teja en casi toda Navarra y de pizarra en el Pirineo; hacia el borde se funde con el relieve)
   const USO = { cultivo: 'rgba(222, 204, 140, .55)', huerta: 'rgba(118, 168, 84, .6)', prado: 'rgba(140, 192, 98, .45)', vina: 'rgba(160, 150, 92, .55)', frutales: 'rgba(122, 165, 86, .55)',
-    cesped: 'rgba(134, 192, 106, .6)', parque: 'rgba(110, 170, 92, .65)', deporte: 'rgba(104, 168, 96, .65)', juegos: 'rgba(206, 192, 160, .7)', escuela: 'rgba(214, 200, 170, .6)',
-    cementerio: 'rgba(154, 165, 138, .65)', industria: 'rgba(185, 180, 172, .5)', plaza: 'rgba(230, 220, 203, .9)' };
+    cesped: 'rgba(134, 192, 106, .6)', parque: 'rgba(110, 170, 92, .65)', deporte: 'rgba(104, 168, 96, .65)', juegos: 'rgba(188, 170, 130, .55)', escuela: 'rgba(190, 172, 132, .5)',
+    // (los patios, los terrenos industriales y las plazas, en tierra y piedra cálida: claros, con la luz del mapa salían como
+    // losas grises que se leían como bloques blancos)
+    cementerio: 'rgba(154, 165, 138, .65)', industria: 'rgba(160, 142, 108, .4)', plaza: 'rgba(214, 196, 162, .78)' };
   function pintaNucleo(D, R, pizarra, N = LENTO ? 512 : 1024, velo = true) {
     // (el de la maqueta, en el procesador y no en la tarjeta gráfica: son muchos trazos, y en ella se encolaban y paraban el mapa)
     const k = N / (2 * R), c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d', velo ? undefined : { willReadFrequently: true });
@@ -819,8 +821,11 @@ export function mapa3d(host, o) {
       for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) - 0.6, s.t === 'trail' ? tierra : adoquin);
     }
     for (const s of D.puentes || []) { linea(s.pts, 2 * (s.w || 2) + 2, 'rgba(90, 76, 62, .6)'); linea(s.pts, 2 * (s.w || 2), '#d6c8ae'); }
-    for (const b of D.casas) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
-    for (const b of D.casas) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); }
+    // (en la maqueta, las mismas casas que se levantan, con los bloques grandes ya partidos: maqueta.js casasMaqueta. Si no,
+    // bajo ellos quedaba su huella entera, una losa gris de hasta 130 m)
+    const CS = velo ? D.casas : casasMaqueta(D);
+    for (const b of CS) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
+    for (const b of CS) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); }
     g.globalCompositeOperation = 'destination-in';
     const fin = g.createRadialGradient(N / 2, N / 2, N * 0.4, N / 2, N / 2, N / 2); fin.addColorStop(0, '#000'); fin.addColorStop(1, 'rgba(0, 0, 0, 0)');
     g.fillStyle = fin; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
