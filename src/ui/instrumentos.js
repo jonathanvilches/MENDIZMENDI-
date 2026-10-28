@@ -13,6 +13,7 @@ import { fitCircles } from './fitlabel.js';
 import { esc, el } from '../util/html.js';
 import { isDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
+import { camaraDisponible } from './txalapartaAR.js';
 
 const tocado = (id, p = profile()) => (p.cards || []).includes('instrumento:' + id);
 
@@ -40,7 +41,10 @@ export async function openInstrumento(ui, id) {
   if (foot) {
     // (en el modo didáctico, solo escucharlo: tocarlo es un juego)
     const oir = el(`<button type="button" class="btn ghost tc-oir">${esc(tr('Escuchar'))}</button>`), tocar = el(`<button type="button" class="btn tc-tocar">${esc(tr('Tocar'))}</button>`);
-    if (isDidactico()) foot.prepend(oir); else foot.prepend(oir, tocar);
+    // (la txalaparta, también con la cámara: realidad aumentada, ui/txalapartaAR.js; solo en la web)
+    const camara = x.id === 'txalaparta' && camaraDisponible() ? el(`<button type="button" class="btn tc-cam">${esc(tr('Con la cámara'))}</button>`) : null;
+    if (isDidactico()) foot.prepend(oir); else foot.prepend(...[oir, tocar, camara].filter(Boolean));
+    if (camara) camara.onclick = async () => { next?.click(); await new Promise(r => setTimeout(r, 280)); await jugarInstrumento(ui, x, { camara: true }); };
     let busy = 0;
     oir.onclick = () => { if (busy > Date.now()) return; ui.sound?.init?.(); const d = muestra(ui.sound, x, notas); ui.sound?.duck?.(d);   // (la música del juego, apartada mientras suena)
        busy = Date.now() + d * 1000; oir.classList.add('on'); setTimeout(() => oir.classList.remove('on'), d * 1000); };
@@ -50,10 +54,10 @@ export async function openInstrumento(ui, id) {
 }
 
 /** Tocar el instrumento y, si sale, la carta: devuelve { win, hits, total } o { quit }. who: el músico que enseña. */
-export async function jugarInstrumento(ui, x, { who = '' } = {}) {
+export async function jugarInstrumento(ui, x, { who = '', camara = false } = {}) {
   if (window.__autoWin) { window.__autoSeen?.({ title: x.name }); return { win: true, hits: 1, total: 1 }; }
   ui.sound?.init?.();
-  const r = await tocarGame(ui, x, { who });
+  const r = camara ? await (await import('./txalapartaAR.js')).tocarConCamara(ui, x) : await tocarGame(ui, x, { who });
   if (r.quit) return r;
   const isNew = r.win && addCard('instrumento:' + x.id, 'tradiciones');
   if (r.win) { addXP(isNew ? 25 : 5); saveProfile(); }
