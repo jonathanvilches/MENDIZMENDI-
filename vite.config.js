@@ -196,7 +196,9 @@ const AF_GRUPOS = [['img-laminas', /laminas[\\/]web[\\/]/], ['img-iconos', /icon
   ['img-cimas-1', /cimas[\\/][^\\/]+[\\/][a-l]/], ['img-cimas-2', /cimas[\\/]/], ['img-tradiciones', /tradiciones[\\/]/], ['img-varias', /(fauna|leyendas|cimas|sellos|portraits|figuras)[\\/]/], ['img-relieve', /relieve[\\/]hd[\\/]/],
   // (el relieve de detalle de los 12 miradores, en un solo archivo: el artefacto no admite más de 511; y por lo mismo,
   // las músicas y los sonidos grabados, juntos en otro)
-  ['relieve-miradores', /data[\\/]polar[\\/]/], ['sonidos', /assets[\\/]sonidos[\\/]/]].map(([name, test]) => ({ name, test }));
+  ['relieve-miradores', /data[\\/]polar[\\/]/], ['sonidos', /assets[\\/]sonidos[\\/]/],
+  // (y los trozos de código diminutos, de utilidades, en uno: al repartir el juego en más archivos se pasaba del límite)
+  ['utiles', /src[\\/](util[\\/](html|math|tele|text)|web[\\/]hd)\.js$/]].map(([name, test]) => ({ name, test }));
 // (en el artefacto no hay app instalable ni service worker: el visor de Claude no los deja. Tampoco se cuenta con
 // WebAssembly, que el descompresor meshopt necesita: los modelos y los parches de las chicas van ya descomprimidos, y
 // el descompresor es src/web/meshopt-sin.js. La cuantización de los modelos se queda: three.js la lee sin ayuda)
