@@ -118,7 +118,7 @@ export const EU_EXACT = {
   'Fuera': 'Kanpora', 'Ha botado dos veces': 'Bi aldiz egin du bote', '¡El rival no llega!': 'Aurkaria ez da iristen!', '¡Chapa del rival!': 'Aurkariaren txapa!', 'Sacas tú': 'Zuk atera', 'Saca el rival': 'Aurkariak atera',
   'Cencerros': 'Joareak', '¡Muy cerca!': 'Oso gertu!', 'Se oyen cerca': 'Gertu entzuten dira', 'Se oyen lejos': 'Urrun entzuten dira', '¡Prepárate!': 'Prestatu!', 'aire tradicional': 'doinu tradizionala', 'Pulsa el botón de cada carril cuando la nota le llegue': 'Sakatu errei bakoitzeko botoia nota iristen zaionean', 'Pulsa el botón de cada carril cuando la nota le llegue · teclas A S D F G o 1-5': 'Sakatu errei bakoitzeko botoia nota iristen zaionean · teklak: A S D F G edo 1-5', '¡Perfecto!': 'Ezin hobeto!', '¡Uy!': 'Ai!',
   // --- intro zinematikoa ---
-  'Navarra': 'Nafarroa', 'La tormenta': 'Ekaitza', 'La promesa': 'Hitzarmena', 'Muskilda': 'Muskilda', 'Tu aventura': 'Zure abentura',
+  'Navarra': 'Nafarroa', 'La tormenta': 'Ekaitza', 'La promesa': 'Hitzarmena', 'Muskilda': 'Muskilda', 'Tu aventura': 'Zure abentura', 'Tu partida': 'Zure partida',
   'Hace mucho tiempo, cada pueblo de Navarra guardaba un sello en su plaza. Quien lo conseguía se llevaba un pedacito de su historia.': 'Duela asko, Nafarroako herri bakoitzak zigilu bat gordetzen zuen bere plazan. Lortzen zuenak herriaren historiaren zati txiki bat eramaten zuen.',
   'Pero una noche de tormenta, el viento del Pirineo arrancó las páginas del viejo Pasaporte Herri… y los sellos volvieron a sus pueblos.': 'Baina ekaitz-gau batean, Pirinioetako haizeak Herri Pasaporte zaharraren orriak erauzi zituen… eta zigiluak beren herrietara itzuli ziren.',
   'Dicen que sólo los devolverán a quien ayude a su gente, aprenda sus oficios, baile sus danzas y escuche sus leyendas.': 'Diotenez, bertako jendea laguntzen duenari, ofizioak ikasten dituenari, dantzak dantzatzen dituenari eta kondairak entzuten dituenari bakarrik itzuliko dizkiote.',
@@ -320,6 +320,8 @@ const ine = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'n' : /[aeiou]$/i.test(
 const ala = (n) => /(ia|ea)$/.test(n) ? n.slice(0, -1) + 'ra' : /[aeiou]$/i.test(n) ? n + 'ra' : n + 'era';
 const eu = (n) => EU_EXACT[n] ?? n;
 export const EU_RX = [
+  // (el rótulo de cada sección del menú, hub.js cabeza(): el grupo y la sección, cada uno con su traducción)
+  [/^(Saberes|Tu partida|Torneos|Material didáctico) · (.+)$/, (m, a, b) => EU_EXACT[b] != null ? `${eu(a)} · ${EU_EXACT[b]}` : null],
   [/^Saludar a (.+) · (.+)$/, (m, a, t) => `Agurtu: ${a} · ${eu(t)}`],
   [/^Foto: (.+) · iNaturalist · CC0$/, 'Argazkia: $1 · iNaturalist · CC0'], [/^Foto: iNaturalist · CC0$/, 'Argazkia: iNaturalist · CC0'],
   [/^(\d+) personajes$/, '$1 pertsonaia'], [/^Frontón cubierto de (.+)$/, (m, a) => `${loc(a)} frontoi estalia`], [/^Torneo de mano · (.+)$/, (m, a) => `Buruz buruko txapelketa · ${eu(a)}`], [/^Torneo por parejas · (.+)$/, (m, a) => `Binakako txapelketa · ${eu(a)}`],
