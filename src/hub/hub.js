@@ -381,13 +381,14 @@ export class Hub {
       const cb = this.root.querySelector('[data-cultimg]'); if (cb) cb.onclick = () => openVisor([{ src: danza, title: C.dance.title }], 0, this.sound);
       this.bindLeyendas(this.root, cts);
     };
-    const st = (ic, k, v) => `<span class="fh-st">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`;
+    // (cada cifra de la cabecera, en su pastilla, como los contadores del resto del menú: el icono, la cifra y lo que es; el
+    // río, con su nombre detrás)
+    const dato = (ic, v, k, antes) => `<span class="ch-dato">${I(ic, 20)}${antes ? `<small>${k}</small><b>${v}</b>` : `<b>${v}</b><small>${k}</small>`}</span>`;
     return `
-    <section class="chero" style="--c:${c.color}"><div class="ch-in">${cov ? `<div class="ch-fondo" style="background-image:url(${cov})"></div>` : ''}
+    <section class="chero" style="--c:${c.color}">${cov ? `<div class="ch-fondo" style="background-image:url(${cov})"></div><img class="chero-img" src="${cov}" alt="" decoding="async">` : ''}
       <div class="ch-tx"><button class="back" data-go="${dd ? 'map' : 'home'}">${I('back', 22)} Mapa</button>
-        <div class="ch-nom"><img class="bigstamp${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}"><div><small class="fh-k">Comarca</small><h1>${esc(cn1)}${cn2 ? `<em data-notr>${esc(otroNombre(cn1, cn2))}</em>` : ''}</h1></div></div>
-        <div class="fh-hud">${st('church', 'Pueblos', ts.length)}${dd ? '' : st('stamp', 'Sellos', `${pr.stamps}<i>/${pr.towns}</i>`) + st('check', 'Misiones', `${pr.done}<i>/${pr.total}</i>`)}${c.river ? st('river', 'Río', esc(c.river)) : ''}</div></div>
-      ${cov ? `<img class="chero-img" src="${cov}" alt="" decoding="async">` : ''}</div>
+        <div class="ch-nom"><img class="bigstamp${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}"><div><small class="kicker">Comarca</small><h1>${esc(cn1)}${cn2 ? `<em data-notr>${esc(otroNombre(cn1, cn2))}</em>` : ''}</h1></div></div>
+        <div class="ch-datos">${dato('church', ts.length, ts.length === 1 ? 'Pueblo' : 'Pueblos')}${dd ? '' : dato('stamp', `${pr.stamps}<i>/${pr.towns}</i>`, 'Sellos') + dato('check', `${pr.done}<i>/${pr.total}</i>`, 'Misiones')}${c.river ? dato('river', esc(c.river), 'Río', true) : ''}</div></div>
     </section>
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
     <section class="cm-ts">${ts.length ? ts.map((l, i) => `<button type="button" class="cm-t" data-town="${l.id}" style="--c:${c.color}" aria-label="${esc(l.name.split(' /')[0])}">${this.carta(l, p, i > 5)}</button>`).join('') : '<p class="empty">Muy pronto habrá pueblos jugables en esta comarca.</p>'}</section>

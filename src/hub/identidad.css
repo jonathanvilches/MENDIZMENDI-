@@ -25,7 +25,7 @@
 /* ---------- las rejillas ---------- */
 :is(.figuras, .peaks, .species, .badges, .armorial .ar-grid, .ins-grid, .cm-ts, .cultgrid, .fh-ley, .two) { gap: var(--hueco-m); }
 .pstamps { gap: var(--hueco); }
-.fh-hud, .ch-tx .fh-hud { gap: 8px; }
+.fh-hud { gap: 8px; }
 
 /* ---------- los contadores ---------- */
 :is(.armorial .ar-count, .lead-chip, .nprog > span) { display: inline-flex; align-items: center; gap: 8px; width: fit-content; min-height: 40px; margin: 0 0 var(--hueco-m);
