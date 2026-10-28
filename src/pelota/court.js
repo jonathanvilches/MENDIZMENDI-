@@ -3,6 +3,7 @@
 import { COURT, CUATRO } from './rules.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 import { buildEntorno, entornoExtent } from './entorno.js';
+import { juntaQuietas, guardadas } from '../util/juntar.js';
 
 function srgb(THREE, tex) {
   if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
@@ -430,6 +431,8 @@ export class PelotaCourt {
     this.aimLand.add(new T.Mesh(new T.CircleGeometry(0.1, 14), this.aimLand.material));
     const wd = this.aimWall = new T.Mesh(new T.RingGeometry(0.16, 0.26, 24), aim.material); wd.rotation.y = Math.PI / 2; wd.visible = false; wd.renderOrder = 3; g.add(wd);
     this.materials?.push(pathMat, aim.material, this.aimLand.material);
+    // (las piezas quietas, juntas por material: caja a caja, el frontón eran más de cien llamadas de dibujo por imagen)
+    juntaQuietas(g, guardadas(this, g), new Set([...(this.rebMats || []), this.chapaMat, this.ballMat, this.floodFace].filter(Boolean)));
     this.hideBall();
   }
   /** El Cuatro y Medio: la raya del 4 y medio y la zona del saque entre la raya del 3 y la del 5; sin él, todo como

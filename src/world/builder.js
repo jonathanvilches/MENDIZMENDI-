@@ -335,7 +335,7 @@ export class Builder {
     // piezas grandes, medianas y menudas: las pequeñas (marcos, macetas, balaustres…) se agrupan aparte para
     // dejar de dibujarlas de lejos y sin sombra; las grandes, en manzanas mayores (menos llamadas de dibujo)
     const size = Math.max(x1 - x0, y1 - y0, z1 - z0);
-    const tier = force ?? (size < 0.9 ? 2 : size < 3 ? 1 : 0), cell = tier ? this.cell : this.cell * 2;
+    const tier = force ?? (size < 0.9 ? 2 : size < 3 ? 1 : 0), cell = tier ? this.cell : this.cell * (BQ === 'low' ? 3 : 2);   // (en el móvil, manzanas grandes más grandes: menos llamadas de dibujo)
     if (tier === 2 && !TINY) return;
     const key = mat + '|' + Math.floor((x0 + x1) / 2 / cell) + ',' + Math.floor((z0 + z1) / 2 / cell) + '|' + tier;
     const run = (this.parts[key] ||= new Run());

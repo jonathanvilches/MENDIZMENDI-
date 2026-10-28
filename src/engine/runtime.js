@@ -281,7 +281,9 @@ export class Runtime {
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
     if (!this.covered) {
       if (!alt) applyCharFill(this.charFill);
-      try { this.renderer.render(alt || this.scene, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
+      // (lo escondido no se recoloca al dibujar: los vecinos lejanos, con todos sus huesos, eran miles de cuentas por imagen)
+      const S = alt || this.scene; for (const o of S.children) o.matrixWorldAutoUpdate = o.visible;
+      try { this.renderer.render(S, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
       if (!alt) applyCharFill(null);
     }
     input.endFrame();

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { snowable } from './weather.js';
 import { HALF, CELL, N, finalHeight, riverInfo, meadowMask, valleyFloor, fieldInfo, TONE, skyTan } from './layout.js';
 import { ridged, fbm } from '../util/noise.js';
@@ -414,16 +415,32 @@ export class Terrain {
     this.quality = quality;
     this.mat = makeTerrainMaterial({ quality });
     this.chunks = [];
+    // (el suelo de lejos, todo en una sola malla: trozo a trozo eran unas setenta llamadas de dibujo por imagen. Donde se
+    // ve el de cerca, sus triángulos se recogen en el sombreador: uCerca, el rectángulo de los trozos cercanos)
+    const cerca = this.cerca = { value: new THREE.Vector4(1e9, 1e9, -1e9, -1e9) }, lejos = [];
+    const matLejos = makeTerrainMaterial({ quality }), antes = matLejos.onBeforeCompile, clave = matLejos.customProgramCacheKey;
+    matLejos.onBeforeCompile = function (sh, r) {
+      antes.call(this, sh, r);
+      sh.uniforms.uCerca = cerca;
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec2 aTrozo;\nuniform vec4 uCerca;')
+        .replace('#include <project_vertex>', '#include <project_vertex>\nif (aTrozo.x > uCerca.x && aTrozo.x < uCerca.z && aTrozo.y > uCerca.y && aTrozo.y < uCerca.w) gl_Position = vec4(0.0, 0.0, 2.0, 1.0);');
+    };
+    matLejos.customProgramCacheKey = () => clave() + '-lejos';
     const nc = (N - 1) / PER;
     for (let cj = 0; cj < nc; cj++) for (let ci = 0; ci < nc; ci++) {
       const hi = new THREE.Mesh(buildChunk(ci, cj, 1), this.mat);
-      const lo = new THREE.Mesh(buildChunk(ci, cj, 5), this.mat);
-      hi.receiveShadow = lo.receiveShadow = true;
-      hi.matrixAutoUpdate = lo.matrixAutoUpdate = false;
+      hi.receiveShadow = true; hi.matrixAutoUpdate = false;
       const cx = -HALF + (ci + 0.5) * CH, cz = -HALF + (cj + 0.5) * CH;
-      this.group.add(hi, lo);
-      this.chunks.push({ hi, lo, cx, cz });
+      const lo = buildChunk(ci, cj, 5), n = lo.attributes.position.count;
+      lo.setAttribute('aTrozo', new THREE.Float32BufferAttribute(new Float32Array(n * 2).map((_, k) => k % 2 ? cz : cx), 2));
+      lejos.push(lo);
+      this.group.add(hi);
+      this.chunks.push({ hi, cx, cz });
     }
+    const lo = this.lejos = new THREE.Mesh(mergeGeometries(lejos), matLejos);
+    lo.receiveShadow = true; lo.matrixAutoUpdate = false; lo.name = 'suelo-lejos';
+    this.group.add(lo);
+    for (const g of lejos) g.dispose();
     this.lodDist = quality === 'low' ? 110 : quality === 'mid' ? 140 : 170;
     scene.add(this.group);
     this.buildOuter(scene);
@@ -431,9 +448,10 @@ export class Terrain {
   update(camPos) {
     for (const c of this.chunks) {
       const d = Math.max(Math.abs(camPos.x - c.cx), Math.abs(camPos.z - c.cz)) - CH / 2;
-      const near = d < this.lodDist;
-      c.hi.visible = near; c.lo.visible = !near;
+      c.hi.visible = d < this.lodDist;
     }
+    // (en el de lejos se esconden justo los trozos que se ven de cerca: los de centro a menos de L en x y en z)
+    const L = this.lodDist + CH / 2; this.cerca.value.set(camPos.x - L, camPos.z - L, camPos.x + L, camPos.z + L);
   }
   buildOuter(scene) {
     // Anillo de montañas lejanas fuera del área jugable
