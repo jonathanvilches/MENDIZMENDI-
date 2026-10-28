@@ -32,6 +32,7 @@ import { ARMAS, armsOfTown } from '../data/armas-navarra.js';
 import { LAMINAS, OFICIO_LAMINA } from '../data/laminas.js';
 import { montesFrom, townLatLon } from '../data/miradores.js';
 import { KAIXO_ES } from '../game/saludo.js';
+import { CARDS } from '../game/content.js';
 import { allFichas } from '../ui/ficha.js';
 import { personajesHTML } from '../ui/personajes.js';
 import { figurasHTML } from '../ui/figuras.js';
@@ -123,7 +124,7 @@ const ROMERIA_LAM = { 'orreaga-roncesvalles': 'orreaga-camino', 'burgui-burgi': 
 const IGLESIA_ILUS = { romanesque: 'iglesia-romanica', gothic: 'iglesia-gotica', baroque: 'iglesia-barroca', fortress: 'iglesia-fortaleza', 'Iglesia neoclásica': 'iglesia-neoclasica', 'Iglesia neobarroca': 'iglesia-neobarroca', 'Basílica neogótica': 'iglesia-neogotica', 'Iglesia del siglo XIX': 'iglesia-neogotica', 'Iglesia del siglo XVI': 'iglesia-renacimiento', 'Iglesia de ladrillo': 'iglesia-ladrillo', 'Iglesia medieval': 'iglesia-romanica', 'Portada románica': 'portada-romanica' };
 const MONUMENTO_ILUS = { house: 'casa-escudo', towerhouse: 'casa-torre', ruin: 'ruinas', chapel: 'ermita', cross: 'crucero', monolith: 'monolito', lookout: 'mirador', pass: 'puerto-montana', horreo: 'horreo', stelae: 'estelas' };
 const MONUMENTO_LAM = { bridge: 'puente-la-reina', castle: 'javier', walls: 'pamplona-murallas', palace: 'olite', dolmen: 'artajona-dolmen', mill: 'c-molino', tunnel: 'lekunberri-plazaola', cave: 'zugarramurdi', dig: 'irulegi-mano', palomeras: 'etxalar-palomeras', townhall: 'pamplona', arch: 'amaiur-maya-del-baztan', gorge: 'lumbier' };
-const LM_ICON = { chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
+export const LM_ICON = { chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
 const towns = (pred) => LEVELS.filter(l => (l.missions || []).some(pred)).map(l => l.id);
 
 export const DIDACTICO = {
@@ -161,9 +162,12 @@ export const DIDACTICO = {
     const l = levelById(id); if (!l) return this.s_towns();
     const c = comarca(l.comarca), A = armsOfTown(l.id), ms = l.missions || [];
     const tip = l.church ? (LABEL_TIP[l.church.label] || STYLE_TIP[l.church.style]) : '';
+    // (Otsagabia no tiene misiones sueltas: su aventura del valle de Salazar enseña lo de sus cartas, game/content.js)
+    const sal = l.special === 'salazar' ? CARDS.filter(x => x.cat !== 'Animales') : [];
     const visit = [l.church && block('church', 'Iglesia', l.church.name, P(l.church.text) + (tip ? `<p class="dd-tip">${esc(tip)}</p>` : '')),
-      ...(l.landmarks || []).map(m => block(LM_ICON[m.kind] || m.kind, '', m.name, P(m.text) + (KIND_TIP[m.kind] ? `<p class="dd-tip">${esc(KIND_TIP[m.kind])}</p>` : '')))].filter(Boolean);
-    const learn = ms.map(m => this.d_mision(l, m)).filter(Boolean);
+      ...(l.landmarks || []).map(m => block(LM_ICON[m.kind] || m.kind, '', m.name, P(m.text) + (KIND_TIP[m.kind] ? `<p class="dd-tip">${esc(KIND_TIP[m.kind])}</p>` : ''))),
+      ...sal.filter(x => x.cat === 'Patrimonio').map(x => block(x.icon, '', x.title, P(x.text)))].filter(Boolean);
+    const learn = [...ms.map(m => this.d_mision(l, m)), ...sal.filter(x => x.cat !== 'Patrimonio').map(x => block(x.icon, x.cat, x.title, P(x.text)))].filter(Boolean);
     const pers = FIGURE_TOWNS[l.id] || [], figs = FIGURAS.filter(f => f.town === l.id), ins = instrumentosDe(l.id), lams = laminasDe({ town: l.id }), cts = cuentoOfTown(l.id);
     this.after = () => {
       const cv = this.root.querySelector('.dd-arms canvas'); if (A && cv) drawOfficial(cv.getContext('2d'), cv.width / 2, 3, 90, A);
@@ -171,8 +175,8 @@ export const DIDACTICO = {
       this.d_bindLey();
     };
     return `<section class="armorial dd dd-town" style="--c:${c?.color}">
-      <header class="dd-hero"><img src="${townImg(l)}" alt=""><div><button class="back" data-go="towns">${I('back', 24)} Pueblos</button>
-        <button type="button" class="kicker lnk" data-comarca="${l.comarca}">${esc(c?.full || c?.name || '')}</button><h1>${esc(l.name)}</h1>${P(l.intro)}
+      <header class="dd-hero"><div class="fh-carta">${this.carta(l)}</div><div><button class="back" data-go="towns">${I('back', 24)} Pueblos</button>
+        <button type="button" class="kicker lnk" data-comarca="${l.comarca}">${esc(c?.full || c?.name || '')}</button><h1>${esc(l.name.split(' / ')[0])}${l.name.includes(' / ') ? `<em data-notr>${esc(l.name.split(' / ')[isEU() ? 0 : 1])}</em>` : ''}</h1>${P(l.intro)}
         ${l.river ? `<p class="dd-river">${I('river', 20)}<span>${esc(l.river.name)}</span></p>` : ''}</div></header>
       ${visit.length ? sec('visit', 'Qué visitar') + `<div class="dd-grid">${visit.join('')}</div>` : ''}
       ${A ? `${sec('shield', 'Su escudo')}<div class="dd-arms">${armsImg(A.id) ? `<img src="${armsImg(A.id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, A)) + 6}"></canvas>`}<div><b>${esc(A.name)}</b>${P(A.read)}<button type="button" class="btn ghost" data-armas>${I('book', 22)} Cómo se lee</button></div></div>` : ''}

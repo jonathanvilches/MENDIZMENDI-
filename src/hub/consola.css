@@ -99,7 +99,8 @@
 
 /* ---------- la etiqueta del pueblo, junto a su chincheta: su portada de fondo, su nombre, los iconos de sus misiones y
    el botón de empezar, con el mismo peso que el nombre ---------- */
-#hub.juego .m3d .m3-ft { width: 248px; max-width: 248px; gap: 10px; padding: 12px; border-radius: 14px; background: rgba(13, 6, 28, .78); border: 1px solid color-mix(in srgb, var(--c, #fff) 34%, var(--cr-l)); box-shadow: 0 14px 36px rgba(4, 1, 12, .45); }
+#hub.juego .m3d .m3-ft { width: 248px; max-width: 248px; gap: 10px; padding: 12px; border-radius: 4px; background: linear-gradient(170deg, rgba(42, 15, 94, .9), rgba(13, 6, 28, .9)); border: 1px solid color-mix(in srgb, var(--c, #fff) 45%, var(--cr-l)); box-shadow: 0 14px 36px rgba(4, 1, 12, .45); }
+#hub.juego .m3d .m3-ft::after { content: ''; position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--c, #fff) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
 .ft-fondo { position: absolute; inset: 0; z-index: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 .ft-fondo img { width: 100%; height: 100%; object-fit: cover; opacity: .62; }
 .ft-fondo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 6, 28, .2) 0%, rgba(13, 6, 28, .55) 45%, rgba(13, 6, 28, .92) 100%); }
@@ -108,11 +109,11 @@
 #hub.juego .m3d .ft-n small { color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
 #hub.juego .m3d .ft-n b { font: 400 var(--fs-xl)/1.05 var(--f-display); letter-spacing: .01em; text-shadow: 0 2px 12px rgba(4, 1, 12, .6); white-space: normal; }
 .ft-ms { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
-.ft-ms i { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 7px; background: rgba(13, 6, 28, .5); border: 1px solid rgba(255, 255, 255, .14); }
+.ft-ms i { width: 26px; height: 26px; display: grid; place-items: center; border-radius: 4px; background: rgba(13, 6, 28, .5); border: 1px solid rgba(255, 255, 255, .14); }
 .ft-ms i :is(svg, img) { width: 16px; height: 16px; } .ft-ms i:not(.ok) :is(svg, img) { opacity: .72; }
 .ft-ms i.ok { border-color: color-mix(in srgb, var(--c, #ffd166) 70%, #fff); background: color-mix(in srgb, var(--c, #ffd166) 30%, rgba(13, 6, 28, .5)); }
 .ft-ms em { margin-left: 4px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-xs)/1 var(--f-ui); font-style: normal; }
-#hub.juego .m3d .ft-go { min-height: 40px; padding: 0 14px; border-radius: 10px; gap: 8px; font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .1em; background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
+#hub.juego .m3d .ft-go { min-height: 40px; padding: 0 14px; border-radius: 4px; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); gap: 8px; font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .1em; background: linear-gradient(135deg, #ff3fcf, #9c3bff); box-shadow: none; }
 #hub.juego .m3d .ft-go > :is(svg, img) { width: 18px; height: 18px; }
 
 /* ---------- las comarcas en fotos: el mismo fondo oscuro, sin manchas de color ---------- */
@@ -204,7 +205,7 @@
   #hub.juego .m3d .cb-tt b { font-size: var(--fs-md); }
   #hub.juego .m3d .m3-rail { right: calc(var(--hud-r) + 48px + var(--sr, 0px)); }
   #hub.juego .m3d .m3-ft { width: 216px; max-width: 216px; gap: 8px; padding: 10px; } #hub.juego .m3d .ft-n b { font-size: var(--fs-lg); }
-  #hub.juego .m3d .ft-go { min-height: 36px; } .ft-ms i { width: 22px; height: 22px; border-radius: 6px; } .ft-ms i :is(svg, img) { width: 14px; height: 14px; }
+  #hub.juego .m3d .ft-go { min-height: 36px; } .ft-ms i { width: 22px; height: 22px; border-radius: 4px; } .ft-ms i :is(svg, img) { width: 14px; height: 14px; }
   /* (el menú, más ancho que alto: las secciones en cinco columnas, para que quepan sin desplazarse) */
   #hub.juego .hub-panel { width: min(780px, calc(100% - var(--hud-l) - var(--hud-r))); padding: 8px; }
   #hub.juego .hub-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin-top: 6px; padding-top: 6px; }
@@ -252,21 +253,21 @@
 #hub.juego.menu-on .hub-nav button:nth-child(8) { animation-delay: .14s; } #hub.juego.menu-on .hub-nav button:nth-child(9) { animation-delay: .16s; }
 #hub.juego.menu-on .hub-nav button:nth-child(n+10) { animation-delay: .18s; }
 #hub.juego:not([data-screen="home"]) .hub-cab .cab-t > span { animation: hubAsienta .5s var(--ease) both; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > * { animation: hubSube .45s var(--ease) both; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(2) { animation-delay: .03s; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(3) { animation-delay: .06s; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(4) { animation-delay: .09s; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(5) { animation-delay: .12s; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(6) { animation-delay: .15s; }
-#hub.juego .hub-main :is(.towns, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(n+7) { animation-delay: .18s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > * { animation: hubSube .45s var(--ease) both; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(2) { animation-delay: .03s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(3) { animation-delay: .06s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(4) { animation-delay: .09s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(5) { animation-delay: .12s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(6) { animation-delay: .15s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(n+7) { animation-delay: .18s; }
 /* (al pasar por encima: la tarjeta sube dos píxeles y su imagen se acerca; al pulsar, cede) */
 @media (hover: hover) {
-  #hub.juego :is(.tcard, .pcard, .fcard, .lam, .ar, .m3-chip, .m3-todas) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
-  #hub.juego :is(.tcard, .pcard, .fcard, .lam, .ar):hover { transform: translateY(-2px); }
+  #hub.juego :is(.pcard, .fcard, .lam, .ar, .m3-chip, .m3-todas) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
+  #hub.juego :is(.pcard, .fcard, .lam, .ar):hover { transform: translateY(-2px); }
   #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic) img { transition: transform .5s var(--ease); }
   #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic) img { transform: scale(1.04); }
 }
-#hub.juego :is(.hub-menu-btn, .hub-x, .hub-panel-x, .hub-nav button, .mm-go, .ft-go, .cb-b, .m3-b, .tcard, .fcard, .lam, .btn, .filters button):active { transform: scale(.96); transition: transform .08s; }
+#hub.juego :is(.hub-menu-btn, .hub-x, .hub-panel-x, .hub-nav button, .mm-go, .ft-go, .cb-b, .m3-b, .cm-t, .fcard, .lam, .btn, .filters button):active { transform: scale(.96); transition: transform .08s; }
 /* (la etiqueta del pueblo y el rótulo de la comarca entran con un pequeño impulso) */
 #hub.juego .m3d .m3-ft.entra > * { animation: hubSube .32s var(--ease) both; }
 #hub.juego .m3d .m3-ft.entra > .ft-ms { animation-delay: .05s; } #hub.juego .m3d .m3-ft.entra > .ft-go { animation-delay: .1s; }

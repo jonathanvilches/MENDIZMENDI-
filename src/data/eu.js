@@ -41,6 +41,8 @@ export const EU_EXACT = {
   'de Navarra sellada': 'Nafarroatik zigilatuta', 'Por descubrir': 'Ezagutzeko', 'Empezado': 'Hasita', 'Sellado': 'Zigilatuta',
   // --- herriak ---
   'Pueblos y ciudades': 'Herriak eta hiriak', 'Todas': 'Denak', 'En el juego': 'Jokoan',
+  // las fichas del pueblo y de la comarca (hub.js)
+  'Sello': 'Zigilua', 'Conseguido': 'Lortuta', 'Por ganar': 'Irabazteko', 'Río': 'Ibaia', 'Escuchada': 'Entzunda', 'Por escuchar': 'Entzuteko', 'Su leyenda': 'Bere kondaira', 'Sus leyendas': 'Bere kondairak',
   'Qué visitar': 'Zer bisitatu', 'Trazado real del pueblo': 'Herriaren benetako trazadura', 'Comarca': 'Eskualdea', 'Cultura': 'Kultura', 'Danza': 'Dantza', 'Carnaval': 'Inauteria', 'Fiesta': 'Jaia', 'Traje': 'Jantzia',
   'Fauna': 'Fauna', 'Árboles': 'Zuhaitzak', 'Plantas': 'Landareak', 'Flores': 'Loreak', 'Cimas para subir': 'Igotzeko gailurrak',
   // --- misio motak ---
@@ -345,6 +347,7 @@ export const EU_RX = [
   [/^Nivel (\d+)$/, '$1. maila'], [/^Nv (\d+) · (.+)$/, '$1. maila · $2'], [/^· (.+)$/, '· $1'], [/^Nivel · (\d+) XP$/, 'Maila · $1 XP'],
   [/^(.+) · con (.+)$/, '$1 · $2'],
   [/^Habla con (.+)$/, 'Hitz egin: $1'], [/^Vuelve con (.+)$/, 'Itzuli: $1'], [/^Hablar con (.+)$/, 'Hitz egin: $1'], [/^Saludar a (.+)$/, 'Agurtu: $1'],
+  [/^Escúchala en (.+): te la cuenta (.+)\.$/, (m, a, b) => `${ine(a)} entzun dezakezu: ${b}.`],
   [/^Conoce (.+)$/, 'Ezagutu $1'], [/^El sabio de (.+)$/, '$1ko jakintsua'], [/^Sube al (.+)$/, 'Igo $1ra'],
   [/^¡Ya estás en (.+)! Habla con (.+)$/, 'Ongi etorri $1ra! Hitz egin: $2'],
   [/^Siguiente: (.+) — busca la exclamación amarilla$/, 'Hurrengoa: $1 — bilatu harridura ikur horia'],

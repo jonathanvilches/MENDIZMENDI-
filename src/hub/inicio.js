@@ -42,7 +42,7 @@ function ahora(p) {
 
 // (lo que pone el menú: el icono de cada misión, las misiones que tocan por la edad y dónde cae cada pueblo en el mapa de
 // comarcas; hub.js)
-let OPC = { icono: () => 'star', nombre: (m) => m.title || m.name || '', slots: (l) => (l.missions || []).map((m, si) => ({ m, si })), xy: () => null };
+let OPC = { icono: () => 'star', slots: (l) => (l.missions || []).map((m, si) => ({ m, si })), misiones: () => [], xy: () => null };
 // (en el modo didáctico, el mapa vive en su sección, Mapa: sin la misión, lo conquistado ni los sellos, y cada pueblo lleva a
 // su página)
 let DD = false;
@@ -126,11 +126,11 @@ function bandaHTML(p, id) {
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
 // zoom hasta tu personaje en el pueblo. Pequeña y fina, para no tapar el pueblo que se está formando
 function fichaHTML(p, l) {
-  const t = townProgress(p, l), nombre = esc(corto(l)), done = p.towns[l.id]?.done || {}, slots = OPC.slots(l);
+  const t = townProgress(p, l), nombre = esc(corto(l)), ms = OPC.misiones(l);
   const txt = l.bosque ? 'Explorar' : t.stamp ? 'Volver a jugar' : t.done ? 'Seguir misión' : 'Empezar misión';
   const img = townImg(l, true);
   return `${img ? `<span class="ft-fondo"><img src="${img}" alt="" decoding="async"></span>` : ''}<span class="ft-n"><small>${esc(comarca(l.comarca)?.name || '')}</small><b>${nombre}</b></span>
-    ${slots.length && !DD ? `<span class="ft-ms">${slots.map(({ m, si }) => `<i class="${done[si] ? 'ok' : ''}" title="${esc(OPC.nombre(m))}">${I(OPC.icono(m) || 'star', 16)}</i>`).join('')}<em>${t.done}/${t.total}</em></span>` : ''}
+    ${ms.length && !DD ? `<span class="ft-ms">${ms.map(m => `<i class="${m.done ? 'ok' : ''}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}<em>${t.done}/${t.total}</em></span>` : ''}
     ${DD ? `<button class="ft-go" data-town="${l.id}">${I('book', 18)}<span>Ver el pueblo</span></button>` : `<button class="ft-go" data-play="${l.id}">${I('play', 18)}<span>${txt}</span></button>`}`;
 }
 let MAPA = null;
