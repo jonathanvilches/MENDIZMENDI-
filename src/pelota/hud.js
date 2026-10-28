@@ -271,15 +271,25 @@ const CSS = `
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
 @media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-msel select{min-height:42px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
 /* el cestaño en el partido, arriba a la izquierda bajo la X (lejos del aviso del saque, que en el móvil va arriba y en el
-   ordenador abajo): la pelota en juego y, mientras sacas tú, tus pelotas para cambiar */
-.pel-bolas{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));top:calc(env(safe-area-inset-top,0px) + 72px);z-index:4;display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:6px;border-radius:14px;background:rgba(20,8,40,.72);border:1px solid rgba(190,160,255,.28);color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;pointer-events:auto;white-space:nowrap}
-.pel-bolas>span{opacity:.8;padding:2px 4px 4px;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
-.pel-bolas button{display:flex;align-items:center;gap:4px;border:1px solid transparent;background:none;color:#fff;font:inherit;padding:4px 8px;border-radius:999px;min-height:30px;cursor:pointer}
-.pel-bolas button:disabled{cursor:default;opacity:1}.pel-bolas button[aria-pressed=true]{background:rgba(131,56,236,.55);border-color:#c9a6ff}
-.pel-bolas svg{width:16px;height:16px;flex:none}
-.pel-bolas.abre{border-color:#ff7ac8;box-shadow:0 0 14px rgba(255,43,214,.35)}
-.pel-root.paneled .pel-bolas{visibility:hidden}
-@media (max-height:500px){.pel-bolas{top:calc(env(safe-area-inset-top,0px) + 62px)}.pel-bolas>span{display:none}.pel-bolas button{min-height:28px;padding:2px 8px}}
+   ordenador abajo): un botón redondo con la pelota en juego; al tocarlo se despliegan las pelotas, y mientras sacas tú
+   se puede cambiar (antes era la lista entera siempre a la vista, con el peso de cada una, encima de la cancha) */
+.pel-bolas{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));top:calc(env(safe-area-inset-top,0px) + 76px);z-index:4;display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:auto;color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;white-space:nowrap}
+.pel-bolas .pb-yo{position:relative;display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:50%;border:1px solid rgba(190,160,255,.35);background:rgba(20,8,40,.72);color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .18s cubic-bezier(.22,1.12,.36,1),box-shadow .18s}
+.pel-bolas .pb-yo svg{width:32px;height:32px}
+.pel-bolas .pb-yo i{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--cta,#c21cff);font:900 11px/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.pel-bolas.abre .pb-yo{border-color:#ff7ac8;box-shadow:0 0 0 3px rgba(255,43,214,.25),0 0 16px rgba(255,43,214,.45)}
+.pel-bolas.on .pb-yo{transform:scale(.94)}
+.pel-bolas .pb-menu{display:none;flex-direction:column;align-items:stretch;gap:2px;min-width:168px;padding:6px;border-radius:16px;background:rgba(20,8,40,.9);border:1px solid rgba(190,160,255,.3);box-shadow:0 10px 28px rgba(0,0,0,.4)}
+.pel-bolas.on .pb-menu{display:flex;animation:pel-pbin .18s ease-out both}
+@keyframes pel-pbin{from{opacity:0;transform:translateY(-6px)}}
+.pel-bolas .pb-menu>span{padding:4px 8px 6px;font-size:11px;opacity:.8;text-transform:uppercase;letter-spacing:.06em}
+.pel-bolas .pb-menu button{display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 6px;border:1px solid transparent;border-radius:999px;background:none;color:#fff;font:inherit;font-size:var(--fs-sm);text-align:left;cursor:pointer}
+.pel-bolas .pb-menu button svg{width:24px;height:24px;flex:none}
+.pel-bolas .pb-menu button small{margin-left:auto;padding-left:12px;font-size:var(--fs-xs);color:#cbbcf0}
+.pel-bolas .pb-menu button[aria-pressed=true]{background:rgba(131,56,236,.55);border-color:#c9a6ff}
+.pel-bolas .pb-menu button:disabled{cursor:default;opacity:1}.pel-bolas .pb-menu button:disabled:not([aria-pressed=true]){opacity:.6}
+.pel-root.paneled .pel-bolas,.pel-root.repe .pel-bolas{visibility:hidden}
+@media (max-height:500px){.pel-bolas{top:calc(env(safe-area-inset-top,0px) + 64px)}.pel-bolas .pb-yo{width:44px;height:44px}.pel-bolas .pb-yo svg{width:28px;height:28px}.pel-bolas .pb-menu button{min-height:34px}}
 `;
 const BOLA = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="2" fill="none"/></svg>';
 
@@ -362,12 +372,23 @@ export class PelotaHud {
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
   // el cestaño (material.js): la pelota en juego y, mientras sacas tú, las tuyas para cambiar (tocando o con la tecla B).
   // rotulo(b): su nombre corto; pista: lo que se puede hacer
+  // rotulo(b): [su clase, su peso]; pista: lo que se puede hacer. Un botón redondo con la pelota (y cuántas hay); al
+  // tocarlo se despliegan, y al elegir una o tocar fuera se recogen
   bolas(lista, actual, editable, rotulo, pista) {
     let el = this.bolasEl;
-    if (!el) { el = this.bolasEl = document.createElement('div'); el.className = 'pel-bolas'; this.root.appendChild(el); tap(el, (b) => this.onBola?.(+b.dataset.bola)); }
+    if (!el) {
+      el = this.bolasEl = document.createElement('div'); el.className = 'pel-bolas'; this.root.appendChild(el);
+      const abre = (on) => { el.classList.toggle('on', on); el.querySelector('.pb-yo')?.setAttribute('aria-expanded', String(on)); };
+      tap(el, (b) => { if (b.classList.contains('pb-yo')) return abre(!el.classList.contains('on')); this.onBola?.(+b.dataset.bola); abre(false); });
+      this.fueraBolas = (e) => { if (el.classList.contains('on') && !el.contains(e.target)) abre(false); };
+      addEventListener('pointerdown', this.fueraBolas, true);
+      this.cierraBolas = () => abre(false);
+    }
     const k = lista.map(b => b.n).join() + '|' + (actual?.n ?? '') + '|' + editable;
     if (el._k === k) return; el._k = k;
-    el.innerHTML = `<span>${esc(pista)}</span>` + lista.map(b => `<button data-bola="${b.n}" aria-pressed="${b === actual}"${editable ? '' : ' disabled'}>${BOLA}<b>${esc(rotulo(b))}</b></button>`).join('');
+    const [clase, peso] = actual ? rotulo(actual) : ['', ''], on = el.classList.contains('on');
+    el.innerHTML = `<button class="pb-yo" aria-haspopup="true" aria-expanded="${on}" aria-label="${esc(`${clase} · ${peso}`)}">${BOLA}${lista.length > 1 ? `<i>${lista.length}</i>` : ''}</button>`
+      + `<div class="pb-menu" role="menu"><span>${esc(pista)}</span>${lista.map(b => { const [c, w] = rotulo(b); return `<button role="menuitemradio" data-bola="${b.n}" aria-pressed="${b === actual}"${editable ? '' : ' disabled'}>${BOLA}<b>${esc(c)}</b><small>${esc(w)}</small></button>`; }).join('')}</div>`;
     el.classList.toggle('abre', !!editable);
   }
   /** El aro del momento justo: t, segundos hasta el momento de soltar el golpe (null, sin aro). Llega al botón a tiempo */
@@ -428,7 +449,7 @@ export class PelotaHud {
   closePanel() { const p = this.panelEl; if (p) { this.panelEl = null; p.classList.add('pel-fuera'); setTimeout(() => p.remove(), 220); } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
   // (se desvanece con lo que tuviera delante, el aviso de salir o el resultado, mientras entra lo siguiente)
-  destroy() { removeEventListener('resize', this.onFit); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
+  destroy() { removeEventListener('resize', this.onFit); if (this.fueraBolas) removeEventListener('pointerdown', this.fueraBolas, true); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
 }
 // el nombre sin su pueblo entre paréntesis («Jokin (Altsasu)» → «Jokin»): en el marcador y en la energía, que son
 // estrechos (el pueblo ya sale en la pantalla VS y en el frontón)
