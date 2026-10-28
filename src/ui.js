@@ -110,7 +110,7 @@ export class UI {
       <div id="compass"><canvas></canvas><span id="cdist"></span></div>
       <div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
-        <div id="ribbons">${town ? `<span class="tname">${esc(game.def.name.split(' /')[0])}</span><span class="dots">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}"></i>`).join('')}</span>`
+        <div id="ribbons"${town ? ' class="mis"' : ''}>${town ? `<span class="mh"><span class="tname">${esc(game.def.name.split(' /')[0])}</span><b class="mc"></b></span><span class="dots" style="--n:${game.missions.length}">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}">${I(M.icon || 'star', 14)}</i>`).join('')}</span>`
           : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
       </div>
       <div id="topright">
@@ -196,7 +196,12 @@ export class UI {
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
   destroyHUD() { this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
-  refreshDots() { if (!this.hud || this.game.kind !== 'town') return; for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; } }
+  // (las misiones del pueblo, bajo la de ahora: cada casilla con su icono, las hechas de color y la que sigues encendida)
+  refreshDots() {
+    if (!this.hud || this.game.kind !== 'town') return;
+    for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; }
+    const c = $('#ribbons .mc', this.hud), ms = this.game.missions; if (c) c.textContent = `${ms.filter(M => M.done).length}/${ms.length}`;
+  }
   setQuest(q) {
     const b = $('#quest', this.hud), E = this.questEls;
     if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; this.queueFitTop(); } return; }
@@ -408,19 +413,22 @@ export class UI {
       s.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
       if (t === 'misiones') {
         const doneN = g.missions.filter(M => M.done).length;
+        // (en orden: la que sigues, las empezadas, las nuevas y, al final, las hechas)
+        const orden = (M) => M.done ? 3 : g.tracked === M.i ? 0 : M.step > 0 ? 1 : 2;
         body.innerHTML = `<div class="tprog"><div class="bar"><i style="width:${doneN / g.missions.length * 100}%"></i></div><span>${doneN}/${g.missions.length} misiones · ${g.ts.stamp ? 'sello conseguido' : 'completa todas para ganar el sello'}</span></div>
-        <div class="qlist">${g.missions.map(M => {
+        <div class="qlist">${[...g.missions].sort((a, b) => orden(a) - orden(b)).map(M => {
           const st = M.done ? 'done' : M.step > 0 ? 'active' : 'available';
           const steps = M.steps();
           // (los pasos enteros, solo en la que sigues; en las demás, el siguiente paso, y al tocarla se despliegan: así caben
-          // más misiones a la vista)
+          // más misiones a la vista. Una barra con un tramo por paso dice de un vistazo cuánto falta)
           const open = g.tracked === M.i && !M.done;
-          return `<div class="qitem ${g.tracked === M.i ? 'active' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb"><b>${esc(M.title)}</b>
+          return `<div class="qitem ${g.tracked === M.i ? 'active' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb">
+            <div class="qh"><b>${esc(M.title)}</b><span class="state">${{ done: 'Hecha', active: 'En curso', available: 'Nueva' }[st]}</span></div>
+            ${M.host ? `<small>Con ${esc(M.host.name)}</small>` : ''}
+            <div class="qbar" style="--n:${steps.length}">${steps.map((x, k) => `<i class="${M.done || k < M.step ? 'ok' : k === M.step ? 'now' : ''}"></i>`).join('')}</div>
             ${open ? `<ol class="steps">${steps.map((x, k) => `<li class="${k < M.step ? 'ok' : k === M.step ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>`
-              : `<p class="qnext">${M.done ? `<span>${steps.length} pasos hechos</span>` : `<span class="qn">Paso ${Math.min(M.step + 1, steps.length)} de ${steps.length}</span> <span>${esc(steps[Math.min(M.step, steps.length - 1)] || '')}</span>`}</p>`}
-            <small>${M.host ? 'Con ' + esc(M.host.name) : ''}</small>
-            <button type="button" class="qgo ${st}" data-go="${M.i}">${I(M.done ? 'navigate' : 'play', 22)}<span>${M.done ? 'Volver allí' : M.step > 0 ? 'Ir al siguiente paso' : 'Empezar la misión'}</span></button></div>
-            <span class="state">${{ done: 'Hecha', active: 'En curso', available: 'Nueva' }[st]}</span></div>`;
+              : M.done ? '' : `<p class="qnext"><span class="qn">Paso ${Math.min(M.step + 1, steps.length)} de ${steps.length}</span> <span>${esc(steps[Math.min(M.step, steps.length - 1)] || '')}</span></p>`}
+            <button type="button" class="qgo ${st}" data-go="${M.i}">${I(M.done ? 'navigate' : 'play', 22)}<span>${M.done ? 'Volver allí' : M.step > 0 ? 'Ir al siguiente paso' : 'Empezar la misión'}</span></button></div></div>`;
         }).join('')}</div><p class="keys">Pulsa «Empezar la misión» y viajas junto al vecino que te la explica.</p>`;
         body.querySelectorAll('.qitem').forEach(n => n.onclick = () => { g.setBook(g.missions[+n.dataset.m]); render('misiones'); });
         // (viajar a la misión: junto al vecino que la da o, si ya está en marcha, al sitio de su paso siguiente)
