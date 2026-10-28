@@ -952,7 +952,8 @@ export function mapa3d(host, o) {
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0;
   const io = new IntersectionObserver((en) => { visible = en[0]?.isIntersecting ?? true; if (visible && !raf) raf = requestAnimationFrame(frame); }, { threshold: 0.02 }); io.observe(host);
   const sz = { w: 0, h: 0, z: 0 }, off = { x: 0, y: 0 };
-  let prMax = o.ligero ? 1 : 2, prT = 0, prN = 0;   // (la resolución máxima del lienzo, que baja si el móvil no llega)
+  // (la resolución máxima del lienzo, que baja si no llega: a 2 en las pantallas de retina el relieve iba a tirones)
+  let prMax = o.ligero ? 1 : 1.5, prT = 0, prN = 0;
   const pv = new THREE.Vector3();
   // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
   // gráfica y no la devuelve, el mapa se suelta y quien lo puso deja el plano: o.falla. Nunca una pantalla vacía)
@@ -1029,10 +1030,10 @@ export function mapa3d(host, o) {
     // (en el móvil, y en el ordenador mientras nada se mueve, 30 imágenes por segundo: las chinchetas que flotan no
     // necesitan más, y así el resto del menú va más suelto)
     const quieto = !keys.size && !vuelo && !ptrs.size && !inercia && Math.abs(goal.d - v.d) < 0.05 * v.d && Math.abs(goal.x - v.x) + Math.abs(goal.z - v.z) < 0.05;
-    // (mientras se toca o se mueve, todas las imágenes; en el móvil, si no van a tiempo, el lienzo baja un poco su resolución)
+    // (mientras se toca o se mueve, todas las imágenes; si no van a tiempo, el lienzo baja un poco su resolución)
     const toca = ptrs.size || inercia || vuelo || keys.size;
     if ((quieto || (LENTO && !toca)) && now - last < 30) return;
-    if (LENTO && toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > 1) { prMax = Math.max(1, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
+    if (toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > 1) { prMax = Math.max(1, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
     // (al entrar a jugar, al ritmo del reloj aunque vaya a tirones)

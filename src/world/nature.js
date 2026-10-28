@@ -621,27 +621,37 @@ export class Nature {
     }
     this.chunks = [];
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
+    // (los árboles de lejos, todos los de una especie en un solo dibujo: trozo a trozo eran casi doscientas llamadas por
+    // imagen, la tercera parte de todas en el móvil. Los de los trozos cercanos se esconden en él y vuelven al alejarse: update)
+    const lejos = new Map();
     for (const [key, c] of chunks) {
       const [ci, cj] = key.split(',').map(Number);
       const cx = -HALF - this.off + (ci + 0.5) * CHUNK, cz = -HALF - this.off + (cj + 0.5) * CHUNK;
-      const entry = { cx, cz, hi: [], lo: [] };
+      const entry = { cx, cz, hi: [], lo: [], arboles: c.list };
       for (const type of Object.keys(geos)) {
         const list = c.list.filter(s => s.type === type);
         if (!list.length) continue;
         for (const lod of [0, 1]) {
-          const im = new THREE.InstancedMesh(geos[type][lod], this.matTree, list.length);
+          const im = lod ? null : new THREE.InstancedMesh(geos[type][lod], this.matTree, list.length);
           list.forEach((s, i) => {
             e.set((rnd() - 0.5) * 0.06, s.rot, (rnd() - 0.5) * 0.06); q.setFromEuler(e);
             m4.compose(v.set(s.x, s.y - 0.25, s.z), q, sc.set(s.s, s.s * (0.9 + rnd() * 0.25), s.s));
-            im.setMatrixAt(i, m4); s.inst.push([im, i]);
+            if (im) { im.setMatrixAt(i, m4); s.inst.push([im, i]); } else { s.mLejos = m4.clone(); (lejos.get(type) || lejos.set(type, []).get(type)).push(s); }
           });
+          if (!im) continue;
           im.computeBoundingSphere();
-          im.castShadow = lod === 0; im.receiveShadow = lod === 0; im.name = type + (lod ? '-lejos' : '-cerca');
-          (lod ? entry.lo : entry.hi).push(im);
+          im.castShadow = im.receiveShadow = true; im.name = type + '-cerca';
+          entry.hi.push(im);
           this.group.add(im);
         }
       }
       this.chunks.push(entry);
+    }
+    for (const [type, list] of lejos) {
+      const im = new THREE.InstancedMesh(geos[type][1], this.matTree, list.length);
+      list.forEach((s, i) => { im.setMatrixAt(i, s.mLejos); s.lejos = [im, i]; s.inst.push(s.lejos); });
+      im.computeBoundingSphere(); im.name = type + '-lejos';
+      this.group.add(im);
     }
     // (en los bosques, con tanto árbol, el detalle completo solo en los trozos más cercanos; los demás, con su forma sencilla)
     this.lodDist = MOD?.bosque ? (quality === 'low' ? 15 : quality === 'mid' ? 32 : 48) : quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
@@ -867,6 +877,11 @@ export class Nature {
       // de lejos, las piedras solo hasta cierta distancia: más allá miden menos de un píxel y eran casi la quinta parte
       // de todos los triángulos de la escena (los árboles lejanos sí se dibujan: forman la silueta del bosque)
       for (const m of c.lo) m.visible = !near && (rf || !m.userData.rock);
+      // (sus árboles en el dibujo de los lejanos: escondidos mientras se ven de cerca; los quitados, nunca más)
+      if (c.arboles && c.lejosFuera !== near) {
+        c.lejosFuera = near;
+        for (const s of c.arboles) if (s.lejos && !s.quitado) { s.lejos[0].setMatrixAt(s.lejos[1], near ? _zero : s.mLejos); s.lejos[0].instanceMatrix.needsUpdate = true; }
+      }
     }
     this.grass?.update(focus, elapsed, player);
     this.flowers.update(focus, elapsed, player);
@@ -997,6 +1012,7 @@ export function clearTrees(cx, cz, w, d, ry, m = 1) {
     const t = TREES[k], dx = t.x - cx, dz = t.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + copaDe(t);   // (con la copa)
     if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
     for (const [im, i] of t.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
+    t.quitado = true;
     if (t.col) removeCollider(t.col);
     TREES.splice(k, 1);
   }
