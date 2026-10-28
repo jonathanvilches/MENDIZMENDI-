@@ -269,7 +269,7 @@
 #hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(n+7) { animation-delay: .18s; }
 /* (al pasar por encima: la tarjeta sube dos píxeles y su imagen se acerca; al pulsar, cede) */
 @media (hover: hover) {
-  #hub.juego :is(.pcard, .fcard, .lam, .ar, .m3-chip, .m3-todas) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
+  #hub.juego :is(.pcard, .fcard, .lam, .ar, .m3-chip) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
   #hub.juego :is(.pcard, .fcard, .lam, .ar):hover { transform: translateY(-2px); }
   #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic) > img { transition: transform .5s var(--ease); }
   #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic) > img { transform: scale(1.04); }
