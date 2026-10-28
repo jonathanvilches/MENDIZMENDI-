@@ -8,7 +8,7 @@
 // Usa el renderizador del menú (src/hub/stage.js: un solo contexto WebGL para todo el menú) y se para solo en cuanto su
 // caja sale de la página o deja de verse. Los nombres van en HTML encima del lienzo, nítidos a cualquier tamaño.
 import * as THREE from 'three';
-import { hubRenderer, rendererVivo } from './stage.js';
+import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
@@ -1059,6 +1059,10 @@ export function mapa3d(host, o) {
   }
   function pinta(now) {
     if (o.pausado?.() || !compilado) { last = now; return; }   // (con algo a pantalla completa encima, no se pinta)
+    // (el selector de personaje usa este mismo lienzo, src/hub/stage.js: en la primera visita sale encima del mapa, se lo
+    // lleva y, al cerrarse, no lo devolvía. El mapa seguía pintando fuera de la página y no se veían ni la entrada ni el
+    // mapa. Ahora, en cuanto el mapa vuelve a verse, lo recupera con su tamaño)
+    if (cv.parentNode !== host) { sueltaEscenario(); cv.className = 'm3-cv'; cv.style.opacity = cv.style.transition = ''; host.prepend(cv); sz.w = 0; }
     // (en el móvil, y en el ordenador mientras nada se mueve, 30 imágenes por segundo: las chinchetas que flotan no
     // necesitan más, y así el resto del menú va más suelto)
     const quieto = !keys.size && !vuelo && !ptrs.size && !inercia && Math.abs(goal.d - v.d) < 0.05 * v.d && Math.abs(goal.x - v.x) + Math.abs(goal.z - v.z) < 0.05;
