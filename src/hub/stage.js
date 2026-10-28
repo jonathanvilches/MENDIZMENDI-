@@ -22,6 +22,8 @@ function renderer() {
  *  inicio y el selector de personaje nunca están a la vez. vivo(r): si sigue siendo el de ahora (al jugar se suelta). */
 export const hubRenderer = () => renderer();
 export const rendererVivo = (r) => !!r && r === R;
+/** El mapa recupera el lienzo: suelta el escenario del selector de personaje, si se lo había llevado (mapa3d.js). */
+export function sueltaEscenario() { Stage.current?.dispose(); Stage.current = null; }
 let pendingCompile = null;
 /** Al entrar a jugar: se suelta el escenario del menú (su contexto WebGL y el personaje). En el móvil, tener a la vez
  *  este, el de los retratos y el del juego agotaba la memoria y el navegador cerraba la página. */
