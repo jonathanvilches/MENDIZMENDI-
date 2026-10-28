@@ -109,6 +109,8 @@ async function boot() {
   const quality = q.get('q') || (sencillo() ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : calidadOrdenador(P.settings.slowPc));
   const rt = new Runtime({ canvas, input, sound, quality });
   fijaCalidad(quality); if (!input.touch) apuntaGpu(rt.renderer.getContext());   // (src/util/gpu.js)
+  // (en un ordenador sin tarjeta gráfica potente, los paneles sin el cristal desenfocado, como en el móvil: style.css)
+  if (!input.touch && quality !== 'high') document.documentElement.classList.add('sin-cristal');
   // si el ordenador no llega a la fluidez mínima, el juego se aligera solo (runtime.lighten): se avisa una vez y se
   // apunta para arrancar la próxima vez un escalón más abajo (si la calidad se eligió a mano en Ajustes, se respeta)
   rt.onLighten = (n) => {
