@@ -394,12 +394,12 @@ export function mapa3d(host, o) {
   // reloj de la entrada (si se toca para pasar deprisa, también deprisa)
   const show = intro && (() => {
     const E = document.createElement('div'); E.className = 'm3-show'; E.setAttribute('aria-hidden', 'true');
-    // (como el arranque de un videojuego: las barras de cine arriba y abajo, las esquinas del visor, una raya de luz que
+    // (como el arranque de un videojuego, a toda la pantalla: las esquinas del visor, una raya de luz que
     // cruza el nombre, la onda que levanta Navarra al posarse con un temblor de la cámara, y el aviso de que se puede pasar)
-    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-onda"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><span class="m3-raya"></span><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div><div class="m3-barras"></div><div class="m3-visor"></div><span class="m3-pasa">${LENTO ? 'Toca para pasar' : 'Clic para pasar'}</span>`;
+    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-onda"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><span class="m3-raya"></span><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div><div class="m3-visor"></div><span class="m3-pasa">${LENTO ? 'Toca para pasar' : 'Clic para pasar'}</span>`;
     host.append(E);
     const nc = E.querySelector('.m3-nubes'), g2 = nc.getContext('2d'), sol = E.querySelector('.m3-sol'), luz = E.querySelector('.m3-luz'), tit = E.querySelector('.m3-titulo'), letras = [...tit.querySelectorAll('.logo i')], lema = tit.querySelector('small'), dest = E.querySelector('.m3-destello');
-    const barras = E.querySelector('.m3-barras'), visor = E.querySelector('.m3-visor'), raya = E.querySelector('.m3-raya'), onda = E.querySelector('.m3-onda'), pasa = E.querySelector('.m3-pasa');
+    const visor = E.querySelector('.m3-visor'), raya = E.querySelector('.m3-raya'), onda = E.querySelector('.m3-onda'), pasa = E.querySelector('.m3-pasa');
     // (una nube de bolas difusas, dibujada una vez; luego se pinta muchas veces, más grande cuanto más cerca de la cámara)
     const nube = document.createElement('canvas'); nube.width = nube.height = 256;
     // (con volumen: cada bola, su sombra malva un poco más abajo y su luz blanca encima)
@@ -431,9 +431,8 @@ export function mapa3d(host, o) {
         // el nombre: las letras caen una tras otra en medio de la pantalla, mientras se abren las nubes; luego el brillo y el
         // lema; cuando Navarra se suelta, sube a lo alto, más pequeño (sin el lema), para dejarla ver en el aire; al
         // posarse, se va hacia arriba y se desvanece
-        // (arriba, bajo la barra de cine de arriba mientras está)
         const cine = ease(rampa(tI, 0, 0.5)) * (1 - ease(rampa(tI, 3.9, 4.6)));
-        const arriba = ease(rampa(tI, 2.2, 2.9)), sale = ease(rampa(tI, 3.9, 4.5)), y0 = H * 0.3, y1 = Math.max(8, H * 0.03) + Math.min(H * 0.1, 64) * cine;
+        const arriba = ease(rampa(tI, 2.2, 2.9)), sale = ease(rampa(tI, 3.9, 4.5)), y0 = H * 0.3, y1 = Math.max(8, H * 0.03);
         letras.forEach((l, i) => { const p = rampa(tI, 0.35 + i * 0.07, 0.85 + i * 0.07), e = ease(p); l.style.opacity = Math.min(1, p * 1.8).toFixed(3); l.style.transform = `translateY(${((1 - e) * -0.5).toFixed(3)}em) scale(${(1 + (1 - e) * 1.8).toFixed(3)})`; });
         tit.style.setProperty('--brillo', rampa(tI, 1.3, 2.3).toFixed(3));
         lema.style.opacity = (rampa(tI, 1.4, 1.9) * (1 - rampa(tI, 2.1, 2.5))).toFixed(3); lema.style.letterSpacing = (0.2 + 0.5 * (1 - ease(rampa(tI, 1.4, 2.2)))).toFixed(3) + 'em';
@@ -447,8 +446,8 @@ export function mapa3d(host, o) {
         if (lz > 0) { pc.copy(NC).project(cam); const k = 0.9 + 0.1 * Math.sin(tI * 6); luz.style.transform = `translate(${((pc.x + 1) / 2 * W).toFixed(1)}px, ${((1 - pc.y) / 2 * H).toFixed(1)}px) scale(${k.toFixed(3)})`; }
         // el destello al posarse
         dest.style.opacity = (tI > tPosa && !SUAVE ? 0.55 * Math.exp(-(tI - tPosa) * 4.5) : 0).toFixed(3);
-        // las barras de cine y el visor: entran al empezar y se van con el nombre; el aviso de pasar, mientras tanto
-        barras.style.setProperty('--b', cine.toFixed(3)); visor.style.opacity = (cine * 0.9).toFixed(3); pasa.style.opacity = (rampa(tI, 0.8, 1.2) * (1 - rampa(tI, 3.4, 3.8)) * 0.85).toFixed(3);
+        // el visor: entra al empezar y se va con el nombre; el aviso de pasar, mientras tanto
+        visor.style.opacity = (cine * 0.9).toFixed(3); pasa.style.opacity = (rampa(tI, 0.8, 1.2) * (1 - rampa(tI, 3.4, 3.8)) * 0.85).toFixed(3);
         // la raya de luz que cruza el nombre cuando le llega el brillo
         const ry = rampa(tI, 1.25, 1.95); raya.style.opacity = (Math.sin(ry * Math.PI)).toFixed(3); raya.style.setProperty('--x', (ry * 140 - 20).toFixed(1) + '%');
         // la onda al posarse, desde el centro de Navarra, y el temblor de la cámara
