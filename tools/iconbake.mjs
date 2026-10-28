@@ -5,8 +5,10 @@
 import { chromium } from 'playwright-core';
 import { writeFileSync, mkdirSync, readFileSync } from 'fs';
 import { execFileSync } from 'child_process';
-const [,, base = 'http://127.0.0.1:5173/', size = '512'] = process.argv;
-const tmp = '/tmp/iconbake'; mkdirSync(tmp, { recursive: true });
+// (se dibujan a 360 como mucho: con el supermuestreo, el doble, y el lienzo oculto, src/util/offscreen.js, mide 960×720;
+// más grandes salían cortados por abajo y por la izquierda)
+const [,, base = 'http://127.0.0.1:5173/', size = '360'] = process.argv;
+const tmp = process.env.ICONTMP || '/tmp/iconbake'; mkdirSync(tmp, { recursive: true });   // (ICONTMP: otra carpeta de paso)
 const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
