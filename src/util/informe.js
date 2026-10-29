@@ -18,7 +18,8 @@ function lugar() {
   if (window.__futbol) return 'fútbol';
   const g = window.__game;
   // (la pelota, por partes: cargando a los pelotaris, preparando el partido o jugando; así se sabe dónde se corta)
-  const pel = g?.pelotaMatch ? (g.pelotaMatch.active === false ? 'pelota preparando' : 'pelota') : g?.pelotaLoading ? 'pelota cargando' : '';
+  // (y la entrada a la cancha aparte del juego: en el iPhone la imagen se perdía a los pocos segundos de empezar)
+  const pel = g?.pelotaMatch ? (g.pelotaMatch.active === false ? 'pelota preparando' : g.pelotaMatch.game?.phase === 'intro' ? 'pelota · entrada' : 'pelota') : g?.pelotaLoading ? 'pelota cargando' : '';
   if (g) return [g.def?.id || g.kind || 'pueblo', pel || (g.sportMode ? 'campeonatos' : g.mode)].filter(Boolean).join(' · ');
   const h = document.getElementById('hub');
   return h && !h.classList.contains('hidden') ? `menú · ${h.dataset.screen || 'home'}` : 'cargando';
@@ -69,10 +70,16 @@ function mide(t) {
   const ahora = lugar();
   if (ahora !== sitio) { sitio = ahora; evento(ahora); rastro({ lugar: ahora }); }
   if (t - desde < CADA * 1000) return;
-  const s = (t - desde) / 1000, rt = window.__rt, info = window.__game && rt?.renderer?.info.render, mem = performance.memory;
+  muestra(t);
+}
+// una muestra del tramo que se lleva (cada CADA segundos, y también en el momento de perder la imagen, con la fase del
+// partido de pelota y si va aligerado)
+function muestra(t, nota) {
+  const s = Math.max(0.05, (t - desde) / 1000), rt = window.__rt, info = window.__game && rt?.renderer?.info.render, mem = performance.memory, pm = window.__game?.pelotaMatch;
   doc.calidad ||= rt?.quality || '';
-  doc.muestras.push({ t: seg(), lugar: ahora, fps: Math.round(fr / s * 10) / 10, peor: Math.round(peor), tirones,
+  doc.muestras.push({ t: seg(), lugar: lugar(), ...(nota ? { nota } : {}), fps: Math.round(fr / s * 10) / 10, peor: Math.round(peor), tirones,
     ...(info ? { dibujos: info.calls, triangulos: info.triangles, resolucion: Math.round(rt.pixelRatio * 100) / 100, geometrias: rt.renderer.info.memory.geometries, texturas: rt.renderer.info.memory.textures } : {}),
+    ...(pm ? { fase: pm.game?.phase || '?', ligero: rt?.partidoLigero ? 'mucho' : rt?.quality === 'low' ? 'sí' : 'no' } : {}),
     ...(mem ? { memoria: Math.round(mem.usedJSHeapSize / 1048576) } : {}) });
   rastro(doc.muestras[doc.muestras.length - 1]);
   if (doc.muestras.length > MAX_MUESTRAS) doc.muestras.shift();
@@ -97,7 +104,7 @@ function empieza(db) {
   // (y lo que no carga: una imagen, un trozo del juego)
   addEventListener('error', (e) => e.error || e.message ? error(e.error?.message || e.message, e.error?.stack) : e.target?.src && error(`no carga ${e.target.src}`), true);
   addEventListener('unhandledrejection', (e) => error(e.reason?.message || e.reason, e.reason?.stack), true);
-  addEventListener('webglcontextlost', (e) => { evento(`imagen perdida (${e.target?.id || e.target?.className || 'lienzo'})`, true); rastro({ perdida: true }); }, true);
+  addEventListener('webglcontextlost', (e) => { try { if (desde) muestra(performance.now(), 'al perderse la imagen'); } catch (x) { } evento(`imagen perdida (${e.target?.id || e.target?.className || 'lienzo'})`, true); rastro({ perdida: true }); }, true);
   addEventListener('pagehide', () => { rastro({ bien: true }); cerrado = true; });
   addEventListener('pageshow', (e) => { if (e.persisted) { cerrado = false; rastro({ bien: false }); } });
   addEventListener('webglcontextrestored', () => evento('imagen recuperada', true), true);

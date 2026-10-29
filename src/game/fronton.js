@@ -28,6 +28,7 @@ import { meetPelotari } from './pelotaris.js';
 // las figuras de la pantalla VS (nuestros pelotaris en 3D, en pleno golpe: tools/meshy-retratos.mjs con CLIP=Hit T=0.2)
 import { pelotariFig, RIVALES, pelotariHair, pelotariGirl } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
 import { crowdBuffers, PUBLICO } from '../crowdAudio.js';
+import { pelotaLigera } from '../util/diag.js';
 // un pelotari rival o compañero (el azul, pelotari; el colorado, pelotari_rojo) con el pelo de su figura (el rubio Mikel,
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
@@ -396,6 +397,13 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
+    // en calidad baja (los móviles), el partido más ligero: el iPhone perdía la imagen a los pocos segundos de empezar
+    // (Lesaka, Irurtzun) con 1,2 millones de triángulos a la vez: el pueblo, el bosque lejano y el público. Sin la silueta
+    // del bosque lejano y con menos público de figura entera; y si en este aparato ya se perdió la imagen en un partido,
+    // además sin nada a más de 60 m del frontón, con menos público y menos resolución (util/diag.js: pelotaLigera)
+    const ligero = QUALITY === 'low', muyLigero = ligero && pelotaLigera();
+    if (G.rt) G.rt.partidoLigero = muyLigero;
+    if (ligero) try { G.rt?.nature?.partido(true, muyLigero ? fronton.toWorld(0, COURT.L / 2) : null, 60); } catch (e) { console.warn('frontón ligero', e); apunta('frontón ligero', e); }
     G.rt?.boost?.(true);   // partido: imagen más nítida (en el móvil, los pelotaris con su detalle)
     // para jugar a pelota no hace falta el perro: se queda en casa y vuelve al acabar
     G.perro?.away?.();
@@ -414,8 +422,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // crowd3d.js; en el frontón cubierto, casi lleno; en el del pueblo, los que caben según la calidad)
     // (menos gente que antes, para que el partido vaya fluido: en el del pueblo, 40, 72 y 110; en el cubierto, algo más; en
     // el Labrit y en la calle, que se llenaban enteros, como mucho 90 en el móvil y 160 en calidad media)
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.4 : 2) : 1, lleno = QUALITY === 'low' ? 90 : QUALITY === 'mid' ? 160 : all.length;
-      const cap = C?.labrit || C?.estilo === 'calle' ? Math.min(all.length, lleno) : Math.round((QUALITY === 'low' ? 40 : QUALITY === 'mid' ? 72 : 110) * full);
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.4 : 2) : 1, lleno = QUALITY === 'low' ? 60 : QUALITY === 'mid' ? 160 : all.length;
+      const cap0 = C?.labrit || C?.estilo === 'calle' ? Math.min(all.length, lleno) : Math.round((QUALITY === 'low' ? 40 : QUALITY === 'mid' ? 72 : 110) * full), cap = muyLigero ? Math.min(cap0, 30) : cap0;
       const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
@@ -424,7 +432,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (sentados en sus asientos, en todos los frontones: el sitio es el asiento y la figura, algo adelantada y más baja;
       // en cada tanto celebran sin levantarse, con los brazos en alto)
       const sit = !!C.seated, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * 0.3, y - 0.4, z + Math.cos(ry) * 0.3, ry]) : wsp;
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true, arriba: true }); G.scene.add(seated); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true, arriba: true, kc: muyLigero ? 1 : ligero ? 6 : null }); G.scene.add(seated); }
       // los operadores de las cámaras de la tele (en el Labrit), de pie detrás de ellas: con el público, en el mismo grupo
       if (seated && C.tvCrew?.length) {
         const crew = crowd3d(C.tvCrew.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; }), 'pelota', 1.36, { all3d: true, quietos: true });
@@ -543,6 +551,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } });
         safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
         safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
+        safe(() => { G.rt?.nature?.partido(false); if (G.rt) G.rt.partidoLigero = false; });
         safe(() => G.rt?.boost?.(false));
         // (en los campeonatos, stay: del partido se pasa al menú o al cuadro del torneo sin volver al pueblo, ni sus
         // botones ni el perro; el jugador sigue quieto en la puerta del frontón, de fondo)

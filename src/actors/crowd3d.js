@@ -135,7 +135,7 @@ function bakeSet(set, sit, arriba = false) {
  * Público: spots = [[x, y, z, ry], …] (y = pies). Devuelve un grupo con .tick(t, ánimo, zFoco, cámara) y .cheer(on),
  * igual que las láminas: de cerca, figuras 3D (que saltan, saludan y celebran); de lejos, láminas.
  */
-export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false } = {}) {
+export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
@@ -153,13 +153,14 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   // (con todos en 3D, tres niveles según lo cerca que estén de la cámara: los KC más cercanos, con la figura entera; los KM
   // siguientes, con la de lejos fina; y el resto, al fondo de la grada, con la de lejos gruesa. En un Labrit lleno, unos
   // 2.800 espectadores: con todos enteros eran 2,3 millones de triángulos)
-  const KC = all3d ? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100) : K, KM = Q === 'low' ? 120 : Q === 'mid' ? 300 : 600;
+  // (kc: cuántos con la figura entera, si quien llama quiere menos: en el partido de pelota del móvil)
+  const KC = all3d ? Math.max(1, kc ?? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100)) : K, KM = Q === 'low' ? 120 : Q === 'mid' ? 300 : 600;
   const C1 = Q === 'low' ? 0.08 : Q === 'mid' ? 0.06 : 0.05, C2 = Q === 'low' ? 0.1 : Q === 'mid' ? 0.09 : 0.08;   // (más gruesa, las figuras se rompen)
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
   const rot = new Float32Array(n), sc = new Float32Array(n);
   for (let i = 0; i < n; i++) { rot[i] = spots[i][3] + (Math.random() - 0.5) * 0.3; sc[i] = (0.92 + Math.random() * 0.16) * height / 1.5; }
-  const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, tex ? texMat(g.userData.map) : MAT, k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.frustumCulled = false; group.add(im); return im; };
+  const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, tex ? texMat(g.userData.map) : MAT, k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; };
   let mid = null, far = null, capas = [];
   bakeSet(set, sit, arriba).then(G => {
     meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
@@ -215,7 +216,9 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       if (all3d) { const l = 0.9 + 0.1 * Math.abs(Math.sin(i * 12.9898)); tc.setRGB(l, l, l); } else tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2]);
       im.setColorAt(im.count, tc); im.setMatrixAt(im.count++, m4);
     }
-    for (const c of capas) for (const fig of c) for (const im of fig) if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
+    // (las vacías, escondidas: si no, three.js prepara igual su material y sube a la tarjeta la textura de cada figura,
+    // aunque no se dibuje nadie con ella)
+    for (const c of capas) for (const fig of c) for (const im of fig) { im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; } }
   };
   group.cheer = (on) => { cheer = on ? 1 : 0; sprites.cheer(on); props?.cheer(on); };
   group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const c of capas) for (const fig of c) for (const im of fig) im.dispose(); };

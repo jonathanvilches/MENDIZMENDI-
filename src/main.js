@@ -124,7 +124,7 @@ async function boot() {
   // si el dispositivo se queda sin memoria para dibujar (pantalla apagada), la próxima vez arranca con menos calidad
   canvas.addEventListener('webglcontextlost', () => { const S = P.settings, next = { high: 'mid', mid: 'low' }[S.quality || quality]; if (next) { S.quality = next; S.qualityAuto = true; saveProfile(); }
     // (y se apunta dónde estabas, para Ajustes › Diagnóstico: «se me sale solo del partido» suele ser esto)
-    apuntaPerdida(`${def?.id || 'menú'} · ${game?.pelotaMatch ? 'partido de pelota' : game?.sportMode ? 'campeonatos' : game?.mode || 'menú'} · calidad ${S.quality || quality}`); });
+    apuntaPerdida(`${def?.id || 'menú'} · ${game?.pelotaMatch ? 'partido de pelota' : game?.pelotaLoading ? 'preparando la pelota' : game?.sportMode ? 'campeonatos' : game?.mode || 'menú'} · calidad ${S.quality || quality}`); });
   canvas.style.visibility = 'hidden';
   window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
 
