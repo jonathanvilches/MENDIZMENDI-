@@ -55,6 +55,16 @@
 .fh-tit h2 { margin: 0; color: #fff; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 4px rgba(8, 4, 16, .45), 0 4px 22px rgba(8, 4, 16, .55); }
 .fh-tit h2 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 35%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: 0 1px 8px rgba(8, 4, 16, .6); }
 .fh-cab:not(:has(.fh-portada)) .fh-tit { padding-top: 56px; }
+/* (tumbado o en el ordenador, como la cabecera de la comarca: la lámina entera a la izquierda, sin recortar ni bordes
+   desenfocados, y el nombre a su lado, sobre el fondo liso) */
+@media (orientation: landscape) and (min-width: 700px) {
+  .fh-cab { --h: min(calc(100cqw * 9 / 16 * .58), calc(56dvh / var(--z, 1))); grid-template-columns: auto minmax(0, 1fr); align-items: center; background: linear-gradient(175deg, #241050 0%, #160737 100%); }
+  .fh-cab::before { display: none; }
+  .fh-cab > .pt-marco { grid-area: 1 / 1; justify-self: start; width: calc(var(--h) * 16 / 9); --zf: 1 !important; --sy: 0 !important; --x0: 0px; --y0: 0px; -webkit-mask: none; mask: none; }
+  .fh-cab .pt-esp { display: none; } .fh-cab > .pt-marco > img { -webkit-mask: none; mask: none; }
+  .fh-cab > .fh-tit { grid-area: 1 / 2; align-self: center; padding: 12px 64px 12px 24px; }
+  .fh-cab .fh-tit h2, .fh-cab .fh-tit h2 em { text-shadow: none; }
+}
 .fh-tit .fh-k, .fh-tit h2 em { text-shadow: var(--letra-foto); }
 .sheet.pueblo .fh-hud { padding: 16px 24px 0; }
 .sheet.pueblo .sh-body { overflow: visible; padding: 4px 24px 24px; }
@@ -142,6 +152,20 @@
   .ch-nom { gap: 12px; padding: 8px 16px 0; } .chero .bigstamp { width: 48px; }
   .chero h1 { font-size: var(--fs-xl); } .chero h1 em { font-size: var(--fs-xs); margin-top: 4px; }
   .ch-datos { gap: 6px; padding: 10px 16px 12px; } .ch-dato { min-height: 34px; gap: 8px; padding: 3px 12px 3px 3px; } .ch-dato > :is(svg, img) { width: 28px; height: 28px; padding: 5px; } .ch-dato b { font-size: var(--fs-md); }
+}
+/* (tumbado o en el ordenador, la lámina entera a la izquierda, sin recortar, sin los bordes desenfocados y sin el degradado
+   de color: a lo ancho no cabía entera sin estirarla. A su lado, sobre el fondo liso, el nombre y las cifras. De pie la
+   lámina ocupa todo el ancho y ya cabe entera) */
+@media (orientation: landscape) and (min-width: 700px) {
+  .chero { --h: min(calc(100cqw * 9 / 16 * .58), calc(56dvh / var(--z, 1))); grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr); align-items: start;
+    background: linear-gradient(175deg, #241050 0%, #160737 100%); }
+  .chero::before { display: none; }
+  .chero > .pt-marco { grid-area: 1 / 1 / 4 / 2; justify-self: start; width: calc(var(--h) * 16 / 9); --zf: 1 !important; --sy: 0 !important; --x0: 0px; --y0: 0px; -webkit-mask: none; mask: none; }
+  .chero .pt-esp { display: none; } .chero > .pt-marco > img { -webkit-mask: none; mask: none; }
+  .ch-tx .back { grid-area: 1 / 2; }
+  .chero .ch-nom { grid-area: 2 / 2; padding: 8px 24px 0; }
+  .chero .ch-datos { grid-area: 3 / 2; align-content: start; padding: 12px 24px 16px; }
+  .chero h1, .chero h1 em, .chero .ch-nom .kicker { text-shadow: none; }
 }
 /* (de pie, todo un paso más pequeño) */
 @media (max-width: 599px), (orientation: portrait) {
