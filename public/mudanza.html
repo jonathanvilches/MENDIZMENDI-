@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1830">
+<title>HERRIZHERRI se ha mudado</title>
+<!-- La página que sirve Vercel desde que el juego vive solo en GitHub Pages (Vercel guarda una copia entera de cada versión
+     y se llenaba su espacio gratuito; ahora solo recibe los informes, /api/informe). Lleva la partida guardada en esta
+     dirección al juego nuevo: en un código, por la dirección (#traspaso=, lo recoge index.html) y copiado, para pegarlo
+     en la app nueva si hace falta (cada app de la pantalla de inicio del iPhone guarda lo suyo aparte). Mismo formato que
+     src/util/traspaso.js -->
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; min-height: 100dvh; display: grid; place-items: center; background: #1e1830; color: #fff; font: 500 17px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { width: min(560px, calc(100% - 32px)); padding: 28px 0; }
+  h1 { font: 900 30px/1.1 system-ui, sans-serif; letter-spacing: .02em; margin: 0 0 10px; }
+  p, li { color: #d9d3ee; }
+  ol { padding-left: 22px; display: grid; gap: 6px; }
+  a.btn, button { display: block; width: 100%; box-sizing: border-box; margin: 18px 0 8px; padding: 16px 18px; border: 0; border-radius: 16px; background: linear-gradient(135deg, #ff3fb4, #8a3cff); color: #fff; font: 800 18px/1.2 system-ui, sans-serif; text-align: center; text-decoration: none; cursor: pointer; }
+  .web { color: #fff; font-weight: 800; overflow-wrap: anywhere; }
+  details { margin-top: 16px; } summary { cursor: pointer; color: #d9d3ee; }
+  textarea { width: 100%; box-sizing: border-box; margin-top: 8px; padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.3); color: #fff; font: 12px/1.4 ui-monospace, Menlo, monospace; }
+  #nota { min-height: 1.4em; color: #ffd36b; }
+</style>
+</head>
+<body>
+<main>
+  <h1>HERRIZHERRI se ha mudado</h1>
+  <p>El juego está ahora en <span class="web">jonathanvilches.github.io/MENDIZMENDI-</span>. Es el mismo juego, con todo lo nuevo.</p>
+  <div id="con">
+    <p>Tu partida <b id="quien"></b> viene contigo.</p>
+    <button id="ir" type="button">Abrir el juego con mi partida</button>
+    <p id="nota"></p>
+    <p>En el iPhone, después:</p>
+    <ol>
+      <li>En el juego nuevo, toca Compartir y luego «Añadir a pantalla de inicio».</li>
+      <li>Abre la app nueva. Si no ves tu partida, ve a Perfil › Llevar tu partida y pégala en «Traer esta partida»: el código ya está copiado.</li>
+      <li>Borra el icono antiguo.</li>
+    </ol>
+    <details><summary>Ver el código de tu partida</summary><textarea id="cod" rows="4" readonly></textarea></details>
+  </div>
+  <a class="btn" id="sin" hidden href="https://jonathanvilches.github.io/MENDIZMENDI-/">Abrir el juego</a>
+</main>
+<script>
+(function () {
+  var WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
+  var FUERA = /^herrizherri-(gpu|diag-mapa|rastro|arranque|perdidas|web|version|volver|cubre|mando.*)$/;
+  var d = {}, codigo = '';
+  try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf('herrizherri-') === 0 && !FUERA.test(k)) d[k] = localStorage.getItem(k); } } catch (e) { }
+  if (d['herrizherri-perfil-v1']) {
+    var bytes = new TextEncoder().encode(JSON.stringify(d)), s = '';
+    for (var j = 0; j < bytes.length; j += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(j, j + 0x8000));
+    codigo = 'HZ0:' + btoa(s).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    try { var n = JSON.parse(d['herrizherri-perfil-v1']).name; if (n) document.getElementById('quien').textContent = 'de ' + n; } catch (e) { }
+    document.getElementById('cod').value = codigo;
+  } else { document.getElementById('con').hidden = true; document.getElementById('sin').hidden = false; }
+  // (al irse: la app antigua deja de guardar el juego en este aparato, que ocupaba sitio; la partida no se toca)
+  function suelta() {
+    var t = [];
+    try { if (navigator.serviceWorker) t.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })); })); } catch (e) { }
+    try { if (window.caches) t.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })); })); } catch (e) { }
+    return Promise.race([Promise.all(t), new Promise(function (r) { setTimeout(r, 1500); })]).catch(function () { });
+  }
+  document.getElementById('ir').onclick = function () {
+    var nota = document.getElementById('nota'), copia = Promise.resolve();
+    try { if (navigator.clipboard) copia = navigator.clipboard.writeText(codigo).then(function () { nota.textContent = 'Código copiado.'; }, function () { }); } catch (e) { }
+    copia.then(suelta).then(function () { location.href = WEB + '#traspaso=' + codigo; });
+  };
+})();
+</script>
+</body>
+</html>

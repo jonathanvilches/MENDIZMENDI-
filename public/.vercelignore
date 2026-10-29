@@ -1,0 +1,6 @@
+# En Vercel solo van los informes (api/) y la página de la mudanza: el juego vive en GitHub Pages. Antes subía la web
+# entera (unos 456 MB) en cada versión y se llenaba el espacio gratuito.
+/*
+!api
+!vercel.json
+!mudanza.html
