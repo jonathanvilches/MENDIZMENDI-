@@ -10,7 +10,7 @@ const res = await p.evaluate(async () => {
   // (lo que Vite define en la página del juego; aquí no hay página)
   Object.assign(window, { __WEB__: false, __AF__: false, __HDMAP__: null });
   localStorage.removeItem('herrizherri-torneo-v1');
-  const { torneo, yourMatch, playTorneoRound, youOut, txapelas, clasificacion, planOf, sedeDe } = await import('/src/game/torneo.js');
+  const { torneo, yourMatch, playTorneoRound, youOut, txapelas, clasificacion, planOf, sedeDe, fueraDe } = await import('/src/game/torneo.js');
   const out = []; const ok = (c, m) => out.push([!!c, m]);
   const ctx = { comarca: 'bidasoa', comarcaName: 'Baztan-Bidasoa', towns: [{ id: 'lesaka', name: 'Lesaka' }, { id: 'etxalar', name: 'Etxalar' }, { id: 'elizondo', name: 'Elizondo' }, { id: 'ituren', name: 'Ituren' }] };
   const you = { name: 'Ane', town: 'Lesaka' };
@@ -54,12 +54,15 @@ const res = await p.evaluate(async () => {
   { const st = clasificacion(T).map(x => x.p), S = T.past[7].matches; ok(S[0].a === st[0] && S[0].b === st[3] && S[1].a === st[1] && S[1].b === st[2], 'semifinales: 1.º contra 4.º y 2.º contra 3.º'); }
   // el frontón elegido vale solo para su jornada (todas se llaman «Liguilla»)
   T = torneo(you, ctx, true, 'parejas'); { const m = yourMatch(T); T.sede = { ri: T.round, round: m.round, edition: T.edition, kind: 'cubierto' }; ok(sedeDe(T, m) === 'cubierto', 'frontón elegido para la jornada'); playTorneoRound(T, m.target, 0); const m2 = yourMatch(T); ok(sedeDe(T, m2) !== 'cubierto', 'la jornada siguiente, en otro frontón'); }
-  // sin elegir, cada ronda en un frontón distinto del de la anterior y la final en el Labrit; en Iruña, sin el de la
-  // plaza (allí ya es el Labrit), y en las tres modalidades
-  for (const [k, sedes] of [['mano'], ['parejas'], ['cuatro'], ['mano', ['labrit', 'cubierto']]]) { const fs = [];
-    for (let ed = 0; ed < 4; ed++) { const X = torneo(you, ctx, true, k); while (!X.done) { const m = yourMatch(X); if (m) { fs.push(sedeDe(X, m, sedes)); playTorneoRound(X, m.target, 0); } else playTorneoRound(X); } fs.push('|'); }
-    const seg = fs.join(' ').split('|').map(x => x.trim().split(' ').filter(Boolean)).filter(r => r.length), malos = seg.filter(r => r.some((x, i) => i && x === r[i - 1]) || (!sedes && r.some((x, i) => i > 1 && x !== 'labrit' && [x, r[i - 1], r[i - 2]].every(y => y !== 'plaza'))) || r.at(-1) !== 'labrit' || r.slice(0, -1).includes('labrit'));
-    ok(!malos.length && new Set(fs.filter(x => x !== '|')).size === (sedes ? 3 : 4), `${k}${sedes ? ' en Iruña' : ''}: frontones ${seg.map(r => r.join(' ')).join(' / ')}`); }
+  // sin elegir, cada partido del campeonato en un frontón distinto (el cubierto de otro pueblo cuenta por su pueblo): el
+  // de la plaza solo en las primeras rondas y si el pueblo lo tiene (en Iruña no: allí el del pueblo ya es el Labrit),
+  // cerrado desde las semifinales y la final en el Labrit; en las tres modalidades. Con las ocho sedes de la comarca o
+  // más que da el juego (townDeportes.comarcaVenues)
+  const ctx8 = { ...ctx, towns: [...ctx.towns, { id: 'leitza', name: 'Leitza' }, { id: 'doneztebe-santesteban', name: 'Doneztebe' }, { id: 'zugarramurdi', name: 'Zugarramurdi' }, { id: 'amaiur-maya-del-baztan', name: 'Amaiur' }, { id: 'lekunberri', name: 'Lekunberri' }] };
+  for (const [k, sedes] of [['mano'], ['parejas'], ['cuatro'], ['mano', ['labrit', 'cubierto']]]) { const eds = [];
+    for (let ed = 0; ed < 4; ed++) { const X = torneo(you, ctx8, true, k), r = []; while (!X.done) { const m = yourMatch(X); if (m) { const s = sedeDe(X, m, sedes); r.push({ s, k: s === 'fuera' ? 'fuera:' + (fueraDe(X)?.id || '') : s, ronda: m.round }); playTorneoRound(X, m.target, 0); } else playTorneoRound(X); } eds.push(r); }
+    const malos = eds.filter(r => new Set(r.map(x => x.k)).size !== r.length || r.at(-1)?.s !== 'labrit' || r.slice(0, -1).some(x => x.s === 'labrit') || r.some(x => x.ronda === 'Semifinales' && x.s === 'plaza') || (sedes && r.some(x => x.s === 'plaza')));
+    ok(!malos.length, `${k}${sedes ? ' en Iruña' : ''}: frontones ${eds.map(r => r.map(x => x.k.replace('fuera:', '@')).join(' ')).join(' / ')}`); }
   ok(planOf(T).at(-1).name === 'Final', 'la final, la última');
   // un torneo de antes (de ocho) a medias se acaba con su cuadro; uno sin empezar se rehace
   { const all = JSON.parse(localStorage.getItem('herrizherri-torneo-v1')); const viejo = { kind: 'mano', comarca: 'zona', comarcaName: 'Zona', venues: [], edition: 3, txapelas: 2, players: Array.from({ length: 8 }, (_, i) => ({ id: i ? 'p' + i : 'you', name: i ? 'R' + i : 'Ane', town: 'X', lv: 2, you: !i })), round: 1, matches: [{ a: 0, b: 2, s: null }, { a: 4, b: 6, s: null }], past: [{ name: 'Cuartos de final', matches: [] }], done: false, champion: null };
