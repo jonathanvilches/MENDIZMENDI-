@@ -224,7 +224,21 @@ export class PuebloDeportes {
     // modelos de los pelotaris, no: si el rival es una chica, el del colorado no se usaba y ocupaba 5 MB
     if (this.rt?.quality === 'low' && this.rt.subePoco) this.rt.subePoco(this.scene, false, new Set([this.player?.obj].filter(Boolean)));
   }
-  async sportOnly() {
+  // En el pueblo, el pelotari junto al frontón te invita al campeonato de la comarca: el que elijas (Manomanista, Parejas
+  // o Cuatro y Medio); si te apuntas, se va a jugarlo (main.js: solo el frontón, con su cuadro ya abierto) y, al acabar,
+  // vuelves aquí, a la puerta del frontón. En el pueblo no se juega a pelota: cada partido, en un frontón distinto
+  async invitaCampeonato() {
+    const a = this.pelotari; if (!a || this.campeonato || this.disposed) return;
+    const P = profile(), cm = this.comarca?.name || 'la comarca'; let kind = null;
+    a.say?.(2);
+    await this.say(a, [`¡Aupa${P.name ? ', ' + P.name : ''}! Se está jugando el campeonato de pelota de ${cm}.`,
+      { text: '¿Te apuntas? Cada partido, en un frontón distinto, y la final en el Labrit de Iruña. ¿En cuál?', choices: ['Manomanista', 'Parejas', 'Cuatro y Medio', 'Ahora no'],
+        onChoice: (j) => { kind = ['mano', 'parejas', 'cuatro'][j] || null; return kind ? [] : ['Cuando quieras, aquí estaré.']; } }]);
+    if (!kind || this.disposed) return;
+    const e = this.fronton?.entry || this.player.pos, c = this.fronton?.toWorld?.(0, 12);
+    this.onExit?.('pueblo', { pelota: this.def.id, torneo: kind, vuelta: { id: this.def.id, x: e.x, z: e.z, h: c ? Math.atan2(c.x - e.x, c.z - e.z) : this.player.heading } });
+  }
+  async sportOnly(o = {}) {
     this.sportMode = true; this.sportBusy = true; this.ui.hudVisible(false);
     this.soloFronton();
     this.perro?.away?.();   // (en el campeonato no hace falta el perro: ni saluda ni avisa entre partido y partido)
@@ -239,6 +253,8 @@ export class PuebloDeportes {
       // (el frontón cubierto se monta ya, tapado por el fondo: así la llegada no espera a montarlo ni a compilarlo)
       // (solo si es el elegido: las rondas y los partidos se juegan ya en el frontón del pueblo)
       const S0 = this.sedes(); if (!this.fronton.court.labrit && (S0.includes(P.pelotaSede) ? P.pelotaSede : S0[0]) === 'cubierto') await this.rt?.warm?.(this.hallVenue().court.group);
+      // (desde el pueblo, apuntado por el pelotari: derecho al cuadro del campeonato elegido; al salir, de vuelta al pueblo)
+      if (o.torneo) { this.vuelta = o.vuelta || null; await this.pelotaTorneo(a, ctx, o.torneo); return; }
       for (;;) {
         // (entre partido y partido, el jugador quieto en la puerta del frontón y sin el perro, que vuelve al acabar
         // cada partido; delante, el fondo de los campeonatos: el pueblo no se ve ni se dibuja)
@@ -262,7 +278,7 @@ export class PuebloDeportes {
         const best = (townState(profile(), this.def.id).best ||= {});
         if (r.win) { best.pelota = (best.pelota || 0) + 1; saveProfile(); }
       }
-    } finally { if (!this.disposed) this.onExit?.('sports', this.luego); }   // (de vuelta a Torneos, de donde se vino, o al frontón de otro pueblo; si el pueblo se rehízo, el nuevo sigue)
+    } finally { if (!this.disposed) this.onExit?.('sports', this.luego || (this.vuelta ? { vuelta: this.vuelta } : null)); }   // (de vuelta a Torneos, de donde se vino, al frontón de otro pueblo o, si te apuntaste en el pueblo, a él; si el pueblo se rehízo, el nuevo sigue)
   }
   /** Fondo de los menús de los campeonatos de pelota: la lámina del frontón, desenfocada bajo el morado de los
    *  deportes, a pantalla completa. Antes, entre menú y menú se veía el pueblo y su frontón de la calle, que en los

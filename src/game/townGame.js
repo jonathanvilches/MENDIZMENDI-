@@ -370,9 +370,9 @@ export class TownGame {
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
     // del pastor y la ganadera, que son los que dan los trabajos del ganado
     try { this.jornales = new Jornales(this); } catch (e) { console.warn('jornales', e); }
-    // (el pelotari del pueblo ya no espera junto al frontón: la pelota se juega solo en los campeonatos. Se gastan sus
-    // números de la suerte, para que el resto del pueblo salga como siempre)
-    if (this.fronton && !this.def.missions?.some(m => m.type === 'pelota')) for (let k = 0; k < 4; k++) this.rnd();
+    // el pelotari del pueblo, junto al frontón: en el pueblo no se juega a pelota, pero él te invita al campeonato de la
+    // comarca (townDeportes.invitaCampeonato)
+    this.spawnPelotari();
     // El Sadar: la entrenadora de la cantera de Osasuna espera junto al túnel para jugar un partido
     const sadar = TOWN.landmarks.find(l => l.kind === 'stadium');
     // pista polideportiva del pueblo (donde espera el entrenador; el partido se juega en el campo del pueblo), si hay sitio llano cerca de la plaza; el entrenador del club espera
@@ -686,7 +686,7 @@ export class TownGame {
     for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: (n => n.length > 24 ? n.slice(0, 23).replace(/\s+\S*$/, '') + '…' : n)(tr(l.name)) })   // (se corta por palabra entera, ya traducido);
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
-    if (this.fronton?.spot) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', go: false });
+    if (this.fronton?.spot) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: this.pelotari ? `${this.pelotari.name} te invita al campeonato de la comarca` : undefined, go: !!this.pelotari });
     if (this.canonigo) L.push({ x: this.canonigo.pos.x, z: this.canonigo.pos.z, icon: 'pelota', label: 'Pasaka', text: 'El canónigo del claustro te enseña la pasaka' });
     return L;
   }
@@ -839,7 +839,7 @@ export class TownGame {
   }
   async interact(it) {
     this.sound.ui('click');
-    if (it.kind === 'npc' && it.a === this.pelotari) return this.freePelota();
+    if (it.kind === 'npc' && it.a === this.pelotari) return this.campeonato ? this.freePelota() : this.invitaCampeonato();
     if (it.kind === 'npc' && it.a === this.coach) return this.playFutbol();
     if (it.kind === 'npc' && it.a === this.futsalCoach) return this.playFutsal();
     if (it.kind === 'shop' || (it.kind === 'npc' && it.a.shop)) return this.tienda.open();
