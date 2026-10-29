@@ -197,8 +197,10 @@ export class Runtime {
     const R = this.renderer, t0 = performance.now();
     let job;
     try { job = compilarAsync(R, obj, cam, obj.isScene || !this.scene ? null : this.scene); } catch (e) { job = Promise.resolve(); }
-    // (las texturas, también ahora: subirlas la primera vez que se ven daba otro tirón; en el móvil no, por la memoria)
-    if (this.quality !== 'low') this.upload(obj);
+    // (las texturas, también ahora: subirlas la primera vez que se ven daba otro tirón; en el móvil no, por la memoria.
+    // En el ordenador sí, también en calidad baja: memoria tiene de sobra, y con la gráfica del procesador cada textura
+    // que se subía al aparecer en pantalla era un parón)
+    if (this.quality !== 'low' || !this.tactil) this.upload(obj);
     return Promise.race([job, new Promise(r => setTimeout(r, ms))]).catch(() => { }).finally(() => {
       this.holds = Math.max(0, this.holds - 1); this.clock.getDelta();
       if (/debug/.test(location.search)) console.log('[compilar]', obj.name || obj.type, Math.round(performance.now() - t0), 'ms');
