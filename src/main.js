@@ -31,7 +31,7 @@ import { Hub } from './hub/hub.js';
 import { isDidactico } from './util/modo.js';
 import { profile, saveProfile, townState, checkBadges, salazarState, townProgress } from './game/profile.js';
 import { missionSlots, edadDe } from './data/edad.js';
-import { levelById, LEVELS, sedeDePueblo } from './data/levels.js';
+import { levelById, LEVELS, sedeDePueblo, esExterior } from './data/levels.js';
 import { townImg } from './assets.js';
 import { armsReady } from './ui/escudoImg.js';
 import { armsOfTown } from './data/armas-navarra.js';
@@ -205,9 +205,12 @@ async function boot() {
       await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
       // (en los campeonatos, los mensajes de la carga hablan del frontón, no de plantar árboles ni de saludar a los vecinos)
       const sportMsg = (p) => pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : p < 0.3 ? (eu ? 'Frontoia irekitzen…' : 'Abriendo el frontón…') : p < 0.6 ? (eu ? 'Kantxa prestatzen…' : 'Preparando la cancha…') : p < 0.9 ? (eu ? 'Harmailak betetzen…' : 'Llenando la grada…') : (eu ? 'Pilotariak berotzen…' : 'Calentando a los pelotaris…');
-      const modP = juego(), npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m)), npcP]);
+      // (el campeonato de pelota, solo con su frontón: ni el pueblo ni sus vecinos; con suelo, los frontones al aire libre,
+      // que van en su calle; engine/runtime.js, load)
+      const campeonato = opt.sport === 'pelota';
+      const modP = juego(), npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m), { soloFronton: campeonato, conSuelo: campeonato && esExterior(d.id) }), npcP]);
       const [{ Game }, { TownGame }] = await modP;
-      const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit };
+      const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit, campeonato };
       hookPlayer(rt.player);
       if (d.special === 'salazar') {
         game = new Game(ctx);
