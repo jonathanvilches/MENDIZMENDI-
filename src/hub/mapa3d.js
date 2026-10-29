@@ -343,7 +343,7 @@ export function mapa3d(host, o) {
   for (const c of C) { const bb = c.mesh.geometry.boundingBox.clone(); bb.max.y = GROSOR + c.hmax + c.alzado + 1.1; c.esq = []; for (const x of [bb.min.x, bb.max.x]) for (const y of [0, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) c.esq.push(new THREE.Vector3(x, y, z)); c.mid = bb.getCenter(new THREE.Vector3()); }
   let DMAX = 150;
   const v = { x: 0, z: 4, d: 132, yaw: 0, pitch: 1.18, hy: 0.8 }, goal = casa();
-  let bajoC = null;   // (la comarca que queda debajo del punto al que mira la cámara)
+  let bajoC = null, subida = 0;   // (la comarca que queda debajo del punto al que mira la cámara; y lo que sube la cámara para no meterse en el relieve)
   let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t0, dur })
   const volar = (a, dur = 0.9) => { inercia = null; vuelo = { de: { ...v }, a: { ...v, ...a }, t: 0, dur }; Object.assign(goal, vuelo.a); };
   const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.12 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
@@ -970,7 +970,9 @@ export function mapa3d(host, o) {
     }
   }
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })) };   // (para las pruebas en el servidor de desarrollo)
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
+    // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
+    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; } };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
@@ -1116,6 +1118,13 @@ export function mapa3d(host, o) {
     const kh = Math.min(1, Math.max(0, (40 - v.d) / 24)), hs = bajo?.sy ? pisoEn(bajo, v.x, v.z) * bajo.sy + bajo.py : 0.8;
     v.hy += (0.8 + (hs - 0.8) * kh - v.hy) * (1 - Math.exp(-dt * 4));
     camPos(v, cam.position);
+    // (la cámara nunca entra en el relieve ni lo deja entre ella y lo que mira: si una sierra, o la comarca levantada, se
+    // mete por medio, sube por la ladera lo justo, como un dron, y cuando ya no hace falta baja despacio. Antes, en el vuelo
+    // sobre un pueblo con montes alrededor (Leitza), atravesaba la montaña y se veía negro: el fondo, por debajo del relieve)
+    { const cp = cam.position, m = 0.02 + v.d * 0.05; let need = 0;
+      for (let k = 10; k >= 3; k--) { const f = k / 10, x = v.x + (cp.x - v.x) * f, z = v.z + (cp.z - v.z) * f, c = deQuien(x, z); if (!c?.sy) continue;
+        const g = pisoEn(c, x, z) * c.sy + c.py + m, y = v.hy + (cp.y - v.hy) * f; if (y < g) need = Math.max(need, v.hy + (g - v.hy) / f - cp.y); }
+      subida = need > subida ? need : subida + (need - subida) * (1 - Math.exp(-dt * 2.5)); cp.y += subida; }
     if (intro && tI < IT.fin + 1) { const tb = temblor(tI) * v.d * 0.003; cam.position.x += Math.sin(tI * 71) * tb; cam.position.y += Math.sin(tI * 53 + 1) * tb; cam.position.z += Math.sin(tI * 61 + 2) * tb; }
     cam.lookAt(v.x, v.hy, v.z);
     // (lo más cerca que se pinta, según lo lejos que está la cámara: así el suelo, el hueco y lo de encima no se pisan desde lo alto)
