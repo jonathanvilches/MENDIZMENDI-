@@ -67,7 +67,7 @@ export class Runtime {
     // con dientes y motas); en un ordenador con pantalla de mucha densidad (retina, 4K) no, porque la propia resolución ya
     // suaviza los bordes y, con tantos píxeles, era lo que más lo frenaba. Tampoco en calidad baja en el ordenador: en las
     // gráficas del procesador (Intel UHD) el suavizado multiplica lo que cuesta cada píxel y el juego iba a tirones
-    const tactil = !!matchMedia?.('(pointer: coarse)').matches;
+    const tactil = this.tactil = !!matchMedia?.('(pointer: coarse)').matches;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'low' ? tactil : quality !== 'high' || devicePixelRatio < 1.5, powerPreference: 'high-performance' });
     // resolución con un presupuesto de píxeles: en alta, como mucho unos 4 millones (2560×1600); en móvil 1,25
     this.pixelRatio = this.maxRatio = this.ratioFor(quality);
@@ -175,6 +175,9 @@ export class Runtime {
     this.warmed.add(scene);
     // (el aligerado de un pueblo anterior sigue: si el ordenador no podía con aquel, tampoco con este)
     if (this.lite) this.applyLite();
+    // (y la vista corta, si este ordenador ya la necesitó otra vez)
+    let corta = this.vistaCorta; try { corta ||= q === 'low' && !this.tactil && !!localStorage.getItem('herrizherri-vista-corta'); } catch (e) { }
+    if (corta) this.acortaVista();
     return this;
   }
   // segunda pasada de compilación, ya con vecinos, objetos de misión y efectos creados: así no hay tirones
@@ -331,6 +334,11 @@ export class Runtime {
       // (no en los partidos, que tienen su propia escena y su resolución, ni en el móvil, que ya va en lo más ligero)
       if (fps < want * 0.85 && this.pixelRatio <= floor + 0.01 && !this.boosted && !g?.altScene && g?.mode === 'play' && this.quality !== 'low' && this.lite < 2) { if (++this.slowN >= 3) { this.slowN = 0; this.lighten(fps); } }
       else this.slowN = 0;
+      // y en el ordenador con una gráfica floja (calidad baja), si ni con la resolución más baja llega, unos 6 s, se acorta
+      // la vista y se recuerda para la próxima vez (en un portátil con una Intel UHD, Pamplona iba a 8-10 imágenes por
+      // segundo ya con la resolución más baja)
+      if (fps < want * 0.85 && this.pixelRatio <= floor + 0.01 && !this.boosted && !g?.altScene && g?.mode === 'play' && this.quality === 'low' && !this.tactil && !this.vistaCorta) { if (++this.slowV >= 3) { this.slowV = 0; this.acortaVista(true); } }
+      else this.slowV = 0;
       window.__fps = fps;
     }
   }
@@ -359,6 +367,17 @@ export class Runtime {
       const sun = this.sky?.sun;
       if (sun && sun.shadow.mapSize.x > 1024) { sun.shadow.mapSize.set(1024, 1024); sun.shadow.map?.dispose(); sun.shadow.map = null; }
     }
+  }
+  /** La vista corta, para las gráficas flojas del ordenador: niebla desde 50 m y nada más allá de 300 m (el cielo va
+   *  siempre al fondo y no se corta), sin el bosque ni los montes lejanos, que quedarían dentro de la niebla. */
+  acortaVista(apunta = false) {
+    this.vistaCorta = true;
+    this.camera.far = 300; this.camera.updateProjectionMatrix();
+    const f = this.sky?.fog; if (f) { f.near = 50; f.far = 280; }
+    if (this.weather?.fogBase) this.weather.fogBase = [50, 280];
+    if (this.nature) { this.nature.sinLejos = true; for (const m of this.nature.bosqueLejos || []) m.visible = false; }
+    if (this.terrain?.outer) this.terrain.outer.visible = false;
+    if (apunta) { try { localStorage.setItem('herrizherri-vista-corta', '1'); } catch (e) { } console.info('[fluidez] vista corta'); this.onLighten?.(this.lite + 1); this.onVistaCorta?.(); }
   }
   /** Más resolución mientras dura una escena sencilla y de cerca (el partido de pelota): en el móvil los pelotaris se
    *  veían con manchas porque la imagen se dibujaba a 1,25 en pantallas de 3. Si va lento, la resolución dinámica la baja. */
