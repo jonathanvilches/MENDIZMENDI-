@@ -323,7 +323,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .pstats { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; } .pstats span { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); }
 .set { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 /* (los controles, todos del mismo ancho y pegados al mismo borde derecho: la casilla, sin el margen que le pone el navegador) */
-.set select { font: inherit; padding: 8px 12px; border-radius: 10px; background-color: var(--plum2); color: #fff; border: 1px solid var(--line2); min-width: 0; width: min(56%, 220px); flex: none; text-overflow: ellipsis; }
+.set select { font: inherit; padding: 8px 12px; border-radius: 10px; background-color: var(--plum2); color: #fff; border: 1px solid var(--line2); min-width: 0; width: min(62%, 240px); flex: none; text-overflow: ellipsis; }
 .set input[type=range] { width: min(56%, 220px); flex: none; margin: 0; accent-color: var(--gold); } .set input[type=checkbox] { width: 24px; height: 24px; margin: 0; accent-color: var(--gold); }
 
 /* ---------- Bienvenida: selección de personaje a pantalla completa ---------- */

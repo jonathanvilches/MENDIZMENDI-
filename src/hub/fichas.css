@@ -189,7 +189,4 @@
 /* los cuentos de la comarca, en retícula */
 .cm-ley { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 
-/* ---------- la página del pueblo del didáctico: su carta a la izquierda (arriba, de pie) ---------- */
-.dd-hero h1 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .16em; }
-
 @media (prefers-reduced-motion: reduce) { .cm-t .gt-foto::after { animation: none; } .cm-t { transition: none; } }

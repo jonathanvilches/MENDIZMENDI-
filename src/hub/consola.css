@@ -45,6 +45,9 @@
 #hub.juego .hub-menu-btn { left: var(--hud-l); display: flex; align-items: center; gap: 10px; padding: 3px 14px 3px 3px; font: inherit; text-align: left; }
 .yo-c { position: relative; flex: none; width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); }
 .yo-c img { display: block; width: 100%; height: 100%; border-radius: calc(var(--cr-r, 12px) - 3px); object-fit: cover; object-position: center 18%; background: #2a1458; }
+/* (en el material didáctico, el libro del material en su recuadro, en lugar del retrato) */
+.yo-c.yo-dd { display: grid; place-items: center; border-radius: calc(var(--cr-r, 12px) - 3px); background: #2a1458; }
+.yo-c.yo-dd img, .yo-c.yo-dd svg { width: 78%; height: 78%; object-fit: contain; background: none; border-radius: 0; }
 .yo-n { position: absolute; right: -5px; bottom: -5px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; border-radius: 9px; background: linear-gradient(135deg, #ff3fcf, #9c3bff); color: #fff; font: 700 11px/1 var(--f-ui); box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); }
 .yo-t { display: grid; gap: 2px; min-width: 0; line-height: 1.1; }
 .yo-t b { color: #fff; font: 600 var(--fs-sm)/1.1 var(--f-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }

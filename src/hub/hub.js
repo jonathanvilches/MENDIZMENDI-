@@ -77,7 +77,7 @@ const otroNombre = (n1, n2) => (isEU() ? n1 : n2);
 // el color de cada parte del juego, para distinguirlas de un vistazo (hub.css, --cat): la aventura, en fucsia; los torneos,
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
 const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
-const kc = (id) => KC[id] || 'av';
+const kc = (id) => KC[String(id).split(':')[0]] || 'av';
 // (el nombre y el icono, en la barra de arriba, de las secciones del material que no van en el menú del juego)
 const OTRAS = { tradiciones: [, 'Tradiciones', 'mask'], oficios: [, 'Oficios', 'anvil'], productos: [, 'Productos', 'cheese'], historia: [, 'Historia', 'castle'], euskera: [, 'Euskera', 'talk'] };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
@@ -142,7 +142,9 @@ export class Hub {
     // el modo didáctico (util/modo.js): se elige en la primera pantalla o en Ajustes, o con ?didactico=1 (?didactico=0, quitarlo)
     { const S = profile().settings, u = new URLSearchParams(location.search).get('didactico');
       if (u != null) { S.didactic = u !== '0'; saveProfile(); }
-      markDidactico(S.didactic); this.root.classList.toggle('juego', !S.didactic); }
+      // (y con la misma piel que el juego, #hub.juego: el mapa debajo y cada sección en su ventana. Antes el material didáctico
+      // seguía con la barra de arriba y el menú al lado de la web de antes, y en el móvil tumbado se quedaba sin sitio)
+      markDidactico(S.didactic); this.root.classList.add('juego'); }
     // (lo que mide tu retrato de arriba a la izquierda, que abre el menú: lo conquistado empieza justo a su lado)
     { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (this.screen === 'home') this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }
     // (el menú flotante: se abre y se cierra con su botón, con la X, tocando fuera o con Escape; al elegir una sección, se cierra)
@@ -173,15 +175,15 @@ export class Hub {
       if (t.dataset.comarca) return this.go('comarca', t.dataset.comarca);
       if (t.dataset.go) this.go(t.dataset.go);
     });
-    this.screen = 'home';
+    this.screen = isDidactico() ? 'aprende' : 'home';   // (el material didáctico abre con su portada, encima del mapa)
   }
   // secciones: las principales siempre a la vista; las demás (1), en «Más» cuando falta sitio; la de elegir avatar (2), a
   // la vista salvo en el móvil de pie, donde la barra de abajo no tiene sitio para tantas (también está en el Perfil).
   // En el modo didáctico, solo el material: sin torneos, avatar, pasaka para jugar, insignias ni pasaporte
   buildNav() {
     this.nav = isDidactico()
-      ? [['home', 'Inicio', 'home'], ['map', 'Mapa', 'map'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
-      // (jugando, sin «Mapa»: el inicio ya es el mapa de Navarra en 3D; en el didáctico, que no lo tiene, sí)
+      ? [['home', 'Mapa', 'map'], ['aprende', 'Aprende Navarra', 'book'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
+      // (sin «Mapa» aparte: el inicio ya es el mapa de Navarra en 3D; en el didáctico se llama así, y su portada es «Aprende Navarra»)
       : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
@@ -192,9 +194,9 @@ export class Hub {
   }
   /** Pone o quita el modo didáctico y vuelve a la portada. */
   setDidactico(on) {
-    const S = profile().settings; S.didactic = !!on; saveProfile(); markDidactico(on); this.root.querySelector('[data-cj-abre]').hidden = !!on; this.root.classList.toggle('juego', !on);
+    const S = profile().settings; S.didactic = !!on; saveProfile(); markDidactico(on); this.root.querySelector('[data-cj-abre]').hidden = !!on;
     cierraMapa(); $('#hMapa', this.root).innerHTML = '';
-    this.buildNav(); this.sound?.ui('open'); this.go('home', undefined, true);
+    this.buildNav(); this.sound?.ui('open'); this.go(on ? 'aprende' : 'home', undefined, true);
     if (!on && !profile().name) this.primeraVez();
   }
   show(screen = this.screen, arg = this.arg) { if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
@@ -209,11 +211,13 @@ export class Hub {
     const pn = $('#hPanel', r); if (on) { pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', 'Menú'); this.sound?.ui('open'); } else pn.removeAttribute('role');
   }
   go(screen, arg, silent) {
+    if (screen === 'map') screen = 'home';   // (el mapa es el inicio, debajo de todo: en el didáctico también)
+    if (screen?.includes(':')) [screen, arg] = screen.split(':');   // («comarca:pirineo»: la pantalla y lo que abre)
     this.screen = screen; this.arg = arg;
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;
     const secScreen = this.nav.some(n => n[0] === screen) && this.navHidden(screen);
-    this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === (isDidactico() ? 'map' : 'home')) || (b.dataset.s === 'more' && secScreen))));
+    this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'home') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
     this.root.dataset.screen = screen;
@@ -248,6 +252,8 @@ export class Hub {
   }
   // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas
   vecinas(screen) {
+    // (la página de un pueblo del didáctico: a un lado, todos los pueblos; al otro, su comarca)
+    if (screen === 'pueblo') { const l = levelById(this.arg); return l ? [['towns', 'Pueblos'], ['comarca:' + l.comarca, COMARCAS.find(c => c.id === l.comarca)?.name || 'Comarca']] : null; }
     const L = this.nav.filter(x => x[0] !== 'home'), i = L.findIndex(x => x[0] === screen);
     return i < 0 || L.length < 3 ? null : [L[(i - 1 + L.length) % L.length], L[(i + 1) % L.length]];
   }
@@ -284,7 +290,9 @@ export class Hub {
     s.querySelector('[data-cj]')?.addEventListener('click', () => { s.remove(); this.sheet = null; comoJugar(this.root); });
   }
   renderChip() {
-    if (isDidactico()) { $('#hChip', this.root).innerHTML = `<span class="dd-chip">${I('book', 26)}<b class="dd-chl">Material didáctico</b><b class="dd-chs">Didáctico</b></span>`; $('#hChip', this.root).onclick = () => this.go('profile'); return; }
+    if (isDidactico()) { $('#hChip', this.root).innerHTML = `<span class="dd-chip">${I('book', 26)}<b class="dd-chl">Material didáctico</b><b class="dd-chs">Didáctico</b></span>`; $('#hChip', this.root).onclick = () => this.go('profile');
+      // (el botón del menú, arriba a la izquierda: en el didáctico, el libro del material en lugar de tu retrato y tu nivel)
+      $('[data-menu]', this.root).innerHTML = `<span class="yo-c yo-dd">${I('book', 30)}</span><span class="yo-t"><b>Material didáctico</b><small>Aprende Navarra</small></span>`; return; }
     const p = profile(), L = levelOf(p.xp);
     $('#hChip', this.root).innerHTML = `<img src="${avatarPortrait(p.avatar)}" alt=""><div class="cinfo"><b>${esc(p.name || 'Aventurero')}</b><small>Nv ${L.lv} · ${rankOf(L.lv)}</small><div class="xp"><i style="width:${L.cur / L.need * 100}%"></i></div></div><span class="stamps">${I('stamp', 22)}${stampCount(p)}</span>`;
     $('#hChip', this.root).onclick = () => this.go('profile');
@@ -299,7 +307,6 @@ export class Hub {
   opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), misiones: (l) => this.misiones(l, p), xy: (l) => XY.get(l.id) }; }
   // el inicio: el mapa del mundo, a toda la pantalla, como en un juego (inicio.js); sin desplazarse
   s_home() {
-    if (isDidactico()) return this.d_home();
     this.after = () => inicioOn(this.root);
     return inicioHTML(this.opcInicio(profile()));
   }
@@ -352,6 +359,8 @@ export class Hub {
   // ---------- Mapa ----------
   // (en el didáctico, el mismo mapa 3D del inicio, en su propia sección: cada comarca lleva a su página y cada pueblo a la
   // suya. Jugando, el mapa ya es el inicio)
+  // (la portada del material didáctico, en su ventana como las demás secciones)
+  s_aprende() { return this.d_home(); }
   s_map() {
     if (!isDidactico()) return this.s_home();
     this.after = () => inicioOn(this.root);

@@ -433,7 +433,7 @@ async function boot() {
   if (t && levelById(t) && isDidactico()) hub.show('pueblo', t);   // (en el modo didáctico, su página)
   else if (t && levelById(t)) { if (!P.name) { P.name = 'Iñigo'; saveProfile(); } play(levelById(t), volverA === 'pelota' && !q.get('town') ? { sport: 'pelota' } : undefined); }
   else {
-    hub.show(q.get('screen') || 'home', q.get('arg') || undefined);
+    hub.show(q.get('screen') || (isDidactico() ? 'aprende' : 'home'), q.get('arg') || undefined);   // (el material didáctico abre con su portada, encima del mapa)
   }
   window.__ready = true;
 }
