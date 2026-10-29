@@ -25,13 +25,16 @@ function anterior() {
 }
 let bateria = '';
 try { navigator.getBattery?.().then(b => { const pon = () => { bateria = `${b.charging ? 'enchufado' : 'sin enchufar'} · ${Math.round(b.level * 100)} %`; }; pon(); b.addEventListener('chargingchange', pon); }).catch(() => { }); } catch (e) { /* sin batería */ }
+// (la calidad con la que va el juego y la elegida en Ajustes, que en el iPhone no pasa de la baja: main.js)
+const calidad = () => { let el = ''; try { el = JSON.parse(lee('herrizherri-perfil-v1') || '{}').settings?.quality || ''; } catch (e) { /* roto */ }
+  const N = { low: 'baja', mid: 'media', high: 'alta' }; return `${N[window.__rt?.quality] || 'aún sin empezar'} · en Ajustes, ${N[el] || 'automática'}`; };
 /** Las filas del diagnóstico: [rótulo, valor] */
 export function datos() {
   const f = [['Versión', `${version()} · ${typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'desarrollo'} · ${location.hostname || 'archivo'}`],
     ['Ventana', `${innerWidth} × ${innerHeight} · página ${Math.round(document.documentElement.getBoundingClientRect().height)} · pantalla ${screen.width} × ${screen.height} · ×${devicePixelRatio}`],
     ['App instalada', instalada() ? 'sí' : 'no'],
     ['Reducir movimiento', matchMedia('(prefers-reduced-motion: reduce)').matches ? 'sí' : 'no'],
-    ['Modo sencillo', lee('herrizherri-sencillo') || 'no'], ['Arranques sin acabar', lee('herrizherri-arranque') || '0'],
+    ['Modo sencillo', lee('herrizherri-sencillo') || 'no'], ['Calidad', calidad()], ['Arranques sin acabar', lee('herrizherri-arranque') || '0'],
     ['Imagen perdida', (lee('herrizherri-perdidas') || '0').replace('|', ' veces · la última, ') + (pelotaLigera() ? ' · partidos de pelota aligerados' : '')], ['La vez anterior', anterior()]];
   let m = null; try { m = JSON.parse(lee(K) || 'null'); } catch (e) { /* roto */ }
   if (m) {
