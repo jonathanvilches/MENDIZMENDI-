@@ -485,12 +485,14 @@ export function buildField(venueId = 'sadar', { quality = 'high', crowd = null, 
           // la cubeta del asiento (antes solo había respaldo pintado: la grada parecía plana)
           const pa = [a[0] + n[0] * 0.38, a[1] + n[2] * 0.38], pb = [b[0] + n[0] * 0.38, b[1] + n[2] * 0.38];
           backs.quad([pa[0], y1 + 0.36, pa[1]], [pb[0], y1 + 0.36, pb[1]], [b[0], y1 + 0.32, b[1]], [a[0], y1 + 0.32, a[1]], [0, 1, 0], [u0, 0.15, u1, 0.15, u1, 0.75, u0, 0.75]);
-          // público: un sitio por asiento, con los pies en la huella y mirando al campo
+          // público: un sitio por asiento, con los pies en la huella y mirando al campo. La figura, con la cadera sobre la
+          // cubeta (a 0,40 m del borde, la mitad de la huella): las rodillas y los pies caben en su huella. Antes, a 0,26, se
+          // sentaba delante del asiento y las rodillas salían por encima del respaldo de la fila de abajo
           const L = lS * (t1 - t0), nSeat = Math.floor(L / 0.5);
           for (let q = 0; q < nSeat; q++) {
             if (rnd() > fill) continue;
             const t = t0 + (t1 - t0) * (q + 0.5) / nSeat, f = lerp(PF, i, t), bk = lerp(PB, i, t);
-            spots.push([f[0] + (bk[0] - f[0]) * 0.32, y1 + 0.02, f[1] + (bk[1] - f[1]) * 0.32, Math.atan2(-PF[i][2], -PF[i][3])]);
+            spots.push([f[0] + (bk[0] - f[0]) * 0.5, y1 + 0.02, f[1] + (bk[1] - f[1]) * 0.5, Math.atan2(-PF[i][2], -PF[i][3])]);
           }
         }
         sF += lF; sB += lB; sS += lS;

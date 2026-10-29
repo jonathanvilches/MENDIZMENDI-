@@ -90,6 +90,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mientras el partido cambia la pantalla sin parar, Safari a veces se traga el clic: la X de la pelota no dejaba salir.
   Lo usan la X y las ventanas de la pelota, y la pausa, la cámara, la ventana de pausa y la final del fútbol. Con el
   teclado y desde el código (`boton.click()`) vale el clic de siempre.
+- **Nada atraviesa nada:** ni personas, ni animales, ni objetos pasan a través de paredes, muros, barandillas,
+  asientos o escalones; todo tiene que tener sentido a la vista. El público sentado (`crowd3d`, sitio = pies) ocupa unos
+  52 cm por delante del centro del asiento con las rodillas y los pies: el asiento va al fondo de su escalón y la grada
+  dice cuánto se adelanta la figura (`court.sitAdelante`: 0,08 en butacas con respaldo, 0,3 en bancos corridos al
+  borde). Delante de la primera fila, nada que los pies puedan cruzar. Para mirarlo de cerca: `tools/grada-ver.mjs pueblo`.
 - **Sin propiedad ajena:** nada de personajes o logotipos de terceros. Solo recursos propios o con licencia CC0
   (las licencias están junto a los recursos, en `src/assets/*/LICENSE_*`).
 - **Textos:** se escriben en castellano; el traductor (`i18n.js` + `data/eu.js`) los pasa al euskera.
@@ -295,6 +300,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | Herramienta | Qué hace |
 |---|---|
 | `presupuesto-pueblo.mjs` | El presupuesto de cada pueblo: lo que pinta con el perfil del iPhone (triángulos, dibujos y memoria de texturas y búferes, con `presupuesto-gpu.js`) en su puerta mirando a los cuatro lados y, con `PELOTA=1`, en su partido de pelota, frente a lo que aguanta el iPhone 13 (unos 900 mil triángulos, 520 dibujos y 80 MB de texturas en el pueblo). Todo pueblo nuevo tiene que pasarlo antes de publicarse: solo se carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno. Sale con código 1 si alguno se pasa |
+| `grada-ver.mjs` | La primera fila del público de un frontón, de cerca, con una cámara propia: que nadie atraviese su escalón, el antepecho ni el asiento de delante. Tres capturas por frontón y lo que mide la figura sentada. |
 | `revision.mjs` | Carga los 31 pueblos y comprueba misiones, anfitriones, suelo, perro y errores; deja el informe en `entrega/revision.json` |
 | `encierro.mjs` | Prueba el encierro con capturas |
 | `iconos-nitidez.mjs` | Nitidez de los iconos 3D en las pantallas del menú (móvil de densidad 3 y escritorio): píxeles de pantalla frente a los de la imagen tras el cambio a la grande, rotos y cuántos de cada tamaño |
