@@ -549,22 +549,32 @@ const azar = (T, i, k = 0) => { let h = [...`${T.comarca}${T.kind}`].reduce((a, 
   h = Math.imul(h ^ 0x9E3779B9, 0x85EBCA6B) ^ Math.imul(i + 0x632BE5AB, 0xC2B2AE35); h ^= h >>> 16; h = Math.imul(h, 0x7FEB352D); h ^= h >>> 15; h = Math.imul(h, 0x846CA68B); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 const rivalEn = (T, ms) => { const x = ms?.find(q => T.players[q.a]?.you || T.players[q.b]?.you); return x ? T.players[T.players[x.a].you ? x.b : x.a] : null; };
 /** El pueblo del cubierto de fuera en una ronda: { id, name } del rival si es de un pueblo del juego; si no, uno de la
- *  comarca (o de alrededor) que no sea el tuyo, a suertes. null si no hay ninguno. */
+ *  comarca (o de alrededor) que no sea el tuyo, a suertes. Nunca el de una ronda anterior: cada partido del campeonato,
+ *  en un frontón distinto (si ya no queda ninguno sin usar, se repite). null si no hay ninguno. */
 export function fueraDe(T, ri = T.round) {
   const rv = rivalEn(T, ri < T.round ? T.past[ri]?.matches : T.matches), yo = T.players.find(q => q.you)?.town;
-  if (rv?.townId) return { id: rv.townId, name: rv.town };
-  const vs = (T.venues || []).filter(v => v.id && v.name !== yo); if (!vs.length) return null;
-  return vs[Math.floor(azar(T, ri, 1) * vs.length)];
+  const antes = new Set(); for (let j = 0; j < ri; j++) { const f = fueraDe(T, j); if (f) antes.add(f.id); }
+  const vs = (T.venues || []).filter(v => v.id && v.name !== yo), a = Math.floor(azar(T, ri, 1) * Math.max(1, vs.length));
+  const ops = [...(rv?.townId ? [{ id: rv.townId, name: rv.town }] : []), ...vs.slice(a), ...vs.slice(0, a)];
+  return ops.find(v => !antes.has(v.id)) || ops[0] || null;
 }
 export function sedeRonda(T, ri, sedes = ['plaza', 'cubierto', 'labrit']) {
-  const plan = planOf(T), S = T.sede?.edition === T.edition ? T.sede : null; let k = null, k2 = null;
+  // cada partido del campeonato, en un frontón distinto: el del pueblo al aire libre (solo los que tienen su entorno,
+  // sedes con 'plaza', levels.js esExterior, y solo en las primeras rondas), su cubierto, el cubierto de otro pueblo (el
+  // del rival o el de otra sede de la comarca, cada ronda uno) y la final en el Labrit. Desde las semifinales, siempre
+  // en un frontón cerrado, como los profesionales
+  const plan = planOf(T), S = T.sede?.edition === T.edition ? T.sede : null, usados = new Set(); let k = null;
+  const clave = (x, i) => x === 'fuera' ? 'fuera:' + (fueraDe(T, i)?.id || '') : x;
   for (let i = 0; i <= ri; i++) {
-    const prev = k, dosCubiertos = !!prev && !!k2 && prev !== 'plaza' && k2 !== 'plaza'; k2 = prev;
-    if (S && S.ri === i && i < ri) { k = S.kind; continue; }   // (lo elegido para una ronda ya jugada, para no repetirlo en la siguiente)
-    if (plan[i]?.name === 'Final') { k = 'labrit'; continue; }
-    // (tras un cubierto, mejor el del pueblo, al aire libre, que es el que más se nota: cuenta por dos)
-    const ops = [...sedes.filter(x => x !== 'labrit' && x !== 'fuera'), ...(fueraDe(T, i) ? ['fuera'] : [])], libres = ops.filter(x => x !== prev).flatMap(x => x === 'plaza' && prev ? [x, x] : [x]), L = libres.length ? libres : ops;
-    k = dosCubiertos && L.includes('plaza') ? 'plaza' : L[Math.floor(azar(T, i) * L.length)] || 'plaza';   // (y tras dos cubiertos seguidos, el del pueblo)
+    if (S && S.ri === i && i < ri) k = S.kind;   // (lo elegido para una ronda ya jugada)
+    else if (plan[i]?.name === 'Final') k = 'labrit';
+    else {
+      const cerrado = plan[i]?.name === 'Semifinales', fuera = !!fueraDe(T, i);
+      const orden = cerrado ? ['cubierto', 'fuera'] : i === 0 ? ['plaza', 'fuera', 'cubierto'] : ['fuera', 'plaza', 'cubierto'];
+      const ops = orden.filter(x => (x === 'fuera' ? fuera : sedes.includes(x)) && !(x === 'plaza' && cerrado));
+      k = ops.find(x => !usados.has(clave(x, i))) || (fuera ? 'fuera' : 'cubierto');
+    }
+    usados.add(clave(k, i));
   }
   return k;
 }
