@@ -2,7 +2,6 @@
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
 import { PLACES } from '../world/layout.js';
-import { loadMeshy, hasMeshy } from '../actors/glbChar.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
 import { groundHeight, terrainHeight, waterLevelAt, onPlatform } from '../world/heightfield.js';
@@ -371,7 +370,9 @@ export class TownGame {
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
     // del pastor y la ganadera, que son los que dan los trabajos del ganado
     try { this.jornales = new Jornales(this); } catch (e) { console.warn('jornales', e); }
-    this.spawnPelotari();
+    // (el pelotari del pueblo ya no espera junto al frontón: la pelota se juega solo en los campeonatos. Se gastan sus
+    // números de la suerte, para que el resto del pueblo salga como siempre)
+    if (this.fronton && !this.def.missions?.some(m => m.type === 'pelota')) for (let k = 0; k < 4; k++) this.rnd();
     // El Sadar: la entrenadora de la cantera de Osasuna espera junto al túnel para jugar un partido
     const sadar = TOWN.landmarks.find(l => l.kind === 'stadium');
     // pista polideportiva del pueblo (donde espera el entrenador; el partido se juega en el campo del pueblo), si hay sitio llano cerca de la plaza; el entrenador del club espera
@@ -524,10 +525,6 @@ export class TownGame {
       const b = this.blasones.find(x => !this.P.cards.includes(x.id) && Math.hypot(x.read.x - P.pos.x, x.read.z - P.pos.z) < 14);
       if (b) { this.shieldHint = true; this.ui.whisper(`Esa casa tiene un escudo en la fachada. Acércate a la puerta y léelo: cuenta quién vivía allí.`, 5200); }
     }
-    // cerca del frontón se piden ya los dos pelotaris (así el partido empieza al momento, sin esperar a descargarlos)
-    if (this.fronton && !this.pelPrefetch && Math.hypot(this.fronton.entry.x - P.pos.x, this.fronton.entry.z - P.pos.z) < 60) {
-      this.pelPrefetch = true; for (const n of ['pelotari', 'pelotari_rojo']) if (hasMeshy(n)) loadMeshy(n).catch(() => {});
-    }
     const fr = frameFrustum(this.camera);
     const cull = (a, max) => cullActor(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), max, dt, P, fr);
     const lowQ = QUALITY === 'low';   // en móviles los vecinos se dibujan más cerca
@@ -635,7 +632,6 @@ export class TownGame {
       if (M.step === 0) out.push({ x: h.x, z: h.z, icon: 'exclaim', title: M.title, text: `Habla con ${M.host.name}`, act: 'track', id: M.i, go: true });
       else { const t = this.target(M); if (t) out.push({ x: t.x, z: t.z, icon: M.icon, title: M.title, text: this.stepText(M), act: 'track', id: M.i }); }
     }
-    if (this.fronton) out.push({ x: this.fronton.entry.x, z: this.fronton.entry.z, icon: 'pelota', small: true, title: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true });
     return out;
   }
   // Bocadillos de los vecinos: al pasar junto a uno que va por la calle, te dice algo corto encima de la cabeza, en euskera
@@ -690,7 +686,7 @@ export class TownGame {
     for (const l of TOWN.landmarks) L.push({ x: l.spot.x, z: l.spot.z, icon: l.kind, label: (n => n.length > 24 ? n.slice(0, 23).replace(/\s+\S*$/, '') + '…' : n)(tr(l.name)) })   // (se corta por palabra entera, ya traducido);
     if (TOWN.farm) L.push({ x: TOWN.farm.x, z: TOWN.farm.z, icon: 'sheep', label: 'Granja' });
     L.push({ x: PLACES.fields.x, z: PLACES.fields.z, icon: 'wheat', label: 'Campos' });
-    if (this.fronton) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', text: 'Acércate al frontón para jugar a pelota', fronton: true, go: false });
+    if (this.fronton?.spot) L.push({ x: this.fronton.spot.x, z: this.fronton.spot.z, icon: 'pelota', label: 'Frontón', go: false });
     if (this.canonigo) L.push({ x: this.canonigo.pos.x, z: this.canonigo.pos.z, icon: 'pelota', label: 'Pasaka', text: 'El canónigo del claustro te enseña la pasaka' });
     return L;
   }
@@ -807,7 +803,6 @@ export class TownGame {
     for (const b of TOWN.benches) if (Math.abs(b.x - Pp.x) < 3 && Math.abs(b.z - Pp.z) < 3) list.push({ kind: 'seat', b, x: b.x, z: b.z, r: 1.7, label: 'Sentarse a descansar' });
     if (TOWN.fountain) list.push({ kind: 'fountain', x: TOWN.fountain.x, z: TOWN.fountain.z, r: 3.8, label: 'Beber agua' });
     if (this.tienda) list.push(this.tienda.interactable());
-    if (this.fronton) list.push({ kind: 'fronton', x: this.fronton.entry.x, z: this.fronton.entry.z, r: 3, label: 'Jugar a pelota' });
     this.flora?.interactables(list);
     return list;
   }
