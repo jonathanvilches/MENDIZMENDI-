@@ -14,7 +14,7 @@ import { resetNpcCache } from '../actors/npcGlb.js';
 import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
 import { buildTown, preloadTown, TOWN } from '../world/townBuilder.js';
-import { Nature } from '../world/nature.js';
+import { Nature, TREES } from '../world/nature.js';
 import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
@@ -27,6 +27,7 @@ import { Player } from '../actors/player.js';
 import { Fauna } from '../actors/animals.js';
 import { FollowCamera } from '../camera.js';
 import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
+const VACIA = new THREE.Scene();   // (para el dibujo vacío al soltar un pueblo: unload)
 import { compilarAsync } from '../util/compilar.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -243,7 +244,12 @@ export class Runtime {
     for (const r of TEXREG) { const t = r.deref(); if (!t) { TEXREG.delete(r); continue; } if (t.userData.epoch === EPOCH && !keep.has(t) && !t.userData.shared) { t.dispose(); TEXREG.delete(r); } }
     EPOCH++;
     this.renderer.renderLists.dispose();
+    // (el dibujante recuerda las luces del último dibujo, y a través de ellas el pueblo entero: un dibujo vacío las suelta)
+    try { this.renderer.render(VACIA, this.camera); } catch (e) { }
     resetNpcCache();
+    // (las listas de las piezas de detalle de las casas y de los árboles apuntan a sus mallas, y por ellas a todo el pueblo:
+    // vacías ya al salir, y no al entrar en el siguiente. Antes quedaban unos 20 MB del pueblo dejado)
+    resetDetail(); TREES.length = 0;
     // los colisionadores móviles guardan a los vecinos (y, a través de ellos, el pueblo entero): fuera también
     resetColliders(); resetVillage(); clearPlatforms();
     this.scene = null;
