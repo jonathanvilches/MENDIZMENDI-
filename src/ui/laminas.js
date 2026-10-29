@@ -5,7 +5,7 @@
 // la pantalla la necesita. En el archivo único solo está la de 640 × 360, y en el ligero, la de 1024 × 576
 // (tools/laminas-movil.mjs: sin conexión, la portada a todo el ancho del móvil tumbado se veía borrosa).
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
-import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA } from '../data/laminas.js';
+import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA, FOCO } from '../data/laminas.js';
 import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { byId } from '../util/glob.js';
@@ -61,6 +61,9 @@ export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] |
 export const townCover = (id, small = false) => laminaUrl(id, small) || (BOSQUE_LAMINA[id] || []).map(k => laminaUrl(k, small)).find(Boolean) || null;
 /** La portada de la comarca. */
 export const comarcaCover = (id, small = false) => laminaUrl(COMARCA_LAMINA[id], small);
+/** Dónde está el personaje en la portada de un pueblo (o de una comarca): de 0 a 1, de izquierda a derecha (FOCO). */
+export const focoDe = (l) => { const id = l && (laminaUrl(l.id) ? l.id : (BOSQUE_LAMINA[l.id] || []).find(k => laminaUrl(k)) || COMARCA_LAMINA[l.comarca]); return FOCO[id] ?? 0.5; };
+export const focoComarca = (id) => FOCO[COMARCA_LAMINA[id]] ?? 0.5;
 /** La portada de un pueblo o, si no tiene, la de su comarca. */
 export const townImg = (l, small = false) => (l && (townCover(l.id, small) || comarcaCover(l.comarca, small))) || '';
 /** Las láminas que hay en esta versión: de un pueblo (la portada primero), de una comarca o de un grupo. */

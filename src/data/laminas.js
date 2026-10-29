@@ -134,3 +134,27 @@ export const COMARCA_LAMINA = { bidasoa: 'c-baztan', 'larraun-leitzaldea': 'c-ar
 
 // los títulos en euskera, para el traductor del juego (i18n.js)
 export const EU_LAMINAS = Object.fromEntries(LAMINAS.map(l => [l.title, l.eu]));
+
+// dónde está el personaje en cada lámina, de 0 (borde izquierdo) a 1 (derecho): el niño explorador o, si va con alguien,
+// el grupo. Las portadas de las fichas lo ponen en el centro, con la lámina entera de alto (sin cortarle nada) y, a los
+// lados, la misma lámina desenfocada (hub/fichas.css). Sin dato, el centro. (Medido a ojo, lámina a lámina)
+export const FOCO = {
+  'altsasu-alsasua': 0.72, 'altsasu-momotxorro': 0.71, 'amaiur-basajaun': 0.8, 'amaiur-maya-del-baztan': 0.78, 'amaiur-noche': 0.73,
+  'aoiz-miel': 0.8, aoiz: 0.83, 'aribe-carbonera': 0.68, 'aribe-irati': 0.7, 'aribe-patatas': 0.41, 'aribe-vacas': 0.15, aribe: 0.7,
+  'artajona-dolmen': 0.75, artajona: 0.8, 'burgui-almadia': 0.8, 'burgui-burgi': 0.81, 'c-aralar': 0.7, 'c-bardenas': 0.8, 'c-baztan': 0.81,
+  'c-bidasoa-aves': 0.79, 'c-cereal': 0.74, 'c-huerta': 0.7, 'c-milano': 0.3, 'c-molino': 0.35, 'c-pirineos': 0.73, 'c-pitillas': 0.82,
+  'c-prepirineo': 0.78, 'c-sakana': 0.81, 'c-setas': 0.69, 'c-urbasa': 0.71, 'c-vendimia': 0.72, 'cortes-pimientos': 0.42, cortes: 0.86,
+  'dep-futbol': 0.52, 'dep-pelotari': 0.63, 'dep-torneo': 0.67, 'elizondo-feria': 0.7, 'elizondo-xorroxin': 0.82, elizondo: 0.81,
+  'erronkari-roncal': 0.82, 'estella-estrellas': 0.81, estella: 0.82, 'etxalar-olentzero': 0.73, 'etxalar-ovejas': 0.89,
+  'etxalar-palomeras': 0.5, etxalar: 0.84, 'irulegi-mano': 0.78, irulegi: 0.83, 'irurtzun-manzanas': 0.58, irurtzun: 0.82,
+  'isaba-izaba': 0.75, 'isaba-larra': 0.7, 'isaba-ugatza': 0.28, 'isaba-vacas': 0.76, 'ituren-vacas': 0.2, ituren: 0.85,
+  'javier-camino': 0.71, javier: 0.77, 'leitza-aizkolari': 0.22, 'leitza-harrijasotzaile': 0.3, leitza: 0.78, 'lekunberri-cadenas': 0.78,
+  'lekunberri-plazaola': 0.67, 'lekunberri-txerri': 0.18, lekunberri: 0.8, 'lesaka-salmon': 0.69, lesaka: 0.78,
+  'lumbier-buitres': 0.81, lumbier: 0.79, marcilla: 0.75, 'of-alfareria': 0.55, 'of-alpargatas': 0.52, 'of-cesteria': 0.4,
+  'of-herreria': 0.6, 'of-pan': 0.55, 'of-talla': 0.42, 'of-telar': 0.4, 'olite-leon': 0.75, olite: 0.7, 'orreaga-cuerno': 0.7,
+  'orreaga-roncesvalles': 0.74, 'otsagabia-ochagavia': 0.78, 'otsagabia-roble': 0.7, 'pamplona-murallas': 0.83, 'pamplona-noche': 0.77,
+  'pamplona-txistorra': 0.55, pamplona: 0.75, 'puente-cantero': 0.45, 'puente-la-reina': 0.84, 'puente-txori': 0.89, 'roncal-lana': 0.76,
+  'roncal-queso': 0.62, 'sanguesa-pochas': 0.42, sanguesa: 0.69, 'tafalla-olivas': 0.7, tafalla: 0.75, 'tudela-ciguenas': 0.28,
+  tudela: 0.66, 'ujue-almendras': 0.3, 'ujue-paloma': 0.74, ujue: 0.78, 'viana-tonelero': 0.72, viana: 0.77,
+  'zugarramurdi-noche': 0.78, zugarramurdi: 0.8,
+};
