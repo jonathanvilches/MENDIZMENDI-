@@ -1029,14 +1029,6 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 .frs .fr-chip { min-height: 44px; }
 /* (en el ordenador, algo más de aire dentro de cada carta) */
 @media (min-width: 1200px) and (min-height: 560px) { .sport { padding: 12px; } .sp-body { padding: 18px 12px 6px; } }
-/* (tumbado y sin mucha altura, como un portátil de 1280 × 720: cada carta en horizontal, con la lámina entera a la
-   izquierda, y una encima de la otra; así se ven las dos enteras sin desplazar) */
-@media (orientation: landscape) and (max-height: 860px) and (min-width: 600px) {
-  .sports { grid-template-columns: minmax(0, 1fr); gap: 12px; }
-  .sport { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; }
-  .sp-cover { width: min(400px, 32vw, calc((100dvh - 240px) / 2 * 16 / 9 / var(--z, 1))); align-self: center; }
-  .sp-body { padding: 8px 8px 4px 20px; align-content: center; } .sp-bar { align-self: end; }
-}
 /* (en vertical: el texto y la figura arriba; la elección y el botón debajo, a todo lo ancho) */
 @media (max-width: 599px), (orientation: portrait) {
   /* (una carta debajo de la otra, con su lámina entera en 16:9; la elección y el botón, a todo lo ancho) */
@@ -1047,15 +1039,14 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 /* (en el móvil tumbado: la carta entera a la vista, también con la barra de Sitecase o de Safari) */
 @media (orientation: landscape) and (max-height: 560px) {
   /* (las dos cartas enteras a la vista, una al lado de la otra, sin desplazar) */
-  /* (cada carta en horizontal, con la lámina entera a la izquierda, y una encima de la otra: las dos a la vista) */
-  .sports { grid-template-columns: minmax(0, 1fr); gap: 10px; }
-  .sport { grid-template-columns: auto minmax(0, 1fr); grid-template-rows: none; padding: 8px; border-radius: 22px; }
-  .sp-cover { width: min(232px, calc(28vw / var(--z, 1))); align-self: center; border-radius: 15px; }
-  .sp-stat { top: 6px; left: 6px; min-height: 26px; padding: 2px 10px 2px 6px; }
-  .sp-body { gap: 8px; padding: 2px 4px 2px 14px; } .sp-txt { gap: 4px; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
+  /* (las dos cartas una al lado de la otra, con la lámina entera arriba, grande: el personaje se ve completo; lo de
+     debajo, más apretado. Si no cabe todo, se desliza un poco) */
+  .sports { gap: 10px; } .sport { padding: 7px; border-radius: 20px; }
+  .sp-cover { border-radius: 14px; } .sp-stat { top: 6px; left: 6px; min-height: 26px; padding: 2px 10px 2px 6px; }
+  .sp-body { gap: 8px; padding: 8px 4px 2px; } .sp-txt { gap: 4px; } .sp-txt .kicker { display: none; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
   .sp-chips > span { padding: 2px 10px 2px 4px; } .sp-chips > span > :is(svg, img) { width: 16px; height: 16px; }
   .sp-bar { gap: 8px; padding: 6px; border-radius: 999px; align-items: center; } .sp-row > small { display: none; }
-  .sport .gx-go { min-height: 40px; padding: 6px 18px; font-size: var(--fs-md); }
+  .sport .gx-go { min-height: 40px; padding: 6px 16px; font-size: var(--fs-md); }
   .sp-box { height: 40px; } .sp-media, img.sp-media:not(.sp-em) { width: 32px; height: 32px; }
   .frs-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
   .frs-head { padding: 12px 64px 12px 20px; } .frs-head h2 { font-size: var(--fs-xl); } .frs-list { padding: 12px 20px 16px; gap: 12px; }
