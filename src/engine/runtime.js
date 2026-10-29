@@ -211,7 +211,7 @@ export class Runtime {
     });
   }
   // (el panel que se está desvaneciendo, .out, ya no tapa: debajo se dibuja lo que viene)
-  checkCover() { this.covered = !!document.querySelector('.lg-root.gx-bg:not(.out), .champ, .sport-bg.on'); }
+  checkCover() { this.covered = !!document.querySelector('.lg-root.gx-bg:not(.out), .champ, .sport-bg.on'); this.tapado = !!document.querySelector('body > .screen'); }
   // ¿trae algún material que aún no tiene su programa en la tarjeta gráfica? (los ya usados se dibujan sin esperar)
   needsWarm(obj) {
     if (this.warmed.has(obj)) return false;
@@ -317,7 +317,12 @@ export class Runtime {
     try { if (alt) { input.enabled = !g.ui.busy; input.update(dt); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
-    if (!this.covered) {
+    // (con el libro, el mapa o la pausa encima, ui.screen, el pueblo se queda quieto detrás, borroso: se dibuja una vez y
+    // no en cada imagen. En el portátil con la gráfica de Intel, el desenfoque sobre un dibujo que cambiaba en cada imagen
+    // hacía ir a tirones esas ventanas)
+    const quieto = this.tapado && this.quietoYa;
+    if (!this.covered && !quieto) {
+      this.quietoYa = this.tapado;
       if (!alt) applyCharFill(this.charFill);
       // (lo escondido no se recoloca al dibujar: los vecinos lejanos, con todos sus huesos, eran miles de cuentas por imagen)
       const S = alt || this.scene; for (const o of S.children) o.matrixWorldAutoUpdate = o.visible;
@@ -330,7 +335,7 @@ export class Runtime {
     input.endFrame();
     this.frames++; this.frameNo++; this.fpsT += dt;
     // (con una ventana encima no se mide: no se dibuja nada y saldría que sobra fluidez)
-    if (this.covered) { this.frames = 0; this.fpsT = 0; }
+    if (this.covered || quieto) { this.frames = 0; this.fpsT = 0; }
     if (this.fpsT > 2) {
       const fps = this.frames / this.fpsT; this.frames = 0; this.fpsT = 0;
       // resolución dinámica: si va a tirones baja un poco la resolución; si sobra fluidez, la recupera poco a poco
@@ -433,9 +438,9 @@ export class Runtime {
       if (r.getPixelRatio() !== this.pixelRatio) r.setPixelRatio(this.pixelRatio);
       // (sin tocar el estilo del lienzo: con su ancho en píxeles, una medida vieja al girar el móvil dejaba media pantalla
       // en negro; por estilo ocupa siempre la pantalla entera)
-      r.setSize(innerWidth, innerHeight, false);
+      r.setSize(innerWidth, innerHeight, false); this.quietoYa = false;   // (el lienzo se borra al cambiar de medida: otra vez)
       const c = this.camera; c.aspect = innerWidth / innerHeight; c.fov = c.userData.fov0 = this.fovFor(c.aspect); c.updateProjectionMatrix();
-    } else if (this.ratioDirty) { this.ratioDirty = false; if (r.getPixelRatio() !== this.pixelRatio) r.setPixelRatio(this.pixelRatio); }
+    } else if (this.ratioDirty) { this.ratioDirty = false; if (r.getPixelRatio() !== this.pixelRatio) { r.setPixelRatio(this.pixelRatio); this.quietoYa = false; } }
   }
   // densidad de píxeles: en alta hasta 2 y unos 3,7 megapíxeles (2560×1440, imagen nítida); en media 2,1 y en baja
   // (móviles) 1,25. Si va a tirones, la resolución dinámica la baja un poco y la recupera cuando sobra
