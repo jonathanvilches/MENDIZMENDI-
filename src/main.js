@@ -67,6 +67,40 @@ const TIPS = [
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
 ];
 const TIP_TOQUE = 'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.';
+// el «¿Sabías que…?» de la carga de un partido de pelota: un dato de la historia de la pelota a mano, y no lo que se está
+// preparando (antes salía «Preparando el frontón…» como si fuera un dato). Comprobados en octubre de 2026: el récord y las
+// txapelas de Julián Retegi (Noticias de Navarra, Deia), el Labrit (Ayuntamiento de Pamplona), los Juegos Olímpicos (COI y
+// Universidad de Navarra) y la pelota (Dialnet). Y en la pasaka, los de su ficha (data/pasaka.js, con sus fuentes)
+const DATOS_PELOTA = {
+  es: ['Julián Retegi, de Eratsun, es quien más Manomanistas ha ganado: once txapelas.',
+    'El primer campeonato del Cuatro y Medio se jugó en 1989, y lo ganó Julián Retegi.',
+    'En 1990, Julián Retegi ganó las tres txapelas del año: el Manomanista, el de Parejas y el del Cuatro y Medio.',
+    'El frontón Labrit de Iruña se construyó en 1952. Lo llaman «la Bombonera» y ha acogido dos Mundiales de pelota, en 1962 y en 2002.',
+    'La pelota vasca estuvo en los Juegos Olímpicos de 1924, 1968 y 1992 como deporte de exhibición. En México 1968 también se jugó a mano.',
+    'La pelota de mano mide unos 6 centímetros y pesa alrededor de 100 gramos: por dentro, un núcleo y capas de hilo; por fuera, cuero cosido a mano.',
+    'En muchos pueblos el frontón está en la plaza, junto a la iglesia: antiguamente se jugaba contra sus muros.',
+    'La pelota a mano viene del juego de pelota de la Edad Media, el mismo del que salió el tenis.',
+    'Al campeón le ponen la txapela en la cabeza en el mismo frontón, nada más ganar la final.'],
+  eu: ['Julian Retegi eratsundarrak irabazi ditu buruz buruko txapela gehien: hamaika.',
+    'Lau t\'erdiko lehen txapelketa 1989an jokatu zen, eta Julian Retegik irabazi zuen.',
+    '1990ean, Julian Retegik urteko hiru txapelak irabazi zituen: buruz burukoa, binakakoa eta lau t\'erdikoa.',
+    'Iruñeko Labrit frontoia 1952an eraiki zen. «Bonbonera» deitzen diote, eta pilotako bi Munduko Txapelketa hartu ditu, 1962an eta 2002an.',
+    'Euskal pilota 1924, 1968 eta 1992ko Joko Olinpikoetan izan zen, erakustaldi gisa. Mexikon, 1968an, eskuz ere jokatu zen.',
+    'Esku pilotak 6 zentimetro inguru ditu eta 100 gramo inguru pisatzen du: barruan, muina eta hari geruzak; kanpoan, eskuz josiriko larrua.',
+    'Herri askotan frontoia plazan dago, elizaren ondoan: lehen, haren hormen kontra jokatzen zen.',
+    'Esku pilota Erdi Aroko pilota jokotik dator, tenisa sortu zen joko beretik.',
+    'Txapeldunari frontoian bertan janzten diote txapela, finala irabazi bezain laster.'],
+};
+const DATOS_PASAKA = {
+  es: ['La pasaka es pariente del jeu de paume francés y antecesora del tenis: de ahí viene el tanteo a 15, 30, 40 y juego.',
+    'En Pamplona jugaban a pasaka los canónigos, en el claustro de la catedral. Hubo procesos por arremangarse la sotana para jugar mejor.',
+    'En la pasaka, dos parejas juegan frente a frente, con una red de 1,20 metros de altura por medio.',
+    'Los partidos de pasaka de verdad son a trece juegos. Aquí juegas una versión corta, a tres.'],
+  eu: ['Pasaka jeu de paume frantsesaren ahaidea eta tenisaren aurrekoa da: hortik datoz 15, 30, 40 eta jokoa.',
+    'Iruñean kalonjeek jokatzen zuten pasakan, katedraleko klaustroan. Sotana jasotzeagatik epaiketak ere izan ziren.',
+    'Pasakan bi bikote aurrez aurre jokatzen dute, 1,20 metroko sare bat erdian dutela.',
+    'Benetako pasaka partidak hamahiru jokotara dira. Hemen bertsio laburra jokatzen duzu, hirura.'],
+};
 // el icono de cada misión en la pantalla de carga (si la misión no trae el suyo)
 const MISSION_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
 
@@ -184,13 +218,14 @@ async function boot() {
     const cm = COMARCAS.find(c => c.id === d.comarca), eu = isEU(), pasaka = opt.sport === 'pasaka';
     // (al campeonato de pelota se va a jugar: sin la historia del pueblo ni sus misiones en la pantalla de carga)
     const title = pasaka ? 'Pasaka · Iruña' : opt.sport ? `${eu ? 'Esku pilota' : 'Pelota a mano'} · ${d.name.split(' /')[0]}` : d.name;
-    const tip = TIPS[Math.floor(Math.random() * TIPS.length)];
-    const sub = pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : opt.sport ? (eu ? 'Frontoia prestatzen…' : 'Preparando el frontón…') : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
+    // (en un pueblo, un consejo de juego, con su rótulo; en la pelota y la pasaka, un dato de su historia)
+    const azar = (L) => L[Math.floor(Math.random() * L.length)], datos = pasaka ? DATOS_PASAKA : DATOS_PELOTA, tip = azar(TIPS);
+    const sub = opt.sport ? azar(eu ? datos.eu : datos.es) : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
     const lam = opt.sport ? 'dep-fronton' : d.id, left = (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d));
     // (desde el mapa del inicio, tras su zoom rápido: una carga corta, solo el nombre y la barra, y luego directamente el
     // avatar en el pueblo, sin el vuelo de llegada, que ya ha hecho el mapa)
     const entrada = ui.showLoading(title, sub, opt.desdeMapa ? '' : (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
-      min: !!opt.desdeMapa, comarca: cm?.name, caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
+      min: !!opt.desdeMapa, comarca: cm?.name, tipTitle: opt.sport ? '¿Sabías que…?' : 'Consejo', caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
     // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga
