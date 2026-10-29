@@ -33,12 +33,16 @@ import { pelotaLigera } from '../util/diag.js';
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
 const COLORADO = '#c8222a';
+// la textura de los pelotaris, entera (2048 px) en el ordenador; en el móvil, a 1024 como los demás personajes: con los
+// dos a 2048 el partido pasaba de 74 MB de texturas y el iPhone pierde la imagen hacia los 65. Es la que tenían en el
+// iPhone hasta octubre de 2026, cuando se cargaban antes de tiempo junto al frontón del pueblo
+const nitido = (model) => { if (!(QUALITY === 'low' && matchMedia?.('(pointer: coarse)').matches)) fullTexFor(model); };
 async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name)) {
   if (girl && hasChica('pelotari')) try {
-    fullTexFor('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
+    nitido('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
     outfitTint(r.char.root, 'pelotari', { shirt: model === 'pelotari_rojo' ? COLORADO : null, hair }); return r;
   } catch (e) { console.warn('pelotari', e); }
-  fullTexFor(model); const r = new GlbRig(await loadMeshy(model), model); hairTint(r.char.root, model, hair); return r;
+  nitido(model); const r = new GlbRig(await loadMeshy(model), model); hairTint(r.char.root, model, hair); return r;
 }
 
 // Los jueces de la contracancha: tres, de blanco, a la altura de la chapa, del 4 y del 7, de cara a la cancha. En cada
@@ -393,7 +397,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
     const ella = avatarIsGirl(profile().avatar);
-    if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { fullTexFor(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
+    if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { nitido(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // y el rival, con el color que le toca (azules contra colorados, como en los partidos de verdad)
