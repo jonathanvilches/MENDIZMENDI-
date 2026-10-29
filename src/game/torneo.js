@@ -97,6 +97,9 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   // ninguna ronda jugada, se rehace con el formato de ahora, en la misma edición)
   const key = keyOf(ctx.comarca, kind);
   let T = loadAll()[key];
+  // (un torneo guardado con menos sedes que las de ahora, de cuando eran cuatro pueblos: con las de ahora, así cada partido
+  // sigue yendo a un frontón distinto; antes repetía el cubierto del mismo pueblo)
+  if (T && ctx.towns?.length > (T.venues?.length || 0)) T.venues = ctx.towns;
   const rehacer = !!T && !T.fmt && !T.past?.length && !T.done;
   if (T && ((T.done && fresh) || rehacer)) T = null;
   if (!T) {
