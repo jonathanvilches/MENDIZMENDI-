@@ -248,6 +248,8 @@ function flat(k) {
   if (!flats.has(k)) { const b = ICONS[k] || ICONS[ALIAS[k]]; flats.set(k, b ? 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="128" height="128">${b}</svg>`) : ''); }
   return flats.get(k);
 }
+/** La flecha de los botones «Ir» (las misiones: viajar junto al vecino que la da o al sitio de su paso siguiente) */
+export const flecha = (size = 22) => `<svg class="flecha" viewBox="0 0 24 24" width="${size}" height="${size}" aria-hidden="true"><path d="M4 12h14M12.5 5.5 19 12l-6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 export function iconSVG(name, size = 32, cls = '') {
   const k = has3D(name) ? name : ICONS[name] ? name : ICONS[ALIAS[name]] ? ALIAS[name] : 'star';
   if (has3D(k)) {
