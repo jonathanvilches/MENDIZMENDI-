@@ -1,12 +1,12 @@
 // Campeonatos desde el menú: la pantalla, el fútbol sin pueblo (elegir club, menú, partido, salir) y la pelota en el
-// frontón elegido (menú de pelota, partido, salir al inicio). Capturas en /tmp/claude-0/camp-*.png
+// frontón elegido (menú de pelota, partido, salir al inicio). Capturas en OUT (por defecto /tmp/claude-0)/camp-*.png
 // Uso: node tools/campeonatos.mjs   (servidor en 5173)
 import { chromium } from 'playwright-core';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 const init = () => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); localStorage.setItem('herrizherri-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); };
-const shot = (p, n) => p.screenshot({ path: `/tmp/claude-0/camp-${n}.png` });
+const shot = (p, n) => p.screenshot({ path: `${process.env.OUT || "/tmp/claude-0"}/camp-${n}.png` });
 for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
   const p = await b.newPage({ viewport: { width: w, height: h } }); await p.addInitScript(init);
   p.on('pageerror', e => errs.push(e.message));
