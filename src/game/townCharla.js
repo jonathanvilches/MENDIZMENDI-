@@ -71,7 +71,7 @@ export class PuebloCharla {
     if (a.cuento) return this.kontalariTalk(a);
     // vecinos sin misión (pelotari, entrenador, puestos): lo suyo, o un saludo; nunca un diálogo de misión vacío
     if (!a.mission) {
-      if (a === this.pelotari) return this.freePelota();
+      if (a === this.pelotari) return this.campeonato ? this.freePelota() : this.invitaCampeonato();
       if (a === this.coach) return this.playFutbol();
       if (a === this.futsalCoach) return this.playFutsal();
       if (a.shop) return this.tienda.open();

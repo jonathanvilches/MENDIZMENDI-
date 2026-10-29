@@ -256,13 +256,14 @@ async function boot() {
         sinHub(); ui.hideLoading(); queueMode('light');
         saveProfile();
         if (opt.resumeAt) { rt.player.place(opt.resumeAt.x, opt.resumeAt.z, opt.resumeAt.h ?? 0); rt.follow.snap(rt.player); }
-        if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly(); return; }
+        if (opt.sport) { loading = false; if (opt.sport === 'pasaka') game.pasakaOnly(); else game.sportOnly({ torneo: opt.torneo, vuelta: opt.vuelta }); return; }
         // (si se perdió en un partido de pelota del pueblo, otra vez su menú: antes te quedabas en la puerta del frontón y
         // parecía que el juego te había echado del partido)
         if (opt.resumed) { const g = game; setTimeout(() => { if (!g || g !== game) return; g.ui.toast(opt.pelota ? 'Imagen recuperada: el partido se ha cortado, vuelve a empezar' : 'Imagen recuperada: sigues donde estabas', 'exclaim', 3600); if (opt.pelota) g.freePelota?.(); }, 700); }
         else {   // (primero, la llegada: el vuelo por encima del pueblo con su nombre y su comarca; luego, a quién buscar)
-          const g = game; (q.get('skipintro') || opt.desdeMapa ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
-            .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(`¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
+          // (de vuelta del campeonato al que te apuntaste en el pueblo: sin la llegada, en la puerta del frontón)
+          const g = game; (q.get('skipintro') || opt.desdeMapa || opt.volver ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
+            .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(opt.volver ? `De vuelta en ${d.name.split(' /')[0]}` : `¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
         }
       }
     } catch (e) {
@@ -354,7 +355,10 @@ async function boot() {
     // (desde un campeonato, de vuelta a Torneos, de donde se vino; y en el menú, su tema)
     sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports' || to === 'pasaka') hub.show(to); else hub.show('comarca', def?.comarca);
     // (desde el menú de pelota de Campeonatos, a jugar en el frontón de otro pueblo: se carga ese pueblo)
-    if (luego?.pelota && levelById(luego.pelota)) setTimeout(() => play(levelById(luego.pelota), { sport: 'pelota' }), 60);
+    // (y desde un pueblo, apuntado al campeonato por el pelotari: el campeonato, con su cuadro; al acabarlo, de vuelta al
+    // pueblo, a la puerta del frontón)
+    if (luego?.pelota && levelById(luego.pelota)) setTimeout(() => play(levelById(luego.pelota), { sport: 'pelota', torneo: luego.torneo, vuelta: luego.vuelta }), 60);
+    else if (luego?.vuelta && levelById(luego.vuelta.id)) setTimeout(() => play(levelById(luego.vuelta.id), { resumeAt: luego.vuelta, volver: true }), 60);
   }
   window.__exit = exit;
   // memoria gráfica perdida (en el iPhone, al volver de otra aplicación o con poca memoria): si el navegador la
