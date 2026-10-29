@@ -2,7 +2,7 @@
 // Uso: node tools/secuencia.mjs [avatar] [andar|correr] [salida.png]
 import { chromium } from 'playwright-core';
 const [,, av = 'sanfermin', mode = 'andar', out = '/tmp/claude-0/secuencia.png'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 320, height: 320 } });
 await p.addInitScript((a) => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, avatar: a, seen: { heroBenat: true, dog: true } })); }, av);
 await p.goto(`http://127.0.0.1:5173/?town=lesaka&q=low&weather=clear&skipintro=1`, { timeout: 300000 });

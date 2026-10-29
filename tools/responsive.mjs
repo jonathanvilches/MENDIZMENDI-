@@ -10,7 +10,7 @@ import { createRequire } from 'module';
 const sharp = createRequire('/home/user/mendimendiz/package.json')('sharp');
 const URL = process.env.URL || 'http://127.0.0.1:5173/', OUT = process.env.OUT;
 const [,, scr = 'home', lista = '360x740,390x844,430x932,667x375,844x390,932x430,768x1024,1024x768,1280x720,1366x768,1536x864,1920x1080,2560x1440'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const fotos = []; let total = 0;
 for (const sz of lista.split(',')) {
   const [w, h] = sz.split('x').map(Number), tactil = Math.min(w, h) < 900 && !(w >= 1024 && h >= 700);

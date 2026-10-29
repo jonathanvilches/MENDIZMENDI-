@@ -1,7 +1,7 @@
 // Mide el centrado de los iconos dentro de los botones redondos y de control. Uso: node tools/roundicons.mjs <carpeta> [ancho alto]
 import { chromium } from 'playwright-core';
 const [,, out = 'entrega/iconos', w = 390, h = 844] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await browser.newContext({ viewport: { width: +w, height: +h }, hasTouch: true, isMobile: true, deviceScaleFactor: 3 });
 const p = await ctx.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));

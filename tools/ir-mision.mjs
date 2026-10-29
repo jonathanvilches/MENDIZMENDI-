@@ -4,7 +4,7 @@
 // Uso: node tools/ir-mision.mjs [pueblo] [ancho x alto, p. ej. 844x390 para el móvil tumbado]
 import { chromium } from '/home/user/mendimendiz/node_modules/playwright-core/index.mjs';
 const [,, town = 'lesaka', tam = '1280x720'] = process.argv, [W, H] = tam.split('x').map(Number), movil = W < 900 || H < 500;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: movil, hasTouch: movil }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true, comoJugar: true }, settings: { quality: 'low' } })); });

@@ -12,7 +12,7 @@ mkdirSync(out, { recursive: true });
 const ACC = { corre: ['Run', 0.18, -0.75, 0.05], salta: ['Jump_Loop', 0.12, -0.45, 0.35], celebra: ['Celebrate', 0.55, -0.25, 0], golpea: ['Hit', 0.32, -0.55, 0] };
 // las que quedan bien en cada uno (el pastor y el pelotari celebran agachados; el pelotari, en vez de saltar, golpea)
 const BY = { sanfermin: ['corre', 'salta', 'celebra'], osasuna: ['corre', 'salta', 'celebra'], pastor: ['corre', 'salta'], pelotari: ['corre', 'golpea'] };
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto(URL + '/', { timeout: 300000 });

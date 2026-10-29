@@ -16,7 +16,7 @@ const [,, only = 'todos', q = 'low', par = '2'] = process.argv;
 const BASE = (process.env.URL || 'http://127.0.0.1:5174').replace(/\/$/, '');
 const all = [...readFileSync(new URL('../src/data/levels.js', import.meta.url), 'utf8').matchAll(/\{ id: '([a-z-]+)'/g)].map(m => m[1]).filter(t => t !== 'otsagabia-ochagavia');
 const towns = only === 'todos' ? all : only.split(',');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const results = [];
 async function check(town) {
   const p = await b.newPage({ viewport: { width: 640, height: 360 } }); const errs = [];

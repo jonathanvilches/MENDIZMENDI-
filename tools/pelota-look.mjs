@@ -4,7 +4,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = 'entrega/pelota/morado', sizes = '390x844,844x390,1280x720'] = process.argv;
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 for (const sz of sizes.split(',')) {
   const [w, h] = sz.split('x').map(Number), mobile = w < 900;

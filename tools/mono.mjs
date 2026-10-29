@@ -4,7 +4,7 @@
 // Uso: node tools/mono.mjs <pueblo> [segundos por misión] [url base]
 import { chromium } from 'playwright-core';
 const [,, town = 'lesaka', secs = '70', base = 'http://127.0.0.1:5173/'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await browser.newContext({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
 const p = await ctx.newPage();
 const errs = [];

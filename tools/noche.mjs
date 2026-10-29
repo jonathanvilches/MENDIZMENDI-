@@ -1,7 +1,7 @@
 // El avatar y el perro a distintas horas: node tools/_noche-shot.mjs <prefijo> <hora,hora,...> [pueblo] [avatar]
 import { chromium } from 'playwright-core';
 const [,, out, hours = '12,20,23', town = 'lesaka', avatar = ''] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
 const logs = []; page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
 await page.addInitScript((avatar) => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: avatar || 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogBreed: 'mastin', dogOn: true, settings: { music: false, volume: 0.8, quality: 'low', timeSpeed: 1 } })); } catch (e) { } }, avatar);

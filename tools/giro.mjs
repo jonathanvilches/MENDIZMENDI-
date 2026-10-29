@@ -3,7 +3,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = 'entrega/avatar', tag = 'giro'] = process.argv;
 mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 960, height: 540 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto('http://127.0.0.1:5173/?town=isaba-izaba', { timeout: 300000 });

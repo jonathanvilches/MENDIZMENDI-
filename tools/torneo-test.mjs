@@ -3,7 +3,7 @@
 // torneo sigue sin ti. En el navegador, con los módulos del servidor de desarrollo (la plantilla de pelotaris sale de
 // las imágenes, que solo sabe leer Vite). Uso: node tools/torneo-test.mjs   (servidor en 5173)
 import { chromium } from 'playwright-core';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await b.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.goto('http://127.0.0.1:5173/src/game/torneo.js', { timeout: 120000 });
 const res = await p.evaluate(async () => {

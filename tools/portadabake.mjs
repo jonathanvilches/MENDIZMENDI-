@@ -7,7 +7,7 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { execFileSync } from 'child_process';
 const [,, base = 'http://127.0.0.1:5173/'] = process.argv;
 const W = 1280, H = 720, tmp = '/tmp/portadabake'; mkdirSync(tmp, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto(base + 'lab/portadabake.html', { timeout: 300000 });

@@ -2,7 +2,7 @@
 // Uso: node tools/barrido.mjs <pueblo>  → errores capturados (página y bucle)
 import { chromium } from 'playwright-core';
 const town = process.argv[2] || 'otsagabia-ochagavia';
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage({ viewport: { width: 800, height: 450 } });
 const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' ' + (e.stack || '').split('\n')[1]));

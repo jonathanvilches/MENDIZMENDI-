@@ -7,7 +7,7 @@ import { iphone } from './iphone.mjs';
 import { mkdirSync } from 'fs';
 const [,, out = 'entrega/textos', casos = 'pueblo,pelota,menu'] = process.argv; mkdirSync(out, { recursive: true });
 const SIZES = (process.env.SIZES || '844x390,667x375,390x844,1280x720').split(',').map(s => s.split('x').map(Number));
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const measure = (root) => {
   const vis = (e) => { for (let x = e; x && x !== document.documentElement; x = x.parentElement) { const s = getComputedStyle(x); if (s.display === 'none' || s.visibility === 'hidden' || +s.opacity < 0.05) return false; } return true; };
   const leaf = [...document.querySelectorAll(root)].flatMap(r => [...r.querySelectorAll('*')]).filter(e => {

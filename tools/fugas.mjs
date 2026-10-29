@@ -5,7 +5,7 @@
 import { chromium } from 'playwright-core';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const [,, A = 'lesaka', B = 'elizondo', N = '4'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => {

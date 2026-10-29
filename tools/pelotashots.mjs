@@ -4,7 +4,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = 'entrega/pelota', base = 'http://127.0.0.1:5173/lab/pelota.html'] = process.argv;
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const views = { movil: [390, 844, true], horizontal: [844, 390, true], escritorio: [1280, 720, false] };
 const only = process.env.ONLY ? process.env.ONLY.split(',') : null;
 for (const [tag, [w, h, touch]] of Object.entries(views)) {

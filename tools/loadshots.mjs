@@ -1,7 +1,7 @@
 // Capturas de la pantalla de carga, HUD y avisos: node tools/loadshots.mjs <carpeta> (servidor fijo en :5180)
 import { chromium } from 'playwright-core';
 const [,, out] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 for (const [w,h] of [[390,844],[360,640],[844,390],[1280,720]]) {
   const ctx = await b.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: w < 1000, deviceScaleFactor: 2 });
   const p = await ctx.newPage();

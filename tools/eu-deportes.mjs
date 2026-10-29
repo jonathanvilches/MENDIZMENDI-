@@ -3,7 +3,7 @@
 import { chromium } from 'playwright-core';
 import { writeFileSync } from 'fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const init = () => { localStorage.setItem('herrizherri-lang', 'eu'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true } })); localStorage.setItem('herrizherri-futbol-v1', JSON.stringify({ v: 1, tutorial: true })); };
 const all = new Set(), errs = [];
 const grab = async (p) => { for (const s of await p.evaluate(() => [...(window.__euMiss || [])])) all.add(s); };

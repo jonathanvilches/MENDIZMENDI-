@@ -8,7 +8,7 @@ import { mkdirSync, writeFileSync } from 'fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const TOWNS = 'elizondo,leitza,isaba-izaba,otsagabia-ochagavia,altsasu-alsasua,pamplona,aoiz,lumbier,estella,puente-la-reina,olite,marcilla,tudela';
 const [,, list = TOWNS, out = 'entrega/minijuegos-comarcas'] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 let fails = 0; const ok = (c, m) => { console.log(`  ${c ? 'OK ' : 'FALLO'} ${m}`); if (!c) fails++; };
 const report = [];
 for (const town of list.split(',')) {

@@ -2,7 +2,7 @@
 // Uso: node tools/fichapueblo-shot.mjs <carpeta> [pueblo]
 import { chromium } from 'playwright-core';
 const [,, out, town = 'olite'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const [w, h] of [[844, 390], [390, 844], [1280, 720]]) {
   const p = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: w < 900 ? 2 : 1, isMobile: w < 900, hasTouch: w < 900 });
   p.on('pageerror', e => console.log('ERR', e.message));

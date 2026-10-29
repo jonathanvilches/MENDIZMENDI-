@@ -8,7 +8,7 @@ import sharp from 'sharp';
 import { mkdirSync } from 'node:fs';
 const [,, kind, ...ids] = process.argv;
 if (!['avatar', 'figura'].includes(kind) || !ids.length) { console.error('uso: node tools/retratos.mjs avatar|figura <id…>'); process.exit(1); }
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const shot = async (id, view, w, h, ry = kind === 'avatar' && /^(leire|nahia|nerea)$/.test(id) ? 0.55 : 0.3) => {   // (las chicas, algo más giradas: que se vea la coleta)
   const p = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 1 }); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.goto(`http://127.0.0.1:${process.env.PUERTO || 5173}/lab/retratos.html?${kind}=${id}&view=${view}&ry=${ry}`, { timeout: 240000 });

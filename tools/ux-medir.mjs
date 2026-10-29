@@ -15,7 +15,7 @@ import { iphone } from './iphone.mjs';
 import { casos, cargarModulos } from './ventanas-casos.mjs';
 import { mkdirSync, writeFileSync } from 'fs';
 const [,, out = 'entrega/ux', sizes = '844x390,1180x820'] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const MEDIR = (rootSel) => {
   const W = innerWidth, H = innerHeight, F = {}, add = (k, e, x) => { (F[k] ||= []).push([name(e), x]); };
   const shown = (e) => { const s = getComputedStyle(e); return s.display !== 'none' && s.visibility !== 'hidden' && +s.opacity >= 0.05; };

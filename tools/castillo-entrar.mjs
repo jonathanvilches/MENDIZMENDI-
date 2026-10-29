@@ -2,7 +2,7 @@
 // Uso: node tools/castillo-entrar.mjs <pueblo> <foto.jpg>
 import { chromium } from 'playwright-core';
 const [,, town = 'javier', out = 'castillo-entrar.jpg'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1100, height: 620 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); } catch (e) { } });

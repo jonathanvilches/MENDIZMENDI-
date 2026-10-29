@@ -5,7 +5,7 @@
 import { chromium } from 'playwright-core';
 import { writeFileSync } from 'fs';
 const towns = (process.argv[2] || 'lumbier,elizondo,olite').split(',');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const out = [];
 for (const t of towns) {
   const p = await b.newPage({ viewport: { width: 640, height: 360 } }); const errs = [];

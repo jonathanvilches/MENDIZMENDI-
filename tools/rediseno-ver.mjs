@@ -9,7 +9,7 @@ const URL = process.env.URL || 'http://127.0.0.1:5173/';
 const out = process.argv[2] || 'entrega/rediseno'; mkdirSync(out, { recursive: true });
 const only = process.argv[3] ? process.argv[3].split(',') : null;
 const [W, H] = (process.env.TAM || '844x390').split('x').map(Number);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: true, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { window.__vs = true; window.__vsMs = 600000; localStorage.setItem('herrizherri-lang', 'es');
   localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', seen: { heroBenat: true, dog: true }, xp: 900, last: 'lesaka', futbolClub: 'osasuna', towns: { lesaka: { done: { 0: true }, visits: 1 } }, cards: ['armas:baztan'], pelotaris: { lesaka: { name: 'Mikel', town: 'Lesaka', won: 2, lost: 1, stats: { fuerza: 4, agilidad: 3, velocidad: 2, style: 'potencia' } }, leitza: { name: 'Garazi', town: 'Leitza', won: 0, lost: 1, stats: { fuerza: 2, agilidad: 4, velocidad: 4 } } }, settings: { quality: 'low' } })); });

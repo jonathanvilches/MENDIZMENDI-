@@ -2,7 +2,7 @@
 // Uso: node tools/homeshots.mjs <carpeta> [personajes separados por comas]
 import { chromium } from 'playwright-core';
 const [,, out = 'entrega/portada', who = 'benat,leire'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const av of who.split(',')) for (const [w, h] of [[390, 844], [360, 640], [1280, 720]]) {
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: w < 1000, isMobile: w < 1000 });
   const p = await ctx.newPage();

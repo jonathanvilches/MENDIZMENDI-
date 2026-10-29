@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 const [,, town = 'lesaka', q = 'low', W = 1280, H = 720] = process.argv;
 const URL = process.env.URL || 'http://127.0.0.1:5173/';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: +W, height: +H } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 140)));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); localStorage.setItem('herrizherri-lang', 'es'); });

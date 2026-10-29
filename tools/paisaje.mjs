@@ -6,7 +6,7 @@ import { mkdirSync } from 'fs';
 const [,, out = 'entrega/paisaje', tag = 'antes', town = 'isaba-izaba'] = process.argv;
 mkdirSync(out, { recursive: true });
 const only = process.env.ONLY;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 if (process.env.AVATAR) await p.addInitScript((a) => { try { const K = 'herrizherri-perfil-v1', P = JSON.parse(localStorage.getItem(K) || '{"v":1}'); P.avatar = a; P.seen = Object.assign(P.seen || {}, { heroBenat: true, dog: true }); localStorage.setItem(K, JSON.stringify(P)); } catch (e) { } }, process.env.AVATAR);

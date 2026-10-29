@@ -1,7 +1,7 @@
 // Fotos de los monumentos de un pueblo: node tools/landmarks.mjs <base> <pueblo> <carpeta>
 import { chromium } from 'playwright-core';
 const [,, base, town, dir] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 640, height: 400 } });
 await page.goto(`${base}?town=${town}`, { timeout: 240000 });
 await page.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 180000 });

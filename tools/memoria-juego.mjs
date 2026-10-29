@@ -12,7 +12,7 @@ const [,, town = 'pamplona', other = 'lesaka', q = 'low'] = process.argv;
 const BASE = (process.env.URL || 'http://127.0.0.1:5180/').replace(/\/?$/, '/');
 const chromePids = () => { try { return execSync('ps -eo pid=,args=').toString().split('\n').filter(l => /chrome-linux\/chrome/.test(l) && !/--type=/.test(l)).map(l => +l.trim().split(/\s+/)[0]); } catch (e) { return []; } };
 const before = new Set(chromePids());
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
 const bpid = chromePids().find(x => !before.has(x));
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
 const p = await ctx.newPage(), errs = [];

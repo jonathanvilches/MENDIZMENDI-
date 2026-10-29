@@ -10,7 +10,7 @@ const URL = process.env.URL || 'http://127.0.0.1:5176/';
 const out = process.argv[2] || 'entrega/nitidez-juego'; mkdirSync(out, { recursive: true });
 const town = process.argv[3] || 'lesaka', DPR = +(process.env.DPR || 3);
 const W = +(process.env.W || 844), H = +(process.env.H || 390), movil = DPR >= 2 && W < 1000;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: DPR, isMobile: movil, hasTouch: movil })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es');

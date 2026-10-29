@@ -6,7 +6,7 @@ import { mkdirSync } from 'fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const [,, town = 'pamplona', out = 'entrega/mirador'] = process.argv; mkdirSync(out, { recursive: true });
 const W = +(process.env.W || 844), H = +(process.env.H || 390), movil = W < 1000;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: movil, hasTouch: movil, deviceScaleFactor: 2 });
 const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' || /relieve/.test(m.text())) errs.push(m.text().slice(0, 300)); });
 await p.addInitScript((q) => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', seen: { heroBenat: true, dog: true }, gear: ['prismaticos'], bag: { agua: 2, food: {}, items: ['prismaticos'] }, settings: { quality: q } })); }, process.env.Q || 'low');

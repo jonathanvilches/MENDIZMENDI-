@@ -1,6 +1,6 @@
 // Recorre todas las pantallas del menú (y cada comarca, con un perfil con progreso) buscando errores.
 import { chromium } from 'playwright-core';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 1000, height: 640 } });
 await p.addInitScript((k) => { try { if (!localStorage.getItem(k)) localStorage.setItem(k, 'es'); } catch (e) { } }, 'herrizherri-lang');
 const errs = []; p.on('pageerror', e => errs.push('PAGEERROR ' + e.message + ' ' + (e.stack || '').split('\n')[1])); p.on('console', m => { if (m.type() === 'error') errs.push('consola ' + m.text().slice(0, 200)); });

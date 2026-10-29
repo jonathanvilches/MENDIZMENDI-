@@ -8,7 +8,7 @@ import sharp from 'sharp';
 const DIR = 'src/assets/sellos';
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : readdirSync(`${DIR}/web`).filter(f => f.endsWith('.webp')).map(f => f.slice(0, -5));
 const font = readFileSync('node_modules/@fontsource/nunito/files/nunito-latin-900-normal.woff2').toString('base64');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await b.newPage();
 await p.setContent('<html><body></body></html>');
 for (const id of ids) {

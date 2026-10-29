@@ -6,7 +6,7 @@ import { mkdirSync } from 'fs';
 const [,, out = '/tmp/popups', sizes = '390x844,844x390,1280x760'] = process.argv;
 mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 for (const sz of sizes.split(',')) {
   const [W, H] = sz.split('x').map(Number);

@@ -1,7 +1,7 @@
 // Capturas del centro de mando: node tools/hubshots.mjs <url> <prefijo> <ancho> <alto> [pantallas]
 import { chromium } from 'playwright-core';
 const [,, url, out, w = 390, h = 844, list = 'onb,home,home2,map,avatars,comarca,sheet,more,badges,towns,nature,passport,profile'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const ctx = await browser.newContext({ viewport: { width: +w, height: +h }, hasTouch: true, isMobile: +w < 1000, deviceScaleFactor: 2 });
 const page = await ctx.newPage();
 await page.addInitScript((k) => { try { if (!localStorage.getItem(k)) localStorage.setItem(k, 'es'); } catch (e) { } }, 'herrizherri-lang');

@@ -1,7 +1,7 @@
 // Hoja de iconos: node tools/iconshots.mjs <salida.png>
 import { chromium } from 'playwright-core';
 const [,, out, page0 = 'icons.html'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1400, height: 900 }, deviceScaleFactor: 1 });
 page.on('pageerror', e => console.log('PAGEERROR', e.message));
 await page.goto('http://127.0.0.1:5173/lab/' + page0 + '');
