@@ -36,7 +36,7 @@ export class Musica {
     r.then(() => { if (p.estado === 'pide') p.estado = 'suena'; else p.a.pause(); }, (e) => {
       if (e?.name !== 'NotAllowedError') { p.estado = 'fallo'; return; }
       p.estado = 'bloqueada';
-      const toque = () => { removeEventListener('pointerup', toque, true); removeEventListener('keydown', toque, true); if (p.estado === 'bloqueada' && this.cur === p) this.suena(p); };
+      const toque = () => { removeEventListener('pointerup', toque, true); removeEventListener('keydown', toque, true); this.ctx.resume?.(); if (p.estado === 'bloqueada' && this.cur === p) this.suena(p); };
       addEventListener('pointerup', toque, true); addEventListener('keydown', toque, true);
     });
   }

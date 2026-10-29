@@ -148,6 +148,11 @@ async function boot() {
   // sonar nada) y al volver de un pueblo o de un campeonato (exit y futbolSport). En los pueblos y en los partidos, la
   // música la elige runtime.js según lo que pasa
   sound.setMood('inicio');
+  // (el sonido se prepara ya, al abrir: las canciones se van descargando mientras tanto y suenan en cuanto se toca. Antes
+  // se preparaba con el primer toque y la música empezaba tarde, cuando llegaba. Donde el navegador deja sonar sin tocar,
+  // como la app instalada en el ordenador, suena desde el principio; si no, el primer toque la despierta)
+  // (con la música y el volumen de Ajustes desde ya: antes, en el menú sonaba aunque se hubiera quitado)
+  sound.setMusic(P.settings.music !== false); sound.init(); if (P.settings.volume != null) sound.setVolume(P.settings.volume);
   { const first = () => { removeEventListener('pointerup', first, true); removeEventListener('keydown', first, true); if (!game && !loading) sound.init(); };
     addEventListener('pointerup', first, true); addEventListener('keydown', first, true); }
   window.__hub = hub;

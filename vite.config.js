@@ -121,7 +121,7 @@ const sinRedir = { name: 'sin-redireccion', transformIndexHtml: (html) => html.r
 const app = {
   name: 'app-instalable',
   transformIndexHtml: (html) => html.replace('</head>', `<link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icon-180.png">
+<link rel="apple-touch-icon" href="./icon-180.png?v=ilustracion">
 ${splashLinks()}
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
