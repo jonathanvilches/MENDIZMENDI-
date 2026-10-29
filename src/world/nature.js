@@ -882,7 +882,7 @@ export class Nature {
    *  apenas se ve, y en Lesaka eran unos 230.000 triángulos de 1,1 millones). Con centro y r, además, nada de lo que
    *  queda a más de r metros del frontón (en los aparatos que ya perdieron la imagen en un partido). */
   partido(on, centro = null, r = 0) {
-    for (const m of this.bosqueLejos || []) m.visible = !on && !this.fijo;
+    for (const m of this.bosqueLejos || []) m.visible = !on && !this.fijo && !this.sinLejos;
     this.corte = on && centro ? { x: centro.x, z: centro.z, r } : null;
   }
   /** En Campeonatos: para toda la visita, sin árboles, piedras, matas ni flores (para jugar a pelota no hacen falta y

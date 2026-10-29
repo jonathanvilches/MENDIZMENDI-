@@ -51,7 +51,7 @@ import { startHD } from './web/hd.js';
 import { startVercel } from './web/vercel.js';
 import { sencillo } from './util/sencillo.js';
 import { apuntaPerdida } from './util/diag.js';
-import { calidadOrdenador, apuntaGpu, fijaCalidad } from './util/gpu.js';
+import { calidadOrdenador, apuntaGpu, fijaCalidad, gpuNombre } from './util/gpu.js';
 
 const q = new URLSearchParams(location.search);
 // el código de jugar en los pueblos (Otsagabia y los demás, con la pelota, las misiones y los minijuegos) va en archivos
@@ -118,6 +118,14 @@ async function boot() {
     const S = P.settings;
     if (!input.touch && !S.quality && !q.get('q') && !S.slowPc) { S.slowPc = true; saveProfile(); }
     if (n === 1) game?.ui?.toast?.(isEU() ? 'Irudia arindu dugu jokoa arin ibil dadin' : 'Imagen aligerada para que el juego vaya fluido', 'exclaim', 3600);
+  };
+  // y si ni así llega y la gráfica es la del procesador (Intel), una vez: muchos portátiles llevan además otra tarjeta
+  // (NVIDIA, AMD) y Windows le da a Chrome la floja; desde la web no se puede elegir, se elige en Windows
+  rt.onVistaCorta = () => {
+    if (input.touch || !/intel/i.test(gpuNombre() || '')) return;
+    try { if (localStorage.getItem('herrizherri-aviso-grafica')) return; localStorage.setItem('herrizherri-aviso-grafica', '1'); } catch (e) { return; }
+    setTimeout(() => game?.ui?.toast?.(isEU() ? 'Joko motela: ordenagailuak NVIDIA edo AMD txartela badu, Windowsen Ezarpenak › Pantaila › Grafikoak atalean jarri Chrome «Errendimendu handia»-n'
+      : 'Va lento con la gráfica Intel. Si el ordenador tiene NVIDIA o AMD: Configuración de Windows › Pantalla › Gráficos, Chrome en «Alto rendimiento»', 'exclaim', 12000), 4000);
   };
   // retratos, fichas, iconos y figuras del público se dibujan con este mismo renderizador (sin un segundo contexto WebGL)
   setOffscreenHost(rt.renderer);
