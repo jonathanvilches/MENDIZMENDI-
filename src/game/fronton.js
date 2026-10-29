@@ -335,7 +335,7 @@ export function labritInTown(scene, near) {
 // el rival, cada una de su color, y la de los pelotazales del pueblo. Devuelve con qué quitarlas
 const COL_PANC = { azul: '#4b3cff', rojo: '#d8243c' };
 function pancartasDe(C, you, riv, town, colors) {
-  const S = (C.standSpots || []).filter(p => p[1] > 0.3).sort((a, b) => a[2] - b[2]); if (S.length < 6) return null;
+  const S = (C.ocupados || C.standSpots || []).filter(p => p[1] > 0.3).sort((a, b) => a[2] - b[2]); if (S.length < 6) return null;
   const txt = [[`¡AUPA ${you}!`.toUpperCase(), COL_PANC[colors.you] || COL_PANC.azul], [`¡AUPA ${riv}!`.toUpperCase(), COL_PANC[colors.rival] || COL_PANC.rojo], [`${town} · PILOTAZALEAK`.toUpperCase(), '#1c1630']];
   const out = [];
   txt.forEach(([t, col], i) => {
@@ -446,8 +446,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
       if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
       // (sentados en sus asientos, en todos los frontones: el sitio es el asiento y la figura, algo adelantada y más baja;
-      // en cada tanto celebran sin levantarse, con los brazos en alto)
-      const sit = !!C.seated, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * 0.3, y - 0.4, z + Math.cos(ry) * 0.3, ry]) : wsp;
+      // en cada tanto celebran sin levantarse, con los brazos en alto. Cuánto se adelanta lo dice la grada: en las butacas
+      // con respaldo, la cadera sobre el asiento, 8 cm; en los bancos corridos al borde del escalón, 30, con los pies en el
+      // de abajo. Nadie atraviesa ni el escalón ni lo que tiene delante)
+      const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - 0.4, z + Math.cos(ry) * ad, ry]) : wsp;
+      C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
       if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true, arriba: true, kc: muyLigero ? 1 : ligero ? 6 : null }); G.scene.add(seated); }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)

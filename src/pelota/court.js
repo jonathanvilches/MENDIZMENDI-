@@ -501,10 +501,12 @@ export class PelotaCourt {
       box(s.l, 0.04, 0.05, cream, s.x + s.nx * 0.02, y + 0.02, s.z + s.nz * 0.02, s.ry + Math.PI / 2);   // el canto del escalón
       if (!seats) continue;
       const n = Math.floor(s.l / 0.54), fy = Math.atan2(-s.nx, -s.nz), dx = Math.sin(s.ry), dz = Math.cos(s.ry);
-      for (let k = 0; k < n; k++) { const t = (k + 0.5) / n - 0.5, x = s.x + dx * t * s.l + s.nx * 0.4, z = s.z + dz * t * s.l + s.nz * 0.4;
+      // (la butaca, al fondo de su escalón, a 0,53 m del borde: las rodillas y los pies del sentado caben delante, en el
+      // mismo escalón. Antes iba en medio y las piernas de la primera fila atravesaban el antepecho)
+      for (let k = 0; k < n; k++) { const t = (k + 0.5) / n - 0.5, x = s.x + dx * t * s.l + s.nx * 0.53, z = s.z + dz * t * s.l + s.nz * 0.53;
         if (!hi && hueco(x, z)) continue;
         (hi ? seatsHi : seatsLo).push([x, y, z, fy]);
-        this.standSpots.push([x - s.nx * 0.05, y + 0.44, z - s.nz * 0.05, fy]); } } };   // (todas las butacas: en la final, lleno)
+        this.standSpots.push([x, y + 0.44, z, fy]); } } };   // (todas las butacas: en la final, lleno)
     // grada baja: el antepecho de madera junto a la contracancha y diez filas de butacas de madera
     // (el antepecho, forrado de tablas verticales de madera barnizada, como la tarima)
     const panelTex = canvasTex(T, 512, 128, (c, w, h) => { const n = 16, bw = w / n; for (let i = 0; i < n; i++) { const t = 0.86 + Math.random() * 0.2; c.fillStyle = `rgb(${Math.round(214 * t)},${Math.round(152 * t)},${Math.round(88 * t)})`; c.fillRect(i * bw + 1, 0, bw - 2, h);
@@ -520,7 +522,7 @@ export class PelotaCourt {
       for (const s of segs(off0 + 0.6)) { const dx = Math.sin(s.ry), dz = Math.cos(s.ry); for (let t = -0.5; t <= 0.5; t += 0.5) if (s.l > 4 || t === 0) box(0.32, y0 - 0.5, 0.32, cream, s.x + dx * t * s.l * 0.9, (y0 - 0.5) / 2, s.z + dz * t * s.l * 0.9); }
     };
     balc(8.2, 5.2, 4); balc(10.4, 8.6, 4);
-    this.seated = true;   // (el público, sentado en sus butacas: de pie se subía al asiento y las piernas atravesaban el respaldo)
+    this.seated = true; this.sitAdelante = 0.08;   // (el público, sentado en sus butacas: de pie se subía al asiento y las piernas atravesaban el respaldo)
     // --- la tele, que retransmite la final: una cámara en una tarima en lo alto de la grada baja, frente a la pared
     // izquierda (el plano general); otra en el fondo, detrás del rebote, mirando al frontis; y una a pie de cancha, en la
     // esquina del frontis. Cada una sobre su trípode, con su operador detrás (this.tvCrew: fronton.js lo pone en el partido)
@@ -734,7 +736,7 @@ export class PelotaCourt {
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
     // (el verde, solo en la cancha: las paredes altas y la de delante de la contracancha, claras; la de detrás de la grada,
     // de madera de pino barnizada; el fondo, de hormigón)
-    const wallM = M({ color: '#e3dccd', roughness: 0.92 }), concrete = M({ color: '#8c8794', roughness: 0.95 }), dark = M({ color: '#24202c', roughness: 0.8 });
+    const wallM = M({ color: '#e3dccd', roughness: 0.92 }), concrete = M({ color: '#bdb6c4', roughness: 0.95 }), dark = M({ color: '#24202c', roughness: 0.8 });   // (la grada, de hormigón claro: oscura parecía un muro)
     const fondoM = M({ color: '#a7a29a', roughness: 0.95 });
     const steel = M({ color: '#5d5a66', roughness: 0.5, metalness: 0.45 });
     // el muro alto: la pared izquierda sube hasta el techo con una franja de ventanales arriba (luz de día, sin sol directo)
@@ -772,21 +774,23 @@ export class PelotaCourt {
     // la grada: escalones de hormigón a lo largo de la contracancha, con su barandilla y los asientos (una sola llamada)
     const z0 = 1.6, z1 = EXT - 1.6, len = z1 - z0;
     for (let i = 0; i < HALL_ROWS; i++) { const top = 0.5 + i * RU; box(RD, top, len, concrete, xs + i * RD + RD / 2, top / 2, (z0 + z1) / 2); }
-    box(0.08, 1.05, len, steel, xs - 0.04, 0.52, (z0 + z1) / 2);   // (el murete con la barandilla delante de la grada)
-    // (cada asiento: el respaldo detrás y el asiento a 0,45 m del escalón; dos piezas, cada una una sola llamada)
-    const seatG = new T.BoxGeometry(0.4, 0.08, 0.44).translate(0, 0.41, 0), backG = new T.BoxGeometry(0.06, 0.44, 0.44).translate(0.2, 0.62, 0), legG = new T.BoxGeometry(0.08, 0.37, 0.3).translate(0.08, 0.185, 0);
+    // (cada asiento: el respaldo detrás y el asiento a 0,45 m del escalón; dos piezas, cada una una sola llamada). Delante,
+    // sin murete: la grada empieza en el primer escalón, todo asientos. Cada asiento, al fondo de su escalón (a 0,56 m del
+    // borde): el sentado ocupa medio metro por delante con las rodillas y los pies, que así quedan en su escalón. Antes iba
+    // a 0,42 y los pies de la primera fila atravesaban el murete negro (Marcilla, octubre de 2026)
+    const seatG = new T.BoxGeometry(0.4, 0.08, 0.44).translate(0, 0.41, 0), backG = new T.BoxGeometry(0.06, 0.44, 0.44).translate(0.2, 0.62, 0), legG = new T.BoxGeometry(0.05, 0.37, 0.05).translate(0.08, 0.185, 0);
     const seats = []; this.standSpots = [];
     for (let i = 0; i < HALL_ROWS; i++) for (let z = z0 + 0.35; z < z1 - 0.2; z += 0.52) {
       if (Math.abs(z - (z0 + len / 3)) < 0.5 || Math.abs(z - (z0 + 2 * len / 3)) < 0.5) continue;   // (dos pasillos para subir)
-      const x = xs + i * RD + 0.42, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + 0.45, z, -Math.PI / 2]);   // (la altura del asiento)
+      const x = xs + i * RD + 0.56, y = 0.5 + i * RU; seats.push([x, y, z]); this.standSpots.push([x, y + 0.45, z, -Math.PI / 2]);   // (la altura del asiento)
     }
-    const seatM = M({ color: '#ffffff', roughness: 0.6 }), col = new T.Color();
+    const seatM = M({ color: '#ffffff', roughness: 0.6 }), legM = M({ color: '#a9a8b1', roughness: 0.45, metalness: 0.4 }), col = new T.Color();   // (las patas, un pie fino y claro)
     for (const [geo, nm] of [[seatG, 'asientos'], [backG, 'respaldos'], [legG, 'patas']]) {
-      const SI = new T.InstancedMesh(geo, nm === 'patas' ? steel : seatM, seats.length);
+      const SI = new T.InstancedMesh(geo, nm === 'patas' ? legM : seatM, seats.length);
       seats.forEach(([x, y, z], i) => { SI.setMatrixAt(i, m4.makeTranslation(x, y, z)); if (nm !== 'patas') SI.setColorAt(i, col.set(i % 11 === 0 ? th.seat2 || '#8e6ae8' : th.seat || '#5b34c4')); });
       SI.receiveShadow = true; SI.name = nm; g.add(SI);
     }
-    this.seated = true;   // (el público, sentado en sus asientos)
+    this.seated = true; this.sitAdelante = 0.08;   // (el público, sentado en sus asientos: con la cadera sobre el asiento, fronton.js)
     this.extent = { x0: -W / 2 - 0.9, x1: xr + 0.9, z0: za - 0.6, z1: zb + 0.6 };
     this.platform = { x0: -W / 2 - 0.6, x1: xs, z0: za, z1: zb };   // (se anda por la cancha y la contracancha; la grada, no)
     this.boxes = this.boxes.filter(b => b.d !== L * 0.78);

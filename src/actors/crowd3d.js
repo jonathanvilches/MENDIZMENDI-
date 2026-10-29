@@ -213,7 +213,9 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       const wave = (A[i * 3 + 2] && ex > 0.15 && Math.sin(t * 7 + A[i * 3 + 1]) >= 0) || ola > 0.3 ? 1 : 0;
       const pose = quietos ? 0 : Math.max((C[i * 2 + 1] + cheer) % 2, wave), im = (k < KC || !mid ? meshes : k < KC + KM || !far ? mid : far)[figs[i] % meshes.length][pose];
       const jump = quietos || (sit && arriba) ? 0 : A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;   // (los que celebran sentados no saltan)
-      m4.compose(v.set(s[0], s[1] + jump, s[2]), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
+      // (el que se levanta a celebrar, de pie delante de su asiento: en el sitio del sentado quedaba dentro de él)
+      const sube = sit && !arriba && pose === 1 ? 0.3 : 0;
+      m4.compose(v.set(s[0] + Math.sin(rot[i]) * sube, s[1] + jump, s[2] + Math.cos(rot[i]) * sube), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
       if (all3d) { const l = 0.9 + 0.1 * Math.abs(Math.sin(i * 12.9898)); tc.setRGB(l, l, l); } else tc.setRGB(TT[i * 3], TT[i * 3 + 1], TT[i * 3 + 2]);
       im.setColorAt(im.count, tc); im.setMatrixAt(im.count++, m4);
     }
