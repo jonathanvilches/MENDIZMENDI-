@@ -218,10 +218,11 @@ export class PuebloDeportes {
       // (fuera de la escena y sin su memoria gráfica, si llegó a subirse; el pueblo no vuelve a usarse)
       if (town) for (const m of [...town.children]) { const s = m.geometry?.boundingSphere; if (s && Math.hypot(s.center.x - C.x, s.center.z - C.z) - s.radius > R) { town.remove(m); m.geometry.dispose(); } }
     } catch (e) { console.warn('campeonato: casas', e); }
-    // y en el móvil, lo que queda (el frontón y sus casas) y los dos pelotaris, subidos ya a la tarjeta poco a poco
+    // y en el móvil, lo que queda (el frontón y sus casas, sin el personaje del jugador, que no juega aquí) y los dos
+    // pelotaris, subidos ya a la tarjeta poco a poco
     // mientras se elige partido: así no llega todo de golpe en la entrada a la cancha (rt.subePoco)
     if (this.rt?.quality === 'low' && this.rt.subePoco) {
-      this.rt.subePoco(this.scene);
+      this.rt.subePoco(this.scene, false, new Set([this.player?.obj].filter(Boolean)));
       for (const n of ['pelotari', 'pelotari_rojo']) if (hasMeshy(n)) loadMeshy(n).then(g => this.rt?.subePoco(g.scene, true)).catch(() => { });
     }
   }
