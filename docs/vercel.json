@@ -1,0 +1,5 @@
+{
+  "git": { "deploymentEnabled": { "copia-*": false } },
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD ./",
+  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/mudanza.html" }]
+}
