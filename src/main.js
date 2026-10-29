@@ -31,7 +31,7 @@ import { Hub } from './hub/hub.js';
 import { isDidactico } from './util/modo.js';
 import { profile, saveProfile, townState, checkBadges, salazarState, townProgress } from './game/profile.js';
 import { missionSlots, edadDe } from './data/edad.js';
-import { levelById, LEVELS } from './data/levels.js';
+import { levelById, LEVELS, sedeDePueblo } from './data/levels.js';
 import { townImg } from './assets.js';
 import { armsReady } from './ui/escudoImg.js';
 import { armsOfTown } from './data/armas-navarra.js';
@@ -131,7 +131,8 @@ async function boot() {
   let game = null, def = null, loading = false;
   const hub = new Hub({ sound, onPlay: (d, o) => play(d, o) });
   // campeonatos desde el menú, sin misiones: la pelota en el frontón del pueblo elegido; el fútbol, en su propia escena
-  hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(townId) || LEVELS[0], { sport: kind === 'pasaka' ? 'pasaka' : 'pelota' });
+  // (la pelota, siempre en una de las sedes de los Campeonatos: data/levels.js, SEDES_PELOTA)
+  hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(kind === 'pasaka' ? townId : sedeDePueblo(townId || LEVELS[0].id)) || LEVELS[0], { sport: kind === 'pasaka' ? 'pasaka' : 'pelota' });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
   // el tema de inicio (audio.js, INICIO) suena en el menú: desde el primer toque o tecla (antes, el navegador no deja
   // sonar nada) y al volver de un pueblo o de un campeonato (exit y futbolSport). En los pueblos y en los partidos, la

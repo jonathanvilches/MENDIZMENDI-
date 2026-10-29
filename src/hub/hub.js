@@ -3,7 +3,7 @@ import COMARCAS from '../data/comarcas.json';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
 import SETTLEMENTS from '../data/settlements.json';
-import { LEVELS, levelById } from '../data/levels.js';
+import { LEVELS, levelById, esSede, sedeDePueblo } from '../data/levels.js';
 import { REAL_IDS, ATRIBUCION } from '../data/reales/index.js';
 import { iconSVG, speciesIcon } from '../ui/icons.js';
 import { showFicha, allFichas } from '../ui/ficha.js';
@@ -164,7 +164,7 @@ export class Hub {
       if (t.dataset.instrumento) { this.sound?.ui('open'); return openInstrumento({ sound: this.sound, townName }, t.dataset.instrumento).then(() => { if (this.screen === 'instrumentos') this.go('instrumentos', undefined, true); }); }   // (la ficha de un instrumento; al volver, la lista con lo tocado)
       // (el frontón elegido cambia en su caja, sin volver a pintar la pantalla ni subirla arriba)
       if (t.dataset.fronton) { this.frontonTown = t.dataset.fronton; this.sound?.ui('click'); this.sheet?.remove(); this.sheet = null; const b = $('.sp-pick', this.root); if (b) b.outerHTML = this.frontonBox(); else this.go('sports', undefined, true); return; }
-      if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? (t.dataset.en || this.frontonId()) : null); }   // (data-en: el pueblo del frontón, desde el resumen del inicio)
+      if (t.dataset.sport) { this.sound?.ui('open'); return this.onSport?.(t.dataset.sport, t.dataset.sport === 'pelota' ? (t.dataset.en ? sedeDePueblo(t.dataset.en) : this.frontonId()) : null); }   // (data-en: el pueblo del frontón, desde el resumen del inicio)
       if (t.dataset.play) return this.play(t.dataset.play);
       if (t.dataset.town) return isDidactico() ? this.go('pueblo', t.dataset.town) : this.townSheet(t.dataset.town);
       if (t.dataset.comarca) return this.go('comarca', t.dataset.comarca);
@@ -303,7 +303,7 @@ export class Hub {
   // ---------- Campeonatos ----------
   // pelota a mano y fútbol sin entrar en las misiones de un pueblo: la pelota se juega en el frontón del pueblo que se
   // elija; el fútbol, con tu club (Liga Navarra, amistosos y El Sadar)
-  frontonId() { const p = profile(); return levelById(this.frontonTown)?.id || levelById(p.last)?.id || LEVELS[0].id; }
+  frontonId() { const p = profile(); return esSede(this.frontonTown) ? this.frontonTown : sedeDePueblo(p.last || LEVELS[0].id); }
   s_sports() {
     const p = profile(), fl = levelById(this.frontonId()), club = CLUBS[p.futbolClub], tx = p.txapelas || 0;
     let fb = null; try { fb = JSON.parse(localStorage.getItem('herrizherri-futbol-v1') || 'null'); } catch (e) { }
@@ -338,7 +338,7 @@ export class Hub {
   }
   frontonPicker() {
     this.sound?.ui('open');
-    const cur = this.frontonId(), groups = COMARCAS.map(c => [c, LEVELS.filter(l => !l.special && !l.bosque && l.comarca === c.id)]).filter(([, ts]) => ts.length);
+    const cur = this.frontonId(), groups = COMARCAS.map(c => [c, LEVELS.filter(l => esSede(l.id) && l.comarca === c.id)]).filter(([, ts]) => ts.length);
     const s = el(`<div class="sheet frs"><div class="frs-in" role="dialog" aria-label="Elige frontón">
       <div class="frs-head"><small class="kicker">Pelota a mano</small><h2>Elige frontón</h2></div><button class="x" aria-label="Cerrar">${I('close', 22)}</button>
       <div class="frs-list">${groups.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div class="frs-grid">${ts.map(l => `<button class="fr-chip ${l.id === cur ? 'on' : ''}" data-fronton="${l.id}">${esc(l.name.split(' /')[0])}</button>`).join('')}</div></section>`).join('')}</div></div></div>`);

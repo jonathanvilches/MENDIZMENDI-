@@ -489,6 +489,18 @@ export const LEVELS = [
 LEVELS.push(...BOSQUES);
 
 export const levelById = id => LEVELS.find(l => l.id === id);
+// Los frontones de los Campeonatos: los más conocidos y los de los pueblos con pelotari propio, uno por zona (el Labrit de
+// Iruña, el frontón Baztan de Elizondo, el Remontival de Estella…). Los demás pueblos siguen con su frontón para pasear y
+// jugar en él, pero en Campeonatos no se ofrecen: con los treinta y uno el menú era muy largo, y el botón de pelota abría
+// el del último pueblo visitado aunque no tuviera partido (en el valle de Salazar, Ochagavía, se quedaba en el pueblo)
+export const SEDES_PELOTA = ['lesaka', 'elizondo', 'leitza', 'pamplona', 'sanguesa', 'estella', 'puente-la-reina', 'tafalla', 'marcilla'];
+export const esSede = (id) => SEDES_PELOTA.includes(id);
+/** La sede de los Campeonatos para un pueblo: él mismo si lo es; si no, la de su comarca o, si no hay, Lesaka. */
+export function sedeDePueblo(id) {
+  if (esSede(id)) return id;
+  const c = levelById(id)?.comarca;
+  return SEDES_PELOTA.find(s => levelById(s)?.comarca === c) || SEDES_PELOTA[0];
+}
 
 // Subir al monte del pueblo: cada misión usa los datos reales de la cima (altitud, desnivel, ruta y terreno)
 const SUMMITS = {
