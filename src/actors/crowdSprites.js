@@ -87,7 +87,7 @@ function crowdAtlas(set = 'futbol', sit = false) {
  * Devuelve el InstancedMesh (vacío hasta que la lámina esté lista) con .cheer(on) para que celebren y
  * .tick(t, ánimo, zFoco) para que salten y saluden con la mano (más cuanto más cerca de zFoco, p. ej. los toros).
  */
-export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit = false) {
+export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit = false, { lamina = true } = {}) {
   const geo = new THREE.PlaneGeometry(height * CW / CH, height); geo.translate(0, height / 2, 0);
   const cell = new Float32Array(spots.length * 2);
   const mat = new THREE.MeshBasicMaterial({ transparent: false, alphaTest: 0.5, side: THREE.DoubleSide });
@@ -118,7 +118,9 @@ export function crowdMesh(spots, set = 'futbol', height = 1.45, figs = null, sit
   geo.setAttribute('aAnim', new THREE.InstancedBufferAttribute(anim, 3));
   geo.setAttribute('aTint', new THREE.InstancedBufferAttribute(tint, 3));
   im.visible = false; im.frustumCulled = false;
-  crowdAtlas(set, sit).then(A => { mat.map = A.tex; U.uCols.value = A.cols; U.uRows.value = A.rows; mat.needsUpdate = true; im.visible = true; for (let i = 0; i < spots.length; i++) cell[i * 2] = figs ? figs[i] % A.n : Math.floor(Math.random() * A.n); geo.attributes.aCell.needsUpdate = true; })
+  // (sin lámina, lamina false: el público que va todo en 3D, crowd3d all3d, solo usa sus datos; dibujar la lámina eran 16
+  // retratos y sus texturas subidas a la tarjeta al empezar el partido, sin enseñarse nunca)
+  if (lamina) crowdAtlas(set, sit).then(A => { mat.map = A.tex; U.uCols.value = A.cols; U.uRows.value = A.rows; mat.needsUpdate = true; im.visible = true; for (let i = 0; i < spots.length; i++) cell[i * 2] = figs ? figs[i] % A.n : Math.floor(Math.random() * A.n); geo.attributes.aCell.needsUpdate = true; })
     .catch(err => console.warn('público', err));
   im.cheer = (on) => { U.uCheer.value = on ? 1 : 0; };
   im.tick = (t, excite = 1, focus = 0, wave = -99) => { U.uTime.value = t; U.uExcite.value = excite; U.uFocus.value = focus; U.uWave.value = wave; };

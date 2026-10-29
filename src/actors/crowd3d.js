@@ -138,7 +138,7 @@ function bakeSet(set, sit, arriba = false) {
 export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
-  const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit);
+  const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit, { lamina: !all3d });
   group.add(sprites);
   // banderas, bufandas y pañuelos de la afición
   let props = null; try { props = crowdProps(spots, set, height, { sit }); group.add(props); } catch (e) { console.warn('afición', e); }
