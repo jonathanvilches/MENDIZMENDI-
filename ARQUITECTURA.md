@@ -95,6 +95,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   52 cm por delante del centro del asiento con las rodillas y los pies: el asiento va al fondo de su escalón y la grada
   dice cuánto se adelanta la figura (`court.sitAdelante`: 0,08 en butacas con respaldo, 0,3 en bancos corridos al
   borde). Delante de la primera fila, nada que los pies puedan cruzar. Para mirarlo de cerca: `tools/grada-ver.mjs pueblo`.
+  Tampoco la cámara: la del mapa del inicio sube por la ladera antes de entrar en el relieve (`tools/mapa-dron.mjs`).
 - **Sin propiedad ajena:** nada de personajes o logotipos de terceros. Solo recursos propios o con licencia CC0
   (las licencias están junto a los recursos, en `src/assets/*/LICENSE_*`).
 - **Textos:** se escriben en castellano; el traductor (`i18n.js` + `data/eu.js`) los pasa al euskera.
@@ -303,6 +304,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `grada-ver.mjs` | La primera fila del público de un frontón, de cerca, con una cámara propia: que nadie atraviese su escalón, el antepecho ni el asiento de delante. Tres capturas por frontón y lo que mide la figura sentada. |
 | `perro-guia.mjs` | «Enséñame el camino»: el perro se adelanta por las calles (el camino de los vecinos), ladra, espera y sigue tramo a tramo hasta dejarte junto al vecino (`CERCA=1`) o hacia una misión lejana. Simulado a pasos fijos. |
 | `campeonato-pueblo.mjs` | El pelotari junto al frontón de un pueblo invita al campeonato de la comarca: el diálogo con sus cuatro opciones, el campeonato elegido con su cuadro (solo el frontón) y, al salir, la vuelta a la puerta del frontón del pueblo. |
+| `mapa-dron.mjs` | El vuelo de dron del mapa del inicio sobre los pueblos con montes alrededor: en 24 puntos de la vuelta, la cámara por encima del relieve y sin montes entre ella y el pueblo. Capturas. |
 | `revision.mjs` | Carga los 31 pueblos y comprueba misiones, anfitriones, suelo, perro y errores; deja el informe en `entrega/revision.json` |
 | `encierro.mjs` | Prueba el encierro con capturas |
 | `iconos-nitidez.mjs` | Nitidez de los iconos 3D en las pantallas del menú (móvil de densidad 3 y escritorio): píxeles de pantalla frente a los de la imagen tras el cambio a la grande, rotos y cuántos de cada tamaño |
