@@ -219,9 +219,12 @@ export class Runtime {
    *  primero que se ve es la entrada a la cancha: todo de golpe, en una imagen de casi un segundo, y en el iPhone se
    *  perdía la imagen justo ahí. Esto las pone en cola (las de lo que se ve de obj) y subeAlgo sube dos por imagen
    *  mientras se está en el menú. listo() dice si ya no queda ninguna de obj */
-  subePoco(obj, todo = false) {
+  subePoco(obj, todo = false, salta = null) {
     const cola = this.cola ||= [], vistas = this.colaVista ||= new WeakSet(), mias = [];
-    obj?.[todo ? 'traverse' : 'traverseVisible']?.(o => { for (const m of [].concat(o.material || [])) {
+    // (salta: lo que no hay que subir aunque esté en la escena, con todo lo suyo; en Campeonatos, el personaje del jugador,
+    // que no sale en el partido y con su textura de 2048 px eran 21 MB en la tarjeta)
+    const recorre = (o, f) => { if (salta?.has(o) || (!todo && !o.visible)) return; f(o); for (const c of o.children) recorre(c, f); };
+    if (obj) recorre(obj, o => { for (const m of [].concat(o.material || [])) {
       for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'bumpMap']) { const t = m?.[k]; if (t?.isTexture && t.image && !t.isRenderTargetTexture && !vistas.has(t)) { vistas.add(t); cola.push(t); mias.push(t); } }
       if (m?.uniforms) for (const u of Object.values(m.uniforms)) { const t = u?.value; if (t?.isTexture && t.image && !t.isRenderTargetTexture && !vistas.has(t)) { vistas.add(t); cola.push(t); mias.push(t); } }
     } });
