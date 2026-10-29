@@ -1142,17 +1142,17 @@ export function mapa3d(host, o) {
       // puntero, bajaba y volvía a subir, y el mapa daba saltos al pasar por encima)
       c.lift += ((sel === c.id ? 0.9 : 0) - c.lift) * (1 - Math.exp(-dt * 10));
       c.hov += ((hover === 'c:' + c.id ? 1 : 0) - c.hov) * (1 - Math.exp(-dt * 12));
-      // (con otra elegida, pasa al fondo: más baja, con sus colores apagados bajo una bruma de piedra templada, y su agua y su
-      // borde casi no se ven; la elegida, un punto más viva)
+      // (con otra elegida, pasa al fondo: más baja, casi sin color y más oscura bajo una bruma de piedra templada, y su agua y
+      // su borde casi no se ven; la elegida, más viva. Antes las demás apenas cambiaban y no se distinguía cuál era)
       c.fondo += ((sel && sel !== c.id ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6));
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
-      const u = c.top.uniforms; u.uGris.value = c.gris + (0.32 - c.gris) * c.fondo - 0.12 * c.lift;
-      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK + (0.3 - c.tintK) * c.fondo;
-      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.16 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.04 * c.fondo)
+      const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * c.fondo - 0.18 * c.lift;
+      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK + (0.38 - c.tintK) * c.fondo;
+      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * c.fondo)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
-      c.rioM.opacity = 1 - 0.8 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.7 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.8 * c.fondo);
+      c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
     // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
