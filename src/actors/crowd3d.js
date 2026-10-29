@@ -162,7 +162,8 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   for (let i = 0; i < n; i++) { rot[i] = spots[i][3] + (Math.random() - 0.5) * 0.3; sc[i] = (0.92 + Math.random() * 0.16) * height / 1.5; }
   const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, tex ? texMat(g.userData.map) : MAT, k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; };
   let mid = null, far = null, capas = [];
-  bakeSet(set, sit, arriba).then(G => {
+  // (listo: cuando ya están las figuras en 3D; el partido espera a subir sus texturas antes de enseñar al público)
+  group.listo = bakeSet(set, sit, arriba).then(G => {
     meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
     if (K > KC) mid = G.map(poses => poses.map(g => inst(g.userData.lejos1 ||= lejos(g, C1), Math.min(K - KC, KM), false)));
     if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), K - KC - KM, false)));

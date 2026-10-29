@@ -65,8 +65,10 @@ export class Runtime {
     setBuilderQuality(quality); setMeshyTexMax(quality === 'low' ? 1024 : 2048); setQuality(quality);
     // suavizado de bordes por hardware: en el móvil sí (sus gráficas lo hacen casi gratis y sin él los personajes se veían
     // con dientes y motas); en un ordenador con pantalla de mucha densidad (retina, 4K) no, porque la propia resolución ya
-    // suaviza los bordes y, con tantos píxeles, era lo que más lo frenaba
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality !== 'high' || devicePixelRatio < 1.5, powerPreference: 'high-performance' });
+    // suaviza los bordes y, con tantos píxeles, era lo que más lo frenaba. Tampoco en calidad baja en el ordenador: en las
+    // gráficas del procesador (Intel UHD) el suavizado multiplica lo que cuesta cada píxel y el juego iba a tirones
+    const tactil = !!matchMedia?.('(pointer: coarse)').matches;
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'low' ? tactil : quality !== 'high' || devicePixelRatio < 1.5, powerPreference: 'high-performance' });
     // resolución con un presupuesto de píxeles: en alta, como mucho unos 4 millones (2560×1600); en móvil 1,25
     this.pixelRatio = this.maxRatio = this.ratioFor(quality);
     // si el navegador se queda sin memoria gráfica, avisar y ofrecer recargar (el progreso ya está guardado)
@@ -208,6 +210,22 @@ export class Runtime {
     obj.traverse(o => { if (need || !o.material) return; for (const m of [].concat(o.material)) if (m && !P.get(m).currentProgram) { need = true; break; } });
     return need;
   }
+  /** En el móvil (calidad baja) las texturas no se suben al cargar sino la primera vez que se ven, y en Campeonatos lo
+   *  primero que se ve es la entrada a la cancha: todo de golpe, en una imagen de casi un segundo, y en el iPhone se
+   *  perdía la imagen justo ahí. Esto las pone en cola (las de lo que se ve de obj) y subeAlgo sube dos por imagen
+   *  mientras se está en el menú. listo() dice si ya no queda ninguna de obj */
+  subePoco(obj, todo = false) {
+    const cola = this.cola ||= [], vistas = this.colaVista ||= new WeakSet(), mias = [];
+    obj?.[todo ? 'traverse' : 'traverseVisible']?.(o => { for (const m of [].concat(o.material || [])) {
+      for (const k of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'bumpMap']) { const t = m?.[k]; if (t?.isTexture && t.image && !t.isRenderTargetTexture && !vistas.has(t)) { vistas.add(t); cola.push(t); mias.push(t); } }
+      if (m?.uniforms) for (const u of Object.values(m.uniforms)) { const t = u?.value; if (t?.isTexture && t.image && !t.isRenderTargetTexture && !vistas.has(t)) { vistas.add(t); cola.push(t); mias.push(t); } }
+    } });
+    return { listo: () => mias.every(t => !cola.includes(t)) };
+  }
+  subeAlgo() {
+    const c = this.cola; if (!c?.length) return;
+    for (let n = 0; n < 2 && c.length; n++) { const t = c.shift(); try { this.renderer.initTexture(t); } catch (e) { } }
+  }
   upload(obj) {
     const R = this.renderer, seen = new Set(), up = (t) => { if (!t?.isTexture || seen.has(t) || !t.image || t.isRenderTargetTexture) return; seen.add(t); try { R.initTexture(t); } catch (e) { } };
     obj.traverse(o => {
@@ -249,7 +267,7 @@ export class Runtime {
     resetNpcCache();
     // (las listas de las piezas de detalle de las casas y de los árboles apuntan a sus mallas, y por ellas a todo el pueblo:
     // vacías ya al salir, y no al entrar en el siguiente. Antes quedaban unos 20 MB del pueblo dejado)
-    resetDetail(); TREES.length = 0;
+    resetDetail(); TREES.length = 0; this.cola = null; this.colaVista = null;
     // los colisionadores móviles guardan a los vecinos (y, a través de ellos, el pueblo entero): fuera también
     resetColliders(); resetVillage(); clearPlatforms();
     this.scene = null;
@@ -268,6 +286,7 @@ export class Runtime {
     // (compilando lo que viene: ni se mueve ni se dibuja nada hasta que esté, como mucho unos segundos; warm)
     if (this.holds) return;
     if (this.contextLost) return;
+    this.subeAlgo();
     const g = this.game, input = this.input;
     // escenas propias (el encierro): el juego dibuja su escena y su cámara, el mundo del pueblo queda en pausa
     const alt = g?.altScene;
@@ -378,7 +397,8 @@ export class Runtime {
   // densidad de píxeles: en alta hasta 2 y unos 3,7 megapíxeles (2560×1440, imagen nítida); en media 2,1 y en baja
   // (móviles) 1,25. Si va a tirones, la resolución dinámica la baja un poco y la recupera cuando sobra
   ratioFor(q) {
-    const css = Math.max(1, innerWidth * innerHeight), budget = q === 'high' ? 3.7e6 : q === 'mid' ? 2.1e6 : 1.2e6;
+    // (en calidad baja en el ordenador, 0,9 millones de píxeles: las gráficas del procesador no llegaban a más)
+    const css = Math.max(1, innerWidth * innerHeight), budget = q === 'high' ? 3.7e6 : q === 'mid' ? 2.1e6 : matchMedia?.('(pointer: coarse)').matches ? 1.2e6 : 0.9e6;
     return Math.max(0.75, Math.min(devicePixelRatio, q === 'high' ? 2 : q === 'mid' ? 1.5 : 1.4, Math.sqrt(budget / css)));
   }
   // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue

@@ -519,13 +519,16 @@ export class TownGame {
     const fr = frameFrustum(this.camera);
     const cull = (a, max) => cullActor(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), max, dt, P, fr);
     const lowQ = QUALITY === 'low';   // en móviles los vecinos se dibujan más cerca
-    for (const a of this.actors) cull(a, lowQ ? 70 : 110);
-    for (const a of this.walkers) cull(a, lowQ ? 50 : 70);
+    // (en Campeonatos solo el frontón: ni vecinos ni paseantes, salvo el pelotari; townDeportes.soloFronton)
+    const solo = this.soloCancha, fuera = (a) => { a.obj.visible = false; a.onScreen = false; };
+    for (const a of this.actors) { if (solo && a !== solo.keep) { fuera(a); continue; } cull(a, lowQ ? 70 : 110); }
+    for (const a of this.walkers) { if (solo) { fuera(a); continue; } cull(a, lowQ ? 50 : 70); }
     for (const a of this.balconVecinos || []) {   // (los del balcón saludan cuando pasas cerca; otra vez si vuelves)
+      if (solo) { fuera(a); continue; }
       cull(a, lowQ ? 70 : 110);
       const dd = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z); if (dd < 14 && !a.saludo) { a.saludo = true; a.wave = 2.2; } else if (dd > 30) a.saludo = false;
     }
-    for (const f of this.folk) this.updateFolk(f, dt);
+    for (const f of this.folk) { if (solo) { fuera(f); continue; } this.updateFolk(f, dt); }
     if (this.mode === 'play') this.bocadillos(dt); if (this._boc?.capa) this._boc.capa.hidden = this.mode !== 'play';   // (en los vídeos, los diálogos y los minijuegos, sin bocadillos)
     // objetos
     for (const it of this.items) {
