@@ -1012,7 +1012,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; max-width: 100%; padding: 4px 18px 4px 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; color: #fff; text-align: left; }
 .sp-box > span { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sp-box small { font: 600 var(--fs-xs)/1 var(--f-cond); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-box small { font: 600 var(--fs-xs)/1.2 var(--f-cond); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-media { flex: none; display: block; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
 img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del frontón, en redondo) */
 .sp-media.sp-em { object-fit: contain; padding: 4px; background: rgba(255, 255, 255, .08); }
