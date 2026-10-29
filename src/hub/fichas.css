@@ -31,28 +31,26 @@
 .sheet.pueblo .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 5; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
 .sheet.pueblo .x { right: 12px; top: 12px; z-index: 6; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 6, 22, .62); border: 1px solid rgba(255, 255, 255, .22); }
 .fh-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
-/* la portada: la lámina de todo el alto, sin cortarle nada al personaje, y movida para que él quede en el centro (--cx:
-   dónde está en la lámina, de 0 a 1; data/laminas.js, FOCO). Lo que queda al otro lado lo llena la misma lámina
-   desenfocada, y los bordes de la lámina se funden con ella. Debajo, el nombre. (--h: el alto, 16:9 del ancho, como
-   mucho el 58 % de la pantalla; medido con el ancho de la cabecera, que es su contenedor) */
+/* la portada: el personaje en el centro y entero (el marco, .pt-marco, más abajo); detrás, la lámina desenfocada, y
+   debajo, el nombre. (--h: el alto, 16:9 del ancho, como mucho el 58 % de la pantalla; medido con el ancho de la
+   cabecera, que es su contenedor) */
 .fh-cab { --h: min(calc(100cqw * 9 / 16), calc(58dvh / var(--z, 1))); container-type: inline-size; position: relative; display: grid; justify-items: start; width: 100%; overflow: hidden; isolation: isolate; background: #1a0c33; }
 .fh-cab::before { content: ''; position: absolute; inset: -40px; z-index: -1; background: var(--fondo, none) center / cover; filter: blur(26px) saturate(1.1) brightness(.55);
   -webkit-mask: linear-gradient(180deg, #000 55%, transparent); mask: linear-gradient(180deg, #000 55%, transparent); }
-/* (a cada lado de la lámina, su propio borde estirado, reflejado y difuminado: si el personaje está a un lado, al centrarlo
-   queda un hueco, y así el cielo, el suelo y los colores siguen hasta el borde en vez de quedar un borrón. Solo el último
-   doceavo de la lámina: el personaje no se repite. En la comarca, lo mismo) */
-.pt-esp { position: absolute; top: 0; z-index: 0; height: var(--h); width: calc(var(--h) * 16 / 9); background: var(--fondo, none) no-repeat; background-size: calc(var(--h) * 16 / 9 * 12) 100%;
+/* el marco de la portada (en la ficha del pueblo y en la de la comarca): del alto --h, con la lámina dentro acercada --zf
+   veces y movida para que el personaje quede en el centro (--cx) y entero de la cabeza a los pies (--sy: desde qué altura
+   se ve); ui/laminas.js, encuadre. Lo que queda a los lados, si queda, lo llena el borde de la propia lámina, estirado,
+   reflejado y difuminado, que se apaga hacia fuera; al pie, el marco se funde con la ficha */
+.pt-marco { --W: calc(var(--h) * var(--zf, 1) * 16 / 9); --H: calc(var(--h) * var(--zf, 1)); --x0: calc(50cqw - var(--cx, .5) * var(--W)); --y0: calc(-1 * var(--sy, 0) * var(--H));
+  position: relative; justify-self: stretch; width: 100%; height: var(--h); overflow: hidden;
+  -webkit-mask: linear-gradient(180deg, #000 86%, transparent); mask: linear-gradient(180deg, #000 86%, transparent); }
+.pt-marco > img { position: absolute; z-index: 1; left: var(--x0); top: var(--y0); width: var(--W); height: var(--H); max-width: none; display: block;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+.pt-esp { position: absolute; z-index: 0; top: var(--y0); width: var(--W); height: var(--H); background: var(--fondo, none) no-repeat; background-size: calc(var(--W) * 12) 100%;
   transform: scaleX(-1); filter: blur(14px) saturate(.9) brightness(.62); pointer-events: none; --lado: 90deg;
-  -webkit-mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%), linear-gradient(180deg, #000 70%, transparent); -webkit-mask-composite: source-in;
-  mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%), linear-gradient(180deg, #000 70%, transparent); mask-composite: intersect; }
+  -webkit-mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%); mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%); }
 /* (reflejadas, su lado de dentro es el que toca la lámina: de ahí se apagan hacia fuera, hasta el fondo desenfocado) */
-.pt-esp.l { background-position: left center; } .pt-esp.r { background-position: right center; --lado: 270deg; }
-.pt-esp.l { left: calc(50cqw - var(--cx, .5) * var(--h) * 16 / 9 - var(--h) * 16 / 9); }
-.pt-esp.r { left: calc(50cqw - var(--cx, .5) * var(--h) * 16 / 9 + var(--h) * 16 / 9); }
-.chero .pt-esp { z-index: 1; }
-.fh-portada { position: relative; z-index: 1; display: block; height: var(--h); width: calc(var(--h) * 16 / 9); max-width: none; margin-left: calc(50cqw - var(--cx, .5) * var(--h) * 16 / 9);
-  -webkit-mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, #000 86%, transparent); -webkit-mask-composite: source-in;
-  mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, #000 86%, transparent); mask-composite: intersect; }
+.pt-esp.l { left: calc(var(--x0) - var(--W)); background-position: left center; } .pt-esp.r { left: calc(var(--x0) + var(--W)); background-position: right center; --lado: 270deg; }
 .fh-tit { position: relative; z-index: 1; justify-self: stretch; display: grid; gap: 8px; padding: 6px 72px 0 24px; }
 .fh-tit h2 { margin: 0; color: #fff; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 4px rgba(8, 4, 16, .45), 0 4px 22px rgba(8, 4, 16, .55); }
 .fh-tit h2 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 35%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: 0 1px 8px rgba(8, 4, 16, .6); }
@@ -115,9 +113,7 @@
 .chero { --h: min(calc(100cqw * 9 / 16), calc(54dvh / var(--z, 1))); container-type: inline-size; position: relative; display: grid; grid-template-columns: minmax(0, 1fr); margin: 0 0 var(--hueco-m); overflow: hidden; isolation: isolate; border-radius: var(--rL); border: 1px solid var(--line2); color: #fff;
   background: radial-gradient(70% 140% at 0% 100%, color-mix(in srgb, var(--c, #ff2bd6) 20%, transparent), transparent 70%), linear-gradient(175deg, #241050 0%, #160737 100%); }
 .chero::after { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 3; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 55%, transparent); pointer-events: none; }
-.chero-img { grid-area: 1 / 1; justify-self: start; z-index: 2; display: block; height: var(--h); width: calc(var(--h) * 16 / 9); max-width: none; margin-left: calc(50cqw - var(--cx, .5) * var(--h) * 16 / 9);
-  -webkit-mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, #000 86%, transparent); -webkit-mask-composite: source-in;
-  mask: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent), linear-gradient(180deg, #000 86%, transparent); mask-composite: intersect; }
+.chero > .pt-marco { grid-area: 1 / 1; z-index: 2; }
 .ch-tx { display: contents; }
 .ch-tx .back { grid-area: 1 / 1; align-self: start; justify-self: start; z-index: 2; position: static; margin: 16px; }
 /* (jugando, sin «Mapa»: la X de arriba ya vuelve al mapa) */

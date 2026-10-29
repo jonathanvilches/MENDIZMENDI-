@@ -158,3 +158,18 @@ export const FOCO = {
   tudela: 0.66, 'ujue-almendras': 0.3, 'ujue-paloma': 0.74, ujue: 0.78, 'viana-tonelero': 0.72, viana: 0.77,
   'zugarramurdi-noche': 0.78, zugarramurdi: 0.8,
 };
+// y de arriba abajo: dónde empieza la cabeza del personaje (o la del más alto del grupo) y dónde acaban sus pies, de 0
+// (arriba) a 1 (abajo), en las láminas que son portada. Con eso la portada se acerca a él (hasta casi el doble) sin cortarle
+// nada: solo se quita cielo o suelo. (Medido a ojo, lámina a lámina)
+export const ALTO = {
+  lesaka: [0.5, 0.66], etxalar: [0.5, 0.9], zugarramurdi: [0.5, 0.88], 'amaiur-maya-del-baztan': [0.45, 0.92], ituren: [0.12, 0.92],
+  elizondo: [0.5, 0.75], leitza: [0.42, 0.93], lekunberri: [0.45, 0.9], 'orreaga-roncesvalles': [0.5, 0.92], aribe: [0.33, 0.88],
+  'otsagabia-ochagavia': [0.3, 0.97], 'isaba-izaba': [0.45, 0.95], 'erronkari-roncal': [0.38, 0.93], 'burgui-burgi': [0.37, 0.9],
+  'altsasu-alsasua': [0.49, 0.9], irurtzun: [0.4, 0.9], pamplona: [0.56, 0.92], aoiz: [0.46, 0.84], lumbier: [0.34, 0.92],
+  irulegi: [0.36, 0.96], sanguesa: [0.48, 0.93], estella: [0.53, 0.92], viana: [0.59, 0.9], 'puente-la-reina': [0.55, 0.91],
+  artajona: [0.49, 0.86], tafalla: [0.61, 0.94], javier: [0.54, 0.86], ujue: [0.54, 0.9], olite: [0.52, 0.9], marcilla: [0.57, 0.92],
+  tudela: [0.54, 0.92], cortes: [0.6, 0.86], 'aribe-irati': [0.5, 0.84], 'c-urbasa': [0.42, 0.94], 'c-aralar': [0.18, 0.94],
+  'c-setas': [0.47, 0.8], 'c-bidasoa-aves': [0.39, 0.84], 'tudela-ciguenas': [0.4, 0.96], 'c-baztan': [0.25, 0.92],
+  'c-pirineos': [0.26, 0.86], 'c-sakana': [0.22, 0.88], 'pamplona-murallas': [0.22, 0.88], 'c-prepirineo': [0.25, 0.84],
+  'c-vendimia': [0.46, 0.92], 'c-cereal': [0.39, 0.84], 'c-pitillas': [0.29, 0.88], 'c-bardenas': [0.48, 0.84],
+};
