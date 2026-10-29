@@ -4,7 +4,7 @@
 // de publicarse: así se pueden añadir todos los que hagan falta sin que el juego vaya más lento ni se cierre. Solo se
 // carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno, no cuántos hay.
 //   node tools/presupuesto-pueblo.mjs pueblo [pueblo…]   (env BASE: la web compilada, por defecto http://127.0.0.1:8099/;
-//   PELOTA=1 mide también el partido; LIGERA=1, con los partidos aligerados; Chromium en /opt/pw-browsers/chromium o CHROMIUM)
+//   PELOTA=1 mide también el partido (FOTO=ruta-%.png, con su captura); LIGERA=1, con los partidos aligerados; Chromium en /opt/pw-browsers/chromium o CHROMIUM)
 // Sale una línea por pueblo, con lo que se pasa; termina con código 1 si alguno se pasa.
 import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
@@ -61,6 +61,8 @@ for (const pueblo of pueblos) {
     if (!(await espera(p, () => ['serveWait', 'servePrep', 'rally', 'point'].includes(window.__game?.pelotaMatch?.game?.phase), 180000))) throw new Error('el partido no empieza');
     let m = null; for (let k = 0; k < 8; k++) { await p.waitForTimeout(800); m = pico(m, await mide(p)); }
     res.partido = m; res.lienzosPartido = await lienzos(p); res.sePasaPartido = pasa(m, TOPE.partido);
+    // (FOTO=ruta con %: una captura del partido, con el nombre del pueblo en lugar de %)
+    if (process.env.FOTO) await p.screenshot({ path: process.env.FOTO.replace('%', pueblo), timeout: 120000 }).catch(() => { });
     await p.context().close();
   } catch (e) { res.falloPartido = String(e).slice(0, 200); }
   if (res.fallo || res.falloPartido || res.sePasa?.length || res.sePasaPartido?.length) mal++;
