@@ -131,8 +131,9 @@ export class TownGame {
     this.missions = missionSlots(def, edadDe(this.P)).map(({ m, si }, i) => this.makeMission(m, i, si));
     this.state = { name: this.P.name || 'Iñigo', settings: this.P.settings };
     // luz propia de las criaturas de la noche: se crea al cargar (apagada) para que encenderla
-    // después no obligue a recompilar los materiales en mitad de la persecución
-    if (this.missions.some(M => M.type === 'legend' || (M.type === 'carnival' && M.night))) {
+    // después no obligue a recompilar los materiales en mitad de la persecución. En calidad baja, sin ella: aunque esté
+    // apagada, cada material la calcula en cada punto de la imagen, y en las gráficas flojas eso pesa
+    if (QUALITY !== 'low' && this.missions.some(M => M.type === 'legend' || (M.type === 'carnival' && M.night))) {
       this.creatureLight = new THREE.PointLight('#9fe0ff', 0, 24, 1.4); this.creatureLight.position.set(0, -50, 0); this.scene.add(this.creatureLight);
     }
   }
