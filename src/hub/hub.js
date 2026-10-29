@@ -47,6 +47,7 @@ import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
+import { calidadOrdenador, gpuNombre } from '../util/gpu.js';
 import { DIDACTICO, LM_ICON } from './didactico.js';
 import './fichas.css';
 import { inicioHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
@@ -821,6 +822,7 @@ export class Hub {
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
+        ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
         <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
@@ -836,7 +838,8 @@ export class Hub {
   }
   // (para arreglar un fallo en un móvil: lo que ve el juego de él, para hacerle una captura y mandarla; src/util/diag.js)
   diagnostico() {
-    return `<details class="panel creditos diag"><summary>${I('gear', 26)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>
+    return `<details class="panel creditos diag"><summary>${I('gear', 26)} Diagnóstico</summary><p class="set-note">Si algo no se ve bien, haz una captura de esto y mándala.</p>${!TACTIL && calidadOrdenador() === 'low' ? `
+      <p class="set-note"><b>Para que vaya fluido en un portátil:</b> muchos llevan dos gráficas y Windows le da a Chrome la floja. En Configuración de Windows, Sistema, Pantalla, Gráficos, elige Google Chrome y ponlo en «Alto rendimiento». Enchufa el cargador. Cierra Chrome del todo, también el icono junto al reloj, y vuelve a abrir el juego. Si «Mapa 3D» ya no dice Intel, lo has conseguido.</p>` : ''}
       <dl data-notr>${diagnostico().map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>`;
   }
   // de quién es cada cosa y con qué licencia (las de three.js y del código QR piden llevar su aviso, que va en inglés tal cual)
