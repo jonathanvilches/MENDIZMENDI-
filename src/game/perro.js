@@ -2,9 +2,12 @@
 // Va detrás del jugador; si se queda lejos, aparece a su lado. Cuando el jugador parece atascado (lleva un rato sin
 // acercarse a lo que toca, andando o quieto, o se aleja mucho) le pregunta «¿Necesitas ayuda?»; si dice que sí, o si la
 // pide él (tecla H o botón de la mochila), el perro corre por delante hacia lo que busca, o hacia el vecino al que
-// preguntar, ladra y deja huellas para enseñar el camino. Sin perro, le dice hacia dónde ir.
+// preguntar, por las calles (el camino de los vecinos, world/nav.js), ladra y deja huellas para enseñar el camino. Sin
+// perro, le dice hacia dónde ir.
 import * as THREE from 'three';
 import { groundHeight } from '../world/heightfield.js';
+import { requestPath } from '../world/nav.js';
+import { HALF } from '../world/layout.js';
 import { infoCard } from '../ui/minigames.js';
 import { saveProfile } from './profile.js';
 import { DOG_BREEDS } from '../actors/beasts.js';
@@ -19,7 +22,7 @@ export class Perro {
     this.side = { pos: new THREE.Vector3(), companion: true, speed: 0, face: 0 };
     if (this.on) this.spawnDog(P.x + 1.2, P.z);
     this.lead = null; this.best = null; this.atasco = 0; this.coolAyuda = 40; this.printT = 0;
-    this.goal = { pos: new THREE.Vector3() };
+    this.goal = { pos: new THREE.Vector3(), dist: 0.8 };   // (dist: hasta dónde se acerca a cada punto del camino)
   }
   // ¿vamos con perro? (se puede elegir ir solo)
   get on() { return this.g.P.dogOn !== false; }
@@ -109,16 +112,35 @@ export class Perro {
     if (!t) { g.ui.toast(this.dog ? `${this.name} mueve la cola: ahora no hay nada que buscar` : 'Ahora no hay nada que buscar', 'dog', 2200); return; }
     const que = t.quien ? (t.pregunta ? `${t.quien}, que te dirá qué hacer,` : t.quien) : 'Lo que buscas';
     if (!this.dog) { g.ui.toast(`${que} está ${this.rumbo(t)}`, 'compass', 4200); return; }
-    this.chain = 4; this.startLead(t, t.quien ? `${this.name} te lleva con ${t.quien}${t.pregunta ? ': pregúntale qué hacer' : ''}. ¡Síguelo!` : null);
+    this.chain = 40; this.startLead(t, t.quien ? `${this.name} te lleva con ${t.quien}${t.pregunta ? ': pregúntale qué hacer' : ''}. ¡Síguelo!` : null);
   }
+  // Cada tramo, unos 16 m del camino por las calles hacia lo que busca (el de los vecinos: en línea recta se metía contra
+  // las casas y se quedaba atascado a los pocos metros); el perro va de punto en punto, ladra al acabar el tramo y te espera.
+  // Mientras llega el camino (unos fotogramas), da un paso hacia allí
   startLead(t, msg = null) {
-    const P = this.g.player.pos, dx = t.x - P.x, dz = t.z - P.z, d = Math.hypot(dx, dz);
-    if (d < 8) { this.g.ui.toast(t.quien ? `${this.name} ladra: ¡${t.quien} está aquí mismo!` : `${this.name} ladra: ¡está aquí mismo!`, 'dog', 2200); this.g.sound.bark?.(this.dog.pos); return; }
-    const k = Math.min(1, 14 / d);
-    this.goal.pos.set(P.x + dx * k, 0, P.z + dz * k); this.goal.t = t;
-    this.dog.follow = this.goal; this.lead = 6;
-    this.g.sound.bark?.(this.dog.pos);
+    const P = this.g.player.pos, D = this.dog, dx = t.x - P.x, dz = t.z - P.z, d = Math.hypot(dx, dz);
+    if (d < 8) { this.g.ui.toast(t.quien ? `${this.name} ladra: ¡${t.quien} está aquí mismo!` : `${this.name} ladra: ¡está aquí mismo!`, 'dog', 2200); this.g.sound.bark?.(D.pos); return; }
+    const k = Math.min(1, 3 / d);
+    this.goal.pos.set(P.x + dx * k, 0, P.z + dz * k); this.goal.t = t; this.ruta = undefined;   // (undefined: el camino aún no ha llegado)
+    D.follow = this.goal; this.lead = 15; this.barked = false;   // (si no le sigues, a los 15 s vuelve a tu lado)
+    this.g.sound.bark?.(D.pos);
     this.g.ui.toast(msg || `${this.name} te enseña el camino: ¡síguelo!`, 'dog', 3000);
+    // (el camino, hasta lo que busca o, si queda lejos, hasta un punto en su dirección: a 140 m, a 70 o a 35, el primero al
+    // que se llegue. Lo de fuera del pueblo queda fuera de la rejilla de caminos: hasta allí, por las calles)
+    const lim = Math.min(HALF, 300) - 4, ux = dx / d, uz = dz / d;
+    const pide = (k) => {
+      const r = [Math.min(d, 140), 70, 35][k], f = Math.min(1, lim / Math.max(Math.abs(P.x + ux * r), Math.abs(P.z + uz * r), 1));
+      this.cancelaRuta = requestPath(D.pos.x, D.pos.z, (P.x + ux * r) * f, (P.z + uz * r) * f, (path) => {
+        if (this.lead == null || this.goal.t !== t) return;
+        if (!path?.length && k < 2 && d > 35) return pide(k + 1);
+        // (sin camino, en línea recta 14 m hacia allí, como antes)
+        if (!path?.length) { const k2 = Math.min(1, 14 / d); this.goal.pos.set(P.x + dx * k2, 0, P.z + dz * k2); this.ruta = null; return; }
+        const pts = []; let acc = 0, prev = { x: D.pos.x, z: D.pos.z };
+        for (const q of path) { const l = Math.hypot(q.x - prev.x, q.z - prev.z); if (acc + l > 16) { const u = (16 - acc) / l; pts.push({ x: prev.x + (q.x - prev.x) * u, z: prev.z + (q.z - prev.z) * u }); break; } acc += l; pts.push(q); prev = q; }
+        this.ruta = pts; this.goal.pos.set(pts[0].x, 0, pts[0].z);
+      });
+    };
+    this.cancelaRuta?.(); pide(0);
   }
   // ¿atascado? Unos 35 s sin acercarse a lo que toca (andando; quieto cuenta algo menos) o alejándose mucho (el doble de
   // deprisa): «¿Necesitas ayuda?». Con una conversación o una ventana abiertas, o mientras el perro guía, no cuenta; y
@@ -149,12 +171,20 @@ export class Perro {
       this.lead -= dt;
       // huellas mientras corre por delante
       if ((this.printT -= dt) <= 0 && D.speed > 1) { this.printT = 0.18; g.particles?.emit({ x: D.pos.x, y: D.pos.y + 0.05, z: D.pos.z }, { n: 2, color: ['#ffe38a', '#ffffff'], speed: 0.2, size: 0.18, life: 2.5 }); }
-      const arrived = Math.hypot(D.pos.x - this.goal.pos.x, D.pos.z - this.goal.pos.z) < 2.5;
+      // (por el camino: al llegar a un punto, al siguiente; el tramo acaba en el último)
+      const R = this.ruta; let dg = Math.hypot(D.pos.x - this.goal.pos.x, D.pos.z - this.goal.pos.z);
+      if (R && R.length > 1 && dg < 1.5) { R.shift(); this.goal.pos.set(R[0].x, 0, R[0].z); dg = Math.hypot(D.pos.x - R[0].x, D.pos.z - R[0].z); }
+      const arrived = R !== undefined && (!R || R.length <= 1) && dg < 2.5;
       if (arrived && !this.barked) { this.barked = true; g.sound.bark?.(D.pos); }
-      // cuando el jugador llega cerca del perro, vuelve a su lado; si el objetivo sigue lejos, se adelanta otra vez
-      if (Math.hypot(P.x - D.pos.x, P.z - D.pos.z) < 4 || this.lead < 0) {
+      // cuando el perro ya ha llegado (ha ladrado) y el jugador le alcanza, vuelve a su lado; si el objetivo sigue lejos,
+      // se adelanta otra vez. Antes bastaba con que el jugador estuviera cerca del perro: al arrancar lo estaba siempre, y el
+      // perro se daba la vuelta antes de salir («enséñame el camino» no hacía nada)
+      if ((this.barked && Math.hypot(P.x - D.pos.x, P.z - D.pos.z) < 4) || this.lead < 0) {
         this.lead = null; this.barked = false; D.follow = this.side;
-        const t = this.objetivo(); if (t && Math.hypot(t.x - P.x, t.z - P.z) > 20 && this.chain-- > 0) this.startLead(t);
+        // (sigue tramo a tramo hasta dejarte junto a lo que buscas; antes paraba a los cuatro tramos o a 20 m, sin llegar)
+        const t = this.objetivo(), dd = t ? Math.hypot(t.x - P.x, t.z - P.z) : 0;
+        if (t && dd > 8 && this.chain-- > 0) this.startLead(t);
+        else if (t && dd <= 8 && this.chain < 40) { g.sound.bark?.(D.pos); g.ui.toast(t.quien ? `${this.name} ladra: ¡aquí está ${t.quien}!` : `${this.name} ladra: ¡es aquí!`, 'dog', 2600); this.chain = 0; }
       }
       return;
     }
