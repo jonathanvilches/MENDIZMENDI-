@@ -70,11 +70,7 @@ export class Runtime {
     const tactil = this.tactil = !!matchMedia?.('(pointer: coarse)').matches;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: quality === 'low' ? tactil : quality !== 'high' || devicePixelRatio < 1.5, powerPreference: 'high-performance' });
     // resolución con un presupuesto de píxeles: en alta, como mucho unos 4 millones (2560×1600); en móvil 1,25
-    // (en el ordenador con la gráfica del procesador, calidad baja sin pantalla táctil, se empieza con los píxeles del
-    // móvil, unos 0,55 millones, y sube hasta el tope si sobra fluidez: una Intel UHD es unas cuatro veces más floja que
-    // la de un iPhone 13 y a 1920 × 1006 pintaba casi el doble de píxeles)
-    this.maxRatio = this.ratioFor(quality);
-    this.pixelRatio = this.pcFlojo() ? Math.min(this.maxRatio, Math.max(0.5, Math.sqrt(0.55e6 / Math.max(1, innerWidth * innerHeight)))) : this.maxRatio;
+    this.pixelRatio = this.maxRatio = this.ratioFor(quality);
     // si el navegador se queda sin memoria gráfica, avisar y ofrecer recargar (el progreso ya está guardado)
     // (en el iPhone pasa al volver de otra aplicación o con poca memoria: si el navegador devuelve el contexto, el juego
     // reconstruye el pueblo solo —onContextRestored—; si no, el botón recarga y entra en el mismo pueblo —onReload—)
@@ -332,8 +328,7 @@ export class Runtime {
       const want = this.quality === 'low' ? 32 : 45;
       // (en ordenador nunca por debajo de la resolución de la pantalla: se veía pixelado; en los partidos tampoco baja de
       // 1,5: los pelotaris y futbolistas se veían borrosos cuando el móvil iba justo)
-      // (por debajo de 0,75 los personajes se veían emborronados en el móvil; en el ordenador flojo, antes borroso que a tirones)
-      const floor = this.pcFlojo() ? 0.5 : this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.75 : Math.min(this.liteFloor || 1, this.maxRatio);
+      const floor = this.boosted ? Math.min(this.quality === 'low' ? 1.45 : 1.5, this.maxRatio) : this.quality === 'low' ? 0.75 : Math.min(this.liteFloor || 1, this.maxRatio);   // (por debajo de 0,75 los personajes se veían emborronados)
       // (el cambio se aplica en el siguiente fotograma, antes de dibujar: sin destello. Tras bajar, no se vuelve a subir
       // en 25 s, y para subir tiene que sobrar bastante: así no sube y baja cada pocos segundos)
       if (fps < want && this.pixelRatio > floor) { if (++this.lowFps >= 2) { this.pixelRatio = Math.max(floor, this.pixelRatio - (fps < want * 0.6 ? 0.3 : 0.15)); this.ratioDirty = true; this.lowFps = 0; this.highFps = 0; this.ratioHold = this.elapsed + 25; } }
@@ -416,8 +411,6 @@ export class Runtime {
   boostRatio() {
     const tactil = matchMedia('(pointer: coarse)').matches, q = this.quality;
     if (this.partidoLigero) return Math.min(this.ratioFor(q), 1.2);
-    // (en el ordenador flojo, los partidos con los mismos píxeles que el pueblo: a 1 pintaba los 2 millones de la pantalla)
-    if (q === 'low' && !tactil) return this.ratioFor(q);
     const tope = q === 'low' ? (this.def?.id === 'pamplona' ? 1.35 : tactil ? 1.4 : 1.8) : tactil ? 1.7 : 2;   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
     return Math.max(this.ratioFor(q), Math.min(devicePixelRatio, tope));
   }
@@ -435,14 +428,12 @@ export class Runtime {
       const c = this.camera; c.aspect = innerWidth / innerHeight; c.fov = c.userData.fov0 = this.fovFor(c.aspect); c.updateProjectionMatrix();
     } else if (this.ratioDirty) { this.ratioDirty = false; if (r.getPixelRatio() !== this.pixelRatio) r.setPixelRatio(this.pixelRatio); }
   }
-  /** El ordenador con la gráfica del procesador: calidad baja y sin pantalla táctil. */
-  pcFlojo() { return this.quality === 'low' && !this.tactil; }
   // densidad de píxeles: en alta hasta 2 y unos 3,7 megapíxeles (2560×1440, imagen nítida); en media 2,1 y en baja
   // (móviles) 1,25. Si va a tirones, la resolución dinámica la baja un poco y la recupera cuando sobra
   ratioFor(q) {
     // (en calidad baja en el ordenador, 0,9 millones de píxeles: las gráficas del procesador no llegaban a más)
-    const css = Math.max(1, innerWidth * innerHeight), tactil = !!matchMedia?.('(pointer: coarse)').matches, budget = q === 'high' ? 3.7e6 : q === 'mid' ? 2.1e6 : tactil ? 1.2e6 : 0.9e6;
-    return Math.max(q === 'low' && !tactil ? 0.5 : 0.75, Math.min(devicePixelRatio, q === 'high' ? 2 : q === 'mid' ? 1.5 : 1.4, Math.sqrt(budget / css)));
+    const css = Math.max(1, innerWidth * innerHeight), budget = q === 'high' ? 3.7e6 : q === 'mid' ? 2.1e6 : matchMedia?.('(pointer: coarse)').matches ? 1.2e6 : 0.9e6;
+    return Math.max(0.75, Math.min(devicePixelRatio, q === 'high' ? 2 : q === 'mid' ? 1.5 : 1.4, Math.sqrt(budget / css)));
   }
   // un error en una parte del juego no debe congelar la imagen: se anota (una vez por mensaje) y se sigue
   reportError(e) {

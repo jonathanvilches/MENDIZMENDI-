@@ -981,8 +981,7 @@ export function mapa3d(host, o) {
   // y, si mientras se mueve no llega, puede bajar hasta 0,75. En un portátil con una Intel UHD, a 1920 × 868 iba a 9
   // imágenes por segundo)
   let prMax = o.ligero ? 1 : 1.5, prT = 0, prN = 0;
-  // (y desde que el portátil seguía a tirones, 0,6 millones y hasta 0,5, como el juego: runtime.ratioFor)
-  const prSuelo = PC_LENTO ? 0.5 : 1, prPres = (w, h) => PC_LENTO ? Math.max(prSuelo, Math.sqrt(0.6e6 / Math.max(1, w * h))) : 9;
+  const prSuelo = PC_LENTO ? 0.75 : 1, prPres = (w, h) => PC_LENTO ? Math.max(prSuelo, Math.sqrt(0.9e6 / Math.max(1, w * h))) : 9;
   const pv = new THREE.Vector3();
   // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
   // gráfica y no la devuelve, el mapa se suelta y quien lo puso deja el plano: o.falla. Nunca una pantalla vacía)
