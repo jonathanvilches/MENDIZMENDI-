@@ -347,9 +347,12 @@ export class Runtime {
   // saltos durante el partido y los pelotaris se veían cada vez más borrosos. En los móviles (pantalla táctil), 1,5 en
   // baja y 1,7 en media: el iPhone perdía la imagen al empezar el partido, con el pueblo entero ya en la memoria, y en la
   // práctica la resolución dinámica lo dejaba en 1,45 (informes de octubre de 2026)
+  // (y desde que siguió perdiéndola en Lesaka, 1,4 en baja, la misma de fuera del partido; si en ese aparato ya se perdió
+  // la imagen en un partido, partidoLigero, 1,2: fronton.js)
   boostRatio() {
     const tactil = matchMedia('(pointer: coarse)').matches, q = this.quality;
-    const tope = q === 'low' ? (this.def?.id === 'pamplona' ? 1.35 : tactil ? 1.5 : 1.8) : tactil ? 1.7 : 2;   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
+    if (this.partidoLigero) return Math.min(this.ratioFor(q), 1.2);
+    const tope = q === 'low' ? (this.def?.id === 'pamplona' ? 1.35 : tactil ? 1.4 : 1.8) : tactil ? 1.7 : 2;   // (en Pamplona, la ciudad entera ya llena la memoria del móvil)
     return Math.max(this.ratioFor(q), Math.min(devicePixelRatio, tope));
   }
   /** Tamaño y resolución del lienzo: se aplican justo antes de dibujar (si no, un fotograma con el lienzo vacío). */

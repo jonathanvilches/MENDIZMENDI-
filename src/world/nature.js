@@ -651,7 +651,7 @@ export class Nature {
       const im = new THREE.InstancedMesh(geos[type][1], this.matTree, list.length);
       list.forEach((s, i) => { im.setMatrixAt(i, s.mLejos); s.lejos = [im, i]; s.inst.push(s.lejos); });
       im.computeBoundingSphere(); im.name = type + '-lejos';
-      this.group.add(im);
+      this.group.add(im); (this.bosqueLejos ||= []).push(im);
     }
     // (en los bosques, con tanto árbol, el detalle completo solo en los trozos más cercanos; los demás, con su forma sencilla)
     this.lodDist = MOD?.bosque ? (quality === 'low' ? 15 : quality === 'mid' ? 32 : 48) : quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
@@ -863,6 +863,13 @@ export class Nature {
       this.addChunked(list, makeShrooms(rnd, red), null, mat, (o) => m4.compose(v.set(o.x, terrainHeight(o.x, o.z) - 0.02, o.z), q.setFromEuler(e.set(0, o.r, 0)), sc.setScalar(o.s)), { name: 'setas' });
     }
   }
+  /** Durante un partido de pelota en calidad baja: sin la silueta del bosque lejano (detrás de las paredes del frontón
+   *  apenas se ve, y en Lesaka eran unos 230.000 triángulos de 1,1 millones). Con centro y r, además, nada de lo que
+   *  queda a más de r metros del frontón (en los aparatos que ya perdieron la imagen en un partido). */
+  partido(on, centro = null, r = 0) {
+    for (const m of this.bosqueLejos || []) m.visible = !on;
+    this.corte = on && centro ? { x: centro.x, z: centro.z, r } : null;
+  }
   update(camPos, focus, elapsed, player, ver = false) {
     windUniforms.uTime.value = elapsed;
     windUniforms.uVerOn.value = ver && player ? 1 : 0; if (ver && player) windUniforms.uVer.value.set(player.x, player.y + 1.2, player.z);
@@ -873,10 +880,11 @@ export class Nature {
       const near = c.near = c.near ? d < this.lodDist + 6 : d < this.lodDist - 6;
       const shade = c.shade = c.shade ? d < this.shadowDist + 6 : d < this.shadowDist - 6;
       const rf = c.rf = c.rf ? d < this.rockFar + 6 : d < this.rockFar - 6;
-      for (const m of c.hi) { m.visible = near; m.castShadow = shade && m.userData.shadow !== false; }
+      const fuera = !!this.corte && Math.max(Math.abs(this.corte.x - c.cx), Math.abs(this.corte.z - c.cz)) - CHUNK / 2 > this.corte.r;
+      for (const m of c.hi) { m.visible = near && !fuera; m.castShadow = shade && m.userData.shadow !== false; }
       // de lejos, las piedras solo hasta cierta distancia: más allá miden menos de un píxel y eran casi la quinta parte
       // de todos los triángulos de la escena (los árboles lejanos sí se dibujan: forman la silueta del bosque)
-      for (const m of c.lo) m.visible = !near && (rf || !m.userData.rock);
+      for (const m of c.lo) m.visible = !near && !fuera && (rf || !m.userData.rock);
       // (sus árboles en el dibujo de los lejanos: escondidos mientras se ven de cerca; los quitados, nunca más)
       if (c.arboles && c.lejosFuera !== near) {
         c.lejosFuera = near;
