@@ -52,7 +52,6 @@ import { startVercel } from './web/vercel.js';
 import { sencillo } from './util/sencillo.js';
 import { apuntaPerdida } from './util/diag.js';
 import { calidadOrdenador, apuntaGpu, fijaCalidad, gpuNombre } from './util/gpu.js';
-import { sombreadoSencillo } from './util/sombreado.js';
 
 const q = new URLSearchParams(location.search);
 // el código de jugar en los pueblos (Otsagabia y los demás, con la pelota, las misiones y los minijuegos) va en archivos
@@ -107,13 +106,8 @@ async function boot() {
   // en ordenador, una calidad bajada sola (por un fallo de carga o de memoria) no se queda para siempre: se vuelve a
   // la automática una vez (las elegidas a mano en Ajustes se respetan)
   if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
-  // (y con la gráfica del procesador, la Alta o la Media elegidas a mano, una vez, también: en un portátil con una Intel
-  // UHD, en Alta el menú iba a 4 imágenes por segundo)
-  if (!input.touch && !P.q4) { if (P.settings.quality && P.settings.quality !== 'low' && calidadOrdenador() === 'low') P.settings.quality = null; P.q4 = true; saveProfile(); }
   // (en el modo sencillo, src/util/sencillo.js, siempre la baja)
   const quality = q.get('q') || (sencillo() ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : calidadOrdenador(P.settings.slowPc));
-  // (en el ordenador con la gráfica del procesador, el sombreado sencillo: antes de compilar nada, src/util/sombreado.js)
-  if (!input.touch && quality === 'low') sombreadoSencillo();
   const rt = new Runtime({ canvas, input, sound, quality });
   fijaCalidad(quality); if (!input.touch) apuntaGpu(rt.renderer.getContext());   // (src/util/gpu.js)
   // (en un ordenador sin tarjeta gráfica potente, los paneles sin el cristal desenfocado, como en el móvil: style.css)
