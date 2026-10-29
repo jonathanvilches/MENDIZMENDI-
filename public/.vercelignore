@@ -1,8 +1,11 @@
-# En Vercel solo van los informes (api/) y la página de la mudanza: el juego vive en GitHub Pages. Antes subía la web
+# En Vercel solo van los informes (docs/api) y la página de la mudanza: el juego vive en GitHub Pages. Antes subía la web
 # entera (unos 456 MB) en cada versión y se llenaba el espacio gratuito.
-# (.git se queda: sin él, la orden que decide si hay que desplegar, ignoreCommand de vercel.json, no puede comparar)
+# (Vercel lee las rutas desde la raíz del repositorio, no desde docs/. Y .git se queda: sin él, la orden que decide si hay
+# que desplegar, ignoreCommand de vercel.json, no puede comparar)
 /*
-!.git
-!api
-!vercel.json
-!mudanza.html
+!/.git
+!/docs
+/docs/*
+!/docs/api
+!/docs/vercel.json
+!/docs/mudanza.html
