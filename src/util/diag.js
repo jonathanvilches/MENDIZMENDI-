@@ -23,6 +23,8 @@ function anterior() {
     r.texturas ? `${r.texturas} texturas · ${r.geometrias} geometrías` : '', r.cuando ? new Date(r.cuando).toLocaleString() : ''];
   return d.filter(Boolean).join(' · ');
 }
+let bateria = '';
+try { navigator.getBattery?.().then(b => { const pon = () => { bateria = `${b.charging ? 'enchufado' : 'sin enchufar'} · ${Math.round(b.level * 100)} %`; }; pon(); b.addEventListener('chargingchange', pon); }).catch(() => { }); } catch (e) { /* sin batería */ }
 /** Las filas del diagnóstico: [rótulo, valor] */
 export function datos() {
   const f = [['Versión', `${version()} · ${typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'desarrollo'} · ${location.hostname || 'archivo'}`],
@@ -36,6 +38,8 @@ export function datos() {
     f.push(['Mapa 3D', `${m.ve ? 'se ve' : 'no se ve'} · ${m.cuando || ''} · ${m.gpu || ''} · lienzo ${m.lienzo || ''}${m.intento ? ' · intento ' + m.intento : ''}${m.ligero ? ' · ligero' : ''}`]);
     for (const p of m.malos || []) f.push(['Sombreador', `${p.nombre}: ${p.log}`]);
   } else f.push(['Mapa 3D', 'aún sin mirar']);
+  // (en el portátil, sin el cargador, Windows frena la gráfica y el procesador: el juego puede ir a la mitad)
+  if (bateria) f.push(['Batería', bateria]);
   f.push(['Navegador', navigator.userAgent]);
   return f;
 }

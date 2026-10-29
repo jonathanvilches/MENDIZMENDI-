@@ -78,7 +78,7 @@ function muestra(t, nota) {
   const s = Math.max(0.05, (t - desde) / 1000), rt = window.__rt, info = window.__game && rt?.renderer?.info.render, mem = performance.memory, pm = window.__game?.pelotaMatch;
   doc.calidad ||= rt?.quality || '';
   doc.muestras.push({ t: seg(), lugar: lugar(), ...(nota ? { nota } : {}), fps: Math.round(fr / s * 10) / 10, peor: Math.round(peor), tirones,
-    ...(info ? { dibujos: info.calls, triangulos: info.triangles, resolucion: Math.round(rt.pixelRatio * 100) / 100, geometrias: rt.renderer.info.memory.geometries, texturas: rt.renderer.info.memory.textures } : {}),
+    ...(info ? { dibujos: info.calls, triangulos: info.triangles, resolucion: Math.round(rt.pixelRatio * 100) / 100, geometrias: rt.renderer.info.memory.geometries, texturas: rt.renderer.info.memory.textures, cpu: Math.round(rt.cpuMs * 10) / 10, ...(rt.gpuMs ? { gpu: Math.round(rt.gpuMs * 10) / 10 } : {}) } : {}),
     ...(pm ? { fase: pm.game?.phase || '?', ligero: rt?.partidoLigero ? 'mucho' : rt?.quality === 'low' ? 'sí' : 'no' } : {}),
     ...(mem ? { memoria: Math.round(mem.usedJSHeapSize / 1048576) } : {}) });
   rastro(doc.muestras[doc.muestras.length - 1]);
