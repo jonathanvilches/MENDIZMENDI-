@@ -72,7 +72,7 @@ export class UI {
       </div></div>`);
     document.body.appendChild(this.loading);
   }
-  // info: { comarca, avatar, missions: [iconos], left, intro, caption }
+  // info: { comarca, avatar, missions: [iconos], left, intro, caption, tipTitle (el rótulo del recuadro: «¿Sabías que…?» o «Consejo») }
   showLoading(title, tip = '', image = '', info = {}) {
     const L = this.loading; clearTimeout(this.ldHide); this.ldOut?.cancel(); this.ldOut = null;
     // (entra con un fundido corto sobre lo que hubiera debajo, el menú o los Torneos: antes aparecía de golpe)
@@ -90,7 +90,7 @@ export class UI {
     const left = info.left ?? info.missions?.length ?? 0;
     $('.ld-ms', L).innerHTML = info.missions?.length ? `<span>${left === 0 ? 'Ya has hecho todas sus misiones' : left === 1 ? 'Te espera 1 misión' : `${left} misiones te esperan`}</span><div>${info.missions.map(ic => I(ic, 34)).join('')}</div>` : '';
     $('.ld-bulb', L).innerHTML = I('sparkle', 30);
-    $('.tip', L).textContent = tip;
+    $('.tip', L).textContent = tip; $('.ld-tip b', L).textContent = info.tipTitle || '¿Sabías que…?';   // (un dato o un consejo: cada uno con su nombre)
     this.progress(0, 'Preparando…');
     // (se cumple cuando ha terminado de entrar: quien abre la carga quita entonces lo que hay debajo)
     return new Promise(res => {
