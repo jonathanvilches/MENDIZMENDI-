@@ -18,7 +18,7 @@ import { PERSONAJES } from '../data/personajes.js';
 import { makeItem, makeWorkbench, makeMemorial } from './items.js';
 import COMARCAS from '../data/comarcas.json';
 import FOLKLORE from '../data/folklore.json';
-import { LEVELS } from '../data/levels.js';
+import { LEVELS, esExterior } from '../data/levels.js';
 import { stampImg } from '../assets.js';
 import { drawTownArms, casaImg, casaReady, casaReadyHD, drawReady } from '../ui/escudoImg.js';
 import { faunaName } from '../data/fauna.js';
@@ -51,7 +51,7 @@ import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { PASAKA } from '../data/pasaka.js';
 import { CASTLE_TOWNS } from '../data/castillos.js';
 import { GearProps } from '../actors/gear3d.js';
-import { Fronton, findFrontonSpot, frontonWall, frontonExtent, labritInTown } from './fronton.js';
+import { Fronton, findFrontonSpot, frontonWall, frontonExtent, labritInTown, anclaFronton } from './fronton.js';
 import { Pista, findPistaSpot } from './pista.js';
 import { clubOfTown } from '../futbol/clubs.js';
 import { FloraSpots } from './floraSpots.js';
@@ -128,7 +128,8 @@ export class TownGame {
     this.rnd = mulberry32(def.id.length * 131 + 7);
     this.actors = []; this.walkers = []; this.items = []; this.gates = []; this.folk = []; this.clues = [];
     // (según la edad de quien juega, sin las misiones que no tocan; cada una guarda su número en el pueblo)
-    this.missions = missionSlots(def, edadDe(this.P)).map(({ m, si }, i) => this.makeMission(m, i, si));
+    // (en el campeonato, main.js, solo el frontón: sin misiones)
+    this.missions = this.campeonato ? [] : missionSlots(def, edadDe(this.P)).map(({ m, si }, i) => this.makeMission(m, i, si));
     this.state = { name: this.P.name || 'Iñigo', settings: this.P.settings };
     // luz propia de las criaturas de la noche: se crea al cargar (apagada) para que encenderla
     // después no obligue a recompilar los materiales en mitad de la persecución
@@ -269,7 +270,29 @@ export class TownGame {
     try { const sp = findPistaSpot(PLACES.plaza); if (sp) this.pista = new Pista(this.scene, sp); } catch (e) { console.warn('pista', e); }
     return this.pista;
   }
+  // pelotari del pueblo: espera junto al frontón para jugar cuando se quiera (y es el rival de los campeonatos)
+  spawnPelotari() {
+    if (!this.fronton || this.missions.some(M => M.type === 'pelota')) return;
+    const e = this.fronton.entry, c = this.fronton.toWorld(0, 12), s = this.spot({ x: e.x - 2.5, z: e.z + 1 }, 3);
+    // (de la plantilla del autor, siempre el mismo en cada pueblo: el de su carta en la colección; R() se sigue
+    // llamando para que el resto del pueblo salga igual que antes)
+    const R = this.rnd, name = townPelotari(this.def.id); R();
+    const blue = R() < 0.5;
+    this.pelotari = new Actor({ id: 'pelotari', name, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z),
+      look: { shirt: '#f6f3ec', pants: '#f6f3ec', sash: blue ? '#2f5fb3' : '#c8222a', espadrille: true, laces: blue ? '#2f5fb3' : '#c8222a',
+        skin: SKINS[Math.floor(R() * SKINS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], female: pelotariGirl(name), ponytail: pelotariGirl(name) } }, this.scene);
+    this.actors.push(this.pelotari);
+  }
+  // el campeonato (main.js, solo el frontón): ni misiones, ni vecinos, ni perro, ni tienda. El frontón al aire libre, en
+  // su calle, si el pueblo lo tiene (levels.js esExterior); si no, un sitio de espera (fronton.js anclaFronton) donde
+  // aguarda el jugador entre partido y partido: los partidos van en el cubierto o en el Labrit (townDeportes.venueDe)
+  spawnCampeonato() {
+    if (esExterior(this.def.id)) this.ensureFronton();
+    if (!this.fronton) this.fronton = anclaFronton(PLACES.plaza, this.def.id === 'pamplona');
+    this.spawnPelotari();
+  }
   spawn() {
+    if (this.campeonato) return this.spawnCampeonato();
     const d = this.def;
     this.ensureFronton();
     this.ensurePista();
@@ -348,18 +371,7 @@ export class TownGame {
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
     // del pastor y la ganadera, que son los que dan los trabajos del ganado
     try { this.jornales = new Jornales(this); } catch (e) { console.warn('jornales', e); }
-    // pelotari del pueblo: espera junto al frontón para jugar cuando se quiera
-    if (this.fronton && !this.missions.some(M => M.type === 'pelota')) {
-      const e = this.fronton.entry, c = this.fronton.toWorld(0, 12), s = this.spot({ x: e.x - 2.5, z: e.z + 1 }, 3);
-      // (de la plantilla del autor, siempre el mismo en cada pueblo: el de su carta en la colección; R() se sigue
-      // llamando para que el resto del pueblo salga igual que antes)
-      const R = this.rnd, name = townPelotari(this.def.id); R();
-      const blue = R() < 0.5;
-      this.pelotari = new Actor({ id: 'pelotari', name, x: s.x, z: s.z, heading: Math.atan2(c.x - s.x, c.z - s.z),
-        look: { shirt: '#f6f3ec', pants: '#f6f3ec', sash: blue ? '#2f5fb3' : '#c8222a', espadrille: true, laces: blue ? '#2f5fb3' : '#c8222a',
-          skin: SKINS[Math.floor(R() * SKINS.length)], hair: HAIRS[Math.floor(R() * HAIRS.length)], female: pelotariGirl(name), ponytail: pelotariGirl(name) } }, this.scene);
-      this.actors.push(this.pelotari);
-    }
+    this.spawnPelotari();
     // El Sadar: la entrenadora de la cantera de Osasuna espera junto al túnel para jugar un partido
     const sadar = TOWN.landmarks.find(l => l.kind === 'stadium');
     // pista polideportiva del pueblo (donde espera el entrenador; el partido se juega en el campo del pueblo), si hay sitio llano cerca de la plaza; el entrenador del club espera

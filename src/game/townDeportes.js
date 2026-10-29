@@ -21,7 +21,6 @@ import { showChampion } from '../ui/champion.js';
 import { vueloFronton } from './llegadas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { COURT } from '../pelota/rules.js';
-import { hasMeshy, loadMeshy } from '../actors/glbChar.js';
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
 
@@ -220,13 +219,10 @@ export class PuebloDeportes {
       // (fuera de la escena y sin su memoria gráfica, si llegó a subirse; el pueblo no vuelve a usarse)
       if (town) for (const m of [...town.children]) { const s = m.geometry?.boundingSphere; if (s && Math.hypot(s.center.x - C.x, s.center.z - C.z) - s.radius > R) { town.remove(m); m.geometry.dispose(); } }
     } catch (e) { console.warn('campeonato: casas', e); }
-    // y en el móvil, lo que queda (el frontón y sus casas, sin el personaje del jugador, que no juega aquí) y los dos
-    // pelotaris, subidos ya a la tarjeta poco a poco
-    // mientras se elige partido: así no llega todo de golpe en la entrada a la cancha (rt.subePoco)
-    if (this.rt?.quality === 'low' && this.rt.subePoco) {
-      this.rt.subePoco(this.scene, false, new Set([this.player?.obj].filter(Boolean)));
-      for (const n of ['pelotari', 'pelotari_rojo']) if (hasMeshy(n)) loadMeshy(n).then(g => this.rt?.subePoco(g.scene, true)).catch(() => { });
-    }
+    // y en el móvil, lo que queda (el frontón, sin el personaje del jugador, que no juega aquí), subido ya a la tarjeta
+    // poco a poco mientras se elige partido: así no llega todo de golpe en la entrada a la cancha (rt.subePoco). Los
+    // modelos de los pelotaris, no: si el rival es una chica, el del colorado no se usaba y ocupaba 5 MB
+    if (this.rt?.quality === 'low' && this.rt.subePoco) this.rt.subePoco(this.scene, false, new Set([this.player?.obj].filter(Boolean)));
   }
   async sportOnly() {
     this.sportMode = true; this.sportBusy = true; this.ui.hudVisible(false);
@@ -347,8 +343,10 @@ export class PuebloDeportes {
   venueDe(sede, fuera = null) {
     const otro = sede === 'fuera' && fuera ? LEVELS.find(l => l.id === fuera.id) : null;
     if (otro) return this.hallVenue(otro);
-    if (this.fronton?.court.labrit) return sede === 'cubierto' ? this.hallVenue() : this.fronton;
-    return sede === 'plaza' ? this.fronton : sede === 'labrit' ? this.labritVenue() : this.hallVenue();
+    // (en un campeonato que no se juega en el pueblo, el frontón del pueblo es solo el sitio de espera: fronton.js anclaFronton)
+    const F = this.fronton?.ancla ? null : this.fronton;
+    if (this.fronton?.court.labrit) return sede === 'cubierto' ? this.hallVenue() : F || this.labritVenue();
+    return sede === 'plaza' && F ? F : sede === 'labrit' ? this.labritVenue() : this.hallVenue();
   }
   // ir al cubierto o al Labrit: el pueblo se tapa (el velo de los campeonatos) mientras se preparan los pelotaris y el
   // jugador va allí (el cielo y las sombras van con él); la llegada, el vuelo hasta la cancha con el partido ya montado

@@ -310,6 +310,13 @@ export function hallVenue(scene, out, def) {
 // Montados los dos, el cubierto y el Labrit, junto al pueblo entero, ocupaban en la tarjeta gráfica casi tanto como el
 // pueblo, y al entrar en un campeonato tras otro el iPhone se quedaba sin memoria: perdía la imagen y te devolvía al
 // pueblo. Se vuelven a montar al elegirlos (unos segundos, tapados por el fondo de los campeonatos)
+/** El sitio de espera de un campeonato que no se juega en el pueblo (main.js, solo el frontón): donde aguarda el
+ *  jugador entre partido y partido, tapado por el fondo de los campeonatos. Sin cancha ni nada que dibujar: los partidos
+ *  van en el cubierto o en el Labrit (townDeportes.venueDe). labrit: el de Iruña, que juega en el Labrit */
+export function anclaFronton(at, labrit = false) {
+  return { ancla: true, entry: { x: at.x, z: at.z }, out: { x: at.x, z: at.z + 12 }, court: { labrit, group: null },
+    toWorld: (x, z) => new THREE.Vector3(at.x + x, terrainHeight(at.x, at.z), at.z + z) };
+}
 export function freeVenues(keep = null) {
   if (HALL && HALL !== keep) { HALL.dispose(); HALL = null; }
   if (LABRIT && LABRIT !== keep) { LABRIT.dispose(); LABRIT = null; }

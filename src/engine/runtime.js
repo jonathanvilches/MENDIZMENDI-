@@ -29,6 +29,7 @@ import { FollowCamera } from '../camera.js';
 import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
 const VACIA = new THREE.Scene();   // (para el dibujo vacío al soltar un pueblo: unload)
 import { compilarAsync } from '../util/compilar.js';
+import { vacio } from './vacio.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
@@ -109,8 +110,10 @@ export class Runtime {
     this.loop = this.loop.bind(this);
     requestAnimationFrame(this.loop);
   }
-  // def: ficha de la localidad; avatarId: traje del jugador; onProgress(p, msg)
-  async load(def, avatarId, onProgress = () => { }) {
+  // def: ficha de la localidad; avatarId: traje del jugador; onProgress(p, msg). opt.soloFronton: un campeonato de
+  // pelota, solo con el frontón: sin casas, árboles, animales, agua, humo ni farolas (engine/vacio.js), y sin terreno
+  // salvo opt.conSuelo (los frontones al aire libre, que van en su sitio con su calle)
+  async load(def, avatarId, onProgress = () => { }, opt = {}) {
     this.unload();
     const q = this.quality;
     onProgress(0.05, 'Dibujando el terreno…'); await frame();
@@ -138,20 +141,21 @@ export class Runtime {
     { const add0 = scene.add.bind(scene);
       scene.add = (...objs) => { add0(...objs); if (this.active && this.scene === scene) for (const o of objs) if (o && this.needsWarm(o)) this.warm(o, this.camera, 1500); return scene; }; }
     onProgress(0.35, 'Extendiendo el paisaje…'); await frame();
-    this.terrain = new Terrain(scene, q);
+    const solo = !salazar && !!opt.soloFronton; this.soloFronton = solo;
+    this.terrain = solo && !opt.conSuelo ? vacio.terrain() : new Terrain(scene, q);
     this.sky = new SkySystem(scene, this.renderer, q);
-    this.weather?.dispose(); this.weather = new Weather(scene, pickWeather(def), q);
-    this.water = new Water(scene, q);
+    this.weather?.dispose(); this.weather = new Weather(scene, solo ? 'clear' : pickWeather(def), q);
+    this.water = solo ? vacio.water() : new Water(scene, q);
     onProgress(0.5, `Construyendo ${def.name}…`); await frame();
-    if (!salazar) await preloadTown(def);
+    if (!salazar && !solo) await preloadTown(def);
     this.mats = makeMaterials();
     if (salazar) { buildVillage(scene, this.mats); buildLandmarks(scene, this.mats); }
-    else buildTown(scene, this.mats, def);
+    else if (!solo) buildTown(scene, this.mats, def);
     onProgress(0.65, 'Plantando árboles y cultivos…'); await frame();
-    this.nature = new Nature(scene, q);
+    this.nature = solo ? vacio.nature() : new Nature(scene, q);
     if (this.weather.kind === 'snow' && this.nature.flowers?.mesh) this.nature.flowers.mesh.visible = false;   // sin flores sobre la nieve
     onProgress(0.8, 'Despertando a los animales…'); await frame();
-    this.fauna = new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
+    this.fauna = solo ? vacio.fauna() : new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
     if (this.weather.kind !== 'clear' && this.fauna.bfMesh) this.fauna.bfMesh.visible = false;   // con lluvia o nieve no hay mariposas
     // el personaje elegido (los modelos propios y las chicas: glbChar.js); si no carga, el pueblo no abre y main.js lo
     // dice (antes salía una figura sencilla antigua de reserva)
@@ -162,8 +166,8 @@ export class Runtime {
     this.particles = new Particles(scene);
     this.waterfall = salazar ? new Waterfall(scene, LANDMARKS.waterfall, this.particles) : null;
     const houses = salazar ? VILLAGE.houses : TOWN.houses;
-    this.smoke = new Smoke(scene, houses);
-    this.lights = new NightLights(scene, VILLAGE.lamps, this.mats);
+    this.smoke = solo ? vacio.smoke() : new Smoke(scene, houses);
+    this.lights = solo ? vacio.lights() : new NightLights(scene, VILLAGE.lamps, this.mats);
     this.charFill = new THREE.Color(1, 1, 1);
     this.beacon = new Beacon(scene);
     this.salazar = salazar;
