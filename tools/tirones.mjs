@@ -4,7 +4,7 @@
 // Uso: node tools/tirones.mjs [pueblo] [avatares]
 import { chromium } from 'playwright-core';
 const [,, town = 'lesaka', avs = 'sanfermin,ranger'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const av of avs.split(',')) {
   const p = await b.newPage({ viewport: { width: 400, height: 240 } }); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript((a) => { window.__JIT = true; localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, avatar: a, mz2: true, seen: { heroBenat: true, dog: true } })); }, av);

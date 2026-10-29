@@ -5,7 +5,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 const [,, out, names = 'joaldun,momotxorro,cascabobo,zipotero,lagunero,irasko,paloki,comparsa-mendigorria,miel-otxin,lamia,basajaun,sorgina,tartalo', town = 'ituren'] = process.argv;
 mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 520, height: 640 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error' && !/403|google|Failed to load/.test(m.text())) errs.push(m.text()); if (/traje|vecino/i.test(m.text()) && m.type() === 'warning') errs.push(m.text()); });
 await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, dogOn: false, settings: { quality: 'high' } })); });

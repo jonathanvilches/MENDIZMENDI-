@@ -1,7 +1,7 @@
 // Comprueba que el fútbol sala del pueblo arranca (el motor se carga aparte, al entrar): pueblo con pista → hablar
 // con el entrenador → partido en marcha; muestra el tiempo, la memoria y los errores. Uso: node tools/futbol-arranque.mjs [pueblo]
 import { chromium } from 'playwright-core';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 800, height: 450 } }); const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
 p.on('crash', () => console.log('CRASH de la página'));

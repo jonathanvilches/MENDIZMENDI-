@@ -5,7 +5,7 @@ import { mkdirSync } from 'fs';
 const [,, out = 'entrega/castillos', ...ts] = process.argv;
 const towns = ts.length ? ts : ['olite', 'marcilla', 'cortes', 'javier'];
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const town of towns) {
   const p = await browser.newPage({ viewport: { width: 1100, height: 620 } });
   p.on('pageerror', e => console.log('PAGEERROR', town, e.message));

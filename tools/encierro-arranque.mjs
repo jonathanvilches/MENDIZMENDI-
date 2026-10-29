@@ -3,7 +3,7 @@
 // Uso: node tools/encierro-arranque.mjs [url]
 import { chromium } from 'playwright-core';
 const base = process.argv[2] || 'http://127.0.0.1:5173/';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 800, height: 450 } }); const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
 p.on('requestfailed', r => errs.push('FALLA ' + r.url().slice(-80))); p.on('response', r => { if (r.status() >= 400) errs.push(r.status() + ' ' + r.url().slice(-90)); });

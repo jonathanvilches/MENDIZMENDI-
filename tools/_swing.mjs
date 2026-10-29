@@ -2,7 +2,7 @@ import { chromium } from 'playwright-core';
 import { readFileSync } from 'fs';
 const r128 = process.argv[2];
 const CDN = { 'three.min.js': `${r128}/build/three.min.js`, 'GLTFLoader.js': `${r128}/examples/js/loaders/GLTFLoader.js`, 'SkeletonUtils.js': `${r128}/examples/js/utils/SkeletonUtils.js` };
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await browser.newContext({ viewport: { width: 900, height: 600 } });
 await ctx.route(/cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net/, (route) => { const f = Object.keys(CDN).find(k => route.request().url().endsWith(k)); if (f) route.fulfill({ status: 200, contentType: 'application/javascript', body: readFileSync(CDN[f]) }); else route.abort(); });
 await ctx.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());

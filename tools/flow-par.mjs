@@ -4,7 +4,7 @@ import { readFileSync } from 'fs';
 const [,, base = 'http://127.0.0.1:5181/', N = 3, only = ''] = process.argv;
 const towns = only ? only.split(',') : [...readFileSync('src/data/levels.js', 'utf8').matchAll(/\{ id: '([a-z-]+)'/g)].map(m => m[1]).filter(t => t !== 'otsagabia-ochagavia');
 const flow = readFileSync('lab/flow-town.js', 'utf8');
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 async function run(t) {
   const page = await browser.newPage({ viewport: { width: 800, height: 450 } });
   const errs = [];

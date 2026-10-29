@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = '/tmp/botones'] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const SIZES = [['se1', 568, 320], ['iphone8', 667, 375], ['iphone14', 844, 390], ['promax', 932, 430], ['ipad', 1180, 820], ['vertical', 390, 844]];
 let bad = 0;
 for (const [n, w, h] of SIZES) {

@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, copyFileSync } from
 import { DISPOSITIVOS } from '../src/web/splash.js';
 
 const ORIGEN = 'tools/app/icono-herrizherri.png';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 // (para Android: la zona segura es el círculo central del 80 %; la ilustración, al 80 % y centrada, con el borde fundido en
 // un círculo suave sobre un cielo del mismo azul que el suyo: sin ninguna raya donde se juntan)
 async function maskable(n) {

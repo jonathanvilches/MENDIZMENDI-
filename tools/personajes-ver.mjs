@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'node:fs';
 const [,, out] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const [tag, vp, dpr, movil] of [['escritorio', { width: 1920, height: 1080 }, 1, false], ['movil', { width: 844, height: 390 }, 3, true]]) {
   const p = await (await b.newContext({ viewport: vp, deviceScaleFactor: dpr, isMobile: movil, hasTouch: movil })).newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => { window.__vs = true; localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', age: 'nino', avatar: 'leire', seen: { heroBenat: true, dog: true }, xp: 900, last: 'altsasu-alsasua', settings: { quality: 'low' } })); });

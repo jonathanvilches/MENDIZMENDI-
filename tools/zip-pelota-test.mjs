@@ -9,7 +9,7 @@ const CDN = {
   'GLTFLoader.js': `${r128}/examples/js/loaders/GLTFLoader.js`,
   'SkeletonUtils.js': `${r128}/examples/js/utils/SkeletonUtils.js`,
 };
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 for (const [tag, w, h, touch] of [['escritorio', 1280, 720, false], ['movil', 390, 844, true]]) {
   if (process.env.ONLY && process.env.ONLY !== tag) continue;

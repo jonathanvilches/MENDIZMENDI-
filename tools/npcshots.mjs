@@ -1,7 +1,7 @@
 import { chromium } from 'playwright-core';
 const out = process.argv[2];
 const looks = encodeURIComponent(JSON.stringify([{ hair: '#1a1a1a', longHair: true, skirt: '#2b3a6b', shirt: '#3a8fd6', face: 'happy' }, { hair: '#c9772f', longHair: true, shirt: '#e8743a', pants: '#3a4a6a', lashes: true }, { hair: '#5a3a22', bun: true, apron: '#f4f1ea', shirt: '#8a3a5a', skirt: '#2b2630' }, { hair: '#3b2418', moustache: '#3b2418', txapela: '#1d1d24', shirt: '#f4f1ea', vest: '#2b2630', pants: '#2b2630', old: true }]));
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1000, height: 420 } });
 page.on('pageerror', e => console.log('PAGEERROR', e.message));
 for (const b of ['', '1']) {

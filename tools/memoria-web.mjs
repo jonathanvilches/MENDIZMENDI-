@@ -3,7 +3,7 @@
 // Uso: node tools/memoria-web.mjs <url> [pueblo]   p. ej. http://localhost:8099/  pamplona
 import { chromium } from 'playwright-core';
 const [,, url, town = 'pamplona'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
 const p = await ctx.newPage(), errs = []; let bytes = 0, reqs = 0;
 p.on('pageerror', e => errs.push(e.message.slice(0, 140)));

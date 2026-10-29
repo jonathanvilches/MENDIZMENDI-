@@ -21,7 +21,7 @@ export const SHOTS = {
   ribera: ['tudela', 'bridge', 18.3, 120, 48, 0],
 };
 const only = process.argv[2] ? process.argv[2].split(',') : Object.keys(SHOTS), out = '/tmp/comarcakey'; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const c of only) {
   let [town, kind, t, dist, high, turn] = SHOTS[c];
   if (process.env.D) [dist, high, turn] = process.env.D.split(',').map(Number);   // para probar encuadres

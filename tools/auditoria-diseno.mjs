@@ -13,7 +13,7 @@ const URL = process.env.URL || 'http://127.0.0.1:5173/';
 const out = process.argv[2] || 'entrega/auditoria'; mkdirSync(out, { recursive: true });
 const only = process.argv[3] ? process.argv[3].split(',') : null;
 const [W, H] = (process.env.TAM || '844x390').split('x').map(Number);
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: W < 1000, hasTouch: true }); const errs = []; p.on('pageerror', e => errs.push(e.message));
 await muesca(p, W, H);
 // (un perfil con datos de verdad: textos largos como «2 partidos · 0 ganados», txapelas, club elegido, cartas y rivales)

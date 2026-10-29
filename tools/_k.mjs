@@ -1,5 +1,5 @@
 import { chromium } from 'playwright-core';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const [c, r] of [['izarra', 'cantolagua'], ['doneztebe', 'xota'], ['gares', 'tudelano']]) {
   const p = await b.newPage({ viewport: { width: 1100, height: 620 } }); p.on('pageerror', e => console.log('PE', e.message));
   await p.goto(`http://127.0.0.1:5173/lab/futbol-demo.html?go=club&club=${c}&rival=${r}&notuto&quality=low`, { timeout: 300000 });

@@ -5,7 +5,7 @@
 import { chromium } from 'playwright-core';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const SCREENS = (process.argv[2] || 'home,sports,avatars,map,towns,nature,badges,passport,profile,escudos,cuentos,instrumentos,pasaka,album,peaks,comarca').split(',');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 let total = 0, flojos = 0, rotos = 0;
 for (const [vw, vh, dpr, mobile] of [[844, 390, 3, true], [1440, 900, 1, false]]) {
   const p = await b.newPage({ viewport: { width: vw, height: vh }, deviceScaleFactor: dpr, isMobile: mobile, hasTouch: mobile }); const errs = [];

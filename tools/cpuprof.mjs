@@ -1,5 +1,5 @@
 import { chromium } from 'playwright-core';
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 await page.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ name: 'Ane', avatar: 'leire' })); });
 const cdp = await page.context().newCDPSession(page);

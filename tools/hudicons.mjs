@@ -1,7 +1,7 @@
 // Capturas de los botones del HUD en móvil con cada icono del botón de acción. Uso: node tools/hudicons.mjs <carpeta>
 import { chromium } from 'playwright-core';
 const out = process.argv[2];
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
 const p = await ctx.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));

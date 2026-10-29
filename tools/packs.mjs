@@ -5,7 +5,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, town = 'lumbier', out = 'entrega/packs'] = process.argv;
 mkdirSync(out, { recursive: true });
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });

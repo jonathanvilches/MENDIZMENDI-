@@ -3,7 +3,7 @@
 // que no hay errores. Uso: node tools/movil.mjs [pueblos] [ancho] [alto] [dpr]
 import { chromium } from 'playwright-core';
 const [,, towns = 'lesaka,pamplona,ochagavia,tudela', W = '390', H = '844', DPR = '3'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const town of towns.split(',')) {
   const ctx = await b.newContext({ viewport: { width: +W, height: +H }, deviceScaleFactor: +DPR, isMobile: true, hasTouch: true, userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1' });
   const p = await ctx.newPage(); const errs = [];

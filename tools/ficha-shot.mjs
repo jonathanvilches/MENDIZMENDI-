@@ -3,7 +3,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = '/tmp/ficha', id = 'helecho'] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 for (const [name, w, h] of [['movil', 390, 844], ['movil-h', 844, 390], ['tableta', 820, 1180], ['escritorio', 1280, 760]]) {
   const page = await b.newPage({ viewport: { width: w, height: h }, deviceScaleFactor: 2, hasTouch: w < 900 });

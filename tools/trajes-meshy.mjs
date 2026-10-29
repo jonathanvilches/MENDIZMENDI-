@@ -1,7 +1,7 @@
 // Vecinos con traje (carnaval, dantzaris, seres de leyenda) con los personajes nuevos: node tools/trajes-meshy.mjs <salida.png> [pueblo]
 import { chromium } from 'playwright-core';
 const [,, out = '/tmp/trajes.png', town = 'ituren'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1200, height: 600 } });
 const logs = []; page.on('pageerror', e => logs.push('PAGEERROR ' + e.message)); page.on('console', m => { if (/vecino|traje/i.test(m.text())) logs.push(m.text()); });
 await page.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogOn: false, settings: { music: false, quality: 'low' } })); });

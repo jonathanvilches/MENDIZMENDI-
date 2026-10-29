@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 const [,, town = 'etxalar', out = 'pastor.png'] = process.argv;
 const URL = process.env.URL || 'http://127.0.0.1:5173';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 900, height: 560 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 120)));
 p.on('console', m => { if (m.type() === 'warning' && /vecino|Meshy/.test(m.text())) errs.push(m.text().slice(0, 120)); });

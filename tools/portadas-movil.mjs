@@ -3,7 +3,7 @@
 // llegado (src/web/hd.js). Uso: node tools/portadas-movil.mjs <carpeta> [pueblo]   (VISTA=390x844 para vertical; PUERTO=…; INICIO=pueblo, el de la portada del inicio)
 import { chromium } from 'playwright-core';
 const out = process.argv[2], town = process.argv[3] || 'erronkari-roncal';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const [W, H] = (process.env.VISTA || '844x390').split('x').map(Number);
 const p = await b.newPage({ viewport: { width: W, height: H }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 p.on('pageerror', e => console.log('PAGEERROR', e.message.slice(0, 200)));

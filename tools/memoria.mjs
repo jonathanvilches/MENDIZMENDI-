@@ -2,7 +2,7 @@
 // Uso: node tools/memoria.mjs pamplona,lumbier,javier,pamplona,estella,pamplona
 import { chromium } from 'playwright-core';
 const ids = (process.argv[2] || 'pamplona,lumbier,javier,pamplona').split(',');
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info', '--js-flags=--expose-gc'] });
 const p = await browser.newPage({ viewport: { width: 960, height: 540 } });
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true } })); });

@@ -7,7 +7,7 @@ import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 import { medirEnPagina } from './nitidez-medir.mjs';
 const file = resolve(process.argv[2] || 'HERRIZHERRI-jugar.html');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 let pedidas = 0, servidas = 0;
 await ctx.route('https://jonathanvilches.github.io/MENDIZMENDI-/**', (r) => {

@@ -6,7 +6,7 @@ const URL = process.env.URL || 'http://127.0.0.1:5173';
 const arg = process.argv[2] || 'all';
 const ids = arg === 'all' ? [...readFileSync('src/data/levels.js', 'utf8').matchAll(/^\s*\{ id: '([^']+)'/gm)].map(m => m[1]).filter(id => id !== 'otsagabia-ochagavia') : arg.split(',');
 const shots = process.env.SHOTS; if (shots) mkdirSync(shots, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const id of ids) {
   const p = await b.newPage({ viewport: { width: 844, height: 390 }, hasTouch: true, deviceScaleFactor: 2 });
   const errs = [];

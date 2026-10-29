@@ -6,7 +6,7 @@
 import { chromium } from 'playwright-core';
 const [,, town = 'pamplona', q = 'low'] = process.argv;
 const URL = (process.env.URL || 'http://127.0.0.1:5174/').replace(/\/?$/, '/');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(), errs = [];
 p.on('pageerror', e => errs.push(e.message.slice(0, 160)));

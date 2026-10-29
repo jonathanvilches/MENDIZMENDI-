@@ -1,7 +1,7 @@
 // Triángulos dibujados por objeto en un fotograma (imagen y sombras): node tools/drawprof.mjs <url> [pueblo]
 import { chromium } from 'playwright-core';
 const [,, base = 'http://127.0.0.1:5182/', town = 'lesaka'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
 await page.goto(base + '?town=' + town, { timeout: 300000 });
 await page.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 300000 });

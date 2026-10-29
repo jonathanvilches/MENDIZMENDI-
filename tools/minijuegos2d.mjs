@@ -3,7 +3,7 @@
 // Uso: node tools/minijuegos2d.mjs   (URL=http://127.0.0.1:5173 por defecto)
 import { chromium } from 'playwright-core';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 900, height: 560 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message)); p.on('console', m => { if (m.type() === 'error') errs.push(m.text().slice(0, 200)); });
 // en una página ligera (sin el mundo 3D detrás: con el emulador de gráficos el juego va a saltos y la barra también)

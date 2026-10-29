@@ -12,7 +12,7 @@ const out = '/tmp/puebloportada'; mkdirSync(out, { recursive: true });
 const OVR = { olite: ['castle', 80, 2.2, 0], javier: ['castle', 75, 2.2, 0], pamplona: ['church', 95, 2.2, 0],
   marcilla: ['castle', 95, 6, 180, true], 'altsasu-alsasua': ['church', 44, 6, 0, true], sanguesa: ['church', 44, 6, 0, true],
   tudela: ['church', 44, 6, 0, true], zugarramurdi: ['church', 44, 6, 0, true] };
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const list = await (async () => {
   if (process.argv[2]) return process.argv[2].split(',');
   const p = await b.newPage(); await p.goto(BASE + '/', { timeout: 300000 });

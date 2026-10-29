@@ -2,7 +2,7 @@
 // Uso: node tools/audit.mjs <url> <carpeta capturas> [tamaños ej. 360x640,844x390] [hub|game|all]
 import { chromium } from 'playwright-core';
 const [,, url, dir, sizes = '360x640,390x844,430x932,667x375,844x390,768x1024,1280x720', what = 'all'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const report = [];
 // comprobaciones dentro de la página
 const CHECK = () => {

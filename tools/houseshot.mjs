@@ -1,7 +1,7 @@
 // Primer plano de fachadas: node tools/houseshot.mjs <url> <salida> <pueblo> [calidad]
 import { chromium } from 'playwright-core';
 const [,, url, out, town = 'etxalar', q = 'high'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', e => console.log('PAGEERROR', e.message));
 await page.addInitScript(() => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: {}, settings: { music: false, volume: 0.8, timeSpeed: 0 } })); } catch (e) { } });

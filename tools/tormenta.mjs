@@ -2,7 +2,7 @@
 // Uso: node tools/tormenta.mjs [pueblo]   (servidor en 5173). Capturas en /tmp/claude-0/tormenta-*.png
 import { chromium } from 'playwright-core';
 const town = process.argv[2] || 'lumbier';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 844, height: 390 } }); const errs = [];
 p.on('pageerror', e => errs.push(e.message));
 await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });

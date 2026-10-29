@@ -7,7 +7,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173';
 const [,, town = 'isaba-izaba', out = 'entrega/prismaticos'] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const W = +(process.env.W || 844), H = +(process.env.H || 390), movil = W < 1000;   // (W y H para otra pantalla: en el ordenador, con ratón)
 const p = await b.newPage({ viewport: { width: W, height: H }, isMobile: movil, hasTouch: movil, deviceScaleFactor: 2 });
 const errs = []; p.on('pageerror', e => errs.push(e.message));

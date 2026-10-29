@@ -9,7 +9,7 @@ import { execFileSync } from 'child_process';
 // más grandes salían cortados por abajo y por la izquierda)
 const [,, base = 'http://127.0.0.1:5173/', size = '360'] = process.argv;
 const tmp = process.env.ICONTMP || '/tmp/iconbake'; mkdirSync(tmp, { recursive: true });   // (ICONTMP: otra carpeta de paso)
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await browser.newPage();
 p.on('pageerror', e => console.log('PAGEERROR', e.message));
 await p.goto(base + 'lab/iconbake.html?iconS=' + size, { timeout: 300000 });   // (icon3d.js dibuja al tamaño pedido, con supermuestreo)

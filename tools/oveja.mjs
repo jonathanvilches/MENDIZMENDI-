@@ -2,7 +2,7 @@
 // Uso: node tools/oveja.mjs [salida.png]
 import { chromium } from 'playwright-core';
 const [,, out = '/tmp/claude-0/oveja.png'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 800, height: 400 } }); p.on('pageerror', e => console.log('PAGEERROR', e.message)); p.on('console', m => { if (m.type() === 'error') console.log(m.text().slice(0, 300)); });
 await p.goto('http://127.0.0.1:5173/', { timeout: 300000 }); await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
 const shots = await p.evaluate(async () => {

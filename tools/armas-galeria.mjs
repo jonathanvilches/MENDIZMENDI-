@@ -3,7 +3,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'fs';
 const out = process.argv[2] || 'entrega/armas'; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await b.newPage({ viewport: { width: 400, height: 300 } }); const errs = []; p.on('pageerror', e => errs.push(e.message)); p.on('console', m => m.type() === 'error' && errs.push(m.text()));
 await p.goto('http://127.0.0.1:5173/tools/blank.html', { timeout: 120000 }).catch(() => p.goto('http://127.0.0.1:5173/', { timeout: 120000 }));
 for (const stone of [false, true]) {

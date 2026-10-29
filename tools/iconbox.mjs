@@ -3,7 +3,7 @@ import { readFileSync } from 'fs';
 const src = readFileSync('src/ui.js', 'utf8');
 const m = src.match(/const ICON = \{([\s\S]*?)\n\};/);
 const ICON = eval('({' + m[1] + '})');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await b.newPage();
 await p.setContent('<body></body>');
 const res = await p.evaluate((ICON) => {

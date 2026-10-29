@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = '/tmp/futsal-pueblo', list = 'etxalar,olite,isaba-izaba,tudela'] = process.argv; mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const towns = list.split(','); let first = true;
 for (const town of towns) {
   const p = await b.newPage({ viewport: { width: 1000, height: 560 } }); const errs = [];

@@ -6,7 +6,7 @@ import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync } from 'fs';
 const URL = process.env.URL || 'http://127.0.0.1:5173', arg = process.argv[2] || '';
 const flow = readFileSync('lab/flow-town.js', 'utf8');
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const miss = new Map(); const add = (arr, where) => { for (const s of arr) { const m = miss.get(s) || { n: 0, where: new Set() }; m.n++; m.where.add(where); miss.set(s, m); } };
 const init = () => { localStorage.setItem('herrizherri-lang', 'eu'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'sanfermin', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); };
 // 1) menú

@@ -8,7 +8,7 @@ import { casos, cargarModulos } from './ventanas-casos.mjs';
 import { mkdirSync } from 'fs';
 const [,, out = '/tmp/mando-pantallas'] = process.argv; mkdirSync(out, { recursive: true });
 const BASE = 'http://127.0.0.1:5173/';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const errs = [];
 const pc = await (await b.newContext({ viewport: { width: 1280, height: 720 } })).newPage(); pc.on('pageerror', e => errs.push('PC ' + e.message.slice(0, 200)));
 await pc.addInitScript(() => { localStorage.setItem('mendimendiz-lang', 'es'); localStorage.setItem('mendimendiz-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pelotari', seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });

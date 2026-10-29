@@ -1,7 +1,7 @@
 // Qué descarga la versión web (docs/) al entrar en un pueblo, de mayor a menor. Servir docs/ en localhost:8099.
 // Uso: node tools/descargas.mjs [pueblo]
 import { chromium } from 'playwright-core';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const L = [];
 p.on('response', async r => { try { L.push([(await r.body()).length, r.url().split('/').pop()]); } catch (e) { } });

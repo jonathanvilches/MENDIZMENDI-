@@ -2,7 +2,7 @@
 // node tools/perro-sigue.mjs <prefijo captura> [raza] [pueblo] [url base]
 import { chromium } from 'playwright-core';
 const [,, out = '/tmp/perro', breed = 'mastin', town = 'lesaka', base = 'http://127.0.0.1:5173/'] = process.argv;
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 const page = await browser.newPage({ viewport: { width: 900, height: 600 } });
 const logs = []; page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message));
 await page.addInitScript((breed) => { try { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'leire', xp: 0, towns: {}, cards: [], species: [], peaks: [], badges: [], seen: { dog: true }, dogBreed: breed, dogOn: true, settings: { music: false, volume: 0.8, quality: 'low', timeSpeed: 1 } })); } catch (e) { } }, breed);

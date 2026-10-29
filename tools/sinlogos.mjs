@@ -7,7 +7,7 @@
 import { chromium } from 'playwright-core';
 import { readFileSync, writeFileSync } from 'fs';
 const [,, glb, out, base = 'http://127.0.0.1:5173/', radii = '6', share = '0.3', simd = '60', quitar = '', dist = '70', liso = '0'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage();
 p.on('console', m => console.log(m.text()));
 p.on('pageerror', e => console.log('PAGEERROR', e.message));

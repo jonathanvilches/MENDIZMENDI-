@@ -5,7 +5,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const out = process.argv[2] || '/tmp/mujeres-ver'; mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const lang of ['es', 'eu']) {
   const p = await b.newPage({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }); const errs = [];
   p.on('pageerror', e => errs.push(e.message.slice(0, 160)));

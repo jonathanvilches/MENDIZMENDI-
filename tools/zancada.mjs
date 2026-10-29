@@ -2,7 +2,7 @@
 // su altura en el juego) y la velocidad a la que el clip «anda» sin patinar. Con eso se ajusta el ritmo de las piernas.
 // Uso: node tools/zancada.mjs
 import { chromium } from 'playwright-core';
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage(); await p.goto('http://127.0.0.1:5173/', { timeout: 300000 }); await p.waitForFunction(() => window.__ready, null, { timeout: 300000 });
 console.log(await p.evaluate(async () => {
   const THREE = window.__THREE, { loadMeshy, GlbChar } = await import('/src/actors/glbChar.js'), out = [];

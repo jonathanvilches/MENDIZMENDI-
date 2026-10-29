@@ -1,7 +1,7 @@
 // Comprueba que todos los sellos y todos los iconos son SVG válido (como imagen, el SVG se lee como XML estricto:
 // un atributo repetido basta para que Safari muestre la imagen rota). Uso: node tools/svgcheck.mjs
 import { chromium } from 'playwright-core';
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium' });
 const p = await browser.newPage();
 await p.goto('http://127.0.0.1:5173/lab/icons.html');
 const bad = await p.evaluate(async () => {

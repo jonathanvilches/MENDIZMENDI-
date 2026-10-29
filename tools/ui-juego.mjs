@@ -4,7 +4,7 @@ import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 const [,, out = 'entrega/ui', town = 'lesaka', W = 390, H = 844] = process.argv;
 mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const ctx = await b.newContext({ viewport: { width: +W, height: +H }, hasTouch: true, isMobile: true, deviceScaleFactor: 2 });
 const p = await ctx.newPage(); const errs = [];
 p.on('pageerror', e => errs.push('PAGEERROR ' + e.message));

@@ -2,7 +2,7 @@
 // Uso: node tools/carga.mjs pamplona,lumbier [q]
 import { chromium } from 'playwright-core';
 const ids = (process.argv[2] || 'pamplona').split(','), q = process.argv[3] || 'mid';
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-precise-memory-info'] });
 for (const id of ids) {
   const p = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   p.on('pageerror', e => console.log('PAGEERROR', e.message));

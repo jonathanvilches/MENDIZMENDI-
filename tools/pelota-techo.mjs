@@ -7,7 +7,7 @@ import { chromium } from '/home/user/mendimendiz/node_modules/playwright-core/in
 import { mkdirSync } from 'fs';
 const [,, out = '/tmp/pelota-techo', lista = 'sanguesa:plaza,isaba-izaba:plaza,lumbier:plaza,lumbier:cubierto,lumbier:labrit'] = process.argv;
 mkdirSync(out, { recursive: true });
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const fallos = [], errs = [];
 for (const caso of lista.split(',')) {
   const [town, sede] = caso.split(':');

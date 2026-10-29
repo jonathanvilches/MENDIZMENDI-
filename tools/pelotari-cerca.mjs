@@ -2,7 +2,7 @@
 // Uso: node tools/pelotari-cerca.mjs [pueblo]
 import { chromium } from 'playwright-core';
 const [,, town = 'lumbier'] = process.argv;
-const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 for (const q of ['low', 'high']) {
   const ctx = await b.newContext({ viewport: { width: 390, height: 700 }, deviceScaleFactor: 2, isMobile: q === 'low', hasTouch: q === 'low' });
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
