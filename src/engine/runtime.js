@@ -451,8 +451,10 @@ export class Runtime {
     if (!g) return 'explore';
     const m = g.mode, night = (this.sky?.night || 0) > 0.5;
     if (m === 'encierro') return g.encierro?.started && !g.encierro?.done ? 'tension' : 'fiesta';
-    // (en los partidos y en los campeonatos, su música de estadio; el tema de inicio del menú lo pone main.js)
-    if (m === 'futbol' || m === 'pelota' || m === 'menu' || g.sportMode) return 'sport';
+    // (en el partido de pelota, sin música: solo la pelota, el público y sus aplausos; en los menús de los campeonatos y en
+    // el fútbol, su música de estadio; el tema de inicio del menú lo pone main.js)
+    if (m === 'pelota' || g.pelotaMatch) return 'none';
+    if (m === 'futbol' || m === 'menu' || g.sportMode) return 'sport';
     if (m === 'mini') return 'game';
     if (m === 'dance') return 'fiesta';
     if (g.missions?.some(M => M.chase)) return 'tension';

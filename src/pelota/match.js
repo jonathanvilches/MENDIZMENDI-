@@ -349,7 +349,7 @@ export class PelotaMatch {
       // (V.fig: la figura de cada uno por su nombre, si el juego la da; si no, las imágenes V.you y V.rival)
       you: C.you === 'azul' ? A : B, rival: C.you === 'azul' ? B : A,
       venue: this.o.venue || (this.o.town ? (t.fronton || TEXT.es.fronton)(this.o.town) : ''), cond: this.o.cond, tags: this.feel?.tags || [],
-      line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), quoteBy: rn, tap: t.vsTap || TEXT.es.vsTap, onSlam: () => this.audio.slam?.(),
+      line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), quoteBy: rn, tap: t.vsTap || TEXT.es.vsTap,
     }).then(g.mode === 'match' ? sorteo : go);   // (en el peloteo saca siempre el rival: sin sorteo)
   }
   // la presentación de los pelotaris con los focos (show.js): a oscuras, un haz busca al colorado y otro al azul, cada uno
@@ -391,7 +391,7 @@ export class PelotaMatch {
       const tirar = () => {
         if (tirada || !this.active) return; tirada = true; clearTimeout(auto); removeEventListener('keydown', tecla, true);
         coin.style.setProperty('--fin', win === 'azul' ? '0deg' : '180deg'); el.classList.add('aire'); this.audio.ensure();
-        tms.push(setTimeout(() => { this.audio.chapa(); el.classList.add('cae'); el.querySelector(`.pel-toss-p.${win}`)?.classList.add('gana');
+        tms.push(setTimeout(() => { el.classList.add('cae'); el.querySelector(`.pel-toss-p.${win}`)?.classList.add('gana');
           const r = el.querySelector('.pel-toss-res'); r.textContent = TS.serves(nom(de(win))); r.className = `pel-toss-res ${win}`; }, 1450));
         tms.push(setTimeout(() => { el.classList.add('out'); tms.push(setTimeout(() => { el.remove(); res(de(win)); }, 320)); }, 3100));
       };

@@ -28,13 +28,12 @@ export class PelotaAudio {
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
   mood(v, tc) { this.crowdN?.setLevel(v, tc); this.grada?.nivel(v, tc); }
   stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; this.grada?.para(0.8); this.grada = null; }
-  /** Un tanto: su señal, distinta si es tuyo o del rival (cue), y el aplauso de todo el frontón, más corto si fue un
-   *  fallo (chapa, fuera, falta). El último tanto, la ovación. Antes, en cada fallo sonaba el «¡oooh!» de la grada, hecho
-   *  de voces sintetizadas, y se oía como un zumbido */
+  /** Un tanto: el aplauso de todo el frontón, más corto si fue un fallo (chapa, fuera, falta). El último tanto, la
+   *  ovación. Sin señal propia: las dos notas de madera de cada tanto (cue) no gustaban; en el partido solo suenan la
+   *  pelota, el público y sus aplausos. Antes, en cada fallo sonaba también el «¡oooh!» sintetizado de la grada */
   point(clean, mine, final, big = 0) {
     const c = this.ensure(); if (!c) return;
     if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
-    this.cue(mine);
     // el aplauso de todo el frontón en cada tanto (antes solo con el público sintetizado, que está apagado: el tanto
     // sonaba con la señal y nada más). Más fuerte y más largo si el tanto ha sido bueno o el peloteo largo (big, de 0 a 1)
     this.aplauso((clean ? (mine ? 0.75 : 0.6) : (mine ? 0.55 : 0.4)) + big * 0.3, (clean ? 2.6 : 1.8) + big * 1.6);
