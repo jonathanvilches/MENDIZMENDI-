@@ -20,6 +20,8 @@ import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { showChampion } from '../ui/champion.js';
 import { vueloFronton } from './llegadas.js';
 import { CLUBS } from '../futbol/clubs.js';
+import { COURT } from '../pelota/rules.js';
+import { hasMeshy, loadMeshy } from '../actors/glbChar.js';
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
 const CLUBS_NAME = (id) => CLUBS[id]?.name || '';
 
@@ -202,8 +204,30 @@ export class PuebloDeportes {
   }
   // Campeonato de pelota desde el menú (sin misiones): el frontón del pueblo elegido con su menú de pelota (partido
   // libre o torneo por la txapela, todos los partidos aquí, sin viajar). Al salir del menú, de vuelta al inicio
+  /** En Campeonatos solo el frontón con lo que lo rodea: ni vecinos, ni animales, ni bosque, ni las casas a más de 60 m
+   *  de la cancha (las de alrededor se quedan: en los frontones de calle el público está en sus balcones). Para jugar a
+   *  pelota no hacen falta, el pueblo aquí es solo el decorado y al salir se suelta entero; así la tarjeta gráfica no
+   *  llega a cargarlo. En el iPhone la imagen se perdía al empezar el partido o al volver al menú (octubre de 2026) */
+  soloFronton() {
+    if (!this.fronton || this.soloCancha) return;
+    this.soloCancha = { keep: this.pelotari || this.missions.find(M => M.type === 'pelota')?.host };
+    try { this.rt?.nature?.campeonato(); } catch (e) { console.warn('campeonato', e); }
+    if (this.rt?.fauna) this.rt.fauna.visDist = 0;
+    try {
+      const C = this.fronton.toWorld(0, COURT.L / 2), R = 60, town = this.scene.children.find(o => o.name === 'town');
+      // (fuera de la escena y sin su memoria gráfica, si llegó a subirse; el pueblo no vuelve a usarse)
+      if (town) for (const m of [...town.children]) { const s = m.geometry?.boundingSphere; if (s && Math.hypot(s.center.x - C.x, s.center.z - C.z) - s.radius > R) { town.remove(m); m.geometry.dispose(); } }
+    } catch (e) { console.warn('campeonato: casas', e); }
+    // y en el móvil, lo que queda (el frontón y sus casas) y los dos pelotaris, subidos ya a la tarjeta poco a poco
+    // mientras se elige partido: así no llega todo de golpe en la entrada a la cancha (rt.subePoco)
+    if (this.rt?.quality === 'low' && this.rt.subePoco) {
+      this.rt.subePoco(this.scene);
+      for (const n of ['pelotari', 'pelotari_rojo']) if (hasMeshy(n)) loadMeshy(n).then(g => this.rt?.subePoco(g.scene, true)).catch(() => { });
+    }
+  }
   async sportOnly() {
     this.sportMode = true; this.sportBusy = true; this.ui.hudVisible(false);
+    this.soloFronton();
     this.perro?.away?.();   // (en el campeonato no hace falta el perro: ni saluda ni avisa entre partido y partido)
     const a = this.pelotari || this.missions.find(M => M.type === 'pelota')?.host;
     this.sportBackdrop(true);

@@ -882,8 +882,13 @@ export class Nature {
    *  apenas se ve, y en Lesaka eran unos 230.000 triángulos de 1,1 millones). Con centro y r, además, nada de lo que
    *  queda a más de r metros del frontón (en los aparatos que ya perdieron la imagen en un partido). */
   partido(on, centro = null, r = 0) {
-    for (const m of this.bosqueLejos || []) m.visible = !on;
+    for (const m of this.bosqueLejos || []) m.visible = !on && !this.fijo;
     this.corte = on && centro ? { x: centro.x, z: centro.z, r } : null;
+  }
+  /** En Campeonatos: para toda la visita, sin árboles, piedras, matas ni flores (para jugar a pelota no hacen falta y
+   *  así no llegan a la tarjeta gráfica; townDeportes.soloFronton) */
+  campeonato() {
+    this.fijo = true; this.group.visible = false; if (this.flowers?.mesh) this.flowers.mesh.visible = false;
   }
   update(camPos, focus, elapsed, player, ver = false) {
     windUniforms.uTime.value = elapsed;
@@ -895,7 +900,7 @@ export class Nature {
       const near = c.near = c.near ? d < this.lodDist + 6 : d < this.lodDist - 6;
       const shade = c.shade = c.shade ? d < this.shadowDist + 6 : d < this.shadowDist - 6;
       const rf = c.rf = c.rf ? d < this.rockFar + 6 : d < this.rockFar - 6;
-      const fuera = !!this.corte && Math.max(Math.abs(this.corte.x - c.cx), Math.abs(this.corte.z - c.cz)) - CHUNK / 2 > this.corte.r;
+      const K = this.corte, fuera = !!K && Math.max(Math.abs(K.x - c.cx), Math.abs(K.z - c.cz)) - CHUNK / 2 > K.r;
       for (const m of c.hi) { m.visible = near && !fuera; m.castShadow = shade && m.userData.shadow !== false; }
       // de lejos, las piedras solo hasta cierta distancia: más allá miden menos de un píxel y eran casi la quinta parte
       // de todos los triángulos de la escena (los árboles lejanos sí se dibujan: forman la silueta del bosque)

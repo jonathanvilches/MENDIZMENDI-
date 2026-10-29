@@ -359,6 +359,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
     let seated = null, seatedZ = 0, cheerT = 0;
+    let temporal = false, natu = null, vd0 = null, flo0 = false;   // (el pueblo sin vecinos ni bosque mientras dura el partido, y cómo estaba)
     // (pancartas, aquí y no dentro del montaje: si no, al acabar no se veían y se quedaban en la grada de partido en
     // partido, cada una con su textura, gastando memoria gráfica)
     let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = [], pancartas = null; const hidden = [], hiddenR = [];
@@ -404,6 +405,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const ligero = QUALITY === 'low', muyLigero = ligero && pelotaLigera();
     if (G.rt) G.rt.partidoLigero = muyLigero;
     if (ligero) try { G.rt?.nature?.partido(true, muyLigero ? fronton.toWorld(0, COURT.L / 2) : null, 60); } catch (e) { console.warn('frontón ligero', e); apunta('frontón ligero', e); }
+    // (y en el partido del pueblo, mientras dura, sin vecinos, animales, bosque ni flores: para jugar a pelota no hacen
+    // falta. En Campeonatos ya no estaban desde el principio: townDeportes.soloFronton)
+    temporal = !G.soloCancha; natu = G.rt?.nature; vd0 = G.rt?.fauna?.visDist; flo0 = !!natu?.flowers?.mesh?.visible;
+    if (temporal) { G.soloCancha = { keep: rival }; if (natu) { natu.group.visible = false; if (natu.flowers?.mesh) natu.flowers.mesh.visible = false; } if (G.rt?.fauna) G.rt.fauna.visDist = 0; }
     G.rt?.boost?.(true);   // partido: imagen más nítida (en el móvil, los pelotaris con su detalle)
     // para jugar a pelota no hace falta el perro: se queda en casa y vuelve al acabar
     G.perro?.away?.();
@@ -433,6 +438,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // en cada tanto celebran sin levantarse, con los brazos en alto)
       const sit = !!C.seated, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * 0.3, y - 0.4, z + Math.cos(ry) * 0.3, ry]) : wsp;
       if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true, arriba: true, kc: muyLigero ? 1 : ligero ? 6 : null }); G.scene.add(seated); }
+      // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
+      // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
+      if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }
       // los operadores de las cámaras de la tele (en el Labrit), de pie detrás de ellas: con el público, en el mismo grupo
       if (seated && C.tvCrew?.length) {
         const crew = crowd3d(C.tvCrew.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; }), 'pelota', 1.36, { all3d: true, quietos: true });
@@ -517,7 +525,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     G.pelotaTick = (dt) => {
       try { match.update(dt); bad = 0; } catch (e) { console.warn('partido', e); if (!bad) apunta('partido', e); if (++bad > 20) { done({ win: false, quit: true, error: true }); return; } }
       // (en la llegada al Labrit, mientras la cámara va por la calle, el público de dentro no se ve: ni se mueve ni se dibuja)
-      try { if (seated) { seated.visible = !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
+      try { if (seated) { seated.visible = !seated.userData.espera && !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
       try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
@@ -552,6 +560,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
         safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
         safe(() => { G.rt?.nature?.partido(false); if (G.rt) G.rt.partidoLigero = false; });
+        safe(() => { if (!temporal) return; G.soloCancha = null; if (natu && !natu.fijo) { natu.group.visible = true; if (natu.flowers?.mesh) natu.flowers.mesh.visible = flo0; } if (G.rt?.fauna && vd0 != null) G.rt.fauna.visDist = vd0; });
         safe(() => G.rt?.boost?.(false));
         // (en los campeonatos, stay: del partido se pasa al menú o al cuadro del torneo sin volver al pueblo, ni sus
         // botones ni el perro; el jugador sigue quieto en la puerta del frontón, de fondo)
