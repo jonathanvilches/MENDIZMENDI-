@@ -15,6 +15,18 @@
   alto(); if (mq.addEventListener) mq.addEventListener('change', alto); else mq.addListener(alto);
   addEventListener('orientationchange', function () { setTimeout(alto, 300); });
 })();</script>
+<!-- la partida que llega de la app antigua (#traspaso=…, de public/mudanza.html; src/util/traspaso.js): se guarda antes de
+     que arranque el juego y se quita de la dirección. Si aquí ya había una partida, se pregunta -->
+<script id="traspaso">(function () {
+  var m = /^#traspaso=HZ0:([A-Za-z0-9_-]+)/.exec(location.hash); if (!m) return;
+  try {
+    var b = atob(m[1].replace(/-/g, '+').replace(/_/g, '/')), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i);
+    var d = JSON.parse(new TextDecoder().decode(u)), hay = localStorage.getItem('herrizherri-perfil-v1');
+    if (d && typeof d['herrizherri-perfil-v1'] === 'string' && (!hay || hay === d['herrizherri-perfil-v1'] || confirm('Llega tu partida de la app antigua. ¿La pones en lugar de la que hay aquí?')))
+      for (var k in d) if (/^herrizherri-/.test(k) && typeof d[k] === 'string') localStorage.setItem(k, d[k]);
+  } catch (e) { }
+  history.replaceState(null, '', location.pathname + location.search);
+})();</script>
 <title>HERRIZHERRI</title>
 <!-- el archivo único abierto desde la web (docs/descargas): pasa a la versión web, que es la misma pero carga solo lo que
      hace falta, queda guardada y se instala como app (el archivo entero son más de 40 MB en cada arranque). Con ?unico, se

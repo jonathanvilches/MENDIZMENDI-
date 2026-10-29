@@ -56,6 +56,7 @@ import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 import { sencillo, ponSencillo } from '../util/sencillo.js';
 import { datos as diagnostico } from '../util/diag.js';
+import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -760,6 +761,15 @@ export class Hub {
       $('#pLang', r).value = getLang(); $('#pLang', r).onchange = e => setLang(e.target.value);
       $('#pMode', r).value = isDidactico() ? 'didactico' : 'juego'; $('#pMode', r).onchange = e => this.setDidactico(e.target.value === 'didactico');
       $('#pSencillo', r).onchange = e => { ponSencillo(e.target.checked); location.reload(); };   // (la calidad se elige al arrancar)
+      // (llevar la partida: el código, al portapapeles; y el que se pega, en lugar de la partida de aquí)
+      const cp = $('#pCopia', r), cn = $('#pCopiaN', r), pg = $('#pPega', r), tr = $('#pTrae', r), tn = $('#pTraeN', r);
+      pg.addEventListener('keydown', e => e.stopPropagation());
+      cp.onclick = async () => { const c = codigoPartida(); if (!c) { cn.textContent = 'Aún no hay ninguna partida guardada.'; return; }
+        try { await navigator.clipboard.writeText(c); cn.textContent = 'Copiado. Ahora ábrelo donde quieras seguir y pégalo en «Traer esta partida».'; this.sound?.ui('click'); }
+        catch (e) { pg.value = c; pg.select(); cn.textContent = 'No se ha podido copiar solo: el código está en el recuadro de abajo, cópialo de ahí.'; } };
+      tr.onclick = (e) => { e.stopPropagation(); const d = leePartida(pg.value); if (!d) { tn.textContent = 'Eso no es un código de partida de HERRIZHERRI.'; this.sound?.ui('error'); return; }
+        if (!tr.dataset.sure) { tr.dataset.sure = 1; tr.querySelector('span').textContent = `¿Cambiar la partida de aquí por la de ${d.nombre || 'ese código'}? Pulsa otra vez`; this.sound?.ui('error'); return; }
+        if (traePartida(pg.value)) location.reload(); else tn.textContent = 'No se ha podido guardar aquí la partida.'; };
       if (isDidactico()) return;   // (en el modo didáctico no hay nombre, edad, calidad ni progreso que borrar)
       $('#pName', r).onchange = e => { p.name = e.target.value.trim().slice(0, 14) || p.name; saveProfile(); this.renderChip(); };
       $('#pName', r).addEventListener('keydown', e => e.stopPropagation());
@@ -791,7 +801,7 @@ export class Hub {
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
-        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.creditos()}${this.diagnostico()}`;
+        <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p></div></section>${this.partida()}${this.creditos()}${this.diagnostico()}`;
     let doneM = 0; for (const l of LEVELS) doneM += townProgress(p, l).done;
     return `${cabeza('Tu partida · Perfil', 'gear', 'Perfil y ajustes')}
       <section class="two pf"><div class="panel prof"><img src="${avatarPortrait(p.avatar, 'hero')}" alt=""><div>
@@ -814,7 +824,15 @@ export class Hub {
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
         <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>
         <p class="hint">Controles: WASD o flechas para caminar, ratón para mirar, E para hablar, Espacio para saltar, Mayús para correr. En móvil: arrastra a la izquierda para caminar y a la derecha para mirar. También vale un mando de consola.</p>
-        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.creditos()}${this.diagnostico()}`;
+        <button class="btn danger" id="pReset">Borrar todo el progreso</button></div></section>${this.partida()}${this.creditos()}${this.diagnostico()}`;
+  }
+  // llevar la partida a otro aparato o a la app nueva (util/traspaso.js): copiar el código aquí y pegarlo allí
+  partida() {
+    return `<details class="panel creditos partida"><summary>${I('home', 26)} Llevar tu partida</summary>
+      <p class="set-note">Para seguir tu partida en otro aparato o en la app nueva: copia aquí el código y pégalo allí, en este mismo sitio.</p>
+      <button class="btn" id="pCopia">${I('book', 22)} <span>Copiar mi partida</span></button><p class="set-note" id="pCopiaN"></p>
+      <textarea id="pPega" rows="3" placeholder="Pega aquí el código de tu partida" autocomplete="off" spellcheck="false"></textarea>
+      <button class="btn" id="pTrae">${I('check', 22)} <span>Traer esta partida</span></button><p class="set-note" id="pTraeN"></p></details>`;
   }
   // (para arreglar un fallo en un móvil: lo que ve el juego de él, para hacerle una captura y mandarla; src/util/diag.js)
   diagnostico() {
