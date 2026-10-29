@@ -158,4 +158,6 @@ export function removeCollider(c) {
   const r = c.bound, i0 = Math.floor((c.x - r) / CELL), i1 = Math.floor((c.x + r) / CELL), j0 = Math.floor((c.z - r) / CELL), j1 = Math.floor((c.z + r) / CELL);
   for (let a = i0; a <= i1; a++) for (let b = j0; b <= j1; b++) { const l = grid.get(key(a, b)); const k = l ? l.indexOf(c) : -1; if (k >= 0) l.splice(k, 1); }
 }
-export function resetColliders() { COLLIDERS.length = 0; grid.clear(); MOVERS.length = 0; }
+// (también las listas de las consultas: guardaban los últimos cuerpos vistos, entre ellos el jugador, y por él el pueblo
+// entero seguía en la memoria después de dejarlo)
+export function resetColliders() { COLLIDERS.length = 0; grid.clear(); MOVERS.length = 0; _hits.length = 0; _near.length = 0; }

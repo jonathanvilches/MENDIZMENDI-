@@ -207,7 +207,10 @@ export class UI {
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
-  destroyHUD() { this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null; }
+  destroyHUD() { this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
+    // (y lo que apuntaba al pueblo: la interfaz dura toda la partida y, con estas referencias, el pueblo que se dejaba seguía
+    // entero en la memoria, unos 160 MB, hasta entrar en otro; en el iPhone, al cambiar de pueblo, se cerraba el juego)
+    this.game = null; this._fitTopR = null; this.mini = null; this.compass = null; this.boxes = new Map(); this.questEls = null; }
   // (las misiones del pueblo, bajo la de ahora: cada casilla con su icono, las hechas de color y la que sigues encendida)
   refreshDots() {
     if (!this.hud || this.game.kind !== 'town') return;

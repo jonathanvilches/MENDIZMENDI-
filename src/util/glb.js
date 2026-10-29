@@ -45,6 +45,9 @@ export async function bytesDe(url) {
 
 export async function loadGLB(loader, url) {
   imgTextures(loader);
-  if (!String(url).startsWith('data:application/gzip') && !comoTexto(url)) return decodeAll(await loader.loadAsync(url));
-  return decodeAll(await loader.parseAsync(await bytesDe(url), ''));
+  const g = !String(url).startsWith('data:application/gzip') && !comoTexto(url) ? await loader.loadAsync(url) : await loader.parseAsync(await bytesDe(url), '');
+  // (el lector del modelo guarda el archivo entero, comprimido, y lo que va sacando de él; con el modelo en la caché, todo
+  // eso seguía en la memoria toda la partida, varios MB por personaje. Lo que hace falta ya está en la escena)
+  if (g) g.parser = null;
+  return decodeAll(g);
 }
