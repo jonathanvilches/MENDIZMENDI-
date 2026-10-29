@@ -441,7 +441,8 @@ export class Terrain {
     lo.receiveShadow = true; lo.matrixAutoUpdate = false; lo.name = 'suelo-lejos';
     this.group.add(lo);
     for (const g of lejos) g.dispose();
-    this.lodDist = quality === 'low' ? 110 : quality === 'mid' ? 140 : 170;
+    // (en el móvil, 80 m: más allá, el suelo de lejos; con 110 eran hasta dieciséis trozos de cerca a la vez)
+    this.lodDist = quality === 'low' ? 80 : quality === 'mid' ? 140 : 170;
     scene.add(this.group);
     this.buildOuter(scene);
   }
@@ -455,7 +456,8 @@ export class Terrain {
   }
   buildOuter(scene) {
     // Anillo de montañas lejanas fuera del área jugable
-    const R = 1500, step = 12.5, n = Math.round(2 * R / step) + 1;
+    // (en el móvil, con la rejilla al doble: los montes del horizonte, con la cuarta parte de triángulos)
+    const low = this.quality === 'low', R = 1500, step = low ? 25 : 12.5, n = Math.round(2 * R / step) + 1;
     const pos = [], col = [], idx = [];
     const c = new THREE.Color();
     for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
@@ -471,7 +473,7 @@ export class Terrain {
     }
     // índices por baldosas de TILE×TILE celdas: cada una es una malla con su esfera, así la cámara no dibuja las que
     // quedan detrás o a los lados (antes el anillo entero, unos 50 000 triángulos, se dibujaba en cada fotograma)
-    const TILE = 40, tiles = new Map();
+    const TILE = low ? 20 : 40, tiles = new Map();
     for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++) {
       const x = -R + i * step, z = -R + j * step;
       if (x >= -HALF + 20 && x + step <= HALF - 20 && z >= -HALF + 20 && z + step <= HALF - 20) continue;

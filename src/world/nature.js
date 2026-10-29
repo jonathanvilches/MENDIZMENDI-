@@ -66,8 +66,11 @@ function foliageCard(size, pos, dir, region, rnd, normalFrom) {
   g.userData.keepUV = true;
   return g;
 }
+// (en calidad baja, los árboles de lejos más sencillos y los de cerca sin los bultos pequeños de la copa: Nature)
+let FAR_LITE = false, NEAR_LV = 1;
 function trunk(h, r, color, segs = 8) {
-  const g = new THREE.CylinderGeometry(r * 0.7, r, h, segs, 3);
+  // (de lejos, en el móvil: cinco caras, sin anillos ni tapas; de 64 triángulos a 10, y no se nota)
+  const g = FAR_LITE ? new THREE.CylinderGeometry(r * 0.7, r, h, 5, 1, true) : new THREE.CylinderGeometry(r * 0.7, r, h, segs, 3);
   g.translate(0, h / 2, 0);
   // anillos más juntos abajo; el pie se ensancha en raíces (tres contrafuertes) y el fuste no es un cilindro perfecto
   const p = g.attributes.position, ph = r * 17;
@@ -99,6 +102,8 @@ function massUV(g, cx, cy, cz, rnd) {
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.userData.keepUV = true;
 }
 function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
+  if (detail > 0) detail = Math.min(detail, NEAR_LV);
+  if (detail < 0 && FAR_LITE && blobs.length > 3) blobs = blobs.slice(0, 3);
   const parts = [];
   const cy = top;
   for (const b of blobs) {
@@ -603,6 +608,16 @@ export class Nature {
       chestnut: [makeChestnut(rnd, true), makeChestnut(rnd, false)],
       apple: [makeApple(rnd, true), makeApple(rnd, false)],
     };
+    // en calidad baja (los móviles), otra vez con un azar aparte (así los árboles salen en los mismos sitios que en las
+    // demás calidades): los de cerca, sin los bultos pequeños de la copa, como los de los bosques; los de lejos, con el
+    // tronco sencillo y tres bultos como mucho. El bosque lejano era la tercera parte de los triángulos de un pueblo
+    if (quality === 'low') {
+      const r2 = mulberry32(7), MK = { beech: makeBeech, oak: makeOak, fir: makeFir, olive: makeOlive, poplar: makePoplar, pine: makePine, chestnut: makeChestnut, apple: makeApple };
+      try {
+        NEAR_LV = 0; for (const k of Object.keys(geos)) geos[k][0] = MK[k](r2, k === 'beech' || k === 'oak' ? hiQ : true);
+        FAR_LITE = true; for (const k of Object.keys(geos)) geos[k][1] = MK[k](r2, false);
+      } finally { FAR_LITE = false; NEAR_LV = 1; }
+    }
     TREES.length = 0;
     let spots = treeSpots(rnd);
     // menos árboles, pero cada uno con todo su detalle (mejor pocos y bonitos que muchos y pobres)
@@ -930,7 +945,8 @@ vec4 maskAt(vec2 w){ return texture2D(uMask, (w + ${HALF.toFixed(1)}) / ${(HALF 
 class FlowerField {
   constructor(scene, quality) {
     dataTextures();
-    const count = quality === 'low' ? 1800 : quality === 'mid' ? 3000 : 4500;
+    // (en el móvil, 1.000: con 1.800 eran unos 100.000 triángulos alrededor del jugador, la décima parte del pueblo)
+    const count = quality === 'low' ? 1000 : quality === 'mid' ? 3000 : 4500;
     const R = quality === 'low' ? 22 : 30;
     // mata de flores: dos cabezas en estrella algo ahuecadas (pétalos), botón amarillo, tallos cruzados (se ven
     // desde cualquier lado) y hojas en la base; la cabeza blanca la tiñe el sombreador con el color de cada especie

@@ -248,7 +248,8 @@ const CELLS = new Map();
 export function resetDetail() { DETAIL.length = 0; CELLS.clear(); }
 // (las menudas —lamas, marcos, macetas— miden menos de un píxel más allá de unos 50 m; las medianas, a 150 m, uno o dos:
 // antes se dibujaban hasta 80 y 180 m y eran casi la mitad de los triángulos de un pueblo grande en alta)
-const DETAIL_DIST = { low: [45, 110], mid: [48, 130], high: [55, 150] };
+// (en el móvil, las medianas hasta 85 m: con 110, las casas eran la cuarta parte de los triángulos de un pueblo)
+const DETAIL_DIST = { low: [45, 85], mid: [48, 130], high: [55, 150] };
 // (margen: lo que hay que alejarse de más para que algo deje de dibujarse una vez visible, o acercarse de más para que
 // vuelva. Sin él, andando justo por la raya, las ventanas y la fachada de lejos se turnaban fotograma a fotograma)
 const HIST = 6;
