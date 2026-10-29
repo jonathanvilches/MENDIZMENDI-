@@ -5,7 +5,7 @@ import { HITZAK, HITZAK_TEMA, HITZAK_N, HIZKETAK, HIZKETAK_N, hizketaLines } fro
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
-import { iconSVG, iconImage } from './ui/icons.js';
+import { iconSVG, iconImage, flecha } from './ui/icons.js';
 import { icon3DReady } from './ui/icon3d.js';
 import { portraitImg } from './ui/portraits.js';
 import { mountMapView } from './ui/mapview.js';
@@ -410,10 +410,9 @@ export class UI {
           const rib = RIBBONS.find(r => r.id === q.ribbon);
           const label = { locked: 'Bloqueada', available: 'Nueva', active: 'En curso', done: 'Hecha' }[qs.state];
           const stepTxt = qs.state === 'done' ? '¡Completada!' : qs.state === 'locked' ? 'Reúne las 8 cintas' : g.stepText(id);
-          const go = ['active', 'available'].includes(qs.state) ? `<button type="button" class="qgo ${qs.state}" data-go="${id}">${I('play', 22)}<span>${qs.state === 'active' ? 'Ir al siguiente paso' : 'Empezar la misión'}</span></button>` : '';
-          return `<div class="qitem ${st.tracked === id ? 'active' : ''} ${qs.state}" data-q="${id}"><div class="qi">${I(q.icon, 40)}</div><div><b>${q.title}</b><small>${esc(stepTxt)}</small>${go}</div>
-            <span class="state">${label}</span>${rib ? `<div class="rb" style="background:${qs.state === 'done' ? rib.color : '#cbc2e0'}"></div>` : ''}</div>`;
-        }).join('')}</div><p class="keys" style="margin-top:12px">Pulsa «Empezar la misión» y viajas junto a quien te la explica.</p>`;
+          const go = ['active', 'available'].includes(qs.state) ? `<button type="button" class="qgo ${qs.state}" data-go="${id}" aria-label="Ir: ${esc(q.title)}">${flecha()}<span>Ir</span></button>` : '';
+          return `<div class="qitem ${st.tracked === id ? 'sigue' : ''} ${qs.state}" data-q="${id}"><div class="qi">${I(q.icon, 40)}${rib ? `<div class="rb" style="background:${qs.state === 'done' ? rib.color : '#cbc2e0'}"></div>` : ''}</div><div class="qb"><div class="qh"><b>${q.title}</b><span class="state">${label}</span></div><small>${esc(stepTxt)}</small></div>${go}</div>`;
+        }).join('')}</div><p class="keys" style="margin-top:12px">Toca «Ir» y viajas junto a quien te la explica.</p>`;
         body.querySelectorAll('.qitem').forEach(n => n.onclick = () => { const id = n.dataset.q; if (['active', 'available'].includes(st.quests[id]?.state)) { g.track(id); this.sound.ui('click'); render('misiones'); } });
         body.querySelectorAll('[data-go]').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.sound.ui('click'); this.closeModal(); g.goMission?.(b.dataset.go); });
       } else if (t === 'saberes' || t === 'animales') {
@@ -455,14 +454,14 @@ export class UI {
           // (los pasos enteros, solo en la que sigues; en las demás, el siguiente paso, y al tocarla se despliegan: así caben
           // más misiones a la vista. Una barra con un tramo por paso dice de un vistazo cuánto falta)
           const open = g.tracked === M.i && !M.done;
-          return `<div class="qitem ${g.tracked === M.i ? 'active' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb">
+          return `<div class="qitem ${g.tracked === M.i ? 'sigue' : ''}${open ? ' abierta' : ''} ${st}" data-m="${M.i}"><div class="qi">${I(M.icon, 40)}</div><div class="qb">
             <div class="qh"><b>${esc(M.title)}</b><span class="state">${{ done: 'Hecha', active: 'En curso', available: 'Nueva' }[st]}</span></div>
             ${M.host ? `<small>Con ${esc(M.host.name)}</small>` : ''}
             <div class="qbar" style="--n:${steps.length}">${steps.map((x, k) => `<i class="${M.done || k < M.step ? 'ok' : k === M.step ? 'now' : ''}"></i>`).join('')}</div>
             ${open ? `<ol class="steps">${steps.map((x, k) => `<li class="${k < M.step ? 'ok' : k === M.step ? 'now' : ''}">${esc(x)}</li>`).join('')}</ol>`
-              : M.done ? '' : `<p class="qnext"><span class="qn">Paso ${Math.min(M.step + 1, steps.length)} de ${steps.length}</span> <span>${esc(steps[Math.min(M.step, steps.length - 1)] || '')}</span></p>`}
-            <button type="button" class="qgo ${st}" data-go="${M.i}">${I(M.done ? 'navigate' : 'play', 22)}<span>${M.done ? 'Volver allí' : M.step > 0 ? 'Ir al siguiente paso' : 'Empezar la misión'}</span></button></div></div>`;
-        }).join('')}</div><p class="keys">Pulsa «Empezar la misión» y viajas junto al vecino que te la explica.</p>`;
+              : M.done || !M.step ? '' : `<p class="qnext"><span class="qn">Paso ${Math.min(M.step + 1, steps.length)} de ${steps.length}</span> <span>${esc(steps[Math.min(M.step, steps.length - 1)] || '')}</span></p>`}</div>
+            <button type="button" class="qgo ${st}" data-go="${M.i}" aria-label="Ir: ${esc(M.title)}">${flecha()}<span>Ir</span></button></div>`;
+        }).join('')}</div><p class="keys">Toca «Ir» y viajas junto al vecino que te la explica.</p>`;
         body.querySelectorAll('.qitem').forEach(n => n.onclick = () => { g.setBook(g.missions[+n.dataset.m]); render('misiones'); });
         // (viajar a la misión: junto al vecino que la da o, si ya está en marcha, al sitio de su paso siguiente)
         body.querySelectorAll('[data-go]').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.sound.ui('click'); this.closeModal(); g.goMission?.(g.missions[+b.dataset.go]); });

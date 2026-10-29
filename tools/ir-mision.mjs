@@ -1,4 +1,4 @@
-// «Empezar la misión»: en el libro de misiones del pueblo, cada misión lleva su botón; al pulsarlo, el personaje aparece
+// «Ir»: en el libro de misiones del pueblo, cada misión lleva su botón redondo con flecha; al pulsarlo, el personaje aparece
 // junto al vecino que la da, mirándole, y la misión queda seguida. Comprueba la distancia al vecino tras cada viaje, que
 // el libro se cierra y que no hay errores; con OUT=carpeta, capturas del libro y de la llegada.
 // Uso: node tools/ir-mision.mjs [pueblo] [ancho x alto, p. ej. 844x390 para el móvil tumbado]
