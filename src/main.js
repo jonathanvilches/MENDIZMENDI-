@@ -106,8 +106,10 @@ async function boot() {
   // en ordenador, una calidad bajada sola (por un fallo de carga o de memoria) no se queda para siempre: se vuelve a
   // la automática una vez (las elegidas a mano en Ajustes se respetan)
   if (!input.touch && (P.settings.qualityAuto || !P.q3)) { P.settings.quality = null; P.settings.qualityAuto = false; P.q3 = true; saveProfile(); }
-  // (en el modo sencillo, src/util/sencillo.js, siempre la baja)
-  const quality = q.get('q') || (sencillo() ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : calidadOrdenador(P.settings.slowPc));
+  // (en el modo sencillo, src/util/sencillo.js, siempre la baja; y en el móvil sin memoria conocida, el iPhone, también:
+  // en Alta o Media perdía la imagen al entrar en los partidos de pelota, en Tafalla con 1,7 millones de triángulos)
+  const movilJusto = input.touch && !bigMem;
+  const quality = q.get('q') || (sencillo() || movilJusto ? 'low' : P.settings.quality) || (input.touch ? (bigMem ? 'mid' : 'low') : calidadOrdenador(P.settings.slowPc));
   const rt = new Runtime({ canvas, input, sound, quality });
   fijaCalidad(quality); if (!input.touch) apuntaGpu(rt.renderer.getContext());   // (src/util/gpu.js)
   // (en un ordenador sin tarjeta gráfica potente, los paneles sin el cristal desenfocado, como en el móvil: style.css)

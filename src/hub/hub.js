@@ -48,6 +48,8 @@ import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
 import { TACTIL } from '../util/tactil.js';
 import { calidadOrdenador, gpuNombre } from '../util/gpu.js';
+// (el móvil sin memoria conocida, el iPhone: solo la calidad baja, como en main.js)
+const MOVIL_JUSTO = TACTIL && !(navigator.deviceMemory >= 6);
 import { DIDACTICO, LM_ICON } from './didactico.js';
 import './fichas.css';
 import { inicioHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
@@ -774,7 +776,7 @@ export class Hub {
       if (isDidactico()) return;   // (en el modo didáctico no hay nombre, edad, calidad ni progreso que borrar)
       $('#pName', r).onchange = e => { p.name = e.target.value.trim().slice(0, 14) || p.name; saveProfile(); this.renderChip(); };
       $('#pName', r).addEventListener('keydown', e => e.stopPropagation());
-      $('#pQ', r).value = S.quality || 'auto';
+      $('#pQ', r).value = MOVIL_JUSTO && S.quality && S.quality !== 'low' ? 'auto' : S.quality || 'auto';
       $('#pCj', r).onclick = () => { this.sound?.ui('open'); comoJugar(this.root); };
       $('#pPad', r)?.addEventListener('click', () => import('../mando/mando.js').then(m => m.abrirMando()));   // (en el ordenador: el móvil como mando)
       // (descargar el juego entero: cuánto falta y, al pulsar, el progreso)
@@ -821,7 +823,8 @@ export class Hub {
         <label class="set">Idioma <select id="pLang"><option value="eu">Euskara</option><option value="es">Castellano</option><option value="learn">Aprende euskera</option></select></label>
         <label class="set">Música <input type="checkbox" id="pMusic" ${S.music ? 'checked' : ''}></label>
         <label class="set">Volumen <input type="range" id="pVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
-        <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
+        <label class="set">Calidad gráfica <select id="pQ"><option value="auto">Automática</option><option value="low">Baja (más fluido)</option><option value="mid"${MOVIL_JUSTO ? ' disabled' : ''}>Media</option><option value="high"${MOVIL_JUSTO ? ' disabled' : ''}>Alta</option></select></label>
+        ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
         ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>
         <p class="set-note">Para los móviles que se cierran al abrir el juego: la imagen y el mapa 3D, más ligeros. Al cambiarlo, el juego vuelve a abrirse.</p>
