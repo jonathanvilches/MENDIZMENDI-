@@ -19,6 +19,9 @@ export function gpuNombre() {
  *  dedicada que se enciende o se apaga), se apunta la de verdad para el próximo arranque. */
 export function apuntaGpu(gl) {
   try { const r = lee(gl); if (r && r !== nombre) { nombre = r; guarda(); } } catch (e) { }
+  // (si ya no es la gráfica del procesador, por ejemplo porque Windows le da a Chrome la NVIDIA, fuera la vista corta y
+  // el mapa ligero que se apuntaron con la floja: runtime.acortaVista)
+  try { if (/nvidia|geforce|quadro|radeon rx|radeon pro|arc\(tm\) a\d|intel\(r\) arc/i.test(nombre || '')) localStorage.removeItem('herrizherri-vista-corta'); } catch (e) { }
 }
 // ordenador: alta con una tarjeta gráfica de verdad; media con las gráficas del procesador buenas (Intel Iris y Arc, las
 // Radeon de los procesadores AMD, GeForce MX) o con pocos núcleos; baja con las Intel UHD y HD de siempre (en un portátil
