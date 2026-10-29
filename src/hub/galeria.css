@@ -56,7 +56,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gt-dato::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 4px); }
 .gt-nom { position: relative; display: grid; gap: 3px; flex: 1; min-width: 0; }
 .gt-nom b { font: 400 min(var(--fs-lg), 7.4cqw)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }
-.gt-nom small { color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 min(10px, 4cqw)/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
+.gt-nom small { color: color-mix(in srgb, var(--c) 45%, #fff); font: 600 clamp(11px, 5cqw, 12px)/1.15 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 .gt-mis { position: relative; display: grid; justify-items: end; gap: 5px; flex: none; }
 .gt-mis em { font: 700 var(--fs-xs)/1 var(--f-ui); font-style: normal; letter-spacing: .04em; }
 .gt-rayas { display: flex; gap: 2px; }

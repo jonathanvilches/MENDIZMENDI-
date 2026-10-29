@@ -318,7 +318,7 @@
 /* la cabecera de la ventana: la sección en medio y, a los lados, la de antes y la de después */
 #hub.juego .hub-cab { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
 #hub.juego .hub-cab .cab-t { grid-column: 2; display: flex; align-items: center; gap: 10px; min-width: 0; color: #fff; }
-#hub.juego .cab-v { grid-column: 1; justify-self: start; pointer-events: auto; display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; min-height: 36px; padding: 0 10px; border-radius: 10px; background: none; border: 1px solid transparent; color: var(--tx2); font: 600 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .15s, border-color .15s; }
+#hub.juego .cab-v { grid-column: 1; justify-self: start; pointer-events: auto; display: flex; align-items: center; gap: 8px; min-width: 0; max-width: 100%; min-height: 36px; padding: 0 10px; border-radius: 999px; background: none; border: 1px solid transparent; color: var(--tx2); font: 600 12px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: color .15s, border-color .15s; }
 #hub.juego .cab-v.sig { grid-column: 3; justify-self: end; }
 #hub.juego .cab-v span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hub.juego .cab-v:hover, #hub.juego .cab-v:focus-visible { color: #fff; border-color: var(--cr-l); }
@@ -328,7 +328,7 @@ html.tactil #hub.juego .cab-v::before { content: '‹'; font-size: 20px; line-he
 @media (max-width: 760px) { #hub.juego .cab-v span { display: none; } }
 /* la pista de los botones, abajo a la derecha de la ventana, solo con teclado */
 #hub .hub-pista { display: none; }   /* (solo jugando y con teclado; en el didáctico salía su texto suelto abajo a la izquierda) */
-html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-pista { position: absolute; z-index: 27; right: calc(var(--sh-r) + 18px); bottom: calc(var(--sh-b) + 10px); display: flex; gap: 18px; padding: 6px 10px; border-radius: 10px; background: rgba(13, 6, 28, .82); color: var(--tx2); font: 500 12px/1 var(--f-ui); pointer-events: none; }
+html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-pista { position: absolute; z-index: 27; right: calc(var(--sh-r) + 18px); bottom: calc(var(--sh-b) + 10px); display: flex; gap: 18px; padding: 6px 10px; border-radius: 999px; background: rgba(13, 6, 28, .82); color: var(--tx2); font: 500 12px/1 var(--f-ui); pointer-events: none; }
 html:not(.tactil) #hub.juego .hub-pista span { display: flex; align-items: center; gap: 6px; }
 /* (unos segundos y se va: con la ventana de 720 de alto tapaba el botón Jugar del fútbol y otros de abajo; las teclas
    Q y E siguen junto a las secciones de arriba) */

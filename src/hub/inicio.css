@@ -124,8 +124,8 @@
 .m3-sl { color: rgba(240, 232, 255, .82); font: 800 10px/1.1 'MZ Texto', sans-serif; letter-spacing: .2em; text-transform: uppercase; text-shadow: 0 1px 2px #0d0420, 0 0 6px #0d0420, 0 0 12px rgba(13, 4, 32, .8); }
 .m3-rl { color: #a6ecff; font: italic 800 11px/1.1 'MZ Texto', sans-serif; letter-spacing: .04em; text-shadow: 0 1px 2px #06122a, 0 0 6px #0d0420, 0 0 10px rgba(13, 4, 32, .8); }
 @media (min-width: 1200px) and (min-height: 560px) { .m3-sl { font-size: 11px; } .m3-rl { font-size: 13px; } }
-.m3-cl { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 10px; background: rgba(13, 4, 32, .66); border: 1px solid color-mix(in srgb, var(--c) 70%, transparent); color: #fff; line-height: 1.1; transition: background .25s, opacity .18s ease; }
-.m3-cl b { font: 400 var(--fs-sm)/1.1 'MZ Display', 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.m3-cl { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(13, 4, 32, .66); border: 1px solid color-mix(in srgb, var(--c) 70%, transparent); color: #fff; line-height: 1.1; transition: background .25s, opacity .18s ease; }
+.m3-cl b { font: 400 var(--fs-sm)/1.25 'MZ Display', 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
 .m3-cl small { color: var(--mute); font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; }
 .m3-cl i { display: grid; place-items: center; align-self: center; } .m3-cl i :is(svg, img) { width: 14px; height: 14px; }
 .m3-cl.lk { background: rgba(13, 4, 32, .55); border-style: dashed; } .m3-cl.lk b { color: #e4dcff; }

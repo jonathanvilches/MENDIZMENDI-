@@ -55,3 +55,17 @@
 .antes-ahora div + div { border-left-color: #ff7ac8; }
 /* (la cabecera de las secciones sin .ar-head, hub.js cabeza(): el rótulo y el título, a la misma distancia que en las demás) */
 .kicker + .title { margin-top: var(--t-mt); }
+
+/* ---------- las cartas de Torneos ----------
+   Con la esquina cortada de lo grande y lo destacado, como las cartas de los pueblos y la cabecera de la comarca (antes,
+   redondeadas a 26 px: las únicas del menú así). El borde fino sigue el corte: la carta pinta el borde y su fondo va dentro,
+   un píxel más adentro; al pasar por encima, el borde toma el color de su deporte. La lámina y la barra de abajo, con el
+   radio de las tarjetas (en el móvil tumbado la barra sigue en pastilla) */
+.sport { --k: 18px; border: 0; border-radius: 0; background: rgba(255, 255, 255, .12); box-shadow: none;
+  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
+.sport::before { content: ''; position: absolute; inset: 1px; z-index: -1; pointer-events: none;
+  clip-path: polygon(calc(var(--k) - .4px) 0, 100% 0, 100% calc(100% - var(--k) + .4px), calc(100% - var(--k) + .4px) 100%, 0 100%, 0 calc(var(--k) - .4px));
+  background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--acc) 26%, transparent), transparent 62%), radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 70%), linear-gradient(165deg, #2b0f60, #12052a 75%); }
+.sport:hover { box-shadow: none; background: color-mix(in srgb, var(--acc) 70%, #fff); }
+.sp-cover, .sp-bar { border-radius: var(--r); }
+@media (orientation: landscape) and (max-height: 560px) { .sport { --k: 12px; } .sp-bar { border-radius: 999px; } }
