@@ -21,7 +21,7 @@ function anterior() {
 }
 /** Las filas del diagnóstico: [rótulo, valor] */
 export function datos() {
-  const f = [['Versión', version()],
+  const f = [['Versión', `${version()} · ${typeof __VERSION__ !== 'undefined' ? __VERSION__ : 'desarrollo'} · ${location.hostname || 'archivo'}`],
     ['Ventana', `${innerWidth} × ${innerHeight} · página ${Math.round(document.documentElement.getBoundingClientRect().height)} · pantalla ${screen.width} × ${screen.height} · ×${devicePixelRatio}`],
     ['App instalada', instalada() ? 'sí' : 'no'],
     ['Reducir movimiento', matchMedia('(prefers-reduced-motion: reduce)').matches ? 'sí' : 'no'],

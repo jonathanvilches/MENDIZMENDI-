@@ -250,7 +250,8 @@ export default defineConfig({
   // (__HDMAP__: en los archivos únicos, la lista de imágenes grandes de la web compilada justo antes (docs/hd.json), para no
   // tener que pedirla: src/web/hd.js)
   // (__AF__: el artefacto de claude.ai, que no se puede instalar ni hablar con el servidor del mando: allí se manda a la web)
-  define: { __WEB__: JSON.stringify(WEB), __AF__: JSON.stringify(AF), __HDMAP__: !WEB && process.argv.includes('build') && existsSync('docs/hd.json') ? readFileSync('docs/hd.json', 'utf8') : 'null' },
+  // (__VERSION__: cuándo se compiló, para enseñarlo en el menú y saber qué versión tiene abierta cada aparato)
+  define: { __VERSION__: JSON.stringify(new Date().toLocaleString('es-ES', { timeZone: 'Europe/Madrid', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })), __WEB__: JSON.stringify(WEB), __AF__: JSON.stringify(AF), __HDMAP__: !WEB && process.argv.includes('build') && existsSync('docs/hd.json') ? readFileSync('docs/hd.json', 'utf8') : 'null' },
   build: AF
     ? { target: 'es2020', outDir: 'dist-artefacto', emptyOutDir: true, assetsInlineLimit: afInline, chunkSizeWarningLimit: 20000, copyPublicDir: false,
       rolldownOptions: { output: { codeSplitting: { groups: [{ name: 'three', test: /node_modules[\\/]three[\\/]/ }, ...AF_GRUPOS] } } } }

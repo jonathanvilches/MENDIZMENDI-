@@ -84,6 +84,9 @@
 .chip .stamps { display: flex; align-items: center; gap: 4px; font-weight: 900; color: var(--gold); padding-left: 8px; border-left: 1px solid var(--line); }
 
 /* navegación: barra lateral en pantallas grandes */
+/* (la fecha de la versión, al pie del menú: así se sabe si el aparato tiene la última) */
+.hub-ver { display: block; padding: 6px 16px calc(env(safe-area-inset-bottom, 0px) + 8px); color: var(--mute, #a99cc4); font: 600 11px/1.3 var(--f-cond, 'MZ Texto'), sans-serif; letter-spacing: .06em; text-transform: uppercase; }
+.hub-ver:empty { display: none; }
 .hub-nav { grid-row: 2; display: flex; flex-direction: column; gap: 2px; padding: 12px 8px; background: linear-gradient(90deg, rgba(24, 8, 54, .7), rgba(24, 8, 54, .3)); border-right: 1px solid var(--line); overflow-y: auto; }
 .hub-nav button { position: relative; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 2px 8px; border-radius: var(--r); background: none; color: var(--mute); font-size: var(--fs-xs); font-weight: 800; letter-spacing: .04em; transition: color .15s, background .15s; }
 .hub-nav button svg { opacity: .8; transition: transform .2s, opacity .2s; }
