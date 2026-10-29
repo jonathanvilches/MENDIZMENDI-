@@ -26,7 +26,7 @@ function show() {
   }
   document.body.appendChild(note);
 }
-// back: se acaba de volver a la app
+// back: se acaba de volver a la app (o se acaba de abrir: también entonces, si está en el menú, se carga la nueva)
 async function check(back = false) {
   if (!pub && Date.now() - last < 20000) return;   // (como mucho, una vez cada 20 s)
   if (!pub) {
@@ -49,5 +49,7 @@ export function watchUpdates() {
   setInterval(() => check(), 10 * 60 * 1000);
   // (si ya se sabe que la hay, el aviso sale en cuanto se vuelva al menú)
   setInterval(() => { if (pub) show(); }, 3000);
-  setTimeout(() => check(), 20000);
+  // (y al abrirla: en cuanto se ve el menú, se mira; antes se esperaba 20 s y, si había versión nueva, solo salía el aviso,
+  // así que el iPhone podía seguir con la de antes aunque se cerrase y se abriese la app)
+  const alAbrir = setInterval(() => { if (!window.__ready) return; clearInterval(alAbrir); last = 0; check(true); }, 1000);
 }

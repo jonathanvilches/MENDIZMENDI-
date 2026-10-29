@@ -86,7 +86,7 @@ function mide(t) {
 const mandados = new WeakSet(), nuevos = (l) => l.filter(x => !mandados.has(x) && mandados.add(x));
 const aVercel = (id) => async (d) => {
   const parte = { id, t: seg(), lugar: lugar(), calidad: d.calidad, muestras: nuevos(d.muestras), errores: nuevos(d.errores), eventos: nuevos(d.eventos), ...(mandados.has(d) ? {} : (mandados.add(d), { aparato: d.aparato })) };
-  const r = await fetch('/api/informe', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(parte), keepalive: true });
+  const r = await fetch(DESTINO, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(parte), keepalive: true });
   if (r.status === 404) throw { code: 'revoked' };
 };
 function empieza(db) {
@@ -114,5 +114,7 @@ async function arranca() {
   if (st === 'granted') return empieza(db);
   if (st === 'prompt') addEventListener('pointerdown', async () => { const r = await permiso.request(['db']); if (r.db === 'granted') empieza(db); }, { once: true, capture: true });
 }
+// (en Vercel, a su propia función; en GitHub Pages, que no tiene funciones, a la de Vercel)
+const DESTINO = /\.vercel\.app$/i.test(location.hostname) ? '/api/informe' : 'https://herrizherri.vercel.app/api/informe';
 if (typeof __AF__ !== 'undefined' && __AF__ && typeof window.claude?.use === 'function') arranca().catch(() => { /* sin informe */ });
-else if (/\.vercel\.app$/i.test(location.hostname)) empieza(null);
+else if (/\.vercel\.app$|\.github\.io$/i.test(location.hostname)) empieza(null);
