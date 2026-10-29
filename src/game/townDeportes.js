@@ -3,7 +3,7 @@
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
 import { KINDS, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, torneoPanel, youBonus, yourMatch } from './torneo.js';
-import { LEVELS } from '../data/levels.js';
+import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
 import { addXP, checkBadges, profile, saveProfile, townState } from './profile.js';
@@ -164,7 +164,8 @@ export class PuebloDeportes {
   comarcaVenues() {
     const own = LEVELS.filter(l => l.comarca === this.def.comarca), i0 = LEVELS.findIndex(l => l.id === this.def.id);
     const near = LEVELS.filter(l => l.comarca !== this.def.comarca && l.id !== 'pamplona').sort((a, b) => Math.abs(LEVELS.indexOf(a) - i0) - Math.abs(LEVELS.indexOf(b) - i0));
-    return [...own, ...near].slice(0, Math.max(own.length, 4)).map(l => ({ id: l.id, name: l.name.split(' /')[0] }));
+    // (al menos 8: cada partido de un campeonato va en un frontón distinto, también los de la liga, torneo.js fueraDe)
+    return [...own, ...near].slice(0, Math.max(own.length, 8)).map(l => ({ id: l.id, name: l.name.split(' /')[0] }));
   }
   // Partido libre en el frontón del pueblo (fuera de las misiones): contra el pelotari o el anfitrión de la misión
   // (un solo menú o partido de pelota a la vez: mientras dura, el jugador quieto y sin los botones del pueblo debajo
@@ -214,7 +215,8 @@ export class PuebloDeportes {
     try { this.rt?.nature?.campeonato(); } catch (e) { console.warn('campeonato', e); }
     if (this.rt?.fauna) this.rt.fauna.visDist = 0;
     try {
-      const C = this.fronton.toWorld(0, COURT.L / 2), R = 60, town = this.scene.children.find(o => o.name === 'town');
+      // (y si el pueblo juega a cubierto, levels.js esExterior, ninguna: aquí no se juega ningún partido)
+      const C = this.fronton.toWorld(0, COURT.L / 2), R = esExterior(this.def.id) ? 60 : -Infinity, town = this.scene.children.find(o => o.name === 'town');
       // (fuera de la escena y sin su memoria gráfica, si llegó a subirse; el pueblo no vuelve a usarse)
       if (town) for (const m of [...town.children]) { const s = m.geometry?.boundingSphere; if (s && Math.hypot(s.center.x - C.x, s.center.z - C.z) - s.radius > R) { town.remove(m); m.geometry.dispose(); } }
     } catch (e) { console.warn('campeonato: casas', e); }
@@ -240,14 +242,14 @@ export class PuebloDeportes {
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
       // (el frontón cubierto se monta ya, tapado por el fondo: así la llegada no espera a montarlo ni a compilarlo)
       // (solo si es el elegido: las rondas y los partidos se juegan ya en el frontón del pueblo)
-      if (!this.fronton.court.labrit && P.pelotaSede === 'cubierto') await this.rt?.warm?.(this.hallVenue().court.group);
+      const S0 = this.sedes(); if (!this.fronton.court.labrit && (S0.includes(P.pelotaSede) ? P.pelotaSede : S0[0]) === 'cubierto') await this.rt?.warm?.(this.hallVenue().court.group);
       for (;;) {
         // (entre partido y partido, el jugador quieto en la puerta del frontón y sin el perro, que vuelve al acabar
         // cada partido; delante, el fondo de los campeonatos: el pueblo no se ve ni se dibuja)
         this.ui.hudVisible(false); this.player.frozen = true; this.perro?.away?.(); this.sportBackdrop(true);
         const you = { name: P.name || 'Tú', town };
         // (el frontón del partido libre, a elegir: el de la plaza, el cubierto, el Labrit u otro pueblo; se recuerda)
-        const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : 'plaza', otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
+        const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : S[0], otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
         const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'));
         if (this.disposed || pick === 'exit') return;
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
@@ -333,7 +335,8 @@ export class PuebloDeportes {
   // el frontón de un partido: el de la plaza (el de la calle del pueblo, cada uno de su comarca), el cubierto o el Labrit
   // (en Iruña, el de la calle ya es el Labrit)
   // (fuera: el cubierto de otro pueblo, { id, name } de torneo.js fueraDe)
-  sedes() { return this.fronton?.court.labrit ? ['labrit', 'cubierto'] : ['plaza', 'cubierto', 'labrit']; }
+  // (los frontones para jugar aquí: el del pueblo solo si tiene su entorno, levels.js esExterior; si no, el cubierto y el Labrit)
+  sedes() { return this.fronton?.court.labrit ? ['labrit', 'cubierto'] : esExterior(this.def.id) ? ['plaza', 'cubierto', 'labrit'] : ['cubierto', 'labrit']; }
   // (igual, pero con el escudo de ese pueblo ya cargado: si no, la pared izquierda del cubierto de otro pueblo salía con
   // el escudo dibujado de antes y no con el del autor; el del pueblo en el que estás ya lo carga main.js al entrar)
   async venueListo(sede, fuera = null) {
