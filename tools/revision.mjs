@@ -4,7 +4,7 @@
 import { chromium } from 'playwright-core';
 import { writeFileSync } from 'fs';
 const only = process.argv[2];
-const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p0 = await browser.newPage();
 await p0.goto('http://127.0.0.1:5173/', { timeout: 300000 });
 const ids = only ? only.split(',') : await p0.evaluate(async () => (await import('/src/data/levels.js')).LEVELS.filter(l => !l.special).map(l => l.id));
