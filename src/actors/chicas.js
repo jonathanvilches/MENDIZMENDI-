@@ -10,7 +10,7 @@
 import * as THREE from 'three';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
-import { loadMeshy, loadChar, sharpMap } from './glbChar.js';
+import { loadMeshy, loadChar, sharpMap, chicaTexMax } from './glbChar.js';
 import { bytesDe } from '../util/glb.js';
 import { fillMaterial } from '../engine/charLight.js';
 import { peloEmisivo } from './hairColor.js';
@@ -83,16 +83,29 @@ function aplicar(geo, P) {
 function imagen(url) {
   return new Promise((ok, mal) => { const i = new Image(); i.onload = () => ok(i); i.onerror = mal; i.src = url; });
 }
-function textura(map, detalle) {
-  const img = map.image, W = img.width, H = img.height, c = document.createElement('canvas'); c.width = W; c.height = H;
+function textura(map, detalle, max = 2048) {
+  const img = map.image, k = Math.min(1, max / Math.max(1, img.width)), W = Math.round(img.width * k), H = Math.round(img.height * k);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
   const g = c.getContext('2d'); if (!g) return map;
   // (la capa va a la resolución de la textura de esa versión; en el móvil la textura se reduce y la capa con ella)
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(img, 0, 0, W, H); g.drawImage(detalle, 0, 0, W, H);
+  // (si el lienzo ha salido vacío, porque el iPhone no tenía memoria para pintarlo, mejor la textura del chico tal cual
+  // que una silueta negra: se mira en pequeño, 8 × 8, si la textura de debajo está)
+  if (!lleno(c)) { console.warn('chica: textura vacía, queda la del chico'); return map; }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = map.colorSpace; t.flipY = map.flipY; t.wrapS = map.wrapS; t.wrapT = map.wrapT; t.anisotropy = map.anisotropy || 8;
   t.minFilter = map.minFilter; t.magFilter = map.magFilter; t.generateMipmaps = map.generateMipmaps;
   return t;
+}
+
+function lleno(c) {
+  try {
+    const m = document.createElement('canvas'); m.width = m.height = 8; const g = m.getContext('2d'); if (!g) return true;
+    g.drawImage(c, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; let a = 0, v = 0;
+    for (let i = 0; i < d.length; i += 4) { a += d[i + 3]; v += d[i] + d[i + 1] + d[i + 2]; }
+    return a / 64 > 128 && v / 192 > 8;   // (casi todo opaco y no todo negro: la textura del chico es opaca y de colores)
+  } catch (e) { return true; }   // (si no se puede leer, se da por buena, como antes)
 }
 
 // ---- el pelo: sus huesos nuevos colgados de los del chico y sus mallas atadas a ese esqueleto ----
@@ -138,7 +151,7 @@ export function loadChica(name, peinado = 'coleta', lod = false) {
     // (hairRef: el brillo de su castaño de debajo del pelo, en sRGB —0,306 · 0,196 · 0,129, textura.py—: al teñirla de
     // otro color, toma el color tal cual, como las mallas del pelo; con el del chico, mucho más oscuro, salía más clara)
     const m0 = body.material, m = m0.clone(); delete m.userData.sharp; m.userData.hairRef = 0.222;
-    m.map = textura(m0.map, det); if (m0.emissiveMap) m.emissiveMap = m.map;
+    m.map = textura(m0.map, det, chicaTexMax(name)); if (m0.emissiveMap) m.emissiveMap = m.map;
     if (m0.userData.fillK != null) fillMaterial(m, m0.userData.fillK);
     sharpMap(m); body.material = m;
     if (gp) coser(scene, gp.scene);
