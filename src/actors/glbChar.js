@@ -110,6 +110,12 @@ export const setMeshyTexMax = (px) => { MESHY_TEX = px; };
 const FULL_TEX = new Set();
 const MESHY_FILL = 0.3;   // cuánto de su color pone de luz propia cada personaje de Meshy
 export const fullTexFor = (name) => FULL_TEX.add(name);
+// la textura de una chica (chicas.js) se monta en un lienzo propio: a 2048 solo si es la del jugador (su avatar es una
+// chica de ese modelo); si no, como los demás. Antes tomaba el tamaño de la textura del chico, que es de 2048 cuando el
+// avatar del jugador es ese mismo chico, y en el iPhone la rival del frontón salía negra: el lienzo de 2048 de más
+// (16 MB, y otros tantos en la tarjeta) era lo que faltaba de memoria para subirla bien
+const FULL_CHICA = new Set();
+export const chicaTexMax = (name) => (FULL_CHICA.has(name) ? 2048 : MESHY_TEX);
 // textura más nítida de lejos: la de Meshy va troceada en muchas piezas pequeñas y, al alejarse, los niveles de detalle
 // menores mezclan los colores de piezas vecinas (manchas y fallos de color en la ropa y la cara). Se lee un nivel más fino
 // del que tocaría (sesgo de -0,7)
@@ -498,7 +504,7 @@ export const hasMeshy = (id) => !!MESHY[id];
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = (id) => {
   const d = GLB_AVATARS[id];
-  if (d.meshy) { fullTexFor(d.meshy); return d.chica ? loadChica(d.meshy, d.chica) : loadMeshy(d.meshy); }   // el del jugador, con su textura completa (las chicas, chicas.js)
+  if (d.meshy) { fullTexFor(d.meshy); if (d.chica) FULL_CHICA.add(d.meshy); return d.chica ? loadChica(d.meshy, d.chica) : loadMeshy(d.meshy); }   // el del jugador, con su textura completa (las chicas, chicas.js)
   return loadChar(d.url);
 };
 
