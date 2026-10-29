@@ -125,10 +125,10 @@ export class FutbolArbitro {
       p.vx = p.vz = 0; p.h = s > 0 ? Math.PI / 2 : -Math.PI / 2; this.resetP(p);
     }
     // sacan los dos delanteros; los rivales fuera del círculo central
-    // (si uno de los dos está expulsado, saca otro)
+    // (si uno de los dos está expulsado, saca otro; con todos expulsados menos uno, saca solo él, y sin ninguno, el portero)
     const pick = (role, not) => { const q = this.byRole(team, role); return q.off || q === not ? this.team(team).find(r => r.role !== 'POR' && r !== not) : q; };
-    const k = pick(RU.kick[0]), a = pick(RU.kick[1], k), s = this.dir[team];
-    k.x = -s * 0.45; k.z = 0; a.x = -s * 1.2; a.z = -s * 6 * Math.max(SC, 0.6);
+    const k = pick(RU.kick[0]) || this.team(team)[0] || this.gk(team), a = pick(RU.kick[1], k), s = this.dir[team];
+    k.x = -s * 0.45; k.z = 0; if (a) { a.x = -s * 1.2; a.z = -s * 6 * Math.max(SC, 0.6); }
     for (const p of this.team(this.other(team))) { const d = hyp(p.x, p.z) || 1; if (p.role !== 'POR' && d < F.circle + 0.8) { p.x *= (F.circle + 0.8) / d; p.z *= (F.circle + 0.8) / d; } }
     if (this.refs[0].kind === 'ref') { this.refs[0].x = -8; this.refs[0].z = 12; }
     if (team === this.me.team && !this.autoplay) this.setMe(k, 'restart');
@@ -162,7 +162,8 @@ export class FutbolArbitro {
       for (const p of this.players) if (p !== taker && !p.off && p.role !== 'POR' && (Math.abs(p.x - gx) < F.area + 1 || hyp(p.x - x, p.z - z) < Math.max(F.arc, F.wall) + 0.5)) { const i = p.id % N; p.x = gx - s * (F.area + 1.5 + (i % 3) * 1.6); p.z = ((i % 6) - 2.5) * zs; }
     } else {
       // el más cercano de su equipo va a sacar (desde fuera del campo en el de banda y el córner)
-      taker = this.team(team).filter(p => p.role !== 'POR').sort((a, q) => hyp(a.x - x, a.z - z) - hyp(q.x - x, q.z - z))[0];
+      // (con todos los de campo expulsados, saca el portero: antes el partido se quedaba parado)
+      taker = this.team(team).filter(p => p.role !== 'POR').sort((a, q) => hyp(a.x - x, a.z - z) - hyp(q.x - x, q.z - z))[0] || this.team(team)[0] || this.gk(team);
       const back = type === 'throwin' ? (RU.throwHands ? { x: 0, z: Math.sign(z) * 0.35 } : { x: 0, z: Math.sign(z) * 0.55 }) : type === 'corner' ? { x: Math.sign(x) * 0.6, z: Math.sign(z) * 0.6 } : { x: -s * 0.6, z: 0 };
       taker.x = x + back.x; taker.z = z + back.z;
       // los rivales a 9,15 m del balón (a 2 m en el saque de banda); en sala, a 5 m en todos
