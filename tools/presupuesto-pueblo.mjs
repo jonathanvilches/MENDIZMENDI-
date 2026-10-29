@@ -29,6 +29,8 @@ const nuevo = async () => {
 };
 const espera = async (p, fn, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await p.evaluate(fn).catch(() => false)) return true; await p.waitForTimeout(700); } return false; };
 const mide = (p) => p.evaluate(() => { const R = window.__renderer, i = R.info, g = window.__gpu(); return { tri: i.render.triangles, calls: i.render.calls, texMB: g.texMB, bufMB: g.bufMB }; });
+// (y cuánto lleva cada lienzo: el del juego y, si sigue abierto, el del mapa del menú)
+const lienzos = (p) => p.evaluate(() => window.__gpu().lienzos.map(l => `${l.lienzo}: ${l.texMB} + ${l.bufMB} MB`));
 const pico = (a, m) => !a ? m : Object.fromEntries(Object.keys(m).map(k => [k, Math.max(a[k], m[k])]));
 const pasa = (m, t) => Object.keys(t).filter(k => m[k] > t[k]).map(k => `${k} ${k === 'tri' ? Math.round(m[k] / 1000) + 'k' : m[k]} > ${k === 'tri' ? t[k] / 1000 + 'k' : t[k]}`);
 let mal = 0;
@@ -43,7 +45,7 @@ for (const pueblo of pueblos) {
     if (!(await espera(p, () => window.__game?.mode === 'play' && document.getElementById('hub')?.classList.contains('hidden'), 400000))) throw new Error('el pueblo no abre');
     await p.waitForTimeout(5000); let m = null;
     for (const h of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) { await p.evaluate((h) => { const P = window.__rt.player; P.heading = h; window.__game?.follow?.snap?.(P); }, h); await p.waitForTimeout(2500); m = pico(m, await mide(p)); }
-    res.pueblo3d = m; res.sePasa = pasa(m, TOPE.pueblo); res.errores = p.errs.slice(0, 3);
+    res.pueblo3d = m; res.lienzos = await lienzos(p); res.sePasa = pasa(m, TOPE.pueblo); res.errores = p.errs.slice(0, 3);
     await p.context().close();
   } catch (e) { res.fallo = String(e).slice(0, 200); }
   if (process.env.PELOTA) try {
@@ -58,7 +60,7 @@ for (const pueblo of pueblos) {
     await toca('[data-pel-go]'); if (await espera(p, () => !!document.querySelector('[data-mat-go]'), 60000)) await toca('[data-mat-go]');
     if (!(await espera(p, () => ['serveWait', 'servePrep', 'rally', 'point'].includes(window.__game?.pelotaMatch?.game?.phase), 180000))) throw new Error('el partido no empieza');
     let m = null; for (let k = 0; k < 8; k++) { await p.waitForTimeout(800); m = pico(m, await mide(p)); }
-    res.partido = m; res.sePasaPartido = pasa(m, TOPE.partido);
+    res.partido = m; res.lienzosPartido = await lienzos(p); res.sePasaPartido = pasa(m, TOPE.partido);
     await p.context().close();
   } catch (e) { res.falloPartido = String(e).slice(0, 200); }
   if (res.fallo || res.falloPartido || res.sePasa?.length || res.sePasaPartido?.length) mal++;
