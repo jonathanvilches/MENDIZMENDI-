@@ -143,11 +143,13 @@ function legible(L) {
 // en la plaza mayor junto a la iglesia; Leitza, en la plaza del ayuntamiento; Elizondo, el cubierto (pilotaleku Juanjo
 // Atxa, 1975). En los demás, el de su comarca: en los pueblos pequeños de la montaña, junto a la iglesia; en las villas,
 // en la plaza del ayuntamiento o en la calle, como se jugaba antes de que hubiera frontones. Los cubiertos, con su cubierta
+// Todos clásicos, de plaza con su grada: el de la calle (entre casas con balcones, sin grada y con el fondo abierto) no
+// gustaba, y desde octubre de 2026 no lo usa ningún pueblo (entorno.js lo sigue sabiendo hacer)
 const ESTILO_TOWN = {
-  etxalar: 'iglesia', zugarramurdi: 'iglesia', 'amaiur-maya-del-baztan': 'calle', ituren: 'consistorio', lesaka: 'calle',
-  leitza: 'consistorio', 'orreaga-roncesvalles': 'iglesia', aribe: 'iglesia', 'otsagabia-ochagavia': 'iglesia', 'burgui-burgi': 'calle',
-  aoiz: 'consistorio', lumbier: 'calle', viana: 'consistorio', 'puente-la-reina': 'calle', artajona: 'iglesia', ujue: 'iglesia',
-  olite: 'calle', cortes: 'consistorio',
+  etxalar: 'iglesia', zugarramurdi: 'iglesia', 'amaiur-maya-del-baztan': 'iglesia', ituren: 'consistorio', lesaka: 'iglesia',
+  leitza: 'consistorio', 'orreaga-roncesvalles': 'iglesia', aribe: 'iglesia', 'otsagabia-ochagavia': 'iglesia', 'burgui-burgi': 'iglesia',
+  aoiz: 'consistorio', lumbier: 'consistorio', viana: 'consistorio', 'puente-la-reina': 'consistorio', artajona: 'iglesia', ujue: 'iglesia',
+  olite: 'consistorio', cortes: 'consistorio',
 };
 // (los de la lista, al aire libre aunque los de su comarca suelan ser cubiertos, salvo que su pueblo tenga cubierta propia)
 export const frontonEstilo = (def = {}) => ESTILO_TOWN[def.id] && !LOOK_TOWN[def.id]?.roof ? ESTILO_TOWN[def.id] : 'plaza';
