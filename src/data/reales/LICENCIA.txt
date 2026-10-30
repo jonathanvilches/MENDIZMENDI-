@@ -1,4 +1,6 @@
 Datos de los pueblos con su trazado de verdad (los *.json de esta carpeta y de mapa/, que solo usa el mapa del inicio)
+y de los lugares emblemáticos del mapa (emblemas.json: la Ciudadela de Pamplona, El Sadar, el Palacio Real de Olite, el
+castillo de Javier y los puentes de Burgui y Puente la Reina; tools/emblemas-real.py, de la versión 2026-09-23.1 de Overture)
 
 Casas, calles, caminos, ríos, puentes, plazas, usos del suelo y nombres de lugares:
   © OpenStreetMap contributors, disponibles bajo la Open Database License (ODbL) 1.0

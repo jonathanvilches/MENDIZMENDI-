@@ -21,6 +21,7 @@ import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
 import { haceMaqueta, casasMaqueta } from './maqueta.js';
+import { EMB, SUELTOS, haceEmblema, materialEmblema } from './emblemas.js';
 import { compilarAsync } from '../util/compilar.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
@@ -929,7 +930,7 @@ export function mapa3d(host, o) {
     const sube = sigue && v.d < MAQ_D * 1.6;
     m.k.value += ((sube ? 1 : 0) - m.k.value) * (1 - Math.exp(-dt * (sube ? 6 : 3)));
     m.op += ((sube && m.k.value > 0.6 ? 1 : 0) - m.op) * (1 - Math.exp(-dt * 8));
-    m.res.mat.opacity = m.op; m.res.casas.visible = m.op > 0.01; m.alz.value = 1 / Math.max(0.05, c.sy);
+    m.res.mat.opacity = m.op; if (m.res.matEmb) m.res.matEmb.opacity = m.op; m.res.casas.visible = m.op > 0.01; m.alz.value = 1 / Math.max(0.05, c.sy);
     if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
   }
   // (un paso de la maqueta: el suelo pintado, sus piezas, las sombras de los árboles y, al final, la malla en la comarca;
@@ -954,13 +955,28 @@ export function mapa3d(host, o) {
     const e = m.e, u = e.c.top.uniforms;
     if (m.malla) { m.malla.removeFromParent(); m.malla.material.dispose(); u.uHueco.value.set(0, 0, 0, 0); if (e.slot >= 0 && e.tex) u['uP' + e.slot].value = e.tex; }
     m.res.geo?.dispose();
-    if (m.res.casas) { m.res.casas.removeFromParent(); for (const x of m.res.casas.children) x.geometry.dispose(); m.res.mat.dispose(); }
+    if (m.res.casas) { m.res.casas.removeFromParent(); for (const x of m.res.casas.children) x.geometry.dispose(); m.res.mat.dispose(); m.res.matEmb?.dispose(); }
     m.tex?.dispose(); for (const x of m.labs || []) x.lab.remove();
+  }
+  // ---------- los lugares emblemáticos sueltos: la Ciudadela de Pamplona, El Sadar y Castildetierra (emblemas.js) ----------
+  // (con su forma de verdad, sobre el relieve de su comarca; se levantan, una vez, al acercarse a ellos con el mapa quieto,
+  // y se ven ya desde lo alto, antes que la maqueta de los pueblos; al elegir otra comarca, se apagan con ella)
+  const sueltos = SUELTOS.map(id => { const E = EMB[id], [X, Z] = W(...mapaXY(E.lat, E.lon)); return { id, X, Z, c: deQuien(X, Z), mesh: null, op: 0, alz: { value: 1 } }; }).filter(s => s.c);
+  function emblemas(dt, quieto) {
+    for (const s of sueltos) {
+      const quiere = v.d < 12 && Math.hypot(s.X - v.x, s.Z - v.z) < v.d * 1.4 + 1.5 && (!sel || sel === s.c.id);
+      if (quiere && !s.mesh && quieto) {
+        const g = haceEmblema(s.id, { ancla: (la, lo) => W(...mapaXY(la, lo)), MU, K: 2, suelo: (X, Z) => GROSOR + sobre(s.c, X, Z) }), m = materialEmblema(s.alz);
+        s.mesh = new THREE.Mesh(g, m); s.mesh.frustumCulled = false; s.mesh.visible = false; s.c.mesh.add(s.mesh); geos.push(g); mats.push(m);
+      }
+      if (!s.mesh) continue;
+      s.op += ((quiere ? 1 : 0) - s.op) * (1 - Math.exp(-dt * 5)); s.mesh.material.opacity = s.op; s.mesh.visible = s.op > 0.01; s.alz.value = 1 / Math.max(0.05, s.c.sy);
+    }
   }
   // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
   const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
     relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; } };   // (para las pruebas en el servidor de desarrollo)
 
@@ -1179,7 +1195,7 @@ export function mapa3d(host, o) {
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
     // los núcleos: el pintado entra al acercarse y las casas en pie, ya muy cerca
-    nucleos(now, quieto); maqueta(dt, quieto);
+    nucleos(now, quieto); maqueta(dt, quieto); emblemas(dt, quieto);
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)
