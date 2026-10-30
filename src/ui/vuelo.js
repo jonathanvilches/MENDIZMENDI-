@@ -1,4 +1,4 @@
-// Las llegadas: un vuelo de cámara y un cartel con el nombre del sitio (al entrar en un pueblo, al empezar un partido).
+// Las llegadas: un vuelo de cámara y un cartel con el nombre del sitio (al empezar un partido de pelota).
 // La cámara recorre una curva suave por unos puntos mirando a lo largo de otra y acaba justo donde empieza lo que viene
 // después; entre tramo y tramo, un corte. El tiempo es el del juego (dt con tope): en un móvil que va a tirones el vuelo
 // dura más imágenes en vez de saltárselas. Se salta tocando la pantalla o con una tecla.

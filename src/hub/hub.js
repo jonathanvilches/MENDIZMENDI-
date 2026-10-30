@@ -53,7 +53,7 @@ import { calidadOrdenador, gpuNombre } from '../util/gpu.js';
 const MOVIL_JUSTO = TACTIL && !(navigator.deviceMemory >= 6);
 import { DIDACTICO, LM_ICON } from './didactico.js';
 import './fichas.css';
-import { inicioHTML, inicioOn, cierraMapa, entraMapa } from './inicio.js';
+import { inicioHTML, inicioOn, cierraMapa } from './inicio.js';
 import { galeria } from './galeria.js';
 import './consola.css';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
@@ -94,7 +94,7 @@ function townName(id) {
   return s ? s[2].split(/\s*[/(]/)[0].trim() : id.replace(/-/g, ' ').replace(/^./, c => c.toUpperCase());
 }
 function townXY(lv) {
-  const ll = townLatLon(lv);   // (la misma búsqueda que el cartel de la llegada: llegadas.js)
+  const ll = townLatLon(lv);
   if (ll) return mapaXY(ll.lat, ll.lon);
   const c = comarca(lv.comarca); return c ? [c.label.x, c.label.y + 20] : [380, 400];
 }
@@ -473,14 +473,10 @@ export class Hub {
     s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
   }
   play(id) { const l = levelById(id); if (!l) return; if (isDidactico()) return this.go('pueblo', id);   // (en el modo didáctico no se entra al juego: su página)
-    if (this.entrando) return;
     const p = profile(); p.last = id; saveProfile(); this.sound?.ui('open');
-    // (jugando, si hay una sección o el menú abiertos encima del mapa, se cierran antes: debajo el mapa está quieto y el
-    // vuelo no avanzaría nunca; así se ve cómo la ventana se va y la cámara vuela hasta el pueblo)
-    if (this.root.classList.contains('juego') && (this.screen !== 'home' || this.root.classList.contains('menu-on'))) this.go('home', undefined, true);
-    // (desde el mapa del inicio, primero el vuelo hasta el pueblo; luego, la partida)
-    const vuelo = entraMapa(id); if (!vuelo) return this.onPlay?.(l);
-    this.entrando = true; vuelo.then(() => { this.entrando = false; this.onPlay?.(l, { desdeMapa: true }); }); }
+    // (directamente a la carga del pueblo: sin el zoom del mapa ni vuelos de llegada, que en el iPhone se pasaban de
+    // memoria al ver el pueblo entero desde lo alto y se perdía la imagen)
+    this.onPlay?.(l); }
 
   // ---------- Pueblos ----------
   // todos, por comarcas, en una sola lista; arriba, fija, la fila de las comarcas para saltar a la que se quiera (con

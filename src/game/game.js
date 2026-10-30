@@ -16,7 +16,6 @@ import { Fronton, playPelota, frontonWall } from './fronton.js';
 import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { jugarInstrumento } from '../ui/instrumentos.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
-import { cartelPueblo } from './llegadas.js';
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
@@ -907,35 +906,9 @@ export class Game {
   }
 
   // ---------- Escenas ----------
-  async intro(def = null) {
-    this.mode = 'cine'; this.player.frozen = true;
-    this.ui.hudVisible(false); this.ui.setCinematic(true);
-    const card = def ? cartelPueblo(def) : null;   // (en el primer plano, el cartel del pueblo con su comarca, como en todas las llegadas)
-    const shots = [
-      { pos: [60, 90, 230], look: [0, 10, -40], text: 'El valle de Salazar, en el Pirineo de Navarra…' },
-      { pos: [-40, 40, 60], look: [PLACES.church.x, 15, PLACES.church.z], text: 'Aquí, junto al río Anduña, está Otsagabia, o Ochagavía.' },
-      { pos: [PLACES.muskilda.x - 60, 70, PLACES.muskilda.z + 50], look: [PLACES.muskilda.x, 50, PLACES.muskilda.z], text: 'Mañana es la fiesta del santuario de Muskilda…' },
-      { pos: [PLACES.crucero.x - 8, 0, PLACES.crucero.z + 10], look: [PLACES.crucero.x + 3, 1.6, PLACES.crucero.z - 3], text: `…y ${this.state.name} acaba de llegar al pueblo.` },
-    ];
-    let skip = false;
-    const onSkip = () => { skip = true; };
-    addEventListener('keydown', onSkip); addEventListener('pointerdown', onSkip);
-    for (const s of shots) {
-      if (skip) break;
-      const gy = terrainHeight(s.pos[0], s.pos[2]);
-      const p = new THREE.Vector3(s.pos[0], Math.max(s.pos[1], gy + 3), s.pos[2]);
-      const l = new THREE.Vector3(s.look[0], terrainHeight(s.look[0], s.look[2]) + s.look[1], s.look[2]);
-      if (!this.follow.cinematic) { this.camera.position.copy(p).add(new THREE.Vector3(30, 20, 30)); }
-      this.follow.cinematic = { pos: p, look: l, t: 0, lookCur: this.follow.cinematic?.lookCur };
-      this.ui.setCinematic(true, s.text);
-      for (let t = 0; t < 3600 && !skip; t += 100) await wait(100);
-      card?.close();
-    }
-    card?.close();
-    removeEventListener('keydown', onSkip); removeEventListener('pointerdown', onSkip);
-    this.follow.cinematic = null; this.follow.snap(this.player);
-    this.ui.setCinematic(false); this.ui.hudVisible(true);
-    this.player.frozen = false; this.mode = 'play';
+  // La primera vez en Otsagabia: el aviso de con quién hablar (antes, una intro con planos desde lo alto del valle; fuera,
+  // como todas las llegadas desde el aire: en el iPhone se pasaban de memoria)
+  intro() {
     this.npcs.maite.wave = 2;
     this.state.introDone = true; this.save();
     this.ui.toast(this.input.touch ? 'Habla con Maite: acércate y toca el botón de hablar' : 'Habla con Maite: acércate y pulsa E', 'talk', 4500);
