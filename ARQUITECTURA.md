@@ -96,12 +96,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   dice cuánto se adelanta la figura (`court.sitAdelante`: 0,08 en butacas con respaldo, 0,3 en bancos corridos al
   borde). Delante de la primera fila, nada que los pies puedan cruzar. Para mirarlo de cerca: `tools/grada-ver.mjs pueblo`.
   Tampoco la cámara: la del mapa del inicio sube por la ladera antes de entrar en el relieve (`tools/mapa-dron.mjs`).
-- **Entrar en un pueblo:** siempre la carga entera con su portada y, después, el vuelo de llegada con el cartel del
-  pueblo, también desde el mapa del inicio (`main.js`, `play`). El zoom del mapa antes de la carga es corto, por encima
-  del pueblo y sin pedir su maqueta, y acaba a los 4,5 segundos pase lo que pase (`mapa3d.js`, `entrar`). Los lienzos
-  cuyos píxeles se leen van con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente.
-  El vigilante del vuelo (`ui/vuelo.js`) cuenta los segundos del reloj sin dibujar, no el tiempo: una imagen lenta no
-  corta la llegada. En la carga, la descripción y el consejo van enteros, sin cortar (`tools/carga-textos.mjs`).
+- **Entrar en un pueblo:** siempre la carga entera con su portada y, al acabar, ya en el pueblo detrás del jugador
+  (`main.js`, `play`). Sin intros desde el aire: ni zoom del mapa al darle a jugar, ni vuelo de llegada al pueblo, ni la
+  intro de Otsagabia. En el iPhone, el pueblo entero visto desde lo alto pasaba del presupuesto y se perdía la imagen
+  (Leitza, octubre de 2026). El vuelo hasta la cancha antes de los partidos de pelota sí se queda (`game/llegadas.js`). Los lienzos cuyos píxeles se leen van
+  con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente. En la carga, la descripción y
+  el consejo van enteros, sin cortar (`tools/carga-textos.mjs`).
 - **Colecciones por descubrir:** jugando, naturaleza, personajes, escudos y leyendas salen bloqueados (imagen apagada,
   candado, «¿?» y una pista de dónde encontrarlo) hasta que salen en pantalla en el juego (`game/coleccion.js`, `visto`).
   Lo descubierto se apunta como carta (`fauna:`, `flora:`, `armas:`, `cuento:`, `personaje:`, `figura:`). En el material
@@ -135,8 +135,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     o «Gabon», y nadie dice «qué día más bonito» si llueve o nieva.
   - Las opciones en euskera de la pregunta de los vecinos (`notr` en la línea del diálogo) no pasan por el traductor.
 - **El tiempo con lógica:**
-  - Bajo techo no cae nada: en los partidos (fútbol y pelota) y con `sky.indoor` (frontón cubierto y dentro del Labrit,
-    también en su plano de llegada), la lluvia y la nieve no se ven ni hay rayos nuevos (`Weather.update(…, hold)`).
+  - Bajo techo no cae nada: en los partidos (fútbol y pelota) y con `sky.indoor` (frontón cubierto y dentro del Labrit),
+    la lluvia y la nieve no se ven ni hay rayos nuevos (`Weather.update(…, hold)`).
   - Las caras de dentro de un frontón con cubierta o cerrado no llevan chorreones de lluvia (`weather(…, dry)` en
     `pelota/court.js`).
   - Si en un frontón abierto nieva, se dice «Suelo con nieve» y no «Llueve» (`cond.snow`).
@@ -324,7 +324,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `perro-guia.mjs` | «Enséñame el camino»: el perro se adelanta por las calles (el camino de los vecinos), ladra, espera y sigue tramo a tramo hasta dejarte junto al vecino (`CERCA=1`) o hacia una misión lejana. Simulado a pasos fijos. |
 | `pelota-cansancio.mjs` | Cansancio y descansos de la pelota, sin navegador: partidos enteros pelotando normal y jugando a cansar al rival con dejadas y cortadas. El rival tiene que cansarse bastante más en el segundo caso, pedir sus descansos sin pasarse y tus descansos se toman en el parón antes del saque. |
 | `campeonato-pueblo.mjs` | El pelotari junto al frontón de un pueblo invita al campeonato de la comarca: el diálogo con sus cuatro opciones, el campeonato elegido con su cuadro (solo el frontón) y, al salir, la vuelta a la puerta del frontón del pueblo. |
-| `auditoria-entradas.mjs` | Entrar en cada pueblo y bosque como en el iPhone, con la app recién abierta y el botón de jugar del mapa: la carga con su foto, que la foto se descarga, el vuelo de llegada con su cartel y que sigue a los 6 s, y que al final se juega sin errores. Deja capturas de la carga, del vuelo y del juego de cada uno (`OUT=carpeta`, contra la web compilada en 8099). |
+| `auditoria-entradas.mjs` | Entrar en cada pueblo y bosque como en el iPhone, con la app recién abierta y el botón de jugar del mapa: la carga con su foto, que la foto se descarga, que no hay vuelo desde el aire y que al acabar la carga se juega sin errores. Deja capturas de la carga y del juego de cada uno (`OUT=carpeta`, contra la web compilada en 8099). |
 | `carga-textos.mjs` | La pantalla de carga con la descripción de cada pueblo, cada consejo y cada «¿Sabías que…?» de la pelota y la pasaka, en 667×375, 844×390, 932×430 y 1280×720: que nada se corte con puntos suspensivos, se monte o se salga de la pantalla (`LNG=eu`, en euskera). |
 | `mapa-dron.mjs` | El vuelo de dron del mapa del inicio sobre los pueblos con montes alrededor: en 24 puntos de la vuelta, la cámara por encima del relieve y sin montes entre ella y el pueblo. Capturas. |
 | `revision.mjs` | Carga los 31 pueblos y comprueba misiones, anfitriones, suelo, perro y errores; deja el informe en `entrega/revision.json` |

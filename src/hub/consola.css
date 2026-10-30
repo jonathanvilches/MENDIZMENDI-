@@ -215,7 +215,7 @@
 /* ---------- mientras el mapa hace su entrada, se va a un pueblo o enseña las comarcas en fotos: lo de encima, fuera ---------- */
 #hub.juego.m3-cine .hub-menu-btn { opacity: 0; pointer-events: none; }
 #hub.juego.m3-cine-fin .hub-menu-btn { animation: m3-aparece .7s ease-out both; }
-#hub.juego:has(.m3d.m3-intro, .m3d.m3-entra, .m3d.con-ex) .hub-menu-btn { opacity: 0; pointer-events: none; transition: opacity .35s; }
+#hub.juego:has(.m3d.m3-intro, .m3d.con-ex) .hub-menu-btn { opacity: 0; pointer-events: none; transition: opacity .35s; }
 
 /* ---------- el móvil tumbado: todo más bajo y, en la fila de arriba, lo justo ---------- */
 @media (max-height: 520px) {

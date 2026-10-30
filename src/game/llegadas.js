@@ -1,15 +1,12 @@
-// Las llegadas: al frontón, antes de cada partido de pelota, y al pueblo, al empezar la aventura. Un vuelo de la cámara
-// desde lo alto con el cartel del sitio (ui/vuelo.js); acaban justo donde empieza lo siguiente (el plano del panel del
-// partido o la cámara detrás del jugador), sin saltos. Sin vuelo en las pruebas automáticas, salvo que lo pidan
+// La llegada al frontón, antes de cada partido de pelota: un vuelo de la cámara con el cartel del sitio (ui/vuelo.js) que
+// acaba justo donde empieza el plano del panel del partido, sin saltos. (Las de los pueblos, desde lo alto, se quitaron:
+// en el iPhone el pueblo entero visto desde arriba se pasaba de memoria y se perdía la imagen; octubre de 2026.) Sin vuelo en las pruebas automáticas, salvo que lo pidan
 // (window.__vuelo), y en la partida que gana sola
 import * as THREE from 'three';
-import COMARCAS from '../data/comarcas.json';
 import { vuelo, cartel } from '../ui/vuelo.js';
 import { TEXT } from '../pelota/rules.js';
 import { labritFront } from '../pelota/court.js';
 import { groundHeight } from '../world/heightfield.js';
-import { townLatLon } from '../data/miradores.js';
-import { mapaXY } from '../util/geo.js';
 
 const sinVuelo = () => !!window.__autoWin || (navigator.webdriver && !window.__vuelo);
 
@@ -51,35 +48,4 @@ export async function vueloFronton(G, v, m) {
   // en marcha, no se la quita)
   const fin = vuelo(G.follow, tramos, { suelo: C.hall || C.labrit ? null : groundHeight, alto: 6, onTramo, onT: (k) => { destapa(); if (k > 0.7) card.close(); } }), mio = G.follow.cinematic;
   try { await fin; } finally { card.close(); veil?.classList.remove('tapa'); if (!G.disposed && G.follow.cinematic === mio) G.follow.cinematic = null; }   // (de aquí en adelante, la cámara del partido)
-}
-
-/** La llegada al pueblo: de lejos y en lo alto, una vuelta por encima de las casas y de la iglesia que acaba detrás del
- *  jugador, con el nombre del pueblo, el de su comarca y Navarra con la comarca encendida. o: { follow, player, ui, def,
- *  centro, iglesia } (def, el pueblo de levels.js). */
-export async function vueloPueblo({ follow, player, ui, def, centro, iglesia }) {
-  if (sinVuelo()) return;
-  const cam = follow.cam, E = { pos: cam.position.clone(), look: new THREE.Vector3(player.pos.x, player.pos.y + 1.5, player.pos.z) };
-  const c = new THREE.Vector3(centro.x, groundHeight(centro.x, centro.z), centro.z), R = Math.max(70, (def.size || 50) * 1.5);
-  // (la vuelta acaba por detrás del jugador: empieza al otro lado del pueblo, a 150 grados)
-  const aE = Math.atan2(E.pos.x - c.x, E.pos.z - c.z), at = (a, r, h) => new THREE.Vector3(c.x + Math.sin(a) * r, c.y + h, c.z + Math.cos(a) * r);
-  const ig = iglesia ? new THREE.Vector3(iglesia.x, groundHeight(iglesia.x, iglesia.z) + 8, iglesia.z) : c.clone().setY(c.y + 6);
-  // (dos tramos con un corte entre medias: la vuelta alta por encima del pueblo, que acaba mirando hacia la iglesia, y un
-  // plano corto que se aleja del jugador hasta la cámara de juego. Antes bajaba de lo alto en picado entre los tejados hasta el jugador:
-  // rozaba las casas y se veía el suelo desde arriba)
-  const aire = { pts: [at(aE + 2.6, R * 1.7, R * 0.8), at(aE + 1.6, R * 1.15, R * 0.55), at(aE + 0.8, R * 0.9, Math.max(32, R * 0.5))], looks: [c.clone().setY(c.y + 4), ig, ig.clone().lerp(E.look, 0.5)], dur: 5, ease: 'inOut' };
-  // (el plano corto: de cerca del jugador hacia atrás hasta la cámara de juego, por el tramo que ya ve al jugador: siempre
-  // despejado; empezar más atrás que la cámara podía caer dentro de una casa o de un balcón)
-  const cerca = { pts: [E.pos.clone().lerp(E.look, 0.45).setY(E.pos.y * 0.55 + E.look.y * 0.45 + 0.6), E.pos], looks: [E.look.clone(), E.look], dur: 1.8, libre: true };
-  const card = cartelPueblo(def);
-  ui.hudVisible?.(false); ui.setCinematic?.(true, '');   // (sin texto encima: el cartel ya dice dónde estás)
-  const fin = vuelo(follow, [aire, cerca], { suelo: groundHeight, alto: 12, onTramo: (i) => { if (i === 1) card.close(); } }), mio = follow.cinematic;
-  try { await fin; } finally { card.close(); if (follow.cinematic === mio) { follow.cinematic = null; ui.setCinematic?.(false); } }
-}
-
-/** El cartel del pueblo: su comarca, su nombre (y el otro, si lo tiene) y el mapa de Navarra con la comarca encendida y
- *  el punto del pueblo. */
-export function cartelPueblo(def) {
-  const name = def.name.split(' /'), com = COMARCAS.find(k => k.id === def.comarca), ll = townLatLon(def);
-  return cartel({ kicker: com?.full || com?.name || '', title: name[0].trim(), sub: (name[1] || '').trim(),
-    mapa: com ? { paths: COMARCAS.map(k => ({ d: k.path, on: k.id === com.id, color: '#ff2bd6' })), pin: ll ? mapaXY(ll.lat, ll.lon) : null } : null });
 }

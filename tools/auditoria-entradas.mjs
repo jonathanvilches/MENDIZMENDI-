@@ -1,9 +1,9 @@
 // Auditoría de la entrada en cada pueblo, como en el iPhone (perfil de iPhone, tumbado): se abre la app, se toca jugar en
 // el pueblo (hub.play, el botón de la tarjeta del mapa) y se mira: la carga (con foto, la foto se descarga y se ve, nombre,
-// comarca), el vuelo de llegada (su cartel) y que al final se juega (modo play, con el marcador). Una página nueva por pueblo.
-// Uso: OUT=carpeta node tools/auditoria-entradas.mjs [ids…]  (BASE: la web compilada en 8099; PC=1 ordenador; SALTA=1 salta el
-// vuelo tras comprobar que sigue a los 6 s; SIGUE=1 no repite los que ya salieron bien). Deja OUT/resumen.json y las capturas
-// carga-, vuelo-, vuelo2- y juego- de cada pueblo.
+// comarca), que no hay intro desde el aire (ni cartel ni cámara de cine) y que al acabar se juega. Una página nueva por pueblo.
+// (con window.__vuelo, por si alguna intro volviera: en las pruebas automáticas, las de antes no se veían)
+// Uso: OUT=carpeta node tools/auditoria-entradas.mjs [ids…]  (BASE: la web compilada en 8099; PC=1 ordenador; SIGUE=1 no
+// repite los que ya salieron bien). Deja OUT/resumen.json y las capturas carga- y juego- de cada pueblo.
 import { chromium } from 'playwright-core';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -33,7 +33,7 @@ for (const id of ids) {
     R.t.menu = seg();
     const ok = await p.evaluate((id) => { if (!window.__hub) return 'sin hub'; window.__hub.play(id); return 'ok'; }, id);
     const t1 = Date.now(), dt = () => +((Date.now() - t1) / 1000).toFixed(1);
-    let vista = null, cartel = false, cine = false, fin = null, capCarga = false, capVuelo = false, capVuelo2 = false;
+    let vista = null, cartel = false, cine = false, fin = null, capCarga = false;
     while (Date.now() - t1 < 300000) {
       const e = await p.evaluate(() => { const L = document.getElementById('loading'), g = window.__game, c = document.querySelector('.cartel');
         return { carga: !!L && !L.classList.contains('hidden') && getComputedStyle(L).opacity > 0.05, min: L?.classList.contains('ld-min'), nopic: L?.classList.contains('no-pic'), bg: (L?.querySelector('.ld-bg')?.style.backgroundImage || '').replace(/^url\("?|"?\)$/g, ''),
@@ -46,20 +46,16 @@ for (const id of ids) {
       if (e.carga && !capCarga && parseInt(e.pc) >= 20) { capCarga = true; await p.screenshot({ path: `${out}/carga-${id}.png` }).catch(() => {}); R.cargaVista = { pc: e.pc, nombre: e.nombre, k: e.k, pie: e.pie, min: e.min, nopic: e.nopic }; }
       if (e.cartel && !cartel) { cartel = true; R.t.vuelo = dt(); R.cartel = e.cartelT; }
       if (e.modo === 'cine') cine = true;
-      if (e.cartel && !capVuelo && dt() - (R.t.vuelo || 0) > 1) { capVuelo = true; await p.screenshot({ path: `${out}/vuelo-${id}.png` }).catch(() => {}); }
-      if (e.modo === 'cine' && !capVuelo2 && R.t.vuelo != null && dt() - R.t.vuelo > 6) { capVuelo2 = true; R.vuelo6 = true; await p.screenshot({ path: `${out}/vuelo2-${id}.png` }).catch(() => {});
-        // (comprobado que el vuelo sigue a los 6 s, se salta tocando, como en el juego: en el simulador dura minutos)
-        if (process.env.SALTA) await p.evaluate(() => dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }))).catch(() => {}); }
-      if (e.modo === 'play' && !e.carga && !e.cartel && (cartel || cine || dt() > 200)) { fin = dt(); break; }
+      if (e.modo === 'play' && !e.carga && !e.cartel && vista) { fin = dt(); await p.waitForTimeout(3000); break; }
       await p.waitForTimeout(400);
     }
     R.t.juego = fin; R.cine = cine; R.vueloVisto = cartel; R.carga = vista && { min: vista.min, nopic: vista.nopic, bg: vista.bg.split('/').pop(), nombre: vista.nombre, k: vista.k };
     await p.waitForTimeout(1500); await p.screenshot({ path: `${out}/juego-${id}.png` }).catch(() => {});
     R.final = await p.evaluate(() => ({ modo: window.__game?.mode, hud: getComputedStyle(document.querySelector('#hud') || document.body).display, gid: window.__game?.def?.id }));
   } catch (err) { R.fallo = String(err).slice(0, 200); }
-  R.ok = !R.fallo && !!R.carga && !R.carga.min && !R.carga.nopic && R.foto?.w > 0 && R.vueloVisto && !!R.vuelo6 && R.t.juego != null && !errs.length;
+  R.ok = !R.fallo && !!R.carga && !R.carga.min && !R.carga.nopic && R.foto?.w > 0 && !R.vueloVisto && !R.cine && R.t.juego != null && !errs.length;
   res[id] = R; fs.writeFileSync(`${out}/resumen.json`, JSON.stringify(res, null, 1));
-  console.log(`${R.ok ? 'OK ' : 'MAL'} ${id}: carga ${R.t.carga ?? '-'} s ${R.carga?.min ? 'MÍNIMA ' : ''}${R.carga?.nopic ? 'SIN FOTO ' : ''}foto ${R.foto ? (R.foto.w ? R.foto.w + 'x' + R.foto.h : JSON.stringify(R.foto)) : 'ninguna'} · vuelo ${R.vueloVisto ? R.t.vuelo + ' s «' + R.cartel + '»' + (R.vuelo6 ? ' sigue a los 6 s' : ' CORTADO') : 'NO'} · juego ${R.t.juego ?? 'NO'} s${errs.length ? ' · errores: ' + errs.slice(0, 3).join(' | ') : ''}${R.fallo ? ' · FALLO ' + R.fallo : ''}`);
+  console.log(`${R.ok ? 'OK ' : 'MAL'} ${id}: carga ${R.t.carga ?? '-'} s ${R.carga?.min ? 'MÍNIMA ' : ''}${R.carga?.nopic ? 'SIN FOTO ' : ''}foto ${R.foto ? (R.foto.w ? R.foto.w + 'x' + R.foto.h : JSON.stringify(R.foto)) : 'ninguna'} · ${R.vueloVisto || R.cine ? 'HAY VUELO' : 'sin vuelo'} · juego ${R.t.juego ?? 'NO'} s${errs.length ? ' · errores: ' + errs.slice(0, 3).join(' | ') : ''}${R.fallo ? ' · FALLO ' + R.fallo : ''}`);
   await ctx.close();
 }
 await b.close();

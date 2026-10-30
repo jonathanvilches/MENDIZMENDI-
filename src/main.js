@@ -20,7 +20,6 @@ import * as HF from './world/heightfield.js';
 import * as LAYOUT from './world/layout.js';
 import { PLACES } from './world/layout.js';
 import { esc } from './util/html.js';
-import { vueloPueblo } from './game/llegadas.js';
 import { LANDMARKS } from './world/landmarks.js';
 import { Runtime } from './engine/runtime.js';
 import { Input } from './input.js';
@@ -268,14 +267,9 @@ async function boot() {
         rt.start(game);
         sinHub(); ui.hideLoading(); queueMode('light');
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
-        if (!st.introDone && !q.get('skipintro')) await game.intro(d);
-        else {   // (las siguientes veces, la llegada: el vuelo por encima de Otsagabia con su nombre y su comarca)
-          if (!q.get('skipintro')) { game.mode = 'cine'; rt.player.frozen = true; const g0 = game;
-            await vueloPueblo({ follow: rt.follow, player: rt.player, ui, def: d, centro: PLACES.crucero, iglesia: PLACES.church }).catch(e => console.warn('llegada', e));
-            if (game !== g0) { loading = false; return; }   // (se salió del pueblo durante el vuelo: lo de después ya no es de este)
-            rt.follow.snap(rt.player); rt.player.frozen = false; }
-          ui.hudVisible(true); game.mode = 'play';
-        }
+        // (sin intro desde el aire: al acabar la carga, ya en el pueblo; la primera vez, el aviso de con quién hablar)
+        ui.hudVisible(true); game.mode = 'play';
+        if (!st.introDone && !q.get('skipintro')) game.intro();
       } else {
         game = new TownGame(ctx, d);
         game.onPlayTown = (id) => { exit(); setTimeout(() => play(levelById(id)), 60); };
@@ -296,10 +290,9 @@ async function boot() {
         // (si se perdió en un partido de pelota del pueblo, otra vez su menú: antes te quedabas en la puerta del frontón y
         // parecía que el juego te había echado del partido)
         if (opt.resumed) { const g = game; setTimeout(() => { if (!g || g !== game) return; g.ui.toast(opt.pelota ? 'Imagen recuperada: el partido se ha cortado, vuelve a empezar' : 'Imagen recuperada: sigues donde estabas', 'exclaim', 3600); if (opt.pelota) g.freePelota?.(); }, 700); }
-        else {   // (primero, la llegada: el vuelo por encima del pueblo con su nombre y su comarca; luego, a quién buscar)
-          // (de vuelta del campeonato al que te apuntaste en el pueblo: sin la llegada, en la puerta del frontón)
-          const g = game; (q.get('skipintro') || opt.volver ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
-            .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(opt.volver ? `De vuelta en ${d.name.split(' /')[0]}` : `¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
+        else {   // (sin vuelo de llegada desde el aire: en el iPhone, el pueblo entero visto desde lo alto se pasaba de memoria y
+          // se perdía la imagen. Al acabar la carga, ya en el pueblo, y a quién buscar)
+          const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(opt.volver ? `De vuelta en ${d.name.split(' /')[0]}` : `¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300);
         }
       }
     } catch (e) {

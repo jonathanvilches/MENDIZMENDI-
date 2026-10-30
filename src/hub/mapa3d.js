@@ -317,9 +317,8 @@ export function mapa3d(host, o) {
   // ---------- la cámara: un punto del mapa al que mira, la distancia, el giro y la inclinación ----------
   // (la vista de toda Navarra: la distancia a la que cabe entera en lo que queda libre, más inclinada en las pantallas
   // anchas, para que se vea la profundidad, y más desde arriba en el móvil de pie)
-  // (al entrar a jugar, lo de encima se va y la vista es toda la pantalla)
-  let entrada = null, elegido = null;   // (y el pueblo elegido, con su ficha)
-  const huecoAhora = () => entrada ? {} : o.hueco?.() || {};
+  let elegido = null;   // (el pueblo elegido, con su ficha)
+  const huecoAhora = () => o.hueco?.() || {};
   const libre = () => { const w = host.clientWidth || 1, h = host.clientHeight || 1, hu = huecoAhora(); return { w: Math.max(80, w - (hu.r || 0)), h: Math.max(80, h - (hu.t || 0) - (hu.b || 0)), W: w, H: h }; };
   const camPos = (s, out = new THREE.Vector3()) => out.set(s.x + Math.sin(s.yaw) * Math.cos(s.pitch) * s.d, Math.sin(s.pitch) * s.d + (s.hy || 0), s.z + Math.cos(s.yaw) * Math.cos(s.pitch) * s.d);
   // (se prueba a qué distancia caben todas las esquinas de Navarra en el hueco libre, con la misma cámara)
@@ -588,7 +587,7 @@ export function mapa3d(host, o) {
     for (const k of ['x', 'z', 'd', 'yaw', 'pitch']) v[k] = goal[k];
   }
   const onDown = (e) => {
-    if (entrada || saltaIntro()) return;
+    if (saltaIntro()) return;
     usado(); cv.focus({ preventScroll: true }); try { cv.setPointerCapture(e.pointerId); } catch (x) { }
     vuelo = null; inercia = null;
     ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY, rot: e.button === 2 || e.ctrlKey, movido: false });
@@ -632,7 +631,7 @@ export function mapa3d(host, o) {
   // (la rueda del ratón acerca y aleja; en el panel táctil del portátil, deslizar con dos dedos mueve el mapa, como en
   // los mapas de verdad, y pellizcar acerca: el deslizar llega con desplazamiento a los lados o en fracciones, la rueda no)
   cv.addEventListener('wheel', (e) => {
-    e.preventDefault(); if (entrada || saltaIntro()) return; usado(); vuelo = null; inercia = null; dron = null;
+    e.preventDefault(); if (saltaIntro()) return; usado(); vuelo = null; inercia = null; dron = null;
     if (!e.ctrlKey && e.deltaMode === 0 && (e.deltaX !== 0 || !Number.isInteger(e.deltaY))) {
       const k = goal.d * 0.0016, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       goal.x += (-fz * e.deltaX - fx * e.deltaY) * k; goal.z += (fx * e.deltaX - fz * e.deltaY) * k; lim(); return;
@@ -669,7 +668,7 @@ export function mapa3d(host, o) {
   // con su núcleo y lo de alrededor)
   // ---------- elegir un pueblo: la cámara se acerca hasta él y su ficha sale junto a su chincheta ----------
   function irPueblo(id) {
-    const t = tById.get(id); if (!t || entrada) return;
+    const t = tById.get(id); if (!t) return;
     if (sel !== t.comarca) select(t.comarca, false);
     elegido = t; o.onTown?.(id);   // (antes de volar: la ficha cambia el hueco donde se encaja)
     nucT = -1e9;   // (su núcleo, en la imagen siguiente: así sus casas se van haciendo durante el vuelo)
@@ -846,10 +845,8 @@ export function mapa3d(host, o) {
   }
   function nucleos(now, quieto) {
     const va = elegido && vuelo;   // (volando hasta un pueblo: el suyo se pide ya, para que sus casas estén al llegar)
-    if (now - nucT < 500 || !quieto && !entrada && !va) return; nucT = now;
-    // (al entrar a jugar, nada nuevo: detrás viene la carga con la portada del pueblo y el mapa se suelta. Antes se pedía
-    // la maqueta del pueblo para llegar hasta sus casas, y ese trabajo de última hora atascaba la entrada)
-    const quiere = entrada ? [] : va ? (REALES.has(elegido.id) ? [elegido] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
+    if (now - nucT < 500 || !quieto && !va) return; nucT = now;
+    const quiere = va ? (REALES.has(elegido.id) ? [elegido] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
       .sort((a, b) => Math.hypot(a.X - v.x, a.Z - v.z) - Math.hypot(b.X - v.x, b.Z - v.z)).slice(0, 6);
     for (const t of quiere) {
       const e = nuc.get(t.id); if (e) { e.t = now; continue; } if (nucPide) continue;
@@ -898,8 +895,8 @@ export function mapa3d(host, o) {
     // mueve un poco: no se espera a que esté quieto)
     if (!calentado && (v.d < 8 || (!LENTO && (!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > 4000))) calienta();
     // (volando a un pueblo tocado, la suya se va haciendo por el camino: al llegar ya está y solo tiene que levantarse)
-    const vaE = !entrada && elegido && vuelo ? nuc.get(elegido.id) : null, va = vaE?.D && vaE.slot >= 0 ? vaE : null;
-    const quiere = entrada ? (maq?.e.t === entrada.t ? maq.e : null) : va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
+    const vaE = elegido && vuelo ? nuc.get(elegido.id) : null, va = vaE?.D && vaE.slot >= 0 ? vaE : null;
+    const quiere = va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
       .sort((a, b) => Math.hypot(a.X0 - v.x, a.Z0 - v.z) - Math.hypot(b.X0 - v.x, b.Z0 - v.z))[0] : null);
     if (!maq) {
       if (quiere && (quieto || va)) maq = { e: quiere, k: { value: 0 }, alz: { value: 1 }, op: 0, res: {}, pasos: null, tex: null, malla: null };
@@ -947,34 +944,6 @@ export function mapa3d(host, o) {
   }
   // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
   const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
-
-  // ---------- entrar a jugar: un zoom rápido. Lo de encima se va, la cámara se lanza hasta el pueblo girando un poco y la
-  // pantalla se funde; entonces empieza la partida (devuelve una promesa; null si no hay vuelo: sin movimiento) ----------
-  function entrar(id) {
-    const t = tById.get(id);
-    if (!t || !vivo || !host.isConnected || !cv.offsetParent || matchMedia?.('(prefers-reduced-motion: reduce)').matches) return null;
-    return new Promise((res) => {
-      // (pase lo que pase con las imágenes, la partida empieza a los 4 segundos y medio: el tope de sigueEntrada solo se
-      // miraba al pintar, y si el mapa dejaba de pintarse, porque aún compilaba, quedaba tapado o la página no se veía, el
-      // zoom no acababa nunca y el juego se quedaba atascado en el mapa)
-      let hecho = false; const fin = () => { if (hecho) return; hecho = true; clearTimeout(tope); if (entrada?.fin === fin) entrada = null; res(); };
-      const tope = setTimeout(() => { fin(); setTimeout(() => host.classList.remove('m3-entra', 'm3-negro'), 4000); }, 4500);
-      if (sel !== t.comarca) select(t.comarca, false);
-      host.classList.add('m3-entra'); keys.clear(); ptrs.clear(); arr = null; gesto = null; hover = null;
-      entrada = { t, fin, t0: performance.now(), fase: 0 };
-      const lejos = Math.hypot(v.x - t.X, v.z - t.Z) > 1 || v.d > 10; entrada.fase = lejos ? 0 : 1;
-      if (lejos) volar({ x: t.X, z: t.Z, d: Math.min(Math.max(v.d, 3), 8), yaw: v.yaw, pitch: Math.min(v.pitch, 0.85) }, 0.6); else vuelo = null;
-    });
-  }
-  function sigueEntrada(now) {
-    const en = entrada; if (!en) return;
-    if (en.fase === 1 && !en.va) { en.va = true; volar({ x: en.t.X, z: en.t.Z, d: 1.2, yaw: v.yaw + 0.3, pitch: 0.55 }, 1.0); }
-    else if (en.fase === 0 && !vuelo) en.fase = 1;
-    else if (en.fase === 1 && (!vuelo || vuelo.t > 0.7)) { en.fase = 2; en.t2 = now; host.classList.add('m3-negro'); }
-    else if ((en.fase === 2 && now - en.t2 > 320) || now - en.t0 > 4000) {
-      entrada = null; en.fin(); setTimeout(() => host.classList.remove('m3-entra', 'm3-negro'), 4000);
-    }
-  }
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
@@ -1076,8 +1045,7 @@ export function mapa3d(host, o) {
     if (toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > prSuelo) { prMax = Math.max(prSuelo, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
-    // (al entrar a jugar, al ritmo del reloj aunque vaya a tirones)
-    const dt = Math.max(0, Math.min(entrada ? 0.1 : 0.05, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
+    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
     // (el reloj de la entrada grande)
     let tI = 99, dI = 0;
     if (intro) { if (!intro.t && ((cargas < 3 && intro.espera < 2.5) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
@@ -1085,9 +1053,9 @@ export function mapa3d(host, o) {
     const w = host.clientWidth, h = host.clientHeight, z = escala();
     if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, prPres(w, h), (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }
     // movimiento con las teclas y los botones
-    if (dron && (ptrs.size || keys.size || inercia || entrada || elegido?.id !== dron.id)) dron = null;
+    if (dron && (ptrs.size || keys.size || inercia || elegido?.id !== dron.id)) dron = null;
     if (dron) sigueDron(dt);
-    if (keys.size && !entrada) {
+    if (keys.size) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }
       if (keys.has('l')) { goal.x += fz * sp; goal.z -= fx * sp; } if (keys.has('r')) { goal.x -= fz * sp; goal.z += fx * sp; }
@@ -1196,7 +1164,7 @@ export function mapa3d(host, o) {
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
     // los núcleos: el pintado entra al acercarse y las casas en pie, ya muy cerca
-    nucleos(now, quieto); maqueta(dt, quieto); sigueEntrada(now);
+    nucleos(now, quieto); maqueta(dt, quieto);
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)
@@ -1269,5 +1237,5 @@ export function mapa3d(host, o) {
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }
-  return { select, vista, dispose, volar: irPueblo, cierraPueblo, entrar };
+  return { select, vista, dispose, volar: irPueblo, cierraPueblo };
 }

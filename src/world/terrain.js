@@ -447,9 +447,15 @@ export class Terrain {
     this.buildOuter(scene);
   }
   update(camPos) {
+    // (en calidad baja, la del móvil, el trozo que se queda lejos suelta su copia de la tarjeta gráfica y la vuelve a subir
+    // si uno se acerca: los datos siguen en memoria. Antes, cada trozo visto se quedaba subido y, al recorrer el pueblo,
+    // la geometría pasaba de lo que aguanta el iPhone: en Leitza, de 30 a 37 MB)
+    const suelta = this.quality === 'low', lejos = this.lodDist + CH * 1.5;
     for (const c of this.chunks) {
       const d = Math.max(Math.abs(camPos.x - c.cx), Math.abs(camPos.z - c.cz)) - CH / 2;
       c.hi.visible = d < this.lodDist;
+      if (c.hi.visible) c.subido = true;
+      else if (suelta && c.subido && d > lejos) { c.hi.geometry.dispose(); c.subido = false; }
     }
     // (en el de lejos se esconden justo los trozos que se ven de cerca: los de centro a menos de L en x y en z)
     const L = this.lodDist + CH / 2; this.cerca.value.set(camPos.x - L, camPos.z - L, camPos.x + L, camPos.z + L);

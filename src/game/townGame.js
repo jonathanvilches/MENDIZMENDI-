@@ -57,7 +57,6 @@ import { FloraSpots } from './floraSpots.js';
 import { cuentoOfTown } from '../data/cuentos.js';
 import { repartirTareas, TAREAS } from './rutinas.js';
 import { townPelotari, pelotariGirl } from '../ui/pelotariFig.js';
-import { vueloPueblo } from './llegadas.js';
 import { mezcla } from '../util/mezcla.js';
 import { PuebloDeportes } from './townDeportes.js';
 import { PuebloCimas } from './townCimas.js';
@@ -868,15 +867,6 @@ export class TownGame {
     if (it.kind === 'creature') return this.meetCreature(it.M);
     if (it.kind === 'fountain') { this.particles.emit({ x: it.x, y: TOWN.fountain.y + 1.4, z: it.z }, { n: 20, color: '#bfe8ff', speed: 1.5, size: 0.25, life: 0.8 }); this.sound.splash(this.player.pos, 0.6); return this.mochila.fountain(); }
   }
-  // La llegada al pueblo, al empezar o al seguir la aventura: el vuelo por encima del pueblo con su nombre, su comarca y
-  // Navarra con la comarca encendida (llegadas.js); acaba detrás del jugador, listo para andar
-  async llegada() {
-    if (this.mode !== 'play' || this.disposed) return;
-    this.mode = 'cine'; this.player.frozen = true;
-    try { await vueloPueblo({ follow: this.follow, player: this.player, ui: this.ui, def: this.def, centro: PLACES.plaza, iglesia: TOWN.church?.door || PLACES.church }); }
-    finally { if (!this.disposed) { this.follow.snap(this.player); this.player.frozen = false; this.mode = 'play'; this.ui.hudVisible(true); } }
-  }
-
   // Lo que se gana al terminar: comida del producto y equipo nuevo
   async afterComplete(M) {
     const f = M.type === 'process' ? foodFrom(M.m.product) : M.type === 'harvest' ? foodFrom(M.m.crop) : null;

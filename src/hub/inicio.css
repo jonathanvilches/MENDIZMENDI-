@@ -307,8 +307,6 @@
   .m3d .ini-head { right: calc(var(--misw, 150px) + 16px + var(--sr, 0px)); } .ini-av span { display: none; } .ini-av { padding: 0; width: 40px !important; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .m3-aro .ar { animation: none !important; } }
-/* al entrar a jugar: lo de encima del mapa se va mientras la cámara baja al pueblo, y al final la pantalla se funde */
-.m3d.m3-entra :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; transition: opacity .35s; }
 /* la entrada grande (Navarra se despega del mapa de España): sin nada encima hasta que se posa; luego, todo aparece */
 .m3d.m3-intro :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; }
 .m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-mision, .m3-capa) { animation: m3-aparece .7s ease-out both; }
@@ -321,7 +319,6 @@
 #hub.m3-cine-fin :is(.hub-top, .hub-nav) { animation: m3-aparece .7s ease-out both; }
 @keyframes m3-aparece { from { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-mision, .m3-capa), #hub.m3-cine-fin :is(.hub-top, .hub-nav) { animation: none; } }
-.m3d.m3-negro .m3-cv { opacity: 0; transition: opacity .3s ease-in; }
 /* el espectáculo de la entrada (mapa3d.js lo mueve con el reloj de la entrada): las nubes, el nombre del juego con su
    lema, la luz dorada bajo Navarra en el aire y el destello al posarse */
 .m3-show { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
