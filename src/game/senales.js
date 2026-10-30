@@ -86,8 +86,9 @@ export function makeSignpost({ peak, alt, info, town, col = RUTA.PR }) {
   const post = new THREE.Mesh(new THREE.BoxGeometry(0.14, 2.6, 0.14), woodM); post.position.y = 1.3; post.castShadow = true; g.add(post);
   const cap = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.14, 4), woodM); cap.rotation.y = Math.PI / 4; cap.position.y = 2.67; g.add(cap);
   // la tablilla de la cima apunta a +Z del grupo (el grupo se gira hacia la cima); la del pueblo, al revés
-  const up = arrowBoard([peak + (alt ? ` · ${alt} m` : ''), info], col, false); up.rotation.y = -Math.PI / 2; up.position.set(0, 2.25, 0.62); g.add(up);
-  const back = arrowBoard([town, 'Vuelta al pueblo'], col, false); back.rotation.y = Math.PI / 2; back.position.set(0, 1.82, -0.62); g.add(back);
+  // (cada tablilla sale del poste, con su extremo junto a él, como en los postes del pueblo: antes lo atravesaba)
+  const up = arrowBoard([peak + (alt ? ` · ${alt} m` : ''), info], col, false); up.rotation.y = -Math.PI / 2; up.position.set(0, 2.25, 0.82); g.add(up);
+  const back = arrowBoard([town, 'Vuelta al pueblo'], col, false); back.rotation.y = Math.PI / 2; back.position.set(0, 1.82, -0.82); g.add(back);
   // la placa del sendero (PR-NA) en el poste
   const c = document.createElement('canvas'); c.width = 128; c.height = 160; const q = c.getContext('2d');
   q.fillStyle = '#f6f1e2'; q.fillRect(0, 0, 128, 160); q.fillStyle = '#ffffff'; q.fillRect(14, 16, 100, 20); q.fillStyle = col; q.fillRect(14, 40, 100, 20);

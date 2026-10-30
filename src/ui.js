@@ -60,10 +60,10 @@ export class UI {
     this.buildLoading();
   }
   // ---------- Carga ----------
-  // (como la carga de un videojuego: la lámina del pueblo a toda la pantalla, con el visor, las motas de luz y las líneas
-  // de pantalla encima; el pueblo abajo a la izquierda, el consejo arriba a la derecha y la barra a todo el ancho. style.css)
+  // (como la carga de un videojuego: la lámina del pueblo a toda la pantalla, fija, con el visor; el pueblo abajo a la
+  // izquierda, el consejo arriba a la derecha y la barra a todo el ancho. style.css)
   buildLoading() {
-    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-shade"></div><div class="ld-fx"></div><div class="ld-marco"></div>
+    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-marco"></div>
       <div class="ld-in">
         <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
         <section class="ld-txt"><div class="ld-head"><small class="ld-k"></small><div class="ld-name"></div><p class="ld-intro"></p></div><div class="ld-ms"></div></section>
@@ -72,13 +72,15 @@ export class UI {
       </div></div>`);
     document.body.appendChild(this.loading);
   }
-  // info: { comarca, avatar, missions: [iconos], left, intro, caption, tipTitle (el rótulo del recuadro: «¿Sabías que…?» o «Consejo») }
+  // info: { comarca, foco (dónde está el personaje en la lámina), avatar, missions: [iconos], left, intro, caption, tipTitle (el rótulo del recuadro: «¿Sabías que…?» o «Consejo») }
   showLoading(title, tip = '', image = '', info = {}) {
     const L = this.loading; clearTimeout(this.ldHide); this.ldOut?.cancel(); this.ldOut = null;
     // (entra con un fundido corto sobre lo que hubiera debajo, el menú o los Torneos: antes aparecía de golpe)
     const ya = !L.classList.contains('hidden'); L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
     if (!ya) { L.classList.remove('entra'); void L.offsetWidth; L.classList.add('entra'); }
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
+    // (dónde está el personaje en la lámina, para encuadrarla sin cortarle: info.foco, { x, y } de 0 a 1)
+    L.style.setProperty('--lx', `${Math.round((info.foco?.x ?? 0.5) * 100)}%`); L.style.setProperty('--ly', `${Math.round((info.foco?.y ?? 0.5) * 100)}%`);
     L.classList.toggle('ld-min', !!info.min);
     L.classList.toggle('no-pic', !image);
     $('.ld-pic figcaption', L).textContent = info.caption || '';

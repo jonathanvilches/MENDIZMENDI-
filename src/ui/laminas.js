@@ -69,8 +69,14 @@ function encuadre(id) {
   const zf = Math.max(1, Math.min(1.8, 1 / (a[1] - a[0] + 0.18))), v = 1 / zf, sy = Math.max(0, Math.min(1 - v, (a[0] + a[1]) / 2 - v / 2));
   return `--cx:${cx};--zf:${Math.round(zf * 1000) / 1000};--sy:${Math.round(sy * 1000) / 1000}`;
 }
+// (la lámina que hace de portada de un pueblo: la suya, la de su bosque o la de su comarca)
+const portadaDe = (l) => l && (laminaUrl(l.id) ? l.id : (BOSQUE_LAMINA[l.id] || []).find(k => laminaUrl(k)) || COMARCA_LAMINA[l.comarca]);
 /** El encuadre de la portada de un pueblo (la suya, la de su bosque o la de su comarca) o de una comarca. */
-export const encuadreDe = (l) => encuadre(l && (laminaUrl(l.id) ? l.id : (BOSQUE_LAMINA[l.id] || []).find(k => laminaUrl(k)) || COMARCA_LAMINA[l.comarca]));
+export const encuadreDe = (l) => encuadre(portadaDe(l));
+/** Dónde está el personaje en una lámina, de 0 a 1: x, de izquierda a derecha (FOCO); y, el centro de su alto (ALTO). */
+export const focoDe = (id) => { const a = ALTO[id]; return { x: FOCO[id] ?? 0.5, y: a ? (a[0] + a[1]) / 2 : 0.5 }; };
+/** El de la portada de un pueblo. */
+export const focoPortada = (l) => focoDe(portadaDe(l));
 export const encuadreComarca = (id) => encuadre(COMARCA_LAMINA[id]);
 /** La portada de un pueblo o, si no tiene, la de su comarca. */
 export const townImg = (l, small = false) => (l && (townCover(l.id, small) || comarcaCover(l.comarca, small))) || '';
