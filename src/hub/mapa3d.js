@@ -12,6 +12,7 @@ import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
+import { iconSVG } from '../ui/icons.js';
 import { MAPA_IDS, loadMapa } from '../data/reales/index.js';
 import { CENTROS } from '../data/reales/centros.js';
 import { MAPA_RELIEVE } from '../data/mapa-relieve.js';
@@ -262,6 +263,19 @@ export function mapa3d(host, o) {
     const [X, Z] = W(...xy), lab = document.createElement('div'); lab.className = k ? 'm3-rl' : 'm3-sl'; lab.textContent = n; lab.hidden = true;
     return { lab, k, X, Z, h: GROSOR + alto(X, Z) + (k ? 0.25 : 0.6), c: deQuien(X, Z) };
   });
+  // la trashumancia: la Cañada Real de los Roncaleses, del valle de Roncal a las Bardenas Reales (trazado aproximado, por
+  // Burgui, la sierra de Leyre, Sangüesa, Cáseda y Carcastillo), pintada sobre el relieve con una raya discontinua, y su
+  // rebaño, que baja por ella poco a poco; tocándolo, su ficha (o.onTrashumancia). Una raya en una capa encima del mapa
+  // (un polígono de unos 60 puntos) y un nombre: nada que dibuje la tarjeta gráfica
+  const CANADA = [[42.81, -0.958], [42.725, -1.011], [42.663, -1.124], [42.59, -1.215], [42.52, -1.37], [42.38, -1.445], [42.2, -1.5]];
+  const canP = []; { const Wp = CANADA.map(([la, lo]) => W(...mapaXY(la, lo)));
+    for (let i = 0; i + 1 < Wp.length; i++) for (let k = 0; k < 10; k++) { const t = k / 10, X = Wp[i][0] + (Wp[i + 1][0] - Wp[i][0]) * t, Z = Wp[i][1] + (Wp[i + 1][1] - Wp[i][1]) * t; canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) }); }
+    const [X, Z] = Wp[Wp.length - 1]; canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) }); }
+  const canCom = new Set(canP.map(p => p.c?.id).filter(Boolean));
+  const canSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); canSvg.setAttribute('class', 'm3-canada'); canSvg.innerHTML = '<polyline class="s"/><polyline class="r"/>';
+  const rebano = document.createElement('button'); rebano.type = 'button'; rebano.className = 'm3-tr'; rebano.hidden = true;
+  rebano.innerHTML = `${iconSVG('sheep', 20)}<span>Trashumancia</span>`; rebano.setAttribute('aria-label', 'La trashumancia: Cañada Real de los Roncaleses');
+  for (const ev of ['pointerdown', 'pointerup', 'click']) rebano.addEventListener(ev, (e) => { e.stopPropagation(); if (ev === 'click') o.onTrashumancia?.(); });
   // (lo que ocupa Navarra: sus esquinas, para encajarla en la pantalla)
   const caja = new THREE.Box3(); for (const c of C) { c.mesh.geometry.computeBoundingBox(); caja.union(c.mesh.geometry.boundingBox); }
   caja.max.y = GROSOR + Math.max(...C.map(c => c.hmax + c.alzado)) + 0.5;
@@ -1187,6 +1201,14 @@ export function mapa3d(host, o) {
     for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !sel || sel === c.id]);
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, sel ? x.c?.id === sel : v.d < 55]);
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
+    // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
+    { const on = !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
+      if (!canSvg.isConnected) { capa.prepend(canSvg); capa.append(rebano); }
+      canSvg.style.display = on ? '' : 'none';
+      if (on) { let pts = ''; for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam); if (pv.z < 1) pts += `${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; }
+        for (const pl of canSvg.children) pl.setAttribute('points', pts); }
+      const u = (now / 1000 / 80) % 1, f = u * (canP.length - 1), i = Math.floor(f), a = canP[i], b = canP[Math.min(i + 1, canP.length - 1)], t = f - i;
+      lista.push([6, rebano, a.X + (b.X - a.X) * t, Y(a) + (Y(b) - Y(a)) * t + 0.3, a.Z + (b.Z - a.Z) * t, on]); }
     lista.sort((a, b) => a[0] - b[0]);
     for (const [, el, x, y, z, on, y2] of lista) etiqueta(el, x, y, z, on, ocupado, y2);
     // (dónde queda la cabeza de la chincheta del pueblo elegido: ahí se ancla su ficha)
@@ -1209,7 +1231,9 @@ export function mapa3d(host, o) {
     pv.set(x, y, z).project(cam);
     let ok = on && pv.z < 1 && Math.abs(pv.x) < 1.1 && Math.abs(pv.y) < 1.1, px = (pv.x + 1) / 2 * sz.w, py = (1 - pv.y) / 2 * sz.h, abajo = false;
     if (ok) {
-      if (!el._w) { el.hidden = false; el.classList.add('fuera'); el._w = el.offsetWidth; el._h = el.offsetHeight; }
+      // (al medirlo se esconde un momento; luego vuelve a decidirse si se ve: antes, al llegar la letra, todos los nombres se
+      // volvían a medir y se quedaban escondidos hasta que se movía el mapa)
+      if (!el._w) { el.hidden = false; el.classList.add('fuera'); el._w = el.offsetWidth; el._h = el.offsetHeight; el._ya = 0; }
       const g = el._on ? -3 : 4, w = el._w / 2;
       if (!libreEn([px - w - g, py - el._h - g, px + w + g, py + 1 + g], g, ocupado)) {
         ok = false;
