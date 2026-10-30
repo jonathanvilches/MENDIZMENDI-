@@ -189,7 +189,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   fichas se ven enteras, en 16:9; donde el texto va encima, con el mismo degradado neutro (`--cov-side`, `--cov-foot` y
   `--cov-head` en `hub.css`). Las fotos 3D de antes (el diorama de la comarca con el personaje delante) ya no están.
   La pantalla de carga lleva una sola lámina, fija y entera de alto, encuadrada en el personaje (`focoPortada` y
-  `focoDe`, de `FOCO` y `ALTO`), sin degradado lateral ni movimiento: el texto se lee por su sombra. La ficha del pueblo
+  `focoDe`, de `FOCO` y `ALTO`), sin degradado lateral ni movimiento, con un velo oscuro parejo encima, algo más denso abajo, para que se lea la
+  información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
   en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura.
   Los cuatro botones del menú de pelota llevan los pelotaris del autor (ver abajo): en el torneo, tu rival de la ronda;
   por parejas, la pareja rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido,

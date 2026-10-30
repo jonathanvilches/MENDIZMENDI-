@@ -67,7 +67,10 @@ summary { line-height: 1.3; }
    velo oscuro de la izquierda. Encuadrada donde está el personaje (--lx, --ly: FOCO y el centro de ALTO de su lámina,
    que pone main.js), para que al recortarse en el móvil, tumbado o de pie, no se le corte) */
 #loading .ld-bg { position: absolute; inset: 0; background: #2b1062 var(--lx, 50%) var(--ly, 50%) / cover no-repeat; }
-/* (sin velo, las letras llevan su propia sombra, más marcada: se leen igual sobre el cielo claro o una fachada) */
+/* (encima, un velo oscuro parejo por toda la lámina, algo más denso abajo, donde van el nombre, la descripción y la
+   barra: sin él no se leía bien la información. Nada de lado, que el degradado de la izquierda no gustó) */
+#loading .ld-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 30%, rgba(13, 6, 28, .5) 100%), rgba(13, 6, 28, .42); }
+/* (y las letras, con su propia sombra marcada: se leen igual sobre el cielo claro o una fachada) */
 #loading { --letra-carga: 0 1px 2px rgba(5, 1, 14, .95), 0 0 6px rgba(5, 1, 14, .8), 0 0 16px rgba(5, 1, 14, .55); }
 /* (las cuatro esquinas del visor, finas y rosas) */
 #loading .ld-marco { --m: calc(var(--P) * .45); --l: clamp(20px, 3.2vmin, 40px); position: absolute; inset: calc(var(--m) + var(--sy)) calc(var(--m) + var(--sx)); pointer-events: none; opacity: .85;
@@ -89,19 +92,19 @@ summary { line-height: 1.3; }
 #loading .ld-ms:empty { display: none; }
 #loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; text-shadow: var(--letra-carga); }
 #loading .ld-ms div { display: flex; flex-wrap: wrap; gap: 6px; }
-#loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .45); border: 1px solid rgba(255, 255, 255, .22);
+#loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .7); border: 1px solid rgba(255, 255, 255, .22);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 /* (de la lámina solo queda su nombre, como una etiqueta abajo a la derecha: la lámina ya es el fondo) */
 /* (el nombre del sitio de la lámina, arriba bajo el «¿Sabías que…?»: abajo a la derecha tapaba al personaje, que suele
    estar a ese lado) */
 #loading .ld-pic { grid-area: tip; align-self: end; justify-self: end; margin: 0; translate: 0 calc(100% + 10px); }
-#loading .ld-pic figcaption { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: rgba(13, 6, 28, .4); border: 1px solid rgba(255, 255, 255, .18); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em;
+#loading .ld-pic figcaption { display: flex; align-items: center; gap: 8px; padding: 7px 14px; background: rgba(13, 6, 28, .72); border: 1px solid rgba(255, 255, 255, .18); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em;
   border-radius: 999px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 #loading .ld-pic figcaption::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; }
 #loading .ld-pic figcaption:empty { display: none; }
 #loading.no-pic .ld-bg { background-image: radial-gradient(120% 90% at 50% 40%, #3a1a8a 0%, #1e0a44 45%, #07020f 100%) !important; background-size: cover; } #loading.no-pic .ld-bg::before, #loading.no-pic .ld-bg::after { display: none; }
 /* (el consejo, como un mensaje en una esquina de la pantalla) */
-#loading .ld-tip { grid-area: tip; justify-self: end; max-width: 380px; min-width: 0; display: flex; gap: 12px; align-items: center; padding: 12px 18px 12px 14px; background: rgba(13, 6, 28, .38); border: 1px solid rgba(255, 255, 255, .16); border-radius: 18px;
+#loading .ld-tip { grid-area: tip; justify-self: end; max-width: 380px; min-width: 0; display: flex; gap: 12px; align-items: center; padding: 12px 18px 12px 14px; background: rgba(13, 6, 28, .74); border: 1px solid rgba(255, 255, 255, .16); border-radius: 18px;
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 #loading .ld-tip b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ff9ad8; }
 #loading .ld-tip p { margin: 5px 0 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.4; color: #f6f3fc; }
