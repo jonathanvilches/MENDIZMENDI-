@@ -75,7 +75,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `src/data/` | Datos: pueblos y misiones (`levels.js`), comarcas con su cultura y su traje (`comarcas.json`), montes, fauna, comida y equipo (`equipo.js`), tiendas y producto estrella (`tiendas.js`), personajes (`cast.js`) y euskera (`eu.js`) |
 | `src/i18n.js` | Castellano, euskera y modo «Aprende euskera» (botón ES para ver el castellano unos segundos) |
 | `src/data/figuras.js` | Las figuras de leyenda (lamia, basajaun, sorgina, tartalo, Roldán) y de carnaval (joaldun, momotxorro, cascabobo, zipotero, coronel Lagunero, irasko, paloki): quién es cada una, cómo viste, dónde sale en Navarra y en qué pueblo y misión del juego. Las enseña `ui/figuras.js` en el inicio y en Personajes, con su imagen (`src/assets/figuras`, renders de sus trajes hechos con `tools/retratos.mjs`, provisionales: 768 px en la web, 384 en el archivo único, que con conexión pide la grande; cuando el autor entrega la ilustración de una figura, `tools/figuras-ilus.mjs` la deja en `src/assets/figuras/ilus` y esa manda, apaisada) y su ficha con pestañas |
-| `src/audio.js` | Sonido con Web Audio: ambiente, animales, efectos y la música por ambientes, siempre con las canciones grabadas (`src/audio/pistas.js`): la del juego en el pueblo, de día y de noche, en los minijuegos, las fiestas y el encierro; la de Torneos en los partidos y los campeonatos; la de inicio en el menú. No hay música sintetizada: se mezclaba con las canciones nuevas |
+| `src/audio.js` | Sonido con Web Audio: ambiente, animales, efectos y la música por ambientes, siempre con las canciones grabadas (`src/audio/pistas.js`): la del juego en el pueblo, de día y de noche, en los minijuegos, las fiestas y el encierro; la de Torneos en los partidos y los campeonatos; la de inicio en el menú. No hay música sintetizada: se mezclaba con las canciones nuevas. Al abrir, la música es lo primero que se prepara (`main.js`, al empezar `boot`): cada canción se descarga entera, la del menú la primera, y suena desde esa copia, así entra al momento y sin conexión; suena en cuanto el navegador deja, desde el principio donde se puede, como la app instalada en el ordenador, y si no con el primer toque o tecla de cualquier tipo, también el de la portada del arranque: el contexto de audio y los elementos de las músicas se crean en `index.html` (`sonido-primero`) y en ese toque quedan libres para sonar luego sin otro. En el iPhone, Apple no deja sonar nada antes del primer toque, y con el interruptor de silencio puesto no suena |
 | `src/crowdAudio.js` | El público de la pelota y del fútbol, sintetizado: murmullo de treinta voces con formantes, aplauso de 160 personas a la vez, «¡oooh!», lamento y estallido. Se calcula una vez, a trozos, mientras carga el partido (`crowdBuffers`); `Crowd` lo reproduce con su nivel según el momento |
 
 ## Convenciones
@@ -232,11 +232,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ficha del pueblo, la cabecera de la comarca, la ficha del mapa, la galería, la pantalla de carga, los cuentos, la
   pasaka, las tarjetas de deporte y las cabeceras del armorial. Rellenos de las cajas: 24 en el ordenador y 16 o 20 en el
   móvil. `tools/auditoria-diseno.mjs` lo comprueba («espacio»).
-- **Galería de Pueblos** (`hub/galeria.js`): las cartas no van en un anillo de verdad, que dejaba las de los lados
-  pequeñas y mucho aire a los lados, sino cada una en su puesto: la de delante, adelantada; las de los lados, apenas
-  detrás y giradas entre 22° y 38°, lo justo para acabar antes de las flechas (si no caben, como en el ordenador, se meten
-  algo por detrás de la de delante, más al fondo para que su borde no asome por delante); las del segundo puesto,
-  paralelas a ellas y detrás, en penumbra; más allá, se apagan. Al girar, todo pasa de un puesto a otro sin cortes.
+- **Galería de Pueblos** (`hub/galeria.js`): un anillo con fondo, como una rueda vista desde fuera: las cartas van una
+  junto a otra, borde con borde, cada una más girada y más honda que la anterior, hasta llegar a las flechas, y las
+  siguientes se apagan. La primera de cada lado va lo más girada que deje llenar hasta las flechas con dos o tres detrás,
+  entre 28° y 48°: en el ordenador, mucho; en el móvil tumbado, donde la carta es pequeña para el ancho, menos y con
+  tres. La perspectiva es proporcional a la carta, así la profundidad es la misma en todas las pantallas. En el móvil de
+  pie asoman por el borde. Con menos de ocho pueblos se repiten, para que al girar ninguna salte de un lado a otro a la
+  vista. Así hay la profundidad del anillo de antes sin sus huecos: allí las de los lados quedaban pequeñas y sueltas.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

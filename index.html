@@ -27,6 +27,21 @@
   } catch (e) { }
   history.replaceState(null, '', location.pathname + location.search);
 })();</script>
+<!-- el sonido, despierto desde el primer toque o tecla aunque el juego aún esté cargando: los navegadores, y el iPhone
+     siempre, solo dejan sonar dentro de un toque, y antes el toque en la portada del arranque se perdía. Aquí se crean el
+     contexto de audio y los elementos de las músicas; en ese toque, el contexto se pone en marcha y los elementos quedan
+     libres para sonar luego sin otro toque. El juego los recoge al arrancar (src/audio.js y src/audio/pistas.js) -->
+<script id="sonido-primero">(function () {
+  var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  var S = window.__sonido = { ctx: null, pool: [], toco: false }, EV = ['pointerdown', 'pointerup', 'touchend', 'mousedown', 'keydown', 'click'];
+  try { S.ctx = new AC(); for (var i = 0; i < 3; i++) S.pool.push(new Audio()); } catch (e) { return; }
+  function toque() {
+    if (S.ctx.state !== 'running') S.ctx.resume();
+    for (var i = 0; i < S.pool.length; i++) if (!S.pool[i].getAttribute('src')) try { S.pool[i].load(); } catch (e) { }
+    S.toco = true; for (var k = 0; k < EV.length; k++) removeEventListener(EV[k], toque, true);
+  }
+  for (var k = 0; k < EV.length; k++) addEventListener(EV[k], toque, true);
+})();</script>
 <title>HERRIZHERRI</title>
 <!-- el archivo único abierto desde la web (docs/descargas): pasa a la versión web, que es la misma pero carga solo lo que
      hace falta, queda guardada y se instala como app (el archivo entero son más de 40 MB en cada arranque). Con ?unico, se
