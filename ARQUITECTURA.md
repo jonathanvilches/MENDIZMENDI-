@@ -100,6 +100,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pueblo, también desde el mapa del inicio (`main.js`, `play`). El zoom del mapa antes de la carga es corto, por encima
   del pueblo y sin pedir su maqueta, y acaba a los 4,5 segundos pase lo que pase (`mapa3d.js`, `entrar`). Los lienzos
   cuyos píxeles se leen van con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente.
+  El vigilante del vuelo (`ui/vuelo.js`) cuenta los segundos del reloj sin dibujar, no el tiempo: una imagen lenta no
+  corta la llegada. En la carga, la descripción y el consejo van enteros, sin cortar (`tools/carga-textos.mjs`).
 - **Colecciones por descubrir:** jugando, naturaleza, personajes, escudos y leyendas salen bloqueados (imagen apagada,
   candado, «¿?» y una pista de dónde encontrarlo) hasta que salen en pantalla en el juego (`game/coleccion.js`, `visto`).
   Lo descubierto se apunta como carta (`fauna:`, `flora:`, `armas:`, `cuento:`, `personaje:`, `figura:`). En el material
@@ -322,6 +324,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `perro-guia.mjs` | «Enséñame el camino»: el perro se adelanta por las calles (el camino de los vecinos), ladra, espera y sigue tramo a tramo hasta dejarte junto al vecino (`CERCA=1`) o hacia una misión lejana. Simulado a pasos fijos. |
 | `pelota-cansancio.mjs` | Cansancio y descansos de la pelota, sin navegador: partidos enteros pelotando normal y jugando a cansar al rival con dejadas y cortadas. El rival tiene que cansarse bastante más en el segundo caso, pedir sus descansos sin pasarse y tus descansos se toman en el parón antes del saque. |
 | `campeonato-pueblo.mjs` | El pelotari junto al frontón de un pueblo invita al campeonato de la comarca: el diálogo con sus cuatro opciones, el campeonato elegido con su cuadro (solo el frontón) y, al salir, la vuelta a la puerta del frontón del pueblo. |
+| `auditoria-entradas.mjs` | Entrar en cada pueblo y bosque como en el iPhone, con la app recién abierta y el botón de jugar del mapa: la carga con su foto, que la foto se descarga, el vuelo de llegada con su cartel y que sigue a los 6 s, y que al final se juega sin errores. Deja capturas de la carga, del vuelo y del juego de cada uno (`OUT=carpeta`, contra la web compilada en 8099). |
+| `carga-textos.mjs` | La pantalla de carga con la descripción de cada pueblo, cada consejo y cada «¿Sabías que…?» de la pelota y la pasaka, en 667×375, 844×390, 932×430 y 1280×720: que nada se corte con puntos suspensivos, se monte o se salga de la pantalla (`LNG=eu`, en euskera). |
 | `mapa-dron.mjs` | El vuelo de dron del mapa del inicio sobre los pueblos con montes alrededor: en 24 puntos de la vuelta, la cámara por encima del relieve y sin montes entre ella y el pueblo. Capturas. |
 | `revision.mjs` | Carga los 31 pueblos y comprueba misiones, anfitriones, suelo, perro y errores; deja el informe en `entrega/revision.json` |
 | `encierro.mjs` | Prueba el encierro con capturas |
