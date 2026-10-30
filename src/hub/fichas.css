@@ -43,10 +43,10 @@
    reflejado y difuminado, que se apaga hacia fuera; al pie, el marco se funde con la ficha */
 .pt-marco { --W: calc(var(--h) * var(--zf, 1) * 16 / 9); --H: calc(var(--h) * var(--zf, 1)); --x0: calc(50cqw - var(--cx, .5) * var(--W)); --y0: calc(-1 * var(--sy, 0) * var(--H));
   position: relative; justify-self: stretch; width: 100%; height: var(--h); overflow: hidden;
-  -webkit-mask: linear-gradient(180deg, #000 86%, transparent); mask: linear-gradient(180deg, #000 86%, transparent); }
+  -webkit-mask: linear-gradient(180deg, #000 62%, rgba(0, 0, 0, .75) 78%, rgba(0, 0, 0, .35) 91%, transparent); mask: linear-gradient(180deg, #000 62%, rgba(0, 0, 0, .75) 78%, rgba(0, 0, 0, .35) 91%, transparent); }
 .pt-marco > picture { display: contents; }
 .pt-marco > img, .pt-marco > picture > img { position: absolute; z-index: 1; left: var(--x0); top: var(--y0); width: var(--W); height: var(--H); max-width: none; display: block;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+  -webkit-mask: linear-gradient(90deg, transparent, rgba(0, 0, 0, .6) 5%, #000 11%, #000 89%, rgba(0, 0, 0, .6) 95%, transparent); mask: linear-gradient(90deg, transparent, rgba(0, 0, 0, .6) 5%, #000 11%, #000 89%, rgba(0, 0, 0, .6) 95%, transparent); }
 .pt-esp { position: absolute; z-index: 0; top: var(--y0); width: var(--W); height: var(--H); background: var(--fondo, none) no-repeat; background-size: calc(var(--W) * 12) 100%;
   transform: scaleX(-1); filter: blur(14px) saturate(.9) brightness(.62); pointer-events: none; --lado: 90deg;
   -webkit-mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%); mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%); }

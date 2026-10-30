@@ -882,7 +882,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .cj-hecho { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; color: #3ee07a; font-weight: 900; } .cj-hecho svg { width: 22px; height: 22px; }
 .cj-cards { padding-top: 12px; }   /* (sitio para la etiqueta «Estás aquí», que asoma por arriba) */
 .cj-foot { position: sticky; z-index: 1; bottom: calc(-16px - env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px)); } .cj-foot .btn { min-width: 240px; }   /* (siempre a la vista, abajo) */
-.cj-foot::before { content: ''; position: absolute; z-index: -1; top: -28px; bottom: -48px; left: calc(50% - 50vw / var(--z, 1)); right: calc(50% - 50vw / var(--z, 1)); background: linear-gradient(180deg, rgba(12, 9, 20, 0), rgba(12, 9, 20, .7) 14px, rgba(12, 9, 20, .98) 28px); pointer-events: none; }   /* (su fondo, de lado a lado: lo de debajo se ve pasar sin estorbar) */
+.cj-foot::before { content: ''; position: absolute; z-index: -1; top: -54px; bottom: -48px; left: calc(50% - 50vw / var(--z, 1)); right: calc(50% - 50vw / var(--z, 1)); background: linear-gradient(180deg, rgba(12, 9, 20, 0), rgba(12, 9, 20, .3) 18px, rgba(12, 9, 20, .7) 36px, rgba(12, 9, 20, .96) 54px); pointer-events: none; }   /* (su fondo, de lado a lado: lo de debajo se ve pasar sin estorbar) */
 .app-sheet { z-index: 45; }   /* (los pasos de instalar, encima de esta pantalla) */
 @media (orientation: portrait) and (max-width: 900px), (max-width: 700px) { .cj-cards { grid-template-columns: minmax(0, 1fr); } .cj-head h2 { font-size: var(--fs-2xl); } }
 /* (móvil tumbado, con poca altura: más justas, para ver más de un vistazo) */
@@ -962,13 +962,13 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (las dos láminas enteras, en 16:9 y a la derecha, a toda la altura del botón; antes llenaban todo su ancho y se les
    cortaba la cabeza a los niños) */
 .cta-fotos { position: absolute; inset: 0 0 0 auto; z-index: -1; display: flex; height: 100%; aspect-ratio: 32 / 9; max-width: 100%;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 18%); mask: linear-gradient(90deg, transparent, #000 18%); }
+  -webkit-mask: linear-gradient(90deg, transparent, rgba(0, 0, 0, .5) 14%, #000 30%); mask: linear-gradient(90deg, transparent, rgba(0, 0, 0, .5) 14%, #000 30%); }
 .cta-fotos i { flex: 1; background: center / cover; transition: transform .4s; }
 .cta-fotos::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(40, 12, 70, .35), transparent 40%); }
 /* (en el móvil de pie no caben al lado del rótulo sin taparlo: arriba, de borde a borde, y el rótulo debajo) */
 @media (max-width: 600px) {
   .sports-cta:has(.cta-fotos) { flex-wrap: wrap; padding: 0 16px 12px; }
-  .cta-fotos { position: relative; inset: auto; flex: 0 0 calc(100% + 32px); margin: 0 -16px; height: auto; max-width: none; -webkit-mask: linear-gradient(180deg, #000 78%, transparent); mask: linear-gradient(180deg, #000 78%, transparent); }
+  .cta-fotos { position: relative; inset: auto; flex: 0 0 calc(100% + 32px); margin: 0 -16px; height: auto; max-width: none; -webkit-mask: linear-gradient(180deg, #000 62%, rgba(0, 0, 0, .55) 82%, transparent); mask: linear-gradient(180deg, #000 62%, rgba(0, 0, 0, .55) 82%, transparent); }
   .cta-fotos::after { content: none; }
 }
 .sports-cta:hover .cta-fotos i { transform: scale(1.05); }
@@ -1220,8 +1220,6 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
    Todas las portadas son láminas (src/ui/laminas.js). En las tarjetas y en la ficha del pueblo la lámina se ve entera,
    en 16:9, sin cortar al explorador ni el monumento. Donde el texto va encima de la lámina (inicio y comarca), el
    degradado es siempre el mismo: oscuro y neutro solo detrás del texto, y la lámina con sus colores en el resto. */
-:root { --cov-side: linear-gradient(90deg, rgba(14, 7, 32, .84) 0%, rgba(14, 7, 32, .58) 28%, rgba(14, 7, 32, .16) 52%, rgba(14, 7, 32, 0) 66%);
-  --cov-foot: linear-gradient(0deg, rgba(14, 7, 32, .72) 0%, rgba(14, 7, 32, 0) 42%); --cov-head: linear-gradient(180deg, rgba(14, 7, 32, .42) 0%, rgba(14, 7, 32, 0) 24%); }
 /* tarjetas de comarca */
 .ccard .cimg { background-size: cover; background-position: center 80%; opacity: 1; }
 .ccard .cimg::after { background: linear-gradient(180deg, transparent 55%, var(--plum) 100%); }

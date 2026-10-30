@@ -57,7 +57,7 @@
   background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
 .gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
 /* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía) */
-.gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 51.5%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 74%, transparent); mask-image: linear-gradient(180deg, #000 74%, transparent); }
+.gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 51.5%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); }
 /* figura de pelotari (src/ui/pelotariFig.js): una sola imagen. En el archivo único, la azul es la camiseta con el rojo de
    fondo: el fondo ocupa la caja igual que la imagen (de lado a lado; en la carta, como su object-fit y su object-position) */
 img.pf { display: block; flex: none; }

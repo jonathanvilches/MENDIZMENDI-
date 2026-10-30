@@ -105,9 +105,9 @@
 #hub.juego .m3d .m3-ft::after { content: ''; position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--c, #fff) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
 .ft-fondo { position: absolute; inset: 0; z-index: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 .ft-fondo img { width: 100%; height: 100%; object-fit: cover; opacity: .9; }
-/* (un velo ligero: arriba casi nada, para que se vea la portada; donde van el nombre, una sombra suave a la izquierda, y
-   abajo algo más, porque las misiones ya llevan su propia franja oscura y el botón tiene color) */
-.ft-fondo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(100deg, rgba(13, 6, 28, .42) 0%, rgba(13, 6, 28, .12) 55%, transparent 80%), linear-gradient(180deg, transparent 0%, rgba(13, 6, 28, .1) 30%, rgba(13, 6, 28, .4) 60%, rgba(13, 6, 28, .62) 100%); }
+/* (un velo ligero y parejo, que se espesa muy poco a poco hacia abajo, donde van las misiones y el botón: sin sombra de
+   lado, que no gusta; el nombre se lee por su propia sombra) */
+.ft-fondo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(13, 6, 28, .1) 0%, rgba(13, 6, 28, .18) 35%, rgba(13, 6, 28, .34) 65%, rgba(13, 6, 28, .5) 100%); }
 #hub.juego .m3d .m3-ft > :not(.ft-fondo) { position: relative; z-index: 1; }
 /* (de arriba abajo, por orden de importancia: la comarca, el nombre del pueblo en grande, sus misiones y, abajo, a todo el
    ancho, el botón de jugar) */
@@ -206,7 +206,7 @@
   padding: 0 24px 32px; border-radius: var(--cr-r); background: var(--cr2); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(4, 1, 12, .45);
   overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-padding-top: calc(var(--hud-h) + 16px); animation: hubVentana .3s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes hubVentana { from { opacity: 0; transform: translateY(10px) scale(.992); } }
-#hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px); margin: 0 -24px 8px; background: linear-gradient(180deg, rgba(13, 6, 28, .98) 70%, rgba(13, 6, 28, 0)); pointer-events: none; }
+#hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px); margin: 0 -24px 8px; background: linear-gradient(180deg, rgba(13, 6, 28, .98) 50%, rgba(13, 6, 28, .78) 68%, rgba(13, 6, 28, .4) 85%, rgba(13, 6, 28, 0) 100%); pointer-events: none; }
 #hub.juego .hub-cab { position: absolute; z-index: 26; top: var(--sh-t); left: calc(var(--sh-l) + var(--hud-h) + 20px); right: calc(var(--sh-r) + var(--hud-h) + 20px); height: calc(var(--hud-h) + 16px);
   display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--tx2); font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; pointer-events: none; }
 #hub.juego .hub-cab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
