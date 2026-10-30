@@ -495,8 +495,8 @@ export const levelById = id => LEVELS.find(l => l.id === id);
 // el del último pueblo visitado aunque no tuviera partido (en el valle de Salazar, Ochagavía, se quedaba en el pueblo)
 export const SEDES_PELOTA = ['lesaka', 'elizondo', 'leitza', 'pamplona', 'sanguesa', 'estella', 'puente-la-reina', 'tafalla', 'marcilla'];
 export const esSede = (id) => SEDES_PELOTA.includes(id);
-// (de esas, las que juegan al aire libre, en su frontón del pueblo: las que tienen entorno, casas y balcones alrededor.
-// Lesaka y Puente la Reina, frontones de calle; Leitza, junto a su ayuntamiento. Las demás juegan en un frontón cerrado,
+// (de esas, las que juegan al aire libre, en su frontón del pueblo: las que tienen entorno, un edificio detrás del frontis.
+// Lesaka, junto a su iglesia; Puente la Reina y Leitza, en la plaza de su ayuntamiento. Todos clásicos, con su grada. Las demás juegan en un frontón cerrado,
 // y Pamplona en el Labrit: un frontón suelto en el campo quedaba triste y obligaba a dibujar todo el horizonte. En los
 // torneos, aun en estas, desde las semifinales se juega a cubierto: torneo.js, sedeRonda)
 export const SEDES_EXTERIOR = ['lesaka', 'leitza', 'puente-la-reina'];
