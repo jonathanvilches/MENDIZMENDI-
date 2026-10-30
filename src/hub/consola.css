@@ -114,7 +114,9 @@
 #hub.juego .m3d .m3-ft > .ft-n { grid-area: 1 / 1; } #hub.juego .m3d .m3-ft > .ft-ms { grid-area: 2 / 1; } #hub.juego .m3d .m3-ft > .ft-go { grid-area: 3 / 1; }
 #hub.juego .m3d .ft-n { display: grid; gap: 2px; padding: 0; justify-content: start; }
 #hub.juego .m3d .ft-n small { color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 var(--fs-xs)/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; text-shadow: 0 1px 2px rgba(4, 1, 12, .9), 0 0 10px rgba(4, 1, 12, .7); }
-#hub.juego .m3d .ft-n b { font: 400 var(--fs-4xl)/1 var(--f-display); letter-spacing: .01em; text-shadow: 0 1px 2px rgba(4, 1, 12, .9), 0 2px 14px rgba(4, 1, 12, .75); white-space: normal; overflow-wrap: anywhere; }
+/* (el nombre en grande, entero: sin el recorte de la regla general, que cortaba la cola de la «g», los acentos y la
+   punta de la última letra, que es cursiva; si no cabe, baja a otra línea por palabras enteras, nunca a mitad) */
+#hub.juego .m3d .ft-n b { font: 400 var(--fs-4xl)/1.1 var(--f-display); letter-spacing: .01em; text-shadow: 0 1px 2px rgba(4, 1, 12, .9), 0 2px 14px rgba(4, 1, 12, .75); white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: normal; text-wrap: balance; padding-right: .12em; }
 .ft-ms { display: grid; gap: 6px; padding: 8px; border-radius: 4px; background: rgba(13, 6, 28, .55); border: 1px solid rgba(255, 255, 255, .1); }
 .ft-ms-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
 .ft-ms-h b { font: 600 11px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; color: color-mix(in srgb, var(--c, #fff) 55%, #fff); }
