@@ -2145,8 +2145,9 @@
  "sellos": "zigilu",
  "sello": "zigilu",
  "En camino": "Bidean",
- "Toca «Ir» y viajas junto al vecino que te la explica.": "Sakatu «Joan» eta misioa azaltzen dizun bizilagunaren ondora joango zara.",
- "Toca «Ir» y viajas junto a quien te la explica.": "Sakatu «Joan» eta misioa azaltzen dizunaren ondora joango zara.",
+ "Toca la flecha y viajas junto al vecino que te la explica.": "Sakatu gezia eta misioa azaltzen dizun bizilagunaren ondora joango zara.",
+ "Toca la flecha y viajas junto a quien te la explica.": "Sakatu gezia eta misioa azaltzen dizunaren ondora joango zara.",
  "Consejo": "Aholkua",
- "Lugar": "Lekua"
+ "Lugar": "Lekua",
+ "Léelo en el pueblo: está en la fachada del ayuntamiento.": "Irakurri herrian: udaletxearen fatxadan dago."
 }

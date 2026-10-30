@@ -734,6 +734,9 @@ export const cuentosRx = (t) => [
   [/^(Leyenda|Historia real) · ([^\d].*)$/, (m, a, b) => `${a === 'Leyenda' ? 'Kondaira' : 'Benetako historia'} · ${b.split(', ').map(t).join(', ')}`],
   [/^(Leyenda|Historia real) · (\d+) de (\d+)$/, (m, a, b, c) => `${a === 'Leyenda' ? 'Kondaira' : 'Benetako historia'} · ${b}/${c}`],
   [/^(\d+) de (\d+) escuchados$/, '$1/$2 entzunda'],
+  // (las colecciones bloqueadas hasta descubrirlas: coleccion.js)
+  [/^(\d+) de (\d+) descubiertos$/, '$1/$2 aurkituta'],
+  [/^Léelo en (.+)$/, (m, a) => `Non irakurri: ${a.split(', ').map(t).join(', ')}`],
   [/^Ve a (.+?) y habla con (.+?) en la plaza\.$/, (m, a, b) => `Joan ${ra(t(a))} eta hitz egin ${ekin(b)} plazan.`],
   [/^(.+?): escuchar «(.+)»$/, (m, a, b) => `${a}: «${t(b)}» entzun`],
 ];

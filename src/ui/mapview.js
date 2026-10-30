@@ -140,7 +140,7 @@ export function mountMapView(ui, box, opts = {}) {
     const btn = [];
     // (en una misión, un solo botón que te lleva a empezarla: junto al vecino que la da o, si ya está en marcha, al sitio
     // de su paso siguiente. Antes había que elegir «la brújula te lleva aquí» y después ir andando)
-    if (it.act === 'track') btn.push(`<button class="btn primary" data-a="mission" aria-label="Ir: ${esc(it.title || '')}">${flecha(20)} Ir</button>`);
+    if (it.act === 'track') btn.push(`<button class="btn primary" data-a="mission" aria-label="Ir: ${esc(it.title || '')}">${flecha(22)}</button>`);
     else if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${iconSVG('navigate', 20)} Viajar ahora</button>`);
     card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${iconSVG('close', 18)}</button>`;
     card.hidden = false;

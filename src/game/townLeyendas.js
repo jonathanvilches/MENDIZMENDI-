@@ -12,6 +12,7 @@ import { clamp } from '../util/math.js';
 import { makeAura, makeClue } from './legendFx.js';
 import { terrainHeight } from '../world/heightfield.js';
 import { COSTUMES } from '../actors/minifig.js';
+import { addCard, saveProfile } from './profile.js';
 // Aspecto de los personajes de carnaval y leyenda
 const FOLK = {
   joaldun: { traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
@@ -134,6 +135,7 @@ export class PuebloLeyendas {
     this.player.frozen = true; a.say(5); this.player.rig.setExpr?.('surprised', 3);
     this.player.heading = Math.atan2(a.pos.x - this.player.pos.x, a.pos.z - this.player.pos.z);
     a.heading = Math.atan2(this.player.pos.x - a.pos.x, this.player.pos.z - a.pos.z);
+    if (M.figura && addCard('figura:' + M.figura, 'tradiciones')) saveProfile();   // (se te ha aparecido: se abre en Personajes)
     try { await this.say(a, M.leg.meet); } finally { this.player.frozen = false; }
     this.hideCreature(M, true); this.sound.whoosh?.();
     this.ui.whisper?.('…y desaparece entre la niebla.', 3000);
@@ -179,6 +181,7 @@ export class PuebloLeyendas {
   }
   // ---------- Carnaval: buscar por el sonido ----------
   startCarnival(M) {
+    if (M.figura && addCard('figura:' + M.figura, 'tradiciones')) saveProfile();   // (las figuras del carnaval, ya en la calle: en Personajes)
     M.step = M.night ? 2 : 1; M.count = 0;
     for (const a of this.folk.filter(f => f.fm === M)) this.scene.remove(a.obj);
     this.folk = this.folk.filter(f => f.fm !== M);
