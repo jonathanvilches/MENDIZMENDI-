@@ -38,6 +38,7 @@ import { EDADES, edadDe, missionSlots } from '../data/edad.js';
 import { ARMAS, PENDIENTES, GUIA, armsOfTown } from '../data/armas-navarra.js';
 import { CUENTOS, KIND_LABEL, cuentoOfTown } from '../data/cuentos.js';
 import { QUESTS, CARDS } from '../game/content.js';
+import { misionColor as mColor, Q_CAT } from '../data/misionCat.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImg, armsImgBig, clubImg, casaImg } from '../ui/escudoImg.js';
 import { comoJugar, vistoComoJugar } from './comojugar.js';
@@ -83,16 +84,6 @@ const kc = (id) => KC[String(id).split(':')[0]] || 'av';
 const OTRAS = { tradiciones: [, 'Tradiciones', 'mask'], oficios: [, 'Oficios', 'anvil'], productos: [, 'Productos', 'cheese'], historia: [, 'Historia', 'castle'], euskera: [, 'Euskera', 'talk'] };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-// las misiones por categorías, cada una con su color, para los iconos de las misiones en las fichas y las tarjetas: así
-// se distinguen de un vistazo y contrastan sobre la portada (antes, todas del color de la comarca y la marca de hecha, verde)
-const CAT = { visit: 'pat', castle: 'pat', dolmen: 'pat', figure: 'pat', process: 'ofi', harvest: 'ofi', trade: 'ofi', herd: 'cam', feria: 'cam', observe: 'cam', mirador: 'cam',
-  dance: 'fie', carnival: 'fie', tradition: 'fie', legend: 'ley', quiz: 'sab', race: 'dep', summit: 'dep', pelota: 'dep' };
-// (siete tonos bien separados: patrimonio, amarillo; oficios y productos, rojo anaranjado; campo y naturaleza, verde;
-// fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y monte, turquesa)
-const CAT_COLOR = { pat: '#ffd23f', ofi: '#ff6b4a', cam: '#5cd65c', fie: '#ff5fb0', ley: '#a77bff', sab: '#4f9dff', dep: '#2fd6c6' };
-// (las de la aventura del valle de Salazar, en Otsagabia, no tienen tipo: su categoría por la misión)
-const Q_CAT = { bienvenida: 'pat', escudos: 'pat', ovejas: 'cam', pelota: 'dep', irati: 'cam', basajaun: 'ley', lamia: 'ley', zarratrako: 'fie', muskilda: 'fie' };
-const mColor = (type, cat) => CAT_COLOR[cat || CAT[type]] || '#c9b8ff';
 // (una excavación, con el icono de su yacimiento: el crómlech, la cueva, la columna romana…)
 const mIcon = (m) => (m.type === 'dolmen' && SITES[m.site || 'dolmen']?.icon) || TYPE_ICON[m.type];
 // El nombre corto de un pueblo: el del juego o, si no está en el juego, el de su núcleo en settlements.json; nunca su
