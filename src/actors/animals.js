@@ -103,7 +103,8 @@ export class Animal {
       let nx = this.pos.x + Math.sin(this.heading) * this.speed * dt, nz = this.pos.z + Math.cos(this.heading) * this.speed * dt;
       const r = resolve(nx, nz, this.radius, this.collider);
       const g = groundHeight(r.x, r.z);
-      const deep = waterLevelAt(r.x, r.z) - g > 0.4;
+      // (no se meten donde cubre; si alguno está ya dentro, puede ir hacia donde cubre menos)
+      const hondo = waterLevelAt(r.x, r.z) - g, deep = hondo > 0.4 && hondo >= waterLevelAt(this.pos.x, this.pos.z) - this.pos.y - 0.01;
       const r4 = Math.pow(r.x ** 4 + r.z ** 4, 0.25);
       const bounded = this.bounds ? this.bounds(r.x, r.z) : true;
       if (!deep && r4 < 455 && bounded && Math.abs(g - this.pos.y) < 1.2) { this.pos.x = r.x; this.pos.z = r.z; }
@@ -316,7 +317,14 @@ export class Fauna {
     this.visDist = quality === 'low' ? 60 : quality === 'mid' ? 80 : 100;
   }
   add(kind, x, z, opts) {
-    for (let k = 0; k < 20 && !isFree(x, z, 0.8); k++) { x += (this.rnd() - 0.5) * 6; z += (this.rnd() - 0.5) * 6; }
+    // en un sitio libre y seco: ni dentro de una casa, ni en el río, ni encima de otro animal. Antes podían salir en el
+    // agua y, como el muro o la orilla son más altos que el paso que dan, ya no salían (en Elizondo, un ciervo y un zorro
+    // con un metro de agua; en Etxalar, un perro); y dos podían salir uno dentro del otro y quedarse así mientras pastaban
+    const r = opts.radius ?? 0.4;
+    const ok = (x, z) => isFree(x, z, 0.8) && !(waterLevelAt(x, z) - groundHeight(x, z) > 0.15) && this.animals.every(o => Math.hypot(o.pos.x - x, o.pos.z - z) > o.radius + r + 0.2);
+    for (let k = 0; k < 20 && !ok(x, z); k++) { x += (this.rnd() - 0.5) * 6; z += (this.rnd() - 0.5) * 6; }
+    // (y si no lo hay cerca, el sitio bueno más próximo, en espiral, hasta unos 60 m)
+    if (!ok(x, z)) for (let k = 1; k < 120; k++) { const a = k * 2.4, d = k * 0.5, qx = x + Math.cos(a) * d, qz = z + Math.sin(a) * d; if (ok(qx, qz)) { x = qx; z = qz; break; } }
     const a = new Animal(kind, x, z, opts, this.rnd, this.scene);
     this.animals.push(a); return a;
   }

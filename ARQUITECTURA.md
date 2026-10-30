@@ -145,6 +145,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     `pelota/court.js`).
   - Si en un frontón abierto nieva, se dice «Suelo con nieve» y no «Llueve» (`cond.snow`).
   - Con lluvia o nieve no salen mariposas ni luciérnagas (`fauna.wet`).
+- **Animales en su sitio:** `Fauna.add` (`actors/animals.js`) los pone en un sitio libre, seco y sin otro animal encima;
+  si no lo hay cerca, busca el más próximo en espiral. Un animal que saliera en el río ya no salía: el muro o la orilla
+  son más altos que el paso que dan. Quien los recoloque después, como los corrales de la feria, tiene que separarlos
+  igual y llamar a `sync()` para que su cuerpo, que choca, vaya con ellos. `resolve` (`world/colliders.js`) separa
+  también dos cuerpos que caen justo en el mismo punto.
 - **Aire antes que caber:** se puede desplazar. Mejor elementos con espacio, que se entiendan, y colocados en filas
   horizontales que todo apilado en columnas estrechas para que quepa sin desplazar.
   - Torneos (`s_sports`): una carta por fila, ancha, con su portada: la lámina del protagonista en acción
