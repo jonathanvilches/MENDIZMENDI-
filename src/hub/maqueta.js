@@ -11,7 +11,21 @@ import * as THREE from 'three';
 import { clamp, smoothstep, mulberry32, segDist, hashStr } from '../util/math.js';
 
 // (alturas de cada clase de edificio cuando OpenStreetMap no la da, en metros)
-const ALTO = { house: 8.5, borda: 7, shed: 4.5, industrial: 9, church: 14, townhall: 11, school: 9, tower: 20, fronton: 10 };
+const ALTO = { house: 8.5, borda: 7, shed: 4.5, industrial: 9, church: 14, townhall: 11, school: 9, tower: 20, fronton: 10, palacio: 13, castillo: 15, muralla: 9, kiosko: 5, lavadero: 4 };
+// (lo que OpenStreetMap da como casa o como nave y no lo es, por su nombre: el kiosco de la plaza, los baluartes y los
+// portales de la muralla, los castillos, los palacios, conventos y museos, y los lavaderos. Antes, el kiosco de la Plaza
+// del Castillo de Pamplona era una casa con tejado, y el Castillo de Javier o el Palacio Real de Olite, como «naves»
+// grandes, se partían en un racimo de casitas)
+function claseReal(b) {
+  const n = b.n || '';
+  if (/kiosk|kiosc|templete|glorieta/i.test(n)) return 'kiosko';
+  if (/^(baluarte|portal de|revell[ií]n|muralla)/i.test(n)) return 'muralla';
+  if (/^(castillo de|palacio real)/i.test(n)) return 'castillo';
+  if (/^lavaderos?\b/i.test(n)) return 'lavadero';
+  if (/^aseos?\b/i.test(n)) return 'shed';
+  if (/^(palacio|casa palacio|casa museo|museo|(antiguo )?convento|monasterio|archivo|teatro|mercado|escuelas p[ií]as)/i.test(n)) return 'palacio';
+  return b.k;
+}
 // (el color de las paredes según la tierra, en HSL: encaladas en los valles del norte, piedra en el Pirineo, piedra y
 // revoco ocre en la Zona Media, ladrillo y ocre en la Ribera)
 const PARED = {
@@ -62,7 +76,11 @@ export function casasMaqueta(D) {
     }
     return out;
   };
-  return (D._maq = D.casas.flatMap(parte));
+  // (y lo pequeño y sin nombre que queda dentro de una plaza no es una casa: la bajada al aparcamiento o un templete; en la
+  // Plaza del Castillo salían dos casas en mitad de la plaza)
+  const PL = [D.lugares?.plaza, ...(D.lugares?.plazas || [])].filter(q => q?.pts?.length > 2);
+  const enPlaza = (b) => !b.n && b.w * b.d < 90 && PL.some(q => enPoligono(q.pts, b.x, b.z));
+  return (D._maq = D.casas.map(b => { const k = enPlaza(b) ? 'pabellon' : claseReal(b); return k === b.k ? b : { ...b, k }; }).flatMap(parte));
 }
 /**
  * D: el pueblo (expandido). o: { X0, Z0 (su centro en el mapa), MU (unidades por metro), EXA, GROSOR, R (su radio, m),
@@ -238,7 +256,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   };
   mat.customProgramCacheKey = () => 'maqueta';
   res.mat = mat;
-  const piezas = { paredes: [], tejados: [], agujas: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
+  const piezas = { paredes: [], tejados: [], agujas: [], ochavos: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();
   const pon = (lista, X, Z, base, ry, w, h, d, off, hsl, vent = 0) => { M4.compose(e3.set(X, base, Z), q.setFromAxisAngle(up, ry), sc.set(w, h, d)); lista.push([M4.toArray(), off, col.setHSL(...hsl).toArray(), vent]); };
   const varia = (b) => ((b.x * 7 + b.z * 13) % 9 + 9) % 9 / 9;
@@ -252,7 +270,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   for (const b of casas) {
     const v = varia(b), k = b.k, X = X0 + b.x * MU, Z = Z0 + b.z * MU, base = pie(b.x, b.z, b.w, b.d, b.ry);
     const hM = clamp(b.h || ALTO[k] || 8, 3, 45), H = (hM + 2) * MU * K, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d);
-    const nave = k === 'industrial' || k === 'shed', piedra = k === 'church' || k === 'tower' || k === 'borda';
+    const nave = k === 'industrial' || k === 'shed', piedra = k === 'church' || k === 'tower' || k === 'borda' || k === 'palacio' || k === 'castillo' || k === 'muralla';
     // (los pajares y las naves pequeñas, de piedra parda y con su tejado de teja: antes, gris claro y lisos, como bloques blancos)
     const pared = nave ? [0.08, 0.14, 0.5 + v * 0.08] : piedra ? [0.1, 0.2, 0.52 + v * 0.08] : k === 'fronton' ? [0.1, 0.12, 0.9] : PARED[estilo][Math.floor(v * 2.99)];
     const teja = nave ? [0.035, 0.32, 0.36 + v * 0.06] : pizarra ? [0.63, 0.1, 0.18 + v * 0.07] : [0.025 + v * 0.02, 0.55, 0.36 + v * 0.07];
@@ -262,23 +280,63 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       pon(piezas.paredes, X - bx * (corto / 2 - 0.6) * MU, Z - bz * (corto / 2 - 0.6) * MU, base, rx, largo * MU, (8 + 2) * MU * K, 1.2 * MU, 0, pared);
       continue;
     }
+    const sillar = [0.1, 0.18, 0.6 + v * 0.07];
+    if (k === 'kiosko') {   // (el kiosco de la plaza: su peana de piedra, columnas de hierro y el tejado de ocho aguas)
+      const s2 = clamp(largo, 5, 14), P0 = (1.1 + 2) * MU * K, PH = 2.9 * MU * K, hierro = [0.4, 0.32, 0.2];
+      pon(piezas.detalles, X, Z, base, b.ry, s2 * MU, P0, s2 * MU, 0, sillar, 22);
+      for (let i = 0; i < 8; i++) { const a = b.ry + i * Math.PI / 4, r2 = s2 * 0.42; pon(piezas.detalles, X + Math.cos(a) * r2 * MU, Z + Math.sin(a) * r2 * MU, base, a, 0.3 * MU, PH, 0.3 * MU, P0, hierro, 22); }
+      pon(piezas.ochavos, X, Z, base, b.ry, s2 * 1.12 * MU, s2 * 0.3 * MU * K, s2 * 1.12 * MU, P0 + PH, [0.5, 0.12, 0.34], 7);
+      continue;
+    }
+    if (k === 'pabellon') {   // (lo pequeño que hay dentro de una plaza, sin nombre: la bajada al aparcamiento, un templete; bajo y de piedra)
+      pon(piezas.detalles, X, Z, base, b.ry, b.w * MU, (3 + 2) * MU * K, b.d * MU, 0, sillar, 22);
+      continue;
+    }
+    if (k === 'muralla') {   // (baluartes y portales: piedra maciza, sin tejado)
+      pon(piezas.detalles, X, Z, base, b.ry, b.w * MU, H, b.d * MU, 0, sillar, 22);
+      continue;
+    }
+    if (k === 'lavadero') {   // (abierto: un murete, postes en las esquinas y el tejado encima)
+      const P0 = (0.9 + 2) * MU * K, PH = 2.2 * MU * K, rx2 = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, ax = Math.cos(b.ry), az = -Math.sin(b.ry), bx = Math.sin(b.ry), bz = Math.cos(b.ry);
+      pon(piezas.detalles, X, Z, base, b.ry, b.w * MU, P0, b.d * MU, 0, sillar, 22);
+      for (const [i, j] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) pon(piezas.detalles, X + (ax * i * b.w * 0.45 + bx * j * b.d * 0.45) * MU, Z + (az * i * b.w * 0.45 + bz * j * b.d * 0.45) * MU, base, b.ry, 0.5 * MU, PH, 0.5 * MU, P0, sillar, 22);
+      pon(piezas.tejados, X, Z, base, rx2, (largo * 1.06 + 0.8) * MU, Math.min(2.2, corto * 0.2) * MU * K, (corto * 1.1 + 0.8) * MU, P0 + PH, teja, 6);
+      continue;
+    }
+    if (k === 'castillo') {   // (un recinto: cuatro alas de piedra con su tejado alrededor de un patio, una torre en cada
+      // esquina, más alta y con chapitel, y en los grandes, como el de Olite, la del homenaje en medio de un ala)
+      const ax = Math.cos(b.ry), az = -Math.sin(b.ry), bx = Math.sin(b.ry), bz = Math.cos(b.ry), t2 = clamp(corto * 0.24, 6, 13);
+      const ala = (ox, oz, w2, d2, rx2) => { const tx = b.x + ax * ox + bx * oz, tz = b.z + az * ox + bz * oz, tb = pie(tx, tz, w2, d2, b.ry);
+        pon(piezas.paredes, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, w2 * MU, H, d2 * MU, 0, sillar, 15);
+        pon(piezas.tejados, X0 + tx * MU, Z0 + tz * MU, tb, rx2, (Math.max(w2, d2) + 0.8) * MU, Math.min(4, t2 * 0.32) * MU * K, (Math.min(w2, d2) * 1.08 + 0.8) * MU, H, teja, 6); };
+      ala(0, -(b.d / 2 - t2 / 2), b.w, t2, b.ry); ala(0, b.d / 2 - t2 / 2, b.w, t2, b.ry);
+      ala(-(b.w / 2 - t2 / 2), 0, t2, b.d - 2 * t2, b.ry + Math.PI / 2); ala(b.w / 2 - t2 / 2, 0, t2, b.d - 2 * t2, b.ry + Math.PI / 2);
+      if (largo > 60) { const ox = b.w >= b.d ? 0 : b.w / 2 - t2 / 2, oz = b.w >= b.d ? b.d / 2 - t2 / 2 : 0, tx = b.x + ax * ox + bx * oz, tz = b.z + az * ox + bz * oz, tw = t2 * 1.3, tb = pie(tx, tz, tw, tw, b.ry), TH = (hM * 2.2 + 2) * MU * K;
+        pon(piezas.paredes, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * MU, TH, tw * MU, 0, sillar, 15);
+        pon(piezas.agujas, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * 1.08 * MU, tw * 1.2 * MU * K, tw * 1.08 * MU, TH, [0.6, 0.1, 0.24], 7); }
+      const tw = clamp(corto * 0.22, 5, 12), TH = (hM * 1.5 + 2) * MU * K;
+      for (const [i, j] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const ox = i * (b.w / 2 - tw / 2), oz = j * (b.d / 2 - tw / 2), tx = b.x + ax * ox + bx * oz, tz = b.z + az * ox + bz * oz, tb = pie(tx, tz, tw, tw, b.ry);
+        pon(piezas.paredes, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * MU, TH, tw * MU, 0, sillar, 15);
+        pon(piezas.agujas, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * 1.08 * MU, tw * 1.1 * MU * K, tw * 1.08 * MU, TH, [0.6, 0.1, 0.24], 7); }
+      continue;
+    }
     if (k === 'tower') {
       pon(piezas.paredes, X, Z, base, b.ry, b.w * MU, H, b.d * MU, 0, pared, 5);
       pon(piezas.agujas, X, Z, base, b.ry, b.w * 1.05 * MU, corto * 1.2 * MU * K, b.d * 1.05 * MU, H, teja, 6);
       continue;
     }
     // (las contraventanas: rojas y verdes en los valles del norte, verdes y pardas en el Pirineo y la Ribera, pardas en la Zona Media)
-    const vent = nave ? 0 : k === 'church' ? 4 : (estilo === 'atlantico' ? (v < 0.5 ? 3 : 2) : estilo === 'centro' ? 1 : v < 0.4 ? 2 : 1) + (piedra || (estilo === 'pirineo' && v < 0.6) || (estilo === 'centro' && v < 0.35) ? 10 : 0);
+    const vent = nave ? 0 : k === 'church' ? 4 : k === 'palacio' ? 11 + Math.floor(v * 2.99) : (estilo === 'atlantico' ? (v < 0.5 ? 3 : 2) : estilo === 'centro' ? 1 : v < 0.4 ? 2 : 1) + (piedra || (estilo === 'pirineo' && v < 0.6) || (estilo === 'centro' && v < 0.35) ? 10 : 0);
     pon(piezas.paredes, X, Z, base, b.ry, b.w * MU, H, b.d * MU, 0, pared, vent);
     // (el tejado: la cumbrera a lo largo del lado largo, con alero; poco inclinado en los pajares y las naves; casi plano en los bloques grandes que quedan)
     const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, rh = nave ? Math.min(2.4, corto * 0.16) : corto > 30 ? Math.min(1.2, corto * 0.06) : Math.min(9, corto * 0.36);
     pon(piezas.tejados, X, Z, base, rx, (largo * 1.04 + 0.8) * MU, rh * MU * K, (corto * 1.08 + 0.8) * MU, H, teja, pizarra ? 7 : 6);
     // (una chimenea en la mitad de las casas, junto a la cumbrera)
-    if (!nave && k !== 'church' && corto < 30 && v > 0.5) { const ax = Math.cos(rx), az = -Math.sin(rx), f = (v - 0.75) * largo * 0.8;
+    if (!nave && k !== 'church' && k !== 'palacio' && corto < 30 && v > 0.5) { const ax = Math.cos(rx), az = -Math.sin(rx), f = (v - 0.75) * largo * 0.8;
       pon(piezas.paredes, X + ax * f * MU, Z + az * f * MU, base, rx, 0.9 * MU, (rh * 0.75 + 1.4) * MU * K, 0.9 * MU, H, [pared[0], pared[1], pared[2] * 0.85]); }
     // (el balcón del primer piso, en la fachada larga que da al sur, la solana: de madera en los valles del norte y el
     // Pirineo, de forja en la Zona Media y la Ribera; muchos, con geranios)
-    const casa = !nave && !piedra && k !== 'fronton' && k !== 'school' && k !== 'townhall';
+    const casa = !nave && !piedra && k !== 'fronton' && k !== 'school' && k !== 'townhall';   // (los palacios, de piedra: sin balcón de madera ni leña)
     if (casa && corto >= 6 && largo >= 7 && hM >= 6 && rnd() < { atlantico: 0.65, pirineo: 0.4, centro: 0.3, ribera: 0.22 }[estilo]) {
       const enX = b.w >= b.d, nx = enX ? Math.sin(b.ry) : Math.cos(b.ry), nz = enX ? Math.cos(b.ry) : -Math.sin(b.ry), s = nz >= 0 ? 1 : -1, sep = corto / 2 + 0.45;
       pon(piezas.detalles, X + nx * s * sep * MU, Z + nz * s * sep * MU, base, enX ? b.ry : b.ry + Math.PI / 2, clamp(largo * 0.62, 3, 14) * MU, 1.0 * MU * K, 0.9 * MU, 5.6 * MU * K,
@@ -400,10 +458,11 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   // ---------- las piezas, una malla con instancias por forma ----------
   const caja = new THREE.BoxGeometry(1, 1, 1).translate(0, 0.5, 0), aguja = new THREE.ConeGeometry(Math.SQRT1_2, 1, 4, 1).rotateY(Math.PI / 4).translate(0, 0.5, 0);
   const copa = new THREE.IcosahedronGeometry(0.5, lento ? 0 : 1).translate(0, 0.5, 0), cono = new THREE.ConeGeometry(0.5, 1, 7).translate(0, 0.5, 0);
+  const ochavo = new THREE.ConeGeometry(0.5, 1, 8).rotateY(Math.PI / 8).translate(0, 0.5, 0);   // (el tejado de ocho aguas de los kioscos)
   // (la paca, tumbada: su eje a lo largo de x; la pila de la fuente, de pie)
   const rulo = new THREE.CylinderGeometry(0.5, 0.5, 1, 14).rotateZ(Math.PI / 2).translate(0, 0.5, 0), pila = new THREE.CylinderGeometry(0.5, 0.5, 1, 18).translate(0, 0.5, 0);
   const grupo = new THREE.Group();
-  for (const [nombre, g0] of [['paredes', caja], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['arboles', copa], ['abetos', cono],
+  for (const [nombre, g0] of [['paredes', caja], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['ochavos', ochavo], ['arboles', copa], ['abetos', cono],
     ['detalles', caja.clone()], ['pacas', rulo], ['animales', copa.clone()], ['pilas', pila]]) {
     const L = piezas[nombre]; if (!L.length) { g0.dispose(); continue; }
     const off = new Float32Array(L.length), vent = new Float32Array(L.length); L.forEach((p, i) => { off[i] = p[1]; vent[i] = p[3]; });

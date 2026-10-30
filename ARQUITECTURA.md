@@ -210,6 +210,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   marcador con la energía de cada uno en una raya bajo su nombre, y los botones de golpe con el aro de la fuerza. Sin
   consejos en los partidos (solo el primer medio minuto del peloteo de entrenar), sin recuadro de fuerza, sin tarjeta del
   rival y sin barra de energía abajo.
+- **Maquetas del mapa** (`hub/maqueta.js`): lo que OpenStreetMap da como casa o nave y no lo es se reconoce por su
+  nombre (`claseReal`): kioscos (peana, ocho columnas y tejado de ocho aguas), baluartes y portales de la muralla
+  (piedra maciza sin tejado), castillos y el Palacio Real de Olite (recinto de cuatro alas con patio, torres con chapitel
+  en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
+  lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
+  se parten en casas como los bloques grandes.
 - **Galería de Pueblos** (`hub/galeria.js`): las cartas no van en un anillo de verdad, que dejaba las de los lados
   pequeñas y mucho aire a los lados, sino cada una en su puesto: la de delante, adelantada; las de los lados, apenas
   detrás y giradas entre 22° y 38°, lo justo para acabar antes de las flechas (si no caben, como en el ordenador, se meten
