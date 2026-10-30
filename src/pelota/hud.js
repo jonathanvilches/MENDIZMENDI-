@@ -86,24 +86,25 @@ const CSS = `
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
 .pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}.pel-exit .pel-xi{width:22px;height:22px;display:block;pointer-events:none}
-.pel-score{display:flex;align-items:stretch;gap:0;border-radius:3px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pel-score{display:flex;align-items:stretch;gap:8px;border-radius:3px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 /* cada lado: arriba su nombre y sus tantos, en su color; debajo, en el fondo oscuro, su fuerza y su energía, cada una con
-   su nombre y su color, con aire entre las tres cosas (antes, una sola raya blanca pegada al nombre) */
+   su nombre y su color, con aire entre las tres cosas: la fuerza en rosa y la energía en dorado, que se vuelve naranja y
+   luego roja al cansarse (antes, una sola raya blanca pegada al nombre) */
 .pel-side{display:grid;grid-template-rows:auto auto;width:var(--psw,176px);min-width:0}
 .ps-cab{display:flex;align-items:center;gap:6px;height:30px;padding:0 10px;min-width:0}
 .pel-side b{font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);font-weight:400;line-height:1;min-width:1em;text-align:center}
 .pel-side span{flex:1;min-width:0;font:800 var(--fs-sm)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pel-side[data-side=rival] span{text-align:right}
 .pel-side.pel-red .ps-cab{background:linear-gradient(180deg,#f22c84,#c01a6c)}.pel-side.pel-blue .ps-cab{background:linear-gradient(180deg,#5546f2,#3b2bc4)}
-.ps-barras{display:grid;gap:6px;padding:8px 10px 10px}.ps-barras:empty{display:none}
+.ps-barras{display:grid;gap:6px;padding:10px 10px 10px}.ps-barras:empty{display:none}
 .ps-barra{display:grid;grid-template-columns:4.4em minmax(0,1fr);align-items:center;column-gap:6px}
 .pel-side[data-side=rival] .ps-barra{grid-template-columns:minmax(0,1fr) 4.4em}.pel-side[data-side=rival] .ps-barra em{order:2;text-align:right}
 .ps-barra em{font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;letter-spacing:.08em;text-transform:uppercase;color:#cbbcf0}
 .ps-pistas{display:grid;gap:3px}
 .ps-barra i{position:relative;display:block;height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden}.ps-pistas i+i{height:4px}
 .ps-barra i u{position:absolute;inset:0;transform-origin:left;border-radius:inherit;transition:transform .2s}.pel-side[data-side=rival] .ps-barra i u{transform-origin:right}
-.ps-barra.fu i u{background:#ffb547}.ps-barra.en i u{background:#3fe0c5}
-.ps-barra.en i.mid u{background:#ffe066}.ps-barra.en i.low u{background:#ff6f91;animation:pel-sen .5s ease-in-out infinite alternate}@keyframes pel-sen{to{opacity:.3}}
+.ps-barra.fu i u{background:#ff7ac8}.ps-barra.en i u{background:#ffc94a}
+.ps-barra.en i.mid u{background:#ff8a3d}.ps-barra.en i.low u{background:#ff4d6d;animation:pel-sen .5s ease-in-out infinite alternate}@keyframes pel-sen{to{opacity:.3}}
 .pel-mid{display:grid;place-items:center;padding:0 12px;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;color:var(--lila,#c9b2ff);text-transform:uppercase;letter-spacing:.1em;text-align:center;max-width:7em}
 /* (lo que ocupa: en el móvil y la tableta, sin el «A 5 tantos» y con los lados más estrechos, para que no tape el frontis,
    que va en el centro de la pantalla, entre el 43 % y el 57 % del ancho; en el ordenador ancho, entero) */

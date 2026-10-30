@@ -209,8 +209,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
 - **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador y, a su derecha, el botón
   del menú. En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro y con
-  aire entre las tres cosas, su fuerza, en ámbar, la del último golpe de ese lado y al empezar la de su carta, y la tuya en
-  directo mientras cargas, y su energía, en turquesa, amarilla y luego roja parpadeando al cansarse; por parejas, dos de
+  aire entre las tres cosas, su fuerza, en rosa, la del último golpe de ese lado y al empezar la de su carta, y la tuya en
+  directo mientras cargas, y su energía, en dorado, naranja y luego roja parpadeando al cansarse; por parejas, dos de
   energía. En el móvil y la tableta va sin el «A 5 tantos» y más estrecho, para no tapar el frontis, que va en el centro
   de la pantalla; en el ordenador ancho, entero. El menú, con el icono de pausa como el del pueblo, para el partido al
   abrirlo con la mano o con Escape, y lleva todo junto: la pelota, que se cambia mientras sacas tú, el descanso, las
