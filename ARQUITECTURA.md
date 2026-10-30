@@ -224,6 +224,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   90 %; con cortadas seguidas, al 30 %; si el rival solo le hace dejadas, al 20 %. Al cantarse el tanto, acierto o fallo,
   solo se oyen los aplausos: la pelota se calla hasta el saque siguiente (`callada`), la chapa ya no hace su «¡clonc!», la
   repetición va sin sonido y, si la grabación de los aplausos aún no ha llegado, no suena nada en su lugar.
+- **Partido de pelota, que no se bloquee** (`pelota/match.js`): en el iPhone se quedó parado tras un tanto. La causa más
+  probable: un golpe cargado cuyo botón no llegó a soltarse; con la cortada o la dejada cargadas, GOLPE no respondía y la
+  palanca no movía al pelotari. Ahora el último botón que se toca manda (`chargeStart`) y, al cantarse el tanto, el golpe
+  cargado se suelta sin golpear. Además, el vigía (`vigia`) destraba y apunta en el informe (`window.__errors`, «pelota
+  parada») una pausa sin menú, ventana ni ficha, una repetición de más de 14 s, un golpe cargado más de 8 s en juego, los
+  mandos escondidos en pleno juego y una ventana que ya no está. Cada muestra del informe lleva el estado (`estado`):
+  pausa, menú, ventana, repetición, golpe cargado, mandos y ficha.
 - **Maquetas del mapa** (`hub/maqueta.js`): lo que OpenStreetMap da como casa o nave y no lo es se reconoce por su
   nombre (`claseReal`): kioscos (peana, ocho columnas y tejado de ocho aguas), baluartes y portales de la muralla
   (piedra maciza sin tejado), castillos y el Palacio Real de Olite (recinto de cuatro alas con patio, torres con chapitel
