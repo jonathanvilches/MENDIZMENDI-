@@ -11,34 +11,71 @@ const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5
 
 /** Las músicas grabadas de un contexto de audio: quiere(nombre) cada cuarto de segundo con la que toca (o null). Cambia
  *  de una a otra con un fundido corto. */
+// (cada música se descarga entera al abrir, la del menú la primera, y suena desde esa copia: en el primer toque entra al
+// momento, sin esperar a la red, y sin conexión también, porque la descarga pasa por la caché del juego. Desde su
+// dirección, a trozos, el iPhone no empezaba a bajarla hasta el toque y tardaba en sonar; y los trozos no se guardan)
+const TOQUE = ['pointerdown', 'pointerup', 'touchend', 'mousedown', 'keydown', 'click'];
 export class Musica {
   constructor(ctx, dest) {
-    this.ctx = ctx; this.dest = dest; this.P = {}; this.cur = null;
+    this.ctx = ctx; this.dest = dest; this.P = {}; this.cur = null; this.cola = Promise.resolve();
     // (un contexto fuera de línea, el de tools/musica-inicio.mjs, no puede leer un <audio>: allí, la sintetizada)
     this.ok = typeof ctx.createMediaElementSource === 'function' && typeof Audio !== 'undefined';
+    // (en cada toque o tecla: la que toca, si estaba esperando uno, empieza dentro de él, y las otras quedan libres)
+    if (this.ok) { const f = () => this.alToque(); for (const k of TOQUE) addEventListener(k, f, true); }
   }
   pista(n) {
     if (this.P[n] || !this.ok || !URLS[n]) return this.P[n] || null;
     try {
-      const a = new Audio(); a.preload = 'auto'; a.loop = true; a.src = URLS[n];
+      // (los elementos del arranque, index.html: si ya hubo un toque, están libres para sonar sin otro)
+      const S = window.__sonido, del = S?.pool?.length ? S.pool.shift() : null, a = del || new Audio(); a.preload = 'auto'; a.loop = true;
       const g = this.ctx.createGain(); g.gain.value = 0; this.ctx.createMediaElementSource(a).connect(g); g.connect(this.dest);
-      const p = this.P[n] = { a, g, estado: 'nada' };
-      a.addEventListener('error', () => { p.estado = 'fallo'; }, { once: true });
+      const p = this.P[n] = { n, a, g, estado: 'nada', libre: !!(del && S.toco) };
+      a.addEventListener('error', () => { if (a.getAttribute('src')) p.estado = 'fallo'; });
+      this.baja(p);
       return p;
     } catch (e) { console.warn('música', n, e); this.ok = false; return null; }
   }
-  // (en el iPhone, un <audio> solo empieza a sonar la primera vez dentro de un toque: si no le deja, espera al siguiente)
-  suena(p) {
-    if (p.estado === 'suena' || p.estado === 'fallo') return;
+  // (la copia entera, una detrás de otra en el orden en que se piden; en el archivo único ya va dentro)
+  baja(p) {
+    const u = URLS[p.n];
+    if (/^(data|blob):/.test(u)) { p.a.src = u; return; }
+    p.bajando = true;
+    this.cola = this.cola.then(() => p.a.getAttribute('src') ? null : fetch(u).then(r => r.ok ? r.blob() : null)).catch(() => null).then((b) => {
+      p.bajando = false;
+      if (b && !p.a.getAttribute('src')) p.a.src = URL.createObjectURL(b);
+      if (p.estado === 'espera') { p.estado = 'nada'; if (this.cur === p && !this.calla) this.suena(p); }
+    });
+  }
+  // (en el iPhone, un <audio> solo empieza a sonar dentro de un toque, o después de haber empezado o cargado en uno: si no
+  // le deja, espera al siguiente, alToque)
+  suena(p, toque) {
+    if (p.estado === 'suena' || p.estado === 'fallo' || p.estado === 'pide') return;
+    if (!p.a.getAttribute('src')) {
+      // (aún bajando: se espera a la copia, salvo dentro de un toque, que solo vale ahora, o si ya puede sonar y tarda:
+      // entonces a trozos desde la red)
+      if (p.bajando && !toque) {
+        p.estado = 'espera'; clearTimeout(p.tarda);
+        if (this.ctx.state === 'running') p.tarda = setTimeout(() => { if (p.estado === 'espera' && this.cur === p && !this.calla) { p.estado = 'nada'; this.suena(p, true); } }, 600);
+        return;
+      }
+      p.a.src = URLS[p.n];
+    }
     p.estado = 'pide';
-    const r = p.a.play();
+    let r; try { r = p.a.play(); } catch (e) { p.estado = 'bloqueada'; return; }
+    if (toque) p.libre = true;
     if (!r?.then) { p.estado = 'suena'; return; }
     r.then(() => { if (p.estado === 'pide') p.estado = 'suena'; else p.a.pause(); }, (e) => {
-      if (e?.name !== 'NotAllowedError') { p.estado = 'fallo'; return; }
-      p.estado = 'bloqueada';
-      const toque = () => { removeEventListener('pointerup', toque, true); removeEventListener('keydown', toque, true); this.ctx.resume?.(); if (p.estado === 'bloqueada' && this.cur === p) this.suena(p); };
-      addEventListener('pointerup', toque, true); addEventListener('keydown', toque, true);
+      if (p.estado !== 'pide') return;
+      // (NotAllowedError: falta el toque. AbortError: se paró antes de empezar, al esconder la página o cambiar de música)
+      p.estado = e?.name === 'NotAllowedError' ? 'bloqueada' : e?.name === 'AbortError' ? 'nada' : 'fallo';
     });
+  }
+  alToque() {
+    if (this.ctx.state !== 'running') this.ctx.resume?.();
+    for (const p of Object.values(this.P)) {
+      if (p === this.cur) { if (!this.calla && (p.estado === 'bloqueada' || p.estado === 'espera')) { p.estado = 'nada'; this.suena(p, true); } }
+      else if (!p.libre && p.a.paused) { p.libre = true; try { p.a.load(); } catch (e) { } }
+    }
   }
   /** Las crea ya, sin sonar, para que se vayan cargando: al pedir una, entra enseguida */
   prepara(ns) { for (const n of ns) this.pista(n); }
@@ -50,9 +87,9 @@ export class Musica {
       if (p) { clearTimeout(p.calla); if (p.estado !== 'suena') try { p.a.currentTime = 0; } catch (e) { } p.g.gain.cancelScheduledValues(t); p.g.gain.setValueAtTime(p.g.gain.value, t); p.g.gain.linearRampToValueAtTime(VOL[n] || 0.4, t + 0.8); this.suena(p); }
     }
   }
-  // (con la página escondida, calla y luego sigue donde iba)
-  pausa(si) { const p = this.cur; if (!p || p.estado === 'fallo') return; if (si) { if (!p.a.paused) p.a.pause(); p.estado = 'nada'; } else if (p.estado === 'nada') this.suena(p); }
-  /** En el primer toque (src/audio.js, init): la del menú empieza ya, dentro del toque, para que el iPhone la deje sonar */
+  // (con la página escondida o la música quitada en Ajustes, calla y luego sigue donde iba)
+  pausa(si) { this.calla = si; const p = this.cur; if (!p || p.estado === 'fallo') return; if (si) { if (!p.a.paused) p.a.pause(); if (p.estado !== 'espera') p.estado = 'nada'; } else if (p.estado === 'nada') this.suena(p); }
+  /** Al arrancar (src/audio.js, init): la del menú, la primera en bajarse; suena en cuanto se pueda */
   arranca(n) { const p = this.pista(n); if (p) { this.cur = p; p.g.gain.value = 0; p.g.gain.setTargetAtTime(VOL[n] || 0.4, this.ctx.currentTime, 0.5); this.suena(p); } }
 }
 

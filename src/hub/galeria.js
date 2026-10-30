@@ -17,7 +17,7 @@ export function galeria(m, o) {
   const G = m.querySelector('.gal'); if (!G) return;
   const anillo = G.querySelector('.gal-anillo'), escena = G.querySelector('.gal-escena'), info = G.querySelector('.gal-info');
   const puntos = G.querySelector('.gal-puntos'), cms = [...G.querySelectorAll('[data-gc]')];
-  let ci = Math.max(0, o.comarcas.findIndex(c => c.id === o.inicial)), T = [], N = 0, N0 = 0, paso = 60, R = 400, X1 = 300, X2 = 180, Z1 = 40, Z2 = 80, giro = 28;
+  let ci = Math.max(0, o.comarcas.findIndex(c => c.id === o.inicial)), T = [], N = 0, N0 = 0, paso = 60, PU = [{ x: 0, z: 40, g: 0 }], VIS = 2;
   let rot = 0, meta = 0, frente = -1, raf = 0, last = 0, arrastre = null, cambiando = false;
 
   // ---------- el anillo de una comarca ----------
@@ -28,10 +28,10 @@ export function galeria(m, o) {
     // (la comarca elegida, en medio de su fila; sin scrollIntoView, que también corría de lado la ventana de la sección)
     const fila = cms[i]?.parentElement, b = cms[i];
     if (fila && b) fila.scrollTo({ left: b.offsetLeft - (fila.clientWidth - b.offsetWidth) / 2, behavior: reduce() ? 'auto' : 'smooth' });
-    // (con menos de seis pueblos, se repiten hasta llenar el anillo: así siempre es un círculo entero y al girar no se ve
-    // ningún hueco ni una tarjeta de espaldas)
+    // (con menos de ocho pueblos, se repiten hasta llenar el anillo: así siempre es un círculo entero, con tres puestos a
+    // cada lado, y al girar no se ve ningún hueco ni una tarjeta que salta de un lado a otro)
     const html = o.tarjetas(c.id); anillo.innerHTML = html;
-    N0 = anillo.querySelectorAll('.gal-t').length; if (N0 && N0 < 6) anillo.innerHTML = html.repeat(Math.ceil(6 / N0));
+    N0 = anillo.querySelectorAll('.gal-t').length; if (N0 && N0 < 8) anillo.innerHTML = html.repeat(Math.ceil(8 / N0));
     T = [...anillo.querySelectorAll('.gal-t')]; N = T.length;
     T.forEach((t, k) => { if (k >= N0) t.setAttribute('aria-hidden', 'true'); });
     puntos.innerHTML = Array.from({ length: N0 }, (_, k) => `<i data-gp="${k}"></i>`).join('');
@@ -41,43 +41,58 @@ export function galeria(m, o) {
     frente = -1; pinta(); anima();
     if (entra) { anillo.classList.remove('sale'); anillo.classList.add('entra'); setTimeout(() => anillo.classList.remove('entra'), 700); }
   }
-  // (el radio del anillo: las tarjetas casi tocándose; con pocos pueblos, como si fueran seis, para que el anillo no se
-  // cierre tanto y los de los lados no se tapen)
+  // (el paso de una tarjeta a la siguiente y los puestos de cada lado, según el tamaño de la carta y el ancho)
   function mide() {
     // (la carta entera, con lo que se adelanta la de delante y lo que flota, dentro de su hueco: si no cabe de alto, más
     // estrecha. Con aire arriba y abajo, y abajo con sitio para los puntos, si se ven)
     const dh = parseFloat(getComputedStyle(G).getPropertyValue('--dh')) || 50, aire = puntos.offsetParent ? 28 : 10;
     G.style.setProperty('--gwmax', Math.max(140, ((escena.clientHeight - 2 * aire) / 1.05 - dh - 6) * 16 / 9) + 'px');
     const w = T[0]?.offsetWidth || 220, n = Math.max(N, 3);
-    paso = 360 / n; R = Math.round((w / 2 + Math.max(14, w * 0.1)) / Math.tan(Math.PI / n));
-    G.style.setProperty('--R', R + 'px');
-    // (las de los lados, poco hondas: apenas detrás y junto a la de delante, giradas lo justo para acabar antes de las
-    // flechas, entre 22° y 38°: en el móvil tumbado, poco, y llenan el ancho. Si ni así caben, como en el ordenador, donde la
-    // de delante es grande, se meten algo por detrás de ella; en el móvil de pie, no: asoman por el borde. En el anillo de
-    // verdad iban giradas 60° y medio radio atrás, pequeñas, y a los lados quedaba mucho aire vacío. Las siguientes asoman
-    // detrás de ellas, en penumbra, paralelas)
-    const W2 = escena.clientWidth / 2, gap = Math.max(10, w * 0.04), esc = 1150 / (1150 + w * 0.12), libre = W2 - 64 - w * 0.52 - gap;
-    giro = Math.round(Math.min(38, Math.max(22, Math.acos(Math.max(0, Math.min(1, libre / (w * esc)))) * 180 / Math.PI)));
-    const pw = w * Math.cos(giro * Math.PI / 180) * esc;   // (lo que ocupa de ancho una de lado)
-    Z1 = Math.round(w * 0.12); X1 = Math.round(w * 0.52 + gap + pw / 2); X2 = Math.round(pw * 0.62);
-    // (y si se meten por detrás de la de delante, más al fondo, que su borde de dentro, girado, no asome por delante)
-    if (W2 * 2 > w * 1.6 && W2 - 64 - pw / 2 < X1) { X1 = Math.round(W2 - 64 - pw / 2); if (X1 - pw / 2 < w * 0.52) Z1 = Math.round(Math.max(Z1, w / 2 * Math.sin(giro * Math.PI / 180) + 52)); }
-    Z2 = Math.round(X2 * Math.tan(giro * Math.PI / 180) + w * 0.12);   // (así la del segundo puesto queda siempre detrás de la del primero)
+    paso = 360 / n;
+    // (el anillo con fondo, como una rueda que se ve desde fuera: las cartas van una junto a otra, borde con borde, cada
+    // una más girada y más honda que la anterior, hasta llegar a las flechas. Así hay profundidad, como en el anillo de
+    // antes, y ningún hueco: antes las de los lados quedaban pequeñas y sueltas, con mucho aire alrededor. Lo girada que
+    // va la primera de cada lado depende del sitio: la más girada que, con dos o tres detrás, llene hasta las flechas
+    // (entre 28° y 48°; en el móvil tumbado, donde la carta es pequeña para el ancho, menos; en el ordenador, más). La
+    // perspectiva, proporcional a la carta: la misma profundidad en todas las pantallas)
+    const W2 = escena.clientWidth / 2, P = Math.round(w * 2.6), gap = Math.max(8, w * 0.03), rad = Math.PI / 180;
+    // (hasta las flechas; en el móvil de pie, donde la de delante casi llena el ancho, asoman por el borde)
+    const tope = Math.max(W2 - 72, Math.min(W2 + 10, w * 0.72));
+    escena.style.perspective = P + 'px';
+    const pr = (x, z) => x * P / (P - z);
+    // (los puestos de un lado con la primera girada g1: hasta 3, los que hagan falta para llegar a las flechas; si el
+    // último se pasa, se mete por detrás del anterior, entero detrás de él)
+    const cadena = (g1) => {
+      const L = [], G3 = [g1, g1 + 12, g1 + 22]; let xi = w / 2 + gap, zi = 0, llega = 0;
+      for (let k = 0; k < 3; k++) {
+        const g = G3[k] * rad, c = Math.cos(g), sn = Math.sin(g), zo = zi - w * sn;
+        let xo = xi + w * c; const sobra = xo - tope * (P - zo) / P; if (sobra > 0) xo -= sobra;
+        L.push({ x: xo - w * c / 2, z: (zi + zo) / 2, g: G3[k] });
+        if (!llega && pr(xo, zo) >= tope - 2) llega = k + 1;
+        xi = xo + w * 0.015; zi = zo - w * 0.01;
+      }
+      return { L, llega };
+    };
+    let mejor = null;
+    for (let g1 = 48; g1 >= 28; g1 -= 2) { mejor = cadena(g1); if (mejor.llega) break; }
+    // (la de delante, adelantada lo justo para verse un 4 % más grande)
+    PU = [{ x: 0, z: Math.round(P * 0.0385), g: 0 }, ...mejor.L]; VIS = mejor.llega || 3;
     // (el hueco a cada lado de la de delante, que se adelanta un 4 %: en el móvil de pie, las flechas van en medio de él)
     G.style.setProperty('--hueco', Math.max(0, (escena.clientWidth - w * 1.04) / 2) + 'px');
   }
-  // (cada tarjeta, en su sitio: s, cuántos puestos se aparta de delante, sin cortes al girar; las de los lados, más
-  // oscuras; las del segundo puesto, paralelas a ellas y detrás, asomando en penumbra, y desde ahí se apagan; la de delante,
-  // encendida y algo adelantada)
+  // (cada tarjeta, en su sitio: s, cuántos puestos se aparta de delante, sin cortes al girar, entre un puesto y el
+  // siguiente; las de los lados, más oscuras según se apartan, y pasado el último que hace falta para llenar, se apagan; la
+  // de delante, encendida y algo adelantada)
   function pinta() {
     anillo.style.transform = '';
     for (let k = 0; k < N; k++) {
       const d = ((k * paso - rot) % 360 + 540) % 360 - 180, s = d / paso, a = Math.abs(s), sg = Math.sign(s), t = T[k];   // (d: lo que se aparta de delante, de −180 a 180)
-      const x = sg * (a <= 1 ? a * X1 : X1 + (a - 1) * X2), z = (a <= 1 ? -a * Z1 : -Z1 - (a - 1) * Z2) + Math.max(0, 1 - a) * 40, g = sg * Math.min(a, 1) * giro;
+      const i = Math.min(Math.floor(a), PU.length - 2), u = Math.min(1, a - i), A = PU[i], B = PU[i + 1];
+      const x = sg * (A.x + (B.x - A.x) * u), z = A.z + (B.z - A.z) * u, g = sg * (A.g + (B.g - A.g) * u);
       t.style.transform = `translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${g.toFixed(2)}deg)`;
-      t.style.setProperty('--d', Math.min(1, a * 0.45).toFixed(3));
-      t.style.setProperty('--o', (a <= 2 ? 1 : Math.max(0, (2.6 - a) / 0.6)).toFixed(3));
-      t.style.visibility = a >= 2.6 ? 'hidden' : '';
+      t.style.setProperty('--d', Math.min(1, a * 0.42).toFixed(3));
+      t.style.setProperty('--o', (a <= VIS ? 1 : Math.max(0, (VIS + 0.6 - a) / 0.6)).toFixed(3));
+      t.style.visibility = a >= VIS + 0.6 ? 'hidden' : '';
     }
     const f = N ? ((Math.round(rot / paso) % N) + N) % N : -1;
     if (f !== frente) {

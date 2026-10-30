@@ -21,7 +21,8 @@ export class Sound {
     if (this.ctx) { this.ctx.resume(); return; }
     const AC = window.AudioContext || window.webkitAudioContext;
     if (!AC) return;
-    const ctx = this.ctx = new AC();
+    // (el del arranque, index.html, si lo hay: el toque en la portada ya lo puso en marcha)
+    const pre = window.__sonido?.ctx, ctx = this.ctx = pre && pre.state !== 'closed' ? pre : new AC();
     this.master = ctx.createGain(); this.master.gain.value = 0.8; this.master.connect(ctx.destination);
     this.sfx = ctx.createGain(); this.sfx.gain.value = 0.9; this.sfx.connect(this.master);
     this.musicBus = ctx.createGain(); this.musicBus.gain.value = 0.32; this.musicBus.connect(this.master);
@@ -33,8 +34,8 @@ export class Sound {
     // viento
     this.wind = this.loopNoise(300, 0.4); this.wind.g.gain.value = 0.02;
     this.startMusic();   // (su reloj, cada cuarto de segundo, también apaga el ambiente que el pueblo ya no manda: quietAmbient)
-    // (las canciones; la que toca empieza aquí, dentro del primer toque, que es cuando el iPhone deja sonar, y las otras
-    // se van cargando ya: al cambiar de pantalla, la nueva entra sin esperar a que llegue)
+    // (las canciones: la que toca se baja la primera y suena en cuanto el navegador deja, desde el primer toque o tecla, y
+    // las otras se bajan después: al cambiar de pantalla, la nueva entra sin esperar a que llegue)
     this.pistas = new Musica(ctx, this.musicBus); if (this.musicOn && MUSICA[this.mood]) this.pistas.arranca(MUSICA[this.mood]);
     this.pistas.prepara(new Set(Object.values(MUSICA)));
   }

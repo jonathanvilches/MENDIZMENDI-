@@ -121,6 +121,13 @@ async function warmPortraits(g, ui) {
 }
 
 async function boot() {
+  // la música, lo primero, antes de esperar a nada (los idiomas, las imágenes guardadas, el mundo 3D): la del menú empieza
+  // a bajarse ya y suena en cuanto el navegador deja, al abrir donde se puede (la app instalada en el ordenador) y si no
+  // con el primer toque o tecla, también el de la portada del arranque (index.html, sonido-primero). Con la música y el
+  // volumen de Ajustes (antes, en el menú sonaba aunque se hubiera quitado). En los pueblos y en los partidos, la música
+  // la elige runtime.js según lo que pasa; en el menú, el tema de inicio (también al volver: exit y futbolSport)
+  const sound = window.__sound = new Sound();
+  { const S = profile().settings; sound.setMood('inicio'); sound.setMusic(S.music !== false); sound.init(); if (S.volume != null) sound.setVolume(S.volume); }
   await startI18n();   // (en euskera, espera a sus diccionarios: se cargan aparte)
   startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
   startHD();   // (archivo único con conexión: las imágenes grandes, de la web publicada)
@@ -129,7 +136,6 @@ async function boot() {
   await Promise.race([loadStore(), new Promise(r => setTimeout(r, 2500))]);
   const canvas = document.getElementById('c');
   const input = new Input(canvas);
-  const sound = new Sound();
   const ui = new UI(input, sound);
   vigilaEncaje();   // (ninguna palabra partida ni cortada con «…»: src/ui/encaje.js)
   const P = profile();
@@ -177,15 +183,6 @@ async function boot() {
   // (la pelota, siempre en una de las sedes de los Campeonatos: data/levels.js, SEDES_PELOTA)
   hub.onSport = (kind, townId) => kind === 'futbol' ? futbolSport() : play(levelById(kind === 'pasaka' ? townId : sedeDePueblo(townId || LEVELS[0].id)) || LEVELS[0], { sport: kind === 'pasaka' ? 'pasaka' : 'pelota' });
   hub.onSettings = (S) => { sound.setMusic(S.music); sound.setVolume(S.volume); };
-  // el tema de inicio (audio.js, INICIO) suena en el menú: desde el primer toque o tecla (antes, el navegador no deja
-  // sonar nada) y al volver de un pueblo o de un campeonato (exit y futbolSport). En los pueblos y en los partidos, la
-  // música la elige runtime.js según lo que pasa
-  sound.setMood('inicio');
-  // (el sonido se prepara ya, al abrir: las canciones se van descargando mientras tanto y suenan en cuanto se toca. Antes
-  // se preparaba con el primer toque y la música empezaba tarde, cuando llegaba. Donde el navegador deja sonar sin tocar,
-  // como la app instalada en el ordenador, suena desde el principio; si no, el primer toque la despierta)
-  // (con la música y el volumen de Ajustes desde ya: antes, en el menú sonaba aunque se hubiera quitado)
-  sound.setMusic(P.settings.music !== false); sound.init(); if (P.settings.volume != null) sound.setVolume(P.settings.volume);
   { const first = () => { removeEventListener('pointerup', first, true); removeEventListener('keydown', first, true); if (!game && !loading) sound.init(); };
     addEventListener('pointerup', first, true); addEventListener('keydown', first, true); }
   window.__hub = hub;
