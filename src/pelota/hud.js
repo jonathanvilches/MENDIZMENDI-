@@ -259,6 +259,17 @@ const CSS = `
 @keyframes pel-low{to{box-shadow:0 0 0 2px #ff5a3a}}
 .pel-root.paneled .pel-myen{visibility:hidden}
 @media (orientation:portrait){.pel-myen{bottom:calc(env(safe-area-inset-bottom,0px) + 196px);width:min(240px,calc(60vw / var(--z, 1)))}}
+/* el descanso: a la derecha de tu energía (de pie, encima), con los que te quedan; pedido, en rosa; descansando, «Seguir»;
+   cansado y con descansos, brilla */
+.pel-desc{position:absolute;left:calc(50% + min(140px,calc(17vw / var(--z, 1))) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px) - 6px);display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:4px 6px 4px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(13,6,28,.72);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.pel-desc[hidden]{display:none}.pel-desc b{display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.14);font-size:var(--fs-sm)}
+.pel-desc b:empty{display:none}.pel-desc:disabled{opacity:.45;cursor:default}
+.pel-desc.pedido{border-color:#ff7ac8;background:rgba(120,20,90,.75)}.pel-desc.ahora{border-color:#7ff0b0;background:rgba(20,90,60,.8);padding-right:14px}
+.pel-desc.llama{animation:pel-desc 1s ease-in-out infinite alternate}@keyframes pel-desc{to{box-shadow:0 0 0 2px #ff7ac8,0 0 18px rgba(255,43,214,.6)}}
+.pel-root.paneled .pel-desc,.pel-root.repe .pel-desc{visibility:hidden}
+.pr-desc{font:700 10px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#c9b2ff}
+@media (orientation:portrait){.pel-desc{left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 196px + 34px)}}
+@media (prefers-reduced-motion:reduce){.pel-desc.llama{animation:none;box-shadow:0 0 0 2px #ff7ac8}}
 /* interruptores de «Más opciones» (la cámara dinámica) */
 .pel-switch{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:8px 12px;border-radius:6px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:inherit;text-align:left;cursor:pointer}
 .pel-switch span{flex:1;display:flex;flex-direction:column;gap:2px}.pel-switch b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-switch small{font-size:var(--fs-xs);font-weight:600;line-height:1.3;color:#d8cff0}
@@ -369,6 +380,10 @@ export class PelotaHud {
     if (!rows) { for (const b of this.root.querySelectorAll('.pel-sen')) b.hidden = true; if (this.myEn) this.myEn.hidden = true; if (this.riv) this.riv.hidden = true; return; }
     this.rivales(rows.filter(r => r.side === 'rival'));
     if (!this.myEn) { const m = this.myEn = document.createElement('div'); m.className = 'pel-myen you'; m.dataset.en = 'you'; m.innerHTML = `<span>${esc(this.txt.energy || 'Energía')}</span><i><b></b></i>`; this.root.appendChild(m); }
+    if (!this.descBtn) {   // (el botón del descanso, junto a tu energía: cuántos te quedan; tocado, queda pedido para el próximo parón)
+      const b = this.descBtn = document.createElement('button'); b.type = 'button'; b.className = 'pel-desc'; b.hidden = true;
+      b.innerHTML = `<span></span><b></b>`; this.root.appendChild(b); tap(b, () => this.onDescanso?.());
+    }
     this.myEn.hidden = !rows.some(r => r.me);
     const key = rows.map(r => r.id + r.side).join();
     if (this.enKey !== key) {
@@ -415,6 +430,17 @@ export class PelotaHud {
       const est = v < 0.25 ? 2 : v < 0.5 ? 1 : 0; row.classList.toggle('mid', est === 1); row.classList.toggle('low', est === 2);
       row.querySelector('.pr-est').textContent = `${this.txt.energy || 'Energía'} ${Math.round(v * 100)} % · ${E[est]}`;
     }
+  }
+  /** Los descansos: los tuyos en su botón (n, pedido, descansando ahora) y los del rival en su tarjeta (nr); on: false, fuera. */
+  descansos(on, n, pedido, ahora, nr) {
+    const b = this.descBtn; if (!b) return;
+    const D = this.txt.desc || {}, k = `${on}|${n}|${pedido}|${ahora}|${nr}`; if (b._k === k) return; b._k = k;
+    b.hidden = !on; if (!on) return;
+    b.querySelector('span').textContent = ahora ? (D.seguir || 'Seguir') : pedido ? (D.pedido || 'Pedido') : (D.btn || 'Descanso');
+    b.querySelector('b').textContent = ahora ? '' : n; b.disabled = !ahora && !n && !pedido;
+    b.classList.toggle('pedido', !!pedido); b.classList.toggle('ahora', !!ahora);
+    b.setAttribute('aria-label', `${D.btn || 'Descanso'}: ${D.quedan ? D.quedan(n) : n}`);
+    for (const row of this.riv?.querySelectorAll('.pr-row') || []) { let d = row.querySelector('.pr-desc'); if (!d) { d = document.createElement('small'); d.className = 'pr-desc'; row.querySelector('.pr-tx')?.appendChild(d); } d.textContent = D.rival ? D.rival(nr) : `${nr}`; }
   }
   /** La fuerza del golpe que acaba de dar el rival (0 a 1): se llena y se apaga en su tarjeta. */
   potencia(id, pow) {
@@ -489,8 +515,8 @@ export class PelotaHud {
       // (en el golpe, una raya en la barra marca desde dónde, con el joystick arriba, llega al rebote)
       const pw = 0.15 + p * 0.85, word = kind === 'drop' ? (pw < 0.45 ? 'muy corta' : pw < 0.75 ? 'corta' : 'algo más larga') : pw < 0.4 ? 'suave' : pw < 0.75 ? 'media' : pw < 0.97 ? 'fuerte' : 'a tope';
       f.classList.toggle('hit', kind === 'hit'); f.classList.toggle('reb', kind === 'hit' && pw >= 0.88);
-      const name = kind === 'cut' ? 'Cortada' : kind === 'drop' ? 'Dejada' : 'Golpe';
-      const fb = f.firstChild, ft = `${name}: ${word} · ${Math.round(pw * 100)} %`; if (fb._t !== ft) { fb._t = ft; fb.textContent = ft; }   // (solo si cambia)
+      // (sin el nombre del golpe delante: «Dejada», «Golpe», en cada golpe, sobraban; queda cuánta fuerza)
+      const fb = f.firstChild, ft = `${word} · ${Math.round(pw * 100)} %`; if (fb._t !== ft) { fb._t = ft; fb.textContent = ft; }   // (solo si cambia)
       f.querySelector('u').style.width = (pw * 100).toFixed(0) + '%'; f.style.setProperty('--fc', `hsl(${Math.round(120 - pw * 120)} 85% 55%)`);
     }
   }

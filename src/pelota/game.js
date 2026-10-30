@@ -19,10 +19,17 @@ const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 };
 // energía (de 0 a 1), como en el frontón de verdad: correr a tope y los golpes que deciden (la cortada sobre todo, las
 // dos paredes y el gancho) la gastan; pelotear normal, sin cargar del todo, la recupera poco a poco, y entre tanto y
-// tanto se recupera más. Por debajo de la mitad se nota: se corre menos, se llega peor y los golpes salen peor (cansado,
-// a una cortada rápida no se llega)
-const EN = { cortada: 0.1, cortPow: 0.06, dos: 0.07, cortDos: 0.13, gancho: 0.06, volea: 0.02, dejada: 0.02, rebote: 0.04,
-  normal: 0.035, run: 0.03, rally: 0.004, rest: 0.09, low: 0.5 };
+// tanto se recupera algo, poco. Por debajo de la mitad se nota: se corre menos, se llega peor y los golpes salen peor
+// (cansado, a una cortada rápida no se llega). Así hay estrategia: con dejadas y cortadas que le hagan correr, el rival se
+// va cansando; y si te cansan a ti, pides un descanso (DESCANSO). Antes, entre tanto y tanto se recuperaba casi un 20 %
+// y correr apenas gastaba: el rival no se cansaba nunca (octubre de 2026)
+const EN = { cortada: 0.05, cortPow: 0.03, dos: 0.035, cortDos: 0.065, gancho: 0.03, volea: 0.01, dejada: 0.01, rebote: 0.02,
+  normal: 0.035, trote: 0.02, run: 0.32, rally: 0.004, rest: 0.06, pausa: 0.15, low: 0.5 };
+// los descansos: el reglamento de juego de la Federación Navarra de Pelota da a cada equipo hasta cinco descansos de un
+// minuto en el partido; aquí, en proporción a los tantos (5 a 22 tantos: en uno a 5, uno; a 7 o a 9, dos). Se piden entre
+// tanto y tanto. El que descansa recupera mucho; el otro, que también para, algo. Ese minuto pasa en unos segundos
+const DESCANSO = { porTanto: 5 / 22, t: 4, gana: 0.42, ganaOtro: 0.12 };
+export const descansosDe = (target) => Math.max(1, Math.round((target || 7) * DESCANSO.porTanto));
 /** Lo que cuesta (o, si es negativo, lo que devuelve) un golpe en energía: shot y sub del golpe, su fuerza (0 a 1) y si fue de volea. */
 function shotEnergy(shot, sub, pow, volea) {
   let c = shot === 'cortada' ? (sub === 'cortDos' ? EN.cortDos : EN.cortada) + EN.cortPow * pow
@@ -110,6 +117,8 @@ export class PelotaGame {
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     this.ball = new Ball();
     this.score = { you: 0, rival: 0 };
+    // (los descansos que le quedan a cada lado y el pedido para el próximo parón entre tantos)
+    this.descansos = { you: descansosDe(this.target), rival: descansosDe(this.target) }; this.pedido = { you: false, rival: false }; this.descanso = null;
     this.streak = 0; this.best = 0;
     this.players = {
       you: { id: 'you', x: 1, z: RECV_Z, vx: 0, vz: 0, swing: 0, cool: 0, act: 'idle', actT: 0, face: 0, en: 1, idealAt: null },
@@ -157,10 +166,33 @@ export class PelotaGame {
   }
   start() { if (this.phase === 'intro') this.toServe(); }
   toServe() {
+    // (antes del saque, el descanso que se haya pedido: el tuyo, con el botón; el del rival, si va muy cansado)
+    if (this.mode === 'match' && !this.descanso) {
+      const quiere = (sd) => this.descansos[sd] > 0 && (this.pedido[sd] || (sd === 'rival' && this.aiDescanso()));
+      const sd = quiere('you') ? 'you' : quiere('rival') ? 'rival' : null;
+      if (sd) return this.startDescanso(sd);
+    }
     this.phase = 'serveWait'; this.phaseT = 0; this.placeForServe();
     this.emit({ type: 'serveReady', who: this.server, matchPoint: this.mode === 'match' && Math.max(this.score.you, this.score.rival) === this.target - 1 });
   }
+  /** Pides un descanso: va en el próximo parón entre tantos (si te quedan). Devuelve si queda pedido. */
+  pideDescanso(sd = 'you') {
+    if (this.mode !== 'match' || this.phase === 'end' || !(this.descansos[sd] > 0)) return false;
+    this.pedido[sd] = !this.pedido[sd];   // (otra vez, lo retiras; si aún no ha empezado el saque, se toma ya: update)
+    return this.pedido[sd];
+  }
+  // (el rival lo pide cuando su lado va muy cansado y aún le quedan; no dos seguidos)
+  aiDescanso() {
+    const ids = this.ids.filter(id => this.side(id) === 'rival'), en = Math.min(...ids.map(id => this.players[id].en));
+    return en < 0.32 && this.lastDescanso !== 'rival';
+  }
+  startDescanso(sd) {
+    this.descansos[sd]--; this.pedido[sd] = false; this.lastDescanso = sd;
+    this.descanso = { side: sd }; this.phase = 'descanso'; this.phaseT = 0; this.placeForServe();
+    this.emit({ type: 'descanso', side: sd, left: this.descansos[sd] });
+  }
   dropForServe() {
+    this.lastDescanso = null;   // (ya se juega: el rival podrá volver a pedir otro más adelante)
     const s = this.players[this.serverP()];
     this.phase = 'servePrep'; this.phaseT = 0;
     // (la bota corriendo, hacia el suelo y con fuerza, como en el frontón: la pelota va hacia delante con el que saca, que
@@ -685,11 +717,24 @@ export class PelotaGame {
     this.phaseT += dt; this.predT -= dt; this.clock += dt;
     // energía: durante el tanto, correr a tope la gasta (andar o colocarse, no) y quieto se recupera algo; entre tanto y
     // tanto, más (los golpes gastan o devuelven al golpear: shotEnergy)
+    // (entre tantos, como mucho EN.pausa en cada parón: esperar para sacar no es descansar)
     const live = this.phase === 'rally' || this.phase === 'servePrep';
-    for (const id of this.ids) { const p = this.players[id]; p.en = clamp(p.en + (live ? EN.rally - EN.run * clamp(((p.speed || 0) - 3.5) / 2.7, 0, 1) : EN.rest) * dt, 0, 1); }
+    for (const id of this.ids) {
+      const p = this.players[id];
+      // (trotar gasta poco; lo que cansa es esprintar a tope, como para llegar a una dejada o a una cortada: por encima de
+      // 5 m/s, hasta los 7,6 del arranque)
+      if (live) { const v = p.speed || 0; p.rec = 0; p.en = clamp(p.en + (EN.rally - EN.trote * clamp((v - 3.5) / 1.5, 0, 1) - EN.run * clamp((v - 5) / 2.6, 0, 1)) * dt, 0, 1); }
+      else if (this.phase === 'descanso') p.en = clamp(p.en + (this.side(id) === this.descanso?.side ? DESCANSO.gana : DESCANSO.ganaOtro) / DESCANSO.t * dt, 0, 1);
+      else { const g = Math.min(EN.rest * dt, Math.max(0, EN.pausa - (p.rec || 0))); p.rec = (p.rec || 0) + g; p.en = clamp(p.en + g, 0, 1); }
+    }
     for (const id of this.ids) { const p = this.players[id]; p.actT += dt; if (p.cool > 0) p.cool -= dt; if ((p.act === 'hit' || p.act === 'swing') && p.actT > 0.45) p.act = 'idle'; }   // (un golpe al aire también acaba: antes se quedaba en «swing» y el gesto se repetía sin parar)
 
     if (this.phase === 'intro' || this.phase === 'end') return this.events;
+    // el descanso: un minuto (unos segundos de juego) y, al acabar, al saque
+    if (this.phase === 'descanso') {
+      if (this.phaseT > DESCANSO.t || inp.descansoFin) { const sd = this.descanso.side; this.descanso = null; this.emit({ type: 'descansoFin', side: sd }); this.toServe(); }
+      return this.events;
+    }
     if (this.phase === 'point') {
       if (this.phaseT > (this.finalPoint ? 4.6 : 2.1)) {
         if (this.mode === 'match' && (this.score.you >= this.target || this.score.rival >= this.target)) this.finish();
@@ -703,6 +748,8 @@ export class PelotaGame {
     // todo seguido. Tú, de un solo gesto: mantienes GOLPE para elegir la fuerza (y apuntas con la palanca) y, al soltar,
     // sales corriendo; el golpe del saque sale solo, con esa fuerza y esa puntería
     if (this.phase === 'serveWait') {
+      // (pedido antes de que el que saca eche a correr: el descanso, ya)
+      if (!this.runUp && this.mode === 'match') { const sd = ['you', 'rival'].find(x => this.pedido[x] && this.descansos[x] > 0); if (sd) { this.startDescanso(sd); return this.events; } }
       const s = this.players[this.serverP()];
       const humanServes = this.serverP() === 'you' && !this.autoplay;
       if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) {
