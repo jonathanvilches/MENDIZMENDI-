@@ -223,6 +223,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
   lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
   se parten en casas como los bloques grandes.
+- **Ventajas en el comercio local** (`game/ventajas.js`, `data/comercios.js`, sección Ventajas del menú en `hub.js` con
+  `hub/ventajas.css`, y `VENTAJAS-COMERCIOS.md` para comercios y ayuntamientos): los sellos, las insignias y los
+  certificados valen bonos en los comercios adheridos. Certificados: uno por comarca, al sellar todos sus pueblos, y el de
+  Navarra, con todos; se ven como un diploma con tu nombre, los pueblos y la fecha. Cada oferta de un comercio pide un
+  logro (el sello de un pueblo, un certificado, una insignia o varios sellos); ganada, se saca el bono, que vale un mes, con
+  su código (HZ, el comercio y siete letras, la última de control) y su QR, una franja que se mueve y la hora, que corre;
+  el comercio lo canjea tecleando su clave en el móvil, y en el juego solo va la huella de la clave
+  (`tools/clave-comercio.mjs`). Un bono por oferta a la vez y, tras usarlo, otro al mes. Las ofertas ganadas sin ver salen
+  con un número en el botón de Ventajas; en la ficha de cada pueblo, las de sus comercios. Todo en la partida, sin
+  cuentas ni datos personales; mientras no haya comercios de verdad, ejemplos sin nombre propio, marcados, con la clave
+  0000. Reglas: nada de alcohol, tabaco ni apuestas, y compra una persona adulta. La fase 2, con un servidor que apunte
+  los bonos para que no se repitan borrando la partida, está descrita en `VENTAJAS-COMERCIOS.md`.
 - **Lugares emblemáticos del mapa** (`hub/emblemas.js`, `data/reales/emblemas.json`, `tools/emblemas-real.py`): con su
   planta de verdad, de OpenStreetMap por Overture Maps, y lo que no está en los datos, de lo que se sabe del sitio. La
   Ciudadela de Pamplona, con los muros de sus baluartes, revellines y fosos, sin los dos baluartes que miraban a la ciudad,

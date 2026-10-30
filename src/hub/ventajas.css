@@ -1,0 +1,123 @@
+/* Ventajas en el comercio local (hub.js, s_ventajas, bonoSheet y certSheet; game/ventajas.js). Con la identidad del menú:
+   paneles de cristal morado, rótulos en letra estrecha rosa, el check de siempre (verde sobre círculo amarillo) y los
+   espacios de la tabla de ritmo (style.css) */
+.i-check-c { display: inline-grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ffd166; color: #148a3f; }
+.i-check-c svg, .i-check-c img { width: 14px; height: 14px; }
+.vt-lead { max-width: 70ch; margin: var(--r-tx) 0 var(--r-bl); }
+.vt-aviso { display: flex; gap: var(--e3); align-items: flex-start; margin: 0 0 var(--r-bl); padding: var(--e4); border-radius: var(--r); background: rgba(255, 209, 102, .1); border: 1px solid rgba(255, 209, 102, .45); }
+.vt-aviso p { margin: 0; color: var(--ink); line-height: 1.45; }
+.vt-sec { margin: 0 0 var(--r-sec); }
+.vt-sec > h2 { display: flex; align-items: center; gap: var(--e2); margin: 0 0 var(--r-pp); font: 400 var(--fs-xl)/1.1 var(--f-display); color: #fff; }
+.vt-nota { margin: 0 0 var(--e4); color: var(--mute); font-size: var(--fs-sm); line-height: 1.45; max-width: 70ch; }
+
+/* tus bonos: una tarjeta por bono, con su código */
+.vt-bonos { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: var(--e3); }
+.vt-bono { display: grid; gap: var(--e1); padding: var(--e4); border-radius: var(--r); background: var(--glass); border: 1px solid var(--line2); color: var(--ink); text-align: left; font: inherit; cursor: pointer; }
+.vt-bono small { color: var(--gold); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.vt-bono b { font: 400 var(--fs-lg)/1.15 var(--f-display); color: #fff; }
+.vt-bono span { color: var(--mute); font-size: var(--fs-sm); }
+.vt-bono code { margin-top: var(--e1); font: 700 var(--fs-sm)/1 ui-monospace, Menlo, monospace; letter-spacing: .06em; color: #ffd166; }
+.vt-bono.activo { border-color: #ffd166; box-shadow: 0 0 0 1px rgba(255, 209, 102, .35); }
+.vt-bono.usado, .vt-bono.caducado { opacity: .62; }
+
+/* tus certificados: el sello de cada comarca, encendido al conseguirlo */
+.vt-certs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 132px), 1fr)); gap: var(--e3); }
+.vt-cert { position: relative; display: grid; justify-items: center; gap: var(--e2); padding: var(--e4) var(--e3); border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); color: var(--ink); font: inherit; text-align: center; cursor: pointer; }
+.vt-cert:disabled { cursor: default; }
+.vt-cert img, .vt-cert .vt-nav { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: grid; place-items: center; }
+.vt-cert:not(.on) img, .vt-cert:not(.on) .vt-nav { filter: grayscale(1); opacity: .45; }
+.vt-cert b { font: 800 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
+.vt-cert small { color: var(--mute); font-size: var(--fs-xs); }
+.vt-cert.on small { color: var(--gold); }
+.vt-cert .i-check-c { position: absolute; top: var(--e2); right: var(--e2); }
+
+/* los comercios, por comarca */
+.vt-cm { margin: 0 0 var(--r-bl); }
+.vt-cmt { display: flex; align-items: center; gap: var(--e2); margin: 0 0 var(--e3); font: 800 var(--fs-md)/1.2 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: color-mix(in srgb, var(--c) 55%, #fff); }
+.vt-cmt img { width: 32px; height: 32px; border-radius: 50%; }
+.vt-coms { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: var(--e3); }
+.vt-com { padding: var(--e4); border-radius: var(--r); background: var(--glass); border: 1px solid var(--line); }
+.vt-com header { display: flex; gap: var(--e3); align-items: center; margin: 0 0 var(--e3); }
+.vt-com header > div { display: grid; gap: 0; min-width: 0; }
+.vt-com header :is(.kicker, h3, p) { text-box: trim-both cap alphabetic; }
+.vt-com header h3 { margin: var(--r-kt) 0 0; font: 400 var(--fs-lg)/1.1 var(--f-display); color: #fff; }
+.vt-com header p { margin: var(--r-ts) 0 0; color: var(--mute); font-size: var(--fs-sm); }
+.vt-ic { display: grid; place-items: center; flex: none; width: 48px; height: 48px; border-radius: 50%; background: rgba(255, 255, 255, .06); border: 1px solid var(--line2); }
+.vt-com ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--e2); }
+.vt-of { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e2) var(--e3); align-items: center; padding: var(--e3); border-radius: 12px; background: rgba(10, 4, 24, .38); border: 1px solid var(--line); }
+.vt-of .vt-req { grid-column: 1 / -1; display: flex; align-items: center; gap: var(--e2); color: var(--mute); font-size: var(--fs-xs); }
+.vt-of .vt-req small { font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; }
+.vt-oft { display: grid; gap: var(--e1); min-width: 0; }
+.vt-oft b { color: #fff; font-size: var(--fs-md); }
+.vt-oft small { color: var(--mute); font-size: var(--fs-xs); line-height: 1.35; }
+.vt-of.lista { border-color: rgba(255, 209, 102, .6); }
+.vt-of.bloqueada .vt-oft b { color: var(--mute); }
+.vt-acc { min-height: 40px; white-space: nowrap; }
+.vt-espera { color: var(--mute); font-size: var(--fs-xs); text-align: right; }
+.vt-falta { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e1) var(--e2); align-items: center; }
+.vt-falta small { grid-column: 1 / -1; color: var(--mute); font-size: var(--fs-xs); }
+.vt-barra { display: block; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .12); overflow: hidden; }
+.vt-barra u { display: block; height: 100%; border-radius: inherit; background: var(--gold); }
+.vt-falta b { color: var(--mute); font: 800 var(--fs-xs)/1 var(--f-cond); }
+.vt-como ol { margin: 0 0 var(--e4); padding-left: 1.3em; display: grid; gap: var(--r-pp); color: var(--ink); line-height: 1.45; max-width: 70ch; }
+
+/* el aviso del menú: las ventajas nuevas, un número en su botón */
+#hNav button[data-nuevas] { position: relative; }
+#hNav button[data-nuevas]::after { content: attr(data-nuevas); position: absolute; top: 2px; right: 6px; display: grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: #ffd166; color: #2a1200; font: 900 11px/1 var(--f-cond); }
+
+/* en la ficha del pueblo */
+.vt-mini { list-style: none; margin: 0 0 var(--e3); padding: 0; display: grid; gap: var(--e2); }
+.vt-mini li { display: flex; gap: var(--e3); align-items: center; padding: var(--e3); border-radius: 12px; background: var(--glass); border: 1px solid var(--line); }
+.vt-mini li > div { display: grid; gap: var(--e1); min-width: 0; }
+.vt-mini b { color: #fff; } .vt-mini small { color: var(--mute); font-size: var(--fs-xs); }
+.vt-mini li.lista { border-color: rgba(255, 209, 102, .6); }
+.sheet.pueblo .sh-body h3 > span { margin-left: var(--e2); color: var(--gold); font: 800 var(--fs-xs)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.vt-ir { margin: 0 0 var(--e4); min-height: 40px; }
+
+/* el bono, para enseñar en caja */
+.vt-hoja .sheet-in { width: min(420px, 100%); }
+.vt-b { display: grid; justify-items: center; gap: 0; padding: var(--e7) var(--e6) var(--e6); text-align: center; overflow: auto; }
+.vt-b > :is(.kicker, h2, p) { text-box: trim-both cap alphabetic; }
+.vt-b h2 { margin: var(--r-kt) 0 0; font: 400 var(--fs-2xl)/1.05 var(--f-display); color: #fff; }
+.vt-b > p { margin: var(--r-tx) 0 0; color: var(--mute); font-size: var(--fs-sm); line-height: 1.4; }
+.vt-qr { width: min(200px, 60vw); aspect-ratio: 1; margin: var(--r-bl) 0 var(--e3); padding: var(--e2); border-radius: 12px; background: #fff; }
+.vt-qr svg { display: block; width: 100%; height: 100%; }
+.vt-b.usado .vt-qr, .vt-b.caducado .vt-qr { opacity: .3; }
+.vt-cod { font: 700 var(--fs-lg)/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; color: #ffd166; user-select: all; -webkit-user-select: all; }
+.vt-b .vt-val { margin-top: var(--e4); }
+.vt-vivo { position: relative; display: flex; align-items: center; justify-content: center; gap: var(--e2); width: 100%; margin-top: var(--e4); padding: var(--e2); border-radius: 999px; overflow: hidden; background: rgba(255, 209, 102, .1); border: 1px solid rgba(255, 209, 102, .4); color: #ffd166; font: 800 var(--fs-sm)/1 var(--f-cond); letter-spacing: .08em; }
+.vt-vivo i { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 209, 102, .06) 30%, rgba(255, 209, 102, .16) 50%, rgba(255, 209, 102, .06) 70%, transparent); animation: vtVivo 2.4s linear infinite; }
+@keyframes vtVivo { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+.vt-vivo b { position: relative; }
+.vt-ok { display: flex; align-items: center; gap: var(--e2); margin-top: var(--e4); color: #ffd166; font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; }
+.vt-canje { display: grid; gap: var(--e3); }
+.vt-canje > .btn { justify-self: stretch; }
+.vt-clave { display: grid; gap: var(--e3); }
+.vt-clave[hidden], .vt-canje > .btn[hidden] { display: none; }
+.vt-clave label { display: grid; gap: var(--e2); color: var(--mute); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.vt-clave input { min-height: 44px; padding: 0 var(--e3); border-radius: 12px; border: 1px solid var(--line2); background: rgba(10, 4, 24, .6); color: #fff; font: 700 var(--fs-lg)/1 ui-monospace, Menlo, monospace; letter-spacing: .3em; text-align: center; }
+.vt-err { min-height: 1.2em; color: #ff8fb0; font-size: var(--fs-sm); text-align: center; }
+
+/* el certificado, como un diploma de papel */
+.vt-diploma { background: #f6eedc; color: #3a2414; border-color: #c9a86a; }
+.vt-diploma .x { background: rgba(58, 36, 20, .12); border-color: rgba(58, 36, 20, .3); color: #3a2414; }
+.vt-dip { display: grid; justify-items: center; gap: 0; padding: var(--e7) var(--e6) var(--e6); text-align: center; overflow: auto; }
+.vt-dip > :is(.kicker, h2, p) { text-box: trim-both cap alphabetic; }
+.vt-dsello { width: 96px; height: 96px; border-radius: 50%; margin-bottom: var(--r-bl); box-shadow: 0 0 0 4px #c9a86a; display: grid; place-items: center; }
+.vt-dip .kicker { color: #8a5a2a; }
+.vt-dip h2 { margin: var(--r-kt) 0 0; font: 400 var(--fs-2xl)/1.05 var(--f-display); color: #3a2414; }
+.vt-dip p { margin: var(--r-tx) 0 0; line-height: 1.45; }
+.vt-dip .vt-dpu { color: #6a4a2a; font-size: var(--fs-sm); }
+.vt-dip .vt-dfe { font: 800 var(--fs-sm)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; color: #8a5a2a; }
+.vt-dip .vt-nota { margin-top: var(--r-tx); color: #6a4a2a; }
+@media (prefers-reduced-motion: reduce) { .vt-vivo i { animation: none; } }
+
+/* (en el móvil tumbado, el bono en dos columnas: el QR a la izquierda y lo demás a la derecha, para que quepa sin desplazar) */
+@media (orientation: landscape) and (max-height: 500px) {
+  .vt-hoja .sheet-in { width: min(640px, 100%); }
+  .vt-b { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'qr k' 'qr h' 'qr p' 'qr c' 'qr v' 'qr vivo'; justify-items: start; align-content: center; column-gap: var(--e6); padding: var(--e6) var(--e7) var(--e4) var(--e6); text-align: left; }
+  .vt-b .kicker { grid-area: k; } .vt-b h2 { grid-area: h; } .vt-b > p:not(.vt-val):not(.vt-ok) { grid-area: p; }
+  .vt-qr { grid-area: qr; width: 150px; margin: 0; align-self: center; } .vt-cod { grid-area: c; margin-top: var(--r-tx); } .vt-b .vt-val { grid-area: v; margin-top: var(--e3); }
+  .vt-vivo, .vt-ok { grid-area: vivo; margin-top: var(--e3); }
+  .vt-canje { padding-top: var(--e3); padding-bottom: var(--e3); }
+}
