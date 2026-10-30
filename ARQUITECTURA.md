@@ -216,6 +216,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
   lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
   se parten en casas como los bloques grandes.
+- **Trashumancia:** en el mapa de Navarra (`hub/mapa3d.js`), la Cañada Real de los Roncaleses, del valle de Roncal a las
+  Bardenas (trazado aproximado), en una raya discontinua de una capa encima del mapa, y su rebaño, un nombre que baja por
+  ella poco a poco; tocándolo, su ficha (`hub.trashumancia`), con la misión «La trashumancia» del Roncal (juntar el
+  rebaño en el redil antes de salir a la cañada, al final de sus misiones para no mover las hechas).
 - **Galería de Pueblos** (`hub/galeria.js`): las cartas no van en un anillo de verdad, que dejaba las de los lados
   pequeñas y mucho aire a los lados, sino cada una en su puesto: la de delante, adelantada; las de los lados, apenas
   detrás y giradas entre 22° y 38°, lo justo para acabar antes de las flechas (si no caben, como en el ordenador, se meten

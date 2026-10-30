@@ -306,7 +306,30 @@ export class Hub {
   // ---------- Inicio ----------
   // lo que el inicio le pasa a inicio.js: el icono de cada misión, las que tocan por la edad, dónde cae cada pueblo en el
   // mapa y el mapa plano para cuando no hay 3D
-  opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), misiones: (l) => this.misiones(l, p), xy: (l) => XY.get(l.id) }; }
+  opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), misiones: (l) => this.misiones(l, p), xy: (l) => XY.get(l.id), trashumancia: () => this.trashumancia() }; }
+  // la ficha de la trashumancia (al tocar el rebaño que baja por la cañada, en el mapa): como la de un pueblo, con la
+  // portada de las Bardenas, adonde llegan, qué es, por qué, por dónde y cuándo, y la misión del Roncal
+  trashumancia() {
+    this.sound?.ui('open');
+    const st = (ic, k, v) => `<span class="fh-st">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`, cab = portadaComarca('ribera', 'fh-portada');
+    const T = [['snow', '¿Por qué?', 'En invierno, la nieve cubre los pastos del Pirineo. En las Bardenas, en la Ribera, hace menos frío y las ovejas encuentran hierba.'],
+      ['map', 'La Cañada Real', 'Es un camino ganadero muy antiguo, ancho para que quepa el rebaño, que cruza Navarra de norte a sur: del valle de Roncal a las Bardenas, más de cien kilómetros andando.'],
+      ['sun', 'Cuándo', 'Los rebaños bajan en otoño y llegan a las Bardenas en septiembre. Vuelven a subir al valle a finales de la primavera, cuando los pastos del Pirineo ya están verdes.'],
+      ['scroll', 'Un derecho de siglos', 'Los roncaleses pueden llevar su ganado a pastar a las Bardenas desde hace siglos: es uno de los derechos más antiguos del valle.']];
+    const s = el(`<div class="sheet pueblo" style="--c:#e0b26a"><div class="sheet-in" role="dialog" aria-label="La trashumancia">
+      <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
+      <div class="fh-scroll">
+        <header class="fh-cab"${cab.fondo ? ` style="${cab.fondo.slice(1)}"` : ''}>${cab.marco}
+          <div class="fh-tit"><small class="fh-k">Cañada Real de los Roncaleses</small><h2>La trashumancia<em data-notr>Transhumantzia</em></h2></div></header>
+        <div class="fh-hud">${st('sheep', 'Desde', 'Valle de Roncal')}${st('peak', 'Hasta', 'Bardenas Reales')}${st('running', 'Camino', 'Más de 100 km')}</div>
+        <div class="sh-body"><p class="sh-intro">Cada otoño, los pastores del valle de Roncal bajan andando con sus rebaños de ovejas hasta las Bardenas Reales, donde pasan el invierno. En primavera vuelven a subir a los pastos del Pirineo. Eso es la trashumancia.</p>
+          <ul class="fh-vis">${T.map(([ic, n, tx]) => `<li><span class="fh-mi">${I(ic, 24)}</span><div><b>${esc(n)}</b><p>${esc(tx)}</p></div></li>`).join('')}</ul>
+        </div>
+      </div>
+      <div class="sh-foot"><button class="btn primary" data-play="erronkari-roncal">${I('play', 22)} <span>Misión en Roncal</span></button></div></div></div>`);
+    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
+    s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
+  }
   // el inicio: el mapa del mundo, a toda la pantalla, como en un juego (inicio.js); sin desplazarse
   s_home() {
     this.after = () => inicioOn(this.root);

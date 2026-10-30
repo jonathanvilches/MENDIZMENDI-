@@ -214,6 +214,9 @@ export const LEVELS = [
       { type: 'tradition', kind: 'song', title: 'El canto de Gayarre', ilus: 'canto_gayarre', host: H('Maestra de música', { shirt: '#1a1a1a', vest: '#8a2f2f', skirt: '#1a1a1a', pants: '#1a1a1a', hair: '#bdb6aa', bun: true, female: true, old: true }),
         text: 'Julián Gayarre tenía una voz prodigiosa. Repite las notas en el orden correcto.' },
       { type: 'quiz' },
+      // (la trashumancia: al final, para no mover las misiones que ya se hubieran hecho)
+      { type: 'herd', animal: 'sheep', n: 6, title: 'La trashumancia', host: H('Xabier, pastor', PASTOR),
+        text: 'Cada otoño bajamos con las ovejas por la Cañada Real de los Roncaleses hasta las Bardenas, donde pasan el invierno. Antes de salir hay que juntar el rebaño en el redil.' },
     ] },
   { id: 'burgui-burgi', name: 'Burgui / Burgi', comarca: 'pirineo', family: 'pyrenean', relief: 'valley', size: 28,
     river: { name: 'Esca', x: 0, w: 5, amp: 5 },

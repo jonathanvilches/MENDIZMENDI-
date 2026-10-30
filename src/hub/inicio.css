@@ -135,6 +135,13 @@
 .m3-tl { margin-top: -4px; padding: 2px 8px; border-radius: 999px; background: rgba(13, 4, 32, .8); border: 1px solid rgba(255, 255, 255, .16); color: #fff; font: 800 var(--fs-xs)/1.3 'MZ Texto', sans-serif; }
 .m3-tl.go { border-color: rgba(255, 122, 200, .7); } .m3-tl.ok { border-color: var(--gold); color: #ffe7a6; }
 .m3-tl.here { border: 2px solid var(--pink); box-shadow: 0 0 14px rgba(255, 43, 214, .5); }
+/* (la trashumancia: la cañada, una raya discontinua clara con su sombra, y el rebaño que baja por ella, que se puede tocar) */
+.m3-canada { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.m3-canada polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.m3-canada .s { stroke: rgba(13, 4, 32, .5); stroke-width: 5; }
+.m3-canada .r { stroke: #fff1d6; stroke-width: 2.5; stroke-dasharray: 2 7; }
+.m3-tr { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(13, 4, 32, .82); border: 1px solid rgba(255, 241, 214, .55); color: #fff1d6; font: 800 var(--fs-xs)/1.3 'MZ Texto', sans-serif; white-space: nowrap; cursor: pointer; pointer-events: auto; will-change: transform; }
+.m3-tr[hidden] { display: none; } .m3-tr > :is(svg, img) { width: 22px; height: 22px; padding: 2px; border-radius: 50%; background: #fff1d6; }
 
 /* lo conquistado: el aro grande con el tanto por ciento, las comarcas completas y los sellos */
 .m3-aro { display: block; width: 100%; height: 100%; }
