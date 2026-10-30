@@ -702,7 +702,9 @@ export class PelotaMatch {
   // carga del golpe: cuanto más se mantiene, más fuerte; un toque corto es un golpe suave. A tope en 1 s (la dejada, en
   // 1,3 s) y al principio más despacio: así se afina bien un golpe suave o medio y la altura de la dejada (antes, a tope
   // en 0,7 s y en línea recta, costaba parar donde querías)
-  chargeStart(kind) { if (!this.input.charge) this.input.charge = { kind, t0: this.t }; }
+  // (otro botón con un golpe ya cargado: manda el último que se toca. Antes, si la cortada o la dejada se quedaban cargadas
+  // porque su botón no llegó a soltarse, GOLPE no respondía y la palanca no movía al pelotari: el partido, bloqueado)
+  chargeStart(kind) { const c = this.input.charge; if (!c || c.kind !== kind) this.input.charge = { kind, t0: this.t }; }
   chargeLevel() { const c = this.input.charge; return c ? Math.pow(Math.min(1, (this.t - c.t0) / (c.kind === 'drop' ? 1.3 : 1)), 1.15) : 0; }
   chargeEnd(kind) {
     const I = this.input, c = I.charge; if (!c || c.kind !== kind) return;
@@ -735,9 +737,39 @@ export class PelotaMatch {
   }
 
   // ------------------------------------------------------------ bucle
+  /** Cómo está el partido, en corto, para el informe (util/informe.js): lo que puede tenerlo parado */
+  estado() {
+    const h = this.hud, b = h?.$?.('.pel-btns'), I = this.input;
+    return { pausa: this.paused ? 1 : 0, menu: h?.menuEl?.classList.contains('on') ? 1 : 0, ventana: h?.panelEl ? 1 : 0, repe: this.replay ? 1 : 0,
+      carga: I?.charge?.kind || '', mandos: b && getComputedStyle(b).visibility !== 'hidden' ? 1 : 0, ficha: this.fichaOpen ? 1 : 0, t: Math.round(this.t) };
+  }
+  // el vigía: lo que podría dejar el partido parado sin que se vea por qué, en un móvil donde no se puede mirar (en
+  // octubre de 2026 se quedó bloqueado en el iPhone, en el Labrit, tras un tanto y sin ningún error). Una pausa sin menú,
+  // ventana ni ficha; una repetición que no acaba; un golpe cargado que no se suelta; los mandos escondidos en pleno juego;
+  // una ventana que ya no está. Lo arregla y lo apunta, con el estado, para el informe (window.__errors)
+  vigia(dt) {
+    const V = this.vig ||= { pausa: 0, repe: 0, carga: 0, mandos: 0 }, h = this.hud, g = this.game, I = this.input; if (!h || !g) return;
+    const apunta = (que) => { try { (window.__errors ||= []).push(`pelota parada: ${que} · ${g.phase} · ${JSON.stringify(this.estado())}`.slice(0, 300)); } catch (e) { /* nada */ } };
+    if (h.panelEl && !h.panelEl.isConnected) { apunta('ventana perdida'); h.panelEl = null; h.root.classList.remove('paneled'); }
+    const menu = h.menuEl?.classList.contains('on');
+    V.pausa = this.paused && !menu && !h.panelEl && !this.fichaOpen ? V.pausa + dt : 0;
+    if (V.pausa > 1.5) { V.pausa = 0; apunta('pausa sin menú'); this.paused = false; this.menuPausa = false; }
+    V.repe = this.replay && !this.paused ? V.repe + dt : 0;
+    if (V.repe > 14) { V.repe = 0; apunta('repetición sin fin'); this.endReplay(); }
+    if (!this.replay) h.root.classList.remove('repe');
+    if (!this.entra) h.root.classList.remove('sale');
+    // (en pleno juego: ni en la repetición, ni con una ventana, ni en la llegada, la salida, el VS o el recorrido)
+    const juego = ['serveWait', 'servePrep', 'rally'].includes(g.phase) && !this.replay && !h.panelEl && !this.entra && !this.flying && !this.vsOpen && !this.tour && !this.show;
+    V.carga = juego && I?.charge && !this.paused ? V.carga + dt : 0;
+    if (V.carga > 8) { V.carga = 0; apunta('golpe cargado sin soltar'); I.charge = null; }
+    const b = juego && h.$('.pel-btns');
+    V.mandos = b && b.style.visibility === 'hidden' ? V.mandos + dt : 0;
+    if (V.mandos > 2) { V.mandos = 0; apunta('mandos escondidos'); h.controls(true); }
+  }
   update(dt) {
     if (!this.active) return false;
     dt = Math.min(dt, 0.05); this.t += dt;
+    this.vigia(dt);
     if (this.replay) { this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
     if (this.show && !this.show.step(dt, this.showP, (k) => this.showCall?.(k))) this.showFin?.();
     this.chapa?.update(dt);   // (la chapa del sorteo)
@@ -751,7 +783,8 @@ export class PelotaMatch {
     const ev = this.paused ? [] : g.update(dt, inp);
     // (fallo o acierto, al cantarse el tanto solo se oyen los aplausos: la pelota se calla, también en el golpe que lo
     // decide, hasta el saque siguiente)
-    if (ev.some(e => e.type === 'call')) this.callada = true;
+    // (y el golpe que se estuviera cargando se suelta sin golpear: no pasa de un tanto al siguiente)
+    if (ev.some(e => e.type === 'call')) { this.callada = true; this.input.charge = null; }
     for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }
     this.draw(dt); if (!this.paused) this.record(dt);   // (en pausa no se graba: la repetición sería una imagen quieta)
     this.hud.tick(dt); this.court.tick(dt);
