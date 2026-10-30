@@ -37,7 +37,7 @@ import { allFichas } from '../ui/ficha.js';
 import { personajesHTML } from '../ui/personajes.js';
 import { figurasHTML } from '../ui/figuras.js';
 import { instrumentosHTML } from '../ui/instrumentos.js';
-import { laminaUrl, laminasDe, laminaRail, townImg, comarcaCover, leyendaUrl, tradicionUrl, openVisor, encuadreDe } from '../ui/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, townImg, comarcaCover, leyendaUrl, tradicionUrl, openVisor, portadaPueblo } from '../ui/laminas.js';
 import { stampImg } from '../assets.js';
 import { armsImg, oficioImg } from '../ui/escudoImg.js';
 import { readTownArms } from '../ui/escudo.js';
@@ -177,10 +177,10 @@ export const DIDACTICO = {
     };
     // (la cabecera, como la de la comarca: su lámina entera a la izquierda y, al lado, su escudo, su comarca, su nombre y
     // sus cifras en pastillas; debajo, su presentación)
-    const cov = townImg(l), [n1, n2] = l.name.split(' / '), escudo = A && armsImg(A.id);
+    const cab = portadaPueblo(l, 'chero-img'), [n1, n2] = l.name.split(' / '), escudo = A && armsImg(A.id);
     const dato = (ic, v, k, antes) => `<span class="ch-dato">${I(ic, 20)}${antes ? `<small>${k}</small><b>${v}</b>` : `<b>${v}</b><small>${k}</small>`}</span>`;
     return `<section class="armorial dd dd-town" style="--c:${c?.color}">
-      <section class="chero" style="--c:${c?.color}${cov ? `;--fondo:url('${cov}')` : ''}">${cov ? `<div class="pt-marco" style="${encuadreDe(l)}"><i class="pt-esp l" aria-hidden="true"></i><img class="chero-img" src="${cov}" alt="" decoding="async"><i class="pt-esp r" aria-hidden="true"></i></div>` : ''}
+      <section class="chero" style="--c:${c?.color}${cab.fondo}">${cab.marco}
         <div class="ch-tx"><button class="back" data-go="towns">${I('back', 22)} Pueblos</button>
           <div class="ch-nom"><img class="bigstamp${escudo ? ' dd-escudo' : ''}" src="${escudo || stampImg(l.comarca)}" alt=""><div><button type="button" class="kicker lnk" data-comarca="${l.comarca}">${esc(c?.name || '')}</button><h1>${esc(n1)}${n2 ? `<em data-notr>${esc(isEU() ? n1 : n2)}</em>` : ''}</h1></div></div>
           <div class="ch-datos">${l.river ? dato('river', esc(l.river.name), 'Río', true) : ''}${visit.length ? dato('church', visit.length, visit.length === 1 ? 'Lugar' : 'Lugares') : ''}${cts.length ? dato('legend', cts.length, cts.length === 1 ? 'Leyenda' : 'Leyendas') : ''}${learn.length ? dato('book', learn.length, 'Saberes') : ''}</div></div>

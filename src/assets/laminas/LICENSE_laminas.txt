@@ -8,3 +8,8 @@ y grande/ (2560, de las de 1672 ampliadas con Real-ESRGAN y reducidas) salen aho
 2026-10-23: el autor rehízo 45 de ellas con más detalle y la misma escena (las 32 portadas de pueblo, los 8 paisajes de
 comarca y los 5 de deportes), a 1672 × 941, en seis ZIP («Herrizherri-regeneradas»). Sustituyen a las de antes en
 original/, web/, mini/, movil/ y grande/ (tools/laminas-importar.mjs); las de mini/ y movil/ sin pesar más que las de antes.
+2026-10-30: el autor entregó, en ocho ZIP («HERRIZHERRI-panoramicas» y «HERRIZHERRI-bosques»), 47 panorámicas de las
+portadas, hechas por él con ChatGPT a partir de sus láminas (la misma escena ampliada a los lados: 2172 × 724 las de
+pueblo y comarca, 1916 × 821 las de bosque), y tres portadas nuevas de bosque a 1672 × 941 (bosque-orgi, senorio-bertiz y
+sotos-ebro). Las panorámicas van en pano/, en WebP a su tamaño y solo en la web; las tres portadas, en original/, web/,
+mini/ y movil/ como las demás, sin grande/ (no hay Real-ESRGAN en el entorno donde se metieron).

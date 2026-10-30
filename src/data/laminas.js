@@ -96,6 +96,10 @@ export const LAMINAS = [
   { id: 'c-pirineos', comarca: 'pirineo', kind: 'paisaje', title: 'Los Pirineos', eu: 'Pirinioak' },
   { id: 'c-sakana', comarca: 'sakana', kind: 'paisaje', title: 'El valle de Sakana', eu: 'Sakana harana' },
   { id: 'c-urbasa', comarca: 'sakana', kind: 'paisaje', title: 'El mapa en Urbasa', eu: 'Mapa Urbasan' },
+  // (las portadas propias de tres bosques, entregadas el 2026-10-30: antes llevaban la de otro sitio, BOSQUE_LAMINA)
+  { id: 'bosque-orgi', comarca: 'pamplona', kind: 'paisaje', title: 'La lupa en el robledal de Orgi', eu: 'Lupa Orgiko hariztian' },
+  { id: 'senorio-bertiz', comarca: 'bidasoa', kind: 'paisaje', title: 'El jardín del Señorío de Bertiz', eu: 'Bertizko jaurerriko lorategia' },
+  { id: 'sotos-ebro', comarca: 'ribera', kind: 'paisaje', title: 'Aves en los sotos del Ebro', eu: 'Hegaztiak Ebro ertzeko basoan' },
   { id: 'c-prepirineo', comarca: 'prepirineo', kind: 'paisaje', title: 'Huellas en el Prepirineo', eu: 'Aztarnak Aurrepirinioan' },
   { id: 'c-vendimia', comarca: 'tierra-estella', kind: 'cosecha', title: 'La vendimia', eu: 'Mahats bilketa' },
   { id: 'c-milano', comarca: 'tierra-estella', kind: 'fauna', title: 'El milano real', eu: 'Miru gorria' },
@@ -127,7 +131,8 @@ export const CUENTO_LAMINA = { aralar: 'lekunberri-cadenas', ujue: 'ujue-paloma'
 export const PERSONAJE_LAMINA = { sancho: 'orreaga-roncesvalles', golondrinas: 'of-alpargatas' };
 // la de cada oficio de antes (el taller del pueblo)
 export const OFICIO_LAMINA = { herrero: 'of-herreria', palomero: 'etxalar-palomeras', cantero: 'puente-cantero', aizkolari: 'leitza-aizkolari', harrijasotzaile: 'leitza-harrijasotzaile', alpargatero: 'of-alpargatas', cestero: 'of-cesteria', carbonero: 'aribe-carbonera', hilandera: 'of-telar', panadero: 'of-pan', tonelero: 'viana-tonelero' };
-// la portada de cada bosque, por orden (si en esta versión falta la primera, la siguiente; si no, la de su comarca)
+// la portada de cada bosque que no tiene la suya, con su mismo id, por orden (si en esta versión falta la primera, la
+// siguiente; si no, la de su comarca). Orgi, Bertiz y los sotos ya tienen la suya: estas quedan para donde no esté
 export const BOSQUE_LAMINA = { 'selva-irati': ['aribe-irati'], 'sierra-urbasa': ['c-urbasa'], 'sierra-aralar': ['c-aralar'], 'bosque-orgi': ['c-setas'], 'senorio-bertiz': ['c-bidasoa-aves', 'c-baztan'], 'sotos-ebro': ['c-pitillas'] };
 // la de la cabecera de cada comarca: su paisaje (o, si no tiene, la de un pueblo suyo)
 export const COMARCA_LAMINA = { bidasoa: 'c-baztan', 'larraun-leitzaldea': 'c-aralar', pirineo: 'c-pirineos', sakana: 'c-sakana', pamplona: 'pamplona-murallas', prepirineo: 'c-prepirineo', sanguesa: 'lumbier', 'tierra-estella': 'c-vendimia', 'valdizarbe-novenera': 'puente-la-reina', 'zona-media': 'c-cereal', 'ribera-alta': 'c-pitillas', ribera: 'c-bardenas' };
@@ -156,7 +161,7 @@ export const FOCO = {
   'pamplona-txistorra': 0.55, pamplona: 0.75, 'puente-cantero': 0.45, 'puente-la-reina': 0.84, 'puente-txori': 0.89, 'roncal-lana': 0.76,
   'roncal-queso': 0.62, 'sanguesa-pochas': 0.42, sanguesa: 0.69, 'tafalla-olivas': 0.7, tafalla: 0.75, 'tudela-ciguenas': 0.28,
   tudela: 0.66, 'ujue-almendras': 0.3, 'ujue-paloma': 0.74, ujue: 0.78, 'viana-tonelero': 0.72, viana: 0.77,
-  'zugarramurdi-noche': 0.78, zugarramurdi: 0.8,
+  'zugarramurdi-noche': 0.78, zugarramurdi: 0.8, 'bosque-orgi': 0.72, 'senorio-bertiz': 0.765, 'sotos-ebro': 0.8,
 };
 // y de arriba abajo: dónde empieza la cabeza del personaje (o la del más alto del grupo) y dónde acaban sus pies, de 0
 // (arriba) a 1 (abajo), en las láminas que son portada. Con eso la portada se acerca a él (hasta casi el doble) sin cortarle
@@ -172,4 +177,31 @@ export const ALTO = {
   'c-setas': [0.47, 0.8], 'c-bidasoa-aves': [0.39, 0.84], 'tudela-ciguenas': [0.4, 0.96], 'c-baztan': [0.25, 0.92],
   'c-pirineos': [0.26, 0.86], 'c-sakana': [0.22, 0.88], 'pamplona-murallas': [0.22, 0.88], 'c-prepirineo': [0.25, 0.84],
   'c-vendimia': [0.46, 0.92], 'c-cereal': [0.39, 0.84], 'c-pitillas': [0.29, 0.88], 'c-bardenas': [0.48, 0.84],
+  'bosque-orgi': [0.36, 0.8], 'senorio-bertiz': [0.44, 0.86], 'sotos-ebro': [0.33, 0.9],
+};
+// las panorámicas (src/assets/laminas/pano, solo en la web; entregadas el 2026-10-30): la misma escena de la portada,
+// ampliada a los lados, para las cabeceras de las fichas con la pantalla tumbada, que son mucho más anchas que 16:9 (antes
+// se llenaban con la lámina reflejada y borrosa). Por cada una, como FOCO y ALTO: dónde está el personaje de izquierda a
+// derecha y dónde empiezan su cabeza y acaban sus pies, de 0 a 1. (Medido a ojo, una a una)
+/** Las de pueblo y comarca, de 2172 × 724 (3:1). */
+export const PANO = {
+  'altsasu-alsasua': [0.537, 0.5, 0.94], 'amaiur-maya-del-baztan': [0.6, 0.42, 0.88], aoiz: [0.734, 0.52, 0.89],
+  aribe: [0.513, 0.4, 0.86], artajona: [0.524, 0.49, 0.89], 'burgui-burgi': [0.544, 0.46, 0.9],
+  'c-aralar': [0.475, 0.23, 0.88], 'c-bardenas': [0.495, 0.47, 0.85], 'c-baztan': [0.537, 0.29, 0.92],
+  'c-cereal': [0.54, 0.39, 0.88], 'c-pirineos': [0.5, 0.27, 0.84], 'c-pitillas': [0.64, 0.28, 0.85],
+  'c-prepirineo': [0.5, 0.3, 0.86], 'c-sakana': [0.51, 0.28, 0.92], 'c-vendimia': [0.56, 0.42, 0.91],
+  cortes: [0.48, 0.53, 0.91], elizondo: [0.616, 0.53, 0.93], 'erronkari-roncal': [0.54, 0.46, 0.92],
+  estella: [0.7, 0.53, 0.92], etxalar: [0.626, 0.5, 0.88], irulegi: [0.632, 0.4, 0.92],
+  irurtzun: [0.553, 0.43, 0.92], 'isaba-izaba': [0.527, 0.52, 0.95], ituren: [0.6, 0.12, 0.9],
+  javier: [0.556, 0.53, 0.9], leitza: [0.545, 0.4, 0.94], lekunberri: [0.545, 0.44, 0.92],
+  lesaka: [0.616, 0.37, 0.74], lumbier: [0.561, 0.37, 0.9], marcilla: [0.531, 0.59, 0.95], olite: [0.52, 0.52, 0.93],
+  'orreaga-roncesvalles': [0.5, 0.46, 0.89], 'otsagabia-ochagavia': [0.556, 0.34, 0.9],
+  pamplona: [0.607, 0.55, 0.93], 'pamplona-murallas': [0.584, 0.28, 0.83], 'puente-la-reina': [0.648, 0.5, 0.91],
+  sanguesa: [0.577, 0.44, 0.94], tafalla: [0.498, 0.55, 0.93], tudela: [0.568, 0.52, 0.92], ujue: [0.527, 0.5, 0.9],
+  viana: [0.553, 0.54, 0.9], zugarramurdi: [0.576, 0.47, 0.9],
+};
+/** Las de bosque, de 1916 × 821 (7:3). */
+export const PANO_BOSQUE = {
+  'aribe-irati': [0.673, 0.47, 0.87], 'bosque-orgi': [0.69, 0.34, 0.79], 'c-urbasa': [0.7, 0.37, 0.84],
+  'senorio-bertiz': [0.694, 0.43, 0.85], 'sotos-ebro': [0.74, 0.37, 0.9],
 };
