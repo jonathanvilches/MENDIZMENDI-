@@ -17,14 +17,16 @@ const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
 // pelotari del nivel normal
 const SPLIT = 17.5, MATE_AI = { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 };
-// energía (de 0 a 1), como en el frontón de verdad: correr a tope y los golpes que deciden (la cortada sobre todo, las
-// dos paredes y el gancho) la gastan; pelotear normal, sin cargar del todo, la recupera poco a poco, y entre tanto y
+// energía (de 0 a 1), una sola barra en el marcador, como en el frontón de verdad. Lo que la roba de verdad: las cortadas
+// seguidas (cada una cuesta más que la anterior: EN.racha, y la racha se olvida pelotando o en unos segundos, EN.rachaT) y
+// esprintar para alcanzar una dejada del rival (EN.caza). Las dos paredes y el gancho gastan algo; moverse y
+// colocarse, casi nada (EN.trote, EN.run); pelotear normal, sin cargar del todo, la recupera poco a poco, y entre tanto y
 // tanto se recupera algo, poco. Por debajo de la mitad se nota: se corre menos, se llega peor y los golpes salen peor
 // (cansado, a una cortada rápida no se llega). Así hay estrategia: con dejadas y cortadas que le hagan correr, el rival se
-// va cansando; y si te cansan a ti, pides un descanso (DESCANSO). Antes, entre tanto y tanto se recuperaba casi un 20 %
-// y correr apenas gastaba: el rival no se cansaba nunca (octubre de 2026)
-const EN = { cortada: 0.05, cortPow: 0.03, dos: 0.035, cortDos: 0.065, gancho: 0.03, volea: 0.01, dejada: 0.01, rebote: 0.02,
-  normal: 0.035, trote: 0.02, run: 0.32, rally: 0.004, rest: 0.06, pausa: 0.15, low: 0.5 };
+// va cansando; y si te cansan a ti, pides un descanso (DESCANSO). Antes, cualquier carrera a tope gastaba como un esprint
+// y con el joystick a fondo la barra se quedaba casi vacía todo el partido (octubre de 2026)
+const EN = { cortada: 0.05, cortPow: 0.025, racha: 0.75, rachaT: 9, dos: 0.035, cortDos: 0.065, gancho: 0.03, volea: 0.01, dejada: 0.01, rebote: 0.02,
+  normal: 0.035, trote: 0.01, run: 0.04, caza: 0.16, rally: 0.006, rest: 0.06, pausa: 0.15, low: 0.5 };
 // los descansos: el reglamento de juego de la Federación Navarra de Pelota da a cada equipo hasta cinco descansos de un
 // minuto en el partido; aquí, en proporción a los tantos (5 a 22 tantos: en uno a 5, uno; a 7 o a 9, dos). Se piden entre
 // tanto y tanto. El que descansa recupera mucho; el otro, que también para, algo. Ese minuto pasa en unos segundos
@@ -412,8 +414,10 @@ export class PelotaGame {
     }
     b.set(p, v); b.spin = shot === 'cortada' ? 1 : 0;
     const pl = this.players[who], sd = this.side(who); pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
-    // energía: la cortada y las dos paredes gastan mucho; el peloteo normal la devuelve (a quien tiene fuerza, le cuesta menos)
-    const cost = shotEnergy(shot, sub, pow, !!o.volea);
+    // energía: la cortada gasta, y más cuantas más seguidas (pl.racha); el peloteo normal la devuelve y enfría la racha (a
+    // quien tiene fuerza, todo le cuesta menos)
+    const cost = shotEnergy(shot, sub, pow, !!o.volea) * (shot === 'cortada' ? 1 + EN.racha * (pl.racha || 0) : 1);
+    pl.racha = shot === 'cortada' ? (pl.racha || 0) + 1 : shot === 'saque' ? pl.racha || 0 : (pl.racha || 0) * 0.5;
     pl.en = clamp(pl.en - (cost > 0 ? cost * (1.15 - this.qual[who].fuerza * 0.05) : cost), 0, 1);
     this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1, kind: shot, sub, volea: !!o.volea, sp: Math.hypot(v.x, v.y, v.z) };
     for (const id of this.ids) this.players[id].idealAt = null;   // (el momento justo del golpe siguiente se mira de nuevo)
@@ -715,15 +719,17 @@ export class PelotaGame {
     this.events = [];
     dt = Math.min(dt, 0.05);
     this.phaseT += dt; this.predT -= dt; this.clock += dt;
-    // energía: durante el tanto, correr a tope la gasta (andar o colocarse, no) y quieto se recupera algo; entre tanto y
-    // tanto, más (los golpes gastan o devuelven al golpear: shotEnergy)
+    // energía: durante el tanto, esprintar a por una dejada la gasta mucho; moverse o colocarse, casi nada, y
+    // quieto se recupera algo; entre tanto y tanto, más (los golpes gastan o devuelven al golpear: shotEnergy)
     // (entre tantos, como mucho EN.pausa en cada parón: esperar para sacar no es descansar)
-    const live = this.phase === 'rally' || this.phase === 'servePrep';
+    const live = this.phase === 'rally' || this.phase === 'servePrep', R = this.rally;
+    const caza = this.phase === 'rally' && R?.kind === 'dejada' ? R.turn : null;
     for (const id of this.ids) {
-      const p = this.players[id];
-      // (trotar gasta poco; lo que cansa es esprintar a tope, como para llegar a una dejada o a una cortada: por encima de
-      // 5 m/s, hasta los 7,6 del arranque)
-      if (live) { const v = p.speed || 0; p.rec = 0; p.en = clamp(p.en + (EN.rally - EN.trote * clamp((v - 3.5) / 1.5, 0, 1) - EN.run * clamp((v - 5) / 2.6, 0, 1)) * dt, 0, 1); }
+      const p = this.players[id]; if (p.racha) p.racha *= Math.exp(-dt / EN.rachaT);
+      // (por encima de 5 m/s, hasta los 7,6 del arranque: si es para llegar a la dejada que te toca, EN.caza
+      // (por parejas, al que va a por ella); si no, EN.run, poco)
+      if (live) { const v = p.speed || 0, k = caza === this.side(id) && (!this.pairs || !R.taker || R.taker === id) ? EN.caza : EN.run;
+        p.rec = 0; p.en = clamp(p.en + (EN.rally - EN.trote * clamp((v - 3.5) / 1.5, 0, 1) - k * clamp((v - 5) / 2.6, 0, 1)) * dt, 0, 1); }
       else if (this.phase === 'descanso') p.en = clamp(p.en + (this.side(id) === this.descanso?.side ? DESCANSO.gana : DESCANSO.ganaOtro) / DESCANSO.t * dt, 0, 1);
       else { const g = Math.min(EN.rest * dt, Math.max(0, EN.pausa - (p.rec || 0))); p.rec = (p.rec || 0) + g; p.en = clamp(p.en + g, 0, 1); }
     }

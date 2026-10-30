@@ -67,10 +67,10 @@ console.log('2. cansado se falla más');
 
 console.log('3. parejas: el cansado deja más pelotas a su compañero');
 {
-  const share = (tiredId) => {
+  const share = (tiredId, youRole = 'zaguero') => {
     const h = { you: 0, youMate: 0 };
     for (let k = 0; k < 5; k++) {
-      const g = new PelotaGame({ mode: 'match', target: 5, level: 'normal', autoplay: true, pairs: true, youRole: 'zaguero', seed: seed(k + 40) });
+      const g = new PelotaGame({ mode: 'match', target: 5, level: 'normal', autoplay: true, pairs: true, youRole, seed: seed(k + 40) });
       g.start(); let t = 0;
       while (g.phase !== 'end' && t < 900) {
         if (tiredId) g.players[tiredId].en = 0.1;
@@ -80,10 +80,12 @@ console.log('3. parejas: el cansado deja más pelotas a su compañero');
     }
     return h.you / Math.max(1, h.you + h.youMate);
   };
-  const s0 = share(null), sY = share('you'), sM = share('youMate');
-  console.log(`   golpes tuyos de tu pareja: normal ${(s0 * 100).toFixed(0)} %, tú cansado ${(sY * 100).toFixed(0)} %, tu compañero cansado ${(sM * 100).toFixed(0)} %`);
+  // (tú cansado, de zaguero; tu compañero cansado, tú de delantero: de zaguero ya coges casi todo lo que te llega, unas
+  // ocho de cada diez, y no se notaría)
+  const s0 = share(null), sY = share('you'), d0 = share(null, 'delantero'), sM = share('youMate', 'delantero');
+  console.log(`   golpes tuyos de tu pareja: de zaguero ${(s0 * 100).toFixed(0)} %, tú cansado ${(sY * 100).toFixed(0)} %  ·  de delantero ${(d0 * 100).toFixed(0)} %, tu compañero cansado ${(sM * 100).toFixed(0)} %`);
   ok(sY < s0 - 0.08, 'si estás cansado, tu compañero coge más');
-  ok(sM > s0 + 0.08, 'si tu compañero está cansado, coges más tú');
+  ok(sM > d0 + 0.08, 'si tu compañero está cansado, coges más tú');
 }
 
 console.log('4. parejas: «¡mía!» manteniendo el golpe');

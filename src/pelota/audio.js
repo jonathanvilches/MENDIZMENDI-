@@ -1,4 +1,4 @@
-// Sonidos sintetizados: golpe de mano, frontis, chapa metálica, bote y el público (la gente de la grada: su murmullo, el
+// Sonidos sintetizados: golpe de mano, frontis, bote y el público (la gente de la grada: su murmullo, el
 // «¡oooh!» y el aplauso de todos a la vez, de src/crowdAudio.js). Debajo, grabados (src/audio/pistas.js): el rumor de la
 // grada llena durante todo el partido y la ovación del último tanto.
 import { Crowd, PUBLICO } from '../crowdAudio.js';
@@ -29,8 +29,9 @@ export class PelotaAudio {
   mood(v, tc) { this.crowdN?.setLevel(v, tc); this.grada?.nivel(v, tc); }
   stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; this.grada?.para(0.8); this.grada = null; }
   /** Un tanto: el aplauso de todo el frontón, más corto si fue un fallo (chapa, fuera, falta). El último tanto, la
-   *  ovación. Sin señal propia: las dos notas de madera de cada tanto (cue) no gustaban; en el partido solo suenan la
-   *  pelota, el público y sus aplausos. Antes, en cada fallo sonaba también el «¡oooh!» sintetizado de la grada */
+   *  ovación. Fallo o acierto, solo los aplausos: sin señal propia (las dos notas de madera, cue, no gustaban), sin el
+   *  «¡clonc!» de la chapa y sin la pelota, que se calla al cantarse el tanto (match.js, callada). Antes, en cada fallo
+   *  sonaba también el «¡oooh!» sintetizado de la grada */
   point(clean, mine, final, big = 0) {
     const c = this.ensure(); if (!c) return;
     if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
@@ -44,7 +45,7 @@ export class PelotaAudio {
     C.applause(clean ? (mine ? 1 : 0.8) : (mine ? 0.85 : 0.55), clean ? 0.04 : 0.2); C.setLevel(0.55, 0.15);
   }
   /** Un aplauso de la grada: un trozo de la ovación grabada (de un sitio distinto cada vez, para que no se repita igual),
-   *  de dur segundos y apagándose al final; v, cuánto se oye. Si la grabación aún no está, palmas sueltas sintetizadas */
+   *  de dur segundos y apagándose al final; v, cuánto se oye */
   aplauso(v = 0.6, dur = 2.4) {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;
     const b = carga(c, 'aplausos-final').buf;
@@ -53,9 +54,9 @@ export class PelotaAudio {
       s.buffer = b; s.connect(g); g.connect(c.destination);
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.min(0.95, v), t + 0.12);
       g.gain.setValueAtTime(Math.min(0.95, v), t + Math.max(0.2, dur - 1.1)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
-      s.start(t, off); s.stop(t + dur + 0.05); return;
+      s.start(t, off); s.stop(t + dur + 0.05);
     }
-    const n = Math.round(30 * dur); for (let i = 0; i < n; i++) { const u = Math.random() * dur, k = Math.min(1, u / 0.25) * Math.min(1, (dur - u) / 0.9); this.noise(t + u, 0.035, 2000 + Math.random() * 1800, 1.4, 0.13 * v * k); }
+    // (si la grabación aún no ha llegado, nada: las palmas sintetizadas sonaban a ruido)
   }
   /** La señal del tanto: dos notas de madera, como de txalaparta afinada, que suben si el tanto es tuyo (falla el rival
    *  o le ganas) y bajan, más suaves, si es del rival (fallas tú) */
@@ -82,13 +83,6 @@ export class PelotaAudio {
   hit(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }
   // pelota en el frontis: golpe con eco de pared
   front(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
-  // chapa: la pelota contra la chapa de metal, un «¡clonc!» seco y corto, con sus parciales inarmónicos apagándose enseguida
-  // (antes eran cuatro notas sostenidas medio segundo y sonaba a zumbido de error)
-  chapa() {
-    const c = this.ensure(); if (!c) return; const t = c.currentTime;
-    this.noise(t, 0.05, 2200, 0.9, 0.32); this.noise(t, 0.16, 700, 2.5, 0.1); this.tone(t, 0.08, 95, 0.3, 'sine', 0.6);
-    for (const [f, g, d] of [[310, 0.15, 0.16], [487, 0.1, 0.12], [823, 0.06, 0.09], [1290, 0.035, 0.07]]) this.tone(t, d, f, g, 'sine', 0.97);
-  }
   // la chapa del sorteo contra el suelo: un «¡tin!» metálico y agudo que rebota dos veces y se apaga
   moneda() {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;
