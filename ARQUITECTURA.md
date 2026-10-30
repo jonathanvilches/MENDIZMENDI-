@@ -106,6 +106,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   recupera poco. Descansos de un minuto como el reglamento de la Federación Navarra (cinco por lado a 22 tantos, en
   proporción en los cortos), pedidos con el botón Descanso o la tecla R para el próximo parón; el rival los pide cuando va
   fundido (`pelota/game.js`, `EN` y `DESCANSO`). En los partidos, solo los rótulos de al aire, al rebote y los pelotazos.
+- **Sorteo del saque:** la chapa es de verdad, en 3D, en la cancha (`pelota/chapa.js`, `Chapa3D`): gira de canto, sube
+  dando vueltas y cae con la cara que saca hacia arriba y el texto derecho para la cámara, que la sigue (`tossCam` de
+  `pelota/match.js`). Encima, solo el título y las tarjetas de los dos pelotaris con su figura asomando.
 - **Sin propiedad ajena:** nada de personajes o logotipos de terceros. Solo recursos propios o con licencia CC0
   (las licencias están junto a los recursos, en `src/assets/*/LICENSE_*`).
 - **Textos:** se escriben en castellano; el traductor (`i18n.js` + `data/eu.js`) los pasa al euskera.

@@ -9,6 +9,7 @@ import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { Focos } from './show.js';
+import { Chapa3D } from './chapa.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
@@ -377,31 +378,44 @@ export class PelotaMatch {
   // el sorteo del saque: el juez echa al aire la chapa (una cara azul y otra colorada) y saca el del color que sale. Se
   // lanza tocando el botón (o sola a los pocos segundos); devuelve el lado que saca, 'you' o 'rival'
   // (directo: viene de la presentación, que se desvanece encima; su fondo ya está, sin un momento de la cancha entre las dos)
+  // La chapa es de verdad, en 3D, en la cancha (chapa.js): gira de canto en la mano del juez, sube dando vueltas y cae al
+  // suelo con la cara que saca hacia arriba, y la cámara la sigue de cerca. Encima, despejado el centro: el título arriba
+  // y, abajo, a cada lado, la tarjeta de cada pelotari con su figura, como en la presentación. Antes era una moneda plana
+  // dibujada sobre un fondo oscuro y la pantalla quedaba sosa (octubre de 2026)
   tossChapa(directo = false) {
     const t = this.txt, TS = t.toss || TEXT.es.toss, C = this.cols, de = (col) => (C.you === col ? 'you' : 'rival');
     const nom = (sd) => this.nomLimpio(sd), temp = (sd) => this.tempDe(sd);
-    const lado = (col) => `<div class="pel-toss-p ${col}"><i aria-hidden="true"></i><b>${esc(nom(de(col)))}</b><small>${esc([col === 'azul' ? TS.azul : TS.rojo, temp(de(col))].filter(Boolean).join(' · '))}</small></div>`;
+    const fig = (col) => { try { return this.o.caras?.fig?.(splitName(this.names[de(col)]).name, col) || ''; } catch (e) { return ''; } };
+    const lado = (col) => `<div class="pel-toss-p ${col}"><span class="pt-fig">${fig(col)}</span><span class="pt-tx"><b>${esc(nom(de(col)))}</b><small>${esc([col === 'azul' ? TS.azul : TS.rojo, temp(de(col))].filter(Boolean).join(' · '))}</small></span></div>`;
+    // (la chapa en la cancha: en el centro, a la altura del 3, donde el juez la echa; si no hay cancha, la de antes, plana)
+    let chapa = null;
+    try { if (this.court?.group && this.T) chapa = new Chapa3D(this.T, this.court.group, 0.8, COURT.CUADRO * 3, { azul: ['Azul', 'Urdina'], rojo: ['Colorado', 'Gorria'] }); } catch (e) { console.warn('chapa', e); chapa = null; }
     return new Promise(res => {
-      const el = document.createElement('div'); el.className = directo ? 'pel-toss directo' : 'pel-toss'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', TS.title);
-      el.innerHTML = `<div class="pel-toss-card"><small class="pel-toss-k">${esc(TS.title)}</small>
-        <div class="pel-toss-row">${lado('azul')}<div class="pel-toss-coin" aria-hidden="true"><div class="coin"><span class="f azul"></span><span class="f rojo"></span></div><div class="sh"></div></div>${lado('rojo')}</div>
-        <p class="pel-toss-why">${esc(this.seasons ? TS.why : TS.auto)}</p><button class="pel-go pel-toss-go">${esc(TS.throw)}</button><p class="pel-toss-res" aria-live="polite"></p></div>`;
+      const el = document.createElement('div'); el.className = `pel-toss${directo ? ' directo' : ''}${chapa ? ' tres' : ''}`; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', TS.title);
+      el.innerHTML = `<header class="pel-toss-top"><small class="pel-toss-k"><i aria-hidden="true"></i>${esc(TS.title)}<i aria-hidden="true"></i></small><p class="pel-toss-why">${esc(this.seasons ? TS.why : TS.auto)}</p></header>
+        ${lado('azul')}${lado('rojo')}
+        <div class="pel-toss-mid">${chapa ? '' : '<div class="pel-toss-coin" aria-hidden="true"><div class="coin"><span class="f azul"></span><span class="f rojo"></span></div><div class="sh"></div></div>'}
+          <button class="pel-go pel-toss-go">${esc(TS.throw)}</button><p class="pel-toss-res" aria-live="polite"></p></div>`;
       this.hud.root.appendChild(el);
+      if (chapa) { this.chapa = chapa; this.tossCam = () => chapa.camara(); this.camInit = false; }
       const win = Math.random() < 0.5 ? 'azul' : 'rojo', coin = el.querySelector('.coin');
       let tirada = false; const tms = [];
+      const fin = () => { this.tossCam = null; this.camInit = false; if (chapa && this.chapa === chapa) { chapa.dispose(); this.chapa = null; } };
+      const resultado = () => { el.classList.add('cae'); el.querySelector(`.pel-toss-p.${win}`)?.classList.add('gana'); el.querySelector(`.pel-toss-p.${win === 'azul' ? 'rojo' : 'azul'}`)?.classList.add('pierde');
+        const r = el.querySelector('.pel-toss-res'); r.textContent = TS.serves(nom(de(win))); r.className = `pel-toss-res ${win}`; };
+      const sale = (espera) => tms.push(setTimeout(() => { el.classList.add('out'); tms.push(setTimeout(() => { el.remove(); fin(); res(de(win)); }, 320)); }, espera));
       const tirar = () => {
         if (tirada || !this.active) return; tirada = true; clearTimeout(auto); removeEventListener('keydown', tecla, true);
-        coin.style.setProperty('--fin', win === 'azul' ? '0deg' : '180deg'); el.classList.add('aire'); this.audio.ensure();
-        tms.push(setTimeout(() => { el.classList.add('cae'); el.querySelector(`.pel-toss-p.${win}`)?.classList.add('gana');
-          const r = el.querySelector('.pel-toss-res'); r.textContent = TS.serves(nom(de(win))); r.className = `pel-toss-res ${win}`; }, 1450));
-        tms.push(setTimeout(() => { el.classList.add('out'); tms.push(setTimeout(() => { el.remove(); res(de(win)); }, 320)); }, 3100));
+        el.classList.add('aire'); this.audio.ensure();
+        if (chapa) chapa.lanza(win, () => this.audio.moneda?.()).then(() => { if (!this.active) return; resultado(); sale(1700); });
+        else { coin.style.setProperty('--fin', win === 'azul' ? '0deg' : '180deg'); tms.push(setTimeout(resultado, 1450)); sale(3100); }
       };
       el.querySelector('.pel-toss-go').addEventListener('click', tirar);
       // (con el teclado o el mando, las teclas de golpear o Intro también la lanzan)
       const tecla = (e) => { if ([' ', 'enter', 'j', 'e'].includes(e.key.toLowerCase())) { e.preventDefault(); e.stopPropagation(); tirar(); } };
       addEventListener('keydown', tecla, true);
       const auto = setTimeout(tirar, 4200);   // (si no se toca, la lanza el juez)
-      this.tossEl = el; this.tossOff = () => { clearTimeout(auto); tms.forEach(clearTimeout); removeEventListener('keydown', tecla, true); el.remove(); };
+      this.tossEl = el; this.tossOff = () => { clearTimeout(auto); tms.forEach(clearTimeout); removeEventListener('keydown', tecla, true); el.remove(); fin(); };
     });
   }
   // ------------------------------------------------------------ la repetición de cada tanto
@@ -727,6 +741,7 @@ export class PelotaMatch {
     dt = Math.min(dt, 0.05); this.t += dt;
     if (this.replay) { this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
     if (this.show && !this.show.step(dt, this.showP, (k) => this.showCall?.(k))) this.showFin?.();
+    this.chapa?.update(dt);   // (la chapa del sorteo)
     if (this.repAt && this.t >= this.repAt && !this.paused && !this.hud.panelEl) { this.repAt = 0; this.startReplay(); if (this.replay) return this.active; }
     // (el golpe sale siempre al soltar: con la carga a tope, espera a que tú decidas)
     this.hud.charge(this.chargeLevel(), this.input.charge?.kind);
@@ -975,6 +990,7 @@ export class PelotaMatch {
     this.lastCorte = corte;
     if (this.show) { const [cp, cl] = this.show.cam(this.showP); lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; }
     if (g.phase === 'intro') { const [p, l] = this.introCam(this.t - (this.t0 || 0)); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
+    if (this.tossCam) { const [p, l] = this.tossCam(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }   // (el sorteo: la cámara junto a la chapa)
     // (la salida de los pelotaris: sus dos planos, con un corte entre uno y otro)
     { const pl = this.entra?.go ? (this.entra.salu ? 2 : 1) : 0; if (pl !== (this.entraPl || 0)) { this.entraPl = pl; this.camInit = false; }
       if (pl) { const [p, l] = this.camEntrada(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; } }
@@ -993,7 +1009,7 @@ export class PelotaMatch {
     this.cabe(lp, ll);
     const wp = this.v3.set(lp[0], lp[1], lp[2]); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
-    if (!this.camInit) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }
+    if (!this.camInit || this.tossCam) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }   // (con la chapa, sin retraso: ya va suave)
     const k = 1 - Math.exp(-5 * dt);
     this.camPos.lerp(wp, k); this.camLook.lerp(wl, k);
     this.cam.position.copy(this.camPos);

@@ -89,6 +89,11 @@ export class PelotaAudio {
     this.noise(t, 0.05, 2200, 0.9, 0.32); this.noise(t, 0.16, 700, 2.5, 0.1); this.tone(t, 0.08, 95, 0.3, 'sine', 0.6);
     for (const [f, g, d] of [[310, 0.15, 0.16], [487, 0.1, 0.12], [823, 0.06, 0.09], [1290, 0.035, 0.07]]) this.tone(t, d, f, g, 'sine', 0.97);
   }
+  // la chapa del sorteo contra el suelo: un «¡tin!» metálico y agudo que rebota dos veces y se apaga
+  moneda() {
+    const c = this.ensure(); if (!c) return; const t = c.currentTime;
+    [[0, 0.16], [0.22, 0.09], [0.36, 0.05]].forEach(([d, g]) => { this.tone(t + d, 0.22, 2350, g, 'sine', 0.985); this.tone(t + d, 0.16, 3720, g * 0.55, 'sine', 0.99); this.noise(t + d, 0.03, 5200, 2, g * 0.6); });
+  }
   floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
   wall() { this.front(0.6); }
   // el golpe del «VS» de la presentación: un bombo seco con chasquido y el público que ruge (largo y más grave sonaba a trueno)

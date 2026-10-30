@@ -23,20 +23,44 @@ const CSS = `
 .pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding:3px 12px;border-radius:999px;background:rgba(7,2,15,.55)}
 @media (max-width:620px){.pel-rep{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 38px)}}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
-/* el sorteo del saque: la chapa (azul por una cara y colorada por la otra) sube girando y cae; brilla el lado que saca */
-.pel-toss{position:absolute;inset:0;z-index:5;display:grid;place-items:center;padding:16px;pointer-events:auto;background:radial-gradient(ellipse at 50% 45%,rgba(40,14,92,.78),rgba(7,2,15,.92));animation:pel-tossbg .3s ease-out both}.pel-toss.directo{animation:none}
+/* el sorteo del saque. La chapa, en 3D en la cancha (chapa.js), con el centro despejado para verla: arriba el título
+   entre dos rayas de color y por qué viste cada uno de su color; abajo, a cada lado, la tarjeta de cada pelotari con su
+   figura, el cristal morado y el filo de su color, como las cartas del juego; en medio, el botón y, al caer, quién saca.
+   Sin la cancha, la chapa plana de antes, en medio */
+.pel-toss{position:absolute;inset:0;z-index:5;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;gap:12px;padding:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-right,0px) + 20px) calc(env(safe-area-inset-bottom,0px) + 16px) calc(env(safe-area-inset-left,0px) + 20px);pointer-events:auto;
+  background:radial-gradient(ellipse at 50% 46%,rgba(7,2,15,0) 30%,rgba(7,2,15,.55) 100%),linear-gradient(180deg,rgba(7,2,15,.8) 0%,rgba(7,2,15,0) 26%,rgba(7,2,15,0) 58%,rgba(7,2,15,.82) 100%);animation:pel-tossbg .3s ease-out both}
+.pel-toss:not(.tres){background:radial-gradient(ellipse at 50% 45%,rgba(40,14,92,.78),rgba(7,2,15,.92))}
+.pel-toss.directo{animation:none}
 .pel-root:has(>.pel-toss)>:not(.pel-toss){visibility:hidden}
 .pel-toss.out{animation:pel-tossout .32s ease-in both}
-.pel-toss-card{display:flex;flex-direction:column;align-items:center;gap:12px;width:min(640px,100%);text-align:center}
-.pel-toss-k{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.18em;text-transform:uppercase;color:#ffd6f6;animation:pel-kin .6s ease-out both}
-.pel-toss-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:16px;width:100%;margin-top:24px}
-.pel-toss-p{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:8px;border:2px solid transparent;transition:transform .3s,box-shadow .3s,border-color .3s;min-width:0}
-.pel-toss-p i{width:34px;height:34px;border-radius:50%;box-shadow:inset 0 -4px 0 rgba(0,0,0,.25),0 0 0 3px rgba(255,255,255,.25)}
-.pel-toss-p.azul i{background:radial-gradient(circle at 35% 30%,#9c92ff,#5b4bff 50%,#2a1a9e)}.pel-toss-p.rojo i{background:radial-gradient(circle at 35% 30%,#ff8fc0,#ff2e88 50%,#9e0f52)}
-.pel-toss-p b{font:400 var(--fs-xl)/1.05 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;max-width:100%;overflow-wrap:anywhere}
-.pel-toss-p small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#d8cff0}
-.pel-toss-p.azul{animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}.pel-toss-p.rojo{animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-toss-p.gana{transform:scale(1.1)}.pel-toss-p.azul.gana{border-color:#8f84ff;box-shadow:0 0 28px rgba(91,75,255,.8),inset 0 0 18px rgba(91,75,255,.4)}.pel-toss-p.rojo.gana{border-color:#ff7ac8;box-shadow:0 0 28px rgba(255,46,136,.8),inset 0 0 18px rgba(255,46,136,.4)}
+.pel-toss-top{grid-column:1/-1;grid-row:1;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.pel-toss-k{display:flex;align-items:center;gap:14px;font:400 var(--fs-2xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(7,2,15,.8);animation:pel-kin .6s ease-out both}
+.pel-toss-k i{display:block;width:clamp(28px,8vw,72px);height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,#5b4bff)}.pel-toss-k i:last-child{background:linear-gradient(90deg,#ff2e88,transparent)}
+.pel-toss-why{margin:0;font:700 var(--fs-sm)/1.3 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 6px rgba(7,2,15,.9)}
+/* las tarjetas: la figura sale por arriba, el nombre en grande y el color con las temporadas */
+.pel-toss-p{--pc:#5b4bff;--k:14px;grid-row:3;align-self:end;position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:12px;min-width:0;max-width:340px;padding:10px 16px 12px 10px;isolation:isolate;
+  transition:transform .35s cubic-bezier(.2,1.4,.4,1),filter .35s,opacity .35s}
+/* (el cristal con las esquinas cortadas va en una capa de fondo: recortar la tarjeta entera cortaba la figura que asoma) */
+.pel-toss-p::after{content:'';position:absolute;inset:0;z-index:-1;--ln:linear-gradient(90deg,var(--pc),transparent);background:var(--ln) top/100% 3px no-repeat,linear-gradient(170deg,rgba(42,15,94,.9),rgba(13,6,28,.92));
+  clip-path:polygon(var(--k) 0,100% 0,100% calc(100% - var(--k)),calc(100% - var(--k)) 100%,0 100%,0 var(--k))}
+.pel-toss-p.azul{grid-column:1;justify-self:start;animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-toss-p.rojo{--pc:#ff2e88;grid-column:3;justify-self:end;grid-template-columns:minmax(0,1fr) auto;padding:10px 10px 12px 16px;text-align:right;animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-toss-p.rojo .pt-fig{order:2}.pel-toss-p.rojo::after{--ln:linear-gradient(270deg,var(--pc),transparent);clip-path:polygon(0 0,calc(100% - var(--k)) 0,100% var(--k),100% 100%,var(--k) 100%,0 calc(100% - var(--k)))}
+.pel-toss-p .pt-fig{position:relative;width:64px;height:84px;margin-top:-38px}
+.pel-toss-p .pt-fig img{position:absolute;left:50%;bottom:0;height:130%;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 8px 12px rgba(0,0,0,.5))}
+.pel-toss-p.rojo .pt-fig img{transform:translateX(-50%) scaleX(-1)}
+.pel-toss-p .pt-tx{display:grid;gap:4px;min-width:0}
+.pel-toss-p b{font:400 var(--fs-2xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;color:#fff;overflow-wrap:anywhere}
+.pel-toss-p small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--pc) 45%,#fff)}
+.pel-toss-p.gana{transform:translateY(-6px) scale(1.06);filter:drop-shadow(0 0 18px color-mix(in srgb,var(--pc) 80%,transparent))}
+.pel-toss-p.pierde{opacity:.55;filter:saturate(.5)}
+/* en medio, abajo: el botón y quién saca */
+.pel-toss-mid{grid-column:2;grid-row:2/4;align-self:end;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;text-align:center}
+.pel-toss.aire .pel-toss-go{opacity:0;pointer-events:none;transform:scale(.9);transition:opacity .2s,transform .2s}
+.pel-toss-go{animation:pel-kin .5s .35s ease-out both}
+.pel-toss-res{margin:0;min-height:1.1em;font:400 var(--fs-3xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
+.pel-toss-res.azul{color:#c4bcff;text-shadow:0 0 18px rgba(91,75,255,.95),0 2px 6px rgba(7,2,15,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}.pel-toss-res.rojo{color:#ffb0d6;text-shadow:0 0 18px rgba(255,46,136,.95),0 2px 6px rgba(7,2,15,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}
+/* la chapa plana de antes, solo si no hay cancha */
 .pel-toss-coin{position:relative;width:104px;height:150px;perspective:600px;display:flex;align-items:flex-end;justify-content:center}
 .pel-toss-coin .coin{position:relative;width:84px;height:84px;margin-bottom:22px;transform-style:preserve-3d;transform:rotateX(70deg)}
 .pel-toss-coin .f{position:absolute;inset:0;border-radius:50%;backface-visibility:hidden;-webkit-backface-visibility:hidden;box-shadow:inset 0 0 0 5px rgba(255,255,255,.4),inset 0 0 0 9px rgba(0,0,0,.15)}
@@ -45,11 +69,6 @@ const CSS = `
 .pel-toss-coin .sh{position:absolute;bottom:8px;left:50%;width:70px;height:12px;margin-left:-35px;border-radius:50%;background:rgba(0,0,0,.45);filter:blur(3px)}
 .pel-toss.aire .coin{animation:pel-flip 1.45s cubic-bezier(.25,.6,.35,1) both}.pel-toss.aire .sh{animation:pel-flipsh 1.45s cubic-bezier(.25,.6,.35,1) both}
 .pel-toss.cae .coin{animation:pel-flip 1.45s cubic-bezier(.25,.6,.35,1) both,pel-land .35s 1.45s ease-out}
-.pel-toss-why{margin:0;font:700 var(--fs-sm)/1.3 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;color:#e8dcff}
-.pel-toss.aire .pel-toss-go{opacity:0;pointer-events:none;transform:scale(.9);transition:opacity .2s,transform .2s}
-.pel-toss-go{animation:pel-kin .5s .35s ease-out both}
-.pel-toss-res{margin:0;min-height:1.2em;font:400 var(--fs-3xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.02em}
-.pel-toss-res.azul{color:#b3aaff;text-shadow:0 0 18px rgba(91,75,255,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}.pel-toss-res.rojo{color:#ff9ccc;text-shadow:0 0 18px rgba(255,46,136,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes pel-flip{0%{transform:translateY(0) rotateX(70deg)}50%{transform:translateY(-96px) rotateX(990deg)}100%{transform:translateY(0) rotateX(calc(1870deg + var(--fin,0deg)))}}
 @keyframes pel-flipsh{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.45);opacity:.4}}
 @keyframes pel-land{30%{translate:0 -10px}}
@@ -57,7 +76,12 @@ const CSS = `
 @keyframes pel-tossbg{from{opacity:0}}@keyframes pel-tossout{to{opacity:0;transform:scale(1.04)}}
 @keyframes pel-tl{from{opacity:0;transform:translateX(-40px)}}@keyframes pel-tr{from{opacity:0;transform:translateX(40px)}}
 @keyframes pel-kin{from{opacity:0;letter-spacing:.5em}}@keyframes pel-res{from{opacity:0;transform:scale(.5)}}
-@media (orientation:portrait){.pel-toss-row{gap:8px}.pel-toss-coin{width:84px}.pel-toss-p b{font-size:var(--fs-lg)}}
+/* tumbado y bajo: todo un paso más pequeño; de pie, las tarjetas abajo, una al lado de otra, y el botón encima */
+@media (max-height:500px){.pel-toss-k{font-size:var(--fs-xl)}.pel-toss-p b{font-size:var(--fs-xl)}.pel-toss-p .pt-fig{width:52px;height:64px;margin-top:-30px}.pel-toss-res{font-size:var(--fs-2xl)}.pel-toss-p{padding-block:8px 10px}}
+@media (orientation:portrait){.pel-toss{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto}
+  .pel-toss-mid{grid-column:1/-1;grid-row:3}.pel-toss-p{grid-row:4;max-width:none;width:100%}.pel-toss-p.azul{grid-column:1}.pel-toss-p.rojo{grid-column:2}
+  .pel-toss-p b{font-size:var(--fs-lg)}.pel-toss-p .pt-fig{width:44px;height:60px;margin-top:-24px}.pel-toss-res{white-space:normal}}
+@media (prefers-reduced-motion:reduce){.pel-toss-p,.pel-toss-k,.pel-toss-go,.pel-toss-res{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.pel-toss *,.pel-rep *{animation-duration:.01s!important}}
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
