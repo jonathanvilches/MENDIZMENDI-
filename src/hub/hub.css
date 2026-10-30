@@ -994,7 +994,9 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sp-stat > :is(svg, img) { flex: none; width: 18px; height: 18px; }
 .sp-stat b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: 0; color: color-mix(in srgb, var(--acc) 45%, #fff); }
 .sp-body { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-width: 0; padding: 16px 10px 6px; }
-.sp-txt { display: grid; gap: 8px; min-width: 0; }
+.sp-txt { display: grid; gap: var(--r-tx); min-width: 0; }
+/* (antetítulo → título 12 y de ahí a las etiquetas 16, la letra recortada: la tabla de src/style.css) */
+.sp-txt > .kicker { display: block; } .sp-txt > :is(.kicker, h3) { text-box: trim-both cap alphabetic; } .sp-txt > .kicker + h3 { margin-top: calc(var(--r-kt) - var(--r-tx)); }
 .sp-txt .kicker { color: color-mix(in srgb, var(--acc) 55%, #fff); }
 .sp-txt h3 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); text-transform: uppercase; letter-spacing: 0; color: #fff; }
 /* (los campeonatos que tiene: pastillas para leer, del color de su deporte, que no parezcan botones) */
@@ -1010,7 +1012,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* lo elegido, en una pastilla del alto del botón: su imagen en redondo, el nombre y debajo de dónde es. La del frontón se
    toca para cambiarlo: abre la lista de todos los frontones por comarcas */
 .sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; max-width: 100%; padding: 4px 18px 4px 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; color: #fff; text-align: left; }
-.sp-box > span { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.sp-box > span { flex: 1; display: flex; flex-direction: column; gap: var(--e1); min-width: 0; }
 .sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-box small { font: 600 var(--fs-xs)/1.2 var(--f-cond); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-media { flex: none; display: block; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
@@ -1080,7 +1082,10 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 @keyframes sbIn { from { opacity: 0; transform: translateY(14px) scale(.94); } }
 @media (prefers-reduced-motion: reduce) { .sb-tile { animation: none; } }
 .armorial { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--hueco-m); padding-bottom: 24px; }   /* (una columna que no ensancha nada de dentro) */
-.armorial .ar-head h1 { margin: var(--t-mt) 0 var(--t-mb); } .armorial .ar-head p { margin: 0 0 8px; max-width: 75ch; font-weight: 600; color: #eae4f6; }
+.armorial .ar-head h1 { margin: var(--t-mt) 0 var(--t-mb); }
+/* (con la letra recortada, la cabecera de las secciones del material: antetítulo → título 12 y título → texto 16 en
+   cualquier tamaño; con --t-mt y --t-mb, en el ordenador, donde el título es mayor, salían 15) */
+.armorial .ar-head > .kicker { display: block; } .armorial .ar-head > :is(.kicker, h1) { text-box: trim-both cap alphabetic; } .armorial .ar-head > .kicker + h1 { margin: var(--r-kt) 0 var(--r-tx); } .armorial .ar-head > h1 + p { text-box: trim-start cap alphabetic; } .armorial .ar-head p { margin: 0 0 8px; max-width: 75ch; font-weight: 600; color: #eae4f6; }
 .armorial .ar-count { color: #ff7ac8; }
 .armorial details > summary { cursor: pointer; font-weight: 900; min-height: 44px; display: flex; align-items: center; gap: 8px; }
 /* desplegables: una flecha dice que se abren y se cierran */
@@ -1314,7 +1319,7 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
   .armorial.pasaka .pk-hero:has(.pk-cov) .pk-hero-tx { grid-row: 2; padding: 16px 4px 4px; }
 }
 @media (max-width: 600px) { .armorial.pasaka .pk-hero-tx { grid-template-columns: minmax(0, 1fr); grid-template-rows: 1fr auto auto auto; grid-template-areas: "." "k" "t" "go"; } .armorial.pasaka .pk-hero-tx .btn { margin-top: 16px; } .armorial.pasaka .pk-hero { aspect-ratio: 16 / 10; } }
-.armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { display: flex; align-items: center; gap: 8px; margin: 8px 0 6px; font-size: var(--fs-md); line-height: 1.3; color: color-mix(in srgb, var(--cat) 70%, #fff); } .armorial.pasaka .pk-sec { border-left: 3px solid var(--cat); } .armorial.pasaka .pk-sec p { margin: 0 0 8px; color: #eae4f6; font-weight: 600; }
+.armorial.pasaka .pk-sec { border-radius: 4px; } .armorial.pasaka .pk-sec h3 { display: flex; align-items: center; gap: 8px; margin: var(--e2) 0 var(--e2); font-size: var(--fs-md); line-height: 1.3; color: color-mix(in srgb, var(--cat) 70%, #fff); } .armorial.pasaka .pk-sec { border-left: 3px solid var(--cat); } .armorial.pasaka .pk-sec p { margin: 0 0 var(--e2); color: #eae4f6; font-weight: 600; } .armorial.pasaka .pk-sec h3 + p { text-box: trim-start cap alphabetic; }   /* (título → texto 16: la tabla de src/style.css) */
 
 /* ---------- Personajes: su propia sección (antes, debajo de «Elige tu personaje») */
 .pj .filters { margin-bottom: 0; }
@@ -1521,11 +1526,13 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
 .pcard .pc-img .phead { text-shadow: var(--letra-foto); } .pcard .pc-img .phead small { color: rgba(236, 228, 255, .9); }
 .pcard .alt { font-weight: 600; color: #fff; }
 /* las leyendas: su tipo y su título, encima de su ilustración */
-.cuentos .ct-lam figcaption { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; display: grid; gap: 2px; padding: 32px 14px 12px; text-align: left; isolation: isolate; text-shadow: var(--letra-foto); }
+.cuentos .ct-lam figcaption { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; display: grid; gap: 0; padding: 32px var(--e4) var(--e4); text-align: left; isolation: isolate; text-shadow: var(--letra-foto); }
 /* (detrás de los pies de las láminas, el velo suave de sport.css: --velo) */
 :is(.cuentos .ct-lam figcaption, .lam-rail .lam span)::before { content: ''; position: absolute; inset: -24px 0 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(0deg, var(--velo)); opacity: .62; }
 .cuentos .ct-lam figcaption small { color: #ffb1e3; font: 600 11px/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
 .cuentos .ct-lam figcaption h3 { margin: 0; color: #fff; font: 400 var(--fs-lg)/1.1 var(--f-display); }
+/* (antetítulo → título 12, la letra recortada: la tabla de src/style.css) */
+.cuentos .ct-lam figcaption > :is(small, h3) { text-box: trim-both cap alphabetic; } .cuentos .ct-lam figcaption small + h3 { margin-top: var(--r-kt); }
 .cuentos .ct-lam.locked figcaption h3 { color: rgba(255, 255, 255, .85); }
 /* los personajes de Navarra con ilustración: su nombre, su campo y sus años, encima */
 .fcard.pers.ilus { position: relative; padding: 0; overflow: hidden; }

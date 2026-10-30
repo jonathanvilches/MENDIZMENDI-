@@ -320,7 +320,7 @@ export class Hub {
       <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
       <div class="fh-scroll">
         <header class="fh-cab"${cab.fondo ? ` style="${cab.fondo.slice(1)}"` : ''}>${cab.marco}
-          <div class="fh-tit"><small class="fh-k">Cañada Real de los Roncaleses</small><h2>La trashumancia<em data-notr>Transhumantzia</em></h2></div></header>
+          <div class="fh-tit"><small class="fh-k">Cañada Real de los Roncaleses</small><h2><span>La trashumancia</span><em data-notr>Transhumantzia</em></h2></div></header>
         <div class="fh-hud">${st('sheep', 'Desde', 'Valle de Roncal')}${st('peak', 'Hasta', 'Bardenas Reales')}${st('running', 'Camino', 'Más de 100 km')}</div>
         <div class="sh-body"><p class="sh-intro">Cada otoño, los pastores del valle de Roncal bajan andando con sus rebaños de ovejas hasta las Bardenas Reales, donde pasan el invierno. En primavera vuelven a subir a los pastos del Pirineo. Eso es la trashumancia.</p>
           <ul class="fh-vis">${T.map(([ic, n, tx]) => `<li><span class="fh-mi">${I(ic, 24)}</span><div><b>${esc(n)}</b><p>${esc(tx)}</p></div></li>`).join('')}</ul>
@@ -424,7 +424,7 @@ export class Hub {
     return `
     <section class="chero" style="--c:${c.color}${cab.fondo}">${cab.marco}
       <div class="ch-tx"><button class="back" data-go="${dd ? 'map' : 'home'}">${I('back', 22)} Mapa</button>
-        <div class="ch-nom"><img class="bigstamp${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}"><div><small class="kicker">Comarca</small><h1>${esc(cn1)}${cn2 ? `<em data-notr>${esc(otroNombre(cn1, cn2))}</em>` : ''}</h1></div></div>
+        <div class="ch-nom"><img class="bigstamp${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}"><div><small class="kicker">Comarca</small><h1><span>${esc(cn1)}</span>${cn2 ? `<em data-notr>${esc(otroNombre(cn1, cn2))}</em>` : ''}</h1></div></div>
         <div class="ch-datos">${dato('church', ts.length, ts.length === 1 ? 'Pueblo' : 'Pueblos')}${dd ? '' : dato('stamp', `${pr.stamps}<i>/${pr.towns}</i>`, 'Sellos') + dato('check', `${pr.done}<i>/${pr.total}</i>`, 'Misiones')}${c.river ? dato('river', esc(c.river), 'Río', true) : ''}</div></div>
     </section>
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
@@ -478,7 +478,7 @@ export class Hub {
       <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
       <div class="fh-scroll">
         <header class="fh-cab"${cab.fondo ? ` style="${cab.fondo.slice(1)}"` : ''}>${cab.marco}
-          <div class="fh-tit"><small class="fh-k">${esc(c?.name || '')}</small><h2>${esc(n1)}${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2></div></header>
+          <div class="fh-tit"><small class="fh-k">${esc(c?.name || '')}</small><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2></div></header>
         <div class="fh-hud">${t.total ? st('check', 'Misiones', `${t.done}<i>/${t.total}</i>`, t.done === t.total ? ' ok' : '') : ''}${st('stamp', 'Sello', t.stamp ? 'Conseguido' : 'Por ganar', t.stamp ? ' ok' : '')}${l.river ? st('river', 'Río', esc(l.river.name)) : ''}${cts.length ? st('legend', cts.length === 1 ? 'Leyenda' : 'Leyendas', cts.length === 1 ? (oidas ? 'Escuchada' : 'Por escuchar') : `${oidas}<i>/${cts.length}</i>`, oidas === cts.length ? ' ok' : '') : ''}</div>
         <div class="sh-body">${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
           <h3>${I('check', 18)} Misiones <span>${t.done}/${t.total}</span></h3>
@@ -539,7 +539,7 @@ export class Hub {
   galInfo(id, i, n) {
     const l = levelById(id); if (!l) return '';
     const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), c = comarca(l.comarca);
-    return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><h2>${esc(n1)}${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2>
+    return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2>
       <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div>
       <div class="gi-b">${dd ? `<button type="button" class="btn primary" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button type="button" class="btn" data-town="${l.id}">${I('scroll', 20)}<span>Ficha</span></button><button type="button" class="btn primary" data-play="${l.id}">${I('play', 20)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>`}</div>`;
   }
