@@ -395,11 +395,19 @@ export class TownGame {
         look: { shirt: '#c41f2c', pants: '#1f2d5a', shoes: '#1d1d1f', hair: '#3a2418', female: true, ponytail: true, skin: '#e2b08a' } }, this.scene);
       this.actors.push(this.coach); this.sadar = sadar;
     }
-    // aparición del jugador
-    const sp = this.spot(PLACES.spawn, 4);
-    this.player.place(sp.x, sp.z, Math.atan2(PLACES.plaza.x - sp.x, PLACES.plaza.z - sp.z));
-    this.follow.snap(this.player);
+    // aparición del jugador: la primera vez, en la entrada del pueblo; si ya hay misiones hechas, a unos pasos de quien
+    // da la siguiente, mirándole, para no cruzar el pueblo entero cada vez que se vuelve a jugar (antes, siempre en la
+    // entrada). El perro, a su lado
     this.autoTrack();
+    const M0 = this.missions.some(M => M.done) && this.missions[this.tracked], h = M0 && !M0.done && M0.host?.pos;
+    let sp, mira = PLACES.plaza;
+    if (h) {
+      const dx = PLACES.spawn.x - h.x, dz = PLACES.spawn.z - h.z, d = Math.hypot(dx, dz) || 1, k = Math.min(5, d) / d;
+      sp = this.spot({ x: h.x + dx * k, z: h.z + dz * k }, 3); mira = h;
+    } else sp = this.spot(PLACES.spawn, 4);
+    this.player.place(sp.x, sp.z, Math.atan2(mira.x - sp.x, mira.z - sp.z));
+    { const D = this.perro?.dog, P = this.player.pos; if (D) D.pos.set(P.x + 1.2, P.y, P.z + 1.2); }
+    this.follow.snap(this.player);
     window.__TOWN_PEN = TOWN.pen;
   }
   // Moras en las zarzas del borde del bosque, avellanas y manzanas: comida para la mochila

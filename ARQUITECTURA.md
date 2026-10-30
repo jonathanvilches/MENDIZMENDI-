@@ -103,7 +103,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Entrar en un pueblo:** siempre la carga entera con su portada y, al acabar, ya en el pueblo detrás del jugador
   (`main.js`, `play`). Sin intros desde el aire: ni zoom del mapa al darle a jugar, ni vuelo de llegada al pueblo, ni la
   intro de Otsagabia. En el iPhone, el pueblo entero visto desde lo alto pasaba del presupuesto y se perdía la imagen
-  (Leitza, octubre de 2026). El vuelo hasta la cancha antes de los partidos de pelota sí se queda (`game/llegadas.js`). Los lienzos cuyos píxeles se leen van
+  (Leitza, octubre de 2026). El vuelo hasta la cancha antes de los partidos de pelota sí se queda (`game/llegadas.js`). La
+  primera vez se aparece en la entrada del pueblo; con misiones ya hechas, a unos pasos de quien da la siguiente y
+  mirándole, con el perro al lado (`townGame.js`, al final de `spawn`), para no cruzar el pueblo cada vez. Los lienzos cuyos píxeles se leen van
   con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente. En la carga, la descripción y
   el consejo van enteros, sin cortar (`tools/carga-textos.mjs`).
 - **Colecciones por descubrir:** jugando, naturaleza, personajes, escudos y leyendas salen bloqueados (imagen apagada,
