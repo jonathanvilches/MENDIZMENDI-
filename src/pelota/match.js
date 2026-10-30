@@ -223,7 +223,7 @@ export class PelotaMatch {
     const g = this.game, c = this.cesta; if (!g || !c) return;
     const sd = g.side(g.serverP?.() || g.server);
     if (sd === 'rival') { const sc = g.score || { you: 0, rival: 0 }, b = saqueRival(c.rival, perfil(this.o.rivalStats), sc.rival || 0, sc.you || 0);
-      if (b !== this.bola && this.bola) this.hud.tip((this.txt.mat || TEXT.es.mat).rivalSaca((this.txt.mat || TEXT.es.mat).kinds[clase(b)])); this.bola = b; }
+      this.bola = b; }   // (sin aviso escrito: la pelota con la que saca se ve en el botón de la pelota)
     else this.bola = this.bolaTuya;
     this.applyFeel(); this.pintaBolas();
   }
@@ -560,13 +560,6 @@ export class PelotaMatch {
     try { await openFicha(L, Math.max(0, L.findIndex(p => p.id === id)), this.lang, this.hud.root); }
     finally { this.fichaOpen = false; if (this.active) this.paused = was; }
   }
-  /** La tarjeta del rival (y la de su compañero): su potencia, la de su carta, y su figura; se calcula una vez. */
-  fichaRival(id) {
-    const c = (this._fr ||= {}); if (c[id]) return c[id];
-    const name = id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '', st = id === 'rival' ? this.o.rivalStats : this.mateObjs?.[id]?.stats;
-    const { name: n, town } = splitName(name), r = pelotariRating(st || {}, `${n} ${town || splitName(this.names.rival).town || this.o.town || ''}`);
-    return (c[id] = { pot: r.pot, fig: this.o.caras?.fig?.(n, this.cols.rival) || '' });
-  }
   endPanel(e) {
     const t = this.txt, g = this.game;
     this.hud.controls(false); this.hud.tip('');
@@ -762,7 +755,7 @@ export class PelotaMatch {
     else if (e.type === 'front') (this.recEv ||= []).push(e.chapa ? 'chapa' : 'front');
     else if (e.type === 'call') { this.recCall = true; if (g.mode === 'match' && this.repe && this.rec?.length > 30 && !(navigator.webdriver && !window.__repe)) this.repAt = this.t + 1.15; }
     switch (e.type) {
-      case 'serveReady': if (g.mode === 'match' && !this.avisoDesc && g.descansos?.you > 0 && g.players.you.en < 0.35) { this.avisoDesc = true; this.tipHasta = this.t + 4.5; this.tipTexto = (t.desc || TEXT.es.desc).cansado(g.descansos.you); }   // (cansado y con descansos: se te recuerda, una vez)
+      case 'serveReady': break;   // (cansado y con descansos, ya no hay aviso escrito: brilla el botón de la pelota y el descanso)
         this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
@@ -775,7 +768,6 @@ export class PelotaMatch {
         // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
         this.rallyN = (this.rallyN || 0) + 1; A.mood(Math.min(0.52, 0.2 + this.rallyN * 0.03), 0.8);
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
-        if (this.game.side(e.who) === 'rival') this.hud.potencia?.(e.who, pw);   // (la fuerza de su golpe, en su tarjeta)
         // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
         if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
         // el aviso de cómo ha salido (perfecto, bien, justo, pronto, tarde), solo en el peloteo de entrenar: en los partidos
@@ -796,7 +788,7 @@ export class PelotaMatch {
       case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
         const D = t.desc || TEXT.es.desc, mio = e.side === 'you';
         this.hud.call(mio ? D.tuyo : D.suyo(g.pairs && this.mateObjs ? `${this.names.rival} · ${this.mateObjs.rivalMate.name}` : this.names.rival), `${D.sub}${mio ? ' ' + D.quedan(e.left) : ''}`, '', 3.6);
-        A.mood(0.12, 0.6); this.avisoDesc = false; break;
+        A.mood(0.12, 0.6); break;
       }
       case 'whiff': if (g.mode === 'rally') this.hud.quality(e.early ? (t.quality.early || TEXT.es.quality.early) : t.quality.whiff, '', 'whiff'); break;   // (pronto o tarde: solo entrenando)
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
@@ -873,13 +865,12 @@ export class PelotaMatch {
     const toV = h?.toVolley, airNow = h?.volea && toV != null && toV > -0.05;
     this.hud.timing(h?.yourTurn ? (airNow ? toV : h.toIdeal) : null);
     const T1 = this.txt; this.hud.hitLabel(h?.gancho ? (T1.hitGancho || TEXT.es.hitGancho) : h?.volea ? (T1.hitVolley || TEXT.es.hitVolley) : T1.hit);
-    // consejos: solo mientras se aprende (los primeros tantos de los dos primeros partidos, o el primer medio minuto del
-    // peloteo); después, nada: el autor no quería instrucciones todo el rato
+    // consejos: solo en el peloteo de entrenar, el primer medio minuto de los dos primeros; en los partidos, ninguno (el
+    // autor no quiere que en cada golpe se explique cómo se juega: ensuciaba la vista)
     const tt = this.txt;
     let tip = '';
-    const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP(), aprende = this.conConsejos && (g.mode === 'rally' ? this.t < 30 : ((g.score?.you || 0) + (g.score?.rival || 0)) < 4);
-    if (this.tipHasta > this.t) tip = this.tipTexto;   // (el aviso de pedir un descanso, unos segundos)
-    else if (!aprende) tip = '';
+    const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP(), aprende = this.conConsejos && g.mode === 'rally' && this.t < 30;
+    if (!aprende) tip = '';
     else if (g.phase === 'serveWait' && sp === 'you') tip = g.runUp ? tt.tipServeRun : tt.tipServe;
     else if (g.phase === 'servePrep' && sp === 'you') tip = g.saque ? tt.tipServeRun : g.hittable('you') ? tt.tipServe2 : '';   // (el saque sale solo; si se escapa la pelota, lo das tú)
     else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
@@ -892,12 +883,12 @@ export class PelotaMatch {
     else if (h && h.yourTurn) tip = assist ? tt.tipMove : '';
     else if (h && h.tired > 0.5) tip = tt.tiredYou;
     this.hud.tip(tip);
-    // los descansos: tu botón (con los que te quedan) y los del rival en su tarjeta; el botón brilla si estás cansado
-    this.hud.descansos(g.mode === 'match' && g.phase !== 'intro' && g.phase !== 'end', g.descansos?.you ?? 0, !!g.pedido?.you, g.phase === 'descanso' && g.descanso?.side === 'you', g.descansos?.rival ?? 0);
-    this.hud.descBtn?.classList.toggle('llama', g.mode === 'match' && (g.descansos?.you > 0) && g.players.you.en < 0.35 && !g.pedido?.you);
-    // la energía de cada uno (tú, en amarillo)
+    // los descansos, en el menú del botón de la pelota (con los que te quedan en su badge); el botón brilla si estás cansado
+    this.hud.descansos(g.mode === 'match' && g.phase !== 'intro' && g.phase !== 'end', g.descansos?.you ?? 0, !!g.pedido?.you, g.phase === 'descanso' && g.descanso?.side === 'you');
+    this.hud.cansado(g.mode === 'match' && (g.descansos?.you > 0) && g.players.you.en < 0.35 && !g.pedido?.you);
+    // la energía de cada uno, una raya bajo su nombre en el marcador
     this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), color: this.cols[g.side(id)], me: id === 'you', en: g.players[id].en,
-      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '', ...(g.side(id) === 'rival' ? this.fichaRival(id) : {}) })));
+      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })));
     // pelotaris
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
