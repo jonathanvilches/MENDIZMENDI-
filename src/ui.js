@@ -2,6 +2,7 @@
 // Todos los iconos son de la familia del juego: los horneados (src/assets/icons3d) y, si falta alguno, los dibujos de src/ui/icons.js.
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
 import { HITZAK, HITZAK_TEMA, HITZAK_N, HIZKETAK, HIZKETAK_N, hizketaLines } from './data/hitzak.js';
+import { misionColor } from './data/misionCat.js';
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
@@ -119,7 +120,7 @@ export class UI {
       <div id="compass"><canvas></canvas><span id="cdist"></span></div>
       <div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div><button type="button" class="tl-pl" aria-label="Misiones del pueblo">${CHEV}</button></div>
-        <div id="ribbons"${town ? ' class="mis"' : ''}>${town ? `<span class="mh"><span class="tname">${esc(game.def.name.split(' /')[0])}</span><b class="mc"></b></span><span class="dots" style="--n:${game.missions.length}">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}">${I(M.icon || 'star', 14)}</i>`).join('')}</span>`
+        <div id="ribbons"${town ? ' class="mis"' : ''}>${town ? `<span class="mh"><span class="tname">${esc(game.def.name.split(' /')[0])}</span><b class="mc"></b></span><span class="dots" style="--n:${game.missions.length}">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 14)}</i>`).join('')}</span>`
           : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
       </div>
       <div id="topright">
