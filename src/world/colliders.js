@@ -52,6 +52,9 @@ export function resolve(x, z, r, ignore) {
       const who = c.actor || c.animal; if (who && (!who.obj?.parent || who.visible === false)) continue;   // fuera de la escena u oculto: no estorba
       const dx = x - c.x, dz = z - c.z, d = Math.hypot(dx, dz), m = c.r + r;
       if (d < m && d > 1e-5) { x = c.x + dx / d * m; z = c.z + dz / d * m; hit = moved = true; mover = c; }
+      // (justo en el mismo sitio no hay hacia dónde empujar: a un lado. Antes se quedaban uno dentro del otro, como dos
+      // ovejas del rebaño del pastor que llegaban al mismo punto)
+      else if (d <= 1e-5) { x = c.x + m; hit = moved = true; mover = c; }
     }
     for (const c of nearby(x, z, r + 2)) {
       if (c === ignore || c.ghost) continue;

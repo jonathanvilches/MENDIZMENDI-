@@ -304,10 +304,14 @@ export class PuebloActividades {
         addBox(mx, mz, Math.abs(x1 - x0) + 0.3, Math.abs(z1 - z0) + 0.3, 0);
       }
       const box = { x0: px - w / 2 + 0.8, x1: px + w / 2 - 0.8, z0: pz - d / 2 + 0.8, z1: pz + d / 2 - 0.8 };
+      // (cada uno en su hueco del cercado, sin montarse en otro: antes salían al azar y alguno quedaba dentro de otro; y su
+      // cuerpo, que choca, va con él: sync)
+      const rad = kind === 'cow' ? 0.8 : 0.45, puestos = [];
       for (let k = 0; k < n; k++) {
-        const ax = box.x0 + R() * (box.x1 - box.x0), az = box.z0 + R() * (box.z1 - box.z0);
-        const a = this.fauna.add(kind, ax, az, { range: 2, walk: 0.4, run: 1, flee: 0, radius: kind === 'cow' ? 0.8 : 0.45 });
-        a.pos.set(ax, groundHeight(ax, az), az); a.home = { x: ax, z: az }; a.bounds = (x, z) => x > box.x0 && x < box.x1 && z > box.z0 && z < box.z1;
+        let ax, az; for (let t = 0; t < 40; t++) { ax = box.x0 + R() * (box.x1 - box.x0); az = box.z0 + R() * (box.z1 - box.z0); if (puestos.every(([x, z]) => Math.hypot(x - ax, z - az) > rad * 2 + 0.2)) break; }
+        puestos.push([ax, az]);
+        const a = this.fauna.add(kind, ax, az, { range: 2, walk: 0.4, run: 1, flee: 0, radius: rad });
+        a.pos.set(ax, groundHeight(ax, az), az); a.home = { x: ax, z: az }; a.bounds = (x, z) => x > box.x0 && x < box.x1 && z > box.z0 && z < box.z1; a.sync();
       }
       pens.push({ kind, x: px, z: pz });
     });
