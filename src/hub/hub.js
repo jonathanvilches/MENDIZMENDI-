@@ -46,6 +46,7 @@ import { profile, saveProfile, levelOf, rankOf, townProgress, comarcaProgress, c
 import { esc, el } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 import { isDidactico, markDidactico } from '../util/modo.js';
+import { visto, vistos } from '../game/coleccion.js';
 import { TACTIL } from '../util/tactil.js';
 import { calidadOrdenador, gpuNombre } from '../util/gpu.js';
 // (el móvil sin memoria conocida, el iPhone: solo la calidad baja, como en main.js)
@@ -383,7 +384,9 @@ export class Hub {
     // cada animal y planta abre su ficha
     const pic = (n, fb, key) => { const [t, id] = (key || '').split(':'), u = t === 'fauna' ? faunaImg(id)?.small : t === 'flora' ? floraFoto(id)?.planta : null;
       return u ? `<img class="nimg${t === 'fauna' ? ' fa' : ''}" src="${u}" alt="" loading="lazy" decoding="async">` : I(speciesIcon(n) || fb, 26); };
-    const chip = (n, fb, key, title = '') => key ? `<button class="nchip" data-k="${key}" title="${esc(title)}">${pic(n, fb, key)}${esc(n)}</button>` : `<span class="nchip" title="${esc(title)}">${pic(n, fb)}${esc(n)}</span>`;
+    // (jugando, el animal o la planta que aún no has visto, bloqueado: un candado y sin nombre; coleccion.js)
+    const chip = (n, fb, key, title = '') => key && !visto(p, key) ? `<span class="nchip bloq" title="Por descubrir">${I('lock', 22)}¿?</span>`
+      : key ? `<button class="nchip" data-k="${key}" title="${esc(title)}">${pic(n, fb, key)}${esc(n)}</button>` : `<span class="nchip" title="${esc(title)}">${pic(n, fb)}${esc(n)}</span>`;
     const chips = (arr, fb) => (arr || []).map(n => { const k = floraId(n); return chip(n, fb, k && 'flora:' + k); }).join('');
     const cts = CUENTOS.filter(K => K.towns.some(t => levelById(t)?.comarca === id));
     this.after = () => {
@@ -458,7 +461,8 @@ export class Hub {
           <ul class="fh-ms">${ms.map(m => `<li class="${m.done ? 'ok' : ''}"><span class="fh-mi">${I(m.icon, 26)}</span><div><b>${esc(m.title)}</b><small>${esc(m.sub)}</small></div>${m.done ? `<i class="fh-hecha">${I('check', 16)}</i>` : ''}</li>`).join('')}</ul>
           ${vis.length ? `<h3>${I('church', 18)} Qué visitar</h3><ul class="fh-vis">${vis.map(([ic, n, tx]) => `<li><span class="fh-mi">${I(ic, 24)}</span><div><b>${esc(n)}</b><p>${esc(tx)}</p></div></li>`).join('')}</ul>` : ''}
           ${cts.length ? `<h3>${I('legend', 18)} ${cts.length === 1 ? 'Su leyenda' : 'Sus leyendas'}</h3><div class="fh-ley">${this.leyendas(cts, p)}</div>` : ''}
-          ${A ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms">${armsImg(A.id) ? `<img class="sh-armimg" src="${armsImg(A.id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, A)) + 6}"></canvas>`}<p><b>${esc(A.name)}.</b> ${esc(A.read)}</p><button class="lnk" data-go="escudos">Ver todos los escudos</button></div>` : ''}
+          ${A && !visto(p, 'armas:' + A.id) ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms bloq"><span class="bq-pic">${armsImg(A.id) ? `<img class="sh-armimg" src="${armsImg(A.id)}" alt="">` : `<span class="sh-armic">${I('shield', 64)}</span>`}<i class="candado">${I('lock', 26)}</i></span><p><b>Por descubrir.</b> Léelo en el pueblo: está en la fachada del ayuntamiento.</p></div>`
+            : A ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms">${armsImg(A.id) ? `<img class="sh-armimg" src="${armsImg(A.id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, A)) + 6}"></canvas>`}<p><b>${esc(A.name)}.</b> ${esc(A.read)}</p><button class="lnk" data-go="escudos">Ver todos los escudos</button></div>` : ''}
           ${lams.length > 1 ? `<h3>${I('scroll', 18)} Láminas</h3>${laminaRail(lams)}` : ''}
           ${REAL_IDS.includes(l.id) ? `<p class="sh-src"><span>Trazado real del pueblo</span>: ${esc(ATRIBUCION)}</p>` : ''}
         </div>
@@ -551,9 +555,7 @@ export class Hub {
   // la guía de campo: todos los animales y plantas de las comarcas, cada uno con su ficha (al tocarlo). Los que has
   // observado (prismáticos, monte, granja) o identificado (herbario de los pueblos) quedan marcados
   s_nature(tab = 'fauna') {
-    const p = profile(), cards = new Set(p.cards);
-    const obsMap = { corzo: 'corzo', ciervo: 'ciervo', jabali: 'jabali', buitre: 'buitre' };
-    for (const sp of p.species || []) if (obsMap[sp]) cards.add('fauna:' + obsMap[sp]);
+    const p = profile(), cards = { has: (k) => visto(p, k) };   // (lo visto jugando: coleccion.js; en el didáctico, todo)
     const type = tab === 'fauna' ? 'fauna' : 'flora';
     const kindOk = (d) => tab === 'fauna' || (tab === 'trees' ? d.F.m.t === 'tree' : tab === 'flowers' ? d.F.m.t === 'flower' : d.F.m.t !== 'tree' && d.F.m.t !== 'flower');
     const list = allFichas(type).filter(kindOk).sort((a, b) => (cards.has(type + ':' + b.id) - cards.has(type + ':' + a.id)) || a.F.name.localeCompare(b.F.name, 'es'));
@@ -572,7 +574,10 @@ export class Hub {
     return `${cabeza('Saberes · Naturaleza', 'leaf', 'Naturaleza de Navarra')}${isDidactico() ? '<p class="lead">Del hayedo atlántico a las Bardenas: cada comarca tiene sus animales y plantas. Toca uno para ver su ficha.</p>' : ''}
       ${isDidactico() ? '' : `<div class="nprog"><span>${I('leaf', 22)} Herbario <b>${gotFl}</b> / ${nFl}</span><span>${I('binoculars', 22)} Cuaderno de fauna <b>${gotFa}</b> / ${nFa}</span></div>`}
       <div class="filters">${[['fauna', 'Fauna'], ['trees', 'Árboles'], ['plants', 'Arbustos y plantas'], ['flowers', 'Flores']].map(([k, n]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n}</button>`).join('')}</div>
-      <section class="species">${list.map(d => { const got = cards.has(type + ':' + d.id); return `<button class="scard ${type === 'flora' ? 'fl' : ''} ${got ? 'seen' : ''}" data-k="${type}:${d.id}">${pic(d)}<b>${esc(d.F.name)}</b><small class="seu">${esc(d.F.eu || '')}${d.F.eu && d.F.sci ? ' · ' : ''}<i>${esc(d.F.sci || '')}</i></small><div class="where">${d.comarcas.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${got ? `<span class="seenb">${I(type === 'flora' ? 'check' : 'binoculars', 18)} ${type === 'flora' ? 'Identificada' : 'Observado'}</span>` : ''}</button>`; }).join('')}</section>`;
+      <section class="species">${list.map(d => { const got = cards.has(type + ':' + d.id);
+        // (jugando, el que aún no has visto, bloqueado: apagado, con un candado, sin nombre y con sus comarcas de pista)
+        if (!got) return `<div class="scard bloq ${type === 'flora' ? 'fl' : ''}" aria-label="Por descubrir"><span class="bq-pic">${type === 'fauna' ? pic(d) : `<span class="spic">${I(speciesIcon(d.F.name) || fb[tab], 40)}</span>`}<i class="candado">${I('lock', 30)}</i></span><b>¿?</b><small class="seu">Por descubrir</small><div class="where">${d.comarcas.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div></div>`;
+        return `<button class="scard ${type === 'flora' ? 'fl' : ''} ${got ? 'seen' : ''}" data-k="${type}:${d.id}">${pic(d)}<b>${esc(d.F.name)}</b><small class="seu">${esc(d.F.eu || '')}${d.F.eu && d.F.sci ? ' · ' : ''}<i>${esc(d.F.sci || '')}</i></small><div class="where">${d.comarcas.map(c => `<i style="background:${c.color}" title="${esc(c.name)}"></i>`).join('')}</div>${got ? `<span class="seenb">${I(type === 'flora' ? 'check' : 'binoculars', 18)} ${type === 'flora' ? 'Identificada' : 'Observado'}</span>` : ''}</button>`; }).join('')}</section>`;
   }
 
   // ---------- Personajes: selección con el modelo 3D en grande ----------
@@ -639,12 +644,12 @@ export class Hub {
       ['leyenda', 'Leyenda', 'Seres de leyenda', 'legend', 'Los seres de las leyendas de Navarra, tal como salen de noche en el juego. Toca uno para leer su ficha.', figurasHTML(FIGURAS_LEYENDA), FIGURAS_LEYENDA.length],
       ['carnaval', 'Carnaval', 'Carnavales', 'mask', 'Los personajes de los carnavales de Navarra, con el traje de verdad de cada pueblo.', figurasHTML(FIGURAS_CARNAVAL), FIGURAS_CARNAVAL.length]];
     if (!G.some(g => g[0] === tab)) tab = 'all';
-    const total = G.reduce((a, g) => a + g[6], 0);
+    const total = G.reduce((a, g) => a + g[6], 0), p = profile(), des = vistos(p, [...MUJERES, ...HOMBRES].map(id => 'personaje:' + id)) + vistos(p, [...FIGURAS_LEYENDA, ...FIGURAS_CARNAVAL].map(f => 'figura:' + f.id));
     this.after = () => this.root.querySelectorAll('.pj .filters button').forEach(b => b.onclick = (e) => { e.stopPropagation(); this.go('personajes', b.dataset.f); });
     return `<section class="armorial pj">
       <div class="ar-head"><small class="kicker">${I('book', 20)} Saberes · Personajes</small><h1>Personajes de Navarra</h1>
         ${isDidactico() ? '<p>Las mujeres y los hombres que hicieron historia, los seres de las leyendas y las figuras de los carnavales, con la ficha de cada uno.</p>' : ''}
-        <b class="ar-count"><b>${total}</b> personajes</b></div>
+        ${isDidactico() ? `<b class="ar-count"><b>${total}</b> personajes</b>` : `<b class="ar-count"><b>${des}</b> de ${total} descubiertos</b>`}</div>
       <div class="filters">${[['all', 'Todos', total], ...G.map(g => [g[0], g[1], g[6]])].map(([k, n, c]) => `<button data-f="${k}" class="${tab === k ? 'on' : ''}">${n} <small>${c}</small></button>`).join('')}</div>
       ${G.filter(g => tab === 'all' || g[0] === tab).map(g => `<div class="pj-g"><h2 class="sec">${I(g[3], 34)} ${g[2]}</h2>${isDidactico() ? `<p class="lead">${g[4]}</p>` : ''}<section class="figuras">${g[5]}</section></div>`).join('')}
     </section>`;
@@ -653,11 +658,15 @@ export class Hub {
   // ---------- Insignias ----------
   // ---------- Escudos de Navarra ----------
   s_escudos() {
-    const dd = isDidactico(), p = profile(), seen = new Set(dd ? [] : p.cards || []), tn = townName;
+    const dd = isDidactico(), p = profile(), seen = { has: (k) => !dd && (p.cards || []).includes(k) }, tn = townName;
     const KIND = { reino: 'Reino', ciudad: 'Ciudad', valle: 'Valle', municipio: 'Municipio' };
     // (los pueblos de cada escudo, debajo de su nombre y en letra de leer; no los que ya dice el nombre, como Pamplona)
     const pueblos = (A) => A.towns.map(tn).filter(t => !lettersOnly(A.name).includes(lettersOnly(t)));
     const read = ARMAS.filter(A => seen.has('armas:' + A.id)).length;
+    // (jugando, el que aún no has leído en su pueblo, bloqueado: apagado, con un candado, sin nombre y con dónde se lee; no
+    // abre la ficha. coleccion.js)
+    const arBloq = (A) => `<div class="ar bloq" aria-label="Por descubrir"><span class="bq-pic">${armsImg(A.id) ? `<img class="ar-img" src="${armsImg(A.id)}" alt="" loading="lazy" decoding="async">` : `<span class="ar-ic">${I('shield', 72)}</span>`}<i class="candado">${I('lock', 30)}</i></span>
+        <span class="ar-tx"><small>${KIND[A.kind] || ''}</small><b class="ar-nm">¿?</b>${A.towns.length ? `<span class="ar-pu">Léelo en ${esc(A.towns.map(tn).join(', '))}</span>` : ''}</span></div>`;
     // (cada escudo es una tarjeta que abre su ficha, la misma que en el pueblo: el blasón, cómo se lee, los esmaltes, las
     // figuras y su historia, en pestañas; la guía de cómo se lee un escudo y los que faltan por comprobar, también en ficha)
     const ui = { sound: this.sound };
@@ -687,7 +696,7 @@ export class Hub {
         ${dd ? '<p>Los escudos son una forma de escribir con dibujos: cada color, cada figura y cada sitio quieren decir algo. Aquí están los escudos oficiales del reino, de las ciudades, de los valles y de los pueblos del juego. Toca un escudo para ver su ficha.</p>' : ''}
         ${dd ? `<b class="ar-count"><b>${ARMAS.length}</b> <span>escudos</span></b>` : `<b class="ar-count"><b>${read}</b> de ${ARMAS.length} leídos en el juego</b>`}</div>
       <button type="button" class="ar-btn" data-guia>${I('book', 32)}<span><b>Cómo se lee un escudo</b><small>Siete pasos para leer cualquier escudo</small></span>${I('play', 20)}</button>
-      <div class="ar-grid">${ARMAS.map(A => `<button type="button" class="ar${seen.has('armas:' + A.id) ? ' on' : ''}" data-arm="${A.id}">
+      <div class="ar-grid">${ARMAS.map(A => !visto(p, 'armas:' + A.id) ? arBloq(A) : `<button type="button" class="ar${seen.has('armas:' + A.id) ? ' on' : ''}" data-arm="${A.id}">
         ${armsImg(A.id) ? `<img class="ar-img" src="${armsImg(A.id)}" alt="Escudo de ${esc(A.name)}" loading="lazy" decoding="async">` : `<canvas data-draw="${A.id}" width="160" height="${Math.ceil(officialHeight(120, A)) + 8}" aria-label="Escudo de ${esc(A.name)}"></canvas>`}
         <span class="ar-tx"><small>${KIND[A.kind] || ''}</small><b class="ar-nm">${esc(A.name)}</b>${(t => t.length ? `<span class="ar-pu">${esc(t.join(', '))}</span>` : '')(pueblos(A))}${seen.has('armas:' + A.id) ? `<span class="ar-ok">${I('check', 16)} Leído en el juego</span>` : ''}</span>${I('play', 20)}</button>`).join('')}</div>
       ${dd ? '' : casasHTML}
@@ -719,7 +728,7 @@ export class Hub {
         ${(u => u ? `<figure class="ct-lam${on ? '' : ' locked'}"${on ? ` data-ley="${C.id}"` : ''}><img src="${u}" alt="" loading="lazy" decoding="async">${on ? '' : `<span>${I('lock', 40)}</span>`}<figcaption><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3></figcaption></figure>` : `<div class="ct-ic">${I(on ? C.icon : 'lock', 64)}</div><div class="ar-tx"><small>${esc(KIND_LABEL[C.kind])} · ${esc(C.towns.map(tn).join(', '))}</small><h3>${esc(C.title)}</h3></div>`)(leyendaUrl(C.id))}
         <div class="ar-tx"><p class="ct-pl">${esc(C.place)}</p>
           ${on ? `<span class="ar-ok">${I('check', 16)} Escuchado</span><details><summary>Volver a leerlo</summary>${C.parts.map(t => `<p>${esc(t)}</p>`).join('')}<p><b>Lo que puedes ver hoy.</b> ${esc(C.today)}</p></details>`
-            : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p><button class="btn ct-go" data-play="${C.towns[0]}">${I('play', 20)} Ir a ${esc(tn(C.towns[0]))}</button>`}</div></article>`; }).join('')}</div>
+            : `<p>Ve a ${esc(tn(C.towns[0]))} y habla con ${esc(C.teller.name)} en la plaza.</p>`}</div></article>`; }).join('')}</div>
       <p class="ar-src">Fuentes: Cátedra de Patrimonio de la Universidad de Navarra, Auñamendi Eusko Entziklopedia, Senditur, Noticias de Navarra, culturanavarra.es, las Leyendas de Gustavo Adolfo Bécquer y los santuarios y ayuntamientos de cada lugar. Las leyendas tienen muchas versiones: aquí está la más contada, adaptada para niños y niñas.</p>
     </section>`;
   }

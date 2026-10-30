@@ -156,12 +156,12 @@ export class TownGame {
       case 'herd': { const a = ANIMAL[m.animal] || ANIMAL.sheep; M.title = m.title || `Al redil: ${a[0]}`; M.icon = a[1]; M.need = m.n || 5;
         M.steps = () => ['Habla con ' + host(), `Lleva ${a[0]} al redil (${M.count}/${M.need}) — acércate por detrás para empujarlas`, 'Vuelve con ' + host()]; break; }
       case 'dance': M.title = m.name || 'La danza'; M.icon = 'dance'; M.steps = () => ['Habla con ' + host(), 'Ve al corro de baile de la plaza', `Baila: ${m.name}`]; break;
-      case 'carnival': { const f = FOLKLORE.find(x => x.id === m.character); M.folk = f; M.title = m.title || f?.name || 'Carnaval'; M.icon = 'mask'; M.need = 3; M.night = NIGHT_CARNIVAL[m.character];
+      case 'carnival': { const f = FOLKLORE.find(x => x.id === m.character); M.folk = f; M.figura = m.character; M.title = m.title || f?.name || 'Carnaval'; M.icon = 'mask'; M.need = 3; M.night = NIGHT_CARNIVAL[m.character];
         M.steps = () => M.night ? ['Habla con ' + host(), 'Espera a que caiga la noche', `Encuentra a los ${f?.name?.toLowerCase() || 'personajes'}s (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]
           : ['Habla con ' + host(), `Encuentra a ${f?.name || 'los personajes'} (${M.count}/${M.need}) — escucha sus cencerros`, 'Vuelve con ' + host()]; break; }
       case 'trade': { const t = TRADE[m.kind] || TRADE.herrero, of = OFICIOS[m.kind]; M.trade = t; M.oficio = of; M.tstep = 0; M.title = m.title || of?.name || t.title; M.icon = of?.icon || t.icon;
         M.steps = () => ['Habla con ' + host(), of ? `Taller de ${of.name.toLowerCase()}: paso ${Math.min(M.tstep + 1, of.steps.length)} de ${of.steps.length}` : `Trabaja en el taller: ${t.title.toLowerCase()}`]; break; }
-      case 'legend': { const L = M.leg = m.leg ? { ...LEGENDS[m.who], ...m.leg } : LEGENDS[m.who];   // (un bosque cuenta la suya: leg) M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
+      case 'legend': { const L = M.leg = m.leg ? { ...LEGENDS[m.who], ...m.leg } : LEGENDS[m.who]; M.figura = m.who;   // (un bosque cuenta la suya: leg) M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
         M.steps = () => ['Escucha la leyenda: habla con ' + host(), 'Espera a que caiga la noche', `Sigue las pistas que brillan en la oscuridad (${M.count}/${M.need})`, `Encuentra a ${L?.creature || 'la criatura'}`]; break; }
       case 'race': { const r = RACE[m.kind] || RACE.camino; M.title = m.title || r[0]; M.icon = r[1]; M.need = 6;
         M.steps = () => ['Habla con ' + host(), `${r[2]}: pasa por los aros (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
@@ -179,7 +179,7 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), `Recorre las partes del castillo: busca las banderas (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow';
         M.steps = () => ['Habla con ' + host(), 'Ve a los corrales: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
-      case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.figImg = personajeUrl(m.who) || ''; M.title = F.name; M.icon = F.icon;
+      case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.figId = m.who; M.figImg = personajeUrl(m.who) || ''; M.title = F.name; M.icon = F.icon;
         M.steps = () => ['Habla con ' + host(), `Ve a ver el recuerdo de ${F.name}`, 'Responde la pregunta']; break; }
       case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
         M.steps = () => ['Habla con ' + host(), 'Gana el partido de pelota a 5 tantos']; break;
@@ -932,6 +932,8 @@ export class TownGame {
     if (gk) { const k = gk[M.i % gk.length]; this.giveGoods(k, 2); }
     const lvUp = addXP(xp);
     if (card) addCard(this.def.id + ':' + card, CAT_BY_TYPE[M.type] || 'historia');
+    // (y su personaje o su figura, en su colección del menú: coleccion.js)
+    if (M.figura) addCard('figura:' + M.figura, 'tradiciones'); if (M.figId) addCard('personaje:' + M.figId, 'historia');
     this.player.rig.doCheer(); this.particles.confetti?.(this.player.pos, 70);
     const doneN = this.missions.filter(x => x.done).length;
     saveProfile();

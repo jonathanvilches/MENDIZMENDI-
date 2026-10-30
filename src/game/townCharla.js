@@ -324,6 +324,7 @@ export class PuebloCharla {
         if (M.step === 0) {
           await S([F.hello]);
           for (let i = 0; i < F.pages.length; i++) await infoCard(this.ui, { icon: F.icon, lamina: M.figImg, kicker: F.kicker, title: isEU() ? (F.eu || F.name) : `${F.name}${F.eu ? ' · ' + F.eu : ''}`, text: F.pages[i], badge: F.years, button: i < F.pages.length - 1 ? `Seguir (${i + 1}/${F.pages.length})` : 'Ir a ver su recuerdo' });
+          if (M.figId && addCard('personaje:' + M.figId, 'historia')) saveProfile();   // (ya lo conoces: se abre en Personajes)
           await S([`Su recuerdo está aquí al lado. Acércate y lee la placa: luego te haré una pregunta.`]);
           M.step = 1; M.memo.obj.userData.ring.visible = true;
         } else await S([`Ve al recuerdo de ${F.name}: lo verás con el aro dorado.`]);

@@ -1538,3 +1538,19 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
 /* las láminas: su título, encima */
 .lam-rail .lam { position: relative; }
 .lam-rail .lam span { position: absolute; left: 1px; right: 1px; bottom: 1px; padding: 28px 12px 10px; border-radius: 0 0 4px 4px; text-align: left; color: #fff; isolation: isolate; text-shadow: var(--letra-foto); pointer-events: none; }
+
+/* ---------- las colecciones, jugando: lo que aún no has descubierto, bloqueado (coleccion.js). Su imagen apagada, sin
+   color y algo borrosa, con un candado encima; sin nombre (¿?) y con su pista debajo (su pueblo, sus comarcas o dónde
+   se lee). No se abre: se descubre jugando ---------- */
+#hub .bloq { cursor: default; }
+#hub .bloq :is(.fpic > img, .fpic > svg, img.fpic, .spic, .ar-img, .ar-ic, .sh-armimg, .sh-armic) { filter: brightness(.22) saturate(0) blur(3px); }
+#hub .bloq .fpic, #hub .bq-pic { position: relative; }
+#hub .bq-pic { display: grid; place-items: center; }
+#hub .scard.fl .bq-pic { width: 100%; }
+#hub .bloq .candado { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: rgba(13, 6, 28, .78); border: 1px solid rgba(255, 255, 255, .22); box-shadow: 0 4px 14px rgba(4, 1, 12, .5); pointer-events: none; }
+#hub .bloq .candado :is(svg, img) { width: 60%; height: 60%; }
+#hub .bloq :is(b, .ar-nm) { color: var(--mute); letter-spacing: .08em; }
+#hub .bloq:hover { transform: none; filter: none; }
+#hub .nchip.bloq { gap: 6px; color: var(--mute); } #hub .nchip.bloq :is(svg, img) { width: 22px; height: 22px; opacity: .8; }
+#hub .sh-arms.bloq { align-items: center; } #hub .sh-armic { display: grid; place-items: center; width: 90px; height: 90px; }
+#hub .ar-ic { display: grid; place-items: center; width: 112px; height: 112px; }

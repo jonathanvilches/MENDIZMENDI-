@@ -7,6 +7,9 @@ import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { isDidactico } from '../util/modo.js';
 import { byId } from '../util/glob.js';
+import { iconSVG } from './icons.js';
+import { profile } from '../game/profile.js';
+import { visto } from '../game/coleccion.js';
 
 // los renders de los trajes (2:3), provisionales; y, si el autor entrega la ilustración de una figura (16:9, como las
 // láminas: src/assets/figuras/ilus, tools/figuras-ilus.mjs), esa manda y la tarjeta y la ficha salen apaisadas
@@ -21,7 +24,9 @@ export const figuraRecorte = (id) => IMG[id] || '';
 /** Si la figura tiene ilustración (apaisada) en vez del render. */
 export const figuraIlus = (id) => !!(ILUS[id] || webUrl('figuras-ilus', id));
 /** La tarjeta de una figura: su imagen, de qué es y de dónde, y su nombre (abre la ficha al tocarla: data-figura). */
-const figuraCard = (f) => `<button type="button" class="fcard${figuraIlus(f.id) ? ' ilus' : ''}" data-figura="${f.id}" aria-label="${esc(f.name)}"><span class="fpic">${figuraImg(f.id) ? `<img src="${figuraImg(f.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="ftx"><small>${esc(KIND[f.kind])} · ${esc(f.where.split(' · ')[0])}</small><b>${esc(f.name)}</b>${f.eu && f.eu !== f.name ? `<i>${esc(f.eu)}</i>` : ''}</span></button>`;
+// (jugando, la que aún no te ha salido, bloqueada: apagada, con un candado, sin nombre y con su sitio de pista. coleccion.js)
+const figuraBloq = (f) => `<div class="fcard bloq${figuraIlus(f.id) ? ' ilus' : ''}" aria-label="Por descubrir"><span class="fpic">${figuraImg(f.id) ? `<img src="${figuraImg(f.id)}" alt="" loading="lazy" decoding="async">` : ''}<i class="candado">${iconSVG('lock', 34)}</i></span><span class="ftx"><small>${esc(KIND[f.kind])} · ${esc(f.where.split(' · ')[0])}</small><b>¿?</b></span></div>`;
+const figuraCard = (f) => !visto(profile(), 'figura:' + f.id) ? figuraBloq(f) : `<button type="button" class="fcard${figuraIlus(f.id) ? ' ilus' : ''}" data-figura="${f.id}" aria-label="${esc(f.name)}"><span class="fpic">${figuraImg(f.id) ? `<img src="${figuraImg(f.id)}" alt="" loading="lazy" decoding="async">` : ''}</span><span class="ftx"><small>${esc(KIND[f.kind])} · ${esc(f.where.split(' · ')[0])}</small><b>${esc(f.name)}</b>${f.eu && f.eu !== f.name ? `<i>${esc(f.eu)}</i>` : ''}</span></button>`;
 /** Las tarjetas de una lista de figuras (por defecto, todas). */
 export const figurasHTML = (list = FIGURAS) => list.map(figuraCard).join('');
 /** La ficha de una figura, con pestañas como las de los escudos. */
