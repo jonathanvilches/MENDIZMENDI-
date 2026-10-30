@@ -202,7 +202,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   La pantalla de carga lleva una sola lámina, fija y entera de alto, encuadrada en el personaje (`focoPortada` y
   `focoDe`, de `FOCO` y `ALTO`), sin degradado lateral ni movimiento, con un velo oscuro parejo encima, algo más denso abajo, para que se lea la
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
-  en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura.
+  en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura. En el
+  móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
+- **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `hub/hub.js`, variable
+  `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
+  productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y
+  monte, turquesa. Sin hacer, un tinte y el borde; hecha, llena de su color y con su marca; la siguiente, borde blanco.
   Los cuatro botones del menú de pelota llevan los pelotaris del autor (ver abajo): en el torneo, tu rival de la ronda;
   por parejas, la pareja rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido,
   en abanico. Las ilustraciones de antes siguen en `src/assets/pelota`, sin cargarse.

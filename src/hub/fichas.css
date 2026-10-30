@@ -73,11 +73,14 @@
 .sheet.pueblo .sh-intro { margin: 16px 0 0; color: #ebe4f7; font-size: var(--fs-md); line-height: 1.55; }
 .sheet.pueblo .sh-body h3 { margin: 24px 0 12px; }
 .sheet.pueblo .sh-body h3::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line2), transparent); }
-/* las misiones, en tarjetas: hechas, con el borde en dorado y su marca */
+/* las misiones, en tarjetas, cada una con el color de su categoría (--mc: hub.js, CAT): el icono en su círculo de ese
+   color; hechas, con el borde, un tinte y la marca de ese color */
 .fh-ms { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 10px; }
 .fh-ms li { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; padding: 10px 38px 10px 10px; border-radius: var(--r); background: rgba(255, 255, 255, .05); border: 1px solid var(--line); }
 .fh-ms li div { flex: 1; min-width: 0; } .fh-ms li b { display: block; font: 400 var(--fs-md)/1.1 var(--f-display); letter-spacing: .01em; } .fh-ms li small { display: block; margin-top: 3px; color: var(--mute); font-size: var(--fs-xs); line-height: 1.3; }
-.fh-ms li.ok { background: linear-gradient(135deg, rgba(255, 209, 102, .14), rgba(255, 255, 255, .03)); border-color: rgba(255, 209, 102, .5); }
+.fh-ms li .fh-mi { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--mc, var(--c)) 85%, #fff), color-mix(in srgb, var(--mc, var(--c)) 38%, #1a0a3c) 70%); }
+.fh-ms li.ok { background: linear-gradient(135deg, color-mix(in srgb, var(--mc, #ffd166) 18%, transparent), rgba(255, 255, 255, .03)); border-color: color-mix(in srgb, var(--mc, #ffd166) 60%, transparent); }
+.fh-ms li.ok .fh-hecha { background: var(--mc, #ffd166); color: #160a24; }
 .fh-ms li:not(.ok) .fh-mi > :is(svg, img) { opacity: .85; }
 .fh-hecha { position: absolute; right: 12px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #ffd166; color: #2a1200; }
 .fh-hecha :is(svg, img) { width: 14px; height: 14px; }

@@ -83,6 +83,16 @@ const kc = (id) => KC[String(id).split(':')[0]] || 'av';
 const OTRAS = { tradiciones: [, 'Tradiciones', 'mask'], oficios: [, 'Oficios', 'anvil'], productos: [, 'Productos', 'cheese'], historia: [, 'Historia', 'castle'], euskera: [, 'Euskera', 'talk'] };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
 const TYPE_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
+// las misiones por categorías, cada una con su color, para los iconos de las misiones en las fichas y las tarjetas: así
+// se distinguen de un vistazo y contrastan sobre la portada (antes, todas del color de la comarca y la marca de hecha, verde)
+const CAT = { visit: 'pat', castle: 'pat', dolmen: 'pat', figure: 'pat', process: 'ofi', harvest: 'ofi', trade: 'ofi', herd: 'cam', feria: 'cam', observe: 'cam', mirador: 'cam',
+  dance: 'fie', carnival: 'fie', tradition: 'fie', legend: 'ley', quiz: 'sab', race: 'dep', summit: 'dep', pelota: 'dep' };
+// (siete tonos bien separados: patrimonio, amarillo; oficios y productos, rojo anaranjado; campo y naturaleza, verde;
+// fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y monte, turquesa)
+const CAT_COLOR = { pat: '#ffd23f', ofi: '#ff6b4a', cam: '#5cd65c', fie: '#ff5fb0', ley: '#a77bff', sab: '#4f9dff', dep: '#2fd6c6' };
+// (las de la aventura del valle de Salazar, en Otsagabia, no tienen tipo: su categoría por la misión)
+const Q_CAT = { bienvenida: 'pat', escudos: 'pat', ovejas: 'cam', pelota: 'dep', irati: 'cam', basajaun: 'ley', lamia: 'ley', zarratrako: 'fie', muskilda: 'fie' };
+const mColor = (type, cat) => CAT_COLOR[cat || CAT[type]] || '#c9b8ff';
 // (una excavación, con el icono de su yacimiento: el crómlech, la cueva, la columna romana…)
 const mIcon = (m) => (m.type === 'dolmen' && SITES[m.site || 'dolmen']?.icon) || TYPE_ICON[m.type];
 // El nombre corto de un pueblo: el del juego o, si no está en el juego, el de su núcleo en settlements.json; nunca su
@@ -420,9 +430,9 @@ export class Hub {
   // las misiones de un pueblo, para sus fichas: su icono, su título, de qué son y si están hechas. Las de Otsagabia son las
   // nueve de la aventura del valle de Salazar (game/content.js), con su estado guardado aparte
   misiones(l, p = profile()) {
-    if (l.special === 'salazar') { const S = salazarState()?.quests || {}; return Object.entries(QUESTS).map(([id, q]) => ({ icon: q.icon, title: q.title, sub: q.steps[0], done: S[id]?.state === 'done' })); }
+    if (l.special === 'salazar') { const S = salazarState()?.quests || {}; return Object.entries(QUESTS).map(([id, q]) => ({ icon: q.icon, title: q.title, sub: q.steps[0], done: S[id]?.state === 'done', mc: mColor(null, Q_CAT[id]) })); }
     const hecho = p.towns[l.id]?.done || {}, n1 = l.name.split(' /')[0];
-    return missionSlots(l, edadDe(p)).map(({ m, si }) => ({ icon: mIcon(m), done: !!hecho[si], sub: TYPE_NAME[m.type] + (m.host ? ' · con ' + m.host.name : ''),
+    return missionSlots(l, edadDe(p)).map(({ m, si }) => ({ icon: mIcon(m), mc: mColor(m.type), done: !!hecho[si], sub: TYPE_NAME[m.type] + (m.host ? ' · con ' + m.host.name : ''),
       title: m.title || (m.type === 'visit' ? `Conoce ${n1}` : m.type === 'quiz' ? `El sabio de ${n1}` : m.name || m.product || TYPE_NAME[m.type]) }));
   }
   // los cuentos de un pueblo o de una comarca: los escuchados, con su ilustración (se abre en grande) y dónde pasa; los que
@@ -458,7 +468,7 @@ export class Hub {
         <div class="fh-hud">${t.total ? st('check', 'Misiones', `${t.done}<i>/${t.total}</i>`, t.done === t.total ? ' ok' : '') : ''}${st('stamp', 'Sello', t.stamp ? 'Conseguido' : 'Por ganar', t.stamp ? ' ok' : '')}${l.river ? st('river', 'Río', esc(l.river.name)) : ''}${cts.length ? st('legend', cts.length === 1 ? 'Leyenda' : 'Leyendas', cts.length === 1 ? (oidas ? 'Escuchada' : 'Por escuchar') : `${oidas}<i>/${cts.length}</i>`, oidas === cts.length ? ' ok' : '') : ''}</div>
         <div class="sh-body">${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
           <h3>${I('check', 18)} Misiones <span>${t.done}/${t.total}</span></h3>
-          <ul class="fh-ms">${ms.map(m => `<li class="${m.done ? 'ok' : ''}"><span class="fh-mi">${I(m.icon, 26)}</span><div><b>${esc(m.title)}</b><small>${esc(m.sub)}</small></div>${m.done ? `<i class="fh-hecha">${I('check', 16)}</i>` : ''}</li>`).join('')}</ul>
+          <ul class="fh-ms">${ms.map(m => `<li class="${m.done ? 'ok' : ''}" style="--mc:${m.mc}"><span class="fh-mi">${I(m.icon, 26)}</span><div><b>${esc(m.title)}</b><small>${esc(m.sub)}</small></div>${m.done ? `<i class="fh-hecha">${I('check', 16)}</i>` : ''}</li>`).join('')}</ul>
           ${vis.length ? `<h3>${I('church', 18)} Qué visitar</h3><ul class="fh-vis">${vis.map(([ic, n, tx]) => `<li><span class="fh-mi">${I(ic, 24)}</span><div><b>${esc(n)}</b><p>${esc(tx)}</p></div></li>`).join('')}</ul>` : ''}
           ${cts.length ? `<h3>${I('legend', 18)} ${cts.length === 1 ? 'Su leyenda' : 'Sus leyendas'}</h3><div class="fh-ley">${this.leyendas(cts, p)}</div>` : ''}
           ${A && !visto(p, 'armas:' + A.id) ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms bloq"><span class="bq-pic">${armsImg(A.id) ? `<img class="sh-armimg" src="${armsImg(A.id)}" alt="">` : `<span class="sh-armic">${I('shield', 64)}</span>`}<i class="candado">${I('lock', 26)}</i></span><p><b>Por descubrir.</b> Léelo en el pueblo: está en la fachada del ayuntamiento.</p></div>`
@@ -516,7 +526,7 @@ export class Hub {
     const l = levelById(id); if (!l) return '';
     const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), c = comarca(l.comarca);
     return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><h2>${esc(n1)}${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2>
-      <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div>
+      <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div>
       <div class="gi-b">${dd ? `<button type="button" class="btn primary" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button type="button" class="btn" data-town="${l.id}">${I('scroll', 20)}<span>Ficha</span></button><button type="button" class="btn primary" data-play="${l.id}">${I('play', 20)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>`}</div>`;
   }
 
