@@ -17,7 +17,15 @@
      --t-mt va arriba del título que sigue a un rótulo y --t-mb debajo del título que va antes de un texto.
      tools/auditoria-medida.mjs lo mide en todas las pantallas */
   --t-mt: calc(9.5px - .19em); --t-mb: calc(12px - .1em);
+  /* el ritmo, una sola tabla para todo el juego. Los espacios, siempre de esta escala (rejilla de 4 px): */
+  --e1: 4px; --e2: 8px; --e3: 12px; --e4: 16px; --e5: 20px; --e6: 24px; --e7: 32px; --e8: 48px;
+  /* y entre textos, de la línea base de uno a lo alto de las mayúsculas del siguiente (lo que se ve): antetítulo → título
+     12, título → subtítulo 8, título o subtítulo → lo que sigue 16, párrafo → párrafo 12, texto → otro bloque 24 y entre
+     secciones 32. Donde se aplica, la letra va recortada a lo alto de sus mayúsculas y a su línea base (text-box: «.rt» y
+     las reglas de cada pantalla), así el hueco del CSS es el que se ve; sin text-box (navegadores viejos), algo más de aire */
+  --r-kt: 12px; --r-ts: 8px; --r-tx: 16px; --r-pp: 12px; --r-bl: 24px; --r-sec: 32px;
 }
+.rt { text-box: trim-both cap alphabetic; }
 :root {
   --ink: #f6f3fc; --muted: #cbc2e0;   /* (blanco y gris de la gama: fríos, con un punto de lila, como en el menú) */ --panel: rgba(34, 26, 44, .82); --panel-solid: #2a2036; --line: rgba(255, 255, 255, .16);
   --sun: #ff7ac8; --leaf: #c9b2ff;   /* (hecho, visto, conseguido: en la gama del juego; antes verde) */ --rose: #FF69B4; --sky: #7cc8ff; --plum: #6d3b5c;
@@ -79,10 +87,12 @@ summary { line-height: 1.3; }
   background-repeat: no-repeat; }
 #loading .ld-in { position: relative; height: 100%; box-sizing: border-box; padding: calc(var(--P) + var(--sy)) calc(var(--P) + var(--sx)); display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, .72fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: ". tip" "txt pic" "prog prog"; gap: 16px 32px; }
-#loading .ld-txt { grid-area: txt; align-self: end; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
-#loading .ld-head { display: flex; flex-direction: column; gap: 6px; }
-#loading .ld-k { display: flex; align-items: center; gap: 10px; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-carga); }
-#loading .ld-k::before { content: ''; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
+#loading .ld-txt { grid-area: txt; align-self: end; min-width: 0; display: flex; flex-direction: column; gap: var(--r-tx); }
+/* (el ritmo de la tabla: antetítulo → nombre 12, nombre → presentación 16 y de ahí a las misiones 16, la letra recortada) */
+#loading .ld-head { display: flex; flex-direction: column; gap: 0; } #loading :is(.ld-k, .ld-name, .ld-intro, .ld-ms > span) { text-box: trim-both cap alphabetic; }
+#loading .ld-k + .ld-name { margin-top: var(--r-kt); } #loading .ld-name + .ld-intro { margin-top: var(--r-tx); }
+#loading .ld-k { display: block; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-carga); }
+#loading .ld-k::before { content: ''; display: inline-block; vertical-align: .3em; margin-right: 10px; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35)); }
@@ -91,7 +101,7 @@ summary { line-height: 1.3; }
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
 #loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; text-shadow: var(--letra-carga); }
-#loading .ld-ms div { display: flex; flex-wrap: wrap; gap: 6px; }
+#loading .ld-ms div { display: flex; flex-wrap: wrap; gap: var(--e2); }
 #loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .7); border: 1px solid rgba(255, 255, 255, .22);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 /* (de la lámina solo queda su nombre, como una etiqueta abajo a la derecha: la lámina ya es el fondo) */
@@ -140,7 +150,7 @@ summary { line-height: 1.3; }
 #loading.ld-min .ld-in { grid-template-columns: min(640px, 100%); grid-template-rows: auto auto; grid-template-areas: "txt" "prog"; justify-content: center; align-content: center; text-align: center; gap: 28px; }
 #loading.ld-min :is(.ld-pic, .ld-intro, .ld-ms, .ld-tip) { display: none; }
 #loading.ld-min .ld-bg { background-image: radial-gradient(120% 90% at 50% 40%, #3a1a8a 0%, #1e0a44 45%, #07020f 100%) !important; background-size: cover; } #loading.ld-min .ld-bg::before, #loading.ld-min .ld-bg::after { display: none; }
-#loading.ld-min .ld-txt { align-self: center; align-items: center; } #loading.ld-min .ld-k { justify-content: center; } #loading.ld-min .ld-k::after { content: ''; width: 28px; height: 2px; background: linear-gradient(270deg, #ff7ac8, transparent); }
+#loading.ld-min .ld-txt { align-self: center; align-items: center; } #loading.ld-min .ld-k { text-align: center; } #loading.ld-min .ld-k::after { content: ''; display: inline-block; vertical-align: .3em; margin-left: 10px; width: 28px; height: 2px; background: linear-gradient(270deg, #ff7ac8, transparent); }
 /* el móvil tumbado: todo un paso más pequeño. La descripción y el consejo, enteros: antes se cortaban a dos líneas con
    puntos suspensivos (los bosques y los «¿Sabías que…?» de la pelota no se podían leer) */
 @media (max-height: 520px) and (orientation: landscape) {

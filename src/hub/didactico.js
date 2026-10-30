@@ -182,7 +182,7 @@ export const DIDACTICO = {
     return `<section class="armorial dd dd-town" style="--c:${c?.color}">
       <section class="chero" style="--c:${c?.color}${cab.fondo}">${cab.marco}
         <div class="ch-tx"><button class="back" data-go="towns">${I('back', 22)} Pueblos</button>
-          <div class="ch-nom"><img class="bigstamp${escudo ? ' dd-escudo' : ''}" src="${escudo || stampImg(l.comarca)}" alt=""><div><button type="button" class="kicker lnk" data-comarca="${l.comarca}">${esc(c?.name || '')}</button><h1>${esc(n1)}${n2 ? `<em data-notr>${esc(isEU() ? n1 : n2)}</em>` : ''}</h1></div></div>
+          <div class="ch-nom"><img class="bigstamp${escudo ? ' dd-escudo' : ''}" src="${escudo || stampImg(l.comarca)}" alt=""><div><button type="button" class="kicker lnk" data-comarca="${l.comarca}">${esc(c?.name || '')}</button><h1><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(isEU() ? n1 : n2)}</em>` : ''}</h1></div></div>
           <div class="ch-datos">${l.river ? dato('river', esc(l.river.name), 'Río', true) : ''}${visit.length ? dato('church', visit.length, visit.length === 1 ? 'Lugar' : 'Lugares') : ''}${cts.length ? dato('legend', cts.length, cts.length === 1 ? 'Leyenda' : 'Leyendas') : ''}${learn.length ? dato('book', learn.length, 'Saberes') : ''}</div></div>
       </section>
       ${l.intro ? `<p class="lead dd-lead">${esc(l.intro)}</p>` : ''}

@@ -88,11 +88,12 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 0 32px 28px; }
 .gal-info.cambia > * { animation: galSube .4s cubic-bezier(.2, .9, .3, 1) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
 @keyframes galSube { from { opacity: 0; transform: translateY(8px); } }
-.gi-t { display: grid; gap: 6px; min-width: 0; }
+/* (el ritmo de la tabla: antetítulo → título 12, título → subtítulo 8 y de ahí a las misiones 16, la letra recortada) */
+.gi-t { display: grid; gap: 0; min-width: 0; } .gi-t > small, .gi-t h2 > * { text-box: trim-both cap alphabetic; } .gi-t h2 { display: grid; } .gi-t small + h2 { margin-top: var(--r-kt); } .gi-t h2 + .gi-ms { margin-top: var(--r-tx); }
 .gi-t small { color: color-mix(in srgb, var(--c) 55%, #fff); font: 600 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
 .gi-t h2 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-shadow: 0 3px 18px rgba(4, 1, 12, .6); }
-.gi-t h2 em { display: block; margin-top: 2px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1.2 var(--f-ui); font-style: normal; text-shadow: none; }
-.gi-ms { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.gi-t h2 em { display: block; margin-top: var(--r-ts); color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1.2 var(--f-ui); font-style: normal; text-shadow: none; }
+.gi-ms { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e2); }
 /* (cada una del color de la categoría de su misión, --mc: hub.js, CAT) */
 .gi-ms i { --mc: #c9b8ff; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: color-mix(in srgb, var(--mc) 14%, rgba(13, 6, 28, .6)); border: 1px solid color-mix(in srgb, var(--mc) 45%, transparent); }
 .gi-ms i :is(svg, img) { width: 18px; height: 18px; } .gi-ms i:not(.ok) :is(svg, img) { opacity: .7; }
@@ -112,7 +113,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
   .gal-puntos { display: none; }
   .gal-info { padding: 0 22px max(14px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
-  .gi-t { grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 12px; row-gap: 2px; }
+  .gi-t { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: var(--e3); row-gap: 0; } .gi-t h2 + .gi-ms { margin-top: 0; }   /* (las misiones, a la altura de lo alto del nombre) */
   .gi-t small { grid-column: 1 / -1; font-size: 11px; }
   .gi-t h2 { font-size: var(--fs-xl); } .gi-t h2 em { display: none; }
   .gi-ms i { width: 24px; height: 24px; border-radius: 6px; } .gi-ms i :is(svg, img) { width: 14px; height: 14px; } .gi-ms em { font-size: var(--fs-xs); }
