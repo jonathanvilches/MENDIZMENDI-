@@ -204,6 +204,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
   en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura. En el
   móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
+- **Galería de Pueblos** (`hub/galeria.js`): las cartas no van en un anillo de verdad, que dejaba las de los lados
+  pequeñas y mucho aire a los lados, sino cada una en su puesto: la de delante, adelantada; las de los lados, apenas
+  detrás y giradas entre 22° y 38°, lo justo para acabar antes de las flechas (si no caben, como en el ordenador, se meten
+  algo por detrás de la de delante, más al fondo para que su borde no asome por delante); las del segundo puesto,
+  paralelas a ellas y detrás, en penumbra; más allá, se apagan. Al girar, todo pasa de un puesto a otro sin cortes.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `hub/hub.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y
