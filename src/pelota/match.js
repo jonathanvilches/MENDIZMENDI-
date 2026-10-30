@@ -44,7 +44,15 @@ export class PelotaMatch {
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch, this.cols);
     this.hud.onPanel = () => this.resetStick?.();
     this.hud.onBola = (n) => this.cambiaBola(n);   // (tocar una pelota del cestaño antes de sacar)
-    this.hud.onDescanso = () => this.pideDescanso();   // (el botón del descanso, junto a tu energía; o la tecla R)
+    this.hud.onDescanso = () => this.pideDescanso();   // (el descanso, en el menú; o la tecla R)
+    // el menú, a la derecha del marcador: al abrirlo con la mano el partido se para y al cerrarlo sigue; dentro, las fichas
+    // y salir (antes, una X arriba a la izquierda)
+    this.hud.onMenu = (on, mano) => {
+      if (on && mano) { this.menuPausa = !this.paused; if (this.menuPausa) { this.paused = true; this.resetStick?.(); } }
+      else if (!on && this.menuPausa) { this.menuPausa = false; if (!this.hud.panelEl) this.paused = false; }
+    };
+    this.hud.onFichas = () => this.ficha('rival');
+    this.hud.onSalir = () => { if (!this.hud.panelEl) this.confirmExit(); };
     this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 }, charge: null, power: 0.5 };
     this.active = true; this.t = 0;
     // (los consejos de cómo jugar, solo para aprender: en los primeros tantos de los dos primeros partidos; luego, ninguno.
@@ -251,6 +259,10 @@ export class PelotaMatch {
     this.rec = null; this.repAt = 0;
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
     this.hud.setNames?.(this.label('you'), this.label('rival'));
+    this.hud.fichas(o.mode !== 'rally');
+    // la fuerza de cada lado en el marcador: al empezar, la de su carta; luego, la del último golpe de ese lado
+    const pot = (st, nm, bonus) => (st ? pelotariRating(st, `${splitName(nm).name} ${splitName(nm).town || o.town || ''}`, bonus).pot : 70) / 99;
+    this.fu = { you: pot(o.youStats, this.names.you, o.youBonus ?? 2), rival: pot(o.rivalStats, this.names.rival, o.rivalBonus ?? 0) };
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
     if (o.mode === 'rally') this.hud.setScore(0, '', this.game.server, this.txt.rally(this.game.target));
     this.lastSwing = { you: 0, rival: 0, youMate: 0, rivalMate: 0 };
@@ -635,7 +647,7 @@ export class PelotaMatch {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
         if (k === 'shift' || k === 'k') this.chargeStart('drop');
         if (k === 'l') this.chargeStart('cut');
-        if (k === 'escape') { if (hud.panelEl) return; this.confirmExit(); }
+        if (k === 'escape') { if (hud.panelEl) return; hud.abreMenu(!hud.menuEl.classList.contains('on')); }   // (el menú, como la pausa)
       }
       if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); if (k === 'shift' || k === 'k') this.chargeEnd('drop'); }
       I.keys[k] = down;
@@ -690,8 +702,6 @@ export class PelotaMatch {
     };
     // (cada botón por su nombre: la cortada lleva el estilo de los botones pequeños y antes se cogía como si fuese la dejada)
     btn('.pel-hit', 'hitQ', 'hit'); btn('.pel-dejada', 'dropQ', 'drop'); btn('.pel-cut', 'cutQ', 'cut');
-    // (la X responde al levantar el dedo: en el iPhone, en pleno partido, el clic a veces no llegaba y no se podía salir)
-    tap(hud.$('.pel-exit'), () => { if (!hud.panelEl) this.confirmExit(); });
   }
   // carga del golpe: cuanto más se mantiene, más fuerte; un toque corto es un golpe suave. A tope en 1 s (la dejada, en
   // 1,3 s) y al principio más despacio: así se afina bien un golpe suave o medio y la altura de la dejada (antes, a tope
@@ -765,6 +775,7 @@ export class PelotaMatch {
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
         const pw = e.pow ?? 0.5; A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
+        if (this.fu) this.fu[this.game.side(e.who)] = pw;   // (la fuerza del golpe, en su barra del marcador)
         // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
         this.rallyN = (this.rallyN || 0) + 1; A.mood(Math.min(0.52, 0.2 + this.rallyN * 0.03), 0.8);
         if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
@@ -886,9 +897,9 @@ export class PelotaMatch {
     // los descansos, en el menú del botón de la pelota (con los que te quedan en su badge); el botón brilla si estás cansado
     this.hud.descansos(g.mode === 'match' && g.phase !== 'intro' && g.phase !== 'end', g.descansos?.you ?? 0, !!g.pedido?.you, g.phase === 'descanso' && g.descanso?.side === 'you');
     this.hud.cansado(g.mode === 'match' && (g.descansos?.you > 0) && g.players.you.en < 0.35 && !g.pedido?.you);
-    // la energía de cada uno, una raya bajo su nombre en el marcador
+    // la fuerza y la energía de cada uno, en el marcador bajo su nombre
     this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), color: this.cols[g.side(id)], me: id === 'you', en: g.players[id].en,
-      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })));
+      name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })), this.fu);
     // pelotaris
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;

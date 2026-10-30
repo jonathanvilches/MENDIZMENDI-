@@ -207,11 +207,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
   en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura. En el
   móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
-- **Partido de pelota, lo que se ve** (`pelota/hud.js`): la X, un solo botón redondo con la pelota (abre las pelotas,
-  que se cambian mientras sacas tú, y el descanso; en su badge, los descansos que te quedan; brilla si estás cansado), el
-  marcador con la energía de cada uno en una raya bajo su nombre, y los botones de golpe con el aro de la fuerza. Sin
-  consejos en los partidos (solo el primer medio minuto del peloteo de entrenar), sin recuadro de fuerza, sin tarjeta del
-  rival y sin barra de energía abajo.
+- **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador y, a su derecha, el botón
+  del menú. En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro y con
+  aire entre las tres cosas, su fuerza, en ámbar, la del último golpe de ese lado y al empezar la de su carta, y la tuya en
+  directo mientras cargas, y su energía, en turquesa, amarilla y luego roja parpadeando al cansarse; por parejas, dos de
+  energía. En el móvil y la tableta va sin el «A 5 tantos» y más estrecho, para no tapar el frontis, que va en el centro
+  de la pantalla; en el ordenador ancho, entero. El menú, con el icono de pausa como el del pueblo, para el partido al
+  abrirlo con la mano o con Escape, y lleva todo junto: la pelota, que se cambia mientras sacas tú, el descanso, las
+  fichas de los pelotaris y salir del partido. En su badge, los descansos que te quedan; brilla si estás cansado; con el
+  descanso empezado se abre solo con «Seguir», sin parar el minuto. Ya no hay X arriba a la izquierda. Los botones de
+  golpe llevan el aro de la fuerza. Sin consejos en los partidos, solo el primer medio minuto del peloteo de entrenar.
 - **Maquetas del mapa** (`hub/maqueta.js`): lo que OpenStreetMap da como casa o nave y no lo es se reconoce por su
   nombre (`claseReal`): kioscos (peana, ocho columnas y tejado de ocho aguas), baluartes y portales de la muralla
   (piedra maciza sin tejado), castillos y el Palacio Real de Olite (recinto de cuatro alas con patio, torres con chapitel

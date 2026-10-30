@@ -202,9 +202,9 @@ export function playPasaka(G, V, partner, { games = 3, stay = false, home: home0
     hud = document.createElement('div'); hud.className = 'pel-root pk-hud' + (touch ? ' touch' : '');
     hud.innerHTML = `<button type="button" class="pel-exit" aria-label="${esc(tr('Salir'))}">${X_ICON}</button>
       <div class="pel-top"><div class="pel-score">
-        <div class="pel-side pel-red"><i class="pel-serve"></i><span>${esc(T.rojos)}</span><b class="pk-g">0</b></div>
+        <div class="pel-side pel-red"><div class="ps-cab"><i class="pel-serve"></i><span>${esc(T.rojos)}</span><b class="pk-g">0</b></div></div>
         <div class="pel-mid pk-q">0 · 0</div>
-        <div class="pel-side pel-blue"><b class="pk-g">0</b><span>${esc(T.azules)}</span><i class="pel-serve"></i></div>
+        <div class="pel-side pel-blue" data-side="rival"><div class="ps-cab"><b class="pk-g">0</b><span>${esc(T.azules)}</span><i class="pel-serve"></i></div></div>
       </div></div>
       <div class="pel-call"><h3></h3><p></p></div>
       <div class="pel-tip"></div>
