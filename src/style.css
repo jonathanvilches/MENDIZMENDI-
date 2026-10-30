@@ -109,7 +109,7 @@ summary { line-height: 1.3; }
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35)); }
-#loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #ece6f8; text-shadow: 0 1px 6px rgba(5, 1, 14, .8); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #ece6f8; text-shadow: 0 1px 6px rgba(5, 1, 14, .8); }
 /* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas cortadas) */
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
@@ -130,7 +130,7 @@ summary { line-height: 1.3; }
 #loading .ld-tip { grid-area: tip; justify-self: end; max-width: 380px; min-width: 0; display: flex; gap: 12px; align-items: center; padding: 12px 18px 12px 14px; background: rgba(13, 6, 28, .38); border: 1px solid rgba(255, 255, 255, .16); border-radius: 18px;
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 #loading .ld-tip b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ff9ad8; }
-#loading .ld-tip p { margin: 5px 0 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.4; color: #f6f3fc; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+#loading .ld-tip p { margin: 5px 0 0; font-size: var(--fs-xs); font-weight: 700; line-height: 1.4; color: #f6f3fc; }
 #loading .ld-bulb { flex: none; display: grid; }
 #loading .ld-bulb .ico { width: 26px; height: 26px; }
 /* (abajo: lo que se prepara, con su cursor, el tanto por ciento grande y la barra por segmentos) */
@@ -164,13 +164,14 @@ summary { line-height: 1.3; }
 #loading.ld-min :is(.ld-pic, .ld-intro, .ld-ms, .ld-tip) { display: none; }
 #loading.ld-min .ld-bg { background-image: radial-gradient(120% 90% at 50% 40%, #3a1a8a 0%, #1e0a44 45%, #07020f 100%) !important; background-size: cover; } #loading.ld-min .ld-bg::before, #loading.ld-min .ld-bg::after { display: none; }
 #loading.ld-min .ld-txt { align-self: center; align-items: center; } #loading.ld-min .ld-k { justify-content: center; } #loading.ld-min .ld-k::after { content: ''; width: 28px; height: 2px; background: linear-gradient(270deg, #ff7ac8, transparent); }
-/* el móvil tumbado: todo un paso más pequeño, el consejo de dos líneas */
+/* el móvil tumbado: todo un paso más pequeño. La descripción y el consejo, enteros: antes se cortaban a dos líneas con
+   puntos suspensivos (los bosques y los «¿Sabías que…?» de la pelota no se podían leer) */
 @media (max-height: 520px) and (orientation: landscape) {
   #loading .ld-in { gap: 10px 24px; }
   #loading .ld-name { font-size: clamp(36px, 13vh, 64px); }
-  #loading .ld-intro { -webkit-line-clamp: 2; font-size: var(--fs-xs); }
+  #loading .ld-intro { font-size: var(--fs-xs); line-height: 1.38; }
   #loading .ld-ms .ico { width: 30px; height: 30px; padding: 5px; }
-  #loading .ld-tip { max-width: 300px; padding: 7px 12px; } #loading .ld-tip p { -webkit-line-clamp: 2; } #loading .ld-bulb .ico { width: 20px; height: 20px; }
+  #loading .ld-tip { max-width: 340px; padding: 7px 12px; } #loading .ld-tip p { line-height: 1.32; } #loading .ld-bulb .ico { width: 20px; height: 20px; }
   #loading .bar { height: 10px; } #loading .ld-av { width: 30px; height: 30px; margin-left: -15px; bottom: -10px; }
 }
 /* las pantallas grandes (iPad, ordenador): la letra y los iconos un paso más grandes */
