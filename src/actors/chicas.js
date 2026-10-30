@@ -86,7 +86,9 @@ function imagen(url) {
 function textura(map, detalle, max = 2048) {
   const img = map.image, k = Math.min(1, max / Math.max(1, img.width)), W = Math.round(img.width * k), H = Math.round(img.height * k);
   const c = document.createElement('canvas'); c.width = W; c.height = H;
-  const g = c.getContext('2d'); if (!g) return map;
+  // (en memoria normal, como las texturas del pueblo: lleno() mira sus píxeles y, en la tarjeta gráfica, esa lectura
+  // esperaba a que acabara de pintarse todo lo pendiente, y al entrar en un pueblo desde el mapa el juego se paraba)
+  const g = c.getContext('2d', { willReadFrequently: true }); if (!g) return map;
   // (la capa va a la resolución de la textura de esa versión; en el móvil la textura se reduce y la capa con ella)
   g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   g.drawImage(img, 0, 0, W, H); g.drawImage(detalle, 0, 0, W, H);
@@ -101,7 +103,7 @@ function textura(map, detalle, max = 2048) {
 
 function lleno(c) {
   try {
-    const m = document.createElement('canvas'); m.width = m.height = 8; const g = m.getContext('2d'); if (!g) return true;
+    const m = document.createElement('canvas'); m.width = m.height = 8; const g = m.getContext('2d', { willReadFrequently: true }); if (!g) return true;
     g.drawImage(c, 0, 0, 8, 8); const d = g.getImageData(0, 0, 8, 8).data; let a = 0, v = 0;
     for (let i = 0; i < d.length; i += 4) { a += d[i + 3]; v += d[i] + d[i + 1] + d[i + 2]; }
     return a / 64 > 128 && v / 192 > 8;   // (casi todo opaco y no todo negro: la textura del chico es opaca y de colores)

@@ -847,8 +847,9 @@ export function mapa3d(host, o) {
   function nucleos(now, quieto) {
     const va = elegido && vuelo;   // (volando hasta un pueblo: el suyo se pide ya, para que sus casas estén al llegar)
     if (now - nucT < 500 || !quieto && !entrada && !va) return; nucT = now;
-    // (al entrar a jugar, solo el del pueblo: lo demás, después)
-    const quiere = entrada ? (entrada.real ? [entrada.t] : []) : va ? (REALES.has(elegido.id) ? [elegido] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
+    // (al entrar a jugar, nada nuevo: detrás viene la carga con la portada del pueblo y el mapa se suelta. Antes se pedía
+    // la maqueta del pueblo para llegar hasta sus casas, y ese trabajo de última hora atascaba la entrada)
+    const quiere = entrada ? [] : va ? (REALES.has(elegido.id) ? [elegido] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
       .sort((a, b) => Math.hypot(a.X - v.x, a.Z - v.z) - Math.hypot(b.X - v.x, b.Z - v.z)).slice(0, 6);
     for (const t of quiere) {
       const e = nuc.get(t.id); if (e) { e.t = now; continue; } if (nucPide) continue;
@@ -952,17 +953,22 @@ export function mapa3d(host, o) {
   function entrar(id) {
     const t = tById.get(id);
     if (!t || !vivo || !host.isConnected || !cv.offsetParent || matchMedia?.('(prefers-reduced-motion: reduce)').matches) return null;
-    return new Promise((fin) => {
+    return new Promise((res) => {
+      // (pase lo que pase con las imágenes, la partida empieza a los 4 segundos y medio: el tope de sigueEntrada solo se
+      // miraba al pintar, y si el mapa dejaba de pintarse, porque aún compilaba, quedaba tapado o la página no se veía, el
+      // zoom no acababa nunca y el juego se quedaba atascado en el mapa)
+      let hecho = false; const fin = () => { if (hecho) return; hecho = true; clearTimeout(tope); if (entrada?.fin === fin) entrada = null; res(); };
+      const tope = setTimeout(() => { fin(); setTimeout(() => host.classList.remove('m3-entra', 'm3-negro'), 4000); }, 4500);
       if (sel !== t.comarca) select(t.comarca, false);
       host.classList.add('m3-entra'); keys.clear(); ptrs.clear(); arr = null; gesto = null; hover = null;
-      entrada = { t, fin, t0: performance.now(), fase: 0, real: TR.includes(t) };
+      entrada = { t, fin, t0: performance.now(), fase: 0 };
       const lejos = Math.hypot(v.x - t.X, v.z - t.Z) > 1 || v.d > 10; entrada.fase = lejos ? 0 : 1;
       if (lejos) volar({ x: t.X, z: t.Z, d: Math.min(Math.max(v.d, 3), 8), yaw: v.yaw, pitch: Math.min(v.pitch, 0.85) }, 0.6); else vuelo = null;
     });
   }
   function sigueEntrada(now) {
     const en = entrada; if (!en) return;
-    if (en.fase === 1 && !en.va) { en.va = true; volar({ x: en.t.X, z: en.t.Z, d: en.real ? 0.2 : 1.2, yaw: v.yaw + 0.3, pitch: 0.55 }, 1.0); }
+    if (en.fase === 1 && !en.va) { en.va = true; volar({ x: en.t.X, z: en.t.Z, d: 1.2, yaw: v.yaw + 0.3, pitch: 0.55 }, 1.0); }
     else if (en.fase === 0 && !vuelo) en.fase = 1;
     else if (en.fase === 1 && (!vuelo || vuelo.t > 0.7)) { en.fase = 2; en.t2 = now; host.classList.add('m3-negro'); }
     else if ((en.fase === 2 && now - en.t2 > 320) || now - en.t0 > 4000) {
