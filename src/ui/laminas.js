@@ -5,7 +5,7 @@
 // la pantalla la necesita. En el archivo único solo está la de 640 × 360, y en el ligero, la de 1024 × 576
 // (tools/laminas-movil.mjs: sin conexión, la portada a todo el ancho del móvil tumbado se veía borrosa).
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
-import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA, FOCO, ALTO } from '../data/laminas.js';
+import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA, FOCO, ALTO, PANO, PANO_BOSQUE } from '../data/laminas.js';
 import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { byId } from '../util/glob.js';
@@ -71,13 +71,35 @@ function encuadre(id) {
 }
 // (la lámina que hace de portada de un pueblo: la suya, la de su bosque o la de su comarca)
 const portadaDe = (l) => l && (laminaUrl(l.id) ? l.id : (BOSQUE_LAMINA[l.id] || []).find(k => laminaUrl(k)) || COMARCA_LAMINA[l.comarca]);
-/** El encuadre de la portada de un pueblo (la suya, la de su bosque o la de su comarca) o de una comarca. */
-export const encuadreDe = (l) => encuadre(portadaDe(l));
 /** Dónde está el personaje en una lámina, de 0 a 1: x, de izquierda a derecha (FOCO); y, el centro de su alto (ALTO). */
 export const focoDe = (id) => { const a = ALTO[id]; return { x: FOCO[id] ?? 0.5, y: a ? (a[0] + a[1]) / 2 : 0.5 }; };
 /** El de la portada de un pueblo. */
 export const focoPortada = (l) => focoDe(portadaDe(l));
-export const encuadreComarca = (id) => encuadre(COMARCA_LAMINA[id]);
+// Las panorámicas de las portadas (src/assets/laminas/pano, data/laminas.js PANO y PANO_BOSQUE): solo en la web; en el
+// archivo único, de la web si se llega a ella (src/web/hd.js). Para las cabeceras de las fichas con la pantalla tumbada
+const PANO_URL = byId(import.meta.glob('@laminas-pano/*.webp', { eager: true, query: '?url', import: 'default' }));
+const panoDatos = (id) => (id && (PANO[id] ? [3, ...PANO[id]] : PANO_BOSQUE[id] ? [2.334, ...PANO_BOSQUE[id]] : null)) || null;
+/** La panorámica de una lámina (o null si no tiene o no está en esta versión). */
+export const panoUrl = (id) => (panoDatos(id) && (PANO_URL[id] || webUrl('pano', id))) || null;
+// (su encuadre, como variables de CSS: --pa, su ancho entre su alto; --pcx, dónde está el personaje de izquierda a
+// derecha; --pym, la mitad entre su cabeza y sus pies; --pzf, cuánto se acerca, como en encuadre)
+function encuadrePano(id) {
+  const [ar, x, a0, a1] = panoDatos(id), zf = Math.max(1, Math.min(1.8, 1 / (a1 - a0 + 0.18)));
+  return `--pa:${ar};--pcx:${x};--pym:${Math.round((a0 + a1) * 500) / 1000};--pzf:${Math.round(zf * 1000) / 1000}`;
+}
+// La cabecera con portada de una ficha (hub/fichas.css, .pt-marco): fondo, las variables del fondo desenfocado para el
+// estilo de la cabecera (--fondo y, si hay panorámica, --fondo-p); marco, la lámina encuadrada en el personaje con sus
+// bordes reflejados y, con la pantalla tumbada, su panorámica, si la tiene (<picture>: solo se descarga la que se ve)
+function cabecera(lam, src, cls) {
+  if (!src) return { fondo: '', marco: '' };
+  const p = panoUrl(lam), img = `<img class="${cls}" src="${src}" alt="" decoding="async">`;
+  return { fondo: `;--fondo:url('${src}')${p ? `;--fondo-p:url('${p}')` : ''}`,
+    marco: `<div class="pt-marco${p ? ' pano' : ''}" style="${encuadre(lam)}${p ? `;${encuadrePano(lam)}` : ''}"><i class="pt-esp l" aria-hidden="true"></i>${p ? `<picture><source media="(orientation: landscape)" srcset="${p}">${img}</picture>` : img}<i class="pt-esp r" aria-hidden="true"></i></div>` };
+}
+/** La cabecera de la ficha de un pueblo: su portada, la de su bosque o la de su comarca. cls: la clase de la imagen. */
+export const portadaPueblo = (l, cls) => cabecera(portadaDe(l), townImg(l), cls);
+/** La de la ficha de una comarca. */
+export const portadaComarca = (id, cls) => cabecera(COMARCA_LAMINA[id], comarcaCover(id), cls);
 /** La portada de un pueblo o, si no tiene, la de su comarca. */
 export const townImg = (l, small = false) => (l && (townCover(l.id, small) || comarcaCover(l.comarca, small))) || '';
 /** Las láminas que hay en esta versión: de un pueblo (la portada primero), de una comarca o de un grupo. */

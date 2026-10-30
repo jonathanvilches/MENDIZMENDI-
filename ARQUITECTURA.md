@@ -188,6 +188,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   las tarjetas y cabeceras de comarca, las tarjetas y la ficha de cada pueblo y la pantalla de carga. En tarjetas y
   fichas se ven enteras, en 16:9; donde el texto va encima, con el mismo degradado neutro (`--cov-side`, `--cov-foot` y
   `--cov-head` en `hub.css`). Las fotos 3D de antes (el diorama de la comarca con el personaje delante) ya no están.
+  Las cabeceras de las fichas de pueblo y de comarca (y la del pueblo en el material didáctico) salen de
+  `portadaPueblo` y `portadaComarca` (`ui/laminas.js`): con la pantalla tumbada, si la portada tiene panorámica
+  (`src/assets/laminas/pano`, solo en la web; `PANO` y `PANO_BOSQUE` en `data/laminas.js`, con el personaje medido a
+  ojo), un `<picture>` la pone en lugar de la lámina, tan ancha que llena el marco sin bordes reflejados; de pie, la
+  lámina de siempre. En el archivo único no van: con conexión se piden a la web (`hd.json`, grupo `pano`). Orgi, Bertiz
+  y los sotos del Ebro tienen ya su portada (antes, la de otro sitio: `BOSQUE_LAMINA` queda para donde falte).
   La pantalla de carga lleva una sola lámina, fija y entera de alto, encuadrada en el personaje (`focoPortada` y
   `focoDe`, de `FOCO` y `ALTO`), sin degradado lateral ni movimiento, con un velo oscuro parejo encima, algo más denso abajo, para que se lea la
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo

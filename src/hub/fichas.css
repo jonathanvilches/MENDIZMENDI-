@@ -44,13 +44,25 @@
 .pt-marco { --W: calc(var(--h) * var(--zf, 1) * 16 / 9); --H: calc(var(--h) * var(--zf, 1)); --x0: calc(50cqw - var(--cx, .5) * var(--W)); --y0: calc(-1 * var(--sy, 0) * var(--H));
   position: relative; justify-self: stretch; width: 100%; height: var(--h); overflow: hidden;
   -webkit-mask: linear-gradient(180deg, #000 86%, transparent); mask: linear-gradient(180deg, #000 86%, transparent); }
-.pt-marco > img { position: absolute; z-index: 1; left: var(--x0); top: var(--y0); width: var(--W); height: var(--H); max-width: none; display: block;
+.pt-marco > picture { display: contents; }
+.pt-marco > img, .pt-marco > picture > img { position: absolute; z-index: 1; left: var(--x0); top: var(--y0); width: var(--W); height: var(--H); max-width: none; display: block;
   -webkit-mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
 .pt-esp { position: absolute; z-index: 0; top: var(--y0); width: var(--W); height: var(--H); background: var(--fondo, none) no-repeat; background-size: calc(var(--W) * 12) 100%;
   transform: scaleX(-1); filter: blur(14px) saturate(.9) brightness(.62); pointer-events: none; --lado: 90deg;
   -webkit-mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%); mask: linear-gradient(var(--lado), #000, rgba(0, 0, 0, .6) 35%, transparent 80%); }
 /* (reflejadas, su lado de dentro es el que toca la lámina: de ahí se apagan hacia fuera, hasta el fondo desenfocado) */
 .pt-esp.l { left: calc(var(--x0) - var(--W)); background-position: left center; } .pt-esp.r { left: calc(var(--x0) + var(--W)); background-position: right center; --lado: 270deg; }
+/* con la pantalla tumbada, si la lámina tiene panorámica (.pano: ui/laminas.js, cabecera), esa en su lugar: tan ancha que
+   llena el marco de lado a lado, sin bordes reflejados, con el personaje lo más al centro que se pueda y entero de alto
+   (--pym, la mitad entre su cabeza y sus pies); --pa, su ancho entre su alto; --pzf, cuánto se acerca. Y el fondo
+   desenfocado de la cabecera, de la misma panorámica, para no descargar también la lámina de siempre */
+@media (orientation: landscape) {
+  .pt-marco.pano { --W: max(calc(var(--h) * var(--pzf, 1) * var(--pa, 3)), 100cqw); --H: calc(var(--W) / var(--pa, 3));
+    --x0: clamp(calc(100cqw - var(--W)), calc(50cqw - var(--pcx, .5) * var(--W)), 0px); --y0: clamp(calc(var(--h) - var(--H)), calc(var(--h) / 2 - var(--pym, .5) * var(--H)), 0px); }
+  .pt-marco.pano > .pt-esp { display: none; }
+  .pt-marco.pano > picture > img { -webkit-mask: none; mask: none; }
+  .chero:has(> .pt-marco.pano)::before, .fh-cab:has(> .pt-marco.pano)::before { background-image: var(--fondo-p); }
+}
 .fh-tit { position: relative; z-index: 1; justify-self: stretch; display: grid; gap: 8px; padding: 6px 72px 0 24px; }
 .fh-tit h2 { margin: 0; color: #fff; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; overflow-wrap: anywhere; text-shadow: 0 2px 4px rgba(8, 4, 16, .45), 0 4px 22px rgba(8, 4, 16, .55); }
 .fh-tit h2 em { display: block; margin-top: 6px; color: color-mix(in srgb, var(--c) 35%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: 0 1px 8px rgba(8, 4, 16, .6); }

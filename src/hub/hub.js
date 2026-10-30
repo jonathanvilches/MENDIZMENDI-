@@ -30,7 +30,7 @@ import { FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { stampImg } from '../assets.js';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen, isEU } from '../i18n.js';
-import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl, encuadreDe, encuadreComarca } from '../ui/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl, portadaPueblo, portadaComarca } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { STAR } from '../data/tiendas.js';
@@ -376,7 +376,7 @@ export class Hub {
   s_comarca(id) {
     const c = comarca(id); if (!c) return this.s_towns();
     const p = profile(), pr = comarcaProgress(p, id), ts = comarcaTowns(id), C = c.culture || {}, dd = isDidactico(), star = dd && STAR[id];
-    const [cn1, cn2] = (c.full || c.name).split(' / '), cov = comarcaCover(id);
+    const [cn1, cn2] = (c.full || c.name).split(' / '), cab = portadaComarca(id, 'chero-img');
     // (la danza de la comarca, con su ilustración si la hay: se abre en grande al tocarla)
     const danza = tradicionUrl('danza-' + id);
     const block = (ic, k, o, img = '') => o ? `<div class="cult${img ? ' con-img' : ''}">${img ? `<button type="button" class="cult-img" data-cultimg aria-label="Ver la ilustración"><img src="${img}" alt="" loading="lazy"></button>` : `<span class="fh-mi">${I(ic, 30)}</span>`}<div><small>${k}${o.date ? ' · ' + esc(o.date) : ''}</small><b>${esc(o.title)}</b><p>${esc(o.text)}</p>${o.place ? `<em>${esc(o.place)}</em>` : ''}</div></div>` : '';
@@ -398,7 +398,7 @@ export class Hub {
     // río, con su nombre detrás)
     const dato = (ic, v, k, antes) => `<span class="ch-dato">${I(ic, 20)}${antes ? `<small>${k}</small><b>${v}</b>` : `<b>${v}</b><small>${k}</small>`}</span>`;
     return `
-    <section class="chero" style="--c:${c.color}${cov ? `;--fondo:url('${cov}')` : ''}">${cov ? `<div class="pt-marco" style="${encuadreComarca(id)}"><i class="pt-esp l" aria-hidden="true"></i><img class="chero-img" src="${cov}" alt="" decoding="async"><i class="pt-esp r" aria-hidden="true"></i></div>` : ''}
+    <section class="chero" style="--c:${c.color}${cab.fondo}">${cab.marco}
       <div class="ch-tx"><button class="back" data-go="${dd ? 'map' : 'home'}">${I('back', 22)} Mapa</button>
         <div class="ch-nom"><img class="bigstamp${dd ? '' : ' con-aro'}" src="${stampImg(id)}" alt="" style="--f:${pr.towns ? pr.stamps / pr.towns : 0}"><div><small class="kicker">Comarca</small><h1>${esc(cn1)}${cn2 ? `<em data-notr>${esc(otroNombre(cn1, cn2))}</em>` : ''}</h1></div></div>
         <div class="ch-datos">${dato('church', ts.length, ts.length === 1 ? 'Pueblo' : 'Pueblos')}${dd ? '' : dato('stamp', `${pr.stamps}<i>/${pr.towns}</i>`, 'Sellos') + dato('check', `${pr.done}<i>/${pr.total}</i>`, 'Misiones')}${c.river ? dato('river', esc(c.river), 'Río', true) : ''}</div></div>
@@ -449,11 +449,11 @@ export class Hub {
     const vis = l.special === 'salazar' ? CARDS.filter(x => x.cat === 'Patrimonio').map(x => [x.icon, x.title, x.text])
       : [l.church && [{ fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church.style] || 'church', l.church.name, l.church.text], ...(l.landmarks || []).map(x => [LM_ICON[x.kind] || x.kind, x.name, x.text])].filter(Boolean);
     const oidas = cts.filter(K => (p.cards || []).includes('cuento:' + K.id)).length;
-    const st = (ic, k, v, cls = '') => `<span class="fh-st${cls}">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`, [n1, n2] = l.name.split(' / '), cov = townImg(l);
+    const st = (ic, k, v, cls = '') => `<span class="fh-st${cls}">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`, [n1, n2] = l.name.split(' / '), cab = portadaPueblo(l, 'fh-portada');
     const s = el(`<div class="sheet pueblo" style="--c:${c?.color || '#c21cff'}"><div class="sheet-in" role="dialog" aria-label="${esc(l.name)}">
       <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
       <div class="fh-scroll">
-        <header class="fh-cab"${cov ? ` style="--fondo:url('${cov}')"` : ''}>${cov ? `<div class="pt-marco" style="${encuadreDe(l)}"><i class="pt-esp l" aria-hidden="true"></i><img class="fh-portada" src="${cov}" alt="" decoding="async"><i class="pt-esp r" aria-hidden="true"></i></div>` : ''}
+        <header class="fh-cab"${cab.fondo ? ` style="${cab.fondo.slice(1)}"` : ''}>${cab.marco}
           <div class="fh-tit"><small class="fh-k">${esc(c?.name || '')}</small><h2>${esc(n1)}${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2></div></header>
         <div class="fh-hud">${t.total ? st('check', 'Misiones', `${t.done}<i>/${t.total}</i>`, t.done === t.total ? ' ok' : '') : ''}${st('stamp', 'Sello', t.stamp ? 'Conseguido' : 'Por ganar', t.stamp ? ' ok' : '')}${l.river ? st('river', 'Río', esc(l.river.name)) : ''}${cts.length ? st('legend', cts.length === 1 ? 'Leyenda' : 'Leyendas', cts.length === 1 ? (oidas ? 'Escuchada' : 'Por escuchar') : `${oidas}<i>/${cts.length}</i>`, oidas === cts.length ? ' ok' : '') : ''}</div>
         <div class="sh-body">${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
