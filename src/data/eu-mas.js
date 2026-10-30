@@ -78,7 +78,7 @@ export const EU_RX_MAS = [
   [/^El certificado de (.+)$/, (m, a) => `${loc(e(a))} ziurtagiria`], [/^Certificado de (.+)$/, (m, a) => `${loc(e(a))} ziurtagiria`],
   [/^Sella todos los pueblos de (.+)$/, (m, a) => `Zigilatu ${loc(e(a))} herri guztiak`], [/^La insignia (.+)$/, (m, a) => `${e(a)} intsignia`],
   [/^(\d+)\/(\d+) sellos$/, '$1/$2 zigilu'], [/^(\d+) sellos$/, '$1 zigilu'], [/^Consigue (\d+) sellos de cualquier pueblo$/, 'Lortu edozein herritako $1 zigilu'],
-  [/^Válido hasta el (.+)$/, 'Baliozkoa: $1 arte'], [/^Canjeado el (.+)$/, 'Trukatuta: $1'], [/^Caducó el (.+)$/, 'Iraungita: $1'], [/^Otro bono el (.+)$/, 'Beste bonu bat: $1'],
+  [/^(.+) · Ejemplo$/, (m, a) => `${a.split(' · ').map(e).join(' · ')} · Adibidea`], [/^Válido hasta el (.+)$/, 'Baliozkoa: $1 arte'], [/^Canjeado el (.+)$/, 'Trukatuta: $1'], [/^Caducó el (.+)$/, 'Iraungita: $1'], [/^Otro bono el (.+)$/, 'Beste bonu bat: $1'],
   // (el inicio: la columna y las tarjetas de «Descubre Navarra»)
   [/^Bosque · (.+)$/, 'Basoa · $1'], [/^Yacimiento · (.+)$/, 'Aztarnategia · $1'], [/^Misión en (.+)$/, 'Misioa: $1'],
   // (el reino de Navarra del inicio: cada comarca, un capítulo con sus pantallas)
