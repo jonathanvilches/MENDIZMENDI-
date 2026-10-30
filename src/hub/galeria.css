@@ -93,9 +93,10 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gi-t h2 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-shadow: 0 3px 18px rgba(4, 1, 12, .6); }
 .gi-t h2 em { display: block; margin-top: 2px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1.2 var(--f-ui); font-style: normal; text-shadow: none; }
 .gi-ms { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.gi-ms i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: rgba(13, 6, 28, .5); border: 1px solid rgba(255, 255, 255, .14); }
+/* (cada una del color de la categoría de su misión, --mc: hub.js, CAT) */
+.gi-ms i { --mc: #c9b8ff; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: color-mix(in srgb, var(--mc) 14%, rgba(13, 6, 28, .6)); border: 1px solid color-mix(in srgb, var(--mc) 45%, transparent); }
 .gi-ms i :is(svg, img) { width: 18px; height: 18px; } .gi-ms i:not(.ok) :is(svg, img) { opacity: .7; }
-.gi-ms i.ok { border-color: color-mix(in srgb, var(--c) 70%, #ffd166); background: color-mix(in srgb, var(--c) 30%, rgba(13, 6, 28, .5)); }
+.gi-ms i.ok { border-color: var(--mc); background: color-mix(in srgb, var(--mc) 42%, rgba(13, 6, 28, .55)); }
 .gi-ms em { margin-left: 6px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1 var(--f-ui); font-style: normal; }
 .gi-b { display: flex; flex: none; gap: 10px; }
 .gi-b .btn { min-height: 48px; padding: 0 22px; gap: 10px; white-space: nowrap; }

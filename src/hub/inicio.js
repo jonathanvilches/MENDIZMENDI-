@@ -138,7 +138,7 @@ function fichaHTML(p, l) {
 function misionesHTML(ms, t) {
   const sig = ms.find(m => !m.done), cols = ms.length > 8 ? Math.ceil(ms.length / 2) : ms.length, pct = Math.round(100 * t.done / Math.max(1, t.total));
   return `<span class="ft-ms"><span class="ft-ms-h"><b>Misiones</b><em>${t.done}/${t.total}</em></span><i class="ft-ms-bar"><u style="width:${pct}%"></u></i>
-    <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span></span>`;
+    <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" style="--mc:${m.mc || '#c9b8ff'}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span></span>`;
 }
 let MAPA = null;
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
