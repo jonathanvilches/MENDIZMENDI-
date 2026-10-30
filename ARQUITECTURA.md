@@ -205,6 +205,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
   en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura. En el
   móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
+- **Partido de pelota, lo que se ve** (`pelota/hud.js`): la X, un solo botón redondo con la pelota (abre las pelotas,
+  que se cambian mientras sacas tú, y el descanso; en su badge, los descansos que te quedan; brilla si estás cansado), el
+  marcador con la energía de cada uno en una raya bajo su nombre, y los botones de golpe con el aro de la fuerza. Sin
+  consejos en los partidos (solo el primer medio minuto del peloteo de entrenar), sin recuadro de fuerza, sin tarjeta del
+  rival y sin barra de energía abajo.
 - **Galería de Pueblos** (`hub/galeria.js`): las cartas no van en un anillo de verdad, que dejaba las de los lados
   pequeñas y mucho aire a los lados, sino cada una en su puesto: la de delante, adelantada; las de los lados, apenas
   detrás y giradas entre 22° y 38°, lo justo para acabar antes de las flechas (si no caben, como en el ordenador, se meten
