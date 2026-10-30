@@ -223,6 +223,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
   lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
   se parten en casas como los bloques grandes.
+- **Lugares emblemáticos del mapa** (`hub/emblemas.js`, `data/reales/emblemas.json`, `tools/emblemas-real.py`): con su
+  planta de verdad, de OpenStreetMap por Overture Maps, y lo que no está en los datos, de lo que se sabe del sitio. La
+  Ciudadela de Pamplona, con los muros de sus baluartes, revellines y fosos, sin los dos baluartes que miraban a la ciudad,
+  derribados con el Primer Ensanche en 1888, el parque que la rodea y los edificios de dentro; El Sadar, con su fachada
+  roja, sus gradas, su cubierta y el campo con sus franjas; y Castildetierra, en las Bardenas, con su falda de cárcavas, la
+  chimenea de arcilla y el remate de arenisca. Estos tres van sueltos sobre su comarca y se levantan al acercarse, ya desde
+  lo alto. Con la maqueta de su pueblo, en lugar de las cajas de los datos: el Palacio Real de Olite, con su contorno
+  almenado, el Palacio Viejo, la muralla y las torres en las esquinas que más salen, la del homenaje de 40 m, la de las
+  Tres Coronas ochavada y cuatro con los capuchones negros de la restauración del siglo XX (el sitio exacto de cada torre
+  no está en los datos); el castillo de Javier, con su torre del homenaje y su muralla; y los puentes de Burgui, de cuatro
+  arcos, y de Puente la Reina, de seis, con sus tajamares, su lomo y sus pretiles. El kiosco de la Plaza del Castillo ya
+  estaba (`maqueta.js`). Una malla por sitio, con su color en cada vértice; la altura, con la de las casas, y en los
+  puentes medida desde el agua para que toquen las dos orillas.
 - **Trashumancia:** en el mapa de Navarra (`hub/mapa3d.js`), la Cañada Real de los Roncaleses, del valle de Roncal a las
   Bardenas (trazado aproximado), en una raya discontinua de una capa encima del mapa, y su rebaño, un nombre que baja por
   ella poco a poco; tocándolo, su ficha (`hub.trashumancia`), con la misión «La trashumancia» del Roncal (juntar el

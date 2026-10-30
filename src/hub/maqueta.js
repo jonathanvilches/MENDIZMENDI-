@@ -9,6 +9,7 @@
 // Se hace por pasos (una función generadora): uno por imagen, para que el mapa no se pare mientras se levanta.
 import * as THREE from 'three';
 import { clamp, smoothstep, mulberry32, segDist, hashStr } from '../util/math.js';
+import { emblemasDe, enHueco, haceEmblema, materialEmblema, metros } from './emblemas.js';
 
 // (alturas de cada clase de edificio cuando OpenStreetMap no la da, en metros)
 const ALTO = { house: 8.5, borda: 7, shed: 4.5, industrial: 9, church: 14, townhall: 11, school: 9, tower: 20, fronton: 10, palacio: 13, castillo: 15, muralla: 9, kiosko: 5, lavadero: 4 };
@@ -266,7 +267,9 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     for (const [a, b] of [[-w / 2, -d / 2], [w / 2, -d / 2], [w / 2, d / 2], [-w / 2, d / 2], [0, 0]]) m = Math.min(m, alto(X0 + (x + a * c + b * s) * MU, Z0 + (z - a * s + b * c) * MU));
     return m - hund;
   };
-  const casas = casasMaqueta(D).filter(b => Math.hypot(b.x, b.z) < R * 0.94 && cabe(b.x, b.z, Math.hypot(b.w, b.d) / 2));
+  // (los lugares emblemáticos del pueblo, con su forma de verdad, van aparte: emblemas.js. Las cajas que caen dentro, fuera)
+  const embs = emblemasDe(D), huecos = embs.flatMap(e => e.huecos);
+  const casas = casasMaqueta(D).filter(b => Math.hypot(b.x, b.z) < R * 0.94 && cabe(b.x, b.z, Math.hypot(b.w, b.d) / 2) && !enHueco(huecos, b.x, b.z));
   for (const b of casas) {
     const v = varia(b), k = b.k, X = X0 + b.x * MU, Z = Z0 + b.z * MU, base = pie(b.x, b.z, b.w, b.d, b.ry);
     const hM = clamp(b.h || ALTO[k] || 8, 3, 45), H = (hM + 2) * MU * K, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d);
@@ -470,6 +473,11 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     const m = new THREE.InstancedMesh(g0, mat, L.length);
     L.forEach((p, i) => { M4.fromArray(p[0]); m.setMatrixAt(i, M4); m.setColorAt(i, col.fromArray(p[2])); });
     m.computeBoundingSphere(); m.frustumCulled = false; grupo.add(m);
+  }
+  // (los emblemas, con su propio material: mapa3d.js le da la misma transparencia que a las casas al levantarse)
+  if (embs.length) {
+    const me = res.matEmb = materialEmblema(o.alzado), ancla = (lat, lon) => { const [dx, dz] = metros(lat, lon, D.lat, D.lon); return [X0 + dx * MU, Z0 + dz * MU]; };
+    for (const e of embs) { const m = new THREE.Mesh(haceEmblema(e.id, { ancla, MU, K, suelo: alto }), me); m.frustumCulled = false; grupo.add(m); }
   }
   res.casas = grupo;
   // (sin repetir: de dos a menos de 60 m, el primero; como mucho seis, los más cerca del centro)
