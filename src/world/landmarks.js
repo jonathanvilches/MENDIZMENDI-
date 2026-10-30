@@ -192,15 +192,22 @@ function buildSigns(B, scene) {
     { x: PLACES.crucero.x + 5, z: PLACES.crucero.z - 4, lines: ['OTSAGABIA', 'Ochagavía'] },
     { x: rx(-298) - 20, z: -296, lines: ['E Balsa', 'N Irati'] },
   ];
+  // (la tabla entre dos postes, uno a cada lado: antes iba centrada en un solo palo, que la atravesaba por medio y
+  // cortaba el nombre del pueblo, y por detrás se leía al revés. Ahora el letrero, por las dos caras y al derecho)
   for (const s of signs) {
-    const y = terrainHeight(s.x, s.z);
-    B.add('woodDark', new THREE.CylinderGeometry(0.08, 0.1, 2.6, 6), M(s.x, y + 1.2, s.z));
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 0.4 * s.lines.length), new THREE.MeshStandardMaterial({ map: signTexture(s.lines), side: THREE.DoubleSide, roughness: 0.9 }));
-    m.position.set(s.x, y + 2.3 - 0.2 * s.lines.length, s.z);
-    m.rotation.y = Math.random() * 0.6 - 0.3 + Math.PI / 4;
-    m.castShadow = true;
-    scene.add(m);
-    addCircle(s.x, s.z, 0.2);
+    const y = terrainHeight(s.x, s.z), W = 1.6, H = 0.4 * s.lines.length, cy = y + 2.3 - 0.2 * s.lines.length;
+    const ry = Math.random() * 0.6 - 0.3 + Math.PI / 4, ax = Math.cos(ry), az = -Math.sin(ry);
+    for (const k of [-1, 1]) {
+      const px = s.x + ax * k * (W / 2 + 0.07), pz = s.z + az * k * (W / 2 + 0.07);
+      B.add('woodDark', new THREE.CylinderGeometry(0.07, 0.09, cy + H / 2 + 0.12 - y, 6), M(px, (cy + H / 2 + 0.12 + y) / 2, pz));
+      addCircle(px, pz, 0.15);
+    }
+    const g = new THREE.Group(); g.position.set(s.x, cy, s.z); g.rotation.y = ry;
+    const tabla = new THREE.Mesh(new THREE.BoxGeometry(W + 0.04, H + 0.04, 0.05), new THREE.MeshStandardMaterial({ color: '#6b4424', roughness: 0.9 }));
+    tabla.castShadow = true; g.add(tabla);
+    const mat = new THREE.MeshStandardMaterial({ map: signTexture(s.lines), roughness: 0.9 });
+    for (const k of [1, -1]) { const cara = new THREE.Mesh(new THREE.PlaneGeometry(W, H), mat); cara.position.z = k * 0.026; if (k < 0) cara.rotation.y = Math.PI; g.add(cara); }
+    scene.add(g);
   }
 }
 

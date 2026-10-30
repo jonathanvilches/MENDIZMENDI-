@@ -34,7 +34,7 @@ import { levelById, LEVELS, sedeDePueblo, esExterior } from './data/levels.js';
 import { townImg } from './assets.js';
 import { armsReady } from './ui/escudoImg.js';
 import { armsOfTown } from './data/armas-navarra.js';
-import { laminaUrl, laminaById } from './ui/laminas.js';
+import { laminaUrl, laminaById, focoDe, focoPortada } from './ui/laminas.js';
 import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
@@ -224,7 +224,7 @@ async function boot() {
     // (también desde el mapa del inicio, tras su zoom rápido: la carga entera, con la portada del pueblo, y luego el vuelo
     // de llegada. Antes, desde el mapa, la carga era corta, sin portada, y no había vuelo: parecía que faltaba la intro)
     const entrada = ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
-      comarca: cm?.name, tipTitle: opt.sport ? '¿Sabías que…?' : 'Consejo', caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
+      foco: opt.sport && laminaUrl('dep-fronton') ? focoDe('dep-fronton') : focoPortada(d), comarca: cm?.name, tipTitle: opt.sport ? '¿Sabías que…?' : 'Consejo', caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
     // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga

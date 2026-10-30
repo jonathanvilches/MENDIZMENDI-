@@ -63,38 +63,12 @@ summary { line-height: 1.3; }
 #loading { --P: clamp(20px, calc(3.4vw / var(--z, 1)), 56px);
   --sx: max(env(safe-area-inset-left, 0px), env(safe-area-inset-right, 0px)); --sy: max(env(safe-area-inset-top, 0px), env(safe-area-inset-bottom, 0px));
   position: fixed; inset: 0; z-index: 20; overflow: hidden; background: #0d0420; color: #fff; pointer-events: auto; }
-/* (la lámina, siempre entera: el personaje de la portada se ve de pies a cabeza. Detrás, la misma lámina desenfocada
-   llena la pantalla; encima, la lámina sin recortar: tumbada, a la derecha, que es donde suele estar el personaje, y
-   fundida por su borde; de pie, en una franja bajo el «¿Sabías que…?». Antes llenaba la pantalla recortada y con un
-   zum: en el móvil de pie solo se veía un trozo y el personaje se quedaba fuera) */
-#loading .ld-bg { position: absolute; inset: 0; background: #2b1062 center / 0 0 no-repeat; }
-#loading .ld-bg::before, #loading .ld-bg::after { content: ''; position: absolute; background-image: inherit; background-repeat: no-repeat; }
-#loading .ld-bg::before { inset: -48px; background-size: cover; background-position: center; filter: blur(28px) saturate(1.15) brightness(.62); }
-#loading .ld-bg::after { inset: 0; background-size: contain; background-position: right center; transform-origin: 70% 60%; animation: ldKen 16s cubic-bezier(.2, .6, .3, 1) both;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 16%) right center / calc(100dvh * 16 / 9) 100% no-repeat; mask: linear-gradient(90deg, transparent, #000 16%) right center / calc(100dvh * 16 / 9) 100% no-repeat; }
-@media (max-aspect-ratio: 16/9) {
-  #loading .ld-bg::after { background-position: center bottom; transform-origin: 60% 80%;
-    -webkit-mask: linear-gradient(180deg, transparent, #000 14%) center bottom / 100% calc(100vw * 9 / 16) no-repeat; mask: linear-gradient(180deg, transparent, #000 14%) center bottom / 100% calc(100vw * 9 / 16) no-repeat; }
-}
-@media (orientation: portrait) {
-  #loading .ld-bg::after { --y: max(calc(var(--sy) + 128px), calc(42dvh - 100vw * 9 / 32)); background-size: 100% auto; background-position: center var(--y);
-    -webkit-mask: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent) center var(--y) / 100% calc(100vw * 9 / 16) no-repeat; mask: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent) center var(--y) / 100% calc(100vw * 9 / 16) no-repeat; }
-}
-@keyframes ldKen { from { transform: scale(1.04); filter: saturate(1.25) brightness(.7); } 12% { filter: saturate(1.1) brightness(1); } to { transform: scale(1); filter: saturate(1.1); } }
-/* (el velo sobre la lámina, muy suave y largo, sin morado: solo lo justo para leer el nombre y la barra; la lámina se ve) */
-#loading .ld-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8, 4, 16, .25) 0%, rgba(8, 4, 16, 0) 20%); }
-/* (detrás del nombre y de las misiones, el velo suave de sport.css, --velo, desde la esquina de abajo: se apaga poco a
-   poco, sin la raya que dejaban los dos degradados rectos de antes) */
-#loading .ld-shade::before { content: ''; position: absolute; inset: 0; background: radial-gradient(90% 120% at 0% 100%, var(--velo)); opacity: .8; }
-/* (las motas de luz que suben y las líneas de pantalla con la viñeta) */
-#loading .ld-fx { position: absolute; inset: 0; pointer-events: none; }
-#loading .ld-fx::before { content: ''; position: absolute; inset: -40% 0 0; opacity: .7; animation: ldMotas 14s linear infinite;
-  background: radial-gradient(2px 2px at 12% 72%, #ffd6f2, transparent), radial-gradient(1.5px 1.5px at 28% 54%, #fff, transparent), radial-gradient(2.5px 2.5px at 44% 88%, #ff7ac8, transparent),
-    radial-gradient(1.5px 1.5px at 63% 66%, #c9b2ff, transparent), radial-gradient(2px 2px at 78% 80%, #fff, transparent), radial-gradient(3px 3px at 90% 58%, #ff7ac8, transparent),
-    radial-gradient(1.5px 1.5px at 6% 38%, #c9b2ff, transparent), radial-gradient(2px 2px at 52% 30%, #fff, transparent), radial-gradient(2px 2px at 70% 20%, #ffd6f2, transparent), radial-gradient(1.5px 1.5px at 35% 12%, #c9b2ff, transparent);
-  background-size: 100% 50%; }
-@keyframes ldMotas { to { transform: translateY(-50%); } }
-#loading .ld-fx::after { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .025) 0 1px, transparent 1px 3px), radial-gradient(130% 100% at 50% 50%, transparent 65%, rgba(5, 1, 14, .28) 100%); }
+/* (una sola lámina, fija, a toda la pantalla: sin la copia desenfocada detrás, sin zum ni motas que se muevan y sin el
+   velo oscuro de la izquierda. Encuadrada donde está el personaje (--lx, --ly: FOCO y el centro de ALTO de su lámina,
+   que pone main.js), para que al recortarse en el móvil, tumbado o de pie, no se le corte) */
+#loading .ld-bg { position: absolute; inset: 0; background: #2b1062 var(--lx, 50%) var(--ly, 50%) / cover no-repeat; }
+/* (sin velo, las letras llevan su propia sombra, más marcada: se leen igual sobre el cielo claro o una fachada) */
+#loading { --letra-carga: 0 1px 2px rgba(5, 1, 14, .95), 0 0 6px rgba(5, 1, 14, .8), 0 0 16px rgba(5, 1, 14, .55); }
 /* (las cuatro esquinas del visor, finas y rosas) */
 #loading .ld-marco { --m: calc(var(--P) * .45); --l: clamp(20px, 3.2vmin, 40px); position: absolute; inset: calc(var(--m) + var(--sy)) calc(var(--m) + var(--sx)); pointer-events: none; opacity: .85;
   background: linear-gradient(#ff7ac8, #ff7ac8) 0 0 / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 0 0 / 2px var(--l), linear-gradient(#ff7ac8, #ff7ac8) 100% 0 / var(--l) 2px, linear-gradient(#ff7ac8, #ff7ac8) 100% 0 / 2px var(--l),
@@ -104,16 +78,16 @@ summary { line-height: 1.3; }
   grid-template-columns: minmax(0, 1fr) minmax(0, .72fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: ". tip" "txt pic" "prog prog"; gap: 16px 32px; }
 #loading .ld-txt { grid-area: txt; align-self: end; min-width: 0; display: flex; flex-direction: column; gap: 14px; }
 #loading .ld-head { display: flex; flex-direction: column; gap: 6px; }
-#loading .ld-k { display: flex; align-items: center; gap: 10px; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-foto); }
+#loading .ld-k { display: flex; align-items: center; gap: 10px; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-carga); }
 #loading .ld-k::before { content: ''; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35)); }
-#loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #ece6f8; text-shadow: 0 1px 6px rgba(5, 1, 14, .8); }
+#loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #f4f0fb; text-shadow: var(--letra-carga); }
 /* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas cortadas) */
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
-#loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; text-shadow: var(--letra-foto); }
+#loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; text-shadow: var(--letra-carga); }
 #loading .ld-ms div { display: flex; flex-wrap: wrap; gap: 6px; }
 #loading .ld-ms .ico { width: 40px; height: 40px; padding: 7px; box-sizing: border-box; border-radius: 50%; background: rgba(20, 10, 40, .45); border: 1px solid rgba(255, 255, 255, .22);
   -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
@@ -136,7 +110,7 @@ summary { line-height: 1.3; }
 /* (abajo: lo que se prepara, con su cursor, el tanto por ciento grande y la barra por segmentos) */
 #loading .ld-prog { grid-area: prog; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
 #loading .ld-row { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; }
-#loading .ld-row .msg { min-width: 0; overflow: hidden; white-space: nowrap; color: #d8cff0; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+#loading .ld-row .msg { min-width: 0; overflow: hidden; white-space: nowrap; color: #ece6f8; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .08em; text-transform: uppercase; text-shadow: var(--letra-carga); }
 #loading .ld-row .msg::after { content: ''; display: inline-block; width: .55em; height: 1em; margin-left: 4px; vertical-align: -2px; background: #ff7ac8; animation: ldCursor .8s steps(1) infinite; }
 @keyframes ldCursor { 50% { opacity: 0; } }
 #loading .ld-pc { flex: none; font: 400 clamp(28px, min(6vw, 9vh), 64px)/.85 'MZ Display', 'MZ Texto', sans-serif; color: #fff; text-shadow: 0 0 18px rgba(255, 122, 200, .6), 0 2px 10px rgba(8, 4, 16, .5); font-variant-numeric: tabular-nums; }
@@ -187,10 +161,8 @@ summary { line-height: 1.3; }
   #loading .ld-pic { display: none; }
   /* (las misiones en una sola fila, aunque sean ocho: los iconos encogen un poco si no caben) */
   #loading .ld-ms div { flex-wrap: nowrap; gap: 5px; } #loading .ld-ms .ico { flex: 0 1 38px; width: auto; height: auto; aspect-ratio: 1; min-width: 0; padding: 6px; }
-  #loading .ld-shade { background: linear-gradient(180deg, rgba(8, 4, 16, .28) 0%, rgba(8, 4, 16, 0) 22%); }
-  #loading .ld-shade::before { inset: 25% 0 0; background: linear-gradient(0deg, var(--velo)); opacity: .8; }
 }
-@media (prefers-reduced-motion: reduce) { #loading .ld-bg, #loading .ld-bg::after, #loading .ld-fx::before, #loading .bar i::after, #loading.entra *, #loading .ld-row .msg::after { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { #loading .bar i::after, #loading.entra *, #loading .ld-row .msg::after { animation: none !important; } }
 .mountains { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; pointer-events: none; opacity: .9; }
 
 /* ---------- Título ---------- */
