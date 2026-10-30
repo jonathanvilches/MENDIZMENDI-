@@ -28,6 +28,9 @@ import { PASAKA } from '../data/pasaka.js';
 import { INSTRUMENTOS } from '../data/instrumentos.js';
 import { FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { stampImg } from '../assets.js';
+import { certificados, ofertas, misBonos, sacaBono, canjea, nuevas, vistas, sonEjemplos, comercioById, nombrePueblo, DIA } from '../game/ventajas.js';
+import { CATEGORIAS, PIN_EJEMPLO } from '../data/comercios.js';
+import './ventajas.css';
 import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen, isEU } from '../i18n.js';
 import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl, portadaPueblo, portadaComarca } from '../ui/laminas.js';
@@ -78,7 +81,7 @@ const comarca = (id) => COMARCAS.find(c => c.id === id);
 const otroNombre = (n1, n2) => (isEU() ? n1 : n2);
 // el color de cada parte del juego, para distinguirlas de un vistazo (hub.css, --cat): la aventura, en fucsia; los torneos,
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
-const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo' };
+const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo', ventajas: 'yo' };
 const kc = (id) => KC[String(id).split(':')[0]] || 'av';
 // (el nombre y el icono, en la barra de arriba, de las secciones del material que no van en el menú del juego)
 const OTRAS = { tradiciones: [, 'Tradiciones', 'mask'], oficios: [, 'Oficios', 'anvil'], productos: [, 'Productos', 'cheese'], historia: [, 'Historia', 'castle'], euskera: [, 'Euskera', 'talk'] };
@@ -186,8 +189,8 @@ export class Hub {
     this.nav = isDidactico()
       ? [['home', 'Mapa', 'map'], ['aprende', 'Aprende Navarra', 'book'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
       // (sin «Mapa» aparte: el inicio ya es el mapa de Navarra en 3D; en el didáctico se llama así, y su portada es «Aprende Navarra»)
-      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['profile', 'Perfil', 'gear', 1]];
-    this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
+      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
+    this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', ventajas: 'Descuentos en comercios de Navarra con tus sellos, insignias y certificados', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
     if (isDidactico()) this.MORE.instrumentos = 'Txistu, gaita, txalaparta… qué son y cómo suenan';
@@ -298,6 +301,8 @@ export class Hub {
     const p = profile(), L = levelOf(p.xp);
     $('#hChip', this.root).innerHTML = `<img src="${avatarPortrait(p.avatar)}" alt=""><div class="cinfo"><b>${esc(p.name || 'Aventurero')}</b><small>Nv ${L.lv} · ${rankOf(L.lv)}</small><div class="xp"><i style="width:${L.cur / L.need * 100}%"></i></div></div><span class="stamps">${I('stamp', 22)}${stampCount(p)}</span>`;
     $('#hChip', this.root).onclick = () => this.go('profile');
+    // (las ventajas ganadas y aún sin ver: un número en su botón del menú)
+    { const n = nuevas(p).length; this.root.querySelectorAll('#hNav [data-s="ventajas"], #hNav [data-s="more"]').forEach(b => { if (n) b.dataset.nuevas = n; else delete b.dataset.nuevas; }); }
     // (jugando, el menú se abre con tu retrato, arriba a la izquierda, como en los juegos de rol: tu cara con tu nivel y, si
     // hay sitio, tu nombre, tu rango y la barra de experiencia. Nada de iconos de página web)
     $('[data-menu]', this.root).innerHTML = `<span class="yo-c"><img src="${avatarPortrait(p.avatar)}" alt=""><b class="yo-n">${L.lv}</b></span><span class="yo-t"><b>${esc(p.name || 'Aventurero')}</b><small>${rankOf(L.lv)}</small><i class="yo-xp"><i style="width:${L.cur / L.need * 100}%"></i></i></span>`;
@@ -485,6 +490,7 @@ export class Hub {
           <ul class="fh-ms">${ms.map(m => `<li class="${m.done ? 'ok' : ''}" style="--mc:${m.mc}"><span class="fh-mi">${I(m.icon, 26)}</span><div><b>${esc(m.title)}</b><small>${esc(m.sub)}</small></div>${m.done ? `<i class="fh-hecha">${I('check', 16)}</i>` : ''}</li>`).join('')}</ul>
           ${vis.length ? `<h3>${I('church', 18)} Qué visitar</h3><ul class="fh-vis">${vis.map(([ic, n, tx]) => `<li><span class="fh-mi">${I(ic, 24)}</span><div><b>${esc(n)}</b><p>${esc(tx)}</p></div></li>`).join('')}</ul>` : ''}
           ${cts.length ? `<h3>${I('legend', 18)} ${cts.length === 1 ? 'Su leyenda' : 'Sus leyendas'}</h3><div class="fh-ley">${this.leyendas(cts, p)}</div>` : ''}
+          ${isDidactico() ? '' : this.ventajasPueblo(l.id)}
           ${A && !visto(p, 'armas:' + A.id) ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms bloq"><span class="bq-pic">${armsImg(A.id) ? `<img class="sh-armimg" src="${armsImg(A.id)}" alt="">` : `<span class="sh-armic">${I('shield', 64)}</span>`}<i class="candado">${I('lock', 26)}</i></span><p><b>Por descubrir.</b> Léelo en el pueblo: está en la fachada del ayuntamiento.</p></div>`
             : A ? `<h3>${I('shield', 18)} Su escudo</h3><div class="sh-arms">${armsImg(A.id) ? `<img class="sh-armimg" src="${armsImg(A.id)}" alt="">` : `<canvas width="120" height="${Math.ceil(officialHeight(90, A)) + 6}"></canvas>`}<p><b>${esc(A.name)}.</b> ${esc(A.read)}</p><button class="lnk" data-go="escudos">Ver todos los escudos</button></div>` : ''}
           ${lams.length > 1 ? `<h3>${I('scroll', 18)} Láminas</h3>${laminaRail(lams)}` : ''}
@@ -790,6 +796,82 @@ export class Hub {
       <section class="passport">${COMARCAS.map(c => { const ts = comarcaTowns(c.id), pr = comarcaProgress(p, c.id);
         return `<div class="ppage" style="--c:${c.color}"><header><img class="${pr.stamps ? '' : 'gray'}" src="${stampImg(c.id)}" alt=""><div><b>${esc(c.name)}</b><small>${pr.stamps}/${ts.length} sellos</small></div></header>
         <div class="pstamps">${ts.length ? ts.map(l => { const t = townProgress(p, l), fut = p.towns?.[l.id]?.futsal?.sello; return `<button class="pst ${t.stamp ? 'on' : ''}" data-town="${l.id}">${(u => u ? `<img class="pst-img" src="${u}" alt="" loading="lazy" decoding="async">` : '')(townCover(l.id, true))}<span class="ink">${t.stamp ? `<img src="${stampImg(c.id)}" alt="">` : I('lock', 30)}</span>${fut ? `<i class="fsello" title="Sello de fútbol">${I('balon', 18)}</i>` : ''}<small>${esc(l.name.split(' /')[0])}</small></button>`; }).join('') : '<small class="empty">Próximamente</small>'}</div></div>`; }).join('')}</section>`;
+  }
+
+  // ---------- Ventajas en el comercio local (game/ventajas.js, data/comercios.js) ----------
+  // tus bonos, tus certificados, los comercios por comarca con sus ofertas (ganadas, en espera o por ganar, con lo que falta)
+  // y cómo funciona. Mientras no haya comercios de verdad, los ejemplos, marcados como tales
+  s_ventajas() {
+    const p = profile(), C = certificados(p), O = ofertas({}, p), B = misBonos(p), ej = sonEjemplos(), fecha = (t) => new Date(t).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+    this.after = () => { vistas(p); this.renderChip(); const r = $('#hMain', this.root);
+      r.querySelectorAll('[data-vt-saca]').forEach(b => { b.onclick = () => { const [c, o] = b.dataset.vtSaca.split('|'), bo = sacaBono(c, o, p); if (bo) { this.sound?.ui('open'); this.bonoSheet(bo.id); } }; });
+      r.querySelectorAll('[data-vt-bono]').forEach(b => { b.onclick = () => this.bonoSheet(b.dataset.vtBono); });
+      r.querySelectorAll('[data-vt-cert]').forEach(b => { b.onclick = () => this.certSheet(b.dataset.vtCert); }); };
+    const porComarca = COMARCAS.map(c => ({ c, L: O.filter(x => x.l?.comarca === c.id) })).filter(g => g.L.length);
+    const fila = (x) => { const r = x.r, [h, t] = r.lleva, pc = Math.round(100 * h / Math.max(1, t));
+      const acc = x.k === 'lista' ? `<button type="button" class="btn primary vt-acc" data-vt-saca="${x.c.id}|${x.o.id}">${I('play', 18)}<span>Sacar bono</span></button>`
+        : x.k === 'activa' ? `<button type="button" class="btn vt-acc" data-vt-bono="${x.b.id}">${I('scroll', 18)}<span>Ver bono</span></button>`
+        : x.k === 'espera' ? `<span class="vt-espera">Otro bono el ${fecha(x.hasta)}</span>`
+        : `<span class="vt-falta"><small>${esc(r.como)}</small><i class="vt-barra"><u style="width:${pc}%"></u></i><b>${h}/${t}</b></span>`;
+      return `<li class="vt-of ${x.k}"><span class="vt-req">${x.k === 'bloqueada' ? I('lock', 18) : `<i class="i-check-c">${I('check', 14)}</i>`}<small>${esc(r.txt)}</small></span><div class="vt-oft"><b>${esc(x.o.txt)}</b>${x.o.det ? `<small>${esc(x.o.det)}</small>` : ''}</div>${acc}</li>`; };
+    const tienda = (c, L) => `<article class="vt-com"><header><span class="vt-ic">${I(CATEGORIAS[c.cat]?.ic || 'basket', 30)}</span><div><small class="kicker">${esc(CATEGORIAS[c.cat]?.n || '')}${c.ejemplo ? ' · Ejemplo' : ''}</small><h3>${esc(c.nombre)}</h3><p>${esc(nombrePueblo(c.town))}${c.dir ? ` · ${esc(c.dir)}` : ''}</p></div></header><ul>${L.map(fila).join('')}</ul></article>`;
+    return `${cabeza('Tu partida · Ventajas', 'basket', 'Ventajas en el comercio local')}
+      <p class="lead vt-lead">Tus sellos, insignias y certificados valen descuentos y regalos en comercios de los pueblos y comarcas de Navarra. Saca el bono, enséñalo en caja y el comercio lo canjea con su clave.</p>
+      ${ej ? `<div class="vt-aviso">${I('info', 24)}<p><b>Así funcionará.</b> Todavía no hay comercios adheridos: estos son ejemplos, sin nombre propio, para ver cómo va. La clave de canje de los ejemplos es ${PIN_EJEMPLO}.</p></div>` : ''}
+      ${B.length ? `<section class="vt-sec"><h2>${I('scroll', 24)} Tus bonos</h2><div class="vt-bonos">${B.map(({ b, c, o, k }) => `<button type="button" class="vt-bono ${k}" data-vt-bono="${b.id}"><small>${esc(c.nombre)} · ${esc(nombrePueblo(c.town))}</small><b>${esc(o.txt)}</b><span>${k === 'usado' ? `Canjeado el ${fecha(b.usado)}` : k === 'caducado' ? `Caducó el ${fecha(b.hasta)}` : `Válido hasta el ${fecha(b.hasta)}`}</span><code>${esc(b.cod)}</code></button>`).join('')}</div></section>` : ''}
+      <section class="vt-sec"><h2>${I('medal', 24)} Tus certificados</h2><p class="vt-nota">Uno por comarca, al sellar todos sus pueblos, y el de Navarra, con todos. Dan las ventajas más grandes.</p>
+        <div class="vt-certs">${C.map(c => `<button type="button" class="vt-cert ${c.hecho ? 'on' : ''}"${c.hecho ? ` data-vt-cert="${c.id}"` : ' disabled'}>${c.comarca ? `<img src="${stampImg(c.id)}" alt="">` : `<span class="vt-nav">${I('trophy', 34)}</span>`}<b>${esc(c.comarca ? c.comarca.name : 'Navarra')}</b><small>${c.hecho ? 'Ver certificado' : `${c.lleva[0]}/${c.lleva[1]} sellos`}</small>${c.hecho ? `<i class="i-check-c">${I('check', 14)}</i>` : ''}</button>`).join('')}</div></section>
+      <section class="vt-sec"><h2>${I('basket', 24)} Comercios ${ej ? 'de ejemplo' : 'adheridos'}</h2>
+        ${porComarca.map(({ c, L }) => `<div class="vt-cm" style="--c:${c.color}"><h3 class="vt-cmt"><img src="${stampImg(c.id)}" alt="">${esc(c.name)}</h3><div class="vt-coms">${[...new Set(L.map(x => x.c))].map(cm => tienda(cm, L.filter(x => x.c === cm))).join('')}</div></div>`).join('')}</section>
+      <section class="vt-sec vt-como"><h2>${I('info', 24)} Cómo funciona</h2><ol>
+        <li><b>Juega y gana.</b> Cada pueblo sellado, cada insignia y cada certificado abren ventajas.</li>
+        <li><b>Saca el bono.</b> Vale un mes desde que lo sacas. Solo uno a la vez de cada oferta.</li>
+        <li><b>Enséñalo en caja.</b> El comercio mira el código o el QR, aplica la ventaja y lo canjea con su clave en tu móvil.</li>
+        <li><b>Con tu familia.</b> Compra una persona adulta. Nunca alcohol, tabaco ni apuestas.</li></ol>
+        <p class="vt-nota">¿Tienes un comercio en Navarra? Apuntarse es gratis: el comercio elige su ventaja y recibe su clave de canje.</p></section>`;
+  }
+  /** El bono, para enseñarlo en caja: el comercio, la ventaja, el QR con el código, cuánto vale y el canje con la clave del
+   *  comercio. Una franja que se mueve y la hora, que corre, para que se vea que no es una captura */
+  bonoSheet(id) {
+    const B = misBonos().find(x => x.b.id === id); if (!B) return;
+    const { b, c, o } = B, fecha = (t) => new Date(t).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' }), activo = B.k === 'activo';
+    const s = el(`<div class="sheet vt-hoja"><div class="sheet-in" role="dialog" aria-label="Bono de ${esc(c.nombre)}"><button class="x" aria-label="Cerrar">${I('close', 18)}</button>
+      <div class="vt-b ${B.k}"><small class="kicker">${esc(c.nombre)} · ${esc(nombrePueblo(c.town))}${c.ejemplo ? ' · Ejemplo' : ''}</small><h2>${esc(o.txt)}</h2>${o.det ? `<p>${esc(o.det)}</p>` : ''}
+        <div class="vt-qr" aria-hidden="true"></div><code class="vt-cod">${esc(b.cod)}</code>
+        <p class="vt-val">${B.k === 'usado' ? `Canjeado el ${fecha(b.usado)}` : B.k === 'caducado' ? `Caducó el ${fecha(b.hasta)}` : `Válido hasta el ${fecha(b.hasta)}`}</p>
+        ${activo ? `<div class="vt-vivo"><i></i><b data-vt-hora></b></div>` : B.k === 'usado' ? `<p class="vt-ok"><i class="i-check-c">${I('check', 16)}</i> Canjeado</p>` : ''}</div>
+      ${activo ? `<div class="sh-foot vt-canje"><button type="button" class="btn primary" data-vt-canje>${I('check', 20)}<span>Canjear en caja</span></button>
+        <form class="vt-clave" hidden><label>Clave del comercio<input type="password" inputmode="numeric" autocomplete="off" maxlength="12"></label><button type="submit" class="btn primary">Confirmar</button><small class="vt-err" aria-live="polite"></small></form></div>` : ''}</div></div>`);
+    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
+    import('qrcode-generator').then(({ default: qrcode }) => { const q = qrcode(0, 'M'); q.addData(b.cod); q.make(); const box = s.querySelector('.vt-qr'); if (box) box.innerHTML = q.createSvgTag({ scalable: true, margin: 2 }); }).catch(() => {});
+    const hora = s.querySelector('[data-vt-hora]'), tic = () => { if (!s.isConnected) return clearInterval(iv); if (hora) hora.textContent = new Date().toLocaleTimeString('es-ES'); }, iv = setInterval(tic, 1000); tic();
+    s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; if (this.screen === 'ventajas') this.go('ventajas', undefined, true); } });
+    const bt = s.querySelector('[data-vt-canje]'), fm = s.querySelector('.vt-clave');
+    if (bt && fm) {
+      bt.onclick = () => { bt.hidden = true; fm.hidden = false; fm.querySelector('input').focus(); };
+      fm.onsubmit = async (e) => { e.preventDefault(); const ok = await canjea(b.id, fm.querySelector('input').value);
+        if (ok) { this.sound?.ui('coin'); this.bonoSheet(b.id); } else { this.sound?.ui('error'); fm.querySelector('.vt-err').textContent = 'Clave incorrecta o bono que ya no vale'; } };
+    }
+  }
+  /** El certificado de una comarca o de Navarra: tu nombre, lo que has hecho, la fecha y el sello */
+  certSheet(id) {
+    const p = profile(), c = certificados(p).find(x => x.id === id); if (!c?.hecho) return;
+    const pueblos = (c.comarca ? comarcaTowns(c.comarca.id) : LEVELS).map(l => l.name.split(' / ')[0]);
+    const s = el(`<div class="sheet vt-hoja"><div class="sheet-in vt-diploma" role="dialog" aria-label="${esc(c.n)}"><button class="x" aria-label="Cerrar">${I('close', 18)}</button>
+      <div class="vt-dip">${c.comarca ? `<img class="vt-dsello" src="${stampImg(c.comarca.id)}" alt="">` : `<span class="vt-dsello vt-nav">${I('trophy', 64)}</span>`}
+        <small class="kicker">Herrizherri · Pasaporte</small><h2>${esc(c.n)}</h2>
+        <p>Se otorga a <b>${esc(p.name || 'Aventurero')}</b> por sellar ${c.comarca ? `todos los pueblos de ${esc(c.comarca.name)}` : 'todos los pueblos de Navarra del juego'}:</p>
+        <p class="vt-dpu">${pueblos.map(esc).join(' · ')}</p>
+        <p class="vt-dfe">${new Date(c.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+        <p class="vt-nota">Con este certificado tienes las ventajas de ${c.comarca ? 'su comarca' : 'toda Navarra'} en los comercios adheridos.</p></div></div></div>`);
+    this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
+    s.addEventListener('click', e => { if (e.target === s || e.target.closest('.x')) { s.remove(); this.sheet = null; } });
+  }
+  /** En la ficha de un pueblo: las ventajas de sus comercios (o nada, si no tiene) */
+  ventajasPueblo(id) {
+    const L = ofertas({ town: id }); if (!L.length) return '';
+    return `<h3>${I('basket', 18)} Ventajas en sus comercios${sonEjemplos() ? ' <span>Ejemplo</span>' : ''}</h3><ul class="vt-mini">${L.map(x => `<li class="${x.k}"><span class="vt-req">${x.k === 'bloqueada' ? I('lock', 16) : `<i class="i-check-c">${I('check', 12)}</i>`}</span><div><b>${esc(x.o.txt)}</b><small>${esc(x.c.nombre)} · ${esc(x.k === 'bloqueada' ? x.r.txt : x.k === 'activa' ? 'Bono sacado' : x.k === 'espera' ? 'Bono ya usado' : 'Ya puedes sacar el bono')}</small></div></li>`).join('')}</ul>
+      <button type="button" class="btn vt-ir" data-go="ventajas">${I('basket', 18)}<span>Ver todas las ventajas</span></button>`;
   }
 
   // ---------- Perfil y ajustes ----------
