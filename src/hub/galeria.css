@@ -25,7 +25,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gal-anillo { position: relative; width: var(--gw); height: var(--ch); transform-style: preserve-3d; }
 /* (al cambiar de comarca, se apagan y se encienden las tarjetas, cada una: con la transparencia o el desenfoque en el
    anillo, el navegador lo aplanaba mientras duraba y las tarjetas salían primero planas y luego en 3D) */
-.gal-anillo .gal-t { transition: opacity .22s ease, box-shadow .3s ease; }
+.gal-anillo .gal-t { opacity: var(--o, 1); transition: opacity .22s ease, box-shadow .3s ease; }
 .gal-anillo.sale .gal-t { opacity: 0; }
 .gal-anillo.entra .gal-t { animation: galEntra .6s cubic-bezier(.2, .9, .3, 1) both; }
 @keyframes galEntra { from { opacity: 0; scale: .94; } }

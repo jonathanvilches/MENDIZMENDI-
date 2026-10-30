@@ -17,7 +17,7 @@ export function galeria(m, o) {
   const G = m.querySelector('.gal'); if (!G) return;
   const anillo = G.querySelector('.gal-anillo'), escena = G.querySelector('.gal-escena'), info = G.querySelector('.gal-info');
   const puntos = G.querySelector('.gal-puntos'), cms = [...G.querySelectorAll('[data-gc]')];
-  let ci = Math.max(0, o.comarcas.findIndex(c => c.id === o.inicial)), T = [], N = 0, N0 = 0, paso = 60, R = 400;
+  let ci = Math.max(0, o.comarcas.findIndex(c => c.id === o.inicial)), T = [], N = 0, N0 = 0, paso = 60, R = 400, X1 = 300, X2 = 180, Z1 = 40, Z2 = 80, giro = 28;
   let rot = 0, meta = 0, frente = -1, raf = 0, last = 0, arrastre = null, cambiando = false;
 
   // ---------- el anillo de una comarca ----------
@@ -51,18 +51,33 @@ export function galeria(m, o) {
     const w = T[0]?.offsetWidth || 220, n = Math.max(N, 3);
     paso = 360 / n; R = Math.round((w / 2 + Math.max(14, w * 0.1)) / Math.tan(Math.PI / n));
     G.style.setProperty('--R', R + 'px');
+    // (las de los lados, poco hondas: apenas detrás y junto a la de delante, giradas lo justo para acabar antes de las
+    // flechas, entre 22° y 38°: en el móvil tumbado, poco, y llenan el ancho. Si ni así caben, como en el ordenador, donde la
+    // de delante es grande, se meten algo por detrás de ella; en el móvil de pie, no: asoman por el borde. En el anillo de
+    // verdad iban giradas 60° y medio radio atrás, pequeñas, y a los lados quedaba mucho aire vacío. Las siguientes asoman
+    // detrás de ellas, en penumbra, paralelas)
+    const W2 = escena.clientWidth / 2, gap = Math.max(10, w * 0.04), esc = 1150 / (1150 + w * 0.12), libre = W2 - 64 - w * 0.52 - gap;
+    giro = Math.round(Math.min(38, Math.max(22, Math.acos(Math.max(0, Math.min(1, libre / (w * esc)))) * 180 / Math.PI)));
+    const pw = w * Math.cos(giro * Math.PI / 180) * esc;   // (lo que ocupa de ancho una de lado)
+    Z1 = Math.round(w * 0.12); X1 = Math.round(w * 0.52 + gap + pw / 2); X2 = Math.round(pw * 0.62);
+    // (y si se meten por detrás de la de delante, más al fondo, que su borde de dentro, girado, no asome por delante)
+    if (W2 * 2 > w * 1.6 && W2 - 64 - pw / 2 < X1) { X1 = Math.round(W2 - 64 - pw / 2); if (X1 - pw / 2 < w * 0.52) Z1 = Math.round(Math.max(Z1, w / 2 * Math.sin(giro * Math.PI / 180) + 52)); }
+    Z2 = Math.round(X2 * Math.tan(giro * Math.PI / 180) + w * 0.12);   // (así la del segundo puesto queda siempre detrás de la del primero)
     // (el hueco a cada lado de la de delante, que se adelanta un 4 %: en el móvil de pie, las flechas van en medio de él)
     G.style.setProperty('--hueco', Math.max(0, (escena.clientWidth - w * 1.04) / 2) + 'px');
   }
-  // (cada tarjeta, en su sitio del anillo; las de los lados, más oscuras; la de delante, encendida)
+  // (cada tarjeta, en su sitio: s, cuántos puestos se aparta de delante, sin cortes al girar; las de los lados, más
+  // oscuras; las del segundo puesto, paralelas a ellas y detrás, asomando en penumbra, y desde ahí se apagan; la de delante,
+  // encendida y algo adelantada)
   function pinta() {
-    anillo.style.transform = `translateZ(${-R}px) rotateY(${-rot}deg)`;
+    anillo.style.transform = '';
     for (let k = 0; k < N; k++) {
-      let d = ((k * paso - rot) % 360 + 540) % 360 - 180;   // (lo que se aparta de delante, de −180 a 180)
-      const a = Math.abs(d), t = T[k];
-      t.style.transform = `rotateY(${k * paso}deg) translateZ(${R + Math.max(0, 1 - a / paso) * 40}px)`;   // (la de delante, algo adelantada)
-      t.style.setProperty('--d', Math.min(1, a / 120).toFixed(3));
-      t.style.visibility = a > 115 ? 'hidden' : '';
+      const d = ((k * paso - rot) % 360 + 540) % 360 - 180, s = d / paso, a = Math.abs(s), sg = Math.sign(s), t = T[k];   // (d: lo que se aparta de delante, de −180 a 180)
+      const x = sg * (a <= 1 ? a * X1 : X1 + (a - 1) * X2), z = (a <= 1 ? -a * Z1 : -Z1 - (a - 1) * Z2) + Math.max(0, 1 - a) * 40, g = sg * Math.min(a, 1) * giro;
+      t.style.transform = `translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${g.toFixed(2)}deg)`;
+      t.style.setProperty('--d', Math.min(1, a * 0.45).toFixed(3));
+      t.style.setProperty('--o', (a <= 2 ? 1 : Math.max(0, (2.6 - a) / 0.6)).toFixed(3));
+      t.style.visibility = a >= 2.6 ? 'hidden' : '';
     }
     const f = N ? ((Math.round(rot / paso) % N) + N) % N : -1;
     if (f !== frente) {
