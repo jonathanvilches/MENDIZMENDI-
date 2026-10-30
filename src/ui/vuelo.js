@@ -25,10 +25,12 @@ export function vuelo(follow, tramos, { suelo = null, alto = 4, skip = true, onT
     const end = () => { if (ended) return; ended = true; removeEventListener('pointerdown', onSkip, true); removeEventListener('keydown', onSkip, true); clearInterval(guard); res(); };
     if (skip) { addEventListener('pointerdown', onSkip, true); addEventListener('keydown', onSkip, true); }
     // (si el juego deja de dibujar —otra ventana, el pueblo se rehace— o alguien quita el vuelo, no se queda esperando)
-    let last = performance.now();
-    const guard = setInterval(() => { if (follow.cinematic !== C || performance.now() - last > 8000) end(); }, 1000);
+    // (se cuentan los segundos del reloj que pasan sin dibujar, no el tiempo: una sola imagen muy lenta, mientras se
+    // preparan los sombreados del pueblo visto desde lo alto, para el reloj y antes cortaba el vuelo nada más empezar)
+    let sin = 0;
+    const guard = setInterval(() => { if (follow.cinematic !== C || (!document.hidden && ++sin > 8)) end(); }, 1000);
     const C = follow.cinematic = { t: 0, fly: (c, t) => {
-      last = performance.now();
+      sin = 0;
       if (saltar) { t = total; C.t = total; }
       let i = 0, t0 = 0; while (i < segs.length - 1 && t >= t0 + segs[i].dur) t0 += segs[i++].dur;
       const S = segs[i], u = Math.min(1, Math.max(0, (t - t0) / S.dur)), e = (S.ease === 'inOut' ? inOut : out)(u);
