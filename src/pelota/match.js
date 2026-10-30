@@ -43,6 +43,7 @@ export class PelotaMatch {
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch, this.cols);
     this.hud.onPanel = () => this.resetStick?.();
     this.hud.onBola = (n) => this.cambiaBola(n);   // (tocar una pelota del cestaño antes de sacar)
+    this.hud.onDescanso = () => this.pideDescanso();   // (el botón del descanso, junto a tu energía; o la tecla R)
     this.input = { mx: 0, mz: 0, hit: false, drop: false, cut: false, keys: {}, stick: { id: null, x: 0, y: 0 }, charge: null, power: 0.5 };
     this.active = true; this.t = 0;
     // (los consejos de cómo jugar, solo para aprender: en los primeros tantos de los dos primeros partidos; luego, ninguno.
@@ -609,7 +610,7 @@ export class PelotaMatch {
     const I = this.input, hud = this.hud;
     this.onKey = (e) => {
       const k = e.key.toLowerCase(), down = e.type === 'keydown';
-      const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'e', 'b', 'escape', 'enter'];
+      const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'e', 'b', 'r', 'escape', 'enter'];
       if (!mine.includes(k)) return;
       // (soltar vale siempre: entre tanto y tanto, con una ventana abierta o con el partido parado; antes se perdía y la
       // palanca o la tecla se quedaban pulsadas al volver, hacia la izquierda, sin dejar mover)
@@ -623,6 +624,7 @@ export class PelotaMatch {
       e.preventDefault(); e.stopPropagation();
       if (down && !I.keys[k]) {
         if (k === 'b') this.cambiaBola();   // (antes de sacar: la siguiente pelota de las tuyas)
+        if (k === 'r') this.pideDescanso();   // (el descanso)
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
         if (k === 'shift' || k === 'k') this.chargeStart('drop');
         if (k === 'l') this.chargeStart('cut');
@@ -694,6 +696,13 @@ export class PelotaMatch {
     I.power = 0.15 + this.chargeLevel() * 0.85; I.charge = null;
     if (kind === 'cut') I.cutQ = true; else if (kind === 'drop') I.dropQ = true; else I.hitQ = true;
   }
+  // el descanso: pedido para el próximo parón entre tantos (otra vez, se retira); mientras descansas, el mismo botón vuelve
+  // al juego antes de que acabe el minuto
+  pideDescanso() {
+    const g = this.game; if (!g || this.replay || this.hud.panelEl) return;
+    if (g.phase === 'descanso') { if (g.descanso?.side === 'you') this.finDesc = true; return; }
+    g.pideDescanso('you');
+  }
   readInput() {
     const I = this.input, k = I.keys;
     let x = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0) + I.stick.x;
@@ -706,7 +715,8 @@ export class PelotaMatch {
     const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ;
     if (aiming) I.lastAim = { x, y };
     const aim = rel && I.lastAim ? I.lastAim : { x, y }; if (rel) I.lastAim = null;
-    const out = { mx: aiming ? 0 : x, mz: aiming ? 0 : -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y };
+    const out = { mx: aiming ? 0 : x, mz: aiming ? 0 : -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y, descansoFin: !!this.finDesc };
+    this.finDesc = false;
     I.hitQ = I.dropQ = I.cutQ = false;
     return out;
   }
@@ -737,7 +747,8 @@ export class PelotaMatch {
     else if (e.type === 'front') (this.recEv ||= []).push(e.chapa ? 'chapa' : 'front');
     else if (e.type === 'call') { this.recCall = true; if (g.mode === 'match' && this.repe && this.rec?.length > 30 && !(navigator.webdriver && !window.__repe)) this.repAt = this.t + 1.15; }
     switch (e.type) {
-      case 'serveReady': this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
+      case 'serveReady': if (g.mode === 'match' && !this.avisoDesc && g.descansos?.you > 0 && g.players.you.en < 0.35) { this.avisoDesc = true; this.tipHasta = this.t + 4.5; this.tipTexto = (t.desc || TEXT.es.desc).cansado(g.descansos.you); }   // (cansado y con descansos: se te recuerda, una vez)
+        this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
         this.rallyN = 0; this.golpazo = false; A.mood(0.2, 0.5);
@@ -752,23 +763,32 @@ export class PelotaMatch {
         if (this.game.side(e.who) === 'rival') this.hud.potencia?.(e.who, pw);   // (la fuerza de su golpe, en su tarjeta)
         // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
         if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
-        // el aviso de cómo ha salido: una sola palabra, pequeña y rápida (perfecto, bien, justo, pronto, tarde). Antes era
-        // grande en el centro y llevaba debajo el golpe, la fuerza y la energía: tapaba la jugada en cada golpe
-        if (e.who === 'you') this.hud.quality(t.quality[e.label] || TEXT.es.quality[e.label], '', e.label);
-        // el nombre del golpe, como en la tele, si es de los que deciden (dos paredes, gancho, cortada, dejada, al rebote…)
+        // el aviso de cómo ha salido (perfecto, bien, justo, pronto, tarde), solo en el peloteo de entrenar: en los partidos
+        // salía en cada golpe y no hacía falta (octubre de 2026)
+        if (e.who === 'you' && g.mode === 'rally') this.hud.quality(t.quality[e.label] || TEXT.es.quality[e.label], '', e.label);
+        // el nombre del golpe, como en la tele, pero solo de vez en cuando: al aire (de volea, antes del bote) y los
+        // pelotazos de verdad (uno de los que deciden, a tope y en el momento justo). Antes salía en cada dejada, cortada o
+        // golpe a la pared; el rebote lo canta la pared de atrás ('back')
         { const SH = t.shots || TEXT.es.shots, nm = (e.sub && SH[e.sub]) || SH[e.shot] || '';
-          this.golpazo = !!nm && !['pared', 'ancho', 'largo'].includes(e.shot);
-          if (nm && e.q > 0.3 && (this.golpazo || e.volea || e.shot === 'rebote')) { this.hud.golpe(e.volea && !/volea/i.test(nm) ? `${nm} · ${t.hitVolley || TEXT.es.hitVolley}` : nm, this.cols[g.side(e.who)]);
-            // (y en los que deciden, la cámara se mete un poco más en la jugada)
-            if (this.golpazo && this.camDyn) this.kick = Math.max(this.kick || 0, e.who === 'you' ? 0.5 : 0.35); } }
+          this.golpazo = !!nm && !['pared', 'ancho', 'largo', 'rebote'].includes(e.shot);
+          const pelotazo = this.golpazo && e.label === 'perfect' && pw >= 0.9;
+          const rotulo = e.volea ? (t.deAire || TEXT.es.deAire) : pelotazo ? nm : '';
+          if (rotulo && e.q > 0.3) this.hud.golpe(rotulo, this.cols[g.side(e.who)]);
+          // (y en los que deciden, la cámara se mete un poco más en la jugada)
+          if (this.golpazo && this.camDyn && e.q > 0.3) this.kick = Math.max(this.kick || 0, e.who === 'you' ? 0.5 : 0.35); }
         this.swingAnim(e.who); break;
       }
-      case 'whiff': this.hud.quality(e.early ? (t.quality.early || TEXT.es.quality.early) : t.quality.whiff, '', 'whiff'); break;
+      case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
+        const D = t.desc || TEXT.es.desc, mio = e.side === 'you';
+        this.hud.call(mio ? D.tuyo : D.suyo(g.pairs && this.mateObjs ? `${this.names.rival} · ${this.mateObjs.rivalMate.name}` : this.names.rival), `${D.sub}${mio ? ' ' + D.quedan(e.left) : ''}`, '', 3.6);
+        A.mood(0.12, 0.6); this.avisoDesc = false; break;
+      }
+      case 'whiff': if (g.mode === 'rally') this.hud.quality(e.early ? (t.quality.early || TEXT.es.quality.early) : t.quality.whiff, '', 'whiff'); break;   // (pronto o tarde: solo entrenando)
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       // (la chapa: su «¡clonc!» y su destello, sin sacudir la cámara: el fallo temblaba como una vibración)
       case 'front': if (e.chapa) { A.chapa(); C.chapaT = 0.6; } else A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
       case 'wall': A.wall(); break;
-      case 'back': A.wall(); if (e.live) this.hud.quality(t.rebote || '¡Al rebote!'); break;   // el rebote: la pared de atrás
+      case 'back': A.wall(); if (e.live) this.hud.golpe((t.shots || TEXT.es.shots).rebote, this.cols[g.side(g.rally?.by || 'you')]); break;   // el rebote: la pared de atrás, en el rótulo de quien la mandó
       case 'floor': A.floor(e.soft ? 0.5 : 0.8); break;
       case 'streak': this.hud.setScore(e.n, '', g.server); break;
       case 'call': {
@@ -843,7 +863,8 @@ export class PelotaMatch {
     const tt = this.txt;
     let tip = '';
     const PT = tt.pairs || TEXT.es.pairs, sp = g.serverP(), aprende = this.conConsejos && (g.mode === 'rally' ? this.t < 30 : ((g.score?.you || 0) + (g.score?.rival || 0)) < 4);
-    if (!aprende) tip = '';
+    if (this.tipHasta > this.t) tip = this.tipTexto;   // (el aviso de pedir un descanso, unos segundos)
+    else if (!aprende) tip = '';
     else if (g.phase === 'serveWait' && sp === 'you') tip = g.runUp ? tt.tipServeRun : tt.tipServe;
     else if (g.phase === 'servePrep' && sp === 'you') tip = g.saque ? tt.tipServeRun : g.hittable('you') ? tt.tipServe2 : '';   // (el saque sale solo; si se escapa la pelota, lo das tú)
     else if (g.phase === 'serveWait' && sp === 'youMate') tip = PT.mateServe;
@@ -856,6 +877,9 @@ export class PelotaMatch {
     else if (h && h.yourTurn) tip = assist ? tt.tipMove : '';
     else if (h && h.tired > 0.5) tip = tt.tiredYou;
     this.hud.tip(tip);
+    // los descansos: tu botón (con los que te quedan) y los del rival en su tarjeta; el botón brilla si estás cansado
+    this.hud.descansos(g.mode === 'match' && g.phase !== 'intro' && g.phase !== 'end', g.descansos?.you ?? 0, !!g.pedido?.you, g.phase === 'descanso' && g.descanso?.side === 'you', g.descansos?.rival ?? 0);
+    this.hud.descBtn?.classList.toggle('llama', g.mode === 'match' && (g.descansos?.you > 0) && g.players.you.en < 0.35 && !g.pedido?.you);
     // la energía de cada uno (tú, en amarillo)
     this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), color: this.cols[g.side(id)], me: id === 'you', en: g.players[id].en,
       name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '', ...(g.side(id) === 'rival' ? this.fichaRival(id) : {}) })));
