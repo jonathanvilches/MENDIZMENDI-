@@ -259,7 +259,7 @@ export function iconSVG(name, size = 32, cls = '') {
     return `<img class="ico ico3d i-${k} ${f ? '' : 'pend'} ${cls}" data-i3d="${k}" src="${f || BLANK}" width="${size}" height="${size}" alt="" aria-hidden="true">`;
   }
   (window.__svgIcons ||= new Set()).add(k);
-  return `<svg class="ico ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;
+  return `<svg class="ico i-${k} ${cls}" viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${uniq(withDefs(k))}</svg>`;
 }
 // Imagen (para dibujar en canvas: mapas, minimapa)
 const imgCache = new Map();

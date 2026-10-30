@@ -235,7 +235,7 @@ summary { line-height: 1.3; }
 #ribbons.mis .dots i :is(svg, img) { width: 64%; height: 64%; opacity: .85; }
 #ribbons.mis .dots i.on { background: color-mix(in srgb, var(--mc) 50%, rgba(13, 6, 28, .6)); border-color: var(--mc); } #ribbons.mis .dots i.cur { border: 2px solid #fff; box-shadow: 0 0 8px color-mix(in srgb, var(--mc) 75%, transparent); }
 #ribbons.mis .dots i:is(.on, .cur) :is(svg, img) { opacity: 1; }
-#ribbons.mis .dots i.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 13px; height: 13px; border-radius: 50%; background: var(--mc); color: #160a24; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 8px/13px sans-serif; text-align: center; }
+#ribbons.mis .dots i.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 13px; height: 13px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 8px/13px sans-serif; text-align: center; }
 #ribbons .eg { margin-left: 8px; font-size: var(--fs-sm); color: #ff7ac8; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 1px 2px #000; }
 /* el botón que pliega y despliega las misiones del pueblo (ui.js pliegaMisiones): la flecha, a la derecha de la misión de
    ahora. Plegadas, solo esa misión, con lo hecho en la insignia de su icono, como el nivel en el botón del menú del inicio;
