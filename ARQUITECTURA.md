@@ -96,6 +96,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   dice cuánto se adelanta la figura (`court.sitAdelante`: 0,08 en butacas con respaldo, 0,3 en bancos corridos al
   borde). Delante de la primera fila, nada que los pies puedan cruzar. Para mirarlo de cerca: `tools/grada-ver.mjs pueblo`.
   Tampoco la cámara: la del mapa del inicio sube por la ladera antes de entrar en el relieve (`tools/mapa-dron.mjs`).
+- **Entrar en un pueblo:** siempre la carga entera con su portada y, después, el vuelo de llegada con el cartel del
+  pueblo, también desde el mapa del inicio (`main.js`, `play`). El zoom del mapa antes de la carga es corto, por encima
+  del pueblo y sin pedir su maqueta, y acaba a los 4,5 segundos pase lo que pase (`mapa3d.js`, `entrar`). Los lienzos
+  cuyos píxeles se leen van con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente.
 - **Colecciones por descubrir:** jugando, naturaleza, personajes, escudos y leyendas salen bloqueados (imagen apagada,
   candado, «¿?» y una pista de dónde encontrarlo) hasta que salen en pantalla en el juego (`game/coleccion.js`, `visto`).
   Lo descubierto se apunta como carta (`fauna:`, `flora:`, `armas:`, `cuento:`, `personaje:`, `figura:`). En el material

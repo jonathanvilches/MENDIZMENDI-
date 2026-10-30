@@ -269,7 +269,8 @@ const sprigCache = new Map();
 export function leafSprig(id, N = 256) {
   const key = id + ':' + N; if (sprigCache.has(key)) return sprigCache.get(key);
   const D = LEAF[id]; if (!D || typeof document === 'undefined') return null;
-  const cv = document.createElement('canvas'); cv.width = cv.height = N; const g = cv.getContext('2d');
+  // (en memoria normal: flora3d.js lee sus píxeles para el color de los bordes, y en la tarjeta gráfica esa lectura se paraba)
+  const cv = document.createElement('canvas'); cv.width = cv.height = N; const g = cv.getContext('2d', { willReadFrequently: true });
   g.scale(N / 256, N / 256); g.translate(128, 252);
   let r = 1; const rnd = () => (r = (r * 16807) % 2147483647) / 2147483647;
   const bark = D.o?.bark || hexShade(D.c.c, 0.55);

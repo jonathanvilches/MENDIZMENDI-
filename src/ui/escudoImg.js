@@ -42,8 +42,10 @@ function ready(key, u) {
   if (!u) return Promise.resolve(null);
   if (!READY.has(key)) READY.set(key, new Promise(res => {
     const im = new Image(); im.decoding = 'async'; if (/^https?:/.test(u) && !u.startsWith(location.origin)) im.crossOrigin = 'anonymous';
+    // (willReadFrequently: el lienzo en memoria normal. En la tarjeta gráfica, leer sus píxeles esperaba a que el mapa del
+    // inicio acabara de pintar y la carga del pueblo se quedaba parada, en el simulador medio minuto)
     im.onload = () => { try {
-      const c = document.createElement('canvas'), n = 128; c.width = c.height = n; const g = c.getContext('2d'); g.drawImage(im, 0, 0, n, n);
+      const c = document.createElement('canvas'), n = 128; c.width = c.height = n; const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0, n, n);
       const d = g.getImageData(0, 0, n, n).data; let x0 = n, y0 = n, x1 = -1, y1 = -1;
       for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (d[(y * n + x) * 4 + 3] > 24) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
       const k = im.naturalWidth / n, info = { im, bb: x1 < 0 ? [0, 0, im.naturalWidth, im.naturalHeight] : [x0 * k, y0 * k, (x1 - x0 + 1) * k, (y1 - y0 + 1) * k] };

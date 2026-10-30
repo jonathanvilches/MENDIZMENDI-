@@ -38,11 +38,14 @@ export function findPistaSpot(near) {
 // la pista pintada: zona de seguridad, pista y líneas de 8 cm (área en D, puntos de penalti a 6 y 10 m, círculo de 3 m)
 function courtTexture(px = 1536) {
   const V = VENUES.pista, k = px / (2 * HL), H = Math.round(2 * HW * k);
-  const c = document.createElement('canvas'); c.width = px; c.height = H; const g = c.getContext('2d');
+  const c = document.createElement('canvas'); c.width = px; c.height = H; const g = c.getContext('2d', { willReadFrequently: true });
   const X = (x) => (x + HL) * k, Y = (z) => (z + HW) * k;
   g.fillStyle = V.courtOut; g.fillRect(0, 0, px, H);
   g.fillStyle = V.court; g.fillRect(X(-PL / 2), Y(-PW / 2), PL * k, PW * k);
-  for (let i = 0; i < px * H / 3; i++) { g.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,0.05)' : 'rgba(255,255,255,0.04)'; g.fillRect(Math.random() * px, Math.random() * H, 1, 1); }
+  // (el grano, en los píxeles de una vez: antes eran unos 400.000 puntos pintados uno a uno, y la carga del pueblo se paraba)
+  { const img = g.getImageData(0, 0, px, H), d = img.data;
+    for (let i = 0; i < d.length; i += 4) { const r = Math.random(); if (r < 1 / 6) { d[i] *= 0.95; d[i + 1] *= 0.95; d[i + 2] *= 0.95; } else if (r < 1 / 3) { d[i] = d[i] * 0.96 + 10.2; d[i + 1] = d[i + 1] * 0.96 + 10.2; d[i + 2] = d[i + 2] * 0.96 + 10.2; } }
+    g.putImageData(img, 0, 0); }
   g.strokeStyle = '#f4f6f2'; g.fillStyle = '#f4f6f2'; g.lineWidth = Math.max(2, 0.08 * k);
   g.strokeRect(X(-PL / 2), Y(-PW / 2), PL * k, PW * k);
   g.beginPath(); g.moveTo(X(0), Y(-PW / 2)); g.lineTo(X(0), Y(PW / 2)); g.stroke();

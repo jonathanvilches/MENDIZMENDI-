@@ -222,10 +222,10 @@ async function boot() {
     const azar = (L) => L[Math.floor(Math.random() * L.length)], datos = pasaka ? DATOS_PASAKA : DATOS_PELOTA, tip = azar(TIPS);
     const sub = opt.sport ? azar(eu ? datos.eu : datos.es) : input.touch && tip.startsWith('Pulsa C') ? TIP_TOQUE : tip;
     const lam = opt.sport ? 'dep-fronton' : d.id, left = (pr => Math.max(0, pr.total - pr.done))(townProgress(P, d));
-    // (desde el mapa del inicio, tras su zoom rápido: una carga corta, solo el nombre y la barra, y luego directamente el
-    // avatar en el pueblo, sin el vuelo de llegada, que ya ha hecho el mapa)
-    const entrada = ui.showLoading(title, sub, opt.desdeMapa ? '' : (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
-      min: !!opt.desdeMapa, comarca: cm?.name, tipTitle: opt.sport ? '¿Sabías que…?' : 'Consejo', caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
+    // (también desde el mapa del inicio, tras su zoom rápido: la carga entera, con la portada del pueblo, y luego el vuelo
+    // de llegada. Antes, desde el mapa, la carga era corta, sin portada, y no había vuelo: parecía que faltaba la intro)
+    const entrada = ui.showLoading(title, sub, (opt.sport && laminaUrl('dep-fronton')) || townImg(d), {
+      comarca: cm?.name, tipTitle: opt.sport ? '¿Sabías que…?' : 'Consejo', caption: laminaUrl(lam) ? laminaById(lam).title : '', avatar: avatarPortrait(P.avatar),
       intro: opt.sport ? '' : d.intro, missions: opt.sport ? [] : missionSlots(d, edadDe(P)).map(({ m }) => m.icon || MISSION_ICON[m.type] || 'star'), left: opt.sport ? 0 : left,
     });
     // (el menú se queda debajo mientras la pantalla de carga entra con su fundido y se va cuando ha entrado; si la carga
@@ -237,7 +237,8 @@ async function boot() {
     entrada.then(sinHub);
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
-      await Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]);
+      // (con un tope de 4 segundos: si la imagen no llega, se pinta el dibujo de siempre y la carga sigue)
+      await Promise.race([Promise.all([armsReady(armsOfTown(d.id)?.id), armsReady('pamplona')]), new Promise(r => setTimeout(r, 4000))]);
       // (en los campeonatos, los mensajes de la carga hablan del frontón, no de plantar árboles ni de saludar a los vecinos)
       const sportMsg = (p) => pasaka ? (eu ? 'Klaustroa prestatzen…' : 'Preparando el claustro…') : p < 0.3 ? (eu ? 'Frontoia irekitzen…' : 'Abriendo el frontón…') : p < 0.6 ? (eu ? 'Kantxa prestatzen…' : 'Preparando la cancha…') : p < 0.9 ? (eu ? 'Harmailak betetzen…' : 'Llenando la grada…') : (eu ? 'Pilotariak berotzen…' : 'Calentando a los pelotaris…');
       // (el campeonato de pelota, solo con su frontón: ni el pueblo ni sus vecinos; con suelo, los frontones al aire libre,
@@ -269,7 +270,7 @@ async function boot() {
         sound.setMusic(P.settings.music); sound.setVolume(P.settings.volume);
         if (!st.introDone && !q.get('skipintro')) await game.intro(d);
         else {   // (las siguientes veces, la llegada: el vuelo por encima de Otsagabia con su nombre y su comarca)
-          if (!q.get('skipintro') && !opt.desdeMapa) { game.mode = 'cine'; rt.player.frozen = true; const g0 = game;
+          if (!q.get('skipintro')) { game.mode = 'cine'; rt.player.frozen = true; const g0 = game;
             await vueloPueblo({ follow: rt.follow, player: rt.player, ui, def: d, centro: PLACES.crucero, iglesia: PLACES.church }).catch(e => console.warn('llegada', e));
             if (game !== g0) { loading = false; return; }   // (se salió del pueblo durante el vuelo: lo de después ya no es de este)
             rt.follow.snap(rt.player); rt.player.frozen = false; }
@@ -297,7 +298,7 @@ async function boot() {
         if (opt.resumed) { const g = game; setTimeout(() => { if (!g || g !== game) return; g.ui.toast(opt.pelota ? 'Imagen recuperada: el partido se ha cortado, vuelve a empezar' : 'Imagen recuperada: sigues donde estabas', 'exclaim', 3600); if (opt.pelota) g.freePelota?.(); }, 700); }
         else {   // (primero, la llegada: el vuelo por encima del pueblo con su nombre y su comarca; luego, a quién buscar)
           // (de vuelta del campeonato al que te apuntaste en el pueblo: sin la llegada, en la puerta del frontón)
-          const g = game; (q.get('skipintro') || opt.desdeMapa || opt.volver ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
+          const g = game; (q.get('skipintro') || opt.volver ? Promise.resolve() : g.llegada()).catch(e => console.warn('llegada', e))
             .then(() => setTimeout(() => { if (g && g === game) g.ui.toast(opt.volver ? `De vuelta en ${d.name.split(' /')[0]}` : `¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300));
         }
       }
