@@ -96,6 +96,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   dice cuánto se adelanta la figura (`court.sitAdelante`: 0,08 en butacas con respaldo, 0,3 en bancos corridos al
   borde). Delante de la primera fila, nada que los pies puedan cruzar. Para mirarlo de cerca: `tools/grada-ver.mjs pueblo`.
   Tampoco la cámara: la del mapa del inicio sube por la ladera antes de entrar en el relieve (`tools/mapa-dron.mjs`).
+- **El límite del iPhone, antes de nada:** cada cosa nueva que se pida se mide con el perfil del iPhone
+  (`tools/presupuesto-pueblo.mjs`: en la puerta, hasta 900 mil triángulos, 520 dibujos, 80 MB de texturas y 35 MB de
+  búferes en un pueblo; 760 mil, 490, 65 y 35 en un partido). Si va a pasarse, se avisa al autor antes de hacerla, con
+  lo que costaría y qué se podría quitar a cambio. Nada de vistas del pueblo entero desde lo alto.
 - **Entrar en un pueblo:** siempre la carga entera con su portada y, al acabar, ya en el pueblo detrás del jugador
   (`main.js`, `play`). Sin intros desde el aire: ni zoom del mapa al darle a jugar, ni vuelo de llegada al pueblo, ni la
   intro de Otsagabia. En el iPhone, el pueblo entero visto desde lo alto pasaba del presupuesto y se perdía la imagen
