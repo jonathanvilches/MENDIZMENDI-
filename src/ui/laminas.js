@@ -87,13 +87,13 @@ function encuadrePano(id) {
   const [ar, x, a0, a1] = panoDatos(id), zf = Math.max(1, Math.min(1.8, 1 / (a1 - a0 + 0.18)));
   return `--pa:${ar};--pcx:${x};--pym:${Math.round((a0 + a1) * 500) / 1000};--pzf:${Math.round(zf * 1000) / 1000}`;
 }
-// La cabecera con portada de una ficha (hub/fichas.css, .pt-marco): fondo, las variables del fondo desenfocado para el
-// estilo de la cabecera (--fondo y, si hay panorámica, --fondo-p); marco, la lámina encuadrada en el personaje con sus
-// bordes reflejados y, con la pantalla tumbada, su panorámica, si la tiene (<picture>: solo se descarga la que se ve)
+// La cabecera con portada de una ficha (hub/fichas.css, .pt-marco): fondo, la variable de la lámina para sus bordes
+// reflejados (--fondo); marco, la lámina encuadrada en el personaje con esos bordes y, con la pantalla tumbada, su
+// panorámica, si la tiene (<picture>: solo se descarga la que se ve)
 function cabecera(lam, src, cls) {
   if (!src) return { fondo: '', marco: '' };
   const p = panoUrl(lam), img = `<img class="${cls}" src="${src}" alt="" decoding="async">`;
-  return { fondo: `;--fondo:url('${src}')${p ? `;--fondo-p:url('${p}')` : ''}`,
+  return { fondo: `;--fondo:url('${src}')`,
     marco: `<div class="pt-marco${p ? ' pano' : ''}" style="${encuadre(lam)}${p ? `;${encuadrePano(lam)}` : ''}"><i class="pt-esp l" aria-hidden="true"></i>${p ? `<picture><source media="(orientation: landscape)" srcset="${p}">${img}</picture>` : img}<i class="pt-esp r" aria-hidden="true"></i></div>` };
 }
 /** La cabecera de la ficha de un pueblo: su portada, la de su bosque o la de su comarca. cls: la clase de la imagen. */

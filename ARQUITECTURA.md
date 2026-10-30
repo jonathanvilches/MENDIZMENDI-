@@ -191,8 +191,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ficha del pueblo, las tarjetas de comarca) se recorta el cielo: el personaje va abajo, con los pies casi en el borde. Todas
   las portadas son láminas (`townCover`, `comarcaCover` y `townImg` en `ui/laminas.js`): el inicio, el fondo del menú,
   las tarjetas y cabeceras de comarca, las tarjetas y la ficha de cada pueblo y la pantalla de carga. En tarjetas y
-  fichas se ven enteras, en 16:9; donde el texto va encima, con el mismo degradado neutro (`--cov-side`, `--cov-foot` y
-  `--cov-head` en `hub.css`). Las fotos 3D de antes (el diorama de la comarca con el personaje delante) ya no están.
+  fichas se ven enteras, en 16:9; las portadas de las fichas se funden muy poco a poco con el fondo, sin franja desenfocada debajo, y cubren
+  siempre todo el ancho (con el personaje lo más al centro que se pueda). Las fotos 3D de antes (el diorama de la comarca
+  con el personaje delante) ya no están.
   Las cabeceras de las fichas de pueblo y de comarca (y la del pueblo en el material didáctico) salen de
   `portadaPueblo` y `portadaComarca` (`ui/laminas.js`): con la pantalla tumbada, si la portada tiene panorámica
   (`src/assets/laminas/pano`, solo en la web; `PANO` y `PANO_BOSQUE` en `data/laminas.js`, con el personaje medido a
@@ -212,7 +213,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `hub/hub.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y
-  monte, turquesa. Sin hacer, un tinte y el borde; hecha, llena de su color y con su marca; la siguiente, borde blanco.
+  monte, turquesa. Sin hacer, un tinte y el borde; hecha, llena de su color; la siguiente, borde blanco. La marca de
+  hecha, en cambio, es siempre la misma en todo el juego: el check verde en su círculo amarillo, sin colores de categoría.
   Los cuatro botones del menú de pelota llevan los pelotaris del autor (ver abajo): en el torneo, tu rival de la ronda;
   por parejas, la pareja rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido,
   en abanico. Las ilustraciones de antes siguen en `src/assets/pelota`, sin cargarse.
