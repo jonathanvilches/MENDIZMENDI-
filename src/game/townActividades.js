@@ -4,13 +4,14 @@
 
 import { Actor } from '../actors/people.js';
 import { BELL, BENCH_LINES, PET } from '../data/tocar.js';
-import { FERIA } from '../data/ferias.js';
+import { FERIA, CORRALES } from '../data/ferias.js';
 import { OFICIO_LAMINA } from '../data/laminas.js';
 import { PARTS } from '../data/castillos.js';
 import { PLACES } from '../world/layout.js';
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TOWN } from '../world/townBuilder.js';
-import { addBox, isFree } from '../world/colliders.js';
+import { addBox, addCircle, isFree } from '../world/colliders.js';
 import { addCard, saveProfile } from './profile.js';
 import { choiceGame, infoCard, mashGame, play3d, sequenceGame, timingGame } from '../ui/minigames.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
@@ -77,7 +78,7 @@ export class PuebloActividades {
       if (M.type === 'visit' && M.step === 1 && this.mode === 'play' && !this.ui.busy) {
         for (const p of M.places) if (!p.seen && Math.hypot(P.x - p.at.x, P.z - p.at.z) < (p.kind === 'church' ? 8 : 9)) { p.seen = true; this.showPlace(M, p); break; }
       }
-      if (M.type === 'feria' && M.step === 1 && M.fair && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - M.fair.x, P.z - M.fair.z) < 9) this.judgeFair(M);
+      if (M.type === 'feria' && M.step === 2 && M.fair && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - M.fair.pista.x, P.z - M.fair.pista.z) < 5) this.judgeFair(M);
       if (M.type === 'dance' && M.step === 1 && this.mode === 'play' && !this.ui.busy && Math.hypot(P.x - this.plazaStage().x, P.z - this.plazaStage().z) < 5) this.startDance(M);
     }
   }
@@ -283,42 +284,78 @@ export class PuebloActividades {
     if (win) { await this.say(M.host, [`¡Has bailado ${M.title} como en las fiestas! ${D.hits}/${D.total} pasos.`]); await this.complete(M, { card: M.title, cardText: M.m.text }); }
     else { M.step = 1; await this.say(M.host, [`${D.hits}/${D.total}. Hacen falta ${Math.ceil(D.total * 0.55)}. ¡Vuelve al centro de la plaza para probar otra vez!`]); this.player.place(PLACES.plaza.x + 6, PLACES.plaza.z + 6, 0); }
   }
-  // Feria de ganado: corrales con vacas, ovejas y caballos junto al mercado, un puesto y gente mirando
+  // Feria de ganado: un corral por animal (vacas, bueyes, pottokas, burro, ovejas, cabras y cerdos), cada uno con su
+  // cartel, en dos filas a los lados de un pasillo, y al final la pista del concurso con la mesa del jurado. Se recorren los
+  // corrales conociendo a cada animal (su ficha de fauna o lo que cuenta el ganadero), luego se juzga en la pista y se
+  // cierra el trato con el tratante. Las vallas, en dos mallas, y los carteles, en una sola con todos los nombres: antes
+  // cada tabla y cada poste era una malla (unas 70 llamadas de dibujo para tres corrales)
   buildFair(M, hostPos) {
-    // un prado llano y despejado a las afueras (los corrales ocupan unos 40 × 14 m)
-    const R = this.rnd, P0 = PLACES.plaza; let c = null;
-    const clear = (x, z) => { if (waterLevelAt(x, z) > groundHeight(x, z) - 0.3) return false; const h0 = groundHeight(x, z); for (let dx = -22; dx <= 22; dx += 5.5) for (let dz = -8; dz <= 10; dz += 4.5) { const qx = x + dx, qz = z + dz; if (!isFree(qx, qz, 1.5) || this.nearHouses(qx, qz, 9) || Math.abs(groundHeight(qx, qz) - h0) > 2.2 || waterLevelAt(qx, qz) > groundHeight(qx, qz) - 0.3) return false; } return true; };
-    for (let r = 45; r <= 170 && !c; r += 12) for (let a = 0; a < 6.28 && !c; a += 0.35) { const x = P0.x + Math.cos(a) * r, z = P0.z + Math.sin(a) * r; if (clear(x, z)) c = { x, z }; }
+    const R = this.rnd, P0 = PLACES.plaza, COL = 12.5; let c = null;
+    // (un prado llano y despejado a las afueras: los corrales y la pista ocupan unos 50 × 24 m)
+    const clear = (x, z) => { if (waterLevelAt(x, z) > groundHeight(x, z) - 0.3) return false; const h0 = groundHeight(x, z); for (let dx = -26; dx <= 26; dx += 5.2) for (let dz = -12; dz <= 12; dz += 4) { const qx = x + dx, qz = z + dz; if (!isFree(qx, qz, 1.5) || this.nearHouses(qx, qz, 9) || Math.abs(groundHeight(qx, qz) - h0) > 2.4 || waterLevelAt(qx, qz) > groundHeight(qx, qz) - 0.3) return false; } return true; };
+    for (let r = 45; r <= 200 && !c; r += 12) for (let a = 0; a < 6.28 && !c; a += 0.35) { const x = P0.x + Math.cos(a) * r, z = P0.z + Math.sin(a) * r; if (clear(x, z)) c = { x, z }; }
     c ||= this.spot({ x: hostPos.x - 16, z: hostPos.z + 8 }, 10);
-    // el tratante espera junto a la feria
-    const hs = this.spot({ x: c.x + 4, z: c.z + 12 }, 3); M.host.setPos?.(hs.x, hs.z, Math.atan2(c.x - hs.x, c.z - hs.z));
-    const g = new THREE.Group(); this.scene.add(g);
-    const wood = new THREE.MeshStandardMaterial({ color: '#8a5a32', roughness: 0.85 }), dark = new THREE.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.9 });
+    const g = new THREE.Group(); g.name = 'feria'; this.scene.add(g);
+    const tablas = [], postes = [], carteles = [];
+    const tabla = (w, h, d, x, y, z, ang = 0) => { const b = new THREE.BoxGeometry(w, h, d); b.rotateY(ang); b.translate(x, y, z); tablas.push(b); };
+    const poste = (x, z, alto = 1.3, r = 0.09) => { const p = new THREE.CylinderGeometry(r * 0.85, r, alto, 6); p.translate(x, groundHeight(x, z) + alto / 2 - 0.1, z); postes.push(p); };
+    // los carteles: una textura con todos los nombres, una franja por cartel
+    const N = CORRALES.length + 1, cv = document.createElement('canvas'); cv.width = 512; cv.height = 128 * N; const cx = cv.getContext('2d');
+    const rotulo = (k, texto, sub) => { const y = k * 128; cx.fillStyle = '#efe2c0'; cx.fillRect(0, y, 512, 128); cx.strokeStyle = '#6b4424'; cx.lineWidth = 10; cx.strokeRect(5, y + 5, 502, 118); cx.fillStyle = '#3a2412'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.font = `900 ${texto.length > 12 ? 48 : 58}px "MZ Texto", sans-serif`; cx.fillText(texto.toUpperCase(), 256, y + (sub ? 54 : 66)); if (sub) { cx.font = '700 26px "MZ Texto", sans-serif'; cx.fillStyle = '#7a5530'; cx.fillText(sub, 256, y + 98); } };
+    const cartel = (k, x, z, mira) => { const y = groundHeight(x, z) + 1.55; const pl = new THREE.PlaneGeometry(1.9, 0.48), uv = pl.attributes.uv; for (let q = 0; q < uv.count; q++) uv.setY(q, 1 - (k + 1 - uv.getY(q)) / N); pl.rotateY(mira); pl.translate(x + Math.sin(mira) * 0.04, y, z + Math.cos(mira) * 0.04); carteles.push(pl); tabla(2.0, 0.56, 0.05, x, y, z, mira); poste(x - Math.cos(mira) * 0.85, z + Math.sin(mira) * 0.85, 1.85, 0.06); poste(x + Math.cos(mira) * 0.85, z - Math.sin(mira) * 0.85, 1.85, 0.06); };
     const pens = [];
-    [['cow', 4, 11, 8], ['sheep', 7, 8, 6], ['pottoka', 2, 8, 6]].forEach(([kind, n, w, d], i) => {
-      const px = c.x + (i - 1) * 13, pz = c.z;
+    CORRALES.forEach(([kind, n, w, d, ficha, nombre, icon, texto], i) => {
+      const fila = i < 4 ? 0 : 1, col = fila ? i - 4 : i, sg = fila ? 1 : -1;   // (fila 0, al norte del pasillo; fila 1, al sur)
+      const px = c.x + (col - 1.5) * COL, pz = c.z + sg * (2 + d / 2), frente = c.z + sg * 2;
       for (const [x0, z0, x1, z1] of [[-w / 2, -d / 2, w / 2, -d / 2], [w / 2, -d / 2, w / 2, d / 2], [w / 2, d / 2, -w / 2, d / 2], [-w / 2, d / 2, -w / 2, -d / 2]]) {
         const len = Math.hypot(x1 - x0, z1 - z0), ang = Math.atan2(x1 - x0, z1 - z0), mx = px + (x0 + x1) / 2, mz = pz + (z0 + z1) / 2;
-        for (const hh of [0.45, 0.95]) { const r_ = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, len), wood); r_.position.set(mx, groundHeight(mx, mz) + hh, mz); r_.rotation.y = ang; r_.castShadow = true; g.add(r_); }
-        for (let k = 0; k <= Math.round(len / 2.5); k++) { const t = k / Math.round(len / 2.5), qx = px + x0 + (x1 - x0) * t, qz = pz + z0 + (z1 - z0) * t; const po = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 1.3, 6), dark); po.position.set(qx, groundHeight(qx, qz) + 0.55, qz); g.add(po); }
+        for (const hh of [0.45, 0.95]) tabla(0.08, 0.12, len, mx, groundHeight(mx, mz) + hh, mz, ang);
+        const nk = Math.round(len / 2.5); for (let k = 0; k <= nk; k++) { const t = k / nk; poste(px + x0 + (x1 - x0) * t, pz + z0 + (z1 - z0) * t); }
         addBox(mx, mz, Math.abs(x1 - x0) + 0.3, Math.abs(z1 - z0) + 0.3, 0);
       }
+      rotulo(i, nombre, `Corral ${i + 1}`);
+      cartel(i, px, frente + sg * 0.35, fila ? Math.PI : 0);   // (en la valla del pasillo, mirando a él)
       const box = { x0: px - w / 2 + 0.8, x1: px + w / 2 - 0.8, z0: pz - d / 2 + 0.8, z1: pz + d / 2 - 0.8 };
-      // (cada uno en su hueco del cercado, sin montarse en otro: antes salían al azar y alguno quedaba dentro de otro; y su
-      // cuerpo, que choca, va con él: sync)
-      const rad = kind === 'cow' ? 0.8 : 0.45, puestos = [];
+      // (cada uno en su hueco del cercado, sin montarse en otro; y su cuerpo, que choca, va con él: sync)
+      const rad = kind === 'cow' || kind === 'cabestro' ? 0.8 : kind === 'pottoka' || kind === 'burro' ? 0.6 : 0.45, puestos = [];
       for (let k = 0; k < n; k++) {
         let ax, az; for (let t = 0; t < 40; t++) { ax = box.x0 + R() * (box.x1 - box.x0); az = box.z0 + R() * (box.z1 - box.z0); if (puestos.every(([x, z]) => Math.hypot(x - ax, z - az) > rad * 2 + 0.2)) break; }
         puestos.push([ax, az]);
         const a = this.fauna.add(kind, ax, az, { range: 2, walk: 0.4, run: 1, flee: 0, radius: rad });
         a.pos.set(ax, groundHeight(ax, az), az); a.home = { x: ax, z: az }; a.bounds = (x, z) => x > box.x0 && x < box.x1 && z > box.z0 && z < box.z1; a.sync();
       }
-      pens.push({ kind, x: px, z: pz });
+      pens.push({ kind, x: px, z: pz, fx: px, fz: c.z - sg * 0.2, nombre, ficha, icon, texto, visto: false });
     });
-    // gente de la feria
+    // la pista del concurso, al final de la fila de abajo: arena redonda que sigue el suelo, postes alrededor (con la
+    // entrada hacia el pasillo) y la mesa del jurado con su cartel
+    const pista = { x: c.x + 1.5 * COL, z: c.z + 2 + 4.2 }, RP = 3.8;
+    const arena = new THREE.CircleGeometry(RP, 28); arena.rotateX(-Math.PI / 2);
+    { const pa = arena.attributes.position; for (let q = 0; q < pa.count; q++) { const x = pa.getX(q) + pista.x, z = pa.getZ(q) + pista.z; pa.setXYZ(q, x, groundHeight(x, z) + 0.05, z); } arena.computeVertexNormals(); }
+    const mArena = new THREE.Mesh(arena, new THREE.MeshStandardMaterial({ color: '#d8c08a', roughness: 1, polygonOffset: true, polygonOffsetFactor: -2 })); mArena.receiveShadow = true; g.add(mArena);
+    for (let k = 0; k < 14; k++) { const a = k / 14 * Math.PI * 2; if (Math.abs(Math.sin(a) + 1) < 0.25) continue; const x = pista.x + Math.cos(a) * RP, z = pista.z + Math.sin(a) * RP; poste(x, z, 1.0, 0.07); addCircle(x, z, 0.12); }
+    { const mx = pista.x, mz = pista.z + RP + 1.4, y = groundHeight(mx, mz); tabla(2.4, 0.08, 0.8, mx, y + 0.78, mz); for (const sx of [-1.1, 1.1]) tabla(0.08, 0.76, 0.7, mx + sx, y + 0.38, mz); addBox(mx, mz, 2.5, 0.9, 0); rotulo(N - 1, 'Jurado', 'Concurso de ganado'); cartel(N - 1, mx, mz + 0.55, Math.PI); }
+    const wood = new THREE.MeshStandardMaterial({ color: '#8a5a32', roughness: 0.85 }), dark = new THREE.MeshStandardMaterial({ color: '#5a3a22', roughness: 0.9 });
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+    for (const [geos, mat] of [[tablas, wood], [postes, dark], [carteles, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 })]]) { const m = new THREE.Mesh(mergeGeometries(geos), mat); m.castShadow = mat !== dark; m.receiveShadow = true; g.add(m); for (const q of geos) q.dispose(); }
+    // el tratante espera al principio del pasillo; la gente de la feria, mirando los corrales
+    const hs = this.spot({ x: c.x - 2 * COL - 2, z: c.z }, 3); M.host.setPos?.(hs.x, hs.z, Math.atan2(c.x - hs.x, c.z - hs.z));
     const looks = [{ shirt: '#3a4a6a', txapela: '#1d1d24', pants: '#3a3530', hair: '#4a3020', staff: true }, { shirt: '#b5485d', skirt: '#3a3530', pants: '#3a3530', hair: '#2a1a12', bun: true, female: true, basket: true }, { shirt: '#e8e0cc', vest: '#2b2630', pants: '#2b2630', txapela: '#1d1d24', hair: '#bdb6aa', old: true, staff: true }];
-    looks.forEach((look, i) => { const s2 = this.spot({ x: c.x + (i - 1) * 9, z: c.z + 7 }, 3); const a = new Actor({ id: 'feria' + i, name: ['Ganadero', 'Vecina', 'Aitona'][i], x: s2.x, z: s2.z, heading: Math.PI, look }, this.scene); this.walkers.push(a); });
-    M.fair = { x: c.x, z: c.z, pens, obj: g };
+    looks.forEach((look, i) => { const pn = pens[[0, 4, 2][i]], s2 = this.spot({ x: pn.fx + 1.5, z: pn.fz }, 2); const a = new Actor({ id: 'feria' + i, name: ['Ganadero', 'Vecina', 'Aitona'][i], x: s2.x, z: s2.z, heading: Math.atan2(pn.x - s2.x, pn.z - s2.z), look }, this.scene); this.walkers.push(a); });
+    M.fair = { x: c.x, z: c.z, pens, pista, obj: g }; M.need = pens.length;
+  }
+  // conocer al animal de un corral: su ficha de fauna (y la carta de la colección) o lo que cuenta el ganadero
+  async conoceCorral(M, pen) {
+    if (pen.visto || M.step !== 1 || this.player.frozen) return;
+    this.player.frozen = true;
+    this.player.heading = Math.atan2(pen.x - this.player.pos.x, pen.z - this.player.pos.z);
+    try {
+      const corral = `Feria de ganado · corral ${M.fair.pens.indexOf(pen) + 1} de ${M.fair.pens.length}`;
+      if (pen.ficha) { const nueva = addCard('fauna:' + pen.ficha); await showFicha('fauna:' + pen.ficha, { ui: this.ui, kicker: corral, badge: nueva ? 'Nueva carta' : '', button: 'Siguiente corral' }); }
+      else await infoCard(this.ui, { icon: pen.icon, kicker: corral, title: pen.nombre, text: pen.texto, button: 'Siguiente corral' });
+      pen.visto = true; M.count = M.fair.pens.filter(p => p.visto).length; this.mochila?.gain(2);
+      if (M.count >= M.need) { M.step = 2; this.sound.fanfare?.(); this.ui.toast('¡Ya conoces a todos los animales! Ve a la pista del concurso', 'check', 3600); }
+      else this.ui.toast(`${pen.nombre}: ${M.count} de ${M.need} corrales`, pen.icon, 2200);
+    } finally { this.player.frozen = false; }
   }
   async judgeFair(M) {
     if (M.judging) return; M.judging = true; this.player.frozen = true;
@@ -327,7 +364,7 @@ export class PuebloActividades {
       await infoCard(this.ui, { icon: 'cow', kicker: 'Concurso de ganado', title: 'Las razas del país', text: 'En las ferias se premia a los mejores animales de las razas de aquí:', extra: `<ul class="tools">${li}</ul>`, button: 'Ser juez' });
       const J = FERIA.judge, ord = [0, 1, 2].sort(() => this.rnd() - 0.5);
       const r = await choiceGame(this.ui, { title: 'Juez por un día', icon: 'cow', q: J.q, options: ord.map(i => J.options[i]), answer: ord.indexOf(J.answer), why: J.why });
-      if (r.win) { M.step = 2; this.sound.fanfare?.(); this.ui.toast(`¡Buen ojo! Vuelve con ${M.host.name}`, 'check', 3000); }
+      if (r.win) { M.step = 3; this.sound.fanfare?.(); this.ui.toast(`¡Buen ojo! Vuelve con ${M.host.name} y cierra el trato`, 'check', 3000); }
     } finally { this.player.frozen = false; setTimeout(() => { M.judging = false; }, 4000); }
   }
   // ---------- Cosas para tocar ----------

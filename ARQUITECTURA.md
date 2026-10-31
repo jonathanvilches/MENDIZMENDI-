@@ -314,6 +314,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cambiar lo que toca hacer, late la casilla de la misión (`lateMision`) y sale el aviso de abajo. En los tumbados más
   estrechos, las casillas van en dos filas. Se probó a volver al recuadro con la misión, el pueblo y el desplegable, y el
   autor prefirió los iconos. (En la aventura de Otsagabia, la de las cintas, sigue el recuadro de antes.)
+- **Ferias de ganado** (`data/ferias.js`, `CORRALES` y `FERIA_TOWNS`; `townActividades.js`, `buildFair`,
+  `conoceCorral` y `judgeFair`): en Estella, Elizondo, Altsasu, Lesaka, Lumbier y Lekunberri (las tres últimas, con
+  datos del archivo de patrimonio inmaterial de Navarra y prensa, van al final de la lista del pueblo para no mover el
+  número de las misiones guardadas). Siete corrales a los lados de un pasillo, uno por animal: vaca pirenaica, bueyes,
+  pottoka, burro, oveja latxa, cabra y euskal txerria, cada uno con su cartel; al final, la pista del concurso con la mesa
+  del jurado. Se recorren los corrales conociendo a cada animal (su ficha de fauna, que da la carta, o lo que cuenta el
+  ganadero), luego se juzga en la pista y se cierra el trato con el tratante. Las vallas van en dos mallas y los carteles
+  en una (una textura con todos los nombres); pocos animales por corral, que cada uno son varias llamadas de dibujo.
+  Prueba: `tools/feria.mjs <pueblo> <carpeta>`.
 - **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#cdist`, `#clock`): el mapa gira con la
   cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
   misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra

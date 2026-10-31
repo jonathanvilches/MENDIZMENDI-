@@ -6,6 +6,8 @@ export const PET = {
   pottoka: { name: 'la pottoka', sound: null, icon: 'horse', title: 'La pottoka', fact: 'Caballo pequeño y peludo que vive casi libre en los montes del norte de Navarra desde hace miles de años. ¡Aparece pintado en las cuevas prehistóricas!' },
   goat: { name: 'la cabra', sound: 'baa', icon: 'sheep', title: 'La cabra', fact: 'Trepa por las rocas como nadie y come de todo: hojas, ramas y zarzas. Así ayuda a limpiar el monte y a evitar incendios.' },
   pig: { name: 'el cerdo', sound: 'oink', icon: 'pig', title: 'El euskal txerri', fact: 'El cerdo vasco tiene la piel rosada, la cabeza y la grupa negras y unas orejas tan grandes que le tapan los ojos. Vive al aire libre y come hierba, raíces, bellotas y castañas.' },
+  burro: { name: 'el burro', sound: null, icon: 'horse', title: 'El burro', fact: 'Fuerte y paciente, el burro llevaba la leña, la hierba y los sacos del molino por caminos de piedra donde un carro no pasaba.' },
+  cabestro: { name: 'el buey', sound: 'moo', icon: 'bull', title: 'El buey', fact: 'Grande y tranquilo, el buey trabajaba en pareja con el yugo: tiraba del carro y del arado.' },
   dog: null,
 };
 export const BELL = { title: 'Las campanas del pueblo', fact: 'Antes no había relojes ni teléfonos: las campanas avisaban de todo. Un toque llamaba a misa, otro a concejo (la reunión de los vecinos), otro anunciaba tormenta o fuego. Cada vecino sabía distinguirlos de oído.' };

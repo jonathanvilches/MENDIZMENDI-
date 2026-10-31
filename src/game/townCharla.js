@@ -318,7 +318,8 @@ export class PuebloCharla {
           else await S([...FERIA.intro, m.note || '']);
           M.step = 1;
         }
-        else if (M.step === 1) await S(['Ve a los corrales y mira bien los animales. ¡Luego me cuentas!']);
+        else if (M.step === 1) await S([M.count ? `Llevas ${M.count} de ${M.need} corrales. Sigue por el pasillo: cada corral tiene su cartel.` : 'Recorre los corrales del pasillo y conoce a cada animal: cada corral tiene su cartel. ¡Luego me cuentas!']);
+        else if (M.step === 2) await S(['¡Ya los conoces a todos! Ahora ve a la pista del concurso, al final del pasillo: hoy eres del jurado.']);
         else {
           await S(['¿Qué te han parecido? Ahora aprende lo más importante de una feria: cómo se cierra un trato.']);
           const ord = [0, 1, 2].sort(() => this.rnd() - 0.5), D = FERIA.deal;
