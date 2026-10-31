@@ -38,7 +38,7 @@
    todo el juego: tools/tipografia.py los mantiene */
 /* (en horizontal, el iPhone agranda la letra por su cuenta y la saca de los botones: el tamaño es siempre el que pone aquí) */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; font-kerning: normal; font-feature-settings: 'kern' 1, 'liga' 1; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-h1, h2, h3, .title { text-wrap: balance; } p, dd, li { text-wrap: pretty; }
+h1, h2, h3, .title { text-wrap: balance; }   /* (los párrafos, sin «pretty»: en el iPhone acortaba todas las líneas para igualarlas y dejaba media caja vacía a la derecha) */
 html, body { margin: 0; height: 100%; overflow: hidden; background: #12062b; color: var(--ink); font: 600 var(--fs-md)/1.45 'MZ Texto', system-ui, -apple-system, 'Segoe UI', sans-serif; -webkit-user-select: none; user-select: none; touch-action: none; overscroll-behavior: none; }
 canvas#c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
 /* zona táctil de 44 px como mínimo (lo que pide el dedo): en los botones redondos pequeños del HUD y de las ventanas, una
