@@ -132,7 +132,6 @@ export class Vehiculo {
   dispose() {
     if (this.P) this.baja();
     this.motor(false); removeMover(this.collider);
-    this.obj.parent?.remove(this.obj);
-    this.obj.traverse(o => { if (o.isMesh) o.geometry?.dispose(); });
+    this.obj.parent?.remove(this.obj);   // (sus mallas no se tiran: las comparten las máquinas de los campos, agro.js)
   }
 }
