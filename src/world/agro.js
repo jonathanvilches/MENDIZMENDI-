@@ -115,6 +115,8 @@ const AGRO_INFO = {
 };
 
 // Coloca la maquinaria por las parcelas del pueblo según su cultivo
+// (los mismos tractor y cosechadora, para conducirlos en las misiones de cosecha: game/conducir.js)
+export { tractor as tractorModel, combine as combineModel };
 export function buildAgro(scene, def, rnd) {
   const out = [], movers = [];
   const nearHouse = (x, z) => TOWN.houses.some(h => Math.abs(h.x - x) < 26 && Math.abs(h.z - z) < 26) || Math.hypot(x - PLACES.plaza.x, z - PLACES.plaza.z) < 60;
