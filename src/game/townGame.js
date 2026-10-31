@@ -592,7 +592,7 @@ export class TownGame {
       }
       case 'summit': { if (M.step === 0 && M.prep) { if (this.supplyOk()) return at(M.host); const P = this.P.bag; if ((P.agua || 0) < 1 && TOWN.fountain) return { x: TOWN.fountain.x, z: TOWN.fountain.z, h: 2.5 }; if (this.stall) return { x: this.stall.x, z: this.stall.z, h: 3 }; }
         if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
-      case 'process': case 'harvest': if (M.veh) { const d = this.tractorDestino(M); if (d) return d; } if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
+      case 'process': case 'harvest': if (M.cos) { const d = this.tractorDestino(M); if (d) return d; } if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { ...this.plazaStage(), h: 3 } : at(M.host);
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
@@ -651,7 +651,7 @@ export class TownGame {
     B.t += dt;
     if (!B.capa) { B.capa = document.createElement('div'); B.capa.className = 'boc-capa'; document.body.appendChild(B.capa); }
     if (B.on.length < 2 && !this.ui.busy) for (const a of this.walkers) {
-      if (B.on.length >= 2 || !a.pos || (a.bocT && B.t - a.bocT < 60) || B.on.some(o => o.a === a)) continue;
+      if (B.on.length >= 2 || !a.pos || a.info === 'temporero' || this.player.vehiculo || (a.bocT && B.t - a.bocT < 60) || B.on.some(o => o.a === a)) continue;   // (ni los temporeros, que trabajan, ni a quien va en el tractor)
       const d = Math.hypot(a.pos.x - P.x, a.pos.z - P.z); if (d > 6 || d < 1.2) continue;
       const k = kaixo(this), frases = [k + '!', 'Kaixo!', 'Zer moduz?', 'Aupa!', k + '!', 'Ongi etorri!'];
       const el = document.createElement('div'); el.className = 'boc'; el.textContent = frases[Math.floor(this.rnd() * frases.length)];
@@ -872,7 +872,7 @@ export class TownGame {
     if (it.kind === 'seat') return this.restBench(it.b);
     if (it.kind === 'walker') { it.a.chatWith = null; it.a.talkTo = null; it.a.say(2.5); it.a.wave = 1.2; const L = TAREAS[it.a.tarea]?.lines || WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, [...L, ...this.hitzLines(it.a)]); }   // (lo que cuenta: lo que está haciendo, y una palabra en euskera)
     if (it.kind === 'item') return this.pick(it.it);
-    if (it.kind === 'subir') return it.M.veh?.sube(this.player);
+    if (it.kind === 'subir') return it.V?.sube(this.player);
     if (it.kind === 'bajar') return this.player.vehiculo?.baja();
     if (it.kind === 'bench') return this.doTrade(it.M);
     if (it.kind === 'clue') return this.examineClue(it.k);

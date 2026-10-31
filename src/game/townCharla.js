@@ -118,14 +118,20 @@ export class PuebloCharla {
         }
         return;
       case 'harvest': {
-        // (las de huerta, con el tractor y su remolque; el trigo, con la cosechadora: townTractor.js)
-        const veh = this.conVehiculo(m), nom = CROP[m.crop]?.[0] || 'frutos';
-        if (M.step === 0 && veh === 'tractor') { await S([m.text, `Este año lo recogemos con el tractor. Los temporeros han dejado las cajas de ${nom} en los surcos: súbete, pasa junto a cada caja y saltará al remolque.`]); this.startTractor(M); }
-        else if (M.step === 0 && veh === 'cosechadora') { await S([m.text, 'Súbete a la cosechadora y pasa por encima del trigo: el cabezal corta las espigas, la máquina las trilla y el grano va llenando la tolva.']); this.startTractor(M); }
-        else if (M.step === 0) { await S([m.text, `Recoge ${M.need} ${nom} en los campos. Te los marco con un brillo.`]); this.startGather(M, M.item, 'Recoger ' + nom, 'fields'); }
-        else if (M.step === 1 && M.veh) await S([`${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. ¡Sube ${M.veh.tipo === 'tractor' ? 'al tractor' : 'a la cosechadora'}!`]);
+        // (todas con tractor o con cosechadora, de principio a fin: el campo, el camino y la báscula; townTractor.js)
+        const R = this.recetaCosecha(m), nom = CROP[m.crop]?.[0] || 'frutos';
+        if (R) {
+          const D = this.destinoCosecha(m), C = M.cos;
+          if (M.step === 0) { await S([m.text, R.explica, `Cuando esté todo, llévalo a ${D.nombre}. Te espero allí, en la báscula.`]); this.startCosecha(M); }
+          else if (C?.pesado) { this.player.rig.doAct('pick', 0.8); await S([R.modo === 'cosechadora' ? '¡Qué buen grano! Con este trigo se hará harina y pan.' : `¡Qué buena cosecha! En ${D.nombre} la prepararán ahora mismo.`, 'Gracias por echar una mano: el campo es mucho trabajo.']); this.quitaTractor(M); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
+          else if (C?.fase === 'transporte') await S(['Pasa el tractor por la báscula y páralo encima: así se pesa la carga.']);
+          else if (C) await S([R.modo === 'cosechadora' ? 'Sigue segando. Cuando se llene la tolva, descárgala en el remolque.' : `${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. Recoge las cajas despacio con el tractor.`]);
+          else { M.step = 0; await S(['Empecemos otra vez.']); this.startCosecha(M); }
+          return;
+        }
+        if (M.step === 0) { await S([m.text, `Recoge ${M.need} ${nom} en los campos. Te los marco con un brillo.`]); this.startGather(M, M.item, 'Recoger ' + nom, 'fields'); }
         else if (M.step === 1) await S([`${M.need - M.count === 1 ? 'Te falta 1' : `Te faltan ${M.need - M.count}`}. ¡Mira en los campos!`]);
-        else { this.player.rig.doAct('pick', 0.8); await S([M.veh ? (M.veh.tipo === 'tractor' ? '¡Qué remolque tan lleno! Esto lo llevaremos al mercado.' : '¡Qué tolva tan llena! Este grano irá al molino.') : '¡Qué buena cosecha! Esto lo llevaremos al mercado.']); this.quitaTractor(M); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
+        else { this.player.rig.doAct('pick', 0.8); await S(['¡Qué buena cosecha! Esto lo llevaremos al mercado.']); await this.complete(M, { card: CROP[m.crop]?.[0], cardText: m.text }); }
         return;
       }
       case 'herd':
