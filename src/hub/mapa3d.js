@@ -23,6 +23,7 @@ import { webUrl } from '../web/hd.js';
 import { haceMaqueta, casasMaqueta } from './maqueta.js';
 import { EMB, SUELTOS, haceEmblema, materialEmblema } from './emblemas.js';
 import { compilarAsync } from '../util/compilar.js';
+import { hacePajaros } from './pajaros.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
 import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
@@ -82,7 +83,13 @@ export function mapa3d(host, o) {
     const m = new THREE.MeshBasicMaterial({ color: FONDO, toneMapped: false, transparent: transp, opacity: transp ? 0 : 1, depthWrite: !transp }); mats.push(m);
     m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO;   // (las mismas nubes que sobre Navarra)
       sh.vertexShader = 'varying vec2 vMun;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz;');
-      sh.fragmentShader = 'varying vec2 vMun;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);'); };
+      // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
+      // encima del verde y del rojo)
+      sh.fragmentShader = 'varying vec2 vMun;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
+{ float mar = smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g));
+  if (mar > 0.0) { vec2 q = vMun * 2.2; float w = sin(q.x * 1.7 + uT * 0.5 + sin(q.y * 1.1 + uT * 0.3) * 2.0) * sin(q.y * 2.3 - uT * 0.4 + sin(q.x * 0.9) * 1.5);
+    diffuseColor.rgb += mar * (vec3(0.04, 0.07, 0.1) * smoothstep(0.55, 1.0, w) + vec3(0.0, 0.008, 0.016) * w); } }`); };
     m.customProgramCacheKey = () => 'mapa-suelo-nubes';
     new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
@@ -252,12 +259,26 @@ export function mapa3d(host, o) {
   }
   // (cada comarca, con su copia de los materiales del agua: se apaga con ella cuando pasa al fondo)
   // (el ancho de los ríos, según la distancia: de lejos, bien visibles; de cerca, más o menos el de verdad)
-  const ANCHO_RIO = { value: 1 };
+  const ANCHO_RIO = { value: 1 }, RIO_ESC = { value: 1 };
   // (y donde está la maqueta de un pueblo, el río no se pinta: allí va el suyo, pintado en el suelo)
-  const anchoRio = (m, hueco) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco;
-    sh.vertexShader = 'attribute vec3 lado; uniform float uAncho; varying vec2 vHx;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; vHx = transformed.xz;');
-    sh.fragmentShader = 'uniform vec4 uHueco; varying vec2 vHx;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (uHueco.w > 0.5 && distance(vHx, uHueco.xy) < uHueco.z) discard;'); }; m.customProgramCacheKey = () => 'rio-ancho'; };
-  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco); c.lagoM = lagoM.clone(); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
+  // (el agua corre: destellos que bajan por el río, más en el centro de la cinta; uv.x es lo andado a lo largo del río,
+  // y RIO_ESC los hace más menudos al acercarse, para que no se vean como manchas grandes)
+  const anchoRio = (m, hueco) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco; sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC;
+    sh.vertexShader = 'attribute vec3 lado; uniform float uAncho; varying vec2 vHx, vRuv;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; vHx = transformed.xz; vRuv = uv;');
+    sh.fragmentShader = 'uniform vec4 uHueco; uniform float uT, uRioE; varying vec2 vHx, vRuv;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (uHueco.w > 0.5 && distance(vHx, uHueco.xy) < uHueco.z) discard;')
+      .replace('#include <map_fragment>', `#include <map_fragment>
+{ float x = vRuv.x * uRioE, cen = 1.0 - abs(vRuv.y - 0.5) * 2.0;
+  float o1 = sin(x * 5.0 - uT * 1.6 + sin(x * 1.3 + vRuv.y * 3.0) * 1.5), o2 = sin(x * 13.0 - uT * 2.7 + vRuv.y * 5.0);
+  diffuseColor.rgb = diffuseColor.rgb * (0.86 + 0.14 * o1) + vec3(0.55, 0.62, 0.6) * smoothstep(0.6, 1.0, o1 * 0.6 + o2 * 0.4) * cen * 0.75; }`); };
+    m.customProgramCacheKey = () => 'rio-ancho'; };
+  // (los embalses: ondas que se cruzan y algún destello, despacio)
+  const aguaLago = (m) => { m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC;
+    sh.vertexShader = 'varying vec2 vLx;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLx = position.xz;');
+    sh.fragmentShader = 'uniform float uT, uRioE; varying vec2 vLx;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+{ vec2 q = vLx * 5.0 * uRioE; float w = sin(q.x + uT * 0.9 + sin(q.y * 0.8 - uT * 0.5) * 1.6) * sin(q.y * 1.3 - uT * 0.7 + sin(q.x * 0.6) * 1.2);
+  diffuseColor.rgb = diffuseColor.rgb * (0.94 + 0.06 * w) + vec3(0.5, 0.6, 0.62) * smoothstep(0.7, 1.0, w) * 0.35; }`); };
+    m.customProgramCacheKey = () => 'mapa-lago'; };
+  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco); c.lagoM = lagoM.clone(); aguaLago(c.lagoM); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
   for (const [c, a] of cintas) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3)); g.setAttribute('lado', new THREE.Float32BufferAttribute(a.lado, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2)); g.setIndex(a.i); geos.push(g); const m = new THREE.Mesh(g, c.rioM); m.renderOrder = 1; c.mesh.add(m); }
   // los nombres de las sierras, de los ríos y de los embalses, como en los mapas (por debajo de los de las comarcas y los
   // pueblos: si no caben, se esconden)
@@ -1008,6 +1029,9 @@ export function mapa3d(host, o) {
   }
   // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
   const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
+  // los pájaros: bandadas por el cielo de Navarra y cigüeñas sobre la maqueta del pueblo (pajaros.js)
+  const aves = hacePajaros({ scene, lento: LENTO, suelo: (x, z) => { const c = deQuien(x, z); return c?.sy ? pisoEn(c, x, z) * c.sy + c.py : null; },
+    pueblo: () => maq?.malla && maq.op > 0.5 ? { X: maq.e.X0, Z: maq.e.Z0 } : null });
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
@@ -1178,8 +1202,8 @@ export function mapa3d(host, o) {
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
     const exa = v.d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (v.d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (v.d - 1.5) / 2.5));
-    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40));
-    TIEMPO.value = t; INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
+    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
+    TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
@@ -1309,7 +1333,7 @@ export function mapa3d(host, o) {
   raf = requestAnimationFrame(frame);
 
   function dispose() {
-    if (!vivo) return; vivo = false; cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
+    if (!vivo) return; vivo = false; aves.dispose(); cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku);
     for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);

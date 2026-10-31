@@ -152,6 +152,15 @@ void main() {
   p = pue(uP1, uPR[1], uPK[1], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP2, uPR[2], uPK[2], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP3, uPR[3], uPK[3], sv); c = mix(c, p.rgb, p.a);
+  // (el agua pintada en el suelo de los pueblos, ríos, balsas y piscinas, se mueve: ondas de unos 7 m que se cruzan y
+  // destellos; en metros desde el centro de la maqueta, y solo donde se distinguen, para que de lejos no titile)
+  float ag = smoothstep(0.14, 0.05, abs(c.b - 0.91)) * smoothstep(0.25, 0.4, c.b - c.r);
+  if (ag > 0.01) {
+    vec2 pm = (vXZ - uHueco.xy * step(0.5, uHueco.w)) * 2076.0;
+    float w = sin(pm.x * 0.9 + pm.y * 0.4 - uT * 2.2 + sin(pm.y * 0.35 + uT * 0.7) * 1.8) * 0.55 + sin(pm.y * 1.1 - pm.x * 0.5 - uT * 1.7 + sin(pm.x * 0.3 - uT * 0.5) * 1.6) * 0.45;
+    float fino = 1.0 - smoothstep(1.5, 4.0, length(fwidth(pm)));
+    c = mix(c, c * (0.92 + 0.08 * w) + vec3(0.24, 0.22, 0.18) * smoothstep(0.66, 0.98, w), ag * fino);
+  }
   c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))) * vec3(0.95, 0.92, 1.1), uGris);
 #ifndef LIGERO
   c *= 1.0 - 0.3 * nubes(vXZ);   // (en el ordenador de calidad baja, LIGERO, sin la sombra de las nubes ni el grano fino)

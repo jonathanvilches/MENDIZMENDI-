@@ -279,6 +279,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - En el relieve de la comarca, las parcelas sin rejilla de tablero: hileras corridas al azar y parcelas partidas en
     una, dos o tres tiras. Las laderas en sombra, sin llegar al negro. Los árboles de la comarca, con algo de luz
     propia, para que no salgan como motas negras.
+- **Pájaros y agua que se mueve en el mapa del inicio** (`hub/pajaros.js`, `hub/mapa3d.js`, `hub/mapa3dSombreadores.js`):
+  - Bandadas oscuras, una en uve y las demás sueltas, que cruzan la vista de una comarca o de Navarra y vuelven a entrar
+    por otro lado. Van ancladas al mundo, pero su tamaño, su altura y su velocidad siguen a la distancia de la cámara:
+    en pantalla se ven siempre igual.
+  - En la maqueta de un pueblo, cigüeñas blancas y milanos pardos que planean en círculo, aletean a ratos y dejan su
+    sombra en el suelo. Algo más grandes que de verdad, como las casas.
+  - Una sola malla repetida para todas las aves y otra para las sombras: dos dibujos. El aleteo va en el sombreador. En
+    el móvil, menos aves.
+  - El agua: destellos que bajan por los ríos de la comarca, ondas en los embalses y en el mar, y ondas de unos 7 m en
+    los ríos, balsas y piscinas pintados en el suelo de la maqueta. Estas últimas se reconocen por su color y se apagan
+    de lejos, para que no titilen.
 - **Ventajas en el comercio local** (`game/ventajas.js`, `data/comercios.js`, sección Ventajas del menú en `hub.js` con
   `hub/ventajas.css`, y `VENTAJAS-COMERCIOS.md` para comercios y ayuntamientos): los sellos, las insignias y los
   certificados valen bonos en los comercios adheridos. Certificados: uno por comarca, al sellar todos sus pueblos, y el de
