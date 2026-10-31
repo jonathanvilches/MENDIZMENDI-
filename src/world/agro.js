@@ -334,6 +334,28 @@ export function buildAgro(scene, def, rnd) {
     } else addBox(c.x, c.z, kind === 'combine' ? 5.6 : 2.4, kind === 'combine' ? 7 : kind === 'bales' ? 8 : 5.5, ang);
     out.push(o);
   }
+  // las máquinas paradas, juntas: cada pieza (la misma malla con el mismo material) en una sola malla repetida para todas.
+  // Una llamada de dibujo por pieza en vez de una por pieza y por máquina: con las máquinas de piezas, cinco tractores a
+  // la vista costaban casi cien llamadas. Sin memoria de más (las mallas son las mismas); las que trabajan, aparte
+  const quietas = out.filter(o => !o.move && o.obj.userData.wheels);
+  if (quietas.length > 1) {
+    const piezas = new Map();
+    for (const o of quietas) {
+      o.obj.updateMatrixWorld(true);
+      o.obj.traverse(m => {
+        if (!m.isMesh || m.isInstancedMesh) return;
+        const k = m.geometry.uuid + '|' + (Array.isArray(m.material) ? m.material.map(x => x.uuid).join(',') : m.material.uuid);
+        let P = piezas.get(k); if (!P) piezas.set(k, P = { geo: m.geometry, mat: m.material, cast: m.castShadow, rec: m.receiveShadow, mx: [] });
+        P.mx.push(m.matrixWorld.clone());
+      });
+      scene.remove(o.obj);
+    }
+    for (const P of piezas.values()) {
+      const im = new THREE.InstancedMesh(P.geo, P.mat, P.mx.length); im.name = 'maquinas-quietas';
+      P.mx.forEach((mx, i) => im.setMatrixAt(i, mx)); im.instanceMatrix.needsUpdate = true;
+      im.castShadow = P.cast; im.receiveShadow = P.rec; im.computeBoundingSphere(); scene.add(im);
+    }
+  }
   return {
     list: out,
     update(dt, player, particles) {

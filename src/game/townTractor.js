@@ -106,6 +106,7 @@ function edificio(D) {
 }
 // la flecha del camino, pintada en el suelo
 const FLECHA = (() => { const s = new THREE.Shape(); s.moveTo(-0.45, -1.1); s.lineTo(0.45, -1.1); s.lineTo(0.45, 0.2); s.lineTo(1.0, 0.2); s.lineTo(0, 1.25); s.lineTo(-1.0, 0.2); s.lineTo(-0.45, 0.2); s.closePath(); const g = new THREE.ShapeGeometry(s); g.rotateX(-Math.PI / 2); g.scale(1, 1, -1); return g; })();
+const CERO = new THREE.Matrix4().makeScale(0, 0, 0);   // (la flecha ya pasada: encogida a nada)
 const FLECHA_MAT = new THREE.MeshBasicMaterial({ color: '#ffd34a', transparent: true, opacity: 0.85, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide });
 
 export class PuebloTractor {
@@ -178,7 +179,7 @@ export class PuebloTractor {
         for (let r = 0; r < 7; r++) for (let k = 0; k < 26; k++) { const p = enCampo((r - 3) * 2.2, (k - 12.5) * 1.6); if (isFree(p.x, p.z, 0.6)) pos.push(p); }
         const im = C.matas = new THREE.InstancedMesh(g, MAT, Math.max(1, pos.length)), mx = new THREE.Matrix4(), q = new THREE.Quaternion(); im.count = pos.length;
         pos.forEach((p, k) => { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * 6.28); const s = 0.8 + Math.random() * 0.4; mx.compose(new THREE.Vector3(p.x, terrainHeight(p.x, p.z), p.z), q, new THREE.Vector3(s, s, s)); im.setMatrixAt(k, mx); });
-        im.instanceMatrix.needsUpdate = true; im.castShadow = true; this.scene.add(im);
+        im.instanceMatrix.needsUpdate = true; im.receiveShadow = true; this.scene.add(im);   // (sin sombra: son bajas y no se nota, y doblaba sus triángulos)
       }
       // los temporeros, cada uno al principio de su hilera
       M.need = Math.max(12, M.m.n || 0); C.porSoltar = M.need;
@@ -216,16 +217,17 @@ export class PuebloTractor {
     // las flechas del camino: por donde se anda (los caminos y calles), cada 18 m, hasta la báscula
     const V = C.trac, ruta = (() => { try { return findPath(V.x, V.z, d.road.x, d.road.z, 120000) || []; } catch (e) { return []; } })();
     const pts = [{ x: V.x, z: V.z }, ...ruta, { x: d.road.x, z: d.road.z }, { x: C.bascula.x, z: C.bascula.z }];
-    let acc = 0;
+    // (todas en una sola malla repetida: una llamada de dibujo en vez de una por flecha, que eran más de cincuenta)
+    let acc = 0; const sitios = [];
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], b = pts[i], L = Math.hypot(b.x - a.x, b.z - a.z); if (L < 0.5) continue;
-      for (let t = 18 - acc; t < L; t += 18) {
-        const x = a.x + (b.x - a.x) * t / L, z = a.z + (b.z - a.z) * t / L;
-        const f = new THREE.Mesh(FLECHA, FLECHA_MAT); f.position.set(x, terrainHeight(x, z) + 0.12, z); f.rotation.y = Math.atan2(b.x - a.x, b.z - a.z); f.renderOrder = 2; this.scene.add(f);
-        C.flechas.push({ x, z, obj: f, pasada: false });
-      }
+      for (let t = 18 - acc; t < L; t += 18) { const x = a.x + (b.x - a.x) * t / L, z = a.z + (b.z - a.z) * t / L; sitios.push({ x, z, r: Math.atan2(b.x - a.x, b.z - a.z) }); }
       acc = (acc + L) % 18;
     }
+    const im = C.flechasIM = new THREE.InstancedMesh(FLECHA, FLECHA_MAT, Math.max(1, sitios.length)), mx = new THREE.Matrix4(), q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), uno = new THREE.Vector3(1, 1, 1);
+    im.count = sitios.length; im.renderOrder = 2;
+    sitios.forEach((f, i) => { im.setMatrixAt(i, mx.compose(new THREE.Vector3(f.x, terrainHeight(f.x, f.z) + 0.12, f.z), q.setFromAxisAngle(Y, f.r), uno)); C.flechas.push({ x: f.x, z: f.z, i, pasada: false }); });
+    im.instanceMatrix.needsUpdate = true; im.computeBoundingSphere(); this.scene.add(im);
     this.sound?.magic?.();
     this.ui.toast(C.R.modo === 'cosechadora' ? `¡Campo segado! Sube al tractor y lleva el grano a ${C.D.nombre}` : `¡Remolque lleno! Llévalo a ${C.D.nombre}`, 'check', 4200);
   }
@@ -271,7 +273,9 @@ export class PuebloTractor {
       }
       C.vuelan = C.vuelan.filter(f => !f.fin);
       if (C.fase === 'transporte') {
-        for (const f of C.flechas) { if (!f.pasada && Math.hypot(f.x - P.pos.x, f.z - P.pos.z) < 9) f.pasada = true; f.obj.visible = !f.pasada; }
+        let quita = false;
+        for (const f of C.flechas) if (!f.pasada && Math.hypot(f.x - P.pos.x, f.z - P.pos.z) < 9) { f.pasada = true; C.flechasIM.setMatrixAt(f.i, CERO); quita = true; }
+        if (quita) C.flechasIM.instanceMatrix.needsUpdate = true;
         FLECHA_MAT.opacity = 0.6 + Math.sin(t * 5) * 0.25;
         // en la báscula, parado: se pesa
         const V = C.trac, cola = V.local(0, 0, -3.9);
@@ -368,7 +372,7 @@ export class PuebloTractor {
     const C = M?.cos; if (!C) return;
     for (const k of C.cajas) { k.obj.parent?.remove(k.obj); k.obj.geometry?.dispose(); if (k.ring.parent) { k.ring.parent.remove(k.ring); k.ring.material.dispose(); } }
     for (const T of C.tempo) { T.a.obj.parent?.remove(T.a.obj); const i = this.walkers.indexOf(T.a); if (i >= 0) this.walkers.splice(i, 1); }
-    for (const f of C.flechas) f.obj.parent?.remove(f.obj);
+    if (C.flechasIM) { C.flechasIM.parent?.remove(C.flechasIM); C.flechasIM.dispose(); }   // (la flecha y su material son de todas: se quedan)
     for (const o of [C.trigo, C.matas]) if (o) { o.parent?.remove(o); o.dispose?.(); }
     if (C.matas) C.matas.geometry.dispose();
     for (const g of [C.granoT, C.granoR]) if (g) { g.geometry.dispose(); g.material.dispose(); }
