@@ -335,6 +335,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   que avanza. El pelotari va sentado al volante (huesos de Meshy) y la cámara, detrás y más lejos. Suena el motor y se
   levanta polvo. Los modelos son los de los campos (`world/agro.js`), propios y sin marcas. Las cosechas de árbol y de
   viña siguen a pie. Prueba: `tools/cosecha-vehiculo.mjs`.
+- **Maquinaria del campo con sus piezas** (`world/agro.js`): neumáticos de perfil redondeado con tacos en V, llantas con
+  plato, buje y tornillos; capó redondeado con rejilla de lamas, respiraderos, faros e intermitentes; contrapesos; escape
+  con caperuza y filtro de aire; cabina con montantes, techo con visera, rotativo, luces de trabajo, espejos, asiento y
+  volante; escalones, depósito, guardabarros curvos y enganche de tres puntos. El remolque, de tablones entre postes; la
+  cosechadora, con tolva abierta, escalera, plataforma, molinete con púas, barra de corte con dedos, sinfín y tubo de
+  descarga. Unos 10 000 triángulos por máquina (las piezas de menos de 9 cm, sin redondeo) y las mismas mallas que antes.
 - **Nada se monta** (`tools/choques.mjs`): ningún texto puede pisar ni rozar un icono, una chapa, un botón pequeño u
   otro texto, en ninguna pantalla ni tamaño: a 6 px como poco (3 px de un icono que va dentro del mismo texto), medido
   sobre lo que se ve (la letra de lo alto de las mayúsculas a la línea base, la inclinación de la cursiva, lo pintado de
