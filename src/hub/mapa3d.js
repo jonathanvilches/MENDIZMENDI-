@@ -79,19 +79,27 @@ export function mapa3d(host, o) {
   // (tools/relieve/mapa-relieve.py espana y entorno). Mientras llega cada imagen, del color del fondo o transparente
   let cargas = 0;   // (las imágenes del suelo y del sombreado que ya han llegado: la entrada grande las espera)
   const TIEMPO = { value: 0 };   // (el reloj de las nubes)
+  // (lo de fuera de Navarra, apagado: la máscara de Navarra, nítida en rojo y difuminada en verde, dónde cae y cuánto se apaga)
+  const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 };
   const suelo = (url, w, h, x, z, y, transp) => {
     const g = new THREE.PlaneGeometry(w, h); geos.push(g);
     const m = new THREE.MeshBasicMaterial({ color: FONDO, toneMapped: false, transparent: transp, opacity: transp ? 0 : 1, depthWrite: !transp }); mats.push(m);
-    m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO;   // (las mismas nubes que sobre Navarra)
+    m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uNav = NAV; sh.uniforms.uNavR = NAVR; sh.uniforms.uFuera = FUERA;   // (las mismas nubes que sobre Navarra)
       sh.vertexShader = 'varying vec2 vMun;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz;');
       // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
       // encima del verde y del rojo)
-      sh.fragmentShader = 'varying vec2 vMun;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      sh.fragmentShader = 'varying vec2 vMun; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 { float mar = smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g));
   if (mar > 0.0) { vec2 q = vMun * 2.2; float w = sin(q.x * 1.7 + uT * 0.5 + sin(q.y * 1.1 + uT * 0.3) * 2.0) * sin(q.y * 2.3 - uT * 0.4 + sin(q.x * 0.9) * 1.5);
-    diffuseColor.rgb += mar * (vec3(0.04, 0.07, 0.1) * smoothstep(0.55, 1.0, w) + vec3(0.0, 0.008, 0.016) * w); } }`); };
-    m.customProgramCacheKey = () => 'mapa-suelo-nubes';
+    diffuseColor.rgb += mar * (vec3(0.04, 0.07, 0.1) * smoothstep(0.55, 1.0, w) + vec3(0.0, 0.008, 0.016) * w); } }
+// (fuera de Navarra, más apagado y algo frío, y junto a su borde, por fuera, una sombra suave: el relieve de alrededor era
+// del mismo verde y con la misma luz, y Navarra no se distinguía)
+{ vec2 nu = (vMun - uNavR.xy) / uNavR.zw; vec2 nm = nu.x < 0.0 || nu.y < 0.0 || nu.x > 1.0 || nu.y > 1.0 ? vec2(0.0) : texture2D(uNav, nu).rg;
+  float fuera = (1.0 - nm.r) * uFuera, l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(0.86, 0.88, 1.0) * 0.78, fuera * 0.6);
+  diffuseColor.rgb *= 1.0 - 0.5 * fuera * nm.g; }`); };
+    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav';
     new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
   };
@@ -183,6 +191,59 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // (la comarca de un punto; antes que ninguna, la del punto anterior, que casi siempre es la misma)
   const en = (c, x, z) => { const b = c.mesh.geometry.boundingBox; return x >= b.min.x && x <= b.max.x && z >= b.min.z && z <= b.max.z && enPoligono(c.Pw, x, z); };
   const deQuien = (x, z, antes) => antes && en(antes, x, z) ? antes : C.find(c => c !== antes && en(c, x, z));
+
+  // ---------- Navarra, que se distinga de lo de alrededor ----------
+  // (la máscara para el suelo de fuera: Navarra en rojo, nítida, y en verde difuminada, para la sombra junto al borde. El
+  // difuminado, dibujándola pequeña y agrandándola, sin filtros del lienzo, que Safari no siempre tiene)
+  { let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
+    for (const c of C) for (const [X, Z] of c.Pw) { x0 = Math.min(x0, X); z0 = Math.min(z0, Z); x1 = Math.max(x1, X); z1 = Math.max(z1, Z); }
+    x0 -= 8; z0 -= 8; x1 += 8; z1 += 8;
+    const N = 768, w = N, h = Math.round(N * (z1 - z0) / (x1 - x0)), k = w / (x1 - x0);
+    const pinta = (g, kk, col) => { g.fillStyle = col; g.beginPath(); for (const c of C) c.Pw.forEach(([X, Z], i) => { const a = (X - x0) * kk, b = (Z - z0) * kk; i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.fill('nonzero'); };
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d');
+    g.fillStyle = '#000'; g.fillRect(0, 0, w, h); pinta(g, k, '#f00');
+    const sw = Math.round(w / 14), sh = Math.round(h / 14), cs = document.createElement('canvas'); cs.width = sw; cs.height = sh; const gs = cs.getContext('2d');
+    gs.fillStyle = '#000'; gs.fillRect(0, 0, sw, sh); pinta(gs, sw / (x1 - x0), '#0f0');
+    g.globalCompositeOperation = 'lighter'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cs, 0, 0, w, h);
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.NoColorSpace; t.flipY = false; t.needsUpdate = true;
+    NAV.value = t; NAVR.value.set(x0, z0, x1 - x0, z1 - z0);
+    mats.push({ dispose: () => t.dispose() });
+  }
+  // (y su contorno de fuera, una cinta clara sobre el borde de las losas, con otra oscura debajo, algo más ancha, que la
+  // recorta; del mismo ancho en pantalla a cualquier distancia (ANCHO_B). Solo los tramos que no dan a otra comarca)
+  const ANCHO_B = { value: 0.1 };
+  const cintaB = (color, op, fac, orden) => { const m = new THREE.MeshBasicMaterial({ color, map: rioTex(), transparent: true, opacity: op, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 });
+    m.onBeforeCompile = (sh) => { sh.uniforms.uAnchoB = ANCHO_B; sh.uniforms.uFacB = { value: fac };
+      sh.vertexShader = 'attribute vec3 lado; uniform float uAnchoB, uFacB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAnchoB * uFacB;'); };
+    m.customProgramCacheKey = () => 'mapa-contorno'; mats.push(m); m.userData.orden = orden; return m; };
+  const contornoM = [cintaB(0x1d1240, 0.55, 2.4, 2), cintaB(0xfff1cf, 0.95, 1, 3)];
+  for (const c of C) {
+    const P = c.Pw, n = P.length, fuera = new Uint8Array(n), e = 0.22;
+    for (let i = 0; i < n; i++) {
+      const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n], L = Math.hypot(bx - ax, bz - az) || 1, nx = -(bz - az) / L * e, nz = (bx - ax) / L * e, mx = (ax + bx) / 2, mz = (az + bz) / 2;
+      const otro = (x, z) => C.some(o => o !== c && en(o, x, z));
+      fuera[i] = !otro(mx + nx, mz + nz) && !otro(mx - nx, mz - nz) ? 1 : 0;
+    }
+    const pos = [], lado = [], uv = [], idx = [];
+    for (let i = 0; i < n; i++) {
+      if (!fuera[i]) continue;
+      // (un tramo: este lado y los siguientes que también dan afuera)
+      let j = i; const pts = [];
+      while (j < i + n && fuera[j % n]) { pts.push(P[j % n]); j++; }
+      pts.push(P[j % n]);
+      const b0 = pos.length / 3;
+      pts.forEach(([X, Z], k) => {
+        const p0 = pts[Math.max(0, k - 1)], p1 = pts[Math.min(pts.length - 1, k + 1)], L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, ox = -(p1[1] - p0[1]) / L, oz = (p1[0] - p0[0]) / L, y = GROSOR + alto(X, Z) + 0.06;
+        pos.push(X, y, Z, X, y, Z); lado.push(ox, 0, oz, -ox, 0, -oz); uv.push(k * 0.1, 0, k * 0.1, 1);
+        if (k) { const v = b0 + k * 2; idx.push(v - 2, v, v - 1, v - 1, v, v + 1); }
+      });
+      i = j - 1;
+      if (j >= n) break;
+    }
+    if (!idx.length) continue;
+    const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gb.setAttribute('lado', new THREE.Float32BufferAttribute(lado, 3)); gb.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gb.setIndex(idx); geos.push(gb);
+    for (const m of contornoM) { const me = new THREE.Mesh(gb, m); me.renderOrder = m.userData.orden; me.raycast = () => {}; me.frustumCulled = false; c.mesh.add(me); }
+  }
 
   // los ríos: una cinta de luz azul sobre el relieve, cortada por comarcas (cada trozo va con la suya cuando se levanta)
   const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x7cd0ff, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
@@ -1285,7 +1346,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
     const exa = exaDe(v.d);
-    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
+    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); ANCHO_B.value = Math.max(0.004, v.d * 0.0026); FUERA.value = 0.4 + 0.6 * Math.min(1, Math.max(0, (v.d - 6) / 24)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
     TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;

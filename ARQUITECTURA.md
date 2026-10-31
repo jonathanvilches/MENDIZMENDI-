@@ -295,6 +295,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     arriba: desde fuera se veía la pared de la comarca y el fondo.
   - La niebla de lo lejano: de lejos, del color del fondo; de cerca, una bruma clara.
   - Para probarlo pueblo a pueblo, los ganchos de desarrollo `saltaVuelo`, `dronT`, `fija`, `despeje` y `sonda`.
+- **Navarra, que se distinga de lo de alrededor** (`hub/mapa3d.js`, el suelo de fuera y `contornoM`): el relieve de
+  alrededor era del mismo verde y con la misma luz, y en la vista general Navarra no se distinguía.
+  - Una máscara de Navarra (`NAV`: nítida en rojo y difuminada en verde, hecha dibujándola pequeña y agrandándola, sin
+    filtros del lienzo) apaga lo de fuera, algo más frío, y pone una sombra suave junto al borde, por fuera. Del todo en
+    la vista general (`FUERA`) y algo menos de cerca.
+  - El contorno de fuera de Navarra: una cinta clara sobre el borde de las losas, con otra oscura debajo que la recorta,
+    del mismo ancho en pantalla a cualquier distancia (`ANCHO_B`). Solo los tramos que no dan a otra comarca; va con su
+    comarca al levantarse.
 - **Relieve más nítido y con mejor color** (`hub/mapa3dSombreadores.js`): la imagen de relieve fino se perfila de cerca,
   cuando cada punto suyo ocupa más de un píxel; los colores apagados ganan algo de color, las sombras no llegan al negro
   y tiran a un azul malva, y las luces son algo más cálidas. En el móvil, la comarca elegida, con el relieve fino a 28 m.
