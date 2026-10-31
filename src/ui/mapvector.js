@@ -72,7 +72,34 @@ function contour(f, t) {
   return { p, verts };
 }
 
-const FIELD = ['#93c05e', '#d0bd6c', '#e2c870', '#a8835c', '#74b04c', '#8f9c4c', '#9aa86a', '#7fae4c', '#6d9c44'];
+const FIELD = ['#9cc76a', '#d9c47a', '#e8cf7e', '#b48a62', '#82bb58', '#a3ad5c', '#a9b47e', '#86b85a', '#79a952'];
+// el dibujo de cada cultivo y de cada capa, en una tesela pequeña que se repite encima del color: prado con briznas,
+// heno y cereal en hileras, tierra labrada en surcos, viña y huerta en filas, olivar y frutales en marco de árboles,
+// bosque de copas, agua con ondas, roca moteada y calles empedradas. Se pinta siempre al mismo tamaño en pantalla
+// (patron), así no se emborrona al alejar ni se agranda al acercar
+const TESELA = {};
+function tesela(k) {
+  if (TESELA[k]) return TESELA[k];
+  const S = { forest: 28, olivar: 14, frutal: 14, agua: 24 }[k] || 12, c = document.createElement('canvas'); c.width = c.height = S; const g = c.getContext('2d');
+  const linea = (x0, y0, x1, y1, col, w) => { g.strokeStyle = col; g.lineWidth = w; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); };
+  const punto = (x, y, r, col) => { g.fillStyle = col; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); };
+  switch (k) {
+    case 'prado': for (const [x, y] of [[2, 3], [8, 2], [5, 8], [10, 9]]) linea(x, y + 2, x + 1, y, 'rgba(46,96,32,.28)', 1); break;
+    case 'heno': for (let i = -S; i < S; i += 6) linea(i, S, i + S, 0, 'rgba(255,244,190,.4)', 2); break;
+    case 'cereal': for (let i = -S; i < S; i += 4) linea(i, S, i + S, 0, 'rgba(160,118,40,.32)', 1); break;
+    case 'labrado': for (let y = 1; y < S; y += 4) linea(0, y, S, y, 'rgba(92,58,32,.38)', 1.4); break;
+    case 'vina': for (let y = 2; y < S; y += 6) for (let x = 2; x < S; x += 4) punto(x, y, 1.3, 'rgba(52,92,30,.6)'); break;
+    case 'huerta': for (let y = 2; y < S; y += 6) linea(0, y, S, y, 'rgba(48,112,40,.45)', 2.4); break;
+    case 'olivar': for (const [x, y] of [[3.5, 3.5], [10.5, 10.5]]) { punto(x, y, 2.6, 'rgba(84,104,64,.7)'); punto(x - 0.8, y - 0.8, 1, 'rgba(200,214,170,.5)'); } break;
+    case 'frutal': for (const [x, y] of [[3.5, 3.5], [10.5, 10.5]]) { punto(x, y, 2.8, 'rgba(46,96,34,.7)'); punto(x - 0.8, y - 0.9, 1, 'rgba(170,220,120,.5)'); } break;
+    case 'forest': for (const [x, y, r] of [[6, 6, 5], [19, 5, 4.5], [13, 15, 5.5], [25, 18, 4], [5, 22, 4.5], [20, 26, 4]]) { punto(x, y, r, 'rgba(28,66,26,.32)'); punto(x - r * 0.3, y - r * 0.35, r * 0.4, 'rgba(150,205,110,.3)'); } break;
+    case 'agua': g.strokeStyle = 'rgba(255,255,255,.32)'; g.lineWidth = 1.2; for (const y of [6, 18]) { g.beginPath(); g.moveTo(0, y); g.bezierCurveTo(6, y - 3, 12, y + 3, S, y); g.stroke(); } break;
+    case 'roca': for (const [x, y, r] of [[3, 3, 1.2], [9, 5, 0.9], [6, 10, 1.1]]) punto(x, y, r, 'rgba(70,64,56,.35)'); break;
+    case 'calle': g.strokeStyle = 'rgba(140,116,82,.2)'; g.lineWidth = 0.8; for (let y = 0; y <= S; y += 4) linea(0, y, S, y, 'rgba(140,116,82,.18)', 0.8); for (let y = 0; y < S; y += 4) for (let x = (y / 4) % 2 ? 2 : 0; x < S; x += 4) linea(x, y, x, y + 4, 'rgba(140,116,82,.18)', 0.8); break;
+  }
+  return (TESELA[k] = c);
+}
+const PAT_CAMPO = ['prado', 'heno', 'cereal', 'labrado', null, 'vina', 'olivar', 'huerta', 'frutal'];
 
 // trabajos del mapa, uno por capa (para repartirlos en ratos libres)
 function jobs() {
@@ -85,13 +112,13 @@ function jobs() {
     }
     return null;
   });
-  for (let t = 0; t < FIELD.length; t++) J.push(() => { let any = false; for (let k = 0; k < N * N; k += 7) if (ft[k] === t) { any = true; break; } return any ? { ...contour(smooth((k) => (ft[k] === t ? 1 : 0)), 0.5), fill: FIELD[t], stroke: 'rgba(90,70,40,.3)', lw: 0.8 } : null; });
-  const L = (arr, t, fill, stroke, lw, bin) => J.push(() => ({ ...contour(smooth(bin ? (k) => (arr[k] ? 1 : 0) : (k) => arr[k] / 255), t), fill, stroke, lw }));
-  L(SURF.forest, 0.5, '#4f8a3e', 'rgba(30,60,25,.4)', 1);
-  L(SURF.rock, 0.5, '#b0aa9e', 'rgba(80,74,64,.4)', 1);
-  L(SURF.dirt, 0.42, '#d2ad74', 'rgba(120,88,50,.5)', 0.8);
-  L(SURF.street, 0.42, '#e3d8c0', 'rgba(110,96,74,.6)', 0.9);
-  L(SURF.water, 0.5, '#57aedc', '#2f7fb0', 1.2, true);
+  for (let t = 0; t < FIELD.length; t++) J.push(() => { let any = false; for (let k = 0; k < N * N; k += 7) if (ft[k] === t) { any = true; break; } return any ? { ...contour(smooth((k) => (ft[k] === t ? 1 : 0)), 0.5), fill: FIELD[t], pat: PAT_CAMPO[t], stroke: 'rgba(90,70,40,.35)', lw: 0.9 } : null; });
+  const L = (arr, t, fill, stroke, lw, bin, pat) => J.push(() => ({ ...contour(smooth(bin ? (k) => (arr[k] ? 1 : 0) : (k) => arr[k] / 255), t), fill, stroke, lw, pat }));
+  L(SURF.forest, 0.5, '#4a873b', 'rgba(26,56,22,.5)', 1.1, false, 'forest');
+  L(SURF.rock, 0.5, '#b4ada0', 'rgba(80,74,64,.45)', 1, false, 'roca');
+  L(SURF.dirt, 0.42, '#dcb987', 'rgba(128,92,52,.6)', 1.1);
+  L(SURF.street, 0.42, '#eee2c8', '#a88d68', 1.5, false, 'calle');   // (las calles con su borde marcado: se leen de un vistazo)
+  L(SURF.water, 0.5, '#5fb6e2', '#2f80b4', 1.6, true, 'agua');
   return J;
 }
 export function buildMapVectors() { const layers = []; for (const j of jobs()) { const l = j(); if (l) layers.push(l); } return { layers }; }
@@ -137,6 +164,8 @@ function paintVectors(g, vec, s, tx, tz, view, px) {
   g.lineJoin = 'round';
   for (const l of vec.layers) {
     g.fillStyle = l.fill; g.fill(l.p, 'evenodd');
+    // (el dibujo de su cultivo o de su capa encima, al mismo tamaño en pantalla a cualquier aumento)
+    if (l.pat) { const P = g.createPattern(tesela(l.pat), 'repeat'); if (P) { P.setTransform?.(new DOMMatrix([px / s, 0, 0, px / s, 0, 0])); g.fillStyle = P; g.fill(l.p, 'evenodd'); } }
     if (l.stroke) { g.strokeStyle = l.stroke; g.lineWidth = l.lw * px / s; g.stroke(l.p); }
   }
   // copas de los árboles al ampliar (solo las que se ven)
@@ -149,6 +178,8 @@ function paintVectors(g, vec, s, tx, tz, view, px) {
       dark.moveTo(t.x + r, t.z); dark.arc(t.x, t.z, r, 0, 6.2832);
       lite.moveTo(t.x - r * 0.25 + r * 0.45, t.z - r * 0.3); lite.arc(t.x - r * 0.25, t.z - r * 0.3, r * 0.45, 0, 6.2832);
     }
+    // (con su sombra hacia abajo a la derecha, como las casas)
+    g.save(); g.translate(0.9, 0.9); g.fillStyle = 'rgba(20,30,20,.25)'; g.fill(dark); g.restore();
     g.fillStyle = '#2f6a2c'; g.fill(dark); g.strokeStyle = 'rgba(20,45,18,.6)'; g.lineWidth = 0.9 * px / s; g.stroke(dark);
     g.fillStyle = 'rgba(140,200,100,.45)'; g.fill(lite);
   }

@@ -322,6 +322,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   camino hasta lo que sigues va en una línea rosa a trazos por calles y caminos (`nav.findPath`, se rehace al moverse 4 m).
   El encuadre del principio incluye el objetivo. En vertical, la lista va debajo del mapa; en el móvil tumbado, sin
   leyenda (la lista ya lo dice).
+  El dibujo del mapa (`ui/mapvector.js`, `tesela`; `mapview.js`): cada campo lleva el dibujo de su cultivo encima de su
+  color (briznas de prado, hileras de heno y cereal, surcos de tierra labrada, filas de viña y huerta, marco de olivos y
+  frutales), el bosque copas, el agua ondas, la roca motas y las calles empedrado con el borde marcado; las teselas se
+  pintan siempre al mismo tamaño en pantalla. Las casas, con su sombra abajo a la derecha, una vertiente con luz y otra en
+  sombra, el caballete por el lado largo y un tono distinto cada una (en el Pirineo, la mitad de pizarra); los árboles,
+  también con sombra. Abajo a la izquierda, el norte encima de la regla. En el móvil tumbado, el encuadre y los nombres
+  dejan sitio al título, que va encima del mapa.
 - **Tradiciones en el menú del juego** (`hub.js`, en «Más»; `didactico.js`, `s_tradiciones`; `ddgal.js`): la misma galería
   del material didáctico (cada comarca, danzas, carnavales, tradiciones, romerías, ferias, pelota y campanas), pero
   jugando cada una se descubre al hacer su misión, o la de una comarca al visitar uno de sus pueblos. La que falta sale
