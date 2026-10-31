@@ -583,7 +583,7 @@ export function mapa3d(host, o) {
   // soltar, sigue un poco y frena. Dos dedos: pellizcar acerca o aleja hacia el punto de entre los dedos, que se queda debajo
   // de ellos, moverlos arrastra y girarlos gira. Al levantar uno, el otro sigue arrastrando
   const ptrs = new Map(); let arr = null, gesto = null, inercia = null;
-  const usado = () => host.classList.add('m3-usado');   // (la ayuda de los controles se va en cuanto se usan)
+  const usado = () => { host.classList.add('m3-usado'); quietoDesde = performance.now(); paseo = null; };   // (la ayuda de los controles se va en cuanto se usan; y el paseo de dron se para)
   const camT = new THREE.PerspectiveCamera(), sT = { x: 0, z: 0, d: 1, yaw: 0, pitch: 1, hy: 0.8 };
   const aNdcXY = (x, y) => { const b = cv.getBoundingClientRect(); return ndc.set((x - b.left) / b.width * 2 - 1, -((y - b.top) / b.height) * 2 + 1); };
   const sueloCon = (c, x, y) => { ray.setFromCamera(aNdcXY(x, y), c); return ray.ray.intersectPlane(plano, new THREE.Vector3()); };
@@ -709,6 +709,31 @@ export function mapa3d(host, o) {
   function cierraPueblo() { dron = null; if (!elegido) return; elegido = null; o.onTown?.(null); }
   // (toda Navarra, desde arriba)
   function vista() { select(null); volar(casa(), 1.1); }
+
+  // ---------- el paseo de dron por Navarra ----------
+  // En el inicio, con el mapa quieto unos segundos y nada elegido, la cámara baja, se acerca y recorre Navarra despacio de
+  // norte a sur, como un dron: del Baztan y el Pirineo a la Ribera, y vuelve; se inclina para que se vea el relieve y se
+  // mece un poco. Se para con cualquier toque, tecla o rueda y al elegir una comarca o un pueblo (se queda donde está), y
+  // vuelve a los 10 s sin tocar nada. Antes Navarra se veía entera, pero pequeña encima de la tira de comarcas
+  let paseo = null, quietoDesde = performance.now(), paseoVisto = false;   // (la primera vez empieza a los 3 s)
+  // (sin paseo con «menos movimiento» en el sistema; ni en el navegador de las pruebas, como la entrada, salvo que lo pidan)
+  const MOV_REDUCIDO = matchMedia?.('(prefers-reduced-motion: reduce)').matches || (navigator.webdriver && !window.__paseo);
+  // (el recorrido: la línea por el medio de Navarra, de su punta norte a la sur, por los centros de las comarcas)
+  const rutaDron = (() => {
+    const M = C.map(c => c.mid), z0 = Math.min(...M.map(m => m.z)) + 2, z1 = Math.max(...M.map(m => m.z)) - 2, P = [];
+    for (let i = 0; i <= 24; i++) { const z = z0 + (z1 - z0) * i / 24; let sx = 0, sw = 0; for (const m of M) { const w = Math.exp(-((m.z - z) ** 2) / (2 * 14 * 14)); sx += m.x * w; sw += w; } P.push({ x: sw ? sx / sw : centro.x, z }); }
+    let L = 0; for (let i = 1; i < P.length; i++) { L += Math.hypot(P[i].x - P[i - 1].x, P[i].z - P[i - 1].z); P[i].l = L; } P[0].l = 0;
+    return { P, L };
+  })();
+  const enRuta = (l) => { const P = rutaDron.P; for (let i = 1; i < P.length; i++) if (P[i].l >= l) { const a = P[i - 1], b = P[i], k = (l - a.l) / (b.l - a.l || 1); return { x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k }; } return P.at(-1); };
+  function sigueDronNavarra(dt) {
+    const p = paseo; p.t += dt;
+    const vel = Math.max(1.2, rutaDron.L / 42), ida = (p.t * vel) % (2 * rutaDron.L), l = ida < rutaDron.L ? ida : 2 * rutaDron.L - ida;   // (unos 42 s de ida y otros tantos de vuelta)
+    const q = enRuta(l), base = p.base, k = ease(Math.min(1, p.t / 3.5));   // (al empezar, de la vista de toda Navarra al vuelo, poco a poco)
+    const d = base.d * 0.4, pitch = 0.74 + 0.04 * Math.sin(p.t * 0.21), yaw = 0.12 * Math.sin(p.t * 0.09);
+    goal.x = mezcla(base.x, q.x, k); goal.z = mezcla(base.z, q.z, k); goal.d = Math.exp(mezcla(Math.log(base.d), Math.log(d), k));
+    goal.pitch = mezcla(base.pitch, pitch, k); goal.yaw = mezcla(base.yaw, yaw, k);
+  }
   // ---------- elegir una comarca: vuela hasta ella y se levanta ----------
   function select(id, fly = true) {
     const c = id && byId.get(id);
@@ -978,7 +1003,7 @@ export function mapa3d(host, o) {
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
-    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; } };   // (para las pruebas en el servidor de desarrollo)
+    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; } };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
@@ -1086,6 +1111,11 @@ export function mapa3d(host, o) {
     // movimiento con las teclas y los botones
     if (dron && (ptrs.size || keys.size || inercia || elegido?.id !== dron.id)) dron = null;
     if (dron) sigueDron(dt);
+    // (el paseo de dron por Navarra: con todo quieto y nada elegido; se para en cuanto algo de eso cambia)
+    const libreP = !ptrs.size && !keys.size && !inercia && !vuelo && !dron && !sel && !elegido && (!intro || intro.hecho) && !MOV_REDUCIDO;
+    if (!libreP) { if (paseo) paseo = null; if (ptrs.size || keys.size || inercia || sel || elegido) quietoDesde = now; }
+    else if (!paseo && now - quietoDesde > 10000 + (paseoVisto ? 0 : -7000)) { paseo = { t: 0, base: { ...goal } }; paseoVisto = true; }
+    if (paseo) sigueDronNavarra(dt);
     if (keys.size) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }

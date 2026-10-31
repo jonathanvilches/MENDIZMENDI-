@@ -331,6 +331,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sombra, el caballete por el lado largo y un tono distinto cada una (en el Pirineo, la mitad de pizarra); los árboles,
   también con sombra. Abajo a la izquierda, el norte encima de la regla. En el móvil tumbado, el encuadre y los nombres
   dejan sitio al título, que va encima del mapa.
+- **Paseo de dron por Navarra en el inicio** (`hub/mapa3d.js`, `sigueDronNavarra` y `rutaDron`): con el mapa quieto 10 s
+  (la primera vez, 3 s) y nada elegido, la cámara pasa de la vista de toda Navarra a un vuelo más cerca y más inclinado
+  que la recorre por el medio, por los centros de las comarcas, del Baztan y el Pirineo a la Ribera y vuelta (unos 42 s
+  cada sentido), meciéndose un poco. Se para con cualquier toque, tecla o rueda y al elegir una comarca o un pueblo, y se
+  queda donde está. Sin paseo con «menos movimiento» en el sistema ni en el navegador de las pruebas (salvo
+  `window.__paseo`). Antes Navarra se veía entera pero pequeña encima de la tira de comarcas.
 - **Navegación como el GPS de los juegos de mundo abierto** (`townGame.js`, `marcaDestino`, `objetivo` y `rutaGPS`;
   `ui.js`, `updateMinimap` y `lugaresMapa`; `mapview.js`): se toman sus costumbres, no su aspecto, que es el de Herrizherri.
   En el mapa, un toque en un sitio (o en un lugar) da la ficha con «Marcar destino»; la pestaña Lugares lista la iglesia,
