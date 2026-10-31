@@ -25,6 +25,7 @@ import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
 import { buildAgro } from '../world/agro.js';
 import { CORRALES } from '../data/ferias.js';
+import { requestPath } from '../world/nav.js';
 import { misionColor } from '../data/misionCat.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { kaixo } from './saludo.js';
@@ -618,21 +619,52 @@ export class TownGame {
     const e = this.jornales?.escort; if (e) return { x: e.a.pos.x, z: e.a.pos.z, h: 2.3 };
     return this.jornales?.guideTarget() || null;
   }
+  // ---------- Destino marcado y ruta, como el GPS de los juegos de mundo abierto ----------
+  // Tocando el mapa se marca un destino (un sitio de la lista o cualquier punto): la brújula, la luz dorada, la punta del
+  // anillo del minimapa y la ruta van allí, en dorado, hasta que llegas (a 6 m) o lo quitas. Sin destino, a lo que toca
+  // de la misión que sigues, en rosa. La ruta va por calles y caminos y se ve en el minimapa y en el mapa
+  marcaDestino(d) {
+    this.destino = d ? { x: d.x, z: d.z, nombre: d.nombre || 'Destino' } : null; this.gps = null; this.gpsT = -9;
+    this.sound?.ui?.(d ? 'open' : 'click');
+    this.ui.toast(d ? `Destino marcado: ${this.destino.nombre}` : 'Destino quitado', d ? 'flag' : 'close', 2200);
+  }
+  objetivo() {
+    const j = this.jobTarget(); if (j) return j;
+    const D = this.destino;
+    if (D) {
+      if (Math.hypot(D.x - this.player.pos.x, D.z - this.player.pos.z) >= 6) return { x: D.x, z: D.z, h: 2.5, destino: true };
+      this.ui.toast(`Has llegado: ${D.nombre}`, 'check', 2200); this.sound?.ui?.('open'); this.destino = null; this.gps = null;
+    }
+    return this.target();
+  }
+  // (la ruta se pide a la cola de caminos de los vecinos, nav.requestPath, y se resuelve en unos fotogramas; se pide otra si
+  // cambia el objetivo o te alejas 6 m de donde se pidió, como mucho una por segundo)
+  rutaGPS(t) {
+    if (!t || t.noArrow) { this.gps = null; return null; }
+    const P = this.player.pos, G = this.gps, mismo = G && Math.hypot(G.tx - t.x, G.tz - t.z) < 2;
+    if (!(mismo && Math.hypot(G.ox - P.x, G.oz - P.z) < 6) && !this.gpsPide && this.elapsed - (this.gpsT ?? -9) > 1) {
+      this.gpsT = this.elapsed; this.gpsPide = true; const ox = P.x, oz = P.z, tx = t.x, tz = t.z, dest = !!t.destino;
+      requestPath(ox, oz, tx, tz, (p) => { this.gpsPide = false; if (this.disposed) return; this.gps = p && p.length ? { pts: [{ x: ox, z: oz }, ...p, { x: tx, z: tz }], ox, oz, tx, tz, dest, id: (this.gpsId = (this.gpsId || 0) + 1) } : null; });
+    }
+    return mismo ? this.gps : null;
+  }
   updateHUD() {
     const M = this.missions[this.tracked];
-    const t = this.jobTarget() || this.target();
+    const t = this.objetivo();
     this.beacon.set(t && !t.noArrow ? t : null, '#ffd34d');
-    if (!M) { this.ui.setQuest(null); return; }
-    let dist = null, angle = null;
-    if (t) {
-      const dx = t.x - this.player.pos.x, dz = t.z - this.player.pos.z; dist = Math.hypot(dx, dz);
-      const fwd = Math.atan2(-Math.sin(this.follow.yaw), -Math.cos(this.follow.yaw)); angle = -angleDiff(fwd, Math.atan2(dx, dz));
-    }
-    const nSteps = M.steps().length;
-    this.ui.setQuest({ title: M.title, step: this.stepText(M), icon: M.icon, dist, angle, nSteps, stepIdx: Math.min(M.step, nSteps) });
+    if (M) {
+      let dist = null, angle = null;
+      const tm = t?.destino ? this.target() : t;   // (con un destino marcado, el panel de la misión sigue con la suya)
+      if (tm) {
+        const dx = tm.x - this.player.pos.x, dz = tm.z - this.player.pos.z; dist = Math.hypot(dx, dz);
+        const fwd = Math.atan2(-Math.sin(this.follow.yaw), -Math.cos(this.follow.yaw)); angle = -angleDiff(fwd, Math.atan2(dx, dz));
+      }
+      const nSteps = M.steps().length;
+      this.ui.setQuest({ title: M.title, step: this.stepText(M), icon: M.icon, dist, angle, nSteps, stepIdx: Math.min(M.step, nSteps) });
+    } else this.ui.setQuest(null);
     // las marcas del mapa (recorren todas las misiones) se rehacen cinco veces por segundo, no en cada fotograma
     if (!this.mkList || this.elapsed - this.mkT > 0.2 || this.elapsed < this.mkT) { this.mkList = this.mapMarkers(); this.mkT = this.elapsed; }
-    this.ui.updateMinimap(this.player, this.follow.yaw, this.mkList, t);
+    this.ui.updateMinimap(this.player, this.follow.yaw, this.mkList, t, this.rutaGPS(t));
     if (this.carnivalHint) this.carnivalHint();
   }
   // las marcas de las misiones (el mapa, el minimapa y su anillo): cada una con su icono y el color de su categoría, como
@@ -720,6 +752,8 @@ export class TownGame {
   }
   // Acciones del mapa: ir a una misión o a un sitio
   mapAct(a, it) {
+    if (a === 'destino') return this.marcaDestino({ x: it.x, z: it.z, nombre: it.title || it.label || 'Destino' });
+    if (a === 'quitaDestino') return this.marcaDestino(null);
     if (a === 'mission' || a === 'track') return this.goMission(this.missions[it.id]);
     if (a === 'go') this.teleport(it.x, it.z);
   }

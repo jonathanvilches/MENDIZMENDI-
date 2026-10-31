@@ -205,6 +205,7 @@ summary { line-height: 1.3; }
    pastilla rosa a la izquierda del círculo, con el rombo del objetivo delante) */
 #cdist { position: absolute; right: calc(100% + 12px); top: 50%; transform: translateY(-50%); display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 8px; border-radius: 999px; background: #ff7ac8; color: #2a0638; font: 900 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); pointer-events: none; font-variant-numeric: tabular-nums; }
 #cdist::before { content: ''; flex: none; width: 7px; height: 7px; background: #2a0638; transform: rotate(45deg); }
+#cdist.oro { background: #ffd34d; }
 /* misión: arriba a la izquierda, sin caja */
 #tl { position: absolute; left: calc(var(--sl) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; flex-direction: column; gap: 8px; max-width: min(340px, calc(30vw / var(--z, 1))); pointer-events: none; }
 #tl > * { pointer-events: auto; }
@@ -665,6 +666,15 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 .mq-t small { color: #cbc2e0; font: 600 var(--fs-xs)/1.3 var(--f-ui, 'MZ Texto'), sans-serif; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .mq-d { flex: none; padding: 4px 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); color: #fff; font: 900 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .mq-i.cur .mq-d { background: #ff7ac8; color: #2a0638; }
+/* (las pestañas Misiones y Lugares; los lugares, con el aro neutro, y el destino marcado, en dorado) */
+.mq-tabs { flex: none; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px 8px 0; }
+.mq-tabs button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 4px 12px; border-radius: 10px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); color: #cbc2e0; font: 800 var(--fs-xs)/1 var(--f-cond, 'MZ Texto'); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.mq-tabs button :is(svg, img) { flex: none; width: 18px; height: 18px; }
+.mq-tabs button.on { background: color-mix(in srgb, #ff7ac8 22%, rgba(7, 2, 15, .4)); border-color: #ff7ac8; color: #fff; }
+.mq-l[hidden] { display: none; }
+.mq-i.lug { --mc: #c9b8ff; }
+.mq-i.dest { --mc: #ffd34d; } .mq-i.dest .mq-d { background: #ffd34d; color: #2a0638; }
+.mq-vacio { margin: 8px; color: #cbc2e0; font-size: var(--fs-sm); }
 @media (max-aspect-ratio: 1/1) {
   .mapscr .pbody.con-mq { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(220px, 1fr) minmax(0, 40%) auto; }
   .con-mq .mq { grid-column: 1; grid-row: 2; }

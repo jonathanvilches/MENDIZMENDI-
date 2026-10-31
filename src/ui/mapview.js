@@ -43,7 +43,7 @@ export function mountMapView(ui, box, opts = {}) {
     }
     return out;
   };
-  const target = () => { try { return game.kind === 'town' ? game.target() : game.questTarget(); } catch { return null; } };
+  const target = () => { try { return game.kind === 'town' ? (game.objetivo ? game.objetivo() : game.target()) : game.questTarget(); } catch { return null; } };
   // la marca elegida: la misma aunque la lista se rehaga en cada dibujo (sus objetos son nuevos cada vez)
   const esSel = (it) => !!sel && (it === sel || (it.x === sel.x && it.z === sel.z && it.title === sel.title));
   // el camino hasta el objetivo que sigues, por calles y caminos (nav.findPath, el de los vecinos): se rehace si cambia el
@@ -91,7 +91,7 @@ export function mountMapView(ui, box, opts = {}) {
       g.save(); g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath();
       R.forEach((q, i) => { const [X, Y] = toS(q.x, q.z); if (i) g.lineTo(X, Y); else g.moveTo(X, Y); });
       g.strokeStyle = 'rgba(28,11,58,.7)'; g.lineWidth = 8; g.stroke();
-      g.setLineDash([10, 9]); g.strokeStyle = '#ff7ac8'; g.lineWidth = 4.5; g.stroke(); g.restore();
+      g.setLineDash([10, 9]); g.strokeStyle = tR.destino ? '#ffd34d' : '#ff7ac8'; g.lineWidth = 4.5; g.stroke(); g.restore();   // (dorada a un destino marcado)
     }
     const items = collect().sort((a, b) => b.pri - a.pri);
     const occ = [], P = game.player, [px, py] = toS(P.pos.x, P.pos.z);
@@ -154,9 +154,11 @@ export function mountMapView(ui, box, opts = {}) {
       ui.drawIcon(g, it.icon, X, Y, r, it.color, it.badge);
       hits.push({ it, kind: 'icon', x: X - r - 6, y: Y - r - 6, w: 2 * r + 12, h: 2 * r + 12 });
     }
-    // objetivo seguido: chincheta dorada
+    // el sitio tocado en el mapa (para marcarlo como destino): un aro dorado
+    if (sel?.punto) { const [X, Y] = toS(sel.x, sel.z); g.strokeStyle = '#ffd34d'; g.lineWidth = 3; g.beginPath(); g.arc(X, Y, 11, 0, 7); g.stroke(); g.fillStyle = 'rgba(255,211,77,.3)'; g.fill(); }
+    // objetivo seguido: chincheta dorada (o la bandera, si es un destino marcado)
     if (tS) {
-      const im = iconImage('pin');
+      const im = iconImage(t.destino ? 'flag' : 'pin');
       g.fillStyle = 'rgba(255,215,0,.35)'; g.beginPath(); g.ellipse(tS[0], tS[1], 9, 4, 0, 0, 7); g.fill();
       if (im.complete && im.naturalWidth) g.drawImage(im, tS[0] - 15, tS[1] - 32, 30, 30);
     }
@@ -183,13 +185,20 @@ export function mountMapView(ui, box, opts = {}) {
     // (en una misión, un solo botón que te lleva a empezarla: junto al vecino que la da o, si ya está en marcha, al sitio
     // de su paso siguiente. Antes había que elegir «la brújula te lleva aquí» y después ir andando)
     if (it.act === 'track') btn.push(`<button class="btn primary" data-a="mission" aria-label="Ir: ${esc(it.title || '')}">${flecha(22)}</button>`);
-    else if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${iconSVG('navigate', 20)} Viajar ahora</button>`);
+    else {
+      // (marcar el sitio como destino, como en un GPS: la ruta, la brújula y la luz dorada van allí; si ya lo es, quitarlo)
+      const D = game.destino, esD = D && Math.hypot(D.x - it.x, D.z - it.z) < 3;
+      if (game.marcaDestino) btn.push(esD ? `<button class="btn" data-a="quitaDestino">${iconSVG('close', 20)} Quitar destino</button>` : `<button class="btn primary" data-a="destino">${iconSVG('flag', 20)} Marcar destino</button>`);
+      if (it.go) btn.push(`<button class="btn" data-a="go" title="Viajas al instante hasta allí">${iconSVG('navigate', 20)} Viajar ahora</button>`);
+    }
     card.innerHTML = `<div class="mc-i">${iconSVG(it.icon || 'home', 34)}</div><div class="mc-t"><b>${esc(it.title || it.label)}</b>${it.text ? `<small>${esc(it.text)}</small>` : ''}</div><div class="mc-b">${btn.join('')}</div><button class="mc-x" aria-label="Cerrar">${iconSVG('close', 18)}</button>`;
     card.hidden = false;
     card.querySelector('.mc-x').onclick = () => select(null);
     card.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
       ui.sound?.ui('click');
       const a = b.dataset.a;
+      // (marcar o quitar el destino no cierra el mapa: se ve la ruta nueva enseguida)
+      if (a === 'destino' || a === 'quitaDestino') { game.mapAct?.(a, it); rutaK = ''; select(a === 'destino' ? it : null); opts.onDestino?.(); return; }
       ui.closeModal(); game.mapAct?.(a, it);
     });
   }
@@ -222,8 +231,14 @@ export function mountMapView(ui, box, opts = {}) {
     const p = pos(e), now = performance.now();
     const h = [...hits].reverse().find(h => p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h);
     if (h) { ui.sound?.ui('click'); select(h.it); lastTap = null; }
-    else if (lastTap && now - lastTap.t < 350 && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 30) { zoomTo(p.x, p.y, 2); lastTap = null; }
-    else { if (sel) select(null); lastTap = { ...p, t: now }; }
+    else if (lastTap && now - lastTap.t < 350 && Math.hypot(p.x - lastTap.x, p.y - lastTap.y) < 30) { zoomTo(p.x, p.y, 2); lastTap = null; if (sel?.punto) select(null); }
+    else if (sel) { select(null); lastTap = { ...p, t: now }; }
+    else {
+      // (un toque en un sitio sin nada: se puede marcar como destino; dice qué hay cerca)
+      const [wx, wz] = toW(p.x, p.y), cerca = collect().filter(i => i.label && i.icon).map(i => ({ i, d: Math.hypot(i.x - wx, i.z - wz) })).sort((a, b) => a.d - b.d)[0];
+      if (game.marcaDestino) select({ x: wx, z: wz, punto: true, icon: 'flag', title: cerca && cerca.d < 40 ? `Cerca de: ${cerca.i.label}` : 'Este sitio', text: 'Márcalo como destino y la ruta te lleva', go: true });
+      lastTap = { ...p, t: now };
+    }
     down = null;
   };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
@@ -288,6 +303,7 @@ export function mountMapView(ui, box, opts = {}) {
   // los iconos se cargan como imágenes: se redibuja cuando llegan
   const late = setTimeout(redraw, 150), late2 = setTimeout(redraw, 700);
   // (desde la lista de misiones: llevar el mapa a una misión y enseñar su ficha)
+  const centra = (x, z) => zoomTo(W / 2, H / 2, Math.max(1, 1.2 / v.s), x, z);
   const mision = (id) => { const it = collect().find(i => i.id === id); if (!it) return null; zoomTo(W / 2, H / 2, Math.max(1, 1.2 / v.s), it.x, it.z); select(it); return it; };
-  return { destroy() { ro.disconnect(); clearTimeout(late); clearTimeout(late2); cancelAnimationFrame(raf); anim = null; }, view: v, select, redraw, mision, get hits() { return hits; } };
+  return { destroy() { ro.disconnect(); clearTimeout(late); clearTimeout(late2); cancelAnimationFrame(raf); anim = null; }, view: v, select, redraw, mision, centra, get hits() { return hits; } };
 }

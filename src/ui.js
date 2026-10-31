@@ -582,14 +582,14 @@ export class UI {
   // fuera del mapa, cada uno hacia donde está, y el objetivo: una punta rosa en el anillo que señala hacia él (y su punto
   // dentro del mapa si cabe). La distancia, en la pastilla rosa a la izquierda del círculo. Antes todo esto iba en una barra
   // aparte, arriba en el centro de la pantalla
-  updateMinimap(player, camYaw, markers, target) {
+  updateMinimap(player, camYaw, markers, target, ruta = null) {
     if (!this.mini) return;
     const css = this.box(this.mini.canvas)[0];
     this.distancia(player, target);
     if (!css) return;
     const ms = this.miniSig ||= {}, nm = markers ? markers.length : 0, now = performance.now();
-    if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm && ms.css === css) return;
-    ms.t = now; ms.cy = camYaw; ms.cx = player.pos.x; ms.cz = player.pos.z; ms.h = player.heading; ms.tx = target?.x; ms.tz = target?.z; ms.n = nm; ms.css = css;
+    if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm && ms.css === css && ms.r === ruta?.id) return;
+    ms.t = now; ms.cy = camYaw; ms.cx = player.pos.x; ms.cz = player.pos.z; ms.h = player.heading; ms.tx = target?.x; ms.tz = target?.z; ms.n = nm; ms.css = css; ms.r = ruta?.id;
     const g = this.mini, S = 248, R = S / 2, zoom = 1.8, k = S / css;   // (k: puntos del lienzo por píxel de pantalla)
     const mpp = (2 * HALF) / 512, band = Math.min(R * 0.34, 15 * k), Ri = R - band, Rm = R - band / 2;
     const px = (player.pos.x + HALF) / mpp, pz = (player.pos.z + HALF) / mpp;
@@ -598,6 +598,13 @@ export class UI {
     // el mapa, girado con la cámara; las marcas que caben dentro del anillo
     g.save(); g.rotate(camYaw);
     g.drawImage(this.mapImg, -px * zoom, -pz * zoom, 512 * zoom, 512 * zoom);
+    // la ruta por calles y caminos, como un GPS: rosa a la misión, dorada a un destino marcado; desde donde estás
+    const oro = !!target?.destino, colRuta = oro ? '#ffd34d' : '#ff7ac8';
+    if (ruta?.pts?.length > 1) {
+      g.save(); g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath(); g.moveTo(0, 0);
+      let pasado = true; for (const q of ruta.pts) { const [x, y] = enMapa(q.x, q.z); if (pasado && Math.hypot(x, y) < 6) continue; pasado = false; g.lineTo(x, y); }
+      g.strokeStyle = 'rgba(28,11,58,.75)'; g.lineWidth = 11; g.stroke(); g.strokeStyle = colRuta; g.lineWidth = 6; g.stroke(); g.restore();
+    }
     const fuera = [];
     for (const m of markers || []) {
       const [x, y] = enMapa(m.x, m.z);
@@ -606,7 +613,7 @@ export class UI {
     }
     if (target) {
       const [x, y] = enMapa(target.x, target.z);
-      if (Math.hypot(x, y) <= Ri - 10) { g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 8, 0, 7); g.fill(); g.stroke(); }
+      if (Math.hypot(x, y) <= Ri - 10) { g.fillStyle = colRuta; g.strokeStyle = '#2a0638'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 8, 0, 7); g.fill(); g.stroke(); }
     }
     g.restore();
     // el anillo de la brújula
@@ -643,8 +650,8 @@ export class UI {
     // el objetivo: una punta rosa en el anillo que señala hacia fuera, hacia él
     if (at != null) {
       const [x, y] = en(at, Rm), s = band * 0.42;
-      g.save(); g.translate(x, y); g.rotate(at); g.shadowColor = 'rgba(255, 122, 200, .9)'; g.shadowBlur = 6 * k;
-      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 1.2 * k;
+      g.save(); g.translate(x, y); g.rotate(at); g.shadowColor = oro ? 'rgba(255, 211, 77, .9)' : 'rgba(255, 122, 200, .9)'; g.shadowBlur = 6 * k;
+      g.fillStyle = colRuta; g.strokeStyle = '#2a0638'; g.lineWidth = 1.2 * k;
       g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.85, s * 0.7); g.lineTo(0, s * 0.3); g.lineTo(-s * 0.85, s * 0.7); g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
     }
     g.restore();
@@ -656,6 +663,7 @@ export class UI {
     if (!target) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
     const t = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)) + ' m';
     if (e._t !== t) { e._t = t; e.textContent = t; }
+    if (e._oro !== !!target.destino) { e._oro = !!target.destino; e.classList.toggle('oro', e._oro); }   // (a un destino marcado, dorada como su ruta)
     if (e.style.display) e.style.display = '';
   }
   // El mapa del pueblo: a un lado el mapa, que se amplía y se toca, con el camino hasta lo que sigues; al otro, las
@@ -665,16 +673,40 @@ export class UI {
   openMap() {
     const g = this.game, town = g.kind === 'town', touch = this.input.touch;
     const camino = '<svg class="lg-ruta" viewBox="0 0 30 10" width="30" height="10" aria-hidden="true"><path d="M3 5h24" stroke="#1c0b3a" stroke-width="7" stroke-linecap="round"/><path d="M3 5h24" stroke="#ff7ac8" stroke-width="3.5" stroke-dasharray="5 4" stroke-linecap="round"/></svg>';
-    const leyenda = town ? `<span>${I('pin', 20)} la que sigues</span><span>${camino} camino</span><span><i class="lg-b nueva">!</i> por empezar</span><span><i class="lg-b ok">✓</i> hecha</span><span>${I('pelota', 20)} frontón</span>`
+    const leyenda = town ? `<span>${I('pin', 20)} la que sigues</span><span>${I('flag', 20)} tu destino</span><span>${camino} camino</span><span><i class="lg-b nueva">!</i> por empezar</span><span><i class="lg-b ok">✓</i> hecha</span><span>${I('pelota', 20)} frontón</span>`
       : `<span>${I('exclaim', 20)} misión nueva</span><span>${I('check', 20)} misión hecha</span><span>${I('pin', 20)} objetivo</span><span>${I('pelota', 20)} frontón</span><span>${I('eguzkilore', 20)} eguzkilore</span>`;
     const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.closeBtn()}</header><div class="pbody${town ? ' con-mq' : ''}"><div id="mapbox"><canvas></canvas></div>${town ? this.misionesMapa() : ''}
-      <div class="legend">${leyenda}<em>${touch ? 'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio' : 'Rueda o + y − para ampliar · arrastra para moverte · haz clic en un sitio'}</em></div></div>`, 'mapscr');
-    this.mapView = mountMapView(this, $('#mapbox', s), { fitRadius: town ? 260 : 240 });
-    if (town) s.querySelectorAll('[data-mq]').forEach(b => b.onclick = () => {
+      <div class="legend">${leyenda}<em>${touch ? 'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio para marcar tu destino' : 'Rueda o + y − para ampliar · arrastra para moverte · haz clic en un sitio para marcar tu destino'}</em></div></div>`, 'mapscr');
+    this.mapView = mountMapView(this, $('#mapbox', s), { fitRadius: town ? 260 : 240, onDestino: () => pintaLugares() });
+    if (!town) return;
+    s.querySelectorAll('[data-mq]').forEach(b => b.onclick = () => {
       const M = g.missions[+b.dataset.mq]; if (!M) return;
-      if (!M.done) { g.setBook(M); s.querySelectorAll('.mq-i').forEach(x => x.classList.toggle('cur', x === b)); } else this.sound?.ui?.('click');
+      if (!M.done) { g.setBook(M); s.querySelectorAll('[data-mq]').forEach(x => x.classList.toggle('cur', x === b)); } else this.sound?.ui?.('click');
       this.mapView?.mision(M.i);
     });
+    // las pestañas: las misiones o los lugares del pueblo (tocar uno lo marca como destino y el mapa va allí)
+    const nombre = esc(g.def.name.split(' /')[0]), cab = s.querySelector('.mq-h'), done = g.missions.filter(M => M.done).length;
+    const pintaLugares = () => { const L = s.querySelector('[data-pane="lug"]'); if (!L) return; L.innerHTML = this.lugaresMapa(); L.querySelectorAll('[data-lug]').forEach(b => b.onclick = () => {
+      const it = this._lugares[+b.dataset.lug]; if (!it) return;
+      const D = g.destino, esD = D && Math.hypot(D.x - it.x, D.z - it.z) < 3;
+      g.marcaDestino(esD ? null : { x: it.x, z: it.z, nombre: it.label }); if (!esD) this.mapView?.centra(it.x, it.z); this.mapView?.redraw(); pintaLugares();
+    }); };
+    s.querySelectorAll('[data-tab]').forEach(t => t.onclick = () => {
+      const lug = t.dataset.tab === 'lug'; this.sound?.ui?.('click');
+      s.querySelectorAll('[data-tab]').forEach(x => { x.classList.toggle('on', x === t); x.setAttribute('aria-selected', String(x === t)); });
+      s.querySelector('[data-pane="mis"]').hidden = lug; s.querySelector('[data-pane="lug"]').hidden = !lug;
+      cab.innerHTML = lug ? `<small>Lugares de ${nombre}</small><b>Elige tu destino</b>` : `<small>Misiones de ${nombre}</small><b>${done} de ${g.missions.length} hechas</b>`;
+      if (lug) pintaLugares();
+    });
+  }
+  // (los lugares: la iglesia, los monumentos, el frontón, la granja, los campos…, del más cerca al más lejos; el que es tu
+  // destino, encendido y con «Quitar»)
+  lugaresMapa() {
+    const g = this.game, P = g.player.pos, D = g.destino;
+    const L = this._lugares = (g.mapLabels ? g.mapLabels() : []).filter(l => l.icon && l.label).map(l => ({ ...l, label: tr(l.label), d: Math.hypot(l.x - P.x, l.z - P.z) })).sort((a, b) => a.d - b.d);
+    const dist = (d) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1).replace('.', ',')} km`;
+    return L.map((l, i) => { const esD = D && Math.hypot(D.x - l.x, D.z - l.z) < 3;
+      return `<button type="button" class="mq-i lug${esD ? ' cur dest' : ''}" data-lug="${i}" role="listitem"><span class="mq-ic">${I(l.icon, 26)}</span><span class="mq-t"><b>${esc(l.label)}</b><small>${esD ? 'Tu destino · toca para quitarlo' : 'Toca para marcarlo como destino'}</small></span><span class="mq-d">${dist(l.d)}</span></button>`; }).join('') || '<p class="mq-vacio">No hay lugares marcados en este pueblo.</p>';
   }
   // (la lista: primero las que faltan, en su orden, y las hechas al final; la que sigues, encendida)
   misionesMapa() {
@@ -685,7 +717,9 @@ export class UI {
       const cls = M.done ? ' ok' : `${M.i === g.tracked ? ' cur' : ''}${M.step === 0 ? ' nueva' : ''}`;
       return `<button type="button" class="mq-i${cls}" data-mq="${M.i}" role="listitem" style="--mc:${misionColor(M.type)}"><span class="mq-ic">${I(M.icon || 'star', 26)}</span><span class="mq-t"><b>${esc(M.title)}</b><small>${esc(g.stepText(M))}</small></span>${dt ? `<span class="mq-d">${dt}</span>` : ''}</button>`;
     };
-    return `<aside class="mq" aria-label="Misiones"><div class="mq-h"><small>Misiones de ${esc(g.def.name.split(' /')[0])}</small><b>${n} de ${ms.length} hechas</b></div><div class="mq-l" role="list">${[...ms.filter(M => !M.done), ...ms.filter(M => M.done)].map(fila).join('')}</div></aside>`;
+    return `<aside class="mq" aria-label="Misiones y lugares"><div class="mq-h"><small>Misiones de ${esc(g.def.name.split(' /')[0])}</small><b>${n} de ${ms.length} hechas</b></div>
+      <div class="mq-tabs" role="tablist"><button type="button" role="tab" data-tab="mis" class="on" aria-selected="true">${I('star', 18)}<span>Misiones</span></button><button type="button" role="tab" data-tab="lug" aria-selected="false">${I('flag', 18)}<span>Lugares</span></button></div>
+      <div class="mq-l" role="list" data-pane="mis">${[...ms.filter(M => !M.done), ...ms.filter(M => M.done)].map(fila).join('')}</div><div class="mq-l" role="list" data-pane="lug" hidden></div></aside>`;
   }
 
   // ---------- Menú ----------

@@ -329,6 +329,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sombra, el caballete por el lado largo y un tono distinto cada una (en el Pirineo, la mitad de pizarra); los árboles,
   también con sombra. Abajo a la izquierda, el norte encima de la regla. En el móvil tumbado, el encuadre y los nombres
   dejan sitio al título, que va encima del mapa.
+- **Navegación como el GPS de los juegos de mundo abierto** (`townGame.js`, `marcaDestino`, `objetivo` y `rutaGPS`;
+  `ui.js`, `updateMinimap` y `lugaresMapa`; `mapview.js`): se toman sus costumbres, no su aspecto, que es el de Herrizherri.
+  En el mapa, un toque en un sitio (o en un lugar) da la ficha con «Marcar destino»; la pestaña Lugares lista la iglesia,
+  los monumentos, el frontón, la granja y los campos del más cerca al más lejos, y tocar uno lo marca. Con destino, la
+  brújula, la luz dorada, la punta del anillo, la pastilla de la distancia y la ruta van allí en dorado, hasta llegar a 6 m
+  (aviso «Has llegado») o quitarlo; sin destino, a lo que toca de la misión que sigues, en rosa. La ruta va por calles y
+  caminos en el minimapa (se pide a la cola de caminos de los vecinos, `nav.requestPath`, otra si cambia el objetivo o te
+  alejas 6 m, como mucho una por segundo) y en el mapa grande. Marcar o quitar el destino no cierra el mapa.
 - **Tradiciones en el menú del juego** (`hub.js`, en «Más»; `didactico.js`, `s_tradiciones`; `ddgal.js`): la misma galería
   del material didáctico (cada comarca, danzas, carnavales, tradiciones, romerías, ferias, pelota y campanas), pero
   jugando cada una se descubre al hacer su misión, o la de una comarca al visitar uno de sus pueblos. La que falta sale
