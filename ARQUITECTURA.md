@@ -279,6 +279,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - En el relieve de la comarca, las parcelas sin rejilla de tablero: hileras corridas al azar y parcelas partidas en
     una, dos o tres tiras. Las laderas en sombra, sin llegar al negro. Los árboles de la comarca, con algo de luz
     propia, para que no salgan como motas negras.
+- **El dron de cada pueblo en el mapa del inicio** (`hub/mapa3d.js`, `perfilDron`, `holgura`, `despeje`):
+  - Una vuelta en tres minutos, y todos sus vaivenes son múltiplos de esa vuelta (`DRON_W`): cada vuelta es igual a la
+    anterior. El vuelo hasta el pueblo dura hasta 4,2 s, no 2,6.
+  - Antes de salir se prueba la vuelta entera, cada segundo y medio, y se guarda la inclinación justa para que la cámara
+    no toque el relieve (`perfilDron`); se ensancha y se suaviza, para que suba antes de llegar al monte. Antes iba
+    siempre a 0,5 y, en Lesaka, Leitza, Lekunberri, Orreaga o Ujué, la cámara saltaba hacia arriba de golpe.
+  - `despeje`, en cada imagen, con la misma holgura, y además alrededor de la propia cámara, con el margen de su plano
+    cercano: si no, cortaba la ladera de al lado y por el corte se veía el fondo negro.
+  - Siempre con el pueblo a la vista: el dron va al corazón de sus casas (`centroCasas`: su centro, contando más las
+    grandes, y luego solo las que quedan a menos de 350 m), no a la chincheta, y su vaivén es de unos 40 m. Antes era de
+    170 m y en Aoiz el centro de la vista acababa en el prado, con el pueblo en una esquina. Si las casas llegan después
+    de tocar el pueblo, el dron se corre despacio hasta ellas.
+  - Los espacios naturales, sin maqueta, van en un arco, con la cámara del lado de dentro de su comarca y más desde
+    arriba: desde fuera se veía la pared de la comarca y el fondo.
+  - La niebla de lo lejano: de lejos, del color del fondo; de cerca, una bruma clara.
+  - Para probarlo pueblo a pueblo, los ganchos de desarrollo `saltaVuelo`, `dronT`, `fija`, `despeje` y `sonda`.
+- **Relieve más nítido y con mejor color** (`hub/mapa3dSombreadores.js`): la imagen de relieve fino se perfila de cerca,
+  cuando cada punto suyo ocupa más de un píxel; los colores apagados ganan algo de color, las sombras no llegan al negro
+  y tiran a un azul malva, y las luces son algo más cálidas. En el móvil, la comarca elegida, con el relieve fino a 28 m.
 - **Pájaros y agua que se mueve en el mapa del inicio** (`hub/pajaros.js`, `hub/mapa3d.js`, `hub/mapa3dSombreadores.js`):
   - Bandadas oscuras, una en uve y las demás sueltas, que cruzan la vista de una comarca o de Navarra y vuelven a entrar
     por otro lado. Van ancladas al mundo, pero su tamaño, su altura y su velocidad siguen a la distancia de la cámara:

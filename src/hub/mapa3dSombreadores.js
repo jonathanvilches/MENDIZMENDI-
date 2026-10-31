@@ -117,7 +117,16 @@ void main() {
   // (las laderas en sombra, sin llegar al negro: en los valles cerrados del norte se perdía el dibujo del monte)
   s += 0.22 * (1.0 - smoothstep(0.0, 0.7, s));
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
-  c = mix(c, texture2D(uDet, (sv - uDetRect.xy) / uDetRect.zw).rgb, uDetK);
+  // (el relieve fino, más nítido: de cerca, cuando cada punto de su imagen ocupa más de un píxel, se le resta lo borroso
+  // de alrededor y se marcan crestas y barrancos; de lejos no, que titilaría)
+  { vec2 du = (sv - uDetRect.xy) / uDetRect.zw; vec3 d0 = texture2D(uDet, du).rgb;
+#ifndef LIGERO
+    vec2 px = 1.0 / vec2(textureSize(uDet, 0));
+    float ppt = px.x / max(1e-7, fwidth(du.x)), nit = smoothstep(0.7, 2.2, ppt) * 0.9 * uDetK;
+    if (nit > 0.01) { vec3 bl = (texture2D(uDet, du + vec2(px.x, 0.0)).rgb + texture2D(uDet, du - vec2(px.x, 0.0)).rgb + texture2D(uDet, du + vec2(0.0, px.y)).rgb + texture2D(uDet, du - vec2(0.0, px.y)).rgb) * 0.25;
+      d0 = clamp(d0 + (d0 - bl) * nit, 0.0, 1.0); }
+#endif
+    c = mix(c, d0, uDetK); }
   // (el clima en el color: el norte atlántico, más verde y jugoso; la Ribera, seca, de cereal y viña, dorada y ocre)
   float surC = smoothstep(380.0, 600.0, sv.y), norC = 1.0 - smoothstep(120.0, 300.0, sv.y);
   c = mix(c, c * vec3(1.16, 1.02, 0.74) + vec3(0.04, 0.02, 0.0), surC * 0.55);
@@ -148,6 +157,13 @@ void main() {
     if (uCerca > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
 #endif
   }
+  // (el color, más vivo y más limpio: los verdes y ocres apagados, con algo más de color; las sombras, sin llegar al negro,
+  // hacia un azul malva, como en los mapas de relieve dibujados (de cerca, en los valles entre montes, se veían negras); y
+  // las luces, algo más cálidas, de sol de tarde)
+  { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+    c = max(vec3(0.0), mix(vec3(l), c, 1.0 + 0.55 * (1.0 - smoothstep(0.05, 0.32, sat))));
+    c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
+    c *= mix(vec3(1.0), vec3(1.06, 1.03, 0.9), smoothstep(0.42, 0.85, l)); }
   vec4 p = pue(uP0, uPR[0], uPK[0], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP1, uPR[1], uPK[1], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP2, uPR[2], uPK[2], sv); c = mix(c, p.rgb, p.a);
