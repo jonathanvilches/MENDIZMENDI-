@@ -816,7 +816,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* salir: arriba, junto al monedero (no ocupa una fila entera ni tapa nada) */
 .shop-exit { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 4px; border: 1px solid rgba(201, 178, 255, .3); background: rgba(255, 255, 255, .08); color: #fff; font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; cursor: pointer; }
 .shop-exit svg { width: 18px; height: 18px; }
-.shop-keeper { display: flex; flex-direction: column; align-items: center; color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
+.shop-keeper { display: flex; flex-direction: column; align-items: center; gap: var(--e2); color: var(--rosa); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
 .shop-bubble { background: #f6f3fc; color: #2a0638; border-radius: 16px; padding: 8px 16px; font-weight: 600; font-size: var(--fs-sm); line-height: 1.45; position: relative; }
 .shop-purse { display: flex; align-items: center; gap: 8px; background: rgba(7, 2, 15, .5); border: 1px solid rgba(201, 178, 255, .3); color: #fff; border-radius: 4px; padding: 8px 12px; font: 400 var(--fs-lg)/1 var(--f-display); }
 .shop-purse small { color: var(--lila); font: 800 var(--fs-xs)/1 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }

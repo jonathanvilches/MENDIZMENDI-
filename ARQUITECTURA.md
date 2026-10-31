@@ -300,7 +300,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   «Navarra conquistada» y su sello (`.m3-tt`); el candado de las leyendas y su pie (`.ct-lam`, en columna); el alfiler
   bajo el nombre del personaje (`.cfrom`); el título de cada deporte y sus etiquetas (`.sp-txt`); la chapita «0/6» de la
   misión y su texto (`#quest`); el icono del título de las ventanas de papel; el personaje de la barra de carga y el
-  tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; y, con el móvil de pie, la misión, que `fitTop`
+  tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; el nombre de quien atiende la tienda bajo su icono (`.shop-keeper`); y, con el móvil de pie, la misión, que `fitTop`
   estrechaba a 140 px, y la distancia de la brújula y los avisos de la conversación, que se le montaban.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
