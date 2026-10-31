@@ -306,12 +306,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Debajo, el pueblo de delante: el rótulo y, en su propia fila (`.gi-fila`), el nombre y sus misiones; en el móvil
   tumbado van uno al lado del otro, centrados entre sí y debajo del rótulo, en una sola fila (si no caben, las casillas
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
-- **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `setQuest` y `pliegaMisiones`): la misión que sigues, con
-  su paso y lo lejos que está, y debajo el desplegable con el nombre del pueblo y la casilla de cada misión. Se probó a
-  dejar solo los iconos (octubre de 2026), pero el autor prefiere este: se volvió a él.
-- **Minimapa** (`#mini`, `#clock`): la hora va en una pastilla sobre el borde de abajo del círculo, con el mismo borde
-  blanco, entera. El mapa se recorta en el círculo y la hora queda fuera del recorte; antes era un recuadro dentro del
-  círculo que el borde cortaba.
+- **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `eligeMision`, y `#misiones` en `style.css`): solo los
+  iconos de las misiones del pueblo, una casilla por misión del color de su categoría (hecha, llena y con su marca verde
+  sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y debajo se despliega: su
+  nombre, lo que toca hacer, sus pasos y lo lejos que está; se recoge sola a los 10 s o tocando la misma casilla, y
+  tocando lo desplegado se abre el cuaderno. Empieza plegado y solo se despliega al tocar (lo pidió así el autor): al
+  cambiar lo que toca hacer, late la casilla de la misión (`lateMision`) y sale el aviso de abajo. En los tumbados más
+  estrechos, las casillas van en dos filas. Se probó a volver al recuadro con la misión, el pueblo y el desplegable, y el
+  autor prefirió los iconos. (En la aventura de Otsagabia, la de las cintas, sigue el recuadro de antes.)
+- **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#cdist`, `#clock`): el mapa gira con la
+  cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
+  misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra
+  deja su sitio; nada se monta). La distancia, en una pastilla rosa a la izquierda del círculo, y la hora, en otra debajo.
+  Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
+  una barra arriba en el centro y en el teléfono de pie no había minimapa; ahora sí, debajo de la columna de botones.
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo
