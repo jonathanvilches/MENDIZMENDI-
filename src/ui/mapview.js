@@ -9,6 +9,7 @@ import { buildMapVectors, drawMapVectors } from './mapvector.js';
 import { esc } from '../util/html.js';
 import { roundRect } from '../world/civic.js';
 import { escala, enCss } from '../util/tele.js';
+import { findPath } from '../world/nav.js';
 
 // (los botones del mapa llevan los iconos 3D de la familia: acercar, alejar, centrar en mí y viajar)
 const hitsRect = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
@@ -37,12 +38,23 @@ export function mountMapView(ui, box, opts = {}) {
     const out = [...labels];
     for (const m of game.mapMarkers()) {
       const twin = labels.find(l => l.icon === m.icon && (Math.hypot(l.x - m.x, l.z - m.z) < 16 || (m.fronton && l.fronton)));
-      if (twin) { twin.act ||= m.act; twin.text ||= m.text; continue; }
+      if (twin) { twin.act ||= m.act; twin.text ||= m.text; twin.color ||= m.color; twin.badge ||= m.badge; twin.id ??= m.id; continue; }
       out.push({ ...m, pri: m.small ? 1 : 3 });
     }
     return out;
   };
   const target = () => { try { return game.kind === 'town' ? game.target() : game.questTarget(); } catch { return null; } };
+  // la marca elegida: la misma aunque la lista se rehaga en cada dibujo (sus objetos son nuevos cada vez)
+  const esSel = (it) => !!sel && (it === sel || (it.x === sel.x && it.z === sel.z && it.title === sel.title));
+  // el camino hasta el objetivo que sigues, por calles y caminos (nav.findPath, el de los vecinos): se rehace si cambia el
+  // objetivo o si te mueves más de 4 m. En la aventura del valle no hay red de caminos: solo el pueblo
+  let ruta = null, rutaK = '';
+  const camino = (t) => {
+    if (game.kind !== 'town' || !t) return null;
+    const P = game.player.pos, k = `${Math.round(t.x)}|${Math.round(t.z)}|${Math.round(P.x / 4)}|${Math.round(P.z / 4)}`;
+    if (k !== rutaK) { rutaK = k; try { const p = findPath(P.x, P.z, t.x, t.z, 60000); ruta = p && p.length ? [{ x: P.x, z: P.z }, ...p, { x: t.x, z: t.z }] : null; } catch (e) { ruta = null; } }
+    return ruta;
+  };
 
   function draw() {
     raf = 0;
@@ -59,6 +71,14 @@ export function mountMapView(ui, box, opts = {}) {
       const [X, Y] = toS(h.x, h.z); if (X < -40 || Y < -40 || X > W + 40 || Y > H + 40) continue;
       const w = (h.w || 8) * v.s, d = (h.d || 8) * v.s;
       g.save(); g.translate(X, Y); g.rotate(-(h.ry || 0)); g.fillRect(-w / 2, -d / 2, w, d); if (w > 6) g.strokeRect(-w / 2, -d / 2, w, d); g.restore();
+    }
+    // el camino hasta el objetivo: una línea rosa a trazos con borde oscuro, debajo de las marcas
+    const tR = target(), R = camino(tR);
+    if (R && R.length > 1) {
+      g.save(); g.lineJoin = 'round'; g.lineCap = 'round'; g.beginPath();
+      R.forEach((q, i) => { const [X, Y] = toS(q.x, q.z); if (i) g.lineTo(X, Y); else g.moveTo(X, Y); });
+      g.strokeStyle = 'rgba(28,11,58,.7)'; g.lineWidth = 8; g.stroke();
+      g.setLineDash([10, 9]); g.strokeStyle = '#ff7ac8'; g.lineWidth = 4.5; g.stroke(); g.restore();
     }
     const items = collect().sort((a, b) => b.pri - a.pri);
     const occ = [], P = game.player, [px, py] = toS(P.pos.x, P.pos.z);
@@ -82,7 +102,7 @@ export function mountMapView(ui, box, opts = {}) {
       } else if (placed.some(p => Math.hypot(p.X - X, p.Y - Y) < p.r + r + 2)) continue;
       placed.push({ it, X, Y, r }); occ.push({ x: X - r, y: Y - r, w: 2 * r, h: 2 * r });
     }
-    const t = target(); let tS = null;
+    const t = tR; let tS = null;
     if (t) { tS = toS(t.x, t.z); occ.push({ x: tS[0] - 12, y: tS[1] - 40, w: 24, h: 40 }); }
     // 2) nombres: junto a su icono (debajo, encima, a los lados o en diagonal); si no cabe, se esconde hasta ampliar
     const labs = [];
@@ -106,7 +126,7 @@ export function mountMapView(ui, box, opts = {}) {
         g.lineWidth = 5; g.strokeStyle = 'rgba(28,11,58,.85)'; g.lineJoin = 'round'; g.strokeText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 1);
         g.fillStyle = '#fff'; g.fillText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 1);
       } else {
-        g.fillStyle = it === sel ? '#FFD700' : 'rgba(255,250,240,.94)'; roundRect(g, R.x, R.y, R.w, R.h, R.h / 2); g.fill();
+        g.fillStyle = esSel(it) ? '#FFD700' : 'rgba(255,250,240,.94)'; roundRect(g, R.x, R.y, R.w, R.h, R.h / 2); g.fill();
         g.strokeStyle = 'rgba(43,29,18,.45)'; g.lineWidth = 1; g.stroke();
         g.font = '800 12.5px Nunito, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#2b1d12';
         g.fillText(it.label, R.x + R.w / 2, R.y + R.h / 2 + 0.5);
@@ -114,8 +134,8 @@ export function mountMapView(ui, box, opts = {}) {
       hits.push({ it, kind: 'label', x: R.x, y: R.y, w: R.w, h: R.h });
     }
     for (const { it, X, Y, r } of placed) {
-      if (it === sel) { g.fillStyle = 'rgba(255,215,0,.35)'; g.beginPath(); g.arc(X, Y, r + 7, 0, 7); g.fill(); g.strokeStyle = '#FFD700'; g.lineWidth = 2.5; g.stroke(); }
-      ui.drawIcon(g, it.icon, X, Y, r);
+      if (esSel(it)) { g.fillStyle = 'rgba(255,215,0,.35)'; g.beginPath(); g.arc(X, Y, r + 8, 0, 7); g.fill(); g.strokeStyle = '#FFD700'; g.lineWidth = 2.5; g.stroke(); }
+      ui.drawIcon(g, it.icon, X, Y, r, it.color, it.badge);
       hits.push({ it, kind: 'icon', x: X - r - 6, y: Y - r - 6, w: 2 * r + 12, h: 2 * r + 12 });
     }
     // objetivo seguido: chincheta dorada
@@ -216,6 +236,8 @@ export function mountMapView(ui, box, opts = {}) {
   function fit() {
     const all = collect(), P = game.player.pos;
     const near = all.filter(i => Math.hypot(i.x - P.x, i.z - P.z) < (opts.fitRadius || 260));
+    // (y el objetivo que sigues, aunque quede más lejos: se ve entero el camino hasta él)
+    const t = target(); if (t && Math.hypot(t.x - P.x, t.z - P.z) < 600) near.push(t);
     const xs = [P.x, ...near.map(i => i.x)], zs = [P.z, ...near.map(i => i.z)];
     const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
     v.cx = (x0 + x1) / 2; v.cz = (z0 + z1) / 2;
@@ -236,5 +258,7 @@ export function mountMapView(ui, box, opts = {}) {
   resize();
   // los iconos se cargan como imágenes: se redibuja cuando llegan
   const late = setTimeout(redraw, 150), late2 = setTimeout(redraw, 700);
-  return { destroy() { ro.disconnect(); clearTimeout(late); clearTimeout(late2); cancelAnimationFrame(raf); anim = null; }, view: v, select, redraw, get hits() { return hits; } };
+  // (desde la lista de misiones: llevar el mapa a una misión y enseñar su ficha)
+  const mision = (id) => { const it = collect().find(i => i.id === id); if (!it) return null; zoomTo(W / 2, H / 2, Math.max(1, 1.2 / v.s), it.x, it.z); select(it); return it; };
+  return { destroy() { ro.disconnect(); clearTimeout(late); clearTimeout(late2); cancelAnimationFrame(raf); anim = null; }, view: v, select, redraw, mision, get hits() { return hits; } };
 }

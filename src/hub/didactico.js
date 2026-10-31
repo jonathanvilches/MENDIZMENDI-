@@ -51,6 +51,8 @@ import { faunaImg } from '../ui/faunaImg.js';
 import { floraFoto } from '../ui/floraFoto.js';
 import { figuraImg, figuraIlus } from '../ui/figuras.js';
 import './didactico.css';
+import { isDidactico } from '../util/modo.js';
+import { profile } from '../game/profile.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
 const P = (s) => s ? `<p>${esc(s)}</p>` : '';
@@ -307,8 +309,32 @@ export const DIDACTICO = {
         { k: 'pasaka', img: laminaUrl('dep-pasaka', true) || '', icon: 'pelota', kicker: PASAKA.kicker, title: 'Pasaka', secs: PASAKA.secs.filter(([t]) => t !== 'En el juego').map(([t, x]) => [t, P(x)]).concat([['Fuentes', `<p class="ar-src">${esc(PASAKA.sources)}</p>`]]) }] },
       { k: 'campanas', name: 'Las campanas', icon: 'bell', items: [{ k: 'campanas', img: tradicionUrl('campanas') || '', icon: 'bell', kicker: 'Tradición', title: BELL.title, secs: [['Qué es', P(BELL.fact)]] }] },
     ];
-    const head = `<div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Saberes · Tradiciones</small><h1>Tradiciones de Navarra</h1>
-      <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música. Toca una para ver su ficha.</p></div>`;
+    // jugando (no en el material didáctico), cada tradición se descubre al hacer su misión (la danza, el carnaval, la
+    // romería, la feria…) o, la de una comarca, al visitar uno de sus pueblos; la que falta sale con su candado y dice
+    // dónde descubrirla. La pelota y las campanas, siempre: están en todos los pueblos
+    let cuenta = '';
+    if (!isDidactico()) {
+      const P = profile(), hecha = (id, pred) => { const l = levelById(id), t = P.towns?.[id]; return !!(l && t) && (l.missions || []).some((m, si) => pred(m) && t.done?.[si]); };
+      const QUE = { danzas: [m => m.type === 'dance', 'aprende la danza'], carnavales: [null, 'encuentra a las figuras del carnaval'], tradiciones: [m => m.type === 'tradition', 'haz su misión de tradición'], romerias: [m => m.type === 'race', 'haz la romería'], ferias: [m => m.type === 'feria', 'visita la feria de ganado'] };
+      const lista = (a) => a.length > 1 ? a.slice(0, -1).join(', ') + ' o ' + a.at(-1) : a[0] || '';
+      let n = 0, de = 0;
+      for (const G of grupos) for (const it of G.items) {
+        if (G.k === 'pelota' || G.k === 'campanas') { n++; de++; continue; }
+        let ok, donde;
+        if (G.k === 'comarcas') { const ts = LEVELS.filter(l => l.comarca === it.k.slice(2)).map(l => l.id); ok = !ts.length || ts.some(id => (P.towns?.[id]?.visits || 0) > 0 || P.towns?.[id]?.stamp); donde = ts; it.pista = `Visita ${lista(ts.map(tn))}.`; }
+        else {
+          const [pred, verbo] = QUE[G.k] || [() => false, 'haz su misión'];
+          const fid = it.k.slice(2), pr = G.k === 'carnavales' ? (m => m.type === 'carnival' && m.character === fid) : pred;
+          // (la que no está en ningún pueblo del juego no se puede descubrir jugando: se ve desde el principio)
+          donde = it.towns || []; ok = !donde.length || donde.some(id => hecha(id, pr));
+          it.pista = `Ve a ${lista(donde.map(tn))} y ${verbo}.`;
+        }
+        de++; if (ok) n++; else it.locked = true;
+      }
+      cuenta = `<b class="ar-count"><b>${n}</b> de ${de} descubiertas</b>`;
+    }
+    const head = `<div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Saberes · Tradiciones</small><h1>Tradiciones de Navarra</h1>${cuenta}
+      <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música. Toca una para ver su ficha${cuenta ? ' o dónde descubrirla' : ''}.</p></div>`;
     grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="instrumentos">${I('music', 22)} Los instrumentos de la música de siempre</button><button type="button" class="btn ghost" data-go="personajes">${I('mask', 22)} Las fichas de los personajes de leyenda y carnaval</button></p>`;
     return galeria(this, 'tradiciones', tab, head, grupos);
   },

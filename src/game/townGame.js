@@ -25,6 +25,7 @@ import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
 import { buildAgro } from '../world/agro.js';
 import { CORRALES } from '../data/ferias.js';
+import { misionColor } from '../data/misionCat.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { kaixo } from './saludo.js';
 import { enCss } from '../util/tele.js';
@@ -634,13 +635,15 @@ export class TownGame {
     this.ui.updateMinimap(this.player, this.follow.yaw, this.mkList, t);
     if (this.carnivalHint) this.carnivalHint();
   }
+  // las marcas de las misiones (el mapa, el minimapa y su anillo): cada una con su icono y el color de su categoría, como
+  // las casillas de arriba; la que no has empezado, con su «!»; la hecha, pequeña y con la marca verde sobre amarillo
   mapMarkers() {
     const out = [];
     for (const M of this.missions) {
-      const h = M.host.pos;
-      if (M.done) { out.push({ x: h.x, z: h.z, icon: 'check', small: true, title: M.title, text: `¡Hecha! Con ${M.host.name}`, go: true }); continue; }
-      if (M.step === 0) out.push({ x: h.x, z: h.z, icon: 'exclaim', title: M.title, text: `Habla con ${M.host.name}`, act: 'track', id: M.i, go: true });
-      else { const t = this.target(M); if (t) out.push({ x: t.x, z: t.z, icon: M.icon, title: M.title, text: this.stepText(M), act: 'track', id: M.i }); }
+      const h = M.host.pos, color = misionColor(M.type), icon = M.icon || 'star';
+      if (M.done) { out.push({ x: h.x, z: h.z, icon, color, badge: 'ok', small: true, title: M.title, text: `¡Hecha! Con ${M.host.name}`, go: true, id: M.i }); continue; }
+      if (M.step === 0) out.push({ x: h.x, z: h.z, icon, color, badge: 'nueva', title: M.title, text: `Habla con ${M.host.name}`, act: 'track', id: M.i, go: true });
+      else { const t = this.target(M); if (t) out.push({ x: t.x, z: t.z, icon, color, title: M.title, text: this.stepText(M), act: 'track', id: M.i }); }
     }
     return out;
   }
