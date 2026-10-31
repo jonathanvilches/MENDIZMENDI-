@@ -685,7 +685,6 @@ export class UI {
       this.mapView?.mision(M.i);
     });
     // las pestañas: las misiones o los lugares del pueblo (tocar uno lo marca como destino y el mapa va allí)
-    const nombre = esc(g.def.name.split(' /')[0]), cab = s.querySelector('.mq-h'), done = g.missions.filter(M => M.done).length;
     const pintaLugares = () => { const L = s.querySelector('[data-pane="lug"]'); if (!L) return; L.innerHTML = this.lugaresMapa(); L.querySelectorAll('[data-lug]').forEach(b => b.onclick = () => {
       const it = this._lugares[+b.dataset.lug]; if (!it) return;
       const D = g.destino, esD = D && Math.hypot(D.x - it.x, D.z - it.z) < 3;
@@ -695,7 +694,6 @@ export class UI {
       const lug = t.dataset.tab === 'lug'; this.sound?.ui?.('click');
       s.querySelectorAll('[data-tab]').forEach(x => { x.classList.toggle('on', x === t); x.setAttribute('aria-selected', String(x === t)); });
       s.querySelector('[data-pane="mis"]').hidden = lug; s.querySelector('[data-pane="lug"]').hidden = !lug;
-      cab.innerHTML = lug ? `<small>Lugares de ${nombre}</small><b>Elige tu destino</b>` : `<small>Misiones de ${nombre}</small><b>${done} de ${g.missions.length} hechas</b>`;
       if (lug) pintaLugares();
     });
   }
@@ -706,9 +704,10 @@ export class UI {
     const L = this._lugares = (g.mapLabels ? g.mapLabels() : []).filter(l => l.icon && l.label).map(l => ({ ...l, label: tr(l.label), d: Math.hypot(l.x - P.x, l.z - P.z) })).sort((a, b) => a.d - b.d);
     const dist = (d) => d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1).replace('.', ',')} km`;
     return L.map((l, i) => { const esD = D && Math.hypot(D.x - l.x, D.z - l.z) < 3;
-      return `<button type="button" class="mq-i lug${esD ? ' cur dest' : ''}" data-lug="${i}" role="listitem"><span class="mq-ic">${I(l.icon, 26)}</span><span class="mq-t"><b>${esc(l.label)}</b><small>${esD ? 'Tu destino · toca para quitarlo' : 'Toca para marcarlo como destino'}</small></span><span class="mq-d">${dist(l.d)}</span></button>`; }).join('') || '<p class="mq-vacio">No hay lugares marcados en este pueblo.</p>';
+      return `<button type="button" class="mq-i lug${esD ? ' cur dest' : ''}" data-lug="${i}" role="listitem"><span class="mq-ic">${I(l.icon, 26)}</span><span class="mq-t"><b>${esc(l.label)}</b>${esD ? '<small>Tu destino · toca para quitarlo</small>' : ''}</span><span class="mq-d">${dist(l.d)}</span></button>`; }).join('') || '<p class="mq-vacio">No hay lugares marcados en este pueblo.</p>';
   }
-  // (la lista: primero las que faltan, en su orden, y las hechas al final; la que sigues, encendida)
+  // (la lista, una línea por misión: icono, nombre y distancia; lo que toca hacer, solo en la que sigues. Primero las que
+  // faltan, en su orden, y las hechas al final. Antes cada fila llevaba recuadro, «!», dos líneas de título y dos de paso)
   misionesMapa() {
     const g = this.game, P = g.player.pos, ms = g.missions, n = ms.filter(M => M.done).length;
     const fila = (M) => {
@@ -717,8 +716,9 @@ export class UI {
       const cls = M.done ? ' ok' : `${M.i === g.tracked ? ' cur' : ''}${M.step === 0 ? ' nueva' : ''}`;
       return `<button type="button" class="mq-i${cls}" data-mq="${M.i}" role="listitem" style="--mc:${misionColor(M.type)}"><span class="mq-ic">${I(M.icon || 'star', 26)}</span><span class="mq-t"><b>${esc(M.title)}</b><small>${esc(g.stepText(M))}</small></span>${dt ? `<span class="mq-d">${dt}</span>` : ''}</button>`;
     };
-    return `<aside class="mq" aria-label="Misiones y lugares"><div class="mq-h"><small>Misiones de ${esc(g.def.name.split(' /')[0])}</small><b>${n} de ${ms.length} hechas</b></div>
-      <div class="mq-tabs" role="tablist"><button type="button" role="tab" data-tab="mis" class="on" aria-selected="true">${I('star', 18)}<span>Misiones</span></button><button type="button" role="tab" data-tab="lug" aria-selected="false">${I('flag', 18)}<span>Lugares</span></button></div>
+    // (sin cabecera aparte: las pestañas son la cabecera, con lo hecho dentro de la de misiones)
+    return `<aside class="mq" aria-label="Misiones y lugares de ${esc(g.def.name.split(' /')[0])}">
+      <div class="mq-tabs" role="tablist"><button type="button" role="tab" data-tab="mis" class="on" aria-selected="true">Misiones <small>${n}/${ms.length}</small></button><button type="button" role="tab" data-tab="lug" aria-selected="false">Lugares</button></div>
       <div class="mq-l" role="list" data-pane="mis">${[...ms.filter(M => !M.done), ...ms.filter(M => M.done)].map(fila).join('')}</div><div class="mq-l" role="list" data-pane="lug" hidden></div></aside>`;
   }
 

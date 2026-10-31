@@ -315,8 +315,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   estrechos, las casillas van en dos filas. Se probó a volver al recuadro con la misión, el pueblo y el desplegable, y el
   autor prefirió los iconos. (En la aventura de Otsagabia, la de las cintas, sigue el recuadro de antes.)
 - **Mapa del pueblo que ayuda en las misiones** (`ui.js`, `openMap` y `misionesMapa`; `ui/mapview.js`): a un lado el
-  mapa y al otro la lista de las misiones del pueblo, cada una con su icono en el aro del color de su categoría, lo que
-  toca hacer y lo lejos que está (primero las que faltan; la que sigues, encendida). Al tocar una, pasa a ser la que sigues,
+  mapa y al otro la lista de las misiones del pueblo, minimalista: una línea por misión con su icono en el aro del color
+  de su categoría, su nombre y lo lejos que está; lo que toca hacer, solo en la que sigues, que va encendida (primero las
+  que faltan). Las pestañas Misiones y Lugares hacen de cabecera, con lo hecho dentro de la de misiones; sin recuadros por
+  fila ni «!» (eso lo dice el mapa). Un nombre largo pasa a la segunda línea con la misma letra. Al tocar una, pasa a ser la que sigues,
   el mapa va a ella y sale su ficha con el botón para ir. En el mapa, las marcas de misión llevan su icono y su color (como
   las casillas de arriba y el minimapa), con su «!» si no está empezada y la marca verde sobre amarillo si está hecha, y el
   camino hasta lo que sigues va en una línea rosa a trazos por calles y caminos (`nav.findPath`, se rehace al moverse 4 m).
