@@ -117,7 +117,7 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
    redondeadas. Las barras y los puntos pequeños sí van redondeados. tools/auditoria-medida.mjs («forma») lo comprueba */
 :root :is(.nchip, button.scard, .armorial .ar, .mrow .mi, .mlist li, .sheet-in, .sg, .set select, .pst, .prof input, .onb input, .ppage,
   .lg-how, .hsteps li, .cult, .chapter, .back, .rw, .shop-bubble, .seg, .seg button,
-  .fooditem, .gitem, .qitem, .pbody, .card .f, .card .b, #compass, #clock, .vm-btn, .pel-en, .pel-call, .fb-say, .fb-tip,
+  .fooditem, .gitem, .qitem, .pbody, .card .f, .card .b, #clock, .vm-btn, .pel-en, .pel-call, .fb-say, .fb-tip,
   .fb-fouls, .fb-ck, .fb-ctabs button, .pads4 button, .ebar, #mapbox, .pel-tip, .pel-card .pel-ctrl, .pel-card .pel-fact, .pel-force,
   .pel-levels button, .pel-rv, .pel-chip, .pel-tour, .pel-tour button, .pel-court, .pel-court-t i, .pfx-tabs button, .pfx-shots li, .pfx-pl,
   .pfx-pl-go) { border-radius: 4px; }

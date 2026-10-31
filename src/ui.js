@@ -20,11 +20,8 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
 
 // (la flecha fina del botón que pliega y despliega las misiones del pueblo, como la del menú del inicio)
-const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>';
 // las misiones del pueblo, arriba a la izquierda: en el móvil, plegadas (solo la misión de ahora, con lo hecho en su
 // insignia); en el ordenador, abiertas. Lo que elija cada uno se recuerda
-const TL_K = 'herrizherri-misiones-abiertas';
-const tlAbierto = () => { try { const v = localStorage.getItem(TL_K); if (v) return v === '1'; } catch (e) { } return !matchMedia('(pointer: coarse)').matches; };
 
 const ICON = {
   book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.2)"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#ff7ac8"/></g></svg>',
@@ -117,12 +114,13 @@ export class UI {
     this.game = game;
     const town = game.kind === 'town';
     const h = el(`<div id="hud">
-      <div id="compass"><canvas></canvas><span id="cdist"></span></div>
-      <div id="tl">
-        <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div><button type="button" class="tl-pl" aria-label="Misiones del pueblo">${CHEV}</button></div>
-        <div id="ribbons"${town ? ' class="mis"' : ''}>${town ? `<span class="mh"><span class="tname">${esc(game.def.name.split(' /')[0])}</span><b class="mc"></b></span><span class="dots" style="--n:${game.missions.length}">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 14)}</i>`).join('')}</span>`
-          : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
-      </div>
+      ${town ? `<div id="tl" class="mis">
+        <div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div>
+        <div id="quest" class="hidden"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div>
+      </div>` : `<div id="tl">
+        <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
+        <div id="ribbons">${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span></div>
+      </div>`}
       <div id="topright">
         <div class="rbtns">
           <button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
@@ -130,7 +128,7 @@ export class UI {
           <button class="round" id="bMap" aria-label="Mapa (M)">${ICON.map}</button>
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
-        <div id="mini"><canvas width="248" height="248"></canvas><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
+        <div id="mini"><canvas width="248" height="248"></canvas><span id="cdist"></span><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
       <div id="mg" class="glass hidden"></div>
@@ -152,9 +150,12 @@ export class UI {
     tap('#bMenu', () => this.openMenu());
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
-    tap('#quest', () => this.openBook('misiones'));
-    tap('#quest .tl-pl', () => this.pliegaMisiones(!this.tlAbierto, true));
-    this.doneN = null; this.pliegaMisiones(tlAbierto());
+    this.doneN = null; this.misAbierta = null; this.qKey = null; this.lastQ = null; this.tlVer = false;
+    // (en el pueblo, las misiones son solo sus iconos: al tocar uno, esa es la que sigues y debajo sale lo que hay que hacer;
+    // en la aventura de Otsagabia, el icono de la misión: al tocarlo, lo que hay que hacer y las cintas. Tocando el texto, el
+    // cuaderno)
+    if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
+    else { tap('#quest .ic', () => { this.verMision(!this.tlVer, 7000); this.sound?.ui?.('click'); }); tap('#quest .qtxt', () => this.openBook('misiones')); }
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
     tap('#cJump', () => this.input.press(' '));
@@ -166,13 +167,12 @@ export class UI {
     };
     this.buildMapCanvas(game.mapHouses ? game.mapHouses() : []);
     this.mini = $('#mini canvas', h).getContext('2d');
-    this.compass = $('#compass canvas', h);
     // tamaño y visibilidad de la brújula y el minimapa sin preguntarlos en cada fotograma (leer clientWidth u offsetParent
     // tras cambiar textos obligaba al navegador a recolocar toda la página 60 veces por segundo)
     this.boxes = new Map(); this.hudSig = {}; this.miniSig = null; this.questHidden = undefined;
     this.ro?.disconnect();
     this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(es => { for (const e of es) this.boxes.set(e.target, [e.contentRect.width, e.contentRect.height]); this.hudSig = {}; this.miniSig = null; }) : null;
-    if (this.ro) { this.ro.observe(this.compass); this.ro.observe(this.mini.canvas); }
+    if (this.ro) this.ro.observe(this.mini.canvas);
     this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), clock: $('#clock .ct', h), clockI: $('#clock .ci', h), cdist: $('#cdist', h) };
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
@@ -180,68 +180,84 @@ export class UI {
     this._fitTopR = () => this.queueFitTop(); addEventListener('resize', this._fitTopR);
     // (también la propia brújula: al salir de una escena con el panel oculto, aparece y se coloca; colocarla no cambia su
     // tamaño final, así que no se repite)
-    this.roTop = typeof ResizeObserver === 'function' ? new ResizeObserver(this._fitTopR) : null; this.roTop?.observe($('#topright .rbtns', h)); this.roTop?.observe($('#compass', h));
+    this.roTop = typeof ResizeObserver === 'function' ? new ResizeObserver(this._fitTopR) : null; this.roTop?.observe($('#topright .rbtns', h));
     this.queueFitTop();
   }
   queueFitTop() { clearTimeout(this._fitTopT); this._fitTopT = setTimeout(() => { this._fitTopT = 0; if (this.hud) this.fitTop(); }, 30); }
-  // El panel de arriba: la brújula, en el hueco libre entre la misión y los botones. En el móvil tumbado, con el hueco de
-  // la cámara a los lados, centrada en la pantalla pisaba las dos cosas; si el hueco es muy estrecho, la misión se
-  // estrecha un poco (su texto pasa a otra línea). En vertical (la misión, debajo de la brújula) se queda como está.
+  // El panel de arriba: la misión no llega a los botones; si llegara, se estrecha (su texto pasa a otra línea). Antes aquí
+  // se colocaba la barra de la brújula en el hueco entre las dos; la brújula va ahora en el borde del minimapa
   fitTop() {
     const h = this.hud; if (!h) return;
-    const C = $('#compass', h), T = $('#tl', h), B = $('#topright .rbtns', h); if (!C || !T || !B) return;
-    C.style.left = ''; C.style.width = ''; T.style.maxWidth = '';
-    // (en vertical, la misión va debajo de la brújula, a lo ancho: no se toca. Antes se miraba igual que tumbado y la misión
-    // se quedaba en 140 px, con el texto partido palabra a palabra)
-    if (innerHeight > innerWidth) return;
-    const cr = C.getBoundingClientRect(); if (!cr.width) return;
-    const top = cr.top, bot = cr.bottom + 22;   // (con la distancia que va debajo)
-    const band = (e) => { if (!e || !e.offsetParent) return null; const r = e.getBoundingClientRect(); return r.top < bot && r.bottom > top ? r : null; };
-    const txt = (e) => { if (!band(e) || !e.textContent.trim()) return 0; const r = document.createRange(); r.selectNodeContents(e); return r.getBoundingClientRect().right; };
-    const left = () => { const ic = band($('#quest .ic', h)), rb = band($('#ribbons', h)), tn = $('#ribbons .tname', h), dots = $('#ribbons .dots', h);
-      // (y el borde de la caja de las misiones, que ya tiene fondo: la brújula, siempre a 12 px de ella)
-      const caja = band(T)?.right || 0;
-      return Math.max(T.getBoundingClientRect().left, caja, ic ? ic.right : 0, txt($('#quest small', h)), txt($('#quest .qt', h)), rb ? Math.max(txt(tn), dots?.getBoundingClientRect().right || 0) : 0) + 12; };
-    const W = innerWidth, R = B.getBoundingClientRect().left - 12, MIN = 170;
-    let L = left();
-    if (R - L < MIN && band($('#quest', h))) { T.style.maxWidth = Math.max(140, R - MIN - 12 - T.getBoundingClientRect().left) + 'px'; L = left(); }
-    // (centrada en la pantalla si cabe; si no, del ancho del hueco y en medio de él)
-    if (W / 2 - cr.width / 2 >= L && W / 2 + cr.width / 2 <= R) return;
-    // (en medio del hueco: el mismo espacio a cada lado)
-    const w = Math.max(120, Math.min(cr.width, R - L)), cx = (L + R) / 2;
-    C.style.width = w + 'px'; C.style.left = cx + 'px';
+    const T = $('#tl', h), B = $('#topright .rbtns', h); if (!T || !B) return;
+    T.style.maxWidth = '';
+    const tr = T.getBoundingClientRect(), br = B.getBoundingClientRect();
+    if (tr.width && tr.right > br.left - 12 && tr.bottom > br.top && tr.top < br.bottom) T.style.maxWidth = Math.max(140, br.left - 12 - tr.left) + 'px';
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
   destroyHUD() { this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
     // (y lo que apuntaba al pueblo: la interfaz dura toda la partida y, con estas referencias, el pueblo que se dejaba seguía
     // entero en la memoria, unos 160 MB, hasta entrar en otro; en el iPhone, al cambiar de pueblo, se cerraba el juego)
-    this.game = null; this._fitTopR = null; this.mini = null; this.compass = null; this.boxes = new Map(); this.questEls = null; }
+    this.game = null; this._fitTopR = null; this.mini = null; this.boxes = new Map(); this.questEls = null; }
   // (las misiones del pueblo, bajo la de ahora: cada casilla con su icono, las hechas de color y la que sigues encendida)
   refreshDots() {
     if (!this.hud || this.game.kind !== 'town') return;
-    for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; }
+    for (const i of this.hud.querySelectorAll('#misiones button')) { const M = this.game.missions[+i.dataset.m]; i.classList.toggle('on', !!M.done); i.classList.toggle('cur', !M.done && M.i === this.game.tracked); i.classList.toggle('sel', M.i === this.misAbierta); i.setAttribute('aria-pressed', String(M.i === this.misAbierta)); }
     const ms = this.game.missions, n = ms.filter(M => M.done).length, t = `${n}/${ms.length}`;
     for (const c of this.hud.querySelectorAll('#ribbons .mc, #quest .qn')) c.textContent = t;
-    // (al acabar una misión con las misiones plegadas, se abren un momento para ver lo que falta)
-    if (this.doneN != null && n > this.doneN && !this.tlAbierto) this.muestraMisiones();
     this.doneN = n;
   }
-  /** Pliega (solo la misión de ahora) o despliega (con todas las del pueblo) el panel de arriba a la izquierda. */
-  pliegaMisiones(abre, elegido) {
+  /** La aventura de Otsagabia: enseña (on) lo que hay que hacer y las cintas junto al icono de la misión, durante ms; si no,
+   *  solo el icono */
+  verMision(on, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;
-    clearTimeout(this.tlT); this.tlT = 0; T.classList.remove('asoma');
-    this.tlAbierto = !!abre; T.classList.toggle('plegado', !abre);
-    const b = $('.tl-pl', T); b?.setAttribute('aria-expanded', String(!!abre));
-    if (elegido) { try { localStorage.setItem(TL_K, abre ? '1' : '0'); } catch (e) { } this.sound?.ui?.(abre ? 'open' : 'click'); }
+    clearTimeout(this.tlT); this.tlT = 0; this.tlVer = !!on; T.classList.toggle('ver', !!on);
+    if (on && ms) this.tlT = setTimeout(() => this.verMision(false), ms);
     this.queueFitTop();
   }
-  muestraMisiones() {
+
+  // ---------- las misiones del pueblo: sus iconos y, al tocar uno, la misión ----------
+  // Arriba a la izquierda solo van los iconos de las misiones del pueblo (las hechas, llenas de su color y con su marca; la
+  // que sigues, con borde blanco). Al tocar uno, esa pasa a ser la que sigues (la brújula y la luz dorada van a ella) y
+  // debajo se despliega lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo lejos que está; se recoge
+  // sola en unos segundos o tocando el mismo icono. Empieza plegado y solo se despliega al tocar: cuando cambia lo que toca
+  // hacer, late el icono de la misión (y sale el aviso de abajo), sin abrirse solo. Antes iban siempre a la vista el
+  // nombre, el paso y el pueblo con las casillas, y ocupaba mucho
+  eligeMision(i) {
+    const g = this.game, M = g?.missions?.[i]; if (!M) return;
+    if (this.misAbierta === i) { this.cierraMision(); this.sound?.ui?.('click'); return; }
+    if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
+    this.abreMision(i, 10000);
+  }
+  lateMision(i) { const b = this.hud?.querySelector(`#misiones button[data-m="${i}"]`); if (!b) return; b.classList.remove('late'); void b.offsetWidth; b.classList.add('late'); }
+  abreMision(i, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;
-    T.classList.add('asoma'); this.queueFitTop(); clearTimeout(this.tlT);
-    this.tlT = setTimeout(() => { this.tlT = 0; T.classList.remove('asoma'); this.queueFitTop(); }, 4000);
+    this.misAbierta = i; $('#quest', T).classList.remove('hidden'); this.pintaMision(i); this.refreshDots();
+    clearTimeout(this.tlT); this.tlT = ms ? setTimeout(() => this.cierraMision(), ms) : 0;
+  }
+  cierraMision() {
+    clearTimeout(this.tlT); this.tlT = 0; this.misAbierta = null;
+    const T = this.hud && $('#tl', this.hud); if (!T) return; $('#quest', T).classList.add('hidden'); this.refreshDots();
+  }
+  pintaMision(i) {
+    const g = this.game, M = g.missions[i], E = this.questEls; if (!M || !E) return;
+    const step = g.stepText(M), n = M.steps().length, idx = M.done ? n : Math.min(M.step, n);
+    if (E.small._t !== M.title) { E.small._t = M.title; E.small.textContent = M.title; }
+    if (E.qt._t !== step) { E.qt._t = step; E.qt.textContent = step; }
+    const key = n + ':' + idx; if (E.pips.dataset.k !== key) { E.pips.dataset.k = key; E.pips.innerHTML = n ? Array.from({ length: n }, (_, k) => `<i class="${k < idx ? 'ok' : k === idx ? 'now' : ''}"></i>`).join('') : ''; }
+    const q = this.lastQ, dt = i === g.tracked && q?.dist != null && q.dist < 1000 ? `${Math.round(q.dist)} m` : '';
+    if (E.qd._t !== dt) { E.qd._t = dt; E.qd.textContent = dt; }
+  }
+  setQuestPueblo(q) {
+    const g = this.game; this.lastQ = q;
+    if (!q) { if (this.misAbierta != null && !g.missions[this.misAbierta]?.done) this.cierraMision(); return; }
+    // (lo que toca hacer ha cambiado: late su icono; no se despliega sola, que el panel empieza y se queda plegado)
+    const key = g.tracked + '|' + q.step;
+    if (this.qKey !== key) { const primera = this.qKey == null; this.qKey = key; this.refreshDots(); if (!primera) this.lateMision(g.tracked); }
+    if (this.misAbierta === g.tracked) this.pintaMision(g.tracked);
   }
   setQuest(q) {
+    if (this.game?.kind === 'town') return this.setQuestPueblo(q);
     const b = $('#quest', this.hud), E = this.questEls;
     if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; this.queueFitTop(); } return; }
     if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; this.queueFitTop(); }
@@ -249,7 +265,7 @@ export class UI {
     // último escrito se guarda en el propio elemento (_t): en euskera, lo que se lee del elemento ya está traducido y no
     // coincidiría nunca con el texto en castellano, y se reescribía y volvía a latir en cada fotograma)
     if (this.lastQuestIcon !== q.icon) { E.qe.innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
-    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); this.queueFitTop(); }
+    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); this.verMision(true, 4500); }
     if (E.small._t !== q.title) { E.small._t = q.title; E.small.textContent = q.title; this.queueFitTop(); }
     const pips = E.pips, key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
     if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
@@ -550,85 +566,86 @@ export class UI {
     g.beginPath(); g.moveTo(0, -11 * s); g.lineTo(8 * s, 9 * s); g.lineTo(0, 4 * s); g.lineTo(-8 * s, 9 * s); g.closePath(); g.fill(); g.stroke();
     g.restore();
   }
-  // Brújula superior: puntos cardinales, misiones cercanas y el objetivo con su distancia
-  drawCompass(player, camYaw, markers, target) {
-    const c = this.compass; if (!c) return;
-    const [cw, ch] = this.box(c), dpr = Math.min(2, devicePixelRatio || 1) * escala(), W = Math.round(cw * dpr), Hh = Math.round(ch * dpr);
-    if (!W || !Hh) return;
-    // sin cambios (quieto, hablando…) no se redibuja; las marcas que se mueven solas se ponen al día cada cuarto de segundo
-    const sg = this.hudSig, nm = markers ? markers.length : 0, now = performance.now();
-    if (now - sg.t < 250 && sg.cy === camYaw && sg.cx === player.pos.x && sg.cz === player.pos.z && sg.tx === target?.x && sg.tz === target?.z && sg.n === nm && sg.W === W) return;
-    sg.t = now; sg.cy = camYaw; sg.cx = player.pos.x; sg.cz = player.pos.z; sg.tx = target?.x; sg.tz = target?.z; sg.n = nm; sg.W = W;
-    if (c.width !== W || c.height !== Hh) { c.width = W; c.height = Hh; }
-    const g = c.getContext('2d'); g.clearRect(0, 0, W, Hh);
-    const span = Math.PI * 0.5, k = (W / 2) / span, ly = Hh * 0.42, ty = Hh * 0.8;
-    const wrap = (a) => ((a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
-    const fade = (x) => Math.max(0, Math.min(1, Math.min(x, W - x) / (W * 0.14)));
-    const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
-    const rel = (x, z) => { const dx = x - player.pos.x, dz = z - player.pos.z; return Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)); };
-    const NAMES = document.documentElement.lang === 'eu' ? ['I', 'IE', 'E', 'HE', 'H', 'HM', 'M', 'IM'] : ['N', 'NE', 'E', 'SE', 'S', 'SO', 'O', 'NO'];
-    g.textAlign = 'center'; g.textBaseline = 'middle';
-    for (let i = 0; i < 24; i++) {
-      const a = wrap(camYaw + i * Math.PI / 12); if (Math.abs(a) > span) continue;
-      const x = W / 2 + a * k, al = fade(x); if (al <= 0) continue;
-      g.globalAlpha = al;
-      if (i % 3 === 0) {
-        const n = NAMES[i / 3], card = n.length === 1;
-        g.font = `900 ${Math.round((card ? 14 : 10.5) * dpr)}px Nunito, sans-serif`;
-        g.fillStyle = (n === 'N' || n === 'I') ? '#ff7ac8' : card ? '#ffffff' : 'rgba(230,220,255,.75)';
-        g.fillText(n, x, ly);
-        g.fillRect(x - dpr, ty - 4 * dpr, 2 * dpr, 7 * dpr);
-      } else { g.fillStyle = 'rgba(230,220,255,.45)'; g.fillRect(x - dpr * 0.5, ty - 2 * dpr, dpr, 4 * dpr); }
-    }
-    g.globalAlpha = 1;
-    for (const m of markers || []) {
-      if (!m.icon || m.small || (target && Math.abs(m.x - target.x) + Math.abs(m.z - target.z) < 1)) continue;
-      const a = rel(m.x, m.z); if (Math.abs(a) > span * 0.85) continue;
-      const x = W / 2 + a * k; g.globalAlpha = fade(x); this.drawIcon(g, m.icon, x, ty, 6.5 * dpr); g.globalAlpha = 1;
-    }
-    // objetivo: rombo en la línea inferior; si queda detrás, flecha en el borde. La distancia va en su etiqueta.
-    const dEl = this.hud && this.questEls.cdist;
-    if (target) {
-      const a0 = rel(target.x, target.z), out = Math.abs(a0) > span * 0.82, a = Math.max(-span * 0.82, Math.min(span * 0.82, a0));
-      const x = W / 2 + a * k, sz = 6.5 * dpr;
-      g.save(); g.translate(x, ty); g.shadowColor = 'rgba(255,122,200,.9)'; g.shadowBlur = 10 * dpr;
-      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 1.5 * dpr; g.beginPath();
-      if (out) { const d = Math.sign(a0); g.moveTo(d * sz * 1.3, 0); g.lineTo(-d * sz * 0.4, -sz); g.lineTo(-d * sz * 0.4, sz); }
-      else { g.moveTo(0, -sz); g.lineTo(sz, 0); g.lineTo(0, sz); g.lineTo(-sz, 0); }
-      g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
-      if (dEl) { const d = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)); const t = d + ' m'; if (dEl._t !== t) { dEl._t = t; dEl.textContent = t; } const l = Math.round(Math.max(24, Math.min(W / dpr - 24, x / dpr))) + 'px'; if (dEl.style.left !== l) dEl.style.left = l; if (dEl.style.display) dEl.style.display = ''; }
-    } else if (dEl && dEl.style.display !== 'none') dEl.style.display = 'none';
-    // marca central
-    g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(W / 2 - 5 * dpr, 0); g.lineTo(W / 2 + 5 * dpr, 0); g.lineTo(W / 2, 6 * dpr); g.closePath(); g.fill();
-  }
+  // El minimapa con la brújula en su borde. El mapa gira con la cámara (arriba, hacia donde miras) y alrededor, en un
+  // anillo, van los puntos cardinales (la N en rosa), las rayas de los intermedios, los iconos de las misiones que quedan
+  // fuera del mapa, cada uno hacia donde está, y el objetivo: una punta rosa en el anillo que señala hacia él (y su punto
+  // dentro del mapa si cabe). La distancia, en la pastilla rosa a la izquierda del círculo. Antes todo esto iba en una barra
+  // aparte, arriba en el centro de la pantalla
   updateMinimap(player, camYaw, markers, target) {
-    this.drawCompass(player, camYaw, markers, target);
-    if (!this.mini || !this.box(this.mini.canvas)[0]) return;
+    if (!this.mini) return;
+    const css = this.box(this.mini.canvas)[0];
+    this.distancia(player, target);
+    if (!css) return;
     const ms = this.miniSig ||= {}, nm = markers ? markers.length : 0, now = performance.now();
-    if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm) return;
-    ms.t = now; ms.cy = camYaw; ms.cx = player.pos.x; ms.cz = player.pos.z; ms.h = player.heading; ms.tx = target?.x; ms.tz = target?.z; ms.n = nm;
-    const g = this.mini, S = 248, zoom = 1.8;
-    const mpp = (2 * HALF) / 512;
-    g.save(); g.clearRect(0, 0, S, S);
-    g.translate(S / 2, S / 2);
-    g.rotate(camYaw);
+    if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm && ms.css === css) return;
+    ms.t = now; ms.cy = camYaw; ms.cx = player.pos.x; ms.cz = player.pos.z; ms.h = player.heading; ms.tx = target?.x; ms.tz = target?.z; ms.n = nm; ms.css = css;
+    const g = this.mini, S = 248, R = S / 2, zoom = 1.8, k = S / css;   // (k: puntos del lienzo por píxel de pantalla)
+    const mpp = (2 * HALF) / 512, band = Math.min(R * 0.34, 15 * k), Ri = R - band, Rm = R - band / 2;
     const px = (player.pos.x + HALF) / mpp, pz = (player.pos.z + HALF) / mpp;
+    const enMapa = (x, z) => [((x + HALF) / mpp - px) * zoom, ((z + HALF) / mpp - pz) * zoom];
+    g.save(); g.clearRect(0, 0, S, S); g.translate(R, R);
+    // el mapa, girado con la cámara; las marcas que caben dentro del anillo
+    g.save(); g.rotate(camYaw);
     g.drawImage(this.mapImg, -px * zoom, -pz * zoom, 512 * zoom, 512 * zoom);
-    for (const m of markers) {
-      const x = ((m.x + HALF) / mpp - px) * zoom, y = ((m.z + HALF) / mpp - pz) * zoom;
-      if (Math.hypot(x, y) > S / 2 - 12) continue;
-      g.save(); g.translate(x, y); g.rotate(-camYaw); this.drawIcon(g, m.icon, 0, 0, m.small ? 7 : 11); g.restore();
+    const fuera = [];
+    for (const m of markers || []) {
+      const [x, y] = enMapa(m.x, m.z);
+      if (Math.hypot(x, y) <= Ri - 10) { g.save(); g.translate(x, y); g.rotate(-camYaw); this.drawIcon(g, m.icon, 0, 0, m.small ? 7 : 11); g.restore(); }
+      else if (m.icon && !m.small && !(target && Math.abs(m.x - target.x) + Math.abs(m.z - target.z) < 1)) fuera.push(m);
     }
     if (target) {
-      let x = ((target.x + HALF) / mpp - px) * zoom, y = ((target.z + HALF) / mpp - pz) * zoom;
-      const d = Math.hypot(x, y), R = S / 2 - 14;
-      if (d > R) { x *= R / d; y *= R / d; }
-      g.save(); g.translate(x, y); g.rotate(-camYaw);
-      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 8, 0, 7); g.fill(); g.stroke();
-      g.restore();
+      const [x, y] = enMapa(target.x, target.z);
+      if (Math.hypot(x, y) <= Ri - 10) { g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 8, 0, 7); g.fill(); g.stroke(); }
     }
     g.restore();
-    this.drawPlayer(g, S / 2, S / 2, player.heading - camYaw, 1.3);
+    // el anillo de la brújula
+    g.beginPath(); g.arc(0, 0, R + 1, 0, 7); g.arc(0, 0, Ri, 0, 7, true); g.fillStyle = 'rgba(20, 8, 44, .84)'; g.fill();
+    g.beginPath(); g.arc(0, 0, Ri, 0, 7); g.strokeStyle = 'rgba(255, 255, 255, .4)'; g.lineWidth = Math.max(1, 0.8 * k); g.stroke();
+    const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
+    const rumbo = (x, z) => { const dx = x - player.pos.x, dz = z - player.pos.z; return Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)); };
+    const en = (a, r) => [r * Math.sin(a), -r * Math.cos(a)];
+    const cerca = (a, b, w) => Math.abs(((a - b + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI) < w;
+    const at = target ? rumbo(target.x, target.z) : null, W = 0.3;   // (W: lo que ocupa una letra o una marca en el anillo)
+    // rayas: largas en los intermedios (NE, SE…), cortas entre medias
+    g.strokeStyle = 'rgba(230, 220, 255, .55)'; g.lineCap = 'round';
+    for (let i = 0; i < 16; i++) {
+      if (i % 4 === 0) continue;
+      const a = camYaw + i * Math.PI / 8, L = i % 2 ? band * 0.2 : band * 0.38, [x0, y0] = en(a, R - 2.5 * k), [x1, y1] = en(a, R - 2.5 * k - L);
+      if (at != null && cerca(a, at, W * 0.6)) continue;
+      g.lineWidth = (i % 2 ? 1 : 1.6) * k; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    }
+    // los puntos cardinales (si el objetivo cae justo encima de uno, ese punto deja su sitio a la punta del objetivo)
+    const NOM = document.documentElement.lang === 'eu' ? ['I', 'E', 'H', 'M'] : ['N', 'E', 'S', 'O'], letras = [];
+    g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 ${Math.round(11 * k)}px 'MZ Texto', Nunito, sans-serif`;
+    for (let i = 0; i < 4; i++) {
+      const a = camYaw + i * Math.PI / 2; if (at != null && cerca(a, at, W)) continue;
+      const [x, y] = en(a, Rm); letras.push(a);
+      g.fillStyle = i === 0 ? '#ff7ac8' : '#ffffff'; g.fillText(NOM[i], x, y + 0.5 * k);
+    }
+    // las misiones de fuera del mapa, hacia donde están (sin montarse con las letras, el objetivo ni entre ellas)
+    const puestos = [];
+    for (const m of fuera) {
+      const a = rumbo(m.x, m.z);
+      if (letras.some(b => cerca(a, b, W)) || (at != null && cerca(a, at, W)) || puestos.some(b => cerca(a, b, W))) continue;
+      puestos.push(a); const [x, y] = en(a, Rm); this.drawIcon(g, m.icon, x, y, band * 0.36);
+    }
+    // el objetivo: una punta rosa en el anillo que señala hacia fuera, hacia él
+    if (at != null) {
+      const [x, y] = en(at, Rm), s = band * 0.42;
+      g.save(); g.translate(x, y); g.rotate(at); g.shadowColor = 'rgba(255, 122, 200, .9)'; g.shadowBlur = 6 * k;
+      g.fillStyle = '#ff7ac8'; g.strokeStyle = '#2a0638'; g.lineWidth = 1.2 * k;
+      g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.85, s * 0.7); g.lineTo(0, s * 0.3); g.lineTo(-s * 0.85, s * 0.7); g.closePath(); g.fill(); g.shadowBlur = 0; g.stroke(); g.restore();
+    }
+    g.restore();
+    this.drawPlayer(g, R, R, player.heading - camYaw, 1.3);
+  }
+  // la distancia al objetivo, en la pastilla rosa junto al minimapa (solo cuando hay objetivo)
+  distancia(player, target) {
+    const e = this.questEls?.cdist; if (!e) return;
+    if (!target) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
+    const t = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)) + ' m';
+    if (e._t !== t) { e._t = t; e.textContent = t; }
+    if (e.style.display) e.style.display = '';
   }
   openMap() {
     const g = this.game, town = g.kind === 'town', touch = this.input.touch;

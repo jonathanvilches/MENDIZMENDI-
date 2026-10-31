@@ -782,7 +782,7 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 .errnote.on { opacity: 1; transform: none; pointer-events: auto; }
 
 /* partido en El Sadar: marcador arriba; se ocultan brújula, misión y minimapa (los controles táctiles siguen) */
-body.futbol #compass, body.futbol #tl, body.futbol #topright, body.futbol #prompt { display: none !important; }
+body.futbol #tl, body.futbol #topright, body.futbol #prompt { display: none !important; }
 body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* selector de ropa de los personajes KayKit */
 /* tienda del pueblo: interior con estanterías, quien atiende y pestañas de producto estrella, compra y trueque */
