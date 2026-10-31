@@ -31,7 +31,7 @@ const arco = (r, w, a0, a1, hex, x, y, z) => pieza(new THREE.CylinderGeometry(r,
 // rodadura, llanta en forma de plato con su color, buje y tornillos. Gira alrededor de x
 function wheel(r, w, rim, lugs = true) {
   const key = `rueda:${r}:${w}:${rim}:${lugs}`; let geo = MALLAS.get(key);
-  if (!geo) MALLAS.set(key, geo = mallaRueda(r, w, rim, lugs));
+  if (!geo) { MALLAS.set(key, geo = mallaRueda(r, w, rim, lugs)); geo.userData.rueda = { r, w, rim }; }
   const m = new THREE.Mesh(geo, WHEEL); m.castShadow = true; return m;
 }
 function mallaRueda(r, w, rim, lugs) {
@@ -55,6 +55,14 @@ function mallaRueda(r, w, rim, lugs) {
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; P.push(pieza(new THREE.BoxGeometry(0.035, 0.035, 0.035), '#d8d8da', g => { g.rotateZ(Math.PI / 2); g.translate(s * (w * 0.42 + 0.1), Math.cos(a) * r * 0.14, Math.sin(a) * r * 0.14); })); }
   }
   return mergeGeometries(P);
+}
+// la misma rueda para verla de lejos: la goma redonda y la llanta, sin tacos, buje ni tornillos (unos 170 triángulos en
+// vez de 1.000 a 1.300: las ruedas eran dos tercios de las máquinas paradas, y a más de 60 m esos detalles ni se ven)
+function ruedaLejos(r, w, rim) {
+  const key = `ruedaLejos:${r}:${w}:${rim}`; let geo = MALLAS.get(key); if (geo) return geo;
+  const pr = [[r * 0.64, -w / 2], [r * 0.93, -w / 2], [r, -w * 0.3], [r, w * 0.3], [r * 0.93, w / 2], [r * 0.64, w / 2]].map(([a, b]) => new THREE.Vector2(a, b));
+  MALLAS.set(key, geo = mergeGeometries([pieza(new THREE.LatheGeometry(pr, 12), '#232326', g => g.rotateZ(Math.PI / 2)), pieza(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w * 0.84, 12), rim, g => g.rotateZ(Math.PI / 2))]));
+  return geo;
 }
 
 // Tractor: capó redondeado con rejilla de lamas, faros y respiraderos; contrapesos delante; escape con su caperuza y
@@ -337,28 +345,45 @@ export function buildAgro(scene, def, rnd) {
   // las máquinas paradas, juntas: cada pieza (la misma malla con el mismo material) en una sola malla repetida para todas.
   // Una llamada de dibujo por pieza en vez de una por pieza y por máquina: con las máquinas de piezas, cinco tractores a
   // la vista costaban casi cien llamadas. Sin memoria de más (las mallas son las mismas); las que trabajan, aparte
-  const quietas = out.filter(o => !o.move && o.obj.userData.wheels);
+  // (las ruedas, en dos: con todo su detalle las de las máquinas a menos de 60 m y la rueda sencilla las demás; ruedasLod)
+  const quietas = out.filter(o => !o.move && o.obj.userData.wheels), ruedas = [];
   if (quietas.length > 1) {
     const piezas = new Map();
-    for (const o of quietas) {
+    quietas.forEach((o, n) => {
       o.obj.updateMatrixWorld(true);
       o.obj.traverse(m => {
         if (!m.isMesh || m.isInstancedMesh) return;
         const k = m.geometry.uuid + '|' + (Array.isArray(m.material) ? m.material.map(x => x.uuid).join(',') : m.material.uuid);
-        let P = piezas.get(k); if (!P) piezas.set(k, P = { geo: m.geometry, mat: m.material, cast: m.castShadow, rec: m.receiveShadow, mx: [] });
-        P.mx.push(m.matrixWorld.clone());
+        let P = piezas.get(k); if (!P) piezas.set(k, P = { geo: m.geometry, mat: m.material, cast: m.castShadow, rec: m.receiveShadow, mx: [], maq: [] });
+        P.mx.push(m.matrixWorld.clone()); P.maq.push(n);
       });
       scene.remove(o.obj);
-    }
+    });
     for (const P of piezas.values()) {
-      const im = new THREE.InstancedMesh(P.geo, P.mat, P.mx.length); im.name = 'maquinas-quietas';
-      P.mx.forEach((mx, i) => im.setMatrixAt(i, mx)); im.instanceMatrix.needsUpdate = true;
-      im.castShadow = P.cast; im.receiveShadow = P.rec; im.computeBoundingSphere(); scene.add(im);
+      const R = P.geo.userData.rueda, ims = [P.geo, R && ruedaLejos(R.r, R.w, R.rim)].filter(Boolean).map(geo => {
+        const im = new THREE.InstancedMesh(geo, P.mat, P.mx.length); im.name = 'maquinas-quietas';
+        P.mx.forEach((mx, i) => im.setMatrixAt(i, mx)); im.instanceMatrix.needsUpdate = true;
+        im.castShadow = P.cast; im.receiveShadow = P.rec; im.computeBoundingSphere(); scene.add(im);
+        return im;
+      });
+      if (R) { ims[0].count = 0; ruedas.push({ P, cerca: ims[0], lejos: ims[1] }); }
     }
   }
+  const cerca = quietas.map(() => false); let lodT = 0;
+  const ruedasLod = (pos) => {
+    let cambia = false;
+    quietas.forEach((o, n) => { const d = Math.hypot(o.x - pos.x, o.z - pos.z), c = cerca[n] ? d < 66 : d < 60; if (c !== cerca[n]) { cerca[n] = c; cambia = true; } });
+    if (!cambia) return;
+    for (const { P, cerca: ic, lejos: il } of ruedas) {
+      let a = 0, b = 0;
+      P.mx.forEach((mx, i) => { if (cerca[P.maq[i]]) ic.setMatrixAt(a++, mx); else il.setMatrixAt(b++, mx); });
+      ic.count = a; il.count = b; ic.instanceMatrix.needsUpdate = il.instanceMatrix.needsUpdate = true;
+    }
+  };
   return {
     list: out,
     update(dt, player, particles) {
+      if (ruedas.length && (lodT -= dt) <= 0) { lodT = 0.4; ruedasLod(player.pos); }
       for (const o of movers) {
         const m = o.move, obj = o.obj;
         if (Math.abs(player.pos.x - obj.position.x) + Math.abs(player.pos.z - obj.position.z) > 260) continue;

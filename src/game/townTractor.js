@@ -71,10 +71,11 @@ function trigoGeo() {
   const g = new THREE.BoxGeometry(5, 1, 5); g.translate(0, 0.5, 0); const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 3, uv.getY(i));
   return (TRIGO = { g, m: new THREE.MeshStandardMaterial({ map: t, roughness: 0.95 }) });
 }
-// las matas de la huerta, en hileras: hojas y algún fruto del color de la cosecha
+// las matas de la huerta, en hileras: hojas y algún fruto del color de la cosecha (los frutos, de ocho caras: con 8 cm
+// no se distinguen de los de veinte y en un campo entero eran 11 mil triángulos)
 function mataGeo(color) {
   return mergeGeometries([part(new THREE.IcosahedronGeometry(0.32, 0), '#4f7a2e', 0, 0.26, 0), part(new THREE.IcosahedronGeometry(0.24, 0), '#5f8f36', 0.18, 0.34, 0.1), part(new THREE.IcosahedronGeometry(0.22, 0), '#466e28', -0.16, 0.3, -0.12),
-    part(new THREE.IcosahedronGeometry(0.08, 0), color, 0.22, 0.22, 0.2), part(new THREE.IcosahedronGeometry(0.08, 0), color, -0.2, 0.2, 0.18), part(new THREE.IcosahedronGeometry(0.08, 0), color, 0.05, 0.4, -0.25)]);
+    part(new THREE.OctahedronGeometry(0.085, 0), color, 0.22, 0.22, 0.2), part(new THREE.OctahedronGeometry(0.085, 0), color, -0.2, 0.2, 0.18), part(new THREE.OctahedronGeometry(0.085, 0), color, 0.05, 0.4, -0.25)]);
 }
 // el edificio de destino, mirando a +z (al camino): nave con su tejado y su cartel, puerta grande, la báscula delante con
 // su caseta y, según lo que se lleva, silos, palés, barricas o tinajas

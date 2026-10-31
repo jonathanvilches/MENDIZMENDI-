@@ -86,8 +86,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Cada animal y cada vecino es una sola malla con piel.
   - Las animaciones lejanas se actualizan a saltos.
   - Los iconos 3D se hornean a WebP.
-  - Sombras y contornos solo de cerca: vecinos a 28 m y animales a 35 (contorno 26). En calidad baja, la del móvil,
-    18, 20 y 16 m (`sombraPersonas` en `actors/people.js`, `Fauna` en `actors/animals.js`).
+  - Sombras y contornos solo de cerca: en calidad alta, vecinos a 28 m y animales a 35 (contorno 26); en la media, 20, 24
+    y 20 m; aligerado, 20, 20 y 16 (`sombraPersonas` en `actors/people.js`, `Fauna` en `actors/animals.js`). En la baja,
+    la del móvil, no hay sombras de verdad: solo la redonda (`util/blob.js`).
+  - `visible` siempre con verdadero o falso, nunca con lo que dé un `||`: three.js solo esconde con `false`, y con
+    `undefined` dibuja. Así se colaban los 50 animales del pueblo y las ardillas a cualquier distancia (130 mil triángulos
+    en cada imagen); ahora, `!!a.pinVisible` y `!!this.farView` en `actors/animals.js`.
+  - Las máquinas paradas del campo, con rueda sencilla a más de 60 m (`ruedaLejos` en `world/agro.js`: 170 triángulos
+    en vez de 1.000 a 1.300). El género del mercado, solo a menos de 90 m de la plaza (`Mercado.cerca`); la madera y los
+    toldos se ven siempre. Los frutos de las matas de la cosecha, de ocho caras.
 - **Botones en pleno partido:** responden al levantar el dedo (`tap` de `util/tap.js`), no al clic. En el iPhone,
   mientras el partido cambia la pantalla sin parar, Safari a veces se traga el clic: la X de la pelota no dejaba salir.
   Lo usan la X y las ventanas de la pelota, y la pausa, la cámara, la ventana de pausa y la final del fútbol. Con el

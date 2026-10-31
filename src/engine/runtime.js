@@ -25,6 +25,7 @@ import { resetColliders } from '../world/colliders.js';
 import { resetNav, navTick } from '../world/nav.js';
 import { Player } from '../actors/player.js';
 import { Fauna } from '../actors/animals.js';
+import { sombraPersonas } from '../actors/people.js';
 import { FollowCamera } from '../camera.js';
 import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
 const VACIA = new THREE.Scene();   // (para el dibujo vacío al soltar un pueblo: unload)
@@ -393,6 +394,7 @@ export class Runtime {
       if (this.nature) { this.nature.lodDist = Math.min(this.nature.lodDist, 60); this.nature.shadowDist = Math.min(this.nature.shadowDist, 15); this.nature.rockFar = Math.min(this.nature.rockFar, 170); }
       if (this.terrain) this.terrain.lodDist = Math.min(this.terrain.lodDist, 110);
       if (this.fauna) this.fauna.visDist = Math.min(this.fauna.visDist, 60);
+      sombraPersonas('low');
       const sun = this.sky?.sun;
       if (sun && sun.shadow.mapSize.x > 1024) { sun.shadow.mapSize.set(1024, 1024); sun.shadow.map?.dispose(); sun.shadow.map = null; }
     }

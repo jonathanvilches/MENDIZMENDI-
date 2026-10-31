@@ -123,7 +123,7 @@ export class TownGame {
     };
     this.comarca = COMARCAS.find(c => c.id === def.comarca);
     this.P = profile();
-    sombraPersonas(QUALITY);   // (hasta dónde dan sombra los vecinos: menos en el móvil)
+    sombraPersonas(this.rt?.lite >= 1 ? 'low' : QUALITY);   // (hasta dónde dan sombra los vecinos: menos en calidad media o aligerado)
     this.ts = townState(this.P, def.id);
     this.ts.visits = (this.ts.visits || 0) + 1;
     this.mode = 'play';
@@ -560,6 +560,7 @@ export class TownGame {
     }
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
     this.agro?.update(dt, P, this.particles);
+    this.mercado?.cerca(this.camera.position);   // (el género del mercado, solo de cerca)
     this.tractorTick(dt);   // (las cosechas con tractor o cosechadora)
     if (this.mode === 'play' && !this.sportBusy) this.mochila?.update(dt, P);   // (en los menús de pelota no da hambre)
     this.flora?.update(dt, P.pos);

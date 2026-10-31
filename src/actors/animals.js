@@ -243,7 +243,7 @@ export class Fauna {
       this.peckers.push({ obj: o, t: rnd() * 3, id: 'pito', pos: o.position, drum: 0 });
     }
     // Buitres leonados planeando
-    this.vultures = [];
+    this.vultures = []; this.farView = false;
     ['buitre', 'buitre', 'quebrantahuesos', 'buitre', 'aguila', 'milano'].forEach((k, i) => {
       const o = bird(k); scene.add(o);
       this.vultures.push({ obj: o, c: new THREE.Vector3(120 + (i % 2) * 80 - 40, 95 + i * 9, -200 + (i % 3) * 60), r: 30 + rnd() * 30, a: rnd() * 6.28, w: 0.1 + rnd() * 0.08, id: k, pos: o.position, flapK: o.userData.flap });
@@ -284,7 +284,7 @@ export class Fauna {
     const trees = TREES.filter(t => Math.hypot(t.x - forest.x, t.z - forest.z) < 150 && t.type !== 'olive');
     for (let i = 0; i < 6 && trees.length; i++) { const t = trees[Math.floor(rnd() * trees.length)]; const o = buildSquirrel(); scene.add(o); this.squirrels.push({ obj: o, tree: t, state: 'ground', t: rnd() * 5, pos: new THREE.Vector3(t.x + 1, 0, t.z), heading: 0, id: 'ardilla', climb: 0 }); }
     if (fam === 'atlantic' || fam === 'pyrenean') for (let i = 0; i < 2 && trees.length; i++) { const t = trees[Math.floor(rnd() * trees.length)]; const o = buildWoodpecker(); scene.add(o); const a = rnd() * 6.28; o.position.set(t.x + Math.sin(a) * 0.38 * t.s, t.y + 2.4 * t.s, t.z + Math.cos(a) * 0.38 * t.s); o.rotation.y = a + Math.PI; this.peckers.push({ obj: o, t: rnd() * 3, id: 'pito', pos: o.position }); }
-    this.vultures = [];
+    this.vultures = []; this.farView = false;
     const gorge = (P.landmarks || []).find(l => l.kind === 'gorge');
     // (con los prismáticos tiene que haber aves que buscar: las del cielo de la comarca y unas cuantas más)
     const sky = SKY[com] || ['buitre', 'milano'], list = [...sky, ...sky.slice(0, 3)];
@@ -390,21 +390,24 @@ export class Fauna {
     const vd = this.visDist;
     for (const a of this.animals) {
       const d = Math.hypot(a.pos.x - player.pos.x, a.pos.z - player.pos.z);
-      a.obj.visible = !a.hidden && (d < vd || a.pinVisible);
-      // (sombra y contorno solo de cerca; en calidad baja, más cerca todavía: 20 y 16 m. Más lejos no se ven y doblan los
-      // triángulos de cada animal)
-      const sh = d < (this.visDist <= 60 ? 20 : 35);
+      // (!!: sin pinVisible, «d < vd || undefined» daba undefined, y three.js solo esconde con false: los 50 animales del
+      // pueblo se dibujaban siempre, de lejos también, 130 mil triángulos. Con los prismáticos, todos: corzos, ciervos y
+      // jabalíes se buscan de lejos)
+      a.obj.visible = !a.hidden && (d < vd || !!a.pinVisible || !!this.farView);
+      // (sombra y contorno solo de cerca: 35 y 26 m en calidad alta, 24 y 20 en la media y 20 y 16 en la baja o aligerado.
+      // Más lejos no se ven y doblan los triángulos de cada animal)
+      const sh = d < (this.visDist <= 60 ? 20 : this.visDist <= 80 ? 24 : 35);
       if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh; }); }
-      setOutlines(a.obj, d < (this.visDist <= 60 ? 16 : 26));
+      setOutlines(a.obj, d < (this.visDist <= 60 ? 16 : this.visDist <= 80 ? 20 : 26));
       a.dist = d;
-      if (d < vd + 30 || a.alwaysUpdate) a.update(dt, player);
+      if (d < vd + 30 || a.alwaysUpdate || this.farView) a.update(dt, player);
     }
     // ardillas: bajan al suelo, corren, suben al tronco si te acercas
     for (const s of this.squirrels) {
       s.t += dt;
       const t = s.tree; const dp = Math.hypot(player.pos.x - t.x, player.pos.z - t.z);
       // de lejos no se ven (miden un palmo) y cada una tiene muchos triángulos: ni se dibujan ni se mueven
-      s.obj.visible = dp < 45 || this.farView; if (!s.obj.visible) continue;
+      s.obj.visible = dp < 45 || !!this.farView; if (!s.obj.visible) continue;   // (!!: con undefined three.js las dibujaba)
       if (dp < 6 && s.state !== 'up') s.state = 'up';
       else if (dp > 14 && s.state === 'up' && s.t > 6) { s.state = 'ground'; s.t = 0; }
       const trunkR = 0.36 * t.s;

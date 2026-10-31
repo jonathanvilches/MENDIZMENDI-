@@ -68,9 +68,17 @@ export class Mercado {
       v.frozen = true; v.shop = true; v.market = S.name; game.actors.push(v); this.sellers.push(v);
     }
     // todo el género y la madera en pocas mallas (una por material)
-    this.obj = mergeByMaterial(raw); this.obj.add(awnings);
+    this.obj = mergeByMaterial(raw);
+    // (el género, solo de cerca: quesos, ristras y cajas de fruta eran 50 mil triángulos que se dibujaban también desde
+    // los campos, a 250 m. La madera y los toldos de colores se ven siempre; cerca)
+    this.genero = this.obj.children.filter(m => m.isMesh && m.material !== wood); this.generoVis = true;
+    this.obj.add(awnings);
     raw.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
     game.scene.add(this.obj);
+  }
+  cerca(pos) {
+    const c = PLACES.plaza, d = Math.hypot(pos.x - c.x, pos.z - c.z), v = this.generoVis ? d < 95 : d < 85;
+    if (v !== this.generoVis) { this.generoVis = v; for (const m of this.genero) m.visible = v; }
   }
   dispose() { this.g.scene.remove(this.obj); this.obj.traverse(o => { if (o.isMesh) o.geometry.dispose(); }); this.texs.forEach(t => t.dispose()); }
 }
