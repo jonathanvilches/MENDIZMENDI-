@@ -314,6 +314,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cambiar lo que toca hacer, late la casilla de la misión (`lateMision`) y sale el aviso de abajo. En los tumbados más
   estrechos, las casillas van en dos filas. Se probó a volver al recuadro con la misión, el pueblo y el desplegable, y el
   autor prefirió los iconos. (En la aventura de Otsagabia, la de las cintas, sigue el recuadro de antes.)
+- **Mapa del pueblo que ayuda en las misiones** (`ui.js`, `openMap` y `misionesMapa`; `ui/mapview.js`): a un lado el
+  mapa y al otro la lista de las misiones del pueblo, cada una con su icono en el aro del color de su categoría, lo que
+  toca hacer y lo lejos que está (primero las que faltan; la que sigues, encendida). Al tocar una, pasa a ser la que sigues,
+  el mapa va a ella y sale su ficha con el botón para ir. En el mapa, las marcas de misión llevan su icono y su color (como
+  las casillas de arriba y el minimapa), con su «!» si no está empezada y la marca verde sobre amarillo si está hecha, y el
+  camino hasta lo que sigues va en una línea rosa a trazos por calles y caminos (`nav.findPath`, se rehace al moverse 4 m).
+  El encuadre del principio incluye el objetivo. En vertical, la lista va debajo del mapa; en el móvil tumbado, sin
+  leyenda (la lista ya lo dice).
+- **Tradiciones en el menú del juego** (`hub.js`, en «Más»; `didactico.js`, `s_tradiciones`; `ddgal.js`): la misma galería
+  del material didáctico (cada comarca, danzas, carnavales, tradiciones, romerías, ferias, pelota y campanas), pero
+  jugando cada una se descubre al hacer su misión, o la de una comarca al visitar uno de sus pueblos. La que falta sale
+  apagada con su candado y dice dónde descubrirla; su ficha solo cuenta cómo y sus pueblos. Arriba, cuántas van
+  descubiertas. La pelota, las campanas y lo que no está en ningún pueblo del juego se ven desde el principio.
 - **Ferias de ganado** (`data/ferias.js`, `CORRALES` y `FERIA_TOWNS`; `townActividades.js`, `buildFair`,
   `conoceCorral` y `judgeFair`): en Estella, Elizondo, Altsasu, Lesaka, Lumbier y Lekunberri (las tres últimas, con
   datos del archivo de patrimonio inmaterial de Navarra y prensa, van al final de la lista del pueblo para no mover el

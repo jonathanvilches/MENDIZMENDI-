@@ -638,6 +638,38 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
   .mapscr .pbody { padding: 8px; }
 }
 @media (max-height: 420px) { .mapscr .legend { display: none; } }
+/* el mapa del pueblo con sus misiones al lado (ui.js, openMap): el mapa y la leyenda a la izquierda; la lista, a la derecha
+   a todo lo alto. En vertical, la lista debajo del mapa */
+.mapscr .pbody.con-mq { display: grid; grid-template-columns: minmax(0, 1fr) clamp(248px, 28vw, 320px); grid-template-rows: minmax(0, 1fr) auto; gap: 12px; }
+.con-mq #mapbox { grid-column: 1; grid-row: 1; min-height: 0; height: 100%; }
+.con-mq .legend { grid-column: 1; grid-row: 2; }
+.con-mq .mq { grid-column: 2; grid-row: 1 / -1; display: flex; flex-direction: column; min-height: 0; border-radius: 14px; background: rgba(7, 2, 15, .38); border: 1px solid rgba(190, 160, 255, .2); overflow: hidden; }
+.mq-h { flex: none; padding: 12px 16px; border-bottom: 1px solid rgba(255, 255, 255, .1); }
+.mq-h small { display: block; color: #ff7ac8; font: 800 var(--fs-xs)/1.2 var(--f-cond, 'MZ Texto'); letter-spacing: .1em; text-transform: uppercase; }
+.mq-h b { display: block; margin-top: 4px; color: #fff; font: 400 var(--fs-lg)/1.1 var(--f-display); text-transform: uppercase; }
+.mq-l { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; padding: 8px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: thin; }
+.mq-i { --mc: #c9b8ff; flex: none; display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px; width: 100%; margin: 0; padding: 8px 12px 8px 8px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); color: #fff; text-align: left; cursor: pointer; transition: background .15s, border-color .15s; }
+.mq-i:hover, .mq-i:focus-visible { background: rgba(255, 255, 255, .08); }
+.mq-i.cur { border-color: #fff; background: color-mix(in srgb, var(--mc) 18%, rgba(7, 2, 15, .4)); box-shadow: 0 0 10px color-mix(in srgb, var(--mc) 45%, transparent); }
+.mq-i.ok { background: transparent; }
+.mq-i.ok .mq-t { opacity: .75; }
+.mq-ic { position: relative; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: #fff8ee; box-shadow: 0 0 0 2.5px var(--mc), 0 0 0 4px rgba(28, 11, 58, .8); }
+.mq-ic :is(svg, img) { width: 26px; height: 26px; }
+/* (la marca de hecha, verde sobre amarillo, y el «!» de por empezar, arriba a la derecha del icono) */
+:is(.mq-i.ok, .mq-i.nueva) .mq-ic::after, .lg-b { position: absolute; right: -6px; top: -6px; width: 16px; height: 16px; border-radius: 50%; background: #ffd166; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 10px/16px sans-serif; font-style: normal; text-align: center; }
+.mq-i.ok .mq-ic::after { content: '✓'; color: #148a3f; } .mq-i.nueva .mq-ic::after { content: '!'; color: #2a0638; }
+.lg-b { position: static; display: inline-block; flex: none; } .lg-b.ok { color: #148a3f; } .lg-b.nueva { color: #2a0638; }
+.lg-ruta { flex: none; }
+.mq-t { min-width: 0; display: grid; gap: 4px; }
+.mq-t b { font: 800 var(--fs-sm)/1.2 var(--f-cond, 'MZ Texto'); letter-spacing: .02em; text-transform: uppercase; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mq-t small { color: #cbc2e0; font: 600 var(--fs-xs)/1.3 var(--f-ui, 'MZ Texto'), sans-serif; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.mq-d { flex: none; padding: 4px 8px; border-radius: 999px; background: rgba(255, 255, 255, .1); color: #fff; font: 900 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mq-i.cur .mq-d { background: #ff7ac8; color: #2a0638; }
+@media (max-aspect-ratio: 1/1) {
+  .mapscr .pbody.con-mq { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(220px, 1fr) minmax(0, 40%) auto; }
+  .con-mq .mq { grid-column: 1; grid-row: 2; }
+  .con-mq .legend { grid-row: 3; }
+}
 @media (max-height: 520px) {
   .mapscr .legend span { display: none; }
   .screen.mapscr { padding-top: calc(env(safe-area-inset-top, 0px) + 8px); padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 8px); }

@@ -555,10 +555,21 @@ export class UI {
     this.mapImg = c;
     this.toMap = toM;
   }
-  drawIcon(g, name, x, y, r) {
-    g.fillStyle = 'rgba(255,250,240,.92)'; g.strokeStyle = 'rgba(43,29,18,.8)'; g.lineWidth = Math.max(1.5, r * 0.14);
+  // una marca: el icono en su círculo claro; con color (las misiones), el aro de su categoría; con badge, su marca arriba
+  // a la derecha: «nueva» (el «!» de por empezar) u «ok» (hecha: verde sobre amarillo, como todas las marcas de hecho)
+  drawIcon(g, name, x, y, r, color = null, badge = null) {
+    g.fillStyle = 'rgba(255,250,240,.94)'; g.strokeStyle = color || 'rgba(43,29,18,.8)'; g.lineWidth = color ? Math.max(2, r * 0.2) : Math.max(1.5, r * 0.14);
     g.beginPath(); g.arc(x, y, r, 0, 7); g.fill(); g.stroke();
-    const im = iconImage(name); if (im.complete && im.naturalWidth) g.drawImage(im, x - r * 0.8, y - r * 0.8, r * 1.6, r * 1.6);
+    if (color) { g.strokeStyle = 'rgba(28,11,58,.7)'; g.lineWidth = 1; g.beginPath(); g.arc(x, y, r + g.lineWidth + Math.max(2, r * 0.2) / 2, 0, 7); g.stroke(); }
+    const im = iconImage(name); if (im.complete && im.naturalWidth) g.drawImage(im, x - r * 0.78, y - r * 0.78, r * 1.56, r * 1.56);
+    if (badge) {
+      const br = Math.max(5, r * 0.45), bx = x + r * 0.78, by = y - r * 0.78;
+      g.fillStyle = '#ffd166'; g.strokeStyle = 'rgba(28,11,58,.9)'; g.lineWidth = Math.max(1.5, br * 0.28); g.beginPath(); g.arc(bx, by, br, 0, 7); g.fill(); g.stroke();
+      g.save(); g.translate(bx, by);
+      if (badge === 'ok') { g.strokeStyle = '#148a3f'; g.lineWidth = br * 0.36; g.lineCap = 'round'; g.lineJoin = 'round'; g.beginPath(); g.moveTo(-br * 0.45, 0); g.lineTo(-br * 0.1, br * 0.38); g.lineTo(br * 0.5, -br * 0.38); g.stroke(); }
+      else { g.fillStyle = '#2a0638'; g.fillRect(-br * 0.13, -br * 0.6, br * 0.26, br * 0.72); g.beginPath(); g.arc(0, br * 0.45, br * 0.15, 0, 7); g.fill(); }
+      g.restore();
+    }
   }
   drawPlayer(g, x, y, heading, s = 1) {
     g.save(); g.translate(x, y); g.rotate(-heading + Math.PI);
@@ -590,7 +601,7 @@ export class UI {
     const fuera = [];
     for (const m of markers || []) {
       const [x, y] = enMapa(m.x, m.z);
-      if (Math.hypot(x, y) <= Ri - 10) { g.save(); g.translate(x, y); g.rotate(-camYaw); this.drawIcon(g, m.icon, 0, 0, m.small ? 7 : 11); g.restore(); }
+      if (Math.hypot(x, y) <= Ri - 10) { g.save(); g.translate(x, y); g.rotate(-camYaw); this.drawIcon(g, m.icon, 0, 0, m.small ? 7 : 11, m.color); g.restore(); }
       else if (m.icon && !m.small && !(target && Math.abs(m.x - target.x) + Math.abs(m.z - target.z) < 1)) fuera.push(m);
     }
     if (target) {
@@ -627,7 +638,7 @@ export class UI {
     for (const m of fuera) {
       const a = rumbo(m.x, m.z);
       if (letras.some(b => cerca(a, b, W)) || (at != null && cerca(a, at, W)) || puestos.some(b => cerca(a, b, W))) continue;
-      puestos.push(a); const [x, y] = en(a, Rm); this.drawIcon(g, m.icon, x, y, band * 0.36);
+      puestos.push(a); const [x, y] = en(a, Rm); this.drawIcon(g, m.icon, x, y, band * 0.36, m.color);
     }
     // el objetivo: una punta rosa en el anillo que señala hacia fuera, hacia él
     if (at != null) {
@@ -647,12 +658,34 @@ export class UI {
     if (e._t !== t) { e._t = t; e.textContent = t; }
     if (e.style.display) e.style.display = '';
   }
+  // El mapa del pueblo: a un lado el mapa, que se amplía y se toca, con el camino hasta lo que sigues; al otro, las
+  // misiones del pueblo, cada una con su icono del color de su categoría, lo que toca hacer y lo lejos que está. Al tocar
+  // una, pasa a ser la que sigues: el mapa va a ella, se ve su camino y su ficha, con el botón para ir. En el valle de
+  // Otsagabia, el mapa solo, como antes
   openMap() {
     const g = this.game, town = g.kind === 'town', touch = this.input.touch;
-    const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.closeBtn()}</header><div class="pbody"><div id="mapbox"><canvas></canvas></div>
-      <div class="legend"><span>${I('exclaim', 20)} misión nueva</span><span>${I('check', 20)} misión hecha</span><span>${I('pin', 20)} objetivo</span><span>${I('pelota', 20)} frontón</span>${town ? '' : `<span>${I('eguzkilore', 20)} eguzkilore</span>`}
-      <em>${touch ? 'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio' : 'Rueda o + y − para ampliar · arrastra para moverte · haz clic en un sitio'}</em></div></div>`, 'mapscr');
+    const camino = '<svg class="lg-ruta" viewBox="0 0 30 10" width="30" height="10" aria-hidden="true"><path d="M3 5h24" stroke="#1c0b3a" stroke-width="7" stroke-linecap="round"/><path d="M3 5h24" stroke="#ff7ac8" stroke-width="3.5" stroke-dasharray="5 4" stroke-linecap="round"/></svg>';
+    const leyenda = town ? `<span>${I('pin', 20)} la que sigues</span><span>${camino} camino</span><span><i class="lg-b nueva">!</i> por empezar</span><span><i class="lg-b ok">✓</i> hecha</span><span>${I('pelota', 20)} frontón</span>`
+      : `<span>${I('exclaim', 20)} misión nueva</span><span>${I('check', 20)} misión hecha</span><span>${I('pin', 20)} objetivo</span><span>${I('pelota', 20)} frontón</span><span>${I('eguzkilore', 20)} eguzkilore</span>`;
+    const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.closeBtn()}</header><div class="pbody${town ? ' con-mq' : ''}"><div id="mapbox"><canvas></canvas></div>${town ? this.misionesMapa() : ''}
+      <div class="legend">${leyenda}<em>${touch ? 'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio' : 'Rueda o + y − para ampliar · arrastra para moverte · haz clic en un sitio'}</em></div></div>`, 'mapscr');
     this.mapView = mountMapView(this, $('#mapbox', s), { fitRadius: town ? 260 : 240 });
+    if (town) s.querySelectorAll('[data-mq]').forEach(b => b.onclick = () => {
+      const M = g.missions[+b.dataset.mq]; if (!M) return;
+      if (!M.done) { g.setBook(M); s.querySelectorAll('.mq-i').forEach(x => x.classList.toggle('cur', x === b)); } else this.sound?.ui?.('click');
+      this.mapView?.mision(M.i);
+    });
+  }
+  // (la lista: primero las que faltan, en su orden, y las hechas al final; la que sigues, encendida)
+  misionesMapa() {
+    const g = this.game, P = g.player.pos, ms = g.missions, n = ms.filter(M => M.done).length;
+    const fila = (M) => {
+      const t = M.done ? null : M.step > 0 ? g.target(M) : M.host?.pos, d = t ? Math.hypot(t.x - P.x, t.z - P.z) : null;
+      const dt = d == null ? '' : d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(1).replace('.', ',')} km`;
+      const cls = M.done ? ' ok' : `${M.i === g.tracked ? ' cur' : ''}${M.step === 0 ? ' nueva' : ''}`;
+      return `<button type="button" class="mq-i${cls}" data-mq="${M.i}" role="listitem" style="--mc:${misionColor(M.type)}"><span class="mq-ic">${I(M.icon || 'star', 26)}</span><span class="mq-t"><b>${esc(M.title)}</b><small>${esc(g.stepText(M))}</small></span>${dt ? `<span class="mq-d">${dt}</span>` : ''}</button>`;
+    };
+    return `<aside class="mq" aria-label="Misiones"><div class="mq-h"><small>Misiones de ${esc(g.def.name.split(' /')[0])}</small><b>${n} de ${ms.length} hechas</b></div><div class="mq-l" role="list">${[...ms.filter(M => !M.done), ...ms.filter(M => M.done)].map(fila).join('')}</div></aside>`;
   }
 
   // ---------- Menú ----------

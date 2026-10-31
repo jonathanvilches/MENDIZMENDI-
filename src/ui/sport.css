@@ -147,6 +147,14 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
   .mapscr .legend em { display: none; }
   /* (al tocar un sitio sale su ficha abajo: la leyenda se aparta mientras tanto) */
   .mapscr .pbody:has(.mapcard:not([hidden])) .legend { display: none; }
+  /* (con la lista de misiones al lado: más estrecha, sin leyenda, que la lista ya lo dice, y el botón de cerrar encima de
+     la lista, a la derecha de su título) */
+  .mapscr .pbody.con-mq { grid-template-columns: minmax(0, 1fr) 236px; gap: 6px; }
+  .con-mq .legend { display: none !important; }
+  .mapscr:has(.con-mq) .paper > header .close { right: calc(env(safe-area-inset-right, 0px) + 18px); }
+  .con-mq .mq-h { padding: 8px 60px 8px 12px; min-height: 56px; } .con-mq .mq-h b { font-size: var(--fs-md); }
+  .con-mq .mq-l { padding: 6px; gap: 6px; } .con-mq .mq-i { grid-template-columns: 36px minmax(0, 1fr) auto; gap: 8px; padding: 6px 8px 6px 6px; }
+  .con-mq .mq-ic { width: 36px; height: 36px; } .con-mq .mq-ic :is(svg, img) { width: 24px; height: 24px; }
 }
 
 /* ---------- los botones: pastillas, con los extremos en media circunferencia, en todo el juego y el menú.
