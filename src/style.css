@@ -968,3 +968,5 @@ body.bino-on .boc-capa { display: none; }
 @media (max-width: 600px) { .dog-ayuda { flex-wrap: wrap; justify-content: center; border-radius: 24px; padding: 10px 12px; } }
 @media (max-height: 520px) { .dog-ayuda { bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); } .dog-ayuda .da-ic { width: 40px; height: 40px; } .dog-ayuda .btn { min-height: 40px; } }
 @media (prefers-reduced-motion: reduce) { .dog-ayuda { animation: none; } }
+/* conduciendo el tractor o la cosechadora (game/conducir.js), correr y saltar no hacen nada: fuera */
+body.conduce :is(#cRun, #cJump) { display: none; }

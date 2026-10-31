@@ -37,6 +37,8 @@ export class Player {
     this.sync();
   }
   update(dt, input, camYaw) {
+    // (subido a un tractor o a una cosechadora, lo mueve el vehículo: game/conducir.js)
+    if (this.vehiculo) { this.vehiculo.update(dt, input, this); return; }
     let mx = 0, mz = 0;
     if (!this.frozen) {
       // dirección relativa a la cámara (adelante = alejándose de la cámara)

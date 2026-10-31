@@ -62,6 +62,7 @@ import { PuebloDeportes } from './townDeportes.js';
 import { PuebloCimas } from './townCimas.js';
 import { PuebloLeyendas } from './townLeyendas.js';
 import { PuebloActividades, ANIMAL } from './townActividades.js';
+import { PuebloTractor } from './townTractor.js';
 import { PuebloCharla, QUIZ_N } from './townCharla.js';
 // el encierro y el fútbol (motores grandes) se descargan al entrar en ellos, no al abrir el juego
 
@@ -555,6 +556,7 @@ export class TownGame {
     }
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);
     this.agro?.update(dt, P, this.particles);
+    this.tractorTick(dt);   // (las cosechas con tractor o cosechadora)
     if (this.mode === 'play' && !this.sportBusy) this.mochila?.update(dt, P);   // (en los menús de pelota no da hambre)
     this.flora?.update(dt, P.pos);
     if (this.mode !== 'futbol') this.perro?.update(dt);
@@ -590,7 +592,7 @@ export class TownGame {
       }
       case 'summit': { if (M.step === 0 && M.prep) { if (this.supplyOk()) return at(M.host); const P = this.P.bag; if ((P.agua || 0) < 1 && TOWN.fountain) return { x: TOWN.fountain.x, z: TOWN.fountain.z, h: 2.5 }; if (this.stall) return { x: this.stall.x, z: this.stall.z, h: 3 }; }
         if (M.step >= 1 && M.cairns) { const c = M.cairns.find(c => !c.reached); if (c) return { x: c.x, z: c.z, h: c.top ? 3.2 : 2 }; } return at(M.host); }
-      case 'process': case 'harvest': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
+      case 'process': case 'harvest': if (M.veh) { const d = this.tractorDestino(M); if (d) return d; } if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
       case 'herd': if (M.step === 1) { const loose = this.herd?.filter(s => !s.penned) || []; const t = nearest(loose.map(s => ({ x: s.pos.x, z: s.pos.z, h: 1.8 }))); return t || { x: TOWN.pen.x, z: TOWN.pen.z, h: 2 }; } return at(M.host);
       case 'dance': return M.step === 1 ? { ...this.plazaStage(), h: 3 } : at(M.host);
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
@@ -799,6 +801,7 @@ export class TownGame {
     for (const a of this.walkers) if (ok(a.pos.x, a.pos.z)) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.pasaka ? `Jugar a pasaka con ${a.name}` : a.musico ? `Tocar ${instrumentoById(a.musico)?.short || 'música'} con ${a.name}` : a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
     for (const o of this.agro?.list || []) if (ok(o.x, o.z)) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) if (ok(it.x, it.z)) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
+    this.tractorAcciones(list, ok);   // (subir al tractor o a la cosechadora de la cosecha, o bajar)
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done && ok(M.bench.x, M.bench.z)) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
     for (const M of this.missions) if (M.memo && ok(M.memo.x, M.memo.z)) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
     for (const k of this.clues) if (!k.found && k.obj.visible && ok(k.x, k.z)) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
@@ -869,6 +872,8 @@ export class TownGame {
     if (it.kind === 'seat') return this.restBench(it.b);
     if (it.kind === 'walker') { it.a.chatWith = null; it.a.talkTo = null; it.a.say(2.5); it.a.wave = 1.2; const L = TAREAS[it.a.tarea]?.lines || WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, [...L, ...this.hitzLines(it.a)]); }   // (lo que cuenta: lo que está haciendo, y una palabra en euskera)
     if (it.kind === 'item') return this.pick(it.it);
+    if (it.kind === 'subir') return it.M.veh?.sube(this.player);
+    if (it.kind === 'bajar') return this.player.vehiculo?.baja();
     if (it.kind === 'bench') return this.doTrade(it.M);
     if (it.kind === 'clue') return this.examineClue(it.k);
     if (it.kind === 'memorial') return this.doMemorial(it.M);
@@ -972,6 +977,7 @@ export class TownGame {
     // nuevo no debe recibir sus ventanas ni sus controles)
     this.disposed = true;
     try { this.pelotaAbort?.(); } catch (e) { }
+    for (const M of this.missions || []) try { this.quitaTractor(M); } catch (e) { }
     document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg, .cartel').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
     this.perro?.cierraOferta();   // (el «¿Necesitas ayuda?» del perro, si estaba a la vista)
     if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
@@ -984,7 +990,7 @@ export class TownGame {
 }
 // (sus métodos por temas, cada uno en su archivo: los deportes, los montes, las leyendas, lo que se hace en las misiones
 // y las conversaciones)
-mezcla(TownGame, PuebloDeportes, PuebloCimas, PuebloLeyendas, PuebloActividades, PuebloCharla);
+mezcla(TownGame, PuebloDeportes, PuebloCimas, PuebloLeyendas, PuebloActividades, PuebloCharla, PuebloTractor);
 
 
 
