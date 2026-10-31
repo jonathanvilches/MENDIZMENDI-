@@ -3,7 +3,7 @@
 // tacos en V, llantas, capó, rejilla, faros, escape, cabina, espejos, guardabarros, enganches (antes eran cajas). Al
 // acercarse se puede ver cómo se hacía antes y cómo se hace ahora.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import { fieldInfo, PLACES, HALF } from './layout.js';
 import { terrainHeight, groundHeight, onPlatform } from './heightfield.js';
@@ -17,6 +17,23 @@ const WHEEL = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.
 
 const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
 const cyl = (r1, r2, h, n = 12) => new THREE.CylinderGeometry(r1, r2, h, n);
+
+// las mallas de las máquinas, a menos de la mitad de memoria: con índice (los vértices repetidos de cada cara, una vez),
+// la normal en 4 bytes y el color en otros 4 (antes, 12 y 12); sin color las que se pintan con su material (la pintura
+// del tractor, los cristales). Las comparten todas las máquinas del pueblo y las de las cosechas
+function compacta(g, color = true) {
+  if (!color) g.deleteAttribute('color');
+  const m = mergeVertices(g, 1e-4); g.dispose();
+  const n = m.attributes.position.count, N = m.attributes.normal, C = color && m.attributes.color, an = new Int8Array(n * 4);
+  for (let i = 0; i < n; i++) { an[i * 4] = Math.round(N.getX(i) * 127); an[i * 4 + 1] = Math.round(N.getY(i) * 127); an[i * 4 + 2] = Math.round(N.getZ(i) * 127); }
+  m.setAttribute('normal', new THREE.BufferAttribute(an, 4, true));
+  if (C) {
+    const ac = new Uint8Array(n * 4);
+    for (let i = 0; i < n; i++) { ac[i * 4] = Math.round(C.getX(i) * 255); ac[i * 4 + 1] = Math.round(C.getY(i) * 255); ac[i * 4 + 2] = Math.round(C.getZ(i) * 255); ac[i * 4 + 3] = 255; }
+    m.setAttribute('color', new THREE.BufferAttribute(ac, 4, true));
+  }
+  return m;
+}
 
 // ---- piezas de la maquinaria ----
 // caja de esquinas redondeadas (capós, cabinas, depósitos): las aristas vivas eran lo que más delataba los polígonos
@@ -54,14 +71,14 @@ function mallaRueda(r, w, rim, lugs) {
     P.push(pieza(new THREE.CylinderGeometry(r * 0.08, r * 0.08, 0.06, 6), '#5a5a5c', g => { g.rotateZ(Math.PI / 2); g.translate(s * (w * 0.42 + 0.12), 0, 0); }));
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; P.push(pieza(new THREE.BoxGeometry(0.035, 0.035, 0.035), '#d8d8da', g => { g.rotateZ(Math.PI / 2); g.translate(s * (w * 0.42 + 0.1), Math.cos(a) * r * 0.14, Math.sin(a) * r * 0.14); })); }
   }
-  return mergeGeometries(P);
+  return compacta(mergeGeometries(P));
 }
 // la misma rueda para verla de lejos: la goma redonda y la llanta, sin tacos, buje ni tornillos (unos 170 triángulos en
 // vez de 1.000 a 1.300: las ruedas eran dos tercios de las máquinas paradas, y a más de 60 m esos detalles ni se ven)
 function ruedaLejos(r, w, rim) {
   const key = `ruedaLejos:${r}:${w}:${rim}`; let geo = MALLAS.get(key); if (geo) return geo;
   const pr = [[r * 0.64, -w / 2], [r * 0.93, -w / 2], [r, -w * 0.3], [r, w * 0.3], [r * 0.93, w / 2], [r * 0.64, w / 2]].map(([a, b]) => new THREE.Vector2(a, b));
-  MALLAS.set(key, geo = mergeGeometries([pieza(new THREE.LatheGeometry(pr, 12), '#232326', g => g.rotateZ(Math.PI / 2)), pieza(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w * 0.84, 12), rim, g => g.rotateZ(Math.PI / 2))]));
+  MALLAS.set(key, geo = compacta(mergeGeometries([pieza(new THREE.LatheGeometry(pr, 12), '#232326', g => g.rotateZ(Math.PI / 2)), pieza(new THREE.CylinderGeometry(r * 0.64, r * 0.64, w * 0.84, 12), rim, g => g.rotateZ(Math.PI / 2))])));
   return geo;
 }
 
@@ -186,7 +203,7 @@ function mallasTractor(implement) {
   }
   // los cristales de la cabina: delante, detrás y a los lados
   const glass = mergeGeometries([part(new THREE.BoxGeometry(1.0, 1.24, 0.02), '#fff', 0, 1.84, 0.06), part(new THREE.BoxGeometry(1.0, 1.2, 0.02), '#fff', 0, 1.86, -1.16), part(new THREE.BoxGeometry(0.02, 1.24, 1.16), '#fff', 0.53, 1.84, -0.55), part(new THREE.BoxGeometry(0.02, 1.24, 1.16), '#fff', -0.53, 1.84, -0.55)]);
-  return { resto: mergeGeometries(P), pint: mergeGeometries(C), glass };
+  return { resto: compacta(mergeGeometries(P)), pint: compacta(mergeGeometries(C), false), glass: compacta(glass, false) };
 }
 
 // Cosechadora: cuerpo de esquinas redondeadas con sus paneles y una franja; tolva abierta arriba (el grano se ve
@@ -271,7 +288,7 @@ function mallasCombine(color) {
   P.push(part(new THREE.CylinderGeometry(0.07, 0.08, 1.2, 10), '#262628', -0.85, 4.25, -2.55));
   for (const s of [-1, 1]) P.push(part(rbox(0.16, 0.1, 0.04, 0.015), '#d01e1e', s * 1.0, 1.95, -3.12));
   const glass = mergeGeometries([part(new THREE.BoxGeometry(1.62, 1.18, 0.02), '#fff', 0, 3.92, 2.48, -0.08), part(new THREE.BoxGeometry(0.02, 1.18, 1.6), '#fff', 0.81, 3.92, 1.65), part(new THREE.BoxGeometry(0.02, 1.18, 1.6), '#fff', -0.81, 3.92, 1.65), part(new THREE.BoxGeometry(1.62, 1.1, 0.02), '#fff', 0, 3.95, 0.82)]);
-  return { resto: mergeGeometries(P), glass };
+  return { resto: compacta(mergeGeometries(P)), glass: compacta(glass, false) };
 }
 
 // Pacas: redondas (de hierba, envueltas o de paja) en hilera

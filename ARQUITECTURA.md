@@ -95,6 +95,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Las máquinas paradas del campo, con rueda sencilla a más de 60 m (`ruedaLejos` en `world/agro.js`: 170 triángulos
     en vez de 1.000 a 1.300). El género del mercado, solo a menos de 90 m de la plaza (`Mercado.cerca`); la madera y los
     toldos se ven siempre. Los frutos de las matas de la cosecha, de ocho caras.
+  - Las mallas de tractores, cosechadoras y ruedas, compactadas al hacerse (`compacta` en `world/agro.js`): con índice, la
+    normal en `Int8×4` y el color en `Uint8×4` normalizados (alfa 255); sin color las de pintura y cristal. En Tudela, de
+    32 a 27 MB en la puerta.
 - **Botones en pleno partido:** responden al levantar el dedo (`tap` de `util/tap.js`), no al clic. En el iPhone,
   mientras el partido cambia la pantalla sin parar, Safari a veces se traga el clic: la X de la pelota no dejaba salir.
   Lo usan la X y las ventanas de la pelota, y la pausa, la cámara, la ventana de pausa y la final del fútbol. Con el
