@@ -6,6 +6,7 @@
 import { chromium } from 'playwright-core';
 import { mkdirSync } from 'fs';
 import { auditar, muesca } from './auditoria-medida.mjs';
+import { choques } from './choques.mjs';
 const [,, out = '/tmp/auditoria-partidos', sizes = '844x390,1180x820'] = process.argv; const TOT = {};
 mkdirSync(out, { recursive: true });
 const URL = process.env.URL || 'http://127.0.0.1:5173';
@@ -32,6 +33,8 @@ for (const sz of sizes.split(',')) {
     await p.waitForTimeout(450); await p.evaluate(() => document.getAnimations?.().forEach(a => { try { if (a.effect?.getTiming?.().iterations !== Infinity) a.finish(); } catch (e) { } }));
     await p.screenshot({ path: `${out}/${sz}-${name}.png` });
     const r = await p.evaluate(auditar, sel);
+    // (y los textos que se montan con un icono, una chapa u otro texto: tools/choques.mjs)
+    r.choque = (await p.evaluate(choques, sel)).map(x => `«${x.txt}» ${x.de} ↔ ${x.con}: ${x.gap} px`);
     console.log(`== ${sz} ${name}: ${Object.entries(r).map(([k, v]) => `${k} ${v.length}`).join(' · ')}`);
     for (const [k, v] of Object.entries(r)) { TOT[k] = (TOT[k] || 0) + v.length; for (const x of v.slice(0, 8)) console.log(`   ${k}: ${x}`); }
   };

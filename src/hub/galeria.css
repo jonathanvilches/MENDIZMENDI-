@@ -89,7 +89,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gal-info.cambia > * { animation: galSube .4s cubic-bezier(.2, .9, .3, 1) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
 @keyframes galSube { from { opacity: 0; transform: translateY(8px); } }
 /* (el ritmo de la tabla: antetítulo → título 12, título → subtítulo 8 y de ahí a las misiones 16, la letra recortada) */
-.gi-t { display: grid; gap: 0; min-width: 0; } .gi-t > small, .gi-t h2 > * { text-box: trim-both cap alphabetic; } .gi-t h2 { display: grid; } .gi-t small + h2 { margin-top: var(--r-kt); } .gi-t h2 + .gi-ms { margin-top: var(--r-tx); }
+.gi-t { display: grid; gap: 0; min-width: 0; } .gi-t > small, .gi-t h2 > * { text-box: trim-both cap alphabetic; } .gi-t h2 { display: grid; } .gi-t small + .gi-fila { margin-top: var(--r-kt); } .gi-fila { display: grid; min-width: 0; } .gi-fila h2 + .gi-ms { margin-top: var(--r-tx); }
 .gi-t small { color: color-mix(in srgb, var(--c) 55%, #fff); font: 600 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; }
 .gi-t h2 { margin: 0; font: 400 var(--fs-3xl)/1 var(--f-display); letter-spacing: .01em; text-shadow: 0 3px 18px rgba(4, 1, 12, .6); }
 .gi-t h2 em { display: block; margin-top: var(--r-ts); color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1.2 var(--f-ui); font-style: normal; text-shadow: none; }
@@ -113,10 +113,13 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
   .gal-fl { width: 42px; height: 42px; } .gal-fl.ant { left: 12px; } .gal-fl.sig { right: 12px; }
   .gal-puntos { display: none; }
   .gal-info { padding: 0 22px max(14px, env(safe-area-inset-bottom, 0px)); gap: 12px; }
-  .gi-t { grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: var(--e3); row-gap: 0; } .gi-t h2 + .gi-ms { margin-top: 0; }   /* (las misiones, a la altura de lo alto del nombre) */
-  .gi-t small { grid-column: 1 / -1; font-size: 11px; }
+  /* (el nombre y sus misiones, en una fila y centrados entre sí, debajo del rótulo: el nombre entero, sin partirse, con un poco
+     más de aire a su derecha por la cursiva; las misiones, si no caben, en dos filas) */
+  .gi-fila { display: flex; align-items: center; column-gap: var(--e4); } .gi-fila h2 { flex: none; padding-right: .08em; white-space: nowrap; } .gi-fila h2 + .gi-ms { margin-top: 0; min-width: 0; }
+  .gi-t small { font-size: 11px; }
   .gi-t h2 { font-size: var(--fs-xl); } .gi-t h2 em { display: none; }
-  .gi-ms i { width: 24px; height: 24px; border-radius: 6px; } .gi-ms i :is(svg, img) { width: 14px; height: 14px; } .gi-ms em { font-size: var(--fs-xs); }
+  /* (en una sola fila: si no caben, cada una encoge un poco, cuadrada; antes la última caía sola a otra fila) */
+  .gi-ms { flex-wrap: nowrap; gap: 6px; overflow: hidden; } .gi-ms i { flex: 0 1 24px; width: auto; height: auto; aspect-ratio: 1; min-width: 18px; border-radius: 6px; } .gi-ms i :is(svg, img) { width: 14px; height: 14px; } .gi-ms em { flex: none; font-size: var(--fs-xs); }
   .gi-b .btn { min-height: 40px; padding: 0 16px; font-size: var(--fs-sm); }
 }
 /* (en el didáctico con el móvil tumbado, la galería entera a la vista, sin el título ni la explicación de arriba, como
@@ -124,6 +127,8 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 @media (max-height: 520px) { #hub:not(.juego) .gal-lead { display: none; } #hub:not(.juego) .gal { height: calc(100vh - 76px); height: calc(100dvh - 76px); margin-top: 0; } }
 /* (en los móviles más bajos, la tarjeta algo más pequeña: que quede aire con las comarcas de arriba y el pueblo de abajo) */
 @media (max-height: 380px) { .gal { --gh: min(37vh, 160px); } }
+/* (en los tumbados más estrechos, las misiones sin la cuenta, que ya va en la tarjeta: si no, se quedaba sola en otra fila) */
+@media (max-height: 520px) and (max-width: 760px) { .gi-ms em { display: none; } }
 /* (en el más pequeño, solo el nombre y los botones: las misiones ya van contadas en la tarjeta) */
 @media (max-height: 520px) and (max-width: 640px) { .gi-ms { display: none; } }
 /* ---------- el móvil de pie: el pueblo de delante, debajo del anillo, a lo ancho ---------- */

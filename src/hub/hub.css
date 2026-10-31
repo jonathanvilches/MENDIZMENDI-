@@ -115,8 +115,11 @@
 .panel > .sec:first-child { margin-top: 0; }
 /* rótulo: el de las fichas en todo el juego (letra estrecha en mayúsculas espaciadas, en rosa), en su propia línea; sin
    la raya de delante */
-.kicker { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: 8px; margin: 0; color: var(--rosa, #ff7ac8); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
+.kicker { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: 4px; margin: 0; color: var(--rosa, #ff7ac8); font: 800 var(--fs-sm)/1.15 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; }
 .kicker > svg { display: none; }
+/* (el icono y el rótulo, a 8 px: 4 del hueco y 4 de su margen; en los rótulos de bloque, que recortan la letra, el margen y el
+   espacio. Antes, en esos, el icono quedaba pegado al rótulo, a un espacio) */
+.kicker > img { flex: none; margin-right: 4px; }
 .hint { color: var(--dim); font-size: var(--fs-sm); font-weight: 600; }
 .empty { color: var(--mute); }
 .row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
@@ -206,7 +209,7 @@
 @media (min-width: 900px) { .filters { flex-wrap: wrap; overflow-x: visible; } }   /* (con sitio, en dos filas si hace falta: ninguna pestaña cortada por el borde) */
 /* (las pestañas: solo texto; la elegida, en una cápsula de cristal con borde fino. Sin rayas debajo: antes, la línea de
    la fila, la de la pestaña y la del color de la sección se sumaban) */
-.filters button { position: relative; flex: none; min-height: 44px; padding: 8px 16px; border-radius: 4px; border: 1px solid transparent; background: none; font-weight: 600; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; transition: color .15s, background .15s, border-color .15s; }
+.filters button { position: relative; flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 16px; border-radius: 4px; border: 1px solid transparent; background: none; font-weight: 600; font-size: var(--fs-sm); color: var(--mute); white-space: nowrap; transition: color .15s, background .15s, border-color .15s; }
 .filters button:hover { color: #fff; }
 .filters button.on { color: #fff; background: rgba(255, 255, 255, .08); border-color: rgba(255, 255, 255, .16); }
 
@@ -532,6 +535,8 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
 .crole { padding: 2px 8px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(201, 178, 255, .35); color: var(--rosa); font: 800 var(--fs-xs)/1.3 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; clip-path: polygon(6px 0, 100% 0, calc(100% - 6px) 100%, 0 100%); }
 .cfrom { display: inline-flex; align-items: center; gap: 4px; color: var(--lila); font: 600 var(--fs-sm)/1.2 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
 .cfrom img, .cfrom svg { width: 16px; height: 16px; }
+/* (el alfiler es más alto que la letra: un poco más de aire bajo el nombre para que no lo roce) */
+.cname + .cfrom { margin-top: var(--e1); }
 /* (el nombre entero siempre: si no cabe en una línea, en dos; con aire a la derecha para la cursiva) */
 .cname { font: 400 var(--fs-hero)/1 var(--f-display); color: #fff; text-transform: uppercase; text-shadow: 0 4px 0 rgba(7, 2, 15, .55), 0 10px 26px rgba(0, 0, 0, .45); max-width: 100%; padding-right: .08em; overflow-wrap: break-word; text-wrap: balance; }
 .csel-info .tl { color: var(--rosa); font: 600 var(--fs-md)/1.3 var(--f-cond); font-style: italic; letter-spacing: 0; }
@@ -600,7 +605,7 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .csel2:not(.onbsel) .cs-side { padding: 8px 16px 8px 8px; justify-content: space-between; gap: 8px; overflow: hidden; }
   .csel2:not(.onbsel) .cname { font-size: var(--fs-2xl); margin-top: 4px; } .csel2:not(.onbsel) .ci-ovr { min-width: 62px; } .csel2:not(.onbsel) .ci-ovr b { font-size: var(--fs-3xl); }
   .csel2:not(.onbsel) .stats { grid-template-columns: 1fr 1fr; gap: 4px 12px; margin: 0; }
-  .csel2:not(.onbsel) .stat { grid-template-columns: 28px minmax(0, 1fr); gap: 2px 8px; } .csel2:not(.onbsel) .stat b { font-size: var(--fs-lg); grid-row: span 2; }
+  .csel2:not(.onbsel) .stat { grid-template-columns: 28px minmax(0, 1fr); gap: 6px 8px; }   /* (6 entre el nombre y su barra: a 2 se rozaban) */ .csel2:not(.onbsel) .stat b { font-size: var(--fs-lg); grid-row: span 2; }
   .csel2:not(.onbsel) .stat span:not(.sbar) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .csel2:not(.onbsel) .csel-info .tl { font-size: var(--fs-sm); }
   .csel2:not(.onbsel) .abil { padding: 8px 8px 8px 4px; font-size: var(--fs-xs); } .csel2:not(.onbsel) .abil .aic { width: 32px; height: 32px; }
@@ -989,7 +994,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sp-cover { position: relative; aspect-ratio: 16 / 9; border-radius: 18px; overflow: hidden; background: #1a0c33; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
 .sp-cover img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .6s cubic-bezier(.2, .8, .3, 1); }
 .sport:hover .sp-cover img { transform: scale(1.04); }
-.sp-stat { position: absolute; top: 10px; left: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 2px 14px 2px 8px; border-radius: 999px;
+.sp-stat { position: absolute; top: 10px; left: 10px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; min-height: 32px; padding: 2px 14px 2px 8px; border-radius: 999px;
   background: rgba(13, 6, 28, .55); border: 1px solid rgba(255, 255, 255, .18); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .sp-stat > :is(svg, img) { flex: none; width: 18px; height: 18px; }
 .sp-stat b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: 0; color: color-mix(in srgb, var(--acc) 45%, #fff); }
@@ -1048,7 +1053,7 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
      debajo, más apretado. Si no cabe todo, se desliza un poco) */
   .sports { gap: 10px; } .sport { padding: 7px; border-radius: 20px; }
   .sp-cover { border-radius: 14px; } .sp-stat { top: 6px; left: 6px; min-height: 26px; padding: 2px 10px 2px 6px; }
-  .sp-body { gap: 8px; padding: 8px 4px 2px; } .sp-txt { gap: 4px; } .sp-txt .kicker { display: none; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
+  .sp-body { gap: 8px; padding: 8px 4px 2px; } .sp-txt { gap: var(--e2); } .sp-txt .kicker { display: none; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
   .sp-chips > span { padding: 2px 10px 2px 4px; } .sp-chips > span > :is(svg, img) { width: 16px; height: 16px; }
   .sp-bar { gap: 8px; padding: 6px; border-radius: 999px; align-items: center; } .sp-row > small { display: none; }
   .sport .gx-go { min-height: 40px; padding: 6px 16px; font-size: var(--fs-md); }
@@ -1128,7 +1133,11 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 .cuentos .ct-lam > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
 .cuentos .ct-lam.locked > img { filter: blur(3px) grayscale(.5) brightness(.55); transform: scale(1.04); }
 .cuentos .ct-lam[data-ley] { cursor: zoom-in; }
-.cuentos .ct-lam span { position: relative; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(20, 6, 46, .6); border: 1px solid rgba(201, 178, 255, .35); }
+/* (la lámina, en columna: el candado, centrado en lo que queda encima del pie, y el pie abajo, en su sitio. Antes el pie iba
+   por encima de la lámina y, con un rótulo largo en el móvil, subía hasta el candado y se montaba con él; si no cabe, la
+   lámina crece) */
+.cuentos .ct-lam { display: flex; flex-direction: column; align-items: center; gap: var(--e3); } .cuentos .ct-lam span + figcaption { margin-top: 0; }
+.cuentos .ct-lam span { position: relative; flex: none; margin: auto; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(20, 6, 46, .6); border: 1px solid rgba(201, 178, 255, .35); }
 .cuentos .ct-pl { font-style: italic; color: var(--lila) !important; } .cuentos .ar-tx details p { font-size: var(--fs-sm); } .cuentos .ct-go { margin-top: 8px; min-height: 44px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
 @media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } .armorial button.ar { grid-template-columns: 96px minmax(0, 1fr) auto; } .armorial button.ar img.ar-img { margin: -6px 0; } }
 /* (el cuento con su lámina al lado solo en el móvil tumbado; de pie, la lámina entera arriba y el texto debajo) */
@@ -1526,7 +1535,7 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
 .pcard .pc-img .phead { text-shadow: var(--letra-foto); } .pcard .pc-img .phead small { color: rgba(236, 228, 255, .9); }
 .pcard .alt { font-weight: 600; color: #fff; }
 /* las leyendas: su tipo y su título, encima de su ilustración */
-.cuentos .ct-lam figcaption { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; display: grid; gap: 0; padding: 32px var(--e4) var(--e4); text-align: left; isolation: isolate; text-shadow: var(--letra-foto); }
+.cuentos .ct-lam figcaption { position: relative; z-index: 1; align-self: stretch; margin-top: auto; display: grid; gap: 0; padding: 32px var(--e4) var(--e4); text-align: left; isolation: isolate; text-shadow: var(--letra-foto); }
 /* (detrás de los pies de las láminas, el velo suave de sport.css: --velo) */
 :is(.cuentos .ct-lam figcaption, .lam-rail .lam span)::before { content: ''; position: absolute; inset: -24px 0 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(0deg, var(--velo)); opacity: .62; }
 .cuentos .ct-lam figcaption small { color: #ffb1e3; font: 600 11px/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }

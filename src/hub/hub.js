@@ -545,8 +545,10 @@ export class Hub {
   galInfo(id, i, n) {
     const l = levelById(id); if (!l) return '';
     const p = profile(), t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / '), c = comarca(l.comarca);
-    return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2>
-      <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div>
+    // (el nombre y las misiones, en su propia fila: en el móvil tumbado van uno al lado del otro, centrados entre sí y debajo
+    // del rótulo; antes las misiones subían hasta el rótulo y se montaban con él)
+    return `<div class="gi-t"><small>${esc(c?.name || '')} · ${i + 1} de ${n}</small><div class="gi-fila"><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2>
+      <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span></div></div>
       <div class="gi-b">${dd ? `<button type="button" class="btn primary" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button type="button" class="btn" data-town="${l.id}">${I('scroll', 20)}<span>Ficha</span></button><button type="button" class="btn primary" data-play="${l.id}">${I('play', 20)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>`}</div>`;
   }
 

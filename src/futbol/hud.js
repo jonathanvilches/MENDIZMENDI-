@@ -198,7 +198,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-msg.sub h2{color:#ffd9f1}
 /* cambios: los once (en dos columnas) y el banquillo; cada uno con su dorsal, su línea, su energía, su forma y su estado */
 .fb-subs-n{margin:0 0 8px!important;font:800 var(--fs-xs)/1.3 var(--f-cond,'MZ Texto'),sans-serif!important;color:#cbbcf0!important;text-transform:uppercase;letter-spacing:.06em}
-.fb-subs{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-areas:'hf hb' 'sf sb';column-gap:12px;row-gap:4px;text-align:left}
+.fb-subs{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);grid-template-areas:'hf hb' 'sf sb';column-gap:12px;row-gap:8px;text-align:left}   /* (8 bajo los rótulos: a 4 rozaban los botones) */
 .fb-hf{grid-area:hf}.fb-hb{grid-area:hb}.fb-sf{grid-area:sf}.fb-sb{grid-area:sb}
 .fb-sf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-content:start}.fb-sb{display:grid;gap:8px;align-content:start}
 .fb-subs small.h{align-self:end;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}

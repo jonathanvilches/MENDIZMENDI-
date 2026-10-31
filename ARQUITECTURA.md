@@ -285,6 +285,23 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tres. La perspectiva es proporcional a la carta, así la profundidad es la misma en todas las pantallas. En el móvil de
   pie asoman por el borde. Con menos de ocho pueblos se repiten, para que al girar ninguna salte de un lado a otro a la
   vista. Así hay la profundidad del anillo de antes sin sus huecos: allí las de los lados quedaban pequeñas y sueltas.
+  Debajo, el pueblo de delante: el rótulo y, en su propia fila (`.gi-fila`), el nombre y sus misiones; en el móvil
+  tumbado van uno al lado del otro, centrados entre sí y debajo del rótulo, en una sola fila (si no caben, las casillas
+  encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
+- **Nada se monta** (`tools/choques.mjs`): ningún texto puede pisar ni rozar un icono, una chapa, un botón pequeño u
+  otro texto, en ninguna pantalla ni tamaño: a 6 px como poco (3 px de un icono que va dentro del mismo texto), medido
+  sobre lo que se ve (la letra de lo alto de las mayúsculas a la línea base, la inclinación de la cursiva, lo pintado de
+  cada imagen) y contando lo que un aviso o una chapa tapan. No cuentan lo que va a propósito encima: la chapita del
+  nivel sobre el retrato, el texto dentro de su foto o de su aro, las cartas de los lados del anillo, que van en escorzo, y
+  las ventanas que lo cubren todo. Se pasa por el menú entero, la galería pueblo a pueblo, las fichas y Ventajas a 844 ×
+  390, 667 × 375, 390 × 844 y 1280 × 720, y va dentro de `tools/auditoria-partidos.mjs` («choque») para los marcadores
+  de pelota y fútbol. Lo que encontró y se arregló: la galería; el icono del rótulo de bloque, pegado a la letra
+  (`.kicker > img`); el icono de los filtros («En el juego»); la chapita del nivel junto al nombre (`.hub-menu-btn`);
+  «Navarra conquistada» y su sello (`.m3-tt`); el candado de las leyendas y su pie (`.ct-lam`, en columna); el alfiler
+  bajo el nombre del personaje (`.cfrom`); el título de cada deporte y sus etiquetas (`.sp-txt`); la chapita «0/6» de la
+  misión y su texto (`#quest`); el icono del título de las ventanas de papel; el personaje de la barra de carga y el
+  tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; y, con el móvil de pie, la misión, que `fitTop`
+  estrechaba a 140 px, y la distancia de la brújula y los avisos de la conversación, que se le montaban.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y
@@ -475,6 +492,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `pelota-gasto.mjs` | La energía con el joystick siempre a tope, como juega una persona: pelotando, con cortadas seguidas y con el rival haciéndote dejadas; en qué se va y lo que cuesta cada carrera y cada cortada (sin gráficos) |
 | `pelota-golpe-manual.mjs` | Golpeo manual: sin pulsar no se devuelve nada; a tiempo, perfecto; pronto y tarde; volea y gancho; la energía; las cinco pelotas (sin gráficos) |
 | `auditoria-diseno.mjs` | Auditoría de diseño del menú (también su marco: la barra de arriba y la de las secciones) y de las pantallas de deporte (TAM=844x390 o 1180x820): texto cortado o con puntos suspensivos, texto encima de figuras (mirando la transparencia de la imagen) o de otro texto, verdes fuera de sitio, bordes que no siguen las esquinas en ángulo, texto que se sale de su botón o su caja (círculo, píldora, esquinas redondeadas o en ángulo), distancias de rótulo a título y de título a texto, letra fuera de la escala o de las fuentes del juego colores de texto fuera de la gama, cajas que se salen de su caja, texto en columnas de una palabra por línea, lo que hay que desplazar, esquinas muy redondeadas y botones con letra de lectura. La medida está en `auditoria-medida.mjs`; también mide la composición: bloques de una fila con la misma altura o el mismo centro y el mismo hueco, columnas con el mismo borde y el mismo ancho, cajas con el mismo relleno a los dos lados, rellenos y huecos en la rejilla de 4 px, y bordes que casi coinciden (de 2 a 12 px) dentro de una misma caja, que se toman por descuadres. Con TODO=1 lista todas las distancias y con DETALLE=1 dice la regla de CSS de cada fallo. Con IDIOMA=eu, en euskera |
+| `choques.mjs` | Textos que se montan con un icono, una chapa, un botón pequeño u otro texto, o que tapa un aviso: el menú entero, la galería pueblo a pueblo, las fichas y Ventajas, a cuatro tamaños; `choques` se usa también en `auditoria-partidos.mjs` |
 | `auditoria-partidos.mjs` | La misma auditoría en los marcadores y mandos de fútbol y pelota, montados sin el partido en 3D, en castellano y euskera y en cada estado de los botones (atacar, defender, portero, penaltis, lesionado, tarjeta, cambio y la ventana de cambios; golpe, gancho y volea) |
 | `auditoria-pueblo.mjs` | La misma auditoría dentro del pueblo (TAM=844x390 o 1180x820): HUD, diálogo, cada pestaña del libro, mapa con la tarjeta de una misión y de un lugar, mochila, pausa, cada pestaña de la tienda y recompensa. Con IDIOMA=eu, en euskera; con EUFALTAN=1, además, la lista de lo que se queda sin traducir |
 | `auditoria-ventanas.mjs` | La misma auditoría en las ventanas del juego (fichas, minijuegos, misión cumplida, cuestionarios). Con IDIOMA=eu, en euskera |
