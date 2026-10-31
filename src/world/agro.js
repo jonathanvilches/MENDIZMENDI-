@@ -30,6 +30,11 @@ const arco = (r, w, a0, a1, hex, x, y, z) => pieza(new THREE.CylinderGeometry(r,
 // Rueda con neumático de verdad: el perfil redondeado de la goma, tacos en V (como los de los tractores) por la banda de
 // rodadura, llanta en forma de plato con su color, buje y tornillos. Gira alrededor de x
 function wheel(r, w, rim, lugs = true) {
+  const key = `rueda:${r}:${w}:${rim}:${lugs}`; let geo = MALLAS.get(key);
+  if (!geo) MALLAS.set(key, geo = mallaRueda(r, w, rim, lugs));
+  const m = new THREE.Mesh(geo, WHEEL); m.castShadow = true; return m;
+}
+function mallaRueda(r, w, rim, lugs) {
   const pr = [[r * 0.64, -w / 2], [r * 0.9, -w / 2], [r * 0.97, -w * 0.42], [r, -w * 0.3], [r, w * 0.3], [r * 0.97, w * 0.42], [r * 0.9, w / 2], [r * 0.64, w / 2]].map(([a, b]) => new THREE.Vector2(a, b));
   const P = [pieza(new THREE.LatheGeometry(pr, 20), '#232326', g => g.rotateZ(Math.PI / 2))];
   if (lugs) {
@@ -49,15 +54,31 @@ function wheel(r, w, rim, lugs = true) {
     P.push(pieza(new THREE.CylinderGeometry(r * 0.08, r * 0.08, 0.06, 6), '#5a5a5c', g => { g.rotateZ(Math.PI / 2); g.translate(s * (w * 0.42 + 0.12), 0, 0); }));
     for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; P.push(pieza(new THREE.BoxGeometry(0.035, 0.035, 0.035), '#d8d8da', g => { g.rotateZ(Math.PI / 2); g.translate(s * (w * 0.42 + 0.1), Math.cos(a) * r * 0.14, Math.sin(a) * r * 0.14); })); }
   }
-  const m = new THREE.Mesh(mergeGeometries(P), WHEEL); m.castShadow = true; return m;
+  return mergeGeometries(P);
 }
 
 // Tractor: capó redondeado con rejilla de lamas, faros y respiraderos; contrapesos delante; escape con su caperuza y
 // filtro de aire; cabina con montantes, techo con visera, rotativo naranja, luces de trabajo, espejos en sus brazos,
 // asiento, salpicadero y volante; escalones y depósito a un lado; guardabarros curvos; enganche de tres puntos y toma de
 // fuerza detrás. Ruedas grandes detrás y pequeñas delante. Mira hacia +z. Sin marcas
+// (las mallas se hacen una vez por apero y las comparten todos los tractores del pueblo: con el detalle nuevo, ocho
+// máquinas con su propia malla pasaban la memoria del iPhone. Lo pintado del color de cada tractor va en una malla
+// aparte, con el color en su material, para que la forma sirva para todos los colores)
+const MALLAS = new Map(), PINTURAS = new Map();
+const pintura = (hex) => PINTURAS.get(hex) || PINTURAS.set(hex, new THREE.MeshStandardMaterial({ color: hex, roughness: 0.5, metalness: 0.2 })).get(hex);
 function tractor(color = '#3f8a3a', implement = null) {
-  const g = new THREE.Group(), P = [], dk = '#2a2a2e', md = '#404044', claro = '#e9e6dc';
+  const key = 'tractor:' + implement; let M = MALLAS.get(key); if (!M) MALLAS.set(key, M = mallasTractor(implement));
+  const g = new THREE.Group();
+  for (const [geo, mat] of [[M.resto, MAT], [M.pint, pintura(color)], [M.glass, GLASS]]) { const m = new THREE.Mesh(geo, mat); m.castShadow = mat !== GLASS; g.add(m); }
+  const wheels = [];
+  for (const s of [-1, 1]) { const w = wheel(0.78, 0.46, '#e2b62a'); w.position.set(s * 0.82, 0.78, -0.6); g.add(w); wheels.push([w, 0.78]); }
+  for (const s of [-1, 1]) { const w = wheel(0.42, 0.28, '#e2b62a'); w.position.set(s * 0.62, 0.42, 1.25); g.add(w); wheels.push([w, 0.42]); }
+  if (implement === 'trailer' || implement === 'grapes') for (const s of [-1, 1]) { const w = wheel(0.45, 0.3, '#a8a8aa', false); w.position.set(s * 1.05, 0.45, implement === 'grapes' ? -3.4 : -3.9); g.add(w); wheels.push([w, 0.45]); }
+  g.userData.wheels = wheels;
+  return g;
+}
+function mallasTractor(implement) {
+  const P = [], C = [], dk = '#2a2a2e', md = '#404044';
   // bastidor, motor y caja de cambios
   P.push(part(rbox(0.66, 0.46, 2.1, 0.06), dk, 0, 0.82, 0.75));
   P.push(part(rbox(0.86, 0.72, 0.95, 0.1), md, 0, 0.98, -0.52));
@@ -67,8 +88,8 @@ function tractor(color = '#3f8a3a', implement = null) {
   for (let i = 0; i < 6; i++) P.push(part(rbox(0.82, 0.32, 0.075, 0.025), i % 2 ? '#38383c' : '#303034', 0, 0.82, 1.9 + i * 0.085));
   P.push(part(new THREE.BoxGeometry(0.1, 0.1, 0.6), '#a8a8aa', 0, 1.02, 2.1));   // (el asa de los contrapesos)
   // capó
-  P.push(part(rbox(0.84, 0.64, 1.56, 0.14, 2), color, 0, 1.3, 0.86));
-  P.push(part(rbox(0.66, 0.06, 1.4, 0.03), color, 0, 1.63, 0.82));
+  C.push(part(rbox(0.84, 0.64, 1.56, 0.14, 2), '#ffffff', 0, 1.3, 0.86));
+  C.push(part(rbox(0.66, 0.06, 1.4, 0.03), '#ffffff', 0, 1.63, 0.82));
   for (const s of [-1, 1]) for (let i = 0; i < 5; i++) P.push(part(new THREE.BoxGeometry(0.02, 0.035, 0.46), '#1e1e22', s * 0.42, 1.16 + i * 0.07, 1.02));
   // rejilla delantera con lamas, faros redondos y los intermitentes
   P.push(part(rbox(0.7, 0.5, 0.06, 0.03), '#1c1c20', 0, 1.25, 1.63));
@@ -87,7 +108,7 @@ function tractor(color = '#3f8a3a', implement = null) {
   // cabina: suelo, montantes, techo con visera y su borde oscuro, rotativo y luces de trabajo
   P.push(part(rbox(1.16, 0.1, 1.3, 0.03), dk, 0, 1.05, -0.55));
   for (const [sx, sz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) P.push(part(rbox(0.07, 1.46, 0.07, 0.02), '#1e1e22', sx * 0.53, 1.8, -0.55 + sz * 0.61));
-  P.push(part(rbox(1.34, 0.16, 1.56, 0.07, 2), color, 0, 2.58, -0.52));
+  C.push(part(rbox(1.34, 0.16, 1.56, 0.07, 2), '#ffffff', 0, 2.58, -0.52));
   P.push(part(rbox(1.24, 0.05, 1.44, 0.02), dk, 0, 2.48, -0.52));
   P.push(part(new THREE.CylinderGeometry(0.06, 0.07, 0.04, 12), dk, -0.42, 2.68, -1.0));
   P.push(part(new THREE.CylinderGeometry(0.055, 0.06, 0.12, 12), '#ffa31a', -0.42, 2.76, -1.0));
@@ -104,14 +125,14 @@ function tractor(color = '#3f8a3a', implement = null) {
   for (const y of [0.52, 0.82]) P.push(part(new THREE.BoxGeometry(0.3, 0.035, 0.22), '#6a6a6e', -0.74, y, -0.15));
   for (const z of [-0.29, -0.01]) P.push(part(new THREE.BoxGeometry(0.03, 0.42, 0.03), dk, -0.74, 0.68, z));
   P.push(part(new THREE.CylinderGeometry(0.018, 0.018, 0.7, 6), '#bcbcbe', -0.6, 1.85, 0.08));
-  P.push(part(rbox(0.3, 0.36, 0.62, 0.08), color, -0.56, 0.78, 0.2));
+  C.push(part(rbox(0.3, 0.36, 0.62, 0.08), '#ffffff', -0.56, 0.78, 0.2));
   P.push(part(new THREE.CylinderGeometry(0.05, 0.05, 0.04, 10), '#141416', -0.56, 0.98, 0.32));
   // guardabarros curvos sobre las ruedas, con su piloto rojo detrás; los delanteros, pequeños, sobre las ruedas chicas
   for (const s of [-1, 1]) {
-    P.push(arco(0.88, 0.5, 0.15, Math.PI * 0.82, color, s * 0.82, 0.78, -0.6));
-    P.push(part(new THREE.BoxGeometry(0.48, 0.035, 0.6), color, s * 0.82, 1.67, -0.62));
+    C.push(arco(0.88, 0.5, 0.15, Math.PI * 0.82, '#ffffff', s * 0.82, 0.78, -0.6));
+    C.push(part(new THREE.BoxGeometry(0.48, 0.035, 0.6), '#ffffff', s * 0.82, 1.67, -0.62));
     P.push(part(rbox(0.12, 0.08, 0.04, 0.015), '#d01e1e', s * 0.9, 1.3, -1.47));
-    P.push(arco(0.5, 0.32, 0.35, Math.PI * 0.78, color, s * 0.62, 0.42, 1.25));
+    C.push(arco(0.5, 0.32, 0.35, Math.PI * 0.78, '#ffffff', s * 0.62, 0.42, 1.25));
   }
   // detrás: enganche de tres puntos, toma de fuerza y barra de tiro
   for (const s of [-1, 1]) P.push(part(new THREE.BoxGeometry(0.06, 0.06, 0.62), '#333336', s * 0.3, 0.56, -1.22, 0.2));
@@ -155,16 +176,9 @@ function tractor(color = '#3f8a3a', implement = null) {
     for (let i = 0; i < 18; i++) P.push(part(new THREE.IcosahedronGeometry(0.16, 0), i % 3 ? '#4a1f4a' : '#5e2a5e', -0.5 + (i % 6) * 0.2, 1.66 + (i % 2) * 0.04, -4.2 + Math.floor(i / 6) * 0.75));
     for (const s of [-1, 1]) P.push(arco(0.56, 0.34, 0.25, Math.PI * 0.75, '#2c2c30', s * 1.05, 0.45, -3.4));
   }
-  const body = new THREE.Mesh(mergeGeometries(P), MAT); body.castShadow = true; g.add(body);
-  // los cristales de la cabina: delante, detrás, a los lados y la puerta; y el del techo, tintado
-  const gl = new THREE.Mesh(mergeGeometries([part(new THREE.BoxGeometry(1.0, 1.24, 0.02), '#fff', 0, 1.84, 0.06), part(new THREE.BoxGeometry(1.0, 1.2, 0.02), '#fff', 0, 1.86, -1.16), part(new THREE.BoxGeometry(0.02, 1.24, 1.16), '#fff', 0.53, 1.84, -0.55), part(new THREE.BoxGeometry(0.02, 1.24, 1.16), '#fff', -0.53, 1.84, -0.55)]), GLASS);
-  g.add(gl);
-  const wheels = [];
-  for (const s of [-1, 1]) { const w = wheel(0.78, 0.46, '#e2b62a'); w.position.set(s * 0.82, 0.78, -0.6); g.add(w); wheels.push([w, 0.78]); }
-  for (const s of [-1, 1]) { const w = wheel(0.42, 0.28, '#e2b62a'); w.position.set(s * 0.62, 0.42, 1.25); g.add(w); wheels.push([w, 0.42]); }
-  if (implement === 'trailer' || implement === 'grapes') for (const s of [-1, 1]) { const w = wheel(0.45, 0.3, '#a8a8aa', false); w.position.set(s * 1.05, 0.45, implement === 'grapes' ? -3.4 : -3.9); g.add(w); wheels.push([w, 0.45]); }
-  g.userData.wheels = wheels;
-  return g;
+  // los cristales de la cabina: delante, detrás y a los lados
+  const glass = mergeGeometries([part(new THREE.BoxGeometry(1.0, 1.24, 0.02), '#fff', 0, 1.84, 0.06), part(new THREE.BoxGeometry(1.0, 1.2, 0.02), '#fff', 0, 1.86, -1.16), part(new THREE.BoxGeometry(0.02, 1.24, 1.16), '#fff', 0.53, 1.84, -0.55), part(new THREE.BoxGeometry(0.02, 1.24, 1.16), '#fff', -0.53, 1.84, -0.55)]);
+  return { resto: mergeGeometries(P), pint: mergeGeometries(C), glass };
 }
 
 // Cosechadora: cuerpo de esquinas redondeadas con sus paneles y una franja; tolva abierta arriba (el grano se ve
@@ -173,7 +187,16 @@ function tractor(color = '#3f8a3a', implement = null) {
 // púas; tubo de descarga plegado al costado con su boca; atrás, rejilla del motor, esparcidor de paja, escape y pilotos.
 // Mira hacia +z. Sin marcas
 function combine(color = '#c8a227') {
-  const g = new THREE.Group(), P = [], dk = '#2a2a2e', md = '#404044', rojo = '#c8302a', acero = '#bdbdc0';
+  const key = 'combine:' + color; let M = MALLAS.get(key); if (!M) MALLAS.set(key, M = mallasCombine(color));
+  const g = new THREE.Group(), body = new THREE.Mesh(M.resto, MAT); body.castShadow = true; g.add(body); g.add(new THREE.Mesh(M.glass, GLASS));
+  const wheels = [];
+  for (const s of [-1, 1]) { const w = wheel(0.95, 0.62, '#bcbcbe'); w.position.set(s * 1.45, 0.95, 1.1); g.add(w); wheels.push([w, 0.95]); }
+  for (const s of [-1, 1]) { const w = wheel(0.6, 0.4, '#bcbcbe'); w.position.set(s * 1.3, 0.6, -2.6); g.add(w); wheels.push([w, 0.6]); }
+  g.userData.wheels = wheels;
+  return g;
+}
+function mallasCombine(color) {
+  const P = [], dk = '#2a2a2e', md = '#404044', rojo = '#c8302a', acero = '#bdbdc0';
   // cuerpo, bajos oscuros, juntas de los paneles y la franja
   P.push(part(rbox(2.5, 2.1, 5.0, 0.2, 2), color, 0, 2.15, -0.6));
   P.push(part(rbox(2.2, 0.5, 5.2, 0.08), dk, 0, 1.0, -0.6));
@@ -239,14 +262,8 @@ function combine(color = '#c8a227') {
   P.push(part(rbox(1.7, 0.6, 0.7, 0.08), dk, 0, 1.45, -3.3));
   P.push(part(new THREE.CylinderGeometry(0.07, 0.08, 1.2, 10), '#262628', -0.85, 4.25, -2.55));
   for (const s of [-1, 1]) P.push(part(rbox(0.16, 0.1, 0.04, 0.015), '#d01e1e', s * 1.0, 1.95, -3.12));
-  const body = new THREE.Mesh(mergeGeometries(P), MAT); body.castShadow = true; g.add(body);
-  const gl = new THREE.Mesh(mergeGeometries([part(new THREE.BoxGeometry(1.62, 1.18, 0.02), '#fff', 0, 3.92, 2.48, -0.08), part(new THREE.BoxGeometry(0.02, 1.18, 1.6), '#fff', 0.81, 3.92, 1.65), part(new THREE.BoxGeometry(0.02, 1.18, 1.6), '#fff', -0.81, 3.92, 1.65), part(new THREE.BoxGeometry(1.62, 1.1, 0.02), '#fff', 0, 3.95, 0.82)]), GLASS);
-  g.add(gl);
-  const wheels = [];
-  for (const s of [-1, 1]) { const w = wheel(0.95, 0.62, '#bcbcbe'); w.position.set(s * 1.45, 0.95, 1.1); g.add(w); wheels.push([w, 0.95]); }
-  for (const s of [-1, 1]) { const w = wheel(0.6, 0.4, '#bcbcbe'); w.position.set(s * 1.3, 0.6, -2.6); g.add(w); wheels.push([w, 0.6]); }
-  g.userData.wheels = wheels;
-  return g;
+  const glass = mergeGeometries([part(new THREE.BoxGeometry(1.62, 1.18, 0.02), '#fff', 0, 3.92, 2.48, -0.08), part(new THREE.BoxGeometry(0.02, 1.18, 1.6), '#fff', 0.81, 3.92, 1.65), part(new THREE.BoxGeometry(0.02, 1.18, 1.6), '#fff', -0.81, 3.92, 1.65), part(new THREE.BoxGeometry(1.62, 1.1, 0.02), '#fff', 0, 3.95, 0.82)]);
+  return { resto: mergeGeometries(P), glass };
 }
 
 // Pacas: redondas (de hierba, envueltas o de paja) en hilera
