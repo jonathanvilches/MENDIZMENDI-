@@ -467,7 +467,15 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   const v = { x: 0, z: 4, d: 132, yaw: 0, pitch: 1.18, hy: 0.8 }, goal = casa();
   let bajoC = null, subida = 0;   // (la comarca que queda debajo del punto al que mira la cámara; y lo que sube la cámara para no meterse en el relieve)
   let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t0, dur })
-  const volar = (a, dur = 0.9) => { inercia = null; vuelo = { de: { ...v }, a: { ...v, ...a }, t: 0, dur }; Object.assign(goal, vuelo.a); };
+  // (de un sitio a otro lejos estando cerca, de un pueblo a otro de la otra punta, la cámara sube, cruza por alto y baja,
+  // con más tiempo: antes iba a la misma altura, a ras de tejado, y cruzaba Navarra en 1,8 s, rapidísima y chocando con
+  // los montes. Si el sitio está a la vista, sin subir)
+  const volar = (a, dur = 0.9) => {
+    inercia = null; const de = { ...v }, A = { ...v, ...a }, alto0 = Math.max(de.d, A.d), dist = Math.hypot(A.x - de.x, A.z - de.z), pico = Math.max(alto0, dist * 0.55);
+    const sube = pico > alto0 * 1.5 ? Math.log(pico / alto0) : 0;
+    if (sube) dur = Math.max(dur, Math.min(4.6, 1.6 + 0.4 * Math.log2(1 + dist / alto0)));
+    vuelo = { de, a: A, t: 0, dur, sube }; Object.assign(goal, vuelo.a);
+  };
   const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.12 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
     if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   DMAX = Math.max(150, goal.d * 1.35);
@@ -1324,10 +1332,12 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       vuelo.t += dt / vuelo.dur; const k = ease(Math.min(1, vuelo.t)), de = vuelo.de, a = vuelo.a;
       // (la distancia, en proporción, para que al acercarse mucho no frene de golpe; y al acercarse, el sitio llega antes que
       // la distancia: de cerca ya no barre de lado)
-      const kx = a.d < de.d * 0.5 ? ease(Math.min(1, vuelo.t / 0.7)) : k;
+      const kx = a.d < de.d * 0.5 && !vuelo.sube ? ease(Math.min(1, vuelo.t / 0.7)) : k;
       for (const q of ['x', 'z']) v[q] = mezcla(de[q], a[q], kx);
       for (const q of ['yaw', 'pitch']) v[q] = mezcla(de[q], a[q], k);
-      v.d = Math.exp(mezcla(Math.log(de.d), Math.log(a.d), k));
+      // (y, si cruza lejos, la subida y la bajada en medio, en proporción: en lo alto, mirando más desde arriba)
+      v.d = Math.exp(mezcla(Math.log(de.d), Math.log(a.d), k) + (vuelo.sube || 0) * Math.sin(Math.PI * k));
+      if (vuelo.sube) v.pitch = Math.min(1.25, v.pitch + 0.35 * Math.sin(Math.PI * k));
       if (vuelo.t >= 1) vuelo = null;
     } else { const k = 1 - Math.exp(-dt * 9); for (const q of ['x', 'z', 'd', 'yaw', 'pitch']) v[q] += (goal[q] - v[q]) * k; }
     // (con el panel abierto, el centro de la vista se corre a lo que queda libre, poco a poco)

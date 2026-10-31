@@ -282,6 +282,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **El dron de cada pueblo en el mapa del inicio** (`hub/mapa3d.js`, `perfilDron`, `holgura`, `despeje`):
   - Una vuelta en tres minutos, y todos sus vaivenes son múltiplos de esa vuelta (`DRON_W`): cada vuelta es igual a la
     anterior. El vuelo hasta el pueblo dura hasta 4,2 s, no 2,6.
+  - De un sitio a otro lejos estando cerca (de Isaba a Tudela), `volar` sube, cruza por alto mirando más desde arriba y
+    baja (`vuelo.sube`), hasta 4,6 s. Antes cruzaba Navarra a ras de tejado en 1,8 s, rapidísima y chocando con los
+    montes. Los vuelos que no pasan por `volar` (el de abrir el mapa) no llevan `sube`: se cuenta como 0.
+  - Auditoría de los vuelos, uno tras otro (entrada, paseo, comarca, dos pueblos, espacio natural, vuelta a Navarra,
+    paseo y arrastre), con el gancho `estado`: véase la prueba de la carpeta de trabajo `aereo.mjs` en las notas.
   - Antes de salir se prueba la vuelta entera, cada segundo y medio, y se guarda la inclinación justa para que la cámara
     no toque el relieve (`perfilDron`); se ensancha y se suaviza, para que suba antes de llegar al monte. Antes iba
     siempre a 0,5 y, en Lesaka, Leitza, Lekunberri, Orreaga o Ujué, la cámara saltaba hacia arriba de golpe.
