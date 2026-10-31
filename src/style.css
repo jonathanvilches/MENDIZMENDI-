@@ -233,45 +233,35 @@ summary { line-height: 1.3; }
 #ribbons .dots i.on { background: #c9b2ff; border-color: #c9b2ff; } #ribbons .dots i.cur { border-color: #ff7ac8; box-shadow: 0 0 8px #ff7ac8; }
 #ribbons > i { width: 10px; height: 22px; border-radius: 2px 2px 5px 5px; background: rgba(0, 0, 0, .3); border: 1px dashed rgba(255, 255, 255, .45); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%); }
 #ribbons > i.on { border: 0; }
-/* las misiones del pueblo (ui.js, eligeMision): solo sus iconos, una casilla igual para cada una, del color de la categoría
-   de su misión (--mc: data/misionCat.js, como en las fichas del menú): sin hacer, un tinte y el borde; hecha, llena de su
-   color y con su marca; la que sigues, con borde blanco; la desplegada, además, con su piquito hacia la misión de debajo.
-   Debajo, al tocar una, la misión: su nombre, lo que hay que hacer, sus pasos y lo lejos que está. El panel tiene un ancho
-   mínimo para que, al desplegarse, no crezca y la brújula no se mueva */
-#tl.mis { --chip: 30px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
-/* (la misión desplegada toma el ancho del panel sin ensancharlo: así no se mueve la brújula al abrirse) */
-#tl.mis #quest { width: 0; min-width: 100%; }
-@media (max-height: 520px) { #tl.mis { --chip: 28px; } }
-/* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
-@media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
-@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 36px; min-width: 260px; } #tl.mis #misiones { gap: 8px; } }
-#misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 6px; }
-#misiones button { --mc: #c9b8ff; position: relative; width: var(--chip); height: var(--chip); padding: 0; display: grid; place-items: center; border-radius: 6px; cursor: pointer;
-  background: color-mix(in srgb, var(--mc) 16%, rgba(13, 6, 28, .6)); border: 1px solid color-mix(in srgb, var(--mc) 70%, transparent); color: #fff; transition: transform .15s; }
-#misiones button :is(svg, img) { width: 64%; height: 64%; opacity: .85; pointer-events: none; }
-#misiones button.on { background: color-mix(in srgb, var(--mc) 50%, rgba(13, 6, 28, .6)); border-color: var(--mc); }
-#misiones button.cur { border: 2px solid #fff; box-shadow: 0 0 8px color-mix(in srgb, var(--mc) 75%, transparent); }
-#misiones button:is(.on, .cur, .sel) :is(svg, img) { opacity: 1; }
-#misiones button:active { transform: scale(.92); }
-#misiones button.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 13px; height: 13px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 8px/13px sans-serif; text-align: center; }
-#misiones button.sel::before { content: ''; position: absolute; left: 50%; bottom: -9px; width: 8px; height: 8px; margin-left: -4px; transform: rotate(45deg); background: color-mix(in srgb, var(--mc) 80%, #fff); }
-#tl.mis #quest { display: block; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, .12); cursor: pointer; animation: tlAbre .28s cubic-bezier(.2, .9, .3, 1); }
-#tl.mis #quest.hidden { display: none; }
-#tl.mis #quest small, #tl.mis #quest b.qt { text-box: trim-both cap alphabetic; } #tl.mis #quest small + b.qt { margin-top: var(--r-ts); } #tl.mis #quest .qrow { margin-top: var(--r-ts); }
-#tl.mis #quest .qd { display: inline; color: #ff9bd6; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; }
-@media (prefers-reduced-motion: reduce) { #tl.mis #quest { animation: none; } }
+/* las misiones del pueblo: una casilla igual para cada una, con su icono; las hechas, de color y con su marca, y la que
+   sigues, encendida. Encima, el pueblo y cuántas van */
+#ribbons.mis { display: grid; gap: 4px; padding: 8px 0 0; border-top: 1px solid rgba(255, 255, 255, .1); }
+#ribbons.mis .mh { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+#ribbons.mis .mc { font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; color: #fff; }
+#ribbons.mis .dots { display: grid; grid-template-columns: repeat(var(--n, 8), minmax(0, 24px)); gap: 4px; }
+/* (cada una del color de la categoría de su misión, --mc: data/misionCat.js, como en las fichas del menú: sin hacer, un
+   tinte y el borde; hecha, llena de su color y con su marca; la que sigues, con borde blanco) */
+#ribbons.mis .dots i { --mc: #c9b8ff; position: relative; width: auto; height: auto; aspect-ratio: 1; transform: none; display: grid; place-items: center; border-radius: 4px; background: color-mix(in srgb, var(--mc) 16%, rgba(13, 6, 28, .6)); border: 1px solid color-mix(in srgb, var(--mc) 70%, transparent); }
+#ribbons.mis .dots i :is(svg, img) { width: 64%; height: 64%; opacity: .85; }
+#ribbons.mis .dots i.on { background: color-mix(in srgb, var(--mc) 50%, rgba(13, 6, 28, .6)); border-color: var(--mc); } #ribbons.mis .dots i.cur { border: 2px solid #fff; box-shadow: 0 0 8px color-mix(in srgb, var(--mc) 75%, transparent); }
+#ribbons.mis .dots i:is(.on, .cur) :is(svg, img) { opacity: 1; }
+#ribbons.mis .dots i.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 13px; height: 13px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 8px/13px sans-serif; text-align: center; }
 #ribbons .eg { margin-left: 8px; font-size: var(--fs-sm); color: #ff7ac8; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 1px 2px #000; }
-/* la aventura de Otsagabia (ui.js verMision): solo el icono de la misión; al tocarlo, o al cambiar lo que hay que hacer,
-   unos segundos, lo que hay que hacer y las cintas */
-#quest .ic { position: relative; cursor: pointer; }
+/* el botón que pliega y despliega las misiones del pueblo (ui.js pliegaMisiones): la flecha, a la derecha de la misión de
+   ahora. Plegadas, solo esa misión, con lo hecho en la insignia de su icono, como el nivel en el botón del menú del inicio;
+   al acabar una, se abren un momento (asoma) */
+#quest .ic { position: relative; }
 #quest .qn { display: none; position: absolute; right: -6px; bottom: -6px; min-width: 18px; height: 18px; padding: 0 4px; place-items: center; border-radius: 9px; background: linear-gradient(135deg, #ff3fcf, #9c3bff); color: #fff; font: 700 11px/1 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); }
-#tl:not(.mis):not(.ver) #quest .qn:not(:empty) { display: grid; }
-#tl:not(.mis):not(.ver) :is(#quest .qtxt, #ribbons) { display: none; }
-#tl:not(.mis).ver :is(#quest .qtxt, #ribbons) { animation: tlAbre .28s cubic-bezier(.2, .9, .3, 1); }
+#tl.plegado:not(.asoma) #quest .qn:not(:empty) { display: grid; }
+.tl-pl { flex: none; align-self: center; width: 32px; height: 32px; margin: 0 -4px 0 auto; display: grid; place-items: center; padding: 0; border: 1px solid rgba(190, 150, 255, .3); border-radius: 8px; background: rgba(255, 255, 255, .06); color: #fff; cursor: pointer; }
+.tl-pl svg { width: 18px; height: 18px; transform: rotate(180deg); transition: transform .28s cubic-bezier(.2, .9, .3, 1); }
+#tl.plegado:not(.asoma) .tl-pl svg { transform: none; }
+#tl.plegado:not(.asoma) #ribbons { display: none; }
+#tl:is(:not(.plegado), .asoma) #ribbons { animation: tlAbre .28s cubic-bezier(.2, .9, .3, 1); }
 @keyframes tlAbre { from { opacity: 0; transform: translateY(-6px); } }
-/* (sin misión que seguir, enseña las cintas: si no, se quedaría vacío) */
-#tl:not(.mis):has(#quest.hidden) #ribbons { display: flex; }
-@media (prefers-reduced-motion: reduce) { #tl #ribbons, #tl #quest .qtxt { animation: none; } }
+/* (sin misión que seguir, el panel enseña las del pueblo aunque esté plegado: si no, se quedaría vacío) */
+#tl.plegado:has(#quest.hidden) #ribbons { display: flex; } #tl.plegado:has(#quest.hidden) #ribbons.mis { display: grid; }
+@media (prefers-reduced-motion: reduce) { #tl #ribbons { animation: none; } .tl-pl svg { transition: none; } }
 /* arriba a la derecha: botones y minimapa */
 #topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .rbtns { display: flex; gap: 8px; }
@@ -282,8 +272,6 @@ summary { line-height: 1.3; }
 #mini { width: 112px; height: 112px; border-radius: 50%; position: relative; background: #5b8a3c; cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(12, 9, 20, .45), 0 6px 18px rgba(0, 0, 0, .35); }
 #mini canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }   /* (el mapa, recortado en el círculo; la hora, fuera del recorte) */
 #mini::after { content: 'N'; position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font: 900 var(--fs-xs) 'MZ Texto', sans-serif; color: #ff7ac8; text-shadow: 0 1px 2px #000; }
-/* la hora, en una pastilla sobre el borde de abajo del círculo, con el mismo borde blanco: forma parte del aro y se ve entera.
-   Antes era un recuadro dentro del círculo que el borde cortaba por los lados */
 #clock { position: absolute; bottom: 0; left: 50%; transform: translate(-50%, calc(50% + 1.25px)); display: flex; align-items: center; gap: 4px; padding: 3px 9px 3px 7px; border-radius: 999px; background: #1a0d33; border: 2px solid #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, .45); font: 900 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; color: #fff; white-space: nowrap; font-variant-numeric: tabular-nums; }
 #clock .ci svg { width: 12px; height: 12px; display: block; }
 /* acción contextual */

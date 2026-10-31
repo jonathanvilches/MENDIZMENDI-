@@ -306,14 +306,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Debajo, el pueblo de delante: el rótulo y, en su propia fila (`.gi-fila`), el nombre y sus misiones; en el móvil
   tumbado van uno al lado del otro, centrados entre sí y debajo del rótulo, en una sola fila (si no caben, las casillas
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
-- **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `eligeMision`, y `#misiones` en `style.css`): solo los
-  iconos de las misiones del pueblo, una casilla por misión del color de su categoría (hecha, llena y con su marca verde
-  sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y debajo se despliega: su
-  nombre, lo que toca hacer, sus pasos y lo lejos que está; se recoge sola a los 7 s o tocando la misma casilla, y
-  tocando lo desplegado se abre el cuaderno. Al entrar en el pueblo y cada vez que cambia lo que toca hacer se despliega
-  un momento (6 y 4,5 s). El panel tiene un ancho mínimo y lo desplegado no lo ensancha: la brújula no se mueve. En los
-  tumbados más estrechos, las casillas van en dos filas. Antes iban siempre a la vista la misión, su paso y el pueblo con
-  las casillas, y ocupaba demasiado. (En la aventura de Otsagabia, la de las cintas, sigue el recuadro de antes.)
+- **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `setQuest` y `pliegaMisiones`): la misión que sigues, con
+  su paso y lo lejos que está, y debajo el desplegable con el nombre del pueblo y la casilla de cada misión. Se probó a
+  dejar solo los iconos (octubre de 2026), pero el autor prefiere este: se volvió a él.
 - **Minimapa** (`#mini`, `#clock`): la hora va en una pastilla sobre el borde de abajo del círculo, con el mismo borde
   blanco, entera. El mapa se recorta en el círculo y la hora queda fuera del recorte; antes era un recuadro dentro del
   círculo que el borde cortaba.
