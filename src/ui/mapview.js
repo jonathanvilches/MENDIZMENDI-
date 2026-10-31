@@ -65,12 +65,25 @@ export function mountMapView(ui, box, opts = {}) {
     const [x0, y0] = toS(-HALF, -HALF);
     g.drawImage(ui.mapBase || ui.mapImg, x0, y0, 2 * HALF * v.s, 2 * HALF * v.s);
     if (ui.mapBase) { if (!ui.mapVec) { try { ui.mapVecJob ? ui.mapVecJob.finishNow() : (ui.mapVec = buildMapVectors()); } catch (e) { ui.mapVec = { layers: [] }; } } drawMapVectors(g, ui.mapVec, v, W, H, dpr, (ms) => setTimeout(redraw, ms)); }
-    // casas en vector: nítidas a cualquier aumento
-    g.fillStyle = '#b44a3a'; g.strokeStyle = 'rgba(70,24,16,.55)'; g.lineWidth = 1;
-    for (const h of ui.mapHouseList || []) {
-      const [X, Y] = toS(h.x, h.z); if (X < -40 || Y < -40 || X > W + 40 || Y > H + 40) continue;
-      const w = (h.w || 8) * v.s, d = (h.d || 8) * v.s;
-      g.save(); g.translate(X, Y); g.rotate(-(h.ry || 0)); g.fillRect(-w / 2, -d / 2, w, d); if (w > 6) g.strokeRect(-w / 2, -d / 2, w, d); g.restore();
+    // casas en vector, nítidas a cualquier aumento: primero todas las sombras (abajo a la derecha) y luego los tejados, de
+    // teja (en el Pirineo, la mitad de pizarra), cada uno con su tono, una vertiente más oscura y el caballete por el lado
+    // largo. Antes, rectángulos rojos todos iguales
+    const casas = [], pir = game.def?.family === 'pyrenean', so = Math.min(5, Math.max(1, 0.9 * v.s));
+    for (const h of ui.mapHouseList || []) { const [X, Y] = toS(h.x, h.z); if (X < -40 || Y < -40 || X > W + 40 || Y > H + 40) continue; casas.push([h, X, Y, (h.w || 8) * v.s, (h.d || 8) * v.s]); }
+    g.fillStyle = 'rgba(30,18,44,.3)';
+    for (const [h, X, Y, w, d] of casas) { g.save(); g.translate(X + so, Y + so); g.rotate(-(h.ry || 0)); g.fillRect(-w / 2, -d / 2, w, d); g.restore(); }
+    for (const [h, X, Y, w, d] of casas) {
+      const q = Math.abs(Math.sin(h.x * 12.9898 + h.z * 78.233) * 43758.5453) % 1, piz = pir && q < 0.5, k = 0.9 + q * 0.2;
+      const [r0, g0, b0] = piz ? [112, 118, 130] : [196, 92, 66], col = (f) => `rgb(${Math.round(r0 * k * f)},${Math.round(g0 * k * f)},${Math.round(b0 * k * f)})`;
+      g.save(); g.translate(X, Y); g.rotate(-(h.ry || 0));
+      const largo = w >= d;   // (el caballete va por el lado largo; una vertiente con luz y la otra en sombra)
+      g.fillStyle = col(1.08); if (largo) g.fillRect(-w / 2, -d / 2, w, d / 2); else g.fillRect(-w / 2, -d / 2, w / 2, d);
+      g.fillStyle = col(0.82); if (largo) g.fillRect(-w / 2, 0, w, d / 2); else g.fillRect(0, -d / 2, w / 2, d);
+      if (w > 6 && d > 6) {
+        g.strokeStyle = 'rgba(255,232,214,.55)'; g.lineWidth = 1; g.beginPath(); if (largo) { g.moveTo(-w / 2 + 1, 0); g.lineTo(w / 2 - 1, 0); } else { g.moveTo(0, -d / 2 + 1); g.lineTo(0, d / 2 - 1); } g.stroke();
+        g.strokeStyle = 'rgba(64,22,14,.6)'; g.strokeRect(-w / 2, -d / 2, w, d);
+      }
+      g.restore();
     }
     // el camino hasta el objetivo: una línea rosa a trazos con borde oscuro, debajo de las marcas
     const tR = target(), R = camino(tR);
@@ -85,6 +98,7 @@ export function mountMapView(ui, box, opts = {}) {
     occ.push({ x: px - 14, y: py - 14, w: 28, h: 28 });
     const ctl = box.querySelector('.mapctl')?.getBoundingClientRect(), br = cv.getBoundingClientRect();
     if (ctl?.width) occ.push({ x: enCss(ctl.left - br.left) - 4, y: enCss(ctl.top - br.top) - 4, w: enCss(ctl.width) + 8, h: enCss(ctl.height) + 8 });
+    { const hr = cabecera(); if (hr) occ.push(hr); }   // (en el móvil tumbado, el título va encima del mapa: los nombres no se meten debajo)
     hits = [];
     // 1) iconos: las misiones nunca se esconden (si se tapan, se separan un poco);
     //    un lugar cuyo icono choca con otro deja solo su nombre, y el icono vuelve al ampliar
@@ -102,6 +116,8 @@ export function mountMapView(ui, box, opts = {}) {
       } else if (placed.some(p => Math.hypot(p.X - X, p.Y - Y) < p.r + r + 2)) continue;
       placed.push({ it, X, Y, r }); occ.push({ x: X - r, y: Y - r, w: 2 * r, h: 2 * r });
     }
+    // abajo a la izquierda: la regla de escala y, encima, el norte; los nombres no se ponen encima
+    occ.push({ x: 4, y: H - 30, w: 140, h: 28 }, { x: 4, y: H - 74, w: 62, h: 44 });
     const t = tR; let tS = null;
     if (t) { tS = toS(t.x, t.z); occ.push({ x: tS[0] - 12, y: tS[1] - 40, w: 24, h: 40 }); }
     // 2) nombres: junto a su icono (debajo, encima, a los lados o en diagonal); si no cabe, se esconde hasta ampliar
@@ -145,6 +161,12 @@ export function mountMapView(ui, box, opts = {}) {
       if (im.complete && im.naturalWidth) g.drawImage(im, tS[0] - 15, tS[1] - 32, 30, 30);
     }
     ui.drawPlayer(g, px, py, P.heading, 1.25);
+    // el norte: el mapa del pueblo está siempre con el norte arriba (el minimapa gira; este no)
+    { const cx = 26, cy = H - 52, R = 18;
+      g.fillStyle = 'rgba(28,11,58,.86)'; g.beginPath(); g.arc(cx, cy, R, 0, 7); g.fill(); g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 2; g.stroke();
+      g.fillStyle = '#ff7ac8'; g.beginPath(); g.moveTo(cx, cy - R + 5); g.lineTo(cx + 5, cy + 1); g.lineTo(cx - 5, cy + 1); g.closePath(); g.fill();
+      g.fillStyle = 'rgba(255,255,255,.75)'; g.beginPath(); g.moveTo(cx, cy + R - 5); g.lineTo(cx + 5, cy + 1); g.lineTo(cx - 5, cy + 1); g.closePath(); g.fill();
+      g.font = '900 11px "MZ Texto", Nunito, sans-serif'; g.textAlign = 'left'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.fillText('N', cx + R + 6, cy - R + 8); }
     // regla de escala
     const m = [10, 20, 50, 100, 200, 500].find(m => m * v.s >= 60) || 500, L = m * v.s;
     g.fillStyle = 'rgba(20,10,40,.6)'; roundRect(g, 8, H - 26, L + 52, 18, 9); g.fill();
@@ -232,7 +254,13 @@ export function mountMapView(ui, box, opts = {}) {
     else zoomTo(W / 2, H / 2, Math.max(1, 1.6 / v.s), game.player.pos.x, game.player.pos.z);
   });
 
-  // encuadre inicial: el pueblo (o el valle) y el jugador, ampliados lo justo
+  // el título de la pantalla, si va encima del mapa (el móvil tumbado): su caja en el lienzo, o null
+  function cabecera() {
+    const hd = box.closest('.paper')?.querySelector(':scope > header h2'), hr = hd?.getBoundingClientRect(), br = cv.getBoundingClientRect();
+    if (!hr?.width || hr.bottom <= br.top + 2 || hr.top >= br.bottom || hr.right <= br.left) return null;
+    return { x: enCss(hr.left - br.left) - 4, y: enCss(hr.top - br.top) - 4, w: enCss(hr.width) + 8, h: enCss(hr.height) + 8 };
+  }
+  // encuadre inicial: el pueblo (o el valle) y el jugador, ampliados lo justo (y por debajo del título si lo tapa)
   function fit() {
     const all = collect(), P = game.player.pos;
     const near = all.filter(i => Math.hypot(i.x - P.x, i.z - P.z) < (opts.fitRadius || 260));
@@ -240,9 +268,10 @@ export function mountMapView(ui, box, opts = {}) {
     const t = target(); if (t && Math.hypot(t.x - P.x, t.z - P.z) < 600) near.push(t);
     const xs = [P.x, ...near.map(i => i.x)], zs = [P.z, ...near.map(i => i.z)];
     const x0 = Math.min(...xs), x1 = Math.max(...xs), z0 = Math.min(...zs), z1 = Math.max(...zs);
+    const hr = cabecera(), top = hr ? Math.min(H / 3, hr.y + hr.h) : 0;
     v.cx = (x0 + x1) / 2; v.cz = (z0 + z1) / 2;
-    v.s = Math.min((W - Math.min(90, W * 0.2)) / Math.max(60, x1 - x0), (H - Math.min(110, H * 0.22)) / Math.max(60, z1 - z0));
-    clampV();
+    v.s = Math.min((W - Math.min(90, W * 0.2)) / Math.max(60, x1 - x0), (H - top - Math.min(110, H * 0.22)) / Math.max(60, z1 - z0));
+    clampV(); if (top) { v.cz -= top / 2 / v.s; clampV(); }
   }
   let fitted = false;
   const resize = () => {
