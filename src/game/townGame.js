@@ -24,6 +24,7 @@ import { faunaName } from '../data/fauna.js';
 import { LEGENDS, NIGHT_CARNIVAL } from '../data/legends.js';
 import MOUNTAINS from '../data/mountains.json';
 import { buildAgro } from '../world/agro.js';
+import { CORRALES } from '../data/ferias.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { kaixo } from './saludo.js';
 import { enCss } from '../util/tele.js';
@@ -177,8 +178,8 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), `Excava ${st.where} con cuidado (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'castle': { const C = M.castle = CASTLE_TOWNS[m.castle]; M.title = m.title || C.title; M.icon = 'castle'; M.need = C.parts.length;
         M.steps = () => ['Habla con ' + host(), `Recorre las partes del castillo: busca las banderas (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
-      case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow';
-        M.steps = () => ['Habla con ' + host(), 'Ve a los corrales: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
+      case 'feria': M.title = m.title || 'Feria de ganado'; M.icon = 'cow'; M.need = CORRALES.length;
+        M.steps = () => ['Habla con ' + host(), `Recorre los corrales y conoce a cada animal (${M.count}/${M.need})`, 'Ve a la pista del concurso: juez por un día', 'Vuelve con ' + host() + ' y cierra el trato']; break;
       case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.figId = m.who; M.figImg = personajeUrl(m.who) || ''; M.title = F.name; M.icon = F.icon;
         M.steps = () => ['Habla con ' + host(), `Ve a ver el recuerdo de ${F.name}`, 'Responde la pregunta']; break; }
       case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
@@ -598,7 +599,7 @@ export class TownGame {
       case 'carnival': return (M.night ? M.step === 1 || M.step === 2 : M.step === 1) ? null : at(M.host);
       case 'mirador': if (M.step === 1) { const v = this.miradorSpot(); return v && Math.hypot(v.x - this.player.pos.x, v.z - this.player.pos.z) > 6 ? { x: v.x, z: v.z, h: 2 } : null; } return at(M.host);
       case 'dolmen': case 'castle': if (M.step === 1) return nearest(this.items.filter(it => it.M === M).map(it => ({ x: it.x, z: it.z, h: 1.4 }))); return at(M.host);
-      case 'feria': return M.step === 1 && M.fair ? { x: M.fair.x, z: M.fair.z, h: 3 } : at(M.host);
+      case 'feria': if (M.fair && M.step === 1) return nearest(M.fair.pens.filter(p => !p.visto).map(p => ({ x: p.fx, z: p.fz, h: 2.4 }))); if (M.fair && M.step === 2) return { x: M.fair.pista.x, z: M.fair.pista.z, h: 2 }; return at(M.host);
       case 'figure': return M.step === 1 && M.memo ? { x: M.memo.x, z: M.memo.z, h: 3 } : at(M.host);
       case 'trade': return M.step === 1 && M.bench ? { x: M.bench.x, z: M.bench.z, h: 2 } : at(M.host);
       case 'race': if (M.step === 1) { const g = this.gates.find(g => g.next); return g ? { x: g.x, z: g.z, h: 4.4 } : null; } return at(M.host);
@@ -799,6 +800,7 @@ export class TownGame {
     for (const b of this.blasones || []) if (ok(b.read.x, b.read.z)) list.push({ kind: 'escudo', b, x: b.read.x, z: b.read.z, r: 3, label: this.P.cards.includes(b.id) ? 'Volver a leer el escudo' : 'Leer el escudo de la casa' });
     for (const a of this.actors) if (a.visible !== false && ok(a.pos.x, a.pos.z)) list.push({ kind: 'npc', a, x: a.pos.x, z: a.pos.z, r: 3, label: a.market ? `Puesto del mercado: ${a.market.toLowerCase()}` : a === this.pelotari ? `Jugar a pelota con ${a.name}` : a === this.coach ? 'Jugar un partido en El Sadar' : a === this.futsalCoach ? `Fútbol con ${clubOfTown(this.def.id)?.name || 'el club del pueblo'}` : a.sabio ? `${a.name}: la historia de ${a.sabio.name}` : a.cuento ? `${a.name}: escuchar «${a.cuento.title}»` : `Hablar con ${a.name}` });
     for (const a of this.walkers) if (ok(a.pos.x, a.pos.z)) list.push({ kind: 'walker', a, x: a.pos.x, z: a.pos.z, r: a.info || a.jobs ? 3 : 2.4, label: a.pasaka ? `Jugar a pasaka con ${a.name}` : a.musico ? `Tocar ${instrumentoById(a.musico)?.short || 'música'} con ${a.name}` : a.stall ? 'Productos del pueblo' : a.jobs ? `Ayudar a ${a.name.toLowerCase()} (txanponak)` : a.info ? `Hablar con ${a.name.toLowerCase() === 'pastor' ? 'el pastor' : 'la ganadera'}` : `Saludar a ${a.name}${TAREAS[a.tarea] ? ' · ' + TAREAS[a.tarea].name : ''}` });
+    for (const M of this.missions) if (M.type === 'feria' && M.step === 1 && M.fair) for (const pen of M.fair.pens) if (!pen.visto && ok(pen.fx, pen.fz)) list.push({ kind: 'corral', M, pen, x: pen.fx, z: pen.fz, r: 3.2, label: `Conocer: ${pen.nombre.toLowerCase()}` });
     for (const o of this.agro?.list || []) if (ok(o.x, o.z)) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) if (ok(it.x, it.z)) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     this.tractorAcciones(list, ok);   // (subir al tractor o a la cosechadora de la cosecha, o bajar)
@@ -864,6 +866,7 @@ export class TownGame {
     if (it.kind === 'walker' && it.a.info) return this.explainWork(it.a);
     if (it.kind === 'walker' && it.a.stall) return this.buyStall();
     if (it.kind === 'agro') return this.showAgro(it.o);
+    if (it.kind === 'corral') return this.conoceCorral(it.M, it.pen);
     if (it.kind === 'escudo') return this.readShield(it.b);
     if (it.kind === 'armas') return this.readTownArmsAt();
     if (it.kind === 'pet') return this.petAnimal(it.a);

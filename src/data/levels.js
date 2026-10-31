@@ -554,7 +554,9 @@ for (const [id, list] of Object.entries(FIGURE_TOWNS)) {
 // Ferias de ganado: el mercado del campo en otoño (compra, venta, concurso y trato con apretón de manos)
 for (const [id, F] of Object.entries(FERIA_TOWNS)) {
   const l = LEVELS.find(x => x.id === id); if (!l?.missions) continue;
-  const at = l.missions.findIndex(m => m.type === 'quiz');
+  // (las ferias nuevas, al final: cada misión guarda lo hecho por su número en el pueblo y, metida delante del sabio, las
+  // partidas de antes darían por hecha la feria en vez del sabio)
+  const at = F.alFinal ? -1 : l.missions.findIndex(m => m.type === 'quiz');
   l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'feria', title: F.title, note: F.note, ilus: `${id}-feria`,
     host: H('Tratante de ganado', { shirt: '#1d1d24', pants: '#2b2630', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: true }) });
 }
