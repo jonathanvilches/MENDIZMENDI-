@@ -210,40 +210,49 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     mats.push({ dispose: () => t.dispose() });
   }
   // (y su contorno de fuera, una cinta clara sobre el borde de las losas, con otra oscura debajo, algo más ancha, que la
-  // recorta; del mismo ancho en pantalla a cualquier distancia (ANCHO_B). Solo los tramos que no dan a otra comarca)
+  // recorta; y entre comarcas, una junta oscura y, a cada lado, una franja del color de cada comarca que se apaga hacia
+  // dentro: así se ve dónde acaba una y empieza otra, aunque sean del mismo verde. Todo del mismo ancho en pantalla a
+  // cualquier distancia (ANCHO_B) y en la losa de su comarca, que se levanta con ella)
   const ANCHO_B = { value: 0.1 };
-  const cintaB = (color, op, fac, orden) => { const m = new THREE.MeshBasicMaterial({ color, map: rioTex(), transparent: true, opacity: op, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 });
+  const haciaDentro = () => lienzo(4, 64, (g) => { const gr = g.createLinearGradient(0, 64, 0, 0); for (const [k, a] of [[0, 1], [0.3, 0.75], [1, 0]]) gr.addColorStop(k, `rgba(255,255,255,${a})`); g.fillStyle = gr; g.fillRect(0, 0, 4, 64); });
+  const cintaB = (color, op, fac, orden, map = rioTex()) => { const m = new THREE.MeshBasicMaterial({ color, map, transparent: true, opacity: op, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 });
     m.onBeforeCompile = (sh) => { sh.uniforms.uAnchoB = ANCHO_B; sh.uniforms.uFacB = { value: fac };
       sh.vertexShader = 'attribute vec3 lado; uniform float uAnchoB, uFacB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAnchoB * uFacB;'); };
     m.customProgramCacheKey = () => 'mapa-contorno'; mats.push(m); m.userData.orden = orden; return m; };
-  const contornoM = [cintaB(0x1d1240, 0.55, 2.4, 2), cintaB(0xfff1cf, 0.95, 1, 3)];
+  const contornoM = [cintaB(0x1d1240, 0.55, 2.4, 2), cintaB(0xfff1cf, 0.95, 1, 3)], juntaM = cintaB(0x1d1240, 0.62, 1.1, 2), gradB = haciaDentro();
+  mats.push({ dispose: () => gradB.dispose() });
+  // (los tramos seguidos de lados que cumplen algo, empezando donde cambia, para no partir ni repetir uno que da la vuelta)
+  const tramos = (P, ok) => { const n = P.length, out = []; let s = 0; while (s < n && ok[(s - 1 + n) % n] === ok[s]) s++; if (s === n) s = 0;
+    let cur = null; for (let k = 0; k < n; k++) { const i = (s + k) % n; if (ok[i]) { if (!cur) out.push(cur = [P[i]]); cur.push(P[(i + 1) % n]); } else cur = null; } return out; };
+  // (una cinta a lo largo de unos puntos: par(ox, oz) da los dos desplazamientos de cada punto, en anchos)
+  const cinta2 = (runs, par) => { const pos = [], lado = [], uv = [], idx = [];
+    for (const pts of runs) { const b0 = pos.length / 3;
+      pts.forEach(([X, Z], k) => {
+        const p0 = pts[Math.max(0, k - 1)], p1 = pts[Math.min(pts.length - 1, k + 1)], L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, ox = -(p1[1] - p0[1]) / L, oz = (p1[0] - p0[0]) / L, y = GROSOR + alto(X, Z) + 0.06, [a, b] = par(ox, oz);
+        pos.push(X, y, Z, X, y, Z); lado.push(a[0], 0, a[1], b[0], 0, b[1]); uv.push(k * 0.1, 0, k * 0.1, 1);
+        if (k) { const v = b0 + k * 2; idx.push(v - 2, v, v - 1, v - 1, v, v + 1); }
+      }); }
+    if (!idx.length) return null;
+    const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gb.setAttribute('lado', new THREE.Float32BufferAttribute(lado, 3)); gb.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gb.setIndex(idx); geos.push(gb);
+    return gb; };
+  const ponCinta = (c, gb, m) => { if (!gb) return; const me = new THREE.Mesh(gb, m); me.renderOrder = m.userData.orden; me.raycast = () => {}; me.frustumCulled = false; c.mesh.add(me); };
   for (const c of C) {
-    const P = c.Pw, n = P.length, fuera = new Uint8Array(n), e = 0.22;
+    const P = c.Pw, n = P.length, fuera = new Array(n), dentro = new Array(n), e = 0.22;
+    const otro = (x, z) => C.some(o => o !== c && en(o, x, z));
     for (let i = 0; i < n; i++) {
       const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n], L = Math.hypot(bx - ax, bz - az) || 1, nx = -(bz - az) / L * e, nz = (bx - ax) / L * e, mx = (ax + bx) / 2, mz = (az + bz) / 2;
-      const otro = (x, z) => C.some(o => o !== c && en(o, x, z));
-      fuera[i] = !otro(mx + nx, mz + nz) && !otro(mx - nx, mz - nz) ? 1 : 0;
+      fuera[i] = !otro(mx + nx, mz + nz) && !otro(mx - nx, mz - nz); dentro[i] = !fuera[i];
     }
-    const pos = [], lado = [], uv = [], idx = [];
-    for (let i = 0; i < n; i++) {
-      if (!fuera[i]) continue;
-      // (un tramo: este lado y los siguientes que también dan afuera)
-      let j = i; const pts = [];
-      while (j < i + n && fuera[j % n]) { pts.push(P[j % n]); j++; }
-      pts.push(P[j % n]);
-      const b0 = pos.length / 3;
-      pts.forEach(([X, Z], k) => {
-        const p0 = pts[Math.max(0, k - 1)], p1 = pts[Math.min(pts.length - 1, k + 1)], L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, ox = -(p1[1] - p0[1]) / L, oz = (p1[0] - p0[0]) / L, y = GROSOR + alto(X, Z) + 0.06;
-        pos.push(X, y, Z, X, y, Z); lado.push(ox, 0, oz, -ox, 0, -oz); uv.push(k * 0.1, 0, k * 0.1, 1);
-        if (k) { const v = b0 + k * 2; idx.push(v - 2, v, v - 1, v - 1, v, v + 1); }
-      });
-      i = j - 1;
-      if (j >= n) break;
-    }
-    if (!idx.length) continue;
-    const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gb.setAttribute('lado', new THREE.Float32BufferAttribute(lado, 3)); gb.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gb.setIndex(idx); geos.push(gb);
-    for (const m of contornoM) { const me = new THREE.Mesh(gb, m); me.renderOrder = m.userData.orden; me.raycast = () => {}; me.frustumCulled = false; c.mesh.add(me); }
+    // (hacia dentro de la comarca: el lado izquierdo de sus bordes si va en sentido contrario a las agujas, si no, el derecho;
+    // y se comprueba en su lado más largo, por si acaso)
+    let area = 0, larga = 0, li = 0; for (let i = 0; i < n; i++) { const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n]; area += ax * bz - bx * az; const L = Math.hypot(bx - ax, bz - az); if (L > larga) { larga = L; li = i; } }
+    let sg = area > 0 ? 1 : -1; { const [ax, az] = P[li], [bx, bz] = P[(li + 1) % n]; if (!en(c, (ax + bx) / 2 - (bz - az) / larga * e * sg, (az + bz) / 2 + (bx - ax) / larga * e * sg)) sg = -sg; }
+    const gFuera = cinta2(tramos(P, fuera), (ox, oz) => [[ox, oz], [-ox, -oz]]); for (const m of contornoM) ponCinta(c, gFuera, m);
+    const junta = tramos(P, dentro), luz = cintaB(new THREE.Color(c.color).lerp(BLANCO, 0.5), 0.9, 1, 3, gradB); c.bordeIn = luz;
+    ponCinta(c, cinta2(junta, (ox, oz) => [[ox, oz], [-ox, -oz]]), juntaM);
+    ponCinta(c, cinta2(junta, (ox, oz) => [[ox * sg * 1.0, oz * sg * 1.0], [ox * sg * 3.0, oz * sg * 3.0]]), luz);
   }
+
 
   // los ríos: una cinta de luz azul sobre el relieve, cortada por comarcas (cada trozo va con la suya cuando se levanta)
   const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x7cd0ff, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
@@ -1372,7 +1381,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK + (0.38 - c.tintK) * c.fondo;
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * c.fondo)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
-      c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo);
+      c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
     // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
