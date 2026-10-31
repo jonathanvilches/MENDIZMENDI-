@@ -168,6 +168,12 @@
 @media (orientation: landscape) and (max-height: 520px) { #mapbox .mapcard { bottom: 8px; } }
 /* (en el móvil de pie, a todo el ancho y con un botón encima del otro: así los dos se leen enteros) */
 @media (max-width: 560px) { #mapbox .mapcard { width: calc(100% - 16px); } #mapbox .mapcard .mc-b { flex-direction: column; } #mapbox .mapcard .mc-b .btn { flex: none; width: 100%; } }
+/* (con un solo botón, el de ir a la misión: la flecha en un botón redondo al lado del nombre, sin la barra rosa a todo el
+   ancho; la ficha queda de una sola fila) */
+#mapbox .mapcard:has(.mc-b > [data-a="mission"]:only-child) { grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; }
+#mapbox .mapcard:has(.mc-b > [data-a="mission"]:only-child) .mc-t { padding-right: 0; }
+#mapbox .mapcard .mc-b:has(> [data-a="mission"]:only-child) { grid-column: 3; grid-row: 1; flex-direction: row; margin-right: 36px; }
+#mapbox .mapcard .mc-b > [data-a="mission"]:only-child { flex: none; width: 52px; height: 52px; min-height: 0; padding: 0; border-radius: 50%; display: grid; place-items: center; }
 /* con lámina, en horizontal: dos columnas iguales, la lámina entera a la izquierda */
 @media (orientation: landscape) { .mg-overlay.ix-ov > .mg-card.ix.has-lam { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
 /* con una ilustración apaisada (los personajes de Navarra, las figuras): en horizontal, la mitad de la ficha y a todo su

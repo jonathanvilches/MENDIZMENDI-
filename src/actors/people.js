@@ -23,8 +23,12 @@ export function mat(color, o = {}) {
 // - la cara con detalle (ojos, cejas, boca) solo de cerca
 const _frustum = new THREE.Frustum(), _pm = new THREE.Matrix4(), _sph = new THREE.Sphere();
 export function frameFrustum(camera) { camera.updateMatrixWorld(); _pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse); _frustum.setFromProjectionMatrix(_pm); return _frustum; }
+// (hasta dónde proyectan sombra los personajes: en calidad baja, la del móvil, 18 m; más lejos la sombra casi no se ve y
+// dobla sus triángulos. La pone el pueblo al empezar, sombraPersonas)
+let DIST_SOMBRA = 28;
+export function sombraPersonas(q) { DIST_SOMBRA = q === 'low' ? 18 : 28; }
 export function cullActor(a, d, max, dt, player, fr = _frustum) {
-  const sh = d < 28;
+  const sh = d < DIST_SOMBRA;
   if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh && !o.userData.noShadow; }); }
   _sph.center.set(a.pos.x, a.pos.y + 0.9, a.pos.z); _sph.radius = 2.2;
   a.onScreen = d < max && (d < 5 || fr.intersectsSphere(_sph));

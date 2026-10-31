@@ -1,6 +1,6 @@
 // Partida en un pueblo o ciudad: misiones con pasos claros, personajes, minijuegos y sello final.
 import * as THREE from 'three';
-import { Actor, cullActor, frameFrustum } from '../actors/people.js';
+import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
 import { PLACES } from '../world/layout.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
@@ -123,6 +123,7 @@ export class TownGame {
     };
     this.comarca = COMARCAS.find(c => c.id === def.comarca);
     this.P = profile();
+    sombraPersonas(QUALITY);   // (hasta dónde dan sombra los vecinos: menos en el móvil)
     this.ts = townState(this.P, def.id);
     this.ts.visits = (this.ts.visits || 0) + 1;
     this.mode = 'play';

@@ -86,6 +86,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Cada animal y cada vecino es una sola malla con piel.
   - Las animaciones lejanas se actualizan a saltos.
   - Los iconos 3D se hornean a WebP.
+  - Sombras y contornos solo de cerca: vecinos a 28 m y animales a 35 (contorno 26). En calidad baja, la del móvil,
+    18, 20 y 16 m (`sombraPersonas` en `actors/people.js`, `Fauna` en `actors/animals.js`).
 - **Botones en pleno partido:** responden al levantar el dedo (`tap` de `util/tap.js`), no al clic. En el iPhone,
   mientras el partido cambia la pantalla sin parar, Safari a veces se traga el clic: la X de la pelota no dejaba salir.
   Lo usan la X y las ventanas de la pelota, y la pausa, la cámara, la ventana de pausa y la final del fútbol. Con el
@@ -353,6 +355,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (aviso «Has llegado») o quitarlo; sin destino, a lo que toca de la misión que sigues, en rosa. La ruta va por calles y
   caminos en el minimapa (se pide a la cola de caminos de los vecinos, `nav.requestPath`, otra si cambia el objetivo o te
   alejas 6 m, como mucho una por segundo) y en el mapa grande. Marcar o quitar el destino no cierra el mapa.
+  La ficha de una misión en el mapa, con su único botón, es de una sola fila: icono, nombre y la flecha en un botón
+  redondo rosa (`infocard.css`, con `:has`).
 - **Tradiciones en el menú del juego** (`hub.js`, en «Más»; `didactico.js`, `s_tradiciones`; `ddgal.js`): la misma galería
   del material didáctico (cada comarca, danzas, carnavales, tradiciones, romerías, ferias, pelota y campanas), pero
   jugando cada una se descubre al hacer su misión, o la de una comarca al visitar uno de sus pueblos. La que falta sale

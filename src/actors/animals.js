@@ -391,9 +391,11 @@ export class Fauna {
     for (const a of this.animals) {
       const d = Math.hypot(a.pos.x - player.pos.x, a.pos.z - player.pos.z);
       a.obj.visible = !a.hidden && (d < vd || a.pinVisible);
-      const sh = d < 35;
+      // (sombra y contorno solo de cerca; en calidad baja, más cerca todavía: 20 y 16 m. Más lejos no se ven y doblan los
+      // triángulos de cada animal)
+      const sh = d < (this.visDist <= 60 ? 20 : 35);
       if (a.shadowOn !== sh) { a.shadowOn = sh; a.obj.traverse(o => { if (o.isMesh && !o.userData.outline) o.castShadow = sh; }); }
-      setOutlines(a.obj, d < 26);
+      setOutlines(a.obj, d < (this.visDist <= 60 ? 16 : 26));
       a.dist = d;
       if (d < vd + 30 || a.alwaysUpdate) a.update(dt, player);
     }
