@@ -723,7 +723,9 @@ export class Nature {
       const p = pathQuery(x, z); if (p.d < p.w + 1) continue;
       (fi.type === 5 ? vines : vegs).push({ x, z, s: 0.8 + rnd() * 0.4 });
     }
-    const mat = snowable(windMaterial(), 0.55, 0.25, 0.8);
+    // (con la masa de hojas del atlas, como las copas de lejos: sin ella, las cepas y las matas eran bolas lisas de un verde
+    // muy vivo, porque su color ya viene aclarado para ir debajo de la textura)
+    const mat = snowable(windMaterial(TEX.foliage ? { map: TEX.foliage } : {}), 0.55, 0.25, 0.8);
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const o of vines.slice(0, cap)) addCircle(o.x, o.z, 0.28, { vine: true });   // (las cepas, como troncos: se anda entre las hileras)
     for (const [geo, list] of [[vine, vines.slice(0, cap)], [veg, vegs.slice(0, cap)]]) {

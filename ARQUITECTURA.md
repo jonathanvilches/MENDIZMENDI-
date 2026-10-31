@@ -332,6 +332,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   su cartel, la báscula con su caseta y silos, palés, barricas o tinajas. El camino se marca con flechas en el suelo
   cada 18 m (por donde se anda, `nav.findPath`). Quien encargó la cosecha espera en la báscula: parado encima, se pesa
   (los kilos de verdad), se descarga y se habla con él. Prueba: `tools/cosecha-vehiculo.mjs` (TOWN=artajona o estella).
+- **Campos con la textura de su cultivo** (`world/terrain.js`, atributo `aCampo` y bloque del sombreador tras `grassy`):
+  cada vértice lleva el tipo de campo, la dirección de sus hileras y su borde (`fieldInfo`), y el sombreador dibuja
+  encima el cultivo: rastrojo y espigas en el cereal, heno en hileras, tierra labrada en surcos, hileras de hoja con
+  tierra clara en la viña, caballones en la huerta y suelo claro con matas en el olivar. Las cepas y las matas de la
+  huerta (`Nature.buildCrops`) llevan la masa de hojas del atlas, como las copas de lejos: antes eran bolas lisas.
 - **Maquinaria del campo con sus piezas** (`world/agro.js`): neumáticos de perfil redondeado con tacos en V, llantas con
   plato, buje y tornillos; capó redondeado con rejilla de lamas, respiraderos, faros e intermitentes; contrapesos; escape
   con caperuza y filtro de aire; cabina con montantes, techo con visera, rotativo, luces de trabajo, espejos, asiento y
