@@ -234,6 +234,11 @@ export function buildAnimal(kind, opts = {}) {
   // perros: orejas caídas y postura de la raza
   const pose = S.dog ? dogDress(inner, S, GEAR.get(key), opts) : null;
   const root = new THREE.Group(); root.add(inner);
+  // (se dibuja solo si está a la vista: la esfera de su pose de reposo, holgada para las patas, el cuello y la cabeza al
+  // moverse. Antes se dibujaban todos siempre, también los de detrás de la cámara: un rebaño a la espalda costaba más de
+  // cincuenta llamadas de dibujo en las afueras)
+  inner.updateMatrixWorld(true);
+  inner.traverse(o => { if (!o.isSkinnedMesh) return; try { o.computeBoundingSphere(); o.boundingSphere.radius *= 1.6; o.frustumCulled = true; } catch (e) { o.frustumCulled = false; } });
   const mixer = new THREE.AnimationMixer(inner), actions = {};
   for (const c of g.animations) actions[c.name] = mixer.clipAction(c);
   let cur = null, acc = 0;

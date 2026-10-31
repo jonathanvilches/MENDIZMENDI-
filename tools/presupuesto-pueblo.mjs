@@ -5,6 +5,7 @@
 // carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno, no cuántos hay.
 //   node tools/presupuesto-pueblo.mjs pueblo [pueblo…]   (env BASE: la web compilada, por defecto http://127.0.0.1:8099/;
 //   PELOTA=1 mide también el partido (FOTO=ruta-%.png, con su captura); LIGERA=1, con los partidos aligerados; Chromium en /opt/pw-browsers/chromium o CHROMIUM)
+//   COSECHA=1 mide también el pueblo con la cosecha en marcha: las máquinas en el campo y la nave del destino
 // Sale una línea por pueblo, con lo que se pasa; termina con código 1 si alguno se pasa.
 import { chromium } from 'playwright-core';
 import { readFileSync } from 'node:fs';
@@ -46,6 +47,18 @@ for (const pueblo of pueblos) {
     await p.waitForTimeout(5000); let m = null;
     for (const h of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) { await p.evaluate((h) => { const P = window.__rt.player; P.heading = h; window.__game?.follow?.snap?.(P); }, h); await p.waitForTimeout(2500); m = pico(m, await mide(p)); }
     res.pueblo3d = m; res.lienzos = await lienzos(p); res.sePasa = pasa(m, TOPE.pueblo); res.errores = p.errs.slice(0, 3);
+    // (COSECHA=1: además, con la cosecha en marcha: el tractor, la cosechadora o los temporeros en el campo y la nave del
+    // destino con su báscula; mirando desde el campo y desde la báscula)
+    if (process.env.COSECHA) {
+      const hay = await p.evaluate(() => { const g = window.__game, M = g.missions?.find(M => M.type === 'harvest'); if (!M) return null; g.startCosecha(M); const C = M.cos, campo = { x: C.campo.x, z: C.campo.z }; g.aLaCarretera(M); return { campo, bascula: { x: C.bascula.x, z: C.bascula.z }, destino: C.D.cartel }; });
+      if (hay) {
+        let mc = null;
+        for (const o of [hay.campo, hay.bascula]) for (const h of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+          await p.evaluate(([o, h]) => { const P = window.__rt.player; P.vehiculo?.baja(); P.place(o.x + 6, o.z + 6, h); window.__game?.follow?.snap?.(P); }, [o, h]); await p.waitForTimeout(2500); mc = pico(mc, await mide(p));
+        }
+        res.cosecha = { destino: hay.destino, ...mc }; res.sePasaCosecha = pasa(mc, TOPE.pueblo);
+      } else res.cosecha = 'sin cosecha';
+    }
     await p.context().close();
   } catch (e) { res.fallo = String(e).slice(0, 200); }
   if (process.env.PELOTA) try {
@@ -65,7 +78,7 @@ for (const pueblo of pueblos) {
     if (process.env.FOTO) await p.screenshot({ path: process.env.FOTO.replace('%', pueblo), timeout: 120000 }).catch(() => { });
     await p.context().close();
   } catch (e) { res.falloPartido = String(e).slice(0, 200); }
-  if (res.fallo || res.falloPartido || res.sePasa?.length || res.sePasaPartido?.length) mal++;
+  if (res.fallo || res.falloPartido || res.sePasa?.length || res.sePasaPartido?.length || res.sePasaCosecha?.length) mal++;
   console.log(JSON.stringify(res));
 }
 await b.close();
