@@ -294,7 +294,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Los espacios naturales, sin maqueta, van en un arco, con la cámara del lado de dentro de su comarca y más desde
     arriba: desde fuera se veía la pared de la comarca y el fondo.
   - La niebla de lo lejano: de lejos, del color del fondo; de cerca, una bruma clara.
-  - Para probarlo pueblo a pueblo, los ganchos de desarrollo `saltaVuelo`, `dronT`, `fija`, `despeje` y `sonda`.
+  - Para probarlo pueblo a pueblo, los ganchos de desarrollo `saltaVuelo`, `dronT`, `fija`, `despeje`, `sonda`, `centro`,
+    `vista` y `estado` (en qué está la cámara: vuelo, dron, paseo, comarca y pueblo elegidos, maqueta, inercia y subida).
 - **Navarra, que se distinga de lo de alrededor** (`hub/mapa3d.js`, el suelo de fuera y `contornoM`): el relieve de
   alrededor era del mismo verde y con la misma luz, y en la vista general Navarra no se distinguía.
   - Una máscara de Navarra (`NAV`: nítida en rojo y difuminada en verde, hecha dibujándola pequeña y agrandándola, sin
@@ -310,9 +311,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cuando cada punto suyo ocupa más de un píxel; los colores apagados ganan algo de color, las sombras no llegan al negro
   y tiran a un azul malva, y las luces son algo más cálidas. En el móvil, la comarca elegida, con el relieve fino a 28 m.
 - **Pájaros y agua que se mueve en el mapa del inicio** (`hub/pajaros.js`, `hub/mapa3d.js`, `hub/mapa3dSombreadores.js`):
-  - Solo con un pueblo o una ciudad elegida: cigüeñas blancas y milanos pardos que planean en círculo sobre el corazón de
-    sus casas, aletean a ratos y dejan su sombra en el suelo. Algo más grandes que de verdad, como las casas. En la vista
-    de toda Navarra y en la de una comarca, ninguno: las bandadas que cruzaban por ahí no gustaron.
+  - Con un sitio elegido, sobre él: en los pueblos y ciudades, cigüeñas blancas y milanos pardos que planean en círculo
+    sobre el corazón de sus casas; en los espacios naturales, buitres leonados y milanos, más altos y en círculos más
+    anchos, a la escala de su cámara (`f`). Aletean a ratos y dejan su sombra en el suelo. Al cambiar de clase de sitio,
+    primero se van las de antes y luego vienen las nuevas. Llegan despacio y se van deprisa. En la vista de toda Navarra
+    y en la de una comarca, ninguno: las bandadas que cruzaban por ahí no gustaron.
   - Una sola malla repetida para todas las aves y otra para las sombras: dos dibujos, y ninguno sin pueblo elegido. El
     aleteo va en el sombreador. En el móvil, menos aves.
   - El agua: destellos que bajan por los ríos de la comarca, ondas en los embalses y en el mar, y ondas de unos 7 m en
