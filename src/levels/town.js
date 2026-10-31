@@ -505,7 +505,7 @@ export function createTownLevel(def) {
     const eu = Math.min(fu, 1 - fu) * cu, ev = Math.min(fv, 1 - fv) * cv;
     const edge = Math.min(eu, ev);
     const type = cropKinds[Math.floor(hash2(i, j) * cropKinds.length)];
-    return { mask, type, edge, stripe: Math.sin(v * 1.6), row: v, cell: i * 1000 + j };
+    return { mask, type, edge, stripe: Math.sin(v * 1.6), row: v, cell: i * 1000 + j, ang: a };
   }
 
   // ---------- Árboles según la familia ----------
