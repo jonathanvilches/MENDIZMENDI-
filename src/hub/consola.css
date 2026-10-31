@@ -42,7 +42,7 @@
 #hub.juego :is(.hub-menu-btn, .hub-x) svg { width: 22px; height: 22px; }
 #hub.juego :is(.hub-menu-btn, .hub-x):hover, #hub.juego :is(.hub-menu-btn, .hub-x):focus-visible { border-color: var(--cr-l2); background: rgba(40, 18, 80, .7); }
 /* tu retrato: abre el menú. Tu cara con tu nivel en un círculo y, si hay sitio, tu nombre, tu rango y la experiencia */
-#hub.juego .hub-menu-btn { left: var(--hud-l); display: flex; align-items: center; gap: 10px; padding: 3px 14px 3px 3px; font: inherit; text-align: left; }
+#hub.juego .hub-menu-btn { left: var(--hud-l); display: flex; align-items: center; gap: 16px; padding: 3px 14px 3px 3px; font: inherit; text-align: left; }
 .yo-c { position: relative; flex: none; width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); }
 .yo-c img { display: block; width: 100%; height: 100%; border-radius: calc(var(--cr-r, 12px) - 3px); object-fit: cover; object-position: center 18%; background: #2a1458; }
 /* (en el material didáctico, el libro del material en su recuadro, en lugar del retrato) */
@@ -60,10 +60,10 @@
 #hub.juego .m3d .m3-tot > .m3-aro { width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); filter: none; }
 #hub.juego .m3-aro .tr { stroke: rgba(255, 255, 255, .12); stroke-width: 3; } #hub.juego .m3-aro .ar { stroke-width: 3; }
 #hub.juego .m3d .m3-pct { font: 600 13px/1 var(--f-ui); letter-spacing: 0; } #hub.juego .m3d .m3-pct small { font-size: 10px; color: var(--tx2); }
-#hub.juego .m3d .m3-tt { display: grid; grid-template-columns: auto auto; align-items: baseline; column-gap: 10px; row-gap: 2px; line-height: 1.1; }
+#hub.juego .m3d .m3-tt { display: grid; grid-template-columns: auto auto; align-items: baseline; column-gap: 10px; row-gap: 6px; line-height: 1.1; }
 #hub.juego .m3d .m3-tt small { grid-column: 1 / -1; color: var(--tx2); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
 #hub.juego .m3d .m3-tt b { color: #fff; font: 600 var(--fs-md)/1.1 var(--f-ui); white-space: nowrap; }
-#hub.juego .m3d .m3-tt i { display: flex; color: var(--tx2); font: 500 var(--fs-xs)/1.1 var(--f-ui); white-space: nowrap; } #hub.juego .m3d .m3-tt i :is(svg, img) { width: 14px; height: 14px; opacity: .8; }
+#hub.juego .m3d .m3-tt i { display: flex; align-items: center; gap: 4px; color: var(--tx2); font: 500 var(--fs-xs)/1.1 var(--f-ui); white-space: nowrap; } #hub.juego .m3d .m3-tt i :is(svg, img) { width: 14px; height: 14px; opacity: .8; }
 
 /* el rótulo de la comarca elegida, en la misma fila */
 #hub.juego .m3d .m3-cb { z-index: 4; gap: 10px; padding: 3px 4px 3px 3px; border-color: color-mix(in srgb, var(--c, #fff) 38%, var(--cr-l)); max-width: min(560px, calc(100% - 2 * var(--hud-l) - 2 * var(--hud-h) - 32px)); }

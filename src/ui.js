@@ -191,6 +191,9 @@ export class UI {
     const h = this.hud; if (!h) return;
     const C = $('#compass', h), T = $('#tl', h), B = $('#topright .rbtns', h); if (!C || !T || !B) return;
     C.style.left = ''; C.style.width = ''; T.style.maxWidth = '';
+    // (en vertical, la misión va debajo de la brújula, a lo ancho: no se toca. Antes se miraba igual que tumbado y la misión
+    // se quedaba en 140 px, con el texto partido palabra a palabra)
+    if (innerHeight > innerWidth) return;
     const cr = C.getBoundingClientRect(); if (!cr.width) return;
     const top = cr.top, bot = cr.bottom + 22;   // (con la distancia que va debajo)
     const band = (e) => { if (!e || !e.offsetParent) return null; const r = e.getBoundingClientRect(); return r.top < bot && r.bottom > top ? r : null; };
