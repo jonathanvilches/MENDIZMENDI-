@@ -13,15 +13,15 @@ const CSS = `
 .pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-exit,.pel-call){visibility:hidden}
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
    misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
-   lenta, su aviso. Debajo, cómo saltarla. En un móvil de pie no caben los dos en la misma fila: baja justo debajo */
-.pel-rep{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
+   lenta, su aviso. Debajo, cómo saltarla. Si no caben los dos en la misma fila, baja justo debajo del marcador
+   (match.js, colocaRep). Antes iba centrado y, con el marcador largo, se montaba encima del nombre */
+.pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
 .pel-rep-b{display:flex;align-items:center;gap:8px;height:30px;padding:0 16px 0 12px;border-radius:3px;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pel-rep-b i{flex:none;width:8px;height:8px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 8px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
 .pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
 .pel-rep.slow .sl{display:inline-block;animation:pel-repin .3s ease-out both}
 .pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding:3px 12px;border-radius:999px;background:rgba(7,2,15,.55)}
-@media (max-width:620px){.pel-rep{top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 38px)}}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
 /* el sorteo del saque. La chapa, en 3D en la cancha (chapa.js), con el centro despejado para verla: arriba el título
    entre dos rayas de color y por qué viste cada uno de su color; abajo, a cada lado, la tarjeta de cada pelotari con su
@@ -107,13 +107,15 @@ const CSS = `
 @media (min-width:1240px){.pel-root{--psw:180px}.pel-mid{display:grid}}
 .pel-serve{width:7px;height:7px;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px rgba(0,0,0,.25);visibility:hidden;flex:none}
 .pel-serve.on{visibility:visible}
-.pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:12px 18px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:16px 24px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .pel-call.on{opacity:1;transform:translateX(-50%) scale(1)}
 .pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7));border-color:#ffc2ec;color:#fff;box-shadow:0 0 0 4px rgba(255,122,200,.25),0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
-.pel-root.final .pel-call .pel-kantari{color:#fff}
+.pel-root.final .pel-call :is(.pel-kantari,p){color:#fff}
 @keyframes pelFinal{0%{transform:translateX(-50%) scale(.5)}100%{transform:translateX(-50%) scale(1)}}
 .pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
-.pel-call p{margin:var(--r-ts,8px) 0 0;font-size:var(--fs-sm);line-height:1.3;opacity:.95}.pel-call :is(h3,p,.pel-kantari){text-box:trim-both cap alphabetic}
+/* (el título y debajo, separado y en segundo plano, quién: más pequeño, más fino y en lila; antes iba pegado al título,
+   blanco y casi del mismo peso, y la «p» del título rozaba la línea de debajo) */
+.pel-call p{margin:var(--r-pp,12px) 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#d9ccff}.pel-call :is(h3,p,.pel-kantari){text-box:trim-both cap alphabetic}
 .pel-call .pel-kantari{margin-top:var(--r-pp,12px);font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
 .pel-pres{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 14%);display:flex;align-items:stretch;gap:12px;max-width:min(78vw,560px);padding:12px 22px 12px 0;background:linear-gradient(90deg,rgba(7,2,15,.92),rgba(7,2,15,.6) 85%,transparent);opacity:0;transform:translateX(-40px);transition:opacity .25s,transform .45s cubic-bezier(.22,1.12,.36,1);pointer-events:none}
 .pel-pres.on{opacity:1;transform:none}.pel-pres i{width:8px;flex:none;background:#e8247c}.pel-pres.azul i{background:#4b3cff}
@@ -154,8 +156,9 @@ const CSS = `
 .pel-bcol{display:flex;flex-direction:column;align-items:center;gap:8px}
 .pel-cut{background:radial-gradient(circle at 50% 30%,rgba(255,60,150,.95),rgba(120,10,70,.96));box-shadow:0 0 0 3px rgba(255,46,136,.45),0 5px 0 rgba(40,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
 .pel-hit,.pel-cut,.pel-drop{position:relative}
-.pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
+.pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0 var(--tope,100%),rgba(255,70,70,.5) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
 .pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
+.pel-hit.tope::after,.pel-cut.tope::after,.pel-drop.tope::after{background:conic-gradient(#ff9d3b var(--cp),rgba(255,70,70,.5) 0)}
 @keyframes pel-full{to{filter:brightness(1.6)}}
 /* (las ventanas del partido, por encima de todo: la etiqueta de GOLPE asomaba encima de «Seguir jugando» y se llevaba el toque) */
 .pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
@@ -195,7 +198,7 @@ const CSS = `
   .pel-tip{max-width:calc(calc(100vw / var(--z, 1)) - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
 @media (max-height:520px){.pel-hit{width:94px;height:94px;font-size:var(--fs-lg)}.pel-drop{width:68px;height:68px;font-size:var(--fs-xs)}
   .pel-tip{bottom:auto;top:calc(env(safe-area-inset-top,0px) + 48px);max-width:calc(calc(100vw / var(--z, 1)) - 240px);font-size:var(--fs-sm);padding:8px 12px}
-  .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:8px 16px}
+  .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:12px 20px}
   .pel-card{width:min(780px,100%);padding:16px 16px 12px}.pel-card h2{font-size:var(--fs-xl)}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:24px;font-size:var(--fs-sm);margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
   .pel-card .pel-ctrl{font-size:var(--fs-sm);padding:8px 8px;margin-bottom:8px}.pel-rv{padding:4px 8px;margin-bottom:8px;font-size:var(--fs-sm)}.pel-rv p{font-size:var(--fs-xs)}.pel-levels{margin-bottom:8px}.pel-levels button{padding:8px 8px}
@@ -295,6 +298,12 @@ const CSS = `
 .pel-mchip svg{width:30px;height:30px}.pel-mchip b{font:900 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}.pel-mchip small{font-size:var(--fs-xs);color:#cbc2e0;white-space:nowrap}
 .pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.35}
 .pel-mrv{margin:-4px 0 12px;font-size:var(--fs-xs);color:#b9addb}.pel-mrv:empty{display:none}
+/* la fila de los botones del panel (Ahora no y ¡A jugar!): con su hueco entre ellos y pegada abajo si el panel se
+   desplaza, sobre el color del fondo. En «Partido de pelota: menos cosas en pantalla» se borró sin querer junto a otra
+   regla y los dos botones quedaban pegados el uno al otro */
+.pel-row{display:flex;gap:12px;position:sticky;bottom:-16px;z-index:1;margin:8px -4px -8px;padding:8px 4px;background:#12052a}
+.pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}
+@media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
 @media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-mseg button{min-height:40px}.pel-matcard .pel-mgo{bottom:-12px;margin:0 -16px -12px;padding:6px 16px 12px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
 /* la experiencia en el panel del final: el nivel con su barra y lo que ha subido cada cualidad, en cuatro casillas */
@@ -442,6 +451,10 @@ export class PelotaHud {
     c.querySelector('p').style.display = sub ? '' : 'none';
     const k = c.querySelector('.pel-kantari'); k.textContent = kant ? `«${kant}»` : ''; k.style.display = kant ? '' : 'none';
     c.classList.add('on'); this.callT = secs; this.root.classList.add('calling');
+    // (si se cruza con el marcador de arriba a la derecha, baja justo debajo de él, con su hueco: en el móvil apaisado el
+    // rótulo grande pisaba las barras de energía)
+    c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
+    if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
   }
   /** El aviso del golpe: text (lo grande), sub (el golpe y la fuerza) y kind (perfect, good, ok, late, whiff: su color) */
   quality(text, sub = '', kind = '') {
@@ -473,11 +486,14 @@ export class PelotaHud {
   /** El nombre del golpe que saldría ahora (GOLPE, VOLEA o GANCHO) */
   hitLabel(text) { const l = this._hl ||= this.$('.pel-hl'); if (l && l._t !== text) { l._t = text; l.textContent = text; fitCircle(l.parentElement); } }
   // anillo de carga alrededor del botón que se mantiene (golpe o cortada): la fuerza se ve en él, sin otro recuadro
-  charge(p, kind) {
+  // (cansado, la carga tiene tope: el trozo del aro que ya no se alcanza se ve en rojo apagado y, al llegar al tope, el aro
+  // se pone naranja en vez de rosa)
+  charge(p, kind, tope = 1) {
     for (const [k, sel] of [['hit', '.pel-hit'], ['cut', '.pel-cut'], ['drop', '.pel-dejada']]) {
       const b = this.$(sel); if (!b) continue;
-      const v = kind === k ? p : 0; if (b._cp === v) continue; b._cp = v;
-      b.style.setProperty('--cp', (v * 100).toFixed(0) + '%'); b.classList.toggle('charging', v > 0); b.classList.toggle('full', v >= 1);
+      const v = kind === k ? p : 0, key = v + ':' + tope.toFixed(2); if (b._cp === key) continue; b._cp = key;
+      b.style.setProperty('--cp', (v * 100).toFixed(0) + '%'); b.style.setProperty('--tope', (tope * 100).toFixed(0) + '%');
+      b.classList.toggle('charging', v > 0); b.classList.toggle('full', v >= 1); b.classList.toggle('tope', v > 0 && tope < 0.99 && v >= tope - 0.01);
     }
   }
   /** El nombre del golpe que se acaba de dar (dos paredes, gancho al ancho, dejada al txoko…), como el rótulo de la tele:

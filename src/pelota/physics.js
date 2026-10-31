@@ -90,13 +90,7 @@ function aimVelocityTo(p, t, T) {
 }
 
 // Golpe a dos paredes: primero a la pared izquierda, luego al frontis (por encima de la chapa) y sale cruzado a la
-// cancha. Se buscan el punto de la pared y la altura con los que el primer bote cae cerca de landZ; null si desde ahí
-// no sale ninguno (muy pegado a la pared o muy cerca del frontis)
-// fzs: dónde se busca el punto de la pared, como fracción de la distancia al frontis (poco: la pared pronto y sale más
-// cruzada; mucho: la pared cerca del frontis y sale más recta)
-// opts.low: cuánto se premia que pegue bajo en el frontis (la cortada a dos paredes, rasa y cerca de la chapa);
-// opts.maxFront: lo más alto que puede pegar en el frontis; opts.spin: el de la cortada (sale del frontis de otra manera:
-// antes se calculaba como un golpe normal y la cortada a dos paredes, más rápida al salir, botaba fuera por el ancho)
+// cancha (twoWallsTo, más abajo).
 // (el recorrido de una dos paredes: pared izquierda, frontis sin botar antes y el bote. Solo lo que hace falta y parando
 // en cuanto se sabe: null si toca el frontis antes que la pared, si bota antes del frontis o si no llega a botar)
 function twoWallsPath(p, v, spin = 0) {
@@ -112,26 +106,6 @@ function twoWallsPath(p, v, spin = 0) {
   }
   return null;
 }
-export function solveTwoWalls(p, speed, landZ = 17, fzs = [0.28, 0.4, 0.52, 0.64], opts = {}) {
-  const low = opts.low || 0, maxFront = opts.maxFront ?? COURT.FRONT_TOP - 0.3;
-  const xw = -COURT.W / 2 + R;
-  let best = null, bs = -1e9;
-  for (const fz of fzs) {
-    const zw = Math.max(1.2, p.z * fz);
-    const d = Math.hypot(xw - p.x, zw - p.z); if (d < 1) continue;
-    const T = Math.max(0.1, d / speed);
-    for (let yw = 1; yw <= 7; yw += 0.25) {
-      const v = aimVelocityTo(p, { x: xw, y: yw, z: zw }, T);
-      const r = twoWallsPath(p, v, opts.spin || 0); if (!r) continue;
-      const F = r.front, land = r.land; if (F.y < COURT.CHAPA + 0.35 || F.y > maxFront) continue;
-      if (land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) continue;
-      const score = -Math.abs(land.z - landZ) * (opts.cross ? 0.5 : 1) - Math.max(0, 1 - land.x) * 1.5 + (opts.cross || 0) * land.x - low * (F.y - COURT.CHAPA);   // mejor cuanto más cruzado (hacia la derecha); con cross, cuanto más, mejor
-      if (score > bs) { bs = score; best = { v, land, wall: { x: xw, y: yw, z: zw } }; }
-    }
-  }
-  return best;
-}
-
 // Primer bote tras el frontis para un golpe dado
 // Dónde toca primero el frontis y dónde bota después (y si antes da en el rebote o bota antes del frontis). Es lo que más
 // se calcula al golpear (el golpe prueba decenas de trayectorias), así que no guarda el recorrido como predict(): solo
@@ -153,6 +127,35 @@ export function landingOf(p, v, spin = 0) {
     if (land) break;
   }
   return { front, land, floorBefore, left, back: back && (!land || back.t < land.t) ? back : null };
+}
+
+// Dos paredes hacia un bote concreto (target {x, z}): el punto de la pared izquierda, la altura y, si hace falta, algo
+// menos de velocidad con los que el primer bote cae más cerca de ahí. Busca por toda la pared, de cerca del frontis a la
+// altura del pelotari, en dos pasadas: una gruesa y otra fina alrededor de la mejor. Así sale desde cualquier sitio de la
+// cancha y se puede dirigir: antes solveTwoWalls miraba solo unos pocos puntos de la pared y, desde la derecha o con el
+// joystick a medias, no encontraba ninguno y salía otro golpe; y cuando salía, botaba casi siempre en el ancho
+// opts.low: cuánto se premia que pegue bajo en el frontis (la cortada a dos paredes, rasa y cerca de la chapa);
+// opts.maxFront: lo más alto que puede pegar en el frontis; opts.spin: el de la cortada (sale del frontis de otra manera)
+export function twoWallsTo(p, speed, target, opts = {}) {
+  const low = opts.low || 0, maxFront = opts.maxFront ?? COURT.FRONT_TOP - 0.3, xw = -COURT.W / 2 + R, spin = opts.spin || 0;
+  let best = null;
+  const prueba = (fz, yw, sp) => {
+    const zw = Math.max(1.2, p.z * fz), d = Math.hypot(xw - p.x, zw - p.z); if (d < 1 || yw < 0.6) return;
+    const v = aimVelocityTo(p, { x: xw, y: yw, z: zw }, Math.max(0.1, d / sp));
+    const r = twoWallsPath(p, v, spin); if (!r) return;
+    const F = r.front, land = r.land; if (F.y < COURT.CHAPA + 0.35 || F.y > maxFront) return;
+    if (land.x > COURT.W / 2 - 0.3 || land.z > COURT.L - 1 || land.z < 4) return;
+    const score = -Math.hypot(land.x - target.x, (land.z - target.z) * 0.7) - low * (F.y - COURT.CHAPA) * 0.4;
+    if (!best || score > best.score) best = { score, v, land, front: F, wall: { x: xw, y: yw, z: zw }, fz, yw, sp };
+  };
+  for (const sp of [speed, speed * 0.88, speed * 0.76]) {
+    for (let fz = 0.15; fz < 0.95; fz += 0.13) for (let yw = 1; yw <= 6.5; yw += 0.5) prueba(fz, yw, sp);
+    if (best) break;
+  }
+  if (!best) return null;
+  const { fz, yw, sp } = best;
+  for (let a = -0.06; a < 0.07; a += 0.03) for (let b = -0.25; b < 0.3; b += 0.125) if (Math.abs(a) > 1e-6 || Math.abs(b) > 1e-6) prueba(fz + a, yw + b, sp);
+  return best;
 }
 
 // Busca la altura en el frontis (ty) para que el primer bote caiga cerca de landZ

@@ -117,14 +117,23 @@ const CSS = `
 .lg-card>*{animation:gx-in .42s cubic-bezier(.2,.9,.3,1.15) both}.lg-card>:nth-child(2){animation-delay:.05s}.lg-card>:nth-child(3){animation-delay:.1s}.lg-card>:nth-child(n+4){animation-delay:.15s}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;border-radius:4px;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
-.lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(90deg,rgba(91,75,255,.4),rgba(255,255,255,.04) 42%,rgba(255,255,255,.04) 58%,rgba(255,46,136,.4));text-align:center;overflow:hidden}
+/* (el fondo, casi liso: un velo suave de arriba abajo; antes un degradado lateral fuerte, de azul a rosa) */
+.lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(180deg,rgba(201,178,255,.1),rgba(201,178,255,.05));border:1px solid rgba(201,178,255,.16);text-align:center;overflow:hidden}
 .lg-next.con-j{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:4px;padding-top:0;padding-bottom:0}
 /* (con los jugadores a los lados, cada línea del centro y el nombre de cada club en una sola línea: si no, «Jornada 1 de 7» se partía
    en dos; el sitio va en dos líneas, «en casa» y «El Sadar», para que el centro sea estrecho) */
-.lg-next.con-j .lg-vs small{white-space:nowrap;letter-spacing:.04em;line-height:1.15}.lg-next.con-j b,.lg-next.con-j em{white-space:nowrap}
+.lg-next.con-j .lg-vs small{white-space:nowrap}.lg-next.con-j>:is(.lg-t,.lg-vs){padding:12px 0}.lg-next.con-j b,.lg-next.con-j em{white-space:nowrap}
 .lg-next .lg-jf{display:block;align-self:stretch;width:75px;height:auto;min-height:100px;object-fit:contain;object-position:50% 100%;-webkit-mask-image:linear-gradient(180deg,#000 78%,transparent);mask-image:linear-gradient(180deg,#000 78%,transparent)}.lg-next .lg-jf.r{transform:scaleX(-1)}
-.lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:4px}.lg-next b{font:400 var(--fs-xl)/1.1 var(--f-display);text-transform:uppercase}.lg-next em{font:600 var(--fs-sm)/1.15 var(--f-cond);font-style:normal;letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}
-.lg-vs{font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}.lg-vs small{display:block;font:800 var(--fs-xs)/1.3 var(--f-cond);color:var(--lila);-webkit-text-fill-color:var(--lila);letter-spacing:.1em}
+/* el club: nombre grande y blanco; debajo, su media: la etiqueta pequeña, espaciada y apagada, y el número en blanco */
+.lg-next .lg-t{display:flex;flex-direction:column;align-items:center;gap:8px}.lg-next b{font:400 var(--fs-xl)/1 var(--f-display);text-transform:uppercase;color:#fff}
+.lg-next em{display:flex;align-items:baseline;justify-content:center;gap:6px;font-style:normal}
+.lg-next em small{font:700 var(--fs-xs)/1 var(--f-cond);letter-spacing:.12em;color:var(--lila)}.lg-next em span{font:800 var(--fs-lg)/1 var(--f-cond);color:#fff}
+/* el centro: el VS y, en pequeño, la jornada (en rosa, lo primero que se lee) y dónde se juega (apagado) */
+.lg-vs{display:flex;flex-direction:column;align-items:center;gap:6px}
+.lg-vs .lg-x{display:block;margin-bottom:2px;font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}
+.lg-vs small{display:block;font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--rosa)}
+.lg-vs .lg-sitio{display:flex;flex-wrap:wrap;justify-content:center;column-gap:6px;font:500 var(--fs-xs)/1.25 var(--f-texto,'MZ Texto'),system-ui,sans-serif;letter-spacing:0;text-transform:none;color:var(--lila)}
+.lg-vs .lg-sitio span+span::before{content:'·';margin-right:6px}
 .lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
 .lg-table td{padding:4px 4px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-em{object-fit:contain;object-position:50% 50%;flex:none}.lg-table td.n img.lg-dot{display:inline-block;width:18px;height:20px;object-fit:contain;margin:-4px 6px -4px 0;vertical-align:middle}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
 /* (la columna del puesto, del ancho de la camiseta de la cabecera, y el nombre del club con su mismo hueco: el club empieza justo donde empieza el título) */
@@ -135,7 +144,10 @@ const CSS = `
 /* botones de acción al pie (como en todo el juego): salir a la izquierda y la acción principal a la derecha, donde está el
    pulgar de las acciones; en dos filas, la principal abajo y a todo lo ancho */
 .lg-foot>[data-a="exit"]{order:-1}.lg-foot>.lg-btn.go{order:2}.lg-btns>.lg-btn:only-child{grid-column:1/-1}
-.lg-card>.lg-foot{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding:12px 0 16px;background:linear-gradient(180deg,rgba(12,4,30,0),rgba(12,4,30,.96) 12px)}
+/* (la barra de los botones, pegada abajo mientras se desplaza: de borde a borde de la tarjeta, lisa y con una raya fina
+   arriba, para que se lea como una barra. Antes era un fundido que solo cubría lo de debajo de los botones y, al
+   desplazar, se veía un rectángulo oscuro más estrecho que la tarjeta pegado al «Ver más») */
+.lg-card>.lg-foot{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding:12px 0 16px;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}
 .lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:999px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer}
 .lg-btn.go{border:0;background:var(--cta);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);box-shadow:var(--glow)}.lg-btn.go::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-150%) skewX(-20deg);animation:gx-sweep 3.2s ease-in-out .6s infinite;pointer-events:none}
 .lg-btn:active{transform:translateY(1px) scale(.98)}
@@ -159,7 +171,7 @@ const CSS = `
 /* con solo dos botones (jugar o viajar, y salir) van en la misma fila: así cabe todo sin desplazar, también en euskera */
 .lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
 .lg-table{font-size:var(--fs-xs)}.lg-table td{padding:2px}.lg-table th{padding:4px 2px}.lg-head{gap:8px}.lg-head .lg-kit{width:27px;height:36px}.lg-head h2{font-size:var(--fs-lg)}.lg-head small{font-size:var(--fs-xs)}
-.lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;min-height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs{font-size:var(--fs-xl)}
+.lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;min-height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs .lg-x{font-size:var(--fs-xl)}
 .lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px 20px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
 }
@@ -216,7 +228,7 @@ const CSS = `
 /* (la explicación de la liga, plegada en dos líneas: en el móvil tumbado cabe todo sin desplazar; mientras está plegada, sin
    relleno abajo, que dejaba asomar el principio de la línea siguiente) */
 @media (orientation:landscape) and (max-height:400px){.lg-root .lg-how.vm-clamp{--vm-lines:2!important}.lg-root .lg-how.vm-clamp:not(.vm-open){padding-bottom:0}}
-@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;min-height:72px}.lg-vs{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
+@media (orientation:landscape) and (max-height:380px){.lg-card{gap:4px 12px;padding:8px 16px}.lg-next{padding:4px 8px}.lg-next .lg-jf{width:54px;min-height:72px}.lg-vs .lg-x{font-size:var(--fs-xl)}.lg-btn{min-height:44px}}
 /* ordenador (pantalla grande): tarjetas más anchas y holgadas, letra y figuras a su tamaño y los clubes en rejilla, todos a
    la vista (en tira de lado, sin barra, con el ratón no se veía que había más clubes que los siete primeros) */
 @media (min-width:1200px) and (min-height:560px){
@@ -228,11 +240,11 @@ const CSS = `
 .lg-card.lg-two:not(.tq-card)>.lg-head{grid-column:1/-1}
 .lg-card.lg-two:not(.tq-card)>.lg-next,.lg-card.lg-two:not(.tq-card)>.lg-how,.lg-card.lg-two:not(.tq-card)>.lg-res,.lg-card.lg-two:not(.tq-card)>.lg-champ,.lg-card.lg-two:not(.tq-card)>.lg-btns,.lg-card.lg-two:not(.tq-card)>.lg-note{grid-column:1}
 .lg-card.lg-two:not(.tq-card)>.lg-table{grid-column:2;grid-row:2/span 5;align-self:start}
-.lg-card.lg-two:not(.tq-card)>.lg-foot{position:static;margin:0;padding:0;background:none}
+.lg-card.lg-two:not(.tq-card)>.lg-foot{position:static;margin:0;padding:0;background:none;border-image:none}
 .lg-card.lg-two:not(.tq-card) .lg-next .lg-jf{width:clamp(72px,calc(7vw / var(--z, 1)),116px)}
 .lg-card.pc-card{width:min(1560px,100%)}
 .lg-head h2{font-size:var(--fs-3xl)}.lg-head small{font-size:var(--fs-md)}.lg-note{font-size:var(--fs-sm)}
-.lg-next{padding:16px}.lg-next .lg-jf{width:116px;min-height:160px}.lg-next b{font-size:var(--fs-2xl)}.lg-next em{font-size:var(--fs-md)}.lg-vs{font-size:var(--fs-4xl)}
+.lg-next{padding:16px}.lg-next .lg-jf{width:116px;min-height:160px}.lg-next b{font-size:var(--fs-2xl)}.lg-next em span{font-size:var(--fs-xl)}.lg-vs .lg-x{font-size:var(--fs-4xl)}
 .lg-table{font-size:var(--fs-md)}.lg-table td{padding:8px 8px}.lg-table th{font-size:var(--fs-sm)}
 .lg-how,.lg-res{font-size:var(--fs-md)}
 .lg-btn{min-height:56px;font-size:var(--fs-lg)}.lg-btn.go{font-size:var(--fs-2xl)}
@@ -247,7 +259,7 @@ const CSS = `
 /* (portátil con la ventana baja: lo mismo, algo más compacto, para que quepa sin desplazar) */
 @media (min-width:1200px) and (min-height:560px) and (max-height:760px){
 .lg-card{padding:16px 28px;gap:12px}.lg-head h2{font-size:var(--fs-2xl)}
-.lg-next{padding:8px 12px}.lg-next .lg-jf{min-height:104px}.lg-vs{font-size:var(--fs-3xl)}.lg-next b{font-size:var(--fs-xl)}
+.lg-next{padding:8px 12px}.lg-next .lg-jf{min-height:104px}.lg-vs .lg-x{font-size:var(--fs-3xl)}.lg-next b{font-size:var(--fs-xl)}
 .lg-how,.lg-res{font-size:var(--fs-sm)}.lg-table td{padding:6px 8px}.lg-btn{min-height:48px}.lg-note{font-size:var(--fs-xs)}
 }
 `;
@@ -283,7 +295,11 @@ export function ligaPanel(S) {
       const H = CLUBS[m.h], A = CLUBS[m.a], home = m.h === S.club;
       // (en la web, el busto del jugador de cada club a los lados, sin texto encima; en el archivo único no hay imagen)
       const fh = jugadorBusto(m.h, 'lg-jf'), fa = jugadorBusto(m.a, 'lg-jf r');
-      mid = `<div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b><em>Media ${H.ovr}</em></div><div class="lg-vs">VS<small>JORNADA ${m.j + 1} DE ${S.rounds.length}</small><small>${home ? 'EN CASA' : 'FUERA'}</small><small>EL SADAR</small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b><em>Media ${A.ovr}</em></div>${fh && fa ? fa : ''}</div>`;
+      // (cada cosa con su peso: el club, grande y blanco; su media, la etiqueta pequeña y apagada y el número en blanco; en
+      // el centro, el VS y debajo, en pequeño, la jornada y dónde se juega. Antes todo iba en mayúsculas del mismo tamaño
+      // y color, apilado, y no se sabía qué leer primero)
+      const media = (o) => `<em><small>MEDIA</small><span>${o}</span></em>`;
+      mid = `<div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b>${media(H.ovr)}</div><div class="lg-vs"><span class="lg-x">VS</span><small class="lg-j">Jornada ${m.j + 1} de ${S.rounds.length}</small><small class="lg-sitio"><span>${home ? 'En casa' : 'Fuera de casa'}</span><span>El Sadar</span></small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b>${media(A.ovr)}</div>${fh && fa ? fa : ''}</div>`;
     } else {
       const ch = CLUBS[S.champion], d = jugadorDuo(S.champion);
       // (en la web, la pareja del club campeón al lado)

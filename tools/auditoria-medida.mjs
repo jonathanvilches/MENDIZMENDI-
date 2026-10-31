@@ -164,7 +164,7 @@ export const auditar = async (sel) => {
     if (fuera && dentro) R.sobresale.push(`${name(e)} «${txt(e)}» se sale de ${name(box)}`);
   }
   // 6. letra: escala y fuentes del juego
-  const SCALE = [12, 14, 16, 20, 24], FONTS = /^["']?(Nunito|MZ Display|MZ Cond)["']?$/;
+  const SCALE = [12, 14, 16, 20, 24], FONTS = /^["']?(Nunito|MZ Texto|MZ Display|MZ Cond)["']?$/;
   // (las cartas de pelotari se escalan enteras, como una ilustración; el texto de un SVG, a la escala con que se dibuja)
   for (const e of texts) { if (e.closest('.gx-card')) continue; const s = st(e), sv = e.closest('svg'), fz = parseFloat(s.fontSize) * (sv?.getScreenCTM?.()?.a || 1), f0 = s.fontFamily.split(',')[0].trim();
     if (fz < 31.5 && !SCALE.some(v => Math.abs(v - fz) < 0.3)) R.letra.push(`${name(e)} «${txt(e)}» ${+fz.toFixed(1)} px`);

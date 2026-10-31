@@ -447,9 +447,58 @@ export class PelotaMatch {
     this.replay = { F, t: t0, end: ts, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n: (this.repN = (this.repN || 0) + 1) };
     const el = this.repEl = document.createElement('div'); el.className = 'pel-rep';
     el.innerHTML = `<div class="pel-rep-b"><i aria-hidden="true"></i><b>${esc(RP.label)}</b><span class="sl">${esc(RP.slow)}</span></div><small>${esc(RP.skip)}</small>`;
-    this.hud.root.appendChild(el); this.hud.root.classList.add('repe'); this.camInit = false;
+    this.hud.root.appendChild(el); this.hud.root.classList.add('repe'); this.camInit = false; this.colocaRep();
     this.repSkip = (e) => { e.stopPropagation?.(); this.endReplay(); };
     this.repArm = setTimeout(() => { if (this.replay) { addEventListener('pointerdown', this.repSkip, true); addEventListener('keydown', this.repSkip, true); } }, 300);
+  }
+  // el sudor del cansado (desde algo menos de la mitad de la barra): sobre la cabeza, sus gotas de sudor, que laten, y
+  // gotas que le saltan y caen, más a menudo cuanto más cansado. Se ve desde la cámara, también en el rival lejos: así
+  // se sabe quién va cansado sin mirar la barra. Unas pocas gotas por pelotari, que se reutilizan
+  suda(who, tired, obj, dt) {
+    const T = this.T, grp = this.court?.group; if (!T || !grp || !obj) return;
+    const D = (this.gotas ||= {})[who] ||= { t: 0.5, p: [], ph: Math.random() * 6 };
+    const gota = (x, cx, cy, r) => { x.beginPath(); x.moveTo(cx, cy - r * 1.6); x.bezierCurveTo(cx + r * 1.1, cy - r * 0.4, cx + r, cy + r, cx, cy + r); x.bezierCurveTo(cx - r, cy + r, cx - r * 1.1, cy - r * 0.4, cx, cy - r * 1.6); x.closePath(); };
+    if (!this.gotaMat) {
+      const c = document.createElement('canvas'); c.width = 32; c.height = 48; const x = c.getContext('2d');
+      x.fillStyle = '#bfe6ff'; gota(x, 16, 28, 12); x.fill();
+      x.fillStyle = 'rgba(255,255,255,.9)'; x.beginPath(); x.ellipse(12, 30, 3, 6, -0.3, 0, Math.PI * 2); x.fill();
+      const tx = new T.CanvasTexture(c); tx.colorSpace = T.SRGBColorSpace;
+      this.gotaMat = new T.SpriteMaterial({ map: tx, transparent: true, depthWrite: false });
+      // (el aviso de la cabeza: tres gotas con su borde oscuro, para que se lean sobre la pared y sobre el cielo)
+      const c2 = document.createElement('canvas'); c2.width = c2.height = 128; const y = c2.getContext('2d');
+      y.lineWidth = 7; y.strokeStyle = '#123a5c'; y.fillStyle = '#9fdcff';
+      for (const [cx, cy, r] of [[40, 72, 20], [88, 58, 16], [74, 104, 11]]) { gota(y, cx, cy, r); y.stroke(); y.fill(); }
+      y.fillStyle = 'rgba(255,255,255,.95)'; for (const [cx, cy, r] of [[34, 74, 5], [83, 60, 4]]) { y.beginPath(); y.ellipse(cx, cy, r * 0.7, r * 1.4, -0.3, 0, Math.PI * 2); y.fill(); }
+      const t2 = new T.CanvasTexture(c2); t2.colorSpace = T.SRGBColorSpace;
+      this.sudorMat = new T.SpriteMaterial({ map: t2, transparent: true, depthWrite: false, depthTest: false });
+    }
+    if (!D.aviso) { D.aviso = new T.Sprite(this.sudorMat.clone()); D.aviso.renderOrder = 4; D.aviso.visible = false; grp.add(D.aviso); }
+    { const k = Math.max(0, Math.min(1, (tired - 0.3) / 0.3)), A = D.aviso; A.visible = k > 0 && this.game.phase !== 'intro' && !this.replay;
+      if (A.visible) { D.ph += dt * (2 + tired * 3); grp.worldToLocal(this.v3.copy(obj.position)); const s = 0.42 * (1 + Math.sin(D.ph) * 0.08);
+        A.position.set(this.v3.x + 0.28, 2.15 + Math.sin(D.ph * 0.5) * 0.05, this.v3.z); A.scale.set(s, s, 1); A.material.opacity = 0.35 + k * 0.65; } }
+    if (tired > 0.25 && this.game.phase !== 'intro' && (D.t -= dt) <= 0) {
+      D.t = (1.1 - tired * 0.75) * (0.7 + Math.random() * 0.6);
+      let g = D.p.find(q => !q.vida);
+      if (!g && D.p.length < 6) { const s = new T.Sprite(this.gotaMat.clone()); s.scale.set(0.11, 0.165, 1); s.renderOrder = 2; grp.add(s); g = { s, v: new T.Vector3(), vida: 0 }; D.p.push(g); }
+      if (g) {
+        grp.worldToLocal(this.v3.copy(obj.position)); const a = Math.random() * Math.PI * 2;
+        g.s.position.set(this.v3.x + Math.cos(a) * 0.12, 1.72 + Math.random() * 0.12, this.v3.z + Math.sin(a) * 0.12);
+        g.v.set(Math.cos(a) * 0.7, 1.1 + Math.random() * 0.6, Math.sin(a) * 0.7); g.vida = 0.75; g.s.visible = true;
+      }
+    }
+    for (const q of D.p) {
+      if (!q.vida) continue;
+      q.vida = Math.max(0, q.vida - dt); q.v.y -= 7 * dt; q.s.position.addScaledVector(q.v, dt);
+      q.s.material.opacity = Math.min(1, q.vida * 3); if (!q.vida || q.s.position.y < 0.05) { q.vida = 0; q.s.visible = false; }
+    }
+  }
+  /** ¿Se está jugando? (para bajar la música: no en la presentación, el sorteo, las repeticiones, el descanso ni el final) */
+  enJuego() { const ph = this.game?.phase; return !!ph && this.active && !this.replay && !this.hud.panelEl && ['serveWait', 'servePrep', 'rally', 'point'].includes(ph); }
+  // (el rótulo de la repetición, arriba a la izquierda; si se cruza con el marcador, justo debajo de él, con su hueco)
+  colocaRep() {
+    const el = this.repEl, top = this.hud.$('.pel-top'); if (!el || !top) return;
+    el.style.top = ''; const a = el.getBoundingClientRect(), m = top.getBoundingClientRect(), H = this.hud.root.getBoundingClientRect();
+    if (a.right + 12 > m.left && a.top < m.bottom && m.width > 0) el.style.top = `${Math.round(m.bottom - H.top + 12)}px`;
   }
   endReplay() {
     if (!this.replay) return;
@@ -705,7 +754,9 @@ export class PelotaMatch {
   // (otro botón con un golpe ya cargado: manda el último que se toca. Antes, si la cortada o la dejada se quedaban cargadas
   // porque su botón no llegó a soltarse, GOLPE no respondía y la palanca no movía al pelotari: el partido, bloqueado)
   chargeStart(kind) { const c = this.input.charge; if (!c || c.kind !== kind) this.input.charge = { kind, t0: this.t }; }
-  chargeLevel() { const c = this.input.charge; return c ? Math.pow(Math.min(1, (this.t - c.t0) / (c.kind === 'drop' ? 1.3 : 1)), 1.15) : 0; }
+  // (cansado, la carga se queda en su tope: el aro no pasa de ahí, chargeTope)
+  chargeLevel() { const c = this.input.charge; return c ? Math.min(this.chargeTope(), Math.pow(Math.min(1, (this.t - c.t0) / (c.kind === 'drop' ? 1.3 : 1)), 1.15)) : 0; }
+  chargeTope() { const g = this.game; return g?.powTope ? Math.max(0, (g.powTope('you') - 0.15) / 0.85) : 1; }
   chargeEnd(kind) {
     const I = this.input, c = I.charge; if (!c || c.kind !== kind) return;
     I.power = 0.15 + this.chargeLevel() * 0.85; I.charge = null;
@@ -775,7 +826,7 @@ export class PelotaMatch {
     this.chapa?.update(dt);   // (la chapa del sorteo)
     if (this.repAt && this.t >= this.repAt && !this.paused && !this.hud.panelEl) { this.repAt = 0; this.startReplay(); if (this.replay) return this.active; }
     // (el golpe sale siempre al soltar: con la carga a tope, espera a que tú decidas)
-    this.hud.charge(this.chargeLevel(), this.input.charge?.kind);
+    this.hud.charge(this.chargeLevel(), this.input.charge?.kind, this.chargeTope());
     // (con el partido en pausa o una ventana abierta no se juega: el golpe que se cargaba se suelta sin golpear)
     if ((this.paused || this.hud.panelEl) && this.input.charge) this.input.charge = null;
     if (this.entra?.go && !this.flying) this.pasoEntrada(dt);
@@ -876,11 +927,12 @@ export class PelotaMatch {
     // el golpe apuntado (mientras se carga): su camino, para la marca del frontis y el camino a trazos
     const ch = this.input.charge, keys = this.input.keys, stk = this.input.stick;
     const ax = clamp1((keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0) + stk.x), ay = clamp1((keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) + stk.y);
-    const pv = ch && (C.aimPath || C.aimMark) && (g.phase === 'rally' || g.phase === 'servePrep') ? g.previewShot?.({ x: ax, y: ay }, ch.kind === 'cut' ? 'cortada' : ch.kind === 'drop' ? 'dejada' : false, 0.15 + this.chargeLevel() * 0.85) : null;
+    const apunta = g.phase === 'rally' || g.phase === 'servePrep' || (g.phase === 'serveWait' && g.serverP() === 'you' && !g.runUp);   // (también el saque, antes de salir)
+    const pv = ch && (C.aimPath || C.aimMark) && apunta ? g.previewShot?.({ x: ax, y: ay }, ch.kind === 'cut' ? 'cortada' : ch.kind === 'drop' ? 'dejada' : false, 0.15 + this.chargeLevel() * 0.85) : null;
     // marca de puntería en el frontis mientras se carga la cortada o la dejada: sube con la fuerza (poca carga, rozando
     // la chapa; a tope, a media altura) y se mueve a lo ancho con el joystick, justo donde va a dar
     if (C.aimMark) {
-      const on = !!ch && (ch.kind === 'cut' || ch.kind === 'drop') && (g.phase === 'rally' || g.phase === 'servePrep');
+      const on = !!ch && (ch.kind === 'cut' || ch.kind === 'drop') && apunta;
       C.aimMark.visible = on;
       if (on) { const pow = 0.15 + this.chargeLevel() * 0.85, you = g.players.you;
         // (en la cortada a dos paredes, el frontis llega después de la pared: la marca va donde da de verdad)
@@ -957,7 +1009,10 @@ export class PelotaMatch {
       const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
-      const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who] };
+      const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
+        // (el cansancio se ve: encorvado y respirando deprisa, más entre tanto y tanto; glbChar.js, armSwing)
+        tired: g.mode === 'match' ? g.tired(who) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso' };
+      this.suda(who, st.tired, side.obj, dt);
       // un golpe nuevo (al pulsar), una sola vez: el gesto no se repite mientras dura el estado
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;
       (this.recSt ||= {})[who] = st;
@@ -1062,6 +1117,8 @@ export class PelotaMatch {
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }
+    for (const D of Object.values(this.gotas || {})) { for (const q of D.p) { q.s.parent?.remove(q.s); q.s.material.dispose(); } if (D.aviso) { D.aviso.parent?.remove(D.aviso); D.aviso.material.dispose(); } }
+    this.gotas = null; for (const k of ['gotaMat', 'sudorMat']) if (this[k]) { this[k].map?.dispose(); this[k].dispose(); this[k] = null; }
     this.tourEl?.remove(); this.tour = null;
     if (this.tourHi) { for (const m of this.tourHi) { m.parent?.remove(m); m.geometry.dispose(); m.children[0]?.geometry.dispose(); } this.tourMat.dispose(); this.tourLine.dispose(); this.tourHi = null; }
     this.court.reboteSeeThrough?.(false, 1);
