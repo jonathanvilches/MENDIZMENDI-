@@ -598,13 +598,25 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   // KayKit (ejes locales conocidos) o Mixamo (los ejes del personaje se pasan al espacio de cada hueso)
   const mix = !B.upperarmr;
   const ua = B.upperarmr || B.mixamorigRightArm, la = B.lowerarmr || B.mixamorigRightForeArm, ch = B.chest || B.mixamorigSpine2; if (!ua) return;
+  const sp = B.spine || B.mixamorigSpine1 || B.mixamorigSpine, nk = B.neck || B.mixamorigNeck;
   const q = new THREE.Quaternion(), qc = new THREE.Quaternion(), X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), ax = new THREE.Vector3();
   // eje del personaje → espacio local del hueso (con la pose de este fotograma, no la del anterior)
   const local = (bone, axis) => { qc.identity(); for (let b = bone; b && b !== char.root; b = b.parent) qc.premultiply(b.quaternion); return ax.copy(axis).applyQuaternion(qc.invert()); };
   const turn = (bone, axis, a) => bone.quaternion.multiply(q.setFromAxisAngle(mix ? local(bone, axis) : axis, a));
   let w = 0;   // preparación suavizada
+  let fat = 0, resp = 0;   // el cansancio, suavizado, y la fase de la respiración
   char.post = (c, dt) => {
     const st = get(); if (!st) return;
+    // el cansancio se ve: el pelotari se encorva (más parado y entre tanto y tanto, como quien apoya las manos en las
+    // rodillas) y respira deprisa, el pecho subiendo y bajando; la cabeza se levanta un poco para seguir mirando al frente
+    fat += (Math.max(0, Math.min(1, st.tired || 0)) - fat) * Math.min(1, dt * 2.5);
+    if (fat > 0.02) {
+      resp += dt * (1.2 + fat * 1.3) * Math.PI * 2;
+      const quieto = Math.max(0, 1 - (st.speed || 0) / 2.5), doblado = fat * (0.2 + 0.3 * quieto + (st.entre ? 0.4 : 0)), aire = Math.sin(resp) * 0.09 * fat;
+      if (sp) turn(sp, X, doblado * 0.5);
+      if (ch) turn(ch, X, doblado * 0.5 + aire);
+      if (nk) turn(nk, X, -doblado * 0.45 - aire * 0.7);
+    }
     w += ((st.swing >= 0 ? 0 : st.wind || 0) - w) * Math.min(1, dt * 10);
     let arm = -2.3 * w, elbow = 1.0 * w, twist = 0.7 * w;   // brazo bien atrás, codo doblado y hombro girado
     if (st.swing >= 0 && windOnly) return;   // el golpe ya lo anima su clip

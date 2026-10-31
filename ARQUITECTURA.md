@@ -223,7 +223,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   corre siempre a tope (`tools/pelota-gasto.mjs`): pelotando, al sacar le queda en torno al
   90 %; con cortadas seguidas, al 30 %; si el rival solo le hace dejadas, al 20 %. Al cantarse el tanto, acierto o fallo,
   solo se oyen los aplausos: la pelota se calla hasta el saque siguiente (`callada`), la chapa ya no hace su «¡clonc!», la
-  repetición va sin sonido y, si la grabación de los aplausos aún no ha llegado, no suena nada en su lugar.
+  repetición va sin sonido y, si la grabación de los aplausos aún no ha llegado, no suena nada en su lugar. El aplauso dura
+  de 4 a 7 s y se apaga despacio, y el murmullo de la grada no sube a la vez (los dos juntos sonaban a vibración). Suena
+  la música de los campeonatos (`audio.js`, `nivelMusica`): baja mientras se juega (`match.js`, `enJuego`) y vuelve en la
+  presentación, el sorteo, las repeticiones y el final. El partido usa el sonido del juego, ya desbloqueado con el primer
+  toque (`fronton.js`, `audio`): en el iPhone, uno propio creado sin tocar empezaba callado y no se oía la chapa del sorteo,
+  que ahora cae, rebota y repiquetea hasta quedarse quieta (`moneda`).
+- **Partido de pelota, la dirección** (`pelota/game.js`, `strike`; `pelota/physics.js`, `twoWallsTo`): el joystick apunta
+  al bote. A dos paredes se busca por toda la pared izquierda el golpe que bota más cerca de donde se apunta, así que sale
+  desde cualquier sitio de la cancha: con la cortada, desde media izquierda; cuanto más a la izquierda, más cruzada, y
+  arriba o abajo, más larga o más corta. El saque también se dirige (de pegado a la pared al ancho, y largo o corto) y con
+  CORTADA es saque cortado: rápido y raso, bota nada más pasar la falta y gasta como una cortada. La línea de puntería se
+  ve también al preparar el saque. Cansado, la fuerza tiene tope (`powTope`): el aro del botón no pasa de ahí y lo que no
+  se alcanza se ve en rojo.
+- **Partido de pelota, el cansancio se ve** (`actors/glbChar.js`, `armSwing`; `pelota/match.js`, `suda`): por debajo de
+  la mitad de la energía, el pelotari se encorva (más parado y entre tanto y tanto) y respira deprisa; le saltan gotas de
+  sudor y lleva sobre la cabeza su aviso de sudor, que se ve también en el rival, lejos.
+- **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
+  juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
+  otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
 - **Partido de pelota, que no se bloquee** (`pelota/match.js`): en el iPhone se quedó parado tras un tanto. La causa más
   probable: un golpe cargado cuyo botón no llegó a soltarse; con la cortada o la dejada cargadas, GOLPE no respondía y la
   palanca no movía al pelotari. Ahora el último botón que se toca manda (`chargeStart`) y, al cantarse el tanto, el golpe

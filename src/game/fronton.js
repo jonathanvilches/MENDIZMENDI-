@@ -516,6 +516,9 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
       rival: { obj: rival.obj, name: rivName, animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
+      // (el sonido del juego, ya desbloqueado con el primer toque: en el iPhone, uno nuevo creado sin tocar la pantalla
+      // empezaba callado y no se oían la chapa del sorteo ni los aplausos de la presentación hasta tocar)
+      audio: G.sound?.ctx || null,
       colors, seasons, cuatro,   // (quién viste de cada color y sus temporadas; el Cuatro y Medio)
       fly: intro,   // (la llegada: el vuelo de la cámara hasta la cancha, con los pelotaris y el público ya en su sitio)
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)

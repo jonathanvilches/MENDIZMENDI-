@@ -37,8 +37,9 @@ export class PelotaAudio {
     if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
     // el aplauso de todo el frontón en cada tanto (antes solo con el público sintetizado, que está apagado: el tanto
     // sonaba con la señal y nada más). Más fuerte y más largo si el tanto ha sido bueno o el peloteo largo (big, de 0 a 1)
-    this.aplauso((clean ? (mine ? 0.75 : 0.6) : (mine ? 0.55 : 0.4)) + big * 0.3, (clean ? 2.6 : 1.8) + big * 1.6);
-    this.mood(0.55 + big * 0.15, 0.15);
+    // (largo: de 4 a 7 segundos, que se apaga despacio. Antes duraba 2 y se cortaba enseguida)
+    this.aplauso((clean ? (mine ? 0.75 : 0.6) : (mine ? 0.55 : 0.45)) + big * 0.3, (clean ? 4.6 : 3.8) + big * 2.4);
+    // (el murmullo de la grada no sube a la vez que el aplauso: los dos juntos sonaban a un zumbido, como una vibración)
     if (!PUBLICO) return;
     const C = this.crowdN;
     if (!C?.B) { this.crowd('clap', mine ? 1 : 0.6); return; }
@@ -50,10 +51,10 @@ export class PelotaAudio {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;
     const b = carga(c, 'aplausos-final').buf;
     if (b) {
-      const s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 2.2);
+      const s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 1);
       s.buffer = b; s.connect(g); g.connect(c.destination);
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.min(0.95, v), t + 0.12);
-      g.gain.setValueAtTime(Math.min(0.95, v), t + Math.max(0.2, dur - 1.1)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+      g.gain.setValueAtTime(Math.min(0.95, v), t + Math.max(0.2, dur - 2)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
       s.start(t, off); s.stop(t + dur + 0.05);
     }
     // (si la grabación aún no ha llegado, nada: las palmas sintetizadas sonaban a ruido)
@@ -83,10 +84,15 @@ export class PelotaAudio {
   hit(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }
   // pelota en el frontis: golpe con eco de pared
   front(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
-  // la chapa del sorteo contra el suelo: un «¡tin!» metálico y agudo que rebota dos veces y se apaga
+  // la chapa del sorteo contra el suelo: el golpe metálico al caer, un rebote y el repiqueteo de la moneda que baila
+  // sobre su canto, cada vez más rápido y más flojo hasta quedarse quieta (como la chapa 3D, chapa.js). Antes eran tres
+  // «¡tin!» flojos y casi no se oía
   moneda() {
-    const c = this.ensure(); if (!c) return; const t = c.currentTime;
-    [[0, 0.16], [0.22, 0.09], [0.36, 0.05]].forEach(([d, g]) => { this.tone(t + d, 0.22, 2350, g, 'sine', 0.985); this.tone(t + d, 0.16, 3720, g * 0.55, 'sine', 0.99); this.noise(t + d, 0.03, 5200, 2, g * 0.6); });
+    const c = this.ensure(); if (!c) return; const t = c.currentTime + 0.01;
+    const tin = (u, g) => { this.tone(u, 0.2, 2350, g, 'sine', 0.985); this.tone(u, 0.14, 3720, g * 0.6, 'sine', 0.99); this.tone(u, 0.08, 5480, g * 0.35, 'sine'); this.noise(u, 0.025, 6000, 1.5, g * 0.9); };
+    tin(t, 0.34); tin(t + 0.2, 0.2);
+    let u = t + 0.34, dt = 0.085, g = 0.12;
+    for (let i = 0; i < 16; i++) { tin(u, g); u += dt; dt *= 0.88; g *= 0.86; }
   }
   floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
   wall() { this.front(0.6); }

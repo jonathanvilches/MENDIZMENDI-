@@ -148,7 +148,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
   .fb-stats td{border:0!important;width:auto!important;white-space:nowrap}
   /* controles: el título y las pestañas en la misma fila, y debajo las tarjetas de una línea: todo a la vista */
   .fb-subsp .fb-body{grid-template-columns:auto minmax(0,1fr) auto;align-items:center}.fb-subsp .fb-body>h2{grid-column:1;margin:0}.fb-subsp .fb-ctabs{grid-column:2;margin:0}.fb-subsp .fb-subs-n{grid-column:3;margin:0!important}.fb-subsp .fb-subs{grid-column:1/-1;margin-top:8px}
-  .fb-subsp .fb-pl{height:36px;padding:2px 12px 2px 8px}.fb-subsp .fb-sf,.fb-subsp .fb-sb{gap:4px}
+  .fb-subsp .fb-pl{height:36px;padding:2px 12px 2px 8px}.fb-subsp .fb-sf,.fb-subsp .fb-sb{gap:8px}
   .fb-subsp .fb-subs{grid-template-columns:minmax(0,2.4fr) minmax(0,1.2fr)}.fb-subsp .fb-sf{grid-template-columns:repeat(3,minmax(0,1fr))}   /* (los once en tres columnas: caben sin desplazar) */
   .fb-subsp .fb-subs small.h{letter-spacing:.04em;white-space:nowrap}   /* (el rótulo del banquillo en una línea: en dos, la lista bajaba y había que desplazar) */
   @media (max-width:700px){.fb-subsp .fb-subs{grid-template-columns:minmax(0,3fr) minmax(0,1fr)}.fb-subsp .fb-subs small.h{white-space:normal}}   /* (en los más estrechos, como antes: el que sale necesita su ancho) */

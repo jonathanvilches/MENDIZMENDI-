@@ -13,7 +13,7 @@ const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'music
 
 export class Sound {
   constructor() {
-    this.ctx = null; this.enabled = true; this.musicOn = true;
+    this.ctx = null; this.enabled = true; this.musicOn = true; this.musVol = 0.32;
     this.listener = { x: 0, y: 0, z: 0, yaw: 0 };
     this.birdT = 1; this.bellT = 5;
   }
@@ -25,7 +25,7 @@ export class Sound {
     const pre = window.__sonido?.ctx, ctx = this.ctx = pre && pre.state !== 'closed' ? pre : new AC();
     this.master = ctx.createGain(); this.master.gain.value = 0.8; this.master.connect(ctx.destination);
     this.sfx = ctx.createGain(); this.sfx.gain.value = 0.9; this.sfx.connect(this.master);
-    this.musicBus = ctx.createGain(); this.musicBus.gain.value = 0.32; this.musicBus.connect(this.master);
+    this.musicBus = ctx.createGain(); this.musicBus.gain.value = this.musVol; this.musicBus.connect(this.master);
     // reverb sencilla
     this.verb = ctx.createConvolver(); this.verb.buffer = this.impulse(2.2); const vg = ctx.createGain(); vg.gain.value = 0.25; this.verb.connect(vg); vg.connect(this.master);
     this.noiseBuf = this.makeNoise(2);
@@ -198,15 +198,22 @@ export class Sound {
     if (this.mood !== this.musCur) {
       this.musCur = this.mood; const g = this.musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t);
       if (this.mood === 'none') g.setTargetAtTime(0, t, 0.35);
-      else if ((this.duckUntil || 0) > t) { g.setTargetAtTime(0, t, 0.08); g.setTargetAtTime(0.32, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
-      else g.setTargetAtTime(0.32, t, 0.3);
+      else if ((this.duckUntil || 0) > t) { g.setTargetAtTime(0, t, 0.08); g.setTargetAtTime(this.musVol, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
+      else g.setTargetAtTime(this.musVol, t, 0.3);
     }
   }
-  setMusic(on) { this.musicOn = on; if (this.musicBus) { const t = this.ctx.currentTime, g = this.musicBus.gain, d = (this.duckUntil || 0) > t; g.cancelScheduledValues(t); g.setTargetAtTime(on && !d ? 0.32 : 0, t, 0.3); if (on && d) g.setTargetAtTime(0.32, this.duckUntil, 0.4); } }
+  setMusic(on) { this.musicOn = on; if (this.musicBus) { const t = this.ctx.currentTime, g = this.musicBus.gain, d = (this.duckUntil || 0) > t; g.cancelScheduledValues(t); g.setTargetAtTime(on && !d ? this.musVol : 0, t, 0.3); if (on && d) g.setTargetAtTime(this.musVol, this.duckUntil, 0.4); } }
+  /** Lo fuerte que va la música (0,32 lo normal): en el partido de pelota, mientras se juega, baja para que manden la
+   *  pelota y la grada; en la presentación, el sorteo, las repeticiones y el final, vuelve */
+  nivelMusica(v) {
+    if (Math.abs(v - this.musVol) < 1e-3) return; this.musVol = v;
+    if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
+    const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(v, t, 0.6);
+  }
   /** La música se aparta s segundos (al escuchar un instrumento en su ficha: antes sonaban los dos a la vez) y vuelve sola. */
   duck(s) {
     if (!this.musicBus) return; const t = this.ctx.currentTime, g = this.musicBus.gain;
-    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn) g.setTargetAtTime(0.32, this.duckUntil, 0.4);
+    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn) g.setTargetAtTime(this.musVol, this.duckUntil, 0.4);
   }
   // trueno: si el rayo cae cerca, primero un chasquido seco; luego el retumbar grave y largo, que va y viene (ruido muy
   // filtrado con varios golpes) y resuena en el eco. dist en metros: más lejos, más tarde, más grave y más flojo

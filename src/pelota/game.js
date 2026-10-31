@@ -1,7 +1,7 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
 import { COURT, LEVELS, SHOTS, kantari, CUATRO, PHYS } from './rules.js';
-import { Ball, predict, solveShot, solveTwoWalls, aimVelocity, landingOf, vec } from './physics.js';
+import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec } from './physics.js';
 import { clamp } from '../util/math.js';
 
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
@@ -36,7 +36,7 @@ export const descansosDe = (target) => Math.max(1, Math.round((target || 7) * DE
 function shotEnergy(shot, sub, pow, volea) {
   let c = shot === 'cortada' ? (sub === 'cortDos' ? EN.cortDos : EN.cortada) + EN.cortPow * pow
     : shot === 'dosparedes' ? EN.dos : shot === 'gancho' ? EN.gancho : shot === 'dejada' ? EN.dejada : shot === 'rebote' ? EN.rebote
-    : shot === 'saque' ? 0 : -EN.normal * (1 - pow * 0.7);   // (el golpe normal, más cuanto más suave: el peloteo descansa)
+    : shot === 'saque' ? (sub === 'saqueCortado' ? EN.cortada + EN.cortPow * pow : 0) : -EN.normal * (1 - pow * 0.7);   // (el saque cortado, como una cortada)   // (el golpe normal, más cuanto más suave: el peloteo descansa)
   if (volea) c += EN.volea;
   return c;
 }
@@ -52,7 +52,7 @@ const GANCHO_Y = 1.55;
 // arriba o abajo (−1 a 1). También la usa la marca de puntería que se ve en el frontis mientras se carga
 const pow01 = (pow) => clamp((pow - 0.15) / 0.85, 0, 1);
 // (la cortada va rápida y tensa, pero sin rozar la chapa: de 1,35 m poco cargada a unos 3 m a tope)
-export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.3 - COURT.CHAPA - 0.45) + ay * 0.35, COURT.CHAPA + 0.35, COURT.FRONT_H * 0.34); }
+export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.pow(pow01(pow), 1.1) * (COURT.FRONT_H * 0.3 - COURT.CHAPA - 0.45) + ay * 0.5, COURT.CHAPA + 0.35, COURT.FRONT_H * 0.36); }
 // el joystick a un lado se exagera: medio lado ya va casi a la pared y del todo, pegada a ella o a dos paredes
 export const aimSide = (x) => Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 0.6) * 1.12);
 // (la dejada: la carga dice la altura, de rozar la chapa a unos 2 m; el joystick arriba o abajo afina un palmo más)
@@ -144,6 +144,8 @@ export class PelotaGame {
   serverP() { return this.pairs ? this.team(this.server).find(id => this.role[id] === 'delantero') : this.server; }
   // cansancio: 0 con media energía o más; 1, sin energía
   tired(id) { const p = this.players[id]; return p ? clamp((EN.low - p.en) / EN.low, 0, 1) : 0; }
+  /** Hasta dónde llega la fuerza del golpe (de 0 a 1) con el cansancio: entero, a tope; del todo cansado, a poco más de la mitad */
+  powTope(id) { return 1 - this.tired(id) * 0.42; }
 
   // ---------------------------------------------------------------- saque
   placeForServe() {
@@ -265,9 +267,10 @@ export class PelotaGame {
   // tocar la pelota (la marca de puntería de la cancha)
   // o: { timing (segundos de más o de menos respecto al momento justo: pronto, negativo; tarde, positivo), volea, gancho }
   strike(who, q, aim = { x: 0, y: 0 }, req = false, pow = 0.5, dry = false, at = null, o = {}) {
-    const b = this.ball, p = { ...(at || b.p) }, rnd = dry ? () => 0.5 : this.rnd, serve = this.phase === 'servePrep';
+    const b = this.ball, p = { ...(at || b.p) }, rnd = dry ? () => 0.5 : this.rnd, serve = this.phase === 'servePrep' || !!o.saque;   // (o.saque: la vista previa del saque, antes de echar a correr)
     let shot = 'normal', sub = '', v;
-    pow = clamp(pow, 0, 1);
+    // (cansado ya no se pega tan fuerte: la carga no pasa de su tope, powTope; el aro del botón lo enseña)
+    pow = clamp(Math.min(pow, this.powTope(who)), 0, 1);
     let rawX = aim.x || 0;
     // el momento se nota en la dirección: pronto, la pelota se va a la izquierda (y algo más alta); tarde, a la derecha
     // (y más baja, hacia la chapa)
@@ -282,9 +285,25 @@ export class PelotaGame {
     // un décimo menos de error que a 3)
     const err = ((1 - q) + Math.max(0, pow - 0.85) * 0.3 * (1.6 - this.qual[who].fuerza * 0.2)) * (1.15 - this.qual[who].precision * 0.05), forceDrop = req === true || req === 'dejada';
     if (serve) {
-      const tx = clamp(aim.x * 2.5 + gauss(rnd) * err * 1.2, -3.5, 3.5);
-      const landZ = this.cuatro ? 13.4 + pow * 2.4 + gauss(rnd) * err * 4.5 : 18.3 + pow * 2 + gauss(rnd) * err * 7.5;
-      v = solveShot(p, tx, landZ, 17 + q * 3 + pow * 6).v; shot = 'saque';
+      // el saque también se dirige: de lado, dónde bota (de pegado a la pared izquierda a junto a la raya del ancho), y
+      // arriba o abajo, lo largo, entre la falta y el pasa. Con CORTADA, el saque cortado: rápido y raso, justo por encima
+      // de la chapa; bota nada más pasar la falta y corre bajo. Antes el joystick solo movía el punto del frontis (a lo
+      // ancho, poco) y no había saque de cortada
+      shot = 'saque';
+      const lx = clamp(aimSide(rawX) * 3.7 + gauss(rnd) * err * 1.2, -4.6, 4.6), ay = clamp(aim.y || 0, -1, 1);
+      if (req === 'cortada') {
+        sub = 'saqueCortado';
+        const speed = 31 + q * 4 + pow * 8, T = Math.max(0.2, p.z / speed);
+        const lzT = (this.cuatro ? clamp(11.4 + pow * 2 + ay * 1.2, 10.9, 14.5) : clamp(15.3 + pow * 2.6 + ay * 1.6, 14.6, 19.5)) + gauss(rnd) * err * 2.2;
+        // (la altura del frontis con la que bota ahí: cuanto más alta, más lejos; mal dado, puede ir a la chapa o a falta)
+        let lo = COURT.CHAPA + 0.28, hi = 3.4, ty = lo;
+        for (let i = 0; i < 10; i++) { ty = (lo + hi) / 2; const r = landingOf(p, aimVelocity(p, lx * 0.4, ty, T), 1); if ((r.land?.z ?? 99) < lzT) lo = ty; else hi = ty; }
+        ty += gauss(rnd) * err * 0.22;
+        v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1);
+      } else {
+        const landZ = this.cuatro ? clamp(13.4 + pow * 2.4 + ay * 1.2, 11.2, 16.6) + gauss(rnd) * err * 4.5 : clamp(18.3 + pow * 2 + ay * 2.6, 15.4, 23.4) + gauss(rnd) * err * 7.5, speed = 17 + q * 3 + pow * 6;
+        v = aimWide(p, lx, (tx) => solveShot(p, tx, landZ, speed).v);
+      }
     } else if (forceDrop) {
       // dejada: la fuerza dice a qué altura pega: suave, justo encima de la chapa (muere enseguida); cargada, más
       // arriba (hasta unos 2 m) y bota algo más lejos
@@ -310,11 +329,12 @@ export class PelotaGame {
       // (desde media izquierda ya va a dos paredes: con la cortada no hay golpe «a la pared» con el que confundirla, y antes
       // había que llevar el joystick casi al tope y costaba controlarla. Cuanto más a la izquierda, antes toca la pared y
       // más cruzada sale; arriba, más larga; abajo, más corta)
+      // (se apunta al bote, desde cualquier sitio: cuanto más a la izquierda el joystick, más cruzada sale, de bote al centro
+      // a bote junto a la raya del ancho; arriba, más larga; abajo, más corta, junto al frontis)
       if (rawX < -0.45 && !serve) {
-        // (cuanto más a la izquierda, antes toca la pared, más cerca del frontis, y más cruzada sale hacia la derecha: con
-        // el joystick del todo a la izquierda, bota ya junto a la contracancha)
-        const ang = clamp((-rawX - 0.45) / 0.5, 0, 1), fz = clamp(0.78 - ang * 0.36 + gauss(rnd) * err * 0.05, 0.3, 0.85);
-        const r = solveTwoWalls(p, speed, clamp(9 + pow * 5 + aim.y * 2.5, 6.5, 16), [fz, fz - 0.06, fz + 0.06, fz + 0.12], { low: 2, maxFront: ty + 1.4, cross: 1 + ang * 5, spin: 1 });
+        const ang = clamp((-rawX - 0.45) / 0.5, 0, 1);
+        const tgt = { x: 0.8 + ang * 3.6 + gauss(rnd) * err * 0.9, z: clamp(9.5 + pow * 4 + aim.y * 3, 6.5, 16) + gauss(rnd) * err * 1.6 };
+        const r = twoWallsTo(p, speed, tgt, { low: 1.5, maxFront: ty + 1.4, spin: 1 });
         if (r) { v = r.v; sub = 'cortDos'; }
       }
       if (!v) { const T = Math.max(0.2, p.z / speed); v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1); sub = lx < -2.4 ? 'cortPared' : lx > 3.2 ? 'cortAncho' : ''; }
@@ -337,8 +357,8 @@ export class PelotaGame {
       // que sale, de la mitad de la cancha al cuadro 6: antes ese recorrido era la mitad y la fuerza se notaba poco)
       if (!gancho && rawX < -0.7 && aim.y < 0.3) {
         const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(10.5 + pow * 10.5 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, this.cuatro ? 14.6 : 22);
-        const fz = clamp(0.62 - ang * 0.45 + gauss(rnd) * err * 0.07, 0.15, 0.8);
-        const r = solveTwoWalls(p, speed + 1, lz, [fz, fz - 0.06, fz + 0.06]);   // (más fuerza, más rápida y más larga)
+        // (y se apunta al bote: más a la izquierda, más cruzada, del centro al ancho)
+        const r = twoWallsTo(p, speed + 1, { x: 0.6 + ang * 3.6 + gauss(rnd) * err * 0.9, z: lz });   // (más fuerza, más rápida y más larga)
         if (r) {
           shot = 'dosparedes'; v = r.v;
           sub = pow > 0.8 && aim.y < -0.6 ? 'dpPegada' : lz < 12 || pow < 0.3 ? 'dpCorta' : ang < 0.4 ? 'dpCruzada' : lz > 16 ? 'dpLarga' : '';
@@ -406,18 +426,19 @@ export class PelotaGame {
         v = w; f = g;
       }
     }
-    if (dry) return { p, v, shot, sub, spin: shot === 'cortada' ? 1 : 0 };
+    const cut = shot === 'cortada' || sub === 'saqueCortado';
+    if (dry) return { p, v, shot, sub, spin: cut ? 1 : 0 };
     // golpe muy malo: a veces a la chapa o demasiado alto
     if (!serve && q < 0.3 && rnd() < 0.45) {
       const T = p.z / 18;
       v = rnd() < 0.6 ? aimVelocity(p, p.x * 0.5, COURT.CHAPA * (0.3 + rnd() * 0.5), T) : aimVelocity(p, p.x + gauss(rnd) * 3, COURT.FRONT_TOP + 0.6 + rnd(), T);
     }
-    b.set(p, v); b.spin = shot === 'cortada' ? 1 : 0;
+    b.set(p, v); b.spin = cut ? 1 : 0;
     const pl = this.players[who], sd = this.side(who); pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
     // energía: la cortada gasta, y más cuantas más seguidas (pl.racha); el peloteo normal la devuelve y enfría la racha (a
     // quien tiene fuerza, todo le cuesta menos)
-    const cost = shotEnergy(shot, sub, pow, !!o.volea) * (shot === 'cortada' ? 1 + EN.racha * (pl.racha || 0) : 1);
-    pl.racha = shot === 'cortada' ? (pl.racha || 0) + 1 : shot === 'saque' ? pl.racha || 0 : (pl.racha || 0) * 0.5;
+    const cost = shotEnergy(shot, sub, pow, !!o.volea) * (cut ? 1 + EN.racha * (pl.racha || 0) : 1);
+    pl.racha = cut ? (pl.racha || 0) + 1 : shot === 'saque' ? pl.racha || 0 : (pl.racha || 0) * 0.5;
     pl.en = clamp(pl.en - (cost > 0 ? cost * (1.15 - this.qual[who].fuerza * 0.05) : cost), 0, 1);
     this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1, kind: shot, sub, volea: !!o.volea, sp: Math.hypot(v.x, v.y, v.z) };
     for (const id of this.ids) this.players[id].idealAt = null;   // (el momento justo del golpe siguiente se mira de nuevo)
@@ -534,13 +555,15 @@ export class PelotaGame {
   /** Vista previa del golpe apuntado (el botón mantenido): desde donde se va a golpear (el sitio al que llega la
    *  pelota, o la mano en el saque), el golpe sin azar y su camino hasta el primer bote. null si aún no hay golpe. */
   previewShot(aim, req, pow) {
-    const you = this.players.you; let at = null;
+    const you = this.players.you; let at = null, saque = false;
     if (this.phase === 'servePrep' && this.serverP() === 'you') at = { ...this.ball.p };
+    // (antes de echar a correr: desde donde se saca, poco antes de la raya del 4)
+    else if (this.phase === 'serveWait' && this.serverP() === 'you' && !this.runUp) { at = { x: SERVE_X + 0.35, y: 1.0, z: SERVE_Z - 0.35 }; saque = true; }
     else if (this.phase === 'rally' && this.rally?.turn === 'you') { const c = this.interceptFor('you', YOU_RUN, 0.1); if (c) at = { x: c.x, y: 1.0, z: c.z - 0.25 }; }
     if (!at) return null;
     const key = [Math.round(aim.x * 12), Math.round(aim.y * 12), req || '', Math.round(pow * 10), Math.round(at.x * 3), Math.round(at.z * 3)].join();
     if (this._pv?.key === key) return this._pv;
-    const r = this.strike('you', 1, aim, req, pow, true, at); if (!r?.v) return null;
+    const r = this.strike('you', 1, aim, req, pow, true, at, { saque }); if (!r?.v) return null;
     const b = new Ball(); b.set(r.p, r.v); b.spin = r.spin;
     const pr = predict(b, 4, 1 / 60), pts = [], step = Math.max(1, Math.ceil(pr.samples.length / 90));
     const front = pr.events.find(e => e.type === 'front'), wall = pr.events.find(e => e.type === 'left' && (!front || e.t < front.t));
@@ -552,7 +575,11 @@ export class PelotaGame {
   aiShot(who) {
     const me = this.players[who], sd = this.side(who), rnd = this.rnd;
     const lv = this.lvl.rival, smart = sd === 'rival' ? lv.smart : who === 'youMate' ? MATE_AI.smart : 0.5, S = this.qual[who].fuerza;
-    if (this.phase === 'servePrep') return { aim: { x: gauss(rnd) * 0.5, y: 0 }, drop: false };
+    // (el saque: a veces pegado a la pared o al ancho y, si no va cansado, alguno cortado, más cuanto más listo)
+    if (this.phase === 'servePrep') {
+      const lado = rnd(), corta = this.mode === 'match' && this.tired(who) < 0.2 && rnd() < 0.1 + smart * 0.15;
+      return { aim: { x: lado < 0.3 ? -0.75 - rnd() * 0.25 : lado > 0.85 ? 0.7 + rnd() * 0.3 : gauss(rnd) * 0.5, y: gauss(rnd) * 0.4 }, drop: corta ? 'cortada' : false, pow: corta ? 0.3 + rnd() * 0.4 : undefined };
+    }
     // (cansado, no se arriesga con cortadas, dos paredes ni ganchos, que gastan mucho: pelotea para recuperar energía. Sus
     // golpes preferidos baratos, la dejada y el largo, los sigue buscando, el largo sin ir a tope)
     const tiredAI = this.tired(who) > 0.25 && rnd() < 0.5 + this.tired(who) * 0.5;
@@ -696,7 +723,7 @@ export class PelotaGame {
       tx = clamp(-op.x * 0.5, -2.5, 2.5); tz = this.cuatro ? 13 : 20.5;   // (en el Cuatro y Medio se espera más adelante: todo se juega antes del 4 y medio)
     } else if (this.phase === 'servePrep' && this.serverP() === who) {
       if (this.hittable(who) && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) {
-        const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, false);
+        const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, s.drop || false, s.pow ?? 0.5);
       }
       return;   // (la carrera del saque la lleva movePlayers: sigue a la pelota que ha botado)
     }
@@ -758,9 +785,10 @@ export class PelotaGame {
       if (!this.runUp && this.mode === 'match') { const sd = ['you', 'rival'].find(x => this.pedido[x] && this.descansos[x] > 0); if (sd) { this.startDescanso(sd); return this.events; } }
       const s = this.players[this.serverP()];
       const humanServes = this.serverP() === 'you' && !this.autoplay;
-      if (!this.runUp && (humanServes ? (inp.hit || this.phaseT > 9) : this.phaseT > 0.8)) {
+      if (!this.runUp && (humanServes ? (inp.hit || inp.cut || this.phaseT > 9) : this.phaseT > 0.8)) {
         this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() });
-        if (humanServes) this.saque = inp.hit ? { pow: inp.power ?? 0.5, aim: { x: inp.aimX || 0, y: inp.aimY || 0 } } : { pow: 0.5, aim: { x: 0, y: 0 } };
+        // (con GOLPE, el saque de siempre; con CORTADA, el saque cortado)
+        if (humanServes) this.saque = inp.hit || inp.cut ? { pow: inp.power ?? 0.5, aim: { x: inp.aimX || 0, y: inp.aimY || 0 }, req: inp.cut ? 'cortada' : false } : { pow: 0.5, aim: { x: 0, y: 0 }, req: false };
       }
       this.movePlayers(dt, { ...inp, hit: false, drop: false });
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
@@ -823,7 +851,7 @@ export class PelotaGame {
       // ese momento (o llega mientras dura el gesto), la tocas; si no, al aire
       // (el saque, con la fuerza y la puntería que elegiste al salir: al bajar la pelota tras el bote, como el rival)
       if (this.phase === 'servePrep' && this.saque && this.serverP() === 'you') {
-        if (this.hittable('you') && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, false, S.pow, false, null, { timing: 0 }); }
+        if (this.hittable('you') && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
       } else if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
         if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36; }
       }
