@@ -16,7 +16,8 @@ import DATOS from '../data/reales/emblemas.json';
 export const EMB = DATOS.emblemas;
 const rad = Math.PI / 180;
 const hsl = (h, s, l) => new THREE.Color().setHSL(h, s, l).toArray();
-const PIEDRA = hsl(0.09, 0.3, 0.58), PIEDRA_C = hsl(0.1, 0.3, 0.68), CESPED = hsl(0.27, 0.4, 0.38), TEJA = hsl(0.03, 0.5, 0.42);
+// (la piedra, dorada y no casi blanca: setHSL va en color lineal y 0,6 ya se veía blanquecino)
+const PIEDRA = hsl(0.1, 0.4, 0.44), PIEDRA_C = hsl(0.1, 0.38, 0.54), CESPED = hsl(0.27, 0.4, 0.38), TEJA = hsl(0.03, 0.5, 0.42);
 const ORO = hsl(0.1, 0.42, 0.6), PIZARRA = hsl(0.62, 0.12, 0.14), ROJO = hsl(0.99, 0.82, 0.4), ROJO_O = hsl(0.99, 0.72, 0.28);
 
 /** De un punto (lat, lon) a metros desde otro, como los pueblos reales (x al este, z al sur) */
@@ -261,7 +262,7 @@ function puente(M, P, arcos, alto) {
     const hole = new THREE.Path(); hole.moveTo(a * MU, arr); hole.lineTo(b * MU, arr); hole.absellipse(c * MU, arr, rx * MU, ry, 0, Math.PI, false); hole.lineTo(a * MU, arr); S.holes.push(hole);
   }
   const g = new THREE.ExtrudeGeometry(S, { depth: ancho * MU, bevelEnabled: false, curveSegments: 10 }).toNonIndexed(), pos = g.getAttribute('position');
-  const piedra = hsl(0.09, 0.2, 0.6);
+  const piedra = hsl(0.09, 0.3, 0.47);
   for (let k = 0; k < pos.count; k += 3) {
     const ids = [];
     for (let j = 0; j < 3; j++) { const u = pos.getX(k + j) / MU, y = pos.getY(k + j), w = pos.getZ(k + j) / MU - ancho / 2, [X, Z] = at(u, w); ids.push(M.v(X, y, Z, piedra, agua)); }

@@ -237,13 +237,15 @@ export function mapa3d(host, o) {
       const fondo = { value: 0 }, m = M({ roughness: 0.9 }); c.arbolFondo = fondo;
       m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco });
         sh.vertexShader = 'uniform float uInvExa, uTam; uniform vec4 uHueco;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed *= uTam; transformed.y *= uInvExa;\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;');
-        sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`); };
+        // (con un poco de su propio verde como luz: con la luz malva del cielo, de lejos salían como motas negras)
+        sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
+          .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
       m.customProgramCacheKey = () => 'mapa-arboles';
       const im = new THREE.InstancedMesh(arbolG, m, L.length); im.raycast = () => {};
       L.forEach(([X, y, Z, mt], n) => {
         const sc = 0.75 + azar() * 0.55, alt = mt > 900;   // (en lo alto, pinos y abetos, más oscuros; abajo, robles y hayas, más claros)
         im.setMatrixAt(n, m4.compose(e3.set(X, y, Z), q.identity(), new THREE.Vector3(sc, sc * (alt ? 1.15 : 0.9), sc)));
-        im.setColorAt(n, col.set(alt ? '#2c5530' : '#4a7a36').offsetHSL((azar() - 0.5) * 0.03, 0, (azar() - 0.5) * 0.1));
+        im.setColorAt(n, col.set(alt ? '#33603a' : '#548640').offsetHSL((azar() - 0.5) * 0.03, 0, (azar() - 0.5) * 0.1));
       });
       im.frustumCulled = false; c.mesh.add(im); arboles.push(im);
     }
@@ -829,21 +831,27 @@ export function mapa3d(host, o) {
       else if (u.k === 'prado') hileras(6, 3, 'rgba(255, 255, 255, .06)');
       else if (u.k === 'deporte') { g.beginPath(); u.pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.closePath(); g.lineWidth = Math.max(1, 0.8 * k); g.strokeStyle = 'rgba(255, 255, 255, .7)'; g.stroke(); }
     }
-    for (const p of D.lugares.plazas || []) area(p.pts, 'rgba(236, 226, 206, .9)');
-    // (y en las plazas, las losas: una cuadrícula de unos 2,5 m)
-    if (!velo) { const L = Math.max(3, Math.round(2.5 * k)); const losas = dibujo(L, L, (q, w, h) => { q.fillStyle = 'rgba(120, 104, 84, .28)'; q.fillRect(0, 0, w, 1); q.fillRect(0, 0, 1, h); });
+    for (const p of D.lugares.plazas || []) area(p.pts, 'rgba(232, 220, 196, .9)');
+    // (la piedra a motas: granos claros y oscuros de uno o dos píxeles, para el empedrado y las losas cuando sus juntas no
+    // caben en el lienzo; con juntas de 3 píxeles, al acercarse, se veían cuadros de mantel de 4 m)
+    const motas = !velo && dibujo(48, 48, (q, w, h) => { for (let i = 0; i < 420; i++) { const os = Math.random() < 0.55; q.fillStyle = os ? `rgba(110, 92, 70, ${0.1 + Math.random() * 0.14})` : `rgba(255, 248, 230, ${0.1 + Math.random() * 0.16})`; q.fillRect(Math.random() * w, Math.random() * h, 1 + (Math.random() < 0.3), 1); } });
+    // (y en las plazas, las losas: una cuadrícula de unos 2,5 m, si cabe con sus juntas; si no, la piedra a motas)
+    if (!velo) { const L = Math.round(2.5 * k), losas = L >= 6 ? dibujo(L, L, (q, w, h) => { q.fillStyle = 'rgba(120, 104, 84, .2)'; q.fillRect(0, 0, w, 1); q.fillRect(0, 0, 1, h); }) : motas;
       for (const p of D.lugares.plazas || []) area(p.pts, losas); }
-    // (los anchos de los datos son la mitad: de la orilla al centro)
-    for (const r of D.rios) linea(r.pts, Math.max(4, 2 * (r.w || 2)), '#5ab8f0');
-    for (const b of D.balsas || []) area(b.pts, '#5ab8f0');
+    // (los anchos de los datos son la mitad: de la orilla al centro. El agua con su orilla más oscura y un brillo en el centro,
+    // como si corriera; antes, una cinta lisa del mismo azul)
+    for (const r of D.rios) linea(r.pts, Math.max(4, 2 * (r.w || 2)) + (velo ? 0 : 2.5), velo ? '#5ab8f0' : 'rgba(34, 104, 150, .6)');
+    if (!velo) { for (const r of D.rios) linea(r.pts, Math.max(4, 2 * (r.w || 2)), '#54b0e8'); for (const r of D.rios) linea(r.pts, Math.max(1.2, 0.7 * (r.w || 2)), 'rgba(214, 242, 255, .32)'); }
+    for (const b of D.balsas || []) area(b.pts, '#54b0e8');
     for (const b of D.piscinas || []) area(b.pts, '#7fd6f6');
     for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) + 1.5, s.t === 'trail' ? 'rgba(150, 128, 96, .35)' : 'rgba(120, 104, 90, .55)');
-    for (const s of D.calles) linea(s.pts, 2 * (s.w || 2), s.t === 'trail' ? 'rgba(214, 198, 166, .85)' : '#e7dfd0');
+    for (const s of D.calles) linea(s.pts, 2 * (s.w || 2), s.t === 'trail' ? 'rgba(214, 198, 166, .85)' : velo ? '#e7dfd0' : '#e0d5c0');
     // (en la maqueta, el empedrado de las calles, adoquines de algo más de un metro con sus juntas, y la tierra de los caminos)
     if (!velo) {
-      const A = Math.max(3, Math.round(1.2 * k)), adoquin = dibujo(A * 2, A * 2, (q, w, h) => { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { const o = j % 2 ? A / 2 : 0; q.fillStyle = `rgba(${150 + Math.random() * 40}, ${134 + Math.random() * 34}, ${112 + Math.random() * 30}, .5)`; q.fillRect((i * A + o) % w + 1, j * A + 1, A - 1, A - 1); q.fillRect((i * A + o) % w + 1 - w, j * A + 1, A - 1, A - 1); } });
+      const A = Math.max(3, Math.round(1.2 * k)), adoquin = dibujo(A * 2, A * 2, (q, w, h) => { for (let j = 0; j < 2; j++) for (let i = 0; i < 2; i++) { const o = j % 2 ? A / 2 : 0; q.fillStyle = `rgba(${150 + Math.random() * 40}, ${134 + Math.random() * 34}, ${112 + Math.random() * 30}, .38)`; q.fillRect((i * A + o) % w + 1, j * A + 1, A - 1, A - 1); q.fillRect((i * A + o) % w + 1 - w, j * A + 1, A - 1, A - 1); } });
       const tierra = dibujo(32, 32, (q, w, h) => { for (let i = 0; i < 90; i++) { q.fillStyle = Math.random() < 0.5 ? 'rgba(120, 92, 60, .25)' : 'rgba(250, 238, 210, .2)'; q.fillRect(Math.random() * w, Math.random() * h, 1 + Math.random() * 2, 1); } });
-      for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) - 0.6, s.t === 'trail' ? tierra : adoquin);
+      // (los adoquines, si caben con sus juntas, de 4 píxeles o más; si no, la piedra a motas)
+      for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) - 0.6, s.t === 'trail' ? tierra : 1.2 * k >= 4 ? adoquin : motas);
     }
     for (const s of D.puentes || []) { linea(s.pts, 2 * (s.w || 2) + 2, 'rgba(90, 76, 62, .6)'); linea(s.pts, 2 * (s.w || 2), '#d6c8ae'); }
     // (en la maqueta, las mismas casas que se levantan, con los bloques grandes ya partidos: maqueta.js casasMaqueta. Si no,

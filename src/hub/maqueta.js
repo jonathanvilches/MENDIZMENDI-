@@ -28,12 +28,14 @@ function claseReal(b) {
   return b.k;
 }
 // (el color de las paredes según la tierra, en HSL: encaladas en los valles del norte, piedra en el Pirineo, piedra y
-// revoco ocre en la Zona Media, ladrillo y ocre en la Ribera)
+// revoco ocre en la Zona Media, ladrillo y ocre en la Ribera. Ojo: setHSL va en color lineal, así que una luminosidad de
+// 0,75 ya es casi blanco en pantalla; con valores así, todas las casas de la Zona Media y la Ribera salían blancas. Ahora
+// la piedra dorada de Olite, el ocre, el ladrillo de Tudela y la piedra parda del Pirineo se distinguen)
 const PARED = {
   atlantico: [[0.11, 0.2, 0.95], [0.12, 0.16, 0.92], [0.1, 0.14, 0.84]],
-  pirineo: [[0.09, 0.12, 0.52], [0.1, 0.1, 0.6], [0.12, 0.14, 0.86]],
-  centro: [[0.11, 0.36, 0.8], [0.1, 0.32, 0.73], [0.12, 0.28, 0.88]],
-  ribera: [[0.07, 0.38, 0.64], [0.1, 0.3, 0.78], [0.12, 0.2, 0.9]],
+  pirineo: [[0.09, 0.16, 0.42], [0.1, 0.12, 0.5], [0.12, 0.14, 0.8]],
+  centro: [[0.1, 0.5, 0.5], [0.09, 0.42, 0.42], [0.11, 0.38, 0.6]],
+  ribera: [[0.04, 0.55, 0.32], [0.08, 0.5, 0.46], [0.11, 0.34, 0.62]],
 };
 const ESTILO = { bidasoa: 'atlantico', 'larraun-leitzaldea': 'atlantico', sakana: 'atlantico', pirineo: 'pirineo', prepirineo: 'pirineo', ribera: 'ribera', 'ribera-alta': 'ribera' };
 // (los usos del suelo que son campo o están hechos: ahí no crece el bosquete)
@@ -237,6 +239,10 @@ if (vVent > 20.5) {
     if (t > 1.5 && t < 3.5 && vSemilla < 0.5) det = mix(det, vec3(0.3, 0.18, 0.1), step(2.6, v) * step(v, 3.15) * step(0.4, u) * step(u, ancho - 0.4));
     det *= (1.0 - 0.13 * chorreo * fino) * mix(0.9, 1.0, smoothstep(0.8, 1.8, v));   // (y la humedad que sube del suelo)
     det *= mix(0.78, 1.0, step(0.8, v)) * mix(1.0, 0.72, smoothstep(hM - 2.7, hM - 2.0, v));
+    // (a media distancia, cuando las ventanas ya no se distinguen, las plantas: una franja algo más oscura por piso, donde
+    // van las ventanas; así la fachada no queda lisa y se lee la altura de cada casa)
+    float pisos = t < 3.5 ? step(2.6, v) * step(v, hM - 4.4) * step(0.28, fract(v / 3.0)) * step(fract(v / 3.0), 0.8) : 0.0;
+    base *= 1.0 - 0.1 * pisos * (1.0 - nitido) * (1.0 - smoothstep(1.4, 3.2, px));
     diffuseColor.rgb = mix(base * (t < 3.5 ? 0.86 : 0.96), det, nitido);
   } else if (t > 5.5 && t < 7.5) {
     if (abs(vNo.y) < 0.2) diffuseColor.rgb = uHastial * mix(0.9, 1.0, vSemilla);   // (el hastial, de pared)
@@ -253,7 +259,11 @@ if (vVent > 20.5) {
     }
   } else if (t > 7.5) diffuseColor.rgb *= mix(0.58, 1.12, vObj.y) * (0.9 + 0.2 * vSemilla);
 }`).replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con su propio color y no del malva del cielo)`);
+totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con su propio color y no del malva del cielo)`)
+      // (y la luz del cielo del mapa, malva, enfriaba la piedra y el revoco hasta dejarlos lilas: un punto más cálida, como
+      // la luz de media tarde; en los árboles, apenas)
+      .replace('#include <opaque_fragment>', `outgoingLight *= vVent > 7.5 && vVent < 20.5 ? vec3(1.02, 1.0, 0.95) : vec3(1.07, 1.0, 0.88);
+#include <opaque_fragment>`);
   };
   mat.customProgramCacheKey = () => 'maqueta';
   res.mat = mat;
@@ -275,7 +285,9 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     const hM = clamp(b.h || ALTO[k] || 8, 3, 45), H = (hM + 2) * MU * K, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d);
     const nave = k === 'industrial' || k === 'shed', piedra = k === 'church' || k === 'tower' || k === 'borda' || k === 'palacio' || k === 'castillo' || k === 'muralla';
     // (los pajares y las naves pequeñas, de piedra parda y con su tejado de teja: antes, gris claro y lisos, como bloques blancos)
-    const pared = nave ? [0.08, 0.14, 0.5 + v * 0.08] : piedra ? [0.1, 0.2, 0.52 + v * 0.08] : k === 'fronton' ? [0.1, 0.12, 0.9] : PARED[estilo][Math.floor(v * 2.99)];
+    // (la piedra de iglesias, torres y palacios, dorada en la Zona Media y la Ribera y parda en el norte)
+    const dorada = estilo === 'centro' || estilo === 'ribera';
+    const pared = nave ? [0.08, 0.14, 0.5 + v * 0.08] : piedra ? (dorada ? [0.1, 0.4, 0.44 + v * 0.06] : [0.1, 0.18, 0.44 + v * 0.06]) : k === 'fronton' ? [0.1, 0.12, 0.9] : PARED[estilo][Math.floor(v * 2.99)];
     const teja = nave ? [0.035, 0.32, 0.36 + v * 0.06] : pizarra ? [0.63, 0.1, 0.18 + v * 0.07] : [0.025 + v * 0.02, 0.55, 0.36 + v * 0.07];
     if (k === 'fronton') {   // (el frontis y la pared izquierda; la cancha va pintada en el suelo)
       const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, ax = Math.cos(rx), az = -Math.sin(rx), bx = Math.sin(rx), bz = Math.cos(rx);
@@ -283,7 +295,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       pon(piezas.paredes, X - bx * (corto / 2 - 0.6) * MU, Z - bz * (corto / 2 - 0.6) * MU, base, rx, largo * MU, (8 + 2) * MU * K, 1.2 * MU, 0, pared);
       continue;
     }
-    const sillar = [0.1, 0.18, 0.6 + v * 0.07];
+    const sillar = dorada ? [0.1, 0.36, 0.5 + v * 0.06] : [0.1, 0.18, 0.5 + v * 0.06];
     if (k === 'kiosko') {   // (el kiosco de la plaza: su peana de piedra, columnas de hierro y el tejado de ocho aguas)
       const s2 = clamp(largo, 5, 14), P0 = (1.1 + 2) * MU * K, PH = 2.9 * MU * K, hierro = [0.4, 0.32, 0.2];
       pon(piezas.detalles, X, Z, base, b.ry, s2 * MU, P0, s2 * MU, 0, sillar, 22);

@@ -267,6 +267,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
   lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
   se parten en casas como los bloques grandes.
+- **Color y texturas de la maqueta y del relieve** (`hub/maqueta.js`, `hub/emblemas.js`, `hub/mapa3d.js` y
+  `hub/mapa3dSombreadores.js`):
+  - `setHSL` va en color lineal: una luminosidad de 0,75 ya se ve casi blanca. Las paredes, en `PARED`, con valores
+    pensados así: piedra dorada en la Zona Media, ladrillo y ocre en la Ribera, piedra parda en el Pirineo y encaladas
+    en el norte. Iglesias, torres, palacios y monumentos, de piedra dorada o parda según la tierra.
+  - La luz malva del cielo del mapa se corrige en la maqueta con un punto de calidez al final del sombreador.
+  - A media distancia, una franja más oscura por piso en las fachadas, para leer la altura de cada casa.
+  - En el suelo pintado de la maqueta, los adoquines y las losas solo si sus juntas caben en el lienzo; si no, piedra a
+    motas. Los ríos, con orilla oscura y un brillo en el centro.
+  - En el relieve de la comarca, las parcelas sin rejilla de tablero: hileras corridas al azar y parcelas partidas en
+    una, dos o tres tiras. Las laderas en sombra, sin llegar al negro. Los árboles de la comarca, con algo de luz
+    propia, para que no salgan como motas negras.
 - **Ventajas en el comercio local** (`game/ventajas.js`, `data/comercios.js`, sección Ventajas del menú en `hub.js` con
   `hub/ventajas.css`, y `VENTAJAS-COMERCIOS.md` para comercios y ayuntamientos): los sellos, las insignias y los
   certificados valen bonos en los comercios adheridos. Certificados: uno por comarca, al sellar todos sus pueblos, y el de

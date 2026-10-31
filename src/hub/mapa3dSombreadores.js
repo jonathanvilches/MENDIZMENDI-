@@ -96,8 +96,13 @@ float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * 
 vec4 parcela(vec2 sv, float t) {
   vec2 zc = floor(sv / 46.0);   // (cada zona, con su rumbo: girar toda la rejilla en torno a un punto hacía círculos)
   float ga = hash(zc + 3.7) * 3.1416, cg = cos(ga), sg = sin(ga);
-  vec2 pr = mat2(cg, -sg, sg, cg) * (sv - zc * 46.0) / t * vec2(1.1, 1.9), fr = fract(pr), aw = fwidth(pr) * 0.9 + 0.006;
-  float hp = hash(floor(pr) + t * 7.0 + zc * 13.0), linde = 1.0 - smoothstep(0.0, 1.0, min(min(fr.x, 1.0 - fr.x) / aw.x, min(fr.y, 1.0 - fr.y) / aw.y));
+  vec2 pr = mat2(cg, -sg, sg, cg) * (sv - zc * 46.0) / t * vec2(1.1, 1.9);
+  // (sin rejilla de tablero: cada hilera de parcelas, corrida al azar, y cada parcela partida en una, dos o tres tiras, como
+  // los campos de verdad; antes eran cuadros iguales en diagonal)
+  pr.x += hash(vec2(floor(pr.y), 5.1) + zc * 3.0);
+  float tiras = 1.0 + floor(hash(floor(pr) + zc * 13.0 + 1.7) * 2.99);
+  vec2 q = vec2(pr.x * tiras, pr.y), fr = fract(q), aw = fwidth(q) * 0.9 + 0.006;
+  float hp = hash(floor(q) + t * 7.0 + zc * 13.0), linde = 1.0 - smoothstep(0.0, 1.0, min(min(fr.x, 1.0 - fr.x) / aw.x, min(fr.y, 1.0 - fr.y) / aw.y));
   vec3 tono = hp < 0.24 ? vec3(0.88, 0.76, 0.42) : hp < 0.44 ? vec3(0.46, 0.62, 0.3) : hp < 0.58 ? vec3(0.7, 0.6, 0.42) : hp < 0.76 ? vec3(0.56, 0.6, 0.34) : vec3(0.58, 0.44, 0.32);
   float h9 = fract(pr.x * 9.0), vina = step(0.58, hp) * step(hp, 0.76) * smoothstep(430.0, 560.0, sv.y) * (1.0 - smoothstep(0.25, 0.6, fwidth(pr.x * 9.0)));
   return vec4(tono * (1.0 - vina * 0.3 * smoothstep(0.35, 0.65, abs(h9 - 0.5) * 2.0)), linde);
@@ -109,6 +114,8 @@ void main() {
   for (int i = 1; i < ${PALETA.length}; i++) c = mix(c, uPal[i], clamp((m - uCota[i - 1]) / (uCota[i] - uCota[i - 1]), 0.0, 1.0));
   vec2 sv = vXZ / ${S.toFixed(1)} + vec2(${CX.toFixed(1)}, ${CY.toFixed(1)});
   float s = mix(vSom * 0.95, texture2D(uSombra, (sv - uRect.xy) / uRect.zw).r * 1.7, uListo);
+  // (las laderas en sombra, sin llegar al negro: en los valles cerrados del norte se perdía el dibujo del monte)
+  s += 0.22 * (1.0 - smoothstep(0.0, 0.7, s));
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   c = mix(c, texture2D(uDet, (sv - uDetRect.xy) / uDetRect.zw).rgb, uDetK);
   // (el clima en el color: el norte atlántico, más verde y jugoso; la Ribera, seca, de cereal y viña, dorada y ocre)
