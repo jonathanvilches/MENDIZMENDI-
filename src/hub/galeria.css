@@ -99,7 +99,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gi-ms i :is(svg, img) { width: 18px; height: 18px; } .gi-ms i:not(.ok) :is(svg, img) { opacity: .7; }
 .gi-ms i.ok { border-color: var(--mc); background: color-mix(in srgb, var(--mc) 42%, rgba(13, 6, 28, .55)); }
 .gi-ms em { margin-left: 6px; color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1 var(--f-ui); font-style: normal; }
-.gi-b { display: flex; flex: none; gap: 10px; }
+.gi-b { display: flex; flex: none; gap: 12px; }
 .gi-b .btn { min-height: 48px; padding: 0 22px; gap: 10px; white-space: nowrap; }
 .gi-b .btn :is(svg, img) { width: 20px; height: 20px; }
 

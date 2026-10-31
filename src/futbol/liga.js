@@ -198,6 +198,7 @@ const CSS = `
 .lg-card.eq-pick,.lg-card.eq-menu{width:min(1100px,100%)}
 .eq-teams{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(144px,168px);gap:8px;overflow-x:auto;overflow-y:hidden;overscroll-behavior:contain;scroll-snap-type:x proximity;min-height:0;padding:2px;scrollbar-width:none}
 .eq-teams::-webkit-scrollbar{display:none}
+.eq-teams.mt{-webkit-mask-image:linear-gradient(180deg,transparent,#000 40px);mask-image:linear-gradient(180deg,transparent,#000 40px)}.eq-teams.mt.mb{-webkit-mask-image:linear-gradient(180deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 .eq-teams.mr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.eq-teams.ml{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}.eq-teams.ml.mr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 .eq-team{min-height:240px;padding:8px 20px 12px;scroll-snap-align:start;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
 .eq-team.on{--t1:#ff2bd6;--t2:#3a0b6b;border-color:var(--rosa)}
@@ -363,7 +364,7 @@ function teamPicker(top, ids, cur, back = 'Volver') {
     const r = panel(`${top}<div class="eq-teams">${teamCards(ids, cur)}</div><div class="eq-foot"><button class="lg-btn" data-a="">${esc(back)}</button></div>`);
     r.firstElementChild.classList.add('lg-pick', 'eq-pick');
     const L = r.querySelector('.eq-teams');
-    const upd = () => { const x = L.scrollWidth - L.clientWidth > 4; L.classList.toggle('mr', x && L.scrollWidth - L.scrollLeft - L.clientWidth > 6); L.classList.toggle('ml', x && L.scrollLeft > 6); L.classList.toggle('mb', !x && L.scrollHeight - L.scrollTop - L.clientHeight > 6); };
+    const upd = () => { const x = L.scrollWidth - L.clientWidth > 4; L.classList.toggle('mr', x && L.scrollWidth - L.scrollLeft - L.clientWidth > 6); L.classList.toggle('ml', x && L.scrollLeft > 6); L.classList.toggle('mb', !x && L.scrollHeight - L.scrollTop - L.clientHeight > 6); L.classList.toggle('mt', !x && L.scrollTop > 6); };
     L.addEventListener('scroll', upd, { passive: true });
     L.addEventListener('wheel', (e) => { if (L.scrollWidth > L.clientWidth + 4 && Math.abs(e.deltaY) > Math.abs(e.deltaX)) { L.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
     requestAnimationFrame(() => { const on = L.querySelector('.on'); if (on) { L.scrollLeft = Math.max(0, on.offsetLeft - (L.clientWidth - on.offsetWidth) / 2); L.scrollTop = Math.max(0, on.offsetTop - (L.clientHeight - on.offsetHeight) / 2); } upd(); });

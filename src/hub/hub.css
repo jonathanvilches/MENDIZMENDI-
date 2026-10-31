@@ -984,7 +984,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .sports { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--hueco-m); align-items: start; }
 /* (cada carta, un panel redondeado con la luz de su deporte; la lámina en su marco y, al pasar por encima, la carta se
    levanta y la lámina se acerca un poco) */
-.sport { --pad: 20px; --acc: #ff2bd6; position: relative; display: grid; grid-template-rows: auto 1fr; gap: 0; min-width: 0; padding: 10px; border-radius: 26px; isolation: isolate;
+.sport { --pad: 20px; --acc: #ff2bd6; position: relative; display: grid; grid-template-rows: auto 1fr; gap: 0; min-width: 0; padding: 12px; border-radius: 26px; isolation: isolate;
   background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--acc) 26%, transparent), transparent 62%), radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 70%), linear-gradient(165deg, #2b0f60, #12052a 75%);
   border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 22px 50px rgba(4, 1, 12, .4), inset 0 1px 0 rgba(255, 255, 255, .1);
   transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), box-shadow .3s; animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
@@ -998,7 +998,7 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   background: rgba(13, 6, 28, .55); border: 1px solid rgba(255, 255, 255, .18); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); color: #fff; font: 700 var(--fs-xs)/1 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .sp-stat > :is(svg, img) { flex: none; width: 18px; height: 18px; }
 .sp-stat b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: 0; color: color-mix(in srgb, var(--acc) 45%, #fff); }
-.sp-body { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-width: 0; padding: 16px 10px 6px; }
+.sp-body { display: grid; grid-template-rows: auto 1fr; gap: 16px; min-width: 0; padding: 16px 12px 4px; }
 .sp-txt { display: grid; gap: var(--r-tx); min-width: 0; }
 /* (antetítulo → título 12 y de ahí a las etiquetas 16, la letra recortada: la tabla de src/style.css) */
 .sp-txt > .kicker { display: block; } .sp-txt > :is(.kicker, h3) { text-box: trim-both cap alphabetic; } .sp-txt > .kicker + h3 { margin-top: calc(var(--r-kt) - var(--r-tx)); }
@@ -1010,13 +1010,13 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
   color: #ece4ff; font: 700 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
 .sp-chips > span > :is(svg, img) { flex: none; width: 18px; height: 18px; }
 /* (abajo, en una barra de cristal: lo que se elige y el botón de jugar) */
-.sp-bar { align-self: end; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; min-width: 0; padding: 10px; border-radius: 20px; background: rgba(7, 2, 15, .38); border: 1px solid rgba(255, 255, 255, .08); }
+.sp-bar { align-self: end; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; min-width: 0; padding: 12px; border-radius: 20px; background: rgba(7, 2, 15, .38); border: 1px solid rgba(255, 255, 255, .08); }
 .sp-row { min-width: 0; }
 .sp-row > small { display: block; margin: 0 0 6px 6px; color: color-mix(in srgb, var(--acc) 50%, #fff); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
 .sport .gx-go { flex: none; min-height: 52px; padding: 8px 28px; }
 /* lo elegido, en una pastilla del alto del botón: su imagen en redondo, el nombre y debajo de dónde es. La del frontón se
    toca para cambiarlo: abre la lista de todos los frontones por comarcas */
-.sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; max-width: 100%; padding: 4px 18px 4px 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; color: #fff; text-align: left; }
+.sp-box { display: flex; align-items: center; gap: 12px; width: 100%; height: 52px; max-width: 100%; padding: 4px 16px 4px 4px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .14); border-radius: 999px; color: #fff; text-align: left; }
 .sp-box > span { flex: 1; display: flex; flex-direction: column; gap: var(--e1); min-width: 0; }
 .sp-box b { font: 800 var(--fs-md)/1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sp-box small { font: 600 var(--fs-xs)/1.2 var(--f-cond); color: var(--mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1038,7 +1038,7 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 .frs-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .frs .fr-chip { min-height: 44px; }
 /* (en el ordenador, algo más de aire dentro de cada carta) */
-@media (min-width: 1200px) and (min-height: 560px) { .sport { padding: 12px; } .sp-body { padding: 18px 12px 6px; } }
+@media (min-width: 1200px) and (min-height: 560px) { .sport { padding: 16px; } .sp-body { padding: 20px 12px 4px; } }
 /* (en vertical: el texto y la figura arriba; la elección y el botón debajo, a todo lo ancho) */
 @media (max-width: 599px), (orientation: portrait) {
   /* (una carta debajo de la otra, con su lámina entera en 16:9; la elección y el botón, a todo lo ancho) */
@@ -1051,11 +1051,11 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
   /* (las dos cartas enteras a la vista, una al lado de la otra, sin desplazar) */
   /* (las dos cartas una al lado de la otra, con la lámina entera arriba, grande: el personaje se ve completo; lo de
      debajo, más apretado. Si no cabe todo, se desliza un poco) */
-  .sports { gap: 10px; } .sport { padding: 7px; border-radius: 20px; }
+  .sports { gap: 12px; } .sport { padding: 8px; border-radius: 20px; }
   .sp-cover { border-radius: 14px; } .sp-stat { top: 6px; left: 6px; min-height: 26px; padding: 2px 10px 2px 6px; }
-  .sp-body { gap: 8px; padding: 8px 4px 2px; } .sp-txt { gap: var(--e2); } .sp-txt .kicker { display: none; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
+  .sp-body { gap: 8px; padding: 12px 4px 4px; } .sp-txt { gap: var(--e2); } .sp-txt .kicker { display: none; } .sp-txt h3 { font-size: var(--fs-xl); white-space: nowrap; }
   .sp-chips > span { padding: 2px 10px 2px 4px; } .sp-chips > span > :is(svg, img) { width: 16px; height: 16px; }
-  .sp-bar { gap: 8px; padding: 6px; border-radius: 999px; align-items: center; } .sp-row > small { display: none; }
+  .sp-bar { gap: 8px; padding: 4px; border-radius: 999px; align-items: center; } .sp-row > small { display: none; }
   .sport .gx-go { min-height: 40px; padding: 6px 16px; font-size: var(--fs-md); }
   .sp-box { height: 40px; } .sp-media, img.sp-media:not(.sp-em) { width: 32px; height: 32px; }
   .frs-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
@@ -1136,7 +1136,7 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 /* (la lámina, en columna: el candado, centrado en lo que queda encima del pie, y el pie abajo, en su sitio. Antes el pie iba
    por encima de la lámina y, con un rótulo largo en el móvil, subía hasta el candado y se montaba con él; si no cabe, la
    lámina crece) */
-.cuentos .ct-lam { display: flex; flex-direction: column; align-items: center; gap: var(--e3); } .cuentos .ct-lam span + figcaption { margin-top: 0; }
+.cuentos .ct-lam { display: flex; flex-direction: column; align-items: center; gap: var(--e3); overflow: clip; min-height: auto; }   /* (crece si no cabe: el candado, el rótulo y el título; antes, en las tarjetas estrechas, el título y la segunda línea del rótulo quedaban cortados por abajo. Recorta con clip, no con hidden: con hidden la caja con proporción fija ya no crece con lo que lleva dentro) */ .cuentos .ct-lam span + figcaption { margin-top: 0; }
 .cuentos .ct-lam span { position: relative; flex: none; margin: auto; display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: rgba(20, 6, 46, .6); border: 1px solid rgba(201, 178, 255, .35); }
 .cuentos .ct-pl { font-style: italic; color: var(--lila) !important; } .cuentos .ar-tx details p { font-size: var(--fs-sm); } .cuentos .ct-go { margin-top: 8px; min-height: 44px; padding: 8px 16px; display: inline-flex; align-items: center; gap: 8px; }
 @media (max-width: 560px), (orientation: landscape) and (max-height: 440px) { .armorial .ar-grid { grid-template-columns: 1fr; } .armorial .ar { grid-template-columns: 84px 1fr; } .armorial .ar canvas { width: 84px; } .armorial button.ar { grid-template-columns: 96px minmax(0, 1fr) auto; } .armorial button.ar img.ar-img { margin: -6px 0; } }
@@ -1526,7 +1526,7 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
    En las tarjetas con ilustración, el nombre, su dato y sus iconos van encima de la imagen, abajo, sobre una sombra suave
    que sube desde el borde: una sola pieza, sin la caja de la foto dentro de la caja de la tarjeta ni el texto suelto debajo */
 /* las cimas: su icono, su nombre, su zona y su altura, encima de su escena; debajo, en el mismo bloque, el perfil y el texto */
-.pcard { padding: 0 0 14px; overflow: hidden; border-top-width: 1px; border-top-color: var(--line); }
+.pcard { padding: 0 0 16px; overflow: hidden; border-top-width: 1px; border-top-color: var(--line); }
 .pcard > :not(.pc-img) { margin-left: 14px; margin-right: 14px; }
 .pcard .pc-img { border-radius: 0; }
 .pcard .pc-img::after { content: ''; position: absolute; inset: 28% 0 0; pointer-events: none; background: linear-gradient(0deg, var(--velo)); opacity: .6; }
@@ -1535,7 +1535,7 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
 .pcard .pc-img .phead { text-shadow: var(--letra-foto); } .pcard .pc-img .phead small { color: rgba(236, 228, 255, .9); }
 .pcard .alt { font-weight: 600; color: #fff; }
 /* las leyendas: su tipo y su título, encima de su ilustración */
-.cuentos .ct-lam figcaption { position: relative; z-index: 1; align-self: stretch; margin-top: auto; display: grid; gap: 0; padding: 32px var(--e4) var(--e4); text-align: left; isolation: isolate; text-shadow: var(--letra-foto); }
+.cuentos .ct-lam figcaption { position: relative; z-index: 1; align-self: stretch; margin-top: auto; display: grid; gap: 0; padding: 24px var(--e4) var(--e4); text-align: left; isolation: isolate; text-shadow: var(--letra-foto); }
 /* (detrás de los pies de las láminas, el velo suave de sport.css: --velo) */
 :is(.cuentos .ct-lam figcaption, .lam-rail .lam span)::before { content: ''; position: absolute; inset: -24px 0 0; z-index: -1; border-radius: inherit; pointer-events: none; background: linear-gradient(0deg, var(--velo)); opacity: .62; }
 .cuentos .ct-lam figcaption small { color: #ffb1e3; font: 600 11px/1.2 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
