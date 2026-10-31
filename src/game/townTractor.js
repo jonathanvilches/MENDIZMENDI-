@@ -59,7 +59,7 @@ export class PuebloTractor {
       M.cargas.push({ x: s.x, z: s.z, obj, ring, hecho: false });
     }
     // (la cosechadora llena su tolva de grano a medida que siega)
-    if (tipo === 'cosechadora') { const g = M.grano = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 2.4), new THREE.MeshStandardMaterial({ color: '#d9b44a', roughness: 0.9 })); g.position.set(0, 3.25, -1.3); g.scale.y = 0.05; M.veh.obj.add(g); }
+    if (tipo === 'cosechadora') { const g = M.grano = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.8, 2.4), new THREE.MeshStandardMaterial({ color: '#d9b44a', roughness: 0.9 })); g.position.set(0, 3.3, -1.3); g.scale.y = 0.05; M.veh.obj.add(g); }   // (en la tolva abierta, sobre su suelo)
     M.steps = () => ['Habla con ' + host, tipo === 'tractor' ? `Sube al tractor y carga las cajas de ${nom} (${M.count}/${M.need})` : `Sube a la cosechadora y siega el trigo (${M.count}/${M.need})`,
       `Lleva ${tipo === 'tractor' ? 'el remolque' : 'el grano'} a ${host}`];
     this.ui.toast(this.stepText(M), M.icon, 3200);
@@ -119,7 +119,7 @@ export class PuebloTractor {
     }
     this.sound?.ui?.('coin');
     M.count++;
-    if (M.grano) M.grano.scale.y = Math.max(0.05, M.count / M.need);
+    if (M.grano) { M.grano.scale.y = Math.max(0.05, M.count / M.need); M.grano.position.y = 3.28 + 0.4 * M.grano.scale.y; }
     this.ui.toast(this.stepText(M), M.icon, 1600);
     if (M.count >= M.need) { M.step = 2; this.sound?.magic?.(); this.ui.toast(V.tipo === 'tractor' ? `¡Remolque lleno! Llévalo a ${M.host.name}` : `¡Tolva llena! Lleva el grano a ${M.host.name}`, 'check', 3600); }
   }
