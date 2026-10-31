@@ -512,7 +512,7 @@ export function createRealTownLevel(def, D) {
     if (U) {
       const t = KIND_CROP[U.u.k] ?? F.crops[Math.floor(hash2(U.u.i, 7) * F.crops.length)];
       const a = U.u.i * 0.7, c = Math.cos(a), s = Math.sin(a), v = -x * s + z * c;
-      return { mask, type: t, edge: U.edge, stripe: Math.sin(v * 1.6), row: v, cell: 100000 + U.u.i };
+      return { mask, type: t, edge: U.edge, stripe: Math.sin(v * 1.6), row: v, cell: 100000 + U.u.i, ang: a };
     }
     // (sin dato: parcelas solo donde la ladera es suave, en las cuestas prado o monte; y nunca dentro del casco: el
     // interior de una manzana es un patio o una huerta, no un campo de labor)
@@ -523,7 +523,7 @@ export function createRealTownLevel(def, D) {
     const u = wx * c + wz * s, v = -wx * s + wz * c, cu = 46, cv = 30;
     const i = Math.floor(u / cu), j = Math.floor(v / cv), fu = u / cu - i, fv = v / cv - j;
     const edge = Math.min(Math.min(fu, 1 - fu) * cu, Math.min(fv, 1 - fv) * cv);
-    return { mask, type: F.crops[Math.floor(hash2(i, j) * F.crops.length)], edge, stripe: Math.sin(v * 1.6), row: v, cell: i * 1000 + j };
+    return { mask, type: F.crops[Math.floor(hash2(i, j) * F.crops.length)], edge, stripe: Math.sin(v * 1.6), row: v, cell: i * 1000 + j, ang: a };
   }
   function TREE_MIX(x, z, h, n) {
     const f = def.family;

@@ -43,6 +43,8 @@ function vertexColor(i, j, out) {
   const mm = meadowMask(x, z);
   if (mm > 0) out.lerp(PAL.meadow, mm * 0.5);
   const fi = fieldInfo(x, z);
+  // (lo que el sombreador necesita para dibujar el cultivo: cuánto es campo, cuál y hacia dónde van las hileras)
+  _campo[0] = fi.mask > 0 && fi.edge > 0.5 ? fi.mask * smoothstep(0.5, 2.5, fi.edge) : 0; _campo[1] = fi.type || 0; _campo[2] = fi.ang || 0;
   // (borde del campo y surcos suaves: el color va por vértices, cada 2 m, y con un corte brusco salían dientes de sierra
   // y franjas pixeladas en los campos del fondo)
   if (fi.mask > 0 && fi.edge > 0.5) {
@@ -82,9 +84,12 @@ function normalAt(i, j, out) {
   return out.set(-dx, 1, -dz).normalize();
 }
 
+// el campo de cada vértice para el sombreador (vertexColor lo deja aquí): cuánto es campo, el cultivo y el ángulo de
+// las hileras. Va en cuatro bytes por vértice: así casi no ocupa en la tarjeta gráfica del móvil
+const _campo = [0, 0, 0];
 function buildChunk(ci, cj, step) {
   const n = PER / step + 1;
-  const pos = [], nor = [], col = [], surf = [], idx = [];
+  const pos = [], nor = [], col = [], surf = [], idx = [], campo = [];
   const c = new THREE.Color(), v = new THREE.Vector3();
   const I0 = ci * PER, J0 = cj * PER;
   for (let b = 0; b < n; b++) for (let a = 0; a < n; a++) {
@@ -93,6 +98,8 @@ function buildChunk(ci, cj, step) {
     normalAt(i, j, v); nor.push(v.x, v.y, v.z);
     vertexColor(i, j, c); col.push(c.r, c.g, c.b);
     surf.push(SURF.street[k] / 255, SURF.dirt[k] / 255, SURF.rock[k] / 255, SURF.forest[k] / 255);
+    const ang = ((_campo[2] % Math.PI) + Math.PI) % Math.PI;
+    campo.push(Math.round(Math.min(1, _campo[0]) * 255), _campo[1], Math.round(ang / Math.PI * 255), 0);
   }
   for (let b = 0; b < n - 1; b++) for (let a = 0; a < n - 1; a++) {
     const A = b * n + a, B = A + 1, Cc = A + n, D = Cc + 1;
@@ -112,6 +119,7 @@ function buildChunk(ci, cj, step) {
     nor.push(nor[s * 3], nor[s * 3 + 1], nor[s * 3 + 2]);
     col.push(col[s * 3], col[s * 3 + 1], col[s * 3 + 2]);
     surf.push(surf[s * 4], surf[s * 4 + 1], surf[s * 4 + 2], surf[s * 4 + 3]);
+    campo.push(campo[s * 4], campo[s * 4 + 1], campo[s * 4 + 2], 0);
   }
   for (let q = 0; q < border.length - 1; q++) {
     const a = border[q], b = border[q + 1], a2 = base + q, b2 = base + q + 1;
@@ -122,6 +130,7 @@ function buildChunk(ci, cj, step) {
   g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.setAttribute('aSurf', new THREE.Float32BufferAttribute(surf, 4));
+  g.setAttribute('aCampo', new THREE.Uint8BufferAttribute(campo, 4));
   g.setIndex(idx);
   g.computeBoundingSphere(); g.computeBoundingBox();
   return g;
@@ -152,12 +161,13 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     if (outer) sh.defines.OUTER = 1;
     if (quality === 'low') sh.defines.LOWQ = 1;   // móvil: menos lecturas de textura por píxel
     sh.vertexShader = sh.vertexShader
-      .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nvarying vec4 vSurf;\nvarying vec3 vWP;\nvarying vec3 vNW;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
+      .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nattribute vec4 aCampo;\nvarying vec4 vSurf;\nvarying vec3 vCampo;\nvarying vec3 vWP;\nvarying vec3 vNW;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvCampo = aCampo.xyz;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform sampler2D tDirt; uniform sampler2D tDirtN; uniform sampler2D tGrassN; uniform sampler2D tLitter; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY; uniform float uMoss; uniform vec3 uLitter;
-varying vec4 vSurf; varying vec3 vWP; varying vec3 vNW;
+varying vec4 vSurf; varying vec3 vCampo; varying vec3 vWP; varying vec3 vNW;
+vec3 sr(vec3 c) { return c * c; }   // (un color de los de la paleta, a lineal: aproximado, como los demás del suelo)
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
 #ifdef OUTER
 #define ROCK_S1 26.0
@@ -223,6 +233,46 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
   gc = mix(gc, fc * (0.75 + 0.25 * g1.b), fl * 0.9);
   // bajo la hierba en 3D el suelo es la sombra de las matas: verde oliva oscuro como el pie de las briznas
   vec3 col = mix(soft, gc, grassy);
+  // los campos de cultivo, cada uno con su textura, a lo largo de sus hileras (vCampo: cuánto es campo, el cultivo y el
+  // ángulo de las hileras): el cereal segado, rastrojo dorado en hileras finas con los cordones de paja; la tierra
+  // labrada, en surcos con algún brote; la viña, hileras de hoja con tierra clara entre medias; la huerta, caballones con
+  // sus plantas; el olivar, tierra clara con matas; el barbecho, hierba seca. Antes, un color liso por campo. De lejos,
+  // las hileras finas se funden en su color medio (si no, hacían aguas). Sin lecturas de textura nuevas
+  float fm = clamp(vCampo.x / 255.0, 0.0, 1.0) * (1.0 - vSurf.x) * (1.0 - min(1.0, vSurf.y * 1.4)) * (1.0 - vSurf.z);
+  if (fm > 0.01) {
+    float ft = floor(vCampo.y + 0.5), fa = vCampo.z / 255.0 * 3.14159;
+    vec2 fd = vec2(-sin(fa), cos(fa));
+    float rw = dot(vWP.xz, fd), al = dot(vWP.xz, vec2(fd.y, -fd.x));
+    float cerca = 1.0 - smoothstep(16.0, 55.0, distance(vWP, cameraPosition));
+    vec3 fc = col;
+    if (ft == 2.0) {
+      fc = mix(sr(vec3(0.78, 0.62, 0.31)), sr(vec3(0.93, 0.79, 0.46)), d2.r * 0.6 + d1.g * 0.4) * (0.9 + 0.2 * big);
+      fc *= mix(1.0, 0.82 + 0.3 * (0.5 + 0.5 * sin(rw * 34.9 + d2.g * 2.0)), cerca);
+      float cord = smoothstep(0.84, 0.97, 0.5 + 0.5 * sin(rw * 0.8976 + (d1.r - 0.5) * 0.6));
+      fc = mix(fc, sr(vec3(0.96, 0.87, 0.6)) * (0.8 + 0.35 * d2.g), cord * 0.75);
+    } else if (ft == 3.0) {
+      float f = 0.5 + 0.5 * sin(rw * 7.854);
+      fc = mix(sr(vec3(0.40, 0.29, 0.18)), sr(vec3(0.60, 0.45, 0.29)), mix(0.5, f, cerca) * 0.7 + d2.r * 0.3) * (0.85 + 0.3 * d2.g);
+      float brote = smoothstep(0.82, 0.97, f) * smoothstep(0.35, 0.75, d1.g) * cerca;
+      fc = mix(fc, sr(vec3(0.42, 0.58, 0.2)) * (0.7 + 0.5 * d2.r), brote * 0.7);
+    } else if (ft == 5.0) {
+      float dv = abs(fract(rw / 2.6 + 0.5) - 0.5) * 2.6;
+      float hoja = (1.0 - smoothstep(0.32, 0.62, dv + (d2.r - 0.5) * 0.25)) * (0.75 + 0.25 * sin(al * 3.3 + d1.r * 3.0));
+      vec3 tierra = mix(sr(vec3(0.64, 0.52, 0.36)), sr(vec3(0.74, 0.63, 0.46)), d2.g) * (0.85 + 0.3 * d1.r);
+      fc = mix(tierra, sr(vec3(0.34, 0.47, 0.16)) * (0.6 + 0.6 * blades), mix(0.35, hoja, cerca));
+    } else if (ft == 7.0) {
+      float dh = abs(fract(rw / 1.05 + 0.5) - 0.5) * 1.05;
+      float planta = (1.0 - smoothstep(0.1, 0.24, dh)) * smoothstep(0.15, 0.6, 0.5 + 0.5 * sin(al * 13.0 + d2.r * 4.0));
+      vec3 tierra = mix(sr(vec3(0.36, 0.27, 0.18)), sr(vec3(0.50, 0.38, 0.25)), 0.5 + 0.5 * sin(rw * 5.98)) * (0.85 + 0.3 * d2.g);
+      fc = mix(tierra, sr(vec3(0.3, 0.52, 0.17)) * (0.65 + 0.6 * blades), mix(0.3, planta, cerca));
+    } else if (ft == 6.0) {
+      fc = mix(sr(vec3(0.70, 0.60, 0.44)), sr(vec3(0.80, 0.71, 0.55)), d2.r) * (0.85 + 0.3 * d1.r);
+      fc = mix(fc, gc, smoothstep(0.55, 0.8, d1.g) * 0.6);
+    } else if (ft == 1.0) {
+      fc = sr(vec3(0.76, 0.71, 0.44)) * (0.6 + 0.6 * blades) * (0.85 + 0.3 * d1.r) * (0.9 + 0.2 * big);
+    }
+    col = mix(col, fc, fm);
+  }
   // suelo del bosque: hojarasca (hojas caídas y ramitas) a dos escalas con manchas de musgo; en la linde se funde con la
   // hierba de forma irregular (antes, bajo los árboles había el mismo prado que fuera)
   float fw = smoothstep(0.2, 0.62, vSurf.w + (big - 0.5) * 0.35 + (d1.g - 0.5) * 0.2) * (1.0 - vSurf.x);
@@ -492,6 +542,7 @@ export class Terrain {
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setAttribute('aSurf', new THREE.Float32BufferAttribute(new Float32Array(pos.length / 3 * 4), 4));
+    g.setAttribute('aCampo', new THREE.Uint8BufferAttribute(new Uint8Array(pos.length / 3 * 4), 4));
     g.setIndex(idx); g.computeVertexNormals();
     const nrm = g.attributes.normal;
     const meadowC = new THREE.Color('#5a8238'), meadowD = new THREE.Color('#7d8f45'), forestC = new THREE.Color('#2c4a22'), forestD = new THREE.Color('#3b5a2a');

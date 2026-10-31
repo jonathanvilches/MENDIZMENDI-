@@ -252,7 +252,7 @@ export function fieldInfo(x, z) {
   const edge = Math.min(fu, 1 - fu) * cu < Math.min(fv, 1 - fv) * cv ? Math.min(fu, 1 - fu) * cu : Math.min(fv, 1 - fv) * cv;
   const h = hash2(i, j);
   const type = h < 0.42 ? 0 : h < 0.62 ? 1 : h < 0.78 ? 2 : h < 0.9 ? 3 : 4;
-  return { mask, type, edge, stripe: Math.sin(v * 1.6) };
+  return { mask, type, edge, stripe: Math.sin(v * 1.6), ang: a };
 }
 
 // Datos para los módulos genéricos del motor
