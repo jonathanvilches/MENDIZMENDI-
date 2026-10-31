@@ -74,6 +74,30 @@ const I = (n, s = 24, c = '') => iconSVG(n, s, c);
 const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
 // la cabecera de cada sección, la misma en todas: el rótulo, con el grupo, la sección y su icono, y el título grande, sin
 // icono (ya va en el rótulo). Las de los saberes, «Saberes · …»; las de tu partida, «Tu partida · …»
+// la rejilla de las pantallas (section.rejilla, en 12 columnas): en cada ancho (ordenador, tumbado y estrecho) cuántas
+// piezas van por fila, como mucho las de data-max; si hay más, las filas justas y con el mismo número en cada una; y las
+// de la última fila, si no llegan, se ensanchan hasta llenarla (12 se reparte en 1, 2, 3 o 4). Así no queda nunca un hueco
+// al final de una fila, como el de tres columnas con dos piezas o el de dos con tres. Cada pieza lleva su ancho en cada
+// tamaño (--sg, --sm, --sp: fichas.css)
+export function ajustaRejillas(root) {
+  for (const R of root.querySelectorAll('section.rejilla')) {
+    // (la pieza destacada, como la danza con su ilustración, va a todo lo ancho y no cuenta: su imagen toma el ancho de la
+    // primera pieza de la fila de debajo, --fg, --fm y --fp)
+    const H = [...R.children].filter(h => !h.matches('.con-img')), D = [...R.children].filter(h => h.matches('.con-img')), k = H.length, max = (R.dataset.max || '4,3,2').split(',').map(Number);
+    // (con data-igual, las piezas con imagen, como las cartas de los pueblos, van todas del mismo tamaño si se puede: si las
+    // piezas se reparten justas en una columna más de las que tocan, se usa esa; tres pueblos en dos columnas dejaban la
+    // tercera carta al doble de ancho)
+    // (con imagen, de las columnas posibles, 2, 3, 4 o 6 y como mucho una más de las que tocan, la que deja la última fila
+    // menos estirada: siete pueblos, 4 y 3, no 3, 3 y una carta sola a todo lo ancho)
+    const igual = 'igual' in R.dataset;
+    const cols = (x) => { if (k <= x) return k; if (!igual) return Math.ceil(k / Math.ceil(k / x));
+      let mejor = null; for (const c of [2, 3, 4, 6]) { if (c > x + 1) continue; const resto = k % c, pena = (resto ? (c - resto) / c : 0) + (c > x ? 0.15 : 0) + (x - Math.min(c, x)) / x * 0.3;
+        if (!mejor || pena < mejor.pena - 1e-9) mejor = { c, pena }; } return mejor?.c || x; };
+    const anchos = max.map(x => { const c = cols(x), resto = k % c; return H.map((_, i) => 12 / (resto && i >= k - resto ? resto : c)); });
+    H.forEach((h, i) => ['--sg', '--sm', '--sp'].forEach((v, j) => h.style.setProperty(v, anchos[j][i])));
+    D.forEach(d => ['g', 'm', 'p'].forEach((v, j) => { const a = anchos[j][0] || 4; d.style.setProperty('--f' + v, a); d.style.setProperty('--t' + v, 12 - a); }));
+  }
+}
 const cabeza = (rotulo, ic, titulo, cls = '') => `<small class="kicker${cls}">${I(ic, 20)} ${rotulo}</small><h1 class="title${cls}">${titulo}</h1>`;
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 // el otro nombre de un pueblo o de una comarca, el de la otra lengua: en euskera el nombre se traduce solo (Olite pasa a ser
@@ -419,6 +443,7 @@ export class Hub {
     const chips = (arr, fb) => (arr || []).map(n => { const k = floraId(n); return chip(n, fb, k && 'flora:' + k); }).join('');
     const cts = CUENTOS.filter(K => K.towns.some(t => levelById(t)?.comarca === id));
     this.after = () => {
+      ajustaRejillas(this.root);
       this.root.querySelectorAll('.nchip[data-k]').forEach(b => b.onclick = () => showFicha(b.dataset.k, { ui: { sound: this.sound }, button: 'Cerrar' }));
       const cb = this.root.querySelector('[data-cultimg]'); if (cb) cb.onclick = () => openVisor([{ src: danza, title: C.dance.title }], 0, this.sound);
       this.bindLeyendas(this.root, cts);
@@ -433,18 +458,27 @@ export class Hub {
         <div class="ch-datos">${dato('church', ts.length, ts.length === 1 ? 'Pueblo' : 'Pueblos')}${dd ? '' : dato('stamp', `${pr.stamps}<i>/${pr.towns}</i>`, 'Sellos') + dato('check', `${pr.done}<i>/${pr.total}</i>`, 'Misiones')}${c.river ? dato('river', esc(c.river), 'Río', true) : ''}</div></div>
     </section>
     <h2 class="sec">${I('church', 30)} Pueblos y ciudades</h2>
-    <section class="cm-ts">${ts.length ? ts.map((l, i) => `<button type="button" class="cm-t" data-town="${l.id}" style="--c:${c.color}" aria-label="${esc(l.name.split(' /')[0])}">${this.carta(l, p, i > 5)}</button>`).join('') : '<p class="empty">Muy pronto habrá pueblos jugables en esta comarca.</p>'}</section>
-    <section class="two cm-two">
-      <div class="panel"><h2>${I('dance', 30)} Cultura</h2><div class="cultgrid">${block('dance', 'Danza', C.dance, danza)}${block('mask', 'Carnaval', C.carnival)}${block('flag', 'Fiesta', C.festival)}${block('ribbon', 'Traje', C.costume)}${star ? block('star', 'Producto estrella', { title: star.name, text: star.text }) : ''}</div></div>
-      <div class="panel"><h2>${I('leaf', 30)} Naturaleza</h2>
-        <h3>Fauna</h3><div class="nchips">${(c.fauna || []).map(f => { const k = faunaId(f[0]); return chip(f[0], 'bird', k && 'fauna:' + k, f[2]); }).join('')}</div>
-        <h3>Árboles</h3><div class="nchips">${chips(c.nature?.trees, 'tree')}</div>
-        <h3>Plantas</h3><div class="nchips">${chips(c.nature?.plants, 'herbs')}</div>
-        <h3>Flores</h3><div class="nchips">${chips(c.nature?.flowers, 'flower')}</div></div>
+    <section class="cm-ts rejilla" data-max="4,3,2" data-igual>${ts.length ? ts.map((l, i) => `<button type="button" class="cm-t" data-town="${l.id}" style="--c:${c.color}" aria-label="${esc(l.name.split(' /')[0])}">${this.carta(l, p, i > 5)}</button>`).join('') + (ts.length === 1 ? this.puebloUnico(ts[0], c, p) : '') : '<p class="empty">Muy pronto habrá pueblos jugables en esta comarca.</p>'}</section>
+    <h2 class="sec">${I('dance', 30)} Cultura</h2>
+    <section class="cm-cult rejilla" data-max="4,3,2" style="--c:${c.color}">${block('dance', 'Danza', C.dance, danza)}${block('mask', 'Carnaval', C.carnival)}${block('flag', 'Fiesta', C.festival)}${block('ribbon', 'Traje', C.costume)}${star ? block('star', 'Producto estrella', { title: star.name, text: star.text }) : ''}</section>
+    <h2 class="sec">${I('leaf', 30)} Naturaleza</h2>
+    <section class="cm-nat rejilla" data-max="4,2,2" style="--c:${c.color}">
+      <div class="cm-ng"><h3>Fauna</h3><div class="nchips">${(c.fauna || []).map(f => { const k = faunaId(f[0]); return chip(f[0], 'bird', k && 'fauna:' + k, f[2]); }).join('')}</div></div>
+      <div class="cm-ng"><h3>Árboles</h3><div class="nchips">${chips(c.nature?.trees, 'tree')}</div></div>
+      <div class="cm-ng"><h3>Plantas</h3><div class="nchips">${chips(c.nature?.plants, 'herbs')}</div></div>
+      <div class="cm-ng"><h3>Flores</h3><div class="nchips">${chips(c.nature?.flowers, 'flower')}</div></div>
     </section>
-    ${cts.length ? `<h2 class="sec">${I('legend', 30)} Cuentos y leyendas</h2><section class="fh-ley cm-ley">${this.leyendas(cts, p)}</section>` : ''}
+    ${cts.length ? `<h2 class="sec">${I('legend', 30)} Cuentos y leyendas</h2><section class="fh-ley cm-ley rejilla" data-max="3,2,2" data-igual>${this.leyendas(cts, p)}</section>` : ''}
     ${(L => L.length ? `<h2 class="sec">${I('scroll', 30)} Láminas</h2>${laminaRail(L)}` : '')(this.comarcaLaminas(id))}
-    ${mts.length ? `<h2 class="sec">${I('peak', 30)} Cimas para subir</h2><section class="peaks">${mts.map(m => this.peakCard(m, dd ? null : LEVELS.find(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)))).join('')}</section>` : ''}`;
+    ${mts.length ? `<h2 class="sec">${I('peak', 30)} Cimas para subir</h2><section class="peaks rejilla" data-max="4,3,2" data-igual>${mts.map(m => this.peakCard(m, dd ? null : LEVELS.find(l => (l.missions || []).some(x => x.type === 'summit' && x.peak === m.id)))).join('')}</section>` : ''}`;
+  }
+  // (con un solo pueblo en la comarca, a su lado, en la otra mitad de la fila: lo que es, sus misiones y los botones; una sola
+  // carta a todo lo ancho sería enorme y a media fila dejaba la otra mitad vacía)
+  puebloUnico(l, c, p) {
+    const t = townProgress(p, l), dd = isDidactico(), [n1, n2] = l.name.split(' / ');
+    return `<div class="cm-uno" style="--c:${c.color}"><small class="kicker">El pueblo de ${esc(c.name)}</small><h3><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h3>${l.intro ? `<p data-vm="no">${esc(l.intro)}</p>` : ''}
+      <span class="gi-ms">${this.misiones(l, p).map(m => `<i title="${esc(m.title)}" style="--mc:${m.mc}"${dd || m.done ? ' class="ok"' : ''}>${I(m.icon, 20)}</i>`).join('')}${dd ? '' : `<em>${t.done}/${t.total}</em>`}</span>
+      <div class="gi-b">${dd ? `<button type="button" class="btn primary" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button type="button" class="btn" data-town="${l.id}">${I('scroll', 20)}<span>Ficha</span></button><button type="button" class="btn primary" data-play="${l.id}">${I('play', 20)}<span>${t.done ? 'Seguir' : 'Jugar'}</span></button>`}</div></div>`;
   }
   // las misiones de un pueblo, para sus fichas: su icono, su título, de qué son y si están hechas. Las de Otsagabia son las
   // nueve de la aventura del valle de Salazar (game/content.js), con su estado guardado aparte

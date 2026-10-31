@@ -177,12 +177,53 @@
 @media (max-width: 560px) { .cm-ts { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
 @media (orientation: landscape) and (max-height: 520px) { .cm-ts { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; } .cm-t { --dh: 40px; } }
 /* cultura y naturaleza, en paneles con la esquina cortada y la raya de luz arriba */
-.cm-two > .panel { position: relative; border: 0; border-radius: 0; background: linear-gradient(170deg, rgba(42, 15, 94, .7), rgba(18, 5, 42, .85)); clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
-.cm-two > .panel::before { content: ''; position: absolute; left: 14px; right: 0; top: 0; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), transparent 80%); }
-.cm-two .cult { border: 0; border-radius: 0; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
-.cm-two .cult small { color: color-mix(in srgb, var(--c) 45%, #ffd166); }
-.cm-two .cult-img { border-radius: 0; clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+/* la rejilla de la comarca (hub.js, rejilla): en cada ancho, las columnas justas para que las filas vayan llenas e
+   iguales, con el mismo hueco entre todo (--hueco-m) y nada que estire una pieza más que su fila. Antes, Cultura y Naturaleza
+   iban lado a lado y, como Cultura era mucho más larga, quedaba media pantalla vacía; y con dos pueblos o dos leyendas,
+   una columna libre al final */
+section.rejilla { display: grid; gap: var(--hueco-m); grid-template-columns: repeat(12, minmax(0, 1fr)); }
+section.rejilla > * { grid-column: span var(--sg, 4); }
+@media (max-width: 999px) { section.rejilla > * { grid-column: span var(--sm, 6); } }
+@media (max-width: 699px) { section.rejilla > * { grid-column: span var(--sp, 6); } }
+@media (max-width: 560px) { section.rejilla > * { grid-column: 1 / -1; } }
+/* (las piezas de Cultura y de Naturaleza, iguales: el fondo, la raya de la comarca a la izquierda y la esquina cortada) */
+:is(.cm-cult .cult, .cm-ng) { padding: 16px; border: 0; border-radius: 0; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+.cm-cult .cult small { color: color-mix(in srgb, var(--c) 45%, #ffd166); }
+.cm-cult .cult-img { border-radius: 0; clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+/* (la danza, con su ilustración, a todo lo ancho: la imagen en la primera columna de la rejilla, alineada con las piezas de
+   debajo, y el texto en las demás, centrado en su alto; con media fila para la imagen sobraba aire junto al texto) */
+.cm-cult .cult.con-img { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: center; gap: var(--hueco-m); }
+/* (la imagen, del ancho de una pieza de la fila de debajo, --fg, --fm o --fp de las 12 columnas, y el texto, el resto,
+   --tg, --tm o --tp: hub.js, ajustaRejillas) */
+.cm-cult .cult.con-img { grid-column: 1 / -1 !important; --ci: var(--fg, 4); --ct: var(--tg, 8); }
+@supports (grid-template-columns: subgrid) { .cm-cult .cult.con-img { grid-template-columns: subgrid; } .cm-cult .cult.con-img > .cult-img { grid-column: span var(--ci); } .cm-cult .cult.con-img > div { grid-column: span var(--ct); } }
+@media (max-width: 999px) { .cm-cult .cult.con-img { --ci: var(--fm, 4); --ct: var(--tm, 8); } } @media (max-width: 699px) { .cm-cult .cult.con-img { --ci: var(--fp, 6); --ct: var(--tp, 6); } }
+@media (max-width: 560px) { .cm-cult .cult.con-img { grid-template-columns: minmax(0, 1fr); } .cm-cult .cult.con-img > :is(div, .cult-img) { grid-column: auto; } }
+/* (el sitio, en su línea, debajo del texto y del «Ver más», y al pie de la pieza: en una fila, las piezas miden lo mismo y
+   así el sitio queda a la misma altura en todas, con el aire sobrante dentro y no en una esquina) */
+.cm-cult .cult > div { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; } .cm-cult .cult > div > p { align-self: stretch; }
+.cm-cult .cult em { display: block; margin-top: auto; padding-top: var(--e2); }
+.cm-ng h3 { margin: 0 0 var(--e3); font-size: var(--fs-xs); color: var(--gold); text-transform: uppercase; letter-spacing: .1em; }
 /* los cuentos de la comarca, en retícula */
 .cm-ley { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
 
 @media (prefers-reduced-motion: reduce) { .cm-t .gt-foto::after { animation: none; } .cm-t { transition: none; } }
+
+/* (el pueblo único de una comarca, a la derecha de su carta: el rótulo, el nombre, lo que es, sus misiones y los botones,
+   con el ritmo de los textos y abajo del todo los botones, a la altura del pie de la carta) */
+.cm-uno { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 16px; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+.cm-uno > .kicker, .cm-uno h3 > * { text-box: trim-both cap alphabetic; }
+.cm-uno h3 { display: grid; margin: var(--r-kt) 0 0; font: 400 var(--fs-2xl)/1 var(--f-display); text-transform: uppercase; }
+.cm-uno h3 em { margin-top: var(--r-ts); color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1.2 var(--f-ui); font-style: normal; text-transform: none; }
+.cm-uno p { margin: var(--r-tx) 0 0; color: #eae4f6; font-weight: 600; font-size: var(--fs-sm); }
+.cm-uno .gi-ms { margin-top: var(--r-tx); }
+.cm-uno .gi-b { margin-top: auto; padding-top: var(--r-bl); display: flex; flex-wrap: wrap; gap: 10px; }
+/* (una sola cima, a todo lo ancho: la escena a la izquierda y sus datos a la derecha, como la danza; vertical, a todo lo ancho,
+   la escena era enorme) */
+@media (min-width: 561px) {
+  .peaks.rejilla > .pcard:only-child { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: var(--hueco-m); align-content: center; }
+  .peaks.rejilla > .pcard:only-child > .pc-img { grid-column: 1; grid-row: 1 / span 8; align-self: start; }
+  .peaks.rejilla > .pcard:only-child > :not(.pc-img) { grid-column: 2; }
+}
+/* (el botón de la cima, a 16 del texto como en el resto: el hueco de la tarjeta, 8, y 8 más) */
+.peaks.rejilla .pcard > :is(.btn, .pbadge) { margin-top: var(--e2); }

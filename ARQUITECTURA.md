@@ -299,6 +299,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Minimapa** (`#mini`, `#clock`): la hora va en una pastilla sobre el borde de abajo del círculo, con el mismo borde
   blanco, entera. El mapa se recorta en el círculo y la hora queda fuera del recorte; antes era un recuadro dentro del
   círculo que el borde cortaba.
+- **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
+  cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
+  tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo
+  número; y las de la última fila, si no llegan, se ensanchan hasta llenarla. Con imagen (`data-igual`: pueblos,
+  leyendas, cimas) se elige el número de columnas que deja la última fila menos estirada: tres pueblos en tres columnas,
+  siete en 4 y 3. Cultura y Naturaleza van cada una a todo lo ancho (antes, lado a lado, Cultura era mucho más larga y
+  quedaba media pantalla vacía); la danza con su ilustración, destacada, con la imagen del ancho de una pieza de la fila de
+  debajo (subgrid) y el texto al lado; en cada pieza, el sitio al pie, a la misma altura en toda la fila. Con un solo
+  pueblo, a su lado va lo que es, sus misiones y los botones (`puebloUnico`); una sola cima, en horizontal. Los párrafos
+  ya no llevan `text-wrap: pretty`: en el iPhone acortaba todas las líneas y dejaba media caja vacía a la derecha.
 - **Nada se monta** (`tools/choques.mjs`): ningún texto puede pisar ni rozar un icono, una chapa, un botón pequeño u
   otro texto, en ninguna pantalla ni tamaño: a 6 px como poco (3 px de un icono que va dentro del mismo texto), medido
   sobre lo que se ve (la letra de lo alto de las mayúsculas a la línea base, la inclinación de la cursiva, lo pintado de

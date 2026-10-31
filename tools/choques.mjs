@@ -138,7 +138,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     };
     for (const s of ['home', 'sports', 'avatars', 'map', 'nature', 'badges', 'passport', 'profile', 'escudos', 'cuentos', 'instrumentos', 'pasaka', 'album', 'peaks', 'ventajas']) if (want(s)) {
       await p.evaluate((s) => window.__hub.go(s, undefined, true), s); await p.waitForTimeout(900); await mide(s, '#hub'); }
-    if (want('comarca')) for (const c of ['sakana', 'valdizarbe-novenera', 'pirineo']) { await p.evaluate((c) => window.__hub.go('comarca', c, true), c); await p.waitForTimeout(900); await mide(`comarca-${c}`, '#hub'); }
+    if (want('comarca')) for (const c of ['sakana', 'valdizarbe-novenera', 'pirineo', 'prepirineo']) { await p.evaluate((c) => window.__hub.go('comarca', c, true), c); await p.waitForTimeout(900); await mide(`comarca-${c}`, '#hub'); }
     if (want('pueblo')) for (const t of ['altsasu-alsasua', 'puente-la-reina', 'erronkari-roncal']) { await p.evaluate((t) => window.__hub.townSheet(t), t); await p.waitForTimeout(700); await mide(`ficha-${t}`, '.sheet', '.sheet .sh-body, .sheet'); await p.evaluate(() => { window.__hub.sheet?.remove(); window.__hub.sheet = null; document.querySelectorAll('.sheet').forEach(e => e.remove()); }); }
     // la galería de pueblos: cada comarca y cada pueblo, el de delante (cada nombre mide distinto)
     if (want('towns')) {
