@@ -293,8 +293,8 @@ class Run {
     const grow = (T, old, k, cap, used) => { const a = new T(cap * k); if (old) a.set(old.subarray(0, used * k)); return a; };
     if (this.n + addV > this.cap) {
       let cap = Math.max(512, Math.ceil(this.cap * 1.5)); while (cap < this.n + addV) cap = Math.ceil(cap * 1.5);
-      this.pos = grow(Float32Array, this.pos, 3, cap, this.n); this.nrm = grow(Int8Array, this.nrm, 3, cap, this.n); this.uv = grow(Float32Array, this.uv, 2, cap, this.n);
-      if (this.col) this.col = grow(Uint8Array, this.col, 3, cap, this.n);
+      this.pos = grow(Float32Array, this.pos, 3, cap, this.n); this.nrm = grow(Int8Array, this.nrm, 4, cap, this.n); this.uv = grow(Float32Array, this.uv, 2, cap, this.n);
+      if (this.col) this.col = grow(Uint8Array, this.col, 4, cap, this.n);
       this.cap = cap;
     }
     if (this.ni + addI > this.icap) {
@@ -303,7 +303,7 @@ class Run {
     }
   }
   // a partir de la primera pieza con color, el bloque lleva color (las anteriores, blancas)
-  withColor() { if (!this.col) { this.col = new Uint8Array(this.cap * 3); this.col.fill(255, 0, this.n * 3); } }
+  withColor() { if (!this.col) { this.col = new Uint8Array(this.cap * 4); this.col.fill(255, 0, this.n * 4); } }
 }
 // memoria de trabajo reutilizada entre piezas (posiciones y normales ya colocadas de la pieza que llega)
 let SP = new Float32Array(3 * 4096), SN = new Float32Array(3 * 4096);
@@ -356,9 +356,9 @@ export class Builder {
     for (let v = 0; v < nv; v++) {
       const o = o0 + v;
       P[o * 3] = SP[v * 3]; P[o * 3 + 1] = SP[v * 3 + 1]; P[o * 3 + 2] = SP[v * 3 + 2];
-      N[o * 3] = toS8(SN[v * 3]); N[o * 3 + 1] = toS8(SN[v * 3 + 1]); N[o * 3 + 2] = toS8(SN[v * 3 + 2]);
+      N[o * 4] = toS8(SN[v * 3]); N[o * 4 + 1] = toS8(SN[v * 3 + 1]); N[o * 4 + 2] = toS8(SN[v * 3 + 2]); N[o * 4 + 3] = 0;
       if (ua) { U[o * 2] = ua.getX(v); U[o * 2 + 1] = ua.getY(v); } else { U[o * 2] = 0; U[o * 2 + 1] = 0; }
-      if (C) { if (ca) { C[o * 3] = to8(ca.getX(v)); C[o * 3 + 1] = to8(ca.getY(v)); C[o * 3 + 2] = to8(ca.getZ(v)); } else { C[o * 3] = C[o * 3 + 1] = C[o * 3 + 2] = 255; } }
+      if (C) { if (ca) { C[o * 4] = to8(ca.getX(v)); C[o * 4 + 1] = to8(ca.getY(v)); C[o * 4 + 2] = to8(ca.getZ(v)); } else { C[o * 4] = C[o * 4 + 1] = C[o * 4 + 2] = 255; } C[o * 4 + 3] = 255; }
     }
     if (idx) { const IA = idx.array; for (let k = 0; k < cnt; k++) I[i0 + k] = o0 + IA[k]; } else for (let k = 0; k < cnt; k++) I[i0 + k] = o0 + k;
     run.n += nv; run.ni += cnt;
@@ -374,9 +374,11 @@ export class Builder {
       // (copias del tamaño justo: el bloque de trabajo crece por tramos y le sobra sitio; se suelta enseguida)
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.BufferAttribute(run.pos.slice(0, n * 3), 3));
-      g.setAttribute('normal', new THREE.BufferAttribute(run.nrm.slice(0, n * 3), 3, true));
+      // (normal y color de cuatro en cuatro bytes, aunque el cuarto no se use: la tarjeta del iPhone quiere los datos de cada
+      // vértice alineados a 4; con 3, el navegador los convertía por su cuenta, con más memoria y más tiempo al subirlos)
+      g.setAttribute('normal', new THREE.BufferAttribute(run.nrm.slice(0, n * 4), 4, true));
       g.setAttribute('uv', new THREE.BufferAttribute(run.uv.slice(0, n * 2), 2));
-      if (run.col) g.setAttribute('color', new THREE.BufferAttribute(run.col.slice(0, n * 3), 3, true));
+      if (run.col) g.setAttribute('color', new THREE.BufferAttribute(run.col.slice(0, n * 4), 4, true));
       g.setIndex(new THREE.BufferAttribute(n <= 65535 ? Uint16Array.from(run.idx.subarray(0, ni)) : run.idx.slice(0, ni), 1));
       run.pos = run.nrm = run.uv = run.col = run.idx = null;
       g.computeBoundingSphere(); g.computeBoundingBox();

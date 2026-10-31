@@ -133,6 +133,25 @@ function buildChunk(ci, cj, step) {
   g.setAttribute('aCampo', new THREE.Uint8BufferAttribute(campo, 4));
   g.setIndex(idx);
   g.computeBoundingSphere(); g.computeBoundingBox();
+  return empaca(g);
+}
+
+// Los datos de cada vértice del suelo, en la mitad de memoria (de 56 a 28 bytes): la posición sigue entera; la normal y las
+// superficies (pesos de 0 a 1) van en un byte cada componente; el color, en un byte guardando su raíz cuadrada, que el
+// sombreador vuelve a elevar al cuadrado (makeTerrainMaterial): así los verdes oscuros del bosque no hacen escalones. De
+// cuatro en cuatro bytes, como le gusta a la tarjeta del iPhone (con tres, el navegador los convierte por su cuenta).
+// Antes, todo en números de coma de 4 bytes: el suelo era lo que más ocupaba de la tarjeta gráfica
+function empaca(g) {
+  const n = g.attributes.position.count, N0 = g.attributes.normal, C0 = g.attributes.color, S0 = g.attributes.aSurf;
+  const nb = new Int8Array(n * 4), cb = new Uint8Array(n * 4), sb = new Uint8Array(n * 4);
+  for (let i = 0; i < n; i++) {
+    nb[i * 4] = Math.round(N0.getX(i) * 127); nb[i * 4 + 1] = Math.round(N0.getY(i) * 127); nb[i * 4 + 2] = Math.round(N0.getZ(i) * 127);
+    cb[i * 4] = Math.round(Math.sqrt(Math.max(0, Math.min(1, C0.getX(i)))) * 255); cb[i * 4 + 1] = Math.round(Math.sqrt(Math.max(0, Math.min(1, C0.getY(i)))) * 255); cb[i * 4 + 2] = Math.round(Math.sqrt(Math.max(0, Math.min(1, C0.getZ(i)))) * 255); cb[i * 4 + 3] = 255;
+    if (S0) for (let k = 0; k < 4; k++) sb[i * 4 + k] = Math.round(Math.max(0, Math.min(1, S0.array[i * 4 + k])) * 255);
+  }
+  g.setAttribute('normal', new THREE.BufferAttribute(nb, 4, true));
+  g.setAttribute('color', new THREE.BufferAttribute(cb, 4, true));
+  g.setAttribute('aSurf', new THREE.BufferAttribute(sb, 4, true));
   return g;
 }
 
@@ -162,7 +181,8 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     if (quality === 'low') sh.defines.LOWQ = 1;   // móvil: menos lecturas de textura por píxel
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>\nattribute vec4 aSurf;\nattribute vec4 aCampo;\nvarying vec4 vSurf;\nvarying vec3 vCampo;\nvarying vec3 vWP;\nvarying vec3 vNW;')
-      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvCampo = aCampo.xyz;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);');
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvSurf = aSurf;\nvCampo = aCampo.xyz;\nvWP = (modelMatrix * vec4(transformed,1.0)).xyz;\nvNW = normalize(mat3(modelMatrix) * objectNormal);')
+      .replace('#include <color_vertex>', '#include <color_vertex>\n#ifdef USE_COLOR\nvColor.rgb *= vColor.rgb;\n#endif');   // (el color viene guardado como su raíz cuadrada: empaca)
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>
 uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform sampler2D tDirt; uniform sampler2D tDirtN; uniform sampler2D tGrassN; uniform sampler2D tLitter; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY; uniform float uMoss; uniform vec3 uLitter;
@@ -225,6 +245,10 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
   // rodales de unos veinte metros: hierba más alta y oscura, o más rala y clara (de lejos el prado ya no es de un verde liso)
   float pz = texture2D(tDetail, vWP.xz / 23.0 + 0.17).r;
   gc *= mix(vec3(0.86, 0.91, 0.88), vec3(1.07, 1.05, 0.95), smoothstep(0.3, 0.7, pz));
+#else
+  // (en el móvil, los rodales salen de otro canal de la lectura de 11 m que ya está hecha: sin ellos el prado del móvil era
+  // de un verde liso; ninguna lectura de textura más)
+  gc *= mix(vec3(0.82, 0.88, 0.85), vec3(1.08, 1.06, 0.94), smoothstep(0.3, 0.7, d1.b));
 #endif
   gc *= vec3(0.8, 0.93, 0.74);                                   // suelo algo más oscuro y verde que las briznas
   gc = mix(gc, base * vec3(0.66, 0.95, 0.72), g1.g * 0.45);
@@ -568,6 +592,7 @@ export class Terrain {
       col.push(c.r, c.g, c.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    empaca(g);   // (como el suelo del pueblo: mismo formato y mismo sombreador)
     const mat = makeTerrainMaterial({ outer: true, quality: this.quality }), grp = new THREE.Group();
     grp.position.y = -0.8; // ligeramente por debajo para evitar parpadeos en la unión
     const v = new THREE.Vector3(), box = new THREE.Box3();

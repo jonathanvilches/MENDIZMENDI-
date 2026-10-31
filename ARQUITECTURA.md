@@ -331,6 +331,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sombra, el caballete por el lado largo y un tono distinto cada una (en el Pirineo, la mitad de pizarra); los árboles,
   también con sombra. Abajo a la izquierda, el norte encima de la regla. En el móvil tumbado, el encuadre y los nombres
   dejan sitio al título, que va encima del mapa.
+- **Geometría más ligera** (octubre de 2026): el suelo (`terrain.js`, `empaca`) guarda la normal, las superficies y el
+  color en bytes (el color como raíz cuadrada, que el sombreador eleva al cuadrado; así los verdes oscuros no hacen
+  escalones): de 56 a 28 bytes por vértice, 18 a 11 MB en Estella. Los animales (`animalGlb.js`, `aligera`) juntan los
+  vértices repetidos que dejaban las aristas marcadas (`mergeVertices`, solo los iguales en todo: el sombreado no cambia) y
+  guardan pesos, huesos y normales en bytes: de unos 8 a 1,6 MB (el más grande, de 33 300 a 7 300 vértices). Las casas
+  (`builder.js`) ya iban en bytes; ahora normal y color van de cuatro en cuatro bytes, como quiere la tarjeta del iPhone
+  (con tres, el navegador los convertía por su cuenta). En calidad baja, el prado recupera sus rodales de 20 m con un canal
+  de una lectura que ya se hacía.
 - **Paseo de dron por Navarra en el inicio** (`hub/mapa3d.js`, `sigueDronNavarra` y `rutaDron`): con el mapa quieto 10 s
   (la primera vez, 3 s) y nada elegido, la cámara pasa de la vista de toda Navarra a un vuelo más cerca y más inclinado
   que la recorre por el medio, por los centros de las comarcas, del Baztan y el Pirineo a la Ribera y vuelta (unos 42 s

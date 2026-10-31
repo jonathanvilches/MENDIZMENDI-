@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { loadGLB } from '../util/glb.js';
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { mergeGeometries, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // los modelos van comprimidos
 import { dogPart, dogShape, dogFur, dogGear, dogDress } from './dogDetail.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
@@ -95,12 +95,40 @@ function bakedScene(key, S, g) {
   let merged = mergeGeometries(geos);
   const s0 = skinned[0];
   merged = S.dog ? dogShape(merged, S, s0.skeleton, s0.bindMatrix) : toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
+  // (las aristas marcadas dejan cada triángulo con sus tres vértices propios: se juntan los que son iguales en todo —sitio,
+  // normal, color, huesos—, así que el sombreado no cambia y quedan unas tres veces menos vértices)
+  if (!S.dog) merged = mergeVertices(merged, 1e-4);
   const mesh = new THREE.SkinnedMesh(merged, S.dog ? dogFur(merged, S) : S.wool ? woolMaterial(merged) : hideMaterial(merged, S));
   if (S.dog) GEAR.set(key, dogGear(merged, S, s0.skeleton, s0.bindMatrix));
+  aligera(merged);
   mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
   s0.parent.add(mesh); mesh.bind(s0.skeleton, s0.bindMatrix);
   for (const m of skinned) m.removeFromParent();
   BAKED.set(key, sc); return sc;
+}
+
+// Los datos de cada vértice del animal, más ligeros (de 60 a 36 bytes): los pesos de los huesos en un byte cada uno (sumando
+// 255), los números de hueso en un byte (hay menos de 256) y la normal en un byte por componente, de cuatro en cuatro como
+// le gusta a la tarjeta del iPhone. Como ya venían los personajes. Antes, todo en números de coma de 4 bytes
+function aligera(g) {
+  const A = g.attributes, n = A.position.count, w = A.skinWeight, si = A.skinIndex, N = A.normal;
+  if (w && w.array instanceof Float32Array) {
+    const a = new Uint8Array(n * 4);
+    for (let i = 0; i < n; i++) {
+      let s = 0, big = 0; for (let j = 0; j < 4; j++) s += w.getComponent(i, j);
+      for (let j = 0; j < 4; j++) { a[i * 4 + j] = Math.round(w.getComponent(i, j) / (s || 1) * 255); if (a[i * 4 + j] > a[i * 4 + big]) big = j; }
+      a[i * 4 + big] += 255 - (a[i * 4] + a[i * 4 + 1] + a[i * 4 + 2] + a[i * 4 + 3]);   // (que sumen justo 255)
+    }
+    g.setAttribute('skinWeight', new THREE.BufferAttribute(a, 4, true));
+  }
+  if (si && !(si.array instanceof Uint8Array)) {
+    let mx = 0; for (let k = 0; k < si.array.length; k++) if (si.array[k] > mx) mx = si.array[k];
+    if (mx < 256) g.setAttribute('skinIndex', new THREE.BufferAttribute(Uint8Array.from(si.array), 4));
+  }
+  if (N && N.array instanceof Float32Array && N.itemSize === 3) {
+    const a = new Int8Array(n * 4); for (let i = 0; i < n; i++) { a[i * 4] = Math.round(N.getX(i) * 127); a[i * 4 + 1] = Math.round(N.getY(i) * 127); a[i * 4 + 2] = Math.round(N.getZ(i) * 127); }
+    g.setAttribute('normal', new THREE.BufferAttribute(a, 4, true));
+  }
 }
 
 // Lana: el modelo no tiene coordenadas de textura, así que el vellón se dibuja en el sombreador con ruido celular en
