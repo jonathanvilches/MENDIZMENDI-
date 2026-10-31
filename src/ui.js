@@ -20,11 +20,8 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
 
 // (la flecha fina del botón que pliega y despliega las misiones del pueblo, como la del menú del inicio)
-const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5l6 6 6-6"/></svg>';
 // las misiones del pueblo, arriba a la izquierda: en el móvil, plegadas (solo la misión de ahora, con lo hecho en su
 // insignia); en el ordenador, abiertas. Lo que elija cada uno se recuerda
-const TL_K = 'herrizherri-misiones-abiertas';
-const tlAbierto = () => { try { const v = localStorage.getItem(TL_K); if (v) return v === '1'; } catch (e) { } return !matchMedia('(pointer: coarse)').matches; };
 
 const ICON = {
   book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.2)"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#ff7ac8"/></g></svg>',
@@ -118,11 +115,13 @@ export class UI {
     const town = game.kind === 'town';
     const h = el(`<div id="hud">
       <div id="compass"><canvas></canvas><span id="cdist"></span></div>
-      <div id="tl">
-        <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div><button type="button" class="tl-pl" aria-label="Misiones del pueblo">${CHEV}</button></div>
-        <div id="ribbons"${town ? ' class="mis"' : ''}>${town ? `<span class="mh"><span class="tname">${esc(game.def.name.split(' /')[0])}</span><b class="mc"></b></span><span class="dots" style="--n:${game.missions.length}">${game.missions.map(M => `<i data-m="${M.i}" title="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 14)}</i>`).join('')}</span>`
-          : `${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span>`}</div>
-      </div>
+      ${town ? `<div id="tl" class="mis">
+        <div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div>
+        <div id="quest" class="hidden"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div>
+      </div>` : `<div id="tl">
+        <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
+        <div id="ribbons">${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span></div>
+      </div>`}
       <div id="topright">
         <div class="rbtns">
           <button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
@@ -152,9 +151,12 @@ export class UI {
     tap('#bMenu', () => this.openMenu());
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
-    tap('#quest', () => this.openBook('misiones'));
-    tap('#quest .tl-pl', () => this.pliegaMisiones(!this.tlAbierto, true));
-    this.doneN = null; this.pliegaMisiones(tlAbierto());
+    this.doneN = null; this.misAbierta = null; this.qKey = null; this.lastQ = null; this.tlVer = false;
+    // (en el pueblo, las misiones son solo sus iconos: al tocar uno, esa es la que sigues y debajo sale lo que hay que hacer;
+    // en la aventura de Otsagabia, el icono de la misión: al tocarlo, lo que hay que hacer y las cintas. Tocando el texto, el
+    // cuaderno)
+    if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
+    else { tap('#quest .ic', () => { this.verMision(!this.tlVer, 7000); this.sound?.ui?.('click'); }); tap('#quest .qtxt', () => this.openBook('misiones')); }
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
     tap('#cJump', () => this.input.press(' '));
@@ -204,7 +206,8 @@ export class UI {
       return Math.max(T.getBoundingClientRect().left, caja, ic ? ic.right : 0, txt($('#quest small', h)), txt($('#quest .qt', h)), rb ? Math.max(txt(tn), dots?.getBoundingClientRect().right || 0) : 0) + 12; };
     const W = innerWidth, R = B.getBoundingClientRect().left - 12, MIN = 170;
     let L = left();
-    if (R - L < MIN && band($('#quest', h))) { T.style.maxWidth = Math.max(140, R - MIN - 12 - T.getBoundingClientRect().left) + 'px'; L = left(); }
+    // (las casillas de las misiones del pueblo no se estrechan: van en su rejilla)
+    if (R - L < MIN && band($('#quest', h)) && !T.classList.contains('mis')) { T.style.maxWidth = Math.max(140, R - MIN - 12 - T.getBoundingClientRect().left) + 'px'; L = left(); }
     // (centrada en la pantalla si cabe; si no, del ancho del hueco y en medio de él)
     if (W / 2 - cr.width / 2 >= L && W / 2 + cr.width / 2 <= R) return;
     // (en medio del hueco: el mismo espacio a cada lado)
@@ -220,28 +223,60 @@ export class UI {
   // (las misiones del pueblo, bajo la de ahora: cada casilla con su icono, las hechas de color y la que sigues encendida)
   refreshDots() {
     if (!this.hud || this.game.kind !== 'town') return;
-    for (const i of this.hud.querySelectorAll('.dots i')) { const M = this.game.missions[+i.dataset.m]; i.className = M.done ? 'on' : M.i === this.game.tracked ? 'cur' : ''; }
+    for (const i of this.hud.querySelectorAll('#misiones button')) { const M = this.game.missions[+i.dataset.m]; i.classList.toggle('on', !!M.done); i.classList.toggle('cur', !M.done && M.i === this.game.tracked); i.classList.toggle('sel', M.i === this.misAbierta); i.setAttribute('aria-pressed', String(M.i === this.misAbierta)); }
     const ms = this.game.missions, n = ms.filter(M => M.done).length, t = `${n}/${ms.length}`;
     for (const c of this.hud.querySelectorAll('#ribbons .mc, #quest .qn')) c.textContent = t;
-    // (al acabar una misión con las misiones plegadas, se abren un momento para ver lo que falta)
-    if (this.doneN != null && n > this.doneN && !this.tlAbierto) this.muestraMisiones();
     this.doneN = n;
   }
-  /** Pliega (solo la misión de ahora) o despliega (con todas las del pueblo) el panel de arriba a la izquierda. */
-  pliegaMisiones(abre, elegido) {
+  /** La aventura de Otsagabia: enseña (on) lo que hay que hacer y las cintas junto al icono de la misión, durante ms; si no,
+   *  solo el icono */
+  verMision(on, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;
-    clearTimeout(this.tlT); this.tlT = 0; T.classList.remove('asoma');
-    this.tlAbierto = !!abre; T.classList.toggle('plegado', !abre);
-    const b = $('.tl-pl', T); b?.setAttribute('aria-expanded', String(!!abre));
-    if (elegido) { try { localStorage.setItem(TL_K, abre ? '1' : '0'); } catch (e) { } this.sound?.ui?.(abre ? 'open' : 'click'); }
+    clearTimeout(this.tlT); this.tlT = 0; this.tlVer = !!on; T.classList.toggle('ver', !!on);
+    if (on && ms) this.tlT = setTimeout(() => this.verMision(false), ms);
     this.queueFitTop();
   }
-  muestraMisiones() {
+
+  // ---------- las misiones del pueblo: sus iconos y, al tocar uno, la misión ----------
+  // Arriba a la izquierda solo van los iconos de las misiones del pueblo (las hechas, llenas de su color y con su marca; la
+  // que sigues, con borde blanco). Al tocar uno, esa pasa a ser la que sigues (la brújula y la luz dorada van a ella) y
+  // debajo se despliega lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo lejos que está; se recoge
+  // sola en unos segundos o tocando el mismo icono. Al empezar en el pueblo y cada vez que cambia lo que toca hacer, se
+  // despliega un momento. Antes iban siempre a la vista el nombre, el paso y el pueblo con las casillas, y ocupaba mucho
+  eligeMision(i) {
+    const g = this.game, M = g?.missions?.[i]; if (!M) return;
+    if (this.misAbierta === i) { this.cierraMision(); this.sound?.ui?.('click'); return; }
+    if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
+    this.abreMision(i, 7000);
+  }
+  abreMision(i, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;
-    T.classList.add('asoma'); this.queueFitTop(); clearTimeout(this.tlT);
-    this.tlT = setTimeout(() => { this.tlT = 0; T.classList.remove('asoma'); this.queueFitTop(); }, 4000);
+    this.misAbierta = i; $('#quest', T).classList.remove('hidden'); this.pintaMision(i); this.refreshDots();
+    clearTimeout(this.tlT); this.tlT = ms ? setTimeout(() => this.cierraMision(), ms) : 0;
+  }
+  cierraMision() {
+    clearTimeout(this.tlT); this.tlT = 0; this.misAbierta = null;
+    const T = this.hud && $('#tl', this.hud); if (!T) return; $('#quest', T).classList.add('hidden'); this.refreshDots();
+  }
+  pintaMision(i) {
+    const g = this.game, M = g.missions[i], E = this.questEls; if (!M || !E) return;
+    const step = g.stepText(M), n = M.steps().length, idx = M.done ? n : Math.min(M.step, n);
+    if (E.small._t !== M.title) { E.small._t = M.title; E.small.textContent = M.title; }
+    if (E.qt._t !== step) { E.qt._t = step; E.qt.textContent = step; }
+    const key = n + ':' + idx; if (E.pips.dataset.k !== key) { E.pips.dataset.k = key; E.pips.innerHTML = n ? Array.from({ length: n }, (_, k) => `<i class="${k < idx ? 'ok' : k === idx ? 'now' : ''}"></i>`).join('') : ''; }
+    const q = this.lastQ, dt = i === g.tracked && q?.dist != null && q.dist < 1000 ? `${Math.round(q.dist)} m` : '';
+    if (E.qd._t !== dt) { E.qd._t = dt; E.qd.textContent = dt; }
+  }
+  setQuestPueblo(q) {
+    const g = this.game; this.lastQ = q;
+    if (!q) { if (this.misAbierta != null && !g.missions[this.misAbierta]?.done) this.cierraMision(); return; }
+    // (lo que toca hacer ha cambiado, o es la primera vez: se despliega un momento)
+    const key = g.tracked + '|' + q.step;
+    if (this.qKey !== key) { const primera = this.qKey == null; this.qKey = key; this.abreMision(g.tracked, primera ? 6000 : 4500); return; }
+    if (this.misAbierta === g.tracked) this.pintaMision(g.tracked);
   }
   setQuest(q) {
+    if (this.game?.kind === 'town') return this.setQuestPueblo(q);
     const b = $('#quest', this.hud), E = this.questEls;
     if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; this.queueFitTop(); } return; }
     if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; this.queueFitTop(); }
@@ -249,7 +284,7 @@ export class UI {
     // último escrito se guarda en el propio elemento (_t): en euskera, lo que se lee del elemento ya está traducido y no
     // coincidiría nunca con el texto en castellano, y se reescribía y volvía a latir en cada fotograma)
     if (this.lastQuestIcon !== q.icon) { E.qe.innerHTML = I(q.icon, 34); this.lastQuestIcon = q.icon; }
-    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); this.queueFitTop(); }
+    if (E.qt._t !== q.step) { E.qt._t = q.step; E.qt.textContent = q.step; b.classList.remove('pulse'); void b.offsetWidth; b.classList.add('pulse'); this.refreshDots(); this.verMision(true, 4500); }
     if (E.small._t !== q.title) { E.small._t = q.title; E.small.textContent = q.title; this.queueFitTop(); }
     const pips = E.pips, key = (q.nSteps || 0) + ':' + (q.stepIdx ?? -1);
     if (pips.dataset.k !== key) { pips.dataset.k = key; pips.innerHTML = q.nSteps ? Array.from({ length: q.nSteps }, (_, i) => `<i class="${i < q.stepIdx ? 'ok' : i === q.stepIdx ? 'now' : ''}"></i>`).join('') : ''; }
