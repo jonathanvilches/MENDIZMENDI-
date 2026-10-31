@@ -1111,9 +1111,11 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   }
   // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
   const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
-  // los pájaros: bandadas por el cielo de Navarra y cigüeñas sobre la maqueta del pueblo (pajaros.js)
+  // los pájaros: solo con un pueblo o una ciudad elegida, sobre el corazón de sus casas (pajaros.js); en la vista general
+  // y en la de una comarca, ninguno. Los espacios naturales, sin maqueta, tampoco
   const aves = hacePajaros({ scene, lento: LENTO, suelo: (x, z) => { const c = deQuien(x, z); return c?.sy ? pisoEn(c, x, z) * c.sy + c.py : null; },
-    pueblo: () => maq?.malla && maq.op > 0.5 ? { X: maq.e.X0, Z: maq.e.Z0 } : null });
+    pueblo: () => { if (!elegido || !TR.includes(elegido)) return null; if (dron?.id === elegido.id) return { X: dron.cc?.X ?? dron.X, Z: dron.cc?.Z ?? dron.Z };
+      return (elegido._cc ||= centroCasas(elegido.id)) || { X: elegido.X, Z: elegido.Z }; } });
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)

@@ -299,13 +299,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cuando cada punto suyo ocupa más de un píxel; los colores apagados ganan algo de color, las sombras no llegan al negro
   y tiran a un azul malva, y las luces son algo más cálidas. En el móvil, la comarca elegida, con el relieve fino a 28 m.
 - **Pájaros y agua que se mueve en el mapa del inicio** (`hub/pajaros.js`, `hub/mapa3d.js`, `hub/mapa3dSombreadores.js`):
-  - Bandadas oscuras, una en uve y las demás sueltas, que cruzan la vista de una comarca o de Navarra y vuelven a entrar
-    por otro lado. Van ancladas al mundo, pero su tamaño, su altura y su velocidad siguen a la distancia de la cámara:
-    en pantalla se ven siempre igual.
-  - En la maqueta de un pueblo, cigüeñas blancas y milanos pardos que planean en círculo, aletean a ratos y dejan su
-    sombra en el suelo. Algo más grandes que de verdad, como las casas.
-  - Una sola malla repetida para todas las aves y otra para las sombras: dos dibujos. El aleteo va en el sombreador. En
-    el móvil, menos aves.
+  - Solo con un pueblo o una ciudad elegida: cigüeñas blancas y milanos pardos que planean en círculo sobre el corazón de
+    sus casas, aletean a ratos y dejan su sombra en el suelo. Algo más grandes que de verdad, como las casas. En la vista
+    de toda Navarra y en la de una comarca, ninguno: las bandadas que cruzaban por ahí no gustaron.
+  - Una sola malla repetida para todas las aves y otra para las sombras: dos dibujos, y ninguno sin pueblo elegido. El
+    aleteo va en el sombreador. En el móvil, menos aves.
   - El agua: destellos que bajan por los ríos de la comarca, ondas en los embalses y en el mar, y ondas de unos 7 m en
     los ríos, balsas y piscinas pintados en el suelo de la maqueta. Estas últimas se reconocen por su color y se apagan
     de lejos, para que no titilen.
