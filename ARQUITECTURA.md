@@ -268,6 +268,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
   lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
   se parten en casas como los bloques grandes.
+- **Casas de las maquetas en orden** (`casasMaqueta` y `ordenaMaqueta` en `hub/maqueta.js`, noviembre de 2026): el mismo
+  orden que dentro del pueblo (`levels/ordenar.js`). Las filas y manzanas que los datos traen como un solo edificio se
+  parten en casas de unos 9 m con la fachada a la calle (`partirBloques`); dentro de las manzanas, anexos bajos de unos
+  8 m con huecos de patio hasta lo que de verdad está construido, fuera de parques, plazas y huertas. Luego
+  `ordenarCasasPasos`: las casas siguen la calle si casi lo hacen, dejan libres calle, plaza, puente y río, y dos que se
+  pisan quedan pared con pared. Antes, en Tafalla una de cada tres casas pisaba la calle y en Tudela y Pamplona cientos
+  se montaban; ahora ninguna o casi. Va por pasos de 60 casas antes de pintar el suelo de la maqueta (`mapa3d.js
+  pasoMaqueta`): en Pamplona, todo de una vez era un cuarto de segundo con la imagen parada. Los ríos van en tramos de
+  12 puntos y las plazas con su caja, para que no cueste comparar cada casa con todo el río o todas las plazas.
 - **Rótulos de las maquetas** (`rotulosMaqueta` en `hub/maqueta.js`; revisados pueblo a pueblo en noviembre de 2026):
   solo edificios y puentes con su nombre en OpenStreetMap, encima de su propio tejado. Antes salían de los lugares de
   Overture, que son sobre todo negocios con el punto en su dirección o en el centro del pueblo: el «Mirador de los
@@ -318,9 +327,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (42,7794 −1,5134, OSM), al este; antes el punto del yacimiento caía al oeste.
 - **Color y texturas de la maqueta y del relieve** (`hub/maqueta.js`, `hub/emblemas.js`, `hub/mapa3d.js` y
   `hub/mapa3dSombreadores.js`):
-  - `setHSL` va en color lineal: una luminosidad de 0,75 ya se ve casi blanca. Las paredes, en `PARED`, con valores
-    pensados así: piedra dorada en la Zona Media, ladrillo y ocre en la Ribera, piedra parda en el Pirineo y encaladas
-    en el norte. Iglesias, torres, palacios y monumentos, de piedra dorada o parda según la tierra.
+  - Los colores de las casas van en sRGB, como se ven (`PAL`, `PIZARRA`, `NAVE`, `BALCON`): por tierra, la cal
+    (crema en el norte, ocre en la Zona Media), la piedra (arenisca o parda), el ladrillo de la Ribera y la teja de barro
+    cocido; la pizarra del Pirineo, gris pardo. Antes iban en HSL lineal (`setHSL` es lineal: 0,75 ya se ve casi blanco)
+    y con poco color, y con la luz malva salían frías: blanco gris, piedra lila y tejas rosa salmón. Cada casa toma un
+    tono de su lista y un punto de luz propio; alguna teja nueva, más viva. El hastial lleva el color de su propia pared
+    (atributo `aPared` de cada instancia), las contraventanas son pardas, verdes o rojo almagre de verdad y el musgo de
+    los tejados, verde oscuro. Iglesias, torres, palacios y monumentos, de la piedra de su tierra.
   - La luz malva del cielo del mapa se corrige en la maqueta con un punto de calidez al final del sombreador.
   - A media distancia, una franja más oscura por piso en las fachadas, para leer la altura de cada casa.
   - En el suelo pintado de la maqueta, los adoquines y las losas solo si sus juntas caben en el lienzo; si no, piedra a

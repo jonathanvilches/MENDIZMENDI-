@@ -23,7 +23,7 @@ import SOMBRA from '../assets/relieve/sombra.webp?url';
 import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
-import { haceMaqueta, casasMaqueta } from './maqueta.js';
+import { haceMaqueta, casasMaqueta, ordenaMaqueta } from './maqueta.js';
 import { EMB, SUELTOS, haceEmblema, materialEmblema } from './emblemas.js';
 import { compilarAsync } from '../util/compilar.js';
 import { hacePajaros } from './pajaros.js';
@@ -1025,8 +1025,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // (el color de cada tejado: teja o pizarra en las casas, chapa gris en naves y fábricas, piedra en iglesias, torres,
   // castillos, palacios, murallas, kioscos y lavaderos)
   const tono = (b, pizarra) => { const v = ((b.x * 7 + b.z * 13) % 9 + 9) % 9 / 9;
-    return b.k === 'industrial' || b.k === 'shed' ? [0.58, 0.06, 0.6 + v * 0.1] : ['church', 'tower', 'palacio', 'castillo', 'muralla', 'kiosko', 'lavadero', 'pabellon'].includes(b.k) ? [0.09, 0.18, 0.56 + v * 0.06]
-      : pizarra ? [0.06, 0.08, 0.32 + v * 0.1] : [0.04 + v * 0.02, 0.5, 0.48 + v * 0.08]; };
+    // (de barro cocido, como en la maqueta: maqueta.js PAL; las naves, gris cálido y no azulado)
+    return b.k === 'industrial' || b.k === 'shed' ? [0.09, 0.12, 0.6 + v * 0.08] : ['church', 'tower', 'palacio', 'castillo', 'muralla', 'kiosko', 'lavadero', 'pabellon'].includes(b.k) ? [0.09, 0.22, 0.56 + v * 0.06]
+      : pizarra ? [0.04, 0.08, 0.32 + v * 0.1] : [0.035 + v * 0.02, 0.6, 0.47 + v * 0.07]; };
   // (el núcleo pintado: un lienzo de un metro y medio por píxel, tres en el móvil, y el doble de fino en la maqueta; los
   // campos, huertas y parques, las calles y los ríos con su ancho de verdad, los puentes, la cancha de los frontones y
   // los tejados, de teja en casi toda Navarra y de pizarra en el Pirineo; hacia el borde se funde con el relieve)
@@ -1213,6 +1214,8 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // devuelve true cuando ya está, o cuando lo que queda va en la imagen siguiente)
   function pasoMaqueta(m) {
     const e = m.e, c = e.c;
+    // (primero, las casas en orden, de poco en poco: maqueta.js ordenaMaqueta)
+    if (!e.D._maq) { (m.orden ||= ordenaMaqueta(e.D)).next(); return false; }
     if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return false; }
     if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id) }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }

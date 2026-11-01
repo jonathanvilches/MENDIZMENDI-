@@ -11,6 +11,8 @@ import * as THREE from 'three';
 import { clamp, smoothstep, mulberry32, segDist, hashStr } from '../util/math.js';
 import { emblemasDe, enHueco, haceEmblema, materialEmblema, metros } from './emblemas.js';
 import { iglesiaReal, palabrasIglesia } from '../data/reales/iglesia.js';
+import { partirBloques, ordenarCasasPasos } from '../levels/ordenar.js';
+import { levelById } from '../data/levels.js';
 
 // (alturas de cada clase de edificio cuando OpenStreetMap no la da, en metros)
 const ALTO = { house: 8.5, borda: 7, shed: 4.5, industrial: 9, church: 14, townhall: 11, school: 9, tower: 20, fronton: 10, palacio: 13, castillo: 15, muralla: 9, kiosko: 5, lavadero: 4 };
@@ -28,16 +30,23 @@ function claseReal(b) {
   if (/^(palacio|casa palacio|casa museo|museo|(antiguo )?convento|monasterio|archivo|teatro|mercado|escuelas p[ií]as)/i.test(n)) return 'palacio';
   return b.k;
 }
-// (el color de las paredes según la tierra, en HSL: encaladas en los valles del norte, piedra en el Pirineo, piedra y
-// revoco ocre en la Zona Media, ladrillo y ocre en la Ribera. Ojo: setHSL va en color lineal, así que una luminosidad de
-// 0,75 ya es casi blanco en pantalla; con valores así, todas las casas de la Zona Media y la Ribera salían blancas. Ahora
-// la piedra dorada de Olite, el ocre, el ladrillo de Tudela y la piedra parda del Pirineo se distinguen)
-const PARED = {
-  atlantico: [[0.11, 0.2, 0.95], [0.12, 0.16, 0.92], [0.1, 0.14, 0.84]],
-  pirineo: [[0.09, 0.16, 0.42], [0.1, 0.12, 0.5], [0.12, 0.14, 0.8]],
-  centro: [[0.1, 0.5, 0.5], [0.09, 0.42, 0.42], [0.11, 0.38, 0.6]],
-  ribera: [[0.04, 0.55, 0.32], [0.08, 0.5, 0.46], [0.11, 0.34, 0.62]],
+// (los colores, en sRGB, como se ven en pantalla: el revoco de cada tierra (cal), su piedra (sillar), el ladrillo de la
+// Ribera y las tejas: encaladas en los valles del norte, piedra parda en el Pirineo, piedra dorada y revoco ocre en la Zona
+// Media, ladrillo y ocre en la Ribera. Antes iban en HSL lineal y con poco color: con la luz malva del mapa, el blanco de
+// las casas del norte salía gris, la piedra del Pirineo, lila, y las tejas, rosa salmón; todo frío y apagado. Ahora la
+// cal es crema, la piedra arenisca o parda, la teja de barro cocido y la pizarra del Pirineo, gris pardo)
+const PAL = {
+  atlantico: { cal: [0xf4ebdc, 0xf7efe2, 0xefe2cb, 0xf2e6d1], sillar: [0xb89c78, 0xa98b69, 0xc4a985], teja: [0xa44a2e, 0x97452f, 0xae563a, 0x8a4131] },
+  pirineo: { cal: [0xeee3cb, 0xe7d8ba, 0xf2e8d3], sillar: [0xc4ab8a, 0xb69c7c, 0xcfb898, 0xab9274], teja: [0xa0553a, 0x924f3a, 0xab5d3d] },
+  centro: { cal: [0xe9d3a6, 0xdfbf8a, 0xd6a972, 0xedddbb, 0xcf9e68], sillar: [0xd1af78, 0xc6a168, 0xdbbf8c], teja: [0xa9523a, 0xb25e3e, 0x9a4b32, 0xa45b42] },
+  ribera: { cal: [0xe7c999, 0xdaad75, 0xf0dfbe, 0xcb905e], ladrillo: [0xb76f4c, 0xab6247, 0xc27c54], sillar: [0xcca773, 0xc09a63, 0xd6b580], teja: [0xa85234, 0xb35f3d, 0x984a30] },
 };
+const PIZARRA = [0x67605d, 0x5a5452, 0x736a64], NAVE = { pared: [0xcdbfa6, 0xbcae94, 0xd8ccb5], teja: [0x9f5c40, 0x8e5a46, 0xa86a4c] };
+// (las barandillas de los balcones: madera parda, roja o verde en el norte; forja en el sur)
+const BALCON = { norte: [0x6e4326, 0x7d4c2b, 0x5a3a24, 0x8a3022, 0x2f5a3c], sur: [0x2c2a27, 0x34302b] };
+// (un color sRGB más claro u oscuro, k veces; y uno de una lista según v, de 0 a 1, con su punto de luz según l, de 0 a 1)
+const escala = (c, k) => [16, 8, 0].reduce((o, s) => o | Math.min(255, Math.round((c >> s & 255) * k)) << s, 0);
+const tono = (L, v, l = 0.5) => escala(L[Math.floor(v * L.length) % L.length], 0.93 + 0.14 * l);
 const ESTILO = { bidasoa: 'atlantico', 'larraun-leitzaldea': 'atlantico', sakana: 'atlantico', pirineo: 'pirineo', prepirineo: 'pirineo', ribera: 'ribera', 'ribera-alta': 'ribera' };
 // (los usos del suelo que son campo o están hechos: ahí no crece el bosquete)
 // (los rótulos de la maqueta: los edificios con nombre de monumento, en castellano o en euskera; fuera los que nombran un
@@ -94,15 +103,53 @@ function tejadoG() {
 /** Las casas de la maqueta, con los bloques grandes ya partidos en casas y sin las naves de los polígonos: las mismas para
  *  levantarlas y para pintar en el suelo su huella y su sombra (mapa3d.js pintaNucleo). Una vez por pueblo.
  *  (los bloques grandes, una manzana entera o una nave en una sola caja, salían como cajas blancas y lisas de hasta 130 m,
- *  sin tejado ni ventanas, y tapaban las calles; en Tafalla, en pleno centro. En el pueblo se parten en casas de unos
- *  12 × 13 m, cada una con su tejado, su color y su altura, y se dejan huecos, como patios, en la proporción de lo que de
- *  verdad está construido; las naves grandes lejos del centro, las de los polígonos, fuera: es un juego rural) */
+ *  sin tejado ni ventanas, y tapaban las calles; en Tafalla, en pleno centro. Ahora, con el mismo orden que dentro del
+ *  pueblo (src/levels/ordenar.js): las filas y las manzanas del casco se parten en casas de unos 9 m de fachada, con la
+ *  fachada a la calle y el patio detrás; las casas siguen la calle si casi lo hacen, dejan libres la calle, la plaza, el
+ *  puente y el río, y dos que se pisan quedan pared con pared. Antes las casas eran el rectángulo de los datos tal cual,
+ *  y los bloques, una cuadrícula: en Tafalla, una de cada tres pisaba la calle, y en Tudela y Pamplona, cientos se
+ *  montaban unas en otras. Lo que queda grande lejos del casco, en casas de unos 12 × 13 m; las naves grandes lejos del
+ *  centro, las de los polígonos, fuera: es un juego rural) */
 export function casasMaqueta(D) {
-  if (D._maq) return D._maq;
+  if (!D._maq) { const g = ordenaMaqueta(D); while (!g.next().done); }
+  return D._maq;
+}
+/** Lo mismo, por pasos: mapa3d.js lo va haciendo de poco en poco antes de la maqueta (en Pamplona, todo de una vez, un
+ *  cuarto de segundo con la imagen parada). Al acabar, las casas quedan en D._maq. */
+export function* ordenaMaqueta(D) {
+  if (D._maq) return;
   const rnd = mulberry32(hashStr((D.id || 'pueblo') + ':bloques'));
+  // (y lo pequeño y sin nombre que queda dentro de una plaza no es una casa: la bajada al aparcamiento o un templete; en la
+  // Plaza del Castillo salían dos casas en mitad de la plaza)
+  const PL = [D.lugares?.plaza, ...(D.lugares?.plazas || [])].filter(q => q?.pts?.length > 2);
+  const caja = PL.map(q => q.pts.reduce((b, [x, z]) => [Math.min(b[0], x), Math.max(b[1], x), Math.min(b[2], z), Math.max(b[3], z)], [1e9, -1e9, 1e9, -1e9]));
+  const plazaMask = (x, z) => (PL.some((q, i) => x > caja[i][0] && x < caja[i][1] && z > caja[i][2] && z < caja[i][3] && enPoligono(q.pts, x, z)) ? 1 : 0);
+  // (copias: el orden las mueve, las gira y las recorta, y los datos sirven también para los rótulos y el pueblo)
+  const C = D.casas.map(b => ({ ...b, k: !b.n && b.w * b.d < 90 && plazaMask(b.x, b.z) ? 'pabellon' : claseReal(b) }));
+  const LG = D.lugares || {}, copia = (b) => (b ? C[D.casas.indexOf(b)] : null);
+  const FIJA = new Set(['church', 'townhall', 'fronton', 'tower', 'palacio', 'castillo', 'muralla', 'kiosko', 'lavadero', 'pabellon']);
+  const fijas = new Set([copia(LG.iglesia), copia(LG.ayuntamiento), copia(LG.fronton), ...C.filter(b => FIJA.has(b.k))].filter(Boolean));
+  // (las calles, los ríos y las plazas, para preguntar deprisa qué hay cerca: como en src/levels/townReal.js)
+  const calles = (D.calles || []).filter(c => c.pts.length > 1).map(c => ({ type: c.t, cls: c.c, w: c.w || 2, pts: c.pts, name: c.n }));
+  // (los ríos, en tramos de 12 puntos: ordenarCasas mira primero la caja de cada río, y la de un río que cruza el pueblo
+  // entero lo abarca todo; así, en Pamplona, cada casa se comparaba con los mil puntos del Arga)
+  const rios = (D.rios || []).filter(r => r.pts.length > 1).flatMap(r => { const out = []; for (let i = 0; i < r.pts.length - 1; i += 12) out.push({ pts: r.pts.slice(i, i + 13), half: r.w || 2 }); return out; });
+  const callesCerca = cubos(calles), riosCerca = cubos(rios);
+  const pathQuery = (x, z) => {
+    let best = { d: 1e9, w: 0, type: null };
+    for (const s of callesCerca(x, z) || []) { const d = segDist(x, z, s.a[0], s.a[1], s.b[0], s.b[1]).d; if (d - s.L.w < best.d - best.w) best = { d, w: s.L.w, type: s.L.type }; }
+    return best;
+  };
+  const riverInfo = (x, z) => { let edge = 99; for (const s of riosCerca(x, z) || []) edge = Math.min(edge, segDist(x, z, s.a[0], s.a[1], s.b[0], s.b[1]).d - s.L.half); return { edge }; };
+  const puentes = (D.puentes || []).filter(P => P.pts.length > 1).map(P => ({ ...P, hecho: true }));
+  const plaza = { x: LG.plaza?.x ?? 0, z: LG.plaza?.z ?? 0 };
+  const urbano = ['central', 'ribera', 'city'].includes(levelById(D.id)?.family) && C.length >= 80;
+  // (lo que el orden deja grande: lejos del casco, en una cuadrícula de casas de unos 12 × 13 m, con huecos como patios)
   const parte = (b) => {
-    if (Math.max(b.w, b.d) <= 24 || !['house', 'industrial', 'shed'].includes(b.k)) return [b];
-    if (b.k !== 'house' && Math.hypot(b.x, b.z) > 300) return [];
+    if (b.parte) return [{ ...b, h: b.anexo ? 3.6 + 2.4 * rnd() : (b.h || ALTO.house) * (0.85 + 0.3 * rnd()) }];
+    if (Math.max(b.w, b.d) <= 24) return [b];
+    if ((b.k === 'industrial' || b.k === 'shed') && !fijas.has(b) && Math.hypot(b.x, b.z) > 300) return [];
+    if (!['house', 'industrial', 'shed', 'school'].includes(b.k) || fijas.has(b) || b.n) return [b];
     const lleno = b.a > 0 ? Math.min(1, b.a / (b.w * b.d)) : 0.8, nx = Math.max(1, Math.round(b.w / 12)), nz = Math.max(1, Math.round(b.d / 13));
     const c = Math.cos(b.ry), s = Math.sin(b.ry), out = [];
     for (let i = 0; i < nx; i++) for (let j = 0; j < nz; j++) {
@@ -112,11 +159,42 @@ export function casasMaqueta(D) {
     }
     return out;
   };
-  // (y lo pequeño y sin nombre que queda dentro de una plaza no es una casa: la bajada al aparcamiento o un templete; en la
-  // Plaza del Castillo salían dos casas en mitad de la plaza)
-  const PL = [D.lugares?.plaza, ...(D.lugares?.plazas || [])].filter(q => q?.pts?.length > 2);
-  const enPlaza = (b) => !b.n && b.w * b.d < 90 && PL.some(q => enPoligono(q.pts, b.x, b.z));
-  return (D._maq = D.casas.map(b => { const k = enPlaza(b) ? 'pabellon' : claseReal(b); return k === b.k ? b : { ...b, k }; }).flatMap(parte));
+  yield;
+  // (las manzanas que partirBloques deja con casas solo a la calle: dentro, en los datos, también hay casas, corrales y
+  // anexos, y quedaba un prado en mitad del casco; en Tafalla, casi todas las manzanas. Se rellena lo de dentro con anexos
+  // bajos de unos 8 m, con huecos de patio, hasta lo que de verdad está construido; no en parques, plazas ni huertas)
+  const VERDE = new Set(['parque', 'plaza', 'cesped', 'deporte', 'juegos', 'escuela', 'huerta', 'frutales', 'cultivo', 'vina']);
+  const verdes = (D.usos || []).filter(u => VERDE.has(u.k) && u.pts.length > 2);
+  const enVerde = (x, z) => verdes.some(u => enPoligono(u.pts, x, z));
+  const partidas = [];
+  for (const b of C) {
+    const P = partirBloques([b], { plaza, fijas, urbano, pathQuery }); partidas.push(...P);
+    const area = b.w * b.d, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d), t = clamp(corto * 0.3, 8, 12);
+    if (P.length < 2 || !P[0].parte || corto <= 24 || (b.a || area) / area >= 0.8 || corto - 2 * t < 7 || largo - 2 * t < 7) continue;
+    const hecho = P.reduce((m, q) => m + q.w * q.d, 0), iA = largo - 2 * t - 1, iB = corto - 2 * t - 1, f = clamp(((b.a || area) - hecho) / (iA * iB), 0, 0.85);
+    const e = b.w >= b.d ? [Math.cos(b.ry), -Math.sin(b.ry), Math.sin(b.ry), Math.cos(b.ry)] : [Math.sin(b.ry), Math.cos(b.ry), Math.cos(b.ry), -Math.sin(b.ry)];
+    const na = Math.max(1, Math.round(iA / 8)), nb = Math.max(1, Math.round(iB / 8)), ca = iA / na, cb = iB / nb;
+    for (let i = 0; i < na; i++) for (let j = 0; j < nb; j++) {
+      if (rnd() > f) continue;
+      const u = -iA / 2 + ca * (i + 0.5), v = -iB / 2 + cb * (j + 0.5), x = b.x + e[0] * u + e[2] * v, z = b.z + e[1] * u + e[3] * v;
+      if (enVerde(x, z)) continue;
+      partidas.push({ x, z, w: ca * 0.9, d: cb * 0.9, ry: Math.atan2(e[2], e[3]), h: null, k: 'house', n: null, a: 0, parte: true, anexo: true });
+    }
+  }
+  partidas.splice(0, partidas.length, ...partidas.flatMap(parte));
+  yield;
+  const ok = yield* ordenarCasasPasos(partidas, { callesCerca, rios, puentes, riverInfo, pathQuery, plazaMask, fijas }, 60);
+  D._maq = ok;
+}
+// (rejilla de cubos de 25 m con los tramos de unas polilíneas, para preguntar deprisa por los que hay cerca de un punto)
+function cubos(lineas, T = 25, m = 12) {
+  const map = new Map();
+  for (const L of lineas) for (let i = 0; i < L.pts.length - 1; i++) {
+    const a = L.pts[i], b = L.pts[i + 1], s = { a, b, L, i };
+    for (let p = Math.floor((Math.min(a[0], b[0]) - m) / T); p <= Math.floor((Math.max(a[0], b[0]) + m) / T); p++)
+      for (let q = Math.floor((Math.min(a[1], b[1]) - m) / T); q <= Math.floor((Math.max(a[1], b[1]) + m) / T); q++) { const k = p * 4096 + q; let l = map.get(k); if (!l) map.set(k, l = []); l.push(s); }
+  }
+  return (x, z) => map.get(Math.floor(x / T) * 4096 + Math.floor(z / T));
 }
 /**
  * D: el pueblo (expandido). o: { X0, Z0 (su centro en el mapa), MU (unidades por metro), EXA, GROSOR, R (su radio, m),
@@ -186,14 +264,14 @@ export function* haceMaqueta(D, o, res) {
   // Los detalles del pueblo, de 21 en adelante: 21 balcón con su barandilla (y geranios en la mitad), 22 muro o pilar de
   // piedra, 23 leña apilada, 24 paca de hierba, 25 oveja o vaca, 26 pila de fuente con su agua)
   const mat = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0 });
-  const hastial = new THREE.Color().setHSL(...PARED[estilo][0]);
+  const PT = PAL[estilo], hastial = new THREE.Color(estilo === 'pirineo' ? PT.sillar[0] : PT.cal[0]);
   // (el musgo en los tejados: mucho en los valles húmedos del norte, algo en el Pirineo, casi nada en la Ribera)
   const musgo = { atlantico: 1, pirineo: 0.6, centro: 0.25, ribera: 0.1 }[estilo];
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, { uAlzado: o.alzado, uMetro: { value: 1 / MU }, uK: { value: K }, uHastial: { value: hastial }, uMusgo: { value: musgo } });
-    sh.vertexShader = 'attribute float aOff, aVent; uniform float uAlzado; varying vec3 vObj, vEsc, vNo; varying float vVent, vSemilla;\n' + sh.vertexShader
+    sh.vertexShader = 'attribute float aOff, aVent; attribute vec3 aPared; uniform float uAlzado; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;\n' + sh.vertexShader
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-vObj = position; vNo = normal; vVent = aVent; vEsc = vec3(1.0); vSemilla = 0.5;
+vObj = position; vNo = normal; vVent = aVent; vPared = aPared; vEsc = vec3(1.0); vSemilla = 0.5;
 #ifdef USE_INSTANCING
 vEsc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
 vSemilla = fract(sin(dot(instanceMatrix[3].xz * 97.0, vec2(12.9898, 78.233))) * 43758.5453);
@@ -203,7 +281,7 @@ vSemilla = fract(sin(dot(instanceMatrix[3].xz * 97.0, vec2(12.9898, 78.233))) * 
   mvPosition = instanceMatrix * mvPosition; float b0 = instanceMatrix[3].y; mvPosition.y = b0 + (aOff + mvPosition.y - b0) * uAlzado;
 #endif
 mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;`);
-    sh.fragmentShader = `uniform float uMetro, uK, uMusgo; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo; varying float vVent, vSemilla;
+    sh.fragmentShader = `uniform float uMetro, uK, uMusgo; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;
 float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 ` + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
 if (vVent > 20.5) {
@@ -267,7 +345,7 @@ if (vVent > 20.5) {
       chorreo = step(3.0, v) * step(v, hM - 4.4) * step(fy, 0.28) * (fy / 0.28) * step(0.38, fx) * step(fx, 0.62);
     } else if (t < 4.5) { float f6 = fract(u / 6.0); hueco = step(0.44, f6) * step(f6, 0.56) * step(hM * 0.4, v) * step(v, hM * 0.72); }
     else { float f3 = fract(u / 3.0); hueco = step(0.3, f3) * step(f3, 0.7) * step(hM - 8.0, v) * step(v, hM - 4.8); }
-    vec3 cont = t < 1.5 ? vec3(0.34, 0.21, 0.12) : t < 2.5 ? vec3(0.12, 0.34, 0.2) : vec3(0.52, 0.12, 0.09);
+    vec3 cont = t < 1.5 ? vec3(0.2, 0.085, 0.03) : t < 2.5 ? vec3(0.035, 0.15, 0.06) : vec3(0.36, 0.04, 0.025);   // (pardas, verdes y rojo almagre)
     vec3 det = mix(mix(mix(base, base * 1.18, max(dovela, escudo)), cont, marco), vec3(0.09, 0.08, 0.1), hueco);
     if (t > 1.5 && t < 3.5 && vSemilla < 0.5) det = mix(det, vec3(0.3, 0.18, 0.1), step(2.6, v) * step(v, 3.15) * step(0.4, u) * step(u, ancho - 0.4));
     det *= (1.0 - 0.13 * chorreo * fino) * mix(0.9, 1.0, smoothstep(0.8, 1.8, v));   // (y la humedad que sube del suelo)
@@ -278,7 +356,7 @@ if (vVent > 20.5) {
     base *= 1.0 - 0.1 * pisos * (1.0 - nitido) * (1.0 - smoothstep(1.4, 3.2, px));
     diffuseColor.rgb = mix(base * (t < 3.5 ? 0.86 : 0.96), det, nitido);
   } else if (t > 5.5 && t < 7.5) {
-    if (abs(vNo.y) < 0.2) diffuseColor.rgb = uHastial * mix(0.9, 1.0, vSemilla);   // (el hastial, de pared)
+    if (abs(vNo.y) < 0.2) diffuseColor.rgb = (vPared.r + vPared.g + vPared.b > 0.01 ? vPared : uHastial) * mix(0.9, 1.0, vSemilla);   // (el hastial, del color de su pared)
     else {
       float dm = vEsc.z * uMetro, rh = vEsc.y * uMetro / uK, L = length(vec2(0.5 * dm, rh)), sl = (0.5 - abs(vObj.z)) * 2.0 * L, u = vObj.x * vEsc.x * uMetro;
       float px = max(fwidth(u), fwidth(sl)), fino = 1.0 - smoothstep(0.2, 0.6, px), medio = 1.0 - smoothstep(0.6, 1.6, px), paso = t < 6.5 ? 0.42 : 0.32, fila = floor(sl / paso);
@@ -287,7 +365,7 @@ if (vVent > 20.5) {
       float hilera = mix(1.0, 0.86 + 0.14 * smoothstep(0.0, 0.35, fract(sl / (paso * 3.0))), medio * (1.0 - fino));
       diffuseColor.rgb *= mix(0.95, teja, fino) * hilera * (0.86 + 0.2 * h21(floor(vec2(u, sl) / 2.2) + vSemilla * 7.0)) * mix(0.8, 1.0, smoothstep(0.0, 0.4, L - sl));
       // (el musgo y el liquen, a manchas, y la sombra del alero abajo)
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.34, 0.4, 0.2), uMusgo * 0.42 * medio * smoothstep(0.55, 0.85, h21(floor(vec2(u, sl) / 1.4) + vSemilla * 3.0)));
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.17, 0.06), uMusgo * 0.34 * medio * smoothstep(0.55, 0.85, h21(floor(vec2(u, sl) / 1.4) + vSemilla * 3.0)));
       diffuseColor.rgb *= mix(0.74, 1.0, smoothstep(0.0, 0.5, sl));
     }
   } else if (t > 7.5) diffuseColor.rgb *= mix(0.58, 1.12, vObj.y) * (0.9 + 0.2 * vSemilla);
@@ -295,15 +373,18 @@ if (vVent > 20.5) {
 totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con su propio color y no del malva del cielo)`)
       // (y la luz del cielo del mapa, malva, enfriaba la piedra y el revoco hasta dejarlos lilas: un punto más cálida, como
       // la luz de media tarde; en los árboles, apenas)
-      .replace('#include <opaque_fragment>', `outgoingLight *= vVent > 7.5 && vVent < 20.5 ? vec3(1.02, 1.0, 0.95) : vec3(1.07, 1.0, 0.88);
+      .replace('#include <opaque_fragment>', `outgoingLight *= vVent > 7.5 && vVent < 20.5 ? vec3(1.02, 1.0, 0.95) : vec3(1.05, 1.0, 0.91);
 #include <opaque_fragment>`);
   };
   mat.customProgramCacheKey = () => 'maqueta';
   res.mat = mat;
   const piezas = { paredes: [], tejados: [], agujas: [], ochavos: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();
-  const pon = (lista, X, Z, base, ry, w, h, d, off, hsl, vent = 0) => { M4.compose(e3.set(X, base, Z), q.setFromAxisAngle(up, ry), sc.set(w, h, d)); lista.push([M4.toArray(), off, col.setHSL(...hsl).toArray(), vent]); };
+  // (el color, en HSL lineal o en sRGB como número; pared: en los tejados, el color de su pared para el hastial)
+  const pon = (lista, X, Z, base, ry, w, h, d, off, c, vent = 0, pared = null) => { M4.compose(e3.set(X, base, Z), q.setFromAxisAngle(up, ry), sc.set(w, h, d));
+    lista.push([M4.toArray(), off, (typeof c === 'number' ? col.setHex(c) : col.setHSL(...c)).toArray(), vent, pared == null ? null : col.setHex(pared).toArray()]); };
   const varia = (b) => ((b.x * 7 + b.z * 13) % 9 + 9) % 9 / 9;
+  const hash01 = (b, s) => { const t = Math.sin(b.x * 12.9898 + b.z * 78.233 + s * 37.719) * 43758.5453; return t - Math.floor(t); };
   const hund = 1.5 * EXA;   // (lo que se hunde cada casa en el suelo, para que en cuesta no quede al aire)
   const pie = (x, z, w, d, ry) => {   // (la base de una pieza: lo más bajo de sus esquinas)
     const c = Math.cos(ry), s = Math.sin(ry); let m = 1e9;
@@ -322,16 +403,18 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     const nave = k === 'industrial' || k === 'shed', piedra = k === 'church' || k === 'tower' || k === 'borda' || k === 'palacio' || k === 'castillo' || k === 'muralla';
     // (los pajares y las naves pequeñas, de piedra parda y con su tejado de teja: antes, gris claro y lisos, como bloques blancos)
     // (la piedra de iglesias, torres y palacios, dorada en la Zona Media y la Ribera y parda en el norte)
-    const dorada = estilo === 'centro' || estilo === 'ribera';
-    const pared = nave ? [0.08, 0.14, 0.5 + v * 0.08] : piedra ? (dorada ? [0.1, 0.4, 0.44 + v * 0.06] : [0.1, 0.18, 0.44 + v * 0.06]) : k === 'fronton' ? [0.1, 0.12, 0.9] : PARED[estilo][Math.floor(v * 2.99)];
-    const teja = nave ? [0.035, 0.32, 0.36 + v * 0.06] : pizarra ? [0.63, 0.1, 0.18 + v * 0.07] : [0.025 + v * 0.02, 0.55, 0.36 + v * 0.07];
+    // (de piedra: las iglesias, torres y palacios, y parte de las casas del Pirineo y la Zona Media; el ladrillo, en la Ribera)
+    const v2 = hash01(b, 1), l = hash01(b, 2), deSillar = !nave && (piedra || (estilo === 'pirineo' && v < 0.6) || (estilo === 'centro' && v < 0.35));
+    const pared = nave ? tono(NAVE.pared, v2, l) : k === 'fronton' ? 0xf2ecdc : deSillar ? tono(PT.sillar, v2, l) : PT.ladrillo && v < 0.35 ? tono(PT.ladrillo, v2, l) : tono(PT.cal, v2, l);
+    // (y alguna teja nueva, más viva, entre las viejas)
+    const teja = nave ? tono(NAVE.teja, v2, l) : pizarra ? tono(PIZARRA, v2, l) : hash01(b, 3) > 0.93 ? escala(0xbf6a3e, 0.95 + 0.1 * l) : tono(PT.teja, hash01(b, 4), l);
     if (k === 'fronton') {   // (el frontis y la pared izquierda; la cancha va pintada en el suelo)
       const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, ax = Math.cos(rx), az = -Math.sin(rx), bx = Math.sin(rx), bz = Math.cos(rx);
       pon(piezas.paredes, X - ax * (largo / 2 - 0.8) * MU, Z - az * (largo / 2 - 0.8) * MU, base, rx, 1.6 * MU, (10 + 2) * MU * K, corto * MU, 0, pared);
       pon(piezas.paredes, X - bx * (corto / 2 - 0.6) * MU, Z - bz * (corto / 2 - 0.6) * MU, base, rx, largo * MU, (8 + 2) * MU * K, 1.2 * MU, 0, pared);
       continue;
     }
-    const sillar = dorada ? [0.1, 0.36, 0.5 + v * 0.06] : [0.1, 0.18, 0.5 + v * 0.06];
+    const sillar = tono(PT.sillar, v2, 0.7);
     if (k === 'kiosko') {   // (el kiosco de la plaza: su peana de piedra, columnas de hierro y el tejado de ocho aguas)
       const s2 = clamp(largo, 5, 14), P0 = (1.1 + 2) * MU * K, PH = 2.9 * MU * K, hierro = [0.4, 0.32, 0.2];
       pon(piezas.detalles, X, Z, base, b.ry, s2 * MU, P0, s2 * MU, 0, sillar, 22);
@@ -364,11 +447,11 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       ala(-(b.w / 2 - t2 / 2), 0, t2, b.d - 2 * t2, b.ry + Math.PI / 2); ala(b.w / 2 - t2 / 2, 0, t2, b.d - 2 * t2, b.ry + Math.PI / 2);
       if (largo > 60) { const ox = b.w >= b.d ? 0 : b.w / 2 - t2 / 2, oz = b.w >= b.d ? b.d / 2 - t2 / 2 : 0, tx = b.x + ax * ox + bx * oz, tz = b.z + az * ox + bz * oz, tw = t2 * 1.3, tb = pie(tx, tz, tw, tw, b.ry), TH = (hM * 2.2 + 2) * MU * K;
         pon(piezas.paredes, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * MU, TH, tw * MU, 0, sillar, 15);
-        pon(piezas.agujas, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * 1.08 * MU, tw * 1.2 * MU * K, tw * 1.08 * MU, TH, [0.6, 0.1, 0.24], 7); }
+        pon(piezas.agujas, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * 1.08 * MU, tw * 1.2 * MU * K, tw * 1.08 * MU, TH, PIZARRA[0], 7); }
       const tw = clamp(corto * 0.22, 5, 12), TH = (hM * 1.5 + 2) * MU * K;
       for (const [i, j] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { const ox = i * (b.w / 2 - tw / 2), oz = j * (b.d / 2 - tw / 2), tx = b.x + ax * ox + bx * oz, tz = b.z + az * ox + bz * oz, tb = pie(tx, tz, tw, tw, b.ry);
         pon(piezas.paredes, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * MU, TH, tw * MU, 0, sillar, 15);
-        pon(piezas.agujas, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * 1.08 * MU, tw * 1.1 * MU * K, tw * 1.08 * MU, TH, [0.6, 0.1, 0.24], 7); }
+        pon(piezas.agujas, X0 + tx * MU, Z0 + tz * MU, tb, b.ry, tw * 1.08 * MU, tw * 1.1 * MU * K, tw * 1.08 * MU, TH, PIZARRA[0], 7); }
       continue;
     }
     if (k === 'tower') {
@@ -377,21 +460,21 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       continue;
     }
     // (las contraventanas: rojas y verdes en los valles del norte, verdes y pardas en el Pirineo y la Ribera, pardas en la Zona Media)
-    const vent = nave ? 0 : k === 'church' ? 4 : k === 'palacio' ? 11 + Math.floor(v * 2.99) : (estilo === 'atlantico' ? (v < 0.5 ? 3 : 2) : estilo === 'centro' ? 1 : v < 0.4 ? 2 : 1) + (piedra || (estilo === 'pirineo' && v < 0.6) || (estilo === 'centro' && v < 0.35) ? 10 : 0);
+    const vent = nave ? 0 : k === 'church' ? 4 : k === 'palacio' ? 11 + Math.floor(v * 2.99) : (estilo === 'atlantico' ? (v < 0.5 ? 3 : 2) : estilo === 'centro' ? 1 : v < 0.4 ? 2 : 1) + (deSillar ? 10 : 0);
     pon(piezas.paredes, X, Z, base, b.ry, b.w * MU, H, b.d * MU, 0, pared, vent);
     // (el tejado: la cumbrera a lo largo del lado largo, con alero; poco inclinado en los pajares y las naves; casi plano en los bloques grandes que quedan)
     const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, rh = nave ? Math.min(2.4, corto * 0.16) : corto > 30 ? Math.min(1.2, corto * 0.06) : Math.min(9, corto * 0.36);
-    pon(piezas.tejados, X, Z, base, rx, (largo * 1.04 + 0.8) * MU, rh * MU * K, (corto * 1.08 + 0.8) * MU, H, teja, pizarra ? 7 : 6);
+    pon(piezas.tejados, X, Z, base, rx, (largo * 1.04 + 0.8) * MU, rh * MU * K, (corto * 1.08 + 0.8) * MU, H, teja, pizarra ? 7 : 6, pared);
     // (una chimenea en la mitad de las casas, junto a la cumbrera)
     if (!nave && k !== 'church' && k !== 'palacio' && corto < 30 && v > 0.5) { const ax = Math.cos(rx), az = -Math.sin(rx), f = (v - 0.75) * largo * 0.8;
-      pon(piezas.paredes, X + ax * f * MU, Z + az * f * MU, base, rx, 0.9 * MU, (rh * 0.75 + 1.4) * MU * K, 0.9 * MU, H, [pared[0], pared[1], pared[2] * 0.85]); }
+      pon(piezas.paredes, X + ax * f * MU, Z + az * f * MU, base, rx, 0.9 * MU, (rh * 0.75 + 1.4) * MU * K, 0.9 * MU, H, escala(pared, 0.82)); }
     // (el balcón del primer piso, en la fachada larga que da al sur, la solana: de madera en los valles del norte y el
     // Pirineo, de forja en la Zona Media y la Ribera; muchos, con geranios)
     const casa = !nave && !piedra && k !== 'fronton' && k !== 'school' && k !== 'townhall';   // (los palacios, de piedra: sin balcón de madera ni leña)
     if (casa && corto >= 6 && largo >= 7 && hM >= 6 && rnd() < { atlantico: 0.65, pirineo: 0.4, centro: 0.3, ribera: 0.22 }[estilo]) {
       const enX = b.w >= b.d, nx = enX ? Math.sin(b.ry) : Math.cos(b.ry), nz = enX ? Math.cos(b.ry) : -Math.sin(b.ry), s = nz >= 0 ? 1 : -1, sep = corto / 2 + 0.45;
       pon(piezas.detalles, X + nx * s * sep * MU, Z + nz * s * sep * MU, base, enX ? b.ry : b.ry + Math.PI / 2, clamp(largo * 0.62, 3, 14) * MU, 1.0 * MU * K, 0.9 * MU, 5.6 * MU * K,
-        norte ? [0.06, 0.42, 0.24 + v * 0.08] : [0.62, 0.06, 0.15], 21);
+        tono(norte ? BALCON.norte : BALCON.sur, v2, l), 21);
     }
     // (y en el norte, la leña apilada contra el hastial)
     if (casa && norte && rnd() < 0.35) {
@@ -516,8 +599,8 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   for (const [nombre, g0] of [['paredes', caja], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['ochavos', ochavo], ['arboles', copa], ['abetos', cono],
     ['detalles', caja.clone()], ['pacas', rulo], ['animales', copa.clone()], ['pilas', pila]]) {
     const L = piezas[nombre]; if (!L.length) { g0.dispose(); continue; }
-    const off = new Float32Array(L.length), vent = new Float32Array(L.length); L.forEach((p, i) => { off[i] = p[1]; vent[i] = p[3]; });
-    g0.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 1)); g0.setAttribute('aVent', new THREE.InstancedBufferAttribute(vent, 1));
+    const off = new Float32Array(L.length), vent = new Float32Array(L.length), pa = new Float32Array(L.length * 3); L.forEach((p, i) => { off[i] = p[1]; vent[i] = p[3]; if (p[4]) pa.set(p[4], i * 3); });
+    g0.setAttribute('aOff', new THREE.InstancedBufferAttribute(off, 1)); g0.setAttribute('aVent', new THREE.InstancedBufferAttribute(vent, 1)); g0.setAttribute('aPared', new THREE.InstancedBufferAttribute(pa, 3));
     const m = new THREE.InstancedMesh(g0, mat, L.length);
     L.forEach((p, i) => { M4.fromArray(p[0]); m.setMatrixAt(i, M4); m.setColorAt(i, col.fromArray(p[2])); });
     m.computeBoundingSphere(); m.frustumCulled = false; grupo.add(m);

@@ -23,9 +23,9 @@ const vuelta = (a) => Math.atan2(Math.sin(a), Math.cos(a));
 /** Lo que hay que recortar de cada lado de la casa para que los puntos del segmento a-b queden a r de sus paredes
  *  (cada punto, del lado que menos cuesta). c: { up, um, vp, vm } (u+, u−, v+, v−), se va acumulando el mayor. */
 function recorte(h, a, b, r, c) {
-  const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 0.5)), hw = h.w / 2, hd = h.d / 2;
+  const L = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(L / 0.5)), hw = h.w / 2, hd = h.d / 2, e = ejes(h);
   for (let i = 0; i <= n; i++) {
-    const [u, v] = local(h, a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n);
+    const dx = a[0] + (b[0] - a[0]) * i / n - h.x, dz = a[1] + (b[1] - a[1]) * i / n - h.z, u = dx * e.ux + dz * e.uz, v = dx * e.vx + dz * e.vz;
     if (Math.abs(u) >= hw + r || Math.abs(v) >= hd + r) continue;
     const k = { up: hw - u + r, um: hw + u + r, vp: hd - v + r, vm: hd + v + r };
     const s = Object.keys(k).reduce((p, q) => (k[q] < k[p] ? q : p));
@@ -93,13 +93,22 @@ export function partirBloques(casas, { plaza, fijas, urbano, pathQuery }) {
 /** Ordena las casas (las cambia en su sitio y devuelve las que se quedan). o: { calles (con buckets: callesCerca(x, z)),
  *  rios, puentes, riverInfo, pathQuery, plazaMask, fijas (Set de casas que no se tocan) }. */
 export function ordenarCasas(casas, o) {
+  const g = ordenarCasasPasos(casas, o); let r;
+  do r = g.next(); while (!r.done);
+  return r.value;
+}
+/** Lo mismo, por pasos (una función generadora que se para cada «cada» casas): para la maqueta del mapa del inicio
+ *  (src/hub/maqueta.js), que se levanta mientras se vuela hacia el pueblo y no puede parar la imagen. */
+export function* ordenarCasasPasos(casas, o, cada = Infinity) {
   const { callesCerca, rios, puentes, riverInfo, pathQuery, plazaMask, fijas } = o;
+  let paso = 0;
   const libre = (h) => !fijas.has(h);
   const urbana = (c) => c.type !== 'trail' || c.cls === 'footway' || c.cls === 'pedestrian' || c.cls === 'steps';
   const rCalle = (c) => c.cls === 'service' ? Math.max(1.1, c.w * 0.65) : c.type === 'trail' ? Math.max(0.9, c.w * 0.7) : Math.max(1.3, c.w * 0.8);
   const quedan = new Set(casas), alineada = new Set();
   // 1) la fachada con la calle: si la casa está junto a una calle y casi alineada con ella, del todo
   for (const h of casas) {
+    if (++paso % cada === 0) yield;
     if (!libre(h) || h.k === 'shed' || h.k === 'industrial') continue;
     let best = null, bd = 1e9;
     for (const s of callesCerca(h.x, h.z) || []) {
@@ -118,6 +127,7 @@ export function ordenarCasas(casas, o) {
     const CEL = 20, g = new Map(), q = Math.PI / 2;
     for (const h of casas) { const k = Math.floor(h.x / CEL) * 4096 + Math.floor(h.z / CEL); let a = g.get(k); if (!a) g.set(k, a = []); a.push(h); }
     for (const A of [...casas].sort((a, b) => b.w * b.d - a.w * a.d)) {
+      if (++paso % cada === 0) yield;
       if (A.k === 'shed') continue;
       const i0 = Math.floor(A.x / CEL), j0 = Math.floor(A.z / CEL), An = { ...A, w: A.w + 1, d: A.d + 1 };
       for (let i = i0 - 2; i <= i0 + 2; i++) for (let j = j0 - 2; j <= j0 + 2; j++) for (const B of g.get(i * 4096 + j) || []) {
@@ -132,6 +142,7 @@ export function ordenarCasas(casas, o) {
   }
   // 2) libres la calle, el puente y el río (con su muro)
   for (const h of casas) {
+    if (++paso % cada === 0) yield;
     if (!libre(h)) continue;
     const c = { up: 0, um: 0, vp: 0, vm: 0 }, a0 = h.w * h.d, R = radio(h);
     for (const s of callesCerca(h.x, h.z) || []) {
@@ -165,6 +176,7 @@ export function ordenarCasas(casas, o) {
     const L = lista(), CEL = 20, g = new Map();
     for (const h of L) { const k = Math.floor(h.x / CEL) * 4096 + Math.floor(h.z / CEL); let a = g.get(k); if (!a) g.set(k, a = []); a.push(h); }
     for (const A of L) {
+      if (++paso % cada === 0) yield;
       if (!quedan.has(A)) continue;
       const i0 = Math.floor(A.x / CEL), j0 = Math.floor(A.z / CEL);
       for (let i = i0 - 2; i <= i0 + 2; i++) for (let j = j0 - 2; j <= j0 + 2; j++) for (const B of g.get(i * 4096 + j) || []) {
@@ -190,6 +202,7 @@ export function ordenarCasas(casas, o) {
   const tapa = (x, z, yo) => vecinas(x, z).some(o => o !== yo && Math.abs(o.x - x) < radio(o) + 1 && Math.abs(o.z - z) < radio(o) + 1 && dentro(o, x, z, 0.2))
     || riverInfo(x, z).edge < 0.6 || puentes.some(P => P.hecho && P.pts.some((q, i) => i < P.pts.length - 1 && segDist(x, z, q[0], q[1], P.pts[i + 1][0], P.pts[i + 1][1]).d < P.w + 0.8));
   for (const h of L) {
+    if (++paso % cada === 0) yield;
     if (!libre(h) || h.k === 'shed' || h.k === 'industrial') continue;
     let best = 0, bs = 1e9;
     for (let k = 0; k < 4; k++) {
