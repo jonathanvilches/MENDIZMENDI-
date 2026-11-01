@@ -1140,7 +1140,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // y estrenados en una imagen, debajo de todo: si no, se compilaban al llegar al pueblo, de golpe, y la imagen se paraba
   // medio segundo justo cuando se levantaban sus casas)
   function calienta() {
-    calentado = true;
+    calentado = true; aves.estrena();
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
     const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
     const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 } }, res);
@@ -1148,8 +1148,12 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
     const im = new THREE.InstancedMesh(caja, res.mat, 1); im.setColorAt(0, new THREE.Color());
     const cm2 = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0 }), cn = new THREE.InstancedMesh(cajaG, cm2, 1); cn.setColorAt(0, new THREE.Color());
-    const grupo = new THREE.Group(); grupo.add(new THREE.Mesh(g, pm), im, cn);
-    geos.push(g, caja, res.geo); mats.push(pm, res.mat, cm2);
+    // (y el de los lugares emblemáticos de los pueblos, el castillo de Olite y demás: no se calentaba y, en el primer pueblo
+    // con uno, se compilaba al levantarse sus casas, a medio vuelo)
+    const ge = g.clone(); ge.setAttribute('aBase', new THREE.Float32BufferAttribute([0, 0, 0], 1));
+    const me = materialEmblema({ value: 1 }), em = new THREE.Mesh(ge, me);
+    const grupo = new THREE.Group(); grupo.add(new THREE.Mesh(g, pm), im, cn, em);
+    geos.push(g, ge, caja, res.geo); mats.push(pm, res.mat, cm2, me);
     compilarAsync(r, grupo, cam, scene).then(() => { if (!vivo) return;
       grupo.position.y = -500; grupo.traverse(x => { x.frustumCulled = false; }); scene.add(grupo); estreno = { grupo, n: 0 }; });
   }
@@ -1179,7 +1183,11 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const sube = sigue && v.d < MAQ_D * 1.6;
     m.k.value += ((sube ? 1 : 0) - m.k.value) * (1 - Math.exp(-dt * (sube ? 6 : 3)));
     m.op += ((sube && m.k.value > 0.6 ? 1 : 0) - m.op) * (1 - Math.exp(-dt * 8));
-    m.res.mat.opacity = m.op; if (m.res.matEmb) m.res.matEmb.opacity = m.op; m.res.casas.visible = m.op > 0.01; m.alz.value = 1 / Math.max(0.05, c.sy);
+    // (las casas se estrenan en la imagen siguiente a hacerse, aún transparentes: así lo que cuesta pintarlas la primera vez,
+    // subir sus instancias a la tarjeta gráfica, pasa al principio del vuelo, con la cámara casi quieta, y no al levantarse,
+    // a media bajada, donde era un tirón)
+    const primera = !m.estrenada; m.estrenada = true;
+    m.res.mat.opacity = m.op; if (m.res.matEmb) m.res.matEmb.opacity = m.op; m.res.casas.visible = m.op > 0.01 || primera; m.alz.value = 1 / Math.max(0.05, c.sy);
     if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
   }
   // (un paso de la maqueta: el suelo pintado, sus piezas, las sombras de los árboles y, al final, la malla en la comarca;

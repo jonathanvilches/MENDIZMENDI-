@@ -301,7 +301,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - `despeje` sube deprisa pero sin salto, nunca a menos de media holgura. El dron y el paseo van a todas las imágenes,
     sin el tope de 30. Los programas de la maqueta se compilan al tocar una comarca o un pueblo, no a medio vuelo, y la
     maqueta se hace en pasos más cortos (tandas de casas, la imagen a la tarjeta gráfica en un paso aparte).
-  - Para medirlo, la prueba de la carpeta de trabajo `golpe.mjs`: graba cada imagen y saca las aceleraciones de la cámara.
+  - Los tirones al llegar a cada pueblo eran, sobre todo, parones de la tarjeta gráfica la primera vez que pintaba algo a
+    media bajada: los pájaros y su sombra al aparecer (casi un segundo en el navegador de pruebas) y las casas de la
+    maqueta al levantarse. Ahora `calienta`, al tocar una comarca o un pueblo, pinta una vez los pájaros invisibles
+    (`aves.estrena`, a escala cero) y compila también el material de los lugares emblemáticos; y las casas de la maqueta
+    se pintan, aún transparentes, en la imagen siguiente a hacerse, al principio del vuelo. Si se añade algo que salga
+    solo de cerca, hay que estrenarlo igual: si no, el parón vuelve justo al llegar.
+  - Para medirlo, las pruebas de la carpeta de trabajo `golpe.mjs` (cada imagen y las aceleraciones de la cámara),
+    `inicio.mjs` (el final del vuelo y el comienzo del dron, con lo que tarda cada imagen) y `lento49.mjs` (cada pieza
+    que se pinta, cronometrada, para encontrar la que para la imagen). En el navegador de pruebas algunas imágenes llegan
+    a destiempo y dan aceleraciones falsas: hay que mirar el paso de cada imagen, no solo la cifra.
   - Auditoría de los vuelos, uno tras otro (entrada, paseo, comarca, dos pueblos, espacio natural, vuelta a Navarra,
     paseo y arrastre), con el gancho `estado`: véase la prueba de la carpeta de trabajo `aereo.mjs` en las notas.
   - Antes de salir se prueba la vuelta entera, cada segundo y medio, y se guarda la inclinación justa para que la cámara

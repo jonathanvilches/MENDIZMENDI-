@@ -25,7 +25,8 @@ function pajaroG() {
 /**
  * o: { scene, lento, suelo(x, z) → la altura del suelo en el mundo, pueblo() → { X, Z, f, natural } del sitio elegido o null;
  * f: la escala, la distancia de su cámara en proporción a la de un pueblo }.
- * Devuelve { update(dt, t, v, activo), dispose }. v: la vista del mapa ({ x, z, d, hy }).
+ * Devuelve { update(dt, t, v, activo), estrena(), dispose }. v: la vista del mapa ({ x, z, d, hy }). estrena: los pinta una vez,
+ * invisibles, para que la tarjeta gráfica se prepare antes de que hagan falta.
  */
 export function hacePajaros(o) {
   const CIG = o.lento ? [5] : [6, 4], total = CIG.reduce((a, b) => a + b, 0);
@@ -71,7 +72,12 @@ vTinte = mix(1.0, 0.3, smoothstep(0.62, 0.95, ala)) * (1.0 - 0.22 * ala * max(0.
   // caía a más de 100 m del ave y no se las relacionaba)
   const SOL = [50 / 38 * 0.3, 22 / 38 * 0.3];
   const M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), eu = new THREE.Euler(0, 0, 0, 'YXZ'), cero = new THREE.Matrix4().makeScale(0, 0, 0);
-  let kPueblo = 0, centro = null, natural = null;
+  let kPueblo = 0, centro = null, natural = null, estreno = false;
+  // (pintarlos una vez sin que se vean, todos a escala cero, cuando lo pida el mapa al tocar una comarca o un pueblo: la
+  // primera vez que la tarjeta gráfica los pinta tiene que prepararse, y era justo al llegar al primer pueblo, al aparecer
+  // los pájaros, a media bajada; el parón más largo del vuelo)
+  const aCero = () => { for (let i = 0; i < total; i++) im.setMatrixAt(i, cero); for (let i = 0; i < nS; i++) sombras.setMatrixAt(i, cero); im.instanceMatrix.needsUpdate = sombras.instanceMatrix.needsUpdate = true; };
+  aCero(); im.visible = sombras.visible = false;
   // (los colores, según el sitio: cigüeñas blancas sobre los pueblos, buitres pardos claros sobre el monte; milanos en los dos)
   const viste = (nat) => { natural = nat; for (const b of bandadas) for (const a of b.aves) im.setColorAt(a.i, b.milano ? col.setRGB(0.07, 0.045, 0.03) : nat ? col.setRGB(0.36, 0.26, 0.16) : col.setRGB(0.95, 0.93, 0.88)); im.instanceColor.needsUpdate = true; };
   const pon = (i, x, y, z, rumbo, alabeo, s) => { eu.set(0, rumbo, alabeo); q.setFromEuler(eu); im.setMatrixAt(i, s > 1e-6 ? M4.compose(e3.set(x, y, z), q, sc.set(s, s, s)) : cero); };
@@ -89,8 +95,9 @@ vTinte = mix(1.0, 0.3, smoothstep(0.62, 0.95, ala)) * (1.0 - 0.22 * ala * max(0.
     const quiere = pue && !!pue.natural === natural && v.d < 2.6 * pue.f ? 1 : 0;
     kPueblo += (quiere - kPueblo) * (1 - Math.exp(-dt * (quiere ? 2 : 7)));
     if (!quiere && v.d > 6 * (centro?.f || 1)) kPueblo = 0;
-    // (sin pueblo, nada que mover ni que dibujar)
-    if (kPueblo < 0.01 || !centro) { im.visible = sombras.visible = false; return; }
+    // (sin pueblo, nada que mover ni que dibujar; salvo el estreno, una imagen, invisible)
+    if (kPueblo < 0.01 || !centro) { if (estreno) { estreno = false; aCero(); im.visible = sombras.visible = true; smat.opacity = 0.26; return; } im.visible = sombras.visible = false; return; }
+    estreno = false;
     const suelo0 = o.suelo(centro.X, centro.Z) ?? v.hy;
     for (const b of bandadas) {
       // (los buitres, más altos y en círculos más anchos; los milanos del monte, algo por debajo)
@@ -109,5 +116,5 @@ vTinte = mix(1.0, 0.3, smoothstep(0.62, 0.95, ala)) * (1.0 - 0.22 * ala * max(0.
     im.instanceMatrix.needsUpdate = true; sombras.instanceMatrix.needsUpdate = true;
     im.visible = sombras.visible = true; smat.opacity = 0.26 * kPueblo;
   }
-  return { update, dispose() { im.removeFromParent(); sombras.removeFromParent(); g.dispose(); m.dispose(); sg.dispose(); smat.dispose(); } };
+  return { update, estrena() { estreno = true; }, dispose() { im.removeFromParent(); sombras.removeFromParent(); g.dispose(); m.dispose(); sg.dispose(); smat.dispose(); } };
 }
