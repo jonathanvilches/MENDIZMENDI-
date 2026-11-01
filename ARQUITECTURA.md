@@ -281,10 +281,27 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     propia, para que no salgan como motas negras.
 - **El dron de cada pueblo en el mapa del inicio** (`hub/mapa3d.js`, `perfilDron`, `holgura`, `despeje`):
   - Una vuelta en tres minutos, y todos sus vaivenes son múltiplos de esa vuelta (`DRON_W`): cada vuelta es igual a la
-    anterior. El vuelo hasta el pueblo dura hasta 4,2 s, no 2,6.
-  - De un sitio a otro lejos estando cerca (de Isaba a Tudela), `volar` sube, cruza por alto mirando más desde arriba y
-    baja (`vuelo.sube`), hasta 4,6 s. Antes cruzaba Navarra a ras de tejado en 1,8 s, rapidísima y chocando con los
-    montes. Los vuelos que no pasan por `volar` (el de abrir el mapa) no llevan `sube`: se cuenta como 0.
+    anterior. El vuelo hasta el pueblo dura al menos 4,2 s desde toda Navarra, no 2,6.
+  - Todos los vuelos siguen el camino de van Wijk y Nuij (`camino`, el de `d3.interpolateZoom`): lo que corre el suelo, en
+    proporción a lo lejos que está la cámara, va igual de suave todo el camino. Para ir lejos (de Isaba a Tudela) sube,
+    cruza por alto mirando más desde arriba y baja; para acercarse, se centra mientras aún está alta. El tiempo sale de lo
+    largo del camino, hasta 5,4 s, con una curva sin tirones ni en la velocidad ni en la aceleración. El giro, el más
+    corto, y siempre entre -π y π (`normaYaw`): con el dron crecía sin parar y la cámara daba vueltas al volver.
+    Antes el sitio y la distancia se mezclaban cada uno por su lado y, a ras de tejado, el suelo salía disparado de lado:
+    el golpe de cámara de noviembre de 2026. Los vuelos que no pasan por `volar` (el de abrir el mapa) hacen su camino
+    en la primera imagen.
+  - La cámara va con la comarca que tiene debajo (`hRef`): si esta sube o baja, al elegir otra o al volver a toda
+    Navarra, la cámara se mueve con ella en la misma imagen. Por eso la cámara se calcula después de las comarcas. Con
+    la cámara muy cerca, las comarcas suben y bajan más despacio (`velC`). Antes la de debajo bajaba de golpe más de
+    cinco veces lo que la cámara estaba de cerca, y la cámara la seguía después.
+  - Si las casas del pueblo llegan a medio vuelo, el final del vuelo se corre hasta ellas sin tirón (un muelle
+    amortiguado, `dron.vx`), y la inclinación pasa en 2 s a la calculada allí (`dron.antes`, `mezP`). El dron arranca en
+    6 s con su giro cogiendo velocidad (`DRON_T`), y su inclinación va por una curva suave entre los puntos del perfil
+    (`enPerfil`). Sobre un sitio, la altura a la que mira es la de su comarca, aunque el vaivén se asome a la de al lado.
+  - `despeje` sube deprisa pero sin salto, nunca a menos de media holgura. El dron y el paseo van a todas las imágenes,
+    sin el tope de 30. Los programas de la maqueta se compilan al tocar una comarca o un pueblo, no a medio vuelo, y la
+    maqueta se hace en pasos más cortos (tandas de casas, la imagen a la tarjeta gráfica en un paso aparte).
+  - Para medirlo, la prueba de la carpeta de trabajo `golpe.mjs`: graba cada imagen y saca las aceleraciones de la cámara.
   - Auditoría de los vuelos, uno tras otro (entrada, paseo, comarca, dos pueblos, espacio natural, vuelta a Navarra,
     paseo y arrastre), con el gancho `estado`: véase la prueba de la carpeta de trabajo `aereo.mjs` en las notas.
   - Antes de salir se prueba la vuelta entera, cada segundo y medio, y se guarda la inclinación justa para que la cámara

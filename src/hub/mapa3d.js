@@ -465,17 +465,36 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   for (const c of C) { const bb = c.mesh.geometry.boundingBox.clone(); bb.max.y = GROSOR + c.hmax + c.alzado + 1.1; c.esq = []; for (const x of [bb.min.x, bb.max.x]) for (const y of [0, bb.max.y]) for (const z of [bb.min.z, bb.max.z]) c.esq.push(new THREE.Vector3(x, y, z)); c.mid = bb.getCenter(new THREE.Vector3()); }
   let DMAX = 150;
   const v = { x: 0, z: 4, d: 132, yaw: 0, pitch: 1.18, hy: 0.8 }, goal = casa();
-  let bajoC = null, subida = 0;   // (la comarca que queda debajo del punto al que mira la cámara; y lo que sube la cámara para no meterse en el relieve)
-  let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t0, dur })
-  // (de un sitio a otro lejos estando cerca, de un pueblo a otro de la otra punta, la cámara sube, cruza por alto y baja,
-  // con más tiempo: antes iba a la misma altura, a ras de tejado, y cruzaba Navarra en 1,8 s, rapidísima y chocando con
-  // los montes. Si el sitio está a la vista, sin subir)
+  let bajoC = null, subida = 0; const hRef = { c: null, sy: 0, py: 0 };   // (la comarca que queda debajo del punto al que mira la cámara; y lo que sube la cámara para no meterse en el relieve)
+  let vuelo = null;   // (un vuelo animado hasta un sitio: { de, a, t, dur, cm: su camino, dron: el del pueblo al que va })
+  // (el camino de un vuelo, el de van Wijk y Nuij, «Smooth and efficient zooming and panning», 2003, el mismo de
+  // d3.interpolateZoom: lo que corre el suelo, en proporción a lo lejos que está la cámara, va igual de suave todo el camino.
+  // Para ir lejos, primero sube, cruza por alto y baja; para acercarse, se centra mientras aún está alta y luego baja. Antes
+  // el sitio y la distancia se mezclaban cada uno por su lado y, a ras de tejado, el suelo salía disparado de lado al
+  // arrancar y frenaba de golpe al llegar: el golpe de cámara. w: lo que se ve de ancho, la distancia por ANCHO_V; k: lo hecho
+  // del camino, de 0 a 1; devuelve u, lo hecho del desplazamiento, y w)
+  const RHO = 1.3, ANCHO_V = 1.6;
+  function camino(de, a) {
+    const u1 = Math.hypot(a.x - de.x, a.z - de.z), w0 = de.d * ANCHO_V, w1 = a.d * ANCHO_V, r2 = RHO * RHO;
+    if (u1 < 1e-6) { const S = Math.log(w1 / w0) / RHO; return { S: Math.abs(S), en: (k) => ({ u: k, w: w0 * Math.exp(RHO * S * k) }) }; }
+    const b0 = (w1 * w1 - w0 * w0 + r2 * r2 * u1 * u1) / (2 * w0 * r2 * u1), b1 = (w1 * w1 - w0 * w0 - r2 * r2 * u1 * u1) / (2 * w1 * r2 * u1);
+    const r0 = -Math.asinh(b0), r1 = -Math.asinh(b1), S = (r1 - r0) / RHO, c0 = Math.cosh(r0), s0 = Math.sinh(r0);
+    return { S, en: (k) => { const q = RHO * k * S + r0; return { u: w0 / (r2 * u1) * (c0 * Math.tanh(q) - s0), w: w0 * c0 / Math.cosh(q) }; } };
+  }
+  // (el tiempo, según lo largo del camino: de un pueblo a otro de la otra punta, 5,4 s; a una comarca, algo más de uno)
   const volar = (a, dur = 0.9) => {
-    inercia = null; const de = { ...v }, A = { ...v, ...a }, alto0 = Math.max(de.d, A.d), dist = Math.hypot(A.x - de.x, A.z - de.z), pico = Math.max(alto0, dist * 0.55);
-    const sube = pico > alto0 * 1.5 ? Math.log(pico / alto0) : 0;
-    if (sube) dur = Math.max(dur, Math.min(4.6, 1.6 + 0.4 * Math.log2(1 + dist / alto0)));
-    vuelo = { de, a: A, t: 0, dur, sube }; Object.assign(goal, vuelo.a);
+    inercia = null; normaYaw();
+    const de = { ...v }, A = { ...v, ...a };
+    A.yaw = de.yaw + Math.atan2(Math.sin(A.yaw - de.yaw), Math.cos(A.yaw - de.yaw));   // (girando lo menos posible)
+    const cm = camino(de, A);
+    vuelo = { de, a: A, t: 0, dur: Math.max(dur, Math.min(5.4, 0.6 * cm.S + 0.6)), cm }; Object.assign(goal, vuelo.a);
   };
+  // (el giro de la cámara, entre -π y π, y lo que va con él: con el dron, que da una vuelta cada tres minutos, crecía sin
+  // parar y, al volar luego a una comarca, la cámara daba antes todas esas vueltas de golpe)
+  function normaYaw() {
+    const n = Math.round(v.yaw / (2 * Math.PI)) * 2 * Math.PI; if (!n) return;
+    v.yaw -= n; goal.yaw -= n; if (dron) dron.yaw -= n; if (paseo) paseo.base.yaw -= n;
+  }
   const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.12 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
     if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   DMAX = Math.max(150, goal.d * 1.35);
@@ -803,6 +822,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     if (sel !== t.comarca) select(t.comarca, false);
     elegido = t; o.onTown?.(id);   // (antes de volar: la ficha cambia el hueco donde se encaja)
     nucT = -1e9;   // (su núcleo, en la imagen siguiente: así sus casas se van haciendo durante el vuelo)
+    // (los programas de la maqueta, ya al tocar, antes de salir: en el móvil se compilaban a medio vuelo y la cámara se paraba)
+    if (!calentado) calienta();
+    normaYaw();
     // (hasta lo más cerca, casi a la altura de los tejados y de lado, para ver sus casas en pie; los bosques, sin maqueta,
     // desde algo más arriba). Al llegar, el vuelo de dron
     // (los espacios naturales, sin maqueta, con la cámara del lado de dentro de su comarca y más desde arriba: casi todos
@@ -812,10 +834,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // (en los pueblos, al corazón de sus casas, si ya están cargadas; si no, a su chincheta, y al llegar las casas se va
     // corriendo poco a poco hasta ellas: sigueDron)
     const cc = real ? centroCasas(t.id) : null;
-    dron = { t: 0, id: t.id, X: cc?.X ?? t.X, Z: cc?.Z ?? t.Z, cc, d, pitch, yaw, real, listo: false };
-    dron.perfil = perfilDron(dron);
+    dron = { t: 0, id: t.id, X: cc?.X ?? t.X, Z: cc?.Z ?? t.Z, vx: 0, vz: 0, cc, d, pitch, yaw, real, listo: false };
+    dron.perfil = perfilDron(dron); dron.p0 = dron.perfil[0];
     // (y el vuelo hasta él, más tranquilo: de toda Navarra a los tejados en dos segundos y medio parecía un salto)
-    volar({ x: dron.X, z: dron.Z, d, yaw, pitch: dron.perfil[0] }, Math.min(4.2, 1.8 + 0.26 * Math.log2(Math.max(1, v.d / d))));
+    volar({ x: dron.X, z: dron.Z, d, yaw, pitch: dron.p0 }, Math.min(4.2, 1.8 + 0.26 * Math.log2(Math.max(1, v.d / d)))); vuelo.dron = dron;
   }
   // ---------- el vuelo de dron sobre el pueblo elegido ----------
   // La cámara pasa por encima del pueblo muy despacio, como un dron: le da la vuelta poco a poco (una vuelta en tres
@@ -825,7 +847,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // Todos sus vaivenes son múltiplos de la vuelta (DRON_W), así que cada vuelta es igual a la anterior y su inclinación se
   // calcula una vez, antes de salir (perfilDron)
   const DRON_D = 0.18;   // (cerca, casi entre los tejados: de más lejos el pueblo se veía pequeño)
-  const DRON_W = 2 * Math.PI / 180, DRON_PASO = 1.5, DRON_N = Math.round(2 * Math.PI / DRON_W / DRON_PASO);
+  const DRON_W = 2 * Math.PI / 180, DRON_PASO = 1.5, DRON_N = Math.round(2 * Math.PI / DRON_W / DRON_PASO), DRON_T = 6;
   let dron = null;
   // (el corazón de un pueblo: el centro de sus casas, contando más las grandes, y luego solo las que quedan a menos de
   // 350 m de él, sin los polígonos ni los caseríos sueltos; en unidades del mapa. La chincheta a veces queda a un lado)
@@ -839,12 +861,14 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     }
     return { X: e.X0 + cx * MU, Z: e.Z0 + cz * MU };
   }
-  // (dónde está el dron a los u segundos, sin contar su inclinación; k: arranca poco a poco. El vaivén sobre el pueblo,
-  // de unos 40 m: con 170 m, en Aoiz el centro de la vista acababa en el prado y el pueblo, en una esquina)
+  // (dónde está el dron a los u segundos, sin contar su inclinación; k: arranca poco a poco, en DRON_T segundos, sin
+  // tirones: el giro va cogiendo velocidad, en vez de doblarla y luego bajarla de golpe a los 4 s como antes. El vaivén sobre
+  // el pueblo, de unos 40 m: con 170 m, en Aoiz el centro de la vista acababa en el prado y el pueblo, en una esquina)
   const posDron = (D, u) => {
-    const k = Math.min(1, u / 4), r = D.d * (D.real ? 0.1 : 0.2);
+    const s = Math.min(1, u / DRON_T), k = s * s * (3 - 2 * s), r = D.d * (D.real ? 0.1 : 0.2);
+    const giro = u < DRON_T ? u * u * u / (DRON_T * DRON_T) - u ** 4 / (2 * DRON_T ** 3) : u - DRON_T / 2;   // (lo girado: la integral de k)
     return { x: D.X + Math.sin(u * 2 * DRON_W) * r * k, z: D.Z + Math.sin(u * 3 * DRON_W + 1.1) * r * 0.7 * k, d: D.d * (1 + 0.18 * Math.sin(u * 2 * DRON_W) * k),
-      yaw: D.real ? D.yaw + u * DRON_W * k : D.yaw + 0.45 * Math.sin(u * DRON_W) * k, k };
+      yaw: D.real ? D.yaw + giro * DRON_W : D.yaw + 0.45 * Math.sin(u * DRON_W) * k, k };
   };
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   const exaDe = (d) => d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
@@ -879,14 +903,24 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const A = P.map((_, i) => { let m = 0; for (let j = -3; j <= 3; j++) m = Math.max(m, P[(i + j + DRON_N) % DRON_N]); return m; });
     return A.map((_, i) => { let s = 0; for (let j = -3; j <= 3; j++) s += A[(i + j + DRON_N) % DRON_N]; return s / 7; });
   }
+  // (la inclinación del perfil a los u segundos, con una curva suave entre sus puntos: con rectas, cada segundo y medio
+  // cambiaba de golpe la velocidad a la que se inclinaba)
+  const enPerfil = (P, u) => { const q = ((u / DRON_PASO) % DRON_N + DRON_N) % DRON_N, i = Math.floor(q), f = q - i, a = P[(i + DRON_N - 1) % DRON_N], b = P[i], c = P[(i + 1) % DRON_N], d = P[(i + 2) % DRON_N];
+    return b + 0.5 * f * (c - a + f * (2 * a - 5 * b + 4 * c - d + f * (3 * (b - c) + d - a))); };
   function sigueDron(dt) {
-    // (si las casas llegan después, el dron se va corriendo hasta su corazón, despacio, con su inclinación ya calculada allí)
-    if (dron.real && !dron.cc) { const cc = centroCasas(dron.id); if (cc) { dron.cc = cc; dron.perfil = perfilDron({ ...dron, X: cc.X, Z: cc.Z }); } }
-    if (dron.cc) { const k = 1 - Math.exp(-dt * 1.2); dron.X += (dron.cc.X - dron.X) * k; dron.Z += (dron.cc.Z - dron.Z) * k; }
+    // (si las casas llegan después, el dron se va corriendo hasta su corazón, despacio y sin tirón, arrancando y frenando
+    // como un muelle amortiguado; y su inclinación pasa poco a poco a la calculada allí, en 2 s. Antes saltaba a la nueva y
+    // empezaba a correrse de golpe: si llegaban a medio vuelo, al acabar este la cámara pegaba un tirón hasta el centro)
+    if (dron.real && !dron.cc) { const cc = centroCasas(dron.id); if (cc) { dron.cc = cc; dron.antes = dron.perfil; dron.mezP = 0; dron.perfil = perfilDron({ ...dron, X: cc.X, Z: cc.Z }); } }
+    if (dron.cc) { const w = 1.6; dron.vx += (w * w * (dron.cc.X - dron.X) - 2 * w * dron.vx) * dt; dron.vz += (w * w * (dron.cc.Z - dron.Z) - 2 * w * dron.vz) * dt; dron.X += dron.vx * dt; dron.Z += dron.vz * dt; }
+    if (dron.antes) { dron.mezP = Math.min(1, dron.mezP + dt / 2); }
+    const incl = (u) => { const p = enPerfil(dron.perfil, u); return dron.antes ? mezcla(enPerfil(dron.antes, u), p, ease(dron.mezP)) : p; };
+    if (dron.antes && dron.mezP >= 1) dron.antes = null;
+    dron.p0 = incl(0);   // (a donde acaba el vuelo hasta él: frame)
     if (!dron.listo) { if (vuelo) return; dron.listo = true; }
-    const u = (dron.t += dt), g = posDron(dron, u), P = dron.perfil, q = (u / DRON_PASO) % DRON_N, i = Math.floor(q), f = q - i;
+    const u = (dron.t += dt), g = posDron(dron, u);
     goal.x = g.x; goal.z = g.z; goal.d = g.d; goal.yaw = g.yaw;
-    goal.pitch = P[i] * (1 - f) + P[(i + 1) % DRON_N] * f + 0.03 * Math.sin(u * 3 * DRON_W) * g.k;
+    goal.pitch = incl(u) + 0.03 * Math.sin(u * 3 * DRON_W) * g.k;
   }
   function cierraPueblo() { dron = null; if (!elegido) return; elegido = null; o.onTown?.(null); }
   // (toda Navarra, desde arriba)
@@ -923,6 +957,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     host.classList.toggle('con-sel', !!c);
     for (const x of C) x.lab.classList.toggle('sel', x.id === sel);
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
+    if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
     if (c && fly) volar({ x: c.mid.x, z: c.mid.z, d: Math.max(22, encaja(c.esq, c.mid.x, c.mid.z, 0.95, 1)), yaw: 0, pitch: 0.95 });
   }
 
@@ -1148,7 +1183,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
   }
   // (un paso de la maqueta: el suelo pintado, sus piezas, las sombras de los árboles y, al final, la malla en la comarca;
-  // devuelve true cuando ya está)
+  // devuelve true cuando ya está, o cuando lo que queda va en la imagen siguiente)
   function pasoMaqueta(m) {
     const e = m.e, c = e.c;
     if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return false; }
@@ -1157,7 +1192,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
     if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
       for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R + rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, 0.5, 0, 6.2832); }
-      g.fill(); m.tex.needsUpdate = true; r.initTexture(m.tex); return true; }
+      g.fill(); return true; }
+    // (y la imagen, a la tarjeta gráfica, en su propia imagen y en un paso aparte: con las sombras en el mismo, era el paso
+    // más largo y, volando hasta el pueblo, un tirón)
+    if (!m.enviada) { m.enviada = true; m.tex.needsUpdate = true; r.initTexture(m.tex); return true; }
     const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
     m.malla = new THREE.Mesh(m.res.geo, pm); c.mesh.add(m.malla); c.mesh.add(m.res.casas);
     u.uHueco.value.set(e.X0, e.Z0, e.R * MU * 0.97, 1); if (e.slot >= 0) u['uP' + e.slot].value = m.tex;
@@ -1198,7 +1236,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
-    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; } };   // (para las pruebas en el servidor de desarrollo)
+    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; } };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
@@ -1290,9 +1328,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // (en el móvil, y en el ordenador mientras nada se mueve, 30 imágenes por segundo: las chinchetas que flotan no
     // necesitan más, y así el resto del menú va más suelto)
     const quieto = !keys.size && !vuelo && !ptrs.size && !inercia && Math.abs(goal.d - v.d) < 0.05 * v.d && Math.abs(goal.x - v.x) + Math.abs(goal.z - v.z) < 0.05;
-    // (mientras se toca o se mueve, todas las imágenes; si no van a tiempo, el lienzo baja un poco su resolución)
-    const toca = ptrs.size || inercia || vuelo || keys.size;
-    if ((quieto || (LENTO && !toca)) && now - last < 30) return;
+    // (mientras se toca o se mueve, todas las imágenes; si no van a tiempo, el lienzo baja un poco su resolución. El vuelo de
+    // dron sobre un pueblo y el paseo por Navarra también se mueven siempre: a 30 imágenes, el dron iba a trompicones)
+    const toca = ptrs.size || inercia || vuelo || keys.size || dron?.listo || paseo;
+    if ((quieto || LENTO) && !toca && now - last < 30) return;
     if (toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > prSuelo) { prMax = Math.max(prSuelo, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
@@ -1329,37 +1368,24 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       v.d = Math.exp(mezcla(Math.log(d0), Math.log(goal.d), k));
       if (tI >= IT.fin) acabaIntro();
     } else if (vuelo) {
-      vuelo.t += dt / vuelo.dur; const k = ease(Math.min(1, vuelo.t)), de = vuelo.de, a = vuelo.a;
-      // (la distancia, en proporción, para que al acercarse mucho no frene de golpe; y al acercarse, el sitio llega antes que
-      // la distancia: de cerca ya no barre de lado)
-      const kx = a.d < de.d * 0.5 && !vuelo.sube ? ease(Math.min(1, vuelo.t / 0.7)) : k;
-      for (const q of ['x', 'z']) v[q] = mezcla(de[q], a[q], kx);
-      for (const q of ['yaw', 'pitch']) v[q] = mezcla(de[q], a[q], k);
-      // (y, si cruza lejos, la subida y la bajada en medio, en proporción: en lo alto, mirando más desde arriba)
-      v.d = Math.exp(mezcla(Math.log(de.d), Math.log(a.d), k) + (vuelo.sube || 0) * Math.sin(Math.PI * k));
-      if (vuelo.sube) v.pitch = Math.min(1.25, v.pitch + 0.35 * Math.sin(Math.PI * k));
+      // (por su camino, volar, arrancando y frenando suave; si va a un pueblo cuyas casas llegan por el camino, el final se
+      // corre poco a poco hasta su corazón y su inclinación, sigueDron, y el vuelo acaba justo donde empieza el dron)
+      // (k, con una curva que arranca y frena sin tirón ni en la velocidad ni en la aceleración: con la de siempre, a media
+      // travesía, en lo más rápido, pasaba de golpe de acelerar a frenar)
+      vuelo.t += dt / vuelo.dur; const tv = Math.min(1, vuelo.t), k = tv * tv * tv * (tv * (6 * tv - 15) + 10), de = vuelo.de, a = vuelo.a, cm = (vuelo.cm ||= camino(de, a));
+      const P = vuelo.t >= 1 ? { u: 1, w: a.d * ANCHO_V } : cm.en(k), D = dron && vuelo.dron === dron ? dron : null;
+      const fx = D ? D.X : a.x, fz = D ? D.Z : a.z, fp = D ? D.p0 : a.pitch;
+      v.x = de.x + (fx - de.x) * P.u; v.z = de.z + (fz - de.z) * P.u; v.d = P.w / ANCHO_V; v.yaw = mezcla(de.yaw, a.yaw, k);
+      // (en lo alto del camino, mirando más desde arriba, según lo que sube por encima de la mezcla de las dos distancias; con
+      // una curva suave, sin pasar de 1,25: antes se recortaba y la inclinación daba tirones)
+      const alto = Math.max(0, Math.log(v.d) - mezcla(Math.log(de.d), Math.log(a.d), k)), p = mezcla(de.pitch, fp, k);
+      v.pitch = p + Math.max(0, 1.25 - p) * 0.6 * alto * alto / (alto * alto + 1.44);
       if (vuelo.t >= 1) vuelo = null;
     } else { const k = 1 - Math.exp(-dt * 9); for (const q of ['x', 'z', 'd', 'yaw', 'pitch']) v[q] += (goal[q] - v[q]) * k; }
     // (con el panel abierto, el centro de la vista se corre a lo que queda libre, poco a poco)
     const hu = huecoAhora(), kk = 1 - Math.exp(-dt * 8);
     off.x += ((hu.r || 0) / 2 - off.x) * kk; off.y += (((hu.b || 0) - (hu.t || 0)) / 2 - off.y) * kk;
     if (Math.abs(off.x) > 0.5 || Math.abs(off.y) > 0.5) cam.setViewOffset(w, h, off.x, off.y, w, h); else if (cam.view?.enabled) cam.clearViewOffset();
-    // (de cerca, la cámara mira a la altura del suelo que tiene debajo: con una altura fija, el pueblo quedaba por encima del
-    // centro, bajo la cabecera; de lejos, a la de siempre, con la que se calcula la vista de toda Navarra)
-    const bajo = deQuien(v.x, v.z, bajoC); if (bajo) bajoC = bajo;
-    const kh = Math.min(1, Math.max(0, (40 - v.d) / 24)), hs = bajo?.sy ? pisoEn(bajo, v.x, v.z) * bajo.sy + bajo.py : 0.8;
-    v.hy += (0.8 + (hs - 0.8) * kh - v.hy) * (1 - Math.exp(-dt * 4));
-    camPos(v, cam.position);
-    // (la cámara nunca entra en el relieve ni lo deja entre ella y lo que mira: si una sierra, o la comarca levantada, se
-    // mete por medio, sube por la ladera lo justo, como un dron, y cuando ya no hace falta baja despacio. Antes, en el vuelo
-    // sobre un pueblo con montes alrededor (Leitza), atravesaba la montaña y se veía negro: el fondo, por debajo del relieve)
-    { const need = despeje(v, cam.position); subida = need > subida ? need : subida + (need - subida) * (1 - Math.exp(-dt * 2.5)); cam.position.y += subida; }
-    if (intro && tI < IT.fin + 1) { const tb = temblor(tI) * v.d * 0.003; cam.position.x += Math.sin(tI * 71) * tb; cam.position.y += Math.sin(tI * 53 + 1) * tb; cam.position.z += Math.sin(tI * 61 + 2) * tb; }
-    cam.lookAt(v.x, v.hy, v.z);
-    // (lo más cerca que se pinta, según lo lejos que está la cámara: así el suelo, el hueco y lo de encima no se pisan desde lo alto)
-    // (y la niebla de lo lejano: de lejos, del color del fondo, donde Navarra flota; de cerca, una bruma clara, como la del
-    // aire sobre el monte, y no el azul casi negro del fondo)
-    scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
     // las comarcas: crecen al empezar (una tras otra), se levantan al pasar por encima o al elegirlas; y su relieve fino
     detalles(now, quieto);
     // (la altura, exagerada cinco veces de lejos para que se lean las sierras, y menos al acercarse, donde con tanta
@@ -1368,6 +1394,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const exa = exaDe(v.d);
     CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); ANCHO_B.value = Math.max(0.004, v.d * 0.0026); FUERA.value = 0.4 + 0.6 * Math.min(1, Math.max(0, (v.d - 6) / 24)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
     TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
+    const velC = Math.min(1, 0.15 + v.d / 3);
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
@@ -1380,11 +1407,13 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       }
       // (solo la elegida se levanta; la de debajo del ratón solo se aclara: si se levantaba, dejaba de estar debajo del
       // puntero, bajaba y volvía a subir, y el mapa daba saltos al pasar por encima)
-      c.lift += ((sel === c.id ? 0.9 : 0) - c.lift) * (1 - Math.exp(-dt * 10));
+      // (con la cámara muy cerca, más despacio: así, al saltar de un pueblo a otro o al volver, la de debajo baja mientras la
+      // cámara ya va subiendo, y no de golpe a ras de tejado; la cámara va con ella: frame)
+      c.lift += ((sel === c.id ? 0.9 : 0) - c.lift) * (1 - Math.exp(-dt * 10 * velC));
       c.hov += ((hover === 'c:' + c.id ? 1 : 0) - c.hov) * (1 - Math.exp(-dt * 12));
       // (con otra elegida, pasa al fondo: más baja, casi sin color y más oscura bajo una bruma de piedra templada, y su agua y
       // su borde casi no se ven; la elegida, más viva. Antes las demás apenas cambiaban y no se distinguía cuál era)
-      c.fondo += ((sel && sel !== c.id ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6));
+      c.fondo += ((sel && sel !== c.id ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6 * velC));
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
@@ -1395,6 +1424,33 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
     }
+    // la cámara, ya con las comarcas en su sitio de esta imagen
+    // (de cerca, la cámara mira a la altura del suelo que tiene debajo: con una altura fija, el pueblo quedaba por encima del
+    // centro, bajo la cabecera; de lejos, a la de siempre, con la que se calcula la vista de toda Navarra)
+    // (sobre un sitio, la de su comarca, aunque el vaivén del dron se asome a la de al lado, que está más baja: en los
+    // espacios naturales, junto al borde, la cámara se hundía de golpe al cruzarlo)
+    const bajo = deQuien(v.x, v.z, bajoC); if (bajo) bajoC = bajo;
+    const ref = (dron?.listo && byId.get(tById.get(dron.id)?.comarca)) || bajo;
+    const kh = Math.min(1, Math.max(0, (40 - v.d) / 24)), hs = ref?.sy ? pisoEn(ref, v.x, v.z) * ref.sy + ref.py : 0.8;
+    // (y si esa comarca sube o baja, al elegir otra, al volver a toda Navarra o al cambiar lo exagerado del relieve, la cámara
+    // va con ella, en la misma imagen: antes la comarca bajaba de golpe, más de cinco veces lo que la cámara estaba de cerca,
+    // y la cámara la seguía después; era el golpe al elegir otro pueblo o al volver)
+    if (ref && ref === hRef.c) v.hy += (pisoEn(ref, v.x, v.z) * (ref.sy - hRef.sy) + ref.py - hRef.py) * kh;
+    hRef.c = ref; hRef.sy = ref?.sy; hRef.py = ref?.py;
+    v.hy += (0.8 + (hs - 0.8) * kh - v.hy) * (1 - Math.exp(-dt * 4));
+    camPos(v, cam.position);
+    // (la cámara nunca entra en el relieve ni lo deja entre ella y lo que mira: si una sierra, o la comarca levantada, se
+    // mete por medio, sube por la ladera lo justo, como un dron, y cuando ya no hace falta baja despacio. Antes, en el vuelo
+    // sobre un pueblo con montes alrededor (Leitza), atravesaba la montaña y se veía negro: el fondo, por debajo del relieve)
+    // (al subir, deprisa pero sin salto, sin quedarse nunca a menos de media holgura: antes subía de golpe, en una imagen)
+    { const need = despeje(v, cam.position), hol = 0.5 * (0.004 + v.d * 0.03 + nearDe(v.d) * 0.3);
+      subida += (need - subida) * (1 - Math.exp(-dt * (need > subida ? 12 : 2.5))); subida = Math.max(subida, need - hol); cam.position.y += subida; }
+    if (intro && tI < IT.fin + 1) { const tb = temblor(tI) * v.d * 0.003; cam.position.x += Math.sin(tI * 71) * tb; cam.position.y += Math.sin(tI * 53 + 1) * tb; cam.position.z += Math.sin(tI * 61 + 2) * tb; }
+    cam.lookAt(v.x, v.hy, v.z);
+    // (lo más cerca que se pinta, según lo lejos que está la cámara: así el suelo, el hueco y lo de encima no se pisan desde lo alto)
+    // (y la niebla de lo lejano: de lejos, del color del fondo, donde Navarra flota; de cerca, una bruma clara, como la del
+    // aire sobre el monte, y no el azul casi negro del fondo)
+    scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
     // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
     // pueblo; el cristal flota y gira)
     // (a media distancia, no menos de 0,42, para que se lean; dentro de la maqueta, diminutas)

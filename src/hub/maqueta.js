@@ -128,7 +128,7 @@ export function* haceMaqueta(D, o, res) {
     const k = j * n + i, x = -R + i * S, z = -R + j * S, X = X0 + x * MU, Z = Z0 + z * MU;
     pos[k * 3] = X; pos[k * 3 + 1] = GROSOR + sobre(X, Z); pos[k * 3 + 2] = Z;
     if (Math.hypot(x, z) < R + S) { hd[k] = GROSOR + mezcla(x, z, X, Z); dentro[k] = !borde || enPoligono(P, X, Z) ? 1 : 0; } else hd[k] = pos[k * 3 + 1];
-    if (i === n - 1 && j % 36 === 35) yield;   // (por tandas de filas)
+    if (i === n - 1 && j % 18 === 17) yield;   // (por tandas de filas)
   }
   const idx = [], r2 = R * R;
   for (let j = 0; j < n - 1; j++) for (let i = 0; i < n - 1; i++) {
@@ -280,7 +280,10 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   // (los lugares emblemáticos del pueblo, con su forma de verdad, van aparte: emblemas.js. Las cajas que caen dentro, fuera)
   const embs = emblemasDe(D), huecos = embs.flatMap(e => e.huecos);
   const casas = casasMaqueta(D).filter(b => Math.hypot(b.x, b.z) < R * 0.94 && cabe(b.x, b.z, Math.hypot(b.w, b.d) / 2) && !enHueco(huecos, b.x, b.z));
+  // (por tandas de casas: en un pueblo grande, todas de una vez eran el paso más largo y, volando hasta él, un tirón)
+  let tanda = 0;
   for (const b of casas) {
+    if (++tanda % 260 === 0) yield;
     const v = varia(b), k = b.k, X = X0 + b.x * MU, Z = Z0 + b.z * MU, base = pie(b.x, b.z, b.w, b.d, b.ry);
     const hM = clamp(b.h || ALTO[k] || 8, 3, 45), H = (hM + 2) * MU * K, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d);
     const nave = k === 'industrial' || k === 'shed', piedra = k === 'church' || k === 'tower' || k === 'borda' || k === 'palacio' || k === 'castillo' || k === 'muralla';
@@ -421,7 +424,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     const mancha = (x, z) => { const fx = x / 70, fz = z / 70, i = Math.floor(fx), j = Math.floor(fz), tx = fx - i, tz = fz - j, sx = tx * tx * (3 - 2 * tx), sz = tz * tz * (3 - 2 * tz);
       return (h2(i, j) * (1 - sx) + h2(i + 1, j) * sx) * (1 - sz) + (h2(i, j + 1) * (1 - sx) + h2(i + 1, j + 1) * sx) * sz; };
     for (let k = 0; k < TOPE * 6 && piezas.arboles.length + piezas.abetos.length < TOPE; k++) {
-      if (k % 6000 === 5999) yield;
+      if (k % 3000 === 2999) yield;
       const a = rnd() * 6.2832, rr = Math.sqrt(rnd()) * R * 0.93, x = Math.cos(a) * rr, z = Math.sin(a) * rr;
       if (mancha(x, z) < 0.55 || campos.some(c => x > c.x0 && x < c.x1 && z > c.z0 && z < c.z1 && enPoligono(c.pts, x, z))) continue;
       // (en el Pirineo, sobre todo abetos y pinos; en el norte, hayas y robles con algún pinar)
