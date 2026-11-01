@@ -119,9 +119,11 @@ export function isFree(x, z, r) {
  * coordenadas locales; m: holgura. A diferencia de mirar isFree en una rejilla de puntos, no se le escapan las cosas
  * pequeñas que caen entre punto y punto (la farola que quedó dentro del frontón de Javier).
  */
-export function rectFree(x, z, ry, x0, x1, z0, z1, m = 0) {
+// (sinArboles: los árboles y las matas no cuentan, para lo que los quita al levantarse, como la pista)
+export function rectFree(x, z, ry, x0, x1, z0, z1, m = 0, sinArboles = false) {
   const c = Math.cos(ry), s = Math.sin(ry), ax = (x0 + x1) / 2, az = (z0 + z1) / 2, ahw = (x1 - x0) / 2 + m, ahd = (z1 - z0) / 2 + m;
   for (const o of nearby(x + ax * c + az * s, z - ax * s + az * c, Math.hypot(ahw, ahd) + 2)) {
+    if (sinArboles && (o.tree || o.bush)) continue;
     const dx = o.x - x, dz = o.z - z, lx = dx * c - dz * s, lz = dx * s + dz * c;
     if (o.type === 'circle') {
       const px = Math.max(x0, Math.min(x1, lx)), pz = Math.max(z0, Math.min(z1, lz));

@@ -155,9 +155,10 @@ export function removePlatform(p) {
 }
 export function clearPlatforms() { PLATFORMS.length = 0; PGRID.clear(); }
 /** ¿Cae (x, z) sobre una cancha o tarima, con margen m? Para no poner encima árboles, plantas, puestos ni otra pista. */
-export function onPlatform(x, z, m = 0) {
+// (escalones: con true, también los escalones y las escalinatas, para que no crezca un árbol encima)
+export function onPlatform(x, z, m = 0, escalones = false) {
   for (const p of PLATFORMS) {
-    if (p.step) continue;   // (los escalones de las puertas no cuentan: son suelo, no una pista)
+    if (p.step && !escalones) continue;   // (los escalones de las puertas no cuentan: son suelo, no una pista)
     const dx = x - p.x, dz = z - p.z, lx = dx * p.c - dz * p.s, lz = dx * p.s + dz * p.c;
     if (lx > p.x0 - m && lx < p.x1 + m && lz > p.z0 - m && lz < p.z1 + m) return true;
   }

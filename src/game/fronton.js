@@ -11,7 +11,7 @@ import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, removePlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, removeCollider, rectFree, removeMover, nearby } from '../world/colliders.js';
 import { rx, pathQuery, cercaDeYacimiento } from '../world/layout.js';
-import { clearGrass, clearTrees } from '../world/nature.js';
+import { clearGrass, clearTrees, clearBushes } from '../world/nature.js';
 import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
@@ -190,14 +190,16 @@ export const frontonExtent = (estilo) => !estilo || estilo === 'plaza' ? extent(
 export function findFrontonSpot(plaza, E = extent(), exact = false) {
   // (en un pueblo con su trazado de verdad, el frontón va donde está el real: su casa de los datos no se levanta y el
   // sitio queda libre; se busca primero ahí mismo)
-  if (exact) { const s = frontonSearch(plaza, 0, 24, 1, 0.15, false, E); if (s) return s; }
+  // (y, si se puede, sin calles ni caminos debajo a menos de 24 m de él: en Viana uno cruzaba la cancha)
+  // (y si no, hasta 36 m sin contar los árboles ni las matas, que el frontón quita al levantarse)
+  if (exact) { const s = frontonSearch(plaza, 0, 24, 1, 0.15, true, E) || frontonSearch(plaza, 0, 36, 1, 0.15, true, E, true) || frontonSearch(plaza, 0, 24, 1, 0.15, false, E); if (s) return s; }
   // primero cerca de la plaza y sin calles ni caminos debajo (las paredes los cortarían) y con sitio de sobra alrededor
   // (los tejados sobresalen del choque de las casas: antes quedaban esquinas de casa pegadas a la cancha); si así no
   // cabe, más lejos; luego dejando pasar algún camino; y al final con menos holgura: todos los pueblos tienen frontón
   return frontonSearch(plaza, 34, 130, 3, 0.2, true, E) || frontonSearch(plaza, 130, 240, 3, 0.15, true, E)
     || frontonSearch(plaza, 34, 240, 1.5, 0.2, false, E) || frontonSearch(plaza, 34, 260, 0.6, 0.15, false, E);
 }
-function frontonSearch(plaza, r0, r1, gap, da, noRoad, E) {
+function frontonSearch(plaza, r0, r1, gap, da, noRoad, E, sinArboles = false) {
   let best = null, bs = 1e9;
   for (let r = r0; r <= r1; r += 8) for (let a = 0; a < Math.PI * 2; a += da) {
     const x = plaza.x + Math.cos(a) * r, z = plaza.z + Math.sin(a) * r, face = r < 1 && plaza.ry != null ? plaza.ry : Math.atan2(plaza.x - x, plaza.z - z);
@@ -205,7 +207,7 @@ function frontonSearch(plaza, r0, r1, gap, da, noRoad, E) {
     if (cercaDeYacimiento(x, z, 26)) continue;   // (ni encima de un yacimiento)
     // la cancha se abre hacia la plaza; si así no cabe, también de lado (como muchos frontones, a lo largo de la calle)
     for (const [ry, turned] of [[face, 0], [face + Math.PI / 2, 1], [face - Math.PI / 2, 1]]) {
-      if (!rectFree(x, z, ry, E.x0, E.x1, E.z0, E.z1, gap)) continue;   // ni casas ni muros ni farolas dentro
+      if (!rectFree(x, z, ry, E.x0, E.x1, E.z0, E.z1, gap, sinArboles)) continue;   // ni casas ni muros ni farolas dentro
       const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true, road = 0;
       for (let lx = E.x0 - 1; lx <= E.x1 + 1.01 && ok; lx += 2.5) for (let lz = E.z0 - 1; lz <= E.z1 + 1.01; lz += 2.5) {
         const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;
@@ -243,7 +245,7 @@ export class Fronton {
     const g = court.group; g.position.set(spot.x, spot.y, spot.z); g.rotation.y = spot.ry; scene.add(g); g.updateMatrixWorld(true);
     const E = court.extent, mid = this.toWorld((E.x0 + E.x1) / 2, 0);
     // (y los árboles de detrás del rebote, donde se pone la cámara en las pelotas largas: su copa tapaba la cancha)
-    if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1 + (court.hall || court.labrit ? 0 : 9), spot.ry); }
+    if (!extra.noClear) { clearGrass(mid.x, mid.z, E.x1 - E.x0, E.z1, spot.ry); clearTrees(mid.x, mid.z, E.x1 - E.x0, E.z1 + (court.hall || court.labrit ? 0 : 9), spot.ry); clearBushes(mid.x, mid.z, E.x1 - E.x0, E.z1 + (court.hall || court.labrit ? 0 : 9), spot.ry); }
     if (!court.hall && !court.labrit) court.camZMax = Math.min(court.camZMax, this.fondoLibre(E.z1 + 0.2, COURT.L + 11));
     this.colls = court.boxes.map(b => { const p = this.toWorld(b.x, b.z); return addBox(p.x, p.z, b.w, b.d, spot.ry, { solidView: true }); });
     const PF = court.platform || { x0: E.x0, x1: E.x1 - 3.3, z0: E.z0, z1: E.z1 };

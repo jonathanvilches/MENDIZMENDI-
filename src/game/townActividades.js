@@ -11,7 +11,8 @@ import { PLACES } from '../world/layout.js';
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { TOWN } from '../world/townBuilder.js';
-import { addBox, addCircle, isFree } from '../world/colliders.js';
+import { addBox, addCircle, isFree, rectFree } from '../world/colliders.js';
+import { clearTrees, clearBushes } from '../world/nature.js';
 import { addCard, saveProfile } from './profile.js';
 import { choiceGame, infoCard, mashGame, play3d, sequenceGame, timingGame } from '../ui/minigames.js';
 import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.js';
@@ -294,6 +295,10 @@ export class PuebloActividades {
     // (un prado llano y despejado a las afueras: los corrales y la pista ocupan unos 50 × 24 m)
     const clear = (x, z) => { if (waterLevelAt(x, z) > groundHeight(x, z) - 0.3) return false; const h0 = groundHeight(x, z); for (let dx = -26; dx <= 26; dx += 5.2) for (let dz = -12; dz <= 12; dz += 4) { const qx = x + dx, qz = z + dz; if (!isFree(qx, qz, 1.5) || this.nearHouses(qx, qz, 9) || Math.abs(groundHeight(qx, qz) - h0) > 2.4 || waterLevelAt(qx, qz) > groundHeight(qx, qz) - 0.3) return false; } return true; };
     for (let r = 45; r <= 200 && !c; r += 12) for (let a = 0; a < 6.28 && !c; a += 0.35) { const x = P0.x + Math.cos(a) * r, z = P0.z + Math.sin(a) * r; if (clear(x, z)) c = { x, z }; }
+    // (si no hay prado despejado, uno con árboles o matas, que se quitan, y hasta 320 m: antes, sin prado, los corrales iban
+    // junto al tratante y en Lumbier caían encima de una casa)
+    const conArboles = (x, z) => { if (!rectFree(x, z, 0, -27, 27, -13, 13, 0.5, true)) return false; const h0 = groundHeight(x, z); for (let dx = -26; dx <= 26; dx += 5.2) for (let dz = -12; dz <= 12; dz += 4) { const qx = x + dx, qz = z + dz; if (this.nearHouses(qx, qz, 9) || Math.abs(groundHeight(qx, qz) - h0) > 2.4 || waterLevelAt(qx, qz) > groundHeight(qx, qz) - 0.3) return false; } return true; };
+    for (let r = 45; r <= 320 && !c; r += 12) for (let a = 0; a < 6.28 && !c; a += 0.35) { const x = P0.x + Math.cos(a) * r, z = P0.z + Math.sin(a) * r; if (conArboles(x, z)) { c = { x, z }; clearTrees(x, z - 14, 56, 28, 0); clearBushes(x, z - 14, 56, 28, 0); } }
     c ||= this.spot({ x: hostPos.x - 16, z: hostPos.z + 8 }, 10);
     const g = new THREE.Group(); g.name = 'feria'; this.scene.add(g);
     const tablas = [], postes = [], carteles = [];

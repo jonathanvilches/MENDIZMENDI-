@@ -7,18 +7,27 @@ import * as THREE from 'three';
 import { terrainHeight, waterLevelAt, addPlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, rectFree } from '../world/colliders.js';
 import { pathQuery, rx, cercaDeYacimiento } from '../world/layout.js';
-import { clearGrass, clearTrees } from '../world/nature.js';
+import { clearGrass, clearTrees, clearBushes } from '../world/nature.js';
 import { VENUES } from '../futbol/rules.js';
 
 const PL = 40, PW = 20, M = 2, HL = PL / 2 + M, HW = PW / 2 + M;   // pista y zona de seguridad (44 × 24 m)
 
 /** Sitio llano y libre para la pista (44 × 24 m más un margen), cerca de un punto; null si no cabe. */
+// (primero, sin ningún camino debajo, a menos de 230 m; si no hay, sin camino hasta 320 m; y si tampoco, el mejor hasta
+// 230 m, con lo que pise de camino como si estuviera más lejos: en Puente la Reina y Viana la pista cortaba un camino)
+// Si así no hay sitio sin caminos, otra vez sin contar los árboles ni las matas, que la pista quita al levantarse; y solo si
+// tampoco, el mejor que pisa algún camino (en Viana, una mata dejaba al pueblo sin pista; en Aribe y Orreaga la pista
+// cortaba un camino teniendo un prado con árboles al lado)
 export function findPistaSpot(near) {
-  let best = null, bs = 1e9;
-  for (let r = 40; r <= 230; r += 10) for (let a = 0; a < Math.PI * 2; a += 0.18) {
+  const a = buscaPista(near, false); if (a.libre || a.lejos) return a.libre || a.lejos;
+  const b = buscaPista(near, true); return b.libre || b.lejos || a.best || b.best;
+}
+function buscaPista(near, sinArboles) {
+  let best = null, bs = 1e9, libre = null, ls = 1e9, lejos = null, js = 1e9;
+  for (let r = 40; r <= 320; r += 10) for (let a = 0; a < Math.PI * 2; a += 0.18) {
     const x = near.x + Math.cos(a) * r, z = near.z + Math.sin(a) * r, ry = Math.atan2(near.x - x, near.z - z) + Math.PI / 2;   // la banda larga mira hacia el pueblo
     const across = Math.sign(x - rx(z)) !== Math.sign(near.x - rx(near.z));   // al otro lado del río que la plaza (hay que buscar un puente)
-    if (!rectFree(x, z, ry, -HL - 1, HL + 1, -HW - 1, HW + 1, 1.2) || cercaDeYacimiento(x, z, Math.hypot(HL, HW))) continue;   // ni casas, ni muros, ni farolas ni bancos dentro, ni un yacimiento
+    if (!rectFree(x, z, ry, -HL - 1, HL + 1, -HW - 1, HW + 1, 1.2, sinArboles) || cercaDeYacimiento(x, z, Math.hypot(HL, HW))) continue;   // ni casas, ni muros, ni farolas ni bancos dentro, ni un yacimiento
     const c = Math.cos(ry), s = Math.sin(ry); let mn = 1e9, mx = -1e9, ok = true, road = 0;
     for (let lx = -HL - 1; lx <= HL + 1.01 && ok; lx += 3) for (let lz = -HW - 1; lz <= HW + 1.01; lz += 3) {
       const X = x + lx * c + lz * s, Z = z - lx * s + lz * c;
@@ -27,12 +36,18 @@ export function findPistaSpot(near) {
       const q = pathQuery(X, Z); if (q.d < q.w + 1) road++;
     }
     if (!ok || mx - mn > 2.2) continue;
+    // (la rampa de la entrada también, que sale de la banda de +z hasta 10 m: en Aribe e Ituren era ella la que pisaba el camino)
+    for (let lx = -3; lx <= 3.01; lx += 2) for (let lz = HW + 1; lz <= HW + 10.01; lz += 2) { const q = pathQuery(x + lx * c + lz * s, z - lx * s + lz * c); if (q.d < q.w + 0.5) road++; }
+    // (si parece libre de caminos, se mira otra vez cada 2 m: cada 3, uno estrecho pasaba entre punto y punto, como en Ituren)
+    if (!road) for (let lx = -HL - 1; lx <= HL + 1.01; lx += 2) for (let lz = -HW - 1; lz <= HW + 1.01; lz += 2) { const q = pathQuery(x + lx * c + lz * s, z - lx * s + lz * c); if (q.d < q.w + 1) road++; }
     // mejor sin calles ni caminos debajo (los muretes los cortarían: cada punto de camino cuenta como 25 m más lejos) y
     // en la misma orilla que la plaza (la otra, como 100 m más lejos); si no hay otra cosa, también vale
     const score = (mx - mn) * 10 + r * 0.04 + road + (across ? 4 : 0);
+    if (r > 230) { if (!road && score < js) { js = score; lejos = { x, z, ry, y: mx + 0.06 }; } continue; }
+    if (!road && score < ls) { ls = score; libre = { x, z, ry, y: mx + 0.06 }; }
     if (score < bs) { bs = score; best = { x, z, ry, y: mx + 0.06 }; }
   }
-  return best;
+  return { libre, lejos, best };
 }
 
 // la pista pintada: zona de seguridad, pista y líneas de 8 cm (área en D, puntos de penalti a 6 y 10 m, círculo de 3 m)
@@ -122,7 +137,7 @@ export class Pista {
       for (const sx of [-1, 1]) { const p = this.toWorld(sx * (RW / 2 + 0.15), HW + RL / 2); addBox(p.x, p.z, 0.3, RL, spot.ry, { solidView: false }); }
     }
     this.rampL = RL;
-    const mid = this.toWorld(0, -HW); clearGrass(mid.x, mid.z, 2 * HL, 2 * HW, spot.ry); clearTrees(mid.x, mid.z, 2 * HL, 2 * HW + RL, spot.ry);
+    const mid = this.toWorld(0, -HW); clearGrass(mid.x, mid.z, 2 * HL, 2 * HW, spot.ry); clearTrees(mid.x, mid.z, 2 * HL, 2 * HW + RL, spot.ry); clearBushes(mid.x, mid.z, 2 * HL, 2 * HW + RL, spot.ry);
     this.entry = this.toWorld(4.6, HW + 1.4);   // junto a la entrada, al lado de la rampa
     this.center = this.toWorld(0, 0);
   }

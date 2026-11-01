@@ -306,7 +306,7 @@ export const LEVELS = [
     river: { name: 'Irati', x: 70, w: 5, amp: 6 },
     intro: 'Villa junto a la Foz de Lumbier, un desfiladero donde viven buitres, y con el carnaval de los iraskos.',
     church: { name: 'Iglesia de la Asunción', style: 'gothic', text: 'Templo de piedra en el centro del casco antiguo.' },
-    landmarks: [{ kind: 'gorge', name: 'Foz de Lumbier', text: 'El río Irati ha excavado este cañón en la roca. El Puente del Diablo se rompió en la Guerra de la Independencia.' }, { kind: 'ruin', name: 'Puente del Diablo', text: 'A la salida de la Foz quedan los restos de un puente medieval. La leyenda dice que lo levantó el diablo en una sola noche.' }],
+    landmarks: [{ kind: 'gorge', name: 'Foz de Lumbier', real: [42.6362, -1.3056], text: 'El río Irati ha excavado este cañón en la roca. El Puente del Diablo se rompió en la Guerra de la Independencia.' }, { kind: 'ruin', name: 'Puente del Diablo', real: [42.6253, -1.3028], text: 'A la salida de la Foz quedan los restos de un puente medieval. La leyenda dice que lo levantó el diablo en una sola noche.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'irasko', title: 'Oridos e iraskos', host: H('Mikel', { shirt: '#8fb07a', pants: '#34495e', hair: '#8c5a2b', messy: true, height: 1.4 }),
@@ -322,7 +322,7 @@ export const LEVELS = [
     river: null,
     intro: 'Monte del valle de Aranguren, junto a Pamplona. En la cima hay ruinas de un castillo medieval y de un poblado de los vascones de hace más de 2.000 años.',
     church: { name: 'Iglesia de San Martín de Tours', style: 'romanesque', label: 'Iglesia medieval', text: 'Sencilla iglesia de Lakidain, de origen medieval, con la torre a los pies. Guarda un retablo pintado hacia 1560 por Juan de Frías Salazar.' },
-    landmarks: [{ kind: 'dig', name: 'Poblado de Irulegi', text: 'Excavación del poblado de la Edad del Hierro donde apareció la mano de Irulegi en 2021.' }, { kind: 'ruin', name: 'Castillo de Irulegi', text: 'Ruinas de un castillo medieval en lo alto del monte. Desde aquí se ve toda la Cuenca de Pamplona.' }],
+    landmarks: [{ kind: 'dig', name: 'Poblado de Irulegi', real: [42.7790, -1.5140], text: 'Excavación del poblado de la Edad del Hierro donde apareció la mano de Irulegi en 2021.' }, { kind: 'ruin', name: 'Castillo de Irulegi', real: [42.7794, -1.5134], text: 'Ruinas de un castillo medieval en lo alto del monte. Desde aquí se ve toda la Cuenca de Pamplona.' }],
     missions: [
       { type: 'visit' },
       { type: 'dolmen', site: 'irulegi', title: 'La mano de Irulegi', host: H('Maite, arqueóloga', { shirt: '#c9a46a', vest: '#4a5a3a', pants: '#5a4a3a', hair: '#2a1a12', ponytail: true, female: true, hat: 'straw' }) },
@@ -344,7 +344,7 @@ export const LEVELS = [
     river: { name: 'Ega', x: 0, w: 6, amp: 8 },
     intro: 'La "Estella la bella" del Camino de Santiago: palacios románicos, puentes y calles de la Rúa.',
     church: { name: 'San Pedro de la Rúa', style: 'romanesque', text: 'Iglesia románica en lo alto de una escalinata, con un claustro de columnas talladas.' },
-    landmarks: [{ kind: 'palace', name: 'Palacio de los Reyes de Navarra', text: 'Uno de los pocos palacios románicos civiles de España, del siglo XII.' }, { kind: 'bridge', name: 'Puente de la Cárcel', text: 'Puente de un arco muy alto sobre el Ega.' }, { kind: 'fountain', name: 'Fuente del vino (Irache)', text: 'Muy cerca, en el monasterio de Irache, los peregrinos encuentran una fuente de la que sale vino y agua.' }, { kind: 'chapel', name: 'Iglesia del Santo Sepulcro', text: 'En la calle de la Rúa, por donde pasan los peregrinos. Su portada gótica está llena de figuras: los doce apóstoles, la Última Cena y el entierro de Jesús.' }],
+    landmarks: [{ kind: 'palace', name: 'Palacio de los Reyes de Navarra', text: 'Uno de los pocos palacios románicos civiles de España, del siglo XII.' }, { kind: 'bridge', name: 'Puente de la Cárcel', text: 'Puente de un arco muy alto sobre el Ega.' }, { kind: 'fountain', name: 'Fuente del vino (Irache)', real: [42.6507, -2.0440], text: 'Muy cerca, en el monasterio de Irache, los peregrinos encuentran una fuente de la que sale vino y agua.' }, { kind: 'chapel', name: 'Iglesia del Santo Sepulcro', text: 'En la calle de la Rúa, por donde pasan los peregrinos. Su portada gótica está llena de figuras: los doce apóstoles, la Última Cena y el entierro de Jesús.' }],
     missions: [
       { type: 'visit' },
       { type: 'carnival', character: 'paloki', title: 'Los palokis', host: H('Amaia', { shirt: '#b34fc4', skirt: '#34495e', pants: '#f3cfb3', hair: '#1f1712', braids: true, height: 1.3 }), text: 'Los palokis elevan telas con un aro y parecen gigantes. Búscalos en el carnaval.' },
@@ -591,7 +591,9 @@ for (const id of DOLMEN_TOWNS) {
 for (const [id, S] of Object.entries(SITES)) {
   if (!S.tipo) continue;
   const l = LEVELS.find(x => x.id === S.town); if (!l?.missions) continue;
-  if (!(l.landmarks || []).some(x => x.kind === S.landmark)) (l.landmarks ||= []).push({ kind: S.landmark, name: S.lmName || S.title, text: S.what, ...S.lm });
+  // (con su punto de verdad, real: townReal.js lo pone ahí si cae en el mapa y, si no, en el borde del pueblo hacia allí)
+  const real = S.lat != null ? [S.lat, S.lon] : undefined, ya = (l.landmarks || []).find(x => x.kind === S.landmark);
+  if (ya) { if (real && !ya.real) ya.real = real; } else (l.landmarks ||= []).push({ kind: S.landmark, name: S.lmName || S.title, text: S.what, real, ...S.lm });
   const at = l.missions.findIndex(m => m.type === 'quiz');
   l.missions.splice(at < 0 ? l.missions.length : at, 0, { type: 'dolmen', site: id, title: S.title, host: S.host });
 }

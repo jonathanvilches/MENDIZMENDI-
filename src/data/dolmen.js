@@ -42,6 +42,6 @@ const IRULEGI = {
 };
 DOLMEN.whatTitle = 'El dolmen'; DOLMEN.stepsTitle = 'Así se levantaba un dolmen'; DOLMEN.nowTitle = 'Los primeros pastores';
 DOLMEN.card = 'El dolmen'; DOLMEN.icon = 'dolmen'; DOLMEN.landmark = 'dolmen'; DOLMEN.where = 'alrededor del dolmen'; DOLMEN.hostDone = '¡Buen trabajo! Con lo que has encontrado sabemos cómo vivían. Ahora, ¿cómo crees que levantaban el dolmen?';
-IRULEGI.town = 'irulegi'; IRULEGI.lat = 42.78; IRULEGI.lon = -1.55;
+IRULEGI.town = 'irulegi'; IRULEGI.lat = 42.7794; IRULEGI.lon = -1.5134;   // (la cima del monte Irulegi, OSM: el castillo y el poblado)
 // (y los demás yacimientos de Navarra: crómlech, menhires, cuevas, poblados y ciudades y villas romanas)
 export const SITES = { dolmen: DOLMEN, irulegi: IRULEGI, ...yacimientos(DOLMEN) };

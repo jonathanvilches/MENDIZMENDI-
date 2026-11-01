@@ -5,7 +5,9 @@ import json, glob, os
 raiz = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'data', 'reales')
 C = {}
 for f in sorted(glob.glob(os.path.join(raiz, '*.json')) + glob.glob(os.path.join(raiz, 'mapa', '*.json'))):
-    d = json.load(open(f)); C[os.path.basename(f)[:-5]] = [round(d['lat'], 6), round(d['lon'], 6)]
+    d = json.load(open(f))
+    if not isinstance(d, dict) or 'lat' not in d: continue   # (emblemas.json y demás, que no son un pueblo)
+    C[os.path.basename(f)[:-5]] = [round(d['lat'], 6), round(d['lon'], 6)]
 with open(os.path.join(raiz, 'centros.js'), 'w') as o:
     o.write('// El centro de verdad de cada pueblo con su trazado (su plaza), para su baliza en el mapa del inicio.\n// Lo escribe tools/reales-centros.py a partir de los JSON de esta carpeta y de mapa/.\n')
     o.write('export const CENTROS = {\n' + ''.join(f"  '{k}': [{v[0]}, {v[1]}],\n" for k, v in C.items()) + '};\n')

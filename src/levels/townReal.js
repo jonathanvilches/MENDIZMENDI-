@@ -326,12 +326,52 @@ export function createRealTownLevel(def, D) {
     return best;
   };
   const nearHouse = (x, z, r) => CASAS.filter(c => !TAKEN.has(c) && c.k !== 'church' && Math.hypot(c.x - x, c.z - z) < r).sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z))[0] || null;
+  // (los monumentos con su punto de verdad en la ficha, lm.real = [lat, lon]: si cae en el mapa, ahí mismo; si no, en el
+  // borde del pueblo hacia donde está, en la orilla del río los del río (la Foz y el Puente del Diablo de Lumbier) y en la
+  // salida por esa carretera los demás (la Fuente del vino, de Estella hacia Irache). Antes iban a un hueco cualquiera:
+  // la fuente, en la plaza de Estella)
+  const GRANDE = new Set(['castle', 'walls', 'dig', 'ruin', 'monolith', 'dolmen', 'lookout', 'cave', 'palomeras', 'tunnel', 'stone', 'pass', 'gorge', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);
+  const MONTE_K = new Set(['lookout', 'pass', 'dig', 'monolith', 'dolmen', 'gorge', 'cave', 'tunnel', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);
+  const lejosDeOtros = (x, z) => !PLACES.landmarks.some(l => Math.hypot(l.x - x, l.z - z) < 40);
+  function haciaReal([lat, lon], k, nombre = '') {
+    if (D.lat == null) return null;
+    const x = (lon - D.lon) * 111320 * Math.cos(D.lat * Math.PI / 180), z = -(lat - D.lat) * 111320, d = Math.hypot(x, z) || 1, m = GRANDE.has(k) ? 12 : 4;
+    // (lo del monte, en el campo, fuera del casco: el poblado del Alto de la Cruz caía entre las casas de Cortes)
+    const campo = (X, Z) => !MONTE_K.has(k) || villageMask(X, Z) < 0.05;
+    if (inner(x, z)) { const p = near(x, z, (X, Z) => okSpot(X, Z, m, 0.3) && lejosDeOtros(X, Z) && campo(X, Z) && (!YAC.has(k) || lejosFronton(X, Z)), 60); if (p) return p; }
+    const dx = x / d, dz = z / d;
+    // (en la orilla, solo lo que es del río: la foz, el molino, la almadía y las ruinas de un puente; el castillo de Irulegi, no)
+    if ((['gorge', 'mill', 'raft'].includes(k) || (k === 'ruin' && /puente|zubi/i.test(nombre))) && mainRiver) {
+      let best = null, bs = 0;
+      for (let i = 0; i < mainRiver.pts.length - 1; i++) {
+        const [px, pz] = mainRiver.pts[i], r = Math.hypot(px - PL.x, pz - PL.z), s = (px * dx + pz * dz) / (Math.hypot(px, pz) || 1);
+        if (r < 120 || r > 440 || s <= bs + 0.02) continue;
+        const [x1, z1] = mainRiver.pts[i + 1], l = Math.hypot(x1 - px, z1 - pz) || 1, nx = (z1 - pz) / l, nz = -(x1 - px) / l;
+        for (const sd of [1, -1]) { const X = px + sd * nx * (mainRiver.half + 6), Z = pz + sd * nz * (mainRiver.half + 6);
+          if (inner(X, Z) && !occupied(X, Z, 3) && slopeAt(X, Z) < 0.35 && lejosDeOtros(X, Z)) { best = { x: X, z: Z }; bs = s; break; } }
+      }
+      if (best && bs > 0.5) return best;
+    }
+    // (en la línea que va hacia allí, desde el borde del casco hacia fuera, y si no hay sitio, girando poco a poco hasta 35°
+    // a cada lado; si tampoco, la salida por esa carretera)
+    for (const g of [0, 10, -10, 20, -20, 35, -35]) {
+      const a = g * Math.PI / 180, ux = dx * Math.cos(a) - dz * Math.sin(a), uz = dx * Math.sin(a) + dz * Math.cos(a);
+      for (let r = R + 20; r <= Math.min(R + 200, 440); r += 10) {
+        const p = near(PL.x + ux * r, PL.z + uz * r, (X, Z) => okSpot(X, Z, m, 0.3) && lejosDeOtros(X, Z) && campo(X, Z) && (!YAC.has(k) || lejosFronton(X, Z)), 16);
+        if (p) return p;
+      }
+    }
+    if (MONTE_K.has(k)) return null;   // (si no hay campo hacia allí, donde iba antes: en lo alto o en un hueco del campo)
+    const e = onStreet(dx, dz, R + 20, R + 120);
+    return e && (freeNear(e.x, e.z, 6, 50, m) || null);
+  }
   PLACES.landmarks = [];
   const pads = [];
   for (const lm of def.landmarks || []) {
     let pos = null, b = null, clearR = 0, placeName = null;
     const keys = keysOf(lm.name), k = lm.kind; LMW = nrm(lm.name).split(/[^a-z0-9ñ]+/).filter(w => w.length > 3);
-    if (k === 'castle') { b = byName(keys, /castillo|gaztelu|palacio real|errege jauregi|jauregi/); clearR = 30; }
+    if (lm.real && lm.x == null && (pos = haciaReal(lm.real, k, lm.name))) { /* en su sitio de verdad o hacia él */ }
+    else if (k === 'castle') { b = byName(keys, /castillo|gaztelu|palacio real|errege jauregi|jauregi/); clearR = 30; }
     else if (k === 'palace') { b = byName(keys, /palacio|jauregi/); }
     else if (k === 'towerhouse') { b = byName(keys, /dorre|torre/) || CASAS.filter(c => c.k === 'tower' && !TAKEN.has(c)).sort((p, q) => Math.hypot(p.x, p.z) - Math.hypot(q.x, q.z))[0] || null; }
     else if (k === 'house') { b = byName(keys, null); }
@@ -339,12 +379,15 @@ export function createRealTownLevel(def, D) {
     // (las ruinas con nombre propio, en el edificio que se llama así: las de San Pedro de Viana, en su iglesia, no en el
     // punto de los datos de lugares, que caía 160 m más allá, en el centro)
     else if (k === 'ruin' && keys.length) { b = byName(keys, /ruina|iglesia|ermita|eliza|castillo|torre/); }
-    if (!b && !['bridge', 'townhall', 'kiosk', 'fountain', 'plaza'].includes(k)) {
+    if (!pos && !b && !['bridge', 'townhall', 'kiosk', 'fountain', 'plaza'].includes(k)) {
       const pl = placeByName(keys, KIND_RE[k] || null, NATURAL.has(k));
       if (pl) {
         USED.add(pl); placeName = pl.n;
         if (['castle', 'palace', 'towerhouse', 'house', 'chapel', 'mill', 'horreo'].includes(k)) b = nearHouse(pl.x, pl.z, 25);
         if (!b) pos = { x: pl.x, z: pl.z, ring: k === 'walls' || undefined };
+        // (la muralla que rodea la iglesia, con la iglesia en medio: el Cerco de Artajona guarda San Saturnino, y el punto
+        // de los datos, a 37 m, dejaba la iglesia cortada por el muro)
+        if (k === 'walls' && Math.hypot(pl.x - PLACES.church.x, pl.z - PLACES.church.z) < 60) pos = { x: PLACES.church.x, z: PLACES.church.z, ring: true };
       }
     }
     if (pos) { /* ya en su sitio por el lugar con nombre */ }
@@ -376,7 +419,7 @@ export function createRealTownLevel(def, D) {
     const rr = clearR || (k === 'walls' && pos.ring ? 0 : ['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) || b ? 0 : 8);
     if (rr) for (const c of CASAS) if (Math.hypot(c.x - o.x, c.z - o.z) < rr + Math.max(c.w, c.d) / 2) TAKEN.add(c);
     if (k === 'walls' && pos.ring) for (const c of CASAS) if (Math.abs(Math.hypot(c.x - o.x, c.z - o.z) - 44) < Math.max(c.w, c.d) / 2 + 3) TAKEN.add(c);
-    if (!b && !['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : ['castro', 'romana', 'villa'].includes(k) ? 15 : 9, blend: 12 });
+    if (!b && (!['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) || (lm.real && k === 'fountain')) && !pos.ring) pads.push({ x: o.x, z: o.z, r: k === 'castle' ? 30 : ['castro', 'romana', 'villa'].includes(k) ? 15 : 9, blend: 12 });
     if (b && k === 'castle') pads.push({ x: o.x, z: o.z, r: 30, blend: 16 });
   }
   // ---------- El núcleo: donde se juega ----------

@@ -280,9 +280,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Los montes** (revisados uno a uno en noviembre de 2026): cada cima de `data/mountains.json` comparada con su cima de
   OpenStreetMap (de Overture, `tools/relieve/cimas-overture.py`) y con el relieve de verdad (AWS Terrain Tiles, nivel 13).
   24 tenían el punto lejos de su cumbre, hasta casi 6 km (Goñiburu, Astobizkar, Otanarte, Berrendi, Baigura,
-  Lapazarra…), y se han llevado a la cima; Adi y Burdindogi, a la comarca donde caen. Bonbagaina va con `dudoso`: su punto
-  cae en un valle y en OSM no hay cima con ese nombre; no sale en el mapa, ni en los miradores ni en el horizonte hasta
-  comprobarlo. Con los puntos nuevos se ha vuelto a calcular `data/relieve.js` (`tools/relieve/perfiles.py`): cambian los
+  Lapazarra…), y se han llevado a la cima; Adi y Burdindogi, a la comarca donde caen. Bonbagaina va con `dudoso`: en OSM no
+  hay cima con ese nombre; su punto, que caía en un valle, va ahora a la cima sin nombre de unos 1.175 m que hay a 800 m
+  del collado de San Francisco (San Frantzisko lepoa, de donde sale su ruta), al este de Hiriberri, como dice su ficha;
+  no sale en el mapa, ni en los miradores ni en el horizonte hasta confirmarlo. Con los puntos nuevos se ha vuelto a calcular `data/relieve.js` (`tools/relieve/perfiles.py`): cambian los
   montes que se ven desde los miradores de Lekunberri, Orreaga e Irulegi. En el mapa del inicio (`mapa3d.js`, `PK`), cada
   monte en su cima con su nombre y su altura, con la comarca elegida o muy de cerca; si no cabe encima, debajo, y si
   tampoco, solo el triángulo. En las comarcas con pocos montes en la colección, además, sus cimas de OSM que más destacan
@@ -291,9 +292,30 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   buscada por las palabras propias de su nombre (el santo o la advocación, en castellano o en euskera: «Done Mikel eliza»
   es la de San Miguel). La usan la misión de la iglesia (`levels/townReal.js`) y el rótulo de la maqueta. Antes iba en la
   iglesia más grande cerca del centro, y en Tudela, Olite, Estella y Puente la Reina era otra. Si no está en los datos,
-  queda la de los datos con su propio nombre en el rótulo (Artajona, Erronkari, Irulegi). Los monumentos de la ficha ya no
-  se ponen encima de la iglesia, y lo que va junto a ella (ermitas, estelas, la tumba de César Borgia en Viana) se busca a
-  su lado y no junto al centro del pueblo.
+  queda la de los datos con su propio nombre en el rótulo. También vale el edificio que solo lleva el nombre del santo, aunque
+  el dato lo tenga por casa, si tiene todas las palabras de la ficha: «San Saturnino» en el Cerco de Artajona (y la muralla
+  del Cerco, en anillo alrededor de ella), «San Esteban» en lo alto de Erronkari. Los monumentos de la ficha ya no se ponen
+  encima de la iglesia, y lo que va junto a ella (ermitas, estelas, la tumba de César Borgia en Viana) se busca a su lado y
+  no junto al centro del pueblo.
+- **Monumentos con su punto de verdad** (`real: [lat, lon]` en la ficha; los yacimientos de `data/yacimientos.js` lo
+  llevan solos): si cae dentro del mapa del pueblo, ahí; si no, en el borde del casco en la línea hacia donde está (los del
+  río, en su orilla), para que el mapa y la brújula señalen su dirección de verdad. La Fuente del vino, a la salida de
+  Estella hacia Irache, y no en la plaza; la Foz y el Puente del Diablo, al sur de Lumbier, en la orilla.
+- **Frontón y pista sin caminos debajo**: el frontón de los datos se mueve hasta 24 m si así no pisa ninguna calle; la pista
+  busca primero un sitio sin caminos a menos de 230 m, luego hasta 320 m, y solo si no lo hay acepta pisar alguno. Si así
+  no cabe en ningún sitio, otra vez sin contar los árboles ni las matas (`rectFree(…, sinArboles)`), que la pista y el
+  frontón quitan al levantarse (`clearTrees` y `clearBushes`, en `world/nature.js`): en Viana, una mata la dejaba sin pista.
+  Los caminos se miran también bajo la rampa de entrada de la pista, y cada 2 m si parece libre. En Aribe, Ituren y Viana
+  no hay ningún hueco llano sin camino, y la pista pisa un poco uno (en Viana, también el frontón, que está donde el real).
+  La feria de ganado, si no hay prado despejado, busca hasta 320 m uno con árboles y los quita (antes, sin prado, los
+  corrales iban junto al tratante y en Lumbier caían encima de una casa). Los árboles del casco no crecen en escalones ni
+  escalinatas (`onPlatform(…, true)`): en Lumbier un roble salía en los escalones de la iglesia.
+- **Irulegi es Lakidain** (noviembre de 2026): la ficha es la de Lakidain, al pie del monte Irulegi, pero su trazado se
+  había sacado alrededor de Ilundáin, 1 km al suroeste, y salía la iglesia de San Juan Evangelista. `data/reales/irulegi.json`
+  se ha vuelto a sacar centrado en Lakidain (`tools/pueblo-real.py` y `tools/pueblo-real-juego.py`, misma versión de
+  Overture que los demás) y su iglesia es ya la de San Martín de Tours; `centros.js` lo sigue (`tools/reales-centros.py`, que
+  ahora se salta los JSON que no son un pueblo). El yacimiento, el castillo y el poblado van hacia la cima del monte Irulegi
+  (42,7794 −1,5134, OSM), al este; antes el punto del yacimiento caía al oeste.
 - **Color y texturas de la maqueta y del relieve** (`hub/maqueta.js`, `hub/emblemas.js`, `hub/mapa3d.js` y
   `hub/mapa3dSombreadores.js`):
   - `setHSL` va en color lineal: una luminosidad de 0,75 ya se ve casi blanca. Las paredes, en `PARED`, con valores

@@ -2,7 +2,8 @@
 // la ficha del pueblo (levels.js), para que la misión de la iglesia y el rótulo del mapa del inicio caigan en su sitio.
 // lugares.iglesia, la que eligió tools/pueblo-real-juego.py, es la iglesia más grande cerca del centro, y a veces es otra:
 // en Tudela, el colegio de San Francisco Javier en vez de la catedral; en Olite, San Pedro en vez de Santa María la Real;
-// en Estella, San Miguel en vez de San Pedro de la Rúa; en Puente la Reina, el Crucifijo en vez de Santiago.
+// en Estella, San Miguel en vez de San Pedro de la Rúa; en Puente la Reina, el Crucifijo en vez de Santiago; en Artajona,
+// San Pedro en vez de San Saturnino; en Erronkari, la ermita del Castillo en vez de San Esteban.
 // Se comparan las palabras propias del nombre (el santo, la advocación), en castellano o en euskera: «Done Mikel eliza»
 // es «Iglesia de San Miguel»; «Jasokundeko Andre Mariaren eliza», «Iglesia de la Asunción».
 
@@ -32,7 +33,10 @@ export function palabrasIglesia(n, pueblo = '') {
 const comunes = (A, B) => { let k = 0; for (const w of A) if (B.has(w)) k++; return k; };
 // (los edificios que pueden ser una iglesia aunque el dato no lo diga: no un hotel, una calle o el archivo de la catedral)
 const TEMPLO = /iglesia|parroquia|catedral|colegiata|kolegiata|bas[ií]lica|eliza|santuario|ermita|baseliza|capilla|kapera|convento|monasterio/i;
-const NO_TEMPLO = /hotel|hostal|albergue|restaurante|\bbar\b|archivo|biblioteca|museo|calle|kalea|plaza|\bcine\b|colegio|escuela/i;
+const NO_TEMPLO = /hotel|hostal|albergue|restaurante|\bbar\b|archivo|biblioteca|museo|calle|kalea|plaza|\bcine\b|colegio|escuela|casa|etxea/i;
+// (y los que solo llevan el nombre del santo, aunque el dato los tenga por casa: «San Saturnino» en el Cerco de Artajona,
+// «San Esteban» en lo alto de Erronkari; estos, solo si tienen todas las palabras de la ficha)
+const SANTO = /^(san|santa|santo|santiago|nuestra señora|andre|andra|done)\b/i;
 
 /**
  * La iglesia del juego en los datos de un pueblo real: { casa, propia }. casa: el edificio (o null); propia: si es la
@@ -51,8 +55,9 @@ export function iglesiaReal(D, nombre, pueblo = '') {
   // si no, el edificio que más palabras comparte con la ficha y es un templo (y, a igualdad, de tipo iglesia y el mayor)
   let best = null, bk = 0;
   for (const c of D.casas || []) {
-    if (!c.n || c === ig || NO_TEMPLO.test(c.n) || !(c.k === 'church' || TEMPLO.test(c.n))) continue;
+    if (!c.n || c === ig || NO_TEMPLO.test(c.n)) continue;
     const k = comunes(P, palabrasIglesia(c.n, pueblo)); if (!k) continue;
+    if (!(c.k === 'church' || TEMPLO.test(c.n) || (SANTO.test(c.n.trim()) && k === P.size))) continue;
     const s = k * 10 + (c.k === 'church' ? 1 : 0);
     if (s > bk || (s === bk && (c.a || 0) > (best.a || 0))) { best = c; bk = s; }
   }

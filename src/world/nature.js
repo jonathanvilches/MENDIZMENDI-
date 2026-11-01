@@ -9,6 +9,7 @@ import { fbm } from '../util/noise.js';
 import { TEX, FOLIAGE } from './textures.js';
 import { groundUniforms } from './builder.js';
 import { snowable } from './weather.js';
+import { TOWN } from './townBuilder.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
 
 // (uVer: el pecho del personaje, y uVerOn, si se está jugando con él a la vista: lo que hay entre la cámara y él se abre)
@@ -497,6 +498,8 @@ varying vec2 vTUv; varying vec3 vTP;
 // ---------- Colocación ----------
 const CHUNK = 125;
 export const TREES = [];
+// (las matas y los arbustos de los jardines, con su choque y su sitio en las mallas: clearBushes los quita)
+const MATAS = [];
 
 function treeSpots(rnd) {
   const spots = [];
@@ -524,7 +527,7 @@ function treeSpots(rnd) {
   // árboles fijos (los de la plaza y las alamedas de Pamplona): no se colocan a ciegas, porque al mover plazas y calles
   // podían quedar dentro de una casa o en mitad de una calle. Los de la plaza buscan un hueco cerca; los que van en
   // hilera (nudge sin marcar) se quitan, para no romper la fila
-  const fits = (x, z) => { if (!isFree(x, z, 1.6) || onPlatform(x, z, 1.5)) return false; const p = pathQuery(x, z); return p.d > p.w + 0.8; };
+  const fits = (x, z) => { if (!isFree(x, z, 1.6) || onPlatform(x, z, 1.5, true)) return false; const p = pathQuery(x, z); return p.d > p.w + 0.8; };
   for (const [x, z, type, s, nudge] of SPECIAL_TREES || []) {
     const rot = rnd() * 6; let X = x, Z = z, ok = fits(x, z);
     if (nudge) for (let k = 1; !ok && k <= 30; k++) { const a = k * 2.4, d = 1 + k * 0.28; X = x + Math.cos(a) * d; Z = z + Math.sin(a) * d; ok = fits(X, Z); }
@@ -580,7 +583,8 @@ function townTrees(fits) {
     const x = P0.x + (rnd() - 0.5) * 520, z = P0.z + (rnd() - 0.5) * 520;
     if (villageMask(x, z) < 0.45 || surfAt('street', x, z) > 0.05 || surfAt('dirt', x, z) > 0.2) continue;
     const p = pathQuery(x, z); if (p.d < p.w + 3) continue;
-    if (cerca(x, z, 9) || !isFree(x, z, 3.2) || isFree(x, z, 10) || onPlatform(x, z, 2)) continue;
+    // (y lejos de tarimas y escalinatas, con la copa: en Lumbier un roble crecía en los escalones de la iglesia)
+    if (cerca(x, z, 9) || !isFree(x, z, 3.2) || isFree(x, z, 10) || onPlatform(x, z, 3.2, true)) continue;
     const t = TONE === 'arid' ? (rnd() < 0.6 ? 'olive' : 'apple') : rnd() < 0.6 ? 'apple' : 'oak';
     out.push({ x, z, y: terrainHeight(x, z), type: t, s: t === 'oak' ? 0.55 + rnd() * 0.2 : 0.7 + rnd() * 0.25, rot: rnd() * 6.28, special: true });
   }
@@ -618,7 +622,7 @@ export class Nature {
         FAR_LITE = true; for (const k of Object.keys(geos)) geos[k][1] = MK[k](r2, false);
       } finally { FAR_LITE = false; NEAR_LV = 1; }
     }
-    TREES.length = 0;
+    TREES.length = 0; MATAS.length = 0;
     let spots = treeSpots(rnd);
     // menos árboles, pero cada uno con todo su detalle (mejor pocos y bonitos que muchos y pobres)
     // (en los bosques, más y, sobre todo, cerca de donde se juega: la espesura se va aclarando hacia lo lejos)
@@ -817,7 +821,7 @@ export class Nature {
     }
     this.bushSpots = bushSpots;   // (para revisar choques: tools/movimiento.mjs)
     // las matas no se atraviesan (antes el jugador, los vecinos y los animales pasaban por dentro); los helechos sí, son bajos
-    for (const b of bushSpots) addCircle(b.x, b.z, 0.36 * b.s, { bush: true });
+    for (const b of bushSpots) { b.col = addCircle(b.x, b.z, 0.36 * b.s, { bush: true }); MATAS.push(b); }
     const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
     const matF = snowable(windMaterial({ side: THREE.DoubleSide }, { fern: true }), 0.5, 0.25, 0.8);
     // por trozos del mapa y solo de cerca: una sola malla para todo el valle se dibujaba entera (también lo que queda
@@ -826,13 +830,15 @@ export class Nature {
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     for (const [geo, list, mat] of [[g, bushSpots, matB], [fern, fernSpots.slice(0, bq && this.quality !== 'low' ? 9000 : 5000), matF]]) {
       for (const s of list) s.r = rnd() * 6;
-      this.addChunked(list, geo, null, mat, (s) => m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s)), { name: 'matas' });
+      for (const { im, items } of this.addChunked(list, geo, null, mat, (s) => m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s)), { name: 'matas' })) items.forEach((s, i) => (s.inst ||= []).push([im, i]));
     }
   }
   // Jardines del casco: matas y arbustos en flor (azaleas, hortensias, adelfas, lavanda) pegados a las casas y a las tapias,
   // donde hay hierba y no es calle ni plaza. Con su propio azar, para no cambiar el resto del valle
   buildGardens() {
     if (MOD?.bosque || !PLACES?.plaza) return;
+    // (dentro de la planta de una casa, aunque no tenga choque: en Pamplona alguna mata salía dentro de una)
+    const enCasa = (x, z) => (TOWN.houses || []).some(h => { if (!h.w || !h.d) return false; const c = Math.cos(h.ry || 0), s = Math.sin(h.ry || 0), dx = x - h.x, dz = z - h.z; return Math.abs(dx * c - dz * s) < h.w / 2 + 0.3 && Math.abs(dx * s + dz * c) < h.d / 2 + 0.3; });
     const rnd = mulberry32(778), P0 = PLACES.plaza;
     const verde = ['#3a6428', '#7fae45'];
     const flor = [['#b3245f', '#ff6fae'], ['#4f4fb8', '#9bb4ff'], ['#c2410c', '#ff9a3d'], ['#e8e3ef', '#ffffff'], ['#7a3fb0', '#c79bff'], ['#c81e3a', '#ff5a6e']];
@@ -845,7 +851,7 @@ export class Nature {
       const c = Math.floor(x / 2.2) * 8192 + Math.floor(z / 2.2); if (cel.has(c)) continue;
       if (villageMask(x, z) < 0.4 || surfAt('street', x, z) > 0.08 || surfAt('water', x, z) > 0) continue;
       const p = pathQuery(x, z); if (p.d < p.w + 1.2) continue;
-      if (!isFree(x, z, 0.9) || isFree(x, z, 3.6) || onPlatform(x, z, 1)) continue;   // (pegadas a una pared, una tapia o un árbol)
+      if (!isFree(x, z, 0.9) || isFree(x, z, 3.6) || onPlatform(x, z, 1) || enCasa(x, z)) continue;   // (pegadas a una pared, una tapia o un árbol; nunca dentro de una casa)
       cel.add(c); n++;
       lists[rnd() < 0.4 ? 0 : 1 + Math.floor(rnd() * flor.length)].push({ x, z, s: 0.55 + rnd() * 0.5, r: rnd() * 6.28 });
     }
@@ -853,8 +859,8 @@ export class Nature {
     const m4 = new THREE.Matrix4(), qq = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
     geos.forEach((g, i) => {
       const list = lists[i]; if (!list.length) return;
-      for (const b of list) addCircle(b.x, b.z, 0.34 * b.s, { bush: true });
-      this.addChunked(list, g, null, matB, (b) => m4.compose(v.set(b.x, terrainHeight(b.x, b.z) - 0.08, b.z), qq.setFromEuler(e.set(0, b.r, 0)), sc.setScalar(b.s)), { name: 'jardin' });
+      for (const b of list) { b.col = addCircle(b.x, b.z, 0.34 * b.s, { bush: true }); MATAS.push(b); }
+      for (const { im, items } of this.addChunked(list, g, null, matB, (b) => m4.compose(v.set(b.x, terrainHeight(b.x, b.z) - 0.08, b.z), qq.setFromEuler(e.set(0, b.r, 0)), sc.setScalar(b.s)), { name: 'jardin' })) items.forEach((b, i) => (b.inst ||= []).push([im, i]));
     });
   }
   // El suelo del bosque: troncos caídos con musgo (no se atraviesan) y corrillos de setas, la roja de puntos blancos
@@ -1046,6 +1052,18 @@ export function clearTrees(cx, cz, w, d, ry, m = 1) {
     t.quitado = true;
     if (t.col) removeCollider(t.col);
     TREES.splice(k, 1);
+  }
+}
+// Quita las matas y los arbustos de un rectángulo girado, como clearTrees: la pista y el frontón (antes una mata en medio
+// dejaba a Viana sin pista)
+export function clearBushes(cx, cz, w, d, ry, m = 0.5) {
+  const c = Math.cos(ry), s = Math.sin(ry);
+  for (let k = MATAS.length - 1; k >= 0; k--) {
+    const b = MATAS[k], dx = b.x - cx, dz = b.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + 0.5 * b.s;
+    if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
+    for (const [im, i] of b.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
+    if (b.col) removeCollider(b.col);
+    MATAS.splice(k, 1);
   }
 }
 // Quita la hierba (y la trama del suelo) de un rectángulo girado: canchas, frontones…
