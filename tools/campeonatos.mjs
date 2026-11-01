@@ -42,7 +42,10 @@ for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
   await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]').click());
   await p.waitForFunction(() => document.querySelector('.pel-panel'), null, { timeout: 60000 }); await shot(p, 'pel-panel');
   await p.evaluate(() => document.querySelector('[data-pel-go]').click()); await p.waitForTimeout(4000); await shot(p, 'pel-partido');
-  await p.evaluate(() => document.querySelector('.pel-exit').click()); await p.waitForTimeout(400);
+  // (salir: desde el menú de la derecha, «Salir del partido», cuando ya no está el sorteo del saque encima)
+  await p.waitForFunction(() => document.querySelector('.pel-root:not(.paneled) .pm-salir'), null, { timeout: 180000 });
+  await p.evaluate(() => document.querySelector('.pm-salir').click());
+  await p.waitForFunction(() => document.querySelector('[data-pel-yes]'), null, { timeout: 60000 });
   await p.evaluate(() => document.querySelector('[data-pel-yes]').click());
   await p.waitForFunction(() => document.querySelector('.lg-root [data-a="exit"]'), null, { timeout: 60000 });
   await p.evaluate(() => document.querySelector('.lg-root [data-a="exit"]').click());

@@ -652,6 +652,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     ciervo, trucha, zorro, pottoka y pito); sus renders de antes siguen en la carpeta sin cargarse. Los pocos que el
     autor no ha dibujado (corzo, grulla, lechuza, milano, quebrantahuesos, cabra) son renders del juego.
 - **Comentarios en castellano**, explicando el porqué.
+- **Sin duplicados** (revisión de noviembre de 2026):
+  - Toda escucha en `window` o `document` se quita al soltar lo que la puso, con una función con nombre. El mapa del
+    inicio ponía una en `blur` sin nombre y, con cada vuelta al menú, se quedaba vivo el mapa anterior entero.
+  - En un pueblo no hay dos personas con el mismo nombre ni ninguna con el del jugador (`nombresUnicos` en
+    `townGame.js`, con `nombreLibre` de `data/nombres.js`). Los anfitriones de misión conservan el suyo.
+  - Los sabios no se repiten en un pueblo: hay 16 en `data/sabios.js` y se coge el siguiente libre.
+  - Cada paseante tiene su sitio un poco a un lado en cada parada, en un anillo, para no andar ni pararse uno dentro de
+    otro cuando comparten ruta.
+  - Para revisarlo, en la carpeta de trabajo de la sesión: `estatico.mjs` (claves repetidas en un objeto, casos repetidos,
+    funciones dobles, ids repetidos en las listas), `datos.mjs` (ids y nombres repetidos en los datos), `dobles.mjs`
+    (escuchas, bucles de dibujo, relojes, contextos y músicas que se acumulan al entrar y salir) y `gemelos.mjs` (en
+    cada pueblo, personas encima unas de otras o con el mismo nombre, misiones y objetos repetidos). Las calles de
+    `village.js` repiten id a propósito: una por cada lado.
+  - Las reglas repetidas de `style.css` son la capa de la identidad morada encima del papel de antes: se ve la última.
 
 ## Herramientas y pruebas (`tools/`)
 

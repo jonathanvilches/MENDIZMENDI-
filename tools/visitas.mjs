@@ -1,7 +1,7 @@
 // Varias visitas seguidas (menú → pueblo → salir → otro pueblo…) en un móvil emulado, midiendo la memoria de
 // JavaScript y la de lienzos 2D vivos. Si crece sin parar, hay una fuga. Uso: node tools/visitas.mjs [pueblos]
 import { chromium } from 'playwright-core';
-const [,, towns = 'lesaka,pamplona,tudela,ochagavia,estella'] = process.argv;
+const [,, towns = 'lesaka,pamplona,tudela,otsagabia-ochagavia,estella'] = process.argv;
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--js-flags=--expose-gc'] });
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true });
 const p = await ctx.newPage(); const errs = [];

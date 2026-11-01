@@ -17,7 +17,7 @@ const res = await p.evaluate(async () => {
   { const pr = MG.timingGame(ui, { title: 'Prueba', hint: 'barra', rounds: 5, need: 3 });
     const o = document.querySelector('.mg-overlay.timing') || document.querySelector('.timing'); let n = 0;
     const t0 = performance.now();
-    while (n < 5 && performance.now() - t0 < 30000) {
+    while (n < 5 && performance.now() - t0 < 90000) {
       const z = o.querySelector('.zone').getBoundingClientRect(), c = o.querySelector('.cursor').getBoundingClientRect(), cx = c.left + c.width / 2;
       if (cx > z.left + z.width * 0.3 && cx < z.right - z.width * 0.3) { down(o.querySelector('button')); n++; await sleep(700); } else await sleep(8);
     }

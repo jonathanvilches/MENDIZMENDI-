@@ -34,7 +34,6 @@
    {
     "i": 3,
     "type": "legend",
-    "title": "La lamia de Xorroxin",
     "host": "Maddi, lavandera",
     "steps": null,
     "bad": []
@@ -110,6 +109,14 @@
    },
    {
     "i": 3,
+    "type": "dolmen",
+    "title": "El menhir de Iruñarri",
+    "host": "Ane, montañera",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
     "type": "quiz",
     "title": "El sabio de Leitza",
     "host": "Sabio del concejo",
@@ -117,18 +124,10 @@
     "bad": []
    },
    {
-    "i": 4,
+    "i": 5,
     "type": "summit",
     "title": "Sube al Ttutturre",
     "host": "Josu, montañero",
-    "steps": null,
-    "bad": []
-   },
-   {
-    "i": 5,
-    "type": "pelota",
-    "title": "Partido en el frontón",
-    "host": "Aitor, pelotari",
     "steps": null,
     "bad": []
    }
@@ -137,7 +136,7 @@
    {
     "juego": "pregunta",
     "mision": "El sabio de Leitza",
-    "preguntas": 8,
+    "preguntas": 9,
     "win": true,
     "errors": 0
    }
@@ -202,6 +201,14 @@
    },
    {
     "i": 6,
+    "type": "dolmen",
+    "title": "El dolmen de Arrako",
+    "host": "Miren, pastora de Belagua",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 7,
     "type": "quiz",
     "title": "El sabio de Isaba / Izaba",
     "host": "Sabio del concejo",
@@ -209,7 +216,7 @@
     "bad": []
    },
    {
-    "i": 7,
+    "i": 8,
     "type": "observe",
     "title": "El ave que rompe huesos",
     "host": "Iratxe, guarda de Belagua",
@@ -217,7 +224,7 @@
     "bad": []
    },
    {
-    "i": 8,
+    "i": 9,
     "type": "summit",
     "title": "Sube al Mesa de los Tres Reyes",
     "host": "Amaia, guía de montaña",
@@ -235,7 +242,7 @@
    {
     "juego": "pregunta",
     "mision": "El sabio de Isaba / Izaba",
-    "preguntas": 10,
+    "preguntas": 11,
     "win": true,
     "errors": 0
    }
@@ -351,14 +358,6 @@
    },
    {
     "i": 1,
-    "type": "carnival",
-    "title": "Gigantes y cabezudos",
-    "host": "Kiliki",
-    "steps": null,
-    "bad": []
-   },
-   {
-    "i": 2,
     "type": "race",
     "title": "El encierro de San Fermín",
     "host": "Pastor del encierro",
@@ -366,7 +365,7 @@
     "bad": []
    },
    {
-    "i": 3,
+    "i": 2,
     "type": "process",
     "title": "La txistorra",
     "host": "Carnicera Itziar",
@@ -379,7 +378,7 @@
     "bad": []
    },
    {
-    "i": 4,
+    "i": 3,
     "type": "figure",
     "title": "Pablo Sarasate",
     "host": "Leire, violinista",
@@ -387,10 +386,18 @@
     "bad": []
    },
    {
-    "i": 5,
+    "i": 4,
     "type": "figure",
     "title": "Miguel Induráin",
     "host": "Iñigo, ciclista",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
+    "type": "figure",
+    "title": "Toda Aznárez",
+    "host": "Nerea, historiadora",
     "steps": null,
     "bad": []
    },
@@ -404,6 +411,14 @@
    },
    {
     "i": 7,
+    "type": "dolmen",
+    "title": "Pompaelo, la Pamplona romana",
+    "host": "Nerea, arqueóloga de la ciudad",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 8,
     "type": "quiz",
     "title": "El sabio de Pamplona / Iruña",
     "host": "Sabio del concejo",
@@ -411,7 +426,7 @@
     "bad": []
    },
    {
-    "i": 8,
+    "i": 9,
     "type": "summit",
     "title": "Sube al Ezkaba",
     "host": "Josu, montañero",
@@ -429,7 +444,7 @@
    {
     "juego": "pregunta",
     "mision": "El sabio de Pamplona / Iruña",
-    "preguntas": 16,
+    "preguntas": 17,
     "win": true,
     "errors": 0
    }
@@ -451,7 +466,7 @@
     "i": 1,
     "type": "carnival",
     "title": "Cascabobos",
-    "host": "Irati",
+    "host": "Maddi",
     "steps": null,
     "bad": []
    },
@@ -470,6 +485,14 @@
    },
    {
     "i": 3,
+    "type": "figure",
+    "title": "Josefa Úriz Pi",
+    "host": "Irati, maestra",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 4,
     "type": "quiz",
     "title": "El sabio de Aoiz / Agoitz",
     "host": "Sabio del concejo",
@@ -477,7 +500,7 @@
     "bad": []
    },
    {
-    "i": 4,
+    "i": 5,
     "type": "summit",
     "title": "Sube al Izaga",
     "host": "Josu, montañero",
@@ -533,12 +556,20 @@
     "i": 3,
     "type": "harvest",
     "title": "La cosecha: aceitunas",
-    "host": "Olivarero",
+    "host": "Olivarera",
     "steps": null,
     "bad": []
    },
    {
     "i": 4,
+    "type": "dolmen",
+    "title": "La villa romana de Liédena",
+    "host": "Ander, guía de la Foz",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
     "type": "quiz",
     "title": "El sabio de Lumbier",
     "host": "Sabio del concejo",
@@ -546,10 +577,18 @@
     "bad": []
    },
    {
-    "i": 5,
+    "i": 6,
     "type": "summit",
     "title": "Sube al Arangoiti",
     "host": "Amaia, guía de montaña",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 7,
+    "type": "feria",
+    "title": "Las ferias de Lumbier",
+    "host": "Tratante de ganado",
     "steps": null,
     "bad": []
    }
@@ -558,7 +597,7 @@
    {
     "juego": "pregunta",
     "mision": "El sabio de Lumbier",
-    "preguntas": 10,
+    "preguntas": 11,
     "win": true,
     "errors": 0
    }
@@ -610,6 +649,14 @@
    },
    {
     "i": 5,
+    "type": "dolmen",
+    "title": "La villa de las Musas",
+    "host": "Maite, guía de Arellano",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
     "type": "quiz",
     "title": "El sabio de Estella-Lizarra",
     "host": "Sabio del concejo",
@@ -617,7 +664,7 @@
     "bad": []
    },
    {
-    "i": 6,
+    "i": 7,
     "type": "observe",
     "title": "Las colas de tijera",
     "host": "Unai, anillador de aves",
@@ -625,10 +672,10 @@
     "bad": []
    },
    {
-    "i": 7,
+    "i": 8,
     "type": "summit",
     "title": "Sube al Montejurra",
-    "host": "Amaia, guía de montaña",
+    "host": "Josu, montañero",
     "steps": null,
     "bad": []
    }
@@ -637,7 +684,7 @@
    {
     "juego": "pregunta",
     "mision": "El sabio de Estella-Lizarra",
-    "preguntas": 13,
+    "preguntas": 14,
     "win": true,
     "errors": 0
    }
@@ -681,17 +728,25 @@
    },
    {
     "i": 4,
-    "type": "quiz",
-    "title": "El sabio de Puente la Reina / Gares",
-    "host": "Sabio del concejo",
+    "type": "figure",
+    "title": "Emilio Arrieta",
+    "host": "Jon, músico",
     "steps": null,
     "bad": []
    },
    {
     "i": 5,
-    "type": "pelota",
-    "title": "Partido en el frontón",
-    "host": "Ane, pelotari",
+    "type": "dolmen",
+    "title": "El agua de Andelos",
+    "host": "Jon, guía de Andelos",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
+    "type": "quiz",
+    "title": "El sabio de Puente la Reina / Gares",
+    "host": "Sabio del concejo",
     "steps": null,
     "bad": []
    }
@@ -700,7 +755,7 @@
    {
     "juego": "pregunta",
     "mision": "El sabio de Puente la Reina / Gares",
-    "preguntas": 10,
+    "preguntas": 11,
     "win": true,
     "errors": 0
    }
@@ -744,6 +799,14 @@
    },
    {
     "i": 4,
+    "type": "figure",
+    "title": "Catalina de Foix",
+    "host": "Maialen, guía del palacio",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 5,
     "type": "castle",
     "title": "El palacio real de Olite",
     "host": "Íñigo, guía del palacio",
@@ -751,7 +814,7 @@
     "bad": []
    },
    {
-    "i": 5,
+    "i": 6,
     "type": "quiz",
     "title": "El sabio de Olite / Erriberri",
     "host": "Sabio del concejo",
@@ -759,7 +822,7 @@
     "bad": []
    },
    {
-    "i": 6,
+    "i": 7,
     "type": "observe",
     "title": "Las viajeras del cielo",
     "host": "Ainhoa, guía de Pitillas",
@@ -820,17 +883,17 @@
    },
    {
     "i": 4,
-    "type": "quiz",
-    "title": "El sabio de Marcilla",
-    "host": "Sabio del concejo",
+    "type": "figure",
+    "title": "Las conserveras",
+    "host": "Amona Pili",
     "steps": null,
     "bad": []
    },
    {
     "i": 5,
-    "type": "pelota",
-    "title": "Partido en el frontón",
-    "host": "Oihane, pelotari",
+    "type": "quiz",
+    "title": "El sabio de Marcilla",
+    "host": "Sabio del concejo",
     "steps": null,
     "bad": []
    }
@@ -891,6 +954,14 @@
    },
    {
     "i": 5,
+    "type": "figure",
+    "title": "Berenguela de Navarra",
+    "host": "Ane, guía de Tudela",
+    "steps": null,
+    "bad": []
+   },
+   {
+    "i": 6,
     "type": "quiz",
     "title": "El sabio de Tudela",
     "host": "Sabio del concejo",
@@ -898,7 +969,7 @@
     "bad": []
    },
    {
-    "i": 6,
+    "i": 7,
     "type": "observe",
     "title": "Las cigüeñas de la catedral",
     "host": "Javier, sacristán",

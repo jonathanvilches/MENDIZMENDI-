@@ -804,7 +804,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     if (!k) return;
     e.preventDefault(); usado(); vuelo = null; inercia = null; keys.add(k); };
   const ku = (e) => { const k = MOV[e.key.toLowerCase()]; if (k) keys.delete(k); };
-  addEventListener('keydown', kd); addEventListener('keyup', ku); addEventListener('blur', () => keys.clear());
+  // (y al perder la ventana, ninguna tecla se queda pulsada; con nombre, para quitarla al soltar el mapa: sin quitar, cada
+  // vuelta al menú dejaba otra escucha que guardaba vivo el mapa anterior entero, con sus lienzos)
+  const sueltaTeclas = () => keys.clear();
+  addEventListener('keydown', kd); addEventListener('keyup', ku); addEventListener('blur', sueltaTeclas);
 
   // los botones de la esquina (mientras se mantienen pulsados)
   const pad = document.createElement('div'); pad.className = 'm3-pad';
@@ -1563,7 +1566,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   function dispose() {
     if (!vivo) return; vivo = false; aves.dispose(); cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
-    removeEventListener('keydown', kd); removeEventListener('keyup', ku);
+    removeEventListener('keydown', kd); removeEventListener('keyup', ku); removeEventListener('blur', sueltaTeclas);
     for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();

@@ -58,3 +58,13 @@ export function nameFor(full, sex) {
     return w;
   });
 }
+
+/** Si el nombre de pila de «full» ya está en «usados» (en minúsculas), otro del mismo género que no lo esté, para que en un
+ *  pueblo no haya dos personas con el mismo nombre; los que no empiezan por un nombre de pila (oficios, seres de leyenda)
+ *  se quedan como están. sex: 'girl' o 'boy', el del cuerpo. */
+export function nombreLibre(full, sex, usados) {
+  const m = String(full || '').match(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/); if (!m) return full;
+  const k = lc(m[0]); if ((!NM.has(k) && !NF.has(k)) || !usados.has(k)) return full;
+  const L = (sex ? sex === 'girl' : NF.has(k)) ? PON_F : PON_M, nuevo = L.find(n => !usados.has(lc(n)));
+  return nuevo ? nuevo + full.slice(m[0].length) : full;
+}

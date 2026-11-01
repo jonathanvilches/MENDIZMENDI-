@@ -19,7 +19,7 @@ export const EU_TOWNS = {
   'Burgi / Burgui': 'Burgi', 'Izaba / Isaba': 'Izaba', 'Zangoza / Sangüesa': 'Zangoza', 'Erriberri / Olite': 'Erriberri', 'Uxue / Ujué': 'Uxue', 'Gares / Puente la Reina': 'Gares',
   'Agoitz / Aoiz': 'Agoitz', 'Alsasua / Altsasu': 'Altsasu', 'Roncesvalles / Orreaga': 'Orreaga', 'Uztárroz': 'Uztarroze', 'Esparza de Salazar': 'Espartza Zaraitzu',
   'Otsagabia, Ezkaroze, Jaurrieta, Esparza de Salazar, Itzalzu': 'Otsagabia, Ezkaroze, Jaurrieta, Espartza Zaraitzu, Itzalzu',
-  'Mesa de los Tres Reyes': 'Hiru Erregeen Mahaia', 'Peña de Ezkaurre': 'Ezkaurre', 'Sierra de Urbasa': 'Urbasa mendilerroa', 'Sierra de Aralar': 'Aralar mendilerroa',
+  'Mesa de los Tres Reyes': 'Hiru Erregeen Mahaia', 'Peña de Ezkaurre': 'Ezkaurre',
   // eskualdeak
   'Comarca de Pamplona': 'Iruñerria', 'Pirineo': 'Pirinioa', 'Prepirineo': 'Aurrepirinioa', 'Tierra Estella': 'Lizarraldea', 'Valdizarbe-Novenera': 'Izarbeibar-Novenera',
   'Zona Media': 'Erdialdea', 'Ribera Alta': 'Erribera Garaia', 'Ribera': 'Erribera', 'Baztan-Bidasoa': 'Baztan-Bidasoa', 'Larraun-Leitzaldea': 'Larraun-Leitzaldea', 'Sakana': 'Sakana',
@@ -32,7 +32,7 @@ export const EU_ROLES = {
   'guarda de Belagua': 'Belaguako zaindaria', 'guarda de Irati': 'Iratiko zaindaria', 'pelotari': 'pilotaria', 'anillador de aves': 'hegazti-eraztuntzailea',
   'guía': 'gidaria', 'Pastor del encierro': 'Entzierroko artzaina', 'Agricultor de Lodosa': 'Lodosako nekazaria', 'Joven de la comparsa': 'Konpartsako gaztea',
   'Pastor de Urbasa': 'Urbasako artzaina', 'pastor de Urbasa': 'Urbasako artzaina', 'guarda del parque': 'parkeko zaindaria', 'guarda de la sierra': 'mendilerroko zaindaria', 'guarda de la reserva': 'erreserbako zaindaria',
-  'guía del bosque': 'basoko gidaria', 'corredor de montaña': 'mendi-korrikalaria', 'hortelana de la vega': 'ibarreko baratzezaina', 'arqueóloga': 'arkeologoa', 'Amona Joxepa': 'Joxepa amona', 'Aitona Iñaki': 'Iñaki aitona', 'Aitona Martin': 'Martin aitona', 'Alcalde de Isaba': 'Izabako alkatea', 'Maestro de música': 'Musika-irakaslea', 'Tratante de ganado': 'Abere-tratularia',
+  'guía del bosque': 'basoko gidaria', 'corredor de montaña': 'mendi-korrikalaria', 'hortelana de la vega': 'ibarreko baratzezaina', 'Amona Joxepa': 'Joxepa amona', 'Aitona Iñaki': 'Iñaki aitona', 'Aitona Martin': 'Martin aitona', 'Alcalde de Isaba': 'Izabako alkatea', 'Maestro de música': 'Musika-irakaslea', 'Tratante de ganado': 'Abere-tratularia',
   'Guarda de la foz': 'Arroilako zaindaria', 'harrijasotzaile': 'harrijasotzailea', 'guía del museo': 'museoko gidaria', 'quesera': 'gaztagilea', 'quesero': 'gaztagilea',
   'pastor': 'artzaina', 'pastora': 'artzaina', 'herrero': 'errementaria', 'herrera': 'errementaria', 'cestero': 'saskigilea', 'cestera': 'saskigilea',
   'carbonero': 'ikazkina', 'apicultora': 'erlezaina', 'apicultor': 'erlezaina', 'panadera': 'okina', 'panadero': 'okina', 'viticultor': 'mahastizaina',

@@ -3,6 +3,9 @@
 export const SABIOS = [
   { name: 'Sabia Miren', female: true }, { name: 'Sabio Patxi' }, { name: 'Sabia Josefa', female: true }, { name: 'Sabio Fermín' },
   { name: 'Sabia Maritxu', female: true }, { name: 'Sabio Joxe' }, { name: 'Sabia Pilar', female: true }, { name: 'Sabio Ramón' },
+  // (más, para las ciudades con muchos lugares: con ocho, en Pamplona se repetían; el pueblo no repite ninguno, townGame)
+  { name: 'Sabia Bittori', female: true }, { name: 'Sabio Iñaki' }, { name: 'Sabia Juana', female: true }, { name: 'Sabio Martín' },
+  { name: 'Sabia Rosario', female: true }, { name: 'Sabio Txomin' }, { name: 'Sabia Kontxi', female: true }, { name: 'Sabio Tomás' },
 ];
 export const STYLE_TIP = {
   romanesque: 'Es románica: muros gruesos, ventanas pequeñas y arcos redondos, de medio punto. Por dentro suele ser oscura y recogida.',

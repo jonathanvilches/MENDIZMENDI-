@@ -1,4 +1,5 @@
 // Partida en un pueblo o ciudad: misiones con pasos claros, personajes, minijuegos y sello final.
+import { nombreLibre } from '../data/nombres.js';
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
 import { PLACES } from '../world/layout.js';
@@ -336,7 +337,10 @@ export class TownGame {
         skirt: female && R() < 0.5 ? pick(pal.pants) : undefined, vest: !female && R() < 0.35 ? pick(pal.extras) : undefined, txapela: !female && old && R() < 0.7 ? '#1d1d24' : undefined,
         scarf: R() < 0.2 ? pick(pal.extras) : undefined, apron: female && old && R() < 0.4 ? '#f4f1ea' : undefined, basket: !!tk.basket, staff: T.kind === 'paseo', pattern: R() < 0.2 ? 'check' : undefined, moustache: !female && old && R() < 0.5 ? '#dcd7cf' : undefined,
         region: R() < 0.7 ? d.comarca : undefined, seed: 1 + Math.floor(R() * 1000) };   // la mayoría, con el traje tradicional de su comarca
-      const route = T.steps, s0 = route[route.length - 1];   // (empieza en su última parada: en casa, en la plaza…)
+      // (cada uno, con su sitio un poco a un lado en cada parada, en un anillo: con pocas paradas, como en los bosques, dos
+      // con la misma ruta salían en el mismo punto y andaban y se paraban uno dentro del otro)
+      const ga = i * 2.39996, ox = Math.cos(ga) * 0.8, oz = Math.sin(ga) * 0.8;
+      const route = T.steps.map(p => isFree(p.x + ox, p.z + oz, 0.45) ? { ...p, x: p.x + ox, z: p.z + oz } : p), s0 = route[route.length - 1];   // (empieza en su última parada: en casa, en la plaza…)
       const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: kid ? 1.25 : old ? 0.8 + R() * 0.15 : 1 + R() * 0.3 }, this.scene);
       a.tarea = T.kind;
       this.walkers.push(a);
@@ -400,6 +404,7 @@ export class TownGame {
         look: { shirt: '#c41f2c', pants: '#1f2d5a', shoes: '#1d1d1f', hair: '#3a2418', female: true, ponytail: true, skin: '#e2b08a' } }, this.scene);
       this.actors.push(this.coach); this.sadar = sadar;
     }
+    this.nombresUnicos();
     // aparición del jugador: la primera vez, en la entrada del pueblo; si ya hay misiones hechas, a unos pasos de quien
     // da la siguiente, mirándole, para no cruzar el pueblo entero cada vez que se vuelve a jugar (antes, siempre en la
     // entrada). El perro, a su lado
@@ -430,8 +435,11 @@ export class TownGame {
   spawnSabios() {
     const d = this.def, places = [{ kind: 'church', name: d.church?.name || 'La iglesia', text: d.church?.text || '', style: d.church?.style, label: d.church?.label, at: TOWN.church?.door || PLACES.church }];
     TOWN.landmarks.forEach((l, k) => { if (!NO_SABIO.has(l.kind) && l.text) places.push({ kind: l.kind, name: l.name, text: l.text, at: l.spot || { x: l.x, z: l.z }, li: k + 1 }); });
+    const yaSabios = new Set();
     places.forEach((p, i) => {
-      const S = SABIOS[(i + d.id.length) % SABIOS.length], f = !!S.female;
+      // (cada lugar, su sabio, sin repetir en el pueblo: el siguiente libre de la lista)
+      let j = (i + d.id.length) % SABIOS.length; for (let n = 0; n < SABIOS.length && yaSabios.has(j); n++) j = (j + 1) % SABIOS.length; yaSabios.add(j);
+      const S = SABIOS[j], f = !!S.female;
       const sp = this.spot({ x: p.at.x + 3.2, z: p.at.z + 1.5 }, 4);
       const look = { old: true, female: f, hair: f ? '#e4e0d8' : '#d6d0c6', shirt: f ? '#6d4a6a' : '#efe9dc', vest: f ? undefined : '#2b2630', skirt: f ? '#2b2630' : undefined, pants: '#2b2630', scarf: f ? '#3a2a3a' : '#2b2630', bun: f, txapela: f ? undefined : '#1d1d24', beard: f ? undefined : '#e8e4dc', staff: !f };
       const a = new Actor({ id: 'sabio' + i, name: S.name, x: sp.x, z: sp.z, heading: Math.atan2(p.at.x - sp.x, p.at.z - sp.z), look, wander: 0 }, this.scene);
@@ -486,6 +494,18 @@ export class TownGame {
       v.info = VAQUERA_INFO; this.walkers.push(v);
       for (let i = 0; i < 4; i++) this.fauna.add('cow', c.x + 6 + (R() - 0.5) * 14, c.z + 4 + (R() - 0.5) * 14, { range: 10, walk: 0.5, radius: 0.8, flee: 0 });
     }
+  }
+  // (que en un pueblo no haya dos personas con el mismo nombre, ni ninguna con el tuyo: los vecinos toman un nombre que va con
+  // su cuerpo, nameFor, y a veces salía el de un anfitrión, como las dos Ane de Ituren. Los de las misiones se quedan el
+  // suyo, que sale en sus textos; los demás pasan a otro libre)
+  nombresUnicos() {
+    const pila = (n) => String(n || '').match(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/)?.[0]?.toLowerCase();
+    const todos = [...this.actors, ...this.walkers, ...this.folk].filter(a => a?.name), usados = new Set();
+    const yo = String(this.P.name || '').trim().toLowerCase(); if (yo) usados.add(yo);
+    for (const a of todos) if (a.mission) { const k = pila(a.name); if (k) usados.add(k); }
+    for (const a of todos) { if (a.mission) continue; const k = pila(a.name); if (!k) continue;
+      if (usados.has(k)) { const n = nombreLibre(a.name, a.obj?.userData?.sex, usados); if (n !== a.name) a.name = n; }
+      usados.add(pila(a.name)); }
   }
   giveGoods(k, n = 1) {
     const b = this.P.bag ||= { agua: 0, food: {} }; b.goods ||= {}; b.goods[k] = (b.goods[k] || 0) + n; saveProfile();

@@ -21,7 +21,7 @@ for (const t of towns) {
   await p.keyboard.down('w'); await p.waitForTimeout(1500); await p.keyboard.up('w');
   // pelota: entrar y salir
   const pel = process.env.NOPEL ? 'no' : await p.evaluate(async () => { const G = window.__game; if (!G.fronton || !G.pelotari) return 'sin frontón'; G.fronton.play(G, G.pelotari); return 'ok'; });
-  if (pel === 'ok') { await p.waitForFunction(() => !!document.querySelector('.pel-panel'), null, { timeout: 60000 }); await p.tap('[data-pel-go]'); await p.waitForTimeout(1200); await p.tap('.pel-exit'); await p.waitForTimeout(300); await p.tap('[data-pel-yes]'); await p.waitForTimeout(1500); }
+  if (pel === 'ok') { await p.waitForFunction(() => !!document.querySelector('.pel-panel'), null, { timeout: 60000 }); await p.tap('[data-pel-go]'); await p.waitForTimeout(1200); await p.waitForFunction(() => document.querySelector('.pel-root:not(.paneled) .pm-salir'), null, { timeout: 180000 }); await p.evaluate(() => document.querySelector('.pm-salir').click()); await p.waitForSelector('[data-pel-yes]', { timeout: 60000 }); await p.tap('[data-pel-yes]'); await p.waitForTimeout(1500); }
   const afterPel = await st();
   // salir con el botón de menú → Salir
   await p.tap('#bMenu'); await p.waitForTimeout(500); await p.tap('#mExit'); await p.waitForTimeout(2500);
