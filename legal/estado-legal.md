@@ -128,10 +128,10 @@ A partir de ahora, cada función nueva pasa por la puerta legal antes de impleme
 - **I. Azar, premios y publicidad.** Cumple: sin sorteos, sin premios de valor económico, sin publicidad ni patrocinios.
 - **J. Accesibilidad.** Parcial: botones táctiles de 44 px o más en la interfaz principal, etiquetas aria-label en los botones con solo icono, contraste alto en paneles. Se respeta `prefers-reduced-motion` (sin animaciones ni transiciones). El grupo de niveles de la pelota lleva su nombre accesible («Nivel» / «Maila») aunque en pantallas bajas se oculte la etiqueta visible. Pendiente: texto escalable (el viewport bloquea el zoom: `user-scalable=no`), control completo por teclado en los minijuegos táctiles, subtítulos no necesarios (no hay voces), declaración de accesibilidad.
 - **K. Seguridad.** Autoalojado todo. Pendiente: cabeceras de seguridad (CSP, X-Content-Type-Options, Referrer-Policy) cuando se publique en un servidor propio (GitHub Pages no permite configurarlas: VERIFICAR alternativas o meta CSP).
-- **L. Tiendas de apps.** No aplica todavía (PWA sin tienda).
+- **L. Tiendas de apps.** Revisión como para la App Store el 2026-11-01: `entrega/app-store/README.md`. Hecho en el juego: modo app (`src/web/app.js`) sin instalar desde Safari, sin descargas, sin enlaces a la web y sin nombrar otras plataformas; nombres accesibles en todo. Pendiente: envoltura nativa, cuenta de desarrollador, política publicada (borrador en `legal/privacidad-borrador.md`), clasificación por edad y la decisión sobre «El Sadar».
 - **M. Contratación pública.** No aplica todavía. Pendiente: dossier de cumplimiento (fase 3).
 - **N. Empresa y fiscalidad.** Pendiente (fase 3, gestoría).
-- **O. Ubicación, cámara y realidad aumentada.** No se usan.
+- **O. Ubicación, cámara y realidad aumentada.** Sin ubicación. Desde la txalaparta con realidad aumentada, la cámara se usa solo en ese minijuego, con permiso, y la imagen se procesa en el dispositivo (MediaPipe, con sus archivos en `public/ar`) sin grabarse ni enviarse; sin permiso se toca en la pantalla. Corrige lo de los hechos del apartado 1, que es anterior.
 
 ## 5. Decisiones tomadas
 

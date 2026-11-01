@@ -1,4 +1,5 @@
 // Centro de mando: inicio, mapa de Navarra, comarcas, pueblos, cimas, naturaleza, personajes, insignias, pasaporte y perfil.
+import { appNativa } from '../web/app.js';
 import COMARCAS from '../data/comarcas.json';
 import MOUNTAINS from '../data/mountains.json';
 import { CAST as AVATARS, STAT_LABELS, castById } from '../data/cast.js';
@@ -313,7 +314,7 @@ export class Hub {
   more() {
     this.sound?.ui('open');
     const s = el(`<div class="sheet more"><div class="more-in"><div class="grab"></div><small class="kicker">Más secciones</small>
-      ${isDidactico() ? '' : `<button data-cj class="more-app">${I('play', 34)}<div><b>Cómo jugar</b><small>En el ordenador, con el móvil de mando o en el móvil; e instalar las apps</small></div>${I('play', 20)}</button>`}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" data-cat="${kc(id)}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
+      ${isDidactico() ? '' : `<button data-cj class="more-app">${I('play', 34)}<div><b>Cómo jugar</b><small>${appNativa() ? 'Los botones y cómo se juega' : 'En el ordenador, con el móvil de mando o en el móvil; e instalar las apps'}</small></div>${I('play', 20)}</button>`}${this.nav.filter(n => this.navHidden(n[0])).map(([id, n, ic]) => `<button data-go="${id}" data-cat="${kc(id)}" class="${this.screen === id ? 'on' : ''}">${I(ic, 34)}<div><b>${n}</b><small>${this.MORE[id]}</small></div>${I('play', 20)}</button>`).join('')}</div></div>`);
     this.sheet?.remove(); this.sheet = s; this.root.appendChild(s);
     s.addEventListener('click', e => { if (e.target === s) { s.remove(); this.sheet = null; } });
     s.querySelector('[data-cj]')?.addEventListener('click', () => { s.remove(); this.sheet = null; comoJugar(this.root); });
@@ -992,7 +993,7 @@ export class Hub {
     return `<details class="panel creditos partida"><summary>${I('home', 26)} Llevar tu partida</summary>
       <p class="set-note">Para seguir tu partida en otro aparato o en la app nueva: copia aquí el código y pégalo allí, en este mismo sitio.</p>
       <button class="btn" id="pCopia">${I('book', 22)} <span>Copiar mi partida</span></button><p class="set-note" id="pCopiaN"></p>
-      <textarea id="pPega" rows="3" placeholder="Pega aquí el código de tu partida" autocomplete="off" spellcheck="false"></textarea>
+      <textarea id="pPega" rows="3" aria-label="Código de tu partida" placeholder="Pega aquí el código de tu partida" autocomplete="off" spellcheck="false"></textarea>
       <button class="btn" id="pTrae">${I('check', 22)} <span>Traer esta partida</span></button><p class="set-note" id="pTraeN"></p></details>`;
   }
   // (para arreglar un fallo en un móvil: lo que ve el juego de él, para hacerle una captura y mandarla; src/util/diag.js)

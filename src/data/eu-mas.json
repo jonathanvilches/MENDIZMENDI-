@@ -2245,5 +2245,15 @@
  "Menú del partido": "Partidaren menua",
  "Salir del partido": "Partidatik irten",
  "Fuerza": "Indarra",
- "Energía": "Energia"
+ "Energía": "Energia",
+ "Usa el móvil como mando. Funciona con cualquier móvil.": "Erabili mugikorra aginte gisa. Edozein mugikorrekin dabil.",
+ "Los botones y cómo se juega": "Botoiak eta nola jolasten den",
+ "En este dispositivo": "Gailu honetan",
+ "En horizontal se ve más y se juega mejor": "Etzanda gehiago ikusten da eta hobeto jolasten da",
+ "A la izquierda, andar": "Ezkerrean, ibili",
+ "Arrastra el dedo hacia donde quieras ir": "Arrastatu hatza joan nahi duzun lekura",
+ "A la derecha, los botones": "Eskuinean, botoiak",
+ "El amarillo, para hablar y usar; los demás, para correr y saltar": "Horia, hitz egiteko eta erabiltzeko; besteak, korrika egiteko eta salto egiteko",
+ "El juego en 3D": "Jokoa 3Dn",
+ "Código de tu partida": "Zure partidaren kodea"
 }

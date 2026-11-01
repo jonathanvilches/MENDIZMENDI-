@@ -251,7 +251,7 @@ export function abrirMando() {
     return;
   }
   const o = S.ui = el(`<div class="mnd-ov" role="dialog" aria-modal="true" aria-label="Mando en el móvil"><div class="mnd-card">
-    <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando. Funciona con Android y con iPhone.</p>
+    <h2>Mando en el móvil</h2><p class="mnd-lead">Usa el móvil como mando. Funciona con cualquier móvil.</p>
     <div class="mnd-qr wait" aria-label="Código QR del mando"></div>
     <ol class="mnd-pasos"><li>Conecta el móvil a internet: mejor, a la misma wifi que el ordenador.</li><li>Abre la cámara del móvil y apunta al código.</li>
       <li>O entra en esta dirección y escribe el código:<span class="mnd-url" data-notr></span><span class="mnd-code" data-notr></span></li><li>Pon el móvil en horizontal y ¡a jugar!</li><li>Para no repetirlo: en el móvil, instala la app «Mando». Se abre desde su icono, sin el navegador, y la próxima vez se conecta sola en cuanto el juego esté abierto.</li></ol>

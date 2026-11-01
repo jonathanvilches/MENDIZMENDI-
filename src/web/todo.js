@@ -2,8 +2,10 @@
 // láminas, sonidos y el código de cada pueblo y minijuego— se guardan en el ordenador, en la misma caché que usa el
 // service worker (src/web/sw.js). Así no se espera a internet al entrar en un pueblo nuevo o en un minijuego, y se puede
 // jugar sin conexión. La lista la escribe vite.config.js en todo.json; lo que ya está guardado no se vuelve a bajar.
+import { appNativa } from './app.js';
 const CACHE = 'herrizherri-assets';
-export const puedeDescargar = () => typeof __WEB__ !== 'undefined' && __WEB__ && !(typeof __AF__ !== 'undefined' && __AF__) && 'caches' in globalThis && !!navigator.serviceWorker;
+// (en la app de la tienda, el juego ya va entero dentro)
+export const puedeDescargar = () => !appNativa() && typeof __WEB__ !== 'undefined' && __WEB__ && !(typeof __AF__ !== 'undefined' && __AF__) && 'caches' in globalThis && !!navigator.serviceWorker;
 
 async function lista() {
   const r = await fetch('./todo.json', { cache: 'no-cache' });

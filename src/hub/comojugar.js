@@ -10,6 +10,7 @@
 import { esc, el } from '../util/html.js';
 import { TACTIL } from '../util/tactil.js';
 import { offer, openInstall, instalada } from '../web/install.js';
+import { appNativa } from '../web/app.js';
 import { profile, saveProfile } from '../game/profile.js';
 
 const WEB = 'https://jonathanvilches.github.io/MENDIZMENDI-/';
@@ -63,6 +64,10 @@ export function comoJugar(root, { primera = false, despues } = {}) {
   ];
   // (en el móvil, al revés: primero jugar en él, luego usarlo de mando y por último el ordenador)
   if (TACTIL) cards.reverse();
+  // (dentro de la app de la tienda, solo cómo se juega aquí: sin instalar desde el navegador, sin la web ni otras
+  // plataformas; src/web/app.js)
+  if (appNativa()) cards.splice(0, cards.length, { k: 'movil', aqui: true, t: TACTIL ? 'En el móvil o la tableta' : 'En este dispositivo', s: 'Con los botones de la pantalla. Se juega mejor con el móvil en horizontal.',
+    pasos: [['Gira el móvil', 'En horizontal se ve más y se juega mejor'], ['A la izquierda, andar', 'Arrastra el dedo hacia donde quieras ir'], ['A la derecha, los botones', 'El amarillo, para hablar y usar; los demás, para correr y saltar']] });
   const o = el(`<div class="onb cj" role="dialog" aria-modal="true" aria-labelledby="cjT"><div class="cj-in">
     <header class="cj-head"><small class="kicker">${primera ? 'Antes de empezar' : 'Cómo jugar'}</small><h2 id="cjT">¿Cómo quieres jugar?</h2>
       <p>Elige una de las tres formas. Puedes volver aquí cuando quieras con «Cómo jugar», arriba del menú.</p></header>

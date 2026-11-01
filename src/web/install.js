@@ -5,6 +5,7 @@
 //  · en los demás, cómo hacerlo desde el menú del navegador
 // En la ventana también se puede compartir el enlace. No sale si ya se juega desde la app instalada ni en el archivo
 // único (un archivo abierto no se puede instalar). En el artefacto de claude.ai, que no se puede instalar, manda a la web.
+import { appNativa } from './app.js';
 let deferred = null;
 addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; });
 addEventListener('appinstalled', () => { deferred = null; });
@@ -13,7 +14,8 @@ const UA = navigator.userAgent;
 const IOS = /iP(hone|ad|od)/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
 const ANDROID = /Android/.test(UA);
 /** ¿Se está jugando desde la app instalada? */
-export const instalada = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
+// (dentro de la app de la tienda cuenta como instalada: nunca se ofrece instalar)
+export const instalada = () => appNativa() || matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
 /** ¿Se puede ofrecer instalarla desde aquí? (en la web y sin estar ya instalada) */
 export const offer = () => typeof __WEB__ !== 'undefined' && __WEB__ && !instalada();
 const link = () => new URL(/\/descargas\/[^/]*$/.test(location.pathname) ? '../' : './', location.href).href;   // (desde el archivo de descargas/, la web)
