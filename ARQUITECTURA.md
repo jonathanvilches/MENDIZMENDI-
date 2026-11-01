@@ -268,6 +268,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en las esquinas y, en los grandes, la del homenaje), palacios, conventos y museos (piedra, sin balcones ni leña) y
   lavaderos (abiertos, con postes). Lo pequeño y sin nombre dentro de una plaza, un pabellón bajo de piedra. Estos ya no
   se parten en casas como los bloques grandes.
+- **Rótulos de las maquetas** (`rotulosMaqueta` en `hub/maqueta.js`; revisados pueblo a pueblo en noviembre de 2026):
+  solo edificios y puentes con su nombre en OpenStreetMap, encima de su propio tejado. Antes salían de los lugares de
+  Overture, que son sobre todo negocios con el punto en su dirección o en el centro del pueblo: el «Mirador de los
+  Buitres» de Irurtzun flotaba sobre las casas, el castillo de Olite y la basílica del Puy salían dos veces. Fuera los
+  nombres de negocios, servicios y calles aunque digan «iglesia» o «puente», los que solo dicen qué son («Convento»), los
+  que nombran el pueblo («Base de Puente la Reina»), las pasarelas cortas y los mal escritos en el dato; el mismo sitio
+  con dos nombres, en castellano y en euskera, una vez. Como mucho seis, de lo más importante a lo demás. Los núcleos de
+  los pueblos guardan cuándo se vieron en `visto`, no en `t`, que es el pueblo: antes la hora lo pisaba y la maqueta no
+  sabía de qué pueblo era, así que no tenía la iglesia de su ficha.
+- **La iglesia del juego en su edificio** (`data/reales/iglesia.js`, `iglesiaReal`): la que nombra la ficha del pueblo,
+  buscada por las palabras propias de su nombre (el santo o la advocación, en castellano o en euskera: «Done Mikel eliza»
+  es la de San Miguel). La usan la misión de la iglesia (`levels/townReal.js`) y el rótulo de la maqueta. Antes iba en la
+  iglesia más grande cerca del centro, y en Tudela, Olite, Estella y Puente la Reina era otra. Si no está en los datos,
+  queda la de los datos con su propio nombre en el rótulo (Artajona, Erronkari, Irulegi). Los monumentos de la ficha ya no
+  se ponen encima de la iglesia, y lo que va junto a ella (ermitas, estelas, la tumba de César Borgia en Viana) se busca a
+  su lado y no junto al centro del pueblo.
 - **Color y texturas de la maqueta y del relieve** (`hub/maqueta.js`, `hub/emblemas.js`, `hub/mapa3d.js` y
   `hub/mapa3dSombreadores.js`):
   - `setHSL` va en color lineal: una luminosidad de 0,75 ya se ve casi blanca. Las paredes, en `PARED`, con valores

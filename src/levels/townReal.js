@@ -8,6 +8,7 @@ import { clamp, lerp, smoothstep, segDist, mulberry32 } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { skylineFor } from '../data/horizonte.js';
 import { ordenarCasas, ordenarPuentes, partirBloques } from './ordenar.js';
+import { iglesiaReal } from '../data/reales/iglesia.js';
 
 const FAMILY = {
   atlantic: { forest: 0.55, grass: 'lush', crops: [0, 0, 4, 4, 1, 8] },
@@ -198,7 +199,8 @@ export function createRealTownLevel(def, D) {
     return null;
   }
   const PLACES = { center: { x: 0, z: 0 }, plaza: { x: PL.x, z: PL.z, r: clamp(PL.r || 14, 9, 22), name: PL.n } };
-  const ch = LG.iglesia;
+  // (la iglesia que nombra la ficha, buscada por su nombre entre las de los datos: data/reales/iglesia.js)
+  const ch = iglesiaReal(D, def.church?.name, def.name).casa;
   PLACES.church = ch ? { x: ch.x, z: ch.z, real: ch } : near(30, -30, (x, z) => okSpot(x, z, 12)) || { x: 30, z: -30 };
   if (LG.ayuntamiento) PLACES.townhall = { x: LG.ayuntamiento.x, z: LG.ayuntamiento.z, real: LG.ayuntamiento };
   // radio del casco: hasta donde llegan tres de cada cuatro casas con vecinas
@@ -261,7 +263,9 @@ export function createRealTownLevel(def, D) {
   const nrm = (t) => (t || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const townWords = new Set(nrm(def.name).split(/[\s/-]+/));
   const GENERIC = new Set(['casa', 'torre', 'palacio', 'iglesia', 'ermita', 'puente', 'castillo', 'mirador', 'plaza', 'fuente', 'molino', 'dolmen', 'ruinas',
-    'sobre', 'medieval', 'romanico', 'museo', 'reyes', 'navarra', 'principe', 'galerias', 'medievales', 'piedra', 'tumba', 'entrada', 'cueva', 'sierra', 'verde']);
+    'sobre', 'medieval', 'romanico', 'museo', 'reyes', 'navarra', 'principe', 'galerias', 'medievales', 'piedra', 'tumba', 'entrada', 'cueva', 'sierra', 'verde',
+    // (las de iglesia y santo tampoco: «Santa Criz de Eslava», el yacimiento, caía en Sangüesa sobre Santa María la Real)
+    'santa', 'santo', 'nuestra', 'senora', 'virgen', 'parroquia', 'basilica', 'catedral', 'convento', 'monasterio', 'ruina', 'ruinas', 'restos', 'antigua', 'antiguo']);
   const keysOf = (name) => nrm(name).split(/[\s,()'-]+/).filter(w => w.length > 4 && !GENERIC.has(w) && !townWords.has(w));
   // (nunca un polideportivo, un colegio o un hotel que lleve el nombre del personaje; si la ficha tiene palabras propias
   // —Zabaleta, Gayarre, Príncipe de Viana— han de estar en el nombre, y si no, basta con que sea del tipo: «castillo»)
@@ -272,7 +276,7 @@ export function createRealTownLevel(def, D) {
   const byName = (keys, re) => {
     let best = null, bs = null;
     for (const c of CASAS) {
-      if (!c.n || TAKEN.has(c)) continue;
+      if (!c.n || TAKEN.has(c) || c === ch) continue;   // (la iglesia del pueblo es suya)
       const n = nrm(c.n); if (NOTSITE.test(n)) continue;
       const sc = rank(n, keys, re); if (!sc.ok) continue;
       if (!best || better(sc, bs) > 0 || (better(sc, bs) === 0 && c.a > best.a)) { best = c; bs = sc; }
@@ -293,7 +297,10 @@ export function createRealTownLevel(def, D) {
   // (lejos: además, lejos del frontón, que se levanta aparte: los yacimientos son grandes y no deben pisarlo)
   const lejosFronton = (x, z) => !PLACES.frontonNear || Math.hypot(x - PLACES.frontonNear.x, z - PLACES.frontonNear.z) > 45;
   const highest = (r0, r1, m, lejos) => { let best = null, bh = -1e9; for (let r = r0; r <= r1; r += 15) for (let k = 0; k < 36; k++) { const a = k / 36 * Math.PI * 2, x = PL.x + Math.cos(a) * r, z = PL.z + Math.sin(a) * r; if (!okSpot(x, z, m, 0.35) || PLACES.landmarks.some(l => Math.hypot(l.x - x, l.z - z) < 40) || (lejos && !lejosFronton(x, z))) continue; const h = dem(x, z) - r * 0.02; if (h > bh) { bh = h; best = { x, z }; } } return best; };
-  const freeNear = (x0, z0, r0, r1, m) => ring(r0, r1, (x, z) => okSpot(x + x0, z + z0, m, 0.25) && !PLACES.landmarks.some(l => Math.hypot(l.x - x - x0, l.z - z - z0) < 30));
+  // (un hueco libre alrededor de (x0, z0), en metros del pueblo: ring da el punto desde (x0, z0), así que se le suma. Antes
+  // no se sumaba, y las ermitas, las estelas y la tumba que van junto a la iglesia caían junto al centro del pueblo: la
+  // tumba de César Borgia, lejos de Santa María de Viana)
+  const freeNear = (x0, z0, r0, r1, m) => { const p = ring(r0, r1, (x, z) => okSpot(x + x0, z + z0, m, 0.25) && !PLACES.landmarks.some(l => Math.hypot(l.x - x - x0, l.z - z - z0) < 30)); return p && { x: p.x + x0, z: p.z + z0 }; };
   // (los lugares con nombre de monumento de los datos: el castillo, el cerco o la cueva donde están aunque su edificio
   // no tenga nombre; cuenta cada palabra del nombre de la ficha que coincide y el tipo de sitio que es)
   const NOMS = (D.monumentos || []).filter(p => inner(p.x, p.z)), USED = new Set();
@@ -311,6 +318,8 @@ export function createRealTownLevel(def, D) {
       // brujas que trae el dato está en la taquilla del pueblo, no en la cueva)
       const sc = rank(n, keys, re); if (!(re ? sc.r : sc.k)) continue;
       if (natural && villageMask(p.x, p.z) > 0.3) continue;
+      // (ni encima de la iglesia, salvo la muralla que la rodea)
+      if (re !== KIND_RE.walls && Math.hypot(p.x - PLACES.church.x, p.z - PLACES.church.z) < 25) continue;
       const d = Math.hypot(p.x - PL.x, p.z - PL.z);
       if (!best || better(sc, bs) > 0 || (better(sc, bs) === 0 && d < Math.hypot(best.x - PL.x, best.z - PL.z))) { best = p; bs = sc; }
     }
@@ -327,6 +336,9 @@ export function createRealTownLevel(def, D) {
     else if (k === 'towerhouse') { b = byName(keys, /dorre|torre/) || CASAS.filter(c => c.k === 'tower' && !TAKEN.has(c)).sort((p, q) => Math.hypot(p.x, p.z) - Math.hypot(q.x, q.z))[0] || null; }
     else if (k === 'house') { b = byName(keys, null); }
     else if (k === 'chapel') { b = byName(keys, /ermita|baseliza|kapera|capilla/); }
+    // (las ruinas con nombre propio, en el edificio que se llama así: las de San Pedro de Viana, en su iglesia, no en el
+    // punto de los datos de lugares, que caía 160 m más allá, en el centro)
+    else if (k === 'ruin' && keys.length) { b = byName(keys, /ruina|iglesia|ermita|eliza|castillo|torre/); }
     if (!b && !['bridge', 'townhall', 'kiosk', 'fountain', 'plaza'].includes(k)) {
       const pl = placeByName(keys, KIND_RE[k] || null, NATURAL.has(k));
       if (pl) {
@@ -429,7 +441,7 @@ export function createRealTownLevel(def, D) {
   if (RV.some(L => L.cubierto) && riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge > 8) PLACES.riverSpot = orilla();
   const PUENTES = ordenarPuentes(D.puentes || [], PATHS, riverInfo, RV);
   {
-    const fijas = new Set([...TAKEN, LG.iglesia, LG.ayuntamiento, LG.fronton, ...CASAS.filter(b => b.k === 'church' || b.k === 'townhall' || b.k === 'fronton')].filter(Boolean));
+    const fijas = new Set([...TAKEN, LG.iglesia, ch, LG.ayuntamiento, LG.fronton, ...CASAS.filter(b => b.k === 'church' || b.k === 'townhall' || b.k === 'fronton')].filter(Boolean));
     const partidas = partirBloques(CASAS, { plaza: PL, fijas, urbano: ['central', 'ribera', 'city'].includes(def.family) && CASAS.length >= 80, pathQuery });
     const ok = ordenarCasas(partidas, { callesCerca: (x, z) => pathAt(x, z), rios: RV, puentes: PUENTES, riverInfo, pathQuery, plazaMask, fijas });
     CASAS.length = 0; CASAS.push(...ok); marcarCasas();

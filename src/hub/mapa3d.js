@@ -14,6 +14,7 @@ import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
 import { iconSVG } from '../ui/icons.js';
 import { MAPA_IDS, loadMapa } from '../data/reales/index.js';
+import { levelById } from '../data/levels.js';
 import { CENTROS } from '../data/reales/centros.js';
 import { MAPA_RELIEVE } from '../data/mapa-relieve.js';
 import SOMBRA from '../assets/relieve/sombra.webp?url';
@@ -1117,13 +1118,15 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const quiere = va ? (REALES.has(elegido.id) ? [elegido] : []) : v.d > NUC_LEJOS + 4 ? [] : T.filter(t => REALES.has(t.id) && (!sel || sel === t.comarca) && Math.hypot(t.X - v.x, t.Z - v.z) < v.d * 0.55 + 2)
       .sort((a, b) => Math.hypot(a.X - v.x, a.Z - v.z) - Math.hypot(b.X - v.x, b.Z - v.z)).slice(0, 6);
     for (const t of quiere) {
-      const e = nuc.get(t.id); if (e) { e.t = now; continue; } if (nucPide) continue;
-      const nuevo = { t: now }; nuc.set(t.id, nuevo); nucPide++;
+      // (cuándo se vio por última vez va en «visto»: «t» es el pueblo, que pone haceNucleo. Antes las dos cosas iban en «t» y
+      // la hora pisaba al pueblo: la maqueta no sabía de qué pueblo era, y sus rótulos salían sin la iglesia del juego)
+      const e = nuc.get(t.id); if (e) { e.visto = now; continue; } if (nucPide) continue;
+      const nuevo = { visto: now }; nuc.set(t.id, nuevo); nucPide++;
       loadMapa(t.id).then(D => { nucPide--; if (!vivo || nuc.get(t.id) !== nuevo || !D?.casas) return;
         Object.assign(nuevo, haceNucleo(t, D)); if (!ponNucleo(nuevo)) { quitaNucleo(nuevo); nuc.delete(t.id); } }).catch(() => { nucPide = Math.max(0, nucPide - 1); });
     }
     // (si hay más de ocho, se sueltan los que hace más que no se ven)
-    const viejos = [...nuc].filter(([id]) => !quiere.some(t => t.id === id)).sort((a, b) => a[1].t - b[1].t);
+    const viejos = [...nuc].filter(([id]) => !quiere.some(t => t.id === id)).sort((a, b) => a[1].visto - b[1].visto);
     while (nuc.size > 8 && viejos.length) { const [id, e] = viejos.shift(); quitaNucleo(e); nuc.delete(id); }
   }
   function quitaNucleo(e) {
@@ -1198,7 +1201,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   function pasoMaqueta(m) {
     const e = m.e, c = e.c;
     if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return false; }
-    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz }, m.res);
+    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id) }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
     // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
     if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();

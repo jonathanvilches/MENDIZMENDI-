@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { clamp, smoothstep, mulberry32, segDist, hashStr } from '../util/math.js';
 import { emblemasDe, enHueco, haceEmblema, materialEmblema, metros } from './emblemas.js';
+import { iglesiaReal, palabrasIglesia } from '../data/reales/iglesia.js';
 
 // (alturas de cada clase de edificio cuando OpenStreetMap no la da, en metros)
 const ALTO = { house: 8.5, borda: 7, shed: 4.5, industrial: 9, church: 14, townhall: 11, school: 9, tower: 20, fronton: 10, palacio: 13, castillo: 15, muralla: 9, kiosko: 5, lavadero: 4 };
@@ -39,8 +40,40 @@ const PARED = {
 };
 const ESTILO = { bidasoa: 'atlantico', 'larraun-leitzaldea': 'atlantico', sakana: 'atlantico', pirineo: 'pirineo', prepirineo: 'pirineo', ribera: 'ribera', 'ribera-alta': 'ribera' };
 // (los usos del suelo que son campo o están hechos: ahí no crece el bosquete)
-// (de los sitios con nombre, solo los monumentos: iglesias, castillos, palacios, puentes, museos…, no tiendas ni oficinas)
-const MONUMENTO = /^(iglesia|parroquia|castillo|palacio|bas[ií]lica|monasterio|colegiata|capilla|cripta|ermita|catedral|convento|santuario|puente|la muralla|muralla|torre|torrea|molino|museo|casa museo|ruinas|cruz|silo|cueva|ayuntamiento|mirador|errota)\b|(museoa|gaztelua|eliza|errotazar)\b/i;
+// (los rótulos de la maqueta: los edificios con nombre de monumento, en castellano o en euskera; fuera los que nombran un
+// negocio, un servicio o una calle, que también llevan a veces «iglesia» o «torre», los que solo dicen qué son,
+// «Convento», y los mal escritos en el dato, con dos aes seguidas: «Aarnout Zubia» de Otsagabia. PRINCIPAL: van antes)
+const ROTULO = /\b(iglesia|parroquia|bas[ií]lica|catedral|colegiata|kolegiata|ermita|baseliza|kapera|capilla|convento|komentu|monasterio|santuario|castillo|gaztelua|palacio|jauregia?|torre|dorrea|torrea|muralla|harresia|puente|zubia|molino|errota|museo|museoa|eliza)\b/i;
+const NO_ROTULO = /hotel|hostal|albergue|apartamento|farmacia|\bbar\b|restaurante|asador|sidrer|transformaci|\bct\b|polideportivo|residencia|tanatorio|\bcine\b|bodega|cooperativa|colegio|escuela|salud|consultorio|\bclub\b|front[oó]n|pilotalekua|kalea|karrika|\bcalle\b|carretera|errepidea|paseo|bidea|auzoa|camino|\bplaza\b|acceso|evang[eé]lica|\bbase\b|casica|casita|caser[ií]o|borda|\bnave\b|almac[eé]n|taller|garaje|tienda|oficina|aparcamiento|parking|camping|gasolinera|aa/i;
+const PRINCIPAL = /castillo|gaztelua|palacio real|errege|catedral|bas[ií]lica|colegiata|kolegiata/i;
+// (el nombre, para comparar: sin tildes, mayúsculas ni lo que va entre paréntesis; y para enseñar: «de», «la», «los»… en
+// minúscula, como se escribe, aunque el dato venga con todas las palabras en mayúscula, sin el punto del final ni
+// «Católica», que sobra en «Parroquia Católica San Juan»; con la tilde bien puesta: «Prìncipe», en el dato)
+const normaRotulo = (n) => n.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\(.*?\)/g, '').toLowerCase().replace(/[^a-z0-9ñ]+/g, ' ').trim();
+const GRAVE = { 'ì': 'í', 'ò': 'ó', 'à': 'á', 'è': 'é', 'ù': 'ú' };
+const rotulo = (n) => n.trim().replace(/\.$/, '').replace(/[ìòàèù]/g, (c) => GRAVE[c]).replace(/ Cat[oó]lica /, ' ').replace(/ (De|Del|La|Las|Los|El|Y|E|En|A|Al) /g, (m) => m.toLowerCase());
+/**
+ * Los rótulos de una maqueta, en metros desde el centro del pueblo: [{ n, x, z }]. o: { R, nivel, cabe(x, z) }; nivel, la
+ * ficha del pueblo (levels.js): la iglesia lleva su nombre si es la suya (data/reales/iglesia.js) y el nombre del pueblo
+ * no cuenta («Base de Puente la Reina» no es un puente).
+ */
+export function rotulosMaqueta(D, { R, nivel = null, cabe = () => true }) {
+  const pueblo = nivel?.name || '', { casa: ig, propia } = iglesiaReal(D, nivel?.church?.name, pueblo);
+  const sinPueblo = (n) => { let t = ' ' + normaRotulo(n) + ' '; for (const p of pueblo.split('/')) { const q = normaRotulo(p); if (q) t = t.split(' ' + q + ' ').join(' '); } return t; };
+  const cand = [];
+  if (ig && (propia || ig.n)) cand.push({ n: propia ? nivel.church.name : ig.n, x: ig.x, z: ig.z, p: 0, ig: true });
+  for (const c of D.casas) if (c.n && c !== ig && ROTULO.test(sinPueblo(c.n)) && !NO_ROTULO.test(c.n) && normaRotulo(c.n).split(' ').length > 1) cand.push({ n: c.n, x: c.x, z: c.z, p: PRINCIPAL.test(c.n) ? 1 : 2 });
+  // (los puentes con nombre de puente y largos: los de verdad cruzan el río; las pasarelas cortas con nombre, no)
+  for (const b of D.puentes || []) if (b.n && /\b(puente|zubia)\b/i.test(sinPueblo(b.n)) && !NO_ROTULO.test(b.n) && b.pts?.length > 1 && Math.hypot(b.pts.at(-1)[0] - b.pts[0][0], b.pts.at(-1)[1] - b.pts[0][1]) > 18) { const [x, z] = b.pts[Math.floor(b.pts.length / 2)]; cand.push({ n: b.n, x, z, p: 2 }); }
+  // (el mismo sitio con dos nombres: igual escrito, o las mismas palabras propias y cerca, como «Real Colegiata de Santa
+  // María» y «Orreagako Santa Maria Errege Kolegiata»; o a menos de 45 m de otro, que se montarían)
+  const pal = (x) => x.pal || (x.pal = [...palabrasIglesia(x.n, pueblo)].sort().join(' '));
+  const mismo = (a, b) => normaRotulo(a.n) === normaRotulo(b.n) || (pal(a) && pal(a) === pal(b) && Math.hypot(a.x - b.x, a.z - b.z) < 150);
+  const mon = [];
+  for (const x of cand.filter(x => x.n && x.n.length <= 44 && !/\d/.test(x.n) && Math.hypot(x.x, x.z) < R * 0.8 && cabe(x.x, x.z)).sort((a, b) => a.p - b.p || Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z)))
+    if (mon.length < 6 && !mon.some(y => mismo(x, y) || Math.hypot(y.x - x.x, y.z - x.z) < 45)) mon.push(x);
+  return mon.map(x => ({ n: rotulo(x.n), x: x.x, z: x.z }));
+}
 const ABIERTO = new Set(['cultivo', 'huerta', 'prado', 'vina', 'deporte', 'plaza', 'cementerio', 'juegos', 'escuela', 'industria', 'cesped']);
 
 const enPoligono = (P, x, z) => { let inn = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inn = !inn; } return inn; };
@@ -495,9 +528,10 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     for (const e of embs) { const m = new THREE.Mesh(haceEmblema(e.id, { ancla, MU, K, suelo: alto }), me); m.frustumCulled = false; grupo.add(m); }
   }
   res.casas = grupo;
-  // (sin repetir: de dos a menos de 60 m, el primero; como mucho seis, los más cerca del centro)
-  const mon = [];
-  for (const x of (D.monumentos || []).filter(x => x.n && x.n.length <= 44 && !/[\d,]/.test(x.n) && MONUMENTO.test(x.n) && Math.hypot(x.x, x.z) < R * 0.8 && cabe(x.x, x.z)).sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z)))
-    if (mon.length < 6 && !mon.some(y => Math.hypot(y.x - x.x, y.z - x.z) < 60)) mon.push(x);
-  res.monumentos = mon.map(x => ({ n: x.n, X: X0 + x.x * MU, Z: Z0 + x.z * MU }));
+  // (los rótulos: solo edificios y puentes con su nombre en OpenStreetMap, encima de su propio tejado; la iglesia principal,
+  // con el nombre que le da el juego si es la suya, o.nivel. Antes salían de los lugares de Overture, que son sobre todo negocios con
+  // el punto en su dirección o en el centro del pueblo: el «Mirador de los Buitres» de Irurtzun caía en medio de las
+  // casas, el castillo de Olite y la basílica del Puy salían dos veces y San Saturnino de Artajona, a 370 m de su iglesia.
+  // Sin repetir, de lo más importante a lo demás y, a igualdad, lo más cerca del centro; como mucho seis)
+  res.monumentos = rotulosMaqueta(D, { R, nivel: o.nivel, cabe }).map(x => ({ n: x.n, X: X0 + x.x * MU, Z: Z0 + x.z * MU }));
 }
