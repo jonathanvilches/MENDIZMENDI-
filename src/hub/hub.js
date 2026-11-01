@@ -1009,7 +1009,7 @@ export class Hub {
       <li>Modelos 3D de base: hechos con Meshy (meshy.ai) y adaptados para el juego.</li>
       <li>Fotos de las plantas: iNaturalist, de dominio público (CC0).</li>
       <li>Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).</li>
-      <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ríos y embalses © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
+      <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ríos, embalses y cimas © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Paisaje de los prismáticos en los miradores: relieve EU-DEM de Copernicus (Unión Europea), SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y ETOPO1 (NOAA, dominio público).</li>
       <li>Músicas, público y gol: de Envato Elements, con licencia solo para este juego («Epic» de MrClaps y de MDFactory, «Game» de cinematic-alex, «Brazil Soccer crowd steady» de rhumphriesDC, «Crowd Cheering and Applauding» de GameChestAudio y «Football Goal» de WistanSound). No se pueden usar fuera del juego.</li>
       <li>Letras: Barlow, Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>

@@ -56,7 +56,8 @@ def angle(h, r, h0):   # ángulo de elevación (grados) de un punto de altura h 
 
 # --- pueblos ---
 SET = json.load(open(os.path.join(ROOT, 'src/data/settlements.json'), encoding='utf-8'))
-MTS = json.load(open(os.path.join(ROOT, 'src/data/mountains.json'), encoding='utf-8'))
+# (sin los montes con «dudoso»: su punto no está comprobado contra el relieve ni OpenStreetMap, como Bonbagaina)
+MTS = [m for m in json.load(open(os.path.join(ROOT, 'src/data/mountains.json'), encoding='utf-8')) if not m.get('dudoso')]
 EXTRA = [dict(id='moncayo', altitude=2314, lat=41.787, lon=-1.839), dict(id='anie', altitude=2504, lat=42.946, lon=-0.717)]
 src = open(os.path.join(ROOT, 'src/data/levels.js'), encoding='utf-8').read()
 LEVELS = [dict(id=m.group(1), name=m.group(2), mapName=(re.search(r"mapName: '([^']*)'", m.group(0)) or [None, None])[1],

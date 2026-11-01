@@ -39,6 +39,7 @@ export function skylineFor(def) {
     out[b] = Math.tan(rad(base * Math.max(0.15, n)));
   }
   for (const m of [...MOUNTAINS, ...EXTRA]) {
+    if (m.dudoso) continue;   // (sin comprobar dónde está: mountains.json)
     const dy = rad(m.lat - lat0) * 6371e3, dx = rad(m.lon - lon0) * 6371e3 * Math.cos(rad(lat0));
     // (los montes a menos de 2,5 km ya son las laderas del valle del propio pueblo, que el juego dibuja aparte)
     const d = Math.hypot(dx, dy); if (d < 2500 || d > 110e3) continue;

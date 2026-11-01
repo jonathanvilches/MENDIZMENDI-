@@ -277,6 +277,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con dos nombres, en castellano y en euskera, una vez. Como mucho seis, de lo más importante a lo demás. Los núcleos de
   los pueblos guardan cuándo se vieron en `visto`, no en `t`, que es el pueblo: antes la hora lo pisaba y la maqueta no
   sabía de qué pueblo era, así que no tenía la iglesia de su ficha.
+- **Los montes** (revisados uno a uno en noviembre de 2026): cada cima de `data/mountains.json` comparada con su cima de
+  OpenStreetMap (de Overture, `tools/relieve/cimas-overture.py`) y con el relieve de verdad (AWS Terrain Tiles, nivel 13).
+  24 tenían el punto lejos de su cumbre, hasta casi 6 km (Goñiburu, Astobizkar, Otanarte, Berrendi, Baigura,
+  Lapazarra…), y se han llevado a la cima; Adi y Burdindogi, a la comarca donde caen. Bonbagaina va con `dudoso`: su punto
+  cae en un valle y en OSM no hay cima con ese nombre; no sale en el mapa, ni en los miradores ni en el horizonte hasta
+  comprobarlo. Con los puntos nuevos se ha vuelto a calcular `data/relieve.js` (`tools/relieve/perfiles.py`): cambian los
+  montes que se ven desde los miradores de Lekunberri, Orreaga e Irulegi. En el mapa del inicio (`mapa3d.js`, `PK`), cada
+  monte en su cima con su nombre y su altura, con la comarca elegida o muy de cerca; si no cabe encima, debajo, y si
+  tampoco, solo el triángulo. En las comarcas con pocos montes en la colección, además, sus cimas de OSM que más destacan
+  sobre su entorno (`data/montes-mapa.js`, de `tools/relieve/montes-mapa.mjs`), dentro de Navarra con un kilómetro de margen.
 - **La iglesia del juego en su edificio** (`data/reales/iglesia.js`, `iglesiaReal`): la que nombra la ficha del pueblo,
   buscada por las palabras propias de su nombre (el santo o la advocación, en castellano o en euskera: «Done Mikel eliza»
   es la de San Miguel). La usan la misión de la iglesia (`levels/townReal.js`) y el rótulo de la maqueta. Antes iba en la

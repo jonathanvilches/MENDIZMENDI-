@@ -26,7 +26,7 @@ export function montesFrom(lat, lon, n = 6, id = null) {
     const vis = T.m.map(x => byId.get(x.id)).filter(Boolean).slice(0, n).map(m => ({ m, ...rel(T.lat, T.lon, m.lat, m.lon) }));
     if (vis.length) return vis.map(x => ({ id: x.m.id, name: x.m.name, alt: x.m.altName, altitude: x.m.altitude, zone: x.m.zone, intro: x.m.intro, km: x.km, dir: x.dir, bearing: x.bearing }));
   }
-  const all = [...MOUNTAINS, ...EXTRA].filter(m => m.lat).map(m => ({ m, ...rel(lat, lon, m.lat, m.lon) }))
+  const all = [...MOUNTAINS, ...EXTRA].filter(m => m.lat && !m.dudoso).map(m => ({ m, ...rel(lat, lon, m.lat, m.lon) }))
     .filter(x => x.km > 4 && x.km < (x.m.altitude > 2000 ? 110 : 60))
     .sort((a, b) => b.m.altitude / Math.sqrt(b.km) - a.m.altitude / Math.sqrt(a.km));
   const out = [];
@@ -34,7 +34,7 @@ export function montesFrom(lat, lon, n = 6, id = null) {
   return out.map(x => ({ id: x.m.id, name: x.m.name, alt: x.m.altName, altitude: x.m.altitude, zone: x.m.zone, intro: x.m.intro, km: x.km, dir: x.dir, bearing: x.bearing }));
 }
 /** Todos los montes con coordenadas (los de Navarra y las cimas famosas de fuera que se ven desde muchos pueblos). */
-export const montesConocidos = () => [...MOUNTAINS, ...EXTRA].filter(m => m.lat);
+export const montesConocidos = () => [...MOUNTAINS, ...EXTRA].filter(m => m.lat && !m.dudoso);
 // pueblos con mirador (y el nombre del mirador cuando lo tiene)
 export const MIRADOR_TOWNS = {
   pamplona: 'Mirador del Caballo Blanco', ujue: null, irurtzun: null, artajona: null, estella: null, irulegi: null,

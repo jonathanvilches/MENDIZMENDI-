@@ -17,6 +17,8 @@ import { MAPA_IDS, loadMapa } from '../data/reales/index.js';
 import { levelById } from '../data/levels.js';
 import { CENTROS } from '../data/reales/centros.js';
 import { MAPA_RELIEVE } from '../data/mapa-relieve.js';
+import MOUNTAINS from '../data/mountains.json';
+import { MONTES_MAPA } from '../data/montes-mapa.js';
 import SOMBRA from '../assets/relieve/sombra.webp?url';
 import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
@@ -359,6 +361,17 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const [X, Z] = W(...xy), lab = document.createElement('div'); lab.className = k ? 'm3-rl' : 'm3-sl'; lab.textContent = n; lab.hidden = true;
     return { lab, k, X, Z, h: GROSOR + alto(X, Z) + (k ? 0.25 : 0.6), c: deQuien(X, Z) };
   });
+  // los montes de la colección (mountains.json), cada uno en su cima con su nombre y su altura: con una comarca elegida,
+  // los suyos, del más alto al más bajo (el que no cabe, se esconde, como los demás nombres); sin elegir, solo de cerca.
+  // La comarca es la del sitio donde está la cima; si cae justo en la raya de Navarra, la de su ficha. Fuera los que tienen
+  // «dudoso»: su punto no está comprobado. Detrás, en las comarcas con pocos montes en la colección (la Ribera, la Zona
+  // Media, Valdizarbe…), sus cimas de OpenStreetMap que más destacan (data/montes-mapa.js), que ceden el sitio a las otras
+  const PK = [...MOUNTAINS.filter(m => m.lat && !m.dudoso).sort((a, b) => b.altitude - a.altitude).map(m => ({ n: m.name, h: m.altitude, lat: m.lat, lon: m.lon, c: m.region, p: 5.5 })),
+    ...MONTES_MAPA.map(m => ({ ...m, p: 5.6 }))].map(m => {
+    const [X, Z] = W(...mapaXY(m.lat, m.lon)), lab = document.createElement('div'); lab.className = 'm3-pk'; lab.dataset.notr = ''; lab.hidden = true;
+    lab.innerHTML = `<b>${esc(m.n)}</b><small>${m.h.toLocaleString('es')} m</small>`;
+    return { lab, X, Z, p: m.p, h: GROSOR + alto(X, Z) + 0.15, c: deQuien(X, Z) || byId.get(m.c) };
+  });
   // la trashumancia: la Cañada Real de los Roncaleses, del valle de Roncal a las Bardenas Reales (trazado aproximado, por
   // Burgui, la sierra de Leyre, Sangüesa, Cáseda y Carcastillo), pintada sobre el relieve con una raya discontinua, y su
   // rebaño, que baja por ella poco a poco; tocándolo, su ficha (o.onTrashumancia). Una raya en una capa encima del mapa
@@ -420,7 +433,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 
   // la capa de los nombres y los controles
   const capa = document.createElement('div'); capa.className = 'm3-capa';
-  for (const c of C) capa.append(c.lab); for (const t of T) capa.append(t.lab); for (const x of N) capa.append(x.lab);
+  for (const c of C) capa.append(c.lab); for (const t of T) capa.append(t.lab); for (const x of N) capa.append(x.lab); for (const x of PK) capa.append(x.lab);
   const cv = r.domElement; cv.className = 'm3-cv'; cv.tabIndex = 0; cv.setAttribute('aria-label', 'Mapa 3D de Navarra: arrastra para moverte y toca una comarca o un pueblo');
   host.prepend(cv); host.append(capa);
 
@@ -1250,7 +1263,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
-    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; } };   // (para las pruebas en el servidor de desarrollo)
+    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
@@ -1512,6 +1525,8 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on, x.g.position.y]); }
     for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !sel || sel === c.id]);
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, sel ? x.c?.id === sel : v.d < 55]);
+    // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
+    for (const x of PK) { const y = x.c ? x.h * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
     { const on = !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
@@ -1522,7 +1537,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       const u = (now / 1000 / 80) % 1, f = u * (canP.length - 1), i = Math.floor(f), a = canP[i], b = canP[Math.min(i + 1, canP.length - 1)], t = f - i;
       lista.push([6, rebano, a.X + (b.X - a.X) * t, Y(a) + (Y(b) - Y(a)) * t + 0.3, a.Z + (b.Z - a.Z) * t, on]); }
     lista.sort((a, b) => a[0] - b[0]);
-    for (const [, el, x, y, z, on, y2] of lista) etiqueta(el, x, y, z, on, ocupado, y2);
+    for (const [, el, x, y, z, on, y2, punto] of lista) etiqueta(el, x, y, z, on, ocupado, y2, punto);
     // (dónde queda la cabeza de la chincheta del pueblo elegido: ahí se ancla su ficha)
     if (elegido && o.sigue) { elegido.bola.getWorldPosition(bw).project(cam); o.sigue((bw.x + 1) / 2 * sz.w, (1 - bw.y) / 2 * sz.h, bw.z < 1); }
   }
@@ -1539,9 +1554,11 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // rozan a otro no parpadean. Solo se mueve si se ha movido de verdad)
   // (los de los pueblos, si encima no caben, debajo de su baliza: así se leen aunque dos pueblos estén muy juntos)
   const libreEn = (R, g, ocupado) => !(R[0] < -g || R[2] > sz.w + g || R[1] < -g || R[3] > sz.h + g || ocupado.some(q => R[0] < q[2] && q[0] < R[2] && R[1] < q[3] && q[1] < R[3]));
-  function etiqueta(el, x, y, z, on, ocupado, y2) {
+  // (punto: los montes, si su nombre no cabe ni encima ni debajo, se quedan solo con el triángulo de la cima, si ahí cabe:
+  // así se ve que ahí hay un monte aunque su nombre salga solo al acercarse)
+  function etiqueta(el, x, y, z, on, ocupado, y2, punto) {
     pv.set(x, y, z).project(cam);
-    let ok = on && pv.z < 1 && Math.abs(pv.x) < 1.1 && Math.abs(pv.y) < 1.1, px = (pv.x + 1) / 2 * sz.w, py = (1 - pv.y) / 2 * sz.h, abajo = false;
+    let ok = on && pv.z < 1 && Math.abs(pv.x) < 1.1 && Math.abs(pv.y) < 1.1, px = (pv.x + 1) / 2 * sz.w, py = (1 - pv.y) / 2 * sz.h, abajo = false, solo = false;
     if (ok) {
       // (al medirlo se esconde un momento; luego vuelve a decidirse si se ve: antes, al llegar la letra, todos los nombres se
       // volvían a medir y se quedaban escondidos hasta que se movía el mapa)
@@ -1551,11 +1568,13 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
         ok = false;
         if (y2 != null) { pv.set(x, y2, z).project(cam); const qx = (pv.x + 1) / 2 * sz.w, qy = (1 - pv.y) / 2 * sz.h + 6 + el._h;
           if (pv.z < 1 && libreEn([qx - w - g, qy - el._h - g, qx + w + g, qy + 1 + g], g, ocupado)) { ok = abajo = true; px = qx; py = qy; } }
+        if (!ok && punto && libreEn([px - 6, py - 9, px + 6, py + 2], 2, ocupado)) ok = solo = true;
       }
-      if (ok) ocupado.push([px - w - 3, py - el._h - 3, px + w + 3, py + 1]);
+      if (ok) ocupado.push(solo ? [px - 6, py - 9, px + 6, py + 2] : [px - w - 3, py - el._h - 3, px + w + 3, py + 1]);
     }
     if (ok !== !!el._on || !el._ya) { el._on = ok; el._ya = 1; el.classList.toggle('fuera', !ok); }   // (los que nunca se han visto, también fuera)
     if (!ok) return;
+    if (punto && solo !== !!el._solo) { el._solo = solo; el.classList.toggle('punto', solo); }
     if (Math.abs(px - (el._x ?? -1e9)) + Math.abs(py - (el._y ?? -1e9)) < 0.3) return;
     el._x = px; el._y = py; el.classList.toggle('abajo', abajo); el.style.transform = `translate3d(${px.toFixed(1)}px, ${py.toFixed(1)}px, 0) translate(-50%, -100%)`;
   }
