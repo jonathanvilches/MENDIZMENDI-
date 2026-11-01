@@ -90,6 +90,27 @@ export function partirBloques(casas, { plaza, fijas, urbano, pathQuery }) {
   return out;
 }
 
+/** Lo de dentro de una manzana que partirBloques ha dejado con casas solo a la calle (piezas: lo que devolvió para el
+ *  bloque b): en los datos, ahí también hay casas, corrales y anexos, y quedaba un prado en mitad del casco (en Tafalla,
+ *  casi todas las manzanas). Anexos bajos de unos 8 m, con huecos de patio, hasta lo que de verdad está construido en la
+ *  manzana; no donde enVerde(x, z) (un parque, una plaza, una huerta). rnd: el azar de la manzana. Devuelve los anexos
+ *  (k: «shed», anexo: true; de la altura se ocupa quien los levanta). */
+export function anexosManzana(b, piezas, { enVerde = () => false, rnd }) {
+  const area = b.w * b.d, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d), t = clamp(corto * 0.3, 8, 12), real = b.a || area;
+  if (piezas.length < 2 || !piezas[0].parte || corto <= 24 || real / area >= 0.8 || corto - 2 * t < 7 || largo - 2 * t < 7) return [];
+  const hecho = piezas.reduce((m, q) => m + q.w * q.d, 0), iA = largo - 2 * t - 1, iB = corto - 2 * t - 1, f = clamp((real - hecho) / (iA * iB), 0, 0.85);
+  if (f <= 0) return [];
+  const c = Math.cos(b.ry), s = Math.sin(b.ry), e = b.w >= b.d ? [c, -s, s, c] : [s, c, c, -s];   // (A: a lo largo; B: de fondo)
+  const na = Math.max(1, Math.round(iA / 8)), nb = Math.max(1, Math.round(iB / 8)), ca = iA / na, cb = iB / nb, out = [];
+  for (let i = 0; i < na; i++) for (let j = 0; j < nb; j++) {
+    if (rnd() > f) continue;
+    const u = -iA / 2 + ca * (i + 0.5), v = -iB / 2 + cb * (j + 0.5), x = b.x + e[0] * u + e[2] * v, z = b.z + e[1] * u + e[3] * v;
+    if (enVerde(x, z)) continue;
+    out.push({ x, z, w: ca * 0.9, d: cb * 0.9, ry: Math.atan2(e[2], e[3]), h: null, k: 'shed', n: null, a: Math.round(ca * cb * 0.81), parte: true, anexo: true });
+  }
+  return out;
+}
+
 /** Ordena las casas (las cambia en su sitio y devuelve las que se quedan). o: { calles (con buckets: callesCerca(x, z)),
  *  rios, puentes, riverInfo, pathQuery, plazaMask, fijas (Set de casas que no se tocan) }. */
 export function ordenarCasas(casas, o) {

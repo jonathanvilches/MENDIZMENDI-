@@ -11,7 +11,7 @@ import * as THREE from 'three';
 import { clamp, smoothstep, mulberry32, segDist, hashStr } from '../util/math.js';
 import { emblemasDe, enHueco, haceEmblema, materialEmblema, metros } from './emblemas.js';
 import { iglesiaReal, palabrasIglesia } from '../data/reales/iglesia.js';
-import { partirBloques, ordenarCasasPasos } from '../levels/ordenar.js';
+import { partirBloques, ordenarCasasPasos, anexosManzana } from '../levels/ordenar.js';
 import { levelById } from '../data/levels.js';
 
 // (alturas de cada clase de edificio cuando OpenStreetMap no la da, en metros)
@@ -146,7 +146,7 @@ export function* ordenaMaqueta(D) {
   const urbano = ['central', 'ribera', 'city'].includes(levelById(D.id)?.family) && C.length >= 80;
   // (lo que el orden deja grande: lejos del casco, en una cuadrícula de casas de unos 12 × 13 m, con huecos como patios)
   const parte = (b) => {
-    if (b.parte) return [{ ...b, h: b.anexo ? 3.6 + 2.4 * rnd() : (b.h || ALTO.house) * (0.85 + 0.3 * rnd()) }];
+    if (b.parte) return [{ ...b, k: 'house', h: b.anexo ? 3.6 + 2.4 * rnd() : (b.h || ALTO.house) * (0.85 + 0.3 * rnd()) }];
     if (Math.max(b.w, b.d) <= 24) return [b];
     if ((b.k === 'industrial' || b.k === 'shed') && !fijas.has(b) && Math.hypot(b.x, b.z) > 300) return [];
     if (!['house', 'industrial', 'shed', 'school'].includes(b.k) || fijas.has(b) || b.n) return [b];
@@ -167,20 +167,7 @@ export function* ordenaMaqueta(D) {
   const verdes = (D.usos || []).filter(u => VERDE.has(u.k) && u.pts.length > 2);
   const enVerde = (x, z) => verdes.some(u => enPoligono(u.pts, x, z));
   const partidas = [];
-  for (const b of C) {
-    const P = partirBloques([b], { plaza, fijas, urbano, pathQuery }); partidas.push(...P);
-    const area = b.w * b.d, largo = Math.max(b.w, b.d), corto = Math.min(b.w, b.d), t = clamp(corto * 0.3, 8, 12);
-    if (P.length < 2 || !P[0].parte || corto <= 24 || (b.a || area) / area >= 0.8 || corto - 2 * t < 7 || largo - 2 * t < 7) continue;
-    const hecho = P.reduce((m, q) => m + q.w * q.d, 0), iA = largo - 2 * t - 1, iB = corto - 2 * t - 1, f = clamp(((b.a || area) - hecho) / (iA * iB), 0, 0.85);
-    const e = b.w >= b.d ? [Math.cos(b.ry), -Math.sin(b.ry), Math.sin(b.ry), Math.cos(b.ry)] : [Math.sin(b.ry), Math.cos(b.ry), Math.cos(b.ry), -Math.sin(b.ry)];
-    const na = Math.max(1, Math.round(iA / 8)), nb = Math.max(1, Math.round(iB / 8)), ca = iA / na, cb = iB / nb;
-    for (let i = 0; i < na; i++) for (let j = 0; j < nb; j++) {
-      if (rnd() > f) continue;
-      const u = -iA / 2 + ca * (i + 0.5), v = -iB / 2 + cb * (j + 0.5), x = b.x + e[0] * u + e[2] * v, z = b.z + e[1] * u + e[3] * v;
-      if (enVerde(x, z)) continue;
-      partidas.push({ x, z, w: ca * 0.9, d: cb * 0.9, ry: Math.atan2(e[2], e[3]), h: null, k: 'house', n: null, a: 0, parte: true, anexo: true });
-    }
-  }
+  for (const b of C) { const P = partirBloques([b], { plaza, fijas, urbano, pathQuery }); partidas.push(...P, ...anexosManzana(b, P, { enVerde, rnd })); }
   partidas.splice(0, partidas.length, ...partidas.flatMap(parte));
   yield;
   const ok = yield* ordenarCasasPasos(partidas, { callesCerca, rios, puentes, riverInfo, pathQuery, plazaMask, fijas }, 60);

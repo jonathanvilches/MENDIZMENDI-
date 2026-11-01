@@ -123,7 +123,7 @@ function plaster(size, base, seed) {
   // zonas amplias algo más cálidas o más frías (capas de cal distintas, humedad): rompen el blanco uniforme
   for (let i = 0; i < 10; i++) {
     const x = rnd() * size, y = rnd() * size, r = 60 + rnd() * 110, warm = rnd() < 0.5;
-    wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = warm ? `rgba(200,170,120,${0.05 + rnd() * 0.05})` : `rgba(150,160,175,${0.04 + rnd() * 0.05})`; g.beginPath(); g.ellipse(X, Y, r, r * 0.6, rnd() * 3, 0, 7); g.fill(); });
+    wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = warm ? `rgba(200,170,120,${0.05 + rnd() * 0.05})` : `rgba(170,158,138,${0.04 + rnd() * 0.05})`; g.beginPath(); g.ellipse(X, Y, r, r * 0.6, rnd() * 3, 0, 7); g.fill(); });
   }
   // pasadas de llana (bandas suaves) y alguna grieta fina
   for (let i = 0; i < 26; i++) {
@@ -577,14 +577,16 @@ export function buildTextures(quality = 'high') {
   const S = quality === 'low' ? 256 : 512, key = quality === 'high' ? 'h' : S;
   if (TEX._S === key) return TEX;
   TEX._S = key;
-  TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#8d8375', hue: 36, hueVar: 16, sat: 14, light: 62, lightVar: 18 });
-  TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#6f685f', hue: 30, hueVar: 14, sat: 9, light: 50, lightVar: 16 });
-  TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#9d9281', hue: 38, hueVar: 8, sat: 20, light: 68, lightVar: 10 });
-  // (revocos claros y luminosos, recién encalados)
-  TEX.plasterWhite = plaster(S, '#f6f1e6', 1);
+  // (la piedra, arenisca y parda, y la sillería, dorada: antes, con poco color, salían grises y, a la sombra, azuladas)
+  TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#978670', hue: 33, hueVar: 14, sat: 24, light: 63, lightVar: 18 });
+  TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#76695a', hue: 29, hueVar: 12, sat: 15, light: 50, lightVar: 16 });
+  TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#a8957a', hue: 37, hueVar: 8, sat: 30, light: 69, lightVar: 10 });
+  // (revocos claros y luminosos, recién encalados; la cal, crema y no blanco azulado)
+  TEX.plasterWhite = plaster(S, '#f8f0e0', 1);
   TEX.plasterCream = plaster(S, '#f2dcb0', 2);
-  TEX.roofSlate = roofTiles(S, { seed: 4, rows: 16, cols: 8, dark: '#1f2126', hue: 220, hueVar: 12, sat: 8, light: 30, lightVar: 10 });
-  TEX.roofTile = roofTiles(S, { seed: 5, rows: 14, cols: 9, dark: '#3d1d14', hue: 12, hueVar: 10, sat: 45, light: 38, lightVar: 12, round: true });
+  // (la pizarra, gris pardo, y no gris azul; la teja, de barro cocido, algo más viva)
+  TEX.roofSlate = roofTiles(S, { seed: 4, rows: 16, cols: 8, dark: '#24211f', hue: 26, hueVar: 12, sat: 8, light: 33, lightVar: 10 });
+  TEX.roofTile = roofTiles(S, { seed: 5, rows: 14, cols: 9, dark: '#3f1d12', hue: 14, hueVar: 10, sat: 52, light: 41, lightVar: 12, round: true });
   // (la madera, a la mitad; en el ordenador, entera: puertas, balcones y entramados se ven de cerca)
   const W = quality === 'high' ? S : S / 2;
   TEX.wood = wood(W, [25, 42, 30], 8);

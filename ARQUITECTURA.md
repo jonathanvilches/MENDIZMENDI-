@@ -277,6 +277,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   se montaban; ahora ninguna o casi. Va por pasos de 60 casas antes de pintar el suelo de la maqueta (`mapa3d.js
   pasoMaqueta`): en Pamplona, todo de una vez era un cuarto de segundo con la imagen parada. Los ríos van en tramos de
   12 puntos y las plazas con su caja, para que no cueste comparar cada casa con todo el río o todas las plazas.
+- **Anexos dentro de las manzanas** (`anexosManzana` en `levels/ordenar.js`, para el juego y la maqueta): donde
+  `partirBloques` deja una manzana con casas solo a la calle, dentro van anexos bajos de unos 8 m (corrales, almacenes)
+  con huecos de patio, hasta lo que de verdad está construido; no en parques, plazas, huertas ni campos. En el juego son
+  casetas de piedra, revoco o ladrillo con teja (`world/townReal.js realHouses`), con su propio tope (`AMAX`: 320, 420 o
+  520 según la calidad) y sin contar para el de casas, `NMAX`; se levantan hasta donde llegan las casas sencillas. Con su
+  propio azar, de la posición o del nombre del pueblo, para que el resto del pueblo salga igual. Antes, en Tafalla, el
+  interior de casi todas las manzanas era un prado.
+- **Color de las casas del juego** (`world/textures.js`, `world/builder.js weather`, `world/sky.js`): piedra arenisca y
+  parda con más color, sillería dorada, cal crema, teja de barro cocido algo más viva y pizarra gris parda en vez de gris
+  azul. Las paredes (los materiales con `weather`) llevan de día una luz de rebote cálida con su propio color y un punto
+  de calidez (`uDia`, que `engine/runtime.js` pone a 1 − noche en cada imagen; de noche, nada). De día, la luz del cielo
+  algo menos azul y la del suelo, de tierra. Antes, a la sombra, la cal y la piedra salían grises azuladas.
 - **Rótulos de las maquetas** (`rotulosMaqueta` en `hub/maqueta.js`; revisados pueblo a pueblo en noviembre de 2026):
   solo edificios y puentes con su nombre en OpenStreetMap, encima de su propio tejado. Antes salían de los lugares de
   Overture, que son sobre todo negocios con el punto en su dirección o en el centro del pueblo: el «Mirador de los

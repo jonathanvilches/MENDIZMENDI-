@@ -550,7 +550,8 @@ function treeSpots(rnd) {
     spots.push({ x: x + (rnd() - 0.5), z: z + (rnd() - 0.5), y: terrainHeight(x, z), type: fi.type === 6 ? 'olive' : 'apple', s: 0.7 + rnd() * 0.25, rot: rnd() * 6.28, crop: true });
   }
   spots.push(...townTrees(fits));
-  return spots.filter(s => s.special || (isFree(s.x, s.z, s.crop ? 1 : 1.6) && villageMask(s.x, s.z) < 0.35));
+  // (ni en escalones ni escalinatas, con la copa: en Tafalla un pino crecía en la escalinata de la iglesia)
+  return spots.filter(s => s.special || (isFree(s.x, s.z, s.crop ? 1 : 1.6) && villageMask(s.x, s.z) < 0.35 && !onPlatform(s.x, s.z, 0.6 + 0.6 * s.s, true)));
 }
 // Árboles del casco (con su propio azar: el resto del valle sale como antes). En las plazas, en hilera a unos metros del
 // borde, como los plátanos, tilos y castaños de Indias de las plazas de Navarra; y en los huertos y jardines de detrás de

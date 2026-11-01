@@ -499,7 +499,7 @@ export class Runtime {
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)
     this.water.update(this.elapsed, this.sky);
-    groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value);   // (agua de las fuentes)
+    groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value); groundUniforms.uDia.value = 1 - (this.sky.night || 0);   // (agua de las fuentes)
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos, P.obj.visible && g.mode === 'play' && !this.follow.cinematic);
     updateDetail(this.camera.position, this.detailQ);
     { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)

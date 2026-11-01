@@ -49,7 +49,7 @@ export function houseStyle(fam, rnd) {
   switch (fam) {
     case 'atlantic': return { wall: pick([['plaster', 0.72], ['stone', 0.28]]), roof: 'tile', roofType: pick([['gableZ', 0.7], ['gableX', 0.3]]), pitch: 0.5 + rnd() * 0.08, overhang: 1.1, timber: rnd() < 0.6, balcony: rnd() < 0.7, h: [7, 9.5] };
     case 'central': return { wall: pick([['ashlar', 0.35], ['plasterOcher', 0.3], ['plasterCream', 0.2], ['stone', 0.15]]), roof: 'tile', roofType: pick([['gableX', 0.75], ['hip', 0.1], ['gableZ', 0.15]]), pitch: 0.42 + rnd() * 0.08, overhang: 0.8, ironBalcony: rnd() < 0.6, balcony: rnd() < 0.55, h: [7, 10.5] };
-    case 'city': return { wall: pick([['plasterOcher', 0.25], ['plasterRose', 0.2], ['plasterBlue', 0.15], ['plasterCream', 0.2], ['ashlar', 0.2]]), roof: 'tile', roofType: 'gableX', pitch: 0.4, overhang: 0.7, ironBalcony: true, balcony: true, h: [11, 16], wide: true };
+    case 'city': return { wall: pick([['plasterOcher', 0.3], ['plasterRose', 0.22], ['plasterBlue', 0.06], ['plasterCream', 0.2], ['ashlar', 0.22]]), roof: 'tile', roofType: 'gableX', pitch: 0.4, overhang: 0.7, ironBalcony: true, balcony: true, h: [11, 16], wide: true };
     case 'ribera': { const w = pick([['brick', 0.42], ['plasterOcher', 0.3], ['plasterCream', 0.28]]); return { wall: w, noQuoins: w === 'brick', roof: 'tile', roofType: pick([['gableX', 0.85], ['hip', 0.15]]), pitch: 0.36 + rnd() * 0.06, overhang: 0.7, gallery: rnd() < 0.55, ironBalcony: true, balcony: rnd() < 0.6, h: [7, 10] }; }
     default: return { wall: pick([['plaster', 0.42], ['stone', 0.33], ['plasterCream', 0.25]]), roof: rnd() < 0.55 ? 'tile' : 'slate', roofType: rnd() < 0.55 ? 'gableX' : 'gableZ', h: [6.8, 10] };
   }

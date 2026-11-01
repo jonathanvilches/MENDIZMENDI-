@@ -9,6 +9,8 @@ export const groundUniforms = { uGround: { value: new THREE.DataTexture(new Floa
 groundUniforms.uGround.value.needsUpdate = true;
 // (el reloj y el color del horizonte, para el agua de las fuentes: los pone el bucle del juego en cada fotograma)
 groundUniforms.uTime = { value: 0 }; groundUniforms.uSkyHor = { value: new THREE.Color('#9fc3dc') };
+// (cuánto es de día, de 0 a 1: la luz cálida de rebote de las paredes, solo de día; runtime.js la pone en cada imagen)
+groundUniforms.uDia = { value: 1 };
 
 // Agua quieta de fuentes y pilas: antes era un plano azul liso, como de plástico. Ahora es oscura al mirarla de frente y
 // refleja el horizonte al mirarla de lado (en el pueblo no hay mapa de entorno: el reflejo se dibuja aquí), con rizos
@@ -49,9 +51,10 @@ function weather(m, k = 1, moss = 1) {
     if (BQ === 'low') sh.defines = { ...(sh.defines || {}), LOWQ: 1 };
     sh.uniforms.tWeather = { value: TEX.detail }; sh.uniforms.uGround = groundUniforms.uGround;
     sh.uniforms.uWK = { value: new THREE.Vector2(k, moss) };   // (en uniforme: piedra, revoco y madera comparten programa)
+    sh.uniforms.uDia = groundUniforms.uDia;
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround; uniform vec2 uWK;')
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround; uniform vec2 uWK; uniform float uDia;')
       .replace('#include <map_fragment>', `#include <map_fragment>
 {
   vec3 w = vWW;
@@ -74,9 +77,13 @@ function weather(m, k = 1, moss = 1) {
   c = mix(c, c * vec3(0.66, 0.62, 0.56), damp * 0.55 * ${'${K}'});
   c = mix(c, vec3(0.24, 0.3, 0.14) * (0.7 + 0.6 * fine), damp * smoothstep(0.45, 0.8, blot) * 0.45 * ${'${M}'});
   diffuseColor.rgb = c;
-}`.replace(/\$\{K\}/g, 'uWK.x').replace(/\$\{M\}/g, 'uWK.y'));
+}`.replace(/\$\{K\}/g, 'uWK.x').replace(/\$\{M\}/g, 'uWK.y'))
+      // (la luz cálida que rebota de la calle y de las casas de enfrente: de día, las paredes a la sombra, con algo de su
+      // propio color y no grises azuladas por el cielo; y un punto más cálidas todas. Antes la cal y la piedra salían frías)
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(0.08, 0.06, 0.032) * uDia;')
+      .replace('#include <opaque_fragment>', 'outgoingLight *= mix(vec3(1.0), vec3(1.025, 1.0, 0.955), uDia);\n#include <opaque_fragment>');
   };
-  m.customProgramCacheKey = () => 'weather2' + (BQ === 'low' ? '-low' : '');
+  m.customProgramCacheKey = () => 'weather3' + (BQ === 'low' ? '-low' : '');
   return m;
 }
 

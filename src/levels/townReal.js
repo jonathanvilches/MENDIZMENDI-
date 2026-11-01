@@ -7,7 +7,7 @@
 import { clamp, lerp, smoothstep, segDist, mulberry32 } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { skylineFor } from '../data/horizonte.js';
-import { ordenarCasas, ordenarPuentes, partirBloques } from './ordenar.js';
+import { ordenarCasas, ordenarPuentes, partirBloques, anexosManzana } from './ordenar.js';
 import { iglesiaReal } from '../data/reales/iglesia.js';
 
 const FAMILY = {
@@ -485,7 +485,15 @@ export function createRealTownLevel(def, D) {
   const PUENTES = ordenarPuentes(D.puentes || [], PATHS, riverInfo, RV);
   {
     const fijas = new Set([...TAKEN, LG.iglesia, ch, LG.ayuntamiento, LG.fronton, ...CASAS.filter(b => b.k === 'church' || b.k === 'townhall' || b.k === 'fronton')].filter(Boolean));
-    const partidas = partirBloques(CASAS, { plaza: PL, fijas, urbano: ['central', 'ribera', 'city'].includes(def.family) && CASAS.length >= 80, pathQuery });
+    const urbano = ['central', 'ribera', 'city'].includes(def.family) && CASAS.length >= 80;
+    // (y dentro de las manzanas partidas, sus anexos y corrales con patios, en vez de un prado: ordenar.js anexosManzana;
+    // no en parques, plazas, huertas ni campos. Con su propio azar, para que el resto del pueblo salga como antes)
+    const VERDE = new Set(['parque', 'plaza', 'cesped', 'deporte', 'juegos', 'escuela', 'huerta', 'frutales', 'cultivo', 'vina']);
+    const verdes = (D.usos || []).filter(u => VERDE.has(u.k) && u.pts.length > 2);
+    const enVerde = (x, z) => verdes.some(u => polyDist(x, z, u.pts) < 0);
+    const rndA = mulberry32(def.id.split('').reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261));
+    const partidas = [];
+    for (const b of CASAS) { const P = partirBloques([b], { plaza: PL, fijas, urbano, pathQuery }); partidas.push(...P, ...anexosManzana(b, P, { enVerde, rnd: rndA })); }
     const ok = ordenarCasas(partidas, { callesCerca: (x, z) => pathAt(x, z), rios: RV, puentes: PUENTES, riverInfo, pathQuery, plazaMask, fijas });
     CASAS.length = 0; CASAS.push(...ok); marcarCasas();
   }

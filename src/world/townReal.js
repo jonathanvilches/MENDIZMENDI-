@@ -368,12 +368,25 @@ export function realHouses(B, def, rnd, H) {
   // para que el azar del resto del pueblo no cambie)
   const LEJOS = builderQuality() === 'low' ? 220 : builderQuality() === 'mid' ? 270 : 330;
   const lista = real.casas.map(b => ({ b, dist: Math.min(...A.map(a => Math.hypot(b.x - a.x, b.z - a.z))) })).sort((a, c) => a.dist - c.dist);
-  const PEG = pegadas(real.casas);
-  let n = 0;
+  const PEG = pegadas(real.casas), AMAX = builderQuality() === 'low' ? 320 : builderQuality() === 'mid' ? 420 : 520;
+  let n = 0, anexos = 0;
   for (const { b, dist } of lista) {
     if (real.taken.has(b) || b.k === 'church') continue;
     if (fr && b.k === 'fronton') continue;           // (el frontón lo levanta el juego en su sitio)
-    if (b.a < 9 || (b.k === 'shed' && b.a < 18 && dist > 120)) continue;
+    if (b.a < 9 || (b.k === 'shed' && !b.anexo && b.a < 18 && dist > 120)) continue;
+    // (los anexos de dentro de las manzanas, ordenar.js anexosManzana: casetas bajas de piedra o revoco con su tejado de
+    // teja, hasta donde llegan las casas sencillas; no cuentan para el tope de casas, NMAX, y tienen el suyo)
+    if (b.anexo) {
+      if (dist > LEJOS || ++anexos > AMAX) { lejos++; continue; }
+      const w = clamp(b.w, 3, 12), d = clamp(b.d, 3, 12), g = minGround(b.x, b.z, w, d, b.ry);
+      if (g.mx - g.mn > 3) continue;
+      const hr = hashRnd(b.x + 0.21, b.z - 0.43), h = 3.2 + hr() * 1.8, wall = fam === 'ribera' ? (hr() < 0.6 ? 'brick' : 'plasterOcher') : fam === 'central' || fam === 'city' ? (hr() < 0.5 ? 'stone' : 'plasterCream') : hr() < 0.6 ? 'stone' : 'plaster';
+      const hb = slopeBase(B, b.x, b.z, w, d, b.ry, g);
+      block(B, b.x, hb, b.z, b.ry, w, d, h, wall, 'tile', 0.45, PEG.get(b));
+      fachada(B, M(b.x, hb, b.z, b.ry), w, d, h, { fam, wall, kind: 'shed', rnd: hashRnd(b.x, b.z), vecinas: PEG.get(b) });
+      addBox(b.x, b.z, w + 0.2, d + 0.2, b.ry, { solidView: true });
+      simple++; continue;
+    }
     const w = clamp(b.w, 3, 60), d = clamp(b.d, 3, 60), ry = b.ry, x = b.x, z = b.z;
     const g = minGround(x, z, w, d, ry);
     if (g.mx - g.mn > 6) continue;                   // (en un barranco: los datos no cuadran con el relieve)
