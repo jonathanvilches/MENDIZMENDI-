@@ -670,6 +670,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`venceDe`: el 2 % del largo) y nada en los extremos, donde están los hastiales; el alero sigue recto. Los árboles ya se
   mecían con el viento y el agua ya tenía ondas en el juego. Presupuesto del iPhone: Lesaka 576.526 triángulos y 320
   llamadas; Pamplona 706.163 y 362.
+- **Vuelta a los colores de siempre en los pueblos del juego** (noviembre de 2026): los cambios de «casas cálidas» y «más
+  detalle en las texturas» dejaron los pueblos marrones y oscuros (Ochagavía, sobre todo), comparado vista a vista con la
+  versión de antes (`ff4a50ba`). Vuelven a lo de antes: la luz del cielo y del suelo (`sky.js`); la hierba entre las casas
+  del casco (`SURF.tierra`, en `heightfield.js`, queda a cero: la tierra apisonada llenaba el casco de pardo); la piedra
+  gris, la sillería clara, la cal blanca, la pizarra gris azul y la teja (`textures.js`); el cristal gris azulado y las
+  crucetas claras de las ventanas (casi negras, las ventanas parecían agujeros); y sin el rebote cálido ni el tinte de
+  `weather` (`builder.js`). Se quedan, más suaves: el grano fino de la piedra y la teja, con apenas musgo; los desconchones
+  del revoco, solo de vez en cuando. No se tocan el orden de las casas, los arcos, las farolas, los chaflanes ni el arreglo
+  de los parpadeos. Regla: un cambio de color o de luz en los pueblos, siempre comparado con la vista de antes en un pueblo
+  del norte (Ochagavía o Lesaka) y uno del sur.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

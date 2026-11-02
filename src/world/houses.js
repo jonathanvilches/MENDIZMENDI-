@@ -24,9 +24,9 @@ function windowAt(B, T, x, y, w, h, o) {
   // el cristal queda separado de la fachada (si coincide con la pared, parpadea al mover la cámara)
   B.add('glass', box(w, h, 0.02), F(M(x, y, 0.03)));
   // carpintería
-  // (de madera oscura: blanca parecía carpintería de ahora)
-  B.add('paint', colored(box(0.06, h, 0.06), '#4a3322'), F(M(x, y, 0.06)));
-  B.add('paint', colored(box(w, 0.06, 0.06), '#4a3322'), F(M(x, y + h * 0.15, 0.06)));
+  // (claras, las de siempre: de madera oscura, la ventana entera parecía un agujero negro)
+  B.add('paint', colored(box(0.06, h, 0.06), '#e9e4d8'), F(M(x, y, 0.06)));
+  B.add('paint', colored(box(w, 0.06, 0.06), '#e9e4d8'), F(M(x, y + h * 0.15, 0.06)));
   if (o.shutter) {
     const sc = o.shutter;
     for (const s of [-1, 1]) {

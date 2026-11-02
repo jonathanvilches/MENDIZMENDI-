@@ -74,16 +74,16 @@ function mistTex() {
 }
 
 // Paleta por hora del día: [hora, cenit, horizonte, sol color, sol intensidad, hemi cielo, hemi suelo, hemi int]
-// (de día, la luz del cielo algo menos azul y la del suelo, de tierra y no verde oliva: a la sombra, la cal y la piedra
-// de las casas salían azuladas y frías)
+// (la luz del cielo y la del suelo, las de siempre: con una tierra parda y un cielo menos azul, en noviembre de 2026, los
+// pueblos salían marrones y apagados, Ochagavía sobre todo)
 const KEYS = [
   // noche de luna: azulada y misteriosa, pero con luz suficiente para ver el camino
   [0, '#0d1638', '#26365e', '#a8bcf4', 1.05, '#6a80c8', '#34405e', 1.2],
   [5, '#1b2450', '#4a4a70', '#9fb0ea', 0.9, '#5a6aa8', '#2a3048', 1.05],
   [6.3, '#4d6fb0', '#f3a978', '#ffb27a', 1.2, '#9fb4dc', '#5d5040', 0.55],
-  [8, '#3f8fe0', '#bfe0f7', '#ffe3bd', 2.6, '#c9dcf4', '#7a7650', 0.8],
-  [12, '#2f7fdc', '#cfe8fb', '#fff4e2', 3.1, '#d2e1f4', '#807b55', 0.9],
-  [16.5, '#3a86dc', '#d2e6f6', '#ffe6c2', 2.8, '#cddcf2', '#7c7852', 0.85],
+  [8, '#3f8fe0', '#bfe0f7', '#ffe3bd', 2.6, '#bfdcff', '#6d7a4a', 0.8],
+  [12, '#2f7fdc', '#cfe8fb', '#fff4e2', 3.1, '#c9e2ff', '#72804f', 0.9],
+  [16.5, '#3a86dc', '#d2e6f6', '#ffe6c2', 2.8, '#c4dcff', '#6f7b4c', 0.85],
   [18.4, '#5f7cc4', '#ffc493', '#ffb277', 2.2, '#c7c6e2', '#6d6048', 0.8],
   [19.3, '#3d4488', '#e0906f', '#ff9a66', 1.0, '#8f8fbf', '#3f3a3a', 0.62],
   [20.1, '#1c2458', '#6c4d6a', '#9aa4e0', 0.6, '#5a64a0', '#2a2c3e', 0.8],

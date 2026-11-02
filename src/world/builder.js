@@ -82,7 +82,7 @@ function weather(m, k = 1, moss = 1, revoco = 0) {
   // no en la textura: en ella se repetían cada 2,6 m en todas las paredes)
   if (uWK.z > 0.5) {
     float bl2 = texture2D(tWeather, (w.zx + w.y * 0.9) / 9.0 + 0.57).r;
-    float thr = 0.78 - 0.08 * (1.0 - smoothstep(0.4, 2.6, up));
+    float thr = 0.87 - 0.05 * (1.0 - smoothstep(0.4, 2.6, up));   // (pocos: muchos manchaban de marrón las paredes)
     bl2 += (fine - 0.5) * 0.08;   // (el borde, irregular: sin esto salían círculos)
     float aa = max(fwidth(bl2), 0.004);   // (el borde, del ancho de un píxel o algo más: sin dientes que se turnen al moverse)
     float m = smoothstep(thr - aa, thr + 0.01 + aa, bl2);
@@ -99,10 +99,10 @@ function weather(m, k = 1, moss = 1, revoco = 0) {
       // relieve de cada textura, que se suaviza con la distancia)
       // (la luz cálida que rebota de la calle y de las casas de enfrente: de día, las paredes a la sombra, con algo de su
       // propio color y no grises azuladas por el cielo; y un punto más cálidas todas. Antes la cal y la piedra salían frías)
-      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(0.08, 0.06, 0.032) * uDia;')
-      .replace('#include <opaque_fragment>', 'outgoingLight *= mix(vec3(1.0), vec3(1.025, 1.0, 0.955), uDia);\n#include <opaque_fragment>');
+      // (sin el rebote cálido ni el tinte: con ellos todo el pueblo tiraba a marrón y la piedra gris salía parda)
+      ;
   };
-  m.customProgramCacheKey = () => 'weather5' + (BQ === 'low' ? '-low' : '');
+  m.customProgramCacheKey = () => 'weather6' + (BQ === 'low' ? '-low' : '');
   return m;
 }
 
@@ -131,9 +131,9 @@ export function makeMaterials() {
     wood: weather(withTex(TEX.wood), 0.6, 0.2),
     woodDark: weather(withTex(TEX.woodDark), 0.6, 0.2),
     // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo.
-    // (gris oscuro y no azul pizarra: el azul era de cristalera de ahora)
+    // (gris azulado, el de siempre: casi negro, las ventanas parecían agujeros)
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
-    glass: new THREE.MeshLambertMaterial({ color: '#363b40', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
+    glass: new THREE.MeshLambertMaterial({ color: '#3b5166', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     water: stillWater(),
     // chorro de las fuentes: agua clara y algo transparente
     jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),

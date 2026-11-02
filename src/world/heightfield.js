@@ -75,8 +75,8 @@ export function bake() {
       // antes no tenía prados entre casa y casa, y con ellos parecía una urbanización. En los prados, huertas y campos de
       // los datos, lo suyo; y no es camino: el mapa y los pasos lo siguen leyendo como hierba)
       const casco = smoothstep(0.35, 0.7, vm) * (1 - fi.mask) * (1 - street) * (inWater || inPond ? 0 : 1);
-      if (casco > 0.01) { const tq = casco * (0.6 + 0.4 * smoothstep(-0.35, 0.25, fbm(x / 9 + 3, z / 9 - 7, 2))); SURF.tierra[k] = tq * 255; SURF.grass[k] *= 1 - tq * 0.85; }
-      else SURF.tierra[k] = 0;
+      // (apagada: la tierra parda llenaba los cascos y los pueblos perdían el verde que tenían; Ochagavía, sobre todo)
+      SURF.tierra[k] = 0; void casco;
     }
   }
   // roca por pendiente
