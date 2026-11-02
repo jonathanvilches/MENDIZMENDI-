@@ -657,8 +657,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   jugadores del partido flotan despacio y las losas entran en cascada; con «reducir movimiento» del sistema, nada se mueve.
   Las animaciones de entrada de losas y botones van con `backwards`: con `both`, la última imagen pisaba el `transform` de
   `:hover` y `:active`. En el fútbol, debajo del partido, la comparativa (`.lg-cmp`): media y, con partidos jugados, puntos y
-  goles, con barras que crecen; llena el hueco vacío que quedaba en el panel. En el torneo, en el móvil tumbado normal, las
-  cartas tan altas como deja su panel. Maquetas (`hub/maqueta.js`): las paredes con las esquinas en chaflán de 60 cm de
+  goles, con barras que crecen; llena el hueco vacío que quedaba en el panel. En el torneo, las cartas tan grandes como deja
+  su panel (ver «El torneo, sin nada cortado ni montado»). Maquetas (`hub/maqueta.js`): las paredes con las esquinas en chaflán de 60 cm de
   verdad (`cajaChaflan` y `aCh`, que el sombreador mete en metros sea cual sea la casa), las cumbreras algo vencidas en el
   centro (`VENCE`), los árboles que se mecen con el viento y el agua de las pilas con ondas (el reloj del mapa, `o.tiempo`).
 - **Bordes suaves también en los pueblos del juego** (`boxChaflan`, `faldon`, `cumbrera` y `venceDe` en `world/builder.js`;
@@ -686,6 +686,30 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   su nombre, el paso de ahora, sus pasos y la distancia; al tocar otro icono pasas a seguir esa; una hecha, al tocarla,
   unos segundos; tocando otra vez la abierta, el cuaderno. En la aventura de Otsagabia, el icono de la misión con lo que
   hay que hacer y las cintas, siempre a la vista (tocando el icono o el texto, el cuaderno).
+- **El torneo, sin nada cortado ni montado** (`torneoPanel` y su CSS en `game/torneo.js`; noviembre de 2026): en el iPhone
+  tumbado, el cuadro de dieciséis se montaba encima de la barra y del frontón, las cartas se cortaban y el título se iba
+  por arriba. Ahora, tumbado, la tarjeta ocupa todo el alto y la rejilla tiene tres zonas (`grid-template-areas`): la
+  cabecera arriba, con el frontón (`.tq-sitio`) junto a «?»; debajo, a la izquierda, el partido y bajo él la barra (Salir y
+  la acción); y a la derecha, el cuadro desde la cabecera hasta abajo, sin rótulo encima si no hay pestañas. De pie, una
+  columna con la barra pegada abajo. Las cartas del partido y la del campeón las mide `cartas()` con el sitio real de su
+  panel (el ancho junto al VS y, tumbado, el alto con aire para flotar), con un `ResizeObserver`; antes salían de fórmulas
+  con el tamaño de la ventana, que no sabían de la muesca ni de la barra de inicio. Cada eliminatoria, del ancho de su
+  columna (`grid-template-columns:minmax(0,1fr)` en `.tq-m`): la casilla se ensanchaba con el nombre y los tantos quedaban
+  fuera, cortados. El cuadro de dieciséis, con sus cuatro columnas iguales y las filas a la medida de su letra en el móvil
+  tumbado; el campeón, con la carta junto a su texto. Comprobado con un medidor de cajas (nada fuera de su panel ni de la
+  pantalla, nada recortado por su caja, bloques sin pisarse, textos enteros y la tarjeta sin desplazarse tumbada) en los tres
+  campeonatos y todas sus rondas (liguilla, cuadro, final, eliminado y campeón), con la muesca y la barra de inicio del
+  iPhone simuladas, en 812 × 375, 844 × 390, 852 × 393, 932 × 430, 667 × 375, 740 × 360, 915 × 412, 640 × 360, de pie y en
+  el ordenador. En 568 × 320 (iPhone SE de 2016) el cuadro de dieciséis no cabe y se desplaza dentro de su panel. La banda
+  sesgada de detrás de las cartas queda dentro de su caja (`.tq-duel{overflow:clip}`): asomaba fuera del panel.
+- **La liga de fútbol, igual** (`ligaPanel` y `roundPanel` en `futbol/liga.js`; noviembre de 2026): tumbado, en cualquier
+  tamaño, la tarjeta a todo el alto con la cabecera arriba, el partido o los resultados a la izquierda con la barra debajo y
+  la clasificación a la derecha de arriba abajo (en el iPhone con muesca no cabía y la barra, pegada abajo, tapaba la
+  última fila y la comparativa; en el iPad iba en una columna). Los jugadores a los lados del partido, solo si el panel
+  mide más de 440 px (consulta de contenedor en `.lg-match`): si no, «Fuera de casa» se montaba encima de la media. Con
+  la barra estrecha, «Simular» a secas (`.lg-l` y `.lg-c`, consulta de contenedor en la barra). Comprobado con el mismo
+  medidor (`pantallas.mjs`): menú de pelota, club, liga al empezar, a media temporada y al acabar, jornada, elegir rival y
+  elegir club, en los mismos tamaños.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

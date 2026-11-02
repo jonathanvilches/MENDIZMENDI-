@@ -320,6 +320,27 @@ const CSS = `
 .eq-team{min-height:clamp(250px,calc(30vh / var(--z, 1)),300px)}.eq-team b{font-size:var(--fs-xl)}
 .lg-champ .duo{height:150px}
 }
+/* (tumbado, en cualquier tamaño, la liga y los resultados como el cuadro del torneo: la cabecera arriba; a la izquierda, el
+   partido o los resultados y debajo la barra; a la derecha, la clasificación de arriba abajo. La tarjeta a todo el alto y
+   sin desplazarse: antes, en el iPhone con la muesca no cabía y la barra, pegada abajo, tapaba la última fila de la tabla y
+   la comparativa; y en el iPad iba en una sola columna y había que bajar para jugar) */
+@media (orientation:landscape){
+.lg-root>.lg-card.lg-two{height:100%;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head head" "match tabla" "bar tabla";align-items:stretch}
+.lg-root>.lg-card.lg-two>.lg-head{grid-area:head}.lg-root>.lg-card.lg-two>.lg-match{grid-area:match;align-self:stretch}.lg-root>.lg-card.lg-two>.lg-tabla{grid-area:tabla;align-self:stretch}
+.lg-root>.lg-card.lg-two>.lg-bar{grid-area:bar;position:static;margin:0;padding:8px 0 0;background:none;border-image:none;border-top:1px solid rgba(201,178,255,.16);gap:8px}
+.lg-root>.lg-card.lg-two>.lg-bar>.lg-sp{display:none}.lg-root>.lg-card.lg-two>.lg-bar>.lg-btn{flex:1 1 auto;min-width:0;padding-left:10px;padding-right:10px;white-space:nowrap}.lg-root>.lg-card.lg-two>.lg-bar>.lg-btn.go{flex:1.4 1 auto}
+.lg-tabla>.lg-table{flex:1}   /* (con alto de sobra, las filas se reparten el panel y no queda un hueco debajo) */
+.lg-root>.lg-card.lg-two>.lg-bar{container-type:inline-size}
+}
+.lg-bar .lg-c{display:none}
+@container (max-width:340px){.lg-bar .lg-l{display:none}.lg-bar .lg-c{display:inline}}
+/* (el iPhone SE de 2016, 568 × 320: del partido, solo la media en la comparativa; y el campeón, sin la pareja al lado) */
+@media (orientation:landscape) and (max-height:340px){.lg-cmp>div:not(:first-child){display:none}.lg-champ .duo{display:none}.lg-champ.con-d{display:block;text-align:center}.lg-champ{font-size:var(--fs-sm);line-height:1.3}.lg-champ b{font-size:var(--fs-lg)}
+.lg-root>.lg-card.lg-two>.lg-bar>.lg-btn{padding-left:6px;padding-right:6px;font-size:var(--fs-sm)}.lg-root>.lg-card.lg-two>.lg-bar>.lg-btn.go{font-size:var(--fs-md)}}
+/* (los jugadores a los lados del partido, solo si caben con los dos clubes: si no, el sitio del VS se montaba encima de la
+   media y la racha) */
+.lg-match{container-type:inline-size}
+@container (max-width:440px){.lg-match .lg-next .lg-jf{display:none}.lg-match .lg-next.con-j{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}}
 /* (portátil con la ventana baja: lo mismo, algo más compacto, para que quepa sin desplazar) */
 @media (min-width:1200px) and (min-height:560px) and (max-height:760px){
 .lg-card{padding:16px 28px;gap:12px}.lg-head h2{font-size:var(--fs-2xl)}
@@ -407,7 +428,9 @@ export function ligaPanel(S) {
     const how = HOW.replace('<p class="lg-how">', '<p class="lg-how lg-flota" hidden data-vm="no">').replace('</p>', adapt + '</p>');
     const play = '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
     const tabla = `<div class="lg-pn lg-tabla"><div class="lg-ph"><span>Clasificación</span><span class="lg-chip">Grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}</span></div>${tableHtml(S)}</div>`;
-    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button><span class="lg-sp"></span>${m ? `<button class="lg-btn" data-a="sim">Simular partido</button>${play}` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}</div>`;
+    // (con poco ancho, «Simular» a secas: los tres botones caben en la barra, debajo del partido, sin cortarse)
+    const eu = document.documentElement?.lang === 'eu', sim = `<button class="lg-btn" data-a="sim" data-notr aria-label="${eu ? 'Partida simulatu' : 'Simular partido'}"><span class="lg-l">${eu ? 'Partida simulatu' : 'Simular partido'}</span><span class="lg-c">${eu ? 'Simulatu' : 'Simular'}</span></button>`;
+    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button><span class="lg-sp"></span>${m ? `${sim}${play}` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}</div>`;
     const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada', true)}${mid}${tabla}${bar}${how}`);
     r.addEventListener('click', (e) => { if (ayuda(r, e)) return; const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
   });
