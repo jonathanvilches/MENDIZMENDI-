@@ -115,6 +115,28 @@ const CSS = `
 .lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;border-radius:4px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(201,178,255,.2);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
 .lg-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .lg-card>*{animation:gx-in .42s cubic-bezier(.2,.9,.3,1.15) both}.lg-card>:nth-child(2){animation-delay:.05s}.lg-card>:nth-child(3){animation-delay:.1s}.lg-card>:nth-child(n+4){animation-delay:.15s}
+/* paneles, como en los juegos de deportes: un fondo algo más oscuro, borde fino y su rótulo arriba (a la izquierda, en
+   pequeño y espaciado; a la derecha, una chapa con el dato: la jornada, el grupo) */
+.lg-pn{min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 12px;border-radius:4px;background:rgba(12,4,30,.45);border:1px solid rgba(201,178,255,.14)}
+.lg-ph{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;flex-wrap:wrap}
+.lg-ph>span:first-child{font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.12em;text-transform:uppercase;color:var(--lila)}
+.lg-card .lg-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid rgba(201,178,255,.3);background:rgba(255,255,255,.07);color:#fff;font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+/* la barra de acciones, abajo de lado a lado: Salir a la izquierda y la acción principal a la derecha, donde está el pulgar */
+.lg-bar{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(201,178,255,.16)}
+.lg-bar .lg-sp{flex:1}.lg-bar .lg-btn{min-width:132px}.lg-bar .lg-btn.go{min-width:200px}
+@media (orientation:portrait){.lg-card>.lg-bar{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding-bottom:16px;border-top:0;background:#0f0526;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}}
+@media (max-width:560px){.lg-bar{flex-wrap:wrap;gap:8px}.lg-bar .lg-sp{display:none}.lg-bar>.lg-btn{flex:1 1 0;min-width:0}.lg-bar>.lg-btn.go{flex:1.6 1 0}.lg-bar>:not(.lg-btn){order:-1;flex:1 1 100%;display:flex;justify-content:center}
+.lg-bar:has(>.lg-btn:nth-of-type(3))>.lg-btn.go{flex:1 1 100%;order:3}}   /* (con tres botones, la acción principal abajo, a lo ancho) */
+/* (móvil tumbado estrecho: el partido sin los jugadores a los lados; si no, el centro se apretaba y el sitio se montaba con la racha) */
+@media (orientation:landscape) and (max-width:760px){.lg-match .lg-next .lg-jf{display:none}.lg-match .lg-next.con-j{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}}
+@media (orientation:landscape) and (max-width:760px){.lg-bar{gap:8px}.lg-bar .lg-btn{min-width:104px}.lg-bar .lg-btn.go{min-width:160px}}
+/* la racha: los cinco últimos partidos (ganado, empate, perdido), en cuadritos de color con su letra */
+.lg-form{display:inline-flex;gap:3px}.lg-form i{display:grid;place-items:center;width:20px;height:20px;border-radius:3px;font:800 12px/1 var(--f-cond);font-style:normal;color:#0c031e}
+.lg-form i.g{background:#3ddc84}.lg-form i.e{background:#c9b2ff}.lg-form i.p{background:#ff6b96}
+/* «?» y la ayuda: una ventanita debajo de la cabecera, entera, que se cierra al tocarla */
+.lg-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}.lg-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
+.lg-how.lg-flota{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(201,178,255,.35);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.lg-flota[hidden]{display:none}
+.lg-how.lg-flota .lg-note{display:block;margin-top:8px}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;border-radius:4px;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
 /* (el fondo, casi liso: un velo suave de arriba abajo; antes un degradado lateral fuerte, de azul a rosa) */
@@ -133,8 +155,8 @@ const CSS = `
 .lg-vs .lg-x{display:block;margin-bottom:2px;font:400 var(--fs-3xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both}
 .lg-vs small{display:block;font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--rosa)}
 .lg-vs .lg-sitio{display:flex;flex-wrap:wrap;justify-content:center;column-gap:6px;font:500 var(--fs-xs)/1.25 var(--f-texto,'MZ Texto'),system-ui,sans-serif;letter-spacing:0;text-transform:none;color:var(--lila)}
-.lg-vs .lg-sitio span+span::before{content:'·';margin-right:6px}
-.lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
+.lg-vs .lg-sitio{flex-direction:column;align-items:center;row-gap:2px}.lg-vs .lg-sitio span+span::before{content:none}
+.lg-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm)}.lg-pn>.lg-res{margin:0}.lg-match>.lg-next,.lg-match>.lg-champ{flex:1}.lg-match>.lg-next{background:none;border:0;padding:4px 0}.lg-table th{font-size:var(--fs-xs);color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;padding:4px 4px;text-align:center}
 .lg-table td{padding:4px 4px;text-align:center;border-top:1px solid rgba(255,255,255,.08)}.lg-table td.n{text-align:left;font-weight:800;white-space:nowrap}.lg-em{object-fit:contain;object-position:50% 50%;flex:none}.lg-table td.n img.lg-dot{display:inline-block;width:18px;height:20px;object-fit:contain;margin:-4px 6px -4px 0;vertical-align:middle}.lg-table td.n i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:8px;vertical-align:-1px;border:1px solid rgba(0,0,0,.4)}
 /* (la columna del puesto, del ancho de la camiseta de la cabecera, y el nombre del club con su mismo hueco: el club empieza justo donde empieza el título) */
 .lg-table tr>:first-child{width:36px;padding-left:0;padding-right:0}.lg-table tr>:nth-child(2){padding-left:12px}
@@ -165,8 +187,10 @@ const CSS = `
 .lg-root{padding:8px}.lg-card{gap:8px 12px;padding:8px 16px}.lg-card>.lg-foot{bottom:-8px;margin-bottom:-8px;padding-bottom:8px}.lg-adapt{display:none}
 .lg-card.lg-two{grid-template-columns:1fr 1.15fr;grid-auto-rows:min-content;align-items:start}
 .lg-card.lg-two>.lg-head{grid-column:1/-1}
-.lg-card.lg-two>.lg-next,.lg-card.lg-two>.lg-how,.lg-card.lg-two>.lg-res,.lg-card.lg-two>.lg-champ,.lg-card.lg-two>.lg-btns,.lg-card.lg-two>.lg-note{grid-column:1}
+.lg-card.lg-two>.lg-next,.lg-card.lg-two>.lg-how,.lg-card.lg-two>.lg-res,.lg-card.lg-two>.lg-champ,.lg-card.lg-two>.lg-btns,.lg-card.lg-two>.lg-note,.lg-card.lg-two>.lg-match{grid-column:1}
 .lg-card.lg-two>.lg-table,.lg-card.lg-two>.tq-bracket{grid-column:2;grid-row:2/span 4;align-self:start}
+/* (con paneles: el partido y la clasificación en la misma fila, del mismo alto, y la barra debajo de lado a lado) */
+.lg-card.lg-two>.lg-match{grid-column:1;grid-row:2;align-self:stretch}.lg-card.lg-two>.lg-tabla{grid-column:2;grid-row:2;align-self:stretch}.lg-card.lg-two>.lg-bar{grid-column:1/-1;grid-row:3}
 .lg-card.lg-two>.lg-btns{grid-template-columns:1fr 1fr}.lg-card.lg-two>.lg-btns .lg-btn.go{grid-column:1/-1}
 /* con solo dos botones (jugar o viajar, y salir) van en la misma fila: así cabe todo sin desplazar, también en euskera */
 .lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child){grid-template-columns:1.7fr 1fr}.lg-card.lg-two>.lg-btns:has(>.lg-btn:nth-child(2):last-child)>.lg-btn.go{grid-column:auto}
@@ -174,11 +198,15 @@ const CSS = `
 .lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;min-height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs .lg-x{font-size:var(--fs-xl)}
 .lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px 20px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
+.lg-card.lg-two .lg-head .lg-note{display:none}.lg-card.lg-two .lg-pn{padding:4px 10px 8px;gap:4px}.lg-card.lg-two .lg-ph{min-height:26px}.lg-card.lg-two .lg-chip{padding:2px 8px}
+.lg-table td.n img.lg-dot{width:14px;height:16px;margin:-3px 6px -3px 0}.lg-table td{padding:1px 2px}.lg-table th{padding:2px}
+.lg-card.lg-two>.lg-bar{position:sticky;bottom:-8px;z-index:3;margin-bottom:-8px;padding:8px 0;border-top:0;background:#0f0526;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}
 }
 /* portadas de equipo: la pareja del autor de cada equipo (el chico y la chica con su equipación); en el archivo único, su
    camiseta dibujada. El menú del club va en losas, como el de pelota; elegir club o rival, en cartas que se pasan de lado */
 .lg-card.eq-menu{grid-template-rows:auto minmax(0,1fr) auto}
-.eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:1.3fr;grid-auto-columns:1fr;gap:12px;min-height:0}
+/* (todas del mismo ancho: antes la de la liga era 1,3 veces las demás; de pie, en carrusel, ver más abajo) */
+.eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(0,1fr);gap:12px;min-height:0}
 .eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
 .eq-tile{min-height:220px;padding:12px 22px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
 .eq-tile::before,.eq-team::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
@@ -210,7 +238,7 @@ const CSS = `
 /* (el campeón de la liga, con su pareja al lado) */
 .lg-champ.con-d{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:12px;text-align:left}.lg-champ .duo{display:block;height:112px;width:auto;filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
 @media (orientation:portrait) and (max-width:700px){
-.lg-card.eq-menu{grid-template-rows:none}.eq-tiles{grid-auto-flow:row;grid-template-columns:1fr 1fr;grid-auto-columns:auto}.eq-tile.main,.eq-tiles>.eq-tile:last-child:nth-child(even){grid-column:1/-1}.eq-tile{min-height:180px}.eq-tile .art{min-height:96px}.eq-tile.main .art{min-height:124px}.eq-tile b{font-size:var(--fs-xl)}
+.lg-card.eq-menu{grid-template-rows:none}.eq-tiles{grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:calc((100% - 12px) / 1.55);overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none}.eq-tiles::-webkit-scrollbar{display:none}.eq-tile{scroll-snap-align:start;min-height:300px}.eq-tile .art{min-height:180px}.eq-tile b{font-size:var(--fs-xl)}
 .eq-teams{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-columns:auto;overflow-x:hidden;overflow-y:auto;scroll-snap-type:none}.eq-team{min-height:212px}
 @media (max-width:360px) and (orientation:portrait){.eq-tile{padding:8px 12px}.eq-tile b{font-size:var(--fs-lg);overflow-wrap:anywhere}.lg-next,.lg-next.con-j{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}.lg-next b,.lg-next.con-j b{font-size:var(--fs-md);white-space:normal;overflow-wrap:anywhere}.lg-next.con-j em{white-space:normal}.eq-team b{font-size:var(--fs-md);white-space:normal;overflow-wrap:anywhere}}
 .eq-teams.mr,.eq-teams.ml{-webkit-mask-image:none;mask-image:none}.eq-teams.mb{-webkit-mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,#000 calc(100% - 40px),transparent)}
@@ -220,7 +248,7 @@ const CSS = `
 .eq-teams{grid-auto-columns:clamp(128px,calc(18vw / var(--z, 1)),160px)}.eq-team{min-height:0;padding:8px 18px 10px}.eq-team .art{margin-top:28px}.lg-champ .duo{height:84px}
 }
 /* (en los móviles más estrechos, las losas iguales y el título algo menor: «Lagunartekoa» cabe entero) */
-@media (orientation:landscape) and (max-width:720px){.eq-tiles{grid-template-columns:1fr}.eq-tile b{font-size:var(--fs-lg)}}
+@media (orientation:landscape) and (max-width:720px){.eq-tile b{font-size:var(--fs-lg)}}
 /* (muy poca altura: sin el grupo encima del nombre, para que la portada no se quede pequeña) */
 @media (orientation:landscape) and (max-height:380px){.eq-team .k,.eq-team small,.lg-card.eq-pick .lg-head .lg-note{display:none}}
 /* (en pantallas altas, como el iPad tumbado, la portada con su altura: no se queda diminuta encima del texto) */
@@ -239,12 +267,14 @@ const CSS = `
    clasificación a la derecha, todo a la vista sin desplazar) */
 .lg-card.lg-two:not(.tq-card){width:min(1560px,100%);grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);grid-auto-rows:min-content;align-items:start;gap:16px 40px}
 .lg-card.lg-two:not(.tq-card)>.lg-head{grid-column:1/-1}
-.lg-card.lg-two:not(.tq-card)>.lg-next,.lg-card.lg-two:not(.tq-card)>.lg-how,.lg-card.lg-two:not(.tq-card)>.lg-res,.lg-card.lg-two:not(.tq-card)>.lg-champ,.lg-card.lg-two:not(.tq-card)>.lg-btns,.lg-card.lg-two:not(.tq-card)>.lg-note{grid-column:1}
+.lg-card.lg-two:not(.tq-card)>.lg-next,.lg-card.lg-two:not(.tq-card)>.lg-how,.lg-card.lg-two:not(.tq-card)>.lg-res,.lg-card.lg-two:not(.tq-card)>.lg-champ,.lg-card.lg-two:not(.tq-card)>.lg-btns,.lg-card.lg-two:not(.tq-card)>.lg-note,.lg-card.lg-two:not(.tq-card)>.lg-match{grid-column:1}
 .lg-card.lg-two:not(.tq-card)>.lg-table{grid-column:2;grid-row:2/span 5;align-self:start}
+.lg-card.lg-two:not(.tq-card)>.lg-match{grid-column:1;grid-row:2;align-self:stretch}.lg-card.lg-two:not(.tq-card)>.lg-tabla{grid-column:2;grid-row:2;align-self:stretch}.lg-card.lg-two:not(.tq-card)>.lg-bar{grid-column:1/-1;grid-row:3}
 .lg-card.lg-two:not(.tq-card)>.lg-foot{position:static;margin:0;padding:0;background:none;border-image:none}
 .lg-card.lg-two:not(.tq-card) .lg-next .lg-jf{width:clamp(72px,calc(7vw / var(--z, 1)),116px)}
 .lg-card.pc-card{width:min(1560px,100%)}
 .lg-head h2{font-size:var(--fs-3xl)}.lg-head small{font-size:var(--fs-md)}.lg-note{font-size:var(--fs-sm)}
+.lg-ph>span:first-child,.lg-card .lg-chip{font-size:var(--fs-sm)}.lg-pn{padding:12px 16px 16px}.lg-bar{padding-top:16px}
 .lg-next{padding:16px}.lg-next .lg-jf{width:116px;min-height:160px}.lg-next b{font-size:var(--fs-2xl)}.lg-next em span{font-size:var(--fs-xl)}.lg-vs .lg-x{font-size:var(--fs-4xl)}
 .lg-table{font-size:var(--fs-md)}.lg-table td{padding:8px 8px}.lg-table th{font-size:var(--fs-sm)}
 .lg-how,.lg-res{font-size:var(--fs-md)}
@@ -282,9 +312,22 @@ function tableHtml(S) {
 }
 // cómo funciona (solo al empezar la temporada, para no repetirlo en cada jornada)
 const HOW = '<p class="lg-how"><b>Cómo funciona:</b> catorce jornadas, todos contra todos a ida y vuelta con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.</p>';
-function head(S, sub) {
+function head(S, sub, info = false) {
   const c = CLUBS[S.club];
-  return `<div class="lg-head">${crest(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div></div>`;
+  return `<div class="lg-head">${crest(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div>${info ? '<button class="lg-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button>' : ''}</div>`;
+}
+// la racha de un club: sus cinco últimos partidos de la temporada, ganado, empate o perdido (en euskera, I, B, G)
+function racha(S, id) {
+  const L = [], letra = document.documentElement?.lang === 'eu' ? { g: 'I', e: 'B', p: 'G' } : { g: 'G', e: 'E', p: 'P' };
+  for (let j = 0; j < Math.min(S.j, S.rounds.length); j++) { const x = S.rounds[j].find(q => q.h === id || q.a === id); if (!x?.g) continue; const [a, b] = x.h === id ? x.g : [x.g[1], x.g[0]]; L.push(a > b ? 'g' : a < b ? 'p' : 'e'); }
+  return L.length ? `<span class="lg-form" data-notr>${L.slice(-5).map(k => `<i class="${k}">${letra[k]}</i>`).join('')}</span>` : '';
+}
+// la ayuda de «?»: se abre debajo de la cabecera y se cierra al tocarla
+function ayuda(r, e) {
+  const q = e.target.closest('[data-info]'), h = e.target.closest('.lg-flota'); if (!q && !h) return false;
+  const p = r.querySelector('.lg-flota'), b = r.querySelector('[data-info]'), on = !h && p.hidden; p.hidden = !on; b.setAttribute('aria-expanded', String(on));
+  if (on) { const hd = r.querySelector('.lg-head'), top = hd.offsetTop + hd.offsetHeight + 8; p.style.top = top + 'px'; p.style.maxHeight = Math.max(120, r.firstElementChild.clientHeight - top - 12) + 'px'; }
+  return true;
 }
 /** Pantalla principal de la liga: próximo partido y clasificación. Devuelve 'play' | 'sim' | 'new' | 'exit'. */
 // (todas las jornadas se juegan en El Sadar: se juegan desde donde estés, sin viajar)
@@ -300,24 +343,29 @@ export function ligaPanel(S) {
       // el centro, el VS y debajo, en pequeño, la jornada y dónde se juega. Antes todo iba en mayúsculas del mismo tamaño
       // y color, apilado, y no se sabía qué leer primero)
       const media = (o) => `<em><small>MEDIA</small><span>${o}</span></em>`;
-      mid = `<div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b>${media(H.ovr)}</div><div class="lg-vs"><span class="lg-x">VS</span><small class="lg-j">Jornada ${m.j + 1} de ${S.rounds.length}</small><small class="lg-sitio"><span>${home ? 'En casa' : 'Fuera de casa'}</span><span>El Sadar</span></small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b>${media(A.ovr)}</div>${fh && fa ? fa : ''}</div>`;
+      // (en un panel con su rótulo y la jornada en la chapa; debajo de la media de cada club, su racha)
+      mid = `<div class="lg-pn lg-match"><div class="lg-ph"><span>Próximo partido</span><span class="lg-chip">Jornada ${m.j + 1} de ${S.rounds.length}</span></div><div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b>${media(H.ovr)}${racha(S, m.h)}</div><div class="lg-vs"><span class="lg-x">VS</span><small class="lg-sitio"><span>${home ? 'En casa' : 'Fuera de casa'}</span><span>El Sadar</span></small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b>${media(A.ovr)}${racha(S, m.a)}</div>${fh && fa ? fa : ''}</div></div>`;
     } else {
       const ch = CLUBS[S.champion], d = jugadorDuo(S.champion);
       // (en la web, la pareja del club campeón al lado)
-      mid = `<div class="lg-champ${d ? ' con-d' : ''}">${d}<div><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div></div>`;
+      mid = `<div class="lg-pn lg-match"><div class="lg-ph"><span>Fin de temporada</span></div><div class="lg-champ${d ? ' con-d' : ''}">${d}<div><small>CAMPEÓN DE LA LIGA NAVARRA</small><br><b>${esc(ch.name)}</b><br>${S.champion === S.club ? '¡Sois campeones! Aupa ' + esc(c.town) + '!' : 'La próxima temporada, a por el título.'}</div></div></div>`;
     }
-    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<p class="lg-note lg-adapt">Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.</p>' : '';
+    // (la explicación y el aviso de los nombres, detrás de «?»: antes iban apilados en la pantalla)
+    const adapt = Object.values(CLUBS).some(x => x.adapt) ? '<span class="lg-note">Equipos con el nombre de cada pueblo o valle, sin nombres ni escudos de clubes de verdad.</span>' : '';
+    const how = HOW.replace('<p class="lg-how">', '<p class="lg-how lg-flota" hidden data-vm="no">').replace('</p>', adapt + '</p>');
     const play = '<button class="lg-btn go" data-a="play">¡A jugar!</button>';
-    const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada')}${mid}${m && S.j === 0 ? HOW : ''}${tableHtml(S)}
-      <div class="lg-btns lg-foot">${m ? `${play}<button class="lg-btn" data-a="sim">Simular partido</button>` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}<button class="lg-btn" data-a="exit">Salir</button></div>${adapt}`);
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
+    const tabla = `<div class="lg-pn lg-tabla"><div class="lg-ph"><span>Clasificación</span><span class="lg-chip">Grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}</span></div>${tableHtml(S)}</div>`;
+    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button><span class="lg-sp"></span>${m ? `<button class="lg-btn" data-a="sim">Simular partido</button>${play}` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}</div>`;
+    const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada', true)}${mid}${tabla}${bar}${how}`);
+    r.addEventListener('click', (e) => { if (ayuda(r, e)) return; const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
   });
 }
 /** Resultados de la jornada y clasificación. */
 export function roundPanel(S, R, j) {
   return new Promise(res => {
     const rows = R.map(m => `<div class="${m.h === S.club || m.a === S.club ? 'me' : ''}"><span>${esc(CLUBS[m.h].name)}</span><b>${m.g[0]} - ${m.g[1]}</b><span>${esc(CLUBS[m.a].name)}</span></div>`).join('');
-    const r = panel(`${head(S, `Resultados · jornada ${j + 1}`)}<div class="lg-res">${rows}</div>${tableHtml(S)}<div class="lg-btns"><button class="lg-btn go" data-a="ok">Continuar</button></div>`);
+    const c = CLUBS[S.club];
+    const r = panel(`${head(S, `Temporada ${S.year}`)}<div class="lg-pn lg-match"><div class="lg-ph"><span>Resultados</span><span class="lg-chip">Jornada ${j + 1}</span></div><div class="lg-res">${rows}</div></div><div class="lg-pn lg-tabla"><div class="lg-ph"><span>Clasificación</span><span class="lg-chip">Grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}</span></div>${tableHtml(S)}</div><div class="lg-bar"><span class="lg-sp"></span><button class="lg-btn go" data-a="ok">Continuar</button></div>`);
     r.addEventListener('click', (e) => { if (!e.target.closest('[data-a]')) return; fuera(r); res(); });
   });
 }

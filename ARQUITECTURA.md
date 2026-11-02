@@ -629,6 +629,28 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cabecera que se cierra al tocarla (antes era una fila más al pie y se montaba encima de las tablas). Las tablas ocupan
   todo el alto junto al partido; Salir y ¡A jugar! van siempre en una fila; en el móvil tumbado pequeño las rondas del
   cuadro van en una palabra («Cuartos», «Semis») y el cuadro de dieciséis, algo más junto, cabe entero en 844×390.
+- **Pantallas de pelota y fútbol como un juego de deportes** (`torneoPanel` en `game/torneo.js`; `ligaPanel`, `roundPanel` y
+  `clubPanel` en `futbol/liga.js`; noviembre de 2026): tres franjas. La cabecera; dos paneles (`.lg-pn`) con su rótulo
+  (`.lg-ph`: el nombre en pequeño y una chapa `.lg-chip` con el dato, la jornada o el grupo), el partido y la clasificación;
+  y abajo, de lado a lado, la barra de acciones (`.lg-bar`): Salir a la izquierda y la acción principal a la derecha, con el
+  frontón al lado en pelota. De pie, la barra va pegada abajo; en el móvil tumbado muy bajo (568 × 320) la tarjeta se
+  desplaza con la barra pegada. En el fútbol, debajo de la media de cada club, su racha (`racha`: los cinco últimos
+  partidos, G, E o P en cuadritos de color; en euskera I, B, G) y la explicación y el aviso de los nombres de los equipos,
+  detrás de «?» (`ayuda`). Las losas del menú del club, todas del mismo ancho (antes la de la liga, 1,3 veces); de pie, en
+  carrusel. Las cartas de jugador (`ui/sport.css`, `.gx-face::before`) llevan una placa oscura detrás del nombre, el pueblo
+  y las cualidades: en la carta rosa del rival, el pueblo y las siglas iban rosa claro sobre rosa, con un contraste de 2 a 1.
+- **Parpadeo de las paredes de cerca** (`weather` en `world/builder.js`): fuera el relieve fino calculado con las derivadas de
+  la pantalla (`dFdx`/`dFdy` del ruido): cambiaba de un grupo de cuatro píxeles al siguiente con cualquier movimiento de la
+  cámara y todas las paredes de cerca centelleaban. El borde de los desconchones del revoco, suavizado con `fwidth`. Medido
+  con un detector (dibujar la vista, mover la cámara 2 mm y comparar): en una pared de Lesaka, de 781 bloques de 16 × 16 que
+  cambiaban a 42 (el borde del pilar, que sí se mueve). En Elizondo, Isaba y Pamplona, a pie de calle y desde 45, 110 y 220 m,
+  ningún parpadeo de profundidad; y en las maquetas del mapa de Lesaka, Olite, Tudela y Pamplona, tampoco.
+- **Maquetas del mapa con más textura** (`haceMaqueta` en `hub/maqueta.js` y `materialEmblema` en `hub/emblemas.js`): las
+  manchas del revoco, del musgo y de las tejas, con ruido suave interpolado (`vn`) y no en cuadrados de un tono; en la mitad
+  de las casas del norte, la planta baja de piedra con su imposta; bajo el alero, los canecillos; bajo algunas ventanas,
+  jardineras con geranios; los hastiales con su revoco, la sombra del alero y, en los grandes, un ventanuco; lo de encima de
+  las paredes que asoma fuera del tejado, como un terrado de baldosa con su pretil; encima de murallas y baluartes, losas, y
+  en lo alto de los muros altos, almenas; y los lugares emblemáticos, con hiladas de sillares y manchas en metros de verdad.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

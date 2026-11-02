@@ -108,14 +108,30 @@ class Malla {
 }
 
 /** El material de los emblemas: color por vértice, la luz del mapa y la altura en su proporción (alzado: { value }) */
-export function materialEmblema(alzado) {
+// (en las paredes de piedra, las hiladas de sillares con sus juntas, y en todo, manchas suaves: medidas en metros de verdad
+// con la posición en el mundo (metro: metros por unidad del mapa; K: lo que se exageran las alturas). Antes, cada cara de
+// un color liso: los hastiales del Palacio Real de Olite, por ejemplo, eran triángulos beis sin nada. De lejos, el
+// detalle fino se funde en su color, para que no titile; las tejas, rojas, solo con manchas)
+export function materialEmblema(alzado, metro = 2076, K = 2) {
   const m = new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0, side: THREE.DoubleSide });
   m.onBeforeCompile = (sh) => {
-    sh.uniforms.uAlzado = alzado;
-    sh.vertexShader = 'attribute float aBase; uniform float uAlzado;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y = aBase + (transformed.y - aBase) * uAlzado;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.14;');
+    sh.uniforms.uAlzado = alzado; sh.uniforms.uMetroE = { value: metro }; sh.uniforms.uKE = { value: K };
+    sh.vertexShader = 'attribute float aBase; uniform float uAlzado; varying vec3 vEw;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.y = aBase + (transformed.y - aBase) * uAlzado;\nvEw = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = 'uniform float uMetroE, uKE; varying vec3 vEw;\nfloat h21e(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }\nfloat vne(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21e(i), h21e(i + vec2(1.0, 0.0)), f.x), mix(h21e(i + vec2(0.0, 1.0)), h21e(i + vec2(1.0)), f.x), f.y); }\n' + sh.fragmentShader
+      .replace('#include <color_fragment>', `#include <color_fragment>
+{
+  vec3 wn = normalize(cross(dFdx(vEw), dFdy(vEw)));
+  float xm = vEw.x * uMetroE, zm = vEw.z * uMetroE, ym = vEw.y * uMetroE / uKE;
+  float u = abs(wn.y) < 0.6 ? xm * abs(wn.z) + zm * abs(wn.x) : xm, v = abs(wn.y) < 0.6 ? ym : zm;
+  float px = max(fwidth(u), fwidth(v)), fino = 1.0 - smoothstep(0.15, 0.5, px), teja = step(diffuseColor.g * 1.35, diffuseColor.r);
+  float mancha = 0.9 + 0.12 * vne(vec2(u, v) / 2.2) + 0.04 * fino * vne(vec2(u, v) / 0.6);
+  float fila = floor(v / 0.6), pz = 0.88 + 0.2 * h21e(vec2(floor(u / 1.2 + fila * 0.5), fila)), junta = step(0.08, fract(v / 0.6)) * step(0.05, fract(u / 1.2 + fila * 0.5));
+  float pared = step(abs(wn.y), 0.6) * (1.0 - teja);
+  diffuseColor.rgb *= mancha * mix(1.0, pz * mix(0.74, 1.0, junta), fino * pared);
+}`)
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.14;');
   };
-  m.customProgramCacheKey = () => 'emblema';
+  m.customProgramCacheKey = () => 'emblema2';
   return m;
 }
 

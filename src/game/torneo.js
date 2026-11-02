@@ -203,18 +203,19 @@ export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you 
 // con su media y sus cualidades; tocar la del rival abre su ficha) y a la derecha el cuadro, con las líneas que unen
 // cada eliminatoria con la siguiente y la txapela al final. «Cómo funciona» va detrás del botón «?».
 const CSS = `
-.lg-card.tq-card{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:auto minmax(0,1fr);align-items:stretch;gap:12px 20px;width:min(980px,100%)}
+.lg-card.tq-card{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr);grid-template-rows:auto minmax(0,1fr) auto;align-items:stretch;gap:12px 16px;width:min(980px,100%)}
 .tq-card>.tq-top{grid-column:1/-1;display:flex;align-items:center;gap:12px}.tq-top .lg-head{flex:1;min-width:0}
 .tq-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}
 .tq-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
-.tq-left{display:flex;flex-direction:column;gap:8px;min-width:0;justify-content:space-between}
+.tq-left{display:flex;flex-direction:column;gap:8px;min-width:0}.tq-left>.tq-duel,.tq-left>.tq-banner{flex:1}
 .tq-duel{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 0}.lg-card.tq-card{overflow-x:hidden}
 .tq-duel::before{content:'';position:absolute;inset:18% -4px;z-index:-1;background:linear-gradient(90deg,rgba(91,75,255,.35),transparent 45%,transparent 55%,rgba(255,46,136,.35));transform:skewX(-14deg)}
 .tq-duel .gx-card{cursor:pointer}.tq-duel button.gx-card{border:0;padding:0;background:none;font:inherit}
 .tq-mid{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:72px}
 .tq-mid b{font:400 var(--fs-4xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .35s both}
 .tq-mid small{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}.tq-mid small.r{color:#fff;font-size:var(--fs-sm)}
-.tq-where{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px 12px;font:600 var(--fs-sm)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}.tq-where b{color:#fff;font-weight:800}
+.tq-where{font:600 var(--fs-sm)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-where b{color:#fff;font-weight:800}
+.tq-mid .lg-chip{margin-top:4px}
 .tq-left .lg-btns{grid-template-columns:1fr 1.6fr}.tq-left .lg-btns>.lg-btn:only-child{grid-column:1/-1}
 /* (Salir y ¡A jugar! siempre en una fila, también de pie en el móvil: antes, ahí, uno encima del otro) */
 .tq-left .lg-btns .lg-btn.go{grid-column:auto}
@@ -228,7 +229,7 @@ const CSS = `
 .tq-br.k4{gap:0 14px}.tq-br.k4 .tq-rd:first-child .tq-ms{gap:2px}
 .tq-br[hidden],.tq-liga[hidden]{display:none}.tq-rd h4 .tq-c{display:none}
 /* las pestañas de la liguilla y el cuadro, y la clasificación de cada grupo (los que pasan, en blanco, con la raya debajo) */
-.tq-vista{display:flex;gap:6px;margin:0 0 8px}
+.tq-vista{display:flex;gap:6px;margin:0}
 .tq-vista button{min-height:34px;padding:4px 16px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .tq-vista button[aria-pressed=true]{background:var(--cta);border-color:transparent;box-shadow:0 0 12px rgba(255,43,214,.4)}
 .tq-liga{flex:1;display:flex;flex-direction:column;min-height:0}
@@ -255,6 +256,9 @@ const CSS = `
 @media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
 /* (móvil tumbado pequeño: las dos cartas del partido, a la medida de su columna, que gana algo de ancho al cuadro; a 568 px
    de ancho se salían por la izquierda y tapaban el cuadro) */
+/* (móvil tumbado muy bajo, 320 a 360 px: los paneles con su alto natural y la tarjeta se desplaza, con la barra de
+   acciones pegada abajo. Si no, en 568 × 320 las tablas y las cartas se montaban encima de la barra) */
+@media (orientation:landscape) and (max-height:360px){.lg-card.tq-card{grid-template-rows:auto auto auto}.lg-card.tq-card>.lg-bar{position:sticky;bottom:-8px;z-index:3;margin-bottom:-8px;padding:8px 0;border-top:0;background:#0f0526;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}.tq-card .lg-pn{padding:4px 8px 8px}.tq-card .lg-ph{min-height:26px}}
 /* (y las rondas del cuadro en una palabra, «Cuartos», «Semis»: «Cuartos de final» ocupaba dos líneas y la última
    eliminatoria se cortaba por abajo) */
 @media (orientation:landscape) and (max-width:760px) and (max-height:520px){.tq-rd h4 .tq-l{display:none}.tq-rd h4 .tq-c{display:inline}.lg-card.tq-card{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-duel .gx-card{--w:min(120px,calc(18.3vw / var(--z, 1)))!important}.tq-mid{min-width:56px}.tq-mid b{font-size:var(--fs-2xl)}}
@@ -312,11 +316,11 @@ const CSS = `
 .tq-pueblos section>div{display:flex;flex-wrap:wrap;gap:6px}
 @media (orientation:landscape) and (max-height:520px){
 .lg-card.tq-card{gap:4px 16px;padding:8px 16px 12px}.tq-txa>.ico{width:40px;height:40px}.tq-top .lg-head h2{font-size:var(--fs-xl)}
-.tq-duel{padding:0}.tq-mid b{font-size:var(--fs-3xl)}.tq-left{gap:4px}.tq-left .lg-btn{min-height:44px}
+.tq-duel{padding:0}.tq-mid b{font-size:var(--fs-3xl)}.tq-left{gap:4px}.tq-card .lg-bar .lg-btn{min-height:44px}
 .tq-m>div{min-height:20px;padding:1px 8px;font-size:var(--fs-xs)}.tq-m b{font-size:var(--fs-sm)}.tq-cup{margin-top:4px}.tq-cup .ico{width:48px;height:48px}
 .tq-br.k4 .tq-rd h4 .tq-l{display:none}.tq-br.k4 .tq-rd h4 .tq-c{display:inline}.tq-liga.g4 .j{display:none}.tq-tab th.n{width:1.5em}.tq-tab th.c{width:1.6em}.tq-tab th.d{width:2.3em}.tq-tab td,.tq-tab th{padding-left:3px;padding-right:3px}.tq-liga.g4 .tq-tab td:nth-child(2),.tq-liga.g4 .tq-tab th:nth-child(2){padding-left:6px}.tq-br.k4 .tq-m>div{min-height:16px;padding:0 6px}.tq-br.k4 .tq-m b{font-size:var(--fs-xs)}.tq-br.k4 .tq-rd h4{margin-bottom:2px}
 .tq-br.k4 .tq-rd:first-child .tq-ms{gap:1px}.tq-br.k4 .tq-m>div{min-height:15px}
-.tq-vista{margin-bottom:4px}.tq-vista button{min-height:30px;padding:2px 12px}.tq-tab td,.tq-tab th{padding:1px 6px}.tq-tab{font-size:var(--fs-xs)}.tq-tabs{gap:4px 8px}
+.tq-vista button{min-height:30px;padding:2px 12px}.tq-tab td,.tq-tab th{padding:1px 6px}.tq-tab{font-size:var(--fs-xs)}.tq-tabs{gap:4px 8px}
 .tq-tile{min-height:0;height:100%;padding:8px 20px}.tq-tile b{font-size:var(--fs-xl)}.tq-tiles{flex:1}.lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}
 }
 @media (max-width:900px) and (orientation:portrait){
@@ -538,18 +542,27 @@ export function torneoPanel(T, here = null, o = null) {
     // (las cartas del duelo, con el color que cada uno viste en el partido)
     const col = m ? coloresPartido(`${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, m.level, m.mate?.name, m.partner?.name).colors : { you: 'azul', rival: 'rojo' };
     const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: tusCualidades(), pop: true, lang });
-    let left;
+    // (tres franjas, como en los juegos de deportes: la cabecera; dos paneles con su rótulo, el partido y la clasificación;
+    // y abajo, de lado a lado, la barra de acciones con Salir, el frontón y ¡A jugar!. Antes los botones y el frontón iban
+    // apilados debajo de las cartas)
+    let left, etiqueta = '', sede = '';
     if (T.done) { const C = T.players[T.champion]; left = `<div class="tq-banner"><small>Txapeldun · campeón del torneo</small>${pelotariCard({ name: C.name, town: C.town, side: C.you ? (T.tuColor || 'azul') : (T.tuColor === 'rojo' ? 'azul' : 'rojo'), role: pairs ? 'Par' : 'Mano', w: 110, bonus: C.you ? youBonus(T) : rivalBonus(C), stats: C.you ? {} : pairs ? mateStats(C, 0) : statsOf(C), pop: true, lang })}<p>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</p></div>`; }
     else if (m) {
       const rv = m.rival, rvStats = pairs ? mateStats(rv, 0) : statsOf(rv);
-      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="r${m.liga ? ' nw' : ''}">${esc(m.liga ? `Jornada ${planOf(T)[T.round].liga + 1}` : m.round)}</small><small>A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
-        ${o?.sedes?.length || here ? `<div class="tq-where">${o?.sedes?.length ? sedeHtml(o, here) : `<span>Frontón de <b>${esc(here)}</b></span>`}</div>` : ''}`;
+      etiqueta = m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round;
+      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="lg-chip">A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
+`;
+      sede = o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
     } else left = `<div class="tq-banner"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div>`;
     // (con liguilla, dos pestañas: la clasificación y el cuadro de las eliminatorias; se abre la de la ronda que toca)
     const v0 = T.groups && !T.done && planOf(T)[T.round]?.liga != null ? 'liga' : 'cuadro';
     const vistas = T.groups ? `<div class="tq-vista" data-notr>${[['liga', isEU() ? 'Ligaxka' : 'Liguilla'], ['cuadro', isEU() ? 'Koadroa' : 'Cuadro']].map(([k, t]) => `<button type="button" data-vista="${k}" aria-pressed="${k === v0}">${t}</button>`).join('')}</div>` : '';
     const btns = T.done ? '<button class="lg-btn go" data-a="new">Nuevo torneo</button>' : m ? '<button class="lg-btn go" data-a="play">¡A jugar!</button>' : '<button class="lg-btn go" data-a="sim">Siguiente ronda</button>';
-    const r = lgPanel(`${head}<div class="tq-left">${left}<div class="lg-btns lg-foot">${btns}<button class="lg-btn" data-a="exit">Salir</button></div></div><div class="tq-right">${vistas}${ligaHtml(T, v0 !== 'liga')}${bracketHtml(T, v0 === 'liga')}</div>${how}`);
+    const rotulo = m ? 'Próximo partido' : T.done ? 'Final del torneo' : 'Tu torneo';
+    const ph = `<div class="lg-ph"><span>${rotulo}</span>${etiqueta ? `<span class="lg-chip">${esc(etiqueta)}</span>` : ''}</div>`;
+    const ph2 = vistas ? `<div class="lg-ph">${vistas}</div>` : `<div class="lg-ph"><span>${isEU() ? 'Koadroa' : 'Cuadro'}</span></div>`;
+    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button><span class="lg-sp"></span>${sede}${btns}</div>`;
+    const r = lgPanel(`${head}<div class="tq-left lg-pn">${ph}${left}</div><div class="tq-right lg-pn">${ph2}${ligaHtml(T, v0 !== 'liga')}${bracketHtml(T, v0 === 'liga')}</div>${bar}${how}`);
     const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
     // (y otra vez si cambia el tamaño del cuadro o de sus columnas, por ejemplo al cargar las fuentes)
     const lines = () => drawLines(r); requestAnimationFrame(lines); const ro = new ResizeObserver(lines); r.querySelectorAll('.tq-br, .tq-rd').forEach(e => ro.observe(e));

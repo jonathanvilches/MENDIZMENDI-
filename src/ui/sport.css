@@ -55,6 +55,10 @@
 .gx-card::before { content: ''; z-index: -2; background: linear-gradient(160deg, rgba(255, 255, 255, .9), var(--ac) 30%, var(--c2) 70%, var(--ac)); }
 .gx-card .gx-face { inset: 2px; z-index: -1; overflow: hidden;
   background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
+/* (la placa de abajo, donde van el nombre, el pueblo y las cualidades: un velo oscuro liso. Sin él, el pueblo y las
+   siglas, rosa claro sobre el rosa de la carta del rival, no se leían: contraste de 2 a 1; con la placa, más de 7 a 1) */
+.gx-card .gx-face::before { content: ''; position: absolute; left: 0; right: 0; top: 55%; bottom: 0; background: rgba(12, 3, 30, .5); border-top: 1px solid rgba(255, 255, 255, .14); }
+.gx-card.lock .gx-face::before { background: rgba(12, 3, 30, .3); }
 .gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
 /* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía) */
 .gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 51.5%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); }

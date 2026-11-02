@@ -84,37 +84,25 @@ function weather(m, k = 1, moss = 1, revoco = 0) {
     float bl2 = texture2D(tWeather, (w.zx + w.y * 0.9) / 9.0 + 0.57).r;
     float thr = 0.78 - 0.08 * (1.0 - smoothstep(0.4, 2.6, up));
     bl2 += (fine - 0.5) * 0.08;   // (el borde, irregular: sin esto salían círculos)
-    float m = smoothstep(thr, thr + 0.01, bl2);
+    float aa = max(fwidth(bl2), 0.004);   // (el borde, del ancho de un píxel o algo más: sin dientes que se turnen al moverse)
+    float m = smoothstep(thr - aa, thr + 0.01 + aa, bl2);
     if (m > 0.0) {
       vec3 piedra = texture2D(tPiedra, vec2(w.x + w.z, w.y) / 2.6).rgb * 0.82;   // (la mampostería de debajo, algo en sombra)
       c = mix(c, piedra, m);
-      c = mix(c, c * 1.2 + 0.05, smoothstep(thr + 0.024, thr + 0.006, bl2) * m * 0.75);
+      c = mix(c, c * 1.2 + 0.05, smoothstep(thr + 0.024 + aa, thr + 0.006, bl2) * m * 0.75);
     }
   }
   diffuseColor.rgb = c;
 }`.replace(/\$\{K\}/g, 'uWK.x').replace(/\$\{M\}/g, 'uWK.y'))
-      // (de cerca, el relieve fino de la piedra y la cal, con las derivadas de la pantalla y sin otra textura; se apaga
-      // a los 12 m para que no titile. En el móvil, no)
-      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-#ifndef LOWQ
-{
-  float amt = 1.0 - smoothstep(3.0, 12.0, length(vViewPosition));
-  if (amt > 0.0) {
-    float hb = texture2D(tWeather, (vWW.xz + vWW.y * vec2(0.71, -0.53)) / 0.5).g * 0.6 + texture2D(tWeather, (vWW.zx - vWW.y * vec2(0.4, 0.8)) / 0.17).g * 0.4;
-    vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition);
-    vec2 dh = vec2(dFdx(hb), dFdy(hb)) * 0.009 * amt * uWK.x;
-    vec3 r1 = cross(dpy, normal), r2 = cross(normal, dpx);
-    float det = dot(dpx, r1);
-    normal = normalize(abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2));
-  }
-}
-#endif`)
+      // (sin relieve fino calculado con las derivadas de la pantalla: con cada movimiento de la cámara cambiaba de un
+      // grupo de cuatro píxeles al siguiente y las paredes de cerca centelleaban, en todas las casas. El grano lo pone el
+      // relieve de cada textura, que se suaviza con la distancia)
       // (la luz cálida que rebota de la calle y de las casas de enfrente: de día, las paredes a la sombra, con algo de su
       // propio color y no grises azuladas por el cielo; y un punto más cálidas todas. Antes la cal y la piedra salían frías)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(0.08, 0.06, 0.032) * uDia;')
       .replace('#include <opaque_fragment>', 'outgoingLight *= mix(vec3(1.0), vec3(1.025, 1.0, 0.955), uDia);\n#include <opaque_fragment>');
   };
-  m.customProgramCacheKey = () => 'weather4' + (BQ === 'low' ? '-low' : '');
+  m.customProgramCacheKey = () => 'weather5' + (BQ === 'low' ? '-low' : '');
   return m;
 }
 

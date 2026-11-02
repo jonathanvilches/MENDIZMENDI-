@@ -270,6 +270,7 @@ vSemilla = fract(sin(dot(instanceMatrix[3].xz * 97.0, vec2(12.9898, 78.233))) * 
 mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;`);
     sh.fragmentShader = `uniform float uMetro, uK, uMusgo; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;
 float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0)), f.x), f.y); }
 ` + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
 if (vVent > 20.5) {
   // (los detalles: u, a lo largo de la cara; w, la altura, los dos en metros)
@@ -287,8 +288,16 @@ if (vVent > 20.5) {
       diffuseColor.rgb = mix(diffuseColor.rgb * 0.7, b, fino);
     }
   } else if (c < 2.5) {   // (la piedra: hiladas de mampuestos y la albardilla encima)
-    float fila = floor(w / 0.32), pz = (0.84 + 0.26 * h21(vec2(floor(u / 0.55 + fila * 0.5), fila))) * mix(0.78, 1.0, step(0.1, fract(w / 0.32)));
-    diffuseColor.rgb *= arriba ? 1.08 : mix(0.95, pz, fino);
+    if (arriba) {   // (encima, losas con sus juntas y manchas: en las murallas y baluartes de Olite, Pamplona o Viana, el adarve; antes, un color liso)
+      float sx = (vObj.x + 0.5) * la, sz = (vObj.z + 0.5) * fo, fl = 1.0 - smoothstep(0.15, 0.5, max(fwidth(sx), fwidth(sz)));
+      float lo = (0.86 + 0.22 * h21(floor(vec2(sx, sz) / 0.9))) * mix(0.8, 1.0, step(0.06, fract(sx / 0.9)) * step(0.06, fract(sz / 0.9)));
+      diffuseColor.rgb *= 1.04 * mix(1.0, lo, fl) * (0.9 + 0.14 * vn(vec2(sx, sz) / 2.5));
+    } else {
+      float fila = floor(w / 0.32), pz = (0.84 + 0.26 * h21(vec2(floor(u / 0.55 + fila * 0.5), fila))) * mix(0.78, 1.0, step(0.1, fract(w / 0.32)));
+      diffuseColor.rgb *= mix(0.95, pz, fino) * (0.92 + 0.1 * vn(vec2(u, w) / 2.2));
+      // (en lo alto de los muros altos, las almenas: el hueco entre merlón y merlón, en sombra)
+      diffuseColor.rgb *= 1.0 - 0.55 * step(5.0, al) * step(al - 0.9, w) * step(0.5, fract(u / 1.1)) * fino;
+    }
   } else if (c < 3.5) {   // (la leña: las testas de los troncos, por delante)
     if (lx || arriba) diffuseColor.rgb *= 0.78;
     else { vec2 q = fract(vec2(u, w) / 0.2) - 0.5; float r = length(q) + 0.12 * h21(floor(vec2(u, w) / 0.2));
@@ -313,7 +322,15 @@ if (vVent > 20.5) {
     if (piedra > 0.5) { float fila = floor(v / 0.55); base *= mix(1.0, (0.88 + 0.22 * h21(vec2(floor(u / 1.3 + fila * 0.5), fila))) * mix(0.82, 1.0, step(0.08, fract(v / 0.55))), fino); }
     else {
       base = mix(base, base * vec3(0.84, 0.8, 0.74), (1.0 - step(0.8, u) * step(u, ancho - 0.8)) * step(0.8, v) * nitido);
-      base *= mix(1.0, 0.94 + 0.1 * h21(floor(vec2(u, v) / 1.3) + vSemilla * 5.0), fino);   // (el revoco, a manchas)
+      base *= mix(1.0, 0.93 + 0.08 * vn(vec2(u, v) / 1.3 + vSemilla * 5.0) + 0.05 * vn(vec2(u, v) / 0.45 + 3.1), fino);   // (el revoco, a manchas suaves)
+      // (en la mitad de las casas del norte, la planta baja de piedra, en hiladas, y encima la imposta clara, como en los
+      // caseríos y las casas de Baztan, Bidasoa y el Pirineo)
+      if (uMusgo > 0.5 && vSemilla > 0.5 && v < 2.95) {
+        float fila = floor(v / 0.48), junta = step(0.07, fract(v / 0.48)) * step(0.05, fract(u / 0.95 + fila * 0.5));
+        vec3 pz = vec3(0.6, 0.53, 0.44) * (0.84 + 0.24 * h21(vec2(floor(u / 0.95 + fila * 0.5), fila)));
+        base = mix(base, mix(vec3(0.56, 0.5, 0.42), pz * mix(0.72, 1.0, junta), fino), step(v, 2.75));
+        base = mix(base, vec3(0.8, 0.76, 0.68), step(2.75, v) * nitido);
+      }
     }
     float hueco = 0.0, marco = 0.0, chorreo = 0.0, dovela = 0.0, escudo = 0.0, fx = fract(u / 3.4);
     if (t < 3.5) {
@@ -337,22 +354,46 @@ if (vVent > 20.5) {
     if (t > 1.5 && t < 3.5 && vSemilla < 0.5) det = mix(det, vec3(0.3, 0.18, 0.1), step(2.6, v) * step(v, 3.15) * step(0.4, u) * step(u, ancho - 0.4));
     det *= (1.0 - 0.13 * chorreo * fino) * mix(0.9, 1.0, smoothstep(0.8, 1.8, v));   // (y la humedad que sube del suelo)
     det *= mix(0.78, 1.0, step(0.8, v)) * mix(1.0, 0.72, smoothstep(hM - 2.7, hM - 2.0, v));
+    if (t < 3.5) {
+      // (bajo el alero, los canecillos de madera que lo sostienen, uno cada medio metro largo)
+      det = mix(det, vec3(0.17, 0.1, 0.06), step(hM - 2.34, v) * step(fract(u / 0.56), 0.32) * fino);
+      // (y bajo algunas ventanas, la jardinera con geranios rojos y rosas, y sus hojas)
+      float fyb = fract(v / 3.0), jar = step(3.0, v) * step(v, hM - 4.4) * step(0.19, fyb) * step(fyb, 0.28) * step(0.35, fx) * step(fx, 0.65) * step(0.35, fract(vSemilla * 7.3 + floor(u / 3.4) * 0.37));
+      vec3 flor = mix(vec3(0.82, 0.08, 0.14), vec3(0.95, 0.38, 0.6), step(0.6, h21(floor(vec2(u / 0.16, v / 0.1)))));
+      det = mix(det, mix(vec3(0.16, 0.34, 0.12), flor, step(0.235, fyb) * step(0.35, h21(floor(vec2(u / 0.12, v / 0.08)) + 1.7))), jar * fino);
+    }
     // (a media distancia, cuando las ventanas ya no se distinguen, las plantas: una franja algo más oscura por piso, donde
     // van las ventanas; así la fachada no queda lisa y se lee la altura de cada casa)
     float pisos = t < 3.5 ? step(2.6, v) * step(v, hM - 4.4) * step(0.28, fract(v / 3.0)) * step(fract(v / 3.0), 0.8) : 0.0;
     base *= 1.0 - 0.1 * pisos * (1.0 - nitido) * (1.0 - smoothstep(1.4, 3.2, px));
     diffuseColor.rgb = mix(base * (t < 3.5 ? 0.86 : 0.96), det, nitido);
+  } else if (t > 0.5 && t < 5.5 && vNo.y > 0.5) {
+    // (lo de encima de las paredes, cuando asoma fuera del tejado, como un terrado de la Ribera: baldosas de barro con sus
+    // juntas, manchas y el pretil más claro alrededor. Antes, un color liso: triángulos beis entre los tejados de Olite)
+    float tx = (vObj.x + 0.5) * vEsc.x * uMetro, tz = (vObj.z + 0.5) * vEsc.z * uMetro, tw = vEsc.x * uMetro, td = vEsc.z * uMetro;
+    float tp = max(fwidth(tx), fwidth(tz)), tf = 1.0 - smoothstep(0.12, 0.45, tp);
+    vec3 barro = mix(diffuseColor.rgb, vec3(0.66, 0.42, 0.3), 0.55) * (0.88 + 0.16 * vn(vec2(tx, tz) / 2.4 + vSemilla * 4.0));
+    barro *= mix(1.0, (0.9 + 0.16 * h21(floor(vec2(tx, tz) / 0.4))) * mix(0.82, 1.0, step(0.07, fract(tx / 0.4)) * step(0.07, fract(tz / 0.4))), tf);
+    float pretil = 1.0 - step(0.45, tx) * step(tx, tw - 0.45) * step(0.45, tz) * step(tz, td - 0.45);
+    diffuseColor.rgb = mix(barro, diffuseColor.rgb * 1.06, pretil);
   } else if (t > 5.5 && t < 7.5) {
-    if (abs(vNo.y) < 0.2) diffuseColor.rgb = (vPared.r + vPared.g + vPared.b > 0.01 ? vPared : uHastial) * mix(0.9, 1.0, vSemilla);   // (el hastial, del color de su pared)
+    if (abs(vNo.y) < 0.2) {   // (el hastial, del color de su pared, con el mismo revoco a manchas y, en los grandes, un ventanuco)
+      float gu = (vObj.z + 0.5) * vEsc.z * uMetro, gv = vObj.y * vEsc.y * uMetro / uK, gd = vEsc.z * uMetro, gh = vEsc.y * uMetro / uK, gpx = max(fwidth(gu), fwidth(gv));
+      float gf = 1.0 - smoothstep(0.15, 0.5, gpx), vent = step(2.6, gh) * step(0.4, vSemilla) * step(abs(gu - gd * 0.5), 0.32) * step(abs(gv - gh * 0.38), 0.3);
+      vec3 hc = (vPared.r + vPared.g + vPared.b > 0.01 ? vPared : uHastial) * mix(0.9, 1.0, vSemilla) * (0.86 + 0.14 * vn(vec2(gu, gv) / 1.6 + vSemilla * 5.0) + 0.06 * gf * vn(vec2(gu, gv) / 0.5 + 2.3));
+      // (bajo los dos lados del tejado, la sombra del alero: a lo largo del borde inclinado, como en las fachadas)
+      float bajoTej = gh * (1.0 - abs(gu - gd * 0.5) / max(gd * 0.5, 0.01)) - gv;
+      diffuseColor.rgb = mix(hc, vec3(0.09, 0.08, 0.1), vent * gf) * mix(0.8, 1.0, smoothstep(0.0, 0.5, gv)) * mix(0.7, 1.0, smoothstep(0.0, 0.55, bajoTej));
+    }
     else {
       float dm = vEsc.z * uMetro, rh = vEsc.y * uMetro / uK, L = length(vec2(0.5 * dm, rh)), sl = (0.5 - abs(vObj.z)) * 2.0 * L, u = vObj.x * vEsc.x * uMetro;
       float px = max(fwidth(u), fwidth(sl)), fino = 1.0 - smoothstep(0.2, 0.6, px), medio = 1.0 - smoothstep(0.6, 1.6, px), paso = t < 6.5 ? 0.42 : 0.32, fila = floor(sl / paso);
       float teja = (0.86 + 0.24 * h21(vec2(floor(u / (t < 6.5 ? 0.5 : 0.7) + fila * 0.5), fila))) * (0.8 + 0.2 * smoothstep(0.0, 0.18, fract(sl / paso)));
       // (de más lejos, en vez de cada teja, sus hileras de tres en tres y las manchas de musgo y de teja nueva)
       float hilera = mix(1.0, 0.86 + 0.14 * smoothstep(0.0, 0.35, fract(sl / (paso * 3.0))), medio * (1.0 - fino));
-      diffuseColor.rgb *= mix(0.95, teja, fino) * hilera * (0.86 + 0.2 * h21(floor(vec2(u, sl) / 2.2) + vSemilla * 7.0)) * mix(0.8, 1.0, smoothstep(0.0, 0.4, L - sl));
+      diffuseColor.rgb *= mix(0.95, teja, fino) * hilera * (0.86 + 0.2 * vn(vec2(u, sl) / 2.2 + vSemilla * 7.0)) * mix(0.8, 1.0, smoothstep(0.0, 0.4, L - sl));
       // (el musgo y el liquen, a manchas, y la sombra del alero abajo)
-      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.17, 0.06), uMusgo * 0.34 * medio * smoothstep(0.55, 0.85, h21(floor(vec2(u, sl) / 1.4) + vSemilla * 3.0)));
+      diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.12, 0.17, 0.06), uMusgo * 0.34 * medio * smoothstep(0.55, 0.85, vn(vec2(u, sl) / 1.4 + vSemilla * 3.0) * 0.7 + vn(vec2(u, sl) / 0.45) * 0.3));
       diffuseColor.rgb *= mix(0.74, 1.0, smoothstep(0.0, 0.5, sl));
     }
   } else if (t > 7.5) diffuseColor.rgb *= mix(0.58, 1.12, vObj.y) * (0.9 + 0.2 * vSemilla);
@@ -363,7 +404,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       .replace('#include <opaque_fragment>', `outgoingLight *= vVent > 7.5 && vVent < 20.5 ? vec3(1.02, 1.0, 0.95) : vec3(1.05, 1.0, 0.91);
 #include <opaque_fragment>`);
   };
-  mat.customProgramCacheKey = () => 'maqueta';
+  mat.customProgramCacheKey = () => 'maqueta6';
   res.mat = mat;
   const piezas = { paredes: [], tejados: [], agujas: [], ochavos: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();
@@ -594,7 +635,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   }
   // (los emblemas, con su propio material: mapa3d.js le da la misma transparencia que a las casas al levantarse)
   if (embs.length) {
-    const me = res.matEmb = materialEmblema(o.alzado), ancla = (lat, lon) => { const [dx, dz] = metros(lat, lon, D.lat, D.lon); return [X0 + dx * MU, Z0 + dz * MU]; };
+    const me = res.matEmb = materialEmblema(o.alzado, 1 / MU, K), ancla = (lat, lon) => { const [dx, dz] = metros(lat, lon, D.lat, D.lon); return [X0 + dx * MU, Z0 + dz * MU]; };
     for (const e of embs) { const m = new THREE.Mesh(haceEmblema(e.id, { ancla, MU, K, suelo: alto }), me); m.frustumCulled = false; grupo.add(m); }
   }
   res.casas = grupo;
