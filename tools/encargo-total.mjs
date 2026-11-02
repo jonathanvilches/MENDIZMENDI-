@@ -83,7 +83,10 @@ for (const t of inv.towns) {
   const k = CUENTA && Array.isArray(CUENTA[t.id]) ? CUENTA[t.id].length : 8;
   casasSin.push(...cs.slice(0, k).filter(c => !c.has));
 }
-const persSin = inv.personajes.filter(x => !x.has), leySin = inv.leyendas.filter(x => !x.has);
+// (Induráin no se dibuja: es una persona viva y la regla del proyecto es no hacer su dibujo; su ficha sigue con la lámina
+// que lleva. Si algún día hay permiso o una escena sin él, se quita de aquí)
+const NO_DIBUJAR = new Set(['indurain']);
+const persSin = inv.personajes.filter(x => !x.has && !NO_DIBUJAR.has(x.id)), leySin = inv.leyendas.filter(x => !x.has);
 const figSin = inv.figuras.filter(x => !x.has), cimSin = inv.cimas.filter(x => !x.has), tradSin = inv.tradiciones.filter(x => !x.has && (x.ilus || x.type !== 'carnival'));
 const fauSin = inv.fauna.filter(x => !x.has), ofiSin = inv.oficios.filter(x => !x.has), munSin = inv.municipales.filter(x => !x.has), lamSin = inv.laminas.filter(x => !x.has);
 const lamPrio = inv.laminas.filter(l => l.has && (l.cover || l.kind === 'deporte' || (l.kind === 'paisaje' && l.comarca)));
