@@ -1,7 +1,7 @@
 // Ayudantes para colocar casas y filas de edificios: medir y recorrer una calle (polilínea) y asentar una planta en
 // la cuesta. Los usan el valle de Salazar (village.js), los pueblos generados (townBuilder.js) y Pamplona.
 import * as THREE from 'three';
-import { M } from './builder.js';
+import { M, box } from './builder.js';
 import { terrainHeight } from './heightfield.js';
 
 /** Un punto (lx, lz) del sistema local de un edificio en (x, z) girado ry, en coordenadas del mundo. */
@@ -26,6 +26,9 @@ export function minGround(x, z, w, d, ry) {
  *  lleva un zócalo de piedra hasta el suelo por el lado de abajo. Devuelve la altura de la planta baja. */
 export function slopeBase(B, x, z, w, d, ry, g) {
   const y = Math.max(g.mn - 0.1, g.mx - 0.35), drop = y - g.mn;
-  if (drop > 0.15) B.add('stone', new THREE.BoxGeometry(w + 0.12, drop + 0.6, d + 0.12), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
+  // (la base de piedra de una casa en cuesta: 9 cm por fuera de la pared, más que el zócalo (6 cm), y con la piedra a la
+  // escala de las paredes. Antes iba justo en el plano del zócalo y, en el iPhone, los dos se turnaban a trozos en cada
+  // imagen, un parpadeo de piedras pequeñas y piedras gigantes; y su textura iba estirada a lo largo de toda la cara)
+  if (drop > 0.15) B.add('stone', box(w + 0.18, drop + 0.6, d + 0.18, 2.6), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
   return y;
 }

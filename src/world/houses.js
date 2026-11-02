@@ -252,7 +252,8 @@ export function buildHouse(B, T, o, rnd) {
   B.add(wallMat, box(w, h + 3, d, 2.6), MM(T, M(0, (h + 3) / 2 - 3, 0)));
   // zócalo de piedra (sin sobresalir por los lados pegados a otra casa: los dos zócalos se pisaban en el mismo plano y
   // la junta parpadeaba)
-  const vec = o.vecinas || [], z0 = vec[0] ? 0 : 0.06, z1 = vec[1] ? 0 : 0.06, zb = vec[2] ? 0 : 0.06;
+  // (y del lado pegado a otra casa, 2 cm por dentro de la pared: a ras, la pared y el zócalo se pisaban en el mismo plano)
+  const vec = o.vecinas || [], z0 = vec[0] ? -0.02 : 0.06, z1 = vec[1] ? -0.02 : 0.06, zb = vec[2] ? -0.02 : 0.06;
   B.add('stoneDark', box(w + z0 + z1, 0.7 + 3, d + 0.06 + zb, 2), MM(T, M((z1 - z0) / 2, (0.7 + 3) / 2 - 3, (0.06 - zb) / 2)));
   if (wallMat !== 'stone' && wallMat !== 'ashlar' && !o.noQuoins) quoins(B, T, w, d, h, vec);
   // imposta entre plantas

@@ -294,6 +294,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   plantas y desván como mucho, cuatro en la ciudad; más portales de arco. Fuera del casco, graneros y almacenes de
   piedra o ladrillo con teja, portón de tablas y ventanucos, en vez de naves de chapa crema; los colegios, con
   contraventanas. Las tiendas de Pamplona, con tablero de madera y vidrio en cuarterones, y sus casas algo más bajas.
+- **Parpadeos de paredes en el iPhone** (noviembre de 2026, vídeo de Roncesvalles): en las casas en cuesta, la base de
+  piedra (`slopeBase` en `world/plot.js`) iba justo en el plano del zócalo de la casa y los dos se turnaban a trozos en
+  cada imagen; ahora va 9 cm por fuera de la pared, 3 más que el zócalo, y con la piedra a la escala de las paredes (antes
+  la textura iba estirada a toda la cara, con piedras gigantes). Del lado pegado a otra casa, el zócalo va 2 cm por dentro
+  de la pared en vez de a ras. Y `realHouses` ya no levanta la casa de los datos que es la iglesia del juego (San
+  Saturnino de Artajona va en ellos como casa y salía con la iglesia metida dentro) ni las que caen dentro de un
+  monumento ya levantado con caja de choque grande.
 - **Más detalle en las texturas** (noviembre de 2026; mismas medidas, sin más memoria): la mampostería, la sillería, la
   teja, la pizarra y el empedrado con el relieve picado de grano fino (`picado` en `world/textures.js`), verdín y musgo
   en las juntas y en el borde de las tejas; la madera con clavos de forja y vetas grises. En las paredes (`weather` en

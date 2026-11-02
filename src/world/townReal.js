@@ -5,8 +5,8 @@ import * as THREE from 'three';
 import { box, M, MM, builderQuality } from './builder.js';
 import { climber } from './houses.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
-import { addBox } from './colliders.js';
-import { riverInfo, villageMask, MOD } from './layout.js';
+import { addBox, COLLIDERS } from './colliders.js';
+import { riverInfo, villageMask, MOD, PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
 
 /** La iglesia de los datos: su eje largo y la fachada (+z local) hacia el lado de la plaza o de su calle. */
@@ -370,10 +370,16 @@ export function realHouses(B, def, rnd, H) {
   // para que el azar del resto del pueblo no cambie)
   const LEJOS = builderQuality() === 'low' ? 220 : builderQuality() === 'mid' ? 270 : 330;
   const lista = real.casas.map(b => ({ b, dist: Math.min(...A.map(a => Math.hypot(b.x - a.x, b.z - a.z))) })).sort((a, c) => a.dist - c.dist);
+  // (las casas de los datos que caen dentro de un monumento ya levantado, con su caja de choque grande: las alas del
+  // castillo de Javier, que en los datos van como casas, salían metidas en el castillo con las paredes pisándose)
+  const MONU = COLLIDERS.filter(c => c.type === 'box' && Math.min(c.hw, c.hd) > 2.5);
+  const enMonumento = (x, z) => MONU.some(c => { const dx = x - c.x, dz = z - c.z, lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos; return Math.abs(lx) < c.hw - 0.5 && Math.abs(lz) < c.hd - 0.5; });
   const PEG = pegadas(real.casas), AMAX = builderQuality() === 'low' ? 320 : builderQuality() === 'mid' ? 420 : 520;
   let n = 0, anexos = 0;
   for (const { b, dist } of lista) {
-    if (real.taken.has(b) || b.k === 'church') continue;
+    // (ni la casa de los datos que es la iglesia del juego, aunque en ellos no figure como iglesia: San Saturnino de
+    // Artajona va como casa, y se levantaba también, con la iglesia metida dentro y sus paredes pisándose)
+    if (real.taken.has(b) || b.k === 'church' || b === PLACES.church?.real || enMonumento(b.x, b.z)) continue;
     if (fr && b.k === 'fronton') continue;           // (el frontón lo levanta el juego en su sitio)
     if (b.a < 9 || (b.k === 'shed' && !b.anexo && b.a < 18 && dist > 120)) continue;
     // (los anexos de dentro de las manzanas, ordenar.js anexosManzana: casetas bajas de piedra o revoco con su tejado de
