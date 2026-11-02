@@ -615,6 +615,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   misión y su texto (`#quest`); el icono del título de las ventanas de papel; el personaje de la barra de carga y el
   tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; el nombre de quien atiende la tienda bajo su icono (`.shop-keeper`); y, con el móvil de pie, la misión, que `fitTop`
   estrechaba a 140 px, y la distancia de la brújula y los avisos de la conversación, que se le montaban.
+- **Menú de pelota en carrusel** (`pelotaMenu` en `game/torneo.js`, noviembre de 2026): las cinco losas (individual,
+  parejas, cuatro y medio, partido libre y colección) del mismo ancho, en una fila que se desliza de lado con el dedo, la
+  rueda del ratón o las flechas de los lados, que solo salen si hay más hacia ese lado. Tumbado se ven tres y media y de
+  pie una y media, para que asome la siguiente; el ancho lo pone el menú (`--cw`) con el del carrusel. Antes se repartían
+  el ancho con proporciones distintas y cada una salía de un tamaño.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

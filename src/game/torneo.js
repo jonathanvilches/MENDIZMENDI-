@@ -343,6 +343,18 @@ const CSS = `
 .tq-tile small{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
 /* (en pantallas altas, como el iPad tumbado, la ilustración con su altura: no se queda diminuta encima del texto) */
 @media (min-height:561px) and (orientation:landscape){.tq-tile .figs{min-height:clamp(150px,calc(32vh / var(--z, 1)),300px)}}
+/* el menú de pelota, en carrusel: todas las losas del mismo ancho, en fila, y se deslizan de lado con el dedo, la rueda o
+   las flechas de los lados (se ven tres y un trozo de la siguiente, para que se note que hay más). Antes se repartían el
+   ancho con proporciones distintas y cada una salía de un tamaño */
+.tq-carr{position:relative;min-height:0;min-width:0;width:100%;display:flex;flex-direction:column}.tq-carr>.tq-tiles{flex:1 1 auto;min-width:0;width:100%}
+.tq-tiles,.tq-tiles.n3,.tq-tiles.n5{--cw:clamp(150px,calc((100% - 36px) / 3.35),300px);display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:var(--cw);grid-template-rows:minmax(0,1fr) auto auto auto;row-gap:0;column-gap:12px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none}
+.tq-tiles::-webkit-scrollbar{display:none}
+.tq-tile{scroll-snap-align:start;display:grid;grid-row:span 4;grid-template-rows:subgrid;grid-template-columns:minmax(0,1fr);align-content:stretch;justify-items:start;margin-bottom:0}
+.tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
+.tq-tiles.n3 .tq-tile.main,.tq-tiles.n5 .tq-tile.main{grid-column:auto}
+@media (orientation:portrait){.tq-tiles,.tq-tiles.n3,.tq-tiles.n5{--cw:calc((100% - 12px) / 1.55)}.tq-tile .figs{min-height:220px}}
+.tq-flecha{position:absolute;top:calc(50% - 22px);z-index:3;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(201,178,255,.45);background:rgba(18,6,40,.85);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.tq-flecha svg{width:18px;height:18px}.tq-flecha.izq{left:4px}.tq-flecha.der{right:4px}.tq-flecha[hidden]{display:none}.tq-flecha:hover,.tq-flecha:focus-visible{border-color:var(--rosa)}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
    con tres pelotaris, ya no se corta) y las cartas del próximo partido más grandes */
 @media (min-width:1200px) and (min-height:560px){
@@ -597,11 +609,11 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
     const trio = [...new Set([...met, 'Oihana', 'Unai', 'Irati'])].slice(0, 3);
     const youName = T.players.find(q => q.you)?.name;
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<div class="lg-ovr">${tx}<small>TXAPELAS</small></div>` : ''}</div>
-      <div class="tq-tiles${T2 ? T3 ? ' n5' : '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.mano.k}</span><b>${KINDS.mano.name}</b><small>${sub(T)}</small></button>
+      <div class="tq-carr"><button class="tq-flecha izq" aria-label="Anteriores" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="tq-tiles${T2 ? T3 ? ' n5' : '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.mano.k}</span><b>${KINDS.mano.name}</b><small>${sub(T)}</small></button>
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
         ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
         <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
-        <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div>
+        <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');
     // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
@@ -615,7 +627,17 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
         if (h > 0) f.style.setProperty('--fh', Math.floor(h) + 'px');
       }
     };
-    const ro = new ResizeObserver(iguala); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); iguala();
+    // (el carrusel: cada flecha solo si hay más losas hacia su lado; y la rueda del ratón lo mueve de lado)
+    const fl = r.querySelectorAll('.tq-flecha'), paso = () => (tiles.querySelector('.tq-tile')?.offsetWidth || 200) + 12;
+    const flechas = () => { const m = tiles.scrollWidth - tiles.clientWidth; fl[0].hidden = tiles.scrollLeft <= 2; fl[1].hidden = tiles.scrollLeft >= m - 2; };
+    fl.forEach((b, i) => b.addEventListener('click', (e) => { e.stopPropagation(); tiles.scrollBy({ left: (i ? 1 : -1) * paso(), behavior: 'smooth' }); }));
+    tiles.addEventListener('scroll', flechas, { passive: true });
+    tiles.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && tiles.scrollWidth > tiles.clientWidth + 2) { tiles.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+    // (el ancho de las losas, el mismo para todas: tumbado se ven tres y media, de pie una y media; así la última asoma
+    // lo bastante para que se note que hay más. Con un tope por arriba, en CSS, solo cabían casi cuatro y la cuarta salía
+    // cortada por un dedo, como un error)
+    const carr = tiles.parentElement, ancho = () => { const W = carr.clientWidth, v = innerWidth > innerHeight ? 3.5 : 1.55, cw = Math.floor((W - 12 * Math.floor(v)) / v) + 'px'; if (W > 0 && tiles.style.getPropertyValue('--cw') !== cw) tiles.style.setProperty('--cw', cw); };
+    const ro = new ResizeObserver(() => { ancho(); iguala(); flechas(); }); ancho(); ro.observe(carr); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); iguala(); flechas();
     // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
     r.addEventListener('click', async (e) => {
       const s = o && await sedeClick(e, r, o, here); if (s?.otro) { ro.disconnect(); lgFuera(r); res('otro:' + s.otro); return; } if (s) return;
