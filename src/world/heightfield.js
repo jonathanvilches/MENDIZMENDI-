@@ -11,6 +11,7 @@ export const SURF = {
   rock: new Uint8Array(N * N),
   grass: new Uint8Array(N * N),   // densidad de hierba alta
   water: new Uint8Array(N * N),   // 1 = agua
+  tierra: new Uint8Array(N * N),  // tierra apisonada del casco, entre las casas (solo para pintar el suelo: no es camino)
 };
 
 const idx = (i, j) => j * N + i;
@@ -70,6 +71,12 @@ export function bake() {
         SURF.forest[k] *= 1 - fi.mask * (fi.edge > 3 ? 1 : 0.5);
       }
       SURF.grass[k] = clamp(grass, 0, 1) * 255;
+      // (en el casco, entre las casas, tierra apisonada con alguna mata de hierba y no césped de jardín: un pueblo de
+      // antes no tenía prados entre casa y casa, y con ellos parecía una urbanización. En los prados, huertas y campos de
+      // los datos, lo suyo; y no es camino: el mapa y los pasos lo siguen leyendo como hierba)
+      const casco = smoothstep(0.35, 0.7, vm) * (1 - fi.mask) * (1 - street) * (inWater || inPond ? 0 : 1);
+      if (casco > 0.01) { const tq = casco * (0.6 + 0.4 * smoothstep(-0.35, 0.25, fbm(x / 9 + 3, z / 9 - 7, 2))); SURF.tierra[k] = tq * 255; SURF.grass[k] *= 1 - tq * 0.85; }
+      else SURF.tierra[k] = 0;
     }
   }
   // roca por pendiente

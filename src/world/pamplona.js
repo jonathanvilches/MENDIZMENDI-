@@ -9,7 +9,7 @@ import { terrainHeight, SURF, addPlatform } from './heightfield.js';
 import { polyLen, polyAt, toW } from './plot.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { PATHS, PLACES, HALF, CELL, N } from './layout.js';
-import { bench, VILLAGE } from './village.js';
+import { bench, VILLAGE, farol } from './village.js';
 import { Signs, cityBlock, winDoor, pointedPanel, archedWall, balustrade, statue, navarraFlag, plaque, shopSign, letters, fitText, roundRect, FONT_SERIF, pick } from './civic.js';
 import { bullring, walls, citadel, stadium } from './pamplonaOut.js';
 import { towerClock } from './monuments.js';
@@ -57,18 +57,16 @@ function row(B, A, E, face, o, rnd, TOWN, gaps = [], special = () => null) {
   return out;
 }
 
-// farola de plaza con tres globos
+// farol de plaza: un candelabro de forja sobre basa de piedra, con un farol en lo alto y dos colgando de sus brazos
+// (antes, una farola de tres globos blancos, que daba a la plaza un aire de paseo moderno)
 function cityLamp(B, x, z) {
-  const y = gy(x, z);
-  B.add('iron', new THREE.CylinderGeometry(0.3, 0.38, 0.5, 8), M(x, y + 0.25, z));
-  B.add('iron', new THREE.CylinderGeometry(0.08, 0.13, 3.6, 8), M(x, y + 2.2, z));
-  for (let i = 0; i < 3; i++) {
-    const a = i / 3 * Math.PI * 2;
-    B.add('iron', box(0.05, 0.05, 0.75), M(x + Math.sin(a) * 0.36, y + 3.85, z + Math.cos(a) * 0.36, a));
-    B.add('lamp', new THREE.SphereGeometry(0.2, 10, 8), M(x + Math.sin(a) * 0.72, y + 4.12, z + Math.cos(a) * 0.72));
-  }
-  B.add('lamp', new THREE.SphereGeometry(0.24, 10, 8), M(x, y + 4.35, z));
-  B.add('iron', new THREE.ConeGeometry(0.12, 0.35, 6), M(x, y + 4.7, z));
+  const y = gy(x, z), T = M(x, y, z);
+  B.add('stoneDark', box(0.7, 0.6, 0.7, 1), M(x, y + 0.3, z));
+  B.add('iron', new THREE.CylinderGeometry(0.07, 0.11, 3.7, 8), M(x, y + 2.45, z));
+  B.add('iron', box(1.5, 0.06, 0.06), M(x, y + 3.9, z));
+  for (const s of [-1, 1]) { B.add('iron', new THREE.TorusGeometry(0.16, 0.025, 4, 10, Math.PI), M(x + s * 0.32, y + 3.75, z, 0, 0, s > 0 ? Math.PI : 0)); B.add('iron', box(0.03, 0.14, 0.03), M(x + s * 0.72, y + 3.82, z)); farol(B, MM(T, M(s * 0.72, 0, 0)), 3.38); }
+  B.add('iron', box(0.24, 0.05, 0.24), M(x, y + 4.32, z));
+  farol(B, T, 4.58);
   addCircle(x, z, 0.4);
   VILLAGE.lamps.push({ x, y: y + 4.2, z });
 }
@@ -139,12 +137,12 @@ function terrace(B, cx, cz, n, dir) {
 // ---------- Plaza del Castillo ----------
 function plazaCastillo(B, S, rnd, TOWN) {
   const P = PLACES.plaza, x0 = P.x - P.rect.hw, x1 = P.x + P.rect.hw, z0 = P.z - P.rect.hd, z1 = P.z + P.rect.hd;
-  const D = 12, opt = { d: D, wMin: 8.5, wMax: 11.5, hMin: 15.5, hMax: 18.5, arcade: true };
+  const D = 12, opt = { d: D, wMin: 8.5, wMax: 11.5, hMin: 14, hMax: 16.5, arcade: true };   // (algo más bajas: un casco viejo, no un ensanche)
   const north = row(B, { x: x0 - D, z: z0 }, { x: x1 + D, z: z0 }, { x: 0, z: 1 }, opt, rnd, TOWN, [[14 - (x0 - D), 23 - (x0 - D)]]);
   row(B, { x: x0, z: z0 }, { x: x0, z: z1 }, { x: 1, z: 0 }, opt, rnd, TOWN, [[6 - z0, 14.5 - z0], [47 - z0, 56.5 - z0]]);
   let iruna = null, perla = null;
   const east = row(B, { x: x1, z: z0 }, { x: x1, z: z1 }, { x: -1, z: 0 }, opt, rnd, TOWN, [[5.5 - z0, 13.5 - z0], [46.5 - z0, 63.5 - z0]],
-    (s, w) => s === 0 ? { wall: 'plaster', h: 19, attic: false, tag: 'perla' } : (s < 58 && s + w > 58) ? { wall: 'plasterCream', shopColor: '#2b1e14', h: 17.5, tag: 'iruna', longBalcony: true } : null);
+    (s, w) => s === 0 ? { wall: 'plaster', h: 17.5, attic: false, tag: 'perla' } : (s < 58 && s + w > 58) ? { wall: 'plasterCream', shopColor: '#2b1e14', h: 16, tag: 'iruna', longBalcony: true } : null);
   for (const b of east) { if (b.blk.tag === 'iruna') iruna = b; if (b.blk.tag === 'perla') perla = b; }
   row(B, { x: 46, z: z1 }, { x: x1 + D, z: z1 }, { x: 0, z: -1 }, { ...opt, arcade: false }, rnd, TOWN);
   row(B, { x: x0 - D, z: z1 }, { x: 10, z: z1 }, { x: 0, z: -1 }, { ...opt, arcade: false }, rnd, TOWN);
@@ -362,7 +360,7 @@ function estafeta(B, S, rnd, TOWN) {
   for (const side of [-1, 1]) {
     let s = 6;
     while (s < L - 6) {
-      const w = 6.4 + rnd() * 2.6, d = 10, h = 12.8 + rnd() * 4.5;
+      const w = 6.4 + rnd() * 2.6, d = 10, h = 11.5 + rnd() * 3.2;
       const a = polyAt(p.pts, s + w / 2), nx = -a.tz * side, nz = a.tx * side;
       const fx = a.x + nx * (p.w - 0.5), fz = a.z + nz * (p.w - 0.5), ry = Math.atan2(-nx, -nz);
       const c = toW(fx, fz, ry, 0, -d / 2);

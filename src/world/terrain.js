@@ -71,7 +71,7 @@ function vertexColor(i, j, out) {
   const snow = TONE === 'alpine' || TONE === 'arid' ? smoothstep(128, 150, h + n * 14) : 0;
   if (snow > 0) out.lerp(PAL.snow, snow);
   else if (TONE === 'lush') out.lerp(PAL.grassDry, smoothstep(128, 150, h + n * 14) * 0.5 * (1 - rock));
-  const s = SURF.street[k] / 255, d = SURF.dirt[k] / 255;
+  const s = SURF.street[k] / 255, d = Math.max(SURF.dirt[k], SURF.tierra[k]) / 255;
   if (s > 0) out.lerp(PAL.street, s);
   if (d > 0) out.lerp(PAL.dirt, d);
   return out;
@@ -97,7 +97,7 @@ function buildChunk(ci, cj, step) {
     pos.push(-HALF + i * CELL, H[k], -HALF + j * CELL);
     normalAt(i, j, v); nor.push(v.x, v.y, v.z);
     vertexColor(i, j, c); col.push(c.r, c.g, c.b);
-    surf.push(SURF.street[k] / 255, SURF.dirt[k] / 255, SURF.rock[k] / 255, SURF.forest[k] / 255);
+    surf.push(SURF.street[k] / 255, Math.max(SURF.dirt[k], SURF.tierra[k]) / 255, SURF.rock[k] / 255, SURF.forest[k] / 255);   // (la tierra del casco, como la de los caminos)
     const ang = ((_campo[2] % Math.PI) + Math.PI) % Math.PI;
     campo.push(Math.round(Math.min(1, _campo[0]) * 255), _campo[1], Math.round(ang / Math.PI * 255), 0);
   }

@@ -118,7 +118,13 @@ export function winDoor(B, T, x, y, ww, wh, shutter, frame = 'ashlar', key = fal
 function shopFront(B, T, sw, sh, color, door = true) {
   const c = (g) => colored(g, color);
   B.add('ashlar', box(sw, 0.55, 0.14, 1), MM(T, M(0, 0.27, 0.05)));
-  B.add('glass', box(sw - 0.3, sh - 0.8, 0.02), MM(T, M(door ? -0.45 : 0, 0.55 + (sh - 0.8) / 2, 0.03)));
+  // (la tienda de antes: abajo, un tablero de madera; arriba, el vidrio en cuarterones con su travesaño. Antes era una luna
+  // entera de cristal azul oscuro, un escaparate de ahora)
+  const gw = sw - 0.3 - (door ? 0.9 : 0), gx = door ? -0.45 : 0, gh = sh - 0.8, nb = Math.max(2, Math.round(gw / 0.55));
+  B.add('paint', c(box(gw, gh * 0.38, 0.05)), MM(T, M(gx, 0.55 + gh * 0.19, 0.04)));
+  B.add('glass', box(gw, gh * 0.62, 0.02), MM(T, M(gx, 0.55 + gh * 0.69, 0.03)));
+  for (let i = 1; i < nb; i++) B.add('paint', c(box(0.05, gh * 0.62, 0.05)), MM(T, M(gx - gw / 2 + i * gw / nb, 0.55 + gh * 0.69, 0.05)));
+  B.add('paint', c(box(gw, 0.05, 0.05)), MM(T, M(gx, 0.55 + gh * 0.69, 0.05)));
   for (const s of [-1, 1]) B.add('paint', c(box(0.16, sh, 0.12)), MM(T, M(s * (sw / 2 - 0.08), sh / 2, 0.06)));
   B.add('paint', c(box(sw, 0.3, 0.14)), MM(T, M(0, sh - 0.1, 0.07)));
   if (door) { B.add('paint', c(box(0.95, sh - 0.35, 0.06)), MM(T, M(sw / 2 - 0.65, (sh - 0.35) / 2, 0.04))); B.add('gold', box(0.05, 0.3, 0.05), MM(T, M(sw / 2 - 0.95, sh * 0.45, 0.09))); }
@@ -218,7 +224,6 @@ export function cityBlock(B, T, o, rnd = Math.random) {
         for (const k of [-0.3, 0, 0.3]) B.add('iron', box(0.03, 0.5, 0.04), F(M(x + k, 3.0, 0.05)));
         B.add(frame, box(1.8, 0.3, 0.2, 1), F(M(x, 3.4, 0.08)));
         for (const s of [-1, 1]) B.add(frame, box(0.25, 3.25, 0.18, 1), F(M(x + s * 0.78, 1.62, 0.07)));
-        B.add('paint', colored(box(0.22, 0.16, 0.02), '#2f5fb3'), F(M(x + 1.05, 2.3, 0.02)));
         B.add('gold', new THREE.SphereGeometry(0.04, 6, 4), F(M(x + 0.45, 1.3, 0.12)));
         B.add('ashlar', box(1.7, 0.16, 0.5), F(M(x, 0.08, 0.25)));
       } else {
@@ -233,10 +238,9 @@ export function cityBlock(B, T, o, rnd = Math.random) {
     }
   }
   const cols = Math.max(1, Math.round(w / 2.7));
-  // pilastras de esquina, zócalo y bajante
+  // pilastras de esquina y zócalo (sin bajante de cinc: no es de un casco viejo)
   for (const s of [-1, 1]) B.add(frame, box(0.4, h - gh, 0.12, 1.5), F(M(s * (w / 2 - 0.2), gh + (h - gh) / 2, 0.05)));
   B.add('stoneDark', box(w + 0.02, 0.45, 0.12, 1.5), F(M(0, 0.22, 0.04)));
-  if (!o.arcade) B.add('zinc', new THREE.CylinderGeometry(0.06, 0.06, h, 6), F(M(w / 2 - 0.55, h / 2, 0.14)));
   if (!o.arcade && rnd() < 0.35) { // farol de pared
     const lx = -w / 2 + 0.9;
     B.add('iron', box(0.05, 0.05, 0.5), F(M(lx, 3.7, 0.25))); B.add('lamp', box(0.24, 0.34, 0.24), F(M(lx, 3.5, 0.5)));

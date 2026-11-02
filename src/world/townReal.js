@@ -237,9 +237,11 @@ function fachada(B, T, w, d, h, o) {
       const nb = Math.max(1, Math.floor(F.L / (kind === 'school' ? 3.6 : 5)));
       for (let f = 0; f < nf; f++) for (let i = 0; i < nb; i++) {
         const u = -F.L / 2 + F.L / nb * (i + 0.5);
-        if (F.frente && f === 0 && i === Math.floor(nb / 2)) { puerta(F, u, kind === 'school' ? 2.2 : 3.6, Math.min(h - 0.8, kind === 'school' ? 2.6 : 3.8), kind === 'school' ? E.puerta : '#6b6f73'); continue; }
-        if (kind === 'school') ventana(F, u, f * (h / nf) + h / nf * 0.55, 2.0, 1.5, false);
-        else vid.rect(F, u - 1.6, u + 1.6, h - 1.5, h - 0.6, off);
+        // (el portón, de tablas de madera; arriba, ventanucos con su marco de piedra: antes, un portón de chapa gris y una
+        // tira de ventanas corrida, de nave de polígono)
+        if (F.frente && f === 0 && i === Math.floor(nb / 2)) { puerta(F, u, kind === 'school' ? 2.2 : 3.2, Math.min(h - 0.8, kind === 'school' ? 2.6 : 3.4), kind === 'school' ? E.puerta : E.madera || '#5a3b22'); continue; }
+        if (kind === 'school') ventana(F, u, f * (h / nf) + h / nf * 0.55, 1.4, 1.5, true);
+        else ventana(F, u, h - 1.3, 0.6, 0.6, false);
       }
     }
   } else if (kind === 'templo') {
@@ -394,16 +396,16 @@ export function realHouses(B, def, rnd, H) {
     if (++n > NMAX) break;
     const isHall = hall && Math.abs(hall.x - x) < 0.5 && Math.abs(hall.z - z) < 0.5, vec = PEG.get(b);
     if (b.k === 'industrial' || b.k === 'shed' || (b.k === 'school' && b.a > 600)) {
-      const h = b.k === 'shed' ? 2.6 + Math.min(1.2, b.a / 40) : clamp(b.h ? b.h * 0.85 : 7.5, 4.5, 14);
+      const h = b.k === 'shed' ? 2.6 + Math.min(1.2, b.a / 40) : clamp(b.h ? b.h * 0.85 : 7.5, 4.5, 10);
       // (una nave o un colegio grande en el casco viejo, como casa grande de la comarca: pared, tejado de teja y ventanas
       // con contraventanas. Antes era una caja de chapa crema con una tira de ventanas en mitad de la plaza)
       // (y si tiene nombre de iglesia o convento —en los datos alguna va como nave—, de sillería y con ventanales altos)
       const templo = /^(san|santa|santo|santiago|nuestra|iglesia|parroquia|ermita|bas[ií]lica|convento|monasterio|colegiata)\b/i.test(b.n || '');
       const casco = b.k !== 'shed' && (vm > 0.45 || dist < 160 || templo), hr = hashRnd(x - 0.3, z + 0.9);
-      const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : templo ? 'ashlar' : casco ? MUROS[fam]?.[Math.floor(hr() * MUROS[fam].length)] || 'plaster' : 'plasterCream';
+      const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : templo ? 'ashlar' : casco ? MUROS[fam]?.[Math.floor(hr() * MUROS[fam].length)] || 'plaster' : fam === 'ribera' ? 'brick' : hr() < 0.6 ? 'stone' : 'plaster';   // (fuera del casco, un granero o un almacén de piedra, y no una nave de chapa crema)
       if (b.k === 'shed' && dist > 150) { lejos++; continue; }   // (las naves grandes y las escuelas, sí: se ven de lejos)
       const hb = slopeBase(B, x, z, w, d, ry, g);
-      block(B, x, hb, z, ry, w, d, h, wall, b.k === 'shed' || casco ? 'tile' : 'zinc', b.k === 'shed' ? 0.5 : templo ? 0.5 : casco ? 0.4 : 0.18, vec);
+      block(B, x, hb, z, ry, w, d, h, wall, 'tile', b.k === 'shed' ? 0.5 : templo ? 0.5 : casco ? 0.4 : 0.3, vec);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall, kind: b.k === 'shed' ? 'shed' : templo ? 'templo' : casco ? 'house' : b.k === 'school' ? 'school' : 'industrial', rnd: hashRnd(x, z), vecinas: vec });
       addBox(x, z, w + 0.2, d + 0.2, ry, { solidView: true });
       simple++; continue;
@@ -416,7 +418,8 @@ export function realHouses(B, def, rnd, H) {
     let h = b.h ? b.h * 0.78 : st.h[0] + rnd() * (st.h[1] - st.h[0]);
     if (b.a >= 60) h = Math.max(h, (vm > 0.55 && b.a >= 90 ? 3 : 2) * 3 + Math.abs(Math.sin(x * 12.9898 + z * 78.233)) * 0.6); // (sin gastar rnd: el resto del pueblo sale como antes)
     else if (!b.h) h = Math.min(h, 4.6 + b.a / 30);
-    h = clamp(h, 3.4, 18);
+    // (como mucho tres plantas y el desván, cuatro en la ciudad: un casco viejo no tiene bloques de seis alturas)
+    h = clamp(h, 3.4, fam === 'city' ? 15 : 12);
     // (las casas de una fila partida, cada una con su altura, un poco más o menos que la de al lado: si no, parecía una nave)
     if (b.parte) { const f = Math.abs(Math.sin(x * 12.9898 + z * 78.233)) * 43758.5453 % 1; h = clamp(h * (0.84 + 0.36 * f), 3.4, 18); }
     if (b.k === 'borda') Object.assign(st, { wall: 'stone', balcony: false, timber: false });
@@ -432,7 +435,8 @@ export function realHouses(B, def, rnd, H) {
       addHouse(x, z, ry, w, d, { real: b.n || null });
       simple++; continue;
     }
-    const ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.5 : rnd() < 0.2, balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1 && w > 6, cornice: rnd() < 0.4, ...st, w, d, h, vecinas: vec, ...plantas(x, z, fam) };
+    const ho = { arch: st.wall === 'stone' || st.wall === 'ashlar' ? rnd() < 0.72 : rnd() < 0.35,   // (más portales de arco de medio punto, de dovelas)
+      balconyW: Math.min(w - 2, 3 + rnd() * 2.5), shield: rnd() < 0.1 && w > 6, cornice: rnd() < 0.4, ...st, w, d, h, vecinas: vec, ...plantas(x, z, fam) };
     if (w < 6.5) Object.assign(ho, { balcony: false, gallery: false, balconyW: Math.max(1, w - 2), arch: false });
     if (isHall) Object.assign(ho, HALL(w, h));
     buildHouse(B, M(x, hb, z, ry), ho, rnd);

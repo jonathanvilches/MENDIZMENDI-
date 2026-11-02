@@ -8,7 +8,7 @@ import { belfryBell, towerClock, eaveCorbels } from './monuments.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
 import { terrainHeight, deckY } from './heightfield.js';
 import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
-import { addBox, addCircle, isFree } from './colliders.js';
+import { addBox, addCircle, isFree, nearby } from './colliders.js';
 import { mulberry32 } from '../util/math.js';
 
 export const VILLAGE = { palaces: [], lamps: [], benches: [], houses: [], church: null, fountain: null, doors: [] };
@@ -398,13 +398,53 @@ function buildLamps(B) {
     }
   }
 }
+// El farol de forja de los cascos viejos: jaula de hierro con sus cuatro varillas, el cristal (que de noche se enciende),
+// el sombrerete de cuatro aguas y su remate; colgado de un brazo de hierro con su tornapunta en la fachada de al lado
+// si la hay, como en las calles de los pueblos de antes; si no, en lo alto de un poste fino sobre una basa de piedra.
+// Antes era una farola de poste con una caja de luz encima, que parecía de una urbanización
+export function farol(B, T, y) {
+  const F = (m) => MM(T, m);
+  B.add('lamp', box(0.28, 0.38, 0.28), F(M(0, y, 0)));
+  for (const [i, j] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) B.add('iron', box(0.035, 0.44, 0.035), F(M(i * 0.15, y, j * 0.15)));
+  B.add('iron', box(0.36, 0.05, 0.36), F(M(0, y - 0.22, 0)));
+  B.add('iron', new THREE.ConeGeometry(0.29, 0.24, 4), F(M(0, y + 0.33, 0, Math.PI / 4)));
+  B.add('iron', new THREE.SphereGeometry(0.05, 6, 4), F(M(0, y + 0.5, 0)));
+}
+// (la pared de una casa a menos de 2,4 m: el punto de la pared más cercano y hacia dónde mira, o null)
+function paredCerca(x, z) {
+  let best = null;
+  for (const c of nearby(x, z, 3)) {
+    if (c.type !== 'box' || !c.solidView || Math.min(c.hw, c.hd) < 1.5) continue;
+    const dx = x - c.x, dz = z - c.z, lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos;
+    const cx = Math.max(-c.hw, Math.min(c.hw, lx)), cz = Math.max(-c.hd, Math.min(c.hd, lz)), d = Math.hypot(lx - cx, lz - cz);
+    if (d < 0.05 || d > 2.4 || (best && d >= best.d)) continue;
+    // (en la cara, no en la esquina: un farol en la arista de una casa queda torcido)
+    if (Math.abs(cx) > c.hw - 0.6 && Math.abs(cz) > c.hd - 0.6) continue;
+    const nlx = (lx - cx) / d, nlz = (lz - cz) / d, wx = c.x + cx * c.cos + cz * c.sin, wz = c.z - cx * c.sin + cz * c.cos;
+    best = { d, x: wx, z: wz, nx: nlx * c.cos + nlz * c.sin, nz: -nlx * c.sin + nlz * c.cos };
+  }
+  return best;
+}
 export function lamp(B, x, z) {
-  const y = terrainHeight(x, z);
-  B.add('iron', new THREE.CylinderGeometry(0.07, 0.11, 3.4, 6), M(x, y + 1.7, z));
-  B.add('iron', new THREE.CylinderGeometry(0.2, 0.28, 0.3, 6), M(x, y + 0.15, z));
-  B.add('iron', new THREE.ConeGeometry(0.34, 0.3, 4), M(x, y + 3.95, z, Math.PI / 4));
-  B.add('lamp', box(0.36, 0.45, 0.36), M(x, y + 3.6, z));
-  B.add('iron', box(0.42, 0.06, 0.42), M(x, y + 3.36, z));
+  const w = paredCerca(x, z);
+  if (w) {
+    // en la fachada: la placa, el brazo de 0,75 m, su tornapunta y el farol colgando
+    const px = w.x - w.nx * 0.14, pz = w.z - w.nz * 0.14, ry = Math.atan2(w.nx, w.nz), y = terrainHeight(px + w.nx * 0.8, pz + w.nz * 0.8);
+    const T = M(px, y, pz, ry), F = (m) => MM(T, m);
+    B.add('iron', box(0.14, 0.5, 0.05), F(M(0, 3.35, 0.03)));
+    B.add('iron', box(0.05, 0.05, 0.82), F(M(0, 3.55, 0.41)));
+    B.add('iron', box(0.04, 0.04, 0.72), F(M(0, 3.3, 0.3, 0, -Math.atan2(0.5, 0.55))));
+    B.add('iron', box(0.03, 0.16, 0.03), F(M(0, 3.47, 0.78)));
+    farol(B, MM(T, M(0, 0, 0.78)), 3.0);
+    const lx = px + w.nx * 0.78, lz = pz + w.nz * 0.78;
+    VILLAGE.lamps.push({ x: lx, y: y + 3.0, z: lz });
+    return;
+  }
+  const y = terrainHeight(x, z), T = M(x, y, z);
+  B.add('stoneDark', box(0.42, 0.45, 0.42, 1), M(x, y + 0.2, z));
+  B.add('iron', new THREE.CylinderGeometry(0.05, 0.075, 3.0, 6), M(x, y + 1.9, z));
+  B.add('iron', box(0.3, 0.05, 0.3), M(x, y + 3.4, z));
+  farol(B, T, 3.65);
   addCircle(x, z, 0.25);
-  VILLAGE.lamps.push({ x, y: y + 3.6, z });
+  VILLAGE.lamps.push({ x, y: y + 3.65, z });
 }

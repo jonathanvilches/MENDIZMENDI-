@@ -284,6 +284,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   520 según la calidad) y sin contar para el de casas, `NMAX`; se levantan hasta donde llegan las casas sencillas. Con su
   propio azar, de la posición o del nombre del pueblo, para que el resto del pueblo salga igual. Antes, en Tafalla, el
   interior de casi todas las manzanas era un prado.
+- **Aire rural y medieval en pueblos y ciudades** (noviembre de 2026): en el casco, entre las casas, tierra apisonada
+  con matas de hierba en vez de césped de jardín (`SURF.tierra` en `world/heightfield.js`; solo para pintar el suelo en
+  `world/terrain.js`: el mapa y los pasos no lo leen como camino; los prados, huertas y campos de los datos siguen
+  verdes). Sin canalones ni bajantes de cinc ni la placa azul del número (`world/houses.js`, `world/civic.js`);
+  carpintería de madera oscura y cristal gris oscuro en vez de azul. Faroles de forja (`farol` en `world/village.js`):
+  colgados de un brazo con tornapunta en la fachada más cercana si hay una a menos de 2,4 m, y si no en un poste fino
+  sobre basa de piedra; en Pamplona, candelabros de forja con tres faroles en vez de farolas de globos. Casas de tres
+  plantas y desván como mucho, cuatro en la ciudad; más portales de arco. Fuera del casco, graneros y almacenes de
+  piedra o ladrillo con teja, portón de tablas y ventanucos, en vez de naves de chapa crema; los colegios, con
+  contraventanas. Las tiendas de Pamplona, con tablero de madera y vidrio en cuarterones, y sus casas algo más bajas.
 - **Color de las casas del juego** (`world/textures.js`, `world/builder.js weather`, `world/sky.js`): piedra arenisca y
   parda con más color, sillería dorada, cal crema, teja de barro cocido algo más viva y pizarra gris parda en vez de gris
   azul. Las paredes (los materiales con `weather`) llevan de día una luz de rebote cálida con su propio color y un punto

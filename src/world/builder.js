@@ -111,9 +111,10 @@ export function makeMaterials() {
     tile: snowable(withTex(TEX.roofTile, { roughness: 0.8 })),
     wood: weather(withTex(TEX.wood), 0.6, 0.2),
     woodDark: weather(withTex(TEX.woodDark), 0.6, 0.2),
-    // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo
+    // cristal mate (Lambert, sin brillo especular): no hace reflejos al girar la cámara; de noche se enciende con el emisivo.
+    // (gris oscuro y no azul pizarra: el azul era de cristalera de ahora)
     // y con prioridad de profundidad sobre la pared, para que no parpadee de lejos ni en móviles con poca precisión
-    glass: new THREE.MeshLambertMaterial({ color: '#3b5166', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
+    glass: new THREE.MeshLambertMaterial({ color: '#363b40', emissive: new THREE.Color('#ffb85a'), emissiveIntensity: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }),
     water: stillWater(),
     // chorro de las fuentes: agua clara y algo transparente
     jet: std({ color: '#d8edf3', roughness: 0.1, transparent: true, opacity: 0.6, emissive: new THREE.Color('#29434d') }),
