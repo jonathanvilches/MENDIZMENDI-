@@ -264,12 +264,10 @@ summary { line-height: 1.3; }
 #tl.mis #quest .qd { display: inline; color: #ff9bd6; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; }
 @media (prefers-reduced-motion: reduce) { #tl.mis #quest { animation: none; } }
 #ribbons .eg { margin-left: 8px; font-size: var(--fs-sm); color: #ff7ac8; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 1px 2px #000; }
-/* la aventura de Otsagabia (ui.js verMision): solo el icono de la misión; al tocarlo, o al cambiar lo que hay que hacer,
-   unos segundos, lo que hay que hacer y las cintas */
+/* la aventura de Otsagabia: el icono de la misión con lo que hay que hacer y las cintas, siempre a la vista (plegada hasta
+   tocar, arriba solo quedaba un icono suelto sin sentido); al cambiar lo que hay que hacer, el texto entra de nuevo */
 #quest .ic { position: relative; cursor: pointer; }
 #quest .qn { display: none; position: absolute; right: -6px; bottom: -6px; min-width: 18px; height: 18px; padding: 0 4px; place-items: center; border-radius: 9px; background: linear-gradient(135deg, #ff3fcf, #9c3bff); color: #fff; font: 700 11px/1 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); }
-#tl:not(.mis):not(.ver) #quest .qn:not(:empty) { display: grid; }
-#tl:not(.mis):not(.ver) :is(#quest .qtxt, #ribbons) { display: none; }
 #tl:not(.mis).ver :is(#quest .qtxt, #ribbons) { animation: tlAbre .28s cubic-bezier(.2, .9, .3, 1); }
 @keyframes tlAbre { from { opacity: 0; transform: translateY(-6px); } }
 /* (sin misión que seguir, enseña las cintas: si no, se quedaría vacío) */
