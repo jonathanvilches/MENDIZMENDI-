@@ -620,6 +620,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   rueda del ratón o las flechas de los lados, que solo salen si hay más hacia ese lado. Tumbado se ven tres y media y de
   pie una y media, para que asome la siguiente; el ancho lo pone el menú (`--cw`) con el del carrusel. Antes se repartían
   el ancho con proporciones distintas y cada una salía de un tamaño.
+- **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
+  2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
+  sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los
+  que pasan) y sin la leyenda de debajo; con cuatro grupos, sin el puesto ni la columna J. Fuera también «Toca su carta
+  para ver su ficha» y «Tus txapelas» (están en la losa del menú y en tu ficha); el frontón va solo, centrado. Lo quitado
+  que explica algo (tocar la carta del rival, qué son G, J y ±) pasa a «?», que ahora es una ventanita debajo de la
+  cabecera que se cierra al tocarla (antes era una fila más al pie y se montaba encima de las tablas). Las tablas ocupan
+  todo el alto junto al partido; Salir y ¡A jugar! van siempre en una fila; en el móvil tumbado pequeño las rondas del
+  cuadro van en una palabra («Cuartos», «Semis») y el cuadro de dieciséis, algo más junto, cabe entero en 844×390.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

@@ -214,9 +214,10 @@ const CSS = `
 .tq-mid{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:72px}
 .tq-mid b{font:400 var(--fs-4xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .35s both}
 .tq-mid small{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}.tq-mid small.r{color:#fff;font-size:var(--fs-sm)}
-.tq-ficha{font:600 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--rosa);text-align:center;margin:-4px 0 0}
 .tq-where{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:4px 12px;font:600 var(--fs-sm)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--lila)}.tq-where b{color:#fff;font-weight:800}
 .tq-left .lg-btns{grid-template-columns:1fr 1.6fr}.tq-left .lg-btns>.lg-btn:only-child{grid-column:1/-1}
+/* (Salir y ¡A jugar! siempre en una fila, también de pie en el móvil: antes, ahí, uno encima del otro) */
+.tq-left .lg-btns .lg-btn.go{grid-column:auto}
 .tq-banner{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px;text-align:center}
 .tq-banner small{font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
 .tq-banner b{font:400 var(--fs-3xl)/1 var(--f-display);text-transform:uppercase}.tq-banner p{margin:0;font:600 var(--fs-md)/1.3 var(--f-cond);color:var(--lila)}
@@ -232,6 +233,10 @@ const CSS = `
 .tq-vista button[aria-pressed=true]{background:var(--cta);border-color:transparent;box-shadow:0 0 12px rgba(255,43,214,.4)}
 .tq-liga{flex:1;display:flex;flex-direction:column;min-height:0}
 .tq-tabs{display:grid;gap:8px 12px;align-content:start}.tq-liga.g4 .tq-tabs{grid-template-columns:1fr 1fr}
+/* (las tablas, a todo el alto que queda junto al partido: las filas respiran y abajo no queda un hueco. Con cuatro grupos,
+   sin el puesto ni la columna J: el orden ya es el puesto y todos llevan los mismos partidos) */
+.tq-liga .tq-tabs{flex:1;grid-auto-rows:minmax(0,1fr)}.tq-liga .tq-tab{height:100%}.tq-liga.g4 .j{display:none}
+.tq-mid small{white-space:nowrap}.tq-mid small.r{white-space:normal;text-wrap:balance}.tq-mid small.r.nw{white-space:nowrap}
 .tq-tab{width:100%;border-collapse:collapse;table-layout:fixed;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);font:600 var(--fs-sm)/1.15 var(--f-cond);text-transform:uppercase}
 .tq-tab th{padding:3px 6px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;color:var(--lila);text-align:right;white-space:nowrap}
 .tq-tab td{padding:3px 6px;text-align:right;color:var(--lila2);border-top:1px solid rgba(201,178,255,.12);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -239,19 +244,20 @@ const CSS = `
 .tq-tab td span{display:block;overflow:hidden;text-overflow:ellipsis}
 .tq-tab tr.q td{color:#fff}.tq-tab tr.q td:first-child{color:var(--rosa);font-weight:800}.tq-tab tr.corte td{border-bottom:2px solid rgba(255,43,214,.55)}
 .tq-tab tr.you td:nth-child(2){font-weight:800;color:#fff}.tq-tab tr.you td span::before{content:'';display:inline-block;width:6px;height:6px;margin:0 8px 1px 0;border-radius:1px;background:var(--fx);transform:skewX(-20deg)}
-.tq-ley{margin:6px 0 0;font:600 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.04em;color:var(--lila2)}
 .tq-br svg.tq-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible}
 .tq-lines path{fill:none;stroke:rgba(201,178,255,.35);stroke-width:2}.tq-lines path.you{stroke:var(--fx);filter:drop-shadow(0 0 4px rgba(255,43,214,.8))}
 .tq-lines path{stroke-dasharray:400;stroke-dashoffset:400;animation:tq-draw .7s ease-out .35s forwards}@keyframes tq-draw{to{stroke-dashoffset:0}}
 .tq-rd{display:flex;flex-direction:column;min-width:0}
 /* (la ronda y, debajo, a cuántos tantos: en una sola línea, «Cuartos de final · a 5» pisaba la columna de al lado) */
-.tq-rd h4,.tq-liga h4{margin:0 0 4px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-rd h4 small{display:block;color:var(--lila2);font:inherit;letter-spacing:.04em}
-.tq-rd.now h4,.tq-liga h4{color:var(--rosa)}.tq-liga h4 small{display:block;color:var(--lila2);font:inherit;letter-spacing:.04em}
+.tq-rd h4{margin:0 0 4px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-rd h4 small{display:block;color:var(--lila2);font:inherit;letter-spacing:.04em}
+.tq-rd.now h4{color:var(--rosa)}
 /* (en los móviles más estrechos, la ronda sin «a 5»: si no, los rótulos de las columnas se pisan; los tantos van en la carta del partido) */
 @media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
 /* (móvil tumbado pequeño: las dos cartas del partido, a la medida de su columna, que gana algo de ancho al cuadro; a 568 px
    de ancho se salían por la izquierda y tapaban el cuadro) */
-@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.lg-card.tq-card{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-duel .gx-card{--w:min(120px,calc(18.3vw / var(--z, 1)))!important}.tq-mid{min-width:56px}.tq-mid b{font-size:var(--fs-2xl)}}
+/* (y las rondas del cuadro en una palabra, «Cuartos», «Semis»: «Cuartos de final» ocupaba dos líneas y la última
+   eliminatoria se cortaba por abajo) */
+@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.tq-rd h4 .tq-l{display:none}.tq-rd h4 .tq-c{display:inline}.lg-card.tq-card{grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-duel .gx-card{--w:min(120px,calc(18.3vw / var(--z, 1)))!important}.tq-mid{min-width:56px}.tq-mid b{font-size:var(--fs-2xl)}}
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 .tq-m{position:relative;z-index:1;display:grid;border-radius:3px;overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}
@@ -265,7 +271,9 @@ const CSS = `
 .tq-cup{display:flex;flex-direction:column;align-items:center;gap:4px;margin-top:8px;text-align:center;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}
 .tq-cup .ico{width:64px;height:64px;filter:drop-shadow(0 0 10px rgba(255,43,214,.5));animation:tq-float 3s ease-in-out infinite}@keyframes tq-float{50%{transform:translateY(-4px)}}
 .tq-cup b{color:#fff;font:400 var(--fs-md)/1.1 var(--f-display)}
-.tq-how{grid-column:1/-1;margin:0}
+/* «Cómo funciona», al tocar «?»: una ventanita encima de la pantalla, debajo de la cabecera, entera y que se cierra al
+   tocarla. Antes iba como una fila más al pie y, con la pantalla llena, se montaba encima de las tablas y los botones */
+.lg-how.tq-how{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(201,178,255,.35);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.tq-how[hidden]{display:none}
 .tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>.ico{width:52px;height:52px;flex:none}
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura. Las figuras, del mismo alto
    en todas: la losa de la colección, con tres, algo más ancha y la del partido libre, con una, algo más estrecha; así
@@ -307,7 +315,8 @@ const CSS = `
 .tq-duel{padding:0}.tq-mid b{font-size:var(--fs-3xl)}.tq-left{gap:4px}.tq-left .lg-btn{min-height:44px}
 .tq-m>div{min-height:20px;padding:1px 8px;font-size:var(--fs-xs)}.tq-m b{font-size:var(--fs-sm)}.tq-cup{margin-top:4px}.tq-cup .ico{width:48px;height:48px}
 .tq-br.k4 .tq-rd h4 .tq-l{display:none}.tq-br.k4 .tq-rd h4 .tq-c{display:inline}.tq-liga.g4 .j{display:none}.tq-tab th.n{width:1.5em}.tq-tab th.c{width:1.6em}.tq-tab th.d{width:2.3em}.tq-tab td,.tq-tab th{padding-left:3px;padding-right:3px}.tq-liga.g4 .tq-tab td:nth-child(2),.tq-liga.g4 .tq-tab th:nth-child(2){padding-left:6px}.tq-br.k4 .tq-m>div{min-height:16px;padding:0 6px}.tq-br.k4 .tq-m b{font-size:var(--fs-xs)}.tq-br.k4 .tq-rd h4{margin-bottom:2px}
-.tq-vista{margin-bottom:4px}.tq-vista button{min-height:30px;padding:2px 12px}.tq-tab td,.tq-tab th{padding:1px 6px}.tq-tab{font-size:var(--fs-xs)}.tq-tabs{gap:4px 8px}.tq-ley{margin-top:2px}
+.tq-br.k4 .tq-rd:first-child .tq-ms{gap:1px}.tq-br.k4 .tq-m>div{min-height:15px}
+.tq-vista{margin-bottom:4px}.tq-vista button{min-height:30px;padding:2px 12px}.tq-tab td,.tq-tab th{padding:1px 6px}.tq-tab{font-size:var(--fs-xs)}.tq-tabs{gap:4px 8px}
 .tq-tile{min-height:0;height:100%;padding:8px 20px}.tq-tile b{font-size:var(--fs-xl)}.tq-tiles{flex:1}.lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}
 }
 @media (max-width:900px) and (orientation:portrait){
@@ -366,7 +375,7 @@ const CSS = `
 .lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}.lg-card.tq-menu-card .tq-tiles{min-height:0;height:100%}.lg-card.tq-menu-card .tq-tile{min-height:0;height:100%}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
 .tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
-.tq-where{font-size:var(--fs-md)}.tq-ficha{font-size:var(--fs-sm)}
+.tq-where{font-size:var(--fs-md)}
 .tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}.tq-br.k4 .tq-m>div{min-height:24px;padding:2px 10px;font-size:var(--fs-sm)}.tq-br.k4 .tq-m b{font-size:var(--fs-md)}.tq-tab{font-size:var(--fs-md)}.tq-tab td,.tq-tab th{padding:5px 10px}.tq-vista button{min-height:40px;font-size:var(--fs-sm)}
 .tq-cup .ico{width:84px;height:84px}.tq-cup b{font-size:var(--fs-lg)}
 }`;
@@ -402,16 +411,15 @@ function bracketHtml(T, hidden = false) {
 // idioma, como los frontones: el traductor no sabe de grupos
 function ligaHtml(T, hidden = false) {
   if (!T.groups) return '';
-  const eu = isEU(), plan = planOf(T), jor = plan.filter(R => R.liga != null).length, hechas = T.past.filter(P => P.liga).length;
-  const G = T.groups.length, q = G === 1 ? 4 : 2, pairs = T.kind === 'parejas';
+  const eu = isEU(), G = T.groups.length, q = G === 1 ? 4 : 2, pairs = T.kind === 'parejas';
   const quien = pairs ? (eu ? 'Bikotea' : 'Pareja') : (eu ? 'Pilotaria' : 'Pelotari');
-  const tabla = (g) => `<table class="tq-tab"><thead><tr><th class="n j"></th><th>${G > 1 ? (eu ? `${'ABCD'[g]} multzoa` : `Grupo ${'ABCD'[g]}`) : quien}</th><th class="c j">J</th><th class="c">${eu ? 'I' : 'G'}</th><th class="d">±</th></tr></thead><tbody>${clasificacion(T, g).map((x, i) => {
+  const tabla = (g) => `<table class="tq-tab"><thead><tr><th class="n j"></th><th>${G > 1 ? (eu ? `${'ABCD'[g]} multzoa` : `Grupo ${'ABCD'[g]}`) : quien}</th><th class="c j" title="${eu ? 'Jokatuak' : 'Jugados'}">J</th><th class="c" title="${eu ? 'Irabaziak' : 'Ganados'}">${eu ? 'I' : 'G'}</th><th class="d" title="${eu ? 'Tanto aldea' : 'Diferencia de tantos'}">±</th></tr></thead><tbody>${clasificacion(T, g).map((x, i) => {
     const P = T.players[x.p], d = x.tf - x.tc;
     return `<tr class="${i < q ? 'q' : ''}${i === q - 1 ? ' corte' : ''}${P.you ? ' you' : ''}"><td class="n j">${i + 1}</td><td><span>${esc(P.name)}</span></td><td class="j">${x.j}</td><td>${x.g}</td><td>${d > 0 ? '+' + d : d}</td></tr>`; }).join('')}</tbody></table>`;
-  const head = hechas < jor ? (eu ? `Ligaxka · ${hechas + 1}/${jor} jardunaldia` : `Liguilla · jornada ${hechas + 1} de ${jor}`) : (eu ? 'Ligaxka · amaituta' : 'Liguilla · terminada');
-  const sub = G === 1 ? (eu ? 'Lehen laurak, finalerdietara' : 'Las cuatro primeras, a semifinales') : (eu ? 'Multzo bakoitzeko lehen biak, final-laurdenetara' : 'Los dos primeros de cada grupo, a cuartos');
-  const leyenda = eu ? '<span class="j">J jokatuak · </span>I irabaziak · ± tanto aldea' : '<span class="j">J jugados · </span>G ganados · ± diferencia de tantos';
-  return `<div class="tq-liga g${G}" data-notr${hidden ? ' hidden' : ''}><h4>${head}<small>${sub}</small></h4><div class="tq-tabs">${T.groups.map((_, g) => tabla(g)).join('')}</div><p class="tq-ley">${leyenda}</p></div>`;
+  // (solo las tablas: la jornada ya va en el VS del partido, la raya fucsia marca los que pasan y la regla y qué es cada
+  // columna, en «?». Antes, encima, «Liguilla · jornada 1 de 3» y «Los dos primeros de cada grupo, a cuartos», y debajo
+  // la leyenda: demasiado texto apilado)
+  return `<div class="tq-liga g${G}" data-notr${hidden ? ' hidden' : ''}><div class="tq-tabs">${T.groups.map((_, g) => tabla(g)).join('')}</div></div>`;
 }
 // las líneas del cuadro: de cada par de eliminatorias a la siguiente (la de tu camino, en fucsia)
 // (medidas en el cuadro sin transformaciones: las cajas entran deslizándose y, medidas con getBoundingClientRect a
@@ -495,11 +503,15 @@ function otroPueblo(here) {
 }
 // «Cómo funciona» de cada campeonato (los de antes, de ocho, con su texto de siempre; los de ahora, ya en su idioma)
 function comoFunciona(T) {
-  const pairs = T.kind === 'parejas';
-  if (!T.fmt) return pairs ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre. La final, en el frontón Labrit de Iruña.</p>'
-    : T.kind === 'cuatro' ? '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris mano a mano por eliminatorias (cuartos y semifinales a 5 tantos, final a 7) en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5, y el saque bota entre la raya del 3 y la del 5. Juego corto, de dejadas y ganchos. La final, en el Labrit.</p>'
-    : '<p class="lg-how tq-how" hidden><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los rivales vienen a tu frontón; la final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>';
-  const eu = isEU(), txt = eu ? {
+  const pairs = T.kind === 'parejas', eu = isEU();
+  // (lo que antes iba escrito en la pantalla: tocar la carta del rival y qué es cada columna de la liguilla. Aparte y ya en
+  // su idioma: el traductor traduce cada frase de «Cómo funciona» entera)
+  const G = T.groups?.length || 0, mas = ` <span data-notr>${T.done || !yourMatch(T) ? '' : eu ? 'Ukitu aurkariaren txartela bere fitxa ikusteko.' : 'Toca la carta del rival para ver su ficha.'}${!G ? ''
+    : eu ? ` Ligaxkan, ${G === 1 ? 'J jokatuak, ' : ''}I irabaziak eta ± tanto aldea; marra arrosaren gainekoak igarotzen dira.` : ` En la liguilla, ${G === 1 ? 'J son los partidos jugados, ' : ''}G los ganados y ± la diferencia de tantos; pasan los que quedan encima de la raya fucsia.`}</span>`;
+  if (!T.fmt) return (pairs ? '<p class="lg-how tq-how" hidden data-vm="no"><b>Cómo funciona:</b> ocho parejas de delantero y zaguero por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Juegas con tu compañero de siempre. La final, en el frontón Labrit de Iruña.</p>'
+    : T.kind === 'cuatro' ? '<p class="lg-how tq-how" hidden data-vm="no"><b>Cómo funciona:</b> ocho pelotaris mano a mano por eliminatorias (cuartos y semifinales a 5 tantos, final a 7) en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5, y el saque bota entre la raya del 3 y la del 5. Juego corto, de dejadas y ganchos. La final, en el Labrit.</p>'
+    : '<p class="lg-how tq-how" hidden data-vm="no"><b>Cómo funciona:</b> ocho pelotaris por eliminatorias (cuartos y semifinales a 5 tantos, final a 7). Los rivales vienen a tu frontón; la final, en el frontón Labrit de Iruña. Los demás partidos se simulan.</p>').replace('</p>', mas + '</p>');
+  const txt = eu ? {
     ko16: 'hamasei pilotari kanporaketetan, benetako Buruz Buruko txapelketan bezala: final-zortzirenak 5 tantora, final-laurdenak 6ra, finalerdiak 7ra eta finala 9ra. Aurkariak zure frontoira datoz; finala, Iruñeko Labrit frontoian. Beste partidak simulatu egiten dira.',
     grupos16: "hamasei pilotari buruz buru lau t'erdian: pilotak ezin du lau eta erdiko marratik haratago bote egin (lurreko marra da, 4 eta 5 artean), eta sakeak 3ko eta 5eko marren artean egiten du bote. Lehenik, ligaxka: lauko lau multzo, hiru jardunaldi 5 tantora. Multzo bakoitzeko lehen biak final-laurdenetara (6ra), finalerdietara (7ra) eta finalera (9ra) igarotzen dira. Finala, Labriten.",
     liga8: 'aurrelari eta atzelariko zortzi bikote ligaxkan, denak denen aurka, benetako txapelketan bezala: zazpi jardunaldi 5 tantora. Lehen laurak finalerdietara (7ra) igarotzen dira, eta finala, 9ra, Iruñeko Labrit frontoian jokatzen da. Betiko lagunarekin jokatzen duzu.',
@@ -508,7 +520,7 @@ function comoFunciona(T) {
     grupos16: 'dieciséis pelotaris mano a mano en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5, y el saque bota entre la raya del 3 y la del 5. Primero, la liguilla: cuatro grupos de cuatro, tres jornadas a 5 tantos. Los dos primeros de cada grupo pasan a cuartos (a 6), semifinales (a 7) y final (a 9). La final, en el Labrit.',
     liga8: 'ocho parejas de delantero y zaguero en liguilla, todas contra todas, como en el campeonato de verdad: siete jornadas a 5 tantos. Las cuatro primeras pasan a semifinales (a 7) y la final, a 9, se juega en el frontón Labrit de Iruña. Juegas con tu compañero de siempre.',
   };
-  return `<p class="lg-how tq-how" hidden data-notr><b>${eu ? 'Nola dabil:' : 'Cómo funciona:'}</b> ${txt[T.fmt] || txt.ko16}</p>`;
+  return `<p class="lg-how tq-how" hidden data-notr data-vm="no"><b>${eu ? 'Nola dabil:' : 'Cómo funciona:'}</b> ${txt[T.fmt] || txt.ko16}${mas}</p>`;
 }
 /** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega; o: los frontones a elegir, ver sedeHtml:
  *  la elección se apunta en T.sede con su ronda). Devuelve 'play' | 'sim' | 'new' | 'exit'. */
@@ -530,9 +542,8 @@ export function torneoPanel(T, here = null, o = null) {
     if (T.done) { const C = T.players[T.champion]; left = `<div class="tq-banner"><small>Txapeldun · campeón del torneo</small>${pelotariCard({ name: C.name, town: C.town, side: C.you ? (T.tuColor || 'azul') : (T.tuColor === 'rojo' ? 'azul' : 'rojo'), role: pairs ? 'Par' : 'Mano', w: 110, bonus: C.you ? youBonus(T) : rivalBonus(C), stats: C.you ? {} : pairs ? mateStats(C, 0) : statsOf(C), pop: true, lang })}<p>${C.you ? '¡La txapela es tuya! Zorionak!' : `${esc(C.town)} se lleva la txapela. ¡A por la próxima!`}</p></div>`; }
     else if (m) {
       const rv = m.rival, rvStats = pairs ? mateStats(rv, 0) : statsOf(rv);
-      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="r">${esc(m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round)}</small><small>A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
-        <p class="tq-ficha">Toca su carta para ver su ficha</p>
-        <div class="tq-where">${o ? sedeHtml(o, here) : here ? `<span>Frontón de <b>${esc(here)}</b></span>` : ''}<span>Tus txapelas <b>${T.txapelas || 0}</b></span></div>`;
+      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="r${m.liga ? ' nw' : ''}">${esc(m.liga ? `Jornada ${planOf(T)[T.round].liga + 1}` : m.round)}</small><small>A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
+        ${o?.sedes?.length || here ? `<div class="tq-where">${o?.sedes?.length ? sedeHtml(o, here) : `<span>Frontón de <b>${esc(here)}</b></span>`}</div>` : ''}`;
     } else left = `<div class="tq-banner"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div>`;
     // (con liguilla, dos pestañas: la clasificación y el cuadro de las eliminatorias; se abre la de la ronda que toca)
     const v0 = T.groups && !T.done && planOf(T)[T.round]?.liga != null ? 'liga' : 'cuadro';
@@ -546,7 +557,10 @@ export function torneoPanel(T, here = null, o = null) {
       if (o && await sedeClick(e, r, o, here)) return;
       const f = e.target.closest('[data-f]'); if (f && m) { const L = fichaList(T, m); openFicha(L, Math.max(0, L.findIndex(p => p.id === f.dataset.f)), lang); return; }   // (la ficha, encima del cuadro)
       const vb = e.target.closest('[data-vista]'); if (vb) { const lg = vb.dataset.vista === 'liga'; r.querySelectorAll('[data-vista]').forEach(x => x.setAttribute('aria-pressed', String(x === vb))); r.querySelector('.tq-liga').hidden = !lg; r.querySelector('.tq-br').hidden = lg; requestAnimationFrame(lines); return; }
-      const inf = e.target.closest('[data-info]'); if (inf) { const h = r.querySelector('.tq-how'), on = h.hidden; h.hidden = !on; inf.setAttribute('aria-expanded', String(on)); requestAnimationFrame(lines); return; }
+      // (la ayuda, justo debajo de la cabecera, la mida lo que la mida; tocándola se cierra)
+      const inf = e.target.closest('[data-info]'), hw = e.target.closest('.tq-how');
+      if (inf || hw) { const h = r.querySelector('.tq-how'), q = r.querySelector('[data-info]'), on = !hw && h.hidden; h.hidden = !on; q.setAttribute('aria-expanded', String(on));
+        if (on) { const tp = r.querySelector('.tq-top'), top = tp.offsetTop + tp.offsetHeight + 8; h.style.top = top + 'px'; h.style.maxHeight = Math.max(120, cardEl.clientHeight - top - 12) + 'px'; } return; }
       const b = e.target.closest('[data-a]'); if (!b) return; ro.disconnect(); lgFuera(r); res(b.dataset.a); });
   });
 }

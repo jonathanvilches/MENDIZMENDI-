@@ -365,7 +365,7 @@ export const EU_RX = [
   [/^¡Kaixo, (.+)! Soy (\S+), (.+) de (.+)\.$/, (m, a, b, c, d) => `Kaixo, ${a}! ${b} naiz, ${d}ko ${(EU_EXACT[c[0].toUpperCase() + c.slice(1)] || c).toLowerCase()}.`],
   // --- futbola, liga eta pilota txapelketa (hutsuneekin) ---
   [/^(.+) ✓$/, '$1 ✓'],
-  [/^Temporada (\d+)$/, '$1. denboraldia'], [/^Media (\d+)$/, '$1 maila'], [/^Jornada (\d+) de (\d+)$/, '$1/$2 jardunaldia'], [/^JORNADA (\d+) DE (\d+)$/, '$1/$2 JARDUNALDIA'], [/^Campo de (.+)$/, '$1 zelaia'],
+  [/^Temporada (\d+)$/, '$1. denboraldia'], [/^Media (\d+)$/, '$1 maila'], [/^Jornada (\d+) de (\d+)$/, '$1/$2 jardunaldia'], [/^Jornada (\d+)$/, '$1. jardunaldia'], [/^JORNADA (\d+) DE (\d+)$/, '$1/$2 JARDUNALDIA'], [/^Campo de (.+)$/, '$1 zelaia'],
   [/^(.+) · Liga Navarra, grupo (Norte|Sur)(.*)$/, (m, a, b, c) => `${EU_EXACT[a] ?? a} · Nafarroako Liga, ${b === 'Norte' ? 'Ipar' : 'Hego'} taldea${c.replace(/ · (\d+) títulos?$/, ' · $1 titulu')}`],
   [/^¡Sois campeones! Aupa (.+)!$/, 'Txapeldunak zarete! Aupa $1!'], [/^Viajar a (.+)$/, 'Bidaiatu: $1'],
   [/^La jornada se juega en el campo del (.+): viaja a (.+) \(en el mapa\) y habla con su entrenador\.$/, (m, a, b) => `Jardunaldia ${gen(a)} zelaian jokatzen da: bidaiatu ${ala(b)} (mapan) eta hitz egin entrenatzailearekin.`],
