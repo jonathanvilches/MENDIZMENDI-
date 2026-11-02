@@ -45,16 +45,17 @@ function stillWater() {
 // Envejecimiento en coordenadas del mundo (rompe la repetición de la textura):
 //  · manchas amplias más claras y más oscuras · humedad y salpicaduras de barro en el primer metro sobre el suelo
 //  · musgo verdoso al pie de la piedra · churretes de lluvia que bajan de ventanas y aleros
-// k: intensidad (piedra 1, revoco 0,8, madera 0,6)
-function weather(m, k = 1, moss = 1) {
+// k: intensidad (piedra 1, revoco 0,8, madera 0,6); revoco: con desconchones (donde se cae la cal asoma la piedra)
+//  · de cerca, el relieve fino de la piedra o la cal (solo en calidad media y alta)
+function weather(m, k = 1, moss = 1, revoco = 0) {
   m.onBeforeCompile = (sh) => {
     if (BQ === 'low') sh.defines = { ...(sh.defines || {}), LOWQ: 1 };
     sh.uniforms.tWeather = { value: TEX.detail }; sh.uniforms.uGround = groundUniforms.uGround;
-    sh.uniforms.uWK = { value: new THREE.Vector2(k, moss) };   // (en uniforme: piedra, revoco y madera comparten programa)
-    sh.uniforms.uDia = groundUniforms.uDia;
+    sh.uniforms.uWK = { value: new THREE.Vector3(k, moss, revoco) };   // (en uniforme: piedra, revoco y madera comparten programa)
+    sh.uniforms.uDia = groundUniforms.uDia; sh.uniforms.tPiedra = { value: TEX.stoneWall.map };   // (la piedra de los desconchones: la misma textura, sin gastar más)
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW;')
       .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround; uniform vec2 uWK; uniform float uDia;')
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nvarying vec3 vWW; uniform sampler2D tWeather; uniform sampler2D uGround; uniform sampler2D tPiedra; uniform vec3 uWK; uniform float uDia;')
       .replace('#include <map_fragment>', `#include <map_fragment>
 {
   vec3 w = vWW;
@@ -76,14 +77,44 @@ function weather(m, k = 1, moss = 1) {
   vec3 c = diffuseColor.rgb * base;
   c = mix(c, c * vec3(0.66, 0.62, 0.56), damp * 0.55 * ${'${K}'});
   c = mix(c, vec3(0.24, 0.3, 0.14) * (0.7 + 0.6 * fine), damp * smoothstep(0.45, 0.8, blot) * 0.45 * ${'${M}'});
+  // (los desconchones del revoco: donde se ha caído la cal asoma la mampostería de debajo, con el canto de la cal claro;
+  // sueltos por la pared, en manchas de su propia escala, y más abajo, donde sube la humedad. Repartidos por el mundo y
+  // no en la textura: en ella se repetían cada 2,6 m en todas las paredes)
+  if (uWK.z > 0.5) {
+    float bl2 = texture2D(tWeather, (w.zx + w.y * 0.9) / 9.0 + 0.57).r;
+    float thr = 0.78 - 0.08 * (1.0 - smoothstep(0.4, 2.6, up));
+    bl2 += (fine - 0.5) * 0.08;   // (el borde, irregular: sin esto salían círculos)
+    float m = smoothstep(thr, thr + 0.01, bl2);
+    if (m > 0.0) {
+      vec3 piedra = texture2D(tPiedra, vec2(w.x + w.z, w.y) / 2.6).rgb * 0.82;   // (la mampostería de debajo, algo en sombra)
+      c = mix(c, piedra, m);
+      c = mix(c, c * 1.2 + 0.05, smoothstep(thr + 0.024, thr + 0.006, bl2) * m * 0.75);
+    }
+  }
   diffuseColor.rgb = c;
 }`.replace(/\$\{K\}/g, 'uWK.x').replace(/\$\{M\}/g, 'uWK.y'))
+      // (de cerca, el relieve fino de la piedra y la cal, con las derivadas de la pantalla y sin otra textura; se apaga
+      // a los 12 m para que no titile. En el móvil, no)
+      .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
+#ifndef LOWQ
+{
+  float amt = 1.0 - smoothstep(3.0, 12.0, length(vViewPosition));
+  if (amt > 0.0) {
+    float hb = texture2D(tWeather, (vWW.xz + vWW.y * vec2(0.71, -0.53)) / 0.5).g * 0.6 + texture2D(tWeather, (vWW.zx - vWW.y * vec2(0.4, 0.8)) / 0.17).g * 0.4;
+    vec3 dpx = dFdx(-vViewPosition), dpy = dFdy(-vViewPosition);
+    vec2 dh = vec2(dFdx(hb), dFdy(hb)) * 0.009 * amt * uWK.x;
+    vec3 r1 = cross(dpy, normal), r2 = cross(normal, dpx);
+    float det = dot(dpx, r1);
+    normal = normalize(abs(det) * normal - sign(det) * (dh.x * r1 + dh.y * r2));
+  }
+}
+#endif`)
       // (la luz cálida que rebota de la calle y de las casas de enfrente: de día, las paredes a la sombra, con algo de su
       // propio color y no grises azuladas por el cielo; y un punto más cálidas todas. Antes la cal y la piedra salían frías)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * vec3(0.08, 0.06, 0.032) * uDia;')
       .replace('#include <opaque_fragment>', 'outgoingLight *= mix(vec3(1.0), vec3(1.025, 1.0, 0.955), uDia);\n#include <opaque_fragment>');
   };
-  m.customProgramCacheKey = () => 'weather3' + (BQ === 'low' ? '-low' : '');
+  m.customProgramCacheKey = () => 'weather4' + (BQ === 'low' ? '-low' : '');
   return m;
 }
 
@@ -99,13 +130,13 @@ export function makeMaterials() {
     ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
     sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.3, 1.08, 0.76), emissive: new THREE.Color('#3d2f17') }), 1.0, 0.5),
-    plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
-    plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
+    plaster: weather(withTex(TEX.plasterWhite, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
+    plasterCream: weather(withTex(TEX.plasterCream, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
     slate: snowable(withTex(TEX.roofSlate, { roughness: 0.75 })),
     brick: weather(withTex(TEX.brick), 0.8, 0.3),
-    plasterOcher: weather(withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
-    plasterRose: weather(withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
-    plasterBlue: weather(withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4),
+    plasterOcher: weather(withTex(TEX.plasterOcher, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
+    plasterRose: weather(withTex(TEX.plasterRose, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
+    plasterBlue: weather(withTex(TEX.plasterBlue, { normalScale: new THREE.Vector2(0.8, 0.8) }), 0.8, 0.4, 1),
     gold: std({ color: '#d9a93a', metalness: 0.7, roughness: 0.35 }),
     zinc: std({ color: '#5d7480', metalness: 0.5, roughness: 0.4 }),
     tile: snowable(withTex(TEX.roofTile, { roughness: 0.8 })),

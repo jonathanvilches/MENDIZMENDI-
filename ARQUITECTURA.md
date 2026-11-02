@@ -294,6 +294,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   plantas y desván como mucho, cuatro en la ciudad; más portales de arco. Fuera del casco, graneros y almacenes de
   piedra o ladrillo con teja, portón de tablas y ventanucos, en vez de naves de chapa crema; los colegios, con
   contraventanas. Las tiendas de Pamplona, con tablero de madera y vidrio en cuarterones, y sus casas algo más bajas.
+- **Más detalle en las texturas** (noviembre de 2026; mismas medidas, sin más memoria): la mampostería, la sillería, la
+  teja, la pizarra y el empedrado con el relieve picado de grano fino (`picado` en `world/textures.js`), verdín y musgo
+  en las juntas y en el borde de las tejas; la madera con clavos de forja y vetas grises. En las paredes (`weather` en
+  `world/builder.js`): desconchones del revoco repartidos por el mundo, con la mampostería de verdad a la vista (la misma
+  textura de piedra, `tPiedra`, sin gastar más) y el canto de la
+  cal, más abajo donde sube la humedad (en la textura se repetían cada 2,6 m); y de cerca, hasta 12 m, el relieve fino
+  de la piedra y la cal con las derivadas de la pantalla, sin otra textura (en calidad baja, no).
 - **Color de las casas del juego** (`world/textures.js`, `world/builder.js weather`, `world/sky.js`): piedra arenisca y
   parda con más color, sillería dorada, cal crema, teja de barro cocido algo más viva y pizarra gris parda en vez de gris
   azul. Las paredes (los materiales con `weather`) llevan de día una luz de rebote cálida con su propio color y un punto

@@ -56,6 +56,22 @@ function grain(g, s, amount, rnd, scale = 1) {
 
 const hsl = (h, s, l) => `hsl(${h},${s}%,${l}%)`;
 
+// (los detalles nuevos van con su propio azar, para que lo de siempre de cada textura quede en su sitio)
+// Rugosidad: el relieve de lo que sobresale (piedra, teja) picado de grano fino, y en el color, musgo y verdín en lo
+// hundido (las juntas), en manchas. alto: desde qué gris del relieve es superficie; musgo: cuánto
+function picado(g, h, size, { alto = 70, fuerza = 16, musgo = 0, verde = [92, 112, 58], seed = 1 }) {
+  const k = size / 512, gi = g.getImageData(0, 0, size, size), d = gi.data, hi = h.getImageData(0, 0, size, size), e = hi.data, r = mulberry32(seed);
+  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
+    const i = (y * size + x) * 4, v = e[i];
+    if (v >= alto) { const n = noise2(x / (2.2 * k) + seed, y / (2.2 * k)) * fuerza + noise2(x / (6 * k), y / (6 * k) + seed) * fuerza * 0.7 + (r() - 0.5) * fuerza * 0.5; e[i] = e[i + 1] = e[i + 2] = Math.max(0, Math.min(255, v + n)); }
+    else if (musgo > 0) {
+      const m = Math.max(0, noise2(x / (9 * k) + 40 + seed, y / (9 * k) - 7) - 0.15) * 1.6 * musgo;
+      if (m > 0) { const t = Math.min(0.7, m); d[i] += (verde[0] - d[i]) * t; d[i + 1] += (verde[1] - d[i + 1]) * t; d[i + 2] += (verde[2] - d[i + 2]) * t; }
+    }
+  }
+  g.putImageData(gi, 0, 0); h.putImageData(hi, 0, 0);
+}
+
 // ---- Piedra de mampostería pirenaica ----
 function masonry(size, opt) {
   const rnd = mulberry32(opt.seed || 3);
@@ -94,6 +110,8 @@ function masonry(size, opt) {
     }
     y0 += rh;
   }
+  // (la piedra picada a mano, con su grano en el relieve, y verdín y musgo en las juntas, a manchas)
+  picado(g, h, size, { alto: 70, fuerza: 18, musgo: opt.moss ?? 0.5, seed: (opt.seed || 3) + 50 });
   grain(g, size, 0.22, rnd, 0.8);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 3.5), false) };
 }
@@ -192,6 +210,14 @@ function roofTiles(size, opt) {
     const c = opt.round ? `rgba(${200 + rnd() * 40},${150 + rnd() * 40},60,${0.18 + rnd() * 0.2})` : `rgba(150,165,140,${0.12 + rnd() * 0.16})`;
     wrapDraw(size, x, y, r, (X, Y) => { g.fillStyle = c; g.beginPath(); g.ellipse(X, Y, r, r * 0.8, rnd() * 3, 0, 7); g.fill(); });
   }
+  // (y en la teja, musgo en manchas hacia el borde de abajo de cada pieza; en las dos, el barro o la losa con su grano
+  // en el relieve)
+  const r2 = mulberry32((opt.seed || 9) + 77), kk = size / 512;
+  if (opt.round) for (let i = 0; i < 60; i++) {
+    const x = r2() * size, row = Math.floor(r2() * rows), y = row * rh + rh * (0.65 + r2() * 0.3), rr = (2 + r2() * 6) * kk;
+    wrapDraw(size, x, y, rr * 2, (X, Y) => { g.fillStyle = `rgba(${70 + r2() * 30},${92 + r2() * 30},${40 + r2() * 20},${0.3 + r2() * 0.25})`; g.beginPath(); g.ellipse(X, Y, rr * 1.6, rr, 0, 0, 7); g.fill(); });
+  }
+  picado(g, h, size, { alto: 60, fuerza: opt.round ? 12 : 9, seed: (opt.seed || 9) + 90 });
   grain(g, size, 0.15, rnd, 0.7);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 4), false) };
 }
@@ -228,6 +254,17 @@ function wood(size, base, seed) {
       h.fillStyle = '#9a9a9a'; h.beginPath(); h.ellipse(X, Y, r, r * 1.7, 0, 0, 7); h.fill();
     });
   }
+  // clavos de forja: dos por tabla en dos alturas, cabeza oscura con su brillo y su chorreón de óxido; y la madera más
+  // gris por donde le da el agua
+  const r2 = mulberry32(seed + 61);
+  for (let p = 0; p < planks; p++) for (const yy of [0.14, 0.64]) for (const s2 of [0.3, 0.7]) {
+    const x = p * pw + pw * s2, y = size * yy + (r2() - 0.5) * 4 * k, rr = 1.5 * k;
+    g.fillStyle = 'rgba(110,60,30,.18)'; g.fillRect(x - rr * 0.6, y, rr * 1.2, rr * 7);
+    g.fillStyle = '#2a221c'; g.beginPath(); g.arc(x, y, rr, 0, 7); g.fill();
+    g.fillStyle = 'rgba(255,240,220,.25)'; g.beginPath(); g.arc(x - rr * 0.35, y - rr * 0.35, rr * 0.45, 0, 7); g.fill();
+    h.fillStyle = '#e0e0e0'; h.beginPath(); h.arc(x, y, rr, 0, 7); h.fill();
+  }
+  for (let i = 0; i < 8; i++) { const x = r2() * size, w = (6 + r2() * 14) * k; g.fillStyle = `rgba(150,150,145,${0.04 + r2() * 0.05})`; g.fillRect(x, 0, w, size); }
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 2), false) };
 }
 
@@ -257,6 +294,8 @@ function cobbles(size) {
       x += w + rh * 0.08;
     }
   }
+  // (hierba y musgo entre las piedras, a manchas, y cada piedra gastada con su grano)
+  picado(g, h, size, { alto: 40, fuerza: 10, musgo: 0.55, verde: [86, 116, 52], seed: 121 });
   grain(g, size, 0.22, rnd, 0.5);
   return { map: toTex(col), normalMap: toTex(normalFromHeight(hc, 4), false) };
 }
@@ -579,8 +618,8 @@ export function buildTextures(quality = 'high') {
   TEX._S = key;
   // (la piedra, arenisca y parda, y la sillería, dorada: antes, con poco color, salían grises y, a la sombra, azuladas)
   TEX.stoneWall = masonry(S, { seed: 3, rows: 9, mortar: '#978670', hue: 33, hueVar: 14, sat: 24, light: 63, lightVar: 18 });
-  TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#76695a', hue: 29, hueVar: 12, sat: 15, light: 50, lightVar: 16 });
-  TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#a8957a', hue: 37, hueVar: 8, sat: 30, light: 69, lightVar: 10 });
+  TEX.stoneDark = masonry(S, { seed: 7, rows: 8, mortar: '#76695a', hue: 29, hueVar: 12, sat: 15, light: 50, lightVar: 16, moss: 0.7 });
+  TEX.ashlar = masonry(S, { seed: 11, rows: 7, mortar: '#a8957a', hue: 37, hueVar: 8, sat: 30, light: 69, lightVar: 10, moss: 0.2 });
   // (revocos claros y luminosos, recién encalados; la cal, crema y no blanco azulado)
   TEX.plasterWhite = plaster(S, '#f8f0e0', 1);
   TEX.plasterCream = plaster(S, '#f2dcb0', 2);
