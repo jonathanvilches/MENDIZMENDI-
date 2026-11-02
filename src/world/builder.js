@@ -191,8 +191,8 @@ function shieldTexture() {
 }
 
 // Caja con UV proporcionales a sus dimensiones (texturas a escala real)
-export function box(w, h, d, uvScale = 2.5) {
-  const g = new THREE.BoxGeometry(w, h, d);
+export function box(w, h, d, uvScale = 2.5, sx = 1, sy = 1, sz = 1) {
+  const g = new THREE.BoxGeometry(w, h, d, sx, sy, sz);   // (con tramos: los faldones que se vencen, houses.js)
   const uv = g.attributes.uv, n = g.attributes.normal;
   for (let i = 0; i < uv.count; i++) {
     const nx = Math.abs(n.getX(i)), ny = Math.abs(n.getY(i));
@@ -201,6 +201,53 @@ export function box(w, h, d, uvScale = 2.5) {
     uv.setXY(i, uv.getX(i) * su / uvScale, uv.getY(i) * sv / uvScale);
   }
   return g;
+}
+
+// Caja con las esquinas verticales en chaflán (las paredes de las casas: con la arista viva perfecta parecían de cartón).
+// esq: qué esquinas se achaflanan, [(−x,−z), (+x,−z), (+x,+z), (−x,+z)] (las que dan contra otra casa, no: quedaría una
+// rendija entre las dos); c: el chaflán, en metros. Centrada como box y sin suelo (va metida en el terreno).
+// fuera: [sx, sz] para dejar solo las caras que miran a esa esquina (los esquinales, que asoman 2,5 cm de la pared: las
+// demás caras quedan dentro del muro), sin tapa
+const DIR = [[1, 0], [0, 1], [-1, 0], [0, -1]];
+export function boxChaflan(w, h, d, uvScale = 2.5, c = 0.2, esq = [true, true, true, true], fuera = null) {
+  const hw = w / 2, hd = d / 2, y0 = -h / 2, y1 = h / 2, C = [[-hw, -hd], [hw, -hd], [hw, hd], [-hw, hd]], P = [];
+  for (let k = 0; k < 4; k++) {
+    const [x, z] = C[k], di = DIR[(k + 3) % 4], dout = DIR[k];
+    if (esq[k]) P.push([x - di[0] * c, z - di[1] * c], [x + dout[0] * c, z + dout[1] * c]); else P.push([x, z]);
+  }
+  const pos = [], uv = []; let u = 0;
+  for (let i = 0; i < P.length; i++) {
+    const a = P[i], b = P[(i + 1) % P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 1e-6) continue;
+    const tx = (b[0] - a[0]) / L, tz = (b[1] - a[1]) / L;
+    if (fuera && tz * fuera[0] - tx * fuera[1] < 0.1) { u += L; continue; }
+    const u0 = u / uvScale, u1 = (u + L) / uvScale, v1 = h / uvScale; u += L;
+    pos.push(a[0], y0, a[1], b[0], y1, b[1], b[0], y0, b[1], a[0], y0, a[1], a[0], y1, a[1], b[0], y1, b[1]);
+    uv.push(u0, 0, u1, v1, u1, 0, u0, 0, u0, v1, u1, v1);
+  }
+  if (!fuera) for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; pos.push(0, y1, 0, b[0], y1, b[1], a[0], y1, a[1]); uv.push(0, 0, b[0] / uvScale, b[1] / uvScale, a[0] / uvScale, a[1] / uvScale); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.computeVertexNormals(); return g;
+}
+
+// Faldón de tejado (la losa inclinada) con la cumbrera algo vencida en el centro, como en los tejados viejos (antes, una
+// recta perfecta en todas las casas). L: lo largo del alero; slope: de la cumbrera al alero; s: el lado (la cumbrera queda en
+// −s·slope/2 del faldón, como en houses.js); pitch: su inclinación; ejeZ: el alero a lo largo de z. El borde de la cumbrera
+// baja «vence» metros en vertical en el centro y nada en los extremos (donde están los hastiales); el alero sigue recto
+export const venceDe = (L) => Math.min(0.28, L * 0.02);
+export function faldon(L, t, slope, uvScale, s, pitch, ejeZ = false, vence = venceDe(L)) {
+  const N = 4, g = ejeZ ? box(slope, t, L, uvScale, 1, 1, N) : box(L, t, slope, uvScale, N, 1, 1), p = g.attributes.position;
+  const dl = ejeZ ? [s * Math.sin(pitch), -Math.cos(pitch), 0] : [0, -Math.cos(pitch), s * Math.sin(pitch)];   // (abajo del mundo, en el sistema del faldón)
+  for (let i = 0; i < p.count; i++) {
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i), f = Math.min(1, Math.max(0, 0.5 - s * (ejeZ ? x : z) / slope)), k = vence * Math.cos(Math.PI * Math.min(0.5, Math.abs((ejeZ ? z : x) / L))) * f;
+    p.setXYZ(i, x + dl[0] * k, y + dl[1] * k, z + dl[2] * k);
+  }
+  g.computeVertexNormals(); return g;
+}
+// la cumbrera (la pieza de encima), vencida igual que los faldones
+export function cumbrera(L, h, a, uvScale, ejeZ = false, vence = venceDe(L)) {
+  const N = 4, g = ejeZ ? box(a, h, L, uvScale, 1, 1, N) : box(L, h, a, uvScale, N, 1, 1), p = g.attributes.position;
+  for (let i = 0; i < p.count; i++) p.setY(i, p.getY(i) - vence * Math.cos(Math.PI * Math.min(0.5, Math.abs((ejeZ ? p.getZ(i) : p.getX(i)) / L))));
+  g.computeVertexNormals(); return g;
 }
 
 // Reescala las UV de una pieza de revolución (cilindro, cono, torno) para que la textura vaya a escala real:

@@ -1,6 +1,6 @@
 // Casas pirenaicas del valle de Salazar (piedra, revoco, tejados muy inclinados, balcones de madera)
 import * as THREE from 'three';
-import { box, gable, archRing, archPanel, colored, M, MM, builderQuality } from './builder.js';
+import { box, boxChaflan, faldon, cumbrera, venceDe, gable, archRing, archPanel, colored, M, MM, builderQuality } from './builder.js';
 import { addStep } from './heightfield.js';
 
 // (colores vivos: contraventanas verdes, rojo sangre de toro, azules y ocres como las de los pueblos, pero recién
@@ -154,6 +154,9 @@ export function climber(B, T, t) {
   B.add('trepa', g, T);
 }
 
+// el chaflán de las esquinas de las casas, en metros (en las que dan contra otra casa, no)
+const CHAFLAN = 0.3;
+const esquinasLibres = (vec = []) => [!vec[0] && !vec[2], !vec[1] && !vec[2], !vec[1], !vec[0]];
 // Esquinales de sillar en casas revocadas
 function quoins(B, T, w, d, h, vec = []) {
   for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
@@ -161,7 +164,9 @@ function quoins(B, T, w, d, h, vec = []) {
     for (let y = 0.25, k = 0; y < h - 0.2; y += 0.42, k++) {
       const long = k % 2 === 0;
       const lx = long ? 0.62 : 0.36, lz = long ? 0.36 : 0.62;
-      B.add('ashlar', box(lx, 0.4, lz, 1), MM(T, M(sx * (w / 2 - lx / 2 + 0.025), y, sz * (d / 2 - lz / 2 + 0.025))));
+      // (solo las caras de fuera, con el chaflán de la esquina, 2,5 cm por fuera del de la pared: las de dentro quedaban metidas
+      // en el muro, y con la esquina viva la casa tenía la arista recta de una caja)
+      B.add('ashlar', boxChaflan(lx, 0.4, lz, 1, CHAFLAN + 0.015, [sx < 0 && sz < 0, sx > 0 && sz < 0, sx > 0 && sz > 0, sx < 0 && sz > 0], [sx, sz]), MM(T, M(sx * (w / 2 - lx / 2 + 0.025), y, sz * (d / 2 - lz / 2 + 0.025))));
     }
   }
 }
@@ -184,11 +189,11 @@ function roofGableX(B, T, w, d, h, pitch, mat, o = {}) {
   for (const s of [-1, 1]) {
     const ov = s > 0 ? V.z1 : V.z0, slope = Math.hypot(d / 2, rise) + ov;
     const m = MM(T, M(cx, h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, s * (d / 4 + ov / 2 * Math.cos(pitch)), 0, s * pitch));
-    B.add(mat, box(L, t, slope, 2), m);
+    B.add(mat, faldon(L, t, slope, 2, s, pitch, false, venceDe(w)), m);
     // tablas del alero
     if (ov > 0.1) B.add('woodDark', box(L, 0.22, 0.08), MM(T, M(cx, h - Math.tan(pitch) * ov + 0.02, s * (d / 2 + ov - 0.02))));
   }
-  B.add(mat, box(L + 0.05, 0.2, 0.36, 1), MM(T, M(cx, h + rise + 0.12, 0)));
+  B.add(mat, cumbrera(L + 0.05, 0.2, 0.36, 1, false, venceDe(w)), MM(T, M(cx, h + rise + 0.12, 0)));
   const gmat = o.gableMat || 'stone';
   for (const s of [-1, 1]) B.add(gmat, gable(d, rise, 0.5), MM(T, M(s * (w / 2 - 0.25), h, 0, Math.PI / 2)));
   // canecillos bajo el alero
@@ -204,10 +209,10 @@ function roofGableZ(B, T, w, d, h, pitch, mat, o = {}) {
   const rise = Math.tan(pitch) * w / 2, L = d + V.z0 + V.z1, cz = (V.z1 - V.z0) / 2;
   for (const s of [-1, 1]) {
     const ov = s > 0 ? V.x1 : V.x0, slope = Math.hypot(w / 2, rise) + ov;
-    B.add(mat, box(slope, t, L, 2), MM(T, M(s * (w / 4 + ov / 2 * Math.cos(pitch)), h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, cz, 0, 0, -s * pitch)));
+    B.add(mat, faldon(L, t, slope, 2, s, pitch, true, venceDe(d)), MM(T, M(s * (w / 4 + ov / 2 * Math.cos(pitch)), h + rise / 2 - Math.sin(pitch) * ov / 2 + t / 2, cz, 0, 0, -s * pitch)));
     if (ov > 0.1) B.add('woodDark', box(0.08, 0.22, L), MM(T, M(s * (w / 2 + ov - 0.02), h - Math.tan(pitch) * ov + 0.02, cz)));
   }
-  B.add(mat, box(0.36, 0.2, L + 0.05, 1), MM(T, M(0, h + rise + 0.12, cz)));
+  B.add(mat, cumbrera(L + 0.05, 0.2, 0.36, 1, true, venceDe(d)), MM(T, M(0, h + rise + 0.12, cz)));
   const gmat = o.gableMat || 'stone';
   for (const s of [-1, 1]) B.add(gmat, gable(w, rise, 0.5), MM(T, M(0, h, s * (d / 2 - 0.25))));
   // tablas del hastial delantero (típicas)
@@ -249,12 +254,14 @@ export function buildHouse(B, T, o, rnd) {
   const { w, d, h } = o;
   const wallMat = o.wall;
   // cuerpo (se prolonga hacia abajo para asentarse en pendiente)
-  B.add(wallMat, box(w, h + 3, d, 2.6), MM(T, M(0, (h + 3) / 2 - 3, 0)));
+  // (las esquinas libres en chaflán, CHAFLAN: con la arista viva la casa parecía una caja de cartón)
+  const esqL = esquinasLibres(o.vecinas);
+  B.add(wallMat, boxChaflan(w, h + 3, d, 2.6, CHAFLAN, esqL), MM(T, M(0, (h + 3) / 2 - 3, 0)));
   // zócalo de piedra (sin sobresalir por los lados pegados a otra casa: los dos zócalos se pisaban en el mismo plano y
   // la junta parpadeaba)
   // (y del lado pegado a otra casa, 2 cm por dentro de la pared: a ras, la pared y el zócalo se pisaban en el mismo plano)
   const vec = o.vecinas || [], z0 = vec[0] ? -0.02 : 0.06, z1 = vec[1] ? -0.02 : 0.06, zb = vec[2] ? -0.02 : 0.06;
-  B.add('stoneDark', box(w + z0 + z1, 0.7 + 3, d + 0.06 + zb, 2), MM(T, M((z1 - z0) / 2, (0.7 + 3) / 2 - 3, (0.06 - zb) / 2)));
+  B.add('stoneDark', boxChaflan(w + z0 + z1, 0.7 + 3, d + 0.06 + zb, 2, CHAFLAN + 0.035, esqL), MM(T, M((z1 - z0) / 2, (0.7 + 3) / 2 - 3, (0.06 - zb) / 2)));
   if (wallMat !== 'stone' && wallMat !== 'ashlar' && !o.noQuoins) quoins(B, T, w, d, h, vec);
   // imposta entre plantas
   const floors = Math.max(2, Math.round(h / 2.9));

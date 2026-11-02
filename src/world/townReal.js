@@ -2,7 +2,7 @@
 // contorno real, con la fachada a su calle y su altura; los puentes de piedra donde están, con sus pretiles; y los
 // muros del cauce en el casco. La iglesia, los monumentos, la plaza y la granja los pone townBuilder.js como siempre.
 import * as THREE from 'three';
-import { box, M, MM, builderQuality } from './builder.js';
+import { box, boxChaflan, faldon, venceDe, M, MM, builderQuality } from './builder.js';
 import { climber } from './houses.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { addBox, COLLIDERS } from './colliders.js';
@@ -306,13 +306,14 @@ export function fachadaLejana(B, T, ho, fam, x, z) {
 // en la casa de al lado
 function block(B, x, y, z, ry, w, d, h, wall, roof, pitch = 0.45, vec) {
   const T = M(x, y, z, ry);
-  B.add(wall, box(w, h + 3, d, 2.6), MM(T, M(0, (h + 3) / 2 - 3, 0)));
+  // (las esquinas libres en chaflán, como las casas de houses.js; los faldones, con la cumbrera algo vencida)
+  B.add(wall, boxChaflan(w, h + 3, d, 2.6, 0.3, [!vec?.[0] && !vec?.[2], !vec?.[1] && !vec?.[2], !vec?.[1], !vec?.[0]]), MM(T, M(0, (h + 3) / 2 - 3, 0)));
   const wideX = vec?.[0] || vec?.[1] ? true : w >= d, span = wideX ? d : w, along = wideX ? w : d, rise = span / 2 * pitch;
   const e0 = vec?.[0] ? 0.02 : 0.3, e1 = vec?.[1] ? 0.02 : 0.3;
   const sl = Math.hypot(span / 2 + 0.4, rise), a = Math.atan2(rise, span / 2 + 0.4);
   for (const s of [-1, 1]) {
-    if (wideX) B.add(roof, box(along + e0 + e1, 0.2, sl, 2), MM(T, M((e1 - e0) / 2, h + rise / 2, s * (span / 4 + 0.2), 0, s * a)));
-    else B.add(roof, box(sl, 0.2, along + 0.6, 2), MM(T, M(s * (span / 4 + 0.2), h + rise / 2, 0, 0, 0, -s * a)));
+    if (wideX) B.add(roof, faldon(along + e0 + e1, 0.2, sl, 2, s, a, false, venceDe(along)), MM(T, M((e1 - e0) / 2, h + rise / 2, s * (span / 4 + 0.2), 0, s * a)));
+    else B.add(roof, faldon(along + 0.6, 0.2, sl, 2, s, a, true, venceDe(along)), MM(T, M(s * (span / 4 + 0.2), h + rise / 2, 0, 0, 0, -s * a)));
   }
   // los piñones
   const tri = new THREE.Shape(); tri.moveTo(-span / 2, 0); tri.lineTo(span / 2, 0); tri.lineTo(0, rise); tri.closePath();

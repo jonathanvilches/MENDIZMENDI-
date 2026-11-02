@@ -661,6 +661,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cartas tan altas como deja su panel. Maquetas (`hub/maqueta.js`): las paredes con las esquinas en chaflán de 60 cm de
   verdad (`cajaChaflan` y `aCh`, que el sombreador mete en metros sea cual sea la casa), las cumbreras algo vencidas en el
   centro (`VENCE`), los árboles que se mecen con el viento y el agua de las pilas con ondas (el reloj del mapa, `o.tiempo`).
+- **Bordes suaves también en los pueblos del juego** (`boxChaflan`, `faldon`, `cumbrera` y `venceDe` en `world/builder.js`;
+  `buildHouse`, `quoins` y los tejados a dos aguas en `world/houses.js`; `block` en `world/townReal.js`; noviembre de 2026):
+  el cuerpo de las casas, con las esquinas libres en chaflán de 30 cm (`CHAFLAN`); las que dan contra otra casa, no, para
+  no abrir una rendija entre las dos. El zócalo sigue el chaflán 6 cm por fuera y los esquinales de sillería, 2,5 cm por
+  fuera, ya solo con sus caras de fuera (las de dentro quedaban metidas en el muro: ahora tienen la mitad de triángulos). Los
+  faldones y la cumbrera de los tejados a dos aguas, en cuatro tramos, se vencen en el centro hasta 28 cm en vertical
+  (`venceDe`: el 2 % del largo) y nada en los extremos, donde están los hastiales; el alero sigue recto. Los árboles ya se
+  mecían con el viento y el agua ya tenía ondas en el juego. Presupuesto del iPhone: Lesaka 576.526 triángulos y 320
+  llamadas; Pamplona 706.163 y 362.
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y
