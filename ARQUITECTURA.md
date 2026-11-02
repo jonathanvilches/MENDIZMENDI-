@@ -651,6 +651,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   jardineras con geranios; los hastiales con su revoco, la sombra del alero y, en los grandes, un ventanuco; lo de encima de
   las paredes que asoma fuera del tejado, como un terrado de baldosa con su pretil; encima de murallas y baluartes, losas, y
   en lo alto de los muros altos, almenas; y los lugares emblemáticos, con hiladas de sillares y manchas en metros de verdad.
+- **Movimiento en los menús y bordes suaves en las maquetas** (noviembre de 2026). Menús (`futbol/liga.js`, comunes a pelota):
+  los paneles entran cada uno por su lado, la barra sube, las filas de las tablas y los resultados caen una tras otra, las
+  chapas y los cuadritos de la racha saltan, los números grandes cuentan desde cero (`cuenta`), el VS late, las cartas y los
+  jugadores del partido flotan despacio y las losas entran en cascada; con «reducir movimiento» del sistema, nada se mueve.
+  Las animaciones de entrada de losas y botones van con `backwards`: con `both`, la última imagen pisaba el `transform` de
+  `:hover` y `:active`. En el fútbol, debajo del partido, la comparativa (`.lg-cmp`): media y, con partidos jugados, puntos y
+  goles, con barras que crecen; llena el hueco vacío que quedaba en el panel. En el torneo, en el móvil tumbado normal, las
+  cartas tan altas como deja su panel. Maquetas (`hub/maqueta.js`): las paredes con las esquinas en chaflán de 60 cm de
+  verdad (`cajaChaflan` y `aCh`, que el sombreador mete en metros sea cual sea la casa), las cumbreras algo vencidas en el
+  centro (`VENCE`), los árboles que se mecen con el viento y el agua de las pilas con ondas (el reloj del mapa, `o.tiempo`).
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

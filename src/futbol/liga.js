@@ -137,6 +137,37 @@ const CSS = `
 .lg-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}.lg-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
 .lg-how.lg-flota{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(201,178,255,.35);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.lg-flota[hidden]{display:none}
 .lg-how.lg-flota .lg-note{display:block;margin-top:8px}
+/* la comparativa del partido, como en los juegos de fútbol: el dato de cada club a los lados y una barra de cada color que
+   crece hacia fuera desde el centro (en casa, rosa; fuera, lila) */
+.lg-cmp{display:grid;gap:6px;padding:0 4px}.lg-cmp>div{display:grid;grid-template-columns:2.4em minmax(0,1fr) auto minmax(0,1fr) 2.4em;align-items:center;gap:8px}
+.lg-cmp b{font:800 var(--fs-sm)/1 var(--f-cond);color:#fff;text-align:center;font-variant-numeric:tabular-nums}.lg-cmp small{font:800 var(--fs-xs)/1 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);min-width:5.5em;text-align:center}
+.lg-cmp span{height:8px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;display:flex}.lg-cmp span.l{justify-content:flex-end}
+.lg-cmp i{display:block;height:100%;width:calc(var(--p) * 100%);border-radius:999px;background:var(--fx);transform-origin:right;animation:lg-barra .8s cubic-bezier(.2,.9,.3,1) .55s both}.lg-cmp span.r i{background:#9d86d6;transform-origin:left}
+/* animaciones: los paneles entran de cada lado, la barra sube, las filas de las tablas caen una tras otra, las chapas y los
+   cuadritos de la racha saltan, las barras crecen, los números cuentan y el VS late. Sin movimiento si el sistema lo pide */
+@keyframes lg-entra-i{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes lg-entra-d{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes lg-sube{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes lg-pop{0%{opacity:0;transform:scale(.3)}70%{opacity:1;transform:scale(1.18)}100%{opacity:1;transform:none}}
+@keyframes lg-barra{from{transform:scaleX(0)}to{transform:none}}
+@keyframes lg-latido{0%,100%{transform:none}50%{transform:scale(1.08)}}
+@keyframes lg-flota{0%,100%{transform:none}50%{transform:translateY(-5px)}}
+.lg-card>.lg-match,.lg-card>.tq-left{animation:lg-entra-i .55s cubic-bezier(.2,.9,.3,1.1) .08s both}
+.lg-card>.lg-tabla,.lg-card>.tq-right{animation:lg-entra-d .55s cubic-bezier(.2,.9,.3,1.1) .16s both}
+.lg-card>.lg-bar{animation:lg-sube .45s cubic-bezier(.2,.9,.3,1.1) .28s both}
+.lg-table tr+tr,.tq-tab tbody tr,.lg-res>div{animation:lg-sube .4s ease-out both}
+.lg-table tr:nth-child(2),.tq-tab tbody tr:nth-child(1),.lg-res>div:nth-child(1){animation-delay:.3s}.lg-table tr:nth-child(3),.tq-tab tbody tr:nth-child(2),.lg-res>div:nth-child(2){animation-delay:.36s}
+.lg-table tr:nth-child(4),.tq-tab tbody tr:nth-child(3),.lg-res>div:nth-child(3){animation-delay:.42s}.lg-table tr:nth-child(5),.tq-tab tbody tr:nth-child(4),.lg-res>div:nth-child(4){animation-delay:.48s}
+.lg-table tr:nth-child(6){animation-delay:.54s}.lg-table tr:nth-child(7){animation-delay:.6s}.lg-table tr:nth-child(8){animation-delay:.66s}.lg-table tr:nth-child(9){animation-delay:.72s}.lg-table tr:nth-child(n+10){animation-delay:.78s}
+.lg-card .lg-chip{animation:lg-pop .45s cubic-bezier(.2,1.4,.4,1) .4s both}
+.lg-form i{animation:lg-pop .4s cubic-bezier(.2,1.4,.4,1) both}.lg-form i:nth-child(1){animation-delay:.6s}.lg-form i:nth-child(2){animation-delay:.68s}.lg-form i:nth-child(3){animation-delay:.76s}.lg-form i:nth-child(4){animation-delay:.84s}.lg-form i:nth-child(5){animation-delay:.92s}
+.lg-vs .lg-x{animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .2s both,lg-latido 2.6s ease-in-out 1.2s infinite}
+.lg-next .lg-jf{animation:lg-flota 4.6s ease-in-out 1s infinite}.lg-next .lg-jf.r{animation:lg-flota-r 4.6s ease-in-out 1.6s infinite}
+@keyframes lg-flota-r{0%,100%{transform:scaleX(-1)}50%{transform:scaleX(-1) translateY(-5px)}}
+.lg-bar .lg-btn{transition:transform .15s,box-shadow .15s,border-color .15s}.lg-bar .lg-btn:hover{transform:translateY(-2px);border-color:var(--rosa)}.lg-bar .lg-btn.go:hover{box-shadow:0 0 28px rgba(255,43,214,.75)}
+.eq-tiles>.eq-tile{animation:lg-sube .5s cubic-bezier(.2,.9,.3,1.1) backwards}.eq-tiles>.eq-tile:nth-child(1){animation-delay:.08s}.eq-tiles>.eq-tile:nth-child(2){animation-delay:.16s}.eq-tiles>.eq-tile:nth-child(3){animation-delay:.24s}.eq-tiles>.eq-tile:nth-child(n+4){animation-delay:.32s}
+.eq-tile .art>*{transition:transform .3s}.eq-tile:hover .art>*{transform:translateY(-4px)}
+@media (prefers-reduced-motion:reduce){.lg-root *,.lg-root *::before,.lg-root *::after{animation:none!important;transition:none!important}}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;border-radius:4px;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
 /* (el fondo, casi liso: un velo suave de arriba abajo; antes un degradado lateral fuerte, de azul a rosa) */
@@ -198,6 +229,7 @@ const CSS = `
 .lg-next{padding:8px 8px}.lg-next .lg-kit{display:none}.lg-next .lg-jf{width:60px;min-height:80px}.lg-next b{font-size:var(--fs-sm)}.lg-vs .lg-x{font-size:var(--fs-xl)}
 .lg-how{font-size:var(--fs-xs);line-height:1.45;padding:4px 8px}.lg-btn{min-height:44px;padding:8px 20px}.lg-btn.go{font-size:var(--fs-lg)}
 .lg-rv{padding:4px 8px;gap:8px}.lg-rv .lg-kit{width:21px;height:28px}
+.lg-cmp{gap:3px}.lg-cmp span{height:6px}.lg-cmp b{font-size:var(--fs-xs)}
 .lg-card.lg-two .lg-head .lg-note{display:none}.lg-card.lg-two .lg-pn{padding:4px 10px 8px;gap:4px}.lg-card.lg-two .lg-ph{min-height:26px}.lg-card.lg-two .lg-chip{padding:2px 8px}
 .lg-table td.n img.lg-dot{width:14px;height:16px;margin:-3px 6px -3px 0}.lg-table td{padding:1px 2px}.lg-table th{padding:2px}
 .lg-card.lg-two>.lg-bar{position:sticky;bottom:-8px;z-index:3;margin-bottom:-8px;padding:8px 0;border-top:0;background:#0f0526;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}
@@ -275,6 +307,7 @@ const CSS = `
 .lg-card.pc-card{width:min(1560px,100%)}
 .lg-head h2{font-size:var(--fs-3xl)}.lg-head small{font-size:var(--fs-md)}.lg-note{font-size:var(--fs-sm)}
 .lg-ph>span:first-child,.lg-card .lg-chip{font-size:var(--fs-sm)}.lg-pn{padding:12px 16px 16px}.lg-bar{padding-top:16px}
+.lg-cmp{gap:10px;padding:0 24px}.lg-cmp b{font-size:var(--fs-lg)}.lg-cmp small{font-size:var(--fs-sm)}.lg-cmp span{height:10px}.lg-match .lg-next .lg-em,.lg-match .lg-next svg{transform:scale(1.25)}
 .lg-next{padding:16px}.lg-next .lg-jf{width:116px;min-height:160px}.lg-next b{font-size:var(--fs-2xl)}.lg-next em span{font-size:var(--fs-xl)}.lg-vs .lg-x{font-size:var(--fs-4xl)}
 .lg-table{font-size:var(--fs-md)}.lg-table td{padding:8px 8px}.lg-table th{font-size:var(--fs-sm)}
 .lg-how,.lg-res{font-size:var(--fs-md)}
@@ -294,9 +327,21 @@ const CSS = `
 .lg-how,.lg-res{font-size:var(--fs-sm)}.lg-table td{padding:6px 8px}.lg-btn{min-height:48px}.lg-note{font-size:var(--fs-xs)}
 }
 `;
+// (al abrir, los números grandes cuentan desde cero hasta su valor, en algo menos de un segundo)
+function cuenta(root) {
+  if (matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+  for (const el of root.querySelectorAll('.lg-ovr, .lg-next em span, .gx-ovr b, .lg-cmp b')) {
+    const n = el.firstChild; if (!n || n.nodeType !== 3) continue;
+    const txt = n.textContent.trim(), v = parseInt(txt, 10); if (!(v > 0) || String(v) !== txt) continue;
+    const t0 = performance.now() + 250, d = 750; n.textContent = '0';
+    const paso = (t) => { const k = Math.min(1, Math.max(0, (t - t0) / d)); n.textContent = String(Math.round(v * (1 - Math.pow(1 - k, 3)))); if (k < 1 && n.isConnected) requestAnimationFrame(paso); };
+    requestAnimationFrame(paso);
+  }
+}
 function panel(html) {
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
   const r = document.createElement('div'); r.className = 'lg-root gx-bg'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
+  cuenta(r);
   // (con clasificación o cuadro, en el móvil tumbado va a dos columnas: lo demás a la izquierda y la tabla a la derecha)
   if (r.querySelector('.lg-table, .tq-bracket')) r.firstElementChild.classList.add('lg-two');
   // listas que se desplazan: un degradado abajo avisa de que hay más (en el móvil tumbado no se veían los últimos clubes)
@@ -344,7 +389,14 @@ export function ligaPanel(S) {
       // y color, apilado, y no se sabía qué leer primero)
       const media = (o) => `<em><small>MEDIA</small><span>${o}</span></em>`;
       // (en un panel con su rótulo y la jornada en la chapa; debajo de la media de cada club, su racha)
-      mid = `<div class="lg-pn lg-match"><div class="lg-ph"><span>Próximo partido</span><span class="lg-chip">Jornada ${m.j + 1} de ${S.rounds.length}</span></div><div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b>${media(H.ovr)}${racha(S, m.h)}</div><div class="lg-vs"><span class="lg-x">VS</span><small class="lg-sitio"><span>${home ? 'En casa' : 'Fuera de casa'}</span><span>El Sadar</span></small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b>${media(A.ovr)}${racha(S, m.a)}</div>${fh && fa ? fa : ''}</div></div>`;
+      // (y debajo, la comparativa: la media siempre y, con partidos jugados, los puntos y los goles de cada uno; llena el
+      // hueco que quedaba vacío encima de los clubes)
+      const T = Object.fromEntries(table(S).map(x => [x.id, x])), th = T[m.h], ta = T[m.a];
+      // (los rótulos, ya en su idioma: «Media» el traductor la ponía como la calidad de los ajustes)
+      const eu = document.documentElement?.lang === 'eu', L3 = eu ? ['Maila', 'Puntuak', 'Golak'] : ['Media', 'Puntos', 'Goles'];
+      const fila = (n, a, b) => { const mx = Math.max(a, b, 1); return `<div><b>${a}</b><span class="l"><i style="--p:${(a / mx).toFixed(3)}"></i></span><small data-notr>${n}</small><span class="r"><i style="--p:${(b / mx).toFixed(3)}"></i></span><b>${b}</b></div>`; };
+      const cmp = `<div class="lg-cmp">${fila(L3[0], H.ovr, A.ovr)}${th.pj ? fila(L3[1], th.pts, ta.pts) + fila(L3[2], th.gf, ta.gf) : ''}</div>`;
+      mid = `<div class="lg-pn lg-match"><div class="lg-ph"><span>Próximo partido</span><span class="lg-chip">Jornada ${m.j + 1} de ${S.rounds.length}</span></div><div class="lg-next${fh && fa ? ' con-j' : ''}">${fh && fa ? fh : ''}<div class="lg-t">${crest(m.h, 52)}<b>${esc(H.name)}</b>${media(H.ovr)}${racha(S, m.h)}</div><div class="lg-vs"><span class="lg-x">VS</span><small class="lg-sitio"><span>${home ? 'En casa' : 'Fuera de casa'}</span><span>El Sadar</span></small></div><div class="lg-t">${crest(m.a, 52)}<b>${esc(A.name)}</b>${media(A.ovr)}${racha(S, m.a)}</div>${fh && fa ? fa : ''}</div>${cmp}</div>`;
     } else {
       const ch = CLUBS[S.champion], d = jugadorDuo(S.champion);
       // (en la web, la pareja del club campeón al lado)

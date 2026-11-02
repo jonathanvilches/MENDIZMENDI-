@@ -1163,7 +1163,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     calentado = true; aves.estrena();
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
     const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
-    const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 } }, res);
+    const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 }, tiempo: TIEMPO }, res);
     while (!pasos.next().done);
     const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
     const im = new THREE.InstancedMesh(caja, res.mat, 1); im.setColorAt(0, new THREE.Color());
@@ -1217,7 +1217,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // (primero, las casas en orden, de poco en poco: maqueta.js ordenaMaqueta)
     if (!e.D._maq) { (m.orden ||= ordenaMaqueta(e.D)).next(); return false; }
     if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return false; }
-    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id) }, m.res);
+    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
     // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
     if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();

@@ -219,6 +219,13 @@ const CSS = `
 .tq-left .lg-btns{grid-template-columns:1fr 1.6fr}.tq-left .lg-btns>.lg-btn:only-child{grid-column:1/-1}
 /* (Salir y ¡A jugar! siempre en una fila, también de pie en el móvil: antes, ahí, uno encima del otro) */
 .tq-left .lg-btns .lg-btn.go{grid-column:auto}
+/* (movimiento: las dos cartas flotan despacio, cada una a su ritmo; el VS late; las eliminatorias del cuadro entran columna a
+   columna y las losas del menú, una tras otra. Las animaciones comunes, en futbol/liga.js) */
+.tq-duel .gx-card.pop{animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) var(--d,0s) both,lg-flota 4.4s ease-in-out calc(1.2s + var(--d,0s) * 8) infinite}
+.tq-mid b{animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .35s both,lg-latido 2.6s ease-in-out 1.3s infinite}
+.tq-rd .tq-m{animation:lg-sube .4s ease-out backwards}.tq-rd:nth-child(1) .tq-m{animation-delay:.3s}.tq-rd:nth-child(2) .tq-m{animation-delay:.42s}.tq-rd:nth-child(3) .tq-m{animation-delay:.54s}.tq-rd:nth-child(4) .tq-m{animation-delay:.66s}
+.tq-vista button{animation:lg-pop .45s cubic-bezier(.2,1.4,.4,1) .35s backwards}.tq-vista button+button{animation-delay:.42s}
+.tq-tiles>.tq-tile{animation:lg-sube .5s cubic-bezier(.2,.9,.3,1.1) backwards}.tq-tiles>.tq-tile:nth-child(2){animation-delay:.08s}.tq-tiles>.tq-tile:nth-child(3){animation-delay:.16s}.tq-tiles>.tq-tile:nth-child(4){animation-delay:.24s}.tq-tiles>.tq-tile:nth-child(n+5){animation-delay:.32s}
 .tq-banner{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px;text-align:center}
 .tq-banner small{font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
 .tq-banner b{font:400 var(--fs-3xl)/1 var(--f-display);text-transform:uppercase}.tq-banner p{margin:0;font:600 var(--fs-md)/1.3 var(--f-cond);color:var(--lila)}
@@ -256,6 +263,10 @@ const CSS = `
 @media (orientation:landscape) and (max-width:760px){.tq-rd h4 small{display:none}}
 /* (móvil tumbado pequeño: las dos cartas del partido, a la medida de su columna, que gana algo de ancho al cuadro; a 568 px
    de ancho se salían por la izquierda y tapaban el cuadro) */
+/* (móvil tumbado de tamaño normal, como 844 × 390: las cartas del partido, tan altas como deja su panel; antes, de 120 px
+   fijos, y debajo quedaba un hueco vacío) */
+@media (orientation:landscape) and (max-height:520px) and (min-width:761px){.tq-duel .gx-card{--w:clamp(110px,calc((100vh / var(--z, 1) - 212px) / 1.38),150px)!important}}
+.tq-left,.lg-match{overflow:hidden}   /* (lo que flota y late no hace desplazar la tarjeta) */
 /* (móvil tumbado muy bajo, 320 a 360 px: los paneles con su alto natural y la tarjeta se desplaza, con la barra de
    acciones pegada abajo. Si no, en 568 × 320 las tablas y las cartas se montaban encima de la barra) */
 @media (orientation:landscape) and (max-height:360px){.lg-card.tq-card{grid-template-rows:auto auto auto}.lg-card.tq-card>.lg-bar{position:sticky;bottom:-8px;z-index:3;margin-bottom:-8px;padding:8px 0;border-top:0;background:#0f0526;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}.tq-card .lg-pn{padding:4px 8px 8px}.tq-card .lg-ph{min-height:26px}}
@@ -378,7 +389,7 @@ const CSS = `
 /* (el menú, a toda la pantalla: las losas ocupan el alto que queda y las figuras crecen con ellas, sin desplazar) */
 .lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}.lg-card.tq-menu-card .tq-tiles{min-height:0;height:100%}.lg-card.tq-menu-card .tq-tile{min-height:0;height:100%}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
-.tq-duel .gx-card{--w:168px!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
+.tq-duel .gx-card{--w:clamp(168px,calc(26vh / var(--z, 1)),220px)!important}.tq-banner .gx-card{--w:168px!important}.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
 .tq-where{font-size:var(--fs-md)}
 .tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}.tq-br.k4 .tq-m>div{min-height:24px;padding:2px 10px;font-size:var(--fs-sm)}.tq-br.k4 .tq-m b{font-size:var(--fs-md)}.tq-tab{font-size:var(--fs-md)}.tq-tab td,.tq-tab th{padding:5px 10px}.tq-vista button{min-height:40px;font-size:var(--fs-sm)}
 .tq-cup .ico{width:84px;height:84px}.tq-cup b{font-size:var(--fs-lg)}

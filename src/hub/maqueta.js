@@ -87,16 +87,31 @@ const ABIERTO = new Set(['cultivo', 'huerta', 'prado', 'vina', 'deporte', 'plaza
 
 const enPoligono = (P, x, z) => { let inn = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const a = P[i], b = P[j]; if ((a[1] > z) !== (b[1] > z) && x < (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1]) + a[0]) inn = !inn; } return inn; };
 
+// (los tejados, con la cumbrera algo vencida en el centro, como los tejados viejos: antes, una línea recta perfecta en todas
+// las casas, y la maqueta parecía de cartón)
+const VENCE = 0.045;
 // (el tejado a cuatro aguas, de la Zona Media y la Ribera: la cumbrera, más corta, y los faldones de los extremos)
 function tejado4G() {
-  const A = [-0.5, 0, -0.5], B = [0.5, 0, -0.5], C = [0.5, 0, 0.5], D = [-0.5, 0, 0.5], E = [-0.25, 1, 0], F = [0.25, 1, 0];
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([A, E, F, A, F, B, D, C, F, D, F, E, A, D, E, B, F, C].flat(), 3));
+  const A = [-0.5, 0, -0.5], B = [0.5, 0, -0.5], C = [0.5, 0, 0.5], D = [-0.5, 0, 0.5], E = [-0.25, 1, 0], F = [0.25, 1, 0], M = [0, 1 - VENCE, 0], O = [0, 0, -0.5], Q = [0, 0, 0.5];
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([A, E, M, A, M, O, O, M, F, O, F, B, Q, C, F, Q, F, M, D, Q, M, D, M, E, A, D, E, B, F, C].flat(), 3));
   g.computeVertexNormals(); return g;
 }
-// (el tejado a dos aguas: la cumbrera a lo largo de x, de 0 a 1 de alto; sin suelo)
+// (el tejado a dos aguas: la cumbrera a lo largo de x, de 0 a 1 de alto, en cuatro tramos; sin suelo)
 function tejadoG() {
-  const A = [-0.5, 0, -0.5], B = [0.5, 0, -0.5], C = [0.5, 0, 0.5], D = [-0.5, 0, 0.5], E = [-0.5, 1, 0], F = [0.5, 1, 0];
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([A, E, F, A, F, B, D, C, F, D, F, E, A, D, E, B, F, C].flat(), 3));
+  const N = 4, r = (i) => [-0.5 + i / N, 1 - VENCE * Math.sin(Math.PI * i / N), 0], fr = (i) => [-0.5 + i / N, 0, -0.5], at = (i) => [-0.5 + i / N, 0, 0.5], P = [];
+  for (let i = 0; i < N; i++) P.push(fr(i), r(i), r(i + 1), fr(i), r(i + 1), fr(i + 1), at(i), at(i + 1), r(i + 1), at(i), r(i + 1), r(i));
+  P.push(fr(0), at(0), r(0), fr(N), r(N), at(N));
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P.flat(), 3));
+  g.computeVertexNormals(); return g;
+}
+// (la caja de las paredes con las cuatro esquinas en chaflán: aCh dice hacia dónde se mete cada vértice de la esquina; el
+// sombreador lo mete unos 60 cm de verdad sea cual sea el tamaño de la casa. Sin suelo: no se ve)
+function cajaChaflan() {
+  const c = 0.004, O = [[-0.5, -0.5, 1, 0], [0.5, -0.5, -1, 0], [0.5, -0.5, 0, 1], [0.5, 0.5, 0, -1], [0.5, 0.5, -1, 0], [-0.5, 0.5, 1, 0], [-0.5, 0.5, 0, -1], [-0.5, -0.5, 0, 1]];
+  const pos = [], ch = [], v = (i, y) => { const [x, z, a, b] = O[i % 8]; pos.push(x + a * c, y, z + b * c); ch.push(a, b); };
+  for (let i = 0; i < 8; i++) { const j = i + 1; v(i, 0); v(j, 1); v(j, 0); v(i, 0); v(i, 1); v(j, 1); }
+  for (let i = 0; i < 8; i++) { pos.push(0, 1, 0); ch.push(0, 0); v(i + 1, 1); v(i, 1); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('aCh', new THREE.Float32BufferAttribute(ch, 2));
   g.computeVertexNormals(); return g;
 }
 
@@ -255,20 +270,25 @@ export function* haceMaqueta(D, o, res) {
   // (el musgo en los tejados: mucho en los valles húmedos del norte, algo en el Pirineo, casi nada en la Ribera)
   const musgo = { atlantico: 1, pirineo: 0.6, centro: 0.25, ribera: 0.1 }[estilo];
   mat.onBeforeCompile = (sh) => {
-    Object.assign(sh.uniforms, { uAlzado: o.alzado, uMetro: { value: 1 / MU }, uK: { value: K }, uHastial: { value: hastial }, uMusgo: { value: musgo } });
-    sh.vertexShader = 'attribute float aOff, aVent; attribute vec3 aPared; uniform float uAlzado; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;\n' + sh.vertexShader
+    Object.assign(sh.uniforms, { uAlzado: o.alzado, uMetro: { value: 1 / MU }, uK: { value: K }, uHastial: { value: hastial }, uMusgo: { value: musgo }, uT: o.tiempo || { value: 0 } });
+    sh.vertexShader = 'attribute float aOff, aVent; attribute vec3 aPared; attribute vec2 aCh; uniform float uAlzado, uMetro, uT; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;\n' + sh.vertexShader
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 vObj = position; vNo = normal; vVent = aVent; vPared = aPared; vEsc = vec3(1.0); vSemilla = 0.5;
 #ifdef USE_INSTANCING
 vEsc = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
 vSemilla = fract(sin(dot(instanceMatrix[3].xz * 97.0, vec2(12.9898, 78.233))) * 43758.5453);
-#endif`)
+#endif
+// (el chaflán de las esquinas: 60 cm de verdad, y como mucho la quinta parte del lado)
+transformed.xz += aCh * min(vec2(0.2), (0.6 / uMetro) / max(vEsc.xz, vec2(1e-6)));
+vObj = transformed;
+// (los árboles se mecen con el viento, cada uno a su ritmo: más arriba, más)
+if (aVent > 7.5 && aVent < 9.5) { float sw = sin(uT * 1.3 + vSemilla * 40.0) * 0.03 + sin(uT * 2.1 + vSemilla * 17.0) * 0.012; transformed.x += sw * position.y * position.y; transformed.z += sw * 0.6 * position.y * position.y; }`)
       .replace('#include <project_vertex>', `vec4 mvPosition = vec4(transformed, 1.0);
 #ifdef USE_INSTANCING
   mvPosition = instanceMatrix * mvPosition; float b0 = instanceMatrix[3].y; mvPosition.y = b0 + (aOff + mvPosition.y - b0) * uAlzado;
 #endif
 mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;`);
-    sh.fragmentShader = `uniform float uMetro, uK, uMusgo; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;
+    sh.fragmentShader = `uniform float uMetro, uK, uMusgo, uT; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;
 float h21(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0)), f.x), f.y); }
 ` + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
@@ -309,12 +329,13 @@ if (vVent > 20.5) {
   } else if (c < 5.5) diffuseColor.rgb *= mix(0.62, 1.06, vObj.y);   // (los animales, con la tripa en sombra)
   else {   // (la pila de la fuente: piedra por fuera y el agua dentro)
     float r = length(vObj.xz) * 2.0;
-    if (arriba) diffuseColor.rgb = r < 0.8 ? vec3(0.3, 0.52, 0.64) * (0.9 + 0.12 * sin(r * 30.0)) : diffuseColor.rgb * 1.08;
+    if (arriba) diffuseColor.rgb = r < 0.8 ? vec3(0.3, 0.52, 0.64) * (0.9 + 0.12 * sin(r * 30.0 - uT * 3.0)) : diffuseColor.rgb * 1.08;
     else diffuseColor.rgb *= mix(0.8, 1.0, step(0.12, fract(w / 0.35)));
   }
 } else {
   float t = vVent > 9.5 ? vVent - 10.0 : vVent, piedra = vVent > 9.5 || (t > 3.5 && t < 5.5) ? 1.0 : 0.0;
-  if (t > 0.5 && t < 5.5 && abs(vNo.y) < 0.5) {
+  if (t > 0.5 && t < 5.5 && abs(vNo.y) < 0.5 && abs(vNo.x) > 0.3 && abs(vNo.z) > 0.3) diffuseColor.rgb *= 0.9;   // (el chaflán de la esquina)
+  else if (t > 0.5 && t < 5.5 && abs(vNo.y) < 0.5) {
     bool lx = abs(vNo.x) > 0.5; float ancho = (lx ? vEsc.z : vEsc.x) * uMetro, u = ((lx ? vObj.z : vObj.x) + 0.5) * ancho;
     float hM = vEsc.y * uMetro / uK, v = vObj.y * hM - 2.0, px = max(fwidth(u), fwidth(v));
     float nitido = 1.0 - smoothstep(0.45, 1.1, px), fino = 1.0 - smoothstep(0.15, 0.5, px);
@@ -404,7 +425,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
       .replace('#include <opaque_fragment>', `outgoingLight *= vVent > 7.5 && vVent < 20.5 ? vec3(1.02, 1.0, 0.95) : vec3(1.05, 1.0, 0.91);
 #include <opaque_fragment>`);
   };
-  mat.customProgramCacheKey = () => 'maqueta6';
+  mat.customProgramCacheKey = () => 'maqueta7';
   res.mat = mat;
   const piezas = { paredes: [], tejados: [], agujas: [], ochavos: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();
@@ -624,7 +645,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   // (la paca, tumbada: su eje a lo largo de x; la pila de la fuente, de pie)
   const rulo = new THREE.CylinderGeometry(0.5, 0.5, 1, 14).rotateZ(Math.PI / 2).translate(0, 0.5, 0), pila = new THREE.CylinderGeometry(0.5, 0.5, 1, 18).translate(0, 0.5, 0);
   const grupo = new THREE.Group();
-  for (const [nombre, g0] of [['paredes', caja], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['ochavos', ochavo], ['arboles', copa], ['abetos', cono],
+  for (const [nombre, g0] of [['paredes', cajaChaflan()], ['tejados', estilo === 'centro' || estilo === 'ribera' ? tejado4G() : tejadoG()], ['agujas', aguja], ['ochavos', ochavo], ['arboles', copa], ['abetos', cono],
     ['detalles', caja.clone()], ['pacas', rulo], ['animales', copa.clone()], ['pilas', pila]]) {
     const L = piezas[nombre]; if (!L.length) { g0.dispose(); continue; }
     const off = new Float32Array(L.length), vent = new Float32Array(L.length), pa = new Float32Array(L.length * 3); L.forEach((p, i) => { off[i] = p[1]; vent[i] = p[3]; if (p[4]) pa.set(p[4], i * 3); });
@@ -633,6 +654,7 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
     L.forEach((p, i) => { M4.fromArray(p[0]); m.setMatrixAt(i, M4); m.setColorAt(i, col.fromArray(p[2])); });
     m.computeBoundingSphere(); m.frustumCulled = false; grupo.add(m);
   }
+  caja.dispose();   // (las paredes ya van con su caja en chaflán; los detalles, con una copia de esta)
   // (los emblemas, con su propio material: mapa3d.js le da la misma transparencia que a las casas al levantarse)
   if (embs.length) {
     const me = res.matEmb = materialEmblema(o.alzado, 1 / MU, K), ancla = (lat, lon) => { const [dx, dz] = metros(lat, lon, D.lat, D.lon); return [X0 + dx * MU, Z0 + dz * MU]; };
