@@ -680,12 +680,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   del revoco, solo de vez en cuando. No se tocan el orden de las casas, los arcos, las farolas, los chaflanes ni el arreglo
   de los parpadeos. Regla: un cambio de color o de luz en los pueblos, siempre comparado con la vista de antes en un pueblo
   del norte (Ochagavía o Lesaka) y uno del sur.
-- **La misión que sigues, siempre a la vista** (`eligeMision`, `cierraMision` y `setQuestPueblo` en `ui.js`; `#tl` en
-  `style.css`; noviembre de 2026): plegada hasta tocar, arriba a la izquierda solo quedaban unos iconos sueltos (en
-  Ochagavía, uno) y no se sabía qué hacer. En los pueblos, debajo de los iconos de las misiones va siempre la que sigues:
-  su nombre, el paso de ahora, sus pasos y la distancia; al tocar otro icono pasas a seguir esa; una hecha, al tocarla,
-  unos segundos; tocando otra vez la abierta, el cuaderno. En la aventura de Otsagabia, el icono de la misión con lo que
-  hay que hacer y las cintas, siempre a la vista (tocando el icono o el texto, el cuaderno).
+- **Misiones del pueblo, solo los cuadrados** (`eligeMision`, `cierraMision` y `setQuestPueblo` en `ui.js`; `#tl` en
+  `style.css`; noviembre de 2026): durante unos días la misión que sigues iba siempre abierta debajo de los cuadrados, y
+  el autor pidió limpiar el visor. Ahora arriba a la izquierda solo quedan los cuadrados: la que sigues, con borde blanco.
+  Al tocar uno, esa pasa a ser la que sigues y se despliega debajo; se recoge sola a los 10 s (`ABIERTA_MS`) o tocando
+  otra vez su cuadrado, y tocando el texto se abre el cuaderno. Nunca se despliega sola: al cambiar lo que toca hacer,
+  solo late su cuadrado y sale el aviso de abajo. En la aventura de Otsagabia, que tiene un solo icono redondo y no
+  cuadrados, sigue a la vista el icono con lo que hay que hacer y las cintas: plegada, quedaba un icono suelto sin sentido.
 - **El torneo, sin nada cortado ni montado** (`torneoPanel` y su CSS en `game/torneo.js`; noviembre de 2026): en el iPhone
   tumbado, el cuadro de dieciséis se montaba encima de la barra y del frontón, las cartas se cortaban y el título se iba
   por arriba. Ahora, tumbado, la tarjeta ocupa todo el alto y la rejilla tiene tres zonas (`grid-template-areas`): la

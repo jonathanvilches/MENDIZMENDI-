@@ -18,6 +18,8 @@ import { escala } from './util/tele.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
+// (lo que dura desplegada una misión del pueblo al tocar su cuadrado, si no se vuelve a tocar)
+const ABIERTA_MS = 10000;
 
 // (la flecha fina del botón que pliega y despliega las misiones del pueblo, como la del menú del inicio)
 // las misiones del pueblo, arriba a la izquierda: en el móvil, plegadas (solo la misión de ahora, con lo hecho en su
@@ -151,8 +153,8 @@ export class UI {
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
     this.doneN = null; this.misAbierta = null; this.qKey = null; this.lastQ = null; this.tlVer = false;
-    // (en el pueblo, los iconos de las misiones y, debajo, siempre la que sigues: al tocar un icono, esa pasa a ser la que
-    // sigues; en la aventura de Otsagabia, el icono de la misión con lo que hay que hacer y las cintas, siempre a la vista.
+    // (en el pueblo, solo los cuadrados de las misiones: al tocar uno, esa pasa a ser la que sigues y se despliega debajo;
+    // en la aventura de Otsagabia, el icono de la misión con lo que hay que hacer y las cintas, siempre a la vista.
     // Tocando el texto o el icono de la aventura, el cuaderno)
     if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
     else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
@@ -217,17 +219,17 @@ export class UI {
   }
 
   // ---------- las misiones del pueblo: sus iconos y, al tocar uno, la misión ----------
-  // Arriba a la izquierda solo van los iconos de las misiones del pueblo (las hechas, llenas de su color y con su marca; la
-  // que sigues, con borde blanco). Al tocar uno, esa pasa a ser la que sigues (la brújula y la luz dorada van a ella) y
-  // debajo va lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo lejos que está. La que sigues, siempre a
-  // la vista (noviembre de 2026: plegada hasta tocar, arriba solo quedaban unos iconos sueltos y no se sabía qué hacer); una
-  // hecha, al tocarla, unos segundos, y luego vuelve la que sigues. Tocando otra vez la abierta, el cuaderno. Cuando cambia
-  // lo que toca hacer, late el icono de la misión
+  // Arriba a la izquierda solo van los cuadrados de las misiones del pueblo (las hechas, llenas de su color y con su marca;
+  // la que sigues, con borde blanco), y nada más: el visor, limpio. Al tocar uno, esa pasa a ser la que sigues (la brújula y
+  // la luz dorada van a ella) y se despliega debajo lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo
+  // lejos que está. Se recoge sola a los 10 s o tocando otra vez su cuadrado; tocando el texto, el cuaderno. Nunca se
+  // despliega sola (noviembre de 2026: abierta siempre cargaba demasiado el visor); cuando cambia lo que toca hacer, solo
+  // late el cuadrado de la misión
   eligeMision(i) {
     const g = this.game, M = g?.missions?.[i]; if (!M) return;
-    if (this.misAbierta === i) { this.openBook('misiones'); return; }
+    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); return; }
     if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
-    this.abreMision(i, M.done ? 8000 : 0);
+    this.abreMision(i, ABIERTA_MS);
   }
   lateMision(i) { const b = this.hud?.querySelector(`#misiones button[data-m="${i}"]`); if (!b) return; b.classList.remove('late'); void b.offsetWidth; b.classList.add('late'); }
   abreMision(i, ms) {
@@ -235,11 +237,9 @@ export class UI {
     this.misAbierta = i; $('#quest', T).classList.remove('hidden'); this.pintaMision(i); this.refreshDots();
     clearTimeout(this.tlT); this.tlT = ms ? setTimeout(() => this.cierraMision(), ms) : 0;
   }
-  // (se recoge: vuelve a la que sigues si queda alguna sin hacer; si no, nada)
+  // (se recoge: solo quedan los cuadrados)
   cierraMision() {
     clearTimeout(this.tlT); this.tlT = 0; this.misAbierta = null;
-    const g = this.game, t = g?.missions?.[g?.tracked];
-    if (t && !t.done && this.lastQ) return this.abreMision(g.tracked, 0);
     const T = this.hud && $('#tl', this.hud); if (!T) return; $('#quest', T).classList.add('hidden'); this.refreshDots();
   }
   pintaMision(i) {
@@ -254,11 +254,10 @@ export class UI {
   setQuestPueblo(q) {
     const g = this.game; this.lastQ = q;
     if (!q) { if (this.misAbierta != null && !g.missions[this.misAbierta]?.done) this.cierraMision(); return; }
-    // (lo que toca hacer ha cambiado: late su icono; la que sigues, siempre a la vista debajo de los iconos)
+    // (lo que toca hacer ha cambiado: late su cuadrado, sin desplegar nada; si está abierta, se pone al día)
     const key = g.tracked + '|' + q.step;
     if (this.qKey !== key) { const primera = this.qKey == null; this.qKey = key; this.refreshDots(); if (!primera) this.lateMision(g.tracked); }
-    if (this.misAbierta == null || (this.misAbierta !== g.tracked && !this.tlT)) this.abreMision(g.tracked, 0);
-    else if (this.misAbierta === g.tracked) this.pintaMision(g.tracked);
+    if (this.misAbierta === g.tracked) this.pintaMision(g.tracked);
   }
   setQuest(q) {
     if (this.game?.kind === 'town') return this.setQuestPueblo(q);
