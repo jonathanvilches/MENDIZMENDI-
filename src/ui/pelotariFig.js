@@ -10,6 +10,7 @@ import { hdTable } from '../web/hd.js';
 import { HAIR_COLORS } from '../actors/hairColor.js';
 import { fold } from '../util/text.js';
 import { byId } from '../util/glob.js';
+import { figuraAnimada } from './videos.js';
 
 const ROJO = byId(import.meta.glob('@pelotaris/rojo/*.webp', { eager: true, query: '?url', import: 'default' }));
 const AZUL = byId(import.meta.glob('@pelotaris/azul/*.webp', { eager: true, query: '?url', import: 'default' }));
@@ -60,6 +61,9 @@ export const pelotariSrc = (name, side = 'rojo') => { const id = pelotariId(name
  *  grande de la pantalla VS, si esta versión la tiene) */
 export function pelotariFig(name, side = 'rojo', cls = '', big = false) {
   const id = pelotariId(name), c = `pf${cls ? ' ' + cls : ''}`;
+  // (la animada, si la tiene, en las cartas: la de la pantalla VS, tan grande, sigue siendo la fija de 1024; ui/videos.js)
+  const an = !big && figuraAnimada(id, side === 'azul' ? 'azul' : 'rojo');
+  if (an) return `<img class="${c}" src="${an}" alt="" draggable="false">`;
   if (big && VS[side === 'azul' ? 'azul' : 'rojo'][id]) return `<img class="${c}" src="${VS[side === 'azul' ? 'azul' : 'rojo'][id]}" alt="" draggable="false">`;
   if (side === 'azul' && !AZUL[id] && CAMISETA[id]) return `<img class="${c} pf-az" src="${CAMISETA[id]}" style="background-image:url(${ROJO[id]})" alt="" draggable="false">`;
   return `<img class="${c}" src="${pelotariSrc(name, side)}" alt="" draggable="false">`;

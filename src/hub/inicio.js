@@ -6,7 +6,8 @@ import './inicio.css';
 import COMARCAS from '../data/comarcas.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { SITES } from '../data/dolmen.js';
-import { townImg, townCover, comarcaCover, laminaUrl } from '../ui/laminas.js';
+import { townImg, townCover, comarcaCover, laminaUrl, comarcaVideo } from '../ui/laminas.js';
+import { videoTag } from '../ui/videos.js';
 import { stampImg } from '../assets.js';
 import { iconSVG } from '../ui/icons.js';
 import { profile, townProgress, comarcaProgress } from '../game/profile.js';
@@ -80,7 +81,7 @@ function mapaHTML(p, items) {
       <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>`}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
-      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async"><span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
+      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
     <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
     <div class="m3-cb" hidden></div><div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }

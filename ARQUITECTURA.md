@@ -717,6 +717,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   movimiento», con ahorro de datos, sin conexión o si fallan, queda la fija. El arranque (`#portada-app` en `index.html`)
   pone los Pirineos al 50 % detrás del icono, con su viñeta morada. Las láminas sin vídeo siguen fijas: para añadir una,
   se genera igual, se pasa por `laminas-video.sh` y se apunta su id en `VIDEOS`.
+  Las 12 comarcas también: en las tarjetas de abajo del mapa (`.m3-vid`, la versión pequeña de `public/videos/s/`, 640 ×
+  360 y unos 120 KB) y en la cabecera de la ficha de la comarca y del pueblo (`.pt-vid` en `cabecera`, `laminas.js`). Con
+  la pantalla tumbada esa cabecera usaba la panorámica, que es otro dibujo: con vídeo va la lámina de 16:9 animada y la
+  panorámica detrás, difuminada, llenando los lados (`.vpano`). `vigila(raiz)` (`videos.js`, desde `hub.show`) pone en
+  marcha cada `<video data-vid>` solo mientras se ve: en la pantalla y sin nada encima (lo que hay en su centro es él o su
+  tarjeta); `revisa()` lo vuelve a mirar al abrir o cerrar una sección o una ficha, así las tarjetas del mapa se paran
+  debajo de la página de una comarca. Al quitar un vídeo, se para y suelta su archivo.
+- **Figuras de jugador animadas** (`figuraAnimada` en `videos.js`, `pelotariFig`, `tools/figura-animada.sh`; noviembre de
+  2026): la figura del pelotari, en su carta, respira, cambia el peso de pierna y parpadea. Se pone la figura del autor
+  sobre un verde liso (768 × 1024, la figura en x = y = 128), se anima en Higgsfield (MiniMax H3 Max a 480p y 3:4, 7,5
+  créditos, empezando y acabando en ella), y `figura-animada.sh` funde la vuelta, quita el verde con su halo, la recorta a
+  su caja de 2:3 y la pasa a WebP animado con transparencia (320 × 480, 15 fps, unos 0,8 MB), que va como una imagen más
+  donde iba la fija (`public/videos/figuras/<color>/<id>.webp`). La pantalla VS, tan grande, sigue con la fija de 1024. De
+  momento solo Iñigo, de colorado y de azul; para otro, se genera igual y se apunta en `FIGURAS`.
 - **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
   elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la

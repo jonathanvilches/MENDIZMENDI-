@@ -9,6 +9,7 @@ import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA
 import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { byId } from '../util/glob.js';
+import { videoDe, videoTag } from './videos.js';
 
 const URLS = byId(import.meta.glob('@laminas/*.webp', { eager: true, query: '?url', import: 'default' }));
 const BIG = byId(import.meta.glob('@laminas-big/*.webp', { eager: true, query: '?url', import: 'default' }));
@@ -92,14 +93,19 @@ function encuadrePano(id) {
 // panorámica, si la tiene (<picture>: solo se descarga la que se ve)
 function cabecera(lam, src, cls) {
   if (!src) return { fondo: '', marco: '' };
-  const p = panoUrl(lam), img = `<img class="${cls}" src="${src}" alt="" decoding="async">`;
+  // (con lámina animada, ui/videos.js: el vídeo encima de la lámina de 16:9, también con la pantalla tumbada, en lugar de
+  // la panorámica, que es otro dibujo más ancho con el que el vídeo no casa;
+  // a los lados, la propia lámina ampliada y muy difuminada, con sus mismos colores, en lugar de los bordes reflejados)
+  const v = videoDe(lam), p = v ? null : panoUrl(lam), img = `<img class="${cls}" src="${src}" alt="" decoding="async">${videoTag(v, 'pt-vid')}`;
   return { fondo: `;--fondo:url('${src}')`,
-    marco: `<div class="pt-marco${p ? ' pano' : ''}" style="${encuadre(lam)}${p ? `;${encuadrePano(lam)}` : ''}"><i class="pt-esp l" aria-hidden="true"></i>${p ? `<picture><source media="(orientation: landscape)" srcset="${p}">${img}</picture>` : img}<i class="pt-esp r" aria-hidden="true"></i></div>` };
+    marco: `<div class="pt-marco${p ? ' pano' : ''}${v ? ' vamb' : ''}" style="${encuadre(lam)}${p ? `;${encuadrePano(lam)}` : ''}">${v ? '<i class="pt-amb" aria-hidden="true"></i>' : ''}<i class="pt-esp l" aria-hidden="true"></i>${p ? `<picture><source media="(orientation: landscape)" srcset="${p}">${img}</picture>` : img}<i class="pt-esp r" aria-hidden="true"></i></div>` };
 }
 /** La cabecera de la ficha de un pueblo: su portada, la de su bosque o la de su comarca. cls: la clase de la imagen. */
 export const portadaPueblo = (l, cls) => cabecera(portadaDe(l), townImg(l), cls);
 /** La de la ficha de una comarca. */
 export const portadaComarca = (id, cls) => cabecera(COMARCA_LAMINA[id], comarcaCover(id), cls);
+/** El vídeo de la lámina de una comarca (peque: el de las tarjetas), o '' si no tiene. */
+export const comarcaVideo = (id, peque = false) => videoDe(COMARCA_LAMINA[id], peque);
 /** La portada de un pueblo o, si no tiene, la de su comarca. */
 export const townImg = (l, small = false) => (l && (townCover(l.id, small) || comarcaCover(l.comarca, small))) || '';
 /** Las láminas que hay en esta versión: de un pueblo (la portada primero), de una comarca o de un grupo. */

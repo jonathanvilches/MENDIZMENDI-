@@ -186,7 +186,11 @@
   background: linear-gradient(135deg, color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c, #ff7ac8) 55%, #fff) 100%);
   clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k));
   filter: drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); transition: transform .2s, filter .2s; }
-.m3-foto { grid-row: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); transition: filter .3s; }
+.m3-foto { grid-row: 1; grid-column: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); transition: filter .3s; }
+/* (la lámina animada de la comarca, la pequeña: encima de la foto, en su misma celda y con su mismo corte; ui/videos.js) */
+.m3-vid { grid-row: 1; grid-column: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); opacity: 0; transition: opacity .9s ease, filter .3s; pointer-events: none; }
+.m3-vid.on { opacity: 1; }
+.m3-chip:not(.go):not(.ok) .m3-vid { filter: saturate(.6) brightness(.82); }
 .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); }
 .m3-chip.on { background: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--c) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--c) 90%, #fff) 100%);
   filter: drop-shadow(0 0 12px color-mix(in srgb, var(--c) 45%, transparent)) drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); }

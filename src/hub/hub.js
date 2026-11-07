@@ -36,7 +36,7 @@ import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen, isEU } from '../i18n.js';
 import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl, portadaPueblo, portadaComarca } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
-import { videoDe, enMarcha, para } from '../ui/videos.js';
+import { videoDe, videoTag, para, vigila, revisa } from '../ui/videos.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { STAR } from '../data/tiendas.js';
 import { EDADES, edadDe, missionSlots } from '../data/edad.js';
@@ -231,7 +231,8 @@ export class Hub {
     this.buildNav(); this.sound?.ui('open'); this.go(on ? 'aprende' : 'home', undefined, true);
     if (!on && !profile().name) this.primeraVez();
   }
-  show(screen = this.screen, arg = this.arg) { if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
+  show(screen = this.screen, arg = this.arg) { vigila(this.root);   // (las láminas animadas del menú: andan mientras se ven; ui/videos.js)
+    if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
   // (quien empieza: primero cómo quiere jugar y después su nombre y su personaje)
   primeraVez() { if (vistoComoJugar()) return this.onboarding(); comoJugar(this.root, { primera: true, despues: () => { if (!profile().name && !isDidactico()) this.onboarding(); } }); }
   hide() { this.root.querySelectorAll('video[data-vid]').forEach(para); this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); this.menu(false); cierraMapa(); $('#hMapa', this.root).innerHTML = ''; releaseStage(); this.stage = null; releaseOffscreen(); }
@@ -243,6 +244,7 @@ export class Hub {
     const pn = $('#hPanel', r); if (on) { pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', 'Menú'); this.sound?.ui('open'); } else pn.removeAttribute('role');
   }
   go(screen, arg, silent) {
+    clearTimeout(this.tRevisa); this.tRevisa = setTimeout(revisa, 450);   // (las láminas animadas que la sección nueva tapa o destapa, ya entrada)
     if (screen === 'map') screen = 'home';   // (el mapa es el inicio, debajo de todo: en el didáctico también)
     if (screen?.includes(':')) [screen, arg] = screen.split(':');   // («comarca:pirineo»: la pantalla y lo que abre)
     this.screen = screen; this.arg = arg;
@@ -289,7 +291,6 @@ export class Hub {
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
-    m.querySelectorAll('video[data-vid]').forEach(v => enMarcha(v, v.dataset.vid));   // (las láminas animadas de la sección)
     this.renderChip();
   }
   // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas
@@ -396,7 +397,7 @@ export class Hub {
     // (con la lámina animada encima, si la tiene: ui/videos.js; la pone en marcha go(), tras pintar la sección)
     const vid = (id) => (laminaUrl(id) ? videoDe(id) : '');
     const carta = (cls, img, stat, kick, tit, tg, row, v = '') => `<article class="sport ${cls}">
-        <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}${v ? `<video class="sp-vid" data-vid="${v}" muted playsinline loop preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>` : ''}<span class="sp-stat">${stat}</span></div>
+        <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}${videoTag(v, 'sp-vid')}<span class="sp-stat">${stat}</span></div>
         <div class="sp-body"><div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
         <div class="sp-bar">${row}</div></div></article>`;
     const fp = fb?.played || 0, fw = fb?.won || 0;
