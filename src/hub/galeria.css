@@ -76,6 +76,7 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 .gal .gal-fl svg { width: 22px; height: 22px; transform: none; }
 .gal-fl:hover, .gal-fl:focus-visible { background: color-mix(in srgb, var(--c) 40%, rgba(13, 6, 28, .7)); border-color: color-mix(in srgb, var(--c) 70%, #fff); }
 .gal-fl:active { transform: translateY(-50%) scale(.94); }
+.gal-fl:disabled { opacity: .28; pointer-events: none; }   /* (en fila, la primera o la última: no hay más hacia ese lado) */
 
 /* los puntos: cuántos pueblos tiene la comarca y cuál está delante. Van en medio del hueco de debajo de la carta de
    delante (que mide --ch y se adelanta un 4 %), sin fila propia: así la carta queda con el mismo aire arriba, hasta las

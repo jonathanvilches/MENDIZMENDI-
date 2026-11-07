@@ -496,8 +496,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   siguientes se apagan. La primera de cada lado va lo más girada que deje llenar hasta las flechas con dos o tres detrás,
   entre 28° y 48°: en el ordenador, mucho; en el móvil tumbado, donde la carta es pequeña para el ancho, menos y con
   tres. La perspectiva es proporcional a la carta, así la profundidad es la misma en todas las pantallas. En el móvil de
-  pie asoman por el borde. Con menos de ocho pueblos se repiten, para que al girar ninguna salte de un lado a otro a la
-  vista. Así hay la profundidad del anillo de antes sin sus huecos: allí las de los lados quedaban pequeñas y sueltas.
+  pie asoman por el borde. Con menos de ocho pueblos no hay anillo: van en fila, sin repetir ninguno, del primero al
+  último, y la flecha del lado donde ya no hay más se apaga (`lineal` en `galeria.js`). Antes se repetían para llenar
+  el anillo, y en las comarcas de un solo pueblo salía el mismo cinco veces. Así hay la profundidad del anillo de antes
+  sin sus huecos: allí las de los lados quedaban pequeñas y sueltas.
   Debajo, el pueblo de delante: el rótulo y, en su propia fila (`.gi-fila`), el nombre y sus misiones; en el móvil
   tumbado van uno al lado del otro, centrados entre sí y debajo del rótulo, en una sola fila (si no caben, las casillas
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
@@ -718,9 +720,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pone los Pirineos al 50 % detrás del icono, con su viñeta morada. Las láminas sin vídeo siguen fijas: para añadir una,
   se genera igual, se pasa por `laminas-video.sh` y se apunta su id en `VIDEOS`.
   Las 12 comarcas también: en las tarjetas de abajo del mapa (`.m3-vid`, la versión pequeña de `public/videos/s/`, 640 ×
-  360 y unos 120 KB) y en la cabecera de la ficha de la comarca y del pueblo (`.pt-vid` en `cabecera`, `laminas.js`). Con
-  la pantalla tumbada esa cabecera usaba la panorámica, que es otro dibujo: con vídeo va la lámina de 16:9 animada y la
-  panorámica detrás, difuminada, llenando los lados (`.vpano`). `vigila(raiz)` (`videos.js`, desde `hub.show`) pone en
+  360 y unos 120 KB) y en la cabecera de la ficha de la comarca y del pueblo (`.pt-vid` en `cabecera`, `laminas.js`), esta
+  solo con la pantalla de pie, donde el vídeo cabe. Tumbada, la cabecera es mucho más ancha que el vídeo y va la fija de
+  siempre, la panorámica o la lámina con sus bordes (antes, el vídeo con la lámina difuminada a los lados, que no gustó). `vigila(raiz)` (`videos.js`, desde `hub.show`) pone en
   marcha cada `<video data-vid>` solo mientras se ve: en la pantalla y sin nada encima (lo que hay en su centro es él o su
   tarjeta); `revisa()` lo vuelve a mirar al abrir o cerrar una sección o una ficha, así las tarjetas del mapa se paran
   debajo de la página de una comarca. Al quitar un vídeo, se para y suelta su archivo.

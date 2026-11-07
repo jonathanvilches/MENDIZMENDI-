@@ -93,12 +93,12 @@ function encuadrePano(id) {
 // panorámica, si la tiene (<picture>: solo se descarga la que se ve)
 function cabecera(lam, src, cls) {
   if (!src) return { fondo: '', marco: '' };
-  // (con lámina animada, ui/videos.js: el vídeo encima de la lámina de 16:9, también con la pantalla tumbada, en lugar de
-  // la panorámica, que es otro dibujo más ancho con el que el vídeo no casa;
-  // a los lados, la propia lámina ampliada y muy difuminada, con sus mismos colores, en lugar de los bordes reflejados)
-  const v = videoDe(lam), p = v ? null : panoUrl(lam), img = `<img class="${cls}" src="${src}" alt="" decoding="async">${videoTag(v, 'pt-vid')}`;
+  // (con lámina animada, ui/videos.js: el vídeo encima de la lámina de 16:9, solo donde cabe, con la pantalla de pie. Con
+  // la pantalla tumbada la cabecera es mucho más ancha que el vídeo: ahí, la cabecera fija de siempre, la panorámica o la
+  // lámina con sus bordes. Antes el vídeo iba también tumbado, con la lámina difuminada a los lados, y no gustaba)
+  const v = videoDe(lam), p = panoUrl(lam), img = `<img class="${cls}" src="${src}" alt="" decoding="async">`;
   return { fondo: `;--fondo:url('${src}')`,
-    marco: `<div class="pt-marco${p ? ' pano' : ''}${v ? ' vamb' : ''}" style="${encuadre(lam)}${p ? `;${encuadrePano(lam)}` : ''}">${v ? '<i class="pt-amb" aria-hidden="true"></i>' : ''}<i class="pt-esp l" aria-hidden="true"></i>${p ? `<picture><source media="(orientation: landscape)" srcset="${p}">${img}</picture>` : img}<i class="pt-esp r" aria-hidden="true"></i></div>` };
+    marco: `<div class="pt-marco${p ? ' pano' : ''}" style="${encuadre(lam)}${p ? `;${encuadrePano(lam)}` : ''}"><i class="pt-esp l" aria-hidden="true"></i>${p ? `<picture><source media="(orientation: landscape)" srcset="${p}">${img}</picture>` : img}${videoTag(v, 'pt-vid')}<i class="pt-esp r" aria-hidden="true"></i></div>` };
 }
 /** La cabecera de la ficha de un pueblo: su portada, la de su bosque o la de su comarca. cls: la clase de la imagen. */
 export const portadaPueblo = (l, cls) => cabecera(portadaDe(l), townImg(l), cls);

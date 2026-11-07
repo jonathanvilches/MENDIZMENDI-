@@ -18,7 +18,9 @@ export function galeria(m, o) {
   const anillo = G.querySelector('.gal-anillo'), escena = G.querySelector('.gal-escena'), info = G.querySelector('.gal-info');
   const puntos = G.querySelector('.gal-puntos'), cms = [...G.querySelectorAll('[data-gc]')];
   let ci = Math.max(0, o.comarcas.findIndex(c => c.id === o.inicial)), T = [], N = 0, N0 = 0, paso = 60, PU = [{ x: 0, z: 40, g: 0 }], VIS = 2;
-  let rot = 0, meta = 0, frente = -1, raf = 0, last = 0, arrastre = null, cambiando = false;
+  let rot = 0, meta = 0, frente = -1, raf = 0, last = 0, arrastre = null, cambiando = false, lineal = false;
+  // (en fila, el giro no pasa de la primera ni de la última)
+  const tope = (m) => lineal ? Math.max(0, Math.min((N - 1) * paso, m)) : m;
 
   // ---------- el anillo de una comarca ----------
   function monta(i, entra) {
@@ -28,16 +30,16 @@ export function galeria(m, o) {
     // (la comarca elegida, en medio de su fila; sin scrollIntoView, que también corría de lado la ventana de la sección)
     const fila = cms[i]?.parentElement, b = cms[i];
     if (fila && b) fila.scrollTo({ left: b.offsetLeft - (fila.clientWidth - b.offsetWidth) / 2, behavior: reduce() ? 'auto' : 'smooth' });
-    // (con menos de ocho pueblos, se repiten hasta llenar el anillo: así siempre es un círculo entero, con tres puestos a
-    // cada lado, y al girar no se ve ningún hueco ni una tarjeta que salta de un lado a otro)
-    const html = o.tarjetas(c.id); anillo.innerHTML = html;
-    N0 = anillo.querySelectorAll('.gal-t').length; if (N0 && N0 < 8) anillo.innerHTML = html.repeat(Math.ceil(8 / N0));
-    T = [...anillo.querySelectorAll('.gal-t')]; N = T.length;
-    T.forEach((t, k) => { if (k >= N0) t.setAttribute('aria-hidden', 'true'); });
+    // (con ocho pueblos o más, un anillo entero que da la vuelta; con menos, en fila y sin repetir ninguno: antes se repetían
+    // hasta llenar el anillo, y en las comarcas de un solo pueblo salía el mismo cinco veces)
+    anillo.innerHTML = o.tarjetas(c.id);
+    T = [...anillo.querySelectorAll('.gal-t')]; N = N0 = T.length; lineal = N0 < 8;
+    G.classList.toggle('gal-fila', lineal);
     puntos.innerHTML = Array.from({ length: N0 }, (_, k) => `<i data-gp="${k}"></i>`).join('');
     mide();
     const j = o.pueblo ? T.findIndex(t => t.dataset.gt === o.pueblo) : -1; o.pueblo = null;
     rot = meta = Math.max(0, j) * paso + (entra ? -paso * 1.5 * entra : 0); if (entra) meta = Math.max(0, j) * paso;
+    if (lineal && entra) rot = meta + paso * 0.6 * entra;   // (en fila, la entrada desde un lado, sin pasar por cartas que no hay)
     frente = -1; pinta(); anima();
     if (entra) { anillo.classList.remove('sale'); anillo.classList.add('entra'); setTimeout(() => anillo.classList.remove('entra'), 700); }
   }
@@ -48,7 +50,7 @@ export function galeria(m, o) {
     const dh = parseFloat(getComputedStyle(G).getPropertyValue('--dh')) || 50, aire = puntos.offsetParent ? 28 : 10;
     G.style.setProperty('--gwmax', Math.max(140, ((escena.clientHeight - 2 * aire) / 1.05 - dh - 6) * 16 / 9) + 'px');
     const w = T[0]?.offsetWidth || 220, n = Math.max(N, 3);
-    paso = 360 / n;
+    paso = lineal ? 45 : 360 / n;
     // (el anillo con fondo, como una rueda que se ve desde fuera: las cartas van una junto a otra, borde con borde, cada
     // una más girada y más honda que la anterior, hasta llegar a las flechas. Así hay profundidad, como en el anillo de
     // antes, y ningún hueco: antes las de los lados quedaban pequeñas y sueltas, con mucho aire alrededor. Lo girada que
@@ -86,7 +88,7 @@ export function galeria(m, o) {
   function pinta() {
     anillo.style.transform = '';
     for (let k = 0; k < N; k++) {
-      const d = ((k * paso - rot) % 360 + 540) % 360 - 180, s = d / paso, a = Math.abs(s), sg = Math.sign(s), t = T[k];   // (d: lo que se aparta de delante, de −180 a 180)
+      const d = lineal ? k * paso - rot : ((k * paso - rot) % 360 + 540) % 360 - 180, s = d / paso, a = Math.abs(s), sg = Math.sign(s), t = T[k];   // (d: lo que se aparta de delante, de −180 a 180)
       const i = Math.min(Math.floor(a), PU.length - 2), u = Math.min(1, a - i), A = PU[i], B = PU[i + 1];
       const x = sg * (A.x + (B.x - A.x) * u), z = A.z + (B.z - A.z) * u, g = sg * (A.g + (B.g - A.g) * u);
       t.style.transform = `translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${g.toFixed(2)}deg)`;
@@ -94,9 +96,11 @@ export function galeria(m, o) {
       t.style.setProperty('--o', (a <= VIS ? 1 : Math.max(0, (VIS + 0.6 - a) / 0.6)).toFixed(3));
       t.style.visibility = a >= VIS + 0.6 ? 'hidden' : '';
     }
-    const f = N ? ((Math.round(rot / paso) % N) + N) % N : -1;
+    const f = !N ? -1 : lineal ? Math.max(0, Math.min(N - 1, Math.round(rot / paso))) : ((Math.round(rot / paso) % N) + N) % N;
     if (f !== frente) {
       frente = f; T.forEach((t, k) => { t.classList.toggle('frente', k === f); t.tabIndex = k === f ? 0 : -1; t.setAttribute('aria-current', String(k === f)); });
+      // (en fila, la flecha del lado donde ya no hay más, apagada)
+      G.querySelectorAll('[data-gal]').forEach(b => { b.disabled = lineal && (+b.dataset.gal < 0 ? f <= 0 : f >= N - 1); });
       puntos.querySelectorAll('i').forEach((p, k) => p.classList.toggle('on', k === f % N0));
       if (f >= 0) { info.innerHTML = o.info(T[f].dataset.gt, f % N0, N0); info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia'); }
     }
@@ -114,9 +118,10 @@ export function galeria(m, o) {
     };
     raf = requestAnimationFrame(tick);
   }
-  const ve = (k) => { meta = (Math.round(meta / paso) + k) * paso; o.sonido?.('click'); anima(); };
+  const ve = (k) => { const m = tope((Math.round(meta / paso) + k) * paso); if (m === meta) return; meta = m; o.sonido?.('click'); anima(); };
   // (a la tarjeta k del anillo por el camino más corto; con un pueblo repetido, a su copia más cercana)
-  const aTarjeta = (k) => { const cur = Math.round(meta / paso), base = ((cur % N) + N) % N; let d = k - base; if (d > N / 2) d -= N; if (d < -N / 2) d += N; meta = (cur + d) * paso; o.sonido?.('click'); anima(); };
+  const aTarjeta = (k) => { if (lineal) { meta = tope(k * paso); o.sonido?.('click'); anima(); return; }
+    const cur = Math.round(meta / paso), base = ((cur % N) + N) % N; let d = k - base; if (d > N / 2) d -= N; if (d < -N / 2) d += N; meta = (cur + d) * paso; o.sonido?.('click'); anima(); };
   const aPueblo = (k) => { const cur = ((Math.round(meta / paso) % N) + N) % N, dist = (j) => { const d = Math.abs(j - cur) % N; return Math.min(d, N - d); };
     let mejor = k; for (let j = k; j < N; j += N0) if (dist(j) < dist(mejor)) mejor = j; aTarjeta(mejor); };
   function comarca(i, dir) {
@@ -143,6 +148,8 @@ export function galeria(m, o) {
     const now = performance.now(), ddt = Math.max(1, now - a.t);
     a.v = (e.clientX - a.lx) / ddt; a.lx = e.clientX; a.t = now;
     rot = a.r - dx / w * paso;
+    // (en fila, pasada la primera o la última, cuesta: se estira un poco y vuelve al soltar)
+    if (lineal) { const t0 = tope(rot); rot = t0 + (rot - t0) * 0.3; }
   };
   addEventListener('pointermove', mueve);
   const suelta = (e) => {
@@ -155,7 +162,7 @@ export function galeria(m, o) {
       else if (e && frente >= 0) { const f = T[frente].getBoundingClientRect(); if (e.clientX > f.right) ve(1); else if (e.clientX < f.left) ve(-1); }
       anima(); return; }
     const w = T[0]?.offsetWidth || 220, lanza = -a.v * 220 / w * paso;   // (al soltar con impulso, sigue un poco)
-    meta = Math.round((rot + Math.max(-paso * 2.5, Math.min(paso * 2.5, lanza))) / paso) * paso; o.sonido?.('click'); anima();
+    meta = tope(Math.round((rot + Math.max(-paso * 2.5, Math.min(paso * 2.5, lanza))) / paso) * paso); o.sonido?.('click'); anima();
   };
   addEventListener('pointerup', suelta); addEventListener('pointercancel', suelta);
   // (el clic que acaba un arrastre no abre nada)
