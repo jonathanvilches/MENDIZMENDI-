@@ -21,6 +21,9 @@ import { createTownLevel } from '../levels/town.js';
 import { createRealTownLevel } from '../levels/townReal.js';
 import { realEnabled, loadReal } from '../data/reales/index.js';
 import { cargarRelieve } from '../world/relieve.js';
+import { cargarSierras, Sierras } from '../world/sierras.js';
+import { buildFiestas } from '../world/fiestas.js';
+import { groundHeight } from '../world/heightfield.js';
 import { resetColliders } from '../world/colliders.js';
 import { resetNav, navTick } from '../world/nav.js';
 import { Player } from '../actors/player.js';
@@ -92,7 +95,7 @@ export class Runtime {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
-    this.camera = new THREE.PerspectiveCamera(fovFor(innerWidth / innerHeight), innerWidth / innerHeight, 0.15, 6000);
+    this.camera = new THREE.PerspectiveCamera(fovFor(innerWidth / innerHeight), innerWidth / innerHeight, 0.15, 7000);   // (hasta las sierras lejanas, a 6,2 km: world/sierras.js)
     this.camera.userData.fov0 = this.camera.fov;
     // al cambiar el tamaño de la ventana (girar el móvil, la barra del navegador que aparece y se va) no se toca el
     // lienzo aquí: cambiarle el tamaño lo borra y, si el navegador lo enseña antes del siguiente dibujo, se ve un
@@ -123,6 +126,8 @@ export class Runtime {
     const salazar = def.special === 'salazar';
     // el relieve real (horizonte del pueblo y vista del mirador): se abre una vez, antes de levantar el terreno
     await Promise.race([cargarRelieve(), new Promise(r => setTimeout(r, 1500))]);
+    // (y las sierras de alrededor por términos: antes de levantar el terreno, que sin ellas sube su anillo de siempre)
+    const sierras = salazar ? null : await Promise.race([cargarSierras(def.id), new Promise(r => setTimeout(() => r(null), 1500))]);
     // (los pueblos con su trazado de verdad, si están en src/data/reales; si sus datos no llegan, el generado de siempre)
     const realData = !salazar && realEnabled(def.id) ? await loadReal(def.id) : null;
     let mod = SALAZAR;
@@ -151,7 +156,13 @@ export class Runtime {
     if (!salazar && !solo) await preloadTown(def);
     this.mats = makeMaterials();
     if (salazar) { buildVillage(scene, this.mats); buildLandmarks(scene, this.mats); }
-    else if (!solo) buildTown(scene, this.mats, def);
+    else if (!solo) { buildTown(scene, this.mats, def); try { buildFiestas(scene); } catch (e) { console.warn('banderines', e); } }   // (y los banderines de fiesta en la plaza)
+    // las sierras de alrededor, de verdad y por términos (world/sierras.js), detrás del relieve del pueblo
+    this.sierras = null;
+    if (sierras && !(solo && !opt.conSuelo)) { try { this.sierras = new Sierras(scene, sierras, def.family, groundHeight(PLACES.plaza.x, PLACES.plaza.z) + 2, q); } catch (e) { console.warn('sierras', e); } }
+    // (con las sierras detrás, la niebla empieza más lejos y deja ver el relieve del pueblo: antes, a 1,5 km ya era toda
+    // niebla y el borde se veía como un mar blanco; las sierras ponen su propio aire, más cuanto más lejos)
+    if (this.sierras) { this.sky.fog.near = 220; this.sky.fog.far = 4200; }
     onProgress(0.65, 'Plantando árboles y cultivos…'); await frame();
     this.nature = solo ? vacio.nature() : new Nature(scene, q);
     if (this.weather.kind === 'snow' && this.nature.flowers?.mesh) this.nature.flowers.mesh.visible = false;   // sin flores sobre la nieve
@@ -287,7 +298,7 @@ export class Runtime {
     // y todo lo demás del pueblo: antes seguía vivo hasta que el pueblo siguiente lo sustituía, ya a mitad de su carga
     // (al viajar estaban los dos pueblos a la vez en memoria, que es cuando más justo va el móvil)
     this.weather?.dispose(); this.weather = null;
-    this.terrain = this.sky = this.water = this.mats = this.nature = this.fauna = this.player = this.particles = this.waterfall = this.smoke = this.lights = this.beacon = null;
+    this.terrain = this.sky = this.water = this.mats = this.nature = this.fauna = this.player = this.particles = this.waterfall = this.smoke = this.lights = this.beacon = this.sierras = null;
     this.canvas.style.visibility = 'hidden';
   }
   loop() {
@@ -408,6 +419,7 @@ export class Runtime {
     if (this.weather?.fogBase) this.weather.fogBase = [50, 280];
     if (this.nature) { this.nature.sinLejos = true; for (const m of this.nature.bosqueLejos || []) m.visible = false; }
     if (this.terrain?.outer) this.terrain.outer.visible = false;
+    if (this.sierras) this.sierras.mesh.visible = false;
     if (apunta) { try { localStorage.setItem('herrizherri-vista-corta', '1'); } catch (e) { } console.info('[fluidez] vista corta'); this.onLighten?.(this.lite + 1); this.onVistaCorta?.(); }
   }
   /** Más resolución mientras dura una escena sencilla y de cerca (el partido de pelota): en el móvil los pelotaris se
@@ -489,6 +501,7 @@ export class Runtime {
       if (this.follow.cinematic || f.lengthSq() < 1e-4) f.copy(t); else { f.lerp(t, 1 - Math.exp(-dt * 1.5)); if (f.lengthSq() > 1) f.normalize(); }
       this.sky.camPos = c.position; }
     this.sky.update(dt, P.pos, this.elapsed, g.mode === 'dance');
+    this.sierras?.update(this.sky);
     // (en los partidos y bajo techo no cae nada: antes, en la llegada al frontón cubierto llovía dentro del pabellón; y
     // en los deportes, con sus menús, no se oye la lluvia: antes sonaba a toda fuerza durante los partidos)
     { const hold = g.mode === 'futbol' || g.mode === 'pelota' || !!this.sky.indoor;

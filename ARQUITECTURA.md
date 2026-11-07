@@ -710,6 +710,29 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la barra estrecha, «Simular» a secas (`.lg-l` y `.lg-c`, consulta de contenedor en la barra). Comprobado con el mismo
   medidor (`pantallas.mjs`): menú de pelota, club, liga al empezar, a media temporada y al acabar, jornada, elegir rival y
   elegir club, en los mismos tamaños.
+- **Las sierras de alrededor, de verdad** (`world/sierras.js`, `src/data/sierras/<pueblo>.js`, `tools/relieve/sierras.mjs`;
+  noviembre de 2026): el horizonte real de cada pueblo ya estaba en los datos, pero se dibujaba como un anillo a 1,2-1,5 km, a
+  media altura y justo donde la niebla ya era total: en Altsasu no se veía Urbasa y la Ribera parecía un mar blanco. Ahora,
+  detrás del relieve del pueblo (que llega de verdad hasta 1,5 km), una malla polar con las alturas reales de 1,4 a 48 km
+  (40 anillos, cada grado; EU-DEM en teselas de nivel 10), cosida al borde del terreno (`alturaLejos` en `terrain.js`). Lo
+  lejano se acerca (a 48 km, unos 5,5 km en el juego) y baja en la misma proporción: desde la plaza cada sierra se ve en su
+  sitio y con su ángulo de verdad. Más allá de 48 km, la silueta de lo que asoma (la Demanda desde Viana, el Pirineo francés
+  desde Isaba). Con la luz del sol y del cielo del momento (normales de la pendiente real), color según la altitud, la
+  pendiente y la comarca (prados, bosque a manchas, campos en el llano del sur, caliza, el yeso de las Bardenas y nieve solo
+  por encima de 2150 m) y el aire de en medio, más azul cuanto más lejos y nunca un blanco del todo. En esos pueblos la
+  niebla de la escena va de 220 a 4200 m (antes de 160 a 1500) y la cámara ve hasta 7 km. Unos 12 KB por pueblo, cargados
+  solo en su pueblo. Sin la malla en los frontones sin suelo y en la vista corta de los ordenadores flojos.
+- **Orillas en talud** (`finalHeight` en `levels/townReal.js`): fuera del casco, el ancho de la orilla crece con lo alto que
+  queda la ladera sobre el agua (1,6 veces el desnivel, entre 4,5 y 30 m; el río se busca hasta 36 m, `riverAt`). Antes, con
+  4,5 m fijos, donde el río va al pie de un monte, como en Ituren, el cauce cortaba la ladera en un muro de roca gris.
+- **Nieve y roca por altitud real** (`cota` en `world/terrain.js`; `ALT0` del pueblo en `levels/townReal.js`): en los pueblos
+  con su relieve de verdad, la nieve (2150 m), la roca, los pastos de altura y el bosque van en metros de altitud real, no del
+  juego. Antes, en Isaba, a 809 m, las lomas de 950 m salían nevadas.
+- **Pueblos más alegres** (noviembre de 2026; comparado vista a vista con lo de antes en Lesaka y en Tudela y Olite): banderines
+  de fiesta cruzando la plaza de cada pueblo (`world/fiestas.js`: cuerdas de banderitas de colores colgadas de fachada a
+  fachada, entre casas que dan a la plaza, a unos 5 m y siempre por encima de 3,8 m; una malla y un material); en el casco,
+  más revoco de color y menos piedra gris (`MUROS` en `world/townReal.js`: la cal blanca en la vertiente atlántica y los
+  ocres, cremas y rosas hacia el sur); y macetas con flores en siete de cada diez casas (antes, algo más de la mitad).
 - **Colores de las misiones:** cada misión lleva el color de su categoría (`CAT` y `CAT_COLOR` en `data/misionCat.js`, variable
   `--mc`) en la ficha del mapa, en la lista de la ficha del pueblo y en las tarjetas: patrimonio, amarillo; oficios y
   productos, rojo anaranjado; campo y naturaleza, verde; fiestas, rosa; leyendas, violeta; preguntas, azul; deporte y

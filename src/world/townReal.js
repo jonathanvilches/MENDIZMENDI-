@@ -340,14 +340,16 @@ function pegadas(casas) {
 }
 
 // las paredes de las casas grandes del casco, según la comarca
-const MUROS = { atlantic: ['plaster', 'stone', 'plaster'], pyrenean: ['stone', 'plaster'], central: ['ashlar', 'plasterOcher', 'plasterCream'], ribera: ['brick', 'plasterOcher', 'plasterCream'], city: ['plasterOcher', 'plasterRose', 'plasterCream', 'ashlar'] };
+// (más revoco de color y menos piedra gris en el casco: la cal blanca en la vertiente atlántica, y hacia el sur los ocres,
+// las cremas y los rosas de las fachadas de la Zona Media y la Ribera; pueblos más vivos y alegres)
+const MUROS = { atlantic: ['plaster', 'stone', 'plaster', 'plaster'], pyrenean: ['stone', 'plaster', 'plaster'], central: ['ashlar', 'plasterOcher', 'plasterCream', 'plasterRose', 'plaster'], ribera: ['brick', 'plasterOcher', 'plasterCream', 'plasterRose', 'plaster'], city: ['plasterOcher', 'plasterRose', 'plasterCream', 'plasterBlue', 'ashlar', 'plaster'] };
 // Las plantas de cada casa (sin gastar el rnd del pueblo: de su posición): macetas con geranios en la puerta y, en una
 // de cada tres o cuatro, una trepadora por la fachada; hiedra en la montaña, y hacia el sur también buganvillas fucsias y
 // glicinias lilas
 const TREPAS = { atlantic: [['hiedra', 0.8], ['glicinia', 1]], pyrenean: [['hiedra', 1]], central: [['hiedra', 0.45], ['buganvilla', 0.7], ['glicinia', 1]], ribera: [['hiedra', 0.3], ['buganvilla', 0.75], ['glicinia', 1]], city: [['hiedra', 0.35], ['buganvilla', 0.7], ['glicinia', 1]] };
 function plantas(x, z, fam) {
   const r = hashRnd(x + 0.37, z - 0.71), out = {};
-  if (r() < 0.55) out.macetas = [FLOR[Math.floor(r() * FLOR.length)], FLOR[Math.floor(r() * FLOR.length)]];
+  if (r() < 0.72) out.macetas = [FLOR[Math.floor(r() * FLOR.length)], FLOR[Math.floor(r() * FLOR.length)]];   // (antes, en algo más de la mitad)
   if (r() < 0.3) { const t = r(), L = TREPAS[fam] || TREPAS.pyrenean; out.trepa = { kind: L.find(q => t < q[1])[0], side: r() < 0.5 ? -1 : 1, w: 1.1 + r() * 0.5, h: 3.5 + r() * 3.5, r }; }
   return out;
 }

@@ -1,7 +1,11 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { snowable } from './weather.js';
-import { HALF, CELL, N, finalHeight, riverInfo, meadowMask, valleyFloor, fieldInfo, TONE, skyTan } from './layout.js';
+import { HALF, CELL, N, finalHeight, riverInfo, meadowMask, valleyFloor, fieldInfo, TONE, skyTan, MOD } from './layout.js';
+// (en los pueblos con su relieve de verdad, las cotas de la nieve, la roca y el bosque van en metros de altitud real: el
+// suelo de la plaza está a 20 m en el juego y a ALT0 en la realidad. Antes iban en metros del juego y en Isaba, a 809 m,
+// las lomas de 950 m salían nevadas; en los demás pueblos, las de siempre)
+const cota = (m, antes) => MOD?.ALT0 != null ? m - MOD.ALT0 + 20 : antes;
 import { ridged, fbm } from '../util/noise.js';
 import { H, SURF } from './heightfield.js';
 import { TEX } from './textures.js';
@@ -68,7 +72,7 @@ function vertexColor(i, j, out) {
   if (rock > 0) out.lerp(n2 > 0.5 ? PAL.rock : PAL.rockDark, rock);
   // nieve en lo alto solo en el Pirineo (en la Ribera, «nieve» es el yeso claro de las cimas); en los montes atlánticos y
   // de la Navarra media las cumbres son de pasto y helecho
-  const snow = TONE === 'alpine' || TONE === 'arid' ? smoothstep(128, 150, h + n * 14) : 0;
+  const snow = TONE === 'alpine' ? smoothstep(cota(2080, 128), cota(2150, 150), h + n * 14) : TONE === 'arid' ? smoothstep(128, 150, h + n * 14) : 0;
   if (snow > 0) out.lerp(PAL.snow, snow);
   else if (TONE === 'lush') out.lerp(PAL.grassDry, smoothstep(128, 150, h + n * 14) * 0.5 * (1 - rock));
   const s = SURF.street[k] / 255, d = Math.max(SURF.dirt[k], SURF.tierra[k]) / 255;
@@ -174,7 +178,7 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     sh.uniforms.uMoss = { value: ({ selva: 0.2, karst: 0.08, lush: 0.06, alpine: 0.04 })[TONE] ?? -0.06 };
     sh.uniforms.uLitter = { value: new THREE.Vector3(...(TONE === 'dry' || TONE === 'arid' ? [1.1, 1.02, 0.8] : [1, 1, 1])) };
     sh.uniforms.uRock = { value: rockCol };
-    sh.uniforms.uSnowY = { value: TONE === 'alpine' ? 212 : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
+    sh.uniforms.uSnowY = { value: TONE === 'alpine' ? cota(2150, 212) : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
     sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], karst: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
     sh.defines = sh.defines || {};
     if (outer) sh.defines.OUTER = 1;
@@ -579,16 +583,16 @@ export class Terrain {
       const n1 = fbm(x / 90, z / 90, 2) * 0.5 + 0.5, n2 = fbm(x / 23 + 7, z / 23, 2) * 0.5 + 0.5;
       // prados abajo, bosque en las laderas medias (a manchas), pastos altos y luego roca
       c.copy(meadowC).lerp(meadowD, n2 * 0.6);
-      const forestBelt = smoothstep(20, 60, h) * (1 - smoothstep(150, 185, h + n1 * 25)) * smoothstep(0.42, 0.62, n1 + (1 - sl) * 0.15);
+      const forestBelt = smoothstep(20, 60, h) * (1 - smoothstep(cota(1550, 150), cota(1700, 185), h + n1 * 25)) * smoothstep(0.42, 0.62, n1 + (1 - sl) * 0.15);
       c.lerp(n2 > 0.5 ? forestC : forestD, forestBelt * 0.92);
-      c.lerp(highC, smoothstep(150, 190, h + n1 * 30) * (1 - forestBelt) * 0.6);
-      if (lush) c.lerp(n2 > 0.5 ? fernC : fernD, smoothstep(165, 215, h + n1 * 30) * (1 - forestBelt) * 0.8);
-      const rockAmt = Math.max(smoothstep(0.28, 0.46, sl + (n2 - 0.5) * 0.12), lush ? 0 : smoothstep(175, 225, h + n1 * 35));
+      c.lerp(highC, smoothstep(cota(1500, 150), cota(1700, 190), h + n1 * 30) * (1 - forestBelt) * 0.6);
+      if (lush) c.lerp(n2 > 0.5 ? fernC : fernD, smoothstep(cota(700, 165), cota(950, 215), h + n1 * 30) * (1 - forestBelt) * 0.8);
+      const rockAmt = Math.max(smoothstep(0.28, 0.46, sl + (n2 - 0.5) * 0.12), lush ? 0 : smoothstep(cota(1750, 175), cota(1950, 225), h + n1 * 35));
       c.lerp(n2 > 0.55 ? rockC : rockD, rockAmt);
-      c.lerp(screeC, smoothstep(0.2, 0.3, sl) * (1 - smoothstep(0.3, 0.4, sl)) * smoothstep(140, 190, h) * 0.5);
+      c.lerp(screeC, smoothstep(0.2, 0.3, sl) * (1 - smoothstep(0.3, 0.4, sl)) * smoothstep(cota(1500, 140), cota(1700, 190), h) * 0.5);
       // nieve en lo alto, sólo donde se sostiene (repisas y canales poco inclinados)
       // (solo en el Pirineo: en el resto de Navarra los montes no guardan nieve fuera del invierno)
-      if (TONE === 'alpine') c.lerp(snowC, smoothstep(215, 250, h + n1 * 40) * (1 - smoothstep(0.32, 0.5, sl)));
+      if (TONE === 'alpine') c.lerp(snowC, smoothstep(cota(2100, 215), cota(2200, 250), h + n1 * 40) * (1 - smoothstep(0.32, 0.5, sl)));
       col.push(c.r, c.g, c.b);
     }
     g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
@@ -611,6 +615,12 @@ export class Terrain {
   }
 }
 
+/** La altura del anillo de lejos en un punto (como sus vértices, con su relieve fino y bajado 0,8 m): para coser con él
+ *  el relieve de más allá (world/sierras.js) */
+export function alturaLejos(x, z) {
+  const h = outerHeight(x, z);
+  return h + (ridged(x / 75, z / 75, 3) - 0.35) * 22 * smoothstep(90, 190, h) + fbm(x / 28, z / 28, 2) * 4 * smoothstep(60, 140, h) - 0.8;
+}
 // Relieve exterior sin cauces (el río se pierde entre montañas lejanas)
 function outerHeight(x, z) {
   const r4 = Math.pow(x ** 4 + z ** 4, 0.25);

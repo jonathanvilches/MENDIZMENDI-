@@ -7,6 +7,7 @@
 import { clamp, lerp, smoothstep, segDist, mulberry32 } from '../util/math.js';
 import { fbm } from '../util/noise.js';
 import { skylineFor } from '../data/horizonte.js';
+import { sierrasDe } from '../world/sierras.js';
 import { ordenarCasas, ordenarPuentes, partirBloques, anexosManzana } from './ordenar.js';
 import { iglesiaReal } from '../data/reales/iglesia.js';
 
@@ -83,7 +84,7 @@ export function createRealTownLevel(def, D) {
 
   // ---------- Ríos: polilíneas con el nivel del agua (bajando con la corriente) ----------
   const RV = (D.rios || []).filter(r => r.pts.length > 1).map((r, k) => ({ id: 'r' + k, name: r.n, half: r.w, pts: r.pts, lv: r.lv.map(v => BASE + v - 1.6) }));
-  const riverAt = buckets(RV, 20, 14);
+  const riverAt = buckets(RV, 20, 36);   // (hasta 36 m del cauce: lo que necesita la orilla en talud de abajo)
   // (el ancho, el del río; en el casco, más estrecho donde una calle va por la orilla: ver «El cauce en el casco», abajo)
   const anchoEn = (s, t) => s.L.hv ? lerp(s.L.hv[s.i], s.L.hv[s.i + 1], t) : s.L.half;
   const NONE = { d: 1e4, edge: 1e4, half: 0, level: -Infinity, river: 'A', dA: 1e4, dZ: 1e9 };
@@ -507,7 +508,7 @@ export function createRealTownLevel(def, D) {
   if (PLACES.frontonReal) { const f = PLACES.frontonNear; PLACES.clearings.push({ x: f.x, z: f.z, r0: 36, r1: 26 }); pads.push({ x: f.x, z: f.z, r: 20, blend: 10 }); }
 
   // ---------- Altura final ----------
-  const SKY = skylineFor(def);
+  const SKY = skylineFor(def), SIERRAS = !!sierrasDe(def.id);
   function skyTan(x, z) {
     if (!SKY) return 0.12;
     const b = (Math.atan2(x, -z) * 180 / Math.PI + 360) % 360, i = Math.floor(b), f = b - i;
@@ -518,9 +519,11 @@ export function createRealTownLevel(def, D) {
   const iratiMask = (x, z) => 1 - smoothstep(80, 120, Math.hypot(x - PLACES.forest.x, z - PLACES.forest.z));
   function rawHeight(x, z, detail) {
     let h = BASE + dem(x, z);
-    // (más allá de lo que da la rejilla lejana, el anillo de sierras sube al ángulo del horizonte de verdad)
+    // (más allá de lo que da la rejilla lejana, el anillo de sierras sube al ángulo del horizonte de verdad; con las sierras
+    // por términos, world/sierras.js, ya no: el relieve llega de verdad hasta 1,5 km y las sierras van detrás. Antes ese
+    // anillo, a media altura y dentro de la niebla, dejaba el horizonte casi llano: en Altsasu no se veía Urbasa)
     const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
-    if (r4 > half2 * 0.8) h = Math.max(h, BASE + skyTan(x, z) * r4 * smoothstep(half2 * 0.8, half2 * 1.2, r4));
+    if (r4 > half2 * 0.8 && !SIERRAS) h = Math.max(h, BASE + skyTan(x, z) * r4 * smoothstep(half2 * 0.8, half2 * 1.2, r4));
     const vm = villageMask(x, z);
     // el modelo del terreno va cada 20 m: algo de relieve fino fuera del casco para que no se vea liso
     h += fbm(x / 70 + 3.1, z / 70 - 1.7, 3) * 1.6 * (1 - vm);
@@ -545,9 +548,11 @@ export function createRealTownLevel(def, D) {
     // pueblos de ladera las otras quedaban metros por encima o por debajo de sus calles, con un muro de adoquín
     h = plazaLlana(x, z, h);
     // el cauce: el agua a su nivel y la orilla un metro y pico por encima; en el casco, con muro (el escalón es recto)
-    const r = riverInfo(x, z);
-    if (r.edge < 7) {
-      const inVillage = a.vm > 0.5, bankW = inVillage ? 1.0 : 4.5;
+    // (fuera del casco, la orilla en talud según lo alto que quede la ladera sobre el agua: antes, con 4,5 m de ancho, donde
+    // el río va al pie de un monte, como en Ituren, el cauce cortaba la ladera en un muro de roca gris de 15 m)
+    const r = riverInfo(x, z), inV = a.vm > 0.5, talud = inV ? 1.0 : Math.max(4.5, Math.min(30, (h - r.level - 1.4) * 1.6));
+    if (r.edge < (inV ? 7 : Math.max(7, talud + 2))) {
+      const inVillage = inV, bankW = talud;
       const bed = r.level - 1.0 - 0.4 * clamp(1 - r.d / Math.max(r.half, 0.1), 0, 1);
       const k = smoothstep(inVillage ? -0.3 : -2.0, bankW, r.edge);
       h = Math.min(h, lerp(bed, Math.max(h, r.level + 1.4), k));
@@ -602,6 +607,6 @@ export function createRealTownLevel(def, D) {
     riverInfo, riverPointNear, valleyFloor, finalHeight, pathQuery, plazaMask, fieldInfo, villageMask, meadowMask, iratiMask, skyTan,
     PLACES, MEADOW: null, PATHS, BRIDGES: [], PONDS: [], SPECIAL_TREES: [], TREE_MIX, R,
     RIVERS, BOUNDARY: 440, def, family: def.family, relief: 'real', addPad: (x, z, r, blend = 14) => pads.push({ x, z, r, blend, h: BASE + dem(x, z) }), PADS: pads,
-    FOREST: F.forest, TONE: F.grass, real,
+    FOREST: F.forest, TONE: F.grass, real, ALT0: D.alt0,
   };
 }
