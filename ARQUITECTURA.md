@@ -693,6 +693,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el borde oscuro. Por descubrir, blanca con su punto morado; empezada, magenta con lo hecho en un arco; sellada, dorada
   con la marca verde. Las ciudades, más grandes y con diana; las zonas de naturaleza, con el punto verde. Los ríos no se
   tocan.
+- **La carta: una sola tarjeta para todo el menú** (`identidad.css`, al final; noviembre de 2026): las tarjetas de las
+  listas iban en cajas de cristal con esquinas casi rectas, cada una a su manera, y no se parecían a las comarcas de abajo
+  del mapa ni a las cartas de Torneos. Ahora todas tienen esa misma forma: las especies, los personajes y las figuras, las
+  cimas, las insignias, los instrumentos, los escudos y su guía, los cuentos, los certificados y los comercios, las
+  tradiciones, las leyendas de las fichas, las láminas y las páginas del pasaporte. Dos esquinas cortadas en ángulo
+  (`--k`), un relleno morado opaco (`--carta-fondo`) y un filo de luz de 1,5 px que también sigue el corte: el filo es el
+  fondo de la tarjeta y el relleno va en `::before`, más adentro y con el mismo corte. Lo conseguido, con el filo del
+  color de la sección (`--carta-filo-on`); lo bloqueado, apagado (`--carta-filo-off`); las cimas, con el color de su
+  comarca. La imagen de arriba, dentro del filo y con su esquina cortada. «Observado» e «Identificada», con la marca
+  verde en su círculo amarillo, como en todo el juego. Se cambia aquí, en un solo sitio, para todas.
 - **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
   elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la
