@@ -708,13 +708,16 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // ---------- tocar y arrastrar ----------
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), plano = new THREE.Plane(new THREE.Vector3(0, 1, 0), -1.5);
   const aNdc = (e) => { const b = cv.getBoundingClientRect(); ndc.set((e.clientX - b.left) / b.width * 2 - 1, -((e.clientY - b.top) / b.height) * 2 + 1); return ndc; };
-  // (qué hay debajo del dedo: el pueblo cuya chincheta o cuyo nombre queda más cerca en la pantalla y, si no, la comarca)
-  const bw = new THREE.Vector3();
+  // (qué hay debajo del dedo: el pueblo cuya chincheta o cuyo nombre queda más cerca en la pantalla y, si no, la comarca.
+  // Primero la comarca: con toda Navarra a la vista, tocar cerca de un pueblo lleva a su comarca, y sus pueblos se eligen
+  // ya con ella elegida (o con la cámara cerca, donde salen sus nombres). Antes, con las chinchetas tan juntas, casi
+  // cualquier toque caía cerca de un pueblo y se iba directo a él)
+  const bw = new THREE.Vector3(), PUEBLO_D = 46;
   function quien(e) {
     const b = cv.getBoundingClientRect(), k = b.width / (sz.w || 1) || 1, mx = (e.clientX - b.left) / k, my = (e.clientY - b.top) / k;
     let best = null, bd = (e.pointerType === 'mouse' ? 22 : 30);
     for (const t of T) {
-      if (t.g.scale.x < 0.3) continue;
+      if (t.g.scale.x < 0.3 || (sel ? t.comarca !== sel : v.d > PUEBLO_D)) continue;
       t.bola.getWorldPosition(bw).project(cam); if (bw.z > 1) continue;
       const px = (bw.x + 1) / 2 * sz.w, py = (1 - bw.y) / 2 * sz.h, dd = Math.hypot(px - mx, py - my);
       if (dd < bd) { bd = dd; best = t; }
@@ -1290,7 +1293,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 
   if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
-    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
+    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
@@ -1547,7 +1550,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // de cerca, los pueblos antes que las comarcas; de lejos, al revés. El que no cabe, se esconde. Con una comarca
     // elegida, solo los suyos; sin elegir, de lejos solo las comarcas (y el pueblo donde estás), y al acercarse, lo demás
     if (now - tapas.t > 400) medirTapas(now);
-    const cerca = v.d < 46, ocupado = tapas.r.slice(), lista = [];
+    const cerca = v.d < PUEBLO_D, ocupado = tapas.r.slice(), lista = [];
     // (con una colección, sus marcadores primero, y fuera los nombres de pueblos, comarcas, ríos y montes: ya los dicen ellos)
     if (COL) for (const it of COL.items) { const x = it.t, c = it.c;
       if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);

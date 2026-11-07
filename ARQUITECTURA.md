@@ -693,6 +693,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el borde oscuro. Por descubrir, blanca con su punto morado; empezada, magenta con lo hecho en un arco; sellada, dorada
   con la marca verde. Las ciudades, más grandes y con diana; las zonas de naturaleza, con el punto verde. Los ríos no se
   tocan.
+- **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
+  elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
+  de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la
+  comarca; sus pueblos se eligen ya con ella elegida, o con la cámara cerca, donde salen sus nombres. Un pueblo de otra
+  comarca lleva primero a la suya.
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en
   `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos, Personajes o Torneos desde el menú del juego, en lugar
   de su ventana se queda el mapa con su colección. Arriba, su cabecera con cuántas llevas, sus pestañas, «Lista» (la
