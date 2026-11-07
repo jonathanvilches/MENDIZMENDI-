@@ -747,6 +747,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la desplaza media textura para que la costura quede en una cruz en el centro, Nano Banana repinta solo esa cruz con su
   máscara, y `--junta` coge de lo repintado solo la cruz, con el color igualado, porque el modelo a veces retoca también
   lo de fuera. Para otra: se pinta igual, se pasa por las dos herramientas y se apunta en `LISTA`.
+- **Mapa más limpio y menú que se reconoce** (noviembre de 2026):
+  - *Menú*: el botón de tu cara lleva al lado las tres rayas con «Menú» (`.yo-m`, `MENU_M` en `hub.js`); en las secciones
+    es solo eso, en su cuadro. El panel del menú, opaco (con transparencia se leían a través los nombres del mapa), y lo
+    que sigue más abajo de sus casillas se funde en el borde.
+  - *Comarcas como territorios*: cada una teñida con su color, también sin descubrir (`relieveM`: antes, todas las
+    cerradas iban del mismo malva y el mapa se veía sucio). Las juntas, más anchas y oscuras, con la luz de cada comarca
+    hacia dentro, como un canto biselado, y el contorno de Navarra más grueso (`contornoM`, `juntaM`, `luz`); el canto de
+    arriba de las losas brilla más (`bordeM`). Fuera de Navarra, más apagado.
+  - *Menos ruido*: los nombres de las comarcas, cortos (sin «Comarca de»), sin candado y más pequeños en el móvil, así
+    caben más; la cañada de la trashumancia, solo con una de sus comarcas elegida. En el móvil tumbado, las comarcas de
+    abajo en tiras bajas con la foto a un lado: Navarra pasa de un tercio a más de la mitad del alto.
+  - *Definición*: el mapa se dibuja hasta con el doble de píxeles (`prMax` 2; antes 1,5), y baja solo si no da.
 - **Pueblos en pastel y con más vida** (noviembre de 2026):
   - *Tono pastel* (`CustomToneMapping` en `sky.js`, puesto solo en el renderizador del juego, `runtime.js`): el mismo tono
     de cine, con el 0,8 de la saturación de los menús y las sombras un poco levantadas. El mapa, los menús y los retratos

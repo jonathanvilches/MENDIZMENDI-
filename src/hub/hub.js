@@ -74,6 +74,8 @@ const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
 const XF = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
+// (en el botón del menú, que se reconozca: las tres rayas con «Menú» debajo; antes era solo tu cara y no se sabía qué era)
+const MENU_M = `<span class="yo-m" aria-hidden="true">${iconSVG('menu', 20)}<small>Menú</small></span>`;
 const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
 // la cabecera de cada sección, la misma en todas: el rótulo, con el grupo, la sección y su icono, y el título grande, sin
 // icono (ya va en el rótulo). Las de los saberes, «Saberes · …»; las de tu partida, «Tu partida · …»
@@ -335,7 +337,7 @@ export class Hub {
   renderChip() {
     if (isDidactico()) { $('#hChip', this.root).innerHTML = `<span class="dd-chip">${I('book', 26)}<b class="dd-chl">Material didáctico</b><b class="dd-chs">Didáctico</b></span>`; $('#hChip', this.root).onclick = () => this.go('profile');
       // (el botón del menú, arriba a la izquierda: en el didáctico, el libro del material en lugar de tu retrato y tu nivel)
-      $('[data-menu]', this.root).innerHTML = `<span class="yo-c yo-dd">${I('book', 30)}</span><span class="yo-t"><b>Material didáctico</b><small>Aprende Navarra</small></span>`; return; }
+      $('[data-menu]', this.root).innerHTML = `<span class="yo-c yo-dd">${I('book', 30)}</span><span class="yo-t"><b>Material didáctico</b><small>Aprende Navarra</small></span>${MENU_M}`; return; }
     const p = profile(), L = levelOf(p.xp);
     $('#hChip', this.root).innerHTML = `<img src="${avatarPortrait(p.avatar)}" alt=""><div class="cinfo"><b>${esc(p.name || 'Aventurero')}</b><small>Nv ${L.lv} · ${rankOf(L.lv)}</small><div class="xp"><i style="width:${L.cur / L.need * 100}%"></i></div></div><span class="stamps">${I('stamp', 22)}${stampCount(p)}</span>`;
     $('#hChip', this.root).onclick = () => this.go('profile');
@@ -343,7 +345,7 @@ export class Hub {
     { const n = nuevas(p).length; this.root.querySelectorAll('#hNav [data-s="ventajas"], #hNav [data-s="more"]').forEach(b => { if (n) b.dataset.nuevas = n; else delete b.dataset.nuevas; }); }
     // (jugando, el menú se abre con tu retrato, arriba a la izquierda, como en los juegos de rol: tu cara con tu nivel y, si
     // hay sitio, tu nombre, tu rango y la barra de experiencia. Nada de iconos de página web)
-    $('[data-menu]', this.root).innerHTML = `<span class="yo-c"><img src="${avatarPortrait(p.avatar)}" alt=""><b class="yo-n">${L.lv}</b></span><span class="yo-t"><b>${esc(p.name || 'Aventurero')}</b><small>${rankOf(L.lv)}</small><i class="yo-xp"><i style="width:${L.cur / L.need * 100}%"></i></i></span>`;
+    $('[data-menu]', this.root).innerHTML = `<span class="yo-c"><img src="${avatarPortrait(p.avatar)}" alt=""><b class="yo-n">${L.lv}</b></span><span class="yo-t"><b>${esc(p.name || 'Aventurero')}</b><small>${rankOf(L.lv)}</small><i class="yo-xp"><i style="width:${L.cur / L.need * 100}%"></i></i></span>${MENU_M}`;
   }
 
   // ---------- Inicio ----------

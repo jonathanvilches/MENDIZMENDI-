@@ -42,7 +42,15 @@
 #hub.juego :is(.hub-menu-btn, .hub-x) svg { width: 22px; height: 22px; }
 #hub.juego :is(.hub-menu-btn, .hub-x):hover, #hub.juego :is(.hub-menu-btn, .hub-x):focus-visible { border-color: var(--cr-l2); background: rgba(40, 18, 80, .7); }
 /* tu retrato: abre el menú. Tu cara con tu nivel en un círculo y, si hay sitio, tu nombre, tu rango y la experiencia */
-#hub.juego .hub-menu-btn { left: var(--hud-l); display: flex; align-items: center; gap: 16px; padding: 3px 14px 3px 3px; font: inherit; text-align: left; }
+#hub.juego .hub-menu-btn { left: var(--hud-l); display: flex; align-items: center; gap: 14px; padding: 3px 12px 3px 3px; font: inherit; text-align: left; }
+/* (y que se vea que es el menú: las tres rayas con «Menú» debajo, separadas de tu cara por una raya; en las secciones, solo
+   eso, en su cuadro, que ahí tu cara no decía nada) */
+.yo-m { flex: none; display: grid; justify-items: center; align-content: center; gap: 4px; height: 72%; padding-left: 12px; border-left: 1px solid var(--cr-l); color: #fff; }
+.yo-m svg { width: 20px; height: 20px; }
+.yo-m small { color: var(--tx2); font: 700 9px/1 var(--f-cond, sans-serif); letter-spacing: .16em; text-transform: uppercase; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn .yo-c { display: none; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { width: var(--hud-h); justify-content: center; padding: 0; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn .yo-m { height: auto; padding: 0; border: 0; }
 .yo-c { position: relative; flex: none; width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); }
 .yo-c img { display: block; width: 100%; height: 100%; border-radius: calc(var(--cr-r, 12px) - 3px); object-fit: cover; object-position: center 18%; background: #2a1458; }
 /* (en el material didáctico, el libro del material en su recuadro, en lugar del retrato) */
@@ -161,7 +169,7 @@
 #hub.juego.menu-on .hub-velo { opacity: 1; pointer-events: auto; }
 #hub.juego .hub-panel { position: absolute; z-index: 40; top: var(--hud-t); left: var(--hud-l); width: min(760px, calc(100% - var(--hud-l) - var(--hud-r))); max-height: calc(100% - var(--hud-t) - var(--hud-b));
   display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "yo yo" "nav nav" "cj mando"; column-gap: 8px;
-  padding: 12px; border-radius: 18px; background: rgba(13, 6, 28, .92); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(20px) saturate(1.2); backdrop-filter: blur(20px) saturate(1.2); box-shadow: 0 24px 60px rgba(4, 1, 12, .5);
+  padding: 12px; border-radius: 18px; background: #110824; border: 1px solid var(--cr-l); box-shadow: 0 24px 60px rgba(4, 1, 12, .5);   /* (opaco: con transparencia se leían a través los nombres del mapa) */
   transform: translateX(-24px); opacity: 0; visibility: hidden; transition: transform .3s cubic-bezier(.2, .9, .3, 1), opacity .2s ease, visibility 0s linear .3s; }
 #hub.juego.menu-on .hub-panel { transform: none; opacity: 1; visibility: visible; transition: transform .3s cubic-bezier(.2, .9, .3, 1), opacity .2s ease; }
 #hub.juego .hub-top { display: contents; }
@@ -183,7 +191,9 @@
 @media (max-width: 560px) { #hub.juego .hub-top .app-btn:not([hidden]) { display: flex; } }
 /* (las secciones, en una rejilla de iconos con su nombre debajo: todas a la vista, sin «Más») */
 #hub.juego .hub-nav { grid-area: nav; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); align-content: start; gap: 6px; margin-top: 10px; padding: 10px 0 0;
-  border: 0; border-top: 1px solid var(--cr-l); background: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+  border: 0; border-top: 1px solid var(--cr-l); background: none; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  /* (lo que sigue más abajo se funde en el borde, en lugar de quedar cortado de golpe, y se puede subir del todo) */
+  padding-bottom: 22px; -webkit-mask: linear-gradient(180deg, #000 calc(100% - 26px), transparent); mask: linear-gradient(180deg, #000 calc(100% - 26px), transparent); }
 #hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; min-width: 0; min-height: 104px; padding: 14px 6px 12px; border-radius: 14px; color: var(--tx2); background: rgba(255, 255, 255, .03); border: 1px solid rgba(255, 255, 255, .06); }
 #hub.juego .hub-nav .more-btn { display: none; }
 #hub.juego .hub-nav button :is(svg, img) { width: 44px; height: 44px; opacity: .92; transform: none; filter: none; transition: transform .25s var(--ease, ease); }
@@ -200,7 +210,7 @@
 #hub.juego:not([data-screen="home"])::before { opacity: 1; }
 #hub.juego[data-screen="home"] :is(.hub-main, .hub-cab, .hub-x) { display: none; }
 #hub.juego:not([data-screen="home"]) .hub-menu-btn .yo-t { display: none; }
-#hub.juego:not([data-screen="home"]) .hub-menu-btn { padding-right: 3px; }
+
 #hub.juego:not([data-screen="home"]) {
   --sh-t: var(--hud-t); --sh-b: var(--hud-b); --sh-l: max(var(--hud-l), calc((100% - 1400px) / 2)); --sh-r: max(var(--hud-r), calc((100% - 1400px) / 2)); }
 #hub.juego .hub-main { position: absolute; z-index: 25; inset: var(--sh-t) var(--sh-r) var(--sh-b) var(--sh-l); grid-row: auto; grid-column: auto;
@@ -227,7 +237,7 @@
 
 /* ---------- el móvil tumbado: todo más bajo y, en la fila de arriba, lo justo ---------- */
 @media (max-height: 520px) {
-  #hub.juego .m3d .m3-tt i, #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 3px; }
+  #hub.juego .m3d .m3-tt i, #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 10px; gap: 10px; }
   #hub.juego .m3d .m3-tt { grid-template-columns: auto; } #hub.juego .m3d .m3-tt small { font-size: 10px; }
   #hub.juego .m3d .m3-tot { padding-right: 12px; column-gap: 8px; }
   #hub.juego .m3d .m3-mision { max-width: 42%; } #hub.juego .m3d .mm-tt small { display: none; }
@@ -253,7 +263,7 @@
 }
 /* (el móvil de pie: arriba, el botón, lo conquistado y tu cara; la misión, abajo encima de las comarcas) */
 @media (max-width: 760px) and (min-height: 521px) {
-  #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 3px; }
+  #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 10px; gap: 10px; }
   #hub.juego .m3d .m3-tt i { display: none; } #hub.juego .m3d .m3-tt { grid-template-columns: auto; }
   #hub.juego .m3d .m3-mision { top: auto; right: var(--hud-r); left: var(--hud-l); bottom: calc(var(--hud-b) + var(--railh) + 8px); max-width: none; grid-template-columns: auto minmax(0, 1fr) auto; }
   #hub.juego .m3d .m3-cb { left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); right: var(--hud-r); transform: none; max-width: none; }

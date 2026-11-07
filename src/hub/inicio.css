@@ -140,6 +140,8 @@
 .m3-cl i { display: grid; place-items: center; align-self: center; } .m3-cl i :is(svg, img) { width: 14px; height: 14px; }
 .m3-cl.lk { background: rgba(13, 4, 32, .55); border-style: dashed; } .m3-cl.lk b { color: #e4dcff; }
 .m3-cl.go { box-shadow: 0 0 14px color-mix(in srgb, var(--c) 45%, transparent); } .m3-cl.ok { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 209, 102, .5); } .m3-cl.ok small { color: var(--gold); }
+/* (en el móvil, los nombres de las comarcas más pequeños: grandes tapaban media Navarra y no cabían más que cuatro) */
+@media (max-height: 520px), (max-width: 760px) { .m3-cl { padding: 2px 8px; gap: 4px; } .m3-cl b { font-size: var(--fs-xs); letter-spacing: .05em; } }
 @media (min-width: 1200px) and (min-height: 560px) { .m3-cl { padding: 5px 12px; } .m3-cl b { font-size: var(--fs-md); } .m3-cl small { font-size: var(--fs-sm); } .m3-cl i :is(svg, img) { width: 16px; height: 16px; } .m3-tl { font-size: var(--fs-sm); } }
 .m3-cl.fondo { background: rgba(13, 4, 32, .5); border-color: rgba(255, 255, 255, .22); box-shadow: none; } .m3-cl.fondo b { color: #d9d0f2; } .m3-cl.fondo :is(small, i) { display: none; }
 .m3-cl.sel { background: color-mix(in srgb, var(--c) 55%, rgba(13, 4, 32, .8)); opacity: 1; box-shadow: 0 0 18px color-mix(in srgb, var(--c) 60%, transparent); }
@@ -241,7 +243,7 @@
    botón de tu aventura; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
    columna, para que el mapa tenga casi toda la pantalla */
 @media (max-height: 520px) {
-  .m3d { --hud: 60px; --chw: 132px; --railh: calc(var(--chw) * 9 / 16 + 40px); height: max(280px, calc(100dvh - var(--top-h, 48px) - 24px)); border-radius: 18px; }
+  .m3d { --hud: 60px; --chw: 184px; --railh: 52px; height: max(280px, calc(100dvh - var(--top-h, 48px) - 24px)); border-radius: 18px; }
   .m3-tot { left: 8px; top: 8px; grid-template-columns: 40px auto; column-gap: 8px; padding: 3px 12px 3px 3px; }
   .m3-tot > .m3-aro { width: 40px; height: 40px; } .m3-pct { font-size: var(--fs-sm); } .m3-pct small { font-size: 11px; }
   .m3-tt { gap: 0; min-width: 0; } .m3-tt small { font-size: 12px; letter-spacing: .02em; white-space: nowrap; } .m3-tt b { font-size: var(--fs-sm); white-space: nowrap; } .m3-tt i { display: none; }
@@ -582,3 +584,16 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
   .mc-c.on .mc-t small { visibility: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .m3-col, .mc-ver { animation: none; } }
+
+/* (en el móvil tumbado, las comarcas de abajo en tiras bajas, la foto a la izquierda y el nombre al lado: con las fotos
+   grandes, la fila se comía un tercio de la pantalla y Navarra quedaba pequeña en medio; noviembre de 2026) */
+@media (max-height: 520px) {
+  .m3-rail { --chh: 44px; }
+  .m3-chip { grid-template-rows: var(--chh); grid-template-columns: 64px minmax(0, 1fr); gap: 0; }
+  .m3-chip :is(.m3-foto, .m3-vid) { grid-row: 1; grid-column: 1; height: var(--chh); }
+  .m3-chip .m3-ct { grid-row: 1; grid-column: 2; align-content: center; padding: 3px calc(var(--k) + 2px) 3px 8px; }
+  .m3-chip .m3-sello { width: 20px; height: 20px; left: 3px; top: 3px; } .m3-chip .m3-sello > img { width: 14px; height: 14px; }
+  .m3-chip .m3-lock { width: 14px; height: 14px; right: -3px; bottom: -3px; } .m3-chip .m3-lock :is(svg, img) { width: 9px; height: 9px; }
+  .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-2px); }
+  .m3-chip .m3-ct b { white-space: nowrap !important; font-size: 13px; }   /* (en una línea: en la tira baja no caben dos) */
+}

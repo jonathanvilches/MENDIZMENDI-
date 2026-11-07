@@ -100,7 +100,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 // del mismo verde y con la misma luz, y Navarra no se distinguía)
 { vec2 nu = (vMun - uNavR.xy) / uNavR.zw; vec2 nm = nu.x < 0.0 || nu.y < 0.0 || nu.x > 1.0 || nu.y > 1.0 ? vec2(0.0) : texture2D(uNav, nu).rg;
   float fuera = (1.0 - nm.r) * uFuera, l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(0.86, 0.88, 1.0) * 0.78, fuera * 0.6);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(0.84, 0.87, 1.0) * 0.64, fuera * 0.75);   // (desde noviembre de 2026, más apagado: Navarra se destaca más)
   diffuseColor.rgb *= 1.0 - 0.5 * fuera * nm.g; }`); };
     m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav';
     new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
@@ -120,7 +120,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true,
     uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO,
-      uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.22 }, uTinte: { value: srgb(vivo ? c.color : '#8f7fd0') }, uTintK: { value: vivo ? 0.08 : 0.1 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
+      uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.1 }, uTinte: { value: srgb(c.color) }, uTintK: { value: vivo ? 0.16 : 0.2 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
   // (el borde: luz, la propia, para lo que queda a la sombra; filo, cuánto brilla su canto de arriba)
@@ -159,7 +159,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g);
     // (empezada, con los colores del mapa y un toque del suyo; sin descubrir, apagada y hacia el malva, bajo la niebla)
     const vivo = !!o.abiertas || c.pct > 0 || c.done, top = relieveM(c, vivo);
-    const side = bordeM(c, vivo, 0.2, 0.9), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
+    const side = bordeM(c, vivo, 0.2, 1.3), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
     // (la panza, solo en la entrada: a la sombra, con más luz propia para que se vea su forma)
     let bajo = null; if (INTRO) { const pg = panza(Pw); geos.push(pg); bajo = new THREE.Mesh(pg, bordeM(c, vivo, 0.6, 0)); mesh.add(bajo); }
     // (lo que se levanta la comarca con sus sellos)
@@ -171,7 +171,8 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     scene.add(linea);
     const [X, Z] = W(cx, cy);
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
-    lab.innerHTML = `${!vivo && o.icono ? `<i>${o.icono('lock')}</i>` : c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name)}</b>`;
+    // (sin el candado, que ya sale en la fila de abajo, y sin «Comarca de»: los nombres, cortos, para que quepan todos)
+    lab.innerHTML = `${c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name.replace(/^Comarca de /, ''))}</b>`;
     return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
   });
   // el hueco de Navarra en el mapa de España: oscuro, bajo las comarcas, justo de su tamaño (las comarcas encajan sin raya
@@ -222,7 +223,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     m.onBeforeCompile = (sh) => { sh.uniforms.uAnchoB = ANCHO_B; sh.uniforms.uFacB = { value: fac };
       sh.vertexShader = 'attribute vec3 lado; uniform float uAnchoB, uFacB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAnchoB * uFacB;'); };
     m.customProgramCacheKey = () => 'mapa-contorno'; mats.push(m); m.userData.orden = orden; return m; };
-  const contornoM = [cintaB(0x1d1240, 0.55, 2.4, 2), cintaB(0xfff1cf, 0.95, 1, 3)], juntaM = cintaB(0x1d1240, 0.62, 1.1, 2), gradB = haciaDentro();
+  // (desde noviembre de 2026, más anchas y con más contraste: la raya oscura de la junta y, a cada lado, la luz de la comarca
+  // hacia dentro, como un canto biselado; así cada comarca se lee como una pieza en relieve)
+  const contornoM = [cintaB(0x1d1240, 0.7, 3.4, 2), cintaB(0xfff1cf, 0.95, 1.5, 3)], juntaM = cintaB(0x140a30, 0.85, 1.9, 2), gradB = haciaDentro();
   mats.push({ dispose: () => gradB.dispose() });
   // (los tramos seguidos de lados que cumplen algo, empezando donde cambia, para no partir ni repetir uno que da la vuelta)
   const tramos = (P, ok) => { const n = P.length, out = []; let s = 0; while (s < n && ok[(s - 1 + n) % n] === ok[s]) s++; if (s === n) s = 0;
@@ -251,9 +254,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     let area = 0, larga = 0, li = 0; for (let i = 0; i < n; i++) { const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n]; area += ax * bz - bx * az; const L = Math.hypot(bx - ax, bz - az); if (L > larga) { larga = L; li = i; } }
     let sg = area > 0 ? 1 : -1; { const [ax, az] = P[li], [bx, bz] = P[(li + 1) % n]; if (!en(c, (ax + bx) / 2 - (bz - az) / larga * e * sg, (az + bz) / 2 + (bx - ax) / larga * e * sg)) sg = -sg; }
     const gFuera = cinta2(tramos(P, fuera), (ox, oz) => [[ox, oz], [-ox, -oz]]); for (const m of contornoM) ponCinta(c, gFuera, m);
-    const junta = tramos(P, dentro), luz = cintaB(new THREE.Color(c.color).lerp(BLANCO, 0.5), 0.9, 1, 3, gradB); c.bordeIn = luz;
+    const junta = tramos(P, dentro), luz = cintaB(new THREE.Color(c.color).lerp(BLANCO, 0.55), 0.95, 1, 3, gradB); c.bordeIn = luz;
     ponCinta(c, cinta2(junta, (ox, oz) => [[ox, oz], [-ox, -oz]]), juntaM);
-    ponCinta(c, cinta2(junta, (ox, oz) => [[ox * sg * 1.0, oz * sg * 1.0], [ox * sg * 3.0, oz * sg * 3.0]]), luz);
+    ponCinta(c, cinta2(junta, (ox, oz) => [[ox * sg * 1.6, oz * sg * 1.6], [ox * sg * 4.6, oz * sg * 4.6]]), luz);
   }
 
 
@@ -1308,7 +1311,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // (la resolución del lienzo: hasta 1,5; en el ordenador de calidad baja, con un presupuesto de unos 0,9 millones de píxeles
   // y, si mientras se mueve no llega, puede bajar hasta 0,75. En un portátil con una Intel UHD, a 1920 × 868 iba a 9
   // imágenes por segundo)
-  let prMax = o.ligero ? 1 : 1.5, prT = 0, prN = 0;
+  let prMax = o.ligero ? 1 : 2, prT = 0, prN = 0;   // (hasta 2: con 1,5 los bordes y los nombres se veían blandos; baja solo si no da)
   const prSuelo = PC_LENTO ? 0.75 : 1, prPres = (w, h) => PC_LENTO ? Math.max(prSuelo, Math.sqrt(0.9e6 / Math.max(1, w * h))) : 9;
   const pv = new THREE.Vector3();
   // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
@@ -1578,7 +1581,8 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     for (const x of PK) { const y = x.c ? x.h * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
-    { const on = !COL && !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
+    // (solo con una comarca elegida por la que pasa: en la vista de toda Navarra ensuciaba el mapa)
+    { const on = !COL && !elegido && !maq && v.d > 2.6 && !!sel && canCom.has(sel), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
       if (!canSvg.isConnected) { capa.prepend(canSvg); capa.append(rebano); }
       canSvg.style.display = on ? '' : 'none';
       if (on) { let pts = ''; for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam); if (pv.z < 1) pts += `${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; }
