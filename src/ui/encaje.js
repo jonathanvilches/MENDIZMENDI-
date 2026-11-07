@@ -40,7 +40,9 @@ function ajusta(e) {
   e.dataset.encaje = e.style.fontSize || '-';
   if (parseFloat(s.letterSpacing) > 0) { e.style.letterSpacing = '0'; if (!malo()) return; }   // (primero, las letras sin aire entre ellas)
   for (let f = f0 - 1; f >= fin && malo(); f--) e.style.fontSize = f + 'px';
-  if (puntos && malo()) e.style.whiteSpace = 'normal';   // (aun así no cabe: mejor en dos líneas que cortado)
+  // (aun así no cabe: mejor en dos líneas que cortado; salvo en una caja de alto fijo, data-una-linea, donde la segunda
+  // línea se salía por abajo, como en la del frontón de las cartas de Torneos: ahí, con «…» y la letra más pequeña)
+  if (puntos && malo() && !e.closest('[data-una-linea]')) e.style.whiteSpace = 'normal';
 }
 /** Ajusta los textos de root y los de dentro. */
 export function encaja(root = document.body) {

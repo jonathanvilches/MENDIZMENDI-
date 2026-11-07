@@ -1024,7 +1024,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 /* (el botón de jugar dice a qué: «Jugar a pelota», «Jugar al fútbol»; en el móvil tumbado más estrecho, solo «Jugar», que
    el título de la carta ya dice qué torneo es y el frontón o el club no caben aplastados) */
 .sport .gx-go .sp-corto { display: none; }
-@media (orientation: landscape) and (max-height: 520px) and (max-width: 760px) { .sport .gx-go .sp-largo { display: none; } .sport .gx-go .sp-corto { display: inline; } }
+/* (en el móvil tumbado, el botón corto: con «Jugar a pelota» la caja del frontón se quedaba estrecha y su comarca se partía) */
+@media (orientation: landscape) and (max-height: 520px) { .sport .gx-go .sp-largo { display: none; } .sport .gx-go .sp-corto { display: inline; } }
 .sp-row { min-width: 0; }
 .sp-row > small { display: block; margin: 0 0 6px 6px; color: color-mix(in srgb, var(--acc) 50%, #fff); font: 800 var(--fs-xs)/1.2 var(--f-cond); text-transform: uppercase; letter-spacing: .1em; }
 .sport .gx-go { flex: none; min-height: 52px; padding: 8px 28px; }

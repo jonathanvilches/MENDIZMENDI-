@@ -409,12 +409,12 @@ export class Hub {
         `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`, vid('dep-pelotari'))}
       ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${fw === 1 ? 'ganado' : 'ganados'}`,
         'Fútbol · Liga Navarra', 'Torneo de fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
-        `<div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`, vid('dep-futbol'))}
+        `<div class="sp-row"><small>Tu club</small><div class="sp-box" data-una-linea>${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`, vid('dep-futbol'))}
     </section>`;
   }
   // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas
   frontonBox(l = levelById(this.frontonId())) {
-    return `<button class="sp-box sp-pick" data-frpick aria-haspopup="dialog"><img class="sp-media" src="${townImg(l)}" alt=""><span><b>${esc(l.name.split(' /')[0])}</b><small>${esc(comarca(l.comarca)?.name || '')}</small></span><i class="sp-chev" aria-hidden="true"></i></button>`;
+    return `<button class="sp-box sp-pick" data-frpick data-una-linea aria-haspopup="dialog"><img class="sp-media" src="${townImg(l)}" alt=""><span><b>${esc(l.name.split(' /')[0])}</b><small>${esc((comarca(l.comarca)?.name || '').replace(/^Comarca de /, ''))}</small></span><i class="sp-chev" aria-hidden="true"></i></button>`;
   }
   frontonPicker() {
     this.sound?.ui('open');
