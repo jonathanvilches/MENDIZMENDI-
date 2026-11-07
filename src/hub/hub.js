@@ -58,7 +58,8 @@ import { calidadOrdenador, gpuNombre } from '../util/gpu.js';
 const MOVIL_JUSTO = TACTIL && !(navigator.deviceMemory >= 6);
 import { DIDACTICO, LM_ICON } from './didactico.js';
 import './fichas.css';
-import { inicioHTML, inicioOn, cierraMapa } from './inicio.js';
+import { inicioHTML, inicioOn, cierraMapa, modoColeccion } from './inicio.js';
+import { COLECCIONES_MAPA } from './coleccionMapa.js';
 import { galeria } from './galeria.js';
 import './consola.css';
 import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
@@ -244,6 +245,7 @@ export class Hub {
     if (screen === 'map') screen = 'home';   // (el mapa es el inicio, debajo de todo: en el didáctico también)
     if (screen?.includes(':')) [screen, arg] = screen.split(':');   // («comarca:pirineo»: la pantalla y lo que abre)
     this.screen = screen; this.arg = arg;
+    if (this.root.dataset.col) { delete this.root.dataset.col; modoColeccion(null); }   // (la colección que había en el mapa, fuera)
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;
     const secScreen = this.nav.some(n => n[0] === screen) && this.navHidden(screen);
@@ -262,6 +264,15 @@ export class Hub {
       if (screen === 'avatars') { cierraMapa(); mapa.innerHTML = ''; }
       else if (!mapa.firstElementChild) { this.after = null; mapa.innerHTML = this.s_home(); this.after?.(); this.after = null; }
       if (screen === 'home') { m.innerHTML = ''; m.removeAttribute('role'); this.renderChip(); return; }
+      // (la naturaleza, los escudos, los personajes y los torneos, abiertos desde el menú: en el mapa, cada cosa en su sitio,
+      // con sus tarjetas abajo (inicio.js, modoColeccion). Para todo lo demás es el inicio; «Lista» abre la pantalla de siempre)
+      if (COLECCIONES_MAPA.includes(screen) && arg == null && !isDidactico()) {
+        this.root.dataset.screen = 'home'; this.root.dataset.col = screen; m.innerHTML = ''; m.removeAttribute('role'); this.renderChip();
+        const lista = { nature: 'fauna', personajes: 'all' }[screen] || 'lista';
+        modoColeccion(screen, { sound: this.sound, lista: () => this.go(screen, lista), cierra: () => this.go('home'),
+          jugar: (a) => { this.sound?.ui('open'); this.onSport?.(a.sport, a.sport === 'pelota' ? sedeDePueblo(a.en) : null); } });
+        return;
+      }
       // (la sección, en una ventana encima del mapa, con su nombre arriba entre el botón del menú y el de cerrar)
       // A los lados, como en el menú de pausa de un juego, la sección de antes y la de después: se pasa de una a otra
       // tocándolas o con Q y E, sin volver al mapa

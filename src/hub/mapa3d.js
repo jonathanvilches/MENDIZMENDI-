@@ -30,7 +30,7 @@ import { hacePajaros } from './pajaros.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
 import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
-import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, CRISTAL_VS, CRISTAL_FS, ORBITA_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS } from './mapa3dSombreadores.js';
+import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, PIN_VS, PIN_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS } from './mapa3dSombreadores.js';
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
@@ -403,31 +403,30 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     g.add(bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
     let haz = null; if (t.here) { haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
     const lab = document.createElement('div'); lab.className = 'm3-tl' + (t.state ? ' ' + t.state : '') + (t.here ? ' here' : ''); lab.innerHTML = `<span>${esc(t.name)}</span>`;
-    return { ...t, k: 1, g, bola, haz, hs: GROSOR + alto(X, Z), c: byId.get(t.comarca), lab, X, Z, ph: (i * 0.7) % 6.28, sen: 0, fija: 0,
+    // (las ciudades, con la chincheta algo más grande; los pueblos, según su tamaño; las zonas de naturaleza, un poco menos)
+    const tipo = t.bosque ? 2 : (t.size || 0) >= 85 ? 1 : 0, kt = tipo === 1 ? 1.3 : tipo === 2 ? 0.95 : 0.9 + 0.2 * Math.min(1, Math.max(0, ((t.size || 40) - 20) / 60));
+    return { ...t, k: 1, g, bola, haz, hs: GROSOR + alto(X, Z), c: byId.get(t.comarca), lab, X, Z, ph: (i * 0.7) % 6.28, sen: 0, fija: 0, tipo, kt,
       lleno: t.state === 'ok' ? 1 : t.state === 'go' ? Math.max(0.2, Math.min(0.85, t.pct || 0)) : 0 };
   });
-  // (las cuatro piezas de las balizas de todos los pueblos: la mira, el hilo, el cristal y su halo)
+  // (las piezas de las chinchetas de todos los pueblos: su sombra en el suelo, el palito, la cabeza y, en las empezadas y en
+  // la tuya, un halo suave)
   const NT = T.length, aCol = new THREE.InstancedBufferAttribute(new Float32Array(NT * 3), 3), aInf = new THREE.InstancedBufferAttribute(new Float32Array(NT * 4), 4).setUsage(THREE.DynamicDrawUsage);
   T.forEach((x, i) => { const c = srgb(BALIZA[x.state] || BALIZA['']); aCol.setXYZ(i, c.r, c.g, c.b); });
   const UT = { value: 0 }, UESC = { value: 1 };
   const balM = (vs, fs, o2) => { const m = new THREE.ShaderMaterial({ vertexShader: vs, fragmentShader: fs, uniforms: { uT: UT, uEsc: UESC }, transparent: true, depthWrite: false, ...o2 }); mats.push(m); return m; };
   const pieza = (g, m, orden) => { g.setAttribute('aCol', aCol); g.setAttribute('aInf', aInf); geos.push(g);
     const im = new THREE.InstancedMesh(g, m, NT); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.frustumCulled = false; im.renderOrder = orden; scene.add(im); return im; };
-  // (la mira, siempre encima del relieve: es luz proyectada; el cristal, con sus aristas marcadas)
-  const mira = pieza(new THREE.PlaneGeometry(2.6, 2.6).rotateX(-Math.PI / 2), balM(MIRA_VS, MIRA_FS, { blending: THREE.AdditiveBlending, depthTest: false }), 3);
-  const hilo = pieza(new THREE.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, 0.5, 0), balM(HILO_VS, HILO_FS, { blending: THREE.AdditiveBlending, side: THREE.DoubleSide }), 3);
-  // (el cristal: dos pirámides de seis caras unidas por la base, con cada triángulo suelto para marcar sus aristas)
-  const crisG = new THREE.BufferGeometry(), cp = [], bary = [];
-  for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, b = a + Math.PI / 3, A = [Math.cos(a), 0, Math.sin(a)], B = [Math.cos(b), 0, Math.sin(b)];
-    cp.push(...A, 0, 1, 0, ...B, ...B, 0, -1, 0, ...A); bary.push(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1); }
-  crisG.setAttribute('position', new THREE.Float32BufferAttribute(cp, 3)); crisG.setAttribute('bary', new THREE.Float32BufferAttribute(bary, 3)); crisG.computeVertexNormals();
-  const cristal = pieza(crisG, balM(CRISTAL_VS, CRISTAL_FS, {}), 5);
-  const orbita = pieza(new THREE.PlaneGeometry(2, 2).rotateX(-Math.PI / 2), balM(MIRA_VS, ORBITA_FS, { blending: THREE.AdditiveBlending, side: THREE.DoubleSide }), 6);
+  // (la sombra, siempre encima del relieve; la cabeza, un disco de cara a la cámara: PIN_VS)
+  const mira = pieza(new THREE.PlaneGeometry(2.6, 2.6).rotateX(-Math.PI / 2), balM(MIRA_VS, MIRA_FS, { depthTest: false }), 3);
+  const hilo = pieza(new THREE.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, 0.5, 0), balM(HILO_VS, HILO_FS, { side: THREE.DoubleSide }), 3);
+  const pinG = new THREE.PlaneGeometry(2, 2), aTip = new THREE.InstancedBufferAttribute(new Float32Array(NT * 2), 2);
+  T.forEach((x, i) => aTip.setXY(i, x.tipo, x.state === 'ok' ? 2 : x.state === 'go' ? 1 : 0)); pinG.setAttribute('aTip', aTip);
+  const cristal = pieza(pinG, balM(PIN_VS, PIN_FS, {}), 5);
   const haloG = new THREE.BufferGeometry(), haloP = new THREE.BufferAttribute(new Float32Array(NT * 3), 3).setUsage(THREE.DynamicDrawUsage), haloS = new THREE.BufferAttribute(new Float32Array(NT), 1).setUsage(THREE.DynamicDrawUsage);
   const haloI = new THREE.BufferAttribute(aInf.array, 4).setUsage(THREE.DynamicDrawUsage);
   haloG.setAttribute('position', haloP); haloG.setAttribute('aS', haloS); haloG.setAttribute('aCol', new THREE.BufferAttribute(aCol.array, 3)); haloG.setAttribute('aInf', haloI); geos.push(haloG);
   const halo = new THREE.Points(haloG, balM(HALO_VS, HALO_FS, { blending: THREE.AdditiveBlending })); halo.frustumCulled = false; halo.renderOrder = 4; scene.add(halo);
-  const BM = new THREE.Matrix4(), BV = new THREE.Vector3(), BS = new THREE.Vector3(), BQ = new THREE.Quaternion(), Q0 = new THREE.Quaternion(), ARRIBA = new THREE.Vector3(0, 1, 0), BE = new THREE.Euler();
+  const BM = new THREE.Matrix4(), BV = new THREE.Vector3(), BS = new THREE.Vector3(), Q0 = new THREE.Quaternion();
   const tById = new Map(T.map(t => [t.id, t]));
   const TR = T.filter(t => MAPA_IDS.includes(t.id));   // (los que tienen su trazado de verdad: a esos se puede uno acercar mucho más)
 
@@ -727,6 +726,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     return null;
   }
   let hover = null, sel = null;
+  // (una colección en el mapa: la naturaleza, los escudos, los personajes o los torneos, cada cosa en su sitio. Mientras,
+  // tocar no vuela ni abre fichas: se le dice a quien la pinta, inicio.js, qué pueblo o qué comarca se ha tocado)
+  let COL = null;
   // Un dedo (o el ratón) agarra el mapa: el punto tocado se queda bajo el dedo. Se mide con la cámara de cuando se tocó: con la
   // de cada imagen, varios movimientos del dedo entre imagen e imagen sumaban el arrastre dos veces y el mapa daba saltos. Al
   // soltar, sigue un poco y frena. Dos dedos: pellizcar acerca o aleja hacia el punto de entre los dedos, que se queda debajo
@@ -785,6 +787,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     }
     if (e.type !== 'pointerup' || era.movido || era.rot) return;
     const q = quien(e);
+    if (COL?.toque) { COL.toque(q?.t ? { town: q.t } : q?.c ? { comarca: q.c } : null); return; }
     if (q?.t) irPueblo(q.t);
     else if (q?.c) { if (elegido && q.c === sel) cierraPueblo(); else select(q.c); }   // (con un pueblo elegido, tocar su comarca solo cierra su ficha)
     else select(null);
@@ -966,6 +969,27 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     const d = base.d * 0.4, pitch = 0.74 + 0.04 * Math.sin(p.t * 0.21), yaw = 0.12 * Math.sin(p.t * 0.09);
     goal.x = mezcla(base.x, q.x, k); goal.z = mezcla(base.z, q.z, k); goal.d = Math.exp(mezcla(Math.log(base.d), Math.log(d), k));
     goal.pitch = mezcla(base.pitch, pitch, k); goal.yaw = mezcla(base.yaw, yaw, k);
+  }
+  // ---------- una colección en el mapa ----------
+  // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
+  // pueblos con su chincheta | null, toque({ town } | { comarca } | null) }; null la quita. Los marcadores (el) son nombres
+  // más del mapa: se colocan cada imagen sin pisarse con nada
+  function coleccion(cfg) {
+    if (COL) for (const it of COL.items) it.el.remove();
+    if (!cfg) { COL = null; host.classList.remove('con-col'); return; }
+    if (sel) select(null, false); cierraPueblo();
+    COL = { ...cfg, items: cfg.items.map(it => ({ ...it, t: it.town ? tById.get(it.town) : null, c: it.comarca ? byId.get(it.comarca) : null })).filter(it => it.t || it.c) };
+    for (const it of COL.items) { it.el.classList.add('fuera'); capa.append(it.el); }
+    host.classList.add('con-col');
+  }
+  // (la cámara, para que se vea todo lo de una cosa: sus comarcas enteras o sus pueblos; sin nada, toda Navarra)
+  function encuadra({ comarcas = [], towns = [] } = {}) {
+    const esq = [];
+    for (const id of comarcas) { const c = byId.get(id); if (c) esq.push(...c.esq); }
+    for (const id of towns) { const t = tById.get(id); if (t) for (const [a, b] of [[-3, -3], [3, 3]]) esq.push(new THREE.Vector3(t.X + a, 0, t.Z + b)); }
+    if (!esq.length) return vista();
+    const mx = esq.reduce((a, q) => a + q.x, 0) / esq.length, mz = esq.reduce((a, q) => a + q.z, 0) / esq.length;
+    volar({ x: mx, z: mz, d: Math.max(22, encaja(esq, mx, mz, 0.95, 1)), yaw: 0, pitch: 0.95 });
   }
   // ---------- elegir una comarca: vuela hasta ella y se levanta ----------
   function select(id, fly = true) {
@@ -1443,7 +1467,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       c.hov += ((hover === 'c:' + c.id ? 1 : 0) - c.hov) * (1 - Math.exp(-dt * 12));
       // (con otra elegida, pasa al fondo: más baja, casi sin color y más oscura bajo una bruma de piedra templada, y su agua y
       // su borde casi no se ven; la elegida, más viva. Antes las demás apenas cambiaban y no se distinguía cuál era)
-      c.fondo += ((sel && sel !== c.id ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6 * velC));
+      c.fondo += (((sel && sel !== c.id) || (COL?.resalta && !COL.resalta.has(c.id)) ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6 * velC));   // (con una colección, las que no tienen lo elegido, también)
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
@@ -1481,28 +1505,28 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // (y la niebla de lo lejano: de lejos, del color del fondo, donde Navarra flota; de cerca, una bruma clara, como la del
     // aire sobre el monte, y no el azul casi negro del fondo)
     scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
-    // (las balizas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen el
-    // pueblo; el cristal flota y gira)
+    // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
+    // el pueblo)
     // (a media distancia, no menos de 0,42, para que se lean; dentro de la maqueta, diminutas)
     const lejos = v.d < 1.4 ? 0.035 * (v.d / 1.4) ** 1.5 : Math.min(1.7, Math.max(v.d / 45, Math.min(0.42, 0.035 + (v.d - 1.4) * 0.2)));
     UT.value = t; UESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
     T.forEach((x, i) => {
       const nace = ease(intro ? rampa(tI, IT.pines + x.c.d * 0.4, IT.pines + x.c.d * 0.4 + 0.5) : Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
       // (con una comarca elegida, solo quedan las suyas: las demás se encogen hasta desaparecer)
-      x.k += ((sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));
+      x.k += ((COL ? (COL.pines?.has(x.id) ? 1 : 0) : sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));   // (con una colección, solo las de sus pueblos)
       // (señalada, crece y brilla; elegida, la mira lo fija)
       x.sen += ((hover === 't:' + x.id ? 1 : 0) - x.sen) * (1 - Math.exp(-dt * 10)); x.fija += ((elegido === x ? 1 : 0) - x.fija) * (1 - Math.exp(-dt * 6));
       const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
-      const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), bob = Math.sin(t * 2.2 + x.ph) * 0.08, cy = gy + s * (CRISTAL_Y + bob);
-      x.g.scale.setScalar(s);   // (la bola, lo que se toca y donde se ancla la ficha, se queda quieta: la ficha no se mece con el cristal)
-      mira.setMatrixAt(i, BM.compose(BV.set(x.X, gy + 0.02, x.Z), Q0, BS.set(s * 0.85, 1, s * 0.85)));
-      hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.06, s * (CRISTAL_Y - 0.6 + bob), s * 0.06)));
-      cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), BQ.setFromAxisAngle(ARRIBA, t * 0.9 + x.ph), BS.set(s * 0.38, s * 0.64, s * 0.38)));
-      orbita.setMatrixAt(i, BM.compose(BV, BQ.setFromEuler(BE.set(0.95, t * 0.5 + x.ph, 0.35, 'YXZ')), BS.set(s * 0.62, 1, s * 0.62)));
-      haloP.setXYZ(i, x.X, cy, x.Z); haloS.setX(i, s * 2.3); aInf.setXYZW(i, x.ph + (x.here ? 10 : 0), x.lleno, x.sen, x.fija);
+      // (la chincheta, quieta: ni gira ni se mece)
+      const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y;
+      x.g.scale.setScalar(s);   // (la bola: lo que se toca y donde se ancla la ficha)
+      mira.setMatrixAt(i, BM.compose(BV.set(x.X, gy + 0.02, x.Z), Q0, BS.set(s * 0.85 * x.kt, 1, s * 0.85 * x.kt)));
+      hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.045, s * (CRISTAL_Y - 0.2), s * 0.045)));
+      cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), Q0, BS.setScalar(s * 0.5 * x.kt)));
+      haloP.setXYZ(i, x.X, cy, x.Z); haloS.setX(i, x.here || x.state === 'go' ? s * 1.8 * x.kt : 0); aInf.setXYZW(i, x.ph + (x.here ? 10 : 0), x.lleno, x.sen, x.fija);
       if (x.haz) { const kh = Math.min(1, lejos); x.haz.scale.set(kh, Math.max(0.01, nace * kh), kh); x.haz.position.y = gy + 6 * nace * kh; hazM.opacity = (0.4 + Math.sin(t * 2.4) * 0.12) * nace * x.k; }
     });
-    for (const a of [mira.instanceMatrix, hilo.instanceMatrix, cristal.instanceMatrix, orbita.instanceMatrix, aInf, haloP, haloS, haloI]) a.needsUpdate = true;
+    for (const a of [mira.instanceMatrix, hilo.instanceMatrix, cristal.instanceMatrix, aInf, haloP, haloS, haloI]) a.needsUpdate = true;
     // (los fragmentos y el polvo de la entrada; cuando ya no queda ninguno, se quitan)
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
@@ -1524,15 +1548,19 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // elegida, solo los suyos; sin elegir, de lejos solo las comarcas (y el pueblo donde estás), y al acercarse, lo demás
     if (now - tapas.t > 400) medirTapas(now);
     const cerca = v.d < 46, ocupado = tapas.r.slice(), lista = [];
-    for (const x of T) { const on = sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id;
+    // (con una colección, sus marcadores primero, y fuera los nombres de pueblos, comarcas, ríos y montes: ya los dicen ellos)
+    if (COL) for (const it of COL.items) { const x = it.t, c = it.c;
+      if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);
+      else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
+    for (const x of T) { const on = !COL && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
       lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on, x.g.position.y]); }
-    for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !sel || sel === c.id]);
-    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, sel ? x.c?.id === sel : v.d < 55]);
+    for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !COL && (!sel || sel === c.id)]);
+    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
-    for (const x of PK) { const y = x.c ? x.h * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
+    for (const x of PK) { const y = x.c ? x.h * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
-    { const on = !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
+    { const on = !COL && !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
       if (!canSvg.isConnected) { capa.prepend(canSvg); capa.append(rebano); }
       canSvg.style.display = on ? '' : 'none';
       if (on) { let pts = ''; for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam); if (pv.z < 1) pts += `${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; }
@@ -1596,5 +1624,5 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }
-  return { select, vista, dispose, volar: irPueblo, cierraPueblo };
+  return { select, vista, dispose, volar: irPueblo, cierraPueblo, coleccion, encuadra };
 }

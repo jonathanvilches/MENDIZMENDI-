@@ -1,59 +1,72 @@
-// El mapa 3D del inicio (hub/mapa3d.js), los sombreadores: la baliza de cada pueblo, el borde de las comarcas y el
+// El mapa 3D del inicio (hub/mapa3d.js), los sombreadores: la chincheta de cada pueblo, el borde de las comarcas y el
 // color del relieve como en los mapas físicos.
 import { CX, CY, S } from './mapa3dFormas.js';
 
-// ---------- la baliza de cada pueblo ----------
-// Una baliza holográfica: en el suelo, una mira que se proyecta sobre el terreno (un anillo de trazos que gira, un círculo
-// fino, cuatro marcas que giran al revés y una onda que se abre); un hilo de luz que sube; y arriba, flotando y girando, un
-// cristal tallado de seis caras que se llena de luz con las misiones hechas, con su halo y una órbita inclinada por la que
-// corre un punto de luz (dos, en los sellados). Cian y hueco por descubrir, fucsia y a medias
-// empezado, dorado y lleno sellado: de frío a caliente. De lejos, la mira se simplifica (un anillo y su onda) para que no
-// titile. Al señalarla, la mira gira más deprisa y todo brilla más; al elegir el pueblo, cuatro
-// esquinas se cierran sobre él, como al fijar un blanco. En el pueblo donde estás, dos ondas. Cada pieza, un solo dibujo
-// para todos los pueblos (aCol: su color; aInf: su fase, más 10 en el pueblo donde estás, lo lleno, lo señalado y lo elegido)
-export const BALIZA = { '': '#4fe0ff', go: '#ff3fd8', ok: '#ffc640' }, CRISTAL_Y = 1.3;
+// ---------- la chincheta de cada pueblo ----------
+// Cada pueblo, una chincheta quieta: en el suelo, su sombra; un palito oscuro; y arriba, la cabeza, un disco siempre de
+// cara a la cámara con el borde oscuro. Antes era una baliza holográfica cian que giraba y se confundía con los ríos, que
+// son cian. Al señalarla, crece y brilla; al elegirla, un aro blanco en el suelo y otro en la cabeza; en el pueblo donde
+// estás, un pulso rosa en el suelo y el haz de luz. Cada pieza, un solo dibujo para todos los pueblos (aCol: su color;
+// aInf: su fase, más 10 en el pueblo donde estás, lo hecho, lo señalado y lo elegido; aTip: si es pueblo, ciudad o zona de
+// naturaleza, y su estado)
+// (los pueblos del mapa, en chinchetas: por descubrir, blancas; empezadas, magenta; selladas, doradas. Nada de cian, que
+// es el color de los ríos y se confundían con ellos)
+export const BALIZA = { '': '#ffffff', go: '#ff3fd8', ok: '#ffc640' }, CRISTAL_Y = 1.3;
 const BAL_VS = 'attribute vec3 aCol; attribute vec4 aInf; varying vec3 vCol; varying vec4 vInf;\n';
 export const MIRA_VS = BAL_VS + 'varying vec2 vP; void main() { vCol = aCol; vInf = aInf; vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }';
 export const MIRA_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec2 vP;
 float aro(float r, float a, float b, float w) { return smoothstep(a - w, a, r) * (1.0 - smoothstep(b, b + w, r)); }
 void main() {
+  // (en el suelo, solo la sombra que ancla la chincheta; al señalarla o elegirla, un aro blanco; en el pueblo donde estás,
+  // un pulso rosa que se abre despacio. Sin luces de colores sobre el relieve: se confundían con los ríos)
   float r = length(vP), w = fwidth(r) * 1.2 + 0.004, aqui = step(9.5, vInf.x), fase = vInf.x - 10.0 * aqui;
-  float an = atan(vP.y, vP.x) / 6.2831853 + 0.5, giro = uT * (0.06 + 0.3 * vInf.z) + fase, det = smoothstep(0.03, 0.012, fwidth(r));
-  float c = aro(r, 0.66, 0.76, w) * mix(0.55, step(0.32, fract(an * 18.0 + giro * 3.0)), det) + aro(r, 0.42, 0.45, w) * 0.5 * det;
-  float m = fract(an * 4.0 - giro * 1.5); c += det * aro(r, 0.84, 0.98, w) * (1.0 - smoothstep(0.04, 0.04 + fwidth(m) * 1.5, abs(m - 0.5)));
-  float p = fract(uT * (0.4 + 0.3 * aqui) + fase * 0.37), q = fract(p + 0.5);
-  c += aro(r, p - 0.04, p, w) * (1.0 - p) * 0.9 + aqui * aro(r, q - 0.04, q, w) * (1.0 - q) * 0.9 + exp(-r * r * 90.0) * 0.8;
-  float s = mix(1.28, 1.02, vInf.w); vec2 a2 = abs(vP); float mx = max(a2.x, a2.y);
-  c += step(0.01, vInf.w) * vInf.w * aro(mx, s - 0.06, s, w) * step(s - 0.34, min(a2.x, a2.y));
-  if (c < 0.004) discard;
-  gl_FragColor = vec4(mix(vCol, vec3(1.0), 0.2 * vInf.z), c * (0.7 + 0.5 * vInf.z));
+  float sombra = (1.0 - smoothstep(0.0, 0.34, r)) * 0.5;
+  float marca = aro(r, 0.5, 0.58, w) * max(vInf.z, vInf.w);
+  float p = fract(uT * 0.45 + fase * 0.37), pulso = aqui * aro(r, p * 0.95 - 0.05, p * 0.95, w) * (1.0 - p);
+  float a = max(sombra * (1.0 - marca), max(marca, pulso));
+  if (a < 0.004) discard;
+  vec3 col = mix(vec3(0.05, 0.02, 0.12), vec3(1.0), step(0.001, marca));
+  col = mix(col, vec3(1.0, 0.25, 0.85), step(sombra * (1.0 - marca) + marca, pulso));
+  gl_FragColor = vec4(col, a);
+}`;
+// la cabeza de la chincheta: un disco siempre de cara a la cámara, quieto, con su borde oscuro para que se lea sobre
+// cualquier color del mapa y del color de su estado. aTip.x: 0 pueblo, 1 ciudad, 2 zona de naturaleza; aTip.y: 0 por
+// descubrir (blanca con su punto morado; las ciudades, con diana; las zonas, con el punto verde), 1 empezada (magenta, con
+// lo que lleva hecho en un arco blanco alrededor), 2 sellada (dorada con la marca verde, como en todo el juego)
+export const PIN_VS = BAL_VS + `attribute vec2 aTip; varying vec2 vP; varying vec2 vTip;
+void main() { vCol = aCol; vInf = aInf; vTip = aTip; vP = position.xy * 1.3;
+  vec4 c = modelViewMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0); float s = length(instanceMatrix[0].xyz);
+  c.xy += position.xy * s * 1.3; gl_Position = projectionMatrix * c; }`;
+export const PIN_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec2 vP; varying vec2 vTip;
+float disco(float r, float R, float w) { return 1.0 - smoothstep(R - w, R, r); }
+float seg(vec2 p, vec2 a, vec2 b) { vec2 pa = p - a, ba = b - a; return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0)); }
+void main() {
+  float r = length(vP), w = fwidth(r) * 1.3 + 0.01, est = vTip.y, tipo = vTip.x;
+  vec3 oscuro = vec3(0.07, 0.03, 0.16), morado = vec3(0.30, 0.13, 0.55), verde = vec3(0.08, 0.54, 0.25);
+  float borde = disco(r, 1.0, w), relleno = disco(r, 0.8, w);
+  vec3 col = mix(oscuro, vCol * (1.0 + 0.15 * vInf.z), relleno);
+  if (est < 0.5) {
+    float punto = disco(r, tipo > 0.5 && tipo < 1.5 ? 0.42 : 0.3, w);
+    col = mix(col, tipo > 1.5 ? verde : morado, punto);
+    col = mix(col, vec3(1.0), tipo > 0.5 && tipo < 1.5 ? disco(r, 0.16, w) : 0.0);
+  } else if (est < 1.5) {
+    col = mix(col, vec3(1.0), disco(r, 0.26, w));
+    float an = fract(0.25 - atan(vP.y, vP.x) / 6.2831853);
+    col = mix(col, vec3(1.0), step(an, vInf.y) * smoothstep(0.8, 0.84, r) * (1.0 - smoothstep(0.95, 0.99, r)));
+  } else {
+    float d = min(seg(vP, vec2(-0.36, 0.0), vec2(-0.1, -0.27)), seg(vP, vec2(-0.1, -0.27), vec2(0.38, 0.26)));
+    col = mix(col, verde, 1.0 - smoothstep(0.1, 0.1 + w, d));
+  }
+  // (elegida, un aro blanco por fuera; y una sombra suave debajo, que la despega del relieve)
+  float fuera = vInf.w * smoothstep(1.06 - w, 1.06, r) * (1.0 - smoothstep(1.2, 1.2 + w, r));
+  float sombra = disco(length(vP - vec2(0.0, -0.1)), 1.12, 0.22) * 0.4;
+  col = mix(col, vec3(1.0), fuera);
+  float a = max(max(borde, fuera), sombra);
+  if (a < 0.004) discard;
+  gl_FragColor = vec4(mix(oscuro, col, max(borde, fuera) / a), a);
 }`;
 export const HILO_VS = BAL_VS + 'varying float vY; void main() { vCol = aCol; vInf = aInf; vY = position.y; gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0); }';
-export const HILO_FS = 'uniform float uT; varying vec3 vCol; varying vec4 vInf; varying float vY; void main() { float a = (1.0 - vY * 0.7) * (0.35 + 0.65 * step(0.45, fract(vY * 4.0 - uT * 1.6 + vInf.x))); gl_FragColor = vec4(vCol, a * (0.7 + 0.3 * vInf.z)); }';
-export const CRISTAL_VS = BAL_VS + `attribute vec3 bary; varying vec3 vB, vN, vV, vL;
-void main() { vCol = aCol; vInf = aInf; vB = bary; vL = position;
-  vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vN = normalize(mat3(modelMatrix * instanceMatrix) * normal); vV = normalize(cameraPosition - w.xyz);
-  gl_Position = projectionMatrix * viewMatrix * w; }`;
-export const CRISTAL_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec3 vB, vN, vV, vL;
-void main() {
-  float e = min(vB.x, min(vB.y, vB.z)), borde = 1.0 - smoothstep(0.0, fwidth(e) * 1.5 + 0.03, e);
-  vec3 n = normalize(vN); float fres = pow(1.0 - abs(dot(n, normalize(vV))), 2.0), luz = 0.55 + 0.45 * max(0.0, dot(n, normalize(vec3(-0.5, 0.8, -0.35))));
-  // (lo lleno, de abajo arriba, con la superficie ondulando como un líquido de luz)
-  float medio = step(0.01, vInf.y) * step(vInf.y, 0.99), nivel = -1.0 + 2.0 * vInf.y + medio * 0.07 * sin(vL.x * 7.0 + vL.z * 5.0 + uT * 3.0);
-  float lleno = 1.0 - smoothstep(nivel - 0.02, nivel + 0.02, vL.y), sup = medio * (1.0 - smoothstep(0.0, 0.06, abs(vL.y - nivel)));
-  vec3 col = vCol * (lleno * luz * 0.85 + fres * 0.6 + borde * 1.1) + vec3(1.0) * (borde * 0.3 + sup * 0.7 + lleno * fres * fres * 0.25);
-  gl_FragColor = vec4(col * (1.0 + 0.4 * vInf.z), clamp(max(lleno * 0.95, 0.28 + fres * 0.45) + borde + sup, 0.0, 1.0));
-}`;
-// (la órbita: un anillo fino a trazos, con uno o dos puntos de luz que corren por él)
-export const ORBITA_FS = `uniform float uT; varying vec3 vCol; varying vec4 vInf; varying vec2 vP;
-void main() {
-  float r = length(vP), w = fwidth(r) * 1.2 + 0.01, an = atan(vP.y, vP.x) / 6.2831853 + 0.5, dos = step(0.999, vInf.y);
-  float c = smoothstep(0.84 - w, 0.84, r) * (1.0 - smoothstep(0.9, 0.9 + w, r)) * (0.35 + 0.4 * step(0.5, fract(an * 3.0 + uT * 0.2)));
-  float d = abs(fract(an - uT * 0.35 - vInf.x) - 0.5), d2 = abs(fract(an - uT * 0.35 - vInf.x + 0.5) - 0.5);
-  c += exp(-pow((r - 0.87) * 9.0, 2.0)) * (exp(-pow((0.5 - d) * 40.0, 2.0)) + dos * exp(-pow((0.5 - d2) * 40.0, 2.0))) * 1.6;
-  if (c < 0.004) discard;
-  gl_FragColor = vec4(mix(vCol, vec3(1.0), 0.3), c * (0.75 + 0.4 * vInf.z));
-}`;
+export const HILO_FS = 'varying vec3 vCol; varying vec4 vInf; varying float vY; void main() { gl_FragColor = vec4(0.06, 0.03, 0.14, 0.55 + 0.35 * vY); }';   // (el palito de la chincheta, oscuro)
 export const HALO_VS = BAL_VS + 'attribute float aS; uniform float uEsc; void main() { vCol = aCol; vInf = aInf; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aS * uEsc / -mv.z; }';
 export const HALO_FS = 'varying vec3 vCol; varying vec4 vInf; void main() { float r = length(gl_PointCoord - 0.5) * 2.0; if (r > 1.0) discard; gl_FragColor = vec4(vCol, (1.0 - r) * (1.0 - r) * (0.3 + 0.25 * vInf.z)); }';
 // (el borde de cada comarca, y su panza: una losa limpia, como una pieza de cristal oscuro, del morado del juego con el

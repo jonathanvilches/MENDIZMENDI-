@@ -490,3 +490,85 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
   .ex-mini img, .ex-mini i { width: 28px; height: 28px; }
   .ex-go { min-height: 42px; font-size: var(--fs-md); } .ex-pin { width: 42px; min-height: 42px; } .ex-ver { min-height: 40px; }
 }
+
+/* ---------- las colecciones en el mapa (inicio.js, modoColeccion): la naturaleza, los escudos, los personajes y los torneos.
+   Arriba, su cabecera; abajo, sus tarjetas en lugar de las comarcas; en el mapa, cada sitio con lo suyo ---------- */
+.m3d.con-col :is(.m3-tot, .m3-mision, .m3-rail, .m3-ayuda, .m3-cb, .m3-ft) { display: none !important; }
+.m3-col[hidden], .m3-crail[hidden] { display: none; }
+.m3-col { position: absolute; z-index: 4; left: 16px; top: var(--hud); max-width: min(560px, calc(100% - 120px - var(--sr, 0px))); display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; column-gap: 10px; row-gap: 8px;
+  padding: 8px 8px 8px 16px; border-radius: 18px; background: rgba(16, 6, 40, .72); border: 1px solid var(--line2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 24px rgba(4, 1, 12, .4); animation: m3-aparece .35s ease-out both; }
+.mc-tt { display: grid; gap: 4px; min-width: 0; overflow: hidden; }
+.mc-tt small { display: flex; align-items: center; gap: 6px; color: #ffb1e3; font: 600 11px/1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
+.mc-tt small :is(svg, img) { width: 16px; height: 16px; }
+.mc-tt b { color: #fff; font: 400 var(--fs-lg)/1.05 var(--f-display); white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
+.mc-n { color: #fff; font: 800 var(--fs-md)/1 'MZ Texto', sans-serif; white-space: nowrap; } .mc-n small { color: var(--mute); font-weight: 700; }
+.mc-b { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(255, 255, 255, .06); color: #fff; font: 800 var(--fs-sm)/1 'MZ Texto', sans-serif; cursor: pointer; }
+.mc-b :is(svg, img) { width: 20px; height: 20px; flex: none; } .mc-b:hover { background: rgba(255, 255, 255, .14); }
+.mc-x { width: 40px; padding: 0; justify-content: center; }
+.mc-tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.mc-tabs button { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .05); color: var(--mute); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; cursor: pointer; }
+.mc-tabs button.on { background: linear-gradient(135deg, #ff3fcf, #9c3bff); border-color: transparent; color: #fff; }
+.mc-lugar { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px 0 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .12); color: #fff; font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; cursor: pointer; }
+.mc-lugar :is(svg, img) { width: 16px; height: 16px; flex: none; }
+/* (las tarjetas de abajo, como las de las comarcas: la imagen arriba y el nombre debajo) */
+.m3-crail { --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; scroll-snap-type: x proximity; }
+.m3-crail::-webkit-scrollbar { display: none; }
+.m3-crail { align-items: flex-end; }
+.m3d .mc-t :is(b, small) { display: block; white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }   /* (en una línea siempre: en el móvil, otra regla los partía y las tarjetas crecían) */
+.mc-c { position: relative; flex: none; width: var(--chw); scroll-snap-align: start; display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
+  background: linear-gradient(135deg, rgba(255, 255, 255, .32) 0%, rgba(255, 255, 255, .08) 50%, rgba(255, 255, 255, .2) 100%);
+  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); filter: drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); transition: transform .2s; }
+.mc-c:hover, .mc-c:focus-visible { transform: translateY(-3px); }
+.mc-f { position: relative; display: grid; place-items: center; height: var(--chh); overflow: hidden; background: #1a0c33; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); }
+.mc-f > img { width: 100%; height: 100%; object-fit: cover; }
+.mc-f > svg { width: 44px; height: 44px; opacity: .9; }
+.mc-c.bloq .mc-f > :is(img, svg) { filter: brightness(.22) saturate(0) blur(3px); }
+.mc-candado { position: absolute; inset: 0; margin: auto; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: rgba(13, 6, 28, .78); border: 1px solid rgba(255, 255, 255, .22); }
+.mc-candado :is(svg, img) { width: 60%; height: 60%; }
+.mc-t { display: grid; gap: 3px; padding: 6px 8px 8px; background: rgba(16, 6, 40, .88); min-width: 0; }
+.mc-t b { color: #fff; font: 800 var(--fs-sm)/1.15 'MZ Texto', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-t small { color: var(--mute); font: 700 var(--fs-xs)/1.2 'MZ Texto', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-c.bloq .mc-t b { color: var(--mute); letter-spacing: .08em; }
+.mc-c.on { background: linear-gradient(135deg, #fff 0%, #ff9fe0 22%, rgba(255, 255, 255, .25) 55%, #ff7ac8 100%); filter: drop-shadow(0 0 12px rgba(255, 63, 207, .45)) drop-shadow(0 6px 14px rgba(4, 1, 12, .45)); }
+.mc-ver { position: absolute; left: 8px; right: 8px; top: calc(var(--chh) - 40px); display: flex; align-items: center; justify-content: center; gap: 6px; height: 32px; border-radius: 999px; background: linear-gradient(135deg, #ff3fcf, #9c3bff); color: #fff; font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; box-shadow: 0 4px 12px rgba(4, 1, 12, .5); animation: m3-aparece .25s ease-out both; }
+.mc-ver :is(svg, img) { width: 16px; height: 16px; flex: none; }
+.mc-vacio { margin: auto; padding: 12px 18px; border-radius: 999px; background: rgba(16, 6, 40, .8); color: var(--mute); font: 700 var(--fs-sm)/1.2 'MZ Texto', sans-serif; }
+/* (los marcadores del mapa: el sitio, sus imágenes y cuántas son, con un piquito hacia su sitio) */
+.m3-cm { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; white-space: nowrap; display: flex; align-items: center; gap: 6px; margin-top: -10px; padding: 3px 10px 3px 3px; border-radius: 999px;
+  background: rgba(13, 4, 32, .86); border: 1px solid rgba(255, 255, 255, .22); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; box-shadow: 0 4px 12px rgba(4, 1, 12, .45); transition: opacity .2s; }
+.m3-cm::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: rgba(13, 4, 32, .86); border: solid rgba(255, 255, 255, .22); border-width: 0 1px 1px 0; }
+.m3-cm.abajo { margin-top: 10px; } .m3-cm.abajo::after { top: -6px; bottom: auto; border-width: 1px 0 0 1px; }
+.cm-fs { display: flex; }
+.cm-f { width: 24px; height: 24px; flex: none; border-radius: 50%; object-fit: cover; border: 2px solid rgba(13, 4, 32, .9); background: #2a1650; display: grid; place-items: center; }
+.cm-fs > .cm-f + .cm-f { margin-left: -9px; }
+.cm-f :is(svg, img) { width: 14px; height: 14px; }
+.cm-n { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #ff3fcf, #9c3bff); font: 800 11px/1 'MZ Texto', sans-serif; font-style: normal; }
+.m3-cm.sel { border-color: #fff; box-shadow: 0 0 0 2px rgba(255, 63, 207, .6), 0 6px 16px rgba(4, 1, 12, .5); font-size: var(--fs-sm); }
+.m3-cm.sel .cm-f { width: 32px; height: 32px; }
+.m3-capa > .m3-cm.apag:not(.fuera) { opacity: .42; }
+@media (max-height: 520px) {
+  .m3-col { left: 8px; top: 8px; padding: 6px 6px 6px 12px; column-gap: 8px; row-gap: 6px; border-radius: 14px; max-width: calc(100% - 96px - var(--sr, 0px)); }
+  .mc-tt b { font-size: var(--fs-md); } .mc-b { height: 34px; padding: 0 10px; } .mc-x { width: 34px; padding: 0; } .mc-b span { display: none; } .mc-b:not(.mc-x) { width: 34px; padding: 0; justify-content: center; }
+  .mc-tabs button { height: 28px; padding: 0 10px; }
+  .m3-crail { left: 8px; right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 8px; padding: 2px; --k: 8px; }
+  .mc-t { padding: 4px 6px 6px; } .mc-ver { height: 28px; top: calc(var(--chh) - 34px); }
+}
+@media (max-width: 640px) { .m3-col { left: 8px; right: 8px; max-width: none; } .m3-crail { left: 8px; right: 8px; } .m3-col .mc-b span { display: none; } .m3-col .mc-b { width: 40px; padding: 0; justify-content: center; } }
+/* (jugando, en la fila de arriba, tras tu retrato, como lo conquistado; y las tarjetas, en los márgenes del HUD) */
+#hub.juego .m3d .m3-col { top: var(--hud-t); left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); max-width: min(600px, calc(100% - var(--hud-l) - var(--menuw, var(--hud-h)) - var(--hud-g) - 80px)); }
+#hub.juego .m3d .m3-crail { left: var(--hud-l); bottom: var(--hud-b); right: calc(var(--hud-r) + var(--sr, 0px)); }
+/* (en el móvil tumbado, todo en una fila: el título, cuántas, las pestañas que se deslizan y los botones; y las tarjetas,
+   bajas, con la imagen a un lado: así queda casi todo el mapa a la vista) */
+@media (max-height: 520px) {
+  #hub.juego .m3d .m3-col { grid-template-columns: auto auto minmax(0, 1fr) auto auto; padding: 4px 4px 4px 12px; min-height: var(--hud-h); }
+  .m3-col .mc-tt small { display: none; } .m3-col .mc-tt b { font-size: var(--fs-sm); max-width: 150px; }
+  .m3-col .mc-tabs { grid-column: 3; grid-row: 1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .m3-col .mc-tabs::-webkit-scrollbar { display: none; }
+  .m3-col .mc-tabs button { flex: none; }
+  .m3-col > .mc-tt { grid-area: 1 / 1; } .m3-col > .mc-n { grid-area: 1 / 2; } .m3-col > .mc-b:not(.mc-x) { grid-area: 1 / 4; } .m3-col > .mc-x { grid-area: 1 / 5; } .m3-col .mc-lugar { grid-row: 2; }
+  .mc-c { width: 196px; grid-template-columns: 64px minmax(0, 1fr); grid-template-rows: 60px; gap: 0; }
+  .mc-c .mc-f { height: 60px; } .mc-c .mc-f > svg { width: 32px; height: 32px; } .mc-candado { width: 30px; height: 30px; }
+  .mc-c .mc-t { align-content: center; padding: 4px 12px 4px 8px; }
+  .mc-ver { left: 70px; right: 10px; top: auto; bottom: 5px; height: 26px; }
+  .mc-c.on .mc-t small { visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) { .m3-col, .mc-ver { animation: none; } }

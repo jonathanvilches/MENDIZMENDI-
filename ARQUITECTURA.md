@@ -687,6 +687,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   otra vez su cuadrado, y tocando el texto se abre el cuaderno. Nunca se despliega sola: al cambiar lo que toca hacer,
   solo late su cuadrado y sale el aviso de abajo. En la aventura de Otsagabia, que tiene un solo icono redondo y no
   cuadrados, sigue a la vista el icono con lo que hay que hacer y las cintas: plegada, quedaba un icono suelto sin sentido.
+- **Chinchetas en el mapa del inicio** (`mapa3dSombreadores.js`, `PIN_VS`, `PIN_FS`, `MIRA_FS`; `mapa3d.js`; noviembre de
+  2026): los pueblos eran balizas holográficas cian con un cristal que giraba, y se confundían con los ríos, que son cian.
+  Ahora cada pueblo es una chincheta quieta: una sombra en el suelo, un palito oscuro y una cabeza de cara a la cámara con
+  el borde oscuro. Por descubrir, blanca con su punto morado; empezada, magenta con lo hecho en un arco; sellada, dorada
+  con la marca verde. Las ciudades, más grandes y con diana; las zonas de naturaleza, con el punto verde. Los ríos no se
+  tocan.
+- **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en
+  `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos, Personajes o Torneos desde el menú del juego, en lugar
+  de su ventana se queda el mapa con su colección. Arriba, su cabecera con cuántas llevas, sus pestañas, «Lista» (la
+  pantalla de siempre) y cerrar; abajo, sus tarjetas en lugar de las comarcas; y en el mapa, cada sitio con lo suyo: las
+  especies en sus comarcas; los escudos, los personajes, las figuras de leyenda y de carnaval y los frontones en sus
+  pueblos. Tocar una tarjeta enseña dónde está, con sus comarcas en primer plano y la cámara encima; tocarla otra vez abre
+  su ficha o el partido. Tocar un sitio deja abajo solo lo suyo. Lo bloqueado sale con su candado y su pista. El hub
+  sigue con `data-screen="home"` y la colección en `data-col`, así el mapa se pinta y vale todo lo del inicio. Lo que no
+  tiene sitio en el mapa solo sale en la lista. En el material didáctico, las pantallas de siempre.
 - **El torneo, sin nada cortado ni montado** (`torneoPanel` y su CSS en `game/torneo.js`; noviembre de 2026): en el iPhone
   tumbado, el cuadro de dieciséis se montaba encima de la barra y del frontón, las cartas se cortaban y el título se iba
   por arriba. Ahora, tumbado, la tarjeta ocupa todo el alto y la rejilla tiene tres zonas (`grid-template-areas`): la

@@ -15,6 +15,7 @@ import { mapa3d } from './mapa3d.js';
 import { sencillo, graficaFloja } from '../util/sencillo.js';
 import { isDidactico } from '../util/modo.js';
 import { releaseStage } from './stage.js';
+import { coleccionDe } from './coleccionMapa.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
 const comarca = (id) => COMARCAS.find(c => c.id === id);
@@ -80,6 +81,7 @@ function mapaHTML(p, items) {
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
       return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async"><span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
+    <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
     <div class="m3-cb" hidden></div><div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
 const estadoC = (p, c, r) => r.stamps === r.towns ? 'ok' : r.done || LEVELS.some(l => l.comarca === c.id && estado(p, l)) ? 'go' : '';
@@ -189,7 +191,7 @@ function mapaOn(root, p) {
     const k = `translate(${Math.round(l)}px, ${Math.round(t)}px)`;
     if (k !== ya || ficha.style.visibility) { ya = k; ficha.style.transform = k; ficha.style.visibility = ''; ficha.classList.add('fija'); }
   };
-  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
+  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, size: l.size, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
   const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: !DD && r.towns ? r.pct : 0, done: !DD && !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
   // (lo que tapa lo de encima: arriba, la fila del HUD (lo conquistado, la misión de ahora y el rótulo de la comarca); abajo,
   // las comarcas y, en el móvil de pie, la misión; y la ficha del pueblo, que deja el pueblo a su izquierda o, en el móvil de
@@ -197,10 +199,10 @@ function mapaOn(root, p) {
   let hu = null, huT = 0;
   const hueco = () => {
     const now = performance.now(); if (hu && now - huT < 250) return hu; huT = now;
-    const a = sec.getBoundingClientRect(), k = a.height / (sec.clientHeight || 1) || 1, R = sec.querySelector('.m3-rail');
+    const a = sec.getBoundingClientRect(), k = a.height / (sec.clientHeight || 1) || 1, R = sec.querySelector(sec.classList.contains('con-col') ? '.m3-crail' : '.m3-rail');
     let t = 0, r = 0, b = 0;
     if (R?.offsetParent) b = (a.bottom - R.getBoundingClientRect().top) / k + 8;
-    for (const e of [sec.querySelector('.m3-tot'), sec.querySelector('.m3-mision'), banda]) if (e && !e.hidden && e.offsetParent) {
+    for (const e of [sec.querySelector('.m3-tot'), sec.querySelector('.m3-mision'), banda, sec.querySelector('.m3-col')]) if (e && !e.hidden && e.offsetParent) {
       const q = e.getBoundingClientRect(); if (q.top < a.top + a.height * 0.5) t = Math.max(t, (q.bottom - a.top) / k + 8); else b = Math.max(b, (a.bottom - q.top) / k + 8);
     }
     if (!ficha.hidden) { if (a.width / k < ESTRECHA) b = Math.max(b, ficha.offsetHeight + 64 + 2 * m); else r = ficha.offsetWidth + padR() + 40 + m; }
@@ -226,9 +228,9 @@ function mapaOn(root, p) {
   const sin3d = () => { sec.classList.add('sin-3d'); abreEx(null); };
   const falla = () => { cierraMapa(); releaseStage(); if (++rehechos > 2) return sin3d(); setTimeout(() => { if (sec.isConnected) monta(); }, 400); };
   const monta = () => {
-    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
+    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-col, .m3-crail, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
     catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
-    if (!MAPA) sin3d();
+    if (!MAPA) sin3d(); else COLX?.pinta();
   };
   monta();
   // (lo que mide lo conquistado, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)
@@ -253,3 +255,100 @@ function mapaOn(root, p) {
 
 /** Lo que se mueve: el mapa 3D y lo que va encima. */
 export function inicioOn(root) { mapaOn(root, profile()); }
+
+// ---------- las colecciones en el mapa: la naturaleza, los escudos, los personajes y los torneos (coleccionMapa.js) ----------
+// Arriba a la izquierda, su cabecera: qué es, cuántas llevas descubiertas, sus pestañas y los botones de verla en lista y de
+// volver al mapa. Abajo, en lugar de las comarcas, sus tarjetas. Y en el mapa, cada sitio con lo suyo: su pueblo o su
+// comarca, con las imágenes de lo que hay allí y cuántas son. Al tocar una tarjeta, se ve dónde está (sus sitios, sus
+// comarcas en primer plano y la cámara encima) y sale su botón; al tocarla otra vez, su ficha o jugar. Al tocar un sitio del
+// mapa, abajo solo lo de ese sitio; al tocar fuera, todo otra vez. Lo que aún no has descubierto, con su candado y su pista
+let COLX = null;
+const X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const nombreLugar = (L) => L.town ? corto(levelById(L.town) || { name: L.town }) : comarca(L.comarca)?.name || '';
+/** Pone en el mapa del inicio una colección (kind: 'nature', 'escudos', 'personajes' o 'sports') o la quita (null).
+ *  ui: { sound, lista(), cierra(), jugar(accion) } */
+export function modoColeccion(kind, ui = {}) {
+  COLX?.fin(); COLX = null;
+  const sec = document.querySelector('#hMapa .m3d'), def = kind && coleccionDe(kind, { sound: ui.sound });
+  if (!sec || !def) return;
+  const cab = sec.querySelector('.m3-col'), rail = sec.querySelector('.m3-crail');
+  let tab = def.tabs?.[0]?.[0], lugar = null, elegido = null, cosas = def.cosas(tab);
+  const enLugar = (c) => !lugar || (lugar.town ? c.towns.includes(lugar.town) : c.comarcas.includes(lugar.comarca));
+  // (los sitios de una cosa: sus pueblos o, si no tiene, sus comarcas)
+  const sitios = (c) => c.towns.length ? c.towns.map(town => ({ town })) : c.comarcas.map(comarca => ({ comarca }));
+  const foto = (c, cls = '') => c.img && !c.locked ? `<img class="${cls}" src="${c.img}" alt="" loading="lazy" decoding="async">` : `<i class="${cls} cm-ic">${I(c.locked ? 'lock' : c.icon, 18)}</i>`;
+  const cabeza = () => {
+    const des = cosas.filter(c => !c.locked).length;
+    cab.innerHTML = `<span class="mc-tt"><small>${I(def.icon, 16)}${esc(def.kicker)}</small><b>${esc(def.titulo)}</b></span>
+      ${def.sinCandado ? '' : `<span class="mc-n">${des}<small>/${cosas.length}</small></span>`}
+      <button type="button" class="mc-b" data-collista title="Verlo en lista">${I('scroll', 20)}<span>Lista</span></button>
+      <button type="button" class="mc-b mc-x" data-colx aria-label="Volver al mapa" title="Volver al mapa">${X_SVG}</button>
+      ${def.tabs ? `<span class="mc-tabs">${def.tabs.map(([k, n]) => `<button type="button" data-coltab="${k}" class="${k === tab ? 'on' : ''}">${esc(n)}</button>`).join('')}</span>` : ''}
+      ${lugar ? `<button type="button" class="mc-lugar" data-collugar>${I('pin', 16)}<span>${esc(nombreLugar(lugar))}</span>${X_SVG}</button>` : ''}`;
+  };
+  const tarjetas = () => {
+    const L = cosas.filter(enLugar);
+    rail.innerHTML = L.length ? L.map(c => { const on = elegido === c.id;
+      return `<button type="button" class="mc-c${c.locked ? ' bloq' : ''}${on ? ' on' : ''}" data-colc="${esc(c.id)}" role="listitem">
+        <span class="mc-f">${c.img ? `<img src="${c.img}" alt="" loading="lazy" decoding="async">` : I(c.icon, 44)}${c.locked ? `<i class="mc-candado">${I('lock', 22)}</i>` : ''}</span>
+        <span class="mc-t"><b>${c.locked ? '¿?' : esc(c.name)}</b><small>${c.locked ? ['Por descubrir', ...sitios(c).map(nombreLugar)].map(esc).join(' · ').replace(/ · (.*)$/, (m, r) => ' · ' + r.replace(/ · /g, ', ')) : esc(c.sub)}</small></span>
+        ${on && !c.locked ? `<span class="mc-ver">${I(c.accion ? 'play' : 'book', 16)}<span>${esc(c.verbo)}</span></span>` : ''}</button>`; }).join('')
+      : '<p class="mc-vacio">Aquí no hay nada de esta colección.</p>';
+    rail.querySelector('.mc-c.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
+  };
+  // (los marcadores: un sitio, sus imágenes, hasta tres, y cuántas son; con una cosa elegida, solo los suyos)
+  const marcadores = () => {
+    if (!MAPA?.coleccion) return;
+    const el = elegido && cosas.find(c => c.id === elegido), grupos = new Map();
+    for (const c of el ? [el] : cosas) for (const L of sitios(c)) { const k = L.town ? 't:' + L.town : 'c:' + L.comarca; if (!grupos.has(k)) grupos.set(k, { ...L, cs: [] }); grupos.get(k).cs.push(c); }
+    const items = [...grupos.values()].map(g => {
+      const e = document.createElement('div'), mio = lugar && (g.town ? lugar.town === g.town : lugar.comarca === g.comarca || (lugar.comarca && levelById(g.town)?.comarca === lugar.comarca));
+      e.className = `m3-cm${el ? ' sel' : ''}${lugar && !mio && !el ? ' apag' : ''}`;
+      e.innerHTML = `<span class="cm-fs">${g.cs.slice(0, 3).map(c => foto(c, 'cm-f')).join('')}</span><b>${esc(nombreLugar(g))}</b>${g.cs.length > 1 ? `<i class="cm-n">${g.cs.length}</i>` : ''}`;
+      return { el: e, town: g.town, comarca: g.comarca, sel: !!el || !!mio };
+    });
+    const towns = new Set([...grupos.values()].filter(g => g.town).map(g => g.town));
+    const resalta = el ? new Set(el.comarcas) : lugar ? new Set([lugar.comarca || levelById(lugar.town)?.comarca]) : null;
+    MAPA.coleccion({ items, resalta, pines: towns, toque });
+  };
+  const pinta = () => { cabeza(); tarjetas(); marcadores(); };
+  // (tocar el mapa: un pueblo o una comarca con algo, abajo solo lo suyo; fuera, todo otra vez)
+  function toque(q) {
+    const hay = (L) => cosas.some(c => L.town ? c.towns.includes(L.town) : c.comarcas.includes(L.comarca));
+    const L = q?.town && hay({ town: q.town }) ? { town: q.town } : q?.comarca && hay({ comarca: q.comarca }) ? { comarca: q.comarca } : q?.town && hay({ comarca: levelById(q.town)?.comarca }) ? { comarca: levelById(q.town).comarca } : null;
+    if (!L && !lugar && !elegido) return;
+    ui.sound?.ui?.('click'); lugar = L; elegido = null; pinta();
+    if (L?.comarca) MAPA?.encuadra({ comarcas: [L.comarca] }); else if (!L) MAPA?.vista();
+  }
+  const clic = (e) => {
+    const t = e.target.closest('[data-colc],[data-coltab],[data-collista],[data-colx],[data-collugar]'); if (!t) return;
+    e.stopPropagation(); const d = t.dataset;
+    if (d.collista != null) return ui.lista?.();
+    if (d.colx != null) return ui.cierra?.();
+    ui.sound?.ui?.('click');
+    if (d.coltab) { tab = d.coltab; cosas = def.cosas(tab); lugar = null; elegido = null; pinta(); MAPA?.vista(); return; }
+    if (d.collugar != null) { lugar = null; elegido = null; pinta(); MAPA?.vista(); return; }
+    const c = cosas.find(x => x.id === d.colc); if (!c) return;
+    if (elegido === c.id && !c.locked) { if (c.accion) ui.jugar?.(c.accion); else Promise.resolve(c.abre?.()).then(() => { if (COLX?.vivo === vivo) { cosas = def.cosas(tab); pinta(); } }); return; }
+    elegido = c.id; pinta(); MAPA?.encuadra({ comarcas: c.comarcas });   // (sus comarcas enteras: de un pueblo solo, la cámara se metía demasiado)
+  };
+  // (la rueda del ratón pasa las tarjetas; Escape quita lo elegido y, sin nada elegido, cierra la colección. Con una ficha
+  // abierta encima, no: la cierra ella)
+  const rueda = (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); rail.scrollLeft += e.deltaY; } };
+  const tecla = (e) => {
+    if (e.key !== 'Escape' || !sec.isConnected || document.querySelector('[role="dialog"]:not([hidden]), .sheet')) return;
+    e.preventDefault(); if (lugar || elegido) { lugar = null; elegido = null; pinta(); MAPA?.vista(); } else ui.cierra?.();
+  };
+  const vivo = {};
+  sec.addEventListener('click', clic); rail.addEventListener('wheel', rueda, { passive: false }); addEventListener('keydown', tecla);
+  sec.classList.add('con-col'); sec.dataset.col = kind; cab.hidden = false; rail.hidden = false;
+  MAPA?.cierraPueblo?.();
+  pinta(); rail.scrollLeft = 0;
+  // (toda Navarra, en el hueco que dejan la cabecera y las tarjetas: cuando ya se ha medido, que se mide cada 250 ms)
+  const encaje = setTimeout(() => { if (COLX?.vivo === vivo && !lugar && !elegido) MAPA?.vista?.(); }, 320);
+  COLX = { vivo, pinta, fin() {
+    clearTimeout(encaje); sec.removeEventListener('click', clic); rail.removeEventListener('wheel', rueda); removeEventListener('keydown', tecla);
+    MAPA?.coleccion?.(null); sec.classList.remove('con-col'); delete sec.dataset.col;
+    cab.hidden = true; cab.innerHTML = ''; rail.hidden = true; rail.innerHTML = '';
+  } };
+}
