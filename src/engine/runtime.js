@@ -127,10 +127,10 @@ export class Runtime {
     // el relieve real (horizonte del pueblo y vista del mirador): se abre una vez, antes de levantar el terreno
     await Promise.race([cargarRelieve(), new Promise(r => setTimeout(r, 1500))]);
     // (y las sierras de alrededor por términos: antes de levantar el terreno, que sin ellas sube su anillo de siempre)
-    const sierras = salazar ? null : await Promise.race([cargarSierras(def.id), new Promise(r => setTimeout(() => r(null), 1500))]);
+    const sierras = await Promise.race([cargarSierras(def.id), new Promise(r => setTimeout(() => r(null), 1500))]);
     // (los pueblos con su trazado de verdad, si están en src/data/reales; si sus datos no llegan, el generado de siempre)
     const realData = !salazar && realEnabled(def.id) ? await loadReal(def.id) : null;
-    let mod = SALAZAR;
+    let mod = salazar && sierras ? { ...SALAZAR } : SALAZAR;   // (copia: el módulo no deja apuntarle las sierras)
     if (!salazar) {
       try { mod = realData ? createRealTownLevel(def, realData) : createTownLevel(def); }
       catch (e) { console.warn('pueblo real: se usa el generado', e); mod = createTownLevel(def); }
@@ -138,6 +138,9 @@ export class Runtime {
     this.realTown = !!mod.real;
     setLevel(mod, def, salazar ? 'salazar' : 'town');
     bake();
+    // (Otsagabia, con su valle hecho a mano: con las sierras de verdad detrás, sin el anillo de picos de siempre, y con la
+    // nieve y la roca a su altitud real, la de su plaza a 765 m. Antes la rodeaban picos grises nevados como los de los Alpes)
+    if (salazar && sierras) { mod.sierras = true; mod.ALT0 = sierras.h0 - 2 - groundHeight(PLACES.plaza.x, PLACES.plaza.z) + 20; }
     if (salazar) initBridges();
     onProgress(0.25, 'Tallando la piedra…'); await frame();
     if (!this.texturesReady) { buildTextures(q); this.texturesReady = true; }

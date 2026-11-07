@@ -1,7 +1,7 @@
 // Geografía del valle (trazado adaptado para jugar, inspirado en Otsagabia / Ochagavía).
 // Unidades en metros. Norte = -Z, Este = +X.
 import { clamp, lerp, smoothstep, segDist } from '../util/math.js';
-import { fbm, ridged } from '../util/noise.js';
+import { fbm } from '../util/noise.js';
 
 export const HALF = 500;         // el mundo jugable va de -500 a 500
 export const CELL = 2;           // resolución del mapa de alturas
@@ -121,10 +121,11 @@ function rawHeight(x, z, detail) {
   // Muskilda
   const dm = Math.hypot(x - PLACES.muskilda.x, z - PLACES.muskilda.z);
   h += 30 * Math.exp(-(dm * dm) / (2 * 70 * 70));
-  // montañas del borde
+  // montañas del borde: lomas redondeadas y boscosas, como las laderas del valle de Salazar; detrás, las sierras de verdad
+  // (world/sierras.js). Antes, crestas de ruido en 170 m, que salían como una muralla de picos grises dentados
   const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
-  const mt = smoothstep(390, 560, r4);
-  h += mt * (95 + 70 * ridged(x / 160, z / 160, 4));
+  const mt = smoothstep(390, 700, r4);
+  h += mt * (70 + 50 * (fbm(x / 280, z / 280, 3) * 0.5 + 0.5));
   // relieve
   const rough = 0.25 + smoothstep(30, 220, d) * 0.9 + mt;
   h += fbm(x / 140 + 3.1, z / 140 - 1.7, 4) * 9 * rough;

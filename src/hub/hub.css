@@ -618,9 +618,16 @@ button.scard, button.nchip { cursor: pointer; font: inherit; color: inherit; } b
   .csel2:not(.onbsel) .csel-info { flex: 0 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; touch-action: pan-y; }
   .csel2:not(.onbsel) .cs-cta { flex: none; margin-top: auto; }
 }
-/* (aún más bajo, con la barra del visor: el nombre un punto menor y sin la línea del pueblo, y la carta entera a la vista) */
-@media (orientation: landscape) and (max-height: 370px) {
+/* (móvil tumbado, también con la muesca y la barra de inicio del iPhone: el nombre un punto menor, la media algo más pequeña
+   y sin la línea del pueblo, para que la habilidad especial quepa entera encima del botón de jugar. Antes, en 844 × 390,
+   le faltaban 35 px y su texto quedaba cortado debajo del botón) */
+@media (orientation: landscape) and (max-height: 430px) {
   .csel2:not(.onbsel) .cname { font-size: var(--fs-xl); margin-top: 4px; } .csel2:not(.onbsel) .cfrom { display: none; }
+  .csel2:not(.onbsel) .ci-ovr { min-width: 54px; } .csel2:not(.onbsel) .ci-ovr b { font-size: var(--fs-2xl); }
+  .csel2:not(.onbsel) .stats { gap: 2px 12px; } .csel2:not(.onbsel) .abil { padding-top: 4px; padding-bottom: 4px; }
+  .csel2:not(.onbsel) .cs-side { padding-top: 4px; padding-bottom: 4px; gap: 6px; } .csel2:not(.onbsel) .csel-info { gap: 4px; }
+  .csel2:not(.onbsel) .stat b { font-size: var(--fs-md); }
+  .csel2:not(.onbsel) .sbar { margin-inline: 2px; }   /* (inclinada, sus esquinas salían 1,5 px de la caja que se desplaza) */
 }
 .cs-extra { grid-area: extra; position: relative; padding: 16px 16px 16px; border-top: 1px solid var(--line); background: rgba(10, 4, 26, .55); }
 .csel2 .cs-roster { overflow: hidden; }

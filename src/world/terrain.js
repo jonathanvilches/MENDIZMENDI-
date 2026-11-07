@@ -550,7 +550,7 @@ export class Terrain {
       let h = inside ? -30 : outerHeight(x, z);
       const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
       // (con horizonte real, el relieve del pueblo ya sube con la distancia al ángulo de las sierras de verdad)
-      if (!skyTan) h += smoothstep(600, 1300, r4) * (120 + 160 * (fbm(x / 400, z / 400, 3) * 0.5 + 0.5));
+      if (!skyTan && !MOD?.sierras) h += smoothstep(600, 1300, r4) * (120 + 160 * (fbm(x / 400, z / 400, 3) * 0.5 + 0.5));
       // crestas y canchales: relieve fino que sólo aparece en lo alto
       if (!inside) h += (ridged(x / 75, z / 75, 3) - 0.35) * 22 * smoothstep(90, 190, h) + fbm(x / 28, z / 28, 2) * 4 * smoothstep(60, 140, h);
       pos.push(x, h, z);
@@ -625,7 +625,7 @@ export function alturaLejos(x, z) {
 function outerHeight(x, z) {
   const r4 = Math.pow(x ** 4 + z ** 4, 0.25);
   const base = finalHeight(x, z, null).h;
-  if (skyTan) return base;
+  if (skyTan || MOD?.sierras) return base;   // (con las sierras de verdad detrás, sin el relleno de montes de siempre)
   const fill = valleyFloor(x, z) + 40 + 90 * smoothstep(480, 700, r4) + 60 * ridged(x / 200, z / 200, 3);
   return Math.max(base, lerp(base, fill, smoothstep(470, 560, r4)));
 }

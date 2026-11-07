@@ -722,6 +722,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   por encima de 2150 m) y el aire de en medio, más azul cuanto más lejos y nunca un blanco del todo. En esos pueblos la
   niebla de la escena va de 220 a 4200 m (antes de 160 a 1500) y la cámara ve hasta 7 km. Unos 12 KB por pueblo, cargados
   solo en su pueblo. Sin la malla en los frontones sin suelo y en la vista corta de los ordenadores flojos.
+- **Elegir personaje en el móvil tumbado** (`hub.css`, `.csel2` en `max-height: 430px`): con la muesca y la barra de inicio del
+  iPhone a la habilidad especial le faltaban 35 px y su texto quedaba cortado debajo de «Jugar». Ahora, el nombre un punto
+  menor, la media algo más pequeña, sin la línea del pueblo y con menos aire entre bloques: cabe entera en 667 × 375, 812 ×
+  375, 844 × 390 y 932 × 430. Las pantallas del inicio se comprueban con `hub.mjs`, que simula la muesca de verdad
+  (`Emulation.setSafeAreaInsetsOverride`, el `env(safe-area-inset-*)` del teléfono) y no cuenta lo tapado por otra tarjeta.
+- **Otsagabia, con su relieve de verdad alrededor** (`load` en `engine/runtime.js`; `rawHeight` en `levels/salazar.js`): su valle
+  sigue hecho a mano, pero ya no lo cierra una muralla de picos grises dentados y nevados (crestas de ruido de 170 m y el
+  anillo de montes de siempre, con la nieve en metros del juego). Ahora las laderas del borde son lomas redondeadas y
+  boscosas, detrás van las sierras de verdad (`world/sierras.js`) y la nieve y la roca van a su altitud real (la plaza, a
+  765 m: `ALT0` y `sierras` en una copia del módulo del nivel, que no se deja modificar).
 - **Orillas en talud** (`finalHeight` en `levels/townReal.js`): fuera del casco, el ancho de la orilla crece con lo alto que
   queda la ladera sobre el agua (1,6 veces el desnivel, entre 4,5 y 30 m; el río se busca hasta 36 m, `riverAt`). Antes, con
   4,5 m fijos, donde el río va al pie de un monte, como en Ituren, el cauce cortaba la ladera en un muro de roca gris.
