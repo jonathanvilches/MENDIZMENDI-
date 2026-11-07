@@ -117,11 +117,14 @@ function exComarcaHTML(p, id) {
             <span class="ex-bts">${DD ? `<button class="ex-go" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button class="ex-go" data-play="${l.id}">${I('play', 20)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button>`}<button class="ex-pin" data-exmapa="${l.id}" aria-label="Ver ${nombre} en el mapa" title="Ver en el mapa">${I('pin', 20)}</button></span></span>
         </article>`; }).join('')}</div>`;
 }
-// el rótulo de la comarca elegida: su sello en su aro, su nombre, sus sellos, su página y el botón de volver a toda Navarra
+// el rótulo de la comarca elegida: su sello en su aro, su nombre, sus sellos, su página y el botón de volver a toda Navarra; a
+// los lados del nombre, las flechas a la comarca anterior y a la siguiente, en el orden de la fila de abajo y dando la vuelta
+const vecina = (id, d) => { const L = COMARCAS.filter(c => c.path), i = L.findIndex(c => c.id === id); return L[(i + d + L.length) % L.length]; };
 function bandaHTML(p, id) {
   const c = comarca(id), r = comarcaProgress(p, id); if (!c) return '';
-  return `<span class="m3-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(id)}" alt=""></span>
-    <span class="cb-tt"><small>Comarca</small><b>${esc(c.name)}</b><i>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</i></span>
+  const fl = (d) => { const x = vecina(id, d); return `<button class="cb-fl${d > 0 ? ' sig' : ''}" data-sel="${x.id}" aria-label="${d > 0 ? 'Siguiente' : 'Anterior'}: ${esc(x.name)}" title="${esc(x.name)}">${I('back', 20)}</button>`; };
+  return `${fl(-1)}<span class="m3-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(id)}" alt=""></span>
+    <span class="cb-tt"><small>Comarca</small><b>${esc(c.name)}</b><i>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</i></span>${fl(1)}
     <button class="cb-b" data-comarca="${id}" aria-label="Todo sobre ${esc(c.name)}" title="Todo sobre ${esc(c.name)}">${I('book', 20)}</button>
     <button class="cb-b" data-cierra aria-label="Ver toda Navarra" title="Ver toda Navarra"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>`;
 }

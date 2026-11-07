@@ -141,6 +141,7 @@
 .m3-cl.lk { background: rgba(13, 4, 32, .55); border-style: dashed; } .m3-cl.lk b { color: #e4dcff; }
 .m3-cl.go { box-shadow: 0 0 14px color-mix(in srgb, var(--c) 45%, transparent); } .m3-cl.ok { border-color: var(--gold); box-shadow: 0 0 16px rgba(255, 209, 102, .5); } .m3-cl.ok small { color: var(--gold); }
 @media (min-width: 1200px) and (min-height: 560px) { .m3-cl { padding: 5px 12px; } .m3-cl b { font-size: var(--fs-md); } .m3-cl small { font-size: var(--fs-sm); } .m3-cl i :is(svg, img) { width: 16px; height: 16px; } .m3-tl { font-size: var(--fs-sm); } }
+.m3-cl.fondo { background: rgba(13, 4, 32, .5); border-color: rgba(255, 255, 255, .22); box-shadow: none; } .m3-cl.fondo b { color: #d9d0f2; } .m3-cl.fondo :is(small, i) { display: none; }
 .m3-cl.sel { background: color-mix(in srgb, var(--c) 55%, rgba(13, 4, 32, .8)); opacity: 1; box-shadow: 0 0 18px color-mix(in srgb, var(--c) 60%, transparent); }
 .m3-tl { margin-top: -4px; padding: 2px 8px; border-radius: 999px; background: rgba(13, 4, 32, .8); border: 1px solid rgba(255, 255, 255, .16); color: #fff; font: 800 var(--fs-xs)/1.3 'MZ Texto', sans-serif; }
 .m3-tl.go { border-color: rgba(255, 122, 200, .7); } .m3-tl.ok { border-color: var(--gold); color: #ffe7a6; }
@@ -380,6 +381,11 @@
 .cb-tt i { color: var(--mute); font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; }
 .cb-b { flex: none; width: 40px; height: 40px; display: grid; place-items: center; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); color: #fff; cursor: pointer; }
 .cb-b:hover, .cb-b:focus-visible { border-color: var(--pink); } .cb-b :is(svg, img) { width: 20px; height: 20px; }
+/* (las flechas a la comarca anterior y a la siguiente: solo el trazo, pegadas al nombre) */
+.cb-fl { flex: none; width: 32px; height: 40px; margin: 0 -4px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; opacity: .85; cursor: pointer; transition: opacity .15s, transform .15s; }
+.cb-fl:hover, .cb-fl:focus-visible { opacity: 1; color: var(--pink); } .cb-fl:active { transform: scale(.88); }
+.cb-fl :is(svg, img) { width: 20px; height: 20px; } .cb-fl.sig :is(svg, img) { transform: scaleX(-1); }
+@media (max-width: 420px) { .m3-cb .m3-sello { display: none; } }
 
 /* ---------- junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: su nombre y el botón de empezar
    (sin ficha: el pueblo se ve entero). inicio.js la coloca, con un pico que señala el pueblo ---------- */

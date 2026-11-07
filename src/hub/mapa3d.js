@@ -729,6 +729,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     return null;
   }
   let hover = null, sel = null;
+  // (con una comarca elegida, moverse por el mapa a mano lleva a la que queda en el centro: así se va de una a otra con la
+  // cámara cerca, sin volver a toda Navarra. navega: se ha movido a mano desde que se eligió; cand: la de debajo del centro
+  // y desde cuándo, para que no cambie al rozar una raya)
+  let navega = false, cand = null;
   // (una colección en el mapa: la naturaleza, los escudos, los personajes o los torneos, cada cosa en su sitio. Mientras,
   // tocar no vuela ni abre fichas: se le dice a quien la pinta, inicio.js, qué pueblo o qué comarca se ha tocado)
   let COL = null;
@@ -752,7 +756,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     goal.d = g.s0.d * g.dist / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)); goal.yaw = g.s0.yaw - (ang - g.ang); goal.pitch = g.s0.pitch; lim();
     Object.assign(sT, g.s0, { d: goal.d, yaw: goal.yaw, pitch: goal.pitch });
     const q = g.p && sueloCon(camDe(sT), (a.x + b.x) / 2, (a.y + b.y) / 2);
-    goal.x = g.s0.x + (q ? g.p.x - q.x : 0); goal.z = g.s0.z + (q ? g.p.z - q.z : 0); lim();
+    goal.x = g.s0.x + (q ? g.p.x - q.x : 0); goal.z = g.s0.z + (q ? g.p.z - q.z : 0); lim(); navega = true;
     for (const k of ['x', 'z', 'd', 'yaw', 'pitch']) v[k] = goal[k];
   }
   const onDown = (e) => {
@@ -771,6 +775,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     // (hasta que el dedo se mueve unos píxeles es un toque; entonces se agarra desde ahí, sin saltar)
     if (!arr.movido) { if (Math.hypot(q.x - arr.x, q.y - arr.y) <= (e.pointerType === 'mouse' ? 4 : 9)) return; q.movido = true; const r0 = arr; agarra(e.pointerId); arr.movido = true; arr.x = r0.x; arr.y = r0.y; arr.p0 = r0.p; }
     cv.style.cursor = 'grabbing';
+    if (!arr.rot) navega = true;
     if (arr.rot) { const b = cv.getBoundingClientRect(); goal.yaw = arr.yaw - (q.x - arr.x) / b.width * 3.2; goal.pitch = arr.pitch + (q.y - arr.y) / b.height * 1.6; lim(); return; }
     const p = arr.p && sueloCon(arr.c0, q.x, q.y); if (!p) return;
     goal.x = arr.x0 + arr.p.x - p.x; goal.z = arr.z0 + arr.p.z - p.z; lim(); v.x = goal.x; v.z = goal.z;
@@ -804,7 +809,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     e.preventDefault(); if (saltaIntro()) return; usado(); vuelo = null; inercia = null; dron = null;
     if (!e.ctrlKey && e.deltaMode === 0 && (e.deltaX !== 0 || !Number.isInteger(e.deltaY))) {
       const k = goal.d * 0.0016, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
-      goal.x += (-fz * e.deltaX - fx * e.deltaY) * k; goal.z += (fx * e.deltaX - fz * e.deltaY) * k; lim(); return;
+      goal.x += (-fz * e.deltaX - fx * e.deltaY) * k; goal.z += (fx * e.deltaX - fz * e.deltaY) * k; lim(); navega = true; return;
     }
     goal.d *= Math.exp(Math.max(-80, Math.min(80, e.deltaY)) * (e.ctrlKey ? 0.01 : 0.0022)); lim();
   }, { passive: false });
@@ -822,7 +827,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     if (!(k || e.key === ' ' || e.key === 'Enter') || e.ctrlKey || e.metaKey || e.altKey || !visible || document.hidden || e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) return;
     if (saltaIntro()) { e.preventDefault(); return; }
     if (!k) return;
-    e.preventDefault(); usado(); vuelo = null; inercia = null; keys.add(k); };
+    e.preventDefault(); usado(); vuelo = null; inercia = null; keys.add(k); if ('fblr'.includes(k)) navega = true; };
   const ku = (e) => { const k = MOV[e.key.toLowerCase()]; if (k) keys.delete(k); };
   // (y al perder la ventana, ninguna tecla se queda pulsada; con nombre, para quitarla al soltar el mapa: sin quitar, cada
   // vuelta al menú dejaba otra escucha que guardaba vivo el mapa anterior entero, con sus lienzos)
@@ -995,11 +1000,11 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     volar({ x: mx, z: mz, d: Math.max(22, encaja(esq, mx, mz, 0.95, 1)), yaw: 0, pitch: 0.95 });
   }
   // ---------- elegir una comarca: vuela hasta ella y se levanta ----------
-  function select(id, fly = true) {
+  function select(id, fly = true, moviendo = false) {
     const c = id && byId.get(id);
-    sel = c ? c.id : null; cierraPueblo();
+    sel = c ? c.id : null; cierraPueblo(); navega = moviendo; cand = null;
     host.classList.toggle('con-sel', !!c);
-    for (const x of C) x.lab.classList.toggle('sel', x.id === sel);
+    for (const x of C) { x.lab.classList.toggle('sel', x.id === sel); x.lab.classList.toggle('fondo', !!sel && x.id !== sel); }
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
     if (c && fly) volar({ x: c.mid.x, z: c.mid.z, d: Math.max(22, encaja(c.esq, c.mid.x, c.mid.z, 0.95, 1)), yaw: 0, pitch: 0.95 });
@@ -1417,6 +1422,14 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     }
     // (la inercia al soltar el mapa: sigue y frena)
     if (inercia) { goal.x += inercia.vx * dt; goal.z += inercia.vz * dt; const f = Math.exp(-dt * 4.2); inercia.vx *= f; inercia.vz *= f; lim(); v.x = goal.x; v.z = goal.z; if (Math.hypot(inercia.vx, inercia.vz) < goal.d * 0.02) inercia = null; }
+    // (la comarca de debajo del centro, moviéndose a mano con una elegida: si lleva 0,2 s en otra, pasa a ella sin volar; fuera
+    // de Navarra se queda la que había. No con un pueblo elegido ni con una colección)
+    if (navega && sel && !elegido && !COL && !vuelo) {
+      const c = deQuien(goal.x, goal.z, byId.get(sel));
+      if (!c || c.id === sel) cand = null;
+      else if (cand?.id !== c.id) cand = { id: c.id, t: now };
+      else if (now - cand.t > 200) select(c.id, false, true);
+    }
     if (intro && !intro.hecho) {
       // (en la entrada, la cámara baja desde lo alto de la península; la distancia, en proporción, para que el zoom no se frene)
       const a = intro.de, k = ease(rampa(tI, IT.vuelo, IT.vuelo + IT.vueloD)), d0 = a.d * (1 - 0.05 * Math.min(1, tI / IT.vuelo));
@@ -1557,7 +1570,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
       else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
     for (const x of T) { const on = !COL && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
       lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on, x.g.position.y]); }
-    for (const c of C) lista.push([sel === c.id && cerca ? 4 : 2, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !COL && (!sel || sel === c.id)]);
+    // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
+    // dónde ir arrastrando el mapa. No con un pueblo elegido)
+    for (const c of C) { const suya = sel === c.id; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !COL && (!sel || suya || !elegido)]); }
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
     for (const x of PK) { const y = x.c ? x.h * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }

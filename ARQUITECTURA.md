@@ -750,6 +750,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la
   comarca; sus pueblos se eligen ya con ella elegida, o con la cámara cerca, donde salen sus nombres. Un pueblo de otra
   comarca lleva primero a la suya.
+- **De una comarca a otra sin alejarse** (`navega` y `cand` en `mapa3d.js`, `vecina` y `.cb-fl` en `inicio.js`; noviembre
+  de 2026): con una comarca elegida, moverse por el mapa a mano (arrastrar, dos dedos, el panel táctil o las flechas del
+  teclado) pasa a la comarca que queda en el centro cuando lleva 0,2 s en ella, sin volar ni cambiar la distancia: se
+  enciende, sale su rótulo y se apaga la de antes. Fuera de Navarra se queda la que había, y no cambia con un pueblo
+  elegido ni con una colección. Solo después de mover a mano, porque el centro de una comarca con entrantes puede caer en
+  la vecina. Las de alrededor muestran su nombre apagado (`.m3-cl.fondo`), los últimos en sitio, para ver hacia dónde ir.
+  En el rótulo de arriba, a los lados del nombre, las flechas a la anterior y a la siguiente en el orden de la fila de
+  abajo, dando la vuelta; esas sí vuelan y encajan la comarca. En el móvil de pie, sin el sello, para que quepa el nombre.
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en
   `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos o Personajes desde el menú del juego, en lugar
   de su ventana se queda el mapa con su colección. Arriba, su cabecera con cuántas llevas, sus pestañas, «Lista» (la
