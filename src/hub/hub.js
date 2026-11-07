@@ -36,6 +36,7 @@ import { Stage, releaseStage } from './stage.js';
 import { getLang, setLang, langChosen, isEU } from '../i18n.js';
 import { laminaUrl, laminasDe, laminaRail, bindLaminas, townCover, comarcaCover, townImg, leyendaUrl, openVisor, cimaUrl, tradicionUrl, portadaPueblo, portadaComarca } from '../ui/laminas.js';
 import { LAMINAS } from '../data/laminas.js';
+import { videoDe, enMarcha, para } from '../ui/videos.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { STAR } from '../data/tiendas.js';
 import { EDADES, edadDe, missionSlots } from '../data/edad.js';
@@ -233,7 +234,7 @@ export class Hub {
   show(screen = this.screen, arg = this.arg) { if (this.root.classList.contains('hidden')) { this.root.classList.remove('entra'); void this.root.offsetWidth; this.root.classList.add('entra'); } this.root.classList.remove('hidden'); this.visible = true; this.go(screen, arg, true); if (!langChosen()) this.langPicker(); else if (!profile().name && !isDidactico()) this.primeraVez(); }
   // (quien empieza: primero cómo quiere jugar y después su nombre y su personaje)
   primeraVez() { if (vistoComoJugar()) return this.onboarding(); comoJugar(this.root, { primera: true, despues: () => { if (!profile().name && !isDidactico()) this.onboarding(); } }); }
-  hide() { this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); this.menu(false); cierraMapa(); $('#hMapa', this.root).innerHTML = ''; releaseStage(); this.stage = null; releaseOffscreen(); }
+  hide() { this.root.querySelectorAll('video[data-vid]').forEach(para); this.root.classList.add('hidden'); this.visible = false; this.sheet?.remove(); this.menu(false); cierraMapa(); $('#hMapa', this.root).innerHTML = ''; releaseStage(); this.stage = null; releaseOffscreen(); }
   /** El menú flotante (jugando): abierto o cerrado. */
   menu(on) {
     const r = this.root; if (!r.classList.contains('juego')) on = false;
@@ -288,6 +289,7 @@ export class Hub {
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
+    m.querySelectorAll('video[data-vid]').forEach(v => enMarcha(v, v.dataset.vid));   // (las láminas animadas de la sección)
     this.renderChip();
   }
   // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas
@@ -391,8 +393,10 @@ export class Hub {
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${ic ? I(ic, 16) : ''}${t}</span>`).join('')}</p>`;   // (el 4½, sin icono: así lo pidió el autor)
     // (la lámina entera, en 16:9, en su marco redondeado: el personaje se ve de pies a cabeza; debajo, el texto y la barra)
-    const carta = (cls, img, stat, kick, tit, tg, row) => `<article class="sport ${cls}">
-        <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}<span class="sp-stat">${stat}</span></div>
+    // (con la lámina animada encima, si la tiene: ui/videos.js; la pone en marcha go(), tras pintar la sección)
+    const vid = (id) => (laminaUrl(id) ? videoDe(id) : '');
+    const carta = (cls, img, stat, kick, tit, tg, row, v = '') => `<article class="sport ${cls}">
+        <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}${v ? `<video class="sp-vid" data-vid="${v}" muted playsinline loop preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>` : ''}<span class="sp-stat">${stat}</span></div>
         <div class="sp-body"><div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
         <div class="sp-bar">${row}</div></div></article>`;
     const fp = fb?.played || 0, fw = fb?.won || 0;
@@ -401,10 +405,10 @@ export class Hub {
     <section class="sports">
       ${carta('sp-pelota', laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl), `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
         'Pelota a mano · tres campeonatos', 'Torneo de pelota', [['pelota', 'Manomanista'], ['person', 'Parejas'], [null, '4½']],
-        `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`)}
+        `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`, vid('dep-pelotari'))}
       ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${fw === 1 ? 'ganado' : 'ganados'}`,
         'Fútbol · Liga Navarra', 'Torneo de fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
-        `<div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`)}
+        `<div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`, vid('dep-futbol'))}
     </section>`;
   }
   // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas

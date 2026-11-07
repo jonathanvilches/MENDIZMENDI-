@@ -703,6 +703,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   color de la sección (`--carta-filo-on`); lo bloqueado, apagado (`--carta-filo-off`); las cimas, con el color de su
   comarca. La imagen de arriba, dentro del filo y con su esquina cortada. «Observado» e «Identificada», con la marca
   verde en su círculo amarillo, como en todo el juego. Se cambia aquí, en un solo sitio, para todas.
+- **Láminas animadas** (`src/ui/videos.js`, `public/videos/<id de la lámina>.mp4`, `tools/laminas-video.sh`; noviembre
+  de 2026): el arranque, la pantalla de carga de los pueblos y del frontón y las cartas de Torneos llevan la misma lámina
+  de siempre, pero moviéndose: nubes, agua, banderas, hojas y el explorador que respira y parpadea. Son vídeos de 5 o 6 s
+  sin sonido hechos en Higgsfield con MiniMax H3 Max (768p, 12,5 créditos el de 5 s) a partir de la lámina original
+  (`original/`, por su dirección en raw.githubusercontent.com), con la propia lámina de primer y último fotograma para
+  que se repitan sin salto. El modelo devuelve 1344 × 768 recortando 13 px por lado de la de 1672 × 941;
+  `laminas-video.sh` lo escala a 1260 × 720 y lo pone en x = 10 sobre la lámina web, así coincide al píxel con la fija,
+  funde el último medio segundo con el primero y lo pasa a H.264 con faststart (CRF 29: de 0,4 a 1 MB cada uno). El
+  `<video>` va encima de la lámina fija, con su mismo encuadre, y entra con un fundido cuando ya se mueve; al acabar la
+  carga se para y suelta el archivo. Fuera de `assets/`: no entran en «descargar todo», ni en el archivo único ni en el
+  artefacto, y el service worker no los guarda (Safari pide los vídeos por trozos). En el modo sencillo, con «reducir
+  movimiento», con ahorro de datos, sin conexión o si fallan, queda la fija. El arranque (`#portada-app` en `index.html`)
+  pone los Pirineos al 50 % detrás del icono, con su viñeta morada. Las láminas sin vídeo siguen fijas: para añadir una,
+  se genera igual, se pasa por `laminas-video.sh` y se apunta su id en `VIDEOS`.
 - **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
   elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la

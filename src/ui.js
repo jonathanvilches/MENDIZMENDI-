@@ -15,6 +15,7 @@ import { buildMapVectorsIdle } from './ui/mapvector.js';
 import { esc, el } from './util/html.js';
 import { windowKeys } from './util/keys.js';
 import { escala } from './util/tele.js';
+import { enMarcha, para } from './ui/videos.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
@@ -63,7 +64,7 @@ export class UI {
   // (como la carga de un videojuego: la lámina del pueblo a toda la pantalla, fija, con el visor; el pueblo abajo a la
   // izquierda, el consejo arriba a la derecha y la barra a todo el ancho. style.css)
   buildLoading() {
-    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"></div><div class="ld-marco"></div>
+    this.loading = el(`<div id="loading" class="hidden"><div class="ld-bg"><video class="ld-vid" muted playsinline loop preload="auto" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video></div><div class="ld-marco"></div>
       <div class="ld-in">
         <div class="ld-tip"><span class="ld-bulb"></span><div><b>¿Sabías que…?</b><p class="tip"></p></div></div>
         <section class="ld-txt"><div class="ld-head"><small class="ld-k"></small><div class="ld-name"></div><p class="ld-intro"></p></div><div class="ld-ms"></div></section>
@@ -72,13 +73,16 @@ export class UI {
       </div></div>`);
     document.body.appendChild(this.loading);
   }
-  // info: { comarca, foco (dónde está el personaje en la lámina), avatar, missions: [iconos], left, intro, caption, tipTitle (el rótulo del recuadro: «¿Sabías que…?» o «Consejo») }
+  // info: { comarca, foco (dónde está el personaje en la lámina), avatar, missions: [iconos], left, intro, caption, tipTitle (el rótulo del recuadro: «¿Sabías que…?» o «Consejo»), video (la lámina animada, ui/videos.js) }
   showLoading(title, tip = '', image = '', info = {}) {
     const L = this.loading; clearTimeout(this.ldHide); this.ldOut?.cancel(); this.ldOut = null;
     // (entra con un fundido corto sobre lo que hubiera debajo, el menú o los Torneos: antes aparecía de golpe)
     const ya = !L.classList.contains('hidden'); L.classList.remove('hidden'); L.style.opacity = 1; L.style.transition = '';
     if (!ya) { L.classList.remove('entra'); void L.offsetWidth; L.classList.add('entra'); }
     $('.ld-bg', L).style.backgroundImage = image ? `url(${image})` : '';
+    // (la lámina animada, si la tiene: encima de la fija, con su mismo encuadre, y entra con un fundido cuando ya se mueve;
+    // si no llega o falla, queda la fija. ui/videos.js)
+    enMarcha($('.ld-vid', L), image && !info.min ? info.video : '');
     // (dónde está el personaje en la lámina, para encuadrarla sin cortarle: info.foco, { x, y } de 0 a 1)
     L.style.setProperty('--lx', `${Math.round((info.foco?.x ?? 0.5) * 100)}%`); L.style.setProperty('--ly', `${Math.round((info.foco?.y ?? 0.5) * 100)}%`);
     L.classList.toggle('ld-min', !!info.min);
@@ -107,7 +111,7 @@ export class UI {
     const L = this.loading, de = +getComputedStyle(L).opacity;
     L.classList.remove('entra'); L.style.transition = ''; L.style.opacity = 0; this.ldOut?.cancel(); this.ldOut = null;
     if (de > 0 && !matchMedia('(prefers-reduced-motion: reduce)').matches) this.ldOut = L.animate([{ opacity: de }, { opacity: 0 }], { duration: 600, easing: 'ease' });
-    clearTimeout(this.ldHide); this.ldHide = setTimeout(() => L.classList.add('hidden'), 650);
+    clearTimeout(this.ldHide); this.ldHide = setTimeout(() => { L.classList.add('hidden'); para($('.ld-vid', L)); }, 650);
   }
 
   // ---------- HUD ----------

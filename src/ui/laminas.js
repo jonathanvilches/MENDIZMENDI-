@@ -70,7 +70,7 @@ function encuadre(id) {
   return `--cx:${cx};--zf:${Math.round(zf * 1000) / 1000};--sy:${Math.round(sy * 1000) / 1000}`;
 }
 // (la lámina que hace de portada de un pueblo: la suya, la de su bosque o la de su comarca)
-const portadaDe = (l) => l && (laminaUrl(l.id) ? l.id : (BOSQUE_LAMINA[l.id] || []).find(k => laminaUrl(k)) || COMARCA_LAMINA[l.comarca]);
+export const portadaDe = (l) => l && (laminaUrl(l.id) ? l.id : (BOSQUE_LAMINA[l.id] || []).find(k => laminaUrl(k)) || COMARCA_LAMINA[l.comarca]);
 /** Dónde está el personaje en una lámina, de 0 a 1: x, de izquierda a derecha (FOCO); y, el centro de su alto (ALTO). */
 export const focoDe = (id) => { const a = ALTO[id]; return { x: FOCO[id] ?? 0.5, y: a ? (a[0] + a[1]) / 2 : 0.5 }; };
 /** El de la portada de un pueblo. */
