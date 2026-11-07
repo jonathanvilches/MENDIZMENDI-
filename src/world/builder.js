@@ -151,6 +151,8 @@ export function makeMaterials() {
     // plantas trepadoras por las fachadas (hiedra, buganvilla, glicinia): tarjetas de hojas recortadas, del color de cada
     // vértice, pegadas a la pared y con prioridad de profundidad sobre ella
     trepa: snowable(std({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide, vertexColors: true, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }), 0.6),
+    // flores pintadas de macetas, jardineras y balcones (flores.js): tarjetas recortadas, por las dos caras
+    flor: std({ map: TEX.flores, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.85 }),
     lamp: std({ color: '#fff3c4', emissive: new THREE.Color('#ffcf73'), emissiveIntensity: 0 }),
     shield: std({ map: shieldTexture(), transparent: true, alphaTest: 0.5, roughness: 0.9 }),
     // barandilla de forja calada (una sola cara con transparencia recortada): balcones, kioscos, barreras
@@ -459,7 +461,7 @@ export class Builder {
       for (const [k, at] of Object.entries(g.attributes)) if (!(tier === 0 && k === 'position')) at.onUpload(free);
       if (tier !== 0) g.index.onUpload(free);
       const m = new THREE.Mesh(g, this.mats[mat]);
-      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing', 'trepa'].includes(mat);
+      m.castShadow = shadows && tier === 0 && !['glass', 'lamp', 'jet', 'fachada', 'railing', 'trepa', 'flor'].includes(mat);
       if (tier) addDetail(m, tier, g.boundingSphere, key.split('|')[1]);
       m.receiveShadow = true;
       m.matrixAutoUpdate = false; m.name = key;

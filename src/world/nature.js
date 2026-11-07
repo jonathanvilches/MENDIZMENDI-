@@ -962,32 +962,14 @@ class FlowerField {
     // (en el móvil, 1.000: con 1.800 eran unos 100.000 triángulos alrededor del jugador, la décima parte del pueblo)
     const count = quality === 'low' ? 1000 : quality === 'mid' ? 3000 : 4500;
     const R = quality === 'low' ? 22 : 30;
-    // mata de flores: dos cabezas en estrella algo ahuecadas (pétalos), botón amarillo, tallos cruzados (se ven
-    // desde cualquier lado) y hojas en la base; la cabeza blanca la tiñe el sombreador con el color de cada especie
-    const parts = [];
-    const head = (r, x, y, z, s, n = 5) => {
-      // n pétalos redondeados (abanico de tres triángulos cada uno), algo ahuecados hacia arriba y separados entre sí;
-      // más claros en la punta (el color lo pone el sombreador según la especie)
-      const pos = [], col = [], w = Math.PI / n * 0.82;
-      for (let i = 0; i < n; i++) {
-        const a = i / n * Math.PI * 2, pts = [-1, -0.45, 0.45, 1].map(t => { const aa = a + t * w, rr = r * (1 - 0.18 * t * t); return [Math.cos(aa) * rr, (0.018 + 0.012 * (1 - t * t)) * s, Math.sin(aa) * rr]; });
-        const b = [Math.cos(a) * r * 0.12, 0.004 * s, Math.sin(a) * r * 0.12];
-        for (let k = 0; k < 3; k++) { pos.push(...b, ...pts[k + 1], ...pts[k]); col.push(0.82, 0.82, 0.82, 1, 1, 1, 1, 1, 1); }
-      }
-      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
-      g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-      g.translate(x, y, z); parts.push(g);
-      const ce = new THREE.CircleGeometry(r * 0.3, 5); ce.rotateX(-Math.PI / 2); ce.translate(x, y + 0.012, z);
-      parts.push(colorize(ce.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.95, 0.75, 0.12)));
-      for (const ry of [0, Math.PI / 2]) { const st = new THREE.PlaneGeometry(0.012, y); st.translate(0, y / 2, 0); st.rotateY(ry); st.translate(x, 0, z); parts.push(colorize(st.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.24, 0.46, 0.15))); }
-    };
-    head(0.09, 0, 0.27, 0, 1);
-    head(0.072, 0.07, 0.18, 0.05, 0.8, 6);
-    for (let i = 0; i < 3; i++) { const l = new THREE.PlaneGeometry(0.035, 0.15); l.translate(0, 0.075, 0); l.rotateX(0.7); l.rotateY(i * 2.1); parts.push(colorize(l.toNonIndexed(), (px, py, pz, c) => c.setRGB(0.22, 0.42, 0.13))); }
-    for (const g of parts) if (!g.attributes.uv) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
-    const flower = mergeGeometries(parts.map(g => { g.deleteAttribute('uv'); return g; }));
+    // mata de flores pintada (flores.js, silvestres.webp: margaritas, botones de oro, amapolas, lavanda y acianos): dos
+    // tarjetas cruzadas de 34 cm, que se ven desde cualquier lado, con las normales hacia arriba para que la luz les dé
+    // pareja. Antes eran cabezas de pétalos hechas con triángulos, unos 70 por mata, que se veían de plástico; así son 4
+    const parts = [0, Math.PI / 2].map(ry => { const q = new THREE.PlaneGeometry(0.34, 0.34); q.translate(0, 0.17, 0); q.rotateY(ry); return q; });
+    const flower = mergeGeometries(parts); parts.forEach(q => q.dispose());
+    { const n = flower.attributes.normal; for (let i = 0; i < n.count; i++) n.setXYZ(i, 0, 1, 0); }
     const g = new THREE.InstancedBufferGeometry();
-    g.attributes = flower.attributes;
+    g.attributes = flower.attributes; g.setIndex(flower.index);
     const rnd = mulberry32(17);
     const off = new Float32Array(count * 2), rr = new Float32Array(count * 4);
     for (let i = 0; i < count; i++) { off[i * 2] = (rnd() * 2 - 1) * R; off[i * 2 + 1] = (rnd() * 2 - 1) * R; rr[i * 4] = rnd() * 6.28; rr[i * 4 + 1] = 0.7 + rnd() * 0.6; rr[i * 4 + 2] = rnd(); rr[i * 4 + 3] = rnd(); }
@@ -995,12 +977,12 @@ class FlowerField {
     g.setAttribute('aRnd', new THREE.InstancedBufferAttribute(rr, 4));
     g.instanceCount = count;
     this.uniforms = { uHeight: { value: heightTex }, uMask: { value: grassTex }, uCenter: { value: new THREE.Vector2() }, uR: { value: R }, uTime: windUniforms.uTime, uPlayer: { value: new THREE.Vector3() }, uTint: { value: new THREE.Color(({ dry: '#d8c89a', arid: '#e6c98f', lush: '#e6ffe0' })[TONE] || '#ffffff') } };
-    const m = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    const m = new THREE.MeshLambertMaterial({ map: TEX.silvestres, alphaTest: 0.5, side: THREE.DoubleSide });
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, this.uniforms);
       sh.vertexShader = sh.vertexShader
         .replace('#include <common>', `#include <common>
-attribute vec2 aOff; attribute vec4 aRnd; varying vec3 vTint; ${GRASS_COMMON}`)
+attribute vec2 aOff; attribute vec4 aRnd; ${GRASS_COMMON}`)
         .replace('#include <begin_vertex>', `
 vec2 rel = mod(aOff - uCenter + uR, 2.0 * uR) - uR;
 vec2 wp = uCenter + rel;
@@ -1015,14 +997,14 @@ float wph = uTime * 1.8 + wp.x * 0.35 + wp.y * 0.25;
 transformed.x += sin(wph) * 0.05 * position.y * sc;
 transformed += vec3(wp.x, hAt(wp) - 0.02, wp.y);
 float k = aRnd.w;
-vTint = k < 0.4 ? vec3(1.0, 1.0, 0.97) : k < 0.62 ? vec3(1.0, 0.85, 0.2) : k < 0.8 ? vec3(0.66, 0.45, 0.95) : k < 0.92 ? vec3(0.95, 0.25, 0.25) : vec3(0.45, 0.6, 1.0);
+// (la casilla del atlas: margaritas, botones de oro, lavanda, amapolas y acianos, en la proporción de siempre)
+vec2 vCelda = k < 0.4 ? vec2(0.0, 1.0) : k < 0.62 ? vec2(1.0, 1.0) : k < 0.8 ? vec2(0.0, 0.0) : k < 0.92 ? vec2(2.0, 1.0) : vec2(1.0, 0.0);
+vMapUv = (vMapUv + vCelda) / vec2(3.0, 2.0);   // (uv_vertex va antes: aquí ya está puesta y se lleva a su casilla)
 `);
       sh.fragmentShader = sh.fragmentShader
-        .replace('#include <common>', '#include <common>\nvarying vec3 vTint;')
-        .replace('#include <color_fragment>', '#include <color_fragment>\nif (vColor.r > 0.7 && abs(vColor.r - vColor.g) < 0.02 && abs(vColor.g - vColor.b) < 0.02) diffuseColor.rgb = vTint * vColor.r;')
         .replace('#include <normal_fragment_begin>', 'float faceDirection = 1.0;\nvec3 normal = normalize( vNormal );\nvec3 nonPerturbedNormal = normal;');
     };
-    m.customProgramCacheKey = () => 'flowers';
+    m.customProgramCacheKey = () => 'flores-pintadas';
     this.mesh = new THREE.Mesh(g, m);
     this.mesh.frustumCulled = false;
     scene.add(this.mesh);

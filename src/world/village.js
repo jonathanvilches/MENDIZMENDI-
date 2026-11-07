@@ -352,15 +352,35 @@ function buildPlaza(B) {
   }
 }
 
+// Banco de plaza de forja y listones, como los de los paseos: dos costados de hierro colado (la pata de delante sube hasta el
+// brazo con su voluta; la de atrás, hasta lo alto del respaldo, algo echado hacia atrás), la barra que aguanta el asiento,
+// tres listones en el asiento y dos en el respaldo. Antes eran dos bloques de piedra y dos tablones
+const _v3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const tuboPor = (pts, r = 0.022, seg = 10) => new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), seg, r, 5, false);
 export function bench(B, x, y, z, ry) {
-  const T = M(x, y, z, ry);
-  B.add('ashlar', box(0.4, 0.45, 0.5), MM(T, M(-0.8, 0.22, 0)));
-  B.add('ashlar', box(0.4, 0.45, 0.5), MM(T, M(0.8, 0.22, 0)));
-  B.add('wood', box(2.2, 0.1, 0.55, 1), MM(T, M(0, 0.5, 0)));
-  B.add('wood', box(2.2, 0.35, 0.08, 1), MM(T, M(0, 0.8, -0.28, 0, -0.15)));
-  addBox(x, z, 2.2, 0.6, ry);
+  const T = M(x, y, z, ry), F = (m) => MM(T, m);
+  for (const sx of [-0.86, 0.86]) {
+    B.add('iron', tuboPor([_v3(sx, 0, 0.25), _v3(sx, 0.24, 0.23), _v3(sx, 0.45, 0.21), _v3(sx, 0.6, 0.27), _v3(sx, 0.66, 0.16), _v3(sx, 0.64, -0.06), _v3(sx, 0.58, -0.16)]), T);
+    B.add('iron', tuboPor([_v3(sx, 0, -0.26), _v3(sx, 0.24, -0.22), _v3(sx, 0.45, -0.2), _v3(sx, 0.7, -0.26), _v3(sx, 0.9, -0.32)]), T);
+    B.add('iron', box(0.05, 0.05, 0.46, 1), F(M(sx, 0.44, 0.01)));
+    B.add('iron', new THREE.SphereGeometry(0.04, 6, 4), F(M(sx, 0.6, 0.29)));   // (la voluta del brazo)
+  }
+  for (const [zz, k] of [[0.17, 0], [0.03, 1], [-0.11, 2]]) B.add('wood', box(1.94, 0.035, 0.12, 1), F(M(0, 0.48 + k * 0.004, zz)));
+  for (const [yy, zz] of [[0.62, -0.25], [0.79, -0.3]]) B.add('wood', box(1.94, 0.11, 0.03, 1), F(M(0, yy, zz, 0, -0.22)));
+  addBox(x, z, 2.0, 0.6, ry);
   TOWN.benches.push({ x: x + Math.sin(ry) * 0.7, z: z + Math.cos(ry) * 0.7, ry });
   VILLAGE.benches.push({ x, z, ry, y });
+}
+
+// Papelera de forja junto a un banco: cesto de varillas (un cilindro abierto con la textura de la barandilla), su aro y el
+// poste
+export function papelera(B, x, z) {
+  const y = terrainHeight(x, z);
+  B.add('iron', new THREE.CylinderGeometry(0.035, 0.04, 0.95, 6), M(x, y + 0.47, z));
+  B.add('railing', new THREE.CylinderGeometry(0.2, 0.17, 0.5, 10, 1, true), M(x + 0.22, y + 0.62, z));
+  B.add('iron', new THREE.TorusGeometry(0.2, 0.018, 4, 12).rotateX(Math.PI / 2), M(x + 0.22, y + 0.87, z));
+  B.add('dark', new THREE.CircleGeometry(0.17, 10).rotateX(-Math.PI / 2), M(x + 0.22, y + 0.4, z));
+  addCircle(x + 0.11, z, 0.3);
 }
 
 // ---------- Crucero ----------
@@ -402,13 +422,21 @@ function buildLamps(B) {
 // el sombrerete de cuatro aguas y su remate; colgado de un brazo de hierro con su tornapunta en la fachada de al lado
 // si la hay, como en las calles de los pueblos de antes; si no, en lo alto de un poste fino sobre una basa de piedra.
 // Antes era una farola de poste con una caja de luz encima, que parecía de una urbanización
+// (desde noviembre de 2026, el farol fernandino: cuatro cristales más anchos arriba que abajo, con sus aristas de hierro, el
+// aro de abajo con su remate colgante, la cornisa, el sombrerete de cuatro aguas con su corona y la bola)
 export function farol(B, T, y) {
   const F = (m) => MM(T, m);
-  B.add('lamp', box(0.28, 0.38, 0.28), F(M(0, y, 0)));
-  for (const [i, j] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) B.add('iron', box(0.035, 0.44, 0.035), F(M(i * 0.15, y, j * 0.15)));
-  B.add('iron', box(0.36, 0.05, 0.36), F(M(0, y - 0.22, 0)));
-  B.add('iron', new THREE.ConeGeometry(0.29, 0.24, 4), F(M(0, y + 0.33, 0, Math.PI / 4)));
-  B.add('iron', new THREE.SphereGeometry(0.05, 6, 4), F(M(0, y + 0.5, 0)));
+  B.add('lamp', new THREE.CylinderGeometry(0.2, 0.13, 0.42, 4, 1), F(M(0, y, 0, Math.PI / 4)));
+  for (let k = 0; k < 4; k++) {   // (las aristas: en las esquinas, abiertas hacia arriba como el cristal)
+    const a = Math.PI / 4 + k * Math.PI / 2, cx = Math.sin(a) * 0.165, cz = Math.cos(a) * 0.165;
+    B.add('iron', box(0.03, 0.44, 0.03), F(M(cx, y, cz, a, Math.atan2(0.07, 0.42))));
+  }
+  B.add('iron', new THREE.CylinderGeometry(0.15, 0.13, 0.05, 8), F(M(0, y - 0.235, 0)));
+  B.add('iron', new THREE.ConeGeometry(0.05, 0.16, 8).rotateX(Math.PI), F(M(0, y - 0.34, 0)));
+  B.add('iron', new THREE.CylinderGeometry(0.235, 0.215, 0.045, 8), F(M(0, y + 0.235, 0)));
+  B.add('iron', new THREE.ConeGeometry(0.28, 0.24, 4), F(M(0, y + 0.37, 0, Math.PI / 4)));
+  B.add('iron', new THREE.CylinderGeometry(0.035, 0.05, 0.08, 6), F(M(0, y + 0.52, 0)));
+  B.add('iron', new THREE.SphereGeometry(0.055, 8, 6), F(M(0, y + 0.6, 0)));
 }
 // (la pared de una casa a menos de 2,4 m: el punto de la pared más cercano y hacia dónde mira, o null)
 function paredCerca(x, z) {
@@ -435,16 +463,22 @@ export function lamp(B, x, z) {
     B.add('iron', box(0.05, 0.05, 0.82), F(M(0, 3.55, 0.41)));
     B.add('iron', box(0.04, 0.04, 0.72), F(M(0, 3.3, 0.3, 0, -Math.atan2(0.5, 0.55))));
     B.add('iron', box(0.03, 0.16, 0.03), F(M(0, 3.47, 0.78)));
+    // (y la voluta de forja bajo el brazo, como en los faroles de pared de los cascos viejos)
+    const vol = []; for (let i = 0; i <= 14; i++) { const a = i / 14 * Math.PI * 1.6, r = 0.2 * (1 - i / 18); vol.push(_v3(0, 3.3 - 0.1 + Math.sin(a) * r * 0.7, 0.32 - Math.cos(a) * r)); }
+    B.add('iron', tuboPor(vol, 0.012, 14), T);
     farol(B, MM(T, M(0, 0, 0.78)), 3.0);
     const lx = px + w.nx * 0.78, lz = pz + w.nz * 0.78;
     VILLAGE.lamps.push({ x: lx, y: y + 3.0, z: lz });
     return;
   }
   const y = terrainHeight(x, z), T = M(x, y, z);
-  B.add('stoneDark', box(0.42, 0.45, 0.42, 1), M(x, y + 0.2, z));
-  B.add('iron', new THREE.CylinderGeometry(0.05, 0.075, 3.0, 6), M(x, y + 1.9, z));
-  B.add('iron', box(0.3, 0.05, 0.3), M(x, y + 3.4, z));
-  farol(B, T, 3.65);
+  // (la columna de fundición: basa de piedra, pie moldurado, fuste con un anillo, capitel y el farol encima)
+  B.add('stoneDark', box(0.46, 0.4, 0.46, 1), M(x, y + 0.18, z));
+  B.add('iron', new THREE.CylinderGeometry(0.1, 0.14, 0.36, 8), M(x, y + 0.56, z));
+  B.add('iron', new THREE.CylinderGeometry(0.05, 0.07, 2.6, 8), M(x, y + 2.0, z));
+  B.add('iron', new THREE.CylinderGeometry(0.085, 0.085, 0.06, 8), M(x, y + 1.2, z));
+  B.add('iron', new THREE.CylinderGeometry(0.13, 0.055, 0.2, 8), M(x, y + 3.36, z));
+  farol(B, T, 3.7);
   addCircle(x, z, 0.25);
   VILLAGE.lamps.push({ x, y: y + 3.65, z });
 }

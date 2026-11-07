@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '../util/math.js';
 import { noise2 } from '../util/noise.js';
 import { pintadas } from './texturasPintadas.js';
+import { floresLienzo, silvestresLienzo } from './flores.js';
 
 // willReadFrequently: el lienzo vive en memoria normal, así leer sus píxeles (grano, relieve) no
 // obliga a traerlos de la tarjeta gráfica, que es muy lento
@@ -641,7 +642,11 @@ export function buildTextures(quality = 'high') {
   { const g = grassGround(S, quality !== 'low'); TEX.grass = g.map; TEX.grassN = g.normalMap; }
   TEX.dirt = dirtGround(S, quality !== 'low');
   { const r = rockFace(S); TEX.rock = r.map; TEX.rockN = r.normalMap; }
-  TEX.foliage = foliageAtlas(S);
+  // (el follaje, a 1024 en alta: la pintada lo llena con hojas de verdad; y las flores de macetas y balcones, flores.js)
+  TEX.foliage = foliageAtlas(quality === 'high' ? 1024 : S);
+  { const k = quality === 'low' ? 0.5 : 1, t = new THREE.CanvasTexture(floresLienzo(1152 * k, 768 * k));
+    t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; TEX.flores = t;
+    const s = new THREE.CanvasTexture(silvestresLienzo(768 * k, 512 * k)); s.colorSpace = THREE.SRGBColorSpace; TEX.silvestres = s; }
   TEX.litter = litterGround(S);
   // (y encima, las pintadas en Higgsfield, cuando llegan: texturasPintadas.js; quien construye el pueblo las espera un poco)
   TEX.pintadas = pintadas(TEX, S, normalFromHeight).catch(() => false);

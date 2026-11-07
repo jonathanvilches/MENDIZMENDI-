@@ -92,7 +92,7 @@ export class Runtime {
     // la sombra se recalcula en cada fotograma (a la mitad de ritmo, la de los personajes que andan iba a saltos);
     // solo en calidad baja (móviles) un fotograma sí y otro no
     this.renderer.shadowMap.autoUpdate = true;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping; this.renderer.toneMappingExposure = 1.05;
+    this.renderer.toneMapping = THREE.CustomToneMapping; this.renderer.toneMappingExposure = 1.05;   // (el tono de cine en pastel: sky.js)
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
     this.camera = new THREE.PerspectiveCamera(fovFor(innerWidth / innerHeight), innerWidth / innerHeight, 0.15, 7000);   // (hasta las sierras lejanas, a 6,2 km: world/sierras.js)

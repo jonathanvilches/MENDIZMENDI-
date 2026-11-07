@@ -34,6 +34,7 @@ import { enCss } from '../util/tele.js';
 import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTownSignpost } from './senales.js';
+import { Pajarillos } from '../world/pajarillos.js';
 import { foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
 import { Mercado, marketDay } from './mercado.js';
@@ -374,6 +375,8 @@ export class TownGame {
     this.spawnSabios();
     this.spawnKontalari();
     try { this.spawnBalcones(); } catch (e) { console.warn('balcones', e); }
+    // gorriones, palomas y vencejos (pajarillos.js): después de los balcones, que son de sus posaderos
+    try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
     this.spawnShepherds();
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
     // del pastor y la ganadera, que son los que dan los trabajos del ganado
@@ -450,11 +453,12 @@ export class TownGame {
   // pasas por debajo (sin hablar con ellos: están arriba; no estorban a quien pasa por la calle)
   spawnBalcones() {
     this.balconVecinos = [];
-    const P = PLACES.plaza, d = this.def, n = QUALITY === 'low' ? 2 : 4;
-    const B = TOWN.balcones.map(b => ({ ...b, k: Math.hypot(b.x - P.x, b.z - P.z) })).filter(b => b.k < 90).sort((a, b) => a.k - b.k);
+    // (desde noviembre de 2026, más: hasta 8, a 7 m uno de otro, también en los balcones de las fachadas sencillas, townReal.js)
+    const P = PLACES.plaza, d = this.def, n = QUALITY === 'low' ? 3 : 8;
+    const B = TOWN.balcones.map(b => ({ ...b, k: Math.hypot(b.x - P.x, b.z - P.z) })).filter(b => b.k < 110).sort((a, b) => a.k - b.k);
     for (const b of B) {
       if (this.balconVecinos.length >= n) break;
-      if (this.balconVecinos.some(a => Math.hypot(a.pos.x - b.x, a.pos.z - b.z) < 12)) continue;
+      if (this.balconVecinos.some(a => Math.hypot(a.pos.x - b.x, a.pos.z - b.z) < 7)) continue;
       const i = this.balconVecinos.length, fem = (i + d.id.length) % 3 !== 1;
       const a = new Actor({ id: 'balcon' + i, name: fem ? 'Vecina' : 'Vecino', x: b.x, z: b.z, y: b.y, heading: b.ry, ghost: true, wander: 0,
         look: { region: d.comarca, female: fem, old: i % 2 === 0, seed: i * 13 + d.id.length } }, this.scene);
@@ -570,6 +574,7 @@ export class TownGame {
       const dd = Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z); if (dd < 14 && !a.saludo) { a.saludo = true; a.wave = 2.2; } else if (dd > 30) a.saludo = false;
     }
     for (const f of this.folk) { if (solo) { fuera(f); continue; } this.updateFolk(f, dt); }
+    this.pajarillos?.update(dt, this.elapsed, P, this.sky?.night ?? 0, !!solo || this.mode === 'pelota' || this.mode === 'futbol');
     if (this.mode === 'play') this.bocadillos(dt); if (this._boc?.capa) this._boc.capa.hidden = this.mode !== 'play';   // (en los vídeos, los diálogos y los minijuegos, sin bocadillos)
     // objetos
     for (const it of this.items) {
@@ -1046,6 +1051,7 @@ export class TownGame {
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     for (const c of this._carteles || []) c.userData.dispose?.();
     this._boc?.capa?.remove();
+    try { this.pajarillos?.dispose(); } catch (e) { } this.pajarillos = null;
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
     if (this.ui.onDialogLine) this.ui.onDialogLine = null; this.ui.onMiniHit = null; if (this.ui.stage3d?.show) this.ui.stage3d = null;
     this.flora?.dispose(); document.querySelectorAll('.mg-overlay, .dogpick, .bagpanel').forEach(o => o.remove()); this.ui.closeModal?.(); this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }

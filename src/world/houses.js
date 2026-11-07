@@ -2,10 +2,11 @@
 import * as THREE from 'three';
 import { box, boxChaflan, faldon, cumbrera, venceDe, gable, archRing, archPanel, colored, M, MM, builderQuality } from './builder.js';
 import { addStep } from './heightfield.js';
+import { tarjeta, mata, celda, CELDAS } from './flores.js';
 
-// (colores vivos: contraventanas verdes, rojo sangre de toro, azules y ocres como las de los pueblos, pero recién
-// pintadas; geranios, gitanillas y petunias de todos los colores)
-const SHUTTERS = ['#2e8b57', '#b23a2a', '#2b6cb0', '#c9851c', '#c8323e', '#3f9a52', '#1f8a9a'];
+// (contraventanas verdes, rojo sangre de toro, azules y ocres como las de los pueblos, en tonos algo apagados, como la
+// pintura al sol de unos años: en noviembre de 2026 se pasaron a pastel, más de verdad; geranios, gitanillas y petunias)
+const SHUTTERS = ['#4f8a68', '#a24b3f', '#4f78a6', '#c09246', '#ad4f4a', '#5d9168', '#3f8a8f'];
 const FLOWERS = ['#ff2d55', '#ff5fa2', '#ff7a1a', '#ffffff', '#d23cff', '#ffd23f', '#ff3b30', '#ff8fc7'];
 
 // lama de contraventana: solo las caras que se ven (delante, arriba y abajo). Pegada a la contraventana, sus lados y su
@@ -38,18 +39,11 @@ function windowAt(B, T, x, y, w, h, o) {
   }
   if (o.flowers) {
     B.add('wood', box(w + 0.1, 0.24, 0.3, 1), F(M(x, y - h / 2 - 0.02, 0.36)));
-    for (let k = 0; k < 5; k++) {
-      const fc = o.flowers[k % o.flowers.length];
-      const g = new THREE.IcosahedronGeometry(0.13 + (k % 2) * 0.03, 0);
-      B.add('paint', colored(g, fc), F(M(x - w / 2 + 0.1 + k * (w - 0.2) / 4, y - h / 2 + 0.2, 0.38, k)));
-      B.add('leaf', colored(new THREE.IcosahedronGeometry(0.14, 0), '#3f7a34'), F(M(x - w / 2 + 0.2 + k * (w - 0.4) / 4, y - h / 2 + 0.12, 0.42, k)));
-    }
-    // y lo que cuelga por delante de la jardinera, como las gitanillas (en calidad baja, no: son muchas piezas pequeñas)
-    if (builderQuality() !== 'low') for (let k = 0; k < 3; k++) {
-      const px = x - w / 2 + 0.2 + k * (w - 0.4) / 2, py = y - h / 2 - 0.22 - (k % 2) * 0.14;
-      B.add('leaf', colored(new THREE.IcosahedronGeometry(0.1, 0), '#4a8a3a'), F(M(px, py, 0.5, k)));
-      B.add('paint', colored(new THREE.IcosahedronGeometry(0.08, 0), o.flowers[(k + 1) % o.flowers.length]), F(M(px + 0.06, py - 0.1, 0.53, k)));
-    }
+    // las flores pintadas (flores.js): dos o tres matas a lo ancho de la jardinera, de los colores de la casa, y por delante,
+    // colgando, las gitanillas (en calidad baja, sin ellas)
+    const n = w > 1.1 ? 3 : 2, paso = (w + 0.1) / n;
+    for (let k = 0; k < n; k++) B.add('flor', tarjeta(paso * 1.3, 0.46, celda(o.flowers[k % o.flowers.length])), F(M(x - (w + 0.1) / 2 + (k + 0.5) * paso, y - h / 2 + 0.04, 0.4 + (k % 2) * 0.05)));
+    if (builderQuality() !== 'low') B.add('flor', tarjeta(w + 0.15, 0.5, CELDAS.cuelga, true), F(M(x, y - h / 2 - 0.06, 0.53)));
   }
 }
 
@@ -108,8 +102,9 @@ function balconyAt(B, T, x, y, w, o) {
     const px = x - w / 2 + 0.35 + i * paso;
     B.add('tile', new THREE.CylinderGeometry(0.16, 0.12, 0.24, 7), F(M(px, y + 1.12, dep - 0.02)));
     const fc = o.flowers[i % o.flowers.length];
-    for (let k = 0; k < 3; k++) B.add('paint', colored(new THREE.IcosahedronGeometry(0.12, 0), k === 1 ? '#3f7a34' : fc), F(M(px + (k - 1) * 0.1, y + 1.3 - (k === 1 ? 0.18 : 0), dep + 0.06 + (k === 1 ? 0.06 : 0))));
-    if (i % 2 === 0 && !low) { B.add('leaf', colored(new THREE.IcosahedronGeometry(0.11, 0), '#4a8a3a'), F(M(px, y + 0.82, dep + 0.12, i))); B.add('paint', colored(new THREE.IcosahedronGeometry(0.09, 0), o.flowers[(i + 1) % o.flowers.length]), F(M(px + 0.05, y + 0.66, dep + 0.14, i))); }
+    // (la mata pintada en su maceta y, en una de cada dos, gitanillas que caen por delante de la barandilla)
+    B.add('flor', mata(0.52, 0.44, celda(fc)), F(M(px, y + 1.2, dep - 0.02)));
+    if (i % 2 === 0 && !low) B.add('flor', tarjeta(0.56, 0.66, CELDAS.cuelga, true), F(M(px, y + 1.12, dep + 0.1)));
   }
 }
 
@@ -119,8 +114,7 @@ function doorPots(B, T, x, dw, cols) {
   for (const s of [-1, 1]) {
     const px = x + s * (dw / 2 + 0.22), fc = cols[s > 0 ? 1 : 0];
     B.add('tile', new THREE.CylinderGeometry(0.2, 0.14, 0.36, 8), F(M(px, 0.3, 0.45)));
-    B.add('leaf', colored(new THREE.IcosahedronGeometry(0.26, 0), '#3f8a34'), F(M(px, 0.62, 0.45, s)));
-    for (let k = 0; k < 4; k++) B.add('paint', colored(new THREE.IcosahedronGeometry(0.11, 0), fc), F(M(px + Math.cos(k * 1.7) * 0.15, 0.72 + (k % 2) * 0.09, 0.45 + Math.sin(k * 1.7) * 0.15, k)));
+    B.add('flor', mata(0.66, 0.6, celda(fc)), F(M(px, 0.42, 0.45, s * 0.4)));   // (la mata pintada, flores.js)
   }
 }
 // Planta trepadora por la fachada (t: { kind: 'hiedra' | 'buganvilla' | 'glicinia', x, w, h, r }): tarjetas de hojas

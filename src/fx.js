@@ -172,7 +172,7 @@ export class NightLights {
     // de noche, la luz de cada farola en el suelo: un disco que sigue el relieve, con un degradado cálido que se suma al
     // color del empedrado (antes el suelo bajo las farolas quedaba tan azul como el resto). Todas en una sola malla
     if (lamps.length) {
-      const R = 4.4, n = 8, geos = lamps.map(l => {
+      const R = 5.2, n = 8, geos = lamps.map(l => {   // (algo más grandes y fuertes desde noviembre de 2026: de noche apenas se veían)
         const pg = new THREE.PlaneGeometry(R * 2, R * 2, n, n); pg.rotateX(-Math.PI / 2);
         const pp = pg.attributes.position;
         for (let i = 0; i < pp.count; i++) { const x = l.x + pp.getX(i), z = l.z + pp.getZ(i); pp.setXYZ(i, x, terrainHeight(x, z) + 0.05, z); }
@@ -195,7 +195,7 @@ export class NightLights {
   update(night, player) {
     const on = clamp((night - 0.3) * 2.5, 0, 1);
     this.mat.opacity = on * 0.85; this.points.visible = on > 0.01;
-    if (this.pools) { this.poolMat.opacity = on * 0.5; this.pools.visible = on > 0.01; }
+    if (this.pools) { this.poolMat.opacity = on * 0.68; this.pools.visible = on > 0.01; }
     this.mats.lamp.emissiveIntensity = on * 3;
     this.mats.glass.emissiveIntensity = on * 0.55;
     // otros materiales que se encienden de noche (la fachada de El Sadar): [de día, de noche]

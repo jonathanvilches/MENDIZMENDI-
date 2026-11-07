@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Builder, box, colored, M, MM } from './builder.js';
 import { buildHouse } from './houses.js';
 import { church, castle, castleJavier, dig, wallsRing, bridge, landmark } from './monuments.js';
-import { bench, lamp, fountain } from './village.js';
+import { bench, lamp, fountain, papelera } from './village.js';
 import { PATHS, PLACES, BRIDGES, riverInfo, pathQuery, villageMask, plazaMask, rx, MOD } from './layout.js';
 import { terrainHeight } from './heightfield.js';
 import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
@@ -143,9 +143,13 @@ export function buildTown(scene, mats, def) {
       TOWN.fountain = { x: f.x, z: f.z, y };
     }
   }
-  for (let i = 0; i < (pamp ? 0 : 6); i++) {
-    const a = i / 6 * Math.PI * 2 + 0.3, x = P.x + Math.cos(a) * (P.r - 5), z = P.z + Math.sin(a) * (P.r - 5);
-    if (isFree(x, z, 1.4)) bench(B, x, terrainHeight(x, z), z, Math.atan2(P.x - x, P.z - z));
+  // (los bancos de la plaza, mirando al centro, y una papelera junto a uno de cada dos)
+  for (let i = 0; i < (pamp ? 0 : 8); i++) {
+    const a = i / 8 * Math.PI * 2 + 0.3, x = P.x + Math.cos(a) * (P.r - 5), z = P.z + Math.sin(a) * (P.r - 5), ry = Math.atan2(P.x - x, P.z - z);
+    if (!isFree(x, z, 1.4)) continue;
+    bench(B, x, terrainHeight(x, z), z, ry);
+    const px = x + Math.cos(ry) * 1.35, pz = z - Math.sin(ry) * 1.35;
+    if (i % 2 === 0 && isFree(px, pz, 0.35)) papelera(B, px, pz);
   }
   // granja: cuadra y redil
   buildFarm(B, fam);
@@ -198,16 +202,29 @@ export function buildTown(scene, mats, def) {
     addBox(x, z, 1.7, 0.6, ry);
     TOWN.armsSpot = { x: x + Math.sin(ry) * 0.212, y: y + 1.62, z: z + Math.cos(ry) * 0.212, ry, read: { x: x + Math.sin(ry) * 2.3, z: z + Math.cos(ry) * 2.3 } };
   }
-  // farolas (en un pueblo real, solo en las calles del casco)
+  // farolas (en un pueblo real, solo en las calles del casco): cada 18 m, a un lado y al otro; si en ese lado no cabe, en el
+  // otro. Y en las calles anchas, cada 60 m, un banco de cara a la calle con su papelera (noviembre de 2026: las calles se
+  // veían vacías)
   for (const path of streets) {
     if (path.type !== 'street') continue;   // (en los caminos de tierra del bosque, sin farolas)
     const L = polyLen(path.pts);
-    for (let s = 6, k = 0; s < L; s += 26, k++) {
-      const a = polyAt(path.pts, s); const side = k % 2 ? 1 : -1;
-      const x = a.x - a.tz * side * (path.w + 0.4), z = a.z + a.tx * side * (path.w + 0.4);
-      if (real && villageMask(x, z) < 0.6) continue;
-      if (!isFree(x, z, 0.6)) continue;
-      lamp(B, x, z);
+    for (let s = 6, k = 0; s < L; s += 18, k++) {
+      const a = polyAt(path.pts, s);
+      for (const side of k % 2 ? [1, -1] : [-1, 1]) {
+        const x = a.x - a.tz * side * (path.w + 0.4), z = a.z + a.tx * side * (path.w + 0.4);
+        if (real && villageMask(x, z) < 0.6) break;
+        if (!isFree(x, z, 0.6)) continue;
+        lamp(B, x, z); break;
+      }
+    }
+    if (path.w < 2.6) continue;
+    for (let s = 30, k = 0; s < L - 10; s += 60, k++) {
+      const a = polyAt(path.pts, s), side = k % 2 ? -1 : 1, d = path.w + 1.1, x = a.x - a.tz * side * d, z = a.z + a.tx * side * d;
+      if ((real && villageMask(x, z) < 0.6) || !isFree(x, z, 1.5)) continue;
+      const ry = Math.atan2(a.tz * side, -a.tx * side);   // (de cara a la calle)
+      bench(B, x, terrainHeight(x, z), z, ry);
+      const px = x + Math.cos(ry) * 1.35, pz = z - Math.sin(ry) * 1.35;
+      if (isFree(px, pz, 0.35)) papelera(B, px, pz);
     }
   }
   B.build(group);

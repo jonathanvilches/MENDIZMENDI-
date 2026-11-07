@@ -10,6 +10,16 @@ import { groundHeight } from './heightfield.js';
 // después de él se les devuelve un poco de saturación
 { const K = THREE.ShaderChunk, a = 'color = ACESOutputMat * color;';
   if (K.tonemapping_pars_fragment.includes(a)) K.tonemapping_pars_fragment = K.tonemapping_pars_fragment.replace(a, a + '\n\tcolor = max( mix( vec3( dot( color, vec3( 0.2126, 0.7152, 0.0722 ) ) ), color, 1.12 ), 0.0 );'); }
+// el mundo del juego (pueblos, montes, frontones), en tonos pastel, más de verdad: el mismo tono de cine, con menos
+// saturación (0,8 de la de los menús, que llevan el 1,12 de arriba) y las sombras un poco levantadas, como con el aire
+// del valle. Lo usa solo el renderizador del juego (runtime.js, CustomToneMapping): el mapa, los menús y los retratos
+// siguen con sus colores. (noviembre de 2026: los colores vivos se veían de juguete)
+{ const K = THREE.ShaderChunk, a = 'vec3 CustomToneMapping( vec3 color ) { return color; }';
+  if (K.tonemapping_pars_fragment.includes(a)) K.tonemapping_pars_fragment = K.tonemapping_pars_fragment.replace(a, `vec3 CustomToneMapping( vec3 color ) {
+	color = ACESFilmicToneMapping( color );
+	color = mix( vec3( dot( color, vec3( 0.2126, 0.7152, 0.0722 ) ) ), color, 0.8 );
+	return saturate( color * 0.975 + vec3( 0.0075, 0.007, 0.008 ) );
+}`); }
 
 // texturas pintadas a mano en un lienzo: la luna con sus mares y su fase de hoy, su halo y niebla suave
 // la fase de la luna del día de hoy (0 = nueva, 0,5 = llena), contada desde una luna nueva conocida (6-1-2000)
@@ -76,14 +86,15 @@ function mistTex() {
 // Paleta por hora del día: [hora, cenit, horizonte, sol color, sol intensidad, hemi cielo, hemi suelo, hemi int]
 // (la luz del cielo y la del suelo, las de siempre: con una tierra parda y un cielo menos azul, en noviembre de 2026, los
 // pueblos salían marrones y apagados, Ochagavía sobre todo)
+// (de día, el sol algo más suave y el cielo da algo más de luz: sombras menos duras, con los tonos pastel)
 const KEYS = [
   // noche de luna: azulada y misteriosa, pero con luz suficiente para ver el camino
   [0, '#0d1638', '#26365e', '#a8bcf4', 1.05, '#6a80c8', '#34405e', 1.2],
   [5, '#1b2450', '#4a4a70', '#9fb0ea', 0.9, '#5a6aa8', '#2a3048', 1.05],
   [6.3, '#4d6fb0', '#f3a978', '#ffb27a', 1.2, '#9fb4dc', '#5d5040', 0.55],
-  [8, '#3f8fe0', '#bfe0f7', '#ffe3bd', 2.6, '#bfdcff', '#6d7a4a', 0.8],
-  [12, '#2f7fdc', '#cfe8fb', '#fff4e2', 3.1, '#c9e2ff', '#72804f', 0.9],
-  [16.5, '#3a86dc', '#d2e6f6', '#ffe6c2', 2.8, '#c4dcff', '#6f7b4c', 0.85],
+  [8, '#3f8fe0', '#bfe0f7', '#ffe3bd', 2.45, '#bfdcff', '#6d7a4a', 0.88],
+  [12, '#2f7fdc', '#cfe8fb', '#fff1dc', 2.85, '#c9e2ff', '#72804f', 1.0],
+  [16.5, '#3a86dc', '#d2e6f6', '#ffe6c2', 2.6, '#c4dcff', '#6f7b4c', 0.94],
   [18.4, '#5f7cc4', '#ffc493', '#ffb277', 2.2, '#c7c6e2', '#6d6048', 0.8],
   [19.3, '#3d4488', '#e0906f', '#ff9a66', 1.0, '#8f8fbf', '#3f3a3a', 0.62],
   [20.1, '#1c2458', '#6c4d6a', '#9aa4e0', 0.6, '#5a64a0', '#2a2c3e', 0.8],

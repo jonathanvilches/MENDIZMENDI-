@@ -745,6 +745,30 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la desplaza media textura para que la costura quede en una cruz en el centro, Nano Banana repinta solo esa cruz con su
   máscara, y `--junta` coge de lo repintado solo la cruz, con el color igualado, porque el modelo a veces retoca también
   lo de fuera. Para otra: se pinta igual, se pasa por las dos herramientas y se apunta en `LISTA`.
+- **Pueblos en pastel y con más vida** (noviembre de 2026):
+  - *Tono pastel* (`CustomToneMapping` en `sky.js`, puesto solo en el renderizador del juego, `runtime.js`): el mismo tono
+    de cine, con el 0,8 de la saturación de los menús y las sombras un poco levantadas. El mapa, los menús y los retratos
+    siguen con sus colores. De día el sol es algo más suave y el cielo da algo más de luz (`KEYS`), y las contraventanas
+    van en tonos algo apagados (`SHUTTERS` en `houses.js`, `ESTILO` en `townReal.js`).
+  - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
+    fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
+    en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.
+    Antes eran bolas de veinte caras. Material `flor` (`builder.js`), sin sombra.
+  - *Follaje pintado* (`follaje.webp`): cada zona del atlas de follaje (los dos racimos de hojas, la rama de abeto y la masa
+    de las copas) se pinta encima de la suya y se lleva a su color medio, porque el verde de cada árbol lo pone el color de
+    sus vértices. El atlas pasa a 1024 en calidad alta.
+  - *Flores silvestres* (`silvestres.webp`, `FlowerField` en `nature.js`): dos tarjetas cruzadas por mata con margaritas,
+    botones de oro, amapolas, lavanda y acianos pintados; antes eran unos 70 triángulos por mata, ahora 4.
+  - *Roca de los montes* (`roca.webp`): la de las laderas empinadas y los peñascos, en `LISTA` como las demás.
+  - *Mobiliario* (`village.js`): banco de forja con listones, farol fernandino con sus aristas, aros y remate, columna de
+    fundición, voluta en los faroles de pared y papeleras de forja. Farolas cada 18 m (si no caben en un lado, en el otro)
+    y bancos con papelera cada 60 m en las calles anchas (`townBuilder.js`); de noche, los charcos de luz algo mayores.
+  - *Pajarillos* (`pajarillos.js`): gorriones que picotean en la plaza, junto a los bancos y a las puertas y salen volando
+    a una farola, a un balcón o al borde de la fuente cuando pasas (vuelven cuando te vas), palomas en la plaza y
+    vencejos dando vueltas sobre los tejados. Una malla repetida por especie, con el aleteo y las alas plegadas en el
+    sombreador; de noche no se ven.
+  - *Vecinos en los balcones* (`spawnBalcones`): hasta 8, también en los balcones de las fachadas sencillas, que ahora se
+    apuntan en `TOWN.balcones`.
 - **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
   elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la

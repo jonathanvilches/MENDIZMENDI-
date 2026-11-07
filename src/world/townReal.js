@@ -4,6 +4,8 @@
 import * as THREE from 'three';
 import { box, boxChaflan, faldon, venceDe, M, MM, builderQuality } from './builder.js';
 import { climber } from './houses.js';
+import { celda, uvCelda } from './flores.js';
+import { TOWN } from './townBuilder.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { addBox, COLLIDERS } from './colliders.js';
 import { riverInfo, villageMask, MOD, PLACES } from './layout.js';
@@ -162,14 +164,15 @@ export function realRiverWalls(B, real, fam) {
 // que se ven desde la otra punta del pueblo. El estilo, el de cada comarca, como en src/world/houses.js: contraventanas
 // rojas y verdes y balcón corrido de madera en la vertiente atlántica; madera oscura y ventanas pequeñas en el Pirineo;
 // balcones de forja en la Zona Media y la Ribera.
-// (contraventanas recién pintadas, de colores vivos: rojo y verde en la vertiente atlántica, y verdes, azules y ocres
-// hacia la Ribera; y en balcones y ventanas, geranios)
+// (contraventanas rojas y verdes en la vertiente atlántica, y verdes, azules y ocres hacia la Ribera; y en balcones y
+// ventanas, geranios)
+// (en tonos algo apagados desde noviembre de 2026, como los pastel del resto del pueblo)
 const ESTILO = {
-  atlantic: { contra: ['#b23a2a', '#2e8b57', '#c8323e', '#2f7a4a'], marco: '#f4efe4', puerta: '#6a2a1e', madera: '#6b4024' },
-  pyrenean: { contra: ['#8a5a2c', '#2e8b57', '#a8432c'], marco: '#ddd3bd', puerta: '#4a3220', chica: true },
-  central: { contra: ['#2e8b57', '#2b6cb0', '#b23a2a'], marco: '#e6dcc4', puerta: '#4a3220', forja: true },
-  ribera: { contra: ['#2e8b57', '#2b6cb0', '#1f8a9a', '#c9851c'], marco: '#f0e8d6', puerta: '#4a3220', forja: true },
-  city: { contra: ['#2e8b57', '#2b6cb0', '#b23a2a'], marco: '#f0e8d6', puerta: '#3a2a1c', forja: true },
+  atlantic: { contra: ['#a24b3f', '#4f8a68', '#ad4f4a', '#4d7d5c'], marco: '#f4efe4', puerta: '#6a2a1e', madera: '#6b4024' },
+  pyrenean: { contra: ['#8c6640', '#4f8a68', '#a35a44'], marco: '#ddd3bd', puerta: '#4a3220', chica: true },
+  central: { contra: ['#4f8a68', '#4f78a6', '#a24b3f'], marco: '#e6dcc4', puerta: '#4a3220', forja: true },
+  ribera: { contra: ['#4f8a68', '#4f78a6', '#3f8a8f', '#c09246'], marco: '#f0e8d6', puerta: '#4a3220', forja: true },
+  city: { contra: ['#4f8a68', '#4f78a6', '#a24b3f'], marco: '#f0e8d6', puerta: '#3a2a1c', forja: true },
 };
 const FLOR = ['#ff2d55', '#ff5fa2', '#ff7a1a', '#d23cff', '#ffd23f', '#ff3b30'];
 // juntar rectángulos en una sola pieza: cada uno en el plano de una fachada (u a lo largo, y de altura, a «off» de la pared)
@@ -183,6 +186,18 @@ class Lienzo {
       if (this.color) this.c.push(c.r, c.g, c.b);
     }
     this.i.push(k, k + 1, k + 2, k, k + 2, k + 3);
+  }
+  // flores pintadas (flores.js): matas de algo más de medio metro a lo largo de [u0, u1], un poco solapadas, de alto h desde
+  // y0, con la casilla i del atlas
+  flores(F, u0, u1, y0, h, off, i) {
+    const n = Math.max(1, Math.round((u1 - u0) / 0.55)), du = (u1 - u0) / n, [a0, b0, a1, b1] = uvCelda(i);
+    for (let j = 0; j < n; j++) {
+      const k = this.p.length / 3, ua = u0 + (j - 0.15) * du, ub = u0 + (j + 1.15) * du, o = off + (j % 2) * 0.03;
+      for (const [u, y, a, b] of [[ua, y0, a0, b0], [ub, y0, a1, b0], [ub, y0 + h, a1, b1], [ua, y0 + h, a0, b1]]) {
+        this.p.push(F.ox + F.ux * u + F.nx * o, y, F.oz + F.uz * u + F.nz * o); this.n.push(F.nx, 0, F.nz); this.t.push(a, b);
+      }
+      this.i.push(k, k + 1, k + 2, k, k + 2, k + 3);
+    }
   }
   geo() {
     if (!this.i.length) return null;
@@ -200,7 +215,9 @@ const hashRnd = (x, z) => { let s = (Math.imul(Math.round(x * 10), 73856093) ^ M
  *  lejos, para las casas con todo su detalle), floors (plantas, si la casa ya las tiene contadas). */
 function fachada(B, T, w, d, h, o) {
   const E = ESTILO[o.fam] || ESTILO.pyrenean, r = o.rnd, kind = o.kind || 'house', off = o.tier === 3 ? 0.09 : 0.03;
-  const vid = new Lienzo(false), car = new Lienzo(true), forja = new Lienzo(false);
+  const vid = new Lienzo(false), car = new Lienzo(true), forja = new Lienzo(false), flo = new Lienzo(false);
+  // (los balcones de la fachada, para que se asome algún vecino: townGame.spawnBalcones. No en las de lejos, que repiten casa)
+  const asomo = (F, u, y, fuera) => { if (o.tier === 3) return; const p = new THREE.Vector3(F.ox + F.ux * u + F.nx * fuera, y, F.oz + F.uz * u + F.nz * fuera).applyMatrix4(T), n = new THREE.Vector3(F.nx, 0, F.nz).transformDirection(T); TOWN.balcones.push({ x: p.x, y: p.y, z: p.z, ry: Math.atan2(n.x, n.z) }); };
   const piedra = o.wall === 'stone' || o.wall === 'ashlar', marco = piedra ? '#cfc5b0' : o.wall === 'brick' ? '#e2d6bf' : E.marco;
   const contra = E.contra[Math.floor(r() * E.contra.length)];
   const V = o.vecinas || [], caras = [
@@ -275,25 +292,28 @@ function fachada(B, T, w, d, h, o) {
           // (la ventana del balcón llega al suelo de la planta, como una puerta balconera)
           const y0 = fh + 0.05, y1 = fh + Math.min(2.3, fh * 0.78);
           ventana(F, u, (y0 + y1) / 2, ww, y1 - y0, true);
-          if (E.forja) { forja.rect(F, u - ww / 2 - 0.3, u + ww / 2 + 0.3, y0, y0 + 0.95, off + 0.55); losa(F, u, ww + 0.6, y0, 0.55, 'ashlar');
-            if (r() < 0.75) car.rect(F, u - ww / 2 - 0.2, u + ww / 2 + 0.2, y0 + 0.95, y0 + 1.16, off + 0.6, FLOR[Math.floor(r() * FLOR.length)]); }   // (macetas en la barandilla)
+          if (E.forja) { forja.rect(F, u - ww / 2 - 0.3, u + ww / 2 + 0.3, y0, y0 + 0.95, off + 0.55); losa(F, u, ww + 0.6, y0, 0.55, 'ashlar'); asomo(F, u, y0, off + 0.28);
+            if (r() < 0.75) flo.flores(F, u - ww / 2 - 0.2, u + ww / 2 + 0.2, y0 + 0.82, 0.44, off + 0.62, celda(FLOR[Math.floor(r() * FLOR.length)])); }   // (macetas en la barandilla)
           continue;
         }
         const yv = f * fh + fh * 0.56;
         ventana(F, u, yv, ww, wh, f > 0 && r() < 0.88);
-        if (f > 0 && F.frente && r() < 0.4) car.rect(F, u - ww / 2 - 0.05, u + ww / 2 + 0.05, yv - wh / 2 - 0.02, yv - wh / 2 + 0.2, off + 0.22, FLOR[Math.floor(r() * FLOR.length)]);   // (jardinera)
+        if (f > 0 && F.frente && r() < 0.4) {   // (jardinera: la caja de madera y las flores pintadas encima)
+          car.rect(F, u - ww / 2 - 0.05, u + ww / 2 + 0.05, yv - wh / 2 - 0.14, yv - wh / 2 + 0.02, off + 0.24, '#6b4630');
+          flo.flores(F, u - ww / 2 - 0.05, u + ww / 2 + 0.05, yv - wh / 2 - 0.04, 0.36, off + 0.27, celda(FLOR[Math.floor(r() * FLOR.length)]));
+        }
       }
       if (balcon && E.madera) {
         // balcón corrido de madera: barandilla con balaustres sobre un vuelo
-        const y0 = fh + 0.05, a = -F.L * 0.36, b = F.L * 0.36;
+        const y0 = fh + 0.05, a = -F.L * 0.36, b = F.L * 0.36; asomo(F, (a + b) / 2 + F.L * 0.12, y0, off + 0.3);
         car.rect(F, a, b, y0 - 0.14, y0 + 0.02, off + 0.6, E.madera); car.rect(F, a, b, y0 + 0.92, y0 + 1.02, off + 0.6, E.madera); losa(F, 0, b - a, y0, 0.6, 'wood');
         for (let u = a; u <= b; u += 0.3) car.rect(F, u - 0.035, u + 0.035, y0, y0 + 0.92, off + 0.6, E.madera);
-        for (let u = a + 0.4; u < b - 0.4; u += 1.3) car.rect(F, u, u + 0.7, y0 + 1.02, y0 + 1.22, off + 0.62, FLOR[Math.floor(r() * FLOR.length)]);   // (geranios a lo largo)
+        for (let u = a + 0.4; u < b - 0.4; u += 1.3) flo.flores(F, u - 0.05, u + 0.75, y0 + 0.92, 0.42, off + 0.64, celda(FLOR[Math.floor(r() * FLOR.length)]));   // (geranios a lo largo)
       }
     }
   }
   const t = o.tier ?? 0;
-  for (const [mat, L] of [['glass', vid], ['fachada', car], ['railing', forja]]) { const g = L.geo(); if (g) B.add(mat, g, T, t); }
+  for (const [mat, L] of [['glass', vid], ['fachada', car], ['railing', forja], ['flor', flo]]) { const g = L.geo(); if (g) B.add(mat, g, T, t); }
 }
 
 /** La fachada sencilla de una casa con todo su detalle (ho, la de buildHouse), solo para verla de lejos. */
