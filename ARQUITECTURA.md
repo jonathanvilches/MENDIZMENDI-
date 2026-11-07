@@ -1017,6 +1017,14 @@ Con `MINI=1 npx vite` el servidor de pruebas carga lo mismo que el archivo únic
 Con `LIGERO=1 npx vite build` sale una variante unos 6 MB más pequeña (`HERRIZHERRI-jugar-ligero.html`): los
 personajes de Meshy van en su versión ligera (`src/assets/meshy/lod`) y todo lo demás es igual.
 
+**Las dos descargas, solo cuando se pidan** (noviembre de 2026). Los dos archivos únicos de `docs/descargas` pesan unos
+47 MB cada uno y cada versión nueva añadía unos 90 MB al historial: con 113 versiones guardadas, el repositorio llegó a
+unos 3 GB. Ahora la web se compila sin ellos y `docs/descargas` se queda como está en git; solo se vuelven a compilar
+cuando el autor lo pide. A la vez se limpió el historial: fuera las versiones viejas de las descargas, las compilaciones
+viejas de la web (`docs/`) y las capturas de revisión de `entrega/`, que ya no se guardan en git. En `entrega/` quedan
+los modelos de los personajes (`.blend`), las capturas de la App Store, los encargos y los informes de texto. El código
+de todas las versiones se conserva.
+
 La web se guarda con un service worker (`src/web/sw.js`): la página se pide primero a la red y sin la copia del
 navegador, y lo demás sale de la caché. La app instalada en el iPhone vuelve de segundo plano tal como estaba, así que
 `src/web/update.js` mira al volver qué versión hay publicada: si ha cambiado y se está en el menú, carga la nueva al
