@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { mulberry32 } from '../util/math.js';
 import { noise2 } from '../util/noise.js';
+import { pintadas } from './texturasPintadas.js';
 
 // willReadFrequently: el lienzo vive en memoria normal, así leer sus píxeles (grano, relieve) no
 // obliga a traerlos de la tarjeta gráfica, que es muy lento
@@ -642,5 +643,7 @@ export function buildTextures(quality = 'high') {
   { const r = rockFace(S); TEX.rock = r.map; TEX.rockN = r.normalMap; }
   TEX.foliage = foliageAtlas(S);
   TEX.litter = litterGround(S);
+  // (y encima, las pintadas en Higgsfield, cuando llegan: texturasPintadas.js; quien construye el pueblo las espera un poco)
+  TEX.pintadas = pintadas(TEX, S, normalFromHeight).catch(() => false);
   return TEX;
 }

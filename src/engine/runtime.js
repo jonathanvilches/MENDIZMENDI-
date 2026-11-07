@@ -144,6 +144,8 @@ export class Runtime {
     if (salazar) initBridges();
     onProgress(0.25, 'Tallando la piedra…'); await frame();
     if (!this.texturesReady) { buildTextures(q); this.texturesReady = true; }
+    // (las texturas pintadas, texturasPintadas.js: se esperan como mucho 4 s; si tardan más, se cambian cuando lleguen)
+    await Promise.race([TEX.pintadas, new Promise(r => setTimeout(r, 4000))]);
     const scene = this.scene = new THREE.Scene();
     // lo que se añade al pueblo ya en juego (los objetos de una misión, el público del frontón, la criatura de una
     // leyenda): si trae materiales sin compilar, se compilan antes de dibujarlo (warm), como lo demás en la carga

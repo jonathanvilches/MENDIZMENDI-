@@ -731,6 +731,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   su caja de 2:3 y la pasa a WebP animado con transparencia (320 × 480, 15 fps, unos 0,8 MB), que va como una imagen más
   donde iba la fija (`public/videos/figuras/<color>/<id>.webp`). La pantalla VS, tan grande, sigue con la fija de 1024. De
   momento solo Iñigo, de colorado y de azul; para otro, se genera igual y se apunta en `FIGURAS`.
+- **Texturas pintadas** (`src/world/texturasPintadas.js`, `src/assets/texturas/*.webp`, `tools/textura-enlosable.cjs`,
+  `tools/textura-cruz.cjs`; noviembre de 2026): el adoquín, la hierba, la tierra, la piedra, el revoco, la teja, la
+  pizarra y la madera de los pueblos están pintados en Higgsfield (Nano Banana 2, 1024 × 1024, 1,5 créditos cada una) con
+  el estilo de las láminas, en lugar del dibujo hecho con código de `textures.js`. Al acabar `buildTextures` se cambia
+  solo la imagen de cada `CanvasTexture`, al mismo tamaño (512, o 256 en calidad baja), así que repeticiones, materiales y
+  memoria siguen igual; la pintada se lleva antes al color medio de la de siempre, canal a canal, y por eso los revocos de
+  colores, la piedra y la madera oscuras y los tonos de cada comarca no cambian. El relieve sale del brillo de la pintada
+  (`normalFromHeight`). `runtime.js` las espera como mucho 4 s; si no llegan, quedan las de código. Para que se repitan
+  sin costura: `textura-enlosable.cjs` busca el recorte cuyo borde derecho empalma con el izquierdo y el de abajo con el de
+  arriba (en las de hileras, un número entero de hileras) y funde lo que falte en una franja junto a los bordes (con
+  `ejes=y` solo arriba y abajo, para que las juntas de las tablas no salgan dobles). Si aún se nota, `textura-cruz.cjs`
+  la desplaza media textura para que la costura quede en una cruz en el centro, Nano Banana repinta solo esa cruz con su
+  máscara, y `--junta` coge de lo repintado solo la cruz, con el color igualado, porque el modelo a veces retoca también
+  lo de fuera. Para otra: se pinta igual, se pasa por las dos herramientas y se apunta en `LISTA`.
 - **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
   elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la
