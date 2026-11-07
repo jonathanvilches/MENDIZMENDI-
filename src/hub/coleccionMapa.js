@@ -1,11 +1,10 @@
-// Las colecciones en el mapa del inicio: la naturaleza, los escudos, los personajes y los torneos, cada cosa en el sitio de
+// Las colecciones en el mapa del inicio: la naturaleza, los escudos y los personajes, cada cosa en el sitio de
 // Navarra donde está. Este módulo solo dice qué hay en cada colección y dónde: sus pestañas y, por cada cosa, su imagen, su
 // nombre, si ya la has descubierto, sus pueblos o sus comarcas y qué se hace al abrirla. Lo pinta inicio.js, con la fila de
 // tarjetas abajo y los marcadores encima del mapa (mapa3d.js, coleccion). Lo que no tiene sitio en el mapa (los escudos de
 // pueblos que no están en el juego, una especie sin comarca) no sale aquí: sí en la lista de siempre
-//   coleccionDe('nature' | 'escudos' | 'personajes' | 'sports') → { titulo, kicker, icon, tabs, cosas(tab) } | null
-import COMARCAS from '../data/comarcas.json';
-import { LEVELS, levelById, esSede } from '../data/levels.js';
+//   coleccionDe('nature' | 'escudos' | 'personajes') → { titulo, kicker, icon, tabs, cosas(tab) } | null
+import { levelById } from '../data/levels.js';
 import { allFichas, showFicha } from '../ui/ficha.js';
 import { faunaImg } from '../ui/faunaImg.js';
 import { floraFoto } from '../ui/floraFoto.js';
@@ -17,14 +16,14 @@ import { PERSONAJES, FIGURE_TOWNS } from '../data/personajes.js';
 import { openPersonaje } from '../ui/personajes.js';
 import { FIGURAS_LEYENDA, FIGURAS_CARNAVAL } from '../data/figuras.js';
 import { figuraImg, openFigura } from '../ui/figuras.js';
-import { personajeUrl, townImg, townCover, laminaUrl } from '../ui/laminas.js';
+import { personajeUrl } from '../ui/laminas.js';
 import { profile } from '../game/profile.js';
 import { visto } from '../game/coleccion.js';
 
-export const COLECCIONES_MAPA = ['nature', 'escudos', 'personajes', 'sports'];
+// (los torneos, no: van en su pantalla de siempre, con el de pelota y el de fútbol bien separados. Así lo pidió el autor)
+export const COLECCIONES_MAPA = ['nature', 'escudos', 'personajes'];
 const corto = (id) => (levelById(id)?.name || id || '').split(' /')[0];
 const comarcaDe = (id) => levelById(id)?.comarca;
-const nombreComarca = (id) => COMARCAS.find(c => c.id === id)?.name || '';
 const TOWN_OF = {}; for (const [t, L] of Object.entries(FIGURE_TOWNS)) for (const id of L) TOWN_OF[id] = t;
 const unicos = (a) => [...new Set(a.filter(Boolean))];
 
@@ -79,21 +78,7 @@ function personajes(ui) {
     },
   };
 }
-// (los torneos: la liga de fútbol, en El Sadar, y la pelota a mano, en cada pueblo con frontón. Jugar va por el menú:
-// data-sport, como en la pantalla de Torneos)
-function torneos() {
-  return {
-    titulo: 'Torneos de Navarra', kicker: 'Torneos', icon: 'trophy', tabs: null, sinCandado: true,
-    cosas() {
-      const futbol = { id: 'futbol', key: 'futbol', img: laminaUrl('dep-futbol', true) || townCover('pamplona', true) || '', icon: 'balon', name: 'Liga Navarra de fútbol',
-        towns: ['pamplona'], comarcas: [comarcaDe('pamplona')], sub: 'Fútbol · El Sadar', locked: false, verbo: 'Jugar', accion: { sport: 'futbol' } };
-      const pelota = LEVELS.filter(l => esSede(l.id)).map(l => ({ id: l.id, key: 'fronton:' + l.id, img: townCover(l.id, true) || townImg(l, true) || '', icon: 'pelota',
-        name: `Frontón de ${corto(l.id)}`, towns: [l.id], comarcas: [l.comarca], sub: `Pelota a mano · ${nombreComarca(l.comarca)}`, locked: false, verbo: 'Jugar', accion: { sport: 'pelota', en: l.id } }));
-      return [futbol, ...pelota];
-    },
-  };
-}
 /** La colección de una sección para el mapa, o null si esa sección no va en el mapa. */
 export function coleccionDe(kind, ui) {
-  return kind === 'nature' ? naturaleza(ui) : kind === 'escudos' ? escudos(ui) : kind === 'personajes' ? personajes(ui) : kind === 'sports' ? torneos() : null;
+  return kind === 'nature' ? naturaleza(ui) : kind === 'escudos' ? escudos(ui) : kind === 'personajes' ? personajes(ui) : null;
 }

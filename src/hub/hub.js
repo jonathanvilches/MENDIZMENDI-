@@ -264,13 +264,12 @@ export class Hub {
       if (screen === 'avatars') { cierraMapa(); mapa.innerHTML = ''; }
       else if (!mapa.firstElementChild) { this.after = null; mapa.innerHTML = this.s_home(); this.after?.(); this.after = null; }
       if (screen === 'home') { m.innerHTML = ''; m.removeAttribute('role'); this.renderChip(); return; }
-      // (la naturaleza, los escudos, los personajes y los torneos, abiertos desde el menú: en el mapa, cada cosa en su sitio,
+      // (la naturaleza, los escudos y los personajes, abiertos desde el menú: en el mapa, cada cosa en su sitio,
       // con sus tarjetas abajo (inicio.js, modoColeccion). Para todo lo demás es el inicio; «Lista» abre la pantalla de siempre)
       if (COLECCIONES_MAPA.includes(screen) && arg == null && !isDidactico()) {
         this.root.dataset.screen = 'home'; this.root.dataset.col = screen; m.innerHTML = ''; m.removeAttribute('role'); this.renderChip();
         const lista = { nature: 'fauna', personajes: 'all' }[screen] || 'lista';
-        modoColeccion(screen, { sound: this.sound, lista: () => this.go(screen, lista), cierra: () => this.go('home'),
-          jugar: (a) => { this.sound?.ui('open'); this.onSport?.(a.sport, a.sport === 'pelota' ? sedeDePueblo(a.en) : null); } });
+        modoColeccion(screen, { sound: this.sound, lista: () => this.go(screen, lista), cierra: () => this.go('home') });
         return;
       }
       // (la sección, en una ventana encima del mapa, con su nombre arriba entre el botón del menú y el de cerrar)
@@ -398,14 +397,14 @@ export class Hub {
         <div class="sp-bar">${row}</div></div></article>`;
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `
-    ${cabeza('Torneos · Pelota y fútbol', 'trophy', 'Campeonatos')}
+    ${cabeza('Pelota y fútbol', 'trophy', 'Torneos')}
     <section class="sports">
       ${carta('sp-pelota', laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl), `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
-        'Tres campeonatos', 'Pelota a mano', [['pelota', 'Manomanista'], ['person', 'Parejas'], [null, '4½']],
-        `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span>Jugar</span></button>`)}
+        'Pelota a mano · tres campeonatos', 'Torneo de pelota', [['pelota', 'Manomanista'], ['person', 'Parejas'], [null, '4½']],
+        `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`)}
       ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${fw === 1 ? 'ganado' : 'ganados'}`,
-        'Liga Navarra', 'Fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
-        `<div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span>Jugar</span></button>`)}
+        'Fútbol · Liga Navarra', 'Torneo de fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
+        `<div class="sp-row"><small>Tu club</small><div class="sp-box">${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`)}
     </section>`;
   }
   // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas

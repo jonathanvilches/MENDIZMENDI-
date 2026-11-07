@@ -256,17 +256,17 @@ function mapaOn(root, p) {
 /** Lo que se mueve: el mapa 3D y lo que va encima. */
 export function inicioOn(root) { mapaOn(root, profile()); }
 
-// ---------- las colecciones en el mapa: la naturaleza, los escudos, los personajes y los torneos (coleccionMapa.js) ----------
+// ---------- las colecciones en el mapa: la naturaleza, los escudos y los personajes (coleccionMapa.js) ----------
 // Arriba a la izquierda, su cabecera: qué es, cuántas llevas descubiertas, sus pestañas y los botones de verla en lista y de
 // volver al mapa. Abajo, en lugar de las comarcas, sus tarjetas. Y en el mapa, cada sitio con lo suyo: su pueblo o su
 // comarca, con las imágenes de lo que hay allí y cuántas son. Al tocar una tarjeta, se ve dónde está (sus sitios, sus
-// comarcas en primer plano y la cámara encima) y sale su botón; al tocarla otra vez, su ficha o jugar. Al tocar un sitio del
+// comarcas en primer plano y la cámara encima) y sale su botón; al tocarla otra vez, su ficha. Al tocar un sitio del
 // mapa, abajo solo lo de ese sitio; al tocar fuera, todo otra vez. Lo que aún no has descubierto, con su candado y su pista
 let COLX = null;
 const X_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const nombreLugar = (L) => L.town ? corto(levelById(L.town) || { name: L.town }) : comarca(L.comarca)?.name || '';
-/** Pone en el mapa del inicio una colección (kind: 'nature', 'escudos', 'personajes' o 'sports') o la quita (null).
- *  ui: { sound, lista(), cierra(), jugar(accion) } */
+/** Pone en el mapa del inicio una colección (kind: 'nature', 'escudos' o 'personajes') o la quita (null).
+ *  ui: { sound, lista(), cierra() } */
 export function modoColeccion(kind, ui = {}) {
   COLX?.fin(); COLX = null;
   const sec = document.querySelector('#hMapa .m3d'), def = kind && coleccionDe(kind, { sound: ui.sound });
@@ -280,7 +280,7 @@ export function modoColeccion(kind, ui = {}) {
   const cabeza = () => {
     const des = cosas.filter(c => !c.locked).length;
     cab.innerHTML = `<span class="mc-tt"><small>${I(def.icon, 16)}${esc(def.kicker)}</small><b>${esc(def.titulo)}</b></span>
-      ${def.sinCandado ? '' : `<span class="mc-n">${des}<small>/${cosas.length}</small></span>`}
+      <span class="mc-n">${des}<small>/${cosas.length}</small></span>
       <button type="button" class="mc-b" data-collista title="Verlo en lista">${I('scroll', 20)}<span>Lista</span></button>
       <button type="button" class="mc-b mc-x" data-colx aria-label="Volver al mapa" title="Volver al mapa">${X_SVG}</button>
       ${def.tabs ? `<span class="mc-tabs">${def.tabs.map(([k, n]) => `<button type="button" data-coltab="${k}" class="${k === tab ? 'on' : ''}">${esc(n)}</button>`).join('')}</span>` : ''}
@@ -292,7 +292,7 @@ export function modoColeccion(kind, ui = {}) {
       return `<button type="button" class="mc-c${c.locked ? ' bloq' : ''}${on ? ' on' : ''}" data-colc="${esc(c.id)}" role="listitem">
         <span class="mc-f">${c.img ? `<img src="${c.img}" alt="" loading="lazy" decoding="async">` : I(c.icon, 44)}${c.locked ? `<i class="mc-candado">${I('lock', 22)}</i>` : ''}</span>
         <span class="mc-t"><b>${c.locked ? '¿?' : esc(c.name)}</b><small>${c.locked ? ['Por descubrir', ...sitios(c).map(nombreLugar)].map(esc).join(' · ').replace(/ · (.*)$/, (m, r) => ' · ' + r.replace(/ · /g, ', ')) : esc(c.sub)}</small></span>
-        ${on && !c.locked ? `<span class="mc-ver">${I(c.accion ? 'play' : 'book', 16)}<span>${esc(c.verbo)}</span></span>` : ''}</button>`; }).join('')
+        ${on && !c.locked ? `<span class="mc-ver">${I('book', 16)}<span>${esc(c.verbo)}</span></span>` : ''}</button>`; }).join('')
       : '<p class="mc-vacio">Aquí no hay nada de esta colección.</p>';
     rail.querySelector('.mc-c.on')?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' });
   };
@@ -329,7 +329,7 @@ export function modoColeccion(kind, ui = {}) {
     if (d.coltab) { tab = d.coltab; cosas = def.cosas(tab); lugar = null; elegido = null; pinta(); MAPA?.vista(); return; }
     if (d.collugar != null) { lugar = null; elegido = null; pinta(); MAPA?.vista(); return; }
     const c = cosas.find(x => x.id === d.colc); if (!c) return;
-    if (elegido === c.id && !c.locked) { if (c.accion) ui.jugar?.(c.accion); else Promise.resolve(c.abre?.()).then(() => { if (COLX?.vivo === vivo) { cosas = def.cosas(tab); pinta(); } }); return; }
+    if (elegido === c.id && !c.locked) { Promise.resolve(c.abre?.()).then(() => { if (COLX?.vivo === vivo) { cosas = def.cosas(tab); pinta(); } }); return; }
     elegido = c.id; pinta(); MAPA?.encuadra({ comarcas: c.comarcas });   // (sus comarcas enteras: de un pueblo solo, la cámara se metía demasiado)
   };
   // (la rueda del ratón pasa las tarjetas; Escape quita lo elegido y, sin nada elegido, cierra la colección. Con una ficha

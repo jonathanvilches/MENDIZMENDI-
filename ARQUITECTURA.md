@@ -699,12 +699,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   comarca; sus pueblos se eligen ya con ella elegida, o con la cámara cerca, donde salen sus nombres. Un pueblo de otra
   comarca lleva primero a la suya.
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en
-  `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos, Personajes o Torneos desde el menú del juego, en lugar
+  `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos o Personajes desde el menú del juego, en lugar
   de su ventana se queda el mapa con su colección. Arriba, su cabecera con cuántas llevas, sus pestañas, «Lista» (la
   pantalla de siempre) y cerrar; abajo, sus tarjetas en lugar de las comarcas; y en el mapa, cada sitio con lo suyo: las
-  especies en sus comarcas; los escudos, los personajes, las figuras de leyenda y de carnaval y los frontones en sus
-  pueblos. Tocar una tarjeta enseña dónde está, con sus comarcas en primer plano y la cámara encima; tocarla otra vez abre
-  su ficha o el partido. Tocar un sitio deja abajo solo lo suyo. Lo bloqueado sale con su candado y su pista. El hub
+  especies en sus comarcas; los escudos, los personajes y las figuras de leyenda y de carnaval en sus pueblos. Tocar una
+  tarjeta enseña dónde está, con sus comarcas en primer plano y la cámara encima; tocarla otra vez abre su ficha. Torneos
+  se probó en el mapa y el autor lo quiso en su pantalla de siempre, con las dos cartas bien claras: «Torneo de pelota» y
+  «Torneo de fútbol», y el botón de cada una dice a qué se juega («Jugar a pelota», «Jugar al fútbol»; en el móvil
+  tumbado más estrecho, solo «Jugar», para que quepan el frontón y el club). Tocar un sitio deja abajo solo lo suyo. Lo bloqueado sale con su candado y su pista. El hub
   sigue con `data-screen="home"` y la colección en `data-col`, así el mapa se pinta y vale todo lo del inicio. Lo que no
   tiene sitio en el mapa solo sale en la lista. En el material didáctico, las pantallas de siempre.
 - **El torneo, sin nada cortado ni montado** (`torneoPanel` y su CSS en `game/torneo.js`; noviembre de 2026): en el iPhone
