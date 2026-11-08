@@ -13,6 +13,12 @@
 //   vigila(raiz)        → los <video data-vid> que haya o vaya habiendo dentro: andan solo mientras se ven, y al quitarlos
 //                         se paran y sueltan su archivo
 //   revisa()            → vuelve a mirar cuáles se ven, tras abrir o cerrar algo encima
+//   basta(el, w, h)     → ¿una imagen o un vídeo de w × h tiene la definición de lo que ocupa el en la pantalla?
+// La resolución, ante todo (noviembre de 2026): un vídeo o una figura animada solo se ponen si tienen la definición de lo
+// que ocupan en la pantalla, contando su densidad (en un móvil o un portátil de alta densidad, dos o tres píxeles por
+// cada uno; en una pantalla grande, muchos más). Si se estirarían, la imagen fija, que es de más resolución y sube sola a
+// la grande cuando hace falta (web/hd.js). Las láminas animadas son de 1280 × 720 (las pequeñas, de 640 × 360) y las
+// figuras animadas, de 384 × 576: en una pantalla grande o densa, a menudo la imagen
 import { sencillo } from '../util/sencillo.js';
 
 // (el arranque, los pueblos, las comarcas y los deportes que ya tienen la suya; el resto, la lámina fija)
@@ -48,6 +54,43 @@ const PLANTILLA_IDS = ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xab
 export const FIGURAS = new Set(PLANTILLA_IDS.flatMap(id => [`rojo/${id}`, `azul/${id}`]));
 export const figuraAnimada = (id, color) => (FIGURAS.has(`${color}/${id}`) && puede() ? `./videos/figuras/${color}/${id}.webp` : '');
 
+/** ¿Basta una imagen o un vídeo de w × h para lo que ocupa el elemento en la pantalla? (null: aún sin medir). Como en
+ *  web/hd.js: el ancho que pide según cómo se encaja («cover» la estira hasta cubrir la caja, «contain» la mete entera;
+ *  si no, el ancho de la caja), por la densidad de la pantalla, con un 2 % de holgura */
+export function basta(el, w, h) {
+  const r = el.getBoundingClientRect(); if (!w || !h || r.width < 2 || r.height < 2) return null;
+  const fit = getComputedStyle(el).objectFit;
+  // (en una pantalla grande la interfaz se agranda con zoom, util/tele.js; si el navegador no lo cuenta en las medidas,
+  // se cuenta aquí: lo que ocupa la página entera frente al ancho de la ventana)
+  const hw = document.documentElement.getBoundingClientRect().width, zf = hw > 0 && innerWidth / hw > 1.05 ? innerWidth / hw : 1;
+  const need = (fit === 'cover' ? Math.max(r.width, r.height * w / h) : fit === 'contain' || fit === 'scale-down' ? Math.min(r.width, r.height * w / h) : r.width) * (devicePixelRatio || 1) * zf;
+  return need <= w * 1.02;
+}
+// (lo que mide cada lámina animada: las de la carpeta s/, la mitad)
+const DIM = (u) => (/\/s\//.test(u) ? [640, 360] : [1280, 720]);
+const ACTIVOS = new Set();
+
+// las figuras animadas: en su sitio va la figura fija (la de 512, que sube a la de 1024 si hace falta) y la animada solo
+// la sustituye si basta para lo que ocupa; si luego crece (otra ventana, otra pantalla), vuelve la fija
+const FIG = [384, 576];
+const ROF = typeof ResizeObserver !== 'undefined' ? new ResizeObserver((es) => { for (const e of es) figura(e.target); }) : null;
+function figura(im) {
+  if (!im.isConnected) { ROF?.unobserve(im); return; }
+  const an = im.dataset.an, ok = an ? basta(im, ...FIG) : null; if (ok === null) return;
+  if (ok && !im.classList.contains('pf-an')) { im.dataset.fija = im.getAttribute('src'); im.classList.add('pf-an'); im.src = an; }
+  else if (!ok && im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; }
+}
+if (typeof document !== 'undefined') document.addEventListener('load', (e) => { const im = e.target; if (im?.tagName === 'IMG' && im.dataset?.an) { if (!im.dataset.vig) { im.dataset.vig = '1'; ROF?.observe(im); } figura(im); } }, true);
+// (al cambiar el tamaño de la ventana, los vídeos que ya no tienen definición se quitan y los que ahora sí, vuelven)
+let tRes = 0;
+if (typeof addEventListener !== 'undefined') addEventListener('resize', () => { clearTimeout(tRes); tRes = setTimeout(() => {
+  for (const v of ACTIVOS) {
+    if (!v.isConnected) { ACTIVOS.delete(v); continue; }
+    if (v.hasAttribute('src')) { const [w, h] = v.videoWidth ? [v.videoWidth, v.videoHeight] : DIM(v._url || ''); if (basta(v, w, h) === false) { para(v); v.dataset.baja = '1'; } }
+    else if (v.dataset.baja && v._url && (VISTOS.has(v) || !v.dataset.vid)) enMarcha(v, v._url);
+  }
+}, 300); });
+
 /** El <video> de una lámina animada para meter en el HTML (lo pone en marcha vigila, cuando se ve), o '' sin vídeo. */
 export const videoTag = (url, cls) => (url ? `<video class="${cls}" data-vid="${url}" muted playsinline loop preload="none" disablepictureinpicture disableremoteplayback aria-hidden="true" tabindex="-1"></video>` : '');
 
@@ -55,9 +98,14 @@ export function enMarcha(v, url) {
   if (!v) return;
   v.classList.remove('on');
   if (!url) { para(v); return; }
+  // (la resolución: si la pequeña se estiraría, la grande; y si tampoco basta, se queda la lámina fija de debajo)
+  v._url = url; ACTIVOS.add(v);
+  let u = url;
+  if (basta(v, ...DIM(u)) === false) { const g = u.replace('/s/', '/'); if (g !== u && basta(v, ...DIM(g)) !== false) u = g; else { para(v); v.dataset.baja = '1'; return; } }
+  delete v.dataset.baja; url = u;
   // (sin sonido y en línea, también como propiedades: el iPhone solo arranca solo un vídeo así)
   v.muted = true; v.defaultMuted = true; v.playsInline = true; v.loop = true;
-  v.onplaying = () => v.classList.add('on');
+  v.onplaying = () => { if (basta(v, v.videoWidth || DIM(u)[0], v.videoHeight || DIM(u)[1]) === false) { para(v); v.dataset.baja = '1'; return; } v.classList.add('on'); };
   v.onerror = () => { v.classList.remove('on'); v.removeAttribute('src'); };
   if (v.getAttribute('src') !== url) v.src = url;
   v.play()?.catch(() => { });

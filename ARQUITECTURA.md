@@ -82,6 +82,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 ## Convenciones
 
+- **Máxima resolución y definición:** todo lo que sale en el juego, con la máxima resolución y definición para la pantalla
+  donde se ve (contando su densidad y su tamaño). Un vídeo o una animación que se estiraría no sale: va la imagen fija, de
+  más resolución (`basta` en `ui/videos.js`; las imágenes suben solas a su copia grande con `web/hd.js`).
 - **Rendimiento ante todo:**
   - Lo estático se funde por material (`mergeGeometries`, `mergeByMaterial`).
   - Lo repetido va instanciado (público, banderines, ventanas…).
@@ -723,6 +726,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   movimiento», con ahorro de datos, sin conexión o si fallan, queda la fija. El arranque (`#portada-app` en `index.html`)
   pone los Pirineos al 50 % detrás del icono, con su viñeta morada. Las láminas sin vídeo siguen fijas: para añadir una,
   se genera igual, se pasa por `laminas-video.sh` y se apunta su id en `VIDEOS`.
+  **Resolución ante todo** (regla del autor, noviembre de 2026: en el juego todo con la máxima resolución y definición; si
+  un vídeo no la tiene, la imagen): `basta(el, w, h)` mira si un vídeo o una imagen de w × h tiene la definición de lo
+  que ocupa en la pantalla, como `web/hd.js` (el ancho que pide según su encaje, por la densidad de la pantalla y por el
+  zoom de las pantallas grandes, con un 2 % de holgura). `enMarcha` no pone el vídeo si se estiraría: la versión pequeña
+  sube a la grande si esa basta y, si tampoco, se queda la lámina fija (`data-baja`); al cambiar el tamaño de la ventana se
+  vuelve a mirar. Medido: a pantalla entera, el vídeo de 1280 × 720 solo sale hasta 1280 × 720 con densidad 1; en
+  1366 × 768, 1920 × 1080, un portátil de densidad 2 o el móvil, la imagen. Las figuras animadas (384 × 576) igual: va la
+  fija (la de 512, que `hd.js` sube a la de 1024 cuando hace falta) y la animada (`data-an`) solo la sustituye donde basta,
+  y vuelve la fija si crece (`figura`, con un ResizeObserver).
   Las 12 comarcas también: en las tarjetas de abajo del mapa (`.m3-vid`, la versión pequeña de `public/videos/s/`, 640 ×
   360 y unos 120 KB) y en la cabecera de la ficha de la comarca y del pueblo (`.pt-vid` en `cabecera`, `laminas.js`), esta
   solo con la pantalla de pie, donde el vídeo cabe. Tumbada, la cabecera es mucho más ancha que el vídeo y va la fija de

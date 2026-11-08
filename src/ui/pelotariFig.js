@@ -20,6 +20,8 @@ const CAMISETA = byId(import.meta.glob('@pelotaris/camiseta/*.webp', { eager: tr
 hdTable('pelotari-rojo', ROJO); hdTable('pelotari-azul', CAMISETA);
 // (en la web, para la pantalla VS, donde la figura ocupa casi todo el alto: los de 1024 del autor)
 const VS = { azul: byId(import.meta.glob('@pelotaris/vs/azul/*.webp', { eager: true, query: '?url', import: 'default' })), rojo: byId(import.meta.glob('@pelotaris/vs/rojo/*.webp', { eager: true, query: '?url', import: 'default' })) };
+// (y en la web, las de 512 suben a esas de 1024 cuando se ven más grandes de lo que miden: en una pantalla grande o densa)
+if (Object.keys(VS.rojo).length) { hdTable('pelotari-rojo', ROJO, VS.rojo, 1024); hdTable('pelotari-azul', AZUL, VS.azul, 1024); }
 
 // la plantilla del autor: 11 chicos y 11 chicas (Iñigo es el protagonista: no sale de rival)
 const CHICOS = ['Iñigo', 'Unai', 'Mikel', 'Aitor', 'Iñaki', 'Ander', 'Xabier', 'Jokin', 'Ekaitz', 'Julen', 'Asier'];
@@ -62,10 +64,11 @@ export const pelotariSrc = (name, side = 'rojo') => { const id = pelotariId(name
 export function pelotariFig(name, side = 'rojo', cls = '', big = false) {
   const id = pelotariId(name), c = `pf${cls ? ' ' + cls : ''}`;
   // (la animada, si la tiene, en las cartas y también en la pantalla VS, donde se enfrentan: desde noviembre de 2026 las
-  // tienen todos; ui/videos.js. Sin ella, la fija, y en la VS, la de 1024)
-  const an = figuraAnimada(id, side === 'azul' ? 'azul' : 'rojo');
-  if (an) return `<img class="${c} pf-an" src="${an}" alt="" draggable="false" decoding="async">`;   // (pf-an: animada; sin filtros encima, que la repintaban en cada fotograma)
-  if (big && VS[side === 'azul' ? 'azul' : 'rojo'][id]) return `<img class="${c}" src="${VS[side === 'azul' ? 'azul' : 'rojo'][id]}" alt="" draggable="false">`;
+  // tienen todos. Va primero la fija, y la animada, data-an, solo la sustituye donde su resolución basta para lo que ocupa
+  // en la pantalla; si no, se queda la fija, de más resolución, que sube a la de 1024 si hace falta. ui/videos.js, figura;
+  // pf-an: animada, sin filtros encima, que la repintaban en cada fotograma)
+  const an = figuraAnimada(id, side === 'azul' ? 'azul' : 'rojo'), dAn = an ? ` data-an="${an}"` : '';
+  if (big && VS[side === 'azul' ? 'azul' : 'rojo'][id]) return `<img class="${c}" src="${VS[side === 'azul' ? 'azul' : 'rojo'][id]}"${dAn} alt="" draggable="false">`;
   if (side === 'azul' && !AZUL[id] && CAMISETA[id]) return `<img class="${c} pf-az" src="${CAMISETA[id]}" style="background-image:url(${ROJO[id]})" alt="" draggable="false">`;
-  return `<img class="${c}" src="${pelotariSrc(name, side)}" alt="" draggable="false">`;
+  return `<img class="${c}" src="${pelotariSrc(name, side)}"${dAn} alt="" draggable="false">`;
 }
