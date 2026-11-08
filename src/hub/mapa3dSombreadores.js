@@ -87,11 +87,14 @@ export const BORDE_FS = ['uniform float uLuzP; uniform vec3 uFilo; varying float
 // (desde noviembre de 2026, menos verde: salvia en lo bajo, oliva en las sierras, pardo y gris en la roca y blanco arriba;
 // antes, verde vivo hasta los 650 m, y todo el mapa se veía de un verde que no casaba con el resto del juego)
 export const PALETA = [[0, '#8ea38c'], [250, '#97a587'], [450, '#98a382'], [650, '#8a977a'], [850, '#7e8b72'], [1050, '#76806d'], [1250, '#847d74'], [1450, '#9f9891'], [1650, '#d3d3d9'], [1900, '#f2f3f6']];
-export const RELIEVE_VS = `varying vec2 vXZ; varying float vH, vSom;
+// (aFino: lo que sube o baja cada punto con el relieve fino, src/assets/relieve/fino.webp, solo en la malla densa de la
+// comarca elegida y a cero junto a su borde; uFinoK, cuánto se ve, de 0 a 1, para que entre y salga suave)
+const relieveVS = (antes, alt) => `${antes}varying vec2 vXZ; varying float vH, vSom;
 #include <fog_pars_vertex>
-void main() { vXZ = position.xz; vH = position.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;
+void main() { vec3 p0 = position; ${alt} vXZ = p0.xz; vH = p0.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(p0, 1.0); gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
+export const RELIEVE_VS = relieveVS('attribute float aFino; uniform float uFinoK; ', 'p0.y += aFino * uFinoK;');
 // (la sombra de las nubes que pasan despacio por encima de Navarra y de lo que la rodea, en unidades del mundo: manchas
 // grandes y blandas, de unos diez kilómetros, que van hacia el este con el viento del oeste)
 export const NUBES = `uniform float uT;
@@ -213,5 +216,4 @@ void main() {
 #include <fog_fragment>
 }`;
 // (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
-export const PARCHE_VS = RELIEVE_VS.replace('varying vec2 vXZ;', 'attribute float hd; uniform float uMaqK; varying vec2 vXZ;')
-  .replace('vH = position.y;', 'vec3 q = vec3(position.x, mix(position.y, hd, uMaqK), position.z); vH = q.y;').replace('vec4(position, 1.0)', 'vec4(q, 1.0)');
+export const PARCHE_VS = relieveVS('attribute float hd; uniform float uMaqK; ', 'p0.y = mix(p0.y, hd, uMaqK);');

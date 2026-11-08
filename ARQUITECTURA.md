@@ -839,6 +839,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `fotosT`, casillas de 96 px de las portadas pequeñas) dentro de un aro fino de su estado: blanco, rosa con lo hecho en
   un arco, dorado con el check; con una comarca elegida, más grandes (`medG`); en toda Navarra, un punto limpio. El palito,
   fino y claro. Antes, disco de borde oscuro con un punto morado sobre un palito oscuro.
+- **Relieve fino de la comarca elegida** (`src/assets/relieve/fino.webp`, `tools/relieve/fino.mjs`, `hazFino` y `finos` en
+  `mapa3d.js`; noviembre de 2026): el relieve del mapa es una altura cada 620 m, y las sierras salían como bultos lisos;
+  el sombreado fino ponía el dibujo, pero no la forma. Ahora, una imagen gris de toda Navarra (80 KB, EU-DEM a 56 m,
+  media de nueve lecturas cada 145 m) guarda cuánto se aparta la altura de verdad de la gruesa. Al elegir una comarca,
+  con la cámara quieta y en tres pasos cortos, su losa se rehace con una malla unas cuatro veces más densa (de 43.000 a
+  65.000 triángulos) y cada punto sube o baja lo suyo, algo exagerado (×1,35), a cero junto a su borde para que case con
+  sus paredes y sus vecinas. Sus ríos, sus árboles, sus medallones, los nombres de sus montes y la cámara siguen a ese
+  relieve; entra y sale suave (`fk`) y se va con la maqueta de un pueblo. Se guardan las mallas de las tres últimas
+  comarcas. Con ella, un bosque denso donde hay bosque (de 7 a 14 árboles por casilla de la máscara, según el aparato),
+  que crece con el relieve. La vista de una comarca, algo más de lado (`PITCH_C` 0,82, antes 0,95) y con algo más de
+  relieve a esa distancia (`exaDe`), para que se vean las siluetas de los montes; de cerca, los medallones ya no se
+  agrandan. La comarca elegida, casi sin su color encima. Para verlo: `mapav.mjs` y `cerca.mjs`.
 - **Un solo navegador: la fila de las comarcas** (`enFila` en `inicio.js`; noviembre de 2026): la fila de abajo se queda
   siempre y lleva solo las comarcas. Al elegir una, su tarjeta se enciende y la fila se corre para que se vea; también al
   cambiarla arrastrando el mapa. Los pueblos se eligen en el mapa, en sus medallones, que con una comarca elegida se

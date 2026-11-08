@@ -20,6 +20,7 @@ import { MAPA_RELIEVE } from '../data/mapa-relieve.js';
 import MOUNTAINS from '../data/mountains.json';
 import { MONTES_MAPA } from '../data/montes-mapa.js';
 import SOMBRA from '../assets/relieve/sombra.webp?url';
+import FINO from '../assets/relieve/fino.webp?url';
 import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
 import { webUrl } from '../web/hd.js';
@@ -155,6 +156,25 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const SUAVE = !!matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const CINE = host.closest('#hub') || document.body; if (INTRO) CINE.classList.add('m3-cine');   // (en el menú, a toda la pantalla mientras dura)
   const alto = hacerRelieve();
+  // (el relieve fino, src/assets/relieve/fino.webp de tools/relieve/fino.mjs: cada 0,7 unidades del mapa, unos 145 m, lo que
+  // se aparta la altura de verdad de la gruesa, en pasos de 3 m. Se lee una vez en un lienzo, sin estorbar a la entrada; con
+  // él, la comarca elegida se rehace con una malla densa y sus sierras toman su forma: crestas, barrancos y cumbres)
+  const FINO_R = { x0: 15, y0: 12, paso: 0.7, w: 1025, h: 1106 }, FINO_G = 1.35 * 3 * EXA;   // (algo más marcado que el de verdad, como el grueso)
+  let finoD = null;
+  const finoEn = (X, Z) => {
+    if (!finoD) return 0;
+    const gx = Math.max(0, Math.min(FINO_R.w - 1.001, (X / S + CX - FINO_R.x0) / FINO_R.paso)), gy = Math.max(0, Math.min(FINO_R.h - 1.001, (Z / S + CY - FINO_R.y0) / FINO_R.paso));
+    const i = gx | 0, j = gy | 0, fx = gx - i, fy = gy - j, k = j * FINO_R.w + i, D = finoD, w = FINO_R.w;
+    return (((D[k] * (1 - fx) + D[k + 1] * fx) * (1 - fy) + (D[k + w] * (1 - fx) + D[k + w + 1] * fx) * fy) - 128) * FINO_G;
+  };
+  setTimeout(() => {
+    if (typeof createImageBitmap !== 'function') return;
+    fetch(FINO, { credentials: 'omit' }).then(x => x.ok ? x.blob() : Promise.reject()).then(b => createImageBitmap(b, { premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(im => {
+      const cv = document.createElement('canvas'); cv.width = im.width; cv.height = im.height; const x = cv.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0);
+      const d = x.getImageData(0, 0, im.width, im.height).data, a = new Uint8Array(im.width * im.height); for (let i = 0; i < a.length; i++) a[i] = d[i * 4];
+      if (im.width === FINO_R.w && im.height === FINO_R.h && vivo) finoD = a; im.close?.();
+    }).catch(() => { });
+  }, INTRO ? 7000 : 900);
   // (dónde hay bosque: a rodales, en el monte de la mitad norte, entre unos 380 y 1.800 m. Una imagen pequeña de toda
   // Navarra con la que el relieve pinta el verde oscuro de las copas y se plantan los árboles: así coinciden)
   const BOSQ = { x0: 0, y0: 0, w: 760, h: 820, nx: 190, ny: 205 };
@@ -166,10 +186,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   Object.assign(UNI, { uBosque: { value: bqTex }, uBosqueR: { value: new THREE.Vector4(BOSQ.x0, BOSQ.y0, BOSQ.w, BOSQ.h) } });
   const C = o.comarcas.map((c, i) => {
     const { P, cx, cy } = contorno(c);
-    const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g);
+    const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1));
     // (empezada, con los colores del mapa y un toque del suyo; sin descubrir, apagada y hacia el malva, bajo la niebla)
     const vivo = !!o.abiertas || c.pct > 0 || c.done, top = relieveM(c, vivo);
-    const side = bordeM(c, vivo, 0.2, 1.3), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id;
+    const side = bordeM(c, vivo, 0.2, 1.3), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id; const fk = top.uniforms.uFinoK = { value: 0 };
     // (la panza, solo en la entrada: a la sombra, con más luz propia para que se vea su forma)
     let bajo = null; if (INTRO) { const pg = panza(Pw); geos.push(pg); bajo = new THREE.Mesh(pg, bordeM(c, vivo, 0.6, 0)); mesh.add(bajo); }
     // (lo que se levanta la comarca con sus sellos)
@@ -183,7 +203,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
     // (sin el candado, que ya sale en la fila de abajo, y sin «Comarca de»: los nombres, cortos, para que quepan todos)
     lab.innerHTML = `${c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name.replace(/^Comarca de /, ''))}</b>`;
-    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
+    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, gGrueso: g, fk, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
   });
   // el hueco de Navarra en el mapa de España: oscuro, bajo las comarcas, justo de su tamaño (las comarcas encajan sin raya
   // entre ellas: solo se ve el de la que se levanta). Va con lo transparente, después del suelo de alrededor y antes que lo demás
@@ -314,6 +334,14 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (TAM: de cerca, junto a la maqueta de un pueblo, los árboles del mapa menguan hasta irse: son maqueta de comarca, de
   // cientos de metros, y al lado de las casas de verdad parecían montañas)
   const INVEXA = { value: 1 }, TAM = { value: 1 }, arbolG = new THREE.ConeGeometry(0.07, 0.24, 6, 1, true), arboles = []; arbolG.translate(0, 0.12, 0); geos.push(arbolG);
+  // (el material de los árboles de una comarca; crece: los del bosque denso de la elegida, que salen con su relieve fino)
+  const arbolM = (c, fondo, crece) => { const m = M({ roughness: 0.9 });
+    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco, uFinoK: c.fk });
+      sh.vertexShader = 'uniform float uInvExa, uTam, uFinoK; uniform vec4 uHueco; attribute float aFinoI;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed *= uTam${crece ? ' * smoothstep(0.35, 1.0, uFinoK)' : ''}; transformed.y *= uInvExa; transformed.y += aFinoI * uFinoK / instanceMatrix[1][1];\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;`);
+      // (con un poco de su propio verde como luz: con la luz malva del cielo, de lejos salían como motas negras)
+      sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
+        .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
+    m.customProgramCacheKey = () => crece ? 'mapa-arboles-fino' : 'mapa-arboles'; return m; };
   { let semilla = 7; const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
     const tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = LENTO ? 1.1 : 2.2, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
     for (const c of C) {
@@ -328,13 +356,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         }
       }
       if (!L.length) continue;
-      const fondo = { value: 0 }, m = M({ roughness: 0.9 }); c.arbolFondo = fondo;
-      m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco });
-        sh.vertexShader = 'uniform float uInvExa, uTam; uniform vec4 uHueco;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed *= uTam; transformed.y *= uInvExa;\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;');
-        // (con un poco de su propio verde como luz: con la luz malva del cielo, de lejos salían como motas negras)
-        sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
-          .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
-      m.customProgramCacheKey = () => 'mapa-arboles';
+      const fondo = { value: 0 }, m = arbolM(c, fondo, false); c.arbolFondo = fondo;
       const im = new THREE.InstancedMesh(arbolG, m, L.length); im.raycast = () => {};
       L.forEach(([X, y, Z, mt], n) => {
         const sc = 0.75 + azar() * 0.55, alt = mt > 900;   // (en lo alto, pinos y abetos, más oscuros; abajo, robles y hayas, más claros)
@@ -342,6 +364,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         im.setColorAt(n, col.set(alt ? '#33603a' : '#548640').offsetHSL((azar() - 0.5) * 0.03, 0, (azar() - 0.5) * 0.1));
       });
       im.frustumCulled = false; c.mesh.add(im); arboles.push(im);
+      im.geometry = arbolG.clone(); im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(new Float32Array(L.length), 1)); geos.push(im.geometry); c.arboles = { im, L };   // (cada comarca, lo suyo del relieve fino)
     }
   }
   // (cada comarca, con su copia de los materiales del agua: se apaga con ella cuando pasa al fondo)
@@ -350,8 +373,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (y donde está la maqueta de un pueblo, el río no se pinta: allí va el suyo, pintado en el suelo)
   // (el agua corre: destellos que bajan por el río, más en el centro de la cinta; uv.x es lo andado a lo largo del río,
   // y RIO_ESC los hace más menudos al acercarse, para que no se vean como manchas grandes)
-  const anchoRio = (m, hueco) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco; sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC;
-    sh.vertexShader = 'attribute vec3 lado; uniform float uAncho; varying vec2 vHx, vRuv;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; vHx = transformed.xz; vRuv = uv;');
+  const anchoRio = (m, hueco, fk) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco; sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC; sh.uniforms.uFinoK = fk;
+    sh.vertexShader = 'attribute vec3 lado; attribute float aFino; uniform float uAncho, uFinoK; varying vec2 vHx, vRuv;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; transformed.y += aFino * uFinoK; vHx = transformed.xz; vRuv = uv;');
     sh.fragmentShader = 'uniform vec4 uHueco; uniform float uT, uRioE; varying vec2 vHx, vRuv;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (uHueco.w > 0.5 && distance(vHx, uHueco.xy) < uHueco.z) discard;')
       .replace('#include <map_fragment>', `#include <map_fragment>
 { float x = vRuv.x * uRioE, cen = 1.0 - abs(vRuv.y - 0.5) * 2.0;
@@ -365,8 +388,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
 { vec2 q = vLx * 5.0 * uRioE; float w = sin(q.x + uT * 0.9 + sin(q.y * 0.8 - uT * 0.5) * 1.6) * sin(q.y * 1.3 - uT * 0.7 + sin(q.x * 0.6) * 1.2);
   diffuseColor.rgb = diffuseColor.rgb * (0.94 + 0.06 * w) + vec3(0.5, 0.6, 0.62) * smoothstep(0.7, 1.0, w) * 0.35; }`); };
     m.customProgramCacheKey = () => 'mapa-lago'; };
-  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco); c.lagoM = lagoM.clone(); aguaLago(c.lagoM); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
-  for (const [c, a] of cintas) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3)); g.setAttribute('lado', new THREE.Float32BufferAttribute(a.lado, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2)); g.setIndex(a.i); geos.push(g); const m = new THREE.Mesh(g, c.rioM); m.renderOrder = 1; c.mesh.add(m); }
+  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco, c.fk); c.lagoM = lagoM.clone(); aguaLago(c.lagoM); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
+  for (const [c, a] of cintas) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3)); g.setAttribute('lado', new THREE.Float32BufferAttribute(a.lado, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2)); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(a.p.length / 3), 1)); g.setIndex(a.i); geos.push(g); const m = new THREE.Mesh(g, c.rioM); m.renderOrder = 1; c.mesh.add(m); c.rioG = g; }
   // los nombres de las sierras, de los ríos y de los embalses, como en los mapas (por debajo de los de las comarcas y los
   // pueblos: si no caben, se esconden)
   const N = [...MAPA_RELIEVE.sierras.map(x => ({ n: x.n, k: 0, xy: [x.x, x.y] })), ...MAPA_RELIEVE.rios.filter(x => x.k < 3).map(x => ({ n: x.n, k: x.k, xy: x.l })),
@@ -923,7 +946,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       yaw: D.real ? D.yaw + giro * DRON_W : D.yaw + 0.45 * Math.sin(u * DRON_W) * k, k };
   };
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
-  const exaDe = (d) => d >= 4 ? 0.45 + 0.55 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.15 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
+  // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
+  const PITCH_C = 0.82, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1021,7 +1046,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const id of towns) { const t = tById.get(id); if (t) for (const [a, b] of [[-3, -3], [3, 3]]) esq.push(new THREE.Vector3(t.X + a, 0, t.Z + b)); }
     if (!esq.length) return vista();
     const mx = esq.reduce((a, q) => a + q.x, 0) / esq.length, mz = esq.reduce((a, q) => a + q.z, 0) / esq.length;
-    volar({ x: mx, z: mz, d: Math.max(22, encaja(esq, mx, mz, 0.95, 1)), yaw: 0, pitch: 0.95 });
+    volar({ x: mx, z: mz, d: Math.max(22, encaja(esq, mx, mz, PITCH_C, 1)), yaw: 0, pitch: PITCH_C });
   }
   // ---------- elegir una comarca: vuela hasta ella y se levanta ----------
   function select(id, fly = true, moviendo = false) {
@@ -1031,7 +1056,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const x of C) { x.lab.classList.toggle('sel', x.id === sel); x.lab.classList.toggle('fondo', !!sel && x.id !== sel); }
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
-    if (c && fly) volar({ x: c.mid.x, z: c.mid.z, d: Math.max(22, encaja(c.esq, c.mid.x, c.mid.z, 0.95, 1)), yaw: 0, pitch: 0.95 });
+    if (c && fly) volar({ x: c.mid.x, z: c.mid.z, d: Math.max(22, encaja(c.esq, c.mid.x, c.mid.z, PITCH_C, 1)), yaw: 0, pitch: PITCH_C });
   }
 
   // ---------- el relieve fino ----------
@@ -1068,6 +1093,74 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const sobran = [...det].filter(([id, e]) => !quiere.has(id) && e.tex).sort((a, b) => a[1].t - b[1].t);
     let n = [...det.values()].filter(e => e.tex).length;
     for (const [id, e] of sobran) { if (n <= MAXD + 1) break; const u = byId.get(id).top.uniforms; u.uDet.value = nada; u.uDetK.value = 0; suelta(e.tex); det.delete(id); n--; }
+  }
+
+  // ---------- el relieve fino de la comarca elegida ----------
+  // Con la imagen del relieve fino ya leída (finoEn), la comarca elegida se rehace con una malla unas cuatro veces más densa
+  // y cada punto sube o baja lo que dice: las sierras toman su forma de verdad. Junto a su borde, a cero, para que case con
+  // sus paredes y con las vecinas; sus ríos, sus árboles, sus medallones y los nombres de sus montes suben o bajan con ella,
+  // y la cámara también. Entra y sale suave (fk, de 0 a 1); con la maqueta de un pueblo, se va. Se hace con la cámara
+  // quieta, en tres pasos (la distancia al borde, la malla y lo demás), y se guardan las de las tres últimas comarcas
+  const DENSO = LENTO ? 0.1 : 0.075, finosHechos = [];
+  const bordeDe = (c) => {
+    if (c.bordeF) return c.bordeF;
+    const b = c.gGrueso.boundingBox, P = c.Pw, st = 0.15, x0 = b.min.x - st, z0 = b.min.z - st, nx = Math.ceil((b.max.x - x0) / st) + 2, nz = Math.ceil((b.max.z - z0) / st) + 2, D = new Float32Array(nx * nz);
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
+      const x = x0 + i * st, z = z0 + j * st; let m = 1e9;
+      for (let a = 0, e = P.length - 1; a < P.length; e = a++) { const ax = P[e][0], az = P[e][1], dx = P[a][0] - ax, dz = P[a][1] - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1e-9))), ex = ax + dx * t - x, ez = az + dz * t - z, d2 = ex * ex + ez * ez; if (d2 < m) m = d2; }
+      D[j * nx + i] = Math.sqrt(m);
+    }
+    return (c.bordeF = (x, z) => { const gx = Math.max(0, Math.min(nx - 1.001, (x - x0) / st)), gz = Math.max(0, Math.min(nz - 1.001, (z - z0) / st)), i = gx | 0, j = gz | 0, fx = gx - i, fz = gz - j, k = j * nx + i;
+      return suave(0.12, 0.75, (D[k] * (1 - fx) + D[k + 1] * fx) * (1 - fz) + (D[k + nx] * (1 - fx) + D[k + nx + 1] * fx) * fz); });
+  };
+  function hazFino(c) {
+    const f = bordeDe(c), dh = c.dhF = (x, z) => finoEn(x, z) * f(x, z);
+    if (!c.gFino) {
+      const { g } = losa(c.Pw, alto, DENSO), pa = g.attributes.position.array, a = new Float32Array(pa.length / 3);
+      for (let v = 0; v < a.length; v++) if (pa[v * 3 + 1] > 0.01) a[v] = dh(pa[v * 3], pa[v * 3 + 2]);
+      g.setAttribute('aFino', new THREE.BufferAttribute(a, 1)); c.gFino = g;
+      finosHechos.push(c);
+      while (finosHechos.length > 3) { const i = finosHechos.findIndex(o2 => o2 !== c && o2.mesh.geometry !== o2.gFino); if (i < 0) break; const o2 = finosHechos.splice(i, 1)[0]; o2.gFino.dispose(); o2.gFino = null; }
+      return;   // (lo demás, en el paso siguiente: así ninguno se come más de un par de imágenes)
+    }
+    // (los ríos y los árboles se pusieron sobre la rejilla gruesa: pasan a la altura de los datos y suben o bajan con el fino)
+    if (c.rioG) { const p = c.rioG.attributes.position.array, a = c.rioG.attributes.aFino; for (let v = 0; v < a.count; v++) { const x = p[v * 3], z = p[v * 3 + 2]; a.array[v] = alto(x, z) - sobre(c, x, z) + dh(x, z); } a.needsUpdate = true; }
+    if (c.arboles) { const { im, L } = c.arboles, a = im.geometry.attributes.aFinoI; L.forEach(([X, , Z], n) => { a.array[n] = alto(X, Z) - sobre(c, X, Z) + dh(X, Z); }); a.needsUpdate = true; }
+    // (el bosque denso: en la elegida, muchos más árboles donde hay bosque, sobre el relieve fino; salen con él)
+    if (!c.bosqueFino) {
+      let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+      const b = c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = LENTO ? 7 : 14, L = [];
+      const i0 = Math.max(0, Math.floor(((b.min.x / S + CX) - BOSQ.x0) / tx)), i1 = Math.min(BOSQ.nx - 1, Math.ceil(((b.max.x / S + CX) - BOSQ.x0) / tx));
+      const j0 = Math.max(0, Math.floor(((b.min.z / S + CY) - BOSQ.y0) / ty)), j1 = Math.min(BOSQ.ny - 1, Math.ceil(((b.max.z / S + CY) - BOSQ.y0) / ty));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+        const k = bqD[j * BOSQ.nx + i] / 255; if (k < 0.3) continue;
+        for (let n = Math.floor(k * k * dens + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(c.Pw, X, Z)) L.push([X, Z]); }
+      }
+      if (L.length) {
+        const im = new THREE.InstancedMesh(arbolG.clone(), arbolM(c, c.arbolFondo || { value: 0 }, true), L.length), a = new Float32Array(L.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
+        L.forEach(([X, Z], n) => { const mt = alto(X, Z) / EXA, sc = 0.55 + az() * 0.45, hi = mt > 900;
+          im.setMatrixAt(n, m4.compose(e3.set(X, GROSOR + alto(X, Z), Z), q, new THREE.Vector3(sc, sc * (hi ? 1.2 : 0.9), sc))); a[n] = dh(X, Z);
+          im.setColorAt(n, col.set(hi ? '#2f5a36' : '#4f803c').offsetHSL((az() - 0.5) * 0.04, 0, (az() - 0.5) * 0.12)); });
+        im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(a, 1)); im.raycast = () => {}; im.frustumCulled = false; c.mesh.add(im); c.bosqueFino = im; geos.push(im.geometry);
+      }
+    }
+    for (const x of T) if (x.c === c) x.dh = dh(x.X, x.Z);
+    for (const x of N) if (x.c === c) x.dh = dh(x.X, x.Z);
+    for (const x of PK) if (x.c === c) x.dh = dh(x.X, x.Z);
+    c.finoListo = true;
+  }
+  let finoT = 0;
+  function finos(dt, now, quieto) {
+    const quiere = finoD && sel && !COL && !maq?.malla ? byId.get(sel) : null;
+    if (quiere && !quiere.finoListo && quieto && now - finoT > 250) { const t0 = performance.now(); if (!quiere.bordeF) bordeDe(quiere); else hazFino(quiere); finoT = performance.now(); (quiere.finoMs ||= []).push(Math.round(finoT - t0)); }   // (tres pasos: el borde, la malla y lo demás)
+    for (const c of C) {
+      const want = c === quiere && c.finoListo && c.gFino ? 1 : 0;
+      if (want && c.mesh.geometry !== c.gFino) c.mesh.geometry = c.gFino;
+      c.fk.value += (want - c.fk.value) * (1 - Math.exp(-dt * (want ? 2.2 : 5)));
+      if (!want && c.fk.value < 0.004 && c.fk.value) { c.fk.value = 0; if (c.mesh.geometry !== c.gGrueso) c.mesh.geometry = c.gGrueso; }
+      if (!c.gFino && c.finoListo) c.finoListo = false;   // (soltada: se rehace si se vuelve a elegir)
+      if (c.bosqueFino) c.bosqueFino.visible = c.fk.value > 0.01;
+    }
   }
 
   // ---------- los núcleos de los pueblos, al acercarse ----------
@@ -1312,7 +1405,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     }
   }
   // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
-  const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
+  const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z) + (c.fk?.value && c.dhF ? c.dhF(X, Z) * c.fk.value : 0); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
   // los pájaros: con un sitio elegido, sobre él (pajaros.js): en los pueblos y ciudades, sobre el corazón de sus casas; en
   // los espacios naturales, sobre su chincheta y a la escala de su cámara. En la vista general y en la de una comarca, ninguno
   const aves = hacePajaros({ scene, lento: LENTO, suelo: (x, z) => { const c = deQuien(x, z); return c?.sy ? pisoEn(c, x, z) * c.sy + c.py : null; },
@@ -1320,7 +1413,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       if (dron?.id === elegido.id) return { X: dron.cc?.X ?? dron.X, Z: dron.cc?.Z ?? dron.Z, f, natural: !real };
       const cc = real ? (elegido._cc ||= centroCasas(elegido.id)) : null; return { X: cc?.X ?? elegido.X, Z: cc?.Z ?? elegido.Z, f, natural: !real }; } });
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
+  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
     relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 
@@ -1481,7 +1574,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     off.x += ((hu.r || 0) / 2 - off.x) * kk; off.y += (((hu.b || 0) - (hu.t || 0)) / 2 - off.y) * kk;
     if (Math.abs(off.x) > 0.5 || Math.abs(off.y) > 0.5) cam.setViewOffset(w, h, off.x, off.y, w, h); else if (cam.view?.enabled) cam.clearViewOffset();
     // las comarcas: crecen al empezar (una tras otra), se levantan al pasar por encima o al elegirlas; y su relieve fino
-    detalles(now, quieto);
+    detalles(now, quieto); finos(dt, now, quieto);
     // (la altura, exagerada cinco veces de lejos para que se lean las sierras, y menos al acercarse, donde con tanta
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
@@ -1512,7 +1605,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * c.fondo - 0.18 * c.lift;
-      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK + (0.38 - c.tintK) * c.fondo;
+      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * c.fondo;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * c.fondo)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
@@ -1552,14 +1645,14 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     UT.value = t; UESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
     // (con una comarca elegida, los medallones de sus pueblos, más grandes, con su foto; en toda Navarra y con un pueblo
     // abierto, pequeños)
-    medG += ((sel && !COL && !elegido ? 2.2 : 1) - medG) * (1 - Math.exp(-dt * 5));   // (con un pueblo abierto, pequeños: no tapan su maqueta)
+    medG += ((sel && !COL && !elegido ? 1 + 1.2 * Math.min(1, Math.max(0, (v.d - 4) / 12)) : 1) - medG) * (1 - Math.exp(-dt * 5));   // (de cerca, sin agrandar: tapaban el monte)   // (con un pueblo abierto, pequeños: no tapan su maqueta)
     T.forEach((x, i) => {
       const nace = ease(intro ? rampa(tI, IT.pines + x.c.d * 0.4, IT.pines + x.c.d * 0.4 + 0.5) : Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
       // (con una comarca elegida, solo quedan las suyas: las demás se encogen hasta desaparecer)
       x.k += ((COL ? (COL.pines?.has(x.id) ? 1 : 0) : sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));   // (con una colección, solo las de sus pueblos)
       // (señalada, crece y brilla; elegida, la mira lo fija)
       x.sen += ((hover === 't:' + x.id ? 1 : 0) - x.sen) * (1 - Math.exp(-dt * 10)); x.fija += ((elegido === x ? 1 : 0) - x.fija) * (1 - Math.exp(-dt * 6));
-      const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
+      const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
       // (la chincheta, quieta: ni gira ni se mece)
       const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y * (1 + (medG - 1) * 0.45);
       x.g.scale.setScalar(s); x.bola.position.y = CRISTAL_Y * (1 + (medG - 1) * 0.45);   // (la bola: lo que se toca y donde se ancla la ficha, en el medallón tal como se ve)
@@ -1600,9 +1693,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
     // dónde ir arrastrando el mapa. No con un pueblo elegido)
     for (const c of C) { const suya = sel === c.id; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !COL && (!sel || suya || !elegido)]); }
-    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
+    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
-    for (const x of PK) { const y = x.c ? x.h * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
+    for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
     // (solo con una comarca elegida por la que pasa: en la vista de toda Navarra ensuciaba el mapa)
