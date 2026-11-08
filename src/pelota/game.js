@@ -43,7 +43,7 @@ function shotEnergy(shot, sub, pow, volea) {
 // el golpe lo decides tú: sale al soltar el botón y la mano llega a la pelota un instante después (SWEET). El momento
 // justo es cuando la pelota llega a tu mano (la distancia más corta a ti, a buena altura): antes, sale «pronto» (se va a
 // la izquierda y más alta); después, «tarde» (a la derecha y más baja). TOL: lo que se perdona, según el nivel
-const SWEET = 0.05, SWING_WIN = 0.34, CAM_WIN = 0.5, CAM_LAT = 0.1;
+const SWEET = 0.05, SWING_WIN = 0.34, CAM_WIN = 0.55, CAM_LAT = 0.1, CAM_HOLD = 0.4;
 const TOL = { iniciacion: 0.3, facil: 0.24, normal: 0.19, dificil: 0.15, experto: 0.12 };
 // a partir de esta altura, el golpe es un gancho: por encima del hombro, de arriba abajo, pegado a la pared izquierda
 const GANCHO_Y = 1.55;
@@ -226,6 +226,12 @@ export class PelotaGame {
     } else return false;
     const d = Math.hypot(b.x - pl.x, b.z - pl.z);
     return d < reach && b.y > 0.1 && b.y < 2.4;   // (una dejada bota muy baja: se recoge casi a ras de suelo; arriba, hasta el gancho)
+  }
+  // ¿se le va la pelota de las manos en un momento? (con la cámara, para no esperar más a leer el golpe entero)
+  seVa(who, dt) {
+    const b = this.ball, pl = this.players[who], k = dt * this.tempo * 2.5, reach = this.lvl.reach * (1 - this.tired(who) * 0.18);
+    const nx = b.p.x + b.v.x * k, nz = b.p.z + b.v.z * k, ny = b.p.y + b.v.y * k;
+    return Math.hypot(nx - pl.x, nz - pl.z) >= reach * 0.97 || ny < 0.16 || ny > 2.35;
   }
   // ¿la tocarías ahora de volea (antes del bote) o de gancho (alta, por encima del hombro)? Para el botón de golpe y el golpe
   volley() { const R = this.rally; return this.phase === 'rally' && !!R && R.front && R.bounces === 0 && !R.serve; }
@@ -856,12 +862,17 @@ export class PelotaGame {
       if (this.phase === 'servePrep' && this.saque && this.serverP() === 'you') {
         if (this.hittable('you') && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
       } else if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
-        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = this.camara ? CAM_WIN : SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36; }
+        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = this.camara ? CAM_WIN : SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36;
+          // (con la cámara, el golpe se lee entero: espera un poco a saber hacia dónde va el brazo, camPend, sin dejar
+          // escapar la pelota; y el momento es el de cuando empezaste el gesto)
+          you.camPend = this.camara && !!inp.camPend; you.swingAt = this.clock; }
       }
       if (you.swing > 0) {
         you.swingT += dt; you.swing -= dt;
-        if (you.swingT >= SWEET * 0.6 && this.hittable('you')) {
-          const ref = this.volley() ? you.idealAt?.v : you.idealAt?.b ?? you.idealAt?.v, timing = ref != null && Math.abs(this.clock - ref) < 0.8 ? this.clock - ref - (this.camara ? CAM_LAT : 0) : null;
+        const espera = this.camara && you.camPend && you.swingT < CAM_HOLD && !this.seVa('you', dt);
+        if (you.swingT >= SWEET * 0.6 && this.hittable('you') && !espera) {
+          const tc = this.camara ? you.swingAt ?? this.clock : this.clock;
+          const ref = this.volley() ? you.idealAt?.v : you.idealAt?.b ?? you.idealAt?.v, timing = ref != null && Math.abs(tc - ref) < 0.8 ? tc - ref - (this.camara ? CAM_LAT : 0) : null;
           const q = this.quality('you', timing);
           this.strike('you', q, you.aim || { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5, false, null, { timing, volea: this.volley(), gancho: this.overhead() && !you.dropReq });
         } else if (you.swing <= 0) this.emit({ type: 'whiff', early: you.idealAt?.b != null && this.clock < you.idealAt.b });

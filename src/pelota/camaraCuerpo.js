@@ -4,7 +4,10 @@
 //  - dónde estás: si te mueves a un lado, tu pelotari se mueve a ese lado de la cancha (y, cuando te toca, apuntas hacia ahí);
 //  - el armado: con el brazo atrás (hacia fuera, arriba o detrás del cuerpo), tu pelotari arma el brazo como tú;
 //  - el golpe: la mano que va deprisa hacia delante; cuanto más deprisa, más fuerte. Con la derecha o con la izquierda, y
-//    alta (de aire), a media altura o baja (sotamano), como la tuya.
+//    alta (de aire), a media altura o baja (sotamano), como la tuya. Y hacia dónde: el brazo que acaba cruzado hacia el
+//    otro lado manda la pelota hacia ese lado (con la derecha, cruzado del todo, más allá del hombro izquierdo, es la dos
+//    paredes); el que acaba en su lado, al ancho; hacia arriba, larga y alta; de arriba abajo y fuerte, la cortada;
+//  - la postura: agachado (los hombros bajos o el tronco doblado), el golpe es una dejada, y basta un toque suave.
 // Moverse hasta la pelota lo hace solo el pelotari cuando te toca: tú das el golpe en su momento.
 // Juego propio del juego (ni marca ni diseño de ninguna consola). Lo usa pelota/match.js (opción camara).
 import { motorVision, rutaAR } from '../ui/camaraAR.js';
@@ -13,8 +16,10 @@ import { isEU } from '../i18n.js';
 const T = (es, eu) => (isEU() ? eu : es);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 // la velocidad de la mano para que cuente como golpe, en anchos de hombros por segundo (un brazo que se mueve tranquilo va
-// a 1 o 2; un golpe de verdad, a 6 o más)
-const V_MIN = 4.2;
+// a 1 o 2; un golpe de verdad, a 5 o más)
+const V_MIN = 3.4;
+// la fuerza del golpe por lo deprisa que va la mano (la dejada, siempre suave: lo alto que pega en el frontis)
+const potencia = (v, dejada) => dejada ? 0.15 + 0.45 * clamp((v - 1.5) / 5, 0, 1) : 0.25 + 0.75 * clamp((v - 3) / 7, 0, 1);
 // los huesos que se dibujan en la ventana de la cámara
 const HUESOS = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]];
 
@@ -41,14 +46,17 @@ const CSS = `
 let cssPuesto = false;
 
 // cada mano: dónde está (suavizado), a qué velocidad va, cuánto está armada y cuándo golpeó por última vez
-const mano = () => ({ x: 0, y: 0, vx: 0, vy: 0, v: 0, wind: 0, windMax: 0, ok: false, ult: -9, pico: 0, picoHasta: 0, rastro: [] });
+const mano = () => ({ x: 0, y: 0, vx: 0, vy: 0, v: 0, wind: 0, windMax: 0, ok: false, ult: -9, rastro: [] });
 
 export class CamaraCuerpo {
-  /** host: donde va la ventana de la cámara (el marcador del partido). onGolpe({ power, golpe, aimX, t }) al golpear */
+  /** host: donde va la ventana de la cámara (el marcador del partido). Al empezar un golpe, onGolpe({ power, golpe, aimX,
+   *  aimY, req, tipo, t }) con lo que se ve hasta ahí; mientras dura, onGolpeAvance, cada vez más seguro; al acabar,
+   *  onGolpeFin con lo que ha sido. nombres: el nombre de cada
+   *  tipo de golpe (TEXT.shots de rules.js), para la ventana */
   constructor(host) {
     this.host = host;
     this.x = 0; this.wind = 0; this.arma = 'Hit'; this.visto = false; this.listo = false; this.fallo = false; this.parado = false;
-    this.onGolpe = null; this.golpes = 0;
+    this.onGolpe = null; this.onGolpeAvance = null; this.onGolpeFin = null; this.nombres = null; this.golpes = 0; this.agachado = 0; this.gesto = null;
     this.M = { 15: mano(), 16: mano() };
     this.sw = 0; this.cx = 0; this.x0 = null; this.cal = []; this.tVisto = -9; this.tPrev = 0; this.lms = null; this.vw = 640; this.vh = 480;
     if (!cssPuesto) { cssPuesto = true; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
@@ -60,10 +68,10 @@ export class CamaraCuerpo {
     o.addEventListener('pointerdown', (e) => { e.stopPropagation(); o.classList.toggle('sin-video'); });
     this.di(T('Pidiendo la cámara…', 'Kamera eskatzen…'));
     // (para las pruebas: el estado y un cuerpo de mentira; con él, la cámara deja de mandar)
-    window.__camaraCuerpo = { estado: () => this.estado(), pose: (lms, t) => { this.manual = true; this.sigue(lms, t ?? performance.now() / 1000); } };
+    window.__camaraCuerpo = { estado: () => this.estado(), pose: (lms, t) => { if (!this.manual) { this.manual = true; this.x0 = null; this.cal = []; this.refSh = null; } this.sigue(lms, t ?? performance.now() / 1000); } };
   }
   di(t) { if (this.msg.textContent !== t) this.msg.textContent = t; }
-  estado() { const m = (k) => ({ v: +this.M[k].v.toFixed(1), wind: +this.M[k].wind.toFixed(2), ok: this.M[k].ok }); return { listo: this.listo, fallo: this.fallo, visto: this.visto, vistos: this.vistos || 0, imagenes: this.imagenes || 0, x: +this.x.toFixed(2), wind: +this.wind.toFixed(2), arma: this.arma, golpes: this.golpes, d: m(16), i: m(15), msg: this.msg.textContent }; }
+  estado() { const m = (k) => ({ v: +this.M[k].v.toFixed(1), wind: +this.M[k].wind.toFixed(2), ok: this.M[k].ok }); return { listo: this.listo, fallo: this.fallo, visto: this.visto, vistos: this.vistos || 0, imagenes: this.imagenes || 0, x: +this.x.toFixed(2), wind: +this.wind.toFixed(2), arma: this.arma, golpes: this.golpes, agachado: +this.agachado.toFixed(2), ultimos: (this.ultimos || []).map(u => [u.tipo || 'golpe', u.req || '', +u.aimX.toFixed(2), +u.aimY.toFixed(2), +u.power.toFixed(2), u.golpe]), d: m(16), i: m(15), msg: this.msg.textContent }; }
 
   /** La cámara de delante y el detector; si algo falla, se juega con los botones de siempre */
   async start() {
@@ -119,11 +127,26 @@ export class CamaraCuerpo {
     if (this.x0 == null) { this.cal.push(this.cx); if (this.cal.length >= 12) { const a = this.cal.slice().sort((p, q) => p - q); this.x0 = clamp(a[a.length >> 1], this.vw * 0.3, this.vw * 0.7); } }
     const x0 = this.x0 ?? this.vw / 2, off = (this.cx - x0) / (sw * 1.3), dz = Math.abs(off) < 0.12 ? 0 : off - Math.sign(off) * 0.12;
     this.x = clamp(dz / 0.88, -1, 1);
-    // cada mano: lo armada que está y si golpea
+    // la postura: agachado, la de la dejada (los hombros bastante más abajo que de pie o el tronco doblado hacia delante).
+    // De pie se mide al quedarte quieto el primer momento; sube enseguida si te estiras y baja despacio, también agachado
+    // (en unos segundos): una dejada dura un momento y, si la medida de pie se quedara mal, no se queda todo en dejada
+    const torso = caderas ? (caderas.y - cs.y) / sw : null;
+    if (this.x0 == null || this.refSh == null) { this.refSh = cs.y; this.refTorso = torso; }
+    else {
+      const kSube = 1 - Math.exp(-dt / 0.15), kBaja = 1 - Math.exp(-dt / (this.agachado < 0.2 ? 1.5 : 6));
+      this.refSh += (cs.y - this.refSh) * (cs.y < this.refSh ? kSube : kBaja);
+      if (torso != null) this.refTorso = this.refTorso == null ? torso : this.refTorso + (torso - this.refTorso) * (torso > this.refTorso ? kSube : kBaja);
+    }
+    const baja = ((cs.y - this.refSh) / sw - 0.3) / 0.45, dobla = torso != null && this.refTorso ? ((this.refTorso - torso) - 0.25) / 0.35 : 0;
+    this.agachado += (clamp(Math.max(baja, dobla), 0, 1) - this.agachado) * (1 - Math.exp(-dt / 0.08));
+    const agachado = this.agachado > 0.5;
+    // cada mano: lo armada que está y si golpea. El golpe se lee entero: empieza cuando la mano va deprisa hacia delante
+    // (onGolpe, ya, para no llegar tarde a la pelota) y se cierra cuando frena (onGolpeFin): hasta dónde llegó el brazo
+    // (cruzado del todo, dos paredes), si subió (hacia arriba, larga) o bajó de golpe (cortada), y si estabas agachado (dejada)
     let mejor = null;
     for (const k of [15, 16]) {
       const h = this.M[k], S = k === 15 ? s11 : s12, E = P(k - 2);
-      if (!vis(k)) { h.ok = false; h.wind *= 0.85; h.windMax = Math.max(0, h.windMax - dt * 1.2); continue; }
+      if (!vis(k)) { h.ok = false; h.wind *= 0.85; h.windMax = Math.max(0, h.windMax - dt * 1.2); if (this.gesto?.k === k) this.acaba(sw); continue; }
       const W = P(k), lado = Math.sign(S.x - cs.x) || (k === 16 ? 1 : -1);
       // (la mano, respecto al centro de los hombros: así un paso a un lado no es un golpe)
       const rx = W.x - cs.x, ry = W.y - cs.y;
@@ -139,30 +162,82 @@ export class CamaraCuerpo {
       const out = (h.x - S.x) * lado / sw, up = (S.y - h.y) / sw, atras = vis(k - 2) ? (W.z - S.z) / sw : 0, codo = vis(k - 2) ? (E.x - S.x) * lado / sw : 0;
       const w = Math.max(clamp((out - 0.25) / 0.55, 0, 1), clamp((up - 0.15) / 0.5, 0, 1), clamp((atras - 0.35) / 0.6, 0, 1) * 0.8, clamp((codo - 0.35) / 0.4, 0, 1) * 0.7);
       h.wind += (w - h.wind) * 0.35; h.windMax = Math.max(h.wind, h.windMax - dt * 1.2);
-      h.rastro.push({ x: h.x, y: h.y, rx: h.rx, ry: h.ry, t }); while (h.rastro.length && t - h.rastro[0].t > 0.35) h.rastro.shift();
+      h.rastro.push({ x: h.x, y: h.y, rx: h.rx, ry: h.ry, v: h.v, t }); while (h.rastro.length && t - h.rastro[0].t > 0.5) h.rastro.shift();
       if (!mejor || h.wind > mejor.h.wind) mejor = { h, k, up, lado };
-      // el golpe: la mano va deprisa y no hacia fuera (eso es armar). Hacia abajo, el de aire; hacia arriba solo cuenta si
-      // va también hacia dentro, el sotamano (subir el brazo por el lado es armar el de aire); de lado, hacia dentro
+      // el golpe que se está dando con esta mano: hasta dónde llega y cuándo frena
+      const G = this.gesto;
+      if (G && G.k === k) {
+        G.minRx = Math.min(G.minRx, h.rx); G.maxRx = Math.max(G.maxRx, h.rx); G.minRy = Math.min(G.minRy, h.ry); G.maxRy = Math.max(G.maxRy, h.ry); G.pico = Math.max(G.pico, h.v); G.n++;
+        this.picoPow = Math.max(this.picoPow, potencia(G.pico, G.dejada && G.pico < 7.5));
+        // (se cierra al frenar la mano; o pasado un cuarto de segundo, con al menos tres imágenes del gesto: con una cámara
+        // lenta, si no, se cerraría antes de que el brazo acabe de cruzar)
+        const dur = t - G.t0;
+        if ((dur >= 0.12 && G.n >= 2 && h.v < G.pico * 0.45) || (dur >= 0.26 && G.n >= 3) || dur >= 0.45) this.acaba(sw);
+        // (mientras dura, lo que va siendo; frenando, ya no se adelanta)
+        else { const hz = h.v > G.pico * 0.7 ? 0.06 : 0, pred = { rx: h.rx + h.vx * sw * hz, ry: h.ry + h.vy * sw * hz }; try { this.onGolpeAvance?.({ ...this.lee(G, sw, pred, clamp(dur / 0.12, 0, 1)), golpe: G.golpe }); } catch (e) { console.warn('golpe con la cámara', e); } }
+        continue;
+      }
+      // uno nuevo: la mano va deprisa y no hacia fuera (eso es armar). Hacia abajo, el de aire o la cortada; hacia arriba
+      // solo cuenta si va también hacia dentro (subir el brazo por el lado es armar el de aire); de lado, hacia dentro.
+      // Agachado, para la dejada, basta un toque suave
       const vOut = h.vx * lado, vert = h.vy / (h.v || 1);
-      const haciaDelante = vert > 0.6 ? vOut < 0.25 * h.v : vert < -0.6 ? vOut < -0.35 * h.v : vOut < 0;
-      const umbral = V_MIN * (h.windMax > 0.3 ? 1 : 1.3) * (vert < -0.6 ? 1.15 : 1);
-      const k01 = (v) => clamp((v - 3.5) / 7, 0, 1);
-      if (t < h.picoHasta && h.v > h.pico) { h.pico = h.v; this.picoPow = Math.max(this.picoPow, 0.25 + 0.75 * k01(h.v)); }
-      if (h.v > umbral && haciaDelante && t - h.ult > 0.45 && t - (this.ultGolpe || -9) > 0.35) {
-        h.ult = t; this.ultGolpe = t; h.pico = h.v; h.picoHasta = t + 0.15; h.windMax = 0;
+      const haciaDelante = vert > 0.6 ? vOut < 0.25 * h.v : vert < -0.6 ? vOut < -0.3 * h.v : vOut < 0;
+      // (hacia abajo, algo más deprisa: bajar el brazo después de un golpe alto no es otro golpe; y justo después de un golpe,
+      // la vuelta a su sitio tampoco)
+      const umbral = V_MIN * (agachado ? 0.55 : h.windMax > 0.3 ? 1 : 1.15) * (vert < -0.6 ? 1.1 : vert > 0.6 ? 1.25 : 1) * (t - (h.acabo ?? -9) < 0.5 ? 1.35 : 1);
+      if (!G && h.v > umbral && haciaDelante && t - h.ult > 0.4 && t - (this.ultGolpe || -9) > 0.35) {
+        h.ult = t; this.ultGolpe = t; h.windMax = 0;
         // (de qué lado y a qué altura, por donde empezó el gesto: el de aire empieza arriba y baja, el sotamano empieza abajo)
-        const r0 = h.rastro.find(r => t - r.t <= 0.25) || h, up0 = (S.y - cs.y - r0.ry) / sw;
-        const alto = up0 > 0.45 ? 'High' : r0.ry > hipY - cs.y - sw * 0.15 ? 'Low' : 'Hit', golpe = alto + (r0.rx > 0 ? '' : 'L');
-        const power = this.picoPow = 0.25 + 0.75 * k01(h.v);
-        this.golpes++; this.flash = { k, t };
-        try { this.onGolpe?.({ power, golpe, aimX: this.x, t }); } catch (e) { console.warn('golpe con la cámara', e); }
+        // (el principio del gesto: hacia atrás, donde la mano estaba casi quieta, el armado; como mucho, 0,45 s antes)
+        let r0 = null; for (let i = h.rastro.length - 2; i >= 0; i--) { const r = h.rastro[i]; if (t - r.t > 0.45) break; r0 = r; if (r.v < V_MIN * 0.35) break; }
+        r0 ||= h; const up0 = (S.y - cs.y - r0.ry) / sw, derecha = r0.rx > 0;
+        const alto = agachado ? 'Low' : up0 > 0.45 ? 'High' : r0.ry > hipY - cs.y - sw * 0.15 ? 'Low' : 'Hit';
+        const g = this.gesto = { k, t0: t, n: 0, r0: { rx: r0.rx, ry: r0.ry }, up0, derecha, dejada: agachado, golpe: alto + (derecha ? '' : 'L'), pico: h.v,
+          minRx: Math.min(r0.rx, h.rx), maxRx: Math.max(r0.rx, h.rx), minRy: Math.min(r0.ry, h.ry), maxRy: Math.max(r0.ry, h.ry) };
+        this.picoPow = potencia(h.v, agachado); this.golpes++; this.flash = { k, t };
+        // (al empezar, hacia dónde va: donde estará la mano en un momento, por cómo va; al acabar ya se sabe de verdad)
+        const pred = { rx: h.rx + h.vx * sw * 0.15, ry: h.ry + h.vy * sw * 0.15 };
+        try { this.onGolpe?.({ ...this.lee(g, sw, pred, 0), golpe: g.golpe, t }); } catch (e) { console.warn('golpe con la cámara', e); }
       }
     }
-    // tu pelotari arma como tú: lo de la mano más armada, de su lado y a su altura
-    this.wind = mejor ? mejor.h.wind : this.wind * 0.85;
-    if (mejor && mejor.h.wind > 0.2) this.arma = (mejor.up > 0.45 ? 'High' : mejor.h.y > hipY - sw * 0.15 ? 'Low' : 'Hit') + (mejor.h.x > cs.x ? '' : 'L');
-    if (this.listo) this.di(this.x0 == null ? T('Te veo. Quieto un momento…', 'Ikusten zaitut. Geldi une batez…') : this.golpes ? '' : T('Muévete a los lados. Cuando venga la pelota, brazo atrás y ¡golpea!', 'Mugitu alboetara. Pilota datorrenean, besoa atzera eta jo!'));
+    // tu pelotari arma como tú: lo de la mano más armada, de su lado y a su altura (agachado, abajo)
+    this.wind = mejor ? Math.max(mejor.h.wind, this.agachado * 0.6) : this.wind * 0.85;
+    if (mejor && (mejor.h.wind > 0.2 || agachado)) this.arma = (agachado ? 'Low' : mejor.up > 0.45 ? 'High' : mejor.h.y > hipY - sw * 0.15 ? 'Low' : 'Hit') + (mejor.h.x > cs.x ? '' : 'L');
+    if (this.listo && !(this.rotuloHasta > t)) this.di(this.x0 == null ? T('Te veo. Quieto un momento…', 'Ikusten zaitut. Geldi une batez…') : this.golpes ? '' : T('Muévete a los lados. Cuando venga la pelota, brazo atrás y ¡golpea!', 'Mugitu alboetara. Pilota datorrenean, besoa atzera eta jo!'));
     this.pinta(t);
+  }
+
+  // lo que dice un golpe, hasta donde se ha visto: hacia dónde (aimX, de la pared, -1, al ancho, 1; el -1 con la derecha es
+  // la dos paredes), lo largo (aimY: hacia arriba, larga y alta), la fuerza y si es dejada o cortada (req); tipo, su nombre
+  lee(G, sw, pred = null, peso = 1) {
+    // (mientras dura el gesto, pred: dónde estará la mano en un momento, por cómo va; peso, cuánto se fía uno de eso: al
+    // empezar poco, casi recto; a la décima de segundo, del todo. Cerrado el gesto, lo que hizo de verdad)
+    const minRy = pred ? Math.min(G.minRy, pred.ry) : G.minRy, maxRy = pred ? Math.max(G.maxRy, pred.ry) : G.maxRy;
+    // (hasta dónde cruza el brazo: con la derecha, hacia la izquierda; cruzado del todo, más allá del hombro izquierdo, dos
+    // paredes; acabando en su lado, al ancho. Con la izquierda, al revés, y sin dos paredes)
+    const ex = (G.derecha ? (pred ? Math.min(G.minRx, pred.rx) : G.minRx) : (pred ? Math.max(G.maxRx, pred.rx) : G.maxRx)) / sw;
+    let aimX = G.derecha ? (ex <= -0.8 ? -1 : ex < 0 ? ex * 0.85 : Math.min(0.9, ex * 1.4)) : (ex >= 0 ? Math.min(1, ex * 1.1) : Math.max(-0.65, ex * 0.85));
+    if (pred) { const m = 0.35 + 0.65 * peso; aimX = clamp(aimX, -m, m); if (peso < 1 && aimX <= -0.99) aimX = -m; }
+    // (lo que sube y lo que baja la mano desde donde empezó: hacia arriba, larga; de arriba abajo y fuerte, cortada)
+    const sube = (G.r0.ry - minRy) / sw, bajaM = (maxRy - G.r0.ry) / sw, arriba = -minRy / sw, fuerte = (G.pico - 3) / 7, seguro = !pred || peso >= 0.6;
+    // (agachado, dejada; pero un golpe muy fuerte agachado no es una dejada: es un golpe bajo de los de siempre)
+    const dejada = G.dejada && G.pico < 7.5;
+    let aimY = 0, req = dejada ? 'dejada' : false;
+    if (dejada) aimY = sube > 0.3 ? 0.4 : 0;
+    else if (seguro && G.up0 <= 0.45 && sube > 0.45 && arriba > 0.15) aimY = clamp(0.45 + (arriba - 0.15) * 0.9 + (sube - 0.45) * 0.3, 0.45, 1);
+    else if (seguro && G.up0 > -0.7 && G.up0 <= 0.45 && bajaM > 0.55 && fuerte > 0.3) req = 'cortada';
+    else aimY = clamp(sube * 0.2 - bajaM * 0.3, -0.5, 0.3);
+    const tipo = req === 'dejada' ? (aimX < -0.6 ? 'dejadaTxoko' : aimX > 0.6 ? 'dejadaAncho' : 'dejada') : req === 'cortada' ? (aimX < -0.45 ? 'cortDos' : aimX < -0.3 ? 'cortPared' : aimX > 0.4 ? 'cortAncho' : 'cortada')
+      : aimX <= -0.99 ? 'dosparedes' : aimY >= 0.45 ? 'largo' : aimX < -0.4 ? 'pared' : aimX > 0.4 ? 'ancho' : '';
+    return { aimX, aimY, req, power: potencia(G.pico, dejada), tipo };
+  }
+  // el golpe, cerrado: lo que ha sido de verdad (y su nombre en la ventana, un momento)
+  acaba(sw) {
+    const G = this.gesto; if (!G) return; this.gesto = null; this.M[G.k].acabo = this.tPrev;
+    const r = this.lee(G, sw), nm = r.tipo && this.nombres?.[r.tipo];
+    if (nm) { this.di(nm); this.rotuloHasta = this.tPrev + 1.1; }
+    try { this.onGolpeFin?.({ ...r, golpe: G.golpe }); } catch (e) { console.warn('golpe con la cámara', e); }
+    (this.ultimos ||= []).push({ ...r, golpe: G.golpe }); if (this.ultimos.length > 12) this.ultimos.shift();
   }
 
   // la ventana: tu imagen de espejo con tu esqueleto encima; la mano armada en amarillo, el golpe con su estela y, abajo,
@@ -180,9 +255,12 @@ export class CamaraCuerpo {
     if (this.visto) { c.fillStyle = '#ffd166'; c.beginPath(); c.arc(W / 2 + this.x * W * 0.3, yb, 3.5, 0, Math.PI * 2); c.fill(); }
     const L = this.lms; if (!L || !this.visto) return;
     const P = (i) => Q((1 - L[i].x) * this.vw, L[i].y * this.vh), vis = (i) => (L[i]?.visibility ?? 1) > 0.5;
-    c.lineCap = 'round'; c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.75)';
+    // (agachado, la postura de la dejada: el esqueleto en azul claro y, arriba, su nombre)
+    const ag = this.agachado > 0.5;
+    c.lineCap = 'round'; c.lineWidth = 3; c.strokeStyle = ag ? 'rgba(120,220,255,.95)' : 'rgba(255,255,255,.75)';
     c.beginPath(); for (const [a, b] of HUESOS) if (vis(a) && vis(b)) { const p = P(a), q = P(b); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); } c.stroke();
     if (vis(0)) { const n = P(0); c.beginPath(); c.arc(n[0], n[1], Math.max(5, this.sw * k * 0.22), 0, Math.PI * 2); c.stroke(); }
+    if (ag && this.nombres?.dejada) { c.font = "700 12px 'MZ Texto',sans-serif"; const tw = c.measureText(this.nombres.dejada).width + 16; c.fillStyle = 'rgba(13,6,32,.78)'; c.beginPath(); c.roundRect?.(6, 6, tw, 22, 8); c.fill(); c.fillStyle = '#78dcff'; c.textBaseline = 'middle'; c.fillText(this.nombres.dejada, 14, 17); }
     for (const kk of [15, 16]) {
       const h = this.M[kk]; if (!h.ok) continue;
       const golpe = this.flash?.k === kk && t - this.flash.t < 0.35;

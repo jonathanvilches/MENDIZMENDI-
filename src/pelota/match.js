@@ -301,7 +301,7 @@ export class PelotaMatch {
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
       ${this.rivalHtml()}
-      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora ikusteko moduan. Mugitu alboetara eta, pilota datorrenean, eraman besoa atzera eta jo: eskuinarekin edo ezkerrarekin, goian edo behean.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba. Muévete a los lados y, cuando venga la pelota, echa el brazo atrás y golpea: con la derecha o con la izquierda, alta o baja.')}</p>` : ''}
+      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora ikusteko moduan. Mugitu alboetara; pilota datorrenean, besoa atzera eta jo. Besoa nora amaitzen den, hara doa pilota: eskuina ezkerrera guztiz gurutzatuta, bi pareta. Gora, luzea. Goitik behera eta indartsu, cortada. Makurtuta eta leun, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba. Muévete a los lados; cuando venga la pelota, brazo atrás y golpea. Hacia donde acaba el brazo, va la pelota: con la derecha cruzada del todo a la izquierda, dos paredes. Hacia arriba, larga. De arriba abajo y fuerte, cortada. Agachado y suave, dejada.')}</p>` : ''}
       ${this.courtHtml()}
       <button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>
       <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
@@ -817,8 +817,8 @@ export class PelotaMatch {
       const tx = C.x * (COURT.W / 2 - 1.2), tz = g.cuatro ? 13 : 20.5, dx = tx - you.x, dz = tz - you.z;
       if (Math.hypot(dx, dz) > 0.35) { mx = clamp1(dx * 0.9); mz = clamp1(dz * 0.45); }
     }
-    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? C.x, aimY: 0, descansoFin: !!this.finDesc };
-    this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = null;
+    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? 0, aimY: I.camAimY ?? 0, camPend: !!I.camPend, descansoFin: !!this.finDesc };
+    this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = I.camAimY = null; I.camPend = false;
     return out;
   }
   // la cámara y tu cuerpo (camaraCuerpo.js, solo en la web): cada golpe tuyo es un golpe de tu pelotari, con su fuerza, su
@@ -828,11 +828,28 @@ export class PelotaMatch {
     import('./camaraCuerpo.js').then(({ CamaraCuerpo }) => {
       if (!this.active) return;
       const C = this.cuerpo = new CamaraCuerpo(this.hud.root);
+      C.nombres = this.txt.shots || TEXT.es.shots;
+      const fuera = () => !this.active || this.paused || this.hud.panelEl || this.replay || this.flying || this.vsOpen;
+      // (al empezar el gesto, el golpe sale ya con lo que se ve; agachado, dejada, salvo al sacar)
       C.onGolpe = (e) => {
-        if (!this.active || this.paused || this.hud.panelEl || this.replay || this.flying || this.vsOpen) return;
-        const I = this.input; I.charge = null; I.power = e.power; I.hitQ = true; I.camAim = e.aimX; I.lastAim = null;
-        this.camGolpe = { golpe: e.golpe, t: this.t }; (this.golpeDe ||= {}).you = e.golpe;
+        if (fuera()) return;
+        const I = this.input, g = this.game, saca = (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you';
+        I.charge = null; I.power = e.power; I.camAim = e.aimX; I.camAimY = e.aimY; I.camPend = true; I.lastAim = null;
+        if (e.req === 'dejada' && !saca) I.dropQ = true; else I.hitQ = true;
+        this.camGolpe = { golpe: e.golpe, t: this.t, abierto: true }; (this.golpeDe ||= {}).you = e.golpe;
       };
+      // (mientras dura y al acabar, lo que va siendo y lo que ha sido de verdad: hacia dónde, lo largo, la fuerza y si es
+      // dejada o cortada; si el golpe aún no ha salido, lo que tiene que salir; y en el saque, el saque)
+      const aplica = (e, fin) => {
+        if (!this.active) return;
+        const I = this.input, g = this.game, y = g.players.you, req = e.req || false, saca = (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you';
+        if (fin && this.camGolpe) this.camGolpe.abierto = false;
+        if (I.hitQ || I.dropQ || I.cutQ) { I.power = e.power; I.camAim = e.aimX; I.camAimY = e.aimY; if (fin) I.camPend = false; I.cutQ = req === 'cortada'; I.dropQ = !saca && req === 'dejada'; I.hitQ = !I.cutQ && !I.dropQ; }
+        else if (y.camPend && y.swing > 0) { y.aim = { x: e.aimX, y: e.aimY }; y.pow = Math.max(e.power, fin ? 0 : y.pow ?? 0); y.dropReq = req; if (fin) y.camPend = false; }
+        if (g.saque && (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you') g.saque = { ...g.saque, pow: e.power, aim: { x: e.aimX, y: e.aimY }, req: req === 'cortada' ? 'cortada' : false };
+      };
+      C.onGolpeAvance = (e) => aplica(e, false);
+      C.onGolpeFin = (e) => aplica(e, true);
       C.start();
     }).catch(e => console.warn('pelota con la cámara', e));
   }
@@ -883,7 +900,7 @@ export class PelotaMatch {
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
     // (con la cámara, la fuerza del golpe sigue subiendo mientras la mano acelera, justo después de salir: lo más deprisa que va)
-    if (this.camGolpe && this.t - this.camGolpe.t < 0.2 && g.players.you.swing > 0 && this.cuerpo?.picoPow > (g.players.you.pow ?? 0)) g.players.you.pow = this.cuerpo.picoPow;
+    if (this.camGolpe?.abierto && g.players.you.camPend && g.players.you.swing > 0 && this.cuerpo?.picoPow > (g.players.you.pow ?? 0)) g.players.you.pow = this.cuerpo.picoPow;
     // (fallo o acierto, al cantarse el tanto solo se oyen los aplausos: la pelota se calla, también en el golpe que lo
     // decide, hasta el saque siguiente)
     // (y el golpe que se estuviera cargando se suelta sin golpear: no pasa de un tanto al siguiente)
