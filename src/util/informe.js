@@ -37,6 +37,8 @@ function evento(que, ya) {
   doc.eventos.push({ t: seg(), que }); if (doc.eventos.length > MAX_EVENTOS) doc.eventos.splice(1, 1);
   if (ya) guarda();
 }
+// (para que otras partes del juego apunten lo suyo, como cada golpe que lee la cámara de la pelota en casa)
+window.__informeEvento = (que) => evento(String(que).slice(0, 300));
 function error(msg, pila) {
   msg = String(msg || '').slice(0, 300); if (!msg || !doc) return;
   const e = vistos.get(msg);

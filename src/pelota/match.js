@@ -301,7 +301,7 @@ export class PelotaMatch {
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
       ${this.rivalHtml()}
-      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, besoa atzera eta jo. Besoa eskuinetik ezkerrera, paretara; guztiz gurutzatuta, bi pareta; eskuinera eta eskua gorputzetik aldenduta, zabalera. Gora, luzea. Ohi baino askoz azkarrago, cortada. Pixka bat gehiago makurtuta eta leun, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, brazo atrás y golpea. Brazo de derecha a izquierda, a la pared; cruzado del todo, dos paredes; hacia la derecha y la mano separada del cuerpo, al ancho. Hacia arriba, larga. Mucho más rápido que de normal, cortada. Encogiéndote un poco más y suave, dejada.')}</p>` : ''}
+      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora eta besoak barruan ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, jo. Eskuinarekin eta oso ezkerrean amaituz, bi pareta; eskuinetik ezkerrera, paretara; eskuinera, zabalera. Ohi baino askoz azkarrago, cortada; motelago, luzea; eskua behean eta ibilbide laburrarekin, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba y con los brazos dentro; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, golpea. De derecha y acabando muy a la izquierda, dos paredes; de derecha a izquierda, a la pared; hacia la derecha, al ancho. Mucho más rápido que de normal, cortada; más lento, largo; con la mano baja y poco recorrido, dejada.')}</p>` : ''}
       ${this.courtHtml()}
       <button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>
       <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
@@ -859,7 +859,9 @@ export class PelotaMatch {
   estado() {
     const h = this.hud, b = h?.$?.('.pel-btns'), I = this.input;
     return { pausa: this.paused ? 1 : 0, menu: h?.menuEl?.classList.contains('on') ? 1 : 0, ventana: h?.panelEl ? 1 : 0, repe: this.replay ? 1 : 0,
-      carga: I?.charge?.kind || '', mandos: b && getComputedStyle(b).visibility !== 'hidden' ? 1 : 0, ficha: this.fichaOpen ? 1 : 0, t: Math.round(this.t) };
+      carga: I?.charge?.kind || '', mandos: b && getComputedStyle(b).visibility !== 'hidden' ? 1 : 0, ficha: this.fichaOpen ? 1 : 0, t: Math.round(this.t),
+      // (con la cámara: cuántas imágenes por segundo mira el detector, si te ve, cuántos golpes y dónde va el detector)
+      ...(this.cuerpo ? { camHz: Math.round(this.cuerpo.hz || 0), camVisto: this.cuerpo.visto ? 1 : 0, camGolpes: this.cuerpo.golpes, camDetector: this.cuerpo.w ? this.cuerpo.delegado || 'trabajador' : this.cuerpo.pl ? 'página' : 'no' } : {}) };
   }
   // el vigía: lo que podría dejar el partido parado sin que se vea por qué, en un móvil donde no se puede mirar (en
   // octubre de 2026 se quedó bloqueado en el iPhone, en el Labrit, tras un tanto y sin ningún error). Una pausa sin menú,
