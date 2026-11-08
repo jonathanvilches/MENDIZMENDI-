@@ -839,6 +839,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `fotosT`, casillas de 96 px de las portadas pequeñas) dentro de un aro fino de su estado: blanco, rosa con lo hecho en
   un arco, dorado con el check; con una comarca elegida, más grandes (`medG`); en toda Navarra, un punto limpio. El palito,
   fino y claro. Antes, disco de borde oscuro con un punto morado sobre un palito oscuro.
+- **Los pueblos en el mapa, fichas con foto** (`.m3-tl` en `inicio.css`, `T` y `etiqueta` en `mapa3d.js`; noviembre de
+  2026): fuera las chinchetas en 3D, su palito y su punto en el suelo, que no gustaban. Cada pueblo es una ficha pequeña
+  encima del mapa, en HTML para que se vea nítida: su foto en redondo con el aro de su estado (blanco por descubrir, rosa
+  con lo hecho en blanco, dorado con el check si está sellado) y su nombre, con un pico abajo que señala su sitio. En toda
+  Navarra no sale ninguna, salvo la de tu pueblo; con una comarca elegida, las de sus pueblos. Si encima no cabe, va
+  debajo con el pico arriba; si tampoco, solo la foto; un pueblo de la comarca elegida no se esconde nunca. El elegido, en
+  blanco. Se toca en toda la ficha, y el punto que se toca y donde se ancla la ficha del pueblo es su sitio en el suelo.
+  Las piezas en 3D siguen creadas pero apagadas.
 - **Relieve fino de la comarca elegida** (`src/assets/relieve/fino.webp`, `tools/relieve/fino.mjs`, `hazFino` y `finos` en
   `mapa3d.js`; noviembre de 2026): el relieve del mapa es una altura cada 620 m, y las sierras salían como bultos lisos;
   el sombreado fino ponía el dibujo, pero no la forma. Ahora, una imagen gris de toda Navarra (80 KB, EU-DEM a 56 m,

@@ -438,7 +438,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const bola = new THREE.Object3D(); bola.position.y = CRISTAL_Y;   // (el cristal: lo que se toca)
     g.add(bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
     let haz = null; if (t.here) { haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
-    const lab = document.createElement('div'); lab.className = 'm3-tl' + (t.state ? ' ' + t.state : '') + (t.here ? ' here' : ''); lab.innerHTML = `<span>${esc(t.name)}</span>`;
+    // (desde noviembre de 2026, cada pueblo es una ficha pequeña: su foto en redondo, con el aro de su estado, y su nombre,
+    // con un pico abajo que señala su sitio. Sin chinchetas ni puntos sobre el relieve; si no cabe, solo la foto)
+    const lab = document.createElement('div'); lab.className = 'm3-tl' + (t.state ? ' ' + t.state : '') + (t.here ? ' here' : ''); lab.dataset.t = t.id;
+    lab.style.setProperty('--p', t.state === 'ok' ? 1 : t.state === 'go' ? Math.max(0.12, Math.min(0.9, t.pct || 0)) : 0); lab._sp = [32, 40]; lab._siempre = true;
+    lab.innerHTML = `<i class="m3-tf">${t.foto ? `<img src="${esc(t.foto)}" alt="" decoding="async" loading="lazy">` : ''}${t.state === 'ok' ? '<b class="m3-tk"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 6.2 5.1 8.3 9 4" fill="none" stroke="#148a3f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></b>' : ''}</i><span>${esc(t.name)}</span>`;
     // (las ciudades, con la chincheta algo más grande; los pueblos, según su tamaño; las zonas de naturaleza, un poco menos)
     const tipo = t.bosque ? 2 : (t.size || 0) >= 85 ? 1 : 0, kt = tipo === 1 ? 1.3 : tipo === 2 ? 0.95 : 0.9 + 0.2 * Math.min(1, Math.max(0, ((t.size || 40) - 20) / 60));
     return { ...t, k: 1, g, bola, haz, hs: GROSOR + alto(X, Z), c: byId.get(t.comarca), lab, X, Z, ph: (i * 0.7) % 6.28, sen: 0, fija: 0, tipo, kt,
@@ -464,15 +468,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const FCX = FCV.getContext('2d'); FCX.fillStyle = '#d9d2ef'; FCX.fillRect(0, 0, FCV.width, FCV.height);
   const fotosT = new THREE.CanvasTexture(FCV); fotosT.colorSpace = THREE.SRGBColorSpace; fotosT.anisotropy = 4; mats.push({ dispose: () => fotosT.dispose() });
   const FOTOK = { value: 0 };
-  T.forEach((x, i) => { if (!x.foto) return; const im = new Image(); im.decoding = 'async';
-    im.onload = () => { if (!vivo) return; const q = Math.min(im.width, im.height), cx = (i % REJ[0]) * 96, cy = Math.floor(i / REJ[0]) * 96;
-      FCX.drawImage(im, (im.width - q) / 2, (im.height - q) / 2, q, q, cx, cy, 96, 96); fotosT.needsUpdate = true; FOTOK.value = 1; };
-    im.src = x.foto; });
   const cristal = pieza(pinG, balM(PIN_VS, PIN_FS, { uniforms: { uT: UT, uEsc: UESC, uFotos: { value: fotosT }, uRej: { value: new THREE.Vector2(...REJ) }, uFotoK: FOTOK } }), 5);
   const haloG = new THREE.BufferGeometry(), haloP = new THREE.BufferAttribute(new Float32Array(NT * 3), 3).setUsage(THREE.DynamicDrawUsage), haloS = new THREE.BufferAttribute(new Float32Array(NT), 1).setUsage(THREE.DynamicDrawUsage);
   const haloI = new THREE.BufferAttribute(aInf.array, 4).setUsage(THREE.DynamicDrawUsage);
   haloG.setAttribute('position', haloP); haloG.setAttribute('aS', haloS); haloG.setAttribute('aCol', new THREE.BufferAttribute(aCol.array, 3)); haloG.setAttribute('aInf', haloI); geos.push(haloG);
   const halo = new THREE.Points(haloG, balM(HALO_VS, HALO_FS, { blending: THREE.AdditiveBlending })); halo.frustumCulled = false; halo.renderOrder = 4; scene.add(halo);
+  // (las chinchetas en 3D, apagadas: los pueblos son fichas encima del mapa, .m3-tl. Siguen ahí para tocar y anclar la ficha)
+  for (const m of [mira, hilo, cristal, halo]) m.visible = false;
   const BM = new THREE.Matrix4(), BV = new THREE.Vector3(), BS = new THREE.Vector3(), Q0 = new THREE.Quaternion();
   const tById = new Map(T.map(t => [t.id, t]));
   const TR = T.filter(t => MAPA_IDS.includes(t.id));   // (los que tienen su trazado de verdad: a esos se puede uno acercar mucho más)
@@ -768,7 +770,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       t.bola.getWorldPosition(bw).project(cam); if (bw.z > 1) continue;
       const px = (bw.x + 1) / 2 * sz.w, py = (1 - bw.y) / 2 * sz.h, dd = Math.hypot(px - mx, py - my);
       if (dd < bd) { bd = dd; best = t; }
-      if (t.lab._on && t.lab._w) { const ly = t.lab._y ?? py; if (Math.abs(mx - t.lab._x) < t.lab._w / 2 && my < ly && my > ly - t.lab._h) { best = t; bd = 0; } }
+      if (t.lab._on && t.lab._w) { const ly = t.lab._y ?? py; if (Math.abs(mx - t.lab._x) < t.lab._w / 2 + 4 && my < ly + 4 && my > ly - t.lab._h - 10) { best = t; bd = 0; } }   // (la ficha entera, con su pico)
     }
     if (best) return { t: best.id };
     ray.setFromCamera(aNdc(e), cam);
@@ -1655,7 +1657,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
       // (la chincheta, quieta: ni gira ni se mece)
       const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y * (1 + (medG - 1) * 0.45);
-      x.g.scale.setScalar(s); x.bola.position.y = CRISTAL_Y * (1 + (medG - 1) * 0.45);   // (la bola: lo que se toca y donde se ancla la ficha, en el medallón tal como se ve)
+      x.g.scale.setScalar(s); x.bola.position.y = 0;   // (la bola: lo que se toca y donde se ancla la ficha: el sitio del pueblo, donde apunta el pico de su ficha)
       mira.setMatrixAt(i, BM.compose(BV.set(x.X, gy + 0.02, x.Z), Q0, BS.set(s * 0.85 * x.kt, 1, s * 0.85 * x.kt)));
       hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.04, cy - gy - s * 0.2, s * 0.04)));
       cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), Q0, BS.setScalar(s * 0.5 * x.kt * medG)));
@@ -1689,7 +1691,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);
       else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
     for (const x of T) { const on = !COL && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
-      lista.push([x.here || hover === 't:' + x.id ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, on, x.g.position.y]); }
+      const ya = elegido === x, sh = hover === 't:' + x.id; if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
+      lista.push([x.here || sh || ya ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y, x.Z, on, x.g.position.y, true]); }   // (si encima no cabe, debajo, con el pico arriba; y si tampoco, solo la foto)
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
     // dónde ir arrastrando el mapa. No con un pueblo elegido)
     for (const c of C) { const suya = sel === c.id; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !COL && (!sel || suya || !elegido)]); }
@@ -1738,9 +1741,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         ok = false;
         if (y2 != null) { pv.set(x, y2, z).project(cam); const qx = (pv.x + 1) / 2 * sz.w, qy = (1 - pv.y) / 2 * sz.h + 6 + el._h;
           if (pv.z < 1 && libreEn([qx - w - g, qy - el._h - g, qx + w + g, qy + 1 + g], g, ocupado)) { ok = abajo = true; px = qx; py = qy; } }
-        if (!ok && punto && libreEn([px - 6, py - 9, px + 6, py + 2], 2, ocupado)) ok = solo = true;
+        const sp = el._sp || [12, 11];   // (lo que ocupa sin nombre: el triángulo de una cima o la foto de un pueblo)
+        if (!ok && punto && libreEn([px - sp[0] / 2, py - sp[1], px + sp[0] / 2, py + 2], 2, ocupado)) ok = solo = true;
+        if (!ok && punto && el._siempre) ok = solo = true;   // (un pueblo de la comarca elegida no se esconde nunca: al menos su foto)
       }
-      if (ok) ocupado.push(solo ? [px - 6, py - 9, px + 6, py + 2] : [px - w - 3, py - el._h - 3, px + w + 3, py + 1]);
+      if (ok) { const sp = el._sp || [12, 11]; ocupado.push(solo ? [px - sp[0] / 2, py - sp[1], px + sp[0] / 2, py + 2] : [px - w - 3, py - el._h - 3, px + w + 3, py + 1]); }
     }
     if (ok !== !!el._on || !el._ya) { el._on = ok; el._ya = 1; el.classList.toggle('fuera', !ok); }   // (los que nunca se han visto, también fuera)
     if (!ok) return;
