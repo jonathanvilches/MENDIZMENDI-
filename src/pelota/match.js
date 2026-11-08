@@ -71,6 +71,10 @@ export class PelotaMatch {
     // Se cuenta el partido al empezar a jugarlo, en vsThenPlay: no los que se dejan con «Ahora no»)
     try { this.consejosN = +(localStorage.getItem('herrizherri-pelota-consejos') || 0); } catch (e) { this.consejosN = 0; }
     this.conConsejos = this.consejosN < 2;
+    // con la cámara (o.camara, la pelota en casa): tu cuerpo manda (camaraCuerpo.js); sin palanca y sin los consejos de los
+    // botones, que aquí no hacen falta. La cámara se pide al pulsar «Jugar»
+    this.conCamara = !!o.camara;
+    if (this.conCamara) { this.hud.root.classList.add('con-camara'); this.conConsejos = false; }
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
     this.fov0 = this.cam.fov; this.roll = 0; this.kick = 0;
     this.court.group.updateMatrixWorld(true);
@@ -266,7 +270,7 @@ export class PelotaMatch {
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
     this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
-      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M });
+      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara });
     this.court.setCuatro?.(!!this.game.cuatro);   // (la raya del 4 y medio, solo en el Cuatro y Medio)
     this.rec = null; this.repAt = 0;
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
@@ -297,6 +301,7 @@ export class PelotaMatch {
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
     const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
       ${this.rivalHtml()}
+      ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora ikusteko moduan. Mugitu alboetara eta, pilota datorrenean, eraman besoa atzera eta jo: eskuinarekin edo ezkerrarekin, goian edo behean.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba. Muévete a los lados y, cuando venga la pelota, echa el brazo atrás y golpea: con la derecha o con la izquierda, alta o baja.')}</p>` : ''}
       ${this.courtHtml()}
       <button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>
       <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
@@ -333,6 +338,7 @@ export class PelotaMatch {
       if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
       if (b.hasAttribute('data-pel-go')) {   // (antes de la presentación, la elección de material; en el peloteo y en las pruebas, sin ella)
         this.audio.ensure();
+        if (this.conCamara) this.arrancaCamara();   // (la cámara, ya: mientras se elige el material y sale el VS, se prepara)
         if (this.game.mode === 'match' && !window.__autoWin && !(navigator.webdriver && !window.__material)) this.eleccion().then(() => this.active && this.vsThenPlay());
         else { this.hud.closePanel(); this.vsThenPlay(); }
       }
@@ -783,6 +789,7 @@ export class PelotaMatch {
   }
   readInput() {
     const I = this.input, k = I.keys;
+    if (this.cuerpo?.visto && !k.a && !k.d && !k.w && !k.s && !k.arrowleft && !k.arrowright && !k.arrowup && !k.arrowdown && I.stick.id == null) return this.leeCuerpo();
     let x = (k.d || k.arrowright ? 1 : 0) - (k.a || k.arrowleft ? 1 : 0) + I.stick.x;
     let y = (k.w || k.arrowup ? 1 : 0) - (k.s || k.arrowdown ? 1 : 0) + I.stick.y;
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
@@ -797,6 +804,37 @@ export class PelotaMatch {
     this.finDesc = false;
     I.hitQ = I.dropQ = I.cutQ = false;
     return out;
+  }
+
+  // con la cámara: tu pelotari va al lado de la cancha donde estás tú (de lado a lado, a la altura donde se espera) y,
+  // cuando te toca, va solo a por la pelota (como al mantener GOLPE) y apuntas hacia donde estás; el golpe, el tuyo
+  // (onGolpe, en arrancaCamara)
+  leeCuerpo() {
+    const I = this.input, g = this.game, C = this.cuerpo, you = g.players.you;
+    const turno = g.phase === 'rally' && g.rally?.turn === 'you' && (!g.pairs || g.takerOf('you') === 'you');
+    let mx = 0, mz = 0;
+    if (!turno) {
+      const tx = C.x * (COURT.W / 2 - 1.2), tz = g.cuatro ? 13 : 20.5, dx = tx - you.x, dz = tz - you.z;
+      if (Math.hypot(dx, dz) > 0.35) { mx = clamp1(dx * 0.9); mz = clamp1(dz * 0.45); }
+    }
+    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? C.x, aimY: 0, descansoFin: !!this.finDesc };
+    this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = null;
+    return out;
+  }
+  // la cámara y tu cuerpo (camaraCuerpo.js, solo en la web): cada golpe tuyo es un golpe de tu pelotari, con su fuerza, su
+  // lado y su altura
+  arrancaCamara() {
+    if (this.cuerpo || this.camaraPedida) return; this.camaraPedida = true;
+    import('./camaraCuerpo.js').then(({ CamaraCuerpo }) => {
+      if (!this.active) return;
+      const C = this.cuerpo = new CamaraCuerpo(this.hud.root);
+      C.onGolpe = (e) => {
+        if (!this.active || this.paused || this.hud.panelEl || this.replay || this.flying || this.vsOpen) return;
+        const I = this.input; I.charge = null; I.power = e.power; I.hitQ = true; I.camAim = e.aimX; I.lastAim = null;
+        this.camGolpe = { golpe: e.golpe, t: this.t }; (this.golpeDe ||= {}).you = e.golpe;
+      };
+      C.start();
+    }).catch(e => console.warn('pelota con la cámara', e));
   }
 
   // ------------------------------------------------------------ bucle
@@ -844,6 +882,8 @@ export class PelotaMatch {
     if (this.entra?.go && !this.flying) this.pasoEntrada(dt);
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
     const ev = this.paused ? [] : g.update(dt, inp);
+    // (con la cámara, la fuerza del golpe sigue subiendo mientras la mano acelera, justo después de salir: lo más deprisa que va)
+    if (this.camGolpe && this.t - this.camGolpe.t < 0.2 && g.players.you.swing > 0 && this.cuerpo?.picoPow > (g.players.you.pow ?? 0)) g.players.you.pow = this.cuerpo.picoPow;
     // (fallo o acierto, al cantarse el tanto solo se oyen los aplausos: la pelota se calla, también en el golpe que lo
     // decide, hasta el saque siguiente)
     // (y el golpe que se estuviera cargando se suelta sin golpear: no pasa de un tanto al siguiente)
@@ -919,7 +959,8 @@ export class PelotaMatch {
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)
-  swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who]; if (e && P) (this.golpeDe ||= {})[who] = golpeDe(P, e.x, e.y, e.z); }
+  swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who]; if (e && P) (this.golpeDe ||= {})[who] = golpeDe(P, e.x, e.y, e.z);
+    if (who === 'you' && this.camGolpe && this.t - this.camGolpe.t < 0.8) this.golpeDe.you = this.camGolpe.golpe; }   // (con la cámara, el golpe que das tú: tu mano y tu altura)
 
   // ------------------------------------------------------------ dibujo
   draw(dt) {
@@ -1022,13 +1063,16 @@ export class PelotaMatch {
       const ball = g.ball.p, sd = g.side(who), turn = g.phase === 'rally' ? g.rally?.turn === sd && g.rally?.front && (!g.pairs || g.takerOf(sd) === who) : g.phase === 'servePrep' && g.serverP() === who;
       const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0, arma = dB < 2.6 ? golpeDe(P, ball.x, ball.y, ball.z) : (this.armaDe?.[who] || 'Hit');
       (this.armaDe ||= {})[who] = arma;
+      // (con la cámara, tu pelotari arma el brazo como tú: lo que lo echas atrás, de qué lado y a qué altura)
+      const cam = who === 'you' && this.cuerpo?.visto ? this.cuerpo : null;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
       const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
         // (el cansancio se ve: encorvado y respirando deprisa, más entre tanto y tanto; glbChar.js, armSwing)
         tired: g.mode === 'match' ? g.tired(who) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso',
         // (el armado del golpe que viene y el golpe que se da; y si se desplaza de lado mirando al frontis: pasos laterales)
-        arma, golpe: this.golpeDe?.[who] || 'Hit', lado: lateral(P) };
+        arma: cam ? cam.arma : arma, golpe: this.golpeDe?.[who] || 'Hit', lado: lateral(P) };
+      if (cam) st.wind = Math.max(cam.wind, wind * 0.25);
       this.suda(who, st.tired, side.obj, dt);
       // un golpe nuevo (al pulsar), una sola vez: el gesto no se repite mientras dura el estado
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;
@@ -1130,7 +1174,7 @@ export class PelotaMatch {
   destroy() {
     this.showFin?.();
     if (!this.active) return;
-    this.active = false; setFeel(null); this.audio.stop(); this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
+    this.active = false; setFeel(null); this.audio.stop(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }

@@ -10,16 +10,13 @@ import { tocarNota, acompanar } from '../audio/instrumentos.js';
 import { tr, isEU } from '../i18n.js';
 import { esc, el } from '../util/html.js';
 
-/** ¿Se puede tocar con la cámara aquí? Solo en la web (los archivos del modelo van en public/ar; en los archivos únicos
- *  no caben) y con cámara. */
-export const camaraDisponible = () => ((typeof __WEB__ !== 'undefined' && __WEB__) || import.meta.env.DEV) && !!navigator.mediaDevices?.getUserMedia;
+import { camaraDisponible, rutaAR, motorVision } from './camaraAR.js';
+export { camaraDisponible };   // (¿se puede tocar con la cámara aquí? ui/camaraAR.js)
 
-const RUTA = (f) => new URL((import.meta.env.BASE_URL || './') + 'ar/' + f, location.href).href;
 // (el detector de manos: con la tarjeta gráfica si se puede y, si no, con el procesador)
 async function detector() {
-  const V = await import('@mediapipe/tasks-vision');
-  const fs = await V.FilesetResolver.forVisionTasks(RUTA('wasm'));
-  const op = (delegate) => ({ baseOptions: { modelAssetPath: RUTA('hand_landmarker.task'), delegate }, runningMode: 'VIDEO', numHands: 2, minHandDetectionConfidence: 0.5, minHandPresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
+  const { V, fs } = await motorVision();
+  const op = (delegate) => ({ baseOptions: { modelAssetPath: rutaAR('hand_landmarker.task'), delegate }, runningMode: 'VIDEO', numHands: 2, minHandDetectionConfidence: 0.5, minHandPresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
   try { return await V.HandLandmarker.createFromOptions(fs, op('GPU')); } catch (e) { return V.HandLandmarker.createFromOptions(fs, op('CPU')); }
 }
 

@@ -192,7 +192,7 @@ export class PuebloDeportes {
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
       const v = await this.venueListo(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
-      const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m) });
+      const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
       if (this.disposed) return;   // (el pueblo se rehízo durante el partido: el fondo de los campeonatos ya es del nuevo)
       this.sportBackdrop(false);
       if (r.quit || r.error) return;
@@ -271,7 +271,7 @@ export class PuebloDeportes {
         const hv = await this.venueListo(sel.sede); await this.venuePrep(hv);
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
-        const r = await hv.play(this, a, { returnTo: this.fronton, comp: 'Partido de exhibición', stay: true, intro: (m) => vueloFronton(this, hv, m) });
+        const r = await hv.play(this, a, { returnTo: this.fronton, comp: pick === 'camara' ? 'Pelota en casa' : 'Partido de exhibición', stay: true, intro: (m) => vueloFronton(this, hv, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         if (r.quit || r.error) continue;

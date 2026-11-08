@@ -369,7 +369,7 @@ function pancartasDe(C, you, riv, town, colors) {
 // (los fallos que el partido recoge para no quedarse colgado, también al informe, util/informe.js: si no, en el móvil el
 // partido «se sale solo» sin que se sepa por qué)
 const apunta = (donde, e) => { const l = String(e?.stack || '').split('\n').find(x => /\.js/.test(x))?.trim().slice(0, 140) || ''; (window.__errors ||= []).push(`${donde}: ${e?.message || e}${l ? ' @ ' + l : ''}`.slice(0, 300)); };
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false } = {}) {
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -524,6 +524,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // empezaba callado y no se oían la chapa del sorteo ni los aplausos de la presentación hasta tocar)
       audio: G.sound?.ctx || null,
       colors, seasons, cuatro,   // (quién viste de cada color y sus temporadas; el Cuatro y Medio)
+      camara,   // (la pelota en casa: tu pelotari hace lo que haces delante de la cámara; pelota/camaraCuerpo.js)
       fly: intro,   // (la llegada: el vuelo de la cámara hasta la cancha, con los pelotaris y el público ya en su sitio)
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
       back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)

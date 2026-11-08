@@ -19,6 +19,7 @@ import { pelotariCard } from '../ui/sportCard.js';
 // los pelotaris del autor (src/ui/pelotariFig.js): sus nombres y sus figuras, también en las portadas del menú de pelota
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
+import { camaraDisponible } from '../ui/camaraAR.js';
 import { profile } from './profile.js';
 import { LEVELS, esSede } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
@@ -318,7 +319,7 @@ const CSS = `
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8);overflow-wrap:anywhere}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%;overflow-wrap:anywhere}
 .tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:0;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
-.tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}
+.tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 /* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
    línea de cada uno; en el menú, a la derecha de Salir; en el torneo, junto a tus txapelas. La lista de pueblos, por comarcas */
@@ -675,6 +676,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
         ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
         <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
+        ${camaraDisponible() ? `<button class="tq-tile casa" data-a="camara" style="--d:1.7s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">Con la cámara</span><b>Pelota en casa</b><small>Tu pelotari hace lo que&nbsp;haces</small></button>` : ''}
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');

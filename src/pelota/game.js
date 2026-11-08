@@ -43,7 +43,7 @@ function shotEnergy(shot, sub, pow, volea) {
 // el golpe lo decides tú: sale al soltar el botón y la mano llega a la pelota un instante después (SWEET). El momento
 // justo es cuando la pelota llega a tu mano (la distancia más corta a ti, a buena altura): antes, sale «pronto» (se va a
 // la izquierda y más alta); después, «tarde» (a la derecha y más baja). TOL: lo que se perdona, según el nivel
-const SWEET = 0.05, SWING_WIN = 0.34;
+const SWEET = 0.05, SWING_WIN = 0.34, CAM_WIN = 0.5, CAM_LAT = 0.1;
 const TOL = { iniciacion: 0.3, facil: 0.24, normal: 0.19, dificil: 0.15, experto: 0.12 };
 // a partir de esta altura, el golpe es un gancho: por encima del hombro, de arriba abajo, pegado a la pared izquierda
 const GANCHO_Y = 1.55;
@@ -115,6 +115,9 @@ export class PelotaGame {
     this.clock = 0;
     this.tempo = this.lvl.tempo;
     this.autoplay = !!o.autoplay;
+    // con la cámara (la pelota en casa, camaraCuerpo.js): el gesto llega algo tarde (la cámara y el detector, unas décimas)
+    // y se da con el cuerpo, no con un dedo; el golpe dura algo más y el momento justo se mide descontando ese retraso
+    this.camara = !!o.camara;
     let s = o.seed || (Math.random() * 1e9) | 0;
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     this.ball = new Ball();
@@ -254,7 +257,7 @@ export class PelotaGame {
     const reach = who === 'you' && !this.autoplay ? this.lvl.reach : 1.25;
     const qh = b.y >= GANCHO_Y ? 1 - clamp(Math.abs(b.y - 1.75) - 0.25, 0, 0.8) / 0.8 : 1 - clamp(Math.abs(b.y - 0.85) - 0.35, 0, 1.1) / 1.1;
     const qd = 1 - clamp(Math.hypot(b.x - pl.x, b.z - pl.z) - 0.45, 0, reach) / reach;
-    const tol = this.tol * (this.volley() ? 0.75 : 1);   // (de volea, el momento justo es más justo)
+    const tol = this.tol * (this.volley() ? 0.75 : 1) * (this.camara && who === 'you' ? 1.35 : 1);   // (de volea, el momento justo es más justo; con la cámara, algo menos)
     const qt = timing == null ? 0.75 : 1 - clamp(Math.abs(timing) / tol, 0, 1);
     // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene)
     const wall = clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1) * (0.2 - this.qual[who].agilidad * 0.025);
@@ -853,12 +856,12 @@ export class PelotaGame {
       if (this.phase === 'servePrep' && this.saque && this.serverP() === 'you') {
         if (this.hittable('you') && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
       } else if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
-        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36; }
+        if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = this.camara ? CAM_WIN : SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36; }
       }
       if (you.swing > 0) {
         you.swingT += dt; you.swing -= dt;
         if (you.swingT >= SWEET * 0.6 && this.hittable('you')) {
-          const ref = this.volley() ? you.idealAt?.v : you.idealAt?.b ?? you.idealAt?.v, timing = ref != null && Math.abs(this.clock - ref) < 0.8 ? this.clock - ref : null;
+          const ref = this.volley() ? you.idealAt?.v : you.idealAt?.b ?? you.idealAt?.v, timing = ref != null && Math.abs(this.clock - ref) < 0.8 ? this.clock - ref - (this.camara ? CAM_LAT : 0) : null;
           const q = this.quality('you', timing);
           this.strike('you', q, you.aim || { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5, false, null, { timing, volea: this.volley(), gancho: this.overhead() && !you.dropReq });
         } else if (you.swing <= 0) this.emit({ type: 'whiff', early: you.idealAt?.b != null && this.clock < you.idealAt.b });
