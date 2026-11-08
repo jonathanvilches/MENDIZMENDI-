@@ -1,0 +1,1 @@
+import{t as e}from"./preload-helper-uBIymjUX.js";var t=()=>!!navigator.mediaDevices?.getUserMedia,n=e=>new URL(`./ar/`+e,location.href).href,r=null;function i(){return r||(r=(async()=>{let t=await e(()=>import(`./vision_bundle-D7lXHl3n.js`),[],import.meta.url);return{V:t,fs:await t.FilesetResolver.forVisionTasks(n(`wasm`))}})().catch(e=>{throw r=null,e}))}export{i as n,n as r,t};
