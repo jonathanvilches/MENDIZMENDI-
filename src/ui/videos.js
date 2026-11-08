@@ -39,7 +39,11 @@ export const videoDe = (id, peque = false) => (id && VIDEOS.has(id) && puede() ?
 // las figuras de jugador animadas: la figura del autor moviéndose en su sitio (respira, cambia el peso de pierna,
 // parpadea), en WebP animado con transparencia (public/videos/figuras/<color>/<id>.webp, tools/figura-animada.sh). Van
 // como una imagen más donde iba la fija, en las cartas; sin ellas, la fija
-export const FIGURAS = new Set(['rojo/inigo', 'azul/inigo']);
+// (los 22 de la plantilla: Iñigo con MiniMax, empezando y acabando en su figura; los demás, noviembre de 2026, con Grok Video
+// Lite, 2 s desde la figura roja, en bucle de ida y vuelta (tools/figura-animada-ida.sh), y la azul sacada de la roja
+// cambiando el color de la camiseta en cada fotograma (tools/figura-azul.cjs))
+const PLANTILLA_IDS = ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue'];
+export const FIGURAS = new Set(PLANTILLA_IDS.flatMap(id => [`rojo/${id}`, `azul/${id}`]));
 export const figuraAnimada = (id, color) => (FIGURAS.has(`${color}/${id}`) && puede() ? `./videos/figuras/${color}/${id}.webp` : '');
 
 /** El <video> de una lámina animada para meter en el HTML (lo pone en marcha vigila, cuando se ve), o '' sin vídeo. */

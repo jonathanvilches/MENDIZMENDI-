@@ -423,6 +423,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   });
   // (las piezas de las chinchetas de todos los pueblos: su sombra en el suelo, el palito, la cabeza y, en las empezadas y en
   // la tuya, un halo suave)
+  let medG = 1;
   const NT = T.length, aCol = new THREE.InstancedBufferAttribute(new Float32Array(NT * 3), 3), aInf = new THREE.InstancedBufferAttribute(new Float32Array(NT * 4), 4).setUsage(THREE.DynamicDrawUsage);
   T.forEach((x, i) => { const c = srgb(BALIZA[x.state] || BALIZA['']); aCol.setXYZ(i, c.r, c.g, c.b); });
   const UT = { value: 0 }, UESC = { value: 1 };
@@ -432,9 +433,19 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (la sombra, siempre encima del relieve; la cabeza, un disco de cara a la cámara: PIN_VS)
   const mira = pieza(new THREE.PlaneGeometry(2.6, 2.6).rotateX(-Math.PI / 2), balM(MIRA_VS, MIRA_FS, { depthTest: false }), 3);
   const hilo = pieza(new THREE.CylinderGeometry(1, 1, 1, 6, 1, true).translate(0, 0.5, 0), balM(HILO_VS, HILO_FS, { side: THREE.DoubleSide }), 3);
-  const pinG = new THREE.PlaneGeometry(2, 2), aTip = new THREE.InstancedBufferAttribute(new Float32Array(NT * 2), 2);
-  T.forEach((x, i) => aTip.setXY(i, x.tipo, x.state === 'ok' ? 2 : x.state === 'go' ? 1 : 0)); pinG.setAttribute('aTip', aTip);
-  const cristal = pieza(pinG, balM(PIN_VS, PIN_FS, {}), 5);
+  const pinG = new THREE.PlaneGeometry(2, 2), aTip = new THREE.InstancedBufferAttribute(new Float32Array(NT * 3), 3);
+  T.forEach((x, i) => aTip.setXYZ(i, x.tipo, x.state === 'ok' ? 2 : x.state === 'go' ? 1 : 0, i)); pinG.setAttribute('aTip', aTip);
+  // (la foto de cada pueblo para su medallón: todas en una tira, en casillas de 96 px, recortadas en cuadrado; cada una se
+  // pinta cuando llega, y hasta que llega la primera, el medallón va liso)
+  const REJ = [8, Math.max(1, Math.ceil(NT / 8))], FCV = document.createElement('canvas'); FCV.width = REJ[0] * 96; FCV.height = REJ[1] * 96;
+  const FCX = FCV.getContext('2d'); FCX.fillStyle = '#d9d2ef'; FCX.fillRect(0, 0, FCV.width, FCV.height);
+  const fotosT = new THREE.CanvasTexture(FCV); fotosT.colorSpace = THREE.SRGBColorSpace; fotosT.anisotropy = 4; mats.push({ dispose: () => fotosT.dispose() });
+  const FOTOK = { value: 0 };
+  T.forEach((x, i) => { if (!x.foto) return; const im = new Image(); im.decoding = 'async';
+    im.onload = () => { if (!vivo) return; const q = Math.min(im.width, im.height), cx = (i % REJ[0]) * 96, cy = Math.floor(i / REJ[0]) * 96;
+      FCX.drawImage(im, (im.width - q) / 2, (im.height - q) / 2, q, q, cx, cy, 96, 96); fotosT.needsUpdate = true; FOTOK.value = 1; };
+    im.src = x.foto; });
+  const cristal = pieza(pinG, balM(PIN_VS, PIN_FS, { uniforms: { uT: UT, uEsc: UESC, uFotos: { value: fotosT }, uRej: { value: new THREE.Vector2(...REJ) }, uFotoK: FOTOK } }), 5);
   const haloG = new THREE.BufferGeometry(), haloP = new THREE.BufferAttribute(new Float32Array(NT * 3), 3).setUsage(THREE.DynamicDrawUsage), haloS = new THREE.BufferAttribute(new Float32Array(NT), 1).setUsage(THREE.DynamicDrawUsage);
   const haloI = new THREE.BufferAttribute(aInf.array, 4).setUsage(THREE.DynamicDrawUsage);
   haloG.setAttribute('position', haloP); haloG.setAttribute('aS', haloS); haloG.setAttribute('aCol', new THREE.BufferAttribute(aCol.array, 3)); haloG.setAttribute('aInf', haloI); geos.push(haloG);
@@ -1539,6 +1550,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (a media distancia, no menos de 0,42, para que se lean; dentro de la maqueta, diminutas)
     const lejos = v.d < 1.4 ? 0.035 * (v.d / 1.4) ** 1.5 : Math.min(1.7, Math.max(v.d / 45, Math.min(0.42, 0.035 + (v.d - 1.4) * 0.2)));
     UT.value = t; UESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
+    // (con una comarca elegida, los medallones de sus pueblos, más grandes, con su foto; en toda Navarra y con un pueblo
+    // abierto, pequeños)
+    medG += ((sel && !COL && !elegido ? 2.2 : 1) - medG) * (1 - Math.exp(-dt * 5));   // (con un pueblo abierto, pequeños: no tapan su maqueta)
     T.forEach((x, i) => {
       const nace = ease(intro ? rampa(tI, IT.pines + x.c.d * 0.4, IT.pines + x.c.d * 0.4 + 0.5) : Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
       // (con una comarca elegida, solo quedan las suyas: las demás se encogen hasta desaparecer)
@@ -1547,11 +1561,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       x.sen += ((hover === 't:' + x.id ? 1 : 0) - x.sen) * (1 - Math.exp(-dt * 10)); x.fija += ((elegido === x ? 1 : 0) - x.fija) * (1 - Math.exp(-dt * 6));
       const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
       // (la chincheta, quieta: ni gira ni se mece)
-      const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y;
+      const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y * (1 + (medG - 1) * 0.45);
       x.g.scale.setScalar(s);   // (la bola: lo que se toca y donde se ancla la ficha)
       mira.setMatrixAt(i, BM.compose(BV.set(x.X, gy + 0.02, x.Z), Q0, BS.set(s * 0.85 * x.kt, 1, s * 0.85 * x.kt)));
-      hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.045, s * (CRISTAL_Y - 0.2), s * 0.045)));
-      cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), Q0, BS.setScalar(s * 0.5 * x.kt)));
+      hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.04, cy - gy - s * 0.2, s * 0.04)));
+      cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), Q0, BS.setScalar(s * 0.5 * x.kt * medG)));
       haloP.setXYZ(i, x.X, cy, x.Z); haloS.setX(i, x.here || x.state === 'go' ? s * 1.8 * x.kt : 0); aInf.setXYZW(i, x.ph + (x.here ? 10 : 0), x.lleno, x.sen, x.fija);
       if (x.haz) { const kh = Math.min(1, lejos); x.haz.scale.set(kh, Math.max(0.01, nace * kh), kh); x.haz.position.y = gy + 6 * nace * kh; hazM.opacity = (0.4 + Math.sin(t * 2.4) * 0.12) * nace * x.k; }
     });

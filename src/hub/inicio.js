@@ -213,7 +213,7 @@ function mapaOn(root, p) {
     const k = `translate(${Math.round(l)}px, ${Math.round(t)}px)`;
     if (k !== ya || ficha.style.visibility) { ya = k; ficha.style.transform = k; ficha.style.visibility = ''; ficha.classList.add('fija'); }
   };
-  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, size: l.size, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
+  const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, size: l.size, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last, foto: townCover(l.id, true) || townImg(l, true) }; }).filter(Boolean);
   const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: !DD && r.towns ? r.pct : 0, done: !DD && !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
   // (lo que tapa lo de encima: arriba, la fila del HUD (lo conquistado, la misión de ahora y el rótulo de la comarca); abajo,
   // las comarcas y, en el móvil de pie, la misión; y la ficha del pueblo, que deja el pueblo a su izquierda o, en el móvil de

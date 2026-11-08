@@ -34,7 +34,7 @@ export function contorno(c) {
 // ---------- el relieve ----------
 // El de verdad (src/data/mapa-relieve.js: SRTM y GMTED2010, una altura cada 600 m), exagerado unas cinco veces para
 // que las sierras se lean desde arriba; el detalle de cada ladera lo pone el sombreado fino (EU-DEM de Copernicus)
-export const GROSOR = 0.6, EXA = 0.0026;
+export const GROSOR = 0.6, EXA = 0.0033;   // (la exageración del relieve: desde noviembre de 2026, algo más, 0,0026 antes)
 let ALTS = null;
 // (ruido de valores en JS, con un hash de enteros: el mismo en todos los aparatos; y el paso suave de los sombreadores)
 const hashV = (i, j) => { let n = (i * 374761393 + j * 668265263) | 0; n = Math.imul(n ^ (n >>> 13), 1274126177); return ((n ^ (n >>> 16)) >>> 0) / 4294967295; };

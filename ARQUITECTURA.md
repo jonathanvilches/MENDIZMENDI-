@@ -736,6 +736,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   su caja de 2:3 y la pasa a WebP animado con transparencia (320 × 480, 15 fps, unos 0,8 MB), que va como una imagen más
   donde iba la fija (`public/videos/figuras/<color>/<id>.webp`). La pantalla VS, tan grande, sigue con la fija de 1024. De
   momento solo Iñigo, de colorado y de azul; para otro, se genera igual y se apunta en `FIGURAS`.
+  Desde el 8 de noviembre de 2026 los tienen los 22 de la plantilla, en las cartas y también en la pantalla VS, donde se
+  enfrentan. Los otros 21, con Grok Video 1.5 Lite (1 crédito por segundo a 480p: 2 s cada uno, 42 créditos en total),
+  que solo parte de la figura y no acaba en ella, así que el bucle es de ida y vuelta (`tools/figura-animada-ida.sh`: se
+  vuelve hacia ti, parpadea y regresa); solo la roja: la azul sale de ella pasando a azul, fotograma a fotograma, el rojo
+  saturado de la camiseta (`tools/figura-azul.cjs`; las figuras del autor solo cambian en eso). 320 × 480 a 12 fps, unos
+  0,55 MB cada una, 25 MB las 44. En la pantalla VS del ordenador se ven algo más blandas que la fija de 1024.
+- **El GLB del pelotari con sus movimientos** (`tools/pelotari-glb.mjs`): exporta el modelo de Meshy con sus cuatro clips
+  (Correr, Andar, Golpe completo, Puño en alto) y, con nombre, los que el juego recorta de ellos (Reposo, Preparado,
+  Golpe, Celebra, Saluda, Asustado, Recoge, Habla), a la velocidad del juego. Sin comprimir y con la textura en PNG: unos
+  6,5 MB. Para entregarlo; el juego sigue usando el comprimido.
 - **Texturas pintadas** (`src/world/texturasPintadas.js`, `src/assets/texturas/*.webp`, `tools/textura-enlosable.cjs`,
   `tools/textura-cruz.cjs`; noviembre de 2026): el adoquín, la hierba, la tierra, la piedra, el revoco, la teja, la
   pizarra y la madera de los pueblos están pintados en Higgsfield (Nano Banana 2, 1024 × 1024, 1,5 créditos cada una) con
@@ -808,6 +818,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   península se funde con el fondo por sus bordes, mucho por los lados lejanos y poco por el norte, pegado a Navarra, con
   las esquinas redondas (`funde` en `suelo`); antes, al abrirse las nubes, se veía su rectángulo flotando, como un
   cuadrado. Tampoco hay ya esquinas de visor en la entrada.
+- **El mapa con otro color, más relieve y nieve; los pueblos, en medallones** (noviembre de 2026): la paleta de alturas,
+  menos verde (salvia grisácea en lo bajo, oliva en las sierras, pardo y gris en la roca, blanco arriba; `PALETA`); el
+  relieve fino de cada comarca, que traía los verdes de antes pintados, aporta solo sus luces y sus sombras; las luces,
+  más suaves y sin el tono cálido que amarilleaba las laderas al sol, y las sombras, con más contraste; el bosque, oliva
+  apagado. El relieve, más alto (`EXA` de 0,0026 a 0,0033). Nieve en las cumbres desde unos 1.250 a 1.500 m, con el borde
+  roto y menos en lo muy pendiente: en Navarra, solo el Pirineo. Los pueblos, en un medallón con su foto (la tira
+  `fotosT`, casillas de 96 px de las portadas pequeñas) dentro de un aro fino de su estado: blanco, rosa con lo hecho en
+  un arco, dorado con el check; con una comarca elegida, más grandes (`medG`); en toda Navarra, un punto limpio. El palito,
+  fino y claro. Antes, disco de borde oscuro con un punto morado sobre un palito oscuro.
 - **Un solo navegador: la fila de las comarcas** (`enFila` y `hijosHTML` en `inicio.js`; noviembre de 2026): la fila de
   abajo se queda siempre y es lo único para moverse por el mapa. Al elegir una comarca, su tarjeta se enciende y detrás de
   ella, en la misma fila, se abren sus pueblos, un poco más pequeños, en una bandeja de su color (`.m3-hijos`); la fila se
