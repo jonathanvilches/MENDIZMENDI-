@@ -824,7 +824,7 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // escribe ni con una ficha abierta encima
   const keys = new Set();
   const MOV = { w: 'f', arrowup: 'f', s: 'b', arrowdown: 'b', a: 'l', arrowleft: 'l', d: 'r', arrowright: 'r', q: 'ql', e: 'qr', '+': 'in', '=': 'in', '-': 'out' };
-  const kd = (e) => { if (e.key === 'Escape' && visible && !document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) { if (saltaIntro()) return; if (elegido) cierraPueblo(); else if (sel) vista(); return; }
+  const kd = (e) => { if (e.key === 'Escape' && visible && !document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) { if (saltaIntro()) return; if (elegido) select(sel); else if (sel) vista(); return; }
     const k = MOV[e.key.toLowerCase()];
     // (en la entrada grande, las flechas, el espacio y la tecla de entrar la pasan deprisa)
     if (!(k || e.key === ' ' || e.key === 'Enter') || e.ctrlKey || e.metaKey || e.altKey || !visible || document.hidden || e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) return;

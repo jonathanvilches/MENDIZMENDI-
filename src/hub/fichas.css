@@ -81,6 +81,13 @@
 .fh-tit h2 em { display: block; margin-top: var(--r-ts); color: color-mix(in srgb, var(--c) 35%, #fff); font: 600 var(--fs-sm)/1.1 var(--f-cond); font-style: normal; letter-spacing: .14em; text-shadow: 0 1px 8px rgba(8, 4, 16, .6); }
 .fh-cab:not(:has(.fh-portada)) .fh-tit { padding-top: 56px; }
 .fh-tit .fh-k, .fh-tit h2 em { text-shadow: var(--letra-foto); }
+/* (el pueblo anterior y el siguiente de su comarca: dos botones de cristal arriba a la izquierda de la portada, frente al de
+   cerrar, con cuál es) */
+.fh-nav { position: absolute; z-index: 2; left: 12px; top: 12px; display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(13, 6, 28, .62); border: 1px solid rgba(255, 255, 255, .18); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.fh-nav small { min-width: 34px; text-align: center; color: #fff; font: 700 var(--fs-xs)/1 var(--f-ui); letter-spacing: .04em; } .fh-nav small i { font-style: normal; color: var(--mute, #b9add6); }
+.fh-fl { flex: none; width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); color: #fff; cursor: pointer; transition: background .15s, transform .15s; }
+.fh-fl:hover, .fh-fl:focus-visible { background: color-mix(in srgb, var(--c, #ff7ac8) 45%, rgba(255, 255, 255, .1)); } .fh-fl:active { transform: scale(.9); }
+.fh-fl :is(svg, img) { width: 18px; height: 18px; } .fh-fl.sig :is(svg, img) { transform: scaleX(-1); }
 .sheet.pueblo .fh-hud { gap: var(--e2); padding: calc(var(--r-tx) - var(--e1)) var(--e6) 0; }
 .sheet.pueblo .sh-body { overflow: visible; padding: var(--r-bl) var(--e6) var(--e6); }
 .sheet.pueblo .sh-intro { margin: 0; color: #ebe4f7; font-size: var(--fs-md); line-height: 1.55; }

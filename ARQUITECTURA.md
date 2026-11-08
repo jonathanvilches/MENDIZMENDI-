@@ -496,10 +496,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   siguientes se apagan. La primera de cada lado va lo más girada que deje llenar hasta las flechas con dos o tres detrás,
   entre 28° y 48°: en el ordenador, mucho; en el móvil tumbado, donde la carta es pequeña para el ancho, menos y con
   tres. La perspectiva es proporcional a la carta, así la profundidad es la misma en todas las pantallas. En el móvil de
-  pie asoman por el borde. Con menos de ocho pueblos no hay anillo: van en fila, sin repetir ninguno, del primero al
-  último, y la flecha del lado donde ya no hay más se apaga (`lineal` en `galeria.js`). Antes se repetían para llenar
-  el anillo, y en las comarcas de un solo pueblo salía el mismo cinco veces. Así hay la profundidad del anillo de antes
-  sin sus huecos: allí las de los lados quedaban pequeñas y sueltas.
+  pie asoman por el borde. Desde noviembre de 2026 no hay un carrusel por comarca: todos los pueblos van en una sola fila,
+  comarca tras comarca, sin repetir ninguno, y al pasar el último de una comarca sigue el primero de la siguiente, con su
+  pestaña encendida arriba y cada carta del color de la suya. Las pestañas (y ↑ ↓) saltan al primer pueblo de cada comarca:
+  si está lejos, las cartas se apagan, se pasa y entran las de allí desde su lado, sin recorrer las de en medio. Solo se
+  apaga la flecha en el primer pueblo de todos y en el último. Las portadas se piden al acercarse a la de delante y se
+  sueltan al alejarse mucho (`foto` en `galeria.js`): con las 38 a la vez, el móvil se quedaba sin memoria. Antes, al
+  llegar al último pueblo de una comarca había que volver arriba a elegir otra, y con menos de ocho pueblos se repetían.
   Debajo, el pueblo de delante: el rótulo y, en su propia fila (`.gi-fila`), el nombre y sus misiones; en el móvil
   tumbado van uno al lado del otro, centrados entre sí y debajo del rótulo, en una sola fila (si no caben, las casillas
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
@@ -796,6 +799,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la vecina. Las de alrededor muestran su nombre apagado (`.m3-cl.fondo`), los últimos en sitio, para ver hacia dónde ir.
   En el rótulo de arriba, a los lados del nombre, las flechas a la anterior y a la siguiente en el orden de la fila de
   abajo, dando la vuelta; esas sí vuelan y encajan la comarca. En el móvil de pie, sin el sello, para que quepa el nombre.
+- **Navarra › comarca › pueblo, siempre a la vista** (`migasHTML`, `tiraHTML`, `migas` y `enTira` en `inicio.js`;
+  noviembre de 2026): la misma regla en todos los niveles. Arriba, junto al botón del menú, las migas: Navarra, la comarca
+  y el pueblo; cada paso lleva a él (la comarca, con un pueblo abierto, vuelve a ella entera volando) y el último va entre
+  sus flechas, que llevan a sus hermanos: las comarcas con una comarca, los pueblos de su comarca con un pueblo. El libro,
+  todo sobre lo de ahora: la página de la comarca o la ficha del pueblo. Abajo, la tira de los hijos: las comarcas en toda
+  Navarra (`.m3-rail`) y los pueblos de la comarca elegida (`.m3-tira`), con su portada y cómo van; con un pueblo abierto
+  sigue ahí, con el suyo encendido, y en las pantallas anchas acaba antes de su ficha (`--ftl`), que baja hasta abajo.
+  Escape, con un pueblo, vuelve a la comarca (antes solo cerraba la ficha y la cámara se quedaba en el pueblo). Antes, al
+  abrir un pueblo en el móvil tumbado se iba el rótulo de la comarca y no había forma de volver a ella ni de pasar al pueblo
+  de al lado; y en el ordenador el rótulo, en medio, se montaba con lo conquistado, que ahora se aparta con una comarca
+  elegida. En los móviles estrechos de pie, las migas van en su propia fila (`consola.css`).
+  La página de cada comarca lleva a los lados de su nombre la anterior y la siguiente (`vecinas` en `hub.js`, también con Q
+  y E), y la ficha de cada pueblo, arriba a la izquierda, el anterior y el siguiente de su comarca con cuál es (`.fh-nav`).
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en
   `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos o Personajes desde el menú del juego, en lugar
   de su ventana se queda el mapa con su colección. Arriba, su cabecera con cuántas llevas, sus pestañas, «Lista» (la

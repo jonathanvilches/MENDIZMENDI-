@@ -299,6 +299,10 @@ export class Hub {
   vecinas(screen) {
     // (la página de un pueblo del didáctico: a un lado, todos los pueblos; al otro, su comarca)
     if (screen === 'pueblo') { const l = levelById(this.arg); return l ? [['towns', 'Pueblos'], ['comarca:' + l.comarca, COMARCAS.find(c => c.id === l.comarca)?.name || 'Comarca']] : null; }
+    // (la página de una comarca: a los lados, la anterior y la siguiente, en el orden del mapa y dando la vuelta; también con
+    // Q y E. Antes no tenía: para ver otra había que volver al mapa)
+    if (screen === 'comarca') { const L = COMARCAS.filter(c => c.path && comarcaTowns(c.id).length), i = L.findIndex(c => c.id === this.arg); if (i < 0 || L.length < 2) return null;
+      const a = L[(i - 1 + L.length) % L.length], b = L[(i + 1) % L.length]; return [['comarca:' + a.id, a.name.replace(/^Comarca de /, '')], ['comarca:' + b.id, b.name.replace(/^Comarca de /, '')]]; }
     const L = this.nav.filter(x => x[0] !== 'home'), i = L.findIndex(x => x[0] === screen);
     return i < 0 || L.length < 3 ? null : [L[(i - 1 + L.length) % L.length], L[(i + 1) % L.length]];
   }
@@ -531,11 +535,16 @@ export class Hub {
       : [l.church && [{ fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral' }[l.church.style] || 'church', l.church.name, l.church.text], ...(l.landmarks || []).map(x => [LM_ICON[x.kind] || x.kind, x.name, x.text])].filter(Boolean);
     const oidas = cts.filter(K => (p.cards || []).includes('cuento:' + K.id)).length;
     const st = (ic, k, v, cls = '') => `<span class="fh-st${cls}">${I(ic, 22)}<span><small>${k}</small><b>${v}</b></span></span>`, [n1, n2] = l.name.split(' / '), cab = portadaPueblo(l, 'fh-portada');
+    // (abajo a la derecha de la portada, el pueblo anterior y el siguiente de su comarca, dando la vuelta: se pasa de ficha en
+    // ficha sin cerrarla)
+    const ts = comarcaTowns(l.comarca), ti = ts.findIndex(x => x.id === l.id), vec = (d) => ts[(ti + d + ts.length) % ts.length];
+    const fl = (d) => { const x = vec(d); return `<button type="button" class="fh-fl${d > 0 ? ' sig' : ''}" data-town="${x.id}" aria-label="${d > 0 ? 'Siguiente' : 'Anterior'}: ${esc(x.name.split(' / ')[0])}" title="${esc(x.name.split(' / ')[0])}">${I('back', 20)}</button>`; };
+    const nav = ts.length > 1 && ti >= 0 ? `<span class="fh-nav">${fl(-1)}<small>${ti + 1}<i>/${ts.length}</i></small>${fl(1)}</span>` : '';
     const s = el(`<div class="sheet pueblo" style="--c:${c?.color || '#c21cff'}"><div class="sheet-in" role="dialog" aria-label="${esc(l.name)}">
       <button class="x" aria-label="Cerrar">${I('close', 18)}</button>
       <div class="fh-scroll">
         <header class="fh-cab"${cab.fondo ? ` style="${cab.fondo.slice(1)}"` : ''}>${cab.marco}
-          <div class="fh-tit"><small class="fh-k">${esc(c?.name || '')}</small><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2></div></header>
+          <div class="fh-tit"><small class="fh-k">${esc(c?.name || '')}</small><h2><span>${esc(n1)}</span>${n2 ? `<em data-notr>${esc(otroNombre(n1, n2))}</em>` : ''}</h2></div>${nav}</header>
         <div class="fh-hud">${t.total ? st('check', 'Misiones', `${t.done}<i>/${t.total}</i>`, t.done === t.total ? ' ok' : '') : ''}${st('stamp', 'Sello', t.stamp ? 'Conseguido' : 'Por ganar', t.stamp ? ' ok' : '')}${l.river ? st('river', 'Río', esc(l.river.name)) : ''}${cts.length ? st('legend', cts.length === 1 ? 'Leyenda' : 'Leyendas', cts.length === 1 ? (oidas ? 'Escuchada' : 'Por escuchar') : `${oidas}<i>/${cts.length}</i>`, oidas === cts.length ? ' ok' : '') : ''}</div>
         <div class="sh-body">${l.intro ? `<p class="sh-intro">${esc(l.intro)}</p>` : ''}
           <h3>${I('check', 18)} Misiones <span>${t.done}/${t.total}</span></h3>
