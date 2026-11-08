@@ -40,6 +40,11 @@ const CSS = `
 .pvs-fig.azul{animation:pvs-figl .55s .25s cubic-bezier(.2,1.15,.4,1) both}.pvs-fig.rojo{animation:pvs-figr .55s .25s cubic-bezier(.2,1.15,.4,1) both}
 .pvs-fig.azul>img,.pvs-fig.azul>.pf{filter:drop-shadow(0 0 2px #fff) drop-shadow(-8px 0 18px rgba(123,107,255,.85)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
 .pvs-fig.rojo>img,.pvs-fig.rojo>.pf{transform:scaleX(-1);filter:drop-shadow(0 0 2px #fff) drop-shadow(-8px 0 18px rgba(255,111,181,.85)) drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+/* (las animadas, sin sombras de filtro: con tres drop-shadow, el navegador la volvía a pintar en cada fotograma y en el móvil
+   se entrecortaba, y el contorno blanco marcaba los bordes del recorte. Detrás, su halo y su sombra en el suelo, fijos, en el
+   fondo de la propia imagen) */
+.pvs-fig>img.pf-an{filter:none;will-change:transform;background:radial-gradient(40% 36% at 50% 50%,var(--halo) 0%,transparent 72%),radial-gradient(30% 3.2% at 50% 97.5%,rgba(0,0,0,.5) 0%,transparent 100%)}
+.pvs-fig.azul>img.pf-an{--halo:rgba(123,107,255,.6)}.pvs-fig.rojo>img.pf-an{--halo:rgba(255,111,181,.55)}
 /* (el compañero, detrás: algo más pequeño y apagado) */
 .pvs-fig .mate{opacity:.9}
 .pvs-fig>.kit{position:absolute;inset:0;display:grid;place-items:end center;padding-bottom:4%}.pvs-fig .kit svg{width:auto;height:84%;filter:drop-shadow(0 0 2px #fff) drop-shadow(0 14px 18px rgba(0,0,0,.5))}

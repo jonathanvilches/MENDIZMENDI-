@@ -742,6 +742,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   vuelve hacia ti, parpadea y regresa); solo la roja: la azul sale de ella pasando a azul, fotograma a fotograma, el rojo
   saturado de la camiseta (`tools/figura-azul.cjs`; las figuras del autor solo cambian en eso). 320 × 480 a 12 fps, unos
   0,55 MB cada una, 25 MB las 44. En la pantalla VS del ordenador se ven algo más blandas que la fija de 1024.
+  Estabilizadas desde el 8 de noviembre de 2026 (`tools/figura-estable.cjs`): esos vídeos se acercan poco a poco a la
+  figura, que crece un 16 % en dos segundos; recortada siempre en el mismo sitio, se le salían la cabeza y los pies y se
+  veía entrecortada. Ahora, en cada fotograma se mide la figura y se escala y se mueve al tamaño y al sitio del primero,
+  que es la figura fija; el verde se quita a la resolución del vídeo con el borde suavizado (el vídeo guarda el color a
+  media resolución y el recorte salía en escalera); salen a 384 × 576 y 15 fotogramas por segundo, de ida y vuelta, con la
+  azul hecha en la misma pasada. En la pantalla VS, las animadas van sin sombras de filtro (`pf-an`): su halo y su sombra
+  en el suelo van fijos en el fondo de la imagen, y el navegador ya no la repinta entera en cada fotograma.
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,
   andar, un tajo y un puño en alto, y los recortes de ahí no parecían pelota. Ahora se hacen al cargar el modelo, sobre
   su esqueleto de Mixamo, a partir de poses clave: reposo, preparado, derecha e izquierda, sotamano de las dos manos,

@@ -64,7 +64,7 @@ export function pelotariFig(name, side = 'rojo', cls = '', big = false) {
   // (la animada, si la tiene, en las cartas y también en la pantalla VS, donde se enfrentan: desde noviembre de 2026 las
   // tienen todos; ui/videos.js. Sin ella, la fija, y en la VS, la de 1024)
   const an = figuraAnimada(id, side === 'azul' ? 'azul' : 'rojo');
-  if (an) return `<img class="${c}" src="${an}" alt="" draggable="false">`;
+  if (an) return `<img class="${c} pf-an" src="${an}" alt="" draggable="false" decoding="async">`;   // (pf-an: animada; sin filtros encima, que la repintaban en cada fotograma)
   if (big && VS[side === 'azul' ? 'azul' : 'rojo'][id]) return `<img class="${c}" src="${VS[side === 'azul' ? 'azul' : 'rojo'][id]}" alt="" draggable="false">`;
   if (side === 'azul' && !AZUL[id] && CAMISETA[id]) return `<img class="${c} pf-az" src="${CAMISETA[id]}" style="background-image:url(${ROJO[id]})" alt="" draggable="false">`;
   return `<img class="${c}" src="${pelotariSrc(name, side)}" alt="" draggable="false">`;

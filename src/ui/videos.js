@@ -40,8 +40,10 @@ export const videoDe = (id, peque = false) => (id && VIDEOS.has(id) && puede() ?
 // parpadea), en WebP animado con transparencia (public/videos/figuras/<color>/<id>.webp, tools/figura-animada.sh). Van
 // como una imagen más donde iba la fija, en las cartas; sin ellas, la fija
 // (los 22 de la plantilla: Iñigo con MiniMax, empezando y acabando en su figura; los demás, noviembre de 2026, con Grok Video
-// Lite, 2 s desde la figura roja, en bucle de ida y vuelta (tools/figura-animada-ida.sh), y la azul sacada de la roja
-// cambiando el color de la camiseta en cada fotograma (tools/figura-azul.cjs))
+// Lite, 2 s desde la figura roja, en bucle de ida y vuelta, y la azul sacada de la roja cambiando el color de la camiseta.
+// Desde el 8 de noviembre de 2026, estabilizadas (tools/figura-estable.cjs): esos vídeos se acercan a la figura y, recortada
+// siempre igual, se le salían la cabeza y los pies; ahora cada fotograma se ajusta al tamaño y al sitio del primero, con el
+// borde suavizado, a 384 × 576 y 15 fotogramas por segundo)
 const PLANTILLA_IDS = ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue'];
 export const FIGURAS = new Set(PLANTILLA_IDS.flatMap(id => [`rojo/${id}`, `azul/${id}`]));
 export const figuraAnimada = (id, color) => (FIGURAS.has(`${color}/${id}`) && puede() ? `./videos/figuras/${color}/${id}.webp` : '');
