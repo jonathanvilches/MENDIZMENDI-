@@ -742,10 +742,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   vuelve hacia ti, parpadea y regresa); solo la roja: la azul sale de ella pasando a azul, fotograma a fotograma, el rojo
   saturado de la camiseta (`tools/figura-azul.cjs`; las figuras del autor solo cambian en eso). 320 × 480 a 12 fps, unos
   0,55 MB cada una, 25 MB las 44. En la pantalla VS del ordenador se ven algo más blandas que la fija de 1024.
-- **El GLB del pelotari con sus movimientos** (`tools/pelotari-glb.mjs`): exporta el modelo de Meshy con sus cuatro clips
-  (Correr, Andar, Golpe completo, Puño en alto) y, con nombre, los que el juego recorta de ellos (Reposo, Preparado,
-  Golpe, Celebra, Saluda, Asustado, Recoge, Habla), a la velocidad del juego. Sin comprimir y con la textura en PNG: unos
-  6,5 MB. Para entregarlo; el juego sigue usando el comprimido.
+- **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,
+  andar, un tajo y un puño en alto, y los recortes de ahí no parecían pelota. Ahora se hacen al cargar el modelo, sobre
+  su esqueleto de Mixamo, a partir de poses clave: reposo, preparado, derecha e izquierda, sotamano de las dos manos,
+  golpe de aire de las dos manos, saque, pasos laterales a los dos lados, celebrar, lamentar, saludar y hablar. Cada pose
+  dice el giro de la cadera, la espalda, el cuello y la cabeza, dónde va cada mano (contada en el pecho en reposo, así el
+  giro del cuerpo la lleva), hacia dónde el codo, el giro del antebrazo y dónde cada tobillo. Brazos y piernas se colocan
+  con cinemática inversa de dos huesos: los pies no resbalan ni se meten en el suelo. Entre poses, curva suave, horneada
+  a 30 por segundo; tarda unos 100 ms y no pesa nada en la descarga. Los de la izquierda salen en espejo. En el partido
+  (`match.js`, `golpeDe` y `lateral`): el golpe se elige por la altura y el lado de la pelota al darle; mientras llega,
+  `armSwing` mezcla la postura de armado de ese golpe, entera si está parado y de cintura para arriba si corre; el clip
+  del golpe empieza en ese armado. De lado y a menos de 3 m/s, pasos laterales mirando al frontis en vez de andar de
+  lado o darse la vuelta. El tanto perdido, las manos a la cabeza. Para verlos: el guion `movs-ver.mjs` pinta cada uno en
+  sus poses clave, de frente y de lado.
+- **El GLB del pelotari con sus movimientos** (`tools/pelotari-glb.mjs`): exporta el modelo de Meshy con andar y correr y
+  todos los de pelota, con nombre en castellano; con `base`, sin ningún movimiento, para animarlo en otro programa. Sin
+  comprimir y con la textura en PNG: unos 6,5 MB. Para entregarlo; el juego sigue usando el comprimido.
 - **Texturas pintadas** (`src/world/texturasPintadas.js`, `src/assets/texturas/*.webp`, `tools/textura-enlosable.cjs`,
   `tools/textura-cruz.cjs`; noviembre de 2026): el adoquín, la hierba, la tierra, la piedra, el revoco, la teja, la
   pizarra y la madera de los pueblos están pintados en Higgsfield (Nano Banana 2, 1024 × 1024, 1,5 créditos cada una) con

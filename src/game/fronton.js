@@ -473,17 +473,19 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const animYou = (obj, st, dt) => {
       stYou.v = st;
       P.pos.copy(obj.position); P.heading = obj.rotation.y;
-      if (rig.char) rig.char.back = st.back; rig.update(dt, st.speed, true, 0);
-      once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5));
+      if (rig.char) { rig.char.back = st.back; rig.char.lado = st.lado; } rig.update(dt, st.speed, true, 0);
+      once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5, st.golpe));
       once('you', 'won', st.won, () => rig.doCheer?.());
+      once('you', 'lost', st.lost, () => rig.doAct?.('sad'));   // (el tanto perdido: las manos a la cabeza)
       once('you', 'saluda', st.saluda, () => rig.doWave?.());   // (al salir a la cancha, saluda a la grada)
     };
     const animRival = (obj, st, dt = 1 / 60) => {
       stRival.v = st;
       rival.pos.copy(obj.position); rival.heading = obj.rotation.y; rival.speed = st.speed;
-      if (red) { red.char.back = st.back; red.update(dt, st.speed, true, 0); }
-      once('rival', 'swing', st.swing >= 0, () => red ? red.doAct('hit', 0.5) : rival.anim?.doAct?.('throw', 0.35));
+      if (red) { red.char.back = st.back; red.char.lado = st.lado; red.update(dt, st.speed, true, 0); }
+      once('rival', 'swing', st.swing >= 0, () => red ? red.doAct('hit', 0.5, st.golpe) : rival.anim?.doAct?.('throw', 0.35));
       once('rival', 'won', st.won, () => red?.doCheer());
+      once('rival', 'lost', st.lost, () => red?.doAct('sad'));
       once('rival', 'saluda', st.saluda, () => red ? red.doWave() : rival.anim?.doWave?.());
       if (st.won) rival.cheer = 0.6;
     };
@@ -502,7 +504,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
         const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
         return { obj, name, stats: stats || pelotariStats(name, lv),
-          animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5)); flag('won', s2.won, () => r.doCheer()); flag('saluda', s2.saluda, () => r.doWave()); } },
+          animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.char.lado = s2.lado; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5, s2.golpe)); flag('won', s2.won, () => r.doCheer()); flag('lost', s2.lost, () => r.doAct('sad')); flag('saluda', s2.saluda, () => r.doWave()); } },
           dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
       };
       const m = { youMate: await mk(youModel, n1, 2, pairs?.partner?.stats), rivalMate: await mk(rivModel, n2, levelTier(level), pairs?.rivalMate?.stats) };

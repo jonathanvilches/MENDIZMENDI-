@@ -13,6 +13,18 @@ import { Chapa3D } from './chapa.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+// (de qué lado le llega la pelota a quien la va a dar, su izquierda es su +X girado con su cara, y a qué altura: el golpe
+// que se ve, derecha o izquierda, sotamano o de aire)
+function golpeDe(P, x, y, z) {
+  const yaw = P.yaw ?? Math.PI, lat = (x - P.x) * Math.cos(yaw) - (z - P.z) * Math.sin(yaw);
+  return (y > 1.35 ? 'High' : y < 0.42 ? 'Low' : 'Hit') + (lat > 0.15 ? 'L' : '');
+}
+// (pasos laterales: se mueve de lado sin dejar de mirar al frontis; 1 hacia su izquierda, -1 hacia su derecha, 0 si no)
+function lateral(P) {
+  const sp = P.speed || 0; if (sp < 0.4 || sp > 3.0) return 0;
+  const yaw = P.yaw ?? Math.PI, l = P.vx * Math.cos(yaw) - P.vz * Math.sin(yaw), f = P.vx * Math.sin(yaw) + P.vz * Math.cos(yaw);
+  return Math.abs(l) > Math.abs(f) * 1.2 ? Math.sign(l) : 0;
+}
 
 export class PelotaMatch {
   /**
@@ -875,7 +887,7 @@ export class PelotaMatch {
           if (rotulo && e.q > 0.3) this.hud.golpe(rotulo, this.cols[g.side(e.who)]);
           // (y en los que deciden, la cámara se mete un poco más en la jugada)
           if (this.golpazo && this.camDyn && e.q > 0.3) this.kick = Math.max(this.kick || 0, e.who === 'you' ? 0.5 : 0.35); }
-        this.swingAnim(e.who); break;
+        this.swingAnim(e.who, e); break;
       }
       case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
         const D = t.desc || TEXT.es.desc, mio = e.side === 'you';
@@ -905,7 +917,9 @@ export class PelotaMatch {
       case 'end': this.endPanel(e); break;
     }
   }
-  swingAnim(who) { this.lastSwing[who] = this.t; }
+  // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
+  // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)
+  swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who]; if (e && P) (this.golpeDe ||= {})[who] = golpeDe(P, e.x, e.y, e.z); }
 
   // ------------------------------------------------------------ dibujo
   draw(dt) {
@@ -998,7 +1012,7 @@ export class PelotaMatch {
       side.obj.position.copy(this.v3);
       // mira al frontis salvo cuando corre hacia atrás o hacia un lado
       let yaw = Math.PI;
-      if (P.speed > 1.2 && Math.abs(P.vx) > Math.abs(P.vz) * 0.6) yaw = Math.atan2(P.vx, P.vz);
+      if (P.speed > 3.0 && Math.abs(P.vx) > Math.abs(P.vz) * 0.6) yaw = Math.atan2(P.vx, P.vz);   // (más despacio, de lado con pasos laterales, sin dejar de mirar al frontis)
       else if (S.v > 0.8) yaw = Math.atan2(-S.ox, -S.oz);   // (yendo a su sitio para el saque, mira hacia donde va)
       if ((g.phase === 'point' && (P.act === 'cheer')) || this.entra?.ok[who]) yaw = Math.atan2(this.camPos.x - side.obj.position.x, this.camPos.z - side.obj.position.z) - grp.rotation.y;   // (y al saludar en la salida)
       P.yaw = P.yaw == null ? yaw : P.yaw + Math.atan2(Math.sin(yaw - P.yaw), Math.cos(yaw - P.yaw)) * (1 - Math.exp(-12 * dt));
@@ -1006,12 +1020,15 @@ export class PelotaMatch {
       const swingAge = this.t - (this.lastSwing[who] || -9);
       // preparación del golpe: cuando la pelota viene hacia quien le toca, echa el brazo atrás (más cuanto más cerca)
       const ball = g.ball.p, sd = g.side(who), turn = g.phase === 'rally' ? g.rally?.turn === sd && g.rally?.front && (!g.pairs || g.takerOf(sd) === who) : g.phase === 'servePrep' && g.serverP() === who;
-      const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0;
+      const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0, arma = dB < 2.6 ? golpeDe(P, ball.x, ball.y, ball.z) : (this.armaDe?.[who] || 'Hit');
+      (this.armaDe ||= {})[who] = arma;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
       const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
         // (el cansancio se ve: encorvado y respirando deprisa, más entre tanto y tanto; glbChar.js, armSwing)
-        tired: g.mode === 'match' ? g.tired(who) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso' };
+        tired: g.mode === 'match' ? g.tired(who) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso',
+        // (el armado del golpe que viene y el golpe que se da; y si se desplaza de lado mirando al frontis: pasos laterales)
+        arma, golpe: this.golpeDe?.[who] || 'Hit', lado: lateral(P) };
       this.suda(who, st.tired, side.obj, dt);
       // un golpe nuevo (al pulsar), una sola vez: el gesto no se repite mientras dura el estado
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;

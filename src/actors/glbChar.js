@@ -10,6 +10,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { hdTable } from '../web/hd.js';
 import { loadChica } from './chicas.js';   // (solo se usa al cargar un avatar: chicas.js importa de aquí, y al arrancar no se llama)
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // modelos de Meshy comprimidos
+import { pelotaMoves, poseArmado } from './pelotaMoves.js';
 
 const cache = new Map();
 let loader = null;
@@ -159,6 +160,10 @@ export async function loadMeshy(name, lod = false) {
   const key = 'meshy:' + name + (lod ? ':lod' : ''), height = MESHY_H[name] || 1.5;
   if (!cache.has(key)) cache.set(key, (async () => {
     const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name]);
+    // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
+    // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
+    const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
+    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
@@ -174,8 +179,14 @@ export async function loadMeshy(name, lod = false) {
       if (!src[from]) continue;
       const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
     }
+    // (los del pelotari sustituyen a los recortes de los de Meshy; de pie y quieto, su reposo)
+    if (pel.length) {
+      const nuevos = new Set([...pel.map(c => c.name), 'Still']); for (let i = animations.length - 1; i >= 0; i--) if (nuevos.has(animations[i].name)) animations.splice(i, 1);
+      for (const c of pel) { c.userData = {}; animations.push(c); }
+      const q = pel.find(c => c.name === 'Idle'); if (q) { const st = q.clone(); st.name = 'Still'; st.userData = {}; animations.push(st); }
+    }
     const box = new THREE.Box3().setFromObject(g.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
-    return { scene: g.scene, animations, userData: { fit, meshy: true } };
+    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(armados ? { armados } : {}) } };
   })());
   return cache.get(key);
 }
@@ -200,6 +211,7 @@ export class GlbChar {
    */
   constructor(gltf, opt = {}) {
     this.root = SkeletonUtils.clone(gltf.scene);
+    this.armados = gltf.userData?.armados || null;   // (el pelotari: la postura de armado de cada golpe)
     this.root.name = 'GlbChar'; this.root.userData.glbChar = this;   // (el vigía de las pruebas lo encuentra así)
     this.switches = 0;
     this.opt = { timeScale: 1, walkAt: 0.15, runAt: 3.2, ...opt };
@@ -394,10 +406,13 @@ export class GlbChar {
       this.gaitT = (this.gaitT || 0) + dt;
       if (R[gn] < R[g0] && this.gaitT < 0.3 && v > 0.02) gn = g0;
       if (gn !== g0) { this.gaitName = gn; this.gaitT = 0; }
-      if (gn === 'Run' && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
+      // (de lado mirando al frontis, el pelotari se desplaza con pasos laterales en vez de andar de lado)
+      const lat = this.lado && gn !== 'Idle' ? this.actions[this.lado > 0 ? 'ShuffleL' : 'ShuffleR'] : null;
+      if (lat) { want = this.lado > 0 ? 'ShuffleL' : 'ShuffleR'; scale = ts * Math.min(1.8, Math.max(0.7, v / 1.3)); }
+      else if (gn === 'Run' && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
       else if (gn !== 'Idle' && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';
-      if (want !== 'Walk' && want !== 'Run') scale *= (this.clipExtras[want]?.rate || 1) * this.idleRate;
+      if (want !== 'Walk' && want !== 'Run' && !lat) scale *= (this.clipExtras[want]?.rate || 1) * this.idleRate;
       else if (this.back) scale = -scale;   // hacia atrás sin darse la vuelta (el pelotari, mirando al frontis): el paso al revés
       this.play(want);
       if (this.current) this.current.timeScale = scale;
@@ -580,9 +595,11 @@ export class GlbRig {
   setExpr(name, dur = 2) { const e = EXPR[name] || EXPR.neutral; this.char.holdFace(e[0], e[1], dur); }
   /** Postura en parado (p. ej. 'Ready' en el frontón); null vuelve a Idle. */
   setStance(name) { this.char.idleName = name || null; }
-  doAct(kind, t = 0.5) {
+  doAct(kind, t = 0.5, golpe = null) {
     const c = this.char;
-    if (kind === 'hit' && c.actions.Hit) { c.playOnce('Hit', t); c.holdFace('SmileOpen', 'Angry', t, 'Open'); }
+    // (el pelotari: el golpe que toca, derecha o izquierda, sotamano o de aire, entero desde el armado)
+    if (kind === 'hit' && c.actions.Hit) { const n = golpe && c.actions[golpe] ? golpe : 'Hit', d = c.armados ? c.actions[n].getClip().duration : t; c.playOnce(n, d); c.holdFace('SmileOpen', 'Angry', d, 'Open'); }
+    else if (kind === 'sad' && c.actions.Sad) { c.playOnce('Sad'); c.holdFace('Tired', 'Worried', 1.8); }
     else if (kind === 'pick') c.playOnce('Land', t);
     else if (kind === 'point') { c.playOnce('Talk', t); c.holdFace('Happy', 'Normal', t, 'Point'); }
     else { c.playOnce('Wave', t); c.holdFace('Happy', 'Normal', t, 'Fist'); }
@@ -604,6 +621,10 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   const local = (bone, axis) => { qc.identity(); for (let b = bone; b && b !== char.root; b = b.parent) qc.premultiply(b.quaternion); return ax.copy(axis).applyQuaternion(qc.invert()); };
   const turn = (bone, axis, a) => bone.quaternion.multiply(q.setFromAxisAngle(mix ? local(bone, axis) : axis, a));
   let w = 0;   // preparación suavizada
+  // (el pelotari de Meshy trae la postura de armado de cada golpe: se mezcla entera mientras llega la pelota, de cuerpo
+  // entero si está parado y de cintura para arriba si va corriendo, para no frenarle las piernas)
+  const AR = char.armados, ABAJO = /(Hips|UpLeg|Leg|Foot|ToeBase)$/, cad = B.mixamorigHips;
+  const ARB = AR && Object.fromEntries(Object.entries(AR).map(([k, p]) => [k, Object.entries(p.q).filter(([n]) => B[n]).map(([n, q]) => [B[n], q, ABAJO.test(n)])]));
   let fat = 0, resp = 0;   // el cansancio, suavizado, y la fase de la respiración
   char.post = (c, dt) => {
     const st = get(); if (!st) return;
@@ -618,6 +639,11 @@ export function armSwing(char, get, { windOnly = false } = {}) {
       if (nk) turn(nk, X, -doblado * 0.45 - aire * 0.7);
     }
     w += ((st.swing >= 0 ? 0 : st.wind || 0) - w) * Math.min(1, dt * 10);
+    if (ARB) {
+      const cual = ARB[st.arma] ? st.arma : 'Hit', quieto = Math.max(0, 1 - (st.speed || 0) / 1.5);
+      if (w > 0.003) { for (const [b, q, abajo] of ARB[cual]) b.quaternion.slerp(q, w * (abajo ? quieto : 1)); if (cad) cad.position.lerp(AR[cual].pos, w * quieto); }
+      return;
+    }
     let arm = -2.3 * w, elbow = 1.0 * w, twist = 0.7 * w;   // brazo bien atrás, codo doblado y hombro girado
     if (st.swing >= 0 && windOnly) return;   // el golpe ya lo anima su clip
     if (st.swing >= 0) { const s = st.swing, up = Math.min(1, s / 0.3), back = s < 0.3 ? 1 : Math.max(0, 1 - (s - 0.3) / 0.7);   // latigazo rápido y vuelta
