@@ -37,14 +37,12 @@ const CSS = `
 .pcam video,.pcam canvas{position:absolute;inset:0;width:100%;height:100%}
 .pcam video{object-fit:cover;transform:scaleX(-1);filter:saturate(.85) brightness(.85);transition:opacity .25s}
 .pcam.visto .pcam-v{border-color:#ffd166}
-.pcam.mini{flex-direction:row;align-items:center}
-.pcam.mini .pcam-v{width:48px;aspect-ratio:1;border-radius:50%}
-.pcam.mini video{opacity:0}
+.pcam.oculta .pcam-v{position:absolute;left:0;top:0;width:2px;height:2px;opacity:.01;border:0;box-shadow:none;pointer-events:none;transition:none}
 .pcam.fuera{opacity:0}.pcam.fuera .pcam-v{pointer-events:none}
 .pcam-msg{max-width:min(300px,60vw);padding:6px 10px;border-radius:10px;background:rgba(13,6,32,.8);font:700 12px/1.25 var(--pel-font,'MZ Texto'),sans-serif;color:#fff}
 .pcam-msg:empty{display:none}
 .pel-root.con-camara .pel-stick,.pel-root.con-camara .pel-stickhint{display:none}
-@media (max-height:480px){.pcam-v{width:clamp(130px,24vw,220px)}.pcam.mini .pcam-v{width:42px}.pcam-msg{font-size:11px}}
+@media (max-height:480px){.pcam:not(.oculta) .pcam-v{width:clamp(130px,24vw,220px)}.pcam-msg{font-size:11px}}
 `;
 let cssPuesto = false;
 
@@ -60,30 +58,31 @@ export class CamaraCuerpo {
     this.host = host;
     this.x = 0; this.wind = 0; this.arma = 'Hit'; this.visto = false; this.listo = false; this.fallo = false; this.parado = false;
     this.onGolpe = null; this.onGolpeAvance = null; this.onGolpeFin = null; this.nombres = null; this.golpes = 0; this.agachado = 0; this.gesto = null;
-    this.picos = []; this.post = []; this.mini = false; this.fijo = false; this.desde = null;
+    this.picos = []; this.post = []; this.oculta = false; this.desde = null;
     this.M = { 15: mano(), 16: mano() };
     this.sw = 0; this.cx = 0; this.x0 = null; this.cal = []; this.tVisto = -9; this.tPrev = 0; this.lms = null; this.vw = 640; this.vh = 480;
     if (!cssPuesto) { cssPuesto = true; const s = document.createElement('style'); s.textContent = CSS; document.head.appendChild(s); }
-    // (la ventana; en cuanto te ve y te ha medido, se queda en un círculo pequeño con tu esqueleto, y vuelve grande si deja
-    // de verte. Tocándola, grande o pequeña, y se queda como la dejes)
+    // (la ventana: tu imagen y tu esqueleto, solo para colocarte; en cuanto te ve y te ha medido, se quita del todo y vuelve
+    // si deja de verte. Queda solo, un momento, el nombre del golpe. El vídeo sigue en la página, diminuto y casi
+    // transparente: escondido del todo, algunos navegadores dejan de darle imágenes nuevas)
     const o = this.box = document.createElement('div'); o.className = 'pcam';
     o.innerHTML = '<div class="pcam-v"><video playsinline muted></video><canvas></canvas></div><div class="pcam-msg"></div>';
     host.appendChild(o);
-    this.vbox = o.querySelector('.pcam-v'); this.vbox.title = T('Tocar para agrandar o achicar la cámara', 'Ukitu kamera handitu edo txikitzeko');
+    this.vbox = o.querySelector('.pcam-v'); this.vbox.title = T('Tocar para quitar la cámara', 'Ukitu kamera kentzeko');
     this.video = o.querySelector('video'); this.cv = o.querySelector('canvas'); this.c = this.cv.getContext('2d'); this.msg = o.querySelector('.pcam-msg');
-    this.vbox.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.fijo = true; this.achica(!this.mini); });
+    this.vbox.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.achica(true); });
     this.di(T('Pidiendo la cámara…', 'Kamera eskatzen…'));
     // (para las pruebas: el estado y un cuerpo de mentira; con él, la cámara deja de mandar)
     window.__camaraCuerpo = { estado: () => this.estado(), pose: (lms, t) => { if (!this.manual) { this.manual = true; this.x0 = null; this.cal = []; this.refSh = null; } this.sigue(lms, t ?? performance.now() / 1000); } };
   }
   di(t) { if (this.msg.textContent !== t) this.msg.textContent = t; }
-  achica(on) { if (this.mini === on) return; this.mini = on; this.box.classList.toggle('mini', on); }
+  achica(on) { if (this.oculta === on) return; this.oculta = on; this.box.classList.toggle('oculta', on); if (on) this.c.clearRect(0, 0, this.cv.width, this.cv.height); }
   // lo deprisa que golpeas de normal: de tus últimos golpes (sin las dejadas), el de un poco por debajo de la mitad (así
   // unas cuantas cortadas no lo suben); de primeras, lo de casi todos
   tipico() { const a = this.picos; if (a.length < 3) return TIPICO; const b = a.slice().sort((p, q) => p - q); return clamp(b[Math.floor((b.length - 1) * 0.4)], 4, 30); }
   // la fuerza: por lo deprisa que va la mano, respecto a lo que golpeas tú de normal (la dejada, siempre suave)
   pot(v, dejada) { const T0 = this.tipico(); return dejada ? 0.15 + 0.45 * clamp((v - 1.5) / (T0 * 0.9), 0, 1) : 0.25 + 0.75 * clamp((v - T0 * 0.5) / (T0 * 1.3), 0, 1); }
-  estado() { const m = (k) => ({ v: +this.M[k].v.toFixed(1), wind: +this.M[k].wind.toFixed(2), ok: this.M[k].ok }); return { listo: this.listo, fallo: this.fallo, visto: this.visto, vistos: this.vistos || 0, imagenes: this.imagenes || 0, x: +this.x.toFixed(2), wind: +this.wind.toFixed(2), arma: this.arma, golpes: this.golpes, agachado: +this.agachado.toFixed(2), mini: this.mini, trabajador: !!this.w, enviadas: this.enviadas || 0, saltadas: this.saltadas || 0, delegado: this.delegado || (this.pl ? 'aquí' : ''), tipico: +this.tipico().toFixed(1), ultimos: (this.ultimos || []).map(u => [u.tipo || 'golpe', u.req || '', +u.aimX.toFixed(2), +u.aimY.toFixed(2), +u.power.toFixed(2), u.golpe]), d: m(16), i: m(15), msg: this.msg.textContent }; }
+  estado() { const m = (k) => ({ v: +this.M[k].v.toFixed(1), wind: +this.M[k].wind.toFixed(2), ok: this.M[k].ok }); return { listo: this.listo, fallo: this.fallo, visto: this.visto, vistos: this.vistos || 0, imagenes: this.imagenes || 0, x: +this.x.toFixed(2), wind: +this.wind.toFixed(2), arma: this.arma, golpes: this.golpes, agachado: +this.agachado.toFixed(2), oculta: this.oculta, trabajador: !!this.w, enviadas: this.enviadas || 0, saltadas: this.saltadas || 0, delegado: this.delegado || (this.pl ? 'aquí' : ''), tipico: +this.tipico().toFixed(1), ultimos: (this.ultimos || []).map(u => [u.tipo || 'golpe', u.req || '', +u.aimX.toFixed(2), +u.aimY.toFixed(2), +u.power.toFixed(2), u.golpe]), d: m(16), i: m(15), msg: this.msg.textContent }; }
 
   /** La cámara de delante y el detector; si algo falla, se juega con los botones de siempre */
   async start() {
@@ -165,7 +164,7 @@ export class CamaraCuerpo {
     const P = (i) => ({ x: (1 - lms[i].x) * this.vw, y: lms[i].y * this.vh, z: (lms[i].z || 0) * this.vw });
     if (!lms || !vis(11) || !vis(12)) {
       if (t - this.tVisto > 0.6) { this.visto = false; this.desde = null; this.wind *= 0.8; if (this.listo) this.di(T('No te veo: ponte delante de la cámara', 'Ez zaitut ikusten: jarri kameraren aurrean')); }
-      if (t - this.tVisto > 1.2 && !this.fijo) this.achica(false);   // (si deja de verte, grande otra vez: para que te coloques)
+      if (t - this.tVisto > 1.2) this.achica(false);   // (si deja de verte, otra vez a la vista: para que te coloques)
       this.box.classList.toggle('visto', this.visto); this.pinta(t); return;
     }
     const s11 = P(11), s12 = P(12), swNow = Math.hypot(s11.x - s12.x, s11.y - s12.y);
@@ -177,7 +176,7 @@ export class CamaraCuerpo {
     this.cx = this.cx ? this.cx + (cx - this.cx) * 0.35 : cx;
     if (!this.visto) { this.cal = []; this.x0 = null; }
     this.visto = true; this.tVisto = t; this.box.classList.add('visto'); this.desde ??= t;
-    if (this.x0 != null && t - this.desde > 2 && !this.fijo) this.achica(true);   // (ya te ve y te ha medido: pequeña)
+    if (this.x0 != null && t - this.desde > 2) this.achica(true);   // (ya te ve y te ha medido: fuera)
     // dónde estás: el centro, el sitio donde te quedas quieto el primer segundo (con la cámara algo torcida, también vale)
     if (this.x0 == null) { this.cal.push(this.cx); if (this.cal.length >= 12) { const a = this.cal.slice().sort((p, q) => p - q); this.x0 = clamp(a[a.length >> 1], this.vw * 0.3, this.vw * 0.7); } }
     const x0 = this.x0 ?? this.vw / 2, off = (this.cx - x0) / (sw * 1.3), dz = Math.abs(off) < 0.12 ? 0 : off - Math.sign(off) * 0.12;
@@ -325,7 +324,7 @@ export class CamaraCuerpo {
     if (!W) return;
     if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
     c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
-    if (this.mini) return this.pintaMini(W, H);
+    if (this.oculta) return;
     // (como la imagen, que llena la ventana recortando lo que sobra)
     const k = Math.max(W / this.vw, H / this.vh), ox = (W - this.vw * k) / 2, oy = (H - this.vh * k) / 2, Q = (x, y) => [ox + x * k, oy + y * k];
     // el centro y tu sitio
@@ -346,20 +345,6 @@ export class CamaraCuerpo {
       if (h.rastro.length > 1 && (golpe || h.v > 2.5)) { c.strokeStyle = golpe ? 'rgba(255,122,200,.9)' : 'rgba(255,255,255,.35)'; c.lineWidth = golpe ? 6 : 3; c.beginPath(); h.rastro.forEach((r, i) => { const p = Q(r.x, r.y); if (i) c.lineTo(p[0], p[1]); else c.moveTo(p[0], p[1]); }); c.stroke(); }
       const p = Q(h.x, h.y); c.beginPath(); c.arc(p[0], p[1], 6 + h.wind * 4, 0, Math.PI * 2); c.fillStyle = golpe ? '#ff7ac8' : h.wind > 0.3 ? '#ffd166' : '#fff'; c.fill();
     }
-  }
-
-  // pequeña: tu esqueleto entero dentro del círculo (encogido, en azul claro; el golpe, en rosa)
-  pintaMini(W, H) {
-    const L = this.lms, c = this.c; if (!L || !this.visto) return;
-    const vis = (i) => (L[i]?.visibility ?? 1) > 0.5, pts = [0, 11, 12, 13, 14, 15, 16, 23, 24].filter(vis).map(i => [(1 - L[i].x) * this.vw, L[i].y * this.vh]);
-    if (pts.length < 3) return;
-    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity; for (const [x, y] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
-    const k = Math.min(W * 0.62 / Math.max(1, x1 - x0), H * 0.62 / Math.max(1, y1 - y0)), cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
-    const P = (i) => [W / 2 + ((1 - L[i].x) * this.vw - cx) * k, H / 2 + (L[i].y * this.vh - cy) * k];
-    const golpe = this.flash && this.tPrev - this.flash.t < 0.35;
-    c.lineCap = 'round'; c.lineWidth = 2.5; c.strokeStyle = golpe ? '#ff7ac8' : this.agachado > 0.5 ? '#78dcff' : '#ffd166';
-    c.beginPath(); for (const [a, b] of HUESOS) if (vis(a) && vis(b) && a < 25 && b < 25) { const p = P(a), q = P(b); c.moveTo(p[0], p[1]); c.lineTo(q[0], q[1]); } c.stroke();
-    if (vis(0)) { const n = P(0); c.beginPath(); c.arc(n[0], n[1], Math.max(2.5, this.sw * k * 0.22), 0, Math.PI * 2); c.stroke(); }
   }
 
   stop() {
