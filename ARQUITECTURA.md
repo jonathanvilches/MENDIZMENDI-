@@ -799,6 +799,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la vecina. Las de alrededor muestran su nombre apagado (`.m3-cl.fondo`), los últimos en sitio, para ver hacia dónde ir.
   En el rótulo de arriba, a los lados del nombre, las flechas a la anterior y a la siguiente en el orden de la fila de
   abajo, dando la vuelta; esas sí vuelan y encajan la comarca. En el móvil de pie, sin el sello, para que quepa el nombre.
+- **El inicio, repasado** (noviembre de 2026): las tarjetas de abajo, algo más grandes y del mismo cristal que los botones
+  de arriba, con las esquinas redondas: la foto y, debajo (en el móvil tumbado, al lado), el nombre y los sellos de la
+  comarca o el icono de cada misión del pueblo, las hechas encendidas con su color (`.m3-ms`); sin el marco de degradado
+  con las esquinas cortadas ni la bandeja gris detrás de los pueblos. El botón del menú, con tres rayas finas de trazo y
+  «Menú» debajo (`MENU_M` en `hub.js`), en lugar del icono dibujado de barras doradas. Las juntas entre comarcas y el
+  contorno de Navarra, finos otra vez (`contornoM`, `juntaM`, `luz` en `mapa3d.js`). En la entrada, la imagen de la
+  península se funde con el fondo por sus bordes, mucho por los lados lejanos y poco por el norte, pegado a Navarra, con
+  las esquinas redondas (`funde` en `suelo`); antes, al abrirse las nubes, se veía su rectángulo flotando, como un
+  cuadrado. Tampoco hay ya esquinas de visor en la entrada.
 - **Un solo navegador: la fila de las comarcas** (`enFila` y `hijosHTML` en `inicio.js`; noviembre de 2026): la fila de
   abajo se queda siempre y es lo único para moverse por el mapa. Al elegir una comarca, su tarjeta se enciende y detrás de
   ella, en la misma fila, se abren sus pueblos, un poco más pequeños, en una bandeja de su color (`.m3-hijos`); la fila se

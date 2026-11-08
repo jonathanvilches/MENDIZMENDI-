@@ -84,14 +84,17 @@ export function mapa3d(host, o) {
   const TIEMPO = { value: 0 };   // (el reloj de las nubes)
   // (lo de fuera de Navarra, apagado: la máscara de Navarra, nítida en rojo y difuminada en verde, dónde cae y cuánto se apaga)
   const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 };
-  const suelo = (url, w, h, x, z, y, transp) => {
+  const FONDO_L = { value: new THREE.Color(FONDO) };
+  // (funde: cuánto se funden sus bordes, oeste, este, sur y norte, en unidades del mapa; modo 1, en el fondo; 2, por transparencia)
+  const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0) => {
     const g = new THREE.PlaneGeometry(w, h); geos.push(g);
     const m = new THREE.MeshBasicMaterial({ color: FONDO, toneMapped: false, transparent: transp, opacity: transp ? 0 : 1, depthWrite: !transp }); mats.push(m);
     m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uNav = NAV; sh.uniforms.uNavR = NAVR; sh.uniforms.uFuera = FUERA;   // (las mismas nubes que sobre Navarra)
-      sh.vertexShader = 'varying vec2 vMun;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz;');
+      sh.uniforms.uFunde = { value: new THREE.Vector4(...funde) }; sh.uniforms.uModo = { value: modo }; sh.uniforms.uTam = { value: new THREE.Vector2(w, h) }; sh.uniforms.uFondoL = FONDO_L;
+      sh.vertexShader = 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;');
       // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
       // encima del verde y del rojo)
-      sh.fragmentShader = 'varying vec2 vMun; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      sh.fragmentShader = 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 { float mar = smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g));
   if (mar > 0.0) { vec2 q = vMun * 2.2; float w = sin(q.x * 1.7 + uT * 0.5 + sin(q.y * 1.1 + uT * 0.3) * 2.0) * sin(q.y * 2.3 - uT * 0.4 + sin(q.x * 0.9) * 1.5);
@@ -101,14 +104,21 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 { vec2 nu = (vMun - uNavR.xy) / uNavR.zw; vec2 nm = nu.x < 0.0 || nu.y < 0.0 || nu.x > 1.0 || nu.y > 1.0 ? vec2(0.0) : texture2D(uNav, nu).rg;
   float fuera = (1.0 - nm.r) * uFuera, l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
   diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(0.84, 0.87, 1.0) * 0.64, fuera * 0.75);   // (desde noviembre de 2026, más apagado: Navarra se destaca más)
-  diffuseColor.rgb *= 1.0 - 0.5 * fuera * nm.g; }`); };
-    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav';
+  diffuseColor.rgb *= 1.0 - 0.5 * fuera * nm.g; }
+// (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
+// por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
+// Navarra, que va encima, se funde por transparencia en la de debajo)
+if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
+  float kx = max(max(uFunde.x - a.x, 0.0) / uFunde.x, max(uFunde.y - b.x, 0.0) / uFunde.y), ky = max(max(uFunde.z - a.y, 0.0) / uFunde.z, max(uFunde.w - b.y, 0.0) / uFunde.w);
+  float e = smoothstep(0.0, 1.0, length(vec2(kx, ky)));
+  if (uModo < 1.5) diffuseColor.rgb = mix(diffuseColor.rgb, uFondoL, e); else diffuseColor.a *= 1.0 - e; }`); };
+    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav-funde';
     new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
   };
   const [ex0, ey0, ex1, ey1] = [-3006, -451, 2824, 4150];   // (lo que cubre la imagen de la península, en unidades del mapa)
-  suelo(ESPANA, (ex1 - ex0) * S, (ey1 - ey0) * S, ((ex0 + ex1) / 2 - CX) * S, ((ey0 + ey1) / 2 - CY) * S, -0.04, false);
-  suelo(ENTORNO, 200, 152, 0, 0, -0.02, true).renderOrder = -2;
+  suelo(ESPANA, (ex1 - ex0) * S, (ey1 - ey0) * S, ((ex0 + ex1) / 2 - CX) * S, ((ey0 + ey1) / 2 - CY) * S, -0.04, false, [130, 130, 150, 26], 1);
+  suelo(ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2).renderOrder = -2;
 
   // el sombreado fino, compartido por todas las comarcas (mientras llega, el de cada vértice)
   const R = MAPA_RELIEVE.sombra, LISTO = { value: 0 };
@@ -223,9 +233,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     m.onBeforeCompile = (sh) => { sh.uniforms.uAnchoB = ANCHO_B; sh.uniforms.uFacB = { value: fac };
       sh.vertexShader = 'attribute vec3 lado; uniform float uAnchoB, uFacB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAnchoB * uFacB;'); };
     m.customProgramCacheKey = () => 'mapa-contorno'; mats.push(m); m.userData.orden = orden; return m; };
-  // (desde noviembre de 2026, más anchas y con más contraste: la raya oscura de la junta y, a cada lado, la luz de la comarca
-  // hacia dentro, como un canto biselado; así cada comarca se lee como una pieza en relieve)
-  const contornoM = [cintaB(0x1d1240, 0.7, 3.4, 2), cintaB(0xfff1cf, 0.95, 1.5, 3)], juntaM = cintaB(0x140a30, 0.85, 1.9, 2), gradB = haciaDentro();
+  // (finas: la raya oscura de la junta y, a cada lado, la luz de la comarca hacia dentro, estrecha, como un canto biselado.
+  // En noviembre de 2026 se hicieron el doble de anchas y pesaban demás: se dejaron así)
+  const contornoM = [cintaB(0x1d1240, 0.6, 2.1, 2), cintaB(0xfff1cf, 0.9, 0.9, 3)], juntaM = cintaB(0x140a30, 0.7, 0.85, 2), gradB = haciaDentro();
   mats.push({ dispose: () => gradB.dispose() });
   // (los tramos seguidos de lados que cumplen algo, empezando donde cambia, para no partir ni repetir uno que da la vuelta)
   const tramos = (P, ok) => { const n = P.length, out = []; let s = 0; while (s < n && ok[(s - 1 + n) % n] === ok[s]) s++; if (s === n) s = 0;
@@ -254,9 +264,9 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
     let area = 0, larga = 0, li = 0; for (let i = 0; i < n; i++) { const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n]; area += ax * bz - bx * az; const L = Math.hypot(bx - ax, bz - az); if (L > larga) { larga = L; li = i; } }
     let sg = area > 0 ? 1 : -1; { const [ax, az] = P[li], [bx, bz] = P[(li + 1) % n]; if (!en(c, (ax + bx) / 2 - (bz - az) / larga * e * sg, (az + bz) / 2 + (bx - ax) / larga * e * sg)) sg = -sg; }
     const gFuera = cinta2(tramos(P, fuera), (ox, oz) => [[ox, oz], [-ox, -oz]]); for (const m of contornoM) ponCinta(c, gFuera, m);
-    const junta = tramos(P, dentro), luz = cintaB(new THREE.Color(c.color).lerp(BLANCO, 0.55), 0.95, 1, 3, gradB); c.bordeIn = luz;
+    const junta = tramos(P, dentro), luz = cintaB(new THREE.Color(c.color).lerp(BLANCO, 0.55), 0.75, 1, 3, gradB); c.bordeIn = luz;
     ponCinta(c, cinta2(junta, (ox, oz) => [[ox, oz], [-ox, -oz]]), juntaM);
-    ponCinta(c, cinta2(junta, (ox, oz) => [[ox * sg * 1.6, oz * sg * 1.6], [ox * sg * 4.6, oz * sg * 4.6]]), luz);
+    ponCinta(c, cinta2(junta, (ox, oz) => [[ox * sg * 0.8, oz * sg * 0.8], [ox * sg * 2.6, oz * sg * 2.6]]), luz);
   }
 
 
@@ -566,12 +576,12 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // reloj de la entrada (si se toca para pasar deprisa, también deprisa)
   const show = intro && (() => {
     const E = document.createElement('div'); E.className = 'm3-show'; E.setAttribute('aria-hidden', 'true');
-    // (como el arranque de un videojuego, a toda la pantalla: las esquinas del visor, una raya de luz que
+    // (como el arranque de un videojuego, a toda la pantalla: una raya de luz que
     // cruza el nombre, la onda que levanta Navarra al posarse con un temblor de la cámara, y el aviso de que se puede pasar)
-    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-onda"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><span class="m3-raya"></span><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div><div class="m3-visor"></div><span class="m3-pasa">${TACTIL ? 'Toca para pasar' : 'Clic para pasar'}</span>`;
+    E.innerHTML = `<canvas class="m3-nubes"></canvas><div class="m3-sol"></div><div class="m3-luz"></div><div class="m3-onda"></div><div class="m3-titulo"><b class="logo" data-notr>${[...'HERRIZHERRI'].map((l, i) => `<i style="--i:${i}">${l}</i>`).join('')}</b><span class="m3-raya"></span><small>Navarra, pueblo a pueblo</small></div><div class="m3-destello"></div><span class="m3-pasa">${TACTIL ? 'Toca para pasar' : 'Clic para pasar'}</span>`;
     host.append(E);
     const nc = E.querySelector('.m3-nubes'), g2 = nc.getContext('2d'), sol = E.querySelector('.m3-sol'), luz = E.querySelector('.m3-luz'), tit = E.querySelector('.m3-titulo'), letras = [...tit.querySelectorAll('.logo i')], lema = tit.querySelector('small'), dest = E.querySelector('.m3-destello');
-    const visor = E.querySelector('.m3-visor'), raya = E.querySelector('.m3-raya'), onda = E.querySelector('.m3-onda'), pasa = E.querySelector('.m3-pasa');
+    const raya = E.querySelector('.m3-raya'), onda = E.querySelector('.m3-onda'), pasa = E.querySelector('.m3-pasa');
     // (una nube de bolas difusas, dibujada una vez; luego se pinta muchas veces, más grande cuanto más cerca de la cámara)
     const nube = document.createElement('canvas'); nube.width = nube.height = 256;
     // (con volumen: cada bola, su sombra malva un poco más abajo y su luz blanca encima)
@@ -618,8 +628,8 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
         if (lz > 0) { pc.copy(NC).project(cam); const k = 0.9 + 0.1 * Math.sin(tI * 6); luz.style.transform = `translate(${((pc.x + 1) / 2 * W).toFixed(1)}px, ${((1 - pc.y) / 2 * H).toFixed(1)}px) scale(${k.toFixed(3)})`; }
         // el destello al posarse
         dest.style.opacity = (tI > tPosa && !SUAVE ? 0.55 * Math.exp(-(tI - tPosa) * 4.5) : 0).toFixed(3);
-        // el visor: entra al empezar y se va con el nombre; el aviso de pasar, mientras tanto
-        visor.style.opacity = (cine * 0.9).toFixed(3); pasa.style.opacity = (rampa(tI, 0.8, 1.2) * (1 - rampa(tI, 3.4, 3.8)) * 0.85).toFixed(3);
+        // el aviso de pasar, mientras dura
+        pasa.style.opacity = (rampa(tI, 0.8, 1.2) * (1 - rampa(tI, 3.4, 3.8)) * 0.85).toFixed(3);
         // la raya de luz que cruza el nombre cuando le llega el brillo
         const ry = rampa(tI, 1.25, 1.95); raya.style.opacity = (Math.sin(ry * Math.PI)).toFixed(3); raya.style.setProperty('--x', (ry * 140 - 20).toFixed(1) + '%');
         // la onda al posarse, desde el centro de Navarra, y el temblor de la cámara

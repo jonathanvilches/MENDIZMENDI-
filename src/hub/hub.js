@@ -75,7 +75,9 @@ const $ = (s, r = document) => r.querySelector(s);
 const XF = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 const I = (n, s = 24, c = '') => iconSVG(n, s, c);
 // (en el botón del menú, que se reconozca: las tres rayas con «Menú» debajo; antes era solo tu cara y no se sabía qué era)
-const MENU_M = `<span class="yo-m" aria-hidden="true">${iconSVG('menu', 20)}<small>Menú</small></span>`;
+// (el botón del menú: tres rayas finas de trazo, limpias, y «Menú» debajo; antes, un icono dibujado de tres barras doradas
+// que no se leía como menú)
+const MENU_M = '<span class="yo-m" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg><small>Menú</small></span>';
 const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 sellos: nunca «1 sellos»)
 // la cabecera de cada sección, la misma en todas: el rótulo, con el grupo, la sección y su icono, y el título grande, sin
 // icono (ya va en el rótulo). Las de los saberes, «Saberes · …»; las de tu partida, «Tu partida · …»

@@ -81,7 +81,7 @@ function mapaHTML(p, items) {
       <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>`}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
-      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small>${VER('Ver comarca')}</span></button>`; }).join('')}</div>
+      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt=""></span>${VER('Ver comarca')}<span class="m3-ct"><b>${esc(c.name.replace(/^Comarca de /, ''))}</b><small>${DD ? pueblos(r.towns) : `${I('stamp', 14)}${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
     <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
     <div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
@@ -123,11 +123,12 @@ function exComarcaHTML(p, id) {
 // comarca o la ficha del pueblo. Volver a toda Navarra, con el botón de la casa o Escape. Antes había además una barra
 // arriba con el nombre, flechas y botones: dos navegadores para lo mismo (noviembre de 2026)
 const pueblosDe = (id) => LEVELS.filter(l => l.comarca === id && OPC.xy(l));
-const VER = (txt) => `<small class="m3-vr">${I('book', 14)}<span>${txt}</span></small>`;
+const VER = (txt) => `<i class="m3-vr" title="${txt}">${I('book', 16)}</i>`;
 function hijosHTML(p, cid) {
   const c = comarca(cid);
   return pueblosDe(cid).map((l, i) => { const t = townProgress(p, l);
-    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}" data-pu="${l.id}" style="--c:${c.color};--i:${i}" role="listitem" aria-label="${esc(corto(l))}"><img class="m3-foto" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp ? `<span class="m3-sello"><img src="${stampImg(cid)}" alt=""></span>` : ''}<span class="m3-ct"><b>${esc(corto(l))}</b><small>${DD ? (l.bosque ? 'Bosque' : 'Pueblo') : t.stamp ? 'Sellado' : l.bosque && !t.done ? 'Bosque' : `${t.done}/${t.total} misiones`}</small>${VER('Ver ficha')}</span></button>`; }).join('');
+    const ms = DD ? [] : OPC.misiones(l);
+    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}" data-pu="${l.id}" style="--c:${c.color};--i:${i}" role="listitem" aria-label="${esc(corto(l))}${DD ? '' : `, ${t.done} de ${t.total} misiones`}"><img class="m3-foto" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp ? `<span class="m3-sello"><img src="${stampImg(cid)}" alt=""></span>` : ''}${VER('Ver ficha')}<span class="m3-ct"><b>${esc(corto(l))}</b>${ms.length ? `<span class="m3-ms">${ms.map(m => `<i class="${m.done ? 'ok' : ''}" style="--mc:${m.mc || '#c9b8ff'}">${I(m.icon || 'star', 14)}</i>`).join('')}</span>` : `<small>${l.bosque ? 'Bosque' : 'Pueblo'}</small>`}</span></button>`; }).join('');
 }
 // lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
