@@ -799,17 +799,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la vecina. Las de alrededor muestran su nombre apagado (`.m3-cl.fondo`), los últimos en sitio, para ver hacia dónde ir.
   En el rótulo de arriba, a los lados del nombre, las flechas a la anterior y a la siguiente en el orden de la fila de
   abajo, dando la vuelta; esas sí vuelan y encajan la comarca. En el móvil de pie, sin el sello, para que quepa el nombre.
-- **Navarra › comarca › pueblo, siempre a la vista** (`migasHTML`, `tiraHTML`, `migas` y `enTira` en `inicio.js`;
-  noviembre de 2026): la misma regla en todos los niveles. Arriba, junto al botón del menú, las migas: Navarra, la comarca
-  y el pueblo; cada paso lleva a él (la comarca, con un pueblo abierto, vuelve a ella entera volando) y el último va entre
-  sus flechas, que llevan a sus hermanos: las comarcas con una comarca, los pueblos de su comarca con un pueblo. El libro,
-  todo sobre lo de ahora: la página de la comarca o la ficha del pueblo. Abajo, la tira de los hijos: las comarcas en toda
-  Navarra (`.m3-rail`) y los pueblos de la comarca elegida (`.m3-tira`), con su portada y cómo van; con un pueblo abierto
-  sigue ahí, con el suyo encendido, y en las pantallas anchas acaba antes de su ficha (`--ftl`), que baja hasta abajo.
-  Escape, con un pueblo, vuelve a la comarca (antes solo cerraba la ficha y la cámara se quedaba en el pueblo). Antes, al
-  abrir un pueblo en el móvil tumbado se iba el rótulo de la comarca y no había forma de volver a ella ni de pasar al pueblo
-  de al lado; y en el ordenador el rótulo, en medio, se montaba con lo conquistado, que ahora se aparta con una comarca
-  elegida. En los móviles estrechos de pie, las migas van en su propia fila (`consola.css`).
+- **Un solo navegador: la fila de las comarcas** (`enFila` y `hijosHTML` en `inicio.js`; noviembre de 2026): la fila de
+  abajo se queda siempre y es lo único para moverse por el mapa. Al elegir una comarca, su tarjeta se enciende y detrás de
+  ella, en la misma fila, se abren sus pueblos, un poco más pequeños, en una bandeja de su color (`.m3-hijos`); la fila se
+  corre para que se vean. Tocar otra comarca la elige y los pueblos pasan a ella, también al cambiarla arrastrando el
+  mapa; tocar un pueblo lleva hasta él y se enciende. La tarjeta elegida dice qué hace otro toque (`.ver`, `.m3-vr`): la
+  comarca, su página; el pueblo abierto, su ficha. Con un pueblo abierto, tocar su comarca vuelve a ella entera. A toda
+  Navarra, con la casa o Escape; Escape, con un pueblo, vuelve a su comarca. La ficha del pueblo en el mapa va siempre
+  encima de la fila. Una primera versión tenía además unas migas arriba, Navarra, la comarca y el pueblo, con flechas:
+  eran dos navegadores para lo mismo y se quitaron.
   La página de cada comarca lleva a los lados de su nombre la anterior y la siguiente (`vecinas` en `hub.js`, también con Q
   y E), y la ficha de cada pueblo, arriba a la izquierda, el anterior y el siguiente de su comarca con cuál es (`.fh-nav`).
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en

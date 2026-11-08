@@ -355,7 +355,8 @@ export class Hub {
   // ---------- Inicio ----------
   // lo que el inicio le pasa a inicio.js: el icono de cada misión, las que tocan por la edad, dónde cae cada pueblo en el
   // mapa y el mapa plano para cuando no hay 3D
-  opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), misiones: (l) => this.misiones(l, p), xy: (l) => XY.get(l.id), trashumancia: () => this.trashumancia() }; }
+  opcInicio(p) { return { icono: mIcon, slots: (l) => missionSlots(l, edadDe(p)), misiones: (l) => this.misiones(l, p), xy: (l) => XY.get(l.id), trashumancia: () => this.trashumancia(),
+    comarca: (id) => this.go('comarca', id), ficha: (id) => (isDidactico() ? this.go('pueblo', id) : this.townSheet(id)) }; }
   // la ficha de la trashumancia (al tocar el rebaño que baja por la cañada, en el mapa): como la de un pueblo, con la
   // portada de las Bardenas, adonde llegan, qué es, por qué, por dónde y cuándo, y la misión del Roncal
   trashumancia() {

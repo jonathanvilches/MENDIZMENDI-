@@ -81,10 +81,9 @@ function mapaHTML(p, items) {
       <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>`}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
-      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
-    <div class="m3-tira" hidden role="list" aria-label="Pueblos de la comarca"></div>
+      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small>${VER('Ver comarca')}</span></button>`; }).join('')}</div>
     <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
-    <div class="m3-cb" hidden></div><div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
+    <div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
 const estadoC = (p, c, r) => r.stamps === r.towns ? 'ok' : r.done || LEVELS.some(l => l.comarca === c.id && estado(p, l)) ? 'go' : '';
 // ---------- las comarcas en fotos: otra forma de recorrer Navarra, sin el mapa. Primero las doce, en tarjetas grandes con su
@@ -118,37 +117,17 @@ function exComarcaHTML(p, id) {
             <span class="ex-bts">${DD ? `<button class="ex-go" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button class="ex-go" data-play="${l.id}">${I('play', 20)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button>`}<button class="ex-pin" data-exmapa="${l.id}" aria-label="Ver ${nombre} en el mapa" title="Ver en el mapa">${I('pin', 20)}</button></span></span>
         </article>`; }).join('')}</div>`;
 }
-// dónde estás en el mapa, arriba, como las migas de una web: Navarra › la comarca › el pueblo. Cada paso lleva a él
-// (Navarra, a toda Navarra; la comarca, de vuelta a ella entera); el último, entre sus flechas, a sus hermanos: con una
-// comarca, la anterior y la siguiente, en el orden de la fila de abajo y dando la vuelta; con un pueblo, los de su comarca.
-// Y el libro, todo sobre lo de ahora: la página de la comarca o la ficha del pueblo. Antes era el rótulo de la comarca, y
-// al abrir un pueblo desaparecía: no había forma de volver a su comarca ni de pasar al pueblo de al lado (noviembre de 2026)
-const vecina = (id, d) => { const L = COMARCAS.filter(c => c.path), i = L.findIndex(c => c.id === id); return L[(i + d + L.length) % L.length]; };
+// la fila de las comarcas de abajo es el navegador del mapa, el único: al elegir una comarca, su tarjeta se enciende y
+// detrás de ella, en la misma fila, se abren sus pueblos, cada uno en su tarjeta, sobre una bandeja de su color. Tocar
+// otra comarca la elige; tocar un pueblo lleva hasta él. La tarjeta elegida dice qué hace otro toque: ver la página de la
+// comarca o la ficha del pueblo. Volver a toda Navarra, con el botón de la casa o Escape. Antes había además una barra
+// arriba con el nombre, flechas y botones: dos navegadores para lo mismo (noviembre de 2026)
 const pueblosDe = (id) => LEVELS.filter(l => l.comarca === id && OPC.xy(l));
-const vecino = (L, id, d) => { const i = L.findIndex(x => x.id === id); return L[(i + d + L.length) % L.length]; };
-const nombreC = (c) => c.name.replace(/^Comarca de /, '');
-function migasHTML(p, cid, tid) {
-  const c = comarca(cid); if (!c) return '';
-  const l = tid && levelById(tid), r = comarcaProgress(p, cid);
-  const fl = (attr, d, nombre) => `<button class="cb-fl${d > 0 ? ' sig' : ''}" ${attr} aria-label="${d > 0 ? 'Siguiente' : 'Anterior'}: ${esc(nombre)}" title="${esc(nombre)}">${I('back', 20)}</button>`;
-  const sello = `<span class="m3-sello">${aro(r.towns ? r.stamps / r.towns : 0)}<img src="${stampImg(cid)}" alt=""></span>`;
-  const nav = `<button class="mg-paso mg-nav" data-cierra aria-label="Toda Navarra" title="Toda Navarra">${I('map', 20)}<span class="mg-tx">Navarra</span></button><i class="mg-sep" aria-hidden="true"></i>`;
-  if (!l) {
-    const flC = (d) => { const x = vecina(cid, d); return fl(`data-sel="${x.id}"`, d, x.name); };
-    return `${nav}${flC(-1)}${sello}<span class="cb-tt"><small>Comarca</small><b>${esc(nombreC(c))}</b><i>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</i></span>${flC(1)}
-      <button class="cb-b" data-comarca="${cid}" aria-label="Todo sobre ${esc(c.name)}" title="Todo sobre ${esc(c.name)}">${I('book', 20)}</button>`;
-  }
-  const ts = pueblosDe(cid), t = townProgress(p, l), flT = (d) => { const x = vecino(ts, tid, d); return fl(`data-pu="${x.id}"`, d, corto(x)); };
-  return `${nav}<button class="mg-paso mg-com" data-sel="${cid}" aria-label="Volver a ${esc(c.name)}" title="Volver a ${esc(c.name)}">${sello}<span class="mg-tx">${esc(nombreC(c))}</span></button><i class="mg-sep" aria-hidden="true"></i>
-    ${ts.length > 1 ? flT(-1) : ''}<span class="cb-tt"><small>Pueblo</small><b>${esc(corto(l))}</b><i>${DD ? esc(nombreC(c)) : `${t.done}/${t.total} misiones`}</i></span>${ts.length > 1 ? flT(1) : ''}
-    <button class="cb-b" data-town="${tid}" aria-label="Ficha de ${esc(corto(l))}" title="Ficha de ${esc(corto(l))}">${I('book', 20)}</button>`;
-}
-// los pueblos de la comarca elegida, abajo, en la misma tira de fotos que las comarcas en toda Navarra: su portada, su
-// nombre y cómo va. Tocar uno lleva hasta él; con un pueblo abierto, sigue ahí, con el suyo encendido, para pasar a otro
-function tiraHTML(p, cid, tid) {
+const VER = (txt) => `<small class="m3-vr">${I('book', 14)}<span>${txt}</span></small>`;
+function hijosHTML(p, cid) {
   const c = comarca(cid);
-  return pueblosDe(cid).map(l => { const t = townProgress(p, l);
-    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}${l.id === tid ? ' on' : ''}" data-pu="${l.id}" style="--c:${c.color}" role="listitem" aria-label="${esc(corto(l))}"><img class="m3-foto" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp ? `<span class="m3-sello"><img src="${stampImg(cid)}" alt=""></span>` : ''}<span class="m3-ct"><b>${esc(corto(l))}</b><small>${DD ? (l.bosque ? 'Bosque' : esc(nombreC(c))) : t.stamp ? 'Sellado' : l.bosque && !t.done ? 'Bosque' : `${t.done}/${t.total} misiones`}</small></span></button>`; }).join('');
+  return pueblosDe(cid).map((l, i) => { const t = townProgress(p, l);
+    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}" data-pu="${l.id}" style="--c:${c.color};--i:${i}" role="listitem" aria-label="${esc(corto(l))}"><img class="m3-foto" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp ? `<span class="m3-sello"><img src="${stampImg(cid)}" alt=""></span>` : ''}<span class="m3-ct"><b>${esc(corto(l))}</b><small>${DD ? (l.bosque ? 'Bosque' : 'Pueblo') : t.stamp ? 'Sellado' : l.bosque && !t.done ? 'Bosque' : `${t.done}/${t.total} misiones`}</small>${VER('Ver ficha')}</span></button>`; }).join('');
 }
 // lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
@@ -189,34 +168,33 @@ function mapaOn(root, p) {
   // (tapado también con la bienvenida encima, .onb: su selector de personaje usa el mismo lienzo que el mapa, stage.js, y
   // el mapa, que seguía pintando debajo, se lo quitaba en cada imagen; en el móvil no salía el personaje)
   const hub = sec.closest('#hub'), aqui = sec.dataset.pantalla || 'home', tapado = () => !!hub && ((hub.dataset.screen || 'home') !== aqui || hub.classList.contains('menu-on') || !!hub.querySelector('.onb'));
-  const banda = sec.querySelector('.m3-cb'), ficha = sec.querySelector('.m3-ft'), tira = sec.querySelector('.m3-tira');
+  const ficha = sec.querySelector('.m3-ft'), rail = sec.querySelector('.m3-rail');
   const entra = (el) => { el.classList.remove('entra'); void el.offsetWidth; el.classList.add('entra'); };
-  // (lo elegido: la comarca y el pueblo. Las migas de arriba y la tira de abajo, con lo de ahora)
+  // (lo elegido: la comarca y el pueblo, encendidos en la fila de abajo)
   let cid = null, tid = null;
-  const migas = () => {
-    const k = cid ? cid + '/' + (tid || '') : '';
-    if (!k) { banda.hidden = true; banda.innerHTML = ''; delete banda.dataset.k; return; }
-    if (banda.dataset.k === k) return;
-    const nueva = banda.hidden; banda.dataset.k = k; banda.dataset.nivel = tid ? 'pueblo' : 'comarca';
-    banda.style.setProperty('--c', comarca(cid)?.color || '#fff'); banda.innerHTML = migasHTML(p, cid, tid); banda.hidden = false; if (nueva) entra(banda);
-  };
-  const enTira = () => {
-    if (!cid) { tira.hidden = true; tira.innerHTML = ''; delete tira.dataset.c; return; }
-    if (tira.dataset.c !== cid) { tira.dataset.c = cid; tira.innerHTML = tiraHTML(p, cid, tid); tira.hidden = false; tira.scrollLeft = 0; entra(tira); }
-    tira.querySelectorAll('[data-pu]').forEach(b => b.classList.toggle('on', b.dataset.pu === tid));
-    const b = tid && tira.querySelector(`[data-pu="${tid}"]`);
-    if (b) tira.scrollTo({ left: b.offsetLeft - (tira.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+  // (una tarjeta de la fila, a la vista: la comarca, al principio, con sus pueblos detrás; un pueblo, en medio)
+  const aLaVista = (b, medio) => { if (!b || !rail.clientWidth) return; const x = medio ? b.offsetLeft - (rail.clientWidth - b.offsetWidth) / 2 : b.offsetLeft - 8; rail.scrollTo({ left: Math.max(0, x), behavior: 'smooth' }); };
+  const enFila = () => {
+    rail.querySelectorAll('.m3-chip[data-sel]').forEach(b => { b.classList.toggle('on', b.dataset.sel === cid); b.classList.toggle('ver', b.dataset.sel === cid && !tid); });
+    let H = rail.querySelector('.m3-hijos');
+    if (H && H.dataset.c !== cid) { H.remove(); H = null; }
+    if (cid && !H) {
+      const ch = rail.querySelector(`.m3-chip[data-sel="${cid}"]`);
+      if (ch) { H = document.createElement('span'); H.className = 'm3-hijos'; H.dataset.c = cid; H.setAttribute('role', 'group'); H.setAttribute('aria-label', 'Pueblos de ' + (comarca(cid)?.name || ''));
+        H.style.setProperty('--c', comarca(cid)?.color || '#fff'); H.innerHTML = hijosHTML(p, cid); ch.after(H); if (!tid) requestAnimationFrame(() => aLaVista(ch)); }
+    }
+    H?.querySelectorAll('[data-pu]').forEach(b => { b.classList.toggle('on', b.dataset.pu === tid); b.classList.toggle('ver', b.dataset.pu === tid); });
+    if (tid) requestAnimationFrame(() => aLaVista(H?.querySelector(`[data-pu="${tid}"]`), true));
   };
   const abre = (id) => {
-    sec.querySelectorAll('.m3-chip[data-sel]').forEach(b => b.classList.toggle('on', b.dataset.sel === id));
     sec.classList.toggle('con-sel', !!id); huT = 0;
     cid = id || null; if (!cid) tid = null;
-    migas(); enTira();
+    enFila();
   };
   const pueblo = (id) => {
     const l = id && levelById(id); huT = 0;
     sec.classList.toggle('con-ficha', !!l);
-    tid = l ? id : null; migas(); enTira();
+    tid = l ? id : null; enFila();
     if (!l) { ficha.hidden = true; ficha.innerHTML = ''; delete ficha.dataset.t; return; }
     ficha.dataset.t = id; ficha.style.setProperty('--c', comarca(l.comarca)?.color || '#fff'); ficha.innerHTML = fichaHTML(p, l);
     ficha.hidden = false; ficha.style.visibility = 'hidden'; entra(ficha);
@@ -229,11 +207,10 @@ function mapaOn(root, p) {
   const padR = () => { const P = sec.querySelector('.m3-pad'); return P?.offsetParent ? sec.clientWidth - P.offsetLeft + 8 : m; };
   const sigue = () => {
     if (ficha.hidden) return;
-    // (en las pantallas anchas, hasta abajo: la tira de los pueblos acaba antes de llegar a ella)
-    const W = sec.clientWidth, H = sec.clientHeight, w = ficha.offsetWidth, h = ficha.offsetHeight, abajo = W < ESTRECHA, fondo = abajo ? lim.b || H - m : H - m;
+    const W = sec.clientWidth, H = sec.clientHeight, w = ficha.offsetWidth, h = ficha.offsetHeight, abajo = W < ESTRECHA, fondo = lim.b || H - m;
     const l = abajo ? (W - w) / 2 : W - w - padR(), t = Math.max(lim.t, abajo ? fondo - h : Math.min(fondo - h, (lim.t + fondo - h) / 2));
     const k = `translate(${Math.round(l)}px, ${Math.round(t)}px)`;
-    if (k !== ya || ficha.style.visibility) { ya = k; ficha.style.transform = k; ficha.style.visibility = ''; ficha.classList.add('fija'); sec.style.setProperty('--ftl', abajo ? '' : Math.round(W - l + 10) + 'px'); }
+    if (k !== ya || ficha.style.visibility) { ya = k; ficha.style.transform = k; ficha.style.visibility = ''; ficha.classList.add('fija'); }
   };
   const towns = LEVELS.map(l => { const xy = OPC.xy(l); return xy && { id: l.id, name: corto(l), comarca: l.comarca, size: l.size, sx: xy[0], sy: xy[1], state: DD ? '' : estado(p, l), pct: ((t) => t.total ? t.done / t.total : 0)(townProgress(p, l)), bosque: !!l.bosque, here: l.id === p.last }; }).filter(Boolean);
   const comarcas = COMARCAS.filter(c => c.path).map(c => { const r = comarcaProgress(p, c.id); return { id: c.id, name: c.name, color: c.color, path: c.path, pct: !DD && r.towns ? r.pct : 0, done: !DD && !!r.towns && r.stamps === r.towns, stamps: r.stamps, towns: r.towns || 0 }; });
@@ -243,10 +220,10 @@ function mapaOn(root, p) {
   let hu = null, huT = 0;
   const hueco = () => {
     const now = performance.now(); if (hu && now - huT < 250) return hu; huT = now;
-    const a = sec.getBoundingClientRect(), k = a.height / (sec.clientHeight || 1) || 1, R = sec.querySelector(sec.classList.contains('con-col') ? '.m3-crail' : sec.classList.contains('con-sel') ? '.m3-tira' : '.m3-rail');
+    const a = sec.getBoundingClientRect(), k = a.height / (sec.clientHeight || 1) || 1, R = sec.querySelector(sec.classList.contains('con-col') ? '.m3-crail' : '.m3-rail');
     let t = 0, r = 0, b = 0;
     if (R?.offsetParent) b = (a.bottom - R.getBoundingClientRect().top) / k + 8;
-    for (const e of [sec.querySelector('.m3-tot'), sec.querySelector('.m3-mision'), banda, sec.querySelector('.m3-col')]) if (e && !e.hidden && e.offsetParent) {
+    for (const e of [sec.querySelector('.m3-tot'), sec.querySelector('.m3-mision'), sec.querySelector('.m3-col')]) if (e && !e.hidden && e.offsetParent) {
       const q = e.getBoundingClientRect(); if (q.top < a.top + a.height * 0.5) t = Math.max(t, (q.bottom - a.top) / k + 8); else b = Math.max(b, (a.bottom - q.top) / k + 8);
     }
     if (!ficha.hidden) { if (a.width / k < ESTRECHA) b = Math.max(b, (R?.offsetParent ? b : 0) + ficha.offsetHeight + 2 * m); else r = ficha.offsetWidth + padR() + 40 + m; }
@@ -272,18 +249,19 @@ function mapaOn(root, p) {
   const sin3d = () => { sec.classList.add('sin-3d'); abreEx(null); };
   const falla = () => { cierraMapa(); releaseStage(); if (++rehechos > 2) return sin3d(); setTimeout(() => { if (sec.isConnected) monta(); }, 400); };
   const monta = () => {
-    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-tira, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-col, .m3-crail, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
+    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-ft, .m3-mision, .m3-col, .m3-crail, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
     catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
     if (!MAPA) sin3d(); else COLX?.pinta();
   };
   monta();
   // (lo que mide lo conquistado, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)
-  tira.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); tira.scrollLeft += e.deltaY; } }, { passive: false });
+  rail.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); rail.scrollLeft += e.deltaY; } }, { passive: false });
   const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
   const mis = sec.querySelector('.m3-mision'); if (mis) new ResizeObserver(() => sec.style.setProperty('--misw', mis.offsetWidth + 'px')).observe(mis);
   sec.addEventListener('click', (e) => {
-    const ch = e.target.closest('[data-sel]'); if (ch) { if (MAPA) MAPA.select(ch.dataset.sel); else abreEx(ch.dataset.sel); return; }
-    const pu = e.target.closest('[data-pu]'); if (pu) { if (pu.dataset.pu === tid) return; if (MAPA) MAPA.volar(pu.dataset.pu); return; }
+    const ch = e.target.closest('[data-sel]');
+    if (ch) { if (ch.classList.contains('m3-chip') && ch.dataset.sel === cid && !tid && MAPA) return OPC.comarca?.(cid); if (MAPA) MAPA.select(ch.dataset.sel); else abreEx(ch.dataset.sel); return; }
+    const pu = e.target.closest('[data-pu]'); if (pu) { if (pu.dataset.pu === tid) return OPC.ficha?.(tid); if (MAPA) MAPA.volar(pu.dataset.pu); return; }
     // (las comarcas en fotos: abrir, una comarca, volver, al mapa, verla o ver un pueblo en él, pasar tarjetas; y jugar, que
     // cierra esto y sigue, con el vuelo hasta el pueblo, en el menú)
     const x = e.target.closest('[data-ex],[data-exc],[data-exback],[data-exx],[data-excm],[data-exmapa],[data-exdir]');

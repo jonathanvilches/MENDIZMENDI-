@@ -76,9 +76,7 @@
 /* el rótulo de la comarca elegida, en la misma fila */
 #hub.juego .m3d .m3-cb { z-index: 4; gap: 10px; padding: 3px 4px 3px 3px; border-color: color-mix(in srgb, var(--c, #fff) 38%, var(--cr-l)); max-width: min(560px, calc(100% - 2 * var(--hud-l) - 2 * var(--hud-h) - 32px)); }
 #hub.juego .m3d .m3-cb .m3-sello { width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); } #hub.juego .m3d .m3-cb .m3-sello > img { width: 64%; height: 64%; }
-/* (las migas, en todas las pantallas junto al botón del menú, donde estaba lo conquistado, que con una comarca elegida se
-   aparta: en medio se montaban con él) */
-#hub.juego .m3d .m3-cb { left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); transform: none; } #hub.juego .m3d .m3-cb.entra { animation-name: ft-entra; }
+/* (con una comarca elegida, lo conquistado de toda Navarra se aparta: el mapa, limpio, y abajo la fila) */
 #hub.juego .m3d.con-sel .m3-tot { display: none; }
 #hub.juego .m3d .cb-tt { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: baseline; column-gap: 8px; row-gap: 2px; }
 #hub.juego .m3d .cb-tt small { display: block; color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
@@ -272,15 +270,8 @@
   #hub.juego .m3d .m3-mision { top: auto; right: var(--hud-r); left: var(--hud-l); bottom: calc(var(--hud-b) + var(--railh) + 8px); max-width: none; grid-template-columns: auto minmax(0, 1fr) auto; }
   #hub.juego .m3d .m3-cb { left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); right: var(--hud-r); transform: none; max-width: none; }
   #hub.juego .m3d .m3-rail { right: var(--hud-r); }
-  #hub.juego .m3d .m3-tira { right: var(--hud-r); }
   /* (la ayuda de cómo moverse, encima de la misión: en los primeros segundos se pintaba sobre «Próxima parada») */
   #hub.juego .m3d .m3-ayuda { bottom: calc(var(--hud-b) + var(--railh) + 70px); }
-}
-/* (en los móviles estrechos de pie, las migas en su propia fila, debajo del botón del menú y de lado a lado: junto a él no
-   cabía el nombre de la comarca ni el del pueblo) */
-@media (max-width: 520px) and (min-height: 521px) {
-  #hub.juego .m3d .m3-cb { top: calc(var(--hud-t) + var(--hud-h) + var(--hud-g)); left: var(--hud-l); right: var(--hud-r); }
-  #hub.juego .m3d .m3-cb > .cb-b:last-child { margin-left: auto; }
 }
 @media (prefers-reduced-motion: reduce) { #hub.juego :is(.hub-panel, .hub-main, .hub-velo, .hub-menu-btn) { transition: none; animation: none; } }
 

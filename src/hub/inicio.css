@@ -183,17 +183,21 @@
 .m3-rail { --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain;
   scroll-snap-type: x proximity; scroll-padding: 0 2px; transition: right .35s; }
 .m3-rail::-webkit-scrollbar { display: none; }
-/* (con una comarca elegida, la tira de las comarcas se va y entra la de sus pueblos, igual) */
-.m3d.con-sel .m3-rail { display: none; }
-.m3-tira { --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain;
-  scroll-snap-type: x proximity; scroll-padding: 0 2px; transition: right .35s; }
-.m3-tira::-webkit-scrollbar { display: none; }
-.m3-tira[hidden], .m3d:not(.con-sel) .m3-tira { display: none; }
-.m3-tira.entra > * { animation: ft-entra .35s cubic-bezier(.2, .9, .3, 1) both; }
-/* (con un pueblo abierto, en las pantallas anchas, la tira acaba antes de su ficha, que va a la derecha hasta abajo) */
-@media (min-width: 640px) { .m3d.con-ficha .m3-tira { right: var(--ftl, calc(16px + var(--sr, 0px))); } }
+/* (la fila es el navegador del mapa, el único, y se queda siempre: con una comarca elegida, su tarjeta encendida y, detrás,
+   sus pueblos en una bandeja de su color, un poco más pequeños; inicio.js, enFila) */
+.m3-hijos { position: relative; flex: none; display: flex; align-items: flex-end; gap: 8px; margin-left: -4px; padding: 4px 8px 4px 12px; border-radius: 0 14px 14px 0;
+  background: color-mix(in srgb, var(--c, #ff7ac8) 26%, rgba(13, 4, 32, .62)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, #ff7ac8) 45%, transparent); }
+.m3-hijos::before { content: ''; position: absolute; left: 0; top: 10%; bottom: 10%; width: 3px; border-radius: 2px; background: color-mix(in srgb, var(--c, #ff7ac8) 75%, #fff); }
+.m3-chip.m3-pu { --chw2: calc(var(--chw) * .82); width: var(--chw2); grid-template-rows: calc(var(--chw2) * 9 / 16) auto; animation: ft-entra .35s calc(var(--i, 0) * 40ms) cubic-bezier(.2, .9, .3, 1) both; }
+.m3-chip.m3-pu .m3-foto { height: calc(var(--chw2) * 9 / 16); }
 /* (el pueblo sellado, con el sello de su comarca en la esquina, como las comarcas con su aro) */
 .m3-pu .m3-sello { background: rgba(13, 4, 32, .72); } .m3-pu .m3-sello > img { filter: none; }
+/* (la tarjeta elegida dice qué hace otro toque: la comarca, sin pueblo abierto, su página; el pueblo abierto, su ficha.
+   Con un pueblo abierto, tocar su comarca vuelve a ella) */
+.m3-vr { display: none !important; align-items: center; gap: 4px; color: #fff !important; }
+.m3-vr :is(svg, img) { flex: none; width: 13px; height: 13px; }
+.m3-chip.ver .m3-ct small:not(.m3-vr) { display: none; } .m3-chip.ver .m3-vr { display: flex !important; }
+
 .m3-chip { position: relative; flex: none; width: var(--chw); scroll-snap-align: start; display: grid; grid-template-rows: var(--chh) auto; gap: 2px; padding: 2px; border: 0; border-radius: 0; color: var(--ink); font: inherit; text-align: left; cursor: pointer;
   background: linear-gradient(135deg, color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c, #ff7ac8) 55%, #fff) 100%);
   clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k));
@@ -245,8 +249,8 @@
   .m3-tot { left: 12px; grid-template-columns: 56px auto; padding-right: 16px; } .m3-tot > .m3-aro { width: 56px; height: 56px; } .m3-pct { font-size: var(--fs-lg); }
   .m3-tt b { font-size: var(--fs-md); }
   .m3-ayuda { left: 12px; right: auto; top: auto; bottom: 84px; max-width: calc(100% - 88px); }
-  .m3d.con-sel :is(.m3-rail, .m3-tot) { display: none; }
-  .m3-rail, .m3-tira { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 12px; }
+  .m3d.con-sel .m3-tot { display: none; }
+  .m3-rail { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 12px; }
 }
 /* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo conquistado y el
    botón de tu aventura; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
@@ -265,7 +269,7 @@
   .m3-ct { gap: 2px; padding: 4px calc(var(--k) + 2px) 5px 6px; } .m3-ct b { font-size: 13px; } .m3-ct small { font-size: 9px; letter-spacing: .1em; }
   .m3-pad { --b: 40px; right: calc(8px + var(--sr, 0px)); top: calc(50% - 24px); gap: 4px; padding: 4px; } .m3-b svg { width: 20px; height: 20px; }
   /* (con una comarca elegida, lo demás deja sitio al mapa) */
-  .m3d.con-sel :is(.m3-rail, .m3-tot, .ini-sq) { display: none; }
+  .m3d.con-sel :is(.m3-tot, .ini-sq) { display: none; }
 }
 
 /* teléfono tumbado: el destacado y lo que hay ahora en Navarra, uno al lado del otro y de la altura de la pantalla (antes
@@ -396,21 +400,7 @@
 .cb-fl { flex: none; width: 32px; height: 40px; margin: 0 -4px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; opacity: .85; cursor: pointer; transition: opacity .15s, transform .15s; }
 .cb-fl:hover, .cb-fl:focus-visible { opacity: 1; color: var(--pink); } .cb-fl:active { transform: scale(.88); }
 .cb-fl :is(svg, img) { width: 20px; height: 20px; } .cb-fl.sig :is(svg, img) { transform: scaleX(-1); }
-/* (las migas: Navarra › la comarca › el pueblo. Los pasos de antes, pequeños y apagados; el de ahora, grande, entre sus
-   flechas. Todo en la misma pastilla, del color de la comarca) */
-.mg-paso { flex: none; display: flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 10px 0 8px; border: 0; border-radius: 999px; background: rgba(255, 255, 255, .06); color: #d9cff5; font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; cursor: pointer; transition: background .15s, color .15s; }
-.mg-paso:hover, .mg-paso:focus-visible { background: rgba(255, 255, 255, .14); color: #fff; }
-.mg-paso > :is(svg, img) { flex: none; width: 18px; height: 18px; }
-.mg-com { padding-left: 2px; } .mg-com .m3-sello { width: 36px; height: 36px; } .mg-com .m3-sello > img { width: 26px; height: 26px; }
-/* (entre paso y paso, una raya inclinada fina: distinta de las flechas, que llevan a los hermanos) */
-.mg-sep { flex: none; width: 2px; height: 18px; margin: 0 -2px; border-radius: 1px; transform: skewX(-18deg); background: color-mix(in srgb, var(--c, #fff) 50%, #fff); opacity: .45; }
-.m3-cb[data-nivel="pueblo"] .cb-tt small { color: color-mix(in srgb, var(--c, #fff) 55%, #fff); }
-/* (en el móvil, los pasos de antes solo con su icono: el mapa y el sello de la comarca) */
-@media (max-width: 760px), (max-height: 520px) {
-  .mg-nav .mg-tx { display: none; } .mg-nav { width: 40px; padding: 0; justify-content: center; }
-  .m3-cb[data-nivel="pueblo"] .mg-com .mg-tx { display: none; } .m3-cb[data-nivel="pueblo"] .mg-com { padding: 0 2px; }
-}
-@media (max-width: 420px) { .m3-cb .cb-tt i { display: none; } }
+
 
 /* ---------- junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: su nombre y el botón de empezar
    (sin ficha: el pueblo se ve entero). inicio.js la coloca, con un pico que señala el pueblo ---------- */
@@ -432,18 +422,15 @@
 /* (con la ficha abierta, la misión de ahora se aparta; en el móvil, también las comarcas y los botones de la cámara) */
 .m3d.con-ficha .m3-mision { display: none; }
 @media (max-width: 639px) {
-  .m3d.con-ficha :is(.m3-rail, .m3-pad) { display: none; }
+  .m3d.con-ficha .m3-pad { display: none; }
 }
-/* (la entrada, sin migas ni tira encima) */
-.m3d.m3-intro .m3-tira { opacity: 0; pointer-events: none; }
-.m3d.con-col .m3-tira { display: none !important; }
 @media (max-width: 760px) { .m3-cb { top: 12px; left: 12px; right: calc(68px + var(--sr, 0px)); transform: none; max-width: none; } .m3-cb.entra { animation-name: ft-entra; } }
 @media (max-height: 520px) {
   .m3-cb { top: 8px; left: 8px; right: auto; transform: none; } .m3-cb.entra { animation-name: ft-entra; } .cb-tt small { display: none; }
 }
 /* (en las pantallas bajas, con la ficha abierta, se quedan las migas y la tira de los pueblos: antes se iba todo y no había
    vuelta a la comarca ni forma de pasar al pueblo de al lado) */
-@media (max-height: 520px) { .m3d.con-ficha :is(.m3-rail, .m3-tot) { display: none; } }
+@media (max-height: 520px) { .m3d.con-ficha .m3-tot { display: none; } }
 @media (prefers-reduced-motion: reduce) { .m3-cb.entra, .m3-ft.entra > *, .ft-go { animation: none !important; } }
 
 /* ================= Las comarcas en fotos =================
@@ -615,8 +602,9 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 /* (en el móvil tumbado, las comarcas de abajo en tiras bajas, la foto a la izquierda y el nombre al lado: con las fotos
    grandes, la fila se comía un tercio de la pantalla y Navarra quedaba pequeña en medio; noviembre de 2026) */
 @media (max-height: 520px) {
-  .m3-rail, .m3-tira { --chh: 44px; }
-  .m3-tira { --k: 8px; left: 8px; right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 8px; padding: 2px; }
+  .m3-rail { --chh: 44px; }
+  .m3-chip.m3-pu { --chw2: 160px; grid-template-rows: var(--chh); grid-template-columns: 56px minmax(0, 1fr); } .m3-chip.m3-pu :is(.m3-foto, .m3-vid) { height: var(--chh); }
+  .m3-hijos { padding: 2px 6px 2px 10px; gap: 6px; border-radius: 0 10px 10px 0; }
   .m3-chip { grid-template-rows: var(--chh); grid-template-columns: 64px minmax(0, 1fr); gap: 0; }
   .m3-chip :is(.m3-foto, .m3-vid) { grid-row: 1; grid-column: 1; height: var(--chh); }
   .m3-chip .m3-ct { grid-row: 1; grid-column: 2; align-content: center; padding: 3px calc(var(--k) + 2px) 3px 8px; }
