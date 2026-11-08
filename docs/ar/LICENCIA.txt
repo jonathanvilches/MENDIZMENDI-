@@ -3,6 +3,8 @@ Juegos con la cámara: la txalaparta (src/ui/txalapartaAR.js) y la pelota en cas
 - wasm/: el motor de MediaPipe Tasks Vision 0.10.21 (paquete npm @mediapipe/tasks-vision), de Google.
 - hand_landmarker.task: el modelo Hand Landmarker (float16, versión 1) de MediaPipe, de Google.
 - pose_landmarker_lite.task: el modelo Pose Landmarker lite (float16) de MediaPipe, de Google.
+- vision_bundle.js: el mismo paquete de MediaPipe Tasks Vision 0.10.21 (vision_bundle.cjs, sin cambios), para detectar el
+  cuerpo en un trabajador aparte (cuerpo-worker.js, nuestro), sin parar el partido.
 
 Todos con licencia Apache 2.0: https://www.apache.org/licenses/LICENSE-2.0
 https://github.com/google-ai-edge/mediapipe
