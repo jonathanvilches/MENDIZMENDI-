@@ -117,19 +117,10 @@ function exComarcaHTML(p, id) {
             <span class="ex-bts">${DD ? `<button class="ex-go" data-town="${l.id}">${I('book', 20)}<span>Ver el pueblo</span></button>` : `<button class="ex-go" data-play="${l.id}">${I('play', 20)}<span>${t.stamp ? 'Volver' : t.done ? 'Seguir' : l.bosque ? 'Explorar' : 'Jugar'}</span></button>`}<button class="ex-pin" data-exmapa="${l.id}" aria-label="Ver ${nombre} en el mapa" title="Ver en el mapa">${I('pin', 20)}</button></span></span>
         </article>`; }).join('')}</div>`;
 }
-// la fila de las comarcas de abajo es el navegador del mapa, el único: al elegir una comarca, su tarjeta se enciende y
-// detrás de ella, en la misma fila, se abren sus pueblos, cada uno en su tarjeta, sobre una bandeja de su color. Tocar
-// otra comarca la elige; tocar un pueblo lleva hasta él. La tarjeta elegida dice qué hace otro toque: ver la página de la
-// comarca o la ficha del pueblo. Volver a toda Navarra, con el botón de la casa o Escape. Antes había además una barra
-// arriba con el nombre, flechas y botones: dos navegadores para lo mismo (noviembre de 2026)
-const pueblosDe = (id) => LEVELS.filter(l => l.comarca === id && OPC.xy(l));
+// la fila de las comarcas de abajo, solo con las comarcas: al elegir una, su tarjeta se enciende y dice qué hace otro
+// toque, ver la página de la comarca. Los pueblos, en el mapa, en sus medallones. Volver a toda Navarra, con el botón de la
+// casa o Escape (noviembre de 2026)
 const VER = (txt) => `<i class="m3-vr" title="${txt}">${I('book', 16)}</i>`;
-function hijosHTML(p, cid) {
-  const c = comarca(cid);
-  return pueblosDe(cid).map((l, i) => { const t = townProgress(p, l);
-    const ms = DD ? [] : OPC.misiones(l);
-    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}" data-pu="${l.id}" style="--c:${c.color};--i:${i}" role="listitem" aria-label="${esc(corto(l))}${DD ? '' : `, ${t.done} de ${t.total} misiones`}"><img class="m3-foto" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp ? `<span class="m3-sello"><img src="${stampImg(cid)}" alt=""></span>` : ''}${VER('Ver ficha')}<span class="m3-ct"><b>${esc(corto(l))}</b>${ms.length ? `<span class="m3-ms">${ms.map(m => `<i class="${m.done ? 'ok' : ''}" style="--mc:${m.mc || '#c9b8ff'}">${I(m.icon || 'star', 14)}</i>`).join('')}</span>` : `<small>${l.bosque ? 'Bosque' : 'Pueblo'}</small>`}</span></button>`; }).join('');
-}
 // lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
 // zoom hasta tu personaje en el pueblo. Ancha y baja, a un lado, para no tapar el pueblo que se está formando
@@ -175,17 +166,12 @@ function mapaOn(root, p) {
   let cid = null, tid = null;
   // (una tarjeta de la fila, a la vista: la comarca, al principio, con sus pueblos detrás; un pueblo, en medio)
   const aLaVista = (b, medio) => { if (!b || !rail.clientWidth) return; const x = medio ? b.offsetLeft - (rail.clientWidth - b.offsetWidth) / 2 : b.offsetLeft - 8; rail.scrollTo({ left: Math.max(0, x), behavior: 'smooth' }); };
+  // (la fila de abajo, solo con las comarcas: la elegida, encendida y a la vista. Los pueblos se eligen en el mapa, en sus
+  // medallones. Hasta noviembre de 2026 los pueblos de la comarca salían en la fila, detrás de ella)
   const enFila = () => {
     rail.querySelectorAll('.m3-chip[data-sel]').forEach(b => { b.classList.toggle('on', b.dataset.sel === cid); b.classList.toggle('ver', b.dataset.sel === cid && !tid); });
-    let H = rail.querySelector('.m3-hijos');
-    if (H && H.dataset.c !== cid) { H.remove(); H = null; }
-    if (cid && !H) {
-      const ch = rail.querySelector(`.m3-chip[data-sel="${cid}"]`);
-      if (ch) { H = document.createElement('span'); H.className = 'm3-hijos'; H.dataset.c = cid; H.setAttribute('role', 'group'); H.setAttribute('aria-label', 'Pueblos de ' + (comarca(cid)?.name || ''));
-        H.style.setProperty('--c', comarca(cid)?.color || '#fff'); H.innerHTML = hijosHTML(p, cid); ch.after(H); if (!tid) requestAnimationFrame(() => aLaVista(ch)); }
-    }
-    H?.querySelectorAll('[data-pu]').forEach(b => { b.classList.toggle('on', b.dataset.pu === tid); b.classList.toggle('ver', b.dataset.pu === tid); });
-    if (tid) requestAnimationFrame(() => aLaVista(H?.querySelector(`[data-pu="${tid}"]`), true));
+    const ch = cid && rail.querySelector(`.m3-chip[data-sel="${cid}"]`);
+    if (ch) requestAnimationFrame(() => aLaVista(ch, true));
   };
   const abre = (id) => {
     sec.classList.toggle('con-sel', !!id); huT = 0;
@@ -262,7 +248,6 @@ function mapaOn(root, p) {
   sec.addEventListener('click', (e) => {
     const ch = e.target.closest('[data-sel]');
     if (ch) { if (ch.classList.contains('m3-chip') && ch.dataset.sel === cid && !tid && MAPA) return OPC.comarca?.(cid); if (MAPA) MAPA.select(ch.dataset.sel); else abreEx(ch.dataset.sel); return; }
-    const pu = e.target.closest('[data-pu]'); if (pu) { if (pu.dataset.pu === tid) return OPC.ficha?.(tid); if (MAPA) MAPA.volar(pu.dataset.pu); return; }
     // (las comarcas en fotos: abrir, una comarca, volver, al mapa, verla o ver un pueblo en él, pasar tarjetas; y jugar, que
     // cierra esto y sigue, con el vuelo hasta el pueblo, en el menú)
     const x = e.target.closest('[data-ex],[data-exc],[data-exback],[data-exx],[data-excm],[data-exmapa],[data-exdir]');

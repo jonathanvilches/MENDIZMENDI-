@@ -827,16 +827,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `fotosT`, casillas de 96 px de las portadas pequeñas) dentro de un aro fino de su estado: blanco, rosa con lo hecho en
   un arco, dorado con el check; con una comarca elegida, más grandes (`medG`); en toda Navarra, un punto limpio. El palito,
   fino y claro. Antes, disco de borde oscuro con un punto morado sobre un palito oscuro.
-- **Un solo navegador: la fila de las comarcas** (`enFila` y `hijosHTML` en `inicio.js`; noviembre de 2026): la fila de
-  abajo se queda siempre y es lo único para moverse por el mapa. Al elegir una comarca, su tarjeta se enciende y detrás de
-  ella, en la misma fila, se abren sus pueblos, un poco más pequeños, en una bandeja de su color (`.m3-hijos`); la fila se
-  corre para que se vean. Tocar otra comarca la elige y los pueblos pasan a ella, también al cambiarla arrastrando el
-  mapa; tocar un pueblo lleva hasta él y se enciende. La tarjeta elegida dice qué hace otro toque (`.ver`, `.m3-vr`): la
-  comarca, su página; el pueblo abierto, su ficha. Con un pueblo abierto, tocar su comarca vuelve a ella entera. A toda
-  Navarra, con la casa o Escape; Escape, con un pueblo, vuelve a su comarca. La ficha del pueblo en el mapa va siempre
-  encima de la fila. Una primera versión tenía además unas migas arriba, Navarra, la comarca y el pueblo, con flechas:
-  eran dos navegadores para lo mismo y se quitaron. También se probaron pestañas finas, solo con el sello y el nombre:
-  gustaban más las tarjetas, con su foto y sus misiones, y se volvió a ellas.
+- **Un solo navegador: la fila de las comarcas** (`enFila` en `inicio.js`; noviembre de 2026): la fila de abajo se queda
+  siempre y lleva solo las comarcas. Al elegir una, su tarjeta se enciende y la fila se corre para que se vea; también al
+  cambiarla arrastrando el mapa. Los pueblos se eligen en el mapa, en sus medallones, que con una comarca elegida se
+  agrandan. La tarjeta elegida dice qué hace otro toque (`.ver`, `.m3-vr`): abrir la página de la comarca. Con un pueblo
+  abierto, tocar su comarca vuelve a ella entera. A toda Navarra, con la casa o Escape; Escape, con un pueblo, vuelve a su
+  comarca. La ficha del pueblo en el mapa va siempre encima de la fila. Una primera versión tenía unas migas arriba, con
+  flechas, y otra abría los pueblos de la comarca en la misma fila, detrás de ella (`.m3-hijos`): eran dos navegadores
+  para lo mismo y se quitaron. También se probaron pestañas finas, solo con el sello y el nombre: gustaban más las
+  tarjetas, con su foto y sus misiones.
   La página de cada comarca lleva a los lados de su nombre la anterior y la siguiente (`vecinas` en `hub.js`, también con Q
   y E), y la ficha de cada pueblo, arriba a la izquierda, el anterior y el siguiente de su comarca con cuál es (`.fh-nav`).
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en

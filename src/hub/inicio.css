@@ -205,13 +205,8 @@
 .m3-ms i { flex: none; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--mc) 18%, rgba(13, 6, 28, .7)); border: 1px solid color-mix(in srgb, var(--mc) 55%, transparent); }
 .m3-ms i :is(svg, img) { width: 13px; height: 13px; opacity: .8; }
 .m3-ms i.ok { background: color-mix(in srgb, var(--mc) 55%, rgba(13, 6, 28, .6)); border-color: var(--mc); } .m3-ms i.ok :is(svg, img) { opacity: 1; }
-/* (los pueblos de la comarca elegida, detrás de ella, en la misma fila, sin bandeja: solo una raya fina de su color delante) */
-.m3-hijos { position: relative; flex: none; display: flex; align-items: flex-end; gap: 10px; padding-left: 12px; }
-.m3-hijos::before { content: ''; position: absolute; left: 0; top: 14%; bottom: 14%; width: 2px; border-radius: 1px; background: color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff); opacity: .8; }
-.m3-pu { animation: ft-entra .35s calc(var(--i, 0) * 40ms) cubic-bezier(.2, .9, .3, 1) both; }
-.m3-pu .m3-sello > img { filter: none; opacity: 1; }
-/* (la tarjeta elegida, con el libro sobre la foto: otro toque abre la página de la comarca o la ficha del pueblo. Con un
-   pueblo abierto, tocar su comarca vuelve a ella) */
+/* (la comarca elegida, con el libro sobre la foto: otro toque abre la página de la comarca. Con un pueblo abierto, tocar su
+   comarca vuelve a ella) */
 .m3-vr { position: absolute; z-index: 1; right: 6px; top: 6px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255, 255, 255, .25); }
 .m3-vr :is(svg, img) { width: 17px; height: 17px; }
 .m3-chip.ver .m3-vr { display: grid; }
@@ -594,7 +589,6 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 @media (max-height: 520px) {
   .m3-rail { --chh: 62px; }
   .m3-chip { width: 214px; grid-template-rows: var(--chh); grid-template-columns: 84px minmax(0, 1fr); border-radius: 10px; }
-  .m3-chip.m3-pu { width: 236px; }
   .m3-chip :is(.m3-foto, .m3-vid) { grid-row: 1; grid-column: 1; height: var(--chh); }
   .m3-chip .m3-ct { grid-row: 1; grid-column: 2; align-content: center; gap: 6px; padding: 6px 8px; }
   .m3-chip .m3-ct b { font-size: 14px; }

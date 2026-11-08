@@ -739,7 +739,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const bw = new THREE.Vector3(), PUEBLO_D = 46;
   function quien(e) {
     const b = cv.getBoundingClientRect(), k = b.width / (sz.w || 1) || 1, mx = (e.clientX - b.left) / k, my = (e.clientY - b.top) / k;
-    let best = null, bd = (e.pointerType === 'mouse' ? 22 : 30);
+    let best = null, bd = (e.pointerType === 'mouse' ? 22 : 30) * Math.max(1, medG * 0.8);   // (los medallones grandes, con una comarca elegida, se tocan en todo su disco)
     for (const t of T) {
       if (t.g.scale.x < 0.3 || (sel ? t.comarca !== sel : v.d > PUEBLO_D)) continue;
       t.bola.getWorldPosition(bw).project(cam); if (bw.z > 1) continue;
@@ -1562,7 +1562,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
       // (la chincheta, quieta: ni gira ni se mece)
       const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y * (1 + (medG - 1) * 0.45);
-      x.g.scale.setScalar(s);   // (la bola: lo que se toca y donde se ancla la ficha)
+      x.g.scale.setScalar(s); x.bola.position.y = CRISTAL_Y * (1 + (medG - 1) * 0.45);   // (la bola: lo que se toca y donde se ancla la ficha, en el medallón tal como se ve)
       mira.setMatrixAt(i, BM.compose(BV.set(x.X, gy + 0.02, x.Z), Q0, BS.set(s * 0.85 * x.kt, 1, s * 0.85 * x.kt)));
       hilo.setMatrixAt(i, BM.compose(BV.set(x.X, gy, x.Z), Q0, BS.set(s * 0.04, cy - gy - s * 0.2, s * 0.04)));
       cristal.setMatrixAt(i, BM.compose(BV.set(x.X, cy, x.Z), Q0, BS.setScalar(s * 0.5 * x.kt * medG)));
