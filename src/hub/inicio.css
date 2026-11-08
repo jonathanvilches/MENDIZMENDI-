@@ -529,9 +529,11 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .mc-tt small :is(svg, img) { width: 16px; height: 16px; }
 .mc-tt b { color: #fff; font: 400 var(--fs-lg)/1.05 var(--f-display); white-space: nowrap !important; overflow: hidden; text-overflow: ellipsis; }
 .mc-n { color: #fff; font: 800 var(--fs-md)/1 'MZ Texto', sans-serif; white-space: nowrap; } .mc-n small { color: var(--mute); font-weight: 700; }
-.mc-b { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(255, 255, 255, .06); color: #fff; font: 800 var(--fs-sm)/1 'MZ Texto', sans-serif; cursor: pointer; }
-.mc-b :is(svg, img) { width: 20px; height: 20px; flex: none; } .mc-b:hover { background: rgba(255, 255, 255, .14); }
-.mc-x { width: 40px; padding: 0; justify-content: center; }
+.m3-col .mc-b { display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line2); background: rgba(255, 255, 255, .06); color: #fff; font: 800 var(--fs-sm)/1 'MZ Texto', sans-serif; cursor: pointer; }
+.m3-col .mc-b :is(svg, img) { width: 20px; height: 20px; flex: none; } .m3-col .mc-b:hover { background: rgba(255, 255, 255, .14); }
+/* (solo los de este panel: la ficha de un sitio en el mapa del pueblo usa también .mc-b y .mc-x, y con estos estilos sus
+   botones se quedaban en dos píldoras de 25 px con el texto cortado) */
+.m3-col .mc-x { width: 40px; padding: 0; justify-content: center; }
 .mc-tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
 .mc-tabs button { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .05); color: var(--mute); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; cursor: pointer; }
 .mc-tabs button.on { background: linear-gradient(135deg, #ff3fcf, #9c3bff); border-color: transparent; color: #fff; }
@@ -575,7 +577,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .m3-capa > .m3-cm.apag:not(.fuera) { opacity: .42; }
 @media (max-height: 520px) {
   .m3-col { left: 8px; top: 8px; padding: 6px 6px 6px 12px; column-gap: 8px; row-gap: 6px; border-radius: 14px; max-width: calc(100% - 96px - var(--sr, 0px)); }
-  .mc-tt b { font-size: var(--fs-md); } .mc-b { height: 34px; padding: 0 10px; } .mc-x { width: 34px; padding: 0; } .mc-b span { display: none; } .mc-b:not(.mc-x) { width: 34px; padding: 0; justify-content: center; }
+  .mc-tt b { font-size: var(--fs-md); } .m3-col .mc-b { height: 34px; padding: 0 10px; } .m3-col .mc-x { width: 34px; padding: 0; } .m3-col .mc-b span { display: none; } .m3-col .mc-b:not(.mc-x) { width: 34px; padding: 0; justify-content: center; }
   .mc-tabs button { height: 28px; padding: 0 10px; }
   .m3-crail { left: 8px; right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 8px; padding: 2px; --k: 8px; }
   .mc-t { padding: 4px 6px 6px; } .mc-ver { height: 28px; top: calc(var(--chh) - 34px); }
