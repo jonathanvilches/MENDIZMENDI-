@@ -6,7 +6,8 @@ import './inicio.css';
 import COMARCAS from '../data/comarcas.json';
 import { LEVELS, levelById } from '../data/levels.js';
 import { SITES } from '../data/dolmen.js';
-import { townImg, townCover, comarcaCover, laminaUrl } from '../ui/laminas.js';
+import { townImg, townCover, comarcaCover, laminaUrl, comarcaVideo } from '../ui/laminas.js';
+import { videoTag } from '../ui/videos.js';
 import { stampImg } from '../assets.js';
 import { iconSVG } from '../ui/icons.js';
 import { profile, townProgress, comarcaProgress } from '../game/profile.js';
@@ -80,7 +81,7 @@ function mapaHTML(p, items) {
       <span class="m3-tt"><small>Navarra conquistada</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>`}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
-      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem" aria-label="${esc(c.name)}${DD ? '' : `, ${r.stamps} de ${r.towns} sellos`}"><span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt=""></span><b class="m3-ct">${esc(c.name.replace(/^Comarca de /, ''))}</b>${VER('Ver comarca')}</button>`; }).join('')}</div>
+      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt="">${st || DD ? '' : `<i class="m3-lock">${I('lock', 16)}</i>`}</span><span class="m3-ct"><b>${esc(c.name)}</b><small>${DD ? pueblos(r.towns) : `${r.stamps}/${r.towns} sellos`}</small>${VER('Ver comarca')}</span></button>`; }).join('')}</div>
     <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
     <div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
@@ -122,11 +123,11 @@ function exComarcaHTML(p, id) {
 // comarca o la ficha del pueblo. Volver a toda Navarra, con el botón de la casa o Escape. Antes había además una barra
 // arriba con el nombre, flechas y botones: dos navegadores para lo mismo (noviembre de 2026)
 const pueblosDe = (id) => LEVELS.filter(l => l.comarca === id && OPC.xy(l));
-const VER = (txt) => `<i class="m3-vr" title="${txt}">${I('book', 16)}</i>`;
+const VER = (txt) => `<small class="m3-vr">${I('book', 14)}<span>${txt}</span></small>`;
 function hijosHTML(p, cid) {
   const c = comarca(cid);
   return pueblosDe(cid).map((l, i) => { const t = townProgress(p, l);
-    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}" data-pu="${l.id}" style="--c:${c.color};--i:${i}" role="listitem" aria-label="${esc(corto(l))}${DD ? '' : `, ${t.done} de ${t.total} misiones`}"><span class="m3-pf"><img src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp && !DD ? `<i class="m3-ok">${I('check', 12)}</i>` : ''}</span><b class="m3-ct">${esc(corto(l))}</b>${VER('Ver ficha')}</button>`; }).join('');
+    return `<button class="m3-chip m3-pu ${t.stamp ? 'ok' : 'go'}" data-pu="${l.id}" style="--c:${c.color};--i:${i}" role="listitem" aria-label="${esc(corto(l))}"><img class="m3-foto" src="${townCover(l.id, true) || townImg(l, true)}" alt="" loading="lazy" decoding="async">${t.stamp ? `<span class="m3-sello"><img src="${stampImg(cid)}" alt=""></span>` : ''}<span class="m3-ct"><b>${esc(corto(l))}</b><small>${DD ? (l.bosque ? 'Bosque' : 'Pueblo') : t.stamp ? 'Sellado' : l.bosque && !t.done ? 'Bosque' : `${t.done}/${t.total} misiones`}</small>${VER('Ver ficha')}</span></button>`; }).join('');
 }
 // lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
