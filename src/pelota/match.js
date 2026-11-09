@@ -1207,8 +1207,16 @@ export class PelotaMatch {
     if (corte) {
       const rv0 = g.players.rival || you, mid = Math.max(4, Math.min(COURT.L, (you.z + rv0.z) / 2)), co = COURT.W / 2 + (C.contra || 2.6);
       const Wn = g.players[this.lastWin] || you, cw = [[Wn.x + 1.4, 1.65, Wn.z - 3.4], [Wn.x, 1.35, Wn.z]];
-      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], [[-2.4, 1.9, mid - 5], [co + 2, 1.7, mid + 3]], [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
-      let [cp, cl] = planos[(this.plano || 0) % planos.length];
+      // (y dos más: el que pierde, de cerca, cabizbajo; y desde el suelo junto al frontis, con el ganador recortado contra la grada)
+      const Ls = g.players[this.lastWin === 'you' ? 'rival' : 'you'] || rv0, cl2 = [[Ls.x - 1.3, 1.5, Ls.z - 3.1], [Ls.x, 1.25, Ls.z]], bajo = [[Wn.x * 0.4 - 0.8, 0.55, Math.max(1.6, Wn.z - 7.5)], [Wn.x, 1.5, Wn.z]];
+      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], cl2, [[-2.4, 1.9, mid - 5], [co + 2, 1.7, mid + 3]], bajo, [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
+      const nPl = (this.plano || 0) % planos.length;
+      let [cp, cl] = planos[nPl];
+      // (ningún plano se queda clavado: la cámara se acerca despacio a lo que mira y se desliza un poco de lado, como una
+      // cámara de televisión sobre su carro; el de la grada, una panorámica lenta)
+      { const u = Math.min(6, Math.max(0, g.phaseT - 0.35)), dx = cl[0] - cp[0], dy = cl[1] - cp[1], dz = cl[2] - cp[2], d = Math.hypot(dx, dy, dz) || 1, av = Math.min(0.32 * u, d * 0.3), ld = (nPl % 2 ? 1 : -1) * 0.14 * u;
+        cp = [cp[0] + dx / d * av + dz / d * ld, cp[1] + dy / d * av * 0.5, cp[2] + dz / d * av - dx / d * ld];
+        if (nPl === 4) cl = [cl[0], cl[1], cl[2] + 0.5 * u]; }
       if (this.lastFinal) { const a = (this.t - (this.planoT || 0)) * 0.55; cp = [Wn.x + Math.sin(a) * 4.2, 2 + Math.sin(a * 0.5) * 0.4, Wn.z - Math.cos(a) * 4.2]; cl = [Wn.x, 1.3, Wn.z]; }
       lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2];
     } else if (saqueRv) {

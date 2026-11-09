@@ -56,6 +56,19 @@ const SAQUE_BOTA = { ...PASO, c: [-0.03, -0.10, 0.06], H: [10, -20, 0], S: [16, 
 const PUNO_ARRIBA = { ...REPOSO, c: [0, 0, 0], S: [-6, 0, 0], N: [-10, 0, 0], Hd: [-12, 0, 0], Rm: [-0.22, 1.42, 0.10], Rc: [-1, 0, 0], Lm: [0.26, 0.80, 0.10] };
 const PUNO_ABAJO = { ...REPOSO, c: [0, -0.07, 0.01], S: [12, 0, 0], S1: [4, 0, 0], N: [-6, 0, 0], Rm: [-0.20, 0.90, 0.20], Rc: [-0.4, -1, -0.4], Lm: [0.24, 0.80, 0.14], Lp: [0.04, 0, 0], Rp: [-0.04, 0, 0] };
 const CABEZA = { ...REPOSO, c: [0, -0.02, 0], S: [8, 0, 0], N: [14, 0, 0], Hd: [16, 0, 0], Lm: [0.16, 1.30, 0.02], Lc: [1, 0, -0.3], Lw: -20, Rm: [-0.16, 1.30, 0.02], Rc: [-1, 0, -0.3], Rw: -20 };
+// (más maneras de celebrar y de lamentar, y los gestos de entre tanto y tanto, para que no hagan siempre lo mismo)
+// (los dos brazos arriba, con un salto; y el aplauso a la grada)
+const AGACHA = { ...REPOSO, c: [0, -0.13, 0.01], H: [6, 0, 0], S: [10, 0, 0], N: [-8, 0, 0], Rm: [-0.22, 0.74, 0.16], Rc: [-0.6, -1, -0.3], Lm: [0.22, 0.74, 0.16], Lc: [0.6, -1, -0.3] };
+const PUNOS_ARRIBA = { ...REPOSO, c: [0, 0, 0], S: [-8, 0, 0], N: [-10, 0, 0], Hd: [-14, 0, 0], Rm: [-0.25, 1.42, 0.08], Rc: [-1, 0, 0], Lm: [0.25, 1.42, 0.08], Lc: [1, 0, 0] };
+const SALTO = { ...PUNOS_ARRIBA, c: [0, 0.1, 0], Lp: [0, 0.12, 0], Rp: [0, 0.12, 0], Lr: [18, 6, 0], Rr: [18, -6, 0] };
+// (las palmas, delante del pecho: por encima de la cabeza no llegan, que la tienen grande, y se tapaban la cara)
+const PALMAS = { ...REPOSO, c: [0, 0, 0], S: [-4, 0, 0], N: [-6, 0, 0], Hd: [-8, 0, 0], Rm: [-0.04, 0.99, 0.27], Rc: [-0.8, -1, 0], Rt: 0, Lm: [0.04, 0.99, 0.27], Lc: [0.8, -1, 0], Lt: 0 };
+const PALMAS_ABRE = { ...PALMAS, Rm: [-0.17, 0.97, 0.25], Lm: [0.17, 0.97, 0.25] };
+// (los brazos en jarra y la cabeza abajo, negando)
+const JARRA = { ...REPOSO, c: [0, -0.01, 0], S: [7, 0, 0], N: [10, 0, 0], Hd: [16, 0, 0], Rm: [-0.19, 0.76, 0.0], Rc: [-1, 0, -0.5], Lm: [0.19, 0.76, 0.0], Lc: [1, 0, -0.5] };
+// (soplarse la mano derecha, como hacen los pelotaris entre tanto y tanto; y soltar el brazo, sacudiéndolo a un lado)
+const SOPLA = { ...REPOSO, c: [0, -0.01, 0], S: [5, 0, 0], N: [6, 0, 0], Hd: [10, 0, 0], Rm: [-0.03, 1.13, 0.2], Rc: [-1, -0.6, 0], Rt: 20 };
+const SUELTA = { ...REPOSO, S: [2, 0, -5], RS: [0, 0, -6], Hd: [4, -14, 0], Rm: [-0.33, 0.68, 0.04], Rc: [-0.6, -0.2, -1] };
 // (saludar: la mano arriba, de lado a lado)
 const MANO_ARRIBA = { ...REPOSO, S: [-2, 0, 2], Rm: [-0.30, 1.38, 0.08], Rc: [-1, -0.6, 0.2], Hd: [-4, -10, 0] };
 
@@ -72,6 +85,11 @@ const MOVS = [
   ['ShuffleR', 'Lateral a la derecha', true, [T(0, ESPERA), T(0.13, { ...ESPERA, c: [-0.05, -0.09, -0.03], Rp: [-0.19, 0.06, -0.05], Rr: [-6, -10, 0] }), T(0.26, { ...ESPERA, c: [-0.05, -0.13, -0.03], Rp: [-0.17, 0, -0.05], Lp: [0.02, 0, 0.05] }),
     T(0.39, { ...ESPERA, c: [0, -0.10, -0.03], Lp: [0.0, 0.06, 0.05], Lr: [-6, 10, 0] }), T(0.52, ESPERA)]],
   ['Celebrate', 'Celebra', false, [T(0, REPOSO), T(0.22, PUNO_ABAJO), T(0.45, PUNO_ARRIBA), T(0.68, PUNO_ABAJO), T(0.92, PUNO_ARRIBA), T(1.15, { ...PUNO_ARRIBA, Rm: [-0.24, 1.36, 0.12] }), T(1.6, REPOSO)]],
+  ['Celebrate2', 'Celebra con salto', false, [T(0, REPOSO), T(0.2, AGACHA), T(0.4, SALTO), T(0.62, { ...PUNOS_ARRIBA, c: [0, -0.07, 0.01], S: [2, 0, 0] }), T(0.85, PUNOS_ARRIBA), T(1.05, { ...PUNOS_ARRIBA, Rm: [-0.27, 1.36, 0.1], Lm: [0.27, 1.36, 0.1] }), T(1.25, PUNOS_ARRIBA), T(1.7, REPOSO)]],
+  ['Celebrate3', 'Aplaude a la grada', false, [T(0, REPOSO), T(0.3, PALMAS_ABRE), T(0.42, PALMAS), T(0.56, PALMAS_ABRE), T(0.68, PALMAS), T(0.82, PALMAS_ABRE), T(0.94, PALMAS), T(1.08, PALMAS_ABRE), T(1.2, PALMAS), T(1.34, PALMAS_ABRE), T(1.8, REPOSO)]],
+  ['Sad2', 'Lamento en jarra', false, [T(0, REPOSO), T(0.4, JARRA), T(0.75, { ...JARRA, Hd: [16, -14, 0] }), T(1.1, { ...JARRA, Hd: [16, 14, 0] }), T(1.45, { ...JARRA, Hd: [16, -10, 0] }), T(1.75, JARRA), T(2.2, REPOSO)]],
+  ['Sopla', 'Se sopla la mano', false, [T(0, REPOSO), T(0.35, SOPLA), T(0.6, { ...SOPLA, Rm: [-0.03, 1.12, 0.22], Hd: [12, 0, 0] }), T(0.85, SOPLA), T(1.1, { ...SOPLA, Rm: [-0.03, 1.12, 0.22], Hd: [12, 0, 0] }), T(1.3, SOPLA), T(1.7, REPOSO)]],
+  ['Suelta', 'Suelta el brazo', false, [T(0, REPOSO), T(0.3, SUELTA), T(0.42, { ...SUELTA, Rm: [-0.36, 0.72, 0.1] }), T(0.54, { ...SUELTA, Rm: [-0.31, 0.66, -0.02] }), T(0.66, { ...SUELTA, Rm: [-0.36, 0.72, 0.1] }), T(0.78, { ...SUELTA, Rm: [-0.31, 0.66, -0.02] }), T(0.9, { ...SUELTA, Rm: [-0.36, 0.72, 0.1] }), T(1.02, SUELTA), T(1.45, REPOSO)]],
   ['Sad', 'Lamento', false, [T(0, REPOSO), T(0.35, CABEZA), T(0.7, { ...CABEZA, Hd: [16, -12, 0] }), T(1.0, { ...CABEZA, Hd: [16, 12, 0] }), T(1.3, CABEZA), T(1.8, REPOSO)]],
   ['Wave', 'Saluda', false, [T(0, REPOSO), T(0.3, MANO_ARRIBA), T(0.5, { ...MANO_ARRIBA, Rm: [-0.40, 1.34, 0.06] }), T(0.7, MANO_ARRIBA), T(0.9, { ...MANO_ARRIBA, Rm: [-0.40, 1.34, 0.06] }), T(1.1, MANO_ARRIBA), T(1.5, REPOSO)]],
   ['Talk', 'Habla', true, [T(0, REPOSO), T(0.6, { ...REPOSO, Rm: [-0.18, 0.86, 0.26], Rc: [-0.6, -1, -0.3], Hd: [0, -4, 0] }), T(1.2, { ...REPOSO, Lm: [0.18, 0.84, 0.24], Lc: [0.6, -1, -0.3], Hd: [0, 4, 0] }), T(1.8, REPOSO)]],

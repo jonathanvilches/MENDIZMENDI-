@@ -477,6 +477,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
     try { pancartas = pancartasDe(fronton.court, profile().name || (isEU() ? 'Zu' : 'Tú'), rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
+    // (entre tanto y tanto, parado y sin nada que hacer, de vez en cuando un gesto de pelotari: se sopla la mano o suelta
+    // el brazo. Cada uno a su aire, cada 4 a 9 segundos)
+    const ticEn = { you: 3 + Math.random() * 4, rival: 5 + Math.random() * 4 };
+    const tic = (who, st, dt, r) => { if (!st.entre || st.won || st.lost || st.saluda || st.swing >= 0 || (st.speed || 0) > 0.3 || (st.wind || 0) > 0.05) { ticEn[who] = Math.max(ticEn[who], 1.5); return; }
+      if ((ticEn[who] -= dt) <= 0) { ticEn[who] = 4 + Math.random() * 5; r?.doAct?.('tic'); } };
     const stYou = { v: null }, stRival = { v: null };
     armSwing(rig.char, () => stYou.v, { windOnly: !!pel }); armSwing(red ? red.char : rival.glb, () => stRival.v, { windOnly: !!red });
     const animYou = (obj, st, dt) => {
@@ -487,6 +492,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('you', 'won', st.won, () => rig.doCheer?.());
       once('you', 'lost', st.lost, () => rig.doAct?.('sad'));   // (el tanto perdido: las manos a la cabeza)
       once('you', 'saluda', st.saluda, () => rig.doWave?.());   // (al salir a la cancha, saluda a la grada)
+      tic('you', st, dt, rig);
     };
     const animRival = (obj, st, dt = 1 / 60) => {
       stRival.v = st;
@@ -496,6 +502,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       once('rival', 'won', st.won, () => red?.doCheer());
       once('rival', 'lost', st.lost, () => red?.doAct('sad'));
       once('rival', 'saluda', st.saluda, () => red ? red.doWave() : rival.anim?.doWave?.());
+      tic('rival', st, dt, red);
       if (st.won) rival.cheer = 0.6;
     };
     const youName = profile().name || (isEU() ? 'Zu' : 'Tú');

@@ -587,7 +587,7 @@ export class GlbRig {
     else if (!this.wasGrounded && grounded) { if (this.air > 0.45) c.playOnce('Land', speed > 1 ? 0.3 : 0.45, true); else c.oneShot = null; this.air = 0; }
     this.wasGrounded = grounded;
     if (grounded && !c.oneShot) {
-      if (this.cheer > 0) c.playOnce('Celebrate', this.cheer);
+      if (this.cheer > 0) c.playOnce(this.cheerClip && c.actions[this.cheerClip] ? this.cheerClip : 'Celebrate', this.cheer);
       else if (this.wave > 0 && speed < 1) c.playOnce('Wave', this.wave);
     }
     c.setTalking(this.talking > 0);
@@ -612,7 +612,9 @@ export class GlbRig {
     c.update(dt);
   }
   doWave() { this.wave = 1.4; this.char.oneShot = null; }
-  doCheer() { this.cheer = 2; this.char.oneShot = null; this.char.holdFace('Happy', 'Normal', 2.6, 'Fist'); }
+  // (el pelotari celebra de varias maneras, una cada vez: el puño, el salto con los brazos arriba o el aplauso a la grada)
+  doCheer() { const A = this.char.actions, v = ['Celebrate', 'Celebrate2', 'Celebrate3'].filter(n => A[n]); this.cheerClip = v.length > 1 ? v[(this.cheerN = (this.cheerN || 0) + 1) % v.length] : 'Celebrate';
+    this.cheer = A[this.cheerClip] ? Math.max(1.6, A[this.cheerClip].getClip().duration) : 2; this.char.oneShot = null; this.char.holdFace('Happy', 'Normal', 2.6, 'Fist'); }
   setExpr(name, dur = 2) { const e = EXPR[name] || EXPR.neutral; this.char.holdFace(e[0], e[1], dur); }
   /** Postura en parado (p. ej. 'Ready' en el frontón); null vuelve a Idle. */
   setStance(name) { this.char.idleName = name || null; }
@@ -620,7 +622,10 @@ export class GlbRig {
     const c = this.char;
     // (el pelotari: el golpe que toca, derecha o izquierda, sotamano o de aire, entero desde el armado)
     if (kind === 'hit' && c.actions.Hit) { const n = golpe && c.actions[golpe] ? golpe : 'Hit', d = c.armados ? c.actions[n].getClip().duration : t; c.playOnce(n, d); c.holdFace('SmileOpen', 'Angry', d, 'Open'); }
-    else if (kind === 'sad' && c.actions.Sad) { c.playOnce('Sad'); c.holdFace('Tired', 'Worried', 1.8); }
+    // (el lamento, de dos maneras: las manos a la cabeza o los brazos en jarra, negando)
+    else if (kind === 'sad' && c.actions.Sad) { const n = c.actions.Sad2 && (this.sadN = (this.sadN || 0) + 1) % 2 ? 'Sad2' : 'Sad'; c.playOnce(n); c.holdFace('Tired', 'Worried', 1.8); }
+    // (los gestos de entre tanto y tanto: soplarse la mano, soltar el brazo. Solo si el pelotari los tiene)
+    else if (kind === 'tic') { const v = ['Sopla', 'Suelta'].filter(n => c.actions[n]); if (v.length && !c.oneShot) c.playOnce(v[(this.ticN = (this.ticN || 0) + 1) % v.length]); }
     else if (kind === 'pick') c.playOnce('Land', t);
     else if (kind === 'point') { c.playOnce('Talk', t); c.holdFace('Happy', 'Normal', t, 'Point'); }
     else { c.playOnce('Wave', t); c.holdFace('Happy', 'Normal', t, 'Fist'); }
