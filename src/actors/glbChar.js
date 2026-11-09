@@ -163,7 +163,7 @@ export async function loadMeshy(name, lod = false) {
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
-    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
+    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['Bota', 'Bota', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
@@ -322,13 +322,14 @@ export class GlbChar {
   /** Clip de una sola vez (saludo, celebrar…): al acabar vuelve a la locomoción. */
   /** Un gesto suelto durante secs segundos; con fit, el clip entero acelerado o frenado para caber en ese tiempo (si no,
    *  de un clip largo solo se veía el principio y se cortaba de golpe: el aterrizaje del salto iba «a trozos»). */
-  playOnce(name, secs, fit = false, then = null) {
+  playOnce(name, secs, fit = false, then = null, fade = undefined) {
     const a = this.actions[name];
     if (!a) return;
     const dur = a.getClip().duration;
     this.oneShot = { name, t: secs ?? dur, then };
     a.timeScale = fit && secs ? dur / secs : 1;
-    this.play(name);
+    if (this.current === a) a.reset().setEffectiveWeight(1).play();   // (el mismo movimiento otra vez, desde el principio: dos golpes seguidos del mismo lado)
+    this.play(name, fade);
   }
   /** Un clip que se mantiene (el vuelo de un salto) hasta que se quite oneShot: sin volver a la locomoción entre medias. */
   hold(name) {
@@ -621,7 +622,8 @@ export class GlbRig {
   doAct(kind, t = 0.5, golpe = null) {
     const c = this.char;
     // (el pelotari: el golpe que toca, derecha o izquierda, sotamano o de aire, entero desde el armado)
-    if (kind === 'hit' && c.actions.Hit) { const n = golpe && c.actions[golpe] ? golpe : 'Hit', d = c.armados ? c.actions[n].getClip().duration : t; c.playOnce(n, d); c.holdFace('SmileOpen', 'Angry', d, 'Open'); }
+    // (el pelotari con sus golpes: sin fundido, que el clip empieza en el impacto y tiene que verse en esa misma imagen)
+    if (kind === 'hit' && c.actions.Hit) { const n = golpe && c.actions[golpe] ? golpe : 'Hit', d = c.armados ? c.actions[n].getClip().duration : t; c.playOnce(n, d, false, null, c.armados ? 0.03 : undefined); c.holdFace('SmileOpen', 'Angry', d, 'Open'); }
     // (el lamento, de dos maneras: las manos a la cabeza o los brazos en jarra, negando)
     else if (kind === 'sad' && c.actions.Sad) { const n = c.actions.Sad2 && (this.sadN = (this.sadN || 0) + 1) % 2 ? 'Sad2' : 'Sad'; c.playOnce(n); c.holdFace('Tired', 'Worried', 1.8); }
     // (los gestos de entre tanto y tanto: soplarse la mano, soltar el brazo. Solo si el pelotari los tiene)
@@ -652,6 +654,33 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   const AR = char.armados, ABAJO = /(Hips|UpLeg|Leg|Foot|ToeBase)$/, cad = B.mixamorigHips;
   const ARB = AR && Object.fromEntries(Object.entries(AR).map(([k, p]) => [k, Object.entries(p.q).filter(([n]) => B[n]).map(([n, q]) => [B[n], q, ABAJO.test(n)])]));
   let fat = 0, resp = 0;   // el cansancio, suavizado, y la fase de la respiración
+  // (para el saque: las posturas de llevar y de botar la pelota, solo los huesos del brazo derecho)
+  const BRAZO_D = /Right(Shoulder|Arm|ForeArm|Hand)$/, ARD = {}; let llevaK = 0, botaK = 0;
+  if (ARB) for (const k of ['Lleva', 'Bota']) if (ARB[k]) ARD[k] = ARB[k].filter(([b]) => BRAZO_D.test(b.name));
+  // (y los huesos de cada brazo, para llevar la mano a un sitio: hombro, codo y mano)
+  const brazo = (s) => { const a = B['mixamorig' + s + 'Arm'], f = B['mixamorig' + s + 'ForeArm'], h = B['mixamorig' + s + 'Hand']; return a && f && h ? { a, f, h } : null; };
+  const IKR = brazo('Right'), IKL = brazo('Left');
+  const _S = new THREE.Vector3(), _E = new THREE.Vector3(), _H = new THREE.Vector3(), _n = new THREE.Vector3(), _u = new THREE.Vector3(), _d1 = new THREE.Vector3(), _d2 = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _q0 = new THREE.Quaternion(), _q1 = new THREE.Quaternion();
+  // gira un hueso (en el mundo) para que la dirección de → a pase a ser la nueva, y lo deja en su giro local
+  const gira = (b, de, a) => { _qa.setFromUnitVectors(de, a); b.getWorldQuaternion(_qb); _qa.multiply(_qb); b.parent.getWorldQuaternion(_qb); b.quaternion.copy(_qb.invert().multiply(_qa)); b.updateMatrixWorld(true); };
+  // la mano de un brazo, a un punto del mundo (con peso k): dos huesos, el codo hacia donde ya iba; si no llega, estirado hacia él
+  function manoA(K, obj, k) {
+    if (!K) return;
+    char.root.updateMatrixWorld(true);
+    _q0.copy(K.a.quaternion); _q1.copy(K.f.quaternion);
+    K.a.getWorldPosition(_S); K.f.getWorldPosition(_E); K.h.getWorldPosition(_H);
+    const L1 = _S.distanceTo(_E), L2 = _E.distanceTo(_H); if (L1 < 1e-4 || L2 < 1e-4) return;
+    _n.copy(obj).sub(_S); const dist = _n.length(); if (dist < 1e-4) return; _n.divideScalar(dist);
+    const d = Math.min(L1 + L2 - 1e-3, Math.max(Math.abs(L1 - L2) + 1e-3, dist)), a = (L1 * L1 - L2 * L2 + d * d) / (2 * d), h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+    _u.copy(_E).sub(_S); _u.addScaledVector(_n, -_u.dot(_n)); if (_u.lengthSq() < 1e-6) _u.set(0, -1, 0).addScaledVector(_n, _n.y); _u.normalize();
+    // el codo nuevo y la mano nueva
+    _d1.copy(_E).sub(_S).normalize(); _d2.copy(_n).multiplyScalar(a).addScaledVector(_u, h).normalize();
+    gira(K.a, _d1, _d2);
+    K.f.getWorldPosition(_E); K.h.getWorldPosition(_H);
+    _d1.copy(_H).sub(_E).normalize(); _d2.copy(_S).addScaledVector(_n, d).sub(_E).normalize();
+    gira(K.f, _d1, _d2);
+    if (k < 1) { K.a.quaternion.slerpQuaternions(_q0, K.a.quaternion.clone(), k); K.f.quaternion.slerpQuaternions(_q1, K.f.quaternion.clone(), k); }
+  }
   char.post = (c, dt) => {
     const st = get(); if (!st) return;
     // el cansancio se ve: el pelotari se encorva (más parado y entre tanto y tanto, como quien apoya las manos en las
@@ -666,8 +695,20 @@ export function armSwing(char, get, { windOnly = false } = {}) {
     }
     w += ((st.swing >= 0 ? 0 : st.wind || 0) - w) * Math.min(1, dt * 10);
     if (ARB) {
+      // (al golpear, el armado se quita de golpe: el clip del golpe empieza en el impacto)
+      if (st.swing >= 0 && st.swing < 0.3) w = 0;
       const cual = ARB[st.arma] ? st.arma : 'Hit', quieto = Math.max(0, 1 - (st.speed || 0) / 1.5);
       if (w > 0.003) { for (const [b, q, abajo] of ARB[cual]) b.quaternion.slerp(q, w * (abajo ? quieto : 1)); if (cad) cad.position.lerp(AR[cual].pos, w * quieto); }
+      // el saque: mientras corre, el brazo derecho lleva la pelota en la mano; al botarla, baja con ella
+      llevaK += ((st.lleva || 0) - llevaK) * Math.min(1, dt * 12); botaK += ((st.bota || 0) - botaK) * Math.min(1, dt * 18);
+      if (llevaK > 0.01 && ARD.Lleva) for (const [b, q] of ARD.Lleva) b.quaternion.slerp(q, llevaK);
+      if (botaK > 0.01 && ARD.Bota) for (const [b, q] of ARD.Bota) b.quaternion.slerp(q, botaK);
+      // la mano, a la pelota: en el golpe, el brazo que golpea llega justo al sitio donde está la pelota (st.contacto, en el
+      // mundo) y lo suelta enseguida; llevándola o botándola, donde diga el juego (st.manoA)
+      const izq = /L$/.test(st.golpe || ''), kC = st.contacto && st.swing >= 0 && st.swing < 0.22 ? 1 - st.swing / 0.22 : 0;
+      if (kC > 0.02) manoA(izq ? IKL : IKR, st.contacto, Math.min(1, kC * 1.6));
+      // (y dónde queda la mano derecha, para que el juego dibuje en ella la pelota que lleva)
+      if (st.manoW && IKR) { c.root.updateMatrixWorld(true); IKR.h.getWorldPosition(st.manoW); }
       return;
     }
     let arm = -2.3 * w, elbow = 1.0 * w, twist = 0.7 * w;   // brazo bien atrás, codo doblado y hombro girado

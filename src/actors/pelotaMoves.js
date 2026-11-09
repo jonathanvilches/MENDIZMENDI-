@@ -98,9 +98,14 @@ export const _movs = MOVS;
 // (izquierda y lateral a la izquierda: los de la derecha, en espejo)
 const ESPEJO = { HitFull: ['HitLFull', 'Izquierda'], LowFull: ['LowLFull', 'Sotamano de izquierda'], HighFull: ['HighLFull', 'Golpe de aire de izquierda'], ShuffleR: ['ShuffleL', 'Lateral a la izquierda'] };
 // (los cortes del juego: desde el armado, que la postura ya puso mientras llegaba la pelota)
-const CORTES = { Hit: ['HitFull', 0.32], HitL: ['HitLFull', 0.32], Low: ['LowFull', 0.32], LowL: ['LowLFull', 0.32], High: ['HighFull', 0.30], HighL: ['HighLFull', 0.30] };
+// (desde el impacto: el armado ya lo puso la postura mientras llegaba la pelota, y el golpe se decide en el instante en que
+// la pelota sale; si el clip empezaba en el armado, la mano llegaba a la pelota una décima después, cuando ya iba lejos)
+const CORTES = { Hit: ['HitFull', 0.40], HitL: ['HitLFull', 0.40], Low: ['LowFull', 0.41], LowL: ['LowLFull', 0.41], High: ['HighFull', 0.37], HighL: ['HighLFull', 0.37] };
 // (y la postura de armado de cada golpe, para que el juego la mezcle mientras llega la pelota)
-export const ARMADOS = { Hit: ARMADO, Low: ARMADO_B, High: ARMADO_A };
+// (y, para el saque, el brazo derecho con la pelota en la mano mientras corre, y el gesto de botarla contra el suelo)
+const LLEVA = { ...REPOSO, Rm: [-0.21, 0.84, 0.2], Rc: [-0.5, -1, -0.3] };
+const BOTA = { ...REPOSO, Rm: [-0.27, 0.6, 0.3], Rc: [-0.4, -1, -0.2] };
+export const ARMADOS = { Hit: ARMADO, Low: ARMADO_B, High: ARMADO_A, Lleva: LLEVA, Bota: BOTA };
 
 function espejo(p) {
   const o = {};

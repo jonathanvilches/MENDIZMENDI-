@@ -11,7 +11,7 @@ const YOU_RUN = 6.8;
 // que resta espera junto a la pared izquierda, sobre el 7
 const SERVE_FROM = COURT.CUADRO * 7, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 5.8;
 // (el bote del saque: hacia abajo con fuerza y que suba poco, para golpear enseguida, sin pararse)
-const SERVE_DOWN = 3, SERVE_UP = 2.4, SERVE_LEAD = 0.24;   // (LEAD: cuánto antes del 4 se bota, por m/s de carrera y
+const SERVE_DOWN = 3, SERVE_UP = 3.8, SERVE_LEAD = 0.24;   // (LEAD: cuánto antes del 4 se bota, por m/s de carrera y
 // por el tempo de la pelota: cuanto más despacio va, antes, para que el golpe salga siempre en el 4)
 const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
@@ -209,8 +209,9 @@ export class PelotaGame {
     this.phase = 'servePrep'; this.phaseT = 0;
     // (la bota corriendo, hacia el suelo y con fuerza, como en el frontón: la pelota va hacia delante con el que saca, que
     // la sigue hasta golpearla. Su velocidad, en el tiempo de la pelota, que va más despacio que los jugadores: tempo)
-    const k = 0.8 / this.tempo;
-    this.ball.set(vec(s.x + 0.35, 1.0, s.z - 0.4), vec(s.vx * k, -SERVE_DOWN, s.vz * k)); this.ball.spin = 0;
+    const k = 0.93 / this.tempo;   // (casi a su paso: así la tiene siempre a mano, un poco por delante)
+    // (sale de la mano derecha, donde la lleva: a su derecha, un poco por delante, a la altura de la cintura)
+    this.ball.set(vec(s.x + 0.26, 0.9, s.z - 0.28), vec(s.vx * k, -SERVE_DOWN, s.vz * k)); this.ball.spin = 0;
     this.prepBounces = 0;
     s.act = 'bounce'; s.actT = 0;
     this.emit({ type: 'drop', who: this.serverP() });
@@ -913,7 +914,12 @@ export class PelotaGame {
     if (this.phase === 'serveWait' || this.phase === 'servePrep') {
       const s = this.players[this.serverP()];
       if (this.phase === 'serveWait' && this.runUp) this.moveTo(s, SERVE_X, SERVE_Z, RUN_V, dt);
-      else if (this.phase === 'servePrep') this.moveTo(s, this.ball.p.x - 0.35, this.ball.p.z + 0.45, RUN_V, dt);   // (sigue a la pelota que ha botado, sin pararse)
+      else if (this.phase === 'servePrep') {
+        // (sigue a la pelota que ha botado, a su paso: la pelota a su derecha y un poco por delante, al alcance de la mano,
+        // para golpearla en su sitio. Antes frenaba al botarla, la pelota se le iba un metro y golpeaba al aire detrás de ella)
+        const b = this.ball, tope = RUN_V * 1.25, vx = clamp(b.v.x * this.tempo + (b.p.x - 0.28 - s.x) * 7, -tope, tope), vz = clamp(b.v.z * this.tempo + (b.p.z + 0.26 - s.z) * 7, -tope, tope), a = 1 - Math.exp(-22 * dt);
+        s.vx += (vx - s.vx) * a; s.vz += (vz - s.vz) * a;
+      }
       else { s.vx = s.vz = 0; }
     }
     this.giveWay(dt, inp);
