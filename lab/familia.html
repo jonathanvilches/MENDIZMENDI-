@@ -1,0 +1,34 @@
+<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#9cc3e0;overflow:hidden}</style></head>
+<body><script type="module">
+// Foto de familia: los personajes y los animales del juego juntos, a su tamaño, con una regla de medio metro en medio
+// metro. Sirve para comprobar proporciones e identidad visual. ?k=sheep,dog:mastin,pottoka &ry=giro &p=pastor,pelotari
+import * as THREE from 'three';
+import { ensureAnimal, buildAnimal } from '../src/actors/animalGlb.js';
+import { loadMeshy, GlbChar } from '../src/actors/glbChar.js';
+const q = new URLSearchParams(location.search);
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); r.shadowMap.enabled = true; r.toneMapping = THREE.ACESFilmicToneMapping; r.outputColorSpace = THREE.SRGBColorSpace; document.body.appendChild(r.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color('#a8cbe6');
+scene.add(new THREE.HemisphereLight('#e4f1ff', '#5a6a4a', 1.3));
+const sun = new THREE.DirectionalLight('#fff4e0', 2.6); sun.position.set(3, 6, 5); sun.castShadow = true; Object.assign(sun.shadow.camera, { left: -12, right: 12, top: 6, bottom: -6 }); sun.shadow.mapSize.set(2048, 2048); scene.add(sun);
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(60, 40), new THREE.MeshStandardMaterial({ color: '#7ea35a' })); ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+const ry = +(q.get('ry') ?? 0.9);
+let x = 0; const alturas = [];
+const mide = (o) => new THREE.Box3().setFromObject(o);
+for (const p of (q.get('p') ?? 'pastor').split(',').filter(Boolean)) {
+  const g = await loadMeshy(p); const c = new GlbChar(g, p); c.update?.(0.016, { speed: 0 });
+  c.root.position.x = x; c.root.rotation.y = ry * 0.4; scene.add(c.root); c.root.updateMatrixWorld(true);
+  const b = mide(c.root); alturas.push([p, +(b.max.y - b.min.y).toFixed(2), +(Math.max(b.max.x - b.min.x, b.max.z - b.min.z)).toFixed(2)]); x += 1.1;
+}
+for (const k of (q.get('k') || 'dog:gorbeia,dog:mastin,sheep,goat,pig,burro,pottoka,cow,bull').split(',')) {
+  const [kind, breed] = k.split(':'); await ensureAnimal(kind, { breed }); const A = buildAnimal(kind, { breed });
+  for (let i = 0; i < 6; i++) A.update(0.05, { speed: 0, lod: 0 });
+  A.root.updateMatrixWorld(true); const b0 = mide(A.root); const largo = Math.max(b0.max.x - b0.min.x, b0.max.z - b0.min.z);
+  x += largo * 0.5; A.root.position.x = x; A.root.rotation.y = ry; scene.add(A.root); x += largo * 0.5 + 0.3;
+  alturas.push([k, +(b0.max.y - b0.min.y).toFixed(2), +largo.toFixed(2)]);
+}
+// regla: marcas cada medio metro hasta 2 m, detrás de todos
+for (let h = 0.5; h <= 2.001; h += 0.5) { const m = new THREE.Mesh(new THREE.BoxGeometry(x + 2, 0.012, 0.012), new THREE.MeshBasicMaterial({ color: h % 1 ? '#ffffff' : '#c0392b' })); m.position.set(x / 2 - 0.5, h, -0.9); scene.add(m); }
+const cam = new THREE.PerspectiveCamera(24, innerWidth / innerHeight, 0.05, 100);
+const zz = +(q.get('z') ?? 1); cam.position.set(x / 2 - 0.4, 1.5, (x * 1.15 + 3) * zz); cam.lookAt(x / 2 - 0.4, 0.75, 0);
+r.render(scene, cam); window.__alturas = alturas; window.__ready = true;
+</script></body></html>

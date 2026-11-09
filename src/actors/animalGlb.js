@@ -15,28 +15,33 @@ for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', 
 const GLTF = {};
 
 // especie del juego → modelo, altura total (m) y colores de cada material del modelo
+// (la altura es hasta lo más alto del animal de pie, orejas o cuernos incluidos, medida con un vecino de 1,6 m al lado:
+// lab/familia.html. La oveja latxa levanta 65-70 cm a la cruz, unos 90 con la cabeza; la pottoka, 1,15-1,30 a la cruz,
+// algo más de metro y medio con las orejas; la vaca pirenaica, 1,30-1,38 a la cruz; el toro bravo es más bajo que una
+// vaca de carne; el mastín, 72-80 cm a la cruz. Antes la oveja llegaba al pecho de una persona, la pottoka parecía un
+// potro al lado de la vaca y el toro medía tres metros de largo)
 const SPEC = {
-  cow: { model: 'Cow', h: 1.55, col: { Main: '#c48a4c', Main_Light: '#ead2a4', Muzzle: '#e8cfae', Horns: '#e6dcc2' } },          // vaca pirenaica
-  bull: { model: 'Bull', h: 1.7, col: { Main: '#1b1715', Main_Light: '#2d2622', Muzzle: '#231d1a', Horns: '#ece0c4' } },          // toro bravo
-  cabestro: { model: 'Cow', h: 1.7, col: { Main: '#7a4a2a', Main_Light: '#f0e6d4', Muzzle: '#d8c2a2' } },                          // buey manso
-  pottoka: { model: 'Horse', h: 1.4, col: { Main: '#3b2418', Main_Dark: '#2a1810', Main_Light: '#5a3b28', Hair: '#140e0b', Muzzle: '#22160f' } },
+  cow: { model: 'Cow', h: 1.45, col: { Main: '#c48a4c', Main_Light: '#ead2a4', Muzzle: '#e8cfae', Horns: '#e6dcc2' } },          // vaca pirenaica
+  bull: { model: 'Bull', h: 1.5, estilo: { cabeza: 1.08, ojo: 0.8, patas: 1.08 }, col: { Main: '#1b1715', Main_Light: '#2d2622', Muzzle: '#231d1a', Horns: '#ece0c4' } },          // toro bravo
+  cabestro: { model: 'Cow', h: 1.62, col: { Main: '#7a4a2a', Main_Light: '#f0e6d4', Muzzle: '#d8c2a2' } },                          // buey manso
+  pottoka: { model: 'Horse', h: 1.56, col: { Main: '#3b2418', Main_Dark: '#2a1810', Main_Light: '#5a3b28', Hair: '#140e0b', Muzzle: '#22160f' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
-  burro: { model: 'Donkey', h: 1.35 },
+  burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
   // oveja latxa: sin cuernos (las hembras del rebaño no los llevan) y con vellón de lana rizada
-  sheep: { model: 'Sheep', h: 1.05, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' }, drop: ['MAT_ANI_Sheep_Cuernos'], wool: ['Main', 'Main_Light'] },
-  goat: { model: 'Goat', h: 1.0, col: { Main: '#4a3a2e', Main_Light: '#8a6a4a', Main_Dark: '#2a1e18', Hooves: '#15100e' } },                                 // cabra pirenaica
+  sheep: { model: 'Sheep', h: 0.9, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' }, drop: ['MAT_ANI_Sheep_Cuernos'], wool: ['Main', 'Main_Light'] },
+  goat: { model: 'Goat', h: 0.92, col: { Main: '#4a3a2e', Main_Light: '#8a6a4a', Main_Dark: '#2a1e18', Hooves: '#15100e' } },                                 // cabra pirenaica
   // cerdo y jabalí con cuerpo propio (tools/blender/fauna/cerdos.py): euskal txerria rosado con cabeza y grupa negras
-  pig: { model: 'Pig', h: 0.85, col: { Main: '#efc4b4', Main_Light: '#f6d4c6', Main_Dark: '#2a2422', Muzzle: '#d9a094', Hooves: '#5e4a40' } },
+  pig: { model: 'Pig', h: 0.8, col: { Main: '#efc4b4', Main_Light: '#f6d4c6', Main_Dark: '#2a2422', Muzzle: '#d9a094', Hooves: '#5e4a40' } },
   jabali: { model: 'Jabali', h: 0.95, col: { Main: '#5a4a3c', Main_Light: '#7f6e5b', Main_Dark: '#221c18', Muzzle: '#3b3431', Hooves: '#151210' } },
 };
 // perros: razas del compañero, a su altura real (hasta la punta de las orejas); el detalle de cada raza (capa, pelo,
 // orejas y cola; van sin collar) está en dogDetail.js
 const DOG = {
-  gorbeia: { model: 'ShibaInu', h: 0.7, col: { Main: '#b8692e', Main_Light: '#dca06a' }, dog: { paint: 'gorbeia', tail: -1.6, tailUncurl: -0.4, hair: 0.0007 } },
-  iletsua: { model: 'ShibaInu', h: 0.72, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#2a201a' }, dog: { paint: 'iletsua', tail: -1.6, tailUncurl: -0.4, hair: 0.001, long: true } },
-  aleman: { model: 'Husky', h: 0.84, col: {}, dog: { paint: 'aleman', tail: -1.8, tailUncurl: -0.14, hair: 0.0008 } },
-  mastin: { model: 'Husky', h: 1.0, col: {}, dog: { paint: 'mastin', tail: -1.6, tailUncurl: -0.05, ears: 'drop', bulk: true, hair: 0.001, long: true } },
+  gorbeia: { model: 'ShibaInu', h: 0.66, col: { Main: '#b8692e', Main_Light: '#dca06a' }, dog: { paint: 'gorbeia', tail: -1.6, tailUncurl: -0.4, hair: 0.0007 } },
+  iletsua: { model: 'ShibaInu', h: 0.68, col: { Main: '#a9845a', Main_Light: '#d6bf96', Black: '#2a201a' }, dog: { paint: 'iletsua', tail: -1.6, tailUncurl: -0.4, hair: 0.001, long: true } },
+  aleman: { model: 'Husky', h: 0.8, col: {}, dog: { paint: 'aleman', tail: -1.8, tailUncurl: -0.14, hair: 0.0008 } },
+  mastin: { model: 'Husky', h: 0.92, col: {}, dog: { paint: 'mastin', tail: -1.6, tailUncurl: -0.05, ears: 'drop', bulk: true, hair: 0.001, long: true } },
 };
 export function animalSpec(kind, opts = {}) { return kind === 'dog' ? DOG[opts.breed] || DOG.gorbeia : SPEC[kind] || null; }
 export const hasGlbAnimal = (kind, opts) => { const s = animalSpec(kind, opts); return !!(s && GLTF[s.model]); };
@@ -89,11 +94,13 @@ function bakedScene(key, S, g) {
     out.setAttribute('color', new THREE.BufferAttribute(col, 3));
     if (S.wool) out.setAttribute('wool', new THREE.BufferAttribute(new Float32Array(n).fill(S.wool.includes(m.material.name) ? 1 : 0), 1));
     if (S.dog) out.setAttribute('part', new THREE.BufferAttribute(new Float32Array(n).fill(dogPart(m.material.name)), 1));
+    out.setAttribute('ojo', new THREE.BufferAttribute(new Float32Array(n).fill(/^Eyes?_/.test(m.material.name) || (S.dog && dogPart(m.material.name) === 3) ? 1 : 0), 1));
     if (src.index) out.setIndex(Array.from(src.index.array));
     geos.push(out);
   }
   let merged = mergeGeometries(geos);
   const s0 = skinned[0];
+  merged = caricatura(merged, S, s0.skeleton, s0.bindMatrix);
   merged = S.dog ? dogShape(merged, S, s0.skeleton, s0.bindMatrix) : toCreasedNormals(merged, THREE.MathUtils.degToRad(65));
   // (las aristas marcadas dejan cada triángulo con sus tres vértices propios: se juntan los que son iguales en todo —sitio,
   // normal, color, huesos—, así que el sombreado no cambia y quedan unas tres veces menos vértices)
@@ -106,6 +113,85 @@ function bakedScene(key, S, g) {
   for (const m of skinned) m.removeFromParent();
   BAKED.set(key, sc); return sc;
 }
+
+// El estilo de la casa. Los vecinos y los pelotaris son de dibujos: cabeza grande, ojos grandes, formas redondas. Los
+// animales venían con proporciones de verdad y ojos como cabezas de alfiler, y al lado de un vecino parecían de otro
+// juego. Aquí se les da la misma mano: la cabeza crece desde su hueso (y con ella las orejas, que cuelgan de la cabeza),
+// las patas engordan y los ojos se hacen nuevos, grandes y con vida: el blanco, el iris oscuro y el brillo, como los de
+// los personajes. Se hace sobre la malla en reposo, antes de las normales: los huesos y las animaciones no cambian y
+// el animal sigue siendo una sola malla. Cada especie puede traer su medida (el toro bravo, menos cabezón y con el ojo
+// más pequeño, que tiene que imponer).
+const ESTILO = { cabeza: 1.24, ojos: 2.1, patas: 1.14, iris: '#2a1a10' };
+function caricatura(geo, S, skel, bindMatrix) {
+  const E = { ...ESTILO, ...(S.dog ? { cabeza: 1.12, ojos: 1.55, patas: 1.12, iris: '#3a2210' } : null), ...S.estilo };
+  const P = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight, ojo = geo.attributes.ojo;
+  const names = skel.bones.map(b => b.name), ih = names.indexOf('Head');
+  let extra = null;
+  if (ih >= 0) {
+    const inv = bindMatrix.clone().invert(), enMalla = (i) => new THREE.Vector3().applyMatrix4(skel.boneInverses[i].clone().invert().premultiply(inv));
+    const hp = enMalla(ih), pos = names.map((n, i) => /^(Front|Back)(Upper|Lower)Leg/.test(n) ? enMalla(i) : null);
+    const esCabeza = names.map(n => n === 'Head' || /^Ear/.test(n));
+    geo.computeBoundingBox(); const H = geo.boundingBox.max.y - geo.boundingBox.min.y, y0 = geo.boundingBox.min.y;
+    // (el costado: el eje que no es ni la altura ni el largo del cuerpo; casi todos miran a +z, el cerdo y el jabalí a +x)
+    const sz = geo.boundingBox.getSize(new THREE.Vector3()), lat = sz.x > sz.z ? 'z' : 'x', cabeza = new THREE.Box3();
+    const cen = [new THREE.Vector3(), new THREE.Vector3()], num = [0, 0];
+    for (let i = 0; i < P.count; i++) {
+      let wc = 0, wp = 0, pata = null, mayor = 0;
+      for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w <= 0) continue; const j = si.getComponent(i, k); if (esCabeza[j]) wc += w; else if (pos[j]) { wp += w; if (w > mayor) { mayor = w; pata = pos[j]; } } }
+      let X = P.getX(i), Y = P.getY(i), Z = P.getZ(i);
+      if (wc > 0) { const k = 1 + (E.cabeza - 1) * Math.min(1, wc); X = hp.x + (X - hp.x) * k; Y = hp.y + (Y - hp.y) * k; Z = hp.z + (Z - hp.z) * k; }
+      // (las patas, más gruesas alrededor de su hueso; la pezuña, abajo del todo, un poco menos, que no parezca una bota)
+      if (pata && wp > 0) { const k = 1 + (E.patas - 1) * Math.min(1, wp) * (0.55 + 0.45 * Math.min(1, (Y - y0) / (0.12 * H))); X = pata.x + (X - pata.x) * k; Z = pata.z + (Z - pata.z) * k; }
+      P.setXYZ(i, X, Y, Z); _v.set(X, Y, Z);
+      if (wc > 0.8) cabeza.expandByPoint(_v);
+      if (ojo.getX(i)) { const l = _v[lat] < 0 ? 0 : 1; cen[l].add(_v); num[l]++; }
+    }
+    // los ojos nuevos: donde estaba cada ojo del modelo, mirando hacia donde miraba (la media de las caras del parche)
+    const nor = [new THREE.Vector3(), new THREE.Vector3()], rad = [0, 0], ix = geo.index, nt = (ix ? ix.count : P.count) / 3;
+    const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+    for (const l of [0, 1]) if (num[l]) cen[l].divideScalar(num[l]);
+    for (let t = 0; t < nt; t++) {
+      const i = ix ? ix.getX(t * 3) : t * 3, j = ix ? ix.getX(t * 3 + 1) : t * 3 + 1, k = ix ? ix.getX(t * 3 + 2) : t * 3 + 2;
+      if (!ojo.getX(i) || !ojo.getX(j) || !ojo.getX(k)) continue;
+      a.fromBufferAttribute(P, i); b.fromBufferAttribute(P, j); c.fromBufferAttribute(P, k);
+      nor[a[lat] < 0 ? 0 : 1].add(b.sub(a).cross(c.sub(a)));
+    }
+    for (let i = 0; i < P.count; i++) { if (!ojo.getX(i)) continue; a.fromBufferAttribute(P, i); const l = a[lat] < 0 ? 0 : 1; rad[l] = Math.max(rad[l], a.distanceTo(cen[l])); }
+    const piezas = [], q = new THREE.Quaternion(), Z1 = new THREE.Vector3(0, 0, 1), up = new THREE.Vector3(0, 1, 0);
+    const bola = (r, w, h, col, centro, n, chato) => {
+      const g = new THREE.SphereGeometry(r, w, h); g.scale(1, 1, chato); g.applyQuaternion(q.setFromUnitVectors(Z1, n)); g.translate(centro.x, centro.y, centro.z);
+      const m = g.attributes.position.count, k = new THREE.Color(col), cs = new Float32Array(m * 3), sk = new Uint16Array(m * 4), wt = new Float32Array(m * 4);
+      for (let i = 0; i < m; i++) { cs[i * 3] = k.r; cs[i * 3 + 1] = k.g; cs[i * 3 + 2] = k.b; sk[i * 4] = ih; wt[i * 4] = 1; }
+      const o = new THREE.BufferGeometry(); o.setAttribute('position', g.attributes.position); o.setIndex(g.index);
+      o.setAttribute('skinIndex', new THREE.BufferAttribute(sk, 4)); o.setAttribute('skinWeight', new THREE.BufferAttribute(wt, 4)); o.setAttribute('color', new THREE.BufferAttribute(cs, 3));
+      if (geo.attributes.wool) o.setAttribute('wool', new THREE.BufferAttribute(new Float32Array(m), 1));
+      if (geo.attributes.part) o.setAttribute('part', new THREE.BufferAttribute(new Float32Array(m).fill(3), 1));
+      o.setAttribute('ojo', new THREE.BufferAttribute(new Float32Array(m), 1));
+      piezas.push(o);
+    };
+    for (const l of [0, 1]) {
+      if (!num[l] || rad[l] <= 0) continue;
+      const fuera = new THREE.Vector3(); fuera[lat] = l ? 1 : -1;
+      const n = nor[l].lengthSq() > 1e-12 ? nor[l].normalize() : fuera.clone();
+      if (n.dot(fuera) < 0) n.negate();   // (siempre hacia fuera de la cabeza)
+      if (n.dot(fuera) < 0.35) n.lerp(fuera, 0.5).normalize();
+      // (el tamaño, a la medida de la cabeza: entre un cuarto y un tercio de lo que mide, de lado a lado. El parche del modelo engaña: en la
+      // cabra y el pastor alemán trae el párpado y sale enorme; en el cerdo es un punto)
+      const cab = Math.max(cabeza.max.x - cabeza.min.x, cabeza.max.y - cabeza.min.y, cabeza.max.z - cabeza.min.z) || H * 0.3;
+      const R = THREE.MathUtils.clamp(rad[l] * E.ojos, 0.115 * cab, 0.16 * cab) * (E.ojo || 1), C = cen[l], lado = _v.crossVectors(up, n).normalize().clone(), alto = new THREE.Vector3().crossVectors(n, lado);
+      bola(R, 10, 7, '#f7f4ee', C.clone().addScaledVector(n, -0.22 * R), n, 0.55);                                           // el blanco
+      bola(R * 0.88, 9, 6, E.iris, C.clone().addScaledVector(n, 0.05 * R), n, 0.5);                                           // el iris
+      bola(R * 0.2, 6, 4, '#ffffff', C.clone().addScaledVector(n, 0.4 * R).addScaledVector(alto, 0.26 * R).addScaledVector(lado, 0.2 * R), n, 0.6);   // el brillo
+    }
+    // (los ojos del modelo se recogen dentro de los nuevos)
+    for (let i = 0; i < P.count; i++) { if (!ojo.getX(i)) continue; a.fromBufferAttribute(P, i); const l = a[lat] < 0 ? 0 : 1; if (!rad[l]) continue; a.lerp(_v.copy(cen[l]).addScaledVector(nor[l], -0.02 * H), 0.92); P.setXYZ(i, a.x, a.y, a.z); }
+    P.needsUpdate = true;
+    if (piezas.length && geo.index) extra = mergeGeometries([geo, ...piezas]);
+  }
+  const out = extra || geo; out.deleteAttribute('ojo');
+  return out;
+}
+const _v = new THREE.Vector3();
 
 // Los datos de cada vértice del animal, más ligeros (de 60 a 36 bytes): los pesos de los huesos en un byte cada uno (sumando
 // 255), los números de hueso en un byte (hay menos de 256) y la normal en un byte por componente, de cuatro en cuatro como
