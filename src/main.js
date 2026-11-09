@@ -270,7 +270,10 @@ async function boot() {
         if (!st.introDone && !q.get('skipintro')) game.intro();
       } else {
         game = new TownGame(ctx, d);
-        game.onPlayTown = (id) => { exit(); setTimeout(() => play(levelById(id)), 60); };
+        // (medio segundo entre soltar un pueblo y levantar el siguiente: así el navegador recoge el anterior antes de
+        // reservar el nuevo. Con 60 ms los dos coincidían en memoria, unos 350 MB de datos a la vez, y en el iPhone era
+        // lo justo para que el sistema cerrase el juego al viajar)
+        game.onPlayTown = (id) => { exit(); setTimeout(() => play(levelById(id)), 500); };
         window.__game = game;
         ui.buildHUD(game);
         game.spawn();

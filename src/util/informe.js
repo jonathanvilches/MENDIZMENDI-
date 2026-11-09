@@ -99,7 +99,20 @@ const aVercel = (id) => async (d) => {
   const r = await fetch(DESTINO, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(parte), keepalive: true });
   if (r.status === 404) throw { code: 'revoked' };
 };
+// (la partida anterior, si se cortó de golpe mientras se jugaba, a la lista de cortes: Ajustes › Diagnóstico la enseña
+// y va en el aparato del informe siguiente. Si se cortó con el juego en segundo plano, lo cerró el sistema y no cuenta)
+function apuntaCorte() {
+  try {
+    const r = JSON.parse(localStorage.getItem('herrizherri-rastro') || 'null');
+    if (!r?.lugar || r.bien || r.oculta || !r.id) return;
+    const L = JSON.parse(localStorage.getItem('herrizherri-cortes') || '[]');
+    if (L.some(c => c.id === r.id)) return;
+    L.push({ id: r.id, lugar: r.lugar, t: r.t, cuando: r.cuando, perdida: !!r.perdida, memoria: r.memoria, triangulos: r.triangulos, texturas: r.texturas, geometrias: r.geometrias, fps: r.fps, resolucion: r.resolucion });
+    localStorage.setItem('herrizherri-cortes', JSON.stringify(L.slice(-8)));
+  } catch (e) { /* sin almacenamiento */ }
+}
 function empieza(db) {
+  apuntaCorte();
   const id = `${new Date().toISOString().replace(/[:.]/g, '-')}-${Math.random().toString(36).slice(2, 6)}`;
   try { ref = db ? db.collection('informes').doc(id) : { set: aVercel(id) }; } catch (e) { return; }
   // (el aparato, como filas {k, v}: la base de datos no guarda listas dentro de listas)
@@ -111,7 +124,7 @@ function empieza(db) {
   addEventListener('pagehide', () => { rastro({ bien: true }); cerrado = true; });
   addEventListener('pageshow', (e) => { if (e.persisted) { cerrado = false; rastro({ bien: false }); } });
   addEventListener('webglcontextrestored', () => evento('imagen recuperada', true), true);
-  addEventListener('visibilitychange', () => { deNuevo(); evento(document.hidden ? 'oculta' : 'vuelve', document.hidden); });
+  addEventListener('visibilitychange', () => { deNuevo(); evento(document.hidden ? 'oculta' : 'vuelve', document.hidden); rastro({ oculta: document.hidden }); });
   addEventListener('resize', () => { clearTimeout(pronto); pronto = setTimeout(() => evento(`ventana ${innerWidth} × ${innerHeight}`), 800); });
   guarda();
   requestAnimationFrame(mide);

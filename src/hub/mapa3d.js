@@ -1450,8 +1450,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   function revisaImagen() {
     revisa.cuando = 0;
     const gl = r.getContext(); if (gl.isContextLost()) return;
-    const W = gl.drawingBufferWidth, H = gl.drawingBufferHeight, px = new Uint8Array(4); let liso = 0;
-    for (const [x, y] of PUNTOS) { gl.readPixels(Math.floor(W * x), Math.floor(H * y), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); if (Math.abs(px[0] - fondo[0]) + Math.abs(px[1] - fondo[1]) + Math.abs(px[2] - fondo[2]) < 12) liso++; }
+    // (una sola lectura, una fila por en medio, y en ella los puntos: cada lectura para la tarjeta gráfica hasta acabar la
+    // imagen, y con una por punto el arranque se quedaba parado más de un segundo en el móvil)
+    const W = gl.drawingBufferWidth, H = gl.drawingBufferHeight, x0 = Math.floor(W * 0.2), w = Math.max(1, Math.floor(W * 0.6)), px = new Uint8Array(w * 4); let liso = 0;
+    gl.readPixels(x0, Math.floor(H * 0.47), w, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+    for (let k = 0; k < PUNTOS.length; k++) { const i = Math.min(w - 1, Math.floor((k + 0.5) / PUNTOS.length * w)) * 4; if (Math.abs(px[i] - fondo[0]) + Math.abs(px[i + 1] - fondo[1]) + Math.abs(px[i + 2] - fondo[2]) < 12) liso++; }
     const base = { cuando: new Date().toISOString().slice(0, 19), gpu: gpu(gl), lienzo: W + '×' + H, ligero: !!o.ligero };
     if (liso < PUNTOS.length) { apunta(revisa.veces ? { ...base, ve: true, intento: revisa.veces, malos: revisa.malos } : { ...base, ve: true }); return; }
     revisa.veces++;

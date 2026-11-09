@@ -23,6 +23,13 @@ function anterior() {
     r.texturas ? `${r.texturas} texturas · ${r.geometrias} geometrías` : '', r.cuando ? new Date(r.cuando).toLocaleString() : ''];
   return d.filter(Boolean).join(' · ');
 }
+// los cortes de golpe de las últimas partidas (util/informe.js, apuntaCorte), el más reciente primero
+function cortes() {
+  let L = []; try { L = JSON.parse(lee('herrizherri-cortes') || '[]'); } catch (e) { /* roto */ }
+  if (!L.length) return 'ninguno';
+  return `${L.length} · ` + L.slice().reverse().map(r => [r.cuando ? new Date(r.cuando).toLocaleString() : '', r.lugar, `${r.t ?? '?'} s`, r.perdida ? 'imagen perdida' : '',
+    r.memoria ? `${r.memoria} MB` : '', r.triangulos ? `${Math.round(r.triangulos / 1000)} mil triángulos` : '', r.texturas ? `${r.texturas} texturas` : ''].filter(Boolean).join(', ')).join(' | ');
+}
 let bateria = '';
 try { navigator.getBattery?.().then(b => { const pon = () => { bateria = `${b.charging ? 'enchufado' : 'sin enchufar'} · ${Math.round(b.level * 100)} %`; }; pon(); b.addEventListener('chargingchange', pon); }).catch(() => { }); } catch (e) { /* sin batería */ }
 // (la calidad con la que va el juego y la elegida en Ajustes, que en el iPhone no pasa de la baja: main.js)
@@ -35,7 +42,7 @@ export function datos() {
     ['App instalada', instalada() ? 'sí' : 'no'],
     ['Reducir movimiento', matchMedia('(prefers-reduced-motion: reduce)').matches ? 'sí' : 'no'],
     ['Modo sencillo', lee('herrizherri-sencillo') || 'no'], ['Calidad', calidad()], ['Arranques sin acabar', lee('herrizherri-arranque') || '0'],
-    ['Imagen perdida', (lee('herrizherri-perdidas') || '0').replace('|', ' veces · la última, ') + (pelotaLigera() ? ' · partidos de pelota aligerados' : '')], ['La vez anterior', anterior()]];
+    ['Imagen perdida', (lee('herrizherri-perdidas') || '0').replace('|', ' veces · la última, ') + (pelotaLigera() ? ' · partidos de pelota aligerados' : '')], ['La vez anterior', anterior()], ['Cortes recientes', cortes()]];
   let m = null; try { m = JSON.parse(lee(K) || 'null'); } catch (e) { /* roto */ }
   if (m) {
     f.push(['Mapa 3D', `${m.ve ? 'se ve' : 'no se ve'} · ${m.cuando || ''} · ${m.gpu || ''} · lienzo ${m.lienzo || ''}${m.intento ? ' · intento ' + m.intento : ''}${m.ligero ? ' · ligero' : ''}`]);
