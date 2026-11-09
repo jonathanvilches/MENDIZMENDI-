@@ -360,8 +360,15 @@ export class PelotaCourt {
     const rebIn = M({ map: rebTex, transparent: true }), rebOut = M({ map: outerTex, transparent: true }), rebCap = M({ color: th.cap, roughness: 0.8, transparent: true });
     const back = new T.Mesh(new T.BoxGeometry(W + 0.6, RH, 0.4), [rebOut, rebOut, rebCap, rebOut, rebOut, rebIn]);
     back.position.set(-0.3, RH / 2, EXT + 0.2); back.castShadow = true; back.receiveShadow = true; g.add(back);
-    if (!opts.labrit && !HALL) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); }
+    this.rebMeshes = [back];
+    if (!opts.labrit && !HALL) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); this.rebMeshes.push(capR); }
     this.rebMats = [rebIn, rebOut, rebCap]; this.rebFade = 1; this.contra = CONTRA;
+    // (cuando la cámara queda detrás, del rebote solo queda su contorno: una raya clara por los bordes de su cara, a ras de
+    // la cancha. Antes se quedaba a medias, como un velo sobre toda la imagen, y la oscurecía)
+    { const x0 = -W / 2 - 0.6, x1 = W / 2, z = EXT - 0.01, y1 = RH, pts = [x0, 0.02, z, x0, y1, z, x0, y1, z, x1, y1, z, x1, y1, z, x1, 0.02, z, x1, 0.02, z, x0, 0.02, z];
+      const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
+      this.rebRaya = new T.LineSegments(geo, new T.LineBasicMaterial({ color: '#fff3dc', transparent: true, opacity: 0, depthWrite: false }));
+      this.rebRaya.visible = false; this.rebRaya.renderOrder = 2; g.add(this.rebRaya); }
     if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
@@ -927,10 +934,14 @@ export class PelotaCourt {
     for (const z of zs) this.boxes.push({ x: xb - 0.25, z, w: 0.4, d: 0.4 });
     this.postZ = zs;   // (el público no se sienta en la fila de arriba delante de un pilar)
   }
-  /** El rebote, a través (on) cuando la cámara queda detrás de él; se funde poco a poco. */
+  /** El rebote, a través (on) cuando la cámara queda detrás de él: se va deprisa del todo y deja su contorno; vuelve
+   *  despacio (para entonces la cámara ya está delante y lo tiene a su espalda). */
   reboteSeeThrough(on, dt = 1 / 60) {
-    const want = on ? 0.16 : 1, f = this.rebFade += (want - this.rebFade) * Math.min(1, dt * 8);
+    let f = this.rebFade += ((on ? 0 : 1) - this.rebFade) * Math.min(1, dt * (on ? 16 : 6));
+    if (on && f < 0.03) f = this.rebFade = 0; else if (!on && f > 0.995) f = this.rebFade = 1;
     for (const m of this.rebMats || []) { m.opacity = f; m.depthWrite = f > 0.98; }
+    for (const o of this.rebMeshes || []) o.visible = f > 0.01;
+    if (this.rebRaya) { this.rebRaya.visible = f < 0.99; this.rebRaya.material.opacity = (1 - f) * 0.6; }
   }
   hideBall() { this.ball.visible = false; this.shadow.visible = false; for (const m of this.trail) m.visible = false; this.trailPts = []; }
   showBall(p, glow = 0) {

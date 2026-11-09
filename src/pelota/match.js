@@ -1139,7 +1139,7 @@ export class PelotaMatch {
       const Y = g.players.you; this.pin.visible = g.phase !== 'intro'; this.pin.position.set(Y.x, 2.35 + Math.sin(this.t * 6) * 0.08, Y.z); this.pin.rotation.y = this.t * 2;
     } else if (this.pin) this.pin.visible = false;
     // (durante la llegada, la cámara es la del vuelo; si pasa por detrás del rebote, el rebote se deja ver a través)
-    if (this.flying) { const lc = grp.worldToLocal(this.v3.copy(this.cam.position)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3 && lc.z < COURT.REBOTE + 12 && lc.y < COURT.REBOTE_H + 3 && Math.abs(lc.x) < 14, dt); return; }
+    if (this.flying) { const lc = grp.worldToLocal(this.v3.copy(this.cam.position)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2 && lc.z < COURT.REBOTE + 12 && lc.y < COURT.REBOTE_H + 3 && Math.abs(lc.x) < 14, dt); return; }
     // en primera persona (con la cámara): mientras se juega, en tus ojos; en los cortes del tanto, la llegada, el sorteo, la
     // presentación y las repeticiones, la de siempre
     if (this.camaraFP(dt, grp, C)) return;
@@ -1223,7 +1223,9 @@ export class PelotaMatch {
     this.cam.lookAt(this.camLook);
     if (this.roll) this.cam.rotateZ(this.roll);
     // el rebote, a través si la cámara queda detrás de él (si no, taparía la cancha)
-    const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3, dt);
+    // (se empieza a quitar 2 m antes de llegar a él: así, cuando la cámara lo cruza, ya no está; si no, durante un momento
+    // la pared tapaba la imagen con su cara de detrás, a la sombra, y la oscurecía)
+    const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
     const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
