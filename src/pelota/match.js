@@ -835,8 +835,11 @@ export class PelotaMatch {
     const turno = g.phase === 'rally' && g.rally?.turn === 'you' && (!g.pairs || g.takerOf('you') === 'you');
     let mx = 0, mz = 0;
     if (!turno) {
-      const tx = C.x * (COURT.W / 2 - 1.2), tz = g.cuatro ? 13 : 20.5, dx = tx - you.x, dz = tz - you.z;
-      if (Math.hypot(dx, dz) > 0.35) { mx = clamp1(dx * 0.9); mz = clamp1(dz * 0.45); }
+      // (a su sitio, el de tu lado de la cancha; pero no sigue cada balanceo de tu cuerpo: se pone en marcha si está a más
+      // de 0,8 m y para al llegar. Antes, con cada vaivén tuyo daba pasitos de lado a lado sin parar)
+      const tx = C.x * (COURT.W / 2 - 1.2), tz = g.cuatro ? 13 : 20.5, dx = tx - you.x, dz = tz - you.z, d = Math.hypot(dx, dz);
+      if (d > 0.8) this.vaSitio = true; else if (d < 0.25) this.vaSitio = false;
+      if (this.vaSitio) { mx = clamp1(dx * 0.9); mz = clamp1(dz * 0.45); }
     }
     const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? 0, aimY: I.camAimY ?? 0, camPend: !!I.camPend, descansoFin: !!this.finDesc };
     this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = I.camAimY = null; I.camPend = false;
@@ -855,6 +858,9 @@ export class PelotaMatch {
       C.onGolpe = (e) => {
         if (fuera()) return;
         const I = this.input, g = this.game, saca = (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you';
+        // (solo cuando cuenta: la pelota viene hacia ti o sacas tú. Un gesto en la presentación, entre tanto y tanto o con la
+        // pelota yendo al rival ya no hace que tu pelotari pegue al aire)
+        if (!saca && !(g.phase === 'rally' && g.rally?.turn === 'you' && (!g.pairs || g.takerOf('you') === 'you'))) return;
         I.charge = null; I.power = e.power; I.camAim = e.aimX; I.camAimY = e.aimY; I.camPend = true; I.lastAim = null;
         if (e.req === 'dejada' && !saca) I.dropQ = true; else I.hitQ = true;
         this.camGolpe = { golpe: e.golpe, t: this.t, abierto: true }; (this.golpeDe ||= {}).you = e.golpe;
@@ -1095,10 +1101,15 @@ export class PelotaMatch {
       side.obj.position.copy(this.v3);
       // mira al frontis salvo cuando corre hacia atrás o hacia un lado
       let yaw = Math.PI;
-      if (P.speed > 3.0 && Math.abs(P.vx) > Math.abs(P.vz) * 0.6) yaw = Math.atan2(P.vx, P.vz);   // (más despacio, de lado con pasos laterales, sin dejar de mirar al frontis)
+      // (más despacio, de lado con pasos laterales, sin dejar de mirar al frontis. Con margen: se gira al pasar de 3 m/s y no
+      // vuelve hasta bajar de 2,2; antes, corriendo justo a esa velocidad, el cuerpo se giraba y se desgiraba sin parar)
+      const deLado = Math.abs(P.vx) > Math.abs(P.vz) * 0.6;
+      if (P.speed > 3.0 && deLado) P.corre = true; else if (P.speed < 2.2 || Math.abs(P.vx) < Math.abs(P.vz) * 0.4) P.corre = false;
+      if (P.corre) yaw = Math.atan2(P.vx, P.vz);
       else if (S.v > 0.8) yaw = Math.atan2(-S.ox, -S.oz);   // (yendo a su sitio para el saque, mira hacia donde va)
       if ((g.phase === 'point' && (P.act === 'cheer')) || this.entra?.ok[who]) yaw = Math.atan2(this.camPos.x - side.obj.position.x, this.camPos.z - side.obj.position.z) - grp.rotation.y;   // (y al saludar en la salida)
-      P.yaw = P.yaw == null ? yaw : P.yaw + Math.atan2(Math.sin(yaw - P.yaw), Math.cos(yaw - P.yaw)) * (1 - Math.exp(-12 * dt));
+      // (y el giro, sin latigazos: como mucho 7 rad/s, que es lo que gira alguien al arrancar a correr)
+      { const dYaw = Math.atan2(Math.sin(yaw - (P.yaw ?? yaw)), Math.cos(yaw - (P.yaw ?? yaw))) * (1 - Math.exp(-12 * dt)); P.yaw = P.yaw == null ? yaw : P.yaw + Math.max(-7 * dt, Math.min(7 * dt, dYaw)); }
       side.obj.rotation.y = grp.rotation.y + P.yaw + (this.o.yawOffset || 0);
       const swingAge = this.t - (this.lastSwing[who] || -9);
       // preparación del golpe: cuando la pelota viene hacia quien le toca, echa el brazo atrás (más cuanto más cerca)
@@ -1106,7 +1117,8 @@ export class PelotaMatch {
       const dB = Math.hypot(ball.x - P.x, ball.z - P.z), wind = turn ? Math.max(0, Math.min(1, 1 - (dB - 1.0) / 5)) : 0, arma = dB < 2.6 ? golpeDe(P, ball.x, ball.y, ball.z) : (this.armaDe?.[who] || 'Hit');
       (this.armaDe ||= {})[who] = arma;
       // (con la cámara, tu pelotari arma el brazo como tú: lo que lo echas atrás, de qué lado y a qué altura)
-      const cam = who === 'you' && this.cuerpo?.visto ? this.cuerpo : null;
+      // (solo cuando viene la pelota o sacas: si no, cada gesto tuyo, aunque fuera colocarte, le hacía armar el brazo)
+      const cam = who === 'you' && this.cuerpo?.visto && (turn || ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP() === 'you')) ? this.cuerpo : null;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
       const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
