@@ -170,6 +170,7 @@ export class Runtime {
     if (this.sierras) { this.sky.fog.near = 220; this.sky.fog.far = 4200; }
     onProgress(0.65, 'Plantando árboles y cultivos…'); await frame();
     this.nature = solo ? vacio.nature() : new Nature(scene, q);
+    if (this.weather) this.weather.arboles = solo ? null : TREES;   // (los rayos de sol de los días despejados rozan las copas cercanas)
     if (this.weather.kind === 'snow' && this.nature.flowers?.mesh) this.nature.flowers.mesh.visible = false;   // sin flores sobre la nieve
     onProgress(0.8, 'Despertando a los animales…'); await frame();
     this.fauna = solo ? vacio.fauna() : new Fauna(scene, q, salazar ? null : { def, town: TOWN, places: PLACES });
@@ -522,6 +523,7 @@ export class Runtime {
     this.water.update(this.elapsed, this.sky);
     groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value); groundUniforms.uDia.value = 1 - (this.sky.night || 0);   // (agua de las fuentes)
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos, P.obj.visible && g.mode === 'play' && !this.follow.cinematic);
+    { const W = this.weather; this.nature.luz?.(this.sky, !W || W.kind === 'clear' ? 0 : W.kind === 'niebla' ? 0.5 : Math.min(1, W.k || 0)); }   // (las sombras de las copas)
     updateDetail(this.camera.position, this.detailQ);
     { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)
     this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound, this.sky.floodK(), this.camera.position);   // (en el partido, sin luciérnagas)

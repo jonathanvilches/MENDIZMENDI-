@@ -151,6 +151,8 @@ export class Weather {
     if (kind === 'rain') { this.fx = precip('rain', Math.round(3200 * n)); scene.add(this.fx); }
     if (kind === 'snow') { this.fx = precip('snow', Math.round(4200 * n)); scene.add(this.fx); }
     if (kind === 'niebla') this.shafts = shafts(scene, quality === 'low' ? 5 : 9);
+    // (en un día despejado, unos pocos rayos entre los árboles de alrededor cuando el sol va bajo: despejado, abajo)
+    if (kind === 'clear') this.shafts = shafts(scene, quality === 'low' ? 3 : 6);
     SNOW.value = kind === 'snow' ? 0.55 : 0;   // al llegar ya ha nevado: tejados y prados blancos
     this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#6c757f');
     // la lluvia va a ratos: al llegar llueve, al cabo de un rato escampa y luego vuelve a llover
@@ -161,7 +163,7 @@ export class Weather {
   // mute: en los deportes (partidos, campeonatos y sus menús) no se oyen ni la lluvia ni los truenos
   update(dt, camera, sky, sound, hold = false, mute = hold) {
     if (this.kind === 'niebla') return this.mist(dt, camera, sky, hold);
-    if (this.kind === 'clear') return;
+    if (this.kind === 'clear') return this.despejado(dt, camera, sky, hold);
     this.t += dt;
     // durante un partido no cae nada sobre la cancha (no se ven gotas ni copos y no hay rayos), pero la luz se queda como
     // estaba y no cambia mientras se juega: antes escampaba de golpe al empezar y la luz del pueblo se aclaraba en un
@@ -185,6 +187,47 @@ export class Weather {
     }
     sound?.setRain?.(this.kind === 'rain' && !mute ? this.k : 0, mute);
     if (this.kind === 'rain') this.storm(dt, camera, sky, mute ? null : sound, hold);
+  }
+  // Día despejado: el aire también se ve. Con el sol bajo, a primera hora y al caer la tarde, la calima se espesa y coge
+  // el color del sol, y los montes de lejos se van apagando uno detrás de otro; recién amanecido queda niebla baja en los
+  // prados; y por el borde de las copas de los árboles cercanos bajan rayos de sol, más visibles mirando hacia él. A
+  // mediodía el aire está limpio, casi como antes. En los partidos y a cubierto no cambia nada: la cancha, como estaba.
+  // (arboles: la lista de árboles del pueblo, que pone el motor; sin ella no hay rayos)
+  despejado(dt, camera, sky, hold) {
+    if (!sky) return;
+    this.sky = sky; this.t += dt;
+    if (!this.fogBase) this.fogBase = [sky.fog.near, sky.fog.far];
+    const S = THREE.MathUtils.smoothstep, dia = 1 - sky.night, y = Math.max(0, sky.sunDir.y), libre = hold || sky.indoor || sky.flood ? 0 : 1;
+    const bajo = (1 - S(y, 0.2, 0.85)) * dia * libre;
+    const k = this.calima = (this.calima || 0) + (bajo - (this.calima || 0)) * Math.min(1, dt * 0.5);
+    sky.fog.near = this.fogBase[0] * (1 - 0.62 * k); sky.fog.far = this.fogBase[1] * (1 - 0.2 * dia * libre - 0.36 * k);
+    sky.fog.color.lerp(sky.sun.color, 0.18 * k);
+    const t = sky.time, alba = S(t, 6.0, 6.9) * (1 - S(t, 8.4, 9.8)) * libre;
+    sky.mistDay = 0.2 * alba;
+    // los rayos: cada uno roza la copa de un árbol cercano y cae al suelo junto a él
+    const P = camera.position, sd = sky.sunDir, side = _p, to = _s, T = this.arboles;
+    const fuerza = S(y, 0.08, 0.2) * (1 - S(y, 0.62, 0.88)) * dia * libre;
+    if (!this.shafts?.length) return;
+    if (!T?.length || fuerza < 0.01) { for (const s of this.shafts) s.visible = false; return; }
+    // (los árboles de alrededor, mirado cada dos segundos; y cuánto se mira hacia el sol)
+    if (!this.cerca || this.t > (this.cercaT || 0)) { this.cercaT = this.t + 2; this.cerca = T.filter(a => !a.quitado && Math.abs(a.x - P.x) < 46 && Math.abs(a.z - P.z) < 46 && Math.hypot(a.x - P.x, a.z - P.z) > 7); }
+    camera.getWorldDirection(to); const haciaSol = 0.4 + 0.6 * Math.max(0, to.x * sd.x + to.z * sd.z) / Math.max(0.2, Math.hypot(sd.x, sd.z));
+    for (const s of this.shafts) {
+      const u = s.userData;
+      if (!u.at || Math.hypot(u.at.x - P.x, u.at.z - P.z) > 52 || this.t > u.hasta) {
+        const a = this.cerca.length ? this.cerca[Math.floor(Math.random() * this.cerca.length)] : null;
+        if (!a) { u.at = null; s.visible = false; continue; }
+        const g = Math.random() * 6.28, r = (1.2 + Math.random() * 1.6) * (a.s || 1);
+        u.at = new THREE.Vector3(a.x + Math.cos(g) * r, a.y, a.z + Math.sin(g) * r); u.ph = Math.random() * 6.28; u.hasta = this.t + 14 + Math.random() * 16; u.nace = this.t;
+      }
+      const d = Math.hypot(u.at.x - P.x, u.at.z - P.z), vida = Math.min(1, (this.t - u.nace) / 2.5, (u.hasta - this.t) / 2.5);
+      const o = fuerza * haciaSol * 0.2 * vida * Math.min(1, Math.max(0, (d - 5) / 8)) * Math.min(1, Math.max(0, (52 - d) / 14)) * (0.75 + 0.25 * Math.sin(this.t * 0.4 + u.ph));
+      s.visible = o > 0.004; if (!s.visible) continue;
+      s.material.opacity = o;
+      s.position.copy(u.at).addScaledVector(sd, 13.5);
+      to.subVectors(P, s.position); side.crossVectors(sd, to).normalize(); to.crossVectors(side, sd);
+      _m.makeBasis(side, sd, to); s.quaternion.setFromRotationMatrix(_m);
+    }
   }
   // Bosque: la niebla se espesa monte adentro (y más al amanecer, al atardecer y de noche) con un tono gris verdoso; la
   // niebla baja se arrastra también de día, y entre los árboles bajan rayos de sol donde se abre la copa
