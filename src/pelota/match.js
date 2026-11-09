@@ -1114,9 +1114,13 @@ export class PelotaMatch {
       if (P.speed > 3.0 && deLado) P.corre = true; else if (P.speed < 2.2 || Math.abs(P.vx) < Math.abs(P.vz) * 0.4) P.corre = false;
       if (P.corre) yaw = Math.atan2(P.vx, P.vz);
       else if (S.v > 0.8) yaw = Math.atan2(-S.ox, -S.oz);   // (yendo a su sitio para el saque, mira hacia donde va)
-      if ((g.phase === 'point' && (P.act === 'cheer')) || this.entra?.ok[who]) yaw = Math.atan2(this.camPos.x - side.obj.position.x, this.camPos.z - side.obj.position.z) - grp.rotation.y;   // (y al saludar en la salida)
+      // (al saludar en la salida, de cara a la cámara. El que gana el tanto celebra de cara a la grada, sin más: antes se
+      // giraba para mirar a la cámara, que estaba a su espalda y luego cambiaba de plano, y daba media vuelta sobre sí mismo
+      // en cada tanto, y en el último, con la cámara dando la vuelta, no paraba de girar)
+      if (this.entra?.ok[who]) yaw = Math.atan2(this.camPos.x - side.obj.position.x, this.camPos.z - side.obj.position.z) - grp.rotation.y;
+      else if (g.phase === 'point' && P.act === 'cheer') yaw = Math.atan2(1, -0.4);
       // (y el giro, sin latigazos: como mucho 7 rad/s, que es lo que gira alguien al arrancar a correr)
-      { const dYaw = Math.atan2(Math.sin(yaw - (P.yaw ?? yaw)), Math.cos(yaw - (P.yaw ?? yaw))) * (1 - Math.exp(-12 * dt)); P.yaw = P.yaw == null ? yaw : P.yaw + Math.max(-7 * dt, Math.min(7 * dt, dYaw)); }
+      { const dYaw = Math.atan2(Math.sin(yaw - (P.yaw ?? yaw)), Math.cos(yaw - (P.yaw ?? yaw))) * (1 - Math.exp(-12 * dt)); const tope = (g.phase === 'point' ? 3 : 7) * dt; P.yaw = P.yaw == null ? yaw : P.yaw + Math.max(-tope, Math.min(tope, dYaw)); }   // (entre tanto y tanto, con calma)
       side.obj.rotation.y = grp.rotation.y + P.yaw + (this.o.yawOffset || 0);
       const swingAge = this.t - (this.lastSwing[who] || -9);
       // preparación del golpe: cuando la pelota viene hacia quien le toca, echa el brazo atrás (más cuanto más cerca)

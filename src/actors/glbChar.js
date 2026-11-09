@@ -425,6 +425,12 @@ export class GlbChar {
       this.play(want);
       if (this.current) this.current.timeScale = scale;
     }
+    // lo que el ajuste de después (post: el armado del brazo, el encorvado del cansancio, la postura al volante) dejó en los
+    // huesos en la imagen anterior, se deshace antes de animar: el mixer solo escribe un hueso cuando su valor cambia de
+    // una imagen a otra, así que en un hueso que el clip tiene quieto el ajuste se sumaba imagen tras imagen. Un pelotari
+    // cansado, parado o celebrando, acababa con el tronco dando vueltas sobre sí mismo, más deprisa cuanto más cansado
+    const A = this._antesPost;
+    if (A?.vale) { for (let i = 0; i < A.b.length; i++) { A.b[i].quaternion.copy(A.q[i]); A.b[i].position.copy(A.p[i]); } A.vale = false; }
     // los huesos que se tocan después del mixer vuelven a su base (un clip puede no animarlos)
     for (const b of this.postBones) b.quaternion.copy(b.userData.q0);
     this.mixer.update(dt);
@@ -465,7 +471,14 @@ export class GlbChar {
     // la cabeza se adelanta a los giros (mira hacia donde va a torcer)
     if (this.headBone && Math.abs(this.headYaw) > 1e-3) { _q.setFromAxisAngle(_Y, this.headYaw); this.headBone.quaternion.multiply(_q); }
     for (const b of this.eyeBones) { _q.setFromEuler(_e.set(-this.look.y * 0.18, 0, this.look.x * 0.22)); b.quaternion.multiply(_q); }
-    this.post?.(this, dt);   // ajustes encima de la animación (p. ej. el brazo de golpear en la pelota)
+    if (this.post) {
+      // (cómo quedan los huesos antes del ajuste, para deshacerlo en la imagen siguiente)
+      let A = this._antesPost;
+      if (!A) { const bs = []; this.root.traverse(o => { if (o.isBone) bs.push(o); }); A = this._antesPost = { b: bs, q: bs.map(o => o.quaternion.clone()), p: bs.map(o => o.position.clone()), vale: false }; }
+      for (let i = 0; i < A.b.length; i++) { A.q[i].copy(A.b[i].quaternion); A.p[i].copy(A.b[i].position); }
+      A.vale = true;
+      this.post(this, dt);   // ajustes encima de la animación (p. ej. el brazo de golpear en la pelota)
+    }
     this._updateSprings(dt);
   }
 
