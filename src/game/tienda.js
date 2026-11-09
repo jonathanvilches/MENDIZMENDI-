@@ -4,9 +4,9 @@ import { tr } from '../i18n.js';
 // productos del campo y de la ganadería (leche, lana, huevos, trigo, patatas, maíz) por la comida que haga falta.
 import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
-import { addBox } from '../world/colliders.js';
-import { groundHeight } from '../world/heightfield.js';
-import { PLACES, pathQuery } from '../world/layout.js';
+import { addBox, isFree } from '../world/colliders.js';
+import { groundHeight, onPlatform, waterLevelAt } from '../world/heightfield.js';
+import { PLACES, pathQuery, plazaMask, MOD } from '../world/layout.js';
 import { profile, saveProfile } from './profile.js';
 import { FOOD } from '../data/equipo.js';
 import { GOODS, STOCK, STAR, SHOPKEEPERS } from '../data/tiendas.js';
@@ -30,17 +30,64 @@ function signTex(town) {
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
 }
 
+/** El sitio del puesto: { x, z, ry } con ry hacia donde mira el mostrador (la gente). */
+function sitioTienda(game) {
+  const taken = game._taken ||= [];
+  const libre = (x, z) => {
+    if (!isFree(x, z, 2.1) || onPlatform(x, z, 1.8)) return false;
+    for (let i = 0; i < taken.length; i += 3) { const g = Math.max(3.4, taken[i + 2]); if (Math.abs(taken[i] - x) < g && Math.abs(taken[i + 1] - z) < g) return false; }
+    if (waterLevelAt(x, z) > groundHeight(x, z) - 0.05) return false;
+    const g0 = groundHeight(x, z); for (const [dx, dz] of [[1.6, 0], [-1.6, 0], [0, 1.6], [0, -1.6]]) if (Math.abs(groundHeight(x + dx, z + dz) - g0) > 0.35) return false;
+    return true;
+  };
+  // (delante, sitio para quien compra y que sea calle o plaza; detrás, para quien atiende)
+  const publico = (x, z) => { const q = pathQuery(x, z); return plazaMask(x, z) > 0.5 || (q.w >= 1 && q.d < q.w + 0.4); };
+  const vale = (x, z, ry) => {
+    const ox = Math.sin(ry), oz = Math.cos(ry);
+    return libre(x, z) && isFree(x + ox * 2.6, z + oz * 2.6, 0.9) && publico(x + ox * 2.6, z + oz * 2.6) && isFree(x - ox * 1.2, z - oz * 1.2, 0.45);
+  };
+  const P0 = PLACES.plaza, C = [];
+  // en la plaza: a 2,6 m de su borde, con el mostrador hacia dentro
+  const polis = MOD?.real?.plazas?.length ? MOD.real.plazas.map(p => p.pts) : [Array.from({ length: 24 }, (_, i) => [P0.x + Math.cos(i / 24 * 6.283) * P0.r, P0.z + Math.sin(i / 24 * 6.283) * P0.r])];
+  for (const P of polis) {
+    let area = 0; for (let i = 0; i < P.length; i++) { const a = P[i], b = P[(i + 1) % P.length]; area += a[0] * b[1] - b[0] * a[1]; }
+    if (Math.abs(area) / 2 < 120) continue;
+    const sg = Math.sign(area);
+    for (let i = 0; i < P.length; i++) {
+      const a = P[i], b = P[(i + 1) % P.length], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (L < 3.5) continue;
+      const tx = (b[0] - a[0]) / L, tz = (b[1] - a[1]) / L, nx = -tz * sg, nz = tx * sg;
+      for (let t = 1.8; t < L - 1.8; t += 2) {
+        const x = a[0] + tx * t + nx * 2.6, z = a[1] + tz * t + nz * 2.6;
+        C.push({ x, z, ry: Math.atan2(nx, nz), k: Math.hypot(x - P0.x, z - P0.z) * 0.05 });
+      }
+    }
+  }
+  // al borde de una calle cerca de la plaza, de cara a la calle
+  for (let gz = -70; gz <= 70; gz += 2) for (let gx = -70; gx <= 70; gx += 2) {
+    const x = P0.x + gx, z = P0.z + gz, q = pathQuery(x, z);
+    if (q.w < 1.2 || q.type === 'trail' || q.d < q.w + 1.3 || q.d > q.w + 2.3) continue;
+    const ddx = pathQuery(x + 0.5, z).d - pathQuery(x - 0.5, z).d, ddz = pathQuery(x, z + 0.5).d - pathQuery(x, z - 0.5).d;
+    if (Math.hypot(ddx, ddz) < 0.5) continue;
+    C.push({ x, z, ry: Math.atan2(-ddx, -ddz), k: 10 + Math.hypot(gx, gz) * 0.12 });
+  }
+  C.sort((a, b) => a.k - b.k);
+  const s = C.find(c => vale(c.x, c.z, c.ry));
+  if (s) { taken.push(s.x, s.z, 3.4); return s; }
+  // (si no hay nada así, como antes, pero mirando a la calle más cercana)
+  const base = PLACES.market || P0, o = game.spot(base, 9, true, 3.2, (x, z) => { const q = pathQuery(x, z); return q.d > q.w + 1.8; });
+  return { x: o.x, z: o.z, ry: Math.atan2(P0.x - o.x, P0.z - o.z) || 0 };
+}
+
 export class Tienda {
   constructor(game) {
     this.g = game; const d = game.def;
     this.star = STAR[d.comarca] || STAR.pamplona;
     const P = profile(); P.coins ??= 12; P.bag ||= { agua: 0, food: {} }; P.bag.goods ||= {};
-    // sitio: junto al mercado o la plaza, en un hueco libre y llano
-    // (el puesto mide más de 3 m: se aparta de los demás sitios y se pone al borde de la calle, no en medio)
-    const base = PLACES.market || PLACES.plaza, s = game.spot(base, 9, true, 3.2, (x, z) => { const q = pathQuery(x, z); return q.d > q.w + 1.8; });
-    this.pos = { x: s.x, z: s.z }; this.y = groundHeight(s.x, s.z);
-    const toPlaza = Math.atan2(PLACES.plaza.x - s.x, PLACES.plaza.z - s.z);
-    this.ry = Math.abs(Math.hypot(PLACES.plaza.x - s.x, PLACES.plaza.z - s.z)) > 1 ? toPlaza : 0;
+    // sitio: en la plaza, a un par de metros de su borde y de cara al centro; si no cabe, al borde de una calle cerca de
+    // la plaza y de cara a ella. (Antes valía cualquier hueco libre cerca del mercado y lejos de las calles: acababa en
+    // un patio detrás de las casas, contra una tapia, mirando a la pared)
+    const s = sitioTienda(game);
+    this.pos = { x: s.x, z: s.z }; this.y = groundHeight(s.x, s.z); this.ry = s.ry;
     this.build();
     // quien atiende, con el traje de su comarca
     const female = (d.id.length % 2) === 0, name = SHOPKEEPERS[d.id.length % SHOPKEEPERS.length];
