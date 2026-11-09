@@ -1027,7 +1027,10 @@ export class PelotaMatch {
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)
-  swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who]; if (e && P) (this.golpeDe ||= {})[who] = golpeDe(P, e.x, e.y, e.z);
+  // (y dos golpes con su figura propia: el gancho, con el codo doblado y de arriba abajo, y la volea a media altura, corta y
+  // seca. Antes se veían como un golpe de aire o una derecha cualquiera)
+  swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who];
+    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^Hit/.test(g)) g = 'Volea' + iz; (this.golpeDe ||= {})[who] = g; }
     // (dónde se golpea la pelota, en el mundo: la mano del pelotari va justo ahí; glbChar.js, armSwing)
     if (e && Number.isFinite(e.x)) (this.golpeEn ||= {})[who] = { w: this.court.group.localToWorld(new this.T.Vector3(e.x, e.y, e.z)), t: this.t };
     if (who === 'you' && this.camGolpe && this.t - this.camGolpe.t < 0.8) this.golpeDe.you = this.camGolpe.golpe; }   // (con la cámara, el golpe que das tú: tu mano y tu altura)
