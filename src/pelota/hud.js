@@ -342,7 +342,7 @@ const CSS = `
 .pm-hoja .pm-op{padding-left:12px;letter-spacing:.08em;text-transform:uppercase}
 .pm-hoja .pb-desc[hidden]{display:none}.pm-hoja .pb-desc b{margin-left:auto;display:grid;place-items:center;min-width:24px;height:24px;padding:0 6px;border-radius:999px;background:rgba(255,255,255,.14)}
 .pm-hoja .pb-desc b:empty{display:none}.pm-hoja .pb-desc.pedido{border-color:#ff7ac8;background:rgba(120,20,90,.75)}.pm-hoja .pb-desc.ahora{border-color:#7ff0b0;background:rgba(20,90,60,.8)}
-.pm-hoja .pm-fichas[hidden]{display:none}
+.pm-hoja .pm-fichas[hidden],.pm-hoja .pm-vista[hidden]{display:none}
 .pm-hoja .pm-salir{margin-top:4px;border-color:rgba(255,122,200,.45);background:rgba(255,43,214,.12)}
 .pel-menu.llama .pm-btn{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{box-shadow:0 0 0 2px #ff7ac8,0 0 18px rgba(255,43,214,.6)}}
 @media (prefers-reduced-motion:reduce){.pel-menu.llama .pm-btn{animation:none;box-shadow:0 0 0 2px #ff7ac8}}
@@ -371,6 +371,7 @@ export class PelotaHud {
       </div><div class="pel-menu"><button type="button" class="pm-btn" aria-haspopup="true" aria-expanded="false" aria-label="${txt.menu || 'Menú'}">${PAUSA}<i class="pm-n"></i></button><div class="pm-hoja" role="menu">
         <div class="pm-bolas" hidden><span class="pm-t pb-pista"></span><div class="pb-lista"></div></div>
         <button type="button" class="pb-desc pm-op" hidden><span></span><b></b></button>
+        <button type="button" class="pm-vista pm-op" hidden aria-pressed="false">${txt.vistaFP || 'Primera persona'}${touch ? '' : '<small>V</small>'}</button>
         <button type="button" class="pm-fichas pm-op" hidden>${txt.fichas || 'Fichas'}</button>
         <button type="button" class="pm-salir pm-op">${X_ICON}<span>${txt.salirPartido || txt.exit}</span></button>
       </div></div></div>
@@ -398,6 +399,7 @@ export class PelotaHud {
       if (b.classList.contains('pm-btn')) return abre(!m.classList.contains('on'));
       if (b.classList.contains('pb-desc')) { abre(false); this.onDescanso?.(); return; }
       if (b.classList.contains('pm-fichas')) { abre(false); this.onFichas?.(); return; }
+      if (b.classList.contains('pm-vista')) { abre(false); this.onVista?.(); return; }
       if (b.classList.contains('pm-salir')) { abre(false); this.onSalir?.(); return; }
       if (b.dataset.bola != null) { this.onBola?.(+b.dataset.bola); abre(false); }
     });
@@ -405,6 +407,8 @@ export class PelotaHud {
     addEventListener('pointerdown', this.fueraMenu, true);
     this.cierraBolas = () => abre(false);
   }
+  /** La vista en primera persona, en el menú (solo en la pelota en casa): on, si sale; fp, si está puesta */
+  vista(on, fp) { const b = this.menuEl.querySelector('.pm-vista'); if (!b) return; b.hidden = !on; b.setAttribute('aria-pressed', String(!!fp)); }
   /** Las fichas de los pelotaris, en el menú (no en el peloteo de entrenar) */
   fichas(on) { const b = this.menuEl.querySelector('.pm-fichas'); if (b) b.hidden = !on; }
   // la energía de cada lado, en el marcador, bajo su nombre: una sola barra. Filas { id, name, en (0 a 1), side ('you'|

@@ -6,6 +6,7 @@ import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
 import { openFicha, playerChip, splitName } from './ficha.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
+import { PrimeraPersona } from './primeraPersona.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { Focos } from './show.js';
@@ -75,6 +76,11 @@ export class PelotaMatch {
     // botones, que aquí no hacen falta. La cámara se pide al pulsar «Jugar»
     this.conCamara = !!o.camara;
     if (this.conCamara) { this.hud.root.classList.add('con-camara'); this.conConsejos = false; }
+    // y, con la cámara, la vista en primera persona (pelota/primeraPersona.js): en tus ojos, con los brazos de tu pelotari
+    // delante haciendo lo que hacen los tuyos. Se cambia en el menú o con la V; se recuerda la de la última vez
+    try { this.vistaFP = this.conCamara && localStorage.getItem('herrizherri-pelota-vista') !== 'tele'; } catch (e) { this.vistaFP = this.conCamara; }
+    this.hud.vista(this.conCamara, this.vistaFP);
+    this.hud.onVista = () => this.cambiaVista();
     this.camPos = new this.T.Vector3(); this.camLook = new this.T.Vector3(); this.camInit = false;
     this.fov0 = this.cam.fov; this.roll = 0; this.kick = 0;
     this.court.group.updateMatrixWorld(true);
@@ -692,7 +698,7 @@ export class PelotaMatch {
     const I = this.input, hud = this.hud;
     this.onKey = (e) => {
       const k = e.key.toLowerCase(), down = e.type === 'keydown';
-      const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'e', 'b', 'r', 'escape', 'enter'];
+      const mine = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', ' ', 'shift', 'j', 'k', 'l', 'e', 'b', 'r', 'v', 'escape', 'enter'];
       if (!mine.includes(k)) return;
       // (soltar vale siempre: entre tanto y tanto, con una ventana abierta o con el partido parado; antes se perdía y la
       // palanca o la tecla se quedaban pulsadas al volver, hacia la izquierda, sin dejar mover)
@@ -707,6 +713,7 @@ export class PelotaMatch {
       if (down && !I.keys[k]) {
         if (k === 'b') this.cambiaBola();   // (antes de sacar: la siguiente pelota de las tuyas)
         if (k === 'r') this.pideDescanso();   // (el descanso)
+        if (k === 'v' && this.conCamara) this.cambiaVista();   // (la vista: en primera persona o la de la tele)
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
         if (k === 'shift' || k === 'k') this.chargeStart('drop');
         if (k === 'l') this.chargeStart('cut');
@@ -903,7 +910,7 @@ export class PelotaMatch {
     if (!this.active) return false;
     dt = Math.min(dt, 0.05); this.t += dt;
     this.vigia(dt);
-    if (this.replay) { this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
+    if (this.replay) { if (this.fp?.on) this.camaraFP(dt, this.court.group, this.court); this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
     if (this.show && !this.show.step(dt, this.showP, (k) => this.showCall?.(k))) this.showFin?.();
     this.chapa?.update(dt);   // (la chapa del sorteo)
     if (this.repAt && this.t >= this.repAt && !this.paused && !this.hud.panelEl) { this.repAt = 0; this.startReplay(); if (this.replay) return this.active; }
@@ -1003,9 +1010,11 @@ export class PelotaMatch {
     else C.showBall(g.ball.p, h && h.hittable ? 0.6 + 0.4 * Math.sin(this.t * 14) : 0);
     // aros de ayuda
     const assist = g.lvl.assist > 0 || g.mode === 'rally';
-    C.landRing.visible = !!(h && h.yourTurn && h.land);
+    // (en primera persona, tampoco el aro del bote: muy cerca de ti se ve enorme y tapa la cancha)
+    C.landRing.visible = !!(h && h.yourTurn && h.land) && !this.fp?.on;
     if (C.landRing.visible) { C.landRing.position.set(h.land.x, 0.02, h.land.z); C.landRing.scale.setScalar(1 + 0.12 * Math.sin(this.t * 8)); }
-    C.spotRing.visible = !!(assist && h && h.yourTurn && h.spot);
+    // (en primera persona, no: queda bajo tus pies y tapa media imagen)
+    C.spotRing.visible = !!(assist && h && h.yourTurn && h.spot) && !this.fp?.on;
     if (C.spotRing.visible) {
       C.spotRing.position.set(h.spot.x, 0.025, h.spot.z);
       const you = g.players.you, inside = Math.hypot(you.x - h.spot.x, you.z - h.spot.z) < 0.8;
@@ -1117,6 +1126,9 @@ export class PelotaMatch {
     } else if (this.pin) this.pin.visible = false;
     // (durante la llegada, la cámara es la del vuelo; si pasa por detrás del rebote, el rebote se deja ver a través)
     if (this.flying) { const lc = grp.worldToLocal(this.v3.copy(this.cam.position)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 0.3 && lc.z < COURT.REBOTE + 12 && lc.y < COURT.REBOTE_H + 3 && Math.abs(lc.x) < 14, dt); return; }
+    // en primera persona (con la cámara): mientras se juega, en tus ojos; en los cortes del tanto, la llegada, el sorteo, la
+    // presentación y las repeticiones, la de siempre
+    if (this.camaraFP(dt, grp, C)) return;
     // cámara detrás del jugador, mirando al frontis
     const you = g.players.you, portrait = innerWidth < innerHeight;
     // en vertical (móvil) algo más cerca que antes: los pelotaris se ven más grandes y con su detalle
@@ -1202,6 +1214,42 @@ export class PelotaMatch {
     const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
+  // la vista en primera persona: true si está puesta ahora (y entonces la cámara ya está colocada)
+  camaraFP(dt, grp, C) {
+    const g = this.game, yo = this.o.you?.obj;
+    const ok = this.conCamara && this.vistaFP && this.active && !this.replay && !this.tour && !this.show && !this.tossCam && !this.entra?.go && !this.flying && ['rally', 'serveWait', 'servePrep'].includes(g?.phase);
+    const sb = this.o.you?.sombra;
+    if (!ok) { if (this.fp?.on) { this.fp.apaga(); if (yo) yo.visible = true; if (sb && this.sombraVis != null) sb.visible = this.sombraVis; this.camInit = false; } return false; }
+    const T = this.T;
+    if (!this.fp) this.fp = new PrimeraPersona(T, this.cam, { camiseta: this.cols.you === 'rojo' ? '#c62a3f' : '#2f52c4' });
+    if (!this.fp.on) { this.ojoH ??= this.altoOjos(yo); this.fp.enciende(grp.parent || grp); if (yo) yo.visible = false; if (sb) { this.sombraVis = sb.visible; sb.visible = false; } }
+    const you = g.players.you, B = g.ball.p, portrait = innerWidth < innerHeight;
+    // los ojos: donde está tu pelotari, a su altura, con un vaivén leve al correr
+    const bob = Math.sin(this.t * 11) * Math.min(1, (you.speed || 0) / 5) * 0.025;
+    const ojo = grp.localToWorld(new T.Vector3(you.x, this.ojoH + bob, you.z));
+    // hacia dónde: al frontis; si la pelota viene por delante, a medias hacia ella (de lado y de alto)
+    const delante = g.phase === 'rally' && Number.isFinite(B.z) && B.z < you.z - 1.2;
+    const tx = delante ? you.x * 0.35 + B.x * 0.5 : you.x * 0.4, ty = delante ? Math.max(0.7, Math.min(5, 1.6 + (B.y - 1.6) * 0.5)) : 1.8, tz = delante ? Math.max(-2, Math.min(B.z, you.z - 6)) : 0;
+    const mira = grp.localToWorld(new T.Vector3(tx, ty, tz));
+    this.fp.update(dt, { ojo, mira, cuerpo: this.cuerpo, st: this.recSt?.you, fov: portrait ? 78 : 64 });
+    this.camPos.copy(this.cam.position); this.camLook.copy(mira);
+    C.reboteSeeThrough?.(false, dt);
+    return true;
+  }
+  // a qué altura tiene los ojos tu pelotari (por el hueso de la cabeza; si no se encuentra, la de una persona)
+  altoOjos(yo) {
+    let h = 1.6;
+    try {
+      let cab = null; yo?.updateMatrixWorld(true); yo?.traverse(o => { if (!cab && o.isBone && /head/i.test(o.name)) cab = o; });
+      if (cab) { const p = cab.getWorldPosition(new this.T.Vector3()), y0 = yo.getWorldPosition(new this.T.Vector3()).y; h = Math.max(1.35, Math.min(1.85, p.y - y0 + 0.06)); }
+    } catch (e) { /* la de una persona */ }
+    return h;
+  }
+  cambiaVista() {
+    this.vistaFP = !this.vistaFP; this.camInit = false;
+    try { localStorage.setItem('herrizherri-pelota-vista', this.vistaFP ? 'fp' : 'tele'); } catch (e) { /* sin guardar */ }
+    this.hud.vista(this.conCamara, this.vistaFP);
+  }
   destroy() {
     this.showFin?.();
     if (!this.active) return;
@@ -1215,6 +1263,7 @@ export class PelotaMatch {
     if (this.tourHi) { for (const m of this.tourHi) { m.parent?.remove(m); m.geometry.dispose(); m.children[0]?.geometry.dispose(); } this.tourMat.dispose(); this.tourLine.dispose(); this.tourHi = null; }
     this.court.reboteSeeThrough?.(false, 1);
     for (const r of [this.court.landRing, this.court.spotRing, this.court.serveZone]) r.visible = false;
+    if (this.fp) { this.fp.dispose(); this.fp = null; if (this.o.you?.obj) this.o.you.obj.visible = true; if (this.o.you?.sombra && this.sombraVis != null) this.o.you.sombra.visible = this.sombraVis; }
     if (this.cam.fov !== this.fov0) { this.cam.fov = this.fov0; this.cam.updateProjectionMatrix(); }
   }
 }

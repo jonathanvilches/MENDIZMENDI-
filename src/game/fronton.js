@@ -522,7 +522,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
-      you: { obj: P.obj, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },
+      you: { obj: P.obj, sombra: P.blob, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },   // (sombra: la redonda de los móviles, que en primera persona se esconde)
       rival: { obj: rival.obj, name: rivName, animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       // (el sonido del juego, ya desbloqueado con el primer toque: en el iPhone, uno nuevo creado sin tocar la pantalla
