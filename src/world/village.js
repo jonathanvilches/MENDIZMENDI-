@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { TOWN } from './townBuilder.js';
 import { Builder, box, gable, archRing, archPanel, M, MM, uvFit, cyl } from './builder.js';
 import { buildHouse } from './houses.js';
+import { tarjeta, mata, CELDAS } from './flores.js';
 import { fachadaLejana } from './townReal.js';
 import { belfryBell, towerClock, eaveCorbels } from './monuments.js';
 import { PATHS, PLACES, BRIDGES, rx, riverInfo, riverHalfA, pathQuery, villageMask, CONF } from './layout.js';
@@ -478,6 +479,22 @@ export function lamp(B, x, z) {
   B.add('iron', new THREE.CylinderGeometry(0.05, 0.07, 2.6, 8), M(x, y + 2.0, z));
   B.add('iron', new THREE.CylinderGeometry(0.085, 0.085, 0.06, 8), M(x, y + 1.2, z));
   B.add('iron', new THREE.CylinderGeometry(0.13, 0.055, 0.2, 8), M(x, y + 3.36, z));
+  // (en una de cada dos, el travesaño de forja con sus volutas y dos cestos de geranios colgando, como en las plazas y las
+  // calles mayores de los pueblos navarros: de un color en cada farola. El travesaño, a lo largo de la calle o como caiga)
+  const nL = VILLAGE.lamps.length;
+  if (nL % 2 === 0) {
+    const ryT = (nL * 0.9) % Math.PI, Tt = M(x, y, z, ryT), Ft = (m) => MM(Tt, m), flor = [CELDAS.rojo, CELDAS.rosa, CELDAS.lila, CELDAS.rojo, CELDAS.naranja][(nL >> 1) % 5];
+    B.add('iron', box(0.96, 0.035, 0.035), Ft(M(0, 2.86, 0)));
+    for (const sx of [-1, 1]) {
+      B.add('iron', tuboPor([_v3(sx * 0.07, 2.62, 0), _v3(sx * 0.2, 2.7, 0), _v3(sx * 0.32, 2.84, 0)], 0.012, 6), Tt);   // (la tornapunta curva)
+      B.add('iron', new THREE.SphereGeometry(0.03, 6, 4), Ft(M(sx * 0.48, 2.86, 0)));
+      B.add('iron', box(0.012, 0.2, 0.012), Ft(M(sx * 0.4, 2.75, 0)));   // (la cadena)
+      B.add('woodDark', new THREE.SphereGeometry(0.15, 8, 4, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), Ft(M(sx * 0.4, 2.65, 0)));   // (el cesto, media esfera)
+      B.add('flor', mata(0.5, 0.4, flor), Ft(M(sx * 0.4, 2.6, 0, sx > 0 ? 0.5 : 2.1)));
+      B.add('flor', tarjeta(0.4, 0.34, CELDAS.cuelga, true), Ft(M(sx * 0.4, 2.62, 0.1)));
+      B.add('flor', tarjeta(0.4, 0.34, CELDAS.cuelga, true), Ft(M(sx * 0.4, 2.62, -0.1, Math.PI)));
+    }
+  }
   farol(B, T, 3.7);
   addCircle(x, z, 0.25);
   VILLAGE.lamps.push({ x, y: y + 3.65, z });
