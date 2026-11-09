@@ -966,6 +966,7 @@ export class PelotaMatch {
           if (rotulo && e.q > 0.3) this.hud.golpe(rotulo, this.cols[g.side(e.who)]);
           // (y en los que deciden, la cámara se mete un poco más en la jugada)
           if (this.golpazo && this.camDyn && e.q > 0.3) this.kick = Math.max(this.kick || 0, e.who === 'you' ? 0.5 : 0.35); }
+        if (this.fp?.on) { if (e.who === 'you') this.fp.golpe(pw); else this.fp.impacto(0.35); }   // (en primera persona)
         this.swingAnim(e.who, e); break;
       }
       case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
@@ -977,7 +978,7 @@ export class PelotaMatch {
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       // (la chapa: su destello, sin sacudir la cámara ni sonar: el «¡clonc!» del fallo no gustaba; el fallo se oye en los
       // aplausos)
-      case 'front': if (e.chapa) C.chapaT = 0.6; else if (!this.callada) A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); break;
+      case 'front': if (e.chapa) C.chapaT = 0.6; else if (!this.callada) A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); if (this.fp?.on) this.fp.impacto(Math.max(0, 1 - (g.players.you.z || 20) / 28) * 0.5); break;
       case 'wall': if (!this.callada) A.wall(); break;
       case 'back': if (!this.callada) A.wall(); if (e.live) this.hud.golpe((t.shots || TEXT.es.shots).rebote, this.cols[g.side(g.rally?.by || 'you')]); break;   // el rebote: la pared de atrás, en el rótulo de quien la mandó
       case 'floor': if (!this.callada) A.floor(e.soft ? 0.5 : 0.8); break;
@@ -1219,19 +1220,36 @@ export class PelotaMatch {
     const g = this.game, yo = this.o.you?.obj;
     const ok = this.conCamara && this.vistaFP && this.active && !this.replay && !this.tour && !this.show && !this.tossCam && !this.entra?.go && !this.flying && ['rally', 'serveWait', 'servePrep'].includes(g?.phase);
     const sb = this.o.you?.sombra;
-    if (!ok) { if (this.fp?.on) { this.fp.apaga(); if (yo) yo.visible = true; if (sb && this.sombraVis != null) sb.visible = this.sombraVis; this.camInit = false; } return false; }
+    if (!ok) { if (this.fp?.on) { this.fp.apaga(); if (yo) yo.visible = true; if (sb && this.sombraVis != null) sb.visible = this.sombraVis; C.ball.scale.setScalar(1); this.camInit = false; } return false; }
     const T = this.T;
-    if (!this.fp) this.fp = new PrimeraPersona(T, this.cam, { camiseta: this.cols.you === 'rojo' ? '#c62a3f' : '#2f52c4' });
+    // (los brazos, los de tu pelotari: se copia de él; la camiseta, solo si no tiene esqueleto y hay que hacerle unos)
+    if (!this.fp) this.fp = new PrimeraPersona(T, this.cam, { camiseta: this.cols.you === 'rojo' ? '#c62a3f' : '#2f52c4', avatar: yo });
     if (!this.fp.on) { this.ojoH ??= this.altoOjos(yo); this.fp.enciende(grp.parent || grp); if (yo) yo.visible = false; if (sb) { this.sombraVis = sb.visible; sb.visible = false; } }
-    const you = g.players.you, B = g.ball.p, portrait = innerWidth < innerHeight;
-    // los ojos: donde está tu pelotari, a su altura, con un vaivén leve al correr
-    const bob = Math.sin(this.t * 11) * Math.min(1, (you.speed || 0) / 5) * 0.025;
-    const ojo = grp.localToWorld(new T.Vector3(you.x, this.ojoH + bob, you.z));
-    // hacia dónde: al frontis; si la pelota viene por delante, a medias hacia ella (de lado y de alto)
-    const delante = g.phase === 'rally' && Number.isFinite(B.z) && B.z < you.z - 1.2;
-    const tx = delante ? you.x * 0.35 + B.x * 0.5 : you.x * 0.4, ty = delante ? Math.max(0.7, Math.min(5, 1.6 + (B.y - 1.6) * 0.5)) : 1.8, tz = delante ? Math.max(-2, Math.min(B.z, you.z - 6)) : 0;
+    const you = g.players.you, B = g.ball.p, BV = g.ball.v || {}, portrait = innerWidth < innerHeight, W2 = COURT.W / 2;
+    // los ojos: donde está tu pelotari, a su altura (el paso y la inclinación los pone primeraPersona.js)
+    const ojo = grp.localToWorld(new T.Vector3(you.x, this.ojoH, you.z));
+    // adónde mira: a la pelota, adelantándose un poco a su vuelo, mientras viene por delante o va al frontis; muy cerca, a
+    // medias con el frontis (si no, la mirada daría un latigazo al pasar la pelota junto a ti). Si se va detrás de ti, al
+    // rebote, al frontis, girado hacia su lado. Al sacar, al frontis
+    let tx = you.x * 0.3, ty = 1.6, tz = 0;
+    if (g.phase === 'rally' && Number.isFinite(B.z)) {
+      const bx = B.x + (BV.x || 0) * 0.07, by = B.y + (BV.y || 0) * 0.07, bz = B.z + (BV.z || 0) * 0.07;
+      if (bz < you.z - 0.3) {
+        const dist = Math.hypot(bx - you.x, by - this.ojoH, bz - you.z), w = 0.35 + 0.6 * Math.max(0, Math.min(1, (dist - 1.2) / 2.5));
+        const fx = you.x * 0.3, fy = 1.4, fz = Math.min(you.z - 8, 4);
+        tx = fx + (bx - fx) * w; ty = fy + (by - fy) * w; tz = fz + (bz - fz) * w;
+      } else { tx = Math.max(-W2, Math.min(W2, bx)) * 0.9; ty = 1.5; tz = you.z - 7; }
+    }
     const mira = grp.localToWorld(new T.Vector3(tx, ty, tz));
-    this.fp.update(dt, { ojo, mira, cuerpo: this.cuerpo, st: this.recSt?.you, fov: portrait ? 78 : 64 });
+    // lo deprisa que vas y lo que vas de lado: para el paso, la inclinación y lo que se abre la vista
+    const vel = Math.hypot(you.vx || 0, you.vz || 0) || you.speed || 0, lado = Math.max(-1, Math.min(1, (you.vx || 0) / 6));
+    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: portrait ? 80 : 66 });
+    // al sacar tú, la pelota en tu mano (la de la vista; si no, flotaba donde estaría la mano del pelotari entero)
+    if ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you' && Math.hypot(B.x - you.x, B.z - you.z) < 1.6 && B.y < 2.2) {
+      const m = this.fp.mano('R', new T.Vector3()); if (m) { C.ball.position.copy(grp.worldToLocal(m)); C.shadow.position.set(C.ball.position.x, 0.012, C.ball.position.z); }
+    }
+    // (la pelota se dibuja algo más grande que de verdad para que se vea en la cancha; pegada a los ojos, a su tamaño)
+    { const dc = this.cam.position.distanceTo(C.ball.getWorldPosition(this.v3)); C.ball.scale.setScalar(Math.max(0.4, Math.min(1, dc / 1.4))); }
     this.camPos.copy(this.cam.position); this.camLook.copy(mira);
     C.reboteSeeThrough?.(false, dt);
     return true;
