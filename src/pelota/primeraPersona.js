@@ -98,7 +98,7 @@ export class PrimeraPersona {
   /** dónde está la mano de un lado (R, L), en el mundo: para poner ahí la pelota al sacar */
   mano(lado, out) {
     const B = this.brazos[lado];
-    if (B.W.z > -0.06) return null;   // (la mano atrás, junto a la cara, no se ve: la pelota, donde la ponga el juego)
+    if (B.W.z > -0.06 || (this.c.vis || 0) < 0.6) return null;   // (la mano atrás, junto a la cara, no se ve: la pelota, donde la ponga el juego)
     if (this.suyo) { B.hueso.h.getWorldPosition(out); return out.add(this.v.h.copy(B.W).sub(B.E).normalize().transformDirection(this.group.matrixWorld).multiplyScalar(B.lenF * 0.45)); }
     return this.group.localToWorld(out.copy(B.W).add(this.v.h.copy(B.W).sub(B.E).setLength(0.06)));
   }
@@ -136,7 +136,7 @@ export class PrimeraPersona {
 
   enciende(scene) {
     if (!this.group.parent && scene) scene.add(this.group);
-    this.on = true; this.group.visible = true; this.c.ini = false;
+    this.on = true; this.group.visible = false; this.c.ini = false; this.c.vis = 0; this.c.ver = 0;
     this.near0 = this.cam.near; this.cam.near = 0.06; this.cam.updateProjectionMatrix();
   }
   apaga() {
@@ -156,7 +156,7 @@ export class PrimeraPersona {
 
   /** Cada imagen: ojo (dónde están tus ojos, en el mundo), mira (adónde mirar), vel (lo deprisa que te mueves, m/s), lado
    *  (lo que te mueves de lado, -1 a 1), fov (el de base), cuerpo (camaraCuerpo.js o null) y st (el estado de tu pelotari) */
-  update(dt, { ojo, mira, vel = 0, lado = 0, fov = 64, cuerpo, st }) {
+  update(dt, { ojo, mira, vel = 0, lado = 0, fov = 64, cuerpo, st, saca = false }) {
     dt = Math.min(dt, 0.05);
     const c = this.c, cam = this.cam, v = this.v, T = this.T;
     // adónde mira: un muelle amortiguado (rápido y sin pasarse ni temblar)
@@ -196,7 +196,14 @@ export class PrimeraPersona {
     if (Math.abs(cam.fov - c.fov) > 0.01) { cam.fov = c.fov; cam.updateProjectionMatrix(); }
     cam.updateMatrixWorld();
     // los brazos van con la cámara (sin el temblor ni el paso: así no bailan delante de los ojos)
-    this.group.position.copy(c.pos); this.group.quaternion.copy(cam.quaternion);
+    // las manos, solo en el golpe: suben desde abajo al empezar (tu gesto ante la cámara o el golpe de tu pelotari) y
+    // se van al acabar; y al sacar, mientras tienes la pelota en la mano. El resto del tiempo, la cancha despejada
+    const pegando = (st && st.swing >= 0) || !!cuerpo?.gesto || (cuerpo && (cuerpo.tPrev || 0) - (cuerpo.ultGolpe ?? -9) < 0.5);
+    c.ver = pegando || saca ? 0.35 : Math.max(0, (c.ver || 0) - dt);
+    const verT = c.ver > 0 ? 1 : 0; c.vis = (c.vis || 0) + (verT - (c.vis || 0)) * (1 - Math.exp(-dt * (verT ? 20 : 8)));
+    const baja = 1 - c.vis * c.vis * (3 - 2 * c.vis);
+    this.group.visible = c.vis > 0.02;
+    this.group.position.copy(c.pos).add(v.h.set(0, -0.42 * baja, 0.06 * baja).applyQuaternion(cam.quaternion)); this.group.quaternion.copy(cam.quaternion);
     this.group.updateMatrixWorld(true);
     const L = cuerpo?.visto ? cuerpo.lms : null, sw = cuerpo?.sw || 0;
     for (const s of ['R', 'L']) this.brazo(this.brazos[s], dt, L, sw, cuerpo, st);

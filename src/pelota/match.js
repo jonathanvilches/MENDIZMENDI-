@@ -1244,7 +1244,8 @@ export class PelotaMatch {
     const mira = grp.localToWorld(new T.Vector3(tx, ty, tz));
     // lo deprisa que vas y lo que vas de lado: para el paso, la inclinación y lo que se abre la vista
     const vel = Math.hypot(you.vx || 0, you.vz || 0) || you.speed || 0, lado = Math.max(-1, Math.min(1, (you.vx || 0) / 6));
-    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: portrait ? 80 : 66 });
+    const saca = (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you' && Math.hypot(B.x - you.x, B.z - you.z) < 1.6;
+    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: portrait ? 80 : 66, saca });
     // al sacar tú, la pelota en tu mano (la de la vista; si no, flotaba donde estaría la mano del pelotari entero)
     if ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you' && Math.hypot(B.x - you.x, B.z - you.z) < 1.6 && B.y < 2.2) {
       const m = this.fp.mano('R', new T.Vector3()); if (m) { C.ball.position.copy(grp.worldToLocal(m)); C.shadow.position.set(C.ball.position.x, 0.012, C.ball.position.z); }

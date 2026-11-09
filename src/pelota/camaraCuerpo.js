@@ -73,9 +73,23 @@ export class CamaraCuerpo {
     this.vbox.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.achica(true); });
     this.di(T('Pidiendo la cámara…', 'Kamera eskatzen…'));
     // (para las pruebas: el estado y un cuerpo de mentira; con él, la cámara deja de mandar)
+    // (al girar el móvil, la imagen de la cámara gira con él y el cuerpo «salta» en ella: eso no es un golpe. Se vuelve
+    // a medir desde cero y, durante un segundo, no cuenta ningún golpe. Lo mismo al volver a la app. Antes, cada giro
+    // daba golpes que nadie había dado, a velocidades imposibles, y te daba por agachado)
+    this.apaisado = innerWidth > innerHeight;
+    this.alGirar = () => { const a = innerWidth > innerHeight; if (a !== this.apaisado) { this.apaisado = a; this.reinicia('giro'); } };
+    this.alVolver = () => { if (!document.hidden) this.reinicia('vuelve'); };
+    addEventListener('resize', this.alGirar); addEventListener('orientationchange', this.alGirar); document.addEventListener('visibilitychange', this.alVolver);
     window.__camaraCuerpo = { estado: () => this.estado(), pose: (lms, t) => { if (!this.manual) { this.manual = true; this.x0 = null; this.cal = []; this.refSh = null; } this.sigue(lms, t ?? performance.now() / 1000); } };
   }
   di(t) { if (this.msg.textContent !== t) this.msg.textContent = t; }
+  // empezar de cero (el centro, la postura, las manos y el golpe a medias) y un segundo sin golpes
+  reinicia(por) {
+    this.calma = performance.now() / 1000 + 1;
+    this.x0 = null; this.cal = []; this.post = []; this.agachado = 0; this.gesto = null; this.picoPow = 0; this.sw = 0; this.cx = 0;
+    for (const k of [15, 16]) { const h = this.M[k]; h.ok = false; h.rastro.length = 0; h.wind = 0; h.windMax = 0; h.v = h.v2 = 0; h.vx = h.vy = h.vz = 0; }
+    try { window.__informeEvento?.(`cámara empieza de cero (${por})`); } catch (e) { /* sin informe */ }
+  }
   achica(on) { if (this.oculta === on) return; this.oculta = on; this.box.classList.toggle('oculta', on); if (on) this.c.clearRect(0, 0, this.cv.width, this.cv.height); }
   // lo deprisa que golpeas de normal: la mediana de tus últimos 12 golpes (sin las dejadas), con cortadas más rápidas y
   // largos más lentos a los lados; de primeras, lo de casi todos
@@ -131,7 +145,8 @@ export class CamaraCuerpo {
     const v = this.video, uno = () => {
       if (this.parado) return;
       if (!this.manual && v.readyState >= 2 && v.currentTime !== this.ultV) {
-        this.ultV = v.currentTime; this.vw = v.videoWidth || 640; this.vh = v.videoHeight || 480;
+        this.ultV = v.currentTime;
+        { const nw = v.videoWidth || 640, nh = v.videoHeight || 480; if (this.listo && this.vw && (nw !== this.vw || nh !== this.vh)) this.reinicia('imagen'); this.vw = nw; this.vh = nh; }
         const t = performance.now() / 1000;
         if (this.w) {
           // (una respuesta perdida no lo para todo; pero la primera, mientras el detector arranca, tarda unos segundos)
@@ -254,7 +269,7 @@ export class CamaraCuerpo {
         else { const hz = h.v > G.pico * 0.7 ? 0.06 : 0, pred = { rx: h.rx + h.vx * sw * hz, ry: h.ry + h.vy * sw * hz }; try { this.onGolpeAvance?.({ ...this.lee(G, sw, pred, clamp(dur / 0.12, 0, 1)), golpe: G.golpe }); } catch (e) { console.warn('golpe con la cámara', e); } }
         continue;
       }
-      if (G || t - h.ult < 0.4 || t - (this.ultGolpe || -9) < 0.35) continue;
+      if (G || t - h.ult < 0.4 || t - (this.ultGolpe || -9) < 0.35 || t < (this.calma || 0)) continue;
       // uno nuevo: la mano va deprisa y no hacia fuera (eso es armar). Hacia abajo, el de aire o la cortada; hacia arriba
       // solo cuenta si va también hacia dentro (subir el brazo por el lado es armar el de aire); de lado, hacia dentro.
       // Encogido, para la dejada, basta un toque suave
@@ -267,7 +282,8 @@ export class CamaraCuerpo {
       // no si la mano cae, que es el brazo que vuelve a su sitio tras golpear: la dejada va hacia delante, no hacia abajo)
       const cae = vert > 0.6, manoBaja = !cae && h.ry / sw >= hipRel - 0.45, suave = (agachado && !cae) || manoBaja;
       const k0 = (agachado && !cae ? 0.45 : manoBaja ? 0.65 : h.windMax > 0.3 ? 1 : 1.1) * (t - (h.acabo ?? -9) < (cae ? 0.8 : 0.5) ? 1.35 : 1) * (juntas ? 1.5 : 1);
-      const umbral = clamp(this.tipico() * 0.36, 2.6, 8) * k0 * (vert < -0.6 ? 1.1 : vert > 0.6 ? 1.2 : 1);
+      // (y nunca menos de una parte de lo que golpeas tú de normal: si no, recolocar la mano contaba como dejada)
+      const umbral = Math.max(clamp(this.tipico() * 0.36, 2.6, 8) * k0 * (vert < -0.6 ? 1.1 : vert > 0.6 ? 1.2 : 1), this.tipico() * (suave ? 0.18 : 0.25));
       let r0 = null, dispara = h.v > umbral && delante(h.vx, h.vy);
       if (dispara) {
         // (el principio del gesto: hacia atrás, donde la mano estaba casi quieta, el armado; como mucho, 0,45 s antes)
@@ -277,7 +293,7 @@ export class CamaraCuerpo {
         // ha recorrido en el último medio segundo, hacia delante y a buen ritmo)
         let mej = 0;
         // (solo desde que acabó el golpe anterior de esta mano: si no, el mismo golpe volvería a contar al quedarse quieta)
-        for (const r of h.rastro) { const dtr = t - r.t; if (dtr < 0.06 || dtr > 0.45 || r.t <= (h.acabo ?? -9) || r.t <= h.ult) continue; const D = Math.hypot(h.rx - r.rx, h.ry - r.ry) / sw; if (D > mej && D / dtr >= 2.2 * k0 && delante(h.rx - r.rx, h.ry - r.ry)) { mej = D; r0 = r; } }
+        for (const r of h.rastro) { const dtr = t - r.t; if (dtr < 0.06 || dtr > 0.45 || r.t <= (h.acabo ?? -9) || r.t <= h.ult) continue; const D = Math.hypot(h.rx - r.rx, h.ry - r.ry) / sw; if (D > mej && D / dtr >= Math.max(2.2 * k0, this.tipico() * (suave ? 0.18 : 0.25)) && delante(h.rx - r.rx, h.ry - r.ry)) { mej = D; r0 = r; } }
         dispara = !!r0 && mej >= (suave ? 0.45 : 0.75);
       }
       if (!dispara) continue;
@@ -395,6 +411,7 @@ export class CamaraCuerpo {
     try { this.stream?.getTracks().forEach(t => t.stop()); } catch (e) { /* nada */ }
     try { this.pl?.close(); } catch (e) { /* nada */ }
     if (this.w) { const w = this.w; this.w = null; try { w.postMessage({ tipo: 'cierra' }); } catch (e) { /* nada */ } setTimeout(() => { try { w.terminate(); } catch (e) { /* nada */ } }, 500); }
+    removeEventListener('resize', this.alGirar); removeEventListener('orientationchange', this.alGirar); document.removeEventListener('visibilitychange', this.alVolver);
     this.box.remove(); if (window.__camaraCuerpo) delete window.__camaraCuerpo;
   }
 }
