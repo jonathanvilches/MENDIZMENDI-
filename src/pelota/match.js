@@ -845,7 +845,8 @@ export class PelotaMatch {
       if (d > 0.8) this.vaSitio = true; else if (d < 0.25) this.vaSitio = false;
       if (this.vaSitio) { mx = clamp1(dx * 0.9); mz = clamp1(dz * 0.45); }
     }
-    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? 0, aimY: I.camAimY ?? 0, camPend: !!I.camPend, descansoFin: !!this.finDesc };
+    // (ladoGolpe: con qué brazo vas a golpear, por el que armas; tu pelotari se pone a ese lado de la pelota y no delante de ella)
+    const out = { mx, mz, aiming: turno, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: I.camAim ?? 0, aimY: I.camAimY ?? 0, camPend: !!I.camPend, descansoFin: !!this.finDesc, ladoGolpe: (C.arma || 'Hit').endsWith('L') ? -1 : 1 };
     this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = I.camAimY = null; I.camPend = false;
     return out;
   }
@@ -859,6 +860,8 @@ export class PelotaMatch {
       C.nombres = this.txt.shots || TEXT.es.shots;
       const fuera = () => !this.active || this.paused || this.hud.panelEl || this.replay || this.flying || this.vsOpen;
       // (al empezar el gesto, el golpe sale ya con lo que se ve; agachado, dejada, salvo al sacar)
+      // (¿cuenta un golpe ahora? si la pelota viene hacia ti o sacas tú: para el nombre del golpe en pantalla y las manos)
+      C.cuenta = () => { const g = this.game; if (!g) return false; return (g.phase === 'rally' && g.rally?.turn === 'you' && (!g.pairs || g.takerOf('you') === 'you')) || ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you'); };
       C.onGolpe = (e) => {
         if (fuera()) return;
         const I = this.input, g = this.game, saca = (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you';
@@ -1023,7 +1026,7 @@ export class PelotaMatch {
     // aros de ayuda
     const assist = g.lvl.assist > 0 || g.mode === 'rally';
     // (en primera persona, tampoco el aro del bote: muy cerca de ti se ve enorme y tapa la cancha)
-    C.landRing.visible = !!(h && h.yourTurn && h.land) && !this.fp?.on;
+    C.landRing.visible = !!(h && h.yourTurn && h.land);   // (también en primera persona: dónde va a botar, que de cerca cuesta calcularlo)
     if (C.landRing.visible) { C.landRing.position.set(h.land.x, 0.02, h.land.z); C.landRing.scale.setScalar(1 + 0.12 * Math.sin(this.t * 8)); }
     // (en primera persona, no: queda bajo tus pies y tapa media imagen)
     C.spotRing.visible = !!(assist && h && h.yourTurn && h.spot) && !this.fp?.on;
@@ -1267,7 +1270,10 @@ export class PelotaMatch {
     // (el campo de visión, por lo ancho de la pantalla: unos 90 grados de lado a lado. Con uno fijo, en el móvil en
     // horizontal, tan ancho, se veía como con ojo de pez)
     const asp = Math.max(0.3, innerWidth / Math.max(1, innerHeight)), fovFP = Math.max(46, Math.min(80, 2 * Math.atan(Math.tan(Math.PI / 4) / asp) * 180 / Math.PI));
-    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: fovFP, saca });
+    // (pega: si el golpe cuenta, la pelota viene y está ya cerca; solo entonces se ven las manos. bola: la pelota, para que
+    // la mano que golpea vaya a ella y no la atraviese)
+    const pega = this.cuerpo?.cuenta?.() && (saca || (g.phase === 'rally' && Math.hypot(B.x - you.x, B.z - you.z) < 4.5));
+    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: fovFP, saca, pega, bola: C.ball.visible ? C.ball.getWorldPosition(new T.Vector3()) : null });
     // al sacar tú, la pelota en tu mano (la de la vista; si no, flotaba donde estaría la mano del pelotari entero)
     if ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you' && Math.hypot(B.x - you.x, B.z - you.z) < 1.6 && B.y < 2.2) {
       const m = this.fp.mano('R', new T.Vector3()); if (m) { C.ball.position.copy(grp.worldToLocal(m)); C.shadow.position.set(C.ball.position.x, 0.012, C.ball.position.z); }

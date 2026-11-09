@@ -19,10 +19,13 @@ const HOMBROS = 0.38, BRAZO = 0.29, ANTEBRAZO = 0.265;
 // dónde van los hombros respecto a los ojos (x a la derecha, y arriba, z hacia atrás: la cámara mira hacia -z). Algo más
 // altos que los de verdad y con los brazos inclinados hacia delante (INCLINA), como en los juegos en primera persona: si
 // no, las manos en guardia quedan por debajo de la imagen (de verdad, para vértelas hay que bajar la vista)
-const HOMBRO_Y = -0.15, HOMBRO_Z = -0.02, INCLINA = 0.8;
+// (menos inclinados que al principio: las manos tapaban demasiado la cancha)
+const HOMBRO_Y = -0.15, HOMBRO_Z = -0.02, INCLINA = 0.6;
 // la mano, mientras está delante del cuerpo, nunca más abajo que esto (en la imagen: la mitad de lo que hay del centro al
 // borde de abajo): así, en guardia, a la altura de la cintura, se sigue viendo, como en los juegos en primera persona
-const BAJO = 0.5;
+const BAJO = 0.62;
+// el tamaño de las manos que se ven, respecto a las del pelotari (pegadas a los ojos se ven enormes)
+const MANO = 0.58;
 // los puntos de MediaPipe de cada brazo (sin espejo: el R de la pantalla es tu brazo derecho)
 const PUNTOS = { R: { s: 12, e: 14, w: 16, i: 20, p: 18 }, L: { s: 11, e: 13, w: 15, i: 19, p: 17 } };
 // los huesos de cada brazo de tu pelotari (esqueleto de Mixamo: mixamorig:RightArm…)
@@ -129,7 +132,7 @@ export class PrimeraPersona {
         d.rotation.x = 0.22; d.rotation.z = x * s * 0.6; B.mano.add(d);
       });
       const pulgar = new T.Group(); pulgar.position.set(0.043 * s, 0.03, 0.012); pulgar.add(malla(new T.CapsuleGeometry(0.012, 0.046, 4, 8).translate(0, 0.023, 0), mVenda)); pulgar.rotation.set(0.55, 0, -0.45 * s); B.mano.add(pulgar);
-      B.mano.scale.setScalar(1.15);
+      B.mano.scale.setScalar(1.15 * MANO);
       this.group.add(B.brazo, B.ante, B.mano);
     }
   }
@@ -156,7 +159,7 @@ export class PrimeraPersona {
 
   /** Cada imagen: ojo (dónde están tus ojos, en el mundo), mira (adónde mirar), vel (lo deprisa que te mueves, m/s), lado
    *  (lo que te mueves de lado, -1 a 1), fov (el de base), cuerpo (camaraCuerpo.js o null) y st (el estado de tu pelotari) */
-  update(dt, { ojo, mira, vel = 0, lado = 0, fov = 64, cuerpo, st, saca = false }) {
+  update(dt, { ojo, mira, vel = 0, lado = 0, fov = 64, cuerpo, st, saca = false, pega = true, bola = null }) {
     dt = Math.min(dt, 0.05);
     const c = this.c, cam = this.cam, v = this.v, T = this.T;
     // adónde mira: un muelle amortiguado (rápido y sin pasarse ni temblar)
@@ -198,14 +201,21 @@ export class PrimeraPersona {
     // los brazos van con la cámara (sin el temblor ni el paso: así no bailan delante de los ojos)
     // las manos, solo en el golpe: suben desde abajo al empezar (tu gesto ante la cámara o el golpe de tu pelotari) y
     // se van al acabar; y al sacar, mientras tienes la pelota en la mano. El resto del tiempo, la cancha despejada
-    const pegando = (st && st.swing >= 0) || !!cuerpo?.gesto || (cuerpo && (cuerpo.tPrev || 0) - (cuerpo.ultGolpe ?? -9) < 0.5);
-    c.ver = pegando || saca ? 0.35 : Math.max(0, (c.ver || 0) - dt);
+    // (y solo cuando el golpe cuenta, con la pelota ya cerca: pega, de match.js. Antes salían con cualquier gesto tuyo, aunque
+    // la pelota estuviera lejos o fuera al rival, y se veían casi todo el rato)
+    const pegando = (st && st.swing >= 0) || (pega && (!!cuerpo?.gesto || (cuerpo && (cuerpo.tPrev || 0) - (cuerpo.ultGolpe ?? -9) < 0.3)));
+    c.ver = pegando || saca ? 0.22 : Math.max(0, (c.ver || 0) - dt);
     const verT = c.ver > 0 ? 1 : 0; c.vis = (c.vis || 0) + (verT - (c.vis || 0)) * (1 - Math.exp(-dt * (verT ? 20 : 8)));
     const baja = 1 - c.vis * c.vis * (3 - 2 * c.vis);
     this.group.visible = c.vis > 0.02;
     this.group.position.copy(c.pos).add(v.h.set(0, -0.42 * baja, 0.06 * baja).applyQuaternion(cam.quaternion)); this.group.quaternion.copy(cam.quaternion);
     this.group.updateMatrixWorld(true);
     const L = cuerpo?.visto ? cuerpo.lms : null, sw = cuerpo?.sw || 0;
+    // (la pelota, vista desde los ojos, y el brazo que golpea: el de tu pelotari si está golpeando; si no, el de tu gesto
+    // o el que armas)
+    this.bolaL = bola && c.vis > 0.3 ? this.group.worldToLocal((this._bl ||= new T.Vector3()).copy(bola)) : null;
+    const gg = st && st.swing >= 0 ? st.golpe : cuerpo?.gesto ? cuerpo.gesto.golpe : cuerpo?.arma || st?.arma;
+    this.ladoGolpe = (gg || 'Hit').endsWith('L') ? 'L' : 'R';
     for (const s of ['R', 'L']) this.brazo(this.brazos[s], dt, L, sw, cuerpo, st);
   }
 
@@ -249,6 +259,18 @@ export class PrimeraPersona {
     if (cuerpo) { gE.lerp(v.cE, B.k); gW.lerp(v.cW, B.k); }
     // (del cuerpo a la vista: inclinado hacia delante desde el hombro)
     gE.applyAxisAngle(v.ejeX, INCLINA).add(B.S); gW.applyAxisAngle(v.ejeX, INCLINA).add(B.S);
+    // la mano que golpea, a la pelota cuando la tiene cerca: en la línea que va de los ojos a la pelota, lo más lejos que
+    // llegue el brazo. Así, vista desde los ojos, la mano está justo donde la pelota y no la atraviesa
+    const bl = this.bolaL;
+    if (bl && B.lado === this.ladoGolpe && bl.z < -0.1) {
+      const dB = bl.length(), w = clamp((1.7 - dB) / 0.8, 0, 1);
+      if (w > 0) {
+        const R = (LA + LF) * 0.97, dir = v.p2 ? v.p2.copy(bl).divideScalar(dB) : (v.p2 = bl.clone().divideScalar(dB));
+        let lo = 0, hi = dB; const lejos = (t) => Math.hypot(dir.x * t - B.S.x, dir.y * t - B.S.y, dir.z * t - B.S.z);
+        if (lejos(hi) > R) { for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (lejos(m) <= R) lo = m; else hi = m; } hi = lo; }
+        if (hi > 0.05) gW.lerp(v.p3 ? v.p3.copy(dir).multiplyScalar(hi) : (v.p3 = dir.clone().multiplyScalar(hi)), w);
+      }
+    }
     // (la mano delante del cuerpo, a la vista: si queda más abajo, se sube; el codo, donde le toque para llegar)
     if (gW.z < -0.12) gW.y = Math.max(gW.y, -BAJO * -gW.z);
     this.ik(B.S, gE, gW, LA, LF);
@@ -276,7 +298,8 @@ export class PrimeraPersona {
         H.f.quaternion.copy(H.f.parent.getWorldQuaternion(v.q2).invert().multiply(v.q)); H.f.updateMatrixWorld(true);
       }
       // (la mano que se va atrás, junto a la cara, no se ve: asomaría en una esquina, enorme)
-      H.h.scale.setScalar(B.W.z < -0.06 ? 1 : 0.001);
+      // (y la que se ve, más pequeña que la de tu pelotari entero: tan cerca de los ojos, a su tamaño tapaba media pantalla)
+      H.h.scale.setScalar(B.W.z < -0.06 ? MANO : 0.001);
       return;
     }
     // los brazos hechos aquí

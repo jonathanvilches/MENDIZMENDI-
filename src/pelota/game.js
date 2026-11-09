@@ -861,7 +861,9 @@ export class PelotaGame {
       // la pelota pasaba de largo. Sin el botón, solo te mueves tú. (Con la cámara no hay mando: el golpe lo das con el brazo)
       if (inp.aiming && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {
         const c = this.interceptFor('you', YOU_RUN, 0.1);
-        if (c) { const help = Math.max(this.lvl.assist, 5.4) * (1 - this.tired('you') * 0.3), dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
+        // (con la cámara, más deprisa y sin frenar tanto al llegar: no hay mando con el que ayudarle, y antes llegaba tarde
+        // y la pelota le pasaba por delante)
+        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3), dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
