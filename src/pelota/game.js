@@ -856,10 +856,10 @@ export class PelotaGame {
           }
         }
       }
-      // con la cámara (la pelota en casa), cuando te toca, tu pelotari va solo a por la pelota: no hay mando con el que
-      // moverlo (el golpe sí lo das tú, con el brazo). Al quitar la ayuda del mando para el control total, se quedó también
-      // sin esto y el pelotari se quedaba quieto viendo pasar la pelota
-      if (this.camara && inp.aiming && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {
+      // mientras mantienes el golpe (el joystick, entonces, apunta), o con la cámara cuando te toca, tu pelotari va solo a
+      // por la pelota, como antes del control total: si no, apuntar te dejaba quieto, o te llevaba hacia donde apuntabas, y
+      // la pelota pasaba de largo. Sin el botón, solo te mueves tú. (Con la cámara no hay mando: el golpe lo das con el brazo)
+      if (inp.aiming && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {
         const c = this.interceptFor('you', YOU_RUN, 0.1);
         if (c) { const help = Math.max(this.lvl.assist, 5.4) * (1 - this.tired('you') * 0.3), dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
