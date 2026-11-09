@@ -30,7 +30,7 @@ export const VIGIA_SRC = `(() => {
       const sw = c.switches - f.sw0; f.sw0 = c.switches; n.switches += sw; for (let i = 0; i < sw; i++) f.swHist.push(t);
       while (f.swHist.length && t - f.swHist[0] > 1) f.swHist.shift(); if (f.swHist.length > 4) { note('burst', f.swHist.length); f.swHist.length = 0; }
       // patinar: moverse rápido con el clip de quieto (sin gesto suelto) o correr parado
-      if (!c.oneShot && sp > 1.2 && !/^(Walk|Run)$/.test(c.currentName)) note('skate');
+      if (!c.oneShot && sp > (/^Shuffle/.test(c.currentName) ? 2.1 : 1.2) && !/^(Walk|Run)$/.test(c.currentName)) note('skate');   // (los pasos laterales, con su ritmo según lo deprisa: valen hasta 2 m/s)
       if (!c.oneShot && sp < 0.05 && c.currentName === 'Run' && c.speed < 0.05) note('runStill');
       // clip congelado: el tiempo del clip no avanza en un segundo (sin estar parado a propósito)
       const a = c.current; if (a && a.timeScale !== 0 && a.loop !== 2200) { if (f.tCur !== null && Math.abs(a.time - f.tCur) < 1e-5) { f.frozen += dt; if (f.frozen > 1) { note('frozen'); f.frozen = 0; } } else f.frozen = 0; f.tCur = a.time; }

@@ -14,7 +14,7 @@ for (let m = 0; m < +NM; m++) {
       const you = g.players.you, inp = { mx: 0, mz: 0, hit: false, aimX: 0, aimY: 0, power: 0.6 };
       if (g.phase === 'serveWait' && g.server === 'you') inp.hit = g.phaseT > 0.6;
       const c = g.phase === 'rally' && g.rally?.turn === 'you' ? g.interceptFor('you', 6.2, 0.1) : null;
-      if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (!holding && d > 0.3) { inp.mx = dx / d; inp.mz = dz / d; } }
+      if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.3) { inp.mx = dx / d * Math.min(1, d * 1.5); inp.mz = dz / d * Math.min(1, d * 1.5); } }   // (el joystick mueve siempre, también con el golpe cargado: nadie mueve al pelotari por ti)
       // mantener el golpe y apuntar cuando la pelota se acerca; soltar al tenerla a tiro (o al aire de vez en cuando)
       if ((g.phase === 'rally' && g.rally?.turn === 'you') || (g.phase === 'servePrep' && g.server === 'you')) {
         if (!holding && g.rnd() < 0.08) { holding = 0.01; const r = g.rnd(); aim = r < 0.25 ? { x: -1, y: -0.1 } : r < 0.5 ? { x: 0.9, y: 0 } : { x: (g.rnd() - 0.5) * 1.4, y: (g.rnd() - 0.5) * 1.4 }; }

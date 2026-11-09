@@ -407,8 +407,16 @@ export class GlbChar {
       if (R[gn] < R[g0] && this.gaitT < 0.3 && v > 0.02) gn = g0;
       if (gn !== g0) { this.gaitName = gn; this.gaitT = 0; }
       // (de lado mirando al frontis, el pelotari se desplaza con pasos laterales en vez de andar de lado)
-      const lat = this.lado && gn !== 'Idle' ? this.actions[this.lado > 0 ? 'ShuffleL' : 'ShuffleR'] : null;
-      if (lat) { want = this.lado > 0 ? 'ShuffleL' : 'ShuffleR'; scale = ts * Math.min(1.8, Math.max(0.7, v / 1.3)); }
+      // (solo a paso de ajuste, hasta 1,6 m/s, con margen hasta 2: más deprisa, el pelotari corre de verdad; a 2 o 3 m/s los
+      // pasos laterales patinaban. Y con margen en el tiempo: entrar de lado es inmediato, pero salir o cambiar de lado
+      // espera a llevar 0,25 s en el que está; la marca de lado del partido cambiaba de un fotograma a otro y la figura
+      // daba tirones de un clip a otro)
+      const quiereLat = this.lado && gn !== 'Idle' && v < (this.latName ? 2.0 : 1.6) ? (this.lado > 0 ? 'ShuffleL' : 'ShuffleR') : null;
+      this.latT = (this.latT || 0) + dt;
+      if (gn === 'Idle' || (this.latName && v >= 2.0)) { this.latName = null; this.latT = 0; }   // (pararse o arrancar a correr, al momento)
+      else if (quiereLat !== (this.latName || null) && (!this.latName || this.latT > 0.25)) { this.latName = quiereLat; this.latT = 0; }
+      const lat = this.latName ? this.actions[this.latName] : null;
+      if (lat) { want = this.latName; scale = ts * Math.min(1.6, Math.max(0.7, v / 1.3)); }
       else if (gn === 'Run' && this.actions.Run) { want = 'Run'; scale = ts * (gait ? gait(v, 'Run') : Math.max(0.6, v / RUN_REF)); }
       else if (gn !== 'Idle' && this.actions.Walk) { want = 'Walk'; scale = ts * (gait ? gait(v, 'Walk') : Math.max(0.35, v / WALK_REF)); }
       else if (this.talking && this.actions.Talk) want = 'Talk';

@@ -440,11 +440,16 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
     // (en el Labrit, donde se juegan las finales, todas las butacas ocupadas: los lejanos van con la figura de lejos, ver
     // crowd3d.js; en el frontón cubierto, casi lleno; en el del pueblo, los que caben según la calidad)
-    // (menos gente que antes, para que el partido vaya fluido: en el del pueblo, 40, 72 y 110; en el cubierto, algo más; en
-    // el Labrit y en la calle, que se llenaban enteros, como mucho 90 en el móvil y 160 en calidad media)
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.4 : 2) : 1, lleno = QUALITY === 'low' ? 60 : QUALITY === 'mid' ? 160 : all.length;
-      const cap0 = C?.labrit || C?.estilo === 'calle' ? Math.min(all.length, lleno) : Math.round((QUALITY === 'low' ? 40 : QUALITY === 'mid' ? 72 : 110) * full), cap = muyLigero ? Math.min(cap0, 30) : cap0;
-      const sp = all.filter(() => Math.random() < Math.min(1, cap / Math.max(1, all.length)));
+    // (la grada con ambiente: en el del pueblo, 100, 150 y 220; en el cubierto, algo más; en el Labrit y en la calle, 150
+    // en el móvil, 280 en calidad media y llenos en alta. Con el móvil más justo, 70. Solo los más cercanos a la cámara
+    // llevan la figura entera; los demás, la de lejos, que cuesta poco: crowd3d. Antes eran 40 en el móvil, y 30 en el
+    // más justo, y la grada se veía casi vacía)
+    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.3 : 1.6) : 1, lleno = QUALITY === 'low' ? 150 : QUALITY === 'mid' ? 280 : all.length;
+      const cap0 = C?.labrit || C?.estilo === 'calle' ? Math.min(all.length, lleno) : Math.round((QUALITY === 'low' ? 100 : QUALITY === 'mid' ? 150 : 220) * full), cap = muyLigero ? Math.min(cap0, 70) : cap0;
+      // (juntos, como en un partido de verdad: primero las filas de abajo y el centro de la cancha, donde se ve el juego, con
+      // algún hueco; repartidos al azar por toda la grada, la misma gente parecía una grada vacía)
+      let z0 = Infinity, z1 = -Infinity, y0 = Infinity; for (const q of all) { z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); y0 = Math.min(y0, q[1]); }
+      const zc = z0 + (z1 - z0) * 0.45, sp = all.length <= cap ? all.slice() : all.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 7]).sort((a, b) => a[1] - b[1]).slice(0, cap).map(r => r[0]);
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
       const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });

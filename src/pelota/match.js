@@ -718,7 +718,7 @@ export class PelotaMatch {
     addEventListener('keydown', this.onKey, true); addEventListener('keyup', this.onKey, true);
     // (al irse la ventana, todo suelto: las teclas, la palanca y el golpe que se estaba cargando, que si no dejaba al
     // pelotari apuntando y sin moverse)
-    this.soltar = () => { I.keys = {}; this.resetStick?.(); I.charge = null; I.hitQ = I.dropQ = I.cutQ = false; };
+    this.soltar = () => { I.keys = {}; this.resetStick?.(); I.charge = null; I.drag = null; I.hitQ = I.dropQ = I.cutQ = false; };
     this.onBlur = () => this.soltar();
     addEventListener('blur', this.onBlur);
     // joystick táctil
@@ -759,8 +759,10 @@ export class PelotaMatch {
     // botones: el golpe, la cortada y la dejada se cargan mientras se mantienen y salen al soltar (un toque, suave)
     const btn = (sel, flag, charge) => {
       const b = hud.$(sel);
-      b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.classList.add('down'); this.audio.ensure(); if (charge) this.chargeStart(charge); else I[flag] = true; });
-      const up = () => { b.classList.remove('down'); if (charge) this.chargeEnd(charge); };
+      // (y mientras se mantiene, arrastrar el dedo desde el botón apunta: el joystick sigue moviendo al pelotari)
+      b.addEventListener('pointerdown', (e) => { e.preventDefault(); b.classList.add('down'); this.audio.ensure(); try { b.setPointerCapture(e.pointerId); } catch (x) { /* sin captura */ } I.drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: 0, y: 0 }; if (charge) this.chargeStart(charge); else I[flag] = true; });
+      b.addEventListener('pointermove', (e) => { const d = I.drag; if (!d || d.id !== e.pointerId) return; let x = (e.clientX - d.x0) / 56, y = -(e.clientY - d.y0) / 56; const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; } d.x = x; d.y = y; });
+      const up = (e) => { b.classList.remove('down'); if (charge) this.chargeEnd(charge); if (I.drag && (!e || I.drag.id === e.pointerId)) I.drag = null; };
       b.addEventListener('pointerup', up); b.addEventListener('pointerleave', up); b.addEventListener('pointercancel', up);
     };
     // (cada botón por su nombre: la cortada lleva el estilo de los botones pequeños y antes se cogía como si fuese la dejada)
@@ -787,6 +789,15 @@ export class PelotaMatch {
     if (g.phase === 'descanso') { if (g.descanso?.side === 'you') this.finDesc = true; return; }
     g.pideDescanso('you');
   }
+  // hacia dónde se apunta ahora: el arrastre desde el botón; si no, las flechas del teclado; y al sacar, que no te mueves,
+  // también el joystick
+  aimNow() {
+    const I = this.input, k = I.keys, d = I.drag, g = this.game;
+    if (d && Math.hypot(d.x, d.y) > 0.18) return { x: d.x, y: d.y };
+    if (k.arrowleft || k.arrowright || k.arrowup || k.arrowdown) return { x: (k.arrowright ? 1 : 0) - (k.arrowleft ? 1 : 0), y: (k.arrowup ? 1 : 0) - (k.arrowdown ? 1 : 0), flechas: true };
+    if (g && (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP() === 'you') return { x: clamp1((k.d ? 1 : 0) - (k.a ? 1 : 0) + I.stick.x), y: clamp1((k.w ? 1 : 0) - (k.s ? 1 : 0) + I.stick.y) };
+    return { x: 0, y: 0 };
+  }
   readInput() {
     const I = this.input, k = I.keys;
     if (this.cuerpo?.visto && !k.a && !k.d && !k.w && !k.s && !k.arrowleft && !k.arrowright && !k.arrowup && !k.arrowdown && I.stick.id == null) return this.leeCuerpo();
@@ -795,12 +806,14 @@ export class PelotaMatch {
     const m = Math.hypot(x, y); if (m > 1) { x /= m; y /= m; }
     if (Math.hypot(x, y) < 0.12) { x = 0; y = 0; }
     // la cámara mira al frontis: arriba en el joystick = hacia el frontis (−z)
-    // mientras se mantiene un golpe, el joystick apunta (izquierda, derecha, largo, corto, dos paredes) y el pelotari va
-    // solo hacia la pelota: antes apuntar y correr eran lo mismo y al ir a por la pelota se perdía la dirección
-    const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ;
-    if (aiming) I.lastAim = { x, y };
-    const aim = rel && I.lastAim ? I.lastAim : { x, y }; if (rel) I.lastAim = null;
-    const out = { mx: aiming ? 0 : x, mz: aiming ? 0 : -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y, descansoFin: !!this.finDesc };
+    // el joystick mueve siempre al pelotari, también mientras se carga el golpe: nadie lo mueve por ti. Se apunta aparte,
+    // arrastrando el dedo desde el botón (o con las flechas mientras se mantiene, en el teclado: aimNow). Antes, al
+    // mantener el golpe el joystick apuntaba y el pelotari iba solo a la pelota: se movía sin que se lo pidieras
+    const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ, A = this.aimNow();
+    if (aiming) I.lastAim = A;
+    const aim = rel && I.lastAim ? I.lastAim : A; if (rel) I.lastAim = null;
+    if (aiming && A.flechas) { x = clamp1((k.d ? 1 : 0) - (k.a ? 1 : 0) + I.stick.x); y = clamp1((k.w ? 1 : 0) - (k.s ? 1 : 0) + I.stick.y); }
+    const out = { mx: x, mz: -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y, descansoFin: !!this.finDesc };
     this.finDesc = false;
     I.hitQ = I.dropQ = I.cutQ = false;
     return out;
@@ -999,8 +1012,7 @@ export class PelotaMatch {
       C.spotRing.material.color.set(inside ? '#ffc2ec' : '#ff2bd6'); C.spotRing.material.opacity = inside ? 1 : 0.7;
     }
     // el golpe apuntado (mientras se carga): su camino, para la marca del frontis y el camino a trazos
-    const ch = this.input.charge, keys = this.input.keys, stk = this.input.stick;
-    const ax = clamp1((keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0) + stk.x), ay = clamp1((keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0) + stk.y);
+    const ch = this.input.charge, { x: ax, y: ay } = this.aimNow();
     const apunta = g.phase === 'rally' || g.phase === 'servePrep' || (g.phase === 'serveWait' && g.serverP() === 'you' && !g.runUp);   // (también el saque, antes de salir)
     const pv = ch && (C.aimPath || C.aimMark) && apunta ? g.previewShot?.({ x: ax, y: ay }, ch.kind === 'cut' ? 'cortada' : ch.kind === 'drop' ? 'dejada' : false, 0.15 + this.chargeLevel() * 0.85) : null;
     // marca de puntería en el frontis mientras se carga la cortada o la dejada: sube con la fuerza (poca carga, rozando

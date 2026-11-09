@@ -842,12 +842,19 @@ export class PelotaGame {
         if (c && Math.hypot(c.x - you.x, c.z - you.z) / spd + 0.1 <= c.t + 0.15) { this.rally.claim = true; this.rally.taker = 'you'; this.emit({ type: 'claim' }); }
       }
       let vx = mx * spd, vz = mz * spd;
-      // ayuda: se acerca solo al sitio donde llegará la pelota (apuntando, con el botón mantenido, va solo del todo; el
-      // golpe, en cambio, siempre lo das tú)
-      const help = inp.aiming ? Math.max(this.lvl.assist, 5.4) * (1 - this.tired('you') * 0.3) : this.lvl.assist;
-      if (help > 0 && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {   // (por parejas, solo si es tuya)
+      // ayuda: solo mientras mueves el joystick, y solo endereza un poco la carrera hacia donde llegará la pelota si ya
+      // vas más o menos hacia allí. Sin tocar el joystick, el pelotari no se mueve. (Antes se acercaba solo a la pelota y,
+      // con el botón mantenido, iba solo del todo: se veía moverse sin haberlo pedido)
+      const im = Math.hypot(mx, mz);
+      if (this.lvl.assist > 0 && im > 0.2 && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {   // (por parejas, solo si es tuya)
         const c = this.interceptFor('you', YOU_RUN, 0.1);
-        if (c) { const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
+        if (c) {
+          const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz), cos = d > 0.3 ? (dx * mx + dz * mz) / (d * im) : 0;
+          if (cos > 0.5) {
+            const k = Math.min(0.3, this.lvl.assist * 0.12) * cos, ux = mx / im * (1 - k) + dx / d * k, uz = mz / im * (1 - k) + dz / d * k, ul = Math.hypot(ux, uz) || 1, sp = Math.hypot(vx, vz);
+            vx = ux / ul * sp; vz = uz / ul * sp;
+          }
+        }
       }
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
@@ -902,8 +909,7 @@ export class PelotaGame {
   }
 
   // Nadie estorba al que va a golpear: los demás se apartan de su carrera hacia la pelota y, sobre todo, del sitio donde
-  // la golpeará (el que acaba de golpear se retira, como en los partidos de verdad). Tú, si no mueves el joystick, también
-  // das un paso a un lado. (El que va a por ella, además, rodea a quien tenga delante: en driveAI)
+  // la golpeará (el que acaba de golpear se retira, como en los partidos de verdad). A ti no: solo te mueves tú. (El que va a por ella, además, rodea a quien tenga delante: en driveAI)
   giveWay(dt, inp = {}) {
     if (this.phase !== 'rally') return;
     const tk = this.pairs ? this.takerOf(this.rally.turn) : this.rally.turn; if (!tk) return;
@@ -912,7 +918,7 @@ export class PelotaGame {
     for (const id of this.ids) {
       if (id === tk) continue;
       const q = this.players[id], human = id === 'you' && !this.autoplay;
-      if (human && (Math.hypot(inp.mx || 0, inp.mz || 0) > 0.1 || inp.aiming)) continue;   // (tú mandas: solo si estás quieto)
+      if (human) continue;   // (a ti no se te mueve nunca: solo te mueves tú, con el joystick)
       const u = l2 > 1e-4 ? clamp(((q.x - ax) * dx + (q.z - az) * dz) / l2, 0, 1) : 1, px = ax + dx * u, pz = az + dz * u;
       let nx = q.x - px, nz = q.z - pz; const d = Math.hypot(nx, nz), R = u > 0.9 ? 2.3 : 1.6;
       if (d >= R) continue;
