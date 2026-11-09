@@ -54,8 +54,27 @@ function follaje(tex, img) {
     for (let i = 0; i < d.length; i += 4) { d[i] = Math.min(255, d[i] * k[0]); d[i + 1] = Math.min(255, d[i + 1] * k[1]); d[i + 2] = Math.min(255, d[i + 2] * k[2]); }
     g.putImageData(im, x, y);
   }
+  // (los dos racimos de hojas, con el borde roto y algún claro por dentro)
+  ZONAS.slice(0, 2).forEach(([u0, v0, u1, v1], k) => rompeBorde(g, Math.round(u0 * N), Math.round((1 - v1) * N), Math.round((u1 - u0) * N), Math.round((v1 - v0) * N), k + 1));
   const g0 = c0.getContext('2d'); g0.clearRect(0, 0, N, N); g0.drawImage(c, 0, 0);
   tex.needsUpdate = true;
+}
+// Los racimos de hojas de la pintada son discos perfectos: cada tarjeta de las copas enseñaba un círculo de hojas y el
+// árbol parecía hecho de bolas. Se les rompe el borde con ruido (lóbulos irregulares) y se abren algunos claros, que con
+// el recorte del material (alphaTest) dejan ver ramas y cielo
+function rompeBorde(g, x, y, w, h, semilla) {
+  const im = g.getImageData(x, y, w, h), d = im.data;
+  const hash = (i, j) => { const s = Math.sin(i * 127.1 + j * 311.7 + semilla * 74.7) * 43758.5453; return s - Math.floor(s); };
+  const vn = (u, v) => { const i = Math.floor(u), j = Math.floor(v), fu = u - i, fv = v - j, a = hash(i, j), b = hash(i + 1, j), c = hash(i, j + 1), e = hash(i + 1, j + 1), su = fu * fu * (3 - 2 * fu), sv = fv * fv * (3 - 2 * fv); return a + (b - a) * su + (c - a) * sv + (a - b - c + e) * su * sv; };
+  const suave = (a, b, t) => { const q = Math.min(1, Math.max(0, (t - a) / (b - a))); return q * q * (3 - 2 * q); };
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    const u = px / w, v = py / h, r = Math.hypot(u - 0.5, v - 0.5) * 2;
+    const n = vn(u * 4 + semilla * 3, v * 4) * 0.55 + vn(u * 9, v * 9 + semilla * 5) * 0.3 + vn(u * 21, v * 21) * 0.15;
+    let k = 1 - suave(0.58, 0.8, r + (n - 0.5) * 0.85);
+    k *= 1 - 0.95 * suave(0.68, 0.76, vn(u * 6 + 11, v * 6 + 7 * semilla)) * suave(0.2, 0.4, r);
+    d[(py * w + px) * 4 + 3] *= k;
+  }
+  g.putImageData(im, x, y);
 }
 // Las flores de macetas y balcones (flores.js): la pintada, tal cual, en el lienzo de sustitución, que tiene su tamaño
 function flores(tex, img) {

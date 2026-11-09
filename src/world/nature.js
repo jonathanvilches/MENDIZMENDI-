@@ -102,9 +102,68 @@ function massUV(g, cx, cy, cz, rnd) {
   }
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.userData.keepUV = true;
 }
+// La copa de cerca, como un árbol de verdad: ramas que salen del tronco hacia cada bulto y, en la piel de la copa, muchos
+// racimos de hojas (tres tarjetas cruzadas de un metro largo cada uno), con huecos entre ellos por los que se ven las
+// ramas y el cielo. Dentro, un núcleo pequeño y oscuro (la sombra de la copa). Antes eran bolas grandes con tarjetas
+// de dos o tres metros pegadas encima: se veían bultos redondos, como globos de hojas
+function copaReal(rnd, blobs, detail, paint, cy) {
+  const parts = [];
+  for (const b of blobs) {
+    const r = b[3] * 0.6, g = new THREE.IcosahedronGeometry(r, 1); jitter(g, r * 0.14, rnd); g.translate(b[0], b[1], b[2]);
+    const gn = g.toNonIndexed(); sphericalNormals(gn, b[0], b[1], b[2], 0.9); massUV(gn, b[0], b[1], b[2], rnd); parts.push(gn);
+  }
+  const core = mergeKeep(parts); paint(core, 0.95);
+  // ramas: del arranque de la copa a cada bulto, y dos ramillas de cada una hacia fuera
+  const ramas = [], y0 = Math.min(...blobs.map(b => b[1] - b[3] * 0.8)), a = new THREE.Vector3(), z = new THREE.Vector3(), d = new THREE.Vector3();
+  const rama = (p, q, r0, r1) => {
+    const L = p.distanceTo(q); if (L < 0.2) return;
+    const g = new THREE.CylinderGeometry(r1, r0, L, 5, 1, true); g.translate(0, L / 2, 0);
+    g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.copy(q).sub(p).normalize())); g.translate(p.x, p.y, p.z);
+    ramas.push(barkUV(colorize(g.toNonIndexed(), (x, y, zz, c) => c.set('#6b5c4c'))));
+  };
+  for (const b of blobs) {
+    if (b[3] < 0.95) continue;
+    a.set(b[0] * 0.12, y0, b[2] * 0.12); z.set(b[0] * 0.8, b[1] - b[3] * 0.15, b[2] * 0.8);
+    rama(a, z, 0.05 + b[3] * 0.035, 0.035);
+    for (let i = 0; i < 2; i++) { const t = rnd() * Math.PI * 2; d.set(Math.cos(t), 0.35 + rnd() * 0.5, Math.sin(t)).normalize(); rama(z.clone(), z.clone().addScaledVector(d, b[3] * 0.7), 0.035, 0.012); }
+  }
+  // racimos de hojas en la piel de cada bulto (los que caen dentro de otro bulto no se verían) y algún hueco
+  const cards = [], v = new THREE.Vector3(), w = new THREE.Vector3(), ctr = new THREE.Vector3(0, cy, 0), lk = new THREE.Vector3();
+  const porRacimo = detail > 0 ? 3 : 2, cubre = detail > 0 ? 2.1 : 1.6;
+  for (const b of blobs) {
+    const cs0 = (b[3] < 1.2 ? b[3] * 0.7 : clamp(b[3] * 0.46, 0.55, 1.45)) * 1.15, nCl = Math.max(4, Math.round(cubre * 9.1 * b[3] * b[3] / (porRacimo * cs0 * cs0)));
+    const shell = new THREE.Vector3(b[0], b[1], b[2]).lerp(ctr, 0.5);
+    for (let i = 0; i < nCl; i++) {
+      const u = rnd() * 2 - 1, t = rnd() * Math.PI * 2, rs = Math.sqrt(1 - u * u);
+      d.set(rs * Math.cos(t), u * 0.75 + 0.25, rs * Math.sin(t)).normalize();
+      const rr = b[3] * (0.66 + rnd() * 0.4);
+      v.set(b[0] + d.x * rr, b[1] + d.y * rr, b[2] + d.z * rr);
+      if (blobs.some(o => o !== b && Math.hypot(v.x - o[0], v.y - o[1], v.z - o[2]) < o[3] * 0.66)) continue;
+      if (rnd() < 0.1) continue;
+      const shade = 0.9 + rnd() * 0.26;
+      for (let j = 0; j < porRacimo; j++) {
+        const cs = cs0 * (0.8 + rnd() * 0.4);
+        w.set(v.x + (rnd() - 0.5) * cs * 0.6, v.y + (rnd() - 0.5) * cs * 0.5, v.z + (rnd() - 0.5) * cs * 0.6);
+        lk.set(d.x + (rnd() - 0.5) * 1.6, d.y + (rnd() - 0.3) * 1.2, d.z + (rnd() - 0.5) * 1.6).normalize();
+        const card = foliageCard(cs, w, lk, rnd() < 0.5 ? FOLIAGE.leafA : FOLIAGE.leafB, rnd, shell);
+        paint(card, shade); cards.push(card);
+      }
+    }
+  }
+  return mergeKeep([core, ...ramas, ...cards]);
+}
 function blobCanopy(rnd, blobs, detail, base, tint, spread, top) {
   if (detail > 0) detail = Math.min(detail, NEAR_LV);
   if (detail < 0 && FAR_LITE && blobs.length > 3) blobs = blobs.slice(0, 3);
+  if (detail >= 0 && TEX.foliage) {
+    const cA = new THREE.Color(base), cB = new THREE.Color(tint);
+    const paint = (g, k) => colorize(g, (x, y, z, c) => {
+      const t = clamp((y - (top - spread)) / (spread * 2), 0, 1);
+      c.copy(cA).lerp(cB, t * 0.9 + (rnd() - 0.5) * 0.14);
+      c.multiplyScalar((0.72 + 0.28 * clamp(Math.hypot(x, y - top, z) / spread, 0, 1)) * k);
+    });
+    return copaReal(rnd, blobs, detail, paint, top);
+  }
   const parts = [];
   const cy = top;
   for (const b of blobs) {
@@ -249,7 +308,8 @@ function makeShrooms(rnd, red) {
 }
 function makeBush(rnd) {
   // mata central redondeada y dos laterales más sencillas (hay cientos: pocos triángulos)
-  return mergeKeep([blobCanopy(rnd, [[0, 0.7, 0, 0.9]], 0, '#3a6428', '#7fae45', 1, 0.6), blobCanopy(rnd, [[0.7, 0.5, 0.2, 0.7], [-0.6, 0.55, -0.2, 0.7]], -1, '#3a6428', '#7fae45', 1, 0.6)]);
+  // (las tres con sus racimos de hojas: las de los lados eran bolas lisas)
+  return blobCanopy(rnd, [[0, 0.7, 0, 0.9], [0.7, 0.5, 0.2, 0.7], [-0.6, 0.55, -0.2, 0.7]], 0, '#3a6428', '#7fae45', 1, 0.6);
 }
 
 // Piedra: esfera deformada por ruido, cortada por planos (caras de fractura planas) y con la base aplastada
