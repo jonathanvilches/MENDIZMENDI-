@@ -238,6 +238,71 @@ export function* ordenarCasasPasos(casas, o, cada = Infinity) {
   return L;
 }
 
+const largo = (pts) => { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; };
+/** Un punto cada metro a lo largo de la línea. */
+function muestras(pts) {
+  const S = [];
+  for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]))); for (let k = 0; k < n; k++) S.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); }
+  S.push(pts[pts.length - 1]); return S;
+}
+/** La distancia con signo de (x, z) a la línea: positiva a la derecha según se avanza (la normal de townReal.js). */
+function ladoDe(x, z, pts) {
+  let best = { d: Infinity, s: 0 };
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1], r = segDist(x, z, a[0], a[1], b[0], b[1]);
+    if (r.d < best.d) { const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1, nx = (b[1] - a[1]) / l, nz = -(b[0] - a[0]) / l; best = { d: r.d, s: (x - a[0]) * nx + (z - a[1]) * nz }; }
+  }
+  return best;
+}
+/** Dos puentes casi en el mismo sitio (la carretera y su acera, o las dos aceras de un puente, que los datos dan como
+ *  caminos aparte) son uno solo: el de la misión o el más ancho, con la geometría del más ancho y ensanchado lo justo para
+ *  cubrir el otro (como mucho 80 cm por lado). Antes se levantaban los dos montados uno encima del otro, con los pretiles
+ *  por en medio del tablero, y el puente parecía a medio hacer. */
+export function juntaPuentes(lista) {
+  const H = lista.filter(P => P.hecho).sort((p, q) => (!!q.mision - !!p.mision) || (q.w - p.w) || (largo(q.pts) - largo(p.pts)));
+  const quedan = [];
+  for (const B of H) {
+    const S = muestras(B.pts);
+    const A = quedan.find(A => S.filter(([x, z]) => ladoDe(x, z, A.pts).d < A.w + B.w + 1.5).length >= 0.6 * S.length);
+    if (!A) { quedan.push(B); continue; }
+    if (B.w > A.w) { const sa = muestras(A.pts), w0 = A.w; A.pts = B.pts.map(q => q.slice()); A.w = B.w; ensancha(A, sa, w0); }
+    else ensancha(A, S, B.w);
+    A.n ||= B.n; B.hecho = false; B.junto = true;
+  }
+}
+function ensancha(A, S, w) {
+  const d = S.map(([x, z]) => Math.abs(ladoDe(x, z, A.pts).s)).sort((a, b) => a - b)[Math.floor(S.length / 2)];
+  A.w0 ??= A.w; A.w = Math.min(A.w0 + 0.8, Math.max(A.w, d + w));
+}
+/** La línea partida en los codos de más de 35°. */
+function parteCodos(pts) {
+  const out = []; let cur = [pts[0]];
+  for (let i = 1; i < pts.length; i++) {
+    cur.push(pts[i]);
+    if (i < pts.length - 1) {
+      const ux = pts[i][0] - pts[i - 1][0], uz = pts[i][1] - pts[i - 1][1], vx = pts[i + 1][0] - pts[i][0], vz = pts[i + 1][1] - pts[i][1];
+      if (Math.abs(Math.atan2(ux * vz - uz * vx, ux * vx + uz * vz)) > 0.61) { out.push(cur); cur = [pts[i]]; }
+    }
+  }
+  out.push(cur);
+  return out.filter(t => largo(t) >= 3).map(t => t.map(q => q.slice()));
+}
+/** Los codos suaves, redondeados (dos pasadas de Chaikin, con los extremos en su sitio): el tablero sigue la curva sin
+ *  cuñas abiertas entre tramo y tramo. */
+export function suaviza(pts) {
+  let P = pts;
+  for (let r = 0; r < 2 && P.length > 2; r++) {
+    const Q = [P[0]];
+    for (let i = 0; i < P.length - 1; i++) {
+      const a = P[i], b = P[i + 1];
+      if (i > 0) Q.push([a[0] * 0.75 + b[0] * 0.25, a[1] * 0.75 + b[1] * 0.25]);
+      if (i < P.length - 2) Q.push([a[0] * 0.25 + b[0] * 0.75, a[1] * 0.25 + b[1] * 0.75]);
+    }
+    Q.push(P[P.length - 1]); P = Q;
+  }
+  return P.map(q => q.slice());
+}
+
 /** Los puentes: los que cruzan agua llegan a tierra firme por los dos lados, y donde una calle cruza el agua sin puente
  *  se pone uno. Devuelve la lista nueva (con hecho: si se levanta) sin tocar la de los datos. */
 export function ordenarPuentes(puentes, calles, riverInfo, rios = []) {
@@ -251,7 +316,24 @@ export function ordenarPuentes(puentes, calles, riverInfo, rios = []) {
     if (riverInfo(a[0], a[1]).edge >= 1.2) return;
     for (let s = 0.5; s <= 12; s += 0.5) { const x = a[0] + dx * s, z = a[1] + dz * s; if (riverInfo(x, z).edge >= 1.2) { const q = [x + dx * 0.8, z + dz * 0.8]; if (fin) pts.push(q); else pts.unshift(q); return; } }
   };
-  for (const P of out) { P.hecho = mojado(P) || !!P.mision; if (P.hecho && mojado(P) && P.pts.length > 1) { alarga(P.pts, false); alarga(P.pts, true); } }
+  for (const P of out) P.hecho = P.pts.length > 1 && (mojado(P) || !!P.mision);
+  juntaPuentes(out);
+  // (un codo cerrado, de más de 35°, parte el puente: de piedra van rectos. Se quedan los trozos que cruzan el agua; los de
+  // tierra son la calle que llega. Antes el tablero, los pretiles y los muros se doblaban en el codo y no casaban)
+  for (const P of out.slice()) {
+    if (!P.hecho) continue;
+    const trozos = parteCodos(P.pts);
+    if (trozos.length < 2) continue;
+    const vale = trozos.filter(t => mojado({ pts: t }));
+    const quedan = vale.length ? vale : [trozos.reduce((a, t) => (largo(t) > largo(a) ? t : a))];
+    P.pts = quedan[0];
+    for (const t of quedan.slice(1)) out.push({ ...P, mision: false, pts: t });
+  }
+  for (const P of out) {
+    if (!P.hecho) continue;
+    if (mojado(P)) { alarga(P.pts, false); alarga(P.pts, true); }
+    P.pts = suaviza(P.pts);
+  }
   // donde una calle o un camino cruza el agua sin puente: uno nuevo, de orilla a orilla, del ancho de la calle
   const cerca = (x, z) => out.some(P => P.hecho && P.pts.some((q, i) => i < P.pts.length - 1 && segDist(x, z, q[0], q[1], P.pts[i + 1][0], P.pts[i + 1][1]).d < P.w + 2));
   for (const c of calles) {
@@ -270,7 +352,7 @@ export function ordenarPuentes(puentes, calles, riverInfo, rios = []) {
       let rd = null, bd = 1e9;
       for (const L of rios) for (let k = 0; k < L.pts.length - 1; k++) { const p = L.pts[k], q = L.pts[k + 1], d = segDist(m[0], m[1], p[0], p[1], q[0], q[1]).d; if (d < bd) { bd = d; rd = [q[0] - p[0], q[1] - p[1]]; } }
       if (rd && Math.abs((rd[0] * (e[0] - S[a][0]) + rd[1] * (e[1] - S[a][1])) / (Math.hypot(rd[0], rd[1]) || 1) / el) > 0.8) { i = j; continue; }
-      const pts = [S[a], ...(j - a > 2 ? [m] : []), e].map(q => q.slice());
+      const pts = suaviza([S[a], ...(j - a > 2 ? [m] : []), e]);
       out.push({ n: c.name || '', w: clamp(c.w, 1.1, 3), pts, hecho: true, nuevo: true });
       i = j;
     }

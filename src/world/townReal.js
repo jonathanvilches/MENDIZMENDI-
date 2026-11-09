@@ -19,6 +19,37 @@ export function realChurchRy(b, plaza) {
   return along.reduce((a, r) => (Math.sin(r) * tx + Math.cos(r) * tz > Math.sin(a) * tx + Math.cos(a) * tz ? r : a));
 }
 
+/** Un prisma que sigue el eje de un puente: en cada s de ss, la sección va de o0 a o1 a lo ancho (desde el eje, hacia la
+ *  normal) y de Y0[k] a Y1[k] en altura. Caras de arriba, abajo, los dos costados y las dos puntas, cada una con sus
+ *  vértices (aristas vivas entre cara y cara, suaves a lo largo). Un mismo s dos veces seguidas, con otra altura abajo,
+ *  hace un escalón vertical (el arranque de un arco). uv en metros / esc. */
+function prisma(B, mat, ss, Y0, Y1, o0, o1, esc, eje) {
+  const n = ss.length; if (n < 2) return;
+  const E = ss.map(s => eje(s)), pos = [], uv = [], idx = [];
+  const P = (k, o, y) => [E[k].x + E[k].nx * o, y, E[k].z + E[k].nz * o];
+  // (con la normal n = (dz, −dx): n × d apunta abajo; así salen las caras hacia fuera)
+  const tira = (fa, fb, va, vb) => {
+    const b0 = pos.length / 3;
+    for (let k = 0; k < n; k++) { pos.push(...fa(k), ...fb(k)); uv.push(ss[k] / esc, va(k) / esc, ss[k] / esc, vb(k) / esc); }
+    for (let k = 0; k < n - 1; k++) { const a = b0 + 2 * k; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+  };
+  tira(k => P(k, o0, Y0[k]), k => P(k, o1, Y0[k]), () => o0, () => o1);   // abajo
+  tira(k => P(k, o1, Y1[k]), k => P(k, o0, Y1[k]), () => o1, () => o0);   // arriba
+  tira(k => P(k, o1, Y0[k]), k => P(k, o1, Y1[k]), k => Y0[k], k => Y1[k]);   // costado de o1
+  tira(k => P(k, o0, Y1[k]), k => P(k, o0, Y0[k]), k => Y1[k], k => Y0[k]);   // costado de o0
+  for (const [k, fin] of [[0, false], [n - 1, true]]) {
+    const b0 = pos.length / 3;
+    pos.push(...P(k, o0, Y0[k]), ...P(k, o1, Y0[k]), ...P(k, o1, Y1[k]), ...P(k, o0, Y1[k]));
+    uv.push(o0 / esc, Y0[k] / esc, o1 / esc, Y0[k] / esc, o1 / esc, Y1[k] / esc, o0 / esc, Y1[k] / esc);
+    if (fin) idx.push(b0, b0 + 1, b0 + 2, b0, b0 + 2, b0 + 3); else idx.push(b0, b0 + 2, b0 + 1, b0, b0 + 3, b0 + 2);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  B.add(mat, g, null);
+}
+
 /** Puentes de piedra: los tramos de calle que son puente y que src/levels/ordenar.js manda levantar (los que cruzan agua,
  *  el de la misión y los nuevos donde una calle cruzaba el agua sin puente). Tablero con algo de lomo, que nunca se hunde
  *  en el terreno, y pretiles; debajo, los muros de los costados hasta el suelo, con tantos arcos como quepan en el hueco,
@@ -58,20 +89,25 @@ export function realBridges(B, real) {
     let Dk = S.map((s, k) => { const t = s / L; return Math.max(ya + (yb - ya) * t + hump * Math.max(0, Math.sin(Math.PI * t)) ** 0.8, G[k] + 0.3 * Math.min(1, s / 3, (L - s) / 3)); });
     for (let r = 0; r < 2; r++) Dk = Dk.map((v, k) => k === 0 || k === N - 1 ? v : Math.max(v, (Dk[k - 1] + v + Dk[k + 1]) / 3));
     const deck = (s) => { const f = clamp(s / L, 0, 1) * (N - 1), k = Math.min(N - 2, Math.floor(f)); return Dk[k] + (Dk[k + 1] - Dk[k]) * (f - k); };
+    // el tablero y los pretiles, de una pieza a lo largo del eje (antes, cajas de 2 m por tramo: en cada codo quedaba una
+    // cuña abierta y los pretiles no casaban)
+    const DkT = Dk.map(v => v - 0.6), DkP = Dk.map(v => v - 0.05), DkP1 = Dk.map(v => v + 0.83), DkC1 = Dk.map(v => v + 0.97);
+    prisma(B, stone, S, DkT, Dk, -Wd / 2, Wd / 2, 2, eje);
+    for (const side of [-1, 1]) {
+      const c = side * (Wd / 2 - 0.21);
+      prisma(B, stone, S, DkP, DkP1, c - 0.21, c + 0.21, 1.6, eje);
+      prisma(B, cap, S, DkP1, DkC1, c - 0.275, c + 0.275, 1, eje);
+      // (y en cada punta del pretil, un pilar de remate: el pretil ya no acaba cortado a ras)
+      for (const s of [0.3, L - 0.3]) { const e = eje(s), y = deck(s); B.add(cap, box(0.66, 1.2, 0.66, 1), M(e.x + e.nx * c, y + 0.55, e.z + e.nz * c, Math.atan2(e.dx, e.dz))); }
+    }
     for (let i = 0; i < pts.length - 1; i++) {
       const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], sl = cum[i + 1] - cum[i]; if (sl < 0.2) continue;
       const dx = (x1 - x0) / sl, dz = (z1 - z0) / sl, ry = Math.atan2(dx, dz);
-      // (en trozos de 2 m, para que el tablero siga el lomo)
+      // (lo que se pisa, en trozos de 2 m, para que siga el lomo)
       const n = Math.max(1, Math.round(sl / 2));
       for (let k = 0; k < n; k++) {
         const s0 = cum[i] + sl * k / n, s1 = cum[i] + sl * (k + 1) / n, y0 = deck(s0), y1 = deck(s1), len = s1 - s0;
-        const cx = x0 + dx * (s0 + s1 - 2 * cum[i]) / 2, cz = z0 + dz * (s0 + s1 - 2 * cum[i]) / 2, pitch = -Math.atan2(y1 - y0, len), ym = (y0 + y1) / 2;
-        const T = M(cx, ym, cz, ry, pitch);
-        B.add(stone, box(Wd, 0.6, len + 0.06, 2), MM(T, M(0, -0.3, 0)));
-        for (const side of [-1, 1]) {
-          B.add(stone, box(0.42, 0.85, len + 0.04, 1.6), MM(T, M(side * (Wd / 2 - 0.21), 0.42, 0)));
-          B.add(cap, box(0.55, 0.14, len + 0.06, 1), MM(T, M(side * (Wd / 2 - 0.21), 0.9, 0)));
-        }
+        const cx = x0 + dx * (s0 + s1 - 2 * cum[i]) / 2, cz = z0 + dz * (s0 + s1 - 2 * cum[i]) / 2;
         addPlatform(cx, cz, ry, -Wd / 2 + 0.4, Wd / 2 - 0.4, -len / 2 - 0.02, len / 2 + 0.02, y0, y1);
       }
       for (const side of [-1, 1]) addBox(x0 + (x1 - x0) / 2 + side * Math.cos(ry) * (Wd / 2 - 0.2), z0 + (z1 - z0) / 2 - side * Math.sin(ry) * (Wd / 2 - 0.2), 0.45, Math.max(0.5, sl - (i === 0 || i === pts.length - 2 ? 1.2 : 0)), ry);
@@ -94,26 +130,27 @@ export function realBridges(B, real) {
         arcos.push({ a, b, c, ys, rise, ojo, pila: i < n - 1 ? b + pila / 2 : null });
       }
     }
-    // los muros de los costados: del tablero al suelo, con los ojos abiertos, doblados a lo largo del eje
-    const forma = new THREE.Shape();
-    forma.moveTo(0, yBot); for (let k = 0; k < N; k++) forma.lineTo(S[k], Dk[k] - 0.55); forma.lineTo(L, yBot); forma.closePath();
-    const yh0 = yBot + 0.6;
-    for (const A of arcos) {
-      const h = new THREE.Path(); h.moveTo(A.b, yh0); h.lineTo(A.b, A.ys);
-      for (let i = 1; i < 18; i++) { const t = Math.PI * i / 18; h.lineTo(A.c + Math.cos(t) * A.ojo / 2, A.ys + Math.sin(t) * A.rise); }
-      h.lineTo(A.a, A.ys); h.lineTo(A.a, yh0); h.closePath(); forma.holes.push(h);
-    }
-    for (const side of [-1, 1]) {
-      const g = new THREE.ExtrudeGeometry(forma, { depth: 0.5, bevelEnabled: false, curveSegments: 1 });
-      const pos = g.attributes.position, uv = g.attributes.uv;
-      for (let i = 0; i < pos.count; i++) {
-        const e = eje(pos.getX(i)), o = side * off - (pos.getZ(i) - 0.25);   // (el grueso, hacia fuera; −n: sin darle la vuelta a las caras)
-        pos.setXYZ(i, e.x + e.nx * o, pos.getY(i), e.z + e.nz * o);
+    // los muros de los costados: del tablero al suelo, con los ojos abiertos, de una pieza a lo largo del eje. Por debajo,
+    // en cada ojo, el borde del muro sigue el arco; en las pilas baja hasta el suelo. (Antes, una forma extruida y doblada:
+    // sus triángulos iban de punta a punta del puente y, en uno con curva, el muro se torcía por en medio)
+    const WS = [], W0 = [];
+    let ia = 0;
+    const ord = arcos.slice().sort((p, q) => p.a - q.a);
+    for (let k = 0; k < N; k++) {
+      while (ia < ord.length && ord[ia].a <= S[k]) {
+        const A = ord[ia++];
+        WS.push(A.a); W0.push(yBot); WS.push(A.a); W0.push(A.ys);
+        for (let i = 1; i < 18; i++) { const t = Math.PI * (1 - i / 18); WS.push(A.c + Math.cos(t) * A.ojo / 2); W0.push(A.ys + Math.sin(t) * A.rise); }
+        WS.push(A.b); W0.push(A.ys); WS.push(A.b); W0.push(yBot);
       }
-      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) / 2.2, uv.getY(i) / 2.2);
-      g.computeVertexNormals();
-      B.add(stone, g, M(0, 0, 0));
+      if (ord.some(A => S[k] >= A.a - 0.05 && S[k] <= A.b + 0.05)) continue;
+      WS.push(S[k]); W0.push(yBot);
     }
+    while (ia < ord.length) { const A = ord[ia++]; WS.push(A.a, A.a); W0.push(yBot, A.ys); for (let i = 1; i < 18; i++) { const t = Math.PI * (1 - i / 18); WS.push(A.c + Math.cos(t) * A.ojo / 2); W0.push(A.ys + Math.sin(t) * A.rise); } WS.push(A.b, A.b); W0.push(A.ys, yBot); }
+    const W1 = WS.map(s => deck(s) - 0.55);
+    for (const side of [-1, 1]) prisma(B, stone, WS, W0, W1, side * off - 0.25, side * off + 0.25, 2.2, eje);
+    // (y las puntas, cerradas entre muro y muro: en una orilla en cuesta se veía el puente hueco por dentro)
+    for (const s of [0.2, L - 0.2]) { const e = eje(s), top = deck(s) - 0.55, h = top - yBot; if (h > 0.2) B.add(stone, box(Wd - 1.0, h, 0.4, 2), M(e.x, yBot + h / 2, e.z, Math.atan2(e.dx, e.dz))); }
     // la bóveda de cada ojo (por dentro se ve al pasar por debajo) y los tajamares de las pilas que pisan el agua
     for (const A of arcos) {
       const q = 12, P0 = [];
