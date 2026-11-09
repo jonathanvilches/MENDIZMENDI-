@@ -797,13 +797,19 @@ export class PelotaMatch {
     if (g.phase === 'descanso') { if (g.descanso?.side === 'you') this.finDesc = true; return; }
     g.pideDescanso('you');
   }
-  // hacia dónde se apunta ahora: el arrastre desde el botón; si no, las flechas del teclado; y al sacar, que no te mueves,
-  // también el joystick
-  aimNow() {
+  // hacia dónde se apunta ahora: el arrastre desde el botón; si no, las flechas del teclado; y si no, el joystick (o las
+  // teclas WASD) mientras se carga el golpe, al soltarlo y al sacar. El joystick sigue moviéndote a la vez: no hay que
+  // elegir entre correr y apuntar. (Al dar el control total del pelotari, el joystick dejó de apuntar y solo quedaba el
+  // arrastre desde el botón, que no se veía: la pelota iba siempre recta y se perdía la dirección)
+  aimNow(golpe = false) {
     const I = this.input, k = I.keys, d = I.drag, g = this.game;
-    if (d && Math.hypot(d.x, d.y) > 0.18) return { x: d.x, y: d.y };
+    if (d && Math.hypot(d.x, d.y) > 0.18) return { x: d.x, y: d.y, arrastre: true };
     if (k.arrowleft || k.arrowright || k.arrowup || k.arrowdown) return { x: (k.arrowright ? 1 : 0) - (k.arrowleft ? 1 : 0), y: (k.arrowup ? 1 : 0) - (k.arrowdown ? 1 : 0), flechas: true };
-    if (g && (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP() === 'you') return { x: clamp1((k.d ? 1 : 0) - (k.a ? 1 : 0) + I.stick.x), y: clamp1((k.w ? 1 : 0) - (k.s ? 1 : 0) + I.stick.y) };
+    const saca = g && (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP() === 'you';
+    if (I.charge || golpe || saca) {
+      const x = clamp1((k.d ? 1 : 0) - (k.a ? 1 : 0) + I.stick.x), y = clamp1((k.w ? 1 : 0) - (k.s ? 1 : 0) + I.stick.y);
+      if (Math.hypot(x, y) > 0.2) return { x, y };
+    }
     return { x: 0, y: 0 };
   }
   readInput() {
@@ -817,10 +823,16 @@ export class PelotaMatch {
     // el joystick mueve siempre al pelotari, también mientras se carga el golpe: nadie lo mueve por ti. Se apunta aparte,
     // arrastrando el dedo desde el botón (o con las flechas mientras se mantiene, en el teclado: aimNow). Antes, al
     // mantener el golpe el joystick apuntaba y el pelotari iba solo a la pelota: se movía sin que se lo pidieras
-    const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ, A = this.aimNow();
+    const aiming = !!I.charge, rel = I.hitQ || I.dropQ || I.cutQ, A = this.aimNow(rel);
     if (aiming) I.lastAim = A;
-    const aim = rel && I.lastAim ? I.lastAim : A; if (rel) I.lastAim = null;
+    // (al soltar manda lo que empujas en ese momento; si ya no empujas nada, lo último que apuntaste mientras cargabas. Si
+    // apuntabas arrastrando desde el botón, manda el arrastre: el joystick, entonces, solo te movía)
+    const aim = rel ? (I.lastAim && (I.lastAim.arrastre || Math.hypot(A.x, A.y) <= 0.2) ? I.lastAim : A) : A; if (rel) I.lastAim = null;
     if (aiming && A.flechas) { x = clamp1((k.d ? 1 : 0) - (k.a ? 1 : 0) + I.stick.x); y = clamp1((k.w ? 1 : 0) - (k.s ? 1 : 0) + I.stick.y); }
+    // (con la pelota ya encima y el golpe cargado, el joystick mueve menos: es el último paso, y así apuntar en el último
+    // momento no te saca de donde está la pelota)
+    else if (aiming) { const g = this.game, Y = g?.players?.you, B = g?.ball?.p;
+      if (Y && B && g.phase === 'rally' && g.rally?.turn === 'you' && Math.hypot(B.x - Y.x, B.z - Y.z) < 2.4) { x *= 0.45; y *= 0.45; } }
     const out = { mx: x, mz: -y, aiming, hit: !!I.hitQ, drop: !!I.dropQ, cut: !!I.cutQ, power: I.power, aimX: aim.x, aimY: aim.y, descansoFin: !!this.finDesc };
     this.finDesc = false;
     I.hitQ = I.dropQ = I.cutQ = false;

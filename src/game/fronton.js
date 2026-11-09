@@ -435,7 +435,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const flags = { you: {}, rival: {} };
     // (el público es uno solo, el de la grada en 3D: antes llegaban además vecinos de otro estilo y se mezclaban dos diseños)
     if (G.beacon) G.beacon.off = true;   // sin el haz de luz del objetivo sobre el frontón
-    if (G.sky) { G.sky.flood = 1; G.sky.indoor = !!(fronton.court.hall || fronton.court.labrit); if (G.sky.indoor) G.sky.floodCur = 1; }   // de noche, los focos; a cubierto, la luz del pabellón siempre
+    // (los focos alumbran desde arriba, desde el lado de la contracancha y un poco desde atrás: así la luz da de lleno en
+    // la cancha, en la pared izquierda y en el frontis, sea cual sea la orientación del frontón en el pueblo)
+    if (G.sky) { G.sky.flood = 1; G.sky.indoor = !!(fronton.court.hall || fronton.court.labrit); if (G.sky.indoor) G.sky.floodCur = 1;
+      try { const o = fronton.toWorld(0, 0); G.sky.floodDir = fronton.toWorld(0.55, 0.6).sub(o).setY(1).normalize(); } catch (e) { G.sky.floodDir = null; } }   // de noche, los focos; a cubierto, la luz del pabellón siempre
     // y el público sentado en los bancos de la grada (una sola llamada de dibujo; se va al acabar)
     // (los más cercanos a la cámara, en 3D; con pañuelos que se agitan en cada tanto)
     // todo el público en 3D con su textura (sin láminas planas a lo lejos): cuántos, según la calidad, repartidos por la grada
@@ -586,7 +589,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { if (rig.char) rig.char.post = null; if (rival.glb) rival.glb.post = null; rig.setStance?.(null); });
         safe(() => { if (pel) { P.obj.remove(pel.char.root); pel.dispose(); } });
         safe(() => { for (const c of hidden) if (!c.parent) P.obj.add(c); });
-        safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; } });
+        safe(() => { if (bf) bf.visible = bfWas; if (G.beacon) G.beacon.off = false; if (G.sky) { G.sky.flood = 0; G.sky.indoor = false; G.sky.floodDir = null; } });
         safe(() => { if (red) { red.char.post = null; rival.obj.remove(red.char.root); red.dispose(); } });
         safe(() => { for (const c of hiddenR) if (!c.parent) rival.obj.add(c); });
         safe(() => { G.rt?.nature?.partido(false); if (G.rt) G.rt.partidoLigero = false; });

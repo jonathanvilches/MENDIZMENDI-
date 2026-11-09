@@ -239,9 +239,10 @@ void main(){
    *  cancha se ve siempre bien. */
   applyFlood() {
     const fk = this.floodK(); if (fk <= 0) return;
-    this.hemi.color.lerp(FLOOD_SKY, fk); this.hemi.groundColor.lerp(FLOOD_GND, fk); this.hemi.intensity += (1.3 - this.hemi.intensity) * fk;
+    this.hemi.color.lerp(FLOOD_SKY, fk); this.hemi.groundColor.lerp(FLOOD_GND, fk); this.hemi.intensity += ((this.indoor ? 1.3 : 1.55) - this.hemi.intensity) * fk;   // (al aire libre, algo más de luz de relleno: las paredes que no miran a los focos no se quedan oscuras)
     this.sun.color.lerp(FLOOD_SUN, fk); this.sun.intensity += (2.7 - this.sun.intensity) * fk;
-    this.sun.shadow.intensity += (1 - this.sun.shadow.intensity) * fk;
+    // (con los focos, sombras más suaves: son varios focos a la vez, y una sombra negra sobre la cancha se come la pelota)
+    this.sun.shadow.intensity += (0.6 - this.sun.shadow.intensity) * fk;
   }
   update(dt, focus, elapsed, frozen) {
     if (!frozen) this.time = (this.time + dt * this.speed) % 24;
@@ -256,7 +257,10 @@ void main(){
     // partido se juega con la luz del pueblo, la misma de antes de entrar (antes se encendían también a mediodía y, al
     // empezar y al acabar el partido, la luz de todo el pueblo cambiaba: un 30 % más clara, más blanca y desde arriba)
     // (a cubierto, en el frontón cerrado o en el Labrit, la luz del pabellón está siempre encendida, de día también)
-    { const want = this.flood ? (this.indoor ? 1 : smoothstep(0.15, 0.6, this.night)) : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 1.2) : Math.max(want, c - dt / 1.2); }
+    // (y durante el partido, la cancha siempre bien iluminada: los focos se van encendiendo en cuanto el sol baja, por la
+    // mañana temprano y por la tarde, y de día siempre ayudan algo, que el frontis queda a contraluz. Antes solo se
+    // encendían ya de noche y, al atardecer, se jugaba casi a oscuras)
+    { const want = this.flood ? (this.indoor ? 1 : Math.max(smoothstep(0.15, 0.6, this.night), 1 - smoothstep(0.25, 0.6, elev), 0.55)) : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 2) : Math.max(want, c - dt / 2); }
     const s = this.sample(t);
     this.uniforms.uZen.value.copy(s.zen); this.uniforms.uHor.value.copy(s.hor);
     this.uniforms.uSunDir.value.copy(this.sunDir); this.uniforms.uSunCol.value.copy(s.sun);
@@ -274,7 +278,11 @@ void main(){
     // arriba; sin luces nuevas (en el móvil, añadir luces rehace todos los sombreadores y da un tirón). Antes, de noche,
     // no se veía nada en el frontón
     const fk = this.floodK();
-    if (fk > 0) lightDir.lerp(FLOOD_DIR, fk).normalize();   // (la intensidad, en applyFlood: después de la lluvia)
+    // (floodDir: desde la contracancha y desde atrás, según cómo esté el frontón. En el partido, la luz viene sobre todo de
+    // los focos también de día, aunque solo ayuden un poco: si no, con el sol detrás del frontis, el frontis y la pared
+    // izquierda se quedaban a contraluz, casi negros, por mucha luz que hubiera en la cancha)
+    const fkDir = this.flood ? Math.max(fk, Math.min(1, (this.floodCur || 0) / 0.55) * 0.85) : fk;
+    if (fkDir > 0) lightDir.lerp(this.floodDir || FLOOD_DIR, fkDir).normalize();   // (la intensidad, en applyFlood: después de la lluvia)
     // sombras: nítidas al sol; con la luna, más suaves y claras (la noche no tiene sombras negras)
     this.sun.shadow.intensity = 1 - 0.45 * this.night;
     // el mapa de sombras: centrado algo por delante de la cámara (lo de detrás no se ve, y así el borde donde se acaban
