@@ -4,6 +4,7 @@ import { COURT, CUATRO } from './rules.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 import { buildEntorno, entornoExtent } from './entorno.js';
 import { juntaQuietas, guardadas } from '../util/juntar.js';
+import { bolaMalla } from './bola.js';
 import { pintaPin45 } from './pin45.js';
 
 function srgb(THREE, tex) {
@@ -405,11 +406,8 @@ export class PelotaCourt {
 
     // --- pelota, sombra, estela y ayudas
     const ball = this.ball = new T.Group();
-    const ballMat = this.ballMat = M({ color: '#f4eedd', roughness: 0.55, emissive: '#000000' });
-    ball.add(new T.Mesh(new T.SphereGeometry(C.BALL_R, 18, 12), ballMat));
-    const seam = M({ color: '#8a1d1d', roughness: 0.7 });
-    for (const s of [-1, 1]) { const t = new T.Mesh(new T.TorusGeometry(C.BALL_R * 1.01, C.BALL_R * 0.07, 5, 24, Math.PI), seam); t.rotation.set(0, s * 0.6, Math.PI / 2); ball.add(t); }
-    ball.traverse(o => { if (o.isMesh) o.castShadow = true; });
+    // (la pelota de verdad: cuero crema gastado, la costura en ocho y sus puntadas en relieve; pelota/bola.js)
+    { const B = bolaMalla(T, C.BALL_R, M); this.ballMat = B.mat; ball.add(B.group); }
     g.add(ball);
     const shadowMat = new T.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.32, depthWrite: false });
     this.shadow = new T.Mesh(new T.CircleGeometry(C.BALL_R * 1.1, 16), shadowMat); this.shadow.rotation.x = -Math.PI / 2; g.add(this.shadow);

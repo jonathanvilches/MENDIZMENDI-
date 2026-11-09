@@ -4,6 +4,7 @@ import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { icon3DReady } from '../ui/icon3d.js';
 import { esc } from '../util/html.js';
 import { tap } from '../util/tap.js';
+import { bolaSVG } from './bola.js';
 export { esc };
 const CSS = `
 .pel-root{position:fixed;inset:0;z-index:900;pointer-events:none;font-family:var(--pel-font,'MZ Texto',sans-serif);color:#fff;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
@@ -349,7 +350,7 @@ const CSS = `
 .pel-root.paneled .pel-menu,.pel-root.repe .pel-menu{visibility:hidden}
 @media (max-height:500px){.pm-hoja button{min-height:36px}}
 `;
-const BOLA = '<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="2" fill="none"/></svg>';
+const BOLA = bolaSVG();   // (la pelota de verdad, en dibujo: pelota/bola.js)
 
 /** Mete en la página los estilos del partido (una vez). La pasaka (src/game/pasaka3d.js) usa la misma interfaz. */
 export function pelotaStyle() { if (!document.getElementById('pel-style')) { const st = document.createElement('style'); st.id = 'pel-style'; st.textContent = CSS; document.head.appendChild(st); } }

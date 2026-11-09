@@ -29,6 +29,7 @@ import { meetPelotari } from './pelotaris.js';
 import { pelotariFig, RIVALES, pelotariHair, pelotariGirl } from '../ui/pelotariFig.js';   // (las mismas figuras que las cartas: así no van dos veces en el archivo único)
 import { crowdBuffers, PUBLICO } from '../crowdAudio.js';
 import { pelotaLigera } from '../util/diag.js';
+import { COLOR_BOLA } from '../pelota/bola.js';
 // un pelotari rival o compañero (el azul, pelotari; el colorado, pelotari_rojo) con el pelo de su figura (el rubio Mikel,
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
@@ -124,7 +125,7 @@ export function frontonLook(def = {}) {
 // yeso o de frontis de piedra dorada (Lesaka, Ituren, Orreaga, Lumbier, Ujué, Olite, Marcilla…), la pelota casi no se veía.
 // El frontis, cuatro: le da el sol de cara y en la imagen sale más claro que su color (la pared izquierda suele estar a
 // la sombra)
-const BOLA = '#f4eedd', MIN_CONTRASTE = { frontis: 4, stone: 4, wall: 3, floor: 2.6 };
+const BOLA = COLOR_BOLA, MIN_CONTRASTE = { frontis: 4, stone: 4, wall: 3, floor: 2.6 };
 const luminancia = (c) => 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b;   // (THREE.Color guarda el color en lineal)
 const cociente = (a, b) => { const x = luminancia(a), y = luminancia(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
 function legible(L) {

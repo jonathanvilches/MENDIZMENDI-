@@ -7,6 +7,7 @@ import { setFeel } from './physics.js';
 import { openFicha, playerChip, splitName } from './ficha.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PrimeraPersona } from './primeraPersona.js';
+import { bolaSVG } from './bola.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { Focos } from './show.js';
@@ -217,7 +218,7 @@ export class PelotaMatch {
       const t = this.txt.mat || TEXT.es.mat, n = POR_LADO(this.pairs), lot = this.lote = lote(((Date.now() % 1e6) * 13 + 5) >>> 0);
       const estilo = perfil(this.o.rivalStats), tuPrimero = Math.random() < 0.5, rn = this.nomLimpio('rival');
       let rv = tuPrimero ? [] : elige(lot, n, estilo), mio = 'mixto', mias = [];
-      const icono = (b) => `<svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="#f4eedd" stroke="${clase(b) === 'viva' ? '#ff7ac8' : clase(b) === 'pesada' ? '#7fb2ff' : '#c9b2ff'}" stroke-width="2.5"/><path d="M6 12c6 3 14 3 20 0M6 20c6-3 14-3 20 0" stroke="#b0442a" stroke-width="1.6" fill="none"/></svg>`;
+      const icono = (b) => bolaSVG(clase(b) === 'viva' ? '#ff7ac8' : clase(b) === 'pesada' ? '#7fb2ff' : '#c9b2ff');
       const chip = (b) => `<span class="pel-mchip">${icono(b)}<b>Nº ${b.n}</b><small>${t.kinds[clase(b)]} · ${pesoTxt(b)}</small></span>`;
       const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${tuPrimero ? t.first : t.second(rn)}</p><p class="pel-mat-what">${t.sub(n)}</p>
         <div class="pel-msel"><span>${t.tuyas}</span><div class="pel-mseg" role="radiogroup">${['mixto', 'pegador', 'manos'].map(k => `<button type="button" role="radio" data-mat-k="${k}" aria-checked="${k === 'mixto'}">${esc((t.cortos || TEXT.es.mat.cortos)[k])}</button>`).join('')}</div></div>
