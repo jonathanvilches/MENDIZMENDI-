@@ -166,7 +166,7 @@ export class PrimeraPersona {
     const w = 15, dy = envuelve(yawT - c.yaw), dpch = pitchT - c.pitch;
     // (con tope de velocidad: rápido como una cabeza que sigue la pelota, sin latigazos cuando pasa pegada a ti)
     c.vy = clamp(c.vy + (w * w * dy - 2 * w * c.vy) * dt, -6, 6); c.yaw += c.vy * dt;
-    c.vp = clamp(c.vp + (w * w * dpch - 2 * w * c.vp) * dt, -5, 5); c.pitch = clamp(c.pitch + c.vp * dt, -0.75, 1.0);
+    c.vp = clamp(c.vp + (w * w * dpch - 2 * w * c.vp) * dt, -5, 5); c.pitch = clamp(c.pitch + c.vp * dt, -0.45, 0.4);
     // el cuerpo se tuerce al armar (hacia el brazo que arma) y, al golpear, el giro se suelta hacia el otro lado
     let giroT = 0;
     if (st) {
@@ -176,12 +176,12 @@ export class PrimeraPersona {
     }
     c.giro += (giroT - c.giro) * (1 - Math.exp(-dt * 12));
     // inclinarse al ir de lado; y el golpe seco del pelotazo, que se va enseguida
-    const rollT = clamp(-lado * 0.07, -0.08, 0.08), wr = 9;
+    const rollT = clamp(-lado * 0.04, -0.045, 0.045), wr = 9;
     c.vr += (wr * wr * (rollT - c.roll) - 2 * wr * c.vr) * dt; c.roll += c.vr * dt;
     c.kick = Math.max(0, c.kick - dt * 3.2); c.sac = Math.max(0, c.sac - dt * 0.9);
     // al correr, el paso: arriba y abajo, y un poco de lado
     const k = clamp(vel / 6, 0, 1); c.paso += dt * (4 + vel * 1.6); c.t += dt;
-    const bob = Math.abs(Math.sin(c.paso)) * 0.045 * k - 0.02 * k, sway = Math.sin(c.paso) * 0.018 * k;
+    const bob = Math.abs(Math.sin(c.paso)) * 0.025 * k - 0.012 * k, sway = Math.sin(c.paso) * 0.01 * k;
     c.pos.lerp(ojo, 1 - Math.exp(-dt / 0.025));
     // (el temblor: ruido suave, no a saltos de imagen en imagen)
     const sx = (Math.sin(c.t * 61) + Math.sin(c.t * 37.3)) * 0.5 * c.sac, sy = (Math.sin(c.t * 53.1 + 1) + Math.sin(c.t * 29.7)) * 0.5 * c.sac;
@@ -191,7 +191,7 @@ export class PrimeraPersona {
     cam.position.copy(c.pos);
     v.h.set(sway + sx * 0.04, bob + sy * 0.04, kk * 0.05).applyQuaternion(cam.quaternion); cam.position.add(v.h);
     // el campo de visión: más abierto cuanto más deprisa; se cierra de golpe con el pelotazo
-    const fovT = fov + k * 7 - kk * 6, wf = 12;
+    const fovT = fov + k * 4 - kk * 4, wf = 12;
     c.vf += (wf * wf * (fovT - c.fov) - 2 * wf * c.vf) * dt; c.fov += c.vf * dt;
     if (Math.abs(cam.fov - c.fov) > 0.01) { cam.fov = c.fov; cam.updateProjectionMatrix(); }
     cam.updateMatrixWorld();

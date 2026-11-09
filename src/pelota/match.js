@@ -1238,14 +1238,18 @@ export class PelotaMatch {
       if (bz < you.z - 0.3) {
         const dist = Math.hypot(bx - you.x, by - this.ojoH, bz - you.z), w = 0.35 + 0.6 * Math.max(0, Math.min(1, (dist - 1.2) / 2.5));
         const fx = you.x * 0.3, fy = 1.4, fz = Math.min(you.z - 8, 4);
-        tx = fx + (bx - fx) * w; ty = fy + (by - fy) * w; tz = fz + (bz - fz) * w;
+        // (de alto, a medias: si no, con cada pelota alta la mirada se iba al cielo)
+        tx = fx + (bx - fx) * w; ty = Math.min(3, fy + (by - fy) * w * 0.5); tz = fz + (bz - fz) * w;
       } else { tx = Math.max(-W2, Math.min(W2, bx)) * 0.9; ty = 1.5; tz = you.z - 7; }
     }
     const mira = grp.localToWorld(new T.Vector3(tx, ty, tz));
     // lo deprisa que vas y lo que vas de lado: para el paso, la inclinación y lo que se abre la vista
     const vel = Math.hypot(you.vx || 0, you.vz || 0) || you.speed || 0, lado = Math.max(-1, Math.min(1, (you.vx || 0) / 6));
     const saca = (g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you' && Math.hypot(B.x - you.x, B.z - you.z) < 1.6;
-    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: portrait ? 80 : 66, saca });
+    // (el campo de visión, por lo ancho de la pantalla: unos 90 grados de lado a lado. Con uno fijo, en el móvil en
+    // horizontal, tan ancho, se veía como con ojo de pez)
+    const asp = Math.max(0.3, innerWidth / Math.max(1, innerHeight)), fovFP = Math.max(46, Math.min(80, 2 * Math.atan(Math.tan(Math.PI / 4) / asp) * 180 / Math.PI));
+    this.fp.update(dt, { ojo, mira, vel, lado, cuerpo: this.cuerpo, st: this.recSt?.you, fov: fovFP, saca });
     // al sacar tú, la pelota en tu mano (la de la vista; si no, flotaba donde estaría la mano del pelotari entero)
     if ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP?.() === 'you' && Math.hypot(B.x - you.x, B.z - you.z) < 1.6 && B.y < 2.2) {
       const m = this.fp.mano('R', new T.Vector3()); if (m) { C.ball.position.copy(grp.worldToLocal(m)); C.shadow.position.set(C.ball.position.x, 0.012, C.ball.position.z); }

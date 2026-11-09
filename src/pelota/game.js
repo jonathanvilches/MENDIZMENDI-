@@ -856,6 +856,13 @@ export class PelotaGame {
           }
         }
       }
+      // con la cámara (la pelota en casa), cuando te toca, tu pelotari va solo a por la pelota: no hay mando con el que
+      // moverlo (el golpe sí lo das tú, con el brazo). Al quitar la ayuda del mando para el control total, se quedó también
+      // sin esto y el pelotari se quedaba quieto viendo pasar la pelota
+      if (this.camara && inp.aiming && this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you') {
+        const c = this.interceptFor('you', YOU_RUN, 0.1);
+        if (c) { const help = Math.max(this.lvl.assist, 5.4) * (1 - this.tired('you') * 0.3), dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
+      }
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
       if (!((this.phase === 'serveWait' || this.phase === 'servePrep') && this.serverP() === 'you')) { you.vx += (vx - you.vx) * a; you.vz += (vz - you.vz) * a; }
