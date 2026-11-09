@@ -1,6 +1,6 @@
 # Sonidos y músicas grabados
 
-Estos archivos **no son libres**. No van con la licencia del resto del proyecto.
+Estos archivos **no son libres**, salvo `musica-pelota.mp3` (ver «Música libre», abajo). No van con la licencia del resto del proyecto.
 
 Están licenciados por Envato Elements para un solo proyecto: el juego Herrizherri. La licencia está a nombre del dueño del proyecto.
 
@@ -26,3 +26,18 @@ Los términos son los de la licencia de Envato Elements: https://elements.envato
 - El gol son los 9 primeros segundos, con el final apagándose.
 
 Cada página de la pista: https://app.envato.com/item/ y el identificador del certificado.
+
+## Música libre
+
+| Archivo | Uso en el juego | Pieza | Autor | Licencia | Fecha |
+|---|---|---|---|---|---|
+| musica-pelota.mp3 | Música de los partidos de pelota | Minstrel Guild (ISRC USUAN1200098) | Kevin MacLeod (incompetech.com) | Creative Commons Atribución 4.0 | 09/11/2026 |
+
+Atribución, tal como la pide el autor:
+
+> "Minstrel Guild" Kevin MacLeod (incompetech.com)
+> Licensed under Creative Commons: By Attribution 4.0 License
+> http://creativecommons.org/licenses/by/4.0/
+
+Cambios hechos: pasada a MP3 de 96 kbps y recortados los dos segundos de silencio del final, para que el bucle no se note.
+La atribución sale en el juego, en Ajustes, Créditos y licencias. Esta pieza sí puede usarse fuera del juego (por ejemplo en un tráiler) con la misma atribución.

@@ -330,7 +330,7 @@ export class Runtime {
     // se ve y no se dibuja. Antes el pueblo entero se seguía dibujando detrás y, en los ordenadores modestos, los menús
     // iban a tirones
     if (this.frameNo % 10 === 0) this.checkCover();
-    if (this.frames % 15 === 0) { this.sound.setMood?.(this.moodOf(g)); const pm = g?.pelotaMatch; this.sound.nivelMusica?.(pm && (pm.pasaka || pm.enJuego?.()) ? 0.1 : 0.32); }
+    if (this.frames % 15 === 0) { this.sound.setMood?.(this.moodOf(g)); const pm = g?.pelotaMatch; this.sound.nivelMusica?.(pm && (pm.pasaka || pm.enJuego?.()) ? 0.14 : 0.32); }
     try { if (alt) { input.enabled = !g.ui.busy; input.update(dt); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro
@@ -482,7 +482,10 @@ export class Runtime {
     // (en el partido de pelota, la música de los campeonatos, como en el fútbol y en sus menús: mientras se juega, baja,
     // y mandan la pelota, el público y sus aplausos; nivelMusica. Antes no había ninguna y se echaba de menos; el tema de
     // inicio del menú lo pone main.js)
-    if (m === 'pelota' || g.pelotaMatch || m === 'futbol' || m === 'menu' || g.sportMode) return 'sport';
+    // (y en el partido de pelota en sí, su música: una pieza de gaita y percusión a buen paso, de fiesta de pueblo. La de
+    // los campeonatos, épica y lenta, se quedaba corta de ritmo para un peloteo)
+    if (g.pelotaMatch) return 'pelota';
+    if (m === 'pelota' || m === 'futbol' || m === 'menu' || g.sportMode) return 'sport';
     if (m === 'mini') return 'game';
     if (m === 'dance') return 'fiesta';
     if (g.missions?.some(M => M.chase)) return 'tension';
@@ -512,7 +515,7 @@ export class Runtime {
     { const hold = g.mode === 'futbol' || g.mode === 'pelota' || !!this.sky.indoor;
       // (las ventanas de los deportes, mirado cada 10 imágenes: antes se buscaban en la página en cada fotograma)
       if (this.frameNo % 10 === 0) this.sportUi = !!document.querySelector('.lg-root, .pel-root, .fb-root, .champ');
-      const mute = this.sportQuiet = hold || this.moodOf(g) === 'sport' || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || this.sportUi;
+      const mute = this.sportQuiet = hold || /^(sport|pelota)$/.test(this.moodOf(g)) || !!g.pelotaMatch || !!g.pelotaLoading || !!g.altScene || this.sportUi;
       this.weather?.update(dt, this.camera, this.sky, this.sound, hold, mute); }
     this.sky.applyFlood();   // (los focos del frontón, después de la lluvia)
     g.fronton?.court?.setLights?.(this.sky.flood ? 1 : Math.min(1, this.sky.night * 1.6));   // (en el partido, siempre encendidos; si no, al anochecer)

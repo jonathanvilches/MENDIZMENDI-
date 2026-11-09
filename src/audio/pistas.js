@@ -1,4 +1,5 @@
-// Las pistas grabadas (src/assets/sonidos, con licencia de Envato Elements para este juego: LICENCIAS.md, allí mismo):
+// Las pistas grabadas (src/assets/sonidos, con licencia de Envato Elements para este juego, salvo la de los partidos de
+// pelota, que es libre con atribución: LICENCIAS.md, allí mismo):
 // las músicas del menú, de Torneos y de los pueblos, el público de los partidos, la ovación del último tanto de pelota
 // y el gol. Las músicas suenan desde un elemento <audio> conectado al bus de música del juego (src/audio.js): se leen
 // a medida que suenan, sin descomprimirlas enteras (cada una, más de 30 MB en memoria; el iPhone cierra la página si se
@@ -7,7 +8,8 @@
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/sonidos/*.mp3', { eager: true, query: '?url', import: 'default' }))
   .map(([p, u]) => [p.split('/').pop().replace('.mp3', ''), u]));
 // (el volumen de cada una, para que suenen como la música sintetizada, unos −33 dB a la salida)
-const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5 };
+// (la de los partidos de pelota, «Minstrel Guild» de Kevin MacLeod, CC BY 4.0: viene 2 dB más alta que la de Torneos)
+const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5, 'musica-pelota': 0.4 };
 
 /** Las músicas grabadas de un contexto de audio: quiere(nombre) cada cuarto de segundo con la que toca (o null). Cambia
  *  de una a otra con un fundido corto. */

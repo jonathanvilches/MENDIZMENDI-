@@ -7,9 +7,10 @@ import { Musica } from './audio/pistas.js';
 // sintetizada de antes ya no está: sonaba en los ambientes que no tenían canción y se mezclaba con las nuevas ---
 // (explore: el pueblo de día · night y mystery: de noche, las leyendas y el monte · tension: el encierro y las
 // persecuciones · game: los minijuegos · fiesta: San Fermín, el carnaval y los bailes · sport: los partidos y los
-// campeonatos · inicio: el menú · torneos: la pantalla de Torneos · none: nada)
+// campeonatos · pelota: el partido de pelota, con gaita y percusión, más viva · inicio: el menú · torneos: la pantalla
+// de Torneos · none: nada)
 const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-juego', game: 'musica-juego', fiesta: 'musica-juego',
-  sport: 'musica-torneos', inicio: 'musica-inicio', torneos: 'musica-torneos' };
+  sport: 'musica-torneos', pelota: 'musica-pelota', inicio: 'musica-inicio', torneos: 'musica-torneos' };
 
 export class Sound {
   constructor() {
