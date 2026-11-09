@@ -287,6 +287,9 @@ export const TEXT = {
     win: '¡Has ganado!', lose: '¡Casi! Otra vez será', rallyWin: '¡Lo has conseguido!',
     result: (a, b) => `${a} – ${b}`,
     factsTitle: '¿Sabías que…?',
+    // el resumen del partido, en la pantalla del final
+    est: { title: 'Estadísticas', pelotazos: 'Pelotazos', hechos: 'Tantos hechos', fallos: 'Fallos', saque: 'De saque', dejada: 'De dejada', aire: 'De aire', volea: 'De volea', rebote: 'De rebote',
+      largo: (n) => `El tanto más largo: ${n} ${n === 1 ? 'pelotazo' : 'pelotazos'}`, media: (m) => `Media: ${m} por tanto`, vacio: (n) => `Golpes en vacío: ${n}` },
     facts: [
       'En la pelota a mano se juega con la mano desnuda. Los pelotaris se protegen los dedos con tacos y esparadrapo.',
       'La chapa es una banda de metal en la parte baja del frontis. Si la pelota da ahí, suena distinto y el tanto se pierde.',
@@ -394,6 +397,8 @@ export const TEXT = {
     win: 'Irabazi duzu!', lose: 'Ia-ia! Hurrengoan', rallyWin: 'Lortu duzu!',
     result: (a, b) => `${a} – ${b}`,
     factsTitle: 'Ba al zenekien…?',
+    est: { title: 'Estatistikak', pelotazos: 'Pilotakadak', hechos: 'Egindako tantoak', fallos: 'Hutsak', saque: 'Sakez', dejada: 'Dejadaz', aire: 'Airez', volea: 'Boleaz', rebote: 'Errebotez',
+      largo: (n) => `Tantorik luzeena: ${n} pilotakada`, media: (m) => `Batez beste: ${m} tantoko`, vacio: (n) => `Hutsean jotakoak: ${n}` },
     facts: [
       'Esku pilotan esku hutsez jokatzen da. Pilotariek atzamarrak tako eta esparatrapuz babesten dituzte.',
       'Txapa frontisaren beheko metalezko banda da. Pilota hor jotzen badu, beste soinu bat ateratzen du eta tantoa galtzen da.',

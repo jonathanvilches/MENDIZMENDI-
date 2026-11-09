@@ -308,6 +308,18 @@ const CSS = `
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
 @media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-mseg button{min-height:40px}.pel-matcard .pel-mgo{bottom:-12px;margin:0 -16px -12px;padding:6px 16px 12px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
 /* la experiencia en el panel del final: el nivel con su barra y lo que ha subido cada cualidad, en cuatro casillas */
+/* el resumen del partido (match.js, estBloque): cada cifra, la tuya y la del rival, con el color de cada uno */
+.pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-est-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-est-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.pel-est span{display:flex;gap:10px;min-width:0}.pel-est i{font-style:normal}.pel-est i.rojo{color:#ff9cc8}.pel-est i.azul{color:#b9b1ff}
+.pel-est-top i{font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pel-est ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;columns:auto}
+.pel-est li{display:grid;justify-items:center;gap:4px;margin:0;padding:6px 4px;border-radius:12px;background:rgba(20,8,40,.5)}
+.pel-est li b{font:800 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#cbbcf0;text-align:center}
+.pel-est li span{font:400 var(--fs-md)/1 var(--f-display,'MZ Display'),sans-serif;gap:12px}
+.pel-est p{margin:8px 0 0;font:700 var(--fs-xs)/1.3 var(--f-cond,'MZ Cond'),sans-serif;color:#e7defa;text-align:center}
+@media (max-width:440px){.pel-est ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-height:500px){.pel-est{padding:8px 10px;margin-bottom:8px}.pel-est ul{margin-top:6px}.pel-est li{padding:4px}.pel-est p{margin-top:6px}}
 .pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-xp.sube{border-color:#ffd36a;box-shadow:0 0 0 3px rgba(255,211,106,.15),0 0 18px rgba(255,211,106,.25)}
 .pel-xp-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-xp-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}

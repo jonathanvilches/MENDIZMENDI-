@@ -653,7 +653,7 @@ export class PelotaMatch {
     // (lo que ha dado el partido: la experiencia, el nivel y lo que ha subido cada cualidad; game/pelotariProgreso.js)
     const gano = this.o.progreso?.(e, g.stats, g.mode), xpHtml = gano ? this.xpBloque(gano) : '';
     const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}${g.mode === 'rally' ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
-      <div class="pel-big">${big}</div>${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}
+      <div class="pel-big">${big}</div>${this.estBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
@@ -664,6 +664,20 @@ export class PelotaMatch {
       if (b.hasAttribute('data-pel-fichas')) this.ficha('rival');
     });
     this.result = e;
+  }
+  /** El resumen del partido en el panel del final: los pelotazos de cada uno, los tantos hechos y los fallos, de qué han
+   *  sido los tantos (saque, dejada, aire, volea, rebote), el tanto más largo y la media. Cada cifra, la tuya y la del rival,
+   *  con el color de cada uno. */
+  estBloque(g) {
+    const S = g.stats, P = S?.por; if (g.mode !== 'match' || !P || !S.tantos?.length) return '';
+    const E = this.txt.est || TEXT.es.est, cy = this.cols.you === 'rojo' ? 'rojo' : 'azul', cr = cy === 'rojo' ? 'azul' : 'rojo';
+    const par = (a, b) => `<span><i class="${cy}">${a}</i><i class="${cr}">${b}</i></span>`;
+    const fila = (k, a, b) => `<li><b>${esc(E[k])}</b>${par(a, b)}</li>`;
+    const filas = [fila('pelotazos', S.hits.you, S.hits.rival), fila('hechos', P.you.hechos, P.rival.hechos), fila('fallos', P.you.fallos, P.rival.fallos), fila('saque', P.you.saque, P.rival.saque),
+      fila('dejada', P.you.dejada, P.rival.dejada), fila('aire', P.you.aire, P.rival.aire), fila('volea', P.you.volea, P.rival.volea), fila('rebote', P.you.rebote, P.rival.rebote)].join('');
+    const largo = Math.max(...S.tantos), media = (S.tantos.reduce((a, b) => a + b, 0) / S.tantos.length).toFixed(1).replace('.', this.lang === 'eu' ? ',' : ',');
+    const pie = [E.largo(largo), E.media(media), S.alAire ? E.vacio(S.alAire) : ''].filter(Boolean).join(' · ');
+    return `<div class="pel-est"><div class="pel-est-top"><b>${esc(E.title)}</b><span><i class="${cy}">${esc(this.names.you)}</i><i class="${cr}">${esc(this.names.rival)}</i></span></div><ul>${filas}</ul><p>${esc(pie)}</p></div>`;
   }
   /** El bloque de la experiencia en el panel del final: el nivel con su barra, lo ganado y lo que ha subido cada cualidad. */
   xpBloque(g) {

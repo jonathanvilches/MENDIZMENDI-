@@ -135,7 +135,12 @@ export class PelotaGame {
     this.phase = 'intro'; this.phaseT = 0;
     this.events = [];
     this.pred = null; this.predT = 0;
-    this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0, fuertes: 0 };
+    // (por: lo de cada lado para el resumen del final. hechos, los tantos que gana con su golpe, porque el otro no llega; de
+    // ellos, los de saque, dejada, aire (golpeada antes del bote, por debajo del hombro), volea (antes del bote y a la
+    // altura del hombro o más arriba), rebote (tras dar en la pared de atrás), cortada y dos paredes. fallos, los que pierde por mandar la pelota fuera, a la chapa, falta o pasa.
+    // tantos: los pelotazos de cada tanto. alAire: tus golpes al aire)
+    const lado = () => ({ hechos: 0, fallos: 0, saque: 0, dejada: 0, aire: 0, volea: 0, rebote: 0, cortada: 0, dosparedes: 0 });
+    this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0, fuertes: 0, por: { you: lado(), rival: lado() }, tantos: [], alAire: 0 };
     this.placeForServe();
   }
   emit(e) { this.events.push(e); }
@@ -449,7 +454,7 @@ export class PelotaGame {
     const cost = shotEnergy(shot, sub, pow, !!o.volea) * (cut ? 1 + EN.racha * (pl.racha || 0) : 1);
     pl.racha = cut ? (pl.racha || 0) + 1 : shot === 'saque' ? pl.racha || 0 : (pl.racha || 0) * 0.5;
     pl.en = clamp(pl.en - (cost > 0 ? cost * (1.15 - this.qual[who].fuerza * 0.05) : cost), 0, 1);
-    this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1, kind: shot, sub, volea: !!o.volea, sp: Math.hypot(v.x, v.y, v.z) };
+    this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1, kind: shot, sub, volea: !!o.volea, alto: p.y >= 1.2, sp: Math.hypot(v.x, v.y, v.z) };
     for (const id of this.ids) this.players[id].idealAt = null;   // (el momento justo del golpe siguiente se mira de nuevo)
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
     this.stats.hits[sd]++;
@@ -467,6 +472,14 @@ export class PelotaGame {
     const R = this.rally;
     this.stats.rallies++; this.stats.longest = Math.max(this.stats.longest, R?.hits || 0);
     this.stats.faults[call] = (this.stats.faults[call] || 0) + 1;
+    // (el resumen: de quién es el tanto y cómo. Con dos botes, lo hace quien golpeó; si no, lo pierde quien golpeó)
+    if (R && this.stats.por[winner]) {
+      this.stats.tantos.push(R.hits || 0);
+      if (call === 'bote') { const P = this.stats.por[winner]; P.hechos++;
+        if (R.serve) P.saque++;
+        else { if (R.kind === 'dejada') P.dejada++; if (R.kind === 'cortada') P.cortada++; if (R.kind === 'dosparedes') P.dosparedes++; if (R.volea) { if (R.alto) P.volea++; else P.aire++; } if (R.rebote || R.kind === 'rebote') P.rebote++; }
+      } else this.stats.por[this.other(winner)].fallos++;
+    }
     this.phase = 'point'; this.phaseT = 0;
     if (this.mode === 'rally') {
       if (winner === 'rival' || call === 'bote' && R?.turn === 'you') { this.best = Math.max(this.best, this.streak); this.streak = 0; }
@@ -501,6 +514,7 @@ export class PelotaGame {
     } else if (e.type === 'back') {
       // en el rebote sin haber botado: larga (fuera); tras un bote, vuelve y se sigue jugando
       if (!R.front || R.bounces < 1) { this.emit({ type: 'back', ...e }); return this.point(receiver, 'largo'); }
+      R.rebote = true;   // (ha dado en el rebote y sigue viva: si no se devuelve, el tanto es de rebote)
       this.emit({ type: 'back', ...e, live: true });
     } else if (e.type === 'floor') {
       this.emit({ type: 'floor', ...e });
@@ -891,7 +905,7 @@ export class PelotaGame {
           const ref = this.volley() ? you.idealAt?.v : you.idealAt?.b ?? you.idealAt?.v, timing = ref != null && Math.abs(tc - ref) < 0.8 ? tc - ref - (this.camara ? CAM_LAT : 0) : null;
           const q = this.quality('you', timing);
           this.strike('you', q, you.aim || { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5, false, null, { timing, volea: this.volley(), gancho: this.overhead() && !you.dropReq });
-        } else if (you.swing <= 0) this.emit({ type: 'whiff', early: you.idealAt?.b != null && this.clock < you.idealAt.b });
+        } else if (you.swing <= 0) this.stats.alAire++, this.emit({ type: 'whiff', early: you.idealAt?.b != null && this.clock < you.idealAt.b });
       }
     }
     // los demás (el rival y, por parejas, los compañeros), con la cabeza; el que saca espera quieto a botar la pelota
