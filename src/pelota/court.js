@@ -217,17 +217,33 @@ export class PelotaCourt {
     // albardilla de piedra que remata el frontis y la pared izquierda
     const capMat = M({ color: th.cap, roughness: 0.8 });
     const cap = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.24, 1.05), capMat); cap.position.set(-0.3, C.FRONT_H + 0.12, -0.4); cap.castShadow = true; g.add(cap);
-    // el marcador, a la derecha del frontis, como en los frontones de verdad: sobre la contracancha, en lo alto de dos
-    // postes y algo vuelto hacia la cancha, con los nombres y los tantos de los azules y los colorados en dos filas (sin
-    // anuncios ni escudos de clubes: solo el tanteo). Antes estaba encima del frontis
+    // el marcador, a la derecha del frontis y en la misma pared, como en los frontones de verdad: sin postes. En los de la
+    // calle, el frontis sigue sobre la contracancha (sin raya: ahí ya es fuera, y la pelota que da ahí es «lado») y el
+    // marcador va pegado a ese trozo; en los cubiertos, a la pared de delante de la contracancha. Con los nombres y los
+    // tantos de los azules y los colorados en dos filas (sin anuncios ni escudos de clubes: solo el tanteo). Antes iba en
+    // lo alto de dos postes, vuelto hacia la cancha; y antes aún, encima del frontis
     { const bc = this.bigCanvas = document.createElement('canvas'); bc.width = 512; bc.height = 288;
       const bt = this.bigTex = srgb(T, new T.CanvasTexture(bc));
-      const bw = Math.min(3.8, CONTRA + 1.2), bh = bw * 288 / 512, by = 3.6 + bh / 2, bx = W / 2 + bw / 2 - 0.1;   // (grande: se lee desde el rebote)
-      const B = this.bigBoard = new T.Group(); B.position.set(bx, 0, 0.35); B.rotation.y = -0.3; B.name = 'marcador-frontis'; g.add(B);
-      const big = new T.Mesh(new T.PlaneGeometry(bw, bh), new T.MeshBasicMaterial({ map: bt, toneMapped: false })); big.position.set(0, by, 0.09); B.add(big);
+      const xe = W / 2 + CONTRA + 1.2, ew = xe - W / 2;   // (hasta dónde sigue el frontis en los de la calle)
+      const bw = HALL ? 3.8 : Math.min(3.6, ew - 0.4), bh = bw * 288 / 512, by = 3.9 + bh / 2;   // (grande: se lee desde el rebote)
+      const bx = HALL ? W / 2 + 0.8 + bw / 2 : W / 2 + ew / 2 + 0.05, zw = HALL ? -0.5 : 0;   // (zw: la cara de la pared)
+      if (!HALL && !opts.labrit) {
+        const eh = Math.min(C.FRONT_H, by + bh / 2 + 1.6);
+        const extTex = canvasTex(T, 512, 1024, (c, w, h) => {
+          if (th.stone) ashlar(c, w, h, ew, eh, th.stone);
+          else { c.fillStyle = FUERA; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); }
+          weather(c, w, h, eh, ew, DRY);
+        });
+        const lado = M({ map: frontEnd }), arriba = M({ color: th.stone || FUERA }), cara = M({ map: extTex });
+        const ext = new T.Mesh(new T.BoxGeometry(ew, eh, 0.8), [lado, lado, arriba, arriba, cara, cara]);
+        ext.position.set(W / 2 + ew / 2, eh / 2, -0.4); ext.castShadow = true; ext.receiveShadow = true; ext.name = 'frontis-contracancha'; g.add(ext);
+        const capE = new T.Mesh(new T.BoxGeometry(ew + 0.15, 0.24, 1.05), capMat); capE.position.set(W / 2 + ew / 2 + 0.075, eh + 0.12, -0.4); capE.castShadow = true; g.add(capE);
+        this.frontisExt = { x: W / 2 + ew / 2, z: -0.4, w: ew, d: 0.8 };   // (su caja de colisión: con las demás, más abajo)
+      }
+      const B = this.bigBoard = new T.Group(); B.position.set(bx, 0, zw); B.name = 'marcador-frontis'; g.add(B);
+      const big = new T.Mesh(new T.PlaneGeometry(bw, bh), new T.MeshBasicMaterial({ map: bt, toneMapped: false })); big.position.set(0, by, 0.125); B.add(big);
       const steelB = M({ color: '#2a2440', roughness: 0.55, metalness: 0.4 });
-      const back = new T.Mesh(new T.BoxGeometry(bw + 0.18, bh + 0.18, 0.14), steelB); back.position.set(0, by, 0); back.castShadow = true; B.add(back);
-      for (const k of [-1, 1]) { const post = new T.Mesh(new T.BoxGeometry(0.14, 3.7, 0.14), steelB); post.position.set(k * bw * 0.36, 3.7 / 2, -0.04); post.castShadow = true; B.add(post); }
+      const back = new T.Mesh(new T.BoxGeometry(bw + 0.18, bh + 0.18, 0.12), steelB); back.position.set(0, by, 0.06); back.castShadow = true; B.add(back);
       this.setScore('', '', 0, 0); }
     const capL = new T.Mesh(new T.BoxGeometry(0.85, 0.2, EXT + 0.2), capMat); capL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.1, EXT / 2 - 0.1); capL.castShadow = true; g.add(capL);
     // la chapa de abajo (el colchón): la plancha que sobresale del frontis, hecha de paneles atornillados con sus juntas,
@@ -400,6 +416,7 @@ export class PelotaCourt {
       { x: W / 2 + CONTRA + 1.65, z: L * 0.52, w: 3.3, d: L * 0.78 },
     ];
     if (CALLE) this.boxes.pop();   // (sin grada)
+    if (this.frontisExt) this.boxes.push(this.frontisExt);
     if (EST && EST !== 'plaza') {
       // (el tejado, del color de los del pueblo: teja o pizarra)
       const roofCol = opts.roofCol || (th.roofTop === '#4b4f55' ? '#5a5e66' : '#a4553c');

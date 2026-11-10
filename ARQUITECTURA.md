@@ -326,9 +326,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de 22 (`game/fronton.js`, `playPelota`, guarda la base en `tBase`); los resultados de los demás partidos del torneo y lo
   que se lee en los cuadros, igual (`game/torneo.js`). Normal: el libre a 12, la final de un torneo de 16 a 22.
 - **Marcador del frontón a la derecha del frontis** (`pelota/court.js`, `bigBoard`, `setScore`): como en los frontones de
-  verdad, sobre la contracancha, en lo alto de dos postes y algo vuelto hacia la cancha, con dos filas (azules arriba,
-  colorados abajo) en los morados del juego. Antes estaba encima del frontis. En el Labrit no sale: allí está su pantalla
-  de la pared derecha.
+  verdad, pegado a la pared y sin postes, con dos filas (azules arriba, colorados abajo) en los morados del juego. En los
+  de la calle, el frontis sigue 3,8 m sobre la contracancha, sin raya y con el revoco o la piedra de fuera
+  (`frontis-contracancha`, con su caja de colisión `frontisExt`), y el marcador va en ese trozo; la pelota que da ahí
+  es «lado». En los cubiertos, en la pared de delante de la contracancha. Antes estaba encima del frontis y luego en dos
+  postes. En el Labrit no sale: allí está su pantalla de la pared derecha.
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
