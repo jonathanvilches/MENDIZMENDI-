@@ -809,6 +809,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     de cine, con el 0,8 de la saturación de los menús y las sombras un poco levantadas. El mapa, los menús y los retratos
     siguen con sus colores. De día el sol es algo más suave y el cielo da algo más de luz (`KEYS`), y las contraventanas
     van en tonos algo apagados (`SHUTTERS` en `houses.js`, `ESTILO` en `townReal.js`).
+  - *El aire de cada comarca y la luz sin saltos* (`world/sky.js`, noviembre de 2026, tanda 1): sobre la paleta de la
+    hora, cada familia de comarcas (`familiaAire`: atlántica, pirenaica, media y ribera) tiñe su cielo, su sol y su
+    luz de relleno, y tiene sus nubes, su bruma y su hora dorada (`AIRE`: el color al que tira la luz con el sol bajo,
+    cuánto y durante cuánto). Con el sol rasante sube la luz del cielo, malva, y la luz con dirección no baja de unos
+    15 grados: antes el pueblo se quedaba casi negro bajo un cielo rosa. En el relevo del sol a la luna la luz con
+    dirección se apaga del todo y vuelve (`crep`): antes saltaba de golpe de un lado al otro. `sky.dorada` y
+    `sky.crep` los leen el postprocesado y quien quiera saber en qué momento de la tarde se está.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.

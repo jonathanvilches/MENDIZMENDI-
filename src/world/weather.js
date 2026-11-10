@@ -262,7 +262,7 @@ export class Weather {
   storm(dt, camera, sky, sound, hold = false) {
     if (!sky?.uniforms) return;
     const U = sky.uniforms, k = this.k; this.sky = sky;
-    U.uStorm.value = k; U.uCloud.value = 0.55 + 0.43 * k;
+    U.uStorm.value = k; { const n0 = sky.aire?.nubes ?? 0.55; U.uCloud.value = n0 + (0.98 - n0) * k; }
     U.uZen.value.lerp(STORM_ZEN, 0.85 * k); U.uHor.value.lerp(STORM_HOR, 0.75 * k);
     // luz de tormenta (además de lo que ya baja con la lluvia): más oscuro y con la niebla gris plomo
     sky.sun.intensity *= 1 - 0.35 * k; sky.hemi.intensity *= 1 - 0.22 * k; sky.fog.color.lerp(this.grey, 0.35 * k);
@@ -333,5 +333,5 @@ export class Weather {
     }
     if (dirty) this.prints.instanceMatrix.needsUpdate = true;
   }
-  dispose() { for (const s of this.shafts || []) { this.scene.remove(s); s.material.dispose(); } if (this.sky) this.sky.mistDay = 0; if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
+  dispose() { for (const s of this.shafts || []) { this.scene.remove(s); s.material.dispose(); } if (this.sky) this.sky.mistDay = 0; if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = this.sky.aire?.nubes ?? 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
 }

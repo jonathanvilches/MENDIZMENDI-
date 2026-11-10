@@ -103,19 +103,36 @@ const KEYS = [
 ];
 const KC = KEYS.map(k => ({ t: k[0], zen: new THREE.Color(k[1]), hor: new THREE.Color(k[2]), sun: new THREE.Color(k[3]), si: k[4], hs: new THREE.Color(k[5]), hg: new THREE.Color(k[6]), hi: k[7] }));
 
+// El aire de cada tierra: sobre la paleta de la hora, cada familia de comarcas tiñe su cielo, su luz y su hora dorada.
+// [cenit, horizonte, sol, cielo de relleno, suelo de relleno] son tintes (se multiplican); sol y relleno, cuánta luz;
+// nubes, cuánto cielo cubren; bruma, cuánto se acerca el fondo; dorada, el color al que tira la luz con el sol bajo y
+// cuánto (la hora dorada de la Ribera es naranja y larga; la del Pirineo, rosa y corta; la atlántica, pálida)
+const AIRE = {
+  atlantica: { zen: '#eef6f4', hor: '#f4faf6', sol: '#fff8ee', hs: '#f2faff', hg: '#eaffd8', si: 0.93, hi: 1.08, nubes: 0.62, bruma: 0.86, dorada: '#ffc9a6', dk: 0.5, dancho: 0.3 },
+  pirenaica: { zen: '#e2ecff', hor: '#f0f6ff', sol: '#fffaf4', hs: '#e6f0ff', hg: '#f2f6f0', si: 1.05, hi: 0.96, nubes: 0.5, bruma: 1.16, dorada: '#ff9f90', dk: 0.6, dancho: 0.26 },
+  media: { zen: '#f6f6ff', hor: '#fff8ea', sol: '#fff4e2', hs: '#fbf8f2', hg: '#fff2cf', si: 1.0, hi: 1.0, nubes: 0.5, bruma: 1.0, dorada: '#ffb869', dk: 0.6, dancho: 0.34 },
+  ribera: { zen: '#fff6ee', hor: '#fff0d2', sol: '#ffedd0', hs: '#fff6e6', hg: '#ffe6b0', si: 1.08, hi: 0.98, nubes: 0.36, bruma: 0.92, dorada: '#ff9648', dk: 0.75, dancho: 0.42 },
+};
+for (const k in AIRE) { const A = AIRE[k]; for (const c of ['zen', 'hor', 'sol', 'hs', 'hg', 'dorada']) A[c] = new THREE.Color(A[c]); }
+const FAMILIA = { bidasoa: 'atlantica', 'larraun-leitzaldea': 'atlantica', sakana: 'atlantica', pirineo: 'pirenaica', prepirineo: 'pirenaica', ribera: 'ribera', 'ribera-alta': 'ribera' };
+/** La familia de aire de una comarca: atlantica, pirenaica, media o ribera. */
+export const familiaAire = (comarca) => FAMILIA[comarca] || 'media';
+// el crepúsculo: con el sol ya en el horizonte la luz es la del cielo, malva, que llega de todas partes
+const CREP_SKY = new THREE.Color('#d8b4d2'), CREP_GND = new THREE.Color('#7c6878');
+
 const UP = new THREE.Vector3(0, 1, 0), LIGHT_STEP = Math.PI / 600, MIST_GEO = new THREE.PlaneGeometry(1, 1);
 const _sunQ = new THREE.Vector3(), _light = new THREE.Vector3(), _moon = new THREE.Vector3();   // (sin crear vectores en cada fotograma)
 const FLOOD_SKY = new THREE.Color('#d8e4fb'), FLOOD_GND = new THREE.Color('#857f72'), FLOOD_SUN = new THREE.Color('#fff3df'), FLOOD_DIR = new THREE.Vector3(0.25, 1, 0.35).normalize();
 export class SkySystem {
-  constructor(scene, renderer, quality) {
-    this.scene = scene;
+  constructor(scene, renderer, quality, aire = 'media') {
+    this.scene = scene; this.aire = AIRE[aire] || AIRE.media; this.aireId = AIRE[aire] ? aire : 'media';
     this.time = 9.5;
     this.speed = 24 / (16 * 60);   // un día dura 16 minutos de juego
     const geo = new THREE.SphereGeometry(2400, 48, 24);
     this.uniforms = {
       uZen: { value: new THREE.Color() }, uHor: { value: new THREE.Color() },
       uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color() },
-      uTime: { value: 0 }, uNight: { value: 0 }, uCloud: { value: 0.55 },
+      uTime: { value: 0 }, uNight: { value: 0 }, uCloud: { value: this.aire.nubes },
       // tormenta (weather.js): cielo cubierto de nubes negras y el relámpago que las ilumina hacia donde cae el rayo
       uStorm: { value: 0 }, uFlash: { value: 0 }, uFlashDir: { value: new THREE.Vector3(0, 1, 0) },
     };
@@ -199,7 +216,7 @@ void main(){
     this.sun.shadow.bias = -0.0004; this.sun.shadow.normalBias = 0.04;
     this.sun.shadow.radius = 3;
     scene.add(this.sun, this.sun.target);
-    this.fog = new THREE.Fog('#cfe8fb', 160, 1500);
+    this.fog = new THREE.Fog('#cfe8fb', 160 * this.aire.bruma, 1500 * this.aire.bruma);
     scene.fog = this.fog;
     this.sunDir = new THREE.Vector3();
     this.night = 0;
@@ -230,6 +247,8 @@ void main(){
     o.zen.copy(a.zen).lerp(b.zen, k); o.hor.copy(a.hor).lerp(b.hor, k); o.sun.copy(a.sun).lerp(b.sun, k);
     o.hs.copy(a.hs).lerp(b.hs, k); o.hg.copy(a.hg).lerp(b.hg, k);
     o.si = lerp(a.si, b.si, k); o.hi = lerp(a.hi, b.hi, k);
+    const A = this.aire;
+    o.zen.multiply(A.zen); o.hor.multiply(A.hor); o.sun.multiply(A.sol); o.hs.multiply(A.hs); o.hg.multiply(A.hg); o.si *= A.si; o.hi *= A.hi;
     return o;
   }
   // los focos del frontón: de noche, durante el partido, la cancha se ve siempre bien (flood es lo que se pide: 1 en el
@@ -262,6 +281,15 @@ void main(){
     // encendían ya de noche y, al atardecer, se jugaba casi a oscuras)
     { const want = this.flood ? (this.indoor ? 1 : Math.max(smoothstep(0.15, 0.6, this.night), 1 - smoothstep(0.25, 0.6, elev), 0.55)) : 0, c = this.floodCur || 0; this.floodCur = want > c ? Math.min(want, c + dt / 2) : Math.max(want, c - dt / 2); }
     const s = this.sample(t);
+    // la hora dorada de la comarca: con el sol bajo (al salir y al ponerse), su luz y el horizonte tiran a su color
+    { const A = this.aire, d = this.dorada = (1 - smoothstep(0.04, A.dancho + 0.1, Math.max(0, elev))) * smoothstep(-0.1, 0.03, elev) * A.dk;
+      if (d > 0.001) { s.sun.lerp(A.dorada, d * 0.7); s.hor.lerp(A.dorada, d * 0.35); s.hs.lerp(A.dorada, d * 0.22); } }
+    // el crepúsculo: mientras el sol se esconde y la luna toma el relevo, la luz con dirección se apaga del todo y sube
+    // la del cielo, malva (antes la luz saltaba de golpe del poniente a la luna, y unos minutos antes, con el sol
+    // rasante y poca luz de cielo, el pueblo se quedaba casi negro bajo un cielo rosa)
+    const crep = this.crep = 1 - smoothstep(0, 0.42, Math.abs(this.night - 0.5) * 2), rasante = (1 - smoothstep(0.02, 0.3, Math.max(0, elev))) * (1 - this.night);
+    { const kc = Math.max(crep, rasante * 0.75);
+      s.si *= 1 - crep; s.hi = s.hi * (1 - 0.15 * kc) + 1.55 * kc; s.hs.lerp(CREP_SKY, kc * 0.55); s.hg.lerp(CREP_GND, kc * 0.6); }
     this.uniforms.uZen.value.copy(s.zen); this.uniforms.uHor.value.copy(s.hor);
     this.uniforms.uSunDir.value.copy(this.sunDir); this.uniforms.uSunCol.value.copy(s.sun);
     this.uniforms.uTime.value = elapsed; this.uniforms.uNight.value = this.night;
@@ -273,6 +301,9 @@ void main(){
     const angQ = Math.round(ang / LIGHT_STEP) * LIGHT_STEP, elevQ = Math.sin(angQ);
     const sunQ = _sunQ.set(Math.cos(angQ), Math.max(elevQ, -0.3) * 0.95 + 0.05, -0.35).normalize();
     const lightDir = this.night > 0.5 ? _light.set(-sunQ.x, Math.max(0.35, -sunQ.y), -sunQ.z).normalize() : _light.copy(sunQ);
+    // (el sol que alumbra no baja de unos 15 grados aunque el del cielo ya toque el monte: con la luz rasante del todo,
+    // el suelo y los tejados no recibían nada y las sombras cubrían el pueblo entero)
+    if (this.night <= 0.5 && lightDir.y < 0.26) { lightDir.y = 0.26; lightDir.normalize(); }
     this.sun.color.copy(s.sun); this.sun.intensity = s.si;
     // focos (un partido de pelota de noche): la luz de la luna y la del cielo suben a la de unos focos blancos desde
     // arriba; sin luces nuevas (en el móvil, añadir luces rehace todos los sombreadores y da un tirón). Antes, de noche,

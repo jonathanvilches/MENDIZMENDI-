@@ -7,7 +7,7 @@ import { setQuality } from '../util/quality.js';
 import { bake, initBridges, clearPlatforms, surfAt } from '../world/heightfield.js';
 import { buildTextures, TEX } from '../world/textures.js';
 import { Terrain } from '../world/terrain.js';
-import { SkySystem } from '../world/sky.js';
+import { SkySystem, familiaAire } from '../world/sky.js';
 import { Water } from '../world/water.js';
 import { makeMaterials, resetDetail, updateDetail, setBuilderQuality, groundUniforms } from '../world/builder.js';
 import { resetNpcCache } from '../actors/npcGlb.js';
@@ -154,7 +154,7 @@ export class Runtime {
     onProgress(0.35, 'Extendiendo el paisaje…'); await frame();
     const solo = !salazar && !!opt.soloFronton; this.soloFronton = solo;
     this.terrain = solo && !opt.conSuelo ? vacio.terrain() : new Terrain(scene, q);
-    this.sky = new SkySystem(scene, this.renderer, q);
+    this.sky = new SkySystem(scene, this.renderer, q, familiaAire(def?.comarca));
     this.weather?.dispose(); this.weather = new Weather(scene, solo ? 'clear' : pickWeather(def), q);
     this.water = solo ? vacio.water() : new Water(scene, q);
     onProgress(0.5, `Construyendo ${def.name}…`); await frame();
