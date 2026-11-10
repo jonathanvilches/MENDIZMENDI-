@@ -78,9 +78,16 @@
 :root .tq-tile { --neon-c: var(--t1, var(--neon-1)); clip-path: none !important; border-radius: var(--neon-r) !important; border: 2px solid transparent !important;
   background: linear-gradient(160deg, var(--t1, #3b1590), var(--t2, #12052a) 75%) padding-box,
     conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 45%, transparent) 0 58%, var(--neon-c) 72%, #fff 80%, #fff 82%, var(--neon-2) 88%, color-mix(in srgb, var(--neon-c) 45%, transparent) 96%) border-box !important;
-  box-shadow: 0 0 20px -6px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 10px 24px rgba(0, 0, 0, .3); animation: neon-aro 5s linear infinite; }
-:root .tq-tile:nth-child(3n+2) { animation-delay: -1.7s; } :root .tq-tile:nth-child(3n) { animation-delay: -3.3s; }
-:root .tq-tile:is(:hover, :focus-visible) { animation-duration: 2.2s; box-shadow: 0 0 28px -4px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 10px 24px rgba(0, 0, 0, .3); }
+  box-shadow: 0 0 20px -6px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 10px 24px rgba(0, 0, 0, .3); }
+/* (torneo.js les pone su entrada, lg-sube, con la misma fuerza y después: aquí van las dos juntas, la entrada y el
+   destello, cada una con su retraso; si no, la entrada tapaba el destello y el filo quedaba quieto) */
+:root .tq-tiles > .tq-tile { animation: lg-sube .5s cubic-bezier(.2, .9, .3, 1.1) backwards, neon-aro 5s linear infinite; }
+:root .tq-tiles > .tq-tile:nth-child(2) { animation-delay: .08s, -1.7s; }
+:root .tq-tiles > .tq-tile:nth-child(3) { animation-delay: .16s, -3.3s; }
+:root .tq-tiles > .tq-tile:nth-child(4) { animation-delay: .24s, 0s; }
+:root .tq-tiles > .tq-tile:nth-child(n+5) { animation-delay: .32s, -1.7s; }
+:root .tq-tiles > .tq-tile:is(:hover, :focus-visible) { animation-duration: .5s, 2.2s; }
+:root .tq-tile:is(:hover, :focus-visible) { box-shadow: 0 0 28px -4px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 10px 24px rgba(0, 0, 0, .3); }
 
 /* ---------- los paneles y las ventanas: redondos y con el filo de neón quieto (son grandes: sin destello) ---------- */
 :root :is(.screen .paper, .frs-in, .lg-card, .tq-how) { clip-path: none !important; border-radius: 10px !important; border: 1px solid rgba(183, 156, 255, .45) !important;
@@ -90,6 +97,6 @@
 :root :is(.mapscr .paper > header h2, .mapscr .legend) { clip-path: none !important; border-radius: 6px !important; box-shadow: 0 0 0 1px rgba(183, 156, 255, .4), 0 0 14px -5px rgba(183, 156, 255, .7) !important; }
 
 @media (prefers-reduced-motion: reduce) {
-  :root .tq-tile { animation: none; }
+  :root .tq-tiles > .tq-tile { animation: none; }
   #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::after, .sport::after, .gx-card::after, :root :is(.pel-call, .pel-com, .pel-rep-b)::after { animation: none; }
 }
