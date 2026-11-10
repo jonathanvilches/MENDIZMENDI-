@@ -1,7 +1,9 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, ARQ_TXT } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq } from './rules.js';
 import { Comentarios } from './comenta.js';
+import { Voz } from './voz.js';
+import { subtitulos } from '../util/comentarios.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
@@ -64,7 +66,7 @@ export class PelotaMatch {
     // el menú, a la derecha del marcador: al abrirlo con la mano el partido se para y al cerrarlo sigue; dentro, las fichas
     // y salir (antes, una X arriba a la izquierda)
     this.hud.onMenu = (on, mano) => {
-      if (on && mano) { this.menuPausa = !this.paused; if (this.menuPausa) { this.paused = true; this.resetStick?.(); } }
+      if (on && mano) { this.menuPausa = !this.paused; if (this.menuPausa) { this.paused = true; this.resetStick?.(); this.voz?.calla(); } }
       else if (!on && this.menuPausa) { this.menuPausa = false; if (!this.hud.panelEl) this.paused = false; }
     };
     this.hud.onFichas = () => this.ficha('rival');
@@ -275,7 +277,7 @@ export class PelotaMatch {
   }
   newGame() {
     this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
-    this.com = new Comentarios(this.lang); this.comIni = false; this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
+    this.com = new Comentarios(this.lang); this.comIni = false; this.voz?.calla(); this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
     const o = this.o;
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
@@ -1010,7 +1012,7 @@ export class PelotaMatch {
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
         this.rallyN = 0; this.golpazo = false; A.mood(0.2, 0.5);
-        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido', { w: this.label(g.score.you > g.score.rival ? 'you' : 'rival') }), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
+        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
@@ -1080,23 +1082,21 @@ export class PelotaMatch {
     if (R.peor[w] <= -3 && suya === 1 && !R.remonto[w]) { R.remonto[w] = true; R.tipo = 'remonta'; return T.remonta; }
     R.tipo = R.n >= 3 ? 'seguidos' : ''; return R.n >= 3 ? T.seguidos(R.n) : '';
   }
-  // Los comentarios (comenta.js): decir pone una frase en su rótulo dentro de ms; al empezar, la presentación del partido
-  // y del rival (su arquetipo y su golpe estrella); en cada tanto, lo que toque; al segundo tanto, algo del frontón
-  decir(c, ms = 0) { if (!c) return; setTimeout(() => { if (this.active && !this.hud.panelEl) this.hud.comenta(c); }, ms); }
-  lugar() { return this.o.venue || (this.o.town ? (this.txt.fronton || TEXT.es.fronton)(this.o.town) : ''); }
+  // Los comentarios (comenta.js), hablados (voz.js): decir dice una frase dentro de ms; escrita, solo con los subtítulos
+  // puestos en Ajustes y sin un panel delante. Al empezar, la presentación y el rival (su arquetipo y su golpe estrella);
+  // en cada tanto, lo que toque
+  decir(c, ms = 0) { if (!c) return; setTimeout(() => { if (!this.active) return; this.voz ||= new Voz(); this.voz.habla(c); if (subtitulos() && !this.hud.panelEl) this.hud.comenta(c); }, ms); }
   comInicio() {
     const c = this.com; if (!c?.on || this.game.mode !== 'match' || this.comIni) return; this.comIni = true;
-    this.decir(c.frase('inicio', { f: this.lugar(), t: this.game.target, a: this.label('you'), b: this.label('rival') }), 400);
-    const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false), AT = ARQ_TXT[this.lang] || ARQ_TXT.es;
-    this.decir(c.frase('rival', { r: this.nomLimpio('rival'), arq: AT[A.arq].toLowerCase(), g: (AT.golpe[A.estrella] || '').toLowerCase() }), 4600);
+    this.decir(c.frase('inicio'), 400);
+    const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false);
+    this.decir(c.frase(`rival-${A.arq}`), 4600); this.decir(c.frase(`estrella-${A.estrella}`), 4700);
   }
   comTanto(e) {
     const c = this.com; if (!c?.on) return;
-    const R = this.rachas || {}, w = this.label(e.winner), l = this.label(e.winner === 'you' ? 'rival' : 'you'), s = e.score || {};
-    const n = R.tipo === 'iguala' ? s.you : R.n, a = Math.max(s.you ?? 0, s.rival ?? 0), b = Math.min(s.you ?? 0, s.rival ?? 0);
-    this.decir(c.tanto(this.game.stats?.log?.at(-1), { w, l, racha: R.tipo || '', n, final: !!e.final, a, b, f: this.lugar() }), 300);
-    if (e.final) this.decir(c.frase('finalE'), 4000);
-    else if (c.n === 2 && this.feel?.tags?.[0]) { const q = this.feel.tags[0].what; this.decir(c.frase('frontón', { what: q[0].toLowerCase() + q.slice(1) }), 4200); }
+    const R = this.rachas || {};
+    this.decir(c.tanto(this.game.stats?.log?.at(-1), { racha: R.tipo || '', n: R.n, final: !!e.final, gano: e.winner === 'you' }), 300);
+    if (e.final) this.decir(c.frase('finalE'), 3200);
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)
@@ -1444,7 +1444,7 @@ export class PelotaMatch {
   destroy() {
     this.showFin?.();
     if (!this.active) return;
-    this.active = false; setFeel(null); this.audio.stop(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
+    this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
     this.hud.destroy(); this.court.hideBall();
     if (this.pin) { this.pin.parent?.remove(this.pin); this.pin.geometry.dispose(); this.pin.material.dispose(); this.pin = null; }

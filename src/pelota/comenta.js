@@ -1,98 +1,105 @@
-// Los comentarios del partido de pelota, como en la tele: un dúo, una narradora o un narrador que cuenta la jugada y una
-// ex pelotari o un ex pelotari que la explica. Frases cortas, en texto, según cómo acaba cada tanto, el marcador, las
-// rachas y el frontón (su nombre y lo que se nota en él: rules.js, courtFeel). No comentan todos los tantos: siempre los
-// que importan (remontada, racha, tanto de partido, final, un peloteo largo) y, de los demás, más o menos la mitad. Nunca
-// repiten la misma frase dos veces seguidas. El dúo se elige en Ajustes (o se quitan): herrizherri-comentarios.
-// Los dúos son inventados: no son locutores ni pelotaris de verdad.
+// Los comentarios del partido de pelota, como en la tele: el comentarista cuenta la jugada y la explica. Se oyen
+// (pelota/voz.js: la voz grabada si está, y si no la del sistema); escritos solo si se piden en Ajustes. Frases cortas
+// según cómo acaba cada tanto, las rachas, la remontada, el tanto de partido y el final. Sin nombres propios ni números:
+// así cada frase se puede grabar una vez y vale para todos los partidos (el marcador y los nombres ya los dan los
+// rótulos). No comentan todos los tantos: siempre los que importan y, de los demás, más o menos la mitad. Nunca repiten
+// la misma frase dos veces seguidas. Cada frase tiene su clave, «tipo-número» (dejada-2), que es el nombre de su archivo
+// de audio (src/assets/voz/hombre/es/dejada-2.mp3) y la que sale en el guion de grabación.
 import { duoElegido, ponDuo } from '../util/comentarios.js';
 export { duoElegido, ponDuo };
-export const DUOS = {
-  a: { n: 'Maite', e: 'Patxi', rol: { es: { n: 'Narradora', e: 'Ex pelotari' }, eu: { n: 'Esataria', e: 'Pilotari ohia' } } },
-  b: { n: 'Unai', e: 'Garazi', rol: { es: { n: 'Narrador', e: 'Ex pelotari' }, eu: { n: 'Esataria', e: 'Pilotari ohia' } } },
-};
-// las frases: [quién habla ('n' narra, 'e' explica), texto]. {w} gana el tanto, {l} lo pierde, {h} pelotazos, {n} número,
-// {a}-{b} el marcador, {t} a cuántos tantos, {f} el frontón, {r} el rival, {arq} su arquetipo, {g} su golpe estrella
-const F = {
+// (n: narra la jugada; e: la explica, con lo que sabría un ex pelotari. Con una sola voz, las dos las dice el mismo)
+export const F = {
   es: {
-    inicio: [['n', 'Buenas tardes. Lugar: {f}. Partido a {t} tantos entre {a} y {b}.'], ['n', 'Todo listo. {a} y {b}, a {t} tantos. Lugar: {f}.']],
-    rival: [['e', '{r} es {arq}. Su golpe estrella: {g}.'], ['e', 'Ojo con {r}: es {arq} y su golpe estrella es {g}.']],
-    frontón: [['e', 'Un detalle de este frontón: {what}']],
-    dejada: [['n', '¡Qué dejada de {w}! Muerta junto al frontis.'], ['n', '{w} la deja muerta. Nada que hacer.'], ['e', 'Esa dejada pilla a {l} atrás. Así se gana.']],
-    cortada: [['n', 'Cortada rasa de {w}, pegada a la chapa.'], ['n', '¡Qué cortada! {l} ni la ve.'], ['e', 'Cortada baja y fuerte: imposible de devolver.']],
-    dosparedes: [['n', '¡A dos paredes! {w} cruza la pelota.'], ['n', 'Dos paredes de manual: tanto para {w}.'], ['e', 'Con la pared izquierda, la pelota cambia de lado. Muy buena.']],
-    volea: [['n', '¡De volea! {w} no la deja botar.'], ['n', '{w} se adelanta y remata de aire.'], ['e', 'Ir a buscarla antes del bote quita tiempo al rival.']],
-    gancho: [['n', 'Gancho a la izquierda y tanto de {w}.'], ['e', 'El gancho busca el rincón de la pared izquierda. Bien jugado.']],
-    saque: [['n', 'Saque directo de {w}.'], ['n', '{l} no llega al saque.'], ['e', 'Un buen saque vale un tanto. Hoy {w} lo está demostrando.']],
-    golpe: [['n', 'Tanto para {w}.'], ['n', '{l} no llega. Punto para {w}.'], ['n', 'Buen tanto de {w}.'], ['e', '{w} ha movido bien a {l} hasta encontrar el hueco.']],
-    chapa: [['n', 'A la chapa. Tanto regalado para {w}.'], ['n', '{l} la manda a la chapa.'], ['e', 'La chapa suena a metal: por debajo de la raya, tanto perdido.']],
-    fuera: [['n', 'Se le va fuera a {l}.'], ['n', 'Fuera. {l} ha pegado demasiado.'], ['e', 'Más vale colocar que pegar fuerte y mandarla fuera.']],
+    inicio: [['n', 'Buenas tardes y bienvenidos al frontón. Empieza el partido.'], ['n', 'Todo listo en el frontón. ¡Que empiece el partido!'], ['n', 'Buenas tardes. La grada está llena y los pelotaris, preparados.']],
+    'rival-rematador': [['e', 'Ojo con el rival: es un rematador, pega muy fuerte.']],
+    'rival-defensor': [['e', 'Cuidado con el rival: es un defensor, lo devuelve todo.']],
+    'rival-zurdo': [['e', 'Atención: el rival es zurdo, la pelota le sale al revés.']],
+    'rival-estratega': [['e', 'El rival es un estratega: juega con la cabeza y busca los huecos.']],
+    'estrella-cortada': [['e', 'Su golpe estrella: la cortada.']], 'estrella-dosparedes': [['e', 'Su golpe estrella: la dos paredes.']], 'estrella-gancho': [['e', 'Su golpe estrella: el gancho.']],
+    'estrella-dejada': [['e', 'Su golpe estrella: la dejada.']], 'estrella-largo': [['e', 'Su golpe estrella: el pelotazo largo.']],
+    dejada: [['n', '¡Qué dejada! Muerta junto al frontis.'], ['n', 'La deja muerta. Nada que hacer.'], ['e', 'Esa dejada pilla al rival atrás. Así se gana.']],
+    cortada: [['n', 'Cortada rasa, pegada a la chapa.'], ['n', '¡Qué cortada! Ni la ha visto.'], ['e', 'Cortada baja y fuerte: imposible de devolver.']],
+    dosparedes: [['n', '¡A dos paredes! La pelota cruza la cancha.'], ['n', 'Dos paredes de manual.'], ['e', 'Con la pared izquierda, la pelota cambia de lado. Muy buena.']],
+    volea: [['n', '¡De volea! Sin dejarla botar.'], ['n', 'Se adelanta y remata de aire.'], ['e', 'Ir a buscarla antes del bote quita tiempo al rival.']],
+    gancho: [['n', 'Gancho a la izquierda, y tanto.'], ['e', 'El gancho busca el rincón de la pared izquierda. Bien jugado.']],
+    saque: [['n', '¡Saque directo!'], ['n', 'No llega al saque.'], ['e', 'Un buen saque vale un tanto.']],
+    golpe: [['n', 'Buen tanto.'], ['n', 'No llega. Tanto.'], ['n', '¡Qué tanto!'], ['e', 'Ha movido bien al rival hasta encontrar el hueco.']],
+    chapa: [['n', 'A la chapa. Tanto regalado.'], ['n', 'La manda a la chapa.'], ['e', 'La chapa suena a metal: por debajo de la raya, tanto perdido.']],
+    fuera: [['n', 'Se va fuera.'], ['n', 'Fuera. Ha pegado demasiado.'], ['e', 'Más vale colocar que pegar fuerte y mandarla fuera.']],
     falta: [['n', 'Falta de saque: no ha pasado del cuatro.'], ['e', 'El saque tiene que botar entre el cuatro y el siete.']],
     pasa: [['n', 'Pasa: el saque se ha ido largo.'], ['e', 'Saque pasado: botó más allá del siete.']],
-    fallo: [['n', 'Fallo de {l}. Tanto para {w}.'], ['n', 'Se equivoca {l}. Sube el tanto para {w}.']],
-    largo: [['e', '¡{h} pelotazos! Eso se nota en las piernas.'], ['e', 'Qué peloteo: {h} golpes. La grada lo agradece.']],
-    racha: [['e', '{w} ha encontrado el sitio: {n} seguidos.'], ['e', '{n} tantos seguidos de {w}. Hay que cortar esa racha.']],
-    iguala: [['n', '¡Partido nuevo! Empate a {n}.'], ['n', '¡Igualados a {n}! Esto vuelve a empezar.']],
-    remonta: [['n', '¡Remontada! {w} se pone por delante.'], ['e', 'Ha dado la vuelta al partido. Eso es cabeza y piernas.']],
-    tantoPartido: [['n', 'Tanto de partido para {w}.'], ['n', 'Uno más y se acaba: tanto de partido.']],
-    final: [['n', '¡Se acabó! {w} gana {a}-{b}.'], ['n', 'Final del partido: {w}, {a}-{b}.']],
+    fallo: [['n', 'Fallo. Sube el tanto al marcador.'], ['n', 'Se equivoca. Tanto regalado.']],
+    largo: [['e', '¡Qué peloteo! Eso se nota en las piernas.'], ['e', 'Peloteo larguísimo. La grada lo agradece.']],
+    racha: [['e', 'Racha de tantos seguidos. Ha encontrado el sitio.'], ['e', 'Otro más seguido. Hay que cortar esa racha.']],
+    iguala: [['n', '¡Igualados! Esto vuelve a empezar.'], ['n', '¡Empate en el marcador! Partido nuevo.']],
+    remonta: [['n', '¡Remontada! Se pone por delante.'], ['e', 'Le ha dado la vuelta al partido. Eso es cabeza y piernas.']],
+    tantoPartido: [['n', 'Tanto de partido.'], ['n', 'Uno más y se acaba: tanto de partido.']],
+    finalYo: [['n', '¡Se acabó! Victoria para ti.'], ['n', '¡Partido ganado! Enhorabuena.']],
+    finalRival: [['n', 'Se acabó. Esta vez gana el rival.'], ['n', 'Final del partido. El rival se lleva la victoria.']],
     finalE: [['e', 'Buen partido. Enhorabuena a los dos.'], ['e', 'Así se juega a pelota: con la mano y con la cabeza.']],
     descanso: [['e', 'Descanso: un minuto para respirar.'], ['e', 'Un minuto de descanso. Viene bien para pensar.']],
   },
   eu: {
-    inicio: [['n', 'Arratsalde on! Gaurko lekua: {f}. {t} tantorako partida: {a} eta {b}.'], ['n', 'Dena prest. {a} eta {b}, {t} tantora. Lekua: {f}.']],
-    rival: [['e', '{r} {arq} da. Bere kolpe izarra: {g}.'], ['e', 'Kontuz: {r} {arq} da, eta bere kolpe izarra: {g}.']],
-    frontón: [['e', 'Pilotaleku honen xehetasun bat: {what}']],
-    dejada: [['n', 'Hau utzia! Pilota hilda frontisaren ondoan. Tantoa: {w}.'], ['n', 'Utzi eta hilda. Tantoa: {w}.'], ['e', 'Utzi horrek atzean harrapatu du aurkaria. Horrela irabazten da.']],
-    cortada: [['n', 'Cortada txaparen ondotik. Tantoa: {w}.'], ['n', 'Zer cortada! {l} ez da iritsi ere egin.'], ['e', 'Cortada baxua eta indartsua: ezin itzuli.']],
-    dosparedes: [['n', 'Bi paretara! Pilota gurutzatuta. Tantoa: {w}.'], ['n', 'Bi pareta ederra. Tantoa: {w}.'], ['e', 'Ezkerreko hormarekin pilotak aldez aldatzen du. Oso ona.']],
-    volea: [['n', 'Boleaz! Botatzen utzi gabe. Tantoa: {w}.'], ['n', 'Airez errematatua. Tantoa: {w}.'], ['e', 'Botea baino lehen joateak denbora kentzen dio aurkariari.']],
-    gancho: [['n', 'Ezkerrerako ganchoa. Tantoa: {w}.'], ['e', 'Ganchoak ezkerreko hormaren txokoa bilatzen du. Ondo jokatua.']],
-    saque: [['n', 'Sake zuzena. Tantoa: {w}.'], ['n', '{l} ez da sakera iritsi.'], ['e', 'Sake on batek tanto bat balio du.']],
-    golpe: [['n', 'Tantoa: {w}.'], ['n', '{l} ez da iritsi. Tantoa: {w}.'], ['n', 'Tanto ederra. Irabazlea: {w}.'], ['e', 'Ondo mugitu du aurkaria, hutsunea aurkitu arte.']],
-    chapa: [['n', 'Txapara. Tantoa opari: {w}.'], ['n', 'Txapara bidali du. Tantoa: {w}.'], ['e', 'Txapak metal hotsa du: marraren azpitik, tantoa galduta.']],
-    fuera: [['n', 'Kanpora. Tantoa: {w}.'], ['n', 'Gehiegi jo du, kanpora.'], ['e', 'Hobe kokatzea, gogor jo eta kanpora bidaltzea baino.']],
-    falta: [['n', 'Sake falta: ez da laugarren koadrora iritsi.'], ['e', 'Sakeak laugarren eta zazpigarren marren artean egin behar du bote.']],
+    inicio: [['n', 'Arratsalde on eta ongi etorri frontoira. Hasi da partida.'], ['n', 'Dena prest frontoian. Hasi dadila partida!'], ['n', 'Arratsalde on. Harmailak beteta daude, eta pilotariak prest.']],
+    'rival-rematador': [['e', 'Kontuz aurkariarekin: errematatzailea da, oso gogor jotzen du.']],
+    'rival-defensor': [['e', 'Kontuz aurkariarekin: defendatzailea da, dena itzultzen du.']],
+    'rival-zurdo': [['e', 'Adi: aurkaria ezkertia da, pilota alderantziz ateratzen zaio.']],
+    'rival-estratega': [['e', 'Aurkaria estratega da: buruarekin jokatzen du eta hutsuneak bilatzen ditu.']],
+    'estrella-cortada': [['e', 'Bere kolpe izarra: cortada.']], 'estrella-dosparedes': [['e', 'Bere kolpe izarra: bi pareta.']], 'estrella-gancho': [['e', 'Bere kolpe izarra: ganchoa.']],
+    'estrella-dejada': [['e', 'Bere kolpe izarra: utzia.']], 'estrella-largo': [['e', 'Bere kolpe izarra: pilotakada luzea.']],
+    dejada: [['n', 'Hau utzia! Pilota hilda frontisaren ondoan.'], ['n', 'Utzi eta hilda. Ezer egiteko ez.'], ['e', 'Utzi horrek atzean harrapatu du aurkaria. Horrela irabazten da.']],
+    cortada: [['n', 'Cortada txaparen ondotik.'], ['n', 'Zer cortada! Ez du ikusi ere egin.'], ['e', 'Cortada baxua eta indartsua: ezin itzuli.']],
+    dosparedes: [['n', 'Bi paretara! Pilotak kantxa gurutzatu du.'], ['n', 'Bi pareta ederra.'], ['e', 'Ezkerreko hormarekin pilotak aldez aldatzen du. Oso ona.']],
+    volea: [['n', 'Boleaz! Botatzen utzi gabe.'], ['n', 'Aurreratu eta airez errematatu du.'], ['e', 'Botea baino lehen joateak denbora kentzen dio aurkariari.']],
+    gancho: [['n', 'Ezkerrerako ganchoa, eta tantoa.'], ['e', 'Ganchoak ezkerreko hormaren txokoa bilatzen du. Ondo jokatua.']],
+    saque: [['n', 'Sake zuzena!'], ['n', 'Ez da sakera iritsi.'], ['e', 'Sake on batek tanto bat balio du.']],
+    golpe: [['n', 'Tanto ederra.'], ['n', 'Ez da iritsi. Tantoa.'], ['n', 'Zer tantoa!'], ['e', 'Ondo mugitu du aurkaria, hutsunea aurkitu arte.']],
+    chapa: [['n', 'Txapara. Tantoa opari.'], ['n', 'Txapara bidali du.'], ['e', 'Txapak metal hotsa du: marraren azpitik, tantoa galduta.']],
+    fuera: [['n', 'Kanpora.'], ['n', 'Kanpora. Gehiegi jo du.'], ['e', 'Hobe kokatzea, gogor jo eta kanpora bidaltzea baino.']],
+    falta: [['n', 'Sake falta: ez da laugarren marrara iritsi.'], ['e', 'Sakeak laugarren eta zazpigarren marren artean egin behar du bote.']],
     pasa: [['n', 'Pasa: sakea luzeegi joan da.'], ['e', 'Sake pasatua: zazpigarren marratik harago egin du bote.']],
-    fallo: [['n', 'Hutsa. Tantoa: {w}.'], ['n', 'Huts egin du. Tantoa: {w}.']],
-    largo: [['e', '{h} pilotakada! Hori hanketan nabaritzen da.'], ['e', 'Zer pilotakada sorta: {h} kolpe!']],
-    racha: [['e', '{w}: {n} tanto jarraian. Lekua aurkitu du.'], ['e', '{n} jarraian! Bolada hori moztu behar da.']],
-    iguala: [['n', 'Partida berria! {n}-{n} berdin.'], ['n', 'Berdin {n}-{n}! Dena hasieratik.']],
-    remonta: [['n', 'Buelta eman dio! {w} aurrean.'], ['e', 'Partidari buelta eman dio. Burua eta hankak.']],
-    tantoPartido: [['n', 'Partidarako tantoa: {w}.'], ['n', 'Bat gehiago eta bukatu: partidarako tantoa.']],
-    final: [['n', 'Amaitu da! Irabazlea: {w}, {a}-{b}.'], ['n', 'Partidaren amaiera: {w}, {a}-{b}.']],
+    fallo: [['n', 'Hutsa. Tantoa markagailura.'], ['n', 'Huts egin du. Tantoa opari.']],
+    largo: [['e', 'Zer pilotakada sorta! Hori hanketan nabaritzen da.'], ['e', 'Pilotakada sorta luzea. Harmailek eskertzen dute.']],
+    racha: [['e', 'Tantoak jarraian. Lekua aurkitu du.'], ['e', 'Beste bat jarraian. Bolada hori moztu behar da.']],
+    iguala: [['n', 'Berdinduta! Dena hasieratik.'], ['n', 'Berdinketa markagailuan! Partida berria.']],
+    remonta: [['n', 'Buelta eman dio! Aurrean jarri da.'], ['e', 'Partidari buelta eman dio. Burua eta hankak.']],
+    tantoPartido: [['n', 'Partidako tantoa.'], ['n', 'Bat gehiago eta amaitu da: partidako tantoa.']],
+    finalYo: [['n', 'Amaitu da! Garaipena zuretzat.'], ['n', 'Partida irabazita! Zorionak.']],
+    finalRival: [['n', 'Amaitu da. Oraingoan aurkariak irabazi du.'], ['n', 'Partidaren amaiera. Garaipena aurkariarentzat.']],
     finalE: [['e', 'Partida ona. Zorionak biei.'], ['e', 'Horrela jokatzen da pilotan: eskuarekin eta buruarekin.']],
-    descanso: [['e', 'Atsedena: minutu bat arnasa hartzeko.'], ['e', 'Minutu bateko atsedena. Pentsatzeko ondo dator.']],
+    descanso: [['e', 'Atsedenaldia: minutu bat arnasa hartzeko.'], ['e', 'Minutu bateko atsedena. Ondo dator pentsatzeko.']],
   },
 };
+// (el rol, para los subtítulos)
+const ROL = { es: { n: 'Comentarista', e: 'Comentarista' }, eu: { n: 'Esataria', e: 'Esataria' } };
 const TIPO = { bote: null, chapa: 'chapa', alta: 'fuera', pared: 'fuera', lado: 'fuera', fuera: 'fuera', largo: 'fuera', falta: 'falta', falta45: 'falta', pasa: 'pasa', pasa45: 'pasa', cuatro: 'fuera' };
 const REMATE = { dejada: 'dejada', cortada: 'cortada', dosparedes: 'dosparedes', volea: 'volea', gancho: 'gancho', saque: 'saque' };
 
 export class Comentarios {
-  /** lang: 'es' o 'eu'; duo: 'a', 'b' o 'no' (por defecto, el elegido en Ajustes) */
-  constructor(lang = 'es', duo = duoElegido()) {
-    this.lang = lang === 'eu' ? 'eu' : 'es'; this.duo = DUOS[duo] ? duo : null; this.ult = {}; this.t = 0; this.desde = -9; this.n = 0;
+  /** lang: 'es' o 'eu'; voz: 'hombre', 'mujer' o 'no' (por defecto, la elegida en Ajustes) */
+  constructor(lang = 'es', voz = duoElegido()) {
+    this.lang = lang === 'eu' ? 'eu' : 'es'; this.voz = voz === 'no' ? null : voz; this.ult = {}; this.n = 0;
   }
-  get on() { return !!this.duo; }
-  /** Una frase de la lista k (sin repetir la última de esa lista), con sus huecos rellenos. Devuelve { quien, rol, texto } */
-  frase(k, v = {}) {
-    const L = F[this.lang][k]; if (!L?.length || !this.duo) return null;
+  get on() { return !!this.voz; }
+  /** Una frase de la lista k (sin repetir la última de esa lista). Devuelve { id, texto, rol, r, voz } o null */
+  frase(k) {
+    const L = F[this.lang][k]; if (!L?.length || !this.voz) return null;
     let i = Math.floor(Math.random() * L.length); if (L.length > 1 && i === this.ult[k]) i = (i + 1) % L.length; this.ult[k] = i;
-    const [r, tx] = L[i], D = DUOS[this.duo];
-    return { quien: D[r], rol: D.rol[this.lang][r], texto: tx.replace(/\{(\w+)\}/g, (_, x) => (v[x] ?? '')), r };
+    const [r, texto] = L[i];
+    return { id: `${k}-${i + 1}`, texto, rol: ROL[this.lang][r], r, voz: this.voz, lang: this.lang };
   }
-  /** Lo que se dice al acabar un tanto. x: el tanto del registro (game.js, stats.log); o: { w, l (nombres), racha
-   *  ('seguidos', 'iguala', 'remonta' o ''), n, partido (tanto de partido), final, a, b (marcador), f } */
+  /** Lo que se dice al acabar un tanto. x: el tanto del registro (game.js, stats.log); o: { racha ('seguidos', 'iguala',
+   *  'remonta' o ''), n (tantos seguidos), final, gano (el que gana el partido eres tú) } */
   tanto(x, o) {
-    if (!this.duo || !x) return null;
+    if (!this.voz || !x) return null;
     this.n++;
-    if (o.final) return this.frase('final', o);
-    if (o.racha === 'iguala') return this.frase('iguala', o);
-    if (o.racha === 'remonta') return this.frase('remonta', o);
-    if (o.racha === 'seguidos' && o.n >= 3) return this.frase('racha', o);
-    if (x.hits >= 10) return this.frase('largo', { ...o, h: x.hits });
+    if (o.final) return this.frase(o.gano ? 'finalYo' : 'finalRival');
+    if (o.racha === 'iguala') return this.frase('iguala');
+    if (o.racha === 'remonta') return this.frase('remonta');
+    if (o.racha === 'seguidos' && o.n >= 3) return this.frase('racha');
+    if (x.hits >= 10) return this.frase('largo');
     // (los demás, uno sí y otro no, más o menos: con todos, cansaban)
     if (Math.random() < 0.45) return null;
-    const tipo = x.call === 'bote' ? (REMATE[x.kind] || 'golpe') : (TIPO[x.call] || 'fallo');
-    return this.frase(tipo, { ...o, h: x.hits });
+    return this.frase(x.call === 'bote' ? (REMATE[x.kind] || 'golpe') : (TIPO[x.call] || 'fallo'));
   }
 }

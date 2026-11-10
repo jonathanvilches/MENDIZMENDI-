@@ -68,7 +68,7 @@ import { ORIENTA, ORIENTA_TIPS, MONTE_TIPS } from '../game/senales.js';
 import { enCss } from '../util/tele.js';
 import { sencillo, ponSencillo } from '../util/sencillo.js';
 import { accesible, ponAccesible } from '../util/accesible.js';
-import { duoElegido, ponDuo } from '../util/comentarios.js';
+import { duoElegido, ponDuo, subtitulos, ponSubtitulos } from '../util/comentarios.js';
 import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
@@ -985,6 +985,7 @@ export class Hub {
       { const el = $('#pPost', r); if (el) el.onchange = e => ponPost(e.target.checked); }
       for (const [id, k] of [['#pGrandes', 'grandes'], ['#pContraste', 'contraste']]) { const el = $(id, r); if (el) el.onchange = e => { ponAccesible(k, e.target.checked); this.sound?.ui('click'); }; }
       { const el = $('#pCom', r); if (el) { el.value = duoElegido(); el.onchange = e => { ponDuo(e.target.value); this.sound?.ui('click'); }; } }
+      { const el = $('#pSub', r); if (el) el.onchange = e => { ponSubtitulos(e.target.checked); this.sound?.ui('click'); }; }
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; delete S.slowPc; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('herrizherri-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
     };
@@ -1021,8 +1022,9 @@ export class Hub {
         <label class="set">Textos grandes <input type="checkbox" id="pGrandes" ${accesible().grandes ? 'checked' : ''}></label>
         <label class="set">Alto contraste <input type="checkbox" id="pContraste" ${accesible().contraste ? 'checked' : ''}></label>
         <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.</p>
-        <label class="set">Comentarios de los partidos <select id="pCom"><option value="a">Maite y Patxi</option><option value="b">Unai y Garazi</option><option value="no">Sin comentarios</option></select></label>
-        <p class="set-note">En los partidos de pelota, una narradora o un narrador cuenta cada jugada y una ex pelotari o un ex pelotari la explica, en el idioma del juego.</p>
+        <label class="set">Comentarista de los partidos <select id="pCom"><option value="hombre">Voz de hombre</option><option value="mujer">Voz de mujer</option><option value="no">Sin comentarios</option></select></label>
+        <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
+        <p class="set-note">En los partidos de pelota, el comentarista cuenta y explica las jugadas en voz alta, en el idioma del juego. Mientras no estén las voces grabadas, habla la voz del teléfono o del ordenador, si tiene una en ese idioma.</p>
         ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
         ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>

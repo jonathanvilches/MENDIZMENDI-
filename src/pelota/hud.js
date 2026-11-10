@@ -545,14 +545,14 @@ export class PelotaHud {
     c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
     if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
   }
-  /** El rótulo de los comentarios (comenta.js): c = { quien, rol, texto, r ('n' narra, 'e' explica) }; null lo quita.
+  /** El rótulo de los comentarios, solo con los subtítulos puestos (comenta.js): c = { rol, texto, r ('n' narra, 'e' explica) }; null lo quita.
    *  Cada frase se ve al menos 2,4 s: si llega otra antes, espera su turno (solo la última que llega) */
   comenta(c) {
     const el = this._com ||= this.$('.pel-com'); if (!el) return;
     if (!c) { el.classList.remove('on'); this.comT = 0; this.comSig = null; return; }
     if (this.comT > 0 && this.comVisto < 2.4) { this.comSig = c; return; }
     this.comVisto = 0; el.className = 'pel-com ' + (c.r === 'e' ? 'e' : 'n');
-    el.innerHTML = `<i class="pc-q" aria-hidden="true">${esc(c.quien[0] || '')}</i><b>${esc(c.quien)} <small>· ${esc(c.rol)}</small></b><p>${esc(c.texto)}</p>`;
+    el.innerHTML = `<i class="pc-q" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3zm-6 9a6 6 0 0 0 5 5.9V21h2v-3.1A6 6 0 0 0 18 12h-2a4 4 0 0 1-8 0z" fill="currentColor"/></svg></i><b>${esc(c.rol)}</b><p>${esc(c.texto)}</p>`;
     void el.offsetWidth; el.classList.add('on'); this.comT = Math.min(6, 2.6 + c.texto.length / 30);
   }
   /** La racha de un lado en el marcador: n (tantos seguidos; vacío, se quita) y lo que dice para quien no ve el icono */
