@@ -337,6 +337,18 @@ const CSS = `
 .pel-clave p{margin:4px 0 0;font-size:var(--fs-sm);font-weight:700;line-height:1.35;color:#fff}
 .pel-mapa{margin:0 0 12px;padding:10px 14px 8px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-mapa svg{display:block;width:100%;height:auto;margin-top:6px}
+/* accesibilidad (util/accesible.js): textos grandes, un 20 % más, y alto contraste, con fondo negro, letra blanca y bordes
+   blancos en el marcador, los avisos, los paneles y los botones */
+body.textos-grandes .pel-root{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px;--fs-4xl:52px;--fs-hero:clamp(36px,7vw,56px)}
+body.textos-grandes .pel-root :is(.pel-est,.pel-xp) li b{font-size:13px}body.textos-grandes .pel-side{width:calc(var(--psw,176px) * 1.12)}
+body.alto-contraste .pel-score{background:#000;border-top-color:#fff;opacity:1;box-shadow:0 0 0 2px #fff}
+body.alto-contraste .pel-side :is(span,b){color:#fff;text-shadow:0 1px 0 #000}
+body.alto-contraste :is(.pel-call,.pel-golpe,.pel-tip,.pel-q,.pel-rep-b,.pel-pres>div){background:#000!important;border:2px solid #fff!important;color:#fff!important;box-shadow:none!important}
+body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto-contraste .pel-racha{background:#000;border:2px solid #ffd166;color:#ffd166;box-shadow:none}
+body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
+body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-rv,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
+body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
+body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
 /* (en el móvil tumbado, todo en lo que cabe: el resultado más pequeño, los títulos más pequeños y el mapa más bajo) */
 @media (orientation:landscape) and (max-height:520px){
   .pel-fin .pel-big{font-size:var(--fs-2xl);margin:0 0 6px}.pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){margin-bottom:8px}

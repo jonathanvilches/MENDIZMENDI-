@@ -51,6 +51,7 @@ import { watchUpdates } from './web/update.js';
 import { startHD } from './web/hd.js';
 import { startVercel } from './web/vercel.js';
 import { sencillo } from './util/sencillo.js';
+import './util/accesible.js';   // (textos grandes y alto contraste: las clases de <body>, desde el principio)
 import { apuntaPerdida } from './util/diag.js';
 import { calidadOrdenador, apuntaGpu, fijaCalidad, gpuNombre } from './util/gpu.js';
 

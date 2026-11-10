@@ -2,6 +2,9 @@
 // data/eu.js. Se cargan con los demás diccionarios (i18n.js, loadEU) y no pisan una traducción que ya hubiera.
 export const EU_AVENTURA = {
   'Efectos de imagen': 'Irudi-efektuak',
+  // (accesibilidad: util/accesible.js)
+  'Textos grandes': 'Testu handiak', 'Alto contraste': 'Kontraste handia',
+  'Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.': 'Letra handiagoa pilota partidetan eta pilotarien fitxetan. Kontraste handiarekin, markagailua, abisuak, panelak eta botoiak hondo beltzarekin eta ertz zuriekin agertzen dira.',
   'Bruma en el valle, sombras de nubes, resplandor de las luces y color de cada hora. Solo con calidad Media o Alta; si el juego va justo, se apagan solos.': 'Lainoa haranean, hodeien itzalak, argien distira eta ordu bakoitzaren kolorea. Kalitate Ertain edo Altuarekin bakarrik; jokoa justu badabil, bere kabuz itzaltzen dira.',
   // la aventura de cada pueblo (game/townAventura.js)
   '¡Uf! Sin fuerzas para nadar. Has vuelto a la orilla.': 'Uf! Igeri egiteko indarrik gabe. Ertzera itzuli zara.',

@@ -107,6 +107,9 @@ const CSS = `
 .pfx-head small{display:block;font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
 .pfx-head h3{margin:0;font:400 var(--fs-2xl)/1.05 var(--f-display);text-transform:uppercase;color:#fff}
 .pfx-k{display:block;font-size:var(--fs-sm);font-weight:800;color:#e6def7;line-height:1.3}
+body.textos-grandes .pfx{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px}
+body.alto-contraste .pfx-card{background:#000;border:2px solid #fff}body.alto-contraste .pfx-data div{background:#111;border-left-color:#fff}
+body.alto-contraste .pfx :is(dt,dd,.pfx-tip,.pfx-note,.pfx-k,.pfx-sk h4,.pfx-head small,.pfx-shots li,.pfx-arq span){color:#fff}body.alto-contraste .pfx :is(.pfx-shots li,.pfx-arq span){background:#000;border:1px solid #fff}
 .pfx-arq{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pfx-arq span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.35);font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:#e6def7;white-space:nowrap}
 .pfx-arq span.arq{color:#fff;background:linear-gradient(100deg,rgba(255,43,214,.4),rgba(123,47,247,.4));border-color:rgba(255,122,200,.6)}.pfx-arq span.estrella{color:#ffd166;border-color:rgba(255,209,102,.45)}.pfx-arq svg{width:14px;height:14px;flex:none}
 .pfx-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}

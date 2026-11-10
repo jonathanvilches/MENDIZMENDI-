@@ -71,6 +71,10 @@ const CSS = `
 .pvs-who small{display:block;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvs-st{display:flex;gap:10px;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila)}.pvs-plate.rojo .pvs-st{justify-content:flex-end}
 .pvs-st b{display:inline;font:800 var(--fs-sm)/1 var(--f-cond);color:#fff;margin-left:3px}
+/* accesibilidad (util/accesible.js) */
+body.textos-grandes .pvs{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px}
+body.alto-contraste .pvs :is(.pvs-who,.pvs-tick,.pvs-venue,.pvs-lineb,.pvs-tags span){background:#000;border:2px solid #fff}
+body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pvs-tick .q){color:#fff}body.alto-contraste .pvs .pvs-arq span{background:#000;border:1px solid #fff}
 /* (su arquetipo, su mano y su golpe estrella: rules.js, arqChips) */
 .pvs-arq{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pvs-plate.rojo .pvs-arq{justify-content:flex-end}
 .pvs-arq span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(255,255,255,.08);border:1px solid rgba(201,178,255,.35);font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);white-space:nowrap;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}

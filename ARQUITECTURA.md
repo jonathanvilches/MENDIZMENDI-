@@ -271,6 +271,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el
   partido o se pone por delante (la remontada, una vez cada cosa). Mientras dura la racha, una llama junto a la cifra
   del marcador (solo la llama: el número va en el aviso, para no quitarle sitio al nombre).
+- **Textos grandes y alto contraste** (`util/accesible.js`; Ajustes en `hub/hub.js`): se guardan aparte del perfil, en
+  `herrizherri-accesible`, y se ponen como clases de `<body>` (`textos-grandes`, `alto-contraste`) desde que se abre el
+  juego. Textos grandes sube un 20 % las variables de letra (`--fs-*`) dentro del partido de pelota, la pantalla VS y la
+  ficha; alto contraste pone fondo negro, letra blanca y bordes blancos en el marcador, los avisos, los paneles y los
+  botones, y en el anillo y los corazones de la aventura. Cada estilo va con lo suyo (`pelota/hud.js`, `vs.js`,
+  `ficha.js`, `ui/aventuraHud.js`).
 - **Resumen del final** (`pelota/match.js`, `endPanel`, `claveDe`, `mapaBloque`; `pelota/game.js`, `stats.log` y
   `stats.golpes`): a la izquierda el resultado, el momento clave y la experiencia; a la derecha las estadísticas y el mapa
   de golpes (la cancha desde arriba, del frontis al rebote, con un punto de cada color donde golpeó cada uno). En dos
