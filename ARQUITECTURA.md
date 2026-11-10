@@ -294,7 +294,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
   palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps. Mientras habla, la música
   baja a un tercio (`audio.js`, `voz` y `volMus`: cuenta en todo lo que pone el volumen de la música) y vuelve al acabar
-  la frase; con la voz del sistema, si el iPhone no avisa del final, se da por acabada a su tiempo.
+  la frase; con la voz del sistema, si el iPhone no avisa del final, se da por acabada a su tiempo. Grabadas: las 63
+  frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el euskera, el kantari y la voz de
+  mujer, que mientras tanto usan la voz del sistema o, la de mujer, la grabación de hombre.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
