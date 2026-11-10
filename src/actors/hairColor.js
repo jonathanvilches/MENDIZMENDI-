@@ -12,7 +12,7 @@ import { fillMaterial } from '../engine/charLight.js';
 
 // brillo típico del pelo pintado de cada modelo (luma en sRGB, la mediana de los píxeles de pelo); el pastor lleva
 // boina negra: en él, lo casi negro y lo que queda por encima del ala (91 % de la altura) es boina y no pelo
-const REF = { sanfermin: 0.056, pastor: -0.115, osasuna: 0.119, osasuna_fuera: 0.112, pelotari: 0.08, pelotari_rojo: 0.087 };
+const REF = { sanfermin: 0.056, pastor: -0.115, osasuna: 0.119, osasuna_fuera: 0.112, osasuna_juez: 0.119, pelotari: 0.08, pelotari_rojo: 0.087 };
 
 /** Colores de pelo con sus nombres (los vecinos sin color propio y los jugadores toman uno de aquí), como se ven en
  *  el juego. */

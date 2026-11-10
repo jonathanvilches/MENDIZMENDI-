@@ -43,6 +43,13 @@ ZONES.osasuna_fuera = `
     if (y > 0.43 && y < 0.66 && white && uShirt.w > 0.) return noTone(uShirt, v, 0.76);   // (más abajo, las manos claras)
     if (y > 0.12 && y < 0.42 && dark && uPants.w > 0.) return noTone(uPants, v, 0.24);`;
 ZONES.pelotari_rojo = ZONES.pelotari;
+// el juez (el futbolista, todo de negro): también el rojo de los bordes y de las sombras, el de las medias y las
+// zapatillas. Con solo el rojo vivo de la camiseta quedaban motas rojas sobre el negro y las zapatillas rojas. El rojo
+// apagado, solo si es oscuro: la piel, del mismo tono pero clara, no se toca; la cara queda por encima
+ZONES.osasuna_juez = `
+    bool red = (h < 0.045 || h > 0.9) && ((s > 0.6 && v > 0.15) || (s > 0.28 && v < 0.6)), navy = h > 0.55 && h < 0.8 && s > 0.2 && v < 0.5;
+    if (y < 0.66 && red && uShirt.w > 0.) return noTone(uShirt, v, 0.78);
+    if (y > 0.1 && y < 0.42 && navy && uPants.w > 0.) return noTone(uPants, v, 0.24);`;
 
 // color del «look» → HSV (w = 1: se cambia; sin color, w = 0 y la prenda queda como está)
 const hsv = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new THREE.Color(c); const r = o.r, g = o.g, b = o.b;   // (getHex/r,g,b en lineal: se pasan a sRGB)

@@ -213,7 +213,9 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   // 2.800 espectadores: con todos enteros eran 2,3 millones de triángulos)
   // (kc: cuántos con la figura entera, si quien llama quiere menos: en el partido de pelota del móvil)
   const KC = all3d ? Math.max(1, kc ?? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100)) : K, KM = Q === 'low' ? 120 : Q === 'mid' ? 300 : 600;
-  const C1 = Q === 'low' ? 0.08 : Q === 'mid' ? 0.06 : 0.05, C2 = Q === 'low' ? 0.1 : Q === 'mid' ? 0.09 : 0.08;   // (más gruesa, las figuras se rompen)
+  // (la de lejos fina, con celdas de 6,5 cm en el móvil: con 8 se veían bultos de colores sin brazos ni cara, «sin
+  // rellenar», en las filas de en medio de la grada del partido)
+  const C1 = Q === 'low' ? 0.065 : Q === 'mid' ? 0.06 : 0.05, C2 = Q === 'low' ? 0.1 : Q === 'mid' ? 0.09 : 0.08;   // (más gruesa, las figuras se rompen)
   const near = new Int32Array(K); let nNear = 0, meshes = null, cheer = 0, pick = 0;
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
   const rot = new Float32Array(n), sc = new Float32Array(n);

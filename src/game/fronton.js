@@ -497,7 +497,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
       // chicas con su coleta; la figura de lejos, unos 1.000)
       C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', 1.36, { sit, all3d: true, kc: muyLigero ? 4 : ligero ? 14 : null }); G.scene.add(seated); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', 1.36, { sit, all3d: true, kc: muyLigero ? 8 : ligero ? 24 : null }); G.scene.add(seated); }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }

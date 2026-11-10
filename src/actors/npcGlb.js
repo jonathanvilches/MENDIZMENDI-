@@ -74,7 +74,7 @@ function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), pein
   // (el pelo de su color con hairColor.js: rubio, castaño claro, pelirrojo, canoso…; sin color, el suyo de siempre)
   if (ropa) outfitTint(char.root, name, { ...ropa, hair });   // (los trajes de trajes.js: su ropa pintada, de sus colores)
   else if (costume || L.meshy) hairTint(char.root, name, hair);
-  else outfitTint(char.root, name, { shirt: L.shirt, pants: L.pants || L.skirt, vest: L.vest, acc: L.scarf || L.sash || L.vest || L.pants || L.skirt, hair });
+  else outfitTint(char.root, L.juez && name === 'osasuna' ? 'osasuna_juez' : name, { shirt: L.shirt, pants: L.pants || L.skirt, vest: L.vest, acc: L.scarf || L.sash || L.vest || L.pants || L.skirt, hair });
   // su altura: niños más bajos, el resto con un poco de variedad; los mayores, algo más bajos
   const H = L.height || (L.child ? 1.22 : (L.old ? 1.5 : 1.55) + (hashOf(L) % 7) * 0.02), k = H / 1.6;
   char.root.scale.setScalar((g.userData.fit || 1) * k);

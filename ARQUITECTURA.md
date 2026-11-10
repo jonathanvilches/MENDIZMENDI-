@@ -323,7 +323,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   contracancha, a la altura de la chapa, del 4 y del 7. Son una persona normal, el chico del polo y el pantalón corto,
   con los dos teñidos de negro (`npcOutfit.js`), sin más: ni boina ni pañuelo ni los tacos del pelotari. En cada fallo
   (chapa, fuera, falta, pasa…) el que lo ve levanta el brazo derecho bien alto unos 2 s (`senalaJuez`, `brazoJuez`: cada
-  hueso del brazo se gira para apuntar arriba encima de la animación; antes saludaba con la mano).
+  hueso del brazo se gira para apuntar arriba encima de la animación; antes saludaba con la mano). El negro se pinta con su propia zona (`osasuna_juez` en `npcOutfit.js`): también el rojo de los bordes, de las
+  sombras, de las medias y de las zapatillas, que antes quedaba en motas sobre el negro.
 - **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
   `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
   su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro
@@ -335,7 +336,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sentar; al salir los pelotaris, muchos de los dos. Sin pañuelos: iban a la altura del sentado. Gradas llenas en
   todos los partidos (`game/fronton.js`): la del pueblo siempre; el cubierto, 300 en el móvil y lleno en los demás; el
   Labrit, 400, 900 o lleno; la calle, 250, 400 o llena; 160 en el móvil más justo. Con 300 en el cubierto del móvil, el
-  partido ronda los 510.000 triángulos (el tope es 760.000). Los 14 más cercanos, con la cara entera (4 en el más justo). Antes eran vecinos de
+  partido ronda los 670.000 triángulos (el tope es 760.000). Los 24 más cercanos, con la figura entera y su textura (8
+  en el más justo); los siguientes, con la figura de lejos fina en celdas de 6,5 cm. Con 14 enteros y celdas de 8 cm,
+  las filas de en medio eran bultos de colores sin brazos ni cara, «sin rellenar» (noviembre de 2026). Antes eran vecinos de
   fiesta, de pastor y de calle que celebraban sin levantarse.
 - **Cambios de ritmo al correr** (`pelota/game.js`, `movePlayers`, `ritmo` y `sprint` de cada pelotari; `driveAI`):
   colocándose, al trote; si la pelota es tuya y a tu paso no llegas, esprint automático, con arrancada: hacia delante a
