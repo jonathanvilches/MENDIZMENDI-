@@ -10,8 +10,10 @@ import { Frases } from './audio/frases.js';
 // persecuciones · game: los minijuegos · fiesta: San Fermín, el carnaval y los bailes · sport: los partidos y los
 // campeonatos · pelota: el partido de pelota, con gaita y percusión, más viva · inicio: el menú · torneos: la pantalla
 // de Torneos · none: nada)
+// (el partido de pelota sigue con la épica de Torneos, la del autor: la de antes, «Minstrel Guild», era medieval y no se
+// buscó él; se quitó en noviembre de 2026)
 const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-accion', game: 'musica-juego', fiesta: 'musica-juego',
-  sport: 'musica-torneos', pelota: 'musica-pelota', inicio: 'musica-inicio', torneos: 'musica-torneos' };
+  sport: 'musica-torneos', pelota: 'musica-torneos', inicio: 'musica-inicio', torneos: 'musica-torneos' };
 
 // los sonidos grabados (src/assets/sonidos, Envato Elements: LICENCIAS.md): de cada lista, uno al azar sin repetir el
 // último. Si aún no está descomprimido suena el sintetizado de antes, que sigue aquí debajo; los de los menús y los
