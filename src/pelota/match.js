@@ -1,5 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
+import { pzResultado } from '../ui/pausa.js';
 import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe } from './rules.js';
 import { Comentarios } from './comenta.js';
 import { Voz } from './voz.js';
@@ -686,7 +687,7 @@ export class PelotaMatch {
     // fila para él solo y lo demás tiene aire; en el reto del frontón sigue grande, que no hay rival)
     const cy = this.cols.you === 'rojo' ? 'rojo' : 'azul', cr = cy === 'rojo' ? 'azul' : 'rojo', reto = g.mode === 'rally';
     const marca = reto ? `${esc(this.label('you'))} – ${esc(this.label('rival'))}` : `<span class="pel-marca"><i class="${cy}">${esc(this.label('you'))}</i><b>${big}</b><i class="${cr}">${esc(this.label('rival'))}</i></span>`;
-    const p = this.hud.panel(`<h2>${e.win ? (reto ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
+    const p = this.hud.panel(`<h2>${pzResultado(!!e.win)}${e.win ? (reto ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
       <div class="pel-fin"><div class="pel-fin-a">${reto ? `<div class="pel-big">${big}</div>` : ''}${this.claveBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}</div><div class="pel-fin-b">${this.estBloque(g)}${this.mapaBloque(g)}</div></div>
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     tap(p, (b) => {

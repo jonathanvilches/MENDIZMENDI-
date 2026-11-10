@@ -498,14 +498,14 @@ export class FutbolMatch {
     const score = g.mode === 'penalties' && !g.cupPens ? `${r.pens[0]} – ${r.pens[1]}` : `${g.score[0]} – ${g.score[1]}${pens}`;
     this.result = { ...r, mode: this.o.mode, level: this.o.level };
     this.o.onResult?.(this.result);
-    const choice = await H.end({ title, sub: TEXT.end, score, rows, again: 'Revancha', exit: 'Salir', fact: DATOS[Math.floor(Math.random() * DATOS.length)] });
+    const choice = await H.end({ title, gana: r.win ? true : r.draw ? null : false, sub: TEXT.end, score, rows, again: 'Revancha', exit: 'Salir', fact: DATOS[Math.floor(Math.random() * DATOS.length)] });
     if (choice === 'again') this.restart(); else this.exit(this.result);
   }
   async onRetoEnd(r) {
     if (this.ended) return; this.ended = true;
     this.result = { ...r, mode: 'reto' }; this.o.onResult?.(this.result);
     await new Promise(r2 => setTimeout(r2, 900));
-    const choice = await this.hud.end({ title: r.title, sub: RETOS[r.reto].name, score: r.score, rows: r.rows.map(([a, n, b]) => [a, n, b]), again: 'Repetir', exit: 'Salir' });
+    const choice = await this.hud.end({ title: r.title, gana: !!r.win, sub: RETOS[r.reto].name, score: r.score, rows: r.rows.map(([a, n, b]) => [a, n, b]), again: 'Repetir', exit: 'Salir' });
     if (choice === 'again') { this.reto?.dispose(); this.reto = null; this.restart(); } else this.exit(this.result);
   }
   restart() {

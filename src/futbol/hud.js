@@ -6,6 +6,7 @@ import { clubImg } from '../ui/escudoImg.js';
 import { fitCircle, fitCircles } from '../ui/fitlabel.js';
 import { tap } from '../util/tap.js';
 import { esc } from '../util/html.js';
+import { pzCabecera, pzFila, PZ_ICO, pzResultado } from '../ui/pausa.js';
 import { enCss } from '../util/tele.js';
 // (en el marcador, el emblema de un equipo de la liga; si no lo tiene, el color de su camiseta)
 const em = (t) => t?.club && clubImg(t.club) ? `<img class="fb-em" src="${clubImg(t.club)}" alt="">` : `<i style="background:${t.shirt}"></i>`;
@@ -507,23 +508,36 @@ export class FutbolHud {
     });
   }
   pause(T = null, SB = null) {
+    // la ventana de pausa común a los partidos (src/ui/pausa.js), como la de los juegos de fútbol de referencia: una fila por
+    // opción, con lo que hace y su botón redondo; la equis, Continuar o tocar fuera de la ventana siguen el partido
     return new Promise(res => {
-      const p = this.panel(`<h2>Pausa</h2><p>El partido está parado.</p><button class="fb-go">Seguir</button>${T ? `<button class="fb-alt fb-tac-btn">Táctica · ${T.actual}</button>` : ''}${SB ? `<button class="fb-alt fb-subs-btn">${esc(SB.label())}</button>` : ''}<button class="fb-alt fb-ctl">Controles</button><button class="fb-alt fb-quit">Abandonar</button>`);
-      // (cada botón responde al levantar el dedo: en el iPhone el clic a veces no llegaba y no se podía abandonar)
+      const p = document.createElement('div'); p.className = 'pz-fondo fb-pz';
+      // (sus filas llevan clases propias, fpz-: las de los botones del partido, fb-go y fb-alt, traen su propio dibujo)
+      p.innerHTML = `<div class="pz-panel" role="dialog" aria-modal="true" aria-label="Partido en pausa">${pzCabecera('Partido en pausa', 'Seguir jugando')}<div class="pz-lista">
+        ${pzFila({ cls: 'fpz-seguir', titulo: 'Continuar', sub: 'Sigue donde lo has dejado.', ico: PZ_ICO.seguir })}
+        ${T ? pzFila({ cls: 'fpz-tac', titulo: `Táctica · ${esc(T.actual)}`, sub: 'Cambia cómo se colocan tus jugadores.', ico: PZ_ICO.tactica }) : ''}
+        ${SB ? pzFila({ cls: 'fpz-subs', titulo: esc(SB.label()), sub: 'Saca a otros jugadores al campo.', ico: PZ_ICO.cambios }) : ''}
+        ${pzFila({ cls: 'fpz-ctl', titulo: 'Controles', sub: 'Las teclas y los botones del partido.', ico: PZ_ICO.controles })}
+        ${pzFila({ cls: 'fpz-salir', titulo: 'Abandonar', sub: 'Dejarás el partido sin acabar.', ico: PZ_ICO.salir })}
+      </div></div>`;
+      this.root.appendChild(p);
+      const seguir = () => { p.remove(); res('resume'); }, tit = (b, t) => { b.querySelector('.pz-tx b').textContent = t; };
+      p.addEventListener('pointerup', (e) => { if (e.target === p) seguir(); });
+      // (cada fila responde al levantar el dedo: en el iPhone el clic a veces no llegaba y no se podía abandonar)
       tap(p, async (b, e) => {
         e.stopPropagation();
-        if (b.classList.contains('fb-go')) { p.remove(); res('resume'); }
-        else if (b.classList.contains('fb-quit')) res('quit');   // (la pausa se queda: se desvanece con todo el marcador al salir)
-        else if (b.classList.contains('fb-tac-btn')) { p.style.display = 'none'; const id = await this.tactic(T); if (id) b.textContent = `Táctica · ${id}`; p.style.display = ''; }
-        else if (b.classList.contains('fb-ctl')) { p.style.display = 'none'; await this.controls(); p.style.display = ''; }
-        else if (b.classList.contains('fb-subs-btn')) { p.style.display = 'none'; await this.subs(SB.model); b.textContent = SB.label(); p.style.display = ''; }
+        if (b.classList.contains('fpz-seguir') || b.classList.contains('pz-x')) seguir();
+        else if (b.classList.contains('fpz-salir')) res('quit');   // (la pausa se queda: se desvanece con todo el marcador al salir)
+        else if (b.classList.contains('fpz-tac')) { p.style.display = 'none'; const id = await this.tactic(T); if (id) tit(b, `Táctica · ${id}`); p.style.display = ''; }
+        else if (b.classList.contains('fpz-ctl')) { p.style.display = 'none'; await this.controls(); p.style.display = ''; }
+        else if (b.classList.contains('fpz-subs')) { p.style.display = 'none'; await this.subs(SB.model); tit(b, SB.label()); p.style.display = ''; }
       });
     });
   }
   /** Pantalla final con las estadísticas. */
-  end({ title, sub, score, rows = [], again = 'Revancha', exit = 'Salir', fact = '' }) {
+  end({ title, sub, score, rows = [], again = 'Revancha', exit = 'Salir', fact = '', gana = null }) {   // (gana: true, false o null en el empate: su icono, pzResultado)
     return new Promise(res => {
-      const p = this.panel(`<p class="fb-kick">${esc(sub || '')}</p><h2>${esc(title)}</h2>${score ? `<div class="fb-big">${esc(score)}</div>` : ''}
+      const p = this.panel(`<p class="fb-kick">${esc(sub || '')}</p><h2>${pzResultado(gana)}${esc(title)}</h2>${score ? `<div class="fb-big">${esc(score)}</div>` : ''}
         ${rows.length ? `<table class="fb-stats">${rows.map(([a, n, b]) => `<tr><td>${esc(a)}</td><td>${esc(n)}</td><td>${esc(b)}</td></tr>`).join('')}</table>` : ''}
         ${fact ? `<p class="fb-fact"><b>Saber de Navarra</b>${esc(fact)}</p>` : ''}
         ${again ? `<button class="fb-go">${esc(again)}</button>` : ''}<button class="fb-alt">${esc(exit)}</button>`);
