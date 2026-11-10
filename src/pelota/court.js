@@ -19,7 +19,9 @@ export function canvasTex(THREE, w, h, draw, repeat) {
   const g = c.getContext('2d'); g.scale(TEX_K, TEX_K);
   draw(g, w, h);
   const t = freeCanvasOnUpload(srgb(THREE, new THREE.CanvasTexture(c)));
-  t.anisotropy = 4;
+  // (con todo el filtrado que da la tarjeta gráfica, hasta 16: las paredes y el suelo se ven muy de lado y, con 4, las rayas
+  // y los números se emborronaban a lo lejos)
+  t.anisotropy = Math.min(16, window.__renderer?.capabilities?.getMaxAnisotropy?.() || 4);
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
   return t;
 }
@@ -284,9 +286,7 @@ export class PelotaCourt {
     // pintada, y las casas asoman por encima (entorno.js)
     const leftTex = canvasTex(T, 2048, 512, (c, w, h) => {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false); weather(c, w, h, C.LEFT_H, EXT, DRY);
-      const Y = (y) => h - y / C.LEFT_H * h;
-      c.fillStyle = th.mark; c.fillRect(0, Y(C.LEFT_LINE) - 6, w, 12);   // raya roja: por encima es mala
-    });
+    });   // (la raya de arriba, la que marca lo que es malo, va aparte, de verdad: abajo, junto a la pared)
     // números de los cuadros, como en los frontones de verdad: en la pared izquierda, una raya blanca vertical
     // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada)
     const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 480, MW = 0.9, MH = MW * CH / CW;
@@ -366,6 +366,10 @@ export class PelotaCourt {
     const left = new T.Mesh(new T.BoxGeometry(0.6, C.LEFT_H, EXT), [M({ map: leftTex }), outer(), outer(), outer(), outer(), outer()]);
     // la cara +x (hacia la cancha) lleva la textura; en BoxGeometry su u va de +z a −z
     left.position.set(-W / 2 - 0.3, C.LEFT_H / 2, EXT / 2); left.castShadow = true; left.receiveShadow = true; g.add(left);
+    // la raya de arriba de la pared izquierda (por encima, la pelota es mala), una tira de verdad pegada a la pared: pintada
+    // en la textura, de 40 m de largo, a lo lejos y vista de lado se emborronaba hasta desaparecer
+    { const raya = new T.Mesh(new T.PlaneGeometry(EXT, 12 / 512 * C.LEFT_H), M({ color: th.mark, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya); }
 
     // --- el rebote (la pared del fondo) y las gradas de la contracancha
     // el rebote cierra la cancha por detrás, tan alto como la pared izquierda (solo detrás de la cancha: se entra por la

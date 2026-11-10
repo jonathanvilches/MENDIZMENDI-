@@ -378,6 +378,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`frontis-contracancha`, con su caja de colisión `frontisExt`), y el marcador va en ese trozo; la pelota que da ahí
   es «lado». En los cubiertos, en la pared de delante de la contracancha. Antes estaba encima del frontis y luego en dos
   postes. En el Labrit no sale: allí está su pantalla de la pared derecha.
+- **La raya de arriba de la pared izquierda** (`pelota/court.js`, `raya-izquierda`): una tira de verdad pegada a la
+  pared, del color de las rayas del frontón; por encima, la pelota es mala. Pintada en la textura de la pared, de 34,5 m de
+  largo y vista muy de lado, a lo lejos se emborronaba hasta desaparecer. Las texturas de la cancha (`canvasTex`) van con
+  todo el filtrado que da la tarjeta (anisotropía hasta 16, antes 4).
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
