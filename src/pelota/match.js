@@ -55,6 +55,7 @@ export class PelotaMatch {
     // debutó antes y el otro de azul (o.colors, con sus temporadas en o.seasons); y la repetición de cada tanto
     this.cuatro = !!o.cuatro; this.cols = o.colors || { you: 'azul', rival: 'rojo' }; this.seasons = o.seasons || null;
     this.repe = ls('herrizherri-pelota-repe') !== '0';
+    this.camFija = ls('herrizherri-pelota-camfija') === '1';   // (la cámara fija clásica: Más opciones)
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch, this.cols);
     this.hud.onPanel = () => this.resetStick?.();
@@ -303,7 +304,7 @@ export class PelotaMatch {
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back], ['cuatro', P.four || TEXT.es.pairs.four]].filter(([k]) => !(this.o.forcePairs && (k === 'mano' || k === 'cuatro'))), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : this.cuatro ? 'cuatro' : 'mano';
-    const TT = t.tour || TEXT.es.tour, MT = t.mat || TEXT.es.mat, CD = t.camDyn || TEXT.es.camDyn, OT = t.optTabs || TEXT.es.optTabs, RP = t.repe || TEXT.es.repe;
+    const TT = t.tour || TEXT.es.tour, MT = t.mat || TEXT.es.mat, CD = t.camDyn || TEXT.es.camDyn, CF = t.camFija || TEXT.es.camFija, OT = t.optTabs || TEXT.es.optTabs, RP = t.repe || TEXT.es.repe;
     const reglas = [...(this.cuatro ? [(t.cuatro || TEXT.es.cuatro).rule] : []), ...t.rules];
     const sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].filter(Boolean).join(' · ');
     // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
@@ -320,6 +321,7 @@ export class PelotaMatch {
         ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
         <div class="pel-orow"><p class="pel-ballwhat"><b>${MT.title}.</b> ${MT.sub(POR_LADO(this.pairs))}</p>
         <button class="pel-switch" data-pel-cam role="switch" aria-checked="${!!this.camDyn}"><span><b>${CD[0]}</b><small>${CD[1]}</small></span><i aria-hidden="true"></i></button>
+        <button class="pel-switch" data-pel-fija role="switch" aria-checked="${!!this.camFija}"><span><b>${CF[0]}</b><small>${CF[1]}</small></span><i aria-hidden="true"></i></button>
         <button class="pel-switch" data-pel-repe role="switch" aria-checked="${!!this.repe}"><span><b>${RP[0]}</b><small>${RP[1]}</small></span><i aria-hidden="true"></i></button></div></div>
         <div class="pel-opane" data-pane="1"${this.optTab === 1 ? '' : ' hidden'}><ol>${reglas.map(r => `<li>${r}</li>`).join('')}</ol></div>
         <div class="pel-opane" data-pane="2"${this.optTab === 2 ? '' : ' hidden'}><div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></div>
@@ -340,6 +342,7 @@ export class PelotaMatch {
         for (const x of p.querySelectorAll('[data-pel-tab]')) x.setAttribute('aria-selected', String(x === b));
         for (const x of p.querySelectorAll('.pel-opane')) x.hidden = +x.dataset.pane !== this.optTab; return; }
       if (b.hasAttribute('data-pel-cam')) { this.camDyn = !this.camDyn; try { localStorage.setItem('herrizherri-pelota-cam', this.camDyn ? '1' : '0'); } catch (e) { } b.setAttribute('aria-checked', String(this.camDyn)); return; }
+      if (b.hasAttribute('data-pel-fija')) { this.camFija = !this.camFija; this.camInit = false; try { localStorage.setItem('herrizherri-pelota-camfija', this.camFija ? '1' : '0'); } catch (e) { } b.setAttribute('aria-checked', String(this.camFija)); return; }
       if (b.hasAttribute('data-pel-repe')) { this.repe = !this.repe; try { localStorage.setItem('herrizherri-pelota-repe', this.repe ? '1' : '0'); } catch (e) { } b.setAttribute('aria-checked', String(this.repe)); return; }
       if (b.dataset.pelFicha) { this.ficha(b.dataset.pelFicha); return; }
       if (b.hasAttribute('data-pel-court')) { const w = p.querySelector('.pel-court-what'); if (w) { w.hidden = !w.hidden; b.setAttribute('aria-expanded', String(!w.hidden)); } return; }
@@ -1330,6 +1333,13 @@ export class PelotaMatch {
       const S = g.players[g.serverP()];
       lp[0] = Math.min(COURT.W / 2 + 1.2, S.x + 4.2); lp[1] = 1.7; lp[2] = S.z + 1.6; ll[0] = S.x - 0.6; ll[1] = 1.2; ll[2] = S.z - 3;
     }
+    // la cámara fija clásica (Más opciones): alta, por detrás, centrada y quieta, como la tele de antes; se ve la cancha
+    // entera y los dos pelotaris. Mientras se juega no se mueve ni corta; tras el tanto, los planos de siempre si la
+    // dinámica está puesta
+    if (this.camFija && !this.tour && !corte && !saqueRv && ['rally', 'serveWait', 'servePrep', 'point'].includes(g.phase)) {
+      const zf = Math.min(COURT.L + (portrait ? 2.6 : 1.4), COURT.REBOTE - 0.6);
+      lp[0] = 1.2; lp[1] = portrait ? 13 : 10.5; lp[2] = zf; ll[0] = 0; ll[1] = 0.4; ll[2] = COURT.L * (portrait ? 0.42 : 0.5); this.fijaOn = true;
+    } else this.fijaOn = false;
     const enPlano = corte || saqueRv;
     if (enPlano !== !!this.enCorte) { this.enCorte = enPlano; this.camInit = false; }
     if (this.lastCorte && !corte) this.plano = (this.plano || 0) + 1;   // (el plano siguiente, en el tanto siguiente)
@@ -1344,7 +1354,7 @@ export class PelotaMatch {
     // cámara dinámica (se puede quitar en Más opciones): sigue un poco la pelota de lado, se acerca con cada golpe fuerte
     // y se inclina apenas hacia donde va. Todo suave y pequeño, para dar vida sin perder de vista la cancha ni la pelota
     let dyn = 0;
-    if (this.camDyn && !this.tour && (g.phase === 'rally' || g.phase === 'serveWait' || g.phase === 'servePrep')) {
+    if (this.camDyn && !this.camFija && !this.tour && (g.phase === 'rally' || g.phase === 'serveWait' || g.phase === 'servePrep')) {
       const B = g.ball, bx = Math.max(-COURT.W * 0.5, Math.min(COURT.W * 0.5, B.p.x)), kk = this.kick || 0;
       ll[0] += (bx - ll[0]) * 0.22; lp[0] += (bx - lp[0]) * 0.08;
       ll[1] += Math.max(0, Math.min(2, B.p.y - 1.5)) * 0.15;
@@ -1367,7 +1377,7 @@ export class PelotaMatch {
     // la pared tapaba la imagen con su cara de detrás, a la sombra, y la oscurecía)
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
-    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
+    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   // la vista en primera persona: true si está puesta ahora (y entonces la cámara ya está colocada)

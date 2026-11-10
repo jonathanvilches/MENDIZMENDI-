@@ -296,6 +296,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
   alta, para que el pelotari no tape media pantalla. Las otras cuatro, los planos de siempre.
+- **Cámara fija clásica** (`pelota/match.js`, `camFija`, en Más opciones; `herrizherri-pelota-camfija`): alta, por
+  detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
+  (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
+  del rebote.
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
