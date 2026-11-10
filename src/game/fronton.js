@@ -467,8 +467,11 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // con respaldo, la cadera sobre el asiento, 8 cm; en los bancos corridos al borde del escalón, 30, con los pies en el
       // de abajo. Nadie atraviesa ni el escalón ni lo que tiene delante)
       const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - 0.4, z + Math.cos(ry) * ad, ry]) : wsp;
+      // (con la cara entera, con su textura, los más cercanos: en el móvil 14, y 4 en el más justo; antes 6 y 1, y desde la
+      // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
+      // chicas con su coleta; la figura de lejos, unos 1.000)
       C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', 1.36, { sit, all3d: true, kc: muyLigero ? 1 : ligero ? 6 : null }); G.scene.add(seated); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', 1.36, { sit, all3d: true, kc: muyLigero ? 4 : ligero ? 14 : null }); G.scene.add(seated); }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }
