@@ -31,7 +31,7 @@ const ZONES = {
   pelotari: `
     bool white = s < 0.16 && v > 0.45, blue = h > 0.5 && h < 0.72 && s > 0.4;
     if (y > 0.36 && y < 0.7 && blue && uShirt.w > 0.) return noTone(uShirt, v, 0.65);
-    if (y > 0.07 && y <= 0.41 && white && uPants.w > 0.) return noTone(uPants, v, 0.76);`,   // (hasta 0,41: la cinturilla; con 0,36 quedaba una franja blanca en los jueces de negro)
+    if (y > 0.07 && y <= 0.36 && white && uPants.w > 0.) return noTone(uPants, v, 0.76);`,
   osasuna: `
     bool red = (h < 0.05 || h > 0.93) && s > 0.6 && v > 0.35, navy = h > 0.55 && h < 0.78 && s > 0.3 && v < 0.45;
     if (y > 0.36 && y < 0.66 && red && uShirt.w > 0.) return noTone(uShirt, v, 0.78);

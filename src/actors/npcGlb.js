@@ -46,8 +46,9 @@ const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.c
  *  pelotari). */
 export function meshyFor(L = {}) {
   if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
-  // (los jueces del frontón: el de la camiseta lisa, con la camiseta negra y el pantalón oscuro de su «look»)
-  if (L.juez && MESHY_NAMES.includes('pelotari')) return 'pelotari';
+  // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
+  // pelotari, que lleva tacos en los dedos)
+  if (L.juez && MESHY_NAMES.includes('osasuna')) return 'osasuna';
   const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
   // ellas, con su cuerpo de chica (chicas.js: la sanferminera, con su coleta, vestida con su ropa); ellos con boina o
   // mayores, el pastor
