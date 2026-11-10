@@ -6,8 +6,11 @@
 import * as THREE from 'three';
 import { GlbChar, loadMeshy, MESHY_GAIT } from './glbChar.js';
 import { offscreen, offscreenCanvas } from '../util/offscreen.js';
+import { QUALITY } from '../util/quality.js';
 
-const CW = 96, CH = 144;   // tamaño de cada dibujo en la lámina
+const CW = 96, CH = 144;   // proporción de cada dibujo en la lámina
+// (y su tamaño de verdad según la calidad: en la media y la alta, más grande; a 96 × 144 el público de cerca se veía borroso)
+const TAM = { low: [96, 144], mid: [120, 180], high: [144, 216] };
 // conjuntos de público: qué personaje es cada figura
 const SETS = {
   futbol: ['osasuna', 'osasuna', 'sanfermin', 'osasuna', 'pastor', 'osasuna', 'pelotari', 'osasuna_fuera'],
@@ -50,16 +53,16 @@ export const figure = (set, i) => { const outs = SETS[set] || SETS.futbol; retur
 
 /** Lámina de público: { tex, cols, rows } con N personajes quietos (fila de arriba) y celebrando (abajo). */
 function crowdAtlas(set = 'futbol', sit = false) {
-  const key = set + (sit ? ':sit' : '');
+  const [cw, ch] = TAM[QUALITY] || TAM.high, key = set + (sit ? ':sit' : '') + ':' + cw;
   if (cache.has(key)) return cache.get(key);
   const p = (async () => {
     const N = FIGS, cols = N, rows = 4;   // de frente (quieto, celebrando) y de espaldas (quieto, celebrando)
-    const atlas = document.createElement('canvas'); atlas.width = CW * cols; atlas.height = CH * rows;
+    const atlas = document.createElement('canvas'); atlas.width = cw * cols; atlas.height = ch * rows;
     const g = atlas.getContext('2d');
     const scene = new THREE.Scene();
     scene.add(new THREE.HemisphereLight('#fff6e8', '#5a5060', 2.2));
     const sun = new THREE.DirectionalLight('#ffffff', 2.2); sun.position.set(1.5, 3, 4); scene.add(sun);
-    const cam = new THREE.PerspectiveCamera(24, CW / CH, 0.1, 30); cam.position.set(0, 0.95, 5.2); cam.lookAt(0, 0.78, 0);
+    const cam = new THREE.PerspectiveCamera(24, cw / ch, 0.1, 30); cam.position.set(0, 0.95, 5.2); cam.lookAt(0, 0.78, 0);
     for (let i = 0; i < N; i++) {
       const gl = await loadMeshy(figure(set, i).meshy, true);
       for (let r = 0; r < rows; r++) {
@@ -71,8 +74,8 @@ function crowdAtlas(set = 'futbol', sit = false) {
         if (!cheer && sit) sitPose(c.root);
         c.root.rotation.y = (i % 3 - 1) * 0.12 + (r >= 2 ? Math.PI : 0);
         scene.add(c.root);
-        const R = offscreen(CW, CH, THREE.NeutralToneMapping); R.setClearColor(0x000000, 0); R.clear(); R.render(scene, cam);
-        g.drawImage(offscreenCanvas(), i * CW, r * CH);
+        const R = offscreen(cw, ch, THREE.NeutralToneMapping); R.setClearColor(0x000000, 0); R.clear(); R.render(scene, cam);
+        g.drawImage(offscreenCanvas(), i * cw, r * ch);
         scene.remove(c.root); c.dispose();
       }
     }

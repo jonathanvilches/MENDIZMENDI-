@@ -299,6 +299,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
   (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
   del rebote.
+- **Pelotaris con color limpio y público más nítido** (`src/assets/meshy*/pelotari*.glb`; `actors/crowdSprites.js`,
+  `TAM`; `actors/crowd3d.js`, `PUNTOS`): la textura de Meshy de los pelotaris iba a parches (dos rojos y un cuadriculado
+  en la camiseta, manchas grises en el pantalón) y se veían «a trozos». Se ha limpiado zona a zona: camiseta de un solo
+  color, algo más viva, pantalón blanco limpio y un poco más de color en todo; en los tres tamaños del modelo, y pesan la
+  mitad. El guion que lo hace está fuera del repositorio; para otro personaje, hay que ajustar los tonos de cada zona.
+  El público lejano, en láminas de 120 × 180 en calidad media y 144 × 216 en alta (antes, 96 × 144 en todas: se veía
+  borroso); el cercano toma su color de la media de cinco puntos de la textura, no de uno, y ya no sale a manchas.
 - **Cambios de ritmo al correr** (`pelota/game.js`, `movePlayers`, `ritmo` y `sprint` de cada pelotari; `driveAI`):
   colocándose, al trote; si la pelota es tuya y a tu paso no llegas, esprint automático, con arrancada: hacia delante a
   por una dejada o una corta (×1,42) y hacia atrás si se va al fondo (×1,3). El rival también arranca a por las cortas y

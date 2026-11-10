@@ -27,6 +27,7 @@ function pixels(tex) {
   const p = { w, h, d: g.getImageData(0, 0, w, h).data, flipY: tex.flipY };
   c.width = c.height = 1; pixCache.set(tex, p); return p;
 }
+const PUNTOS = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
 const _c = new THREE.Color(), _v = new THREE.Vector3(), _n = new THREE.Vector3(), _sk = new THREE.Matrix4(), _bm = new THREE.Matrix4(), _nm = new THREE.Matrix3();
 
 // una malla (con piel o rígida) ya posada → geometría con posición, normal y color, en el espacio del personaje
@@ -56,8 +57,11 @@ function bakeMesh(o) {
     if (COL) _c.fromBufferAttribute(COL, i);
     else if (map && UV) {
       const u = UV.getX(i), v = UV.getY(i), x = Math.min(map.w - 1, Math.max(0, Math.floor((u - Math.floor(u)) * map.w)));
-      const yy = map.flipY ? 1 - (v - Math.floor(v)) : v - Math.floor(v), y = Math.min(map.h - 1, Math.max(0, Math.floor(yy * map.h))), q = (y * map.w + x) * 4;
-      _c.setRGB(map.d[q] / 255, map.d[q + 1] / 255, map.d[q + 2] / 255, THREE.SRGBColorSpace);
+      const yy = map.flipY ? 1 - (v - Math.floor(v)) : v - Math.floor(v), y = Math.min(map.h - 1, Math.max(0, Math.floor(yy * map.h)));
+      // (la media de cinco puntos alrededor, no uno solo: las texturas de Meshy van a parches y el público salía a manchas)
+      let r = 0, gg = 0, bb = 0;
+      for (const [ox, oy] of PUNTOS) { const q = (Math.min(map.h - 1, Math.max(0, y + oy)) * map.w + Math.min(map.w - 1, Math.max(0, x + ox))) * 4; r += map.d[q]; gg += map.d[q + 1]; bb += map.d[q + 2]; }
+      _c.setRGB(r / 1275, gg / 1275, bb / 1275, THREE.SRGBColorSpace);
     } else _c.setRGB(1, 1, 1);
     _c.multiply(mc);
     col[i * 3] = _c.r; col[i * 3 + 1] = _c.g; col[i * 3 + 2] = _c.b;
