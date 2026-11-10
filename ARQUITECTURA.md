@@ -320,7 +320,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (lila apagado, hasta 64), plata (lila claro, 65-74), oro (violeta con las cifras en el oro del juego, 75-84) y especial
   (casi negra, borde fucsia y halo, 85 o más). El equipo, azul o colorado, en la franja de arriba y en el puesto. Seis
   cualidades (velocidad, potencia, manos, remate, defensa y fondo; las tres últimas salen de las otras y del nombre) en
-  dos columnas cuando la carta mide 150 px o más (`@container`); en las estrechas, las tres de siempre.
+  dos filas de tres («73 VEL») cuando la carta mide 150 px o más (`@container`); en las estrechas, las tres de siempre. La
+  figura va a la derecha, en dos tercios del ancho, para que la media y el puesto no le pisen el brazo. Abajo, en la placa
+  (`.gx-pie`, en columna): el nombre, el pueblo con su hueco y las cifras pegadas al pie; antes iba cada uno a una altura
+  fija y, en una carta pequeña, el pueblo caía sobre la raya del nombre y las cifras sobre el pueblo. Por debajo de 136 px
+  no cabe el pueblo y va solo el nombre (sale en su ficha); las de por descubrir no llevan cifras, que serían rayas, y sí
+  el pueblo, que dice dónde encontrarlas, con el candado bajo el «?» (`game/pelotaris.js`, `.pc-lock`).
 - **Pelotaris con color limpio y público más nítido** (`src/assets/meshy*/pelotari*.glb`; `actors/crowdSprites.js`,
   `TAM`; `actors/crowd3d.js`, `PUNTOS`): la textura de Meshy de los pelotaris iba a parches (dos rojos y un cuadriculado
   en la camiseta, manchas grises en el pantalón) y se veían «a trozos». Se ha limpiado zona a zona: camiseta de un solo
@@ -1133,8 +1138,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pantalla, nada recortado por su caja, bloques sin pisarse, textos enteros y la tarjeta sin desplazarse tumbada) en los tres
   campeonatos y todas sus rondas (liguilla, cuadro, final, eliminado y campeón), con la muesca y la barra de inicio del
   iPhone simuladas, en 812 × 375, 844 × 390, 852 × 393, 932 × 430, 667 × 375, 740 × 360, 915 × 412, 640 × 360, de pie y en
-  el ordenador. En 568 × 320 (iPhone SE de 2016) el cuadro de dieciséis no cabe y se desplaza dentro de su panel. La banda
-  sesgada de detrás de las cartas queda dentro de su caja (`.tq-duel{overflow:clip}`): asomaba fuera del panel.
+  el ordenador. En 568 × 320 (iPhone SE de 2016) el cuadro de dieciséis no cabe y se desplaza dentro de su panel. Ya no
+  hay banda sesgada azul y rosa detrás de las cartas: en el ordenador se veía como dos rectángulos oscuros sin sentido.
+  Entre las cartas y el VS, 16 px a cada lado (12 en el móvil tumbado estrecho); bajo el VS, a cuántos tantos en dos
+  líneas y sin caja (`.tq-a`): con su caja de etiqueta era más ancho que el hueco y pisaba el borde de las dos cartas.
 - **La liga de fútbol, igual** (`ligaPanel` y `roundPanel` en `futbol/liga.js`; noviembre de 2026): tumbado, en cualquier
   tamaño, la tarjeta a todo el alto con la cabecera arriba, el partido o los resultados a la izquierda con la barra debajo y
   la clasificación a la derecha de arriba abajo (en el iPhone con muesca no cabía y la barra, pegada abajo, tapaba la

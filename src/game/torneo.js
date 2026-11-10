@@ -215,15 +215,17 @@ const CSS = `
 .tq-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}
 .tq-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
 .tq-left{display:flex;flex-direction:column;gap:8px;min-width:0}.tq-left>.tq-duel,.tq-left>.tq-banner{flex:1 1 0;min-height:0}
-.tq-duel{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 6px;overflow:clip}   /* (la banda de detrás de las cartas, sesgada, no asoma fuera del panel) */.lg-card.tq-card{overflow-x:hidden}
-.tq-duel::before{content:'';position:absolute;inset:18% -4px;z-index:-1;background:linear-gradient(90deg,rgba(91,75,255,.35),transparent 45%,transparent 55%,rgba(255,46,136,.35));transform:skewX(-14deg)}
+/* (las dos cartas y el VS, con 16 px a cada lado del VS. Sin la banda sesgada azul y rosa que iba detrás de las cartas: en el
+   ordenador se veía como dos rectángulos oscuros sin sentido) */
+.tq-duel{position:relative;display:flex;align-items:center;justify-content:center;gap:16px;padding:8px 6px}.lg-card.tq-card{overflow-x:hidden}
 .tq-duel .gx-card{cursor:pointer}.tq-duel button.gx-card{border:0;padding:0;background:none;font:inherit}
-.tq-mid{flex:none;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;min-width:56px}
-.tq-mid .lg-chip{white-space:normal;max-width:64px;min-width:min-content;justify-content:center;text-align:center;border-radius:10px;line-height:1.1}
+/* (bajo el VS, a cuántos tantos, en dos líneas y sin caja: con su caja de etiqueta era más ancho que el hueco y pisaba el borde
+   de las dos cartas) */
+.tq-mid{flex:none;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;min-width:56px}
+.tq-mid .tq-a{max-width:5.2em;white-space:normal;text-wrap:balance;font:800 var(--fs-xs)/1.25 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--lila)}
 .tq-mid b{font:400 var(--fs-4xl)/1 var(--f-display);background:linear-gradient(180deg,#fff,var(--rosa));-webkit-background-clip:text;background-clip:text;color:transparent;animation:gx-pop .5s cubic-bezier(.2,1.5,.4,1) .35s both}
 .tq-mid small{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila)}.tq-mid small.r{color:#fff;font-size:var(--fs-sm)}
 .tq-where{font:600 var(--fs-sm)/1.3 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:var(--lila);white-space:nowrap}.tq-where b{color:#fff;font-weight:800}
-.tq-mid .lg-chip{margin-top:4px}
 .tq-left .lg-btns{grid-template-columns:1fr 1.6fr}.tq-left .lg-btns>.lg-btn:only-child{grid-column:1/-1}
 /* (Salir y ¡A jugar! siempre en una fila, también de pie en el móvil: antes, ahí, uno encima del otro) */
 .tq-left .lg-btns .lg-btn.go{grid-column:auto}
@@ -278,7 +280,7 @@ const CSS = `
 @media (orientation:landscape) and (max-height:360px){.tq-card .lg-ph{min-height:26px}.tq-right{overflow-y:auto;overflow-x:hidden}.tq-card>.lg-bar>.lg-btn{padding-left:8px;padding-right:8px}.tq-card>.lg-bar>.lg-btn.go{flex:1.4 1 0}}
 /* (y las rondas del cuadro en una palabra, «Cuartos», «Semis»: «Cuartos de final» ocupaba dos líneas y la última
    eliminatoria se cortaba por abajo) */
-@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.tq-rd h4 .tq-l{display:none}.tq-rd h4 .tq-c{display:inline}.lg-card.tq-card{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:4px}.tq-mid b{font-size:var(--fs-2xl)}
+@media (orientation:landscape) and (max-width:760px) and (max-height:520px){.tq-rd h4 .tq-l{display:none}.tq-rd h4 .tq-c{display:inline}.lg-card.tq-card{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr)}.tq-rd h4{white-space:normal;letter-spacing:.02em}.tq-duel{gap:12px}.tq-mid b{font-size:var(--fs-2xl)}
 .tq-br.k4{gap:0 10px}.tq-card .tq-br.k4 .tq-m>div{padding:0 6px 0 4px}.tq-br.k4 .tq-m .you span::before{margin-right:4px}}
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 /* (cada eliminatoria, del ancho de su columna: antes la casilla se ensanchaba con el nombre y los tantos quedaban fuera,
@@ -398,7 +400,7 @@ const CSS = `
 /* (el menú, a toda la pantalla: las losas ocupan el alto que queda y las figuras crecen con ellas, sin desplazar) */
 .lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}.lg-card.tq-menu-card .tq-tiles{min-height:0;height:100%}.lg-card.tq-menu-card .tq-tile{min-height:0;height:100%}
 .tq-tile b{font-size:var(--fs-2xl)}.tq-tile small{font-size:var(--fs-md)}.tq-tile .k{font-size:var(--fs-sm)}
-.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}
+.tq-mid b{font-size:var(--fs-5xl)}.tq-mid small.r{font-size:var(--fs-md)}.tq-mid .tq-a{font-size:var(--fs-sm)}
 .tq-where{font-size:var(--fs-md)}
 .tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}.tq-br.k4 .tq-m>div{min-height:24px;padding:2px 10px;font-size:var(--fs-sm)}.tq-br.k4 .tq-m b{font-size:var(--fs-md)}.tq-tab{font-size:var(--fs-md)}.tq-tab td,.tq-tab th{padding:5px 10px}.tq-vista button{min-height:40px;font-size:var(--fs-sm)}
 .tq-cup .ico{width:84px;height:84px}.tq-cup b{font-size:var(--fs-lg)}
@@ -569,7 +571,7 @@ export function torneoPanel(T, here = null, o = null) {
     else if (m) {
       const rv = m.rival, rvStats = pairs ? mateStats(rv, 0) : statsOf(rv);
       etiqueta = m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round;
-      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="lg-chip">A ${tantosDe(m.target)} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
+      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="tq-a">A ${tantosDe(m.target)} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
 `;
       sede = o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
     } else left = `<div class="tq-banner"><div class="tq-bt"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div></div>`;
