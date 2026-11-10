@@ -146,7 +146,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   fundido (`pelota/game.js`, `EN` y `DESCANSO`). En los partidos, solo los rótulos de al aire, al rebote y los pelotazos.
 - **Sorteo del saque:** la chapa es de verdad, en 3D, en la cancha (`pelota/chapa.js`, `Chapa3D`): gira de canto, sube
   dando vueltas y cae con la cara que saca hacia arriba y el texto derecho para la cámara, que la sigue (`tossCam` de
-  `pelota/match.js`). Encima, solo el título y las tarjetas de los dos pelotaris con su figura asomando.
+  `pelota/match.js`). Encima, solo el título y las tarjetas de los dos pelotaris con su figura asomando. Las dos tarjetas
+  son iguales, como en espejo: del mismo ancho, el nombre en una línea y, debajo, el color y las temporadas, cada uno en
+  la suya; si un nombre no cabe, los dos nombres bajan a la vez a la misma letra (`iguala`, nunca de 14 px). Antes cada
+  una medía lo que su texto y la de un nombre largo salía con tres líneas y la otra con dos.
 - **Sin propiedad ajena:** nada de personajes o logotipos de terceros. Solo recursos propios o con licencia CC0
   (las licencias están junto a los recursos, en `src/assets/*/LICENSE_*`).
 - **Textos:** se escriben en castellano; el traductor (`i18n.js` + `data/eu.js`) los pasa al euskera.

@@ -430,7 +430,7 @@ export class PelotaMatch {
     const t = this.txt, TS = t.toss || TEXT.es.toss, C = this.cols, de = (col) => (C.you === col ? 'you' : 'rival');
     const nom = (sd) => this.nomLimpio(sd), temp = (sd) => this.tempDe(sd);
     const fig = (col) => { try { return this.o.caras?.fig?.(splitName(this.names[de(col)]).name, col) || ''; } catch (e) { return ''; } };
-    const lado = (col) => `<div class="pel-toss-p ${col}"><span class="pt-fig">${fig(col)}</span><span class="pt-tx"><b>${esc(nom(de(col)))}</b><small>${esc([col === 'azul' ? TS.azul : TS.rojo, temp(de(col))].filter(Boolean).join(' · '))}</small></span></div>`;
+    const lado = (col) => `<div class="pel-toss-p ${col}"><span class="pt-fig">${fig(col)}</span><span class="pt-tx"><b>${esc(nom(de(col)))}</b><small>${[col === 'azul' ? TS.azul : TS.rojo, temp(de('azul')) || temp(de('rojo')) ? temp(de(col)) || '–' : ''].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join('')}</small></span></div>`;
     // (la chapa en la cancha: en el centro, a la altura del 3, donde el juez la echa; si no hay cancha, la de antes, plana)
     let chapa = null;
     try { if (this.court?.group && this.T) chapa = new Chapa3D(this.T, this.court.group, 0.8, COURT.CUADRO * 3, { azul: ['Azul', 'Urdina'], rojo: ['Colorado', 'Gorria'] }); } catch (e) { console.warn('chapa', e); chapa = null; }
@@ -441,6 +441,14 @@ export class PelotaMatch {
         <div class="pel-toss-mid">${chapa ? '' : '<div class="pel-toss-coin" aria-hidden="true"><div class="coin"><span class="f azul"></span><span class="f rojo"></span></div><div class="sh"></div></div>'}
           <button class="pel-go pel-toss-go">${esc(TS.throw)}</button><p class="pel-toss-res" aria-live="polite"></p></div>`;
       this.hud.root.appendChild(el);
+      // (las dos tarjetas, a la misma letra: el nombre en una línea y, debajo, el color y las temporadas, cada uno en la
+      // suya; si un nombre no cabe, los dos nombres bajan a la vez hasta caber, nunca de 14 px. Otra vez al cargar las
+      // letras y al girar o cambiar el tamaño)
+      const iguala = () => { if (!el.isConnected) { removeEventListener('resize', iguala); return; }
+        for (const [s, min] of [['b', 14], ['small span', 11]]) { const L = [...el.querySelectorAll(`.pel-toss-p ${s}`)]; L.forEach(x => { x.style.fontSize = ''; }); if (!L.length) continue;
+          const k = Math.min(1, ...L.map(x => { const w = x.closest('.pt-tx').clientWidth; return w > 0 && x.scrollWidth > w ? w / x.scrollWidth : 1; }));
+          if (k < 1) { const fz = Math.max(min, parseFloat(getComputedStyle(L[0]).fontSize) * k); L.forEach(x => { x.style.fontSize = `${Math.floor(fz * 10) / 10}px`; }); } } };
+      iguala(); document.fonts?.ready?.then(iguala); addEventListener('resize', iguala);
       if (chapa) { this.chapa = chapa; this.tossCam = () => chapa.camara(); this.camInit = false; }
       const win = Math.random() < 0.5 ? 'azul' : 'rojo', coin = el.querySelector('.coin');
       let tirada = false; const tms = [];
