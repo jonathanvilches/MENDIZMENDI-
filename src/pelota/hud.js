@@ -101,7 +101,11 @@ const CSS = `
 .pel-side span{flex:1;min-width:0;font:800 var(--fs-sm)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pel-side[data-side=rival] span{text-align:right}
 .pel-side.pel-red .ps-cab{background:linear-gradient(180deg,#f22c84,#c01a6c)}.pel-side.pel-blue .ps-cab{background:linear-gradient(180deg,#5546f2,#3b2bc4)}
-.ps-barras{display:grid;padding:10px}.ps-barras:empty{display:none}
+/* (delante de la barra, un rayo del color de la barra, para que se sepa que es la energía: en el borde de fuera de cada
+   lado, como en espejo, donde empieza a llenarse) */
+.ps-barras{display:flex;align-items:center;gap:8px;padding:10px}.ps-barras:empty{display:none}.pel-side[data-side=rival] .ps-barras{flex-direction:row-reverse}
+.ps-barras .ps-barra{flex:1;min-width:0}.ps-ico{flex:none;display:block;width:14px;height:14px;color:#ffc94a;filter:drop-shadow(0 0 4px color-mix(in srgb,currentColor 45%,transparent))}
+.ps-barras:has(.mid) .ps-ico{color:#ff8a3d}.ps-barras:has(.low) .ps-ico{color:#ff4d6d}
 .ps-barra{position:relative;display:block;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
 .ps-barra u{position:absolute;inset:0;transform-origin:left;border-radius:inherit;background:#ffc94a;transition:transform .2s}.pel-side[data-side=rival] .ps-barra u{transform-origin:right}
 .ps-barra.mid u{background:#ff8a3d}.ps-barra.low u{background:#ff4d6d;animation:pel-sen .5s ease-in-out infinite alternate}@keyframes pel-sen{to{opacity:.3}}
@@ -484,7 +488,16 @@ export class PelotaHud {
       <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span></button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span></button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
-    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => fitCircles(r.querySelector('.pel-btns')); addEventListener('resize', this.onFit);
+    // (los dos nombres del marcador, enteros y a la misma letra: si uno no cabe, los dos bajan a la vez, nunca de 11 px.
+    // Antes el del lado más largo salía con puntos suspensivos)
+    // (el ancho entero de cada nombre, con una copia suelta: con los puntos suspensivos, el navegador da por ancho del texto
+    // el de su caja)
+    const entero = (x) => { const c = x.cloneNode(true); c.style.cssText = 'position:absolute;visibility:hidden;flex:none;width:auto;overflow:visible;text-overflow:clip'; x.parentElement.appendChild(c); const w = c.getBoundingClientRect().width; c.remove(); return w; };
+    this.nombres = () => { const L = [...r.querySelectorAll('.ps-cab span')]; L.forEach(x => { x.style.fontSize = ''; });
+      const k = Math.min(1, ...L.map(x => { const caja = x.getBoundingClientRect().width, w = entero(x); return caja > 0 && w > caja + 0.5 ? caja / w : 1; }));
+      if (k < 1) { const fz = Math.max(11, parseFloat(getComputedStyle(L[0]).fontSize) * k); L.forEach(x => { x.style.fontSize = `${Math.floor(fz * 10) / 10}px`; }); } };
+    requestAnimationFrame(this.nombres); document.fonts?.ready?.then(() => this.nombres());
+    fitCircles(r.querySelector('.pel-btns')); this.onFit = () => { fitCircles(r.querySelector('.pel-btns')); this.nombres(); }; addEventListener('resize', this.onFit);
     this.callT = 0; this.qT = 0;
     // el menú: al tocar su botón se abre y el partido se para (onMenu); al elegir algo o tocar fuera, se cierra y sigue.
     // Con el descanso empezado se abre solo, con «Seguir», sin parar el partido (el minuto de descanso corre)
@@ -519,7 +532,8 @@ export class PelotaHud {
       this.enKey = key;
       for (const side of ['you', 'rival']) {
         const box = this.root.querySelector(`.pel-side[data-side="${side}"] .ps-barras`); if (!box) continue;
-        box.innerHTML = rows.some(r => r.side === side) ? `<i class="ps-barra" title="${esc(this.txt.energy || 'Energía')}"><u></u></i>` : '';
+        const en = esc(this.txt.energy || 'Energía');
+        box.innerHTML = rows.some(r => r.side === side) ? `<svg class="ps-ico" viewBox="0 0 24 24" role="img" aria-label="${en}"><title>${en}</title><path d="M13.5 2 4.5 13.6h6.6L10 22l9.5-12h-6.8z" fill="currentColor"/></svg><i class="ps-barra" title="${en}"><u></u></i>` : '';
       }
     }
     for (const b of this.root.querySelectorAll('.ps-barras')) b.hidden = false;
@@ -584,6 +598,7 @@ export class PelotaHud {
       if (el._t === t) continue; el._t = t; el.innerHTML = on ? LLAMA : ''; el.classList.toggle('on', on);
       if (on) { el.setAttribute('role', 'img'); el.setAttribute('aria-label', label); el.title = label; } else { el.removeAttribute('aria-label'); el.removeAttribute('title'); }
     }
+    this.nombres?.();   // (la llama quita sitio al nombre)
   }
   /** El aviso del golpe: text (lo grande), sub (el golpe y la fuerza) y kind (perfect, good, ok, late, whiff: su color) */
   quality(text, sub = '', kind = '') {
