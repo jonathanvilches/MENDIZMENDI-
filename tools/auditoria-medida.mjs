@@ -89,6 +89,12 @@ export const auditar = async (sel) => {
   const onPlate = (e, f) => { for (let q = e; q && !q.contains(f); q = q.parentElement) { const s = st(q), m = s.backgroundColor.match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/);
     if (m && (m[4] == null ? 1 : +m[4]) >= 0.55) return true; if (/gradient/.test(s.backgroundImage)) return true; } return false; };
   const inter = (a, c) => Math.max(0, Math.min(a.right, c.right) - Math.max(a.left, c.left)) * Math.max(0, Math.min(a.bottom, c.bottom) - Math.max(a.top, c.top));
+  // (lo que se ve de una figura: su caja recortada por las de fuera que no dejan asomar lo que se sale, como la caja de la
+  // figura de busto de las cartas de pelotari, que agranda la imagen y enseña solo su mitad de arriba)
+  const visRect = (f) => { const r = f.getBoundingClientRect(); let L = r.left, T = r.top, Rr = r.right, B = r.bottom;
+    for (let p = f.parentElement; p && p !== document.body; p = p.parentElement) { const cs = getComputedStyle(p); if (cs.overflowX === 'visible' && cs.overflowY === 'visible') continue;
+      const q = p.getBoundingClientRect(); L = Math.max(L, q.left); T = Math.max(T, q.top); Rr = Math.min(Rr, q.right); B = Math.min(B, q.bottom); }
+    return { left: L, top: T, right: Math.max(L, Rr), bottom: Math.max(T, B) }; };
   const figs = all.filter(e => (e.tagName === 'IMG' || e.tagName === 'svg') && vis(e)).filter(e => { const r = e.getBoundingClientRect(); return r.width >= 60 && r.height >= 60; });
   // (de una imagen con transparencia, solo cuenta lo pintado: se mira en un lienzo cuánta letra cae sobre píxeles opacos,
   // con su object-fit y object-position; si no se puede leer la imagen, cuenta su caja entera)
@@ -105,7 +111,7 @@ export const auditar = async (sel) => {
   for (const { e, rs } of TL) {
     for (const f of figs) {
       if (f.contains(e) || e.contains(f) || onPlate(e, f)) continue;
-      const fr = f.getBoundingClientRect(), a = rs.reduce((s, r) => s + inter(r, fr), 0), tot = rs.reduce((s, r) => s + r.width * r.height, 0);
+      const fr = visRect(f), a = rs.reduce((s, r) => s + inter(r, fr), 0), tot = rs.reduce((s, r) => s + r.width * r.height, 0);
       // (se cuenta la figura que va por encima o que queda detrás sin un fondo opaco entre medias: lo que se ve)
       if (a > tot * 0.15 && f.tagName === 'IMG') { const cov = alphaCov(f, rs); if (cov !== null && cov < 0.1) continue; }
       if (a > tot * 0.15) { R.encima.push(`${name(e)} «${txt(e)}» pisa la figura ${name(f)} (${Math.round(a / tot * 100)} %)`); break; }
@@ -128,8 +134,8 @@ export const auditar = async (sel) => {
     for (const [k, c] of cs) if (c && green(c)) { const key = name(e) + k; if (seen.has(key)) continue; seen.add(key); R.verde.push(`${name(e)} ${k} ${c}${hasText(e) ? ` «${txt(e)}»` : ''}`); }
   }
   // 4. esquinas en ángulo: la identidad ya no las lleva (las cintas de premio, las dos mitades del VS y la silueta de escudo
-  // de las cartas de pelotari, con su cinta del equipo, son formas, no cajas)
-  for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i, .gx-card .gx-face, .gx-card .gx-eq')) continue;
+  // de las cartas de pelotari, con su cinta del equipo y su filo de dentro, son formas, no cajas)
+  for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i, .gx-card .gx-face, .gx-card .gx-eq, .gx-card .gx-lin')) continue;
     R.esquina.push(`${name(e)} con las esquinas cortadas en ángulo` + (window.__auditDetail ? ` [${s.clipPath}]` : '')); }
   // 4b. el filo de neón, solo donde hace falta: lo llevan las superficies que flotan sobre el juego (paneles, ventanas,
   // cajas del HUD) y las cartas que se eligen; lo de dentro de una superficie enmarcada, no. Falta: caja con borde (en tres

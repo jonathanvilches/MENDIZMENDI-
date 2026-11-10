@@ -864,8 +864,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   un `polygon()` (`path()` no se estira con la caja y `shape()` aún no lo tiene todo Safari), en tanto por ciento en la
   de pelotari y en píxeles desde los bordes y el centro en las de Torneos, que cambian de ancho y de alto. La de
   pelotari mide 1,48 de alto por cada 1 de ancho (`CARTA_ALTO`, `ui/sportCard.js`, con el que el torneo y la colección la
-  encajan por su alto); lo de arriba va medido por su ancho y el pie acaba antes de la punta. El color de su bando va en
-  una cinta que sigue la corona de lado a lado (`.gx-eq`, `--corona`, el mismo borde desplazado hacia dentro). Las de
+  encajan por su alto); lo de arriba va medido por su ancho y el pie acaba antes de la punta. Por dentro va como las de
+  ejemplo que mandó el autor: a la izquierda, en columna, la media, el puesto, el arquetipo donde ellas llevan la bandera
+  y el escudo del pueblo donde el del club (`escudoDe`: del nombre del pueblo a su nivel y a su blasón de
+  `data/armas-navarra.js`; sin imagen, la columna va sin él); a la derecha, la figura de busto (`.gx-fig`, la imagen de
+  cuerpo entero agrandada hasta que su mitad de arriba llena la caja); debajo, el nombre centrado con una raya y las seis
+  cualidades en dos columnas de tres con una raya en medio; sin placa oscura, la carta se oscurece poco a poco hacia
+  abajo. Un filo fino de dentro sigue la silueta (`.gx-lin`, `--marco`, un aro de 1 px en un `polygon()` con `evenodd`).
+  El color de su bando va en una cinta que sigue la corona de lado a lado (`.gx-eq`, `--corona`, el mismo borde
+  desplazado hacia dentro). Las de
   Torneos llevan más hueco arriba y abajo que a los lados, para que la lámina y la barra de jugar no toquen el filo. Su
   filo de 1 px sigue esa forma: un aro con degradado cónico que da la vuelta (`--neon-a`), recortado con la silueta, el
   relleno 1 px por dentro y la luz alrededor con una sombra que sigue la forma (`drop-shadow`). Al pasar a la identidad
@@ -1382,7 +1389,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | Herramienta | Qué hace |
 |---|---|
 | `meshy-costuras.mjs` | Las texturas de los personajes de Meshy sin motas: lo de fuera de cada pieza, con el color de su borde; WebP con el color a resolución completa en los bordes, también en las versiones de 1024 px y ligera (solo la imagen) |
-| `silueta-carta.py` | La silueta de escudo de las cartas (corona, lados y punta) en `polygon()` de CSS: `--fifa` y `--corona` de la carta de pelotari y `--fifa` de las de Torneos, para pegar en `src/ui/neon.css` |
+| `silueta-carta.py` | La silueta de escudo de las cartas (corona, lados y punta) en `polygon()` de CSS: `--fifa`, `--corona` y `--marco` de la carta de pelotari y `--fifa` de las de Torneos, para pegar en `src/ui/neon.css` |
 | `presupuesto-pueblo.mjs` | El presupuesto de cada pueblo: lo que pinta con el perfil del iPhone (triángulos, dibujos y memoria de texturas y búferes, con `presupuesto-gpu.js`) en su puerta mirando a los cuatro lados y, con `PELOTA=1`, en su partido de pelota, frente a lo que aguanta el iPhone 13 (unos 900 mil triángulos, 520 dibujos y 80 MB de texturas en el pueblo). Todo pueblo nuevo tiene que pasarlo antes de publicarse: solo se carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno. Sale con código 1 si alguno se pasa |
 | `puntos-control.mjs` | Los puntos de control de arte y luz: de cada pueblo, dos vistas fijas (a pie de calle desde la puerta y desde 22 m sobre la plaza) en cuatro condiciones (día, atardecer, noche y lluvia), con lo que pinta cada una (triángulos y llamadas de dibujo) y lo que tarda en cargar. Las mismas fotos antes y después de cada cambio de arte, luz o atmósfera: `node tools/puntos-control.mjs <carpeta> <etiqueta> [pueblos] [calidad] [condiciones]`. Las de la auditoría de noviembre de 2026 y su informe, en `entrega/tanda1/`. |
 | `puntos-interes.mjs` | Los puntos de interés de cada pueblo, medidos: qué parte de lo que se pisa ve algo a lo lejos (contando el relieve y las casas), cuánto paisaje vacío hay como mucho (andando a 3,3 m/s) y si hay retos de las tres escalas. Cuenta lo que rotula el mapa, los vecinos con misión y lo que añade la aventura (`game.puntosInteres()`: la atalaya y las kutxas, estas como escondidas). Pasa con el 85 % viendo algo lejano, ningún vacío de más de 60 s y las tres escalas. `node tools/puntos-interes.mjs <salida.json> [pueblos \| todos]`; con `?aventura=0` en la dirección se mide el pueblo sin la aventura. |

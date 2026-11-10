@@ -45,50 +45,60 @@
 .gx-go::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .45), transparent); transform: translateX(-150%) skewX(-20deg); animation: gx-sweep 3.2s ease-in-out .6s infinite; pointer-events: none; }
 .gx-go:active { transform: translateY(1px) scale(.98); filter: brightness(1.1); }
 
-/* ---------- carta de jugador (como las de los juegos de fútbol): media y puesto, figura, nombre y tres cualidades.
-   Su tamaño sale de --w; la holografía cruza la carta de vez en cuando */
+/* ---------- carta de jugador, como las de los juegos de fútbol (las de ejemplo que mandó el autor): a la izquierda, en
+   columna, la media, el puesto, el arquetipo donde ellas llevan la bandera y el escudo de su pueblo donde el del club; a la
+   derecha, la figura grande; debajo, el nombre centrado con una raya y las seis cualidades en dos columnas de tres, con una
+   raya en medio. Todo va medido por su ancho (--w): la carta mide 1,48 de alto por 1 de ancho y el pie acaba antes de la
+   punta. La silueta, su filo de neón y la cinta del equipo, en neon.css. La holografía cruza la carta de vez en cuando */
 .gx-card { --w: 150px; --c1: var(--v5); --c2: var(--v2); --ac: var(--rosa); position: relative; flex: none; width: var(--w); height: calc(var(--w) * 1.48); color: #fff; isolation: isolate;
-  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .5)); font-family: var(--f-cond); text-align: center; }
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .5)); font-family: var(--f-cond); text-align: center; container-type: inline-size; }
 .gx-card.azul { --c1: var(--azul); --c2: var(--azul2); --ac: #b6aaff; }
 .gx-card.rojo { --c1: var(--rojo); --c2: var(--rojo2); --ac: #ffb3dc; }
-.gx-card .gx-face, .gx-card::before { position: absolute; inset: 0; clip-path: polygon(16% 0, 84% 0, 100% 8%, 100% 90%, 84% 100%, 16% 100%, 0 90%, 0 8%); }
+.gx-card .gx-face, .gx-card::before { position: absolute; inset: 0; }
 .gx-card::before { content: ''; z-index: -2; background: linear-gradient(160deg, rgba(255, 255, 255, .9), var(--ac) 30%, var(--c2) 70%, var(--ac)); }
 .gx-card .gx-face { inset: 2px; z-index: -1; overflow: hidden;
   background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
-/* (la placa de abajo, donde van el nombre, el pueblo y las cualidades: un velo oscuro liso. Sin él, el pueblo y las
-   siglas, rosa claro sobre el rosa de la carta del rival, no se leían: contraste de 2 a 1; con la placa, más de 7 a 1) */
-.gx-card .gx-face::before { content: ''; position: absolute; left: 0; right: 0; top: calc(var(--w) * .731); bottom: 0; background: rgba(12, 3, 30, .5); border-top: 1px solid rgba(255, 255, 255, .14); }
-.gx-card.lock .gx-face::before { background: rgba(12, 3, 30, .3); }
+/* (abajo, donde van el nombre y las cifras, la carta se oscurece poco a poco, sin placa ni raya, como en esas cartas: el
+   rosa claro de las siglas sobre la carta del rival sigue por encima de 7 a 1) */
+.gx-card .gx-face::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 46%, rgba(12, 3, 30, .45) 60%, rgba(12, 3, 30, .55)); }
+.gx-card.lock .gx-face::before { background: linear-gradient(180deg, transparent 46%, rgba(12, 3, 30, .3) 60%); }
 .gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
-/* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía.
-   A la derecha, en dos tercios del ancho: más a la izquierda, la media y el puesto le pisaban el brazo) */
-.gx-card img { position: absolute; z-index: 0; right: 1%; top: calc(var(--w) * .069); height: calc(var(--w) * .662); width: 68%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); }
+/* (el filo fino de dentro, que sigue la silueta un poco más adentro, como el marco de esas cartas: un aro de 1 px recortado
+   con --marco, del color de su categoría) */
+.gx-card .gx-lin { position: absolute; inset: calc(var(--w) * .062); z-index: 0; pointer-events: none; background: color-mix(in srgb, var(--ac) 50%, transparent); clip-path: var(--marco); }
+.gx-card.lock .gx-lin { background: rgba(190, 160, 255, .18); }
+/* (la figura, a la derecha, de la corona hasta el nombre, que cae sobre su parte desvanecida, y de busto, como la foto de
+   esas cartas: la imagen, de cuerpo entero y de 2 por 3, se agranda hasta que su mitad de arriba, de la cabeza a la
+   cintura, llena la caja, y la caja recorta el resto) */
+.gx-card .gx-fig { position: absolute; z-index: 0; right: 2%; top: calc(var(--w) * .07); width: 66%; height: calc(var(--w) * .73); overflow: hidden; -webkit-mask-image: linear-gradient(180deg, #000 68%, rgba(0, 0, 0, .5) 86%, transparent); mask-image: linear-gradient(180deg, #000 68%, rgba(0, 0, 0, .5) 86%, transparent); }
+.gx-card .gx-fig > img.pf { position: absolute; left: 50%; top: 0; height: calc(var(--w) * 1.4); width: auto; max-width: none; transform: translateX(-50%); }
+.gx-card .gx-fig > img:not(.pf) { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 4%; }
 /* figura de pelotari (src/ui/pelotariFig.js): una sola imagen. En el archivo único, la azul es la camiseta con el rojo de
    fondo: el fondo ocupa la caja igual que la imagen (de lado a lado; en la carta, como su object-fit y su object-position) */
 img.pf { display: block; flex: none; }
 img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background-position: 0 0; }
-.gx-card img.pf-az { background-size: cover; background-position: 50% 4%; }
-.gx-card .gx-ovr { position: absolute; z-index: 1; left: 9%; top: calc(var(--w) * .124); display: flex; flex-direction: column; align-items: center; line-height: .9; }
-.gx-card .gx-ovr b { font: 400 calc(var(--w) * .24)/.9 var(--f-display); letter-spacing: -.02em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
-.gx-card .gx-ovr small { font: 800 max(11px, calc(var(--w) * .075))/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }
-/* (abajo, en la placa: el nombre, el pueblo y las cualidades, uno debajo de otro con su hueco y las cifras pegadas al pie;
-   antes iba cada uno a una altura fija y, en una carta pequeña, el pueblo caía sobre la raya del nombre y las cifras sobre
-   el pueblo) */
-.gx-card .gx-pie { position: absolute; z-index: 1; left: 7%; right: 7%; top: calc(var(--w) * .759); bottom: calc(var(--w) * .2); display: flex; flex-direction: column; min-height: 0; }
-.gx-card .gx-nm { font: 400 max(14px, calc(var(--w) * .125))/1.2 var(--f-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
-.gx-card .gx-tw { margin-top: max(4px, calc(var(--w) * .03)); font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gx-card .gx-st { margin-top: auto; padding-top: max(4px, calc(var(--w) * .04)); display: grid; grid-template-columns: repeat(3, 1fr); }
+.gx-card .gx-fig > img.pf-az { background-size: 100% 100%; background-position: 0 0; }
+/* (la columna de la izquierda: la media grande, el puesto debajo, el arquetipo en su círculo y el escudo del pueblo) */
+.gx-card .gx-ovr { position: absolute; z-index: 1; left: 6%; width: 28%; top: calc(var(--w) * .12); display: flex; flex-direction: column; align-items: center; gap: calc(var(--w) * .02); line-height: .9; }
+.gx-card .gx-ovr b { font: 600 calc(var(--w) * .24)/.82 var(--f-cond); letter-spacing: -.01em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+.gx-card .gx-ovr small { font: 600 max(11px, calc(var(--w) * .085))/1 var(--f-cond); letter-spacing: .05em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px rgba(7, 2, 15, .6); }
+.gx-card .gx-arq { flex: none; width: calc(var(--w) * .14); height: calc(var(--w) * .14); display: grid; place-items: center; border-radius: 50%; background: rgba(12, 3, 30, .6); border: 1px solid var(--ac); color: #fff; box-shadow: 0 0 calc(var(--w) * .05) color-mix(in srgb, var(--ac) 60%, transparent); }
+.gx-card .gx-arq svg { width: 62%; height: 62%; }
+.gx-card .gx-esc { flex: none; display: block; width: calc(var(--w) * .17); height: calc(var(--w) * .16); object-fit: contain; filter: drop-shadow(0 1px 2px rgba(7, 2, 15, .55)); }
+/* (abajo, antes de la punta: el nombre centrado, una raya y las cualidades; el pueblo, solo en las de por descubrir, que
+   dice dónde encontrarlas: en las demás lo dice su escudo) */
+.gx-card .gx-pie { position: absolute; z-index: 1; left: 8%; right: 8%; top: calc(var(--w) * .79); bottom: calc(var(--w) * .19); display: flex; flex-direction: column; min-height: 0; }
+.gx-card .gx-nm { flex: none; font: 800 max(14px, calc(var(--w) * .12))/1.1 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
+.gx-card .gx-tw { flex: none; margin-top: max(4px, calc(var(--w) * .03)); font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-card:not(.lock) .gx-tw { display: none; }
+.gx-card .gx-st { flex: 1; min-height: 0; margin: calc(var(--w) * .02) 4% 0; padding-top: max(4px, calc(var(--w) * .035)); border-top: 1px solid color-mix(in srgb, var(--ac) 45%, transparent); display: grid; grid-template-columns: repeat(3, 1fr); align-content: center; }
 .gx-card .gx-st span { display: flex; flex-direction: column; align-items: center; line-height: 1; }
 .gx-card .gx-st b { font: 800 max(13px, calc(var(--w) * .11))/1 var(--f-cond); }
 .gx-card .gx-st small { font: 600 max(12px, calc(var(--w) * .07))/1.05 var(--f-cond); letter-spacing: .04em; color: var(--ac); text-transform: uppercase; }
-/* (el arquetipo, bajo la media: un círculo con su icono, como la bandera en las cartas de los juegos de fútbol. En una carta
-   pequeña el puesto no baja de 11 px y lo empujaría: el círculo va al menos 16 px por debajo de la cifra) */
-.gx-card .gx-arq { position: absolute; z-index: 1; left: calc(9% + var(--w) * .045); top: max(calc(var(--w) * .47), calc(var(--w) * .365 + 16px)); width: calc(var(--w) * .17); height: calc(var(--w) * .17); display: grid; place-items: center; border-radius: 50%; background: rgba(12, 3, 30, .6); border: 1px solid var(--ac); color: #fff; box-shadow: 0 0 calc(var(--w) * .05) color-mix(in srgb, var(--ac) 60%, transparent); }
-.gx-card .gx-arq svg { width: 62%; height: 62%; }
-.gx-card.mini .gx-pie, .gx-card.mini .gx-ovr small { display: none; }
+.gx-card.mini .gx-pie, .gx-card.mini .gx-ovr small, .gx-card.mini .gx-esc { display: none; }
 /* las categorías, por la media (rules.js, cartaTier), todas en morados: la de bronce, un lila apagado; la de plata, lila
    claro con brillo; la de oro, violeta intenso con el oro del juego en las cifras; la especial, casi negra con el borde
-   fucsia y un halo. El equipo (azul o colorado), en la franja de arriba y en el puesto */
+   fucsia y un halo. El equipo (azul o colorado), en la cinta de la corona */
 .gx-card.t-bronce { --c1: #6f6198; --c2: #2b2250; --ac: #cbbfee; }
 .gx-card.t-plata { --c1: #a493ff; --c2: #4a3a9c; --ac: #f1edff; }
 .gx-card.t-oro { --c1: #7b2ff7; --c2: #26085a; --ac: #ffd166; }
@@ -96,27 +106,29 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 .gx-card.t-especial::before { background: linear-gradient(160deg, #fff, #ff2bd6 28%, #7b2ff7 62%, #ff8ae6); }
 .gx-card.t-oro::before { background: linear-gradient(160deg, #fff6d6, #ffd166 30%, #5e22c4 70%, #ffd166); }
 .gx-card.azul { --eq: var(--azul); } .gx-card.rojo { --eq: var(--rojo); }
-.gx-card .gx-ovr small { margin-top: calc(var(--w) * .025); padding: 1px 6px; border-radius: 999px; background: var(--eq, transparent); color: #fff; }
 .gx-card.t-oro .gx-st b, .gx-card.t-oro .gx-ovr b { color: #ffe39a; }
 .gx-card.lock { --eq: transparent; }
-/* las seis cualidades: en una carta estrecha, las tres primeras; desde 150 px de ancho, las seis en dos filas de tres
-   («73 VEL»), como en esas cartas (la carta es su propio contenedor: así vale también cuando el torneo la agranda). En una
-   carta de menos de 136 px no cabe el pueblo con su hueco: va solo el nombre (el pueblo sale en su ficha). Container query de
-   la propia carta: vale para los hijos, no para la carta */
-.gx-card { container-type: inline-size; }
+/* las seis cualidades: en una carta estrecha, las tres primeras, en fila; desde 136 px de ancho, las seis en dos columnas de
+   tres («73 VEL»), con una raya en medio, como en esas cartas (la carta es su propio contenedor: así vale también cuando el
+   torneo la agranda. Container query de la propia carta: vale para los hijos, no para la carta) */
 .gx-card .gx-st.s6 span:nth-child(n + 4) { display: none; }
-@container (max-width: 135.9px) { .gx-card:not(.lock) .gx-tw { display: none; } }
+/* (las de por descubrir, sin las cifras, que serían todo rayas: les queda sitio para el pueblo) */
+.gx-card.lock .gx-st { display: none; }
+.gx-card.lock .gx-pie { justify-content: center; }
+@container (min-width: 136px) {
+  .gx-card .gx-st.s6 { position: relative; grid-auto-flow: column; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(3, 1fr); align-items: center; align-content: stretch; }
+  .gx-card .gx-st.s6::after { content: ''; position: absolute; left: 50%; top: max(4px, calc(var(--w) * .035)); bottom: 2px; width: 1px; background: color-mix(in srgb, var(--ac) 45%, transparent); }
+  .gx-card .gx-st.s6 span, .gx-card .gx-st.s6 span:nth-child(n + 4) { display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: calc(var(--w) * .03); }
+  .gx-card .gx-st.s6 b { font-size: max(12px, calc(100cqw * .095)); }
+  .gx-card .gx-st.s6 small { font-size: max(11px, calc(100cqw * .085)); color: var(--ac); }
+}
+/* (en una de menos de 110 px el escudo no se distingue: la columna se queda con la media, el puesto y el arquetipo; y en una
+   de menos de 100, la letra baja a lo justo para que el nombre y las tres cifras quepan antes de la punta) */
+@container (max-width: 109.9px) { .gx-card .gx-esc { display: none; } }
+@container (max-width: 99.9px) { .gx-card .gx-nm { font-size: 13px; } .gx-card .gx-st b { font-size: 12px; } .gx-card .gx-st small { font-size: 11px; } }
 /* (y en una de menos de 86 px, la del cuadro del torneo en un móvil pequeño tumbado, el nombre y las cifras con sus siglas
    no caben encima de la punta: va el nombre con su pueblo, como en las de por descubrir, y las cifras, en su ficha) */
 @container (max-width: 85.9px) { .gx-card:not(.lock) .gx-st { display: none; } .gx-card:not(.lock) .gx-tw { display: block; } }
-/* (las de por descubrir, sin las cifras, que serían todo rayas: les queda sitio para el pueblo, que dice dónde encontrarlas) */
-.gx-card.lock .gx-st { display: none; }
-@container (min-width: 150px) {
-  .gx-card .gx-st.s6 { grid-template-columns: repeat(3, 1fr); row-gap: 3px; column-gap: 4%; }
-  .gx-card .gx-st.s6 span, .gx-card .gx-st.s6 span:nth-child(n + 4) { display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: 3px; }
-  .gx-card .gx-st.s6 b { font-size: max(12px, calc(100cqw * .09)); }
-  .gx-card .gx-st.s6 small { font-size: max(11px, calc(100cqw * .062)); }
-}
 .gx-card.lock { --c1: #2a1f44; --c2: #120a24; --ac: #6f6292; }
 /* (sin descubrir: la figura se ve entera, con su color y su textura; lo que falta es su nombre y sus cualidades) */
 .gx-card.lock .gx-face::after { display: none; }

@@ -2,7 +2,7 @@
 # (esquinas cóncavas, hombros y un pico en medio) y la punta abajo. Saca los polygon() de CSS con las curvas muestreadas:
 # clip-path: path() no se estira con la caja y shape() aún no lo tiene todo Safari, así que van como polígonos.
 #
-#   python3 -I tools/silueta-carta.py            imprime las variables --fifa y --corona de .gx-card y --fifa de .sport
+#   python3 -I tools/silueta-carta.py            imprime --fifa, --corona y --marco de .gx-card y --fifa de .sport
 #
 # Cada punto es una combinación lineal (porcentaje de la caja + píxeles): las curvas de Bézier son lineales en sus puntos
 # de control, así que una curva entre un punto en píxeles y otro en porcentaje sigue siendo un polygon() válido con calc().
@@ -53,7 +53,7 @@ def poly(pts):
 # ---------- la carta de pelotari, en unidades (100 de ancho, ALTO de alto) ----------
 def u(x, y): return P(x, 0, y * 100 / ALTO, 0)
 
-R_ESQ, HOMBRO, HOMBRO_C, PICO_X, LADO_FIN, PUNTA_Y = 8, 6, 5.5, 32, 121, ALTO
+R_ESQ, HOMBRO, HOMBRO_C, PICO_X, LADO_FIN, PUNTA_Y = 7, 6, 4.5, 32, 125, ALTO
 
 
 def corona_u():
@@ -72,7 +72,7 @@ def corona_u():
 
 def punta_u():
     """El borde de abajo en unidades, del final del lado izquierdo a la punta (mitad izquierda)."""
-    a, c, b = (0, LADO_FIN), (0, LADO_FIN + 7.5), (8, LADO_FIN + 10.5)
+    a, c, b = (0, LADO_FIN), (0, LADO_FIN + 6.5), (8, LADO_FIN + 9.5)
     pts = []
     for i in range(0, 7):                       # la esquina redondeada
         t = i / 6
@@ -128,6 +128,16 @@ def cinta():
     return poly([u(x, y) for x, y in fuera + der + izq])
 
 
+def marco():
+    """El filo de dentro de la carta, como el marco fino de esas cartas: la misma silueta y, 1 px más adentro, otra igual
+    encogida (cada punto se acerca 1 px al centro en cada eje), en un solo polygon() con evenodd: queda solo el aro."""
+    top = corona_u(); abajo = punta_u()
+    pts = top + [(100 - x, y) for x, y in reversed(top[:-1])] + [(100 - x, y) for x, y in abajo[:-1]] + list(reversed(abajo))
+    fuera = [u(x, y) for x, y in pts]
+    dentro = [P(q.xp, 1 - q.xp / 50, q.yp, 1 - q.yp / 50) for q in fuera]
+    return poly(fuera + [fuera[0]] + dentro + [dentro[0]]).replace('polygon(', 'polygon(evenodd, ', 1)
+
+
 # ---------- las cartas de Torneos, en píxeles desde los bordes ----------
 S_R, S_HOMBRO, S_HOMBRO_C, S_PICO, S_LADO, S_ESQ_X, S_ESQ_Y = 14, 12, 11, 84, 30, 12, 21.5
 
@@ -151,4 +161,5 @@ def sport():
 if __name__ == '__main__':
     print(f'.gx-card --fifa: {gx_card()};')
     print(f'.gx-card --corona: {cinta()};')
+    print(f'.gx-card --marco: {marco()};')
     print(f'.sport --fifa: {sport()};')

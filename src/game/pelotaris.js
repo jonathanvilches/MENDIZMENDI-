@@ -42,7 +42,7 @@ const CSS = `
 .pc-it{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
 .pc-it button.gx-card{border:0;padding:0;background:none;cursor:pointer;font:inherit}.pc-it .gx-card.lock{cursor:default}
 .pc-it em{font:800 var(--fs-xs)/1.3 var(--f-cond);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--rosa)}.pc-it em.l{color:var(--lila2)}
-.pc-lock{position:absolute;z-index:2;left:calc(9% + var(--w) * .045);top:calc(var(--w) * .47);width:max(20px,calc(var(--w) * .17));height:max(20px,calc(var(--w) * .17));filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}   /* (bajo el «?», donde las descubiertas llevan su arquetipo: en la esquina de arriba pisaba el pelo de la figura) */
+.pc-lock{display:block;flex:none;width:max(20px,calc(var(--w) * .15));height:max(20px,calc(var(--w) * .15));filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}   /* (bajo el «?», donde las descubiertas llevan su arquetipo: en la esquina de arriba pisaba el pelo de la figura) */
 .pc-note{margin:0;font-size:var(--fs-xs);line-height:1.3;color:var(--lila2)}
 @media (orientation:landscape) and (max-height:500px){.pc-note{display:none}.pc-head h2{font-size:var(--fs-xl)}}
 /* ordenador: las cartas más grandes y todas las de la comarca a la vista, en filas, sin desplazar de lado */
@@ -63,7 +63,7 @@ export function pelotarisPanel(start = null) {
     // la rejilla, el rótulo de debajo de cada carta y la barra de Cerrar, que va pegada abajo y taparía la punta)
     const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? Math.max(88, Math.min(112, Math.floor((innerHeight - 242) / CARTA_ALTO))) : innerWidth >= 1200 && innerHeight >= 560 ? Math.max(120, Math.min(220, Math.floor((innerHeight - 420) / CARTA_ALTO))) : 128, tw = short(l.name);
       return p ? `<div class="pc-it">${pelotariCard({ name: p.name, town: tw, stats: p.stats, side: 'rojo', w, tag: 'button', attr: `data-t="${l.id}"`, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' })}<em>${p.won} G · ${p.lost} P</em></div>`
-        : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', fig: pelotariDe(l), town: tw, side: 'rojo', w, lock: true, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' }).replace('<span class="gx-ovr">', LOCK + '<span class="gx-ovr">')}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
+        : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', fig: pelotariDe(l), town: tw, side: 'rojo', w, lock: true, icono: LOCK, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' })}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
     const grid = () => groups[cur].towns.map((l, i) => card(l, i)).join('');
     const tabs = () => groups.map((g, i) => `<button role="tab" data-g="${i}" aria-selected="${i === cur}">${esc(g.c.name)}<i>${g.towns.filter(l => C[l.id]).length}/${g.towns.length}</i></button>`).join('');
     const r = lgPanel(`<div class="pc-head"><div><small>${eu ? 'Bilduma' : 'Colección'}</small><h2>${eu ? 'Nafarroako pilotariak' : 'Pelotaris de Navarra'}</h2></div><span class="pc-count">${have}/${total}<small>${eu ? 'AURKITUAK' : 'DESCUBIERTOS'}</small></span></div>
