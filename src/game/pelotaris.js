@@ -9,7 +9,7 @@ import { profile, saveProfile } from './profile.js';
 import { openFicha } from '../pelota/ficha.js';
 import { isEU } from '../i18n.js';
 import { lgPanel, lgEsc as esc } from '../futbol/liga.js';
-import { pelotariCard } from '../ui/sportCard.js';
+import { pelotariCard, CARTA_ALTO } from '../ui/sportCard.js';
 import { townPelotari } from '../ui/pelotariFig.js';
 
 // los pueblos con partido de pelota (el valle de Salazar va con su peloteo, sin rival)
@@ -59,7 +59,9 @@ export function pelotarisPanel(start = null) {
   const { have, total } = pelotarisCount();
   return new Promise(res => {
     // (en el móvil tumbado, la carta con la altura que queda: en los más bajos, algo menor, para que «Cerrar» se vea sin desplazar)
-    const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? Math.max(96, Math.min(112, Math.floor((innerHeight - 221) / 1.38))) : innerWidth >= 1200 && innerHeight >= 560 ? Math.max(120, Math.min(220, Math.floor((innerHeight - 420) / 1.38))) : 128, tw = short(l.name);
+    // (en el móvil tumbado, la carta del alto que deja libre la pantalla: 242 px son la cabecera, las pestañas, el hueco de
+    // la rejilla, el rótulo de debajo de cada carta y la barra de Cerrar, que va pegada abajo y taparía la punta)
+    const card = (l, i) => { const p = C[l.id], w = innerHeight < 500 && innerWidth > innerHeight ? Math.max(88, Math.min(112, Math.floor((innerHeight - 242) / CARTA_ALTO))) : innerWidth >= 1200 && innerHeight >= 560 ? Math.max(120, Math.min(220, Math.floor((innerHeight - 420) / CARTA_ALTO))) : 128, tw = short(l.name);
       return p ? `<div class="pc-it">${pelotariCard({ name: p.name, town: tw, stats: p.stats, side: 'rojo', w, tag: 'button', attr: `data-t="${l.id}"`, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' })}<em>${p.won} G · ${p.lost} P</em></div>`
         : `<div class="pc-it" aria-label="${esc(eu ? 'Ezezaguna' : 'Por descubrir')}">${pelotariCard({ name: '?', fig: pelotariDe(l), town: tw, side: 'rojo', w, lock: true, pop: true, d: i * 0.05, lang: eu ? 'eu' : 'es' }).replace('<span class="gx-ovr">', LOCK + '<span class="gx-ovr">')}<em class="l">${eu ? 'Jokatu bere frontoian' : 'Juega en su frontón'}</em></div>`; };
     const grid = () => groups[cur].towns.map((l, i) => card(l, i)).join('');

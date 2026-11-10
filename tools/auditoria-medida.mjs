@@ -127,8 +127,9 @@ export const auditar = async (sel) => {
     for (const m of (s.backgroundImage.match(/rgba?\([^)]+\)/g) || [])) cs.push(['degradado', m]);
     for (const [k, c] of cs) if (c && green(c)) { const key = name(e) + k; if (seen.has(key)) continue; seen.add(key); R.verde.push(`${name(e)} ${k} ${c}${hasText(e) ? ` «${txt(e)}»` : ''}`); }
   }
-  // 4. esquinas en ángulo: la identidad ya no las lleva (las cintas de premio y las dos mitades del VS son formas, no cajas)
-  for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i')) continue;
+  // 4. esquinas en ángulo: la identidad ya no las lleva (las cintas de premio, las dos mitades del VS y la silueta de escudo
+  // de las cartas de pelotari, con su cinta del equipo, son formas, no cajas)
+  for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i, .gx-card .gx-face, .gx-card .gx-eq')) continue;
     R.esquina.push(`${name(e)} con las esquinas cortadas en ángulo` + (window.__auditDetail ? ` [${s.clipPath}]` : '')); }
   // 4b. el filo de neón, solo donde hace falta: lo llevan las superficies que flotan sobre el juego (paneles, ventanas,
   // cajas del HUD) y las cartas que se eligen; lo de dentro de una superficie enmarcada, no. Falta: caja con borde (en tres

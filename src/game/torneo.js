@@ -15,7 +15,7 @@ import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier, tantosDe } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
 import { tusCualidades, tuPelotari } from './pelotariProgreso.js';
-import { pelotariCard } from '../ui/sportCard.js';
+import { pelotariCard, CARTA_ALTO } from '../ui/sportCard.js';
 // los pelotaris del autor (src/ui/pelotariFig.js): sus nombres y sus figuras, también en las portadas del menú de pelota
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
@@ -599,7 +599,7 @@ export function torneoPanel(T, here = null, o = null) {
       let W, H;
       if (caja.classList.contains('tq-duel')) { W = (caja.clientWidth - px('paddingLeft') - px('paddingRight') - (caja.querySelector('.tq-mid')?.offsetWidth || 0) - px('columnGap') * 2) / 2; H = caja.clientHeight - px('paddingTop') - px('paddingBottom') - 12; }
       else { W = caja.clientWidth - px('paddingLeft') - px('paddingRight') - px('columnGap') - 150; H = caja.clientHeight - px('paddingTop') - px('paddingBottom') - 12; }   // (el campeón: junto a su texto, que se queda 150 px)
-      const w = Math.floor(Math.max(64, Math.min(W, tumbado ? H / 1.38 : Infinity, grande ? 220 : caja.classList.contains('tq-duel') ? 160 : 132))) + 'px';
+      const w = Math.floor(Math.max(64, Math.min(W, tumbado ? H / CARTA_ALTO : Infinity, grande ? 220 : caja.classList.contains('tq-duel') ? 160 : 132))) + 'px';
       for (const c of cs) if (c.style.getPropertyValue('--w') !== w) c.style.setProperty('--w', w, 'important');
     };
     cartas();

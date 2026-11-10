@@ -49,26 +49,34 @@
 #hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px) 0 0 !important; }
 #hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) !important; }
 #hub .lam-rail .lam span { left: 1px !important; right: 1px !important; bottom: 1px !important; border-radius: 0 0 calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px); }
-/* (las de Torneos, con la luz de su deporte y la misma silueta que las cartas de pelotari, en píxeles: las esquinas de
-   arriba cortadas, las de abajo algo menos y la punta pequeña en medio; el filo de 1 px, con su destello, sigue la
-   forma, y la luz de alrededor también. Así las cartas de todo lo de deportes van a juego) */
-.sport { --neon-c: var(--acc, var(--neon-1)); --fifa: polygon(0 18px, 18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 16px), calc(100% - 12px) calc(100% - 5px), calc(50% + 14px) calc(100% - 5px), 50% 100%, calc(50% - 14px) calc(100% - 5px), 12px calc(100% - 5px), 0 calc(100% - 16px));
+/* (las de Torneos, con la luz de su deporte y la misma silueta de escudo que las cartas de pelotari, en píxeles desde los
+   bordes y el centro, que estas cambian de ancho y de alto: la corona arriba y la punta abajo; el filo de 1 px, con su
+   destello, sigue la forma, y la luz de alrededor también. Así las cartas de todo lo de deportes van a juego. Los
+   polígonos los saca tools/silueta-carta.py) */
+.sport { --neon-c: var(--acc, var(--neon-1)); --fifa: polygon(0 26px, 2.73px 25.73px, 5.36px 24.93px, 7.78px 23.64px, 9.9px 21.9px, 11.64px 19.78px, 12.93px 17.36px, 13.73px 14.73px, 14px 12px, calc(50% - 84px) 11px, calc(50% - 74.86px) 10.92px, calc(50% - 66.11px) 10.69px, calc(50% - 57.75px) 10.31px, calc(50% - 49.78px) 9.78px, calc(50% - 42.19px) 9.09px, calc(50% - 35px) 8.25px, calc(50% - 28.19px) 7.26px, calc(50% - 21.78px) 6.11px, calc(50% - 15.75px) 4.81px, calc(50% - 10.11px) 3.36px, calc(50% - 4.86px) 1.76px, 50% 0, calc(50% + 4.86px) 1.76px, calc(50% + 10.11px) 3.36px, calc(50% + 15.75px) 4.81px, calc(50% + 21.78px) 6.11px, calc(50% + 28.19px) 7.26px, calc(50% + 35px) 8.25px, calc(50% + 42.19px) 9.09px, calc(50% + 49.78px) 9.78px, calc(50% + 57.75px) 10.31px, calc(50% + 66.11px) 10.69px, calc(50% + 74.86px) 10.92px, calc(50% + 84px) 11px, calc(100% - 14px) 12px, calc(100% - 13.73px) 14.73px, calc(100% - 12.93px) 17.36px, calc(100% - 11.64px) 19.78px, calc(100% - 9.9px) 21.9px, calc(100% - 7.78px) 23.64px, calc(100% - 5.36px) 24.93px, calc(100% - 2.73px) 25.73px, 100% 26px, 100% calc(100% - 30px), calc(100% - 0.33px) calc(100% - 27.82px), calc(100% - 1.33px) calc(100% - 25.94px), calc(100% - 3px) calc(100% - 24.38px), calc(100% - 5.33px) calc(100% - 23.11px), calc(100% - 8.33px) calc(100% - 22.15px), calc(100% - 12px) calc(100% - 21.5px), 50% 100%, 12px calc(100% - 21.5px), 8.33px calc(100% - 22.15px), 5.33px calc(100% - 23.11px), 3px calc(100% - 24.38px), 1.33px calc(100% - 25.94px), 0.33px calc(100% - 27.82px), 0 calc(100% - 30px));
   background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible; isolation: isolate;
   filter: drop-shadow(0 0 7px color-mix(in srgb, var(--neon-c) 60%, transparent)) drop-shadow(0 18px 30px rgba(4, 1, 12, .4)); transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), filter .3s; }
 .sport::before { inset: 1px !important; border-radius: 0 !important; clip-path: var(--fifa) !important; }
+/* (más hueco arriba y abajo que a los lados: la corona baja 12 px en los hombros y la punta sube 30 en las esquinas; con él,
+   la lámina y la barra de jugar no tocan el filo en ningún tamaño) */
+.sport { padding-top: 24px; padding-bottom: 28px; }
+@media (orientation: landscape) and (max-height: 560px) { .sport { padding-top: 22px; padding-bottom: 24px; } }
 .sport::after { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; clip-path: var(--fifa);
   background: conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 50%, transparent) 0 58%, color-mix(in srgb, var(--neon-c) 85%, transparent) 72%, #fff 80%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, color-mix(in srgb, var(--neon-c) 50%, transparent) 96%);
   animation: neon-aro 5.2s linear infinite; }
 .sport + .sport::after { animation-delay: -2.6s; }
 .sport:is(:hover, :focus-visible) { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--neon-c) 85%, transparent)) drop-shadow(0 26px 40px rgba(4, 1, 12, .45)); }
 .sport:is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
-/* (la carta de pelotari, con la silueta de las cartas de los juegos de fútbol: las esquinas de arriba cortadas en ángulo,
-   las de abajo algo menos y una punta pequeña en medio, como un escudo; el filo de neón de 1 px sigue esa forma, con su
-   destello dando la vuelta (un degradado cónico que gira, recortado con la silueta), y la luz de su bando alrededor (una
-   sombra que sigue la forma, no la caja). El marco de colores va 1 px por dentro y la cara, 2: la misma silueta en su
-   caja, un poco más pequeña. Antes, al pasar a la identidad de neón, se quedó en un rectángulo redondeado: «no quiero
-   que sea simplemente cuadrada», noviembre de 2026) */
-.gx-card { --neon-c: var(--ac); --fifa: polygon(0 7%, 9% 0, 91% 0, 100% 7%, 100% 91%, 92% 96.5%, 56% 96.5%, 50% 100%, 44% 96.5%, 8% 96.5%, 0 91%);
+/* (la carta de pelotari, con la silueta de escudo de las cartas de los juegos de fútbol: arriba la corona, con las
+   esquinas cóncavas, los hombros y un pico en medio; los lados rectos y abajo la punta. El filo de neón de 1 px sigue esa
+   forma, con su destello dando la vuelta (un degradado cónico que gira, recortado con la silueta), y la luz de su bando
+   alrededor (una sombra que sigue la forma, no la caja). El marco de colores va 1 px por dentro y la cara, 2: la misma
+   silueta en su caja, un poco más pequeña. Los polígonos, en tanto por ciento de una carta de 100 x 148, los saca
+   tools/silueta-carta.py. Antes, al pasar a la identidad de neón, se quedó en un rectángulo redondeado: «no quiero que
+   sea simplemente cuadrada»; luego, con las esquinas cortadas en ángulo, y el autor mandó cartas de referencia con la
+   corona y la punta, noviembre de 2026) */
+.gx-card { --neon-c: var(--ac); --fifa: polygon(0 9.46%, 1.56% 9.36%, 3.06% 9.05%, 4.44% 8.55%, 5.66% 7.88%, 6.65% 7.06%, 7.39% 6.12%, 7.85% 5.11%, 8% 4.05%, 32% 3.72%, 34.34% 3.68%, 36.56% 3.57%, 38.66% 3.38%, 40.64% 3.12%, 42.5% 2.79%, 44.24% 2.38%, 45.86% 1.9%, 47.36% 1.34%, 48.74% 0.71%, 50% 0, 51.26% 0.71%, 52.64% 1.34%, 54.14% 1.9%, 55.76% 2.38%, 57.5% 2.79%, 59.36% 3.12%, 61.34% 3.38%, 63.44% 3.57%, 65.66% 3.68%, 68% 3.72%, 92% 4.05%, 92.15% 5.11%, 92.61% 6.12%, 93.35% 7.06%, 94.34% 7.88%, 95.56% 8.55%, 96.94% 9.05%, 98.44% 9.36%, 100% 9.46%, 100% 81.76%, 99.78% 83.36%, 99.11% 84.8%, 98% 86.06%, 96.44% 87.16%, 94.44% 88.09%, 92% 88.85%, 50% 100%, 8% 88.85%, 5.56% 88.09%, 3.56% 87.16%, 2% 86.06%, 0.89% 84.8%, 0.22% 83.36%, 0 81.76%);
+  --corona: polygon(0 9.46%, 1.56% 9.36%, 3.06% 9.05%, 4.44% 8.55%, 5.66% 7.88%, 6.65% 7.06%, 7.39% 6.12%, 7.85% 5.11%, 8% 4.05%, 32% 3.72%, 34.34% 3.68%, 36.56% 3.57%, 38.66% 3.38%, 40.64% 3.12%, 42.5% 2.79%, 44.24% 2.38%, 45.86% 1.9%, 47.36% 1.34%, 48.74% 0.71%, 50% 0, 51.26% 0.71%, 52.64% 1.34%, 54.14% 1.9%, 55.76% 2.38%, 57.5% 2.79%, 59.36% 3.12%, 61.34% 3.38%, 63.44% 3.57%, 65.66% 3.68%, 68% 3.72%, 92% 4.05%, 92.15% 5.11%, 92.61% 6.12%, 93.35% 7.06%, 94.34% 7.88%, 95.56% 8.55%, 96.94% 9.05%, 98.44% 9.36%, 100% 9.46%, 100% 11.89%, 98.18% 11.79%, 96.4% 11.51%, 94.72% 11.03%, 93.16% 10.39%, 91.78% 9.58%, 90.59% 8.64%, 89.64% 7.59%, 88.95% 6.44%, 68% 6.15%, 65.49% 6.11%, 63.08% 5.99%, 60.77% 5.78%, 58.56% 5.49%, 56.45% 5.11%, 54.44% 4.64%, 52.55% 4.08%, 50.76% 3.41%, 50% 3.06%, 49.24% 3.41%, 47.45% 4.08%, 45.56% 4.64%, 43.55% 5.11%, 41.44% 5.49%, 39.23% 5.78%, 36.92% 5.99%, 34.51% 6.11%, 32% 6.15%, 11.05% 6.44%, 10.36% 7.59%, 9.41% 8.64%, 8.22% 9.58%, 6.84% 10.39%, 5.28% 11.03%, 3.6% 11.51%, 1.82% 11.79%, 0 11.89%);
   overflow: visible; clip-path: none; border-radius: 0;
   filter: drop-shadow(0 0 6px color-mix(in srgb, var(--neon-c) 70%, transparent)) drop-shadow(0 10px 16px rgba(0, 0, 0, .45)); transition: filter .2s, transform .2s; }
 .gx-card::after { content: ''; position: absolute; inset: 0; z-index: -3; pointer-events: none; clip-path: var(--fifa);
@@ -77,6 +85,8 @@
 .gx-card:nth-child(3n+2)::after { animation-delay: -1.8s; } .gx-card:nth-child(3n)::after { animation-delay: -3.5s; }
 .gx-card::before { inset: 1px !important; clip-path: var(--fifa) !important; border-radius: 0 !important; }
 .gx-card .gx-face { inset: 2px !important; clip-path: var(--fifa) !important; border-radius: 0 !important; }
+/* (la cinta del color del equipo, azul o colorada, siguiendo la corona de lado a lado; la sin descubrir no lleva) */
+.gx-card .gx-eq { position: absolute; inset: 2px; z-index: -1; pointer-events: none; background: var(--eq, transparent); clip-path: var(--corona); }
 .gx-card:is(:hover, :focus-visible) { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--neon-c) 95%, transparent)) drop-shadow(0 12px 20px rgba(0, 0, 0, .5)); }
 .gx-card:is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
 /* (la sin descubrir: el filo apagado, quieto y casi sin luz) */
