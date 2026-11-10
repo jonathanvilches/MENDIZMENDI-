@@ -481,6 +481,7 @@ export class PelotaHud {
         <div class="pm-bolas" hidden><span class="pm-t pb-pista"></span><div class="pb-lista"></div></div>
         <button type="button" class="pb-desc pm-op" hidden><span></span><b></b></button>
         <button type="button" class="pm-vista pm-op" hidden aria-pressed="false">${txt.vistaFP || 'Primera persona'}${touch ? '' : '<small>V</small>'}</button>
+        <button type="button" class="pm-plano pm-op"><span></span>${touch ? '' : '<small>C</small>'}</button>
         <button type="button" class="pm-fichas pm-op" hidden>${txt.fichas || 'Fichas'}</button>
         <button type="button" class="pm-salir pm-op">${X_ICON}<span>${txt.salirPartido || txt.exit}</span></button>
       </div></div></div>
@@ -519,6 +520,7 @@ export class PelotaHud {
       if (b.classList.contains('pb-desc')) { abre(false); this.onDescanso?.(); return; }
       if (b.classList.contains('pm-fichas')) { abre(false); this.onFichas?.(); return; }
       if (b.classList.contains('pm-vista')) { abre(false); this.onVista?.(); return; }
+      if (b.classList.contains('pm-plano')) { this.onPlano?.(); return; }   // (la cámara: cambia sin cerrar el menú, se ve detrás)
       if (b.classList.contains('pm-salir')) { abre(false); this.onSalir?.(); return; }
       if (b.dataset.bola != null) { this.onBola?.(+b.dataset.bola); abre(false); }
     });
@@ -528,6 +530,8 @@ export class PelotaHud {
   }
   /** La vista en primera persona, en el menú (solo en la pelota en casa): on, si sale; fp, si está puesta */
   vista(on, fp) { const b = this.menuEl.querySelector('.pm-vista'); if (!b) return; b.hidden = !on; b.setAttribute('aria-pressed', String(!!fp)); }
+  /** La cámara elegida, en el menú: «Cámara: General», «Cámara: Detrás de ti»… */
+  plano(txt) { const s = this.menuEl?.querySelector('.pm-plano span'); if (s) s.textContent = txt; }
   /** Las fichas de los pelotaris, en el menú (no en el peloteo de entrenar) */
   fichas(on) { const b = this.menuEl.querySelector('.pm-fichas'); if (b) b.hidden = !on; }
   // la energía de cada lado, en el marcador, bajo su nombre: una sola barra. Filas { id, name, en (0 a 1), side ('you'|

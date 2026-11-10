@@ -320,10 +320,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
   alta, para que el pelotari no tape media pantalla. Las otras cuatro, los planos de siempre.
-- **Cámara fija clásica** (`pelota/match.js`, `camFija`, en Más opciones; `herrizherri-pelota-camfija`): alta, por
-  detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
-  (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
-  del rebote.
+- **Las cámaras del partido** (`pelota/match.js`, `PLANOS`, `ponPlano`, `plano`; `herrizherri-pelota-plano`): tres a
+  elegir en Más opciones (un grupo de tres, «Cámara», junto a los interruptores), en el menú del partido («Cámara:
+  General», que cambia a la siguiente sin cerrar el menú; `pelota/hud.js`, `pm-plano`) o con la tecla C. La general,
+  alta y por detrás como en la tele; la fija clásica (`camFija`), alta, centrada y quieta; y detrás de ti, a la altura
+  del hombro de tu pelotari y algo a su derecha para que no tape el frontis, mirando al frontis y un poco hacia la
+  pelota, que retrocede y sube un poco si la pelota se va al fondo. Los planos de después del tanto y el del saque del
+  rival siguen con la cámara dinámica. Antes la fija era un interruptor aparte (`herrizherri-pelota-camfija` se sigue
+  leyendo la primera vez).
 - **Cartas al estilo de los juegos de fútbol, en morados** (`ui/sportCard.js`, `ui/sport.css`; `pelota/rules.js`,
   `cartaTier` y `pelotariRating`): el color de la carta va por la media, como allí, pero en la gama de morados: bronce
   (lila apagado, hasta 64), plata (lila claro, 65-74), oro (violeta con las cifras en el oro del juego, 75-84) y especial
