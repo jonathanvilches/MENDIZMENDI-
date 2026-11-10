@@ -331,7 +331,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de los triángulos entre la cadera y el cuello pasa a azul en una copia de la textura, sin tocar labios ni botas. El
   pelo de las chicas va en un segundo grupo de la misma malla, con su color en los vértices. Sentados, en cada tanto
   se levantan casi todos los de la camiseta del que lo gana y alguno del otro, cada uno con su retraso, y se vuelven a
-  sentar; al salir los pelotaris, muchos de los dos. Sin pañuelos: iban a la altura del sentado. Antes eran vecinos de
+  sentar; al salir los pelotaris, muchos de los dos. Sin pañuelos: iban a la altura del sentado. Gradas llenas en
+  todos los partidos (`game/fronton.js`): la del pueblo siempre; el cubierto, 300 en el móvil y lleno en los demás; el
+  Labrit, 400, 900 o lleno; la calle, 250, 400 o llena; 160 en el móvil más justo. Con 300 en el cubierto del móvil, el
+  partido ronda los 510.000 triángulos (el tope es 760.000). Los 14 más cercanos, con la cara entera (4 en el más justo). Antes eran vecinos de
   fiesta, de pastor y de calle que celebraban sin levantarse.
 - **Cambios de ritmo al correr** (`pelota/game.js`, `movePlayers`, `ritmo` y `sprint` de cada pelotari; `driveAI`):
   colocándose, al trote; si la pelota es tuya y a tu paso no llegas, esprint automático, con arrancada: hacia delante a

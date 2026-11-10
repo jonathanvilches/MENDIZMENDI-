@@ -472,8 +472,12 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // en el móvil, 280 en calidad media y llenos en alta. Con el móvil más justo, 70. Solo los más cercanos a la cámara
     // llevan la figura entera; los demás, la de lejos, que cuesta poco: crowd3d. Antes eran 40 en el móvil, y 30 en el
     // más justo, y la grada se veía casi vacía)
-    try { const C = fronton.court, all = C?.standSpots || [], full = C?.hall ? (QUALITY === 'low' ? 1.3 : 1.6) : 1, lleno = QUALITY === 'low' ? 150 : QUALITY === 'mid' ? 280 : all.length;
-      const cap0 = C?.labrit || C?.estilo === 'calle' ? Math.min(all.length, lleno) : Math.round((QUALITY === 'low' ? 100 : QUALITY === 'mid' ? 150 : 220) * full), cap = muyLigero ? Math.min(cap0, 70) : cap0;
+    // (mucha gente en todos los partidos, como pide el autor: la grada del pueblo, llena siempre; el cubierto, 300 en el
+    // móvil y lleno en los demás; el Labrit, 400 en el móvil, 900 en la media y lleno en la alta; la calle, 250, 400 o
+    // llena. Antes eran 100 a 220 en el pueblo y el cubierto, y 150 en el Labrit del móvil: se veía medio vacía. Los de
+    // lejos cuestan poco: unos 1.000 triángulos la figura de media distancia y 800 la del fondo, crowd3d.js)
+    try { const C = fronton.court, all = C?.standSpots || [], Q = QUALITY;
+      const cap0 = Math.min(all.length, C?.labrit ? (Q === 'low' ? 400 : Q === 'mid' ? 900 : all.length) : C?.hall ? (Q === 'low' ? 300 : all.length) : C?.estilo === 'calle' ? (Q === 'low' ? 250 : Q === 'mid' ? 400 : all.length) : all.length), cap = muyLigero ? Math.min(cap0, 160) : cap0;
       // (juntos, como en un partido de verdad: primero las filas de abajo y el centro de la cancha, donde se ve el juego, con
       // algún hueco; repartidos al azar por toda la grada, la misma gente parecía una grada vacía)
       let z0 = Infinity, z1 = -Infinity, y0 = Infinity; for (const q of all) { z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); y0 = Math.min(y0, q[1]); }
