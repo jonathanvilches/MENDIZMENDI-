@@ -1,0 +1,1 @@
+var e=new URL(`gancho-2-CGnXa0zn.mp3`,import.meta.url).href;export{e as default};

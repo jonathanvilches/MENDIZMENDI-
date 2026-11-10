@@ -1,0 +1,1 @@
+var e=new URL(`volea-3-BDCkJeQQ.mp3`,import.meta.url).href;export{e as default};

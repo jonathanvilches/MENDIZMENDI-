@@ -1,0 +1,1 @@
+var e=new URL(`largo-1-Cyma25Oh.mp3`,import.meta.url).href;export{e as default};

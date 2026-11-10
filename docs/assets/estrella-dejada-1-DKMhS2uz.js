@@ -1,0 +1,1 @@
+var e=new URL(`estrella-dejada-1-Dk7T6NBy.mp3`,import.meta.url).href;export{e as default};
