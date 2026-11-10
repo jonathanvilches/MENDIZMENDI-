@@ -1,19 +1,25 @@
-/* ================= Neón: los rótulos y las tarjetas (noviembre de 2026) =================
-   Todos los cajetines de rotulación y todas las tarjetas, con el mismo borde: esquinas redondeadas de 8 px, un filo de
-   luz morada que brilla hacia fuera y un destello que recorre el borde sin parar, como los marcadores y las cartas de los
-   juegos de deporte. Antes, las esquinas iban cortadas en ángulo, y el recorte no dejaba que la luz saliera del borde.
-   Dos maneras, según la pieza:
+/* ================= La identidad: esquinas redondeadas y filo de neón (noviembre de 2026) =================
+   Una sola regla para todo el juego: toda tarjeta, card, bloque, panel, ventana y rótulo lleva las esquinas
+   redondeadas (6 px los rótulos pequeños, 8 las tarjetas y 10 los paneles y las ventanas) y un filo de neón de 1,5 px
+   que brilla hacia fuera. Fuera las esquinas cortadas en ángulo y sus marcos (ui/frames.js, que ya no existe): eran la
+   identidad de antes. Los botones siguen en pastilla y las marcas en círculo; las cintas de premio y las dos mitades
+   del VS son formas, no cajas, y siguen como eran.
+   Tres maneras, según la pieza:
+   · el filo quieto, para casi todo: un contorno (outline) de 1,5 px por dentro del borde, que no mueve nada de sitio,
+     va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera; y el brillo, una sombra suave;
    · las tarjetas que ya llevan su relleno en ::before (la carta del menú, las de Torneos y las de pelotari): el destello
      es un cuadrado con un degradado cónico que gira detrás del relleno (::after) y solo asoma en el filo. Girar no obliga
      a volver a pintar: lo mueve la tarjeta gráfica, y así aguantan muchas a la vez en el móvil;
-   · los rótulos del partido (el del tanto, el del comentarista y el de la repetición): un aro de 1,5 px encima, con
-     máscara, cuyo degradado da la vuelta (son pocos a la vez).
-   Cada una con su color: el de su sección, el de su bando o el de quien habla. Lo bloqueado, sin destello y con el filo
-   apagado. Con «menos movimiento» en el sistema, quieto. Va después de identidad.css (hub.js) y manda sobre ella. */
+   · los rótulos del partido (el del tanto, el del comentarista y el de la repetición) y las losas del menú de pelota:
+     un aro con máscara o el propio borde, cuyo degradado da la vuelta (son pocos a la vez).
+   Cada una con su color: el de su sección (--cat), el de su bando o el de quien habla; si no, el lila. Lo elegido, en
+   rosa; lo bloqueado, con el filo apagado y sin destello. Con «menos movimiento» en el sistema, quieto. La carga
+   hub/hub.js (después de identidad.css; hub.js va siempre, desde main.js) y manda sobre las hojas de cada pantalla,
+   también sobre las que se ponen desde el código (torneo.js, liga.js, pelota/hud.js, vs.js...): por eso los !important. */
 @property --neon-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 @keyframes neon-aro { to { --neon-a: 360deg; } }
 @keyframes neon-gira { from { transform: translate(-50%, -50%) rotate(0turn); } to { transform: translate(-50%, -50%) rotate(1turn); } }
-:root { --neon-1: #b79cff; --neon-2: #ff7ac8; --neon-r: 8px; }
+:root { --neon-1: #b79cff; --neon-2: #ff7ac8; --neon-sel: #ff7ac8; --neon-r: 8px; --neon-rs: 6px; --neon-rp: 10px; --neon-w: 1.5px; }
 
 /* ---------- las tarjetas: el destello que gira detrás del relleno ---------- */
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam), .sport, .gx-card {
@@ -66,10 +72,7 @@
 :root .pel-root.final .pel-call::after { animation-duration: 1.6s; }
 /* (el del comentarista, con el color de quien habla en vez de la raya de la izquierda) */
 :root .pel-com { --neon-c: var(--cc, #ff2bd6); border-left: 0 !important; }
-/* (los paneles y la carta del final, que se desplazan por dentro: el filo de neón quieto, sin el aro que se movería con
-   lo de dentro) */
-:root .pel-card { clip-path: none !important; border-radius: 10px !important; border-color: color-mix(in srgb, var(--neon-1) 55%, transparent) !important;
-  box-shadow: 0 0 0 1px rgba(183, 156, 255, .35), 0 0 30px -6px rgba(183, 156, 255, .7), 0 24px 70px rgba(0, 0, 0, .55) !important; }
+/* (la carta del final: el filo quieto, abajo, con los paneles; su raya de arriba, dentro de las esquinas) */
 :root .pel-card::before { left: 10px; right: 10px; }
 
 /* ---------- las losas del menú de pelota: el filo es el borde, con el destello dando la vuelta ----------
@@ -89,12 +92,37 @@
 :root .tq-tiles > .tq-tile:is(:hover, :focus-visible) { animation-duration: .5s, 2.2s; }
 :root .tq-tile:is(:hover, :focus-visible) { box-shadow: 0 0 28px -4px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 10px 24px rgba(0, 0, 0, .3); }
 
-/* ---------- los paneles y las ventanas: redondos y con el filo de neón quieto (son grandes: sin destello) ---------- */
-:root :is(.screen .paper, .frs-in, .lg-card, .tq-how) { clip-path: none !important; border-radius: 10px !important; border: 1px solid rgba(183, 156, 255, .45) !important;
-  box-shadow: 0 0 0 1px rgba(183, 156, 255, .12), 0 0 34px -8px rgba(183, 156, 255, .6), 0 24px 70px rgba(0, 0, 0, .5) !important; }
-/* (y las cajas pequeñas de dentro: los partidos del cuadro, los bloques de la liga, la etiqueta del mapa y su leyenda) */
-:root :is(.tq-m, .lg-pn, .lg-next) { clip-path: none !important; border-radius: var(--neon-r) !important; border: 1px solid rgba(183, 156, 255, .38) !important; box-shadow: 0 0 14px -6px rgba(183, 156, 255, .6) !important; }
-:root :is(.mapscr .paper > header h2, .mapscr .legend) { clip-path: none !important; border-radius: 6px !important; box-shadow: 0 0 0 1px rgba(183, 156, 255, .4), 0 0 14px -5px rgba(183, 156, 255, .7) !important; }
+/* ---------- el filo quieto: todas las demás cajas del juego ----------
+   Tres listas: las tarjetas y los bloques (8 px), los paneles y las ventanas (10 px) y los rótulos pequeños (6 px). Una caja
+   nueva entra en la lista que le toca. (El contorno va 1,5 px por dentro: tapa el borde fino de antes, no cambia el tamaño
+   de nada y no lo recorta la caja de fuera aunque esté dentro de una lista que se desliza) */
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-chip, .m3-col, .hub-menu-btn, .sp-bar, .gt-marco, .mc-c, .pst, .cult, .cm-ng, .cm-uno, .fh-ms li, .fh-vis li, .lg-pn, .lg-next, .eq-tile, .eq-team, #mapbox .mapcard, .pel-toss-p, #tl, .pbody, .qitem, .card .f, .card .b, #mapbox, .con-mq .mq, .gitem, .shop-star, .menu label, .pfx-pl, .pel-court, .shop-item, .mq-i, .sg, .lg-how, .fooditem, .fb-ck, .pel-rv, .pfx-shots li, .mlist li, .mrow .mi, .hsteps li, .chapter, .pel-card .pel-ctrl, .pel-card .pel-fact),
+:root :is(.panel, .pk-hero, .chero, .sheet-in, .csel2, .lg-card, .tq-how, .screen .paper, .frs-in, .shop-room, .mg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, #dialog),
+:root :is(.ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea) {
+  --neon-c: var(--cat, var(--neon-1)); clip-path: none !important; border-image: none !important; border-radius: var(--neon-r) !important;
+  outline: var(--neon-w) solid color-mix(in srgb, var(--neon-c) 78%, #fff) !important; outline-offset: calc(-1 * var(--neon-w)) !important;
+  box-shadow: 0 0 14px -4px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 8px 20px rgba(0, 0, 0, .24) !important; }
+/* (los paneles y las ventanas, más redondos y con más brillo; los rótulos pequeños, con filo de 1 px y menos brillo) */
+:root :is(.panel, .pk-hero, .chero, .sheet-in, .csel2, .lg-card, .tq-how, .screen .paper, .frs-in, .shop-room, .mg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, #dialog) { border-radius: var(--neon-rp) !important; box-shadow: 0 0 30px -8px color-mix(in srgb, var(--neon-c) 75%, transparent), 0 24px 60px rgba(0, 0, 0, .45) !important; }
+:root :is(.ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea) { border-radius: var(--neon-rs) !important; outline-width: 1px !important; outline-offset: -1px !important; box-shadow: 0 0 10px -4px color-mix(in srgb, var(--neon-c) 85%, transparent) !important; }
+/* (lo elegido, en rosa; lo que se toca, con más luz al pasar por encima; con el teclado, el filo blanco) */
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-chip, .m3-col, .hub-menu-btn, .sp-bar, .gt-marco, .mc-c, .pst, .cult, .cm-ng, .cm-uno, .fh-ms li, .fh-vis li, .lg-pn, .lg-next, .eq-tile, .eq-team, #mapbox .mapcard, .pel-toss-p, #tl, .pbody, .qitem, .card .f, .card .b, #mapbox, .con-mq .mq, .gitem, .shop-star, .menu label, .pfx-pl, .pel-court, .shop-item, .mq-i, .sg, .lg-how, .fooditem, .fb-ck, .pel-rv, .pfx-shots li, .mlist li, .mrow .mi, .hsteps li, .chapter, .pel-card .pel-ctrl, .pel-card .pel-fact, .ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea):is(.on, .sel, .me, .go, [aria-selected="true"], [aria-current="true"]) { --neon-c: var(--neon-sel); }
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-chip, .m3-col, .hub-menu-btn, .sp-bar, .gt-marco, .mc-c, .pst, .cult, .cm-ng, .cm-uno, .fh-ms li, .fh-vis li, .lg-pn, .lg-next, .eq-tile, .eq-team, #mapbox .mapcard, .pel-toss-p, #tl, .pbody, .qitem, .card .f, .card .b, #mapbox, .con-mq .mq, .gitem, .shop-star, .menu label, .pfx-pl, .pel-court, .shop-item, .mq-i, .sg, .lg-how, .fooditem, .fb-ck, .pel-rv, .pfx-shots li, .mlist li, .mrow .mi, .hsteps li, .chapter, .pel-card .pel-ctrl, .pel-card .pel-fact, .ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea):is(button, a, label):is(:hover, :focus-visible) { box-shadow: 0 0 20px -3px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 8px 20px rgba(0, 0, 0, .28) !important; }
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-chip, .m3-col, .hub-menu-btn, .sp-bar, .gt-marco, .mc-c, .pst, .cult, .cm-ng, .cm-uno, .fh-ms li, .fh-vis li, .lg-pn, .lg-next, .eq-tile, .eq-team, #mapbox .mapcard, .pel-toss-p, #tl, .pbody, .qitem, .card .f, .card .b, #mapbox, .con-mq .mq, .gitem, .shop-star, .menu label, .pfx-pl, .pel-court, .shop-item, .mq-i, .sg, .lg-how, .fooditem, .fb-ck, .pel-rv, .pfx-shots li, .mlist li, .mrow .mi, .hsteps li, .chapter, .pel-card .pel-ctrl, .pel-card .pel-fact, .ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea):focus-visible { outline: 2px solid #fff !important; outline-offset: -2px !important; }
+/* (lo bloqueado o vacío, apagado) */
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-chip, .m3-col, .hub-menu-btn, .sp-bar, .gt-marco, .mc-c, .pst, .cult, .cm-ng, .cm-uno, .fh-ms li, .fh-vis li, .lg-pn, .lg-next, .eq-tile, .eq-team, #mapbox .mapcard, .pel-toss-p, #tl, .pbody, .qitem, .card .f, .card .b, #mapbox, .con-mq .mq, .gitem, .shop-star, .menu label, .pfx-pl, .pel-court, .shop-item, .mq-i, .sg, .lg-how, .fooditem, .fb-ck, .pel-rv, .pfx-shots li, .mlist li, .mrow .mi, .hsteps li, .chapter, .pel-card .pel-ctrl, .pel-card .pel-fact, .ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea):is(.bloq, .locked, .ph, [disabled]), :root .pst:not(.on) { outline-color: rgba(190, 160, 255, .26) !important; box-shadow: 0 6px 16px rgba(0, 0, 0, .2) !important; }
+/* (las casillas del pasaporte, con el filo en vez de la raya discontinua; el botón del menú, fuera del inicio, sin caja) */
+:root .pst { border-color: transparent !important; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { outline: 0 !important; box-shadow: none !important; }
+/* (los colores propios: el de cada bando en el sorteo; el rosa del marcador y del golpe; la burbuja de la tendera, que es
+   clara, con el filo más oscuro) */
+:root .pel-toss-p { --neon-c: var(--pc, #7b6bff); }
+:root :is(.pel-score, .pel-golpe, .fb-score) { --neon-c: #ff7ac8; }
+:root .shop-bubble { --neon-c: #9b6bff; }
+/* (el aviso del pueblo conserva su raya rosa a la izquierda) */
+:root #lane #toast { box-shadow: inset 3px 0 0 #ff7ac8, 0 0 10px -4px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 8px 24px rgba(0, 0, 0, .3) !important; }
+/* (la lámina de las cartas de Torneos, dentro del filo) */
+:root .sp-cover { border-radius: calc(var(--neon-r) - 2px) !important; }
 
 @media (prefers-reduced-motion: reduce) {
   :root .tq-tiles > .tq-tile { animation: none; }
