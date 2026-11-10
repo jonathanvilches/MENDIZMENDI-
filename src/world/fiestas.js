@@ -2,6 +2,7 @@
 // cruzando la plaza, como en las fiestas patronales. Solo entre casas que dan a la plaza (nunca colgadas del aire) y a
 // unos 5 m del suelo, por encima de la gente, los toldos y las farolas. Una sola malla con su color por vértice.
 import * as THREE from 'three';
+import { VIENTO } from './viento.js';
 import { TOWN } from './townBuilder.js';
 import { PLACES } from './layout.js';
 import { groundHeight } from './heightfield.js';
@@ -37,7 +38,7 @@ export function buildFiestas(scene) {
     if (mejor >= 0) { usadas.add(i); usadas.add(mejor); pares.push([A[i], A[mejor]]); }
   }
   if (!pares.length) return null;
-  const pos = [], col = [], c = new THREE.Color();
+  const pos = [], col = [], cuelga = [], c = new THREE.Color();
   let k = 0;
   for (const [a, b] of pares) {
     const L = Math.hypot(b.x - a.x, b.z - a.z), n = Math.max(6, Math.floor(L / 0.55)), sag = Math.min(0.9, L * 0.03);   // (poco vencidas: las banderitas, siempre por encima de 3,8 m)
@@ -47,20 +48,29 @@ export function buildFiestas(scene) {
     for (let i = 0; i < n; i++) {
       const p0 = pt(i / n), p1 = pt((i + 1) / n);
       c.set('#3a2e26');
-      for (const [p, dy] of [[p0, 0], [p1, 0], [p1, 0.025], [p0, 0], [p1, 0.025], [p0, 0.025]]) { pos.push(p.x, p.y + dy, p.z); col.push(c.r, c.g, c.b); }
+      for (const [p, dy] of [[p0, 0], [p1, 0], [p1, 0.025], [p0, 0], [p1, 0.025], [p0, 0.025]]) { pos.push(p.x, p.y + dy, p.z); col.push(c.r, c.g, c.b); cuelga.push(0); }
     }
     // las banderitas: triángulos colgando, de colores
     for (let i = 1; i < n; i++) {
       const p = pt(i / n), w = 0.17;
       c.set(COLORES[(k++) % COLORES.length]);
       for (const q of [[p.x - ux * w, p.y, p.z - uz * w], [p.x + ux * w, p.y, p.z + uz * w], [p.x, p.y - 0.36, p.z]]) { pos.push(...q); col.push(c.r, c.g, c.b); }
+      cuelga.push(0, 0, 1);   // (la punta de la banderita es la que mueve el viento)
     }
   }
   const g = new THREE.BufferGeometry();
   g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.setAttribute('aCuelga', new THREE.Float32BufferAttribute(cuelga, 1));
   g.computeVertexNormals(); g.computeBoundingSphere();
-  const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+  const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+  // las puntas se van con el viento del pueblo y aletean, cada una a su aire (world/viento.js)
+  mat.onBeforeCompile = (sh) => {
+    sh.uniforms.uWind = VIENTO.uWind; sh.uniforms.uDir = VIENTO.uDir; sh.uniforms.uT = VIENTO.uT;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aCuelga; uniform float uWind, uT; uniform vec2 uDir;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n{ float f = position.x * 1.9 + position.z * 1.3, a = (0.1 + 0.07 * sin(uT * 5.3 + f) + 0.04 * sin(uT * 8.9 + f * 1.7)) * uWind * aCuelga; transformed.xz += uDir * a; transformed.y += a * 0.35; }');
+  };
+  const m = new THREE.Mesh(g, mat);
   m.name = 'banderines'; m.matrixAutoUpdate = false;
   scene.add(m);
   return m;

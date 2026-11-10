@@ -144,12 +144,13 @@ export class Smoke {
     scene.add(this.points);
     this.t = 0;
   }
-  update(dt, wind = 1) {
+  // (wind: la fuerza del viento; dx, dz: hacia dónde sopla. El humo se tumba con él: world/viento.js)
+  update(dt, wind = 1, dx = 0.9, dz = 0.43) {
     this.t += dt; this.mat.uniforms.scale.value = innerHeight / 2;
     let k = 0;
     for (const s of this.spots) for (let i = 0; i < 5; i++, k++) {
       const u = ((this.t + i / 5 * 4) % 4) / 4;
-      this.pos[k * 3] = s.x + u * 2.5 * wind; this.pos[k * 3 + 1] = s.y + u * 5; this.pos[k * 3 + 2] = s.z + u * 1.2;
+      const d = u * u * 3.4 * wind; this.pos[k * 3] = s.x + d * dx; this.pos[k * 3 + 1] = s.y + u * 5 / (1 + 0.25 * Math.max(0, wind - 1)); this.pos[k * 3 + 2] = s.z + d * dz;
       this.size[k] = 1.6 + u * 6; this.alpha[k] = 0.32 * Math.sin(u * Math.PI);
     }
     const g = this.points.geometry; g.attributes.position.needsUpdate = g.attributes.alpha.needsUpdate = g.attributes.size.needsUpdate = true;

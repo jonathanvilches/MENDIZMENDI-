@@ -34,6 +34,7 @@ import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
 const VACIA = new THREE.Scene();   // (para el dibujo vacío al soltar un pueblo: unload)
 import { compilarAsync } from '../util/compilar.js';
 import { vacio } from './vacio.js';
+import { VIENTO, sopla } from '../world/viento.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
 
@@ -524,13 +525,14 @@ export class Runtime {
     this.water.update(this.elapsed, this.sky);
     groundUniforms.uTime.value = this.elapsed; groundUniforms.uSkyHor.value.copy(this.sky.uniforms.uHor.value); groundUniforms.uDia.value = 1 - (this.sky.night || 0);   // (agua de las fuentes)
     this.nature.update(this.camera.position, P.pos, this.elapsed, P.pos, P.obj.visible && g.mode === 'play' && !this.follow.cinematic);
-    { const W = this.weather; this.nature.luz?.(this.sky, !W || W.kind === 'clear' ? 0 : W.kind === 'niebla' ? 0.5 : Math.min(1, W.k || 0)); }   // (las sombras de las copas)
+    sopla(this.elapsed, this.sky.aireId, this.cubierto || 0);   // (el viento de todo el pueblo: world/viento.js)
+    { const W = this.weather; this.cubierto = !W || W.kind === 'clear' ? 0 : W.kind === 'niebla' ? 0.5 : Math.min(1, W.k || 0); this.nature.luz?.(this.sky, this.cubierto); }   // (las sombras de las copas)
     updateDetail(this.camera.position, this.detailQ);
     { const W = this.weather; this.fauna.wet = !W || W.kind === 'clear' ? 0 : W.kind === 'snow' ? 1 : W.k; }   // (con lluvia o nieve, sin mariposas ni luciérnagas)
     this.fauna.update(dt, P, this.elapsed, this.sky.night, this.sound, this.sky.floodK(), this.camera.position);   // (en el partido, sin luciérnagas)
     this.particles.update(dt);
     if (this.waterfall) this.waterfall.update(dt, this.elapsed, Math.hypot(P.pos.x - PLACES.waterfall.x, P.pos.z - PLACES.waterfall.z) < 80);
-    this.smoke.update(dt);
+    this.smoke.update(dt, VIENTO.fuerza, VIENTO.uDir.value.x, VIENTO.uDir.value.y);
     this.lights.update(this.sky.night, P);
     { const fl = this.sky.floodK(); lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
     this.beacon.update(this.elapsed, P, g.mode !== 'play' || !!this.follow.cinematic || !!g.ui.dialogOpen, dt);

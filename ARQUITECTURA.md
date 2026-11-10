@@ -828,6 +828,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     se oscurecen y cogen brillo, y en lo llano se forman charcos que reflejan el cielo, más cuanto más rasante se
     mira. Es una lectura de textura más en el sombreador del terreno, solo mientras está mojado; no añade geometría.
     Sube mientras llueve y tarda en secarse al escampar. En la hierba apenas se encharca.
+  - *Un solo viento* (`world/viento.js`, tanda 1): `VIENTO` guarda la fuerza de ahora (`uWind`), hacia dónde sopla
+    (`uDir`, el lado al que van las nubes) y el tiempo; `sopla()` la calcula cada fotograma en `runtime.js` con dos
+    ondas lentas que no casan (rachas cada medio minuto más o menos), el aire de la comarca (en la Ribera, más) y el
+    tiempo (con lluvia arrecia). De él cuelgan la hierba y los árboles (`nature.js`, cuyo `windUniforms.uWind` es ya
+    el mismo objeto), el humo de las chimeneas (`fx.js Smoke`, que se tumba hacia donde sopla) y los banderines de
+    fiesta (`fiestas.js`: la punta de cada banderita, marcada con `aCuelga`, aletea en el sombreador). Lo que se
+    mueva con el viento de aquí en adelante, que lea `VIENTO`.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.

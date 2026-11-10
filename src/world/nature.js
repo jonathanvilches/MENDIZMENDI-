@@ -11,9 +11,11 @@ import { groundUniforms } from './builder.js';
 import { snowable } from './weather.js';
 import { TOWN } from './townBuilder.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
+import { VIENTO } from './viento.js';
 
 // (uVer: el pecho del personaje, y uVerOn, si se está jugando con él a la vista: lo que hay entre la cámara y él se abre)
-export const windUniforms = { uTime: { value: 0 }, uWind: { value: 1 }, uVer: { value: new THREE.Vector3() }, uVerOn: { value: 0 } };
+// (uWind: la fuerza del viento, la misma para todo el pueblo: world/viento.js)
+export const windUniforms = { uTime: { value: 0 }, uWind: VIENTO.uWind, uVer: { value: new THREE.Vector3() }, uVerOn: { value: 0 } };
 
 // ---------- Geometrías de árboles ----------
 function colorize(g, fn) {
