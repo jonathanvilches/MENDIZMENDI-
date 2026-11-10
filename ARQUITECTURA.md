@@ -266,6 +266,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Partido de pelota, el cansancio se ve** (`actors/glbChar.js`, `armSwing`; `pelota/match.js`, `suda`): por debajo de
   la mitad de la energía, el pelotari se encorva (más parado y entre tanto y tanto) y respira deprisa; le saltan gotas de
   sudor y lleva sobre la cabeza su aviso de sudor, que se ve también en el rival, lejos.
+- **Marcador de retransmisión y rachas** (`pelota/hud.js`, `setScore`, `setRacha`, `call`; `pelota/match.js`, `rachaDe`):
+  al sumar, la cifra salta en dorado y su lado se ilumina. El aviso del tanto lleva arriba una raya del color de quien
+  lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el
+  partido o se pone por delante (la remontada, una vez cada cosa). Mientras dura la racha, una llama junto a la cifra
+  del marcador (solo la llama: el número va en el aviso, para no quitarle sitio al nombre).
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.

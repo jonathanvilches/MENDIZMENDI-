@@ -272,7 +272,7 @@ export class PelotaMatch {
     this.hud.bolas(mio ? this.cesta.you : [this.bola], this.bola, mio, (b) => [t.kinds[clase(b)], pesoTxt(b)], mio ? (this.touch ? t.changeTouch : t.change) : t.cesta);
   }
   newGame() {
-    this.hud?.root?.classList.remove('final'); this.callada = false;
+    this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
     const o = this.o;
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
@@ -1014,17 +1014,32 @@ export class PelotaMatch {
       case 'streak': this.hud.setScore(e.n, '', g.server); break;
       case 'call': {
         this.lastWin = e.winner; this.lastFinal = !!e.final; this.planoT = this.t;
+        // (la racha: tantos seguidos, iguala o remontada; en el aviso y, mientras dure, en el marcador)
+        const ex = g.mode === 'rally' ? null : { col: this.cols[e.winner], racha: this.rachaDe(e) };
         const [title, sub] = t.calls[e.call] || t.calls.tanto;
         const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
         if (g.mode === 'rally') this.hud.call(title, sub, '', 2);
-        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 4.4); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
-        else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, 2.2); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
+        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 4.4, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
+        else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, ex?.racha ? 2.8 : 2.2, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
         // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
         A.point(e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call], e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)));
         break;
       }
       case 'end': this.endPanel(e); break;
     }
+  }
+  // Las rachas de un partido, como las cuenta la tele: tres tantos seguidos o más; y si el que iba tres o más por detrás
+  // iguala el partido o se pone por delante, la remontada (una vez cada cosa). Devuelve el rótulo de este tanto ('' sin
+  // nada) y deja la racha en el marcador mientras dure.
+  rachaDe(e) {
+    const T = this.txt.racha || TEXT.es.racha, R = this.rachas ||= { lado: null, n: 0, peor: { you: 0, rival: 0 }, igualo: {}, remonto: {} }, w = e.winner;
+    R.n = R.lado === w ? R.n + 1 : 1; R.lado = w;
+    const dif = (e.score?.you ?? 0) - (e.score?.rival ?? 0), suya = w === 'you' ? dif : -dif;
+    for (const k of ['you', 'rival']) R.peor[k] = Math.min(R.peor[k], k === 'you' ? dif : -dif);
+    this.hud.setRacha(w, R.n >= 3 ? R.n : '', T.marcador(R.n));
+    if (R.peor[w] <= -3 && suya === 0 && !R.igualo[w]) { R.igualo[w] = true; return T.iguala; }
+    if (R.peor[w] <= -3 && suya === 1 && !R.remonto[w]) { R.remonto[w] = true; return T.remonta; }
+    return R.n >= 3 ? T.seguidos(R.n) : '';
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)

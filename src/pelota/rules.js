@@ -325,6 +325,8 @@ export const TEXT = {
       claim: '¡Mía!', rest: 'Descansa: esta la coge tu compañero.', mateTired: (hit) => `Tu compañero está cansado: pide tú la pelota manteniendo ${hit}.`,
       pointUs: 'Tanto para vosotros', pointThem: (a, b) => `Tanto para ${a} y ${b}` },
     finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.', matchPoint: 'Tanto de partido', matchPointSub: 'El que gane este tanto, gana el partido.',
+    // (los rótulos de racha, en el aviso del tanto y en el marcador: match.js, rachaDe)
+    racha: { seguidos: (n) => `${n} tantos seguidos`, iguala: '¡Iguala el partido!', remonta: '¡Remontada!', marcador: (n) => `${n} seguidos` },
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
     streak: (n, g) => `${n} de ${g} seguidas`,
     win: '¡Has ganado!', lose: '¡Casi! Otra vez será', rallyWin: '¡Lo has conseguido!',
@@ -435,6 +437,7 @@ export const TEXT = {
       claim: 'Nirea!', rest: 'Atseden hartu: hau zure lagunak hartzen du.', mateTired: (hit) => `Zure laguna nekatuta dago: eskatu zuk pilota ${hit} sakatuta mantenduz.`,
       pointUs: 'Tantoa zuentzat', pointThem: (a, b) => `Tantoa ${a} eta ${b}rentzat` },
     finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.', matchPoint: 'Partidarako tantoa', matchPointSub: 'Tanto hau irabazten duenak partida irabazten du.',
+    racha: { seguidos: (n) => `${n} tanto jarraian`, iguala: 'Partida berdindu du!', remonta: 'Buelta eman dio!', marcador: (n) => `${n} jarraian` },
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,
     streak: (n, g) => `${n}/${g} jarraian`,
     win: 'Irabazi duzu!', lose: 'Ia-ia! Hurrengoan', rallyWin: 'Lortu duzu!',

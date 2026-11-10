@@ -108,8 +108,26 @@ const CSS = `
 @media (min-width:1240px){.pel-root{--psw:180px}.pel-mid{display:grid}}
 .pel-serve{width:7px;height:7px;border-radius:50%;background:#fff6d8;box-shadow:0 0 0 2px rgba(0,0,0,.25);visibility:hidden;flex:none}
 .pel-serve.on{visibility:visible}
+/* el marcador de retransmisión: al sumar, la cifra salta y se enciende en dorado y su lado se ilumina un momento; con
+   tres tantos seguidos o más, la racha al lado de la cifra mientras dure: solo la llama (el número va en el aviso del
+   tanto), para no quitarle sitio al nombre */
+.pel-side b.sube{animation:pelSube .6s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pelSube{0%{transform:scale(1.9);color:#ffd166;text-shadow:0 0 14px rgba(255,209,102,.9)}60%{color:#ffd166}100%{transform:none}}
+.pel-side.gana .ps-cab{animation:pelGana .9s ease-out}
+@keyframes pelGana{0%{filter:brightness(1.9) saturate(1.2)}100%{filter:none}}
+.ps-racha{display:none;flex:none;place-items:center;width:18px;height:18px;margin:0 -2px;border-radius:50%;background:rgba(7,2,15,.55);color:#ffd166}
+.ps-racha.on{display:inline-grid;animation:pelRachaM .45s cubic-bezier(.2,1.6,.4,1)}.ps-racha svg{width:12px;height:12px}
+@keyframes pelRachaM{from{transform:scale(.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pel-side b.sube,.pel-side.gana .ps-cab,.ps-racha.on,.pel-racha{animation:none}}
 .pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:16px 24px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .pel-call.on{opacity:1;transform:translateX(-50%) scale(1)}
+/* (el aviso del tanto, con una raya arriba del color de quien lo gana y, si toca, la racha: tantos seguidos, iguala,
+   remontada) */
+.pel-call.c-azul{box-shadow:inset 0 3px 0 #6b5bff,0 14px 40px rgba(0,0,0,.4)}.pel-call.c-rojo{box-shadow:inset 0 3px 0 #ff2e88,0 14px 40px rgba(0,0,0,.4)}
+.pel-racha{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin-top:var(--r-pp,12px);padding:4px 14px;border-radius:999px;background:var(--rc,linear-gradient(100deg,#ff2bd6,#7b2ff7));font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fff;box-shadow:0 0 14px rgba(255,122,200,.45);animation:pelRacha .5s .15s cubic-bezier(.2,1.6,.4,1) both}
+.pel-racha svg{width:16px;height:16px;flex:none;color:#ffd166}
+.pel-call.c-azul .pel-racha{--rc:linear-gradient(100deg,#6b5bff,#3b2bc4)}.pel-call.c-rojo .pel-racha{--rc:linear-gradient(100deg,#ff2e88,#c01a6c)}
+@keyframes pelRacha{from{opacity:0;transform:translateY(8px) scale(.8)}}
 .pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7));border-color:#ffc2ec;color:#fff;box-shadow:0 0 0 4px rgba(255,122,200,.25),0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
 .pel-root.final .pel-call :is(.pel-kantari,p){color:#fff}
 @keyframes pelFinal{0%{transform:translateX(-50%) scale(.5)}100%{transform:translateX(-50%) scale(1)}}
@@ -362,7 +380,9 @@ const CSS = `
 .pel-root.paneled .pel-menu,.pel-root.repe .pel-menu{visibility:hidden}
 @media (max-height:500px){.pm-hoja button{min-height:36px}}
 `;
-const BOLA = bolaSVG();   // (la pelota de verdad, en dibujo: pelota/bola.js)
+const BOLA = bolaSVG();
+// (la llama de las rachas)
+const LLAMA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 3.5 4.5 5.5 4.5 10a4.5 4.5 0 0 1-9 0c0-2 1-3.5 2-4.5.2 1.6 1 2.6 2 3 0-3 .5-5.5.5-8.5z" fill="currentColor"/></svg>';   // (la pelota de verdad, en dibujo: pelota/bola.js)
 
 /** Mete en la página los estilos del partido (una vez). La pasaka (src/game/pasaka3d.js) usa la misma interfaz. */
 export function pelotaStyle() { if (!document.getElementById('pel-style')) { const st = document.createElement('style'); st.id = 'pel-style'; st.textContent = CSS; document.head.appendChild(st); } }
@@ -378,9 +398,9 @@ export class PelotaHud {
     const r = this.root = document.createElement('div'); r.className = 'pel-root';
     r.innerHTML = `
       <div class="pel-top"><div class="pel-score">
-        <div class="pel-side ${cols.you === 'rojo' ? 'pel-red' : 'pel-blue'}" data-side="you"><div class="ps-cab"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><b data-pel-n="you">0</b></div><div class="ps-barras"></div></div>
+        <div class="pel-side ${cols.you === 'rojo' ? 'pel-red' : 'pel-blue'}" data-side="you"><div class="ps-cab"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><i class="ps-racha" data-pel-r="you"></i><b data-pel-n="you">0</b></div><div class="ps-barras"></div></div>
         <div class="pel-mid" data-pel-mid></div>
-        <div class="pel-side ${cols.rival === 'azul' ? 'pel-blue' : 'pel-red'}" data-side="rival"><div class="ps-cab"><b data-pel-n="rival">0</b><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div><div class="ps-barras"></div></div>
+        <div class="pel-side ${cols.rival === 'azul' ? 'pel-blue' : 'pel-red'}" data-side="rival"><div class="ps-cab"><b data-pel-n="rival">0</b><i class="ps-racha" data-pel-r="rival"></i><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div><div class="ps-barras"></div></div>
       </div><div class="pel-menu"><button type="button" class="pm-btn" aria-haspopup="true" aria-expanded="false" aria-label="${txt.menu || 'Menú'}">${PAUSA}<i class="pm-n"></i></button><div class="pm-hoja" role="menu">
         <div class="pm-bolas" hidden><span class="pm-t pb-pista"></span><div class="pb-lista"></div></div>
         <button type="button" class="pb-desc pm-op" hidden><span></span><b></b></button>
@@ -388,7 +408,7 @@ export class PelotaHud {
         <button type="button" class="pm-fichas pm-op" hidden>${txt.fichas || 'Fichas'}</button>
         <button type="button" class="pm-salir pm-op">${X_ICON}<span>${txt.salirPartido || txt.exit}</span></button>
       </div></div></div>
-      <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div></div>
+      <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div></div>
       <div class="pel-golpe" aria-live="off"></div>
       <div class="pel-pres" aria-live="polite"><i></i><div><b></b><small></small></div></div>
       <div class="pel-q"></div>
@@ -459,12 +479,20 @@ export class PelotaHud {
   cansado(on) { this.menuEl?.classList.toggle('llama', !!on); }
   setNames(you, rival) { const a = this.root.querySelector('[data-side=you] span'), b = this.root.querySelector('[data-side=rival] span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
   setScore(you, rival, server, mid) {
-    this.$('[data-pel-n=you]').textContent = you; this.$('[data-pel-n=rival]').textContent = rival;
+    for (const [k, v] of [['you', you], ['rival', rival]]) {
+      const el = this.$(`[data-pel-n=${k}]`), antes = Number(el.textContent), side = el.closest('.pel-side');
+      el.textContent = v;
+      // (al sumar, la cifra salta y su lado se ilumina: el marcador de la tele)
+      if (Number.isFinite(+v) && v !== '' && +v > antes) { el.classList.remove('sube'); side.classList.remove('gana'); void el.offsetWidth; el.classList.add('sube'); side.classList.add('gana'); }
+    }
     for (const el of this.root.querySelectorAll('.pel-serve')) el.classList.toggle('on', el.dataset.pelS === server);
     if (mid != null) this.$('[data-pel-mid]').textContent = mid;
   }
-  call(title, sub, kant, secs = 2) {
+  /** El aviso grande del juez. extra: { col ('azul' o 'rojo': la raya de quien gana el tanto), racha (el rótulo de racha) } */
+  call(title, sub, kant, secs = 2, extra = null) {
     const c = this.$('.pel-call'); c.querySelector('h3').textContent = title; c.querySelector('p').textContent = sub || '';
+    c.classList.remove('c-azul', 'c-rojo'); if (extra?.col) c.classList.add('c-' + extra.col);
+    const rc = c.querySelector('.pel-racha'); rc.hidden = !extra?.racha; rc.innerHTML = extra?.racha ? `${LLAMA}<span>${esc(extra.racha)}</span>` : '';
     c.querySelector('p').style.display = sub ? '' : 'none';
     const k = c.querySelector('.pel-kantari'); k.textContent = kant ? `«${kant}»` : ''; k.style.display = kant ? '' : 'none';
     c.classList.add('on'); this.callT = secs; this.root.classList.add('calling');
@@ -472,6 +500,14 @@ export class PelotaHud {
     // rótulo grande pisaba las barras de energía)
     c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
     if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
+  }
+  /** La racha de un lado en el marcador: n (tantos seguidos; vacío, se quita) y lo que dice para quien no ve el icono */
+  setRacha(side, n, label = '') {
+    for (const el of this.root.querySelectorAll('.ps-racha')) {
+      const on = el.dataset.pelR === side && !!n, t = on ? String(n) : '';
+      if (el._t === t) continue; el._t = t; el.innerHTML = on ? LLAMA : ''; el.classList.toggle('on', on);
+      if (on) { el.setAttribute('role', 'img'); el.setAttribute('aria-label', label); el.title = label; } else { el.removeAttribute('aria-label'); el.removeAttribute('title'); }
+    }
   }
   /** El aviso del golpe: text (lo grande), sub (el golpe y la fuerza) y kind (perfect, good, ok, late, whiff: su color) */
   quality(text, sub = '', kind = '') {
