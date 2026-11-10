@@ -314,7 +314,7 @@ export const TEXT = {
     // Cuatro y Medio
     toss: { title: 'Sorteo del saque', throw: '¡Lanza la chapa!', azul: 'Azul', rojo: 'Colorado', serves: (n) => `Saca ${n}`,
       why: 'Viste de colorado quien debutó antes', seasons: (n) => (n ? `${n} ${n === 1 ? 'temporada' : 'temporadas'}` : 'Debutante'), auto: 'La chapa decide quién saca primero' },
-    replay: { label: 'Repetición', slow: 'Cámara lenta', skip: 'Toca para seguir' },
+    replay: { label: 'Repetición', slow: 'Cámara lenta', skip: 'Toca para seguir', desde: (n) => `Desde ${n}` },
     xp: { level: (n) => `Nivel ${n}`, gained: (x) => `+${x} de experiencia`, up: (n) => `¡Subes al nivel ${n}!`, q: { fuerza: 'Fuerza', velocidad: 'Velocidad', agilidad: 'Agilidad', precision: 'Precisión' } },
     repe: ['Repeticiones', 'Cada tanto se repite desde otro plano, a cámara lenta al final.'],
     cuatro: { name: 'Cuatro y Medio', rule: 'Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5. El saque bota entre la raya del 3 y la del 5.' },
@@ -435,7 +435,7 @@ export const TEXT = {
     pointYou: 'Tantoa zuretzat', pointRival: (n) => `Tantoa ${n}rentzat`,
     toss: { title: 'Sakearen zozketa', throw: 'Bota txapa!', azul: 'Urdina', rojo: 'Gorria', serves: (n) => `Sakea: ${n}`,
       why: 'Lehenago debutatu zuenak gorriz janzten du', seasons: (n) => (n ? `${n} denboraldi` : 'Debutantea'), auto: 'Txapak erabakitzen du nork ateratzen duen lehenik' },
-    replay: { label: 'Errepikapena', slow: 'Kamera geldoa', skip: 'Ukitu jarraitzeko' },
+    replay: { label: 'Errepikapena', slow: 'Kamera geldoa', skip: 'Ukitu jarraitzeko', desde: (n) => `Ikuspegia: ${n}` },
     xp: { level: (n) => `${n}. maila`, gained: (x) => `+${x} esperientzia`, up: (n) => `${n}. mailara igo zara!`, q: { fuerza: 'Indarra', velocidad: 'Abiadura', agilidad: 'Arintasuna', precision: 'Zehaztasuna' } },
     repe: ['Errepikapenak', 'Tanto bakoitza beste plano batetik errepikatzen da, amaieran geldoan.'],
     cuatro: { name: 'Lau t\'erdi', rule: 'Lau t\'erdi: pilotak ezin du lau eta erdiko marratik haratago bote egin (lurreko marra da, 4 eta 5 artean). Sakeak 3ko eta 5eko marren artean egiten du bote.' },

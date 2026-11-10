@@ -472,9 +472,11 @@ export class PelotaMatch {
     let ts = 0; for (const f of F) { f.ts = ts; ts += f.dt; }
     const call = F.find(f => f.call)?.ts ?? ts, t0 = Math.max(0, call - 5);   // (los 5 últimos segundos del tanto y lo de después)
     const RP = this.txt.replay || TEXT.es.replay;
-    this.replay = { F, t: t0, end: ts, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n: (this.repN = (this.repN || 0) + 1) };
+    const n = (this.repN = (this.repN || 0) + 1), w = n % 5 === 4 && F.some(f => f.P[this.lastWin]) ? this.lastWin : null;   // (una de cada cinco, desde el que gana)
+    this.replay = { F, t: t0, end: ts, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n, w };
     const el = this.repEl = document.createElement('div'); el.className = 'pel-rep';
-    el.innerHTML = `<div class="pel-rep-b"><i aria-hidden="true"></i><b>${esc(RP.label)}</b><span class="sl">${esc(RP.slow)}</span></div><small>${esc(RP.skip)}</small>`;
+    const pv = w ? `<span class="pv">${esc((RP.desde || TEXT.es.replay.desde)(this.nomLimpio(w)))}</span>` : '';
+    el.innerHTML = `<div class="pel-rep-b"><i aria-hidden="true"></i><b>${esc(RP.label)}</b>${pv}<span class="sl">${esc(RP.slow)}</span></div><small>${esc(RP.skip)}</small>`;
     this.hud.root.appendChild(el); this.hud.root.classList.add('repe'); this.camInit = false; this.colocaRep();
     this.repSkip = (e) => { e.stopPropagation?.(); this.endReplay(); };
     this.repArm = setTimeout(() => { if (this.replay) { addEventListener('pointerdown', this.repSkip, true); addEventListener('keydown', this.repSkip, true); } }, 300);
@@ -545,17 +547,21 @@ export class PelotaMatch {
     C.showBall({ x: f.b[0], y: f.b[1], z: f.b[2] }, 0);
     for (const id in f.P) { const sd = this.o[id] || this.mateObjs?.[id]; if (!sd?.obj) continue; const [x, y, z, ry, st] = f.P[id]; sd.obj.position.set(x, y, z); sd.obj.rotation.y = ry; if (sd.animate) sd.animate(sd.obj, st, dt * sp); }
     // dos planos que se turnan: desde la contracancha, en alto, siguiendo la pelota; y desde el frontis, de cara a los pelotaris
-    // (cuatro planos que se turnan: además, uno bajo junto a la pared izquierda, a ras de la jugada, y otro desde lo alto)
-    const bz = Math.max(2, Math.min(COURT.L, f.b[2])), k4 = R.n % 4, front = k4 === 0;
-    const lp = front ? [2.6, 2.3, 1.4] : k4 === 2 ? [-COURT.W / 2 + 0.9, 1.25, Math.min(COURT.L, bz + 3.5)] : k4 === 3 ? [0.6, 13.5, bz + 1.5] : [COURT.W / 2 + 3, 6.2, Math.max(7, Math.min(COURT.L + 1, bz + 6.5))];
-    const ll = front ? [f.b[0] * 0.6, Math.max(0.8, Math.min(3, f.b[1])), Math.max(5, bz)] : k4 === 2 ? [f.b[0], Math.max(0.6, Math.min(2.5, f.b[1])), bz - 4] : k4 === 3 ? [f.b[0] * 0.5, 0, bz - 0.6] : [f.b[0] * 0.4, 1.1, bz - 2.5];
+    // (cuatro planos que se turnan: además, uno bajo junto a la pared izquierda, a ras de la jugada, y otro desde lo alto;
+    // y una de cada cinco, desde el que gana el tanto: por detrás de su hombro, mirando la pelota, como si fueras él)
+    const bz = Math.max(2, Math.min(COURT.L, f.b[2])), W = R.w && f.P[R.w], k4 = R.n % 5 % 4, front = !W && k4 === 0;
+    let lp = front ? [2.6, 2.3, 1.4] : k4 === 2 ? [-COURT.W / 2 + 0.9, 1.25, Math.min(COURT.L, bz + 3.5)] : k4 === 3 ? [0.6, 13.5, bz + 1.5] : [COURT.W / 2 + 3, 6.2, Math.max(7, Math.min(COURT.L + 1, bz + 6.5))];
+    let ll = front ? [f.b[0] * 0.6, Math.max(0.8, Math.min(3, f.b[1])), Math.max(5, bz)] : k4 === 2 ? [f.b[0], Math.max(0.6, Math.min(2.5, f.b[1])), bz - 4] : k4 === 3 ? [f.b[0] * 0.5, 0, bz - 0.6] : [f.b[0] * 0.4, 1.1, bz - 2.5];
+    if (W) { const q = grp.worldToLocal(this.v3.set(W[0], W[1], W[2])), wx = q.x, wz = q.z;   // (lo grabado va en el mundo; la cámara, en el frontón)
+      const pt = innerWidth < innerHeight; lp = pt ? [wx + 0.8, 2.7, wz + 3.8] : [wx + 0.7, 2.1, wz + 2.4];   // (en vertical, más atrás y más alto: si no, tapa media pantalla)
+      ll = [(f.b[0] + wx) / 2, Math.max(0.9, Math.min(3.2, f.b[1])), Math.min(wz - 1.5, f.b[2])]; }
     this.cabe(lp, ll);
     const wp = grp.localToWorld(new T.Vector3(lp[0], lp[1], lp[2])), wl = grp.localToWorld(new T.Vector3(ll[0], ll[1], ll[2]));
     if (!this.camInit) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }
     const k = 1 - Math.exp(-4 * dt); this.camPos.lerp(wp, k); this.camLook.lerp(wl, k);
     this.cam.position.copy(this.camPos); this.cam.lookAt(this.camLook);
-    if (Math.abs(this.cam.fov - 50) > 0.01) { this.cam.fov = 50; this.cam.updateProjectionMatrix(); }
-    C.reboteSeeThrough?.(false, dt);
+    { const fv = W ? (innerWidth < innerHeight ? 66 : 58) : 50; if (Math.abs(this.cam.fov - fv) > 0.01) { this.cam.fov = fv; this.cam.updateProjectionMatrix(); } }
+    C.reboteSeeThrough?.(!!W && lp[2] > COURT.REBOTE - 2, dt);
   }
   // ------------------------------------------------------------ las partes del frontón
   // la cámara va de una a otra (frontis, chapa, pared izquierda, cancha, falta, pasa, contracancha y rebote), cada una

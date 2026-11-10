@@ -292,6 +292,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   largo, el tanto de partido, el descanso y el final; al segundo tanto, algo del frontón (`courtFeel`). Comentan siempre
   lo que importa y, de lo demás, más o menos la mitad; nunca la misma frase dos veces seguidas, y cada frase se ve al
   menos 2,4 s (si llega otra, espera). En euskera los nombres van sin declinar («Tantoa: Ane»).
+- **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
+  ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
+  Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
+  alta, para que el pelotari no tape media pantalla. Las otras cuatro, los planos de siempre.
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.

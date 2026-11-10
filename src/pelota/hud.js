@@ -22,6 +22,7 @@ const CSS = `
 .pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
 .pel-rep.slow .sl{display:inline-block;animation:pel-repin .3s ease-out both}
+.pel-rep-b .pv{font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;color:#fff;padding:4px 8px;border-radius:999px;background:rgba(157,140,255,.38);max-width:24ch;overflow:hidden;text-overflow:ellipsis}
 .pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding:3px 12px;border-radius:999px;background:rgba(7,2,15,.55)}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
 /* el sorteo del saque. La chapa, en 3D en la cancha (chapa.js), con el centro despejado para verla: arriba el título
