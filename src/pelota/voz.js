@@ -2,7 +2,8 @@
 // src/assets/voz/<hombre|mujer>/<es|eu>/<clave>.mp3 (la clave, «dejada-2», sale en el guion de grabación); si no está la
 // de esa voz, la de la otra. Si no hay ninguna grabada, la voz del sistema (la del teléfono o el ordenador) de ese idioma,
 // de hombre o de mujer si se distinguen por el nombre; si el aparato no tiene voz en ese idioma (en euskera es lo normal),
-// no se dice nada. Una frase cada vez: si llega otra mientras habla, espera, y solo la última.
+// no se dice nada. Una frase cada vez: si llega otra mientras habla, espera, y solo la última. Mientras habla, la
+// música baja a un tercio para que no lo tape (audio.js, voz) y vuelve al acabar.
 const CLIPS = import.meta.glob('../assets/voz/*/*/*.mp3', { query: '?url', import: 'default' });
 const clip = (voz, lang, id) => CLIPS[`../assets/voz/${voz}/${lang}/${id}.mp3`];
 // (las voces del sistema no dicen si son de hombre o de mujer: se adivina por el nombre, el de las más comunes en iPhone,
@@ -21,15 +22,16 @@ export class Voz {
     if (L) { this.grabada(L, c); return true; }
     return this.sistema(c);
   }
-  // (al acabar una, la que esperaba, si no es de hace más de 5 s)
-  sigue() { this.habla_ = false; const q = this.cola; this.cola = null; if (q && performance.now() - q.t < 5000) this.habla(q.c); }
+  // (al acabar una, la que esperaba, si no es de hace más de 5 s; si no hay otra, la música vuelve)
+  sigue() { this.habla_ = false; const q = this.cola; this.cola = null; if (q && performance.now() - q.t < 5000) this.habla(q.c); if (!this.habla_) this.musica(false); }
+  musica(on) { try { window.__sound?.voz?.(on); } catch (e) { /* sin audio */ } }
   async grabada(L, c) {
     const S = window.__sound, ctx = S?.ctx; this.habla_ = true;
     try {
       if (!ctx) throw new Error('sin audio');
       let b = this.buf.get(c.id); if (!b) { const url = await L(); b = await new Promise((res, rej) => fetch(url).then(r => r.arrayBuffer()).then(a => { const p = ctx.decodeAudioData(a, res, rej); if (p?.then) p.then(res, rej); }).catch(rej)); if (this.buf.size > 40) this.buf.clear(); this.buf.set(c.id, b); }
-      const s = this.src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1.1; s.buffer = b; s.connect(g); g.connect(S.master); s.onended = () => { if (this.src === s) this.src = null; this.sigue(); }; s.start();
-    } catch (e) { this.habla_ = false; this.sistema(c); }
+      const s = this.src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1.1; s.buffer = b; s.connect(g); g.connect(S.master); s.onended = () => { if (this.src === s) this.src = null; this.sigue(); }; this.musica(true); s.start();
+    } catch (e) { this.habla_ = false; if (!this.sistema(c)) this.musica(false); }
   }
   /** La voz del sistema para ese idioma y esa voz (o null) */
   vozSistema(lang, voz) {
@@ -45,13 +47,15 @@ export class Voz {
       const u = new SpeechSynthesisUtterance(c.texto); u.voice = v; u.lang = v.lang;
       // (la jugada, algo más deprisa; la explicación, un poco más grave y pausada)
       u.rate = c.r === 'e' ? 1 : 1.08; u.pitch = c.r === 'e' ? 0.92 : 1.02; u.volume = Math.max(0.2, Math.min(1, (window.__sound?.master?.gain?.value ?? 0.8) * 1.15));
-      this.habla_ = true; u.onend = u.onerror = () => this.sigue();
-      S.speak(u); return true;
-    } catch (e) { this.habla_ = false; return false; }
+      // (en el iPhone a veces no avisa al acabar: si no avisa, se da por acabada a su tiempo y la música vuelve igual)
+      const fin = () => { clearTimeout(u.tarda); if (this.u === u) { this.u = null; this.sigue(); } };
+      this.habla_ = true; this.u = u; u.onend = u.onerror = fin; u.tarda = setTimeout(fin, 1800 + c.texto.length * 95);
+      this.musica(true); S.speak(u); return true;
+    } catch (e) { this.habla_ = false; this.musica(false); return false; }
   }
   /** Calla al momento (al salir del partido o en la pausa) */
   calla() {
-    this.cola = null; this.habla_ = false;
+    this.cola = null; this.habla_ = false; this.u = null; this.musica(false);
     try { this.src?.stop(); } catch (e) { /* ya había acabado */ } this.src = null;
     try { this.sintesis?.cancel(); } catch (e) { /* sin voz del sistema */ }
   }

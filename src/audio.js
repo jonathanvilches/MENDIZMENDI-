@@ -249,27 +249,35 @@ export class Sound {
     // (de paseo por un pueblo no suena la canción de continuo: frases sueltas y el ambiente. La canción vuelve con lo que
     // pasa: una persecución, una leyenda de noche, un minijuego, un partido, una fiesta)
     const paseo = this.mood === 'explore' && !!this.paseo;
-    this.frases?.tick(0.25, paseo && (this.duckUntil || 0) <= ctx.currentTime, this.aire || 'media', this.musVol, this.noche || 0);
+    this.frases?.tick(0.25, paseo && (this.duckUntil || 0) <= ctx.currentTime, this.aire || 'media', this.volMus(), this.noche || 0);
     this.pistas?.quiere(this.mood === 'none' || paseo ? null : MUSICA[this.mood] || MUSICA.explore);
     if (this.mood !== this.musCur) {
       this.musCur = this.mood; const g = this.musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t);
       if (this.mood === 'none') g.setTargetAtTime(0, t, 0.35);
-      else if ((this.duckUntil || 0) > t) { g.setTargetAtTime(0, t, 0.08); g.setTargetAtTime(this.musVol, this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
-      else g.setTargetAtTime(this.musVol, t, 0.3);
+      else if ((this.duckUntil || 0) > t) { g.setTargetAtTime(0, t, 0.08); g.setTargetAtTime(this.volMus(), this.duckUntil, 0.4); }   // (apartada: vuelve al acabar)
+      else g.setTargetAtTime(this.volMus(), t, 0.3);
     }
   }
-  setMusic(on) { this.musicOn = on; if (this.musicBus) { const t = this.ctx.currentTime, g = this.musicBus.gain, d = (this.duckUntil || 0) > t; g.cancelScheduledValues(t); g.setTargetAtTime(on && !d ? this.musVol : 0, t, 0.3); if (on && d) g.setTargetAtTime(this.musVol, this.duckUntil, 0.4); } }
+  setMusic(on) { this.musicOn = on; if (this.musicBus) { const t = this.ctx.currentTime, g = this.musicBus.gain, d = (this.duckUntil || 0) > t; g.cancelScheduledValues(t); g.setTargetAtTime(on && !d ? this.volMus() : 0, t, 0.3); if (on && d) g.setTargetAtTime(this.volMus(), this.duckUntil, 0.4); } }
   /** Lo fuerte que va la música (0,32 lo normal): en el partido de pelota, mientras se juega, baja para que manden la
    *  pelota y la grada; en la presentación, el sorteo, las repeticiones y el final, vuelve */
   nivelMusica(v) {
     if (Math.abs(v - this.musVol) < 1e-3) return; this.musVol = v;
     if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
-    const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(v, t, 0.6);
+    const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, 0.6);
+  }
+  /** Lo fuerte que suena la música ahora: mientras habla el comentarista, a un tercio, para que no lo tape */
+  volMus() { return this.musVol * (this.hablando ? 0.3 : 1); }
+  /** El comentarista empieza (on) o acaba de hablar: la música baja deprisa y vuelve despacio (pelota/voz.js) */
+  voz(on) {
+    on = !!on; if (on === !!this.hablando) return; this.hablando = on;
+    if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
+    const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, on ? 0.1 : 0.6);
   }
   /** La música se aparta s segundos (al escuchar un instrumento en su ficha: antes sonaban los dos a la vez) y vuelve sola. */
   duck(s) {
     if (!this.musicBus) return; const t = this.ctx.currentTime, g = this.musicBus.gain;
-    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn) g.setTargetAtTime(this.musVol, this.duckUntil, 0.4);
+    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn) g.setTargetAtTime(this.volMus(), this.duckUntil, 0.4);
   }
   // trueno: si el rayo cae cerca, primero un chasquido seco; luego el retumbar grave y largo, que va y viene (ruido muy
   // filtrado con varios golpes) y resuena en el eco. dist en metros: más lejos, más tarde, más grave y más flojo

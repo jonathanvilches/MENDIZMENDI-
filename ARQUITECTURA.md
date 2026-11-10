@@ -292,7 +292,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   no se dice nada. Una frase cada vez; se callan al pausar y al salir. Con los subtítulos puestos, también el rótulo de
   abajo. Las grabaciones pueden llegar en un solo archivo por idioma: `tools/corta-voz.mjs` lo corta en una frase por
   archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
-  palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps.
+  palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps. Mientras habla, la música
+  baja a un tercio (`audio.js`, `voz` y `volMus`: cuenta en todo lo que pone el volumen de la música) y vuelve al acabar
+  la frase; con la voz del sistema, si el iPhone no avisa del final, se da por acabada a su tiempo.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
