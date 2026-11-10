@@ -233,6 +233,19 @@ async function boot() {
     // sacado al inicio. Se quita igual)
     let conHub = true; const sinHub = () => { if (!conHub) return; conHub = false; if (hub.visible || !hub.root.classList.contains('hidden')) hub.hide(); };
     entrada.then(sinHub);
+    // (la carga, vigilada: cada quinto del progreso queda en el informe, y si en 40 s no avanza nada —sin contar el rato con
+    // la app de fondo o el móvil en vertical—, se vuelve al mapa del inicio en vez de quedarse para siempre en «cargando».
+    // Pasó al recargar tras perder la imagen en el iPhone: el juego entraba directo al partido y no acababa de cargar)
+    const prog0 = ui.progress; let progT = performance.now(), progP = -1;
+    ui.progress = (p, m) => { if (p !== progP) { if (Math.floor(p * 5) !== Math.floor(progP * 5)) window.__informeEvento?.(`carga ${Math.round(p * 100)} %${m ? ' · ' + m : ''}`); progP = p; progT = performance.now(); } return prog0.call(ui, p, m); };
+    const vigila = setInterval(() => {
+      if (!loading) { clearInterval(vigila); delete ui.progress; return; }
+      if (document.hidden || window.__girado) { progT = performance.now(); return; }
+      if (performance.now() - progT < 40000) return;
+      clearInterval(vigila); window.__informeEvento?.(`carga atascada en ${Math.round(Math.max(0, progP) * 100)} %: vuelta al mapa`);
+      try { sessionStorage.removeItem('herrizherri-volver'); } catch (e) { }
+      location.replace(`./?v=${Date.now()}`);
+    }, 1000);
     try {
       // (el escudo del pueblo, y el de Pamplona del Labrit, con su acabado: listos antes de montar la plaza y el frontón)
       // (con un tope de 4 segundos: si la imagen no llega, se pinta el dibujo de siempre y la carga sigue)

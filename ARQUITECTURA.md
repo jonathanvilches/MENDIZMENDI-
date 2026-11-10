@@ -1049,6 +1049,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   península se funde con el fondo por sus bordes, mucho por los lados lejanos y poco por el norte, pegado a Navarra, con
   las esquinas redondas (`funde` en `suelo`); antes, al abrirse las nubes, se veía su rectángulo flotando, como un
   cuadrado. Tampoco hay ya esquinas de visor en la entrada.
+- **La carga, vigilada** (`play` en `main.js`, noviembre de 2026): cada quinto del progreso de la carga de un pueblo o de un
+  campeonato queda en el informe («carga 40 % · …»); si en 40 s no avanza nada (sin contar el rato con la app de fondo o
+  el móvil en vertical), se apunta «carga atascada» y se vuelve al mapa del inicio en lugar de quedarse en «cargando».
+  Pasó al recargar tras perder la imagen en el iPhone: el juego entraba directo al partido y no acababa de cargar.
 - **El mapa con otro color, más relieve y nieve; los pueblos, en medallones** (noviembre de 2026): la paleta de alturas,
   menos verde (salvia grisácea en lo bajo, oliva en las sierras, pardo y gris en la roca, blanco arriba; `PALETA`); el
   relieve fino de cada comarca, que traía los verdes de antes pintados, aporta solo sus luces y sus sombras; las luces,
