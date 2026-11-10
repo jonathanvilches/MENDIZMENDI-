@@ -7,7 +7,7 @@
 // de audio (src/assets/voz/hombre/es/dejada-2.mp3) y la que sale en el guion de grabación.
 import { duoElegido, ponDuo } from '../util/comentarios.js';
 export { duoElegido, ponDuo };
-// (n: narra la jugada; e: la explica, con lo que sabría un ex pelotari. Con una sola voz, las dos las dice el mismo)
+// (n: narra la jugada, con la voz del autor; e: la explica, con lo que sabría un ex pelotari, con la segunda voz)
 export const F = {
   es: {
     inicio: [['n', 'Buenas tardes y bienvenidos al frontón. Empieza el partido.'], ['n', 'Todo listo en el frontón. ¡Que empiece el partido!'], ['n', 'Buenas tardes. La grada está llena y los pelotaris, preparados.']],
@@ -71,7 +71,8 @@ export const F = {
   },
 };
 // (el rol, para los subtítulos)
-const ROL = { es: { n: 'Comentarista', e: 'Comentarista' }, eu: { n: 'Esataria', e: 'Esataria' } };
+// (dos voces: el narrador y el ex pelotari, con la segunda voz: pelota/voz.js)
+const ROL = { es: { n: 'Comentarista', e: 'Ex pelotari' }, eu: { n: 'Esataria', e: 'Pilotari ohia' } };
 const TIPO = { bote: null, chapa: 'chapa', alta: 'fuera', pared: 'fuera', lado: 'fuera', fuera: 'fuera', largo: 'fuera', falta: 'falta', falta45: 'falta', pasa: 'pasa', pasa45: 'pasa', cuatro: 'fuera' };
 const REMATE = { dejada: 'dejada', cortada: 'cortada', dosparedes: 'dosparedes', volea: 'volea', gancho: 'gancho', saque: 'saque' };
 

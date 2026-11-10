@@ -297,7 +297,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `herrizherri-voz`, porque el partido suena con otro contexto). Los aplausos de después de un tanto tapaban la frase
   que lo comenta. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
   a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. Grabadas: las 63 frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el
-  euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación.
+  euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación. Dos comentaristas: el narrador
+  (las frases «n») con la voz del autor tal cual y el ex pelotari que explica la jugada (las «e», 29) con la segunda voz,
+  `src/assets/voz/hombre2/`: la misma grabación, 2,6 semitonos más grave con el timbre de otra persona, algo más pausada
+  y al mismo volumen (`tools/segunda-voz.sh`, rubberband; de 158 a 134 Hz de tono medio). En los subtítulos,
+  «Comentarista» y «Ex pelotari». Al grabar frases nuevas, se vuelve a pasar el guion.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
