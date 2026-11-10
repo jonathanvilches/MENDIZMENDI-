@@ -804,9 +804,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sección (`--cat`), bando o deporte, lila si no tiene; lo elegido, en rosa, y lo bloqueado o vacío, apagado. Sustituye
   a las esquinas cortadas en ángulo y a sus marcos dibujados (`ui/frames.js`, retirado): las 57 reglas con `clip-path`
   de corte pasaron a `border-radius` en su propia hoja. Siguen como formas, no como cajas, las cintas de premio, las dos
-  mitades del VS y la silueta de la carta de pelotari. Tres maneras: el filo quieto, para casi todo, es un contorno
-  (`outline`) de 1,5 px por dentro del borde (1 px en los rótulos pequeños) con un brillo de sombra: no mueve nada de
-  sitio, va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera; las cajas van en tres listas
+  mitades del VS y la silueta de la carta de pelotari. El filo es de 1 px en todo (antes, 1,5 y 2 px: se comía el
+  relleno). Tres maneras: el filo quieto, para casi todo, es un contorno (`outline`) de 1 px por dentro del borde, con un
+  brillo de sombra: cae encima del borde fino que ya tenía la caja, así que no mueve nada de sitio ni quita aire al
+  contenido, va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera; las cajas que no tenían
+  borde reciben uno transparente de 1 px, para que el filo tenga su propio píxel y el relleno siga igual (salvo las
+  cartas que son marco de foto, cuyo relleno de 2 px es el marco); las cajas van en tres listas
   (tarjetas y bloques, 8 px; paneles y ventanas, 10 px; rótulos pequeños, campos y chips, 6 px), y una caja nueva entra
   en la que le toca. En las tarjetas con el relleno en `::before` (la carta del menú, las de Torneos y las de pelotari),
   un cuadrado con degradado cónico que gira detrás del relleno y da la vuelta al borde (`::after`, solo transformación:
