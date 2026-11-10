@@ -1,6 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe } from './rules.js';
 import { Comentarios } from './comenta.js';
 import { Voz } from './voz.js';
 import { subtitulos } from '../util/comentarios.js';
@@ -306,7 +306,7 @@ export class PelotaMatch {
     // mano a mano o por parejas (y tú, de delantero o de zaguero): solo en los partidos libres
     const canPairs = !!this.o.mates && g.mode === 'match', P = t.pairs || TEXT.es.pairs;
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back], ['cuatro', P.four || TEXT.es.pairs.four]].filter(([k]) => !(this.o.forcePairs && (k === 'mano' || k === 'cuatro'))), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : this.cuatro ? 'cuatro' : 'mano';
-    const TT = t.tour || TEXT.es.tour, MT = t.mat || TEXT.es.mat, CD = t.camDyn || TEXT.es.camDyn, CF = t.camFija || TEXT.es.camFija, OT = t.optTabs || TEXT.es.optTabs, RP = t.repe || TEXT.es.repe;
+    const TT = t.tour || TEXT.es.tour, MT = t.mat || TEXT.es.mat, CD = t.camDyn || TEXT.es.camDyn, CF = t.camFija || TEXT.es.camFija, DU = t.dur || TEXT.es.dur, OT = t.optTabs || TEXT.es.optTabs, RP = t.repe || TEXT.es.repe;
     const reglas = [...(this.cuatro ? [(t.cuatro || TEXT.es.cuatro).rule] : []), ...t.rules];
     const sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].filter(Boolean).join(' · ');
     // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
@@ -319,6 +319,7 @@ export class PelotaMatch {
       <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
         <div class="pel-otabs" role="tablist"><button class="pel-back" data-pel-back>${t.optBack || TEXT.es.optBack}</button>${OT.map((l, i) => `<button role="tab" data-pel-tab="${i}" aria-selected="${i === (this.optTab || 0)}">${l}</button>`).join('')}</div>
         <div class="pel-opane" data-pane="0"${(this.optTab || 0) === 0 ? '' : ' hidden'}>
+        ${g.mode === 'match' && !this.o.fixedLevel ? `<small class="pel-lbl">${DU[0]}</small><div class="pel-levels pel-dur" role="group" aria-label="${DU[0]}">${DURACIONES.map(k => `<button data-pel-dur="${k}" aria-pressed="${k === duracionElegida()}">${DU[1][k]} <small>${tantosDe(this.o.tBase ?? 5, k)}</small></button>`).join('')}</div>` : ''}
         ${canPairs ? `<div class="pel-levels pel-mod" role="group" aria-label="${P.label}">${mods.map(([k, l]) => `<button data-pel-mod="${k}" aria-pressed="${k === cur}">${l}</button>`).join('')}</div>` : ''}
         ${this.pairs ? `<p class="pel-pairs">${P.how(this.role === 'delantero')} ${P.energy}</p>` : ''}
         <div class="pel-orow"><p class="pel-ballwhat"><b>${MT.title}.</b> ${MT.sub(POR_LADO(this.pairs))}</p>
@@ -338,6 +339,7 @@ export class PelotaMatch {
     tap(p, (b) => {
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
+      if (b.dataset.pelDur) { ponDuracion(b.dataset.pelDur); this.o.target = tantosDe(this.o.tBase ?? 5, b.dataset.pelDur); this.newGame(); this.intro(); return; }   // (la duración: rules.js)
       if (b.hasAttribute('data-pel-more')) { showOpts(true); p.querySelector(`[data-pel-tab="${this.optTab || 0}"]`)?.focus({ preventScroll: true }); return; }
       if (b.hasAttribute('data-pel-back')) { showOpts(false); p.querySelector('[data-pel-more]')?.focus({ preventScroll: true }); return; }
       if (b.dataset.pelTab != null) { this.optTab = +b.dataset.pelTab;

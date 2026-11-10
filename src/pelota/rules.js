@@ -140,6 +140,14 @@ export function pelotariStyle(seed = '', st = { fuerza: 3, agilidad: 3, velocida
 // golpes preferidos; el golpe estrella es el que más le gusta. La mano y el arquetipo de tu pelotari salen de tus
 // cualidades (eres diestro: el juego no tiene todavía mano para elegir).
 /** ¿Juega con la izquierda? (siempre lo mismo para el mismo nombre y pueblo) */
+// La duración de los partidos, a elegir antes de jugar (herrizherri-pelota-duracion): rápido, normal (la de serie),
+// largo o profesional, a 22 tantos como los partidos de verdad. Los torneos y el partido libre se escribieron a 5-9
+// tantos (su «base»): tantosDe los alarga según la duración, sin pasar de 22. A 5 tantos se quedaban muy cortos
+const KD = 'herrizherri-pelota-duracion';
+export const DURACIONES = ['rapido', 'normal', 'largo', 'pro'];
+export const duracionElegida = () => { try { const v = localStorage.getItem(KD); return DURACIONES.includes(v) ? v : 'normal'; } catch (e) { return 'normal'; } };
+export const ponDuracion = (v) => { try { localStorage.setItem(KD, v); } catch (e) { /* sin almacenamiento */ } };
+export const tantosDe = (b = 5, d = duracionElegida()) => d === 'pro' ? 22 : Math.min(22, Math.max(b, Math.round(b * ({ rapido: 1.4, normal: 2.4, largo: 3.4 }[d] || 2.4))));
 export const esZurdo = (name = '', town = '') => fnv(`zurdo ${name} ${town}`) % 100 < 12;
 const BASE_GOLPE = (st) => ({ cortada: st.fuerza, largo: st.fuerza, dosparedes: st.agilidad, gancho: st.agilidad, dejada: (st.velocidad + st.agilidad) / 2 });
 /** { arq: 'rematador'|'defensor'|'estratega'|'zurdo', zurdo, estrella (un golpe de SHOTS) } de un pelotari. */
@@ -231,7 +239,7 @@ const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 export const TEXT = {
   es: {
-    title: 'Pelota a mano', to: (n) => `a ${n} tantos`, rally: (n) => `Peloteo: ${n} seguidas`,
+    title: 'Pelota a mano', to: (n) => `a ${n} tantos`, dur: ['Duración', { rapido: 'Rápido', normal: 'Normal', largo: 'Largo', pro: 'Profesional' }], rally: (n) => `Peloteo: ${n} seguidas`,
     entra: ['¡Salen los pelotaris!'],   // (la salida de los pelotaris a la cancha: match.js saleEntrada)
     you: 'Tú', red: 'Gorriak', blue: 'Urdinak',
     rules: [
@@ -356,7 +364,7 @@ export const TEXT = {
     ],
   },
   eu: {
-    title: 'Esku pilota', to: (n) => `${n} tantora`, rally: (n) => `Pilotakada: ${n} jarraian`,
+    title: 'Esku pilota', to: (n) => `${n} tantora`, dur: ['Iraupena', { rapido: 'Azkarra', normal: 'Arrunta', largo: 'Luzea', pro: 'Profesionala' }], rally: (n) => `Pilotakada: ${n} jarraian`,
     entra: ['Pilotariak kantxara!'],
     you: 'Zu', red: 'Gorriak', blue: 'Urdinak',
     rules: [

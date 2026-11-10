@@ -299,6 +299,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
   (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
   del rebote.
+- **Duración de los partidos** (`pelota/rules.js`, `DURACIONES`, `duracionElegida`, `tantosDe`; en «Más opciones» del
+  partido, `pelota/match.js`; `herrizherri-pelota-duracion`): rápido, normal (la de serie), largo o profesional, a 22
+  tantos. Los torneos, el partido libre y la misión se escribieron a 5-9 tantos y se alargan según la duración, sin pasar
+  de 22 (`game/fronton.js`, `playPelota`, guarda la base en `tBase`); los resultados de los demás partidos del torneo y lo
+  que se lee en los cuadros, igual (`game/torneo.js`). Normal: el libre a 12, la final de un torneo de 16 a 22.
 - **Marcador del frontón a la derecha del frontis** (`pelota/court.js`, `bigBoard`, `setScore`): como en los frontones de
   verdad, sobre la contracancha, en lo alto de dos postes y algo vuelto hacia la cancha, con dos filas (azules arriba,
   colorados abajo) en los morados del juego. Antes estaba encima del frontis. En el Labrit no sale: allí está su pantalla

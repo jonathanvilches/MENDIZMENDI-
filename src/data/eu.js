@@ -364,7 +364,7 @@ export const EU_RX = [
   [/^Siguiente: (.+)$/, 'Hurrengoa: $1'], [/^Seguir paseando por (.+)$/, 'Jarraitu $1n paseatzen'],
   [/^Aquí te esperan (\d+) misiones(.*)$/, 'Hemen $1 misio dituzu zain$2'],
   [/^Sigue los mojones hasta la cima \((\d+)\/(\d+)\)$/, 'Jarraitu mugarriei gailurreraino ($1/$2)'], [/^Llega a la cima del (.+)$/, 'Iritsi $1 gailurrera'],
-  [/^Gana el partido de pelota a 5 tantos$/, 'Irabazi pilota partida 5 tantora'],
+  [/^Gana el partido de pelota a (\d+) tantos$/, 'Irabazi pilota partida $1 tantora'],
   [/^Tú – (.+)$/, 'Zu – $1'],
   [/^Llevas (\d+)\/(\d+) cimas\.$/, '$1/$2 gailur dituzu.'],
   [/^¡Kaixo, (.+)! Soy (\S+), (.+) de (.+)\.$/, (m, a, b, c, d) => `Kaixo, ${a}! ${b} naiz, ${d}ko ${(EU_EXACT[c[0].toUpperCase() + c.slice(1)] || c).toLowerCase()}.`],

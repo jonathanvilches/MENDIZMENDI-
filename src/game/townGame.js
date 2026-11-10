@@ -1,4 +1,5 @@
 // Partida en un pueblo o ciudad: misiones con pasos claros, personajes, minijuegos y sello final.
+import { tantosDe } from '../pelota/rules.js';
 import { nombreLibre } from '../data/nombres.js';
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
@@ -189,7 +190,7 @@ export class TownGame {
       case 'figure': { const F = M.fig = PERSONAJES[m.who]; M.figId = m.who; M.figImg = personajeUrl(m.who) || ''; M.title = F.name; M.icon = F.icon;
         M.steps = () => ['Habla con ' + host(), `Ve a ver el recuerdo de ${F.name}`, 'Responde la pregunta']; break; }
       case 'pelota': M.title = m.title || 'Partido en el frontón'; M.icon = 'pelota';
-        M.steps = () => ['Habla con ' + host(), 'Gana el partido de pelota a 5 tantos']; break;
+        M.steps = () => ['Habla con ' + host(), `Gana el partido de pelota a ${tantosDe(5)} tantos`]; break;
       case 'quiz': M.title = `El sabio de ${d.name}`; M.icon = 'quiz'; M.need = QUIZ_N; M.steps = () => ['Habla con ' + host(), `Responde bien las preguntas (${M.count}/${M.need})`]; break;
       default: M.title = m.title || 'Misión'; M.icon = 'star'; M.steps = () => ['Habla con ' + host()];
     }

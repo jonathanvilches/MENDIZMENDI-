@@ -12,7 +12,7 @@
 // rondas, que ya iban por la mitad, se acaban con su cuadro de siempre; los que no habían empezado, se rehacen.)
 import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
-import { pelotariStats, temporadas, levelTier } from '../pelota/rules.js';
+import { pelotariStats, temporadas, levelTier, tantosDe } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
 import { tusCualidades, tuPelotari } from './pelotariProgreso.js';
 import { pelotariCard } from '../ui/sportCard.js';
@@ -178,8 +178,8 @@ export function playTorneoRound(T, you = null, rival = null) {
     const A = T.players[m.a], B = T.players[m.b];
     if ((A.you || B.you) && you != null) m.s = A.you ? [you, rival] : [rival, you];
     else {
-      const pa = clamp01(0.5 + (fuerza(T, A) - fuerza(T, B)) * 0.03), aw = r() < pa, lose = Math.floor(r() * R.target * 0.85);
-      m.s = aw ? [R.target, lose] : [lose, R.target];
+      const tt = tantosDe(R.target), pa = clamp01(0.5 + (fuerza(T, A) - fuerza(T, B)) * 0.03), aw = r() < pa, lose = Math.floor(r() * tt * 0.85);
+      m.s = aw ? [tt, lose] : [lose, tt];
     }
   }
   T.past.push({ name: R.name, matches: T.matches.map(m => ({ ...m })), ...(R.liga != null ? { liga: true } : {}) });
@@ -427,7 +427,7 @@ function bracketHtml(T, hidden = false) {
     const champ = fin ? `<div class="tq-cup">${TXAPELA()}${T.done ? `<b>${esc(T.players[T.champion].name)}</b>` : 'Txapela'}</div>` : '';
     // (la final, justo a media altura: entre las dos semifinales; la txapela, colgada debajo, sin moverla)
     const body = fin ? `<div class="tq-ms tq-fin"><div class="tq-finm">${rows}${champ}</div></div>` : `<div class="tq-ms">${rows}</div>`;
-    return `<div class="tq-rd${gi === T.round && !T.done ? ' now' : ''}"><h4><span class="tq-l">${R.name}</span><span class="tq-c" data-notr>${corto(R.name)}</span><small>A ${R.target} tantos</small></h4>${body}</div>`;
+    return `<div class="tq-rd${gi === T.round && !T.done ? ' now' : ''}"><h4><span class="tq-l">${R.name}</span><span class="tq-c" data-notr>${corto(R.name)}</span><small>A ${tantosDe(R.target)} tantos</small></h4>${body}</div>`;
   }).join('');
   return `<div class="tq-br k${K}${T.kind === 'parejas' ? ' tq-pairs' : ''}" style="--k1:${K - 1}" data-n="${ns.join(',')}"${hidden ? ' hidden' : ''}>${cols}<svg class="tq-lines" aria-hidden="true"></svg></div>`;
 }
@@ -569,7 +569,7 @@ export function torneoPanel(T, here = null, o = null) {
     else if (m) {
       const rv = m.rival, rvStats = pairs ? mateStats(rv, 0) : statsOf(rv);
       etiqueta = m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round;
-      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="lg-chip">A ${m.target} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
+      left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="lg-chip">A ${tantosDe(m.target)} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
 `;
       sede = o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
     } else left = `<div class="tq-banner"><div class="tq-bt"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div></div>`;
@@ -675,7 +675,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
       <div class="tq-carr"><button class="tq-flecha izq" aria-label="Anteriores" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="tq-tiles${T2 ? T3 ? ' n5' : '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.mano.k}</span><b>${KINDS.mano.name}</b><small>${sub(T)}</small></button>
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
         ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
-        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A 5 tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
+        <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A ${tantosDe(5)} tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
         ${camaraDisponible() ? `<button class="tq-tile casa" data-a="camara" style="--d:1.7s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">Con la cámara</span><b>Pelota en casa</b><small>Tu pelotari hace lo que&nbsp;haces</small></button>` : ''}
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);

@@ -7,7 +7,7 @@ import { outfitTint } from '../actors/npcOutfit.js';
 import { loadChica, hasChica } from '../actors/chicas.js';
 import { PelotaCourt, PelotaMatch, labritExtent } from '../pelota/index.js';
 import { entornoExtent } from '../pelota/entorno.js';
-import { pelotariStats, levelTier, COURT } from '../pelota/rules.js';
+import { pelotariStats, levelTier, COURT, tantosDe } from '../pelota/rules.js';
 import { terrainHeight, waterLevelAt, addPlatform, removePlatform, onPlatform } from '../world/heightfield.js';
 import { addBox, removeCollider, rectFree, removeMover, nearby } from '../world/colliders.js';
 import { rx, pathQuery, cercaDeYacimiento } from '../world/layout.js';
@@ -371,6 +371,7 @@ function pancartasDe(C, you, riv, town, colors) {
 // partido «se sale solo» sin que se sepa por qué)
 const apunta = (donde, e) => { const l = String(e?.stack || '').split('\n').find(x => /\.js/.test(x))?.trim().slice(0, 140) || ''; (window.__errors ||= []).push(`${donde}: ${e?.message || e}${l ? ' @ ' + l : ''}`.slice(0, 300)); };
 export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false } = {}) {
+  const tBase = target; if (mode === 'match') target = tantosDe(tBase);   // (la duración elegida: rules.js)
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
     const P = G.player, rig0 = P.rig, home = { x: rival.pos.x, z: rival.pos.z, h: rival.heading };
@@ -532,7 +533,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     try { jueces = G.pelotaJueces = makeJueces(G, fronton.court); } catch (e) { console.warn('jueces', e); apunta('jueces', e); }
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
-      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, level, fixedLevel, rivalStats: rStats,
+      THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, tBase, level, fixedLevel, rivalStats: rStats,
       you: { obj: P.obj, sombra: P.blob, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },   // (sombra: la redonda de los móviles, que en primera persona se esconde)
       rival: { obj: rival.obj, name: rivName, animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),

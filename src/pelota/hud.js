@@ -193,6 +193,7 @@ const CSS = `
 .pel-lbl{display:block;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px}
 .pel-levels{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
+.pel-dur button small{font:inherit;font-weight:700;opacity:.7;margin-left:4px}
 .pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
 .pel-go{border:0;border-radius:999px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
 .pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
