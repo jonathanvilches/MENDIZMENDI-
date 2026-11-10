@@ -350,7 +350,11 @@ export class CamaraCuerpo {
     let aimX;
     if (G.derecha) {
       const ex = Math.min(G.minRx / sw, fin), codo = G.minCodo != null ? G.minCodo / sw : 9;
-      aimX = ex <= -0.5 || (codo <= -0.05 && ex <= -0.25) ? -1 : ex < -0.1 && sigue < 0.1 ? Math.max(-0.68, ex * 1.25) : clamp(Math.max(0, fin - 0.15) * 0.9 + Math.max(0, sigue) * 1.1, 0, 1);
+      // (dos paredes: el brazo que acaba cruzado, con la mano más allá del hombro izquierdo al final o el codo pasado al otro
+      // lado; o que llegó muy lejos, aunque luego vuelva. Antes bastaba con que la mano pasara por ahí, y un golpe que acababa
+      // a la derecha salía a dos paredes: informe del 10 de noviembre, cruce -0,59, fin 0,19, codo 0,34)
+      const dos = (fin <= -0.45 && ex <= -0.5) || (codo <= -0.05 && fin <= -0.25) || ex <= -0.95;
+      aimX = dos ? -1 : ex < -0.1 && sigue < 0.1 ? Math.max(-0.68, ex * 1.25) : clamp(Math.max(0, fin - 0.15) * 0.9 + Math.max(0, sigue) * 1.1, 0, 1);
     } else {
       const ex = Math.max(G.maxRx / sw, fin);
       aimX = ex > 0.1 && sigue > -0.1 ? Math.min(1, ex * 1.1) : -clamp(Math.max(0, -fin - 0.15) * 0.9 + Math.max(0, -sigue) * 0.8, 0, 0.65);
