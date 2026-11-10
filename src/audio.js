@@ -1,7 +1,7 @@
 // Sonido procedural con Web Audio: ambiente (río, viento, pájaros), pasos, animales, campanas y música
 import { riverInfo, PLACES } from './world/layout.js';
 import { clamp } from './util/math.js';
-import { Musica } from './audio/pistas.js';
+import { Musica, carga, Ambiente } from './audio/pistas.js';
 import { Frases } from './audio/frases.js';
 
 // --- la música por ambientes: solo las canciones grabadas (src/assets/sonidos, src/audio/pistas.js). La música
@@ -10,9 +10,21 @@ import { Frases } from './audio/frases.js';
 // persecuciones · game: los minijuegos · fiesta: San Fermín, el carnaval y los bailes · sport: los partidos y los
 // campeonatos · pelota: el partido de pelota, con gaita y percusión, más viva · inicio: el menú · torneos: la pantalla
 // de Torneos · none: nada)
-const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-juego', game: 'musica-juego', fiesta: 'musica-juego',
+const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-accion', game: 'musica-juego', fiesta: 'musica-juego',
   sport: 'musica-torneos', pelota: 'musica-pelota', inicio: 'musica-inicio', torneos: 'musica-torneos' };
 
+// los sonidos grabados (src/assets/sonidos, Envato Elements: LICENCIAS.md): de cada lista, uno al azar sin repetir el
+// último. Si aún no está descomprimido suena el sintetizado de antes, que sigue aquí debajo; los de los menús y los
+// pasos se descomprimen al abrir el juego, los de los animales al entrar en un pueblo
+const GRAB = {
+  perro: ['perro-1', 'perro-2', 'perro-3'], oveja: ['oveja-1', 'oveja-2', 'oveja-3', 'oveja-4'], vaca: ['vaca'], cerdo: ['cerdo-1', 'cerdo-2', 'cerdo-3'],
+  relincho: ['caballo-relincho'], resoplido: ['caballo-resoplido'],
+  piedra: ['paso-piedra-1', 'paso-piedra-2', 'paso-piedra-3', 'paso-piedra-4', 'paso-piedra-5', 'paso-piedra-6'], agua: ['paso-agua-1', 'paso-agua-2', 'paso-agua-3', 'paso-agua-4'],
+  click: ['ui-click'], open: ['ui-abre'], coin: ['ui-moneda'], card: ['ui-carta'], error: ['ui-error'], magia: ['ui-magia'], fanfarria: ['ui-fanfarria'],
+};
+// (lo fuerte que va cada uno: los grabados vienen a −3 dB de pico; así quedan como los sintetizados, algo por encima)
+const GVOL = { perro: 0.3, oveja: 0.2, vaca: 0.26, cerdo: 0.24, relincho: 0.26, resoplido: 0.3, click: 0.22, open: 0.22, coin: 0.2, card: 0.2, error: 0.14, magia: 0.22, fanfarria: 0.24 };
+const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido'];
 export class Sound {
   constructor() {
     this.ctx = null; this.enabled = true; this.musicOn = true; this.musVol = 0.32;
@@ -42,6 +54,7 @@ export class Sound {
     this.pistas.prepara(new Set(Object.values(MUSICA)));
     // la música del paseo: frases cortas y silencio (audio/frases.js); la familia de la comarca la pone runtime.js (aire)
     this.frases = new Frases(ctx, this.master, this.verb);
+    for (const k of AL_ABRIR) for (const n of GRAB[k]) carga(ctx, n);
   }
   impulse(sec) {
     const ctx = this.ctx, len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -61,6 +74,17 @@ export class Sound {
     src.connect(f); f.connect(g); g.connect(this.sfx); src.start();
     return { src, f, g };
   }
+  /** Un grabado de la lista k, al azar y sin repetir el último, en dest (si no se da, el canal de efectos con su
+   *  volumen). false si aún no hay ninguno descomprimido (entonces, el sintetizado) */
+  grab(k, dest, rate = 1) {
+    if (!this.ctx) return false;
+    const L = GRAB[k].filter(n => carga(this.ctx, n).buf); if (!L.length) return false;
+    const U = this.ultG ||= {}; let n = L[Math.floor(Math.random() * L.length)]; if (L.length > 1 && n === U[k]) n = L[(L.indexOf(n) + 1) % L.length]; U[k] = n;
+    if (!dest) { dest = this.ctx.createGain(); dest.gain.value = GVOL[k] ?? 0.25; dest.connect(this.sfx); }
+    const s = this.ctx.createBufferSource(); s.buffer = carga(this.ctx, n).buf; s.playbackRate.value = rate; s.connect(dest); s.start(); return true;
+  }
+  /** ¿Hay alguno de la lista k listo para sonar? (para no crear su salida en balde) */
+  hay(k) { return !!this.ctx && GRAB[k].some(n => carga(this.ctx, n).buf); }
   // posición 3D simple: atenuación + panorama
   spatial(pos, maxD = 40) {
     if (!pos) return { gain: 1, pan: 0 };
@@ -97,6 +121,11 @@ export class Sound {
   step(surf, speed) {
     if (!this.ctx) return;
     const v = 0.18 + clamp(speed / 7, 0, 1) * 0.15;
+    // (sobre piedra y en el agua, pasos grabados: el empedrado de las calles y los puentes, y el chapoteo en el río)
+    if ((surf === 'stone' || surf === 'water') && this.hay(surf === 'stone' ? 'piedra' : 'agua')) {
+      const g = this.ctx.createGain(); g.gain.value = v * (surf === 'stone' ? 0.85 : 1.1); g.connect(this.sfx);
+      if (this.grab(surf === 'stone' ? 'piedra' : 'agua', g, 0.94 + Math.random() * 0.12)) return;
+    }
     const d = this.sfx;
     if (surf === 'stone') { this.noiseBurst(0.07, 1800, 1.2, v * 0.9, d); this.tone(140 + Math.random() * 30, 0.05, 'triangle', v * 0.3, d); }
     else if (surf === 'wood') { this.tone(190 + Math.random() * 40, 0.1, 'triangle', v * 0.7, d); this.noiseBurst(0.05, 900, 2, v * 0.3, d); }
@@ -110,6 +139,7 @@ export class Sound {
   splash(pos, v = 0.5) { if (!this.ctx) return; const o = this.out(pos, 30, v); if (o) { this.noiseBurst(0.35, 1500, 0.5, 1, o); this.noiseBurst(0.2, 3500, 1, 0.5, o, 0.05); } }
   ui(kind = 'click') {
     if (!this.ctx) return;
+    if (GRAB[kind] && this.grab(kind)) return;   // (los de los menús, grabados; la foto y el habla siguen sintetizados)
     const d = this.sfx;
     if (kind === 'click') this.tone(880, 0.06, 'sine', 0.12, d);
     else if (kind === 'open') { this.tone(520, 0.08, 'sine', 0.1, d); this.tone(780, 0.1, 'sine', 0.1, d, 0.05); }
@@ -121,16 +151,27 @@ export class Sound {
   }
   fanfare() {
     if (!this.ctx) return;
+    if (this.grab('fanfarria')) return;
     const d = this.sfx, notes = [523, 659, 784, 1047, 784, 1047];
     notes.forEach((f, i) => { this.tone(f, 0.35, 'triangle', 0.14, d, i * 0.11); this.tone(f / 2, 0.35, 'sine', 0.08, d, i * 0.11); });
   }
-  baa(pos) { if (!this.ctx) return; const o = this.out(pos, 35, 0.5); if (!o) return; const f0 = 280 + Math.random() * 120; const osc = this.tone(f0, 0.7, 'sawtooth', 0.12, o, 0, 0.05); const lfo = this.ctx.createOscillator(); lfo.frequency.value = 22; const lg = this.ctx.createGain(); lg.gain.value = 18; lfo.connect(lg); lg.connect(osc.frequency); lfo.start(); lfo.stop(this.ctx.currentTime + 0.8); }
-  oink(pos) { if (!this.ctx) return; const o = this.out(pos, 30, 0.5); if (!o) return; for (let i = 0; i < 2; i++) this.tone(150 + Math.random() * 40, 0.16, 'sawtooth', 0.12, o, i * 0.2, 0.02, 95); }
+  baa(pos) { if (!this.ctx) return; if (this.hay('oveja')) { const g = this.out(pos, 38, GVOL.oveja, 0.15); if (g) this.grab('oveja', g, 0.92 + Math.random() * 0.16); return; } const o = this.out(pos, 35, 0.5); if (!o) return; const f0 = 280 + Math.random() * 120; const osc = this.tone(f0, 0.7, 'sawtooth', 0.12, o, 0, 0.05); const lfo = this.ctx.createOscillator(); lfo.frequency.value = 22; const lg = this.ctx.createGain(); lg.gain.value = 18; lfo.connect(lg); lg.connect(osc.frequency); lfo.start(); lfo.stop(this.ctx.currentTime + 0.8); }
+  oink(pos) { if (!this.ctx) return; if (this.hay('cerdo')) { const g = this.out(pos, 32, GVOL.cerdo, 0.1); if (g) this.grab('cerdo', g, 0.94 + Math.random() * 0.12); return; } const o = this.out(pos, 30, 0.5); if (!o) return; for (let i = 0; i < 2; i++) this.tone(150 + Math.random() * 40, 0.16, 'sawtooth', 0.12, o, i * 0.2, 0.02, 95); }
   // encierro: bufido de toro y retumbar de pezuñas sobre el adoquín
   snort(v = 0.6) { if (!this.ctx) return; this.noiseBurst(0.45, 380, 0.7, 0.5 * v, this.sfx, 0, 'lowpass'); this.tone(70, 0.5, 'sawtooth', 0.08 * v, this.sfx, 0.02, 0.04, 48); }
   hooves(v = 0.5) { if (!this.ctx) return; for (let i = 0; i < 4; i++) { this.noiseBurst(0.05, 160 + Math.random() * 120, 1.2, v * (0.6 + Math.random() * 0.4), this.sfx, i * 0.075); this.tone(55, 0.06, 'sine', 0.2 * v, this.sfx, i * 0.075); } }
-  moo(pos) { if (!this.ctx) return; const o = this.out(pos, 50, 0.6); if (!o) return; this.tone(110, 1.3, 'sawtooth', 0.14, o, 0, 0.2, 85); }
-  bark(pos) { if (!this.ctx) return; const o = this.out(pos, 45, 0.7); if (!o) return; for (let i = 0; i < 2; i++) { this.tone(420, 0.1, 'square', 0.12, o, i * 0.18, 0.005, 250); this.noiseBurst(0.08, 900, 1, 0.3, o, i * 0.18); } }
+  moo(pos) { if (!this.ctx) return; if (this.hay('vaca')) { const g = this.out(pos, 55, GVOL.vaca, 0.2); if (g) this.grab('vaca', g, 0.9 + Math.random() * 0.15); return; } const o = this.out(pos, 50, 0.6); if (!o) return; this.tone(110, 1.3, 'sawtooth', 0.14, o, 0, 0.2, 85); }
+  bark(pos) { if (!this.ctx) return; if (this.hay('perro')) { const g = this.out(pos, 48, GVOL.perro, 0.12); if (g) this.grab('perro', g, 0.95 + Math.random() * 0.1); return; } const o = this.out(pos, 45, 0.7); if (!o) return; for (let i = 0; i < 2; i++) { this.tone(420, 0.1, 'square', 0.12, o, i * 0.18, 0.005, 250); this.noiseBurst(0.08, 900, 1, 0.3, o, i * 0.18); } }
+  // el caballo de montar (game/montura.js): relincho al montar, algún resoplido parado y los cascos al trote y al galope
+  relincho(pos) { if (!this.ctx) return; const g = this.out(pos, 60, GVOL.relincho, 0.25); if (g) this.grab('relincho', g, 0.96 + Math.random() * 0.08); }
+  resoplido(pos) { if (!this.ctx) return; const g = this.out(pos, 30, GVOL.resoplido, 0.1); if (g) this.grab('resoplido', g, 0.92 + Math.random() * 0.16); }
+  /** k de 0 a 1: lo rápido que va la montura (0, parada). Un bucle de galope que se acelera con ella y se calla al paso */
+  cascos(k) {
+    if (!this.ctx) return; this.cascosAt = performance.now();
+    if (!this.galope) { const b = carga(this.ctx, 'caballo-galope').buf; if (!b || k <= 0) return; const g = this.ctx.createGain(); g.gain.value = 0; g.connect(this.sfx); const s = this.ctx.createBufferSource(); s.buffer = b; s.loop = true; s.connect(g); s.start(); this.galope = { s, g }; }
+    const t = this.ctx.currentTime, v = clamp((k - 0.28) / 0.4, 0, 1) * 0.32;
+    this.galope.g.gain.setTargetAtTime(v, t, 0.15); this.galope.s.playbackRate.setTargetAtTime(0.78 + clamp(k, 0, 1) * 0.36, t, 0.3);
+  }
   cowbell(pos, v = 0.4) { if (!this.ctx) return; const o = this.out(pos, 45, v, 0.3); if (!o) return; const f = 520 + Math.random() * 90; this.tone(f, 0.5, 'square', 0.05, o); this.tone(f * 1.48, 0.4, 'triangle', 0.05, o); this.tone(f * 2.7, 0.2, 'sine', 0.03, o); }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
   bird(pos) {
@@ -154,7 +195,7 @@ export class Sound {
   cricket() { if (!this.ctx) return; for (let i = 0; i < 3; i++) this.tone(4200, 0.03, 'sine', 0.015, this.sfx, i * 0.05); }
   // campana de la iglesia: tono grave con armónicos que se apagan despacio
   churchBell(n = 3) { if (!this.ctx) return; for (let i = 0; i < n; i++) { const t = i * 1.1; this.tone(392, 2.6, 'sine', 0.16, this.sfx, t, 0.004); this.tone(392 * 2.4, 1.6, 'sine', 0.06, this.sfx, t, 0.004); this.tone(392 * 0.5, 3, 'sine', 0.09, this.sfx, t, 0.01); this.tone(392 * 3.1, 0.8, 'triangle', 0.03, this.sfx, t, 0.002); } }
-  magic() { if (!this.ctx) return; [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.06, this.sfx, i * 0.06)); }
+  magic() { if (!this.ctx) return; if (this.grab('magia')) return; [1047, 1319, 1568, 2093, 2637].forEach((f, i) => this.tone(f, 0.5, 'sine', 0.06, this.sfx, i * 0.06)); }
   whoosh() { if (this.ctx) this.noiseBurst(0.4, 600, 0.4, 0.2, this.sfx, 0, 'lowpass'); }
   // público del estadio: rumor de muchas voces (ruido filtrado) que sube con las ocasiones y estalla en los goles
   crowd(v = 0.3) { if (!this.ctx) return; this.noiseBurst(1.3, 700, 0.6, 0.12 * v, this.sfx, 0, 'bandpass'); this.noiseBurst(1.1, 1500, 0.8, 0.05 * v, this.sfx, 0.1, 'bandpass'); }
@@ -165,6 +206,13 @@ export class Sound {
     // (una posición sin número, por un salto raro o un fallo, no puede romper el bucle del juego: se ignora)
     if (!Number.isFinite(player.pos.x) || !Number.isFinite(player.pos.y) || !Number.isFinite(player.pos.z)) return;
     const L = this.listener; L.x = player.pos.x; L.y = player.pos.y; L.z = player.pos.z; L.yaw = camYaw + Math.PI; this.ambAt = performance.now(); this.ambQuiet = false;
+    // (en el pueblo: los animales grabados, y dos ambientes grabados en bucle, los pájaros y el pueblo, de día; en el monte
+    // los pájaros más fuertes y sin pueblo; de noche, ninguno de los dos, y en los partidos nada)
+    if (!this.animPre) { this.animPre = true; for (const k of EN_PUEBLO) for (const n of GRAB[k]) carga(this.ctx, n); carga(this.ctx, 'caballo-galope'); }
+    this.pajaros ||= new Ambiente(this.ctx, this.sfx, 'ambiente-pajaros'); this.pueblo ||= new Ambiente(this.ctx, this.sfx, 'ambiente-pueblo');
+    { const dia = clamp((0.62 - night) / 0.25, 0, 1), monte = inIrati || bosque, alto = player.pos.y > 900;
+      this.pajaros.nivel(sport || alto ? 0 : dia * (monte ? 0.26 : 0.13), sport ? 0.12 : 0.8);
+      this.pueblo.nivel(sport || alto || monte ? 0 : dia * 0.24, sport ? 0.12 : 0.8); }
     const r = riverInfo(player.pos.x, player.pos.z);
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;
@@ -177,7 +225,7 @@ export class Sound {
       const a = Math.random() * 6.28, d = 8 + Math.random() * 25;
       const p = { x: player.pos.x + Math.cos(a) * d, z: player.pos.z + Math.sin(a) * d };
       if (night > 0.5) { if (Math.random() < (inIrati ? 0.5 : 0.3)) this.owl(p); else this.cricket(); }
-      else this.bird(p);
+      else if (!this.pajaros?.listo || Math.random() < 0.15) this.bird(p);   // (con los grabados, alguno suelto alrededor, de vez en cuando)
     }
     // monte adentro, de día: de vez en cuando el tamborileo del pito negro o el cuco, lejos
     if (inIrati && night < 0.5 && !sport && (this.drumT = (this.drumT ?? 8) - dt) < 0) {
@@ -249,7 +297,8 @@ export class Sound {
   quietAmbient() {
     const now = performance.now(), t = this.ctx.currentTime;
     if (this.rain && !this.rainQuiet && now - (this.rainAt || 0) > 1500) { this.rainQuiet = true; this.rain.g.gain.setTargetAtTime(0, t, 0.12); }
-    if (!this.ambQuiet && now - (this.ambAt || 0) > 1500) { this.ambQuiet = true; this.river.g.gain.setTargetAtTime(0, t, 0.12); this.wind.g.gain.setTargetAtTime(0, t, 0.12); }
+    if (!this.ambQuiet && now - (this.ambAt || 0) > 1500) { this.ambQuiet = true; this.river.g.gain.setTargetAtTime(0, t, 0.12); this.wind.g.gain.setTargetAtTime(0, t, 0.12); this.pajaros?.nivel(0, 0.12); this.pueblo?.nivel(0, 0.12); }
+    if (this.galope && now - (this.cascosAt || 0) > 400) this.galope.g.gain.setTargetAtTime(0, t, 0.1);   // (al bajarse o al salir del pueblo, los cascos se callan)
   }
   setVolume(v) { if (this.master) this.master.gain.value = v; }
 }

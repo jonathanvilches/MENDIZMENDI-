@@ -1054,6 +1054,7 @@ export class Hub {
       <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ríos, embalses y cimas © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Paisaje de los prismáticos en los miradores: relieve EU-DEM de Copernicus (Unión Europea), SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y ETOPO1 (NOAA, dominio público).</li>
       <li>Músicas, público y gol: de Envato Elements, con licencia solo para este juego («Epic» de MrClaps y de MDFactory, «Game» de cinematic-alex, «Brazil Soccer crowd steady» de rhumphriesDC, «Crowd Cheering and Applauding» de GameChestAudio y «Football Goal» de WistanSound). No se pueden usar fuera del juego.</li>
+      <li>Sonidos de los animales, los pasos, los botones y los ambientes, y la música del encierro: de Envato Elements, con licencia solo para este juego («Horse» de Moonlight Sounds y otros). No se pueden usar fuera del juego.</li>
       <li>Música de los partidos de pelota: «Minstrel Guild», de Kevin MacLeod (incompetech.com), con licencia Creative Commons Atribución 4.0 (creativecommons.org/licenses/by/4.0). Recortada al final.</li>
       <li>Letras: Barlow, Barlow Condensed, Lilita One y Nunito, con licencia SIL Open Font License 1.1.</li>
       <li>Programas: three.js (© 2010-2025 Three.js Authors) y qrcode-generator (© 2009 Kazuhiko Arase), con licencia MIT:</li></ul>

@@ -18,6 +18,7 @@ export const EU_AVENTURA = {
   'Arrastra para moverte · rueda para acercar · clic derecho para girar': 'Arrastatu mugitzeko · gurpila hurbiltzeko · eskuineko klika biratzeko',
   'Arrastra para moverte · pellizca para acercar': 'Arrastatu mugitzeko · atximurkatu hurbiltzeko',
   'La trashumancia: Cañada Real de los Roncaleses': 'Transhumantzia: Erronkariarren Errege Altxonbidea', 'Trashumancia': 'Transhumantzia',
+  'Sonidos de los animales, los pasos, los botones y los ambientes, y la música del encierro: de Envato Elements, con licencia solo para este juego («Horse» de Moonlight Sounds y otros). No se pueden usar fuera del juego.': 'Animalien, urratsen, botoien eta giroen soinuak, eta entzierroaren musika: Envato Elements-ekoak, joko honetarako bakarrik lizentziatuak (Moonlight Sounds-en «Horse» eta beste batzuk). Ezin dira jokotik kanpo erabili.',
   'Otra sección': 'Beste atal bat', 'Diagnóstico': 'Diagnostikoa',
   'Si algo no se ve bien, haz una captura de esto y mándala.': 'Zerbait ondo ikusten ez bada, egin honi pantaila-argazki bat eta bidali.',
   'Para que vaya fluido en un portátil:': 'Eramangarri batean arin ibil dadin:',

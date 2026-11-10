@@ -38,7 +38,7 @@ export class Montura {
     if (P.collider) P.collider.ghost = true;
     if (P.blob) P.blob.visible = false;
     this.sienta(P);
-    this.g.sound?.ui?.('click');
+    if (this.tipo === 'burguete' && this.g.sound?.relincho) this.g.sound.relincho(this.A.pos); else this.g.sound?.ui?.('click');   // (el caballo relincha al montarlo)
   }
   baja() {
     const P = this.P; if (!P) return null;
@@ -83,6 +83,9 @@ export class Montura {
     if (waterLevelAt(nx, nz) - gNew > 0.75 || (m > 1e-4 && (gNew - gOld) / m > 1.0)) { nx = this.x; nz = this.z; this.speed = 0; }
     this.x = nx; this.z = nz;
     A.pos.set(nx, groundHeight(nx, nz), nz); A.heading = this.heading; A.speed = this.speed; A.state = 'walk'; A.t += dt; A.animate(dt); A.sync();
+    // (los cascos, que se aceleran con la montura; y parado, de vez en cuando, un resoplido del caballo)
+    this.g.sound?.cascos?.(this.speed / T.vmax);
+    if (this.tipo === 'burguete' && this.speed < 0.3 && (this.resT = (this.resT ?? 4) - dt) <= 0) { this.resT = 7 + Math.random() * 8; this.g.sound?.resoplido?.(A.pos); }
     P.pos.set(nx, A.pos.y + 0.55, nz); P.heading = this.heading; P.speed = this.speed;
     if (P.collider) { P.collider.x = nx; P.collider.z = nz; }
     // el jinete, en su sitio sobre el lomo, con el vaivén del paso

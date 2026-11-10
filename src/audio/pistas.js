@@ -9,7 +9,8 @@ const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/sonid
   .map(([p, u]) => [p.split('/').pop().replace('.mp3', ''), u]));
 // (el volumen de cada una, para que suenen como la música sintetizada, unos −33 dB a la salida)
 // (la de los partidos de pelota, «Minstrel Guild» de Kevin MacLeod, CC BY 4.0: viene 2 dB más alta que la de Torneos)
-const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5, 'musica-pelota': 0.4 };
+// (la de acción, «Last Man Standing», para el encierro y las persecuciones: viene unos 3 dB más baja que la de los pueblos)
+const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5, 'musica-pelota': 0.4, 'musica-accion': 0.55 };
 
 /** Las músicas grabadas de un contexto de audio: quiere(nombre) cada cuarto de segundo con la que toca (o null). Cambia
  *  de una a otra con un fundido corto. */
@@ -107,6 +108,8 @@ export function carga(ctx, n) {
   }
   return M.get(n);
 }
+/** Olvida la copia descomprimida de n (los ambientes, una vez hecho su bucle: si no, la de 30 s se quedaba en memoria) */
+export function suelta(ctx, n) { CACHE.get(ctx)?.delete(n); }
 /** Suena una vez, si ya está descomprimida (si aún no, empieza a descomprimirla y devuelve false: entonces, el sonido
  *  sintetizado de antes). carga(ctx, n) al empezar el partido la deja a punto */
 export function efecto(ctx, n, dest, vol = 1) {
@@ -124,6 +127,15 @@ export class Grada {
   /** v de 0 a 1: la emoción del partido (tc, lo que tarda en llegar) */
   nivel(v, tc = 0.3) { this.v = v; if (this.s) this.g.gain.setTargetAtTime(0.75 * v, this.ctx.currentTime, tc); }
   para(s = 0.8) { this.fin = true; const t = this.ctx.currentTime; this.g.gain.cancelScheduledValues(t); this.g.gain.setTargetAtTime(0, t, s / 3); if (this.s) this.s.stop(t + s + 0.1); }
+}
+/** Un ambiente grabado en bucle (los pájaros, el pueblo): seg segundos en un canal, con su final fundido sobre el
+ *  principio. nivel(v) lo sube o lo baja con suavidad; mientras no está descomprimido, no suena nada */
+export class Ambiente {
+  constructor(ctx, dest, n, seg = 20) {
+    this.ctx = ctx; this.v = 0; this.g = ctx.createGain(); this.g.gain.value = 0; this.g.connect(dest);
+    carga(ctx, n).then(b => { suelta(ctx, n); if (!b) return; const s = this.s = ctx.createBufferSource(); s.buffer = bucle(ctx, b, seg, 2.5); s.loop = true; s.connect(this.g); s.start(); this.listo = true; this.g.gain.setTargetAtTime(this.v, ctx.currentTime, 1); });
+  }
+  nivel(v, tc = 0.8) { if (Math.abs(v - this.v) < 0.002) return; this.v = v; if (this.s) this.g.gain.setTargetAtTime(v, this.ctx.currentTime, tc); }
 }
 // (los primeros seg segundos en mono; los últimos f, fundidos sobre el principio)
 function bucle(ctx, b, seg, f) {
