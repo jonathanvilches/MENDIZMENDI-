@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { groundHeight } from './world/heightfield.js';
 import { nearby } from './world/colliders.js';
-import { clamp, damp, dampAngle } from './util/math.js';
+import { clamp, damp, dampAngle, angleDiff } from './util/math.js';
 
 const _want = new THREE.Vector3(), _dir = new THREE.Vector3(), _p = new THREE.Vector3();   // (sin crear vectores en cada fotograma)
 // muelle amortiguado (el SmoothDamp de siempre): de x hacia x1 en unos «tiempo» segundos, con la velocidad v que lleva;
@@ -58,12 +58,16 @@ export class FollowCamera {
       return;
     }
     // distancia con colisión: el primer punto del camino hacia la cámara que cae en una casa, afinado entre dos pasos (a
-    // pasos de 40 cm, la distancia iba a saltos)
+    // pasos de 40 cm, la distancia iba a saltos). Se mira por tres caminos, el del centro y dos que se abren hasta medio
+    // metro a cada lado junto a la cámara, y por el de donde estará dentro de un cuarto de segundo si se sigue girando:
+    // así se acerca antes y sin tirones al doblar una esquina. Antes, a caballo, con la cámara a casi diez metros, al
+    // girar junto a las casas se metía de golpe 3,6 m en 0,17 s y volvía a salir: la imagen parpadeaba
     let d = this.targetDist;
     const dir = _dir.set(Math.sin(this.yaw) * Math.cos(this.pitch), Math.sin(this.pitch), Math.cos(this.yaw) * Math.cos(this.pitch));
     const step = 0.4, F = this.focus;
-    const choca = (t) => {
-      const x = F.x + dir.x * t, z = F.z + dir.z * t, y = F.y + dir.y * t;
+    const yawV = instant || !(dt > 0) ? 0 : angleDiff(this.prevYaw ?? this.yaw, this.yaw) / dt; this.prevYaw = this.yaw;
+    const choca = (t, dx0, dz0, sx, sz) => {
+      const k = t / this.targetDist, x = F.x + dx0 * t + sx * k, z = F.z + dz0 * t + sz * k, y = F.y + dir.y * t;
       for (const c of nearby(x, z, 0.5)) {
         if (c.type !== 'box' || !c.solidView) continue;
         const dx = x - c.x, dz = z - c.z;
@@ -72,16 +76,23 @@ export class FollowCamera {
       }
       return false;
     };
-    for (let t = 0.6; t < d; t += step) {
-      if (!choca(t)) continue;
-      let a = t - step, b = t; for (let k = 0; k < 4; k++) { const m = (a + b) / 2; if (choca(m)) b = m; else a = m; }
-      d = Math.max(1.6, b - 0.4); break;
+    const cp = Math.cos(this.pitch), lado = 0.5, ya = this.yaw + clamp(yawV * 0.25, -0.6, 0.6);
+    const caminos = [[dir.x, dir.z, 0, 0], [dir.x, dir.z, Math.cos(this.yaw) * lado, -Math.sin(this.yaw) * lado], [dir.x, dir.z, -Math.cos(this.yaw) * lado, Math.sin(this.yaw) * lado]];
+    if (Math.abs(ya - this.yaw) > 0.02) caminos.push([Math.sin(ya) * cp, Math.cos(ya) * cp, 0, 0]);
+    for (const [ux, uz, sx, sz] of caminos) {
+      for (let t = 0.6; t < d; t += step) {
+        if (!choca(t, ux, uz, sx, sz)) continue;
+        let a = t - step, b = t; for (let k = 0; k < 4; k++) { const m = (a + b) / 2; if (choca(m, ux, uz, sx, sz)) b = m; else a = m; }
+        d = Math.min(d, Math.max(1.6, b - 0.4)); break;
+      }
     }
     // al acercarse por una casa, con un muelle: arranca suave, acelera y frena (antes saltaba de golpe hasta un metro en
-    // un fotograma y la imagen daba un tirón); al alejarse, despacio
-    if (instant) { this.curDist = d; this.distV = 0; }
-    else if (d < this.curDist) [this.curDist, this.distV] = muelle(this.curDist, d, this.distV || 0, 0.1, dt);
-    else { this.curDist = damp(this.curDist, d, 3, dt); this.distV = 0; }
+    // un fotograma y la imagen daba un tirón); al alejarse, despacio y solo cuando el hueco lleva libre medio segundo
+    // (rozando una esquina, el camino quedaba libre y tapado a ratos y la cámara se acercaba y se alejaba sin parar)
+    if (instant) { this.curDist = d; this.distV = 0; this.libre = 0; }
+    else if (d < this.curDist - 0.02) { [this.curDist, this.distV] = muelle(this.curDist, d, this.distV || 0, clamp(0.1 + (this.targetDist - 6) * 0.03, 0.1, 0.2), dt); this.libre = 0; }   // (con la cámara lejos, como a caballo, el muelle más suave: se empieza antes)
+    else if ((this.libre = (this.libre || 0) + dt) > 0.5) { this.curDist = damp(this.curDist, d, 2.2, dt); this.distV = 0; }
+    else this.distV = 0;
     const p = _p.copy(this.focus).addScaledVector(dir, this.curDist);
     // sobre el terreno: si la cámara quedaría bajo el suelo se eleva, deprisa pero sin saltos (al bajar de un muro o una
     // cuesta el suelo de detrás cambia de golpe y la imagen daba un tirón)
