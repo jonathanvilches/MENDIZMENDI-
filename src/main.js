@@ -18,6 +18,7 @@ import './ui/sport.css';
 import './ui/infocard.css';
 import * as HF from './world/heightfield.js';
 import * as LAYOUT from './world/layout.js';
+import * as COLISION from './world/colliders.js';
 import { PLACES } from './world/layout.js';
 import { esc } from './util/html.js';
 import { LANDMARKS } from './world/landmarks.js';
@@ -176,7 +177,7 @@ async function boot() {
     // (y se apunta dónde estabas, para Ajustes › Diagnóstico: «se me sale solo del partido» suele ser esto)
     apuntaPerdida(`${def?.id || 'menú'} · ${game?.pelotaMatch ? 'partido de pelota' : game?.pelotaLoading ? 'preparando la pelota' : game?.sportMode ? 'campeonatos' : game?.mode || 'menú'} · calidad ${S.quality || quality}`); });
   canvas.style.visibility = 'hidden';
-  window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
+  window.__renderer = rt.renderer; window.__hf = HF; window.__layout = LAYOUT; window.__colliders = COLISION; window.__THREE = THREE; window.__LANDMARKS = LANDMARKS; window.__rt = rt;
 
   let game = null, def = null, loading = false;
   const hub = new Hub({ sound, onPlay: (d, o) => play(d, o) });
