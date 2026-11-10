@@ -46,7 +46,8 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
   nitido(model); const r = new GlbRig(await loadMeshy(model), model); hairTint(r.char.root, model, hair); return r;
 }
 
-// Los jueces de la contracancha: tres, de blanco, a la altura de la chapa, del 4 y del 7, de cara a la cancha. En cada
+// Los jueces de la contracancha: tres, con camiseta negra y pantalón oscuro, sin más (el autor los quiere así; antes iban
+// de blanco con boina, moño y pañuelo), a la altura de la chapa, del 4 y del 7, de cara a la cancha. En cada
 // falta (chapa, fuera, alta, pasa…) levanta la mano el que la ve: el de la chapa lo del frontis; si no, el más cercano
 const _jv = new THREE.Vector3();
 function makeJueces(G, C) {
@@ -55,7 +56,7 @@ function makeJueces(G, C) {
   return [3.2, COURT.FALTA, COURT.PASA].map((z, i) => {
     const w = g.localToWorld(new THREE.Vector3(x, 0, z));
     const a = new Actor({ id: 'juez' + i, name: 'Juez', x: w.x, z: w.z, y: w.y, heading: Math.atan2(-Math.cos(yaw), Math.sin(yaw)), ghost: true, wander: 0,
-      look: { shirt: '#f7f7f2', pants: '#1d1f2a', shoes: '#16161c', female: i === 1, hair: ['#2b1d14', '#5a3a22', '#bdb6aa'][i], bun: i === 1, txapela: i === 1 ? undefined : '#1d1d24', old: i === 2 } }, G.scene);
+      look: { juez: true, shirt: '#16151b', pants: '#25242c', shoes: '#16161c', hair: ['#2b1d14', '#5a3a22', '#8a8278'][i] } }, G.scene);
     a.frozen = true; a.zl = z; return a;
   });
 }
