@@ -5,7 +5,7 @@
 // mientras se va montado, quien mueve al jugador es la montura.
 import * as THREE from 'three';
 import { Animal } from '../actors/animals.js';
-import { groundHeight, waterLevelAt } from '../world/heightfield.js';
+import { groundHeight, waterLevelAt, surfAt, bridgeAt } from '../world/heightfield.js';
 import { resolve } from '../world/colliders.js';
 import { BOUNDARY } from '../world/layout.js';
 import { damp, dampAngle } from '../util/math.js';
@@ -14,11 +14,14 @@ import { damp, dampAngle } from '../util/math.js';
 // (el lomo: 0,72 de la altura total en el caballo y 0,70 en el burro); escala, sobre la medida de la especie
 // (actors/animalGlb.js: el burro de montar es de los grandes, 1,15 m a la cruz); saber, lo que cuenta la primera vez
 export const MONTURAS = {
-  burguete: { paso: 2.3, vmax: 9.6, giro: 4.6, r: 0.85, dist: 9.6, silla: 1.45, escala: 1, nombre: 'el caballo', subir: 'Montar el caballo', bajar: 'Bajar del caballo',
+  burguete: { paso: 2.3, vmax: 9.6, giro: 4.6, r: 0.85, dist: 8.4, silla: 1.45, escala: 1, nombre: 'el caballo', subir: 'Montar el caballo', bajar: 'Bajar del caballo',
     saber: 'Es un caballo de Burguete, Aurizko zaldia en euskera: la raza grande y mansa del Pirineo navarro.' },
   burro: { paso: 1.8, vmax: 5.4, giro: 4, r: 0.7, dist: 8, silla: 1.13, escala: 1.15, nombre: 'el burro', subir: 'Montar el burro', bajar: 'Bajar del burro',
     saber: 'El burro, astoa en euskera, cargó durante siglos con la huerta y la leña de estos pueblos.' },
 };
+// (dónde pisa cada pata respecto al centro: adelante o atrás y a un lado; en el orden del paso: mano izquierda, pie
+// derecho, mano derecha, pie izquierdo)
+const PATAS = [[0.6, -0.16], [-0.55, 0.16], [0.6, 0.16], [-0.55, -0.16]];
 const X = new THREE.Vector3(1, 0, 0), Z = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _ax = new THREE.Vector3();
 
 export class Montura {
@@ -83,8 +86,23 @@ export class Montura {
     if (waterLevelAt(nx, nz) - gNew > 0.75 || (m > 1e-4 && (gNew - gOld) / m > 1.0)) { nx = this.x; nz = this.z; this.speed = 0; }
     this.x = nx; this.z = nz;
     A.pos.set(nx, groundHeight(nx, nz), nz); A.heading = this.heading; A.speed = this.speed; A.state = 'walk'; A.t += dt; A.animate(dt); A.sync();
-    // (los cascos, que se aceleran con la montura; y parado, de vez en cuando, un resoplido del caballo)
-    this.g.sound?.cascos?.(this.speed / T.vmax);
+    // (los cascos, al paso, al trote y al galope, con el sonido del suelo que pisa: la nieve, la hierba, la tierra, el
+    // empedrado o la madera de un puente, audio.js; y parado, de vez en cuando, un resoplido del caballo)
+    const W = this.g.rt?.weather, nieve = !!W?.nevado?.();
+    if ((this.surfT = (this.surfT || 0) - dt) <= 0) { this.surfT = 0.15; const br = bridgeAt(nx, nz);
+      this.surf = waterLevelAt(nx, nz) - A.pos.y > 0.12 ? 'water' : br ? (br.wood ? 'wood' : 'stone') : nieve ? 'snow' : surfAt('street', nx, nz) > 0.5 ? 'stone' : surfAt('dirt', nx, nz) > 0.5 ? 'dirt' : surfAt('forest', nx, nz) > 0.5 ? 'leaves' : 'grass'; }
+    this.g.sound?.cascos?.(this.speed / T.vmax, this.surf, this.tipo);
+    // (y en la nieve, sus huellas: una por casco, en el sitio de cada pata, en el orden en que pisan)
+    if (nieve && this.speed > 0.3) {
+      const e = T.escala || 1, paso = (this.speed > 6 ? 0.85 : this.speed > 3 ? 0.55 : 0.38) * e * (this.tipo === 'burro' ? 0.8 : 1);
+      this.huellaD = (this.huellaD || 0) + this.speed * dt;
+      while (this.huellaD > paso) {
+        this.huellaD -= paso; this.huellaI = ((this.huellaI ?? -1) + 1) % 4;
+        const [lon, lat] = PATAS[this.huellaI], k = this.tipo === 'burro' ? 0.72 : 1, sh = Math.sin(this.heading), ch = Math.cos(this.heading);
+        const hx = nx + sh * lon * k * e + ch * lat * k * e, hz = nz + ch * lon * k * e - sh * lat * k * e;
+        W.hoofprint({ x: hx, y: groundHeight(hx, hz), z: hz }, this.heading, k * e);
+      }
+    }
     if (this.tipo === 'burguete' && this.speed < 0.3 && (this.resT = (this.resT ?? 4) - dt) <= 0) { this.resT = 7 + Math.random() * 8; this.g.sound?.resoplido?.(A.pos); }
     P.pos.set(nx, A.pos.y + 0.55, nz); P.heading = this.heading; P.speed = this.speed;
     if (P.collider) { P.collider.x = nx; P.collider.z = nz; }

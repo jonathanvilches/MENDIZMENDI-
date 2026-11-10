@@ -326,17 +326,44 @@ export class Weather {
     this.prints.setMatrixAt(i, m); this.printAge[i] = 0;
     this.pi++; this.prints.count = Math.min(this.N, this.pi); this.prints.instanceMatrix.needsUpdate = true;
   }
-  // las huellas viejas se van tapando (se encogen) a partir de los 40 s
-  agePrints(dt) {
-    if (!this.prints) return;
-    this.printTick = (this.printTick || 0) + dt; if (this.printTick < 0.5) return;
-    const step = this.printTick; this.printTick = 0; let dirty = false;
-    for (let i = 0; i < this.prints.count; i++) {
-      const a = (this.printAge[i] += step); if (a < 40) continue;
-      const k = Math.max(0, 1 - (a - 40) / 20); this.printM[i].decompose(_p, _q, _s); _s.setScalar(k);
-      this.prints.setMatrixAt(i, _m.compose(_p, _q, _s)); dirty = true;
+  /** Si ha nevado bastante para que queden huellas (lo mira también la montura: sus cascos y su sonido en la nieve). */
+  nevado() { return this.kind === 'snow' && SNOW.value >= 0.3; }
+  // huellas de herradura: las de la montura (game/montura.js), una por casco, en el sitio de cada pata; e, la medida
+  // (el burro, más pequeñas). La herradura, con la punta hacia donde va y abierta por detrás, y el casco algo hundido
+  hoofprint(pos, heading, e = 1) {
+    if (!this.nevado()) return;
+    if (!this.hoofs) {
+      const c = document.createElement('canvas'); c.width = 128; c.height = 128; const g = c.getContext('2d');
+      // (en grises sobre negro: el alphaMap lee el canal verde, no la transparencia del dibujo)
+      g.fillStyle = '#000'; g.fillRect(0, 0, 128, 128);
+      g.fillStyle = 'rgb(80,80,80)'; g.beginPath(); g.ellipse(64, 62, 46, 50, 0, 0, Math.PI * 2); g.fill();   // (el casco, hundido)
+      g.strokeStyle = '#fff'; g.lineWidth = 17; g.lineCap = 'round'; g.beginPath(); g.arc(64, 64, 40, Math.PI * 0.82, Math.PI * 2.18); g.stroke();   // (la herradura, abierta por detrás)
+      const tex = new THREE.CanvasTexture(c);
+      const mat = new THREE.MeshStandardMaterial({ color: '#8e9db3', roughness: 1, alphaMap: tex, transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      const geo = new THREE.PlaneGeometry(0.19, 0.2); geo.rotateX(-Math.PI / 2);
+      this.HN = 240; this.hoofs = new THREE.InstancedMesh(geo, mat, this.HN); this.hoofs.count = 0; this.hoofs.frustumCulled = false; this.hoofs.renderOrder = 1;
+      this.hoofAge = new Float32Array(this.HN); this.hoofM = []; this.hi = 0; this.hoofTex = tex;
+      this.scene.add(this.hoofs);
     }
-    if (dirty) this.prints.instanceMatrix.needsUpdate = true;
+    const i = this.hi % this.HN, m = (this.hoofM[i] ||= new THREE.Matrix4());
+    m.compose(_p.set(pos.x, pos.y + 0.03, pos.z), _q.setFromAxisAngle(UP, heading + Math.PI), _s.set(e, 1, e));
+    this.hoofs.setMatrixAt(i, m); this.hoofAge[i] = 0;
+    this.hi++; this.hoofs.count = Math.min(this.HN, this.hi); this.hoofs.instanceMatrix.needsUpdate = true;
   }
-  dispose() { for (const s of this.shafts || []) { this.scene.remove(s); s.material.dispose(); } if (this.sky) this.sky.mistDay = 0; if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = this.sky.aire?.nubes ?? 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } SNOW.value = 0; }
+  // las huellas viejas se van tapando (se encogen) a partir de los 40 s: las de bota y las de herradura
+  agePrints(dt) {
+    if (!this.prints && !this.hoofs) return;
+    this.printTick = (this.printTick || 0) + dt; if (this.printTick < 0.5) return;
+    const step = this.printTick; this.printTick = 0;
+    for (const [im, age, M] of [[this.prints, this.printAge, this.printM], [this.hoofs, this.hoofAge, this.hoofM]]) {
+      if (!im) continue; let dirty = false;
+      for (let i = 0; i < im.count; i++) {
+        const a = (age[i] += step); if (a < 40) continue;
+        const k = Math.max(0, 1 - (a - 40) / 20); M[i].decompose(_p, _q, _s); _s.multiplyScalar(k / Math.max(1e-3, _s.y));
+        im.setMatrixAt(i, _m.compose(_p, _q, _s)); dirty = true;
+      }
+      if (dirty) im.instanceMatrix.needsUpdate = true;
+    }
+  }
+  dispose() { for (const s of this.shafts || []) { this.scene.remove(s); s.material.dispose(); } if (this.sky) this.sky.mistDay = 0; if (this.sky?.uniforms) { this.sky.uniforms.uStorm.value = 0; this.sky.uniforms.uFlash.value = 0; this.sky.uniforms.uCloud.value = this.sky.aire?.nubes ?? 0.55; } if (this.bolt) { this.scene.remove(this.bolt); this.bolt.children.forEach(o => { o.geometry.dispose(); o.material.dispose(); }); } if (this.fx) { this.scene.remove(this.fx); this.fx.geometry.dispose(); this.fx.material.dispose(); } if (this.prints) { this.scene.remove(this.prints); this.prints.geometry.dispose(); this.prints.material.dispose(); this.printTex.dispose(); } if (this.hoofs) { this.scene.remove(this.hoofs); this.hoofs.geometry.dispose(); this.hoofs.material.dispose(); this.hoofTex.dispose(); } SNOW.value = 0; }
 }
