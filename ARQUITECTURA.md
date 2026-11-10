@@ -18,6 +18,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`: los cuatro elegibles (sanferminero,
     pastor, futbolista de Osasuna y pelotari) y los del partido (pelotari colorado, segunda equipación de Osasuna).
     Cada modelo tiene una altura fija (`MESHY_H`) y se carga una sola vez; el pastor también hace de pastor del pueblo.
+    Meshy reparte la textura en unas dos mil piezas muy pequeñas (la mediana, de tres triángulos); lo que quedaba entre
+    pieza y pieza, restos de otros colores, se colaba en los bordes y al alejarse (motas rojizas en el pelo, claras en la
+    camiseta). `tools/meshy-costuras.mjs` rellena lo de fuera de cada pieza con el color de su propio borde y guarda la
+    textura en WebP con el color a resolución completa en los bordes, también en sus versiones de 1024 px y ligera (solo
+    la imagen: la malla no se toca, que las chicas casan sus parches con el orden de sus vértices). Rehacer el reparto
+    en piezas grandes (xatlas) rompería esos parches; fundir el color a cada lado de las costuras dejaba cortes nuevos.
   - Animales y comida de Quaternius (CC0).
   - Protagonistas y piezas hechas en Blender 4.2 con scripts en `tools/blender/`.
   - Todo se prepara con `@gltf-transform`.
@@ -1368,6 +1374,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 | Herramienta | Qué hace |
 |---|---|
+| `meshy-costuras.mjs` | Las texturas de los personajes de Meshy sin motas: lo de fuera de cada pieza, con el color de su borde; WebP con el color a resolución completa en los bordes, también en las versiones de 1024 px y ligera (solo la imagen) |
 | `presupuesto-pueblo.mjs` | El presupuesto de cada pueblo: lo que pinta con el perfil del iPhone (triángulos, dibujos y memoria de texturas y búferes, con `presupuesto-gpu.js`) en su puerta mirando a los cuatro lados y, con `PELOTA=1`, en su partido de pelota, frente a lo que aguanta el iPhone 13 (unos 900 mil triángulos, 520 dibujos y 80 MB de texturas en el pueblo). Todo pueblo nuevo tiene que pasarlo antes de publicarse: solo se carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno. Sale con código 1 si alguno se pasa |
 | `puntos-control.mjs` | Los puntos de control de arte y luz: de cada pueblo, dos vistas fijas (a pie de calle desde la puerta y desde 22 m sobre la plaza) en cuatro condiciones (día, atardecer, noche y lluvia), con lo que pinta cada una (triángulos y llamadas de dibujo) y lo que tarda en cargar. Las mismas fotos antes y después de cada cambio de arte, luz o atmósfera: `node tools/puntos-control.mjs <carpeta> <etiqueta> [pueblos] [calidad] [condiciones]`. Las de la auditoría de noviembre de 2026 y su informe, en `entrega/tanda1/`. |
 | `puntos-interes.mjs` | Los puntos de interés de cada pueblo, medidos: qué parte de lo que se pisa ve algo a lo lejos (contando el relieve y las casas), cuánto paisaje vacío hay como mucho (andando a 3,3 m/s) y si hay retos de las tres escalas. Cuenta lo que rotula el mapa, los vecinos con misión y lo que añade la aventura (`game.puntosInteres()`: la atalaya y las kutxas, estas como escondidas). Pasa con el 85 % viendo algo lejano, ningún vacío de más de 60 s y las tres escalas. `node tools/puntos-interes.mjs <salida.json> [pueblos \| todos]`; con `?aventura=0` en la dirección se mide el pueblo sin la aventura. |
