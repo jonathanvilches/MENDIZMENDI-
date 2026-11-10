@@ -1,0 +1,1 @@
+var e=new URL(`finalRival-1-TW-AjvKV.mp3`,import.meta.url).href;export{e as default};

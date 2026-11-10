@@ -1,0 +1,1 @@
+var e=new URL(`finalYo-2-Csd_Q60l.mp3`,import.meta.url).href;export{e as default};
