@@ -10,7 +10,7 @@
 //   · estrecho: texto en una columna tan estrecha que va palabra a palabra, una por línea
 //   · desplaza: una ventana o un bloque que hay que desplazar para verlo entero (solo vale si no se puede evitar)
 //   · esquina: caja con las esquinas cortadas en ángulo (clip-path), la identidad de antes
-//   · neon: caja con borde y sin el filo de neón (la identidad: esquinas redondeadas y filo de neón de 1 a 2 px)
+//   · neon: el filo de neón donde no va o que falta (lo llevan las superficies que flotan y las cartas que se eligen)
 //   · forma: caja con esquinas de más de 12 px o casi rectas (la identidad: de 6 a 10 px; píldoras y círculos aparte)
 //   · boton: botón con letra de lectura (Nunito) en lugar de la de los botones (estrecha o de rótulos grandes)
 //   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
@@ -130,13 +130,19 @@ export const auditar = async (sel) => {
   // 4. esquinas en ángulo: la identidad ya no las lleva (las cintas de premio y las dos mitades del VS son formas, no cajas)
   for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i')) continue;
     R.esquina.push(`${name(e)} con las esquinas cortadas en ángulo` + (window.__auditDetail ? ` [${s.clipPath}]` : '')); }
-  // 4b. el filo de neón: toda caja con borde (en tres lados o más) lleva el filo, un contorno de 1 px o más, o el destello
-  // que da la vuelta (::after o su propio borde); las píldoras y los círculos, no
-  for (const e of all) { if (!vis(e) || e.closest('svg')) continue; const s = st(e), r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 28) continue;
+  // 4b. el filo de neón, solo donde hace falta: lo llevan las superficies que flotan sobre el juego (paneles, ventanas,
+  // cajas del HUD) y las cartas que se eligen; lo de dentro de una superficie enmarcada, no. Falta: caja con borde (en tres
+  // lados o más) que no está dentro de nada enmarcado ni del menú (.hub-main) y no lleva filo. Sobra: filo quieto dentro de
+  // una superficie que ya lo tiene, salvo las cartas que se tocan (botones). Ni píldoras, ni círculos, ni campos.
+  const conFilo = (q) => { const t = st(q); return (t.outlineStyle !== 'none' && parseFloat(t.outlineWidth) >= 1 && parseFloat(t.outlineOffset) < 0) || /neon/.test(t.animationName) || /neon/.test(getComputedStyle(q, '::after').animationName); };
+  const enmarcado = (e) => { for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (conFilo(q)) return q; return null; };
+  for (const e of all) { if (!vis(e) || e.closest('svg') || e.matches('input, select, textarea, option')) continue; const s = st(e), r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 28) continue;
+    const rad = parseFloat(s.borderTopLeftRadius) || 0; if (/%$/.test(s.borderTopLeftRadius) || rad >= r.height / 2 - 1) continue;
+    const fuera = enmarcado(e);
+    if (conFilo(e)) { if (fuera && !e.matches('button, a, [role=button]') && !/neon/.test(s.animationName + getComputedStyle(e, '::after').animationName)) R.neon.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con filo dentro de ${name(fuera)}, que ya lo tiene`); continue; }
+    if (fuera || e.closest('.hub-main') || e.matches('button')) continue;
     const sides = ['Top', 'Right', 'Bottom', 'Left'].filter(k => parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none' && !/rgba\(\d+, \d+, \d+, 0(\.0\d*|\.1[0-4]\d*)?\)|transparent/.test(s['border' + k + 'Color']));
-    if (sides.length < 3) continue; const rad = parseFloat(s.borderTopLeftRadius) || 0; if (/%$/.test(s.borderTopLeftRadius) || rad >= r.height / 2 - 1) continue;
-    const neon = (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) >= 1) || /neon/.test(s.animationName) || /neon/.test(getComputedStyle(e, '::after').animationName);
-    if (!neon) R.neon.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con borde y sin filo de neón` + (window.__auditDetail ? ` [${s.borderTopColor} ${s.borderTopWidth}]` : '')); }
+    if (sides.length >= 3) R.neon.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} flota sin filo de neón` + (window.__auditDetail ? ` [${s.borderTopColor} ${s.borderTopWidth}]` : '')); }
 
   // 5. texto que se sale de la forma de su caja: la caja pintada más cercana (fondo, borde o marco) y su forma de verdad
   const rgba = (c) => { const m = String(c).match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); return m ? [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]] : null; };

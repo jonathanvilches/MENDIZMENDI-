@@ -800,8 +800,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Identidad: esquinas redondeadas y filo de neón** (`src/ui/neon.css`, cargada por `hub/hub.js` después de
   `identidad.css`; noviembre de 2026): una sola regla para todo el juego. Toda tarjeta, card, bloque, panel, ventana y
   rótulo, en el menú, en los campeonatos, en el partido, en el fútbol y dentro del pueblo (el diálogo, el libro, el mapa,
-  la mochila, la pausa, la tienda, la recompensa), lleva las esquinas redondeadas y un filo de neón del color de su
-  sección (`--cat`), bando o deporte, lila si no tiene; lo elegido, en rosa, y lo bloqueado o vacío, apagado. Sustituye
+  la mochila, la pausa, la tienda, la recompensa), lleva las esquinas redondeadas. El filo de neón, del color de su
+  sección (`--cat`), bando o deporte (lila si no tiene; lo elegido, en rosa; lo bloqueado, apagado), solo donde hace
+  falta: en lo que flota sobre el juego (paneles, ventanas, cajas del marcador y del HUD) y en las cartas que se eligen;
+  lo de dentro de un panel ya enmarcado (bloques, filas, chips, contadores, campos, pestañas, botones) conserva su borde
+  suave. Con filo en todo, dejaba de destacar y cargaba las ventanas (noviembre de 2026, a petición del autor). Sustituye
   a las esquinas cortadas en ángulo y a sus marcos dibujados (`ui/frames.js`, retirado): las 57 reglas con `clip-path`
   de corte pasaron a `border-radius` en su propia hoja. Siguen como formas, no como cajas, las cintas de premio, las dos
   mitades del VS y la silueta de la carta de pelotari. El filo es de 1 px en todo (antes, 1,5 y 2 px: se comía el
@@ -809,9 +812,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   brillo de sombra: cae encima del borde fino que ya tenía la caja, así que no mueve nada de sitio ni quita aire al
   contenido, va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera; las cajas que no tenían
   borde reciben uno transparente de 1 px, para que el filo tenga su propio píxel y el relleno siga igual (salvo las
-  cartas que son marco de foto, cuyo relleno de 2 px es el marco); las cajas van en tres listas
-  (tarjetas y bloques, 8 px; paneles y ventanas, 10 px; rótulos pequeños, campos y chips, 6 px), y una caja nueva entra
-  en la que le toca. En las tarjetas con el relleno en `::before` (la carta del menú, las de Torneos y las de pelotari),
+  cartas que son marco de foto, cuyo relleno de 2 px es el marco); la forma va en tres listas
+  (tarjetas y bloques, 8 px; paneles y ventanas, 10 px; rótulos pequeños, campos y chips, 6 px) y el filo en otra, la de
+  las superficies y las cartas; una caja nueva entra en las que le tocan. En las tarjetas con el relleno en `::before` (la carta del menú, las de Torneos y las de pelotari),
   un cuadrado con degradado cónico que gira detrás del relleno y da la vuelta al borde (`::after`, solo transformación:
   lo mueve la tarjeta gráfica). En los rótulos del partido (el del tanto, el del comentarista, el de la repetición), un
   aro con máscara cuyo degradado da la vuelta (`--neon-a`, `@property`), y en las losas del menú de pelota, el propio
