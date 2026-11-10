@@ -25,6 +25,10 @@ const SPEC = {
   bull: { model: 'Bull', h: 1.5, estilo: { cabeza: 1.08, ojo: 0.8, patas: 1.08 }, col: { Main: '#1b1715', Main_Light: '#2d2622', Muzzle: '#231d1a', Horns: '#ece0c4' } },          // toro bravo
   cabestro: { model: 'Cow', h: 1.62, col: { Main: '#7a4a2a', Main_Light: '#f0e6d4', Muzzle: '#d8c2a2' } },                          // buey manso
   pottoka: { model: 'Horse', h: 1.56, col: { Main: '#3b2418', Main_Dark: '#2a1810', Main_Light: '#5a3b28', Hair: '#140e0b', Muzzle: '#22160f' } },
+  // caballo de Burguete (Aurizko zaldia), la raza grande del Pirineo navarro: 1,45-1,60 m a la cruz, unos dos metros con
+  // la cabeza alta; capa alazana con las crines más claras. Es la montura (game/montura.js): una persona de 1,6 m le
+  // llega a la cruz, no por encima del lomo como a la pottoka
+  burguete: { model: 'Horse', h: 2.02, col: { Main: '#9a5a2c', Main_Dark: '#6e3d1c', Main_Light: '#b87a44', Hair: '#d9b77a', Muzzle: '#4a3222' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
@@ -264,7 +268,7 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
 //    más oscuras y con barro · pelo fino en la dirección del cuerpo, con un poco de relieve, que se funde de lejos
 //  · un brillo suave en el contorno (el pelo recoge la luz de lado)
 // k.hair: fuerza del pelo (el cerdo casi no tiene; el jabalí, cerdas), k.belly: aclarado del vientre
-const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, bull: { hair: 0.7, belly: 0.03 },
+const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, burguete: { hair: 0.5, belly: 0.12 }, bull: { hair: 0.7, belly: 0.03 },
   zorro: { hair: 1.1, belly: 0.3 }, corzo: { hair: 0.9, belly: 0.3, rump: 1, rumpY: [0.48, 0.74] }, ciervo: { hair: 1.0, belly: 0.22, rump: 0.6, rumpY: [0.36, 0.56] } };
 // rump: el escudo claro de la grupa (blanco en el corzo, que lo enseña al huir; crema en el ciervo), en la parte de
 // atrás del cuerpo (los modelos miran hacia +z) entre las alturas rumpY (fracción de la altura del modelo)

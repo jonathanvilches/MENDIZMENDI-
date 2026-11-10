@@ -487,7 +487,7 @@ function skinParts(S) {
 }
 export function beast(kind, rnd = Math.random, opts = {}) {
   const key = kind + '|' + (opts.breed || '') + '|' + (rnd() < 0.5 ? 0 : 1);
-  if (!SPEC_CACHE.has(key)) SPEC_CACHE.set(key, BEASTS[kind](rnd, opts));
+  if (!SPEC_CACHE.has(key)) SPEC_CACHE.set(key, (BEASTS[kind] || BEASTS.pottoka)(rnd, opts));   // (el caballo y el burro de montar, sin su modelo: la silueta de la pottoka)
   const S = SPEC_CACHE.get(key), K = skinParts(S);
   const root = new THREE.Group();
   const bones = K.bones.map(b => { const o = new THREE.Bone(); o.name = b.name; return o; });

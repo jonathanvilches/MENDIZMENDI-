@@ -8,7 +8,7 @@
 //    kutxas, un corazón más.
 //  · Los corazones: una caída desde muy alto quita uno; sentarse en un banco los devuelve. Sin corazones, se vuelve a
 //    la plaza con todos. Nadie se hace daño de verdad: es un susto.
-//  · Una montura junto a la entrada (pottoka en la montaña, burro en la Zona Media y la Ribera).
+//  · Una montura junto a la entrada (caballo de Burguete en la montaña, burro en la Zona Media y la Ribera).
 //  · Las pistas llegan cuando hacen falta y una sola vez: al trepar, al caer desde un alto, al nadar.
 // Todo se guarda en el perfil de siempre, en un campo nuevo (aventura) que no toca los demás.
 import * as THREE from 'three';
@@ -106,9 +106,11 @@ export class PuebloAventura {
         A.kutxas.push({ i, x, z, obj: o, abierta: abiertas.includes(i) });
       } }
     // la montura, junto a donde se entra
-    { const tipo = ['ribera', 'ribera-alta', 'zona-media', 'tierra-estella', 'valdizarbe-novenera', 'sanguesa', 'pamplona'].includes(this.def.comarca) ? 'burro' : 'pottoka';
-      const sp = this.spot({ x: P.pos.x + 7 * Math.cos(P.heading), z: P.pos.z - 7 * Math.sin(P.heading) }, 6);
-      if (sp && libre(sp.x, sp.z, 1.4)) { try { A.montura = new Montura(this, tipo, sp.x, sp.z, P.heading); } catch (e) { console.warn('montura', e); } } }
+    { const tipo = ['ribera', 'ribera-alta', 'zona-media', 'tierra-estella', 'valdizarbe-novenera', 'sanguesa', 'pamplona'].includes(this.def.comarca) ? 'burro' : 'burguete';
+      let sp = this.spot({ x: P.pos.x + 7 * Math.cos(P.heading), z: P.pos.z - 7 * Math.sin(P.heading) }, 6);
+      // (si ese sitio no vale —una tapia, el río, una casa—, el primero libre dando vueltas a la entrada, de cerca a lejos)
+      if (!sp || !libre(sp.x, sp.z, 1.4)) { sp = null; for (let r = 6; r <= 22 && !sp; r += 4) for (let k = 0; k < 10 && !sp; k++) { const a = P.heading + Math.PI / 2 + k * Math.PI / 5, x = P.pos.x + Math.sin(a) * r, z = P.pos.z + Math.cos(a) * r; if (libre(x, z, 1.6) && !this.nearHouses(x, z, 3)) sp = { x, z }; } }
+      if (sp) { try { A.montura = new Montura(this, tipo, sp.x, sp.z, P.heading); } catch (e) { console.warn('montura', e); } } }
   }
   /** Los puntos de interés del pueblo y su tamaño (lo usa también tools/puntos-interes.mjs). */
   aventuraPuntos() {
@@ -179,7 +181,7 @@ export class PuebloAventura {
   /** Devuelve true si la acción era de la aventura. */
   aventuraActua(it) {
     const A = this.av, D = aventuraDe(this.P), id = this.def.id; if (!A) return false;
-    if (it.kind === 'montar') { A.montura?.sube(this.player); this.aventuraPista('montura', 'Se lleva como andando. Con la palanca a fondo o corriendo, trota y galopa.'); return true; }
+    if (it.kind === 'montar') { A.montura?.sube(this.player); const T = A.montura?.T; if (T?.saber && !aventuraDe(this.P).pistas['saber-' + A.montura.tipo]) this.aventuraPista('saber-' + A.montura.tipo, T.saber, 6400); else this.aventuraPista('montura', 'Se lleva como andando. Con la palanca a fondo o corriendo, trota y galopa.'); return true; }
     if (it.kind === 'desmontar') { A.montura?.baja(); return true; }
     if (it.kind === 'kutxa') {
       const k = it.k; if (k.abierta) return true;

@@ -871,8 +871,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - *La aventura de cada pueblo* (`game/townAventura.js`, métodos de `TownGame`): se monta en el primer fotograma de
     juego (`aventuraInicia`; con `?aventura=0`, no). Pone una atalaya en el alto más alto que se alcanza cerca de la
     plaza, con una banderola a trece metros; cinco kutxas (cofres) escondidas, cada una en el sitio más lejano de todo
-    lo que ya hay, que solo se ven a menos de 16 m; y una montura junto a la entrada (`game/montura.js`: pottoka en
-    la montaña, burro en la Zona Media, la Ribera y Pamplona; es un «vehículo» como el tractor). La atalaya enseña en
+    lo que ya hay, que solo se ven a menos de 16 m; y una montura junto a la entrada (`game/montura.js`: caballo de
+    Burguete en la montaña, de dos metros con la cabeza alta, la especie `burguete` de `actors/animalGlb.js`; burro
+    grande en la Zona Media, la Ribera y Pamplona; es un «vehículo» como el tractor. La pottoka, que es un poni, se
+    queda suelta en los prados: a un jinete le quedaba pequeña. La primera vez que se monta, cuenta qué animal es). La atalaya enseña en
     el mapa las kutxas sin abrir y deja llevar una marca propia a una de ellas. Las mejoras se ganan: cada dos
     atalayas, un quinto más de anillo (hasta dos anillos); cada ocho kutxas, un corazón más (hasta seis). Los
     corazones (tres) bajan con una caída fuerte y vuelven al sentarse en un banco; sin ninguno, se vuelve a la plaza.

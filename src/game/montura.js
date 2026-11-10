@@ -1,5 +1,5 @@
-// Monturas: una pottoka (el caballo pequeño y fuerte de los montes de Navarra) o un burro, atados junto a la entrada
-// del pueblo. Con el botón de acción se monta y se baja. Se llevan como se anda: la palanca o las flechas, hacia donde
+// Monturas: un caballo de Burguete (Aurizko zaldia, la raza grande del Pirineo navarro; la pottoka es un poni de monte
+// y a un jinete le queda pequeña: se queda suelta en los prados) o un burro, atados junto a la entrada del pueblo. Con el botón de acción se monta y se baja. Se llevan como se anda: la palanca o las flechas, hacia donde
 // se quiere ir, y la montura gira y coge paso sola (al paso con poco, al trote y al galope con la palanca a fondo o
 // corriendo). No se meten en agua honda ni suben cuestas fuertes. Es el mismo trato que el tractor (game/conducir.js):
 // mientras se va montado, quien mueve al jugador es la montura.
@@ -11,9 +11,13 @@ import { BOUNDARY } from '../world/layout.js';
 import { damp, dampAngle } from '../util/math.js';
 
 // paso y vmax, en m/s; r, el radio con el que choca; dist, la distancia de la cámara; silla, a qué altura va sentado
+// (el lomo: 0,72 de la altura total en el caballo y 0,70 en el burro); escala, sobre la medida de la especie
+// (actors/animalGlb.js: el burro de montar es de los grandes, 1,15 m a la cruz); saber, lo que cuenta la primera vez
 export const MONTURAS = {
-  pottoka: { paso: 2.2, vmax: 9.2, giro: 5, r: 0.7, dist: 8.5, silla: 1.12, nombre: 'la pottoka', subir: 'Montar la pottoka', bajar: 'Bajar de la pottoka' },
-  burro: { paso: 1.8, vmax: 5.4, giro: 4, r: 0.65, dist: 7.5, silla: 0.98, nombre: 'el burro', subir: 'Montar el burro', bajar: 'Bajar del burro' },
+  burguete: { paso: 2.3, vmax: 9.6, giro: 4.6, r: 0.85, dist: 9.6, silla: 1.45, escala: 1, nombre: 'el caballo', subir: 'Montar el caballo', bajar: 'Bajar del caballo',
+    saber: 'Es un caballo de Burguete, Aurizko zaldia en euskera: la raza grande y mansa del Pirineo navarro.' },
+  burro: { paso: 1.8, vmax: 5.4, giro: 4, r: 0.7, dist: 8, silla: 1.13, escala: 1.15, nombre: 'el burro', subir: 'Montar el burro', bajar: 'Bajar del burro',
+    saber: 'El burro, astoa en euskera, cargó durante siglos con la huerta y la leña de estos pueblos.' },
 };
 const X = new THREE.Vector3(1, 0, 0), Z = new THREE.Vector3(0, 0, 1), _q = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _ax = new THREE.Vector3();
 
@@ -21,7 +25,7 @@ export class Montura {
   constructor(game, tipo, x, z, heading = 0) {
     this.g = game; this.tipo = tipo; this.T = MONTURAS[tipo];
     let s = 7; const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
-    this.A = new Animal(tipo, x, z, { range: 0, flee: 0, scale: 1, radius: this.T.r }, rnd, game.scene);
+    this.A = new Animal(tipo, x, z, { range: 0, flee: 0, scale: this.T.escala || 1, radius: this.T.r }, rnd, game.scene);
     this.A.heading = heading; this.A.state = 'idle'; this.A.sync();
     this.x = x; this.z = z; this.heading = heading; this.speed = 0;
   }
