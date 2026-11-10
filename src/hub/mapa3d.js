@@ -152,7 +152,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (ni en el modo sencillo ni en el didáctico, o.intro false, donde el mapa no es la portada)
   // (con «Reducir movimiento» en el móvil, también, pero suave: sin el temblor, el destello ni la onda; antes no salía, y en
   // muchos iPhone está puesto)
-  const INTRO = o.intro !== false && !o.ligero && !ENTRADA_VISTA && !(navigator.webdriver && !window.__intro); if (o.intro !== false) ENTRADA_VISTA = true;
+  // (apagada: el autor no quiere la entrada de nubes, «como humo»; del arranque, con la lámina animada de los Pirineos
+  // (index.html, #portada-app), se pasa directamente al mapa. Con window.__intro, en las pruebas, sale aún)
+  const INTRO = !!window.__intro && o.intro !== false && !o.ligero && !ENTRADA_VISTA; if (o.intro !== false) ENTRADA_VISTA = true;
   const SUAVE = !!matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const CINE = host.closest('#hub') || document.body; if (INTRO) CINE.classList.add('m3-cine');   // (en el menú, a toda la pantalla mientras dura)
   const alto = hacerRelieve();
@@ -1523,6 +1525,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (el reloj de la entrada grande)
     let tI = 99, dI = 0;
     if (intro) { if (!intro.t && ((cargas < 3 && intro.espera < 2.5) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
+    // (el mapa, listo para verse: con el suelo y el sombreado ya llegados, o a los 2,5 s; entonces se va la lámina del
+    // arranque, index.html, y no antes: así no asoma el mapa a medio pintar)
+    if (!window.__mapaListo && (cargas >= 3 || t > 2.5)) window.__mapaListo = true;
     // tamaño del lienzo
     const w = host.clientWidth, h = host.clientHeight, z = escala();
     if (w !== sz.w || h !== sz.h || z !== sz.z) { const antes = sz.w; Object.assign(sz, { w, h, z }); if (antes && !sel && !host.classList.contains('m3-usado')) Object.assign(goal, casa()); r.setPixelRatio(Math.min(prMax, prPres(w, h), (devicePixelRatio || 1) * z)); r.setSize(w, h, false); cv.style.width = w + 'px'; cv.style.height = h + 'px'; cam.aspect = w / Math.max(1, h); cam.updateProjectionMatrix(); }

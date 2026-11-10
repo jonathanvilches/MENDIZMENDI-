@@ -842,7 +842,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   carga se para y suelta el archivo. Fuera de `assets/`: no entran en «descargar todo», ni en el archivo único ni en el
   artefacto, y el service worker no los guarda (Safari pide los vídeos por trozos). En el modo sencillo, con «reducir
   movimiento», con ahorro de datos, sin conexión o si fallan, queda la fija. El arranque (`#portada-app` en `index.html`)
-  pone los Pirineos al 50 % detrás del icono, con su viñeta morada. Las láminas sin vídeo siguen fijas: para añadir una,
+  pone los Pirineos al 50 % detrás del icono, con su viñeta morada, y de ahí se pasa directamente al mapa: la lámina se
+  queda hasta que el mapa del inicio está pintado (`window.__mapaListo`, en `mapa3d.js`, con el suelo y el sombreado
+  llegados o a los 2,5 s) y se va con un fundido. La entrada de nubes del mapa (`INTRO`), que el autor veía «como humo»,
+  está apagada (noviembre de 2026; con `window.__intro`, en las pruebas, sale aún). Las láminas sin vídeo siguen fijas: para añadir una,
   se genera igual, se pasa por `laminas-video.sh` y se apunta su id en `VIDEOS`.
   **Resolución ante todo** (regla del autor, noviembre de 2026: en el juego todo con la máxima resolución y definición; si
   un vídeo no la tiene, la imagen): `basta(el, w, h)` mira si un vídeo o una imagen de w × h tiene la definición de lo
