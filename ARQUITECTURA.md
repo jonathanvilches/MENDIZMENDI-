@@ -82,6 +82,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 ## Convenciones
 
+- **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
+  - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia
+    y los monumentos en su sitio (`src/data/reales/`, de Overture Maps y OpenStreetMap). Ninguna mejora de arte, de
+    exploración o de retos mueve, quita ni inventa calles, plazas o edificios señalados.
+  - Lo que no existe se puede hacer a nuestra manera, pero lo más fiel posible al lugar y sin alterar el trazado: va
+    en sitios libres (la atalaya y las kutxas de la aventura) o en escenas aparte (los frontones cubiertos de los
+    campeonatos, que no sustituyen al frontón del pueblo).
+  - La arquitectura es la de verdad: si una iglesia es románica, románica; si es gótica, barroca o de otro tipo, la
+    suya (`style` de `church` en `data/levels.js`). Antes de añadir o cambiar un estilo, una planta o un edificio se
+    busca, se contrasta con fuentes fiables y se anota de dónde sale; si no se puede contrastar, se pregunta.
 - **Máxima resolución y definición:** todo lo que sale en el juego, con la máxima resolución y definición para la pantalla
   donde se ve (contando su densidad y su tamaño). Un vídeo o una animación que se estiraría no sale: va la imagen fija, de
   más resolución (`basta` en `ui/videos.js`; las imágenes suben solas a su copia grande con `web/hd.js`).
