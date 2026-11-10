@@ -134,6 +134,49 @@ export function pelotariStyle(seed = '', st = { fuerza: 3, agilidad: 3, velocida
   for (const k of SHOTS) sty[k] = k === fav ? 3 : k === sec ? 2 : r() < 0.3 ? 1 : 0;
   return sty;
 }
+// El arquetipo de cada pelotari, como en las cartas de los juegos de deportes: Rematador (pega y acaba los tantos),
+// Defensor (llega a todas), Estratega (mueve al rival con dos paredes, ganchos y dejadas) o Zurdo (juega con la
+// izquierda: más o menos uno de cada ocho, siempre el mismo para el mismo pelotari). Sale de sus cualidades y de sus
+// golpes preferidos; el golpe estrella es el que más le gusta. La mano y el arquetipo de tu pelotari salen de tus
+// cualidades (eres diestro: el juego no tiene todavía mano para elegir).
+/** ¿Juega con la izquierda? (siempre lo mismo para el mismo nombre y pueblo) */
+export const esZurdo = (name = '', town = '') => fnv(`zurdo ${name} ${town}`) % 100 < 12;
+const BASE_GOLPE = (st) => ({ cortada: st.fuerza, largo: st.fuerza, dosparedes: st.agilidad, gancho: st.agilidad, dejada: (st.velocidad + st.agilidad) / 2 });
+/** { arq: 'rematador'|'defensor'|'estratega'|'zurdo', zurdo, estrella (un golpe de SHOTS) } de un pelotari. */
+export function pelotariArq(st = {}, name = '', town = '', yo = false) {
+  const q = { fuerza: st.fuerza || 3, agilidad: st.agilidad || 3, velocidad: st.velocidad || 3 }, sty = st.style || {}, s = (k) => sty[k] || 0;
+  const pts = { rematador: q.fuerza * 2 + s('cortada') + s('largo'), defensor: q.velocidad * 2 + s('dejada') * 0.8, estratega: q.agilidad * 2 + s('dosparedes') + s('gancho') };
+  const orden = ['rematador', 'estratega', 'defensor'], h = fnv(`arq ${name} ${town}`);
+  const mejor = orden.map((k, i) => [k, pts[k] + ((h >> (i * 3)) % 7) * 0.01]).sort((a, b) => b[1] - a[1])[0][0];
+  const zurdo = !yo && esZurdo(name, town);
+  const b = BASE_GOLPE(q), estrella = SHOTS.find(k => s(k) === 3) || SHOTS.slice().sort((x, y) => (s(y) - s(x)) || (b[y] - b[x]))[0];
+  return { arq: zurdo ? 'zurdo' : mejor, zurdo, estrella };
+}
+export const ARQ_TXT = {
+  es: { rematador: 'Rematador', defensor: 'Defensor', zurdo: 'Zurdo', estratega: 'Estratega', diestro: 'Diestro', estrella: 'Golpe estrella', arquetipo: 'Arquetipo', mano: 'Mano hábil',
+    golpe: { cortada: 'Cortada', dosparedes: 'Dos paredes', gancho: 'Gancho', dejada: 'Dejada', largo: 'Largo' },
+    que: { rematador: 'Acaba los tantos de un golpe: busca la cortada y el pelotazo al fondo.', defensor: 'Llega a todas y devuelve lo que parece imposible: te gana por cansancio.',
+      zurdo: 'Juega con la izquierda: sus pelotas salen cruzadas al revés de lo que esperas.', estratega: 'Te mueve de lado a lado con dos paredes, ganchos y dejadas.' } },
+  eu: { rematador: 'Errematatzailea', defensor: 'Defendatzailea', zurdo: 'Ezkertia', estratega: 'Estratega', diestro: 'Eskuina', estrella: 'Kolpe izarra', arquetipo: 'Arketipoa', mano: 'Esku trebea',
+    golpe: { cortada: 'Cortada', dosparedes: 'Bi pareta', gancho: 'Ganchoa', dejada: 'Utzia', largo: 'Luzea' },   // (la dejada, como la traduce el juego: data/eu.js)
+    que: { rematador: 'Tantoak kolpe batez amaitzen ditu: cortada eta atzerako pilotakada bilatzen ditu.', defensor: 'Denetara iristen da eta ezinezkoa dirudiena itzultzen du: nekeak irabazten zaitu.',
+      zurdo: 'Ezkerrarekin jokatzen du: bere pilotak espero duzunaren kontrara gurutzatuta ateratzen dira.', estratega: 'Alde batetik bestera mugitzen zaitu bi paretakoekin, ganchoekin eta dejadekin.' } },
+};
+// (el icono de cada arquetipo, de trazo, del color del texto: rayo, escudo, la mano izquierda y una diana)
+export const ARQ_ICON = {
+  rematador: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.5 2 5 13.5h6L9.5 22 19 9.5h-6.2z" fill="currentColor"/></svg>',
+  defensor: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5 4 5.5v6c0 4.8 3.3 8.6 8 10 4.7-1.4 8-5.2 8-10v-6z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="m8.5 12 2.5 2.5 4.5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  zurdo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 21v-4.5c1.8-1.2 3-3.2 3-5.5V7.5a1.5 1.5 0 0 0-3 0V10m0-.5V5a1.5 1.5 0 0 0-3 0v4.5m0-.5V4a1.5 1.5 0 0 0-3 0v6m0 0V6.5a1.5 1.5 0 0 0-3 0v6.5c0 2 .6 3.5 2 4.5V21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  estratega: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="1.8" fill="currentColor"/></svg>',
+};
+/** Las etiquetas de la carta de un pelotari: [{ k: 'arq'|'mano'|'estrella', icon?, t (texto), what? }], en su idioma. */
+export function arqChips(st, name, town, lang = 'es', yo = false) {
+  const A = pelotariArq(st, name, town, yo), T = ARQ_TXT[lang] || ARQ_TXT.es, N = T.golpe;
+  const out = [{ k: 'arq', id: A.arq, icon: ARQ_ICON[A.arq], t: T[A.arq], what: T.que[A.arq] }];
+  if (!A.zurdo) out.push({ k: 'mano', t: T.diestro, what: T.mano });
+  if (A.estrella) out.push({ k: 'estrella', t: `★ ${N[A.estrella]}`, what: T.estrella });
+  return out;
+}
 // una frase del rival para la pantalla VS: lo que más se le nota (su golpe preferido o, si no tiene, su cualidad fuerte)
 const QUOTES = {
   es: { cortada: 'Su cortada sale rasa, pegada a la chapa: no te deja respirar.', dosparedes: 'Busca la pared izquierda para cruzarte la pelota a dos paredes.',

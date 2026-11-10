@@ -1,6 +1,6 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips } from './rules.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
@@ -375,11 +375,12 @@ export class PelotaMatch {
     const line = [M ? (this.role === 'delantero' ? P.front : P.back) : this.cuatro ? (P.four || TEXT.es.pairs.four) : P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.o.fixedLevel ? '' : L[this.level]].filter(Boolean).join(' · ');
     this.vsOpen = true; this.met = true;
     // (las cartas: la media y las tres cualidades de cada uno, como en el cuadro del torneo)
-    const N = t.card || TEXT.es.card, cardOf = (st, seed, bonus) => { const r = pelotariRating(st || {}, seed, bonus); return { ovr: r.ovr, ovrLabel: t.ovr || TEXT.es.ovr, stats: [r.vel, r.pot, r.man].map((v, i) => ({ k: N[i], v })) }; };
+    // (y debajo, su arquetipo, su mano y su golpe estrella: rules.js, arqChips)
+    const N = t.card || TEXT.es.card, cardOf = (st, seed, bonus, nm, tw, yo) => { const r = pelotariRating(st || {}, seed, bonus); return { ovr: r.ovr, ovrLabel: t.ovr || TEXT.es.ovr, stats: [r.vel, r.pot, r.man].map((v, i) => ({ k: N[i], v })), arq: arqChips(st || {}, nm, tw, this.lang, yo) }; };
     const yn = this.label('you'), rn = this.nomLimpio('rival'), C = this.cols, temp = (sd) => this.tempDe(sd);
     // (cada uno con el color que viste: los azules a la izquierda y los colorados a la derecha, como en el frontón)
-    const A = { name: yn, sub: [this.o.town || '', temp('you')].filter(Boolean).join(' · '), img: V.you, pf: V.fig?.(splitName(this.names.you).name, C.you), mateImg: M ? V.you : null, matePf: M ? V.fig?.(M.youMate?.name, C.you) : null, ...cardOf(this.o.youStats, `${splitName(this.names.you).name} ${this.o.town || ''}`, this.o.youBonus ?? 2) };
-    const B = { name: rn, sub: [rt, temp('rival')].filter(Boolean).join(' · '), img: V.rival, pf: V.fig?.(splitName(this.names.rival).name, C.rival), mateImg: M ? V.rival : null, matePf: M ? V.fig?.(M.rivalMate?.name, C.rival) : null, ...cardOf(this.o.rivalStats, `${splitName(this.names.rival).name} ${rt}`, this.o.rivalBonus ?? 0) };
+    const A = { name: yn, sub: [this.o.town || '', temp('you')].filter(Boolean).join(' · '), img: V.you, pf: V.fig?.(splitName(this.names.you).name, C.you), mateImg: M ? V.you : null, matePf: M ? V.fig?.(M.youMate?.name, C.you) : null, ...cardOf(this.o.youStats, `${splitName(this.names.you).name} ${this.o.town || ''}`, this.o.youBonus ?? 2, splitName(this.names.you).name, this.o.town || '', true) };
+    const B = { name: rn, sub: [rt, temp('rival')].filter(Boolean).join(' · '), img: V.rival, pf: V.fig?.(splitName(this.names.rival).name, C.rival), mateImg: M ? V.rival : null, matePf: M ? V.fig?.(M.rivalMate?.name, C.rival) : null, ...cardOf(this.o.rivalStats, `${splitName(this.names.rival).name} ${rt}`, this.o.rivalBonus ?? 0, splitName(this.names.rival).name, rt, false) };
     showVs(this.hud.root, {
       comp: this.o.comp || t.friendly || TEXT.es.friendly,
       // (V.fig: la figura de cada uno por su nombre, si el juego la da; si no, las imágenes V.you y V.rival)

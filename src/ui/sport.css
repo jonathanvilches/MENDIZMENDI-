@@ -76,6 +76,9 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 .gx-card .gx-st span { display: flex; flex-direction: column; align-items: center; line-height: 1; }
 .gx-card .gx-st b { font: 800 max(13px, calc(var(--w) * .11))/1 var(--f-cond); }
 .gx-card .gx-st small { font: 600 max(12px, calc(var(--w) * .07))/1.05 var(--f-cond); letter-spacing: .04em; color: var(--ac); text-transform: uppercase; }
+/* (el arquetipo, bajo la media: un círculo con su icono, como la bandera en las cartas de los juegos de fútbol) */
+.gx-card .gx-arq { position: absolute; z-index: 1; left: calc(9% + var(--w) * .045); top: calc(var(--w) * .47); width: calc(var(--w) * .17); height: calc(var(--w) * .17); display: grid; place-items: center; border-radius: 50%; background: rgba(12, 3, 30, .6); border: 1px solid var(--ac); color: #fff; box-shadow: 0 0 calc(var(--w) * .05) color-mix(in srgb, var(--ac) 60%, transparent); }
+.gx-card .gx-arq svg { width: 62%; height: 62%; }
 .gx-card.mini .gx-nm, .gx-card.mini .gx-tw, .gx-card.mini .gx-st, .gx-card.mini .gx-ovr small { display: none; }
 .gx-card.lock { --c1: #2a1f44; --c2: #120a24; --ac: #6f6292; }
 /* (sin descubrir: la figura se ve entera, con su color y su textura; lo que falta es su nombre y sus cualidades) */

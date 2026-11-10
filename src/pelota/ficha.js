@@ -5,7 +5,7 @@
 // Los pelotaris del juego son inventados: sus datos salen de su nombre y de su pueblo (siempre los mismos para el mismo
 // pelotari, como sus cualidades) y van con ellas: el que pega fuerte es más alto y pesa más; el rápido, más ligero.
 // La tuya no lleva datos inventados: tus cualidades, tu pueblo y lo que has ganado en el juego.
-import { SHOTS, TEXT, statsTips, pelotariRating } from './rules.js';
+import { SHOTS, TEXT, statsTips, pelotariRating, arqChips, esZurdo, ARQ_TXT } from './rules.js';
 import { esc } from '../util/html.js';
 
 const L = {
@@ -34,7 +34,7 @@ function pelotariBio(name, st = {}, town = '') {
   const q = (f + v + a) / 15, played = Math.max(6, (YEAR - debut) * (14 + Math.floor(r() * 12)));
   const won = Math.round(played * Math.min(0.8, 0.28 + 0.45 * q + (r() - 0.5) * 0.08));
   const txapelas = q < 0.55 ? 0 : Math.floor(r() * (q > 0.75 ? 5 : 3));
-  return { age, height, weight, left: r() < 0.12, debut, played, won, txapelas };
+  return { age, height, weight, left: esZurdo(name, town), debut, played, won, txapelas };   // (la mano, la misma que en su carta: rules.js)
 }
 
 // (el color de cada uno: el que viste en el partido, si se sabe; si no, los tuyos de azul y los rivales de colorado)
@@ -70,13 +70,16 @@ function card(p, lang) {
   const warn = !p.you && top && sty[top] >= 3 ? PT.warn[top] : '', tip = warn ? '' : p.you ? T.yourTip : statsTips(st, lang)[0] || '';
   // (la media, como en las cartas del torneo y de la colección: la misma cifra en todas partes)
   const ovr = pelotariRating(st, `${name} ${town}`, p.you ? 2 + (p.record?.txapelas || 0) * 2 : 0).ovr, PT2 = TEXT[lang] || TEXT.es;
+  // (su arquetipo, su mano y su golpe estrella, como en su carta y en la pantalla VS)
+  const AQ = arqChips(st, name, town, lang, !!p.you), AT = ARQ_TXT[lang] || ARQ_TXT.es;
   return `<section class="pfx-id">
       <div class="pfx-head"><span class="pfx-av ${rojoDe(p) ? 'red' : 'blue'}" aria-hidden="true"><b>${ovr}</b><small>${esc(PT2.ovr || 'Media')}</small></span>
-        <div><small>${esc(p.you ? T.yours : `${rojoDe(p) ? T.red : T.blue} · ${role}`)}</small><h3>${esc(name)}</h3>${kind ? `<span class="pfx-k">${esc(kind)}</span>` : ''}</div></div>
+        <div><small>${esc(p.you ? T.yours : `${rojoDe(p) ? T.red : T.blue} · ${role}`)}</small><h3>${esc(name)}</h3>${kind ? `<span class="pfx-k">${esc(kind)}</span>` : ''}<div class="pfx-arq">${AQ.map(c => `<span class="${c.k}">${c.icon || ''}${esc(c.t)}</span>`).join('')}</div></div></div>
       <dl class="pfx-data">${data.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
       ${p.you ? '' : `<p class="pfx-note">${T.invented}</p>`}
     </section>
     <section class="pfx-sk">
+      <h4>${AT.arquetipo} · ${esc(AQ[0].t)}</h4><p class="pfx-tip">${esc(AQ[0].what)}</p>
       <h4>${T.skills}</h4>${bar(PT.run, st.velocidad)}${bar(PT.power, st.fuerza)}${bar(PT.hands, st.agilidad)}${st.precision != null ? bar(T.aim || 'Precisión', st.precision) : ''}
       <h4>${T.shots}</h4><ul class="pfx-shots">${shots}</ul>
       ${warn || tip ? `<h4>${p.you ? T.yourHow : T.how}</h4><p class="pfx-tip">${warn ? `<strong>${warn}</strong> ` : ''}${tip}</p>` : ''}
@@ -104,6 +107,8 @@ const CSS = `
 .pfx-head small{display:block;font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
 .pfx-head h3{margin:0;font:400 var(--fs-2xl)/1.05 var(--f-display);text-transform:uppercase;color:#fff}
 .pfx-k{display:block;font-size:var(--fs-sm);font-weight:800;color:#e6def7;line-height:1.3}
+.pfx-arq{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pfx-arq span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.35);font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:#e6def7;white-space:nowrap}
+.pfx-arq span.arq{color:#fff;background:linear-gradient(100deg,rgba(255,43,214,.4),rgba(123,47,247,.4));border-color:rgba(255,122,200,.6)}.pfx-arq span.estrella{color:#ffd166;border-color:rgba(255,209,102,.45)}.pfx-arq svg{width:14px;height:14px;flex:none}
 .pfx-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
 .pfx-data div{padding:8px 12px;border-radius:2px;background:rgba(255,255,255,.05);border-left:3px solid var(--fx);min-width:0}
 .pfx-data dt{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--lila)}
