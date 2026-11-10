@@ -41,7 +41,8 @@ con el perfil del iPhone (`tools/presupuesto-pueblo.mjs`, 844 × 390 a ×3):
 | Olite | 537 mil | 312 | 65 MB | 21 MB |
 | Tudela | 668 mil | 403 | 72 MB | 32 MB |
 
-En calidad alta, Lesaka pinta 1,43 millones de triángulos y 363 llamadas; Olite, 876 mil y 378.
+En calidad alta, Lesaka pinta 1,43 millones de triángulos y 363 llamadas; Olite, 876 mil y 378. En calidad media,
+Lesaka pinta 1,27 millones y 365 (medido después, al probar el postprocesado: por eso el tope de media es 1,3).
 
 Descarga y memoria de JavaScript (`tools/memoria-web.mjs`, móvil emulado, calidad media):
 
@@ -145,7 +146,7 @@ aguanta el iPhone 13 (900 mil triángulos, 520 llamadas, 80 MB de texturas, 35 M
 | Escena y calidad | Triángulos | Llamadas | Texturas | Geometría | Audio | Descarga |
 |---|---|---|---|---|---|---|
 | Pueblo, baja | 720 mil | 425 | 80 MB | 35 MB | 8 MB | lo de hoy + 15 % |
-| Pueblo, media | 1,0 millón | 450 | 120 MB | 45 MB | 8 MB | lo de hoy + 15 % |
+| Pueblo, media | 1,3 millones | 450 | 120 MB | 45 MB | 8 MB | lo de hoy + 15 % |
 | Pueblo, alta | 1,5 millones | 480 | 160 MB | 60 MB | 8 MB | lo de hoy + 15 % |
 | Partido de pelota, baja | 760 mil | 490 | 65 MB | 35 MB | 8 MB | lo de hoy + 15 % |
 

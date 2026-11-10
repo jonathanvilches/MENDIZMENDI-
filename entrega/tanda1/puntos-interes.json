@@ -1,0 +1,679 @@
+{
+ "cuando": "2026-11-10T08:54:45.443Z",
+ "base": "http://127.0.0.1:8099/",
+ "pueblos": {
+  "lesaka": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 2,
+    "mediana": 2,
+    "pequeña": 13
+   },
+   "muestras": 464,
+   "venLejos": 93.3,
+   "vacioMaxS": 39,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": -80,
+    "z": 120
+   },
+   "entreMedia": 103,
+   "entreMax": 223,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "etxalar": {
+   "puntos": 19,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 16
+   },
+   "muestras": 483,
+   "venLejos": 94.8,
+   "vacioMaxS": 39,
+   "vacioMedioS": 19,
+   "peorEn": {
+    "x": 120,
+    "z": -140
+   },
+   "entreMedia": 80,
+   "entreMax": 214,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "zugarramurdi": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 12
+   },
+   "muestras": 493,
+   "venLejos": 72.2,
+   "vacioMaxS": 44,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 0,
+    "z": -260
+   },
+   "entreMedia": 91,
+   "entreMax": 193,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "amaiur-maya-del-baztan": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 1,
+    "mediana": 4,
+    "pequeña": 12
+   },
+   "muestras": 507,
+   "venLejos": 97.6,
+   "vacioMaxS": 45,
+   "vacioMedioS": 19,
+   "peorEn": {
+    "x": 160,
+    "z": 200
+   },
+   "entreMedia": 109,
+   "entreMax": 263,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "ituren": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 12
+   },
+   "muestras": 470,
+   "venLejos": 95.5,
+   "vacioMaxS": 39,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 200,
+    "z": -160
+   },
+   "entreMedia": 100,
+   "entreMax": 244,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "elizondo": {
+   "puntos": 18,
+   "escalas": {
+    "grande": 2,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 436,
+   "venLejos": 86.5,
+   "vacioMaxS": 45,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 160,
+    "z": 200
+   },
+   "entreMedia": 87,
+   "entreMax": 266,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "leitza": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 464,
+   "venLejos": 89.7,
+   "vacioMaxS": 38,
+   "vacioMedioS": 16,
+   "peorEn": {
+    "x": 160,
+    "z": -200
+   },
+   "entreMedia": 99,
+   "entreMax": 350,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "lekunberri": {
+   "puntos": 18,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 14
+   },
+   "muestras": 469,
+   "venLejos": 86.8,
+   "vacioMaxS": 39,
+   "vacioMedioS": 16,
+   "peorEn": {
+    "x": -200,
+    "z": 160
+   },
+   "entreMedia": 92,
+   "entreMax": 152,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "orreaga-roncesvalles": {
+   "puntos": 18,
+   "escalas": {
+    "grande": 1,
+    "mediana": 4,
+    "pequeña": 13
+   },
+   "muestras": 519,
+   "venLejos": 99.8,
+   "vacioMaxS": 43,
+   "vacioMedioS": 19,
+   "peorEn": {
+    "x": 0,
+    "z": 260
+   },
+   "entreMedia": 88,
+   "entreMax": 167,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "aribe": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 488,
+   "venLejos": 98.6,
+   "vacioMaxS": 32,
+   "vacioMedioS": 16,
+   "peorEn": {
+    "x": -240,
+    "z": 40
+   },
+   "entreMedia": 90,
+   "entreMax": 155,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "otsagabia-ochagavia": {
+   "puntos": 7,
+   "escalas": {
+    "grande": 2,
+    "mediana": 2,
+    "pequeña": 3
+   },
+   "muestras": 497,
+   "venLejos": 97.4,
+   "vacioMaxS": 63,
+   "vacioMedioS": 28,
+   "peorEn": {
+    "x": 233,
+    "z": 152
+   },
+   "entreMedia": 148,
+   "entreMax": 271,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "isaba-izaba": {
+   "puntos": 20,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 16
+   },
+   "muestras": 468,
+   "venLejos": 90.8,
+   "vacioMaxS": 38,
+   "vacioMedioS": 16,
+   "peorEn": {
+    "x": 0,
+    "z": -260
+   },
+   "entreMedia": 72,
+   "entreMax": 167,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "erronkari-roncal": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 466,
+   "venLejos": 95.9,
+   "vacioMaxS": 36,
+   "vacioMedioS": 17,
+   "peorEn": {
+    "x": 100,
+    "z": -160
+   },
+   "entreMedia": 75,
+   "entreMax": 165,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "burgui-burgi": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 12
+   },
+   "muestras": 455,
+   "venLejos": 88.8,
+   "vacioMaxS": 40,
+   "vacioMedioS": 17,
+   "peorEn": {
+    "x": 160,
+    "z": -80
+   },
+   "entreMedia": 88,
+   "entreMax": 157,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "altsasu-alsasua": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 452,
+   "venLejos": 88.5,
+   "vacioMaxS": 43,
+   "vacioMedioS": 19,
+   "peorEn": {
+    "x": 260,
+    "z": 0
+   },
+   "entreMedia": 79,
+   "entreMax": 205,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "irurtzun": {
+   "puntos": 15,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 12
+   },
+   "muestras": 461,
+   "venLejos": 84.2,
+   "vacioMaxS": 40,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": -240,
+    "z": 100
+   },
+   "entreMedia": 110,
+   "entreMax": 208,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "pamplona": {
+   "puntos": 27,
+   "escalas": {
+    "grande": 2,
+    "mediana": 3,
+    "pequeña": 22
+   },
+   "muestras": 465,
+   "venLejos": 80,
+   "vacioMaxS": 35,
+   "vacioMedioS": 15,
+   "peorEn": {
+    "x": -160,
+    "z": 180
+   },
+   "entreMedia": 73,
+   "entreMax": 172,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "aoiz": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 12
+   },
+   "muestras": 470,
+   "venLejos": 90.2,
+   "vacioMaxS": 39,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 0,
+    "z": -260
+   },
+   "entreMedia": 106,
+   "entreMax": 241,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "lumbier": {
+   "puntos": 18,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 15
+   },
+   "muestras": 458,
+   "venLejos": 80.6,
+   "vacioMaxS": 35,
+   "vacioMedioS": 17,
+   "peorEn": {
+    "x": 100,
+    "z": 80
+   },
+   "entreMedia": 632,
+   "entreMax": 9757,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "irulegi": {
+   "puntos": 15,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 12
+   },
+   "muestras": 522,
+   "venLejos": 99.2,
+   "vacioMaxS": 42,
+   "vacioMedioS": 20,
+   "peorEn": {
+    "x": 220,
+    "z": -40
+   },
+   "entreMedia": 91,
+   "entreMax": 166,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "sanguesa": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 2,
+    "mediana": 3,
+    "pequeña": 12
+   },
+   "muestras": 426,
+   "venLejos": 88.3,
+   "vacioMaxS": 40,
+   "vacioMedioS": 17,
+   "peorEn": {
+    "x": -80,
+    "z": -240
+   },
+   "entreMedia": 86,
+   "entreMax": 166,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "estella": {
+   "puntos": 22,
+   "escalas": {
+    "grande": 2,
+    "mediana": 4,
+    "pequeña": 16
+   },
+   "muestras": 387,
+   "venLejos": 63,
+   "vacioMaxS": 35,
+   "vacioMedioS": 17,
+   "peorEn": {
+    "x": 60,
+    "z": -120
+   },
+   "entreMedia": 94,
+   "entreMax": 219,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "viana": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 13
+   },
+   "muestras": 413,
+   "venLejos": 55.7,
+   "vacioMaxS": 39,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": -80,
+    "z": -100
+   },
+   "entreMedia": 95,
+   "entreMax": 161,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "puente-la-reina": {
+   "puntos": 18,
+   "escalas": {
+    "grande": 1,
+    "mediana": 4,
+    "pequeña": 13
+   },
+   "muestras": 353,
+   "venLejos": 62.9,
+   "vacioMaxS": 41,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 160,
+    "z": -200
+   },
+   "entreMedia": 87,
+   "entreMax": 198,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "artajona": {
+   "puntos": 18,
+   "escalas": {
+    "grande": 2,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 460,
+   "venLejos": 77.4,
+   "vacioMaxS": 41,
+   "vacioMedioS": 19,
+   "peorEn": {
+    "x": 140,
+    "z": 200
+   },
+   "entreMedia": 85,
+   "entreMax": 333,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "tafalla": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 13
+   },
+   "muestras": 342,
+   "venLejos": 38.3,
+   "vacioMaxS": 36,
+   "vacioMedioS": 17,
+   "peorEn": {
+    "x": -60,
+    "z": 140
+   },
+   "entreMedia": 84,
+   "entreMax": 205,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "javier": {
+   "puntos": 16,
+   "escalas": {
+    "grande": 2,
+    "mediana": 2,
+    "pequeña": 12
+   },
+   "muestras": 518,
+   "venLejos": 95.9,
+   "vacioMaxS": 44,
+   "vacioMedioS": 22,
+   "peorEn": {
+    "x": 220,
+    "z": 120
+   },
+   "entreMedia": 103,
+   "entreMax": 221,
+   "colisiones": true,
+   "pasa": true,
+   "errores": []
+  },
+  "ujue": {
+   "puntos": 14,
+   "escalas": {
+    "grande": 1,
+    "mediana": 2,
+    "pequeña": 11
+   },
+   "muestras": 486,
+   "venLejos": 45.3,
+   "vacioMaxS": 36,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": -120,
+    "z": 20
+   },
+   "entreMedia": 96,
+   "entreMax": 172,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "olite": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 2,
+    "mediana": 2,
+    "pequeña": 13
+   },
+   "muestras": 457,
+   "venLejos": 69.6,
+   "vacioMaxS": 39,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": -100,
+    "z": 100
+   },
+   "entreMedia": 96,
+   "entreMax": 222,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "marcilla": {
+   "puntos": 15,
+   "escalas": {
+    "grande": 2,
+    "mediana": 2,
+    "pequeña": 11
+   },
+   "muestras": 460,
+   "venLejos": 83,
+   "vacioMaxS": 38,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 100,
+    "z": -240
+   },
+   "entreMedia": 88,
+   "entreMax": 184,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "tudela": {
+   "puntos": 17,
+   "escalas": {
+    "grande": 1,
+    "mediana": 3,
+    "pequeña": 13
+   },
+   "muestras": 436,
+   "venLejos": 82.8,
+   "vacioMaxS": 44,
+   "vacioMedioS": 20,
+   "peorEn": {
+    "x": 0,
+    "z": 260
+   },
+   "entreMedia": 115,
+   "entreMax": 278,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  },
+  "cortes": {
+   "puntos": 15,
+   "escalas": {
+    "grande": 2,
+    "mediana": 2,
+    "pequeña": 11
+   },
+   "muestras": 434,
+   "venLejos": 81.3,
+   "vacioMaxS": 41,
+   "vacioMedioS": 18,
+   "peorEn": {
+    "x": 0,
+    "z": 260
+   },
+   "entreMedia": 105,
+   "entreMax": 167,
+   "colisiones": true,
+   "pasa": false,
+   "errores": []
+  }
+ },
+ "fallan": 15
+}
