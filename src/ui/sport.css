@@ -57,11 +57,12 @@
   background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
 /* (la placa de abajo, donde van el nombre, el pueblo y las cualidades: un velo oscuro liso. Sin él, el pueblo y las
    siglas, rosa claro sobre el rosa de la carta del rival, no se leían: contraste de 2 a 1; con la placa, más de 7 a 1) */
-.gx-card .gx-face::before { content: ''; position: absolute; left: 0; right: 0; top: 55%; bottom: 0; background: rgba(12, 3, 30, .5); border-top: 1px solid rgba(255, 255, 255, .14); }
+.gx-card .gx-face::before { content: ''; position: absolute; left: 0; right: 0; top: 53%; bottom: 0; background: rgba(12, 3, 30, .5); border-top: 1px solid rgba(255, 255, 255, .14); }
 .gx-card.lock .gx-face::before { background: rgba(12, 3, 30, .3); }
 .gx-card .gx-face::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 45%; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); transform: translateX(-160%) skewX(-18deg); animation: gx-sweep 5s ease-in-out var(--d, 0s) infinite; }
-/* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía) */
-.gx-card img { position: absolute; z-index: 0; right: 2%; top: 5%; height: 51.5%; width: 76%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); }
+/* (la figura, de busto, se desvanece justo encima del nombre: antes el nombre caía sobre el pantalón blanco y no se leía.
+   A la derecha, en dos tercios del ancho: más a la izquierda, la media y el puesto le pisaban el brazo) */
+.gx-card img { position: absolute; z-index: 0; right: 1%; top: 5%; height: 48%; width: 68%; object-fit: cover; object-position: 50% 4%; -webkit-mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); mask-image: linear-gradient(180deg, #000 64%, rgba(0, 0, 0, .5) 84%, transparent); }
 /* figura de pelotari (src/ui/pelotariFig.js): una sola imagen. En el archivo único, la azul es la camiseta con el rojo de
    fondo: el fondo ocupa la caja igual que la imagen (de lado a lado; en la carta, como su object-fit y su object-position) */
 img.pf { display: block; flex: none; }
@@ -69,17 +70,21 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 .gx-card img.pf-az { background-size: cover; background-position: 50% 4%; }
 .gx-card .gx-ovr { position: absolute; z-index: 1; left: 9%; top: 9%; display: flex; flex-direction: column; align-items: center; line-height: .9; }
 .gx-card .gx-ovr b { font: 400 calc(var(--w) * .24)/.9 var(--f-display); letter-spacing: -.02em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
-.gx-card .gx-ovr small { font: 800 max(12px, calc(var(--w) * .085))/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }
-.gx-card .gx-nm { position: absolute; z-index: 1; left: 6%; right: 6%; top: 56.5%; padding-bottom: 2px; border-bottom: 1px solid rgba(255, 255, 255, .3); font: 400 max(14px, calc(var(--w) * .135))/1.1 var(--f-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
-.gx-card .gx-tw { position: absolute; z-index: 1; left: 6%; right: 6%; top: 68.5%; font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.gx-card .gx-st { position: absolute; z-index: 1; left: 6%; right: 6%; bottom: 5%; display: grid; grid-template-columns: repeat(3, 1fr); }
+.gx-card .gx-ovr small { font: 800 max(11px, calc(var(--w) * .075))/1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); }
+/* (abajo, en la placa: el nombre, el pueblo y las cualidades, uno debajo de otro con su hueco y las cifras pegadas al pie;
+   antes iba cada uno a una altura fija y, en una carta pequeña, el pueblo caía sobre la raya del nombre y las cifras sobre
+   el pueblo) */
+.gx-card .gx-pie { position: absolute; z-index: 1; left: 7%; right: 7%; top: 55%; bottom: 4.5%; display: flex; flex-direction: column; min-height: 0; }
+.gx-card .gx-nm { font: 400 max(14px, calc(var(--w) * .125))/1.2 var(--f-display); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
+.gx-card .gx-tw { margin-top: max(4px, calc(var(--w) * .03)); font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.gx-card .gx-st { margin-top: auto; padding-top: 6px; display: grid; grid-template-columns: repeat(3, 1fr); }
 .gx-card .gx-st span { display: flex; flex-direction: column; align-items: center; line-height: 1; }
 .gx-card .gx-st b { font: 800 max(13px, calc(var(--w) * .11))/1 var(--f-cond); }
 .gx-card .gx-st small { font: 600 max(12px, calc(var(--w) * .07))/1.05 var(--f-cond); letter-spacing: .04em; color: var(--ac); text-transform: uppercase; }
 /* (el arquetipo, bajo la media: un círculo con su icono, como la bandera en las cartas de los juegos de fútbol) */
 .gx-card .gx-arq { position: absolute; z-index: 1; left: calc(9% + var(--w) * .045); top: calc(var(--w) * .47); width: calc(var(--w) * .17); height: calc(var(--w) * .17); display: grid; place-items: center; border-radius: 50%; background: rgba(12, 3, 30, .6); border: 1px solid var(--ac); color: #fff; box-shadow: 0 0 calc(var(--w) * .05) color-mix(in srgb, var(--ac) 60%, transparent); }
 .gx-card .gx-arq svg { width: 62%; height: 62%; }
-.gx-card.mini .gx-nm, .gx-card.mini .gx-tw, .gx-card.mini .gx-st, .gx-card.mini .gx-ovr small { display: none; }
+.gx-card.mini .gx-pie, .gx-card.mini .gx-ovr small { display: none; }
 /* las categorías, por la media (rules.js, cartaTier), todas en morados: la de bronce, un lila apagado; la de plata, lila
    claro con brillo; la de oro, violeta intenso con el oro del juego en las cifras; la especial, casi negra con el borde
    fucsia y un halo. El equipo (azul o colorado), en la franja de arriba y en el puesto */
@@ -94,14 +99,18 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 .gx-card .gx-ovr small { padding: 1px 6px; border-radius: 999px; background: var(--eq, transparent); color: #fff; }
 .gx-card.t-oro .gx-st b, .gx-card.t-oro .gx-ovr b { color: #ffe39a; }
 .gx-card.lock { --eq: transparent; }
-/* las seis cualidades: en una carta estrecha, las tres primeras; desde 150 px de ancho, las seis en dos columnas de
-   tres, como en esas cartas (la carta es su propio contenedor: así vale también cuando el torneo la agranda) */
+/* las seis cualidades: en una carta estrecha, las tres primeras; desde 150 px de ancho, las seis en dos filas de tres
+   («73 VEL»), como en esas cartas (la carta es su propio contenedor: así vale también cuando el torneo la agranda). En una
+   carta de menos de 136 px no cabe el pueblo con su hueco: va solo el nombre (el pueblo sale en su ficha). Container query de
+   la propia carta: vale para los hijos, no para la carta */
 .gx-card { container-type: inline-size; }
 .gx-card .gx-st.s6 span:nth-child(n + 4) { display: none; }
+@container (max-width: 135.9px) { .gx-card:not(.lock) .gx-tw { display: none; } }
+/* (las de por descubrir, sin las cifras, que serían todo rayas: les queda sitio para el pueblo, que dice dónde encontrarlas) */
+.gx-card.lock .gx-st { display: none; }
 @container (min-width: 150px) {
-  .gx-card .gx-tw { top: 66.5%; }
-  .gx-card .gx-st.s6 { bottom: 4.5%; grid-template-columns: 1fr 1fr; grid-auto-flow: column; grid-template-rows: repeat(3, auto); column-gap: 6%; row-gap: 1px; padding: 0 4%; }
-  .gx-card .gx-st.s6 span, .gx-card .gx-st.s6 span:nth-child(n + 4) { display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: 4px; }
+  .gx-card .gx-st.s6 { grid-template-columns: repeat(3, 1fr); row-gap: 3px; column-gap: 4%; }
+  .gx-card .gx-st.s6 span, .gx-card .gx-st.s6 span:nth-child(n + 4) { display: flex; flex-direction: row; justify-content: center; align-items: baseline; gap: 3px; }
   .gx-card .gx-st.s6 b { font-size: max(12px, calc(100cqw * .09)); }
   .gx-card .gx-st.s6 small { font-size: max(11px, calc(100cqw * .062)); }
 }

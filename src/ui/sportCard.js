@@ -32,6 +32,5 @@ export function pelotariCard(o) {
   return `<${tag} class="gx-card ${o.side || 'rojo'}${tier}${o.lock ? ' lock' : ''}${o.pop ? ' pop' : ''}${o.mini ? ' mini' : ''}" style="--w:${o.w || 140}px;--d:${o.d || 0}s" ${o.attr || ''}>
     <span class="gx-face"></span>${img}
     <span class="gx-ovr"><b>${o.lock ? '?' : r.ovr}</b><small>${esc(o.role || 'Mano')}</small></span>${A ? `<span class="gx-arq ${A.id}" role="img" aria-label="${esc(A.t)}" title="${esc(A.t)}">${A.icon}</span>` : ''}
-    <span class="gx-nm">${esc(o.lock ? '?' : o.name)}</span><span class="gx-tw">${esc(o.town || '')}</span>
-    ${st}</${tag}>`;
+    <span class="gx-pie"><span class="gx-nm">${esc(o.lock ? '?' : o.name)}</span><span class="gx-tw">${esc(o.town || '')}</span>${st}</span></${tag}>`;
 }

@@ -42,7 +42,7 @@ const CSS = `
 .pc-it{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
 .pc-it button.gx-card{border:0;padding:0;background:none;cursor:pointer;font:inherit}.pc-it .gx-card.lock{cursor:default}
 .pc-it em{font:800 var(--fs-xs)/1.3 var(--f-cond);font-style:normal;letter-spacing:.06em;text-transform:uppercase;color:var(--rosa)}.pc-it em.l{color:var(--lila2)}
-.pc-lock{position:absolute;z-index:2;right:7%;top:5%;width:24px;height:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}   /* (en la esquina: la cara de la figura se ve) */
+.pc-lock{position:absolute;z-index:2;left:calc(9% + var(--w) * .045);top:calc(var(--w) * .47);width:max(20px,calc(var(--w) * .17));height:max(20px,calc(var(--w) * .17));filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}   /* (bajo el «?», donde las descubiertas llevan su arquetipo: en la esquina de arriba pisaba el pelo de la figura) */
 .pc-note{margin:0;font-size:var(--fs-xs);line-height:1.3;color:var(--lila2)}
 @media (orientation:landscape) and (max-height:500px){.pc-note{display:none}.pc-head h2{font-size:var(--fs-xl)}}
 /* ordenador: las cartas más grandes y todas las de la comarca a la vista, en filas, sin desplazar de lado */
