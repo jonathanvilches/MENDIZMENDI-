@@ -852,14 +852,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   suave. Con filo en todo, dejaba de destacar y cargaba las ventanas (noviembre de 2026, a petición del autor). Sustituye
   a las esquinas cortadas en ángulo y a sus marcos dibujados (`ui/frames.js`, retirado): las 57 reglas con `clip-path`
   de corte pasaron a `border-radius` en su propia hoja. Siguen como formas, no como cajas, las cintas de premio, las dos
-  mitades del VS y la silueta de la carta de pelotari. El filo es de 1 px en todo (antes, 1,5 y 2 px: se comía el
+  mitades del VS y la silueta de las cartas de deporte: la de pelotari (`gx-card`) y las dos de Torneos (`sport`) llevan
+  la de las cartas de los juegos de fútbol, con las esquinas de arriba cortadas en ángulo, las de abajo algo menos y
+  una punta pequeña en medio (`--fifa`, en tanto por ciento en la de pelotari y en píxeles en las de Torneos). Su filo
+  de 1 px sigue esa forma: un aro con degradado cónico que da la vuelta (`--neon-a`), recortado con la silueta, el
+  relleno 1 px por dentro y la luz alrededor con una sombra que sigue la forma (`drop-shadow`). Al pasar a la identidad
+  de neón se habían quedado en rectángulos redondeados: «no quiero que sea simplemente cuadrada» (noviembre de 2026).
+  El filo es de 1 px en todo (antes, 1,5 y 2 px: se comía el
   relleno). Tres maneras: el filo quieto, para casi todo, es un contorno (`outline`) de 1 px por dentro del borde, con un
   brillo de sombra: cae encima del borde fino que ya tenía la caja, así que no mueve nada de sitio ni quita aire al
   contenido, va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera; las cajas que no tenían
   borde reciben uno transparente de 1 px, para que el filo tenga su propio píxel y el relleno siga igual (salvo las
   cartas que son marco de foto, cuyo relleno de 2 px es el marco); la forma va en tres listas
   (tarjetas y bloques, 8 px; paneles y ventanas, 10 px; rótulos pequeños, campos y chips, 6 px) y el filo en otra, la de
-  las superficies y las cartas; una caja nueva entra en las que le tocan. En las tarjetas con el relleno en `::before` (la carta del menú, las de Torneos y las de pelotari),
+  las superficies y las cartas; una caja nueva entra en las que le tocan. En las tarjetas con el relleno en `::before` (la carta del menú),
   un cuadrado con degradado cónico que gira detrás del relleno y da la vuelta al borde (`::after`, solo transformación:
   lo mueve la tarjeta gráfica). En los rótulos del partido (el del tanto, el del comentarista, el de la repetición), un
   aro con máscara cuyo degradado da la vuelta (`--neon-a`, `@property`), y en las losas del menú de pelota, el propio

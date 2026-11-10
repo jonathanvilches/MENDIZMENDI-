@@ -23,41 +23,65 @@
 :root { --neon-1: #b79cff; --neon-2: #ff7ac8; --neon-sel: #ff7ac8; --neon-r: 8px; --neon-rs: 6px; --neon-rp: 10px; --neon-w: 1px; }
 
 /* ---------- las tarjetas: el destello que gira detrás del relleno ---------- */
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam), .sport, .gx-card {
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam) {
   --neon-c: var(--cat, var(--neon-1)); position: relative; isolation: isolate; overflow: hidden; clip-path: none !important; border-radius: var(--neon-r) !important;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-c) 40%, transparent), 0 0 18px -6px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 8px 22px rgba(0, 0, 0, .28) !important;
   transition: box-shadow .2s, transform .2s; }
 /* (el filo, de 1 px: el relleno va 1 px más adentro; el destello, con su centro blanco, se ve igual) */
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::before { clip-path: none !important; inset: 1px !important; border-radius: calc(var(--neon-r) - 1px); }
-.sport::before { clip-path: none !important; inset: 1px !important; border-radius: calc(var(--neon-r) - 1px); }
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::after, .sport::after, .gx-card::after {
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::after {
   content: ''; position: absolute; z-index: -2; left: 50%; top: 50%; width: 260%; aspect-ratio: 1; pointer-events: none;
   background: conic-gradient(from 0deg, transparent 0 58%, color-mix(in srgb, var(--neon-c) 80%, transparent) 72%, #fff 80%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, transparent 96%);
   animation: neon-gira 5.2s linear infinite; will-change: transform; }
 /* (no todas a la vez: cada una con el destello en otro punto del borde) */
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .ar, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam):nth-child(3n+2)::after, .sport:nth-child(3n+2)::after, .gx-card:nth-child(3n+2)::after { animation-delay: -1.8s; }
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .ar, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam):nth-child(3n)::after, .sport:nth-child(3n)::after, .gx-card:nth-child(3n)::after { animation-delay: -3.5s; }
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .ar, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam):nth-child(3n+2)::after { animation-delay: -1.8s; }
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .ar, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam):nth-child(3n)::after { animation-delay: -3.5s; }
 /* (al pasar por encima o al tocar, más luz y más deprisa) */
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .vt-cert, .vt-com, .ddc, .ppage, .lam-rail .lam):is(:hover, :focus-visible), .sport:is(:hover, :focus-visible) {
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .vt-cert, .vt-com, .ddc, .ppage, .lam-rail .lam):is(:hover, :focus-visible) {
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-c) 70%, transparent), 0 0 26px -4px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 10px 26px rgba(0, 0, 0, .32) !important; }
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .vt-cert, .vt-com, .ddc, .ppage, .lam-rail .lam):is(:hover, :focus-visible)::after, .sport:is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .vt-cert, .vt-com, .ddc, .ppage, .lam-rail .lam):is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
 /* (lo bloqueado: sin destello y casi sin luz) */
-#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked), #hub .bcard:not(.on), .gx-card.lock { box-shadow: 0 0 0 1px rgba(190, 160, 255, .14), 0 6px 16px rgba(0, 0, 0, .25) !important; }
-#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked)::after, #hub .bcard:not(.on)::after, .gx-card.lock::after { display: none; }
+#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked), #hub .bcard:not(.on) { box-shadow: 0 0 0 1px rgba(190, 160, 255, .14), 0 6px 16px rgba(0, 0, 0, .25) !important; }
+#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked)::after, #hub .bcard:not(.on)::after { display: none; }
 /* (las imágenes de arriba y las láminas, dentro del filo de 2 px y con su esquina redonda en vez del corte) */
 #hub :is(.scard.fl, .pcard, .fcard.pers.ilus, .ddc, .lam-rail .lam) { padding-top: 1px !important; padding-left: 1px !important; padding-right: 1px !important; }
 #hub :is(.lam-rail .lam, .fcard.pers.ilus) { padding-bottom: 1px !important; }
 #hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px) 0 0 !important; }
 #hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) !important; }
 #hub .lam-rail .lam span { left: 1px !important; right: 1px !important; bottom: 1px !important; border-radius: 0 0 calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px); }
-/* (las de Torneos, con la luz de su deporte) */
-.sport { --neon-c: var(--acc, var(--neon-1)); }
-/* (la carta de pelotari: el marco de colores y la cara, redondos; la luz de su bando) */
-.gx-card { --neon-c: var(--ac); --neon-r: 10px; }
-.gx-card::before, .gx-card .gx-face { clip-path: none !important; }
-.gx-card::before { border-radius: 10px; }
-.gx-card .gx-face { border-radius: 8px; }
-.gx-card::after { z-index: -2; }
+/* (las de Torneos, con la luz de su deporte y la misma silueta que las cartas de pelotari, en píxeles: las esquinas de
+   arriba cortadas, las de abajo algo menos y la punta pequeña en medio; el filo de 1 px, con su destello, sigue la
+   forma, y la luz de alrededor también. Así las cartas de todo lo de deportes van a juego) */
+.sport { --neon-c: var(--acc, var(--neon-1)); --fifa: polygon(0 18px, 18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 16px), calc(100% - 12px) calc(100% - 5px), calc(50% + 14px) calc(100% - 5px), 50% 100%, calc(50% - 14px) calc(100% - 5px), 12px calc(100% - 5px), 0 calc(100% - 16px));
+  background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible; isolation: isolate;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--neon-c) 60%, transparent)) drop-shadow(0 18px 30px rgba(4, 1, 12, .4)); transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), filter .3s; }
+.sport::before { inset: 1px !important; border-radius: 0 !important; clip-path: var(--fifa) !important; }
+.sport::after { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; clip-path: var(--fifa);
+  background: conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 50%, transparent) 0 58%, color-mix(in srgb, var(--neon-c) 85%, transparent) 72%, #fff 80%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, color-mix(in srgb, var(--neon-c) 50%, transparent) 96%);
+  animation: neon-aro 5.2s linear infinite; }
+.sport + .sport::after { animation-delay: -2.6s; }
+.sport:is(:hover, :focus-visible) { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--neon-c) 85%, transparent)) drop-shadow(0 26px 40px rgba(4, 1, 12, .45)); }
+.sport:is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
+/* (la carta de pelotari, con la silueta de las cartas de los juegos de fútbol: las esquinas de arriba cortadas en ángulo,
+   las de abajo algo menos y una punta pequeña en medio, como un escudo; el filo de neón de 1 px sigue esa forma, con su
+   destello dando la vuelta (un degradado cónico que gira, recortado con la silueta), y la luz de su bando alrededor (una
+   sombra que sigue la forma, no la caja). El marco de colores va 1 px por dentro y la cara, 2: la misma silueta en su
+   caja, un poco más pequeña. Antes, al pasar a la identidad de neón, se quedó en un rectángulo redondeado: «no quiero
+   que sea simplemente cuadrada», noviembre de 2026) */
+.gx-card { --neon-c: var(--ac); --fifa: polygon(0 7%, 9% 0, 91% 0, 100% 7%, 100% 91%, 92% 96.5%, 56% 96.5%, 50% 100%, 44% 96.5%, 8% 96.5%, 0 91%);
+  overflow: visible; clip-path: none; border-radius: 0;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--neon-c) 70%, transparent)) drop-shadow(0 10px 16px rgba(0, 0, 0, .45)); transition: filter .2s, transform .2s; }
+.gx-card::after { content: ''; position: absolute; inset: 0; z-index: -3; pointer-events: none; clip-path: var(--fifa);
+  background: conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 55%, transparent) 0 58%, color-mix(in srgb, var(--neon-c) 85%, transparent) 72%, #fff 80%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, color-mix(in srgb, var(--neon-c) 55%, transparent) 96%);
+  animation: neon-aro 5.2s linear infinite; }
+.gx-card:nth-child(3n+2)::after { animation-delay: -1.8s; } .gx-card:nth-child(3n)::after { animation-delay: -3.5s; }
+.gx-card::before { inset: 1px !important; clip-path: var(--fifa) !important; border-radius: 0 !important; }
+.gx-card .gx-face { inset: 2px !important; clip-path: var(--fifa) !important; border-radius: 0 !important; }
+.gx-card:is(:hover, :focus-visible) { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--neon-c) 95%, transparent)) drop-shadow(0 12px 20px rgba(0, 0, 0, .5)); }
+.gx-card:is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
+/* (la sin descubrir: el filo apagado, quieto y casi sin luz) */
+.gx-card.lock { filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .4)); }
+.gx-card.lock::after { animation: none; background: rgba(190, 160, 255, .22); }
 
 /* ---------- los rótulos del partido: el aro de luz que da la vuelta ---------- */
 :root :is(.pel-call, .pel-com, .pel-rep-b) { --neon-c: var(--neon-1); border-radius: var(--neon-r) !important; clip-path: none !important;
