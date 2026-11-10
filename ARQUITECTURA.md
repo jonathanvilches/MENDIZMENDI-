@@ -287,16 +287,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, voz
   de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos
   tapaban la pantalla. Las frases no llevan nombres ni números, para poder grabarlas una vez; cada una tiene su clave
-  («dejada-2»), que es el nombre de su grabación en `src/assets/voz/<hombre|mujer>/<es|eu>/`. Si no está grabada, la voz
-  del sistema de ese idioma (de hombre o de mujer según el nombre de la voz); si el aparato no tiene voz en ese idioma,
-  no se dice nada. Una frase cada vez; se callan al pausar y al salir. Con los subtítulos puestos, también el rótulo de
+  («dejada-2»), que es el nombre de su grabación en `src/assets/voz/<hombre|mujer>/<es|eu>/`. Solo suenan grabaciones
+  del autor, nunca una voz sintética: si falta la frase en esa voz, la de la otra voz; si falta en euskera, la de
+  castellano; si no hay ninguna, no se dice nada. Una frase cada vez; se callan al pausar y al salir. Con los subtítulos puestos, también el rótulo de
   abajo. Las grabaciones pueden llegar en un solo archivo por idioma: `tools/corta-voz.mjs` lo corta en una frase por
   archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
   palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps. Mientras habla, la música
   baja a un tercio (`audio.js`, `voz` y `volMus`: cuenta en todo lo que pone el volumen de la música) y vuelve al acabar
-  la frase; con la voz del sistema, si el iPhone no avisa del final, se da por acabada a su tiempo. Grabadas: las 63
-  frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el euskera, el kantari y la voz de
-  mujer, que mientras tanto usan la voz del sistema o, la de mujer, la grabación de hombre.
+  la frase. Grabadas: las 63 frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el
+  euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más

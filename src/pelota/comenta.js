@@ -1,5 +1,5 @@
 // Los comentarios del partido de pelota, como en la tele: el comentarista cuenta la jugada y la explica. Se oyen
-// (pelota/voz.js: la voz grabada si está, y si no la del sistema); escritos solo si se piden en Ajustes. Frases cortas
+// (pelota/voz.js: solo la voz grabada por el autor); escritos solo si se piden en Ajustes. Frases cortas
 // según cómo acaba cada tanto, las rachas, la remontada, el tanto de partido y el final. Sin nombres propios ni números:
 // así cada frase se puede grabar una vez y vale para todos los partidos (el marcador y los nombres ya los dan los
 // rótulos). No comentan todos los tantos: siempre los que importan y, de los demás, más o menos la mitad. Nunca repiten
