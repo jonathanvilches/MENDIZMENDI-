@@ -299,6 +299,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
   (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
   del rebote.
+- **Cartas al estilo de los juegos de fútbol, en morados** (`ui/sportCard.js`, `ui/sport.css`; `pelota/rules.js`,
+  `cartaTier` y `pelotariRating`): el color de la carta va por la media, como allí, pero en la gama de morados: bronce
+  (lila apagado, hasta 64), plata (lila claro, 65-74), oro (violeta con las cifras en el oro del juego, 75-84) y especial
+  (casi negra, borde fucsia y halo, 85 o más). El equipo, azul o colorado, en la franja de arriba y en el puesto. Seis
+  cualidades (velocidad, potencia, manos, remate, defensa y fondo; las tres últimas salen de las otras y del nombre) en
+  dos columnas cuando la carta mide 150 px o más (`@container`); en las estrechas, las tres de siempre.
 - **Pelotaris con color limpio y público más nítido** (`src/assets/meshy*/pelotari*.glb`; `actors/crowdSprites.js`,
   `TAM`; `actors/crowd3d.js`, `PUNTOS`): la textura de Meshy de los pelotaris iba a parches (dos rojos y un cuadriculado
   en la camiseta, manchas grises en el pantalón) y se veían «a trozos». Se ha limpiado zona a zona: camiseta de un solo

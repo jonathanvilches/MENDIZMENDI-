@@ -103,11 +103,17 @@ const fnv = (s) => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.c
 /** Una cualidad de 1 a 5 en la escala de 0 a 99 (k distingue cada cualidad del mismo jugador). */
 export const rate99 = (v, seed = '', k = 0) => Math.max(40, Math.min(99, Math.round(38 + (v || 3) * 11 + ((fnv(seed + k) % 7) - 3))));
 /** { vel, pot, man, ovr } de un pelotari; bonus: lo que sube la media (la tuya, con cada txapela; la del rival, con su nivel). */
+/** La categoría de la carta por su media, como en los juegos de fútbol pero en morados: 'bronce', 'plata', 'oro' o 'especial' */
+export const cartaTier = (ovr) => ovr >= 85 ? 'especial' : ovr >= 75 ? 'oro' : ovr >= 65 ? 'plata' : 'bronce';
 export function pelotariRating(st = {}, seed = '', bonus = 0) {
   const vel = rate99(st.velocidad, seed, 1), pot = rate99(st.fuerza, seed, 2), man = rate99(st.agilidad, seed, 3);
   // (la tuya lleva también la precisión, que vas ganando partido a partido)
   const pre = st.precision != null ? rate99(st.precision, seed, 4) : null, media = pre == null ? (vel + pot + man) / 3 : (vel + pot + man + pre) / 4;
-  return { vel, pot, man, pre, ovr: Math.max(45, Math.min(99, Math.round(media + bonus))) };
+  // (y tres más para la carta grande, como las seis de los juegos de fútbol, que salen de las suyas: el remate, de la
+  // fuerza y la precisión; la defensa, de las piernas y los reflejos; el fondo, de las piernas y de su nombre)
+  const j = (k) => (fnv(seed + k) % 7) - 3, c99 = (v) => Math.max(40, Math.min(99, Math.round(v)));
+  const rem = c99(pot * 0.62 + (pre ?? man) * 0.38 + j(5)), def = c99(vel * 0.55 + man * 0.45 + j(6)), fon = c99((vel + man) / 2 * 0.7 + 22 + j(7) * 2);
+  return { vel, pot, man, pre, rem, def, fon, ovr: Math.max(45, Math.min(99, Math.round(media + bonus))) };
 }
 export function pelotariStats(seed = '', lv = 2) {
   let h = 2166136261; for (const ch of String(seed)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); }
