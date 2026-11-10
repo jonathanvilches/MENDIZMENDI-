@@ -6,7 +6,8 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { GlbChar, loadMeshy, MESHY_GAIT, sharpMap } from './glbChar.js';
-import { crowdMesh, figure, FIGS, sitPose } from './crowdSprites.js';
+import { crowdMesh, figure, nFigs, sitPose } from './crowdSprites.js';
+import { loadChica, hasChica } from './chicas.js';
 import { QUALITY } from '../util/quality.js';
 import { crowdProps } from './crowdProps.js';
 
@@ -31,10 +32,11 @@ const PUNTOS = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
 const _c = new THREE.Color(), _v = new THREE.Vector3(), _n = new THREE.Vector3(), _sk = new THREE.Matrix4(), _bm = new THREE.Matrix4(), _nm = new THREE.Matrix3();
 
 // una malla (con piel o rígida) ya posada → geometría con posición, normal y color, en el espacio del personaje
-function bakeMesh(o) {
+// (otra: la textura que se usa en vez de la suya, la del polo azul)
+function bakeMesh(o, otra = null) {
   const geo = o.geometry, P = geo.attributes.position, N = geo.attributes.normal, UV = geo.attributes.uv, COL = geo.attributes.color;
   const n = P.count, pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), col = new Float32Array(n * 3);
-  const mat = [].concat(o.material)[0], map = mat.map?.image ? pixels(mat.map) : null, mc = mat.color || new THREE.Color(1, 1, 1);
+  const mat = [].concat(o.material)[0], tx = otra || mat.map, map = tx?.image ? pixels(tx) : null, mc = mat.color || new THREE.Color(1, 1, 1);
   const skin = o.isSkinnedMesh, SI = geo.attributes.skinIndex, SW = geo.attributes.skinWeight;
   if (skin) o.skeleton.update();
   const bones = skin ? o.skeleton.boneMatrices : null;
@@ -72,6 +74,42 @@ function bakeMesh(o) {
   g.setIndex(geo.index ? geo.index.clone() : [...Array(n).keys()]);
   return g;
 }
+// el polo azul: la misma figura con el polo colorado pasado al azul del otro bando. Solo lo colorado del tronco (los
+// triángulos entre la cadera y el cuello, pintados en el espacio de la textura): las texturas de Meshy van a parches y
+// un rojo suelto puede ser los labios o las botas. Conserva la luz y la sombra de la tela. Una vez por textura
+const azules = new WeakMap();
+function camisetaAzul(o, map, root) {
+  if (azules.has(map)) return azules.get(map);
+  const img = map.image, w = img?.width, h = img?.height; if (!w || !h) return null;
+  let hips = null, neck = null; root.traverse(b => { if (!b.isBone) return; if (!hips && /hips$/i.test(b.name)) hips = b; if (!neck && /neck$/i.test(b.name)) neck = b; });
+  const g = bakeMesh(o), P = g.attributes.position.array, I = g.index.array, U = o.geometry.attributes.uv; if (!U) { g.dispose(); return null; }
+  let y0 = Infinity, y1 = -Infinity; for (let i = 1; i < P.length; i += 3) { y0 = Math.min(y0, P[i]); y1 = Math.max(y1, P[i]); }
+  const H = y1 - y0, v = new THREE.Vector3();
+  const ya = hips ? hips.getWorldPosition(v).y - 0.12 * H : y0 + 0.36 * H, yb = neck ? neck.getWorldPosition(v).y + 0.02 * H : y0 + 0.74 * H;
+  const mk = document.createElement('canvas'); mk.width = w; mk.height = h; const m = mk.getContext('2d', { willReadFrequently: true });
+  const X = (i) => (U.getX(i) - Math.floor(U.getX(i))) * w, Y = (i) => { const t = U.getY(i) - Math.floor(U.getY(i)); return (map.flipY ? 1 - t : t) * h; };
+  const dentro = (i) => P[i * 3 + 1] >= ya && P[i * 3 + 1] <= yb;
+  m.fillStyle = m.strokeStyle = '#fff'; m.lineWidth = 2; m.lineJoin = 'round'; m.beginPath();
+  for (let t = 0; t < I.length; t += 3) { const a = I[t], b = I[t + 1], c = I[t + 2]; if (!dentro(a) || !dentro(b) || !dentro(c)) continue; m.moveTo(X(a), Y(a)); m.lineTo(X(b), Y(b)); m.lineTo(X(c), Y(c)); m.closePath(); }
+  m.fill(); m.stroke();
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(img, 0, 0, w, h);
+  const D = cx.getImageData(0, 0, w, h), d = D.data, M = m.getImageData(0, 0, w, h).data;
+  for (let i = 0; i < d.length; i += 4) {
+    if (M[i + 3] < 128) continue;
+    const r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), dl = mx - mn;
+    if (r !== mx || mx < 0.18 || dl / mx < 0.42) continue;   // (colorado: manda el rojo y con color)
+    const hue = 60 * (gg - b) / dl; if (hue > 28 || hue < -25) continue;
+    // (al azul: tono 218, la misma saturación y algo menos de brillo, que el azul a igual valor se ve más claro)
+    const S = Math.min(1, dl / mx * 0.95), V = mx * 0.9, hh = 218 / 60, k = Math.floor(hh), f = hh - k, p0 = V * (1 - S), q0 = V * (1 - S * f), t0 = V * (1 - S * (1 - f));
+    const [R, G2, B] = [[V, t0, p0], [q0, V, p0], [p0, V, t0], [p0, q0, V], [t0, p0, V], [V, p0, q0]][k % 6];
+    d[i] = R * 255; d[i + 1] = G2 * 255; d[i + 2] = B * 255;
+  }
+  cx.putImageData(D, 0, 0); mk.width = mk.height = 1; g.dispose();
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = map.colorSpace; t.flipY = map.flipY; t.wrapS = map.wrapS; t.wrapT = map.wrapT;
+  t.minFilter = map.minFilter; t.magFilter = map.magFilter; t.anisotropy = map.anisotropy; t.channel = map.channel;
+  azules.set(map, t); return t;
+}
+const mapDe = (o) => [].concat(o.material)[0]?.map || null;
 // con textura (el público del frontón, todo en 3D): la piel, la cara y la ropa con el mismo detalle que los jugadores,
 // y la misma luz propia que los personajes de Meshy. Una por figura (cada una trae su textura)
 const texMats = new Map();
@@ -114,8 +152,10 @@ function bakeSet(set, sit, arriba = false) {
   if (baked.has(key)) return baked.get(key);
   const pr = (async () => {
     const out = [];
-    for (let f = 0; f < FIGS; f++) {
-      const gl = await loadMeshy(figure(set, f).meshy, true), poses = [];
+    for (let f = 0; f < nFigs(set); f++) {
+      const fig = figure(set, f), poses = [];
+      const gl = fig.chica && hasChica(fig.meshy, 'coleta', true) ? await loadChica(fig.meshy, 'coleta', true) : await loadMeshy(fig.meshy, true);
+      let azul = null;
       for (let r = 0; r < 2; r++) {
         const c = new GlbChar(gl, MESHY_GAIT);
         c.root.scale.setScalar(gl.userData.fit || 1);
@@ -123,10 +163,22 @@ function bakeSet(set, sit, arriba = false) {
         if (r === 1 && !sentada) c.playOnce?.('Celebrate', 1); c.update(r === 1 && !sentada ? 0.45 : 0.3);
         if (sit && (r === 0 || sentada)) sitPose(c.root, { brazosArriba: r === 1 });
         c.root.rotation.y = (f % 3 - 1) * 0.12; c.root.updateMatrixWorld(true);
-        const parts = []; let map = null; c.root.traverse(o => { if (o.isMesh && !o.userData.outline && shown(o)) { parts.push(bakeMesh(o)); map ||= [].concat(o.material)[0].map || null; } });
-        const g = mergeGeometries(parts); parts.forEach(p => p.dispose()); g.computeBoundingSphere(); g.userData.map = map;
+        // (la textura de la figura: la del cuerpo, la malla más grande con textura. El pelo de las chicas trae la suya, gris,
+        // con el color en el material: va aparte, con el color pasado a sus vértices, en un segundo grupo de la misma malla)
+        const ms = []; c.root.traverse(o => { if (o.isMesh && !o.userData.outline && !/Pestanas/.test(o.name) && shown(o)) ms.push(o); });
+        let body = null; for (const o of ms) if (mapDe(o) && (!body || o.geometry.attributes.position.count > body.geometry.attributes.position.count)) body = o;
+        const map = body ? mapDe(body) : null;
+        if (fig.camiseta === 'azul' && map && !azul) azul = camisetaAzul(body, map, c.root);
+        const tex = [], col = [];
+        for (const o of ms) (mapDe(o) === map ? tex : col).push(bakeMesh(o, mapDe(o) === map ? azul : null));
+        for (const p of [...tex, ...col]) if (!p.attributes.uv) p.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(p.attributes.position.count * 2), 2));
+        const gt = tex.length ? mergeGeometries(tex) : null, gc = col.length ? mergeGeometries(col) : null;
+        const g = (gt && gc && mergeGeometries([gt, gc], true)) || gt || gc;
+        [...tex, ...col].forEach(p => p.dispose()); if (g !== gt) gt?.dispose(); if (g !== gc) gc?.dispose();
+        g.computeBoundingSphere(); g.userData.map = azul || map; g.userData.pelo = !!(gt && gc && g !== gt && g !== gc);
         poses.push(g); c.dispose();
       }
+      poses.camiseta = fig.camiseta || null;
       out.push(poses);
       await new Promise(r => setTimeout(r));   // sin bloquear la pantalla mientras se cocinan
     }
@@ -141,11 +193,13 @@ function bakeSet(set, sit, arriba = false) {
  */
 export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
-  for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * FIGS);
+  for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * nFigs(set));
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit, { lamina: !all3d });
   group.add(sprites);
   // banderas, bufandas y pañuelos de la afición
-  let props = null; try { props = crowdProps(spots, set, height, { sit }); group.add(props); } catch (e) { console.warn('afición', e); }
+  // (la afición de pelota, sin pañuelos: van a la altura del sentado y, con la gente levantándose y sentándose, quedaban
+  // en el aire delante del que se ponía de pie)
+  let props = null; if (set !== 'aficion') try { props = crowdProps(spots, set, height, { sit }); group.add(props); } catch (e) { console.warn('afición', e); }
   // la ola (en el estadio): cada cierto rato da la vuelta a la grada; quien está en la cresta se levanta y alza los brazos
   const olaOn = set === 'futbol'; let olaA = -99;
   // (los personajes nuevos tienen más detalle: en el móvil, menos en 3D a la vez)
@@ -164,14 +218,19 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   const hide = new Uint8Array(n), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), s3 = new THREE.Vector3();
   const rot = new Float32Array(n), sc = new Float32Array(n);
   for (let i = 0; i < n; i++) { rot[i] = spots[i][3] + (Math.random() - 0.5) * 0.3; sc[i] = (0.92 + Math.random() * 0.16) * height / 1.5; }
-  const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, tex ? texMat(g.userData.map) : MAT, k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; };
+  // (sentados que se levantan a celebrar y se vuelven a sentar, cada uno a su tiempo: en cada tanto, casi todos los de la
+  // camiseta del que lo gana y alguno del otro; al salir los pelotaris, muchos de los dos)
+  const lev = sit && !arriba && !quietos, dly = new Float32Array(n), dur = new Float32Array(n), rnd = new Float32Array(n);
+  for (let i = 0; i < n; i++) { dly[i] = 0.08 + Math.random() * 0.7; dur[i] = 0.75 + Math.random() * 0.5; rnd[i] = Math.random(); }
+  let cheerAt = null, cheerPend = false, cheerLado = null, cheerLen = 1.6, camis = [], quietoAntes = false;
+  const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, !tex ? MAT : g.userData.pelo ? [texMat(g.userData.map), MAT] : texMat(g.userData.map), k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; };
   let mid = null, far = null, capas = [];
   // (listo: cuando ya están las figuras en 3D; el partido espera a subir sus texturas antes de enseñar al público)
   group.listo = bakeSet(set, sit, arriba).then(G => {
     meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
     if (K > KC) mid = G.map(poses => poses.map(g => inst(g.userData.lejos1 ||= lejos(g, C1), Math.min(K - KC, KM), false)));
     if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), K - KC - KM, false)));
-    capas = [meshes, mid, far].filter(Boolean);
+    capas = [meshes, mid, far].filter(Boolean); camis = G.map(p => p.camiseta);
   }).catch(err => console.warn('público 3D', err));
   const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.2);
   // elige los K espectadores más cercanos a la cámara (dentro de R) que se ven, para dibujarlos en 3D (los que quedan
@@ -206,8 +265,11 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
     let otros = false; if ((pick -= 1) <= 0) { pick = 12; otros = choose(camera); }   // cada 12 fotogramas
     // (sentados y tranquilos, o quietos, nadie se mueve: si no ha cambiado quién se ve ni el ánimo, se quedan como estaban
     // y no se vuelven a mandar a la tarjeta gráfica. En un Labrit lleno, eso es casi todo el partido)
-    if ((quietos || (sit && arriba && excite <= 0.15 && olaA < -50)) && !otros && cheer === cheerAntes) return;
-    cheerAntes = cheer;
+    if (cheerPend) { cheerAt = t; cheerPend = false; }
+    if (cheerAt != null && t - cheerAt > cheerLen * 1.3 + 1) cheerAt = null;
+    const quieto = lev && cheerAt == null && excite <= 0.15;   // (todos sentados y tranquilos)
+    if ((quietos || (sit && arriba && excite <= 0.15 && olaA < -50) || (quieto && quietoAntes)) && !otros && cheer === cheerAntes) return;
+    cheerAntes = cheer; quietoAntes = quieto;
     for (const c of capas) for (const fig of c) for (const im of fig) im.count = 0;
     for (let k = 0; k < nNear; k++) {
       const i = near[k], s = spots[i];
@@ -215,8 +277,11 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       const ex = excite * (0.35 + 0.65 * Math.exp(-Math.abs(s[2] - focus) / 14));
       let ola = 0; if (olaA > -50) { const d = ((Math.atan2(s[2], s[0]) - olaA) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; ola = Math.exp(-d * d / 0.05); }
       const wave = (A[i * 3 + 2] && ex > 0.15 && Math.sin(t * 7 + A[i * 3 + 1]) >= 0) || ola > 0.3 ? 1 : 0;
-      const pose = quietos ? 0 : Math.max((C[i * 2 + 1] + cheer) % 2, wave), im = (k < KC || !mid ? meshes : k < KC + KM || !far ? mid : far)[figs[i] % meshes.length][pose];
-      const jump = quietos || (sit && arriba) ? 0 : A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;   // (los que celebran sentados no saltan)
+      let pose = 0;
+      if (lev) { if (cheerAt != null) { const dt = t - cheerAt, mio = camis[figs[i] % camis.length], va = cheerLado && mio ? (mio === cheerLado ? rnd[i] < 0.9 : rnd[i] < 0.1) : rnd[i] < 0.65; pose = va && dt > dly[i] && dt < dly[i] + cheerLen * dur[i] ? 1 : 0; } }
+      else if (!quietos) pose = Math.max((C[i * 2 + 1] + cheer) % 2, wave);
+      const im = (k < KC || !mid ? meshes : k < KC + KM || !far ? mid : far)[figs[i] % meshes.length][pose];
+      const jump = quietos || (sit && arriba) ? 0 : lev ? (pose ? A[i * 3] * 0.5 * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) : 0) : A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;   // (los que celebran sentados no saltan)
       // (el que se levanta a celebrar, de pie delante de su asiento: en el sitio del sentado quedaba dentro de él)
       const sube = sit && !arriba && pose === 1 ? 0.3 : 0;
       m4.compose(v.set(s[0] + Math.sin(rot[i]) * sube, s[1] + jump, s[2] + Math.cos(rot[i]) * sube), q.setFromEuler(e.set(0, rot[i], 0)), s3.setScalar(sc[i]));
@@ -227,7 +292,8 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
     // aunque no se dibuje nadie con ella)
     for (const c of capas) for (const fig of c) for (const im of fig) { im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; } }
   };
-  group.cheer = (on) => { cheer = on ? 1 : 0; sprites.cheer(on); props?.cheer(on); };
+  // (lado: la camiseta del que gana el tanto, 'azul' o 'rojo'; len: cuánto dura, en segundos)
+  group.cheer = (on, lado = null, len = 1.6) => { cheer = on ? 1 : 0; if (on) { cheerPend = true; cheerLado = lado; cheerLen = len; } sprites.cheer(on); props?.cheer(on); };
   group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const c of capas) for (const fig of c) for (const im of fig) im.dispose(); };
   return group;
 }

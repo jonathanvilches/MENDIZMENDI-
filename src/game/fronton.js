@@ -460,12 +460,14 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
       if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
       // (sentados en sus asientos, en todos los frontones: el sitio es el asiento y la figura, algo adelantada y más baja;
-      // en cada tanto celebran sin levantarse, con los brazos en alto. Cuánto se adelanta lo dice la grada: en las butacas
+      // en cada tanto se levantan los de la camiseta del que lo gana, cada uno a su tiempo, y se vuelven a sentar: la
+      // afición, chicos y chicas de colorado y de azul, crowd3d.js. Antes celebraban sin levantarse, con los brazos en
+      // alto, y eran vecinos de fiesta, de pastor y de calle. Cuánto se adelanta lo dice la grada: en las butacas
       // con respaldo, la cadera sobre el asiento, 8 cm; en los bancos corridos al borde del escalón, 30, con los pies en el
       // de abajo. Nadie atraviesa ni el escalón ni lo que tiene delante)
       const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - 0.4, z + Math.cos(ry) * ad, ry]) : wsp;
       C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'pelota', 1.36, { sit, all3d: true, arriba: true, kc: muyLigero ? 1 : ligero ? 6 : null }); G.scene.add(seated); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', 1.36, { sit, all3d: true, kc: muyLigero ? 1 : ligero ? 6 : null }); G.scene.add(seated); }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }
@@ -554,8 +556,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
-      onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
-        if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { seated.cheer(true); cheerT = e.final ? 4.6 : 1.6; }
+      onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true, null, 3.2); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
+        if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { cheerT = e.final ? 4.6 : 1.6; seated.cheer(true, colors[e.winner] || null, cheerT); }
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p); },
     }); } catch (e) { console.warn('frontón', e); apunta('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
     // (si el partido falla una y otra vez, se acaba y se vuelve al pueblo: nunca el marcador puesto en mitad de la calle)

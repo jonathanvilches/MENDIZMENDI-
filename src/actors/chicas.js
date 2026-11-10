@@ -17,11 +17,12 @@ import { peloEmisivo } from './hairColor.js';
 
 const urls = (g) => Object.fromEntries(Object.entries(g).map(([p, u]) => [p.split('/').pop(), u]));
 // Solo las que salen en el juego: de cerca, la futbolista (fútbol) y la pelotari (frontón), a la resolución de los modelos
-// completos (@chicas en vite.config.js); ligera, la sanferminera (vecinas, corredoras del encierro y trajes).
-// tools/chicas prepara las tres de las dos maneras; las que no se usan no van en el juego
+// completos (@chicas en vite.config.js); ligeras, la sanferminera (vecinas, corredoras del encierro y trajes) y la del
+// polo (las chicas del público del frontón, crowd3d.js). tools/chicas prepara las tres de las dos maneras; las que no se
+// usan no van en el juego
 const FULL = urls(import.meta.glob('@chicas/{osasuna,pelotari,sanfermin}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
-const LOD = urls(import.meta.glob('../assets/chicas/lod/sanfermin.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
-const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,pelotari-coleta,sanfermin-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
+const LOD = urls(import.meta.glob('../assets/chicas/lod/{sanfermin,osasuna}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
+const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,osasuna-coleta-lod,pelotari-coleta,sanfermin-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
 /** ¿Hay chica para este modelo de Meshy con este peinado (null: sin peinado), completa o ligera? */
 export const hasChica = (name, peinado = 'coleta', lod = false) => !!((lod ? LOD : FULL)[name + '.parche'] && (!peinado || PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`]));
 

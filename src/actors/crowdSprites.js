@@ -17,6 +17,10 @@ const SETS = {
   // (en el frontón, vecinos: de fiesta, del pueblo y de calle; sin pelotaris en la grada, que se confundían con los que juegan)
   pelota: ['sanfermin', 'pastor', 'osasuna', 'sanfermin', 'osasuna_fuera', 'pastor', 'sanfermin', 'osasuna'],
   toros: ['sanfermin', 'sanfermin', 'pastor', 'sanfermin', 'sanfermin', 'pastor', 'sanfermin', 'pelotari'],
+  // (la afición de los partidos de pelota: chicos y chicas con el polo de su bando, colorado o azul, y pantalón oscuro,
+  // para no confundirse con los pelotaris, que van de blanco. La azul es la misma figura con el polo pasado a azul:
+  // crowd3d.js, camisetaAzul. Las chicas, el chico del polo con la cabeza y la coleta de chicas.js)
+  aficion: [{ meshy: 'osasuna', camiseta: 'rojo' }, { meshy: 'osasuna', camiseta: 'azul' }, { meshy: 'osasuna', chica: true, camiseta: 'rojo' }, { meshy: 'osasuna', chica: true, camiseta: 'azul' }],
 };
 const cache = new Map();
 // sentado en la grada: los muslos hacia delante y las espinillas hacia abajo, con la cadera bajada lo que mide el muslo
@@ -48,15 +52,17 @@ export function sitPose(root, { brazosArriba = false } = {}) {
   root.updateMatrixWorld(true);
 }
 export const FIGS = 8;
-/** Personaje (Meshy) de la figura i de un conjunto de público. */
-export const figure = (set, i) => { const outs = SETS[set] || SETS.futbol; return { meshy: outs[i % outs.length] }; };
+/** Cuántas figuras distintas tiene un conjunto de público. */
+export const nFigs = (set) => (SETS[set] || SETS.futbol).length;
+/** Personaje (Meshy) de la figura i de un conjunto de público: { meshy, chica?, camiseta? }. */
+export const figure = (set, i) => { const outs = SETS[set] || SETS.futbol, o = outs[i % outs.length]; return typeof o === 'string' ? { meshy: o } : o; };
 
 /** Lámina de público: { tex, cols, rows } con N personajes quietos (fila de arriba) y celebrando (abajo). */
 function crowdAtlas(set = 'futbol', sit = false) {
   const [cw, ch] = TAM[QUALITY] || TAM.high, key = set + (sit ? ':sit' : '') + ':' + cw;
   if (cache.has(key)) return cache.get(key);
   const p = (async () => {
-    const N = FIGS, cols = N, rows = 4;   // de frente (quieto, celebrando) y de espaldas (quieto, celebrando)
+    const N = nFigs(set), cols = N, rows = 4;   // de frente (quieto, celebrando) y de espaldas (quieto, celebrando)
     const atlas = document.createElement('canvas'); atlas.width = cw * cols; atlas.height = ch * rows;
     const g = atlas.getContext('2d');
     const scene = new THREE.Scene();

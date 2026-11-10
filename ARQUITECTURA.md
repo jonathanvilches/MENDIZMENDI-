@@ -314,6 +314,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mitad. El guion que lo hace está fuera del repositorio; para otro personaje, hay que ajustar los tonos de cada zona.
   El público lejano, en láminas de 120 × 180 en calidad media y 144 × 216 en alta (antes, 96 × 144 en todas: se veía
   borroso); el cercano toma su color de la media de cinco puntos de la textura, no de uno, y ya no sale a manchas.
+- **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
+  `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
+  su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro
+  figuras: el chico del polo (`osasuna`, versión ligera) y la chica hecha sobre él (`chicas.js`, versión ligera con
+  coleta, que ahora va en el juego), cada uno de colorado y de azul. El azul se pinta al cocinar la figura: lo colorado
+  de los triángulos entre la cadera y el cuello pasa a azul en una copia de la textura, sin tocar labios ni botas. El
+  pelo de las chicas va en un segundo grupo de la misma malla, con su color en los vértices. Sentados, en cada tanto
+  se levantan casi todos los de la camiseta del que lo gana y alguno del otro, cada uno con su retraso, y se vuelven a
+  sentar; al salir los pelotaris, muchos de los dos. Sin pañuelos: iban a la altura del sentado. Antes eran vecinos de
+  fiesta, de pastor y de calle que celebraban sin levantarse.
 - **Cambios de ritmo al correr** (`pelota/game.js`, `movePlayers`, `ritmo` y `sprint` de cada pelotari; `driveAI`):
   colocándose, al trote; si la pelota es tuya y a tu paso no llegas, esprint automático, con arrancada: hacia delante a
   por una dejada o una corta (×1,42) y hacia atrás si se va al fondo (×1,3). El rival también arranca a por las cortas y
