@@ -21,6 +21,7 @@ import { groundHeight, terrainHeight, waterLevelAt } from '../world/heightfield.
 import { freeFast } from '../world/colliders.js';
 import { saveProfile, addXP } from './profile.js';
 import { VIENTO } from '../world/viento.js';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const AV = { kutxas: 5, cadaAtalayas: 2, cadaKutxas: 8, maxAguante: 5, maxCorazon: 3, corazones: 3 };
 /** El campo de la aventura en el perfil (se crea vacío la primera vez; lo demás del perfil no se toca). */
@@ -31,32 +32,45 @@ export function mejorasDe(P) {
   return { atalayas: nA, kutxas: nK, aguante: Math.min(AV.maxAguante, Math.floor(nA / AV.cadaAtalayas)), corazon: Math.min(AV.maxCorazon, Math.floor(nK / AV.cadaKutxas)) };
 }
 
-const MADERA = new THREE.MeshLambertMaterial({ color: '#8a5f3a' }), MADERA2 = new THREE.MeshLambertMaterial({ color: '#5e3f26' }), HIERRO = new THREE.MeshLambertMaterial({ color: '#3a3a40' }), ORO = new THREE.MeshLambertMaterial({ color: '#ffd166', emissive: '#6a4a08' });
-function caja(w, h, d, m, x, y, z, ry = 0) { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.rotation.y = ry; o.castShadow = true; return o; }
+// Las piezas de madera se funden en una sola malla con el color en los vértices: la atalaya entera es una llamada de
+// dibujo (más la banderola) y cada kutxa, otra. Hechas de cajas sueltas eran catorce llamadas más por pueblo.
+const PINTADO = new THREE.MeshLambertMaterial({ vertexColors: true });
+const C_MADERA = new THREE.Color('#8a5f3a'), C_MADERA2 = new THREE.Color('#5e3f26'), C_HIERRO = new THREE.Color('#3a3a40'), C_ORO = new THREE.Color('#ffd166');
+function pieza(geo, color, x, y, z, rx = 0) {
+  if (rx) geo.rotateX(rx); geo.translate(x, y, z);
+  const n = geo.attributes.position.count, col = new Float32Array(n * 3); for (let i = 0; i < n; i++) color.toArray(col, i * 3);
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.deleteAttribute('uv');
+  return geo;
+}
+const caja = (w, h, d, c, x, y, z) => pieza(new THREE.BoxGeometry(w, h, d), c, x, y, z);
+function funde(piezas) { const m = new THREE.Mesh(mergeGeometries(piezas), PINTADO); m.castShadow = true; for (const g of piezas) g.dispose(); return m; }
 /** La atalaya: cuatro postes, una plataforma con barandilla, una escalera y un mástil alto con banderola que se ve de lejos. */
 function hazAtalaya() {
-  const g = new THREE.Group(), H = 3.4;
-  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) g.add(caja(0.2, H + 1, 0.2, MADERA2, x * 1.05, (H + 1) / 2, z * 1.05));
-  g.add(caja(2.6, 0.16, 2.6, MADERA, 0, H, 0));
-  for (const [x, z, w, d] of [[0, -1.2, 2.5, 0.1], [0, 1.2, 2.5, 0.1], [-1.2, 0, 0.1, 2.5]]) g.add(caja(w, 0.1, d, MADERA2, x, H + 0.95, z));
-  for (let i = 0; i < 9; i++) g.add(caja(0.7, 0.07, 0.1, MADERA, 1.35, 0.3 + i * 0.36, 0));
-  g.add(caja(0.08, H, 0.08, MADERA2, 1.35, H / 2, -0.33), caja(0.08, H, 0.08, MADERA2, 1.35, H / 2, 0.33));
+  const g = new THREE.Group(), H = 3.4, P = [];
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) P.push(caja(0.2, H + 1, 0.2, C_MADERA2, x * 1.05, (H + 1) / 2, z * 1.05));
+  P.push(caja(2.6, 0.16, 2.6, C_MADERA, 0, H, 0));
+  for (const [x, z, w, d] of [[0, -1.2, 2.5, 0.1], [0, 1.2, 2.5, 0.1], [-1.2, 0, 0.1, 2.5]]) P.push(caja(w, 0.1, d, C_MADERA2, x, H + 0.95, z));
+  for (let i = 0; i < 9; i++) P.push(caja(0.7, 0.07, 0.1, C_MADERA, 1.35, 0.3 + i * 0.36, 0));
+  P.push(caja(0.08, H, 0.08, C_MADERA2, 1.35, H / 2, -0.33), caja(0.08, H, 0.08, C_MADERA2, 1.35, H / 2, 0.33));
   // (el mástil, alto: la banderola queda a unos trece metros y asoma por encima de los tejados del pueblo)
-  g.add(caja(0.12, 10.2, 0.12, MADERA2, -1.05, H + 5.1, -1.05));
+  P.push(caja(0.12, 10.2, 0.12, C_MADERA2, -1.05, H + 5.1, -1.05));
+  g.add(funde(P));
   // la banderola: dos colores y un triángulo recortado (no depende solo del color), movida por el viento del pueblo
   const geo = new THREE.PlaneGeometry(1.7, 0.75, 8, 1), p = geo.attributes.position, col = new Float32Array(p.count * 3), c1 = new THREE.Color('#ffd166'), c2 = new THREE.Color('#d42f2f');
   for (let i = 0; i < p.count; i++) { const x = p.getX(i) + 0.85; if (x > 1.1) p.setY(i, p.getY(i) * (1 - (x - 1.1) / 0.6 * 0.85)); (p.getY(i) > 0 ? c1 : c2).toArray(col, i * 3); p.setX(i, x); }
   geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
   const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
   mat.onBeforeCompile = (sh) => { sh.uniforms.uT = VIENTO.uT; sh.uniforms.uWind = VIENTO.uWind; sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uT, uWind;').replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.z += sin(uT * 6.0 - position.x * 4.0) * 0.16 * position.x * (0.5 + 0.5 * uWind);'); };
-  const b = new THREE.Mesh(geo, mat); b.scale.setScalar(1.5); b.position.set(-1.0, H + 9.6, -1.05); b.frustumCulled = false; g.add(b);
+  const b = new THREE.Mesh(geo, mat); b.scale.setScalar(1.5); b.position.set(-1.0, H + 9.6, -1.05); g.add(b);
   return g;
 }
-/** La kutxa: un cofre pequeño de madera con herrajes y una roseta dorada en el frente. */
+/** La kutxa: un cofre pequeño de madera con herrajes y una roseta dorada en el frente; la tapa, aparte, para abrirla. */
 function hazKutxa() {
   const g = new THREE.Group();
-  g.add(caja(0.62, 0.34, 0.42, MADERA, 0, 0.17, 0), caja(0.66, 0.14, 0.46, MADERA2, 0, 0.41, 0), caja(0.05, 0.5, 0.44, HIERRO, -0.2, 0.25, 0), caja(0.05, 0.5, 0.44, HIERRO, 0.2, 0.25, 0));
-  const r = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 8), ORO); r.rotation.x = Math.PI / 2; r.position.set(0, 0.26, 0.215); g.add(r);
+  g.add(funde([caja(0.62, 0.34, 0.42, C_MADERA, 0, 0.17, 0), caja(0.05, 0.36, 0.44, C_HIERRO, -0.2, 0.18, 0), caja(0.05, 0.36, 0.44, C_HIERRO, 0.2, 0.18, 0), pieza(new THREE.CylinderGeometry(0.075, 0.075, 0.03, 8), C_ORO, 0, 0.26, 0.215, Math.PI / 2)]));
+  // (la tapa gira por su borde de atrás: su origen está en la bisagra)
+  const tapa = funde([caja(0.66, 0.14, 0.46, C_MADERA2, 0, 0.07, 0.23), caja(0.05, 0.15, 0.47, C_HIERRO, -0.2, 0.07, 0.23), caja(0.05, 0.15, 0.47, C_HIERRO, 0.2, 0.07, 0.23)]);
+  tapa.position.set(0, 0.34, -0.23); g.add(tapa); g.userData.tapa = tapa;
   return g;
 }
 
@@ -88,7 +102,7 @@ export class PuebloAventura {
         let bi = -1, bd = -1;
         for (let k = 0; k < cand.length; k++) { let d = 1e9; for (const h of hay) d = Math.min(d, Math.hypot(h[0] - cand[k][0], h[1] - cand[k][1])); if (d > bd) { bd = d; bi = k; } }
         const [x, z] = cand.splice(bi, 1)[0]; hay.push([x, z]);
-        const o = hazKutxa(); o.position.set(x, groundHeight(x, z), z); o.rotation.y = rnd() * 6.28; o.visible = false; this.scene.add(o);
+        const o = hazKutxa(); o.position.set(x, groundHeight(x, z), z); o.rotation.y = rnd() * 6.28; o.visible = false; if (abiertas.includes(i)) o.userData.tapa.rotation.x = -1.1; this.scene.add(o);
         A.kutxas.push({ i, x, z, obj: o, abierta: abiertas.includes(i) });
       } }
     // la montura, junto a donde se entra
@@ -171,7 +185,7 @@ export class PuebloAventura {
       const k = it.k; if (k.abierta) return true;
       const antes = mejorasDe(this.P).corazon; k.abierta = true; (D.kutxas[id] ||= []).push(k.i); addXP(15); saveProfile();
       this.sound?.fanfare?.(); this.particles?.emit({ x: k.x, y: k.obj.position.y + 0.5, z: k.z }, { n: 16, color: ['#ffd166', '#fff3c4', '#ff8a5c'], speed: 1.6, size: 0.3, life: 1.1, gravity: 1.5, spread: 0.8 });
-      k.obj.children[1].position.y = 0.52; k.obj.children[1].rotation.x = -0.9;
+      k.obj.userData.tapa.rotation.x = -1.1;   // (la tapa, abierta)
       const M = mejorasDe(this.P), quedan = A.kutxas.filter(x => !x.abierta).length;
       if (M.corazon > antes) { A.corMax = AV.corazones + M.corazon; A.cor = A.corMax; this.ui.toast('¡Un corazón más! Lo has ganado abriendo kutxas', 'sparkle', 4200); }
       else this.ui.toast(quedan ? `¡Kutxa abierta! Quedan ${quedan} en este pueblo` : '¡Has abierto todas las kutxas de este pueblo!', 'sparkle', 3600);
