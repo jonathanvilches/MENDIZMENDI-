@@ -290,7 +290,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   («dejada-2»), que es el nombre de su grabación en `src/assets/voz/<hombre|mujer>/<es|eu>/`. Si no está grabada, la voz
   del sistema de ese idioma (de hombre o de mujer según el nombre de la voz); si el aparato no tiene voz en ese idioma,
   no se dice nada. Una frase cada vez; se callan al pausar y al salir. Con los subtítulos puestos, también el rótulo de
-  abajo.
+  abajo. Las grabaciones pueden llegar en un solo archivo por idioma: `tools/corta-voz.mjs` lo corta en una frase por
+  archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
+  palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más
