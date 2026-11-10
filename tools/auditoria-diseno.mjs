@@ -2,7 +2,7 @@
 //   · cortado: texto con puntos suspensivos, recortado por líneas o que se sale de su caja o de una caja que lo recorta
 //   · encima: texto que pisa una figura o imagen (que no es su fondo) o que pisa otro texto
 //   · verde: colores verdes fuera de sitio (texto, fondos, bordes y degradados); se avisa de todos para revisarlos
-//   · esquina: caja con esquinas en ángulo (clip-path) y borde, cuyo borde no sigue el corte
+//   · esquina y neon: caja con las esquinas en ángulo (la identidad de antes) o con borde y sin el filo de neón
 // Mide toda la página (también lo que queda por debajo, al desplazar), no solo lo que se ve. Hace capturas.
 // Uso: URL=http://127.0.0.1:5173/ node tools/auditoria-diseno.mjs [carpeta] [pantallas separadas por comas]   (TAM=844x390;
 // TODO=1 lista todas las distancias de rótulo a título y de título a texto, no solo las que se salen de la común)

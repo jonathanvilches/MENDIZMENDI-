@@ -1,6 +1,6 @@
 // La medida de la auditoría de diseño (tools/auditoria-diseno.mjs, tools/auditoria-ventanas.mjs y
 // tools/auditoria-partidos.mjs): se ejecuta dentro de la página con page.evaluate(auditar, selector) y devuelve
-// { cortado, encima, verde, esquina, sobresale, espacio, letra, color } con lo que encuentra.
+// { cortado, encima, verde, esquina, neon, sobresale, espacio, letra, color... } con lo que encuentra.
 //   · sobresale: texto que se sale de la forma de su botón o de su caja (círculo, píldora, esquinas redondeadas o en ángulo)
 //   · espacio: distancia de rótulo a título (12 px) y de título a texto (16 px) distinta de la común, ±2 px (de la línea
 //     base de uno a lo alto de las mayúsculas del siguiente)
@@ -9,7 +9,9 @@
 //   · desborda: una caja (con fondo o borde) que se sale de la caja que la contiene
 //   · estrecho: texto en una columna tan estrecha que va palabra a palabra, una por línea
 //   · desplaza: una ventana o un bloque que hay que desplazar para verlo entero (solo vale si no se puede evitar)
-//   · forma: caja con esquinas redondeadas de más de 8 px (la identidad: esquinas casi rectas, cortadas o círculos)
+//   · esquina: caja con las esquinas cortadas en ángulo (clip-path), la identidad de antes
+//   · neon: caja con borde y sin el filo de neón (la identidad: esquinas redondeadas y filo de neón de 1 a 2 px)
+//   · forma: caja con esquinas de más de 12 px o casi rectas (la identidad: de 6 a 10 px; píldoras y círculos aparte)
 //   · boton: botón con letra de lectura (Nunito) en lugar de la de los botones (estrecha o de rótulos grandes)
 //   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
 //     a un lado que al otro; rellenos y huecos fuera de la rejilla de 4 px; bordes que casi coinciden (de 2 a 12 px)
@@ -40,7 +42,7 @@ export const auditar = async (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [], junto: [], centrado: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], neon: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [], junto: [], centrado: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -125,12 +127,16 @@ export const auditar = async (sel) => {
     for (const m of (s.backgroundImage.match(/rgba?\([^)]+\)/g) || [])) cs.push(['degradado', m]);
     for (const [k, c] of cs) if (c && green(c)) { const key = name(e) + k; if (seen.has(key)) continue; seen.add(key); R.verde.push(`${name(e)} ${k} ${c}${hasText(e) ? ` «${txt(e)}»` : ''}`); }
   }
-  // 4. esquinas en ángulo con borde: el borde no sigue el corte
-  for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath)) continue;
-    // (una sola línea, arriba o abajo, acaba donde acaba la caja y se ve bien; dos lados que se juntan en el corte, no)
-    const sides = ['Top', 'Right', 'Bottom', 'Left'].filter(k => parseFloat(s['border' + k + 'Width']) > 0 && !/rgba\(\d+, \d+, \d+, 0\)|transparent/.test(s['border' + k + 'Color']));
-    const bw = Math.max(0, ...sides.map(k => parseFloat(s['border' + k + 'Width'])));
-    if (sides.length >= 2 && s.borderImageSource === 'none') R.esquina.push(`${name(e)} borde de ${bw} px con esquinas en ángulo` + (window.__auditDetail ? ` [${s.clipPath}] [${s.borderTopColor} ${s.borderLeftWidth}]` : '')); }
+  // 4. esquinas en ángulo: la identidad ya no las lleva (las cintas de premio y las dos mitades del VS son formas, no cajas)
+  for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i')) continue;
+    R.esquina.push(`${name(e)} con las esquinas cortadas en ángulo` + (window.__auditDetail ? ` [${s.clipPath}]` : '')); }
+  // 4b. el filo de neón: toda caja con borde (en tres lados o más) lleva el filo, un contorno de 1 px o más, o el destello
+  // que da la vuelta (::after o su propio borde); las píldoras y los círculos, no
+  for (const e of all) { if (!vis(e) || e.closest('svg')) continue; const s = st(e), r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 28) continue;
+    const sides = ['Top', 'Right', 'Bottom', 'Left'].filter(k => parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none' && !/rgba\(\d+, \d+, \d+, 0(\.0\d*|\.1[0-4]\d*)?\)|transparent/.test(s['border' + k + 'Color']));
+    if (sides.length < 3) continue; const rad = parseFloat(s.borderTopLeftRadius) || 0; if (/%$/.test(s.borderTopLeftRadius) || rad >= r.height / 2 - 1) continue;
+    const neon = (s.outlineStyle !== 'none' && parseFloat(s.outlineWidth) >= 1) || /neon/.test(s.animationName) || /neon/.test(getComputedStyle(e, '::after').animationName);
+    if (!neon) R.neon.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con borde y sin filo de neón` + (window.__auditDetail ? ` [${s.borderTopColor} ${s.borderTopWidth}]` : '')); }
 
   // 5. texto que se sale de la forma de su caja: la caja pintada más cercana (fondo, borde o marco) y su forma de verdad
   const rgba = (c) => { const m = String(c).match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); return m ? [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]] : null; };
@@ -228,13 +234,14 @@ export const auditar = async (sel) => {
   // 11. lo que hay que desplazar para verlo entero (dentro de una ventana; la página del menú se desplaza por naturaleza)
   for (const e of all) { if (!vis(e) || e === root || e.matches('.hub-main, #hMain, .hub-main *:not(.mg-card, .mg-card *)')) continue; const s = st(e);
     if (!/(auto|scroll)/.test(s.overflowY)) continue; const d = e.scrollHeight - e.clientHeight; if (d > 4) R.desplaza.push(`${name(e)} esconde ${d} px que hay que desplazar`); }
-  // 12. esquinas: casi rectas (hasta 8 px), cortadas o círculos
+  // 12. esquinas: redondeadas de 6 a 10 px (hasta 12), píldoras o círculos
   // (los interruptores de sí o no van en su píldora, como en todos los juegos)
   for (const e of all) { if (!vis(e) || hidden.has(e) || e.closest('svg, .gx-card, [role=switch], .pel-switch') || !painted(e)) continue; const s = st(e), r = e.getBoundingClientRect();
     const rad = Math.max(...['TopLeft', 'TopRight', 'BottomLeft', 'BottomRight'].map(k => { const v = s['border' + k + 'Radius'].split(' ')[0]; return /%$/.test(v) ? parseFloat(v) / 100 * Math.min(r.width, r.height) : parseFloat(v) || 0; }));
     const circle = Math.abs(r.width - r.height) < 2 && rad >= r.width / 2 - 1;
     // (las barras y los puntos, de menos de 17 px de alto, van redondeados: es su forma)
-    if (rad > 8.5 && !circle && r.height > 16 && s.clipPath === 'none') R.forma.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con esquinas de ${Math.round(Math.min(rad, r.height / 2))} px` + (window.__auditDetail ? ` [${ruleOf(e, 'borderRadius')}]` : '')); }
+    const pill = rad >= r.height / 2 - 1, borde = ['Top', 'Right', 'Bottom', 'Left'].filter(k => parseFloat(s['border' + k + 'Width']) > 0).length >= 3 || s.outlineStyle !== 'none';
+    if (!circle && !pill && r.height > 16 && (rad > 12.5 || (rad < 4.5 && borde && r.width >= 40))) R.forma.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con esquinas de ${Math.round(rad)} px` + (window.__auditDetail ? ` [${ruleOf(e, 'borderRadius')}]` : '')); }
   // 13. botones con letra de lectura: los botones van en la letra estrecha o en la de rótulos grandes; las respuestas
   // de un cuestionario y las del diálogo, que son frases para leer, en la de lectura
   // (una tarjeta entera que se toca, con su nombre y sus datos, no es un rótulo de botón: se mira solo el botón de una
