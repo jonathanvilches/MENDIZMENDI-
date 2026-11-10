@@ -41,7 +41,9 @@ export class Player {
     // la aventura: cómo se mueve ahora (pie, trepa, planea o nada), la resistencia (de 0 a aguanteMax; 1 es un anillo
     // entero) y lo que la gasta de más el tiempo (lluvia y frío: lo pone el juego)
     this.modo = 'pie'; this.aguante = 1; this.aguanteMax = 1; this.gasto = 1; this.agotado = false; this.sinUsar = 9; this.aire = 0; this.llano = 0;
-    this.puedeAventura = true;   // (el juego lo quita donde no toca: en un partido, en el encierro, de la mano de una misión)
+    // (apagado hasta que el juego del pueblo lo enciende, townAventura.js: en el valle de Salazar, que lleva otro juego
+    // sin anillo ni rescate, y en los partidos y el encierro, se anda como siempre)
+    this.puedeAventura = false;
     this.onModo = null; this.onCaida = null; this.onRescate = null;
     // (los vecinos y los animales chocan con el jugador como con cualquiera; oculto, en un partido o en el encierro, no)
     this.collider = addMover(0, 0, this.radius, { player: this });

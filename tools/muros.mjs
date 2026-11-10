@@ -30,14 +30,18 @@ for (const town of pueblos) {
       const inp = { move: { x: 0, y: 1 }, run: false, pulsa: false, consume(k) { if (k === ' ' && this.pulsa) { this.pulsa = false; return true; } return false; } };
       const dt = 1 / 30; let pasos = 0, dentro = 0, cruces = 0, fuera = 0, peor = 0; const fallos = [];
       const g0 = P.pos.clone(), h0 = P.heading;
+      // (la aventura devuelve a la orilla al que se agota nadando y a la plaza al que se queda sin corazones: son
+      // traslados queridos, no muros cruzados, y aquí se apagan para que un paso largo sea siempre un fallo)
+      const avisos = [P.onCaida, P.onRescate]; P.onCaida = null; P.onRescate = () => { };
       for (const [i, m] of muros.entries()) for (const ang of [0, 0.7, -0.7, 2.4]) {
         // se sale de un sitio libre a unos metros del muro y se empuja hacia su centro (camYaw: de espaldas al muro)
         const a0 = Math.atan2(m.sin, m.cos) + ang + i, d = Math.max(m.hw, m.hd) + 6, sx = m.x + Math.sin(a0) * d, sz = m.z + Math.cos(a0) * d;
-        if (!C.isFree(sx, sz, P.radius + 0.1) || hf.waterLevelAt(sx, sz) - hf.groundHeight(sx, sz) > 0.5) continue;
+        // (se sale de un sitio que se pueda pisar: libre, en seco y dentro de los límites del mapa)
+        if (!C.isFree(sx, sz, P.radius + 0.1) || hf.waterLevelAt(sx, sz) - hf.groundHeight(sx, sz) > 0.5 || (L.BOUNDARY && Math.pow(sx ** 4 + sz ** 4, 0.25) > L.BOUNDARY - 3)) continue;
         P.place(sx, sz, a0 + Math.PI); P.frozen = false;
         const yaw = Math.atan2(sx - m.x, sz - m.z);   // (adelante = alejarse de la cámara = hacia el muro)
         for (let k = 0; k < 150; k++) {
-          const ax = P.pos.x, az = P.pos.z;
+          const ax = P.pos.x, az = P.pos.z, modoAntes = P.modo;
           inp.run = k % 50 > 20; inp.pulsa = k % 37 === 0; inp.move.x = k > 90 ? (k % 2 ? 0.6 : -0.6) : 0;
           P.update(dt, inp, yaw); pasos++;
           const x = P.pos.x, z = P.pos.z, paso = Math.hypot(x - ax, z - az);
@@ -46,9 +50,10 @@ for (const town of pueblos) {
           const hundido = metido(x, z);
           if (hundido > 0) { dentro++; peor = Math.max(peor, hundido); if (fallos.length < 6) fallos.push({ muro: i, x: +x.toFixed(1), z: +z.toFixed(1), hundido: +hundido.toFixed(2) }); }
           // (un paso más largo que el propio cuerpo sería un salto por encima de lo que hubiera en medio)
-          if (paso > 0.7) { cruces++; if (fallos.length < 6) fallos.push({ muro: i, salto: +paso.toFixed(2) }); }
+          if (paso > 0.7) { cruces++; if (fallos.length < 6) fallos.push({ muro: i, salto: +paso.toFixed(2), modo: P.modo, antes: modoAntes, de: [+ax.toFixed(1), +az.toFixed(1)], a: [+x.toFixed(1), +z.toFixed(1)], y: +P.pos.y.toFixed(1), suelo: +hf.groundHeight(x, z).toFixed(1), k }); }
         }
       }
+      P.onCaida = avisos[0]; P.onRescate = avisos[1];
       P.place(g0.x, g0.z, h0);
       return { muros: muros.length, pasos, dentro, cruces, fuera, peorM: +peor.toFixed(2), fallos };
     });
