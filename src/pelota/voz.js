@@ -1,9 +1,9 @@
 // La voz del comentarista de pelota (las frases, comenta.js): siempre la grabada por el autor, nunca una voz sintética.
 // src/assets/voz/<hombre|mujer>/<es|eu>/<clave>.mp3 (la clave, «dejada-2», sale en el guion de grabación); si no está la
 // de esa voz, la de la otra; y si en ese idioma no hay grabación (el euskera, de momento), la misma frase en castellano.
-// Dos comentaristas: el narrador (las frases «n», comenta.js) con la voz del autor tal cual, y el ex pelotari que explica
-// la jugada (las «e») con la segunda voz, hombre2: la misma grabación del autor, más grave y más pausada
-// (tools/segunda-voz.sh). Sin ninguna grabación de esa frase, no se dice nada. Antes, sin grabación, hablaba la voz del sistema (la del teléfono
+// Todas las frases, las que narran («n», comenta.js) y las que explican la jugada («e»), con la voz del autor tal cual.
+// (Hubo una segunda voz sacada de la misma grabación, más grave: sonaba robótica y se quitó, noviembre de 2026.) Sin
+// ninguna grabación de esa frase, no se dice nada. Antes, sin grabación, hablaba la voz del sistema (la del teléfono
 // o el ordenador), y el autor no la quiere: solo su voz. Una frase cada vez: si llega otra mientras habla, espera, y solo
 // la última. Mientras habla, la música baja a un tercio para que no lo tape (audio.js, voz) y vuelve al acabar.
 const CLIPS = import.meta.glob('../assets/voz/*/*/*.mp3', { query: '?url', import: 'default' });
@@ -15,8 +15,8 @@ export class Voz {
   /** Dice la frase c ({ id, texto, r, voz, lang }) con la grabación. true si se va a oír */
   habla(c) {
     if (!c || !c.voz) return false;
-    // (primero el idioma, luego quién: el ex pelotari prefiere su voz, hombre2; si falta, la del narrador)
-    const quien = c.r === 'e' ? ['hombre2', c.voz, otra(c.voz)] : [c.voz, otra(c.voz)];
+    // (primero el idioma, luego la voz elegida y, si falta, la otra)
+    const quien = [c.voz, otra(c.voz)];
     let L = null; for (const lang of [c.lang, 'es']) { for (const v of quien) if ((L = clip(v, lang, c.id))) break; if (L) break; }
     if (!L) return false;
     // (si la anterior no avisó de su final —el iPhone para el sonido al ir la app de fondo—, se da por acabada a su tiempo:

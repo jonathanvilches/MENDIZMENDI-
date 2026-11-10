@@ -355,7 +355,7 @@ const CSS = `
 .pel-mapa svg{display:block;width:100%;height:auto;margin-top:8px}
 .pel-mapa text{font:800 16px/1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;fill:#cbbcf0}
 /* los comentarios (comenta.js): un rótulo de retransmisión abajo en el centro, entre el joystick y los botones, con la
-   inicial y el nombre de quien habla (rosa la narradora o el narrador; lila la o el ex pelotari); en vertical, a lo ancho
+   inicial y el nombre de quien habla (rosa cuando narra; lila cuando explica la jugada); en vertical, a lo ancho
    y por encima de los botones. También en la repetición: es cuando más se comenta */
 .pel-com{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translate(-50%,8px);width:max-content;max-width:min(calc(100vw / var(--z, 1) - 420px),520px);display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center;padding:8px 14px 8px 10px;background:rgba(7,2,15,.88);border-left:3px solid var(--cc,#ff2bd6);border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;--cc:#ff2bd6}
 .pel-com.on{opacity:1;transform:translate(-50%,0)}.pel-com.e{--cc:#9d8cff}
