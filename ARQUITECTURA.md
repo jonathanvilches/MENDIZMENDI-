@@ -824,6 +824,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     piel vuelta del revés, hija de cada malla y con su esqueleto; solo en calidad media y alta (dibuja al jugador dos
     veces: unos 31 mil triángulos y una llamada más). El grosor se mide comparando lo que mide el personaje en el
     mundo con lo que mide su malla: con esqueleto, la escala de la malla no lo dice.
+  - *Suelo mojado y charcos* (`world/weather.js MOJADO`, `world/terrain.js`, tanda 1): con la lluvia, calles y caminos
+    se oscurecen y cogen brillo, y en lo llano se forman charcos que reflejan el cielo, más cuanto más rasante se
+    mira. Es una lectura de textura más en el sombreador del terreno, solo mientras está mojado; no añade geometría.
+    Sube mientras llueve y tarda en secarse al escampar. En la hierba apenas se encharca.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.

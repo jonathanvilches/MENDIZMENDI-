@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { snowable } from './weather.js';
+import { snowable, MOJADO } from './weather.js';
 import { HALF, CELL, N, finalHeight, riverInfo, meadowMask, valleyFloor, fieldInfo, TONE, skyTan, MOD } from './layout.js';
 // (en los pueblos con su relieve de verdad, las cotas de la nieve, la roca y el bosque van en metros de altitud real: el
 // suelo de la plaza está a 20 m en el juego y a ALT0 en la realidad. Antes iban en metros del juego y en Isaba, a 809 m,
@@ -174,6 +174,7 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     sh.uniforms.tDirtN = { value: TEX.dirt.normalMap };
     sh.uniforms.tGrassN = { value: TEX.grassN };
     sh.uniforms.tLitter = { value: TEX.litter };
+    sh.uniforms.uMojado = MOJADO.uMojado; sh.uniforms.uCieloCharco = MOJADO.uCieloCharco;   // (la lluvia: suelo mojado y charcos)
     // el musgo del suelo del bosque (más en la selva húmeda) y el tono de la hojarasca (en los sotos, hoja de chopo, más pálida)
     sh.uniforms.uMoss = { value: ({ selva: 0.2, karst: 0.08, lush: 0.06, alpine: 0.04 })[TONE] ?? -0.06 };
     sh.uniforms.uLitter = { value: new THREE.Vector3(...(TONE === 'dry' || TONE === 'arid' ? [1.1, 1.02, 0.8] : [1, 1, 1])) };
@@ -191,6 +192,7 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
       .replace('#include <common>', `#include <common>
 uniform sampler2D tDetail; uniform sampler2D tGrass; uniform sampler2D tRock; uniform sampler2D tRockN; uniform sampler2D tCobble; uniform sampler2D tCobbleN; uniform sampler2D tDirt; uniform sampler2D tDirtN; uniform sampler2D tGrassN; uniform sampler2D tLitter; uniform vec3 uRock; uniform vec2 uRockSlope; uniform float uSnowY; uniform float uMoss; uniform vec3 uLitter;
 varying vec4 vSurf; varying vec3 vCampo; varying vec3 vWP; varying vec3 vNW;
+uniform float uMojado; uniform vec3 uCieloCharco;
 vec3 sr(vec3 c) { return c * c; }   // (un color de los de la paleta, a lineal: aproximado, como los demás del suelo)
 vec4 triRock(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x + texture2D(tRock, p.xz / s) * bw.y + texture2D(tRock, p.xy / s) * bw.z; }
 #ifdef OUTER
@@ -480,7 +482,19 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
 }
 #endif`)
       .replace('#include <roughnessmap_fragment>', `#include <roughnessmap_fragment>
-roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));`);
+roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));
+// con la lluvia: el suelo se oscurece (más las calles y los caminos, que la hierba empapa menos) y coge brillo, y donde
+// es llano se encharca; el charco refleja el cielo, más cuanto más rasante se mira (una sola lectura de textura más, y
+// solo mientras está mojado)
+float charco = 0.0;
+if (uMojado > 0.001) {
+  float duro = max(smoothstep(0.2, 0.9, vSurf.x), smoothstep(0.3, 0.9, vSurf.y));
+  charco = smoothstep(0.5, 0.66, texture2D(tDetail, vWP.xz * 0.031).r) * smoothstep(0.988, 0.998, vNW.y) * (0.06 + 0.94 * duro) * uMojado;   // (en la hierba, casi nada: el agua se la bebe)
+  diffuseColor.rgb *= 1.0 - uMojado * (0.16 + 0.16 * duro) - 0.2 * charco;
+  roughnessFactor = mix(mix(roughnessFactor, 0.34, uMojado * 0.7 * duro), 0.06, charco);
+}`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+if (charco > 0.001) { float fr = 1.0 - saturate(dot(normal, normalize(vViewPosition))); totalEmissiveRadiance += uCieloCharco * charco * (0.1 + 0.9 * fr * fr * fr) * 0.55; }`);
   };
   m.customProgramCacheKey = () => (outer ? 'terrain-outer' : 'terrain') + (quality === 'low' ? '-low' : '');
   return m;

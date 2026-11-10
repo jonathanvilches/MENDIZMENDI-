@@ -5,6 +5,9 @@ import * as THREE from 'three';
 import { surfAt } from './heightfield.js';
 
 const SNOW = { value: 0 };   // 0…1: cuánta nieve cubre lo que mira hacia arriba (lo comparten los materiales)
+// El suelo mojado: con la lluvia, calles y caminos se oscurecen y brillan, y en lo llano se forman charcos que reflejan
+// el cielo (world/terrain.js lo lee). Sube mientras llueve y, al escampar, tarda un buen rato en secarse.
+export const MOJADO = { uMojado: { value: 0 }, uCieloCharco: { value: new THREE.Color('#9fb4c8') } };
 const _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _q = new THREE.Quaternion(), _s = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);   // (las huellas)
 
 /** Añade nieve a un material: las caras que miran al cielo se vuelven blancas según SNOW.
@@ -154,6 +157,7 @@ export class Weather {
     // (en un día despejado, unos pocos rayos entre los árboles de alrededor cuando el sol va bajo: despejado, abajo)
     if (kind === 'clear') this.shafts = shafts(scene, quality === 'low' ? 3 : 6);
     SNOW.value = kind === 'snow' ? 0.55 : 0;   // al llegar ya ha nevado: tejados y prados blancos
+    MOJADO.uMojado.value = kind === 'rain' ? 0.7 : 0;   // (y si llueve, al llegar el suelo ya está mojado)
     this.grey = new THREE.Color(kind === 'snow' ? '#d6dde6' : '#6c757f');
     // la lluvia va a ratos: al llegar llueve, al cabo de un rato escampa y luego vuelve a llover
     this.raining = true; this.phaseT = 50 + Math.random() * 40;
@@ -177,6 +181,7 @@ export class Weather {
     const U = this.fx.userData.U; U.uTime.value = this.t; U.uCam.value.copy(camera.position); U.uAmt.value = this.kind === 'rain' ? this.k : Math.min(1, this.k * 1.5);
     if (U.uScale) U.uScale.value = innerHeight * 0.55;
     if (this.kind === 'snow') SNOW.value = Math.min(0.92, SNOW.value + dt * 0.05);   // en un rato, todo blanco
+    if (this.kind === 'rain') { const M = MOJADO.uMojado; M.value = this.k > M.value ? Math.min(this.k, M.value + dt * 0.12) : Math.max(this.k * 0.5, M.value - dt * 0.012); if (sky) MOJADO.uCieloCharco.value.copy(sky.uniforms.uHor.value).lerp(sky.uniforms.uZen.value, 0.35); }
     if (sky) {
       const k = this.k * (this.kind === 'rain' ? 0.55 : 0.45);
       sky.fog.color.lerp(this.grey, k);
