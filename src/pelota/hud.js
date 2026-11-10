@@ -333,12 +333,20 @@ const CSS = `
    golpes. En dos columnas cuando hay sitio (móvil tumbado y ordenador): en una sola, el nivel quedaba debajo de los
    botones */
 .pel-fin{display:block}
+:where(.pel-card:has(.pel-fin)) .pel-row{margin-left:0;margin-right:0;padding-left:0;padding-right:0;background:linear-gradient(rgba(21,6,49,0),rgba(21,6,49,.96) 8px)}
+.pel-fin :is(.pel-big,.pel-clave,.pel-est,.pel-xp,.pel-mapa,.pel-fact){margin:0 0 16px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}.pel-fin-a:not(:empty)+.pel-fin-b{margin-top:16px}
+@media (min-width:600px){.pel-fin .pel-fin-a+.pel-fin-b{margin-top:0}}.pel-card:has(.pel-fin)>.pel-sub{margin-bottom:16px}
+/* el resultado en la cabecera del final: el tanteo entre los dos nombres, cada uno con su color, y las fichas a la derecha */
+.pel-card .pel-sub:has(.pel-marca){display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px}.pel-sub:has(.pel-marca) .pel-chip{margin-left:auto;min-height:32px}@media (max-width:440px){.pel-sub:has(.pel-marca) .pel-chip{margin-left:0}}
+.pel-marca{display:inline-flex;align-items:baseline;gap:12px;min-width:0}.pel-marca i{font-style:normal;white-space:nowrap}.pel-marca i.azul{color:#b9b1ff}.pel-marca i.rojo{color:#ff9cc8}
+.pel-marca b{font:400 var(--fs-2xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#fff;letter-spacing:.02em;white-space:nowrap;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 @media (min-width:600px){.pel-card:has(.pel-fin){width:min(860px,100%)}.pel-fin{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0 16px;align-items:start}}
-.pel-clave{margin:4px 0 12px;padding:10px 14px;border-radius:16px;background:linear-gradient(100deg,rgba(255,43,214,.16),rgba(123,47,247,.12));border:1px solid rgba(255,122,200,.4)}
+.pel-clave{margin:4px 0 12px;padding:10px 14px;border-radius:8px;background:linear-gradient(100deg,rgba(255,43,214,.16),rgba(123,47,247,.12));border:1px solid rgba(255,122,200,.4)}
 .pel-clave b{display:block;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
 .pel-clave p{margin:4px 0 0;font-size:var(--fs-sm);font-weight:700;line-height:1.35;color:#fff}
-.pel-mapa{margin:0 0 12px;padding:10px 14px 8px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
-.pel-mapa svg{display:block;width:100%;height:auto;margin-top:6px}
+.pel-mapa{margin:0 0 12px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-mapa svg{display:block;width:100%;height:auto;margin-top:8px}
+.pel-mapa text{font:800 16px/1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;fill:#cbbcf0}
 /* los comentarios (comenta.js): un rótulo de retransmisión abajo en el centro, entre el joystick y los botones, con la
    inicial y el nombre de quien habla (rosa la narradora o el narrador; lila la o el ex pelotari); en vertical, a lo ancho
    y por encima de los botones. También en la repetición: es cuando más se comenta */
@@ -362,37 +370,47 @@ body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-co
 body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-rv,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
 body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
 body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
-/* (en el móvil tumbado, todo en lo que cabe: el resultado más pequeño, los títulos más pequeños y el mapa más bajo) */
-@media (orientation:landscape) and (max-height:520px){
-  .pel-fin .pel-big{font-size:var(--fs-2xl);margin:0 0 6px}.pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){margin-bottom:8px}
-  .pel-clave{padding:6px 10px}.pel-clave p{font-size:var(--fs-xs)}.pel-mapa{padding:6px 10px}
-  .pel-fin :is(.pel-est-top,.pel-xp-top) b{font-size:var(--fs-md)}.pel-mapa svg{width:auto;max-width:100%;height:56px;margin:4px auto 0}
-  .pel-xp{padding:8px 10px}.pel-xp ul{margin-top:6px}.pel-xp li{padding:3px 4px}.pel-xp-bar{margin-top:6px}}
-/* (y en los más bajos, como el iPhone SE tumbado, sin el pie de las estadísticas, que el tanto más largo ya lo cuenta el
-   momento clave, ni el total de cada cualidad bajo lo que ha subido) */
-@media (orientation:landscape) and (max-height:400px){.pel-fin .pel-est p{display:none}.pel-mapa svg{height:48px}.pel-fin .pel-big{font-size:var(--fs-xl)}.pel-fin .pel-xp li small{display:none}}.pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
-.pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
+.pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-est-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-est-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .pel-est span{display:flex;gap:10px;min-width:0}.pel-est i{font-style:normal}.pel-est i.rojo{color:#ff9cc8}.pel-est i.azul{color:#b9b1ff}
-.pel-est-top i{font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pel-est ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;columns:auto}
-.pel-est li{display:grid;justify-items:center;gap:4px;margin:0;padding:6px 4px;border-radius:12px;background:rgba(20,8,40,.5)}
-.pel-est li b{font:800 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#cbbcf0;text-align:center}
+.pel-est-top i{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pel-est ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 8px;columns:auto}
+.pel-est li{display:grid;grid-template-rows:1fr auto;justify-items:center;align-items:end;gap:4px;margin:0;padding:0}
+.pel-est li b{font:800 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#cbbcf0;text-align:center}
 .pel-est li span{font:400 var(--fs-md)/1 var(--f-display,'MZ Display'),sans-serif;gap:12px}
 .pel-est p{margin:8px 0 0;font:700 var(--fs-xs)/1.3 var(--f-cond,'MZ Cond'),sans-serif;color:#e7defa;text-align:center}
 @media (max-width:440px){.pel-est ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-height:500px){.pel-est{padding:8px 10px;margin-bottom:8px}.pel-est ul{margin-top:6px}.pel-est li{padding:4px}.pel-est p{margin-top:6px}}
-.pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-xp.sube{border-color:#ffd36a;box-shadow:0 0 0 3px rgba(255,211,106,.15),0 0 18px rgba(255,211,106,.25)}
 .pel-xp-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-xp-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .pel-xp.sube .pel-xp-top b{color:#ffd36a}.pel-xp-top span{font:800 var(--fs-sm)/1 var(--f-cond,'MZ Cond'),sans-serif;color:#ffb1e3;white-space:nowrap}
 .pel-xp-bar{display:block;height:8px;margin:10px 0 0;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.pel-xp-bar u{display:block;height:100%;border-radius:inherit;background:var(--cta,#c21cff);animation:pel-xpin 1s cubic-bezier(.2,.9,.3,1) both}
 @keyframes pel-xpin{from{width:0}}
-.pel-xp ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.pel-xp li{display:grid;justify-items:center;gap:2px;padding:6px 4px;border-radius:12px;background:rgba(20,8,40,.5)}
-.pel-xp li b{font:800 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#cbbcf0}
+.pel-xp ul{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(4,max-content);justify-content:space-between;gap:8px 12px}
+.pel-xp li{display:grid;grid-template-rows:1fr auto;justify-items:center;align-items:end;gap:4px;padding:0}
+.pel-xp li b{font:800 11px/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.04em;text-transform:uppercase;color:#cbbcf0}
 .pel-xp li span{font:400 var(--fs-md)/1 var(--f-display,'MZ Display'),sans-serif;color:#7dffa8}.pel-xp li small{font:700 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),sans-serif;color:#e7defa}
-@media (max-height:500px){.pel-xp{padding:8px 10px;margin-bottom:8px}.pel-xp ul{margin-top:6px}.pel-xp li{padding:4px}}
+/* (en el móvil tumbado, todo a la vista y con aire: 12 px entre bloques y 10-14 px dentro de cada uno, sin casillas dentro
+   de las casillas; el mapa de golpes con su título a la izquierda, para que la cancha use el ancho y no quede diminuta, y
+   los botones a 44 px de alto, con 12 px por encima. Antes iba todo a 6-8 px, el resultado ocupaba una fila para él solo
+   y el panel se desplazaba 11 px, lo justo para que el mapa pareciera cortado) */
+@media (orientation:landscape) and (max-height:520px){
+  .pel-card:has(.pel-fin){padding:14px 20px 12px}.pel-card:has(.pel-fin)>:is(h2,.pel-sub){margin-bottom:12px}.pel-marca b{font-size:var(--fs-xl)}
+  .pel-fin{column-gap:16px;align-items:stretch}.pel-fin>div{display:flex;flex-direction:column}.pel-fin>div>:last-child{flex:1 1 auto}.pel-fin :is(.pel-big,.pel-clave,.pel-est,.pel-xp,.pel-mapa,.pel-fact){margin:0 0 12px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}
+  .pel-fin .pel-big{font-size:var(--fs-2xl)}.pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){padding:10px 14px}
+  .pel-fin :is(.pel-est-top,.pel-xp-top) b{font-size:var(--fs-md);line-height:1.05}.pel-xp-bar{margin-top:8px}.pel-est ul{margin-top:12px}
+  .pel-mapa{display:grid;grid-template-columns:minmax(0,7.5em) minmax(0,1fr);align-items:center;column-gap:12px}
+  .pel-mapa .pel-est-top{flex-direction:column;align-items:flex-start;gap:6px}.pel-mapa svg{margin:0;max-height:80px}
+  .pel-fin-b:has(.pel-est) .pel-mapa .pel-est-top span{display:none}   /* (los colores de cada uno ya los dice la leyenda de las estadísticas, justo encima) */
+  .pel-card:has(.pel-fin) .pel-row{margin:4px 0 -12px;padding:8px 0 12px;bottom:-12px}
+  .pel-card:has(.pel-fin) .pel-go{min-height:44px;padding:8px 16px}}
+/* (y en los más bajos, como el iPhone SE tumbado, sin el pie de las estadísticas, que el tanto más largo ya lo cuenta el
+   momento clave, ni el total de cada cualidad bajo lo que ha subido) */
+@media (orientation:landscape) and (max-height:400px){.pel-fin :is(.pel-est p,.pel-xp li small){display:none}}
+/* (y en los de 375 px, el SE y el mini, 10 px entre bloques y un poco menos de relleno, para que siga cabiendo entero) */
+@media (orientation:landscape) and (max-height:380px){.pel-card:has(.pel-fin){padding-top:12px}.pel-card:has(.pel-fin)>:is(h2,.pel-sub),.pel-fin :is(.pel-big,.pel-clave,.pel-est,.pel-xp,.pel-mapa,.pel-fact){margin-bottom:10px}
+  .pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){padding:8px 12px}.pel-est ul{margin-top:12px;row-gap:8px}.pel-mapa svg{max-height:60px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}}
 /* el menú del partido: un botón redondo a la derecha del marcador, con el icono de pausa como el del pueblo (al abrirlo, el
    partido se para). Dentro, todo junto y ordenado: la pelota (se cambia mientras sacas tú), el descanso, las fichas de
    los pelotaris y salir. En su badge, los descansos que te quedan; brilla si estás cansado y te quedan. Antes la pelota

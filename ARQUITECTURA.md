@@ -277,9 +277,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   botones, y en el anillo y los corazones de la aventura. Cada estilo va con lo suyo (`pelota/hud.js`, `vs.js`,
   `ficha.js`, `ui/aventuraHud.js`).
 - **Resumen del final** (`pelota/match.js`, `endPanel`, `claveDe`, `mapaBloque`; `pelota/game.js`, `stats.log` y
-  `stats.golpes`): a la izquierda el resultado, el momento clave y la experiencia; a la derecha las estadísticas y el mapa
+  `stats.golpes`): el resultado en la cabecera, entre los dos nombres con el color de cada uno (en el reto del frontón,
+  grande, que no hay rival); a la izquierda el momento clave y la experiencia; a la derecha las estadísticas y el mapa
   de golpes (la cancha desde arriba, del frontis al rebote, con un punto de cada color donde golpeó cada uno). En dos
-  columnas desde 600 px de ancho, para que en el móvil tumbado no quede nada debajo de los botones. El momento clave es
+  columnas desde 600 px de ancho, para que en el móvil tumbado no quede nada debajo de los botones. En el móvil tumbado
+  (`pelota/hud.js`, hasta 520 px de alto) cabe entero sin desplazar: 12 px entre bloques, 10-14 px dentro, las cifras sin
+  casilla propia, el mapa con su título a la izquierda para que la cancha use el ancho, las dos columnas acabando a la
+  misma altura y los botones a 44 px; en los de 375 px de alto, 10 px. Probado de 667×375 a 932×430, con muesca, en
+  castellano y euskera y por parejas (con textos grandes se desplaza, con los botones siempre a la vista). El momento clave es
   la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
   cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.
 - **Comentarios del partido, hablados** (`pelota/comenta.js`, las frases; `pelota/voz.js`, la voz; `pelota/match.js`,

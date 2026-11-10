@@ -668,8 +668,12 @@ export class PelotaMatch {
     const cont = this.o.back === 'torneo' ? (t.contTorneo || TEXT.es.contTorneo) : this.o.back === 'menu' ? (t.contMenu || TEXT.es.contMenu) : t.cont;
     // (lo que ha dado el partido: la experiencia, el nivel y lo que ha subido cada cualidad; game/pelotariProgreso.js)
     const gano = this.o.progreso?.(e, g.stats, g.mode), xpHtml = gano ? this.xpBloque(gano) : '';
-    const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}${g.mode === 'rally' ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
-      <div class="pel-fin"><div class="pel-fin-a"><div class="pel-big">${big}</div>${this.claveBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}</div><div class="pel-fin-b">${this.estBloque(g)}${this.mapaBloque(g)}</div></div>
+    // (en el partido, el resultado va en la cabecera, entre los dos nombres con el color de cada uno: así no ocupa una
+    // fila para él solo y lo demás tiene aire; en el reto del frontón sigue grande, que no hay rival)
+    const cy = this.cols.you === 'rojo' ? 'rojo' : 'azul', cr = cy === 'rojo' ? 'azul' : 'rojo', reto = g.mode === 'rally';
+    const marca = reto ? `${esc(this.label('you'))} – ${esc(this.label('rival'))}` : `<span class="pel-marca"><i class="${cy}">${esc(this.label('you'))}</i><b>${big}</b><i class="${cr}">${esc(this.label('rival'))}</i></span>`;
+    const p = this.hud.panel(`<h2>${e.win ? (reto ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
+      <div class="pel-fin"><div class="pel-fin-a">${reto ? `<div class="pel-big">${big}</div>` : ''}${this.claveBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}</div><div class="pel-fin-b">${this.estBloque(g)}${this.mapaBloque(g)}</div></div>
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
@@ -718,9 +722,9 @@ export class PelotaMatch {
     const roja = (z) => `<line x1="${X(z)}" y1="0" x2="${X(z)}" y2="${W * k}" stroke="#ff4d6d" stroke-width="1.6" stroke-dasharray="4 3"/>`;
     const puntos = (L, c) => L.map(([x, z]) => `<circle cx="${X(Math.min(Z, Math.max(0, z)))}" cy="${Y(Math.min(W / 2, Math.max(-W / 2, x)))}" r="3.2" fill="${c}" fill-opacity=".72"/>`).join('');
     return `<div class="pel-mapa"><div class="pel-est-top"><b>${esc(E.mapa)}</b><span><i class="${this.cols.you === 'rojo' ? 'rojo' : 'azul'}">${esc(this.names.you)}</i><i class="${this.cols.you === 'rojo' ? 'azul' : 'rojo'}">${esc(this.names.rival)}</i></span></div>
-      <svg viewBox="-14 -2 ${Z * k + 28} ${W * k + 4}" role="img" aria-label="${esc(E.mapa)}"><rect x="0" y="0" width="${X(COURT.L)}" height="${W * k}" fill="rgba(255,255,255,.07)" rx="2"/><rect x="${X(COURT.L)}" y="0" width="${X(Z - COURT.L)}" height="${W * k}" fill="rgba(255,255,255,.03)"/>
-      ${rayas}${roja(COURT.FALTA)}${roja(COURT.PASA)}<line x1="0" y1="-2" x2="0" y2="${W * k + 2}" stroke="#fff" stroke-width="3"/><line x1="0" y1="0" x2="${X(Z)}" y2="0" stroke="rgba(255,255,255,.6)" stroke-width="2"/><line x1="${X(Z)}" y1="0" x2="${X(Z)}" y2="${W * k}" stroke="rgba(255,255,255,.45)" stroke-width="2"/>
-      ${puntos(G.rival, cr)}${puntos(G.you, cy)}<text x="-6" y="${W * k / 2}" transform="rotate(-90 -6 ${W * k / 2})" text-anchor="middle" font-size="9" fill="#cbbcf0">${esc(E.frontis)}</text><text x="${X(Z) * 1 + 8}" y="${W * k / 2}" transform="rotate(90 ${X(Z) * 1 + 8} ${W * k / 2})" text-anchor="middle" font-size="9" fill="#cbbcf0">${esc(E.rebote2)}</text></svg></div>`;
+      <svg viewBox="-26 -5 ${Z * k + 52} ${W * k + 10}" role="img" aria-label="${esc(E.mapa)}"><rect x="0" y="0" width="${X(COURT.L)}" height="${W * k}" fill="rgba(255,255,255,.07)" rx="2"/><rect x="${X(COURT.L)}" y="0" width="${X(Z - COURT.L)}" height="${W * k}" fill="rgba(255,255,255,.03)"/>
+      ${rayas}${roja(COURT.FALTA)}${roja(COURT.PASA)}<line x1="0" y1="-2" x2="0" y2="${W * k + 2}" stroke="#fff" stroke-width="3"/><line x1="0" y1="0" x2="${X(Z)}" y2="0" stroke="rgba(255,255,255,.6)" stroke-width="2"/><line x1="${X(Z)}" y1="0" x2="${X(Z)}" y2="${W * k}" stroke="rgba(255,255,255,.45)" stroke-width="2"/><line x1="0" y1="${W * k}" x2="${X(Z)}" y2="${W * k}" stroke="rgba(255,255,255,.22)" stroke-width="1"/>
+      ${puntos(G.rival, cr)}${puntos(G.you, cy)}<text x="-10" y="${W * k / 2}" transform="rotate(-90 -10 ${W * k / 2})" text-anchor="middle">${esc(E.frontis)}</text><text x="${X(Z) * 1 + 10}" y="${W * k / 2}" transform="rotate(90 ${X(Z) * 1 + 10} ${W * k / 2})" text-anchor="middle">${esc(E.rebote2)}</text></svg></div>`;
   }
   /** El bloque de la experiencia en el panel del final: el nivel con su barra, lo ganado y lo que ha subido cada cualidad. */
   xpBloque(g) {
