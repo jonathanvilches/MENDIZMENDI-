@@ -881,7 +881,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - *Lo que se ve* (`ui/aventuraHud.js`, `game/planeo.js`): el anillo sale junto al personaje solo mientras se gasta o
     se recupera (se vacía, late a trazos con poca y lleva una raya cuando se agota; con una mejora, un segundo arco
     por fuera) y los corazones, arriba, solo cuando falta alguno o acaban de cambiar (lleno, macizo; vacío, su
-    contorno a trazos). La capa es un kapusai de pastor, de diseño propio, que ondea con el viento del pueblo.
+    contorno a trazos). Ninguno ocupa sitio cuando no se ve (`hidden`, no una capa transparente sobre el visor), y los
+    corazones no tapan nada de lo que ya había: van arriba en el centro solo si caben entre el panel de las misiones
+    y los botones; en vertical o en pantallas estrechas bajan debajo del panel y lo siguen cuando se despliega
+    (`coloca`). La capa es un kapusai de pastor, de diseño propio, que ondea con el viento del pueblo.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.
