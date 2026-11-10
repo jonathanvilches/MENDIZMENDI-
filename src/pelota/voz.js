@@ -15,6 +15,9 @@ export class Voz {
     if (!c || !c.voz) return false;
     const L = clip(c.voz, c.lang, c.id) || clip(otra(c.voz), c.lang, c.id) || clip(c.voz, 'es', c.id) || clip(otra(c.voz), 'es', c.id);
     if (!L) return false;
+    // (si la anterior no avisó de su final —el iPhone para el sonido al ir la app de fondo—, se da por acabada a su tiempo:
+    // si no, se quedaba «hablando» para siempre y ya no se oía ninguna frase más)
+    if (this.habla_ && performance.now() > (this.fin || 0) + 1500) this.sigue();
     if (this.habla_) { this.cola = { c, t: performance.now() }; return true; }
     this.grabada(L, c); return true;
   }
@@ -26,7 +29,7 @@ export class Voz {
     try {
       if (!ctx) throw new Error('sin audio');
       const k = L; let b = this.buf.get(k); if (!b) { const url = await L(); b = await new Promise((res, rej) => fetch(url).then(r => r.arrayBuffer()).then(a => { const p = ctx.decodeAudioData(a, res, rej); if (p?.then) p.then(res, rej); }).catch(rej)); if (this.buf.size > 40) this.buf.clear(); this.buf.set(k, b); }
-      const s = this.src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1.1; s.buffer = b; s.connect(g); g.connect(S.master); s.onended = () => { if (this.src === s) this.src = null; this.sigue(); }; this.musica(true); s.start();
+      const s = this.src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1.1; s.buffer = b; s.connect(g); g.connect(S.master); s.onended = () => { if (this.src === s) this.src = null; this.sigue(); }; this.fin = performance.now() + b.duration * 1000; this.musica(true); s.start();
     } catch (e) { this.habla_ = false; this.musica(false); }
   }
   /** Calla al momento (al salir del partido o en la pausa) */

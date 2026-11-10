@@ -270,9 +270,11 @@ export class Sound {
   }
   /** Lo fuerte que suena la música ahora: mientras habla el comentarista, a un tercio, para que no lo tape */
   volMus() { return this.musVol * (this.hablando ? 0.3 : 1); }
-  /** El comentarista empieza (on) o acaba de hablar: la música baja deprisa y vuelve despacio (pelota/voz.js) */
+  /** El comentarista empieza (on) o acaba de hablar: la música baja deprisa y vuelve despacio (pelota/voz.js). También
+   *  lo oye el sonido del partido (pelota/audio.js, con su propio contexto), que baja el público y los aplausos */
   voz(on) {
     on = !!on; if (on === !!this.hablando) return; this.hablando = on;
+    try { dispatchEvent(new CustomEvent('herrizherri-voz', { detail: on })); } catch (e) { /* sin eventos */ }
     if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
     const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, on ? 0.1 : 0.6);
   }

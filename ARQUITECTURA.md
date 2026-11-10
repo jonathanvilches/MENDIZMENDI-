@@ -293,7 +293,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
   palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps. Mientras habla, la música
   baja a un tercio (`audio.js`, `voz` y `volMus`: cuenta en todo lo que pone el volumen de la música) y vuelve al acabar
-  la frase. Grabadas: las 63 frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el
+  la frase; el público y los aplausos del partido, también (a 0,35: `pelota/audio.js`, su bus, con el evento
+  `herrizherri-voz`, porque el partido suena con otro contexto). Los aplausos de después de un tanto tapaban la frase
+  que lo comenta. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
+  a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. Grabadas: las 63 frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el
   euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).

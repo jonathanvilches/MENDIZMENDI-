@@ -19,15 +19,24 @@ export class PelotaAudio {
         this.noiseBuf = SHARED.noise = b;
       }
     } catch (e) { return null; }
+    // (el público y los aplausos van por su bus, que baja mientras habla el comentarista: los aplausos de después de un
+    // tanto, hasta 0,95 durante 4 a 7 s, tapaban la frase que lo comenta, que llega justo entonces. Antes solo bajaba la
+    // música. La voz va por el sonido del juego, audio.js, con otro contexto: avisa con el evento herrizherri-voz)
+    if (!this.bus && !this.stopped) {
+      this.bus = this.ctx.createGain(); this.bus.connect(this.ctx.destination);
+      this.alHablar = (e) => { if (!this.bus) return; const g = this.bus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? 0.35 : 1, t, e.detail ? 0.08 : 0.5); };
+      addEventListener('herrizherri-voz', this.alHablar);
+    }
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
-    if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.ctx.destination); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
+    if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.bus); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
     // (la grada grabada suena siempre; la sintetizada, solo con PUBLICO)
-    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.ctx.destination); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); }
+    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); }
     return this.ctx;
   }
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
   mood(v, tc) { this.crowdN?.setLevel(v, tc); this.grada?.nivel(v, tc); }
-  stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; this.grada?.para(0.8); this.grada = null; }
+  stop() { this.stopped = true; this.crowdN?.stop(0.8); this.crowdN = null; this.grada?.para(0.8); this.grada = null;
+    if (this.alHablar) removeEventListener('herrizherri-voz', this.alHablar); const b = this.bus; this.bus = null; if (b) setTimeout(() => { try { b.disconnect(); } catch (e) { } }, 1500); }
   /** Un tanto: el aplauso de todo el frontón, más corto si fue un fallo (chapa, fuera, falta). El último tanto, la
    *  ovación. Fallo o acierto, solo los aplausos: sin señal propia (las dos notas de madera, cue, no gustaban), sin el
    *  «¡clonc!» de la chapa y sin la pelota, que se calla al cantarse el tanto (match.js, callada). Antes, en cada fallo
@@ -52,7 +61,7 @@ export class PelotaAudio {
     const b = carga(c, 'aplausos-final').buf;
     if (b) {
       const s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 1);
-      s.buffer = b; s.connect(g); g.connect(c.destination);
+      s.buffer = b; s.connect(g); g.connect(this.bus || c.destination);
       g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.min(0.95, v), t + 0.12);
       g.gain.setValueAtTime(Math.min(0.95, v), t + Math.max(0.2, dur - 2)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
       s.start(t, off); s.stop(t + dur + 0.05);
@@ -113,7 +122,7 @@ export class PelotaAudio {
   // a punto, la sintetizada: aplausos que crecen y se apagan, y el rugido
   ovation() {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;
-    if (efecto(c, 'aplausos-final', c.destination, 0.7)) { this.grada?.nivel(0.7, 0.3); return; }
+    if (efecto(c, 'aplausos-final', this.bus || c.destination, 0.7)) { this.grada?.nivel(0.7, 0.3); return; }
     if (!PUBLICO || this.crowdN?.ovation()) return;
     for (let i = 0; i < 160; i++) { const u = Math.random() * 4.2, k = Math.min(1, u / 0.5) * Math.min(1, (4.4 - u) / 1.4); this.noise(t + u, 0.035, 2000 + Math.random() * 1800, 1.4, 0.14 * k); }
     const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
