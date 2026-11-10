@@ -292,7 +292,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   columnas desde 600 px de ancho, para que en el móvil tumbado no quede nada debajo de los botones. En el móvil tumbado
   (`pelota/hud.js`, hasta 520 px de alto) cabe entero sin desplazar: 12 px entre bloques, 10-14 px dentro, las cifras sin
   casilla propia, el mapa con su título a la izquierda para que la cancha use el ancho, las dos columnas acabando a la
-  misma altura y los botones a 44 px; en los de 375 px de alto, 10 px. Probado de 667×375 a 932×430, con muesca, en
+  misma altura y los botones a 44 px; en los de 375 px de alto, 10 px; y con la barra de Safari (320-360 px de alto),
+  8 px entre bloques, 6 dentro y el mapa más bajo: antes ahí el mapa quedaba debajo de los botones y parecía cortado.
+  Probado de 667×320 a 932×430, con muesca, en
   castellano y euskera y por parejas (con textos grandes se desplaza, con los botones siempre a la vista). El momento clave es
   la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
   cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.

@@ -418,6 +418,13 @@ body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)
 /* (y en los de 375 px, el SE y el mini, 10 px entre bloques y un poco menos de relleno, para que siga cabiendo entero) */
 @media (orientation:landscape) and (max-height:380px){.pel-card:has(.pel-fin){padding-top:12px}.pel-card:has(.pel-fin)>:is(h2,.pel-sub),.pel-fin :is(.pel-big,.pel-clave,.pel-est,.pel-xp,.pel-mapa,.pel-fact){margin-bottom:10px}
   .pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){padding:8px 12px}.pel-est ul{margin-top:12px;row-gap:8px}.pel-mapa svg{max-height:60px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}}
+/* (y con la barra de Safari, el móvil tumbado se queda en 320-360 px de alto: todo más junto, para que el mapa de golpes
+   no quede debajo de los botones. Antes, ahí había que desplazar el panel para verlo entero y parecía cortado) */
+@media (orientation:landscape) and (max-height:360px){.pel-card:has(.pel-fin){padding-top:10px}.pel-card:has(.pel-fin)>:is(h2,.pel-sub){margin-bottom:8px}
+  .pel-fin :is(.pel-big,.pel-clave,.pel-est,.pel-xp,.pel-mapa,.pel-fact){margin-bottom:8px}.pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){padding:6px 12px}
+  .pel-clave p{line-height:1.25}.pel-est ul{margin-top:6px;row-gap:4px}.pel-est li{gap:2px}.pel-xp-bar{margin-top:6px}.pel-xp ul{margin-top:6px}
+  .pel-mapa svg{max-height:46px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}
+  .pel-card:has(.pel-fin) .pel-row{padding-top:6px}}
 /* el menú del partido: un botón redondo a la derecha del marcador, con el icono de pausa como el del pueblo (al abrirlo, el
    partido se para). Dentro, todo junto y ordenado: la pelota (se cambia mientras sacas tú), el descanso, las fichas de
    los pelotaris y salir. En su badge, los descansos que te quedan; brilla si estás cansado y te quedan. Antes la pelota
