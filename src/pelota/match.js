@@ -1030,7 +1030,9 @@ export class PelotaMatch {
   // (y dos golpes con su figura propia: el gancho, con el codo doblado y de arriba abajo, y la volea a media altura, corta y
   // seca. Antes se veían como un golpe de aire o una derecha cualquiera)
   swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who];
-    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^Hit/.test(g)) g = 'Volea' + iz; (this.golpeDe ||= {})[who] = g; }
+    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^Hit/.test(g)) g = 'Volea' + iz;
+      if (this.game.rally?.serve && this.game.rally.hits === 1) g = 'Low';   // (el saque, de sotamano y con la derecha: de abajo arriba)
+      (this.golpeDe ||= {})[who] = g; }
     // (dónde se golpea la pelota, en el mundo: la mano del pelotari va justo ahí; glbChar.js, armSwing)
     if (e && Number.isFinite(e.x)) (this.golpeEn ||= {})[who] = { w: this.court.group.localToWorld(new this.T.Vector3(e.x, e.y, e.z)), t: this.t };
     if (who === 'you' && this.camGolpe && this.t - this.camGolpe.t < 0.8) this.golpeDe.you = this.camGolpe.golpe; }   // (con la cámara, el golpe que das tú: tu mano y tu altura)
@@ -1160,9 +1162,13 @@ export class PelotaMatch {
       // el saque: el que saca lleva la pelota en la mano derecha mientras espera y mientras corre (lleva); al botarla, el
       // brazo baja con ella un instante (bota) y luego arma. manoW: dónde queda su mano, para dibujar ahí la pelota
       { const saca = g.serverP?.() === who && (g.phase === 'serveWait' || g.phase === 'servePrep');
-        st.lleva = saca && g.phase === 'serveWait' ? 1 : 0; st.bota = saca && g.phase === 'servePrep' && g.phaseT < 0.16 ? 1 : 0;
-        if (st.bota) st.wind = 0; else if (saca && g.phase === 'servePrep') st.wind *= Math.min(1, (g.phaseT - 0.16) / 0.15);
-        if (saca) st.manoW = ((this.manoW ||= {})[who] ||= new T.Vector3()); }
+        st.lleva = saca && g.phase === 'serveWait' ? 1 : 0; st.bota = saca && g.phase === 'servePrep' && g.phaseT < 0.19 ? 1 : 0;
+        if (st.bota) st.wind = 0; else if (saca && g.phase === 'servePrep') st.wind *= Math.min(1, (g.phaseT - 0.19) / 0.15);
+        // (tras botarla arma como se arma corriendo: el brazo derecho atrás y abajo y el izquierdo recogido delante; el
+        // saque se da de sotamano, a la altura de la cadera. Antes armaba como para una derecha de parado, con los dos
+        // brazos en cruz, y la pelota subía sola delante del pecho)
+        if (saca && g.phase === 'servePrep' && !cam) st.arma = 'Saque';
+        if (saca) { st.manoW = ((this.manoW ||= {})[who] ||= new T.Vector3()); st.manoN = ((this.manoN ||= {})[who] ||= new T.Vector3()); } }
       // (y la mano, a la pelota en el golpe: el sitio donde se ha golpeado, durante una décima de segundo)
       { const ce = this.golpeEn?.[who]; if (ce && this.t - ce.t < 0.12) st.contacto = ce.w; }
       this.suda(who, st.tired, side.obj, dt);
@@ -1171,17 +1177,24 @@ export class PelotaMatch {
       (this.recSt ||= {})[who] = st;
       if (side.animate) side.animate(side.obj, st, dt); else basicAnimate(side.obj, st, dt, this.t);
     }
-    // la pelota del saque, en la mano del que saca: mientras espera y corre, en su mano derecha; al botarla, sale de ella
-    // (antes flotaba junto a su cara toda la carrera)
-    if ((g.phase === 'serveWait' || (g.phase === 'servePrep' && g.phaseT < 0.1)) && !this.replay) {
-      const sv = g.serverP?.(), mw = this.manoW?.[sv], Ps = g.players[sv];
-      if (mw && Ps && mw.lengthSq() > 1e-6) {
-        const v = grp.worldToLocal(this.v3.copy(mw)), yw = Ps.yaw ?? Math.PI; v.x += Math.sin(yw) * 0.07; v.z += Math.cos(yw) * 0.07; v.y -= 0.02;
-        if (g.phase === 'servePrep') { const u = g.phaseT / 0.1; v.x += (g.ball.p.x - v.x) * u; v.y += (g.ball.p.y - v.y) * u; v.z += (g.ball.p.z - v.z) * u; }
-        C.ball.position.copy(v); C.shadow.position.set(v.x, 0.012, v.z);
+    // la pelota del saque, agarrada: mientras espera y corre va en la palma de la mano derecha, pegada a ella y a su tamaño
+    // de verdad (en juego se dibuja tres veces mayor, para verla). Al botarla, la mano baja con ella y la suelta hacia el
+    // suelo; solo entonces va por su cuenta. Antes iba junto a la muñeca, con la mano abierta, y parecía flotar
+    { const SUELTA = 0.13, SALE = 0.08, EN_MANO = 0.46; let esc = 1;
+      if (!this.replay && (g.phase === 'serveWait' || g.phase === 'servePrep')) {
+        esc = EN_MANO;
+        const sv = g.serverP?.(), mw = this.manoW?.[sv], mn = this.manoN?.[sv], u = g.phase === 'servePrep' ? Math.max(0, Math.min(1, (g.phaseT - SUELTA) / SALE)) : 0;
+        if (u < 1 && mw && mw.lengthSq() > 1e-6) {
+          const v = this.v3.copy(mw); if (mn) v.addScaledVector(mn, COURT.BALL_R * esc * 0.78); grp.worldToLocal(v);
+          if (u > 0) { v.x += (g.ball.p.x - v.x) * u; v.y += (g.ball.p.y - v.y) * u; v.z += (g.ball.p.z - v.z) * u; }
+          C.ball.position.copy(v); C.shadow.position.set(v.x, 0.012, v.z);
+        }
+        // (y sin estela mientras la lleva y la bota: la estela es del pelotazo)
         for (const m of C.trail) m.visible = false; C.trailPts = [];
       }
-    }
+      // (junto al cuerpo, la pelota a su tamaño; crece al de siempre según sale del saque, que de lejos hay que verla)
+      else if (!this.replay && g.phase === 'rally' && g.rally?.serve && g.rally.hits === 1 && g.phaseT < 0.3) esc = EN_MANO + (1 - EN_MANO) * (g.phaseT / 0.3);
+      if (esc !== 1 || this.escSaque) { C.ball.scale.setScalar(esc); this.escSaque = esc !== 1; } }
     // por parejas, una flecha sobre ti (tu compañero lleva la misma ropa)
     if (g.pairs) {
       if (!this.pin) { this.pin = new T.Mesh(new T.ConeGeometry(0.2, 0.36, 4).rotateX(Math.PI), new T.MeshBasicMaterial({ color: '#ff7ac8', depthTest: false, transparent: true })); this.pin.renderOrder = 3; grp.add(this.pin); }

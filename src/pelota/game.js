@@ -9,6 +9,8 @@ const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 const YOU_RUN = 6.8;
 // el saque, como en el frontón: el que saca sale del cuadro 7, corre hasta poco antes del 4, bota la pelota y saca; el
 // que resta espera junto a la pared izquierda, sobre el 7
+// (el saque se golpea según sube la pelota del bote, cerca de arriba pero sin esperar a que se pare: parada parecía flotar)
+const SAQUE_VY = 0.95;
 const SERVE_FROM = COURT.CUADRO * 7, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 5.8;
 // (el bote del saque: hacia abajo con fuerza y que suba poco, para golpear enseguida, sin pararse)
 const SERVE_DOWN = 3, SERVE_UP = 3.8, SERVE_LEAD = 0.24;   // (LEAD: cuánto antes del 4 se bota, por m/s de carrera y
@@ -746,7 +748,7 @@ export class PelotaGame {
       const op = this.players[this.other(sd)];
       tx = clamp(-op.x * 0.5, -2.5, 2.5); tz = this.cuatro ? 13 : 20.5;   // (en el Cuatro y Medio se espera más adelante: todo se juega antes del 4 y medio)
     } else if (this.phase === 'servePrep' && this.serverP() === who) {
-      if (this.hittable(who) && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) {
+      if (this.hittable(who) && this.ball.v.y < SAQUE_VY && this.ball.p.y < 1.1) {
         const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, s.drop || false, s.pow ?? 0.5);
       }
       return;   // (la carrera del saque la lleva movePlayers: sigue a la pelota que ha botado)
@@ -891,7 +893,7 @@ export class PelotaGame {
       // ese momento (o llega mientras dura el gesto), la tocas; si no, al aire
       // (el saque, con la fuerza y la puntería que elegiste al salir: al bajar la pelota tras el bote, como el rival)
       if (this.phase === 'servePrep' && this.saque && this.serverP() === 'you') {
-        if (this.hittable('you') && this.ball.v.y < 0.4 && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
+        if (this.hittable('you') && this.ball.v.y < SAQUE_VY && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
       } else if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
         if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = this.camara ? CAM_WIN : SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36;
           // (con la cámara, el golpe se lee entero: espera un poco a saber hacia dónde va el brazo, camPend, sin dejar

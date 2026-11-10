@@ -118,7 +118,12 @@ const CORTES = { Hit: ['HitFull', 0.40], HitL: ['HitLFull', 0.40], Low: ['LowFul
 // (y, para el saque, el brazo derecho con la pelota en la mano mientras corre, y el gesto de botarla contra el suelo)
 const LLEVA = { ...REPOSO, Rm: [-0.21, 0.84, 0.2], Rc: [-0.5, -1, -0.3] };
 const BOTA = { ...REPOSO, Rm: [-0.27, 0.6, 0.3], Rc: [-0.4, -1, -0.2] };
-export const ARMADOS = { Hit: ARMADO, Low: ARMADO_B, High: ARMADO_A, Lleva: LLEVA, Bota: BOTA };
+// (el saque, ya botada la pelota y sin dejar de correr: el brazo derecho atrás y abajo, con la mano por detrás de la cadera,
+// el pecho girado hacia ella y el brazo izquierdo recogido delante, para equilibrar. Con el armado de un golpe normal, que
+// es de parado y de lado, corriendo solo se le abrían los brazos en cruz)
+const SAQUE_ARMA = { ...ARMADO_B, c: [-0.03, -0.12, 0], H: [10, -18, 0], S: [16, -22, 4], S1: [8, -14, 0], S2: [4, -8, 0], N: [-14, 26, 0], Hd: [-14, 20, 0],
+  Rm: [-0.30, 0.76, -0.20], Rc: [-0.3, -0.6, -1], Rw: 15, Lm: [0.12, 0.98, 0.26], Lc: [0.7, -1, -0.1] };
+export const ARMADOS = { Hit: ARMADO, Low: ARMADO_B, High: ARMADO_A, Lleva: LLEVA, Bota: BOTA, Saque: SAQUE_ARMA };
 
 function espejo(p) {
   const o = {};

@@ -163,7 +163,7 @@ export async function loadMeshy(name, lod = false) {
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
-    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['Bota', 'Bota', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
+    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['Bota', 'Bota', false], ['Saque', 'Saque', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
@@ -637,6 +637,32 @@ export class GlbRig {
 
 // golpe a mano: el brazo derecho se echa atrás mientras llega la pelota (wind) y sale hacia delante al golpear (swing),
 // con un giro del pecho; se aplica encima de la animación de cada pelotari
+/** La palma de una mano, en el espacio de su hueso: su centro (c), hacia dónde mira (n) y hacia dónde apuntan los dedos
+ *  (d). Sale de la propia malla, de los vértices que mueve ese hueso en reposo: el eje más largo va de la muñeca a los
+ *  dedos y el más corto es el grosor de la mano. En reposo, con los brazos en cruz, la palma mira al suelo. null si no
+ *  se puede saber. Sirve para dejar algo agarrado en la mano de verdad, y no flotando junto a la muñeca. */
+export function palmaDe(root, hand) {
+  let mesh = null; root.traverse(o => { if (!mesh && o.isSkinnedMesh && o.skeleton?.bones.includes(hand)) mesh = o; });
+  if (!mesh) return null;
+  const ih = mesh.skeleton.bones.indexOf(hand), g = mesh.geometry, P = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight;
+  const inv = mesh.skeleton.boneInverses[ih], bm = mesh.bindMatrix, v = new THREE.Vector3(), c = new THREE.Vector3(), pts = [];
+  for (let i = 0; i < P.count; i++) {
+    let w = 0; for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === ih) w += sw.getComponent(i, k);
+    if (w < 0.6) continue;
+    v.fromBufferAttribute(P, i).applyMatrix4(bm).applyMatrix4(inv); pts.push(v.clone()); c.add(v);
+  }
+  if (pts.length < 8) return null;
+  c.divideScalar(pts.length);
+  const C = [0, 0, 0, 0, 0, 0];
+  for (const p of pts) { const x = p.x - c.x, y = p.y - c.y, z = p.z - c.z; C[0] += x * x; C[1] += x * y; C[2] += x * z; C[3] += y * y; C[4] += y * z; C[5] += z * z; }
+  const por = (a) => new THREE.Vector3(C[0] * a.x + C[1] * a.y + C[2] * a.z, C[1] * a.x + C[3] * a.y + C[4] * a.z, C[2] * a.x + C[4] * a.y + C[5] * a.z);
+  const mayor = (fuera) => { let a = new THREE.Vector3(0.61, 0.52, 0.6); for (let i = 0; i < 48; i++) { a = por(a); for (const f of fuera) a.addScaledVector(f, -a.dot(f)); if (a.lengthSq() < 1e-24) break; a.normalize(); } return a; };
+  const d = mayor([]), ancho = mayor([d]), n = new THREE.Vector3().crossVectors(d, ancho).normalize();
+  if (d.dot(c) < 0) d.negate();   // (los dedos, lejos de la muñeca, que es el origen del hueso)
+  if (n.dot(v.set(0, -1, 0).transformDirection(inv)) < 0) n.negate();
+  let largo = 0; for (const p of pts) largo = Math.max(largo, p.dot(d));
+  return { c, n, d, largo };
+}
 export function armSwing(char, get, { windOnly = false } = {}) {
   if (!char) return;
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name] = o; });
@@ -660,6 +686,7 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   // (y los huesos de cada brazo, para llevar la mano a un sitio: hombro, codo y mano)
   const brazo = (s) => { const a = B['mixamorig' + s + 'Arm'], f = B['mixamorig' + s + 'ForeArm'], h = B['mixamorig' + s + 'Hand']; return a && f && h ? { a, f, h } : null; };
   const IKR = brazo('Right'), IKL = brazo('Left');
+  let PAL; const palma = () => PAL !== undefined ? PAL : (PAL = IKR ? palmaDe(char.root, IKR.h) : null);
   const _S = new THREE.Vector3(), _E = new THREE.Vector3(), _H = new THREE.Vector3(), _n = new THREE.Vector3(), _u = new THREE.Vector3(), _d1 = new THREE.Vector3(), _d2 = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _q0 = new THREE.Quaternion(), _q1 = new THREE.Quaternion();
   // gira un hueso (en el mundo) para que la dirección de → a pase a ser la nueva, y lo deja en su giro local
   const gira = (b, de, a) => { _qa.setFromUnitVectors(de, a); b.getWorldQuaternion(_qb); _qa.multiply(_qb); b.parent.getWorldQuaternion(_qb); b.quaternion.copy(_qb.invert().multiply(_qa)); b.updateMatrixWorld(true); };
@@ -708,7 +735,12 @@ export function armSwing(char, get, { windOnly = false } = {}) {
       const izq = /L$/.test(st.golpe || ''), kC = st.contacto && st.swing >= 0 && st.swing < 0.22 ? 1 - st.swing / 0.22 : 0;
       if (kC > 0.02) manoA(izq ? IKL : IKR, st.contacto, Math.min(1, kC * 1.6));
       // (y dónde queda la mano derecha, para que el juego dibuje en ella la pelota que lleva)
-      if (st.manoW && IKR) { c.root.updateMatrixWorld(true); IKR.h.getWorldPosition(st.manoW); }
+      // (en la palma, no en la muñeca: su centro y hacia dónde mira, para que la pelota quede agarrada)
+      if (st.manoW && IKR) {
+        c.root.updateMatrixWorld(true); const p = palma();
+        if (p) { IKR.h.localToWorld(st.manoW.copy(p.c)); st.manoN?.copy(p.n).transformDirection(IKR.h.matrixWorld); }
+        else { IKR.h.getWorldPosition(st.manoW); st.manoN?.set(0, 0, 0); }
+      }
       return;
     }
     let arm = -2.3 * w, elbow = 1.0 * w, twist = 0.7 * w;   // brazo bien atrás, codo doblado y hombro girado
