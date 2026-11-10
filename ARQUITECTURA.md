@@ -858,6 +858,30 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     persecución, leyenda, minijuego, partido, fiesta. Los instrumentos son sintetizados, a la espera de grabaciones;
     las melodías son propias. `runtime.js` le dice a `Sound` si se está de paseo (`paseo`), la familia de la comarca
     (`aire`) y cuánta noche hay.
+- **Exploración y movimiento** (noviembre de 2026, tanda 1, fase 2):
+  - *Moverse cuesta* (`actors/player.js`): el jugador tiene un modo (`pie`, `trepa`, `resbala`, `planea`, `nada`) y una
+    resistencia (`aguante`, de 0 a `aguanteMax`; 1 es un anillo entero). Empujando contra una cuesta que andando no se
+    sube (más de 51 grados) se agarra y trepa despacio; en el aire, el botón de saltar abre y cierra la capa y se baja
+    a 1,7 m/s; el agua honda ya no es un muro: se nada. Todo gasta resistencia (`AGUANTE`: 9 s trepando, 13 planeando,
+    15 nadando), más con lluvia o frío (`gasto`), y vuelve sola con los pies en el suelo. Sin resistencia: resbala
+    cuesta abajo, la capa se cierra o hay que volver a la orilla (`onRescate`). Una caída de más de cinco metros avisa
+    (`onCaida`). Bajo un puente no se pasa nadando. Va con los mandos de siempre: la palanca o las flechas y el botón
+    de saltar, así que sirve igual el teclado, el táctil, el mando y el móvil de mando. `puedeAventura` lo apaga
+    donde no toca.
+  - *La aventura de cada pueblo* (`game/townAventura.js`, métodos de `TownGame`): se monta en el primer fotograma de
+    juego (`aventuraInicia`; con `?aventura=0`, no). Pone una atalaya en el alto más alto que se alcanza cerca de la
+    plaza, con una banderola a trece metros; cinco kutxas (cofres) escondidas, cada una en el sitio más lejano de todo
+    lo que ya hay, que solo se ven a menos de 16 m; y una montura junto a la entrada (`game/montura.js`: pottoka en
+    la montaña, burro en la Zona Media, la Ribera y Pamplona; es un «vehículo» como el tractor). La atalaya enseña en
+    el mapa las kutxas sin abrir y deja llevar una marca propia a una de ellas. Las mejoras se ganan: cada dos
+    atalayas, un quinto más de anillo (hasta dos anillos); cada ocho kutxas, un corazón más (hasta seis). Los
+    corazones (tres) bajan con una caída fuerte y vuelven al sentarse en un banco; sin ninguno, se vuelve a la plaza.
+    Las pistas salen una sola vez, cuando hacen falta. Se guarda en `perfil.aventura` (`atalayas`, `kutxas`, `pistas`,
+    `marcas`), un campo nuevo del perfil de siempre.
+  - *Lo que se ve* (`ui/aventuraHud.js`, `game/planeo.js`): el anillo sale junto al personaje solo mientras se gasta o
+    se recupera (se vacía, late a trazos con poca y lleva una raya cuando se agota; con una mejora, un segundo arco
+    por fuera) y los corazones, arriba, solo cuando falta alguno o acaban de cambiar (lleno, macizo; vacío, su
+    contorno a trazos). La capa es un kapusai de pastor, de diseño propio, que ondea con el viento del pueblo.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.
@@ -1163,6 +1187,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 |---|---|
 | `presupuesto-pueblo.mjs` | El presupuesto de cada pueblo: lo que pinta con el perfil del iPhone (triángulos, dibujos y memoria de texturas y búferes, con `presupuesto-gpu.js`) en su puerta mirando a los cuatro lados y, con `PELOTA=1`, en su partido de pelota, frente a lo que aguanta el iPhone 13 (unos 900 mil triángulos, 520 dibujos y 80 MB de texturas en el pueblo). Todo pueblo nuevo tiene que pasarlo antes de publicarse: solo se carga un pueblo cada vez, así que lo que cuenta es lo que pesa cada uno. Sale con código 1 si alguno se pasa |
 | `puntos-control.mjs` | Los puntos de control de arte y luz: de cada pueblo, dos vistas fijas (a pie de calle desde la puerta y desde 22 m sobre la plaza) en cuatro condiciones (día, atardecer, noche y lluvia), con lo que pinta cada una (triángulos y llamadas de dibujo) y lo que tarda en cargar. Las mismas fotos antes y después de cada cambio de arte, luz o atmósfera: `node tools/puntos-control.mjs <carpeta> <etiqueta> [pueblos] [calidad] [condiciones]`. Las de la auditoría de noviembre de 2026 y su informe, en `entrega/tanda1/`. |
+| `puntos-interes.mjs` | Los puntos de interés de cada pueblo, medidos: qué parte de lo que se pisa ve algo a lo lejos (contando el relieve y las casas), cuánto paisaje vacío hay como mucho (andando a 3,3 m/s) y si hay retos de las tres escalas. Cuenta lo que rotula el mapa, los vecinos con misión y lo que añade la aventura (`game.puntosInteres()`: la atalaya y las kutxas, estas como escondidas). Pasa con el 85 % viendo algo lejano, ningún vacío de más de 60 s y las tres escalas. `node tools/puntos-interes.mjs <salida.json> [pueblos \| todos]`; con `?aventura=0` en la dirección se mide el pueblo sin la aventura. |
+| `muros.mjs` | La prueba automática de muros: un explorador que se lanza contra los 40 muros mayores del pueblo, de frente y en diagonal, andando, corriendo y saltando, con el código del jugador y sin dibujar (unos 13 000 pasos por pueblo). Falla si alguna vez queda dentro de un muro, da un paso más largo que su cuerpo o sale del mapa. `node tools/muros.mjs <salida.json> [pueblos \| todos]`. |
+| `aventura.mjs` | La prueba automática de la aventura de un pueblo: que se monta (atalaya, cinco kutxas y montura), que nadar, planear, trepar y caer hacen lo que deben con el anillo y los corazones, que se monta y se baja, que la atalaya y la kutxa se guardan en el perfil sin tocar lo demás, y que no hay errores. Deja una captura de cada cosa. `node tools/aventura.mjs <carpeta> [pueblo] [calidad]`. |
 | `grada-ver.mjs` | La primera fila del público de un frontón, de cerca, con una cámara propia: que nadie atraviese su escalón, el antepecho ni el asiento de delante. Tres capturas por frontón y lo que mide la figura sentada. |
 | `perro-guia.mjs` | «Enséñame el camino»: el perro se adelanta por las calles (el camino de los vecinos), ladra, espera y sigue tramo a tramo hasta dejarte junto al vecino (`CERCA=1`) o hacia una misión lejana. Simulado a pasos fijos. |
 | `pelota-cansancio.mjs` | Cansancio y descansos de la pelota, sin navegador: partidos enteros pelotando normal y jugando a cansar al rival con dejadas y cortadas. El rival tiene que cansarse bastante más en el segundo caso, pedir sus descansos sin pasarse y tus descansos se toman en el parón antes del saque. |
