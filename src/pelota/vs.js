@@ -65,21 +65,22 @@ const CSS = `
 .pvs-ovr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 12px;background:#fff;color:var(--v2);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pvs-plate.azul .pvs-ovr{color:var(--azul2)}.pvs-plate.rojo .pvs-ovr{order:2;color:var(--rojo2)}
 .pvs-ovr b{font:400 var(--fs-3xl)/1 var(--f-display)}.pvs-ovr small{font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
-.pvs-who{min-width:0;padding:4px 14px;background:rgba(7,2,15,.86);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-left:-6px}
+.pvs-who{min-width:0;padding:8px 18px 10px;background:rgba(7,2,15,.86);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-left:-6px}
 .pvs-plate.rojo .pvs-who{margin:0 -6px 0 0}
 .pvs-who b{display:block;padding-right:.1em;font:400 var(--fs-2xl)/1.15 var(--f-display);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvs-who small{display:block;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pvs-st{display:flex;gap:10px;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila)}.pvs-plate.rojo .pvs-st{justify-content:flex-end}
+.pvs-st{display:flex;gap:14px;margin-top:4px;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila)}.pvs-plate.rojo .pvs-st{justify-content:flex-end}
 .pvs-st b{display:inline;font:800 var(--fs-sm)/1 var(--f-cond);color:#fff;margin-left:3px}
 /* accesibilidad (util/accesible.js) */
 body.textos-grandes .pvs{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px}
 body.alto-contraste .pvs :is(.pvs-who,.pvs-tick,.pvs-venue,.pvs-lineb,.pvs-tags span){background:#000;border:2px solid #fff}
 body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pvs-tick .q){color:#fff}body.alto-contraste .pvs .pvs-arq span{background:#000;border:1px solid #fff}
 /* (su arquetipo, su mano y su golpe estrella: rules.js, arqChips) */
-.pvs-arq{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pvs-plate.rojo .pvs-arq{justify-content:flex-end}
-.pvs-arq span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;background:rgba(255,255,255,.08);border:1px solid rgba(201,178,255,.35);font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);white-space:nowrap;clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
-.pvs-arq span.arq{color:#fff;background:linear-gradient(100deg,rgba(255,43,214,.45),rgba(123,47,247,.45));border-color:rgba(255,122,200,.6)}.pvs-arq svg{width:14px;height:14px;flex:none}
-.pvs-arq span.estrella{color:#ffd166;border-color:rgba(255,209,102,.45)}
+.pvs-arq{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;margin-top:6px}.pvs-plate.rojo .pvs-arq{justify-content:flex-end}
+/* el arquetipo y el golpe estrella, en una línea de texto, sin cajas: antes eran tres etiquetas en dos filas y la placa
+   quedaba apretada (la mano está en la ficha; el zurdo ya es un arquetipo) */
+.pvs-arq span{display:inline-flex;align-items:center;gap:5px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:#fff;white-space:nowrap}
+.pvs-arq svg{width:15px;height:15px;flex:none;color:#ff7ad9}.pvs-arq span.estrella{color:#ffd166}
 .pvs-tick{position:absolute;left:0;right:0;bottom:0;z-index:5;height:calc(env(safe-area-inset-bottom,0px) + 36px);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;align-items:center;background:rgba(7,2,15,.9);animation:pvs-up .35s 1.2s ease-out both}
 .pvs-tick .q{flex:1;min-width:0;overflow:hidden;white-space:nowrap;padding-left:calc(env(safe-area-inset-left,0px) + 16px);font:600 var(--fs-sm)/1.3 var(--f-cond);font-style:italic;letter-spacing:.02em}
 .pvs-tick .q span{display:inline-block;padding-right:40px}.pvs-tick .q.run span{animation:pvs-marq var(--mt,12s) linear 1.6s infinite}
@@ -221,7 +222,7 @@ function layoutVs(el) {
   }
 }
 const plate = (s, side) => `<div class="pvs-plate ${side}">${s.ovr != null ? `<div class="pvs-ovr"><b>${esc(s.ovr)}</b><small>${esc(s.ovrLabel || 'Media')}</small></div>` : '<span></span>'}
-  <div class="pvs-who"><b>${esc(s.name)}</b><small>${esc(s.sub || '')}</small>${s.stats?.length ? `<div class="pvs-st">${s.stats.map(q => `<span>${esc(q.k)}<b>${esc(q.v)}</b></span>`).join('')}</div>` : ''}${s.arq?.length ? `<div class="pvs-arq">${s.arq.map(c => `<span class="${c.k}" title="${esc(c.what || '')}">${c.icon || ''}${esc(c.t)}</span>`).join('')}</div>` : ''}</div></div>`;
+  <div class="pvs-who"><b>${esc(s.name)}</b><small>${esc(s.sub || '')}</small>${s.stats?.length ? `<div class="pvs-st">${s.stats.map(q => `<span>${esc(q.k)}<b>${esc(q.v)}</b></span>`).join('')}</div>` : ''}${s.arq?.length ? `<div class="pvs-arq">${s.arq.filter(c => c.k !== 'mano').map(c => `<span class="${c.k}" title="${esc(c.what || '')}">${c.icon || ''}${esc(c.t)}</span>`).join('')}</div>` : ''}</div></div>`;
 // (la figura: pf, el HTML de una figura en su caja .pf, o img, una imagen; la del compañero, matePf o mateImg)
 const fig = (s, side) => { if (s.figHtml) return `<div class="pvs-fig ${side}"><div class="kit">${s.figHtml}</div></div>`;
   const mate = s.matePf ? s.matePf.replace('class="pf', 'class="pf mate') : s.mateImg ? `<img class="mate" src="${s.mateImg}" alt="">` : '';
