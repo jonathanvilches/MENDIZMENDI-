@@ -17,6 +17,7 @@ export function loadEU() {
     for (const k in A.EU_ARMAS) EU_EXACT[k] ??= A.EU_ARMAS[k];         // (los escudos, los saberes y las edades, igual)
     for (const k in O.EU_OFICIOS) EU_EXACT[k] ??= O.EU_OFICIOS[k];     // (los oficios de antes y las fichas de las misiones, igual)
     for (const k in V.EU_AVENTURA) EU_EXACT[k] ??= V.EU_AVENTURA[k];   // (la aventura: luz, exploración y movimiento, igual)
+    EU_RX.push(...(V.EU_RX_AVENTURA || []));
     EU_RX.unshift(...H.EU_RX_HITZAK, ...M.EU_RX_MAS, ...cuentosRx((x) => EU_EXACT[x] ?? x)); EU_RX.push(...A.EU_RX_ARMAS, ...O.EU_RX_OFICIOS, ...M.EU_RX_LISTA);
     M.setTr((x) => tr(x)); cache.clear();
   });

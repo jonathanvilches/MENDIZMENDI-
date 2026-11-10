@@ -68,6 +68,7 @@ import { PuebloCimas } from './townCimas.js';
 import { PuebloLeyendas } from './townLeyendas.js';
 import { PuebloActividades, ANIMAL } from './townActividades.js';
 import { PuebloTractor } from './townTractor.js';
+import { PuebloAventura } from './townAventura.js';
 import { PuebloCharla, QUIZ_N } from './townCharla.js';
 // el encierro y el fútbol (motores grandes) se descargan al entrar en ellos, no al abrir el juego
 
@@ -587,6 +588,10 @@ export class TownGame {
     this.agro?.update(dt, P, this.particles);
     this.mercado?.cerca(this.camera.position);   // (el género del mercado, solo de cerca)
     this.tractorTick(dt);   // (las cosechas con tractor o cosechadora)
+    // la aventura (atalaya, kutxas, montura, anillo y corazones: townAventura.js): se monta en el primer fotograma de juego
+    // (con ?aventura=0 no se monta: para comparar el pueblo con ella y sin ella, tools/puntos-interes.mjs)
+    if (!this.av && this.mode === 'play' && !this.disposed && !this.sinAventura) { if (/[?&]aventura=0/.test(location.search)) this.sinAventura = true; else try { this.aventuraInicia(); } catch (e) { this.sinAventura = true; console.warn('aventura', e); } }
+    this.aventuraTick(dt);
     if (this.mode === 'play' && !this.sportBusy) this.mochila?.update(dt, P);   // (en los menús de pelota no da hambre)
     this.flora?.update(dt, P.pos);
     if (this.mode !== 'futbol') this.perro?.update(dt);
@@ -704,6 +709,7 @@ export class TownGame {
       if (M.step === 0) out.push({ x: h.x, z: h.z, icon, color, badge: 'nueva', title: M.title, text: `Habla con ${M.host.name}`, act: 'track', id: M.i, go: true });
       else { const t = this.target(M); if (t) out.push({ x: t.x, z: t.z, icon, color, title: M.title, text: this.stepText(M), act: 'track', id: M.i }); }
     }
+    this.aventuraMarcas(out);   // (la atalaya, las kutxas que ha enseñado y la marca propia)
     return out;
   }
   // Bocadillos de los vecinos: al pasar junto a uno que va por la calle, te dice algo corto encima de la cabeza, en euskera
@@ -868,6 +874,7 @@ export class TownGame {
     for (const o of this.agro?.list || []) if (ok(o.x, o.z)) list.push({ kind: 'agro', o, x: o.x, z: o.z, r: o.kind === 'combine' ? 6 : 4.5, label: `Mirar: ${o.info.title.toLowerCase()}` });
     for (const it of this.items) if (ok(it.x, it.z)) list.push({ kind: 'item', it, x: it.x, z: it.z, r: 2.2, label: it.label });
     this.tractorAcciones(list, ok);   // (subir al tractor o a la cosechadora de la cosecha, o bajar)
+    this.aventuraAcciones(list, ok);   // (montar, la atalaya y las kutxas)
     for (const M of this.missions) if (M.bench && M.step === 1 && !M.done && ok(M.bench.x, M.bench.z)) list.push({ kind: 'bench', M, x: M.bench.x, z: M.bench.z, r: 3, label: M.oficio ? 'Entrar al taller' : M.trade.verb });
     for (const M of this.missions) if (M.memo && ok(M.memo.x, M.memo.z)) list.push({ kind: 'memorial', M, x: M.memo.x, z: M.memo.z, r: 2.8, label: M.step === 1 && !M.done ? `Ver el recuerdo de ${M.fig.name}` : `Leer la placa` });
     for (const k of this.clues) if (!k.found && k.obj.visible && ok(k.x, k.z)) list.push({ kind: 'clue', k, x: k.x, z: k.z, r: 2.6, label: 'Examinar' });
@@ -939,6 +946,7 @@ export class TownGame {
     if (it.kind === 'seat') return this.restBench(it.b);
     if (it.kind === 'walker') { it.a.chatWith = null; it.a.talkTo = null; it.a.say(2.5); it.a.wave = 1.2; const L = TAREAS[it.a.tarea]?.lines || WALKER_LINES[this.walkers.indexOf(it.a) % WALKER_LINES.length]; return this.say(it.a, [...L, ...this.hitzLines(it.a)]); }   // (lo que cuenta: lo que está haciendo, y una palabra en euskera)
     if (it.kind === 'item') return this.pick(it.it);
+    if (this.aventuraActua(it)) return;
     if (it.kind === 'subir') return it.V?.sube(this.player);
     if (it.kind === 'bajar') return this.player.vehiculo?.baja();
     if (it.kind === 'bench') return this.doTrade(it.M);
@@ -1043,6 +1051,7 @@ export class TownGame {
     // (lo que estaba a medias —el menú de pelota, el cuadro del torneo, un partido preparándose— se para: el pueblo
     // nuevo no debe recibir sus ventanas ni sus controles)
     this.disposed = true;
+    try { this.aventuraFin(); } catch (e) { }
     try { this.pelotaAbort?.(); } catch (e) { }
     for (const M of this.missions || []) try { this.quitaTractor(M); } catch (e) { }
     document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg, .cartel').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
@@ -1058,7 +1067,7 @@ export class TownGame {
 }
 // (sus métodos por temas, cada uno en su archivo: los deportes, los montes, las leyendas, lo que se hace en las misiones
 // y las conversaciones)
-mezcla(TownGame, PuebloDeportes, PuebloCimas, PuebloLeyendas, PuebloActividades, PuebloCharla, PuebloTractor);
+mezcla(TownGame, PuebloDeportes, PuebloCimas, PuebloLeyendas, PuebloActividades, PuebloCharla, PuebloTractor, PuebloAventura);
 
 
 

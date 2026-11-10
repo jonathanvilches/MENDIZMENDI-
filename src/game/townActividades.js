@@ -391,6 +391,7 @@ export class PuebloActividades {
   }
   async restBench(b) {
     this.player.frozen = true; this.player.place(b.x, b.z, b.ry + Math.PI); this.follow.snap?.(this.player);
+    this.aventuraDescansa?.();   // (sentarse devuelve los corazones)
     try {
       this.ui.whisper(BENCH_LINES[Math.floor(this.rnd() * BENCH_LINES.length)], 3800);
       await new Promise(r => setTimeout(r, 2600));
