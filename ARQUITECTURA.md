@@ -799,6 +799,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el borde oscuro. Por descubrir, blanca con su punto morado; empezada, magenta con lo hecho en un arco; sellada, dorada
   con la marca verde. Las ciudades, más grandes y con diana; las zonas de naturaleza, con el punto verde. Los ríos no se
   tocan.
+- **Neón: los rótulos y las tarjetas** (`src/ui/neon.css`, cargada por `hub/hub.js` después de `identidad.css`; noviembre
+  de 2026): todos los cajetines de rotulación y todas las tarjetas, con esquinas redondeadas de 8 px (10 los paneles y
+  las cartas de pelotari), un filo de luz del color de su sección, bando o deporte que brilla hacia fuera y un destello
+  que recorre el borde sin parar; más rápido al pasar por encima; lo bloqueado, sin destello. Sustituye a las esquinas
+  cortadas en ángulo, cuyo recorte no dejaba salir la luz. Tres maneras: en las tarjetas con el relleno en `::before`
+  (la carta del menú, las de Torneos y las de pelotari), un cuadrado con degradado cónico que gira detrás del relleno
+  (`::after`, solo transformación: lo mueve la tarjeta gráfica); en los rótulos del partido (el del tanto, el del
+  comentarista, el de la repetición), un aro de 1,5 px con máscara cuyo degradado da la vuelta (`--neon-a`, `@property`);
+  en las losas del menú de pelota, que ya usan sus dos pseudoelementos, el propio borde con el degradado cónico detrás del
+  relleno. Los paneles y las ventanas, grandes, con el filo quieto. Con «menos movimiento», quieto.
 - **La carta: una sola tarjeta para todo el menú** (`identidad.css`, al final; noviembre de 2026): las tarjetas de las
   listas iban en cajas de cristal con esquinas casi rectas, cada una a su manera, y no se parecían a las comarcas de abajo
   del mapa ni a las cartas de Torneos. Ahora todas tienen esa misma forma: las especies, los personajes y las figuras, las
