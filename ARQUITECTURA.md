@@ -299,6 +299,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
   (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
   del rebote.
+- **Cambios de ritmo al correr** (`pelota/game.js`, `movePlayers`, `ritmo` y `sprint` de cada pelotari; `driveAI`):
+  colocándose, al trote; si la pelota es tuya y a tu paso no llegas, esprint automático, con arrancada: hacia delante a
+  por una dejada o una corta (×1,42) y hacia atrás si se va al fondo (×1,3). El rival también arranca a por las cortas y
+  corre atrás a por las largas. El esprint gasta algo de energía propio, pero no cuenta como correr más (se mira la
+  velocidad sin él): con el esprint automático la barra se vaciaba a medio partido. Al esprintar, la cámara dinámica
+  abre un poco el plano (`sprintK` en `pelota/match.js`).
 - **Duración de los partidos** (`pelota/rules.js`, `DURACIONES`, `duracionElegida`, `tantosDe`; en «Más opciones» del
   partido, `pelota/match.js`; `herrizherri-pelota-duracion`): rápido, normal (la de serie), largo o profesional, a 22
   tantos. Los torneos, el partido libre y la misión se escribieron a 5-9 tantos y se alargan según la duración, sin pasar

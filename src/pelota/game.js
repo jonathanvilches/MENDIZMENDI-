@@ -727,7 +727,7 @@ export class PelotaGame {
     } else if (this.phase === 'rally' && this.rally.turn === sd) {
       // a una pelota corta (la dejada) se sale en arrancada, como un pelotari de verdad: más rápido que en el peloteo
       const dash = lv.dash, c = this.interceptFor(who, lv.speed * dash, lv.react);
-      if (c) { const w = this.detour(pl, c.x, c.z); tx = w.x; tz = w.z; if (c.z < 8) sprint = dash; }
+      if (c) { const w = this.detour(pl, c.x, c.z); tx = w.x; tz = w.z; if (c.z < 8) sprint = dash; else if (c.z > pl.z + 4 && Math.hypot(c.x - pl.x, c.z - pl.z) / lv.speed > c.t * 0.8) sprint = 1 + (dash - 1) * 0.8; }   // (a por la corta, arrancada; a por la que se va al fondo, carrera atrás)
       const cannon = this.rally.bounces < 1 && this.ball.p.z > 22 && this.deepShot();   // (ese cañonazo al fondo, no de aire)
       if (this.hittable(who) && !cannon) {
         // los diestros fallan más lo pegado a la pared izquierda (y lo muy bajo): menos cuanto más ágiles
@@ -756,7 +756,7 @@ export class PelotaGame {
       }
       return;   // (la carrera del saque la lleva movePlayers: sigue a la pelota que ha botado)
     }
-    this.moveTo(pl, tx, tz, lv.speed * sprint, dt);
+    pl.sprint = sprint > 1.05 ? 1 : 0; this.moveTo(pl, tx, tz, lv.speed * sprint, dt);
   }
   moveTo(pl, tx, tz, speed, dt) {
     const dx = tx - pl.x, dz = tz - pl.z, d = Math.hypot(dx, dz);
@@ -784,8 +784,10 @@ export class PelotaGame {
       const p = this.players[id]; if (p.racha) p.racha *= Math.exp(-dt / EN.rachaT);
       // (por encima de 5 m/s, hasta los 7,6 del arranque: si es para llegar a la dejada que te toca, EN.caza
       // (por parejas, al que va a por ella); si no, EN.run, poco)
-      if (live) { const v = p.speed || 0, k = caza === this.side(id) && (!this.pairs || !R.taker || R.taker === id) ? EN.caza : EN.run;
-        p.rec = 0; p.en = clamp(p.en + (EN.rally - EN.trote * clamp((v - 3.5) / 1.5, 0, 1) - k * clamp((v - 5) / 2.6, 0, 1)) * dt, 0, 1); }
+      // (el esprint de los cambios de ritmo no cuenta como correr más: se mira la velocidad sin él, y se suma su propio
+      // gasto, pequeño; si no, con el esprint automático la barra se vaciaba en medio partido)
+      if (live) { const rt = Math.max(1, p.ritmo || 1), v = (p.speed || 0) / rt, k = caza === this.side(id) && (!this.pairs || !R.taker || R.taker === id) ? EN.caza : EN.run, ex = p.sprint ? EN.run * 0.8 * clamp((rt - 1) / 0.42, 0, 1) : 0;
+        p.rec = 0; p.en = clamp(p.en + (EN.rally - EN.trote * clamp((v - 3.5) / 1.5, 0, 1) - k * clamp((v - 5) / 2.6, 0, 1) - ex) * dt, 0, 1); }
       else if (this.phase === 'descanso') p.en = clamp(p.en + (this.side(id) === this.descanso?.side ? DESCANSO.gana : DESCANSO.ganaOtro) / DESCANSO.t * dt, 0, 1);
       else { const g = Math.min(EN.rest * dt, Math.max(0, EN.pausa - (p.rec || 0))); p.rec = (p.rec || 0) + g; p.en = clamp(p.en + g, 0, 1); }
     }
@@ -862,6 +864,20 @@ export class PelotaGame {
         if (c && Math.hypot(c.x - you.x, c.z - you.z) / spd + 0.1 <= c.t + 0.15) { this.rally.claim = true; this.rally.taker = 'you'; this.emit({ type: 'claim' }); }
       }
       let vx = mx * spd, vz = mz * spd;
+      // cambios de ritmo: colocándose, al trote; si la pelota es tuya y no llegas a tu paso, esprint: hacia delante a por
+      // una dejada o una pelota corta, más que nada (arrancada), y hacia atrás si la pelota se va al fondo. Se nota la
+      // diferencia de ritmo y se gasta más energía (EN). La arrancada tarda un poco en llegar y se apaga enseguida
+      { const im0 = Math.hypot(mx, mz), mio = this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you';
+        let ritmo = mio ? 1 : 0.9, dir = 0;
+        if (mio && im0 > 0.3) {
+          const c = this.interceptFor('you', spd * 1.4, 0.1);
+          if (c) {
+            const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz), cos = d > 0.5 ? (dx * mx + dz * mz) / (d * im0) : 0;
+            if (cos > 0.55 && d > 2.2 && d / spd + 0.1 > c.t * 0.8) { dir = dz < -1.5 ? -1 : dz > 1.5 ? 1 : 0; ritmo = dir < 0 ? 1.42 : dir > 0 ? 1.3 : 1.15; }
+          }
+        }
+        you.ritmo ??= 1; you.ritmo += (ritmo - you.ritmo) * (1 - Math.exp(-(ritmo > you.ritmo ? 5 : 9) * dt));
+        vx *= you.ritmo; vz *= you.ritmo; you.sprint = you.ritmo > 1.12 ? (dir || 1) : 0; }
       // ayuda: solo mientras mueves el joystick, y solo endereza un poco la carrera hacia donde llegará la pelota si ya
       // vas más o menos hacia allí. Sin tocar el joystick, el pelotari no se mueve. (Antes se acercaba solo a la pelota y,
       // con el botón mantenido, iba solo del todo: se veía moverse sin haberlo pedido)

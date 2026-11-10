@@ -1379,7 +1379,8 @@ export class PelotaMatch {
     // la pared tapaba la imagen con su cara de detrás, a la sombra, y la oscurecía)
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
-    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
+    { const sp = this.camDyn && !this.fijaOn && g.players.you?.sprint ? 1 : 0; this.sprintK = (this.sprintK || 0) + (sp - (this.sprintK || 0)) * Math.min(1, dt * (sp ? 4 : 6)); }   // (al esprintar, el plano se abre un poco: se nota la arrancada)
+    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.sprintK || 0) * 3.5;   // (por parejas, algo más abierta: cuatro pelotaris en la cancha)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   // la vista en primera persona: true si está puesta ahora (y entonces la cámara ya está colocada)
