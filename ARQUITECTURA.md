@@ -850,6 +850,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     en Ajustes («Efectos de imagen», `herrizherri-post`), con `?post=0`, y solo: si el juego va justo, es lo primero
     que quita `runtime.lighten()`, antes de aligerar el pueblo. Las escenas propias (fútbol, encierro, menús) no pasan
     por él. Los textos nuevos en euskera van en `data/eu-aventura.js`, que `i18n.js` carga con los demás.
+  - *Música del paseo en frases* (`audio/frases.js`, tanda 1): explorando un pueblo (ambiente `explore`) ya no suena
+    una canción de continuo. `Sound.musicTick` deja de pedir la canción y `Frases.tick` dice, cada 24 a 54 segundos,
+    una frase de seis a diez segundos con los timbres de la comarca (txistu y txalaparta en la atlántica, txistu y
+    violín en el Pirineo, acordeón y guitarra en la Zona Media, guitarra y acordeón en la Ribera); entre medias queda
+    el ambiente. De noche, más espaciada y más bajo. Las canciones grabadas (`MUSICA`) vuelven solas con lo que pasa:
+    persecución, leyenda, minijuego, partido, fiesta. Los instrumentos son sintetizados, a la espera de grabaciones;
+    las melodías son propias. `runtime.js` le dice a `Sound` si se está de paseo (`paseo`), la familia de la comarca
+    (`aire`) y cuánta noche hay.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.

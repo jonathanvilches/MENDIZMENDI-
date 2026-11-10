@@ -338,7 +338,7 @@ export class Runtime {
     // se ve y no se dibuja. Antes el pueblo entero se seguía dibujando detrás y, en los ordenadores modestos, los menús
     // iban a tirones
     if (this.frameNo % 10 === 0) this.checkCover();
-    if (this.frames % 15 === 0) { this.sound.setMood?.(this.moodOf(g)); const pm = g?.pelotaMatch; this.sound.nivelMusica?.(pm && (pm.pasaka || pm.enJuego?.()) ? 0.14 : 0.32); }
+    if (this.frames % 15 === 0) { this.sound.paseo = !!this.sky && !g?.altScene; this.sound.aire = this.sky?.aireId; this.sound.noche = this.sky?.night || 0; this.sound.setMood?.(this.moodOf(g)); const pm = g?.pelotaMatch; this.sound.nivelMusica?.(pm && (pm.pasaka || pm.enJuego?.()) ? 0.14 : 0.32); }
     try { if (alt) { input.enabled = !g.ui.busy; input.update(dt); g.altUpdate?.(dt); } else this.step(dt, g, input); } catch (e) { this.reportError(e); }
     // la luz propia de personajes y animales sigue a la del pueblo (de noche, tenue y azulada; junto a una farola, cálida);
     // las escenas propias (fútbol, pelota, encierro) tienen su luz y lo ven neutro

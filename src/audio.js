@@ -2,6 +2,7 @@
 import { riverInfo, PLACES } from './world/layout.js';
 import { clamp } from './util/math.js';
 import { Musica } from './audio/pistas.js';
+import { Frases } from './audio/frases.js';
 
 // --- la música por ambientes: solo las canciones grabadas (src/assets/sonidos, src/audio/pistas.js). La música
 // sintetizada de antes ya no está: sonaba en los ambientes que no tenían canción y se mezclaba con las nuevas ---
@@ -39,6 +40,8 @@ export class Sound {
     // las otras se bajan después: al cambiar de pantalla, la nueva entra sin esperar a que llegue)
     this.pistas = new Musica(ctx, this.musicBus); if (this.musicOn && MUSICA[this.mood]) this.pistas.arranca(MUSICA[this.mood]);
     this.pistas.prepara(new Set(Object.values(MUSICA)));
+    // la música del paseo: frases cortas y silencio (audio/frases.js); la familia de la comarca la pone runtime.js (aire)
+    this.frases = new Frases(ctx, this.master, this.verb);
   }
   impulse(sec) {
     const ctx = this.ctx, len = ctx.sampleRate * sec, b = ctx.createBuffer(2, len, ctx.sampleRate);
@@ -193,9 +196,13 @@ export class Sound {
   musicTick() {
     const ctx = this.ctx;
     this.quietAmbient();
-    if (!this.musicOn || document.hidden) { this.pistas?.pausa(true); return; }
+    if (!this.musicOn || document.hidden) { this.pistas?.pausa(true); this.frases?.tick(0.25, false); return; }
     this.pistas?.pausa(false);
-    this.pistas?.quiere(this.mood === 'none' ? null : MUSICA[this.mood] || MUSICA.explore);
+    // (de paseo por un pueblo no suena la canción de continuo: frases sueltas y el ambiente. La canción vuelve con lo que
+    // pasa: una persecución, una leyenda de noche, un minijuego, un partido, una fiesta)
+    const paseo = this.mood === 'explore' && !!this.paseo;
+    this.frases?.tick(0.25, paseo && (this.duckUntil || 0) <= ctx.currentTime, this.aire || 'media', this.musVol, this.noche || 0);
+    this.pistas?.quiere(this.mood === 'none' || paseo ? null : MUSICA[this.mood] || MUSICA.explore);
     if (this.mood !== this.musCur) {
       this.musCur = this.mood; const g = this.musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t);
       if (this.mood === 'none') g.setTargetAtTime(0, t, 0.35);
