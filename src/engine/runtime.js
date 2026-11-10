@@ -1,5 +1,5 @@
 // Motor: carga una localidad (Salazar o generada), la actualiza y la libera al salir
-import { applyCharFill, skyFill, lampFill } from './charLight.js';
+import { applyCharFill, skyFill, lampFill, contorno } from './charLight.js';
 import { Weather, pickWeather } from '../world/weather.js';
 import * as THREE from 'three';
 import { setMeshyTexMax, GlbRig, isGlbAvatar, loadGlbAvatar } from '../actors/glbChar.js';
@@ -180,6 +180,7 @@ export class Runtime {
     if (!isGlbAvatar(avatarId)) throw new Error('personaje desconocido: ' + avatarId);
     const rig = new GlbRig(await loadGlbAvatar(avatarId), avatarId);
     this.player = new Player(rig, scene);
+    if (q !== 'low') contorno(rig.obj);   // (la línea de dibujo del jugador: charLight.js)
     this.follow = new FollowCamera(this.camera);
     this.particles = new Particles(scene);
     this.waterfall = salazar ? new Waterfall(scene, LANDMARKS.waterfall, this.particles) : null;

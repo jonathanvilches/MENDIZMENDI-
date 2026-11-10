@@ -6,7 +6,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CAST_ALL } from '../data/cast.js';
-import { FILL_DECL, useFill } from '../engine/charLight.js';
+import { FILL_DECL, useFill, pintura } from '../engine/charLight.js';
 
 // ---------- Materiales compartidos ----------
 // Material de los personajes: sombreado suave de estilo consola (sin contorno), con la textura
@@ -14,7 +14,7 @@ import { FILL_DECL, useFill } from '../engine/charLight.js';
 // piel cálida y algo translúcida, tela aterciopelada, pelo con brillo, cuero y botones brillantes.
 function fabric(mat, k) {
   mat.onBeforeCompile = (sh) => {
-    useFill(sh);   // la luz propia sigue a la del cielo (de noche, tenue y azulada)
+    useFill(sh); pintura(sh);   // la luz propia sigue a la del cielo (de noche, tenue y azulada)
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTex;\nvarying vec3 vOP; varying float vTex;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position; vTex = aTex;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}

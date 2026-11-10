@@ -6,7 +6,7 @@
 // orla clara de la vaca pirenaica, cara negra de la latxa, calcetines negros del zorro…).
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
-import { FILL_DECL, useFill } from '../engine/charLight.js';
+import { FILL_DECL, useFill, pintura } from '../engine/charLight.js';
 import { clamp, smoothstep as sm } from '../util/math.js';
 import { vnoise3 } from '../util/noise.js';
 
@@ -18,7 +18,7 @@ const C = (h) => new THREE.Color(h);
 function beastMat(side = THREE.FrontSide) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8, metalness: 0, side });
   m.onBeforeCompile = (sh) => {
-    useFill(sh);
+    useFill(sh); pintura(sh);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTex;\nvarying vec3 vOP; varying float vTex;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvOP = position; vTex = aTex;');
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}

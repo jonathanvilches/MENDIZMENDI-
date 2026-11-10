@@ -10,11 +10,80 @@ const CHAR_FILL = { value: new THREE.Color(1, 1, 1) };
 const MATS = new Set(), WHITE = new THREE.Color(1, 1, 1), tmp = new THREE.Color();
 
 /** Material que se rellena con su color emisivo (personajes de Meshy, ojos pintados): k = cuánto a pleno día. */
-export function fillMaterial(m, k) { m.userData.fillK = k; MATS.add(m); m.emissive.copy(CHAR_FILL.value).multiplyScalar(k); }
+export function fillMaterial(m, k) { m.userData.fillK = k; MATS.add(m); m.emissive.copy(CHAR_FILL.value).multiplyScalar(k); pintado(m); }
+
+// ---------- Pintura: el sombreado de gouache de personajes y animales ----------
+// En el pueblo, la luz del sol sobre un personaje no se funde de claro a oscuro como en una foto: cae en cuatro tonos
+// (sombra, penumbra, media tinta y luz) con el paso suave, como pintado a pincel, y el perfil del lado del sol se
+// enciende con su color (luz de borde: cálida al atardecer, plateada con la luna). La sombra no es negra: la colorea la
+// luz del cielo, que no se toca. Fuera del pueblo (menús, retratos, fútbol, pelota, minijuegos) vale 0 y todo se ve
+// como siempre: cada escena tiene sus luces.
+const PINTURA = { value: 0 };
+const PINTA_DECL = '\nuniform float uPintura;';
+const PINTA = `
+#if NUM_DIR_LIGHTS > 0
+  if (uPintura > 0.0) {
+    float pNL = dot(geometryNormal, directionalLights[0].direction), pS = max(pNL, 0.0);
+    float pQ = 0.5 * smoothstep(0.0, 0.14, pS) + 0.3 * smoothstep(0.4, 0.54, pS) + 0.2 * smoothstep(0.78, 0.9, pS);
+    reflectedLight.directDiffuse *= mix(1.0, pQ / max(pS, 0.06), uPintura);
+    float pF = 1.0 - saturate(dot(geometryNormal, geometryViewDir));
+    reflectedLight.directDiffuse += directionalLights[0].color * diffuseColor.rgb * (pF * pF * pF * smoothstep(-0.25, 0.5, pNL) * 0.16 * uPintura);
+  }
+#endif`;
+/** Añade la pintura a un sombreador (en onBeforeCompile, después de lo demás). Vale para los materiales con luces
+ *  (estándar, Lambert, Phong); en otro, no hace nada. */
+export function pintura(sh) {
+  if (sh.uniforms.uPintura || !sh.fragmentShader.includes('#include <lights_fragment_end>')) return;
+  sh.uniforms.uPintura = PINTURA;
+  sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>' + PINTA_DECL).replace('#include <lights_fragment_end>', '#include <lights_fragment_end>' + PINTA);
+}
+/** Un material sin sombreador propio (los personajes de Meshy, sus trajes y su pelo): se le pone la pintura. */
+function pintado(m) {
+  if (m.userData.pintado || !m.isMeshStandardMaterial) return; m.userData.pintado = true;
+  const antes = m.onBeforeCompile;
+  m.onBeforeCompile = function (sh, r) { antes?.call(this, sh, r); pintura(sh); };
+  const clave = m.customProgramCacheKey?.bind(m); m.customProgramCacheKey = () => (clave ? clave() : '') + '|pintura';
+}
+
+// ---------- Contorno: la línea fina que recorta al personaje del jugador ----------
+// Una segunda piel del mismo modelo, un poco más gorda y vuelta del revés (solo se ven sus caras de atrás), de color
+// tinta: asoma por el borde como una línea de dibujo. Sigue al esqueleto, así que se mueve con él. Cuesta dibujar el
+// personaje dos veces: solo para el jugador y solo en calidad media y alta.
+const TINTA = new THREE.Color('#2b1d1a');
+let CONT_MAT = null;
+function contMat() {
+  if (CONT_MAT) return CONT_MAT;
+  CONT_MAT = new THREE.MeshBasicMaterial({ color: TINTA, side: THREE.BackSide });
+  CONT_MAT.onBeforeCompile = (sh) => { sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aGrosor;').replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += normalize(normal) * aGrosor;'); };
+  return CONT_MAT;
+}
+/** Pone contorno a las mallas de un personaje (grosor en metros del mundo). Devuelve las mallas añadidas. */
+export function contorno(root, grosor = 0.008) {
+  const out = []; root.updateMatrixWorld(true);
+  // cuánto mide una unidad de la geometría en el mundo: con esqueleto, la escala de la malla no lo dice (los huesos
+  // llevan la suya), así que se compara lo que mide el personaje de verdad con lo que mide su malla mayor sin colocar
+  let rGeo = 0; root.traverse(o => { if (o.isMesh && o.geometry?.attributes?.position) { if (!o.geometry.boundingSphere) o.geometry.computeBoundingSphere(); rGeo = Math.max(rGeo, o.geometry.boundingSphere.radius); } });
+  const caja = new THREE.Box3().setFromObject(root), rMundo = caja.isEmpty() ? 0 : caja.getSize(new THREE.Vector3()).length() / 2;
+  if (!(rGeo > 0) || !(rMundo > 0)) return [];
+  const g = grosor * rGeo / rMundo;
+  root.traverse(o => {
+    // (las piezas pequeñas pegadas al cuerpo, como los ojos pintados, no llevan línea: quedaría un cerco)
+    if (!o.isMesh || o.userData.esContorno || o.userData.contorno || !o.geometry?.attributes?.normal || o.material?.transparent || o.geometry.attributes.position.count < 400) return;
+    // (el grosor va en la geometría, que cada modelo tiene su escala; una geometría propia que comparte los datos)
+    const geo = new THREE.BufferGeometry(); geo.index = o.geometry.index; for (const k of ['position', 'normal', 'skinIndex', 'skinWeight']) if (o.geometry.attributes[k]) geo.setAttribute(k, o.geometry.attributes[k]);
+    geo.setAttribute('aGrosor', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count).fill(g), 1)); geo.boundingSphere = o.geometry.boundingSphere; geo.boundingBox = o.geometry.boundingBox;
+    const c = o.isSkinnedMesh ? new THREE.SkinnedMesh(geo, contMat()) : new THREE.Mesh(geo, contMat());
+    if (o.isSkinnedMesh) c.bind(o.skeleton, o.bindMatrix);
+    c.frustumCulled = o.frustumCulled; c.userData.esContorno = true; c.name = 'contorno';   // (hija de su malla: va con ella y se esconde con ella)
+    o.userData.contorno = c; out.push([o, c]);
+  });
+  for (const [o, c] of out) o.add(c);
+  return out.map(x => x[1]);
+}
 
 /** Pone el relleno antes de dibujar el pueblo (con null, el neutro de siempre). */
 export function applyCharFill(c) {
-  CHAR_FILL.value.copy(c || WHITE);
+  CHAR_FILL.value.copy(c || WHITE); PINTURA.value = c ? 1 : 0;
   for (const m of MATS) m.emissive.copy(CHAR_FILL.value).multiplyScalar(m.userData.fillK);
 }
 

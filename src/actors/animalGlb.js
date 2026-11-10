@@ -8,7 +8,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries, mergeVertices, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // los modelos van comprimidos
 import { dogPart, dogShape, dogFur, dogGear, dogDress } from './dogDetail.js';
-import { FILL_DECL, useFill } from '../engine/charLight.js';
+import { FILL_DECL, useFill, pintura } from '../engine/charLight.js';
 
 const URLS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', { eager: true, query: '?url', import: 'default' }))) URLS[p.split('/').pop().replace('.glb', '')] = u;
@@ -228,7 +228,7 @@ export function woolMaterial(geo, cut = null) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
   m.onBeforeCompile = (sh) => {
     if (cut) Object.assign(sh.uniforms, cut.uniforms);
-    useFill(sh);
+    useFill(sh); pintura(sh);
     const cutDecl = cut ? `\nuniform vec4 uCut[${MAXCUT}]; uniform int uNCut; uniform float uThick; attribute float shorn; attribute vec3 smoothN; varying float vCut; varying vec3 vBP;
 float cutAt(vec3 p){ float k = 0.0; for (int i = 0; i < ${MAXCUT}; i++) { if (i >= uNCut) break; vec4 c = uCut[i]; k = max(k, 1.0 - smoothstep(c.w * 0.62, c.w, distance(p, c.xyz))); } return k; }` : '';
     const cutVert = cut ? `\nvBP = position; vCut = max(shorn, cutAt(position)) * wool; transformed -= normalize(smoothN) * uThick * vCut;` : '';
@@ -284,7 +284,7 @@ function hideMaterial(geo, S) {
   };
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
   m.onBeforeCompile = (sh) => {
-    useFill(sh); Object.assign(sh.uniforms, U);
+    useFill(sh); pintura(sh); Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec4 uCoatA; uniform vec3 uCoatAx;\nvarying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>\nvOP = position * uCoatA.x; vOY = (position.y - uCoatA.y) * uCoatA.x; vBelly = -objectNormal.y; vAl = (dot(position, uCoatAx) - uCoatA.z) * uCoatA.w; vAN = dot(objectNormal, uCoatAx);`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>${FILL_DECL}

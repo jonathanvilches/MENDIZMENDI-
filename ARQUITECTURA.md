@@ -816,6 +816,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     15 grados: antes el pueblo se quedaba casi negro bajo un cielo rosa. En el relevo del sol a la luna la luz con
     dirección se apaga del todo y vuelve (`crep`): antes saltaba de golpe de un lado al otro. `sky.dorada` y
     `sky.crep` los leen el postprocesado y quien quiera saber en qué momento de la tarde se está.
+  - *Pintura y contorno de los personajes* (`engine/charLight.js`, tanda 1): en el pueblo, la luz del sol sobre
+    personajes y animales cae en cuatro tonos con el paso suave, como pintada a pincel, y el perfil del lado del sol se
+    enciende con su color (`pintura(sh)`, que se añade al final del sombreador de cada material con luces; los de
+    Meshy la reciben al pedir su relleno, `fillMaterial`). Fuera del pueblo vale 0 (`applyCharFill(null)`): menús,
+    retratos y escenas propias se ven como siempre. `contorno(raíz)` pone al jugador una línea de dibujo: una segunda
+    piel vuelta del revés, hija de cada malla y con su esqueleto; solo en calidad media y alta (dibuja al jugador dos
+    veces: unos 31 mil triángulos y una llamada más). El grosor se mide comparando lo que mide el personaje en el
+    mundo con lo que mide su malla: con esqueleto, la escala de la malla no lo dice.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.
