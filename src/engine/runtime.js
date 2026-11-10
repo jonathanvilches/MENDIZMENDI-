@@ -34,6 +34,8 @@ import { Particles, Waterfall, Smoke, NightLights, Beacon } from '../fx.js';
 const VACIA = new THREE.Scene();   // (para el dibujo vacío al soltar un pueblo: unload)
 import { compilarAsync } from '../util/compilar.js';
 import { vacio } from './vacio.js';
+import { Post } from './post.js';
+import { H } from '../world/heightfield.js';
 import { VIENTO, sopla } from '../world/viento.js';
 
 const frame = () => new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
@@ -94,6 +96,8 @@ export class Runtime {
     // solo en calidad baja (móviles) un fotograma sí y otro no
     this.renderer.shadowMap.autoUpdate = true;
     this.renderer.toneMapping = THREE.CustomToneMapping; this.renderer.toneMappingExposure = 1.05;   // (el tono de cine en pastel: sky.js)
+    // el pase de postprocesado (niebla por capas, sombras de nubes, resplandor, color de la hora): solo en media y alta
+    this.post = new Post(this.renderer, quality);
     // en vertical se abre el campo de visión para no ver el mundo «por un tubo»
     const fovFor = (a) => a < 1 ? 55 + (1 - a) * 30 : 55;
     this.camera = new THREE.PerspectiveCamera(fovFor(innerWidth / innerHeight), innerWidth / innerHeight, 0.15, 7000);   // (hasta las sierras lejanas, a 6,2 km: world/sierras.js)
@@ -156,6 +160,7 @@ export class Runtime {
     const solo = !salazar && !!opt.soloFronton; this.soloFronton = solo;
     this.terrain = solo && !opt.conSuelo ? vacio.terrain() : new Terrain(scene, q);
     this.sky = new SkySystem(scene, this.renderer, q, familiaAire(def?.comarca));
+    { let m = Infinity; for (let i = 0; i < H.length; i += 7) if (H[i] < m) m = H[i]; this.fondoValle = isFinite(m) ? m : 0; }   // (para la bruma del valle: post.js)
     this.weather?.dispose(); this.weather = new Weather(scene, solo ? 'clear' : pickWeather(def), q);
     this.water = solo ? vacio.water() : new Water(scene, q);
     onProgress(0.5, `Construyendo ${def.name}…`); await frame();
@@ -347,7 +352,12 @@ export class Runtime {
       // (lo escondido no se recoloca al dibujar: los vecinos lejanos, con todos sus huesos, eran miles de cuentas por imagen)
       const S = alt || this.scene; for (const o of S.children) o.matrixWorldAutoUpdate = o.visible;
       this.cronoGpu(true);
-      try { this.renderer.render(S, (alt && g.altCamera) || this.camera); } catch (e) { this.reportError(e); }
+      try {
+        // (el pueblo, con el pase de postprocesado si lo hay; las escenas propias, como siempre)
+        let hecho = false;
+        if (!alt && this.post?.on && this.sky) { this.post.ajusta(this.sky, this.elapsed, { fondo: this.fondoValle, cubierto: this.cubierto || 0, interior: !!this.sky.indoor || this.sky.floodK() > 0.5 }); hecho = this.post.render(S, this.camera); }
+        if (!hecho) this.renderer.render(S, (alt && g.altCamera) || this.camera);
+      } catch (e) { this.reportError(e); }
       this.cronoGpu(false);
       if (!alt) applyCharFill(null);
     }
@@ -398,6 +408,8 @@ export class Runtime {
    *  Sin cambiar el tipo de sombra ni las luces: eso obliga a recompilar todos los sombreadores y daría un parón.
    *  main.js lo apunta (onLighten) para que la próxima vez arranque ya en calidad media. */
   lighten(fps = 0) {
+    // (lo primero que se quita si el juego va justo: el postprocesado; si aun así no llega, se aligera el pueblo)
+    if (this.post?.on) { this.post.pon(false); this.postAuto = true; this.lowFps = this.highFps = 0; this.ratioHold = this.elapsed + 4; console.info('[fluidez] sin postprocesado', Math.round(fps), 'fps'); return; }
     this.lite++;
     this.applyLite();
     this.lowFps = this.highFps = 0; this.ratioHold = this.elapsed + 4;

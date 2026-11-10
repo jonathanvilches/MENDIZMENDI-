@@ -10,12 +10,13 @@ import { frases } from './util/text.js';
 let EU_EXACT = {}, EU_RX = [], euReady = null;
 /** Carga los diccionarios de euskera y los junta (una sola vez). */
 export function loadEU() {
-  return euReady ||= Promise.all([import('./data/eu.js'), import('./data/eu-mas.js'), import('./data/eu-armas.js'), import('./data/eu-oficios.js'), import('./data/hitzak.js')]).then(([E, M, A, O, H]) => {
+  return euReady ||= Promise.all([import('./data/eu.js'), import('./data/eu-mas.js'), import('./data/eu-armas.js'), import('./data/eu-oficios.js'), import('./data/hitzak.js'), import('./data/eu-aventura.js')]).then(([E, M, A, O, H, V]) => {
     EU_EXACT = E.EU_EXACT; EU_RX = E.EU_RX;
     // la segunda parte de la traducción (menú completo, misiones, flora y fauna): sus frases y, por delante, sus plantillas
     Object.assign(EU_EXACT, M.EU_MAS, EU_CUENTOS); for (const k in EU_LAMINAS) EU_EXACT[k] ??= EU_LAMINAS[k];   // (las láminas no pisan una traducción que ya hubiera)
     for (const k in A.EU_ARMAS) EU_EXACT[k] ??= A.EU_ARMAS[k];         // (los escudos, los saberes y las edades, igual)
     for (const k in O.EU_OFICIOS) EU_EXACT[k] ??= O.EU_OFICIOS[k];     // (los oficios de antes y las fichas de las misiones, igual)
+    for (const k in V.EU_AVENTURA) EU_EXACT[k] ??= V.EU_AVENTURA[k];   // (la aventura: luz, exploración y movimiento, igual)
     EU_RX.unshift(...H.EU_RX_HITZAK, ...M.EU_RX_MAS, ...cuentosRx((x) => EU_EXACT[x] ?? x)); EU_RX.push(...A.EU_RX_ARMAS, ...O.EU_RX_OFICIOS, ...M.EU_RX_LISTA);
     M.setTr((x) => tr(x)); cache.clear();
   });

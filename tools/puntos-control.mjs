@@ -4,6 +4,7 @@
 // Con cada foto apunta lo que pinta (triángulos y llamadas de dibujo) y, por pueblo, lo que tarda en cargar.
 //   node tools/puntos-control.mjs <carpeta> <etiqueta> [pueblos,separados,por,comas] [calidad: low|mid|high] [condiciones]
 //   BASE: por defecto la web compilada, http://127.0.0.1:8099/ (con vite, http://127.0.0.1:5173/)
+//   EXTRA: lo que se añade a la dirección, p. ej. EXTRA='&post=0' para verlo sin el postprocesado
 // Deja <carpeta>/<etiqueta>-<pueblo>-<condición>-<vista>.jpg y <carpeta>/<etiqueta>-<calidad>.json con las medidas.
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -22,7 +23,7 @@ for (const town of lista.split(',')) {
     await p.addInitScript(() => { localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'pastor', seen: { heroBenat: true, dog: true }, dogOn: false })); });
     const t0 = Date.now();
     try {
-      await p.goto(`${BASE}?town=${town}&q=${q}&weather=${tiempo}&skipintro=1&t=12`, { timeout: 300000 });
+      await p.goto(`${BASE}?town=${town}&q=${q}&weather=${tiempo}&skipintro=1&t=12${process.env.EXTRA || ''}`, { timeout: 300000 });
       await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 900000 });
     } catch (e) { M.errores.push('no cargó: ' + e.message.slice(0, 80)); await p.close(); continue; }
     if (tiempo === 'clear') M.cargaS = +((Date.now() - t0) / 1000).toFixed(1);

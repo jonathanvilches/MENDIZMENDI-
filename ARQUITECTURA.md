@@ -839,6 +839,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     el azul del cenit si el reflejo sube: `uZen`), la profundidad se lee por color en tres pasos (hondo, verde claro
     y casi turquesa donde se hace pie) y a la orilla llegan líneas finas de espuma, una detrás de otra. Todo en el
     sombreador que ya había, sin lecturas de textura ni geometría nuevas.
+  - *Postprocesado en un único pase* (`engine/post.js`, tanda 1; solo calidad media y alta): el pueblo se dibuja en
+    una imagen aparte que guarda ya el color final (mismo tono de cine y mismos colores que en pantalla: three.js solo
+    lo hace con las imágenes marcadas `isXRRenderTarget`, y su formato se fija a mano, `RGBA8`, para que el volcado
+    del suavizado no falle) y un rectángulo la lleva a la pantalla añadiendo de una vez: la bruma del valle (con la
+    profundidad de cada píxel se sabe su altura: densa abajo y más al amanecer, al caer la tarde y con lluvia), las
+    sombras de nubes sobre suelo y casas con el mismo viento que las del cielo, el resplandor de lo que da luz (de
+    noche se nota, de día casi nada), el color de la hora y un viñeteado suave. El suavizado de bordes sale de las
+    muestras de la propia imagen (2 en media, 4 en alta). Cuesta una llamada de dibujo más y un rectángulo. Se apaga
+    en Ajustes («Efectos de imagen», `herrizherri-post`), con `?post=0`, y solo: si el juego va justo, es lo primero
+    que quita `runtime.lighten()`, antes de aligerar el pueblo. Las escenas propias (fútbol, encierro, menús) no pasan
+    por él. Los textos nuevos en euskera van en `data/eu-aventura.js`, que `i18n.js` carga con los demás.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.
