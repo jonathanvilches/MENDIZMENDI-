@@ -145,6 +145,102 @@ function lejos(g, cell, corte = -1) {
   return h;
 }
 
+// retratos para el público de en medio y del fondo de la grada (como en los juegos de deportes): cada figura, en cada pose,
+// se dibuja una sola vez con su textura de verdad, vista desde VISTAS ángulos (de un lado al otro, por delante), en una
+// textura; en la grada cada espectador es un rectángulo que mira a la cámara con el retrato del ángulo desde el que se le
+// ve. Dos triángulos por espectador. Las figuras simplificadas no podían llevar la textura (la de Meshy va troceada en
+// miles de piezas y, al quitar triángulos, se mezclaban) y salían con manchas de color, como a medio cargar
+const VISTAS = 7, PASO = Math.PI / 6;   // (de -90° a 90°, de 30 en 30)
+const retratosHechos = new Map();
+function retratos(G, key, ch) {
+  const R3 = typeof window !== 'undefined' && window.__renderer; if (!R3) return null;
+  if (retratosHechos.has(key)) return retratosHechos.get(key);
+  const pr = (async () => {
+    // (el mismo rectángulo para todas: lo que ocupa la más ancha y la más alta, con los brazos en alto)
+    let R = 0, H = 0;
+    for (const poses of G) for (const g of poses) { const P = g.attributes.position.array; for (let i = 0; i < P.length; i += 3) { R = Math.max(R, Math.hypot(P[i], P[i + 2])); H = Math.max(H, P[i + 1]); } }
+    R += 0.03; H += 0.03;
+    const cw = Math.max(8, Math.round(ch * 2 * R / H)), filas = G.length * 2;
+    const atlas = new THREE.WebGLRenderTarget(cw * VISTAS, ch * filas, { colorSpace: THREE.SRGBColorSpace, depthBuffer: false, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter, magFilter: THREE.LinearFilter });
+    // (cada retrato, primero en una pequeña con suavizado de bordes, y de ahí a su sitio)
+    const celda = new THREE.WebGLRenderTarget(cw, ch, { colorSpace: THREE.SRGBColorSpace, samples: 4 });
+    // (su color, con un poco de volumen: más claro de frente y arriba, algo más oscuro en los costados; la luz del sitio
+    // la pone luego el material del retrato, igual que a los de cerca)
+    const pinta = (map) => new THREE.ShaderMaterial({ vertexColors: true, blending: THREE.NoBlending, uniforms: { map: { value: map }, conMapa: { value: map ? 1 : 0 } },
+      vertexShader: 'varying vec2 vUv; varying vec3 vN; varying vec3 vC; void main() { vUv = uv; vN = normalize(normalMatrix * normal); vC = color; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform sampler2D map; uniform float conMapa; varying vec2 vUv; varying vec3 vN; varying vec3 vC; void main() { vec3 a = conMapa > 0.5 ? texture2D(map, vUv).rgb * vC : vC; float s = 0.78 + 0.3 * max(dot(normalize(vN), normalize(vec3(0.25, 0.55, 1.0))), 0.0); gl_FragColor = vec4(a * s, 1.0); }' });
+    const escena = new THREE.Scene(), cam = new THREE.OrthographicCamera(-R, R, H / 2, -H / 2, 0.1, 60);
+    const copia = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshBasicMaterial({ map: celda.texture, transparent: true, blending: THREE.NoBlending, depthTest: false, depthWrite: false }));
+    const escenaCopia = new THREE.Scene(), camCopia = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1); escenaCopia.add(copia);
+    // (una figura y pose por imagen, y entre una y otra se deja dibujar al juego: en el iPhone, subir todas las texturas
+    // de golpe hacía perder la imagen)
+    const paso = (fn) => { const antes = { rt: R3.getRenderTarget(), auto: R3.autoClear, alpha: R3.getClearAlpha(), color: R3.getClearColor(new THREE.Color()) };
+      try { R3.setClearColor(0x000000, 0); fn(); } finally { atlas.scissorTest = false; R3.setRenderTarget(antes.rt); R3.autoClear = antes.auto; R3.setClearColor(antes.color, antes.alpha); } };
+    const espera = () => new Promise(r => setTimeout(r, 30));
+    try {
+      paso(() => { R3.setRenderTarget(atlas); R3.clear(); });
+      for (let f = 0; f < G.length; f++) for (let p = 0; p < G[f].length; p++) {
+        await espera();
+        const g = G[f][p], mt = pinta(g.userData.map || null), mc = pinta(null);
+        // (el color de los vértices de la parte con textura viene de la textura: ahí solo cuenta la textura)
+        if (g.userData.map) mt.vertexShader = mt.vertexShader.replace('vC = color;', 'vC = vec3(1.0);');
+        const malla = new THREE.Mesh(g, g.groups.length ? [mt, mc] : mt); malla.frustumCulled = false; escena.add(malla);
+        try {
+          paso(() => { for (let j = 0; j < VISTAS; j++) {
+            const th = (j - (VISTAS - 1) / 2) * PASO;
+            cam.position.set(Math.sin(th) * 20, H / 2, Math.cos(th) * 20); cam.lookAt(0, H / 2, 0); cam.updateMatrixWorld();
+            R3.autoClear = true; R3.setRenderTarget(celda); R3.render(escena, cam);
+            R3.autoClear = false; atlas.viewport.set(j * cw, (f * 2 + p) * ch, cw, ch); atlas.scissor.copy(atlas.viewport); atlas.scissorTest = true;
+            R3.setRenderTarget(atlas); R3.render(escenaCopia, camCopia);
+          } });
+        } finally { escena.remove(malla); mt.dispose(); mc.dispose(); }
+      }
+    } finally {
+      atlas.viewport.set(0, 0, atlas.width, atlas.height); atlas.scissor.copy(atlas.viewport);
+      celda.dispose(); copia.geometry.dispose(); copia.material.dispose();
+    }
+    // (se guarda para los partidos siguientes: al salir del pueblo no se borra con lo demás, runtime.unload)
+    atlas.texture.userData.shared = true;
+    return { tex: atlas.texture, R, H, filas, rt: atlas };
+  })();
+  // (si falla, se vuelve a intentar en el partido siguiente)
+  retratosHechos.set(key, pr); pr.catch(() => retratosHechos.delete(key));
+  return pr;
+}
+// el material del retrato: el de los de cerca (su textura, su luz propia, la luz del sitio), en un rectángulo que gira para
+// mirar a la cámara, con el retrato del ángulo desde el que se ve al espectador. Uno por figura y pose (la fila)
+function retratoMat(A, fila) {
+  const m = new THREE.MeshStandardMaterial({ map: A.tex, roughness: 0.82, emissive: 0xffffff, emissiveMap: A.tex, emissiveIntensity: 0.38, alphaTest: 0.4, side: THREE.DoubleSide });
+  m.onBeforeCompile = (sh) => {
+    sh.uniforms.uFila = { value: fila }; sh.uniforms.uFilas = { value: A.filas };
+    sh.vertexShader = 'uniform float uFila, uFilas;\n' + sh.vertexShader
+      .replace('#include <uv_vertex>', `#include <uv_vertex>
+  vec3 bbP = (modelMatrix * vec4(instanceMatrix[3].xyz, 1.0)).xyz;
+  vec3 bbF = normalize(mat3(modelMatrix) * instanceMatrix[2].xyz), bbX = normalize(mat3(modelMatrix) * instanceMatrix[0].xyz);
+  float bbS = length(instanceMatrix[0].xyz) * length(modelMatrix[0].xyz);
+  vec3 bbD = cameraPosition - bbP; bbD.y = 0.0; bbD = length(bbD) > 1e-4 ? normalize(bbD) : bbF;
+  float bbT = atan(dot(bbD, bbX), dot(bbD, bbF));
+  float bbJ = clamp(floor(bbT / ${PASO.toFixed(6)} + ${((VISTAS - 1) / 2).toFixed(1)} + 0.5), 0.0, ${(VISTAS - 1).toFixed(1)});
+  vec2 bbUv = vec2((uv.x + bbJ) / ${VISTAS.toFixed(1)}, (uv.y + uFila) / uFilas);
+  vec3 bbW = bbP + vec3(bbD.z, 0.0, -bbD.x) * position.x * bbS + vec3(0.0, position.y * bbS, 0.0);
+  #ifdef USE_MAP
+  vMapUv = bbUv;
+  #endif
+  #ifdef USE_EMISSIVEMAP
+  vEmissiveMapUv = bbUv;
+  #endif`)
+      .replace('#include <defaultnormal_vertex>', 'vec3 transformedNormal = normalize(mat3(viewMatrix) * bbD);')
+      .replace('#include <project_vertex>', 'vec4 mvPosition = viewMatrix * vec4(bbW, 1.0);\n  gl_Position = projectionMatrix * mvPosition;')
+      .replace('#include <worldpos_vertex>', 'vec4 worldPosition = vec4(bbW, 1.0);');
+    // (los bordes del retrato se mezclan con el fondo transparente al alejarse: se recupera su color)
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <map_fragment>', '#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D(map, vMapUv); sampledDiffuseColor.rgb /= max(sampledDiffuseColor.a, 0.004); diffuseColor *= sampledDiffuseColor;\n#endif')
+      .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n  vec4 emissiveColor = texture2D(emissiveMap, vEmissiveMapUv); totalEmissiveRadiance *= emissiveColor.rgb / max(emissiveColor.a, 0.004);\n#endif');
+  };
+  m.customProgramCacheKey = () => 'crowd3d-retrato';
+  return m;
+}
+
 // las figuras de un conjunto, cada una quieta (pose 0) y celebrando (pose 1), como en las láminas. Sentadas, con
 // arriba = true, celebran sin levantarse, con los brazos en alto (en las gradas de escalones, de pie se metían en el de detrás)
 function bakeSet(set, sit, arriba = false) {
@@ -208,11 +304,12 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   if (all3d) sprites.visible = false;
   const TT = sprites.geometry.attributes.aTint.array, tc = new THREE.Color();   // (de cerca, el mismo tono que en la lámina)
   const A = sprites.geometry.attributes.aAnim.array, C = sprites.geometry.attributes.aCell.array, IM = sprites.instanceMatrix, orig = IM.array.slice();
-  // (con todos en 3D, tres niveles según lo cerca que estén de la cámara: los KC más cercanos, con la figura entera; los KM
-  // siguientes, con la de lejos fina; y el resto, al fondo de la grada, con la de lejos gruesa. En un Labrit lleno, unos
-  // 2.800 espectadores: con todos enteros eran 2,3 millones de triángulos)
+  // (con todos en 3D, según lo cerca que estén de la cámara: los KC más cercanos, con la figura entera; el resto, con su
+  // retrato (retratos). Si no se pueden dibujar los retratos, como antes: los KM siguientes, con la de lejos fina, y el
+  // resto, al fondo de la grada, con la de lejos gruesa. En un Labrit lleno, unos 2.800 espectadores: con todos enteros
+  // eran 2,3 millones de triángulos)
   // (kc: cuántos con la figura entera, si quien llama quiere menos: en el partido de pelota del móvil)
-  const KC = all3d ? Math.max(1, kc ?? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100)) : K, KM = Q === 'low' ? 120 : Q === 'mid' ? 300 : 600;
+  const KC = all3d ? Math.max(1, kc ?? (Q === 'low' ? 16 : Q === 'mid' ? 40 : 100)) : K; let KM = Q === 'low' ? 120 : Q === 'mid' ? 300 : 600;
   // (la de lejos fina, con celdas de 6,5 cm en el móvil: con 8 se veían bultos de colores sin brazos ni cara, «sin
   // rellenar», en las filas de en medio de la grada del partido)
   const C1 = Q === 'low' ? 0.065 : Q === 'mid' ? 0.06 : 0.05, C2 = Q === 'low' ? 0.1 : Q === 'mid' ? 0.09 : 0.08;   // (más gruesa, las figuras se rompen)
@@ -226,12 +323,20 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   for (let i = 0; i < n; i++) { dly[i] = 0.08 + Math.random() * 0.7; dur[i] = 0.75 + Math.random() * 0.5; rnd[i] = Math.random(); }
   let cheerAt = null, cheerPend = false, cheerLado = null, cheerLen = 1.6, camis = [], quietoAntes = false;
   const inst = (g, k, tex = all3d) => { const im = new THREE.InstancedMesh(g, !tex ? MAT : g.userData.pelo ? [texMat(g.userData.map), MAT] : texMat(g.userData.map), k); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; };
-  let mid = null, far = null, capas = [];
+  let mid = null, far = null, capas = [], retrato = false;
   // (listo: cuando ya están las figuras en 3D; el partido espera a subir sus texturas antes de enseñar al público)
-  group.listo = bakeSet(set, sit, arriba).then(G => {
+  group.listo = bakeSet(set, sit, arriba).then(async G => {
     meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
-    if (K > KC) mid = G.map(poses => poses.map(g => inst(g.userData.lejos1 ||= lejos(g, C1), Math.min(K - KC, KM), false)));
-    if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), K - KC - KM, false)));
+    // (todos en 3D: los de en medio y los del fondo, con su retrato; si no se puede, como antes, con la figura simplificada)
+    let A = null; if (all3d && K > KC) try { A = await retratos(G, set + (sit ? ':sit' : '') + (arriba ? ':arriba' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224); } catch (e) { console.warn('retratos', e); }
+    if (A) {
+      const geo = new THREE.PlaneGeometry(2 * A.R, A.H); geo.translate(0, A.H / 2, 0);
+      mid = G.map((poses, f) => poses.map((g, p) => { const im = new THREE.InstancedMesh(geo, retratoMat(A, f * 2 + p), K - KC); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; }));
+      KM = K - KC; retrato = true;
+    } else {
+      if (K > KC) mid = G.map(poses => poses.map(g => inst(g.userData.lejos1 ||= lejos(g, C1), Math.min(K - KC, KM), false)));
+      if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), K - KC - KM, false)));
+    }
     capas = [meshes, mid, far].filter(Boolean); camis = G.map(p => p.camiseta);
   }).catch(err => console.warn('público 3D', err));
   const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.2);
@@ -296,6 +401,6 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   };
   // (lado: la camiseta del que gana el tanto, 'azul' o 'rojo'; len: cuánto dura, en segundos)
   group.cheer = (on, lado = null, len = 1.6) => { cheer = on ? 1 : 0; if (on) { cheerPend = true; cheerLado = lado; cheerLen = len; } sprites.cheer(on); props?.cheer(on); };
-  group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const c of capas) for (const fig of c) for (const im of fig) im.dispose(); };
+  group.dispose = () => { sprites.geometry.dispose(); sprites.material.dispose(); props?.dispose(); for (const c of capas) for (const fig of c) for (const im of fig) { im.dispose(); if (c === mid && retrato) { im.material.dispose(); im.geometry.dispose(); } } };
   return group;
 }

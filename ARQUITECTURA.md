@@ -358,9 +358,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   todos los partidos (`game/fronton.js`): la del pueblo siempre; el cubierto, 300 en el móvil y lleno en los demás; el
   Labrit, 400, 900 o lleno; la calle, 250, 400 o llena; 160 en el móvil más justo. Con 300 en el cubierto del móvil, el
   partido ronda los 670.000 triángulos (el tope es 760.000). Los 24 más cercanos, con la figura entera y su textura (8
-  en el más justo); los siguientes, con la figura de lejos fina en celdas de 6,5 cm. Con 14 enteros y celdas de 8 cm,
-  las filas de en medio eran bultos de colores sin brazos ni cara, «sin rellenar» (noviembre de 2026). Antes eran vecinos de
-  fiesta, de pastor y de calle que celebraban sin levantarse.
+  en el más justo); todos los demás, con su retrato (`retratos`, `retratoMat`): cada figura, en cada pose, se dibuja una
+  vez con su textura vista desde siete ángulos (de -90° a 90°, de 30 en 30) en una textura propia, y en la grada cada
+  espectador es un rectángulo que mira a la cámara con el retrato del ángulo desde el que se le ve, con la misma luz que
+  los de cerca. Dos triángulos por espectador: el Labrit lleno del móvil pasa de 750.000 triángulos a 515.000. Se dibujan
+  de figura en figura, una por imagen (en el iPhone, subir todas las texturas de golpe hacía perder la imagen), y la
+  textura de los retratos se guarda para los partidos siguientes (`userData.shared`). Antes, los de en medio eran la figura
+  simplificada con el color de cada parte en los vértices: sin ojos ni boca, como a medio cargar (noviembre de 2026). Las
+  figuras de Meshy llevan la textura troceada en miles de piezas, así que al quitarles triángulos no se puede llevar la
+  textura (ni juntando vértices ni con meshoptimizer: se quedaban casi igual). Si no hay tarjeta para dibujar los
+  retratos, siguen las figuras simplificadas (`lejos`). Antes eran vecinos de fiesta, de pastor y de calle que celebraban
+  sin levantarse.
 - **Cambios de ritmo al correr** (`pelota/game.js`, `movePlayers`, `ritmo` y `sprint` de cada pelotari; `driveAI`):
   colocándose, al trote; si la pelota es tuya y a tu paso no llegas, esprint automático, con arrancada: hacia delante a
   por una dejada o una corta (×1,42) y hacia atrás si se va al fondo (×1,3). El rival también arranca a por las cortas y
