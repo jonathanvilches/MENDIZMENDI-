@@ -334,7 +334,16 @@ export const TEXT = {
     factsTitle: '¿Sabías que…?',
     // el resumen del partido, en la pantalla del final
     est: { title: 'Estadísticas', pelotazos: 'Pelotazos', hechos: 'Tantos hechos', fallos: 'Fallos', saque: 'De saque', dejada: 'De dejada', aire: 'De aire', volea: 'De volea', rebote: 'De rebote',
-      largo: (n) => `El tanto más largo: ${n} ${n === 1 ? 'pelotazo' : 'pelotazos'}`, media: (m) => `Media: ${m} por tanto`, vacio: (n) => `Golpes en vacío: ${n}` },
+      largo: (n) => `El tanto más largo: ${n} ${n === 1 ? 'pelotazo' : 'pelotazos'}`, media: (m) => `Media: ${m} por tanto`, vacio: (n) => `Golpes en vacío: ${n}`,
+      // (el momento clave y el mapa de golpes: match.js, claveDe y mapaBloque)
+      clave: 'Momento clave', mapa: 'Dónde golpeó cada uno', frontis: 'Frontis', rebote2: 'Rebote',
+      remate: { dejada: 'de dejada', cortada: 'de cortada', dosparedes: 'a dos paredes', volea: 'de volea', gancho: 'de gancho' },
+      // (de: 'golpe', 'saque' o 'fallo'; otro, el que falla)
+      desempate: (q, n, h, de, remate, otro) => de === 'fallo' ? `Con ${n}-${n}, un fallo de ${otro} dejó por delante a ${q}, que ya no soltó el partido.`
+        : de === 'saque' ? `Con ${n}-${n}, ${q} se puso por delante con un saque directo, y ya no soltó el partido.`
+        : `Con ${n}-${n}, ${q} se puso por delante con un tanto de ${h} pelotazos${remate ? `, rematado ${remate}` : ''}, y ya no soltó el partido.`,
+      remontada: (q, a, b, c, d) => `${q} iba ${a}-${b} y le dio la vuelta: ${c}-${d}.`,
+      masLargo: (q, h, a, b) => `El tanto más largo, de ${h} pelotazos, fue para ${q} y puso el ${a}-${b}.` },
     facts: [
       'En la pelota a mano se juega con la mano desnuda. Los pelotaris se protegen los dedos con tacos y esparadrapo.',
       'La chapa es una banda de metal en la parte baja del frontis. Si la pelota da ahí, suena distinto y el tanto se pierde.',
@@ -444,7 +453,14 @@ export const TEXT = {
     result: (a, b) => `${a} – ${b}`,
     factsTitle: 'Ba al zenekien…?',
     est: { title: 'Estatistikak', pelotazos: 'Pilotakadak', hechos: 'Egindako tantoak', fallos: 'Hutsak', saque: 'Sakez', dejada: 'Dejadaz', aire: 'Airez', volea: 'Boleaz', rebote: 'Errebotez',
-      largo: (n) => `Tantorik luzeena: ${n} pilotakada`, media: (m) => `Batez beste: ${m} tantoko`, vacio: (n) => `Hutsean jotakoak: ${n}` },
+      largo: (n) => `Tantorik luzeena: ${n} pilotakada`, media: (m) => `Batez beste: ${m} tantoko`, vacio: (n) => `Hutsean jotakoak: ${n}`,
+      clave: 'Une erabakigarria', mapa: 'Non jo zuen bakoitzak', frontis: 'Frontisa', rebote2: 'Errebotea',
+      remate: { dejada: 'utziz amaitua', cortada: 'cortadaz amaitua', dosparedes: 'bi paretara amaitua', volea: 'boleaz amaitua', gancho: 'ganchoz amaitua' },
+      desempate: (q, n, h, de, remate, otro) => de === 'fallo' ? `${n}-${n} zihoazela, tanto erabakigarria ${q}rentzat izan zen, huts baten ondoren. Hortik aurrera ez zuen partida askatu.`
+        : de === 'saque' ? `${n}-${n} zihoazela, tanto erabakigarria ${q}rentzat izan zen, sake zuzen batez. Hortik aurrera ez zuen partida askatu.`
+        : `${n}-${n} zihoazela, tanto erabakigarria ${q}rentzat izan zen: ${h} pilotakada${remate ? `, ${remate}` : ''}. Hortik aurrera ez zuen partida askatu.`,
+      remontada: (q, a, b, c, d) => `${q} ${a}-${b} galtzen zihoan, eta azkenean ${c}-${d} amaitu zen partida.`,
+      masLargo: (q, h, a, b) => `Tantorik luzeena: ${h} pilotakada (${a}-${b}). Irabazlea: ${q}.` },
     facts: [
       'Esku pilotan esku hutsez jokatzen da. Pilotariek atzamarrak tako eta esparatrapuz babesten dituzte.',
       'Txapa frontisaren beheko metalezko banda da. Pilota hor jotzen badu, beste soinu bat ateratzen du eta tantoa galtzen da.',

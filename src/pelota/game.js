@@ -140,9 +140,10 @@ export class PelotaGame {
     // (por: lo de cada lado para el resumen del final. hechos, los tantos que gana con su golpe, porque el otro no llega; de
     // ellos, los de saque, dejada, aire (golpeada antes del bote, por debajo del hombro), volea (antes del bote y a la
     // altura del hombro o más arriba), rebote (tras dar en la pared de atrás), cortada y dos paredes. fallos, los que pierde por mandar la pelota fuera, a la chapa, falta o pasa.
-    // tantos: los pelotazos de cada tanto. alAire: tus golpes al aire)
+    // tantos: los pelotazos de cada tanto. alAire: tus golpes al aire. golpes: dónde golpeó cada lado, [x, z] en la cancha,
+    // para el mapa del final; log: cada tanto en orden, con quién lo gana, cómo y el marcador, para el momento clave)
     const lado = () => ({ hechos: 0, fallos: 0, saque: 0, dejada: 0, aire: 0, volea: 0, rebote: 0, cortada: 0, dosparedes: 0 });
-    this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0, fuertes: 0, por: { you: lado(), rival: lado() }, tantos: [], alAire: 0 };
+    this.stats = { hits: { you: 0, rival: 0 }, rallies: 0, longest: 0, rallyHits: 0, faults: {}, perfect: 0, voleas: 0, ganchos: 0, fuertes: 0, por: { you: lado(), rival: lado() }, tantos: [], alAire: 0, golpes: { you: [], rival: [] }, log: [] };
     this.placeForServe();
   }
   emit(e) { this.events.push(e); }
@@ -461,6 +462,7 @@ export class PelotaGame {
     for (const id of this.ids) this.players[id].idealAt = null;   // (el momento justo del golpe siguiente se mira de nuevo)
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
     this.stats.hits[sd]++;
+    { const G = this.stats.golpes[sd]; if (G && G.length < 240) G.push([Math.round(p.x * 10) / 10, Math.round(p.z * 10) / 10]); }
     if (who === 'you') { if (o.volea) this.stats.voleas++; if (shot === 'gancho') this.stats.ganchos++; if (pow > 0.75) this.stats.fuertes++; }
     // el aviso: perfecto si lo tocas en su momento; si no, pronto o tarde (y lo justo, si apenas llegas)
     const off = o.timing != null && Math.abs(o.timing) > this.tol * 0.35;
@@ -492,6 +494,7 @@ export class PelotaGame {
     }
     this.score[winner]++;
     this.server = winner;
+    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea ? 'volea' : R?.kind || '', you: this.score.you, rival: this.score.rival });
     // el último tanto: el partido se decide y el frontón entero aplaude (se deja más tiempo antes del final)
     this.finalPoint = this.score[winner] >= this.target;
     this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you), final: this.finalPoint });

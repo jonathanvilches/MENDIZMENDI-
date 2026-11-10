@@ -654,7 +654,7 @@ export class PelotaMatch {
     // (lo que ha dado el partido: la experiencia, el nivel y lo que ha subido cada cualidad; game/pelotariProgreso.js)
     const gano = this.o.progreso?.(e, g.stats, g.mode), xpHtml = gano ? this.xpBloque(gano) : '';
     const p = this.hud.panel(`<h2>${e.win ? (g.mode === 'rally' ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${esc(this.label('you'))} – ${esc(this.label('rival'))}${g.mode === 'rally' ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
-      <div class="pel-big">${big}</div>${this.estBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}
+      <div class="pel-fin"><div class="pel-fin-a"><div class="pel-big">${big}</div>${this.claveBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}</div><div class="pel-fin-b">${this.estBloque(g)}${this.mapaBloque(g)}</div></div>
       <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
@@ -679,6 +679,33 @@ export class PelotaMatch {
     const largo = Math.max(...S.tantos), media = (S.tantos.reduce((a, b) => a + b, 0) / S.tantos.length).toFixed(1).replace('.', this.lang === 'eu' ? ',' : ',');
     const pie = [E.largo(largo), E.media(media), S.alAire ? E.vacio(S.alAire) : ''].filter(Boolean).join(' · ');
     return `<div class="pel-est"><div class="pel-est-top"><b>${esc(E.title)}</b><span><i class="${cy}">${esc(this.names.you)}</i><i class="${cr}">${esc(this.names.rival)}</i></span></div><ul>${filas}</ul><p>${esc(pie)}</p></div>`;
+  }
+  /** El momento clave del partido, como lo contaría la tele: la remontada, si el que gana iba tres o más por detrás; si no,
+   *  el tanto que deshizo el último empate (desde ahí ya no soltó el partido); y si nunca empataron, el tanto más largo. */
+  claveDe(g) {
+    const L = g.stats?.log; if (g.mode !== 'match' || !L?.length) return '';
+    const E = this.txt.est || TEXT.es.est, nm = (w) => this.label(w), fin = L[L.length - 1], gana = fin.you > fin.rival ? 'you' : 'rival';
+    let peor = 0, at = null; for (const x of L) { const d = gana === 'you' ? x.you - x.rival : x.rival - x.you; if (d < peor) { peor = d; at = x; } }
+    if (peor <= -3) return E.remontada(nm(gana), at.you, at.rival, fin.you, fin.rival);
+    let i = -1; for (let k = L.length - 2; k >= 0; k--) if (L[k].you === L[k].rival) { i = k; break; }
+    if (i >= 0) { const x = L[i + 1], de = x.call !== 'bote' ? 'fallo' : x.kind === 'saque' ? 'saque' : 'golpe';
+      return E.desempate(nm(x.w), L[i].you, x.hits, de, E.remate[x.kind] || '', nm(x.w === 'you' ? 'rival' : 'you')); }
+    const lg = L.reduce((a, b) => (b.hits > a.hits ? b : a)); return lg.hits > 2 ? E.masLargo(nm(lg.w), lg.hits, lg.you, lg.rival) : '';
+  }
+  claveBloque(g) { const c = this.claveDe(g), E = this.txt.est || TEXT.es.est; return c ? `<div class="pel-clave"><b>${esc(E.clave)}</b><p>${esc(c)}</p></div>` : ''; }
+  /** El mapa de golpes: la cancha vista desde arriba, del frontis (a la izquierda) al rebote, con un punto del color de cada
+   *  uno donde golpeó la pelota. La pared izquierda va arriba; las rayas de la falta y del pasa, en rojo. */
+  mapaBloque(g) {
+    const G = g.stats?.golpes; if (g.mode !== 'match' || !G || !(G.you.length + G.rival.length)) return '';
+    const E = this.txt.est || TEXT.es.est, W = COURT.W, Z = COURT.REBOTE, k = 10, cy = this.cols.you === 'rojo' ? '#ff5fae' : '#8f83ff', cr = this.cols.you === 'rojo' ? '#8f83ff' : '#ff5fae';
+    const X = (z) => (z * k).toFixed(1), Y = (x) => ((x + W / 2) * k).toFixed(1);
+    const rayas = Array.from({ length: Math.floor(COURT.L / COURT.CUADRO) + 1 }, (_, i) => i * COURT.CUADRO).map(z => `<line x1="${X(z)}" y1="0" x2="${X(z)}" y2="${W * k}" stroke="rgba(255,255,255,.16)" stroke-width="1"/>`).join('');
+    const roja = (z) => `<line x1="${X(z)}" y1="0" x2="${X(z)}" y2="${W * k}" stroke="#ff4d6d" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+    const puntos = (L, c) => L.map(([x, z]) => `<circle cx="${X(Math.min(Z, Math.max(0, z)))}" cy="${Y(Math.min(W / 2, Math.max(-W / 2, x)))}" r="3.2" fill="${c}" fill-opacity=".72"/>`).join('');
+    return `<div class="pel-mapa"><div class="pel-est-top"><b>${esc(E.mapa)}</b><span><i class="${this.cols.you === 'rojo' ? 'rojo' : 'azul'}">${esc(this.names.you)}</i><i class="${this.cols.you === 'rojo' ? 'azul' : 'rojo'}">${esc(this.names.rival)}</i></span></div>
+      <svg viewBox="-14 -2 ${Z * k + 28} ${W * k + 4}" role="img" aria-label="${esc(E.mapa)}"><rect x="0" y="0" width="${X(COURT.L)}" height="${W * k}" fill="rgba(255,255,255,.07)" rx="2"/><rect x="${X(COURT.L)}" y="0" width="${X(Z - COURT.L)}" height="${W * k}" fill="rgba(255,255,255,.03)"/>
+      ${rayas}${roja(COURT.FALTA)}${roja(COURT.PASA)}<line x1="0" y1="-2" x2="0" y2="${W * k + 2}" stroke="#fff" stroke-width="3"/><line x1="0" y1="0" x2="${X(Z)}" y2="0" stroke="rgba(255,255,255,.6)" stroke-width="2"/><line x1="${X(Z)}" y1="0" x2="${X(Z)}" y2="${W * k}" stroke="rgba(255,255,255,.45)" stroke-width="2"/>
+      ${puntos(G.rival, cr)}${puntos(G.you, cy)}<text x="-6" y="${W * k / 2}" transform="rotate(-90 -6 ${W * k / 2})" text-anchor="middle" font-size="9" fill="#cbbcf0">${esc(E.frontis)}</text><text x="${X(Z) * 1 + 8}" y="${W * k / 2}" transform="rotate(90 ${X(Z) * 1 + 8} ${W * k / 2})" text-anchor="middle" font-size="9" fill="#cbbcf0">${esc(E.rebote2)}</text></svg></div>`;
   }
   /** El bloque de la experiencia en el panel del final: el nivel con su barra, lo ganado y lo que ha subido cada cualidad. */
   xpBloque(g) {

@@ -327,6 +327,25 @@ const CSS = `
 @media (max-height:500px){.pel-msel{margin-bottom:8px}.pel-mseg button{min-height:40px}.pel-matcard .pel-mgo{bottom:-12px;margin:0 -16px -12px;padding:6px 16px 12px}.pel-mchip svg{width:24px;height:24px}.pel-mat-what{margin-bottom:8px}}
 /* la experiencia en el panel del final: el nivel con su barra y lo que ha subido cada cualidad, en cuatro casillas */
 /* el resumen del partido (match.js, estBloque): cada cifra, la tuya y la del rival, con el color de cada uno */
+/* el final: a la izquierda el resultado, el momento clave y la experiencia; a la derecha las estadísticas y el mapa de
+   golpes. En dos columnas cuando hay sitio (móvil tumbado y ordenador): en una sola, el nivel quedaba debajo de los
+   botones */
+.pel-fin{display:block}
+@media (min-width:600px){.pel-card:has(.pel-fin){width:min(860px,100%)}.pel-fin{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0 16px;align-items:start}}
+.pel-clave{margin:4px 0 12px;padding:10px 14px;border-radius:16px;background:linear-gradient(100deg,rgba(255,43,214,.16),rgba(123,47,247,.12));border:1px solid rgba(255,122,200,.4)}
+.pel-clave b{display:block;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
+.pel-clave p{margin:4px 0 0;font-size:var(--fs-sm);font-weight:700;line-height:1.35;color:#fff}
+.pel-mapa{margin:0 0 12px;padding:10px 14px 8px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-mapa svg{display:block;width:100%;height:auto;margin-top:6px}
+/* (en el móvil tumbado, todo en lo que cabe: el resultado más pequeño, los títulos más pequeños y el mapa más bajo) */
+@media (orientation:landscape) and (max-height:520px){
+  .pel-fin .pel-big{font-size:var(--fs-2xl);margin:0 0 6px}.pel-fin :is(.pel-clave,.pel-est,.pel-xp,.pel-mapa){margin-bottom:8px}
+  .pel-clave{padding:6px 10px}.pel-clave p{font-size:var(--fs-xs)}.pel-mapa{padding:6px 10px}
+  .pel-fin :is(.pel-est-top,.pel-xp-top) b{font-size:var(--fs-md)}.pel-mapa svg{width:auto;max-width:100%;height:56px;margin:4px auto 0}
+  .pel-xp{padding:8px 10px}.pel-xp ul{margin-top:6px}.pel-xp li{padding:3px 4px}.pel-xp-bar{margin-top:6px}}
+/* (y en los más bajos, como el iPhone SE tumbado, sin el pie de las estadísticas, que el tanto más largo ya lo cuenta el
+   momento clave, ni el total de cada cualidad bajo lo que ha subido) */
+@media (orientation:landscape) and (max-height:400px){.pel-fin .pel-est p{display:none}.pel-mapa svg{height:48px}.pel-fin .pel-big{font-size:var(--fs-xl)}.pel-fin .pel-xp li small{display:none}}.pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
 .pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-est-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-est-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .pel-est span{display:flex;gap:10px;min-width:0}.pel-est i{font-style:normal}.pel-est i.rojo{color:#ff9cc8}.pel-est i.azul{color:#b9b1ff}

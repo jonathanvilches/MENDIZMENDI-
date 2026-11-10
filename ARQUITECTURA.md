@@ -271,6 +271,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el
   partido o se pone por delante (la remontada, una vez cada cosa). Mientras dura la racha, una llama junto a la cifra
   del marcador (solo la llama: el número va en el aviso, para no quitarle sitio al nombre).
+- **Resumen del final** (`pelota/match.js`, `endPanel`, `claveDe`, `mapaBloque`; `pelota/game.js`, `stats.log` y
+  `stats.golpes`): a la izquierda el resultado, el momento clave y la experiencia; a la derecha las estadísticas y el mapa
+  de golpes (la cancha desde arriba, del frontis al rebote, con un punto de cada color donde golpeó cada uno). En dos
+  columnas desde 600 px de ancho, para que en el móvil tumbado no quede nada debajo de los botones. El momento clave es
+  la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
+  cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
