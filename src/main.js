@@ -46,7 +46,6 @@ import { releaseOffscreen, setOffscreenHost } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n, isEU } from './i18n.js';
 import { startVerMas } from './ui/vermas.js';
-import { startFrames } from './ui/frames.js';
 import { watchUpdates } from './web/update.js';
 import { startHD } from './web/hd.js';
 import { startVercel } from './web/vercel.js';
@@ -132,7 +131,7 @@ async function boot() {
   const sound = window.__sound = new Sound();
   { const S = profile().settings; sound.setMood('inicio'); sound.setMusic(S.music !== false); sound.init(); if (S.volume != null) sound.setVolume(S.volume); }
   await startI18n();   // (en euskera, espera a sus diccionarios: se cargan aparte)
-  startVerMas(); startFrames();   // (los textos largos, plegados con «Ver más»)
+  startVerMas();   // (los textos largos, plegados con «Ver más»)
   startHD();   // (archivo único con conexión: las imágenes grandes, de la web publicada)
   startVercel();   // (servido desde Vercel: sus visitas, src/web/vercel.js)
   // (con tope de 2,5 s: en algunos visores de iPhone la base de datos del navegador no responde nunca)

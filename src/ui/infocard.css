@@ -11,8 +11,8 @@
 .mg-overlay.ix-ov > .mg-card.ix { --ix-pad: 16px; --ix-gap: 12px; --ix-in: 8px;
   position: relative; width: min(880px, 100%); max-height: calc(calc(100dvh / var(--z, 1)) - 24px); display: grid; grid-template-columns: minmax(0, 1fr); align-content: start;
   gap: var(--ix-gap); padding: var(--ix-pad); text-align: left; align-items: stretch; justify-items: stretch; overflow: hidden;
-  color: #f3edff; border: 0; border-radius: 4px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+  color: #f3edff; border: 0; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+  border-radius: 10px;
   background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, var(--v3) 0%, var(--v1) 78%);
   animation: gx-rise .3s cubic-bezier(.2, .9, .3, 1) both; }
 .mg-card.ix::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 3px; background: var(--cta); box-shadow: var(--glow); pointer-events: none; z-index: 3; }
@@ -36,7 +36,7 @@
 /* la lámina de un oficio: entera, en 16:9, y en horizontal la mitad de la ficha */
 .mg-card.ix.has-lam .ix-frame.lam { aspect-ratio: 16 / 9; flex: none; width: 100%; height: auto; }
 .ix-tag { position: absolute; left: 0; top: 12px; z-index: 2; padding: 4px 14px 4px 10px; background: var(--cta); color: #fff; box-shadow: var(--glow);
-  font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+  font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; border-radius: 6px; }
 .ix-credit { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 12px 8px 4px; text-align: right; color: rgba(255, 255, 255, .86);
   font: 600 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .02em; background: linear-gradient(transparent, rgba(7, 2, 15, .78)); pointer-events: none;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -154,8 +154,8 @@
 
 /* ---------- la ficha de un sitio en el mapa del pueblo: icono y nombre arriba, los botones en una fila debajo */
 #mapbox .mapcard { left: 8px; right: auto; bottom: 34px; width: min(440px, calc(100% - 66px)); grid-template-columns: 40px minmax(0, 1fr); align-items: start; gap: 8px 12px; padding: 12px;
-  border: 0; border-radius: 4px; background: linear-gradient(170deg, rgba(49, 16, 107, .97), rgba(18, 5, 42, .97)); box-shadow: 0 12px 30px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(201, 178, 255, .25);
-  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); animation: gx-rise .22s ease-out both; }
+  border: 0; background: linear-gradient(170deg, rgba(49, 16, 107, .97), rgba(18, 5, 42, .97)); box-shadow: 0 12px 30px rgba(0, 0, 0, .5), inset 0 0 0 1px rgba(201, 178, 255, .25);
+  border-radius: 8px; animation: gx-rise .22s ease-out both; }
 #mapbox .mapcard .mc-i { width: 40px; height: 40px; border-radius: 4px; background: rgba(255, 255, 255, .06); }
 #mapbox .mapcard .mc-i > * { width: 30px; height: 30px; }
 #mapbox .mapcard .mc-t { padding-right: 32px; }

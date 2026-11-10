@@ -2,11 +2,11 @@
    Lo que se repite en todas las secciones del menú, con una sola forma: así se reconoce el juego en cualquier pantalla.
    Se carga la última (hub.js), después de las demás hojas del menú, y manda sobre ellas. Las medidas son las comunes de
    hub.css (los espacios --esp, --hueco y --hueco-m; el cristal --glass y sus bordes --line; el radio --r) y siguen la
-   regla de todo el juego (src/ui/sport.css): esquinas casi rectas, cortadas en ángulo o círculos; los botones, en
-   pastilla.
-   · Todas las tarjetas, una sola carta (abajo, «La carta»): la forma de las comarcas de abajo del mapa, con dos esquinas
-     cortadas en ángulo, el relleno morado y un filo fino de luz; lo conseguido, con el filo del color de la sección, y lo
-     bloqueado, apagado. Antes las listas iban en cajas de cristal con esquinas casi rectas y cada una a su manera.
+   regla de todo el juego (src/ui/neon.css): toda tarjeta, bloque y panel con las esquinas redondeadas y un filo de
+   neón de 1 a 2 px; los botones, en pastilla; las marcas, en círculo.
+   · Todas las tarjetas, una sola carta (abajo, «La carta»): esquinas de 8 px, el relleno morado y el filo de neón con
+     el destello que da la vuelta (neon.css); lo conseguido, con el filo del color de la sección, y lo bloqueado,
+     apagado. Antes las listas iban en cajas de cristal con esquinas casi rectas y cada una a su manera.
    · Las rejillas de tarjetas, todas con el mismo hueco; las piezas pequeñas que van juntas, con el suyo.
    · Los contadores («0 de 29 escuchados», «0/16 cimas», el herbario): la misma etiqueta, con la cifra en el color de la
      sección.
@@ -57,41 +57,38 @@
 .kicker + .title { margin-top: var(--t-mt); }
 
 /* ---------- las cartas de Torneos ----------
-   Con la esquina cortada de lo grande y lo destacado, como las cartas de los pueblos y la cabecera de la comarca (antes,
-   redondeadas a 26 px: las únicas del menú así). El borde fino sigue el corte: la carta pinta el borde y su fondo va dentro,
-   un píxel más adentro; al pasar por encima, el borde toma el color de su deporte. La lámina y la barra de abajo, con el
-   radio de las tarjetas (en el móvil tumbado la barra sigue en pastilla) */
-.sport { --k: 18px; border: 0; border-radius: 0; background: rgba(255, 255, 255, .12); box-shadow: none;
-  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
+   Con las esquinas de 8 px y el filo de neón del color de su deporte (neon.css): la carta pinta el borde y su fondo va
+   dentro, un píxel más adentro; al pasar por encima, el borde toma el color de su deporte. La lámina y la barra de
+   abajo, con su esquina redonda */
+.sport { border: 0; background: rgba(255, 255, 255, .12); box-shadow: none;
+  border-radius: 8px; }
 .sport::before { content: ''; position: absolute; inset: 1px; z-index: -1; pointer-events: none;
-  clip-path: polygon(calc(var(--k) - .4px) 0, 100% 0, 100% calc(100% - var(--k) + .4px), calc(100% - var(--k) + .4px) 100%, 0 100%, 0 calc(var(--k) - .4px));
+  border-radius: 7px;
   background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--acc) 26%, transparent), transparent 62%), radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 70%), linear-gradient(165deg, #2b0f60, #12052a 75%); }
 .sport:hover { box-shadow: none; background: color-mix(in srgb, var(--acc) 70%, #fff); }
 .sp-cover, .sp-bar { border-radius: var(--r); }
-@media (orientation: landscape) and (max-height: 560px) { .sport { --k: 12px; } .sp-bar { border-radius: 999px; } }
+
 
 /* ================= La carta: una sola tarjeta para todo el menú (noviembre de 2026) =================
-   Todas las tarjetas, con la forma de las comarcas de abajo del mapa: las esquinas de arriba a la izquierda y de abajo a la
-   derecha cortadas en ángulo (--k), un relleno morado opaco y un filo fino de luz que también sigue el corte. El filo es el
-   fondo de la tarjeta y el relleno va en ::before, 1,5 px más adentro y con el mismo corte (ninguna tarjeta usaba ::before
-   ni ::after en sí misma). Así son iguales las especies, los personajes y las figuras, las cimas, las insignias, los
+   Todas las tarjetas iguales: las esquinas redondeadas de 8 px, un relleno morado opaco y un filo de luz. El filo es el
+   fondo de la tarjeta y el relleno va en ::before, unos píxeles más adentro y con la esquina algo menor; el destello de
+   neón que da la vuelta va en ::after (neon.css). Antes, las esquinas de arriba a la izquierda y de abajo a la derecha
+   iban cortadas en ángulo. Así son iguales las especies, los personajes y las figuras, las cimas, las insignias, los
    instrumentos, los escudos y los cuentos, los certificados, las tradiciones, las leyendas de las fichas, las láminas y
    las páginas del pasaporte, y las de la colección en el mapa y las comarcas del inicio, que ya eran así. Lo conseguido
    (visto, hecho, ganado, leído), con el filo del color de la sección, como la comarca elegida; lo bloqueado, con el filo
-   apagado. La imagen de arriba, a sangre pero dentro del filo, con su esquina cortada. Las marcas de «Observado»,
+   apagado. La imagen de arriba, a sangre pero dentro del filo, con sus esquinas redondas. Las marcas de «Observado»,
    «Identificada» y demás, como en todo el juego: la marca verde en su círculo amarillo */
 #hub { --carta-fondo: linear-gradient(165deg, #2c1659 0%, #1c0d3b 100%);
   --carta-filo: linear-gradient(135deg, rgba(255, 255, 255, .34) 0%, rgba(255, 255, 255, .09) 45%, rgba(255, 255, 255, .2) 100%);
   --carta-filo-on: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--cat, #ff7ac8) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--cat, #ff7ac8) 90%, #fff) 100%);
   --carta-filo-off: linear-gradient(135deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .05) 50%, rgba(255, 255, 255, .1) 100%); }
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam) {
-  --k: 10px; position: relative; isolation: isolate; border: 0 !important; border-radius: 0 !important; box-shadow: none !important;
-  background: var(--carta-filo) !important; clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
+  position: relative; isolation: isolate; border: 0 !important; box-shadow: none !important;
+  background: var(--carta-filo) !important; border-radius: 8px !important; }
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::before {
   content: ''; position: absolute; inset: 1.5px; z-index: -1; pointer-events: none; background: var(--carta-fondo);
-  clip-path: polygon(calc(var(--k) - .75px) 0, 100% 0, 100% calc(100% - var(--k) + .75px), calc(100% - var(--k) + .75px) 100%, 0 100%, 0 calc(var(--k) - .75px)); }
-/* (las pequeñas, con el corte más pequeño; las páginas del pasaporte, más grande) */
-#hub :is(.bcard, .vt-cert, .lam-rail .lam) { --k: 8px; } #hub .ppage { --k: 14px; }
+  border-radius: 6px; }
 /* (lo conseguido, con el filo del color de la sección; lo bloqueado, apagado) */
 #hub :is(.scard.seen, .pcard.done, .bcard.on, .armorial .ar.on, .vt-cert.on) { background: var(--carta-filo-on) !important; }
 #hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked), #hub .bcard:not(.on) { background: var(--carta-filo-off) !important; }
@@ -100,12 +97,12 @@
 /* (el relleno de las páginas del pasaporte, con el color de su comarca, como antes) */
 #hub .ppage::before { background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, #32136f), #1c0b3a 75%); }
 #hub .fh-ct::before { background: linear-gradient(165deg, #2a1554 0%, #1f0f40 100%); }
-/* (la imagen de arriba, a sangre dentro del filo y con su esquina cortada; las láminas y los personajes con ilustración,
-   que son toda imagen, con las dos esquinas) */
+/* (la imagen de arriba, a sangre dentro del filo y con las esquinas de arriba redondas; las láminas y los personajes con
+   ilustración, que son toda imagen, con las cuatro) */
 #hub :is(.scard.fl, .pcard, .fcard.pers.ilus, .ddc, .lam-rail .lam) { padding-top: 1.5px; padding-left: 1.5px; padding-right: 1.5px; }
 #hub :is(.lam-rail .lam, .fcard.pers.ilus) { padding-bottom: 1.5px; }
-#hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { border-radius: 0; clip-path: polygon(calc(var(--k) - 1.5px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1.5px)); }
-#hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { border: 0; border-radius: 0; clip-path: polygon(calc(var(--k) - 1.5px) 0, 100% 0, 100% calc(100% - var(--k) + 1.5px), calc(100% - var(--k) + 1.5px) 100%, 0 100%, 0 calc(var(--k) - 1.5px)); }
+#hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { border-radius: 6px 6px 0 0; }
+#hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { border: 0; border-radius: 6px; }
 #hub .lam-rail .lam span { left: 1.5px; right: 1.5px; bottom: 1.5px; border-radius: 0; }
 /* (al pasar por encima o al tocar, se levanta un poco y se le enciende el filo) */
 #hub :is(button.scard, button.fcard, button.ins, button.ar, button.vt-cert, button.ddc, .lam-rail button.lam) { transition: transform .2s; }

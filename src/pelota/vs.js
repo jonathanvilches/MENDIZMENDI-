@@ -30,10 +30,10 @@ const CSS = `
 .pvs-top{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:5;display:flex;justify-content:center;animation:pvs-drop .4s .9s cubic-bezier(.2,1.3,.4,1) both}
 .pvs-bar{display:flex;align-items:stretch;max-width:calc(100% - 32px);filter:drop-shadow(0 6px 14px rgba(0,0,0,.5))}
 .pvs-bar>*{display:flex;align-items:center;gap:8px;padding:4px 16px;min-height:34px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pvs-comp{background:var(--cta);font:400 var(--fs-lg)/1 var(--f-display);text-transform:uppercase;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);padding-left:20px!important;padding-right:20px!important}
-.pvs-venue{background:rgba(7,2,15,.86);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);margin-left:-10px;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);padding-left:22px!important;padding-right:22px!important}
+.pvs-comp{background:var(--cta);font:400 var(--fs-lg)/1 var(--f-display);text-transform:uppercase;border-radius:6px;padding-left:20px!important;padding-right:20px!important}
+.pvs-venue{background:rgba(7,2,15,.86);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);margin-left:-10px;border-radius:6px;padding-left:22px!important;padding-right:22px!important}
 .pvs-venue svg{width:34px;height:26px;flex:none}
-.pvs-lineb{background:rgba(7,2,15,.86);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:#fff;margin-left:-10px;clip-path:polygon(12px 0,100% 0,calc(100% - 12px) 100%,0 100%);padding-left:22px!important;padding-right:22px!important;border-left:2px solid var(--fx)}
+.pvs-lineb{background:rgba(7,2,15,.86);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:#fff;margin-left:-10px;border-radius:6px;padding-left:22px!important;padding-right:22px!important;border-left:2px solid var(--fx)}
 .pvs-fig{position:absolute;left:0;top:0;width:50%;height:100%;z-index:3;pointer-events:none}
 /* (cada imagen, de pie sobre el borde de abajo de su caja; el sitio y la altura los pone layoutVs) */
 .pvs-fig>img,.pvs-fig>.pf{position:absolute;left:0;bottom:0;height:100%;width:auto;max-width:none;z-index:2}.pvs-fig>.mate{z-index:1}
@@ -56,16 +56,16 @@ const CSS = `
 .pvs-mid{position:absolute;left:50%;top:calc(44% + clamp(50px,calc(12vh / var(--z, 1)),84px));z-index:5;transform:translateX(-50%);width:min(300px,34%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:pvs-upc .35s 1.05s ease-out both}
 .pvs-line{font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .pvs-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
-.pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(201,178,255,.35);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+.pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(201,178,255,.35);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);border-radius:6px;}
 .pvs-tags b{color:#fff;font-weight:800}
 .pvs [hidden]{display:none!important}.pvs-tags span{white-space:nowrap}.pvs-mid.stack .pvs-tags{flex-direction:column;align-items:center}
 .pvs-plate{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 46px);z-index:5;width:max-content;max-width:min(330px,38%);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;filter:drop-shadow(0 8px 16px rgba(0,0,0,.55))}
 .pvs-plate.azul{left:calc(env(safe-area-inset-left,0px) + 16px);animation:pvs-pl .4s .85s cubic-bezier(.2,1.2,.4,1) both}
 .pvs-plate.rojo{right:calc(env(safe-area-inset-right,0px) + 16px);grid-template-columns:minmax(0,1fr) auto;text-align:right;animation:pvs-pr .4s .95s cubic-bezier(.2,1.2,.4,1) both}
-.pvs-ovr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 12px;background:#fff;color:var(--v2);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pvs-ovr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 12px;background:#fff;color:var(--v2);border-radius:6px;}
 .pvs-plate.azul .pvs-ovr{color:var(--azul2)}.pvs-plate.rojo .pvs-ovr{order:2;color:var(--rojo2)}
 .pvs-ovr b{font:400 var(--fs-3xl)/1 var(--f-display)}.pvs-ovr small{font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
-.pvs-who{min-width:0;padding:8px 18px 10px;background:rgba(7,2,15,.86);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);margin-left:-6px}
+.pvs-who{min-width:0;padding:8px 18px 10px;background:rgba(7,2,15,.86);border-radius:6px;margin-left:-6px}
 .pvs-plate.rojo .pvs-who{margin:0 -6px 0 0}
 .pvs-who b{display:block;padding-right:.1em;font:400 var(--fs-2xl)/1.15 var(--f-display);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvs-who small{display:block;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -85,7 +85,7 @@ body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pv
 .pvs-tick .q{flex:1;min-width:0;overflow:hidden;white-space:nowrap;padding-left:calc(env(safe-area-inset-left,0px) + 16px);font:600 var(--fs-sm)/1.3 var(--f-cond);font-style:italic;letter-spacing:.02em}
 .pvs-tick .q span{display:inline-block;padding-right:40px}.pvs-tick .q.run span{animation:pvs-marq var(--mt,12s) linear 1.6s infinite}
 .pvs-tick .q em{font-style:normal;color:var(--rosa);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
-.pvs-tap{flex:none;align-self:stretch;display:flex;align-items:center;padding:0 calc(env(safe-area-inset-right,0px) + 16px) 0 20px;background:var(--cta);font:400 var(--fs-md)/1 var(--f-display);text-transform:uppercase;letter-spacing:.04em;clip-path:polygon(12px 0,100% 0,100% 100%,0 100%);animation:pvs-tap 1s ease-in-out 1.6s infinite alternate}
+.pvs-tap{flex:none;align-self:stretch;display:flex;align-items:center;padding:0 calc(env(safe-area-inset-right,0px) + 16px) 0 20px;background:var(--cta);font:400 var(--fs-md)/1 var(--f-display);text-transform:uppercase;letter-spacing:.04em;border-radius:6px;animation:pvs-tap 1s ease-in-out 1.6s infinite alternate}
 .pvs.out{animation:pvs-out .22s ease-in both}
 @keyframes pvs-in{from{opacity:0}to{opacity:1}}@keyframes pvs-out{to{opacity:0;transform:scale(1.04)}}
 @keyframes pvs-l{from{transform:translateX(-100%)}to{transform:none}}@keyframes pvs-r{from{transform:translateX(100%)}to{transform:none}}

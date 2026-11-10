@@ -189,7 +189,7 @@
 .cm-t:is(:hover, :focus-visible) .gt-foto::after { opacity: 1; animation: gtBrillo 2.4s ease-in-out infinite; }
 @media (max-width: 560px) { .cm-ts { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
 @media (orientation: landscape) and (max-height: 520px) { .cm-ts { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: 12px; } .cm-t { --dh: 40px; } }
-/* cultura y naturaleza, en paneles con la esquina cortada y la raya de luz arriba */
+/* cultura y naturaleza, en paneles con las esquinas redondeadas y la raya de luz arriba */
 /* la rejilla de la comarca (hub.js, rejilla): en cada ancho, las columnas justas para que las filas vayan llenas e
    iguales, con el mismo hueco entre todo (--hueco-m) y nada que estire una pieza más que su fila. Antes, Cultura y Naturaleza
    iban lado a lado y, como Cultura era mucho más larga, quedaba media pantalla vacía; y con dos pueblos o dos leyendas,
@@ -199,10 +199,10 @@ section.rejilla > * { grid-column: span var(--sg, 4); }
 @media (max-width: 999px) { section.rejilla > * { grid-column: span var(--sm, 6); } }
 @media (max-width: 699px) { section.rejilla > * { grid-column: span var(--sp, 6); } }
 @media (max-width: 560px) { section.rejilla > * { grid-column: 1 / -1; } }
-/* (las piezas de Cultura y de Naturaleza, iguales: el fondo, la raya de la comarca a la izquierda y la esquina cortada) */
-:is(.cm-cult .cult, .cm-ng) { padding: 16px; border: 0; border-radius: 0; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+/* (las piezas de Cultura y de Naturaleza, iguales: el fondo, la raya de la comarca a la izquierda y las esquinas redondeadas) */
+:is(.cm-cult .cult, .cm-ng) { padding: 16px; border: 0; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); border-radius: 8px; }
 .cm-cult .cult small { color: color-mix(in srgb, var(--c) 45%, #ffd166); }
-.cm-cult .cult-img { border-radius: 0; clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+.cm-cult .cult-img { border-radius: 7px 0 0 7px; }
 /* (la danza, con su ilustración, a todo lo ancho: la imagen en la primera columna de la rejilla, alineada con las piezas de
    debajo, y el texto en las demás, centrado en su alto; con media fila para la imagen sobraba aire junto al texto) */
 .cm-cult .cult.con-img { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); align-items: center; gap: var(--hueco-m); }
@@ -224,7 +224,7 @@ section.rejilla > * { grid-column: span var(--sg, 4); }
 
 /* (el pueblo único de una comarca, a la derecha de su carta: el rótulo, el nombre, lo que es, sus misiones y los botones,
    con el ritmo de los textos y abajo del todo los botones, a la altura del pie de la carta) */
-.cm-uno { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 16px; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
+.cm-uno { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; padding: 16px; background: rgba(255, 255, 255, .04); border-left: 2px solid color-mix(in srgb, var(--c) 60%, transparent); border-radius: 8px; }
 .cm-uno > .kicker, .cm-uno h3 > * { text-box: trim-both cap alphabetic; }
 .cm-uno h3 { display: grid; margin: var(--r-kt) 0 0; font: 400 var(--fs-2xl)/1 var(--f-display); text-transform: uppercase; }
 .cm-uno h3 em { margin-top: var(--r-ts); color: var(--tx2, #cbc2e0); font: 500 var(--fs-sm)/1.2 var(--f-ui); font-style: normal; text-transform: none; }

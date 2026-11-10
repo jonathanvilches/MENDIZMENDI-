@@ -145,19 +145,20 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 :root :is(.filters button, .nchip, .back, .lnk, .vm-btn, .pst, .seg button, .fb-ctabs button, .pads4 button, .ix.quiz .fc-opt, .screen .tabs button,
   .pel-levels button, .pel-chip, .pel-tour button, .pfx-tabs button) {
   font-family: var(--f-cond); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
-/* esquinas: casi rectas (4 px), cortadas en ángulo o círculos, en todo el juego; nada de cajas ni pastillas muy
-   redondeadas. Las barras y los puntos pequeños sí van redondeados. tools/auditoria-medida.mjs («forma») lo comprueba */
+/* esquinas: redondeadas en todo el juego (6 px los bloques pequeños, 8 las tarjetas, 10 los paneles), con el filo de
+   neón de ui/neon.css; los botones en pastilla y las marcas en círculo. Antes, casi rectas (4 px) o cortadas en ángulo.
+   tools/auditoria-medida.mjs («forma», «esquina» y «neon») lo comprueba */
 :root :is(.nchip, button.scard, .armorial .ar, .mrow .mi, .mlist li, .sheet-in, .sg, .set select, .pst, .prof input, .onb input, .ppage,
   .lg-how, .hsteps li, .cult, .chapter, .back, .rw, .shop-bubble, .seg, .seg button,
   .fooditem, .gitem, .qitem, .pbody, .card .f, .card .b, #clock, .vm-btn, .pel-en, .pel-call, .fb-say, .fb-tip,
   .fb-fouls, .fb-ck, .fb-ctabs button, .pads4 button, .ebar, #mapbox, .pel-tip, .pel-card .pel-ctrl, .pel-card .pel-fact, .pel-force,
   .pel-levels button, .pel-rv, .pel-chip, .pel-tour, .pel-tour button, .pel-court, .pel-court-t i, .pfx-tabs button, .pfx-shots li, .pfx-pl,
-  .pfx-pl-go) { border-radius: 4px; }
+  .pfx-pl-go) { border-radius: 6px; }
 .btn.primary { font-weight: 400; background: var(--cta); color: #fff; border: 0; font-family: var(--f-display); text-transform: uppercase; letter-spacing: .04em; box-shadow: var(--glow); border-radius: 999px; }
 @media (prefers-reduced-motion: reduce) { #hub :is(.ccard, .tile, .sb, .scard, .bcard, .ppage, .sg, .ar, .cm-t, .cult) { animation: none; } }
 
-/* ---------- ventanas del juego (pausa, libro de misiones, mapa…): el mismo cristal morado con esquinas cortadas */
-.screen .paper { border-radius: 4px; clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); position: relative;
+/* ---------- ventanas del juego (pausa, libro de misiones, mapa…): el mismo cristal morado con esquinas redondeadas */
+.screen .paper { border-radius: 10px; position: relative;
   background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .18), transparent 60%), linear-gradient(170deg, #31106b 0%, #12052a 78%); animation: gx-rise .3s cubic-bezier(.2, .9, .3, 1) both; }
 /* (solo se desliza: sin escalar ni girar, para que lo que se mide al abrir, como el mapa, salga a su tamaño) */
 @keyframes gx-rise { from { opacity: 0; transform: translateY(14px); } }
@@ -168,11 +169,11 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
   .screen.mapscr { padding: calc(env(safe-area-inset-top, 0px) + 6px) calc(env(safe-area-inset-right, 0px) + 6px) calc(env(safe-area-inset-bottom, 0px) + 6px) calc(env(safe-area-inset-left, 0px) + 6px); }
   .mapscr .paper { width: 100%; height: 100%; max-width: none; }
   .mapscr .paper > header { position: absolute; z-index: 3; left: 14px; top: 10px; right: auto; padding: 0; pointer-events: none; }
-  .mapscr .paper > header h2 { font-size: var(--fs-lg); padding: 4px 14px; background: rgba(7, 2, 15, .78); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+  .mapscr .paper > header h2 { font-size: var(--fs-lg); padding: 4px 14px; background: rgba(7, 2, 15, .78); border-radius: 6px; }
   .mapscr .paper > header .close { position: fixed; z-index: 4; top: calc(env(safe-area-inset-top, 0px) + 14px); right: calc(env(safe-area-inset-right, 0px) + 66px); pointer-events: auto; background: rgba(7, 2, 15, .78); }
   .mapscr .pbody { padding: 4px; height: 100%; }
   .mapscr #mapbox { border-radius: 2px; }
-  .mapscr .legend { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); white-space: nowrap; flex-wrap: nowrap; bottom: 10px; padding: 4px 12px; background: rgba(7, 2, 15, .78); clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); font: 700 var(--fs-xs)/1.3 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
+  .mapscr .legend { position: absolute; z-index: 3; left: 50%; transform: translateX(-50%); white-space: nowrap; flex-wrap: nowrap; bottom: 10px; padding: 4px 12px; background: rgba(7, 2, 15, .78); border-radius: 6px; font: 700 var(--fs-xs)/1.3 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; }
   .mapscr .legend { display: flex; align-items: center; gap: 4px 14px; }
   .mapscr .legend span { display: inline-flex; align-items: center; gap: 4px; }
   .mapscr .legend span svg, .mapscr .legend span img { width: 18px; height: 18px; }

@@ -102,7 +102,7 @@ summary { line-height: 1.3; }
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
   filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35)); }
 #loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #f4f0fb; text-shadow: var(--letra-carga); }
-/* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas cortadas) */
+/* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas redondeadas) */
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }
 #loading .ld-ms:empty { display: none; }
 #loading .ld-ms span { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #ffd36a; text-shadow: var(--letra-carga); }
@@ -707,8 +707,7 @@ body.bino-on #lane, body.bino-on #hud { visibility: hidden; }
 .keys { color: #cbc2e0; } .keys kbd { background: rgba(255, 255, 255, .1); color: #fff; }
 .plist { color: #cbc2e0; } .plist b { color: #fff; }
 #reward { background: radial-gradient(circle at 50% 45%, rgba(138, 43, 226, .35), rgba(14, 4, 34, .75) 60%); }
-#reward .card2 { position: relative; background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, #31106b 0%, #12052a 78%); color: #f6f3fc; border: 1px solid rgba(190, 160, 255, .35); box-shadow: 0 24px 70px rgba(0, 0, 0, .55);
-  border-radius: 4px; clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px); }
+#reward .card2 { position: relative; background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, #31106b 0%, #12052a 78%); color: #f6f3fc; border: 1px solid rgba(190, 160, 255, .35); box-shadow: 0 24px 70px rgba(0, 0, 0, .55); border-radius: 10px; }
 #reward .card2::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 3px; background: var(--cta); z-index: 2; pointer-events: none; }
 #reward h2 { color: #fff; }
 #reward .stamp { border-color: #ff7ac8; color: #ff7ac8; }

@@ -111,8 +111,8 @@ const CSS = `
 .lg-root{position:fixed;inset:0;z-index:30000;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-right,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 8px) calc(env(safe-area-inset-left,0px) + 8px);font-family:'MZ Texto',system-ui,sans-serif;color:#fff;animation:lgIn .25s}
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
 .lg-root.out{animation:lgOut .2s ease-in both;pointer-events:none}@keyframes lgOut{to{opacity:0}}
-/* (la tarjeta, como un rótulo de retransmisión: cristal morado, esquinas cortadas y una raya fucsia arriba) */
-.lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;border-radius:4px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(201,178,255,.2);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);clip-path:polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px)}
+/* (la tarjeta, como un rótulo de retransmisión: cristal morado, esquinas redondeadas y una raya fucsia arriba) */
+.lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(201,178,255,.2);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);border-radius:10px;}
 .lg-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .lg-card>*{animation:gx-in .42s cubic-bezier(.2,.9,.3,1.15) both}.lg-card>:nth-child(2){animation-delay:.05s}.lg-card>:nth-child(3){animation-delay:.1s}.lg-card>:nth-child(n+4){animation-delay:.15s}
 /* paneles, como en los juegos de deportes: un fondo algo más oscuro, borde fino y su rótulo arriba (a la izquierda, en
@@ -169,7 +169,7 @@ const CSS = `
 .eq-tile .art>*{transition:transform .3s}.eq-tile:hover .art>*{transform:translateY(-4px)}
 @media (prefers-reduced-motion:reduce){.lg-root *,.lg-root *::before,.lg-root *::after{animation:none!important;transition:none!important}}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
-.lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;border-radius:4px;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
+.lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);border-radius:6px;box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
 /* (el fondo, casi liso: un velo suave de arriba abajo; antes un degradado lateral fuerte, de azul a rosa) */
 .lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(180deg,rgba(201,178,255,.1),rgba(201,178,255,.05));border:1px solid rgba(201,178,255,.16);text-align:center;overflow:hidden}
 .lg-next.con-j{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:4px;padding-top:0;padding-bottom:0}
@@ -240,7 +240,7 @@ const CSS = `
 /* (todas del mismo ancho: antes la de la liga era 1,3 veces las demás; de pie, en carrusel, ver más abajo) */
 .eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(0,1fr);gap:12px;min-height:0}
 .eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
-.eq-tile{min-height:220px;padding:12px 22px;clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px)}
+.eq-tile{min-height:220px;padding:12px 22px;border-radius:8px;}
 .eq-tile::before,.eq-team::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .eq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .eq-tile:active,.eq-team:active{transform:scale(.97)}.eq-tile:hover,.eq-team:hover{border-color:var(--rosa)}
@@ -260,7 +260,7 @@ const CSS = `
 .eq-teams::-webkit-scrollbar{display:none}
 .eq-teams.mt{-webkit-mask-image:linear-gradient(180deg,transparent,#000 40px);mask-image:linear-gradient(180deg,transparent,#000 40px)}.eq-teams.mt.mb{-webkit-mask-image:linear-gradient(180deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(180deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 .eq-teams.mr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}.eq-teams.ml{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}.eq-teams.ml.mr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
-.eq-team{min-height:240px;padding:8px 20px 12px;scroll-snap-align:start;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.eq-team{min-height:240px;padding:8px 20px 12px;scroll-snap-align:start;border-radius:8px;}
 .eq-team.on{--t1:#ff2bd6;--t2:#3a0b6b;border-color:var(--rosa)}
 .eq-team .art{margin:32px -4px 8px}
 .eq-team .em{position:absolute;top:8px;left:12px;width:24px;height:28px;object-fit:contain;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}

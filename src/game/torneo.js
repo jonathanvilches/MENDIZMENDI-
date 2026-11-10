@@ -283,7 +283,7 @@ const CSS = `
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 /* (cada eliminatoria, del ancho de su columna: antes la casilla se ensanchaba con el nombre y los tantos quedaban fuera,
    cortados; ahora, si el nombre no cabe, se acorta él y los tantos siempre se ven) */
-.tq-m{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);border-radius:3px;overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.tq-m{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);border-radius:6px;}
 .tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}
 .tq-m>div{display:flex;align-items:center;gap:4px;padding:2px 8px;min-height:22px;font:600 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:0;text-transform:uppercase}
 .tq-m>div+div{border-top:1px solid rgba(201,178,255,.12)}
@@ -303,8 +303,8 @@ const CSS = `
    en todas: la losa de la colección, con tres, algo más ancha y la del partido libre, con una, algo más estrecha; así
    salen lo más grandes posible */
 .tq-tiles{display:grid;grid-template-columns:1fr 1.08fr .8fr 1.12fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .8fr 1.12fr}.tq-tiles.n5{grid-template-columns:1fr 1.08fr 1fr .78fr 1.05fr}
-.tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;
-  background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);clip-path:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);transition:transform .15s,border-color .15s}
+.tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);color:#fff;text-align:left;cursor:pointer;font:inherit;
+  background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);border-radius:8px;transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .tq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .tq-tile:active{transform:scale(.97)}.tq-tile:hover{border-color:var(--rosa)}

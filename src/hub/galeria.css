@@ -35,24 +35,24 @@ html:not(.tactil) #hub.juego:not([data-screen="home"]):has(.gal) .hub-pista { di
 
 /* cada pantalla, como una carta: la portada entera, sin recortar (las láminas son 16:9 y la foto de la carta también) y,
    debajo, su franja de datos: el nombre, el nombre en euskera o la comarca y una raya por misión, encendidas las hechas.
-   Marco fino que brilla con el color de la comarca y dos esquinas cortadas; las de los lados, en penumbra según se apartan
+   Marco fino que brilla con el color de la comarca y las esquinas redondeadas; las de los lados, en penumbra según se apartan
    (--d). La forma es propia del juego, no la de ninguna marca. Su ancho, como mucho el que deja caberla de alto en su hueco
    (--gwmax, galeria.js) */
 .gal-t { position: absolute; inset: 0; width: var(--gw); height: var(--ch); padding: 0; border: 0; border-radius: 4px; background: none; color: #fff; text-align: left; cursor: pointer; container-type: inline-size; backface-visibility: hidden; -webkit-backface-visibility: hidden;
   box-shadow: 0 22px 44px rgba(4, 1, 12, .5); transition: box-shadow .3s ease; }
 .gt-marco { --k: 14px; position: absolute; inset: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 2px; padding: 2px;
   background: linear-gradient(135deg, color-mix(in srgb, var(--c) 80%, #fff) 0%, rgba(255, 255, 255, .2) 30%, rgba(255, 255, 255, .08) 62%, color-mix(in srgb, var(--c) 65%, #fff) 100%);
-  clip-path: polygon(var(--k) 0, 100% 0, 100% calc(100% - var(--k)), calc(100% - var(--k)) 100%, 0 100%, 0 var(--k)); }
+  border-radius: 8px; }
 .gt-marco::after { content: ''; position: absolute; inset: 0; z-index: 3; background: rgba(8, 3, 20, .88); opacity: calc(var(--d, 1) * .92); pointer-events: none; }
-.gt-foto { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #1a0c33; clip-path: polygon(calc(var(--k) - 1px) 0, 100% 0, 100% 100%, 0 100%, 0 calc(var(--k) - 1px)); }
+.gt-foto { position: relative; display: block; aspect-ratio: 16 / 9; overflow: hidden; background: #1a0c33; border-radius: 7px 7px 0 0; }
 .gt-foto img.gt-img { display: block; width: 100%; height: 100%; object-fit: cover; }
 /* (en la de delante, un brillo que la cruza de vez en cuando) */
 .gt-foto::after { content: ''; position: absolute; inset: 0; opacity: 0; pointer-events: none; background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .22) 50%, transparent 60%) 130% 0 / 250% 100% no-repeat; }
 .gal-t.frente .gt-foto::after { opacity: 1; animation: gtBrillo 5s ease-in-out infinite; }
 @keyframes gtBrillo { 0%, 55% { background-position: 130% 0; } 100% { background-position: -30% 0; } }
-/* (la franja: oscura, con líneas tenues de pantalla, y la esquina de abajo cortada) */
+/* (la franja: oscura, con líneas tenues de pantalla, y las esquinas de abajo redondas) */
 .gt-dato { position: relative; display: flex; align-items: center; gap: 10px; min-width: 0; padding: 0 calc(var(--k) + 2px) 0 12px; background: linear-gradient(180deg, #1d1142, #110926);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--k) + 1px), calc(100% - var(--k) + 1px) 100%, 0 100%); }
+  border-radius: 0 0 7px 7px; }
 .gt-dato::before { content: ''; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, rgba(255, 255, 255, .035) 0 1px, transparent 1px 4px); }
 .gt-nom { position: relative; display: grid; gap: 3px; flex: 1; min-width: 0; }
 .gt-nom b { font: 400 min(var(--fs-lg), 7.4cqw)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap; }

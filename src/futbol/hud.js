@@ -21,7 +21,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:64px;right:64px;display:flex;flex-direction:column;align-items:center;gap:8px}
 /* el marcador, el mismo de la pelota y de las pantallas de deporte: placa en ángulo, filete fucsia arriba, nombres en
    letra estrecha y mayúsculas, el reloj en lila (como en las retransmisiones y en los juegos de fútbol) */
-.fb-score{display:flex;align-items:stretch;border-radius:3px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%)}
+.fb-score{display:flex;align-items:stretch;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;border-radius:6px;}
 .fb-team{display:flex;align-items:center;gap:8px;padding:4px 12px;font:800 var(--fs-sm)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;min-width:0}
 .fb-team img.fb-em{width:20px;height:24px;object-fit:contain;flex:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}.fb-team i{width:12px;height:20px;border-radius:3px;flex:none;box-shadow:0 0 0 1.5px rgba(255,255,255,.7)}
 .fb-team span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(22vw / var(--z, 1))}.fb-team span.fb-sn{display:none}
@@ -167,7 +167,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 /* la identidad de todo el juego (la de las fichas, la pelota y las pantallas de deporte): tarjetas en ángulo con filete
    fucsia arriba, título en mayúsculas, el botón principal con el degradado fucsia y morado y letra blanca, los demás con
    borde lila, y la opción elegida en morado. Los botones del partido no cambian: ya son los finos de los juegos de fútbol */
-.fb-card{position:relative;border-radius:4px;border:1px solid rgba(201,178,255,.25);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px)}
+.fb-card{position:relative;border:1px solid rgba(201,178,255,.25);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);border-radius:10px;}
 .fb-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 24px rgba(255,43,214,.45);pointer-events:none;z-index:1}
 .fb-card h2{text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .fb-card .fb-kick{font-family:var(--f-cond,'MZ Texto'),sans-serif;font-weight:800;letter-spacing:.1em}

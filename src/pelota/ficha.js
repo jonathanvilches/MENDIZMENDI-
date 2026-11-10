@@ -89,7 +89,7 @@ function card(p, lang) {
 const CSS = `
 .pfx{position:fixed;inset:0;z-index:30010;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 16px);background:rgba(10,4,24,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;font-family:'MZ Texto',system-ui,sans-serif;color:#f6f3fc;animation:pfxIn .18s ease-out}
 @keyframes pfxIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
-.pfx-card{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;border-radius:4px;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.22),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 75%);border:1px solid rgba(201,178,255,.25);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
+.pfx-card{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.22),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 75%);border:1px solid rgba(201,178,255,.25);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pfx-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .pfx-top{display:flex;align-items:center;gap:12px}
 .pfx-top>small{flex:1;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0}
@@ -102,7 +102,7 @@ const CSS = `
 .pfx-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
 @media (max-width:600px){.pfx-body{grid-template-columns:1fr}}
 .pfx-head{display:flex;align-items:center;gap:12px;margin:0 0 12px}
-.pfx-av{flex:none;min-width:66px;height:62px;padding:0 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}.pfx-av b{font:400 var(--fs-3xl)/.9 var(--f-display)}.pfx-av small{font:800 var(--fs-xs)/1.2 var(--f-cond)!important;letter-spacing:.1em!important;text-transform:uppercase;color:#fff!important}
+.pfx-av{flex:none;min-width:66px;height:62px;padding:0 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;border-radius:6px;}.pfx-av b{font:400 var(--fs-3xl)/.9 var(--f-display)}.pfx-av small{font:800 var(--fs-xs)/1.2 var(--f-cond)!important;letter-spacing:.1em!important;text-transform:uppercase;color:#fff!important}
 .pfx-av.blue{background:linear-gradient(160deg,#7b6bff,#3121b0)}.pfx-av.red{background:linear-gradient(160deg,#ff5fae,#a8135f)}
 .pfx-head small{display:block;font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
 .pfx-head h3{margin:0;font:400 var(--fs-2xl)/1.05 var(--f-display);text-transform:uppercase;color:#fff}

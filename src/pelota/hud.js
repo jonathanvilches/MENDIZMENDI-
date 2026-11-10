@@ -17,7 +17,7 @@ const CSS = `
    lenta, su aviso. Debajo, cómo saltarla. Si no caben los dos en la misma fila, baja justo debajo del marcador
    (match.js, colocaRep). Antes iba centrado y, con el marcador largo, se montaba encima del nombre */
 .pel-rep{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));display:flex;flex-direction:column;align-items:flex-start;gap:6px;pointer-events:none;animation:pel-repin .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-rep-b{display:flex;align-items:center;gap:8px;height:30px;padding:0 16px 0 12px;border-radius:3px;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pel-rep-b{display:flex;align-items:center;gap:8px;height:30px;padding:0 16px 0 12px;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);border-radius:6px;}
 .pel-rep-b i{flex:none;width:8px;height:8px;border-radius:50%;background:#ff3b5c;box-shadow:0 0 8px #ff3b5c;animation:pel-rec 1s ease-in-out infinite}
 .pel-rep-b b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
 .pel-rep-b .sl{display:none;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:#ffd6f6;padding:4px 8px;border-radius:999px;background:rgba(255,43,214,.35)}
@@ -42,12 +42,12 @@ const CSS = `
 /* las tarjetas: la figura sale por arriba, el nombre en grande y el color con las temporadas */
 .pel-toss-p{--pc:#5b4bff;--k:14px;grid-row:3;align-self:end;position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:12px;min-width:0;max-width:340px;padding:10px 16px 12px 10px;isolation:isolate;
   transition:transform .35s cubic-bezier(.2,1.4,.4,1),filter .35s,opacity .35s}
-/* (el cristal con las esquinas cortadas va en una capa de fondo: recortar la tarjeta entera cortaba la figura que asoma) */
+/* (el cristal, con sus esquinas redondeadas, va en una capa de fondo: así no se recorta la figura que asoma) */
 .pel-toss-p::after{content:'';position:absolute;inset:0;z-index:-1;--ln:linear-gradient(90deg,var(--pc),transparent);background:var(--ln) top/100% 3px no-repeat,linear-gradient(170deg,rgba(42,15,94,.9),rgba(13,6,28,.92));
-  clip-path:polygon(var(--k) 0,100% 0,100% calc(100% - var(--k)),calc(100% - var(--k)) 100%,0 100%,0 var(--k))}
+  border-radius:8px;}
 .pel-toss-p.azul{grid-column:1;justify-self:start;animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}
 .pel-toss-p.rojo{--pc:#ff2e88;grid-column:3;justify-self:end;grid-template-columns:minmax(0,1fr) auto;padding:10px 10px 12px 16px;text-align:right;animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-toss-p.rojo .pt-fig{order:2}.pel-toss-p.rojo::after{--ln:linear-gradient(270deg,var(--pc),transparent);clip-path:polygon(0 0,calc(100% - var(--k)) 0,100% var(--k),100% 100%,var(--k) 100%,0 calc(100% - var(--k)))}
+.pel-toss-p.rojo .pt-fig{order:2}.pel-toss-p.rojo::after{--ln:linear-gradient(270deg,var(--pc),transparent);border-radius:8px;}
 .pel-toss-p .pt-fig{position:relative;width:64px;height:84px;margin-top:-38px}
 .pel-toss-p .pt-fig img{position:absolute;left:50%;bottom:0;height:130%;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 8px 12px rgba(0,0,0,.5))}
 .pel-toss-p.rojo .pt-fig img{transform:translateX(-50%) scaleX(-1)}
@@ -88,7 +88,7 @@ const CSS = `
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
 .pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}.pel-exit .pel-xi{width:22px;height:22px;display:block;pointer-events:none}
-.pel-score{display:flex;align-items:stretch;gap:8px;border-radius:3px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.pel-score{display:flex;align-items:stretch;gap:8px;opacity:.95;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35);max-width:100%;border-radius:6px;}
 /* cada lado: arriba su nombre y sus tantos, en su color; debajo, en el fondo oscuro, su fuerza y su energía, cada una con
    su nombre y su color, con aire entre las tres cosas: la fuerza en rosa y la energía en dorado, que se vuelve naranja y
    luego roja al cansarse (antes, una sola raya blanca pegada al nombre) */
@@ -141,7 +141,7 @@ const CSS = `
 .pel-pres.on{opacity:1;transform:none}.pel-pres i{width:8px;flex:none;background:#e8247c}.pel-pres.azul i{background:#4b3cff}
 .pel-pres b{display:block;font:400 var(--fs-hero,40px)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.01em;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pel-pres small{display:block;margin-top:6px;font:700 var(--fs-sm)/1.2 var(--f-ui,'MZ Texto',sans-serif);letter-spacing:.08em;text-transform:uppercase;color:#ffc2ec}
-.pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%);opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
+.pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;border-radius:6px;opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
 .pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none}
 /* la tarjeta del rival: bajo el marcador, del color que viste; la barra de energía grande y, encima de ella, la fuerza de
    su último golpe, que se llena y se apaga */
@@ -152,7 +152,7 @@ const CSS = `
    dado (como era antes del aviso breve, que al autor le gustaba más) */
 .pel-q b{font:400 var(--fs-4xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:0;color:#fff;filter:drop-shadow(0 4px 0 rgba(7,2,15,.6))}
 .pel-q.on b{animation:pel-qpop .45s cubic-bezier(.2,1.7,.4,1) both}
-.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.pel-q small{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;padding:2px 8px;background:rgba(7,2,15,.72);border-radius:6px;}
 .pel-q small:empty{display:none}
 .pel-q.k-perfect b{background:linear-gradient(180deg,#fff 30%,#ff7ac8 60%,#ff2bd6);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 14px rgba(255,43,214,.9)) drop-shadow(0 4px 0 rgba(7,2,15,.6))}
 .pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qfuera .3s ease both}
@@ -182,7 +182,7 @@ const CSS = `
 @keyframes pel-full{to{filter:brightness(1.6)}}
 /* (las ventanas del partido, por encima de todo: la etiqueta de GOLPE asomaba encima de «Seguir jugando» y se llevaba el toque) */
 .pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
-.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);border-radius:4px;padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);clip-path:polygon(16px 0,100% 0,100% calc(100% - 16px),calc(100% - 16px) 100%,0 100%,0 16px);animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
+.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
 .pel-card h2{margin:0 0 var(--t-mb);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;color:#ff7ac8;letter-spacing:.04em;text-transform:uppercase}
