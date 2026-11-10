@@ -1,6 +1,7 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, ARQ_TXT } from './rules.js';
+import { Comentarios } from './comenta.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
@@ -273,6 +274,7 @@ export class PelotaMatch {
   }
   newGame() {
     this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
+    this.com = new Comentarios(this.lang); this.comIni = false; this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
     const o = this.o;
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
@@ -362,7 +364,7 @@ export class PelotaMatch {
   // «¡A jugar!»: antes, la pantalla VS (azules contra colorados, el frontón y cómo juega el rival); después, el saque.
   // (sin ella en el partido que empieza solo y en las pruebas automáticas, salvo que la pidan con window.__vs)
   vsThenPlay() {
-    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6);
+    const go = () => { if (!this.active) return; this.vsOpen = false; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); this.comInicio();
       if (!this.contado) { this.contado = true; try { localStorage.setItem('herrizherri-pelota-consejos', this.consejosN + 1); } catch (e) { /* sin almacenamiento */ } } };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
     // (después de la presentación, el sorteo del saque con la chapa: saca el del color que sale)
     const sorteo = () => { if (!this.active) return; this.tossChapa(true).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
@@ -999,7 +1001,7 @@ export class PelotaMatch {
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
         this.rallyN = 0; this.golpazo = false; A.mood(0.2, 0.5);
-        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
+        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido', { w: this.label(g.score.you > g.score.rival ? 'you' : 'rival') }), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
@@ -1028,7 +1030,7 @@ export class PelotaMatch {
       case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
         const D = t.desc || TEXT.es.desc, mio = e.side === 'you';
         this.hud.call(mio ? D.tuyo : D.suyo(g.pairs && this.mateObjs ? `${this.names.rival} · ${this.mateObjs.rivalMate.name}` : this.names.rival), `${D.sub}${mio ? ' ' + D.quedan(e.left) : ''}`, '', 3.6);
-        A.mood(0.12, 0.6); break;
+        A.mood(0.12, 0.6); this.decir(this.com?.frase('descanso'), 600); break;
       }
       case 'whiff': if (g.mode === 'rally') this.hud.quality(e.early ? (t.quality.early || TEXT.es.quality.early) : t.quality.whiff, '', 'whiff'); break;   // (pronto o tarde: solo entrenando)
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
@@ -1050,6 +1052,7 @@ export class PelotaMatch {
         else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, ex?.racha ? 2.8 : 2.2, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
         // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
         A.point(e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call], e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)));
+        if (g.mode === 'match') this.comTanto(e);
         break;
       }
       case 'end': this.endPanel(e); break;
@@ -1064,9 +1067,27 @@ export class PelotaMatch {
     const dif = (e.score?.you ?? 0) - (e.score?.rival ?? 0), suya = w === 'you' ? dif : -dif;
     for (const k of ['you', 'rival']) R.peor[k] = Math.min(R.peor[k], k === 'you' ? dif : -dif);
     this.hud.setRacha(w, R.n >= 3 ? R.n : '', T.marcador(R.n));
-    if (R.peor[w] <= -3 && suya === 0 && !R.igualo[w]) { R.igualo[w] = true; return T.iguala; }
-    if (R.peor[w] <= -3 && suya === 1 && !R.remonto[w]) { R.remonto[w] = true; return T.remonta; }
-    return R.n >= 3 ? T.seguidos(R.n) : '';
+    if (R.peor[w] <= -3 && suya === 0 && !R.igualo[w]) { R.igualo[w] = true; R.tipo = 'iguala'; return T.iguala; }
+    if (R.peor[w] <= -3 && suya === 1 && !R.remonto[w]) { R.remonto[w] = true; R.tipo = 'remonta'; return T.remonta; }
+    R.tipo = R.n >= 3 ? 'seguidos' : ''; return R.n >= 3 ? T.seguidos(R.n) : '';
+  }
+  // Los comentarios (comenta.js): decir pone una frase en su rótulo dentro de ms; al empezar, la presentación del partido
+  // y del rival (su arquetipo y su golpe estrella); en cada tanto, lo que toque; al segundo tanto, algo del frontón
+  decir(c, ms = 0) { if (!c) return; setTimeout(() => { if (this.active && !this.hud.panelEl) this.hud.comenta(c); }, ms); }
+  lugar() { return this.o.venue || (this.o.town ? (this.txt.fronton || TEXT.es.fronton)(this.o.town) : ''); }
+  comInicio() {
+    const c = this.com; if (!c?.on || this.game.mode !== 'match' || this.comIni) return; this.comIni = true;
+    this.decir(c.frase('inicio', { f: this.lugar(), t: this.game.target, a: this.label('you'), b: this.label('rival') }), 400);
+    const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false), AT = ARQ_TXT[this.lang] || ARQ_TXT.es;
+    this.decir(c.frase('rival', { r: this.nomLimpio('rival'), arq: AT[A.arq].toLowerCase(), g: (AT.golpe[A.estrella] || '').toLowerCase() }), 4600);
+  }
+  comTanto(e) {
+    const c = this.com; if (!c?.on) return;
+    const R = this.rachas || {}, w = this.label(e.winner), l = this.label(e.winner === 'you' ? 'rival' : 'you'), s = e.score || {};
+    const n = R.tipo === 'iguala' ? s.you : R.n, a = Math.max(s.you ?? 0, s.rival ?? 0), b = Math.min(s.you ?? 0, s.rival ?? 0);
+    this.decir(c.tanto(this.game.stats?.log?.at(-1), { w, l, racha: R.tipo || '', n, final: !!e.final, a, b, f: this.lugar() }), 300);
+    if (e.final) this.decir(c.frase('finalE'), 4000);
+    else if (c.n === 2 && this.feel?.tags?.[0]) { const q = this.feel.tags[0].what; this.decir(c.frase('frontón', { what: q[0].toLowerCase() + q.slice(1) }), 4200); }
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)

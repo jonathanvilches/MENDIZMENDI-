@@ -337,6 +337,17 @@ const CSS = `
 .pel-clave p{margin:4px 0 0;font-size:var(--fs-sm);font-weight:700;line-height:1.35;color:#fff}
 .pel-mapa{margin:0 0 12px;padding:10px 14px 8px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
 .pel-mapa svg{display:block;width:100%;height:auto;margin-top:6px}
+/* los comentarios (comenta.js): un rótulo de retransmisión abajo en el centro, entre el joystick y los botones, con la
+   inicial y el nombre de quien habla (rosa la narradora o el narrador; lila la o el ex pelotari); en vertical, a lo ancho
+   y por encima de los botones. También en la repetición: es cuando más se comenta */
+.pel-com{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translate(-50%,8px);width:max-content;max-width:min(calc(100vw / var(--z, 1) - 420px),520px);display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:10px;align-items:center;padding:8px 14px 8px 10px;background:rgba(7,2,15,.88);border-left:3px solid var(--cc,#ff2bd6);border-radius:3px;box-shadow:0 6px 18px rgba(0,0,0,.35);opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;--cc:#ff2bd6}
+.pel-com.on{opacity:1;transform:translate(-50%,0)}.pel-com.e{--cc:#9d8cff}
+.pel-com .pc-q{grid-row:1/3;width:30px;height:30px;border-radius:50%;background:var(--cc);display:grid;place-items:center;font:400 var(--fs-md)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#fff;font-style:normal}
+.pel-com b{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--cc)}.pel-com b small{font:inherit;color:#cbbcf0;letter-spacing:.04em}
+.pel-com p{margin:2px 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#fff}
+@media (orientation:portrait){.pel-com{left:16px;right:16px;width:auto;max-width:none;transform:translateY(8px);bottom:calc(env(safe-area-inset-bottom,0px) + 200px)}.pel-com.on{transform:none}}
+.pel-root.paneled .pel-com{visibility:hidden}
+body.alto-contraste .pel-com{background:#000;border:2px solid #fff;border-left:4px solid var(--cc)}
 /* accesibilidad (util/accesible.js): textos grandes, un 20 % más, y alto contraste, con fondo negro, letra blanca y bordes
    blancos en el marcador, los avisos, los paneles y los botones */
 body.textos-grandes .pel-root{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px;--fs-4xl:52px;--fs-hero:clamp(36px,7vw,56px)}
@@ -441,6 +452,7 @@ export class PelotaHud {
       </div></div></div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div></div>
       <div class="pel-golpe" aria-live="off"></div>
+      <div class="pel-com" role="status" aria-live="polite"></div>
       <div class="pel-pres" aria-live="polite"><i></i><div><b></b><small></small></div></div>
       <div class="pel-q"></div>
       <div class="pel-tip"></div>
@@ -532,6 +544,16 @@ export class PelotaHud {
     c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
     if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
   }
+  /** El rótulo de los comentarios (comenta.js): c = { quien, rol, texto, r ('n' narra, 'e' explica) }; null lo quita.
+   *  Cada frase se ve al menos 2,4 s: si llega otra antes, espera su turno (solo la última que llega) */
+  comenta(c) {
+    const el = this._com ||= this.$('.pel-com'); if (!el) return;
+    if (!c) { el.classList.remove('on'); this.comT = 0; this.comSig = null; return; }
+    if (this.comT > 0 && this.comVisto < 2.4) { this.comSig = c; return; }
+    this.comVisto = 0; el.className = 'pel-com ' + (c.r === 'e' ? 'e' : 'n');
+    el.innerHTML = `<i class="pc-q" aria-hidden="true">${esc(c.quien[0] || '')}</i><b>${esc(c.quien)} <small>· ${esc(c.rol)}</small></b><p>${esc(c.texto)}</p>`;
+    void el.offsetWidth; el.classList.add('on'); this.comT = Math.min(6, 2.6 + c.texto.length / 30);
+  }
   /** La racha de un lado en el marcador: n (tantos seguidos; vacío, se quita) y lo que dice para quien no ve el icono */
   setRacha(side, n, label = '') {
     for (const el of this.root.querySelectorAll('.ps-racha')) {
@@ -595,6 +617,8 @@ export class PelotaHud {
   }
   tick(dt) {
     if (this.gT > 0 && (this.gT -= dt) <= 0) this._g?.classList.remove('on');
+    if (this.comT > 0) { this.comVisto += dt; if ((this.comT -= dt) <= 0) this._com?.classList.remove('on'); }
+    if (this.comSig && (this.comT <= 0 || this.comVisto >= 2.4)) { const c = this.comSig; this.comSig = null; this.comT = 0; this.comenta(c); }
     if (this.callT > 0 && (this.callT -= dt) <= 0) { this.$('.pel-call').classList.remove('on'); this.root.classList.remove('calling'); }
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');
   }

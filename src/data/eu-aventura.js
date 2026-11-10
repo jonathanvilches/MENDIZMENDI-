@@ -4,6 +4,8 @@ export const EU_AVENTURA = {
   'Efectos de imagen': 'Irudi-efektuak',
   // (accesibilidad: util/accesible.js)
   'Textos grandes': 'Testu handiak', 'Alto contraste': 'Kontraste handia',
+  'Comentarios de los partidos': 'Partiden iruzkinak', 'Maite y Patxi': 'Maite eta Patxi', 'Unai y Garazi': 'Unai eta Garazi', 'Sin comentarios': 'Iruzkinik gabe',
+  'En los partidos de pelota, una narradora o un narrador cuenta cada jugada y una ex pelotari o un ex pelotari la explica, en el idioma del juego.': 'Pilota partidetan, esatari batek jokaldi bakoitza kontatzen du eta pilotari ohi batek azaltzen du, jokoaren hizkuntzan.',
   'Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.': 'Letra handiagoa pilota partidetan eta pilotarien fitxetan. Kontraste handiarekin, markagailua, abisuak, panelak eta botoiak hondo beltzarekin eta ertz zuriekin agertzen dira.',
   'Bruma en el valle, sombras de nubes, resplandor de las luces y color de cada hora. Solo con calidad Media o Alta; si el juego va justo, se apagan solos.': 'Lainoa haranean, hodeien itzalak, argien distira eta ordu bakoitzaren kolorea. Kalitate Ertain edo Altuarekin bakarrik; jokoa justu badabil, bere kabuz itzaltzen dira.',
   // la aventura de cada pueblo (game/townAventura.js)

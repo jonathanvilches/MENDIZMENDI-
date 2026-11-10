@@ -283,6 +283,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   columnas desde 600 px de ancho, para que en el móvil tumbado no quede nada debajo de los botones. El momento clave es
   la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
   cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.
+- **Comentarios del partido** (`pelota/comenta.js`; `pelota/match.js`, `comInicio`, `comTanto`, `decir`;
+  `pelota/hud.js`, `comenta`; el dúo en `util/comentarios.js`, `herrizherri-comentarios`, y Ajustes en `hub/hub.js`): un
+  dúo inventado, una narradora o un narrador que cuenta y una ex pelotari o un ex pelotari que explica (Maite y Patxi,
+  Unai y Garazi, o sin comentarios). Frases cortas en castellano y en euskera, en un rótulo abajo en el centro (en vertical,
+  encima de los botones): al empezar, el frontón, a cuántos tantos y el rival con su arquetipo y su golpe estrella; en
+  cada tanto, según cómo acabó (el golpe del remate, chapa, fuera, saque, fallo), las rachas, la remontada, el peloteo
+  largo, el tanto de partido, el descanso y el final; al segundo tanto, algo del frontón (`courtFeel`). Comentan siempre
+  lo que importa y, de lo demás, más o menos la mitad; nunca la misma frase dos veces seguidas, y cada frase se ve al
+  menos 2,4 s (si llega otra, espera). En euskera los nombres van sin declinar («Tantoa: Ane»).
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
