@@ -217,13 +217,17 @@ export class PelotaCourt {
     // albardilla de piedra que remata el frontis y la pared izquierda
     const capMat = M({ color: th.cap, roughness: 0.8 });
     const cap = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.24, 1.05), capMat); cap.position.set(-0.3, C.FRONT_H + 0.12, -0.4); cap.castShadow = true; g.add(cap);
-    // el marcador grande, encima del frontis: los nombres y los tantos de los azules y los colorados, que se leen desde
-    // cualquier sitio de la cancha (sin anuncios ni escudos de clubes: solo el tanteo)
-    { const bc = this.bigCanvas = document.createElement('canvas'); bc.width = 1024; bc.height = 192;
+    // el marcador, a la derecha del frontis, como en los frontones de verdad: sobre la contracancha, en lo alto de dos
+    // postes y algo vuelto hacia la cancha, con los nombres y los tantos de los azules y los colorados en dos filas (sin
+    // anuncios ni escudos de clubes: solo el tanteo). Antes estaba encima del frontis
+    { const bc = this.bigCanvas = document.createElement('canvas'); bc.width = 512; bc.height = 288;
       const bt = this.bigTex = srgb(T, new T.CanvasTexture(bc));
-      const bw = 5.8, bh = bw * 192 / 1024, by = C.FRONT_H + 0.24 + bh / 2 + 0.06;
-      const big = new T.Mesh(new T.PlaneGeometry(bw, bh), new T.MeshBasicMaterial({ map: bt, toneMapped: false })); big.position.set(0, by, 0.15); big.name = 'marcador-frontis'; g.add(big);
-      const back = new T.Mesh(new T.BoxGeometry(bw + 0.2, bh + 0.2, 0.16), M({ color: '#24282c', roughness: 0.6, metalness: 0.3 })); back.position.set(0, by, 0.05); g.add(back);
+      const bw = Math.min(3.8, CONTRA + 1.2), bh = bw * 288 / 512, by = 3.6 + bh / 2, bx = W / 2 + bw / 2 - 0.1;   // (grande: se lee desde el rebote)
+      const B = this.bigBoard = new T.Group(); B.position.set(bx, 0, 0.35); B.rotation.y = -0.3; B.name = 'marcador-frontis'; g.add(B);
+      const big = new T.Mesh(new T.PlaneGeometry(bw, bh), new T.MeshBasicMaterial({ map: bt, toneMapped: false })); big.position.set(0, by, 0.09); B.add(big);
+      const steelB = M({ color: '#2a2440', roughness: 0.55, metalness: 0.4 });
+      const back = new T.Mesh(new T.BoxGeometry(bw + 0.18, bh + 0.18, 0.14), steelB); back.position.set(0, by, 0); back.castShadow = true; B.add(back);
+      for (const k of [-1, 1]) { const post = new T.Mesh(new T.BoxGeometry(0.14, 3.7, 0.14), steelB); post.position.set(k * bw * 0.36, 3.7 / 2, -0.04); post.castShadow = true; B.add(post); }
       this.setScore('', '', 0, 0); }
     const capL = new T.Mesh(new T.BoxGeometry(0.85, 0.2, EXT + 0.2), capMat); capL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.1, EXT / 2 - 0.1); capL.castShadow = true; g.add(capL);
     // la chapa de abajo (el colchón): la plancha que sobresale del frontis, hecha de paneles atornillados con sus juntas,
@@ -611,6 +615,7 @@ export class PelotaCourt {
     const st = this.scoreTex = srgb(T, new T.CanvasTexture(sc));
     const board = new T.Mesh(new T.PlaneGeometry(3.6, 1.8), new T.MeshBasicMaterial({ map: st })); board.position.set(xr + 2.6, 7.6, za + 0.03); g.add(board);
     box(3.9, 2.1, 0.12, steel, xr + 2.6, 7.6, za - 0.03);
+    if (this.bigBoard) this.bigBoard.visible = false;   // (aquí manda la pantalla de la pared: el de postes sobraría)
     this.setScore('', '', 0, 0);
     // --- fuera, como el de verdad: ladrillo caravista amarillo ocre (llagas claras), pilastras, zócalo, recercados,
     // impostas y cornisa de piedra beige; ventanas recercadas abajo, óculos y una fila de ventanas en arco de ladrillo
@@ -816,18 +821,17 @@ export class PelotaCourt {
     row(22, you, a, '#2f6fd0'); row(138, rival, b, '#d03a2f');
     this.scoreTex.needsUpdate = true;
     }
-    // y el grande del frontis: azules a la izquierda y colorados a la derecha, con los tantos en el centro
+    // y el de la derecha del frontis: dos filas, azules arriba y colorados abajo, el nombre a la izquierda y los tantos a
+    // la derecha, grandes, sobre el morado del juego
     const d = this.bigCanvas?.getContext('2d'); if (!d) return;
-    const W2 = 1024, H2 = 192, half = (x0, col, name, n, right) => {
-      d.fillStyle = col; d.fillRect(x0, 12, W2 / 2 - 18, H2 - 24);
-      d.fillStyle = '#ffffff'; d.font = '400 72px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textBaseline = 'middle';
-      let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 300) t = t.slice(0, -1);
-      d.textAlign = right ? 'right' : 'left'; d.fillText(t, right ? x0 + W2 / 2 - 48 : x0 + 30, H2 / 2 + 4);
-      d.fillStyle = '#ffffff'; d.font = '400 140px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textAlign = 'center';
-      d.fillText(String(n), right ? x0 + 70 : x0 + W2 / 2 - 88, H2 / 2 + 8);
+    const W2 = 512, H2 = 288, fila = (y, col, name, n) => {
+      d.fillStyle = col; d.fillRect(12, y, 16, 120);
+      d.fillStyle = '#ffffff'; d.font = '400 58px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textBaseline = 'middle'; d.textAlign = 'left';
+      let t = String(name || '').toUpperCase(); while (t.length > 3 && d.measureText(t).width > 300) t = t.slice(0, -1); d.fillText(t, 44, y + 62);
+      d.fillStyle = col === '#4b3cff' ? '#b9b2ff' : '#ff9fcd'; d.font = '400 104px "MZ Display", "Lilita One", Nunito, Arial, sans-serif'; d.textAlign = 'right'; d.fillText(String(n), W2 - 22, y + 66);
     };
-    d.fillStyle = '#0b0618'; d.fillRect(0, 0, W2, H2);
-    half(6, '#4b3cff', you, a, false); half(W2 / 2 + 12, '#e8247c', rival, b, true);
+    d.fillStyle = '#0b0618'; d.fillRect(0, 0, W2, H2); d.fillStyle = '#1c1238'; d.fillRect(0, H2 / 2 - 2, W2, 4);
+    fila(14, '#4b3cff', you, a); fila(H2 / 2 + 10, '#e8247c', rival, b);
     d.strokeStyle = '#ff2bd6'; d.lineWidth = 6; d.strokeRect(3, 3, W2 - 6, H2 - 6);
     this.bigTex.needsUpdate = true;
   }

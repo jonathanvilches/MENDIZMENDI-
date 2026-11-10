@@ -299,6 +299,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   detrás, centrada y quieta, con el plano algo más abierto, como la tele de antes. Mientras se juega no se mueve ni corta
   (la dinámica no actúa); tras el tanto, los planos de siempre si la dinámica está puesta. En el frontón cubierto no pasa
   del rebote.
+- **Marcador del frontón a la derecha del frontis** (`pelota/court.js`, `bigBoard`, `setScore`): como en los frontones de
+  verdad, sobre la contracancha, en lo alto de dos postes y algo vuelto hacia la cancha, con dos filas (azules arriba,
+  colorados abajo) en los morados del juego. Antes estaba encima del frontis. En el Labrit no sale: allí está su pantalla
+  de la pared derecha.
 - **Rótulos del partido que no chocan** (`pelota/hud.js`, `call`; `pelota/match.js`, `colocaRep`): el rótulo grande del
   juez y el de la repetición, si se cruzan con el marcador, bajan justo debajo de él. La fila de Ahora no y ¡A jugar! tiene
   otra vez su hueco y su fondo (`.pel-row`), que se había borrado sin querer.
