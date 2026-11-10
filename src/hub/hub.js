@@ -186,7 +186,9 @@ export class Hub {
       // seguía con la barra de arriba y el menú al lado de la web de antes, y en el móvil tumbado se quedaba sin sitio)
       markDidactico(S.didactic); this.root.classList.add('juego'); }
     // (lo que mide tu retrato de arriba a la izquierda, que abre el menú: lo conquistado empieza justo a su lado)
-    { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (this.screen === 'home') this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }
+    // (lo mida cuando lo mida: en las colecciones del mapa, a las que se puede entrar directamente, el retrato es el ancho
+    // del inicio y, como solo se medía en el inicio, su panel se ponía encima del retrato)
+    { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (mb.offsetWidth) this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }
     // (el menú flotante: se abre y se cierra con su botón, con la X, tocando fuera o con Escape; al elegir una sección, se cierra)
     this.root.addEventListener('click', e => { if (e.target.closest('[data-menu]')) this.menu(!this.root.classList.contains('menu-on')); else if (e.target.closest('[data-menu-x]')) this.menu(false); });
     addEventListener('keydown', e => { if (e.key !== 'Escape' || !this.visible || !this.root.classList.contains('juego') || document.querySelector('.sheet, .onb, .mg-overlay')) return;
