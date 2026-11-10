@@ -65,7 +65,28 @@ function senalaJuez(J, call, b) {
   if (!J?.length || !call || call === 'bote' || call === 'tanto') return;
   const z = ['chapa', 'alta', 'lado', 'corta'].includes(call) ? 0 : b?.z ?? COURT.FALTA;
   let best = J[0]; for (const j of J) if (Math.abs(j.zl - z) < Math.abs(best.zl - z)) best = j;
-  best.wave = 2.2;
+  best.alza = ALZA;
+}
+// la señal del juez: el brazo derecho bien alto, recto y apuntando al cielo, algo abierto, unos 2 s (antes saludaba con
+// la mano, el gesto de los vecinos, y no se entendía que era tanto). Se pone encima de la animación: cada hueso del brazo
+// se gira lo justo para que apunte arriba, sea cual sea su postura, y se mezcla con la de reposo al subir y al bajar
+const ALZA = 2.2, _ja = new THREE.Vector3(), _jb = new THREE.Vector3(), _jd = new THREE.Vector3(), _jq = new THREE.Quaternion(), _jq2 = new THREE.Quaternion(), _jq3 = new THREE.Quaternion(), _jI = new THREE.Quaternion();
+function brazoJuez(j, dt) {
+  if (!(j.alza > 0) || !j.glb?.root) return;
+  j.alza = Math.max(0, j.alza - dt);
+  if (!j.brazo) { const B = {}; j.glb.root.traverse(o => { if (o.isBone) for (const k of ['RightArm', 'RightForeArm', 'RightHand', 'Spine1']) if (!B[k] && new RegExp(k + '$').test(o.name)) B[k] = o; }); j.brazo = B; }
+  const { RightArm: arm, RightForeArm: fore, RightHand: hand, Spine1: sp } = j.brazo; if (!arm || !fore || !hand) return;
+  const w = THREE.MathUtils.smoothstep(Math.min((ALZA - j.alza) / 0.22, j.alza / 0.3), 0, 1); if (w <= 0) return;
+  j.glb.root.updateMatrixWorld(true);
+  // (hacia arriba y un poco hacia fuera, del lado del brazo)
+  arm.getWorldPosition(_ja); (sp || arm.parent).getWorldPosition(_jb); _jd.subVectors(_ja, _jb).setY(0); if (_jd.lengthSq() > 1e-6) _jd.normalize();
+  const dir = _jd.multiplyScalar(0.28).add(_ja.set(0, 1, 0)).normalize();
+  for (const [b, c] of [[arm, fore], [fore, hand]]) {
+    b.getWorldPosition(_ja); c.getWorldPosition(_jb); const d = _jb.sub(_ja).normalize();
+    _jq.setFromUnitVectors(d, dir); _jq2.copy(_jI).slerp(_jq, w);
+    b.getWorldQuaternion(_jq3); _jq3.premultiply(_jq2);
+    b.parent.getWorldQuaternion(_jq); b.quaternion.copy(_jq.invert().multiply(_jq3)); b.updateMatrixWorld(true);
+  }
 }
 // Cómo es el frontón de cada sitio. Se parte de la comarca y de lo que cuentan las fuentes (legal/estado-legal.md): los
 // frontones viejos de los pueblos, junto a la iglesia y con el frontis de sillería (arenisca rojiza en Baztan y Bidasoa,
@@ -575,7 +596,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (en la llegada al Labrit, mientras la cámara va por la calle, el público de dentro no se ve: ni se mueve ni se dibuja)
       try { if (seated) { seated.visible = !seated.userData.espera && !(fronton.court.labrit && G.sky && !G.sky.indoor); if (seated.visible) seated.tick(match.t || 0, cheerT > 0 ? 1 : 0.15, seatedZ, G.camera); if (cheerT > 0 && (cheerT -= dt) <= 0) seated.cheer(false); } } catch (e) { console.warn('público', e); apunta('público', e); seated = null; }
       // (los jueces siguen la pelota con la mirada)
-      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
+      try { if (jueces.length) { const b = match.game.ball.p, w = fronton.court.group.localToWorld(_jv.set(b.x, 0, b.z)); for (const j of jueces) { j.mira = w; j.update(dt, null); brazoJuez(j, dt); } } } catch (e) { console.warn('jueces', e); apunta('jueces', e); jueces = []; }
     };
     })().catch(fail);
     function done(r) {

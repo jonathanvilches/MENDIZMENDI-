@@ -320,7 +320,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   borroso); el cercano toma su color de la media de cinco puntos de la textura, no de uno, y ya no sale a manchas.
 - **Jueces del frontón** (`game/fronton.js`, `makeJueces`; `actors/npcGlb.js`, `meshyFor` con `juez`): tres en la
   contracancha, a la altura de la chapa, del 4 y del 7. Son una persona normal, el chico del polo y el pantalón corto,
-  con los dos teñidos de negro (`npcOutfit.js`), sin más: ni boina ni pañuelo ni los tacos del pelotari.
+  con los dos teñidos de negro (`npcOutfit.js`), sin más: ni boina ni pañuelo ni los tacos del pelotari. En cada fallo
+  (chapa, fuera, falta, pasa…) el que lo ve levanta el brazo derecho bien alto unos 2 s (`senalaJuez`, `brazoJuez`: cada
+  hueso del brazo se gira para apuntar arriba encima de la animación; antes saludaba con la mano).
 - **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
   `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
   su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro
