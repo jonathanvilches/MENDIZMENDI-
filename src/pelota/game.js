@@ -867,13 +867,15 @@ export class PelotaGame {
       // cambios de ritmo: colocándose, al trote; si la pelota es tuya y no llegas a tu paso, esprint: hacia delante a por
       // una dejada o una pelota corta, más que nada (arrancada), y hacia atrás si la pelota se va al fondo. Se nota la
       // diferencia de ritmo y se gasta más energía (EN). La arrancada tarda un poco en llegar y se apaga enseguida
-      { const im0 = Math.hypot(mx, mz), mio = this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you';
+      // (con la cámara no hay mando: cuando te toca, tu pelotari corre solo a por la pelota, y también cambia de ritmo él:
+      // esprint hacia delante a por la dejada y hacia atrás a por la que se va al fondo, si a su paso no llega)
+      { const im0 = Math.hypot(mx, mz), mio = this.phase === 'rally' && this.rally.turn === 'you' && this.takerOf('you') === 'you', cam = this.camara && inp.aiming;
         let ritmo = mio ? 1 : 0.9, dir = 0;
-        if (mio && im0 > 0.3) {
+        if (mio && (im0 > 0.3 || cam)) {
           const c = this.interceptFor('you', spd * 1.4, 0.1);
           if (c) {
-            const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz), cos = d > 0.5 ? (dx * mx + dz * mz) / (d * im0) : 0;
-            if (cos > 0.55 && d > 2.2 && d / spd + 0.1 > c.t * 0.8) { dir = dz < -1.5 ? -1 : dz > 1.5 ? 1 : 0; ritmo = dir < 0 ? 1.42 : dir > 0 ? 1.3 : 1.15; }
+            const dx = c.x - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz), cos = cam ? 1 : d > 0.5 ? (dx * mx + dz * mz) / (d * im0) : 0, paso = cam ? Math.max(spd, YOU_RUN * 1.05) : spd;
+            if (cos > 0.55 && d > (cam ? 1.6 : 2.2) && d / paso + 0.1 > c.t * 0.8) { dir = dz < -1.5 ? -1 : dz > 1.5 ? 1 : 0; ritmo = dir < 0 ? 1.42 : dir > 0 ? 1.3 : 1.15; }
           }
         }
         you.ritmo ??= 1; you.ritmo += (ritmo - you.ritmo) * (1 - Math.exp(-(ritmo > you.ritmo ? 5 : 9) * dt));
@@ -899,7 +901,7 @@ export class PelotaGame {
         const c = this.interceptFor('you', YOU_RUN, 0.1);
         // (con la cámara, más deprisa y sin frenar tanto al llegar: no hay mando con el que ayudarle, y antes llegaba tarde
         // y la pelota le pasaba por delante)
-        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3), dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
+        if (c) { const help = Math.max(this.lvl.assist, this.camara ? YOU_RUN * 1.05 : 5.4) * (1 - this.tired('you') * 0.3) * (this.camara ? Math.max(1, you.ritmo || 1) : 1), dx = c.x - (this.camara ? (inp.ladoGolpe ?? 1) * 0.45 : 0) - you.x, dz = c.z - you.z, d = Math.hypot(dx, dz); if (d > 0.25) { const k = Math.min(help, this.camara ? d * 4.5 + 0.6 : d * 2.5); vx += dx / d * k; vz += dz / d * k; } }
       }
       const a = 1 - Math.exp(-12 * dt);
       // (si sacas, la carrera hasta el 4 la haces solo: el joystick no cuenta hasta que golpeas)
