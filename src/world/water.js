@@ -14,7 +14,7 @@ void main(){
   #include <fog_vertex>
 }`;
 const waterFS = `
-uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunCol; uniform vec3 uSky; uniform vec3 uDeep; uniform vec3 uShallow; uniform float uFlow; uniform float uNight;
+uniform float uTime; uniform vec3 uSunDir; uniform vec3 uSunCol; uniform vec3 uSky; uniform vec3 uZen; uniform vec3 uDeep; uniform vec3 uShallow; uniform float uFlow; uniform float uNight;
 varying vec3 vWP; varying vec2 vUv; varying float vEdge;
 #include <fog_pars_fragment>
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7)))*43758.5453); }
@@ -39,14 +39,20 @@ void main(){
   vec3 V = normalize(cameraPosition - vWP);
   float fres = pow(1.0 - max(dot(n, V), 0.0), 3.0);
   float edge = vEdge;
+  // profundidad por color: hondo y oscuro en el centro, verde claro al acercarse a la orilla y casi turquesa donde ya se hace pie
   vec3 base = mix(uDeep, uShallow, smoothstep(0.45, 1.0, edge));
-  vec3 col = mix(base, uSky, 0.08 + fres * 0.5);
+  base = mix(base, uShallow * 1.22 + vec3(0.015, 0.045, 0.035), smoothstep(0.84, 1.0, edge) * 0.55);
+  // el cielo reflejado, en degradado: el horizonte si se mira rasante y el azul del cenit si el reflejo sube
+  vec3 Rf = reflect(-V, n);
+  vec3 col = mix(base, mix(uSky, uZen, smoothstep(0.0, 0.75, Rf.y)), 0.1 + fres * 0.55);
   vec3 Hh = normalize(normalize(uSunDir) + V);
   float spec = pow(max(dot(n, Hh), 0.0), 260.0) * 2.2 + pow(max(dot(n, Hh), 0.0), 40.0) * 0.08;
   col += uSunCol * spec * (1.0 - uNight * 0.6);
   // espuma en orillas y corrientes
   float foamN = wav(vec2(vUv.x * 9.0, vUv.y * 4.0) - flow * 2.2);
   float foam = smoothstep(0.9, 1.02, edge + foamN * 0.12) * 0.7 + smoothstep(0.9, 0.98, h0 * 0.75 + foamN * 0.3) * 0.25 * uFlow;
+  // la espuma dibujada: líneas finas que van llegando a la orilla una detrás de otra, como a pincel
+  foam = max(foam, smoothstep(0.44, 0.49, abs(fract(edge * 2.6 - uTime * 0.11 + foamN * 0.35) - 0.5)) * smoothstep(0.6, 0.9, edge) * 0.6);
   col = mix(col, vec3(0.92, 0.96, 0.98) * mix(1.0, 0.4, uNight), clamp(foam, 0.0, 1.0) * 0.7);
   float alpha = mix(0.88, 0.6, smoothstep(0.8, 1.0, edge)) + fres * 0.1;
   gl_FragColor = vec4(col, clamp(alpha, 0.0, 1.0));
@@ -59,7 +65,7 @@ function makeMat(flow) {
   return new THREE.ShaderMaterial({ defines: LOWQ ? { LOWQ: 1 } : {},
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
       uTime: { value: 0 }, uSunDir: { value: new THREE.Vector3(0, 1, 0) }, uSunCol: { value: new THREE.Color('#fff') },
-      uSky: { value: new THREE.Color('#bfe0f7') }, uDeep: { value: new THREE.Color('#174e5a') }, uShallow: { value: new THREE.Color('#3d8580') },
+      uSky: { value: new THREE.Color('#bfe0f7') }, uZen: { value: new THREE.Color('#2f7fdc') }, uDeep: { value: new THREE.Color('#174e5a') }, uShallow: { value: new THREE.Color('#3d8580') },
       uFlow: { value: flow }, uNight: { value: 0 },
     }]),
     vertexShader: waterVS, fragmentShader: waterFS, transparent: true, depthWrite: false, fog: true,
@@ -168,7 +174,7 @@ export class Water {
       m.uniforms.uTime.value = elapsed;
       m.uniforms.uSunDir.value.copy(sky.sunDir);
       m.uniforms.uSunCol.value.copy(sky.sun.color);
-      m.uniforms.uSky.value.copy(sky.uniforms.uHor.value);
+      m.uniforms.uSky.value.copy(sky.uniforms.uHor.value); m.uniforms.uZen.value.copy(sky.uniforms.uZen.value);
       m.uniforms.uNight.value = sky.night;
     }
   }

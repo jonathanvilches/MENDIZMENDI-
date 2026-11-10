@@ -835,6 +835,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     el mismo objeto), el humo de las chimeneas (`fx.js Smoke`, que se tumba hacia donde sopla) y los banderines de
     fiesta (`fiestas.js`: la punta de cada banderita, marcada con `aCuelga`, aletea en el sombreador). Lo que se
     mueva con el viento de aquí en adelante, que lea `VIENTO`.
+  - *Agua pintada* (`world/water.js`, tanda 1): el reflejo del cielo va en degradado (el horizonte si se mira rasante,
+    el azul del cenit si el reflejo sube: `uZen`), la profundidad se lee por color en tres pasos (hondo, verde claro
+    y casi turquesa donde se hace pie) y a la orilla llegan líneas finas de espuma, una detrás de otra. Todo en el
+    sombreador que ya había, sin lecturas de textura ni geometría nuevas.
   - *Flores pintadas* (`flores.js`, `flores.webp`): las de jardineras, balcones y macetas de las puertas, y las de las
     fachadas sencillas (`Lienzo.flores`), son tarjetas con geranios, petunias, tagetes y gitanillas pintados (GPT Image
     en Higgsfield, con transparencia), en un atlas de 3 × 2; `celda(color)` elige la casilla por el color de siempre.
