@@ -222,16 +222,18 @@
 /* (con una ficha abierta encima, la ventana de detrás se hunde un poco y se apaga: la ficha queda delante, con profundidad) */
 body:has(> .mg-overlay, > .lam-view) #hub.juego .hub-main { transform: scale(.975); opacity: .55; }
 @keyframes hubVentana { from { opacity: 0; transform: translateY(10px) scale(.992); } }
-#hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px); margin: 0 -24px 8px; background: linear-gradient(180deg, rgba(13, 6, 28, .98) 50%, rgba(13, 6, 28, .78) 68%, rgba(13, 6, 28, .4) 85%, rgba(13, 6, 28, 0) 100%); pointer-events: none; }
+/* (la franja de la cabecera: opaca en todo su alto y, debajo, una tira corta que se funde; antes era opaca solo en su mitad
+   de arriba y, a la altura de los nombres de las secciones, se veía pasar por detrás lo que bajaba) */
+#hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px + 12px); margin: 0 -24px -4px; background: linear-gradient(180deg, #0d061c calc(100% - 12px), rgba(13, 6, 28, 0) 100%); pointer-events: none; }
 #hub.juego .hub-cab { position: absolute; z-index: 26; top: var(--sh-t); left: calc(var(--sh-l) + var(--hud-h) + 20px); right: calc(var(--sh-r) + var(--hud-h) + 20px); height: calc(var(--hud-h) + 16px);
   display: flex; align-items: center; gap: 10px; min-width: 0; color: var(--tx2); font: 600 var(--fs-sm)/1 var(--f-cond); letter-spacing: .14em; text-transform: uppercase; pointer-events: none; }
 #hub.juego .hub-cab span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hub.juego .hub-cab :is(svg, img) { flex: none; width: 20px; height: 20px; }
 #hub.juego:not([data-screen="home"]) .hub-menu-btn { top: calc(var(--sh-t) + 8px); left: calc(var(--sh-l) + 8px); background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 #hub.juego .hub-x { top: calc(var(--sh-t) + 8px); right: calc(var(--sh-r) + 8px); background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-@media (max-height: 520px) { #hub.juego .hub-main { padding: 0 16px 20px; border-radius: var(--cr-r); } #hub.juego .hub-main::before { margin: 0 -16px 4px; height: calc(var(--hud-h) + 12px); } #hub.juego .hub-cab { height: calc(var(--hud-h) + 12px); }
+@media (max-height: 520px) { #hub.juego .hub-main { padding: 0 16px 20px; border-radius: var(--cr-r); } #hub.juego .hub-main::before { margin: 0 -16px -8px; height: calc(var(--hud-h) + 12px + 12px); } #hub.juego .hub-cab { height: calc(var(--hud-h) + 12px); }
   #hub.juego:not([data-screen="home"]) .hub-menu-btn, #hub.juego .hub-x { top: calc(var(--sh-t) + 6px); } #hub.juego:not([data-screen="home"]) .hub-menu-btn { left: calc(var(--sh-l) + 6px); } #hub.juego .hub-x { right: calc(var(--sh-r) + 6px); } }
-@media (max-width: 760px) { #hub.juego .hub-main { padding: 0 16px 24px; } #hub.juego .hub-main::before { margin: 0 -16px 4px; } }
+@media (max-width: 760px) { #hub.juego .hub-main { padding: 0 16px 24px; } #hub.juego .hub-main::before { margin: 0 -16px -4px; } }
 /* (dentro de la ventana, sin el fondo de la página de antes ni sus márgenes de pantalla entera) */
 #hub.juego .hub-main > * { animation: none; }
 /* (al pasar de una sección a otra con la ventana ya abierta, lo de dentro llega en cascada, desde el lado de la sección a la

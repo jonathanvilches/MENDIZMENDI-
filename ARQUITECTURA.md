@@ -187,6 +187,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   limpio sobre la ficha, con una raya clara de 1 px. Antes se fundía con la ficha en los últimos 60 px y, como el pie de
   las láminas suele ser oscuro, quedaba una franja sucia que no gustaba. Los lados de la lámina estrecha siguen
   apagándose hacia fuera.
+- **Cabecera de las secciones en la ventana del juego** (`#hub.juego .hub-main::before`, `hub/consola.css`). La franja de
+  arriba es opaca en todo su alto y solo se funde en una tira de 12 px por debajo: antes era opaca solo en su mitad de
+  arriba y, a la altura de los nombres de las secciones, se veía pasar por detrás lo que bajaba.
 - **Casillas de las misiones del pueblo** (`#misiones` de `style.css`, arriba a la izquierda; noviembre de 2026). Cada
   icono va sobre un fondo sólido del color de su categoría (46 % del color sobre morado oscuro; hecha, 78 % con su marca;
   la que sigues, un aro blanco por dentro con `box-shadow`, porque los botones no llevan borde: `neon.css`). El panel
