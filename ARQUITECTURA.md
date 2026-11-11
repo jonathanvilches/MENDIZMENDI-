@@ -183,6 +183,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sin el canto de 5 px de abajo, que los hacía parecer más altos que anchos, ni el anillo rosa del de actuar; solo una sombra
   muy suave alrededor, sin bajar, para que se separen de un suelo claro. Al pulsar ceden hacia dentro (`scale`). En
   `neon.css`, `.cbtn.big` lleva lo mismo con `!important`.
+- **Portadas de la comarca y del pueblo** (`.pt-marco` de `hub/fichas.css`; noviembre de 2026). La lámina acaba con un borde
+  limpio sobre la ficha, con una raya clara de 1 px. Antes se fundía con la ficha en los últimos 60 px y, como el pie de
+  las láminas suele ser oscuro, quedaba una franja sucia que no gustaba. Los lados de la lámina estrecha siguen
+  apagándose hacia fuera.
 - **Casillas de las misiones del pueblo** (`#misiones` de `style.css`, arriba a la izquierda; noviembre de 2026). Cada
   icono va sobre un fondo sólido del color de su categoría (46 % del color sobre morado oscuro; hecha, 78 % con su marca;
   la que sigues, un aro blanco por dentro con `box-shadow`, porque los botones no llevan borde: `neon.css`). El panel
