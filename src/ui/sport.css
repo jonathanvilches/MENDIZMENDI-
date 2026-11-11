@@ -86,12 +86,14 @@ img.pf { display: block; flex: none; }
 img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background-position: 0 0; }
 .gx-card .gx-fig > img.pf-az { background-size: 100% 100%; background-position: 0 0; }
 /* (la columna de la izquierda: la media grande, el puesto debajo, el arquetipo en su círculo y el escudo del pueblo) */
-.gx-card .gx-ovr { position: absolute; z-index: 1; left: 6%; width: 28%; top: calc(var(--w) * .12); display: flex; flex-direction: column; align-items: center; gap: calc(var(--w) * .02); line-height: .9; }
-.gx-card .gx-ovr b { font: 600 calc(var(--w) * .24)/.82 var(--f-cond); letter-spacing: -.01em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
+/* (la columna del número, dentro del marco interior con su margen: la línea va al 6,2 % y su esquina de arriba baja hasta
+   el 18 %. Antes empezaba al 6 % y a 12 % de alto, y el número pisaba la línea y la esquina) */
+.gx-card .gx-ovr { position: absolute; z-index: 1; left: 10%; width: 25%; top: calc(var(--w) * .16); display: flex; flex-direction: column; align-items: center; gap: calc(var(--w) * .02); line-height: .9; }
+.gx-card .gx-ovr b { font: 600 calc(var(--w) * .215)/.82 var(--f-cond); letter-spacing: -.01em; text-shadow: 0 2px 0 rgba(0, 0, 0, .3); }
 .gx-card .gx-ovr small { font: 600 max(11px, calc(var(--w) * .085))/1 var(--f-cond); letter-spacing: .05em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px rgba(7, 2, 15, .6); }
-.gx-card .gx-arq { flex: none; width: calc(var(--w) * .14); height: calc(var(--w) * .14); display: grid; place-items: center; border-radius: 50%; background: rgba(12, 3, 30, .6); border: 1px solid var(--ac); color: #fff; box-shadow: 0 0 calc(var(--w) * .05) color-mix(in srgb, var(--ac) 60%, transparent); }
+.gx-card .gx-arq { flex: none; width: calc(var(--w) * .13); height: calc(var(--w) * .13); display: grid; place-items: center; border-radius: 50%; background: rgba(12, 3, 30, .6); border: 1px solid var(--ac); color: #fff; box-shadow: 0 0 calc(var(--w) * .05) color-mix(in srgb, var(--ac) 60%, transparent); }
 .gx-card .gx-arq svg { width: 62%; height: 62%; }
-.gx-card .gx-esc { flex: none; display: block; width: calc(var(--w) * .17); height: calc(var(--w) * .16); object-fit: contain; filter: drop-shadow(0 1px 2px rgba(7, 2, 15, .55)); }
+.gx-card .gx-esc { flex: none; display: block; width: calc(var(--w) * .155); height: calc(var(--w) * .145); object-fit: contain; filter: drop-shadow(0 1px 2px rgba(7, 2, 15, .55)); }
 /* (abajo, antes de la punta: el nombre centrado, una raya y las cualidades; el pueblo, solo en las de por descubrir, que
    dice dónde encontrarlas: en las demás lo dice su escudo) */
 .gx-card .gx-pie { position: absolute; z-index: 1; left: 8%; right: 8%; top: calc(var(--w) * .79); bottom: calc(var(--w) * .19); display: flex; flex-direction: column; min-height: 0; }
