@@ -1110,7 +1110,7 @@ export class PelotaMatch {
         // (a un tanto del final: con empate, «último tanto»; si no, «tanto de partido» y quién está a un tanto. Antes salía
         // siempre «el que gane este tanto, gana el partido», que solo es verdad con empate)
         if (e.matchPoint) { const T1 = g.target - 1, ambos = g.score.you === T1 && g.score.rival === T1, lider = g.score.you === T1 ? 'you' : 'rival';
-          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 2.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
+          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 2.6); A.mood(0.45, 0.3); A.aplauso(0.8, 4.2); /* (en el tanto que puede acabar el partido, la grada aplaude antes y mientras se saca, como en los frontones; el autor, noviembre de 2026) */ if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
