@@ -306,7 +306,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sudor y lleva sobre la cabeza su aviso de sudor, que se ve también en el rival, lejos.
 - **Partido de pelota, los pelotaris no se atraviesan** (`pelota/match.js`, `esquiva`): al volver a su sitio para el
   saque, cada uno mira dónde se cruzará con el otro según el paso que llevan y, si van a pasar a menos de un metro, se
-  abre hacia su lado; si aun así se juntan a menos de 75 cm, se separan. Llegan a la vez que antes.
+  abre hacia su lado; si aun así se juntan a menos de 75 cm, se separan. Llegan a la vez que antes. Ojo: el salto de
+  sitio se mira en la posición de la lógica (`S.px`, `S.pz`), no en la distancia de la figura a su sitio; si no, el
+  camino se rehacía en línea recta cada fotograma y el desvío se perdía (al cambiar el saque, por la raya del 7 de frente,
+  se atravesaban). Se prueba cambiando el saque con los dos quietos en su sitio: nunca a menos de 0,94 m.
 - **Partido de pelota, corren de verdad** (`game/fronton.js`, `corre`; `actors/glbChar.js`, `GlbRig.update`): el
   pelotari pasa de andar a correr a 1,85 m/s (la gente del pueblo, a 3,6): el clip de andar a su tope solo cubre 1,9 m/s
   y, al frenar volviendo al saque, los pies patinaban. Los gestos de parado (celebrar, la pena, saludar, soplarse la

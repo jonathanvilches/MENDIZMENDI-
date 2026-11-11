@@ -1367,9 +1367,15 @@ export class PelotaMatch {
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
       // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
-      const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0, vel: 0 };
+      const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0, vel: 0, px: P.x, pz: P.z };
       let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }
-      if (Math.hypot(px - S.x, pz - S.z) > Math.max(0.35, 10 * dt)) { S.ox = S.x - px; S.oz = S.z - pz; }
+      // (solo es un salto cuando la lógica cambia de golpe su sitio, no cuando la figura aún va de camino: antes se miraba
+      // la distancia de la figura a su sitio, que mientras vuelve siempre es grande, y en cada fotograma se rehacía el
+      // camino en línea recta y se perdía el desvío de esquiva. Al cambiar el saque, los dos van por la raya del 7 de
+      // frente y se atravesaban)
+      if (S.px == null) { S.px = px; S.pz = pz; }
+      if (Math.hypot(px - S.px, pz - S.pz) > Math.max(0.35, 10 * dt)) { S.ox = S.x - px; S.oz = S.z - pz; }
+      S.px = px; S.pz = pz;
       S.v = 0;
       // (vuelve corriendo, como un pelotari de verdad: arranca, corre a su paso y frena al llegar; con esa velocidad se elige
       // el paso de la figura, que corre con las piernas. Antes se acercaba cada vez más despacio y, al final, parecía que
