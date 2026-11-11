@@ -58,7 +58,8 @@ export function desdeAqui(el, r0, { dur, ease = 'muelle' } = {}) {
 export function cuenta(el, hasta, { desde = 0, dur = 900, fmt = (v) => Math.round(v).toLocaleString('es-ES') } = {}) {
   if (!el) return;
   if (reducido() || !(dur > 0)) { el.textContent = fmt(hasta); return; }
-  const t0 = performance.now(), paso = (t) => { const k = Math.min(1, (t - t0) / dur), v = desde + (hasta - desde) * (1 - Math.pow(1 - k, 3)); el.textContent = fmt(v); if (k < 1 && el.isConnected) requestAnimationFrame(paso); };
+  // (k desde 0: el reloj del fotograma puede ir un poco por detrás del de ahora, y la cuenta empezaba en negativo, «-1»)
+  const t0 = performance.now(), paso = (t) => { const k = Math.max(0, Math.min(1, (t - t0) / dur)), v = desde + (hasta - desde) * (1 - Math.pow(1 - k, 3)); el.textContent = fmt(v); if (k < 1 && el.isConnected) requestAnimationFrame(paso); };
   requestAnimationFrame(paso);
 }
 
@@ -136,4 +137,28 @@ export function inercia(fila) {
   fila.addEventListener('click', (e) => { if (movio) { e.preventDefault(); e.stopPropagation(); movio = false; } }, { capture: true });
   fila.addEventListener('wheel', para, { passive: true });
   fila.addEventListener('dragstart', (e) => e.preventDefault());   // (sin esto el navegador arrastraba la imagen de la carta y cortaba el gesto)
+}
+
+// ---------- Marcadores y cifras (fase 4 del rediseño de la animación) ----------
+/** Que la primera cifra del texto de un elemento suba desde 0 hasta su valor, sin tocar el resto del texto ni los iconos
+ *  («12 sellos», «7 de 43»): se busca el primer trozo de texto con un número y solo ese trozo va cambiando */
+export function cuentaTexto(el, { dur = 900 } = {}) {
+  if (!el || reducido()) return;
+  const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n = null, m = null;
+  while ((n = w.nextNode())) { m = /\d[\d.]*/.exec(n.nodeValue); if (m) break; }
+  if (!n || !m) return;
+  const txt = n.nodeValue, antes = txt.slice(0, m.index), despues = txt.slice(m.index + m[0].length), hasta = +m[0].replace(/\./g, '');
+  if (!(hasta > 0) || hasta > 1e7) return;
+  const mil = m[0].includes('.') || hasta >= 10000, fmt = (v) => { const r = Math.round(v); return mil ? r.toLocaleString('es-ES') : String(r); };
+  const t0 = performance.now(), paso = (t) => { const k = Math.max(0, Math.min(1, (t - t0) / dur)); n.nodeValue = antes + fmt(hasta * (1 - Math.pow(1 - k, 3))) + despues; if (k < 1 && n.isConnected) requestAnimationFrame(paso); else n.nodeValue = txt; };
+  n.nodeValue = antes + '0' + despues; requestAnimationFrame(paso);
+}
+// (las cifras del menú que suben al abrir una sección: la media de una ficha, las cualidades, lo descubierto de cada
+// colección, tus sellos, misiones y cartas en el Perfil, tu nivel y tu experiencia)
+export const CIFRAS = '.ar-count > b, .ci-ovr > b, .stats .stat > b, .pstats > span, .prof .lvl > b, .prof .lvl small, [data-cuenta]';
+/** Pone a contar las cifras de lo que se acaba de pintar (solo las que se ven de entrada, como mucho 24) */
+export function contadores(raiz, sel = CIFRAS) {
+  if (!raiz || reducido()) return;
+  const alto = innerHeight; let n = 0;
+  for (const el of raiz.querySelectorAll(sel)) { if (n >= 24) break; const r = el.getBoundingClientRect(); if (!r.width || r.top > alto) continue; cuentaTexto(el); n++; }
 }

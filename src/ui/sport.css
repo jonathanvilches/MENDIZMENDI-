@@ -148,7 +148,7 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 @keyframes gx-in { from { opacity: 0; transform: translateX(-18px) skewX(-6deg); } to { opacity: 1; transform: none; } }
 
 /* ---------- barra de una cualidad que se llena */
-@keyframes gx-fill { from { width: 0; } }
+@keyframes gx-fill { from { transform: scaleX(0); } }   /* (sin uso por ahora; con transform, no con el ancho) */
 
 @media (prefers-reduced-motion: reduce) { .gx-bg::after, .gx-go::after, .gx-card .gx-face::after { animation: none; display: none; } .gx-card.pop { animation: none; } }
 

@@ -73,7 +73,7 @@ import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas, encima de todo: ui/neon.css)
-import { relieve, desdeAqui, cartasVivas, continuidad, inercia } from '../ui/motion.js';
+import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores } from '../ui/motion.js';
 import '../ui/cartas.css';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -316,6 +316,7 @@ export class Hub {
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
     m.querySelectorAll('.lam-rail, .figuras.rail, .rail, .cstrip').forEach(inercia);   // (las filas de cartas, que se arrastran con el ratón con inercia)
+    contadores(m);   // (las cifras que suben desde 0 al abrir la sección: lo descubierto, las cualidades, tu nivel; ui/motion.js)
     this.renderChip();
   }
   // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas
@@ -746,7 +747,7 @@ export class Hub {
       if (id === cur || !vivo()) return; cur = id; const a = castById(id);
       stage.setAvatar(id); this.sound?.ui('coin');
       sec.style.setProperty('--c', a.color);
-      const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap');
+      const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap'); contadores(info);
       $('.cs-bgname', host).textContent = a.name; const n = $('.cs-count b', host); if (n) n.textContent = AVATARS.indexOf(a) + 1;   // (con dos no hay cuenta)
       host.querySelectorAll('[data-av]').forEach(x => { x.classList.toggle('on', x.dataset.av === id); if (x.hasAttribute('aria-checked')) x.setAttribute('aria-checked', x.dataset.av === id); });
       center(id, true);

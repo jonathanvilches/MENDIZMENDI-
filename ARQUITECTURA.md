@@ -154,6 +154,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cartas mientras tanto; al acabar, se asientan en una (con el dedo ya lo hacía el navegador); un arrastre no abre la carta.
   Las cascadas de entrada van con «backwards»: con «both», la animación acabada seguía mandando sobre el transform y las
   cartas no se inclinaban.
+- **Cifras que suben y barras que se llenan** (`ui/motion.js`: `cuentaTexto`, `contadores`, `CIFRAS`; fase 4 del rediseño
+  de la animación). Al abrir una sección, las cifras que se ven de entrada suben desde 0 hasta su valor (como mucho 24, en
+  0,9 s, rápidas al principio y despacio al llegar): lo descubierto de cada colección («7 de 43»), la media y las
+  cualidades de la ficha del personaje (también al cambiar de chico a chica), y en el Perfil tu nivel, tu experiencia, tus
+  sellos, misiones, cartas y cimas. Solo cambia el trozo de texto con el número; el resto y los iconos quedan. Las barras
+  (las cualidades, `.sbar`, y tu experiencia, `.xp`) se llenan estirándose con `transform: scaleX` desde la izquierda;
+  antes animaban su ancho. El nombre «MENDI SCORE» no se usa en ningún sitio.
 
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia
