@@ -1,4 +1,4 @@
-// El nombre de cada pelotari en la espalda de la camiseta, como en las retransmisiones: letras grandes de un blanco roto,
+// El nombre de cada pelotari en la espalda de la camiseta, como en las retransmisiones: letras grandes blancas,
 // sin filo (el borde negro hacía que pareciera una pegatina), con los bordes algo difuminados y una pizca de transparencia
 // para que se note el color de la camiseta debajo, como estampadas; en una pieza algo curvada que va pegada al hueso del
 // pecho del modelo, así sigue al cuerpo al correr, girarse y golpear. La espalda se busca en el propio modelo: los ojos
@@ -24,7 +24,7 @@ function textura(nombre) {
     let px = 108; g.font = `800 ${px}px ${FUENTE}`;
     while (g.measureText(nombre).width > 470 && px > 40) { px -= 4; g.font = `800 ${px}px ${FUENTE}`; }
     g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.filter = 'blur(1.4px)'; g.fillStyle = '#e9e3d8'; g.fillText(nombre, 256, 68); g.filter = 'none';
+    g.filter = 'blur(1.1px)'; g.fillStyle = '#ffffff'; g.fillText(nombre, 256, 68); g.filter = 'none';
     t.needsUpdate = true;
   };
   // (con la letra del juego en cuanto esté cargada; mientras, con la de repuesto)
@@ -70,7 +70,7 @@ export function ponDorsal(rig, nombre) {
   const geo = new THREE.PlaneGeometry(w, h, 10, 1), p = geo.attributes.position;
   for (let i = 0; i < p.count; i++) { const x = p.getX(i); p.setZ(i, -(x * x) / (2 * R)); }
   geo.computeVertexNormals();
-  const mat = new THREE.MeshStandardMaterial({ map: textura(txt), transparent: true, opacity: 0.86, depthWrite: false, roughness: 0.9, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+  const mat = new THREE.MeshStandardMaterial({ map: textura(txt), transparent: true, opacity: 0.96, depthWrite: false, roughness: 0.9, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
   const m = new THREE.Mesh(geo, mat); m.name = 'dorsal'; m.castShadow = false; m.userData.noShadow = true;
   // (a media espalda, por debajo de donde cae el pelo largo o la coleta; un poco por fuera de la camiseta y mirando hacia
   // atrás: se lee bien desde detrás. Más arriba, la coleta de las pelotaris lo tapaba)

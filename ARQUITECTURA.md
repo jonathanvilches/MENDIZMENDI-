@@ -368,7 +368,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   las de la mujer. La segunda voz que se sacó de la misma
   grabación, más grave y con el timbre cambiado, sonaba robótica y se quitó (noviembre de 2026): solo la voz grabada.
 - **El nombre en la espalda de la camiseta** (`pelota/dorsal.js`, desde `game/fronton.js` para ti, el rival y las
-  parejas): el nombre de pila en mayúsculas («Tú» y «Zu» no se escriben), de un blanco roto algo difuminado, sin filo y con
+  parejas): el nombre de pila en mayúsculas («Tú» y «Zu» no se escriben), blanco, con el borde algo difuminado, sin filo y con
   una pizca de transparencia para que se vea estampado (con el borde negro parecía una pegatina). Va en una pieza algo
   curvada pegada al hueso del pecho, a media espalda (más arriba, la coleta de las pelotaris lo tapaba); la espalda se
   busca en el propio modelo (los ojos dicen hacia dónde mira; el vértice que más sale por detrás a la altura del pecho) y
