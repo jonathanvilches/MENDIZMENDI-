@@ -13,7 +13,9 @@ import { Frases } from './audio/frases.js';
 // (el partido de pelota sigue con la épica de Torneos, la del autor: la de antes, «Minstrel Guild», era medieval y no se
 // buscó él; se quitó en noviembre de 2026)
 const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-accion', game: 'musica-juego', fiesta: 'musica-juego',
-  sport: 'musica-torneos', pelota: 'musica-torneos', inicio: 'musica-inicio', torneos: 'musica-torneos' };
+  sport: 'musica-torneos', pelota: 'musica-torneos', inicio: 'musica-inicio', torneos: 'musica-torneos',
+  // (de paseo por los pueblos, «Viking Village Dance» de Andy Slatter, que pasó el autor en noviembre de 2026)
+  paseo: 'musica-pueblo' };
 
 // los sonidos grabados (src/assets/sonidos, Envato Elements: LICENCIAS.md): de cada lista, uno al azar sin repetir el
 // último. Si aún no está descomprimido suena el sintetizado de antes, que sigue aquí debajo; los de los menús y los
@@ -300,9 +302,11 @@ export class Sound {
     this.pistas?.pausa(false);
     // (de paseo por un pueblo no suena la canción de continuo: frases sueltas y el ambiente. La canción vuelve con lo que
     // pasa: una persecución, una leyenda de noche, un minijuego, un partido, una fiesta)
-    const paseo = this.mood === 'explore' && !!this.paseo;
-    this.frases?.tick(0.25, paseo && (this.duckUntil || 0) <= ctx.currentTime, this.aire || 'media', this.volMus(), this.noche || 0);
-    this.pistas?.quiere(this.mood === 'none' || paseo ? null : MUSICA[this.mood] || MUSICA.explore);
+    // (ahora suena la canción del pueblo que pasó el autor; las frases sintetizadas de antes, audio/frases.js, solo si no
+    // se pueden poner las grabadas: el autor no quiere música hecha por nosotros)
+    const paseo = this.mood === 'explore' && !!this.paseo, grab = !!this.pistas?.ok;
+    this.frases?.tick(0.25, !grab && paseo && (this.duckUntil || 0) <= ctx.currentTime, this.aire || 'media', this.volMus(), this.noche || 0);
+    this.pistas?.quiere(this.mood === 'none' || (paseo && !grab) ? null : paseo ? MUSICA.paseo : MUSICA[this.mood] || MUSICA.explore);
     if (this.mood !== this.musCur) {
       this.musCur = this.mood; const g = this.musicBus.gain, t = ctx.currentTime; g.cancelScheduledValues(t);
       if (this.mood === 'none') g.setTargetAtTime(0, t, 0.35);

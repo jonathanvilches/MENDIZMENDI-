@@ -34,6 +34,7 @@ Descargados por el dueño del proyecto de Envato Elements y enviados sin el cert
 | ambiente-pajaros | Pájaros de fondo, de día | Birds | pendiente | pendiente |
 | ambiente-pueblo | Ambiente del pueblo, de día | Village Ambience | pendiente | pendiente |
 | musica-accion | Música del encierro y de las persecuciones | Music Loop Last Man Standing High Energy Action | pendiente | pendiente |
+| musica-pueblo | Música del paseo por los pueblos (11/11/2026) | Viking Village Dance | Andy Slatter | pendiente |
 
 Cómo se han preparado: en un canal, MP3 de 64 kbps (los ambientes, 72; la música, 128 en estéreo), recortados a un solo sonido y con el pico a −3 dB. Los ambientes y la música, 30 s; en el juego, los ambientes suenan 20 s en bucle con el final fundido. A los pasos en el agua se les ha quitado el ruido de fondo. Del «Retro Game Sound Pack» no se usa nada todavía: es de 8 bits y no encaja con el estilo del juego.
 

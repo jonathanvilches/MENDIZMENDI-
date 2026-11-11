@@ -8,7 +8,8 @@ const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/sonid
   .map(([p, u]) => [p.split('/').pop().replace('.mp3', ''), u]));
 // (el volumen de cada una, para que suenen como la música sintetizada, unos −33 dB a la salida)
 // (la de acción, «Last Man Standing», para el encierro y las persecuciones: viene unos 3 dB más baja que la de los pueblos)
-const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5, 'musica-accion': 0.55 };
+// (la del paseo por los pueblos viene 2,7 dB más baja que la de los juegos: un poco por debajo de ella, de fondo)
+const VOL = { 'musica-inicio': 0.35, 'musica-juego': 0.47, 'musica-torneos': 0.5, 'musica-accion': 0.55, 'musica-pueblo': 0.55 };
 
 /** Las músicas grabadas de un contexto de audio: quiere(nombre) cada cuarto de segundo con la que toca (o null). Cambia
  *  de una a otra con un fundido corto. */

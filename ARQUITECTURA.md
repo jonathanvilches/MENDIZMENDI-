@@ -1189,6 +1189,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     persecución, leyenda, minijuego, partido, fiesta. Los instrumentos son sintetizados, a la espera de grabaciones;
     las melodías son propias. `runtime.js` le dice a `Sound` si se está de paseo (`paseo`), la familia de la comarca
     (`aire`) y cuánta noche hay.
+    Desde el 11 de noviembre de 2026, de paseo suena la canción grabada que pasó el autor, «Viking Village Dance» de
+    Andy Slatter (`musica-pueblo`, `MUSICA.paseo`): el autor no quiere música hecha por nosotros. Las frases quedan solo
+    si no se pueden poner las grabadas (un contexto sin `<audio>`).
 - **Exploración y movimiento** (noviembre de 2026, tanda 1, fase 2):
   - *Moverse cuesta* (`actors/player.js`): el jugador tiene un modo (`pie`, `trepa`, `resbala`, `planea`, `nada`) y una
     resistencia (`aguante`, de 0 a `aguanteMax`; 1 es un anillo entero). Empujando contra una cuesta que andando no se
