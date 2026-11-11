@@ -67,11 +67,13 @@ export const KINDS = {
     como: { es: 'ocho pelotaris mano a mano en el Cuatro y Medio, en los frontones cubiertos del invierno: la pelota no puede botar más allá de la raya del 4 y medio. Cuartos y semifinales a 5 tantos y final a 7.', eu: 'zortzi pilotari buruz buru lau t’erdian, neguko frontoi estalietan: pilotak ezin du lau eta erdiko marratik haratago bote egin. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra.' } },
   promesas: { name: 'Promesas del 4½', full: 'Torneo de Promesas del Cuatro y Medio', k: 'Para empezar', base: 'cuatro', fmt: 'ko8', lv: -0.9,
     como: { es: 'ocho pelotaris que empiezan, mano a mano en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio. Cuartos y semifinales a 5 tantos y final a 7. El mejor para estrenarse.', eu: 'hasten ari diren zortzi pilotari, buruz buru lau t’erdian: pilotak ezin du lau eta erdiko marratik haratago bote egin. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra. Estreinatzeko onena.' } },
+  comarcas: { name: 'Campeonato de Comarcas', full: 'Campeonato de Comarcas', k: 'Por tu comarca', base: 'mano', fmt: 'ko8', lv: 0.6, global: true, comarcas: true,
+    como: { es: 'cada pelotari juega por su comarca: tú, por la tuya, contra los campeones de otras siete comarcas de Navarra. Mano a mano: cuartos y semifinales a 5 tantos y la final, a 7, en el frontón Labrit de Iruña.', eu: 'pilotari bakoitzak bere eskualdearen alde jokatzen du: zuk, zurearen alde, Nafarroako beste zazpi eskualdetako txapeldunen aurka. Buruz buru: final-laurdenak eta finalerdiak 5 tantora eta finala, 7ra, Iruñeko Labrit frontoian.' } },
   gran: { name: 'Gran Txapela de Navarra', full: 'Gran Txapela de Navarra', k: 'El acontecimiento del año', base: 'mano', fmt: 'ko16', lv: 1, global: true, evento: true,
     como: { es: 'el acontecimiento del año: los dieciséis mejores pelotaris de toda Navarra, mano a mano por eliminatorias. Octavos a 5 tantos, cuartos a 6, semifinales a 7 y la gran final, a 9, en el frontón Labrit de Iruña lleno hasta arriba. Una sola txapela para todo el viejo reino.', eu: 'urteko gertaera handia: Nafarroa osoko hamasei pilotari onenak, buruz buru kanporaketetan. Final-zortzirenak 5 tantora, final-laurdenak 6ra, finalerdiak 7ra eta final handia, 9ra, Iruñeko Labrit frontoian, beteta. Txapela bakarra erresuma zahar osorako.' } },
 };
 /** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
-export const EXTRA = ['gran', 'fiestas', 'valles', 'invierno', 'promesas'];
+export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas'];
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
@@ -104,7 +106,7 @@ function jornadas(ids) {
 }
 // el cuadro de dieciséis por cabezas de serie, como en los campeonatos: tú, el primero (contra el último), y los dos más
 // fuertes, cada uno en una mitad, hasta la final
-const SERIE16 = [1, 16, 8, 9, 5, 12, 4, 13, 3, 14, 6, 11, 7, 10, 2, 15];
+const SERIE16 = [1, 16, 8, 9, 5, 12, 4, 13, 3, 14, 6, 11, 7, 10, 2, 15], SERIE8 = [1, 8, 4, 5, 3, 6, 2, 7];
 /**
  * El torneo de la comarca en curso (o uno nuevo).
  * you: { name, town }; ctx: { comarca, comarcaName, towns: [{ id, name }] } (los pueblos del juego donde se juega:
@@ -114,7 +116,7 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   // (el torneo terminado se sigue mostrando, con su campeón, hasta que se pide uno nuevo; uno de antes, de ocho, sin
   // ninguna ronda jugada, se rehace con el formato de ahora, en la misma edición)
   // (el acontecimiento del año es uno solo para toda Navarra: con su propia «comarca», y rivales de todas)
-  const K = KINDS[kind] || KINDS.mano;
+  const K = KINDS[kind] || KINDS.mano, suya = { id: ctx.comarca, name: ctx.comarcaName };
   if (K.global) ctx = { ...ctx, comarca: 'navarra', comarcaName: 'Navarra' };
   const key = keyOf(ctx.comarca, kind);
   let T = loadAll()[key];
@@ -129,7 +131,9 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
     const fmt = K.fmt || FMT[kind] || FMT.mano, N = fmt === 'liga8' || fmt === 'ko8' ? 8 : 16;
     const names = NAMES.filter(n => n !== you.name).sort(() => r() - 0.5);   // (nadie con tu mismo nombre)
     // rivales: de los pueblos del juego de la comarca (y de alrededor) primero; después, de otros pueblos navarros
-    const towns = [...ctx.towns.map(t => ({ name: t.name, id: t.id })).filter(t => t.name !== you.town), ...TOWNS.filter(t => t !== you.town && !ctx.towns.some(x => x.name === t)).map(name => ({ name, id: null }))];
+    let towns = [...ctx.towns.map(t => ({ name: t.name, id: t.id })).filter(t => t.name !== you.town), ...TOWNS.filter(t => t !== you.town && !ctx.towns.some(x => x.name === t)).map(name => ({ name, id: null }))];
+    // (por comarcas: cada rival juega por una de las otras comarcas, a suertes en cada edición; tú, por la tuya)
+    if (K.comarcas) towns = COMARCAS.filter(c => c.id !== suya.id).map(c => ({ name: c.name, id: null })).sort(() => r() - 0.5);
     const townOf = (i) => towns[i % towns.length];
     // nivel de 1 (flojo) a 3 (fuerte): en cada edición, algo más difíciles
     // (y en los inventados, más o menos según cada uno: K.lv, los de promesas más flojos y los del acontecimiento del año,
@@ -143,14 +147,15 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
       players = [{ id: 'you', name: `${you.name} · ${partner}`, mates: [you.name, partner], town: you.town, lv: 2, you: true }, ...rivals];
     } else {
       const rivals = Array.from({ length: N - 1 }, (_, i) => { const t = townOf(i); return { id: 'p' + i, name: names[i], town: t.name, townId: t.id, lv: lvOf() }; });
-      players = [{ id: 'you', name: you.name, town: you.town, lv: 2, you: true }, ...rivals];
+      players = [{ id: 'you', name: you.name, town: K.comarcas ? suya.name || you.town : you.town, lv: 2, you: true }, ...rivals];
     }
     T = { kind, fmt, comarca: ctx.comarca, comarcaName: ctx.comarcaName, venues: ctx.towns, edition: ed, txapelas, players, round: 0, matches: [], past: [], done: false, champion: null };
     // (tú, el primero; los rivales, del más fuerte al más flojo)
     const order = [0, ...players.slice(1).map((p, i) => i + 1).sort((a, b) => fuerza(T, players[b]) - fuerza(T, players[a]))];
-    if (fmt === 'ko16') {
-      const s = SERIE16.map(k => order[k - 1]);
-      for (let i = 0; i < 16; i += 2) T.matches.push({ a: s[i], b: s[i + 1], s: null });
+    if (fmt === 'ko16' || fmt === 'ko8') {
+      // (por eliminatorias, con los cabezas de serie repartidos: el primero y el segundo solo se ven en la final)
+      const S = fmt === 'ko8' ? SERIE8 : SERIE16, s = S.map(k => order[k - 1]);
+      for (let i = 0; i < S.length; i += 2) T.matches.push({ a: s[i], b: s[i + 1], s: null });
     } else {
       // la liguilla: con dieciséis, cuatro grupos de cuatro con un cabeza de serie en cada uno (tú, en el primero) y los
       // demás de los otros bombos, a suertes; con ocho parejas, todas en el mismo
@@ -349,7 +354,7 @@ const CSS = `
 .tq-tile .reto-est{display:flex;gap:4px}.tq-tile .reto-est i{display:block;width:22px;height:22px}.tq-tile .reto-est svg{width:100%;height:100%;fill:none;stroke:#b79cff;stroke-width:1.8}.tq-tile .reto-est i.on svg{fill:#ffd166;stroke:#ffe39a}
 .tq-tiles.retos3{--cw:calc((100% - 24px) / 3)}
 @media (orientation:portrait){.tq-tiles.retos3{--cw:calc((100% - 12px) / 1.55)}}
-.lg-bar .lg-btn.tq-pick{min-width:max-content;padding-inline:16px}.tq-tile.main,.tq-tile.mano2{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.evento{--t1:#ffb21a;--t2:#4a1405}.tq-tile.evento .k{color:#ffd166}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
+.lg-bar .lg-btn.tq-pick{min-width:max-content;padding-inline:14px}.lg-bar .tq-pick~.lg-btn.go{min-width:132px}.tq-tile.main,.tq-tile.mano2{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.evento{--t1:#ffb21a;--t2:#4a1405}.tq-tile.evento .k{color:#ffd166}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 /* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
    línea de cada uno; en el menú, a la derecha de Salir; en el torneo, junto a tus txapelas. La lista de pueblos, por comarcas */
@@ -533,7 +538,8 @@ export function ponPelotari(T, p, yo) {
     }
   }
   if (pareja) { Y.mates[0] = nombre; Y.name = Y.mates.join(' · '); Y.mst = null; } else { Y.name = nombre; Y.st = null; }
-  Y.town = p ? p.town : yo.town; Y.lv = p ? p.lv : 2;
+  if (!KINDS[T.kind]?.comarcas) Y.town = p ? p.town : yo.town;   // (por comarcas, sigues jugando por la tuya)
+  Y.lv = p ? p.lv : 2;
   T.yo = p ? { name: p.name, town: p.town, lv: p.lv } : null; T.elegido = true; save(T);
 }
 const EP_CSS = `

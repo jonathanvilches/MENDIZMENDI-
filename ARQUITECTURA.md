@@ -338,11 +338,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - el Desafío de los Valles (mano a mano con liguilla y cuadro, dieciséis);
   - la Copa de Invierno del Cuatro y Medio (ocho);
   - el Torneo de Promesas del Cuatro y Medio (ocho, con rivales que empiezan);
-  - y «el acontecimiento del año», la Gran Txapela de Navarra: los dieciséis mejores de toda Navarra (`global`: uno solo,
-    guardado como comarca `navarra`), con su losa dorada la primera de las nuevas.
+  - «el acontecimiento del año», la Gran Txapela de Navarra: los dieciséis mejores de toda Navarra (`global`: uno solo,
+    guardado como comarca `navarra`), con su losa dorada la primera de las nuevas;
+  - y el Campeonato de Comarcas (`comarcas`, también uno para toda Navarra): juegas por tu comarca, con su nombre en tu
+    carta, contra los de otras siete comarcas, a suertes en cada edición.
+  Los de ocho se montan por eliminatorias (`SERIE8`, el primero y el segundo cabezas de serie solo se cruzan en la
+  final); antes, un formato de ocho caía en la rama de la liguilla.
   Cada uno dice sus reglas (`base`: mano a mano en toda la cancha o hasta el 4½), su formato (`fmt`), lo fuertes que
   son los rivales (`lv`) y su «Cómo funciona» (`como`, en castellano y euskera). Todos son de cada comarca salvo el
-  acontecimiento del año: cuatro por comarca y uno para Navarra, 45 txapelas más.
+  acontecimiento del año y el de comarcas: cuatro por comarca y dos para Navarra, 50 txapelas más.
 - **Elegir tu pelotari en un campeonato** (`game/torneo.js`, `eligePelotari`, `ponPelotari`, `elegibles`, `tusStats`,
   `sinEmpezar`; `game/townDeportes.js`, `pelotaTorneo`; `game/fronton.js`, opción `yo`): como elegir equipo en el FIFA.
   Al abrir un campeonato nuevo sale «Elige tu pelotari»: tu carta y las de los 21 pelotaris del juego, cada uno con su
