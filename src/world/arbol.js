@@ -108,13 +108,15 @@ export const ESPECIES = {
     lejos: { celda: 'pino', tam: 3.0, n: 16 },
   },
   bush: {
-    arbusto: true, corteza: 'roble', barkRep: [1, 1],
-    tronco: { largo: 0.4, r: 0.05, secc: 2, lados: 4, nudo: 0.1, taper: 0.5 },
+    // (una mata: muchos tallos que salen del suelo en abanico, los de fuera más cortos —domo— para que quede redonda, y hojas
+    // desde abajo; alto: su altura, para oscurecer por abajo)
+    arbusto: true, alto: 1.3, corteza: 'roble', barkRep: [1, 1],
+    tronco: { largo: 0.12, r: 0.05, secc: 1, lados: 4, nudo: 0.1, taper: 0.6 },
     ramas: [
-      { n: 7, desde: 0.0, hasta: 1, ang: 55, angVar: 20, largo: 1.0, r: 0.8, secc: 3, lados: 3, nudo: 0.25, fuerza: 0.02, copa: () => 1 },
-      { n: 4, desde: 0.3, hasta: 1, ang: 45, angVar: 15, largo: 0.45, r: 0.6, secc: 2, lados: 3, nudo: 0.25, fuerza: 0, copa: () => 1 },
+      { n: 9, desde: 0, hasta: 1, ang: 30, angVar: 24, largo: 1.25, r: 0.6, secc: 4, lados: 3, nudo: 0.22, fuerza: -0.03, domo: 0.55, copa: () => 1 },
+      { n: 6, desde: 0.12, hasta: 1, ang: 48, angVar: 15, largo: 0.55, r: 0.6, secc: 2, lados: 3, nudo: 0.25, fuerza: 0.02, copa: t => 1.1 - t * 0.4 },
     ],
-    hojas: { celdas: ['arbusto'], paso: 0.14, tam: 0.5, ang: 50, desde: 0.05, tambien: 1 },
+    hojas: { celdas: ['arbusto'], paso: 0.085, tam: 0.42, ang: 50, desde: 0, tambien: 1 },
     lejos: { celda: 'arbusto', tam: 1.1, n: 5 },
   },
 };
@@ -169,7 +171,7 @@ export function esqueleto(esp, rnd) {
         let d = abre(at.d, ang, fi);
         // (las ramillas de los abetos, en el plano de su rama, como un abanico; las de hoja ancha, algo hacia la luz)
         if (cfg.plano) { d.y *= 0.35; d.normalize(); }
-        const L = cfg.largo * cfg.copa(t) * (0.8 + rnd() * 0.4) * (k > 0 ? Math.min(1.25, 0.6 + m.L / (E.ramas[k - 1].largo * 1.2)) : 1);
+        const L = cfg.largo * cfg.copa(t) * (0.8 + rnd() * 0.4) * (k > 0 ? Math.min(1.25, 0.6 + m.L / (E.ramas[k - 1].largo * 1.2)) : 1) * (cfg.domo ? 1 - cfg.domo * (ang / ((cfg.ang + cfg.angVar) * Math.PI / 180)) ** 2 : 1);
         if (L < 0.15) continue;
         const r = Math.max(0.008, cfg.r * at.r);
         const tr = rama(at.p.addScaledVector(d, -at.r * 0.4), d, L, r, cfg.secc, cfg, rnd, 0.62);
@@ -243,7 +245,7 @@ function tarjeta(p, dir, tam, celda, out, S, rnd, plano = false, giro = null) {
 export function creaArbol(esp, rnd, detalle = 2, S0 = null, { ligero = false } = {}) {
   const S = S0 || esqueleto(esp, rnd), E = S.E, H = E.hojas, nv = S.nivel, kL = ligero && detalle === 1 ? 1.45 : 1;
   const mad = { pos: [], nor: [], uv: [], col: [], idx: [] }, hoj = { pos: [], nor: [], uv: [], col: [], idx: [] };
-  const ao = (p, nivel) => { const k = Math.min(1, p.y / (E.tronco.largo * 0.35)); return (0.62 + 0.38 * k) * (nivel >= 2 ? 0.92 : 1); };
+  const ao = (p, nivel) => { const k = Math.min(1, p.y / ((E.alto || E.tronco.largo) * 0.35)); return (0.62 + 0.38 * k) * (nivel >= 2 ? 0.92 : 1); };
   // la madera que se dibuja en cada detalle (de lejos solo el tronco y las ramas madre; las ramillas finas, solo de cerca)
   const maxNivel = detalle === 2 ? nv : detalle === 1 ? Math.min(1, nv - 1) || (E.conifera ? 1 : 0) : (E.conifera && E.lejos.pisos ? 0 : Math.min(1, nv - 1));
   for (const b of S.ramas) {
@@ -257,12 +259,14 @@ export function creaArbol(esp, rnd, detalle = 2, S0 = null, { ligero = false } =
   if (detalle === 2 || detalle === 1) {
     // de cerca, las tarjetas en las ramillas (el último nivel) y algunas en el tramo de fuera de las ramas de antes; a media
     // distancia, menos y más grandes (y sin las ramillas, en las ramas de antes)
-    const nivelH = detalle === 2 || E.conifera ? nv : nv - 1, k = (detalle === 2 ? 1 : E.conifera ? 1.45 : 1.8) * Math.sqrt(kL), paso = H.paso * (detalle === 2 ? 1 : E.conifera ? 1.9 : 2.0) * kL;
+    // (las matas, a media distancia, con una tarjeta en la punta de cada ramilla aunque la ramilla no se dibuje: si no, solo
+    // con hojas en los tallos, se veían en abanico)
+    const puntas = E.arbusto && detalle === 1, nivelH = detalle === 2 || E.conifera || puntas ? nv : nv - 1, k = (detalle === 2 ? 1 : E.conifera ? 1.45 : 1.8) * Math.sqrt(kL), paso = H.paso * (detalle === 2 ? 1 : E.conifera ? 1.9 : 2.0) * kL;
     for (const b of S.ramas) {
       const ultimo = b.nivel === nivelH, antes = !E.conifera && b.nivel === nivelH - 1 && b.nivel > 0 && H.tambien;
       if (!ultimo && !antes) continue;
       // (a media distancia, las ramas madre con hojas desde más abajo: si no, se veían desnudas bajo la copa)
-      const desde = ultimo ? H.desde : 1 - (H.tambien || 0.5) * (detalle === 1 ? 0.9 : 0.6), n = Math.max(1, Math.round(b.L * (1 - desde) / paso * (ultimo ? 1 : detalle === 1 ? 0.75 : 0.5)));
+      const desde = ultimo ? H.desde : 1 - (H.tambien || 0.5) * (detalle === 1 ? 0.9 : 0.6), n = ultimo && puntas ? 0 : Math.max(1, Math.round(b.L * (1 - desde) / paso * (ultimo ? 1 : detalle === 1 ? 0.75 : 0.5)));
       for (let i = 0; i < n; i++) {
         const t = desde + (1 - desde) * ((i + 0.3 + rnd() * 0.4) / n), at = enRama(b.tr, t);
         if (H.mechon) { if (detalle === 2) mechon(at.p, at.d, H, k, elige, hoj, S, rnd); continue; }
@@ -274,7 +278,7 @@ export function creaArbol(esp, rnd, detalle = 2, S0 = null, { ligero = false } =
         else tarjeta(at.p, d, tm, elige(), hoj, S, rnd, H.plano);
       }
       // y una en la punta, siguiendo la rama
-      if (ultimo) { const e = b.tr[b.tr.length - 1]; if (H.mechon) mechon(e.p, e.d, H, k * 1.1, elige, hoj, S, rnd); else tarjeta(e.p, e.d.clone().addScaledVector(ARRIBA, H.plano ? -0.05 : 0.15).normalize(), H.tam * k * 0.9, elige(), hoj, S, rnd, H.plano); }
+      if (ultimo) { const e = b.tr[b.tr.length - 1]; if (H.mechon) mechon(e.p, e.d, H, k * 1.1, elige, hoj, S, rnd); else tarjeta(e.p, e.d.clone().addScaledVector(ARRIBA, H.plano ? -0.05 : 0.15).normalize(), H.tam * k * (puntas ? 0.75 : 0.9), elige(), hoj, S, rnd, H.plano); }
     }
     // (la guía del abeto: la punta del tronco, con sus ramillas)
     if (E.conifera && H.plano) { const tr0 = S.ramas[0].tr, e = tr0[tr0.length - 1]; for (let i = 0; i < 4; i++) tarjeta(e.p.clone().addScaledVector(ARRIBA, -0.5 - i * 0.25), abre(ARRIBA, 0.5, i * 1.57), H.tam * 0.75, elige(), hoj, S, rnd); }

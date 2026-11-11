@@ -583,6 +583,7 @@ const CHUNK = 125;
 export const TREES = [];
 // (las matas y los arbustos de los jardines, con su choque y su sitio en las mallas: clearBushes los quita)
 const MATAS = [];
+const BUSH_K = 0.78;   // (las matas del valle, algo más pequeñas que como salen de arbol.js: entre 1 y 2,2 m de alto)
 
 function treeSpots(rnd) {
   const spots = [];
@@ -914,7 +915,13 @@ export class Nature {
     }
   }
   buildBushes(rnd) {
-    const g = makeBush(rnd);
+    // Las matas (arbol.js, «bush»): muchos tallos que salen del suelo, sus ramillas y las hojas una a una, como los árboles;
+    // antes, tres bolas de hojas. Dos versiones del mismo esqueleto: la de media distancia en los trozos cercanos y, en las
+    // más próximas a la cámara, la completa (refrescaDetalle). Se colocan algo más pequeñas que su tamaño de fábrica (BUSH_K)
+    // (la bola de antes ya no se dibuja, pero se hace igual: gasta los mismos números al azar y así los helechos, los
+    // cultivos y todo lo que viene detrás queda donde estaba)
+    makeBush(rnd).dispose();
+    const Sb = esqueleto('bush', mulberry32(211)), g = creaArbol('bush', mulberry32(212), 1, Sb), gDet = creaArbol('bush', mulberry32(213), 2, Sb);
     // helechos: frondas arqueadas en roseta (el material las recorta en folíolos); unas más largas y tumbadas, otras
     // jóvenes más derechas, y algunas ya doradas como el helecho común en otoño
     const fronds = [], cBase = new THREE.Color('#2f6a26'), cTip = new THREE.Color('#86bd4e'), cOld = new THREE.Color('#a8893f');
@@ -953,16 +960,29 @@ export class Nature {
     this.bushSpots = bushSpots;   // (para revisar choques: tools/movimiento.mjs)
     // las matas no se atraviesan (antes el jugador, los vecinos y los animales pasaban por dentro); los helechos sí, son bajos
     for (const b of bushSpots) { b.col = addCircle(b.x, b.z, 0.36 * b.s, { bush: true }); MATAS.push(b); }
-    const matB = snowable(windMaterial({ map: TEX.foliage, alphaTest: 0.45, side: THREE.DoubleSide }), 0.65, 0.2, 0.8);
+    const matB = [this.matCorteza.roble, this.matHojas];
     const matF = snowable(windMaterial({ side: THREE.DoubleSide }, { fern: true }), 0.5, 0.25, 0.8);
     // por trozos del mapa y solo de cerca: una sola malla para todo el valle se dibujaba entera (también lo que queda
     // detrás de la cámara o a cientos de metros, donde una mata mide menos de un píxel). Sin sombra: apenas se ve y
     // duplicaba el coste
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v = new THREE.Vector3(), sc = new THREE.Vector3();
-    for (const [geo, list, mat] of [[g, bushSpots, matB], [fern, fernSpots.slice(0, bq && this.quality !== 'low' ? 9000 : 5000), matF]]) {
+    // (cada mata algo distinta: un poco más ancha o más alta, con un número sacado de su sitio y no del azar del valle)
+    const forma = (s) => { const h = Math.abs(Math.sin(s.x * 12.9898 + s.z * 78.233) * 43758.5453) % 1; return [0.9 + h * 0.22, 0.85 + ((h * 7.13) % 1) * 0.3]; };
+    for (const [geo, list, mat, mata] of [[g, bushSpots, matB, true], [fern, fernSpots.slice(0, bq && this.quality !== 'low' ? 9000 : 5000), matF, false]]) {
       for (const s of list) s.r = rnd() * 6;
-      for (const { im, items } of this.addChunked(list, geo, null, mat, (s) => m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s)), { name: 'matas' })) items.forEach((s, i) => (s.inst ||= []).push([im, i]));
+      const place = (s) => {
+        if (!mata) return m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.1, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.setScalar(s.s));
+        const [kx, ky] = forma(s), k = s.s * BUSH_K;
+        s.m = m4.compose(v.set(s.x, terrainHeight(s.x, s.z) - 0.06, s.z), q.setFromEuler(e.set(0, s.r, 0)), sc.set(k * kx, k * ky, k * (2 - kx))).clone();
+        return s.m;
+      };
+      for (const { im, items } of this.addChunked(list, geo, null, mat, place, { name: mata ? 'matas' : 'helechos' })) items.forEach((s, i) => { (s.inst ||= []).push([im, i]); if (mata) s.medio = [im, i]; });
     }
+    // las más cercanas, con todas sus ramillas y hojas (como los árboles: un dibujo que se rellena con las que tocan)
+    const low = this.quality === 'low';
+    this.matasCap = low ? 8 : this.quality === 'mid' ? 14 : 20; this.matasR = low ? 12 : this.quality === 'mid' ? 16 : 22; this.matasEnDet = new Set();
+    const im = this.matasDet = new THREE.InstancedMesh(gDet, matB, this.matasCap); im.count = 0;
+    im.castShadow = this.shadowDist > 0; im.receiveShadow = true; im.name = 'matas-detalle'; this.group.add(im);
   }
   // Jardines del casco: matas y arbustos en flor (azaleas, hortensias, adelfas, lavanda) pegados a las casas y a las tapias,
   // donde hay hierba y no es calle ni plaza. Con su propio azar, para no cambiar el resto del valle
@@ -1058,18 +1078,31 @@ export class Nature {
   }
   /** Los árboles más cercanos a la cámara (como mucho detCap, a menos de detR m), con su versión de cerca: la que tiene
    *  todas las ramillas y todas las hojas. Se esconden en la de media distancia de su trozo y vuelven a ella al alejarse */
+  // (de los candidatos [distancia², cosa], los cap más cercanos pasan al dibujo de cerca y se esconden en el de media
+  // distancia; los que dejan de serlo vuelven a él)
+  reparte(cand, cap, antes) {
+    cand.sort((a, b) => a[0] - b[0]);
+    const nuevo = new Set(cand.slice(0, cap).map(x => x[1])), toca = new Set();
+    for (const s of antes) if (!nuevo.has(s) && !s.quitado) { s.medio[0].setMatrixAt(s.medio[1], s.m); toca.add(s.medio[0]); }
+    for (const s of nuevo) if (!antes.has(s)) { s.medio[0].setMatrixAt(s.medio[1], _zero); toca.add(s.medio[0]); }
+    for (const im of toca) im.instanceMatrix.needsUpdate = true;
+    return nuevo;
+  }
   refrescaDetalle(cam) {
     const R = this.detR, cand = [];
     for (const c of this.chunks) {
       if (!c.near || !c.arboles || Math.max(Math.abs(cam.x - c.cx), Math.abs(cam.z - c.cz)) - CHUNK / 2 > R) continue;
       for (const s of c.arboles) { if (s.quitado || !s.medio) continue; const d = (s.x - cam.x) ** 2 + (s.z - cam.z) ** 2; if (d < R * R) cand.push([d, s]); }
     }
-    cand.sort((a, b) => a[0] - b[0]);
-    const nuevo = new Set(cand.slice(0, this.detCap).map(x => x[1])), toca = new Set();
-    for (const s of this.enDetalle) if (!nuevo.has(s) && !s.quitado) { s.medio[0].setMatrixAt(s.medio[1], s.m); toca.add(s.medio[0]); }
-    for (const s of nuevo) if (!this.enDetalle.has(s)) { s.medio[0].setMatrixAt(s.medio[1], _zero); toca.add(s.medio[0]); }
-    for (const im of toca) im.instanceMatrix.needsUpdate = true;
-    this.enDetalle = nuevo;
+    const nuevo = this.enDetalle = this.reparte(cand, this.detCap, this.enDetalle);
+    // (las matas: solo las de los trozos que se ven de cerca)
+    if (this.matasDet) {
+      const RB = this.matasR, cb = [];
+      for (const b of MATAS) { if (b.quitado || !b.medio || !b.medio[0].visible) continue; const d = (b.x - cam.x) ** 2 + (b.z - cam.z) ** 2; if (d < RB * RB) cb.push([d, b]); }
+      const M = this.matasDet; let k = 0;
+      for (const b of (this.matasEnDet = this.reparte(cb, this.matasCap, this.matasEnDet))) M.setMatrixAt(k++, b.m);
+      M.count = k; M.instanceMatrix.needsUpdate = true; if (k) M.computeBoundingSphere();
+    }
     const n = {};
     for (const s of nuevo) { const im = this.detalle[s.type]; if (!im) continue; const k = n[s.type] || 0; im.setMatrixAt(k, s.m); n[s.type] = k + 1; }
     for (const [type, im] of Object.entries(this.detalle)) { im.count = n[type] || 0; im.instanceMatrix.needsUpdate = true; if (im.count) im.computeBoundingSphere(); }
@@ -1211,9 +1244,11 @@ export function clearTrees(cx, cz, w, d, ry, m = 1) {
 export function clearBushes(cx, cz, w, d, ry, m = 0.5) {
   const c = Math.cos(ry), s = Math.sin(ry);
   for (let k = MATAS.length - 1; k >= 0; k--) {
-    const b = MATAS[k], dx = b.x - cx, dz = b.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + 0.5 * b.s;
+    // (con lo que abren sus ramas: las del valle, más anchas que las de los jardines)
+    const b = MATAS[k], dx = b.x - cx, dz = b.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + (b.medio ? 1.0 : 0.5) * b.s;
     if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
     for (const [im, i] of b.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
+    b.quitado = true; DETALLE_SUCIO = true;
     if (b.col) removeCollider(b.col);
     MATAS.splice(k, 1);
   }
