@@ -94,7 +94,7 @@ img.pf-az { background-repeat: no-repeat; background-size: 100% 100%; background
 /* (abajo, antes de la punta: el nombre centrado, una raya y las cualidades; el pueblo, solo en las de por descubrir, que
    dice dónde encontrarlas: en las demás lo dice su escudo) */
 .gx-card .gx-pie { position: absolute; z-index: 1; left: 8%; right: 8%; top: calc(var(--w) * .79); bottom: calc(var(--w) * .19); display: flex; flex-direction: column; min-height: 0; }
-.gx-card .gx-nm { flex: none; font: 800 max(14px, calc(var(--w) * .12))/1.1 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
+.gx-card .gx-nm { flex: none; font: 800 max(14px, calc(var(--w) * .12))/1.18 var(--f-cond); letter-spacing: .03em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 2px 0 rgba(0, 0, 0, .35), 0 0 10px rgba(7, 2, 15, .55); }
 .gx-card .gx-tw { flex: none; margin-top: max(4px, calc(var(--w) * .03)); font: 600 max(12px, calc(var(--w) * .075))/1.1 var(--f-cond); letter-spacing: .06em; text-transform: uppercase; color: var(--ac); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gx-card:not(.lock) .gx-tw { display: none; }
 .gx-card .gx-st { flex: 1; min-height: 0; margin: calc(var(--w) * .02) 4% 0; padding-top: max(4px, calc(var(--w) * .035)); border-top: 1px solid color-mix(in srgb, var(--ac) 45%, transparent); display: grid; grid-template-columns: repeat(3, 1fr); align-content: center; }
