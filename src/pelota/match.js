@@ -1218,6 +1218,29 @@ export class PelotaMatch {
     if (k === 'j-aire' || k === 'j-peloteo') { this.jPend = null; this.diJugada(f, 120); return; }
     this.jPend = { f, who: e.who, t: this.t, espera: k === 'j-rebote' && e.shot !== 'rebote' ? 'back' : 'front' };
   }
+  // (que no se atraviesen al volver a su sitio: la figura que vuelve corriendo, si va a cruzarse con otra a menos de 0,9 m
+  // por delante, se aparta de lado —hacia el lado contrario al de la otra— con tiempo, la rodea y sigue a su sitio. Antes,
+  // al cambiar el saque, pasaba una por dentro de la otra)
+  esquiva(dt) {
+    const S = this.slide, g = this.game; if (!S || !(dt > 0)) return;
+    const ids = g.ids.filter(w => S[w]);
+    // (la velocidad de cada figura al volver: hacia su sitio, a la de su carrera; quieta, cero)
+    const vel = (s) => { const o = Math.hypot(s.ox, s.oz); return o < 0.05 ? [0, 0] : [-s.ox / o * (s.vel || 0), -s.oz / o * (s.vel || 0)]; };
+    for (const w of ids) {
+      const a = S[w], o = Math.hypot(a.ox, a.oz); if (o < 0.3) continue;
+      const dx = -a.ox / o, dz = -a.oz / o, va = vel(a);
+      for (const u of ids) {
+        if (u === w) continue;
+        // (dónde estará la otra respecto a esta en el momento en que más se acerquen, en el próximo segundo: si a menos de
+        // 0,95 m, esta se aparta de lado a su marcha, hacia el lado contrario; de frente, hacia su derecha)
+        const b = S[u], vb = vel(b), rx = b.x - a.x, rz = b.z - a.z, wx = vb[0] - va[0], wz = vb[1] - va[1], w2 = wx * wx + wz * wz;
+        const t = w2 > 1e-6 ? Math.max(0, Math.min(1.2, -(rx * wx + rz * wz) / w2)) : 0, cx = rx + wx * t, cz = rz + wz * t, dc = Math.hypot(cx, cz);
+        if (dc < 0.95) { const lado = dx * cz - dz * cx, sg = Math.abs(lado) < 0.05 ? 1 : lado > 0 ? 1 : -1, k = (0.95 - dc) * 6 * dt; a.ox += dz * sg * k; a.oz += -dx * sg * k; }
+        // (y si aun así quedan a menos de 0,75 m, se separa)
+        const d = Math.hypot(rx, rz); if (d < 0.75 && d > 1e-4) { const e = (0.75 - d) * 0.5; a.ox -= rx / d * e; a.oz -= rz / d * e; }
+      }
+    }
+  }
   diJugada(f, ms) { this.decir(f, ms, true, () => { this.jugadaT = this.t; }); }
   // (la pelota del golpe pendiente ha llegado al frontis, bien, o a la pared del rebote: se dice si el tanto sigue vivo)
   jugadaVa(tipo) {
@@ -1337,6 +1360,7 @@ export class PelotaMatch {
     this.hud.energy(g.phase === 'intro' || g.phase === 'end' ? null : ['you', 'youMate', 'rival', 'rivalMate'].filter(id => g.players[id]).map(id => ({ id, side: g.side(id), color: this.cols[g.side(id)], me: id === 'you', en: g.players[id].en,
       name: id === 'you' ? this.names.you : id === 'rival' ? this.names.rival : this.mateObjs?.[id]?.name || '' })));
     // pelotaris
+    this.esquiva(dt);
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
       // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
