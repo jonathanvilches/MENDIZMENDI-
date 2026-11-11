@@ -36,7 +36,7 @@ export class Montura {
   sube(P) {
     if (this.P) return;
     const F = this.g.follow;
-    this.P = P; P.vehiculo = this; P.speed = 0; P.ponModo?.('pie'); this.distAntes = F.targetDist; F.targetDist = this.T.dist;
+    this.P = P; P.vehiculo = this; P.speed = 0; P.ponModo?.('pie'); this.distAntes = F.targetDist; F.targetDist = this.T.dist; F.suaviza?.();   // (sin salto de cámara: parpadeaba)
     document.body.classList.add('conduce');
     if (P.collider) P.collider.ghost = true;
     if (P.blob) P.blob.visible = false;
@@ -48,7 +48,7 @@ export class Montura {
     const P = this.P; if (!P) return null;
     const F = this.g.follow;
     if (this.sentado) { this.sentado.post = this.postAntes || null; this.sentado = null; }
-    P.vehiculo = null; this.P = null; this.speed = 0; this.A.speed = 0; F.targetDist = this.distAntes ?? F.targetDist; document.body.classList.remove('conduce');
+    P.vehiculo = null; this.P = null; this.speed = 0; this.A.speed = 0; F.targetDist = this.distAntes ?? F.targetDist; document.body.classList.remove('conduce'); F.suaviza?.();
     const s = Math.sin(this.heading), c = Math.cos(this.heading);
     for (const k of [1, -1]) {
       const x = this.x + c * (this.T.r + 0.8) * k, z = this.z - s * (this.T.r + 0.8) * k, r = resolve(x, z, P.radius, P.collider);

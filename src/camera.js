@@ -31,6 +31,8 @@ export class FollowCamera {
     this.focus.copy(player.pos); this.focus.y += 1.5;
     this.update(0.1, player, { look: { dx: 0, dy: 0 }, zoom: 0, move: { x: 0, y: 0 } }, true);
   }
+  /** El jugador va a cambiar de sitio de golpe (subir o bajar de la montura): la cámara lo sigue suave s segundos */
+  suaviza(s = 0.45) { this.suave = s; }
   update(dt, player, input, instant = false) {
     const sens = input.touch ? 0.006 : 0.005;
     if (input.look.dx || input.look.dy) this.idle = 0; else this.idle += dt;
@@ -45,6 +47,13 @@ export class FollowCamera {
     // en horizontal la cámara va pegada al jugador: con un retraso suavizado, ese retraso cambiaba de un fotograma a otro
     // (los fotogramas nunca duran lo mismo) y el personaje temblaba en pantalla aunque el paisaje fuese fluido.
     // En vertical sí se suaviza (escalones, saltos)
+    // (salvo justo después de que el jugador cambie de sitio de golpe, al subir o bajar de la montura o del tractor:
+    // suave, unas décimas, que la cámara no salte con él. Al subir al caballo saltaba 2 m en un fotograma y parpadeaba)
+    else if (this.suave > 0) {
+      this.suave -= dt; const k = 1 - Math.exp(-dt / 0.11);
+      this.focus.x += (want.x - this.focus.x) * k; this.focus.z += (want.z - this.focus.z) * k; this.focus.y = damp(this.focus.y, want.y, 8, dt);
+      if (this.suave <= 0) { this.focus.x = want.x; this.focus.z = want.z; }
+    }
     else { this.focus.x = want.x; this.focus.z = want.z; this.focus.y = damp(this.focus.y, want.y, 8, dt); }
     if (this.cinematic) {
       const c = this.cinematic;
