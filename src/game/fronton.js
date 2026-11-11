@@ -581,8 +581,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // (tus cualidades, las que vas ganando; y cada partido acabado suma experiencia: lo enseña el panel del final)
       youStats: tusCualidades(), progreso: (e, st, modo) => sumaPartido(e, st, modo),
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
-      // (la presentación con los focos, solo en la final de un campeonato: la luz de la imagen baja y vuelve; show.js)
-      focos: final, exposure: (v) => { const R = G.rt?.renderer; if (R) R.toneMappingExposure = v ?? 1.05; },
+      final,   // (la final de un campeonato: su entrada de «Gran final», pelota/granFinal.js)
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)

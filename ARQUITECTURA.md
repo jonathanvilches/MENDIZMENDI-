@@ -137,9 +137,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Entrar en un pueblo:** siempre la carga entera con su portada y, al acabar, ya en el pueblo detrás del jugador
   (`main.js`, `play`). Sin intros desde el aire: ni zoom del mapa al darle a jugar, ni vuelo de llegada al pueblo, ni la
   intro de Otsagabia. En el iPhone, el pueblo entero visto desde lo alto pasaba del presupuesto y se perdía la imagen
-  (Leitza, octubre de 2026). El vuelo hasta la cancha, solo antes de la final de un campeonato (`game/llegadas.js`): en
-  el Labrit, por dentro, a ras de la grada con el público en pie y subiendo hasta el plano del panel (antes bajaba por la
-  avenida hasta la fachada y entraba de un corte); en los demás partidos, directamente a la cancha. La
+  (Leitza, octubre de 2026). Al frontón, sin vuelos de cámara (`game/llegadas.js` solo quita el velo con el partido ya
+  montado): el vuelo de la final en el Labrit, la grúa del cubierto y la bajada a la plaza, con su cartel (`ui/vuelo.js`),
+  se quitaron, y también la presentación a oscuras con los focos que buscaban a los pelotaris (`pelota/show.js`), a
+  petición del autor (noviembre de 2026). La final tiene su propia entrada (`pelota/granFinal.js` y `granFinal.css`),
+  como la cabecera de una retransmisión y toda en la página, sin nada nuevo en la escena 3D: sobre el frontón oscurecido,
+  con el público en pie detrás, entran «GRAN» y «FINAL», cae la txapela, llegan las cartas de los dos finalistas (el azul
+  por la izquierda y el colorado por la derecha), salta el «VS» y cae el confeti; se va sola a los 6,4 s o al tocar, y
+  de ahí al sorteo, sin la pantalla VS, que ya los ha enfrentado. Se prueba con `tools/labrit-final.mjs`. La
   primera vez se aparece en la entrada del pueblo; con misiones ya hechas, a unos pasos de quien da la siguiente y
   mirándole, con el perro al lado (`townGame.js`, al final de `spawn`), para no cruzar el pueblo cada vez. Los lienzos cuyos píxeles se leen van
   con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente. En la carga, la descripción y
@@ -1459,6 +1464,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `auditoria-pueblo.mjs` | La misma auditoría dentro del pueblo (TAM=844x390 o 1180x820): HUD, diálogo, cada pestaña del libro, mapa con la tarjeta de una misión y de un lugar, mochila, pausa, cada pestaña de la tienda y recompensa. Con IDIOMA=eu, en euskera; con EUFALTAN=1, además, la lista de lo que se queda sin traducir |
 | `auditoria-ventanas.mjs` | La misma auditoría en las ventanas del juego (fichas, minijuegos, misión cumplida, cuestionarios). Con IDIOMA=eu, en euskera |
 | `auditoria-medida.mjs` | La medida común de las cuatro auditorías. «junto»: texto, botones, tarjetas e imágenes seguidos con menos aire del mínimo (texto y botón 12 px, 16 en el ordenador; tarjetas 8, 16 en el ordenador; imagen y texto 8; un texto que acaba y un título que empieza 16, 24 en el ordenador) o texto a menos de 8 px del borde de su caja. «centrado»: texto o icono descentrado más de 1,5 px dentro de su forma (botón, círculo, cuadrado, píldora, etiqueta), midiendo del icono lo pintado y del texto de las mayúsculas a la línea base. «cortado» también mira lo que baja de la línea (la «j», la «g») recortado por abajo. «justo»: texto de un botón que se sale o va a menos de 2 px de su borde. «imagen»: imagen deformada, descentrada en su caja, recortada más por un lado, con bandas vacías, desigual con las de sus tarjetas hermanas o con un encuadre que enseña menos del 70 %. Con MUESCA=1, todas miden con los márgenes de la muesca del iPhone 12 tumbado (47 px a cada lado y 21 abajo), que estrechan el menú: así se ve lo que en el iPhone se sale y en el ordenador no |
+| `labrit-final.mjs` | La final en el Labrit: la entrada de «Gran final» en cuatro momentos (título, txapela, cartas y confeti), que se va sola hacia el sorteo, el partido dentro y vistas de la grada y del marcador |
 | `pelota-cubierto-ver.mjs` | El frontón cubierto: llegada, luz de pabellón a mediodía, grada, cámara de retransmisión siempre dentro y rebote hasta el techo |
 | `futbol-vs-ver.mjs` | La presentación VS del fútbol: camisetas, medias, competición y que al tocar empieza el partido |
 | `paquete-pelota.mjs` | Prepara los pelotaris y los sellos del autor desde su ZIP descomprimido: los de 512 y, para la VS, los de 1024 para la web y, para el archivo único, el rojo de 256, la camiseta azul suelta y los sellos de 176 |

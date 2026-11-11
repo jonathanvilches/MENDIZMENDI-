@@ -1,0 +1,66 @@
+/* La entrada de la final (granFinal.js): sobre el frontón oscurecido, con el morado del juego y el oro de la txapela.
+   Entra en este orden: el fondo (0 s), «GRAN» y «FINAL» de los lados (0,25 s), el campeonato y el frontón (0,8 s), la
+   txapela que cae (1 s), las cartas de los lados (1,5 s), el «VS» (2 s), el confeti (2,1 s) y el aviso de tocar (2,6 s) */
+.gf { position: absolute; inset: 0; z-index: 40; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; align-items: center; justify-items: center; gap: 8px; overflow: hidden; pointer-events: auto;
+  padding: max(14px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(70% 60% at 50% 46%, rgba(70, 24, 140, .55), transparent 70%), linear-gradient(180deg, rgba(22, 7, 48, .82), rgba(9, 3, 22, .9));
+  color: #fff; text-align: center; animation: gf-in .4s ease-out both; }
+.gf.sale { animation: gf-out .45s ease-in both; }
+@keyframes gf-in { from { opacity: 0; } }
+@keyframes gf-out { to { opacity: 0; transform: scale(1.04); } }
+/* (mientras dura, el marcador y los botones del partido no se ven a través del fondo) */
+.pel-root.en-final > :not(.gf) { visibility: hidden !important; }
+/* (los haces de luz, del oro al rosa, girando muy despacio detrás de la txapela) */
+.gf-luz { position: absolute; inset: -40%; z-index: -1; pointer-events: none; opacity: .85;
+  background: repeating-conic-gradient(from 0deg at 50% 50%, rgba(255, 209, 102, .09) 0 4deg, transparent 4deg 16deg, rgba(255, 122, 200, .07) 16deg 20deg, transparent 20deg 30deg);
+  -webkit-mask: radial-gradient(circle at 50% 50%, #000 0 18%, transparent 52%); mask: radial-gradient(circle at 50% 50%, #000 0 18%, transparent 52%);
+  animation: gf-gira 24s linear infinite, gf-in 1.2s ease-out both; }
+@keyframes gf-gira { to { transform: rotate(360deg); } }
+/* el título */
+.gf-cab { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.gf-k, .gf-s { font: 800 var(--fs-sm, 15px)/1.2 var(--f-cond, 'MZ Texto'), sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #e6d8ff; opacity: 0; animation: gf-sube .5s ease-out .8s both; }
+.gf-s { color: #ffd166; animation-delay: 1s; }
+.gf-t { margin: 0; font: 400 clamp(40px, 9.5vh, 96px)/.95 var(--f-display, 'MZ Texto'), sans-serif; letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; }
+.gf-t span { display: inline-block; }
+.gf-t .a { color: #fff; text-shadow: 0 0 24px rgba(183, 156, 255, .7), 0 4px 0 rgba(0, 0, 0, .35); animation: gf-izq .55s cubic-bezier(.2, 1.1, .3, 1) .25s both; }
+.gf-t .b { background: linear-gradient(180deg, #fff3c4, #ffd166 45%, #f5a623); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 209, 102, .55)) drop-shadow(0 4px 0 rgba(0, 0, 0, .35)); animation: gf-der .55s cubic-bezier(.2, 1.1, .3, 1) .35s both; }
+@keyframes gf-izq { from { opacity: 0; transform: translateX(-45vw) skewX(-12deg); } }
+@keyframes gf-der { from { opacity: 0; transform: translateX(45vw) skewX(-12deg); } }
+@keyframes gf-sube { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+/* los dos finalistas y, en medio, la txapela y el «VS» */
+.gf-esc { display: flex; align-items: center; justify-content: center; gap: clamp(12px, 3vw, 40px); min-height: 0; perspective: 900px; }
+.gf-c { flex: none; }
+.gf-c.azul { animation: gf-ca .75s cubic-bezier(.2, .9, .3, 1.12) 1.5s both, gf-flota 4s ease-in-out 2.3s infinite; }
+.gf-c.rojo { animation: gf-cr .75s cubic-bezier(.2, .9, .3, 1.12) 1.7s both, gf-flota 4s ease-in-out 2.5s infinite; }
+@keyframes gf-ca { from { opacity: 0; transform: translateX(-55vw) rotateY(75deg) scale(.9); } }
+@keyframes gf-cr { from { opacity: 0; transform: translateX(55vw) rotateY(-75deg) scale(.9); } }
+@keyframes gf-flota { 50% { transform: translateY(-6px); } }
+.gf-mid { flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; width: clamp(72px, calc(var(--cw) * .62), 140px); }
+.gf-tx { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: 1; animation: gf-cae .8s cubic-bezier(.3, 1.4, .5, 1) 1s both; }
+.gf-tx::before { content: ''; position: absolute; inset: -12%; z-index: -1; border-radius: 50%; background: radial-gradient(circle, rgba(255, 209, 102, .5), rgba(255, 209, 102, .12) 45%, transparent 70%); animation: gf-late 2.4s ease-in-out 1.6s infinite; }
+.gf-tx img, .gf-tx svg { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 10px 14px rgba(0, 0, 0, .5)); }
+@keyframes gf-cae { from { opacity: 0; transform: translateY(-60vh) rotate(-25deg); } 70% { opacity: 1; } }
+@keyframes gf-late { 50% { transform: scale(1.12); opacity: .7; } }
+.gf-vs { font: 400 clamp(26px, 6vh, 52px)/1 var(--f-display, 'MZ Texto'), sans-serif; background: linear-gradient(180deg, #fff, #ff9be0); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 14px rgba(255, 43, 214, .7)); animation: gf-pop .45s cubic-bezier(.2, 1.6, .4, 1) 2s both; }
+@keyframes gf-pop { from { opacity: 0; transform: scale(.3); } }
+/* de pie: la txapela arriba, a lo ancho, y debajo las dos cartas con el «VS» en medio */
+.gf.de-pie .gf-esc { display: grid; grid-template-columns: auto auto auto; grid-template-areas: "tx tx tx" "a vs r"; align-items: center; justify-items: center; column-gap: 10px; row-gap: 8px; }
+.gf.de-pie .gf-mid { display: contents; }
+.gf.de-pie .gf-c.azul { grid-area: a; } .gf.de-pie .gf-c.rojo { grid-area: r; }
+.gf.de-pie .gf-tx { grid-area: tx; width: clamp(84px, 30vw, 150px); }
+.gf.de-pie .gf-vs { grid-area: vs; font-size: clamp(24px, 9vw, 40px); }
+/* el confeti: trozos de colores que caen girando desde arriba, cada uno a su tiempo */
+.gf-confeti { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.gf-confeti i { position: absolute; top: -6%; left: var(--x); width: var(--w); height: calc(var(--w) * 1.7); border-radius: 1px; background: var(--c); opacity: 0;
+  animation: gf-confeti var(--d) linear var(--t) infinite; }
+@keyframes gf-confeti { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 85% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--o), 112vh) rotate(var(--g)); } }
+.gf-toca { font: 700 var(--fs-xs, 13px)/1 var(--f-cond, 'MZ Texto'), sans-serif; letter-spacing: .12em; text-transform: uppercase; color: #cbbcf0; opacity: 0; animation: gf-sube .4s ease-out 2.6s both, gf-parpa 1.6s ease-in-out 3.2s infinite; }
+@keyframes gf-parpa { 50% { opacity: .45; } }
+/* en el móvil tumbado, el título más bajo y todo más junto */
+@media (orientation: landscape) and (max-height: 460px) { .gf { gap: 4px; } .gf-cab { gap: 2px; } .gf-t { font-size: clamp(34px, 11vh, 52px); } .gf-k, .gf-s { font-size: var(--fs-xs, 13px); } }
+@media (prefers-reduced-motion: reduce) {
+  .gf *, .gf *::before { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
+  .gf-confeti { display: none; }
+}

@@ -145,10 +145,6 @@ const CSS = `
    blanco y casi del mismo peso, y la «p» del título rozaba la línea de debajo) */
 .pel-call p{margin:var(--r-pp,12px) 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#d9ccff}.pel-call :is(h3,p,.pel-kantari){text-box:trim-both cap alphabetic}
 .pel-call .pel-kantari{margin-top:var(--r-pp,12px);font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
-.pel-pres{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px) + 8px);bottom:calc(env(safe-area-inset-bottom,0px) + 14%);display:flex;align-items:stretch;gap:12px;max-width:min(78vw,560px);padding:12px 22px 12px 0;background:linear-gradient(90deg,rgba(7,2,15,.92),rgba(7,2,15,.6) 85%,transparent);opacity:0;transform:translateX(-40px);transition:opacity .25s,transform .45s cubic-bezier(.22,1.12,.36,1);pointer-events:none}
-.pel-pres.on{opacity:1;transform:none}.pel-pres i{width:8px;flex:none;background:#e8247c}.pel-pres.azul i{background:#4b3cff}
-.pel-pres b{display:block;font:400 var(--fs-hero,40px)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.01em;text-transform:uppercase;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pel-pres small{display:block;margin-top:6px;font:700 var(--fs-sm)/1.2 var(--f-ui,'MZ Texto',sans-serif);letter-spacing:.08em;text-transform:uppercase;color:#ffc2ec}
 .pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;border-radius:6px;opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
 .pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none}
 /* la tarjeta del rival: bajo el marcador, del color que viste; la barra de energía grande y, encima de ella, la fuerza de
@@ -372,7 +368,7 @@ body.textos-grandes .pel-root{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24p
 body.textos-grandes .pel-root :is(.pel-est,.pel-xp) li b{font-size:13px}body.textos-grandes .pel-side{width:calc(var(--psw,176px) * 1.12)}
 body.alto-contraste .pel-score{background:#000;border-top-color:#fff;opacity:1;box-shadow:0 0 0 2px #fff}
 body.alto-contraste .pel-side :is(span,b){color:#fff;text-shadow:0 1px 0 #000}
-body.alto-contraste :is(.pel-call,.pel-golpe,.pel-tip,.pel-q,.pel-rep-b,.pel-pres>div){background:#000!important;border:2px solid #fff!important;color:#fff!important;box-shadow:none!important}
+body.alto-contraste :is(.pel-call,.pel-golpe,.pel-tip,.pel-q,.pel-rep-b){background:#000!important;border:2px solid #fff!important;color:#fff!important;box-shadow:none!important}
 body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto-contraste .pel-racha{background:#000;border:2px solid #ffd166;color:#ffd166;box-shadow:none}
 body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
 body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-rv,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
@@ -479,7 +475,6 @@ export class PelotaHud {
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div></div>
       <div class="pel-golpe" aria-live="off"></div>
       <div class="pel-com" role="status" aria-live="polite"></div>
-      <div class="pel-pres" aria-live="polite"><i></i><div><b></b><small></small></div></div>
       <div class="pel-q"></div>
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
@@ -656,13 +651,6 @@ export class PelotaHud {
   golpe(text, col) {
     const g = this._g ||= this.$('.pel-golpe'); if (!g || !text) return;
     g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 1.5;
-  }
-  /** La presentación de cada pelotari con los focos: su nombre abajo, como en la tele (col: 'rojo' o 'azul'); sin
-   *  nombre, se quita */
-  presenta(name, sub = '', col = 'rojo') {
-    const p = this.$('.pel-pres'); if (!p) return;
-    if (!name) { p.classList.remove('on'); return; }
-    p.className = 'pel-pres ' + col; p.querySelector('b').textContent = name; p.querySelector('small').textContent = sub; void p.offsetWidth; p.classList.add('on');
   }
   tick(dt) {
     if (this.gT > 0 && (this.gT -= dt) <= 0) this._g?.classList.remove('on');

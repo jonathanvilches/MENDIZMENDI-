@@ -293,6 +293,7 @@ export const TEXT = {
     tipRivalServe45: 'Saca el rival: espera en el 5.',
     tipWait: 'Buen golpe. Vuelve al centro.',
     energyTitle: 'Energía', tiredYou: 'Estás cansado: corres menos y fallarás más. Pelotea normal, sin cortadas, para recuperar.',
+    final: { titulo: ['Gran', 'final'], toca: 'Toca para empezar' },   // (la entrada de la final: granFinal.js)
     // (la ventana de pausa, src/ui/pausa.js: el título, y de cada fila lo que hace)
     pausa: { titulo: 'Partido en pausa', descanso: 'Descanso', cerrar: 'Seguir jugando', seguir: ['Continuar', 'Sigue donde lo has dejado.'], descAhora: 'Vuelve al partido antes de que acabe el descanso.', descPedido: 'Llegará en el próximo parón. Tócalo para retirarlo.', camara: 'Toca para cambiar cómo se ve el partido.', vista: 'Juega viendo por los ojos de tu pelotari.', fichas: 'Las cualidades, la mano y el golpe estrella de los dos.', salir: 'Dejarás el partido sin acabar.' },
     desc: { btn: 'Descanso', pedido: 'Pedido', seguir: 'Seguir', tuyo: 'Descanso', suyo: (n) => `${n} pide descanso`, sub: 'Un minuto para recuperar fuerzas.', quedan: (n) => n === 1 ? 'Te queda 1 descanso.' : n ? `Te quedan ${n} descansos.` : 'No te quedan descansos.',
@@ -419,6 +420,7 @@ export const TEXT = {
     tipRivalServe45: 'Aurkariak ateratzen du: itxaron 5ean.',
     tipWait: 'Kolpe ona. Itzuli erdira.',
     energyTitle: 'Energia', tiredYou: 'Nekatuta zaude: gutxiago korrika egingo duzu eta gehiago huts egingo duzu. Jokatu arrunt, cortadarik gabe, berreskuratzeko.',
+    final: { titulo: ['Final', 'handia'], toca: 'Ukitu hasteko' },
     pausa: { titulo: 'Partida geldituta', descanso: 'Atsedenaldia', cerrar: 'Jolasten jarraitu', seguir: ['Jarraitu', 'Utzi duzun tokitik jarraitu.'], descAhora: 'Itzuli partidara atsedenaldia amaitu baino lehen.', descPedido: 'Hurrengo geldialdian izango duzu. Ukitu kentzeko.', camara: 'Ukitu partida nola ikusten den aldatzeko.', vista: 'Jokatu zure pilotariaren begietatik.', fichas: 'Bien ezaugarriak, eskua eta kolpe izarra.', salir: 'Partida amaitu gabe utziko duzu.' },
     desc: { btn: 'Atsedena', pedido: 'Eskatuta', seguir: 'Jarraitu', tuyo: 'Atsedenaldia', suyo: (n) => `${n}: atsedenaldia`, sub: 'Minutu bat indarrak berreskuratzeko.', quedan: (n) => n ? `${n} atsedenaldi geratzen zaizkizu.` : 'Ez zaizu atsedenaldirik geratzen.',
       rival: (n) => `${n} atsedenaldi`, cansado: (n) => `Nekatuta zaude: eskatu atsedenaldi bat (${n} geratzen zaizkizu) edo jokatu arrunt berreskuratzeko.` },

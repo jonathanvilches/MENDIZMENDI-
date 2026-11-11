@@ -1055,7 +1055,7 @@ export class TownGame {
     try { this.aventuraFin(); } catch (e) { }
     try { this.pelotaAbort?.(); } catch (e) { }
     for (const M of this.missions || []) try { this.quitaTractor(M); } catch (e) { }
-    document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg, .cartel').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
+    document.querySelectorAll('.lg-root:not(.out), .pel-root, .sport-bg').forEach(o => o.remove());   // (el panel que se está desvaneciendo, que acabe)
     this.perro?.cierraOferta();   // (el «¿Necesitas ayuda?» del perro, si estaba a la vista)
     if (this.townArms) { for (const m of [this.townArms.mesh, this.townArms.plate]) if (m) { m.geometry.dispose(); m.material.map?.dispose(); m.material.dispose(); } this.townArms = null; }
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }

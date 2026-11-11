@@ -18,7 +18,7 @@ import { laminaUrl } from '../ui/laminas.js';
 import { pasakaMenu, pasakaReward } from '../ui/pasaka.js';
 import { pasakaVenue, playPasaka } from './pasaka3d.js';
 import { showChampion } from '../ui/champion.js';
-import { vueloFronton } from './llegadas.js';
+import { llegaFronton } from './llegadas.js';
 import { CLUBS } from '../futbol/clubs.js';
 import { COURT } from '../pelota/rules.js';
 const loadFutbol = () => import('./futbol.js').then(m => m.Futbol);
@@ -192,7 +192,7 @@ export class PuebloDeportes {
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
       const v = await this.venueListo(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
-      const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => vueloFronton(this, v, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
+      const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => llegaFronton(this, v, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
       if (this.disposed) return;   // (el pueblo se rehízo durante el partido: el fondo de los campeonatos ya es del nuevo)
       this.sportBackdrop(false);
       if (r.quit || r.error) return;
@@ -271,7 +271,7 @@ export class PuebloDeportes {
         const hv = await this.venueListo(sel.sede); await this.venuePrep(hv);
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
-        const r = await hv.play(this, a, { returnTo: this.fronton, comp: pick === 'camara' ? 'Pelota en casa' : 'Partido de exhibición', stay: true, intro: (m) => vueloFronton(this, hv, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
+        const r = await hv.play(this, a, { returnTo: this.fronton, comp: pick === 'camara' ? 'Pelota en casa' : 'Partido de exhibición', stay: true, intro: (m) => llegaFronton(this, hv, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         if (r.quit || r.error) continue;
@@ -319,7 +319,7 @@ export class PuebloDeportes {
         // (stay: del partido, al cuadro del torneo, sin volver al pueblo entre ronda y ronda)
         const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
-          comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => vueloFronton(this, venue, pm), cuatro: kind === 'cuatro' });
+          comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T), rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: kind === 'cuatro' });
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         played = true;
@@ -365,9 +365,8 @@ export class PuebloDeportes {
     return sede === 'plaza' && F ? F : sede === 'labrit' ? this.labritVenue() : this.hallVenue();
   }
   // ir al cubierto o al Labrit: el pueblo se tapa (el velo de los campeonatos) mientras se preparan los pelotaris y el
-  // jugador va allí (el cielo y las sombras van con él); la llegada, el vuelo hasta la cancha con el partido ya montado
-  // (llegadas.js), que es quien quita el velo. Al de la plaza, donde ya estás, solo el velo: si no, al elegir en el menú
-  // se veía un momento la calle y luego, de golpe, el vuelo
+  // jugador va allí (el cielo y las sombras van con él); la llegada, con el partido ya montado (llegadas.js), es quien
+  // quita el velo. Al de la plaza, donde ya estás, solo el velo: si no, al elegir en el menú se veía un momento la calle
   async venuePrep(v) {
     if (window.__autoWin) return;
     this.sportBackdrop(true, true);

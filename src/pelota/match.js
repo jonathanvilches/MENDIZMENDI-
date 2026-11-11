@@ -14,7 +14,7 @@ import { PrimeraPersona } from './primeraPersona.js';
 import { bolaSVG } from './bola.js';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
-import { Focos } from './show.js';
+import { granFinal } from './granFinal.js';
 import { Chapa3D } from './chapa.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
@@ -106,12 +106,13 @@ export class PelotaMatch {
     const panel = () => { if (conPanel || !this.active) return; conPanel = true; this.intro(); if (o.forcePairs) this.chooseMode('delantero'); };   // (torneo por parejas: ya por parejas)
     if (o.autostart) { this.hud.controls(true); this.game.start(); }
     else if (o.fly) {
-      // la llegada (o.fly(partido), una promesa): la cámara vuela hasta la cancha con los pelotaris ya en su sitio y el
-      // público en la grada; mientras, nada del marcador ni de los botones. Al acabar, el panel del partido
+      // la llegada (o.fly(partido), una promesa; game/llegadas.js): quita el velo con los pelotaris ya en su sitio y el
+      // público en la grada; mientras, nada del marcador ni de los botones. Al acabar, el panel del partido. (Antes era un
+      // vuelo de la cámara hasta la cancha: se quitó en noviembre de 2026)
       this.flying = true; this.hud.controls(false); this.hud.root.classList.add('vuelo');
       // (en el torneo por parejas, los otros dos pelotaris antes del vuelo: así llegan los cuatro ya en su sitio)
       const prep = o.forcePairs && o.mates ? Promise.resolve().then(() => o.mates()).then((M) => { if (this.active && M) { this.mateObjs = M; this.pairs = true; this.role = 'delantero'; this.newGame(); } }, e => console.warn('parejas', e)) : Promise.resolve();
-      // (los pelotaris esperan en la contracancha mientras vuela la cámara y, al llegar, salen corriendo: preparaEntrada)
+      // (los pelotaris esperan en la contracancha y, al quitarse el velo, salen corriendo: preparaEntrada)
       prep.then(() => { if (!this.active) return; this.preparaEntrada(); return o.fly(this); }).catch(e => console.warn('llegada', e)).finally(() => {
         this.flying = false; this.camInit = false; this.t0 = this.t; this.hud.root.classList.remove('vuelo');
         if (this.active) this.saleEntrada(panel);
@@ -382,10 +383,12 @@ export class PelotaMatch {
       if (!this.contado) { this.contado = true; try { localStorage.setItem('herrizherri-pelota-consejos', this.consejosN + 1); } catch (e) { /* sin almacenamiento */ } } };   // (sin silbato: en la pelota no hay; la grada se calla para el saque)
     // (después de la presentación, el sorteo del saque con la chapa: saca el del color que sale)
     const sorteo = () => { if (!this.active) return; this.tossChapa(true).then((sd) => { if (!this.active) return; this.game.server = sd; this.game.placeForServe(); go(); }); };
-    const V = this.o.vsImg;
+    const V = this.o.vsImg, g0 = this.game;
     if (!V || this.o.autostart || window.__autoWin || (navigator.webdriver && !window.__vs)) return go();
-    // (en la final de un campeonato, antes la presentación con los focos: show.js)
-    if (this.o.focos && !this.focosHechos && (!navigator.webdriver || window.__focos)) { this.focosHechos = true; this.presentacion().then(() => { if (this.active) this.vsThenPlay(); }); return; }
+    // (en la final de un campeonato, la entrada de «Gran final» (granFinal.js): ya enfrenta a los dos con sus cartas, así
+    // que en vez de la pantalla VS, de ahí al sorteo. Antes, un vuelo de cámara y unos focos que buscaban a los pelotaris
+    // a oscuras: el autor los quitó, noviembre de 2026)
+    if (this.o.final && !this.finalHecho && (!navigator.webdriver || window.__final)) { this.finalHecho = true; this.entradaFinal().then(() => { if (this.active) (g0.mode === 'match' ? sorteo : go)(); }); return; }
     const t = this.txt, L = t.levels || TEXT.es.levels, M = this.pairs && this.mateObjs, P = t.pairs || TEXT.es.pairs, g = this.game;
     const rt = splitName(this.names.rival).town || this.o.town || '';
     const line = [M ? (this.role === 'delantero' ? P.front : P.back) : this.cuatro ? (P.four || TEXT.es.pairs.four) : P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target), this.o.fixedLevel ? '' : L[this.level]].filter(Boolean).join(' · ');
@@ -405,26 +408,21 @@ export class PelotaMatch {
       line, quote: rivalQuote(this.o.rivalStats || {}, this.lang), quoteBy: rn, tap: t.vsTap || TEXT.es.vsTap,
     }).then(g.mode === 'match' ? sorteo : go);   // (en el peloteo saca siempre el rival: sin sorteo)
   }
-  // la presentación de los pelotaris con los focos (show.js): a oscuras, un haz busca al colorado y otro al azul, cada uno
-  // con su nombre abajo, y se encienden todas las luces con el aplauso. Tocando o con una tecla, se salta
-  presentacion() {
-    return new Promise(res => {
-      const g = this.game, A = this.audio, C = this.cols, sd = (col) => (C.you === col ? 'you' : 'rival');
-      this.hud.controls(false); this.camInit = false;
-      this.show = new Focos(this.T, this.court, { exposure: this.o.exposure, spots: this.court.standSpots });
-      this.showP = { rojo: g.players[sd('rojo')], azul: g.players[sd('azul')] };
-      A.ensure(); A.mood(0.85, 0.4); A.aplauso(0.35, 1.6);
-      const TS = this.txt.toss || TEXT.es.toss;
-      this.showCall = (k) => {
-        if (k === 'luz') { A.aplauso(0.95, 4.2); A.mood(0.7, 0.3); this.shake = 0.15; return; }
-        const who = sd(k); A.aplauso(0.7, 2.6);
-        this.hud.presenta(this.nomLimpio(who), [k === 'rojo' ? TS.rojo : TS.azul, who === 'you' ? this.o.town || '' : splitName(this.names.rival).town || this.o.town || '', this.tempDe(who)].filter(Boolean).join(' · '), k);
-      };
-      const fin = () => { removeEventListener('pointerdown', salta, true); removeEventListener('keydown', salta, true); this.show?.end(); this.show = null; this.hud.presenta(''); this.camInit = false; res(); };
-      const salta = (e) => { e.stopPropagation?.(); fin(); };
-      setTimeout(() => { if (this.show) { addEventListener('pointerdown', salta, true); addEventListener('keydown', salta, true); } }, 400);
-      this.showFin = fin;
-    });
+  // la entrada de la final (granFinal.js): «GRAN FINAL», la txapela que se juegan y las cartas de los dos finalistas, el
+  // azul a la izquierda y el colorado a la derecha, con el público en pie detrás y su aplauso; se va sola o tocando
+  entradaFinal() {
+    const t = this.txt, F = t.final || TEXT.es.final, C = this.cols, A = this.audio, sp = (sd) => splitName(this.names[sd]);
+    const rt = sp('rival').town || this.o.town || '', de = (col) => (C.you === col ? 'you' : 'rival');
+    const carta = (sd) => ({ name: sp(sd).name, town: sd === 'you' ? this.o.town || '' : rt, stats: (sd === 'you' ? this.o.youStats : this.o.rivalStats) || {},
+      bonus: sd === 'you' ? (this.o.youBonus ?? 2) : (this.o.rivalBonus ?? 0), yo: sd === 'you', role: this.pairs ? 'Par' : 'Mano' });
+    this.hud.controls(false); this.finalOn = true;
+    A.ensure(); A.mood(0.85, 0.4); A.aplauso(0.45, 2);
+    this.o.onEvent?.({ type: 'entrada' });   // (la grada, en pie)
+    const g = granFinal(this.hud.root, { kicker: (this.o.comp || '').replace(/\s*·\s*(Final|Finala)\s*$/i, ''), venue: this.o.venue || '', titulo: F.titulo, toca: F.toca, lang: this.lang,
+      azul: carta(de('azul')), rojo: carta(de('rojo')),
+      onFase: (k) => { if (k === 'txapela') A.aplauso(0.7, 2.4); else if (k === 'cartas') { A.aplauso(0.95, 4); A.ovation(); } } });
+    this.finalFin = () => g.close();
+    return g.done.then(() => { this.finalOn = false; this.finalFin = null; });
   }
   // el sorteo del saque: el juez echa al aire la chapa (una cara azul y otra colorada) y saca el del color que sale. Se
   // lanza tocando el botón (o sola a los pocos segundos); devuelve el lado que saca, 'you' o 'rival'
@@ -795,7 +793,7 @@ export class PelotaMatch {
         if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeStart('hit');
         if (k === 'shift' || k === 'k') this.chargeStart('drop');
         if (k === 'l') this.chargeStart('cut');
-        if (k === 'escape') { if (hud.panelEl) return; hud.abreMenu(!hud.menuEl.classList.contains('on')); }   // (el menú, como la pausa)
+        if (k === 'escape') { if (hud.panelEl || this.finalOn) return; hud.abreMenu(!hud.menuEl.classList.contains('on')); }   // (el menú, como la pausa)
       }
       if (!down && I.keys[k]) { if (k === ' ' || k === 'j' || k === 'e' || k === 'enter') this.chargeEnd('hit'); if (k === 'l') this.chargeEnd('cut'); if (k === 'shift' || k === 'k') this.chargeEnd('drop'); }
       I.keys[k] = down;
@@ -990,7 +988,7 @@ export class PelotaMatch {
     if (!this.replay) h.root.classList.remove('repe');
     if (!this.entra) h.root.classList.remove('sale');
     // (en pleno juego: ni en la repetición, ni con una ventana, ni en la llegada, la salida, el VS o el recorrido)
-    const juego = ['serveWait', 'servePrep', 'rally'].includes(g.phase) && !this.replay && !h.panelEl && !this.entra && !this.flying && !this.vsOpen && !this.tour && !this.show;
+    const juego = ['serveWait', 'servePrep', 'rally'].includes(g.phase) && !this.replay && !h.panelEl && !this.entra && !this.flying && !this.vsOpen && !this.tour && !this.finalOn;
     V.carga = juego && I?.charge && !this.paused ? V.carga + dt : 0;
     if (V.carga > 8) { V.carga = 0; apunta('golpe cargado sin soltar'); I.charge = null; }
     const b = juego && h.$('.pel-btns');
@@ -1002,7 +1000,6 @@ export class PelotaMatch {
     dt = Math.min(dt, 0.05); this.t += dt;
     this.vigia(dt);
     if (this.replay) { if (this.fp?.on) this.camaraFP(dt, this.court.group, this.court); this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
-    if (this.show && !this.show.step(dt, this.showP, (k) => this.showCall?.(k))) this.showFin?.();
     this.chapa?.update(dt);   // (la chapa del sorteo)
     if (this.repAt && this.t >= this.repAt && !this.paused && !this.hud.panelEl) { this.repAt = 0; this.startReplay(); if (this.replay) return this.active; }
     // (el golpe sale siempre al soltar: con la carga a tope, espera a que tú decidas)
@@ -1335,7 +1332,7 @@ export class PelotaMatch {
     // (y más: el ganador de cerca, de frente, y la grada que aplaude; en el último tanto, una vuelta lenta alrededor del
     // que gana. Y al sacar el rival, un plano a su lado mientras corre a sacar, como en la tele; al botarla, el de juego)
     const corte = this.camDyn && !this.tour && g.phase === 'point' && g.phaseT > 0.35;
-    const saqueRv = this.camDyn && !this.tour && !this.show && g.phase === 'serveWait' && g.side(g.serverP()) === 'rival' && g.phaseT > 0.15 && g.mode === 'match';
+    const saqueRv = this.camDyn && !this.tour && g.phase === 'serveWait' && g.side(g.serverP()) === 'rival' && g.phaseT > 0.15 && g.mode === 'match';
     if (corte) {
       const rv0 = g.players.rival || you, mid = Math.max(4, Math.min(COURT.L, (you.z + rv0.z) / 2)), co = COURT.W / 2 + (C.contra || 2.6);
       const Wn = g.players[this.lastWin] || you, cw = [[Wn.x + 1.4, 1.65, Wn.z - 3.4], [Wn.x, 1.35, Wn.z]];
@@ -1374,7 +1371,6 @@ export class PelotaMatch {
     if (enPlano !== !!this.enCorte) { this.enCorte = enPlano; this.camInit = false; }
     if (this.lastCorte && !corte) this.plano = (this.plano || 0) + 1;   // (el plano siguiente, en el tanto siguiente)
     this.lastCorte = corte;
-    if (this.show) { const [cp, cl] = this.show.cam(this.showP); lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2]; }
     if (g.phase === 'intro') { const [p, l] = this.introCam(this.t - (this.t0 || 0)); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
     if (this.tossCam) { const [p, l] = this.tossCam(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }   // (el sorteo: la cámara junto a la chapa)
     // (la salida de los pelotaris: sus dos planos, con un corte entre uno y otro)
@@ -1414,7 +1410,7 @@ export class PelotaMatch {
   // la vista en primera persona: true si está puesta ahora (y entonces la cámara ya está colocada)
   camaraFP(dt, grp, C) {
     const g = this.game, yo = this.o.you?.obj;
-    const ok = this.conCamara && this.vistaFP && this.active && !this.replay && !this.tour && !this.show && !this.tossCam && !this.entra?.go && !this.flying && ['rally', 'serveWait', 'servePrep'].includes(g?.phase);
+    const ok = this.conCamara && this.vistaFP && this.active && !this.replay && !this.tour && !this.tossCam && !this.entra?.go && !this.flying && ['rally', 'serveWait', 'servePrep'].includes(g?.phase);
     const sb = this.o.you?.sombra;
     if (!ok) { if (this.fp?.on) { this.fp.apaga(); if (yo) yo.visible = true; if (sb && this.sombraVis != null) sb.visible = this.sombraVis; C.ball.scale.setScalar(1); this.camInit = false; } return false; }
     const T = this.T;
@@ -1482,7 +1478,7 @@ export class PelotaMatch {
     this.hud.vista(this.conCamara, this.vistaFP);
   }
   destroy() {
-    this.showFin?.();
+    this.finalFin?.();
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);
