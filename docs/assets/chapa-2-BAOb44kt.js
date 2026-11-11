@@ -1,1 +1,0 @@
-var e=new URL(`chapa-2-DyrUX_ga.mp3`,import.meta.url).href;export{e as default};

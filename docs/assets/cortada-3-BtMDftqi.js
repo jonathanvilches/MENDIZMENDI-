@@ -1,1 +1,0 @@
-var e=new URL(`cortada-3-DMzCSmMl.mp3`,import.meta.url).href;export{e as default};

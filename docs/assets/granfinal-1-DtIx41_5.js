@@ -1,1 +1,0 @@
-var e=new URL(`granfinal-1-_IjkPGxe.mp3`,import.meta.url).href;export{e as default};

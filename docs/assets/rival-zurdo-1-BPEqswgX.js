@@ -1,0 +1,1 @@
+var e=new URL(`rival-zurdo-1-BF_chVAd.mp3`,import.meta.url).href;export{e as default};

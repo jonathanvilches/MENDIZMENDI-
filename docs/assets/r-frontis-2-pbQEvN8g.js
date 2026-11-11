@@ -1,1 +1,0 @@
-var e=new URL(`r-frontis-2-DR5RRle3.mp3`,import.meta.url).href;export{e as default};

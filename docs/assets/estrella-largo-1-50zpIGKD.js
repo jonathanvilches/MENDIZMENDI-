@@ -1,1 +1,0 @@
-var e=new URL(`estrella-largo-1-C7e8tIZo.mp3`,import.meta.url).href;export{e as default};
