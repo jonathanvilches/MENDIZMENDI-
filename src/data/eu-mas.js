@@ -26,6 +26,7 @@ export const EU_TOWNS = {
 };
 // lanbideak eta ezizenak, «Izena, lanbidea» eta «Mota · lanbidea» moduetan agertzen direnak
 export const EU_ROLES = {
+  'artista': 'artista',
   'del museo': 'museokoa', 'ciclista': 'txirrindularia', 'arqueóloga': 'arkeologoa', 'arqueólogo': 'arkeologoa', 'guía del palacio': 'jauregiko gidaria',
   'guía del castillo': 'gazteluko gidaria', 'guía de la judería': 'juderiako gidaria', 'guía de Pitillas': 'Pitillasko gidaria', 'guía de montaña': 'mendiko gidaria',
   'montañero': 'mendizalea', 'montañera': 'mendizalea', 'molinero': 'errotaria', 'molinera': 'errotaria', 'guarda del río': 'ibaiko zaindaria',
@@ -71,8 +72,25 @@ const fecha = (x) => { const t = e(x); return t !== x ? t : mes(x) ?? x; };
 const FOODS = 'Pan|Moras|Avellanas|Manzana|Queso|Cuajada|Miel|Txistorra|Pimientos asados|Uvas|Tomate|Almendras|Talo con txistorra|Pochas|Espárragos|Alcachofa';
 const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'janaria').replace(/\by\b/g, 'eta');
 
-export const EU_MAS = { ...MAS, ...T };
+// (la portada nueva, el mapa, la galería de pueblos y los comercios: lo que se quedaba en castellano, noviembre de 2026)
+const PORTADA = {
+  'Próximos destinos': 'Hurrengo helmugak', 'Navarra conquistada': 'Nafarroa konkistatua', 'Ver comarca': 'Ikusi eskualdea', 'Acercar': 'Hurbildu',
+  'Ver toda Navarra': 'Ikusi Nafarroa osoa', 'Volver al mapa (Esc)': 'Itzuli mapara (Esc)', 'Pueblos de la comarca': 'Eskualdeko herriak',
+  'Pueblo anterior': 'Aurreko herria', 'Pueblo siguiente': 'Hurrengo herria', 'Verlo en lista': 'Zerrendan ikusi', 'Lista': 'Zerrenda',
+  'Las etxekoandreak': 'Etxekoandreak', 'Las conserveras': 'Kontserba-langileak', 'Maite junto al crucero': 'Maite gurutzearen ondoan',
+  'Kike en el frontón': 'Kike frontoian', 'Amaia junto al río': 'Amaia ibaiaren ondoan',
+  'Taller de artesanía': 'Artisautza-tailerra', 'Tienda de montaña': 'Mendi-denda', 'Librería': 'Liburu-denda', 'Escuela de música': 'Musika-eskola',
+  'Tienda de producto local': 'Tokiko produktuen denda', 'Visita guiada': 'Bisita gidatua',
+};
+export const EU_MAS = { ...MAS, ...T, ...PORTADA };
 export const EU_RX_MAS = [
+  // (la portada, el mapa y la galería de pueblos: contadores, anterior y siguiente, «por descubrir» y los comercios)
+  [/^(\d+)\/(\d+) comarcas$/, '$1/$2 eskualde'], [/^(\d+) de (\d+) misiones$/, '$1/$2 misio'],
+  [/^(.+), (\d+) de (\d+) misiones$/, (m, a, n, k) => `${e(a)}, ${n}/${k} misio`], [/^(.+) · (\d+) de (\d+)$/, (m, a, n, k) => `${e(a)} · ${n}/${k}`],
+  [/^Anterior: (.+)$/, (m, a) => `Aurrekoa: ${e(a)}`], [/^El pueblo de (.+)$/, (m, a) => `${loc(e(a))} herria`], [/^Comarca de (.+)$/, (m, a) => `${loc(e(a))} eskualdea`],
+  [/^Las ferias de (.+)$/, (m, a) => `${loc(e(a))} azokak`], [/^La feria de (.+)$/, (m, a) => `${loc(e(a))} azoka`],
+  [/^Por descubrir · (.+)$/, (m, a) => `Ezagutzeko · ${a.split(', ').map(x => e(x)).join(', ')}`],
+  [/^(Taller de artesanía|Tienda de montaña|Librería|Escuela de música|Tienda de producto local|Visita guiada) · (.+)$/, (m, a, b) => `${e(a)} · ${e(b)}`],
   // (abantailak: zigiluak, ziurtagiriak, intsigniak eta bonuak)
   [/^El sello de (.+)$/, (m, a) => `${loc(e(a))} zigilua`], [/^Completa las misiones de (.+)$/, (m, a) => `Osatu ${loc(e(a))} misioak`],
   [/^El certificado de (.+)$/, (m, a) => `${loc(e(a))} ziurtagiria`], [/^Certificado de (.+)$/, (m, a) => `${loc(e(a))} ziurtagiria`],
@@ -208,7 +226,7 @@ export const EU_RX_MAS = [
   [/^Jolastu: (.+)$/, (m, a) => `Jolastu: ${e(a)}`], [/^Ezagutu (.+)$/, (m, a) => `Ezagutu ${e(a)}`], [/^Conoce (.+)$/, (m, a) => `Ezagutu ${e(a)}`],
   [/^Sube a los montes en las misiones de montaña: sigue los mojones hasta el buzón de cumbre\. Llevas$/, 'Igo mendietara mendiko misioetan: jarraitu mugarriei gailurreko postontziraino. Daramatzazu:'],
   // «Izena, lanbidea» (gidaria, artzaina…) eta «Mota · Izena, lanbidea»: lanbidea ezaguna denean bakarrik
-  [/^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+), ([^,.;:!?]+)$/, (m, a, b) => EU_ROLES[b] ? `${a}, ${EU_ROLES[b]}` : null],
+  [/^([A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(?: [A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)?), ([^,.;:!?]+)$/, (m, a, b) => EU_ROLES[b] ? `${a}, ${EU_ROLES[b]}` : null],   // (también «Joxe Mari, carbonero»)
   [/^Guía (\S+)$/, (m, a) => `${a} gidaria`], [/^Sabi[oa] (\S+)$/, (m, a) => `${a} jakintsua`],
 ];
 // zerrendak («Orkatza, Basurdea…»): elementu guztiak itzultzen badira bakarrik; beste plantilla guztien ondoren

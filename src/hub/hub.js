@@ -415,6 +415,7 @@ export class Hub {
         <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}${videoTag(v, 'sp-vid')}<span class="sp-stat">${stat}</span></div>
         <div class="sp-body"><div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
         <div class="sp-bar">${row}</div></div></article>`;
+    // (las cifras van en negrita y parten la frase en trozos que el traductor no reconoce: en euskera se escribe aquí)
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `
     ${cabeza('Pelota y fútbol', 'trophy', 'Torneos')}
@@ -422,7 +423,7 @@ export class Hub {
       ${carta('sp-pelota', laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl), `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
         'Pelota a mano · tres campeonatos', 'Torneo de pelota', [['pelota', 'Manomanista'], ['person', 'Parejas'], [null, '4½']],
         `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`, vid('dep-pelotari'))}
-      ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${fw === 1 ? 'ganado' : 'ganados'}`,
+      ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${isEU() ? 'partida' : fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${isEU() ? 'irabazita' : fw === 1 ? 'ganado' : 'ganados'}`,
         'Fútbol · Liga Navarra', 'Torneo de fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
         `<div class="sp-row"><small>Tu club</small><div class="sp-box" data-una-linea>${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`, vid('dep-futbol'))}
     </section>`;
@@ -848,7 +849,7 @@ export class Hub {
     return `<section class="armorial pasaka">
       <div class="ar-head"><small class="kicker">${I('pelota', 20)} Saberes · Tradiciones</small><h1>Pasaka</h1>
         <p>${esc(PASAKA.lead)}</p>
-        <b class="ar-count">${played ? `<b>${won}</b> ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}` : 'Todavía no has jugado'}${has ? ' · carta de tradiciones' : ''}</b></div>
+        <b class="ar-count">${played ? (isEU() ? `<b>${played}</b> partidatik <b>${won}</b> irabazita` : `<b>${won}</b> ${won === 1 ? 'partido ganado' : 'partidos ganados'} de ${played}`) : 'Todavía no has jugado'}${has ? (isEU() ? ' · tradizioen karta' : ' · carta de tradiciones') : ''}</b></div>
       <div class="pk-hero">${laminaUrl('dep-pasaka') ? `<img class="pk-cov" src="${laminaUrl('dep-pasaka')}" alt="" decoding="async">` : '<canvas class="pk-prev" aria-hidden="true"></canvas>'}
         <div class="pk-hero-tx"><small class="kicker">${esc(PASAKA.kicker)}</small><b>Dos parejas, una red por medio y un guante de cuero</b><button class="btn primary big" data-pasaka="jugar">${I('play', 26)} <span>Jugar a pasaka</span></button></div></div>
       <div class="ar-grid pk-secs">${PASAKA.secs.map(([t, x], i) => `<article class="ar-guia pk-sec"><h3>${I(['book', 'castle', 'pelota', 'pin', 'cathedral', 'play'][i] || 'book', 30)}${esc(t)}</h3><p>${esc(x)}</p></article>`).join('')}</div>
