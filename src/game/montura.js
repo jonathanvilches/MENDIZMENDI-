@@ -14,7 +14,7 @@ import { damp, dampAngle } from '../util/math.js';
 // (el lomo: 0,72 de la altura total en el caballo y 0,70 en el burro); escala, sobre la medida de la especie
 // (actors/animalGlb.js: el burro de montar es de los grandes, 1,15 m a la cruz); saber, lo que cuenta la primera vez
 export const MONTURAS = {
-  burguete: { paso: 2.3, vmax: 9.6, giro: 4.6, r: 0.85, dist: 8.4, silla: 1.45, escala: 1, nombre: 'el caballo', subir: 'Montar el caballo', bajar: 'Bajar del caballo',
+  burguete: { paso: 2.3, vmax: 9.6, giro: 4.6, r: 0.95, dist: 9.2, silla: 1.66, escala: 1, nombre: 'el caballo', subir: 'Montar el caballo', bajar: 'Bajar del caballo',
     saber: 'Es un caballo de Burguete, Aurizko zaldia en euskera: la raza grande y mansa del Pirineo navarro.' },
   burro: { paso: 1.8, vmax: 5.4, giro: 4, r: 0.7, dist: 8, silla: 1.13, escala: 1.15, nombre: 'el burro', subir: 'Montar el burro', bajar: 'Bajar del burro',
     saber: 'El burro, astoa en euskera, cargó durante siglos con la huerta y la leña de estos pueblos.' },

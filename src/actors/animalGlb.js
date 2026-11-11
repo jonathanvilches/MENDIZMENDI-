@@ -28,7 +28,9 @@ const SPEC = {
   // caballo de Burguete (Aurizko zaldia), la raza grande del Pirineo navarro: 1,45-1,60 m a la cruz, unos dos metros con
   // la cabeza alta; capa alazana con las crines más claras. Es la montura (game/montura.js): una persona de 1,6 m le
   // llega a la cruz, no por encima del lomo como a la pottoka
-  burguete: { model: 'Horse', h: 2.02, col: { Main: '#9a5a2c', Main_Dark: '#6e3d1c', Main_Light: '#b87a44', Hair: '#d9b77a', Muzzle: '#4a3222' } },
+  // (el de Burguete es de tiro: ancho, de mucho pecho y tripa, cuello grueso y patas fuertes; el modelo es de un caballo
+  // de silla y, al lado del jinete, se quedaba pequeño y flaco. El autor, noviembre de 2026)
+  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.62, cuello: 1.45, vientre: 1.24, patas: 1.42 }, col: { Main: '#9a5a2c', Main_Dark: '#6e3d1c', Main_Light: '#b87a44', Hair: '#d9b77a', Muzzle: '#4a3222' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
@@ -138,6 +140,12 @@ function caricatura(geo, S, skel, bindMatrix) {
     geo.computeBoundingBox(); const H = geo.boundingBox.max.y - geo.boundingBox.min.y, y0 = geo.boundingBox.min.y;
     // (el costado: el eje que no es ni la altura ni el largo del cuerpo; casi todos miran a +z, el cerdo y el jabalí a +x)
     const sz = geo.boundingBox.getSize(new THREE.Vector3()), lat = sz.x > sz.z ? 'z' : 'x', cabeza = new THREE.Box3();
+    // (el cuerpo más ancho y hondo, si la especie lo pide: torso y cuello, de lado a lado desde la línea del medio; el
+    // vientre, hacia abajo desde la mitad del tronco; y las patas, un poco hacia fuera con él, para que queden debajo)
+    const esCuerpo = names.map(n => /^(Torso|Back$|Body$|FrontShoulder|BackShoulder|BackLeg\.)/.test(n)), esCuello = names.map(n => /^Neck/.test(n));
+    const anchar = (E.torso || 1) !== 1 || (E.cuello || 1) !== 1 || (E.vientre || 1) !== 1, cl = (geo.boundingBox.min[lat] + geo.boundingBox.max[lat]) / 2;
+    let cy = 0;
+    if (anchar) { let a = Infinity, b = -Infinity; for (let i = 0; i < P.count; i++) { let w = 0; for (let k = 0; k < 4; k++) if (esCuerpo[si.getComponent(i, k)]) w += sw.getComponent(i, k); if (w > 0.6) { const y = P.getY(i); if (y < a) a = y; if (y > b) b = y; } } cy = (a + b) / 2; }
     const cen = [new THREE.Vector3(), new THREE.Vector3()], num = [0, 0];
     for (let i = 0; i < P.count; i++) {
       let wc = 0, wp = 0, pata = null, mayor = 0;
@@ -146,6 +154,14 @@ function caricatura(geo, S, skel, bindMatrix) {
       if (wc > 0) { const k = 1 + (E.cabeza - 1) * Math.min(1, wc); X = hp.x + (X - hp.x) * k; Y = hp.y + (Y - hp.y) * k; Z = hp.z + (Z - hp.z) * k; }
       // (las patas, más gruesas alrededor de su hueso; la pezuña, abajo del todo, un poco menos, que no parezca una bota)
       if (pata && wp > 0) { const k = 1 + (E.patas - 1) * Math.min(1, wp) * (0.55 + 0.45 * Math.min(1, (Y - y0) / (0.12 * H))); X = pata.x + (X - pata.x) * k; Z = pata.z + (Z - pata.z) * k; }
+      if (anchar) {
+        let wb = 0, wn = 0; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w <= 0) continue; const j = si.getComponent(i, k); if (esCuerpo[j]) wb += w; else if (esCuello[j]) wn += w; }
+        const kl = 1 + ((E.torso || 1) - 1) * Math.min(1, wb) + ((E.cuello || 1) - 1) * Math.min(1, wn);
+        let L = lat === 'x' ? X : Z; L = cl + (L - cl) * kl;
+        if (pata && wp > 0) L += (pata[lat] - cl) * ((E.torso || 1) - 1) * 0.7 * Math.min(1, wp);
+        if (lat === 'x') X = L; else Z = L;
+        if (wb > 0 && Y < cy) Y = cy + (Y - cy) * (1 + ((E.vientre || 1) - 1) * Math.min(1, wb));
+      }
       P.setXYZ(i, X, Y, Z); _v.set(X, Y, Z);
       if (wc > 0.8) cabeza.expandByPoint(_v);
       if (ojo.getX(i)) { const l = _v[lat] < 0 ? 0 : 1; cen[l].add(_v); num[l]++; }
