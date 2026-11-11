@@ -37,11 +37,19 @@ export class FollowCamera {
     const sens = input.touch ? 0.006 : 0.005;
     if (input.look.dx || input.look.dy) this.idle = 0; else this.idle += dt;
     this.yaw -= input.look.dx * sens;
-    this.pitch = clamp(this.pitch + input.look.dy * sens, -0.15, 1.2);
+    // (como mucho 0,95 rad hacia abajo: antes hasta 1,2, casi encima del jugador, y a caballo, con la cámara a nueve metros,
+    // se quedaba mirando desde lo alto sin ver por dónde se iba; el vídeo del autor del 11 de noviembre)
+    this.pitch = clamp(this.pitch + input.look.dy * sens, -0.15, 0.95);
     if (input.zoom) this.targetDist = clamp(this.targetDist + input.zoom * 0.9, 3, 16);
     // seguimiento automático suave detrás del jugador cuando se mueve y no se toca la cámara
     const moving = Math.hypot(input.move.x, input.move.y) > 0.1;
-    if (moving && this.idle > 1.2 && input.move.y > -0.3) this.yaw = dampAngle(this.yaw, player.heading + Math.PI, 1.2 * Math.abs(input.move.y) + 0.3 * Math.abs(input.move.x), dt);
+    // (solo con la palanca hacia delante: con ella de lado, la cámara se ponía detrás, ese lado pasaba a ser otro y el
+    // personaje, y sobre todo el caballo, giraba y giraba sin control hasta soltarla o bajarse; el vídeo del autor del 11
+    // de noviembre. Ahora de lado va hacia ese lado y sigue recto, y la cámara le sigue cuando vuelve a ir hacia delante)
+    if (moving && this.idle > 1.2 && input.move.y > 0.3) this.yaw = dampAngle(this.yaw, player.heading + Math.PI, 1.2 * input.move.y, dt);
+    // (y la altura también vuelve a la de siempre al moverse sin tocar la cámara: si se había ido muy arriba o muy abajo con
+    // el dedo, se recoloca sola, sin tirones)
+    if (moving && this.idle > 1.2) this.pitch = damp(this.pitch, 0.3, 0.9, dt);
     const want = _want.set(player.pos.x, player.pos.y + 1.45, player.pos.z);
     if (instant) this.focus.copy(want);
     // en horizontal la cámara va pegada al jugador: con un retraso suavizado, ese retraso cambiaba de un fotograma a otro
