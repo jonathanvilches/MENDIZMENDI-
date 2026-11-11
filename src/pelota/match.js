@@ -1165,10 +1165,7 @@ export class PelotaMatch {
         this.jPend = null;   // (el golpe pendiente de comentar ya no se comenta: el tanto ha acabado)
         this.lastWin = e.winner; this.lastFinal = !!e.final; this.planoT = this.t;
         // (la racha: tantos seguidos, iguala o remontada; en el aviso y, mientras dure, en el marcador)
-        // (el movimiento del rótulo, según lo que ha pasado: hud.js, los dos botes botan, la chapa tiembla, fuera vuela de
-        // lado, la falta y el pasa caen como un sello; un tanto bueno, brilla)
-        const anim = e.call === 'bote' ? 'bote' : e.call === 'chapa' ? 'chapa' : /^(fuera|largo|lado|pared|alta|cuatro)$/.test(e.call) ? 'fuera' : /^(falta|pasa)/.test(e.call) ? 'falta' : 'tanto';
-        const ex = g.mode === 'rally' ? { anim } : { col: this.cols[e.winner], racha: this.rachaDe(e), anim };
+        const ex = g.mode === 'rally' ? null : { col: this.cols[e.winner], racha: this.rachaDe(e) };
         const [title, sub] = t.calls[e.call] || t.calls.tanto;
         const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
         if (g.mode === 'rally') this.hud.call(title, sub, '', 3, ex);

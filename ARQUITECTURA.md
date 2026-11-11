@@ -325,14 +325,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   encima de la raya de arriba del frontis y de la de la pared izquierda hay una franja de chapa, del color de la de
   abajo, con su colchón, el remate que sobresale. La pelota suena a metal al dar en cualquier chapa, la de abajo o las
   de arriba (antes en la chapa no sonaba nada). El sonido está sintetizado, a la espera de una grabación.
-- **Rótulos con movimiento** (`pelota/hud.js`, `call` y sus estilos `pelCall*`; `pelota/match.js`, `anim` en el aviso
-  del tanto): el aviso grande se abre desde una raya inclinada, lo barre un brillo, las letras caen una detrás de otra
-  (cada una en su `span.l` con su retraso, `--i`) y al irse se cierra en raya y sale de lado (`sale`). Cada fallo tiene
-  su animación (`v-bote`: las letras botan dos veces y una pelota cruza dando dos botes; `v-chapa`: tiembla; `v-fuera`:
-  las letras llegan volando de lado; `v-falta`: caen como un sello; `v-tanto`: brillan en dorado). La etiqueta del
-  golpe entra inclinada; los botones y la palanca entran de un salto al volver a verse (`controls`, `entra`) y el
-  marcador baja desde arriba la primera vez (`entraTop`). Con «reducir movimiento», sin animaciones. El aviso del tanto
-  dura 3,4 s (4 con racha, 5,5 el último) y sigue a la vista durante la repetición, que empieza a los 1,15 s.
+- **Rótulos del partido** (`pelota/hud.js`, `call`): el aviso grande entra y sale con un fundido de 0,3 s, sin más.
+  Hubo una versión con las letras cayendo, botando o volando, una pelota cruzando el rótulo de los dos botes, la chapa
+  temblando y los botones entrando de un salto: al autor no le gustó nada y se quitó (noviembre de 2026).
 - **Marcador de retransmisión y rachas** (`pelota/hud.js`, `setScore`, `setRacha`, `call`; `pelota/match.js`, `rachaDe`):
   al sumar, la cifra salta en dorado y su lado se ilumina. El aviso del tanto lleva arriba una raya del color de quien
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el
