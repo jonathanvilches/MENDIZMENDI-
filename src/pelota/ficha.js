@@ -25,12 +25,15 @@ function rng(seed) {
   return () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); h ^= h >>> 16; return (h >>> 0) / 4294967296; };
 }
 /** Datos de un pelotari inventado: { age, height (cm), weight (kg), left, debut, played, won, txapelas }. */
-function pelotariBio(name, st = {}, town = '') {
+// temps: sus temporadas, si se saben (las que deciden quién viste de colorado, game/torneo.js coloresPartido): el debut sale
+// de ellas, para que cuadre con los colores, y la edad, al menos la de debutar a los 18 a 20 años más esas temporadas
+function pelotariBio(name, st = {}, town = '', temps = null) {
   const r = rng(`ficha ${name} ${town}`), f = st.fuerza || 3, v = st.velocidad || 3, a = st.agilidad || 3;
-  const age = 19 + Math.floor(r() * 14);                                                  // de 19 a 32 años
+  let age = 19 + Math.floor(r() * 14);                                                    // de 19 a 32 años
   const height = Math.round(171 + f * 3 + r() * 7 - (v >= 4 ? 3 : 0));                    // de 1,71 a 1,93 m
   const weight = Math.round((21.5 + f * 0.7 - v * 0.35 + r() * 1.2) * (height / 100) ** 2); // de unos 65 a 95 kg
-  const debut = YEAR - Math.max(1, age - (18 + Math.floor(r() * 3)));                     // a los 18, 19 o 20 años
+  let debut = YEAR - Math.max(1, age - (18 + Math.floor(r() * 3)));                       // a los 18, 19 o 20 años
+  if (temps != null) { debut = YEAR - temps; age = Math.max(age, 18 + temps + Math.floor(r() * 3)); }
   const q = (f + v + a) / 15, played = Math.max(6, (YEAR - debut) * (14 + Math.floor(r() * 12)));
   const won = Math.round(played * Math.min(0.8, 0.28 + 0.45 * q + (r() - 0.5) * 0.08));
   const txapelas = q < 0.55 ? 0 : Math.floor(r() * (q > 0.75 ? 5 : 3));
@@ -57,7 +60,7 @@ function card(p, lang) {
     const R = p.record || {};
     data = [[T.town, town || '—'], ...(R.nivel ? [[T.level || 'Nivel', String(R.nivel)], [T.played, String(R.partidos ?? 0)]] : []), [T.winsHere, String(R.won ?? 0)], [T.txapelas, R.txapelas ? String(R.txapelas) : T.none]];
   } else {
-    const B = pelotariBio(name, st, town), m = (B.height / 100).toFixed(2).replace('.', lang === 'eu' ? ',' : ',');
+    const B = pelotariBio(name, st, town, p.temporadas ?? null), m = (B.height / 100).toFixed(2).replace('.', lang === 'eu' ? ',' : ',');
     // (el puesto ya va en la cabecera; el debut, en su pueblo)
     data = [[T.town, town || '—'], [T.age, T.years(B.age)], [T.height, `${m} m`], [T.weight, `${B.weight} kg`], [T.hand, B.left ? T.left : T.right],
       [T.debut, String(B.debut)], [T.played, String(B.played)], [T.won, `${B.won} · ${Math.round(100 * B.won / B.played)} %`], [T.txapelas, String(B.txapelas)]];

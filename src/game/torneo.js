@@ -473,12 +473,14 @@ function drawLines(root) {
 // los pelotaris de tu próximo partido, para sus fichas: tú (y tu compañero) y el rival (y el suyo). La carta de cada
 // uno abre su ficha entera (cualidades, golpes preferidos, cómo jugarle y sus datos)
 function fichaList(T, m) {
-  const yp = T.players.find(p => p.you), rv = m.rival;
+  // (las temporadas de cada rival, las mismas con las que coloresPartido decide quién viste de colorado: así el año de
+  // debut de su ficha cuadra con los colores del partido)
+  const yp = T.players.find(p => p.you), rv = m.rival, lv = levelTier(m.level), tp = (n) => temporadas(`${n} (${rv.town})`, lv);
   if (T.kind === 'parejas') return [{ id: 'you', name: yp.mates[0], town: yp.town, side: 'you', role: 'delantero', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } },
-    { id: 'youMate', name: yp.mates[1], town: yp.town, stats: mateStats(yp, 1), side: 'you', role: 'zaguero' },
-    { id: 'rival', name: rv.mates[0], town: rv.town, stats: mateStats(rv, 0), side: 'rival', role: 'delantero' },
-    { id: 'rivalMate', name: rv.mates[1], town: rv.town, stats: mateStats(rv, 1), side: 'rival', role: 'zaguero' }];
-  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano' }];
+    { id: 'youMate', name: yp.mates[1], town: yp.town, stats: mateStats(yp, 1), side: 'you', role: 'zaguero', temporadas: temporadas(yp.mates[1], 2) },
+    { id: 'rival', name: rv.mates[0], town: rv.town, stats: mateStats(rv, 0), side: 'rival', role: 'delantero', temporadas: tp(rv.mates[0]) },
+    { id: 'rivalMate', name: rv.mates[1], town: rv.town, stats: mateStats(rv, 1), side: 'rival', role: 'zaguero', temporadas: temporadas(rv.mates[1], lv) }];
+  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano', temporadas: tp(rv.name) }];
 }
 /** La media de un pelotari del torneo en su carta: la tuya sube con cada txapela; la de los rivales, con su nivel */
 export const youBonus = (T) => Math.min(20, 2 + (T?.txapelas || 0) * 2);

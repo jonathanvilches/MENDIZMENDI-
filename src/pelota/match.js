@@ -1,7 +1,7 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
 import { pzResultado } from '../ui/pausa.js';
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe, RETOS } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe, RETOS, temporadas, levelTier } from './rules.js';
 import { Comentarios } from './comenta.js';
 import { Voz, tiene } from './voz.js';
 import { subtitulos } from '../util/comentarios.js';
@@ -722,9 +722,12 @@ export class PelotaMatch {
     const o = this.o, M = this.pairs && this.mateObjs, town = o.town || '', rt = splitName(this.names.rival).town || town;
     const other = this.role === 'delantero' ? 'zaguero' : 'delantero';
     const L = [{ id: 'you', name: this.names.you, town, stats: o.youStats, side: 'you', role: M ? this.role : 'mano', you: true, record: o.youRecord }];
-    if (M) L.push({ id: 'youMate', name: M.youMate.name, town, stats: M.youMate.stats, side: 'you', role: other });
-    L.push({ id: 'rival', name: this.names.rival, town: rt, stats: o.rivalStats, side: 'rival', role: M ? 'delantero' : 'mano' });
-    if (M) L.push({ id: 'rivalMate', name: M.rivalMate.name, town: rt, stats: M.rivalMate.stats, side: 'rival', role: 'zaguero' });
+    // (sus temporadas, las mismas con las que se decidió quién viste de colorado, game/torneo.js coloresPartido: así el año
+    // de debut de la ficha cuadra con los colores)
+    const lv = levelTier(o.level), tR = !M && this.seasons?.rival != null ? this.seasons.rival : temporadas(this.names.rival, lv);
+    if (M) L.push({ id: 'youMate', name: M.youMate.name, town, stats: M.youMate.stats, side: 'you', role: other, temporadas: temporadas(M.youMate.name, 2) });
+    L.push({ id: 'rival', name: this.names.rival, town: rt, stats: o.rivalStats, side: 'rival', role: M ? 'delantero' : 'mano', temporadas: tR });
+    if (M) L.push({ id: 'rivalMate', name: M.rivalMate.name, town: rt, stats: M.rivalMate.stats, side: 'rival', role: 'zaguero', temporadas: temporadas(M.rivalMate.name, lv) });
     for (const p of L) p.color = this.cols[p.side];
     return L;
   }
