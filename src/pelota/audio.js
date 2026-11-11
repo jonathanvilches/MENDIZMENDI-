@@ -24,7 +24,8 @@ export class PelotaAudio {
     // música. La voz va por el sonido del juego, audio.js, con otro contexto: avisa con el evento herrizherri-voz)
     if (!this.bus && !this.stopped) {
       this.bus = this.ctx.createGain(); this.bus.connect(this.ctx.destination);
-      this.alHablar = (e) => { if (!this.bus) return; const g = this.bus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? 0.35 : 1, t, e.detail ? 0.08 : 0.5); };
+      // (baja sin prisa, en algo menos de un segundo, y vuelve igual de suave: de golpe se notaba el corte en los aplausos)
+      this.alHablar = (e) => { if (!this.bus) return; const g = this.bus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? 0.45 : 1, t, e.detail ? 0.28 : 0.6); };
       addEventListener('herrizherri-voz', this.alHablar);
     }
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
@@ -47,7 +48,9 @@ export class PelotaAudio {
     // el aplauso de todo el frontón en cada tanto (antes solo con el público sintetizado, que está apagado: el tanto
     // sonaba con la señal y nada más). Más fuerte y más largo si el tanto ha sido bueno o el peloteo largo (big, de 0 a 1)
     // (largo: de 4 a 7 segundos, que se apaga despacio. Antes duraba 2 y se cortaba enseguida)
-    this.aplauso((clean ? (mine ? 0.75 : 0.6) : (mine ? 0.55 : 0.45)) + big * 0.3, (clean ? 4.6 : 3.8) + big * 2.4);
+    // (de 3 a 5 segundos, con su fundido de entrada y de salida; la frase del comentarista llega cuando ya se apaga,
+    // match.js, comTanto)
+    this.aplauso((clean ? (mine ? 0.75 : 0.6) : (mine ? 0.55 : 0.45)) + big * 0.3, (clean ? 3.6 : 3.0) + big * 1.6);
     // (el murmullo de la grada no sube a la vez que el aplauso: los dos juntos sonaban a un zumbido, como una vibración)
     if (!PUBLICO) return;
     const C = this.crowdN;
@@ -55,16 +58,18 @@ export class PelotaAudio {
     C.applause(clean ? (mine ? 1 : 0.8) : (mine ? 0.85 : 0.55), clean ? 0.04 : 0.2); C.setLevel(0.55, 0.15);
   }
   /** Un aplauso de la grada: un trozo de la ovación grabada (de un sitio distinto cada vez, para que no se repita igual),
-   *  de dur segundos y apagándose al final; v, cuánto se oye */
+   *  de dur segundos; v, cuánto se oye. Entra con un fundido de algo más de medio segundo, se mantiene y se apaga despacio
+   *  (antes entraba de golpe, en una décima, y se notaba el corte) */
   aplauso(v = 0.6, dur = 2.4) {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;
     const b = carga(c, 'aplausos-final').buf;
     if (b) {
-      const s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 1);
+      const s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 1.5);
+      const V = Math.min(0.95, v), sube = Math.min(0.75, dur * 0.22), baja = Math.max(1.2, dur * 0.5), quieto = Math.max(t + sube, t + dur - baja);
       s.buffer = b; s.connect(g); g.connect(this.bus || c.destination);
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.min(0.95, v), t + 0.12);
-      g.gain.setValueAtTime(Math.min(0.95, v), t + Math.max(0.2, dur - 2)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
-      s.start(t, off); s.stop(t + dur + 0.05);
+      g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(V, t, sube / 3);
+      g.gain.setTargetAtTime(0.0001, quieto, baja / 4);
+      s.start(t, off); s.stop(t + dur + 0.6);
     }
     // (si la grabación aún no ha llegado, nada: las palmas sintetizadas sonaban a ruido)
   }
@@ -122,7 +127,7 @@ export class PelotaAudio {
   // a punto, la sintetizada: aplausos que crecen y se apagan, y el rugido
   ovation() {
     const c = this.ensure(); if (!c) return; const t = c.currentTime;
-    if (efecto(c, 'aplausos-final', this.bus || c.destination, 0.7)) { this.grada?.nivel(0.7, 0.3); return; }
+    if (efecto(c, 'aplausos-final', this.bus || c.destination, 0.7, 0.9)) { this.grada?.nivel(0.7, 0.6); return; }
     if (!PUBLICO || this.crowdN?.ovation()) return;
     for (let i = 0; i < 160; i++) { const u = Math.random() * 4.2, k = Math.min(1, u / 0.5) * Math.min(1, (4.4 - u) / 1.4); this.noise(t + u, 0.035, 2000 + Math.random() * 1800, 1.4, 0.14 * k); }
     const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();

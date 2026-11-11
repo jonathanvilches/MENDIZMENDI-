@@ -110,9 +110,12 @@ export function carga(ctx, n) {
 export function suelta(ctx, n) { CACHE.get(ctx)?.delete(n); }
 /** Suena una vez, si ya está descomprimida (si aún no, empieza a descomprimirla y devuelve false: entonces, el sonido
  *  sintetizado de antes). carga(ctx, n) al empezar el partido la deja a punto */
-export function efecto(ctx, n, dest, vol = 1) {
+// (entra, si se pide, con un fundido de «entra» segundos en vez de golpe)
+export function efecto(ctx, n, dest, vol = 1, entra = 0) {
   const b = carga(ctx, n).buf; if (!b) return false;
-  const s = ctx.createBufferSource(), g = ctx.createGain(); s.buffer = b; g.gain.value = vol; s.connect(g); g.connect(dest); s.start(); return true;
+  const s = ctx.createBufferSource(), g = ctx.createGain(), t = ctx.currentTime; s.buffer = b;
+  if (entra > 0) { g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(vol, t, entra / 3); } else g.gain.value = vol;
+  s.connect(g); g.connect(dest); s.start(); return true;
 }
 
 /** El público de la grada (pelota y fútbol): un rumor de estadio lleno en bucle, que sube y baja con el partido. Se
