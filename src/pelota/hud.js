@@ -40,25 +40,16 @@ const CSS = `
 .pel-toss-k{display:flex;align-items:center;gap:14px;font:400 var(--fs-2xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(7,2,15,.8);animation:pel-kin .6s ease-out both}
 .pel-toss-k i{display:block;width:clamp(28px,8vw,72px);height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,#5b4bff)}.pel-toss-k i:last-child{background:linear-gradient(90deg,#ff2e88,transparent)}
 .pel-toss-why{margin:0;font:700 var(--fs-sm)/1.3 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 6px rgba(7,2,15,.9)}
-/* las tarjetas: la figura sale por arriba, el nombre en grande y el color con las temporadas. Las dos iguales: del mismo
-   ancho, el nombre y el color siempre en una línea y, si en una no caben, las dos a la misma letra más pequeña (match.js,
-   tossChapa, iguala); debajo, el color y las temporadas, cada uno en su línea, en las dos. Antes cada una medía lo que su
-   texto y la de un nombre largo partía las temporadas: una tarjeta en dos líneas y la otra en tres */
-.pel-toss-p{--pc:#5b4bff;--k:14px;grid-row:3;align-self:end;position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:12px;min-width:0;width:min(340px,100%);padding:10px 16px 12px 10px;isolation:isolate;
+/* las cartas de los dos pelotaris (las de la presentación, match.js cartaDe), a cada lado de la chapa, del alto que quepa
+   bajo el título, y debajo su color y sus temporadas. La que saca se levanta; la otra se apaga */
+.pel-toss{--tw:clamp(104px,min(calc((100dvh - 172px) / 1.48),26vw),210px)}
+.pel-toss-p{--pc:#5b4bff;grid-row:2/4;align-self:center;justify-self:center;display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;
   transition:transform .35s cubic-bezier(.2,1.4,.4,1),filter .35s,opacity .35s}
-/* (el cristal, con sus esquinas redondeadas, va en una capa de fondo: así no se recorta la figura que asoma) */
-.pel-toss-p::after{content:'';position:absolute;inset:0;z-index:-1;--ln:linear-gradient(90deg,var(--pc),transparent);background:var(--ln) top/100% 3px no-repeat,linear-gradient(170deg,rgba(42,15,94,.9),rgba(13,6,28,.92));
-  border-radius:8px;}
-.pel-toss-p.azul{grid-column:1;justify-self:start;animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-toss-p.rojo{--pc:#ff2e88;grid-column:3;justify-self:end;grid-template-columns:minmax(0,1fr) auto;padding-inline:16px 10px;text-align:right;animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-toss-p.rojo .pt-fig{order:2}.pel-toss-p.rojo::after{--ln:linear-gradient(270deg,var(--pc),transparent);border-radius:8px;}
-.pel-toss-p .pt-fig{position:relative;width:64px;height:84px;margin-top:-38px}
-.pel-toss-p .pt-fig img{position:absolute;left:50%;bottom:0;height:130%;width:auto;max-width:none;transform:translateX(-50%);filter:drop-shadow(0 0 2px #fff) drop-shadow(0 8px 12px rgba(0,0,0,.5))}
-.pel-toss-p.rojo .pt-fig img{transform:translateX(-50%) scaleX(-1)}
-.pel-toss-p .pt-tx{display:grid;gap:4px;min-width:0}
-.pel-toss-p b{font:400 var(--fs-2xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;color:#fff;white-space:nowrap}
-.pel-toss-p small span{display:block;white-space:nowrap}.pel-toss-p small{display:grid;gap:2px;font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--pc) 45%,#fff)}
-.pel-toss-p.gana{transform:translateY(-6px) scale(1.06);filter:drop-shadow(0 0 18px color-mix(in srgb,var(--pc) 80%,transparent))}
+.pel-toss-p .gx-card{--w:var(--tw)!important;pointer-events:none}
+.pel-toss-p>small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:color-mix(in srgb,var(--pc) 45%,#fff);text-shadow:0 1px 6px rgba(7,2,15,.9)}
+.pel-toss-p.azul{grid-column:1;animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-toss-p.rojo{--pc:#ff2e88;grid-column:3;animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-toss-p.gana{transform:translateY(-6px) scale(1.06)}
 .pel-toss-p.pierde{opacity:.55;filter:saturate(.5)}
 /* en medio, abajo: el botón y quién saca */
 .pel-toss-mid{grid-column:2;grid-row:2/4;align-self:end;display:flex;flex-direction:column;align-items:center;gap:10px;min-width:0;text-align:center}
@@ -82,11 +73,11 @@ const CSS = `
 @keyframes pel-tossbg{from{opacity:0}}@keyframes pel-tossout{to{opacity:0;transform:scale(1.04)}}
 @keyframes pel-tl{from{opacity:0;transform:translateX(-40px)}}@keyframes pel-tr{from{opacity:0;transform:translateX(40px)}}
 @keyframes pel-kin{from{opacity:0;letter-spacing:.5em}}@keyframes pel-res{from{opacity:0;transform:scale(.5)}}
-/* tumbado y bajo: todo un paso más pequeño; de pie, las tarjetas abajo, una al lado de otra, y el botón encima */
-@media (max-height:500px){.pel-toss-k{font-size:var(--fs-xl)}.pel-toss-p b{font-size:var(--fs-xl)}.pel-toss-p .pt-fig{width:52px;height:64px;margin-top:-30px}.pel-toss-res{font-size:var(--fs-2xl)}.pel-toss-p{padding-block:8px 10px}}
+/* tumbado y bajo: todo un paso más pequeño; de pie, las cartas abajo, una al lado de otra, y el botón encima */
+@media (max-height:500px){.pel-toss-k{font-size:var(--fs-xl)}.pel-toss-res{font-size:var(--fs-2xl)}}
 @media (orientation:portrait){.pel-toss{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto}
-  .pel-toss-mid{grid-column:1/-1;grid-row:3}.pel-toss-p{grid-row:4;width:100%}.pel-toss-p.azul{grid-column:1}.pel-toss-p.rojo{grid-column:2}
-  .pel-toss-p b{font-size:var(--fs-lg)}.pel-toss-p .pt-fig{width:44px;height:60px;margin-top:-24px}.pel-toss-res{white-space:normal}}
+  .pel-toss{--tw:clamp(104px,40vw,190px)}.pel-toss-mid{grid-column:1/-1;grid-row:3}.pel-toss-p{grid-row:4}.pel-toss-p.azul{grid-column:1}.pel-toss-p.rojo{grid-column:2}
+  .pel-toss-res{white-space:normal}}
 @media (prefers-reduced-motion:reduce){.pel-toss-p,.pel-toss-k,.pel-toss-go,.pel-toss-res{animation:none!important}}
 @media (prefers-reduced-motion:reduce){.pel-toss *,.pel-rep *{animation-duration:.01s!important}}
 .pel-root *{box-sizing:border-box}
