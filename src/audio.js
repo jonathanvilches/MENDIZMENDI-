@@ -181,7 +181,7 @@ export class Sound {
   cowbell(pos, v = 0.4) { if (!this.ctx) return; const o = this.out(pos, 45, v, 0.3); if (!o) return; const f = 520 + Math.random() * 90; this.tone(f, 0.5, 'square', 0.05, o); this.tone(f * 1.48, 0.4, 'triangle', 0.05, o); this.tone(f * 2.7, 0.2, 'sine', 0.03, o); }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
   bird(pos) {
-    if (!this.ctx) return; const o = this.out(pos, 50, 0.35, 0.3); if (!o) return;
+    if (!this.ctx) return; const o = this.out(pos, 50, 0.2, 0.3); if (!o) return;   // (más bajo que antes, 0,35)
     const base = 2200 + Math.random() * 1800, n = 2 + Math.floor(Math.random() * 5), kind = Math.random();
     for (let i = 0; i < n; i++) {
       const t = i * (0.08 + Math.random() * 0.06);
@@ -217,7 +217,7 @@ export class Sound {
     if (!this.animPre) { this.animPre = true; for (const k of EN_PUEBLO) for (const n of GRAB[k]) carga(this.ctx, n); carga(this.ctx, 'caballo-galope'); }
     this.pajaros ||= new Ambiente(this.ctx, this.sfx, 'ambiente-pajaros'); this.pueblo ||= new Ambiente(this.ctx, this.sfx, 'ambiente-pueblo');
     { const dia = clamp((0.62 - night) / 0.25, 0, 1), monte = inIrati || bosque, alto = player.pos.y > 900;
-      this.pajaros.nivel(sport || alto ? 0 : dia * (monte ? 0.26 : 0.13), sport ? 0.12 : 0.8);
+      this.pajaros.nivel(sport || alto ? 0 : dia * (monte ? 0.15 : 0.075), sport ? 0.12 : 0.8);   // (más bajos que antes, 0,26 y 0,13: se oían demasiado)
       this.pueblo.nivel(sport || alto || monte ? 0 : dia * 0.24, sport ? 0.12 : 0.8); }
     const r = riverInfo(player.pos.x, player.pos.z);
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;

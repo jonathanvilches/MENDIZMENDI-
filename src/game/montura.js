@@ -42,7 +42,7 @@ export class Montura {
     if (P.blob) P.blob.visible = false;
     this.sienta(P);
     if (this.tipo === 'burguete' && this.g.sound?.relincho) this.g.sound.relincho(this.A.pos); else this.g.sound?.ui?.('click');   // (el caballo relincha al montarlo)
-    this.relT = 18; this.kAntes = 0;
+    this.relT = 60; this.relDesde = 0; this.kAntes = 0;
   }
   baja() {
     const P = this.P; if (!P) return null;
@@ -105,12 +105,12 @@ export class Montura {
       }
     }
     if (this.tipo === 'burguete' && this.speed < 0.3 && (this.resT = (this.resT ?? 4) - dt) <= 0) { this.resT = 7 + Math.random() * 8; this.g.sound?.resoplido?.(A.pos); }
-    // (y relincha, para que se sienta vivo: al arrancar a galopar, si hace al menos doce segundos del último, y de vez en
-    // cuando por el camino, cada 22 a 42 s. El primero, a los 18 s de montarlo, que al montarlo ya relincha)
+    // (y relincha de vez en cuando, para que se sienta vivo, pero no todo el rato: al arrancar a galopar si hace más de un
+    // minuto del último, y por el camino cada minuto y medio o dos y medio. Antes, cada 22 a 42 s, era demasiado)
     if (this.tipo === 'burguete') {
       const k = this.speed / T.vmax, arranca = k > 0.72 && (this.kAntes ?? 0) <= 0.72; this.kAntes = k;
-      this.relT = (this.relT ?? 18) - dt;
-      if ((arranca && this.relT < 30) || (this.relT <= 0 && this.speed > 0.5)) { this.relT = 22 + Math.random() * 20; this.g.sound?.relincho?.(A.pos); }
+      this.relT = (this.relT ?? 60) - dt; this.relDesde = (this.relDesde ?? 0) + dt;
+      if ((arranca && this.relDesde > 60) || (this.relT <= 0 && this.speed > 0.5)) { this.relT = 90 + Math.random() * 60; this.relDesde = 0; this.g.sound?.relincho?.(A.pos); }
     }
     P.pos.set(nx, A.pos.y + 0.55, nz); P.heading = this.heading; P.speed = this.speed;
     if (P.collider) { P.collider.x = nx; P.collider.z = nz; }
