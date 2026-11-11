@@ -51,6 +51,9 @@ export class Voz {
   }
   async grabada(L, c) {
     const S = window.__sound, ctx = S?.ctx; this.habla_ = true; this.actual = c;
+    // (mientras se baja, un plazo provisional: con el de la frase anterior, una que llegaba entonces la daba por acabada y
+    // sonaban las dos a la vez)
+    this.fin = performance.now() + 6000;
     try {
       if (!ctx) throw new Error('sin audio');
       const nx = c.sigue && busca(c.sigue); if (nx) this.carga(nx, ctx).catch(() => {});   // (el turno siguiente, ya pedido)
