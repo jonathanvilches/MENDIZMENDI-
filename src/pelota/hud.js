@@ -161,15 +161,17 @@ const CSS = `
 .pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
 .pel-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:120px;height:120px;border-radius:50%;border:3px dashed rgba(255,255,255,.55);display:grid;place-items:center;font-size:var(--fs-xs);font-weight:700;text-align:center;opacity:.8;padding:8px}
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
-.pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
-.pel-btn:active,.pel-btn.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
-.pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 2px 0 rgba(74,10,94,.6);background:radial-gradient(circle at 50% 30%,#ff9bd8,#ff2bd6 60%,#c21cff);box-shadow:0 6px 0 #8a1c8f, 0 10px 22px rgba(0,0,0,.35)}
+/* (botones lisos, sin canto ni sombra: la cara con un degradado suave y, al pulsar, se encogen un poco. Antes llevaban un
+   canto semitransparente debajo que parecía una sombra mal puesta) */
+.pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:none;transition:transform .08s,filter .08s}
+.pel-btn:active,.pel-btn.down{transform:scale(.94);filter:brightness(.92)}
+.pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 1px 0 rgba(74,10,94,.45);background:linear-gradient(180deg,#ff7fdc 0%,#f43ad6 100%)}
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
-@keyframes pel-pulse{from{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 14px rgba(255,220,80,0)}}
+@keyframes pel-pulse{from{box-shadow:0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 0 0 14px rgba(255,220,80,0)}}
 /* (cortada y dejada, con la misma letra: antes la cortada iba un tamaño más pequeña) */
-.pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 5px 0 rgba(10,4,24,.55), 0 8px 16px rgba(0,0,0,.3)}
-.pel-bcol{display:flex;flex-direction:column;align-items:center;gap:8px}
-.pel-cut{background:radial-gradient(circle at 50% 30%,rgba(255,60,150,.95),rgba(120,10,70,.96));box-shadow:0 5px 0 rgba(40,4,24,.55), 0 8px 16px rgba(0,0,0,.3)}
+.pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 rgba(15,5,30,.45);border:0;background:linear-gradient(180deg,#6440b8 0%,#432189 100%)}
+.pel-bcol{display:flex;flex-direction:column;align-items:center;gap:10px}
+.pel-cut{background:linear-gradient(180deg,#ff5fae 0%,#d93088 100%)}
 .pel-hit,.pel-cut,.pel-drop{position:relative}
 .pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0 var(--tope,100%),rgba(255,70,70,.5) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
 .pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
@@ -413,7 +415,7 @@ body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto
 body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
 body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
 body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
-body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
+body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
 .pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
 .pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .pel-est-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-est-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
