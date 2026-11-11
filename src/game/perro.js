@@ -153,6 +153,8 @@ export class Perro {
     const d = Math.hypot(t.x - P.x, t.z - P.z);
     if (this.best == null || d < this.best - 4 || this.tKey !== t.key) { this.best = d; this.atasco = 0; this.tKey = t.key; }
     else if (d > 6) this.atasco += dt * (g.player.speed > 0.5 ? 1 : 0.7) * (d > this.best + 25 ? 2 : 1);
+    // (a caballo o en el tractor no se pregunta: se pasea sin prisa, y la tarjeta se quedaba encima todo el paseo)
+    if (g.player.vehiculo) { this.atasco = 0; if (this.oferta) this.cierraOferta(); return; }
     if (this.atasco > 35 && this.coolAyuda < 0 && !this.oferta) { this.atasco = 0; this.ofrece(); }
   }
   update(dt) {
