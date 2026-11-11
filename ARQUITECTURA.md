@@ -352,8 +352,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
   la coma) y deja 50 ms de silencio en cada borde. A Miren, que sonaba robótica, le da cuerpo en los graves, le quita el
-  brillo metálico de los agudos y le pone un 5 % más de ritmo sin cambiar el tono. Entre turno y turno de un diálogo,
-  110 ms (`pelota/voz.js`, `sigue`). `entrega/comparacion-voz-miren.mp3`: tres frases de Miren, antes, después y
+  brillo metálico de los agudos y le pone un 10 % más de ritmo sin cambiar el tono (5 % aquí y otro 5 % después, a
+  petición del autor). Entre turno y turno de un diálogo, nada: el siguiente se baja mientras habla el primero
+  (`pelota/voz.js`, `carga`, `sigue`). `entrega/comparacion-voz-miren.mp3`: tres frases de Miren, antes, después y
   después con un poco de eco de cabina.
 - **Comentarios del partido, hablados** (`pelota/comenta.js`, las frases; `pelota/voz.js`, la voz; `pelota/match.js`,
   `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, dos
