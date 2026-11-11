@@ -1,4 +1,4 @@
-// Los pajarillos del pueblo: gorriones que picotean en el suelo de la plaza, junto a los bancos y a las puertas, y salen
+// Los pajarillos del pueblo (y las gallinas de las casas de las afueras): gorriones que picotean en el suelo de la plaza, junto a los bancos y a las puertas, y salen
 // volando a una farola o a un balcón cuando pasas cerca (y vuelven al rato); palomas que andan cabeceando por la plaza; y
 // vencejos que dan vueltas deprisa sobre los tejados. Cada especie es una sola malla repetida (InstancedMesh: una llamada de
 // dibujo), y el aleteo y las alas plegadas se hacen en el sombreador. De noche duermen: no se ven.
@@ -22,11 +22,24 @@ function cuerpoPajaro(L, o) {
     for (let i = 0; i < p.count; i++) { c.copy(dn).lerp(up, THREE.MathUtils.smoothstep(p.getY(i) / (0.34 * L), -0.3, 0.5)); c.toArray(a, i * 3); }
     b.setAttribute('color', new THREE.BufferAttribute(a, 3)); }
   parts.push(ala(b, 0));
-  const h = new THREE.SphereGeometry(0.24 * L, 7, 5); h.translate(0, 0.26 * L, 0.5 * L); parts.push(ala(col(h, o.cabeza), 0));
-  const pk = new THREE.ConeGeometry(0.055 * L, 0.2 * L, 4); pk.rotateX(Math.PI / 2); pk.translate(0, 0.23 * L, 0.78 * L); parts.push(ala(col(pk, o.pico), 0));
+  // (la cabeza, por defecto la de un pájaro pequeño; la gallina la lleva más alta, adelantada y pequeña, con el cuello)
+  const hy = (o.cabezaY ?? 0.26) * L, hz = (o.cabezaZ ?? 0.5) * L, hr = (o.cabezaR ?? 0.24) * L;
+  const h = new THREE.SphereGeometry(hr, 7, 5); h.translate(0, hy, hz); parts.push(ala(col(h, o.cabeza), 0));
+  if (o.cuello) { const c = new THREE.CylinderGeometry(hr * 0.75, 0.2 * L, hy - 0.05 * L, 6); c.rotateX(-0.35); c.translate(0, hy / 2, hz - 0.08 * L); parts.push(ala(col(c, o.cuello), 0)); }
+  const pk = new THREE.ConeGeometry(0.055 * L, 0.2 * L, 4); pk.rotateX(Math.PI / 2); pk.translate(0, hy - 0.03 * L, hz + hr + 0.06 * L); parts.push(ala(col(pk, o.pico), 0));
+  // (la gallina: la cresta roja encima de la cabeza, la barbilla bajo el pico y las dos patas amarillas)
+  if (o.cresta) {
+    const cr = new THREE.SphereGeometry(0.1 * L, 6, 4); cr.scale(0.35, 1, 1.5); cr.translate(0, hy + hr * 0.95, hz); parts.push(ala(col(cr, o.cresta), 0));
+    const bb = new THREE.SphereGeometry(0.06 * L, 5, 4); bb.scale(0.5, 1.3, 0.7); bb.translate(0, hy - hr * 0.95, hz + hr * 0.75); parts.push(ala(col(bb, o.cresta), 0));
+  }
+  if (o.patas) for (const sx of [-1, 1]) { const pt = new THREE.CylinderGeometry(0.022 * L, 0.022 * L, o.patas.l * L, 4); pt.translate(sx * 0.1 * L, -0.3 * L - o.patas.l * L / 2, 0.04 * L); parts.push(ala(col(pt, o.patas.c), 0)); }
   // (la cola: plana, algo levantada; en horquilla, la de los vencejos)
-  const cl = new THREE.BufferGeometry(), cw = 0.16 * L, cz = -0.5 * L, ce = cz - o.cola * L, hq = (o.horquilla || 0) * L;
-  cl.setAttribute('position', new THREE.Float32BufferAttribute([0, 0.04 * L, cz + 0.12 * L, -cw, 0.07 * L, ce - hq, 0, 0.06 * L, ce + hq * 0.6, 0, 0.04 * L, cz + 0.12 * L, 0, 0.06 * L, ce + hq * 0.6, cw, 0.07 * L, ce - hq], 3));
+  const cl = new THREE.BufferGeometry(), cw = 0.16 * L, cz = -0.5 * L, ce = cz - o.cola * L, hq = (o.horquilla || 0) * L, cy = (o.colaY || 0) * L;   // (colaY: la punta de la cola, levantada)
+  cl.setAttribute('position', new THREE.Float32BufferAttribute([0, 0.04 * L, cz + 0.12 * L, -cw, 0.07 * L + cy, ce - hq, 0, 0.06 * L + cy, ce + hq * 0.6, 0, 0.04 * L, cz + 0.12 * L, 0, 0.06 * L + cy, ce + hq * 0.6, cw, 0.07 * L + cy, ce - hq], 3));
+  if (o.colaV) {   // (la gallina: la cola en abanico de pie, hacia arriba y atrás, que se ve de lado; no plana como la de los pájaros)
+    const zb = cz + 0.1 * L, yb = 0.05 * L;
+    cl.setAttribute('position', new THREE.Float32BufferAttribute([0, yb, zb, 0, yb + 0.5 * L, zb - 0.22 * L, 0, yb + 0.12 * L, ce, 0, yb + 0.5 * L, zb - 0.22 * L, 0, yb + 0.36 * L, ce - 0.04 * L, 0, yb + 0.12 * L, ce], 3));
+  }
   cl.computeVertexNormals(); parts.push(ala(col(cl, o.lomo), 0));
   // (las alas: un trapecio desde el hombro, con la punta hacia atrás; de pie se pliegan en el sombreador)
   for (const s of [-1, 1]) {
@@ -78,6 +91,12 @@ const ESPECIES = {
   paloma: { L: 0.3, lomo: '#8e939c', pecho: '#a3a6ad', cabeza: '#6e7582', pico: '#c9b9a8', ala: '#8a909a', envergadura: 1.25, cuerda: 0.45, cola: 0.42, freq: 18 },
   // vencejo: casi negro, alas largas como una hoz y la cola en horquilla
   vencejo: { L: 0.17, lomo: '#2a2a2e', pecho: '#3a3a3e', cabeza: '#2a2a2e', pico: '#1a1a1a', ala: '#232327', envergadura: 2.3, cuerda: 0.32, cola: 0.5, horquilla: 0.22, freq: 26 },
+  // gallinas de las casas (las vascas: la «gorria», rojiza, y alguna blanca), con su cresta, sus patas y la cola alta;
+  // alto: del suelo al centro del cuerpo, con las patas
+  gallina: { L: 0.38, lomo: '#8e4a22', pecho: '#a85c2c', cabeza: '#9a5226', cuello: '#b4692e', pico: '#e2b04a', ala: '#7a3e1c', envergadura: 0.62, cuerda: 0.5, cola: 0.34, colaY: 0.32,
+    cabezaY: 0.5, cabezaZ: 0.4, cabezaR: 0.15, cresta: '#d8322a', patas: { l: 0.36, c: '#e0a43a' }, alto: 0.64, freq: 20, colaV: true },
+  gallinaB: { L: 0.38, lomo: '#efe9dc', pecho: '#f6f1e6', cabeza: '#f1ebdf', cuello: '#f4efe4', pico: '#e2b04a', ala: '#e4ddcd', envergadura: 0.62, cuerda: 0.5, cola: 0.34, colaY: 0.32,
+    cabezaY: 0.5, cabezaZ: 0.4, cabezaR: 0.15, cresta: '#d8322a', patas: { l: 0.36, c: '#e0a43a' }, alto: 0.64, freq: 20, colaV: true },
 };
 
 class Especie {
@@ -86,7 +105,7 @@ class Especie {
     for (const k of ['aExt', 'aAle', 'aFase']) g.setAttribute(k, new THREE.InstancedBufferAttribute(new Float32Array(n), 1));
     const { m, T } = materialPajaro(0.16 * E.L, 0.12 * E.L, E.freq);
     this.mesh = new THREE.InstancedMesh(g, m, n); this.mesh.frustumCulled = false; this.mesh.castShadow = false; this.mesh.name = 'pajarillos ' + id;
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.T = T; this.n = n; this.g = g; this.alto = 0.3 * E.L;   // (alto: del suelo al centro del cuerpo)
+    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.T = T; this.n = n; this.g = g; this.alto = (E.alto ?? 0.3) * E.L;   // (alto: del suelo al centro del cuerpo)
     for (let i = 0; i < n; i++) g.attributes.aFase.array[i] = i * 2.39;
     scene.add(this.mesh);
   }
@@ -125,6 +144,12 @@ export class Pajarillos {
     };
     sitios.forEach(s => banda(this.gor, s, nG, 2.2));
     banda(this.pal, { x: P.x - 3, z: P.z + 3 }, this.pal.n, 3.5);
+    // las gallinas: unas pocas sueltas delante de las casas de las afueras (lejos de la plaza), picoteando por su cuenta
+    const corrales = (TOWN.houses || []).filter(h => h.door && !cerca(h.door, 45)).sort(() => rnd() - 0.5).slice(0, low ? 2 : 3).map(h => ({ x: h.door.x, z: h.door.z }));
+    this.gal = new Especie(scene, 'gallina', Math.max(1, corrales.length * 2)); this.galB = new Especie(scene, 'gallinaB', Math.max(1, corrales.length));
+    this.gallinas = [];
+    corrales.forEach((c, k) => { for (const [E, i] of [[this.gal, k * 2], [this.gal, k * 2 + 1], [this.galB, k]]) { const p = this.libre(c, 3); this.gallinas.push({ E, i, c, x: p.x, z: p.z, tx: p.x, tz: p.z, yaw: rnd() * 6.28, t: rnd() * 2, pica: 0, huye: 0 }); } });
+    for (const E of [this.gal, this.galB]) for (let i = 0; i < E.n; i++) E.pon(i, 0, -50, 0, 0, 0, 0, 0, 0);   // (las que sobran, fuera de la vista)
     // los vencejos: vueltas grandes sobre el centro del pueblo, cada uno a su altura y su velocidad
     this.vencejos = Array.from({ length: this.ven.n }, (_, i) => ({ c: { x: P.x + (rnd() - 0.5) * 30, z: P.z + (rnd() - 0.5) * 30 }, r: 9 + rnd() * 14, w: (0.7 + rnd() * 0.5) * (rnd() < 0.5 ? -1 : 1), a: rnd() * 6.28, h: 16 + rnd() * 12, f: rnd() * 6 }));
     this.yP = groundHeight(P.x, P.z);
@@ -147,7 +172,7 @@ export class Pajarillos {
   }
   update(dt, t, player, night = 0, oculto = false) {
     const ver = night < 0.5 && !oculto;
-    for (const E of [this.gor, this.pal, this.ven]) E.mesh.visible = ver;
+    for (const E of this.todas()) E.mesh.visible = ver;
     if (!ver) return;
     const px = player.pos.x, pz = player.pos.z, R = this.rnd;
     for (const B of this.bandadas) {
@@ -192,7 +217,27 @@ export class Pajarillos {
       const yaw = Math.atan2(-Math.sin(v.a) * v.w, Math.cos(v.a) * v.w), ale = Math.max(0, Math.sin(t * 1.3 + v.f * 2)) ** 2;
       this.ven.pon(i, x, y, z, yaw, 0, -0.5 * Math.sign(v.w), 1, ale);
     });
-    for (const E of [this.gor, this.pal, this.ven]) E.fin(t);
+    // las gallinas: andan despacio de un sitio a otro cerca de su casa, cabeceando, y se paran a picotear; si te acercas,
+    // se apartan corriendo con un aleteo (no salen volando)
+    for (const a of this.gallinas) {
+      const dP = Math.hypot(a.x - px, a.z - pz);
+      if (dP < 2.4 && a.huye <= 0) { const k = 1.9 / Math.max(0.3, dP); const nx = a.x + (a.x - px) * k, nz = a.z + (a.z - pz) * k; if (isFree(nx, nz, 0.25)) { a.tx = nx; a.tz = nz; } a.huye = 1.2; a.pica = 0; }
+      a.t -= dt; a.huye = Math.max(0, a.huye - dt);
+      const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz), v = a.huye > 0 ? 1.7 : 0.38;
+      if (d > 0.05) {
+        const st = Math.min(d, v * dt), nx = a.x + dx / d * st, nz = a.z + dz / d * st;
+        if (isFree(nx, nz, 0.2)) { a.x = nx; a.z = nz; } else { a.tx = a.x; a.tz = a.z; }
+        a.yaw += Math.atan2(Math.sin(Math.atan2(dx, dz) - a.yaw), Math.cos(Math.atan2(dx, dz) - a.yaw)) * Math.min(1, dt * 8);
+      } else if (a.t <= 0) {
+        if (R() < 0.55) { a.pica = 1.2 + R() * 1.8; a.t = a.pica; }
+        else { const p = this.libre(a.c, 3.2); a.tx = p.x; a.tz = p.z; a.t = 1 + R() * 2; }
+      }
+      a.pica = Math.max(0, a.pica - dt);
+      const anda = d > 0.05, cab = anda ? Math.sin(t * (a.huye > 0 ? 18 : 9) + a.i) * 0.12 : 0, pic = a.pica > 0 ? Math.max(0, Math.sin(t * 7 + a.i * 2)) * 0.55 : 0;
+      a.E.pon(a.i, a.x, groundHeight(a.x, a.z) + a.E.alto + (anda ? Math.abs(Math.sin(t * 9 + a.i)) * 0.015 : 0), a.z, a.yaw, cab + pic, 0, a.huye > 0 ? 0.35 : 0, a.huye > 0 ? 1 : 0);
+    }
+    for (const E of this.todas()) E.fin(t);
   }
-  dispose() { for (const E of [this.gor, this.pal, this.ven]) E.dispose(this.scene); }
+  todas() { return [this.gor, this.pal, this.ven, this.gal, this.galB].filter(Boolean); }
+  dispose() { for (const E of this.todas()) E.dispose(this.scene); }
 }
