@@ -349,18 +349,13 @@
 #hub.juego .cab-v.sig { grid-column: 3; justify-self: end; }
 #hub.juego .cab-v span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hub.juego .cab-v:hover, #hub.juego .cab-v:focus-visible { color: #fff; border-color: var(--cr-l); }
-#hub.juego :is(.cab-v, .hub-pista) kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; border: 1px solid var(--cr-l2); color: #fff; font: 600 11px/1 var(--f-ui); letter-spacing: 0; }
+#hub.juego .cab-v kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; border: 1px solid var(--cr-l2); color: #fff; font: 600 11px/1 var(--f-ui); letter-spacing: 0; }
 html.tactil #hub.juego .cab-v kbd { display: none; }
 html.tactil #hub.juego .cab-v::before { content: '‹'; font-size: 20px; line-height: 1; } html.tactil #hub.juego .cab-v.sig::before { content: none; } html.tactil #hub.juego .cab-v.sig::after { content: '›'; font-size: 20px; line-height: 1; }
 @media (max-width: 760px) { #hub.juego .cab-v span { display: none; } }
-/* la pista de los botones, abajo a la derecha de la ventana, solo con teclado */
-#hub .hub-pista { display: none; }   /* (solo jugando y con teclado; en el didáctico salía su texto suelto abajo a la izquierda) */
-html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-pista { position: absolute; z-index: 27; right: calc(var(--sh-r) + 18px); bottom: calc(var(--sh-b) + 10px); display: flex; gap: 18px; padding: 6px 10px; border-radius: 999px; background: rgba(13, 6, 28, .82); color: var(--tx2); font: 500 12px/1 var(--f-ui); pointer-events: none; }
-html:not(.tactil) #hub.juego .hub-pista span { display: flex; align-items: center; gap: 6px; }
-/* (unos segundos y se va: con la ventana de 720 de alto tapaba el botón Jugar del fútbol y otros de abajo; las teclas
-   Q y E siguen junto a las secciones de arriba) */
-html:not(.tactil) #hub.juego .hub-pista { animation: pista-fuera .6s 6s forwards; } @keyframes pista-fuera { to { opacity: 0; visibility: hidden; } }
-html:not(.tactil) #hub.juego:not([data-screen="home"]) .hub-main { padding-bottom: 56px; }
+/* (abajo a la derecha iba una pista de teclas, «Esc Volver al mapa · Q E Otra sección», flotando sobre la pantalla: en
+   ventanas de 1366 × 768 o 1024 × 640 tapaba el botón de jugar y otros de abajo. Las teclas Q y E ya van junto a las
+   secciones de arriba y la equis dice «Esc» al pasar el ratón; noviembre de 2026) */
 /* los botones de jugar: de un color, sin degradado ni brillo */
 #hub.juego :is(.mm-go, .ft-go, .ex-go, .btn.primary) { background: var(--acento); box-shadow: none; text-shadow: none; transition: background .15s, transform .15s var(--muelle); }
 #hub.juego :is(.mm-go, .ft-go, .ex-go, .btn.primary):hover { background: var(--acento2); filter: none; }
