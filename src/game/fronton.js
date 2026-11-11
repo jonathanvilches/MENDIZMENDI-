@@ -16,7 +16,7 @@ import { isEU } from '../i18n.js';
 import { profile } from './profile.js';
 import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
 import { QUALITY } from '../util/quality.js';
-import { crowd3d } from '../actors/crowd3d.js';
+import { crowd3d, preparaPublico } from '../actors/crowd3d.js';
 import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -422,6 +422,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (si ya juegas con el pelotari, no hace falta cambiar; los modelos se piden antes, al acercarte al frontón)
     G.pelotaLoading = true;   // (preparándose: si se pierde la memoria gráfica ahora, el pueblo se rehace junto al frontón)
     if (PUBLICO) crowdBuffers(G.sound?.ctx);   // (las voces y los aplausos del público se calculan mientras se preparan los pelotaris)
+    // (y las figuras del público y sus retratos: si no, la grada salía vacía los primeros segundos de la presentación)
+    preparaPublico('aficion', !!fronton.court?.seated);
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
@@ -564,6 +566,14 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (ended || G.disposed) { for (const x of Object.values(m)) x.dispose(); throw new Error('partido acabado'); }
       return (mates = m);
     };
+    // (la presentación espera a que el público esté sentado —sus figuras, sus retratos y, en el móvil, sus texturas ya en la
+    // tarjeta—: si no, la cámara de la presentación recorría unos segundos la grada vacía. Como mucho 6 s)
+    if (seated) {
+      let hecho = false; seated.listo?.then(() => { hecho = true; }, () => { hecho = true; }); if (!seated.listo) hecho = true;
+      const t0 = performance.now();
+      while (!(hecho && !seated.userData.espera) && performance.now() - t0 < 6000 && !ended && !G.disposed) await new Promise(r => setTimeout(r, 100));
+      if (G.disposed) { fail(new Error('el pueblo se ha rehecho mientras se sentaba el público')); return; }
+    }
     marca(youName, rivName, 0, 0);
     // los jueces, en la contracancha (a la altura de la chapa, del 4 y del 7): levantan la mano en cada falta
     try { jueces = G.pelotaJueces = makeJueces(G, fronton.court); } catch (e) { console.warn('jueces', e); apunta('jueces', e); }

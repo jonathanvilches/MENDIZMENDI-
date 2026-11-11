@@ -283,6 +283,13 @@ function bakeSet(set, sit, arriba = false) {
   baked.set(key, pr); return pr;
 }
 
+/** Prepara antes de tiempo las figuras del público y sus retratos (fronton.js, mientras se cargan los pelotaris): el
+ *  público esperaba a tenerlos para salir y, en el móvil, la presentación del partido recorría unos 5 s la grada vacía
+ *  (noviembre de 2026). Es lo mismo que hace crowd3d al empezar, y se guarda: crowd3d lo encuentra hecho. */
+export function preparaPublico(set = 'aficion', sit = false) {
+  const Q = QUALITY;
+  return bakeSet(set, sit).then(G => retratos(G, set + (sit ? ':sit' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224)).catch(e => console.warn('público', e));
+}
 /**
  * Público: spots = [[x, y, z, ry], …] (y = pies). Devuelve un grupo con .tick(t, ánimo, zFoco, cámara) y .cheer(on),
  * igual que las láminas: de cerca, figuras 3D (que saltan, saludan y celebran); de lejos, láminas.

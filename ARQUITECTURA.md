@@ -390,7 +390,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   todos los partidos y en todos los aparatos (`game/fronton.js`): cada butaca con su espectador, 900 en el móvil más
   justo. Antes el Labrit del móvil sentaba 400 de sus 1.881 butacas y quedaban vacías las de junto al frontis y los dos
   anfiteatros. El Labrit lleno, en el móvil, ronda los 485.000 triángulos y 175 llamadas de dibujo (el tope es 760.000 y
-  490). Sin retratos (si no se pueden dibujar), la figura de lejos tiene tope: 280, 600 o 1.200. Los 24 más cercanos, con la figura entera y su textura (8
+  490). Sin retratos (si no se pueden dibujar), la figura de lejos tiene tope: 280, 600 o 1.200. Las figuras y los retratos se preparan mientras se cargan los pelotaris (`preparaPublico`) y la presentación espera, como mucho 6 s, a que el público esté sentado: antes, en el móvil, la cámara de la presentación recorría unos 5 s la grada vacía. Los 24 más cercanos, con la figura entera y su textura (8
   en el más justo); todos los demás, con su retrato (`retratos`, `retratoMat`): cada figura, en cada pose, se dibuja una
   vez con su textura vista desde siete ángulos (de -90° a 90°, de 30 en 30) en una textura propia, y en la grada cada
   espectador es un rectángulo que mira a la cámara con el retrato del ángulo desde el que se le ve, con la misma luz que
