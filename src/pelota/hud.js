@@ -238,16 +238,22 @@ const CSS = `
 @media (orientation:landscape) and (max-height:440px){
   .pel-panel{padding-top:calc(env(safe-area-inset-top,0px) + 8px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
   .pel-card{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;padding:8px 16px 12px;border-radius:18px}
-  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>*{flex:1 1 100%}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>h2{flex:0 0 auto;margin-bottom:8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-sub{flex:1 1 0;min-width:0;margin-bottom:8px}
-  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-lbl{display:none}
-  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels button{min-width:0;min-height:44px}
-  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels+.pel-row .pel-go{min-height:44px}
-  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-court{margin-bottom:8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-lv5 button{flex:1 1 auto;min-width:max-content;padding:4px 6px;font-size:var(--fs-xs);text-transform:none;letter-spacing:0}   /* (cada nivel entero: «Iniciación» no se parte; cada botón del ancho de su nombre) */
-  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-mod{flex:1 1 100%;margin:0 0 8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-mod button{min-height:44px;padding:4px 8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
-  .pel-card.opts>.pel-sub,.pel-card.opts>.pel-lado>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.opts>h2,.pel-card.opts>.pel-lado>h2{align-self:center;margin-bottom:8px}
+  :is(.pel-card,.pel-card:where(.mas)>.pel-lado)>*{flex:1 1 100%}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>h2{flex:0 0 auto;margin-bottom:8px}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-sub{flex:1 1 0;min-width:0;margin-bottom:8px}
+  :is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-lbl{display:none}
+  :is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-levels button{min-width:0;min-height:44px}
+  :is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-levels+.pel-row .pel-go{min-height:44px}
+  :is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-court{margin-bottom:8px}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-lv5 button{flex:1 1 auto;min-width:max-content;padding:4px 6px;font-size:var(--fs-xs);text-transform:none;letter-spacing:0}   /* (cada nivel entero: «Iniciación» no se parte; cada botón del ancho de su nombre) */
+  :is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-mod{flex:1 1 100%;margin:0 0 8px}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-mod button{min-height:44px;padding:4px 8px}:is(.pel-card,.pel-card:where(.mas)>.pel-lado)>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
+  .pel-card.mas>.pel-sub,.pel-card.mas>.pel-lado>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.mas>h2,.pel-card.mas>.pel-lado>h2{align-self:center;margin-bottom:8px}
   .pel-otabs{flex:1 1 0;min-width:0;margin-bottom:8px}.pel-opane{flex:1 1 100%}.pel-opane .pel-mod{margin-bottom:8px}.pel-opane .pel-mod button{min-height:44px;padding:4px 8px}.pel-opane .pel-pairs{margin:0 0 8px;font-size:var(--fs-xs)}
   .pel-balls{margin-bottom:8px}
   .pel-orow{margin-bottom:8px}.pel-orow .pel-switch{min-height:44px;padding:4px 12px}
+  /* (la pestaña «Partido», entera sin desplazar: cada rótulo a la izquierda de su grupo en vez de encima, los dos
+     interruptores en una fila y sin el párrafo de la elección de material, que se explica al elegirlo) */
+  .pel-opane[data-pane="0"]{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center}
+  .pel-opane[data-pane="0"]>*{margin:0}.pel-opane[data-pane="0"]>:is(.pel-mod,.pel-pairs,.pel-orow){grid-column:1/-1}
+  .pel-opane[data-pane="0"] .pel-ballwhat{display:none}.pel-opane[data-pane="0"]{margin-bottom:8px}
+  @media (max-height:380px){.pel-opane[data-pane="0"]{row-gap:4px;margin-bottom:4px}}
   .pel-opane[data-pane="1"],.pel-opane[data-pane="2"]{max-height:calc(calc(100dvh / var(--z, 1)) - 156px);overflow:auto;overscroll-behavior:contain}
   .pel-opane ol{columns:2;column-gap:24px;margin-bottom:8px}.pel-opane .pel-ctrl{margin-bottom:8px}}
 @media (hover:hover) and (pointer:fine){.pel-stick,.pel-stickhint{display:none}}
@@ -264,29 +270,31 @@ const CSS = `
 .pel-team{flex:none;display:flex;flex-direction:column;gap:8px}
 .pel-vs .gx-card{--w:var(--cw,140px)!important}
 .pel-vs-x{flex:none;min-width:32px;text-align:center;font:400 var(--fs-xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#ff7ac8;letter-spacing:.04em}
-.pel-lado{display:contents}
+.pel-lado{display:contents}.pel-pres .pel-row{margin-left:0;margin-right:0;padding-left:0;padding-right:0}
+/* (con «Más opciones» abierto sobra la línea del campeonato: así la vista cabe sin desplazar) */
+.pel-card.pel-pres.mas>.pel-lado>.pel-sub{display:none}
 .pel-mas{display:flex;align-items:center;gap:8px;margin:0 0 8px}.pel-mas .pel-more{flex:1 1 0;width:auto;min-width:0;margin:0}.pel-mas .pel-chip{flex:none;margin:0;min-height:44px}
 @media (max-width:520px){.pel-pres .pel-sum{display:none}}
 @media (max-width:440px){.pel-card.pel-pres{padding-left:16px;padding-right:16px}}
 @media (orientation:landscape){
   .pel-card.pel-pres{width:min(960px,100%)}
-  .pel-card.pel-pres:not(.opts){display:flex;flex-wrap:nowrap;align-items:center;gap:16px}
-  .pel-card.pel-pres:not(.opts)>.pel-rv{flex:none;margin:0}
-  .pel-card.pel-pres:not(.opts)>.pel-lado{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>*{flex:none;margin:0}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lbl{margin-bottom:-4px}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-row{position:static;padding:0;background:none}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5 button{grid-column:span 2;min-width:0}.pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5 button:nth-child(n+4){grid-column:span 3}
+  .pel-card.pel-pres:not(.mas){display:flex;flex-wrap:nowrap;align-items:center;gap:16px}
+  .pel-card.pel-pres:not(.mas)>.pel-rv{flex:none;margin:0}
+  .pel-card.pel-pres:not(.mas)>.pel-lado{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>*{flex:none;margin:0}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lbl{margin-bottom:-4px}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-row{position:static;padding:0;background:none}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5 button{grid-column:span 2;min-width:0}.pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5 button:nth-child(n+4){grid-column:span 3}
 }
 /* (en el móvil tumbado: el mismo relleno arriba que abajo, todo más junto, sin el rótulo «Nivel», que el grupo lo lleva
    como aria-label, y sin el resumen de lo elegido, que en esa columna no cabe entero) */
 @media (orientation:landscape) and (max-height:500px){
-  .pel-card.pel-pres:not(.opts){padding:12px 16px}
-  .pel-card.pel-pres:not(.opts)>.pel-lado{gap:8px}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lbl,.pel-card.pel-pres:not(.opts) .pel-sum{display:none}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5 button{min-height:44px;padding:4px 8px}
-  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-row .pel-go{min-height:44px}
+  .pel-card.pel-pres:not(.mas){padding:12px 16px}
+  .pel-card.pel-pres:not(.mas)>.pel-lado{gap:8px}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lbl,.pel-card.pel-pres:not(.mas) .pel-sum{display:none}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5 button{min-height:44px;padding:4px 8px}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-row .pel-go{min-height:44px}
 }
 .pel-wide{display:block;width:100%;margin:0 0 12px}
 /* el frontón: su dibujo, su nombre y lo que se nota al jugar en él (al tocarlo, qué pasa con cada cosa) */
@@ -302,7 +310,7 @@ const CSS = `
 .pel-more{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0;border:0;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;text-transform:uppercase;letter-spacing:.1em;text-align:left;white-space:nowrap;cursor:pointer}
 .pel-more::before{content:'';flex:none;width:8px;height:8px;border:solid #ff7ac8;border-width:0 2px 2px 0;transform:rotate(-45deg);margin:0 4px 0 2px}
 .pel-more .pel-sum{margin-left:auto;padding-left:12px;min-width:0;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#ff7ac8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pel-card.opts :is(.pel-rv,.pel-court,.pel-court-what,.pel-mas){display:none}
+.pel-card.mas :is(.pel-rv,.pel-court,.pel-court-what,.pel-mas){display:none}
 .pel-opts[hidden],.pel-opane[hidden]{display:none}
 .pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px}
 .pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-radius:999px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
@@ -343,6 +351,7 @@ const CSS = `
 @media (min-width:1200px) and (min-height:560px){
   .pel-card{width:min(1000px,100%);padding:32px 40px 24px}.pel-card ol{columns:2;column-gap:40px}.pel-card li{break-inside:avoid}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
   .pel-card li,.pel-card .pel-ctrl,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
+  .pel-card.pel-pres.mas{padding-top:24px}
 }
 /* la elección de material (material.js): un desplegable con cómo quieres tus pelotas y, debajo, cuáles son, cada una con
    su número, lo viva que es y su peso */

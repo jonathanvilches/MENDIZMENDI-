@@ -376,6 +376,7 @@ export class PelotaMatch {
       </section>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels pel-lv5" role="group" aria-label="${t.level || 'Nivel'}">${LEVEL_ORDER.map(k => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${L[k]}</button>`).join('')}</div>`}
       <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>${duelo ? '</div>' : ''}`);
+    // (la clase es «mas», no «opts»: esa es la de las respuestas de los cuestionarios, hub.css, y ponía la ventana en fila)
     // «Más opciones» es otra vista del mismo panel (en vez de alargarlo): quién juega y el frontón se apartan y salen las
     // opciones en pestañas, con el nivel y los botones de jugar siempre abajo
     const card = p.querySelector('.pel-card') || p, opts = p.querySelector('.pel-opts');
@@ -385,7 +386,7 @@ export class PelotaMatch {
     // ventana; de ancho, lo que queda tras dejar 264 px a la columna de al lado. De pie: de ancho, la mitad de la ventana;
     // de alto, lo que queda sobre lo demás. Se vuelve a medir si la pantalla cambia de tamaño o se gira)
     encaja = () => {
-      const rv = duelo && card.isConnected && !card.classList.contains('opts') && card.querySelector('.pel-rv'); if (!rv) return;
+      const rv = duelo && card.isConnected && !card.classList.contains('mas') && card.querySelector('.pel-rv'); if (!rv) return;
       const px = (v) => parseFloat(v) || 0, sp = getComputedStyle(p), sc = getComputedStyle(card), n = rv.classList.contains('pel-rv2') ? 2 : 1;
       const iw = card.clientWidth - px(sc.paddingLeft) - px(sc.paddingRight), ih = p.clientHeight - px(sp.paddingTop) - px(sp.paddingBottom) - px(sc.paddingTop) - px(sc.paddingBottom) - 2;
       const alto = (h) => (h - (n - 1) * 8) / n / 1.48;
@@ -396,7 +397,7 @@ export class PelotaMatch {
     };
     encaja();
     if (duelo && window.ResizeObserver) { const ro = new ResizeObserver(() => { if (card.isConnected) encaja(); else ro.disconnect(); }); ro.observe(p); }
-    const showOpts = (on) => { this.moreOpen = on; card.classList.toggle('opts', on); if (opts) opts.hidden = !on; p.querySelector('[data-pel-more]')?.setAttribute('aria-expanded', String(on)); encaja(); };
+    const showOpts = (on) => { this.moreOpen = on; card.classList.toggle('mas', on); if (opts) opts.hidden = !on; p.querySelector('[data-pel-more]')?.setAttribute('aria-expanded', String(on)); encaja(); };
     showOpts(!!this.moreOpen);
     tap(p, (b) => {
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
