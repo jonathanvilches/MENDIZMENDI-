@@ -57,6 +57,16 @@ export function townPelotari(townId, host = null) {
   return RIVALES[h % RIVALES.length];
 }
 
+/** La figura de un vecino para su retrato en las charlas (ui.js): la ilustración del mismo nombre si está en la plantilla
+ *  y, si no, una del mismo género (female, del aspecto del vecino, o el del nombre), siempre la misma para cada nombre y
+ *  nunca Iñigo, que es el protagonista. De azul o de rojo según el nombre (sin la azul entera, en el archivo único, la roja) */
+export function vecinoSrc(name, female = false) {
+  const full = fold(String(name || '')), n = full.split(/[,·(]/)[0].trim().split(/\s+/)[0] || '';
+  let h = 7; for (const c of full) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  let id = BY.has(n) ? n : ALIAS[n];
+  if (!id) { const girl = female || nameGender(n) === 'f', pool = PLANTILLA.filter(p => p.girl === girl && p.id !== 'inigo'); id = pool[h % pool.length].id; }
+  return ((h >>> 4) & 1 && AZUL[id]) || ROJO[id];
+}
 /** La imagen (la de color entera; la roja, si el azul se monta encima) */
 export const pelotariSrc = (name, side = 'rojo') => { const id = pelotariId(name); return (side === 'azul' && AZUL[id]) || ROJO[id]; };
 /** HTML de la figura, siempre una sola imagen (class: «pf» y la que se pida; pf-az si lleva el rojo de fondo; big: la

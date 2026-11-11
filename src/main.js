@@ -41,7 +41,7 @@ import COMARCAS from './data/comarcas.json';
 import { preloadNpcs } from './actors/npcGlb.js';
 import { animalsSettled } from './actors/animalGlb.js';
 import { preloadFood } from './world/products3d.js';
-import { avatarPortrait, portrait } from './ui/portraits.js';
+import { avatarPortrait } from './ui/portraits.js';
 import { releaseOffscreen, setOffscreenHost } from './util/offscreen.js';
 import { loadStore, queueMode } from './util/store.js';
 import { startI18n, isEU } from './i18n.js';
@@ -104,23 +104,6 @@ const DATOS_PASAKA = {
 };
 // el icono de cada misión en la pantalla de carga (si la misión no trae el suyo)
 const MISSION_ICON = { visit: 'church', process: 'basket', harvest: 'wheat', herd: 'sheep', dance: 'dance', carnival: 'mask', trade: 'anvil', legend: 'legend', race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz', summit: 'peak', pelota: 'pelota', figure: 'person', feria: 'cow', dolmen: 'dolmen', castle: 'castle', mirador: 'binoculars' };
-
-// retratos de los vecinos con los que se habla, hechos durante la carga (con el renderizador oculto, que se suelta
-// antes de jugar): antes se hacían al abrir cada diálogo y el juego se paraba un momento (en el iPhone, crear ese
-// segundo contexto gráfico y compilar sus sombreadores cuesta) y, de paso, había dos contextos a la vez
-async function warmPortraits(g, ui) {
-  const hosts = new Set((g.missions || []).map(M => M.host).filter(Boolean));
-  const list = [...(g.actors || [])].sort((a, b) => (hosts.has(b) ? 1 : 0) - (hosts.has(a) ? 1 : 0));
-  const seen = new Set(), t0 = performance.now();
-  for (const a of list) {
-    const L = a.obj?.userData?.look; if (!L || a.visible === false) continue;
-    const k = JSON.stringify(L); if (seen.has(k)) continue; seen.add(k);
-    try { portrait(L, 'bust', true); } catch (e) { }
-    if (seen.size >= 30 || performance.now() - t0 > 3500) break;
-    if (seen.size % 4 === 0) { ui.progress?.(0.97, 'Saludando a los vecinos…'); await new Promise(r => requestAnimationFrame(() => r())); }
-  }
-  releaseOffscreen();
-}
 
 async function boot() {
   // la música, lo primero, antes de esperar a nada (los idiomas, las imágenes guardadas, el mundo 3D): la del menú empieza
@@ -294,7 +277,7 @@ async function boot() {
         await animalsSettled();   // los animales del pueblo (cada uno baja su modelo al aparecer)
         rt.sky.time = q.get('t') ? +q.get('t') : 10;
         game.applySettings();
-        if (!opt.sport) await warmPortraits(game, ui);   // (en los campeonatos no se habla con nadie: sin retratos)
+        if (!opt.sport) releaseOffscreen();   // (el renderizador oculto de la carga se suelta antes de jugar)
         await rt.precompile();
         ui.progress(1, '¡Listo!');
         rt.start(game);

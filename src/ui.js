@@ -8,7 +8,7 @@ import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
 import { iconSVG, iconImage, flecha } from './ui/icons.js';
 import { icon3DReady } from './ui/icon3d.js';
-import { portraitImg } from './ui/portraits.js';
+import { vecinoSrc } from './ui/pelotariFig.js';
 import { mountMapView } from './ui/mapview.js';
 import { tr } from './i18n.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
@@ -342,8 +342,8 @@ export class UI {
         const fk = L.look ? JSON.stringify(L.look) : L.icon || 'talk';
         if (fk !== lastFace) {
           lastFace = fk;
-          // (sin parar el juego: si el retrato aún no está hecho, se dibuja en un rato libre y aparece al momento)
-          $('.face', d).innerHTML = L.look ? portraitImg(L.look, 'bust', true) : I(L.icon || 'talk', 64);
+          // (las personas, con las ilustraciones del autor, cabeza y hombros: antes era una foto del muñeco en 3D)
+          $('.face', d).innerHTML = L.look ? `<img class="ilus" src="${vecinoSrc(L.who, !!L.look.female)}" alt="" draggable="false">` : I(L.icon || 'talk', 64);
         }
         $('h3', d).textContent = L.who || '';
         // (en euskera se escribe ya traducido: si no, se veía el castellano letra a letra y cambiaba al final; al
