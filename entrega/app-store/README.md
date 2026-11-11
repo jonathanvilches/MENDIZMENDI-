@@ -50,6 +50,11 @@ navegador de pruebas, con el iPhone emulado.
 ## 2. Lo que falta para enviarla
 
 1. **La envoltura nativa**, en un Mac con Xcode. Recomendado Capacitor, que usa WKWebView, con el juego dentro de la
+   - **La música desde el primer momento.** En la app nativa, el WKWebView tiene que dejar sonar sin toque: en Capacitor,
+     comprobar que la configuración del WKWebView lleva `mediaTypesRequiringUserActionForPlayback = []` (Capacitor lo
+     pone así de serie en iOS; si no, se pone en un `CAPBridgeViewController` propio, en `webViewConfiguration(for:)`) y
+     `allowsInlineMediaPlayback = true`. El juego ya intenta arrancar la música del menú nada más abrir (`index.html`,
+     `sonido-primero` y `musica-primero`): con eso, suena sin tocar nada. En Safari no se puede: Apple lo bloquea.
    app y no cargado desde la web: Apple rechaza las apps que solo abren una página (norma 4.2).
    - Contenido: la carpeta `docs/` compilada, sin `descargas/` (90 MB) ni `mudanza.html`. Pesa unos 385 MB. Por
      encima de 200 MB se puede bajar igual, pero el iPhone avisa al hacerlo con datos móviles. Para bajar de 200 MB,

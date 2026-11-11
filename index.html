@@ -35,6 +35,10 @@
   var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
   var S = window.__sonido = { ctx: null, pool: [], toco: false }, EV = ['pointerdown', 'pointerup', 'touchend', 'mousedown', 'keydown', 'click'];
   try { S.ctx = new AC(); for (var i = 0; i < 3; i++) S.pool.push(new Audio()); } catch (e) { return; }
+  // (y se intenta ponerlo en marcha ya, sin toque: en la app nativa de la tienda, Capacitor con WKWebView, y donde el
+  // navegador lo deja —la app instalada en Android o en el ordenador—, la música suena nada más abrir. En Safari y en la
+  // app instalada desde Safari, Apple no lo deja hasta el primer toque, y entonces arranca en él)
+  try { var r0 = S.ctx.resume(); if (r0 && r0.catch) r0.catch(function () { }); } catch (e) { }
   function toque() {
     if (S.ctx.state !== 'running') S.ctx.resume();
     for (var i = 0; i < S.pool.length; i++) if (!S.pool[i].getAttribute('src')) try { S.pool[i].load(); } catch (e) { }
