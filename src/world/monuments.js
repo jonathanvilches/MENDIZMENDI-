@@ -668,6 +668,11 @@ export function landmark(B, lm, ctx) {
     }
     case 'plaza': return { x, z: z + 4 };
     case 'gorge': {
+      // (las paredes de la foz van a los lados del río que cruza el pueblo de norte a sur, rx. En los pueblos de verdad el
+      // río va por donde va y rx no lo encuentra: daba 10 km y la foz y su guarda quedaban allí, en Lumbier fuera del
+      // mundo y sin poder llegar a la misión de los buitres. Sin río así, la foz es el sitio mismo, el que ya está junto al
+      // río de verdad: el que la guarda, a su lado)
+      if (!(Math.abs(ctx.riverX(z)) < 2000 && Math.abs(ctx.riverX(z - 50)) < 2000)) return { x: x + 4, z: z + 4 };
       for (let i = 0; i < 16; i++) for (const s of [-1, 1]) {
         const zz = z - 40 + i * 5, xx = ctx.riverX(zz) + s * (ctx.half + 5 + (i % 3));
         B.add('stoneDark', box(8, 24 + (i % 4) * 4, 6, 4), M(xx + s * 4, terrainHeight(xx, zz) + 9, zz, 0, 0, s * 0.08));
