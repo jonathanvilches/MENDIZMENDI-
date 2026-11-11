@@ -56,7 +56,7 @@ const CSS = `
 .pvs-mid{position:absolute;left:50%;top:calc(44% + clamp(50px,calc(12vh / var(--z, 1)),84px));z-index:5;transform:translateX(-50%);width:min(300px,34%);display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;animation:pvs-upc .35s 1.05s ease-out both}
 .pvs-line{font:800 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .pvs-tags{display:flex;flex-wrap:wrap;justify-content:center;gap:4px}
-.pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(201,178,255,.35);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);border-radius:6px;}
+.pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(255,255,255,.08);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);border-radius:6px;}
 .pvs-tags b{color:#fff;font-weight:800}
 .pvs [hidden]{display:none!important}.pvs-tags span{white-space:nowrap}.pvs-mid.stack .pvs-tags{flex-direction:column;align-items:center}
 .pvs-plate{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 46px);z-index:5;width:max-content;max-width:min(330px,38%);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;filter:drop-shadow(0 8px 16px rgba(0,0,0,.55))}

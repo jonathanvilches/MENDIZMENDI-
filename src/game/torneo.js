@@ -212,7 +212,7 @@ const CSS = `
 @media (orientation:landscape){.lg-card.tq-card{height:100%}}
 .tq-card>.tq-top{display:flex;align-items:center;gap:12px}.tq-top .lg-head{flex:1;min-width:0}.tq-sitio{flex:none;display:flex}
 .lg-card.tq-card>.lg-bar{gap:8px}.tq-card>.lg-bar>.lg-btn{flex:1 1 0;min-width:0;padding-left:12px;padding-right:12px;white-space:nowrap}.tq-card>.lg-bar>.lg-btn.go{flex:1.7 1 0}
-.tq-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}
+.tq-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}
 .tq-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
 .tq-left{display:flex;flex-direction:column;gap:8px;min-width:0}.tq-left>.tq-duel,.tq-left>.tq-banner{flex:1 1 0;min-height:0}
 /* (las dos cartas y el VS, con 16 px a cada lado del VS. Sin la banda sesgada azul y rosa que iba detrás de las cartas: en el
@@ -250,7 +250,7 @@ const CSS = `
 .tq-br[hidden],.tq-liga[hidden]{display:none}.tq-rd h4 .tq-c{display:none}
 /* las pestañas de la liguilla y el cuadro, y la clasificación de cada grupo (los que pasan, en blanco, con la raya debajo) */
 .tq-vista{display:flex;gap:6px;margin:0}
-.tq-vista button{min-height:34px;padding:4px 16px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+.tq-vista button{min-height:34px;padding:4px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
 .tq-vista button[aria-pressed=true]{background:var(--cta);border-color:transparent;box-shadow:0 0 12px rgba(255,43,214,.4)}
 .tq-liga{flex:1;display:flex;flex-direction:column;min-height:0}
 .tq-tabs{display:grid;gap:8px 12px;align-content:start}.tq-liga.g4 .tq-tabs{grid-template-columns:1fr 1fr}
@@ -258,9 +258,9 @@ const CSS = `
    sin el puesto ni la columna J: el orden ya es el puesto y todos llevan los mismos partidos) */
 .tq-liga .tq-tabs{flex:1;grid-auto-rows:minmax(0,1fr)}.tq-liga .tq-tab{height:100%}.tq-liga.g4 .j{display:none}
 .tq-mid small{white-space:nowrap}.tq-mid small.r{white-space:normal;text-wrap:balance}.tq-mid small.r.nw{white-space:nowrap}
-.tq-tab{width:100%;border-collapse:collapse;table-layout:fixed;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);font:600 var(--fs-sm)/1.15 var(--f-cond);text-transform:uppercase}
+.tq-tab{width:100%;border-collapse:collapse;table-layout:fixed;background:rgba(18,5,42,.92);border:1px solid rgba(255,255,255,.08);font:600 var(--fs-sm)/1.15 var(--f-cond);text-transform:uppercase}
 .tq-tab th{padding:3px 6px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;color:var(--lila);text-align:right;white-space:nowrap}
-.tq-tab td{padding:3px 6px;text-align:right;color:var(--lila2);border-top:1px solid rgba(201,178,255,.12);font-variant-numeric:tabular-nums;white-space:nowrap}
+.tq-tab td{padding:3px 6px;text-align:right;color:var(--lila2);border-top:1px solid rgba(255,255,255,.08);font-variant-numeric:tabular-nums;white-space:nowrap}
 .tq-tab th.n{width:1.8em}.tq-tab th.c{width:2.2em}.tq-tab th.d{width:2.9em}.tq-tab th:nth-child(2){text-align:left;color:var(--rosa)}.tq-tab td:first-child,.tq-tab td:nth-child(2){text-align:left}
 .tq-tab td span{display:block;overflow:hidden;text-overflow:ellipsis}
 .tq-tab tr.q td{color:#fff}.tq-tab tr.q td:first-child{color:var(--rosa);font-weight:800}.tq-tab tr.corte td{border-bottom:2px solid rgba(255,43,214,.55)}
@@ -285,10 +285,10 @@ const CSS = `
 .tq-ms{flex:1;display:flex;flex-direction:column;justify-content:space-around;gap:4px}
 /* (cada eliminatoria, del ancho de su columna: antes la casilla se ensanchaba con el nombre y los tantos quedaban fuera,
    cortados; ahora, si el nombre no cabe, se acorta él y los tantos siempre se ven) */
-.tq-m{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(201,178,255,.22);border-radius:6px;}
-.tq-m.me{border-color:var(--fx);box-shadow:0 0 14px rgba(255,43,214,.45)}
+.tq-m{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1fr);overflow:hidden;background:rgba(18,5,42,.92);border:1px solid rgba(255,255,255,.08);border-radius:6px;}
+.tq-m.me{background:linear-gradient(rgba(255,122,200,.24),rgba(255,122,200,.24)),rgba(18,5,42,.92)}
 .tq-m>div{display:flex;align-items:center;gap:4px;padding:2px 8px;min-height:22px;font:600 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:0;text-transform:uppercase}
-.tq-m>div+div{border-top:1px solid rgba(201,178,255,.12)}
+.tq-m>div+div{border-top:1px solid rgba(255,255,255,.08)}
 .tq-m span{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tq-m small{display:none}
 .tq-m b{font:400 var(--fs-md)/1 var(--f-display);min-width:14px;text-align:right}
 .tq-m .w{color:#fff;font-weight:800}.tq-m .w b{color:var(--rosa)}.tq-m .l{color:var(--lila2)}.tq-m .you span{color:#fff;font-weight:800}.tq-m .you span::before{content:'';display:inline-block;width:6px;height:6px;margin:0 8px 1px 0;border-radius:1px;background:var(--fx);transform:skewX(-20deg)}
@@ -299,13 +299,13 @@ const CSS = `
 .tq-cup b{color:#fff;font:400 var(--fs-md)/1.1 var(--f-display)}
 /* «Cómo funciona», al tocar «?»: una ventanita encima de la pantalla, debajo de la cabecera, entera y que se cierra al
    tocarla. Antes iba como una fila más al pie y, con la pantalla llena, se montaba encima de las tablas y los botones */
-.lg-how.tq-how{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(201,178,255,.35);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.tq-how[hidden]{display:none}
+.lg-how.tq-how{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.tq-how[hidden]{display:none}
 .tq-txa{display:flex;align-items:center;gap:12px}.tq-txa>.ico{width:52px;height:52px;flex:none}
 /* menú de pelota: losas grandes como el menú de un juego de deportes, cada una con su figura. Las figuras, del mismo alto
    en todas: la losa de la colección, con tres, algo más ancha y la del partido libre, con una, algo más estrecha; así
    salen lo más grandes posible */
 .tq-tiles{display:grid;grid-template-columns:1fr 1.08fr .8fr 1.12fr;gap:12px;min-height:0}.tq-tiles.n3{grid-template-columns:1fr .8fr 1.12fr}.tq-tiles.n5{grid-template-columns:1fr 1.08fr 1fr .78fr 1.05fr}
-.tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(201,178,255,.25);color:#fff;text-align:left;cursor:pointer;font:inherit;
+.tq-tile{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;gap:2px;min-height:190px;padding:12px calc(16px + 8px);border:1px solid rgba(255,255,255,.08);color:#fff;text-align:left;cursor:pointer;font:inherit;
   background:linear-gradient(160deg,var(--t1,#3b1590),var(--t2,#12052a) 75%);border-radius:8px;transition:transform .15s,border-color .15s}
 .tq-tile::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .tq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
@@ -331,14 +331,14 @@ const CSS = `
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 /* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
    línea de cada uno; en el menú, a la derecha de Salir; en el torneo, junto a tus txapelas. La lista de pueblos, por comarcas */
-.tq-sede{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.tq-sede{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
 .tq-sede span{font-size:var(--fs-xs);letter-spacing:.1em;color:var(--lila)}.tq-sede::after{content:'';width:7px;height:7px;margin:-4px 0 0 4px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
 .tq-sede[aria-expanded=true]{background:var(--cta);border-color:transparent}.tq-sede[aria-expanded=true] span{color:#fff}.tq-menu-foot .tq-sede{margin-left:auto}
-.tq-pop{position:fixed;inset:0;z-index:30001}.tq-pop>div{position:fixed;display:flex;flex-direction:column;gap:4px;padding:8px;max-height:calc(100% - 16px);overflow-y:auto;border-radius:16px;border:1px solid rgba(201,178,255,.35);background:#1c0b3a;box-shadow:0 12px 32px rgba(0,0,0,.55)}
+.tq-pop{position:fixed;inset:0;z-index:30001}.tq-pop>div{position:fixed;display:flex;flex-direction:column;gap:4px;padding:8px;max-height:calc(100% - 16px);overflow-y:auto;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:#1c0b3a;box-shadow:0 12px 32px rgba(0,0,0,.55)}
 .tq-pop button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;padding:8px 16px;border:0;border-radius:12px;background:transparent;color:#fff;text-align:left;cursor:pointer}
 .tq-pop b{font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase}.tq-pop small{font:600 var(--fs-xs)/1.3 var(--f-cond);color:#cbbcf0}
 .tq-pop button:hover,.tq-pop button:focus-visible{background:rgba(255,255,255,.1)}.tq-pop button.on{background:var(--cta)}.tq-pop button.on small{color:#fff}
-.tq-pueblos button{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+.tq-pueblos button{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
 .tq-pueblos button.on{background:var(--cta);border-color:transparent;box-shadow:0 0 12px rgba(255,43,214,.45)}
 .tq-pueblos{display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto}.tq-pueblos h3{margin:0 0 6px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
 .tq-pueblos section>div{display:flex;flex-wrap:wrap;gap:6px}
@@ -394,7 +394,7 @@ const CSS = `
 .tq-tile .figs{justify-self:stretch;align-self:stretch}.tq-tile>:not(.figs){align-self:end}
 .tq-tiles.n3 .tq-tile.main,.tq-tiles.n5 .tq-tile.main{grid-column:auto}
 @media (orientation:portrait){.tq-tiles,.tq-tiles.n3,.tq-tiles.n5{--cw:calc((100% - 12px) / 1.55)}.tq-tile .figs{min-height:220px}}
-.tq-flecha{position:absolute;top:calc(50% - 22px);z-index:3;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(201,178,255,.45);background:rgba(18,6,40,.85);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+.tq-flecha{position:absolute;top:calc(50% - 22px);z-index:3;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(18,6,40,.85);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 .tq-flecha svg{width:18px;height:18px}.tq-flecha.izq{left:4px}.tq-flecha.der{right:4px}.tq-flecha[hidden]{display:none}.tq-flecha:hover,.tq-flecha:focus-visible{border-color:var(--rosa)}
 /* ordenador (pantalla grande): el menú y el cuadro a su tamaño, las figuras grandes y enteras (la losa de la colección,
    con tres pelotaris, ya no se corta) y las cartas del próximo partido más grandes */

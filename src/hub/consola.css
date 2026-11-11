@@ -10,7 +10,7 @@
   --hud-l: max(12px, env(safe-area-inset-left, 0px)); --hud-r: max(12px, env(safe-area-inset-right, 0px));
   --hud-h: 48px; --hud-g: 8px;
   /* (el cristal: un solo tono, un borde fino y el desenfoque de lo de detrás) */
-  --cr: rgba(15, 7, 32, .64); --cr2: rgba(13, 6, 28, .9); --cr-l: rgba(255, 255, 255, .1); --cr-l2: rgba(255, 255, 255, .2); --cr-r: 8px;
+  --cr: rgba(15, 7, 32, .64); --cr2: rgba(13, 6, 28, .9); --cr-l: rgba(255, 255, 255, .1); --cr-l2: rgba(255, 255, 255, .12); --cr-r: 8px;
   --tx2: rgba(236, 228, 255, .66);
   display: block; grid-template-columns: none; grid-template-rows: none;
 }
@@ -109,7 +109,7 @@
 /* (la de antes, que es la que gusta: la portada del pueblo de fondo y, encima, la comarca, el nombre, las misiones y el
    botón. Con más velo por debajo, donde van las misiones, y las misiones en su propia franja oscura: así resaltan sobre
    la portada. Un rato fue una carta con la lámina a un lado, pero no gustó) */
-#hub.juego .m3d .m3-ft { width: min(380px, calc(100vw - 32px)); max-width: none; grid-template-columns: minmax(0, 1fr); align-items: center; gap: var(--r-tx); padding: var(--e6); border-radius: 4px; background: linear-gradient(170deg, rgba(42, 15, 94, .9), rgba(13, 6, 28, .9)); border: 1px solid color-mix(in srgb, var(--c, #fff) 45%, var(--cr-l)); box-shadow: 0 14px 36px rgba(4, 1, 12, .45); }
+#hub.juego .m3d .m3-ft { width: min(380px, calc(100vw - 32px)); max-width: none; grid-template-columns: minmax(0, 1fr); align-items: center; gap: var(--r-tx); padding: var(--e6); border-radius: 4px; background: linear-gradient(170deg, rgba(42, 15, 94, .9), rgba(13, 6, 28, .9)); border: 1px solid var(--cr-l); box-shadow: 0 14px 36px rgba(4, 1, 12, .45); }
 #hub.juego .m3d .m3-ft::after { content: ''; position: absolute; left: 0; right: 0; top: 0; z-index: 2; height: 2px; background: linear-gradient(90deg, color-mix(in srgb, var(--c, #fff) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
 .ft-fondo { position: absolute; inset: 0; z-index: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 .ft-fondo img { width: 100%; height: 100%; object-fit: cover; opacity: .9; }
@@ -339,7 +339,7 @@
 #hub.juego .filters { position: relative; }
 #hub.juego .filters button { z-index: 1; }
 #hub.juego .filters button.on { background: none; border-color: transparent; }
-#hub.juego .fl-ind { position: absolute; z-index: 0; left: var(--fl-l); top: var(--t, 0); width: calc(var(--fl-r) - var(--fl-l)); height: var(--h, 44px); border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); pointer-events: none;
+#hub.juego .fl-ind { position: absolute; z-index: 0; left: var(--fl-l); top: var(--t, 0); width: calc(var(--fl-r) - var(--fl-l)); height: var(--h, 44px); border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255,255,255,.08); pointer-events: none;
   transition: --fl-l .46s var(--muelle), --fl-r .28s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
 #hub.juego .fl-ind.izq { transition: --fl-l .28s var(--muelle), --fl-r .46s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
 /* la cabecera de la ventana: la sección en medio y, a los lados, la de antes y la de después */

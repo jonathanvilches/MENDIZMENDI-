@@ -28,8 +28,8 @@ const CSS = `
 .arx-top b{font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .arx-top small{display:block;margin-top:4px;font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#ffb1e3}
 .arx-sc{margin-left:auto;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),sans-serif;white-space:nowrap}
-.arx-x{position:absolute;z-index:3;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 12px);width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(20,8,40,.6);color:#fff;font:700 20px/1 sans-serif;cursor:pointer}
-.arx-msg{position:absolute;z-index:2;left:50%;top:42%;transform:translate(-50%,-50%);max-width:min(560px,86vw);padding:14px 22px;border-radius:18px;background:rgba(20,8,40,.72);border:1px solid rgba(201,178,255,.3);text-align:center;font:700 var(--fs-md)/1.35 'MZ Texto',sans-serif;pointer-events:none}
+.arx-x{position:absolute;z-index:3;top:calc(env(safe-area-inset-top,0px) + 10px);right:calc(env(safe-area-inset-right,0px) + 12px);width:48px;height:48px;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(20,8,40,.6);color:#fff;font:700 20px/1 sans-serif;cursor:pointer}
+.arx-msg{position:absolute;z-index:2;left:50%;top:42%;transform:translate(-50%,-50%);max-width:min(560px,86vw);padding:14px 22px;border-radius:18px;background:rgba(20,8,40,.72);border:1px solid rgba(255,255,255,.08);text-align:center;font:700 var(--fs-md)/1.35 'MZ Texto',sans-serif;pointer-events:none}
 .arx-msg:empty{display:none}.arx-msg.ok{color:#7dffa8}.arx-msg.bad{color:#ffb1b1}
 `;
 let cssPuesto = false;

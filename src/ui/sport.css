@@ -19,6 +19,10 @@
   --azul: #5b4bff; --azul2: #24127a; --rojo: #ff2e88; --rojo2: #6e0b4c;
   --cta: linear-gradient(100deg, #ff2bd6 0%, #c21cff 55%, #7b2ff7 100%);
   --glow: 0 0 24px rgba(255, 43, 214, .45);
+  /* lo que no es carta de jugador se separa del fondo sin filo de neón (ui/neon.css): una raya neutra muy tenue y una
+     sombra oscura. Los botones secundarios, con relleno liso; lo elegido, con relleno más vivo */
+  --linea: rgba(255, 255, 255, .08); --sombra-caja: 0 8px 20px rgba(4, 1, 12, .3); --sombra-panel: 0 24px 60px rgba(4, 1, 12, .5);
+  --btn-2: rgba(160, 130, 240, .2); --btn-2h: rgba(160, 130, 240, .32); --btn-on: #7a42ea;
 }
 
 /* ---------- fondo de retransmisión: morado oscuro, haces de luz y rayas finas en diagonal, y un brillo que lo cruza */

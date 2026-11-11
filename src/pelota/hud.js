@@ -128,7 +128,7 @@ const CSS = `
 .ps-racha.on{display:inline-grid;animation:pelRachaM .45s cubic-bezier(.2,1.6,.4,1)}.ps-racha svg{width:12px;height:12px}
 @keyframes pelRachaM{from{transform:scale(.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.pel-side b.sube,.pel-side.gana .ps-cab,.ps-racha.on,.pel-racha{animation:none}}
-.pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:16px 24px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(190,160,255,.35);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:16px 24px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .pel-call.on{opacity:1;transform:translateX(-50%) scale(1)}
 /* (el aviso del tanto, con una raya arriba del color de quien lo gana y, si toca, la racha: tantos seguidos, iguala,
    remontada) */
@@ -137,7 +137,7 @@ const CSS = `
 .pel-racha svg{width:16px;height:16px;flex:none;color:#ffd166}
 .pel-call.c-azul .pel-racha{--rc:linear-gradient(100deg,#6b5bff,#3b2bc4)}.pel-call.c-rojo .pel-racha{--rc:linear-gradient(100deg,#ff2e88,#c01a6c)}
 @keyframes pelRacha{from{opacity:0;transform:translateY(8px) scale(.8)}}
-.pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7));border-color:#ffc2ec;color:#fff;box-shadow:0 0 0 4px rgba(255,122,200,.25),0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
+.pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7));border-color:#ffc2ec;color:#fff;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
 .pel-root.final .pel-call :is(.pel-kantari,p){color:#fff}
 @keyframes pelFinal{0%{transform:translateX(-50%) scale(.5)}100%{transform:translateX(-50%) scale(1)}}
 .pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
@@ -162,7 +162,7 @@ const CSS = `
 .pel-q.k-good b{color:#c9b2ff}.pel-q.k-early b,.pel-q.k-late b,.pel-q.k-whiff b{color:#ff6fb5;animation:pel-qfuera .3s ease both}
 @keyframes pel-qpop{from{transform:scale(2.2) rotate(-6deg);opacity:0}to{transform:none;opacity:1}}
 @keyframes pel-qfuera{from{transform:scale(1.25);opacity:0}to{transform:none;opacity:1}}
-.pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px + var(--pel-tip-sube,0px));width:max-content;max-width:min(560px,calc(calc(100vw / var(--z, 1)) - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(190,160,255,.3);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
+.pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px + var(--pel-tip-sube,0px));width:max-content;max-width:min(560px,calc(calc(100vw / var(--z, 1)) - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(255,255,255,.08);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
 /* (con tu energía abajo en el centro, el consejo, encima de ella) */
 .pel-tip.on{opacity:1}
 .pel-stick{position:absolute;left:0;bottom:0;width:calc(46vw / var(--z, 1));height:calc(62dvh / var(--z, 1));pointer-events:auto;touch-action:none}
@@ -172,13 +172,13 @@ const CSS = `
 .pel-btns{position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));display:flex;align-items:flex-end;gap:12px;pointer-events:auto}
 .pel-btn{padding:0;border:0;border-radius:50%;color:#2a0638;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:800;line-height:1.15;display:grid;place-items:center;cursor:pointer;touch-action:none;box-shadow:0 6px 0 rgba(0,0,0,.25),0 8px 22px rgba(0,0,0,.25);transition:transform .06s}
 .pel-btn:active,.pel-btn.down{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.25)}
-.pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 2px 0 rgba(74,10,94,.6);background:radial-gradient(circle at 50% 30%,#ff9bd8,#ff2bd6 60%,#c21cff);box-shadow:0 0 0 4px rgba(255,122,200,.35),0 6px 0 #8a1c8f,0 10px 22px rgba(0,0,0,.35)}
+.pel-hit{width:112px;height:112px;font-size:var(--fs-xl);color:#fff;text-shadow:0 2px 0 rgba(74,10,94,.6);background:radial-gradient(circle at 50% 30%,#ff9bd8,#ff2bd6 60%,#c21cff);box-shadow:0 6px 0 #8a1c8f, 0 10px 22px rgba(0,0,0,.35)}
 .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
 @keyframes pel-pulse{from{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 6px 0 rgba(0,0,0,.25),0 0 0 14px rgba(255,220,80,0)}}
 /* (cortada y dejada, con la misma letra: antes la cortada iba un tamaño más pequeña) */
-.pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 0 0 3px rgba(138,43,226,.45),0 5px 0 rgba(10,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
+.pel-drop{width:80px;height:80px;font-size:var(--fs-sm);line-height:1;padding:0 4px;text-align:center;color:#fff;text-shadow:0 1px 0 #1f1a26;background:radial-gradient(circle at 50% 30%,rgba(80,40,150,.92),rgba(28,11,58,.95));border:2.5px solid #fff;box-shadow:0 5px 0 rgba(10,4,24,.55), 0 8px 16px rgba(0,0,0,.3)}
 .pel-bcol{display:flex;flex-direction:column;align-items:center;gap:8px}
-.pel-cut{background:radial-gradient(circle at 50% 30%,rgba(255,60,150,.95),rgba(120,10,70,.96));box-shadow:0 0 0 3px rgba(255,46,136,.45),0 5px 0 rgba(40,4,24,.55),0 8px 16px rgba(0,0,0,.3)}
+.pel-cut{background:radial-gradient(circle at 50% 30%,rgba(255,60,150,.95),rgba(120,10,70,.96));box-shadow:0 5px 0 rgba(40,4,24,.55), 0 8px 16px rgba(0,0,0,.3)}
 .pel-hit,.pel-cut,.pel-drop{position:relative}
 .pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0 var(--tope,100%),rgba(255,70,70,.5) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
 .pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
@@ -186,12 +186,12 @@ const CSS = `
 @keyframes pel-full{to{filter:brightness(1.6)}}
 /* (las ventanas del partido, por encima de todo: la etiqueta de GOLPE asomaba encima de «Seguir jugando» y se llevaba el toque) */
 .pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
-.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
+.pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(255,255,255,.08);padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
 .pel-card h2{margin:0 0 var(--t-mb);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .pel-card .pel-sub{margin:0 0 12px;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;color:#ff7ac8;letter-spacing:.04em;text-transform:uppercase}
 .pel-card ol{margin:0 0 12px;padding-left:24px;color:#e6def7}.pel-card li{margin:0 0 8px;line-height:1.3}.pel-card li::marker{color:#ff7ac8;font-weight:900}
-.pel-card .pel-ctrl{font-size:var(--fs-sm);line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.22);color:#cbc2e0;border-radius:12px;padding:8px 12px;margin:0 0 16px}
+.pel-card .pel-ctrl{font-size:var(--fs-sm);line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:#cbc2e0;border-radius:12px;padding:8px 12px;margin:0 0 16px}
 .pel-card .pel-big{font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-4xl);text-align:center;margin:8px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
 .pel-card .pel-big small{font-size:.45em;color:#cbbcf0;margin-left:2px}
 .pel-estrellas{display:flex;justify-content:center;gap:12px;margin:0 0 12px}
@@ -202,14 +202,14 @@ const CSS = `
 @keyframes pel-est{from{opacity:0;transform:scale(.3) rotate(-30deg)}}
 .pel-card .pel-metas{font-size:var(--fs-sm);color:#cbbcf0}.pel-card .pel-metas b{color:#fff;font-weight:800;margin-right:4px}
 @media (prefers-reduced-motion:reduce){.pel-estrellas i{animation:none}}
-.pel-card .pel-fact{background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);color:#fff3c4;border-radius:12px;padding:8px 12px;margin:8px 0 16px;font-size:var(--fs-sm);line-height:1.3}.pel-card .pel-fact b{color:#ff7ac8}
+.pel-card .pel-fact{background:rgba(255,122,200,.1);border:1px solid rgba(255,255,255,.08);color:#fff3c4;border-radius:12px;padding:8px 12px;margin:8px 0 16px;font-size:var(--fs-sm);line-height:1.3}.pel-card .pel-fact b{color:#ff7ac8}
 .pel-lbl{display:block;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px}
 .pel-levels{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}
-.pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
+.pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
 .pel-dur button small{font:inherit;font-weight:700;opacity:.7;margin-left:4px}
-.pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
+.pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:none}
 .pel-go{border:0;border-radius:999px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
-.pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
+.pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
 /* la ficha del rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado */
@@ -218,11 +218,11 @@ const CSS = `
 .pf p strong{color:#ffb9a8}
 .pel-pairs{margin:0 0 8px;font-size:var(--fs-sm);line-height:1.45;color:#d8cff0}
 /* las partes del frontón: el botón junto al título y la ficha de cada parte, abajo */
-.pel-chip{position:relative;min-height:40px;margin-left:8px;border:1px solid rgba(255,122,200,.6);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;cursor:pointer;vertical-align:middle}
-.pel-tour{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(560px,calc(calc(100vw / var(--z, 1)) - 32px));padding:8px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(50,19,111,.95),rgba(28,11,58,.95));border:1px solid rgba(255,122,200,.45);pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
+.pel-chip{position:relative;min-height:40px;margin-left:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;cursor:pointer;vertical-align:middle}
+.pel-tour{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(560px,calc(calc(100vw / var(--z, 1)) - 32px));padding:8px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(50,19,111,.95),rgba(28,11,58,.95));border:1px solid rgba(255,255,255,.08);pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .pel-tour b{display:block;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);font-weight:400;color:#ff7ac8}
 .pel-tour p{margin:4px 0 8px;font-size:var(--fs-sm);line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
-.pel-tour button{border-radius:12px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 16px;min-height:44px;cursor:pointer}
+.pel-tour button{border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;font:inherit;font-weight:900;padding:8px 16px;min-height:44px;cursor:pointer}
 .pel-tour button.go{background:linear-gradient(180deg,#ffc2ec,#ff7ac8 50%,#ff3dbd);color:#2a0638;border:0}
 @media (max-width:560px){
   .pel-tip{max-width:calc(calc(100vw / var(--z, 1)) - 32px);bottom:auto;top:calc(env(safe-area-inset-top,0px) + 64px)}}
@@ -265,7 +265,7 @@ const CSS = `
 .pel-vs .gx-card{--w:var(--cw,140px)!important}
 .pel-vs-x{flex:none;min-width:32px;text-align:center;font:400 var(--fs-xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#ff7ac8;letter-spacing:.04em}
 .pel-lado{display:contents}
-.pel-mas{display:flex;align-items:center;gap:8px;margin:0 0 8px}.pel-mas .pel-more{flex:1 1 0;width:auto;min-width:0;margin:0}.pel-mas .pel-chip{flex:none;margin:0}
+.pel-mas{display:flex;align-items:center;gap:8px;margin:0 0 8px}.pel-mas .pel-more{flex:1 1 0;width:auto;min-width:0;margin:0}.pel-mas .pel-chip{flex:none;margin:0;min-height:44px}
 @media (max-width:520px){.pel-pres .pel-sum{display:none}}
 @media (max-width:440px){.pel-card.pel-pres{padding-left:16px;padding-right:16px}}
 @media (orientation:landscape){
@@ -290,7 +290,7 @@ const CSS = `
 }
 .pel-wide{display:block;width:100%;margin:0 0 12px}
 /* el frontón: su dibujo, su nombre y lo que se nota al jugar en él (al tocarlo, qué pasa con cada cosa) */
-.pel-court{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,122,200,.32);background:rgba(255,122,200,.08);color:#fff;font:inherit;text-align:left;cursor:pointer}
+.pel-court{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,122,200,.08);color:#fff;font:inherit;text-align:left;cursor:pointer}
 .pel-court svg{flex:none;width:48px;height:36px}.pel-court-t{display:flex;flex-direction:column;gap:2px;min-width:0}
 .pel-court-t b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-court-t span{display:flex;flex-wrap:wrap;gap:4px}
 .pel-court-t i{font-style:normal;font-size:var(--fs-xs);font-weight:800;line-height:1.3;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.1);color:#ff7ac8}
@@ -304,9 +304,9 @@ const CSS = `
 .pel-more .pel-sum{margin-left:auto;padding-left:12px;min-width:0;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#ff7ac8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pel-card.opts :is(.pel-rv,.pel-court,.pel-court-what,.pel-mas){display:none}
 .pel-opts[hidden],.pel-opane[hidden]{display:none}
-.pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px;border-bottom:1px solid rgba(190,160,255,.25)}
-.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
-.pel-otabs button[aria-selected=true]{color:#fff;border-bottom-color:#ff2bd6}
+.pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px}
+.pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-radius:999px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.pel-otabs button[aria-selected=true]{color:#fff;background:var(--btn-on,#7a42ea)}
 .pel-otabs .pel-back{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 12px 0 4px;color:#ff7ac8;letter-spacing:.04em}
 .pel-otabs .pel-back::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:0 0 2px 2px;transform:rotate(45deg)}
 .pel-opane{animation:pel-pane .18s ease both}@keyframes pel-pane{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -318,11 +318,11 @@ const CSS = `
 @media (orientation:portrait) and (max-width:400px){.pel-lv5 button{flex:1 1 auto;min-width:max-content}}
 @media (orientation:portrait) and (max-width:360px){.pel-row .pel-go{white-space:normal;font-size:var(--fs-lg);line-height:1.1}}
 /* tu energía: grande, abajo en el centro (entre el joystick y los botones); verde, amarilla y roja al cansarte */
-@keyframes pel-low{to{box-shadow:0 0 0 2px #ff5a3a}}
+@keyframes pel-low{to{box-shadow:none}}
 /* el descanso: a la derecha de tu energía (de pie, encima), con los que te quedan; pedido, en rosa; descansando, «Seguir»;
    cansado y con descansos, brilla */
 /* interruptores de «Más opciones» (la cámara dinámica) */
-.pel-switch{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:8px 12px;border-radius:6px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:inherit;text-align:left;cursor:pointer}
+.pel-switch{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:8px 12px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:inherit;text-align:left;cursor:pointer}
 .pel-switch span{flex:1;display:flex;flex-direction:column;gap:2px}.pel-switch b{font-size:var(--fs-sm);font-weight:900;line-height:1.3}.pel-switch small{font-size:var(--fs-xs);font-weight:600;line-height:1.3;color:#d8cff0}
 .pel-switch i{flex:none;position:relative;width:48px;height:28px;border-radius:999px;background:rgba(255,255,255,.18);transition:background .15s}
 .pel-switch i::after{content:'';position:absolute;top:4px;left:4px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .15s}
@@ -336,7 +336,7 @@ const CSS = `
 .pel-ballwhat{margin:8px 0 12px;font-size:var(--fs-sm);line-height:1.45;color:#e7defa}
 /* el momento justo: un aro que se cierra sobre el botón de golpe; cuando lo toca, suelta. Fucsia y brillante en el momento */
 .pel-tring{position:absolute;inset:-4px;border-radius:50%;border:3px solid #fff;pointer-events:none;opacity:0;transform:scale(1.9);will-change:transform,opacity}
-.pel-tring.on{opacity:.9}.pel-tring.now{border-color:#fff;box-shadow:0 0 0 4px #ff2bd6,0 0 22px #ff2bd6;opacity:1}
+.pel-tring.on{opacity:.9}.pel-tring.now{border-color:#fff;box-shadow:0 0 22px #ff2bd6;opacity:1}
 .pel-hit .pel-hl{position:relative;z-index:1}
 
 /* ordenador (pantalla grande): las ventanas del partido más anchas y con la letra a su tamaño */
@@ -349,12 +349,12 @@ const CSS = `
 .pel-card.pel-matcard{width:min(560px,100%)}
 .pel-msel{display:grid;gap:6px;margin:0 0 12px}.pel-msel>span{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff9ad8}
 .pel-mseg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.pel-mseg button{min-height:44px;padding:4px 8px;border-radius:999px;border:1px solid rgba(190,160,255,.4);background:rgba(20,8,40,.55);color:#fff;font:700 var(--fs-md)/1.1 'MZ Texto',sans-serif;cursor:pointer;touch-action:manipulation}
-.pel-mseg button[aria-checked=true]{background:rgba(131,56,236,.6);border-color:#c9a6ff;box-shadow:0 0 0 2px rgba(201,166,255,.25)}
+.pel-mseg button{min-height:44px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(20,8,40,.55);color:#fff;font:700 var(--fs-md)/1.1 'MZ Texto',sans-serif;cursor:pointer;touch-action:manipulation}
+.pel-mseg button[aria-checked=true]{background:rgba(131,56,236,.6);border-color:#c9a6ff;box-shadow:none}
 .pel-matcard .pel-mgo{position:sticky;bottom:-16px;margin:0 -24px -16px;padding:8px 24px 16px;background:linear-gradient(180deg,rgba(18,5,42,0),#12052a 14px)}
 .pel-matcard .pel-mgo .pel-go{touch-action:manipulation}
 .pel-mchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 8px}
-.pel-mchip{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(190,160,255,.3)}
+.pel-mchip{display:inline-flex;align-items:center;gap:8px;padding:5px 14px 5px 5px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08)}
 .pel-mchip svg{width:30px;height:30px}.pel-mchip b{font:900 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}.pel-mchip small{font-size:var(--fs-xs);color:#cbc2e0;white-space:nowrap}
 .pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.35}
 .pel-mrv{margin:-4px 0 12px;font-size:var(--fs-xs);color:#b9addb}.pel-mrv:empty{display:none}
@@ -380,10 +380,10 @@ const CSS = `
 .pel-marca{display:inline-flex;align-items:baseline;gap:12px;min-width:0}.pel-marca i{font-style:normal;white-space:nowrap}.pel-marca i.azul{color:#b9b1ff}.pel-marca i.rojo{color:#ff9cc8}
 .pel-marca b{font:400 var(--fs-2xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#fff;letter-spacing:.02em;white-space:nowrap;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 @media (min-width:600px){.pel-card:has(.pel-fin){width:min(860px,100%)}.pel-fin{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:0 16px;align-items:start}}
-.pel-clave{margin:4px 0 12px;padding:10px 14px;border-radius:8px;background:linear-gradient(100deg,rgba(255,43,214,.16),rgba(123,47,247,.12));border:1px solid rgba(255,122,200,.4)}
+.pel-clave{margin:4px 0 12px;padding:10px 14px;border-radius:8px;background:linear-gradient(100deg,rgba(255,43,214,.16),rgba(123,47,247,.12));border:1px solid rgba(255,255,255,.08)}
 .pel-clave b{display:block;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
 .pel-clave p{margin:4px 0 0;font-size:var(--fs-sm);font-weight:700;line-height:1.35;color:#fff}
-.pel-mapa{margin:0 0 12px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-mapa{margin:0 0 12px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .pel-mapa svg{display:block;width:100%;height:auto;margin-top:8px}
 .pel-mapa text{font:800 16px/1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;fill:#cbbcf0}
 /* los comentarios (comenta.js): un rótulo de retransmisión abajo en el centro, entre el joystick y los botones, con la
@@ -410,7 +410,7 @@ body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fac
 body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
 body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
 .pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
-.pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
+.pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .pel-est-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-est-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .pel-est span{display:flex;gap:10px;min-width:0}.pel-est i{font-style:normal}.pel-est i.rojo{color:#ff9cc8}.pel-est i.azul{color:#b9b1ff}
 .pel-est-top i{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;max-width:11ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -420,8 +420,8 @@ body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)
 .pel-est li span{font:400 var(--fs-md)/1 var(--f-display,'MZ Display'),sans-serif;gap:12px}
 .pel-est p{margin:8px 0 0;font:700 var(--fs-xs)/1.3 var(--f-cond,'MZ Cond'),sans-serif;color:#e7defa;text-align:center}
 @media (max-width:440px){.pel-est ul{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.28)}
-.pel-xp.sube{border-color:#ffd36a;box-shadow:0 0 0 3px rgba(255,211,106,.15),0 0 18px rgba(255,211,106,.25)}
+.pel-xp{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
+.pel-xp.sube{border-color:#ffd36a;box-shadow:0 0 18px rgba(255,211,106,.25)}
 .pel-xp-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-xp-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
 .pel-xp.sube .pel-xp-top b{color:#ffd36a}.pel-xp-top span{font:800 var(--fs-sm)/1 var(--f-cond,'MZ Cond'),sans-serif;color:#ffb1e3;white-space:nowrap}
 .pel-xp-bar{display:block;height:8px;margin:10px 0 0;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden}.pel-xp-bar u{display:block;height:100%;border-radius:inherit;background:var(--cta,#c21cff);animation:pel-xpin 1s cubic-bezier(.2,.9,.3,1) both}
@@ -469,10 +469,10 @@ body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)
 .pel-menu.on .pm-btn{transform:scale(.94);border-color:#ff7ac8}
 /* (el menú del partido es la ventana de pausa de src/ui/pausa.js: centrada sobre el partido, con sus filas) */
 .pm-hoja{display:none}.pel-menu.on .pm-hoja{display:grid}
-.pz-k{flex:none;display:grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;border:1px solid rgba(190,160,255,.4);background:rgba(255,255,255,.06);font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#e6def7}
+.pz-k{flex:none;display:grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#e6def7}
 .pb-desc.pedido .pz-ico{background:#ff7ac8}
-.pel-menu.llama .pm-btn{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{box-shadow:0 0 0 2px #ff7ac8,0 0 18px rgba(255,43,214,.6)}}
-@media (prefers-reduced-motion:reduce){.pel-menu.llama .pm-btn{animation:none;box-shadow:0 0 0 2px #ff7ac8}}
+.pel-menu.llama .pm-btn{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{box-shadow:0 0 18px rgba(255,43,214,.6)}}
+@media (prefers-reduced-motion:reduce){.pel-menu.llama .pm-btn{animation:none;box-shadow:none}}
 .pel-root.paneled .pel-menu,.pel-root.repe .pel-menu{visibility:hidden}
 `;
 const BOLA = bolaSVG();

@@ -26,11 +26,11 @@
 .ih-txt { display: grid; gap: 4px; min-width: 0; justify-items: start; } .ih-txt .kicker { color: var(--gold); }
 .ih-title { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-2xl); line-height: 1.05; color: #fff; }
 .ih-ms { display: flex; flex-wrap: wrap; gap: 4px; }
-.ih-ms i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); }
+.ih-ms i { width: 30px; height: 30px; display: grid; place-items: center; border-radius: 8px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255,255,255,.08); }
 .ih-ms i.ok { background: rgba(201, 178, 255, .26); border-color: var(--cyan); } .ih-ms svg, .ih-ms img { width: 22px; height: 22px; }
 .ih-sub { display: flex; align-items: center; gap: 8px; color: var(--mute); font-weight: 700; font-size: var(--fs-sm); } .ih-sub svg, .ih-sub img { flex: none; width: 22px; height: 22px; }
 .ih-ctl { display: flex; align-items: center; gap: 12px; }
-.ih-arrow { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .2); cursor: pointer; transition: background .2s; }
+.ih-arrow { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255,255,255,.08); cursor: pointer; transition: background .2s; }
 .ih-arrow:hover, .ih-arrow:focus-visible { background: rgba(255, 255, 255, .2); }
 .ih-arrow svg, .ih-arrow img { width: 22px; height: 22px; } .sig svg, .sig img { transform: scaleX(-1); }
 .ih-play { width: 72px; height: 72px; display: grid; place-items: center; border-radius: 50%; border: 0; cursor: pointer; background: linear-gradient(135deg, var(--pink), var(--violet)); box-shadow: 0 0 0 6px rgba(255, 43, 214, .18), 0 10px 30px rgba(123, 47, 247, .6); animation: ih-late 2.4s ease-in-out infinite; }
@@ -85,7 +85,7 @@
 .ig-tx { display: grid; gap: 2px; min-width: 0; line-height: 1.25; } .ig-tx b { color: #fff; font-size: var(--fs-md); } .ig-tx small { color: var(--mute); font-weight: 700; font-size: var(--fs-sm); }
 /* (el dato y, al lado, el estado en su etiqueta: si no caben juntos, la etiqueta baja entera, sin separadores sueltos) */
 .ig-tx em { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; font-style: normal; color: var(--dim); font-weight: 700; font-size: var(--fs-xs); }
-.ig-tx em i { padding: 2px 8px; border-radius: 999px; background: rgba(255, 122, 200, .14); border: 1px solid rgba(255, 122, 200, .32); color: #ffc2e6; font-style: normal; white-space: nowrap; }
+.ig-tx em i { padding: 2px 8px; border-radius: 999px; background: rgba(255, 122, 200, .14); border: 1px solid rgba(255,255,255,.08); color: #ffc2e6; font-style: normal; white-space: nowrap; }
 
 /* (con poco sitio: el destacado arriba y la columna debajo, sin personaje; en el móvil tumbado, todo más bajo) */
 @media (max-width: 1099px) { .ini-top { grid-template-columns: minmax(0, 1fr); } .ini-live ul { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); } .ig-cards { grid-auto-columns: minmax(220px, calc((100% - 32px) / 3)); } }
@@ -134,7 +134,7 @@
 .m3-sl { color: rgba(240, 232, 255, .82); font: 800 10px/1.1 'MZ Texto', sans-serif; letter-spacing: .2em; text-transform: uppercase; text-shadow: 0 1px 2px #0d0420, 0 0 6px #0d0420, 0 0 12px rgba(13, 4, 32, .8); }
 .m3-rl { color: #a6ecff; font: italic 800 11px/1.1 'MZ Texto', sans-serif; letter-spacing: .04em; text-shadow: 0 1px 2px #06122a, 0 0 6px #0d0420, 0 0 10px rgba(13, 4, 32, .8); }
 @media (min-width: 1200px) and (min-height: 560px) { .m3-sl { font-size: 11px; } .m3-rl { font-size: 13px; } }
-.m3-cl { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(13, 4, 32, .66); border: 1px solid color-mix(in srgb, var(--c) 70%, transparent); color: #fff; line-height: 1.1; transition: background .25s, opacity .18s ease; }
+.m3-cl { display: flex; align-items: baseline; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(13, 4, 32, .66); border: 1px solid var(--linea, rgba(255, 255, 255, .08)); color: #fff; line-height: 1.1; transition: background .25s, opacity .18s ease; }
 .m3-cl b { font: 400 var(--fs-sm)/1.25 'MZ Display', 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
 .m3-cl small { color: var(--mute); font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; }
 .m3-cl i { display: grid; place-items: center; align-self: center; } .m3-cl i :is(svg, img) { width: 14px; height: 14px; }
@@ -148,7 +148,7 @@
 /* (cada pueblo, una ficha pequeña encima del mapa: su foto en redondo y su nombre, con un pico abajo que señala su sitio.
    El aro de la foto dice cómo va: blanco por descubrir, rosa con lo hecho en blanco, dorado con el check si está sellado.
    Si no cabe, solo la foto. Elegido, en blanco. Antes, chinchetas en 3D con un palito y un punto en el suelo) */
-.m3-tl { display: flex; align-items: center; gap: 6px; margin-top: -7px; padding: 3px 10px 3px 3px; border-radius: 999px; background: rgba(13, 4, 32, .86); border: 1px solid rgba(255, 255, 255, .18); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; box-shadow: 0 6px 16px rgba(6, 1, 20, .38); }
+.m3-tl { display: flex; align-items: center; gap: 6px; margin-top: -7px; padding: 3px 10px 3px 3px; border-radius: 999px; background: rgba(13, 4, 32, .86); border: 1px solid rgba(255,255,255,.08); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; box-shadow: 0 6px 16px rgba(6, 1, 20, .38); }
 .m3-tl::after { content: ''; position: absolute; left: 50%; bottom: -6px; margin-left: -6px; border: 6px solid transparent; border-bottom: 0; border-top-color: rgba(13, 4, 32, .86); }
 .m3-tf { position: relative; flex: none; width: 26px; height: 26px; padding: 2px; border-radius: 50%; background: #fff; }
 .m3-tf img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #3a2a5c; }
@@ -169,7 +169,7 @@
 .m3-canada polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 .m3-canada .s { stroke: rgba(13, 4, 32, .5); stroke-width: 5; }
 .m3-canada .r { stroke: #fff1d6; stroke-width: 2.5; stroke-dasharray: 2 7; }
-.m3-tr { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(13, 4, 32, .82); border: 1px solid rgba(255, 241, 214, .55); color: #fff1d6; font: 800 var(--fs-xs)/1.3 'MZ Texto', sans-serif; white-space: nowrap; cursor: pointer; pointer-events: auto; will-change: transform; }
+.m3-tr { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(13, 4, 32, .82); border: 1px solid rgba(255,255,255,.08); color: #fff1d6; font: 800 var(--fs-xs)/1.3 'MZ Texto', sans-serif; white-space: nowrap; cursor: pointer; pointer-events: auto; will-change: transform; }
 .m3-tr[hidden] { display: none; } .m3-tr > :is(svg, img) { width: 22px; height: 22px; padding: 2px; border-radius: 50%; background: #fff1d6; }
 
 /* lo conquistado: el aro grande con el tanto por ciento, las comarcas completas y los sellos */
@@ -203,7 +203,7 @@
   border-radius: 12px; background: var(--cr, rgba(16, 6, 40, .8)); border: 1px solid var(--cr-l, rgba(255, 255, 255, .14)); box-shadow: 0 8px 22px rgba(4, 1, 12, .38);
   -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); transition: transform .2s, border-color .2s, box-shadow .2s; }
 .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); border-color: rgba(255, 255, 255, .3); }
-.m3-chip.on { border-color: color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff); box-shadow: 0 0 0 1px color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff), 0 0 18px color-mix(in srgb, var(--c, #ff7ac8) 40%, transparent), 0 8px 22px rgba(4, 1, 12, .38); }
+.m3-chip.on { border-color: color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff); box-shadow: 0 0 18px color-mix(in srgb, var(--c, #ff7ac8) 40%, transparent), 0 8px 22px rgba(4, 1, 12, .38); }
 .m3-foto, .m3-vid { grid-row: 1; grid-column: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; transition: filter .3s, opacity .9s ease; }
 .m3-vid { opacity: 0; pointer-events: none; } .m3-vid.on { opacity: 1; }
 .m3-chip:not(.go):not(.ok) :is(.m3-foto, .m3-vid) { filter: saturate(.65) brightness(.85); }
@@ -223,7 +223,7 @@
 .m3-ms i.ok { background: color-mix(in srgb, var(--mc) 55%, rgba(13, 6, 28, .6)); border-color: var(--mc); } .m3-ms i.ok :is(svg, img) { opacity: 1; }
 /* (la comarca elegida, con el libro sobre la foto: otro toque abre la página de la comarca. Con un pueblo abierto, tocar su
    comarca vuelve a ella) */
-.m3-vr { position: absolute; z-index: 1; right: 6px; top: 6px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255, 255, 255, .25); }
+.m3-vr { position: absolute; z-index: 1; right: 6px; top: 6px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255,255,255,.08); }
 .m3-vr :is(svg, img) { width: 17px; height: 17px; }
 .m3-chip.ver .m3-vr { display: grid; }
 
@@ -233,7 +233,7 @@
 .m3-pad { --b: 48px; position: absolute; z-index: 3; right: calc(16px + var(--sr, 0px)); top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: var(--b); grid-template-rows: repeat(3, var(--b)); gap: 6px;
   grid-template-areas: "in" "h" "out"; padding: 6px; border-radius: 999px; background: rgba(16, 6, 40, .66); border: 1px solid var(--line2); box-shadow: 0 10px 30px rgba(4, 1, 12, .45);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: right .35s; }
-.m3-b { width: var(--b); height: var(--b); display: grid; place-items: center; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .16); color: #fff; cursor: pointer; touch-action: none; transition: background .15s, transform .15s; }
+.m3-b { width: var(--b); height: var(--b); display: grid; place-items: center; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255,255,255,.08); color: #fff; cursor: pointer; touch-action: none; transition: background .15s, transform .15s; }
 .m3-b svg { width: 24px; height: 24px; fill: currentColor; } .m3-b:hover { background: rgba(255, 255, 255, .18); } .m3-b:active { transform: scale(.92); background: var(--pink); }
 .m3-b:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .b-in { grid-area: in; } .b-out { grid-area: out; }
@@ -320,7 +320,7 @@
 .mm-ms, .mm-mas { display: none; }
 .mm-go { grid-area: go; position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 52px; padding: 0 20px 0 16px; border: 0; border-radius: 14px; cursor: pointer; color: #fff;
   background: linear-gradient(135deg, var(--pink), var(--violet)); font: 400 var(--fs-lg)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; letter-spacing: .03em;
-  box-shadow: 0 0 0 3px rgba(255, 43, 214, .2), 0 8px 24px rgba(123, 47, 247, .55); animation: mm-late 2.4s ease-in-out infinite; transition: transform .15s; }
+  box-shadow: 0 8px 24px rgba(123, 47, 247, .55); animation: mm-late 2.4s ease-in-out infinite; transition: transform .15s; }
 .mm-go:hover, .mm-go:focus-visible { transform: translateY(-2px) scale(1.02); } .mm-go:active { transform: scale(.97); }
 .mm-go > :is(svg, img) { flex: none; width: 24px; height: 24px; }
 .mm-go small { position: absolute; top: -8px; right: -6px; padding: 2px 7px; border-radius: 999px; background: #fff; color: #2a0b52; font: 900 11px/1.3 'MZ Texto', sans-serif; box-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
@@ -418,7 +418,7 @@
 .ft-n b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #fff; font: 400 var(--fs-lg)/1.2 'MZ Display', 'MZ Texto', sans-serif; }
 .ft-n small { flex: none; color: color-mix(in srgb, var(--c, #fff) 70%, #fff); font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .04em; }
 .ft-go { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 16px; border: 0; border-radius: 12px; cursor: pointer; color: #fff; font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; white-space: nowrap;
-  background: linear-gradient(135deg, var(--pink), var(--violet)); box-shadow: 0 0 0 3px rgba(255, 43, 214, .2), 0 8px 20px rgba(123, 47, 247, .5); transition: transform .15s; }
+  background: linear-gradient(135deg, var(--pink), var(--violet)); box-shadow: 0 8px 20px rgba(123, 47, 247, .5); transition: transform .15s; }
 .ft-go:hover, .ft-go:focus-visible { transform: translateY(-2px) scale(1.02); } .ft-go:active { transform: scale(.97); } .ft-go > :is(svg, img) { flex: none; width: 20px; height: 20px; }
 /* (con la ficha abierta, la misión de ahora se aparta; en el móvil, también las comarcas y los botones de la cámara) */
 .m3d.con-ficha .m3-mision { display: none; }
@@ -482,7 +482,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .ex-mini { display: flex; align-items: center; margin-top: 2px; }
 .ex-mini img, .ex-mini i { width: 34px; height: 34px; margin-right: -8px; border-radius: 50%; object-fit: cover; border: 2px solid #1c0b3a; }
 .ex-mini i { display: grid; place-items: center; background: color-mix(in srgb, var(--c) 60%, #1c0b3a); color: #fff; font: 900 11px/1 'MZ Texto', sans-serif; font-style: normal; }
-.ex-ver { justify-self: start; display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 4px; padding: 0 16px 0 12px; border: 1px solid color-mix(in srgb, var(--c) 70%, #fff); border-radius: 999px; cursor: pointer; color: #fff; background: rgba(13, 4, 32, .55); font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; }
+.ex-ver { justify-self: start; display: flex; align-items: center; gap: 8px; min-height: 44px; margin-top: 4px; padding: 0 16px 0 12px; border: 0; border-radius: 999px; cursor: pointer; color: #fff; background: rgba(13, 4, 32, .55); font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; }
 .ex-ver :is(svg, img) { width: 20px; height: 20px; }
 .ex-hero { --w: clamp(260px, min(34vw, calc((100dvh - 270px) * 16 / 9)), 500px); }
 /* (un pueblo: la foto entera es un botón que lo enseña en el mapa; abajo, cómo va y los botones) */
@@ -537,7 +537,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .mc-tabs { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
 .mc-tabs button { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255, 255, 255, .05); color: var(--mute); font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; cursor: pointer; }
 .mc-tabs button.on { background: linear-gradient(135deg, #ff3fcf, #9c3bff); border-color: transparent; color: #fff; }
-.mc-lugar { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px 0 10px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .5); background: rgba(255, 255, 255, .12); color: #fff; font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; cursor: pointer; }
+.mc-lugar { grid-column: 1 / -1; justify-self: start; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 8px 0 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.08); background: rgba(255, 255, 255, .12); color: #fff; font: 800 var(--fs-xs)/1 'MZ Texto', sans-serif; cursor: pointer; }
 .mc-lugar :is(svg, img) { width: 16px; height: 16px; flex: none; }
 /* (las tarjetas de abajo, como las de las comarcas: la imagen arriba y el nombre debajo) */
 .m3-crail { --chh: calc(var(--chw) * 9 / 16); --k: 10px; position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain; scroll-snap-type: x proximity; }
@@ -552,7 +552,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .mc-f > img { width: 100%; height: 100%; object-fit: cover; }
 .mc-f > svg { width: 44px; height: 44px; opacity: .9; }
 .mc-c.bloq .mc-f > :is(img, svg) { filter: brightness(.22) saturate(0) blur(3px); }
-.mc-candado { position: absolute; inset: 0; margin: auto; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: rgba(13, 6, 28, .78); border: 1px solid rgba(255, 255, 255, .22); }
+.mc-candado { position: absolute; inset: 0; margin: auto; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; background: rgba(13, 6, 28, .78); border: 1px solid rgba(255,255,255,.08); }
 .mc-candado :is(svg, img) { width: 60%; height: 60%; }
 .mc-t { display: grid; gap: 3px; padding: 6px 8px 8px; background: rgba(16, 6, 40, .88); min-width: 0; }
 .mc-t b { color: #fff; font: 800 var(--fs-sm)/1.15 'MZ Texto', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -564,7 +564,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .mc-vacio { margin: auto; padding: 12px 18px; border-radius: 999px; background: rgba(16, 6, 40, .8); color: var(--mute); font: 700 var(--fs-sm)/1.2 'MZ Texto', sans-serif; }
 /* (los marcadores del mapa: el sitio, sus imágenes y cuántas son, con un piquito hacia su sitio) */
 .m3-cm { position: absolute; left: 0; top: 0; pointer-events: none; will-change: transform; white-space: nowrap; display: flex; align-items: center; gap: 6px; margin-top: -10px; padding: 3px 10px 3px 3px; border-radius: 999px;
-  background: rgba(13, 4, 32, .86); border: 1px solid rgba(255, 255, 255, .22); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; box-shadow: 0 4px 12px rgba(4, 1, 12, .45); transition: opacity .2s; }
+  background: rgba(13, 4, 32, .86); border: 1px solid rgba(255,255,255,.08); color: #fff; font: 800 var(--fs-xs)/1.2 'MZ Texto', sans-serif; box-shadow: 0 4px 12px rgba(4, 1, 12, .45); transition: opacity .2s; }
 .m3-cm::after { content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: rgba(13, 4, 32, .86); border: solid rgba(255, 255, 255, .22); border-width: 0 1px 1px 0; }
 .m3-cm.abajo { margin-top: 10px; } .m3-cm.abajo::after { top: -6px; bottom: auto; border-width: 1px 0 0 1px; }
 .cm-fs { display: flex; }
@@ -572,7 +572,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 .cm-fs > .cm-f + .cm-f { margin-left: -9px; }
 .cm-f :is(svg, img) { width: 14px; height: 14px; }
 .cm-n { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: grid; place-items: center; background: linear-gradient(135deg, #ff3fcf, #9c3bff); font: 800 11px/1 'MZ Texto', sans-serif; font-style: normal; }
-.m3-cm.sel { border-color: #fff; box-shadow: 0 0 0 2px rgba(255, 63, 207, .6), 0 6px 16px rgba(4, 1, 12, .5); font-size: var(--fs-sm); }
+.m3-cm.sel { border-color: #fff; box-shadow: 0 6px 16px rgba(4, 1, 12, .5); font-size: var(--fs-sm); }
 .m3-cm.sel .cm-f { width: 32px; height: 32px; }
 .m3-capa > .m3-cm.apag:not(.fuera) { opacity: .42; }
 @media (max-height: 520px) {

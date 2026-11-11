@@ -112,17 +112,17 @@ const CSS = `
 @keyframes lgIn{from{opacity:0}to{opacity:1}}
 .lg-root.out{animation:lgOut .2s ease-in both;pointer-events:none}@keyframes lgOut{to{opacity:0}}
 /* (la tarjeta, como un rótulo de retransmisión: cristal morado, esquinas redondeadas y una raya fucsia arriba) */
-.lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(201,178,255,.2);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);border-radius:10px;}
+.lg-card{position:relative;width:min(900px,100%);max-height:100%;overflow:auto;display:grid;gap:12px;grid-template-columns:1fr;padding:16px 20px;background:linear-gradient(180deg,rgba(49,16,107,.62),rgba(12,4,30,.9));border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.06);border-radius:10px;}
 .lg-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .lg-card>*{animation:gx-in .42s cubic-bezier(.2,.9,.3,1.15) both}.lg-card>:nth-child(2){animation-delay:.05s}.lg-card>:nth-child(3){animation-delay:.1s}.lg-card>:nth-child(n+4){animation-delay:.15s}
 /* paneles, como en los juegos de deportes: un fondo algo más oscuro, borde fino y su rótulo arriba (a la izquierda, en
    pequeño y espaciado; a la derecha, una chapa con el dato: la jornada, el grupo) */
-.lg-pn{min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 12px;border-radius:4px;background:rgba(12,4,30,.45);border:1px solid rgba(201,178,255,.14)}
+.lg-pn{min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px;padding:8px 12px 12px;border-radius:4px;background:rgba(12,4,30,.45);border:1px solid rgba(255,255,255,.08)}
 .lg-ph{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;flex-wrap:wrap}
 .lg-ph>span:first-child{font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.12em;text-transform:uppercase;color:var(--lila)}
-.lg-card .lg-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid rgba(201,178,255,.3);background:rgba(255,255,255,.07);color:#fff;font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.lg-card .lg-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.07);color:#fff;font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 /* la barra de acciones, abajo de lado a lado: Salir a la izquierda y la acción principal a la derecha, donde está el pulgar */
-.lg-bar{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(201,178,255,.16)}
+.lg-bar{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)}
 .lg-bar .lg-sp{flex:1}.lg-bar .lg-btn{min-width:132px}.lg-bar .lg-btn.go{min-width:200px}
 @media (orientation:portrait){.lg-card>.lg-bar{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding-bottom:16px;border-top:0;background:#0f0526;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}}
 @media (max-width:560px){.lg-bar{flex-wrap:wrap;gap:8px}.lg-bar .lg-sp{display:none}.lg-bar>.lg-btn{flex:1 1 0;min-width:0}.lg-bar>.lg-btn.go{flex:1.6 1 0}.lg-bar>:not(.lg-btn){order:-1;flex:1 1 100%;display:flex;justify-content:center}
@@ -134,8 +134,8 @@ const CSS = `
 .lg-form{display:inline-flex;gap:3px}.lg-form i{display:grid;place-items:center;width:20px;height:20px;border-radius:3px;font:800 12px/1 var(--f-cond);font-style:normal;color:#0c031e}
 .lg-form i.g{background:#3ddc84}.lg-form i.e{background:#c9b2ff}.lg-form i.p{background:#ff6b96}
 /* «?» y la ayuda: una ventanita debajo de la cabecera, entera, que se cierra al tocarla */
-.lg-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(201,178,255,.4);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}.lg-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
-.lg-how.lg-flota{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(201,178,255,.35);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.lg-flota[hidden]{display:none}
+.lg-info{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);cursor:pointer}.lg-info[aria-expanded=true]{background:var(--cta);border-color:transparent}
+.lg-how.lg-flota{position:absolute;z-index:5;left:16px;right:16px;top:64px;max-height:calc(100% - 76px);overflow-y:auto;margin:0;padding:12px 16px;border-radius:16px;background:#1c0b3a;border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 32px rgba(0,0,0,.55);cursor:pointer}.lg-how.lg-flota[hidden]{display:none}
 .lg-how.lg-flota .lg-note{display:block;margin-top:8px}
 /* la comparativa del partido, como en los juegos de fútbol: el dato de cada club a los lados y una barra de cada color que
    crece hacia fuera desde el centro (en casa, rosa; fuera, lila) */
@@ -169,9 +169,9 @@ const CSS = `
 .eq-tile .art>*{transition:transform .3s}.eq-tile:hover .art>*{transform:translateY(-4px)}
 @media (prefers-reduced-motion:reduce){.lg-root *,.lg-root *::before,.lg-root *::after{animation:none!important;transition:none!important}}
 .lg-head{display:flex;align-items:center;gap:12px}.lg-head h2{margin:0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}.lg-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
-.lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);border-radius:6px;box-shadow:var(--glow)}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
+.lg-head .lg-ovr{margin-left:auto;text-align:center;background:var(--cta);color:#fff;padding:4px 12px;font:400 var(--fs-2xl)/1 var(--f-display);border-radius:6px}.lg-ovr small{color:#fff!important;font:800 var(--fs-xs)/1 var(--f-cond)!important;letter-spacing:.1em!important}
 /* (el fondo, casi liso: un velo suave de arriba abajo; antes un degradado lateral fuerte, de azul a rosa) */
-.lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(180deg,rgba(201,178,255,.1),rgba(201,178,255,.05));border:1px solid rgba(201,178,255,.16);text-align:center;overflow:hidden}
+.lg-next{position:relative;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;padding:12px;border-radius:4px;background:linear-gradient(180deg,rgba(201,178,255,.1),rgba(201,178,255,.05));border:1px solid rgba(255,255,255,.08);text-align:center;overflow:hidden}
 .lg-next.con-j{grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr) auto;gap:4px;padding-top:0;padding-bottom:0}
 /* (con los jugadores a los lados, cada línea del centro y el nombre de cada club en una sola línea: si no, «Jornada 1 de 7» se partía
    en dos; el sitio va en dos líneas, «en casa» y «El Sadar», para que el centro sea estrecho) */
@@ -201,13 +201,13 @@ const CSS = `
    arriba, para que se lea como una barra. Antes era un fundido que solo cubría lo de debajo de los botones y, al
    desplazar, se veía un rectángulo oscuro más estrecho que la tarjeta pegado al «Ver más») */
 .lg-card>.lg-foot{position:sticky;bottom:-16px;z-index:3;margin-bottom:-16px;padding:12px 0 16px;border-image:linear-gradient(180deg,rgba(201,178,255,.18) 0 1px,#0f0526 1px) fill 0/0/0 100vmax}
-.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(201,178,255,.3);border-radius:999px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer}
+.lg-btn{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:12px 20px;min-height:50px;font:800 var(--fs-md)/1.15 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(255,255,255,.07);cursor:pointer}
 .lg-btn.go{border:0;background:var(--cta);color:#fff;font:400 var(--fs-xl)/1 var(--f-display);box-shadow:var(--glow)}.lg-btn.go::after{content:'';position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transform:translateX(-150%) skewX(-20deg);animation:gx-sweep 3.2s ease-in-out .6s infinite;pointer-events:none}
 .lg-btn:active{transform:translateY(1px) scale(.98)}
 .lg-note{font-size:var(--fs-xs);color:#a99cc9;margin:0}.lg-head small+h2{margin-top:var(--t-mt)}.lg-head h2:not(:last-child){margin-bottom:var(--t-mb)}.lg-head .lg-note{display:block}
 /* elegir rival: solo se desplaza la lista; la cabecera y «Volver» quedan siempre a la vista */
 .lg-card.lg-pick{grid-template-rows:auto minmax(0,1fr) auto;overflow:hidden}.lg-card.lg-pick>.lg-list{overflow:auto;min-height:0;overscroll-behavior:contain;padding:2px}.lg-list.more{-webkit-mask-image:linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(180deg,#000 82%,transparent)}
-.lg-how{font-size:var(--fs-sm);line-height:1.45;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,155,216,.08);border:1px solid rgba(255,155,216,.25)}.lg-how b{color:#ff9bd8}
+.lg-how{font-size:var(--fs-sm);line-height:1.45;color:#e6def7;margin:0;padding:8px 12px;border-radius:12px;background:rgba(255,155,216,.08);border:1px solid rgba(255,255,255,.08)}.lg-how b{color:#ff9bd8}
 .lg-table td.dg{color:#cbbcf0;font-variant-numeric:tabular-nums}
 .lg-rv{display:flex;align-items:center;gap:8px;text-align:left;min-width:0;padding:8px 8px}.lg-rv>span{min-width:0;flex:1}.lg-rv b,.lg-rv small{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lg-rv b{font-size:var(--fs-sm)}.lg-rv small{font:700 var(--fs-xs) 'MZ Texto',sans-serif;opacity:.75}
 /* (en el móvil en vertical no caben los jugadores a los lados del próximo partido: se quedan los nombres) */
@@ -239,7 +239,7 @@ const CSS = `
 .lg-card.eq-menu{grid-template-rows:auto minmax(0,1fr) auto}
 /* (todas del mismo ancho: antes la de la liga era 1,3 veces las demás; de pie, en carrusel, ver más abajo) */
 .eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(0,1fr);gap:12px;min-height:0}
-.eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(201,178,255,.25);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
+.eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(255,255,255,.08);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
 .eq-tile{min-height:220px;padding:12px 22px;border-radius:8px;}
 .eq-tile::before,.eq-team::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
 .eq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
@@ -327,7 +327,7 @@ const CSS = `
 @media (orientation:landscape){
 .lg-root>.lg-card.lg-two{height:100%;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head head" "match tabla" "bar tabla";align-items:stretch}
 .lg-root>.lg-card.lg-two>.lg-head{grid-area:head}.lg-root>.lg-card.lg-two>.lg-match{grid-area:match;align-self:stretch}.lg-root>.lg-card.lg-two>.lg-tabla{grid-area:tabla;align-self:stretch}
-.lg-root>.lg-card.lg-two>.lg-bar{grid-area:bar;position:static;margin:0;padding:8px 0 0;background:none;border-image:none;border-top:1px solid rgba(201,178,255,.16);gap:8px}
+.lg-root>.lg-card.lg-two>.lg-bar{grid-area:bar;position:static;margin:0;padding:8px 0 0;background:none;border-image:none;border-top:1px solid rgba(255,255,255,.08);gap:8px}
 .lg-root>.lg-card.lg-two>.lg-bar>.lg-sp{display:none}.lg-root>.lg-card.lg-two>.lg-bar>.lg-btn{flex:1 1 auto;min-width:0;padding-left:10px;padding-right:10px;white-space:nowrap}.lg-root>.lg-card.lg-two>.lg-bar>.lg-btn.go{flex:1.4 1 auto}
 .lg-tabla>.lg-table{flex:1}   /* (con alto de sobra, las filas se reparten el panel y no queda un hueco debajo) */
 .lg-root>.lg-card.lg-two>.lg-bar{container-type:inline-size}

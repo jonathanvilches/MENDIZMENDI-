@@ -36,7 +36,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-pen.on{display:grid;grid-template-columns:auto auto;align-items:center}
 .fb-pen u{display:inline-block;width:12px;height:12px;border-radius:50%;margin:0 2px;background:rgba(255,255,255,.25);text-decoration:none;vertical-align:middle}
 .fb-pen u.g{background:#3fd36a}.fb-pen u.x{background:#e0453a}
-.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));width:40px;height:40px;border-radius:50%;border:1.5px solid #ecd8ff;background:rgba(38,19,63,.94);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.19),0 2px 4px rgba(16,6,29,.5)}
+.fb-pause,.fb-cam{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));width:40px;height:40px;border-radius:50%;border:0;background:rgba(38,19,63,.94);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center;padding:0;box-shadow:inset 0 1px 0 rgba(255,255,255,.19),0 2px 4px rgba(16,6,29,.5)}
 .fb-pause::before,.fb-cam::before{content:'';position:absolute;inset:-4px;border-radius:50%}   /* (zona táctil de 44 px; el dibujo no cambia) */
 .fb-pause{left:calc(env(safe-area-inset-left,0px) + var(--edge,16px))}.fb-cam{right:calc(env(safe-area-inset-right,0px) + var(--edge,16px))}
 .fb-pause svg,.fb-cam svg{width:20px;height:20px;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
@@ -49,16 +49,16 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-msg p{margin:8px 0 0;font-size:var(--fs-lg);font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.6)}
 .fb-msg.goal h2{color:#ff9bd8}
 .fb-stick{position:absolute;left:0;bottom:0;width:calc(50vw / var(--z, 1));height:calc(78dvh / var(--z, 1));pointer-events:auto;touch-action:none}
-.fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.6);background:rgba(8,10,20,.14);display:none}
+.fb-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:1.5px solid rgba(255,255,255,.08);background:rgba(8,10,20,.14);display:none}
 .fb-knob i{position:absolute;left:50%;top:50%;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:rgba(255,255,255,.72);box-shadow:0 1px 6px rgba(0,0,0,.25)}
 /* (la ayuda del joystick, como en el pueblo y en la pelota: las flechas y «Mover» en la letra estrecha) */
-.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 var(--fs-xs)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
+.fb-stickhint{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:96px;height:96px;border-radius:50%;border:1.5px dashed rgba(255,255,255,.08);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:800 var(--fs-xs)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff;text-align:center;opacity:.9;padding:8px;transition:opacity .4s;text-shadow:0 1px 2px rgba(0,0,0,.9),0 0 6px rgba(0,0,0,.6)}
 /* cuatro botones minimalistas: un aro blanco fino, el icono de trazo fino y el nombre en pequeño. TIRO (el mayor) en la
    esquina; PASE a su izquierda; SPRINT encima de TIRO; CAMBIAR en diagonal, entre los dos (siempre en su sitio; con el
    balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
    --u (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
 .fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:calc(240px * var(--u));height:calc(178px * var(--u));pointer-events:none}
-.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid #f2dcff;padding:0;border-radius:50%;background:linear-gradient(155deg,var(--mm-top),var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,'MZ Texto'),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.27),inset 0 -3px 0 rgba(22,7,37,.5),0 3px 0 #12061b,0 5px 10px rgba(14,6,29,.4);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
+.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid transparent;padding:0;border-radius:50%;background:linear-gradient(155deg,var(--mm-top),var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,'MZ Texto'),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.27),inset 0 -3px 0 rgba(22,7,37,.5),0 3px 0 #12061b,0 5px 10px rgba(14,6,29,.4);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
 /* (los símbolos de los controles del autor: trazo blanco grueso, nunca por debajo de 20 px) */
 .fb-b svg{width:max(20px,calc(24px * var(--u)));height:max(20px,calc(24px * var(--u)));flex:none;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
 /* (el rótulo, en la letra estrecha del juego y en mayúsculas, siempre dentro del círculo y nunca por debajo de 12 px, la
@@ -89,7 +89,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-arrow{position:absolute;width:0;height:0;border-left:14px solid transparent;border-right:14px solid transparent;border-bottom:26px solid #ffe14a;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));display:none;transform-origin:50% 60%}
 /* consejo del tutorial y de los retos: pequeño, bajo el marcador (encima de la grada, no del campo); a los pocos segundos
    se recoge en un botón «?» que lo vuelve a abrir */
-.fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,calc(64vw / var(--z, 1)));padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,122,200,.45);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
+.fb-tip{display:none;align-items:center;gap:8px;max-width:min(500px,calc(64vw / var(--z, 1)));padding:4px 12px 4px 4px;border-radius:13px;background:rgba(36,14,80,.8);border:1px solid rgba(255,255,255,.08);font-size:var(--fs-sm);font-weight:800;line-height:1.3;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.3);pointer-events:auto;cursor:pointer}
 .fb-tip.on{display:flex;animation:fbin .18s ease-out}.fb-tip b{color:#ff9bd8}
 .fb-tip i{flex:none;width:20px;height:20px;border-radius:50%;background:#ff9bd8;color:#2a0638;font:900 var(--fs-sm)/20px 'MZ Texto',sans-serif;font-style:normal;text-align:center}
 .fb-tip.mini{padding:4px;border-radius:50%;background:rgba(36,14,80,.6)}.fb-tip.mini span{display:none}
@@ -98,7 +98,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-fouls.show{display:flex}.fb-fouls span{display:flex;gap:2px}.fb-fouls u{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.22);text-decoration:none}
 .fb-fouls u.on{background:#ff9bd8}.fb-fouls u.x{background:#ff4a4a}
 .fb-panel{animation:fbPanelIn .15s ease-out;position:absolute;inset:0;display:grid;place-items:center;background:rgba(10,4,24,.62);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 12px) 12px calc(env(safe-area-inset-bottom,0px) + 12px)}
-.fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(190,160,255,.3);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
+.fb-card{width:min(540px,100%);max-height:100%;overflow:auto;background:linear-gradient(180deg,#32136f,#1c0b3a);border:1px solid rgba(255,255,255,.08);border-radius:22px;padding:20px 20px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55);text-align:center}
 .fb-card h2{margin:0 0 var(--t-mb);font-family:'MZ Display','MZ Texto',sans-serif;font-weight:400;font-size:var(--fs-2xl);line-height:1}.fb-card .fb-kick+h2{margin-top:var(--t-mt)}
 .fb-card p{margin:0 0 8px;color:#e6def7;font-weight:600;font-size:var(--fs-sm);line-height:1.3}
 .fb-card .fb-card .fb-kick{display:block;color:#ff7ac8;font:800 var(--fs-sm)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;margin:0}
@@ -110,14 +110,14 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-alt{display:block;width:100%;margin-top:8px;border:2px solid rgba(255,255,255,.4);border-radius:16px;padding:12px;font:800 var(--fs-md) 'MZ Texto',sans-serif;color:#fff;background:transparent;cursor:pointer;min-height:48px}
 /* (los botones de seguir y salir, siempre a la vista: si la tarjeta no cabe y se desplaza, se quedan pegados abajo) */
 .fb-card{display:flex;flex-direction:column;overflow:hidden}.fb-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-.fb-foot{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding-top:8px;margin-top:2px;border-top:1px solid rgba(190,160,255,.18)}.fb-foot.n4{grid-template-columns:1fr 1fr}
+.fb-foot{flex:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;padding-top:8px;margin-top:2px;border-top:1px solid rgba(255,255,255,.08)}.fb-foot.n4{grid-template-columns:1fr 1fr}
 .fb-foot .fb-go,.fb-foot .fb-alt{margin:0;width:100%}.fb-foot .fb-go{order:2}.fb-foot.n1 .fb-go{max-width:340px;justify-self:center}.fb-card .fb-alt{background:#1f0c40}
-.fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:4px;background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);color:#fff3fb!important;font-size:var(--fs-sm);line-height:1.45;text-align:left}.fb-fact b{display:block;color:#ff9bd8;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase}
+.fb-fact{margin:8px 0 2px!important;padding:8px 12px;border-radius:4px;background:rgba(255,122,200,.1);border:1px solid rgba(255,255,255,.08);color:#fff3fb!important;font-size:var(--fs-sm);line-height:1.45;text-align:left}.fb-fact b{display:block;color:#ff9bd8;font-size:var(--fs-xs);letter-spacing:.04em;text-transform:uppercase}
 .fb-stats{width:100%;border-collapse:collapse;margin:8px 0 8px;font-size:var(--fs-md)}
 .fb-stats td{padding:4px 8px;border-bottom:1px solid rgba(255,255,255,.1)}.fb-stats td:first-child,.fb-stats td:last-child{font-weight:900;width:22%;font-variant-numeric:tabular-nums}.fb-stats td:nth-child(2){color:#cbbcf0;font-weight:700;font-size:var(--fs-sm)}
-.fb-ctabs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.fb-ctabs button{min-width:max-content;padding:4px 12px}.fb-ctabs button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1.15 'MZ Texto',system-ui,sans-serif;cursor:pointer}.fb-ctabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
+.fb-ctabs{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 12px}.fb-ctabs button{min-width:max-content;padding:4px 12px}.fb-ctabs button{flex:1;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1.15 'MZ Texto',system-ui,sans-serif;cursor:pointer}.fb-ctabs button[aria-selected=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff}
 .fb-cgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;text-align:left}
-.fb-ck{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(190,160,255,.16);min-width:0}
+.fb-ck{display:flex;align-items:flex-start;gap:8px;padding:8px 12px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);min-width:0}
 .fb-ck>i{flex:none;width:32px;height:32px;display:grid;place-items:center;border-radius:50%;border:1px solid #f2dcff;background:linear-gradient(155deg,#6551b5,#24154a);box-shadow:inset 0 1px 0 rgba(255,255,255,.27),0 2px 0 #12061b}.fb-ck>i:empty{visibility:hidden}.fb-ck>i.k-shoot{background:linear-gradient(155deg,#b12bb7,#4a1559);border-color:#ffd8fa}.fb-ck>i.k-pass,.fb-ck>i.k-through{background:linear-gradient(155deg,#2a61b5,#10294f);border-color:#d8ecff}.fb-ck>i.k-swap{background:linear-gradient(155deg,#81552e,#352033);border-color:#ffe0a0}.fb-ck>i svg{width:20px;height:20px}
 .fb-ck b{display:block;font-size:var(--fs-sm);font-weight:900;line-height:1.3}.fb-ck small{display:block;font-size:var(--fs-xs);font-weight:600;color:#d8cff0;line-height:1.3}.fb-ck em{display:block;font-style:normal;font-size:var(--fs-xs);font-weight:800;color:#ff7ac8;line-height:1.3;margin-top:2px}
 @media (max-width:520px){.fb-cgrid{grid-template-columns:1fr}}
@@ -168,19 +168,19 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 /* la identidad de todo el juego (la de las fichas, la pelota y las pantallas de deporte): tarjetas en ángulo con filete
    fucsia arriba, título en mayúsculas, el botón principal con el degradado fucsia y morado y letra blanca, los demás con
    borde lila, y la opción elegida en morado. Los botones del partido no cambian: ya son los finos de los juegos de fútbol */
-.fb-card{position:relative;border:1px solid rgba(201,178,255,.25);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);border-radius:10px;}
+.fb-card{position:relative;border:1px solid rgba(255,255,255,.08);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);border-radius:10px;}
 .fb-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 24px rgba(255,43,214,.45);pointer-events:none;z-index:1}
 .fb-card h2{text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .fb-card .fb-kick{font-family:var(--f-cond,'MZ Texto'),sans-serif;font-weight:800;letter-spacing:.1em}
 .fb-go{border-radius:999px;color:#fff;text-transform:uppercase;letter-spacing:.04em;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}
 .fb-go:active{transform:translateY(2px)}
-.fb-alt,.fb-card .fb-alt{border-radius:999px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.08);font-family:var(--f-cond,'MZ Texto'),sans-serif;text-transform:uppercase;letter-spacing:.04em;font-weight:800}
-.fb-chip{border-radius:4px;border:1px solid rgba(190,160,255,.35)}
-.fb-chip.on{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:0 0 0 2px rgba(138,43,226,.35)}
+.fb-alt,.fb-card .fb-alt{border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);font-family:var(--f-cond,'MZ Texto'),sans-serif;text-transform:uppercase;letter-spacing:.04em;font-weight:800}
+.fb-chip{border-radius:4px;border:1px solid rgba(255,255,255,.08)}
+.fb-chip.on{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:none}
 /* tu jugador, abajo: dorsal, línea (POR, DEF, MED, DEL), su energía (la barra) y la forma que le queda (lo rayado del
    final es el cansancio del partido, que ya no vuelve); en naranja cuando le queda poca. Con su tarjeta y una cruz si
    está lesionado */
-.fb-me{display:flex;align-items:center;gap:8px;padding:2px 8px 2px 2px;border-radius:4px;background:rgba(14,8,30,.74);border:1px solid rgba(201,178,255,.3);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
+.fb-me{display:flex;align-items:center;gap:8px;padding:2px 8px 2px 2px;border-radius:4px;background:rgba(14,8,30,.74);border:1px solid rgba(255,255,255,.08);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
 .fb-me>b{flex:none;width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));font:400 var(--fs-sm)/1 'MZ Display','MZ Texto',sans-serif;letter-spacing:0}
 .fb-me-e{position:relative;flex:1 1 auto;min-width:32px;height:6px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
 .fb-me-e i{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#c9b2ff,#efe8ff);transform-origin:left}
@@ -191,7 +191,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-me-ic u{width:8px;height:11px;border-radius:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.4)}.fb-me-ic u.y{background:#ffd400}.fb-me-ic u.r{background:#e3262b}
 .fb-me-ic i{position:relative;width:12px;height:12px;border-radius:2px;background:#fff}.fb-me-ic i::before,.fb-me-ic i::after{content:'';position:absolute;left:5px;top:2px;width:2px;height:8px;background:#e3262b}.fb-me-ic i::after{transform:rotate(90deg)}
 /* aviso de cambio: bajo la pausa, cuando uno de los tuyos está lesionado o agotado; abre los cambios */
-.fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid #ff7ac8;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
+.fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid transparent;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
 .fb-subalert[hidden]{display:none}.fb-subalert svg{width:22px;height:22px;flex:none;pointer-events:none}.fb-subalert span{pointer-events:none}
 @keyframes fbpulse{50%{box-shadow:0 0 0 6px rgba(255,122,200,.28)}}
 /* lesión y cambio: el cartel lleva su señal (la cruz del médico o las flechas del cuarto árbitro) */
@@ -203,12 +203,12 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 .fb-hf{grid-area:hf}.fb-hb{grid-area:hb}.fb-sf{grid-area:sf}.fb-sb{grid-area:sb}
 .fb-sf{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;align-content:start}.fb-sb{display:grid;gap:8px;align-content:start}
 .fb-subs small.h{align-self:end;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
-.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1px solid rgba(190,160,255,.22);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
+.fb-pl{display:grid;grid-template-columns:24px auto minmax(20px,1fr) auto;align-items:center;column-gap:8px;height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.05);color:#fff;font:800 var(--fs-xs)/1.15 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;text-align:left;cursor:pointer;min-width:0}
 .fb-pl>b{width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:rgba(255,255,255,.12);font:400 var(--fs-sm)/1 'MZ Display','MZ Texto',sans-serif;letter-spacing:0}
 .fb-pl .fb-me-e{min-width:20px}
 .fb-pl em{font-style:normal;font-variant-numeric:tabular-nums;color:#e6def7;display:flex;gap:4px;align-items:center;justify-content:flex-end}
 .fb-pl small{color:#ff9bd8;font-weight:800;font-size:var(--fs-xs);line-height:1.1;white-space:normal;min-width:0}
-.fb-pl.sel{border-color:#ff7ac8;background:rgba(255,122,200,.2);box-shadow:0 0 0 2px rgba(255,122,200,.3)}
+.fb-pl.sel{border-color:#ff7ac8;background:rgba(255,122,200,.2);box-shadow:none}
 .fb-pl.out{border-style:dashed;border-color:#ff7ac8}
 .fb-pl[disabled]{opacity:.5;cursor:default}
 @media (max-width:640px) and (orientation:portrait){.fb-subs{grid-template-columns:1fr;grid-template-areas:'hf' 'sf' 'hb' 'sb'}}

@@ -26,7 +26,7 @@ const S = { code: '', secreto: '', of: '', respuesta: null, sig: null, pc: null,
 
 const CSS = `
 .mnd-ov{position:fixed;inset:0;z-index:9500;display:grid;place-items:center;padding:16px;background:rgba(7,2,15,.72);font-family:'MZ Texto',system-ui,sans-serif;color:#f6f3fc}
-.mnd-card{position:relative;width:min(760px,100%);max-height:calc(calc(100dvh / var(--z, 1)) - 32px);overflow:auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px 24px;align-items:center;padding:24px;border-radius:4px;background:linear-gradient(180deg,#31106b,#0c041e);border:1px solid rgba(201,178,255,.25);box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.mnd-card{position:relative;width:min(760px,100%);max-height:calc(calc(100dvh / var(--z, 1)) - 32px);overflow:auto;display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px 24px;align-items:center;padding:24px;border-radius:4px;background:linear-gradient(180deg,#31106b,#0c041e);border:1px solid rgba(255,255,255,.08);box-shadow:0 30px 80px rgba(0,0,0,.6)}
 .mnd-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:linear-gradient(90deg,#ff2bd6,#7b2ff7)}
 .mnd-card h2{grid-column:1/-1;margin:0;font:400 var(--fs-2xl,32px)/1 'MZ Display','MZ Texto',sans-serif;text-transform:uppercase}
 .mnd-card .mnd-lead{grid-column:1/-1;margin:0;color:#cbc2e0;font-size:var(--fs-md,16px)}
@@ -37,20 +37,20 @@ const CSS = `
 .mnd-code{display:inline-block;margin:4px 0 0;padding:4px 12px;border-radius:8px;background:rgba(255,255,255,.1);font:400 var(--fs-2xl,32px)/1.1 'MZ Display','MZ Texto',sans-serif;letter-spacing:.18em;color:#fff}
 .mnd-url{display:block;margin-top:4px;color:#ff9bd8;font-weight:800;overflow-wrap:anywhere}
 .mnd-est{grid-column:1/-1;display:flex;align-items:center;gap:12px;margin:0;padding:12px 16px;border-radius:8px;background:rgba(255,255,255,.06);font-weight:800}
-.mnd-est i{flex:none;width:12px;height:12px;border-radius:50%;background:#f2c230;box-shadow:0 0 0 4px rgba(242,194,48,.2)}
-.mnd-est.ok i{background:#3ee07a;box-shadow:0 0 0 4px rgba(62,224,122,.2)}.mnd-est.mal i{background:#ff5d5d;box-shadow:0 0 0 4px rgba(255,93,93,.2)}
+.mnd-est i{flex:none;width:12px;height:12px;border-radius:50%;background:#f2c230;box-shadow:none}
+.mnd-est.ok i{background:#3ee07a;box-shadow:none}.mnd-est.mal i{background:#ff5d5d;box-shadow:none}
 .mnd-vias{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:-8px 0 0;color:#cbc2e0;font-size:var(--fs-xs,12px);font-weight:800}
 .mnd-vias span{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:4px;background:rgba(255,255,255,.06)}
 .mnd-vias span::before{content:'';width:8px;height:8px;border-radius:50%;background:#f2c230}.mnd-vias .ok::before{background:#3ee07a}.mnd-vias .mal::before{background:#ff5d5d}
-.mnd-pide{grid-column:1/-1;display:grid;gap:12px;margin:0;padding:16px;border-radius:8px;background:rgba(242,194,48,.12);border:1px solid rgba(242,194,48,.45)}.mnd-pide[hidden]{display:none}
+.mnd-pide{grid-column:1/-1;display:grid;gap:12px;margin:0;padding:16px;border-radius:8px;background:rgba(242,194,48,.12);border:1px solid rgba(255,255,255,.08)}.mnd-pide[hidden]{display:none}
 .mnd-pide p{margin:0;font-weight:800;line-height:1.4}.mnd-pide div{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
-.mnd-pide button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}.mnd-pide button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
+.mnd-pide button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}.mnd-pide button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
 .mnd-bts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
-.mnd-bts button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(201,178,255,.35);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}
+.mnd-bts button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}
 .mnd-bts button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
 .mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;text-decoration:none}
 @media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,calc(50dvh / var(--z, 1)))}}
-.mnd-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(201,178,255,.35);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) 'MZ Texto',sans-serif;cursor:pointer;opacity:.75}
+.mnd-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) 'MZ Texto',sans-serif;cursor:pointer;opacity:.75}
 .mnd-pill[hidden]{display:none}.mnd-pill:hover{opacity:1}.mnd-pill i{width:10px;height:10px;border-radius:50%;background:#f2c230}.mnd-pill.ok i{background:#3ee07a}
 `;
 let cssOn = false;

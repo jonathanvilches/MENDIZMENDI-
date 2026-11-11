@@ -4,7 +4,7 @@
 .i-check-c { display: inline-grid; place-items: center; flex: none; width: 22px; height: 22px; border-radius: 50%; background: #ffd166; color: #148a3f; }
 .i-check-c svg, .i-check-c img { width: 14px; height: 14px; }
 .vt-lead { max-width: 70ch; margin: var(--r-tx) 0 var(--r-bl); }
-.vt-aviso { display: flex; gap: var(--e3); align-items: flex-start; margin: 0 0 var(--r-bl); padding: var(--e4); border-radius: var(--r); background: rgba(255, 209, 102, .1); border: 1px solid rgba(255, 209, 102, .45); }
+.vt-aviso { display: flex; gap: var(--e3); align-items: flex-start; margin: 0 0 var(--r-bl); padding: var(--e4); border-radius: var(--r); background: rgba(255, 209, 102, .1); border: 1px solid rgba(255,255,255,.08); }
 .vt-aviso p { margin: 0; color: var(--ink); line-height: 1.45; }
 .vt-sec { margin: 0 0 var(--r-sec); }
 .vt-sec > h2 { display: flex; align-items: center; gap: var(--e2); margin: 0 0 var(--r-pp); font: 400 var(--fs-xl)/1.1 var(--f-display); color: #fff; }
@@ -17,7 +17,7 @@
 .vt-bono b { font: 400 var(--fs-lg)/1.15 var(--f-display); color: #fff; }
 .vt-bono span { color: var(--mute); font-size: var(--fs-sm); }
 .vt-bono code { margin-top: var(--e1); font: 700 var(--fs-sm)/1 ui-monospace, Menlo, monospace; letter-spacing: .06em; color: #ffd166; }
-.vt-bono.activo { border-color: #ffd166; box-shadow: 0 0 0 1px rgba(255, 209, 102, .35); }
+.vt-bono.activo { border-color: #ffd166; box-shadow: none; }
 .vt-bono.usado, .vt-bono.caducado { opacity: .62; }
 
 /* tus certificados: el sello de cada comarca, encendido al conseguirlo */
@@ -85,7 +85,7 @@
 .vt-b.usado .vt-qr, .vt-b.caducado .vt-qr { opacity: .3; }
 .vt-cod { font: 700 var(--fs-lg)/1 ui-monospace, Menlo, monospace; letter-spacing: .08em; color: #ffd166; user-select: all; -webkit-user-select: all; }
 .vt-b .vt-val { margin-top: var(--e4); }
-.vt-vivo { position: relative; display: flex; align-items: center; justify-content: center; gap: var(--e2); width: 100%; margin-top: var(--e4); padding: var(--e2); border-radius: 999px; overflow: hidden; background: rgba(255, 209, 102, .1); border: 1px solid rgba(255, 209, 102, .4); color: #ffd166; font: 800 var(--fs-sm)/1 var(--f-cond); letter-spacing: .08em; }
+.vt-vivo { position: relative; display: flex; align-items: center; justify-content: center; gap: var(--e2); width: 100%; margin-top: var(--e4); padding: var(--e2); border-radius: 999px; overflow: hidden; background: rgba(255, 209, 102, .1); border: 1px solid rgba(255,255,255,.08); color: #ffd166; font: 800 var(--fs-sm)/1 var(--f-cond); letter-spacing: .08em; }
 .vt-vivo i { position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 209, 102, .06) 30%, rgba(255, 209, 102, .16) 50%, rgba(255, 209, 102, .06) 70%, transparent); animation: vtVivo 2.4s linear infinite; }
 @keyframes vtVivo { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 .vt-vivo b { position: relative; }
@@ -103,7 +103,7 @@
 .vt-diploma .x { background: rgba(58, 36, 20, .12); border-color: rgba(58, 36, 20, .3); color: #3a2414; }
 .vt-dip { display: grid; justify-items: center; gap: 0; padding: var(--e7) var(--e6) var(--e6); text-align: center; overflow: auto; }
 .vt-dip > :is(.kicker, h2, p) { text-box: trim-both cap alphabetic; }
-.vt-dsello { width: 96px; height: 96px; border-radius: 50%; margin-bottom: var(--r-bl); box-shadow: 0 0 0 4px #c9a86a; display: grid; place-items: center; }
+.vt-dsello { width: 96px; height: 96px; border-radius: 50%; margin-bottom: var(--r-bl); box-shadow: none; display: grid; place-items: center; }
 .vt-dip .kicker { color: #8a5a2a; }
 .vt-dip h2 { margin: var(--r-kt) 0 0; font: 400 var(--fs-2xl)/1.05 var(--f-display); color: #3a2414; }
 .vt-dip p { margin: var(--r-tx) 0 0; line-height: 1.45; }

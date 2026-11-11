@@ -1,6 +1,7 @@
 /* La ventana de pausa de los partidos (src/ui/pausa.js), como la de los juegos de fútbol de referencia del autor, con la
-   identidad del juego: el panel morado con su filo de neón de 1 px que pasa del lila al rosa, la cabecera con el título y
-   la equis, y las filas a rayas suaves con el nombre, lo que hace y el botón redondo del degradado del juego */
+   identidad del juego: el panel morado, sin filo (el filo de neón es solo de las cartas de jugador: ui/neon.css), separado
+   del partido por su relleno y su sombra; la cabecera con el título y la equis, y las filas a rayas suaves con el nombre, lo
+   que hace y el botón redondo del degradado del juego, sin aro ni brillo alrededor */
 .pz-fondo { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center;
   padding: max(12px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
   background: rgba(7, 2, 15, .58); pointer-events: auto; animation: pz-in .18s ease-out both; }
@@ -8,14 +9,10 @@
 .pz-panel { position: relative; width: min(620px, 100%); max-height: 100%; display: flex; flex-direction: column; overflow: hidden; container-type: inline-size;
   border-radius: 10px; color: #fff; text-align: left; font-family: var(--f-cond, 'MZ Texto'), sans-serif;
   background: linear-gradient(180deg, #25104c, #150829 62%, #12061f);
-  box-shadow: 0 0 26px -6px rgba(255, 122, 200, .55), 0 18px 48px rgba(0, 0, 0, .5); animation: pz-sube .22s cubic-bezier(.2, .9, .3, 1.1) both; }
+  box-shadow: var(--sombra-panel, 0 24px 60px rgba(4, 1, 12, .5)); animation: pz-sube .22s cubic-bezier(.2, .9, .3, 1.1) both; }
 @keyframes pz-sube { from { opacity: 0; transform: translateY(10px) scale(.98); } }
-/* (el filo: 1 px con degradado, por encima de todo y sin ocupar sitio) */
-.pz-panel::after { content: ''; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: linear-gradient(135deg, #b79cff, #ff7ac8 55%, #b79cff);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
 /* la cabecera: el título grande y la equis; a la derecha, unas rayas finas que se apagan, como el dibujo de la referencia */
-.pz-cab { flex: none; display: flex; align-items: center; gap: 16px; padding: 12px 12px 12px 20px; border-bottom: 1px solid rgba(183, 156, 255, .28);
+.pz-cab { flex: none; display: flex; align-items: center; gap: 16px; padding: 12px 12px 12px 20px; border-bottom: 1px solid rgba(255,255,255,.08);
   background: linear-gradient(90deg, rgba(37, 16, 76, 1) 35%, rgba(37, 16, 76, .55)), repeating-linear-gradient(125deg, transparent 0 9px, rgba(255, 122, 200, .16) 9px 10px); }
 .pz-tit { flex: 1; min-width: 0; margin: 0; font: 400 var(--fs-xl, 24px)/1.05 var(--f-display, 'MZ Texto'), sans-serif; letter-spacing: .01em; text-transform: uppercase; color: #fff; }
 .pz-x { flex: none; position: relative; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; cursor: pointer; }
@@ -33,10 +30,10 @@
 .pz-tx small { font: 500 var(--fs-sm, 15px)/1.25 'MZ Texto', sans-serif; letter-spacing: 0; text-transform: none; color: #cbbcf0; }
 .pz-tx small:empty { display: none; }
 .pz-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff;
-  background: var(--cta, linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7)); box-shadow: 0 0 14px -3px rgba(255, 43, 214, .7), inset 0 1px 0 rgba(255, 255, 255, .35); }
+  background: var(--cta, linear-gradient(100deg, #ff2bd6, #c21cff 55%, #7b2ff7)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); }
 .pz-ico svg { width: 22px; height: 22px; }
 /* (lo que está puesto, como la primera persona: el botón con el amarillo y el verde de los checks del juego) */
-.pz-fila[aria-pressed=true] .pz-ico { background: #ffd166; color: #148a3f; box-shadow: 0 0 14px -3px rgba(255, 209, 102, .7); }
+.pz-fila[aria-pressed=true] .pz-ico { background: #ffd166; color: #148a3f; box-shadow: none; }
 /* (un número junto al botón: los descansos que quedan) */
 .pz-n { flex: none; display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 8px; border-radius: 999px; background: rgba(255, 255, 255, .14); font: 800 var(--fs-sm, 15px)/1 var(--f-cond, 'MZ Texto'), sans-serif; font-style: normal; color: #fff; }
 .pz-n:empty { display: none; }
@@ -46,10 +43,10 @@
 .pz-grupo[hidden] { display: none; }
 .pz-ops { display: flex; flex-wrap: wrap; gap: 8px; }
 @container (min-width: 520px) { .pz-grupo { flex-direction: row; align-items: center; gap: 16px; } .pz-ops { justify-content: flex-end; max-width: 62%; } }
-.pz-op { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 16px 4px 6px; border: 1px solid rgba(190, 160, 255, .35); border-radius: 999px; background: rgba(255, 255, 255, .05); color: #fff; font: 800 var(--fs-sm, 15px)/1 var(--f-cond, 'MZ Texto'), sans-serif; cursor: pointer; }
+.pz-op { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 16px 4px 6px; border: 0; border-radius: 999px; background: var(--btn-2, rgba(160, 130, 240, .2)); color: #fff; font: 800 var(--fs-sm, 15px)/1 var(--f-cond, 'MZ Texto'), sans-serif; cursor: pointer; }
 .pz-op svg, .pz-op img { flex: none; width: 28px; height: 28px; }
 .pz-op small { font: 600 var(--fs-xs, 13px)/1 var(--f-cond, 'MZ Texto'), sans-serif; color: #cbbcf0; }
-.pz-op[aria-pressed=true] { background: rgba(131, 56, 236, .55); border-color: #ff7ac8; }
+.pz-op[aria-pressed=true] { background: var(--btn-on, #7a42ea); }
 .pz-op:disabled { cursor: default; }
 .pz-op:disabled:not([aria-pressed=true]) { opacity: .6; }
 /* en el móvil tumbado, con la barra de Safari: filas más bajas, para que quepan todas sin desplazar */

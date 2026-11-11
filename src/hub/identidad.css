@@ -80,30 +80,33 @@
    apagado. La imagen de arriba, a sangre pero dentro del filo, con sus esquinas redondas. Las marcas de «Observado»,
    «Identificada» y demás, como en todo el juego: la marca verde en su círculo amarillo */
 #hub { --carta-fondo: linear-gradient(165deg, #2c1659 0%, #1c0d3b 100%);
-  --carta-filo: linear-gradient(135deg, rgba(255, 255, 255, .34) 0%, rgba(255, 255, 255, .09) 45%, rgba(255, 255, 255, .2) 100%);
-  --carta-filo-on: linear-gradient(135deg, #fff 0%, color-mix(in srgb, var(--cat, #ff7ac8) 80%, #fff) 22%, rgba(255, 255, 255, .25) 55%, color-mix(in srgb, var(--cat, #ff7ac8) 90%, #fff) 100%);
-  --carta-filo-off: linear-gradient(135deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .05) 50%, rgba(255, 255, 255, .1) 100%); }
+  --carta-filo: rgba(255, 255, 255, .1);
+  --carta-filo-on: rgba(255, 255, 255, .16);
+  --carta-fondo-on: linear-gradient(165deg, color-mix(in srgb, var(--cat, #ff7ac8) 26%, #2c1659) 0%, #1c0d3b 100%);
+  --carta-filo-off: rgba(255, 255, 255, .05); }
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam) {
   position: relative; isolation: isolate; border: 0 !important; box-shadow: none !important;
   background: var(--carta-filo) !important; border-radius: 8px !important; }
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::before {
-  content: ''; position: absolute; inset: 1.5px; z-index: -1; pointer-events: none; background: var(--carta-fondo);
-  border-radius: 6px; }
-/* (lo conseguido, con el filo del color de la sección; lo bloqueado, apagado) */
+  content: ''; position: absolute; inset: 1px; z-index: -1; pointer-events: none; background: var(--carta-fondo);
+  border-radius: 7px; }
+/* (lo conseguido se rellena con un punto del color de su sección, no se contornea: el filo de color es solo de las cartas
+   de jugador, ui/neon.css; lo bloqueado, apagado) */
 #hub :is(.scard.seen, .pcard.done, .bcard.on, .armorial .ar.on, .vt-cert.on) { background: var(--carta-filo-on) !important; }
+#hub :is(.scard.seen, .pcard.done, .bcard.on, .armorial .ar.on, .vt-cert.on)::before { background: var(--carta-fondo-on); }
 #hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked), #hub .bcard:not(.on) { background: var(--carta-filo-off) !important; }
-/* (las cimas, con el color de su comarca en el filo, que antes iba en una raya arriba) */
-#hub .pcard:not(.done) { background: linear-gradient(135deg, var(--c, rgba(255, 255, 255, .34)) 0%, rgba(255, 255, 255, .09) 45%, rgba(255, 255, 255, .2) 100%) !important; }
+/* (las cimas, con un punto del color de su comarca en el relleno, que antes iba en una raya arriba y luego en el filo) */
+#hub .pcard:not(.done)::before { background: linear-gradient(165deg, color-mix(in srgb, var(--c, #2c1659) 20%, #2c1659) 0%, #1c0d3b 100%); }
 /* (el relleno de las páginas del pasaporte, con el color de su comarca, como antes) */
 #hub .ppage::before { background: linear-gradient(160deg, color-mix(in srgb, var(--c) 18%, #32136f), #1c0b3a 75%); }
 #hub .fh-ct::before { background: linear-gradient(165deg, #2a1554 0%, #1f0f40 100%); }
 /* (la imagen de arriba, a sangre dentro del filo y con las esquinas de arriba redondas; las láminas y los personajes con
    ilustración, que son toda imagen, con las cuatro) */
-#hub :is(.scard.fl, .pcard, .fcard.pers.ilus, .ddc, .lam-rail .lam) { padding-top: 1.5px; padding-left: 1.5px; padding-right: 1.5px; }
-#hub :is(.lam-rail .lam, .fcard.pers.ilus) { padding-bottom: 1.5px; }
-#hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { border-radius: 6px 6px 0 0; }
-#hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { border: 0; border-radius: 6px; }
-#hub .lam-rail .lam span { left: 1.5px; right: 1.5px; bottom: 1.5px; border-radius: 0; }
+#hub :is(.scard.fl, .pcard, .fcard.pers.ilus, .ddc, .lam-rail .lam) { padding-top: 1px; padding-left: 1px; padding-right: 1px; }
+#hub :is(.lam-rail .lam, .fcard.pers.ilus) { padding-bottom: 1px; }
+#hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { border-radius: 7px 7px 0 0; }
+#hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { border: 0; border-radius: 7px; }
+#hub .lam-rail .lam span { left: 1px; right: 1px; bottom: 1px; border-radius: 0; }
 /* (al pasar por encima o al tocar, se levanta un poco y se le enciende el filo) */
 #hub :is(button.scard, button.fcard, button.ins, button.ar, button.vt-cert, button.ddc, .lam-rail button.lam) { transition: transform .2s; }
 #hub :is(button.scard, button.fcard, button.ins, button.ar, .armorial .ar-btn, button.vt-cert, button.ddc, .lam-rail button.lam):is(:hover, :focus-visible) { transform: translateY(-3px); background: var(--carta-filo-on) !important; }

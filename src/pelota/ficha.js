@@ -88,15 +88,15 @@ function card(p, lang) {
 const CSS = `
 .pfx{position:fixed;inset:0;z-index:30010;display:grid;place-items:center;padding:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-right,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 12px) calc(env(safe-area-inset-left,0px) + 16px);background:rgba(10,4,24,.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;font-family:'MZ Texto',system-ui,sans-serif;color:#f6f3fc;animation:pfxIn .18s ease-out}
 @keyframes pfxIn{from{opacity:0;transform:scale(.98)}to{opacity:1;transform:none}}
-.pfx-card{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.22),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 75%);border:1px solid rgba(201,178,255,.25);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
+.pfx-card{position:relative;width:min(760px,100%);max-height:100%;overflow:auto;display:flex;flex-direction:column;gap:12px;padding:16px 20px 20px;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.22),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 75%);border:1px solid rgba(255,255,255,.08);box-shadow:0 24px 72px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pfx-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta);box-shadow:var(--glow)}
 .pfx-top{display:flex;align-items:center;gap:12px}
 .pfx-top>small{flex:1;font-size:var(--fs-xs);font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:#cbbcf0}
 .pfx-tabs{flex:1;display:flex;gap:8px;min-width:0;overflow-x:auto}
-.pfx-tabs button{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1 'MZ Texto',system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px}
+.pfx-tabs button{flex:0 0 auto;min-height:44px;padding:0 16px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:900 var(--fs-sm)/1 'MZ Texto',system-ui,sans-serif;cursor:pointer;display:flex;align-items:center;gap:8px}
 .pfx-tabs button i{width:8px;height:8px;border-radius:50%;background:#5b4bff}.pfx-tabs button i.red{background:#ff2e88}
 .pfx-tabs button[aria-selected=true]{background:var(--cta);border-color:transparent}
-.pfx-x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);display:grid;place-items:center;cursor:pointer}
+.pfx-x{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);display:grid;place-items:center;cursor:pointer}
 .pfx-x svg{width:20px;height:20px}
 .pfx-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px 24px}
 @media (max-width:600px){.pfx-body{grid-template-columns:1fr}}
@@ -109,8 +109,8 @@ const CSS = `
 body.textos-grandes .pfx{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px}
 body.alto-contraste .pfx-card{background:#000;border:2px solid #fff}body.alto-contraste .pfx-data div{background:#111;border-left-color:#fff}
 body.alto-contraste .pfx :is(dt,dd,.pfx-tip,.pfx-note,.pfx-k,.pfx-sk h4,.pfx-head small,.pfx-shots li,.pfx-arq span){color:#fff}body.alto-contraste .pfx :is(.pfx-shots li,.pfx-arq span){background:#000;border:1px solid #fff}
-.pfx-arq{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pfx-arq span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(201,178,255,.35);font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:#e6def7;white-space:nowrap}
-.pfx-arq span.arq{color:#fff;background:linear-gradient(100deg,rgba(255,43,214,.4),rgba(123,47,247,.4));border-color:rgba(255,122,200,.6)}.pfx-arq span.estrella{color:#ffd166;border-color:rgba(255,209,102,.45)}.pfx-arq svg{width:14px;height:14px;flex:none}
+.pfx-arq{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.pfx-arq span{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.08);font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:#e6def7;white-space:nowrap}
+.pfx-arq span.arq{color:#fff;background:linear-gradient(100deg,rgba(255,43,214,.4),rgba(123,47,247,.4))}.pfx-arq span.estrella{color:#ffd166;background:rgba(255,209,102,.14)}.pfx-arq svg{width:14px;height:14px;flex:none}
 .pfx-data{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0}
 .pfx-data div{padding:8px 12px;border-radius:2px;background:rgba(255,255,255,.05);border-left:3px solid var(--fx);min-width:0}
 .pfx-data dt{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:var(--lila)}
@@ -121,7 +121,7 @@ body.alto-contraste .pfx :is(dt,dd,.pfx-tip,.pfx-note,.pfx-k,.pfx-sk h4,.pfx-hea
 .pfx-bar i{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;transform:skewX(-20deg)}.pfx-bar u{height:10px;border-radius:1px;background:rgba(255,255,255,.12)}.pfx-bar u.on{background:var(--cta);box-shadow:0 0 8px rgba(255,43,214,.5)}.pfx-bar u[style]{background:linear-gradient(90deg,#ff2bd6 var(--p),rgba(255,255,255,.12) var(--p))}
 .pfx-bar b{text-align:right;color:#fff;font:400 var(--fs-lg)/1 var(--f-display)}
 .pfx-shots{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
-.pfx-shots li{padding:4px 12px;border-radius:999px;background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);font-size:var(--fs-sm);font-weight:800;line-height:1.45;display:flex;gap:4px;align-items:center}
+.pfx-shots li{padding:4px 12px;border-radius:999px;background:rgba(255,122,200,.1);border:1px solid rgba(255,255,255,.08);font-size:var(--fs-sm);font-weight:800;line-height:1.45;display:flex;gap:4px;align-items:center}
 .pfx-shots li i{font-style:normal;color:#ff7ac8;letter-spacing:.1em}
 .pfx-tip{margin:0;font-size:var(--fs-sm);line-height:1.45;color:#e6def7}
 .pfx-note{margin:8px 0 0;font-size:var(--fs-xs);line-height:1.3;color:#cbbcf0}.pfx-tip strong{color:#ffb9a8}

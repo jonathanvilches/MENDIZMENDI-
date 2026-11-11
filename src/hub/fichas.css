@@ -32,7 +32,7 @@
 .sheet.pueblo .sheet-in { width: min(880px, 100%); max-height: min(900px, calc(calc(100dvh / var(--z, 1)) - 32px)); overflow: hidden; isolation: isolate; border: 1px solid var(--line2); border-radius: var(--rL);
   background: radial-gradient(90% 40% at 0% 0%, color-mix(in srgb, var(--c) 20%, transparent), transparent 70%), linear-gradient(175deg, #241050 0%, #12052a 80%); }
 .sheet.pueblo .sheet-in::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; z-index: 5; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), #ff2bd6 60%, transparent); pointer-events: none; }
-.sheet.pueblo .x { right: 12px; top: 12px; z-index: 6; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 6, 22, .62); border: 1px solid rgba(255, 255, 255, .22); }
+.sheet.pueblo .x { right: 12px; top: 12px; z-index: 6; width: 44px; height: 44px; border-radius: 50%; background: rgba(10, 6, 22, .62); border: 1px solid rgba(255,255,255,.08); }
 .fh-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; }
 /* la portada: el personaje en el centro y entero (el marco, .pt-marco, más abajo), que se funde muy poco a poco con el
    fondo de la ficha, y debajo, el nombre. Sin la franja de la lámina desenfocada que había detrás: se cortaba de golpe al
@@ -83,7 +83,7 @@
 .fh-tit .fh-k, .fh-tit h2 em { text-shadow: var(--letra-foto); }
 /* (el pueblo anterior y el siguiente de su comarca: dos botones de cristal arriba a la izquierda de la portada, frente al de
    cerrar, con cuál es) */
-.fh-nav { position: absolute; z-index: 2; left: 12px; top: 12px; display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(13, 6, 28, .62); border: 1px solid rgba(255, 255, 255, .18); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.fh-nav { position: absolute; z-index: 2; left: 12px; top: 12px; display: flex; align-items: center; gap: 4px; padding: 3px; border-radius: 999px; background: rgba(13, 6, 28, .62); border: 1px solid rgba(255,255,255,.08); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .fh-nav small { min-width: 34px; text-align: center; color: #fff; font: 700 var(--fs-xs)/1 var(--f-ui); letter-spacing: .04em; } .fh-nav small i { font-style: normal; color: var(--mute, #b9add6); }
 .fh-fl { flex: none; width: 36px; height: 36px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); color: #fff; cursor: pointer; transition: background .15s, transform .15s; }
 .fh-fl:hover, .fh-fl:focus-visible { background: color-mix(in srgb, var(--c, #ff7ac8) 45%, rgba(255, 255, 255, .1)); } .fh-fl:active { transform: scale(.9); }
@@ -99,7 +99,7 @@
 .fh-ms li { position: relative; display: flex; align-items: center; gap: 12px; min-width: 0; padding: 12px 40px 12px 12px; border-radius: var(--r); background: rgba(255, 255, 255, .05); border: 1px solid var(--line); }
 .fh-ms li div { flex: 1; min-width: 0; } .fh-ms li b { display: block; font: 400 var(--fs-md)/1.1 var(--f-display); letter-spacing: .01em; } .fh-ms li small { display: block; margin-top: 3px; color: var(--mute); font-size: var(--fs-xs); line-height: 1.3; }
 .fh-ms li .fh-mi { background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--mc, var(--c)) 85%, #fff), color-mix(in srgb, var(--mc, var(--c)) 38%, #1a0a3c) 70%); }
-.fh-ms li.ok { background: linear-gradient(135deg, color-mix(in srgb, var(--mc, #ffd166) 18%, transparent), rgba(255, 255, 255, .03)); border-color: color-mix(in srgb, var(--mc, #ffd166) 60%, transparent); }
+.fh-ms li.ok { background: linear-gradient(135deg, color-mix(in srgb, var(--mc, #ffd166) 18%, transparent), rgba(255, 255, 255, .03)); }
 .fh-ms li.ok .fh-hecha { background: #ffd166; }
 .fh-ms li:not(.ok) .fh-mi > :is(svg, img) { opacity: .85; }
 .fh-hecha { position: absolute; right: 12px; top: 50%; translate: 0 -50%; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #ffd166; color: #2a1200; }

@@ -1,72 +1,52 @@
-/* ================= La identidad: esquinas redondeadas y filo de neón (noviembre de 2026) =================
-   Una sola regla para todo el juego: toda tarjeta, card, bloque, panel, ventana y rótulo lleva las esquinas
-   redondeadas (6 px los rótulos pequeños, 8 las tarjetas y 10 los paneles y las ventanas); el filo de neón de 1 px, que
-   brilla hacia fuera, solo lo que flota sobre el juego y las cartas que se eligen (abajo, «el filo de neón»). Fuera las esquinas cortadas en ángulo y sus marcos (ui/frames.js, que ya no existe): eran la
-   identidad de antes. Los botones siguen en pastilla y las marcas en círculo; las cintas de premio y las dos mitades
-   del VS son formas, no cajas, y siguen como eran.
-   Tres maneras, según la pieza:
-   · el filo quieto, para los paneles, el HUD y las cartas que se eligen: un contorno (outline) de 1 px por dentro del
-     borde, que no mueve nada de sitio, va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera;
-     y el brillo, una sombra suave;
-   · las tarjetas que ya llevan su relleno en ::before (la carta del menú, las de Torneos y las de pelotari): el destello
-     es un cuadrado con un degradado cónico que gira detrás del relleno (::after) y solo asoma en el filo. Girar no obliga
-     a volver a pintar: lo mueve la tarjeta gráfica, y así aguantan muchas a la vez en el móvil;
-   · los rótulos del partido (el del tanto, el del comentarista y el de la repetición) y las losas del menú de pelota:
-     un aro con máscara o el propio borde, cuyo degradado da la vuelta (son pocos a la vez).
-   Cada una con su color: el de su sección (--cat), el de su bando o el de quien habla; si no, el lila. Lo elegido, en
-   rosa; lo bloqueado, con el filo apagado y sin destello. Con «menos movimiento» en el sistema, quieto. La carga
-   hub/hub.js (después de identidad.css; hub.js va siempre, desde main.js) y manda sobre las hojas de cada pantalla,
-   también sobre las que se ponen desde el código (torneo.js, liga.js, pelota/hud.js, vs.js...): por eso los !important. */
+/* ================= La identidad: esquinas redondeadas; el filo de neón, solo en las cartas de jugador =================
+   (noviembre de 2026) Dos reglas para todo el juego:
+   · La forma: toda tarjeta, card, bloque, panel, ventana y rótulo lleva las esquinas redondeadas (6 px los rótulos
+     pequeños, 8 las tarjetas y 10 los paneles y las ventanas). Los botones, en pastilla; las marcas, en círculo; las
+     cintas de premio y las dos mitades del VS son formas, no cajas.
+   · El filo de neón de 1 px, con su destello que da la vuelta y la luz de su color alrededor, es de las cartas de
+     jugador y de nadie más (.gx-card, ui/sportCard.js: el cuadro del torneo, la presentación del partido, la Gran final
+     y la colección de pelotaris). Antes lo llevaba todo lo que flotaba (paneles, ventanas, marcador, losas, rótulos,
+     tarjetas del menú) y muchos botones, y el autor lo pidió así: «todos los botones no deben tener el borde de un píxel
+     neón (...) solo para las cards de jugadores».
+   Lo demás se separa del fondo con su relleno y una sombra oscura; como mucho, una raya neutra muy tenue (--linea, blanco
+   al 8 %), sin color ni brillo. Los botones no llevan borde: el principal, en pastilla con el degradado del juego
+   (--cta); los secundarios, en pastilla con relleno liso (--btn-2); lo elegido (aria-pressed, aria-selected,
+   aria-checked) se rellena (--btn-on), no se contornea. Las variables están en ui/sport.css.
+   La carga hub/hub.js (después de identidad.css; hub.js va siempre, desde main.js) y manda sobre las hojas de cada
+   pantalla, también sobre las que se ponen desde el código (torneo.js, liga.js, pelota/hud.js, vs.js...): por eso los
+   !important. La vigila tools/auditoria-medida.mjs («neon» y «filo»). */
 @property --neon-a { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
 @keyframes neon-aro { to { --neon-a: 360deg; } }
-@keyframes neon-gira { from { transform: translate(-50%, -50%) rotate(0turn); } to { transform: translate(-50%, -50%) rotate(1turn); } }
-:root { --neon-1: #b79cff; --neon-2: #ff7ac8; --neon-sel: #ff7ac8; --neon-r: 8px; --neon-rs: 6px; --neon-rp: 10px; --neon-w: 1px; }
+:root { --neon-1: #b79cff; --neon-2: #ff7ac8; --neon-r: 8px; --neon-rs: 6px; --neon-rp: 10px; --neon-w: 1px; }
 
-/* ---------- las tarjetas: el destello que gira detrás del relleno ---------- */
+/* ---------- las tarjetas del menú: su relleno, una raya neutra y una sombra ----------
+   (la raya es el fondo de la tarjeta, que asoma 1 px alrededor del relleno: hub/identidad.css, «la carta») */
 #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam) {
-  --neon-c: var(--cat, var(--neon-1)); position: relative; isolation: isolate; overflow: hidden; clip-path: none !important; border-radius: var(--neon-r) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-c) 40%, transparent), 0 0 18px -6px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 8px 22px rgba(0, 0, 0, .28) !important;
-  transition: box-shadow .2s, transform .2s; }
-/* (el filo, de 1 px: el relleno va 1 px más adentro; el destello, con su centro blanco, se ve igual) */
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::before { clip-path: none !important; inset: 1px !important; border-radius: calc(var(--neon-r) - 1px); }
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::after {
-  content: ''; position: absolute; z-index: -2; left: 50%; top: 50%; width: 260%; aspect-ratio: 1; pointer-events: none;
-  background: conic-gradient(from 0deg, transparent 0 58%, color-mix(in srgb, var(--neon-c) 80%, transparent) 72%, #fff 80%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, transparent 96%);
-  animation: neon-gira 5.2s linear infinite; will-change: transform; }
-/* (no todas a la vez: cada una con el destello en otro punto del borde) */
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .ar, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam):nth-child(3n+2)::after { animation-delay: -1.8s; }
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .ar, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam):nth-child(3n)::after { animation-delay: -3.5s; }
-/* (al pasar por encima o al tocar, más luz y más deprisa) */
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .vt-cert, .vt-com, .ddc, .ppage, .lam-rail .lam):is(:hover, :focus-visible) {
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-c) 70%, transparent), 0 0 26px -4px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 10px 26px rgba(0, 0, 0, .32) !important; }
-#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .vt-cert, .vt-com, .ddc, .ppage, .lam-rail .lam):is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
-/* (lo bloqueado: sin destello y casi sin luz) */
-#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked), #hub .bcard:not(.on) { box-shadow: 0 0 0 1px rgba(190, 160, 255, .14), 0 6px 16px rgba(0, 0, 0, .25) !important; }
-#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked)::after, #hub .bcard:not(.on)::after { display: none; }
-/* (las imágenes de arriba y las láminas, dentro del filo de 2 px y con su esquina redonda en vez del corte) */
-#hub :is(.scard.fl, .pcard, .fcard.pers.ilus, .ddc, .lam-rail .lam) { padding-top: 1px !important; padding-left: 1px !important; padding-right: 1px !important; }
-#hub :is(.lam-rail .lam, .fcard.pers.ilus) { padding-bottom: 1px !important; }
+  position: relative; isolation: isolate; overflow: hidden; clip-path: none !important; border-radius: var(--neon-r) !important;
+  box-shadow: var(--sombra-caja) !important; transition: box-shadow .2s, transform .2s; }
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::before { clip-path: none !important; }
+/* (al pasar por encima o al tocar, la sombra más honda; lo bloqueado, más plano) */
+#hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam):is(:hover, :focus-visible) { box-shadow: 0 12px 28px rgba(4, 1, 12, .42) !important; }
+#hub :is(.scard, .fcard, .pcard, .ar, .ddc, .fh-ct, .vt-cert):is(.bloq, .locked), #hub .bcard:not(.on) { box-shadow: 0 6px 16px rgba(4, 1, 12, .25) !important; }
+/* (las imágenes de arriba y las láminas, con su esquina redonda) */
 #hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px) 0 0 !important; }
 #hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) !important; }
-#hub .lam-rail .lam span { left: 1px !important; right: 1px !important; bottom: 1px !important; border-radius: 0 0 calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px); }
-/* (las de Torneos, con la luz de su deporte y la misma silueta de escudo que las cartas de pelotari, en píxeles desde los
-   bordes y el centro, que estas cambian de ancho y de alto: la corona arriba y la punta abajo; el filo de 1 px, con su
-   destello, sigue la forma, y la luz de alrededor también. Así las cartas de todo lo de deportes van a juego. Los
-   polígonos los saca tools/silueta-carta.py) */
-.sport { --neon-c: var(--acc, var(--neon-1)); --fifa: polygon(0 26px, 2.73px 25.73px, 5.36px 24.93px, 7.78px 23.64px, 9.9px 21.9px, 11.64px 19.78px, 12.93px 17.36px, 13.73px 14.73px, 14px 12px, calc(50% - 84px) 11px, calc(50% - 74.86px) 10.92px, calc(50% - 66.11px) 10.69px, calc(50% - 57.75px) 10.31px, calc(50% - 49.78px) 9.78px, calc(50% - 42.19px) 9.09px, calc(50% - 35px) 8.25px, calc(50% - 28.19px) 7.26px, calc(50% - 21.78px) 6.11px, calc(50% - 15.75px) 4.81px, calc(50% - 10.11px) 3.36px, calc(50% - 4.86px) 1.76px, 50% 0, calc(50% + 4.86px) 1.76px, calc(50% + 10.11px) 3.36px, calc(50% + 15.75px) 4.81px, calc(50% + 21.78px) 6.11px, calc(50% + 28.19px) 7.26px, calc(50% + 35px) 8.25px, calc(50% + 42.19px) 9.09px, calc(50% + 49.78px) 9.78px, calc(50% + 57.75px) 10.31px, calc(50% + 66.11px) 10.69px, calc(50% + 74.86px) 10.92px, calc(50% + 84px) 11px, calc(100% - 14px) 12px, calc(100% - 13.73px) 14.73px, calc(100% - 12.93px) 17.36px, calc(100% - 11.64px) 19.78px, calc(100% - 9.9px) 21.9px, calc(100% - 7.78px) 23.64px, calc(100% - 5.36px) 24.93px, calc(100% - 2.73px) 25.73px, 100% 26px, 100% calc(100% - 30px), calc(100% - 0.33px) calc(100% - 27.82px), calc(100% - 1.33px) calc(100% - 25.94px), calc(100% - 3px) calc(100% - 24.38px), calc(100% - 5.33px) calc(100% - 23.11px), calc(100% - 8.33px) calc(100% - 22.15px), calc(100% - 12px) calc(100% - 21.5px), 50% 100%, 12px calc(100% - 21.5px), 8.33px calc(100% - 22.15px), 5.33px calc(100% - 23.11px), 3px calc(100% - 24.38px), 1.33px calc(100% - 25.94px), 0.33px calc(100% - 27.82px), 0 calc(100% - 30px));
+#hub .lam-rail .lam span { border-radius: 0 0 calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px); }
+/* (las de Torneos, con la misma silueta de escudo que las cartas de pelotari, en píxeles desde los bordes y el centro, que
+   estas cambian de ancho y de alto: la corona arriba y la punta abajo. No son cartas de jugador: sin filo de neón; una raya
+   neutra de 1 px sigue la forma, y la sombra también. Los polígonos los saca tools/silueta-carta.py) */
+.sport { --fifa: polygon(0 26px, 2.73px 25.73px, 5.36px 24.93px, 7.78px 23.64px, 9.9px 21.9px, 11.64px 19.78px, 12.93px 17.36px, 13.73px 14.73px, 14px 12px, calc(50% - 84px) 11px, calc(50% - 74.86px) 10.92px, calc(50% - 66.11px) 10.69px, calc(50% - 57.75px) 10.31px, calc(50% - 49.78px) 9.78px, calc(50% - 42.19px) 9.09px, calc(50% - 35px) 8.25px, calc(50% - 28.19px) 7.26px, calc(50% - 21.78px) 6.11px, calc(50% - 15.75px) 4.81px, calc(50% - 10.11px) 3.36px, calc(50% - 4.86px) 1.76px, 50% 0, calc(50% + 4.86px) 1.76px, calc(50% + 10.11px) 3.36px, calc(50% + 15.75px) 4.81px, calc(50% + 21.78px) 6.11px, calc(50% + 28.19px) 7.26px, calc(50% + 35px) 8.25px, calc(50% + 42.19px) 9.09px, calc(50% + 49.78px) 9.78px, calc(50% + 57.75px) 10.31px, calc(50% + 66.11px) 10.69px, calc(50% + 74.86px) 10.92px, calc(50% + 84px) 11px, calc(100% - 14px) 12px, calc(100% - 13.73px) 14.73px, calc(100% - 12.93px) 17.36px, calc(100% - 11.64px) 19.78px, calc(100% - 9.9px) 21.9px, calc(100% - 7.78px) 23.64px, calc(100% - 5.36px) 24.93px, calc(100% - 2.73px) 25.73px, 100% 26px, 100% calc(100% - 30px), calc(100% - 0.33px) calc(100% - 27.82px), calc(100% - 1.33px) calc(100% - 25.94px), calc(100% - 3px) calc(100% - 24.38px), calc(100% - 5.33px) calc(100% - 23.11px), calc(100% - 8.33px) calc(100% - 22.15px), calc(100% - 12px) calc(100% - 21.5px), 50% 100%, 12px calc(100% - 21.5px), 8.33px calc(100% - 22.15px), 5.33px calc(100% - 23.11px), 3px calc(100% - 24.38px), 1.33px calc(100% - 25.94px), 0.33px calc(100% - 27.82px), 0 calc(100% - 30px));
   background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible; isolation: isolate;
-  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--neon-c) 60%, transparent)) drop-shadow(0 18px 30px rgba(4, 1, 12, .4)); transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), filter .3s; }
+  filter: drop-shadow(0 18px 30px rgba(4, 1, 12, .4)); transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), filter .3s; }
 .sport::before { inset: 1px !important; border-radius: 0 !important; clip-path: var(--fifa) !important; }
 /* (más hueco arriba y abajo que a los lados: la corona baja 12 px en los hombros y la punta sube 30 en las esquinas; con él,
    la lámina y la barra de jugar no tocan el filo en ningún tamaño) */
 .sport { padding-top: 24px; padding-bottom: 28px; }
 @media (orientation: landscape) and (max-height: 560px) { .sport { padding-top: 22px; padding-bottom: 24px; } }
-.sport::after { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; clip-path: var(--fifa);
-  background: conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 50%, transparent) 0 58%, color-mix(in srgb, var(--neon-c) 85%, transparent) 72%, #fff 80%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, color-mix(in srgb, var(--neon-c) 50%, transparent) 96%);
-  animation: neon-aro 5.2s linear infinite; }
-.sport + .sport::after { animation-delay: -2.6s; }
-.sport:is(:hover, :focus-visible) { filter: drop-shadow(0 0 12px color-mix(in srgb, var(--neon-c) 85%, transparent)) drop-shadow(0 26px 40px rgba(4, 1, 12, .45)); }
-.sport:is(:hover, :focus-visible)::after { animation-duration: 2.2s; }
+.sport::after { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; clip-path: var(--fifa); background: rgba(255, 255, 255, .12); }
+.sport:is(:hover, :focus-visible) { filter: drop-shadow(0 26px 40px rgba(4, 1, 12, .5)); }
+
+/* ---------- el filo de neón: la carta de jugador ---------- */
 /* (la carta de pelotari, con la silueta de escudo de las cartas de los juegos de fútbol: arriba la corona, con las
    esquinas cóncavas, los hombros y un pico en medio; los lados rectos y abajo la punta. El filo de neón de 1 px sigue esa
    forma, con su destello dando la vuelta (un degradado cónico que gira, recortado con la silueta), y la luz de su bando
@@ -94,42 +74,17 @@
 .gx-card.lock { filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .4)); }
 .gx-card.lock::after { animation: none; background: rgba(190, 160, 255, .22); }
 
-/* ---------- los rótulos del partido: el aro de luz que da la vuelta ---------- */
-:root :is(.pel-call, .pel-com, .pel-rep-b) { --neon-c: var(--neon-1); border-radius: var(--neon-r) !important; clip-path: none !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--neon-c) 45%, transparent), 0 0 20px -5px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 10px 28px rgba(0, 0, 0, .38) !important; }
-:root :is(.pel-call, .pel-com, .pel-rep-b)::after { content: ''; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: 1px; pointer-events: none;
-  background: conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 35%, transparent) 0 62%, color-mix(in srgb, var(--neon-c) 85%, transparent) 75%, #fff 82%, color-mix(in srgb, var(--neon-2) 90%, transparent) 88%, color-mix(in srgb, var(--neon-c) 35%, transparent) 97%);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); animation: neon-aro 3.2s linear infinite; }
+/* ---------- los rótulos del partido (el del tanto, el del comentarista y el de la repetición): sin filo ----------
+   (el del comentarista y el de la repetición conservan su raya del color de quien habla, a un lado) */
+:root :is(.pel-call, .pel-com, .pel-rep-b) { border-radius: var(--neon-r) !important; clip-path: none !important; box-shadow: 0 10px 28px rgba(4, 1, 12, .42) !important; }
 :root .pel-call { border-color: transparent !important; }
-:root .pel-rep-b { position: relative; --neon-c: var(--fx, #ff2bd6); border-top-color: transparent !important; }
-:root .pel-call.c-azul { --neon-c: #7b6bff; } :root .pel-call.c-rojo { --neon-c: #ff2e88; }
-:root .pel-root.final .pel-call { --neon-c: #ffc2ec; }
-:root .pel-root.final .pel-call::after { animation-duration: 1.6s; }
-/* (el del comentarista, con el color de quien habla en vez de la raya de la izquierda, que queda transparente y guarda su sitio; la raya de arriba de la repetición, igual) */
-:root .pel-com { --neon-c: var(--cc, #ff2bd6); border-left-color: transparent !important; }
-/* (el aro va 1 px por dentro: los lados sin borde reciben uno transparente de 1 px, para que no se coma el relleno) */
-:root .pel-com { border-top: 1px solid transparent !important; border-right: 1px solid transparent !important; border-bottom: 1px solid transparent !important; }
-:root .pel-rep-b { border-right: 1px solid transparent !important; border-bottom: 1px solid transparent !important; border-left: 1px solid transparent !important; }
-/* (la carta del final: el filo quieto, abajo, con los paneles; su raya de arriba, dentro de las esquinas) */
-:root .pel-card::before { left: 10px; right: 10px; }
+/* (la raya de arriba de los paneles, con el degradado del juego: dentro de las esquinas y sin brillo) */
+:root :is(.pel-card, .fb-card, .lg-card, .pfx-card, .screen .paper, #reward .card2, .mnd-card)::before { left: 10px; right: 10px; box-shadow: none; }
 
-/* ---------- las losas del menú de pelota: el filo es el borde, con el destello dando la vuelta ----------
-   (usan ::before y ::after para sus rayas y su brillo: el filo va en el propio borde, un degradado cónico detrás del
-   relleno, y gira con --neon-a; son cuatro a seis a la vez) */
-:root .tq-tile { --neon-c: var(--t1, var(--neon-1)); clip-path: none !important; border-radius: var(--neon-r) !important; border: 1px solid transparent !important;
-  background: linear-gradient(160deg, var(--t1, #3b1590), var(--t2, #12052a) 75%) padding-box,
-    conic-gradient(from var(--neon-a), color-mix(in srgb, var(--neon-c) 45%, transparent) 0 58%, var(--neon-c) 72%, #fff 80%, #fff 82%, var(--neon-2) 88%, color-mix(in srgb, var(--neon-c) 45%, transparent) 96%) border-box !important;
-  box-shadow: 0 0 20px -6px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 10px 24px rgba(0, 0, 0, .3); }
-/* (torneo.js les pone su entrada, lg-sube, con la misma fuerza y después: aquí van las dos juntas, la entrada y el
-   destello, cada una con su retraso; si no, la entrada tapaba el destello y el filo quedaba quieto) */
-:root .tq-tiles > .tq-tile { animation: lg-sube .5s cubic-bezier(.2, .9, .3, 1.1) backwards, neon-aro 5s linear infinite; }
-:root .tq-tiles > .tq-tile:nth-child(2) { animation-delay: .08s, -1.7s; }
-:root .tq-tiles > .tq-tile:nth-child(3) { animation-delay: .16s, -3.3s; }
-:root .tq-tiles > .tq-tile:nth-child(4) { animation-delay: .24s, 0s; }
-:root .tq-tiles > .tq-tile:nth-child(n+5) { animation-delay: .32s, -1.7s; }
-:root .tq-tiles > .tq-tile:is(:hover, :focus-visible) { animation-duration: .5s, 2.2s; }
-:root .tq-tile:is(:hover, :focus-visible) { box-shadow: 0 0 28px -4px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 10px 24px rgba(0, 0, 0, .3); }
+/* ---------- las losas del menú de pelota: su degradado y una sombra ---------- */
+:root .tq-tile { clip-path: none !important; border-radius: var(--neon-r) !important; border: 1px solid transparent !important;
+  background: linear-gradient(160deg, var(--t1, #3b1590), var(--t2, #12052a) 75%) border-box !important; box-shadow: var(--sombra-caja); }
+:root .tq-tile:is(:hover, :focus-visible) { box-shadow: 0 14px 30px rgba(4, 1, 12, .45); }
 
 /* ---------- la forma: todas las cajas del juego, con las esquinas redondeadas ----------
    Tres listas: las tarjetas y los bloques (8 px), los paneles y las ventanas (10 px) y los rótulos pequeños, campos y
@@ -141,43 +96,36 @@
 :root :is(.panel, .pk-hero, .chero, .sheet-in, .csel2, .lg-card, .tq-how, .screen .paper, .frs-in, .shop-room, .mg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, #dialog) { border-radius: var(--neon-rp) !important; }
 :root :is(.ci-ovr, .abil, .abil .aic, .crole, .fl-ind, .lead-chip, .ar-count, .nprog > span, .vm-btn, .nchip, .tq-m, .pc-count, .pc-tabs button, .lg-ovr, .ix-shots, .ix-tabs, .ix-tag, .mapscr .paper > header h2, .mapscr .legend, .pel-score, .pel-golpe, .pel-q small, .pfx-av, .fb-score, .fr-chip, .pvs-comp, .pvs-venue, .pvs-lineb, .pvs-tags span, .pvs-ovr, .pvs-who, .pvs-tap, #lane #toast, #clock, .qitem .qi, .seg, .shop-exit, .shop-bubble, .shop-purse, .shop-card nav, #dialog .choices button, .pel-levels button, .pel-chip, .csel2 .cstrip button img, .rw, .fb-say, .fb-tip, .fb-fouls, .fb-ctabs button, .pads4 button, .pfx-tabs button, .pel-tour, .pel-tour button, .pel-tip, input:is([type="text"], [type="search"], [type="email"], [type="number"], :not([type])), select, textarea) { border-radius: var(--neon-rs) !important; }
 
-/* ---------- el filo de neón: solo donde hace falta ----------
-   El filo marca lo que se separa del juego, no lo que va dentro: lo llevan las superficies que flotan sobre el mapa, el
-   pueblo o el partido (los paneles y las ventanas, y las cajas del marcador y del HUD) y las cartas que se eligen
-   (comarcas, pueblos, colecciones, clubes, casillas del pasaporte, el sorteo), además de las cartas y los rótulos con
-   destello de arriba. Lo de dentro de un panel ya enmarcado, no: los bloques, las filas de las listas, los chips y
-   contadores, los campos, las pestañas y los botones conservan su borde suave de siempre; con filo en todo, el filo
-   dejaba de destacar y cargaba las ventanas. El contorno, de 1 px, va por dentro y cae encima del borde fino que ya
-   tenía la caja: no cambia el tamaño de nada, no se come el relleno y no lo recorta la caja de fuera. Las que no tenían
-   borde reciben uno transparente de 1 px, para que el filo tenga su propio píxel. */
-:root :is(.screen .paper, .lg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, .csel2, .sheet-in, .frs-in, .shop-room, .mg-card, #dialog, .tq-how, .m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p) {
-  --neon-c: var(--cat, var(--neon-1));
-  outline: var(--neon-w) solid color-mix(in srgb, var(--neon-c) 78%, #fff) !important; outline-offset: calc(-1 * var(--neon-w)) !important;
-  box-shadow: 0 0 14px -4px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 8px 20px rgba(0, 0, 0, .24) !important; }
-/* (los paneles y las ventanas, con más brillo) */
-:root :is(.screen .paper, .lg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, .csel2, .sheet-in, .frs-in, .shop-room, .mg-card, #dialog, .tq-how) { box-shadow: 0 0 30px -8px color-mix(in srgb, var(--neon-c) 75%, transparent), 0 24px 60px rgba(0, 0, 0, .45) !important; }
-/* (lo elegido, en rosa; lo que se toca, con más luz al pasar por encima; con el teclado, el filo blanco) */
-:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(.on, .sel, .me, .go, [aria-selected="true"], [aria-current="true"]) { --neon-c: var(--neon-sel); }
-:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(button, a, label):is(:hover, :focus-visible) { box-shadow: 0 0 20px -3px color-mix(in srgb, var(--neon-c) 95%, transparent), 0 8px 20px rgba(0, 0, 0, .28) !important; }
+/* ---------- lo que flota sobre el juego (paneles, ventanas, marcador, HUD) y las cartas que se eligen: sin filo ----------
+   Se separan con su relleno y una sombra oscura. Lo elegido se rellena con un velo rosa (una sombra por dentro que cubre
+   toda la caja: no cambia el fondo de cada una); con el teclado, el contorno blanco de siempre. */
+:root :is(.screen .paper, .lg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, .csel2, .sheet-in, .frs-in, .shop-room, .mg-card, #dialog, .tq-how, .m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p) { outline: 0 !important; box-shadow: var(--sombra-caja) !important; }
+:root :is(.screen .paper, .lg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, .csel2, .sheet-in, .frs-in, .shop-room, .mg-card, #dialog, .tq-how) { box-shadow: var(--sombra-panel) !important; }
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(.on, .sel, .me, .go, [aria-selected="true"], [aria-current="true"]) { box-shadow: inset 0 0 0 999px rgba(255, 122, 200, .16), var(--sombra-caja) !important; }
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(button, a, label):is(:hover, :focus-visible) { box-shadow: 0 12px 26px rgba(4, 1, 12, .42) !important; }
 :root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):focus-visible { outline: 2px solid #fff !important; outline-offset: -2px !important; }
-/* (lo bloqueado o vacío, apagado) */
-:root :is(.m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(.bloq, .locked, [disabled]), :root .pst:not(.on) { outline-color: rgba(190, 160, 255, .26) !important; box-shadow: 0 6px 16px rgba(0, 0, 0, .2) !important; }
-/* (las casillas del pasaporte, con el filo en vez de la raya discontinua; el botón del menú, fuera del inicio, sin caja) */
-:root .pst { border-color: transparent !important; }
-#hub.juego:not([data-screen="home"]) .hub-menu-btn { outline: 0 !important; box-shadow: none !important; }
-/* (los colores propios: el de cada bando en el sorteo; el rosa del marcador y del golpe) */
-:root .pel-toss-p { --neon-c: var(--pc, #7b6bff); }
-:root :is(.pel-score, .pel-golpe, .fb-score) { --neon-c: #ff7ac8; }
-/* (el filo ocupa su propio píxel: en las cajas con filo que no tenían borde, uno transparente de 1 px; las cartas que son
-   marco de foto, las de la galería de pueblos y las de las colecciones, no: su relleno de 2 px es el marco) */
+/* (las casillas del pasaporte, con una raya discontinua neutra) */
+:root .pst { border-color: rgba(255, 255, 255, .12) !important; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { box-shadow: none !important; }
 :root :is(.mg-card.ix, .mg-card.bp-card, .shop-room, #lane #toast) { border: 1px solid transparent !important; }
 :root .pel-score { border-right: 1px solid transparent !important; border-bottom: 1px solid transparent !important; border-left: 1px solid transparent !important; }
 /* (el aviso del pueblo conserva su raya rosa a la izquierda) */
-:root #lane #toast { box-shadow: inset 3px 0 0 #ff7ac8, 0 0 10px -4px color-mix(in srgb, var(--neon-c) 85%, transparent), 0 8px 24px rgba(0, 0, 0, .3) !important; }
-/* (la lámina de las cartas de Torneos, dentro del filo) */
-:root .sp-cover { border-radius: calc(var(--neon-r) - 1px) !important; }
+:root #lane #toast { box-shadow: inset 3px 0 0 #ff7ac8, var(--sombra-caja) !important; }
+/* (el reloj del pueblo, sin su borde blanco: un rótulo como los demás) */
+:root #clock { border-color: transparent !important; }
+:root .sp-cover { border-radius: var(--neon-r) !important; }
 
+/* ---------- los botones: sin filo ni borde, en todo el juego ----------
+   Ningún botón lleva borde, contorno ni anillo (con alto contraste sí: ahí el borde blanco es lo que se ve). El principal
+   es el de ui/sport.css (el degradado --cta). Los secundarios, con relleno liso; lo elegido, relleno más vivo. */
+body:not(.alto-contraste) :is(button, [role=button], [role=tab], [role=switch], [role=radio], [role=option], summary, a.btn, .btn, .back):not(.gx-card) { border-color: transparent !important; }
+/* (los secundarios: el mismo relleno liso en todas las pantallas, y un poco más claro al pasar por encima) */
+body:not(.alto-contraste) :is(.btn:not(.primary, .exit), .fb-alt, .pel-go.alt, .lg-btn:not(.go), .pel-levels button, .pel-mseg button, .pel-tour button:not(.go), .pfx-tabs button, .pfx-x, .pz-x, .pz-op, .fb-ctabs button, .pc-tabs button, .tq-vista button, .ix-tabs button, .ix-shots button) {
+  background: var(--btn-2) !important; box-shadow: none !important; }
+@media (hover: hover) { body:not(.alto-contraste) :is(.btn:not(.primary, .exit), .fb-alt, .pel-go.alt, .lg-btn:not(.go), .pel-levels button, .pel-mseg button, .pel-tour button:not(.go), .pfx-tabs button, .pfx-x, .pz-x, .pz-op, .fb-ctabs button, .pc-tabs button, .tq-vista button, .ix-tabs button, .ix-shots button):hover { background: var(--btn-2h) !important; } }
+/* (lo elegido: relleno, no contorno; el mismo en niveles, pestañas, vistas y opciones) */
+body:not(.alto-contraste) :is(.pel-levels button, .pel-mseg button, .pel-otabs button, .pfx-tabs button, .pz-op, .fb-ctabs button, .pc-tabs button, .tq-vista button, .ix-tabs button, .ix-shots button, .mq-tabs button):is([aria-pressed=true], [aria-selected=true], [aria-checked=true], .on) {
+  background: var(--btn-on) !important; color: #fff !important; box-shadow: none !important; }
 @media (prefers-reduced-motion: reduce) {
-  :root .tq-tiles > .tq-tile { animation: none; }
-  #hub :is(.scard, .fcard, .pcard, .bcard, .ins, .armorial .ar, .armorial .ar-btn, .armorial .ar-guia, .vt-cert, .vt-com, .ddc, .fh-ct, .ppage, .lam-rail .lam)::after, .sport::after, .gx-card::after, :root :is(.pel-call, .pel-com, .pel-rep-b)::after { animation: none; }
+  .gx-card::after { animation: none; }
 }
