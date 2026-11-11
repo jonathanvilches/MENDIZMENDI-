@@ -190,8 +190,14 @@ export function esqueleto(esp, rnd) {
 
 // ---- la geometría ----
 // la madera: cada rama como un tubo que sigue sus tramos, con marcos que no se retuercen; el pie del tronco se abre en raíces
-function tubo(b, lados, cada, out, E, ao, rnd) {
-  const tr = b.tr.filter((_, i) => i % cada === 0 || i === b.tr.length - 1);
+function tubo(b, lados, cada, out, E, ao, rnd, anillos = 0) {
+  let tr = b.tr.filter((_, i) => i % cada === 0 || i === b.tr.length - 1);
+  // (el pie del tronco, con anillos de más en su primer tramo: el ensanche hacia las raíces se abre en curva. Con solo el
+  // anillo del suelo y el siguiente, a casi un metro, era un cono de caras planas y oscuro que parecía un bloque)
+  if (b.nivel === 0 && anillos && tr.length > 1) {
+    const a = tr[0], c = tr[1], fs = anillos > 1 ? [0.1, 0.24, 0.45] : [0.3];
+    tr = [a, ...fs.map(f => ({ p: a.p.clone().lerp(c.p, f), d: a.d.clone().lerp(c.d, f).normalize(), r: a.r + (c.r - a.r) * f })), ...tr.slice(1)];
+  }
   const base = out.pos.length / 3, n0 = new THREE.Vector3(), bb = new THREE.Vector3(), v = new THREE.Vector3();
   let n = new THREE.Vector3().crossVectors(tr[0].d, Math.abs(tr[0].d.y) < 0.9 ? ARRIBA : new THREE.Vector3(1, 0, 0)).normalize();
   const [ru, rv] = E.barkRep, perim = b.nivel === 0 ? ru : Math.max(1, Math.round(ru * 0.5)), vOff = rnd() * 3;
@@ -214,7 +220,9 @@ function tubo(b, lados, cada, out, E, ao, rnd) {
   }
   for (let i = 0; i < tr.length - 1; i++) for (let j = 0; j < lados; j++) {
     const a = base + i * (lados + 1) + j, c = a + lados + 1;
-    out.idx.push(a, c, a + 1, a + 1, c, c + 1);
+    // (con las caras hacia fuera. Estaban al revés: desde fuera se veía la pared de dentro del lado de atrás, oscura y
+    // plana, y el pie del tronco, que es más ancho, parecía un bloque)
+    out.idx.push(a, a + 1, c, a + 1, c + 1, c);
   }
 }
 // una tarjeta de hojas: la ramita dibujada sale de «p» hacia «dir», tumbada hacia la luz; las normales, redondeadas hacia
@@ -253,7 +261,7 @@ export function creaArbol(esp, rnd, detalle = 2, S0 = null, { ligero = false } =
     const ladosBase = b.nivel === 0 ? E.tronco.lados : E.ramas[b.nivel - 1].lados;
     const lados = detalle === 2 ? ladosBase : detalle === 1 ? Math.max(3, Math.round(ladosBase * 0.6)) : (b.nivel === 0 ? 4 : 3);
     const cada = detalle === 2 ? (b.nivel === nv && nv > 1 ? b.tr.length - 1 : 1) : detalle === 1 ? (b.tr.length > 4 ? 2 : 1) : b.tr.length - 1;
-    tubo(b, lados, cada, mad, E, ao, rnd);
+    tubo(b, lados, cada, mad, E, ao, rnd, E.arbusto ? 0 : detalle === 2 ? 3 : detalle === 1 ? 1 : 0);
   }
   const elige = () => H.celdas[Math.floor(rnd() * H.celdas.length)];
   if (detalle === 2 || detalle === 1) {
