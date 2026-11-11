@@ -367,6 +367,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   vez en cuando con la de mujer, como en el guion a dos voces que el autor graba con Envato, por separado: primero todas las del hombre y luego
   las de la mujer. La segunda voz que se sacó de la misma
   grabación, más grave y con el timbre cambiado, sonaba robótica y se quitó (noviembre de 2026): solo la voz grabada.
+- **El nombre en la espalda de la camiseta** (`pelota/dorsal.js`, desde `game/fronton.js` para ti, el rival y las
+  parejas): el nombre de pila en mayúsculas («Tú» y «Zu» no se escriben), de un blanco roto algo difuminado, sin filo y con
+  una pizca de transparencia para que se vea estampado (con el borde negro parecía una pegatina). Va en una pieza algo
+  curvada pegada al hueso del pecho, a media espalda (más arriba, la coleta de las pelotaris lo tapaba); la espalda se
+  busca en el propio modelo (los ojos dicen hacia dónde mira; el vértice que más sale por detrás a la altura del pecho) y
+  el ancho sale de la distancia entre hombros. No se pinta en la textura del modelo porque la espalda de los pelotaris
+  de Meshy está repartida en trozos por toda la imagen: saldría roto. Al acabar el partido se quita (`quitaDorsal`).
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).
   Lo grabado va en coordenadas del mundo y la cámara en las del frontón (`worldToLocal`). En vertical, más atrás y más

@@ -30,6 +30,7 @@ import { pelotariFig, RIVALES, pelotariHair, pelotariGirl } from '../ui/pelotari
 import { crowdBuffers, PUBLICO } from '../crowdAudio.js';
 import { pelotaLigera } from '../util/diag.js';
 import { COLOR_BOLA } from '../pelota/bola.js';
+import { ponDorsal, quitaDorsal } from '../pelota/dorsal.js';
 // un pelotari rival o compañero (el azul, pelotari; el colorado, pelotari_rojo) con el pelo de su figura (el rubio Mikel,
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
@@ -437,6 +438,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // este partido ya no se juega: antes salían sus controles sobre el pueblo nuevo, en la llegada)
     if (G.disposed) { pel?.dispose(); red?.dispose(); G.pelotaLoading = false; res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); return; }
     if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
+    // (el nombre de cada uno en la espalda de la camiseta: pelota/dorsal.js)
+    try { ponDorsal(rig, profile().name); if (red) ponDorsal(red, rivName); } catch (e) { console.warn('dorsal', e); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
@@ -554,7 +557,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         let r = null;
         if (hasMeshy(model)) try { r = await rigPelotari(model, name); } catch (e) { console.warn('pareja', e); apunta('pareja', e); }
         const obj = new THREE.Group(); obj.visible = false; G.scene.add(obj);
-        if (r) { obj.add(r.char.root); r.setStance?.('Ready'); }
+        if (r) { obj.add(r.char.root); r.setStance?.('Ready'); try { ponDorsal(r, name); } catch (e) { console.warn('dorsal', e); } }
         else { const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.1, 4, 8), new THREE.MeshStandardMaterial({ color: model === 'pelotari_rojo' ? '#c0392b' : '#f2f2f2' })); m.position.y = 0.8; obj.add(m); }
         const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
         const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
@@ -636,6 +639,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       }
       else vuelve();
       function vuelve() {
+        safe(() => quitaDorsal(rig));   // (si tu pelotari es tu figura de siempre, sin el nombre en la espalda al volver)
         safe(() => { if (seated) { seated.parent?.remove(seated); seated.dispose(); seated = null; } });
         safe(() => { pancartas?.(); pancartas = null; });
         safe(() => { for (const j of jueces) { j.obj.parent?.remove(j.obj); removeMover(j.collider); j.glb?.dispose(); } jueces = []; G.pelotaJueces = null; });
