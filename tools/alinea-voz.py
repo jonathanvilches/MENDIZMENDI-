@@ -11,7 +11,7 @@
 # la duración de la locución, y la locución, con coeficientes cepstrales normalizados (sin el volumen ni el timbre de
 # cada voz); 3) los límites de cada frase pasan por el camino al audio de Envato y se cortan en el silencio o el valle
 # de volumen más cercano (a menos de 0,3 s); 4) se comprueba que cada trozo se parece más a su frase que a la de antes
-# y la de después (DTW otra vez): imprime las dudosas. La locución entera se normaliza antes (paso alto a 70 Hz,
+# y la de después (DTW otra vez): imprime las dudosas. Si un corte cae en plena voz, se lleva a la pausa más cercana. La locución entera se normaliza antes (paso alto a 70 Hz,
 # compresión suave y -16 LUFS: las de mujer llegaban a -36), y cada frase va en mp3 mono de 96 kbps con fundidos.
 import sys, json, subprocess, os, tempfile
 import numpy as np
@@ -86,13 +86,33 @@ path, k = dtw(A, B, banda=int(0.18 * len(B)) + 200, camino=True)
 aB = lambda s: path[min(len(path) - 1, int(s * SR / HOP * k))] * HOP / SR
 # 3) a la locución, al silencio o valle más cercano
 eS = np.convolve(eB, np.ones(3) / 3, mode='same'); umbral = np.percentile(eB, 97) - 30
+# (una pausa de verdad dura al menos 80 ms: los silencios más cortos son el cierre de una p, una t o una c dentro de la
+# frase, y cortar ahí se comía «¡Qué» de «¡Qué peloteo…»; solo si no hay ninguna larga cerca, valen las cortas)
+def silencios(lo, hi, largos=True):
+    sil = np.where(eS[lo:hi] < umbral)[0]
+    if not len(sil): return []
+    runs = np.split(sil, np.where(np.diff(sil) > 1)[0] + 1)
+    return [r for r in runs if len(r) >= 8] if largos else runs
 def ajusta(s):
-    f = int(s * SR / HOP); lo, hi = max(0, f - 30), min(len(eS), f + 31); w = eS[lo:hi]; sil = np.where(w < umbral)[0]
-    if len(sil):
-        runs = np.split(sil, np.where(np.diff(sil) > 1)[0] + 1)
+    f = int(s * SR / HOP); lo, hi = max(0, f - 30), min(len(eS), f + 31); w = eS[lo:hi]
+    runs = silencios(lo, hi) or silencios(lo, hi, False)
+    if runs:
         return (lo + min((int(r.mean()) for r in runs), key=lambda g: abs(lo + g - f))) * HOP / SR
     return (lo + int(np.argmin(w))) * HOP / SR
 out = [{'id': f['id'], 'texto': f['texto'], 'ini': ajusta(aB(a)), 'fin': ajusta(aB(b))} for (a, b), f in zip(lim, F)]
+# 3b) un corte que cae en plena voz (suena fuerte justo antes del principio o justo después del final) se lleva a la
+# pausa de verdad más cercana a menos de medio segundo, hacia fuera de la frase: si no, se comía la primera sílaba («¡Qué
+# peloteo…» empezaba en «peloteo») o la última
+fuerte = lambda t0, t1: eS[max(0, int(t0 * SR / HOP)):max(int(t0 * SR / HOP) + 1, int(t1 * SR / HOP))].max() > umbral + 14
+def pausa(t, hacia):
+    f = int(t * SR / HOP); lo, hi = (max(0, f - 50), f) if hacia < 0 else (f, min(len(eS), f + 51))
+    runs = silencios(lo, hi)
+    if not runs: return None
+    r = runs[-1] if hacia < 0 else runs[0]
+    return (lo + int(r.mean())) * HOP / SR
+for o in out:
+    if fuerte(o['ini'] - 0.08, o['ini']) and (q := pausa(o['ini'], -1)) is not None: o['ini'] = q
+    if fuerte(o['fin'], o['fin'] + 0.08) and (q := pausa(o['fin'], 1)) is not None: o['fin'] = q
 for i in range(1, len(out)):
     if out[i]['ini'] < out[i - 1]['fin']: out[i]['ini'] = out[i - 1]['fin'] = (out[i]['ini'] + out[i - 1]['fin']) / 2
 # 4) la comprobación
