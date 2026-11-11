@@ -1203,7 +1203,7 @@ export class PelotaMatch {
   }
   comInicio() {
     const c = this.com; if (!c?.on || this.game.mode !== 'match' || this.comIni) return; this.comIni = true;
-    // (con los dos comentaristas, a veces se presentan: Mikel presenta a Miren; un diálogo dura más y lo del rival espera)
+    // (con los dos comentaristas, a veces se presentan: Iñaki presenta a Miren; un diálogo dura más y lo del rival espera)
     const d = Math.random() < 0.7 ? this.dialogoO('inicio', c.frase('inicio')) : c.frase('inicio'), largo = Array.isArray(d) && tiene(d);
     this.decir(d, 400);
     const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false);
