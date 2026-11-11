@@ -30,6 +30,8 @@ import { buildAgro } from '../world/agro.js';
 import { CORRALES } from '../data/ferias.js';
 import { requestPath } from '../world/nav.js';
 import { misionColor } from '../data/misionCat.js';
+import { rotulo } from '../ui/rotulo.js';
+import { iconSVG } from '../ui/icons.js';
 import { PASTOR_INFO, VAQUERA_INFO, CROP } from '../data/campo.js';
 import { kaixo } from './saludo.js';
 import { enCss } from '../util/tele.js';
@@ -718,7 +720,7 @@ export class TownGame {
     const D = this.destino;
     if (D) {
       if (Math.hypot(D.x - this.player.pos.x, D.z - this.player.pos.z) >= 6) return { x: D.x, z: D.z, h: 2.5, destino: true };
-      this.ui.toast(`Has llegado: ${D.nombre}`, 'check', 2200); this.sound?.ui?.('open'); this.destino = null; this.gps = null;
+      rotulo({ antetitulo: 'Has llegado', titulo: D.nombre, icono: iconSVG('flag', 26), ms: 2600 }); this.sound?.ui?.('open'); this.destino = null; this.gps = null;
     }
     return this.target();
   }
@@ -1078,7 +1080,8 @@ export class TownGame {
     if (last) { await this.stampTown(); return; }
     this.autoTrack();
     const next = this.missions.find(x => !x.done);
-    if (next) this.ui.toast(`Siguiente: ${next.title} — busca la exclamación amarilla`, 'exclaim', 3800);
+    // (la siguiente, en un rótulo con el color de su categoría; y en el aviso, cómo encontrarla)
+    if (next) { rotulo({ antetitulo: 'Siguiente misión', titulo: next.title, icono: iconSVG(next.icon || 'exclaim', 26), color: misionColor(next.type), ms: 3400 }); this.ui.toast('Busca la exclamación amarilla', 'exclaim', 3400); }
   }
   async stampTown() {
     this.ts.stamp = true; addXP(150); saveProfile();

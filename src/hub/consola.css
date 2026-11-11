@@ -234,6 +234,11 @@
 #hub.juego .hub-main.cambia > * { animation: rise var(--d-pantalla) var(--ease) both; }
 #hub.juego .hub-main.cambia > :nth-child(2) { animation-delay: var(--escalon); } #hub.juego .hub-main.cambia > :nth-child(3) { animation-delay: calc(var(--escalon) * 2); }
 #hub.juego .hub-main.cambia > :nth-child(4) { animation-delay: calc(var(--escalon) * 3); } #hub.juego .hub-main.cambia > :nth-child(n+5) { animation-delay: calc(var(--escalon) * 4); }
+/* (el título y el antetítulo de la sección, con su máscara y su desliz también dentro de la ventana: al abrirla y al
+   cambiar de sección; hub.css, «mascara» y «rotDesliza») */
+#hub.juego .hub-main > .title { animation: mascara var(--d-rotulo) var(--ease) 60ms both; }
+#hub.juego .hub-main > .kicker { animation: rotDesliza var(--d-rotulo) var(--ease) both; }
+#hub.juego .hub-main.cambia > .title { animation: rise var(--d-pantalla) var(--ease) both, mascara var(--d-rotulo) var(--ease) both; }
 
 /* ---------- mientras el mapa hace su entrada, se va a un pueblo o enseña las comarcas en fotos: lo de encima, fuera ---------- */
 #hub.juego.m3-cine .hub-menu-btn { opacity: 0; pointer-events: none; }

@@ -14,6 +14,8 @@ import * as THREE from 'three';
 import { TOWN } from '../world/townBuilder.js';
 import { addCard, saveProfile } from './profile.js';
 import { choiceGame, infoCard } from '../ui/minigames.js';
+import { rotulo } from '../ui/rotulo.js';
+import { iconSVG } from '../ui/icons.js';
 import { cimaUrl } from '../ui/laminas.js';
 import { clamp, lerp, smoothstep } from '../util/math.js';
 import { faunaImg } from '../ui/faunaImg.js';
@@ -177,7 +179,9 @@ export class PuebloCimas {
     // vista panorámica desde la cumbre
     const c0 = new THREE.Vector3(P.pos.x, P.pos.y, P.pos.z);
     this.follow.cinematic = { pos: new THREE.Vector3(c0.x + 9, c0.y + 5, c0.z + 9), look: new THREE.Vector3(PLACES.plaza.x, terrainHeight(PLACES.plaza.x, PLACES.plaza.z), PLACES.plaza.z), t: 0 };
-    this.ui.whisper(`¡Cima! ${pk.name}, ${pk.altitude.toLocaleString('es')} m`, 3500);
+    // (la cima en un rótulo de televisión: su nombre, la altura que cuenta hasta su cifra y la dificultad, de 1 a 4)
+    rotulo({ antetitulo: `Cima · ${pk.zone}`, titulo: pk.name, icono: iconSVG('peak', 26), color: '#2fd6c6', ms: 2500,
+      datos: [{ n: pk.altitude, unidad: 'm' }, ...(pk.difficulty ? [{ nivel: pk.difficulty, de: 4, txt: 'Dificultad' }] : [])] });
     await new Promise(r => setTimeout(r, 2600));
     if (!this.P.peaks.includes(pk.id)) this.P.peaks.push(pk.id);
     saveProfile();
@@ -200,7 +204,9 @@ export class PuebloCimas {
       const b = v.bearing * Math.PI / 180, dx = Math.sin(b), dz = -Math.cos(b);
       C.pos = eye.clone().add(new THREE.Vector3(-dx * 5, 0, -dz * 5));
       C.look = new THREE.Vector3(c0.x + dx * 140, c0.y - 22, c0.z + dz * 140);
-      this.ui.whisper(`Al ${v.dir}: ${v.name.split(' /')[0]} · ${v.km < 10 ? v.km.toFixed(1).replace('.', ',') : Math.round(v.km)} km`, 2300);
+      // (cada pueblo que se ve, con su rótulo: hacia dónde queda, su nombre y a cuántos kilómetros)
+      rotulo({ antetitulo: `Desde la cima · al ${v.dir}`, titulo: v.name.split(' /')[0], icono: iconSVG('compass', 26), color: '#7cc8ff', ms: 2300,
+        datos: [{ txt: `${v.km < 10 ? v.km.toFixed(1).replace('.', ',') : Math.round(v.km)} km` }, ...(v.inGame ? [{ txt: 'Está en el juego' }] : [])] });
       await wait(2600);
     }
     if (M.raptor) {

@@ -33,6 +33,8 @@ import { isDidactico } from './util/modo.js';
 import { profile, saveProfile, townState, checkBadges, salazarState, townProgress } from './game/profile.js';
 import { missionSlots, edadDe } from './data/edad.js';
 import { levelById, LEVELS, sedeDePueblo, esExterior } from './data/levels.js';
+import { rotulo, quitaRotulo } from './ui/rotulo.js';
+import { iconSVG } from './ui/icons.js';
 import { townImg } from './assets.js';
 import { armsReady } from './ui/escudoImg.js';
 import { armsOfTown } from './data/armas-navarra.js';
@@ -293,7 +295,15 @@ async function boot() {
         if (opt.resumed) { const g = game; setTimeout(() => { if (!g || g !== game) return; g.ui.toast(opt.pelota ? 'Imagen recuperada: el partido se ha cortado, vuelve a empezar' : 'Imagen recuperada: sigues donde estabas', 'exclaim', 3600); if (opt.pelota) g.freePelota?.(); }, 700); }
         else {   // (sin vuelo de llegada desde el aire: en el iPhone, el pueblo entero visto desde lo alto se pasaba de memoria y
           // se perdía la imagen. Al acabar la carga, ya en el pueblo, y a quién buscar)
-          const g = game; setTimeout(() => { if (g && g === game) g.ui.toast(opt.volver ? `De vuelta en ${d.name.split(' /')[0]}` : `¡Ya estás en ${d.name}! Habla con ${g.missions[0]?.host?.name || 'tu guía'}`, 'exclaim', 4200); }, 300);
+          // (el nombre del pueblo en un rótulo de televisión, con su comarca encima; la primera vez en una comarca, «Nueva
+          // comarca», en amarillo. Y luego, en el aviso de siempre, a quién buscar. ui/rotulo.js)
+          const g = game; setTimeout(() => { if (!g || g !== game) return;
+            const nombre = d.name.split(' /')[0], P2 = profile(), nM = g.missions?.length || 0;
+            const nueva = !opt.volver && !Object.entries(P2.towns || {}).some(([id, t]) => id !== d.id && t.visits > 0 && levelById(id)?.comarca === d.comarca);
+            rotulo({ antetitulo: nueva ? `Nueva comarca · ${cm?.name || 'Navarra'}` : cm?.name || 'Navarra', titulo: opt.volver ? `De vuelta en ${nombre}` : nombre, icono: iconSVG('church', 26),
+              datos: nM ? [{ n: nM, unidad: nM === 1 ? 'misión' : 'misiones' }] : [], color: nueva ? '#ffd166' : '', ms: 3600 });
+            if (!opt.volver) setTimeout(() => { if (g === game) g.ui.toast(`Habla con ${g.missions[0]?.host?.name || 'tu guía'} para empezar`, 'exclaim', 4200); }, 1800);
+          }, 300);
         }
       }
     } catch (e) {
@@ -369,6 +379,7 @@ async function boot() {
   }
 
   function exit(to, luego = null) {
+    quitaRotulo();   // (el rótulo que hubiera, fuera: no se queda encima del menú)
     if (!game) return;
     try { game.save?.(); } catch (e) { }
     // el valle de Salazar completo cuenta como sello

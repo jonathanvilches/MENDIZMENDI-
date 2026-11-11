@@ -130,6 +130,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (antes con `top` y `left`); el nombre de la sección, que se asienta con un fundido corto (antes abría las letras); y el
   fondo de la portada, que sigue un poco al ratón. Lo que queda con `top` o con anchos: la pastilla de las pestañas
   (fase 5) y los puntos de la galería (fase 3).
+- **Rótulos de televisión** (`src/ui/rotulo.js` y `rotulo.css`; fase 2 del rediseño de la animación). Un rótulo para
+  los momentos con nombre, sobrio, como los de una retransmisión: una línea de color que se dibuja de arriba abajo, el
+  antetítulo que entra deslizándose, el título que sube desde detrás de una máscara (su caja corta lo que sobresale) y
+  los datos debajo, uno detrás de otro; las cifras cuentan hasta su valor (`cuenta`, motion.js). Uno a la vez, sin recoger
+  toques y anunciado a los lectores de pantalla. Va en el centro, debajo de la línea de los avisos y entre el panel de las
+  misiones y el minimapa (en el móvil tumbado, debajo del panel de las misiones). Sale al llegar a un pueblo (la comarca
+  encima, el pueblo y sus misiones; la primera vez en una comarca, «Nueva comarca», en amarillo), en la cima (su nombre,
+  la altura que cuenta y la dificultad de 1 a 4 con puntos), con cada pueblo que se ve desde la cumbre (hacia dónde queda
+  y a cuántos kilómetros), con la misión siguiente (en el color de su categoría) y al llegar al destino. Los avisos de
+  siempre siguen para lo que hay que hacer («Habla con…», «Busca la exclamación amarilla»). En el partido de pelota no se
+  usa: allí los rótulos son otros y van con un fundido corto, como pidió el autor. Los títulos de las secciones del menú
+  se destapan con una máscara de izquierda a derecha (`mascara`, un `clip-path`) y el antetítulo de las cabeceras entra
+  deslizándose (`rotDesliza`), también dentro de la ventana del juego.
 
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia

@@ -1,0 +1,48 @@
+/* ================= El rótulo de televisión =================
+   Un rótulo para los momentos que tienen nombre: llegar a un pueblo, una comarca nueva, una cima con su altura, una
+   misión nueva, llegar al destino (ui/rotulo.js; noviembre de 2026, fase 2 del rediseño de la animación). Como los de una
+   retransmisión, sobrio: una línea de color que se dibuja de arriba abajo, el antetítulo que entra deslizándose y el título
+   que sube desde detrás de una máscara (su caja no deja ver lo que sobresale), y debajo los datos (la altura que cuenta
+   hasta su cifra, la dificultad con sus puntos), uno detrás de otro. Se va antes de lo que tarda en llegar. Solo se
+   anima transform y opacity, con las curvas y los tiempos de ui/motion.css. En el partido de pelota no se usa: allí los
+   rótulos son otros y van con un fundido corto, como pidió el autor. */
+/* (dónde va: en el centro, debajo de la línea de los avisos, que en el ordenador está arriba (hasta unos 120 px), y entre el
+   panel de las misiones de la izquierda y el minimapa de la derecha, que miden unos 360 y 240 px de ancho) */
+.rotulo { position: fixed; z-index: 40; left: 50%; top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 116px); transform: translateX(-50%);
+  display: flex; align-items: stretch; gap: 12px; box-sizing: border-box; width: max-content; max-width: min(560px, calc(100vw - 2 * 260px)); padding: 12px 20px 12px 12px;
+  border-radius: 10px; background: linear-gradient(180deg, rgba(26, 12, 52, .94), rgba(16, 7, 34, .9)); box-shadow: 0 14px 34px rgba(4, 1, 12, .42), inset 0 1px 0 rgba(255, 255, 255, .06);
+  color: #fff; pointer-events: none; animation: rt-caja var(--d-panel, 380ms) var(--muelle) both; }
+@keyframes rt-caja { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.98); } }
+.rotulo.fuera { animation: rt-fuera 260ms var(--sale) forwards; }
+@keyframes rt-fuera { to { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
+/* la línea de color de la izquierda, que se dibuja de arriba abajo */
+.rt-barra { flex: none; width: 4px; border-radius: 2px; background: var(--rt-c, #ff3fcf); transform-origin: 50% 0; animation: rt-barra var(--d-entra, 300ms) var(--ease) 60ms both; }
+@keyframes rt-barra { from { transform: scaleY(0); } }
+.rt-ic { flex: none; align-self: center; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 8px; background: color-mix(in srgb, var(--rt-c, #ff3fcf) 22%, transparent);
+  animation: rt-ic var(--d-entra, 300ms) var(--muelle) 100ms both; }
+.rt-ic svg, .rt-ic img { width: 26px; height: 26px; }
+@keyframes rt-ic { from { opacity: 0; transform: scale(.6); } }
+.rt-tx { min-width: 0; display: flex; flex-direction: column; justify-content: center; }
+/* (cada línea en su caja, que corta lo que sobresale: la máscara) */
+.rt-k, .rt-t { display: block; overflow: hidden; }
+.rt-k > span { display: block; font: 800 var(--fs-sm, 14px)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--rt-c, #ff3fcf) 55%, #fff);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; animation: rt-desliza var(--d-rotulo, 600ms) var(--ease) 120ms both; }
+@keyframes rt-desliza { from { opacity: 0; transform: translateX(-28px); } }
+.rt-t { margin-top: 4px; padding-bottom: 2px; }
+.rt-t > span { display: block; font: 400 clamp(24px, calc(4vw / var(--z, 1)), 34px)/1.04 var(--f-display); text-transform: uppercase; overflow-wrap: anywhere;
+  animation: rt-sube var(--d-rotulo, 600ms) var(--ease) 200ms both; }
+@keyframes rt-sube { from { transform: translateY(108%); } }
+/* los datos: la altura que cuenta, la dificultad con sus puntos, lo que haga falta; uno detrás de otro */
+.rt-d { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.rt-d > b { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; background: rgba(255, 255, 255, .1); font: 800 var(--fs-sm, 14px)/1.2 var(--f-cond); letter-spacing: .04em;
+  font-variant-numeric: tabular-nums; animation: rt-dato var(--d-entra, 300ms) var(--ease) both; animation-delay: calc(380ms + var(--i, 0) * 70ms); }
+@keyframes rt-dato { from { opacity: 0; transform: translateY(6px); } }
+.rt-d .rt-pt { display: inline-flex; gap: 3px; } .rt-d .rt-pt i { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, .25); }
+.rt-d .rt-pt i.on { background: var(--rt-c, #ff3fcf); }
+/* (en el móvil tumbado los avisos van abajo: el rótulo, justo debajo del panel de las misiones, que llega a unos 62 px, y
+   sin llegar al minimapa de la derecha, de unos 185 px con su margen) */
+@media (max-height: 500px) { .rotulo { top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 58px); max-width: min(480px, calc(100vw - 2 * 190px)); padding: 8px 16px 8px 10px; }
+  .rt-ic { width: 34px; height: 34px; } .rt-d { margin-top: 6px; } .rt-t > span { font-size: clamp(20px, calc(3.4vw / var(--z, 1)), 28px); } }
+/* (en el móvil de pie, de borde a borde con su margen, más abajo que los botones de arriba) */
+@media (max-width: 600px) and (min-height: 501px) { .rotulo { top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 120px); max-width: calc(100vw - 32px); } }
+@media (prefers-reduced-motion: reduce) { .rotulo, .rotulo * { animation: none !important; } }
