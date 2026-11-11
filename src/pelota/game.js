@@ -46,6 +46,9 @@ function shotEnergy(shot, sub, pow, volea) {
 // justo es cuando la pelota llega a tu mano (la distancia más corta a ti, a buena altura): antes, sale «pronto» (se va a
 // la izquierda y más alta); después, «tarde» (a la derecha y más baja). TOL: lo que se perdona, según el nivel
 const SWEET = 0.05, SWING_WIN = 0.34, CAM_WIN = 0.55, CAM_LAT = 0.1, CAM_HOLD = 0.4;
+// (con la cámara, en casa, la pelota va más despacio: se juega con el cuerpo entero y la cámara llega tarde. Y las cortadas
+// del rival, aún algo más: a una rápida no se llegaba nunca. El autor, noviembre de 2026)
+const CAM_TEMPO = 0.85, CAM_CORTADA = 0.86;
 const TOL = { iniciacion: 0.3, facil: 0.24, normal: 0.19, dificil: 0.15, experto: 0.12 };
 // a partir de esta altura, de volea, el golpe es un gancho: con la izquierda, por encima del hombro, girando hacia la
 // derecha para mandarla a la contracancha (y, con la palanca a la izquierda, a la pared izquierda)
@@ -119,11 +122,11 @@ export class PelotaGame {
     const yr = o.youRole === 'zaguero' ? 'zaguero' : 'delantero';
     this.role = this.pairs ? { you: yr, youMate: yr === 'delantero' ? 'zaguero' : 'delantero', rival: 'delantero', rivalMate: 'zaguero' } : {};
     this.clock = 0;
-    this.tempo = this.lvl.tempo;
     this.autoplay = !!o.autoplay;
     // con la cámara (la pelota en casa, camaraCuerpo.js): el gesto llega algo tarde (la cámara y el detector, unas décimas)
     // y se da con el cuerpo, no con un dedo; el golpe dura algo más y el momento justo se mide descontando ese retraso
     this.camara = !!o.camara;
+    this.tempo = this.lvl.tempo * (this.camara ? CAM_TEMPO : 1);
     let s = o.seed || (Math.random() * 1e9) | 0;
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     if (this.reto === 'diana') this.nuevaDiana();
@@ -291,6 +294,8 @@ export class PelotaGame {
   // at: desde dónde (para la vista previa: el sitio donde se va a golpear); dry: solo calcula el golpe, sin azar y sin
   // tocar la pelota (la marca de puntería de la cancha)
   // o: { timing (segundos de más o de menos respecto al momento justo: pronto, negativo; tarde, positivo), volea, gancho }
+  // (con la cámara, la cortada del rival, más despacio: CAM_CORTADA. La tuya y la de tu compañero, como siempre)
+  cortaCam(who) { return this.camara && who !== 'you' && who !== 'youMate' ? CAM_CORTADA : 1; }
   strike(who, q, aim = { x: 0, y: 0 }, req = false, pow = 0.5, dry = false, at = null, o = {}) {
     const b = this.ball, p = { ...(at || b.p) }, rnd = dry ? () => 0.5 : this.rnd, serve = this.phase === 'servePrep' || !!o.saque;   // (o.saque: la vista previa del saque, antes de echar a correr)
     let shot = 'normal', sub = '', v;
@@ -319,7 +324,7 @@ export class PelotaGame {
       const lx = clamp(aimSide(rawX) * 3.7 + gauss(rnd) * err * 1.2, -4.6, 4.6), ay = clamp(aim.y || 0, -1, 1);
       if (req === 'cortada') {
         sub = 'saqueCortado';
-        const speed = 31 + q * 4 + pow * 8, T = Math.max(0.2, p.z / speed);
+        const speed = (31 + q * 4 + pow * 8) * this.cortaCam(who), T = Math.max(0.2, p.z / speed);
         const lzT = (this.cuatro ? clamp(11.4 + pow * 2 + ay * 1.2, 10.9, 14.5) : clamp(15.3 + pow * 2.6 + ay * 1.6, 14.6, 19.5)) + gauss(rnd) * err * 2.2;
         // (la altura del frontis con la que bota ahí: cuanto más alta, más lejos; mal dado, puede ir a la chapa o a falta)
         let lo = COURT.CHAPA + 0.28, hi = 3.4, ty = lo;
@@ -347,7 +352,7 @@ export class PelotaGame {
       // cargada del todo, a media altura del frontis (más segura y vuelve más larga). El joystick arriba o abajo
       // afina medio metro
       shot = 'cortada';
-      const speed = (27 + q * 5 + pow * 12) * (o.volea ? 1.08 : 1);   // (de volea, aún más rápida: le quitas tiempo)
+      const speed = (27 + q * 5 + pow * 12) * (o.volea ? 1.08 : 1) * this.cortaCam(who);   // (de volea, aún más rápida: le quitas tiempo)
       const lx = clamp(aim.x * (aim.x < 0 ? 4.4 : 4.3) + gauss(rnd) * err * 1.1, -4.75, 5.4);   // (dónde bota a lo ancho: de la pared al ancho; mal dada al ancho, se puede ir fuera)
       const ty = cutHeight(pow, aim.y) + gauss(rnd) * err * 0.3;
       // a dos paredes: con el joystick bien a la izquierda, pega primero en la pared izquierda y después bajo en el

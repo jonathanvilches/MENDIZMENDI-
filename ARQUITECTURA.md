@@ -332,6 +332,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (en Mixamo, cien veces más grandes): al mundo, con la escala del hueso. Se mide con la malla deformada de verdad
   (`getVertexPosition`), fotograma a fotograma: antes, la pelota dentro de la mano en casi todas las imágenes del saque
   (1032 de 1041 en casa); ahora, en ninguna.
+- **La pelota en casa, más despacio** (`pelota/game.js`, `CAM_TEMPO`, `CAM_CORTADA`, `cortaCam`): con la cámara la
+  pelota va al 85 % del tempo de su nivel (en normal, 0,68 en vez de 0,8), porque se juega con el cuerpo entero y la
+  cámara llega unas décimas tarde, y las cortadas del rival (también su saque cortado) salen al 86 % de su velocidad. La
+  tuya y la de tu compañero, igual que siempre. A la cortada más rápida del rival, del golpe al segundo bote, se pasa
+  de 1,53 s a 1,86 s (medido con `predict`).
 - **La chapa de arriba y el sonido de la chapa** (`pelota/court.js`, `chapa-arriba`, `chapa-izquierda`;
   `pelota/audio.js`, `chapa`; `pelota/game.js`, `alta` en los eventos `front` y `wall`): como en los frontones de verdad,
   encima de la raya de arriba del frontis y de la de la pared izquierda hay una franja de chapa, del color de la de
