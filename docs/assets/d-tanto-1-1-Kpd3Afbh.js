@@ -1,0 +1,1 @@
+var e=new URL(`d-tanto-1-1-BApuzasJ.mp3`,import.meta.url).href;export{e as default};
