@@ -348,6 +348,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   castellano y euskera y por parejas (con textos grandes se desplaza, con los botones siempre a la vista). El momento clave es
   la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
   cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.
+- **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
+  las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
+  0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
+  la coma) y deja 50 ms de silencio en cada borde. A Miren, que sonaba robótica, le da cuerpo en los graves, le quita el
+  brillo metálico de los agudos y le pone un 5 % más de ritmo sin cambiar el tono. Entre turno y turno de un diálogo,
+  110 ms (`pelota/voz.js`, `sigue`). `entrega/comparacion-voz-miren.mp3`: tres frases de Miren, antes, después y
+  después con un poco de eco de cabina.
 - **Comentarios del partido, hablados** (`pelota/comenta.js`, las frases; `pelota/voz.js`, la voz; `pelota/match.js`,
   `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, dos
   comentaristas, de serie, voz de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos
