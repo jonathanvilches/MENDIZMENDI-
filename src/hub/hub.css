@@ -1078,6 +1078,16 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
   .sp-box { height: 40px; } .sp-media, img.sp-media:not(.sp-em) { width: 32px; height: 32px; }
   .frs-in { max-height: calc(calc(100dvh / var(--z, 1)) - 16px - env(safe-area-inset-bottom, 0px)); }
   .frs-head { padding: 12px 64px 12px 20px; } .frs-head h2 { font-size: var(--fs-xl); } .frs-list { padding: 12px 20px 16px; gap: 12px; }
+  /* (Torneos, entera sin desplazar: la ventana en columna y las dos cartas en lo que queda debajo de su cabecera; si no
+     cabe, cede alto la lámina, que mira un poco por encima del centro para que el personaje siga de la cabeza a los pies.
+     Antes sobraban 46 px en un iPhone tumbado y 50 en un Android pequeño; noviembre de 2026) */
+  #hub.juego[data-screen="sports"] .hub-main { display: flex; flex-direction: column; padding-bottom: 12px; }
+  #hub.juego[data-screen="sports"] .hub-main::before, #hub.juego[data-screen="sports"] .hub-main > :not(.sports) { flex: none; }
+  #hub.juego[data-screen="sports"] .sports { flex: 1 1 0; min-height: 0; align-items: stretch; }
+  #hub.juego[data-screen="sports"] .sport { display: flex; flex-direction: column; min-height: 0; }
+  #hub.juego[data-screen="sports"] .sp-cover { flex: 0 1 auto; min-height: 96px; }
+  #hub.juego[data-screen="sports"] .sp-body { flex: none; }
+  #hub.juego[data-screen="sports"] .sp-cover :is(img, .sp-vid) { object-position: 50% 40%; }
 }
 /* mochila en el móvil tumbado: los botones del perro uno junto al otro (el segundo quedaba debajo, fuera de la vista) */
 /* (la ficha de un escudo va en src/ui/infocard.css; aquí, las muestras de color de sus esmaltes) */
