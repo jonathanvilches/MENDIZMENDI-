@@ -1595,3 +1595,31 @@ svg.navarra { filter: saturate(1.25); }   /* (los colores de las comarcas, más 
 #hub .nchip.bloq { gap: 6px; color: var(--mute); } #hub .nchip.bloq :is(svg, img) { width: 22px; height: 22px; opacity: .8; }
 #hub .sh-arms.bloq { align-items: center; } #hub .sh-armic { display: grid; place-items: center; width: 90px; height: 90px; }
 #hub .ar-ic { display: grid; place-items: center; width: 112px; height: 112px; }
+
+/* chico o chica (el explorador y la exploradora): dos botones de pastilla con su retrato, en vez de flechas y tira. En
+   su propia fila: encima de la ficha al lado de la figura y, en el móvil de pie, justo debajo de la figura (antes que
+   el nombre, la edad y empezar) */
+.csel2.dos { grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "stage pick" "stage side" "extra extra"; }
+.cs-pick { grid-area: pick; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: 24px 24px 0 8px; }
+.csel2.dos .cs-side { padding-top: 12px; justify-content: flex-start; }
+.cs-dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-bottom: 4px; }
+.cs-dos button { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 56px; padding: 4px 16px 4px 4px; border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); color: var(--mute); font: 800 var(--fs-sm)/1.1 var(--f-cond); letter-spacing: .04em; text-transform: uppercase; transition: transform .18s cubic-bezier(.2, .8, .2, 1), background-color .18s, color .18s, border-color .18s; }
+.cs-dos button img { flex: none; width: 48px; height: 48px; border-radius: 50%; object-fit: cover; background: radial-gradient(circle at 50% 75%, color-mix(in srgb, var(--c) 70%, transparent), rgba(36, 16, 74, .9)); }
+.cs-dos button span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-dos button:hover { transform: translateY(-1px); color: #fff; }
+.cs-dos button:active { transform: scale(.97); }
+.cs-dos button.on { color: #fff; border-color: color-mix(in srgb, var(--c) 75%, #fff); background: linear-gradient(180deg, color-mix(in srgb, var(--c) 38%, transparent), color-mix(in srgb, var(--c) 20%, transparent)); }
+@media (max-width: 760px) {
+  .csel2.dos { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "stage" "pick" "extra" "side"; }
+  .cs-pick { padding: 16px 16px 0; } .csel2.dos .cs-side { padding-top: 16px; }
+}
+@media (max-height: 520px) {
+  .csel2.dos { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); grid-template-rows: auto minmax(0, 1fr) auto; grid-template-areas: "stage pick" "stage side" "extra extra"; }
+  .cs-pick { padding: 12px 16px 0 4px; } .csel2.dos .cs-side { padding-top: 8px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .csel2.dos:not(.onbsel) { grid-template-columns: minmax(0, 1fr) minmax(300px, 44%); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "stage pick" "stage side"; }
+  .csel2.dos:not(.onbsel) .cs-pick { padding: 8px 16px 0 8px; } .csel2.dos:not(.onbsel) .cs-kick { display: none; }
+  .cs-dos button { min-height: 44px; padding-right: 12px; } .cs-dos button img { width: 36px; height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) { .cs-dos button { transition: none; } }

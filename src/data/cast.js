@@ -9,6 +9,12 @@ export const CAST_ALL = [
     desc: 'Lleva la mochila con su saco enrollado, botas de monte y calcetines blancos. Recorre Navarra pueblo a pueblo, del Pirineo a la Ribera, ayudando a la gente y descubriendo sus tradiciones y sus leyendas.',
     ability: 'Explorador: encuentra antes los caminos y los rincones escondidos', stats: [85, 70, 85, 90, 85], color: '#5f7a3a',
     look: { height: 1.45, skin: '#f1c4a0', hair: '#4a2412', hairStyle: 'short', shirt: '#d8cfae', pants: '#5b6b3a', shoes: '#7a4a24', boots: true, face: 'smile' } },
+  // la exploradora: la chica del jugador (noviembre de 2026: se elige chico o chica al empezar, y se cambia en el Perfil).
+  // Modelo propio de Meshy, con sus animaciones (glbChar.js, MESHY_BY); en el encierro corre de sanferminera
+  { id: 'exploradora', name: 'Exploradora', from: 'Navarra', role: 'Exploradora', tagline: 'Recorre Navarra pueblo a pueblo', glb: true, meshy: true, solo: true,
+    desc: 'Lleva la mochila con su saco enrollado, botas de monte y la coleta bien recogida. Recorre Navarra pueblo a pueblo, del Pirineo a la Ribera, ayudando a la gente y descubriendo sus tradiciones y sus leyendas.',
+    ability: 'Exploradora: encuentra antes los caminos y los rincones escondidos', stats: [85, 70, 85, 90, 85], color: '#b5562f',
+    look: { height: 1.43, skin: '#f3c6a4', hair: '#6a2e16', hairStyle: 'ponytail', shirt: '#d8cfae', pants: '#5b6b3a', shoes: '#7a4a24', boots: true, face: 'smile', female: true } },
   // los personajes que se eligen (modelos propios de Meshy): el sanferminero, el pastor, el futbolista y el
   // pelotari. En el encierro cualquiera de ellos corre vestido de San Fermín, en El Sadar juega con la camiseta de
   // Iruña y en el frontón se pone de pelotari
@@ -47,7 +53,7 @@ export const CAST_ALL = [
 // avatares elegibles: los personajes propios de Meshy y las chicas, en pareja (el sanferminero y la sanferminera, el pastor,
 // el futbolista y la futbolista, el pelotari y la pelotari)
 const ORDEN = ['sanfermin', 'leire', 'pastor', 'osasuna', 'nahia', 'pelotari', 'nerea'];
-// (ahora solo el explorador: el resto del reparto sigue aquí para sus fichas y para cuando el juego viste al jugador de
+// (ahora solo el explorador y la exploradora: el resto del reparto sigue aquí para sus fichas y para cuando el juego viste al jugador de
 // pelotari, futbolista o sanferminero, pero ya no se elige)
 export const CAST = CAST_ALL.filter(c => c.solo);
 export const CAST_ANTES = CAST_ALL.filter(c => c.meshy || c.chica).sort((a, b) => ORDEN.indexOf(a.id) - ORDEN.indexOf(b.id));

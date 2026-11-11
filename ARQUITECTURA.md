@@ -15,13 +15,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
-  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`. El explorador (`explorador.glb`) es el
-    personaje del jugador, el único: en los pueblos y las misiones siempre es él y ya no se elige personaje (noviembre
-    de 2026: `CAST` de `data/cast.js` solo lo tiene a él, la bienvenida lo enseña sin flechas ni tira de retratos y el
-    menú ya no tiene «Avatar»; un guardado con otro personaje pasa a él). En el frontón se pone de pelotari, en El Sadar
-    de futbolista y en el encierro de sanferminero, como antes. Su GLB sale de los ocho archivos de Meshy con
-    `tools/explorador-glb.mjs`: los huesos con nombre de Mixamo, ocho animaciones (andar, correr, correr 2, andar
-    agachado, saltar un obstáculo, respirar y mirar alrededor, hablar y recoger algo) y solo el color, a 2048 px. Los
+  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`. El explorador (`explorador.glb`) y la
+    exploradora (`exploradora.glb`) son el personaje del jugador: se elige chico o chica en la bienvenida y se cambia en
+    el Perfil («Cambiar personaje»), y en los pueblos y las misiones siempre es uno de los dos (noviembre de 2026:
+    `CAST` de `data/cast.js` solo los tiene a ellos; con dos, el selector de `hub.js` enseña dos botones de pastilla
+    con su retrato, `.cs-dos`, en su propia fila: al lado de la figura y, en el móvil de pie, justo debajo de ella,
+    antes del nombre y de empezar; un guardado con otro personaje pasa al explorador). En el frontón se pone de pelotari,
+    en El Sadar de futbolista y en el encierro de sanferminero (ella, de sanferminera: `avatarIsGirl`, marca `ella` en
+    `GLB_AVATARS`), como antes. Su GLB sale de los archivos de Meshy con `tools/explorador-glb.mjs` (el nombre del
+    archivo de salida da el del material): los huesos con nombre de Mixamo y solo el color, a 2048 px. Él trae ocho
+    animaciones (andar, correr, correr 2, andar agachado, saltar un obstáculo, respirar y mirar alrededor, hablar y
+    recoger algo) y ella nueve distintas (andar, correr, andar tranquila, andar con las manos juntas, agacharse a tocar
+    el suelo, la mano en alto, una pirueta, una pataleta y sentada): solo andar y correr son las mismas. Los gestos que
+    usa el juego (quieto, hablar, saludar, celebrar, el salto, asustarse, recoger, golpear) salen en cada uno de sus
+    propias animaciones (`MESHY_BY` de `glbChar.js`); el salto de ella se monta con el impulso de la mano en alto y la
+    rodilla arriba de la pataleta. Ella tiene 15 809 triángulos (él, 51 670) y mide 1,43 m (él, 1,45). Los
     demás (sanferminero, pastor, futbolista de Osasuna y pelotari, y las chicas) siguen para sus usos y sus fichas, y
     los del partido (pelotari colorado, segunda equipación de Osasuna).
     Cada modelo tiene una altura fija (`MESHY_H`) y se carga una sola vez; el pastor también hace de pastor del pueblo.

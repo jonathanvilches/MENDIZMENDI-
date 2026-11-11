@@ -700,6 +700,16 @@ export class Hub {
       <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div>${cta ? `<div class="cs-cta">${cta}</div>` : ''}</div>
       ${extra ? `<div class="cs-extra">${extra}</div>` : ''}
     </section>`;
+    // (con dos, el explorador y la exploradora: chico o chica, dos botones con su retrato en vez de flechas, cuenta y tira;
+    // van en su propia fila, justo debajo de la figura en el móvil de pie: dentro de la ficha quedaban detrás de empezar)
+    if (AVATARS.length === 2) return `<section class="csel2 dos ${onb ? 'onbsel' : ''}" style="--c:${cur.color}">
+      <div class="cs-stage"><div class="cs-bgname" aria-hidden="true">${esc(cur.name)}</div><div id="avStage" class="stage-host"></div>
+        <span class="cs-hint">Arrastra para girarlo · tócalo para saludar</span></div>
+      <div class="cs-pick"><small class="gx-kick cs-kick">¿Chico o chica?</small>
+        <div class="cs-dos" role="radiogroup" aria-label="Chico o chica">${AVATARS.map(a => `<button type="button" role="radio" data-av="${a.id}" aria-checked="${a.id === cur.id}" class="${a.id === cur.id ? 'on' : ''}" style="--c:${a.color}">${avatarPortraitImg(a.id)}<span>${esc(a.name)}</span></button>`).join('')}</div></div>
+      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div>${cta ? `<div class="cs-cta">${cta}</div>` : ''}</div>
+      ${extra ? `<div class="cs-extra">${extra}</div>` : ''}
+    </section>`;
     return `<section class="csel2 ${onb ? 'onbsel' : ''}" style="--c:${cur.color}">
       <div class="cs-stage"><div class="cs-bgname" aria-hidden="true">${esc(cur.name)}</div><div id="avStage" class="stage-host"></div>
         <button class="cs-arrow prev" data-step="-1" aria-label="Anterior"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -722,8 +732,8 @@ export class Hub {
       stage.setAvatar(id); this.sound?.ui('coin');
       sec.style.setProperty('--c', a.color);
       const info = $('#csInfo', host); info.innerHTML = this.castInfo(a); info.classList.remove('swap'); void info.offsetWidth; info.classList.add('swap');
-      $('.cs-bgname', host).textContent = a.name; $('.cs-count b', host).textContent = AVATARS.indexOf(a) + 1;
-      host.querySelectorAll('[data-av]').forEach(x => x.classList.toggle('on', x.dataset.av === id));
+      $('.cs-bgname', host).textContent = a.name; const n = $('.cs-count b', host); if (n) n.textContent = AVATARS.indexOf(a) + 1;   // (con dos no hay cuenta)
+      host.querySelectorAll('[data-av]').forEach(x => { x.classList.toggle('on', x.dataset.av === id); if (x.hasAttribute('aria-checked')) x.setAttribute('aria-checked', x.dataset.av === id); });
       center(id, true);
       onPick(a);
     };
@@ -735,12 +745,12 @@ export class Hub {
     center(cur);
   }
   s_avatars() {
-    if (AVATARS.length < 2) return this.s_home ? (this.after = () => this.go('home', null, true), '') : '';   // (ya no se elige personaje: al inicio)
+    if (AVATARS.length < 2) return this.s_home ? (this.after = () => this.go('home', null, true), '') : '';   // (con uno solo no hay nada que elegir: al inicio)
     const p = profile(), cur = castById(p.avatar);
     this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`; });
     // (el título y el botón de jugar van dentro del selector: en el móvil tumbado todo cabe en una pantalla; los personajes
     // de Navarra, de leyenda y de carnaval tienen su propia sección: s_personajes)
-    return `<h1 class="title cs-title">Elige tu personaje</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}`;
+    return `<h1 class="title cs-title">${AVATARS.length === 2 ? '¿Explorador o exploradora?' : 'Elige tu personaje'}</h1>${this.selector(cur, { cta: `<button class="gx-go" id="csGo" data-go="home">${I('play', 24)} Jugar con ${esc(cur.name)}</button>` })}`;
   }
   // ---------- Personajes ----------
   // su propia sección: las mujeres y los personajes de Navarra con su ficha (ui/personajes.js) y los seres de leyenda y
