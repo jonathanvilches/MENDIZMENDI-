@@ -1,0 +1,1 @@
+var e=new URL(`estrella-dosparedes-1-BkCzr6Z9.mp3`,import.meta.url).href;export{e as default};
