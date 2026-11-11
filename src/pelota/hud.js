@@ -193,6 +193,15 @@ const CSS = `
 .pel-card ol{margin:0 0 12px;padding-left:24px;color:#e6def7}.pel-card li{margin:0 0 8px;line-height:1.3}.pel-card li::marker{color:#ff7ac8;font-weight:900}
 .pel-card .pel-ctrl{font-size:var(--fs-sm);line-height:1.45;background:rgba(255,255,255,.06);border:1px solid rgba(190,160,255,.22);color:#cbc2e0;border-radius:12px;padding:8px 12px;margin:0 0 16px}
 .pel-card .pel-big{font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-4xl);text-align:center;margin:8px 0;color:#fff;text-shadow:0 3px 0 rgba(0,0,0,.35)}
+.pel-card .pel-big small{font-size:.45em;color:#cbbcf0;margin-left:2px}
+.pel-estrellas{display:flex;justify-content:center;gap:12px;margin:0 0 12px}
+.pel-estrellas i{display:grid;place-items:center;width:44px;height:44px;font-style:normal;animation:pel-est .5s cubic-bezier(.2,1.6,.4,1) var(--d,0s) both}
+.pel-estrellas i:nth-child(2){width:56px;height:56px;margin-top:-8px}
+.pel-estrellas svg{width:100%;height:100%;fill:none;stroke:#b79cff;stroke-width:1.6}
+.pel-estrellas i.on svg{fill:#ffd166;stroke:#ffe39a;filter:drop-shadow(0 0 10px rgba(255,209,102,.6))}
+@keyframes pel-est{from{opacity:0;transform:scale(.3) rotate(-30deg)}}
+.pel-card .pel-metas{font-size:var(--fs-sm);color:#cbbcf0}.pel-card .pel-metas b{color:#fff;font-weight:800;margin-right:4px}
+@media (prefers-reduced-motion:reduce){.pel-estrellas i{animation:none}}
 .pel-card .pel-fact{background:rgba(255,122,200,.1);border:1px solid rgba(255,122,200,.35);color:#fff3c4;border-radius:12px;padding:8px 12px;margin:8px 0 16px;font-size:var(--fs-sm);line-height:1.3}.pel-card .pel-fact b{color:#ff7ac8}
 .pel-lbl{display:block;font-size:var(--fs-xs);font-weight:900;color:#cbbcf0;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px}
 .pel-levels{display:flex;gap:8px;margin:0 0 16px;flex-wrap:wrap}

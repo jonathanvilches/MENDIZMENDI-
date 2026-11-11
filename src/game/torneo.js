@@ -12,7 +12,7 @@
 // rondas, que ya iban por la mitad, se acaban con su cuadro de siempre; los que no habían empezado, se rehacen.)
 import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
-import { pelotariStats, temporadas, levelTier, tantosDe } from '../pelota/rules.js';
+import { pelotariStats, temporadas, levelTier, tantosDe, TEXT, RETOS, estrellasReto } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
 import { tusCualidades, tuPelotari } from './pelotariProgreso.js';
 import { pelotariCard, CARTA_ALTO } from '../ui/sportCard.js';
@@ -321,6 +321,12 @@ const CSS = `
 .tq-tile .k{font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa);text-shadow:0 1px 3px rgba(0,0,0,.8);overflow-wrap:anywhere}
 .tq-tile b{font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.55);max-width:100%;overflow-wrap:anywhere}
 .tq-tile small{font:600 var(--fs-sm)/1.2 var(--f-cond);letter-spacing:0;color:#ece4ff;text-shadow:0 1px 3px rgba(0,0,0,.9);max-width:100%}
+.tq-tile.retos{--t1:#1aa6c2;--t2:#160a3e}.tq-tile.retos .k{color:#ffd166}.tq-tile.r-peloteo{--t1:#7b2ff7;--t2:#160636}.tq-tile.r-diana{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.r-dejada{--t1:#1aa6c2;--t2:#160a3e}
+/* los retos: su dibujo arriba (el frontis, la pelota y lo que hay que hacer) y sus tres estrellas */
+.tq-tile .reto-fig{align-items:center}.tq-tile .reto-fig svg{width:auto;height:100%;max-width:100%;max-height:150px;filter:drop-shadow(0 6px 14px rgba(0,0,0,.45))}
+.tq-tile .reto-est{display:flex;gap:4px}.tq-tile .reto-est i{display:block;width:22px;height:22px}.tq-tile .reto-est svg{width:100%;height:100%;fill:none;stroke:#b79cff;stroke-width:1.8}.tq-tile .reto-est i.on svg{fill:#ffd166;stroke:#ffe39a}
+.tq-tiles.retos3{--cw:calc((100% - 24px) / 3)}
+@media (orientation:portrait){.tq-tiles.retos3{--cw:calc((100% - 12px) / 1.55)}}
 .tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 /* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
@@ -658,6 +664,43 @@ export function sedeRonda(T, ri, sedes = ['plaza', 'cubierto', 'labrit']) {
   }
   return k;
 }
+// ---------------------------------------------------------------- retos del frontón (rules.js RETOS; pelota/game.js)
+const retoT = () => (isEU() ? TEXT.eu : TEXT.es).reto || TEXT.es.reto;
+const ESTR = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z" stroke-linejoin="round"/></svg>';
+// los dibujos de cada reto, con los colores del juego: el frontis morado con su chapa, la pelota y lo que hay que hacer
+const FRONTIS = '<rect x="6" y="8" width="108" height="84" rx="6" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="6" y="80" width="108" height="12" rx="3" fill="#ff7ac8" fill-opacity=".55"/>';
+const BOLA = (x, y) => `<circle cx="${x}" cy="${y}" r="7" fill="#f4efe4"/><path d="M${x - 5} ${y - 3}q5 4 10 0M${x - 5} ${y + 3}q5-4 10 0" stroke="#c9b9a0" stroke-width="1.2" fill="none"/>`;
+const RETO_ART = {
+  peloteo: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<path d="M20 104 Q42 30 60 52 T100 104" fill="none" stroke="#ffd166" stroke-width="3" stroke-dasharray="6 6" stroke-linecap="round"/><path d="M24 104 Q60 18 96 104" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="2" stroke-dasharray="4 7" stroke-linecap="round"/>${BOLA(60, 52)}<text x="98" y="30" fill="#fff" font-size="16" font-weight="800" text-anchor="middle" font-family="sans-serif">×15</text></svg>`,
+  diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
+  dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
+};
+/** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
+export const retosMios = () => profile().retos || {};
+/** Las estrellas que llevas en los tres retos (de 0 a 9) */
+export const retosTotal = () => Object.keys(RETOS).reduce((a, k) => a + estrellasReto(k, retosMios()[k]?.n || 0), 0);
+/** Apunta un reto acabado si mejora tu marca. r: el resultado de game.js (kind, n, estrellas). Devuelve si es récord */
+export function apuntaReto(r) {
+  if (!r?.kind) return false;
+  const P = profile(), M = (P.retos ||= {}), m = M[r.kind] || { n: 0, e: 0 }, mejor = r.n > m.n;
+  M[r.kind] = { n: Math.max(m.n, r.n), e: Math.max(m.e, r.estrellas || 0) };
+  return mejor;
+}
+/** Los retos del frontón: una losa por reto con su dibujo, sus estrellas y tu mejor marca (o lo que hay que hacer).
+ *  Devuelve el elegido ('peloteo' | 'diana' | 'dejada') o null para volver */
+export function retosMenu() {
+  css();
+  return new Promise(res => {
+    const R = retoT(), M = retosMios(), eu = isEU();
+    const tile = (k, i) => { const m = M[k] || {}, e = estrellasReto(k, m.n || 0);
+      return `<button class="tq-tile r-${k}" data-reto="${k}" style="--d:${0.2 + i * 0.3}s"><span class="figs reto-fig">${RETO_ART[k]}</span><span class="k reto-est" role="img" aria-label="${R.estrellas(e)}">${[0, 1, 2].map(j => `<i class="${j < e ? 'on' : ''}">${ESTR}</i>`).join('')}</span><b>${R.name[k]}</b><small>${m.n ? R.mejor(m.n) : R.como[k]}</small></button>`; };
+    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${eu ? 'Frontoian' : 'En el frontón'}</small><h2>${R.titulo}</h2></div><div class="lg-ovr">${retosTotal()}<small>${eu ? 'IZAR' : 'ESTRELLAS'}</small></div></div>
+      <div class="tq-carr"><div class="tq-tiles retos3">${Object.keys(RETOS).map(tile).join('')}</div></div>
+      <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
+    r.firstElementChild.classList.add('tq-menu-card');
+    r.addEventListener('click', (e) => { const b = e.target.closest('[data-reto],[data-a]'); if (!b) return; lgFuera(r); res(b.dataset.reto || null); });
+  });
+}
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */
@@ -678,6 +721,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
         ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
         <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A ${tantosDe(5)} tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
+        <button class="tq-tile retos" data-a="retos" style="--d:1.55s"><span class="figs reto-fig">${RETO_ART.diana}</span><span class="k">${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}</span><b>${retoT().titulo}</b><small>${isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas'}</small></button>
         ${camaraDisponible() ? `<button class="tq-tile casa" data-a="camara" style="--d:1.7s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">Con la cámara</span><b>Pelota en casa</b><small>Tu pelotari hace lo que&nbsp;haces</small></button>` : ''}
         <button class="tq-tile col" data-a="pelotaris" style="--d:2s"><span class="figs trio">${trio.map(n => pelotariFig(n, 'rojo', 'fig')).join('')}</span><span class="k">Tu colección</span><b>Pelotaris</b><small class="pc-n">${C.have}/${C.total} descubiertos</small></button></div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);

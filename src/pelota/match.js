@@ -1,7 +1,7 @@
 // Partido de pelota a mano: une la lógica (game.js), el frontón (court.js), la interfaz (hud.js) y el sonido.
 // El juego anfitrión pone el frontón en su escena, llama a update(dt) en cada fotograma y renderiza con su cámara.
 import { pzResultado } from '../ui/pausa.js';
-import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe } from './rules.js';
+import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe, RETOS } from './rules.js';
 import { Comentarios } from './comenta.js';
 import { Voz } from './voz.js';
 import { subtitulos } from '../util/comentarios.js';
@@ -12,6 +12,8 @@ import { openFicha, playerChip, splitName } from './ficha.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PrimeraPersona } from './primeraPersona.js';
 import { bolaSVG } from './bola.js';
+// (la estrella de los retos: rellena de amarillo si se ha ganado, solo el filo lila si no)
+const ESTRELLA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 6 6.5.8-4.8 4.5 1.2 6.5L12 17.3l-5.8 3.1 1.2-6.5L2.6 9.4l6.5-.8z" stroke-linejoin="round"/></svg>';
 import { PelotaHud, esc } from './hud.js';
 import { PelotaAudio } from './audio.js';
 import { granFinal } from './granFinal.js';
@@ -290,7 +292,7 @@ export class PelotaMatch {
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
     this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
-      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara });
+      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara, reto: o.reto });
     this.court.setCuatro?.(!!this.game.cuatro);   // (la raya del 4 y medio, solo en el Cuatro y Medio)
     this.rec = null; this.repAt = 0;
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
@@ -298,6 +300,8 @@ export class PelotaMatch {
     this.hud.fichas(o.mode !== 'rally');
     this.hud.setScore(0, 0, this.game.server, o.mode === 'rally' ? this.txt.rally(this.game.target) : this.txt.to(this.game.target));
     if (o.mode === 'rally') this.hud.setScore(0, '', this.game.server, this.txt.rally(this.game.target));
+    if (this.game.reto) this.retoMarcador();
+    this.dianaPon();
     this.lastSwing = { you: 0, rival: 0, youMate: 0, rivalMate: 0 };
   }
   // el nombre de cada lado: el pelotari o, por parejas, los dos
@@ -306,6 +310,33 @@ export class PelotaMatch {
   // el nombre sin el pueblo entre paréntesis y las temporadas de cada lado (la presentación y el sorteo de la chapa)
   nomLimpio(sd) { return this.label(sd).replace(/\s*\([^)]*\)/g, ''); }
   tempDe(sd) { const TS = this.txt.toss || TEXT.es.toss; return this.seasons ? TS.seasons(this.seasons[sd] || 0) : ''; }
+
+  // ------------------------------------------------------------ retos (rules.js RETOS; la lógica, en game.js)
+  retoTxt() { return this.txt.reto || TEXT.es.reto; }
+  /** Lo que va en el centro del marcador durante el reto: las vidas o la pelota que va */
+  retoLabel() { const g = this.game, R = this.retoTxt(); if (!g?.reto) return ''; return g.reto === 'peloteo' ? R.hud.peloteo(g.retoN.vidas) : R.hud[g.reto](g.retoN.tiros, g.target); }
+  /** El lado derecho del marcador en el reto (donde va el rival en un partido): las vidas o la pelota que va, «3/10» */
+  retoLado() { const g = this.game, L = this.retoTxt().lado; return g.reto === 'peloteo' ? [L.peloteo, g.retoN.vidas] : [L.otro, `${Math.min(g.retoN.tiros + (g.phase === 'end' ? 0 : 1), g.target)}/${g.target}`]; }
+  /** El marcador del reto: lo que llevas a la izquierda, las vidas o la pelota a la derecha y el reto en medio */
+  retoMarcador() { const g = this.game, [n, v] = this.retoLado(); this.hud.setNames?.(this.label('you'), n); this.hud.setScore(g.retoValor(), v, g.server, this.retoLabel()); }
+  /** Las metas de las estrellas, en una línea: «★ 3 · ★★ 5 · ★★★ 7 dianas» */
+  retoMetas(k) { const E = RETOS[k].estrellas, u = this.retoTxt().unidad[k]; return `${E.map((n, i) => `${'★'.repeat(i + 1)} ${n}`).join(' · ')} ${u}`; }
+  /** El aro de la diana en el frontis: un anillo amarillo con el centro rosa, que se pone donde diga el juego */
+  dianaPon() {
+    const g = this.game, T = this.T, G = this.court?.group;
+    if (!g?.diana || !T || !G) { if (this.diana) this.diana.visible = false; return; }
+    if (!this.diana) {
+      const r = g.diana.r, o = new T.Group(), mat = (c, op) => new T.MeshBasicMaterial({ color: c, transparent: true, opacity: op, depthWrite: false, toneMapped: false, fog: false });
+      o.add(new T.Mesh(new T.RingGeometry(r * 0.84, r, 56), mat('#ffd166', 0.95)));
+      o.add(new T.Mesh(new T.RingGeometry(r * 0.46, r * 0.56, 48), mat('#ffffff', 0.7)));
+      o.add(new T.Mesh(new T.CircleGeometry(r * 0.2, 32), mat('#ff2bd6', 0.9)));
+      o.add(new T.Mesh(new T.CircleGeometry(r * 0.84, 48), mat('#ffd166', 0.12)));
+      o.renderOrder = 6; o.traverse(m => { if (m.isMesh) m.renderOrder = 6; });
+      G.add(o); this.diana = o;
+    }
+    this.diana.position.set(g.diana.x, g.diana.y, 0.05); this.diana.visible = true; this.dianaT = 0;
+  }
+  dianaQuita() { const d = this.diana; if (!d) return; d.parent?.remove(d); d.traverse(m => { if (m.isMesh) { m.geometry.dispose(); m.material.dispose(); } }); this.diana = null; }
 
   // ------------------------------------------------------------ paneles
   intro() {
@@ -316,10 +347,12 @@ export class PelotaMatch {
     const mods = [['mano', P.single], ['delantero', P.front], ['zaguero', P.back], ['cuatro', P.four || TEXT.es.pairs.four]].filter(([k]) => !(this.o.forcePairs && (k === 'mano' || k === 'cuatro'))), cur = this.pairs ? this.role : this.o.forcePairs ? this.role : this.cuatro ? 'cuatro' : 'mano';
     const TT = t.tour || TEXT.es.tour, MT = t.mat || TEXT.es.mat, CD = t.camDyn || TEXT.es.camDyn, PL = t.plano || TEXT.es.plano, DU = t.dur || TEXT.es.dur, OT = t.optTabs || TEXT.es.optTabs, RP = t.repe || TEXT.es.repe;
     const reglas = [...(this.cuatro ? [(t.cuatro || TEXT.es.cuatro).rule] : []), ...t.rules];
-    const sum = [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].filter(Boolean).join(' · ');
+    const sum = g.reto ? this.retoTxt().name[g.reto] : [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].filter(Boolean).join(' · ');
     // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
-    const p = this.hud.panel(`<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>
+    const RT = this.retoTxt(), cab = g.reto ? `<h2>${RT.name[g.reto]}</h2><p class="pel-sub">${RT.como[g.reto]}</p><p class="pel-sub pel-metas"><b>${RT.metas}</b> ${this.retoMetas(g.reto)}</p>`
+      : `<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>`;
+    const p = this.hud.panel(`${cab}
       ${this.rivalHtml()}
       ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora eta besoak barruan ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, jo. Eskuinarekin eta oso ezkerrean amaituz, bi pareta; eskuinetik ezkerrera, paretara; eskuinera, zabalera. Ohi baino askoz azkarrago, cortada; motelago, luzea; eskua behean eta ibilbide laburrarekin, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba y con los brazos dentro; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, golpea. De derecha y acabando muy a la izquierda, dos paredes; de derecha a izquierda, a la pared; hacia la derecha, al ancho. Mucho más rápido que de normal, cortada; más lento, largo; con la mano baja y poco recorrido, dejada.')}</p>` : ''}
       ${this.courtHtml()}
@@ -685,9 +718,15 @@ export class PelotaMatch {
     // fila para él solo y lo demás tiene aire; en el reto del frontón sigue grande, que no hay rival)
     const cy = this.cols.you === 'rojo' ? 'rojo' : 'azul', cr = cy === 'rojo' ? 'azul' : 'rojo', reto = g.mode === 'rally';
     const marca = reto ? `${esc(this.label('you'))} – ${esc(this.label('rival'))}` : `<span class="pel-marca"><i class="${cy}">${esc(this.label('you'))}</i><b>${big}</b><i class="${cr}">${esc(this.label('rival'))}</i></span>`;
-    const p = this.hud.panel(`<h2>${pzResultado(!!e.win)}${e.win ? (reto ? t.rallyWin : t.win) : t.lose}</h2><p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>
-      <div class="pel-fin"><div class="pel-fin-a">${reto ? `<div class="pel-big">${big}</div>` : ''}${this.claveBloque(g)}${xpHtml || `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`}</div><div class="pel-fin-b">${this.estBloque(g)}${this.mapaBloque(g)}</div></div>
-      <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${t.again}</button>`}<button class="pel-go" data-pel-cont>${cont}</button></div>`);
+    // (los retos: lo conseguido, grande, con sus tres estrellas, la mejor marca de antes y las metas)
+    const RT = this.retoTxt(), RE = e.reto, antes = this.o.retoMejor || 0;
+    const estrellas = RE ? `<div class="pel-estrellas" role="img" aria-label="${RT.estrellas(RE.estrellas)}">${[0, 1, 2].map(i => `<i class="${i < RE.estrellas ? 'on' : ''}" style="--d:${0.25 + i * 0.18}s">${ESTRELLA}</i>`).join('')}</div>` : '';
+    const retoA = RE ? `<div class="pel-big">${RE.n}<small>/${RETOS[RE.kind].estrellas[2]}</small></div>${estrellas}<p class="pel-sub pel-metas"><b>${RT.metas}</b> ${this.retoMetas(RE.kind)}${antes ? `<br>${RT.mejor(Math.max(antes, RE.n))}` : ''}</p>` : '';
+    const titulo = RE ? (e.win ? RT.win : RT.lose) : e.win ? (reto ? t.rallyWin : t.win) : t.lose;
+    const sub = RE ? `<p class="pel-sub">${RT.name[RE.kind]}</p>` : `<p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>`;
+    const p = this.hud.panel(`<h2>${pzResultado(!!e.win)}${titulo}</h2>${sub}
+      <div class="pel-fin"><div class="pel-fin-a">${RE ? retoA : reto ? `<div class="pel-big">${big}</div>` : ''}${RE ? '' : this.claveBloque(g)}${xpHtml || (RE ? '' : `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`)}</div><div class="pel-fin-b">${this.estBloque(g)}${RE ? '' : this.mapaBloque(g)}</div></div>
+      <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${RE ? RT.otra : t.again}</button>`}<button class="pel-go" data-pel-cont>${this.o.back === 'retos' ? RT.cont : cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
         this.newGame(); const va = () => { if (!this.active) return; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); };
@@ -765,7 +804,7 @@ export class PelotaMatch {
   finish(e) {
     if (!this.active) return;
     this.destroy();
-    this.o.onEnd?.({ win: e.win, score: e.score, best: e.best, mode: this.game.mode, level: this.level });
+    this.o.onEnd?.({ win: e.win, score: e.score, best: e.best, mode: this.game.mode, level: this.level, reto: e.reto || null });
   }
 
   // ------------------------------------------------------------ entrada
@@ -1027,7 +1066,7 @@ export class PelotaMatch {
     switch (e.type) {
       case 'serveReady':   // (cansado y con descansos, ya no hay aviso escrito: brilla el botón de la pelota y el descanso)
         this.callada = false;
-        this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
+        if (g.reto) this.retoMarcador(); else this.hud.setScore(g.mode === 'rally' ? g.streak : g.score.you, g.mode === 'rally' ? '' : g.score.rival, g.server);
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
         this.rallyN = 0; this.golpazo = false; A.mood(0.2, 0.5);
@@ -1070,7 +1109,18 @@ export class PelotaMatch {
       case 'wall': if (!this.callada) A.wall(); break;
       case 'back': if (!this.callada) A.wall(); if (e.live) this.hud.golpe((t.shots || TEXT.es.shots).rebote, this.cols[g.side(g.rally?.by || 'you')]); break;   // el rebote: la pared de atrás, en el rótulo de quien la mandó
       case 'floor': if (!this.callada) A.floor(e.soft ? 0.5 : 0.8); break;
-      case 'streak': this.hud.setScore(e.n, '', g.server); break;
+      case 'streak': if (g.reto) this.retoMarcador(); else this.hud.setScore(e.n, '', g.server); break;
+      case 'reto': {   // (una pelota del reto: se rotula, se mueve la diana y el marcador dice cuántas llevas y lo que queda)
+        const R = this.retoTxt();
+        this.retoMarcador();
+        if (g.reto === 'peloteo') { if (!e.ok) this.hud.call(R.vida[0], R.vida[1](e.vidas), '', 2); }
+        else if ('x' in e || 'z' in e) {   // (las que se juzgan en tu golpe; las que fallas o no devuelves ya las canta el juez)
+          const [h, sb] = (e.ok ? R.ok : R.ko)[g.reto]; this.hud.call(h, sb, '', 1.6, e.ok ? { col: 'azul' } : null);
+          A.point(true, !!e.ok, false, e.ok ? 0.5 : 0);
+        }
+        if (g.reto === 'diana') setTimeout(() => { if (this.active && this.game === g) this.dianaPon(); }, e.ok ? 900 : 500);
+        break;
+      }
       case 'call': {
         this.lastWin = e.winner; this.lastFinal = !!e.final; this.planoT = this.t;
         // (la racha: tantos seguidos, iguala o remontada; en el aviso y, mientras dure, en el marcador)
@@ -1478,7 +1528,7 @@ export class PelotaMatch {
     this.hud.vista(this.conCamara, this.vistaFP);
   }
   destroy() {
-    this.finalFin?.();
+    this.finalFin?.(); this.dianaQuita();
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);

@@ -393,7 +393,7 @@ function pancartasDe(C, you, riv, town, colors) {
 // (los fallos que el partido recoge para no quedarse colgado, también al informe, util/informe.js: si no, en el móvil el
 // partido «se sale solo» sin que se sepa por qué)
 const apunta = (donde, e) => { const l = String(e?.stack || '').split('\n').find(x => /\.js/.test(x))?.trim().slice(0, 140) || ''; (window.__errors ||= []).push(`${donde}: ${e?.message || e}${l ? ' @ ' + l : ''}`.slice(0, 300)); };
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false, reto = null, retoMejor = 0 } = {}) {
   const tBase = target; if (mode === 'match') target = tantosDe(tBase);   // (la duración elegida: rules.js)
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
@@ -576,7 +576,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       camara,   // (la pelota en casa: tu pelotari hace lo que haces delante de la cámara; pelota/camaraCuerpo.js)
       fly: intro,   // (la llegada: el vuelo de la cámara hasta la cancha, con los pelotaris y el público ya en su sitio)
       mates: mode === 'match' && (!fixedLevel || pairs) ? makeMates : null, forcePairs: !!pairs,   // (en el torneo individual, mano a mano; en el de parejas, por parejas)
-      back: fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
+      back: reto ? 'retos' : fixedLevel ? 'torneo' : G.sportMode ? 'menu' : 'pueblo',   // (a dónde lleva el botón del final)
+      reto, retoMejor,   // (los retos del frontón: peloteo, diana o dejadas, y tu mejor marca en él; rules.js RETOS)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       // (tus cualidades, las que vas ganando; y cada partido acabado suma experiencia: lo enseña el panel del final)
       youStats: tusCualidades(), progreso: (e, st, modo) => sumaPartido(e, st, modo),
@@ -643,7 +644,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
         // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
         safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you });
+        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null });
       }
     }
   });

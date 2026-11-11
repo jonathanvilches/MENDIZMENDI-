@@ -406,6 +406,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tantos. Los torneos, el partido libre y la misión se escribieron a 5-9 tantos y se alargan según la duración, sin pasar
   de 22 (`game/fronton.js`, `playPelota`, guarda la base en `tBase`); los resultados de los demás partidos del torneo y lo
   que se lee en los cuadros, igual (`game/torneo.js`). Normal: el libre a 12, la final de un torneo de 16 a 22.
+- **Retos del frontón** (`pelota/rules.js` `RETOS` y `estrellasReto`; la lógica, en `pelota/game.js`, sobre el peloteo de
+  entrenar, `mode: 'rally'` con `reto`): como los juegos de habilidad de los juegos de fútbol, tres retos con tres
+  estrellas cada uno. Peloteo: devolver seguidas todas las que puedas con 3 vidas (estrellas con 5, 10 y 15). Diana: un aro
+  en el frontis, en un sitio al azar donde llegan los golpes apuntados (de 3,4 a 6,2 m de alto), y 10 pelotas (3, 5 y 7
+  dianas). Dejadas: que bote antes de la raya del 2, 10 pelotas (3, 5 y 7). En la diana y las dejadas el rival solo te pasa
+  pelotas y tu golpe se juzga solo (`retoTiro`); las que fallas o no devuelves también cuentan. En `pelota/match.js`: el
+  panel de inicio con lo que hay que hacer y las metas, el aro (`dianaPon`), el marcador con lo que llevas a la izquierda y
+  las vidas o la pelota que va a la derecha (`retoMarcador`) y el final con las estrellas. Se entra desde el menú de pelota,
+  losa «Retos» (`game/torneo.js`, `retosMenu`, con un dibujo de cada reto), y se juega en el frontón elegido
+  (`game/townDeportes.js`, `pelotaRetos`); la mejor marca se guarda en el perfil (`retos`, `apuntaReto`). Simulados con el
+  piloto automático: los tres cuentan y se acaban; apuntando con la vista previa, de 7 a 10 dianas de 10.
 - **Marcador del frontón a la derecha del frontis** (`pelota/court.js`, `bigBoard`, `setScore`): como en los frontones de
   verdad, pegado a la pared y sin postes, con dos filas (azules arriba, colorados abajo) en los morados del juego. En los
   de la calle, el frontis sigue 3,8 m sobre la contracancha, sin raya y con el revoco o la piedra de fuera

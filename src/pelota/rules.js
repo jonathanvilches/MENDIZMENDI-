@@ -64,6 +64,16 @@ export function temporadas(name, lv = 2) {
  *  raya del 4 y medio, pintada en el suelo entre el 4 y el 5 (Federación Española de Pelota, mano individual cuatro y
  *  medio) */
 export const CUATRO = { FALTA: 10.5, PASA: 17.5, LIMITE: 15.75 };
+// Los retos del frontón, como los de habilidad de los juegos de fútbol: el rival te pasa pelotas y tú cumples el reto.
+// Peloteo: devolver seguidas todas las que puedas, con 3 vidas (cada fallo corta la racha y quita una). Diana: dar en el
+// aro del frontis, 10 pelotas. Dejadas: que bote antes de la raya del 2, 10 pelotas. Las tres estrellas, con lo de estrellas
+export const RETOS = {
+  peloteo: { max: 15, estrellas: [5, 10, 15], vidas: 3 },
+  diana: { max: 10, estrellas: [3, 5, 7], r: 1.3 },
+  dejada: { max: 10, estrellas: [3, 5, 7], z: 3.5 * 2 },
+};
+/** Estrellas (de 0 a 3) de un reto con n aciertos (en el peloteo, la mejor racha) */
+export const estrellasReto = (k, n) => (RETOS[k]?.estrellas || []).filter(x => n >= x).length;
 
 // El frontón también juega: cómo es (a cubierto o al aire libre, con el frontis de piedra, con el suelo mojado por la
 // lluvia, o el Labrit de las finales) cambia un poco la pelota. Devuelve lo que se nota en la física (front, floor, run:
@@ -347,6 +357,14 @@ export const TEXT = {
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
     streak: (n, g) => `${n} de ${g} seguidas`,
     win: '¡Has ganado!', lose: '¡Casi! Otra vez será', rallyWin: '¡Lo has conseguido!',
+    reto: { titulo: 'Retos', name: { peloteo: 'Peloteo', diana: 'Diana', dejada: 'Dejadas' },
+      como: { peloteo: 'Devuelve seguidas todas las que puedas. Tienes 3 vidas.', diana: 'Da en el aro amarillo del frontis. Tienes 10 pelotas.', dejada: 'Que bote antes de la raya del 2. Tienes 10 pelotas.' },
+      hud: { peloteo: (v) => `Peloteo · ${v} ${v === 1 ? 'vida' : 'vidas'}`, diana: (t, m) => `Diana · pelota ${Math.min(t + 1, m)} de ${m}`, dejada: (t, m) => `Dejadas · pelota ${Math.min(t + 1, m)} de ${m}` },
+      ok: { diana: ['¡Diana!', 'En el aro.'], dejada: ['¡Dejada!', 'Antes de la raya del 2.'] },
+      ko: { diana: ['Fuera del aro', ''], dejada: ['Muy larga', 'Tiene que botar antes de la raya del 2.'] },
+      vida: ['Se acabó la racha', (v) => v ? `Te ${v === 1 ? 'queda 1 vida' : `quedan ${v} vidas`}.` : 'No te quedan vidas.'],
+      win: '¡Reto superado!', lose: 'Reto sin superar', mejor: (n) => `Tu mejor marca: ${n}`, estrellas: (n) => `${n} de 3 estrellas`, otra: 'Otro intento', cont: 'Volver a los retos',
+      metas: 'Para las estrellas', unidad: { peloteo: 'seguidas', diana: 'dianas', dejada: 'dejadas' }, lado: { peloteo: 'Vidas', otro: 'Pelota' } },
     result: (a, b) => `${a} – ${b}`,
     factsTitle: '¿Sabías que…?',
     // el resumen del partido, en la pantalla del final
@@ -469,6 +487,14 @@ export const TEXT = {
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,
     streak: (n, g) => `${n}/${g} jarraian`,
     win: 'Irabazi duzu!', lose: 'Ia-ia! Hurrengoan', rallyWin: 'Lortu duzu!',
+    reto: { titulo: 'Erronkak', name: { peloteo: 'Pilotakada', diana: 'Itua', dejada: 'Dejadak' },
+      como: { peloteo: 'Itzuli jarraian ahal dituzun guztiak. 3 bizitza dituzu.', diana: 'Jo frontiseko uztai horia. 10 pilota dituzu.', dejada: 'Bote egin dezala 2ko marra baino lehen. 10 pilota dituzu.' },
+      hud: { peloteo: (v) => `Pilotakada · ${v} bizitza`, diana: (t, m) => `Itua · ${Math.min(t + 1, m)}/${m} pilota`, dejada: (t, m) => `Dejadak · ${Math.min(t + 1, m)}/${m} pilota` },
+      ok: { diana: ['Itua!', 'Uztaian.'], dejada: ['Dejada!', '2ko marra baino lehen.'] },
+      ko: { diana: ['Uztaitik kanpo', ''], dejada: ['Luzeegia', '2ko marra baino lehen egin behar du bote.'] },
+      vida: ['Segida amaitu da', (v) => v ? `${v} bizitza geratzen zaizkizu.` : 'Ez zaizu bizitzarik geratzen.'],
+      win: 'Erronka gainditua!', lose: 'Erronka ez da gainditu', mejor: (n) => `Zure markarik onena: ${n}`, estrellas: (n) => `3tik ${n} izar`, otra: 'Beste saiakera bat', cont: 'Erronketara itzuli',
+      metas: 'Izarrak lortzeko', unidad: { peloteo: 'jarraian', diana: 'itu', dejada: 'dejada' }, lado: { peloteo: 'Bizitzak', otro: 'Pilota' } },
     result: (a, b) => `${a} – ${b}`,
     factsTitle: 'Ba al zenekien…?',
     est: { title: 'Estatistikak', pelotazos: 'Pilotakadak', hechos: 'Egindako tantoak', fallos: 'Hutsak', saque: 'Sakez', dejada: 'Dejadaz', aire: 'Airez', volea: 'Boleaz', rebote: 'Errebotez',

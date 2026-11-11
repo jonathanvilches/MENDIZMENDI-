@@ -1,6 +1,6 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
-import { COURT, LEVELS, SHOTS, kantari, CUATRO, PHYS } from './rules.js';
+import { COURT, LEVELS, SHOTS, kantari, CUATRO, PHYS, RETOS, estrellasReto } from './rules.js';
 import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec } from './physics.js';
 import { clamp } from '../util/math.js';
 
@@ -101,7 +101,10 @@ export class PelotaGame {
    */
   constructor(o = {}) {
     this.mode = o.mode || 'match';
-    this.target = o.target || (this.mode === 'rally' ? 6 : 7);
+    // (los retos del frontón, rules.js RETOS: van sobre el peloteo de entrenar, con el rival pasándote pelotas)
+    this.reto = RETOS[o.reto] ? o.reto : null; if (this.reto) this.mode = 'rally';
+    this.target = this.reto ? RETOS[this.reto].max : o.target || (this.mode === 'rally' ? 6 : 7);
+    this.retoN = { tiros: 0, ok: 0, vidas: RETOS.peloteo.vidas };
     this.lvl = LEVELS[o.level] || LEVELS.normal; this.tol = TOL[o.level] || TOL.normal;
     // cualidades (de 1 a 5): tú, las que has ido ganando partido a partido (game/pelotariProgreso.js); el rival, las suyas
     // (fuerza, agilidad y velocidad). La precisión, la de los golpes: sin ella, 3, la media
@@ -122,6 +125,7 @@ export class PelotaGame {
     this.camara = !!o.camara;
     let s = o.seed || (Math.random() * 1e9) | 0;
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
+    if (this.reto === 'diana') this.nuevaDiana();
     this.ball = new Ball();
     this.score = { you: 0, rival: 0 };
     // (los descansos que le quedan a cada lado y el pedido para el próximo parón entre tantos)
@@ -232,6 +236,8 @@ export class PelotaGame {
       const R = this.rally;
       if (R.turn !== this.side(who) || !R.front || R.bounces > 1) return false;
       if (R.serve && R.bounces < 1) return false;           // el saque no se puede devolver de aire
+      // (en la diana y las dejadas el rival solo te pasa pelotas: tu golpe no lo devuelve, se juzga solo)
+      if (this.reto && this.reto !== 'peloteo' && this.side(who) === 'rival' && !R.serve) return false;
     } else return false;
     const d = Math.hypot(b.x - pl.x, b.z - pl.z);
     return d < reach && b.y > 0.1 && b.y < 2.4;   // (una dejada bota muy baja: se recoge casi a ras de suelo; arriba, hasta el gancho)
@@ -487,9 +493,14 @@ export class PelotaGame {
     }
     this.phase = 'point'; this.phaseT = 0;
     if (this.mode === 'rally') {
-      if (winner === 'rival' || call === 'bote' && R?.turn === 'you') { this.best = Math.max(this.best, this.streak); this.streak = 0; }
+      const corta = winner === 'rival' || call === 'bote' && R?.turn === 'you';
+      if (corta) { this.best = Math.max(this.best, this.streak); this.streak = 0; }
       this.emit({ type: 'call', call, winner, streak: this.streak });
       this.server = 'rival';
+      // (en los retos: en el peloteo, cada racha cortada quita una vida; en la diana y las dejadas, la pelota que fallas
+      // o no devuelves es una de las 10. Las faltas del rival al pasártela no cuentan)
+      if (this.reto === 'peloteo' && corta) { this.retoN.vidas--; this.emit({ type: 'reto', ok: false, vidas: this.retoN.vidas, n: this.best, max: this.target }); }
+      else if (this.reto && corta) this.retoCuenta(false);
       return;
     }
     this.score[winner]++;
@@ -512,7 +523,8 @@ export class PelotaGame {
       if (e.x > COURT.W / 2) { this.emit({ type: 'front', ...e }); return this.point(receiver, 'lado'); }   // fuera de la raya lateral del frontis
       R.front = true; R.bounces = 0;
       this.emit({ type: 'front', ...e });
-      if (this.mode === 'rally' && striker === 'you') { this.streak++; this.best = Math.max(this.best, this.streak); this.emit({ type: 'streak', n: this.streak }); if (this.streak >= this.target) this.finish(); }
+      if (this.reto === 'diana' && striker === 'you') { const d = this.diana; return this.retoTiro(Math.hypot(e.x - d.x, e.y - d.y) <= d.r, { x: e.x, y: e.y }); }
+      if (this.mode === 'rally' && striker === 'you' && (!this.reto || this.reto === 'peloteo')) { this.streak++; this.best = Math.max(this.best, this.streak); this.emit({ type: 'streak', n: this.streak }); if (this.streak >= this.target) this.finish(); }
     } else if (e.type === 'left') {
       this.emit({ type: 'wall', ...e });
       // en la pared izquierda, por encima de su raya roja (o por encima de la pared) es mala, antes o después del frontis
@@ -529,6 +541,7 @@ export class PelotaGame {
       if (R.bounces === 1) {
         if (e.x > COURT.W / 2) return this.point(receiver, 'fuera');
         if (e.z > COURT.L) return this.point(receiver, 'largo');
+        if (this.reto === 'dejada' && striker === 'you' && !R.serve) return this.retoTiro(e.z <= RETOS.dejada.z, { z: e.z });
         if (this.cuatro) {   // (el saque, entre el 3 y el 5; el tanto, nunca más allá de la raya del 4 y medio)
           if (R.serve && e.z < CUATRO.FALTA) return this.point(receiver, 'falta45');
           if (R.serve && e.z > CUATRO.PASA) return this.point(receiver, 'pasa45');
@@ -542,8 +555,30 @@ export class PelotaGame {
   }
   finish() {
     this.phase = 'end'; this.phaseT = 0;
-    const win = this.mode === 'rally' ? this.streak >= this.target : this.score.you > this.score.rival;
-    this.emit({ type: 'end', win, score: { ...this.score }, best: this.best, stats: this.stats });
+    this.best = Math.max(this.best, this.streak);
+    const reto = this.reto ? { kind: this.reto, n: this.retoValor(), tiros: this.retoN.tiros, max: this.target, estrellas: estrellasReto(this.reto, this.retoValor()) } : null;
+    const win = reto ? reto.estrellas > 0 : this.mode === 'rally' ? this.streak >= this.target : this.score.you > this.score.rival;
+    this.emit({ type: 'end', win, score: { ...this.score }, best: this.best, stats: this.stats, reto });
+  }
+  // ---------------------------------------------------------------- retos
+  /** Lo que llevas en el reto: en el peloteo, la mejor racha; en la diana y las dejadas, los aciertos */
+  retoValor() { return this.reto === 'peloteo' ? Math.max(this.best, this.streak) : this.retoN.ok; }
+  /** ¿Se ha acabado el reto? (sin vidas en el peloteo; con las 10 pelotas tiradas en los otros) */
+  retoAcabado() { return this.reto === 'peloteo' ? this.retoN.vidas <= 0 : this.retoN.tiros >= this.target; }
+  /** La diana del frontis: un aro en un sitio al azar donde llegan los golpes que se apuntan (medido en el juego: de 3,2 a
+   *  7,3 m de alto, más bajo cuanto más corto y fuerte; de lado, de la pared a algo más allá del centro) */
+  nuevaDiana() { const r = RETOS.diana.r; this.diana = { x: -3 + this.rnd() * 5.4, y: 3.4 + this.rnd() * 2.8, r }; }
+  /** Cuenta una de las pelotas del reto (acertada o no) y avisa (match.js la rotula y mueve la diana) */
+  retoCuenta(ok, info = {}) {
+    const N = this.retoN; N.tiros++; if (ok) N.ok++;
+    if (this.reto === 'diana') this.nuevaDiana();
+    this.emit({ type: 'reto', ok, n: N.ok, tiros: N.tiros, max: this.target, diana: this.diana, ...info });
+  }
+  /** Tu golpe ya se ha juzgado (en el aro o no, antes del 2 o no): se cuenta y se acaba el peloteo; el rival vuelve a
+   *  pasarte otra pelota (o, con las 10, se acaba el reto) */
+  retoTiro(ok, info) {
+    this.retoCuenta(ok, info);
+    this.phase = 'point'; this.phaseT = 0; this.finalPoint = false;
   }
 
   // ---------------------------------------------------------------- rival (y piloto automático)
@@ -802,6 +837,7 @@ export class PelotaGame {
     if (this.phase === 'point') {
       if (this.phaseT > (this.finalPoint ? 4.6 : 2.1)) {
         if (this.mode === 'match' && (this.score.you >= this.target || this.score.rival >= this.target)) this.finish();
+        else if (this.reto && this.retoAcabado()) this.finish();
         else this.toServe();
       }
       this.stepBall(dt, false);

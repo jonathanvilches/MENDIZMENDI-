@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, torneoPanel, youBonus, yourMatch } from './torneo.js';
+import { KINDS, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -190,6 +190,7 @@ export class PuebloDeportes {
       if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
+      if (pick === 'retos') return await this.pelotaRetos(a, sel);
       const v = await this.venueListo(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
       const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => llegaFronton(this, v, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
@@ -201,6 +202,20 @@ export class PuebloDeportes {
       this.player.frozen = true;
       await this.say(a, [r.win ? `¡${r.you} a ${r.cpu}! Juegas como un pelotari de verdad. Vuelve cuando quieras.` : `${r.you} a ${r.cpu}. ¡Casi! Aquí estaré para la revancha.`]);
     } finally { if (!this.disposed) { this.sportBusy = false; this.player.frozen = false; a.talking = 0; this.sportBackdrop(false); this.ui.hudVisible(true); if (this.rt?.quality === 'low') freeVenues(); } }   // (de vuelta al pueblo, en el móvil, sin los frontones de los campeonatos)
+  }
+  // Los retos del frontón (torneo.js retosMenu; pelota/game.js): eliges uno, se juega en el frontón elegido y, al
+  // acabar, de vuelta a los retos con tu marca apuntada; con «Volver», al menú de pelota (o al pueblo)
+  async pelotaRetos(a, sel) {
+    for (;;) {
+      const k = await retosMenu(); if (!k || this.disposed) return;
+      const v = await this.venueListo(sel.sede); await this.venuePrep(v);
+      if (this.disposed) return;
+      const r = await v.play(this, a, { ...(v === this.fronton && !this.sportMode ? {} : { returnTo: this.fronton }), stay: this.sportMode, comp: 'Reto del frontón', intro: (m) => llegaFronton(this, v, m),
+        mode: 'rally', reto: k, retoMejor: retosMios()[k]?.n || 0 });
+      if (this.disposed) return;
+      this.sportBackdrop(true);
+      if (r.reto) { apuntaReto(r.reto); saveProfile(); }
+    }
   }
   // Campeonato de pelota desde el menú (sin misiones): el frontón del pueblo elegido con su menú de pelota (partido
   // libre o torneo por la txapela, todos los partidos aquí, sin viajar). Al salir del menú, de vuelta al inicio
@@ -266,6 +281,7 @@ export class PuebloDeportes {
         if (this.disposed || pick === 'exit') return;
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
         if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : 'mano'); if (this.disposed) return; continue; }
+        if (pick === 'retos') { await this.pelotaRetos(a, sel); if (this.disposed) return; continue; }
         // (el fondo sigue delante mientras se preparan los pelotaris: lo quita el vuelo de la llegada; antes se veía al
         // jugador quieto en la puerta del frontón hasta que empezaba el partido)
         const hv = await this.venueListo(sel.sede); await this.venuePrep(hv);
