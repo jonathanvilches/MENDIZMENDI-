@@ -262,14 +262,14 @@ const CSS = `
 /* quién juega contra quién: las cartas de los pelotaris (ui/sportCard.js, las del cuadro del torneo y la Gran final), las
    tuyas de tu color a la izquierda, el «VS» y las del rival; al tocar una, su ficha. En una pantalla tumbada las cartas
    van a la izquierda, con todo el alto de la ventana, y lo demás (.pel-lado: el título, el frontón, «Más opciones», el
-   nivel y los botones) en una columna a su derecha, que no baja de 264 px; de pie, las cartas arriba y lo demás debajo.
+   nivel y los botones) en una columna a su derecha, que no baja de 280 px; de pie, las cartas arriba y lo demás debajo.
    El ancho de la carta, --cw, lo mide match.js (intro, encaja) con el sitio que queda: mano a mano salen de 136 px o
    más, con sus seis cifras en dos columnas; por parejas, dos por lado, el delantero encima del zaguero. Con «Más
    opciones» abierto las cartas se apartan y la columna se deshace (display:contents): la ventana de siempre */
 .pel-rv{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 12px}
 .pel-team{flex:none;display:flex;flex-direction:column;gap:8px}
 .pel-vs .gx-card{--w:var(--cw,140px)!important}
-.pel-vs-x{flex:none;min-width:32px;text-align:center;font:400 var(--fs-xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#ff7ac8;letter-spacing:.04em}
+.pel-vs-x{flex:none;min-width:32px;text-align:center;font:400 var(--fs-2xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.02em;background:linear-gradient(180deg,#fff,#ff7ac8);-webkit-background-clip:text;background-clip:text;color:transparent}   /* (el mismo «VS» que el del cuadro del torneo) */
 .pel-lado{display:contents}.pel-pres .pel-row{margin-left:0;margin-right:0;padding-left:0;padding-right:0}
 /* (con «Más opciones» abierto sobra la línea del campeonato: así la vista cabe sin desplazar) */
 .pel-card.pel-pres.mas>.pel-lado>.pel-sub{display:none}
@@ -284,15 +284,17 @@ const CSS = `
   .pel-card.pel-pres:not(.mas)>.pel-lado>*{flex:none;margin:0}
   .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lbl{margin-bottom:-4px}
   .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-row{position:static;padding:0;background:none}
+  .pel-card.pel-pres:not(.mas) .pel-sum{display:none}   /* (el resumen de lo elegido no cabe entero en la columna) */
   .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
   .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5 button{grid-column:span 2;min-width:0}.pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5 button:nth-child(n+4){grid-column:span 3}
 }
-/* (en el móvil tumbado: el mismo relleno arriba que abajo, todo más junto, sin el rótulo «Nivel», que el grupo lo lleva
-   como aria-label, y sin el resumen de lo elegido, que en esa columna no cabe entero) */
+/* (en el móvil tumbado: el mismo relleno arriba que abajo, todo más junto y sin el rótulo «Nivel», que el grupo lo lleva
+   como aria-label) */
 @media (orientation:landscape) and (max-height:500px){
   .pel-card.pel-pres:not(.mas){padding:12px 16px}
   .pel-card.pel-pres:not(.mas)>.pel-lado{gap:8px}
-  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lbl,.pel-card.pel-pres:not(.mas) .pel-sum{display:none}
+  .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lbl{display:none}
+  .pel-vs-x{font-size:var(--fs-xl)}
   .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-lv5 button{min-height:44px;padding:4px 8px}
   .pel-card.pel-pres:not(.mas)>.pel-lado>.pel-row .pel-go{min-height:44px}
 }

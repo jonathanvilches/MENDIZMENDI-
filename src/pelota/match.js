@@ -383,7 +383,7 @@ export class PelotaMatch {
     card.classList.toggle('pel-pres', !!duelo);
     let encaja = () => {};
     // (el ancho de las cartas, --cw, con el sitio que deja la ventana, como en la Gran final. Tumbada: de alto, el de la
-    // ventana; de ancho, lo que queda tras dejar 264 px a la columna de al lado. De pie: de ancho, la mitad de la ventana;
+    // ventana; de ancho, lo que queda tras dejar 280 px a la columna de al lado. De pie: de ancho, la mitad de la ventana;
     // de alto, lo que queda sobre lo demás. Se vuelve a medir si la pantalla cambia de tamaño o se gira)
     encaja = () => {
       const rv = duelo && card.isConnected && !card.classList.contains('mas') && card.querySelector('.pel-rv'); if (!rv) return;
@@ -391,7 +391,7 @@ export class PelotaMatch {
       const iw = card.clientWidth - px(sc.paddingLeft) - px(sc.paddingRight), ih = p.clientHeight - px(sp.paddingTop) - px(sp.paddingBottom) - px(sc.paddingTop) - px(sc.paddingBottom) - 2;
       const alto = (h) => (h - (n - 1) * 8) / n / 1.48;
       let w;
-      if (matchMedia('(orientation: landscape)').matches) w = Math.min(alto(ih), (iw - 264 - 16 - 48) / 2);
+      if (matchMedia('(orientation: landscape)').matches) w = Math.min(alto(ih), (iw - 280 - 16 - 48) / 2);
       else { card.style.setProperty('--cw', '92px'); const otros = card.scrollHeight - px(sc.paddingTop) - px(sc.paddingBottom) - rv.offsetHeight; w = Math.min(alto(ih - otros), (iw - 48) / 2); }
       card.style.setProperty('--cw', Math.floor(Math.max(n > 1 ? 92 : 104, Math.min(n > 1 ? 150 : 200, w))) + 'px');
     };

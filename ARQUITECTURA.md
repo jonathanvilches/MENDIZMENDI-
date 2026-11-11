@@ -374,7 +374,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   «Ficha»; `playerChip` y su CSS se han retirado. En una pantalla tumbada (móvil u ordenador) las cartas van a la
   izquierda, con todo el alto de la ventana, y lo demás (`.pel-lado`: el título con el campeonato y los tantos, el
   frontón, «Más opciones» con «Partes del frontón» al lado, el nivel en dos filas iguales de 3 y 2 y los botones) en una
-  columna a su derecha, que no baja de 264 px; de pie, las cartas arriba y lo demás debajo. `encaja` mide el ancho de la
+  columna a su derecha, que no baja de 280 px; de pie, las cartas arriba y lo demás debajo. `encaja` mide el ancho de la
   carta (`--cw`, que la hoja pasa a `--w`) con el sitio que queda, como hace la Gran final, y lo vuelve a medir si la
   pantalla cambia de tamaño o se gira (`ResizeObserver`): mano a mano, de 136 a 200 px (seis cifras en dos columnas
   también en un iPhone pequeño tumbado, 667 × 375); por parejas, de 92 a 150. El peloteo y los retos no tienen rival y
