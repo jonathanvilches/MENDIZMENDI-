@@ -1,0 +1,1 @@
+var e=new URL(`remonta-1-DhTXL-rR.mp3`,import.meta.url).href;export{e as default};
