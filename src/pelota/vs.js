@@ -59,21 +59,27 @@ const CSS = `
 .pvs-tags span{padding:2px 8px;background:rgba(7,2,15,.75);border:1px solid rgba(255,255,255,.08);font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila);border-radius:6px;}
 .pvs-tags b{color:#fff;font-weight:800}
 .pvs [hidden]{display:none!important}.pvs-tags span{white-space:nowrap}.pvs-mid.stack .pvs-tags{flex-direction:column;align-items:center}
-.pvs-plate{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 46px);z-index:5;width:max-content;max-width:min(330px,38%);display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;filter:drop-shadow(0 8px 16px rgba(0,0,0,.55))}
+/* la placa de cada jugador: una sola tarjeta con las esquinas de los paneles (10 px) y, dentro, separada del borde 5 px,
+   su media en una caja clara con sus propias esquinas (6 px) y al lado el nombre, el pueblo y las cifras. Antes eran dos
+   cajas sueltas, la blanca montada 6 px sobre la oscura, y se veían pisadas (noviembre de 2026). Como carta de jugador,
+   un filo de 1 px del color de su bando */
+.pvs-plate{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 50px);z-index:5;width:max-content;max-width:min(330px,38%);box-sizing:border-box;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:stretch;padding:5px;border-radius:10px;
+  background:linear-gradient(180deg,rgba(30,13,62,.95),rgba(9,3,20,.93));box-shadow:0 10px 24px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.07),inset 0 0 0 1px var(--filo,rgba(255,255,255,.1))}
+.pvs-plate.azul{--filo:rgba(123,107,255,.6)}.pvs-plate.rojo{--filo:rgba(255,111,181,.6)}
 .pvs-plate.azul{left:calc(env(safe-area-inset-left,0px) + 16px);animation:pvs-pl .4s .85s cubic-bezier(.2,1.2,.4,1) both}
 .pvs-plate.rojo{right:calc(env(safe-area-inset-right,0px) + 16px);grid-template-columns:minmax(0,1fr) auto;text-align:right;animation:pvs-pr .4s .95s cubic-bezier(.2,1.2,.4,1) both}
-.pvs-ovr{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px 12px;background:#fff;color:var(--v2);border-radius:6px;}
+.pvs-ovr{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:56px;box-sizing:border-box;padding:6px 10px;background:linear-gradient(180deg,#fff 0%,#efe8ff 100%);color:var(--v2);border-radius:6px;}
 .pvs-plate.azul .pvs-ovr{color:var(--azul2)}.pvs-plate.rojo .pvs-ovr{order:2;color:var(--rojo2)}
 .pvs-ovr b{font:400 var(--fs-3xl)/1 var(--f-display)}.pvs-ovr small{font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
-.pvs-who{min-width:0;padding:8px 18px 10px;background:rgba(7,2,15,.86);border-radius:6px;margin-left:-6px}
-.pvs-plate.rojo .pvs-who{margin:0 -6px 0 0}
+.pvs-who{min-width:0;padding:3px 12px 4px 14px}
+.pvs-plate.rojo .pvs-who{padding:3px 14px 4px 12px}
 .pvs-who b{display:block;padding-right:.1em;font:400 var(--fs-2xl)/1.15 var(--f-display);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvs-who small{display:block;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--lila);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pvs-st{display:flex;gap:14px;margin-top:4px;font:700 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila)}.pvs-plate.rojo .pvs-st{justify-content:flex-end}
 .pvs-st b{display:inline;font:800 var(--fs-sm)/1 var(--f-cond);color:#fff;margin-left:3px}
 /* accesibilidad (util/accesible.js) */
 body.textos-grandes .pvs{--fs-xs:15px;--fs-sm:17px;--fs-md:19px;--fs-lg:24px;--fs-xl:28px;--fs-2xl:36px;--fs-3xl:44px}
-body.alto-contraste .pvs :is(.pvs-who,.pvs-tick,.pvs-venue,.pvs-lineb,.pvs-tags span){background:#000;border:2px solid #fff}
+body.alto-contraste .pvs :is(.pvs-plate,.pvs-tick,.pvs-venue,.pvs-lineb,.pvs-tags span){background:#000;border:2px solid #fff}
 body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pvs-tick .q){color:#fff}body.alto-contraste .pvs .pvs-arq span{background:#000;border:1px solid #fff}
 /* (su arquetipo, su mano y su golpe estrella: rules.js, arqChips) */
 .pvs-arq{display:flex;flex-wrap:wrap;align-items:center;gap:2px 14px;margin-top:6px}.pvs-plate.rojo .pvs-arq{justify-content:flex-end}
@@ -81,11 +87,13 @@ body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pv
    quedaba apretada (la mano está en la ficha; el zurdo ya es un arquetipo) */
 .pvs-arq span{display:inline-flex;align-items:center;gap:5px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:#fff;white-space:nowrap}
 .pvs-arq svg{width:15px;height:15px;flex:none;color:#ff7ad9}.pvs-arq span.estrella{color:#ffd166}
-.pvs-tick{position:absolute;left:0;right:0;bottom:0;z-index:5;height:calc(env(safe-area-inset-bottom,0px) + 36px);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;align-items:center;background:rgba(7,2,15,.9);animation:pvs-up .35s 1.2s ease-out both}
+.pvs-tick{position:absolute;left:0;right:0;bottom:0;z-index:5;height:calc(env(safe-area-inset-bottom,0px) + 40px);padding-bottom:env(safe-area-inset-bottom,0px);display:flex;align-items:center;background:rgba(7,2,15,.9);animation:pvs-up .35s 1.2s ease-out both}
 .pvs-tick .q{flex:1;min-width:0;overflow:hidden;white-space:nowrap;padding-left:calc(env(safe-area-inset-left,0px) + 16px);font:600 var(--fs-sm)/1.3 var(--f-cond);font-style:italic;letter-spacing:.02em}
 .pvs-tick .q span{display:inline-block;padding-right:40px}.pvs-tick .q.run span{animation:pvs-marq var(--mt,12s) linear 1.6s infinite}
 .pvs-tick .q em{font-style:normal;color:var(--rosa);font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-right:8px}
-.pvs-tap{flex:none;align-self:stretch;display:flex;align-items:center;padding:0 calc(env(safe-area-inset-right,0px) + 16px) 0 20px;background:var(--cta);font:400 var(--fs-md)/1 var(--f-display);text-transform:uppercase;letter-spacing:.04em;border-radius:6px;animation:pvs-tap 1s ease-in-out 1.6s infinite alternate}
+/* (empezar: una pastilla dentro de la franja, con su margen, como todos los botones; antes era un bloque pegado al borde de
+   la pantalla con las esquinas de caja) */
+.pvs-tap{flex:none;align-self:center;display:flex;align-items:center;height:30px;box-sizing:border-box;margin:0 calc(env(safe-area-inset-right,0px) + 12px) 0 12px;padding:0 18px;background:var(--cta);font:400 var(--fs-md)/1 var(--f-display);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;border-radius:999px;animation:pvs-tap 1s ease-in-out 1.6s infinite alternate}
 .pvs.out{animation:pvs-out .22s ease-in both}
 @keyframes pvs-in{from{opacity:0}to{opacity:1}}@keyframes pvs-out{to{opacity:0;transform:scale(1.04)}}
 @keyframes pvs-l{from{transform:translateX(-100%)}to{transform:none}}@keyframes pvs-r{from{transform:translateX(100%)}to{transform:none}}
@@ -105,7 +113,7 @@ body.alto-contraste .pvs :is(.pvs-who small,.pvs-st,.pvs-arq span,.pvs-venue,.pv
 @media (orientation:landscape) and (max-height:500px){.pvs-who b{font-size:var(--fs-xl)}.pvs-ovr b{font-size:var(--fs-2xl)}.pvs-plate{max-width:min(300px,36%)}}
 @media (orientation:portrait){.pvs-bar{flex-wrap:wrap;justify-content:center;row-gap:4px}.pvs-venue{margin-left:0}.pvs-who b{font-size:var(--fs-xl)}.pvs-comp{font-size:var(--fs-md)}}
 /* (placas compactas en pantallas muy bajas: Safari con sus barras en el móvil tumbado) */
-@media (orientation:landscape) and (max-height:340px){.pvs-who{padding:2px 12px}.pvs-who b{font-size:var(--fs-lg)}.pvs-ovr{padding:2px 10px}.pvs-ovr b{font-size:var(--fs-xl)}.pvs-st b{font-size:var(--fs-xs)}}
+@media (orientation:landscape) and (max-height:340px){.pvs-plate{padding:4px}.pvs-who,.pvs-plate.rojo .pvs-who{padding:1px 10px 2px}.pvs-who b{font-size:var(--fs-lg)}.pvs-ovr{padding:2px 8px;min-width:48px}.pvs-ovr b{font-size:var(--fs-xl)}.pvs-st b{font-size:var(--fs-xs)}}
 @media (prefers-reduced-motion:reduce){.pvs,.pvs *{animation:none!important}.pvs-flash{display:none}}
 `;
 

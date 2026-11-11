@@ -179,6 +179,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ratón, se inclinan y llevan la luz de las cartas vivas (están en `CARTAS`). La ficha del pueblo (`.m3-ft`) también va a
   10 px (antes 4 px), con la raya de color de arriba curvada con sus esquinas, y su caja de misiones a 6 px. En
   `neon.css`, las dos están en la lista de los paneles.
+- **Placas de la pantalla VS** (`pelota/vs.js`, también la usa el fútbol; noviembre de 2026). Cada jugador tiene una sola
+  placa con las esquinas de los paneles (10 px) y, dentro, separada 5 px del borde, su media en una caja clara de 6 px y
+  al lado el nombre, el pueblo y las cifras. Antes eran dos cajas sueltas, la blanca montada 6 px sobre la oscura. Como
+  carta de jugador, lleva un filo de 1 px del color de su bando. «Toca para empezar» es una pastilla dentro de la franja
+  de abajo, con su margen (`.pvs-tap` ya no está en la lista de 6 px de `neon.css`).
 
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia
