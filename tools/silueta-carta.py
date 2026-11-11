@@ -2,12 +2,12 @@
 # (esquinas cóncavas, hombros y un pico en medio) y la punta abajo. Saca los polygon() de CSS con las curvas muestreadas:
 # clip-path: path() no se estira con la caja y shape() aún no lo tiene todo Safari, así que van como polígonos.
 #
-#   python3 -I tools/silueta-carta.py            imprime --fifa, --corona y --marco de .gx-card y --fifa de .sport
+#   python3 -I tools/silueta-carta.py            imprime --fifa, --corona y --marco de .gx-card
 #
 # Cada punto es una combinación lineal (porcentaje de la caja + píxeles): las curvas de Bézier son lineales en sus puntos
 # de control, así que una curva entre un punto en píxeles y otro en porcentaje sigue siendo un polygon() válido con calc().
 # .gx-card escala con su ancho: todo en porcentaje, sobre una carta de 100 x ALTO unidades (su alto en CSS, sport.css).
-# .sport cambia de ancho y de alto: la corona y la punta van en píxeles desde los bordes y el centro.
+# (las dos tarjetas de Torneos, .sport, la llevaron hasta noviembre de 2026; ahora son tarjetas redondeadas)
 import math
 
 ALTO = 148          # alto de la carta de pelotari por cada 100 de ancho (sport.css: height: calc(var(--w) * 1.48))
@@ -138,28 +138,7 @@ def marco():
     return poly(fuera + [fuera[0]] + dentro + [dentro[0]]).replace('polygon(', 'polygon(evenodd, ', 1)
 
 
-# ---------- las cartas de Torneos, en píxeles desde los bordes ----------
-S_R, S_HOMBRO, S_HOMBRO_C, S_PICO, S_LADO, S_ESQ_X, S_ESQ_Y = 14, 12, 11, 84, 30, 12, 21.5
-
-
-def sport():
-    pts = []
-    for i in range(0, 9):
-        th = i / 8 * math.pi / 2
-        pts.append(P(0, S_R * math.sin(th), 0, S_HOMBRO + S_R * math.cos(th)))
-    a = P(50, -S_PICO, 0, S_HOMBRO_C); pts.append(a)
-    pts += quad(a, P(50, -S_PICO / 3, 0, S_HOMBRO_C), P(50, 0, 0, 0), 12)
-    izq_arriba = pts
-    der_arriba = [q.espejo() for q in reversed(pts[:-1])]
-    a, c, b = P(0, 0, 100, -S_LADO), P(0, 0, 100, -S_LADO + 7), P(0, S_ESQ_X, 100, -S_ESQ_Y)
-    ab = [a] + quad(a, c, b, 6) + [P(50, 0, 100, 0)]
-    der_abajo = [q.espejo() for q in ab[:-1]]
-    izq_abajo = list(reversed(ab))
-    return poly(izq_arriba + der_arriba + der_abajo + izq_abajo)
-
-
 if __name__ == '__main__':
     print(f'.gx-card --fifa: {gx_card()};')
     print(f'.gx-card --corona: {cinta()};')
     print(f'.gx-card --marco: {marco()};')
-    print(f'.sport --fifa: {sport()};')

@@ -57,15 +57,15 @@
 .kicker + .title { margin-top: var(--t-mt); }
 
 /* ---------- las cartas de Torneos ----------
-   Con las esquinas de 8 px y el filo de neón del color de su deporte (neon.css): la carta pinta el borde y su fondo va
-   dentro, un píxel más adentro; al pasar por encima, el borde toma el color de su deporte. La lámina y la barra de
-   abajo, con su esquina redonda */
+   Tarjetas del menú como las demás, con las esquinas de 8 px (neon.css): la carta pinta una raya neutra y su fondo va
+   dentro, un píxel más adentro; al pasar por encima se levanta, sin borde de color. La lámina y la barra de abajo, con
+   su esquina redonda */
 .sport { border: 0; background: rgba(255, 255, 255, .12); box-shadow: none;
   border-radius: 8px; }
 .sport::before { content: ''; position: absolute; inset: 1px; z-index: -1; pointer-events: none;
   border-radius: 7px;
   background: radial-gradient(120% 70% at 0% 0%, color-mix(in srgb, var(--acc) 26%, transparent), transparent 62%), radial-gradient(90% 60% at 100% 100%, color-mix(in srgb, var(--acc) 14%, transparent), transparent 70%), linear-gradient(165deg, #2b0f60, #12052a 75%); }
-.sport:hover { box-shadow: none; background: color-mix(in srgb, var(--acc) 70%, #fff); }
+.sport:hover { box-shadow: none; }   /* (sin borde del color de su deporte: neon.css) */
 .sp-cover, .sp-bar { border-radius: var(--r); }
 
 

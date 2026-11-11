@@ -32,19 +32,14 @@
 #hub :is(.scard.fl .spic, .pcard .pc-img, .ddc .ddc-pic, .cuentos .ct-lam) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px) 0 0 !important; }
 #hub :is(.lam-rail .lam img, .fcard.pers.ilus .fpic) { clip-path: none !important; border-radius: calc(var(--neon-r) - 1px) !important; }
 #hub .lam-rail .lam span { border-radius: 0 0 calc(var(--neon-r) - 1px) calc(var(--neon-r) - 1px); }
-/* (las de Torneos, con la misma silueta de escudo que las cartas de pelotari, en píxeles desde los bordes y el centro, que
-   estas cambian de ancho y de alto: la corona arriba y la punta abajo. No son cartas de jugador: sin filo de neón; una raya
-   neutra de 1 px sigue la forma, y la sombra también. Los polígonos los saca tools/silueta-carta.py) */
-.sport { --fifa: polygon(0 26px, 2.73px 25.73px, 5.36px 24.93px, 7.78px 23.64px, 9.9px 21.9px, 11.64px 19.78px, 12.93px 17.36px, 13.73px 14.73px, 14px 12px, calc(50% - 84px) 11px, calc(50% - 74.86px) 10.92px, calc(50% - 66.11px) 10.69px, calc(50% - 57.75px) 10.31px, calc(50% - 49.78px) 9.78px, calc(50% - 42.19px) 9.09px, calc(50% - 35px) 8.25px, calc(50% - 28.19px) 7.26px, calc(50% - 21.78px) 6.11px, calc(50% - 15.75px) 4.81px, calc(50% - 10.11px) 3.36px, calc(50% - 4.86px) 1.76px, 50% 0, calc(50% + 4.86px) 1.76px, calc(50% + 10.11px) 3.36px, calc(50% + 15.75px) 4.81px, calc(50% + 21.78px) 6.11px, calc(50% + 28.19px) 7.26px, calc(50% + 35px) 8.25px, calc(50% + 42.19px) 9.09px, calc(50% + 49.78px) 9.78px, calc(50% + 57.75px) 10.31px, calc(50% + 66.11px) 10.69px, calc(50% + 74.86px) 10.92px, calc(50% + 84px) 11px, calc(100% - 14px) 12px, calc(100% - 13.73px) 14.73px, calc(100% - 12.93px) 17.36px, calc(100% - 11.64px) 19.78px, calc(100% - 9.9px) 21.9px, calc(100% - 7.78px) 23.64px, calc(100% - 5.36px) 24.93px, calc(100% - 2.73px) 25.73px, 100% 26px, 100% calc(100% - 30px), calc(100% - 0.33px) calc(100% - 27.82px), calc(100% - 1.33px) calc(100% - 25.94px), calc(100% - 3px) calc(100% - 24.38px), calc(100% - 5.33px) calc(100% - 23.11px), calc(100% - 8.33px) calc(100% - 22.15px), calc(100% - 12px) calc(100% - 21.5px), 50% 100%, 12px calc(100% - 21.5px), 8.33px calc(100% - 22.15px), 5.33px calc(100% - 23.11px), 3px calc(100% - 24.38px), 1.33px calc(100% - 25.94px), 0.33px calc(100% - 27.82px), 0 calc(100% - 30px));
-  background: none !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; overflow: visible; isolation: isolate;
-  filter: drop-shadow(0 18px 30px rgba(4, 1, 12, .4)); transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), filter .3s; }
-.sport::before { inset: 1px !important; border-radius: 0 !important; clip-path: var(--fifa) !important; }
-/* (más hueco arriba y abajo que a los lados: la corona baja 12 px en los hombros y la punta sube 30 en las esquinas; con él,
-   la lámina y la barra de jugar no tocan el filo en ningún tamaño) */
-.sport { padding-top: 24px; padding-bottom: 28px; }
-@media (orientation: landscape) and (max-height: 560px) { .sport { padding-top: 22px; padding-bottom: 24px; } }
-.sport::after { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none; clip-path: var(--fifa); background: rgba(255, 255, 255, .12); }
-.sport:is(:hover, :focus-visible) { filter: drop-shadow(0 26px 40px rgba(4, 1, 12, .5)); }
+/* (las dos de Torneos, pelota y fútbol: tarjetas del menú como las demás, con las esquinas de 8 px, una raya neutra de 1 px
+   alrededor, su relleno 1 px por dentro y una sombra. La silueta de escudo, con la corona y la punta, es solo de las cartas
+   de jugador: estas la llevaron hasta noviembre de 2026 y el autor pidió quitarla, «estos bloques no hace falta») */
+.sport { background: var(--linea) !important; border: 0 !important; border-radius: var(--neon-r) !important; box-shadow: var(--sombra-caja) !important; isolation: isolate;
+  transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), box-shadow .3s; }
+.sport::before { inset: 1px !important; border-radius: calc(var(--neon-r) - 1px) !important; clip-path: none !important; }
+/* (al pasar por encima, se levanta y la sombra se hace más honda; el borde no toma el color de su deporte) */
+.sport:is(:hover, :focus-visible) { background: var(--linea) !important; box-shadow: 0 12px 28px rgba(4, 1, 12, .42) !important; }
 
 /* ---------- el filo de neón: la carta de jugador ---------- */
 /* (la carta de pelotari, con la silueta de escudo de las cartas de los juegos de fútbol: arriba la corona, con las
