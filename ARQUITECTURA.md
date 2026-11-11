@@ -307,6 +307,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Partido de pelota, los pelotaris no se atraviesan** (`pelota/match.js`, `esquiva`): al volver a su sitio para el
   saque, cada uno mira dónde se cruzará con el otro según el paso que llevan y, si van a pasar a menos de un metro, se
   abre hacia su lado; si aun así se juntan a menos de 75 cm, se separan. Llegan a la vez que antes.
+- **Partido de pelota, corren de verdad** (`game/fronton.js`, `corre`; `actors/glbChar.js`, `GlbRig.update`): el
+  pelotari pasa de andar a correr a 1,85 m/s (la gente del pueblo, a 3,6): el clip de andar a su tope solo cubre 1,9 m/s
+  y, al frenar volviendo al saque, los pies patinaban. Los gestos de parado (celebrar, la pena, saludar, soplarse la
+  mano, soltar el brazo, hablar) se cortan en cuanto pasa de 0,8 m/s, y el golpe, que es de cuerpo entero, deja paso a la
+  carrera a las 15 centésimas del impacto si sale corriendo. Se comprueba con un partido automático avanzado a mano a 60
+  fotogramas por segundo, figura por figura: velocidad real, clip y gesto suelto en cada fotograma.
 - **Las manos no entran en la cabeza** (`actors/glbChar.js`, `apartaManos`, encadenado tras `armSwing`): la cabeza se
   mide una vez en la malla de cada figura (los puntos que mueve el hueso de la cabeza y lo que cuelga de él, en su
   espacio; el radio que deja dentro al 90 %) y, en cada fotograma, si la palma queda dentro, el brazo se gira desde el

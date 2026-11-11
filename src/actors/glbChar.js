@@ -317,7 +317,7 @@ export class GlbChar {
     const a = this.actions[name];
     if (!a) return;
     const dur = a.getClip().duration;
-    this.oneShot = { name, t: secs ?? dur, then };
+    this.oneShot = { name, t: secs ?? dur, d: secs ?? dur, then };   // (d: lo que dura, para saber cuánto lleva)
     a.timeScale = fit && secs ? dur / secs : 1;
     if (this.current === a) a.reset().setEffectiveWeight(1).play();   // (el mismo movimiento otra vez, desde el principio: dos golpes seguidos del mismo lado)
     this.play(name, fade);
@@ -544,8 +544,9 @@ const EXPR = {
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
-// los gestos que se hacen parado (celebrar, la pena, saludar): se cortan al echar a correr (GlbRig.update)
-const GESTO = /^(Celebrate|Sad|Wave)/;
+// los gestos que se hacen parado (celebrar, la pena, saludar, soplarse la mano, soltar el brazo, hablar): se cortan en
+// cuanto echa a andar (GlbRig.update)
+const GESTO = /^(Celebrate|Sad|Wave|Sopla|Suelta|Talk)/;
 export class GlbRig {
   constructor(gltf, id = 'sanfermin') {
     const def = GLB_AVATARS[id] || {};
@@ -582,7 +583,13 @@ export class GlbRig {
     this.wasGrounded = grounded;
     // (si echa a correr, los gestos de quieto —celebrar, la pena, saludar— se cortan y entra la carrera: duran más que la
     // pausa entre tanto y tanto, y la figura volvía al saque celebrando o con las manos a la cabeza, como deslizándose)
-    if (speed > 1.5 && (this.cheer > 0 || this.wave > 0 || GESTO.test(c.oneShot?.name || ''))) { this.cheer = 0; this.wave = 0; if (GESTO.test(c.oneShot?.name || '')) c.oneShot = null; }
+    // (desde 0,8 m/s, que ya es andar: el partido grabado fotograma a fotograma, noviembre de 2026, enseñó al pelotari
+    // volviendo al saque a 5 m/s mientras se soplaba la mano o soltaba el brazo, quieto de piernas)
+    if (speed > 0.8 && (this.cheer > 0 || this.wave > 0 || GESTO.test(c.oneShot?.name || ''))) { this.cheer = 0; this.wave = 0; if (GESTO.test(c.oneShot?.name || '')) c.oneShot = null; }
+    // (y el golpe: el clip empieza en el impacto y sigue con el brazo hasta medio segundo, de cuerpo entero. Si mientras
+    // tanto sale corriendo a recolocarse, a las 15 centésimas del impacto entra la carrera; antes acababa el gesto entero
+    // y se iba deslizando de pie más de dos metros)
+    if (speed > 1.5 && c.oneShot?.golpe && c.oneShot.d - c.oneShot.t > 0.15) c.oneShot = null;
     if (grounded && !c.oneShot) {
       if (this.cheer > 0) c.playOnce(this.cheerClip && c.actions[this.cheerClip] ? this.cheerClip : 'Celebrate', this.cheer);
       else if (this.wave > 0 && speed < 1) c.playOnce('Wave', this.wave);
@@ -619,7 +626,7 @@ export class GlbRig {
     const c = this.char;
     // (el pelotari: el golpe que toca, derecha o izquierda, sotamano o de aire, entero desde el armado)
     // (el pelotari con sus golpes: sin fundido, que el clip empieza en el impacto y tiene que verse en esa misma imagen)
-    if (kind === 'hit' && c.actions.Hit) { const n = golpe && c.actions[golpe] ? golpe : 'Hit', d = c.armados ? c.actions[n].getClip().duration : t; c.playOnce(n, d, false, null, c.armados ? 0.03 : undefined); c.holdFace('SmileOpen', 'Angry', d, 'Open'); }
+    if (kind === 'hit' && c.actions.Hit) { const n = golpe && c.actions[golpe] ? golpe : 'Hit', d = c.armados ? c.actions[n].getClip().duration : t; c.playOnce(n, d, false, null, c.armados ? 0.03 : undefined); if (c.oneShot) c.oneShot.golpe = true; c.holdFace('SmileOpen', 'Angry', d, 'Open'); }
     // (el lamento, de dos maneras: las manos a la cabeza o los brazos en jarra, negando)
     else if (kind === 'sad' && c.actions.Sad) { const n = c.actions.Sad2 && (this.sadN = (this.sadN || 0) + 1) % 2 ? 'Sad2' : 'Sad'; c.playOnce(n); c.holdFace('Tired', 'Worried', 1.8); }
     // (los gestos de entre tanto y tanto: soplarse la mano, soltar el brazo. Solo si el pelotari los tiene)

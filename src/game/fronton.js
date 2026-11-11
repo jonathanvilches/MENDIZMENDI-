@@ -39,12 +39,16 @@ const COLORADO = '#c8222a';
 // dos a 2048 el partido pasaba de 74 MB de texturas y el iPhone pierde la imagen hacia los 65. Es la que tenían en el
 // iPhone hasta octubre de 2026, cuando se cargaban antes de tiempo junto al frontón del pueblo
 const nitido = (model) => { if (!(QUALITY === 'low' && matchMedia?.('(pointer: coarse)').matches)) fullTexFor(model); };
+// (el pelotari pasa de andar a correr a 1,85 m/s, y no a 3,6 como la gente del pueblo: el clip de andar, acelerado a su
+// tope, solo cubre 1,9 m/s, y al volver al saque frenando entre 2 y 3,3 m/s los pies patinaban: parecía que se
+// deslizaba. A ese paso un pelotari ya trota)
+const corre = (r) => { if (r?.char?.opt) r.char.opt.runAt = 1.85; return r; };
 async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name)) {
   if (girl && hasChica('pelotari')) try {
     nitido('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
-    outfitTint(r.char.root, 'pelotari', { shirt: model === 'pelotari_rojo' ? COLORADO : null, hair }); return r;
+    outfitTint(r.char.root, 'pelotari', { shirt: model === 'pelotari_rojo' ? COLORADO : null, hair }); return corre(r);
   } catch (e) { console.warn('pelotari', e); }
-  nitido(model); const r = new GlbRig(await loadMeshy(model), model); hairTint(r.char.root, model, hair); return r;
+  nitido(model); const r = new GlbRig(await loadMeshy(model), model); hairTint(r.char.root, model, hair); return corre(r);
 }
 
 // Los jueces de la contracancha: tres personas normales con camiseta y pantalón corto negros, sin más ni tacos en las
@@ -403,7 +407,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     let temporal = false, natu = null, vd0 = null, flo0 = false;   // (el pueblo sin vecinos ni bosque mientras dura el partido, y cómo estaba)
     // (pancartas, aquí y no dentro del montaje: si no, al acabar no se veían y se quedaban en la grada de partido en
     // partido, cada una con su textura, gastando memoria gráfica)
-    let rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = [], pancartas = null; const hidden = [], hiddenR = [];
+    let runAt0 = null, rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = [], pancartas = null; const hidden = [], hiddenR = [];
     // (si el rival se llama como tú, con la inicial de su pueblo detrás, «Ane I.»: si no, en el marcador salían dos «Ane»)
     { const yo = String(profile().name || '').trim().toLowerCase(), tw = String(rivalTown?.name || G.def?.name || '').trim(); if (yo && rivName.trim().toLowerCase() === yo) rivName = `${rivName.trim()} ${(tw[0] || 'B').toUpperCase()}.`; }
     // los colores, como en los frontones: viste de colorado quien debutó antes y el otro de azul. Tú empiezas de
@@ -432,6 +436,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { nitido(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
+    // (tu pelotari también trota desde 1,85 m/s; si es tu figura de siempre, al acabar vuelve a su paso del pueblo)
+    runAt0 = rig.char?.opt?.runAt ?? null; corre(rig);
     // y el rival, con el color que le toca (azules contra colorados, como en los partidos de verdad)
     if (hasMeshy(rivModel)) try { red = await rigPelotari(rivModel, rivName); } catch (e) { console.warn('pelotari rival', e); apunta('pelotari rival', e); }
     // (si mientras se preparaban los pelotaris el pueblo se ha rehecho —en el iPhone, al quedarse sin memoria gráfica—,
@@ -623,6 +629,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     function done(r) {
       if (ended) return; ended = true;
       G.pelotaTick = null; G.pelotaMatch = null; G.pelotaRig = null; G.pelotaAbort = null; G.pelotaLoading = false;
+      try { if (rig === rig0 && rig0?.char?.opt && runAt0 != null) rig0.char.opt.runAt = runAt0; } catch (e) { console.warn('frontón', e); }
       // el marcador y los botones del partido, fuera siempre (también si algo falló al montarlo)
       try { match?.destroy(); } catch (e) { console.warn('frontón', e); apunta('frontón', e); }
       document.querySelectorAll('.pel-root:not(.pel-fuera)').forEach(el => el.remove());   // (el que se está desvaneciendo, que acabe)
