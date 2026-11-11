@@ -6,7 +6,7 @@
 // pose de reposo): tools/tmp/uvdump.mjs y el estudio de colores por franjas de altura de cada modelo. El sombreado
 // pintado se conserva: el color nuevo toma el brillo del original.
 import * as THREE from 'three';
-import { fillMaterial } from '../engine/charLight.js';
+import { fillMaterial, sharpMap } from '../engine/charLight.js';
 import { hairMaterial, peloMaterial, peloEmisivo } from './hairColor.js';
 
 const HSV = `
@@ -86,7 +86,7 @@ vec3 noOutfit(vec3 lin){
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = emissive * diffuseColor.rgb;');
     };
     m.customProgramCacheKey = () => 'npc-outfit-' + model;
-    o.material = hairMaterial(m, g, model, O.hair);   // el pelo, con su tinte (hairColor.js)
+    o.material = hairMaterial(sharpMap(m), g, model, O.hair);   // la textura sin mezclar sus piezas y el pelo, con su tinte (hairColor.js)
   });
 }
 

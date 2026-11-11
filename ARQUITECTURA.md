@@ -24,6 +24,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     textura en WebP con el color a resolución completa en los bordes, también en sus versiones de 1024 px y ligera (solo
     la imagen: la malla no se toca, que las chicas casan sus parches con el orden de sus vértices). Rehacer el reparto
     en piezas grandes (xatlas) rompería esos parches; fundir el color a cada lado de las costuras dejaba cortes nuevos.
+    Al dibujarlos, `sharpMap` (`engine/charLight.js`) lee la textura sin mezclar piezas vecinas: la UV en el centro de
+    lo que cubre cada triángulo (con el suavizado de bordes del móvil, los píxeles del borde leían la pieza de al lado:
+    puntitos claros en fila en el pelo y la camiseta de los pelotaris) y nunca por debajo de 512 px de lejos. Va en el
+    material de cada modelo y otra vez en cada copia teñida (`hairTint`, `outfitTint`, las chicas y las equipaciones
+    del fútbol), que al copiar un material se pierde su sombreador.
   - Animales y comida de Quaternius (CC0).
   - Protagonistas y piezas hechas en Blender 4.2 con scripts en `tools/blender/`.
   - Todo se prepara con `@gltf-transform`.

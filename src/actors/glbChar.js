@@ -2,7 +2,7 @@
 // Carga con GLTFLoader, clona con SkeletonUtils, elige Idle/Walk/Run según la velocidad,
 // gestiona la cara por visibilidad de mallas (boca, cejas, párpados, manos), el parpadeo,
 // la mirada (offset de la textura del ojo) y muelles en los huesos Hair_* y Scarf_*.
-import { fillMaterial } from '../engine/charLight.js';
+import { fillMaterial, sharpMap } from '../engine/charLight.js';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { loadGLB } from '../util/glb.js';
@@ -117,17 +117,8 @@ export const fullTexFor = (name) => FULL_TEX.add(name);
 // (16 MB, y otros tantos en la tarjeta) era lo que faltaba de memoria para subirla bien
 const FULL_CHICA = new Set();
 export const chicaTexMax = (name) => (FULL_CHICA.has(name) ? 2048 : MESHY_TEX);
-// textura más nítida de lejos: la de Meshy va troceada en muchas piezas pequeñas y, al alejarse, los niveles de detalle
-// menores mezclan los colores de piezas vecinas (manchas y fallos de color en la ropa y la cara). Se lee un nivel más fino
-// del que tocaría (sesgo de -0,7)
-export function sharpMap(m) {
-  if (!m.map || m.userData.sharp) return; m.userData.sharp = true;
-  const prev = m.onBeforeCompile;
-  m.onBeforeCompile = (sh, r) => { prev?.call(m, sh, r);
-    sh.fragmentShader = sh.fragmentShader.replace('texture2D( map, vMapUv )', 'texture2D( map, vMapUv, -0.7 )').replace('texture2D( emissiveMap, vEmissiveMapUv )', 'texture2D( emissiveMap, vEmissiveMapUv, -0.7 )'); };
-  const key = m.customProgramCacheKey?.bind(m); m.customProgramCacheKey = () => (key ? key() : '') + '|sharp';
-  m.needsUpdate = true;
-}
+// (la textura de Meshy sin mezclar sus piezas: engine/charLight.js)
+export { sharpMap };
 // la textura pasa siempre por un lienzo (a su tamaño o reducida): subida tal cual desde la imagen del modelo, en algunos
 // iPhone los personajes salían negros, sin color; por el lienzo es el camino que siempre ha funcionado en el móvil
 // En el iPhone y en Safari la textura llega como imagen normal (util/glb.js), que sube bien tal cual: si no hay que

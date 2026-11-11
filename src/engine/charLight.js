@@ -45,6 +45,43 @@ function pintado(m) {
   const clave = m.customProgramCacheKey?.bind(m); m.customProgramCacheKey = () => (clave ? clave() : '') + '|pintura';
 }
 
+// ---------- La textura de los personajes de Meshy, sin mezclar sus piezas ----------
+// Meshy reparte la textura en unas dos mil piezas muy pequeñas (la mitad, de unos 10 × 10 px en la de 2048), pegadas a
+// otras de otro color, y la tarjeta las mezclaba de dos maneras (en el partido, de lejos, el pelo moteado de claro y la
+// camiseta desteñida con motas blancas; noviembre de 2026):
+//  · con el suavizado de bordes (MSAA, el del móvil), los píxeles del borde de cada triángulo leían la textura un poco
+//    fuera de él, en la pieza de al lado: puntitos claros en fila. La UV se lee en el centro de lo que cubre el triángulo
+//    (centroid);
+//  · de lejos, los niveles de detalle menores de la textura juntan las piezas vecinas. No se baja de 512 px: más lejos se
+//    lee algo granulada, pero cada pieza con su color.
+// (Antes, un sesgo de -0,7 en la lectura que no llegaba a ponerse: buscaba un texto que aún no estaba en el sombreador)
+const CENTROID = (s) => s.replace(/varying vec2 v(Map|EmissiveMap)Uv;/g, 'centroid varying vec2 v$1Uv;');
+const MZ_TEX = `
+vec4 mzTex(sampler2D s, vec2 uv) {
+  vec2 sz = vec2(textureSize(s, 0)), dx = dFdx(uv), dy = dFdy(uv);
+  float l = 0.5 * log2(max(max(dot(dx * sz, dx * sz), dot(dy * sz, dy * sz)), 1e-8)), lmax = max(0., log2(sz.x) - 9.);
+  float k = exp2(min(0., lmax - l));
+  return textureGrad(s, uv, dx * k, dy * k);
+}`;
+const NITIDO = new WeakSet();   // (y no userData: las copias de un material, que lo copian, se quedan sin el sombreador)
+/** Lee la textura de un personaje de Meshy sin mezclar sus piezas. Va después de los tintes que buscan los trozos de
+ *  la textura del sombreador (#include <map_fragment> y <emissivemap_fragment>); los que van detrás encuentran la
+ *  lectura como mzTex(…). Hay que volver a ponerlo en cada copia del material. Devuelve el material. */
+export function sharpMap(m) {
+  if (!m.map || NITIDO.has(m)) return m; NITIDO.add(m);
+  const prev = m.onBeforeCompile;
+  m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r);
+    sh.vertexShader = sh.vertexShader.replace('#include <uv_pars_vertex>', CENTROID(THREE.ShaderChunk.uv_pars_vertex));
+    sh.fragmentShader = sh.fragmentShader.replace('#include <uv_pars_fragment>', CENTROID(THREE.ShaderChunk.uv_pars_fragment))
+      .replace('#include <common>', '#include <common>' + MZ_TEX)
+      .replace('#include <map_fragment>', THREE.ShaderChunk.map_fragment).replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment)
+      .replace('texture2D( map, vMapUv )', 'mzTex( map, vMapUv )').replace('texture2D( emissiveMap, vEmissiveMapUv )', 'mzTex( emissiveMap, vEmissiveMapUv )');
+  };
+  const key = m.customProgramCacheKey?.bind(m); m.customProgramCacheKey = () => (key ? key() : '') + '|nitido';
+  m.needsUpdate = true;
+  return m;
+}
+
 // ---------- Contorno: la línea fina que recorta al personaje del jugador ----------
 // Una segunda piel del mismo modelo, un poco más gorda y vuelta del revés (solo se ven sus caras de atrás), de color
 // tinta: asoma por el borde como una línea de dibujo. Sigue al esqueleto, así que se mueve con él. Cuesta dibujar el
