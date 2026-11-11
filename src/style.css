@@ -313,18 +313,20 @@ summary { line-height: 1.3; }
 #cJump { grid-column: 2; grid-row: 1; }
 #cRun { grid-column: 1; grid-row: 2; }
 #cAct { grid-column: 2; grid-row: 2; }
-.cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .82), rgba(28, 11, 58, .88)); border: 2.5px solid #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
+.cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, #4e2794, #1d0b3c); border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 0 10px rgba(4, 1, 12, .28); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
 .cbtn :is(svg, .hico) { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
 .cbtn b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
-.cbtn:active { transform: translateY(3px) scale(.95); box-shadow: 0 2px 0 rgba(10, 4, 24, .55), 0 4px 10px rgba(0, 0, 0, .3); }
-.cbtn.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #ff2e88 70%); box-shadow: 0 5px 0 rgba(120, 30, 10, .6), 0 0 18px rgba(255, 99, 71, .6); }
-.cbtn.big { width: 80px; height: 80px; background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff7ac8 60%, #ff3dbd); box-shadow: 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); animation: actPulse 1.6s ease-in-out infinite; }
+/* (redondos y planos, sin el canto de abajo: con él parecían más altos que anchos y como de otro juego; noviembre de 2026,
+   lo pidió el autor. Al pulsar ceden un poco hacia dentro. Una sombra muy suave alrededor, sin bajar, para que se separen
+   de un suelo claro) */
+.cbtn:active { transform: scale(.94); box-shadow: 0 0 6px rgba(4, 1, 12, .28); }
+.cbtn.on { background: radial-gradient(circle at 50% 30%, #ff9d8a, #ff2e88 70%); box-shadow: 0 0 10px rgba(4, 1, 12, .28); }
+.cbtn.big { width: 80px; height: 80px; background: radial-gradient(circle at 50% 30%, #ffc2ec, #ff7ac8 60%, #ff3dbd); box-shadow: 0 0 10px rgba(4, 1, 12, .28); }
 .cbtn.big :is(svg, .hico) { width: 50px; height: 50px; }
 .cbtn.big b { font-size: var(--fs-xs); color: #2a0638; text-shadow: 0 1px 0 rgba(255, 255, 255, .6); }
-.cbtn.big.off { background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .7), rgba(28, 11, 58, .8)); box-shadow: 0 5px 0 rgba(10, 4, 24, .5), 0 8px 16px rgba(0, 0, 0, .25); animation: none; }
+.cbtn.big.off { background: radial-gradient(circle at 50% 30%, #4a2590, #1d0b3c); box-shadow: 0 0 10px rgba(4, 1, 12, .28); }
 .cbtn.big.off svg { opacity: .55; }
 .cbtn.big.off b { color: rgba(255, 255, 255, .7); text-shadow: 0 1px 0 #1f1a26; }
-@keyframes actPulse { 50% { box-shadow: 0 0 0 9px rgba(255, 122, 200, .18), 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); } }
 #stick { position: absolute; width: 120px; height: 120px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .55); background: radial-gradient(rgba(12, 9, 20, .1), rgba(12, 9, 20, .35)); transform: translate(-50%, -50%); pointer-events: none; display: none; }
 #stick i { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: rgba(255, 255, 255, .9); box-shadow: 0 4px 12px rgba(0, 0, 0, .3); }
 #stickHint { position: absolute; left: calc(var(--sl) + var(--thumb)); bottom: calc(var(--sb) + var(--thumb) + 18px); width: 104px; height: 104px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .75); background: rgba(14, 10, 24, .28); box-shadow: 0 4px 14px rgba(0, 0, 0, .2); display: none; place-items: center; pointer-events: none; transition: opacity .4s; }

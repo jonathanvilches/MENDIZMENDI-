@@ -179,6 +179,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ratón, se inclinan y llevan la luz de las cartas vivas (están en `CARTAS`). La ficha del pueblo (`.m3-ft`) también va a
   10 px (antes 4 px), con la raya de color de arriba curvada con sus esquinas, y su caja de misiones a 6 px. En
   `neon.css`, las dos están en la lista de los paneles.
+- **Botones táctiles del pueblo** (`.cbtn` de `style.css`: correr, saltar y actuar; noviembre de 2026). Redondos y planos:
+  sin el canto de 5 px de abajo, que los hacía parecer más altos que anchos, ni el anillo rosa del de actuar; solo una sombra
+  muy suave alrededor, sin bajar, para que se separen de un suelo claro. Al pulsar ceden hacia dentro (`scale`). En
+  `neon.css`, `.cbtn.big` lleva lo mismo con `!important`.
 - **Placas de la pantalla VS** (`pelota/vs.js`, también la usa el fútbol; noviembre de 2026). Cada jugador tiene una sola
   placa con las esquinas de los paneles (10 px) y, dentro, separada 5 px del borde, su media en una caja clara de 6 px y
   al lado el nombre, el pueblo y las cifras. Antes eran dos cajas sueltas, la blanca montada 6 px sobre la oscura. Como

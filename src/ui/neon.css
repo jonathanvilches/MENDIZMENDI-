@@ -147,8 +147,8 @@ body:not(.alto-contraste) :is(.pel-levels button, .pel-mseg button, .pel-otabs b
 :root { --sombra-boton: 0 6px 16px rgba(4, 1, 12, .38), inset 0 1px 0 rgba(255, 255, 255, .28); }
 :root :is(.btn.primary, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .pel-go:not(.alt), .lg-btn.go, .ih-play, #bino .bact.ready, .cs-arrow) { box-shadow: var(--sombra-boton) !important; }
 @media (hover: hover) { :root :is(.btn.primary, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .pel-go:not(.alt), .lg-btn.go, .ih-play, #bino .bact.ready, .cs-arrow):hover { box-shadow: 0 10px 22px rgba(4, 1, 12, .45), inset 0 1px 0 rgba(255, 255, 255, .32) !important; } }
-/* (el botón grande de actuar del pueblo: su canto de abajo y su sombra, sin el anillo rosa que latía) */
-:root .cbtn.big { box-shadow: 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35) !important; }
+/* (el botón grande de actuar del pueblo: redondo y plano como los otros dos, sin canto de abajo ni el anillo rosa que latía) */
+:root .cbtn.big { box-shadow: 0 0 10px rgba(4, 1, 12, .28) !important; animation: none !important; }
 :root :is(.tq-vista button[aria-pressed=true], .tq-pueblos button.on, .seg button.on, .shop-card nav button.on, .fr-chip.on, .ix-shots button[aria-pressed=true], .ix-tabs button[aria-selected=true], .pel-racha, .dash-tag, #loading .ld-av) { box-shadow: 0 4px 12px rgba(4, 1, 12, .35) !important; }
 :root :is(#loading .bar i, .pfx-bar u.on, .sbar i, .ix-dots i.on) { box-shadow: none !important; }
 :root :is(.fb-card, .pel-card, .lg-card, .pfx-card, .mg-card, .shop-room, .screen .paper)::before, :root .csel2::after { box-shadow: none !important; }
