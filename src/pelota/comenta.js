@@ -76,6 +76,10 @@ const ROL = { es: { n: 'Comentarista', e: 'Comentarista' }, eu: { n: 'Esataria',
 const TIPO = { bote: null, chapa: 'chapa', alta: 'fuera', pared: 'fuera', lado: 'fuera', fuera: 'fuera', largo: 'fuera', falta: 'falta', falta45: 'falta', pasa: 'pasa', pasa45: 'pasa', cuatro: 'fuera' };
 const REMATE = { dejada: 'dejada', cortada: 'cortada', dosparedes: 'dosparedes', volea: 'volea', gancho: 'gancho', saque: 'saque' };
 
+// (con los dos comentaristas, el que lleva casi todo es el hombre, que narra: el autor lo prefiere, noviembre de 2026.
+// La comentarista, de vez en cuando: en una lista con frases de los dos, una de cada siete más o menos es suya; y lo
+// que solo dice ella, el rival al empezar, las rachas, los peloteos largos, el descanso, un poco más de una vez de cada tres)
+const PARTE_MUJER = 0.15, SOLO_MUJER = 0.35;
 export class Comentarios {
   /** lang: 'es' o 'eu'; voz: 'duo', 'hombre', 'mujer' o 'no' (por defecto, lo elegido en Ajustes) */
   constructor(lang = 'es', voz = duoElegido()) {
@@ -85,7 +89,15 @@ export class Comentarios {
   /** Una frase de la lista k (sin repetir la última de esa lista). Devuelve { id, texto, rol, r, voz } o null */
   frase(k) {
     const L = F[this.lang][k]; if (!L?.length || !this.voz) return null;
-    let i = Math.floor(Math.random() * L.length); if (L.length > 1 && i === this.ult[k]) i = (i + 1) % L.length; this.ult[k] = i;
+    // (las que valen: con los dos comentaristas, casi siempre las del hombre; sin repetir la última de esa lista)
+    let idx = L.map((_, j) => j);
+    if (this.voz === 'duo') {
+      const n = idx.filter(j => L[j][0] !== 'e'), e = idx.filter(j => L[j][0] === 'e');
+      if (!n.length) { if (Math.random() > SOLO_MUJER) return null; idx = e; }
+      else idx = e.length && Math.random() < PARTE_MUJER ? e : n;
+    }
+    if (idx.length > 1) idx = idx.filter(j => j !== this.ult[k]);
+    const i = idx[Math.floor(Math.random() * idx.length)]; this.ult[k] = i;
     const [r, texto] = L[i];
     return { id: `${k}-${i + 1}`, texto, rol: ROL[this.lang][r], r, voz: vozDe(this.voz, r), lang: this.lang };
   }
