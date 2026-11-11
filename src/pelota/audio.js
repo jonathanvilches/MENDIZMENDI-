@@ -23,9 +23,10 @@ export class PelotaAudio {
     // tanto, hasta 0,95 durante 4 a 7 s, tapaban la frase que lo comenta, que llega justo entonces. Antes solo bajaba la
     // música. La voz va por el sonido del juego, audio.js, con otro contexto: avisa con el evento herrizherri-voz)
     if (!this.bus && !this.stopped) {
-      this.bus = this.ctx.createGain(); this.bus.connect(this.ctx.destination);
+      // (a 0,75: el público, los golpes y los aplausos sonaban demasiado fuertes al lado de la música; el autor, noviembre de 2026)
+      this.bus = this.ctx.createGain(); this.bus.gain.value = 0.75; this.bus.connect(this.ctx.destination);
       // (baja sin prisa, en algo menos de un segundo, y vuelve igual de suave: de golpe se notaba el corte en los aplausos)
-      this.alHablar = (e) => { if (!this.bus) return; const g = this.bus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? 0.45 : 1, t, e.detail ? 0.28 : 0.6); };
+      this.alHablar = (e) => { if (!this.bus) return; const g = this.bus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(e.detail ? 0.34 : 0.75, t, e.detail ? 0.28 : 0.6); };
       addEventListener('herrizherri-voz', this.alHablar);
     }
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)

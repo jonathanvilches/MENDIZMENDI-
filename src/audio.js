@@ -31,7 +31,7 @@ const GVOL = { perro: 0.3, oveja: 0.2, vaca: 0.26, cerdo: 0.24, relincho: 0.26, 
 const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido'];
 export class Sound {
   constructor() {
-    this.ctx = null; this.enabled = true; this.musicOn = true; this.musVol = 0.32;
+    this.ctx = null; this.enabled = true; this.musicOn = true; this.musVol = 0.42;   // (la música, con más protagonismo: 0,32 antes; y los efectos, más bajos, sfx)
     this.listener = { x: 0, y: 0, z: 0, yaw: 0 };
     this.birdT = 1; this.bellT = 5;
   }
@@ -42,7 +42,7 @@ export class Sound {
     // (el del arranque, index.html, si lo hay: el toque en la portada ya lo puso en marcha)
     const pre = window.__sonido?.ctx, ctx = this.ctx = pre && pre.state !== 'closed' ? pre : new AC();
     this.master = ctx.createGain(); this.master.gain.value = 0.8; this.master.connect(ctx.destination);
-    this.sfx = ctx.createGain(); this.sfx.gain.value = 0.9; this.sfx.connect(this.master);
+    this.sfx = ctx.createGain(); this.sfx.gain.value = 0.62;   // (todos los efectos y ambientes, un tercio más bajos: 0,9 antes; el autor, noviembre de 2026: «todos los sonidos son muy fuertes») this.sfx.connect(this.master);
     this.musicBus = ctx.createGain(); this.musicBus.gain.value = this.musVol; this.musicBus.connect(this.master);
     // reverb sencilla
     this.verb = ctx.createConvolver(); this.verb.buffer = this.impulse(2.2); const vg = ctx.createGain(); vg.gain.value = 0.25; this.verb.connect(vg); vg.connect(this.master);
@@ -219,9 +219,9 @@ export class Sound {
     // (las ovejas y sus cencerros en un monte del País Vasco, la grabación que pasó el autor: en el monte y en las cimas, de día)
     this.ovejas ||= new Ambiente(this.ctx, this.sfx, 'ambiente-ovejas', 30);
     { const dia = clamp((0.62 - night) / 0.25, 0, 1), monte = inIrati || bosque, alto = player.pos.y > 900;
-      this.pajaros.nivel(sport || alto ? 0 : dia * (monte ? 0.06 : 0.03), sport ? 0.12 : 0.8);   // (más bajos: 0,26 y 0,13 al principio, luego 0,15 y 0,075, y aún se oían demasiado)
-      this.pueblo.nivel(sport || alto || monte ? 0 : dia * 0.1, sport ? 0.12 : 0.8);
-      this.ovejas.nivel(sport ? 0 : dia * (alto ? 0.22 : monte ? 0.09 : 0), sport ? 0.12 : 1.5); }   // (la grabación del pueblo también es casi todo pájaros, en los agudos: de 0,24 a 0,1)
+      this.pajaros.nivel(sport || alto ? 0 : dia * (monte ? 0.04 : 0.018), sport ? 0.12 : 0.8);   // (más bajos: 0,26 y 0,13 al principio, luego 0,15 y 0,075, y aún se oían demasiado)
+      this.pueblo.nivel(sport || alto || monte ? 0 : dia * 0.05, sport ? 0.12 : 0.8);
+      this.ovejas.nivel(sport ? 0 : dia * (alto ? 0.16 : monte ? 0.06 : 0), sport ? 0.12 : 1.5); }   // (la grabación del pueblo también es casi todo pájaros, en los agudos: de 0,24 a 0,1)
     const r = riverInfo(player.pos.x, player.pos.z);
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;
