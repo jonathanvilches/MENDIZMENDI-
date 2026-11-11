@@ -24,22 +24,22 @@ export const F = {
     // (el gancho: de volea y con la izquierda, girando hacia la derecha, a la contracancha. Las frases de antes decían «a la
     // izquierda» y se quitaron; estas, con su número propio, suenan cuando estén grabadas: tools/guion-voz)
     gancho: [['n', 'Gancho de izquierda a la contracancha, y tanto.', 3], ['e', 'De volea y con la izquierda, el gancho gira y se va a la contracancha. Bien jugado.', 4]],
-    saque: [['n', '¡Saque directo!'], ['n', 'No llega al saque.'], ['e', 'Un buen saque vale un tanto.']],
-    golpe: [['n', 'Buen tanto.'], ['n', 'No llega. Tanto.'], ['n', '¡Qué tanto!'], ['e', 'Ha movido bien al rival hasta encontrar el hueco.']],
-    chapa: [['n', 'A la chapa. Tanto regalado.'], ['n', 'La manda a la chapa.'], ['e', 'La chapa suena a metal: por debajo de la raya, tanto perdido.']],
-    fuera: [['n', 'Se va fuera.'], ['n', 'Fuera. Ha pegado demasiado.'], ['e', 'Más vale colocar que pegar fuerte y mandarla fuera.']],
+    saque: [['n', '¡Saque directo!'], ['n', 'No llega al saque.'], ['e', 'Un buen saque vale un tanto.'], ['e', 'Saque bien colocado: el rival ni se ha movido.']],
+    golpe: [['n', 'Buen tanto.'], ['n', 'No llega. Tanto.'], ['n', '¡Qué tanto!'], ['e', 'Ha movido bien al rival hasta encontrar el hueco.'], ['e', 'Ha esperado su momento y no ha fallado.'], ['e', 'Tanto bien pensado: primero mover al rival y luego rematar.']],
+    chapa: [['n', 'A la chapa. Tanto regalado.'], ['n', 'La manda a la chapa.'], ['e', 'La chapa suena a metal: por debajo de la raya, tanto perdido.'], ['e', 'Por querer apurar tanto, la ha dejado en la chapa.']],
+    fuera: [['n', 'Se va fuera.'], ['n', 'Fuera. Ha pegado demasiado.'], ['e', 'Más vale colocar que pegar fuerte y mandarla fuera.'], ['e', 'Ha buscado demasiado la esquina y se le ha ido.']],
     falta: [['n', 'Falta de saque: no ha pasado del cuatro.'], ['e', 'El saque tiene que botar entre el cuatro y el siete.']],
     pasa: [['n', 'Pasa: el saque se ha ido largo.'], ['e', 'Saque pasado: botó más allá del siete.']],
-    fallo: [['n', 'Fallo. Sube el tanto al marcador.'], ['n', 'Se equivoca. Tanto regalado.']],
-    largo: [['e', '¡Qué peloteo! Eso se nota en las piernas.'], ['e', 'Peloteo larguísimo. La grada lo agradece.']],
-    racha: [['e', 'Racha de tantos seguidos. Ha encontrado el sitio.'], ['e', 'Otro más seguido. Hay que cortar esa racha.']],
-    iguala: [['n', '¡Igualados! Esto vuelve a empezar.'], ['n', '¡Empate en el marcador! Partido nuevo.']],
+    fallo: [['n', 'Fallo. Sube el tanto al marcador.'], ['n', 'Se equivoca. Tanto regalado.'], ['e', 'Un despiste de nada y el tanto se escapa.']],
+    largo: [['e', '¡Qué peloteo! Eso se nota en las piernas.'], ['e', 'Peloteo larguísimo. La grada lo agradece.'], ['e', 'Tanto larguísimo. Ninguno de los dos quería fallar.']],
+    racha: [['e', 'Racha de tantos seguidos. Ha encontrado el sitio.'], ['e', 'Otro más seguido. Hay que cortar esa racha.'], ['e', 'Está en racha: todo lo que toca le sale bien.']],
+    iguala: [['n', '¡Igualados! Esto vuelve a empezar.'], ['n', '¡Empate en el marcador! Partido nuevo.'], ['e', 'Vuelve a empezar todo: el que mantenga la cabeza fría, gana.']],
     remonta: [['n', '¡Remontada! Se pone por delante.'], ['e', 'Le ha dado la vuelta al partido. Eso es cabeza y piernas.']],
-    tantoPartido: [['n', 'Tanto de partido.'], ['n', 'Uno más y se acaba: tanto de partido.']],
-    finalYo: [['n', '¡Se acabó! Victoria para ti.'], ['n', '¡Partido ganado! Enhorabuena.']],
-    finalRival: [['n', 'Se acabó. Esta vez gana el rival.'], ['n', 'Final del partido. El rival se lleva la victoria.']],
+    tantoPartido: [['n', 'Tanto de partido.'], ['n', 'Uno más y se acaba: tanto de partido.'], ['e', 'Momento de nervios: ahora hay que jugar seguro.']],
+    finalYo: [['n', '¡Se acabó! Victoria para ti.'], ['n', '¡Partido ganado! Enhorabuena.'], ['e', 'Gran partido: has jugado con la cabeza y con la mano.']],
+    finalRival: [['n', 'Se acabó. Esta vez gana el rival.'], ['n', 'Final del partido. El rival se lleva la victoria.'], ['e', 'Hoy no ha salido, pero se ha visto muy buena pelota. A la próxima.']],
     finalE: [['e', 'Buen partido. Enhorabuena a los dos.'], ['e', 'Así se juega a pelota: con la mano y con la cabeza.']],
-    descanso: [['e', 'Descanso: un minuto para respirar.'], ['e', 'Un minuto de descanso. Viene bien para pensar.']],
+    descanso: [['e', 'Descanso: un minuto para respirar.'], ['e', 'Un minuto de descanso. Viene bien para pensar.'], ['e', 'Un poco de agua, respirar hondo y otra vez a la cancha.']],
     // (durante el peloteo, cortas: el golpe que se acaba de dar o lo que viene)
     'j-dejada': [['n', '¡Buena dejada!'], ['n', '¡Qué bien la deja!']],
     'j-gancho': [['n', '¡Buen gancho!'], ['n', '¡Qué gancho!']],
@@ -50,14 +50,34 @@ export const F = {
     'j-defensa': [['n', '¡Qué bien defiende!'], ['n', 'La saca desde atrás.']],
     'j-peloteo': [['n', '¡Aguanta, aguanta!'], ['n', '¡Qué peloteo están dando!']],
     // (entre tanto y tanto, para que no se haga el silencio: la mano, el frontis, el material, la grada, el marcador)
-    'r-mano': [['e', '¡Qué bien le está entrando la pelota en la mano esta tarde!'], ['e', 'Hoy la mano le responde de maravilla.']],
+    'r-mano': [['e', '¡Qué bien le está entrando la pelota en la mano esta tarde!'], ['e', 'Hoy la mano le responde de maravilla.'], ['e', 'Cuando la mano entra así, la pelota sale sola.']],
     'r-frontis': [['n', '¡Qué bien sale esta pelota del frontis!'], ['n', 'La pelota sale con mucha alegría del frontis.']],
-    'r-viva': [['e', 'Este material es muy vivo: sale mucho del frontis.'], ['e', 'Con una pelota tan viva, el rebote está ahí.']],
-    'r-pesada': [['e', 'Esta pelota es pesada: cuesta mucho llevarla atrás.'], ['e', 'Material muerto: la pelota se queda corta.']],
+    'r-viva': [['e', 'Este material es muy vivo: sale mucho del frontis.'], ['e', 'Con una pelota tan viva, el rebote está ahí.'], ['e', 'Con esta pelota hay que medir la fuerza: se va larga enseguida.']],
+    'r-pesada': [['e', 'Esta pelota es pesada: cuesta mucho llevarla atrás.'], ['e', 'Material muerto: la pelota se queda corta.'], ['e', 'Con una pelota tan pesada, las dejadas valen oro.']],
     'r-grada': [['n', '¡Qué ambiente hay hoy en el frontón!'], ['n', 'La grada está disfrutando de lo lindo.']],
     'r-igualado': [['n', 'Partido muy igualado.'], ['n', 'Esto está muy disputado: nadie se escapa.']],
-    'r-consejo': [['e', 'Hay que tener paciencia y esperar el hueco.'], ['e', 'Mover al rival de lado a lado: esa es la clave.']],
-    'r-piernas': [['e', 'Ya se empiezan a notar las piernas.']],
+    'r-consejo': [['e', 'Hay que tener paciencia y esperar el hueco.'], ['e', 'Mover al rival de lado a lado: esa es la clave.'], ['e', 'Si el rival está atrás, una dejada es oro.'], ['e', 'Antes de golpear, hay que mirar dónde está el rival.'], ['e', 'La pared izquierda es una amiga: bien usada, despista a cualquiera.']],
+    'r-piernas': [['e', 'Ya se empiezan a notar las piernas.'], ['e', 'Los partidos largos se ganan con las piernas.']],
+    // (más relleno, noviembre de 2026: el saque, la energía, el Cuatro y Medio, los campeonatos y la final; los dice Miren)
+    'r-saque': [['e', 'El saque es el primer golpe del tanto: hay que pensarlo bien.'], ['e', 'Un saque largo obliga al rival a irse atrás.']],
+    'r-energia': [['e', 'Hay que guardar fuerzas: la energía se acaba.'], ['e', 'Las cortadas seguidas cansan mucho. Mejor no abusar.']],
+    'r-cuatro': [['e', 'En el Cuatro y Medio no vale ir largo: la pelota tiene que botar antes de la raya.'], ['e', 'Aquí mandan las dejadas y las cortadas: la cancha es corta.']],
+    'r-campeonato': [['e', 'Cada tanto cuenta: aquí se juega la txapela.'], ['e', 'En un campeonato no hay ningún partido fácil.']],
+    'r-final': [['e', 'Es la final: la txapela está a unos pocos tantos.'], ['e', 'En una final, la cabeza pesa tanto como la mano.']],
+    // (al empezar un partido de campeonato, después del saludo: qué campeonato es y qué ronda; match.js, comInicio)
+    'camp-mano': [['e', 'Partido del Campeonato Manomanista: mano a mano, en toda la cancha.']],
+    'camp-cuatro': [['e', 'Partido del Cuatro y Medio: ojo, que la pelota no puede botar más allá de la raya.']],
+    'camp-parejas': [['e', 'Partido de parejas: el delantero remata y el zaguero aguanta atrás.']],
+    'camp-fiestas': [['e', 'Torneo de Fiestas: partido corto, así que cada tanto vale oro.']],
+    'camp-valles': [['e', 'Desafío de los Valles: en la liguilla, cada partido suma.']],
+    'camp-invierno': [['e', 'Copa de Invierno del Cuatro y Medio: frontón cubierto y pelota rápida.']],
+    'camp-promesas': [['e', 'Torneo de Promesas: hoy juegan los que empiezan. ¡Mucha suerte a los dos!']],
+    'camp-gran': [['e', 'Hoy se juega la Gran Txapela de Navarra, el acontecimiento del año.'], ['e', 'Los mejores pelotaris de toda Navarra, frente a frente. ¡Qué ambiente!']],
+    'camp-comarcas': [['e', 'Campeonato de Comarcas: hoy cada uno juega por su comarca.']],
+    'ronda-liguilla': [['e', 'Jornada de liguilla: cada victoria acerca a los cuartos.']],
+    'ronda-cuartos': [['e', 'Cuartos de final: el que gane, a semifinales.']],
+    'ronda-semis': [['e', 'Semifinales: el que gane, a la final.']],
+    'ronda-final': [['e', 'Llegamos a la final. Solo uno se pondrá la txapela.']],
   },
   eu: {
     inicio: [['n', 'Arratsalde on eta ongi etorri frontoira. Hasi da partida.'], ['n', 'Dena prest frontoian. Hasi dadila partida!'], ['n', 'Arratsalde on. Harmailak beteta daude, eta pilotariak prest.']],
@@ -157,7 +177,8 @@ export class Comentarios {
   get on() { return !!this.voz; }
   /** Una frase de la lista k (sin repetir la última de esa lista). Devuelve { id, texto, rol, r, voz } o null */
   frase(k) {
-    const L = F[this.lang][k]; if (!L?.length || !this.voz) return null;
+    // (en euskera, las que aún no tienen su texto, en castellano: la grabación ya lo hacía, voz.js)
+    const L = F[this.lang][k]?.length ? F[this.lang][k] : F.es[k]; if (!L?.length || !this.voz) return null;
     // (cualquiera de la lista, sin repetir la última; quién la dice, util/comentarios.js, vozDe)
     let idx = L.map((_, j) => j);
     if (idx.length > 1) idx = idx.filter(j => j !== this.ult[k]);
@@ -219,6 +240,11 @@ export class Comentarios {
     if (o.bola === 'viva') ops.push('r-viva', 'r-viva'); else if (o.bola === 'pesada') ops.push('r-pesada', 'r-pesada');
     if (o.igualado) ops.push('r-igualado', 'r-igualado');
     if ((o.tantos || 0) >= 14) ops.push('r-piernas');
+    // (y el saque, la energía pasada la mitad, el Cuatro y Medio, el campeonato y la final)
+    ops.push('r-saque');
+    if ((o.tantos || 0) >= 10) ops.push('r-energia');
+    if (o.cuatro) ops.push('r-cuatro', 'r-cuatro');
+    if (o.laFinal) ops.push('r-final', 'r-final'); else if (o.campeonato) ops.push('r-campeonato');   // (laFinal: la de un campeonato; final es el fin del partido)
     // (sin repetir el tema del último relleno)
     const libres = ops.filter(k => k !== this.ultR), k = (libres.length ? libres : ops)[Math.floor(Math.random() * (libres.length || ops.length))];
     this.ultR = k; const f = this.frase(k);

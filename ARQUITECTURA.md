@@ -409,6 +409,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   petición del autor). Entre turno y turno de un diálogo, nada: el siguiente se baja mientras habla el primero
   (`pelota/voz.js`, `carga`, `sigue`). `entrega/comparacion-voz-miren.mp3`: tres frases de Miren, antes, después y
   después con un poco de eco de cabina.
+- **Más frases para Miren** (`pelota/comenta.js`, `camp-*`, `ronda-*`, `r-saque`, `r-energia`, `r-cuatro`,
+  `r-campeonato`, `r-final` y una frase más en las jugadas y el final; `pelota/match.js`, `comInicio`, `comCtx`;
+  `game/townDeportes.js` y `game/fronton.js`, opción `camp`): al empezar un partido de campeonato, después del saludo,
+  Miren dice qué campeonato es o qué ronda (siempre en la final); entre tanto y tanto, temas nuevos según el partido (el
+  saque; la energía pasados diez tantos; las reglas en el Cuatro y Medio; la txapela en un campeonato y la final). Las
+  frases nuevas van al final de cada lista, así las grabadas conservan su número. En euskera, las que aún no tienen su
+  texto se dicen con el de castellano, como ya hacía la grabación. El guion de las 45 que faltan por grabar está en
+  `entrega/locuciones-miren.md` (y para la herramienta de grabación, `tools/guion-voz/mujer-es-5.json`); hasta que estén,
+  no suenan.
 - **Comentarios del partido, hablados** (`pelota/comenta.js`, las frases; `pelota/voz.js`, la voz; `pelota/match.js`,
   `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, dos
   comentaristas, de serie, voz de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos

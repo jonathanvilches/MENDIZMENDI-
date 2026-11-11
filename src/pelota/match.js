@@ -1244,7 +1244,8 @@ export class PelotaMatch {
   dialogoO(k, f) { const d = this.com?.dialogo(k); if (!d) return f; d.solo = f; return d; }
   // (lo que el relleno necesita saber del partido: la pelota en juego, si a alguien le entra bien la mano, si va igualado)
   comCtx() { const g = this.game, sc = g.score || { you: 0, rival: 0 }, R = this.rachas || {};
-    return { bola: clase(this.bola), mano: R.n || 0, igualado: Math.abs(sc.you - sc.rival) <= 1 && sc.you + sc.rival >= 6, tantos: sc.you + sc.rival }; }
+    return { bola: clase(this.bola), mano: R.n || 0, igualado: Math.abs(sc.you - sc.rival) <= 1 && sc.you + sc.rival >= 6, tantos: sc.you + sc.rival,
+      cuatro: !!this.o.cuatro, campeonato: !!this.o.camp, laFinal: !!this.o.final && !!this.o.camp }; }
   // Durante el peloteo: una frase corta del golpe (comenta.js, enJuego), solo si no está hablando. Las que alaban el golpe
   // («¡buena dejada!», «¡buen gancho!», «¡qué bien defiende!») esperan a ver que ha salido bien: a que la pelota llegue al
   // frontis por encima de la chapa y dentro; «va a rebote», a que llegue a la pared del rebote (o, si se mandó al rebote,
@@ -1295,8 +1296,13 @@ export class PelotaMatch {
     // (con los dos comentaristas, a veces se presentan: Iñaki presenta a Miren; un diálogo dura más y lo del rival espera)
     const d = Math.random() < 0.7 ? this.dialogoO('inicio', c.frase('inicio')) : c.frase('inicio'), largo = Array.isArray(d) && tiene(d);
     this.decir(d, 400);
+    // (en un campeonato, qué campeonato es y qué ronda; camp: { kind, ronda }, de townDeportes.js. Lo del rival, después)
+    const C = this.o.camp, rk = C && (/final$/i.test(C.ronda) && !/semi|cuartos|octavos/i.test(C.ronda) ? 'ronda-final' : /semi/i.test(C.ronda) ? 'ronda-semis' : /cuartos/i.test(C.ronda) ? 'ronda-cuartos' : /liguilla|jornada/i.test(C.ronda) ? 'ronda-liguilla' : null);
+    const fc = C && c.frase(rk === 'ronda-final' || Math.random() < 0.6 ? `camp-${C.kind}` : rk || `camp-${C.kind}`);
+    if (fc) this.decir(fc, largo ? 8000 : 4400);
+    const tras = fc ? 3600 : 0;
     const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false);
-    this.decir(c.frase(`rival-${A.arq}`), largo ? 8200 : 4600); this.decir(c.frase(`estrella-${A.estrella}`), largo ? 8300 : 4700);
+    this.decir(c.frase(`rival-${A.arq}`), (largo ? 8200 : 4600) + tras); this.decir(c.frase(`estrella-${A.estrella}`), (largo ? 8300 : 4700) + tras);
   }
   comTanto(e) {
     const c = this.com; if (!c?.on) return;

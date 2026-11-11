@@ -343,7 +343,8 @@ export class PuebloDeportes {
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
           comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T),
           rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: reglaDe(kind) === 'cuatro',
-          yo: T.yo ? { name: T.yo.name, town: T.yo.town, stats: tusStats(T) } : null });   // (el pelotari con el que juegas el campeonato, si no es el tuyo)
+          yo: T.yo ? { name: T.yo.name, town: T.yo.town, stats: tusStats(T) } : null,   // (el pelotari con el que juegas el campeonato, si no es el tuyo)
+          camp: { kind, ronda: m.round } });   // (el campeonato y la ronda, para los comentarios del principio)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         played = true;

@@ -398,7 +398,7 @@ function pancartasDe(C, you, riv, town, colors) {
 // (los fallos que el partido recoge para no quedarse colgado, también al informe, util/informe.js: si no, en el móvil el
 // partido «se sale solo» sin que se sepa por qué)
 const apunta = (donde, e) => { const l = String(e?.stack || '').split('\n').find(x => /\.js/.test(x))?.trim().slice(0, 140) || ''; (window.__errors ||= []).push(`${donde}: ${e?.message || e}${l ? ' @ ' + l : ''}`.slice(0, 300)); };
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false, reto = null, retoMejor = 0, yo = null } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false, reto = null, retoMejor = 0, yo = null, camp = null } = {}) {
   const tBase = target; if (mode === 'match') target = tantosDe(tBase);   // (la duración elegida: rules.js)
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
@@ -610,6 +610,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       youStats: yo?.stats || tusCualidades(), progreso: (e, st, modo) => sumaPartido(e, st, modo),
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
       final,   // (la final de un campeonato: su entrada de «Gran final», pelota/granFinal.js)
+      camp,   // (el campeonato y la ronda, { kind, ronda }: lo que comentan al empezar; pelota/comenta.js, camp-* y ronda-*)
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
