@@ -27,25 +27,6 @@ const GRAB = {
   click: ['ui-click'], open: ['ui-abre'], coin: ['ui-moneda'], card: ['ui-carta'], error: ['ui-error'], magia: ['ui-magia'], fanfarria: ['ui-fanfarria'],
 };
 // (lo fuerte que va cada uno: los grabados vienen a −3 dB de pico; así quedan como los sintetizados, algo por encima)
-// los cascos de la montura (cascos): dónde empieza cada golpe en la grabación del galope (s); los aires, con la duración
-// de su vuelta (de c0, al más lento, a c1, al más rápido), lo que separa cada golpe del siguiente (h, partes de la vuelta)
-// y la fuerza de cada uno (g); y cada suelo: el filtro (lp), la fuerza (v) y lo que dura el golpe, su cuerpo grave, el
-// eco y lo propio de cada uno (cruje, chas, hueco, roce, agua)
-const GOLPES = [0.05, 0.13, 0.26, 0.39, 0.51, 0.64, 0.77, 1.02, 1.15, 1.27, 1.53, 1.65, 1.78];
-const AIRES = {
-  paso: { k0: 0.05, k1: 0.36, c0: 1.05, c1: 0.82, h: [0.25, 0.25, 0.25, 0.25], g: [0.8, 0.62, 0.78, 0.6] },
-  trote: { k0: 0.36, k1: 0.72, c0: 0.64, c1: 0.52, h: [0.03, 0.47, 0.03, 0.47], g: [0.92, 0.62, 0.9, 0.6] },
-  galope: { k0: 0.72, k1: 1, c0: 0.52, c1: 0.43, h: [0.15, 0.15, 0.13, 0.57], g: [0.7, 0.8, 0.76, 1] },
-};
-const SUELO = {
-  grass: { lp: 2600, v: 1, dur: 0.085, cuerpo: 0.34, eco: 0.14 },
-  dirt: { lp: 3200, v: 1, dur: 0.085, cuerpo: 0.36, eco: 0.15 },
-  leaves: { lp: 2800, v: 0.85, dur: 0.085, cuerpo: 0.3, eco: 0.12, roce: 0.2 },
-  snow: { lp: 1300, v: 0.72, dur: 0.1, cuerpo: 0.24, eco: 0.05, cruje: 0.3 },
-  stone: { lp: 7000, v: 1, dur: 0.075, cuerpo: 0.24, eco: 0.3, chas: 0.2 },
-  wood: { lp: 4000, v: 0.95, dur: 0.08, cuerpo: 0.2, eco: 0.22, hueco: 0.4 },
-  water: { lp: 1800, v: 0.6, dur: 0.1, cuerpo: 0.1, eco: 0.1, agua: 0.45 },
-};
 const GVOL = { perro: 0.3, oveja: 0.2, vaca: 0.26, cerdo: 0.24, relincho: 0.26, resoplido: 0.3, click: 0.22, open: 0.22, coin: 0.2, card: 0.2, error: 0.14, magia: 0.22, fanfarria: 0.24 };
 const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido'];
 export class Sound {
@@ -188,43 +169,14 @@ export class Sound {
   // el caballo de montar (game/montura.js): relincho al montar, algún resoplido parado y los cascos al trote y al galope
   relincho(pos) { if (!this.ctx) return; const g = this.out(pos, 60, GVOL.relincho, 0.25); if (g) this.grab('relincho', g, 0.96 + Math.random() * 0.08); }
   resoplido(pos) { if (!this.ctx) return; const g = this.out(pos, 30, GVOL.resoplido, 0.1); if (g) this.grab('resoplido', g, 0.92 + Math.random() * 0.16); }
-  /** Los cascos de la montura (game/montura.js): k de 0 a 1, lo rápido que va (0, parada); surf, el suelo que pisa;
-   *  tipo, 'burguete' o 'burro'. Cada pisada se arma aquí, al ritmo de su aire: al paso, cuatro golpes iguales; al trote,
-   *  dos golpes dobles; al galope, cuatro seguidos y el vuelo. Cada golpe es un trozo corto de la grabación (uno de sus
-   *  trece, al azar y con algo más o menos de tono) con el filtro del suelo, más un golpe grave que le da el cuerpo que la
-   *  grabación no tiene, y un poco de eco. Antes sonaba la grabación entera en bucle, más deprisa o más despacio: casi
-   *  sin graves, todo chasquido, siempre igual y sin eco, sonaba seca */
-  cascos(k, surf = 'grass', tipo = 'burguete') {
+  /** Los cascos de la montura (game/montura.js): k de 0 a 1, lo rápido que va (0, parada). La grabación del galope en
+   *  bucle, que se acelera con ella y se calla al paso. (Del 10 al 11 de noviembre de 2026 cada pisada se armó con trozos
+   *  de la grabación, un golpe grave, eco y el sonido del suelo; el autor prefiere el de antes y se ha vuelto a él) */
+  cascos(k) {
     if (!this.ctx) return; this.cascosAt = performance.now();
-    const ctx = this.ctx, t = ctx.currentTime, buf = carga(ctx, 'caballo-galope').buf;
-    if (!buf || k < 0.05) { this.cascoT = 0; return; }
-    if (!this.cascoBus) { const g = ctx.createGain(); g.gain.value = 0.42; g.connect(this.sfx); const e = ctx.createGain(); e.gain.value = 0; g.connect(e); e.connect(this.verb); this.cascoBus = g; this.cascoEco = e; }
-    const P = SUELO[surf] || SUELO.grass; this.cascoEco.gain.setTargetAtTime(P.eco, t, 0.3);
-    if (!this.cascoT || this.cascoT < t) { this.cascoT = t + 0.03; this.cascoI = 0; }
-    // (el aire: su vuelta entera dura c segundos y la reparten sus golpes; g, la fuerza de cada uno)
-    const A = k < 0.36 ? AIRES.paso : k < 0.72 ? AIRES.trote : AIRES.galope, u = clamp((k - A.k0) / (A.k1 - A.k0), 0, 1), c = A.c0 + (A.c1 - A.c0) * u;
-    while (this.cascoT < t + 0.16) {
-      const i = this.cascoI % A.g.length; this.golpeCasco(this.cascoT, A.g[i] * (0.85 + Math.random() * 0.2), P, tipo === 'burro');
-      this.cascoT += A.h[i] * c; this.cascoI = i + 1;
-    }
-  }
-  golpeCasco(t, v, P, burro) {
-    const ctx = this.ctx, buf = carga(ctx, 'caballo-galope').buf, d = Math.max(0, t - ctx.currentTime), bus = this.cascoBus;
-    // (el golpe de la grabación, uno de los suyos, filtrado como suena en ese suelo)
-    const s = ctx.createBufferSource(); s.buffer = buf; s.playbackRate.value = (burro ? 1.2 : 1) * (0.92 + Math.random() * 0.14);
-    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = P.lp; f.Q.value = 0.6;
-    const g = ctx.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(v * P.v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0008, t + P.dur);
-    s.connect(f); f.connect(g); g.connect(bus); s.start(t, Math.max(0, GOLPES[(Math.random() * GOLPES.length) | 0] - 0.008), P.dur + 0.03);
-    // (el cuerpo: un golpe sordo que baja de tono, más ligero en el burro; a 150 Hz y con armónicos, que el altavoz de un
-    // móvil no da los graves de verdad)
-    if (P.cuerpo) { const f0 = (burro ? 190 : 150) * (0.93 + Math.random() * 0.14); this.tone(f0, 0.12, 'triangle', v * P.cuerpo * (burro ? 0.75 : 1), bus, d, 0.003, f0 * 0.55); }
-    // (y lo propio de cada suelo: el crujido de la nieve, el chasquido de la herradura en la piedra, el hueco de la madera,
-    // el roce de la hojarasca y el chapoteo del agua)
-    if (P.cruje) this.noiseBurst(0.09, 3200, 0.9, v * P.cruje, bus, d + 0.006);
-    if (P.chas) this.tone(1500 + Math.random() * 300, 0.035, 'triangle', v * P.chas, bus, d, 0.001, 1100);
-    if (P.hueco) this.tone(205 + Math.random() * 20, 0.16, 'sine', v * P.hueco, bus, d, 0.003, 170);
-    if (P.roce) this.noiseBurst(0.12, 2600, 0.6, v * P.roce, bus, d + 0.01);
-    if (P.agua) this.noiseBurst(0.2, 1300, 0.7, v * P.agua, bus, d + 0.01);
+    if (!this.galope) { const b = carga(this.ctx, 'caballo-galope').buf; if (!b || k <= 0) return; const g = this.ctx.createGain(); g.gain.value = 0; g.connect(this.sfx); const s = this.ctx.createBufferSource(); s.buffer = b; s.loop = true; s.connect(g); s.start(); this.galope = { s, g }; }
+    const t = this.ctx.currentTime, v = clamp((k - 0.28) / 0.4, 0, 1) * 0.32;
+    this.galope.g.gain.setTargetAtTime(v, t, 0.15); this.galope.s.playbackRate.setTargetAtTime(0.78 + clamp(k, 0, 1) * 0.36, t, 0.3);
   }
   cowbell(pos, v = 0.4) { if (!this.ctx) return; const o = this.out(pos, 45, v, 0.3); if (!o) return; const f = 520 + Math.random() * 90; this.tone(f, 0.5, 'square', 0.05, o); this.tone(f * 1.48, 0.4, 'triangle', 0.05, o); this.tone(f * 2.7, 0.2, 'sine', 0.03, o); }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
@@ -364,7 +316,7 @@ export class Sound {
     const now = performance.now(), t = this.ctx.currentTime;
     if (this.rain && !this.rainQuiet && now - (this.rainAt || 0) > 1500) { this.rainQuiet = true; this.rain.g.gain.setTargetAtTime(0, t, 0.12); }
     if (!this.ambQuiet && now - (this.ambAt || 0) > 1500) { this.ambQuiet = true; this.river.g.gain.setTargetAtTime(0, t, 0.12); this.wind.g.gain.setTargetAtTime(0, t, 0.12); this.pajaros?.nivel(0, 0.12); this.pueblo?.nivel(0, 0.12); }
-    if (this.cascoT && now - (this.cascosAt || 0) > 400) this.cascoT = 0;   // (al bajarse o al salir del pueblo, los cascos se callan: no se arman más)
+    if (this.galope && now - (this.cascosAt || 0) > 400) this.galope.g.gain.setTargetAtTime(0, t, 0.1);   // (al bajarse o al salir del pueblo, los cascos se callan)
   }
   setVolume(v) { if (this.master) this.master.gain.value = v; }
 }
