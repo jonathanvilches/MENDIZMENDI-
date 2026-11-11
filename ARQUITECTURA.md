@@ -951,6 +951,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con relleno liso (`--btn-2`); lo elegido (`aria-pressed`, `aria-selected`, `aria-checked`, `.on`) se rellena
   (`--btn-on`), no se contornea: el mismo en niveles, pestañas, vistas y opciones de todas las pantallas. Los botones
   redondos (los iconos de la pausa, la equis), igual: sin aro ni brillo. Las variables están en `ui/sport.css`.
+  Tampoco hay luz de color alrededor de nada que no sea carta de jugador (noviembre de 2026, a petición del autor: el
+  botón de seguir jugando de la portada llevaba un halo morado): los botones principales y lo elegido, con una sombra
+  oscura (`--sombra-boton`, y `--glow` ya es una sombra oscura); las rayas de arriba de los paneles y las barras, sin
+  brillo; lo que iba con borde o anillo rosa (el pueblo donde estás en el mapa, la forma de jugar de este aparato, el
+  tanto perdido de la pausa), con relleno. Es el último bloque de `neon.css`. Conservan su luz los textos grandes (VS,
+  Gran final) y las señales del mapa y del catalejo, que no son recuadros.
   Un botón, una caja o una pantalla nuevos siguen esto sin más; las listas de `neon.css` (la forma, los botones
   secundarios, lo elegido) se amplían con lo nuevo. Sustituye
   a las esquinas cortadas en ángulo y a sus marcos dibujados (`ui/frames.js`, retirado): las 57 reglas con `clip-path`

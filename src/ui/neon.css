@@ -136,3 +136,25 @@ body:not(.alto-contraste) :is(.pel-levels button, .pel-mseg button, .pel-otabs b
 @media (prefers-reduced-motion: reduce) {
   .gx-card::after { animation: none; }
 }
+
+/* ---------- sin luz de color fuera de las cartas de jugador (noviembre de 2026) ----------
+   El autor: ni el recuadro de «Navarra descubierta» ni el botón de seguir jugando de arriba a la derecha llevan neón, y
+   nada que no sea carta de jugador. Los botones y lo elegido se separan del fondo con una sombra oscura, no con un halo
+   rosa o morado; las rayas de arriba de los paneles y las barras, sin brillo; lo que estaba marcado con un borde rosa,
+   con relleno. Siguen con su luz: las cartas de jugador, los textos grandes (VS, Gran final) y las señales del mapa y
+   del catalejo, que no son recuadros. La vigila tools/auditoria-medida.mjs («neon») */
+:root { --sombra-boton: 0 6px 16px rgba(4, 1, 12, .38), inset 0 1px 0 rgba(255, 255, 255, .28); }
+:root :is(.btn.primary, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .pel-go:not(.alt), .lg-btn.go, .ih-play, #bino .bact.ready, .cs-arrow) { box-shadow: var(--sombra-boton) !important; }
+@media (hover: hover) { :root :is(.btn.primary, .gx-go, .mm-go, .ex-go, #hub.juego .m3d .ft-go, .qitem .qgo, .fb-go, .pel-go:not(.alt), .lg-btn.go, .ih-play, #bino .bact.ready, .cs-arrow):hover { box-shadow: 0 10px 22px rgba(4, 1, 12, .45), inset 0 1px 0 rgba(255, 255, 255, .32) !important; } }
+/* (el botón grande de actuar del pueblo: su canto de abajo y su sombra, sin el anillo rosa que latía) */
+:root .cbtn.big { box-shadow: 0 5px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35) !important; }
+:root :is(.tq-vista button[aria-pressed=true], .tq-pueblos button.on, .seg button.on, .shop-card nav button.on, .fr-chip.on, .ix-shots button[aria-pressed=true], .ix-tabs button[aria-selected=true], .pel-racha, .dash-tag, #loading .ld-av) { box-shadow: 0 4px 12px rgba(4, 1, 12, .35) !important; }
+:root :is(#loading .bar i, .pfx-bar u.on, .sbar i, .ix-dots i.on) { box-shadow: none !important; }
+:root :is(.fb-card, .pel-card, .lg-card, .pfx-card, .mg-card, .shop-room, .screen .paper)::before, :root .csel2::after { box-shadow: none !important; }
+:root .m3-tot > .m3-aro { filter: none !important; }
+@media (hover: hover) { #hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg):hover { box-shadow: 0 12px 28px rgba(4, 1, 12, .42) !important; } }
+/* (lo que iba con un borde o un anillo rosa: el pueblo donde estás en el mapa, la forma de jugar de este aparato y el
+   tanto perdido de la pausa, con relleno) */
+:root .m3-tl.here { border-color: transparent !important; box-shadow: none !important; background: color-mix(in srgb, #ff2bd6 34%, rgba(13, 4, 32, .9)) !important; }
+:root .cj-card.aqui { border-color: transparent !important; box-shadow: inset 0 0 0 999px rgba(255, 122, 200, .12) !important; }
+:root .pz-res.no { box-shadow: none !important; background: rgba(255, 122, 200, .16) !important; }
