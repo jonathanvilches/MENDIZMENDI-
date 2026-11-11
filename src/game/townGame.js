@@ -3,7 +3,7 @@ import { tantosDe } from '../pelota/rules.js';
 import { nombreLibre } from '../data/nombres.js';
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
-import { PLACES } from '../world/layout.js';
+import { PLACES, BOUNDARY } from '../world/layout.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
 import { groundHeight, terrainHeight, waterLevelAt, onPlatform } from '../world/heightfield.js';
@@ -216,12 +216,17 @@ export class TownGame {
   // sirven las canchas del frontón ni de la pista
   // (gap: hueco que deja con los demás sitios dados; la tienda, que es ancha, pide más; ok: otra condición del sitio)
   spot(p, r = 4, avoidWater = true, gap = 1.6, ok = null) {
+    // (nada al otro lado del límite del mundo, que para el jugador es un muro invisible: el pastor, la ganadera, la pastora
+    // de una misión y las manzanas de las granjas del borde caían fuera y no se podía llegar a ellos, como en Altsasu,
+    // Etxalar o Elizondo; noviembre de 2026. El punto pedido se acerca hacia dentro y no vale ningún sitio de fuera)
+    const B = BOUNDARY || 462, r4 = (x, z) => Math.pow(x ** 4 + z ** 4, 0.25);
+    { const d = r4(p.x, p.z), lim = B - 14; if (d > lim) { const k = lim / d; p = { ...p, x: p.x * k, z: p.z * k }; } }
     const taken = this._taken ||= [];
     const done = (x, z) => { taken.push(x, z, gap); return { x, z }; };
     for (let k = 0; k < 60; k++) {
       const a = k * 2.4, d = k === 0 ? 0 : r * 0.3 + k * 0.6;
       const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
-      if (!isFree(x, z, 0.9) || onPlatform(x, z, 0.5)) continue;
+      if (r4(x, z) > B - 6 || !isFree(x, z, 0.9) || onPlatform(x, z, 0.5)) continue;
       let near = false; for (let i = 0; i < taken.length && !near; i += 3) { const g = Math.max(gap, taken[i + 2]); near = Math.abs(taken[i] - x) < g && Math.abs(taken[i + 1] - z) < g; }
       if (near || (ok && !ok(x, z))) continue;
       if (avoidWater && waterLevelAt(x, z) > groundHeight(x, z) - 0.05) continue;

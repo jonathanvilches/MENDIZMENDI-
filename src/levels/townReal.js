@@ -210,7 +210,9 @@ export function createRealTownLevel(def, D) {
   // la granja: un prado llano y libre fuera del casco, junto a un camino
   const meadows = USOS.filter(u => u.k === 'prado' || u.k === 'cesped');
   const ring = (r0, r1, ok) => { for (let r = r0; r <= r1; r += 10) for (let k = 0; k < 24; k++) { const a = (k / 24) * Math.PI * 2 + r * 0.01, x = Math.cos(a) * r, z = Math.sin(a) * r; if (ok(x, z)) return { x, z }; } return null; };
-  const freeFarm = (x, z) => okSpot(x, z, 22, 0.16) && villageMask(x, z) < 0.05 && pathQuery(x, z).d < 40;
+  // (y dentro: alrededor de la granja van el redil, a 16 m, el pastor con su rebaño, a 42, y la ganadera con sus vacas, a
+  // 50. En los pueblos de prados lejanos quedaban al otro lado del límite del mundo, BOUNDARY, 440 m: no se llegaba)
+  const freeFarm = (x, z) => Math.pow(x ** 4 + z ** 4, 0.25) < 440 - 70 && okSpot(x, z, 22, 0.16) && villageMask(x, z) < 0.05 && pathQuery(x, z).d < 40;
   PLACES.farm = meadows.map(u => { const c = u.pts.reduce((a, p) => [a[0] + p[0] / u.pts.length, a[1] + p[1] / u.pts.length], [0, 0]); return near(c[0], c[1], freeFarm, 40); }).find(Boolean) || ring(R + 30, 380, freeFarm) || { x: R + 60, z: 40 };
   PLACES.fields = ring(R + 20, 360, (x, z) => okSpot(x, z, 20, 0.2) && villageMask(x, z) < 0.05 && Math.hypot(x - PLACES.farm.x, z - PLACES.farm.z) > 60) || { x: -(R + 40), z: -90 };
   PLACES.forest = ring(Math.max(R + 120, 260), 420, (x, z) => okSpot(x, z, 40, 0.5) && villageMask(x, z) < 0.01 && Math.hypot(x - PLACES.farm.x, z - PLACES.farm.z) > 120) || { x: 0, z: -R - 130 };
