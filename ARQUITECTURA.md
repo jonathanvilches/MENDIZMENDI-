@@ -317,6 +317,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mide una vez en la malla de cada figura (los puntos que mueve el hueso de la cabeza y lo que cuelga de él, en su
   espacio; el radio que deja dentro al 90 %) y, en cada fotograma, si la palma queda dentro, el brazo se gira desde el
   hombro hasta sacarla, en tres pasos como mucho. `globalThis.__manosLibres` lo apaga para comparar.
+- **Rótulos con movimiento** (`pelota/hud.js`, `call` y sus estilos `pelCall*`; `pelota/match.js`, `anim` en el aviso
+  del tanto): el aviso grande se abre desde una raya inclinada, lo barre un brillo, las letras caen una detrás de otra
+  (cada una en su `span.l` con su retraso, `--i`) y al irse se cierra en raya y sale de lado (`sale`). Cada fallo tiene
+  su animación (`v-bote`: las letras botan dos veces y una pelota cruza dando dos botes; `v-chapa`: tiembla; `v-fuera`:
+  las letras llegan volando de lado; `v-falta`: caen como un sello; `v-tanto`: brillan en dorado). La etiqueta del
+  golpe entra inclinada; los botones y la palanca entran de un salto al volver a verse (`controls`, `entra`) y el
+  marcador baja desde arriba la primera vez (`entraTop`). Con «reducir movimiento», sin animaciones.
 - **Marcador de retransmisión y rachas** (`pelota/hud.js`, `setScore`, `setRacha`, `call`; `pelota/match.js`, `rachaDe`):
   al sumar, la cifra salta en dorado y su lado se ilumina. El aviso del tanto lleva arriba una raya del color de quien
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el

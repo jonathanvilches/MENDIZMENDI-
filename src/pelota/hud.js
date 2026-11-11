@@ -120,7 +120,43 @@ const CSS = `
 @keyframes pelRachaM{from{transform:scale(.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.pel-side b.sube,.pel-side.gana .ps-cab,.ps-racha.on,.pel-racha{animation:none}}
 .pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:16px 24px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.pel-call.on{opacity:1;transform:translateX(-50%) scale(1)}
+.pel-call.on{opacity:1;transform:translateX(-50%) scale(1);transition:none;animation:pelCallIn .55s cubic-bezier(.2,1.35,.4,1) both}
+/* (el movimiento de los rótulos, como en las retransmisiones y los juegos de deporte: el aviso se abre desde una raya
+   inclinada con un brillo que lo barre, las letras caen una detrás de otra y, al irse, se cierra en raya y sale de lado.
+   Y cada fallo, el suyo: en los dos botes las letras botan dos veces y una pelota cruza dando dos botes; en la chapa el
+   rótulo tiembla como el golpe en el metal; fuera, las letras llegan volando de lado; en la falta y el pasa, caen como un
+   sello. El autor, noviembre de 2026) */
+.pel-call.sale{opacity:1;animation:pelCallOut .3s cubic-bezier(.6,0,.85,.35) both}
+@keyframes pelCallIn{0%{opacity:0;transform:translateX(-50%) scale(.15,.05) skewX(-20deg)}35%{opacity:1;transform:translateX(-50%) scale(1.06,.07) skewX(-14deg)}72%{transform:translateX(-50%) scale(.98,1.05) skewX(0)}100%{opacity:1;transform:translateX(-50%) scale(1)}}
+@keyframes pelCallOut{0%{transform:translateX(-50%) scale(1)}45%{transform:translateX(-50%) scale(1.04,.06) skewX(-14deg)}100%{opacity:0;transform:translateX(calc(-50% + 90px)) scale(.3,.04) skewX(-22deg)}}
+.pel-call.on::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.32) 50%,transparent 60%) no-repeat;background-size:250% 100%;background-position:150% 0;animation:pelBarre .75s .22s ease-out both}
+@keyframes pelBarre{from{background-position:150% 0}to{background-position:-50% 0}}
+.pel-call h3 .l{display:inline-block;animation:pelLetra .42s calc(.16s + var(--i) * .032s) cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pelLetra{from{opacity:0;transform:translateY(.7em) rotate(-10deg) scale(.5)}}
+.pel-call.on p{animation:pelSubeP .34s .36s ease-out both}@keyframes pelSubeP{from{opacity:0;transform:translateY(10px)}}
+.pel-call.on .pel-kantari{animation:pelPop .42s .5s cubic-bezier(.2,1.8,.4,1) both}@keyframes pelPop{from{opacity:0;transform:scale(.4)}}
+.pel-call .pel-bola{display:none}
+.pel-call.v-bote .pel-bola{display:block;position:absolute;left:0;bottom:6px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#efe6d6 45%,#b9a88e);box-shadow:0 2px 3px rgba(0,0,0,.35);animation:pelBolaX 1.15s .3s linear both,pelBolaY 1.15s .3s both}
+@keyframes pelBolaX{from{transform:translateX(8px)}to{transform:translateX(calc(var(--ancho, 420px) - 20px))}}
+@keyframes pelBolaY{0%{translate:0 -46px;animation-timing-function:cubic-bezier(.5,0,1,.5)}28%{translate:0 0;scale:1.3 .7;animation-timing-function:cubic-bezier(0,.5,.5,1)}46%{translate:0 -26px;scale:1;animation-timing-function:cubic-bezier(.5,0,1,.5)}64%{translate:0 0;scale:1.3 .7;animation-timing-function:cubic-bezier(0,.5,.5,1)}80%{translate:0 -10px;scale:1}100%{translate:0 0}}
+.pel-call.v-bote h3 .l{animation:pelLetra .4s calc(.12s + var(--i) * .028s) cubic-bezier(.2,1.6,.4,1) both,pelBote .8s calc(.62s + var(--i) * .025s) both}
+@keyframes pelBote{0%,100%{transform:none}14%{transform:translateY(-.38em) scale(.92,1.1)}28%{transform:translateY(0) scale(1.18,.8)}44%{transform:translateY(-.2em) scale(.95,1.06)}58%{transform:translateY(0) scale(1.1,.88)}72%{transform:none}}
+.pel-call.v-chapa.on{animation:pelCallIn .5s cubic-bezier(.2,1.35,.4,1) both,pelTiembla .46s .5s both}
+@keyframes pelTiembla{15%,55%{transform:translateX(calc(-50% - 7px)) rotate(-1.6deg)}35%,75%{transform:translateX(calc(-50% + 7px)) rotate(1.6deg)}90%{transform:translateX(calc(-50% - 2px))}100%{transform:translateX(-50%)}}
+.pel-call.v-fuera h3 .l{animation:pelVuela .5s calc(.14s + var(--i) * .03s) cubic-bezier(.15,1.25,.4,1) both}
+@keyframes pelVuela{from{opacity:0;transform:translateX(-2.2em) skewX(-25deg) rotate(-12deg)}}
+.pel-call.v-falta h3 .l{animation:pelSello .38s calc(.16s + var(--i) * .03s) cubic-bezier(.3,1.7,.5,1) both}
+@keyframes pelSello{from{opacity:0;transform:translateY(-.9em) scale(1.8)}}
+.pel-call.v-tanto h3 .l{animation:pelLetra .42s calc(.16s + var(--i) * .032s) cubic-bezier(.2,1.6,.4,1) both,pelBrilla .5s calc(.7s + var(--i) * .03s) ease-out both}
+@keyframes pelBrilla{40%{color:#ffd166;transform:translateY(-.12em) scale(1.12)}}
+/* (y al empezar cada saque, los botones y la palanca entran con un salto, uno detrás de otro, y el marcador baja desde
+   arriba la primera vez) */
+.pel-root.entra .pel-btns>*{animation:pelBoton .42s calc(var(--i, 0) * .07s) cubic-bezier(.2,1.6,.4,1) both}
+.pel-root.entra .pel-stick{animation:pelPalanca .45s cubic-bezier(.2,1.4,.4,1) both}
+.pel-root.entraTop .pel-top{animation:pelTop .55s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes pelBoton{from{opacity:0;transform:translateY(40px) scale(.5)}}@keyframes pelPalanca{from{opacity:0;transform:translateX(-40px) scale(.6)}}
+@keyframes pelTop{from{opacity:0;transform:translateY(-60px)}}
+@media (prefers-reduced-motion:reduce){.pel-call.on,.pel-call.sale,.pel-call.on::after,.pel-call h3 .l,.pel-call.on p,.pel-call.on .pel-kantari,.pel-call .pel-bola,.pel-root.entra .pel-btns>*,.pel-root.entra .pel-stick,.pel-root.entraTop .pel-top{animation:none!important}.pel-call.v-bote .pel-bola{display:none}}
 /* (el aviso del tanto, con una raya arriba del color de quien lo gana y, si toca, la racha: tantos seguidos, iguala,
    remontada) */
 .pel-call.c-azul{box-shadow:inset 0 3px 0 #6b5bff,0 14px 40px rgba(0,0,0,.4)}.pel-call.c-rojo{box-shadow:inset 0 3px 0 #ff2e88,0 14px 40px rgba(0,0,0,.4)}
@@ -137,7 +173,9 @@ const CSS = `
 .pel-call p{margin:var(--r-pp,12px) 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#d9ccff}.pel-call :is(h3,p,.pel-kantari){text-box:trim-both cap alphabetic}
 .pel-call .pel-kantari{margin-top:var(--r-pp,12px);font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
 .pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;border-radius:6px;opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
-.pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none}
+.pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none;animation:pelGolpe .4s cubic-bezier(.2,1.5,.4,1) both}
+@keyframes pelGolpe{0%{opacity:0;transform:translateX(70px) skewX(-18deg)}60%{opacity:1;transform:translateX(-6px) skewX(4deg)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.pel-golpe.on{animation:none}}
 /* la tarjeta del rival: bajo el marcador, del color que viste; la barra de energía grande y, encima de ella, la fuerza de
    su último golpe, que se llena y se apaga */
 .pel-root.repe .pel-golpe,.pel-root.paneled .pel-golpe{visibility:hidden}
@@ -514,7 +552,7 @@ export class PelotaHud {
         ${pzFila({ cls: 'pm-fichas', titulo: esc(txt.fichas || 'Fichas'), sub: esc(PZ.fichas || ''), ico: PZ_ICO.fichas, attrs: 'hidden' })}
         ${pzFila({ cls: 'pm-salir', titulo: esc(txt.salirPartido || txt.exit), sub: esc(PZ.salir || ''), ico: PZ_ICO.salir })}
       </div></div></div></div></div>
-      <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div></div>
+      <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div><i class="pel-bola" aria-hidden="true"></i></div>
       <div class="pel-golpe" aria-live="off"></div>
       <div class="pel-com" role="status" aria-live="polite"></div>
       <div class="pel-q"></div>
@@ -618,8 +656,11 @@ export class PelotaHud {
   }
   /** El aviso grande del juez. extra: { col ('azul' o 'rojo': la raya de quien gana el tanto), racha (el rótulo de racha) } */
   call(title, sub, kant, secs = 2, extra = null) {
-    const c = this.$('.pel-call'); c.querySelector('h3').textContent = title; c.querySelector('p').textContent = sub || '';
-    c.classList.remove('c-azul', 'c-rojo'); if (extra?.col) c.classList.add('c-' + extra.col);
+    const c = this.$('.pel-call'), h = c.querySelector('h3'); c.querySelector('p').textContent = sub || '';
+    // (cada letra por su cuenta, para que caigan una detrás de otra; quien lee la pantalla oye el título entero)
+    h.setAttribute('aria-label', title); h.innerHTML = [...String(title)].map((ch, i) => ch === ' ' ? ' ' : `<span class="l" aria-hidden="true" style="--i:${i}">${esc(ch)}</span>`).join('');
+    c.classList.remove('c-azul', 'c-rojo', 'on', 'sale', 'v-bote', 'v-chapa', 'v-fuera', 'v-falta', 'v-tanto'); if (extra?.col) c.classList.add('c-' + extra.col);
+    if (extra?.anim) c.classList.add('v-' + extra.anim); clearTimeout(this.saleTo); void c.offsetWidth;
     const rc = c.querySelector('.pel-racha'); rc.hidden = !extra?.racha; rc.innerHTML = extra?.racha ? `${LLAMA}<span>${esc(extra.racha)}</span>` : '';
     c.querySelector('p').style.display = sub ? '' : 'none';
     const k = c.querySelector('.pel-kantari'); k.textContent = kant ? `«${kant}»` : ''; k.style.display = kant ? '' : 'none';
@@ -628,6 +669,7 @@ export class PelotaHud {
     // rótulo grande pisaba las barras de energía)
     c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
     if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
+    c.style.setProperty('--ancho', `${Math.max(120, Math.round(a.width))}px`);   // (hasta dónde cruza la pelota de los dos botes)
   }
   /** El rótulo de los comentarios, solo con los subtítulos puestos (comenta.js): c = { rol, texto, r ('n' narra, 'e' explica) }; null lo quita.
    *  Cada frase se ve al menos 2,4 s: si llega otra antes, espera su turno (solo la última que llega) */
@@ -698,7 +740,10 @@ export class PelotaHud {
     if (this.gT > 0 && (this.gT -= dt) <= 0) this._g?.classList.remove('on');
     if (this.comT > 0) { this.comVisto += dt; if ((this.comT -= dt) <= 0) this._com?.classList.remove('on'); }
     if (this.comSig && (this.comT <= 0 || this.comVisto >= 2.4)) { const c = this.comSig; this.comSig = null; this.comT = 0; this.comenta(c); }
-    if (this.callT > 0 && (this.callT -= dt) <= 0) { this.$('.pel-call').classList.remove('on'); this.root.classList.remove('calling'); }
+    if (this.callT > 0 && (this.callT -= dt) <= 0) {
+      const c = this.$('.pel-call'); c.classList.add('sale'); c.classList.remove('on'); this.root.classList.remove('calling');
+      clearTimeout(this.saleTo); this.saleTo = setTimeout(() => c.classList.remove('sale'), 320);
+    }
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');
   }
   panel(html) {
@@ -709,7 +754,15 @@ export class PelotaHud {
   }
   // (se desvanece mientras entra lo siguiente, el VS o el saque: antes se quitaba de golpe y asomaba un momento la cancha)
   closePanel() { const p = this.panelEl; if (p) { this.panelEl = null; p.classList.add('pel-fuera'); setTimeout(() => p.remove(), 220); } this.root.classList.remove('paneled'); }
-  controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
+  controls(on) {
+    for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; }
+    if (on && this.ctrlFuera !== false) {
+      this.root.querySelectorAll('.pel-btns>*').forEach((b, i) => b.style.setProperty('--i', i));
+      const r = this.root; r.classList.remove('entra'); void r.offsetWidth; r.classList.add('entra'); if (!this.topVisto) { this.topVisto = true; r.classList.add('entraTop'); }
+      clearTimeout(this.entraTo); this.entraTo = setTimeout(() => r.classList.remove('entra', 'entraTop'), 900);
+    }
+    this.ctrlFuera = !on;
+  }
   // (se desvanece con lo que tuviera delante, el aviso de salir o el resultado, mientras entra lo siguiente)
   destroy() { removeEventListener('resize', this.onFit); if (this.fueraMenu) removeEventListener('pointerdown', this.fueraMenu, true); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
 }
