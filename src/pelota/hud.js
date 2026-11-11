@@ -49,8 +49,8 @@ const CSS = `
   transition:transform .35s cubic-bezier(.2,1.4,.4,1),filter .35s,opacity .35s}
 .pel-toss-p .gx-card{--w:var(--tw)!important;pointer-events:none}
 .pel-toss-p>small{font:700 var(--fs-xs)/1.25 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;color:color-mix(in srgb,var(--pc) 45%,#fff);text-shadow:0 1px 6px rgba(7,2,15,.9)}
-.pel-toss-p.azul{grid-column:1;animation:pel-tl .45s cubic-bezier(.2,1.3,.4,1) both}
-.pel-toss-p.rojo{--pc:#ff2e88;grid-column:3;animation:pel-tr .45s cubic-bezier(.2,1.3,.4,1) both}
+.pel-toss-p.azul{grid-column:1;animation:pel-tl .45s ease-out both}
+.pel-toss-p.rojo{--pc:#ff2e88;grid-column:3;animation:pel-tr .45s ease-out both}
 .pel-toss-p.gana{transform:translateY(-6px) scale(1.06)}
 .pel-toss-p.pierde{opacity:.55;filter:saturate(.5)}
 /* en medio, abajo: el botón y quién saca */
@@ -58,7 +58,7 @@ const CSS = `
 .pel-toss.aire .pel-toss-go{opacity:0;pointer-events:none;transform:scale(.9);transition:opacity .2s,transform .2s}
 .pel-toss-go{animation:pel-kin .5s .35s ease-out both}
 .pel-toss-res{margin:0;min-height:1.1em;font:400 var(--fs-3xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap}
-.pel-toss-res.azul{color:#c4bcff;text-shadow:0 0 18px rgba(91,75,255,.95),0 2px 6px rgba(7,2,15,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}.pel-toss-res.rojo{color:#ffb0d6;text-shadow:0 0 18px rgba(255,46,136,.95),0 2px 6px rgba(7,2,15,.9);animation:pel-res .5s cubic-bezier(.2,1.6,.4,1) both}
+.pel-toss-res.azul{color:#c4bcff;text-shadow:0 0 18px rgba(91,75,255,.95),0 2px 6px rgba(7,2,15,.9);animation:pel-res .4s ease-out both}.pel-toss-res.rojo{color:#ffb0d6;text-shadow:0 0 18px rgba(255,46,136,.95),0 2px 6px rgba(7,2,15,.9);animation:pel-res .4s ease-out both}
 /* la chapa plana de antes, solo si no hay cancha */
 .pel-toss-coin{position:relative;width:104px;height:150px;perspective:600px;display:flex;align-items:flex-end;justify-content:center}
 .pel-toss-coin .coin{position:relative;width:84px;height:84px;margin-bottom:22px;transform-style:preserve-3d;transform:rotateX(70deg)}
@@ -74,7 +74,7 @@ const CSS = `
 .pel-root.pel-fuera{animation:pel-fuera .3s ease-in both}.pel-panel.pel-fuera{animation:pel-fuera .2s ease-in both;pointer-events:none}.pel-root.pel-fuera *{pointer-events:none!important}@keyframes pel-fuera{to{opacity:0}}
 @keyframes pel-tossbg{from{opacity:0}}@keyframes pel-tossout{to{opacity:0;transform:scale(1.04)}}
 @keyframes pel-tl{from{opacity:0;transform:translateX(-40px)}}@keyframes pel-tr{from{opacity:0;transform:translateX(40px)}}
-@keyframes pel-kin{from{opacity:0;letter-spacing:.5em}}@keyframes pel-res{from{opacity:0;transform:scale(.5)}}
+@keyframes pel-kin{from{opacity:0}}@keyframes pel-res{from{opacity:0;transform:scale(.92)}}   /* (sin letras que se separan ni rebotes: el autor no quiere animaciones llamativas en el partido, noviembre de 2026) */
 /* tumbado y bajo: todo un paso más pequeño; de pie, las cartas abajo, una al lado de otra, y el botón encima */
 @media (max-height:500px){.pel-toss-k{font-size:var(--fs-xl)}.pel-toss-res{font-size:var(--fs-2xl)}}
 @media (orientation:portrait){.pel-toss{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto}
