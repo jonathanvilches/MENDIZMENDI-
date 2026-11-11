@@ -48,6 +48,14 @@ Cómo se han preparado: en un canal, MP3 de 64 kbps (los ambientes, 72; la músi
 
 Cada página de la pista: https://app.envato.com/item/ y el identificador del certificado.
 
+## Otros sonidos
+
+| Archivo | Uso en el juego | Origen | Licencia | Fecha |
+|---|---|---|---|---|
+| ambiente-ovejas.mp3 | Ovejas y cencerros de fondo en el monte y en las cimas | «Sheep in a field on the top of a mountain in Basque Country», cuenta freesound_community de Pixabay (sonido que viene de Freesound) | Licencia de contenido de Pixabay (pendiente de confirmar la del original en Freesound) | 11/11/2026 |
+
+El archivo son los 33 primeros segundos, en un canal, sin los graves del viento y con el volumen igualado. Lo pasó el autor del juego.
+
 ## Música retirada
 
 «Minstrel Guild», de Kevin MacLeod (CC BY 4.0), sonó en los partidos de pelota del 9 al 10 de noviembre de 2026. Se quitó a petición del autor del juego (era medieval y no la había elegido él); el partido suena con la épica de Torneos.

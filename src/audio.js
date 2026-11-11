@@ -216,9 +216,12 @@ export class Sound {
     // los pájaros más fuertes y sin pueblo; de noche, ninguno de los dos, y en los partidos nada)
     if (!this.animPre) { this.animPre = true; for (const k of EN_PUEBLO) for (const n of GRAB[k]) carga(this.ctx, n); carga(this.ctx, 'caballo-galope'); }
     this.pajaros ||= new Ambiente(this.ctx, this.sfx, 'ambiente-pajaros'); this.pueblo ||= new Ambiente(this.ctx, this.sfx, 'ambiente-pueblo');
+    // (las ovejas y sus cencerros en un monte del País Vasco, la grabación que pasó el autor: en el monte y en las cimas, de día)
+    this.ovejas ||= new Ambiente(this.ctx, this.sfx, 'ambiente-ovejas', 30);
     { const dia = clamp((0.62 - night) / 0.25, 0, 1), monte = inIrati || bosque, alto = player.pos.y > 900;
       this.pajaros.nivel(sport || alto ? 0 : dia * (monte ? 0.06 : 0.03), sport ? 0.12 : 0.8);   // (más bajos: 0,26 y 0,13 al principio, luego 0,15 y 0,075, y aún se oían demasiado)
-      this.pueblo.nivel(sport || alto || monte ? 0 : dia * 0.1, sport ? 0.12 : 0.8); }   // (la grabación del pueblo también es casi todo pájaros, en los agudos: de 0,24 a 0,1)
+      this.pueblo.nivel(sport || alto || monte ? 0 : dia * 0.1, sport ? 0.12 : 0.8);
+      this.ovejas.nivel(sport ? 0 : dia * (alto ? 0.22 : monte ? 0.09 : 0), sport ? 0.12 : 1.5); }   // (la grabación del pueblo también es casi todo pájaros, en los agudos: de 0,24 a 0,1)
     const r = riverInfo(player.pos.x, player.pos.z);
     const wf = PLACES.waterfall, dp = wf ? Math.hypot(player.pos.x - wf.x, player.pos.z - wf.z) : 1e9;
     const rv = clamp(1 - r.edge / 30, 0, 1) ** 1.6 * 0.5 + clamp(1 - dp / 60, 0, 1) ** 1.5 * 0.7;
