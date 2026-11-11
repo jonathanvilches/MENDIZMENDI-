@@ -4,6 +4,7 @@ import { nombreLibre } from '../data/nombres.js';
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
 import { PLACES, BOUNDARY } from '../world/layout.js';
+import { empiezaAccesos, alcanzable, acabaAccesos, sitiosBuenos } from '../world/acceso.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
 import { groundHeight, terrainHeight, waterLevelAt, onPlatform } from '../world/heightfield.js';
@@ -228,10 +229,11 @@ export class TownGame {
       const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
       if (r4(x, z) > B - 6 || !isFree(x, z, 0.9) || onPlatform(x, z, 0.5)) continue;
       let near = false; for (let i = 0; i < taken.length && !near; i += 3) { const g = Math.max(gap, taken[i + 2]); near = Math.abs(taken[i] - x) < g && Math.abs(taken[i + 1] - z) < g; }
-      if (near || (ok && !ok(x, z))) continue;
+      if (near) continue;
       if (avoidWater && waterLevelAt(x, z) > groundHeight(x, z) - 0.05) continue;
       const g0 = groundHeight(x, z), g1 = groundHeight(x + 1, z), g2 = groundHeight(x, z + 1);
       if (Math.abs(g1 - g0) > 0.6 || Math.abs(g2 - g0) > 0.6) continue;
+      if (ok && !ok(x, z)) continue;   // (lo último: puede ser lo que más cuesta, townGame.repasaAccesos)
       return done(x, z);
     }
     return done(p.x, p.z);
@@ -418,6 +420,7 @@ export class TownGame {
       this.actors.push(this.coach); this.sadar = sadar;
     }
     this.nombresUnicos();
+    try { this.repasaAccesos(); } catch (e) { console.warn('accesos', e); }
     // aparición del jugador: la primera vez, en la entrada del pueblo; si ya hay misiones hechas, a unos pasos de quien
     // da la siguiente, mirándole, para no cruzar el pueblo entero cada vez que se vuelve a jugar (antes, siempre en la
     // entrada). El perro, a su lado
@@ -512,6 +515,46 @@ export class TownGame {
   // (que en un pueblo no haya dos personas con el mismo nombre, ni ninguna con el tuyo: los vecinos toman un nombre que va con
   // su cuerpo, nameFor, y a veces salía el de un anfitrión, como las dos Ane de Ituren. Los de las misiones se quedan el
   // suyo, que sale en sus textos; los demás pasan a otro libre)
+  // que se llegue andando a todo lo que hay que hablar o coger: quien da una misión, el contador de cuentos, la ganadera,
+  // las moras y las manzanas. Si uno quedó encerrado (entre casas o tapias, en un corro de árboles, en un alto al que no
+  // se sube, en la otra orilla), se mueve al sitio libre más cercano, yendo hacia la plaza, desde el que sí se llega a la
+  // plaza andando (world/acceso.js; noviembre de 2026: en algunos pueblos una barrera invisible no dejaba llegar a la
+  // persona de la misión). Del más cercano a la plaza al más lejano: cada camino encontrado sirve para los siguientes.
+  // Los de los balcones no se miran: se les habla desde la calle
+  repasaAccesos() {
+    const P = PLACES.plaza, t0 = performance.now(), lista = []; let movidos = 0, dudas = 0;
+    const lejos = (o) => Math.hypot(o.x - P.x, o.z - P.z);
+    empiezaAccesos(P.x, P.z);
+    try {
+      // (un sitio libre cerca, junto a un camino ya encontrado desde el que se llega a la plaza sin rodeo: así no hay
+      // que buscar caminos nuevos para cada hueco que se prueba. Si no hay ninguno cerca, el camino de la plaza a un
+      // punto a medio camino. spot mira antes lo barato y la comprobación, con pocos pasos, al final)
+      const hueco = (x, z, rad) => {
+        for (let vuelta = 0; vuelta < 2; vuelta++) {
+          for (const c of sitiosBuenos(x, z, 90)) {
+            const s = this.spot(c, 2, true, 1.2, (sx, sz) => alcanzable(sx, sz, rad, 400) === true);
+            if (alcanzable(s.x, s.z, rad, 400) === true) return s;
+          }
+          if (!vuelta) alcanzable(x + (P.x - x) * 0.6, z + (P.z - z) * 0.6, 3, 30000);   // (un camino más, más cerca de la plaza)
+        }
+        return null;
+      };
+      // (también los que pasean por su sitio, como el pastor: se mueve su sitio; los que van por una ruta, no)
+      const quietos = [...this.actors, ...this.walkers].filter(a => a.visible !== false && a.alto == null && !a.noTalk && !a.route);
+      const L = [...quietos.map(a => ({ a, x: a.pos.x, z: a.pos.z, rad: 2.6 })), ...this.items.map(it => ({ it, x: it.x, z: it.z, rad: 1.9 }))].sort((p, q) => lejos(p) - lejos(q));
+      for (const o of L) {
+        // (si se deja de buscar sin saberlo, se queda donde está: mejor que llevarse al entrenador lejos de su campo. Con
+        // 8000 pasos, un encerrado de hasta unos 2000 m² se descubre entero; más, costaba casi un segundo al cargar)
+        const r = alcanzable(o.x, o.z, o.rad, 8000); if (r !== false) { if (r == null) dudas++; continue; }
+        const s = hueco(o.x, o.z, o.rad); if (!s) continue;
+        if (o.a) { o.a.setPos(s.x, s.z, Math.atan2(P.x - s.x, P.z - s.z)); if (o.a.collider) { o.a.collider.x = s.x; o.a.collider.z = s.z; } }
+        else { o.it.x = s.x; o.it.z = s.z; o.it.obj?.position.set(s.x, terrainHeight(s.x, s.z), s.z); }
+        movidos++; lista.push({ quien: o.a ? o.a.name : o.it.kind, de: [Math.round(o.x), Math.round(o.z)], a: [Math.round(s.x), Math.round(s.z)], r });
+      }
+    } finally { acabaAccesos(); }
+    // (lo que se ha movido y cuánto ha costado: lo cuentan las pruebas, tools/accesos.mjs)
+    this.accesos = { movidos, dudas, ms: Math.round(performance.now() - t0), lista };
+  }
   nombresUnicos() {
     const pila = (n) => String(n || '').match(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+/)?.[0]?.toLowerCase();
     const todos = [...this.actors, ...this.walkers, ...this.folk].filter(a => a?.name), usados = new Set();

@@ -754,6 +754,30 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cada sentido), meciéndose un poco. Se para con cualquier toque, tecla o rueda y al elegir una comarca o un pueblo, y se
   queda donde está. Sin paseo con «menos movimiento» en el sistema ni en el navegador de las pruebas (salvo
   `window.__paseo`). Antes Navarra se veía entera pero pequeña encima de la tira de comarcas.
+- **Llegar siempre a quien da la misión** (`townGame.js`, `spot` y `repasaAccesos`; `world/acceso.js`; `freeFarm` en
+  `levels/townReal.js`; la foz en `world/monuments.js`; noviembre de 2026). En algunos pueblos una barrera invisible no
+  dejaba llegar a la persona de la misión: en los pueblos de verdad la granja se elegía en prados más allá del límite
+  del mundo (`BOUNDARY`, 440 m en esos pueblos) y la pastora, la ganadera y las manzanas quedaban al otro lado, como en
+  Altsasu, Etxalar, Elizondo o Leitza; `spot` buscaba sitio sin mirar ese límite; y la foz de Lumbier se colocaba con
+  el río del pueblo inventado, que en los de verdad no vale (salía en x ≈ 9991). Ahora la granja va al menos 70 m
+  dentro del límite; `spot` acerca el punto pedido a 14 m del límite, no acepta sitios a menos de 6 m y mira lo que le
+  pidan (`ok`) lo último, después de lo barato; la foz sin un río que valga va junto al pueblo.
+  Y por si algo más queda encerrado (entre casas o tapias, en un corro de árboles, en un alto, en una isla), al montar
+  el pueblo `repasaAccesos` pregunta a `alcanzable` por cada vecino que no va por una ruta y por cada cosa que hay que
+  coger, del más cercano a la plaza al más lejano: busca un camino andando desde lo que queda a distancia de hablar
+  (2,6 m) o de coger (1,9 m) hasta la plaza, por una rejilla de medio metro en ocho direcciones sin cortar esquinas, con
+  las reglas del personaje (choques con algo de holgura, agua de más de 95 cm fuera de los puentes, escalones de más de
+  36 cm con cuesta de más de 1,25 en los dos sentidos, para no quedar atrapado, y el límite del mundo). Tampoco vale un
+  rodeo exagerado: el camino, como mucho 2,2 veces la línea recta más 120 m (cruzar el río por el puente en Aribe o
+  bajar a la foz de Lumbier, unos 320 m en línea recta y 800 andando, valen). Es un A* con algo de prisa que recuerda lo
+  recorrido: cada camino encontrado, con lo que le falta hasta la plaza, sirve para los siguientes, y lo encerrado no
+  se vuelve a recorrer. Si está encerrado o el rodeo es exagerado, se lleva al sitio libre más cercano junto a un camino
+  ya encontrado (`sitiosBuenos`), sin buscar caminos nuevos para cada hueco: así costaba segundos. Si en 8000 pasos no
+  se sabe, se queda donde está (con más, casi un segundo al cargar; y llevarse lejos, por ejemplo, al entrenador de su
+  campo era peor). Cuesta entre 0,1 y 0,4 s al cargar en los pueblos medidos. Los de los balcones no se miran: se les
+  habla desde la calle. La prueba de todo el pueblo, `node tools/accesos.mjs <pueblo|todos>`, recorre una rejilla de
+  todo el mundo, hasta el límite (antes solo lo que ocupaban los objetivos, y un camino que daba la vuelta por fuera
+  salía como si no lo hubiera), dice lo que queda sin acceso o con un rodeo exagerado y lo que el juego movió.
 - **Navegación como el GPS de los juegos de mundo abierto** (`townGame.js`, `marcaDestino`, `objetivo` y `rutaGPS`;
   `ui.js`, `updateMinimap` y `lugaresMapa`; `mapview.js`): se toman sus costumbres, no su aspecto, que es el de Herrizherri.
   En el mapa, un toque en un sitio (o en un lugar) da la ficha con «Marcar destino»; la pestaña Lugares lista la iglesia,
