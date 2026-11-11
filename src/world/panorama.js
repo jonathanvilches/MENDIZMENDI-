@@ -558,8 +558,11 @@ export class Panorama {
   // cumbre real, el nombre de los demás montes conocidos que se ven y aves volando delante
   buildPolar(G, hor, zen) {
     const S = this.scene, low = this.o.quality === 'low', grid = this.grid = new PolarGrid(G, low), D2R = Math.PI / 180;
-    const mat = polarMaterial({ eyeAlt: grid.alt, lat: grid.lat, haze: this.o.haze ?? 1, snow: this.o.snow ? 1150 : 9000, hazeColor: hor.clone().lerp(zen, 0.25).multiplyScalar(0.95) });
+    const hazeColor = hor.clone().lerp(zen, 0.25).multiplyScalar(0.95);
+    const mat = polarMaterial({ eyeAlt: grid.alt, lat: grid.lat, haze: this.o.haze ?? 1, snow: this.o.snow ? 1150 : 9000, hazeColor });
     const meshes = this.sectors = grid.meshes(mat); for (const m of meshes) { S.add(m); this.owned.push(m.geometry); } this.owned.push(mat);
+    // (las casas de los pueblos cercanos, con volumen: el terreno solo las pintaba en el suelo y se veían planos)
+    for (const m of grid.casas({ hazeColor, haze: this.o.haze ?? 1 })) { S.add(m); this.owned.push(m.geometry, m.material, m); }
     this.real = true; this.eye.set(0, 0, 0); S.fog = null;
     // la luz: el sol entre unos 12° y 35° sobre el horizonte (muy alto, el relieve no se lee; muy bajo, todo a oscuras), y
     // menos luz del cielo para que los lomos y las laderas en sombra se distingan

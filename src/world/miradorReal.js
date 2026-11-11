@@ -19,11 +19,33 @@ const BIG = [['Pamplona / Iruña', 2300], ['Burlada', 700], ['Villava', 600], ['
 /** Lo que baja el terreno a m metros por la curvatura de la Tierra (con la refracción del aire). */
 export const curv = (m) => m * m * (1 - KR) / (2 * RT);
 const TAU = Math.PI * 2;
+const smoothstep = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const CASAS_KM = 10;   // (hasta aquí, las casas de los pueblos con volumen: más lejos, con los prismáticos, no se nota)
+// (y desde aquí, en metros: más cerca, con los prismáticos, una casa sin ventanas tapaba medio visor como una caja)
+const CASAS_CERCA = 400;
+/** La bruma de la distancia real en las casas, la misma que la del terreno (polarMaterial). */
+function hazeShader(mat, eyeAlt, { hazeColor, haze = 1 }) {
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, { uEyeAlt: { value: eyeAlt }, uHazeL: { value: 60000 / Math.max(0.3, haze) }, uHaze: { value: hazeColor.clone() } });
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uEyeAlt; varying vec3 vWP; varying float vAlt;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+{ vec4 wp = vec4(transformed, 1.0);
+#ifdef USE_INSTANCING
+  wp = instanceMatrix * wp;
+#endif
+  wp = modelMatrix * wp; vWP = wp.xyz; float rr = length(wp.xz); vAlt = uEyeAlt + wp.y + rr * rr * ${((1 - KR) / (2 * RT)).toExponential(6)}; }`);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uHazeL; uniform vec3 uHaze; varying vec3 vWP; varying float vAlt;')
+      .replace('#include <fog_fragment>', `{
+  float d = length(vWP - cameraPosition), k = (1.0 - exp(-d / uHazeL)) * mix(1.0, 0.75, smoothstep(800.0, 2400.0, vAlt));
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, uHaze, clamp(k, 0.0, 0.82));
+}`);
+  };
+}
 
 /** La malla del relieve: alturas en una rejilla [anillo][rumbo] y las posiciones en la escena (ojo en 0, norte = −z). */
 export class PolarGrid {
   constructor(G, low) {
-    const NB = this.NB = low ? 720 : 1440;
+    const NB = this.NB = low ? 720 : 1440; this.low = low;
     // (un anillo al pie del ojo, con el suelo de debajo, y los de los datos)
     const rs = this.rs = Float64Array.from([0.02, ...G.rs]), NR = this.NR = rs.length, H = this.H = new Float32Array(NR * NB);
     for (let j = 0; j < NR; j++) {
@@ -40,22 +62,124 @@ export class PolarGrid {
       for (let i = 0; i < NB; i++) { const o = j * NB + i, h = H[o], m = Math.min(h, lim); H[o] = m + (h - m) * k; }
     }
   }
-  /** Los pueblos y ciudades (settlements.json) sobre la malla: cuánto es casco urbano cada punto (0 a 1). */
-  villages() {
-    const { NB, NR, rs } = this, V = new Float32Array(NR * NB);
+  /** Los pueblos y ciudades de alrededor (settlements.json), cada uno con su radio (km) y si lleva casas con volumen
+   *  (casas): los más cercanos, hasta CASAS_KM, mientras quepan en el presupuesto de casas (en el iPhone, la mitad). */
+  townsAround() {
+    if (this._towns) return this._towns;
+    const out = [];
     for (const s of SETTLEMENTS) {
       const { km, bearing } = rel(this.lat, this.lon, s[0], s[1]); if (km > 45 || km < 0.15) continue;
-      const R = (BIG.find(([n]) => s[2].startsWith(n))?.[1] ?? 140 + (s[2].length * 37 % 90)) / 1000;   // (km)
+      out.push({ s, km, b: bearing, R: (BIG.find(([n]) => s[2].startsWith(n))?.[1] ?? 140 + (s[2].length * 37 % 90)) / 1000, casas: false });
+    }
+    out.sort((a, b) => a.km - b.km);
+    // (unas 36 casas por hectárea de casco, con calles y patios; en las ciudades, bloques de pisos, unos 11 por hectárea.
+    // Una ciudad que no cabe entera lleva volumen solo hasta cl metros del ojo, lo más que quepa: más allá, pintada)
+    const total = this.low ? 7000 : 14000; let quedan = total;
+    for (const t of out) {
+      if (t.km - t.R > CASAS_KM) break;
+      t.big = t.R >= 0.45; const dens = t.big ? 0.0011 : 0.0036, n = Math.PI * (t.R * 1000) ** 2 * dens;
+      if (n <= quedan) { t.casas = true; t.cl = Infinity; quedan -= n; continue; }
+      const cx = Math.sin(t.b * Math.PI / 180) * t.km * 1000, cz = -Math.cos(t.b * Math.PI / 180) * t.km * 1000, Rm = t.R * 1000;
+      for (const cl of [2500, 2000, 1600, 1300, 1000, 800]) {
+        if (t.km * 1000 - Rm > cl) continue;
+        let k = 0; for (let i = 0; i < 40; i++) for (let j = 0; j < 40; j++) { const x = (i + 0.5) / 20 - 1, z = (j + 0.5) / 20 - 1; if (x * x + z * z < 1 && Math.hypot(cx + x * Rm, cz + z * Rm) < cl) k++; }
+        const m = k / 1600 * 4 * Rm * Rm * dens;
+        if (m <= Math.min(quedan, total * 0.6)) { t.casas = true; t.cl = cl; quedan -= m; break; }   // (y sin quedarse con todo: que queden casas para los pueblos de alrededor)
+      }
+    }
+    return this._towns = out;
+  }
+  /** Los pueblos y ciudades sobre la malla: cuánto es casco urbano cada punto (V, de 0 a 1) y lo mismo solo en los que
+   *  llevan casas con volumen (V3: ahí el suelo es de calles y patios, sin tejados pintados). */
+  villages() {
+    const { NB, NR, rs } = this, V = new Float32Array(NR * NB), V3 = new Float32Array(NR * NB);
+    for (const t of this.townsAround()) {
+      const { km, R } = t, bearing = t.b;
       const db = km <= R * 1.05 ? 180 : Math.asin(R / km) * 180 / Math.PI * 1.1;   // (con el ojo dentro del pueblo, todo alrededor)
       for (let j = this.ring(km - R); j < NR && rs[j] <= km + R; j++) {
         for (let i = Math.floor((bearing - db) / 360 * NB); i <= Math.ceil((bearing + db) / 360 * NB); i++) {
           const ii = ((i % NB) + NB) % NB, a = ii * TAU / NB, b = bearing * Math.PI / 180;
           const d = Math.hypot(rs[j] * Math.sin(a) - km * Math.sin(b), rs[j] * Math.cos(a) - km * Math.cos(b)) / R;
-          if (d < 1) V[j * NB + ii] = Math.max(V[j * NB + ii], 1 - d * d);
+          if (d < 1) { const o = j * NB + ii, v = 1 - d * d; V[o] = Math.max(V[o], v); if (t.casas) V3[o] = Math.max(V3[o], v * (1 - smoothstep(t.cl * 0.75, t.cl, rs[j] * 1000)) * smoothstep(CASAS_CERCA * 0.8, CASAS_CERCA * 1.1, rs[j] * 1000)); }
         }
       }
     }
-    return V;
+    return { V, V3 };
+  }
+  /** Altura (m) del terreno a r km en el rumbo b (grados), entre anillos y entre rumbos, como la malla. */
+  hAtR(b, r) {
+    const j = Math.max(1, this.ring(r)); if (j >= this.NR) return this.hAt(this.NR - 1, b);
+    const r0 = this.rs[j - 1], r1 = this.rs[j], f = Math.min(1, Math.max(0, (r - r0) / (r1 - r0)));
+    return this.hAt(j - 1, b) * (1 - f) + this.hAt(j, b) * f;
+  }
+  /**
+   * Las casas de los pueblos cercanos, con volumen (townsAround: casas): en cada pueblo, barrios de manzanas con calles y
+   * patios, como el dibujo del suelo, y en cada manzana casas de 1 a 3 alturas con su tejado a dos aguas (más altas y
+   * apretadas en el centro, más sueltas en las afueras), y en el centro la iglesia con su torre. Tres mallas repetidas
+   * (paredes, hastiales y tejados: tres llamadas de dibujo) con la bruma de la distancia real, igual que el terreno.
+   * o = { hazeColor, haze }. Devuelve [paredes, hastiales, tejados] o [] si no hay ningún pueblo cerca.
+   */
+  casas(o) {
+    const list = this.townsAround().filter(t => t.casas); if (!list.length) return [];
+    const MW = [], MR = [], Q = new THREE.Quaternion(), Y = new THREE.Vector3(0, 1, 0), mx = new THREE.Matrix4(), ps = new THREE.Vector3(), sc = new THREE.Vector3();
+    const pared = [], teja = [];
+    // (los colores, algo más claros que los de las casas del pueblo: con los prismáticos, de lejos y a la sombra, se apagaban)
+    const PAREDES = ['#f6efe2', '#fbf8f2', '#efdfc2', '#e6d2b0', '#ddd0bb', '#f3e8d4'].map(c => new THREE.Color(c).multiplyScalar(1.15));
+    const TEJAS = ['#b2603f', '#a4553a', '#93503a', '#b8704e', '#7d7873'].map(c => new THREE.Color(c));
+    const hs = (a, b, c = 0) => { let h = Math.imul(a | 0, 374761393) ^ Math.imul(b | 0, 668265263) ^ Math.imul(c | 0, 2246822519); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+    // una casa: las paredes (w × H × d, el caballete a lo largo de w) y, encima, el tejado de RH de alto con sus hastiales
+    const add = (x, z, w, d, H, RH, rot, k) => {
+      const r = Math.hypot(x, z) / 1000, b = (Math.atan2(x, -z) * 180 / Math.PI + 360) % 360, y = this.hAtR(b, r) - this.alt - curv(r * 1000) - 2.5;
+      Q.setFromAxisAngle(Y, rot);
+      MW.push(mx.compose(ps.set(x, y, z), Q, sc.set(w, H + 2.5, d)).clone());
+      MR.push(mx.compose(ps.set(x, y + H + 2.5, z), Q, sc.set(w, RH, d)).clone());
+      pared.push(PAREDES[Math.floor(k * 977) % PAREDES.length]); teja.push(TEJAS[Math.floor(k * 613) % TEJAS.length]);
+    };
+    for (const t of list) {
+      const id = t.s[2].length * 131 + Math.round(t.km * 1000), an = hs(id, 1) * Math.PI, ca = Math.cos(an), sa = Math.sin(an);
+      // (manzanas, calles y casas; en las ciudades, manzanas grandes de bloques de 3 a 7 pisos)
+      const B = t.big ? { bx: 90 + hs(id, 2) * 40, by: 70 + hs(id, 3) * 30, st: 8, cw: 22, ch: 16 } : { bx: 48 + hs(id, 2) * 22, by: 36 + hs(id, 3) * 14, st: 4.5, cw: 11, ch: 9 };
+      const c = this.pos(t.b, t.km, 0), Rm = t.R * 1000, bx = B.bx, by = B.by, ox = hs(id, 4) * bx, oy = hs(id, 5) * by, cl = t.cl;
+      const toW = (lx, ly) => [c.x + lx * ca - ly * sa, c.z + lx * sa + ly * ca];
+      // (la iglesia, en el centro: la nave y la torre, la más alta del pueblo)
+      { const [x, z] = toW(0, 0); if (Math.hypot(x, z) > CASAS_CERCA * 1.2 && Math.hypot(x, z) < cl * 0.75) { add(x, z, 30, 13, 13, 5, -an + Math.PI / 2, 0.1); const [tx, tz] = toW(10, 17); add(tx, tz, 7, 7, 25, 7, -an, 0.1); } }
+      const nx = Math.ceil(Rm / bx) + 1, ny = Math.ceil(Rm / by) + 1;
+      for (let i = -nx; i <= nx; i++) for (let j = -ny; j <= ny; j++) {
+        const x0 = i * bx - ox, y0 = j * by - oy, court = hs(id + i, j, 7) > (t.big ? 0.3 : 0.55), iw = bx - 2 * B.st, ih = by - 2 * B.st;
+        const cx = Math.max(1, Math.round(iw / B.cw)), cy = Math.max(1, Math.round(ih / B.ch)), cw = iw / cx, ch = ih / cy;
+        for (let u = 0; u < cx; u++) for (let v = 0; v < cy; v++) {
+          if (court && u > 0 && v > 0 && u < cx - 1 && v < cy - 1) continue;
+          const lx = x0 + B.st + (u + 0.5) * cw, ly = y0 + B.st + (v + 0.5) * ch, k = hs(id + i * 31 + u, j * 17 + v, 11);
+          const dd = Math.hypot(lx, ly) / Rm, cen = 1 - dd * dd;
+          if (cen < 0.12 + k * 0.35 || hs(id + u, i + v, 13) < 0.07) continue;   // (las afueras, a trozos, y algún huerto)
+          if (Math.abs(lx) < 22 && Math.abs(ly) < 26) continue;   // (el sitio de la iglesia)
+          const [x, z] = toW(lx, ly), de = Math.hypot(x, z); if (de < CASAS_CERCA || (de < CASAS_CERCA * 1.25 && hs(v, u, id + 5) > (de - CASAS_CERCA) / (CASAS_CERCA * 0.25))) continue;   // (nada pegado al ojo)
+          if (de > cl * 0.75 && hs(u, v, id + 3) < (de - cl * 0.75) / (cl * 0.25)) continue;   // (el final de una ciudad que no cabe entera, a trozos)
+          const pisos = t.big ? 3 + Math.floor(k * 4.99) : 1 + (k > 0.35 ? 1 : 0) + (cen > 0.55 && hs(i, j, id) > 0.4 ? 1 : 0), H = 3 + pisos * 2.9;
+          const w = cw - 0.6 - hs(u, v, id) * 1.4, d = ch - 0.6;
+          // (el caballete, a lo largo del lado largo; el tejado, de unos 40° en las casas y bajo en los bloques de pisos)
+          const RH = Math.min(w, d) * (t.big ? 0.16 : 0.4);
+          if (w >= d) add(x, z, w, d, H, RH, -an, k); else add(x, z, d, w, H, RH, -an + Math.PI / 2, k);
+        }
+      }
+    }
+    if (!MW.length) return [];
+    // la casa de 1 × 1 × 1: las cuatro paredes, sin suelo ni techo; el tejado, de y = 0 a 1, con los hastiales (del color
+    // de las paredes) y las dos vertientes, que vuelan un poco
+    const q = (a, b, c2, d) => [...a, ...b, ...c2, ...a, ...c2, ...d], geo = (v) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); g.computeVertexNormals(); return g; };
+    const gW = geo([...q([-0.5, 0, 0.5], [0.5, 0, 0.5], [0.5, 1, 0.5], [-0.5, 1, 0.5]), ...q([0.5, 0, -0.5], [-0.5, 0, -0.5], [-0.5, 1, -0.5], [0.5, 1, -0.5]),
+      ...q([0.5, 0, 0.5], [0.5, 0, -0.5], [0.5, 1, -0.5], [0.5, 1, 0.5]), ...q([-0.5, 0, -0.5], [-0.5, 0, 0.5], [-0.5, 1, 0.5], [-0.5, 1, -0.5])]);
+    const gG = geo([0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 1, 0, -0.5, 0, -0.5, -0.5, 0, 0.5, -0.5, 1, 0]);
+    const gR = geo([...q([-0.54, -0.08, 0.56], [0.54, -0.08, 0.56], [0.54, 1, 0], [-0.54, 1, 0]), ...q([0.54, -0.08, -0.56], [-0.54, -0.08, -0.56], [-0.54, 1, 0], [0.54, 1, 0])]);
+    const mat = (rough) => { const m = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: rough, metalness: 0 }); hazeShader(m, this.alt, o); return m; };
+    const out = [[gW, mat(0.95), MW, pared], [gG, mat(0.95), MR, pared], [gR, mat(0.85), MR, teja]].map(([g, m, Ms, cols]) => {
+      const im = new THREE.InstancedMesh(g, m, Ms.length);
+      for (let i = 0; i < Ms.length; i++) { im.setMatrixAt(i, Ms[i]); im.setColorAt(i, cols[i]); }
+      im.instanceMatrix.needsUpdate = true; im.instanceColor.needsUpdate = true; im.computeBoundingSphere(); im.frustumCulled = false;
+      return im;
+    });
+    this.nCasas = MW.length;
+    return out;
   }
   /** Altura (m) en el anillo j y el rumbo b (grados), interpolada entre rumbos. */
   hAt(j, b) { const NB = this.NB, x = ((b / 360 * NB) % NB + NB) % NB, i = Math.floor(x), f = x - i; return this.H[j * NB + i] * (1 - f) + this.H[j * NB + (i + 1) % NB] * f; }
@@ -103,21 +227,21 @@ export class PolarGrid {
         for (let i = 0; i < NB; i++) { row[j * NB + i] = s / (2 * wb + 1); s += H[j * NB + (i + wb + 1) % NB] - H[j * NB + (i - wb + NB) % NB]; }
       }
       for (let j = 0; j < NR; j++) for (let i = 0; i < NB; i++) { let s = 0, c = 0; for (let k = Math.max(0, j - w); k <= Math.min(NR - 1, j + w); k++) { s += row[k * NB + i]; c++; } T[j * NB + i] = H[j * NB + i] - s / c; } }
-    const V = this.villages();
+    const { V, V3 } = this.villages();
     // los triángulos: los mismos para todos los sectores
     const idx = new Uint16Array((NR - 1) * K * 6); let q = 0;
     for (let j = 0; j < NR - 1; j++) for (let c = 0; c < K; c++) { const a = j * C + c, b = a + 1, d = a + C, e = d + 1; idx[q++] = a; idx[q++] = b; idx[q++] = d; idx[q++] = b; idx[q++] = e; idx[q++] = d; }
     const index = new THREE.BufferAttribute(idx, 1), out = [];
     for (let s = 0; s < NS; s++) {
-      const pos = new Float32Array(NR * C * 3), nor = new Int8Array(NR * C * 3), tpi = new Float32Array(NR * C), vil = new Uint8Array(NR * C);
+      const pos = new Float32Array(NR * C * 3), nor = new Int8Array(NR * C * 3), tpi = new Float32Array(NR * C), vil = new Uint8Array(NR * C), v3 = new Uint8Array(NR * C);
       for (let j = 0; j < NR; j++) for (let c = 0; c < C; c++) {
         const i = (s * K + c) % NB, src = j * NB + i, dst = j * C + c;
         pos[dst * 3] = P[src * 3]; pos[dst * 3 + 1] = P[src * 3 + 1]; pos[dst * 3 + 2] = P[src * 3 + 2];
         nor[dst * 3] = Math.round(N[src * 3] * 127); nor[dst * 3 + 1] = Math.round(N[src * 3 + 1] * 127); nor[dst * 3 + 2] = Math.round(N[src * 3 + 2] * 127);
-        tpi[dst] = T[src]; vil[dst] = Math.round(V[src] * 255);
+        tpi[dst] = T[src]; vil[dst] = Math.round(V[src] * 255); v3[dst] = Math.round(V3[src] * 255);
       }
       const g = new THREE.BufferGeometry();
-      g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3, true)); g.setAttribute('aTpi', new THREE.BufferAttribute(tpi, 1)); g.setAttribute('aVil', new THREE.BufferAttribute(vil, 1, true));
+      g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.BufferAttribute(nor, 3, true)); g.setAttribute('aTpi', new THREE.BufferAttribute(tpi, 1)); g.setAttribute('aVil', new THREE.BufferAttribute(vil, 1, true)); g.setAttribute('aV3', new THREE.BufferAttribute(v3, 1, true));
       g.setIndex(index); g.computeBoundingSphere();
       // (cada sector abarca desde el pie del ojo hasta 110 km: su esfera siempre toca el visor y no se descartaba nunca;
       // se eligen a mano por su rumbo: Panorama.look)
@@ -132,12 +256,12 @@ export function polarMaterial({ eyeAlt, lat, haze = 1, snow = 9000, hazeColor })
   const mat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, metalness: 0 });
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, { uEyeAlt: { value: eyeAlt }, uLat: { value: lat }, uHazeL: { value: 60000 / Math.max(0.3, haze) }, uSnow: { value: snow }, uHaze: { value: hazeColor.clone() } });
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTpi, aVil; uniform float uEyeAlt; varying float vTpi, vAlt, vVil; varying vec3 vWP, vWN;')
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTpi, aVil, aV3; uniform float uEyeAlt; varying float vTpi, vAlt, vVil, vV3; varying vec3 vWP, vWN;')
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-vTpi = aTpi; vVil = aVil; vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * objectNormal);
+vTpi = aTpi; vVil = aVil; vV3 = aV3; vWP = (modelMatrix * vec4(transformed, 1.0)).xyz; vWN = normalize(mat3(modelMatrix) * objectNormal);
 float rr = length(vWP.xz); vAlt = uEyeAlt + vWP.y + rr * rr * ${((1 - KR) / (2 * RT)).toExponential(6)};`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-uniform float uLat, uHazeL, uSnow; uniform vec3 uHaze; varying float vTpi, vAlt, vVil; varying vec3 vWP, vWN; float gH = 0.0;
+uniform float uLat, uHazeL, uSnow; uniform vec3 uHaze; varying float vTpi, vAlt, vVil, vV3; varying vec3 vWP, vWN; float gH = 0.0;
 float gh(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float gn(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
   return mix(mix(gh(i), gh(i + vec2(1, 0)), f.x), mix(gh(i + vec2(0, 1)), gh(i + vec2(1, 1)), f.x), f.y); }
@@ -230,6 +354,9 @@ vec3 bumpN(vec3 sp, vec3 n, float H){
     roof *= mix(0.78, 1.04, step(0.5, lf.y)) * mix(0.82, 1.0, step(0.06, min(lf.x, 1.0 - lf.x)));
     vec3 town = mix(L(vec3(0.50, 0.50, 0.50)), mix(roof, L(vec3(0.40, 0.46, 0.30)), court), street);
     town = mix(L(vec3(0.60, 0.47, 0.40)), town, 1.0 - smoothstep(0.4, 1.0, fwP * 0.12));   // (de lejos, la mezcla de tejados y calles)
+    // (en los pueblos con casas de verdad encima, el suelo es solo de calles, plazas y patios con algo de verde)
+    vec3 suelo = mix(L(vec3(0.56, 0.54, 0.50)), L(vec3(0.42, 0.47, 0.31)), step(0.62, gh(floor(P / 13.0) + 4.0)) * 0.8);
+    town = mix(town, suelo * (0.92 + 0.12 * n4), smoothstep(0.04, 0.25, vV3));
     col = mix(col, town, vk);
   }
   // los lomos, algo más claros, y los barrancos, más oscuros: se leen las formas del monte
