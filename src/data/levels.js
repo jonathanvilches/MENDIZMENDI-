@@ -156,7 +156,7 @@ export const LEVELS = [
       { type: 'visit' },
       { type: 'race', kind: 'camino', title: 'Tu primera etapa', host: H('Hospitalera Maite', { shirt: '#6b8fb3', skirt: '#3a3530', pants: '#3a3530', hair: '#6b3b1f', bun: true }),
         text: 'Sigue las flechas amarillas y las conchas del Camino hasta la cruz antes de que anochezca.' },
-      { type: 'legend', who: 'roldan', title: 'La batalla de Orreaga', host: H('Juglar', { shirt: '#8a2f2f', pants: '#3a3530', hat: 'mask', hatColor: '#3a8fd6' }),
+      { type: 'legend', who: 'roldan', title: 'El cuerno de Orreaga', host: H('Juglar', { shirt: '#8a2f2f', pants: '#3a3530', hat: 'mask', hatColor: '#3a8fd6' }),
         text: 'En el año 778 los vascones vencieron aquí a la retaguardia de Carlomagno. Después se contó en el Cantar de Roldán. Encuentra las piezas del olifante (cuerno) de Roldán.',
         gather: { item: 'horn', n: 3, label: 'Coger una pieza del olifante', near: 'forest' } },
       { type: 'quiz' },

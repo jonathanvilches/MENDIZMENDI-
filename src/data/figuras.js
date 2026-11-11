@@ -21,10 +21,10 @@ export const FIGURAS = [
     who: 'El gigante de un solo ojo en medio de la frente. Vive en las cuevas del monte con su rebaño y, en los cuentos, atrapa a los pastores que se refugian en su cueva. Siempre hay uno más listo que él que consigue escapar, como en la historia del cíclope de la Odisea.',
     wear: 'Cabeza enorme con un solo ojo, zamarra de piel de oveja, una soga por cinturón y un garrote.',
     game: 'Todavía no sale en ninguna misión: está preparado, con su traje, para las próximas leyendas de la montaña. Mide dos metros y medio.' },
-  { id: 'roldan', kind: 'leyenda', name: 'Roldán', eu: 'Errolan', where: 'Orreaga / Roncesvalles · el paso de los Pirineos', town: 'orreaga-roncesvalles', mission: 'La batalla de Orreaga',
+  { id: 'roldan', kind: 'leyenda', name: 'Roldán', eu: 'Errolan', where: 'Orreaga / Roncesvalles · el paso de los Pirineos', town: 'orreaga-roncesvalles', mission: 'El cuerno de Orreaga',
     who: 'El caballero de Carlomagno. En el año 778, en el paso de Roncesvalles, la retaguardia del ejército franco fue derrotada por los vascones. Roldán tocó su cuerno, el olifante, para pedir ayuda y murió allí. La Canción de Roldán, un poema francés de la Edad Media, lo convirtió en leyenda.',
     wear: 'Cota de malla, sobreveste con cenefa, capa, yelmo con nasal y la espada Durandal. En el juego es una sombra que vaga de noche por el paso.',
-    game: 'De noche, en Orreaga / Roncesvalles, en la misión «La batalla de Orreaga».' },
+    game: 'De noche, en Orreaga / Roncesvalles, en la misión «El cuerno de Orreaga».' },
   // ---- carnavales (en las misiones de carnaval de cada pueblo) ----
   { id: 'joaldun', kind: 'carnaval', name: 'Joaldun', eu: 'Joaldun', where: 'Ituren y Zubieta · Malerreka', town: 'ituren', mission: 'Los joaldunak',
     who: 'Los joaldunak, los que llevan los cencerros, son los personajes más conocidos del carnaval navarro. El último lunes y martes de enero, los de Ituren van a Zubieta y los de Zubieta a Ituren, y recorren los pueblos en fila, haciendo sonar los cencerros todos a la vez para despertar la tierra y espantar los malos espíritus.',
