@@ -342,7 +342,9 @@ export class CamaraCuerpo {
       }
       if (!dispara) continue;
       h.ult = t; this.ultGolpe = t; h.windMax = 0;
-      r0 ||= h; const up0 = (S.y - cs.y - r0.ry) / sw, derecha = r0.rx > 0;
+      // (con qué mano: la que golpea, por el lado de su hombro, no por dónde empezó el gesto. Antes, una derecha que
+      // empezaba cruzada, al otro lado del cuerpo, contaba como de izquierda y tu pelotari movía la otra mano)
+      r0 ||= h; const up0 = (S.y - cs.y - r0.ry) / sw, derecha = lado > 0;
       const bajaMano = Math.max(r0.ry, h.ry) / sw >= hipRel - 0.45;   // (la mano baja: a la altura de la cadera o más abajo)
       const alto = agachado || bajaMano ? 'Low' : up0 > 0.45 ? 'High' : 'Hit';
       const vIni = Math.hypot(h.rx - r0.rx, h.ry - r0.ry) / sw / Math.max(0.05, t - (r0.t ?? t));

@@ -1056,7 +1056,9 @@ export class PelotaMatch {
         if (!saca && !(g.phase === 'rally' && g.rally?.turn === 'you' && (!g.pairs || g.takerOf('you') === 'you'))) return;
         I.charge = null; I.power = e.power; I.camAim = e.aimX; I.camAimY = e.aimY; I.camPend = true; I.lastAim = null;
         if (e.req === 'dejada' && !saca) I.dropQ = true; else I.hitQ = true;
-        this.camGolpe = { golpe: e.golpe, t: this.t, abierto: true }; (this.golpeDe ||= {}).you = e.golpe;
+        // (la dejada que haces tú, con la mano a la cintura: la de tu lado)
+        const gg = e.req === 'dejada' && !saca ? 'Dejada' + (/L$/.test(e.golpe || '') ? 'L' : '') : e.golpe;
+        this.camGolpe = { golpe: gg, t: this.t, abierto: true }; (this.golpeDe ||= {}).you = gg;
       };
       // (mientras dura y al acabar, lo que va siendo y lo que ha sido de verdad: hacia dónde, lo largo, la fuerza y si es
       // dejada o cortada; si el golpe aún no ha salido, lo que tiene que salir; y en el saque, el saque)
@@ -1318,10 +1320,13 @@ export class PelotaMatch {
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)
-  // (y dos golpes con su figura propia: el gancho, con el codo doblado y de arriba abajo, y la volea a media altura, corta y
-  // seca. Antes se veían como un golpe de aire o una derecha cualquiera)
+  // (y tres golpes con su figura propia: el gancho, con el codo doblado y de arriba abajo, la volea, alta, corta y seca, y
+  // la dejada, un toque suave a la cintura. Antes se veían como un golpe de aire o una derecha cualquiera)
   swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who];
-    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'GanchoL';   /* (el gancho, siempre con la izquierda) */ else if (e.volea && /^Hit/.test(g)) g = 'Volea' + iz;
+    // (cada golpe con la mano de su lado: la pelota a su derecha, la derecha; a su izquierda, la izquierda, también el
+    // gancho, que antes iba siempre con la izquierda. La volea y el gancho, con la mano por encima de la cabeza; la dejada,
+    // a la altura de la cintura. Lo pide así el autor, noviembre de 2026)
+    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^High/.test(g)) g = 'Volea' + iz; else if (e.shot === 'dejada') g = 'Dejada' + iz;
       if (this.game.rally?.serve && this.game.rally.hits === 1) g = 'Low';   // (el saque, de sotamano y con la derecha: de abajo arriba)
       (this.golpeDe ||= {})[who] = g; }
     // (dónde se golpea la pelota, en el mundo: la mano del pelotari va justo ahí; glbChar.js, armSwing)

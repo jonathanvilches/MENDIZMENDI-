@@ -286,7 +286,9 @@ export class PrimeraPersona {
       const suyo = (st.golpe || 'Hit').endsWith('L') ? 'L' : 'R', arma = (st.arma || 'Hit').endsWith('L') ? 'L' : 'R', esc = (LA + LF) / (BRAZO + ANTEBRAZO);
       if (arma === B.lado && st.wind > 0.05 && !(st.swing >= 0)) { const w = clamp(st.wind, 0, 1) * 0.8; gE.lerp(v.h.set(0.24 * s, -0.17, 0.05).multiplyScalar(esc), w); gW.lerp(v.h.set(0.44 * s, 0.05, 0.12).multiplyScalar(esc), w); }
       if (suyo === B.lado && st.swing >= 0) {
-        const u = clamp(st.swing, 0, 1), a = -1.2 + u * 2.6, g = st.golpe || '', alto = g.startsWith('High') ? 0.35 : g.startsWith('Low') ? -0.25 : 0.05;
+        // (a qué altura va la mano: la volea y el gancho, por encima de la cabeza; el de aire, por encima del hombro; la
+        // dejada, a la cintura; la sotamano, abajo)
+        const u = clamp(st.swing, 0, 1), a = -1.2 + u * 2.6, g = st.golpe || '', alto = /^(Volea|Gancho)/.test(g) ? 0.5 : g.startsWith('High') ? 0.35 : g.startsWith('Dejada') ? -0.12 : g.startsWith('Low') ? -0.25 : 0.05;
         gE.set(Math.cos(a) * 0.2 * s, -0.2 + alto * 0.5, -0.12 - Math.sin(Math.max(0, a)) * 0.1).multiplyScalar(esc);
         gW.set(Math.cos(a + 0.25) * 0.42 * s - u * 0.14 * s, -0.12 + alto, -0.16 - Math.sin(clamp(a + 0.9, 0, Math.PI)) * 0.36).multiplyScalar(esc);
       }

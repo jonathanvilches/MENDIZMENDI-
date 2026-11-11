@@ -1193,6 +1193,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   del golpe empieza en ese armado. De lado y a menos de 3 m/s, pasos laterales mirando al frontis en vez de andar de
   lado o darse la vuelta. El tanto perdido, las manos a la cabeza. Para verlos: el guion `movs-ver.mjs` pinta cada uno en
   sus poses clave, de frente y de lado.
+  Cada golpe, con la mano de su lado (la pelota a su derecha, la derecha; a su izquierda, la izquierda), también el
+  gancho, que antes iba siempre con la izquierda. La volea (antes del bote y de la altura del hombro para arriba) y el
+  gancho, con el brazo recto hacia arriba y algo abierto, la mano por encima de la cabeza; la dejada (`DejadaFull`,
+  `Dejada`, `DejadaL`), un toque suave con la mano a la cintura (el autor, noviembre de 2026). Tienen la cabeza grande y
+  el brazo corto: la muñeca llega a lo alto del pelo, no más, y con la mano hacia delante se tapaban la cara. Con la
+  cámara (`camaraCuerpo.js`), la mano del golpe es la que lo da, por el lado de su hombro, no por dónde empieza el gesto;
+  la dejada que haces tú, a la cintura (`match.js`, `onGolpe`), y en primera persona (`primeraPersona.js`) el brazo sube
+  o baja igual.
 - **El GLB del pelotari con sus movimientos** (`tools/pelotari-glb.mjs`): exporta el modelo de Meshy con andar y correr y
   todos los de pelota, con nombre en castellano; con `base`, sin ningún movimiento, para animarlo en otro programa. Sin
   comprimir y con la textura en PNG: unos 6,5 MB. Para entregarlo; el juego sigue usando el comprimido.
