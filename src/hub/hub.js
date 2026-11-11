@@ -185,7 +185,7 @@ export class Hub {
       // (y con la misma piel que el juego, #hub.juego: el mapa debajo y cada sección en su ventana. Antes el material didáctico
       // seguía con la barra de arriba y el menú al lado de la web de antes, y en el móvil tumbado se quedaba sin sitio)
       markDidactico(S.didactic); this.root.classList.add('juego'); }
-    // (lo que mide tu retrato de arriba a la izquierda, que abre el menú: lo conquistado empieza justo a su lado)
+    // (lo que mide tu retrato de arriba a la izquierda, que abre el menú: lo descubierto empieza justo a su lado)
     // (lo mida cuando lo mida: en las colecciones del mapa, a las que se puede entrar directamente, el retrato es el ancho
     // del inicio y, como solo se medía en el inicio, su panel se ponía encima del retrato)
     { const mb = $('[data-menu]', this.root); new ResizeObserver(() => { if (mb.offsetWidth) this.root.style.setProperty('--menuw', mb.offsetWidth + 'px'); }).observe(mb); }

@@ -647,7 +647,7 @@ export const FIG = {
   stag: ['Ciervo', 'Animal noble del bosque y de la caza.'],
   bust: ['Busto de guerrero', 'La cabeza y el pecho de un soldado con su armadura.'],
   arrowheads: ['Hierros de lanza', 'Las puntas de lanzas o saetas: las armas de los vecinos que defendían la frontera.'],
-  cloudCross: ['Cruz entre nubes', 'Una cruz que aparece en el cielo, de una leyenda de la Reconquista.'],
+  cloudCross: ['Cruz entre nubes', 'Una cruz que aparece en el cielo, de una antigua leyenda.'],
   abarca: ['Abarcas', 'El calzado de cuero de los pastores, atado con cordones.'],
   bends2: ['Dos bandas', 'Franjas en diagonal. Son «piezas»: formas geométricas, no dibujos.'],
   bread: ['Pan', 'El alimento de los pastores en el camino.'],

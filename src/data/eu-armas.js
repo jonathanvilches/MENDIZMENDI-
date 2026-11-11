@@ -287,7 +287,7 @@ export const EU_ARMAS = {
   'Hierros de lanza': 'Lantza-burdinak',
   'Las puntas de lanzas o saetas: las armas de los vecinos que defendían la frontera.': 'Lantzen edo gezien puntak: muga defendatzen zuten bizilagunen armak.',
   'Cruz entre nubes': 'Gurutzea hodeien artean',
-  'Una cruz que aparece en el cielo, de una leyenda de la Reconquista.': 'Zeruan agertzen den gurutze bat, Errekonkistako kondaira batekoa.',
+  'Una cruz que aparece en el cielo, de una antigua leyenda.': 'Zeruan agertzen den gurutze bat, antzinako kondaira batekoa.',
   'Abarcas': 'Abarkak',
   'El calzado de cuero de los pastores, atado con cordones.': 'Artzainen larruzko oinetakoa, lokarriekin lotua.',
   'Dos bandas': 'Bi banda',

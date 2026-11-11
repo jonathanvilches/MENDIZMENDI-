@@ -167,7 +167,7 @@ export const PERSONAJES = {
       'Eran tiempos difíciles: Castilla y Francia, los dos reinos vecinos, querían mandar en Navarra. En 1512 las tropas de Fernando el Católico entraron en el reino y los reyes tuvieron que marcharse a Bearne, al otro lado de los Pirineos.',
       'Catalina intentó recuperar su reino, pero no pudo. Murió en 1517. Cuenta la tradición que dijo a su marido: «Si hubiéramos nacido vos Catalina y yo don Juan, no habríamos perdido el reino».',
     ],
-    q: { q: '¿Qué pasó en Navarra en 1512?', options: ['Las tropas de Castilla entraron en el reino', 'Se construyó la catedral', 'Nació Sarasate'], answer: 0, why: 'En 1512 el reino de Navarra fue conquistado por Fernando el Católico y unido a Castilla.' },
+    q: { q: '¿Qué pasó en Navarra en 1512?', options: ['Las tropas de Castilla entraron en el reino', 'Se construyó la catedral', 'Nació Sarasate'], answer: 0, why: 'En 1512 el reino de Navarra pasó a Fernando el Católico y quedó unido a Castilla.' },
     today: 'Catalina fue la última reina de Navarra como reino independiente. Su historia se cuenta en Olite y en Pamplona, y recuerda que Navarra tuvo reyes y reinas propios durante más de quinientos años.',
   },
   josefa: {

@@ -74,7 +74,7 @@ const supply = (s) => s.replace(/\bagua\b/g, 'ura').replace(/\bcomida\b/g, 'jana
 
 // (la portada nueva, el mapa, la galería de pueblos y los comercios: lo que se quedaba en castellano, noviembre de 2026)
 const PORTADA = {
-  'Próximos destinos': 'Hurrengo helmugak', 'Navarra conquistada': 'Nafarroa konkistatua', 'Ver comarca': 'Ikusi eskualdea', 'Acercar': 'Hurbildu',
+  'Próximos destinos': 'Hurrengo helmugak', 'Navarra descubierta': 'Ezagututako Nafarroa', 'Ver comarca': 'Ikusi eskualdea', 'Acercar': 'Hurbildu',
   'Ver toda Navarra': 'Ikusi Nafarroa osoa', 'Volver al mapa (Esc)': 'Itzuli mapara (Esc)', 'Pueblos de la comarca': 'Eskualdeko herriak',
   'Pueblo anterior': 'Aurreko herria', 'Pueblo siguiente': 'Hurrengo herria', 'Verlo en lista': 'Zerrendan ikusi', 'Lista': 'Zerrenda',
   'Las etxekoandreak': 'Etxekoandreak', 'Las conserveras': 'Kontserba-langileak', 'Maite junto al crucero': 'Maite gurutzearen ondoan',

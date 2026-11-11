@@ -305,7 +305,7 @@ export class PuebloCharla {
           const r = await choiceGame(this.ui, { title: 'Guardián del castillo', icon: 'castle', q: CASTLE_QUIZ.q, options: CASTLE_QUIZ.options, answer: CASTLE_QUIZ.answer, why: CASTLE_QUIZ.why });
           if (r && r.win === false) { await S(['¡Casi! Piénsalo otra vez y vuelve a hablar conmigo.']); return; }
           await infoCard(this.ui, { icon: 'castle', kicker: 'Antes y ahora', title: C.title, text: 'Así ha cambiado:', extra: `<div class="antes-ahora"><div><b>Antes</b>${C.then}</div><div><b>Ahora</b>${C.now}</div></div>`, button: 'Seguir' });
-          await infoCard(this.ui, { icon: 'castle', kicker: 'Ruta de los castillos', title: 'Castillos de Navarra', text: 'Después de la conquista de Navarra muchos castillos se derribaron. Estos son algunos de los que quedan, en pie o en ruinas:', extra: `<ul class="castlelist">${CASTILLOS.map(([n, t]) => `<li><b>${n}</b> ${t}</li>`).join('')}</ul>`, button: '¡A por ellos!' });
+          await infoCard(this.ui, { icon: 'castle', kicker: 'Ruta de los castillos', title: 'Castillos de Navarra', text: 'Cuando Navarra pasó a Castilla, en 1512, muchos castillos se derribaron. Estos son algunos de los que quedan, en pie o en ruinas:', extra: `<ul class="castlelist">${CASTILLOS.map(([n, t]) => `<li><b>${n}</b> ${t}</li>`).join('')}</ul>`, button: '¡A por ellos!' });
           await this.complete(M, { card: C.title, cardText: C.then });
         }
         return;

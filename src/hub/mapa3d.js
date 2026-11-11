@@ -1,7 +1,7 @@
 // El mapa 3D de Navarra del inicio: las comarcas con su relieve de verdad (sierras, valles y ríos), cada una en su color y
 // separada de las demás, con todos los pueblos del juego señalados encima, y una cámara para recorrerlo. Las comarcas por
 // descubrir salen apagadas y bajas; a medida que sellas sus pueblos se encienden y crecen, hasta brillar del todo: así se
-// ve lo que falta para conquistar Navarra. Se mueve como en un juego: arrastrar (o WASD y las flechas) para ir adelante,
+// ve lo que falta para descubrir Navarra. Se mueve como en un juego: arrastrar (o WASD y las flechas) para ir adelante,
 // atrás y a los lados, la rueda o el pellizco para acercarse, el botón derecho (o Q y E, o girar con dos dedos) para
 // rotar, y los botones de la esquina.
 // Al tocar una comarca, la cámara vuela hasta ella; al tocar un pueblo, también, y se abre su ficha.

@@ -180,23 +180,23 @@ export const CUENTOS = [
     title: 'Los últimos del castillo de Amaiur', place: 'Colina del castillo de Amaiur',
     teller: { name: 'Kontalari Miren', female: true },
     parts: [
-      'En 1512, el ejército de Castilla conquistó el reino de Navarra. Durante años, muchos navarros intentaron recuperarlo para sus reyes, Catalina y Juan.',
+      'En 1512, el reino de Navarra pasó a manos de Castilla. Durante años, muchos navarros intentaron recuperarlo para sus reyes, Catalina y Juan.',
       'En 1522, unos doscientos defensores se encerraron en el castillo de Amaiur, en lo alto de una colina del valle de Baztan.',
       'Frente a ellos llegó un ejército de miles de soldados. Los defensores aguantaron el asedio varios días, hasta que una gran explosión derribó parte del castillo.',
       'Al final se rindieron, y poco después el castillo fue derribado. Fue uno de los últimos lugares donde se resistió por la Navarra independiente.',
     ],
     today: 'En la colina de Amaiur quedan los restos del castillo, excavados por arqueólogos, y un monolito de piedra levantado en 1922 en recuerdo de sus defensores. Desde arriba se ve todo el valle.',
-    q: { q: '¿En qué año resistieron los defensores en el castillo de Amaiur?', options: ['En 1522', 'En 1085', 'En 1952'], answer: 0, why: 'En 1522, diez años después de la conquista de Navarra.' },
+    q: { q: '¿En qué año resistieron los defensores en el castillo de Amaiur?', options: ['En 1522', 'En 1085', 'En 1952'], answer: 0, why: 'En 1522, diez años después de que Navarra pasara a Castilla.' },
     eu: {
       title: 'Amaiurko gazteluko azkenak', place: 'Amaiurko gazteluaren muinoa',
       parts: [
-        '1512an, Gaztelako armadak Nafarroako erresuma konkistatu zuen. Urte askoan, nafar askok berreskuratzen saiatu ziren bere errege-erreginentzat, Katalina eta Joanentzat.',
+        '1512an, Nafarroako erresuma Gaztelaren esku geratu zen. Urte askoan, nafar askok berreskuratzen saiatu ziren bere errege-erreginentzat, Katalina eta Joanentzat.',
         '1522an, berrehun bat defendatzaile Amaiurko gazteluan itxi ziren, Baztan haraneko muino baten gainean.',
         'Haien aurrean milaka soldaduko armada bat iritsi zen. Defendatzaileek hainbat egunez eutsi zioten setioari, leherketa handi batek gazteluaren zati bat bota zuen arte.',
         'Azkenean errenditu egin ziren, eta handik gutxira gaztelua eraitsi zuten. Nafarroa burujabearen alde eutsi zen azken lekuetako bat izan zen.',
       ],
       today: 'Amaiurko muinoan gazteluaren aztarnak geratzen dira, arkeologoek induskatuak, eta 1922an defendatzaileen oroimenez altxatutako harrizko monolito bat. Goitik haran osoa ikusten da.',
-      q: { q: 'Zein urtetan eutsi zioten defendatzaileek Amaiurko gazteluan?', options: ['1522an', '1085ean', '1952an'], why: '1522an, Nafarroaren konkistatik hamar urtera.' },
+      q: { q: 'Zein urtetan eutsi zioten defendatzaileek Amaiurko gazteluan?', options: ['1522an', '1085ean', '1952an'], why: '1522an, Nafarroa Gaztelaren esku geratu eta hamar urtera.' },
     },
   },
   {
@@ -300,7 +300,7 @@ export const CUENTOS = [
     title: 'La marquesa que no entregó su castillo', place: 'Castillo de Marcilla',
     teller: { name: 'Kontalari Ana', female: true },
     parts: [
-      'Después de la conquista de Navarra, en 1516, el cardenal Cisneros ordenó derribar muchos castillos navarros, para que nadie pudiera defenderse en ellos.',
+      'Cuando Navarra ya era de Castilla, en 1516, el cardenal Cisneros ordenó derribar muchos castillos navarros, para que nadie pudiera defenderse en ellos.',
       'Unos enviados llegaron a Marcilla con la orden. En el castillo mandaba la marquesa de Falces, Ana de Velasco, porque su marido estaba fuera.',
       'Ana de Velasco no se dejó asustar. Cerró las puertas, preparó la defensa y se negó a entregar el castillo.',
       'Los enviados tuvieron que marcharse, y el castillo se salvó: apenas le rompieron algunas almenas. Fue uno de los pocos que quedaron en pie.',
@@ -310,7 +310,7 @@ export const CUENTOS = [
     eu: {
       title: 'Bere gaztelua eman ez zuen markesa', place: 'Martzillako gaztelua',
       parts: [
-        'Nafarroaren konkistaren ondoren, 1516an, Cisneros kardinalak nafar gaztelu asko botatzeko agindu zuen, inork haietan defendatu ezin zezan.',
+        'Nafarroa Gaztelaren esku zegoela, 1516an, Cisneros kardinalak nafar gaztelu asko botatzeko agindu zuen, inork haietan defendatu ezin zezan.',
         'Mandatari batzuk Martzillara iritsi ziren aginduarekin. Gazteluan Faltzesko markesa, Ana de Velasco, zen nagusi, senarra kanpoan baitzegoen.',
         'Ana de Velascok ez zuen beldurrik izan. Ateak itxi, defentsa prestatu eta gaztelua emateari uko egin zion.',
         'Mandatariek alde egin behar izan zuten, eta gaztelua salbatu zen: almena batzuk baino ez zizkioten hautsi. Zutik geratu zen gutxienetako bat izan zen.',
@@ -564,7 +564,7 @@ export const CUENTOS = [
     title: 'El capitán que vino de Italia', place: 'Iglesia de Santa María de Viana',
     teller: { name: 'Kontalari Lourdes', female: true },
     parts: [
-      'Hace más de quinientos años vivió César Borgia, un capitán famoso de Italia. Era listo, valiente y muy ambicioso, y había conquistado muchas ciudades.',
+      'Hace más de quinientos años vivió César Borgia, un capitán famoso de Italia. Era listo, valiente y muy ambicioso, y mandaba en muchas ciudades.',
       'Tuvo muchos enemigos y acabó preso en España. Pero un día se escapó del castillo de Medina del Campo y llegó a Navarra.',
       'Su cuñado era el rey de Navarra, Juan de Albret, y lo nombró capitán de su ejército. En 1507 fue a Viana a luchar contra unos nobles rebeldes.',
       'Una mañana de marzo, persiguiendo a los enemigos, se quedó solo y murió en una emboscada, cerca de Viana. Lo enterraron en la iglesia de Santa María.',
@@ -574,7 +574,7 @@ export const CUENTOS = [
     eu: {
       title: 'Italiatik etorritako kapitaina', place: 'Vianako Andre Maria eliza',
       parts: [
-        'Duela bostehun urte baino gehiago César Borgia bizi izan zen, Italiako kapitain ospetsu bat. Azkarra, ausarta eta oso handinahia zen, eta hiri asko konkistatu zituen.',
+        'Duela bostehun urte baino gehiago César Borgia bizi izan zen, Italiako kapitain ospetsu bat. Azkarra, ausarta eta oso handinahia zen, eta hiri askotan agintzen zuen.',
         'Etsai asko izan zituen, eta Espainian preso amaitu zuen. Baina egun batean Medina del Campoko gaztelutik ihes egin eta Nafarroara iritsi zen.',
         'Bere koinatua Nafarroako errege Joan Albretekoa zen, eta bere armadako kapitain izendatu zuen. 1507an Vianara joan zen noble matxinatu batzuen aurka borrokatzera.',
         'Martxoko goiz batean, etsaiei atzetik zihoala, bakarrik geratu eta segada batean hil zen, Vianatik gertu. Andre Maria elizan lurperatu zuten.',

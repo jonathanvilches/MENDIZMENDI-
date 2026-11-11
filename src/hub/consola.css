@@ -1,7 +1,7 @@
 /* ================= La pantalla única del juego =================
    Jugando, el menú no es una página: el mapa de Navarra ocupa toda la pantalla y lo demás va encima, como en un
    videojuego. Arriba, una sola fila a la misma altura: tu retrato con tu nivel (que abre el menú, como en los juegos de
-   rol), lo conquistado (o el rótulo de la comarca elegida) y la misión de ahora. El menú es una ventana flotante que
+   rol), lo descubierto (o el rótulo de la comarca elegida) y la misión de ahora. El menú es una ventana flotante que
    entra por la izquierda con tu ficha, todas las secciones, «Cómo jugar» y el mando del móvil; cada sección se abre en otra ventana encima del mapa, con su nombre
    arriba y el botón de cerrar. Todo con el mismo cristal oscuro, bordes de un píxel y sin cajas dentro de cajas.
    (El modo didáctico no se juega y sigue con su barra arriba y su menú al lado: hub.css) */
@@ -63,7 +63,7 @@
 .yo-xp { display: block; width: 100%; min-width: 72px; height: 2px; margin-top: 2px; border-radius: 2px; background: rgba(255, 255, 255, .12); overflow: hidden; }
 .yo-xp > i { display: block; height: 100%; background: linear-gradient(90deg, #c9b2ff, #ff7ac8); }
 
-/* lo conquistado: el aro con el tanto por ciento y, al lado, cuántas comarcas */
+/* lo descubierto: el aro con el tanto por ciento y, al lado, cuántas comarcas */
 #hub.juego .m3d .m3-tot { z-index: 3; left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); grid-template-columns: calc(var(--hud-h) - 8px) auto; column-gap: 10px; padding: 0 16px 0 3px; }
 #hub.juego .m3d .m3-tot > .m3-aro { width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); filter: none; }
 #hub.juego .m3-aro .tr { stroke: rgba(255, 255, 255, .12); stroke-width: 3; } #hub.juego .m3-aro .ar { stroke-width: 3; }
@@ -76,7 +76,7 @@
 /* el rótulo de la comarca elegida, en la misma fila */
 #hub.juego .m3d .m3-cb { z-index: 4; gap: 10px; padding: 3px 4px 3px 3px; border-color: color-mix(in srgb, var(--c, #fff) 38%, var(--cr-l)); max-width: min(560px, calc(100% - 2 * var(--hud-l) - 2 * var(--hud-h) - 32px)); }
 #hub.juego .m3d .m3-cb .m3-sello { width: calc(var(--hud-h) - 8px); height: calc(var(--hud-h) - 8px); } #hub.juego .m3d .m3-cb .m3-sello > img { width: 64%; height: 64%; }
-/* (con una comarca elegida, lo conquistado de toda Navarra se aparta: el mapa, limpio, y abajo la fila) */
+/* (con una comarca elegida, lo descubierto de toda Navarra se aparta: el mapa, limpio, y abajo la fila) */
 #hub.juego .m3d.con-sel .m3-tot { display: none; }
 #hub.juego .m3d .cb-tt { display: grid; grid-template-columns: auto auto; justify-content: start; align-items: baseline; column-gap: 8px; row-gap: 2px; }
 #hub.juego .m3d .cb-tt small { display: block; color: color-mix(in srgb, var(--c, #fff) 55%, #fff); font: 600 11px/1.1 var(--f-cond); letter-spacing: .12em; text-transform: uppercase; }
@@ -261,7 +261,7 @@
   #hub.juego .hub-top .app-btn { margin-top: 6px; min-height: 40px; }
   #hub.juego .hub-top #hChip img { width: 36px; height: 36px; }
 }
-/* (el móvil de pie: arriba, el botón, lo conquistado y tu cara; la misión, abajo encima de las comarcas) */
+/* (el móvil de pie: arriba, el botón, lo descubierto y tu cara; la misión, abajo encima de las comarcas) */
 @media (max-width: 760px) and (min-height: 521px) {
   #hub.juego .yo-t { display: none; } #hub.juego .hub-menu-btn { padding-right: 10px; gap: 10px; }
   #hub.juego .m3d .m3-tt i { display: none; } #hub.juego .m3d .m3-tt { grid-template-columns: auto; }

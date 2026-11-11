@@ -100,7 +100,7 @@
 @media (max-width: 420px) { .ih-bar { grid-template-columns: minmax(0, 1fr); justify-items: start; } .ih-ctl { justify-self: center; } .ih-title { font-size: var(--fs-xl); } }
 @media (prefers-reduced-motion: reduce) { .ini-hero *, .ig-card, .ih-play { animation: none !important; } }
 
-/* ---------- el mapa 3D de Navarra (mapa3d.js), a casi toda la pantalla, con el saludo, lo conquistado y las comarcas
+/* ---------- el mapa 3D de Navarra (mapa3d.js), a casi toda la pantalla, con el saludo, lo descubierto y las comarcas
    encima, como el mapa de un juego ---------- */
 /* (--chw, el ancho de las fotos de las comarcas de abajo, y --railh, lo que ocupa su tira de alto: lo de encima va sobre ella) */
 .m3d { --hud: 84px; --chw: clamp(170px, min(17vw, 28vh), 270px); --railh: calc(var(--chw) * 9 / 16 + 70px); position: relative; height: max(360px, calc(100dvh / var(--z, 1) - var(--top-h, 64px) - 48px)); border-radius: var(--rL); overflow: hidden; isolation: isolate; user-select: none; -webkit-user-select: none;
@@ -172,7 +172,7 @@
 .m3-tr { position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; background: rgba(13, 4, 32, .82); border: 1px solid rgba(255,255,255,.08); color: #fff1d6; font: 800 var(--fs-xs)/1.3 'MZ Texto', sans-serif; white-space: nowrap; cursor: pointer; pointer-events: auto; will-change: transform; }
 .m3-tr[hidden] { display: none; } .m3-tr > :is(svg, img) { width: 22px; height: 22px; padding: 2px; border-radius: 50%; background: #fff1d6; }
 
-/* lo conquistado: el aro grande con el tanto por ciento, las comarcas completas y los sellos */
+/* lo descubierto: el aro grande con el tanto por ciento, las comarcas completas y los sellos */
 .m3-aro { display: block; width: 100%; height: 100%; }
 .m3-aro .tr { fill: none; stroke: rgba(255, 255, 255, .14); stroke-width: 4; }
 .m3-aro .ar { fill: none; stroke: var(--c, var(--pink)); stroke-width: 4; stroke-linecap: round; animation: m3-aro 1.2s cubic-bezier(.2, .9, .3, 1) .3s both; }
@@ -255,7 +255,7 @@
   .m3d.con-sel .m3-tot { display: none; }
   .m3-rail { left: 12px; right: calc(12px + var(--sr, 0px)); bottom: 12px; }
 }
-/* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo conquistado y el
+/* teléfono tumbado y pantallas bajas: el mapa a toda la altura y lo de encima en una sola fila arriba (lo descubierto y el
    botón de tu aventura; tu personaje ya está en la ficha de la barra de arriba), las comarcas en una fila baja y los botones en una
    columna, para que el mapa tenga casi toda la pantalla */
 @media (max-height: 520px) {
@@ -295,7 +295,7 @@
   .ini-top { grid-template-columns: minmax(0, 1.35fr) minmax(200px, 1fr); } .il-btn { display: none; } .il-pick img { width: 52px; height: 30px; }
 }
 /* ================= El inicio como la pantalla de un videojuego =================
-   El mapa a toda la pantalla, sin desplazarse ni bordes de página; encima, como el HUD de un juego: lo conquistado, el
+   El mapa a toda la pantalla, sin desplazarse ni bordes de página; encima, como el HUD de un juego: lo descubierto, el
    botón de tu aventura, la misión de ahora con su botón de continuar, las comarcas y los botones de la cámara */
 /* (el mapa, hasta el borde también por el lado del hueco de la cámara del iPhone tumbado: lo que va encima a la derecha
    se aparta de ese hueco con --sr) */
@@ -501,7 +501,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 
 /* ================= El móvil tumbado =================
    El inicio a toda la pantalla, sin la barra de arriba (lo de ella está en «Más»): el mapa gana su altura. Encima, en una
-   fila arriba, lo conquistado, tu aventura y la misión; abajo, la tira de fotos de las comarcas; a la derecha, la cámara.
+   fila arriba, lo descubierto, tu aventura y la misión; abajo, la tira de fotos de las comarcas; a la derecha, la cámara.
    Las comarcas en fotos, en tarjetas de la altura de la pantalla */
 @media (orientation: landscape) and (max-height: 520px) {
   #hub[data-screen="home"] { grid-template-rows: 0 minmax(0, 1fr); }
@@ -583,7 +583,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
   .mc-t { padding: 4px 6px 6px; } .mc-ver { height: 28px; top: calc(var(--chh) - 34px); }
 }
 @media (max-width: 640px) { .m3-col { left: 8px; right: 8px; max-width: none; } .m3-crail { left: 8px; right: 8px; } .m3-col .mc-b span { display: none; } .m3-col .mc-b { width: 40px; padding: 0; justify-content: center; } }
-/* (jugando, en la fila de arriba, tras tu retrato, como lo conquistado; y las tarjetas, en los márgenes del HUD) */
+/* (jugando, en la fila de arriba, tras tu retrato, como lo descubierto; y las tarjetas, en los márgenes del HUD) */
 #hub.juego .m3d .m3-col { top: var(--hud-t); left: calc(var(--hud-l) + var(--menuw, var(--hud-h)) + var(--hud-g)); max-width: min(600px, calc(100% - var(--hud-l) - var(--menuw, var(--hud-h)) - var(--hud-g) - 80px)); }
 #hub.juego .m3d .m3-crail { left: var(--hud-l); bottom: var(--hud-b); right: calc(var(--hud-r) + var(--sr, 0px)); }
 /* (en el móvil tumbado, todo en una fila: el título, cuántas, las pestañas que se deslizan y los botones; y las tarjetas,

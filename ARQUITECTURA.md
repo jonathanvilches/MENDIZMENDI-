@@ -815,7 +815,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   390, 667 × 375, 390 × 844 y 1280 × 720, y va dentro de `tools/auditoria-partidos.mjs` («choque») para los marcadores
   de pelota y fútbol. Lo que encontró y se arregló: la galería; el icono del rótulo de bloque, pegado a la letra
   (`.kicker > img`); el icono de los filtros («En el juego»); la chapita del nivel junto al nombre (`.hub-menu-btn`);
-  «Navarra conquistada» y su sello (`.m3-tt`); el candado de las leyendas y su pie (`.ct-lam`, en columna); el alfiler
+  «Navarra descubierta» y su sello (`.m3-tt`); el candado de las leyendas y su pie (`.ct-lam`, en columna); el alfiler
   bajo el nombre del personaje (`.cfrom`); el título de cada deporte y sus etiquetas (`.sp-txt`); la chapita «0/6» de la
   misión y su texto (`#quest`); el icono del título de las ventanas de papel; el personaje de la barra de carga y el
   tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; el nombre de quien atiende la tienda bajo su icono (`.shop-keeper`); y, con el móvil de pie, la misión, que `fitTop`
