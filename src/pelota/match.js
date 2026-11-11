@@ -1419,7 +1419,9 @@ export class PelotaMatch {
       // (y dos más: el que pierde, de cerca, cabizbajo; y desde el suelo junto al frontis, con el ganador recortado contra la grada)
       const Ls = g.players[this.lastWin === 'you' ? 'rival' : 'you'] || rv0, cl2 = [[Ls.x - 1.3, 1.5, Ls.z - 3.1], [Ls.x, 1.25, Ls.z]], bajo = [[Wn.x * 0.4 - 0.8, 0.55, Math.max(1.6, Wn.z - 7.5)], [Wn.x, 1.5, Wn.z]];
       const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], cl2, [[-2.4, 1.9, mid - 5], [co + 2, 1.7, mid + 3]], bajo, [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
-      const nPl = (this.plano || 0) % planos.length;
+      // (corteN: por qué plano de corte se va. Antes se llevaba en this.plano, que desde que la cámara se elige es su nombre
+      // («general», «fija», «detras»): la cuenta daba NaN, no había plano y el partido se cerraba al acabar el primer tanto)
+      const nPl = (this.corteN || 0) % planos.length;
       let [cp, cl] = planos[nPl];
       // (ningún plano se queda clavado: la cámara se acerca despacio a lo que mira y se desliza un poco de lado, como una
       // cámara de televisión sobre su carro; el de la grada, una panorámica lenta)
@@ -1449,7 +1451,7 @@ export class PelotaMatch {
     } else this.fijaOn = false;
     const enPlano = corte || saqueRv;
     if (enPlano !== !!this.enCorte) { this.enCorte = enPlano; this.camInit = false; }
-    if (this.lastCorte && !corte) this.plano = (this.plano || 0) + 1;   // (el plano siguiente, en el tanto siguiente)
+    if (this.lastCorte && !corte) this.corteN = (this.corteN || 0) + 1;   // (el plano siguiente, en el tanto siguiente)
     this.lastCorte = corte;
     if (g.phase === 'intro') { const [p, l] = this.introCam(this.t - (this.t0 || 0)); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }
     if (this.tossCam) { const [p, l] = this.tossCam(); lp[0] = p[0]; lp[1] = p[1]; lp[2] = p[2]; ll[0] = l[0]; ll[1] = l[1]; ll[2] = l[2]; }   // (el sorteo: la cámara junto a la chapa)
