@@ -1319,7 +1319,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     hacia dentro, como un canto biselado, y el contorno de Navarra más grueso (`contornoM`, `juntaM`, `luz`); el canto de
     arriba de las losas brilla más (`bordeM`). Fuera de Navarra, más apagado.
   - *Menos ruido*: los nombres de las comarcas, cortos (sin «Comarca de»), sin candado y más pequeños en el móvil, así
-    caben más; la cañada de la trashumancia, solo con una de sus comarcas elegida. En el móvil tumbado, las comarcas de
+    caben más; la cañada de la trashumancia, en la vista de toda Navarra y con una de sus comarcas elegida, con la raya algo más gruesa y de trazos más largos (un tiempo salió solo con una de sus comarcas elegida y el autor la echaba de menos: noviembre de 2026). En el móvil tumbado, las comarcas de
     abajo en tiras bajas con la foto a un lado: Navarra pasa de un tercio a más de la mitad del alto.
   - *Definición*: el mapa se dibuja hasta con el doble de píxeles (`prMax` 2; antes 1,5), y baja solo si no da.
 - **Pueblos en pastel y con más vida** (noviembre de 2026):

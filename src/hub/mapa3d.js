@@ -1711,8 +1711,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
-    // (solo con una comarca elegida por la que pasa: en la vista de toda Navarra ensuciaba el mapa)
-    { const on = !COL && !elegido && !maq && v.d > 2.6 && !!sel && canCom.has(sel), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
+    // (en la vista de toda Navarra y con una comarca elegida por la que pasa; con otra comarca, con un pueblo o una maqueta,
+    // no. Un tiempo solo salía con una de sus comarcas elegida y el autor la echaba de menos: noviembre de 2026)
+    { const on = !COL && !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
       if (!canSvg.isConnected) { capa.prepend(canSvg); capa.append(rebano); }
       canSvg.style.display = on ? '' : 'none';
       if (on) { let pts = ''; for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam); if (pv.z < 1) pts += `${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; }
