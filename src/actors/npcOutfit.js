@@ -46,9 +46,12 @@ ZONES.pelotari_rojo = ZONES.pelotari;
 // el juez (el futbolista, todo de negro): también el rojo de los bordes y de las sombras, el de las medias y las
 // zapatillas. Con solo el rojo vivo de la camiseta quedaban motas rojas sobre el negro y las zapatillas rojas. El rojo
 // apagado, solo si es oscuro: la piel, del mismo tono pero clara, no se toca; la cara queda por encima
+// En la cabeza, la textura trae también motas de rojo vivo en el pelo y en el cuello que el tinte del pelo no cogía (no
+// son castañas): pasan al castaño del pelo pintado y el tinte del pelo (hairColor.js, que va después) les da su color
 ZONES.osasuna_juez = `
     bool red = (h < 0.045 || h > 0.9) && ((s > 0.6 && v > 0.15) || (s > 0.28 && v < 0.6)), navy = h > 0.55 && h < 0.8 && s > 0.2 && v < 0.5;
     if (y < 0.66 && red && uShirt.w > 0.) return noTone(uShirt, v, 0.78);
+    if (y >= 0.66 && red) return vec3(0.17, 0.11, 0.08) * clamp(v / 0.7, 0.5, 1.2);
     if (y > 0.1 && y < 0.42 && navy && uPants.w > 0.) return noTone(uPants, v, 0.24);`;
 
 // color del «look» → HSV (w = 1: se cambia; sin color, w = 0 y la prenda queda como está)
