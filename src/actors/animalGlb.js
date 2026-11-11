@@ -30,7 +30,11 @@ const SPEC = {
   // llega a la cruz, no por encima del lomo como a la pottoka
   // (el de Burguete es de tiro: ancho, de mucho pecho y tripa, cuello grueso y patas fuertes; el modelo es de un caballo
   // de silla y, al lado del jinete, se quedaba pequeño y flaco. El autor, noviembre de 2026)
-  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.62, cuello: 1.45, vientre: 1.24, patas: 1.42 }, col: { Main: '#9a5a2c', Main_Dark: '#6e3d1c', Main_Light: '#b87a44', Hair: '#d9b77a', Muzzle: '#4a3222' } },
+  // (como la foto que pasó el autor: castaño oscuro, crin, copete y cola negros, largos y abundantes, las patas negras
+  // hasta la rodilla con mucho pelo sobre los cascos, el vientre hondo y el cuello con su cresta. Antes era alazán y
+  // con la crin rubia)
+  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.62, cuello: 1.55, vientre: 1.38, patas: 1.5, melena: 1.5, cola: 1.4, calzas: 1.45, medias: { alto: 0.3, col: '#161110' } },
+    col: { Main: '#7a3818', Main_Dark: '#4f2210', Main_Light: '#8c4422', Hair: '#110c0a', Muzzle: '#5c4436', Hooves: '#5a524a' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
@@ -101,6 +105,7 @@ function bakedScene(key, S, g) {
     if (S.wool) out.setAttribute('wool', new THREE.BufferAttribute(new Float32Array(n).fill(S.wool.includes(m.material.name) ? 1 : 0), 1));
     if (S.dog) out.setAttribute('part', new THREE.BufferAttribute(new Float32Array(n).fill(dogPart(m.material.name)), 1));
     out.setAttribute('ojo', new THREE.BufferAttribute(new Float32Array(n).fill(/^Eyes?_/.test(m.material.name) || (S.dog && dogPart(m.material.name) === 3) ? 1 : 0), 1));
+    if (S.estilo?.melena || S.estilo?.calzas || S.estilo?.medias) out.setAttribute('pieza', new THREE.BufferAttribute(new Float32Array(n).fill(m.material.name === 'Hair' ? 1 : m.material.name === 'Hooves' ? 2 : 0), 1));
     if (src.index) out.setIndex(Array.from(src.index.array));
     geos.push(out);
   }
@@ -145,6 +150,9 @@ function caricatura(geo, S, skel, bindMatrix) {
     const esCuerpo = names.map(n => /^(Torso|Back$|Body$|FrontShoulder|BackShoulder|BackLeg\.)/.test(n)), esCuello = names.map(n => /^Neck/.test(n));
     const anchar = (E.torso || 1) !== 1 || (E.cuello || 1) !== 1 || (E.vientre || 1) !== 1, cl = (geo.boundingBox.min[lat] + geo.boundingBox.max[lat]) / 2;
     let cy = 0;
+    const pieza = geo.attributes.pieza, col = geo.attributes.color, medC = E.medias ? new THREE.Color(E.medias.col) : null;
+    const esCola = names.map(n => /^Tail/.test(n)), iCola = names.indexOf('Tail1'), raizCola = iCola >= 0 ? enMalla(iCola) : null, HUE = new Map();
+    const huesoEn = (j) => { let v = HUE.get(j); if (!v) HUE.set(j, v = enMalla(j)); return v; };
     if (anchar) { let a = Infinity, b = -Infinity; for (let i = 0; i < P.count; i++) { let w = 0; for (let k = 0; k < 4; k++) if (esCuerpo[si.getComponent(i, k)]) w += sw.getComponent(i, k); if (w > 0.6) { const y = P.getY(i); if (y < a) a = y; if (y > b) b = y; } } cy = (a + b) / 2; }
     const cen = [new THREE.Vector3(), new THREE.Vector3()], num = [0, 0];
     for (let i = 0; i < P.count; i++) {
@@ -154,6 +162,21 @@ function caricatura(geo, S, skel, bindMatrix) {
       if (wc > 0) { const k = 1 + (E.cabeza - 1) * Math.min(1, wc); X = hp.x + (X - hp.x) * k; Y = hp.y + (Y - hp.y) * k; Z = hp.z + (Z - hp.z) * k; }
       // (las patas, más gruesas alrededor de su hueso; la pezuña, abajo del todo, un poco menos, que no parezca una bota)
       if (pata && wp > 0) { const k = 1 + (E.patas - 1) * Math.min(1, wp) * (0.55 + 0.45 * Math.min(1, (Y - y0) / (0.12 * H))); X = pata.x + (X - pata.x) * k; Z = pata.z + (Z - pata.z) * k; }
+      // (la crin, más llena alrededor del hueso del cuello o de la cabeza que la lleva; la cola, más larga y gruesa desde
+      // su raíz; las calzas, abombadas sobre el casco como el pelo de los caballos de tiro, sin tocar el casco)
+      const pz = pieza ? pieza.getX(i) : 0;
+      if (pz === 1 && (E.melena || E.cola)) {
+        let mejor = -1, mw = 0, cola = 0; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k), j = si.getComponent(i, k); if (w > mw) { mw = w; mejor = j; } if (esCola[j]) cola += w; }
+        if (cola > 0.5 && raizCola) { const kk = E.cola || 1, c0 = raizCola; X = c0.x + (X - c0.x) * kk; Y = c0.y + (Y - c0.y) * kk; Z = c0.z + (Z - c0.z) * kk; }
+        // (la crin y el copete, más anchos de lado a lado, para que caigan sobre el cuello y la frente: agrandados desde el
+        // hueso salían hacia arriba como una espina)
+        else if (mejor >= 0 && E.melena) { const c0 = huesoEn(mejor), kk = E.melena; if (lat === 'x') X = c0.x + (X - c0.x) * kk * 1.25; else Z = c0.z + (Z - c0.z) * kk * 1.25; Y = c0.y + (Y - c0.y) * 0.97; }
+      }
+      if (pz !== 2 && pata && wp > 0.3 && E.calzas) { const yy = (Y - y0) / H, k = 1 + (E.calzas - 1) * THREE.MathUtils.smoothstep(yy, 0.035, 0.07) * (1 - THREE.MathUtils.smoothstep(yy, 0.1, 0.19)); X = pata.x + (X - pata.x) * k; Z = pata.z + (Z - pata.z) * k; }
+      if (pz !== 2 && pz !== 1 && E.medias && col && (wp > 0.3 || (Y - y0) / H < E.medias.alto - 0.06)) {
+        const t = 1 - THREE.MathUtils.smoothstep((Y - y0) / H, E.medias.alto - 0.05, E.medias.alto + 0.02);
+        if (t > 0) col.setXYZ(i, col.getX(i) + (medC.r - col.getX(i)) * t, col.getY(i) + (medC.g - col.getY(i)) * t, col.getZ(i) + (medC.b - col.getZ(i)) * t);
+      }
       if (anchar) {
         let wb = 0, wn = 0; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w <= 0) continue; const j = si.getComponent(i, k); if (esCuerpo[j]) wb += w; else if (esCuello[j]) wn += w; }
         const kl = 1 + ((E.torso || 1) - 1) * Math.min(1, wb) + ((E.cuello || 1) - 1) * Math.min(1, wn);
@@ -166,6 +189,8 @@ function caricatura(geo, S, skel, bindMatrix) {
       if (wc > 0.8) cabeza.expandByPoint(_v);
       if (ojo.getX(i)) { const l = _v[lat] < 0 ? 0 : 1; cen[l].add(_v); num[l]++; }
     }
+    if (geo.attributes.pieza) geo.deleteAttribute('pieza');   // (ya no hace falta, y los ojos nuevos no la llevan)
+    if (E.medias && geo.attributes.color) geo.attributes.color.needsUpdate = true;
     // los ojos nuevos: donde estaba cada ojo del modelo, mirando hacia donde miraba (la media de las caras del parche)
     const nor = [new THREE.Vector3(), new THREE.Vector3()], rad = [0, 0], ix = geo.index, nt = (ix ? ix.count : P.count) / 3;
     const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
@@ -208,7 +233,7 @@ function caricatura(geo, S, skel, bindMatrix) {
     P.needsUpdate = true;
     if (piezas.length && geo.index) extra = mergeGeometries([geo, ...piezas]);
   }
-  const out = extra || geo; out.deleteAttribute('ojo');
+  const out = extra || geo; out.deleteAttribute('ojo'); if (out.attributes.pieza) out.deleteAttribute('pieza');
   return out;
 }
 const _v = new THREE.Vector3();
@@ -284,7 +309,7 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
 //    más oscuras y con barro · pelo fino en la dirección del cuerpo, con un poco de relieve, que se funde de lejos
 //  · un brillo suave en el contorno (el pelo recoge la luz de lado)
 // k.hair: fuerza del pelo (el cerdo casi no tiene; el jabalí, cerdas), k.belly: aclarado del vientre
-const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, burguete: { hair: 0.5, belly: 0.12 }, bull: { hair: 0.7, belly: 0.03 },
+const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, burguete: { hair: 0.5, belly: 0.03 }, bull: { hair: 0.7, belly: 0.03 },
   zorro: { hair: 1.1, belly: 0.3 }, corzo: { hair: 0.9, belly: 0.3, rump: 1, rumpY: [0.48, 0.74] }, ciervo: { hair: 1.0, belly: 0.22, rump: 0.6, rumpY: [0.36, 0.56] } };
 // rump: el escudo claro de la grupa (blanco en el corzo, que lo enseña al huir; crema en el ciervo), en la parte de
 // atrás del cuerpo (los modelos miran hacia +z) entre las alturas rumpY (fracción de la altura del modelo)
