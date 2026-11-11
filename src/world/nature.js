@@ -13,6 +13,7 @@ import { TOWN } from './townBuilder.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
 import { VIENTO } from './viento.js';
 import { creaArbol, esqueleto, ESPECIES } from './arbol.js';
+import { COPAS, pintaCopas } from './sombraCopas.js';
 import { TEXA } from './texturasArboles.js';
 
 // (uVer: el pecho del personaje, y uVerOn, si se está jugando con él a la vista: lo que hay entre la cámara y él se abre)
@@ -779,46 +780,27 @@ export class Nature {
     this.grass = null;
     this.flowers = new FlowerField(scene, quality);
   }
-  // La sombra de cada árbol en el suelo: una mancha oscura y suave, del tamaño de su copa y con sus claros, pegada al
-  // terreno. Las sombras de verdad solo llegan a unos metros de la cámara (y en el móvil los árboles no las dan): sin
-  // ella, los árboles parecían flotar sobre el prado. Todas en una sola malla: una llamada de dibujo y ocho triángulos
-  // por árbol. Se corre hacia donde cae la sombra según el sol, se apaga de noche y con el cielo cubierto, y también
-  // cerca de la cámara cuando allí ya hay sombras de verdad (luz, abajo, pone el sol de cada momento).
+  // La sombra de cada árbol en el suelo: una mancha oscura y suave, del tamaño de su copa y con sus claros. Las sombras
+  // de verdad solo llegan a unos metros de la cámara (y en el móvil los árboles no las dan): sin ella, los árboles
+  // parecían flotar sobre el prado. Pintadas todas en una textura del mapa visto desde arriba que lee el propio suelo
+  // (sombraCopas.js): sin triángulos ni llamadas de dibujo de más. Antes era una malla pegada al terreno, que en las
+  // cuestas flotaba como una losa oscura o se hundía. Se corre hacia donde cae la sombra según el sol, se apaga de noche
+  // y con el cielo cubierto, y también cerca de la cámara cuando allí ya hay sombras de verdad (luz, abajo, pone el sol
+  // de cada momento).
   buildSombras() {
-    const list = TREES.filter(s => !s.quitado), n = list.length; if (!n) return;
-    const pos = new Float32Array(n * 27), uv = new Float32Array(n * 18), cen = new Float32Array(n * 27), idx = new Uint32Array(n * 24);
-    list.forEach((s, i) => {
-      const r = copaDe(s) * 1.3, o = i * 9; s.sombra = i;
-      for (let j = 0; j < 9; j++) {
-        const u = j % 3, v = (j / 3) | 0, x = s.x + (u - 1) * r, z = s.z + (v - 1) * r, k = (o + j) * 3;
-        pos[k] = x; pos[k + 1] = terrainHeight(x, z) + 0.09; pos[k + 2] = z; cen[k] = s.x; cen[k + 1] = r; cen[k + 2] = s.z;
-        uv[(o + j) * 2] = u / 2; uv[(o + j) * 2 + 1] = v / 2;
-      }
-      let q = i * 24;
-      for (let v = 0; v < 2; v++) for (let u = 0; u < 2; u++) { const a = o + v * 3 + u; idx[q++] = a; idx[q++] = a + 3; idx[q++] = a + 1; idx[q++] = a + 1; idx[q++] = a + 3; idx[q++] = a + 4; }
-    });
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setAttribute('aCen', new THREE.BufferAttribute(cen, 3));
-    g.setIndex(new THREE.BufferAttribute(idx, 1));
-    const U = this.sombraU = { uSombra: { value: new THREE.Vector3(0, 0, 0.5) }, uCerca: { value: this.quality === 'low' ? 0 : this.quality === 'mid' ? 20 : 45 } };
-    const mat = new THREE.MeshBasicMaterial({ map: sombraTex(), color: '#0b1a12', transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2, side: THREE.DoubleSide });
-    mat.onBeforeCompile = (sh) => {
-      Object.assign(sh.uniforms, U);
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute vec3 aCen; uniform vec3 uSombra; varying float vSomD;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.xz += uSombra.xy * aCen.y; vSomD = distance(cameraPosition.xz, aCen.xz);');
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform vec3 uSombra; uniform float uCerca; varying float vSomD;')
-        .replace('#include <map_fragment>', '#include <map_fragment>\ndiffuseColor.a *= uSombra.z * mix(1.0, smoothstep(uCerca * 0.75, uCerca * 1.3 + 0.01, vSomD), step(0.5, uCerca));');
-    };
-    mat.customProgramCacheKey = () => 'sombra-copa';
-    const m = this.sombras = new THREE.Mesh(g, mat); m.name = 'sombras-copas'; m.frustumCulled = false; m.renderOrder = 1; m.userData.noShadow = true;
-    SOMBRAS = g; this.group.add(m);
+    // (pintadas en una textura del mapa visto desde arriba que lee el suelo: sombraCopas.js)
+    const list = TREES.filter(s => !s.quitado);
+    if (!list.length) { this.copaMedia = 0; COPAS.uCopas.value.z = 0; return; }
+    const L = list.map(s => ({ x: s.x, z: s.z, r: copaDe(s) * 1.3, rot: s.rot || 0 }));
+    this.copaMedia = L.reduce((a, t) => a + t.r, 0) / L.length;
+    pintaCopas(L, HALF, sombraTex().image);
+    COPAS.uCopasCerca.value = this.quality === 'low' ? 0 : this.quality === 'mid' ? 20 : 45;
   }
   /** El sol de este momento para las sombras de las copas: hacia dónde caen y cuánto se ven (nublado, de 0 a 1). */
   luz(sky, nublado = 0) {
-    const U = this.sombraU; if (!U || !sky) return;
-    const sd = sky.sunDir, h = Math.hypot(sd.x, sd.z) || 1, m = Math.min(0.62, 0.2 / Math.max(0.2, sd.y));
-    U.uSombra.value.set(-sd.x / h * m, -sd.z / h * m, 0.62 * (1 - sky.night) * (1 - 0.65 * nublado) * Math.min(1, Math.max(0, sd.y) / 0.12));
-    this.sombras.visible = U.uSombra.value.z > 0.02;
+    if (!sky || !this.copaMedia || this.fijo) { COPAS.uCopas.value.z = 0; return; }
+    const sd = sky.sunDir, h = Math.hypot(sd.x, sd.z) || 1, m = Math.min(0.62, 0.2 / Math.max(0.2, sd.y)) * this.copaMedia;
+    COPAS.uCopas.value.set(-sd.x / h * m, -sd.z / h * m, 0.62 * (1 - sky.night) * (1 - 0.65 * nublado) * Math.min(1, Math.max(0, sd.y) / 0.12), 0);
   }
   // reparte instancias por trozos del mapa: de cerca la geometría 'hi', de lejos 'lo' (o nada si no hay)
   addChunked(list, hi, lo, mat, place, opts = {}) {
@@ -1050,6 +1032,7 @@ export class Nature {
     this.fijo = true; this.group.visible = false; if (this.flowers?.mesh) this.flowers.mesh.visible = false;
   }
   update(camPos, focus, elapsed, player, ver = false) {
+    if (SOMBRA_SUCIA) { SOMBRA_SUCIA = false; this.buildSombras(); }
     windUniforms.uTime.value = elapsed;
     windUniforms.uVerOn.value = ver && player ? 1 : 0; if (ver && player) windUniforms.uVer.value.set(player.x, player.y + 1.2, player.z);
     for (const c of this.chunks) {
@@ -1198,7 +1181,7 @@ vMapUv = (vMapUv + vCelda) / vec2(3.0, 2.0);   // (uv_vertex va antes: aquí ya 
 
 // Constructores de árboles para escenas fuera de la partida (inicio, fondos)
 // (la mancha de sombra de una copa: redonda y desigual, con claros por donde pasa el sol)
-let SOMBRAS = null, SOMBRA_TEX = null;
+let SOMBRA_TEX = null, SOMBRA_SUCIA = false;
 function sombraTex() {
   if (SOMBRA_TEX) return SOMBRA_TEX;
   const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), rnd = mulberry32(41);
@@ -1209,11 +1192,8 @@ function sombraTex() {
   for (let i = 0; i < 9; i++) { const a = rnd() * 6.2832, d = 8 + rnd() * 34; mancha(64 + Math.cos(a) * d, 64 + Math.sin(a) * d, 4 + rnd() * 5, 0.5); }
   return (SOMBRA_TEX = new THREE.CanvasTexture(c));
 }
-function quitaSombra(t) {
-  const P = SOMBRAS?.attributes.position; if (!P || t.sombra == null) return;
-  for (let j = 0; j < 9; j++) P.setXYZ(t.sombra * 9 + j, t.x, -9999, t.z);
-  P.needsUpdate = true;
-}
+// (al quitar árboles, la textura de sombras se pinta otra vez, una sola vez aunque se quiten muchos: Nature.update)
+function quitaSombra() { SOMBRA_SUCIA = true; }
 export const TREE_MAKERS = { beech: makeBeech, oak: makeOak, fir: makeFir, bush: makeBush, olive: makeOlive, poplar: makePoplar, pine: makePine, chestnut: makeChestnut, apple: makeApple };
 // Quita los árboles que hayan quedado dentro de un rectángulo girado (mismo criterio que clearGrass: ancho w centrado
 // y fondo d desde el punto): al levantar un frontón o una pista, un árbol podía quedar en medio de la cancha (Tafalla)
