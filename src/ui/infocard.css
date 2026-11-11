@@ -35,7 +35,7 @@
 .ix-frame.icon > img.ix-animal { position: absolute; inset: 4%; width: 92%; height: 92%; object-fit: contain; object-position: 50% 50%; animation: none; }   /* (quieto y en el centro exacto del marco) */
 /* la lámina de un oficio: entera, en 16:9, y en horizontal la mitad de la ficha */
 .mg-card.ix.has-lam .ix-frame.lam { aspect-ratio: 16 / 9; flex: none; width: 100%; height: auto; }
-.ix-tag { position: absolute; left: 0; top: 12px; z-index: 2; padding: 4px 14px 4px 10px; background: var(--cta); color: #fff; box-shadow: var(--glow);
+.ix-tag { position: absolute; left: 0; top: 12px; z-index: 2; padding: 4px 14px 4px 10px; background: var(--cta); color: #fff;
   font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase; border-radius: 6px; }
 .ix-credit { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 12px 8px 4px; text-align: right; color: rgba(255, 255, 255, .86);
   font: 600 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .02em; background: linear-gradient(transparent, rgba(7, 2, 15, .78)); pointer-events: none;
