@@ -182,6 +182,9 @@ export function galeria(m, o) {
   });
   const tecla = (e) => {
     if (fuera()) return;
+    // (escondida, con el menú detrás de un pueblo o de un partido, las flechas no son suyas: antes se quedaba con ellas y en
+    // el ordenador el personaje no andaba con las flechas, solo con WASD)
+    if (!G.getClientRects().length) return;
     if (document.querySelector('.sheet') || e.target.closest?.('input, textarea, select')) return;
     const k = e.key, h = { ArrowLeft: -1, ArrowRight: 1 }[k], v = { ArrowUp: -1, ArrowDown: 1 }[k];
     // (Intro abre la ficha del de delante si no hay otro botón elegido)
