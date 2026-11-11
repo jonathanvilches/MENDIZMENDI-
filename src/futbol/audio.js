@@ -1,7 +1,9 @@
 // Sonidos del fútbol, sintetizados: golpeo según la potencia, toques de conducción, postes, red, silbato del árbitro y el
 // público de El Sadar (src/crowdAudio.js: el murmullo de la grada, que sube con las ocasiones, el «uyyy», el lamento, y
 // el estallido con el aplauso de todo el estadio en los goles). Debajo, grabados (src/audio/pistas.js): el rumor del
-// estadio lleno y el grito de gol. Usa el contexto de audio del juego si lo hay.
+// estadio lleno, el grito de gol y, como en la pelota, la gente aplaudiendo, silbando y animando («aplausos-final»): un
+// trozo en cada parada, poste o remate, tras cada gol y al final de cada parte, y entera al ganar el partido (noviembre
+// de 2026: el público sintetizado está apagado y esos momentos sonaban sin gente). Usa el contexto de audio del juego si lo hay.
 import { Crowd, PUBLICO } from '../crowdAudio.js';
 import { Grada, carga, efecto } from '../audio/pistas.js';
 export class FutbolAudio {
@@ -23,7 +25,7 @@ export class FutbolAudio {
       (this.loops ||= []).push(s);
     }
     this.level = 0.25; this.target = 0.25;
-    this.grada = new Grada(c, this.out); this.grada.nivel(0.4); carga(c, 'gol');   // (la grabada suena siempre; la sintetizada, solo con PUBLICO)
+    this.grada = new Grada(c, this.out); this.grada.nivel(0.4); carga(c, 'gol'); carga(c, 'aplausos-final');   // (la grabada suena siempre; la sintetizada, solo con PUBLICO)
     // (la gente de verdad en cuanto está calculada; hasta entonces, el ruido de antes)
     if (PUBLICO) try { this.cr = new Crowd(c, this.out); this.cr.ready.then(ok => { if (!ok || this.gone) return; for (const s of this.loops || []) try { s.stop(); } catch (e) { } this.loops = []; this.crowd.disconnect(); }); } catch (e) { this.cr = null; }
   }
@@ -56,15 +58,29 @@ export class FutbolAudio {
     };
     if (n === 3) { blow(0, 0.28); blow(0.36, 0.28); blow(0.72, 0.9); } else if (n === 2) { blow(0, 0.18); blow(0.26, 0.18); } else blow(0, 0.35);
   }
-  /** El público: «uyyy» en una ocasión, estallido en el gol, murmullo en los saques. */
-  ooh() { if (!PUBLICO) return; if (!this.cr?.ooh(0.9)) { this.hiss(1.1, 900, 0.7, 0.3); this.tone(330, 0.9, 'sawtooth', 0.025, 0, 230); } else this.cr.applause(0.45, 0.7); this.bump(0.75, 1.4); }
+  /** Un aplauso de la grada, grabado (la gente aplaudiendo, silbando y animando de la pelota): un trozo de un sitio
+   *  distinto cada vez, de dur segundos y v de fuerte, que entra y se apaga con un fundido; t0, cuánto espera */
+  aplauso(v = 0.5, dur = 3, t0 = 0) {
+    const c = this.ctx; if (!c) return false; const b = carga(c, 'aplausos-final').buf; if (!b) return false;
+    const t = c.currentTime + t0, s = c.createBufferSource(), g = c.createGain(), off = 0.4 + Math.random() * Math.max(0, b.duration - dur - 1.5);
+    const V = Math.min(0.9, v), sube = Math.min(0.75, dur * 0.22), baja = Math.max(1.2, dur * 0.5), quieto = Math.max(t + sube, t + dur - baja);
+    s.buffer = b; s.connect(g); g.connect(this.out);
+    g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(V, t, sube / 3); g.gain.setTargetAtTime(0.0001, quieto, baja / 4);
+    s.start(t, off); s.stop(t + dur + 0.6); return true;
+  }
+  /** La ovación entera del final (al ganar el partido): todo el estadio en pie */
+  ovacion() { if (this.ctx && efecto(this.ctx, 'aplausos-final', this.out, 0.65, 0.9)) this.bump(1, 6); }
+  /** El público: «uyyy» en una ocasión, estallido en el gol, murmullo en los saques. (Sin el público sintetizado, en una
+   *  parada, un poste o un remate, un aplauso corto grabado) */
+  ooh() { if (!PUBLICO) { this.aplauso(0.42, 2.6); this.bump(0.75, 1.4); return; } if (!this.cr?.ooh(0.9)) { this.hiss(1.1, 900, 0.7, 0.3); this.tone(330, 0.9, 'sawtooth', 0.025, 0, 230); } else this.cr.applause(0.45, 0.7); this.bump(0.75, 1.4); }
   /** el gol: el estallido y todo el estadio aplaudiendo a la vez (rival: solo el aplauso, que es menor) */
   roar(k = 1) { if (!PUBLICO) return; if (!this.cr?.roar(k)) { this.hiss(2.8, 800, 0.4, 0.45); this.hiss(2.4, 1700, 0.6, 0.3, 0.1); } else { this.cr.applause(k, 0.15); this.cr.applause(0.8 * k, 1.9); } this.bump(1, 3.5); }
   groan() { if (!PUBLICO) return; if (!this.cr?.groan(0.8)) this.hiss(1.0, 500, 0.6, 0.18); this.bump(0.5, 1); }
-  /** el gol del equipo propio: el estadio entero gritándolo, grabado (con el estallido de roar) */
-  gol() { if (this.ctx && efecto(this.ctx, 'gol', this.out, 0.5)) this.bump(1, 6); }
-  /** aplauso de toda la grada (el final de cada parte, una buena parada) */
-  clap(k = 1) { this.cr?.applause(k); }
+  /** el gol del equipo propio: el estadio entero gritándolo, grabado (con el estallido de roar), y detrás la gente que
+   *  sigue aplaudiendo y animando mientras se apaga el grito */
+  gol() { if (this.ctx && efecto(this.ctx, 'gol', this.out, 0.5)) this.bump(1, 6); this.aplauso(0.6, 5.5, 2.2); }
+  /** aplauso de toda la grada (el final de cada parte, una buena parada, el gol del rival): k de 0 a 1 */
+  clap(k = 1) { if (this.cr?.applause(k)) return; this.aplauso(0.3 + 0.4 * k, 2.4 + 2 * k); }
   bump(v, secs) { this.target = Math.max(this.target, v); this.bumpT = secs; }
   update(dt, tension = 0.25) {
     if (!this.ctx) return;

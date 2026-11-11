@@ -462,7 +462,7 @@ export class FutbolMatch {
       case 'toPenalties': H.msg('¡Penaltis!', 'Empate: se decide en la tanda', 2400); break;
       case 'penTurn': this.penTurn(e); break;
       case 'penResult': H.pens(e.log, g.pen.kicks); H.say(e.res === 'goal' ? (e.team === 0 ? '¡Gol!' : 'Gol del rival') : e.res === 'save' ? (e.team === 0 ? 'Lo ha parado el portero' : '¡Lo has parado!') : '¡Fuera!', 1500); if (e.res !== 'goal') (e.team === 1 ? A.roar(0.8) : A.groan()); else if (e.team === 0) { A.roar(0.9); A.gol(); } else A.groan(); break;
-      case 'end': this.onEnd(e.result); break;
+      case 'end': if (e.result?.win) A.ovacion?.(); this.onEnd(e.result); break;   // (si ganas, la ovación entera; el aplauso del final ya va con el silbato)
       case 'switch': { const p = g.players[e.p]; if (p && e.why !== 'pass' && p.team === 0) this.hud.say(`${p.num} · ${p.puesto || p.role}`, 900); break; }
       case 'gkCtl': if (e.on && e.hands) H.say('Tu portero tiene el balón: apunta y PASE para sacar con la mano, o mantén TIRO para un saque largo', 2600); else if (e.on) H.say('Llevas al portero: sin tocar el joystick se coloca solo. Con un tiro, elige lado y pulsa PASE o TIRO', 2600); break;
       case 'gkPlan': if (!g.autoplay) H.say(e.side ? 'Tu portero se lanzará a ese lado' : 'Tu portero va a por el balón', 900); break;
