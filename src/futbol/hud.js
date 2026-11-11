@@ -193,7 +193,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
 /* aviso de cambio: bajo la pausa, cuando uno de los tuyos está lesionado o agotado; abre los cambios */
 .fb-subalert{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 48px);left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 12px 4px 8px;border-radius:4px;border:1.5px solid transparent;background:rgba(42,6,56,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.06em;text-transform:uppercase;pointer-events:auto;cursor:pointer;animation:fbpulse 1.4s ease-in-out infinite}
 .fb-subalert[hidden]{display:none}.fb-subalert svg{width:22px;height:22px;flex:none;pointer-events:none}.fb-subalert span{pointer-events:none}
-@keyframes fbpulse{50%{box-shadow:0 0 0 6px rgba(255,122,200,.28)}}
+@keyframes fbpulse{50%{background:rgba(150,32,150,.95)}}   /* (late el relleno, no un anillo alrededor: ui/neon.css) */
 /* lesión y cambio: el cartel lleva su señal (la cruz del médico o las flechas del cuarto árbitro) */
 .fb-msg.inj h2::before{content:'+';display:inline-grid;place-items:center;width:.86em;height:.86em;margin-right:.3em;border-radius:.12em;background:#fff;color:#e3262b;font-size:.9em;line-height:1;vertical-align:-.06em}
 .fb-msg.sub h2{color:#ffd9f1}
