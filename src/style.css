@@ -215,7 +215,7 @@ summary { line-height: 1.3; }
 #tl { position: absolute; left: calc(var(--sl) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; flex-direction: column; gap: 8px; max-width: min(340px, calc(30vw / var(--z, 1))); pointer-events: none; }
 #tl > * { pointer-events: auto; }
 /* (en una tarjeta: arriba la misión de ahora con su icono y sus pasos; debajo, el pueblo con sus misiones) */
-#tl { padding: 8px 12px 8px 8px; border-radius: 4px; background: linear-gradient(170deg, rgba(36, 12, 78, .74), rgba(13, 6, 28, .7)); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 6px 18px rgba(0, 0, 0, .3); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+#tl { padding: 8px 12px 8px 8px; border-radius: 4px; background: linear-gradient(170deg, rgba(36, 12, 78, .92), rgba(13, 6, 28, .9)); border: 1px solid rgba(255,255,255,.08); box-shadow: 0 6px 18px rgba(0, 0, 0, .3); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
 #quest { display: flex; gap: 14px; align-items: flex-start; cursor: pointer; }   /* (el icono, arriba: a la misma altura que los botones de la derecha; 14 de hueco: la chapita «0/6» asoma 6 px por su derecha y rozaba el texto) */
 #quest .ic { flex: 0 0 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 40% 35%, rgba(255, 225, 150, .35), rgba(20, 15, 30, .7)); box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
 #quest .ic .qe { display: grid; place-items: center; }
@@ -250,11 +250,14 @@ summary { line-height: 1.3; }
 @media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
 @media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 36px; min-width: 260px; } #tl.mis #misiones { gap: 8px; } }
 #misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 6px; }
+/* (cada casilla, el icono sobre un fondo sólido del color de su categoría: con el 16 % del color y el borde, que los
+   botones ya no llevan, se veían apagadas y casi transparentes sobre el pueblo; noviembre de 2026, lo pidió el autor.
+   Hecha, el color más lleno y su marca; la que sigues, un aro blanco por dentro) */
 #misiones button { --mc: #c9b8ff; position: relative; width: var(--chip); height: var(--chip); padding: 0; display: grid; place-items: center; border-radius: 6px; cursor: pointer;
-  background: color-mix(in srgb, var(--mc) 16%, rgba(13, 6, 28, .6)); border: 1px solid color-mix(in srgb, var(--mc) 70%, transparent); color: #fff; transition: transform .15s; }
-#misiones button :is(svg, img) { width: 64%; height: 64%; opacity: .85; pointer-events: none; }
-#misiones button.on { background: color-mix(in srgb, var(--mc) 50%, rgba(13, 6, 28, .6)); border-color: var(--mc); }
-#misiones button.cur { border: 2px solid #fff; box-shadow: 0 0 8px color-mix(in srgb, var(--mc) 75%, transparent); }
+  background: color-mix(in srgb, var(--mc) 46%, #1c0d38); border: 0; color: #fff; transition: transform .15s; }
+#misiones button :is(svg, img) { width: 68%; height: 68%; opacity: 1; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(13, 6, 28, .45)); }
+#misiones button.on { background: color-mix(in srgb, var(--mc) 78%, #1c0d38); }
+#misiones button.cur { box-shadow: inset 0 0 0 2px #fff; }
 #misiones button:is(.on, .cur, .sel) :is(svg, img) { opacity: 1; }
 #misiones button:active { transform: scale(.92); }
 /* (cambia lo que toca hacer en la misión que sigues: su icono late dos veces, sin desplegar el panel) */

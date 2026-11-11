@@ -183,6 +183,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sin el canto de 5 px de abajo, que los hacía parecer más altos que anchos, ni el anillo rosa del de actuar; solo una sombra
   muy suave alrededor, sin bajar, para que se separen de un suelo claro. Al pulsar ceden hacia dentro (`scale`). En
   `neon.css`, `.cbtn.big` lleva lo mismo con `!important`.
+- **Casillas de las misiones del pueblo** (`#misiones` de `style.css`, arriba a la izquierda; noviembre de 2026). Cada
+  icono va sobre un fondo sólido del color de su categoría (46 % del color sobre morado oscuro; hecha, 78 % con su marca;
+  la que sigues, un aro blanco por dentro con `box-shadow`, porque los botones no llevan borde: `neon.css`). El panel
+  que las recoge, casi opaco (90 %). Antes, con el 16 % del color, se veían apagadas y casi transparentes sobre el pueblo.
 - **Placas de la pantalla VS** (`pelota/vs.js`, también la usa el fútbol; noviembre de 2026). Cada jugador tiene una sola
   placa con las esquinas de los paneles (10 px) y, dentro, separada 5 px del borde, su media en una caja clara de 6 px y
   al lado el nombre, el pueblo y las cifras. Antes eran dos cajas sueltas, la blanca montada 6 px sobre la oscura. Como
