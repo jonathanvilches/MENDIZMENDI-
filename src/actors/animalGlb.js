@@ -33,8 +33,8 @@ const SPEC = {
   // (como la foto que pasó el autor: castaño oscuro, crin, copete y cola negros, largos y abundantes, las patas negras
   // hasta la rodilla con mucho pelo sobre los cascos, el vientre hondo y el cuello con su cresta. Antes era alazán y
   // con la crin rubia)
-  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.8, cuello: 1.7, vientre: 1.68, patas: 1.68, abre: 1.1, melena: 1.85, copete: 1.5, cola: 1.45, calzas: 1.7, medias: { alto: 0.3, col: '#161110' } },
-    col: { Main: '#7a3818', Main_Dark: '#4f2210', Main_Light: '#8c4422', Hair: '#110c0a', Muzzle: '#5c4436', Hooves: '#5a524a' } },
+  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.8, cuello: 1.7, vientre: 1.68, grupa: 1.28, patas: 1.68, abre: 1.1, melena: 1.85, copete: 1.5, cola: 1.85, calzas: 1.7, medias: { alto: 0.36, col: '#161110' } }, brillo: 0.5,
+    col: { Main: '#8a4520', Main_Dark: '#56250f', Main_Light: '#9c5228', Hair: '#110c0a', Muzzle: '#5c4436', Hooves: '#5a524a' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
@@ -150,6 +150,7 @@ function caricatura(geo, S, skel, bindMatrix) {
     const esCuerpo = names.map(n => /^(Torso|Back$|Body$|FrontShoulder|BackShoulder|BackLeg\.)/.test(n)), esCuello = names.map(n => /^Neck/.test(n));
     const anchar = (E.torso || 1) !== 1 || (E.cuello || 1) !== 1 || (E.vientre || 1) !== 1, cl = (geo.boundingBox.min[lat] + geo.boundingBox.max[lat]) / 2;
     let cy = 0;
+    const aMin = geo.boundingBox.min[lat === 'x' ? 'z' : 'x'], aLen = (geo.boundingBox.max[lat === 'x' ? 'z' : 'x'] - aMin) || 1;
     const pieza = geo.attributes.pieza, col = geo.attributes.color, medC = E.medias ? new THREE.Color(E.medias.col) : null;
     const esCola = names.map(n => /^Tail/.test(n)), iCola = names.indexOf('Tail1'), raizCola = iCola >= 0 ? enMalla(iCola) : null, HUE = new Map();
     const huesoEn = (j) => { let v = HUE.get(j); if (!v) HUE.set(j, v = enMalla(j)); return v; };
@@ -188,7 +189,10 @@ function caricatura(geo, S, skel, bindMatrix) {
       }
       if (anchar) {
         let wb = 0, wn = 0; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w <= 0) continue; const j = si.getComponent(i, k); if (esCuerpo[j]) wb += w; else if (esCuello[j]) wn += w; }
-        const kl = 1 + ((E.torso || 1) - 1) * Math.min(1, wb) + ((E.cuello || 1) - 1) * Math.min(1, wn);
+        // (la grupa, el tercio de atrás del tronco, aún más ancha y redonda: la de los caballos de tiro es enorme)
+        const al = ((lat === 'x' ? Z : X) - aMin) / aLen, gr = E.grupa ? ((E.grupa - 1) * (1 - THREE.MathUtils.smoothstep(al, 0.28, 0.52)) * Math.min(1, wb)) : 0;
+        const kl = 1 + ((E.torso || 1) - 1) * Math.min(1, wb) + ((E.cuello || 1) - 1) * Math.min(1, wn) + gr;
+        if (gr > 0 && Y > cy) Y = cy + (Y - cy) * (1 + gr * 0.45);
         let L = lat === 'x' ? X : Z; L = cl + (L - cl) * kl;
         if (pata && wp > 0) L += (pata[lat] - cl) * ((E.torso || 1) - 1) * (E.abre || 0.7) * Math.min(1, wp);
         if (lat === 'x') X = L; else Z = L;
@@ -336,7 +340,7 @@ function hideMaterial(geo, S) {
     uCoatR: { value: new THREE.Vector2(K.rumpY[0], K.rumpY[1]) },
     uCoatAx: { value: new THREE.Vector3(along === 'x' ? 1 : 0, 0, along === 'x' ? 0 : 1) },
   };
-  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.8 });
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: S.brillo ? 0.8 - 0.5 * S.brillo : 0.8 });   // (brillo: el pelaje lustroso del caballo de Burguete)
   m.onBeforeCompile = (sh) => {
     useFill(sh); pintura(sh); Object.assign(sh.uniforms, U);
     sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform vec4 uCoatA; uniform vec3 uCoatAx;\nvarying vec3 vOP; varying float vOY; varying float vBelly; varying float vAl; varying float vAN;')
