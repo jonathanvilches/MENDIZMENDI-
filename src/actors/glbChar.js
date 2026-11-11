@@ -659,6 +659,69 @@ export function palmaDe(root, hand) {
   let largo = 0; for (const p of pts) largo = Math.max(largo, p.dot(d));
   return { c, n, d, largo };
 }
+// Las manos no se meten en la cabeza: al levantar los brazos (celebrar, la pena con las manos a la cabeza) la mano de la
+// animación atravesaba la cara. Después de la animación, si una mano queda dentro de la cabeza (una esfera entre la base
+// del cráneo y los ojos), el brazo gira desde el hombro lo justo para sacarla. Lo deshace solo la imagen siguiente, que
+// vuelve a poner la animación (GlbChar, post). globalThis.__manosLibres lo apaga, para comparar
+const _mA = new THREE.Vector3(), _mB = new THREE.Vector3(), _mC = new THREE.Vector3(), _mD = new THREE.Vector3(), _mH = new THREE.Vector3(), _mQ = new THREE.Quaternion(), _mP = new THREE.Quaternion();
+// (el centro y el radio de la cabeza en el espacio del hueso de la cabeza, con los puntos de la malla que mueve sobre todo
+// ese hueso o los que cuelgan de él —ojos, pelo—, en la postura de reposo; el radio, el del 90 % de los puntos más cerca)
+function midoCabeza(c, head) {
+  const pts = [], v = new THREE.Vector3(), m = new THREE.Matrix4();
+  c.root.traverse(o => {
+    if (!o.isSkinnedMesh || !o.skeleton) return;
+    const bs = o.skeleton.bones, hi = bs.indexOf(head); if (hi < 0) return;
+    const deCabeza = new Set(bs.map((b, i) => { for (let x = b; x; x = x.parent) if (x === head) return i; return -1; }).filter(i => i >= 0));
+    const P = o.geometry.attributes.position, SI = o.geometry.attributes.skinIndex, SW = o.geometry.attributes.skinWeight; if (!SI || !SW) return;
+    m.copy(o.skeleton.boneInverses[hi]).multiply(o.bindMatrix);   // (de la malla en reposo al espacio del hueso de la cabeza)
+    const paso = Math.max(1, Math.floor(P.count / 8000));
+    for (let i = 0; i < P.count; i += paso) {
+      let w = 0; for (let k = 0; k < 4; k++) if (deCabeza.has(SI.getComponent(i, k))) w += SW.getComponent(i, k);
+      if (w > 0.6) pts.push(v.fromBufferAttribute(P, i).applyMatrix4(m).clone());
+    }
+  });
+  if (pts.length < 20) return null;
+  const cen = new THREE.Vector3(); for (const p of pts) cen.add(p); cen.divideScalar(pts.length);
+  const d = pts.map(p => p.distanceTo(cen)).sort((a, b) => a - b);
+  return { c: cen, r: d[Math.floor(d.length * 0.9)] };
+}
+export function apartaManos(c) {
+  if (globalThis.__manosLibres) return;
+  const B = c.bones || {}, head = c.headBone || B.Head || B.head || B.mixamorigHead; if (!head) return;
+  if (c._manos === undefined) {
+    const brazo = (L) => {
+      const ua = L ? B.upperarml || B.upperarm_l || B.mixamorigLeftArm : B.upperarmr || B.upperarm_r || B.mixamorigRightArm;
+      const fa = L ? B.lowerarml || B.lowerarm_l || B.mixamorigLeftForeArm : B.lowerarmr || B.lowerarm_r || B.mixamorigRightForeArm;
+      const h = L ? B.handl || B.hand_l || B.mixamorigLeftHand : B.handr || B.hand_r || B.mixamorigRightHand;
+      return ua && fa && h ? { ua, fa, h } : null;
+    };
+    c._manos = [brazo(true), brazo(false)].filter(Boolean); if (!c._manos.length) c._manos = null;
+  }
+  const M = c._manos; if (!M) return;
+  c.root.updateMatrixWorld(true);
+  const K = M.length === 2 ? M[0].ua.getWorldPosition(_mA).distanceTo(M[1].ua.getWorldPosition(_mB)) / 0.34 : 1;
+  // (la cabeza de verdad, medida una vez en la malla: los puntos que mueve el hueso de la cabeza, en su espacio. Estos
+  // personajes son de dibujo, con la cabeza grande: a ojo salía demasiado pequeña)
+  if (c._cabeza === undefined) c._cabeza = midoCabeza(c, head);
+  const CB = c._cabeza; if (!CB) return;
+  head.localToWorld(_mH.copy(CB.c)); const sc = head.getWorldScale(_mD).x, R = CB.r * sc;
+  const lim = R + 0.015 * K;
+  // (hasta tres pasos: el hombro está pegado a la cabeza y un solo giro no siempre saca la mano del todo, como en la pena
+  // con las manos a la cabeza)
+  for (const { ua, fa, h } of M) for (let it = 0; it < 3; it++) {
+    const hp = h.getWorldPosition(_mA), dir = _mB.copy(hp).sub(fa.getWorldPosition(_mC)).normalize();
+    hp.addScaledVector(dir, 0.06 * K);   // (la palma y los dedos, un poco más allá de la muñeca)
+    const d = hp.distanceTo(_mH); if (d >= lim) break;
+    const s0 = ua.getWorldPosition(_mC), v1 = _mB.copy(hp).sub(s0), v2 = _mD.copy(_mH).sub(s0), L = v1.length();
+    const n = v2.cross(v1); if (n.lengthSq() < 1e-10 || L < 1e-4) break; n.normalize();
+    const a = Math.min(0.6, (lim - d) / L * 1.3);
+    // (el giro, en el mundo, pasado al espacio del hueso: el del padre por delante)
+    ua.parent.getWorldQuaternion(_mP); _mQ.setFromAxisAngle(n, a);
+    ua.quaternion.premultiply(_mP.clone().invert().multiply(_mQ).multiply(_mP));
+    ua.updateMatrixWorld(true);
+  }
+}
+
 export function armSwing(char, get, { windOnly = false } = {}) {
   if (!char) return;
   const B = {}; char.root.traverse(o => { if (o.isBone) B[o.name] = o; });
@@ -748,4 +811,6 @@ export function armSwing(char, get, { windOnly = false } = {}) {
     if (la && Math.abs(elbow) > 1e-3) turn(la, X, -elbow);
     if (ch && Math.abs(twist) > 1e-3) turn(ch, Y, twist);
   };
+  // (y las manos, fuera de la cabeza: apartaManos, encima de todo lo demás)
+  const p0 = char.post; char.post = (c, dt) => { p0(c, dt); apartaManos(c); };
 }

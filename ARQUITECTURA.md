@@ -304,6 +304,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Partido de pelota, el cansancio se ve** (`actors/glbChar.js`, `armSwing`; `pelota/match.js`, `suda`): por debajo de
   la mitad de la energía, el pelotari se encorva (más parado y entre tanto y tanto) y respira deprisa; le saltan gotas de
   sudor y lleva sobre la cabeza su aviso de sudor, que se ve también en el rival, lejos.
+- **Partido de pelota, los pelotaris no se atraviesan** (`pelota/match.js`, `esquiva`): al volver a su sitio para el
+  saque, cada uno mira dónde se cruzará con el otro según el paso que llevan y, si van a pasar a menos de un metro, se
+  abre hacia su lado; si aun así se juntan a menos de 75 cm, se separan. Llegan a la vez que antes.
+- **Las manos no entran en la cabeza** (`actors/glbChar.js`, `apartaManos`, encadenado tras `armSwing`): la cabeza se
+  mide una vez en la malla de cada figura (los puntos que mueve el hueso de la cabeza y lo que cuelga de él, en su
+  espacio; el radio que deja dentro al 90 %) y, en cada fotograma, si la palma queda dentro, el brazo se gira desde el
+  hombro hasta sacarla, en tres pasos como mucho. `globalThis.__manosLibres` lo apaga para comparar.
 - **Marcador de retransmisión y rachas** (`pelota/hud.js`, `setScore`, `setRacha`, `call`; `pelota/match.js`, `rachaDe`):
   al sumar, la cifra salta en dorado y su lado se ilumina. El aviso del tanto lleva arriba una raya del color de quien
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el
