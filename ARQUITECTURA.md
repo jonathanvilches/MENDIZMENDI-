@@ -172,6 +172,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mande sobre ese transform. Siguen como estaban: el menú que crece desde tu retrato, los botones que ceden al pulsar y
   las secciones de al lado con Q y E.
 
+- **Tarjetas de comarca y ficha del pueblo del mapa** (noviembre de 2026, con el diseño de los rótulos). Las tarjetas de
+  abajo (`.m3-chip`, `hub/inicio.css`) tienen las esquinas de los paneles (10 px) y la foto dentro, separada 4 px del
+  borde y con sus propias esquinas de 6 px; los sellos van en una pastilla con un toque del color de la comarca, y el
+  fondo es oscuro con un degradado muy suave (`ui/neon.css`). En el móvil tumbado siguen midiendo 64 px de alto. Con
+  ratón, se inclinan y llevan la luz de las cartas vivas (están en `CARTAS`). La ficha del pueblo (`.m3-ft`) también va a
+  10 px (antes 4 px), con la raya de color de arriba curvada con sus esquinas, y su caja de misiones a 6 px. En
+  `neon.css`, las dos están en la lista de los paneles.
+
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia
     y los monumentos en su sitio (`src/data/reales/`, de Overture Maps y OpenStreetMap). Ninguna mejora de arte, de

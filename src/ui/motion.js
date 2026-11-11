@@ -77,7 +77,7 @@ export function relieve(host) {
 
 // ---------- Cartas (fase 3 del rediseño de la animación) ----------
 // (las cartas que reaccionan: las del menú y de las colecciones; las del partido van aparte, con su neón)
-export const CARTAS = '.pcard, .fcard, .lam, .ar, .scard, .ins, .ddc, .vt-cert, .ct-card, .sb-tile, .badge';
+export const CARTAS = '.pcard, .fcard, .lam, .ar, .scard, .ins, .ddc, .vt-cert, .ct-card, .sb-tile, .badge, .m3-chip';
 
 /** Al pasar el ratón, la carta se inclina un poco hacia él, una luz suave la sigue y su imagen se mueve al revés (el
  *  relieve). Pone --rx, --ry (la inclinación), --mx, --my (dónde está la luz) y --px, --py (-1 a 1) en la carta; el CSS

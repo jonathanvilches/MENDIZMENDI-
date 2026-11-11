@@ -199,23 +199,26 @@
 .m3-rail { --chh: calc(var(--chw) * 9 / 16); position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; align-items: flex-end; gap: 10px; overflow-x: auto; padding: 4px 2px 6px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain;
   scroll-snap-type: x proximity; scroll-padding: 0 2px; }
 .m3-rail::-webkit-scrollbar { display: none; }
-.m3-chip { position: relative; flex: none; width: var(--chw); scroll-snap-align: start; display: grid; grid-template-rows: var(--chh) auto; padding: 0; overflow: hidden; color: #fff; font: inherit; text-align: left; cursor: pointer;
-  border-radius: 12px; background: var(--cr, rgba(16, 6, 40, .8)); border: 1px solid var(--cr-l, rgba(255, 255, 255, .14)); box-shadow: 0 8px 22px rgba(4, 1, 12, .38);
+/* (noviembre de 2026, con el diseño nuevo de los rótulos: la tarjeta con las esquinas de los paneles, 10 px, y la foto
+   dentro, separada del borde 4 px y con sus propias esquinas de 6 px; debajo o al lado, el nombre y los sellos en una
+   pastilla con un toque del color de la comarca. Antes la foto iba pegada al borde y la tarjeta se veía cuadrada) */
+.m3-chip { position: relative; flex: none; width: var(--chw); scroll-snap-align: start; display: grid; grid-template-rows: var(--chh) auto; padding: 4px; overflow: hidden; color: #fff; font: inherit; text-align: left; cursor: pointer;
+  border-radius: 10px; background: var(--cr, rgba(16, 6, 40, .8)); border: 1px solid var(--cr-l, rgba(255, 255, 255, .14)); box-shadow: 0 8px 22px rgba(4, 1, 12, .38);
   -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); transition: transform .2s, border-color .2s, box-shadow .2s; }
 .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); border-color: rgba(255, 255, 255, .3); }
 .m3-chip.on { border-color: color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff); box-shadow: 0 0 18px color-mix(in srgb, var(--c, #ff7ac8) 40%, transparent), 0 8px 22px rgba(4, 1, 12, .38); }
-.m3-foto, .m3-vid { grid-row: 1; grid-column: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; transition: filter .3s, opacity .9s ease; }
+.m3-foto, .m3-vid { grid-row: 1; grid-column: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; border-radius: 6px; transition: filter .3s, opacity .9s ease; }
 .m3-vid { opacity: 0; pointer-events: none; } .m3-vid.on { opacity: 1; }
 .m3-chip:not(.go):not(.ok) :is(.m3-foto, .m3-vid) { filter: saturate(.65) brightness(.85); }
 .m3-sello { position: relative; flex: none; width: 48px; height: 48px; display: grid; place-items: center; }
 .m3-sello > .m3-aro { position: absolute; inset: 0; } .m3-sello > img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
-.m3-chip .m3-sello { position: absolute; z-index: 1; left: 6px; top: 6px; width: 32px; height: 32px; border-radius: 50%; background: rgba(13, 4, 32, .72); } .m3-chip .m3-sello > img { width: 23px; height: 23px; }
+.m3-chip .m3-sello { position: absolute; z-index: 1; left: 9px; top: 9px; width: 32px; height: 32px; border-radius: 50%; background: rgba(13, 4, 32, .72); } .m3-chip .m3-sello > img { width: 23px; height: 23px; }
 .m3-chip.ok .m3-aro .ar { stroke: var(--gold); }
 .m3-chip:not(.go):not(.ok) .m3-sello > img { filter: grayscale(1) brightness(1.1); opacity: .75; }
 /* (lo de debajo de la foto: el nombre y, en la comarca, sus sellos; en el pueblo, el icono de cada misión) */
-.m3-ct { grid-row: 2; display: grid; gap: 6px; min-width: 0; padding: 8px 10px 10px; }
+.m3-ct { grid-row: 2; display: grid; gap: 6px; min-width: 0; padding: 8px 6px 4px; }
 .m3-ct b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.m3-ct small { display: flex; align-items: center; gap: 5px; color: var(--tx2, #d9d0f2); font: 600 12px/1 var(--f-ui); white-space: nowrap; overflow: hidden; }
+.m3-ct small { display: flex; align-items: center; gap: 5px; justify-self: start; max-width: 100%; box-sizing: border-box; padding: 3px 9px 3px 4px; border-radius: 999px; background: color-mix(in srgb, var(--c, #ff7ac8) 20%, rgba(255, 255, 255, .06)); color: var(--tx2, #d9d0f2); font: 600 12px/1 var(--f-ui); white-space: nowrap; overflow: hidden; }
 .m3-ct small :is(svg, img) { flex: none; width: 14px; height: 14px; }
 .m3-ms { display: flex; flex-wrap: nowrap; gap: 3px; overflow: hidden; }
 .m3-ms i { flex: none; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--mc) 18%, rgba(13, 6, 28, .7)); border: 1px solid color-mix(in srgb, var(--mc) 55%, transparent); }
@@ -223,7 +226,7 @@
 .m3-ms i.ok { background: color-mix(in srgb, var(--mc) 55%, rgba(13, 6, 28, .6)); border-color: var(--mc); } .m3-ms i.ok :is(svg, img) { opacity: 1; }
 /* (la comarca elegida, con el libro sobre la foto: otro toque abre la página de la comarca. Con un pueblo abierto, tocar su
    comarca vuelve a ella) */
-.m3-vr { position: absolute; z-index: 1; right: 6px; top: 6px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255,255,255,.08); }
+.m3-vr { position: absolute; z-index: 1; right: 9px; top: 9px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255,255,255,.08); }
 .m3-vr :is(svg, img) { width: 17px; height: 17px; }
 .m3-chip.ver .m3-vr { display: grid; }
 
@@ -605,13 +608,14 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 /* (en el móvil tumbado, las tarjetas de abajo tumbadas: la foto a la izquierda y, al lado, el nombre y los sellos o las
    misiones. Con las fotos encima, la fila se comía un tercio de la pantalla) */
 @media (max-height: 520px) {
-  .m3-rail { --chh: 62px; }
-  .m3-chip { width: 214px; grid-template-rows: var(--chh); grid-template-columns: 84px minmax(0, 1fr); border-radius: 10px; }
+  .m3-rail { --chh: 54px; }
+  .m3-chip { width: 220px; grid-template-rows: var(--chh); grid-template-columns: 80px minmax(0, 1fr); border-radius: 10px; }
   .m3-chip :is(.m3-foto, .m3-vid) { grid-row: 1; grid-column: 1; height: var(--chh); }
-  .m3-chip .m3-ct { grid-row: 1; grid-column: 2; align-content: center; gap: 6px; padding: 6px 8px; }
+  .m3-chip .m3-ct { grid-row: 1; grid-column: 2; align-content: center; gap: 5px; padding: 0 4px 0 10px; }
+  .m3-chip .m3-ct small { padding: 2px 8px 2px 3px; font-size: 11px; }
   .m3-chip .m3-ct b { font-size: 14px; }
-  .m3-chip .m3-sello { width: 24px; height: 24px; left: 4px; top: 4px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
-  .m3-vr { width: 24px; height: 24px; right: auto; left: 56px; top: 4px; } .m3-vr :is(svg, img) { width: 14px; height: 14px; }
+  .m3-chip .m3-sello { width: 24px; height: 24px; left: 7px; top: 7px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
+  .m3-vr { width: 24px; height: 24px; right: auto; left: 57px; top: 7px; } .m3-vr :is(svg, img) { width: 14px; height: 14px; }
   .m3-ms { gap: 2px; } .m3-ms i { width: 17px; height: 17px; border-radius: 4px; } .m3-ms i :is(svg, img) { width: 11px; height: 11px; }
   .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-2px); }
 }
