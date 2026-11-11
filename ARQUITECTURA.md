@@ -332,6 +332,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (en Mixamo, cien veces más grandes): al mundo, con la escala del hueso. Se mide con la malla deformada de verdad
   (`getVertexPosition`), fotograma a fotograma: antes, la pelota dentro de la mano en casi todas las imágenes del saque
   (1032 de 1041 en casa); ahora, en ninguna.
+- **Elegir tu pelotari en un campeonato** (`game/torneo.js`, `eligePelotari`, `ponPelotari`, `elegibles`, `tusStats`,
+  `sinEmpezar`; `game/townDeportes.js`, `pelotaTorneo`; `game/fronton.js`, opción `yo`): como elegir equipo en el FIFA.
+  Al abrir un campeonato nuevo sale «Elige tu pelotari»: tu carta y las de los 21 pelotaris del juego, cada uno con su
+  pueblo y su nivel fijos (salen de su nombre), en fila que se desplaza (de pie, en rejilla). Con el que eliges juegas
+  todo el campeonato: su nombre en el cuadro, en el marcador y en la espalda, su figura (chico o chica y su pelo, por su
+  nombre: `rigPelotari`) y sus cualidades. Se guarda en el torneo (`T.yo`; `null`, el tuyo; `T.elegido`, ya preguntado)
+  y se cambia con el botón «Pelotari» del cuadro hasta jugar la primera ronda. Si el elegido estaba en el cuadro, como
+  rival o como tu compañero, su sitio lo ocupa otro pelotari libre. Por parejas, eliges al delantero.
 - **La pelota en casa, más despacio** (`pelota/game.js`, `CAM_TEMPO`, `CAM_CORTADA`, `cortaCam`): con la cámara la
   pelota va al 85 % del tempo de su nivel (en normal, 0,68 en vez de 0,8), porque se juega con el cuerpo entero y la
   cámara llega unas décimas tarde, y las cortadas del rival (también su saque cortado) salen al 86 % de su velocidad. La

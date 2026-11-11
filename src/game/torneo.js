@@ -476,14 +476,88 @@ function fichaList(T, m) {
   // (las temporadas de cada rival, las mismas con las que coloresPartido decide quién viste de colorado: así el año de
   // debut de su ficha cuadra con los colores del partido)
   const yp = T.players.find(p => p.you), rv = m.rival, lv = levelTier(m.level), tp = (n) => temporadas(`${n} (${rv.town})`, lv);
-  if (T.kind === 'parejas') return [{ id: 'you', name: yp.mates[0], town: yp.town, side: 'you', role: 'delantero', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } },
+  if (T.kind === 'parejas') return [{ id: 'you', name: yp.mates[0], town: yp.town, side: 'you', role: 'delantero', you: true, stats: tusStats(T), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } },
     { id: 'youMate', name: yp.mates[1], town: yp.town, stats: mateStats(yp, 1), side: 'you', role: 'zaguero', temporadas: temporadas(yp.mates[1], 2) },
     { id: 'rival', name: rv.mates[0], town: rv.town, stats: mateStats(rv, 0), side: 'rival', role: 'delantero', temporadas: tp(rv.mates[0]) },
     { id: 'rivalMate', name: rv.mates[1], town: rv.town, stats: mateStats(rv, 1), side: 'rival', role: 'zaguero', temporadas: temporadas(rv.mates[1], lv) }];
-  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, stats: tusCualidades(), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano', temporadas: tp(rv.name) }];
+  return [{ id: 'you', name: yp.name, town: yp.town, side: 'you', role: 'mano', you: true, stats: tusStats(T), record: { txapelas: T.txapelas || 0, nivel: tuPelotari().n, partidos: tuPelotari().partidos } }, { id: 'rival', name: rv.name, town: rv.town, stats: statsOf(rv), side: 'rival', role: 'mano', temporadas: tp(rv.name) }];
 }
 /** La media de un pelotari del torneo en su carta: la tuya sube con cada txapela; la de los rivales, con su nivel */
 export const youBonus = (T) => Math.min(20, 2 + (T?.txapelas || 0) * 2);
+
+// ---------------------------------------------------------------- tu pelotari en el campeonato
+// Como elegir equipo en el FIFA: antes de la primera ronda se elige con qué pelotari juegas el campeonato entero: el tuyo
+// (tu nombre y tus cualidades, que suben con cada partido) o uno de los pelotaris del juego, con su nombre, su figura, su
+// pelo, su pueblo y sus cualidades (en el partido sale él o ella, con su nombre a la espalda: game/fronton.js, yo). Se
+// guarda en el torneo (T.yo; null, el tuyo) y se puede cambiar hasta jugar la primera ronda. Si el elegido estaba en el
+// cuadro, como rival o como tu compañero, su sitio lo ocupa otro pelotari.
+const hashN = (s) => [...s].reduce((a, c) => Math.imul(a, 31) + c.charCodeAt(0) | 0, 7) >>> 0;
+/** Los pelotaris del juego que se pueden elegir, cada uno con su pueblo y su nivel (de 1 a 3), siempre los mismos */
+export const elegibles = () => NAMES.map((name, i) => ({ name, town: TOWNS[(hashN(name) + i) % TOWNS.length], lv: 1 + hashN(name + ' nivel') % 3 }));
+/** Las cualidades con que juegas este torneo: las del pelotari elegido o, con el tuyo, las tuyas */
+export const tusStats = (T) => T?.yo ? pelotariStats(`${T.yo.name} ${T.yo.town}`, T.yo.lv || 2) : tusCualidades();
+/** ¿Aún no se ha jugado nada? Hasta entonces se puede cambiar de pelotari */
+export const sinEmpezar = (T) => !!T && !T.done && !T.round && !T.past?.length && !T.matches.some(m => m.s);
+/** Juegas el torneo con p ({ name, town, lv }, de elegibles) o, con null, con el tuyo (yo: { name, town }) */
+export function ponPelotari(T, p, yo) {
+  const Y = T.players.find(q => q.you); if (!Y) return;
+  const pareja = !!Y.mates, antes = pareja ? Y.mates[0] : Y.name, nombre = p ? p.name : yo.name;
+  const usados = new Set(T.players.flatMap(q => q.mates || [q.name])); usados.add(nombre);
+  const libre = NAMES.find(n => !usados.has(n)) || antes;
+  for (const q of T.players) {
+    if (q === Y) { if (pareja && q.mates[1] === nombre) { q.mates[1] = libre; q.mst = null; } continue; }
+    if (q.mates ? q.mates.includes(nombre) : q.name === nombre) {
+      if (q.mates) { q.mates = q.mates.map(n => (n === nombre ? libre : n)); q.name = q.mates.join(' · '); q.mst = null; } else { q.name = libre; q.st = null; }
+    }
+  }
+  if (pareja) { Y.mates[0] = nombre; Y.name = Y.mates.join(' · '); Y.mst = null; } else { Y.name = nombre; Y.st = null; }
+  Y.town = p ? p.town : yo.town; Y.lv = p ? p.lv : 2;
+  T.yo = p ? { name: p.name, town: p.town, lv: p.lv } : null; T.elegido = true; save(T);
+}
+const EP_CSS = `
+.ep-card{display:flex;flex-direction:column;gap:12px;max-height:100%}
+.ep-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
+.ep-head h2{margin:var(--t-mt) 0 0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase}
+.ep-head p{margin:6px 0 0;color:var(--lila2);font:500 var(--fs-sm)/1.35 var(--f-body);max-width:60ch}
+.ep-grid{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 4px 10px;scroll-snap-type:x proximity;scrollbar-width:thin;min-height:0}
+.ep-it{scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;border-radius:10px;padding:4px;outline:2px solid transparent;outline-offset:2px;transition:outline-color .2s ease}
+.ep-it.on{outline-color:#ffd166}
+.ep-it em{font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila2);font-style:normal}
+.ep-it.on em{color:#ffd166}
+@media (orientation:portrait){.ep-grid{grid-auto-flow:row;grid-template-columns:repeat(auto-fill,minmax(var(--epw,120px),1fr));overflow-x:hidden;overflow-y:auto;justify-items:center}}
+`;
+/** La pantalla de elegir pelotari: tu carta y las de los pelotaris del juego, y abajo «Jugar con …». yo: { name, town }.
+ *  Devuelve true si se ha elegido (y ya está puesto en el torneo) */
+export function eligePelotari(T, yo) {
+  if (!document.getElementById('ep-css')) { const st = document.createElement('style'); st.id = 'ep-css'; st.textContent = EP_CSS; document.head.appendChild(st); }
+  const eu = isEU(), lang = eu ? 'eu' : 'es', L = elegibles(), pairs = T.kind === 'parejas', role = pairs ? 'Del' : 'Mano';
+  let sel = T.yo?.name || '';   // ('' es el tuyo)
+  return new Promise(res => {
+    // (la carta, del alto que deja la pantalla: tumbado, el de la fila; de pie, unas tres por fila)
+    const tumbado = innerWidth > innerHeight, w = Math.round(tumbado ? Math.max(88, Math.min(176, (innerHeight - 268) / CARTA_ALTO)) : Math.max(96, Math.min(150, (innerWidth - 80) / 3)));
+    const it = (name, town, stats, bonus, nota, i, mia = false) => `<div class="ep-it${(mia ? '' : name) === sel ? ' on' : ''}" data-p="${esc(mia ? '' : name)}">${pelotariCard({ name, town, stats, side: 'azul', role, w, bonus, tag: 'button', attr: `data-p="${esc(mia ? '' : name)}" aria-label="${esc(name)}"`, pop: true, d: i * 0.03, lang, yo: mia })}<em>${esc(nota)}</em></div>`;
+    const cartas = [it(yo.name, yo.town, tusCualidades(), youBonus(T), eu ? 'Zu' : 'Tú', 0, true),
+      ...L.map((p, i) => it(p.name, p.town, pelotariStats(`${p.name} ${p.town}`, p.lv), (p.lv - 2) * 3, p.town, i + 1))].join('');
+    const nombre = () => sel || (eu ? 'nirea' : 'el mío');
+    const r = lgPanel(`<div class="ep-head"><small>${esc((KINDS[T.kind] || KINDS.mano).full)} · ${esc(T.comarcaName || '')}</small><h2>${eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari'}</h2>
+      <p>${eu ? 'Harekin jokatuko duzu txapelketa osoa. Lehen txandara arte alda dezakezu.' : 'Con él o con ella juegas todo el campeonato. Lo puedes cambiar hasta la primera ronda.'}</p></div>
+      <div class="ep-grid" style="--epw:${w + 8}px">${cartas}</div>
+      <div class="lg-bar"><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok">${eu ? 'Jokatu: ' : 'Jugar con '}<span class="ep-n">${esc(nombre())}</span></button></div>`);
+    r.firstElementChild.classList.add('ep-card');
+    requestAnimationFrame(() => r.querySelector('.ep-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }));
+    const fin = (ok) => { removeEventListener('keydown', key, true); lgFuera(r); res(ok); };
+    const key = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); if (!T.elegido) { T.elegido = true; save(T); } fin(false); } };
+    addEventListener('keydown', key, true);
+    r.addEventListener('click', (e) => {
+      const c = e.target.closest('[data-p]');
+      if (c && !e.target.closest('[data-a]')) { sel = c.dataset.p; r.querySelectorAll('.ep-it').forEach(x => x.classList.toggle('on', x.dataset.p === sel)); r.querySelector('.ep-n').textContent = nombre(); return; }
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      if (b.dataset.a === 'ok') { ponPelotari(T, sel ? L.find(p => p.name === sel) : null, yo); return fin(true); }
+      if (!T.elegido) { T.elegido = true; save(T); }   // (con «Volver», con el que había; no se vuelve a preguntar solo)
+      fin(false);
+    });
+  });
+}
 const rivalBonus = (p) => ((p.lv || 2) - 2) * 3;
 // el frontón de cada partido, a elegir antes de jugar: el de la plaza del pueblo (cada pueblo tiene el suyo, de su
 // comarca), el cubierto del pueblo o el Labrit de Iruña; en Campeonatos, también el de otro pueblo (se va allí)
@@ -570,7 +644,7 @@ export function torneoPanel(T, here = null, o = null) {
     const how = comoFunciona(T);
     // (las cartas del duelo, con el color que cada uno viste en el partido)
     const col = m ? coloresPartido(`${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, m.level, m.mate?.name, m.partner?.name).colors : { you: 'azul', rival: 'rojo' };
-    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: tusCualidades(), pop: true, lang, yo: true });
+    const youCard = (w) => pelotariCard({ name: pairs ? yp.mates[0] : yp.name, town: yp.town, side: col.you, role: pairs ? 'Del' : 'Mano', w, bonus: youBonus(T), stats: tusStats(T), pop: true, lang, yo: !T.yo });
     // (tres franjas, como en los juegos de deportes: la cabecera; dos paneles con su rótulo, el partido y la clasificación;
     // y abajo, de lado a lado, la barra de acciones con Salir, el frontón y ¡A jugar!. Antes los botones y el frontón iban
     // apilados debajo de las cartas)
@@ -593,7 +667,8 @@ export function torneoPanel(T, here = null, o = null) {
     const ph2 = vistas ? `<div class="lg-ph">${vistas}</div>` : '';
     // (el frontón del partido, en la cabecera junto a «?»: antes iba en la barra y no cabía con los botones)
     const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div>${sede ? `<div class="tq-sitio">${sede}</div>` : ''}<button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
-    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${btns}</div>`;
+    // (hasta jugar la primera ronda, se puede cambiar de pelotari: eligePelotari)
+    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${sinEmpezar(T) ? `<button class="lg-btn" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : ''}${btns}</div>`;
     const r = lgPanel(`${head}<div class="tq-left lg-pn">${ph}${left}</div><div class="tq-right lg-pn">${ph2}${ligaHtml(T, v0 !== 'liga')}${bracketHtml(T, v0 === 'liga')}</div>${bar}${how}`);
     const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
     // (y otra vez si cambia el tamaño del cuadro o de sus columnas, por ejemplo al cargar las fuentes)

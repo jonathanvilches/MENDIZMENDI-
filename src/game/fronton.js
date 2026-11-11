@@ -398,7 +398,7 @@ function pancartasDe(C, you, riv, town, colors) {
 // (los fallos que el partido recoge para no quedarse colgado, también al informe, util/informe.js: si no, en el móvil el
 // partido «se sale solo» sin que se sepa por qué)
 const apunta = (donde, e) => { const l = String(e?.stack || '').split('\n').find(x => /\.js/.test(x))?.trim().slice(0, 140) || ''; (window.__errors ||= []).push(`${donde}: ${e?.message || e}${l ? ' @ ' + l : ''}`.slice(0, 300)); };
-export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false, reto = null, retoMejor = 0 } = {}) {
+export function playPelota(G, fronton, rival, { mode = 'match', target = 5, level, rivalName, fixedLevel = false, returnTo = null, rivalStats = null, pairs = null, rivalTown = null, comp = null, final = false, youBonus = 2, rivalBonus = 0, stay = false, intro = null, cuatro = false, camara = false, reto = null, retoMejor = 0, yo = null } = {}) {
   const tBase = target; if (mode === 'match') target = tantosDe(tBase);   // (la duración elegida: rules.js)
   if (window.__autoWin) return Promise.resolve({ win: true, you: target, cpu: 0 });
   return new Promise(res => {
@@ -408,8 +408,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (pancartas, aquí y no dentro del montaje: si no, al acabar no se veían y se quedaban en la grada de partido en
     // partido, cada una con su textura, gastando memoria gráfica)
     let runAt0 = null, rig = rig0, pel = null, red = null, bf = null, bfWas = false, ended = false, match = null, mates = null, rivName = rivalName || String(rival.name).split(',')[0], rStatsKeep = null, jueces = [], pancartas = null; const hidden = [], hiddenR = [];
+    // (tu nombre en el partido: el tuyo o, en un campeonato, el del pelotari con el que lo juegas; yo: { name, town, stats })
+    const tuNombre = yo?.name || profile().name || (isEU() ? 'Zu' : 'Tú');
     // (si el rival se llama como tú, con la inicial de su pueblo detrás, «Ane I.»: si no, en el marcador salían dos «Ane»)
-    { const yo = String(profile().name || '').trim().toLowerCase(), tw = String(rivalTown?.name || G.def?.name || '').trim(); if (yo && rivName.trim().toLowerCase() === yo) rivName = `${rivName.trim()} ${(tw[0] || 'B').toUpperCase()}.`; }
+    { const mio = String(tuNombre || '').trim().toLowerCase(), tw = String(rivalTown?.name || G.def?.name || '').trim(); if (mio && rivName.trim().toLowerCase() === mio) rivName = `${rivName.trim()} ${(tw[0] || 'B').toUpperCase()}.`; }
     // los colores, como en los frontones: viste de colorado quien debutó antes y el otro de azul. Tú empiezas de
     // debutante: cada campeonato que acabas es una temporada más
     const { colors, seasons } = coloresPartido(rivName, level, pairs?.rivalMate?.name, pairs?.partner?.name);
@@ -432,8 +434,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
-    const ella = avatarIsGirl(profile().avatar);
-    if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { nitido(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
+    // (con un pelotari del juego elegido para el campeonato, su figura: chico o chica y su pelo, por su nombre)
+    const ella = !yo && avatarIsGirl(profile().avatar);
+    if (yo && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, yo.name); } catch (e) { console.warn('pelotari elegido', e); apunta('pelotari elegido', e); }
+    else if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { nitido(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // (tu pelotari también trota desde 1,85 m/s; si es tu figura de siempre, al acabar vuelve a su paso del pueblo)
@@ -445,7 +449,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     if (G.disposed) { pel?.dispose(); red?.dispose(); G.pelotaLoading = false; res({ win: false, you: 0, cpu: 0, best: 0, quit: true }); return; }
     if (red) { hiddenR.push(...rival.obj.children); for (const c of hiddenR) rival.obj.remove(c); rival.obj.add(red.char.root); red.setStance('Ready'); }
     // (el nombre de cada uno en la espalda de la camiseta: pelota/dorsal.js)
-    try { ponDorsal(rig, profile().name); if (red) ponDorsal(red, rivName); } catch (e) { console.warn('dorsal', e); }
+    try { ponDorsal(rig, tuNombre); if (red) ponDorsal(red, rivName); } catch (e) { console.warn('dorsal', e); }
     // el partido anima al jugador y coloca a los dos: el rig del jugador pasa a nuestras manos
     P.rig = { update() { }, doAct() { }, doCheer() { }, doWave() { }, setExpr() { } };
     P.frozen = true; G.mode = 'pelota'; G.ui.hudVisible?.(false); G.ui.setPrompt?.(null);
@@ -523,7 +527,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
       } } catch (e) { console.warn('público del frontón', e); apunta('público del frontón', e); }
     // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
-    try { pancartas = pancartasDe(fronton.court, profile().name || (isEU() ? 'Zu' : 'Tú'), rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
+    try { pancartas = pancartasDe(fronton.court, tuNombre, rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     // (entre tanto y tanto, parado y sin nada que hacer, de vez en cuando un gesto de pelotari: se sopla la mano o suelta
     // el brazo. Cada uno a su aire, cada 4 a 9 segundos)
@@ -553,7 +557,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       tic('rival', st, dt, red);
       if (st.won) rival.cheer = 0.6;
     };
-    const youName = profile().name || (isEU() ? 'Zu' : 'Tú');
+    const youName = tuNombre;
     // por parejas: tu compañero (vestido como tú) y el del rival (de colorado). Se preparan solo si eliges jugar por
     // parejas, la primera vez, y se van al acabar
     const makeMates = async () => {
@@ -589,7 +593,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, tBase, level, fixedLevel, rivalStats: rStats,
-      you: { obj: P.obj, sombra: P.blob, name: profile().name || (isEU() ? 'Zu' : 'Tú'), animate: animYou },   // (sombra: la redonda de los móviles, que en primera persona se esconde)
+      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou },   // (sombra: la redonda de los móviles, que en primera persona se esconde)
       rival: { obj: rival.obj, name: rivName, animate: animRival },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       // (el sonido del juego, ya desbloqueado con el primer toque: en el iPhone, uno nuevo creado sin tocar la pantalla
@@ -603,7 +607,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       reto, retoMejor,   // (los retos del frontón: peloteo, diana o dejadas, y tu mejor marca en él; rules.js RETOS)
       town: (G.def?.name || '').split(' /')[0], youRecord: myRecord(),   // (para las fichas: el pueblo del frontón y lo que has ganado)
       // (tus cualidades, las que vas ganando; y cada partido acabado suma experiencia: lo enseña el panel del final)
-      youStats: tusCualidades(), progreso: (e, st, modo) => sumaPartido(e, st, modo),
+      youStats: yo?.stats || tusCualidades(), progreso: (e, st, modo) => sumaPartido(e, st, modo),
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
       final,   // (la final de un campeonato: su entrada de «Gran final», pelota/granFinal.js)
       venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
