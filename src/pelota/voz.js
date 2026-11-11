@@ -34,17 +34,27 @@ export class Voz {
   // (al acabar una, la que esperaba, si no es de hace más de 5 s; si no hay otra, la música vuelve)
   sigue() {
     this.habla_ = false; const nx = this.actual?.sigue; this.actual = null;
-    // (el turno siguiente de un diálogo va antes que lo que esperaba, con un respiro corto entre uno y otro: 110 ms, que
-    // con 250 y el silencio de los bordes de cada frase la conversación se hacía lenta)
-    if (nx) { this.habla_ = true; const tk = this.tok; setTimeout(() => { if (tk !== this.tok) return; this.habla_ = false; this.habla(nx); if (!this.habla_) this.musica(false); }, 110); return; }
+    // (el turno siguiente de un diálogo va antes que lo que esperaba y entra en cuanto acaba el otro: la grabación ya está
+    // descodificada y cada frase trae 50 ms de silencio en cada borde, que hacen de respiro. Antes, 250 ms y luego 110 de
+    // espera, más lo que tardaba en bajarse)
+    if (nx) { this.habla_ = false; this.habla(nx); if (!this.habla_) this.musica(false); return; }
     const q = this.cola; this.cola = null; if (q && performance.now() - q.t < 5000) this.habla(q.c); if (!this.habla_) this.musica(false);
   }
   musica(on) { try { window.__sound?.voz?.(on); } catch (e) { /* sin audio */ } }
+  // (la grabación descodificada, una sola vez: la promesa se guarda, así el turno siguiente de un diálogo se pide mientras
+  // habla el primero y, cuando le toca, ya está lista. Antes se bajaba y descodificaba al acabar el primero, y entre la
+  // frase de Miren y la de Iñaki quedaba un hueco)
+  carga(L, ctx) {
+    let p = this.buf.get(L);
+    if (!p) { p = L().then(url => fetch(url)).then(r => r.arrayBuffer()).then(a => new Promise((res, rej) => { const q = ctx.decodeAudioData(a, res, rej); if (q?.then) q.then(res, rej); })); if (this.buf.size > 40) this.buf.clear(); this.buf.set(L, p); p.catch(() => this.buf.delete(L)); }
+    return p;
+  }
   async grabada(L, c) {
     const S = window.__sound, ctx = S?.ctx; this.habla_ = true; this.actual = c;
     try {
       if (!ctx) throw new Error('sin audio');
-      const k = L; let b = this.buf.get(k); if (!b) { const url = await L(); b = await new Promise((res, rej) => fetch(url).then(r => r.arrayBuffer()).then(a => { const p = ctx.decodeAudioData(a, res, rej); if (p?.then) p.then(res, rej); }).catch(rej)); if (this.buf.size > 40) this.buf.clear(); this.buf.set(k, b); }
+      const nx = c.sigue && busca(c.sigue); if (nx) this.carga(nx, ctx).catch(() => {});   // (el turno siguiente, ya pedido)
+      const tk = this.tok, b = await this.carga(L, ctx); if (tk !== this.tok) return;   // (si mientras se bajaba se calló, nada)
       const s = this.src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1.1; s.buffer = b; s.connect(g); g.connect(S.master); s.onended = () => { if (this.src === s) this.src = null; this.sigue(); }; this.fin = performance.now() + b.duration * 1000; this.musica(true); s.start();
     } catch (e) { this.habla_ = false; this.musica(false); }
   }
