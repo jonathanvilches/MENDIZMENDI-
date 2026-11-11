@@ -1,7 +1,8 @@
 // La voz del comentarista de pelota (las frases, comenta.js): siempre la grabada por el autor, nunca una voz sintética.
 // src/assets/voz/<hombre|mujer>/<es|eu>/<clave>.mp3 (la clave, «dejada-2», sale en el guion de grabación); si no está la
 // de esa voz, la de la otra; y si en ese idioma no hay grabación (el euskera, de momento), la misma frase en castellano.
-// Todas las frases, las que narran («n», comenta.js) y las que explican la jugada («e»), con la voz del autor tal cual.
+// Con los dos comentaristas (Ajustes, de serie), las que narran («n», comenta.js) con la voz de hombre y las que explican
+// la jugada («e») con la de mujer (util/comentarios.js, vozDe); mientras falte una de las dos, todas con la otra.
 // (Hubo una segunda voz sacada de la misma grabación, más grave: sonaba robótica y se quitó, noviembre de 2026.) Sin
 // ninguna grabación de esa frase, no se dice nada. Antes, sin grabación, hablaba la voz del sistema (la del teléfono
 // o el ordenador), y el autor no la quiere: solo su voz. Una frase cada vez: si llega otra mientras habla, espera, y solo

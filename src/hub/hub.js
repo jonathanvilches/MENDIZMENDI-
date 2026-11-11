@@ -1026,9 +1026,9 @@ export class Hub {
         <label class="set">Textos grandes <input type="checkbox" id="pGrandes" ${accesible().grandes ? 'checked' : ''}></label>
         <label class="set">Alto contraste <input type="checkbox" id="pContraste" ${accesible().contraste ? 'checked' : ''}></label>
         <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.</p>
-        <label class="set">Comentarista de los partidos <select id="pCom"><option value="hombre">Voz de hombre</option><option value="mujer">Voz de mujer</option><option value="no">Sin comentarios</option></select></label>
+        <label class="set">Comentarista de los partidos <select id="pCom"><option value="duo">Dos comentaristas</option><option value="hombre">Voz de hombre</option><option value="mujer">Voz de mujer</option><option value="no">Sin comentarios</option></select></label>
         <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
-        <p class="set-note">En los partidos de pelota, el comentarista cuenta y explica las jugadas en voz alta, en el idioma del juego. Mientras no estén las voces grabadas, habla la voz del teléfono o del ordenador, si tiene una en ese idioma.</p>
+        <p class="set-note">En los partidos de pelota, los comentaristas cuentan y explican las jugadas en voz alta, en el idioma del juego. Con «Dos comentaristas», la voz de hombre narra la jugada y la de mujer la explica, por turnos. Solo suenan voces grabadas: la frase que aún no está grabada no se dice.</p>
         ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
         ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}
         <label class="set">Modo sencillo <input type="checkbox" id="pSencillo" ${sencillo() ? 'checked' : ''}></label>

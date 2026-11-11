@@ -325,8 +325,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
   cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.
 - **Comentarios del partido, hablados** (`pelota/comenta.js`, las frases; `pelota/voz.js`, la voz; `pelota/match.js`,
-  `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, voz
-  de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos
+  `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, dos
+  comentaristas, de serie, voz de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos
   tapaban la pantalla. Las frases no llevan nombres ni números, para poder grabarlas una vez; cada una tiene su clave
   («dejada-2»), que es el nombre de su grabación en `src/assets/voz/<hombre|mujer>/<es|eu>/`. Solo suenan grabaciones
   del autor, nunca una voz sintética: si falta la frase en esa voz, la de la otra voz; si falta en euskera, la de
@@ -339,8 +339,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `herrizherri-voz`, porque el partido suena con otro contexto). Los aplausos de después de un tanto tapaban la frase
   que lo comenta. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
   a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. Grabadas: las 63 frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el
-  euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación. Un solo comentarista, con la voz
-  del autor tal cual: narra (las frases «n») y explica la jugada (las «e»). La segunda voz que se sacó de la misma
+  euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación. Con «Dos comentaristas» (de serie
+  desde noviembre de 2026, `vozDe`), la voz de hombre narra (las frases «n») y la de mujer explica la jugada (las «e»);
+  en las frases de las pantallas (`audio/interfaz.js`), la primera de cada pareja es la de hombre y la segunda, la de
+  mujer, como en el guion a dos voces que el autor graba con Envato, por separado: primero todas las del hombre y luego
+  las de la mujer. La segunda voz que se sacó de la misma
   grabación, más grave y con el timbre cambiado, sonaba robótica y se quitó (noviembre de 2026): solo la voz grabada.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
   ve por detrás del hombro del que gana el tanto, mirando la pelota, con el rótulo «Desde Xabier» («Ikuspegia: Xabier»).

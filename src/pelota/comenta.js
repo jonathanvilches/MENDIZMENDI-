@@ -5,7 +5,7 @@
 // rótulos). No comentan todos los tantos: siempre los que importan y, de los demás, más o menos la mitad. Nunca repiten
 // la misma frase dos veces seguidas. Cada frase tiene su clave, «tipo-número» (dejada-2), que es el nombre de su archivo
 // de audio (src/assets/voz/hombre/es/dejada-2.mp3) y la que sale en el guion de grabación.
-import { duoElegido, ponDuo } from '../util/comentarios.js';
+import { duoElegido, ponDuo, vozDe } from '../util/comentarios.js';
 export { duoElegido, ponDuo };
 // (n: narra la jugada; e: la explica, con lo que sabría un ex pelotari. Las dos, con la voz del autor)
 export const F = {
@@ -77,7 +77,7 @@ const TIPO = { bote: null, chapa: 'chapa', alta: 'fuera', pared: 'fuera', lado: 
 const REMATE = { dejada: 'dejada', cortada: 'cortada', dosparedes: 'dosparedes', volea: 'volea', gancho: 'gancho', saque: 'saque' };
 
 export class Comentarios {
-  /** lang: 'es' o 'eu'; voz: 'hombre', 'mujer' o 'no' (por defecto, la elegida en Ajustes) */
+  /** lang: 'es' o 'eu'; voz: 'duo', 'hombre', 'mujer' o 'no' (por defecto, lo elegido en Ajustes) */
   constructor(lang = 'es', voz = duoElegido()) {
     this.lang = lang === 'eu' ? 'eu' : 'es'; this.voz = voz === 'no' ? null : voz; this.ult = {}; this.n = 0;
   }
@@ -87,7 +87,7 @@ export class Comentarios {
     const L = F[this.lang][k]; if (!L?.length || !this.voz) return null;
     let i = Math.floor(Math.random() * L.length); if (L.length > 1 && i === this.ult[k]) i = (i + 1) % L.length; this.ult[k] = i;
     const [r, texto] = L[i];
-    return { id: `${k}-${i + 1}`, texto, rol: ROL[this.lang][r], r, voz: this.voz, lang: this.lang };
+    return { id: `${k}-${i + 1}`, texto, rol: ROL[this.lang][r], r, voz: vozDe(this.voz, r), lang: this.lang };
   }
   /** Lo que se dice al acabar un tanto. x: el tanto del registro (game.js, stats.log); o: { racha ('seguidos', 'iguala',
    *  'remonta' o ''), n (tantos seguidos), final, gano (el que gana el partido eres tú) } */
