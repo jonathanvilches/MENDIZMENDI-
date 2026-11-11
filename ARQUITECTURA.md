@@ -320,6 +320,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mide una vez en la malla de cada figura (los puntos que mueve el hueso de la cabeza y lo que cuelga de él, en su
   espacio; el radio que deja dentro al 90 %) y, en cada fotograma, si la palma queda dentro, el brazo se gira desde el
   hombro hasta sacarla, en tres pasos como mucho. `globalThis.__manosLibres` lo apaga para comparar.
+- **La pelota nunca dentro de una mano** (`actors/glbChar.js`, `manoPuntos`, `apartaDeMano`, `fueraDeManos`;
+  `pelota/match.js`, `fueraDeManos`, `radioBola`; `pelota/primeraPersona.js`, `mano`, `fueraDeManos`): de cada mano se
+  guardan una vez los puntos de su malla (palma, dedos y tacos), cada uno pegado al hueso que más lo mueve, y en cada
+  fotograma se sabe dónde están con un producto por punto. Con ellos: la pelota del saque se apoya en la palma por fuera
+  (antes se hundía 4 cm); en el golpe, la muñeca va adonde la palma queda pegada a la pelota, no al centro de la pelota
+  (dos pasadas, porque la mano gira con el brazo, y si un dedo aún entra, la mano se retira lo justo); en la pelota en
+  casa, la mano de la vista en primera persona se queda antes de la pelota y la pelota del saque va sobre su palma. Y
+  como red final, después de mover a todos (también en la repetición), si la pelota que se dibuja queda dentro de una
+  mano, se aparta lo justo hacia fuera, solo en la imagen. El grosor de la mano de `palmaDe` va en las medidas del hueso
+  (en Mixamo, cien veces más grandes): al mundo, con la escala del hueso. Se mide con la malla deformada de verdad
+  (`getVertexPosition`), fotograma a fotograma: antes, la pelota dentro de la mano en casi todas las imágenes del saque
+  (1032 de 1041 en casa); ahora, en ninguna.
 - **La chapa de arriba y el sonido de la chapa** (`pelota/court.js`, `chapa-arriba`, `chapa-izquierda`;
   `pelota/audio.js`, `chapa`; `pelota/game.js`, `alta` en los eventos `front` y `wall`): como en los frontones de verdad,
   encima de la raya de arriba del frontis y de la de la pared izquierda hay una franja de chapa, del color de la de

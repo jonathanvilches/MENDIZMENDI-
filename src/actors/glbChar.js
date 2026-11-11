@@ -663,8 +663,47 @@ export function palmaDe(root, hand) {
   const d = mayor([]), ancho = mayor([d]), n = new THREE.Vector3().crossVectors(d, ancho).normalize();
   if (d.dot(c) < 0) d.negate();   // (los dedos, lejos de la muñeca, que es el origen del hueso)
   if (n.dot(v.set(0, -1, 0).transformDirection(inv)) < 0) n.negate();
-  let largo = 0; for (const p of pts) largo = Math.max(largo, p.dot(d));
-  return { c, n, d, largo };
+  let largo = 0, grosor = 0; for (const p of pts) { largo = Math.max(largo, p.dot(d)); grosor = Math.max(grosor, v.copy(p).sub(c).dot(n)); }
+  return { c, n, d, largo, grosor };
+}
+/** Los puntos de la malla que mueve una mano (ella y sus dedos, y los tacos que lleve), cada uno pegado al hueso que más
+ *  lo mueve: así se sabe dónde está la mano de verdad en cada imagen con un solo producto por punto, sin deformar la malla
+ *  entera. [{ b: hueso, p: Float32Array x,y,z en el espacio de ese hueso }], o null si no se puede saber */
+export function manoPuntos(root, hand) {
+  const L = [], v = new THREE.Vector3();
+  root.traverse(o => {
+    if (!o.isSkinnedMesh || !o.skeleton) return;
+    const bs = o.skeleton.bones; if (!bs.includes(hand)) return;
+    const P = o.geometry.attributes.position, SI = o.geometry.attributes.skinIndex, SW = o.geometry.attributes.skinWeight; if (!P || !SI || !SW) return;
+    const sub = new Set(); bs.forEach((b, i) => { for (let x = b; x; x = x.parent) if (x === hand) { sub.add(i); break; } });
+    const porHueso = new Map();
+    for (let i = 0; i < P.count; i++) {
+      let w = 0, dom = -1, dw = 0;
+      for (let k = 0; k < 4; k++) { const j = SI.getComponent(i, k), x = SW.getComponent(i, k); if (sub.has(j)) w += x; if (x > dw) { dw = x; dom = j; } }
+      if (w < 0.5 || dom < 0) continue;
+      v.fromBufferAttribute(P, i).applyMatrix4(o.bindMatrix).applyMatrix4(o.skeleton.boneInverses[dom]);
+      let a = porHueso.get(dom); if (!a) porHueso.set(dom, a = []); a.push(v.x, v.y, v.z);
+    }
+    for (const [j, a] of porHueso) L.push({ b: bs[j], p: new Float32Array(a) });
+  });
+  return L.length ? L : null;
+}
+/** Aparta una esfera (centro B y radio r, en el mundo) de los puntos de una mano (manoPuntos), empujándola en la
+ *  dirección dir (de largo 1) lo justo para que ninguno quede dentro. Mueve B y devuelve cuánto (0 si ya estaba fuera).
+ *  Con los huesos ya colocados en esta imagen (matrixWorld al día) */
+export function apartaDeMano(L, B, r, dir) {
+  let s = 0; const R2 = r * r;
+  for (const { b, p } of L) {
+    const e = b.matrixWorld.elements;
+    for (let i = 0; i < p.length; i += 3) {
+      const x = p[i], y = p[i + 1], z = p[i + 2];
+      const wx = e[0] * x + e[4] * y + e[8] * z + e[12] - B.x, wy = e[1] * x + e[5] * y + e[9] * z + e[13] - B.y, wz = e[2] * x + e[6] * y + e[10] * z + e[14] - B.z;
+      const a = wx * dir.x + wy * dir.y + wz * dir.z, q = wx * wx + wy * wy + wz * wz - a * a;
+      if (q < R2) { const hace = a + Math.sqrt(R2 - q); if (hace > s) s = hace; }
+    }
+  }
+  if (s > 0) B.addScaledVector(dir, s);
+  return s;
 }
 // Las manos no se meten en la cabeza: al levantar los brazos (celebrar, la pena con las manos a la cabeza) la mano de la
 // animación atravesaba la cara. Después de la animación, si una mano queda dentro de la cabeza (una esfera entre la base
@@ -752,7 +791,20 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   // (y los huesos de cada brazo, para llevar la mano a un sitio: hombro, codo y mano)
   const brazo = (s) => { const a = B['mixamorig' + s + 'Arm'], f = B['mixamorig' + s + 'ForeArm'], h = B['mixamorig' + s + 'Hand']; return a && f && h ? { a, f, h } : null; };
   const IKR = brazo('Right'), IKL = brazo('Left');
-  let PAL; const palma = () => PAL !== undefined ? PAL : (PAL = IKR ? palmaDe(char.root, IKR.h) : null);
+  let PAL, PALL; const palma = () => PAL !== undefined ? PAL : (PAL = IKR ? palmaDe(char.root, IKR.h) : null);
+  const palmaL = () => PALL !== undefined ? PALL : (PALL = IKL ? palmaDe(char.root, IKL.h) : null);
+  // (los puntos de cada mano, para que ni la pelota que lleva ni la que golpea se le metan dentro: manoPuntos)
+  const PTS = {}; const puntos = (lado) => PTS[lado] !== undefined ? PTS[lado] : (PTS[lado] = (lado === 'R' ? IKR : IKL) ? manoPuntos(char.root, (lado === 'R' ? IKR : IKL).h) : null);
+  const _pc = new THREE.Vector3(), _pn = new THREE.Vector3(), _pw = new THREE.Vector3(), _pt = new THREE.Vector3(), _pb = new THREE.Vector3(), _ps = new THREE.Vector3();
+  // en el golpe, dónde tiene que ir la muñeca para que la palma quede pegada a la pelota por fuera (centro bola, radio r):
+  // la palma mirando a la pelota, a su radio más el grosor de la mano. Antes la muñeca iba al centro de la pelota y la
+  // pelota quedaba dentro de la mano
+  const aPalma = (K, pal, bola, r) => {
+    if (!pal) return bola;
+    K.h.localToWorld(_pc.copy(pal.c)); _pn.copy(pal.n).transformDirection(K.h.matrixWorld); K.h.getWorldPosition(_pw);
+    // (el grosor viene en las medidas del hueso, que en Mixamo van cien veces más grandes: al mundo, con su escala)
+    return _pt.copy(bola).addScaledVector(_pn, -(r + pal.grosor * K.h.getWorldScale(_ps).x + 0.004)).sub(_pc).add(_pw);
+  };
   const _S = new THREE.Vector3(), _E = new THREE.Vector3(), _H = new THREE.Vector3(), _n = new THREE.Vector3(), _u = new THREE.Vector3(), _d1 = new THREE.Vector3(), _d2 = new THREE.Vector3(), _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _q0 = new THREE.Quaternion(), _q1 = new THREE.Quaternion();
   // gira un hueso (en el mundo) para que la dirección de → a pase a ser la nueva, y lo deja en su giro local
   const gira = (b, de, a) => { _qa.setFromUnitVectors(de, a); b.getWorldQuaternion(_qb); _qa.multiply(_qb); b.parent.getWorldQuaternion(_qb); b.quaternion.copy(_qb.invert().multiply(_qa)); b.updateMatrixWorld(true); };
@@ -817,13 +869,29 @@ export function armSwing(char, get, { windOnly = false } = {}) {
       // mundo) y lo suelta enseguida; llevándola o botándola, donde diga el juego (st.manoA)
       brazosCuerpo(st.cuerpo, dt);   // (con la cámara, tus brazos; antes del contacto con la pelota, que manda en el golpe)
       const izq = /L$/.test(st.golpe || ''), kC = st.contacto && st.swing >= 0 && st.swing < 0.22 ? 1 - st.swing / 0.22 : 0;
-      if (kC > 0.02) manoA(izq ? IKL : IKR, st.contacto, Math.min(1, kC * 1.6));
+      if (kC > 0.02) {
+        const K = izq ? IKL : IKR, pal = izq ? palmaL() : palma(), rB = st.bolaR || 0.05, k = Math.min(1, kC * 1.6);
+        manoA(K, aPalma(K, pal, st.contacto, rB), k);
+        if (k > 0.999 && K && pal) {
+          // (al mover el brazo, la mano gira con él y la palma ya no mira a donde miraba: una segunda pasada con la palma
+          // de ahora)
+          c.root.updateMatrixWorld(true); manoA(K, aPalma(K, pal, st.contacto, rB), 1);
+          // (y si aun así algún dedo queda dentro de la pelota, la mano se retira lo justo, desde la pelota hacia la palma)
+          const L = puntos(izq ? 'L' : 'R');
+          if (L) { c.root.updateMatrixWorld(true); K.h.localToWorld(_pc.copy(pal.c)); _pn.copy(st.contacto).sub(_pc); const dl = _pn.length();
+            if (dl > 0.01) { _pn.divideScalar(dl); const s = apartaDeMano(L, _pb.copy(st.contacto), rB + 0.003, _pn); if (s > 0.002) { K.h.getWorldPosition(_pw); manoA(K, _pw.addScaledVector(_pn, -s), 1); } } }
+        }
+      }
       // (y dónde queda la mano derecha, para que el juego dibuje en ella la pelota que lleva)
       // (en la palma, no en la muñeca: su centro y hacia dónde mira, para que la pelota quede agarrada)
       if (st.manoW && IKR) {
         c.root.updateMatrixWorld(true); const p = palma();
         if (p) { IKR.h.localToWorld(st.manoW.copy(p.c)); st.manoN?.copy(p.n).transformDirection(IKR.h.matrixWorld); }
         else { IKR.h.getWorldPosition(st.manoW); st.manoN?.set(0, 0, 0); }
+        // (y el centro de la pelota que lleva, apoyada en la palma por fuera: desde el centro de la mano hacia donde mira la
+        // palma, lo justo para que ningún punto de la mano, de los dedos ni de los tacos quede dentro. Antes iba a tres
+        // cuartos de su radio del centro de la mano y se hundía 4 cm en ella)
+        if (st.bolaW && st.bolaR && p) { st.bolaW.copy(st.manoW); const L = puntos('R'); if (L) apartaDeMano(L, st.bolaW, st.bolaR + 0.003, st.manoN); else st.bolaW.addScaledVector(st.manoN, st.bolaR + p.grosor * IKR.h.getWorldScale(_ps).x); }
       }
       return;
     }
@@ -839,4 +907,22 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   };
   // (y las manos, fuera de la cabeza: apartaManos, encima de todo lo demás)
   const p0 = char.post; char.post = (c, dt) => { p0(c, dt); apartaManos(c); };
+  // para el juego, la última red: si la pelota que se dibuja (centro B y radio r, en el mundo) queda dentro de una de sus
+  // manos, se aparta lo justo, desde el centro de esa palma hacia fuera (si está justo en el centro, hacia donde mira la
+  // palma). Mueve B y devuelve cuánto. Lo usa pelota/match.js después de mover a todos
+  const _fw = new THREE.Vector3(), _fc = new THREE.Vector3(), _fd = new THREE.Vector3();
+  char.fueraDeManos = (Bc, r) => {
+    let s = 0;
+    for (const lado of ['R', 'L']) {
+      const K = lado === 'R' ? IKR : IKL; if (!K) continue;
+      K.h.getWorldPosition(_fw); if (_fw.distanceToSquared(Bc) > (0.32 + r) * (0.32 + r)) continue;
+      const L = puntos(lado); if (!L) continue;
+      const pal = lado === 'R' ? palma() : palmaL();
+      if (pal) K.h.localToWorld(_fc.copy(pal.c)); else _fc.copy(_fw);
+      _fd.copy(Bc).sub(_fc); const dl = _fd.length();
+      if (dl > 0.01) _fd.divideScalar(dl); else if (pal) _fd.copy(pal.n).transformDirection(K.h.matrixWorld); else continue;
+      s += apartaDeMano(L, Bc, r, _fd);
+    }
+    return s;
+  };
 }

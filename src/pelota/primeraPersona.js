@@ -11,6 +11,7 @@
 //    cuerpo al armar y al golpear, da un golpe seco con cada pelotazo tuyo y se abre con la velocidad.
 // Lo usa pelota/match.js (con la cámara, la vista en primera persona; se cambia en el menú del partido o con la V).
 import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { palmaDe, manoPuntos, apartaDeMano } from '../actors/glbChar.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const envuelve = (a) => Math.atan2(Math.sin(a), Math.cos(a));
@@ -85,6 +86,8 @@ export class PrimeraPersona {
       A.lenA = A.S.distanceTo(e); A.lenF = e.distanceTo(w);
       for (const b of [H.a, H.f, H.h]) b.userData.q0 = b.quaternion.clone();
       A.palma = new T.Vector3(...PALMA[lado]);
+      // (la palma de verdad, sacada de la malla, y los puntos de la mano: para que la pelota no se le meta dentro)
+      A.pal = palmaDe(copia, H.h); A.pts = manoPuntos(copia, H.h);
     }
     this.copia = copia;
     return true;
@@ -98,12 +101,38 @@ export class PrimeraPersona {
     a.q.setFromUnitVectors(cur, quiero).multiply(hueso.getWorldQuaternion(a.q2));
     hueso.quaternion.copy(hueso.parent.getWorldQuaternion(a.q2).invert().multiply(a.q)); hueso.updateMatrixWorld(true);
   }
-  /** dónde está la mano de un lado (R, L), en el mundo: para poner ahí la pelota al sacar */
-  mano(lado, out) {
+  /** dónde va el centro de la pelota (de radio r) que llevas en la mano de un lado (R, L), en el mundo, al sacar: apoyada
+   *  en la palma por fuera, sin que ningún punto de la mano ni de los dedos quede dentro. Antes, en el centro de la mano */
+  mano(lado, out, r = 0.05) {
     const B = this.brazos[lado];
     if (B.W.z > -0.06 || (this.c.vis || 0) < 0.6) return null;   // (la mano atrás, junto a la cara, no se ve: la pelota, donde la ponga el juego)
-    if (this.suyo) { B.hueso.h.getWorldPosition(out); return out.add(this.v.h.copy(B.W).sub(B.E).normalize().transformDirection(this.group.matrixWorld).multiplyScalar(B.lenF * 0.45)); }
-    return this.group.localToWorld(out.copy(B.W).add(this.v.h.copy(B.W).sub(B.E).setLength(0.06)));
+    if (this.suyo) {
+      const H = B.hueso.h; this.group.updateMatrixWorld(true);
+      if (B.pal) { H.localToWorld(out.copy(B.pal.c)); const n = this.v.h.copy(B.pal.n).transformDirection(H.matrixWorld); if (B.pts) apartaDeMano(B.pts, out, r, n); else out.addScaledVector(n, r + B.pal.grosor * H.getWorldScale(this.v.w).x); return out; }
+      H.getWorldPosition(out); return out.add(this.v.h.copy(B.W).sub(B.E).normalize().transformDirection(this.group.matrixWorld).multiplyScalar(B.lenF * 0.45 + r));
+    }
+    return this.group.localToWorld(out.copy(B.W).add(this.v.h.copy(B.W).sub(B.E).setLength(0.06 + r)));
+  }
+  /** si la pelota (centro B y radio r, en el mundo) queda dentro de una de las manos que se ven, se aparta lo justo hacia
+   *  fuera (desde el centro de la palma). Mueve B y devuelve cuánto: lo usa match.js, fueraDeManos */
+  fueraDeManos(Bc, r) {
+    if (!this.on || !this.group.visible) return 0;
+    const v = this.v; let s = 0; this.group.updateMatrixWorld(true);
+    for (const lado of ['R', 'L']) {
+      const B = this.brazos[lado];
+      if (this.suyo) {
+        const H = B.hueso?.h; if (!H || H.scale.x < 0.01 || !B.pts) continue;
+        const c = B.pal ? H.localToWorld(v.c.copy(B.pal.c)) : H.getWorldPosition(v.c);
+        const d = v.d.copy(Bc).sub(c), dl = d.length();
+        if (dl > 0.01) d.divideScalar(dl); else if (B.pal) d.copy(B.pal.n).transformDirection(H.matrixWorld); else continue;
+        s += apartaDeMano(B.pts, Bc, r, d);
+      } else if (B.mano?.visible) {
+        // (los brazos hechos aquí: la mano, una bola de su tamaño)
+        const c = B.mano.localToWorld(v.c.set(0, 0.05, 0)), R = 0.075 * B.mano.scale.x + r, d = v.d.copy(Bc).sub(c), dl = d.length();
+        if (dl < R) { if (dl > 1e-4) d.divideScalar(dl); else d.set(0, 0, -1).applyQuaternion(this.cam.quaternion); Bc.addScaledVector(d, R - dl); s += R - dl; }
+      }
+    }
+    return s;
   }
 
   // ---------- los brazos hechos aquí (si tu pelotari no tiene esqueleto) ----------
@@ -159,7 +188,8 @@ export class PrimeraPersona {
 
   /** Cada imagen: ojo (dónde están tus ojos, en el mundo), mira (adónde mirar), vel (lo deprisa que te mueves, m/s), lado
    *  (lo que te mueves de lado, -1 a 1), fov (el de base), cuerpo (camaraCuerpo.js o null) y st (el estado de tu pelotari) */
-  update(dt, { ojo, mira, vel = 0, lado = 0, fov = 64, cuerpo, st, saca = false, pega = true, bola = null }) {
+  update(dt, { ojo, mira, vel = 0, lado = 0, fov = 64, cuerpo, st, saca = false, pega = true, bola = null, bolaR = 0.08 }) {
+    this.bolaR = bolaR;
     dt = Math.min(dt, 0.05);
     const c = this.c, cam = this.cam, v = this.v, T = this.T;
     // adónde mira: un muelle amortiguado (rápido y sin pasarse ni temblar)
@@ -272,6 +302,9 @@ export class PrimeraPersona {
       if (w > 0) {
         const R = (LA + LF) * 0.97, dir = v.p2 ? v.p2.copy(bl).divideScalar(dB) : (v.p2 = bl.clone().divideScalar(dB));
         let lo = 0, hi = dB; const lejos = (t) => Math.hypot(dir.x * t - B.S.x, dir.y * t - B.S.y, dir.z * t - B.S.z);
+        // (la muñeca, antes de la pelota: a su radio y lo que mide la mano, para que la palma la toque por delante y no se meta
+        // en ella. Antes llegaba hasta la pelota misma y, vista desde los ojos, la mano y la pelota se atravesaban)
+        hi = Math.max(0, dB - (this.bolaR || 0.08) - 0.1);
         if (lejos(hi) > R) { for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (lejos(m) <= R) lo = m; else hi = m; } hi = lo; }
         if (hi > 0.05) gW.lerp(v.p3 ? v.p3.copy(dir).multiplyScalar(hi) : (v.p3 = dir.clone().multiplyScalar(hi)), w);
       }
