@@ -55,6 +55,9 @@ export class Voz {
       if (!ctx) throw new Error('sin audio');
       const nx = c.sigue && busca(c.sigue); if (nx) this.carga(nx, ctx).catch(() => {});   // (el turno siguiente, ya pedido)
       const tk = this.tok, b = await this.carga(L, ctx); if (tk !== this.tok) return;   // (si mientras se bajaba se calló, nada)
+      // (si el contexto está parado —el iPhone lo deja «interrupted» tras una llamada o al volver de fondo—, se despierta
+      // antes: una frase que empieza con él parado no suena ni avisa de su final)
+      if (ctx.state !== 'running') { try { await Promise.race([ctx.resume(), new Promise(r => setTimeout(r, 400))]); } catch (e) { /* sin permiso aún */ } if (tk !== this.tok) return; }
       const s = this.src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 1.1; s.buffer = b; s.connect(g); g.connect(S.master); s.onended = () => { if (this.src === s) this.src = null; this.sigue(); }; this.fin = performance.now() + b.duration * 1000; this.musica(true); s.start();
     } catch (e) { this.habla_ = false; this.musica(false); }
   }

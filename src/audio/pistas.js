@@ -94,6 +94,10 @@ export class Musica {
   prepara(ns) { for (const n of ns) this.pista(n); for (const p of Object.values(this.P)) if (p.previa && p !== this.cur && !p.a.paused) { p.a.pause(); p.estado = 'nada'; } }
   quiere(n) {
     const p = n ? this.pista(n) : null, t = this.ctx.currentTime;
+    // (si el iPhone la ha parado por su cuenta —una llamada, un vídeo, la app de fondo, la memoria— seguía apuntada como
+    // «suena» y no se volvía a pedir: la música se quedaba muda el resto de la partida. Ahora se vuelve a pedir; si falta
+    // un toque, entra con el siguiente)
+    const c = this.cur; if (c && c === p && !this.calla && c.estado === 'suena' && c.a.paused) { c.estado = 'nada'; this.suena(c); }
     if (p !== this.cur) {
       const q = this.cur; this.cur = p;
       if (q) { q.g.gain.cancelScheduledValues(t); q.g.gain.setTargetAtTime(0, t, 0.4); clearTimeout(q.calla); q.calla = setTimeout(() => { if (this.cur !== q) { q.a.pause(); q.estado = q.estado === 'fallo' ? 'fallo' : 'nada'; } }, 2000); }
