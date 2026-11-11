@@ -12,6 +12,8 @@ import { snowable } from './weather.js';
 import { TOWN } from './townBuilder.js';
 import { FILL_DECL, useFill } from '../engine/charLight.js';
 import { VIENTO } from './viento.js';
+import { creaArbol, esqueleto, ESPECIES } from './arbol.js';
+import { TEXA } from './texturasArboles.js';
 
 // (uVer: el pecho del personaje, y uVerOn, si se está jugando con él a la vista: lo que hay entre la cámara y él se abre)
 // (uWind: la fuerza del viento, la misma para todo el pueblo: world/viento.js)
@@ -431,16 +433,20 @@ function makeApple(rnd, detail) {
 //    al pie. Sin texturas nuevas: el tipo sale del color del tronco (más gris, más lisa)
 //  · fern: las hojas del helecho se recortan en folíolos (fronda pinnada) a partir de sus coordenadas
 //  · low: en móvil, una sola capa de ruido y sin relieve
-function windMaterial(opts = {}, { bark = false, fern = false, low = false } = {}) {
+//  · hojas: las tarjetas de ramillas de los árboles nuevos (arbol.js): con la luz de su cara de fuera por los dos lados,
+//    temblando un poco con el viento (más la punta de la ramilla que su arranque) y sin adelgazarse de lejos (al reducir
+//    el atlas, lo transparente se come las hojas: se compensa según lo lejos que está)
+//  · corteza: los troncos y ramas de los árboles nuevos, con su textura de corteza y musgo al pie
+function windMaterial(opts = {}, { bark = false, fern = false, low = false, hojas = false, corteza = false, tam = 2048 } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.85, metalness: 0, ...opts });
   m.userData.abreVista = true;   // (se abre entre la cámara y el personaje: las pruebas no lo cuentan como que lo tapa)
   m.onBeforeCompile = (sh) => {
-    sh.defines = { ...(sh.defines || {}), ...(bark ? { BARK: 1 } : {}), ...(fern ? { FERN: 1 } : {}), ...(low ? { LOWQ: 1 } : {}) };
+    sh.defines = { ...(sh.defines || {}), ...(bark ? { BARK: 1 } : {}), ...(fern ? { FERN: 1 } : {}), ...(low ? { LOWQ: 1 } : {}), ...(hojas ? { HOJAS: 1 } : {}), ...(corteza ? { CORTEZA: 1 } : {}) };
     sh.uniforms.uTime = windUniforms.uTime; sh.uniforms.uWind = windUniforms.uWind; sh.uniforms.uVer = windUniforms.uVer; sh.uniforms.uVerOn = windUniforms.uVerOn; useFill(sh);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>${FILL_DECL}
 varying vec3 vWPos; uniform vec3 uVer; uniform float uVerOn;
-#if defined(BARK) || defined(FERN)
+#if defined(BARK) || defined(FERN) || defined(CORTEZA)
 varying vec2 vTUv; varying vec3 vTP;
 #endif
 #ifdef BARK
@@ -486,6 +492,9 @@ float bkN(vec3 x) {
 #ifdef FERN
       diffuseColor.rgb *= 0.78 + 0.32 * (1.0 - fernS) * smoothstep(0.0, 0.5, abs(vTUv.x - 0.5) * 2.0) + 0.1;
 #endif
+#ifdef CORTEZA
+      { float moss = smoothstep(1.4, 0.1, vTP.y) * (0.55 + 0.45 * sin(vTP.x * 9.0 + vTP.z * 7.0 + vTP.y * 3.0)); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.21, 0.31, 0.1), moss * 0.42); }
+#endif
 #ifdef BARK
       float barkH = 0.0;
       if (abs(vTUv.x - ${FOLIAGE.bark[0].toFixed(3)}) + abs(vTUv.y - ${FOLIAGE.bark[1].toFixed(3)}) < 0.002) {
@@ -512,6 +521,11 @@ float bkN(vec3 x) {
         diffuseColor.rgb = c;
       }
 #endif`)
+      .replace('#include <alphatest_fragment>', `
+#ifdef HOJAS
+      { vec2 q = vMapUv * ${tam.toFixed(1)}; vec2 dx = dFdx(q), dy = dFdy(q); float lod = max(0.0, 0.5 * log2(max(dot(dx, dx), dot(dy, dy)))); diffuseColor.a *= 1.0 + lod * 0.3; }
+#endif
+#include <alphatest_fragment>`)
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
       {
         // luz que rebota en la hierba: la parte de abajo de las copas no se queda negra (sigue a la luz del día)
@@ -519,8 +533,8 @@ float bkN(vec3 x) {
         totalEmissiveRadiance += uCharFill * diffuseColor.rgb * vec3(0.85, 1.0, 0.7) * (0.05 + 0.16 * down);
       }`)
       .replace('#include <normal_fragment_maps>', `#include <normal_fragment_maps>
-#ifdef FERN
-      normal = normalize(vNormal);   // las dos caras de la fronda, con la luz de la de arriba (por detrás no queda negra)
+#if defined(FERN) || defined(HOJAS)
+      normal = normalize(vNormal);   // las dos caras de la fronda o de la ramilla, con la luz de la de fuera (por detrás no queda negra)
 #endif
 #if defined(BARK) && !defined(LOWQ)
       {
@@ -536,14 +550,21 @@ float bkN(vec3 x) {
       .replace('#include <common>', `#include <common>
 uniform float uTime; uniform float uWind;
 varying vec3 vWPos;
-#if defined(BARK) || defined(FERN)
+#if defined(BARK) || defined(FERN) || defined(CORTEZA)
 varying vec2 vTUv; varying vec3 vTP;
 #endif`)
       .replace('#include <project_vertex>', `#include <project_vertex>
       vWPos = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;`)
       .replace('#include <begin_vertex>', `#include <begin_vertex>
-#if defined(BARK) || defined(FERN)
+#if defined(BARK) || defined(FERN) || defined(CORTEZA)
       vTUv = uv; vTP = position;
+#endif
+#ifdef HOJAS
+      {
+        // (la ramilla tiembla: más su punta, arriba en su celda del atlas, que su arranque; cada una a su ritmo)
+        float lv = fract(uv.y * 4.0), ph = dot(position, vec3(2.1, 1.3, 1.7)) + instanceMatrix[3][0] * 0.3 + instanceMatrix[3][2] * 0.2;
+        transformed += objectNormal * (sin(uTime * 5.5 + ph) * 0.03 * lv * (0.45 + uWind));
+      }
 #endif
       {
         vec3 ip = vec3(instanceMatrix[3][0], 0.0, instanceMatrix[3][2]);
@@ -553,7 +574,7 @@ varying vec2 vTUv; varying vec3 vTP;
         transformed.z += cos(uTime * 1.1 + ph) * 0.5 * k * transformed.y * 0.35;
       }`);
   };
-  m.customProgramCacheKey = () => 'wind' + (bark ? 'b' : '') + (fern ? 'f' : '') + (low ? 'l' : '');
+  m.customProgramCacheKey = () => 'wind' + (bark ? 'b' : '') + (fern ? 'f' : '') + (low ? 'l' : '') + (hojas ? 'h' + tam : '') + (corteza ? 'c' : '');
   return m;
 }
 
@@ -664,26 +685,23 @@ export class Nature {
     // (en los bosques, la rejilla de trozos corrida medio trozo: el claro queda en el centro de uno y no en la esquina de cuatro,
     // que de cerca se dibujaban enteros con todo su detalle)
     this.off = MOD?.bosque ? CHUNK / 2 : 0;
-    const hiQ = MOD?.bosque ? 'mid' : true;   // (en los bosques, las hayas y los robles de cerca algo más sencillos)
-    const geos = {
-      beech: [makeBeech(rnd, hiQ), makeBeech(rnd, false)],
-      oak: [makeOak(rnd, hiQ), makeOak(rnd, false)],
-      fir: [makeFir(rnd, true), makeFir(rnd, false)],
-      olive: [makeOlive(rnd, true), makeOlive(rnd, false)],
-      poplar: [makePoplar(rnd, true), makePoplar(rnd, false)],
-      pine: [makePine(rnd, true), makePine(rnd, false)],
-      chestnut: [makeChestnut(rnd, true), makeChestnut(rnd, false)],
-      apple: [makeApple(rnd, true), makeApple(rnd, false)],
-    };
-    // en calidad baja (los móviles), otra vez con un azar aparte (así los árboles salen en los mismos sitios que en las
-    // demás calidades): los de cerca, sin los bultos pequeños de la copa, como los de los bosques; los de lejos, con el
-    // tronco sencillo y tres bultos como mucho. El bosque lejano era la tercera parte de los triángulos de un pueblo
-    if (quality === 'low') {
-      const r2 = mulberry32(7), MK = { beech: makeBeech, oak: makeOak, fir: makeFir, olive: makeOlive, poplar: makePoplar, pine: makePine, chestnut: makeChestnut, apple: makeApple };
-      try {
-        NEAR_LV = 0; for (const k of Object.keys(geos)) geos[k][0] = MK[k](r2, k === 'beech' || k === 'oak' ? hiQ : true);
-        FAR_LITE = true; for (const k of Object.keys(geos)) geos[k][1] = MK[k](r2, false);
-      } finally { FAR_LITE = false; NEAR_LV = 1; }
+    // Los árboles (arbol.js): tronco, ramas, ramillas y hojas una a una, cada especie con su porte. Tres versiones del mismo
+    // esqueleto: de cerca (los más próximos a la cámara, con todo: refrescaDetalle), a media distancia (los de los trozos
+    // cercanos) y de lejos (todos los demás, una sola llamada por especie). Antes eran bolas de hojas sobre un tronco
+    const low = quality === 'low', LIG = { ligero: low };
+    this.matHojas = snowable(windMaterial({ map: TEXA.hojas, alphaTest: 0.5, side: THREE.DoubleSide, roughness: 0.82 }, { hojas: true, low, tam: TEXA.tam }), 0.75, 0.2, 0.8);
+    // (la corteza de cada especie: la de su textura y su tono; el olivo y el abeto, con la del chopo más oscura)
+    const CORT = { haya: ['haya', '#ffffff'], roble: ['roble', '#e2d6c6'], pino: ['pino', '#ffffff'], chopo: ['chopo', '#ecebe4'], olivo: ['chopo', '#a39c90'], abeto: ['chopo', '#b2aca4'] };
+    this.matCorteza = {};
+    for (const [k, [t, c]] of Object.entries(CORT)) this.matCorteza[k] = snowable(windMaterial({ map: TEXA.corteza[t], color: c, roughness: 0.95, ...(low ? {} : { bumpMap: TEXA.corteza[t], bumpScale: 1.2 }) }, { corteza: true, low }), 0.6, 0.35, 0.85);
+    // (hasta que llegan las texturas, los árboles no se dibujan: sin el atlas, cada tarjeta de hojas sería un cuadrado)
+    if (!TEXA.cargada) { const ms = [this.matHojas, ...Object.values(this.matCorteza)]; for (const m of ms) m.visible = false; TEXA.listo?.then(() => { for (const m of ms) m.visible = true; }, () => {}); }
+    const matsDe = (type) => [this.matCorteza[ESPECIES[type].corteza], this.matHojas];
+    const geos = {}, detalle = {};
+    for (const type of ['beech', 'oak', 'fir', 'olive', 'poplar', 'pine', 'chestnut', 'apple']) {
+      const S = esqueleto(type, mulberry32(101 + type.length * 7 + type.charCodeAt(0)));
+      geos[type] = [creaArbol(type, mulberry32(11), 1, S, LIG), creaArbol(type, mulberry32(12), 0, S)];
+      detalle[type] = creaArbol(type, mulberry32(13), 2, S);
     }
     TREES.length = 0; MATAS.length = 0;
     let spots = treeSpots(rnd);
@@ -713,24 +731,23 @@ export class Nature {
       for (const type of Object.keys(geos)) {
         const list = c.list.filter(s => s.type === type);
         if (!list.length) continue;
-        for (const lod of [0, 1]) {
-          const im = lod ? null : new THREE.InstancedMesh(geos[type][lod], this.matTree, list.length);
-          list.forEach((s, i) => {
-            e.set((rnd() - 0.5) * 0.06, s.rot, (rnd() - 0.5) * 0.06); q.setFromEuler(e);
-            m4.compose(v.set(s.x, s.y - 0.25, s.z), q, sc.set(s.s, s.s * (0.9 + rnd() * 0.25), s.s));
-            if (im) { im.setMatrixAt(i, m4); s.inst.push([im, i]); } else { s.mLejos = m4.clone(); (lejos.get(type) || lejos.set(type, []).get(type)).push(s); }
-          });
-          if (!im) continue;
-          im.computeBoundingSphere();
-          im.castShadow = im.receiveShadow = true; im.name = type + '-cerca';
-          entry.hi.push(im);
-          this.group.add(im);
-        }
+        // (cada árbol con su postura, la misma en las tres versiones: algo inclinado, su giro y su escala)
+        const im = new THREE.InstancedMesh(geos[type][0], matsDe(type), list.length);
+        list.forEach((s, i) => {
+          e.set((rnd() - 0.5) * 0.05, s.rot, (rnd() - 0.5) * 0.05); q.setFromEuler(e);
+          s.m = m4.compose(v.set(s.x, s.y - 0.2, s.z), q, sc.set(s.s, s.s * (0.92 + rnd() * 0.2), s.s)).clone(); s.mLejos = s.m;
+          im.setMatrixAt(i, s.m); s.medio = [im, i]; s.inst.push(s.medio);
+          (lejos.get(type) || lejos.set(type, []).get(type)).push(s);
+        });
+        im.computeBoundingSphere();
+        im.castShadow = im.receiveShadow = true; im.name = type + '-cerca';
+        entry.hi.push(im);
+        this.group.add(im);
       }
       this.chunks.push(entry);
     }
     for (const [type, list] of lejos) {
-      const im = new THREE.InstancedMesh(geos[type][1], this.matTree, list.length);
+      const im = new THREE.InstancedMesh(geos[type][1], matsDe(type), list.length);
       list.forEach((s, i) => { im.setMatrixAt(i, s.mLejos); s.lejos = [im, i]; s.inst.push(s.lejos); });
       im.computeBoundingSphere(); im.name = type + '-lejos';
       this.group.add(im); (this.bosqueLejos ||= []).push(im);
@@ -740,6 +757,15 @@ export class Nature {
     this.rockFar = quality === 'low' ? 170 : quality === 'mid' ? 230 : 300;
     // solo los trozos cercanos proyectan sombra: la sombra de lo lejano apenas se ve y duplica el coste
     this.shadowDist = quality === 'low' ? 0 : quality === 'mid' ? 20 : 45;
+    // los más cercanos a la cámara, con todo su detalle (ramillas finas y todas sus hojas): cada especie en un dibujo que se
+    // rellena con los que tocan (refrescaDetalle); esos se esconden en el de media distancia
+    this.detCap = low ? 10 : quality === 'mid' ? 18 : 28; this.detR = low ? 26 : 38;
+    this.detalle = {}; this.enDetalle = new Set(); this.detPos = new THREE.Vector3(1e9, 0, 0); this.detUlt = -9;
+    for (const [type, geo] of Object.entries(detalle)) {
+      const im = new THREE.InstancedMesh(geo, matsDe(type), this.detCap); im.count = 0;
+      im.castShadow = this.shadowDist > 0; im.receiveShadow = true; im.name = type + '-detalle';
+      this.group.add(im); this.detalle[type] = im;
+    }
     this.buildSombras();
     this.buildRocks(rnd);
     this.buildBushes(rnd);
@@ -1024,8 +1050,29 @@ export class Nature {
         for (const s of c.arboles) if (s.lejos && !s.quitado) { s.lejos[0].setMatrixAt(s.lejos[1], near ? _zero : s.mLejos); s.lejos[0].instanceMatrix.needsUpdate = true; }
       }
     }
+    // (los más cercanos, con todo su detalle: se rehace cada cuarto de segundo si la cámara se ha movido, y al momento si se
+    // han quitado árboles)
+    if (this.detalle && (DETALLE_SUCIO || elapsed - this.detUlt > 0.25 && (camPos.distanceToSquared(this.detPos) > 2.25 || elapsed - this.detUlt > 1.5))) { DETALLE_SUCIO = false; this.detUlt = elapsed; this.detPos.copy(camPos); this.refrescaDetalle(camPos); }
     this.grass?.update(focus, elapsed, player);
     this.flowers.update(focus, elapsed, player);
+  }
+  /** Los árboles más cercanos a la cámara (como mucho detCap, a menos de detR m), con su versión de cerca: la que tiene
+   *  todas las ramillas y todas las hojas. Se esconden en la de media distancia de su trozo y vuelven a ella al alejarse */
+  refrescaDetalle(cam) {
+    const R = this.detR, cand = [];
+    for (const c of this.chunks) {
+      if (!c.near || !c.arboles || Math.max(Math.abs(cam.x - c.cx), Math.abs(cam.z - c.cz)) - CHUNK / 2 > R) continue;
+      for (const s of c.arboles) { if (s.quitado || !s.medio) continue; const d = (s.x - cam.x) ** 2 + (s.z - cam.z) ** 2; if (d < R * R) cand.push([d, s]); }
+    }
+    cand.sort((a, b) => a[0] - b[0]);
+    const nuevo = new Set(cand.slice(0, this.detCap).map(x => x[1])), toca = new Set();
+    for (const s of this.enDetalle) if (!nuevo.has(s) && !s.quitado) { s.medio[0].setMatrixAt(s.medio[1], s.m); toca.add(s.medio[0]); }
+    for (const s of nuevo) if (!this.enDetalle.has(s)) { s.medio[0].setMatrixAt(s.medio[1], _zero); toca.add(s.medio[0]); }
+    for (const im of toca) im.instanceMatrix.needsUpdate = true;
+    this.enDetalle = nuevo;
+    const n = {};
+    for (const s of nuevo) { const im = this.detalle[s.type]; if (!im) continue; const k = n[s.type] || 0; im.setMatrixAt(k, s.m); n[s.type] = k + 1; }
+    for (const [type, im] of Object.entries(this.detalle)) { im.count = n[type] || 0; im.instanceMatrix.needsUpdate = true; if (im.count) im.computeBoundingSphere(); }
   }
 }
 
@@ -1138,6 +1185,7 @@ export const TREE_MAKERS = { beech: makeBeech, oak: makeOak, fir: makeFir, bush:
 // Quita los árboles que hayan quedado dentro de un rectángulo girado (mismo criterio que clearGrass: ancho w centrado
 // y fondo d desde el punto): al levantar un frontón o una pista, un árbol podía quedar en medio de la cancha (Tafalla)
 const _zero = new THREE.Matrix4().makeScale(0, 0, 0);
+let DETALLE_SUCIO = false;   // (se han quitado árboles: los de cerca se reparten otra vez, Nature.refrescaDetalle)
 // (la copa, con su anchura de verdad, la de su forma por su escala: antes se tomaba 0,6 m por escala, y en Elizondo las
 // copas de dos castaños de junto a la pared izquierda entraban en la cancha, a 4 y 5 m de altura)
 const COPA = new WeakMap();
@@ -1153,7 +1201,7 @@ export function clearTrees(cx, cz, w, d, ry, m = 1) {
     const t = TREES[k], dx = t.x - cx, dz = t.z - cz, u = dx * c - dz * s, v = dx * s + dz * c, r = m + copaDe(t);   // (con la copa)
     if (Math.abs(u) > w / 2 + r || v < -r || v > d + r) continue;
     for (const [im, i] of t.inst || []) { im.setMatrixAt(i, _zero); im.instanceMatrix.needsUpdate = true; }
-    t.quitado = true; quitaSombra(t);
+    t.quitado = true; quitaSombra(t); DETALLE_SUCIO = true;
     if (t.col) removeCollider(t.col);
     TREES.splice(k, 1);
   }

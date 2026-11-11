@@ -1056,6 +1056,7 @@ export class Hub {
       <li>Ilustraciones, iconos y personajes: creados por el autor del juego con ayuda de herramientas de inteligencia artificial.</li>
       <li>Modelos 3D de base: hechos con Meshy (meshy.ai) y adaptados para el juego.</li>
       <li>Fotos de las plantas: iNaturalist, de dominio público (CC0).</li>
+      <li>Cortezas de los árboles: Poly Haven y TextureCan, de dominio público (CC0). Las hojas y los árboles, dibujados con código para el juego.</li>
       <li>Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).</li>
       <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ríos, embalses y cimas © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Paisaje de los prismáticos en los miradores: relieve EU-DEM de Copernicus (Unión Europea), SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y ETOPO1 (NOAA, dominio público).</li>

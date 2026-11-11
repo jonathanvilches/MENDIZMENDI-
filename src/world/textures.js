@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { mulberry32 } from '../util/math.js';
 import { noise2 } from '../util/noise.js';
 import { pintadas } from './texturasPintadas.js';
+import { cargaArboles } from './texturasArboles.js';
 import { floresLienzo, silvestresLienzo } from './flores.js';
 
 // willReadFrequently: el lienzo vive en memoria normal, así leer sus píxeles (grano, relieve) no
@@ -649,6 +650,7 @@ export function buildTextures(quality = 'high') {
     const s = new THREE.CanvasTexture(silvestresLienzo(768 * k, 512 * k)); s.colorSpace = THREE.SRGBColorSpace; TEX.silvestres = s; }
   TEX.litter = litterGround(S);
   // (y encima, las pintadas en Higgsfield, cuando llegan: texturasPintadas.js; quien construye el pueblo las espera un poco)
-  TEX.pintadas = pintadas(TEX, S, normalFromHeight).catch(() => false);
+  // (con ellas, las de los árboles: el atlas de hojas y las cortezas, texturasArboles.js)
+  TEX.pintadas = Promise.allSettled([pintadas(TEX, S, normalFromHeight), cargaArboles(quality)]).then(r => r[0].status === 'fulfilled' && r[0].value);
   return TEX;
 }
