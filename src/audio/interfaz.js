@@ -6,9 +6,9 @@
 // Se escucha en el documento (un toque y lo que aparece), así cada pantalla no tiene que acordarse de sonar.
 //   sonidosInterfaz(sound)   (una vez, al arrancar: main.js)
 import { Voz } from '../pelota/voz.js';
-import { duoElegido } from '../util/comentarios.js';
-// (con los dos comentaristas, cada pareja de frases como en el guion: la primera, la voz de hombre; la segunda, la de mujer.
-// La del hombre, cuatro veces de cada cinco: el que lleva casi todo es él)
+import { duoElegido, MUJER } from '../util/comentarios.js';
+// (con los dos comentaristas, cualquiera de las dos frases, casi siempre con la voz del hombre, que las tiene todas; la
+// segunda de cada pareja también la grabó la comentarista, y de vez en cuando la dice ella)
 import { isEU } from '../i18n.js';
 
 // dónde suenan los toques (las pantallas que no ponen los suyos) y dónde no: los botones del juego (golpe, cortada,
@@ -28,8 +28,8 @@ let voz = null;
 const decir = (k) => {
   const v = duoElegido(); if (v === 'no' || !VOZ_INTERFAZ[k]) return;
   const n = VOZ_INTERFAZ[k].es.length, lang = isEU() ? 'eu' : 'es';
-  const i = v === 'duo' && n === 2 ? (Math.random() < 0.8 ? 1 : 2) : 1 + Math.floor(Math.random() * n);
-  const quien = v === 'duo' ? (i === 1 ? 'hombre' : 'mujer') : v;
+  const i = 1 + Math.floor(Math.random() * n);
+  const quien = v === 'duo' ? (i === 2 && Math.random() < MUJER ? 'mujer' : 'hombre') : v;
   try { (voz ||= new Voz()).habla({ id: `${k}-${i}`, texto: VOZ_INTERFAZ[k][lang][i - 1], r: 'n', voz: quien, lang }); } catch (e) { /* sin audio */ }
 };
 

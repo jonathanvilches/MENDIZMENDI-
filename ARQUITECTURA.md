@@ -339,20 +339,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `herrizherri-voz`, porque el partido suena con otro contexto). Los aplausos de después de un tanto tapaban la frase
   que lo comenta. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
   a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. En castellano suenan las voces de Envato que el autor generó para el guion a dos voces (noviembre de
-  2026): 38 frases de hombre (las que narran y la primera de cada pareja de las pantallas) y 33 de mujer (las que
-  explican y la segunda). En `voz/hombre/es` quedan además las que explican de la grabación de antes del autor, que solo
-  suenan con «Voz de hombre». Faltan el euskera y el kantari, que mientras tanto usan el castellano. Las de Envato se
+  2026): las 71 frases con la voz de hombre (Martin, en cuatro bloques: las que narran y, después, las que explican) y 33
+  con la de mujer (las que explican y la segunda de cada pareja de las pantallas). La grabación de antes del autor ya
+  no está: la sustituyeron las de Envato. Faltan el euskera y el kantari, que mientras tanto usan el castellano. Las de Envato se
   cortan con `tools/alinea-voz.py` (los bloques que se pegan en Envato, en `tools/guion-voz/`): llegan con pausas entre
   frases tan cortas como las de dentro de una frase, así que se alinean con el guion por DTW contra una regla sintética
   de espeak-ng, que solo sirve para medir, y se comprueba cada trozo contra su frase y las de al lado; la locución se
   normaliza entera antes de cortar (las de mujer llegaban a -36 LUFS). Con «Dos comentaristas» (de serie
   desde noviembre de 2026, `vozDe`), la voz de hombre narra (las frases «n») y la de mujer explica la jugada (las «e»).
-  El que lleva casi todo es el hombre, más enérgico, como prefiere el autor (`PARTE_MUJER` y `SOLO_MUJER` en
-  `pelota/comenta.js`): en una lista con frases de los dos, la de ella sale una vez de cada siete más o menos; lo que solo
-  dice ella (el rival al empezar, las rachas, los peloteos largos, el descanso, el cierre), algo más de una vez de cada
-  tres, y si no, no se dice nada; unas ocho frases de cada diez son de él;
-  en las frases de las pantallas (`audio/interfaz.js`), la primera de cada pareja es la de hombre (cuatro veces de cada
-  cinco) y la segunda, la de mujer, como en el guion a dos voces que el autor graba con Envato, por separado: primero todas las del hombre y luego
+  El que lleva casi todo es el hombre, más enérgico, como prefiere el autor (`MUJER` en `util/comentarios.js`): narra
+  siempre él y, de lo que explica la jugada, la comentarista dice una frase de cada tres más o menos; en total, unas
+  ocho o nueve de cada diez son de él (el 85 % en una prueba de 22 000 frases);
+  en las frases de las pantallas (`audio/interfaz.js`), cualquiera de la pareja, con la voz de hombre; la segunda, de
+  vez en cuando con la de mujer, como en el guion a dos voces que el autor graba con Envato, por separado: primero todas las del hombre y luego
   las de la mujer. La segunda voz que se sacó de la misma
   grabación, más grave y con el timbre cambiado, sonaba robótica y se quitó (noviembre de 2026): solo la voz grabada.
 - **Repetición desde el pelotari** (`pelota/match.js`, `startReplay`, `stepReplay`): de cada cinco repeticiones, una se
