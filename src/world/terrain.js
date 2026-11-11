@@ -64,8 +64,9 @@ function vertexColor(i, j, out) {
     else if (t === 8) out.lerp(PAL.lush, 0.4 * m);
   }
   const forest = SURF.forest[k] / 255;
-  // (en la selva húmeda, Irati, el suelo del bosque es musgo: casi sin el tono pardo de la hojarasca)
-  if (forest > 0) { out.lerp(PAL.forest, forest * 0.75); out.lerp(PAL.litter, forest * smoothstep(0.3, 0.8, n2) * (TONE === 'selva' ? 0.06 : 0.5)); }
+  // (el norte húmedo, verde: en la selva y en la montaña atlántica el suelo del bosque es musgo, casi sin el tono pardo de
+  // la hojarasca; en el centro y en la Ribera, sí, hoja seca y tierra: HOJARASCA)
+  if (forest > 0) { out.lerp(PAL.forest, forest * 0.75); out.lerp(PAL.litter, forest * smoothstep(0.3, 0.8, n2) * (HOJARASCA[TONE] ?? 0.5)); }
   const r = riverInfo(x, z);
   const wet = 1 - smoothstep(-0.5, 2.5, r.edge);
   if (wet > 0) out.lerp(PAL.gravel, wet);
@@ -161,6 +162,10 @@ function empaca(g) {
   return g;
 }
 
+// el suelo del bosque según la zona (de norte a sur): lo que el musgo tapa la hojarasca (uMoss, en el sombreador) y lo que
+// el color de base tira al pardo de la hoja caída
+const MUSGO = { selva: 0.72, lush: 0.68, karst: 0.62, alpine: 0.55, dry: 0.1, arid: -0.06 };
+const HOJARASCA = { selva: 0.06, lush: 0.08, karst: 0.12, alpine: 0.18, dry: 0.45, arid: 0.5 };
 function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   queueMicrotask(() => snowable(m, 0.85));   // nieve en el suelo (después del sombreador del terreno)
@@ -179,9 +184,12 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     Object.assign(sh.uniforms, COPAS);   // (la sombra de las copas en el suelo)
     sh.uniforms.uMojado = MOJADO.uMojado; sh.uniforms.uCieloCharco = MOJADO.uCieloCharco;   // (la lluvia: suelo mojado y charcos)
     // el musgo del suelo del bosque (más en la selva húmeda) y el tono de la hojarasca (en los sotos, hoja de chopo, más pálida)
-    // (en la selva, Irati: un hayedo-abetal muy húmedo con el suelo cubierto de musgo, helechos y líquenes; la hoja caída,
-    // en pintas sueltas. Antes, manchas onduladas de hojarasca parda por toda la ladera, como tierra)
-    sh.uniforms.uMoss = { value: ({ selva: 0.72, karst: 0.08, lush: 0.06, alpine: 0.04 })[TONE] ?? -0.06 };
+    // (el musgo del suelo del bosque, según lo húmedo que es: el norte de Navarra, mucho más verde que el sur. En la selva,
+    // Irati, un hayedo-abetal muy húmedo con el suelo cubierto de musgo, helechos y líquenes, y en la montaña atlántica
+    // —Baztan, Bidasoa—, el musgo lo tapa todo y la hoja caída queda en pintas sueltas; en las sierras de hayedo —Urbasa,
+    // Aralar— y en el Pirineo, casi todo; en el centro, algo; en la Ribera, nada. Antes, en todas partes, manchas
+    // onduladas de hojarasca parda que parecían tierra)
+    sh.uniforms.uMoss = { value: MUSGO[TONE] ?? -0.06 };
     sh.uniforms.uLitter = { value: new THREE.Vector3(...(TONE === 'dry' || TONE === 'arid' ? [1.1, 1.02, 0.8] : [1, 1, 1])) };
     sh.uniforms.uRock = { value: rockCol };
     sh.uniforms.uSnowY = { value: TONE === 'alpine' ? cota(2150, 212) : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
