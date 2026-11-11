@@ -1,1 +1,0 @@
-var e=new URL(`descanso-2-DEAiauAA.mp3`,import.meta.url).href;export{e as default};
