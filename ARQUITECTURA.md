@@ -1121,8 +1121,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     a una farola, a un balcón o al borde de la fuente cuando pasas (vuelven cuando te vas), palomas en la plaza y
     vencejos dando vueltas sobre los tejados. Una malla repetida por especie, con el aleteo y las alas plegadas en el
     sombreador; de noche no se ven.
+    Y gallinas (noviembre de 2026): tres delante de cada una de dos o tres casas de las afueras, lejos de la plaza (dos
+    rojizas, como la «gorria», y una blanca), con cresta, barbilla, patas y la cola en abanico de pie. Andan despacio de
+    un sitio a otro cabeceando y se paran a picotear; si te acercas se apartan corriendo con un aleteo, sin salir volando.
+    Dos mallas repetidas más.
   - *Vecinos en los balcones* (`spawnBalcones`): hasta 8, también en los balcones de las fachadas sencillas, que ahora se
     apuntan en `TOWN.balcones`.
+  - *Ropa tendida* (`colada.js`, noviembre de 2026): en uno de cada tres balcones de `TOWN.balcones` (uno de cada cuatro en
+    calidad baja), una cuerda con su comba medio metro por fuera de la barandilla, para no pisar a los vecinos que se
+    asoman, y tres o cuatro prendas de colores de casa colgadas de arriba que se mecen con el viento (más cuanto más
+    abajo; en el sombreador). Dos mallas: las cuerdas, en una sola geometría, y las prendas, repetidas; en Lumbier, 66.
 - **Primero la comarca, luego el pueblo** (`quien` en `mapa3d.js`, `PUEBLO_D`; noviembre de 2026): al tocar el mapa se
   elegía el pueblo cuya chincheta quedara más cerca del dedo, y con toda Navarra a la vista casi cualquier toque caía cerca
   de alguno, así que se iba directo a un pueblo. Ahora, sin comarca elegida y con la cámara lejos, tocar lleva a la

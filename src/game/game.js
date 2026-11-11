@@ -17,6 +17,7 @@ import { instrumentosDe, instrumentoById } from '../data/instrumentos.js';
 import { jugarInstrumento } from '../ui/instrumentos.js';
 import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { Pajarillos } from '../world/pajarillos.js';
+import { Colada } from '../world/colada.js';
 import { QUALITY } from '../util/quality.js';
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
@@ -102,6 +103,7 @@ export class Game {
     for (const d of walkerDefs()) { const a = new Actor({ ...d, walkSpeed: 1.1 }, this.scene); a.face = d.face; a.color = d.color; a.walker = true; this.walkers.push(a); }
     // gorriones, palomas y vencejos en la plaza de Otsagabia (pajarillos.js), como en los demás pueblos
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
+    try { this.colada = new Colada(this.scene, { quality: QUALITY }); } catch (e) { console.warn('colada', e); }
     // el músico de la plaza, con el instrumento del valle (data/instrumentos.js): enseña a tocarlo (tocarCon)
     try { const inst = instrumentosDe('otsagabia-ochagavia')[0];
       if (inst) { const c = PLACES.plaza, cand = [[6, -4], [-6, -4], [7, 3], [-7, 3], [0, -7]].map(([dx, dz]) => ({ x: c.x + dx, z: c.z + dz })), s = cand.find(q => isFree(q.x, q.z, 0.8)) || cand[0], [nm] = inst.musico;
@@ -271,6 +273,7 @@ export class Game {
     if (this.musico) cull(this.musico, Math.hypot(this.musico.pos.x - P.pos.x, this.musico.pos.z - P.pos.z), 80);
     for (const a of this.dancers) if (a.visible) a.update(dt, P);
     this.pajarillos?.update(dt, this.elapsed, P, this.sky?.night ?? 0, this.mode !== 'play');
+    this.colada?.update(this.elapsed);
     // objetos
     for (const it of this.items) {
       const o = it.obj; if (!o) continue;

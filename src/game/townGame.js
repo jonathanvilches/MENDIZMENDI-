@@ -36,6 +36,7 @@ import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTownSignpost } from './senales.js';
 import { Pajarillos } from '../world/pajarillos.js';
+import { Colada } from '../world/colada.js';
 import { foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
 import { Mercado, marketDay } from './mercado.js';
@@ -379,6 +380,8 @@ export class TownGame {
     try { this.spawnBalcones(); } catch (e) { console.warn('balcones', e); }
     // gorriones, palomas y vencejos (pajarillos.js): después de los balcones, que son de sus posaderos
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
+    // la ropa tendida en algunos balcones (colada.js)
+    try { this.colada = new Colada(this.scene, { quality: QUALITY }); } catch (e) { console.warn('colada', e); }
     this.spawnShepherds();
     // jornales: ayudar en los oficios del pueblo para ganar txanponak (esquilar, ordeñar, fragua, vendimia…); después
     // del pastor y la ganadera, que son los que dan los trabajos del ganado
@@ -577,6 +580,7 @@ export class TownGame {
     }
     for (const f of this.folk) { if (solo) { fuera(f); continue; } this.updateFolk(f, dt); }
     this.pajarillos?.update(dt, this.elapsed, P, this.sky?.night ?? 0, !!solo || this.mode === 'pelota' || this.mode === 'futbol');
+    this.colada?.update(this.elapsed);
     if (this.mode === 'play') this.bocadillos(dt); if (this._boc?.capa) this._boc.capa.hidden = this.mode !== 'play';   // (en los vídeos, los diálogos y los minijuegos, sin bocadillos)
     // objetos
     for (const it of this.items) {
@@ -1062,6 +1066,7 @@ export class TownGame {
     for (const c of this._carteles || []) c.userData.dispose?.();
     this._boc?.capa?.remove();
     try { this.pajarillos?.dispose(); } catch (e) { } this.pajarillos = null;
+    try { this.colada?.dispose(); } catch (e) { } this.colada = null;
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
     if (this.ui.onDialogLine) this.ui.onDialogLine = null; this.ui.onMiniHit = null; if (this.ui.stage3d?.show) this.ui.stage3d = null;
     this.flora?.dispose(); document.querySelectorAll('.mg-overlay, .dogpick, .bagpanel').forEach(o => o.remove()); this.ui.closeModal?.(); this.ui.setMG(null); if (this.danceKeys) removeEventListener('keydown', this.danceKeys, true); this.rh?.remove(); if (this.mode === 'bino') this.ui.binoculars(false); }
