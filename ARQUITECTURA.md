@@ -328,8 +328,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, dos
   comentaristas, de serie, voz de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos
   tapaban la pantalla. Las frases no llevan nombres ni números, para poder grabarlas una vez; cada una tiene su clave
-  («dejada-2»), que es el nombre de su grabación en `src/assets/voz/<hombre|mujer>/<es|eu>/`. Solo suenan grabaciones
-  del autor, nunca una voz sintética: si falta la frase en esa voz, la de la otra voz; si falta en euskera, la de
+  («dejada-2»), que es el nombre de su grabación en `src/assets/voz/<hombre|mujer>/<es|eu>/`. Solo suenan las voces que
+  pone el autor (su grabación o las que genera con Envato), nunca una voz sintética del juego: si falta la frase en esa voz, la de la otra voz; si falta en euskera, la de
   castellano; si no hay ninguna, no se dice nada. Una frase cada vez; se callan al pausar y al salir. Con los subtítulos puestos, también el rótulo de
   abajo. Las grabaciones pueden llegar en un solo archivo por idioma: `tools/corta-voz.mjs` lo corta en una frase por
   archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
@@ -338,8 +338,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   la frase; el público y los aplausos del partido, también (a 0,35: `pelota/audio.js`, su bus, con el evento
   `herrizherri-voz`, porque el partido suena con otro contexto). Los aplausos de después de un tanto tapaban la frase
   que lo comenta. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
-  a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. Grabadas: las 63 frases de la voz de hombre en castellano (el autor, noviembre de 2026); faltan el
-  euskera, el kantari y la voz de mujer, que mientras tanto usan esa misma grabación. Con «Dos comentaristas» (de serie
+  a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. En castellano suenan las voces de Envato que el autor generó para el guion a dos voces (noviembre de
+  2026): 38 frases de hombre (las que narran y la primera de cada pareja de las pantallas) y 33 de mujer (las que
+  explican y la segunda). En `voz/hombre/es` quedan además las que explican de la grabación de antes del autor, que solo
+  suenan con «Voz de hombre». Faltan el euskera y el kantari, que mientras tanto usan el castellano. Las de Envato se
+  cortan con `tools/alinea-voz.py` (los bloques que se pegan en Envato, en `tools/guion-voz/`): llegan con pausas entre
+  frases tan cortas como las de dentro de una frase, así que se alinean con el guion por DTW contra una regla sintética
+  de espeak-ng, que solo sirve para medir, y se comprueba cada trozo contra su frase y las de al lado; la locución se
+  normaliza entera antes de cortar (las de mujer llegaban a -36 LUFS). Con «Dos comentaristas» (de serie
   desde noviembre de 2026, `vozDe`), la voz de hombre narra (las frases «n») y la de mujer explica la jugada (las «e»);
   en las frases de las pantallas (`audio/interfaz.js`), la primera de cada pareja es la de hombre y la segunda, la de
   mujer, como en el guion a dos voces que el autor graba con Envato, por separado: primero todas las del hombre y luego
