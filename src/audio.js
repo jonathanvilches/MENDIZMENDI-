@@ -274,8 +274,10 @@ export class Sound {
     if (!this.musicBus || !this.musicOn || this.mood === 'none' || (this.duckUntil || 0) > this.ctx.currentTime) return;
     const g = this.musicBus.gain, t = this.ctx.currentTime; g.cancelScheduledValues(t); g.setTargetAtTime(this.volMus(), t, 0.6);
   }
-  /** Lo fuerte que suena la música ahora: mientras habla el comentarista, a un tercio, para que no lo tape */
-  volMus() { return this.musVol * (this.hablando ? 0.3 : 1); }
+  /** Lo fuerte que suena la música ahora: mientras habla el comentarista, algo más de la mitad, para que no lo tape */
+  // (antes a un tercio, y en el partido, a 0,14 mientras se jugaba: con el comentarista hablando casi todo el rato, la
+  // música no se oía en el iPhone. Ahora a 0,24 jugando y a 0,55 de eso cuando habla, noviembre de 2026)
+  volMus() { return this.musVol * (this.hablando ? 0.55 : 1); }
   /** El comentarista empieza (on) o acaba de hablar: la música baja deprisa y vuelve despacio (pelota/voz.js). También
    *  lo oye el sonido del partido (pelota/audio.js, con su propio contexto), que baja el público y los aplausos */
   voz(on) {
