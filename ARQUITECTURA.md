@@ -332,6 +332,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (en Mixamo, cien veces más grandes): al mundo, con la escala del hueso. Se mide con la malla deformada de verdad
   (`getVertexPosition`), fotograma a fotograma: antes, la pelota dentro de la mano en casi todas las imágenes del saque
   (1032 de 1041 en casa); ahora, en ninguna.
+- **Más campeonatos, inventados** (`game/torneo.js`, `KINDS`, `EXTRA`, `reglaDe`; `game/townDeportes.js`): además del
+  Manomanista, el de Parejas y el del Cuatro y Medio, cinco más en el menú de pelota, cada uno con su txapela:
+  - el Torneo de Fiestas (mano a mano, ocho, corto);
+  - el Desafío de los Valles (mano a mano con liguilla y cuadro, dieciséis);
+  - la Copa de Invierno del Cuatro y Medio (ocho);
+  - el Torneo de Promesas del Cuatro y Medio (ocho, con rivales que empiezan);
+  - y «el acontecimiento del año», la Gran Txapela de Navarra: los dieciséis mejores de toda Navarra (`global`: uno solo,
+    guardado como comarca `navarra`), con su losa dorada la primera de las nuevas.
+  Cada uno dice sus reglas (`base`: mano a mano en toda la cancha o hasta el 4½), su formato (`fmt`), lo fuertes que
+  son los rivales (`lv`) y su «Cómo funciona» (`como`, en castellano y euskera). Todos son de cada comarca salvo el
+  acontecimiento del año: cuatro por comarca y uno para Navarra, 45 txapelas más.
 - **Elegir tu pelotari en un campeonato** (`game/torneo.js`, `eligePelotari`, `ponPelotari`, `elegibles`, `tusStats`,
   `sinEmpezar`; `game/townDeportes.js`, `pelotaTorneo`; `game/fronton.js`, opción `yo`): como elegir equipo en el FIFA.
   Al abrir un campeonato nuevo sale «Elige tu pelotari»: tu carta y las de los 21 pelotaris del juego, cada uno con su

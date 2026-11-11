@@ -42,19 +42,36 @@ const FORMATS = {
   liga8: [...LIGA(7, 5), { name: 'Semifinales', target: 7 }, { name: 'Final', target: 9 }],
 };
 const FMT = { mano: 'ko16', cuatro: 'grupos16', parejas: 'liga8' };
+// (las reglas de cada campeonato: mano a mano en toda la cancha, hasta el 4½ o por parejas)
+export const reglaDe = (kind) => KINDS[kind]?.base || kind;
 /** Las rondas del torneo: [{ name, target, liga? }] */
 export const planOf = (T) => FORMATS[T.fmt] || FORMATS.ko8;
 const NAMES = RIVALES;   // (21 chicos y chicas, cada uno con su figura)
 const TOWNS = ['Leitza', 'Lesaka', 'Elizondo', 'Altsasu', 'Lekunberri', 'Aoiz', 'Sangüesa', 'Estella-Lizarra', 'Tafalla', 'Olite', 'Tudela', 'Puente la Reina', 'Viana', 'Lumbier', 'Doneztebe', 'Irurtzun'];
 const loadAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
-const keyOf = (comarca, kind) => kind === 'parejas' ? comarca + ':parejas' : kind === 'cuatro' ? comarca + ':cuatro' : comarca;
+const keyOf = (comarca, kind) => kind === 'mano' || !kind ? comarca : comarca + ':' + kind;
 /** Los tres campeonatos de pelota de cada comarca, como los de los profesionales: el Manomanista (mano a mano, en toda la
  *  cancha), el de Parejas (delantero y zaguero) y el del Cuatro y Medio (mano a mano hasta la raya del 4 y medio) */
 export const KINDS = {
   mano: { name: 'Manomanista', full: 'Campeonato Manomanista', k: 'Individual' },
   parejas: { name: 'Parejas', full: 'Campeonato de Parejas', k: 'Por parejas' },
   cuatro: { name: 'Cuatro y Medio', full: 'Campeonato del Cuatro y Medio', k: 'Hasta el 4½' },
+  // los inventados para el juego, con más txapelas que ganar (noviembre de 2026): base, las reglas (mano a mano en toda
+  // la cancha o hasta el 4½); fmt, el formato; lv, cuánto más fuertes o flojos son los rivales; global, uno solo para
+  // toda Navarra en vez de uno por comarca; como, su «Cómo funciona»
+  fiestas: { name: 'Torneo de Fiestas', full: 'Torneo de Fiestas', k: 'Mano a mano · 8', base: 'mano', fmt: 'ko8', lv: 0,
+    como: { es: 'ocho pelotaris mano a mano, como en las fiestas del pueblo: cuartos y semifinales a 5 tantos y final a 7. Corto y rápido, para una tarde.', eu: 'zortzi pilotari buruz buru, herriko jaietan bezala: final-laurdenak eta finalerdiak 5 tantora eta finala 7ra. Laburra eta azkarra, arratsalde baterako.' } },
+  valles: { name: 'Desafío de los Valles', full: 'Desafío de los Valles', k: 'Liguilla y cuadro', base: 'mano', fmt: 'grupos16', lv: 0.3,
+    como: { es: 'dieciséis pelotaris mano a mano, en toda la cancha. Primero, la liguilla: cuatro grupos de cuatro, tres jornadas a 5 tantos. Los dos primeros de cada grupo pasan a cuartos (a 6), semifinales (a 7) y la final, a 9, en el frontón Labrit de Iruña.', eu: 'hamasei pilotari buruz buru, kantxa osoan. Lehenik, ligaxka: lauko lau multzo, hiru jardunaldi 5 tantora. Multzo bakoitzeko lehen biak final-laurdenetara (6ra), finalerdietara (7ra) eta finalera, 9ra, Iruñeko Labrit frontoian.' } },
+  invierno: { name: 'Copa de Invierno', full: 'Copa de Invierno del Cuatro y Medio', k: 'Hasta el 4½ · 8', base: 'cuatro', fmt: 'ko8', lv: 0.2,
+    como: { es: 'ocho pelotaris mano a mano en el Cuatro y Medio, en los frontones cubiertos del invierno: la pelota no puede botar más allá de la raya del 4 y medio. Cuartos y semifinales a 5 tantos y final a 7.', eu: 'zortzi pilotari buruz buru lau t’erdian, neguko frontoi estalietan: pilotak ezin du lau eta erdiko marratik haratago bote egin. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra.' } },
+  promesas: { name: 'Promesas del 4½', full: 'Torneo de Promesas del Cuatro y Medio', k: 'Para empezar', base: 'cuatro', fmt: 'ko8', lv: -0.9,
+    como: { es: 'ocho pelotaris que empiezan, mano a mano en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio. Cuartos y semifinales a 5 tantos y final a 7. El mejor para estrenarse.', eu: 'hasten ari diren zortzi pilotari, buruz buru lau t’erdian: pilotak ezin du lau eta erdiko marratik haratago bote egin. Final-laurdenak eta finalerdiak 5 tantora eta finala 7ra. Estreinatzeko onena.' } },
+  gran: { name: 'Gran Txapela de Navarra', full: 'Gran Txapela de Navarra', k: 'El acontecimiento del año', base: 'mano', fmt: 'ko16', lv: 1, global: true, evento: true,
+    como: { es: 'el acontecimiento del año: los dieciséis mejores pelotaris de toda Navarra, mano a mano por eliminatorias. Octavos a 5 tantos, cuartos a 6, semifinales a 7 y la gran final, a 9, en el frontón Labrit de Iruña lleno hasta arriba. Una sola txapela para todo el viejo reino.', eu: 'urteko gertaera handia: Nafarroa osoko hamasei pilotari onenak, buruz buru kanporaketetan. Final-zortzirenak 5 tantora, final-laurdenak 6ra, finalerdiak 7ra eta final handia, 9ra, Iruñeko Labrit frontoian, beteta. Txapela bakarra erresuma zahar osorako.' } },
 };
+/** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
+export const EXTRA = ['gran', 'fiestas', 'valles', 'invierno', 'promesas'];
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
@@ -96,6 +113,9 @@ const SERIE16 = [1, 16, 8, 9, 5, 12, 4, 13, 3, 14, 6, 11, 7, 10, 2, 15];
 export function torneo(you, ctx, fresh = false, kind = 'mano') {
   // (el torneo terminado se sigue mostrando, con su campeón, hasta que se pide uno nuevo; uno de antes, de ocho, sin
   // ninguna ronda jugada, se rehace con el formato de ahora, en la misma edición)
+  // (el acontecimiento del año es uno solo para toda Navarra: con su propia «comarca», y rivales de todas)
+  const K = KINDS[kind] || KINDS.mano;
+  if (K.global) ctx = { ...ctx, comarca: 'navarra', comarcaName: 'Navarra' };
   const key = keyOf(ctx.comarca, kind);
   let T = loadAll()[key];
   // (un torneo guardado con menos sedes que las de ahora, de cuando eran cuatro pueblos: con las de ahora, así cada partido
@@ -106,13 +126,15 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   if (!T) {
     const prev = loadAll()[key];
     const ed = rehacer ? prev.edition || 1 : (prev?.edition || 0) + 1, txapelas = prev?.txapelas || 0, r = minstd(ed * 7919 + ctx.comarca.length * 31 + 13);
-    const fmt = FMT[kind] || FMT.mano, N = fmt === 'liga8' ? 8 : 16;
+    const fmt = K.fmt || FMT[kind] || FMT.mano, N = fmt === 'liga8' || fmt === 'ko8' ? 8 : 16;
     const names = NAMES.filter(n => n !== you.name).sort(() => r() - 0.5);   // (nadie con tu mismo nombre)
     // rivales: de los pueblos del juego de la comarca (y de alrededor) primero; después, de otros pueblos navarros
     const towns = [...ctx.towns.map(t => ({ name: t.name, id: t.id })).filter(t => t.name !== you.town), ...TOWNS.filter(t => t !== you.town && !ctx.towns.some(x => x.name === t)).map(name => ({ name, id: null }))];
     const townOf = (i) => towns[i % towns.length];
     // nivel de 1 (flojo) a 3 (fuerte): en cada edición, algo más difíciles
-    const lvOf = () => Math.min(3, 1 + Math.floor(r() * 2.2 + Math.min(ed - 1, 3) * 0.25));
+    // (y en los inventados, más o menos según cada uno: K.lv, los de promesas más flojos y los del acontecimiento del año,
+    // casi todos de los fuertes)
+    const lvOf = () => Math.max(1, Math.min(3, 1 + Math.floor(r() * 2.2 + Math.min(ed - 1, 3) * 0.25 + (K.lv || 0))));
     let players;
     if (kind === 'parejas') {
       // parejas del mismo pueblo: delantero y zaguero; la tuya, con tu compañero (de tu pueblo)
@@ -327,7 +349,7 @@ const CSS = `
 .tq-tile .reto-est{display:flex;gap:4px}.tq-tile .reto-est i{display:block;width:22px;height:22px}.tq-tile .reto-est svg{width:100%;height:100%;fill:none;stroke:#b79cff;stroke-width:1.8}.tq-tile .reto-est i.on svg{fill:#ffd166;stroke:#ffe39a}
 .tq-tiles.retos3{--cw:calc((100% - 24px) / 3)}
 @media (orientation:portrait){.tq-tiles.retos3{--cw:calc((100% - 12px) / 1.55)}}
-.tq-tile.main{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
+.lg-bar .lg-btn.tq-pick{min-width:max-content;padding-inline:16px}.tq-tile.main,.tq-tile.mano2{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.evento{--t1:#ffb21a;--t2:#4a1405}.tq-tile.evento .k{color:#ffd166}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
 /* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
    línea de cada uno; en el menú, a la derecha de Salir; en el torneo, junto a tus txapelas. La lista de pueblos, por comarcas */
@@ -628,7 +650,8 @@ function comoFunciona(T) {
     grupos16: 'dieciséis pelotaris mano a mano en el Cuatro y Medio: la pelota no puede botar más allá de la raya del 4 y medio, la del suelo entre el 4 y el 5, y el saque bota entre la raya del 3 y la del 5. Primero, la liguilla: cuatro grupos de cuatro, tres jornadas a 5 tantos. Los dos primeros de cada grupo pasan a cuartos (a 6), semifinales (a 7) y final (a 9). La final, en el Labrit.',
     liga8: 'ocho parejas de delantero y zaguero en liguilla, todas contra todas, como en el campeonato de verdad: siete jornadas a 5 tantos. Las cuatro primeras pasan a semifinales (a 7) y la final, a 9, se juega en el frontón Labrit de Iruña. Juegas con tu compañero de siempre.',
   };
-  return `<p class="lg-how tq-how" hidden data-notr data-vm="no"><b>${eu ? 'Nola dabil:' : 'Cómo funciona:'}</b> ${txt[T.fmt] || txt.ko16}${mas}</p>`;
+  const propio = KINDS[T.kind]?.como;   // (los inventados, con el suyo)
+  return `<p class="lg-how tq-how" hidden data-notr data-vm="no"><b>${eu ? 'Nola dabil:' : 'Cómo funciona:'}</b> ${propio ? propio[eu ? 'eu' : 'es'] : txt[T.fmt] || txt.ko16}${mas}</p>`;
 }
 /** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega; o: los frontones a elegir, ver sedeHtml:
  *  la elección se apunta en T.sede con su ronda). Devuelve 'play' | 'sim' | 'new' | 'exit'. */
@@ -666,9 +689,9 @@ export function torneoPanel(T, here = null, o = null) {
     // (el cuadro sin rótulo encima cuando no hay pestañas: sus columnas ya dicen cada ronda, y así le queda el alto entero)
     const ph2 = vistas ? `<div class="lg-ph">${vistas}</div>` : '';
     // (el frontón del partido, en la cabecera junto a «?»: antes iba en la barra y no cabía con los botones)
-    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>Txapela de ${esc(T.comarcaName)}</h2></div></div>${sede ? `<div class="tq-sitio">${sede}</div>` : ''}<button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
+    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>${KINDS[T.kind]?.global ? esc(KINDS[T.kind].name) : `Txapela de ${esc(T.comarcaName)}`}</h2></div></div>${sede ? `<div class="tq-sitio">${sede}</div>` : ''}<button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
     // (hasta jugar la primera ronda, se puede cambiar de pelotari: eligePelotari)
-    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${sinEmpezar(T) ? `<button class="lg-btn" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : ''}${btns}</div>`;
+    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${sinEmpezar(T) ? `<button class="lg-btn tq-pick" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : ''}${btns}</div>`;
     const r = lgPanel(`${head}<div class="tq-left lg-pn">${ph}${left}</div><div class="tq-right lg-pn">${ph2}${ligaHtml(T, v0 !== 'liga')}${bracketHtml(T, v0 === 'liga')}</div>${bar}${how}`);
     const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
     // (y otra vez si cambia el tamaño del cuadro o de sus columnas, por ejemplo al cargar las fuentes)
@@ -781,11 +804,11 @@ export function retosMenu() {
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */
-export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
+export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = []) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
     const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.pairs ? m.rival.mates[0] : m.rival.name)}` : 'Siguiente ronda'; };
-    const tx = (T.txapelas || 0) + (T2?.txapelas || 0) + (T3?.txapelas || 0), C = pelotarisCount();
+    const tx = (T.txapelas || 0) + (T2?.txapelas || 0) + (T3?.txapelas || 0) + X.reduce((n, x) => n + (x?.txapelas || 0), 0), C = pelotarisCount();
     // las portadas, con los pelotaris del autor: en el torneo, tu rival de la ronda (o quien ganó); por parejas, la pareja
     // rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido (o tres de la plantilla)
     const who = (X) => yourMatch(X)?.rival || (X.done ? X.players[X.champion] : X.players.find(q => !q.you));
@@ -797,6 +820,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null) {
       <div class="tq-carr"><button class="tq-flecha izq" aria-label="Anteriores" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="tq-tiles${T2 ? T3 ? ' n5' : '' : ' n3'}"><button class="tq-tile main" data-a="torneo" style="--d:.2s"><span class="figs">${figOf(T)}</span><span class="k">${T.txapelas ? `${T.txapelas} ${T.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.mano.k}</span><b>${KINDS.mano.name}</b><small>${sub(T)}</small></button>
         ${T2 ? `<button class="tq-tile pair" data-a="torneoParejas" style="--d:.8s"><span class="figs duo">${figOf(T2, true)}</span><span class="k">${KINDS.parejas.k}</span><b>${KINDS.parejas.name}</b><small>${sub(T2)}</small></button>` : ''}
         ${T3 ? `<button class="tq-tile c45" data-a="torneoCuatro" style="--d:1.1s"><span class="figs">${figOf(T3)}</span><span class="k">${T3.txapelas ? `${T3.txapelas} ${T3.txapelas === 1 ? 'txapela' : 'txapelas'}` : KINDS.cuatro.k}</span><b>${KINDS.cuatro.name}</b><small>${sub(T3)}</small></button>` : ''}
+        ${X.map((x, i) => { const K = KINDS[x.kind]; return `<button class="tq-tile ${K.evento ? 'evento' : K.base === 'cuatro' ? 'c45' : 'mano2'}" data-a="t:${x.kind}" style="--d:${(1.2 + i * 0.1).toFixed(2)}s"><span class="figs">${figOf(x)}</span><span class="k">${x.txapelas ? `${x.txapelas} ${x.txapelas === 1 ? 'txapela' : 'txapelas'}` : esc(K.k)}</span><b>${esc(K.name)}</b><small>${sub(x)}</small></button>`; }).join('')}
         <button class="tq-tile free" data-a="libre" style="--d:1.4s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">A ${tantosDe(5)} tantos</span><b>Partido libre</b><small>Mano, parejas o&nbsp;4½</small></button>
         <button class="tq-tile retos" data-a="retos" style="--d:1.55s"><span class="figs reto-fig">${RETO_ART.diana}</span><span class="k">${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}</span><b>${retoT().titulo}</b><small>${isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas'}</small></button>
         ${camaraDisponible() ? `<button class="tq-tile casa" data-a="camara" style="--d:1.7s"><span class="figs">${pelotariFig(youName, 'azul', 'fig')}</span><span class="k">Con la cámara</span><b>Pelota en casa</b><small>Tu pelotari hace lo que&nbsp;haces</small></button>` : ''}

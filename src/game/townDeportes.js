@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -185,8 +185,9 @@ export class PuebloDeportes {
       this.ui.hudVisible(false);
       // (el partido libre, en el frontón que elijas: de primeras, el de la plaza, que es donde estás)
       const sel = { sedes: this.sedes(), sede: this.fronton.court.labrit ? 'labrit' : 'plaza' };
-      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'));
+      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'), EXTRA.map(k => torneo(you, ctx, false, k)));
       if (this.disposed || pick === 'exit') return;
+      if (pick.startsWith('t:')) return await this.pelotaTorneo(a, ctx, pick.slice(2));   // (los campeonatos inventados)
       if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
@@ -277,8 +278,9 @@ export class PuebloDeportes {
         const you = { name: P.name || 'Tú', town };
         // (el frontón del partido libre, a elegir: el de la plaza, el cubierto, el Labrit u otro pueblo; se recuerda)
         const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : S[0], otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
-        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'));
+        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'), EXTRA.map(k => torneo(you, ctx, false, k)));
         if (this.disposed || pick === 'exit') return;
+        if (pick.startsWith('t:')) { await this.pelotaTorneo(a, ctx, pick.slice(2)); if (this.disposed) return; continue; }   // (los campeonatos inventados)
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
         if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : 'mano'); if (this.disposed) return; continue; }
         if (pick === 'retos') { await this.pelotaRetos(a, sel); if (this.disposed) return; continue; }
@@ -340,7 +342,7 @@ export class PuebloDeportes {
         const r = await venue.play(this, a, { target: m.target, level: m.level, rivalName: `${pairs ? m.rival.mates[0] : m.rival.name} (${m.rival.town})`, fixedLevel: true, returnTo: this.fronton, rivalStats: m.stats, stay: true,
           pairs: pairs ? { partner: m.partner, rivalMate: m.mate } : null, rivalTown: m.rival.townId ? { id: m.rival.townId, name: m.rival.town } : null,
           comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T),
-          rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: kind === 'cuatro',
+          rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: reglaDe(kind) === 'cuatro',
           yo: T.yo ? { name: T.yo.name, town: T.yo.town, stats: tusStats(T) } : null });   // (el pelotari con el que juegas el campeonato, si no es el tuyo)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
@@ -359,7 +361,8 @@ export class PuebloDeportes {
           if (pairs) {
             await showChampion({ kind: 'pelota', kicker: `${KINDS.parejas.full} · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           } else {
-            await showChampion({ kind: 'pelota', kicker: `${(KINDS[kind] || KINDS.mano).full} · ${ctx.comarcaName}`, title: '¡Txapeldun!', name: T.yo?.name || P.name || 'Campeón', sub: `La txapela de ${ctx.comarcaName} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+            const gran = KINDS[kind]?.global, donde = gran ? 'Navarra' : ctx.comarcaName;   // (el acontecimiento del año, de toda Navarra)
+            await showChampion({ kind: 'pelota', kicker: gran ? KINDS[kind].full : `${(KINDS[kind] || KINDS.mano).full} · ${donde}`, title: '¡Txapeldun!', name: T.yo?.name || P.name || 'Campeón', sub: `${gran ? 'La Gran Txapela de Navarra' : `La txapela de ${donde}`} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           }
         }
         // (sin charla en el pueblo entre ronda y ronda: el cuadro del torneo ya dice si sigues, la ronda que viene y dónde)
