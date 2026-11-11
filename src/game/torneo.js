@@ -547,11 +547,22 @@ const EP_CSS = `
 .ep-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .ep-head h2{margin:var(--t-mt) 0 0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase}
 .ep-head p{margin:6px 0 0;color:var(--lila2);font:500 var(--fs-sm)/1.35 var(--f-body);max-width:60ch}
-.ep-grid{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 4px 10px;scroll-snap-type:x proximity;scrollbar-width:thin;min-height:0}
-.ep-it{scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;border-radius:10px;padding:4px;outline:2px solid transparent;outline-offset:2px;transition:outline-color .2s ease}
-.ep-it.on{outline-color:#ffd166}
-.ep-it em{font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila2);font-style:normal}
-.ep-it.on em{color:#ffd166}
+/* (la fila, sin barra de desplazamiento: en el iPhone se pintaba encima de los pueblos; arriba, sitio para que la elegida
+   suba y brille sin cortarse) */
+.ep-grid{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;gap:12px;overflow-x:auto;overflow-y:hidden;padding:12px 6px 10px;scroll-snap-type:x proximity;scrollbar-width:none;min-height:0}
+.ep-grid::-webkit-scrollbar{display:none}
+.ep-it{scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 2px;transition:transform var(--d-encima,200ms) var(--ease,ease)}
+/* la elegida: sube un poco y su borde se enciende en dorado siguiendo su silueta de escudo (antes, un recuadro de esquinas
+   redondas alrededor que no casaba con la carta y se cortaba por abajo); su pueblo, en una pastilla amarilla con la marca
+   verde, como los demás checks del juego */
+.ep-it.on{transform:translateY(-4px)}
+.ep-it.on .gx-card{filter:drop-shadow(0 0 .6px #ffd166) drop-shadow(0 0 1.4px #ffd166) drop-shadow(0 0 8px rgba(255,209,102,.5)) drop-shadow(0 10px 18px rgba(0,0,0,.5))}
+.ep-it em{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila2);font-style:normal;white-space:nowrap}
+.ep-it.on em{background:#ffd166;color:#2a1450;padding-left:5px}
+.ep-it.on em::before{content:'';flex:none;width:11px;height:11px;background:#148a3f;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='black' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='black' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+@media (prefers-reduced-motion:reduce){.ep-it{transition:none}.ep-it.on{transform:none}}
+/* (en el móvil tumbado, la explicación en una sola línea: así queda alto para las cartas enteras, con sus cifras) */
+@media (orientation:landscape) and (max-height:500px){.ep-head p{max-width:none}}
 @media (orientation:portrait){.ep-grid{grid-auto-flow:row;grid-template-columns:repeat(auto-fill,minmax(var(--epw,120px),1fr));overflow-x:hidden;overflow-y:auto;justify-items:center}}
 `;
 /** La pantalla de elegir pelotari: tu carta y las de los pelotaris del juego, y abajo «Jugar con …». yo: { name, town }.
@@ -562,17 +573,25 @@ export function eligePelotari(T, yo) {
   let sel = T.yo?.name || '';   // ('' es el tuyo)
   return new Promise(res => {
     // (la carta, del alto que deja la pantalla: tumbado, el de la fila; de pie, unas tres por fila)
-    const tumbado = innerWidth > innerHeight, w = Math.round(tumbado ? Math.max(88, Math.min(176, (innerHeight - 268) / CARTA_ALTO)) : Math.max(96, Math.min(150, (innerWidth - 80) / 3)));
+    const tumbado = innerWidth > innerHeight; let w = Math.round(tumbado ? Math.max(88, Math.min(176, (innerHeight - 268) / CARTA_ALTO)) : Math.max(96, Math.min(150, (innerWidth - 80) / 3)));
     const it = (name, town, stats, bonus, nota, i, mia = false) => `<div class="ep-it${(mia ? '' : name) === sel ? ' on' : ''}" data-p="${esc(mia ? '' : name)}">${pelotariCard({ name, town, stats, side: 'azul', role, w, bonus, tag: 'button', attr: `data-p="${esc(mia ? '' : name)}" aria-label="${esc(name)}"`, pop: true, d: i * 0.03, lang, yo: mia })}<em>${esc(nota)}</em></div>`;
-    const cartas = [it(yo.name, yo.town, tusCualidades(), youBonus(T), eu ? 'Zu' : 'Tú', 0, true),
+    const cartas = () => [it(yo.name, yo.town, tusCualidades(), youBonus(T), eu ? 'Zu' : 'Tú', 0, true),
       ...L.map((p, i) => it(p.name, p.town, pelotariStats(`${p.name} ${p.town}`, p.lv), (p.lv - 2) * 3, p.town, i + 1))].join('');
     const nombre = () => sel || (eu ? 'nirea' : 'el mío');
     const r = lgPanel(`<div class="ep-head"><small>${esc((KINDS[T.kind] || KINDS.mano).full)} · ${esc(T.comarcaName || '')}</small><h2>${eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari'}</h2>
       <p>${eu ? 'Harekin jokatuko duzu txapelketa osoa. Lehen txandara arte alda dezakezu.' : 'Con él o con ella juegas todo el campeonato. Lo puedes cambiar hasta la primera ronda.'}</p></div>
-      <div class="ep-grid" style="--epw:${w + 8}px">${cartas}</div>
+      <div class="ep-grid" style="--epw:${w + 8}px">${cartas()}</div>
       <div class="lg-bar"><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok">${eu ? 'Jokatu: ' : 'Jugar con '}<span class="ep-n">${esc(nombre())}</span></button></div>`);
     r.firstElementChild.classList.add('ep-card');
-    requestAnimationFrame(() => r.querySelector('.ep-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }));
+    // (tumbado, la carta se calcula con el alto de la pantalla, pero lo que de verdad queda para la fila depende del aparato:
+    // el notch y la barra de abajo del iPhone, las barras de Safari. Se mide y, si la carta con su pueblo no cabe entera,
+    // se vuelven a pintar las cartas un poco más pequeñas: antes la elegida se cortaba por abajo)
+    const encaja = () => { const g = r.querySelector('.ep-grid'), e = g?.querySelector('.ep-it'); if (!tumbado || !g || !e) return;
+      const cs = getComputedStyle(g), sobra = e.offsetHeight + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) - g.clientHeight;
+      // (no por debajo de 86 px: más estrecha, la carta ya no enseña sus cifras, sport.css)
+      if (sobra <= 0) return; const w2 = Math.max(86, Math.floor(w - sobra / CARTA_ALTO) - 1); if (w2 >= w) return;
+      w = w2; g.style.setProperty('--epw', `${w + 8}px`); g.innerHTML = cartas(); };
+    requestAnimationFrame(() => { encaja(); r.querySelector('.ep-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }); });
     const fin = (ok) => { removeEventListener('keydown', key, true); lgFuera(r); res(ok); };
     const key = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); if (!T.elegido) { T.elegido = true; save(T); } fin(false); } };
     addEventListener('keydown', key, true);
