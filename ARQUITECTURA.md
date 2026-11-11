@@ -320,6 +320,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mide una vez en la malla de cada figura (los puntos que mueve el hueso de la cabeza y lo que cuelga de él, en su
   espacio; el radio que deja dentro al 90 %) y, en cada fotograma, si la palma queda dentro, el brazo se gira desde el
   hombro hasta sacarla, en tres pasos como mucho. `globalThis.__manosLibres` lo apaga para comparar.
+- **La chapa de arriba y el sonido de la chapa** (`pelota/court.js`, `chapa-arriba`, `chapa-izquierda`;
+  `pelota/audio.js`, `chapa`; `pelota/game.js`, `alta` en los eventos `front` y `wall`): como en los frontones de verdad,
+  encima de la raya de arriba del frontis y de la de la pared izquierda hay una franja de chapa, del color de la de
+  abajo, con su colchón, el remate que sobresale. La pelota suena a metal al dar en cualquier chapa, la de abajo o las
+  de arriba (antes en la chapa no sonaba nada). El sonido está sintetizado, a la espera de una grabación.
 - **Rótulos con movimiento** (`pelota/hud.js`, `call` y sus estilos `pelCall*`; `pelota/match.js`, `anim` en el aviso
   del tanto): el aviso grande se abre desde una raya inclinada, lo barre un brillo, las letras caen una detrás de otra
   (cada una en su `span.l` con su retraso, `--i`) y al irse se cierra en raya y sale de lado (`sale`). Cada fallo tiene

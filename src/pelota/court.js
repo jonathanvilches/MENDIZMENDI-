@@ -275,6 +275,11 @@ export class PelotaCourt {
     chapaTop.position.set(0, C.CHAPA - 0.0625, 0.05); chapaTop.castShadow = true; g.add(chapaTop);
     const chapaLine = new T.Mesh(new T.BoxGeometry(W, 0.08, 0.07), M({ color: th.mark, roughness: 0.6 }));
     chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);   // (la raya, donde siempre: lo que da por debajo es chapa)
+    // y arriba, como en los frontones de verdad, otra chapa: la franja de metal por encima de la raya de arriba del frontis
+    // (lo que da ahí es fuera, y suena a chapa) con su colchón, el remate doblado que sobresale, como el de la de abajo
+    const chapaArribaMat = M({ color: th.chapa, metalness: th.chapaMetal ? 0.3 : 0, roughness: 0.48 }), hA = C.FRONT_H - C.FRONT_TOP;
+    const chapaArriba = new T.Mesh(new T.BoxGeometry(W, hA, 0.05), chapaArribaMat); chapaArriba.position.set(0, C.FRONT_TOP + hA / 2, 0.025); chapaArriba.receiveShadow = true; chapaArriba.name = 'chapa-arriba'; g.add(chapaArriba);
+    const colchonArriba = new T.Mesh(new T.BoxGeometry(W, 0.06, 0.11), chapaArribaMat); colchonArriba.position.set(0, C.FRONT_TOP + 0.03, 0.055); colchonArriba.castShadow = true; g.add(colchonArriba);
 
     // --- pared izquierda (lisa, con la raya roja de arriba). También en la calle: antes era la fila de casas, con fachadas
     // casi blancas, ventanas y geranios, y la pelota, casi blanca, no se veía contra ellas; ahora la pared es de frontón,
@@ -364,7 +369,11 @@ export class PelotaCourt {
     // la raya de arriba de la pared izquierda (por encima, la pelota es mala), una tira de verdad pegada a la pared: pintada
     // en la textura, de 40 m de largo, a lo lejos y vista de lado se emborronaba hasta desaparecer
     { const raya = new T.Mesh(new T.PlaneGeometry(EXT, 12 / 512 * C.LEFT_H), M({ color: th.mark, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya); }
+      raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya);
+      // (y encima de la raya, la chapa de arriba de la pared izquierda con su colchón, como la del frontis)
+      const mA = M({ color: th.chapa, metalness: th.chapaMetal ? 0.3 : 0, roughness: 0.48 }), hL = C.LEFT_H - C.LEFT_LINE - 0.02;
+      const chL = new T.Mesh(new T.BoxGeometry(0.05, hL, EXT), mA); chL.position.set(-W / 2 + 0.025, C.LEFT_LINE + 0.02 + hL / 2, EXT / 2); chL.receiveShadow = true; chL.name = 'chapa-izquierda'; g.add(chL);
+      const coL = new T.Mesh(new T.BoxGeometry(0.11, 0.06, EXT), mA); coL.position.set(-W / 2 + 0.055, C.LEFT_LINE + 0.05, EXT / 2); coL.castShadow = true; g.add(coL); }
 
     // --- el rebote (la pared del fondo) y las gradas de la contracancha
     // el rebote cierra la cancha por detrás, tan alto como la pared izquierda (solo detrás de la cancha: se entra por la

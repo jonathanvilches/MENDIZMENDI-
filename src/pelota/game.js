@@ -521,14 +521,14 @@ export class PelotaGame {
     if (e.type === 'front') {
       if (R.front) return;                                    // ya había dado
       if (e.y < COURT.CHAPA) { this.emit({ type: 'front', ...e, chapa: true }); return this.point(receiver, 'chapa'); }
-      if (e.y > COURT.FRONT_TOP) { this.emit({ type: 'front', ...e }); return this.point(receiver, 'alta'); }
+      if (e.y > COURT.FRONT_TOP) { this.emit({ type: 'front', ...e, alta: true }); return this.point(receiver, 'alta'); }   // (en la chapa de arriba)
       if (e.x > COURT.W / 2) { this.emit({ type: 'front', ...e }); return this.point(receiver, 'lado'); }   // fuera de la raya lateral del frontis
       R.front = true; R.bounces = 0;
       this.emit({ type: 'front', ...e });
       if (this.reto === 'diana' && striker === 'you') { const d = this.diana; return this.retoTiro(Math.hypot(e.x - d.x, e.y - d.y) <= d.r, { x: e.x, y: e.y }); }
       if (this.mode === 'rally' && striker === 'you' && (!this.reto || this.reto === 'peloteo')) { this.streak++; this.best = Math.max(this.best, this.streak); this.emit({ type: 'streak', n: this.streak }); if (this.streak >= this.target) this.finish(); }
     } else if (e.type === 'left') {
-      this.emit({ type: 'wall', ...e });
+      this.emit({ type: 'wall', ...e, alta: e.y > COURT.LEFT_LINE });   // (alta: en la chapa de arriba de la pared)
       // en la pared izquierda, por encima de su raya roja (o por encima de la pared) es mala, antes o después del frontis
       if (e.y > COURT.LEFT_LINE) return this.point(receiver, 'pared');
     } else if (e.type === 'back') {

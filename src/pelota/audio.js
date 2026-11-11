@@ -110,6 +110,15 @@ export class PelotaAudio {
   }
   floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
   wall() { this.front(0.6); }
+  // la pelota en la chapa, la de abajo o las de arriba: el golpe de la plancha de metal, con su vibración que se apaga, y el
+  // golpe sordo del colchón de detrás. Antes en la chapa no sonaba nada (sintetizado: mejor con una grabación de chapa)
+  chapa(power = 1) {
+    const c = this.ensure(); if (!c) return; const t = c.currentTime, p = Math.min(1.2, power);
+    this.noise(t, 0.05, 3600, 1.1, 0.45 * p, 'highpass');
+    for (const [f, g, d] of [[392, 0.2, 0.6], [1031, 0.15, 0.48], [1777, 0.1, 0.38], [2690, 0.07, 0.3], [3810, 0.045, 0.22]]) this.tone(t, d, f * (0.97 + Math.random() * 0.06), g * p, 'triangle', 0.995);
+    this.tone(t, 0.12, 120, 0.32 * p, 'sine', 0.6);
+    this.noise(t + 0.01, 0.42, 2400, 6, 0.05 * p);
+  }
   // el golpe del «VS» de la presentación: un bombo seco con chasquido y el público que ruge (largo y más grave sonaba a trueno)
   slam() { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.tone(t, 0.35, 72, 0.6, 'sine', 0.35); this.tone(t, 0.25, 110, 0.3, 'triangle', 0.5); this.noise(t, 0.12, 2600, 0.7, 0.4); if (!PUBLICO) return; if (!this.crowdN?.roar(0.55)) this.crowd('clap', 0.7); else this.crowdN.applause(0.7, 0.25); }
   // el público: «¡oooh!» y el aplauso de todo el frontón (si aún no están calculados, ruido filtrado como antes)

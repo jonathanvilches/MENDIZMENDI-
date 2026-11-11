@@ -1142,8 +1142,8 @@ export class PelotaMatch {
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
       // (la chapa: su destello, sin sacudir la cámara ni sonar: el «¡clonc!» del fallo no gustaba; el fallo se oye en los
       // aplausos)
-      case 'front': if (!e.chapa) this.jugadaVa('front'); if (e.chapa) C.chapaT = 0.6; else if (!this.callada) A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); if (this.fp?.on) this.fp.impacto(Math.max(0, 1 - (g.players.you.z || 20) / 28) * 0.5); break;
-      case 'wall': if (!this.callada) A.wall(); break;
+      case 'front': if (!e.chapa) this.jugadaVa('front'); if (e.chapa) { C.chapaT = 0.6; if (!this.callada) A.chapa(1); } else if (e.alta) { if (!this.callada) A.chapa(0.85); } else if (!this.callada) A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); if (this.fp?.on) this.fp.impacto(Math.max(0, 1 - (g.players.you.z || 20) / 28) * 0.5); break;
+      case 'wall': if (!this.callada) { if (e.alta) A.chapa(0.8); else A.wall(); } break;
       case 'back': if (e.live) this.jugadaVa('back'); if (!this.callada) A.wall(); if (e.live) this.hud.golpe((t.shots || TEXT.es.shots).rebote, this.cols[g.side(g.rally?.by || 'you')]); break;   // el rebote: la pared de atrás, en el rótulo de quien la mandó
       case 'floor': if (!this.callada) A.floor(e.soft ? 0.5 : 0.8); break;
       case 'streak': if (g.reto) this.retoMarcador(); else this.hud.setScore(e.n, '', g.server); break;
