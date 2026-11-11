@@ -30,12 +30,11 @@ const SPEC = {
   // llega a la cruz, no por encima del lomo como a la pottoka
   // (el de Burguete es de tiro: ancho, de mucho pecho y tripa, cuello grueso y patas fuertes; el modelo es de un caballo
   // de silla y, al lado del jinete, se quedaba pequeño y flaco. El autor, noviembre de 2026)
-  // (con los colores de las fotos que pasó el autor: castaño, crin, copete y cola negros y las patas negras hasta los
-  // corvejones; la forma, la del modelo de base, a su tamaño de 2,3 m: ensancharle el cuerpo y las patas lo deformaba y al
-  // autor no le gustó, noviembre de 2026. Se modelará aparte. Las opciones de forma siguen en caricatura: torso, cuello,
-  // vientre, grupa, patas, abre, melena, copete, cola, calzas)
-  burguete: { model: 'Horse', h: 2.3, estilo: { medias: { alto: 0.36, col: '#161110' } }, brillo: 0.5,
-    col: { Main: '#8a4520', Main_Dark: '#56250f', Main_Light: '#9c5228', Hair: '#110c0a', Muzzle: '#5c4436', Hooves: '#5a524a' } },
+  // (el modelo de base tal cual, con sus colores de siempre, alazán con las crines claras, solo más grande: 2,3 m con la
+  // cabeza alta en vez de 2,02. Ensancharle el cuerpo, pintarle las patas de negro y la crin oscura lo deformaba y al autor
+  // no le gustó, noviembre de 2026: se modelará aparte. Las opciones de forma siguen en caricatura: torso, cuello, vientre,
+  // grupa, patas, abre, melena, copete, cola, calzas, medias; y brillo en hideMaterial. Los ojos, aún más pequeños: ojo)
+  burguete: { model: 'Horse', h: 2.3, estilo: { ojo: 0.75 }, col: { Main: '#9a5a2c', Main_Dark: '#6e3d1c', Main_Light: '#b87a44', Hair: '#d9b77a', Muzzle: '#4a3222' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
@@ -237,7 +236,8 @@ function caricatura(geo, S, skel, bindMatrix) {
       // (el tamaño, a la medida de la cabeza: entre un cuarto y un tercio de lo que mide, de lado a lado. El parche del modelo engaña: en la
       // cabra y el pastor alemán trae el párpado y sale enorme; en el cerdo es un punto)
       const cab = Math.max(cabeza.max.x - cabeza.min.x, cabeza.max.y - cabeza.min.y, cabeza.max.z - cabeza.min.z) || H * 0.3;
-      const R = THREE.MathUtils.clamp(rad[l] * E.ojos, 0.085 * cab, 0.12 * cab) * (E.ojo || 1), C = cen[l], lado = _v.crossVectors(up, n).normalize().clone(), alto = new THREE.Vector3().crossVectors(n, lado);
+      const R = THREE.MathUtils.clamp(rad[l] * E.ojos, 0.065 * cab, 0.09 * cab) * (E.ojo || 1),   // (más pequeños: 0,115-0,16 al principio, luego 0,085-0,12, y aún eran grandes)
+      C = cen[l], lado = _v.crossVectors(up, n).normalize().clone(), alto = new THREE.Vector3().crossVectors(n, lado);
       bola(R, 10, 7, '#f7f4ee', C.clone().addScaledVector(n, -0.22 * R), n, 0.55);                                           // el blanco
       bola(R * 0.88, 9, 6, E.iris, C.clone().addScaledVector(n, 0.05 * R), n, 0.5);                                           // el iris
       bola(R * 0.2, 6, 4, '#ffffff', C.clone().addScaledVector(n, 0.4 * R).addScaledVector(alto, 0.26 * R).addScaledVector(lado, 0.2 * R), n, 0.6);   // el brillo
@@ -323,7 +323,7 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
 //    más oscuras y con barro · pelo fino en la dirección del cuerpo, con un poco de relieve, que se funde de lejos
 //  · un brillo suave en el contorno (el pelo recoge la luz de lado)
 // k.hair: fuerza del pelo (el cerdo casi no tiene; el jabalí, cerdas), k.belly: aclarado del vientre
-const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, burguete: { hair: 0.5, belly: 0.03 }, bull: { hair: 0.7, belly: 0.03 },
+const COAT = { pig: { hair: 0.25, belly: 0.06, patch: 0.5 }, jabali: { hair: 1.4, belly: 0.04 }, pottoka: { hair: 0.8, belly: 0.1 }, burguete: { hair: 0.5, belly: 0.12 }, bull: { hair: 0.7, belly: 0.03 },
   zorro: { hair: 1.1, belly: 0.3 }, corzo: { hair: 0.9, belly: 0.3, rump: 1, rumpY: [0.48, 0.74] }, ciervo: { hair: 1.0, belly: 0.22, rump: 0.6, rumpY: [0.36, 0.56] } };
 // rump: el escudo claro de la grupa (blanco en el corzo, que lo enseña al huir; crema en el ciervo), en la parte de
 // atrás del cuerpo (los modelos miran hacia +z) entre las alturas rumpY (fracción de la altura del modelo)
