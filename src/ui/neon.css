@@ -126,6 +126,15 @@ body:not(.alto-contraste) :is(.btn:not(.primary, .exit), .fb-alt, .pel-go.alt, .
 /* (lo elegido: relleno, no contorno; el mismo en niveles, pestañas, vistas y opciones) */
 body:not(.alto-contraste) :is(.pel-levels button, .pel-mseg button, .pel-otabs button, .pfx-tabs button, .pz-op, .fb-ctabs button, .pc-tabs button, .tq-vista button, .ix-tabs button, .ix-shots button, .mq-tabs button):is([aria-pressed=true], [aria-selected=true], [aria-checked=true], .on) {
   background: var(--btn-on) !important; color: #fff !important; box-shadow: none !important; }
+/* ---------- lo que sigues, lo conseguido y lo de cada comarca: con relleno, no con un borde de color ----------
+   (la misión que sigues en el cuaderno y su icono iban con un borde rosa; los datos conseguidos de la ficha del pueblo,
+   con uno dorado; las fichas de cultura de la comarca, con uno lila. Ahora llevan la raya neutra de todo y se distinguen
+   por el relleno, como lo elegido en los botones) */
+:root :is(.qitem.sigue, .qitem.sigue .qi, .fh-st.ok, .screen .cultgrid .cult) { border-color: var(--linea) !important; }
+:root .qitem.sigue { background: rgba(138, 43, 226, .26) !important; } :root .qitem.sigue .qi { background: rgba(255, 122, 200, .24) !important; }
+:root .fh-st.ok { background: rgba(255, 209, 102, .14) !important; }
+/* (al pasar por encima de una tarjeta del menú, la sombra más honda, ya puesta arriba; el borde no se enciende de color) */
+#hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg, .ddc, .dd-tema):is(:hover, :focus-visible) { border-color: var(--linea) !important; }
 @media (prefers-reduced-motion: reduce) {
   .gx-card::after { animation: none; }
 }
