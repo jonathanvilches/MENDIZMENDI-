@@ -26,6 +26,16 @@ export class Musica {
   }
   pista(n) {
     if (this.P[n] || !this.ok || !URLS[n]) return this.P[n] || null;
+    // (la del menú que ya suena desde la página de arranque, index.html: se pasa al bus de música del juego sin cortarla)
+    const S0 = window.__sonido, pre = S0?.musica;
+    if (pre && pre.n === n && !pre.tomada && pre.src?.context === this.ctx) {
+      try {
+        pre.tomada = true; const g = this.ctx.createGain(); g.gain.value = 0; pre.src.disconnect(); pre.src.connect(g); g.connect(this.dest);
+        const p = this.P[n] = { n, a: pre.a, g, estado: pre.a.paused ? 'nada' : 'suena', libre: true, previa: true };
+        pre.a.addEventListener('error', () => { if (pre.a.getAttribute('src')) p.estado = 'fallo'; });
+        return p;
+      } catch (e) { console.warn('música del arranque', e); }
+    }
     try {
       // (los elementos del arranque, index.html: si ya hubo un toque, están libres para sonar sin otro)
       const S = window.__sonido, del = S?.pool?.length ? S.pool.shift() : null, a = del || new Audio(); a.preload = 'auto'; a.loop = true;
@@ -79,7 +89,8 @@ export class Musica {
     }
   }
   /** Las crea ya, sin sonar, para que se vayan cargando: al pedir una, entra enseguida */
-  prepara(ns) { for (const n of ns) this.pista(n); }
+  // (si la del arranque no es la que toca ahora —se abrió en otra pantalla o con la música quitada—, calla)
+  prepara(ns) { for (const n of ns) this.pista(n); for (const p of Object.values(this.P)) if (p.previa && p !== this.cur && !p.a.paused) { p.a.pause(); p.estado = 'nada'; } }
   quiere(n) {
     const p = n ? this.pista(n) : null, t = this.ctx.currentTime;
     if (p !== this.cur) {
@@ -91,7 +102,8 @@ export class Musica {
   // (con la página escondida o la música quitada en Ajustes, calla y luego sigue donde iba)
   pausa(si) { this.calla = si; const p = this.cur; if (!p || p.estado === 'fallo') return; if (si) { if (!p.a.paused) p.a.pause(); if (p.estado !== 'espera') p.estado = 'nada'; } else if (p.estado === 'nada') this.suena(p); }
   /** Al arrancar (src/audio.js, init): la del menú, la primera en bajarse; suena en cuanto se pueda */
-  arranca(n) { const p = this.pista(n); if (p) { this.cur = p; p.g.gain.value = 0; p.g.gain.setTargetAtTime(VOL[n] || 0.4, this.ctx.currentTime, 0.5); this.suena(p); } }
+  // (si ya sonaba desde el arranque, sigue a su volumen, sin bajar y volver a subir)
+  arranca(n) { const p = this.pista(n); if (p) { this.cur = p; if (p.previa && p.estado === 'suena') { p.g.gain.value = VOL[n] || 0.4; return; } p.g.gain.value = 0; p.g.gain.setTargetAtTime(VOL[n] || 0.4, this.ctx.currentTime, 0.5); this.suena(p); } }
 }
 
 // ---- los cortos: descomprimidos una vez por contexto de audio ----
