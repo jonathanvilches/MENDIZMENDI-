@@ -47,7 +47,8 @@ function shotEnergy(shot, sub, pow, volea) {
 // la izquierda y más alta); después, «tarde» (a la derecha y más baja). TOL: lo que se perdona, según el nivel
 const SWEET = 0.05, SWING_WIN = 0.34, CAM_WIN = 0.55, CAM_LAT = 0.1, CAM_HOLD = 0.4;
 const TOL = { iniciacion: 0.3, facil: 0.24, normal: 0.19, dificil: 0.15, experto: 0.12 };
-// a partir de esta altura, el golpe es un gancho: por encima del hombro, de arriba abajo, pegado a la pared izquierda
+// a partir de esta altura, de volea, el golpe es un gancho: con la izquierda, por encima del hombro, girando hacia la
+// derecha para mandarla a la contracancha (y, con la palanca a la izquierda, a la pared izquierda)
 const GANCHO_Y = 1.55;
 
 // altura a la que pega en el frontis la cortada y la dejada según la fuerza (0 a 1, la carga del botón) y el joystick
@@ -301,8 +302,9 @@ export class PelotaGame {
     const tm = o.timing || 0, tk = clamp(Math.abs(tm) / Math.max(0.05, this.tol), 0, 1.4);
     // (poco: lo que manda es el joystick; antes, tarde, una pelota del todo a la izquierda se quedaba a media cancha)
     if (!serve && tm) { rawX = clamp(rawX + Math.sign(tm) * tk * 0.16, -1, 1); }
-    // gancho: tocada alta, por encima del hombro, sale de arriba abajo y pegada a la pared izquierda (con el joystick a la
-    // derecha, cruzado hacia el ancho). Con el joystick arriba, en cambio, la alta se manda larga: decides tú
+    // gancho: de volea y alta, con la izquierda, girando hacia la derecha: sale de arriba abajo hacia la contracancha (con
+    // la palanca a fondo a la izquierda, acaba en la pared izquierda). Con la palanca arriba, en cambio, la alta se manda
+    // larga: decides tú. Antes iba de serie pegado a la pared izquierda, y el gancho de verdad va a la contracancha
     const gancho = !serve && !!o.gancho && !req && !((aim.y || 0) > 0.6);
     if (!serve) aim = { x: aimSide(rawX), y: (aim.y || 0) - (tm > 0 ? tk * 0.25 : 0) };
     // (a tope cuesta más afinar; menos a quien tiene fuerza, más a quien no. Y con precisión, todo un poco más fino: a 5,
@@ -371,7 +373,7 @@ export class PelotaGame {
       // y la pelota vuelve alta; la cortada es la que va de media pared abajo. De volea y de gancho, más tenso)
       // (desde más atrás, más fuerte: si no, para llegar tendría que dar arriba del todo)
       let tx, landZ, speed = (14 + q * 3 + pow * 13 + (S - 3) * 1.3) * (0.72 + clamp(p.z, 8, 30) / 50) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
-      if (gancho) aim = { x: rawX > 0.35 ? Math.max(aim.x, 0.7) : -0.9, y: clamp(aim.y, -0.6, 0.4) };
+      if (gancho) aim = { x: rawX < -0.6 ? -0.9 : Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
       // (antes había que ir a la diagonal exacta abajo-izquierda y casi nunca salía: ahora basta con el joystick bien a la
@@ -404,7 +406,7 @@ export class PelotaGame {
         else if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 19 + pow * 4); speed -= (aim.y - 0.6) * 9; }
         else landZ = depth;
         if (aim.x < -0.6) shot = 'pared'; else if (aim.x > 0.6) { shot = 'ancho'; landZ -= 1; }
-        if (gancho) { shot = 'gancho'; sub = aim.x > 0 ? 'ganchoCruzado' : ''; landZ = clamp(landZ, 12, 18.5); }
+        if (gancho) { shot = 'gancho'; sub = aim.x < 0 ? 'ganchoPared' : ''; landZ = clamp(landZ, 12, 18.5); }
         lx = clamp(lx + gauss(rnd) * err * 1.2, -4.75, 5.6);   // (un golpe malo al ancho puede irse fuera)
         landZ += gauss(rnd) * err * 2.5;
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
@@ -659,7 +661,7 @@ export class PelotaGame {
   }
   // El repertorio entero de la pelota a mano: pelotear, fuerte hacia atrás (al rebote si tiene fuerza), dejada al txoko y
   // al ancho, cortada a la pared, al ancho y a dos paredes, dos paredes, a la pared, al ancho hacia la contracancha y, si la
-  // pelota le llega alta, el gancho a la pared y el gancho de izquierda al ancho. Cada uno con más ganas según la jugada
+  // pelota le llega alta de aire, el gancho de izquierda: casi siempre a la contracancha y alguna vez a la pared. Cada uno con más ganas según la jugada
   // (dónde está el otro, desde dónde golpea él) y lo listo que es (los niveles altos atacan más); sale uno al azar con
   // esas ganas, así varía y no se le adivina. Antes solo buscaba la dejada, la cortada o las dos paredes en pocos casos y
   // casi todo era pelotear
@@ -679,9 +681,9 @@ export class PelotaGame {
       [dcha ? 0.9 : 0.4, { aim: { x: -0.8, y: 0.2 } }],                                                                         // a la pared
       [(izda ? 1.2 : 0.5) * ataque, { aim: { x: 1, y: 0.15 + rnd() * 0.3 }, pow: 0.7 + rnd() * 0.3 }],                          // al ancho, a la contracancha
     ];
-    // (alta, por encima del hombro: el gancho, pegado a la pared o cruzado de izquierda hacia el ancho)
+    // (alta y de volea, por encima del hombro: el gancho de izquierda, a la contracancha o, alguna vez, a la pared)
     // (de gancho también a media altura, por encima del pecho: el pelotari de verdad lo busca, no espera a que baje)
-    if (this.ball.p.y >= GANCHO_Y - 0.4) G.push([2 * ataque, { aim: { x: -0.95, y: 0.1 }, gancho: true }], [(op.x < 0.5 ? 2 : 1) * ataque, { aim: { x: 0.85, y: 0 }, gancho: true }]);
+    if (this.ball.p.y >= GANCHO_Y - 0.4 && this.volley()) G.push([0.6 * ataque, { aim: { x: -0.95, y: 0.1 }, gancho: true }], [(op.x < 0.5 ? 3 : 2) * ataque, { aim: { x: 0.85, y: 0 }, gancho: true }]);
     let tot = 0; for (const [w] of G) tot += Math.max(0, w);
     let x = rnd() * tot; for (const [w, s] of G) { x -= Math.max(0, w); if (x <= 0) return s; }
     return G[0][1];
@@ -777,7 +779,7 @@ export class PelotaGame {
         const q = bad ? 0.1 + this.rnd() * 0.2 : 0.55 + this.rnd() * 0.4 - tir * 0.2;
         const s = this.aiShot(who);
         // fuerza: cuanto más fuerte, más cargados los golpes; de volea si le llega de aire y de gancho si le llega alta
-        return this.strike(who, q, s.aim, s.drop, s.pow ?? clamp(0.18 + Q.fuerza * 0.1 + this.rnd() * 0.5, 0.15, 1), false, null, { volea: this.volley(), gancho: (this.overhead() || !!s.gancho) && !s.drop });
+        return this.strike(who, q, s.aim, s.drop, s.pow ?? clamp(0.18 + Q.fuerza * 0.1 + this.rnd() * 0.5, 0.15, 1), false, null, { volea: this.volley(), gancho: (this.overhead() || !!s.gancho) && this.volley() && !s.drop });
       }
     } else if (this.phase === 'rally' && this.pairs) {
       const p = this.basePos(who); tx = p.x; tz = p.z;
@@ -972,7 +974,7 @@ export class PelotaGame {
           const tc = this.camara ? you.swingAt ?? this.clock : this.clock;
           const ref = this.volley() ? you.idealAt?.v : you.idealAt?.b ?? you.idealAt?.v, timing = ref != null && Math.abs(tc - ref) < 0.8 ? tc - ref - (this.camara ? CAM_LAT : 0) : null;
           const q = this.quality('you', timing);
-          this.strike('you', q, you.aim || { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5, false, null, { timing, volea: this.volley(), gancho: this.overhead() && !you.dropReq });
+          this.strike('you', q, you.aim || { x: inp.aimX || 0, y: inp.aimY || 0 }, you.dropReq, you.pow ?? 0.5, false, null, { timing, volea: this.volley(), gancho: this.overhead() && this.volley() && !you.dropReq });
         } else if (you.swing <= 0) this.stats.alAire++, this.emit({ type: 'whiff', early: you.idealAt?.b != null && this.clock < you.idealAt.b });
       }
     }
@@ -1049,6 +1051,6 @@ export class PelotaGame {
     // (y para el botón de golpe: cuánto falta para el momento justo, y si saldrá de volea o de gancho)
     const you = this.players.you, toIdeal = mine && you.idealAt?.b != null ? you.idealAt.b - this.clock : null, toVolley = mine && you.idealAt?.v != null ? you.idealAt.v - this.clock : null;
     return { land, spot, yourTurn: mine, mate: R.turn === 'you' && !mine, hittable: this.hittable('you'), tired: this.tired('you'), mateTired: this.pairs ? this.tired('youMate') : 0,
-      toIdeal, toVolley, volea: mine && this.volley() && this.hittable('you'), gancho: mine && this.overhead() && this.hittable('you') };
+      toIdeal, toVolley, volea: mine && this.volley() && this.hittable('you'), gancho: mine && this.overhead() && this.volley() && this.hittable('you') };
   }
 }

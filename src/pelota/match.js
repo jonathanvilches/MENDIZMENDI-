@@ -1229,7 +1229,7 @@ export class PelotaMatch {
   // (y dos golpes con su figura propia: el gancho, con el codo doblado y de arriba abajo, y la volea a media altura, corta y
   // seca. Antes se veían como un golpe de aire o una derecha cualquiera)
   swingAnim(who, e) { this.lastSwing[who] = this.t; const P = this.game?.players?.[who];
-    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^Hit/.test(g)) g = 'Volea' + iz;
+    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'GanchoL';   /* (el gancho, siempre con la izquierda) */ else if (e.volea && /^Hit/.test(g)) g = 'Volea' + iz;
       if (this.game.rally?.serve && this.game.rally.hits === 1) g = 'Low';   // (el saque, de sotamano y con la derecha: de abajo arriba)
       (this.golpeDe ||= {})[who] = g; }
     // (dónde se golpea la pelota, en el mundo: la mano del pelotari va justo ahí; glbChar.js, armSwing)

@@ -21,7 +21,9 @@ export const F = {
     cortada: [['n', 'Cortada rasa, pegada a la chapa.'], ['n', '¡Qué cortada! Ni la ha visto.'], ['e', 'Cortada baja y fuerte: imposible de devolver.']],
     dosparedes: [['n', '¡A dos paredes! La pelota cruza la cancha.'], ['n', 'Dos paredes de manual.'], ['e', 'Con la pared izquierda, la pelota cambia de lado. Muy buena.']],
     volea: [['n', '¡De volea! Sin dejarla botar.'], ['n', 'Se adelanta y remata de aire.'], ['e', 'Ir a buscarla antes del bote quita tiempo al rival.']],
-    gancho: [['n', 'Gancho a la izquierda, y tanto.'], ['e', 'El gancho busca el rincón de la pared izquierda. Bien jugado.']],
+    // (el gancho: de volea y con la izquierda, girando hacia la derecha, a la contracancha. Las frases de antes decían «a la
+    // izquierda» y se quitaron; estas, con su número propio, suenan cuando estén grabadas: tools/guion-voz)
+    gancho: [['n', 'Gancho de izquierda a la contracancha, y tanto.', 3], ['e', 'De volea y con la izquierda, el gancho gira y se va a la contracancha. Bien jugado.', 4]],
     saque: [['n', '¡Saque directo!'], ['n', 'No llega al saque.'], ['e', 'Un buen saque vale un tanto.']],
     golpe: [['n', 'Buen tanto.'], ['n', 'No llega. Tanto.'], ['n', '¡Qué tanto!'], ['e', 'Ha movido bien al rival hasta encontrar el hueco.']],
     chapa: [['n', 'A la chapa. Tanto regalado.'], ['n', 'La manda a la chapa.'], ['e', 'La chapa suena a metal: por debajo de la raya, tanto perdido.']],
@@ -69,7 +71,7 @@ export const F = {
     cortada: [['n', 'Cortada txaparen ondotik.'], ['n', 'Zer cortada! Ez du ikusi ere egin.'], ['e', 'Cortada baxua eta indartsua: ezin itzuli.']],
     dosparedes: [['n', 'Bi paretara! Pilotak kantxa gurutzatu du.'], ['n', 'Bi pareta ederra.'], ['e', 'Ezkerreko hormarekin pilotak aldez aldatzen du. Oso ona.']],
     volea: [['n', 'Boleaz! Botatzen utzi gabe.'], ['n', 'Aurreratu eta airez errematatu du.'], ['e', 'Botea baino lehen joateak denbora kentzen dio aurkariari.']],
-    gancho: [['n', 'Ezkerrerako ganchoa, eta tantoa.'], ['e', 'Ganchoak ezkerreko hormaren txokoa bilatzen du. Ondo jokatua.']],
+    gancho: [['n', 'Ezkerreko ganchoa kontrakantxara, eta tantoa.', 3], ['e', 'Boleaz eta ezkerrarekin, ganchoak biratu eta kontrakantxara doa. Ondo jokatua.', 4]],
     saque: [['n', 'Sake zuzena!'], ['n', 'Ez da sakera iritsi.'], ['e', 'Sake on batek tanto bat balio du.']],
     golpe: [['n', 'Tanto ederra.'], ['n', 'Ez da iritsi. Tantoa.'], ['n', 'Zer tantoa!'], ['e', 'Ondo mugitu du aurkaria, hutsunea aurkitu arte.']],
     chapa: [['n', 'Txapara. Tantoa opari.'], ['n', 'Txapara bidali du.'], ['e', 'Txapak metal hotsa du: marraren azpitik, tantoa galduta.']],
@@ -160,8 +162,8 @@ export class Comentarios {
     let idx = L.map((_, j) => j);
     if (idx.length > 1) idx = idx.filter(j => j !== this.ult[k]);
     const i = idx[Math.floor(Math.random() * idx.length)]; this.ult[k] = i;
-    const [r, texto] = L[i];
-    return { id: `${k}-${i + 1}`, texto, rol: ROL[this.lang][r], r, voz: vozDe(this.voz, r), lang: this.lang };
+    const [r, texto, num] = L[i];   // (num: el número de su grabación, si no es el de su sitio en la lista)
+    return { id: `${k}-${num ?? i + 1}`, texto, rol: ROL[this.lang][r], r, voz: vozDe(this.voz, r), lang: this.lang };
   }
   /** Lo que se dice al acabar un tanto. x: el tanto del registro (game.js, stats.log); o: { racha ('seguidos', 'iguala',
    *  'remonta' o ''), n (tantos seguidos), final, gano (el que gana el partido eres tú), y para el relleno: bola ('viva',

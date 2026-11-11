@@ -137,7 +137,7 @@ export function pelotariStats(seed = '', lv = 2) {
   st.style = pelotariStyle(seed, st);
   return st;
 }
-// Golpes preferidos (de 0 a 3 estrellas): cortada, dos paredes, gancho (a la pared izquierda), dejada y largo (al fondo,
+// Golpes preferidos (de 0 a 3 estrellas): cortada, dos paredes, gancho (de volea y con la izquierda, a la contracancha), dejada y largo (al fondo,
 // al rebote). Uno que le gusta mucho y otro bastante; van con sus cualidades: el fuerte suele ir a la cortada o al
 // largo, el ágil a las dos paredes o al gancho y el rápido a la dejada. La IA los busca (juega como dice su ficha)
 export const SHOTS = ['cortada', 'dosparedes', 'gancho', 'dejada', 'largo'];
@@ -204,11 +204,11 @@ export function arqChips(st, name, town, lang = 'es', yo = false) {
 // una frase del rival para la pantalla VS: lo que más se le nota (su golpe preferido o, si no tiene, su cualidad fuerte)
 const QUOTES = {
   es: { cortada: 'Su cortada sale rasa, pegada a la chapa: no te deja respirar.', dosparedes: 'Busca la pared izquierda para cruzarte la pelota a dos paredes.',
-    gancho: 'Te arrincona contra la pared izquierda, tanto tras tanto.', dejada: 'Cuando menos lo esperas, te la deja muerta junto al frontis.',
+    gancho: 'De volea y con la izquierda, te la manda a la contracancha.', dejada: 'Cuando menos lo esperas, te la deja muerta junto al frontis.',
     largo: 'Te manda al fondo, al rebote, hasta que te canses.', fuerza: 'Pega tan fuerte que la pelota llega al rebote.',
     agilidad: 'Saca pelotas imposibles con unas manos de seda.', velocidad: 'Llega a todas: no des ninguna por ganada.' },
   eu: { cortada: 'Bere kortada txaparen ondotik doa: ez dizu arnasarik hartzen uzten.', dosparedes: 'Ezkerreko horma bilatzen du pilota bi hormatara gurutzatzeko.',
-    gancho: 'Ezkerreko hormaren kontra estutzen zaitu, tantoz tanto.', dejada: 'Gutxien uste duzunean, frontisaren ondoan hilda uzten dizu.',
+    gancho: 'Boleaz eta ezkerrarekin, kontrakantxara bidaltzen dizu.', dejada: 'Gutxien uste duzunean, frontisaren ondoan hilda uzten dizu.',
     largo: 'Atzera bidaltzen zaitu, errebotera, nekatu arte.', fuerza: 'Hain gogor jotzen du, pilota errebotera iristen dela.',
     agilidad: 'Ezinezko pilotak ateratzen ditu, esku leunekin.', velocidad: 'Denetara iristen da: ez eman ezer irabazitzat.' },
 };
@@ -283,10 +283,10 @@ export const TEXT = {
     ] },
     stats: { fuerza: 'Fuerza', agilidad: 'Agilidad', velocidad: 'Velocidad', rival: (n) => `Así juega ${n}` },
     profile: { title: (n, r) => r ? `${n} · ${r}` : `Así juega ${n}`, run: 'Corre', power: 'Potencia', hands: 'Manos', runW: ['poco', 'normal', 'mucho'], powerW: ['poca', 'normal', 'mucha'], handsW: ['torpes', 'normales', 'finas'],
-      shots: 'Sus golpes', names: { cortada: 'Cortada', dosparedes: 'Dos paredes', gancho: 'Gancho a la izquierda', dejada: 'Dejada', largo: 'Largo, al rebote' },
-      arch: { cortada: 'cortador', dosparedes: 'de dos paredes', gancho: 'de ganchos a la izquierda', dejada: 'dejador', largo: 'pegador de fondo' },
+      shots: 'Sus golpes', names: { cortada: 'Cortada', dosparedes: 'Dos paredes', gancho: 'Gancho, a la contracancha', dejada: 'Dejada', largo: 'Largo, al rebote' },
+      arch: { cortada: 'cortador', dosparedes: 'de dos paredes', gancho: 'de ganchos', dejada: 'dejador', largo: 'pegador de fondo' },
       fast: 'muy rápido', slow: 'lento', strong: 'pega muy fuerte',
-      warn: { cortada: '¡Cuidado con su cortada: rasa y rápida!', dosparedes: '¡Cuidado con sus dos paredes: cúbrete a la derecha!', gancho: '¡Cuidado con sus ganchos a la izquierda: no te despegues de la pared!', dejada: '¡Cuidado con sus dejadas: no te quedes atrás!', largo: '¡Cuidado: pega largo, al rebote! No te adelantes.' } },
+      warn: { cortada: '¡Cuidado con su cortada: rasa y rápida!', dosparedes: '¡Cuidado con sus dos paredes: cúbrete a la derecha!', gancho: '¡Cuidado con sus ganchos: de volea y a la contracancha, cúbrete a la derecha!', dejada: '¡Cuidado con sus dejadas: no te quedes atrás!', largo: '¡Cuidado: pega largo, al rebote! No te adelantes.' } },
     tips: { slow: 'Es lento: hazle dejadas cuando esté al fondo.', clumsy: 'Le cuesta lo pegado a la pared izquierda y lo muy bajo: ajústala a la pared.', strong: 'Pega muy fuerte: puede mandarla al rebote. No te adelantes.', fast: 'Es muy rápido: llega casi a todo. Busca la pared o las dos paredes.', weak: 'Le falta fuerza: juega largo, lejos del frontis.', agile: 'Tiene buenas manos: hasta lo pegado a la pared lo devuelve.' },
     rebote: '¡Al rebote!',
     ctrlTouch: 'Joystick: moverte (sin el botón, el pelotari solo se mueve si lo mueves tú) · mantén GOLPE para cargar; mientras lo mantienes, el joystick apunta y tu pelotari va solo a por la pelota. También puedes apuntar arrastrando el dedo desde el botón · la línea marca el camino y el bote · suelta cuando el aro se cierre sobre el botón: ese es el momento justo · a la izquierda va a la izquierda y a la derecha, a la derecha; arriba larga, abajo corta · a tope y arriba: al rebote · izquierda del todo: dos paredes · CORTADA rasa y rápida; a media izquierda, cortada a dos paredes: cuanto más a la izquierda, más cruzada · DEJADA, junto al frontis · para sacar, GOLPE o CORTADA (saque cortado), y el joystick o el arrastre dicen dónde bota · antes de sacar, toca tu pelota arriba a la izquierda para cambiarla.',
@@ -418,10 +418,10 @@ export const TEXT = {
     ] },
     stats: { fuerza: 'Indarra', agilidad: 'Arintasuna', velocidad: 'Abiadura', rival: (n) => `${n}: honela jokatzen du` },
     profile: { title: (n, r) => r ? `${n} · ${r}` : `${n}: honela jokatzen du`, run: 'Korrika', power: 'Indarra', hands: 'Eskuak', runW: ['gutxi', 'normal', 'asko'], powerW: ['gutxi', 'normala', 'handia'], handsW: ['traketsak', 'normalak', 'finak'],
-      shots: 'Bere kolpeak', names: { cortada: 'Cortada', dosparedes: 'Bi pareta', gancho: 'Ezkerrerako ganchoa', dejada: 'Dejada', largo: 'Luzea, errebotera' },
-      arch: { cortada: 'cortadazalea', dosparedes: 'bi paretakoa', gancho: 'ezkerreko ganchoetakoa', dejada: 'dejadazalea', largo: 'atzeko jotzailea' },
+      shots: 'Bere kolpeak', names: { cortada: 'Cortada', dosparedes: 'Bi pareta', gancho: 'Ganchoa, kontrakantxara', dejada: 'Dejada', largo: 'Luzea, errebotera' },
+      arch: { cortada: 'cortadazalea', dosparedes: 'bi paretakoa', gancho: 'ganchoetakoa', dejada: 'dejadazalea', largo: 'atzeko jotzailea' },
       fast: 'oso azkarra', slow: 'motela', strong: 'oso gogor jotzen du',
-      warn: { cortada: 'Kontuz bere cortadarekin: baxua eta azkarra!', dosparedes: 'Kontuz bere bi paretekin: babestu eskuinaldea!', gancho: 'Kontuz bere ezkerrerako ganchoekin: ez urrundu paretatik!', dejada: 'Kontuz bere dejadekin: ez geratu atzean!', largo: 'Kontuz: luze jotzen du, errebotera! Ez aurreratu.' } },
+      warn: { cortada: 'Kontuz bere cortadarekin: baxua eta azkarra!', dosparedes: 'Kontuz bere bi paretekin: babestu eskuinaldea!', gancho: 'Kontuz bere ganchoekin: boleaz eta kontrakantxara, babestu eskuinaldea!', dejada: 'Kontuz bere dejadekin: ez geratu atzean!', largo: 'Kontuz: luze jotzen du, errebotera! Ez aurreratu.' } },
     tips: { slow: 'Motela da: egin dejadak atzean dagoenean.', clumsy: 'Ezkerreko paretari itsatsitakoak eta oso baxuak kostatzen zaizkio: paretara estutu.', strong: 'Oso gogor jotzen du: errebotera bidal dezake. Ez aurreratu.', fast: 'Oso azkarra da: ia guztira iristen da. Bilatu pareta edo bi pareta.', weak: 'Indarra falta zaio: jokatu luze, frontisetik urrun.', agile: 'Esku onak ditu: paretari itsatsitakoak ere itzultzen ditu.' },
     rebote: 'Errebotera!',
     ctrlTouch: 'Joysticka: mugitu (botoirik gabe, pilotaria zuk mugitzen duzunean bakarrik mugitzen da) · eutsi JO kargatzeko; eusten diozun bitartean, joystickak zuzentzen du eta zure pilotaria bera joaten da pilotaren bila. Hatza botoitik arrastatuta ere zuzen dezakezu · marrak bidea eta botea erakusten ditu · askatu eraztuna botoiaren gainean ixten denean: hori da une zuzena · ezkerrera ezkerrera doa eta eskuinera eskuinera; gora luzea, behera motza · ezkerrera erabat: bi pareta · CORTADA baxua eta azkarra; erdi ezkerrera, bi paretako cortada: zenbat eta ezkerrerago, orduan eta zeharkago · DEJADA, frontisaren ondoan · ateratzeko, JO edo CORTADA (sake moztua), eta joystickak edo arrastatzeak dio non egingo duen bote · atera aurretik, ukitu zure pilota goian ezkerrean aldatzeko.',
