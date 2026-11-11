@@ -125,7 +125,12 @@ body.alto-contraste .pfx :is(dt,dd,.pfx-tip,.pfx-note,.pfx-k,.pfx-sk h4,.pfx-hea
 .pfx-shots li i{font-style:normal;color:#ff7ac8;letter-spacing:.1em}
 .pfx-tip{margin:0;font-size:var(--fs-sm);line-height:1.45;color:#e6def7}
 .pfx-note{margin:8px 0 0;font-size:var(--fs-xs);line-height:1.3;color:#cbbcf0}.pfx-tip strong{color:#ffb9a8}
-@media (orientation:landscape) and (max-height:500px){.pfx-card{padding:12px 16px 16px;gap:8px}.pfx-head{margin-bottom:8px}.pfx-av{width:48px;height:48px}.pfx-data div{padding:4px 8px}.pfx-data dd{font-size:var(--fs-sm)}.pfx-bar{min-height:24px}.pfx-sk h4:not(:first-child){margin-top:8px}.pfx-shots{gap:4px}.pfx-shots li{padding:0 8px}}
+@media (orientation:landscape) and (max-height:500px){.pfx-card{padding:12px 16px;gap:8px}.pfx-head{margin-bottom:8px}.pfx-av{width:48px;height:48px}.pfx-data div{padding:4px 8px}.pfx-data dd{font-size:var(--fs-sm)}.pfx-bar{min-height:20px}.pfx-sk h4{margin-bottom:4px}.pfx-sk h4:not(:first-child){margin-top:8px}.pfx-shots{gap:4px}.pfx-shots li{padding:0 8px}.pfx-tip{line-height:1.35}
+  .pfx-head{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 12px;align-items:center;margin-bottom:4px}.pfx-head>div{display:contents}
+  .pfx-av{grid-row:1/4}.pfx-head>div>:not(.pfx-arq){grid-column:2}.pfx-arq{grid-column:1/-1;margin-top:8px}.pfx-note{margin-top:4px}}
+/* (en el móvil pequeño tumbado, 667 × 375, la ficha se pasaba 34 px y había que desplazarla: menos aire bajo cada rótulo
+   y entre las barras, y las etiquetas del arquetipo en una fila bajo la media y el nombre, en vez de dos junto a ellos;
+   sin quitar nada) */
 `;
 
 /**
