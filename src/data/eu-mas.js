@@ -81,12 +81,18 @@ const PORTADA = {
   'Kike en el frontón': 'Kike frontoian', 'Amaia junto al río': 'Amaia ibaiaren ondoan',
   'Taller de artesanía': 'Artisautza-tailerra', 'Tienda de montaña': 'Mendi-denda', 'Librería': 'Liburu-denda', 'Escuela de música': 'Musika-eskola',
   'Tienda de producto local': 'Tokiko produktuen denda', 'Visita guiada': 'Bisita gidatua',
+  // (el mapa del pueblo: la leyenda, el botón y la ayuda)
+  'la que sigues': 'jarraitzen duzuna', 'tu destino': 'zure helmuga', 'camino': 'bidea', 'por empezar': 'hasteko', 'hecha': 'eginda',
+  'Marcar destino': 'Helmuga markatu',
+  'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio para marcar tu destino': 'Atximurtu edo erabili + eta − handitzeko · arrastatu mugitzeko · ukitu leku bat zure helmuga markatzeko',
 };
 export const EU_MAS = { ...MAS, ...T, ...PORTADA };
 export const EU_RX_MAS = [
   // (la portada, el mapa y la galería de pueblos: contadores, anterior y siguiente, «por descubrir» y los comercios)
   [/^(\d+)\/(\d+) comarcas$/, '$1/$2 eskualde'], [/^(\d+) de (\d+) misiones$/, '$1/$2 misio'],
   [/^(.+), (\d+) de (\d+) misiones$/, (m, a, n, k) => `${e(a)}, ${n}/${k} misio`], [/^(.+) · (\d+) de (\d+)$/, (m, a, n, k) => `${e(a)} · ${n}/${k}`],
+  [/^Misiones de (.+)$/, (m, a) => `${loc(e(a))} misioak`], [/^Misiones y lugares de (.+)$/, (m, a) => `${loc(e(a))} misioak eta lekuak`],
+  [/^Ir: (.+)$/, (m, a) => `Joan: ${e(a)}`], [/^Energía (\d+) %$/, 'Energia: % $1'],
   [/^Anterior: (.+)$/, (m, a) => `Aurrekoa: ${e(a)}`], [/^El pueblo de (.+)$/, (m, a) => `${loc(e(a))} herria`], [/^Comarca de (.+)$/, (m, a) => `${loc(e(a))} eskualdea`],
   [/^Las ferias de (.+)$/, (m, a) => `${loc(e(a))} azokak`], [/^La feria de (.+)$/, (m, a) => `${loc(e(a))} azoka`],
   [/^Por descubrir · (.+)$/, (m, a) => `Ezagutzeko · ${a.split(', ').map(x => e(x)).join(', ')}`],
