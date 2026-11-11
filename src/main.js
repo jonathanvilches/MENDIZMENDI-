@@ -53,6 +53,7 @@ import { sencillo } from './util/sencillo.js';
 import './util/accesible.js';   // (textos grandes y alto contraste: las clases de <body>, desde el principio)
 import { apuntaPerdida } from './util/diag.js';
 import { calidadOrdenador, apuntaGpu, fijaCalidad, gpuNombre } from './util/gpu.js';
+import { sonidosInterfaz } from './audio/interfaz.js';
 
 const q = new URLSearchParams(location.search);
 // el código de jugar en los pueblos (Otsagabia y los demás, con la pelota, las misiones y los minijuegos) va en archivos
@@ -112,6 +113,7 @@ async function boot() {
   // volumen de Ajustes (antes, en el menú sonaba aunque se hubiera quitado). En los pueblos y en los partidos, la música
   // la elige runtime.js según lo que pasa; en el menú, el tema de inicio (también al volver: exit y futbolSport)
   const sound = window.__sound = new Sound();
+  sonidosInterfaz(sound);   // (los botones y las ventanas de los partidos y los campeonatos, que no ponían los suyos)
   { const S = profile().settings; sound.setMood('inicio'); sound.setMusic(S.music !== false); sound.init(); if (S.volume != null) sound.setVolume(S.volume); }
   await startI18n();   // (en euskera, espera a sus diccionarios: se cargan aparte)
   startVerMas();   // (los textos largos, plegados con «Ver más»)
