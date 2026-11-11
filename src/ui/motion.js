@@ -149,7 +149,9 @@ export function cuentaTexto(el, { dur = 900 } = {}) {
   if (!n || !m) return;
   const txt = n.nodeValue, antes = txt.slice(0, m.index), despues = txt.slice(m.index + m[0].length), hasta = +m[0].replace(/\./g, '');
   if (!(hasta > 0) || hasta > 1e7) return;
-  const mil = m[0].includes('.') || hasta >= 10000, fmt = (v) => { const r = Math.round(v); return mil ? r.toLocaleString('es-ES') : String(r); };
+  // (si detrás va una palabra en plural, «12 cartas», la cuenta se salta el 1: si no, se veía un momento «1 cartas»)
+  const plural = hasta > 1 && /^\s*[a-záéíóúñ]+s\b/i.test(despues);
+  const mil = m[0].includes('.') || hasta >= 10000, fmt = (v) => { let r = Math.round(v); if (plural && r === 1) r = v < 1 ? 0 : 2; return mil ? r.toLocaleString('es-ES') : String(r); };
   const t0 = performance.now(), paso = (t) => { const k = Math.max(0, Math.min(1, (t - t0) / dur)); n.nodeValue = antes + fmt(hasta * (1 - Math.pow(1 - k, 3))) + despues; if (k < 1 && n.isConnected) requestAnimationFrame(paso); else n.nodeValue = txt; };
   n.nodeValue = antes + '0' + despues; requestAnimationFrame(paso);
 }
