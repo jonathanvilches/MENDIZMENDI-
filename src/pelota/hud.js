@@ -38,6 +38,16 @@ const CSS = `
 .pel-toss.directo{animation:none}
 .pel-root:has(>.pel-toss)>:not(.pel-toss){visibility:hidden}
 .pel-toss.out{animation:pel-tossout .32s ease-in both}
+/* (la pelota en casa, antes de empezar: la cámara te detecta el cuerpo. La ventana de la cámara va arriba en el centro,
+   camaraCuerpo.js, .pcam.cal; aquí, el fondo, lo que falta y la barra que se llena) */
+.pel-cal{position:absolute;inset:0;z-index:6;display:flex;align-items:flex-end;justify-content:center;padding:0 16px calc(env(safe-area-inset-bottom,0px) + 14px);background:radial-gradient(ellipse at 50% 40%,rgba(40,14,92,.72),rgba(7,2,15,.94));pointer-events:auto;transition:opacity .25s}
+.pel-cal.fuera{opacity:0;pointer-events:none}
+.pel-cal-in{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(480px,92vw);text-align:center}
+.pel-cal-in small{font:700 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#ff7ac8}
+.pel-cal-msg{margin:0;font:400 var(--fs-xl)/1.1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;color:#fff;text-shadow:0 2px 10px rgba(7,2,15,.8)}
+.pel-cal-bar{width:100%;height:8px;border-radius:6px;background:rgba(255,255,255,.14);overflow:hidden}
+.pel-cal-bar i{display:block;height:100%;width:0;border-radius:6px;background:#ffd166;transition:width .12s linear}
+.pel-cal-ya{border:0;border-radius:999px;padding:8px 18px;background:rgba(255,255,255,.12);color:#fff;font:700 var(--fs-sm)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;box-shadow:none}
 .pel-toss-top{grid-column:1/-1;grid-row:1;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
 .pel-toss-k{display:flex;align-items:center;gap:14px;font:400 var(--fs-2xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:0 2px 12px rgba(7,2,15,.8);animation:pel-kin .6s ease-out both}
 .pel-toss-k i{display:block;width:clamp(28px,8vw,72px);height:4px;border-radius:2px;background:linear-gradient(90deg,transparent,#5b4bff)}.pel-toss-k i:last-child{background:linear-gradient(90deg,#ff2e88,transparent)}

@@ -204,7 +204,12 @@ export class PrimeraPersona {
     // (y solo cuando el golpe cuenta, con la pelota ya cerca: pega, de match.js. Antes salían con cualquier gesto tuyo, aunque
     // la pelota estuviera lejos o fuera al rival, y se veían casi todo el rato)
     const pegando = (st && st.swing >= 0) || (pega && (!!cuerpo?.gesto || (cuerpo && (cuerpo.tPrev || 0) - (cuerpo.ultGolpe ?? -9) < 0.3)));
-    c.ver = pegando || saca ? 0.22 : Math.max(0, (c.ver || 0) - dt);
+    // (y con la cámara, en cuanto levantas una mano por encima de la cintura: tus brazos se ven y hacen lo que hacen los
+    // tuyos, como en un espejo, también al prepararte. Con los brazos caídos, la cancha despejada. Antes solo salían en el
+    // golpe y el autor no veía que su cuerpo moviera nada)
+    const Lm = cuerpo?.visto ? cuerpo.lms : null, alto = (w, s) => Lm && Lm[w] && Lm[s] && (Lm[w].visibility ?? 1) > 0.4 && Lm[w].y < Lm[s].y + Math.abs((Lm[11]?.x ?? 0) - (Lm[12]?.x ?? 0)) * 1.15;
+    const alza = !!(Lm && (alto(15, 11) || alto(16, 12)));
+    c.ver = pegando || saca || alza ? 0.22 : Math.max(0, (c.ver || 0) - dt);
     const verT = c.ver > 0 ? 1 : 0; c.vis = (c.vis || 0) + (verT - (c.vis || 0)) * (1 - Math.exp(-dt * (verT ? 20 : 8)));
     const baja = 1 - c.vis * c.vis * (3 - 2 * c.vis);
     this.group.visible = c.vis > 0.02;

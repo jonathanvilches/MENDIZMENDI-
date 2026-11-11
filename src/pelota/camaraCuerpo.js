@@ -21,6 +21,9 @@ const V_MIN = 3.4;
 // lo deprisa que golpea de normal quien juega, de primeras (anchos de hombros por segundo): luego se mide con sus golpes
 const TIPICO = 6;
 // los huesos que se dibujan en la ventana de la cámara
+// (lo que miden de verdad los hombros, el brazo y el antebrazo, en metros: para sacar lo que va hacia delante, que la
+// imagen no lo da bien, de lo que le falta a cada hueso para medir lo que mide; como en primeraPersona.js)
+const HOMBROS = 0.38, BRAZO = 0.29, ANTEBRAZO = 0.265;
 const HUESOS = [[11, 12], [11, 13], [13, 15], [12, 14], [14, 16], [11, 23], [12, 24], [23, 24], [23, 25], [25, 27], [24, 26], [26, 28]];
 
 // (el detector del cuerpo: con la tarjeta gráfica si se puede y, si no, con el procesador)
@@ -42,6 +45,10 @@ const CSS = `
 .pcam-msg{max-width:min(300px,60vw);padding:6px 10px;border-radius:10px;background:rgba(13,6,32,.8);font:700 12px/1.25 var(--pel-font,'MZ Texto'),sans-serif;color:#fff}
 .pcam-msg:empty{display:none}
 .pel-root.con-camara .pel-stick,.pel-root.con-camara .pel-stickhint{display:none}
+.pcam.cal{left:50%;top:calc(env(safe-area-inset-top,0px) + 14px);transform:translateX(-50%);z-index:7;align-items:center}
+.pcam.cal .pcam-v{width:min(46vw,calc((100dvh - 150px) * 4 / 3),480px);border-color:rgba(255,255,255,.8)}
+.pcam.cal.visto .pcam-v{border-color:#ffd166}
+.pcam.cal .pcam-msg{display:none}
 @media (max-height:480px){.pcam:not(.oculta) .pcam-v{width:clamp(130px,24vw,220px)}.pcam-msg{font-size:11px}}
 `;
 let cssPuesto = false;
@@ -83,6 +90,39 @@ export class CamaraCuerpo {
     window.__camaraCuerpo = { estado: () => this.estado(), pose: (lms, t) => { if (!this.manual) { this.manual = true; this.x0 = null; this.cal = []; this.refSh = null; } this.sigue(lms, t ?? performance.now() / 1000); } };
   }
   di(t) { if (this.msg.textContent !== t) this.msg.textContent = t; }
+  /** Los dos brazos tal como los tienes, para que tu pelotari los ponga igual: de cada uno (R, tu derecha; L, la izquierda),
+   *  hacia dónde va el brazo, del hombro al codo (a), y el antebrazo, del codo a la muñeca (f), en tu cuerpo: [a tu
+   *  derecha, arriba, hacia la pantalla]. Y lo agachado que estás. null si no te ve */
+  // (lo de delante sale de lo que le falta a cada hueso para medir lo que mide, hacia delante salvo que el detector diga
+  // claramente que va hacia atrás; suavizado entre imagen e imagen para que no tiemble)
+  brazos() {
+    const L = this.lms, sw = this.sw; if (!this.visto || !L || sw < 8) return null;
+    if (this.brzT === this.tPrev) return this.brzOut;
+    this.brzT = this.tPrev;
+    const vis = (i) => (L[i]?.visibility ?? 1), m = HOMBROS / sw, P = (i) => [(1 - L[i].x) * this.vw, L[i].y * this.vh, (L[i].z || 0) * this.vw];
+    const hueso = (a, b, len) => {
+      let dx = (b[0] - a[0]) * m / len, dy = -(b[1] - a[1]) * m / len; const dzr = (b[2] - a[2]) * m, pl = Math.hypot(dx, dy);
+      if (pl > 1) { dx /= pl; dy /= pl; }
+      return [dx, dy, Math.sqrt(Math.max(0, 1 - dx * dx - dy * dy)) * Math.tanh((0.04 - dzr) / 0.07)];
+    };
+    const prev = this.brzOut || {}, mez = (p, q) => (p ? p.map((v, i) => v + (q[i] - v) * 0.6) : q), out = { agachado: this.agachado };
+    let alguno = false;
+    for (const [k, s, e, w] of [['R', 12, 14, 16], ['L', 11, 13, 15]]) {
+      if (vis(s) < 0.5 || vis(e) < 0.35) continue;
+      const E = P(e), a = hueso(P(s), E, BRAZO), f = vis(w) > 0.3 ? hueso(E, P(w), ANTEBRAZO) : null;
+      out[k] = { a: mez(prev[k]?.a, a), f: f ? mez(prev[k]?.f, f) : prev[k]?.f || null }; alguno = true;
+    }
+    return (this.brzOut = alguno ? out : null);
+  }
+  /** ¿Estás bien colocado para jugar? (te ve de frente, de cintura para arriba, con los dos brazos y las manos a la vista,
+   *  ni muy cerca ni muy lejos). Si no, lo que falta, para decírtelo */
+  colocado() {
+    const L = this.lms; if (!this.listo) return this.fallo ? 'fallo' : 'espera'; if (!this.visto || !L) return 'nadie';
+    const vis = (i) => (L[i]?.visibility ?? 1) > 0.5, r = this.sw / this.vw;
+    if (r > 0.42) return 'cerca'; if (r < 0.1) return 'lejos';
+    if (![11, 12, 13, 14].every(vis)) return 'brazos'; if (!vis(15) || !vis(16)) return 'manos';
+    return this.x0 == null ? 'quieto' : 'ok';
+  }
   // empezar de cero (el centro, la postura, las manos y el golpe a medias) y un segundo sin golpes
   reinicia(por) {
     this.calma = performance.now() / 1000 + 1;

@@ -774,6 +774,23 @@ export function armSwing(char, get, { windOnly = false } = {}) {
     gira(K.f, _d1, _d2);
     if (k < 1) { K.a.quaternion.slerpQuaternions(_q0, K.a.quaternion.clone(), k); K.f.quaternion.slerpQuaternions(_q1, K.f.quaternion.clone(), k); }
   }
+  // tus brazos (la pelota en casa, con la cámara: st.cuerpo, de camaraCuerpo.js, brazos): cada hueso del brazo de tu
+  // pelotari apunta hacia donde apunta el tuyo, en su cuerpo (x a su derecha, y arriba, z hacia delante; en Mixamo mira a +Z
+  // y su derecha es −X), mezclado sobre la animación y con entrada y salida suaves. Agachado, el tronco se dobla
+  let kCu = 0, cuU = null; const _qr = new THREE.Quaternion();
+  const enMundo = (v, out) => out.set(-v[0], v[1], v[2]).applyQuaternion(char.root.getWorldQuaternion(_qr)).normalize();
+  function brazosCuerpo(cu, dt) {
+    kCu = cu ? Math.min(1, kCu + dt * 4) : Math.max(0, kCu - dt * 2.5); if (cu) cuU = cu; if (kCu <= 0.001 || !cuU) return;
+    if (sp && cuU.agachado > 0.02) turn(sp, X, cuU.agachado * 0.38 * kCu);
+    char.root.updateMatrixWorld(true);
+    for (const [s, K] of [['R', IKR], ['L', IKL]]) {
+      const b = cuU[s]; if (!K || !b) continue;
+      _q0.copy(K.a.quaternion); _q1.copy(K.f.quaternion);
+      K.a.getWorldPosition(_S); K.f.getWorldPosition(_E); _d1.copy(_E).sub(_S).normalize(); gira(K.a, _d1, enMundo(b.a, _d2));
+      if (b.f) { K.f.getWorldPosition(_E); K.h.getWorldPosition(_H); _d1.copy(_H).sub(_E).normalize(); gira(K.f, _d1, enMundo(b.f, _d2)); }
+      const k = kCu * 0.92; K.a.quaternion.slerpQuaternions(_q0, K.a.quaternion.clone(), k); K.f.quaternion.slerpQuaternions(_q1, K.f.quaternion.clone(), k); K.a.updateMatrixWorld(true);
+    }
+  }
   char.post = (c, dt) => {
     const st = get(); if (!st) return;
     // el cansancio se ve: el pelotari se encorva (más parado y entre tanto y tanto, como quien apoya las manos en las
@@ -798,6 +815,7 @@ export function armSwing(char, get, { windOnly = false } = {}) {
       if (botaK > 0.01 && ARD.Bota) for (const [b, q] of ARD.Bota) b.quaternion.slerp(q, botaK);
       // la mano, a la pelota: en el golpe, el brazo que golpea llega justo al sitio donde está la pelota (st.contacto, en el
       // mundo) y lo suelta enseguida; llevándola o botándola, donde diga el juego (st.manoA)
+      brazosCuerpo(st.cuerpo, dt);   // (con la cámara, tus brazos; antes del contacto con la pelota, que manda en el golpe)
       const izq = /L$/.test(st.golpe || ''), kC = st.contacto && st.swing >= 0 && st.swing < 0.22 ? 1 - st.swing / 0.22 : 0;
       if (kC > 0.02) manoA(izq ? IKL : IKR, st.contacto, Math.min(1, kC * 1.6));
       // (y dónde queda la mano derecha, para que el juego dibuje en ella la pelota que lleva)
@@ -817,6 +835,7 @@ export function armSwing(char, get, { windOnly = false } = {}) {
     if (Math.abs(arm) > 1e-3) turn(ua, X, mix ? -arm * 0.8 : arm);
     if (la && Math.abs(elbow) > 1e-3) turn(la, X, -elbow);
     if (ch && Math.abs(twist) > 1e-3) turn(ch, Y, twist);
+    brazosCuerpo(st.cuerpo, dt);
   };
   // (y las manos, fuera de la cabeza: apartaManos, encima de todo lo demás)
   const p0 = char.post; char.post = (c, dt) => { p0(c, dt); apartaManos(c); };

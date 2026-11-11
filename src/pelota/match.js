@@ -422,9 +422,9 @@ export class PelotaMatch {
       if (b.hasAttribute('data-pel-go') && this.loadingMates) return;
       if (b.hasAttribute('data-pel-go')) {   // (antes de la presentación, la elección de material; en el peloteo y en las pruebas, sin ella)
         this.audio.ensure();
-        if (this.conCamara) this.arrancaCamara();   // (la cámara, ya: mientras se elige el material y sale el VS, se prepara)
-        if (this.game.mode === 'match' && !window.__autoWin && !(navigator.webdriver && !window.__material)) this.eleccion().then(() => this.active && this.vsThenPlay());
-        else { this.hud.closePanel(); this.vsThenPlay(); }
+        const sigue = () => { if (!this.active) return; if (this.game.mode === 'match' && !window.__autoWin && !(navigator.webdriver && !window.__material)) this.eleccion().then(() => this.active && this.vsThenPlay()); else { this.hud.closePanel(); this.vsThenPlay(); } };
+        // (con la cámara, antes de nada te detecta el cuerpo: calibra)
+        if (this.conCamara) { this.arrancaCamara(); this.hud.closePanel(); this.calibra().then(sigue); } else sigue();
       }
       if (b.hasAttribute('data-pel-x')) this.exit(true, true);   // («Ahora no», antes de empezar: un paso atrás)
     });
@@ -999,6 +999,40 @@ export class PelotaMatch {
     this.finDesc = false; I.hitQ = I.dropQ = I.cutQ = false; I.camAim = I.camAimY = null; I.camPend = false;
     return out;
   }
+  // antes de jugar con la cámara, que te detecte el cuerpo: la ventana de la cámara, grande y arriba en el centro, con tu
+  // esqueleto encima; debajo, lo que falta (ponte delante, échate atrás, que se vean las manos) y una barra que se llena
+  // mientras te ve bien colocado. Llena, a jugar. Sin esperar, «Empezar ya»; sin cámara, solo. Antes se empezaba sin más
+  // y los primeros golpes no se leían bien (el autor, noviembre de 2026: primero que detecte el cuerpo)
+  calibra() {
+    if (navigator.webdriver && !window.__calibra) return Promise.resolve();
+    const eu = this.lang === 'eu', T2 = (es, e) => (eu ? e : es);
+    const DI = { espera: T2('Encendiendo la cámara…', 'Kamera pizten…'), nadie: T2('Ponte delante de la cámara, de pie', 'Jarri kameraren aurrean, zutik'),
+      cerca: T2('Échate un paso atrás', 'Egin pauso bat atzera'), lejos: T2('Acércate un poco', 'Hurbildu pixka bat'),
+      brazos: T2('Que se te vean los dos brazos', 'Bi besoak ikusi behar dira'), manos: T2('Que se te vean las manos', 'Eskuak ikusi behar dira'),
+      quieto: T2('Quieto un momento…', 'Geldi une batez…'), ok: T2('¡Así! Quieto un momento…', 'Horrela! Geldi une batez…'), listo: T2('¡Te veo! A jugar', 'Ikusten zaitut! Jokatzera') };
+    return new Promise((res) => {
+      const el = document.createElement('div'); el.className = 'pel-cal';
+      el.innerHTML = `<div class="pel-cal-in"><small>${esc(T2('Pelota en casa', 'Pilota etxean'))}</small><p class="pel-cal-msg">${esc(DI.espera)}</p><div class="pel-cal-bar"><i></i></div><button class="pel-cal-ya">${esc(T2('Empezar ya', 'Hasi orain'))}</button></div>`;
+      this.hud.root.appendChild(el);
+      const msg = el.querySelector('.pel-cal-msg'), bar = el.querySelector('.pel-cal-bar i');
+      let ok = 0, fin = false, last = performance.now(), raf = 0;
+      const cierra = () => { if (fin) return; fin = true; cancelAnimationFrame(raf); const C = this.cuerpo; if (C) { C.box.classList.remove('cal'); } el.classList.add('fuera'); setTimeout(() => el.remove(), 250); res(); };
+      el.querySelector('.pel-cal-ya').addEventListener('click', () => { this.audio.ui?.('click'); cierra(); });
+      const mira = () => {
+        if (fin) return; raf = requestAnimationFrame(mira);
+        if (!this.active) return cierra();
+        const now = performance.now(), dt = Math.min(0.1, (now - last) / 1000); last = now;
+        const C = this.cuerpo; if (!C) return;
+        C.box.classList.add('cal'); C.achica(false);
+        const e = C.colocado(); if (e === 'fallo') return cierra();
+        ok = e === 'ok' ? Math.min(1.2, ok + dt) : Math.max(0, ok - dt * 0.6);
+        const txt = ok >= 1.2 ? DI.listo : DI[e] || DI.espera; if (msg.textContent !== txt) msg.textContent = txt;
+        bar.style.width = `${Math.round(ok / 1.2 * 100)}%`; el.classList.toggle('bien', e === 'ok');
+        if (ok >= 1.2) { C.calibrado = true; fin = true; cancelAnimationFrame(raf); this.audio.ui?.('ok'); setTimeout(() => { fin = false; cierra(); }, 600); }
+      };
+      mira();
+    });
+  }
   // la cámara y tu cuerpo (camaraCuerpo.js, solo en la web): cada golpe tuyo es un golpe de tu pelotari, con su fuerza, su
   // lado y su altura
   arrancaCamara() {
@@ -1424,6 +1458,8 @@ export class PelotaMatch {
         // (el armado del golpe que viene y el golpe que se da; y si se desplaza de lado mirando al frontis: pasos laterales)
         arma: cam ? cam.arma : arma, golpe: this.golpeDe?.[who] || 'Hit', lado: lateral(P) };
       if (cam) st.wind = Math.max(cam.wind, wind * 0.25);
+      // (y tus brazos y lo agachado que estás, siempre que la cámara te vea: tu pelotari hace lo que haces; glbChar.js, post)
+      if (who === 'you' && this.cuerpo?.visto && !this.replay) st.cuerpo = this.cuerpo.brazos();
       // el saque: el que saca lleva la pelota en la mano derecha mientras espera y mientras corre (lleva); al botarla, el
       // brazo baja con ella un instante (bota) y luego arma. manoW: dónde queda su mano, para dibujar ahí la pelota
       { const saca = g.serverP?.() === who && (g.phase === 'serveWait' || g.phase === 'servePrep');
