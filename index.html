@@ -107,7 +107,7 @@
   try {
     var pv = pa.querySelector('.pa-vid'), sv = /^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname) && !/\/descargas\//.test(location.pathname)
       && !localStorage.getItem('herrizherri-sencillo') && !matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection && navigator.connection.saveData);
-    if (sv) { pv.muted = true; pv.playsInline = true; pv.onplaying = function () { pv.classList.add('on'); }; pv.onerror = function () { pv.remove(); }; pv.src = './videos/c-pirineos.mp4'; var pp = pv.play(); if (pp && pp.catch) pp.catch(function () { });
+    if (sv) { pv.muted = true; pv.playsInline = true; pv.onplaying = function () { pv.classList.add('on'); if (!window.__paVid) window.__paVid = Date.now(); }; pv.onerror = function () { pv.remove(); }; pv.src = './videos/c-pirineos.mp4'; var pp = pv.play(); if (pp && pp.catch) pp.catch(function () { });
       // (si el móvil no la deja moverse sola —el iPhone con el ahorro de batería—, se mueve con el primer toque)
       var otra = function () { removeEventListener('pointerdown', otra, true); removeEventListener('touchend', otra, true); if (pv.isConnected && pv.paused) { var p2 = pv.play(); if (p2 && p2.catch) p2.catch(function () { }); } };
       addEventListener('pointerdown', otra, true); addEventListener('touchend', otra, true); } else pv.remove();
@@ -120,11 +120,19 @@
     var mq = matchMedia('(orientation: portrait) and (pointer: coarse)'), set = function () { window.__girado = mq.matches; };
     set(); if (mq.addEventListener) mq.addEventListener('change', set); else mq.addListener(set);
   } else ga.remove();
+  // (la lámina, el tiempo justo para verla bien: al menos 5 s desde que se abre y, si se mueve, 4 s desde que entra;
+  // con todo guardado en el móvil, el mapa estaba listo en un par de segundos y la lámina apenas se veía. Un toque la
+  // quita en cuanto el mapa está listo, pero no el primero de todo, el que en el iPhone da la música o pone la lámina en
+  // marcha, ni uno antes de 2,5 s; como mucho, 15 s)
+  var salta = false, toques = 0; pa.addEventListener('pointerdown', function () {
+    var n = Date.now(), quieta = pv && pv.isConnected && !pv.classList.contains('on');
+    if (++toques > 1 && n - t0 >= 2500 && !quieta && (!window.__paVid || n - window.__paVid >= 2000)) salta = true; });
   var iv = setInterval(function () {
     var h = document.getElementById('hub');
     // (con el mapa 3D del inicio, se espera a que esté pintado: de la lámina se pasa directamente al mapa)
     var m3 = h && h.querySelector('.m3d'), listo = window.__game || (m3 ? window.__mapaListo : (window.__ready || (h && h.querySelector('h1,h2'))));
-    if (!(listo || Date.now() - t0 > 15000)) return;
+    var dt = Date.now() - t0, vista = dt >= 5000 && (!window.__paVid || Date.now() - window.__paVid >= 4000);
+    if (!((listo && (vista || salta)) || dt > 15000)) return;
     clearInterval(iv); pa.classList.add('fuera'); setTimeout(function () { pa.remove(); }, 400);
   }, 100);
 })();</script>
