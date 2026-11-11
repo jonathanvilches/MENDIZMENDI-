@@ -241,7 +241,7 @@ const CSS = `
 .eq-tiles{display:grid;grid-auto-flow:column;grid-template-columns:none;grid-auto-columns:minmax(0,1fr);gap:12px;min-height:0}
 .eq-tile,.eq-team{position:relative;overflow:hidden;isolation:isolate;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;gap:2px;min-width:0;border:1px solid rgba(255,255,255,.08);border-radius:4px;color:#fff;text-align:left;cursor:pointer;font:inherit;background:linear-gradient(160deg,var(--t1,#5b4bff),var(--t2,#120a40) 75%);transition:transform .15s,border-color .15s}
 .eq-tile{min-height:220px;padding:12px 22px;border-radius:8px;}
-.eq-tile::before,.eq-team::before{content:'';position:absolute;inset:0;z-index:-1;background:repeating-linear-gradient(125deg,transparent 0 14px,rgba(255,255,255,.035) 14px 15px)}
+
 .eq-tile::after{content:'';position:absolute;top:-10%;bottom:-10%;left:0;width:40%;z-index:2;background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);transform:translateX(-160%) skewX(-18deg);animation:gx-sweep 6s ease-in-out var(--d,0s) infinite;pointer-events:none}
 .eq-tile:active,.eq-team:active{transform:scale(.97)}.eq-tile:hover,.eq-team:hover{border-color:var(--rosa)}
 .eq-tile:focus-visible,.eq-team:focus-visible{outline:3px solid #fff;outline-offset:-3px}

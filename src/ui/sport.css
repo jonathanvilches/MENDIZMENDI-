@@ -30,7 +30,7 @@
 .gx-bg { position: relative; isolation: isolate; overflow: hidden;
   background: radial-gradient(90% 70% at 88% -10%, rgba(255, 43, 214, .32), transparent 60%), radial-gradient(80% 80% at -10% 110%, rgba(123, 47, 247, .5), transparent 62%), linear-gradient(160deg, var(--v2), var(--v0) 72%); }
 .gx-bg::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
-  background: repeating-linear-gradient(115deg, transparent 0 46px, rgba(255, 255, 255, .03) 46px 48px), linear-gradient(115deg, transparent 30%, rgba(201, 178, 255, .1) 42%, transparent 54%); }
+  background: linear-gradient(115deg, transparent 30%, rgba(201, 178, 255, .1) 42%, transparent 54%); }   /* (sin trama de rayas) */
 .gx-bg::after { content: ''; position: absolute; top: -20%; bottom: -20%; left: 0; width: 30%; z-index: -1; pointer-events: none;
   background: linear-gradient(90deg, transparent, rgba(255, 122, 200, .14), transparent); transform: translateX(-120%) skewX(-18deg); animation: gx-sweep 7s ease-in-out 1s infinite; }
 @keyframes gx-sweep { 0% { transform: translateX(-120%) skewX(-18deg); } 40%, 100% { transform: translateX(460%) skewX(-18deg); } }
@@ -64,7 +64,7 @@ button.gx-card { border: 0; padding: 0; background: none; font-family: var(--f-c
 .gx-card .gx-face, .gx-card::before { position: absolute; inset: 0; }
 .gx-card::before { content: ''; z-index: -2; background: linear-gradient(160deg, rgba(255, 255, 255, .9), var(--ac) 30%, var(--c2) 70%, var(--ac)); }
 .gx-card .gx-face { inset: 2px; z-index: -1; overflow: hidden;
-  background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), repeating-linear-gradient(125deg, transparent 0 10px, rgba(255, 255, 255, .05) 10px 11px), linear-gradient(170deg, var(--c1), var(--c2) 78%); }
+  background: radial-gradient(120% 60% at 50% 0%, rgba(255, 255, 255, .3), transparent 60%), linear-gradient(170deg, var(--c1), var(--c2) 78%); }   /* (sin trama de rayas) */
 /* (abajo, donde van el nombre y las cifras, la carta se oscurece poco a poco, sin placa ni raya, como en esas cartas: el
    rosa claro de las siglas sobre la carta del rival sigue por encima de 7 a 1) */
 .gx-card .gx-face::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 46%, rgba(12, 3, 30, .45) 60%, rgba(12, 3, 30, .55)); }

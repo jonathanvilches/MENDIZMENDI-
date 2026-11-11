@@ -13,7 +13,7 @@
 @keyframes pz-sube { from { opacity: 0; transform: translateY(10px) scale(.98); } }
 /* la cabecera: el título grande y la equis; a la derecha, unas rayas finas que se apagan, como el dibujo de la referencia */
 .pz-cab { flex: none; display: flex; align-items: center; gap: 16px; padding: 12px 12px 12px 20px; border-bottom: 1px solid rgba(255,255,255,.08);
-  background: linear-gradient(90deg, rgba(37, 16, 76, 1) 35%, rgba(37, 16, 76, .55)), repeating-linear-gradient(125deg, transparent 0 9px, rgba(255, 122, 200, .16) 9px 10px); }
+  background: linear-gradient(90deg, rgba(37, 16, 76, 1) 35%, rgba(37, 16, 76, .88)); }   /* (sin la trama de rayas finas de fondo, que no pintaba nada: el autor, noviembre de 2026) */
 .pz-tit { flex: 1; min-width: 0; margin: 0; font: 400 var(--fs-xl, 24px)/1.05 var(--f-display, 'MZ Texto'), sans-serif; letter-spacing: .01em; text-transform: uppercase; color: #fff; }
 .pz-x { flex: none; position: relative; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: none; color: #fff; cursor: pointer; }
 .pz-x svg { width: 26px; height: 26px; }

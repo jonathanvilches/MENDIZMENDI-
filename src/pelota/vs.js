@@ -17,7 +17,7 @@ const CSS = `
 .pvs-side.azul{left:0;background:radial-gradient(90% 80% at 25% 70%,#7b6bff 0%,var(--azul) 30%,var(--azul2) 72%,#0b0530 100%);clip-path:polygon(0 0,100% 0,72% 100%,0 100%);animation:pvs-l .45s cubic-bezier(.2,.9,.3,1) both}
 .pvs-side.rojo{right:0;background:radial-gradient(90% 80% at 75% 70%,#ff6fb5 0%,var(--rojo) 30%,var(--rojo2) 72%,#2a0420 100%);clip-path:polygon(28% 0,100% 0,100% 100%,0 100%);animation:pvs-r .45s cubic-bezier(.2,.9,.3,1) both}
 /* rayas de velocidad que corren hacia el centro, tumbadas y en trazos (casi verticales parecían lluvia cayendo sobre el frontón) */
-.pvs-side::before{content:'';position:absolute;top:0;bottom:0;left:-240px;right:-240px;background:repeating-linear-gradient(180deg,transparent 0 30px,rgba(255,255,255,.08) 30px 32px);-webkit-mask-image:repeating-linear-gradient(90deg,transparent 0,#000 120px,transparent 240px);mask-image:repeating-linear-gradient(90deg,transparent 0,#000 120px,transparent 240px);animation:pvs-run 1.6s linear infinite}
+
 .pvs-side.rojo::before{animation-direction:reverse}
 /* foco que barre cada lado */
 .pvs-side::after{content:'';position:absolute;top:-30%;left:30%;width:40%;height:160%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);transform-origin:50% 0;animation:pvs-beam 3.2s ease-in-out infinite alternate}
