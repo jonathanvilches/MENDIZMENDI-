@@ -9,9 +9,11 @@ export const CAST_ALL = [
     desc: 'Lleva la mochila con su saco enrollado, botas de monte y calcetines blancos. Recorre Navarra pueblo a pueblo, del Pirineo a la Ribera, ayudando a la gente y descubriendo sus tradiciones y sus leyendas.',
     ability: 'Explorador: encuentra antes los caminos y los rincones escondidos', stats: [85, 70, 85, 90, 85], color: '#5f7a3a',
     look: { height: 1.45, skin: '#f1c4a0', hair: '#4a2412', hairStyle: 'short', shirt: '#d8cfae', pants: '#5b6b3a', shoes: '#7a4a24', boots: true, face: 'smile' } },
-  // la exploradora: la chica del jugador (noviembre de 2026: se elige chico o chica al empezar, y se cambia en el Perfil).
-  // Modelo propio de Meshy, con sus animaciones (glbChar.js, MESHY_BY); en el encierro corre de sanferminera
-  { id: 'exploradora', name: 'Exploradora', from: 'Navarra', role: 'Exploradora', tagline: 'Recorre Navarra pueblo a pueblo', glb: true, meshy: true, solo: true,
+  // la exploradora: la chica del jugador. Modelo propio de Meshy, con sus animaciones (glbChar.js, MESHY_BY); en el encierro
+  // correría de sanferminera. De momento no se elige (noviembre de 2026: le faltan cinco animaciones para tener todos los
+  // gestos del explorador, y el autor prefiere esperar): con solo: false no sale en el selector ni en el Perfil, y quien la
+  // tuviera elegida vuelve al explorador (profile.js). Para volver a ponerla, solo: true
+  { id: 'exploradora', name: 'Exploradora', from: 'Navarra', role: 'Exploradora', tagline: 'Recorre Navarra pueblo a pueblo', glb: true, meshy: true, solo: false,
     desc: 'Lleva la mochila con su saco enrollado, botas de monte y la coleta bien recogida. Recorre Navarra pueblo a pueblo, del Pirineo a la Ribera, ayudando a la gente y descubriendo sus tradiciones y sus leyendas.',
     ability: 'Exploradora: encuentra antes los caminos y los rincones escondidos', stats: [85, 70, 85, 90, 85], color: '#b5562f',
     look: { height: 1.43, skin: '#f3c6a4', hair: '#6a2e16', hairStyle: 'ponytail', shirt: '#d8cfae', pants: '#5b6b3a', shoes: '#7a4a24', boots: true, face: 'smile', female: true } },

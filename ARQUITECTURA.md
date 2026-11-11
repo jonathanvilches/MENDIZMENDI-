@@ -15,9 +15,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
-  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`. El explorador (`explorador.glb`) y la
-    exploradora (`exploradora.glb`) son el personaje del jugador: se elige chico o chica en la bienvenida y se cambia en
-    el Perfil («Cambiar personaje»), y en los pueblos y las misiones siempre es uno de los dos (noviembre de 2026:
+  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`. El explorador (`explorador.glb`) es el
+    personaje del jugador. La exploradora (`exploradora.glb`) está hecha pero de momento no se elige: le faltan cinco
+    animaciones para tener todos los gestos de él, y en `data/cast.js` lleva `solo: false` (con `solo: true` vuelve a
+    salir el selector de chico o chica). Cuando estaba (noviembre de 2026):
+    se elegía chico o chica en la bienvenida y se cambiaba en
+    el Perfil («Cambiar personaje»), y en los pueblos y las misiones siempre era uno de los dos (
     `CAST` de `data/cast.js` solo los tiene a ellos; con dos, el selector de `hub.js` enseña dos botones de pastilla
     con su retrato, `.cs-dos`, en su propia fila: al lado de la figura y, en el móvil de pie, justo debajo de ella,
     antes del nombre y de empezar; un guardado con otro personaje pasa al explorador). En el frontón se pone de pelotari,
