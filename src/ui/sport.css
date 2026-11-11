@@ -52,6 +52,8 @@
    punta. La silueta, su filo de neón y la cinta del equipo, en neon.css. La holografía cruza la carta de vez en cuando */
 .gx-card { --w: 150px; --c1: var(--v5); --c2: var(--v2); --ac: var(--rosa); position: relative; flex: none; width: var(--w); height: calc(var(--w) * 1.48); color: #fff; isolation: isolate;
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, .5)); font-family: var(--f-cond); text-align: center; container-type: inline-size; }
+/* (la carta que se toca es un botón: sin nada del botón, solo la carta) */
+button.gx-card { border: 0; padding: 0; background: none; font-family: var(--f-cond); text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .gx-card.azul { --c1: var(--azul); --c2: var(--azul2); --ac: #b6aaff; }
 .gx-card.rojo { --c1: var(--rojo); --c2: var(--rojo2); --ac: #ffb3dc; }
 .gx-card .gx-face, .gx-card::before { position: absolute; inset: 0; }

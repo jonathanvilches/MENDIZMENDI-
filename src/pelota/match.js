@@ -8,7 +8,8 @@ import { subtitulos } from '../util/comentarios.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
-import { openFicha, playerChip, splitName } from './ficha.js';
+import { openFicha, splitName } from './ficha.js';
+import { pelotariCard } from '../ui/sportCard.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
 import { PrimeraPersona } from './primeraPersona.js';
 import { bolaSVG } from './bola.js';
@@ -350,13 +351,16 @@ export class PelotaMatch {
     const sum = g.reto ? this.retoTxt().name[g.reto] : [mods.find(([k]) => k === cur)?.[1] || P.single, g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)].filter(Boolean).join(' · ');
     // arriba quién juega y dónde (el frontón y lo que se nota en él); lo que se elige poco, plegado en «Más opciones» con
     // lo elegido a la vista; abajo, en una fila, el nivel y los botones
+    // (en un partido, delante de todo, las cartas de los que juegan (rivalHtml): a su lado en una pantalla tumbada, encima en
+    // una de pie; lo demás va en su columna, .pel-lado. El peloteo y los retos no tienen rival: la ventana de siempre)
+    const duelo = g.reto ? '' : this.rivalHtml();
     const RT = this.retoTxt(), cab = g.reto ? `<h2>${RT.name[g.reto]}</h2><p class="pel-sub">${RT.como[g.reto]}</p><p class="pel-sub pel-metas"><b>${RT.metas}</b> ${this.retoMetas(g.reto)}</p>`
+      : duelo ? `<h2>${t.title}</h2><p class="pel-sub">${[this.o.comp, t.to(g.target)].filter(Boolean).map(esc).join(' · ')}</p>`
       : `<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>`;
-    const p = this.hud.panel(`${cab}
-      ${this.rivalHtml()}
+    const p = this.hud.panel(`${duelo ? `${duelo}<div class="pel-lado">` : ''}${cab}
       ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora eta besoak barruan ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, jo. Eskuinarekin eta oso ezkerrean amaituz, bi pareta; eskuinetik ezkerrera, paretara; eskuinera, zabalera. Ohi baino askoz azkarrago, cortada; motelago, luzea; eskua behean eta ibilbide laburrarekin, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba y con los brazos dentro; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, golpea. De derecha y acabando muy a la izquierda, dos paredes; de derecha a izquierda, a la pared; hacia la derecha, al ancho. Mucho más rápido que de normal, cortada; más lento, largo; con la mano baja y poco recorrido, dejada.')}</p>` : ''}
       ${this.courtHtml()}
-      <button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>
+      <div class="pel-mas"><button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>${duelo ? `<button class="pel-chip" data-pel-tour>${TT.btn}</button>` : ''}</div>
       <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
         <div class="pel-otabs" role="tablist"><button class="pel-back" data-pel-back>${t.optBack || TEXT.es.optBack}</button>${OT.map((l, i) => `<button role="tab" data-pel-tab="${i}" aria-selected="${i === (this.optTab || 0)}">${l}</button>`).join('')}</div>
         <div class="pel-opane" data-pane="0"${(this.optTab || 0) === 0 ? '' : ' hidden'}>
@@ -371,11 +375,28 @@ export class PelotaMatch {
         <div class="pel-opane" data-pane="2"${this.optTab === 2 ? '' : ' hidden'}><div class="pel-ctrl">${this.touch ? t.ctrlTouch : t.ctrlKeys}</div></div>
       </section>
       ${this.o.fixedLevel ? '' : `<small class="pel-lbl">${t.level || 'Nivel'}</small><div class="pel-levels pel-lv5" role="group" aria-label="${t.level || 'Nivel'}">${LEVEL_ORDER.map(k => `<button data-pel-lv="${k}" aria-pressed="${k === this.level}">${L[k]}</button>`).join('')}</div>`}
-      <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>`);
+      <div class="pel-row"><button class="pel-go alt" data-pel-x>${t.later}</button><button class="pel-go" data-pel-go>${t.play}</button></div>${duelo ? '</div>' : ''}`);
     // «Más opciones» es otra vista del mismo panel (en vez de alargarlo): quién juega y el frontón se apartan y salen las
     // opciones en pestañas, con el nivel y los botones de jugar siempre abajo
     const card = p.querySelector('.pel-card') || p, opts = p.querySelector('.pel-opts');
-    const showOpts = (on) => { this.moreOpen = on; card.classList.toggle('opts', on); if (opts) opts.hidden = !on; p.querySelector('[data-pel-more]')?.setAttribute('aria-expanded', String(on)); };
+    card.classList.toggle('pel-pres', !!duelo);
+    let encaja = () => {};
+    // (el ancho de las cartas, --cw, con el sitio que deja la ventana, como en la Gran final. Tumbada: de alto, el de la
+    // ventana; de ancho, lo que queda tras dejar 264 px a la columna de al lado. De pie: de ancho, la mitad de la ventana;
+    // de alto, lo que queda sobre lo demás. Se vuelve a medir si la pantalla cambia de tamaño o se gira)
+    encaja = () => {
+      const rv = duelo && card.isConnected && !card.classList.contains('opts') && card.querySelector('.pel-rv'); if (!rv) return;
+      const px = (v) => parseFloat(v) || 0, sp = getComputedStyle(p), sc = getComputedStyle(card), n = rv.classList.contains('pel-rv2') ? 2 : 1;
+      const iw = card.clientWidth - px(sc.paddingLeft) - px(sc.paddingRight), ih = p.clientHeight - px(sp.paddingTop) - px(sp.paddingBottom) - px(sc.paddingTop) - px(sc.paddingBottom) - 2;
+      const alto = (h) => (h - (n - 1) * 8) / n / 1.48;
+      let w;
+      if (matchMedia('(orientation: landscape)').matches) w = Math.min(alto(ih), (iw - 264 - 16 - 48) / 2);
+      else { card.style.setProperty('--cw', '92px'); const otros = card.scrollHeight - px(sc.paddingTop) - px(sc.paddingBottom) - rv.offsetHeight; w = Math.min(alto(ih - otros), (iw - 48) / 2); }
+      card.style.setProperty('--cw', Math.floor(Math.max(n > 1 ? 92 : 104, Math.min(n > 1 ? 150 : 200, w))) + 'px');
+    };
+    encaja();
+    if (duelo && window.ResizeObserver) { const ro = new ResizeObserver(() => { if (card.isConnected) encaja(); else ro.disconnect(); }); ro.observe(p); }
+    const showOpts = (on) => { this.moreOpen = on; card.classList.toggle('opts', on); if (opts) opts.hidden = !on; p.querySelector('[data-pel-more]')?.setAttribute('aria-expanded', String(on)); encaja(); };
     showOpts(!!this.moreOpen);
     tap(p, (b) => {
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
@@ -677,13 +698,21 @@ export class PelotaMatch {
     this.pairs = pairs; if (pairs) this.role = k; this.cuatro = k === 'cuatro';
     this.newGame(); this.intro();
   }
-  // quién juega contra quién: una tarjeta por pelotari (tú y tu compañero de azul, el rival y el suyo de colorado) con
-  // lo que más se le nota; al tocarla se abre su ficha entera (cualidades, golpes preferidos, cómo jugarle y sus datos).
-  // Antes se leía aquí todo el perfil del rival en texto corrido; ahora está en su ficha, cuando se quiere ver
+  // quién juega contra quién: la carta de cada pelotari (ui/sportCard.js, las mismas del cuadro del torneo y de la Gran
+  // final: la media, el puesto, su arquetipo, el escudo de su pueblo, su figura y sus cualidades en cifras), cada uno del
+  // color que viste, con el «VS» en medio; por parejas, las dos de cada lado, el delantero arriba y el zaguero abajo, como
+  // en la cancha. Al tocar una carta se abre su ficha entera. El ancho lo pone la hoja según la pantalla (hud.js, --cw).
+  // Antes, una fila por pelotari con una foto redonda: la tuya era el avatar del pueblo, de sanferminero, que en un
+  // partido de pelota no pintaba nada; el autor pidió las cartas (noviembre de 2026)
   rivalHtml() {
     if (this.o.mode === 'rally') return '';
-    const L = this.fichaList(), chips = (side) => L.filter(p => p.side === side).map(p => playerChip(p, this.lang)).join('');
-    return `<div class="pel-rv pel-vs${this.pairs && this.mateObjs ? ' pel-rv2' : ''}"><div class="pel-team">${chips('you')}</div><span class="pel-vs-x" aria-hidden="true">VS</span><div class="pel-team">${chips('rival')}</div></div>`;
+    const L = this.fichaList(), eu = this.lang === 'eu', ROL = eu ? { mano: 'Esku', delantero: 'Aur', zaguero: 'Atz' } : { mano: 'Mano', delantero: 'Del', zaguero: 'Zag' };
+    const abre = (n) => esc(eu ? `${n}: fitxa ireki` : `${n}: abrir su ficha`);
+    const carta = (p) => { const n = splitName(p.name).name;
+      return pelotariCard({ name: n, town: p.town || '', stats: p.stats || {}, side: p.color === 'rojo' ? 'rojo' : 'azul', role: ROL[p.role] || ROL.mano, yo: !!p.you, lang: this.lang,
+        bonus: p.you ? (this.o.youBonus ?? 2) : p.id === 'rival' ? (this.o.rivalBonus ?? 0) : 0, tag: 'button', attr: `type="button" data-pel-ficha="${p.id}" aria-label="${abre(n)}"` }); };
+    const equipo = (side) => L.filter(p => p.side === side).sort((a, b) => (a.role === 'zaguero') - (b.role === 'zaguero')).map(carta).join('');
+    return `<div class="pel-rv pel-vs${L.length > 2 ? ' pel-rv2' : ''}"><div class="pel-team ${this.cols.you}">${equipo('you')}</div><span class="pel-vs-x" aria-hidden="true">VS</span><div class="pel-team ${this.cols.rival}">${equipo('rival')}</div></div>`;
   }
   // los pelotaris del partido, para sus fichas (por parejas, el rival es el delantero y su compañero, el zaguero)
   fichaList() {
@@ -693,7 +722,7 @@ export class PelotaMatch {
     if (M) L.push({ id: 'youMate', name: M.youMate.name, town, stats: M.youMate.stats, side: 'you', role: other });
     L.push({ id: 'rival', name: this.names.rival, town: rt, stats: o.rivalStats, side: 'rival', role: M ? 'delantero' : 'mano' });
     if (M) L.push({ id: 'rivalMate', name: M.rivalMate.name, town: rt, stats: M.rivalMate.stats, side: 'rival', role: 'zaguero' });
-    for (const p of L) { p.color = this.cols[p.side]; p.cara = p.you ? o.caras?.you : null; p.fig = p.you ? null : o.caras?.fig?.(splitName(p.name).name, p.color); }
+    for (const p of L) p.color = this.cols[p.side];
     return L;
   }
   // abre la ficha (el partido se para mientras se mira y sigue al cerrarla)

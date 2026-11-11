@@ -39,7 +39,6 @@ function pelotariBio(name, st = {}, town = '') {
 
 // (el color de cada uno: el que viste en el partido, si se sabe; si no, los tuyos de azul y los rivales de colorado)
 const rojoDe = (p) => (p.color || (p.side === 'rival' ? 'rojo' : 'azul')) === 'rojo';
-const initials = (n) => String(n).replace(/\(.*\)/, '').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
 // el pueblo, si viene en el nombre como en el torneo («Mikel (Lesaka)»)
 export const splitName = (n) => { const m = String(n).match(/^(.*?)\s*\(([^)]+)\)\s*$/); return m ? { name: m[1], town: m[2] } : { name: String(n), town: '' }; };
 
@@ -126,18 +125,6 @@ body.alto-contraste .pfx :is(dt,dd,.pfx-tip,.pfx-note,.pfx-k,.pfx-sk h4,.pfx-hea
 .pfx-shots li i{font-style:normal;color:#ff7ac8;letter-spacing:.1em}
 .pfx-tip{margin:0;font-size:var(--fs-sm);line-height:1.45;color:#e6def7}
 .pfx-note{margin:8px 0 0;font-size:var(--fs-xs);line-height:1.3;color:#cbbcf0}.pfx-tip strong{color:#ffb9a8}
-/* tarjeta de un pelotari (en el partido y en el torneo): al tocarla se abre su ficha */
-.pfx-pl{display:flex;align-items:center;gap:8px;min-width:0;min-height:48px;padding:4px 8px 4px 4px;border-radius:12px;border:1px solid rgba(190,160,255,.35);background:rgba(255,255,255,.06);color:#fff;text-align:left;font:inherit;cursor:pointer}
-.pfx-pl.blue{border-color:rgba(74,163,255,.55)}.pfx-pl.red{border-color:rgba(255,106,74,.55)}.pfx-pl:active{transform:translateY(1px)}
-.pfx-pl-av{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-family:'MZ Display','MZ Texto',sans-serif;font-weight:400;font-size:var(--fs-md);line-height:1;color:#fff;letter-spacing:.04em;border:2px solid rgba(255,255,255,.7)}
-.pfx-pl.blue .pfx-pl-av{background:linear-gradient(180deg,#2a6fe0,#17419e)}.pfx-pl.red .pfx-pl-av{background:linear-gradient(180deg,#d9412a,#9c1f17)}
-/* (con cara: el retrato de tu avatar o la cabeza de la figura del pelotari, en vez de la inicial) */
-.pfx-pl-av.img{position:relative;overflow:hidden;width:48px;height:48px}.pfx-pl-av.img>img{position:absolute;left:50%;transform:translateX(-50%)}.pfx-pl-av.img>img:not(.pf){top:0;width:100%;height:100%;object-fit:cover}.pfx-pl-av.img>img.pf{top:4%;height:330%;width:auto;max-width:none}
-.pfx-pl-t{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
-.pfx-pl-t b{font-size:var(--fs-md);font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pfx-pl-t small{font-size:var(--fs-xs);font-weight:800;color:#e6def7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pfx-pl-go{flex:none;padding:4px 8px;border-radius:999px;background:rgba(255,122,200,.14);border:1px solid rgba(255,122,200,.5);color:#ff7ac8;font-size:var(--fs-xs);font-weight:900;letter-spacing:.04em;text-transform:uppercase;line-height:1.3}
-@media (max-width:520px){.pfx-pl-go{display:none}}
 @media (orientation:landscape) and (max-height:500px){.pfx-card{padding:12px 16px 16px;gap:8px}.pfx-head{margin-bottom:8px}.pfx-av{width:48px;height:48px}.pfx-data div{padding:4px 8px}.pfx-data dd{font-size:var(--fs-sm)}.pfx-bar{min-height:24px}.pfx-sk h4:not(:first-child){margin-top:8px}.pfx-shots{gap:4px}.pfx-shots li{padding:0 8px}}
 `;
 
@@ -146,13 +133,6 @@ body.alto-contraste .pfx :is(dt,dd,.pfx-tip,.pfx-note,.pfx-k,.pfx-sk h4,.pfx-hea
  * al cerrarla (con Escape, la X o tocando fuera).
  */
 function fichaCss() { if (!document.getElementById('pfx-style')) { const s = document.createElement('style'); s.id = 'pfx-style'; s.textContent = CSS; document.head.appendChild(s); } }
-/** Tarjeta de un pelotari (p como en la ficha, con id): iniciales, nombre, lo que más se le nota y «Ficha». */
-export function playerChip(p, lang = 'es', attr = 'data-pel-ficha') {
-  fichaCss();
-  const T = TEXT[lang] || TEXT.es, PT = T.profile || TEXT.es.profile, st = p.stats || {}, sty = st.style || {}, top = SHOTS.filter(k => sty[k] >= 3)[0], { name } = splitName(p.name);
-  const kind = p.you ? (T.vsYou || 'Tú') : [top ? PT.arch[top] : '', st.velocidad >= 4 ? PT.fast : st.velocidad <= 2 ? PT.slow : '', st.fuerza >= 4 ? PT.strong : ''].filter(Boolean).join(' · ') || (T.vsEven || 'Equilibrado');
-  return `<button class="pfx-pl ${rojoDe(p) ? 'red' : 'blue'}" ${attr}="${esc(p.id)}"><span class="pfx-pl-av${p.cara || p.fig ? ' img' : ''}" aria-hidden="true">${p.cara ? `<img src="${p.cara}" alt="">` : p.fig || esc(initials(name))}</span><span class="pfx-pl-t"><b>${esc(name)}</b><small>${esc(kind)}</small></span><span class="pfx-pl-go">${T.ficha || 'Ficha'}</span></button>`;
-}
 export function openFicha(list, i = 0, lang = 'es', host = document.body) {
   fichaCss();
   const T = L[lang] || L.es;

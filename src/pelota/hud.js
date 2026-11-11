@@ -185,7 +185,7 @@ const CSS = `
 .pel-hit.tope::after,.pel-cut.tope::after,.pel-drop.tope::after{background:conic-gradient(#ff9d3b var(--cp),rgba(255,70,70,.5) 0)}
 @keyframes pel-full{to{filter:brightness(1.6)}}
 /* (las ventanas del partido, por encima de todo: la etiqueta de GOLPE asomaba encima de «Seguir jugando» y se llevaba el toque) */
-.pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
 .pel-card{position:relative;width:min(520px,100%);max-height:100%;overflow:auto;background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);color:#f6f3fc;border:1px solid rgba(201,178,255,.25);padding:24px 24px 16px;box-shadow:0 24px 70px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);border-radius:10px;animation:gx-rise .3s cubic-bezier(.2,.9,.3,1) both}
 .pel-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,#ff2bd6);box-shadow:0 0 18px rgba(255,43,214,.5)}
 .pel-card h2{margin:0 0 var(--t-mb);font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-weight:400;font-size:var(--fs-2xl);line-height:1;color:#fff;text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
@@ -212,17 +212,13 @@ const CSS = `
 .pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(190,160,255,.35);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
-.pel-rv{display:flex;flex-wrap:wrap;align-items:center;gap:4px 16px;background:rgba(255,122,200,.08);border:1px solid rgba(255,122,200,.32);border-radius:12px;padding:8px 12px;margin:0 0 12px;font-size:var(--fs-sm);color:#f3ecff}
-.pel-rv b{color:#ff7ac8;font-weight:900}.pel-rv .st{white-space:nowrap}.pel-rv .st i{font-style:normal;color:#ff7ac8;letter-spacing:1px}.pel-rv .st i u{color:rgba(255,255,255,.22);text-decoration:none}
-.pel-rv p{margin:0;flex:1 1 100%;font-size:var(--fs-sm);line-height:1.3;color:#d8cff0}
 /* la ficha del rival: cómo corre, cuánto pega, sus manos, sus golpes preferidos y de qué tener cuidado */
-.pel-rv>.pf{flex:1 1 100%}.pf{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;min-width:0}.pf>b{flex:1 1 100%}.pf .pf-k{color:#fff}
+.pf{display:flex;flex-wrap:wrap;align-items:center;gap:2px 12px;min-width:0}.pf>b{flex:1 1 100%}.pf .pf-k{color:#fff}
 .pf .pf-sh{flex:1 1 100%;font-size:var(--fs-sm)}.pf .pf-sh em{font-style:normal;margin-right:12px;white-space:nowrap}.pf .pf-sh em i{font-style:normal;color:#ff7ac8;letter-spacing:1px}
-.pf p strong{color:#ffb9a8}.pel-rv.pel-rv2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px}
-@media (max-width:560px){.pel-rv.pel-rv2{grid-template-columns:1fr}}
+.pf p strong{color:#ffb9a8}
 .pel-pairs{margin:0 0 8px;font-size:var(--fs-sm);line-height:1.45;color:#d8cff0}
 /* las partes del frontón: el botón junto al título y la ficha de cada parte, abajo */
-.pel-chip{position:relative;min-height:40px;margin-left:8px;border:1px solid rgba(255,122,200,.6);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:inherit;font-size:var(--fs-xs);font-weight:900;letter-spacing:0;cursor:pointer;vertical-align:middle}
+.pel-chip{position:relative;min-height:40px;margin-left:8px;border:1px solid rgba(255,122,200,.6);background:rgba(255,122,200,.12);color:#ff7ac8;border-radius:999px;padding:4px 12px;font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;cursor:pointer;vertical-align:middle}
 .pel-tour{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);transform:translateX(-50%);width:min(560px,calc(calc(100vw / var(--z, 1)) - 32px));padding:8px 16px;border-radius:16px;background:linear-gradient(180deg,rgba(50,19,111,.95),rgba(28,11,58,.95));border:1px solid rgba(255,122,200,.45);pointer-events:auto;box-shadow:0 10px 30px rgba(0,0,0,.45)}
 .pel-tour b{display:block;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);font-weight:400;color:#ff7ac8}
 .pel-tour p{margin:4px 0 8px;font-size:var(--fs-sm);line-height:1.3}.pel-tour div{display:flex;gap:8px;justify-content:flex-end}
@@ -235,20 +231,20 @@ const CSS = `
   .pel-call{top:calc(env(safe-area-inset-top,0px) + 56px);padding:12px 20px}
   .pel-card{width:min(780px,100%);padding:16px 16px 12px}.pel-card h2{font-size:var(--fs-xl)}.pel-card .pel-sub{margin-bottom:8px}
   .pel-card ol{columns:2;column-gap:24px;font-size:var(--fs-sm);margin-bottom:8px}.pel-card li{break-inside:avoid;margin-bottom:4px}
-  .pel-card .pel-ctrl{font-size:var(--fs-sm);padding:8px 8px;margin-bottom:8px}.pel-rv{padding:4px 8px;margin-bottom:8px;font-size:var(--fs-sm)}.pel-rv p{font-size:var(--fs-xs)}.pel-levels{margin-bottom:8px}.pel-levels button{padding:8px 8px}
+  .pel-card .pel-ctrl{font-size:var(--fs-sm);padding:8px 8px;margin-bottom:8px}.pel-levels{margin-bottom:8px}.pel-levels button{padding:8px 8px}
   .pel-go{padding:8px 16px;font-size:var(--fs-md)}.pel-card .pel-big{font-size:var(--fs-3xl);margin:2px 0}.pel-card .pel-fact{margin:8px 0 8px;font-size:var(--fs-sm)}}
 /* móvil en horizontal con poca altura: título y marcador en una línea, sin la etiqueta «Nivel» (el grupo la lleva como
    aria-label) y los niveles junto a los botones de jugar, para que todo quepa sin desplazar */
 @media (orientation:landscape) and (max-height:440px){
   .pel-panel{padding-top:calc(env(safe-area-inset-top,0px) + 8px);padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)}
   .pel-card{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:12px;padding:8px 16px 12px;border-radius:18px}
-  .pel-card>*{flex:1 1 100%}.pel-card>h2{flex:0 0 auto;margin-bottom:8px}.pel-card>.pel-sub{flex:1 1 0;min-width:0;margin-bottom:8px}
-  .pel-card>.pel-lbl{display:none}
-  .pel-card>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}.pel-card>.pel-levels button{min-width:0;min-height:44px}
-  .pel-card>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}.pel-card>.pel-levels+.pel-row .pel-go{min-height:44px}
-  .pel-card>.pel-court{margin-bottom:8px}.pel-card>.pel-lv5 button{flex:1 1 auto;min-width:max-content;padding:4px 6px;font-size:var(--fs-xs);text-transform:none;letter-spacing:0}   /* (cada nivel entero: «Iniciación» no se parte; cada botón del ancho de su nombre) */
-  .pel-card>.pel-mod{flex:1 1 100%;margin:0 0 8px}.pel-card>.pel-mod button{min-height:44px;padding:4px 8px}.pel-card>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
-  .pel-card.opts>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.opts>h2{align-self:center;margin-bottom:8px}
+  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>*{flex:1 1 100%}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>h2{flex:0 0 auto;margin-bottom:8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-sub{flex:1 1 0;min-width:0;margin-bottom:8px}
+  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-lbl{display:none}
+  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels{flex:3 1 0;min-width:0;margin:0;align-self:center;flex-wrap:nowrap}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels button{min-width:0;min-height:44px}
+  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels+.pel-row{flex:2 1 0;min-width:0;align-self:center}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-levels+.pel-row .pel-go{min-height:44px}
+  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-court{margin-bottom:8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-lv5 button{flex:1 1 auto;min-width:max-content;padding:4px 6px;font-size:var(--fs-xs);text-transform:none;letter-spacing:0}   /* (cada nivel entero: «Iniciación» no se parte; cada botón del ancho de su nombre) */
+  :is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-mod{flex:1 1 100%;margin:0 0 8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-mod button{min-height:44px;padding:4px 8px}:is(.pel-card,.pel-card:where(.opts)>.pel-lado)>.pel-pairs{margin-bottom:8px;font-size:var(--fs-xs)}
+  .pel-card.opts>.pel-sub,.pel-card.opts>.pel-lado>.pel-sub{display:none}.pel-opts{display:contents}.pel-card.opts>h2,.pel-card.opts>.pel-lado>h2{align-self:center;margin-bottom:8px}
   .pel-otabs{flex:1 1 0;min-width:0;margin-bottom:8px}.pel-opane{flex:1 1 100%}.pel-opane .pel-mod{margin-bottom:8px}.pel-opane .pel-mod button{min-height:44px;padding:4px 8px}.pel-opane .pel-pairs{margin:0 0 8px;font-size:var(--fs-xs)}
   .pel-balls{margin-bottom:8px}
   .pel-orow{margin-bottom:8px}.pel-orow .pel-switch{min-height:44px;padding:4px 12px}
@@ -257,10 +253,41 @@ const CSS = `
 @media (hover:hover) and (pointer:fine){.pel-stick,.pel-stickhint{display:none}}
 /* zona táctil de 44 px en las píldoras pequeñas (el dibujo no cambia) */
 .pel-chip::before{content:'';position:absolute;inset:-8px -4px}
-/* quién juega contra quién: una tarjeta por pelotari que abre su ficha (azules contra colorados) */
-.pel-rv.pel-vs,.pel-rv.pel-vs.pel-rv2{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:8px;padding:0;margin:0 0 12px;background:none;border:0}
-.pel-team{display:flex;flex-direction:column;gap:8px;min-width:0}
-.pel-vs-x{font:400 var(--fs-lg)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#ff7ac8;letter-spacing:.04em}
+/* quién juega contra quién: las cartas de los pelotaris (ui/sportCard.js, las del cuadro del torneo y la Gran final), las
+   tuyas de tu color a la izquierda, el «VS» y las del rival; al tocar una, su ficha. En una pantalla tumbada las cartas
+   van a la izquierda, con todo el alto de la ventana, y lo demás (.pel-lado: el título, el frontón, «Más opciones», el
+   nivel y los botones) en una columna a su derecha, que no baja de 264 px; de pie, las cartas arriba y lo demás debajo.
+   El ancho de la carta, --cw, lo mide match.js (intro, encaja) con el sitio que queda: mano a mano salen de 136 px o
+   más, con sus seis cifras en dos columnas; por parejas, dos por lado, el delantero encima del zaguero. Con «Más
+   opciones» abierto las cartas se apartan y la columna se deshace (display:contents): la ventana de siempre */
+.pel-rv{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 12px}
+.pel-team{flex:none;display:flex;flex-direction:column;gap:8px}
+.pel-vs .gx-card{--w:var(--cw,140px)!important}
+.pel-vs-x{flex:none;min-width:32px;text-align:center;font:400 var(--fs-xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#ff7ac8;letter-spacing:.04em}
+.pel-lado{display:contents}
+.pel-mas{display:flex;align-items:center;gap:8px;margin:0 0 8px}.pel-mas .pel-more{flex:1 1 0;width:auto;min-width:0;margin:0}.pel-mas .pel-chip{flex:none;margin:0}
+@media (max-width:520px){.pel-pres .pel-sum{display:none}}
+@media (max-width:440px){.pel-card.pel-pres{padding-left:16px;padding-right:16px}}
+@media (orientation:landscape){
+  .pel-card.pel-pres{width:min(960px,100%)}
+  .pel-card.pel-pres:not(.opts){display:flex;flex-wrap:nowrap;align-items:center;gap:16px}
+  .pel-card.pel-pres:not(.opts)>.pel-rv{flex:none;margin:0}
+  .pel-card.pel-pres:not(.opts)>.pel-lado{flex:1 1 0;min-width:0;display:flex;flex-direction:column;gap:12px}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>*{flex:none;margin:0}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lbl{margin-bottom:-4px}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-row{position:static;padding:0;background:none}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5{display:grid;grid-template-columns:repeat(6,minmax(0,1fr))}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5 button{grid-column:span 2;min-width:0}.pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5 button:nth-child(n+4){grid-column:span 3}
+}
+/* (en el móvil tumbado: el mismo relleno arriba que abajo, todo más junto, sin el rótulo «Nivel», que el grupo lo lleva
+   como aria-label, y sin el resumen de lo elegido, que en esa columna no cabe entero) */
+@media (orientation:landscape) and (max-height:500px){
+  .pel-card.pel-pres:not(.opts){padding:12px 16px}
+  .pel-card.pel-pres:not(.opts)>.pel-lado{gap:8px}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lbl,.pel-card.pel-pres:not(.opts) .pel-sum{display:none}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-lv5 button{min-height:44px;padding:4px 8px}
+  .pel-card.pel-pres:not(.opts)>.pel-lado>.pel-row .pel-go{min-height:44px}
+}
 .pel-wide{display:block;width:100%;margin:0 0 12px}
 /* el frontón: su dibujo, su nombre y lo que se nota al jugar en él (al tocarlo, qué pasa con cada cosa) */
 .pel-court{display:flex;align-items:center;gap:12px;width:100%;min-height:48px;margin:0 0 12px;padding:4px 12px;border-radius:12px;border:1px solid rgba(255,122,200,.32);background:rgba(255,122,200,.08);color:#fff;font:inherit;text-align:left;cursor:pointer}
@@ -272,10 +299,10 @@ const CSS = `
 /* «Más opciones»: un botón con lo elegido a la vista. Al tocarlo, el mismo panel pasa a la vista de opciones, en
    pestañas (Partido, Reglas, Controles), en vez de alargarse: quién juega y el frontón se apartan, y el nivel y los
    botones de jugar siguen abajo */
-.pel-more{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0;border:0;background:none;color:#cbbcf0;font:inherit;font-size:var(--fs-sm);font-weight:900;text-transform:uppercase;letter-spacing:.04em;text-align:left;cursor:pointer}
+.pel-more{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;margin:0 0 8px;padding:0;border:0;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;text-transform:uppercase;letter-spacing:.1em;text-align:left;white-space:nowrap;cursor:pointer}
 .pel-more::before{content:'';flex:none;width:8px;height:8px;border:solid #ff7ac8;border-width:0 2px 2px 0;transform:rotate(-45deg);margin:0 4px 0 2px}
 .pel-more .pel-sum{margin-left:auto;padding-left:12px;min-width:0;font-size:var(--fs-xs);font-weight:800;letter-spacing:0;text-transform:none;color:#ff7ac8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pel-card.opts>.pel-rv,.pel-card.opts>.pel-court,.pel-card.opts>.pel-court-what,.pel-card.opts>.pel-more{display:none}
+.pel-card.opts :is(.pel-rv,.pel-court,.pel-court-what,.pel-mas){display:none}
 .pel-opts[hidden],.pel-opane[hidden]{display:none}
 .pel-otabs{display:flex;align-items:stretch;gap:4px;margin:0 0 12px;border-bottom:1px solid rgba(190,160,255,.25)}
 .pel-otabs button{flex:1 1 0;min-width:0;min-height:44px;padding:0 8px;border:0;border-bottom:3px solid transparent;margin-bottom:-1px;background:none;color:#cbbcf0;font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
@@ -287,10 +314,9 @@ const CSS = `
 .pel-orow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px}
 .pel-orow .pel-ballwhat,.pel-orow .pel-switch{margin:0}.pel-orow .pel-ballwhat{grid-row:span 2}
 .pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
-/* móvil muy estrecho de pie: los niveles bajan a otra fila en vez de pisarse, los nombres de quien juega van debajo de su
-   círculo y «Volver al pueblo» parte en dos líneas */
+/* móvil muy estrecho de pie: los niveles bajan a otra fila en vez de pisarse y «Volver al pueblo» parte en dos líneas */
 @media (orientation:portrait) and (max-width:400px){.pel-lv5 button{flex:1 1 auto;min-width:max-content}}
-@media (orientation:portrait) and (max-width:360px){.pel-vs .pfx-pl{flex-direction:column;text-align:center;padding:8px 4px}.pel-vs .pfx-pl-t b,.pel-vs .pfx-pl-t small{white-space:normal;overflow-wrap:anywhere}.pel-vs .pfx-pl-t b{font-size:var(--fs-sm)}.pel-row .pel-go{white-space:normal;font-size:var(--fs-lg);line-height:1.1}}
+@media (orientation:portrait) and (max-width:360px){.pel-row .pel-go{white-space:normal;font-size:var(--fs-lg);line-height:1.1}}
 /* tu energía: grande, abajo en el centro (entre el joystick y los botones); verde, amarilla y roja al cansarte */
 @keyframes pel-low{to{box-shadow:0 0 0 2px #ff5a3a}}
 /* el descanso: a la derecha de tu energía (de pie, encima), con los que te quedan; pedido, en rosa; descansando, «Seguir»;
@@ -316,7 +342,7 @@ const CSS = `
 /* ordenador (pantalla grande): las ventanas del partido más anchas y con la letra a su tamaño */
 @media (min-width:1200px) and (min-height:560px){
   .pel-card{width:min(1000px,100%);padding:32px 40px 24px}.pel-card ol{columns:2;column-gap:40px}.pel-card li{break-inside:avoid}.pel-card h2{font-size:var(--fs-3xl)}.pel-card .pel-sub{font-size:var(--fs-md)}
-  .pel-card li,.pel-card .pel-ctrl,.pel-rv,.pel-rv p,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
+  .pel-card li,.pel-card .pel-ctrl,.pel-pairs{font-size:var(--fs-md)}.pel-go{min-height:56px}.pel-levels button{min-height:48px}
 }
 /* la elección de material (material.js): un desplegable con cómo quieres tus pelotas y, debajo, cuáles son, cada una con
    su número, lo viva que es y su peso */
@@ -380,7 +406,7 @@ body.alto-contraste .pel-side :is(span,b){color:#fff;text-shadow:0 1px 0 #000}
 body.alto-contraste :is(.pel-call,.pel-golpe,.pel-tip,.pel-q,.pel-rep-b){background:#000!important;border:2px solid #fff!important;color:#fff!important;box-shadow:none!important}
 body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto-contraste .pel-racha{background:#000;border:2px solid #ffd166;color:#ffd166;box-shadow:none}
 body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
-body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-rv,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
+body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
 body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
 body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff,0 6px 16px rgba(0,0,0,.4)}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
 .pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
