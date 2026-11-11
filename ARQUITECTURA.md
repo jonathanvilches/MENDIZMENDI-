@@ -705,7 +705,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - El contorno de fuera de Navarra: una cinta clara sobre el borde de las losas, con otra oscura debajo que la recorta,
     del mismo ancho en pantalla a cualquier distancia (`ANCHO_B`). Solo los tramos que no dan a otra comarca; va con su
     comarca al levantarse.
-  - Entre comarcas, una junta oscura y, a cada lado, una franja del color de cada comarca que se apaga hacia dentro
+  - Entre comarcas, una raya fina color crema (antes una junta oscura, casi negra, que no gustaba) y, a cada lado, una franja del color de cada comarca que se apaga hacia dentro
     (`juntaM`, `bordeIn`), con el mismo ancho en pantalla: se ve dónde acaba una y empieza otra aunque sean del mismo
     verde. Los tramos se cuentan desde donde cambian (`tramos`), para no partir ni repetir uno que da la vuelta.
 - **Relieve más nítido y con mejor color** (`hub/mapa3dSombreadores.js`): la imagen de relieve fino se perfila de cerca,

@@ -257,7 +257,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     m.customProgramCacheKey = () => 'mapa-contorno'; mats.push(m); m.userData.orden = orden; return m; };
   // (finas: la raya oscura de la junta y, a cada lado, la luz de la comarca hacia dentro, estrecha, como un canto biselado.
   // En noviembre de 2026 se hicieron el doble de anchas y pesaban demás: se dejaron así)
-  const contornoM = [cintaB(0x1d1240, 0.6, 2.1, 2), cintaB(0xfff1cf, 0.9, 0.9, 3)], juntaM = cintaB(0x140a30, 0.7, 0.85, 2), gradB = haciaDentro();
+  // (la junta entre comarcas, una raya fina y clara, crema como el contorno de Navarra: oscura, casi negra, no le gustaba
+  // al autor, noviembre de 2026)
+  const contornoM = [cintaB(0x1d1240, 0.6, 2.1, 2), cintaB(0xfff1cf, 0.9, 0.9, 3)], juntaM = cintaB(0xfff4dc, 0.62, 0.55, 3), gradB = haciaDentro();
   mats.push({ dispose: () => gradB.dispose() });
   // (los tramos seguidos de lados que cumplen algo, empezando donde cambia, para no partir ni repetir uno que da la vuelta)
   const tramos = (P, ok) => { const n = P.length, out = []; let s = 0; while (s < n && ok[(s - 1 + n) % n] === ok[s]) s++; if (s === n) s = 0;
