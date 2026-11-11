@@ -104,40 +104,40 @@ export const F = {
     'r-piernas': [['e', 'Hankak nabaritzen hasiak dira.']],
   },
 };
-// Los dos comentaristas hablan entre ellos de vez en cuando: Gorka (la voz de hombre) y Miren (la de mujer). Cada diálogo
-// (antes él se llamaba Mikel: la voz de mujer, que es de inteligencia artificial, lo decía con el acento en la e; Gorka
-// lo dicen bien todas) es una pregunta y su respuesta, con la voz fijada ('h' él, 'm' ella); su archivo, «d-<tema>-<n>-<turno>» en la carpeta
+// Los dos comentaristas hablan entre ellos de vez en cuando: Iñaki (la voz de hombre) y Miren (la de mujer). Cada diálogo
+// (antes él se llamaba Mikel: la voz de mujer, que es de inteligencia artificial, lo decía con el acento en la e; con
+// Iñaki suena bien, lo probó el autor) es una pregunta y su respuesta, con la voz fijada ('h' él, 'm' ella); su archivo, «d-<tema>-<n>-<turno>» en la carpeta
 // de quien lo dice (src/assets/voz/hombre/es/d-viva-1-1.mp3 y src/assets/voz/mujer/es/d-viva-1-2.mp3). Solo con «Dos
 // comentaristas» (Ajustes) y solo si están grabados los dos turnos: si falta uno, se dice la frase de siempre (match.js)
 export const DIALOGO = {
   es: {
-    inicio: [[['h', 'Buenas tardes. Hoy me acompaña Miren, que sabe mucho de pelota.'], ['m', 'Buenas tardes, Gorka. ¡Qué ganas tenía de este partido!']],
-      [['h', 'Miren, ¿cómo ves el partido de hoy?'], ['m', 'Muy abierto, Gorka. Puede pasar cualquier cosa.']]],
-    tanto: [[['h', '¿Qué te ha parecido, Miren?'], ['m', 'Espectacular, Gorka. Así se juega a pelota.']]],
-    viva: [[['h', 'Este material es muy vivo, ¿no te parece, Miren?'], ['m', 'Sí, Gorka: sale mucho del frontis y bota alto.']]],
-    pesada: [[['m', 'Gorka, esa pelota pesa: cuesta llevarla atrás.'], ['h', 'Tienes razón, Miren. Hay que pegarle con todo.']]],
-    mano: [[['m', 'Gorka, ¿has visto qué bien le entra la pelota en la mano?'], ['h', 'Lo he visto, Miren. Está en una tarde fantástica.']]],
-    igualado: [[['m', 'Esto está muy igualado, Gorka.'], ['h', 'Muy igualado, Miren: cualquiera lo puede ganar.']]],
-    peloteo: [[['h', '¡Qué peloteo, Miren!'], ['m', 'Eso se nota en las piernas, Gorka.']]],
-    grada: [[['h', 'Fíjate en la grada, Miren: no cabe ni un alfiler.'], ['m', '¡Qué ambiente, Gorka! Da gusto.']]],
-    descanso: [[['h', 'Descanso. ¿Qué harías tú ahora, Miren?'], ['m', 'Respirar hondo y pensar el siguiente saque, Gorka.']]],
-    final: [[['h', 'Hasta aquí el partido. Gracias por acompañarme, Miren.'], ['m', 'Gracias a ti, Gorka. Ha sido un placer.']]],
+    inicio: [[['h', 'Buenas tardes. Hoy me acompaña Miren, que sabe mucho de pelota.'], ['m', 'Buenas tardes, Iñaki. ¡Qué ganas tenía de este partido!']],
+      [['h', 'Miren, ¿cómo ves el partido de hoy?'], ['m', 'Muy abierto, Iñaki. Puede pasar cualquier cosa.']]],
+    tanto: [[['h', '¿Qué te ha parecido, Miren?'], ['m', 'Espectacular, Iñaki. Así se juega a pelota.']]],
+    viva: [[['h', 'Este material es muy vivo, ¿no te parece, Miren?'], ['m', 'Sí, Iñaki: sale mucho del frontis y bota alto.']]],
+    pesada: [[['m', 'Iñaki, esa pelota pesa: cuesta llevarla atrás.'], ['h', 'Tienes razón, Miren. Hay que pegarle con todo.']]],
+    mano: [[['m', 'Iñaki, ¿has visto qué bien le entra la pelota en la mano?'], ['h', 'Lo he visto, Miren. Está en una tarde fantástica.']]],
+    igualado: [[['m', 'Esto está muy igualado, Iñaki.'], ['h', 'Muy igualado, Miren: cualquiera lo puede ganar.']]],
+    peloteo: [[['h', '¡Qué peloteo, Miren!'], ['m', 'Eso se nota en las piernas, Iñaki.']]],
+    grada: [[['h', 'Fíjate en la grada, Miren: no cabe ni un alfiler.'], ['m', '¡Qué ambiente, Iñaki! Da gusto.']]],
+    descanso: [[['h', 'Descanso. ¿Qué harías tú ahora, Miren?'], ['m', 'Respirar hondo y pensar el siguiente saque, Iñaki.']]],
+    final: [[['h', 'Hasta aquí el partido. Gracias por acompañarme, Miren.'], ['m', 'Gracias a ti, Iñaki. Ha sido un placer.']]],
   },
   eu: {
-    inicio: [[['h', 'Arratsalde on. Gaur Miren dut ondoan, pilotaz asko dakiena.'], ['m', 'Arratsalde on, Gorka. Zer gogo nituen partida honen!']],
-      [['h', 'Miren, nola ikusten duzu gaurko partida?'], ['m', 'Oso irekia, Gorka. Edozer gerta daiteke.']]],
-    tanto: [[['h', 'Zer iruditu zaizu, Miren?'], ['m', 'Ikusgarria, Gorka. Horrela jokatzen da pilotan.']]],
-    viva: [[['h', 'Material hau oso bizia da, ez zaizu iruditzen, Miren?'], ['m', 'Bai, Gorka: asko ateratzen da frontisetik eta gora egiten du bote.']]],
-    pesada: [[['m', 'Gorka, pilota horrek pisua du: kosta egiten da atzera eramatea.'], ['h', 'Arrazoi duzu, Miren. Indar guztiarekin jo behar zaio.']]],
-    mano: [[['m', 'Gorka, ikusi duzu zein ondo sartzen zaion pilota eskura?'], ['h', 'Ikusi dut, Miren. Arratsalde zoragarria du.']]],
-    igualado: [[['m', 'Oso berdindua dago hau, Gorka.'], ['h', 'Oso berdindua, Miren: edonork irabaz dezake.']]],
-    peloteo: [[['h', 'Zer pilotakada sorta, Miren!'], ['m', 'Hori hanketan nabaritzen da, Gorka.']]],
-    grada: [[['h', 'Begira harmailei, Miren: ez dago leku hutsik.'], ['m', 'Zer giroa, Gorka! Gustura egoteko modukoa.']]],
-    descanso: [[['h', 'Atsedenaldia. Zuk zer egingo zenuke orain, Miren?'], ['m', 'Arnasa sakon hartu eta hurrengo sakea pentsatu, Gorka.']]],
-    final: [[['h', 'Hemen bukatu da partida. Eskerrik asko nirekin egoteagatik, Miren.'], ['m', 'Eskerrik asko zuri, Gorka. Plazer bat izan da.']]],
+    inicio: [[['h', 'Arratsalde on. Gaur Miren dut ondoan, pilotaz asko dakiena.'], ['m', 'Arratsalde on, Iñaki. Zer gogo nituen partida honen!']],
+      [['h', 'Miren, nola ikusten duzu gaurko partida?'], ['m', 'Oso irekia, Iñaki. Edozer gerta daiteke.']]],
+    tanto: [[['h', 'Zer iruditu zaizu, Miren?'], ['m', 'Ikusgarria, Iñaki. Horrela jokatzen da pilotan.']]],
+    viva: [[['h', 'Material hau oso bizia da, ez zaizu iruditzen, Miren?'], ['m', 'Bai, Iñaki: asko ateratzen da frontisetik eta gora egiten du bote.']]],
+    pesada: [[['m', 'Iñaki, pilota horrek pisua du: kosta egiten da atzera eramatea.'], ['h', 'Arrazoi duzu, Miren. Indar guztiarekin jo behar zaio.']]],
+    mano: [[['m', 'Iñaki, ikusi duzu zein ondo sartzen zaion pilota eskura?'], ['h', 'Ikusi dut, Miren. Arratsalde zoragarria du.']]],
+    igualado: [[['m', 'Oso berdindua dago hau, Iñaki.'], ['h', 'Oso berdindua, Miren: edonork irabaz dezake.']]],
+    peloteo: [[['h', 'Zer pilotakada sorta, Miren!'], ['m', 'Hori hanketan nabaritzen da, Iñaki.']]],
+    grada: [[['h', 'Begira harmailei, Miren: ez dago leku hutsik.'], ['m', 'Zer giroa, Iñaki! Gustura egoteko modukoa.']]],
+    descanso: [[['h', 'Atsedenaldia. Zuk zer egingo zenuke orain, Miren?'], ['m', 'Arnasa sakon hartu eta hurrengo sakea pentsatu, Iñaki.']]],
+    final: [[['h', 'Hemen bukatu da partida. Eskerrik asko nirekin egoteagatik, Miren.'], ['m', 'Eskerrik asko zuri, Iñaki. Plazer bat izan da.']]],
   },
 };
-const QUIEN = { es: { h: 'Gorka', m: 'Miren' }, eu: { h: 'Gorka', m: 'Miren' } };
+const QUIEN = { es: { h: 'Iñaki', m: 'Miren' }, eu: { h: 'Iñaki', m: 'Miren' } };
 // (de qué tema de relleno sale cada diálogo)
 const R2D = { 'r-viva': 'viva', 'r-pesada': 'pesada', 'r-mano': 'mano', 'r-igualado': 'igualado', 'r-grada': 'grada' };
 
