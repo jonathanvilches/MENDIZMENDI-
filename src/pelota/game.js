@@ -181,7 +181,7 @@ export class PelotaGame {
     }
     for (const id of this.ids) { const p = this.players[id]; p.vx = p.vz = 0; p.swing = 0; p.act = 'idle'; }
     this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
-    this.rally = null; this.serveTries = 0; this.runUp = false; this.saque = null;
+    this.rally = null; this.serveTries = 0; this.runUp = false; this.saque = null; this.saquePend = null; this.listoT = null;
   }
   start() { if (this.phase === 'intro') this.toServe(); }
   toServe() {
@@ -852,10 +852,18 @@ export class PelotaGame {
       if (!this.runUp && this.mode === 'match') { const sd = ['you', 'rival'].find(x => this.pedido[x] && this.descansos[x] > 0); if (sd) { this.startDescanso(sd); return this.events; } }
       const s = this.players[this.serverP()];
       const humanServes = this.serverP() === 'you' && !this.autoplay;
-      if (!this.runUp && (humanServes ? (inp.hit || inp.cut || this.phaseT > 9) : this.phaseT > 0.8)) {
+      // (nadie saca hasta que los dos han vuelto corriendo a su sitio, lejos: lo marcan las figuras, match.js; y medio
+      // segundo más, para colocarse. Antes el rival sacaba a los 0,8 s aunque su figura aún no hubiera llegado. Si tú das
+      // al saque mientras vuelves, sale en cuanto llegas)
+      const listos = !Object.values(this.lejos || {}).some(Boolean) || this.phaseT > 5;
+      if (listos) this.listoT ??= this.phaseT; else this.listoT = null;
+      const pide = humanServes && (inp.hit || inp.cut) ? { pow: inp.power ?? 0.5, aim: { x: inp.aimX || 0, y: inp.aimY || 0 }, req: inp.cut ? 'cortada' : false } : null;
+      if (pide && !listos) this.saquePend = pide;
+      if (!this.runUp && listos && (humanServes ? (pide || this.saquePend || this.phaseT > 9) : this.phaseT > 0.8 && this.phaseT - this.listoT > 0.5)) {
         this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() });
         // (con GOLPE, el saque de siempre; con CORTADA, el saque cortado)
-        if (humanServes) this.saque = inp.hit || inp.cut ? { pow: inp.power ?? 0.5, aim: { x: inp.aimX || 0, y: inp.aimY || 0 }, req: inp.cut ? 'cortada' : false } : { pow: 0.5, aim: { x: 0, y: 0 }, req: false };
+        if (humanServes) this.saque = pide || this.saquePend || { pow: 0.5, aim: { x: 0, y: 0 }, req: false };
+        this.saquePend = null;
       }
       this.movePlayers(dt, { ...inp, hit: false, drop: false });
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;

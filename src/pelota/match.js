@@ -22,6 +22,9 @@ import { Chapa3D } from './chapa.js';
 import { tap } from '../util/tap.js';
 import { TACTIL } from '../util/tactil.js';
 const clamp1 = (v) => Math.max(-1, Math.min(1, v));
+// vuelta a su sitio entre tanto y tanto (la figura; la lógica ya los ha puesto allí): a paso de carrera, con su arranque y
+// su frenada, en m/s y m/s²
+const VUELTA = { v: 6.2, acel: 9, freno: 8 };
 // (de qué lado le llega la pelota a quien la va a dar, su izquierda es su +X girado con su cara, y a qué altura: el golpe
 // que se ve, derecha o izquierda, sotamano o de aire)
 function golpeDe(P, x, y, z) {
@@ -1314,12 +1317,22 @@ export class PelotaMatch {
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
       // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
-      const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0 };
+      const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0, vel: 0 };
       let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }
       if (Math.hypot(px - S.x, pz - S.z) > Math.max(0.35, 10 * dt)) { S.ox = S.x - px; S.oz = S.z - pz; }
       S.v = 0;
-      // (se acerca cada vez más despacio, pero nunca más rápido que un esprint: desde lejos, antes, cruzaba la cancha volando)
-      if (S.ox || S.oz) { const d = Math.hypot(S.ox, S.oz), step = Math.min(d * (1 - Math.exp(-dt * 5)), 14 * dt), k = d > 0 ? (d - step) / d : 0, ox = S.ox * k, oz = S.oz * k; if (dt > 0) S.v = step / dt; S.ox = ox; S.oz = oz; if (Math.hypot(ox, oz) < 0.03) S.ox = S.oz = 0; px += S.ox; pz += S.oz; }
+      // (vuelve corriendo, como un pelotari de verdad: arranca, corre a su paso y frena al llegar; con esa velocidad se elige
+      // el paso de la figura, que corre con las piernas. Antes se acercaba cada vez más despacio y, al final, parecía que
+      // se arrastraba hasta su sitio)
+      if (S.ox || S.oz) {
+        const d = Math.hypot(S.ox, S.oz), quiere = Math.min(VUELTA.v, Math.sqrt(2 * VUELTA.freno * d));
+        S.vel = quiere > S.vel ? Math.min(quiere, S.vel + VUELTA.acel * dt) : quiere;
+        const step = Math.min(d, S.vel * dt), k = d > 0 ? (d - step) / d : 0;
+        S.ox *= k; S.oz *= k; if (dt > 0) S.v = step / dt;
+        if (Math.hypot(S.ox, S.oz) < 0.03) { S.ox = S.oz = 0; S.vel = 0; }
+        px += S.ox; pz += S.oz;
+      } else S.vel = 0;
+      (g.lejos ||= {})[who] = Math.hypot(S.ox, S.oz) > 0.5;   // (aún volviendo: el saque espera, game.js)
       S.x = px; S.z = pz;
       this.v3.set(px, 0, pz); grp.localToWorld(this.v3);
       side.obj.position.copy(this.v3);
