@@ -346,11 +346,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   va el partido (`relleno`: la mano del que encadena tantos, lo bien que sale la pelota del frontis, el material de la
   pelota en juego, viva o pesada, `material.js`, la grada, el marcador igualado, las piernas al final); y si el saque
   se hace esperar 5 s sin que nadie hable, relleno. Si en el peloteo ya se comentó la jugada, al cantar el tanto no se
-  repite. Con «Dos comentaristas», los dos hablan entre ellos de vez en cuando (`DIALOGO`: Mikel, la voz de hombre, y
+  repite. Con «Dos comentaristas», los dos hablan entre ellos de vez en cuando (`DIALOGO`: Gorka, la voz de hombre, y
   Miren, la de mujer; la presentación, el material, la mano, el marcador, un peloteo largo, el descanso y la despedida):
   cada turno con su voz fijada y sin la otra de repuesto (`estricta`), el segundo justo detrás del primero (`sigue`), y
   solo si están grabados los dos (`tiene`); si no, la frase suelta de siempre. Sus guiones para Envato:
-  `tools/guion-voz/hombre-es-3.json` y `hombre-es-4.json` (grabados: 39 frases más de Mikel, 110 en total) y, de
+  `tools/guion-voz/hombre-es-3.json` y `hombre-es-4.json` (grabados: 39 frases más de Gorka, 110 en total; se llamaba Mikel, pero la voz de IA de Miren lo acentuaba en la e) y, de
   Miren, toda su locución de nuevo en `mujer-es-1.json` a `mujer-es-4.json` (53 frases: las que explican, la segunda
   de las pantallas, las nuevas de relleno que explican y su parte de los diálogos). Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
   a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. En castellano suenan las voces de Envato que el autor generó para el guion a dos voces (noviembre de
