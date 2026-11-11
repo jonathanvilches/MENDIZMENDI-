@@ -215,7 +215,10 @@
   --sh-t: var(--hud-t); --sh-b: var(--hud-b); --sh-l: max(var(--hud-l), calc((100% - 1400px) / 2)); --sh-r: max(var(--hud-r), calc((100% - 1400px) / 2)); }
 #hub.juego .hub-main { position: absolute; z-index: 25; inset: var(--sh-t) var(--sh-r) var(--sh-b) var(--sh-l); grid-row: auto; grid-column: auto;
   padding: 0 24px 32px; border-radius: var(--cr-r); background: var(--cr2); border: 1px solid var(--cr-l); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); box-shadow: 0 24px 60px rgba(4, 1, 12, .45);
-  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-padding-top: calc(var(--hud-h) + 16px); animation: hubVentana .3s var(--ease) both; }
+  overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scroll-padding-top: calc(var(--hud-h) + 16px); animation: hubVentana .3s var(--ease) backwards;
+  transition: transform var(--d-panel) var(--ease), opacity var(--d-panel) var(--ease); }
+/* (con una ficha abierta encima, la ventana de detrás se hunde un poco y se apaga: la ficha queda delante, con profundidad) */
+body:has(> .mg-overlay, > .lam-view) #hub.juego .hub-main { transform: scale(.975); opacity: .55; }
 @keyframes hubVentana { from { opacity: 0; transform: translateY(10px) scale(.992); } }
 #hub.juego .hub-main::before { content: ''; position: sticky; z-index: 5; top: 0; display: block; height: calc(var(--hud-h) + 16px); margin: 0 -24px 8px; background: linear-gradient(180deg, rgba(13, 6, 28, .98) 50%, rgba(13, 6, 28, .78) 68%, rgba(13, 6, 28, .4) 85%, rgba(13, 6, 28, 0) 100%); pointer-events: none; }
 #hub.juego .hub-cab { position: absolute; z-index: 26; top: var(--sh-t); left: calc(var(--sh-l) + var(--hud-h) + 20px); right: calc(var(--sh-r) + var(--hud-h) + 20px); height: calc(var(--hud-h) + 16px);
@@ -351,9 +354,9 @@
 #hub.juego .filters { position: relative; }
 #hub.juego .filters button { z-index: 1; }
 #hub.juego .filters button.on { background: none; border-color: transparent; }
-#hub.juego .fl-ind { position: absolute; z-index: 0; left: var(--fl-l); top: var(--t, 0); width: calc(var(--fl-r) - var(--fl-l)); height: var(--h, 44px); border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255,255,255,.08); pointer-events: none;
-  transition: --fl-l .46s var(--muelle), --fl-r .28s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
-#hub.juego .fl-ind.izq { transition: --fl-l .28s var(--muelle), --fl-r .46s var(--muelle), top .3s var(--muelle), height .3s var(--muelle), opacity .2s; }
+/* (su sitio y su tamaño los pone hub.js de golpe, y el desliz es solo transform, desde la izquierda: fase 5) */
+#hub.juego .fl-ind { position: absolute; z-index: 0; left: 0; top: 0; width: 0; height: 44px; border-radius: 4px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255,255,255,.08); pointer-events: none;
+  transform-origin: 0 50%; transition: opacity .2s; }
 /* la cabecera de la ventana: la sección en medio y, a los lados, la de antes y la de después */
 #hub.juego .hub-cab { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 12px; }
 #hub.juego .hub-cab .cab-t { grid-column: 2; display: flex; align-items: center; gap: 10px; min-width: 0; color: #fff; }

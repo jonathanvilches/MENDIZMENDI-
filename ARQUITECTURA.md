@@ -161,6 +161,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sellos, misiones, cartas y cimas. Solo cambia el trozo de texto con el número; el resto y los iconos quedan. Las barras
   (las cualidades, `.sbar`, y tu experiencia, `.xp`) se llenan estirándose con `transform: scaleX` desde la izquierda;
   antes animaban su ancho. El nombre «MENDI SCORE» no se usa en ningún sitio.
+- **Pestañas y ventanas con profundidad** (fase 5 del rediseño de la animación). La pastilla de las pestañas (`.fl-ind`,
+  `hub.js`, `pastillas`) se pone de golpe en la pestaña elegida y se desliza desde la de antes solo con `transform`: a mitad
+  de camino cubre las dos, de un borde al otro, y así se estira y se recoge como antes, cuando animaba sus bordes, su
+  altura y su posición. Con una ficha o el visor abiertos encima, la ventana de la sección de detrás se hunde un poco
+  (97,5 %) y se apaga (55 %), y vuelve al cerrarlos; la ventana entra con «backwards» para que su animación acabada no
+  mande sobre ese transform. Siguen como estaban: el menú que crece desde tu retrato, los botones que ceden al pulsar y
+  las secciones de al lado con Q y E.
 
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia

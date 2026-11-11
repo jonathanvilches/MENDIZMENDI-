@@ -73,7 +73,7 @@ import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas, encima de todo: ui/neon.css)
-import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores } from '../ui/motion.js';
+import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores, reducido } from '../ui/motion.js';
 import '../ui/cartas.css';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -339,15 +339,20 @@ export class Hub {
     m.querySelectorAll('.filters').forEach((f, k) => {
       const ind = document.createElement('i'); ind.className = 'fl-ind'; ind.setAttribute('aria-hidden', 'true'); f.prepend(ind);
       const key = this.screen + ':' + k;
+      // (fase 5: se pone de golpe en la elegida y se desliza desde la de antes solo con transform; a mitad de camino cubre
+      // las dos, de un borde al otro, y así se estira y se recoge como antes. Antes animaba sus bordes, arriba y alto)
       const pon = () => {
         const b = f.querySelector('button.on'); ind.style.opacity = b ? 1 : 0; if (!b) return;
-        const l = b.offsetLeft, r = l + b.offsetWidth, a = mem[key];
-        ind.classList.toggle('izq', !!a && l < a.l);
-        ind.style.setProperty('--fl-l', l + 'px'); ind.style.setProperty('--fl-r', r + 'px'); ind.style.setProperty('--t', b.offsetTop + 'px'); ind.style.setProperty('--h', b.offsetHeight + 'px');
-        mem[key] = { l, r };
+        const l = b.offsetLeft, r = l + b.offsetWidth, t = b.offsetTop, a = mem[key], w = Math.max(1, r - l);
+        Object.assign(ind.style, { left: l + 'px', width: w + 'px', top: t + 'px', height: b.offsetHeight + 'px' });
+        if (a && (a.l !== l || a.r !== r || a.t !== t)) {
+          const L = Math.min(a.l, l), R = Math.max(a.r, r), dy = (a.t ?? t) - t;
+          ind.animate([{ transform: `translate(${a.l - l}px, ${dy}px) scaleX(${(a.r - a.l) / w})` }, { transform: `translate(${L - l}px, ${dy * 0.4}px) scaleX(${(R - L) / w})`, offset: 0.45 }, { transform: 'none' }],
+            { duration: reducido() ? 1 : 440, easing: 'cubic-bezier(.22, 1.12, .36, 1)' });
+        }
+        mem[key] = { l, r, t };
       };
       // (sale de donde estaba y, en el cuadro siguiente, va a la nueva; luego sigue a la elegida, también al desplazar)
-      const a = mem[key]; if (a) { ind.style.setProperty('--fl-l', a.l + 'px'); ind.style.setProperty('--fl-r', a.r + 'px'); }
       requestAnimationFrame(() => requestAnimationFrame(pon));
       new MutationObserver(pon).observe(f, { subtree: true, attributes: true, attributeFilter: ['class'] });
     });
