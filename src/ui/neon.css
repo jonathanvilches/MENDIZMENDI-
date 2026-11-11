@@ -96,7 +96,7 @@
    toda la caja: no cambia el fondo de cada una); con el teclado, el contorno blanco de siempre. */
 :root :is(.screen .paper, .lg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, .csel2, .sheet-in, .frs-in, .shop-room, .mg-card, #dialog, .tq-how, .m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p) { outline: 0 !important; box-shadow: var(--sombra-caja) !important; }
 :root :is(.screen .paper, .lg-card, .pel-card, .fb-card, .pfx-card, #reward .card2, .csel2, .sheet-in, .frs-in, .shop-room, .mg-card, #dialog, .tq-how) { box-shadow: var(--sombra-panel) !important; }
-:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(.on, .sel, .me, .go, [aria-selected="true"], [aria-current="true"]) { box-shadow: inset 0 0 0 999px rgba(255, 122, 200, .16), var(--sombra-caja) !important; }
+:root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(.on, .sel, .me, .go:not(.m3-chip), [aria-selected="true"], [aria-current="true"]) { box-shadow: inset 0 0 0 999px rgba(255, 122, 200, .16), var(--sombra-caja) !important; }
 :root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):is(button, a, label):is(:hover, :focus-visible) { box-shadow: 0 12px 26px rgba(4, 1, 12, .42) !important; }
 :root :is(.m3-mision, .m3-tot, .m3-ayuda, .m3-col, .hub-menu-btn, #tl, #lane #toast, .pel-score, .fb-score, .pel-golpe, .pel-tip, .pel-tour, .fb-tip, .m3-chip, .gt-marco, .mc-c, .eq-tile, .eq-team, .pst, .pel-toss-p):focus-visible { outline: 2px solid #fff !important; outline-offset: -2px !important; }
 /* (las casillas del pasaporte, con una raya discontinua neutra) */
@@ -128,6 +128,9 @@ body:not(.alto-contraste) :is(.pel-levels button, .pel-mseg button, .pel-otabs b
 :root :is(.qitem.sigue, .qitem.sigue .qi, .fh-st.ok, .screen .cultgrid .cult) { border-color: var(--linea) !important; }
 :root .qitem.sigue { background: rgba(138, 43, 226, .26) !important; } :root .qitem.sigue .qi { background: rgba(255, 122, 200, .24) !important; }
 :root .fh-st.ok { background: rgba(255, 209, 102, .14) !important; }
+/* (las comarcas de abajo en la portada: fondo oscuro, casi opaco, para leer el nombre con contraste sobre el mapa. En una
+   comarca, «go» es empezada, no elegida: sin el relleno rosa de lo elegido, que las dejaba moradas; la elegida, .on, sí) */
+:root .m3-chip { background: var(--cr2, rgba(13, 6, 28, .9)) !important; }
 /* (al pasar por encima de una tarjeta del menú, la sombra más honda, ya puesta arriba; el borde no se enciende de color) */
 #hub :is(.ccard, .tile, .sb, .scard, .bcard, .sg, .ddc, .dd-tema):is(:hover, :focus-visible) { border-color: var(--linea) !important; }
 @media (prefers-reduced-motion: reduce) {
