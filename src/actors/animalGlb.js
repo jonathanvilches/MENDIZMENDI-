@@ -33,7 +33,7 @@ const SPEC = {
   // (como la foto que pasó el autor: castaño oscuro, crin, copete y cola negros, largos y abundantes, las patas negras
   // hasta la rodilla con mucho pelo sobre los cascos, el vientre hondo y el cuello con su cresta. Antes era alazán y
   // con la crin rubia)
-  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.62, cuello: 1.55, vientre: 1.38, patas: 1.5, melena: 1.5, cola: 1.4, calzas: 1.45, medias: { alto: 0.3, col: '#161110' } },
+  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.8, cuello: 1.7, vientre: 1.68, patas: 1.68, abre: 1.1, melena: 1.85, copete: 1.5, cola: 1.45, calzas: 1.7, medias: { alto: 0.3, col: '#161110' } },
     col: { Main: '#7a3818', Main_Dark: '#4f2210', Main_Light: '#8c4422', Hair: '#110c0a', Muzzle: '#5c4436', Hooves: '#5a524a' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
@@ -153,6 +153,9 @@ function caricatura(geo, S, skel, bindMatrix) {
     const pieza = geo.attributes.pieza, col = geo.attributes.color, medC = E.medias ? new THREE.Color(E.medias.col) : null;
     const esCola = names.map(n => /^Tail/.test(n)), iCola = names.indexOf('Tail1'), raizCola = iCola >= 0 ? enMalla(iCola) : null, HUE = new Map();
     const huesoEn = (j) => { let v = HUE.get(j); if (!v) HUE.set(j, v = enMalla(j)); return v; };
+    let raizCopete = null;
+    if (E.copete && pieza) { let my = -Infinity; for (let i = 0; i < P.count; i++) { if (pieza.getX(i) !== 1) continue; let w = 0; for (let k = 0; k < 4; k++) if (esCabeza[si.getComponent(i, k)]) w += sw.getComponent(i, k); if (w > 0.5 && P.getY(i) > my) { my = P.getY(i); raizCopete = new THREE.Vector3(P.getX(i), P.getY(i), P.getZ(i)); } }
+      if (raizCopete) raizCopete.sub(hp).multiplyScalar(E.cabeza).add(hp); }
     if (anchar) { let a = Infinity, b = -Infinity; for (let i = 0; i < P.count; i++) { let w = 0; for (let k = 0; k < 4; k++) if (esCuerpo[si.getComponent(i, k)]) w += sw.getComponent(i, k); if (w > 0.6) { const y = P.getY(i); if (y < a) a = y; if (y > b) b = y; } } cy = (a + b) / 2; }
     const cen = [new THREE.Vector3(), new THREE.Vector3()], num = [0, 0];
     for (let i = 0; i < P.count; i++) {
@@ -170,6 +173,12 @@ function caricatura(geo, S, skel, bindMatrix) {
         if (cola > 0.5 && raizCola) { const kk = E.cola || 1, c0 = raizCola; X = c0.x + (X - c0.x) * kk; Y = c0.y + (Y - c0.y) * kk; Z = c0.z + (Z - c0.z) * kk; }
         // (la crin y el copete, más anchos de lado a lado, para que caigan sobre el cuello y la frente: agrandados desde el
         // hueso salían hacia arriba como una espina)
+        else if (wc > 0.5 && E.copete && raizCopete) {
+          // (el copete, largo y cayendo sobre la frente hasta los ojos, como el de los caballos de tiro: desde su raíz, entre
+          // las orejas, hacia abajo y hacia delante, y algo más ancho)
+          const r = raizCopete, kk = E.copete; Y = r.y + (Y - r.y) * kk;
+          if (lat === 'x') { X = r.x + (X - r.x) * (1 + (kk - 1) * 0.5); Z = r.z + (Z - r.z) * (1 + (kk - 1) * 0.7); } else { Z = r.z + (Z - r.z) * (1 + (kk - 1) * 0.5); X = r.x + (X - r.x) * (1 + (kk - 1) * 0.7); }
+        }
         else if (mejor >= 0 && E.melena) { const c0 = huesoEn(mejor), kk = E.melena; if (lat === 'x') X = c0.x + (X - c0.x) * kk * 1.25; else Z = c0.z + (Z - c0.z) * kk * 1.25; Y = c0.y + (Y - c0.y) * 0.97; }
       }
       if (pz !== 2 && pata && wp > 0.3 && E.calzas) { const yy = (Y - y0) / H, k = 1 + (E.calzas - 1) * THREE.MathUtils.smoothstep(yy, 0.035, 0.07) * (1 - THREE.MathUtils.smoothstep(yy, 0.1, 0.19)); X = pata.x + (X - pata.x) * k; Z = pata.z + (Z - pata.z) * k; }
@@ -181,7 +190,7 @@ function caricatura(geo, S, skel, bindMatrix) {
         let wb = 0, wn = 0; for (let k = 0; k < 4; k++) { const w = sw.getComponent(i, k); if (w <= 0) continue; const j = si.getComponent(i, k); if (esCuerpo[j]) wb += w; else if (esCuello[j]) wn += w; }
         const kl = 1 + ((E.torso || 1) - 1) * Math.min(1, wb) + ((E.cuello || 1) - 1) * Math.min(1, wn);
         let L = lat === 'x' ? X : Z; L = cl + (L - cl) * kl;
-        if (pata && wp > 0) L += (pata[lat] - cl) * ((E.torso || 1) - 1) * 0.7 * Math.min(1, wp);
+        if (pata && wp > 0) L += (pata[lat] - cl) * ((E.torso || 1) - 1) * (E.abre || 0.7) * Math.min(1, wp);
         if (lat === 'x') X = L; else Z = L;
         if (wb > 0 && Y < cy) Y = cy + (Y - cy) * (1 + ((E.vientre || 1) - 1) * Math.min(1, wb));
       }
