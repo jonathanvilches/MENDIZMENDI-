@@ -14,7 +14,7 @@
   color: #f3edff; border: 0; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
   border-radius: 10px;
   background: radial-gradient(80% 60% at 100% 0%, rgba(255, 43, 214, .16), transparent 60%), linear-gradient(170deg, var(--v3) 0%, var(--v1) 78%);
-  animation: gx-rise .3s cubic-bezier(.2, .9, .3, 1) both; }
+  animation: gx-rise .3s var(--ease) both; }
 .mg-card.ix::before { content: ''; position: absolute; left: 16px; right: 0; top: 0; height: 3px; background: var(--cta); box-shadow: var(--glow); pointer-events: none; z-index: 3; }
 
 /* 1. la imagen */

@@ -25,7 +25,7 @@
    anillo, el navegador lo aplanaba mientras duraba y las tarjetas salían primero planas y luego en 3D) */
 .gal-anillo .gal-t { opacity: var(--o, 1); transition: opacity .22s ease, box-shadow .3s ease; }
 .gal-anillo.sale .gal-t { opacity: 0; }
-.gal-anillo.entra .gal-t { animation: galEntra .6s cubic-bezier(.2, .9, .3, 1) both; }
+.gal-anillo.entra .gal-t { animation: galEntra .6s var(--ease) both; }
 @keyframes galEntra { from { opacity: 0; scale: .94; } }
 /* (el suelo: una luz suave del color de la comarca bajo el anillo, que cambia con ella) */
 .gal-escena::after { content: ''; position: absolute; left: 50%; top: calc(50% + var(--ch) / 2 - 10px); width: calc(var(--gw) * 2.6); height: calc(var(--ch) * .3); transform: translateX(-50%); z-index: -1; border-radius: 50%; pointer-events: none;
@@ -79,12 +79,12 @@
    delante (que mide --ch y se adelanta un 4 %), sin fila propia: así la carta queda con el mismo aire arriba, hasta las
    comarcas, que abajo, hasta el pueblo */
 .gal-puntos { position: absolute; z-index: 2; left: 0; right: 0; top: calc(75% + var(--ch) * .26 - 4px); display: flex; justify-content: center; gap: 6px; }
-.gal-puntos i { width: 7px; height: 7px; border-radius: 99px; background: rgba(255, 255, 255, .28); cursor: pointer; transition: width .3s cubic-bezier(.2, .9, .3, 1), background .3s; }
+.gal-puntos i { width: 7px; height: 7px; border-radius: 99px; background: rgba(255, 255, 255, .28); cursor: pointer; transition: width .3s var(--ease), background .3s; }
 .gal-puntos i.on { width: 26px; background: color-mix(in srgb, var(--c) 70%, #fff); }
 
 /* el pueblo de delante: su nombre, su comarca, sus misiones y los botones */
 .gal-info { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; padding: 0 32px 28px; }
-.gal-info.cambia > * { animation: galSube .4s cubic-bezier(.2, .9, .3, 1) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
+.gal-info.cambia > * { animation: galSube .4s var(--ease) both; } .gal-info.cambia > :nth-child(2) { animation-delay: .05s; }
 @keyframes galSube { from { opacity: 0; transform: translateY(8px); } }
 /* (el ritmo de la tabla: antetítulo → título 12, título → subtítulo 8 y de ahí a las misiones 16, la letra recortada) */
 .gi-t { display: grid; gap: 0; min-width: 0; } .gi-t > small, .gi-t h2 > * { text-box: trim-both cap alphabetic; } .gi-t h2 { display: grid; } .gi-t small + .gi-fila { margin-top: var(--r-kt); } .gi-fila { display: grid; min-width: 0; } .gi-fila h2 + .gi-ms { margin-top: var(--r-tx); }

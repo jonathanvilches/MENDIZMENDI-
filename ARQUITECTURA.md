@@ -112,6 +112,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 ## Convenciones
 
+- **Movimiento: un solo sistema** (`src/ui/motion.css` y `src/ui/motion.js`; noviembre de 2026, fase 1 del rediseño de
+  la animación). Las curvas y los tiempos de todo el juego están en un sitio, como variables de `:root`: `--ease` para
+  entrar (rápida al empezar y se posa), `--muelle` para abrirse (un pelo de sobrepaso), `--sale` para cerrar, `--anticipa`
+  para confirmar (recula antes de ir) y `--vaiven` para ir y volver; y un tiempo por familia: `--d-toque` 90 ms,
+  `--d-encima` 200, `--d-entra` 300, `--d-panel` 380, `--d-pantalla` 450, `--d-rotulo` 600 y `--escalon` 30 entre una
+  tarjeta y la siguiente. Antes cada hoja escribía sus curvas y el menú del juego tenía las suyas solo para él; ahora las
+  hojas usan las variables. Reglas: solo se anima `transform` y `opacity` (y algún `filter`), nada que recoloque lo de
+  alrededor (ni `top`, ni `left`, ni `width`, ni `letter-spacing`); lo que sale va más deprisa que lo que entra; por
+  capas, primero el marco y luego lo de dentro en cascada; y con «reducir movimiento» del sistema los tiempos se quedan
+  en 1 ms, `style.css` apaga las animaciones y `motion.js` no anima nada. `motion.js` tiene las piezas comunes, con la Web
+  Animations API: `entra`, `sale`, `cascada`, `cambiaPantalla`, `desdeAqui` (deslizar algo desde donde estaba, la
+  técnica FLIP), `cuenta` (un número que sube) y `relieve` (el fondo que sigue al ratón, por capas, con `--px` y `--py`).
+  Ya lo usan: el cambio de sección (`hub.js`, `go`), que llega en cascada desde el lado de la sección a la que vas (Q y E,
+  la de al lado; `rise` con `--rise-x`, y `.hub-main.cambia` jugando, porque dentro del juego la cascada estaba apagada y
+  el contenido cambiaba de golpe); el botón de tu retrato, que se desliza con `transform` al abrir o cerrar una sección
+  (antes con `top` y `left`); el nombre de la sección, que se asienta con un fundido corto (antes abría las letras); y el
+  fondo de la portada, que sigue un poco al ratón. Lo que queda con `top` o con anchos: la pastilla de las pestañas
+  (fase 5) y los puntos de la galería (fase 3).
+
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia
     y los monumentos en su sitio (`src/data/reales/`, de Overture Maps y OpenStreetMap). Ninguna mejora de arte, de

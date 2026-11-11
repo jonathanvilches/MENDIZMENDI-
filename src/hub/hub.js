@@ -73,6 +73,7 @@ import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas, encima de todo: ui/neon.css)
+import { relieve, desdeAqui } from '../ui/motion.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -169,6 +170,7 @@ export class Hub {
       <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú">${XF}</button></header>
       <nav class="hub-nav" id="hNav"></nav><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${XF}</button></div>`);
     document.body.appendChild(this.root);
+    relieve(this.root);   // (con ratón, el fondo se mueve un poco con él: un relieve de capas; ui/motion.js)
     // (en el archivo único: en cuanto se sabe que se llega a la web, la pantalla del menú se repinta con las ilustraciones
     // que no van dentro, src/web/hd.js; solo si no se ha bajado en ella ni hay nada abierto encima)
     addEventListener('herrizherri-web', () => { const m = $('#hMain', this.root); if (this.visible && !this.sheet && m && m.scrollTop < 40 && !document.querySelector('.mg-overlay, .lam-view')) this.go(this.screen, this.arg, true); });
@@ -255,6 +257,7 @@ export class Hub {
   }
   go(screen, arg, silent) {
     clearTimeout(this.tRevisa); this.tRevisa = setTimeout(revisa, 450);   // (las láminas animadas que la sección nueva tapa o destapa, ya entrada)
+    const antes = this.screen, vec0 = antes ? this.vecinas(antes) : null;   // (las de al lado de la que se deja: para saber de qué lado llega la nueva)
     if (screen === 'map') screen = 'home';   // (el mapa es el inicio, debajo de todo: en el didáctico también)
     if (screen?.includes(':')) [screen, arg] = screen.split(':');   // («comarca:pirineo»: la pantalla y lo que abre)
     this.screen = screen; this.arg = arg;
@@ -265,7 +268,10 @@ export class Hub {
     this.root.querySelectorAll('#hNav button').forEach(b => b.classList.toggle('on', !!(b.dataset.s === screen || (screen === 'comarca' && b.dataset.s === 'home') || (b.dataset.s === 'more' && secScreen))));
     const bgc = screen === 'comarca' ? arg : (levelById(profile().last) || LEVELS[0]).comarca;
     if (this.bgc !== bgc) { this.bgc = bgc; $('.bgimg', this.root).style.backgroundImage = `url(${comarcaCover(bgc, true)})`; }
+    // (el botón de tu retrato cambia de sitio al abrir o cerrar una sección: se desliza desde donde estaba, con transform)
+    const mb = this.root.querySelector('.hub-menu-btn'), mb0 = mb?.getBoundingClientRect();
     this.root.dataset.screen = screen;
+    desdeAqui(mb, mb0);
     if (this.visible) this.sound?.setMood?.(screen === 'sports' ? 'torneos' : 'inicio');   // (Torneos, con su propia música)
     const m = $('#hMain', this.root), juego = this.root.classList.contains('juego');
     if (!this['s_' + screen]) { screen = this.screen = 'home'; this.root.dataset.screen = screen; }   // pantalla desconocida: la portada
@@ -297,6 +303,12 @@ export class Hub {
       $('#hCab', this.root).dataset.cat = kc(screen);
     } else cierraMapa();
     m.dataset.cat = kc(screen);
+    // (cambiar de sección: lo de dentro llega en cascada; si es la de al lado, desde ese lado, como al pasar una página. Q y E,
+    // o tocar el nombre de la de al lado. motion.css y «rise» de hub.css)
+    const dest = arg != null ? screen + ':' + arg : screen, dir = vec0 ? (vec0[1]?.[0] === dest ? 1 : vec0[0]?.[0] === dest ? -1 : 0) : 0;
+    m.style.setProperty('--rise-x', dir * 32 + 'px'); m.style.setProperty('--rise-y', dir ? '0px' : '14px');
+    // (jugando, la ventana entra entera al abrirse; si ya estaba abierta con otra sección, lo que cambia es lo de dentro)
+    m.classList.toggle('cambia', !!(juego && antes && antes !== 'home' && m.childElementCount));
     m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);

@@ -12,6 +12,7 @@ import * as THREE from 'three';
 { const tni = THREE.BufferGeometry.prototype.toNonIndexed; THREE.BufferGeometry.prototype.toNonIndexed = function () { return this.index === null ? this : tni.call(this); }; }
 // tipografías incrustadas: el juego funciona igual sin conexión
 // (Lilita One y Nunito 600, 700, 800, 900 y 700 cursiva, la voz del narrador: src/ui/fonts.css, solo en WOFF2)
+import './ui/motion.css';   // (las curvas y los tiempos del movimiento, los mismos en todo el juego: ui/motion.css)
 import './ui/fonts.css';
 import './hub/hub.css';
 import './ui/sport.css';

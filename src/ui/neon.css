@@ -36,7 +36,7 @@
    alrededor, su relleno 1 px por dentro y una sombra. La silueta de escudo, con la corona y la punta, es solo de las cartas
    de jugador: estas la llevaron hasta noviembre de 2026 y el autor pidió quitarla, «estos bloques no hace falta») */
 .sport { background: var(--linea) !important; border: 0 !important; border-radius: var(--neon-r) !important; box-shadow: var(--sombra-caja) !important; isolation: isolate;
-  transition: transform .3s cubic-bezier(.22, 1.12, .36, 1), box-shadow .3s; }
+  transition: transform .3s var(--muelle), box-shadow .3s; }
 .sport::before { inset: 1px !important; border-radius: calc(var(--neon-r) - 1px) !important; clip-path: none !important; }
 /* (al pasar por encima, se levanta y la sombra se hace más honda; el borde no toma el color de su deporte) */
 .sport:is(:hover, :focus-visible) { background: var(--linea) !important; box-shadow: 0 12px 28px rgba(4, 1, 12, .42) !important; }
