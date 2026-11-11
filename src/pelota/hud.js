@@ -323,6 +323,9 @@ const CSS = `
 .pel-opane ol{margin:0 0 12px}.pel-opane .pel-ctrl{margin:0 0 12px}
 .pel-orow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:center;margin:0 0 12px}
 .pel-orow .pel-ballwhat,.pel-orow .pel-switch{margin:0}.pel-orow .pel-ballwhat{grid-row:span 2}
+/* (de pie, en el móvil: los dos interruptores uno debajo del otro, a lo ancho, y sin el párrafo de la elección de material,
+   como en el móvil tumbado: se explica al elegirlo. Antes, el párrafo en una columna estrecha y la pestaña se pasaba 226 px) */
+@media (orientation:portrait) and (max-width:600px){.pel-orow{grid-template-columns:minmax(0,1fr);gap:8px}.pel-orow .pel-ballwhat{display:none}}
 .pel-lv5 button{min-width:0;font-size:var(--fs-sm)}
 /* móvil muy estrecho de pie: los niveles bajan a otra fila en vez de pisarse y «Volver al pueblo» parte en dos líneas */
 @media (orientation:portrait) and (max-width:400px){.pel-lv5 button{flex:1 1 auto;min-width:max-content}}
