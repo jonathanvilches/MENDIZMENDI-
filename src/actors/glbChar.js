@@ -544,6 +544,8 @@ const EXPR = {
 /** Adaptador con la misma interfaz que MinifigRig (update, doWave, doCheer, setExpr, doAct, carry). */
 // las piernas del modelo son un 35 % más largas que las del diseño original: cada paso cubre más suelo
 const LEGS = 1.3;
+// los gestos que se hacen parado (celebrar, la pena, saludar): se cortan al echar a correr (GlbRig.update)
+const GESTO = /^(Celebrate|Sad|Wave)/;
 export class GlbRig {
   constructor(gltf, id = 'sanfermin') {
     const def = GLB_AVATARS[id] || {};
@@ -578,6 +580,9 @@ export class GlbRig {
     // al caer: el aterrizaje entero y rápido si la caída fue larga; si fue un saltito, se sigue andando sin cortes
     else if (!this.wasGrounded && grounded) { if (this.air > 0.45) c.playOnce('Land', speed > 1 ? 0.3 : 0.45, true); else c.oneShot = null; this.air = 0; }
     this.wasGrounded = grounded;
+    // (si echa a correr, los gestos de quieto —celebrar, la pena, saludar— se cortan y entra la carrera: duran más que la
+    // pausa entre tanto y tanto, y la figura volvía al saque celebrando o con las manos a la cabeza, como deslizándose)
+    if (speed > 1.5 && (this.cheer > 0 || this.wave > 0 || GESTO.test(c.oneShot?.name || ''))) { this.cheer = 0; this.wave = 0; if (GESTO.test(c.oneShot?.name || '')) c.oneShot = null; }
     if (grounded && !c.oneShot) {
       if (this.cheer > 0) c.playOnce(this.cheerClip && c.actions[this.cheerClip] ? this.cheerClip : 'Celebrate', this.cheer);
       else if (this.wave > 0 && speed < 1) c.playOnce('Wave', this.wave);
