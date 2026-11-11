@@ -1,6 +1,6 @@
 // La medida de la auditoría de diseño (tools/auditoria-diseno.mjs, tools/auditoria-ventanas.mjs y
 // tools/auditoria-partidos.mjs): se ejecuta dentro de la página con page.evaluate(auditar, selector) y devuelve
-// { cortado, encima, verde, esquina, neon, sobresale, espacio, letra, color... } con lo que encuentra.
+// { cortado, encima, verde, esquina, neon, filo, sobresale, espacio, letra, color... } con lo que encuentra.
 //   · sobresale: texto que se sale de la forma de su botón o de su caja (círculo, píldora, esquinas redondeadas o en ángulo)
 //   · espacio: distancia de rótulo a título (12 px) y de título a texto (16 px) distinta de la común, ±2 px (de la línea
 //     base de uno a lo alto de las mayúsculas del siguiente)
@@ -10,7 +10,9 @@
 //   · estrecho: texto en una columna tan estrecha que va palabra a palabra, una por línea
 //   · desplaza: una ventana o un bloque que hay que desplazar para verlo entero (solo vale si no se puede evitar)
 //   · esquina: caja con las esquinas cortadas en ángulo (clip-path), la identidad de antes
-//   · neon: el filo de neón donde no va o que falta (lo llevan las superficies que flotan y las cartas que se eligen)
+//   · neon: el filo de neón fuera de las cartas de jugador (.gx-card), que son las únicas que lo llevan; y cajas con
+//     borde, anillo o brillo de color (como mucho, una línea neutra muy tenue), o una carta de jugador sin su filo
+//   · filo: botón con filo de neón, borde o anillo (los botones no llevan borde: relleno liso, y lo elegido, con relleno)
 //   · forma: caja con esquinas de más de 12 px o casi rectas (la identidad: de 6 a 10 px; píldoras y círculos aparte)
 //   · boton: botón con letra de lectura (Nunito) en lugar de la de los botones (estrecha o de rótulos grandes)
 //   · composicion: bloques y botones que van juntos con alturas, anchos, bordes o huecos distintos; cajas con más relleno
@@ -42,7 +44,7 @@ export const auditar = async (sel) => {
   const hasText = (e) => [...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
   const all = [...root.querySelectorAll('*')].filter(e => !['SCRIPT', 'STYLE', 'CANVAS'].includes(e.tagName));
   const texts = all.filter(e => hasText(e) && vis(e));
-  const R = { cortado: [], encima: [], verde: [], esquina: [], neon: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [], junto: [], centrado: [] };
+  const R = { cortado: [], encima: [], verde: [], esquina: [], neon: [], filo: [], sobresale: [], espacio: [], letra: [], color: [], desborda: [], estrecho: [], desplaza: [], forma: [], boton: [], composicion: [], justo: [], imagen: [], aire: [], junto: [], centrado: [] };
   // (tapado: lo que queda debajo de una capa opaca, como el HUD detrás de un panel, no se ve y no cuenta para «encima»
   // ni para «sobresale»; se mira qué hay encima en el centro de su primera línea, con todo tocable un momento)
   const pe = document.createElement('style'); pe.textContent = '*{pointer-events:auto!important}'; document.head.appendChild(pe);
@@ -137,19 +139,45 @@ export const auditar = async (sel) => {
   // de las cartas de pelotari, con su cinta del equipo y su filo de dentro, son formas, no cajas)
   for (const e of all) { if (!vis(e)) continue; const s = st(e); if (!/polygon/.test(s.clipPath) || e.matches('.pvs-side, .rb, .rib, #ribbons > i, .gx-card .gx-face, .gx-card .gx-eq, .gx-card .gx-lin')) continue;
     R.esquina.push(`${name(e)} con las esquinas cortadas en ángulo` + (window.__auditDetail ? ` [${s.clipPath}]` : '')); }
-  // 4b. el filo de neón, solo donde hace falta: lo llevan las superficies que flotan sobre el juego (paneles, ventanas,
-  // cajas del HUD) y las cartas que se eligen; lo de dentro de una superficie enmarcada, no. Falta: caja con borde (en tres
-  // lados o más) que no está dentro de nada enmarcado ni del menú (.hub-main) y no lleva filo. Sobra: filo quieto dentro de
-  // una superficie que ya lo tiene, salvo las cartas que se tocan (botones). Ni píldoras, ni círculos, ni campos.
-  const conFilo = (q) => { const t = st(q); return (t.outlineStyle !== 'none' && parseFloat(t.outlineWidth) >= 1 && parseFloat(t.outlineOffset) < 0) || /neon/.test(t.animationName) || /neon/.test(getComputedStyle(q, '::after').animationName); };
-  const enmarcado = (e) => { for (let q = e.parentElement; q && q !== document.body; q = q.parentElement) if (conFilo(q)) return q; return null; };
-  for (const e of all) { if (!vis(e) || e.closest('svg') || e.matches('input, select, textarea, option')) continue; const s = st(e), r = e.getBoundingClientRect(); if (r.width < 40 || r.height < 28) continue;
-    const rad = parseFloat(s.borderTopLeftRadius) || 0; if (/%$/.test(s.borderTopLeftRadius) || rad >= r.height / 2 - 1) continue;
-    const fuera = enmarcado(e);
-    if (conFilo(e)) { if (fuera && !e.matches('button, a, [role=button]') && !/neon/.test(s.animationName + getComputedStyle(e, '::after').animationName)) R.neon.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} con filo dentro de ${name(fuera)}, que ya lo tiene`); continue; }
-    if (fuera || e.closest('.hub-main') || e.matches('button')) continue;
-    const sides = ['Top', 'Right', 'Bottom', 'Left'].filter(k => parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] !== 'none' && !/rgba\(\d+, \d+, \d+, 0(\.0\d*|\.1[0-4]\d*)?\)|transparent/.test(s['border' + k + 'Color']));
-    if (sides.length >= 3) R.neon.push(`${name(e)}${hasText(e) ? ` «${txt(e).slice(0, 20)}»` : ''} flota sin filo de neón` + (window.__auditDetail ? ` [${s.borderTopColor} ${s.borderTopWidth}]` : '')); }
+  // 4b. el filo de neón, solo en las cartas de jugador (.gx-card: las del torneo, la presentación, la Gran final y la
+  // colección). Sobra en todo lo demás: paneles, ventanas, tarjetas, losas, rótulos y, sobre todo, botones. Se busca el
+  // filo en sus tres hechuras (el contorno por dentro, el destello que gira y el aro con máscara) y además el borde o el
+  // anillo de color y el brillo de color alrededor: una caja se separa del fondo con su relleno y una sombra oscura; como
+  // mucho, una línea neutra muy tenue (blanca, hasta el 12 %).
+  const col4 = (c) => { const m = String(c).match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); if (m) return [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]];
+    const k = String(c).match(/color\(srgb ([\d.]+) ([\d.]+) ([\d.]+)(?: \/ ([\d.]+))?/); return k ? [k[1] * 255, k[2] * 255, k[3] * 255, k[4] == null ? 1 : +k[4]] : null; };
+  // (neutro: blanco o gris, sin tinte; tenue: hasta el 12 % de opacidad)
+  const neutro = (c) => c && Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) <= 12;
+  const oscuro = (c) => c && Math.max(c[0], c[1], c[2]) <= 70;
+  // (las capas de una sombra: color, desplazamientos, difuminado, grosor y si va por dentro)
+  const sombras = (v) => v && v !== 'none' ? v.split(/,(?![^(]*\))/).map(x => { const c = col4(x), n = x.replace(/rgba?\([^)]*\)|color\([^)]*\)/, '').match(/-?[\d.]+px/g) || []; return { c, x: parseFloat(n[0]) || 0, y: parseFloat(n[1]) || 0, blur: parseFloat(n[2]) || 0, spread: parseFloat(n[3]) || 0, inset: /inset/.test(x) }; }) : [];
+  const aroMascara = (q) => ['::before', '::after'].some(ps => { const t = getComputedStyle(q, ps); return t.content !== 'none' && /xor|exclude/.test((t.webkitMaskComposite || '') + ' ' + (t.maskComposite || '')) && t.display !== 'none'; });
+  const destello = (q) => /neon/.test(st(q).animationName) || ['::before', '::after'].some(ps => { const t = getComputedStyle(q, ps); return t.content !== 'none' && t.display !== 'none' && (/neon/.test(t.animationName) || (/conic-gradient/.test(t.backgroundImage) && /neon/.test(t.animationName + st(q).animationName))); });
+  const contorno = (q) => { const t = st(q); return t.outlineStyle !== 'none' && parseFloat(t.outlineWidth) >= 1 && parseFloat(t.outlineOffset) <= 0 && !q.matches(':focus-visible') && (col4(t.outlineColor)?.[3] ?? 0) > 0.12; };
+  const bordes = (s) => ['Top', 'Right', 'Bottom', 'Left'].filter(k => { const c = col4(s['border' + k + 'Color']); return parseFloat(s['border' + k + 'Width']) > 0 && s['border' + k + 'Style'] === 'solid' && c && c[3] > 0.02 && !(neutro(c) && c[3] <= 0.125); });
+  const anillo = (s) => sombras(s.boxShadow).find(o => o.c && o.c[3] > 0.02 && o.blur === 0 && o.spread >= 1 && o.spread < 100 && !o.x && !o.y && !(neutro(o.c) && o.c[3] <= 0.125) && !oscuro(o.c));
+  // (un velo por dentro que cubre toda la caja, de 100 px o más, es un relleno, no un anillo)
+  const brillo = (s) => sombras(s.boxShadow).find(o => o.c && !o.inset && o.c[3] >= 0.2 && o.blur >= 6 && !oscuro(o.c) && !neutro(o.c));
+  const esBoton = (e) => e.matches('button, [role=button], [role=tab], [role=switch], [role=radio], [role=option], a.btn, .btn, summary');
+  const enCarta = (e) => !!e.closest('.gx-card');
+  for (const e of all) { if (!vis(e) || e.closest('svg') || enCarta(e) || e.matches('input, select, textarea, option')) continue; const s = st(e), r = e.getBoundingClientRect(); if (r.width < 20 || r.height < 16) continue;
+    const quien = `${name(e)}${hasText(e) || esBoton(e) ? ` «${txt(e).slice(0, 20)}»` : ''}`, det = window.__auditDetail ? ` [${s.borderTopColor} ${s.borderTopWidth} · ${s.boxShadow.slice(0, 80)}]` : '';
+    if (esBoton(e)) {
+      // (los botones, sin filo ni borde: el principal con el degradado del juego y los demás con relleno liso; lo elegido,
+      // con relleno. La raya de debajo de una pestaña también es borde: lo elegido se rellena)
+      const b = bordes(s), a = anillo(s);
+      if (destello(e) || aroMascara(e) || contorno(e)) R.filo.push(`${quien}: botón con filo de neón` + det);
+      else if (b.length) R.filo.push(`${quien}: botón con borde (${b.join(', ').toLowerCase()})` + det);
+      else if (a) R.filo.push(`${quien}: botón con anillo de ${a.spread} px` + det);
+      continue; }
+    if (destello(e) || aroMascara(e) || contorno(e)) { R.neon.push(`${quien} con filo de neón, y no es una carta de jugador` + det); continue; }
+    if (r.width < 40 || r.height < 20) continue;
+    const b = bordes(s), a = anillo(s), g = brillo(s);
+    if (b.length >= 3) R.neon.push(`${quien} con borde de color` + det);
+    else if (a) R.neon.push(`${quien} con anillo de color` + det);
+    else if (g && !e.matches('.btn, [class*="-go"]')) R.neon.push(`${quien} con brillo de color alrededor` + det); }
+  // (y al revés: una carta de jugador, salvo las de adorno, sin su filo)
+  for (const e of root.querySelectorAll('.gx-card:not(.mini)')) { if (!vis(e)) continue; const t = getComputedStyle(e, '::after'); if (t.content === 'none' || t.display === 'none' || !/conic-gradient|rgb/.test(t.backgroundImage + t.backgroundColor)) R.neon.push(`${name(e)} «${txt(e).slice(0, 16)}»: carta de jugador sin filo de neón`); }
 
   // 5. texto que se sale de la forma de su caja: la caja pintada más cercana (fondo, borde o marco) y su forma de verdad
   const rgba = (c) => { const m = String(c).match(/rgba?\(([\d.]+),\s*([\d.]+),\s*([\d.]+)(?:,\s*([\d.]+))?/); return m ? [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]] : null; };

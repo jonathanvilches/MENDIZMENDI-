@@ -2,7 +2,9 @@
 //   · cortado: texto con puntos suspensivos, recortado por líneas o que se sale de su caja o de una caja que lo recorta
 //   · encima: texto que pisa una figura o imagen (que no es su fondo) o que pisa otro texto
 //   · verde: colores verdes fuera de sitio (texto, fondos, bordes y degradados); se avisa de todos para revisarlos
-//   · esquina y neon: caja con las esquinas en ángulo (la identidad de antes) o con borde y sin el filo de neón
+//   · esquina: caja con las esquinas en ángulo (la identidad de antes)
+//   · neon y filo: el filo de neón es solo de las cartas de jugador (.gx-card). «neon»: una caja con filo, borde, anillo o
+//     brillo de color (o una carta de jugador sin su filo); «filo»: un botón con filo, borde o anillo
 // Mide toda la página (también lo que queda por debajo, al desplazar), no solo lo que se ve. Hace capturas.
 // Uso: URL=http://127.0.0.1:5173/ node tools/auditoria-diseno.mjs [carpeta] [pantallas separadas por comas]   (TAM=844x390;
 // TODO=1 lista todas las distancias de rótulo a título y de título a texto, no solo las que se salen de la común)
@@ -41,6 +43,7 @@ if (want('pueblo')) { await p.evaluate(() => window.__hub.townSheet('altsasu-als
 const ctx = { comarca: 'sakana', comarcaName: 'Sakana', towns: [{ id: 'altsasu', name: 'Altsasu' }, { id: 'irurtzun', name: 'Irurtzun' }] };
 if (want('menu')) { await p.evaluate(async (ctx) => { const t = await import('/src/game/torneo.js'); window.__m = t.pelotaMenu(t.torneo({ name: 'Ane', town: 'Altsasu' }, ctx), 'Altsasu', t.torneo({ name: 'Ane', town: 'Altsasu' }, ctx, false, 'parejas')); }, ctx); await shot('menu', '.lg-root'); await p.evaluate(() => document.querySelector('.lg-root')?.remove()); }
 if (want('torneo')) { await p.evaluate(async (ctx) => { const t = await import('/src/game/torneo.js'); t.torneoPanel(t.torneo({ name: 'Ane', town: 'Altsasu' }, ctx), 'Altsasu'); }, ctx); await shot('torneo', '.lg-root'); await p.evaluate(() => document.querySelector('.lg-root')?.remove()); }
+if (want('retos')) { await p.evaluate(async () => { const t = await import('/src/game/torneo.js'); t.retosMenu(); }); await shot('retos', '.lg-root'); await p.evaluate(() => document.querySelector('.lg-root')?.remove()); }
 if (want('pelotaris')) { await p.evaluate(async () => { const m = await import('/src/game/pelotaris.js'); window.__pc = m.pelotarisPanel('sakana'); }); await shot('pelotaris', '.lg-root'); await p.evaluate(() => document.querySelector('.lg-root')?.remove()); }
 if (want('liga')) { await p.evaluate(async () => { const L = await import('/src/futbol/liga.js'); const C = (await import('/src/futbol/clubs.js')).CLUBS; L.ligaPanel(L.season(Object.keys(C)[0])); }); await shot('liga', '.lg-root'); await p.evaluate(() => document.querySelector('.lg-root')?.remove()); }
 // el fútbol: el menú del club en losas, elegir club y rival en cartas, y las pantallas VS de fútbol y de pelota

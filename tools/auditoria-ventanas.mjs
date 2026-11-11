@@ -25,7 +25,7 @@ for (const sz of sizes.split(',')) {
       // (la página de pruebas no trae la etiqueta viewport del juego: sin ella, el móvil la pinta a 980 px de ancho y no a su tamaño)
       await p.evaluate(() => { const m = document.createElement('meta'); m.name = 'viewport'; m.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(m); }); await p.waitForTimeout(300);
       await p.evaluate(async () => {
-        await import('/src/style.css'); await import('/src/hub/hub.css'); await import('/src/ui/sport.css'); await import('/src/ui/infocard.css');
+        await import('/src/style.css'); await import('/src/hub/hub.css'); await import('/src/ui/sport.css'); await import('/src/ui/infocard.css'); await import('/src/ui/neon.css');
         document.body.innerHTML = ''; document.body.style.background = '#2d6a3e';
         const nop = () => {};
         window.__ui = { sound: { tone: nop, ui: nop, noiseBurst: nop, fanfare: nop, magic: nop, sfx: null }, closeModal: nop };

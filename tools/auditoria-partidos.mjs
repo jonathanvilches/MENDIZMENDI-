@@ -23,8 +23,7 @@ for (const sz of sizes.split(',')) {
   await p.evaluate(async () => {
     await import('/src/style.css'); await import('/src/ui/sport.css');
     document.body.innerHTML = ''; document.body.style.background = 'linear-gradient(#3a6d4a,#2d5a3a)';
-    (await import('/src/ui/frames.js')).startFrames();
-    (await import('/src/ui/frames.js')).startFrames();   // (los marcos en ángulo, como en el juego)
+    await import('/src/ui/pausa.css'); await import('/src/ui/neon.css');   // (la identidad: esquinas redondeadas, botones sin borde y filo solo en las cartas de jugador)
     window.__FH = await import('/src/futbol/hud.js'); window.__PH = await import('/src/pelota/hud.js'); window.__PR = await import('/src/pelota/rules.js');
     await document.fonts.ready;
   });

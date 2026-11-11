@@ -68,7 +68,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `src/ui/pausa.js` y `src/ui/pausa.css` | La ventana de pausa de los partidos de pelota y de fútbol, como la de los juegos de fútbol de referencia: cabecera con el título y la equis, y una fila por opción con su nombre, qué hace y un botón redondo (`pzCabecera`, `pzFila`, `PZ_ICO`); y el icono del resultado del panel del final (`pzResultado`) |
 | `src/ui/encaje.js` | Ninguna palabra partida ni cortada con «…»: vigila lo que se añade a la página y, en los textos que podrían partir una palabra larga o cortarse con puntos, baja la letra poco a poco (hasta el 65 % y nunca por debajo de 12 px) hasta que todo cabe entero; si no basta, el texto con puntos pasa a dos líneas |
 | `src/ui/fitlabel.js` | Rótulos de los botones redondos (fútbol y pelota) siempre dentro del círculo: mide cada línea del texto contra el círculo y, si no cabe, lo parte en dos líneas y luego junta las letras, sin bajar nunca de 12 px. Se vuelve a mirar al cambiar el rótulo y el tamaño de la pantalla |
-| Identidad común | Reglas que valen en todo el juego (`style.css`, `sport.css`): escala de letra 12, 14, 16, 20, 24 y de 32 en adelante; rótulo en letra estrecha rosa de 14 px con raya inclinada (`.kicker`); título en la letra de rótulos grandes con interlineado 1; distancias entre textos con la tabla de ritmo (ver «Ritmo de los textos» abajo); botón principal en la letra de rótulos grandes sobre el degradado y los demás en letra estrecha en mayúsculas; textos en blancos y lilas fríos, rosa para destacar; verde solo para acierto, naturaleza y los colores de comarcas y clubes; toda tarjeta, card, bloque, panel, ventana y rótulo con las esquinas redondeadas (6 px los rótulos pequeños, 8 las tarjetas, 10 los paneles) y un filo de neón de 1 a 2 px (`ui/neon.css`, ver «Identidad: esquinas redondeadas y filo de neón»), botones en pastilla y marcas en círculo, y pestañas, filtros y chips en letra estrecha: una sola lista en `sport.css` para los dos. Degradados: nunca duros ni de lado; si hace falta uno, muy paulatino, de menos a más y sutil, en varios tramos y sin saltos de oscuridad en poco espacio. La misma identidad en toda la aplicación: lo que se haga en una pantalla vale para todas. Composición: todo en la rejilla de 4 px; el mismo margen en las cuatro esquinas de la pantalla de juego (`--edge` y `--thumb`, 16 px); las ventanas de papel con 12 px arriba, a los lados y abajo; en el menú, el margen de los lados (`--gut`) igual para el contenido y para la barra de arriba |
+| Identidad común | Reglas que valen en todo el juego (`style.css`, `sport.css`): escala de letra 12, 14, 16, 20, 24 y de 32 en adelante; rótulo en letra estrecha rosa de 14 px con raya inclinada (`.kicker`); título en la letra de rótulos grandes con interlineado 1; distancias entre textos con la tabla de ritmo (ver «Ritmo de los textos» abajo); botón principal en la letra de rótulos grandes sobre el degradado y los demás en letra estrecha en mayúsculas; textos en blancos y lilas fríos, rosa para destacar; verde solo para acierto, naturaleza y los colores de comarcas y clubes; toda tarjeta, card, bloque, panel, ventana y rótulo con las esquinas redondeadas (6 px los rótulos pequeños, 8 las tarjetas, 10 los paneles); el filo de neón de 1 px, solo en las cartas de jugador (`.gx-card`); lo demás se separa del fondo con su relleno y una sombra oscura y, como mucho, una raya neutra muy tenue (`--linea`, blanco al 8 %), sin color ni brillo; ningún botón lleva borde, contorno ni anillo: el principal, en pastilla con el degradado (`--cta`), los secundarios en pastilla con relleno liso (`--btn-2`) y lo elegido (`aria-pressed`, `aria-selected`, `aria-checked`) con relleno (`--btn-on`), no con contorno (`ui/neon.css`, ver «Identidad: esquinas redondeadas; el filo de neón, solo en las cartas de jugador»), botones en pastilla y marcas en círculo, y pestañas, filtros y chips en letra estrecha: una sola lista en `sport.css` para los dos. Degradados: nunca duros ni de lado; si hace falta uno, muy paulatino, de menos a más y sutil, en varios tramos y sin saltos de oscuridad en poco espacio. La misma identidad en toda la aplicación: lo que se haga en una pantalla vale para todas. Composición: todo en la rejilla de 4 px; el mismo margen en las cuatro esquinas de la pantalla de juego (`--edge` y `--thumb`, 16 px); las ventanas de papel con 12 px arriba, a los lados y abajo; en el menú, el margen de los lados (`--gut`) igual para el contenido y para la barra de arriba |
 | `src/ui/infocard.css` | Las fichas de información (planta, animal, lugar, oficio, cima, escudo, misión cumplida): un mismo orden para todas (imagen con su etiqueta, cabecera, contenido en pestañas o texto, etiquetas y botón al pie) y los mismos espacios (16, 12 y 8 px). También la ficha de un sitio en el mapa del pueblo |
 | `src/ui/floraFoto.js` y `src/assets/flora/` | Fotos reales CC0 de iNaturalist de las 51 plantas (la planta o su flor y su hoja): 720 px en la web (`web/`) y 380 px en el archivo único (`mini/`), elegidas por el alias `@flora-fotos` de `vite.config.js`. Autores en `fotos.json`; enlaces en `legal/fotos-flora.csv`. En WebP, como las láminas (algunos visores del iPhone no enseñan AVIF). Sin foto, la ficha usa la lámina dibujada (`floraArt.js` y `leafArt.js`) |
 | `src/ui/faunaImg.js` y `src/assets/fauna/` | Ilustraciones del autor de los 31 animales (cuerpo entero, fondo transparente): la ficha de cada uno con la de 1280 px en la web y la de 512 en el archivo único (alias `@fauna-big`; las de 512 se rehacen desde las de 1280 con `tools/fauna-512.mjs`, a calidad 80 para que quepan), y las tarjetas del cuaderno con la de 512 en la web y la de 256 en el archivo único (`@fauna-small`) |
@@ -365,6 +365,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   fija y, en una carta pequeña, el pueblo caía sobre la raya del nombre y las cifras sobre el pueblo. Por debajo de 136 px
   no cabe el pueblo y va solo el nombre (sale en su ficha); las de por descubrir no llevan cifras, que serían rayas, y sí
   el pueblo, que dice dónde encontrarlas, con el candado bajo el «?» (`game/pelotaris.js`, `.pc-lock`).
+- **La presentación del partido, con las cartas de los pelotaris** (`pelota/match.js`, `intro`, `rivalHtml` y `encaja`;
+  la hoja, en `pelota/hud.js`: `.pel-pres`, `.pel-rv`, `.pel-team`, `.pel-lado`, `.pel-mas`; noviembre de 2026): el panel de
+  antes de jugar enseña a quien juega con las cartas de jugador (`pelotariCard`), las mismas del cuadro del torneo y de la
+  Gran final: tú con tu color a la izquierda, el «VS» y el rival; por parejas, las dos de cada lado, el delantero encima
+  del zaguero, como en la cancha. Tocar una carta abre su ficha (`ficha(id)`). Antes iba una fila por pelotari con una
+  foto redonda (la tuya, el avatar del pueblo, de sanferminero, que en un partido de pelota no pintaba nada) y un botón
+  «Ficha»; `playerChip` y su CSS se han retirado. En una pantalla tumbada (móvil u ordenador) las cartas van a la
+  izquierda, con todo el alto de la ventana, y lo demás (`.pel-lado`: el título con el campeonato y los tantos, el
+  frontón, «Más opciones» con «Partes del frontón» al lado, el nivel en dos filas iguales de 3 y 2 y los botones) en una
+  columna a su derecha, que no baja de 264 px; de pie, las cartas arriba y lo demás debajo. `encaja` mide el ancho de la
+  carta (`--cw`, que la hoja pasa a `--w`) con el sitio que queda, como hace la Gran final, y lo vuelve a medir si la
+  pantalla cambia de tamaño o se gira (`ResizeObserver`): mano a mano, de 136 a 200 px (seis cifras en dos columnas
+  también en un iPhone pequeño tumbado, 667 × 375); por parejas, de 92 a 150. El peloteo y los retos no tienen rival y
+  conservan la ventana de siempre. Con «Más opciones» abierto las cartas se apartan y la columna se deshace
+  (`display: contents`): la ventana lleva entonces la clase `mas` (antes `opts`, que es la de las respuestas de los
+  cuestionarios, `hub.css`, y en el ordenador ponía la ventana en fila); en el móvil tumbado la pestaña «Partido» cabe
+  entera, con cada rótulo a la izquierda de su grupo y los dos interruptores en una fila. Lo comprueba
+  `tools/auditoria-pelota.mjs` en 844 × 390, 667 × 375, 390 × 844, 1024 × 768 y 1280 × 720.
 - **Pelotaris con color limpio y público más nítido** (`src/assets/meshy*/pelotari*.glb`; `actors/crowdSprites.js`,
   `TAM`; `actors/crowd3d.js`, `PUNTOS`): la textura de Meshy de los pelotaris iba a parches (dos rojos y un cuadriculado
   en la camiseta, manchas grises en el pantalón) y se veían «a trozos». Se ha limpiado zona a zona: camiseta de un solo
@@ -880,14 +898,28 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el borde oscuro. Por descubrir, blanca con su punto morado; empezada, magenta con lo hecho en un arco; sellada, dorada
   con la marca verde. Las ciudades, más grandes y con diana; las zonas de naturaleza, con el punto verde. Los ríos no se
   tocan.
-- **Identidad: esquinas redondeadas y filo de neón** (`src/ui/neon.css`, cargada por `hub/hub.js` después de
-  `identidad.css`; noviembre de 2026): una sola regla para todo el juego. Toda tarjeta, card, bloque, panel, ventana y
-  rótulo, en el menú, en los campeonatos, en el partido, en el fútbol y dentro del pueblo (el diálogo, el libro, el mapa,
-  la mochila, la pausa, la tienda, la recompensa), lleva las esquinas redondeadas. El filo de neón, del color de su
-  sección (`--cat`), bando o deporte (lila si no tiene; lo elegido, en rosa; lo bloqueado, apagado), solo donde hace
-  falta: en lo que flota sobre el juego (paneles, ventanas, cajas del marcador y del HUD) y en las cartas que se eligen;
-  lo de dentro de un panel ya enmarcado (bloques, filas, chips, contadores, campos, pestañas, botones) conserva su borde
-  suave. Con filo en todo, dejaba de destacar y cargaba las ventanas (noviembre de 2026, a petición del autor). Sustituye
+- **Identidad: esquinas redondeadas; el filo de neón, solo en las cartas de jugador** (`src/ui/neon.css`, cargada por
+  `hub/hub.js` después de `identidad.css`; noviembre de 2026): dos reglas para todo el juego.
+  La forma: toda tarjeta, card, bloque, panel, ventana y rótulo, en el menú, en los campeonatos, en el partido, en el
+  fútbol y dentro del pueblo (el diálogo, el libro, el mapa, la mochila, la pausa, la tienda, la recompensa), lleva las
+  esquinas redondeadas (6 px los rótulos pequeños, 8 las tarjetas y 10 los paneles y las ventanas).
+  El filo: el filo de neón de 1 px, con su destello que da la vuelta y la luz de su color alrededor, es de las cartas de
+  jugador y de nadie más (`.gx-card`, `ui/sportCard.js`: el cuadro del torneo, la presentación del partido, la Gran final
+  y la colección de pelotaris). Antes lo llevaba todo lo que flotaba sobre el juego (paneles, ventanas, marcador, HUD,
+  losas del menú de pelota, rótulos del partido, tarjetas del menú, la ventana de pausa) y muchos botones; el autor lo
+  pidió así: «todos los botones no deben tener el borde de un píxel neón (...) solo para las cards de jugadores». Lo demás
+  se separa del fondo con su relleno y una sombra oscura (`--sombra-caja`, `--sombra-panel`); como mucho, una raya
+  neutra muy tenue (`--linea`, blanco al 8 %; las rayas de 1 px de todas las hojas pasaron del lila y el rosa a ese
+  blanco, y `--line`, `--line2` y `--cr-l2` también), sin color ni brillo, y sin anillos de color en las sombras
+  (`box-shadow: 0 0 0 Npx`). Las rayas de acento de 2 px o más a un lado (la del comentarista, la del marcador, la de
+  arriba de los paneles con el degradado del juego) no son filo y siguen.
+  Los botones: ninguno lleva borde, contorno ni anillo (con alto contraste sí: ahí el borde blanco es lo que se ve). El
+  principal, en pastilla con el degradado del juego (`--cta`, la lista de `ui/sport.css`); los secundarios, en pastilla
+  con relleno liso (`--btn-2`); lo elegido (`aria-pressed`, `aria-selected`, `aria-checked`, `.on`) se rellena
+  (`--btn-on`), no se contornea: el mismo en niveles, pestañas, vistas y opciones de todas las pantallas. Los botones
+  redondos (los iconos de la pausa, la equis), igual: sin aro ni brillo. Las variables están en `ui/sport.css`.
+  Un botón, una caja o una pantalla nuevos siguen esto sin más; las listas de `neon.css` (la forma, los botones
+  secundarios, lo elegido) se amplían con lo nuevo. Sustituye
   a las esquinas cortadas en ángulo y a sus marcos dibujados (`ui/frames.js`, retirado): las 57 reglas con `clip-path`
   de corte pasaron a `border-radius` en su propia hoja. Siguen como formas, no como cajas, las cintas de premio, las dos
   mitades del VS y la silueta de las cartas de deporte: la de pelotari (`gx-card`) y las dos de Torneos (`sport`) llevan
@@ -905,33 +937,28 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   abajo. Un filo fino de dentro sigue la silueta (`.gx-lin`, `--marco`, un aro de 1 px en un `polygon()` con `evenodd`).
   El color de su bando va en una cinta que sigue la corona de lado a lado (`.gx-eq`, `--corona`, el mismo borde
   desplazado hacia dentro). Las de
-  Torneos llevan más hueco arriba y abajo que a los lados, para que la lámina y la barra de jugar no toquen el filo. Su
-  filo de 1 px sigue esa forma: un aro con degradado cónico que da la vuelta (`--neon-a`), recortado con la silueta, el
-  relleno 1 px por dentro y la luz alrededor con una sombra que sigue la forma (`drop-shadow`). Al pasar a la identidad
-  de neón se habían quedado en rectángulos redondeados: «no quiero que sea simplemente cuadrada»; la primera silueta, con
-  las esquinas cortadas en ángulo, se quedó corta, y el autor mandó cartas de referencia (noviembre de 2026).
-  El filo es de 1 px en todo (antes, 1,5 y 2 px: se comía el
-  relleno). Tres maneras: el filo quieto, para casi todo, es un contorno (`outline`) de 1 px por dentro del borde, con un
-  brillo de sombra: cae encima del borde fino que ya tenía la caja, así que no mueve nada de sitio ni quita aire al
-  contenido, va encima de las imágenes que llegan al borde y no lo recorta la caja de fuera; las cajas que no tenían
-  borde reciben uno transparente de 1 px, para que el filo tenga su propio píxel y el relleno siga igual (salvo las
-  cartas que son marco de foto, cuyo relleno de 2 px es el marco); la forma va en tres listas
-  (tarjetas y bloques, 8 px; paneles y ventanas, 10 px; rótulos pequeños, campos y chips, 6 px) y el filo en otra, la de
-  las superficies y las cartas; una caja nueva entra en las que le tocan. En las tarjetas con el relleno en `::before` (la carta del menú),
-  un cuadrado con degradado cónico que gira detrás del relleno y da la vuelta al borde (`::after`, solo transformación:
-  lo mueve la tarjeta gráfica). En los rótulos del partido (el del tanto, el del comentarista, el de la repetición), un
-  aro con máscara cuyo degradado da la vuelta (`--neon-a`, `@property`), y en las losas del menú de pelota, el propio
-  borde con el degradado detrás del relleno. Con «menos movimiento», quieto. La auditoría de diseño lo vigila
-  (`tools/auditoria-medida.mjs`: `esquina`, `neon` y `forma`).
+  Torneos llevan más hueco arriba y abajo que a los lados, para que la lámina y la barra de jugar no toquen el borde; no
+  son cartas de jugador, así que no llevan filo de neón: una raya neutra de 1 px sigue la silueta (`::after`, recortado
+  con `--fifa`, con el relleno 1 px por dentro) y la sombra también (`drop-shadow`). El filo de la carta de pelotari sí
+  sigue su forma: un aro con degradado cónico que da la vuelta (`--neon-a`, `@property`), recortado con la silueta, el
+  marco de colores 1 px por dentro y la luz de su bando alrededor. Al pasar a la identidad de neón las cartas se habían
+  quedado en rectángulos redondeados: «no quiero que sea simplemente cuadrada»; la primera silueta, con las esquinas
+  cortadas en ángulo, se quedó corta, y el autor mandó cartas de referencia (noviembre de 2026).
+  La forma va en tres listas de `neon.css` (tarjetas y bloques, 8 px; paneles y ventanas, 10 px; rótulos pequeños,
+  campos y chips, 6 px); una caja nueva entra en la que le toca. Con «menos movimiento», el destello de las cartas se
+  queda quieto. La auditoría de diseño lo vigila (`tools/auditoria-medida.mjs`): `esquina` y `forma` para la forma;
+  `neon`, una caja con filo, borde, anillo o brillo de color, o una carta de jugador sin su filo; `filo`, un botón con
+  filo, borde o anillo.
 - **La carta: una sola tarjeta para todo el menú** (`identidad.css`, al final; noviembre de 2026): las tarjetas de las
   listas iban en cajas de cristal con esquinas casi rectas, cada una a su manera, y no se parecían a las comarcas de abajo
   del mapa ni a las cartas de Torneos. Ahora todas tienen esa misma forma: las especies, los personajes y las figuras, las
   cimas, las insignias, los instrumentos, los escudos y su guía, los cuentos, los certificados y los comercios, las
   tradiciones, las leyendas de las fichas, las láminas y las páginas del pasaporte. Esquinas redondeadas de 8 px,
-  un relleno morado opaco (`--carta-fondo`) y un filo de luz con el destello de neón (antes, dos esquinas cortadas en
-  ángulo): el filo es el fondo de la tarjeta y el relleno va en `::before`, más adentro y con la esquina algo menor. Lo conseguido, con el filo del
-  color de la sección (`--carta-filo-on`); lo bloqueado, apagado (`--carta-filo-off`); las cimas, con el color de su
-  comarca. La imagen de arriba, dentro del filo y con sus esquinas de arriba redondas. «Observado» e «Identificada», con la marca
+  un relleno morado opaco (`--carta-fondo`, en `::before`, que llena la tarjeta) y, alrededor, una raya neutra muy tenue
+  y una sombra (antes, dos esquinas cortadas en ángulo; luego, un filo de luz con destello de neón, que desde noviembre
+  de 2026 es solo de las cartas de jugador). Lo conseguido se rellena con un
+  punto del color de su sección (`--carta-fondo-on`), no se contornea; lo bloqueado, apagado (`--carta-filo-off`); las
+  cimas, con un punto del color de su comarca en el relleno. La imagen de arriba, con sus esquinas de arriba redondas. «Observado» e «Identificada», con la marca
   verde en su círculo amarillo, como en todo el juego. Se cambia aquí, en un solo sitio, para todas.
 - **Láminas animadas** (`src/ui/videos.js`, `public/videos/<id de la lámina>.mp4`, `tools/laminas-video.sh`; noviembre
   de 2026): el arranque, la pantalla de carga de los pueblos y del frontón y las cartas de Torneos llevan la misma lámina
@@ -1483,9 +1510,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 | `pelota-vs-ver.mjs` | El panel del partido y «Más opciones» en pestañas (pelota y cámara dinámica, sin desplazar), la pantalla VS, el partido (marcador sobre el frontis, FALTA y PASA, tu energía, el aro del botón de golpe) y la colección en el móvil tumbado (con `clear` o `rain`) |
 | `pelota-gasto.mjs` | La energía con el joystick siempre a tope, como juega una persona: pelotando, con cortadas seguidas y con el rival haciéndote dejadas; en qué se va y lo que cuesta cada carrera y cada cortada (sin gráficos) |
 | `pelota-golpe-manual.mjs` | Golpeo manual: sin pulsar no se devuelve nada; a tiempo, perfecto; pronto y tarde; volea y gancho; la energía; las cinco pelotas (sin gráficos) |
-| `auditoria-diseno.mjs` | Auditoría de diseño del menú (también su marco: la barra de arriba y la de las secciones) y de las pantallas de deporte (TAM=844x390 o 1180x820): texto cortado o con puntos suspensivos, texto encima de figuras (mirando la transparencia de la imagen) o de otro texto, verdes fuera de sitio, cajas con las esquinas en ángulo o con borde y sin el filo de neón, texto que se sale de su botón o su caja (círculo, píldora, esquinas redondeadas o en ángulo), distancias de rótulo a título y de título a texto, letra fuera de la escala o de las fuentes del juego colores de texto fuera de la gama, cajas que se salen de su caja, texto en columnas de una palabra por línea, lo que hay que desplazar, esquinas de más de 12 px o casi rectas y botones con letra de lectura. La medida está en `auditoria-medida.mjs`; también mide la composición: bloques de una fila con la misma altura o el mismo centro y el mismo hueco, columnas con el mismo borde y el mismo ancho, cajas con el mismo relleno a los dos lados, rellenos y huecos en la rejilla de 4 px, y bordes que casi coinciden (de 2 a 12 px) dentro de una misma caja, que se toman por descuadres. Con TODO=1 lista todas las distancias y con DETALLE=1 dice la regla de CSS de cada fallo. Con IDIOMA=eu, en euskera |
+| `auditoria-diseno.mjs` | Auditoría de diseño del menú (también su marco: la barra de arriba y la de las secciones) y de las pantallas de deporte (TAM=844x390 o 1180x820): texto cortado o con puntos suspensivos, texto encima de figuras (mirando la transparencia de la imagen) o de otro texto, verdes fuera de sitio, cajas con las esquinas en ángulo, el filo de neón fuera de las cartas de jugador (cajas con filo, borde, anillo o brillo de color: «neon») y botones con filo, borde o anillo («filo»), texto que se sale de su botón o su caja (círculo, píldora, esquinas redondeadas o en ángulo), distancias de rótulo a título y de título a texto, letra fuera de la escala o de las fuentes del juego colores de texto fuera de la gama, cajas que se salen de su caja, texto en columnas de una palabra por línea, lo que hay que desplazar, esquinas de más de 12 px o casi rectas y botones con letra de lectura. La medida está en `auditoria-medida.mjs`; también mide la composición: bloques de una fila con la misma altura o el mismo centro y el mismo hueco, columnas con el mismo borde y el mismo ancho, cajas con el mismo relleno a los dos lados, rellenos y huecos en la rejilla de 4 px, y bordes que casi coinciden (de 2 a 12 px) dentro de una misma caja, que se toman por descuadres. Con TODO=1 lista todas las distancias y con DETALLE=1 dice la regla de CSS de cada fallo. Con IDIOMA=eu, en euskera |
 | `cosecha-vehiculo.mjs` | La cosecha de principio a fin, con cosechadora (Artajona) o con tractor y temporeros (Estella): el campo, la descarga, el camino, la báscula y la conversación final |
 | `choques.mjs` | Textos que se montan con un icono, una chapa, un botón pequeño u otro texto, o que tapa un aviso: el menú entero, la galería pueblo a pueblo, las fichas y Ventajas, a cuatro tamaños; `choques` se usa también en `auditoria-partidos.mjs` |
+| `auditoria-pelota.mjs` | La misma auditoría en un partido de pelota de verdad, de la presentación al final: abre un pueblo, monta un partido en el Labrit y mide la presentación (las cartas de los pelotaris; también por parejas, y dice si la ventana cabe sin desplazar y el ancho de las cartas), «Más opciones», la ficha, la pantalla VS, el sorteo del saque, el partido, la pausa, la Gran final y el final, con una captura de cada una. `URL=… node tools/auditoria-pelota.mjs [carpeta] [tamaños] [pantallas]` |
 | `auditoria-partidos.mjs` | La misma auditoría en los marcadores y mandos de fútbol y pelota, montados sin el partido en 3D, en castellano y euskera y en cada estado de los botones (atacar, defender, portero, penaltis, lesionado, tarjeta, cambio y la ventana de cambios; golpe, gancho y volea) |
 | `auditoria-pueblo.mjs` | La misma auditoría dentro del pueblo (TAM=844x390 o 1180x820): HUD, diálogo, cada pestaña del libro, mapa con la tarjeta de una misión y de un lugar, mochila, pausa, cada pestaña de la tienda y recompensa. Con IDIOMA=eu, en euskera; con EUFALTAN=1, además, la lista de lo que se queda sin traducir |
 | `auditoria-ventanas.mjs` | La misma auditoría en las ventanas del juego (fichas, minijuegos, misión cumplida, cuestionarios). Con IDIOMA=eu, en euskera |
