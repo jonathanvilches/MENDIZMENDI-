@@ -33,6 +33,10 @@
      libres para sonar luego sin otro toque. El juego los recoge al arrancar (src/audio.js y src/audio/pistas.js) -->
 <script id="sonido-primero">(function () {
   var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+  // (en el iPhone, con el botón de silencio puesto, Safari calla todo lo que suena por el contexto de audio: la música,
+  // las voces y los efectos del juego. Desde iOS 17 se le puede decir que esto es reproducción, como un vídeo, y suena
+  // aunque el móvil esté en silencio, como en los juegos instalados)
+  try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) { }
   var S = window.__sonido = { ctx: null, pool: [], toco: false }, EV = ['pointerdown', 'pointerup', 'touchend', 'mousedown', 'keydown', 'click'];
   try { S.ctx = new AC(); for (var i = 0; i < 3; i++) S.pool.push(new Audio()); } catch (e) { return; }
   // (y se intenta ponerlo en marcha ya, sin toque: en la app nativa de la tienda, Capacitor con WKWebView, y donde el
@@ -77,6 +81,10 @@
     src.connect(g); g.connect(S.ctx.destination); S.musica = { n: 'musica-inicio', a: a, src: src, g: g };
   } catch (e) { return; }
   var EV = ['pointerdown', 'pointerup', 'touchend', 'mousedown', 'keydown', 'click'];
+  // (la música se baja entera ya, sin esperar al toque: el iPhone no empieza a bajar un <audio> hasta que se toca, y
+  // luego tardaba unos segundos en sonar. Si cuando llega aún no suena ni está a punto, se pone la copia; si no, se
+  // deja: paused pasa a falso en cuanto se le pide sonar)
+  try { var u0 = a.getAttribute('src'); if (u0 && window.fetch && window.URL && URL.createObjectURL) fetch(u0).then(function (r) { return r.ok ? r.blob() : null; }).then(function (b) { if (b && a.paused && a.currentTime === 0) a.src = URL.createObjectURL(b); }).catch(function () { }); } catch (e) { }
   var va = function () { if (S.musica.tomada || !a.paused) return; var r = a.play(); if (r && r.catch) r.catch(function () { }); };
   var toque = function () { if (S.ctx.state !== 'running') S.ctx.resume(); va(); if (!a.paused || S.musica.tomada) for (var k = 0; k < EV.length; k++) removeEventListener(EV[k], toque, true); };
   for (var k = 0; k < EV.length; k++) addEventListener(EV[k], toque, true);
@@ -99,7 +107,10 @@
   try {
     var pv = pa.querySelector('.pa-vid'), sv = /^https?:$/.test(location.protocol) && !/claude|usercontent/.test(location.hostname) && !/\/descargas\//.test(location.pathname)
       && !localStorage.getItem('herrizherri-sencillo') && !matchMedia('(prefers-reduced-motion: reduce)').matches && !(navigator.connection && navigator.connection.saveData);
-    if (sv) { pv.muted = true; pv.playsInline = true; pv.onplaying = function () { pv.classList.add('on'); }; pv.onerror = function () { pv.remove(); }; pv.src = './videos/c-pirineos.mp4'; var pp = pv.play(); if (pp && pp.catch) pp.catch(function () { }); } else pv.remove();
+    if (sv) { pv.muted = true; pv.playsInline = true; pv.onplaying = function () { pv.classList.add('on'); }; pv.onerror = function () { pv.remove(); }; pv.src = './videos/c-pirineos.mp4'; var pp = pv.play(); if (pp && pp.catch) pp.catch(function () { });
+      // (si el móvil no la deja moverse sola —el iPhone con el ahorro de batería—, se mueve con el primer toque)
+      var otra = function () { removeEventListener('pointerdown', otra, true); removeEventListener('touchend', otra, true); if (pv.isConnected && pv.paused) { var p2 = pv.play(); if (p2 && p2.catch) p2.catch(function () { }); } };
+      addEventListener('pointerdown', otra, true); addEventListener('touchend', otra, true); } else pv.remove();
   } catch (e) { }
   // la app instalada (pantalla de inicio): en vertical, la pantalla de girar y el juego en pausa (window.__girado)
   var app = matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
