@@ -353,7 +353,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cada turno con su voz fijada y sin la otra de repuesto (`estricta`), el segundo justo detrás del primero (`sigue`), y
   solo si están grabados los dos (`tiene`); si no, la frase suelta de siempre. Sus guiones para Envato:
   `tools/guion-voz/hombre-es-3.json` y `hombre-es-4.json` (grabados: 39 frases más de él, 110 en total; se llamaba Mikel, luego Gorka, y ahora Iñaki: la voz de IA de Miren acentuaba mal Mikel, y Iñaki lo dice bien; sus frases no dicen su nombre, así que valen igual) y, de
-  Miren, toda su locución de nuevo en `mujer-es-1.json` a `mujer-es-3.json`, o todas juntas en `mujer-es-todo.json` (53 frases: las que explican, la segunda
+  Miren, toda su locución de nuevo en `mujer-es-1.json` a `mujer-es-3.json`, o todas juntas en `mujer-es-todo.json` (grabadas y cortadas en noviembre de 2026; con ellas suenan los 11 diálogos con Iñaki; 53 frases: las que explican, la segunda
   de las pantallas, las nuevas de relleno que explican y su parte de los diálogos). Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
   a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. En castellano suenan las voces de Envato que el autor generó para el guion a dos voces (noviembre de
   2026): las 71 frases con la voz de hombre (Martin, en cuatro bloques: las que narran y, después, las que explican) y 33
