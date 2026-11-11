@@ -34,8 +34,9 @@ export class Voz {
   // (al acabar una, la que esperaba, si no es de hace más de 5 s; si no hay otra, la música vuelve)
   sigue() {
     this.habla_ = false; const nx = this.actual?.sigue; this.actual = null;
-    // (el turno siguiente de un diálogo va antes que lo que esperaba, y con un respiro entre uno y otro)
-    if (nx) { this.habla_ = true; const tk = this.tok; setTimeout(() => { if (tk !== this.tok) return; this.habla_ = false; this.habla(nx); if (!this.habla_) this.musica(false); }, 250); return; }
+    // (el turno siguiente de un diálogo va antes que lo que esperaba, con un respiro corto entre uno y otro: 110 ms, que
+    // con 250 y el silencio de los bordes de cada frase la conversación se hacía lenta)
+    if (nx) { this.habla_ = true; const tk = this.tok; setTimeout(() => { if (tk !== this.tok) return; this.habla_ = false; this.habla(nx); if (!this.habla_) this.musica(false); }, 110); return; }
     const q = this.cola; this.cola = null; if (q && performance.now() - q.t < 5000) this.habla(q.c); if (!this.habla_) this.musica(false);
   }
   musica(on) { try { window.__sound?.voz?.(on); } catch (e) { /* sin audio */ } }
