@@ -30,10 +30,11 @@ const SPEC = {
   // llega a la cruz, no por encima del lomo como a la pottoka
   // (el de Burguete es de tiro: ancho, de mucho pecho y tripa, cuello grueso y patas fuertes; el modelo es de un caballo
   // de silla y, al lado del jinete, se quedaba pequeño y flaco. El autor, noviembre de 2026)
-  // (como la foto que pasó el autor: castaño oscuro, crin, copete y cola negros, largos y abundantes, las patas negras
-  // hasta la rodilla con mucho pelo sobre los cascos, el vientre hondo y el cuello con su cresta. Antes era alazán y
-  // con la crin rubia)
-  burguete: { model: 'Horse', h: 2.3, estilo: { torso: 1.8, cuello: 1.7, vientre: 1.68, grupa: 1.28, patas: 1.68, abre: 1.1, melena: 1.85, copete: 1.5, cola: 1.85, calzas: 1.7, medias: { alto: 0.36, col: '#161110' } }, brillo: 0.5,
+  // (con los colores de las fotos que pasó el autor: castaño, crin, copete y cola negros y las patas negras hasta los
+  // corvejones; la forma, la del modelo de base, a su tamaño de 2,3 m: ensancharle el cuerpo y las patas lo deformaba y al
+  // autor no le gustó, noviembre de 2026. Se modelará aparte. Las opciones de forma siguen en caricatura: torso, cuello,
+  // vientre, grupa, patas, abre, melena, copete, cola, calzas)
+  burguete: { model: 'Horse', h: 2.3, estilo: { medias: { alto: 0.36, col: '#161110' } }, brillo: 0.5,
     col: { Main: '#8a4520', Main_Dark: '#56250f', Main_Light: '#9c5228', Hair: '#110c0a', Muzzle: '#5c4436', Hooves: '#5a524a' } },
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
@@ -132,9 +133,9 @@ function bakedScene(key, S, g) {
 // los personajes. Se hace sobre la malla en reposo, antes de las normales: los huesos y las animaciones no cambian y
 // el animal sigue siendo una sola malla. Cada especie puede traer su medida (el toro bravo, menos cabezón y con el ojo
 // más pequeño, que tiene que imponer).
-const ESTILO = { cabeza: 1.24, ojos: 2.1, patas: 1.14, iris: '#2a1a10' };
+const ESTILO = { cabeza: 1.24, ojos: 1.55, patas: 1.14, iris: '#2a1a10' };   // (los ojos, más pequeños: eran enormes, el autor, noviembre de 2026)
 function caricatura(geo, S, skel, bindMatrix) {
-  const E = { ...ESTILO, ...(S.dog ? { cabeza: 1.12, ojos: 1.55, patas: 1.12, iris: '#3a2210' } : null), ...S.estilo };
+  const E = { ...ESTILO, ...(S.dog ? { cabeza: 1.12, ojos: 1.2, patas: 1.12, iris: '#3a2210' } : null), ...S.estilo };
   const P = geo.attributes.position, si = geo.attributes.skinIndex, sw = geo.attributes.skinWeight, ojo = geo.attributes.ojo;
   const names = skel.bones.map(b => b.name), ih = names.indexOf('Head');
   let extra = null;
@@ -236,7 +237,7 @@ function caricatura(geo, S, skel, bindMatrix) {
       // (el tamaño, a la medida de la cabeza: entre un cuarto y un tercio de lo que mide, de lado a lado. El parche del modelo engaña: en la
       // cabra y el pastor alemán trae el párpado y sale enorme; en el cerdo es un punto)
       const cab = Math.max(cabeza.max.x - cabeza.min.x, cabeza.max.y - cabeza.min.y, cabeza.max.z - cabeza.min.z) || H * 0.3;
-      const R = THREE.MathUtils.clamp(rad[l] * E.ojos, 0.115 * cab, 0.16 * cab) * (E.ojo || 1), C = cen[l], lado = _v.crossVectors(up, n).normalize().clone(), alto = new THREE.Vector3().crossVectors(n, lado);
+      const R = THREE.MathUtils.clamp(rad[l] * E.ojos, 0.085 * cab, 0.12 * cab) * (E.ojo || 1), C = cen[l], lado = _v.crossVectors(up, n).normalize().clone(), alto = new THREE.Vector3().crossVectors(n, lado);
       bola(R, 10, 7, '#f7f4ee', C.clone().addScaledVector(n, -0.22 * R), n, 0.55);                                           // el blanco
       bola(R * 0.88, 9, 6, E.iris, C.clone().addScaledVector(n, 0.05 * R), n, 0.5);                                           // el iris
       bola(R * 0.2, 6, 4, '#ffffff', C.clone().addScaledVector(n, 0.4 * R).addScaledVector(alto, 0.26 * R).addScaledVector(lado, 0.2 * R), n, 0.6);   // el brillo
