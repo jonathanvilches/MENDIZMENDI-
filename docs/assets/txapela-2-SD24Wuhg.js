@@ -1,0 +1,1 @@
+var e=new URL(`txapela-2-D3YZz4_q.mp3`,import.meta.url).href;export{e as default};
