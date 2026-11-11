@@ -476,8 +476,12 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // móvil y lleno en los demás; el Labrit, 400 en el móvil, 900 en la media y lleno en la alta; la calle, 250, 400 o
     // llena. Antes eran 100 a 220 en el pueblo y el cubierto, y 150 en el Labrit del móvil: se veía medio vacía. Los de
     // lejos cuestan poco: unos 1.000 triángulos la figura de media distancia y 800 la del fondo, crowd3d.js)
-    try { const C = fronton.court, all = C?.standSpots || [], Q = QUALITY;
-      const cap0 = Math.min(all.length, C?.labrit ? (Q === 'low' ? 400 : Q === 'mid' ? 900 : all.length) : C?.hall ? (Q === 'low' ? 300 : all.length) : C?.estilo === 'calle' ? (Q === 'low' ? 250 : Q === 'mid' ? 400 : all.length) : all.length), cap = muyLigero ? Math.min(cap0, 160) : cap0;
+    // (y desde noviembre de 2026, todas las gradas llenas en todos los aparatos: el autor veía en el Labrit vacías las butacas
+    // del principio, junto al frontis, y los dos anfiteatros. Los que no están cerca de la cámara van con su retrato, dos
+    // triángulos cada uno (crowd3d.js), así que 2.800 cuestan menos que antes 400 con la figura de lejos. En el aparato
+    // que ya perdió la imagen, 900)
+    try { const C = fronton.court, all = C?.standSpots || [];
+      const cap = Math.min(all.length, muyLigero ? 900 : all.length);
       // (juntos, como en un partido de verdad: primero las filas de abajo y el centro de la cancha, donde se ve el juego, con
       // algún hueco; repartidos al azar por toda la grada, la misma gente parecía una grada vacía)
       let z0 = Infinity, z1 = -Infinity, y0 = Infinity; for (const q of all) { z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); y0 = Math.min(y0, q[1]); }

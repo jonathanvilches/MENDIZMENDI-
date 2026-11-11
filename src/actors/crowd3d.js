@@ -335,7 +335,8 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       KM = K - KC; retrato = true;
     } else {
       if (K > KC) mid = G.map(poses => poses.map(g => inst(g.userData.lejos1 ||= lejos(g, C1), Math.min(K - KC, KM), false)));
-      if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), K - KC - KM, false)));
+      // (con tope: con la grada llena eran 2.800 figuras de 800 triángulos)
+      if (K > KC + KM) far = G.map(poses => poses.map(g => inst(g.userData.lejos2 ||= lejos(g, C2, sit ? 0.3 : -1), Math.min(K - KC - KM, Q === 'low' ? 280 : Q === 'mid' ? 600 : 1200), false)));
     }
     capas = [meshes, mid, far].filter(Boolean); camis = G.map(p => p.camiseta);
   }).catch(err => console.warn('público 3D', err));
@@ -388,6 +389,7 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
       if (lev) { if (cheerAt != null) { const dt = t - cheerAt, mio = camis[figs[i] % camis.length], va = cheerLado && mio ? (mio === cheerLado ? rnd[i] < 0.9 : rnd[i] < 0.1) : rnd[i] < 0.65; pose = va && dt > dly[i] && dt < dly[i] + cheerLen * dur[i] ? 1 : 0; } }
       else if (!quietos) pose = Math.max((C[i * 2 + 1] + cheer) % 2, wave);
       const im = (k < KC || !mid ? meshes : k < KC + KM || !far ? mid : far)[figs[i] % meshes.length][pose];
+      if (im.count >= im.instanceMatrix.count) continue;   // (sin retratos, la figura de lejos tiene tope: los que pasan, sin dibujar)
       const jump = quietos || (sit && arriba) ? 0 : lev ? (pose ? A[i * 3] * 0.5 * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) : 0) : A[i * 3] * ex * Math.abs(Math.sin(t * 5.5 + A[i * 3 + 1])) + ola * 0.5;   // (los que celebran sentados no saltan)
       // (el que se levanta a celebrar, de pie delante de su asiento: en el sitio del sentado quedaba dentro de él)
       const sube = sit && !arriba && pose === 1 ? 0.3 : 0;

@@ -386,9 +386,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pelo de las chicas va en un segundo grupo de la misma malla, con su color en los vértices. Sentados, en cada tanto
   se levantan casi todos los de la camiseta del que lo gana y alguno del otro, cada uno con su retraso, y se vuelven a
   sentar; al salir los pelotaris, muchos de los dos. Sin pañuelos: iban a la altura del sentado. Gradas llenas en
-  todos los partidos (`game/fronton.js`): la del pueblo siempre; el cubierto, 300 en el móvil y lleno en los demás; el
-  Labrit, 400, 900 o lleno; la calle, 250, 400 o llena; 160 en el móvil más justo. Con 300 en el cubierto del móvil, el
-  partido ronda los 670.000 triángulos (el tope es 760.000). Los 24 más cercanos, con la figura entera y su textura (8
+  todos los partidos y en todos los aparatos (`game/fronton.js`): cada butaca con su espectador, 900 en el móvil más
+  justo. Antes el Labrit del móvil sentaba 400 de sus 1.881 butacas y quedaban vacías las de junto al frontis y los dos
+  anfiteatros. El Labrit lleno, en el móvil, ronda los 485.000 triángulos y 175 llamadas de dibujo (el tope es 760.000 y
+  490). Sin retratos (si no se pueden dibujar), la figura de lejos tiene tope: 280, 600 o 1.200. Los 24 más cercanos, con la figura entera y su textura (8
   en el más justo); todos los demás, con su retrato (`retratos`, `retratoMat`): cada figura, en cada pose, se dibuja una
   vez con su textura vista desde siete ángulos (de -90° a 90°, de 30 en 30) en una textura propia, y en la grada cada
   espectador es un rectángulo que mira a la cámara con el retrato del ángulo desde el que se le ve, con la misma luz que
