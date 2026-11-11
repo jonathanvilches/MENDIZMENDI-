@@ -323,7 +323,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   su animación (`v-bote`: las letras botan dos veces y una pelota cruza dando dos botes; `v-chapa`: tiembla; `v-fuera`:
   las letras llegan volando de lado; `v-falta`: caen como un sello; `v-tanto`: brillan en dorado). La etiqueta del
   golpe entra inclinada; los botones y la palanca entran de un salto al volver a verse (`controls`, `entra`) y el
-  marcador baja desde arriba la primera vez (`entraTop`). Con «reducir movimiento», sin animaciones.
+  marcador baja desde arriba la primera vez (`entraTop`). Con «reducir movimiento», sin animaciones. El aviso del tanto
+  dura 3,4 s (4 con racha, 5,5 el último) y sigue a la vista durante la repetición, que empieza a los 1,15 s.
 - **Marcador de retransmisión y rachas** (`pelota/hud.js`, `setScore`, `setRacha`, `call`; `pelota/match.js`, `rachaDe`):
   al sumar, la cifra salta en dorado y su lado se ilumina. El aviso del tanto lleva arriba una raya del color de quien
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el

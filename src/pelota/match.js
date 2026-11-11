@@ -1107,7 +1107,7 @@ export class PelotaMatch {
         // (a un tanto del final: con empate, «último tanto»; si no, «tanto de partido» y quién está a un tanto. Antes salía
         // siempre «el que gane este tanto, gana el partido», que solo es verdad con empate)
         if (e.matchPoint) { const T1 = g.target - 1, ambos = g.score.you === T1 && g.score.rival === T1, lider = g.score.you === T1 ? 'you' : 'rival';
-          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
+          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 2.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
@@ -1150,9 +1150,9 @@ export class PelotaMatch {
       case 'reto': {   // (una pelota del reto: se rotula, se mueve la diana y el marcador dice cuántas llevas y lo que queda)
         const R = this.retoTxt();
         this.retoMarcador();
-        if (g.reto === 'peloteo') { if (!e.ok) this.hud.call(R.vida[0], R.vida[1](e.vidas), '', 2); }
+        if (g.reto === 'peloteo') { if (!e.ok) this.hud.call(R.vida[0], R.vida[1](e.vidas), '', 3); }
         else if ('x' in e || 'z' in e) {   // (las que se juzgan en tu golpe; las que fallas o no devuelves ya las canta el juez)
-          const [h, sb] = (e.ok ? R.ok : R.ko)[g.reto]; this.hud.call(h, sb, '', 1.6, e.ok ? { col: 'azul' } : null);
+          const [h, sb] = (e.ok ? R.ok : R.ko)[g.reto]; this.hud.call(h, sb, '', 2.6, e.ok ? { col: 'azul' } : null);
           A.point(true, !!e.ok, false, e.ok ? 0.5 : 0);
         }
         if (g.reto === 'diana') setTimeout(() => { if (this.active && this.game === g) this.dianaPon(); }, e.ok ? 900 : 500);
@@ -1168,9 +1168,9 @@ export class PelotaMatch {
         const ex = g.mode === 'rally' ? { anim } : { col: this.cols[e.winner], racha: this.rachaDe(e), anim };
         const [title, sub] = t.calls[e.call] || t.calls.tanto;
         const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
-        if (g.mode === 'rally') this.hud.call(title, sub, '', 2, ex);
-        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 4.4, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
-        else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, ex?.racha ? 2.8 : 2.2, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
+        if (g.mode === 'rally') this.hud.call(title, sub, '', 3, ex);
+        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 5.5, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
+        else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, ex?.racha ? 4 : 3.4, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
         // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
         A.point(e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call], e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)));
         if (g.mode === 'match') this.comTanto(e);

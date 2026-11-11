@@ -12,7 +12,9 @@ const CSS = `
 .pel-root.vuelo>*{visibility:hidden!important}
 /* (en la salida de los pelotaris a la cancha, solo su rótulo: match.js saleEntrada) */
 .pel-root.sale>*:not(.pel-call){visibility:hidden!important}
-.pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-exit,.pel-call){visibility:hidden}
+/* (el aviso del tanto sigue a la vista durante la repetición, su tiempo entero: la repetición empieza a los 1,15 s y antes
+   lo escondía, por eso desaparecía tan deprisa) */
+.pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-exit){visibility:hidden}
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
    misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
    lenta, su aviso. Debajo, cómo saltarla. Si no caben los dos en la misma fila, baja justo debajo del marcador
@@ -120,34 +122,34 @@ const CSS = `
 @keyframes pelRachaM{from{transform:scale(.4);opacity:0}}
 @media (prefers-reduced-motion:reduce){.pel-side b.sube,.pel-side.gana .ps-cab,.ps-racha.on,.pel-racha{animation:none}}
 .pel-call{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 72px);transform:translateX(-50%) scale(.9);opacity:0;transition:opacity .18s,transform .18s;text-align:center;max-width:min(calc(92vw / var(--z, 1)),520px);padding:16px 24px;border-radius:18px;background:linear-gradient(180deg,rgba(50,19,111,.94),rgba(28,11,58,.94));border:1px solid rgba(255,255,255,.08);box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.pel-call.on{opacity:1;transform:translateX(-50%) scale(1);transition:none;animation:pelCallIn .55s cubic-bezier(.2,1.35,.4,1) both}
+.pel-call.on{opacity:1;transform:translateX(-50%) scale(1);transition:none;animation:pelCallIn .8s cubic-bezier(.2,1.35,.4,1) both}
 /* (el movimiento de los rótulos, como en las retransmisiones y los juegos de deporte: el aviso se abre desde una raya
    inclinada con un brillo que lo barre, las letras caen una detrás de otra y, al irse, se cierra en raya y sale de lado.
    Y cada fallo, el suyo: en los dos botes las letras botan dos veces y una pelota cruza dando dos botes; en la chapa el
    rótulo tiembla como el golpe en el metal; fuera, las letras llegan volando de lado; en la falta y el pasa, caen como un
    sello. El autor, noviembre de 2026) */
-.pel-call.sale{opacity:1;animation:pelCallOut .3s cubic-bezier(.6,0,.85,.35) both}
+.pel-call.sale{opacity:1;animation:pelCallOut .45s cubic-bezier(.6,0,.85,.35) both}
 @keyframes pelCallIn{0%{opacity:0;transform:translateX(-50%) scale(.15,.05) skewX(-20deg)}35%{opacity:1;transform:translateX(-50%) scale(1.06,.07) skewX(-14deg)}72%{transform:translateX(-50%) scale(.98,1.05) skewX(0)}100%{opacity:1;transform:translateX(-50%) scale(1)}}
 @keyframes pelCallOut{0%{transform:translateX(-50%) scale(1)}45%{transform:translateX(-50%) scale(1.04,.06) skewX(-14deg)}100%{opacity:0;transform:translateX(calc(-50% + 90px)) scale(.3,.04) skewX(-22deg)}}
-.pel-call.on::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.32) 50%,transparent 60%) no-repeat;background-size:250% 100%;background-position:150% 0;animation:pelBarre .75s .22s ease-out both}
+.pel-call.on::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.32) 50%,transparent 60%) no-repeat;background-size:250% 100%;background-position:150% 0;animation:pelBarre 1.05s .32s ease-out both}
 @keyframes pelBarre{from{background-position:150% 0}to{background-position:-50% 0}}
-.pel-call h3 .l{display:inline-block;animation:pelLetra .42s calc(.16s + var(--i) * .032s) cubic-bezier(.2,1.6,.4,1) both}
+.pel-call h3 .l{display:inline-block;animation:pelLetra .6s calc(.24s + var(--i) * .048s) cubic-bezier(.2,1.6,.4,1) both}
 @keyframes pelLetra{from{opacity:0;transform:translateY(.7em) rotate(-10deg) scale(.5)}}
-.pel-call.on p{animation:pelSubeP .34s .36s ease-out both}@keyframes pelSubeP{from{opacity:0;transform:translateY(10px)}}
-.pel-call.on .pel-kantari{animation:pelPop .42s .5s cubic-bezier(.2,1.8,.4,1) both}@keyframes pelPop{from{opacity:0;transform:scale(.4)}}
+.pel-call.on p{animation:pelSubeP .5s .55s ease-out both}@keyframes pelSubeP{from{opacity:0;transform:translateY(10px)}}
+.pel-call.on .pel-kantari{animation:pelPop .55s .75s cubic-bezier(.2,1.8,.4,1) both}@keyframes pelPop{from{opacity:0;transform:scale(.4)}}
 .pel-call .pel-bola{display:none}
-.pel-call.v-bote .pel-bola{display:block;position:absolute;left:0;bottom:6px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#efe6d6 45%,#b9a88e);box-shadow:0 2px 3px rgba(0,0,0,.35);animation:pelBolaX 1.15s .3s linear both,pelBolaY 1.15s .3s both}
+.pel-call.v-bote .pel-bola{display:block;position:absolute;left:0;bottom:6px;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#efe6d6 45%,#b9a88e);box-shadow:0 2px 3px rgba(0,0,0,.35);animation:pelBolaX 1.6s .45s linear both,pelBolaY 1.6s .45s both}
 @keyframes pelBolaX{from{transform:translateX(8px)}to{transform:translateX(calc(var(--ancho, 420px) - 20px))}}
 @keyframes pelBolaY{0%{translate:0 -46px;animation-timing-function:cubic-bezier(.5,0,1,.5)}28%{translate:0 0;scale:1.3 .7;animation-timing-function:cubic-bezier(0,.5,.5,1)}46%{translate:0 -26px;scale:1;animation-timing-function:cubic-bezier(.5,0,1,.5)}64%{translate:0 0;scale:1.3 .7;animation-timing-function:cubic-bezier(0,.5,.5,1)}80%{translate:0 -10px;scale:1}100%{translate:0 0}}
-.pel-call.v-bote h3 .l{animation:pelLetra .4s calc(.12s + var(--i) * .028s) cubic-bezier(.2,1.6,.4,1) both,pelBote .8s calc(.62s + var(--i) * .025s) both}
+.pel-call.v-bote h3 .l{animation:pelLetra .55s calc(.18s + var(--i) * .042s) cubic-bezier(.2,1.6,.4,1) both,pelBote 1.15s calc(.9s + var(--i) * .035s) both}
 @keyframes pelBote{0%,100%{transform:none}14%{transform:translateY(-.38em) scale(.92,1.1)}28%{transform:translateY(0) scale(1.18,.8)}44%{transform:translateY(-.2em) scale(.95,1.06)}58%{transform:translateY(0) scale(1.1,.88)}72%{transform:none}}
-.pel-call.v-chapa.on{animation:pelCallIn .5s cubic-bezier(.2,1.35,.4,1) both,pelTiembla .46s .5s both}
+.pel-call.v-chapa.on{animation:pelCallIn .75s cubic-bezier(.2,1.35,.4,1) both,pelTiembla .65s .75s both}
 @keyframes pelTiembla{15%,55%{transform:translateX(calc(-50% - 7px)) rotate(-1.6deg)}35%,75%{transform:translateX(calc(-50% + 7px)) rotate(1.6deg)}90%{transform:translateX(calc(-50% - 2px))}100%{transform:translateX(-50%)}}
-.pel-call.v-fuera h3 .l{animation:pelVuela .5s calc(.14s + var(--i) * .03s) cubic-bezier(.15,1.25,.4,1) both}
+.pel-call.v-fuera h3 .l{animation:pelVuela .7s calc(.2s + var(--i) * .045s) cubic-bezier(.15,1.25,.4,1) both}
 @keyframes pelVuela{from{opacity:0;transform:translateX(-2.2em) skewX(-25deg) rotate(-12deg)}}
-.pel-call.v-falta h3 .l{animation:pelSello .38s calc(.16s + var(--i) * .03s) cubic-bezier(.3,1.7,.5,1) both}
+.pel-call.v-falta h3 .l{animation:pelSello .55s calc(.24s + var(--i) * .045s) cubic-bezier(.3,1.7,.5,1) both}
 @keyframes pelSello{from{opacity:0;transform:translateY(-.9em) scale(1.8)}}
-.pel-call.v-tanto h3 .l{animation:pelLetra .42s calc(.16s + var(--i) * .032s) cubic-bezier(.2,1.6,.4,1) both,pelBrilla .5s calc(.7s + var(--i) * .03s) ease-out both}
+.pel-call.v-tanto h3 .l{animation:pelLetra .6s calc(.24s + var(--i) * .048s) cubic-bezier(.2,1.6,.4,1) both,pelBrilla .7s calc(1s + var(--i) * .045s) ease-out both}
 @keyframes pelBrilla{40%{color:#ffd166;transform:translateY(-.12em) scale(1.12)}}
 /* (y al empezar cada saque, los botones y la palanca entran con un salto, uno detrás de otro, y el marcador baja desde
    arriba la primera vez) */
@@ -173,7 +175,7 @@ const CSS = `
 .pel-call p{margin:var(--r-pp,12px) 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#d9ccff}.pel-call :is(h3,p,.pel-kantari){text-box:trim-both cap alphabetic}
 .pel-call .pel-kantari{margin-top:var(--r-pp,12px);font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
 .pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;border-radius:6px;opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
-.pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none;animation:pelGolpe .4s cubic-bezier(.2,1.5,.4,1) both}
+.pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none;animation:pelGolpe .6s cubic-bezier(.2,1.5,.4,1) both}
 @keyframes pelGolpe{0%{opacity:0;transform:translateX(70px) skewX(-18deg)}60%{opacity:1;transform:translateX(-6px) skewX(4deg)}100%{transform:none}}
 @media (prefers-reduced-motion:reduce){.pel-golpe.on{animation:none}}
 /* la tarjeta del rival: bajo el marcador, del color que viste; la barra de energía grande y, encima de ella, la fuerza de
@@ -734,7 +736,7 @@ export class PelotaHud {
    *  pequeño, bajo el marcador y del color de quien lo da (col: 'azul' o 'rojo') */
   golpe(text, col) {
     const g = this._g ||= this.$('.pel-golpe'); if (!g || !text) return;
-    g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 1.5;
+    g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 2.4;
   }
   tick(dt) {
     if (this.gT > 0 && (this.gT -= dt) <= 0) this._g?.classList.remove('on');
@@ -742,7 +744,7 @@ export class PelotaHud {
     if (this.comSig && (this.comT <= 0 || this.comVisto >= 2.4)) { const c = this.comSig; this.comSig = null; this.comT = 0; this.comenta(c); }
     if (this.callT > 0 && (this.callT -= dt) <= 0) {
       const c = this.$('.pel-call'); c.classList.add('sale'); c.classList.remove('on'); this.root.classList.remove('calling');
-      clearTimeout(this.saleTo); this.saleTo = setTimeout(() => c.classList.remove('sale'), 320);
+      clearTimeout(this.saleTo); this.saleTo = setTimeout(() => c.classList.remove('sale'), 470);
     }
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');
   }
