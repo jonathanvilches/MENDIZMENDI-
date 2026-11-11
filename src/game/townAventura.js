@@ -220,7 +220,11 @@ export class PuebloAventura {
     const A = this.av; if (!A) return; this.av = null;
     const P = this.player; P.onModo = P.onCaida = P.onRescate = null; P.puedeAventura = false;
     A.hud.dispose(); A.capa?.dispose(); A.montura?.dispose();
-    if (A.atalaya) this.scene.remove(A.atalaya.obj);
-    for (const k of A.kutxas) this.scene.remove(k.obj);
+    // (y se sueltan sus geometrías y la tela de la banderola: como salen de la escena antes de recoger el pueblo, nadie más
+    // las soltaba, y en cada viaje se quedaban en la gráfica la atalaya y su banderola, y en la memoria los cofres; tras
+    // muchos viajes eso suma y en el iPhone puede cerrar la página. La madera, PINTADO, es de todos y se queda)
+    const suelta = (o) => o?.traverse((m) => { if (!m.isMesh) return; m.geometry?.dispose(); if (m.material !== PINTADO) m.material?.dispose?.(); });
+    if (A.atalaya) { this.scene.remove(A.atalaya.obj); suelta(A.atalaya.obj); }
+    for (const k of A.kutxas) { this.scene.remove(k.obj); suelta(k.obj); }
   }
 }
