@@ -337,9 +337,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   archivo, en el orden del guion, con los cortes en los silencios y cada frase de la duración que pide su texto; una
   palmada tira la toma de antes; todas al mismo volumen (-16 LUFS), mp3 mono de 96 kbps. Mientras habla, la música
   baja a un tercio (`audio.js`, `voz` y `volMus`: cuenta en todo lo que pone el volumen de la música) y vuelve al acabar
-  la frase; el público y los aplausos del partido, también (a 0,35: `pelota/audio.js`, su bus, con el evento
-  `herrizherri-voz`, porque el partido suena con otro contexto). Los aplausos de después de un tanto tapaban la frase
-  que lo comenta. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
+  la frase; el público y los aplausos del partido, también, sin prisa (a 0,45 en algo menos de un segundo: `pelota/audio.js`,
+  su bus, con el evento `herrizherri-voz`, porque el partido suena con otro contexto). La frase del tanto llega a los
+  1,5 s, cuando el aplauso ya se apaga: antes llegaba a los 0,3 s y se mezclaba con la grada aplaudiendo.
+  Para que no haya silencios: durante el peloteo, frases cortas del golpe que se acaba de dar («¡Buena dejada!», «¡Buen
+  gancho!», «Esa puede ir a rebote», «¡Qué bien defiende!»; `enJuego`, como mucho una cada 4,5 s y solo si no está
+  hablando: las que llegan tarde ya no valen); entre tanto y tanto, en uno de cada tres sin la jugada, relleno según cómo
+  va el partido (`relleno`: la mano del que encadena tantos, lo bien que sale la pelota del frontis, el material de la
+  pelota en juego, viva o pesada, `material.js`, la grada, el marcador igualado, las piernas al final); y si el saque
+  se hace esperar 5 s sin que nadie hable, relleno. Si en el peloteo ya se comentó la jugada, al cantar el tanto no se
+  repite. Con «Dos comentaristas», los dos hablan entre ellos de vez en cuando (`DIALOGO`: Mikel, la voz de hombre, y
+  Miren, la de mujer; la presentación, el material, la mano, el marcador, un peloteo largo, el descanso y la despedida):
+  cada turno con su voz fijada y sin la otra de repuesto (`estricta`), el segundo justo detrás del primero (`sigue`), y
+  solo si están grabados los dos (`tiene`); si no, la frase suelta de siempre. Sus guiones para Envato:
+  `tools/guion-voz/hombre-es-3.json`, `hombre-es-4.json` y `mujer-es-3.json`. Si una frase no avisa de su final (el iPhone para el sonido al ir la app de fondo), se da por acabada
   a su tiempo: antes la voz se quedaba «hablando» y no se oía ninguna más. En castellano suenan las voces de Envato que el autor generó para el guion a dos voces (noviembre de
   2026): las 71 frases con la voz de hombre (Martin, en cuatro bloques: las que narran y, después, las que explican) y 33
   con la de mujer (las que explican y la segunda de cada pareja de las pantallas). La grabación de antes del autor ya

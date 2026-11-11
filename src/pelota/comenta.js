@@ -38,6 +38,24 @@ export const F = {
     finalRival: [['n', 'Se acabó. Esta vez gana el rival.'], ['n', 'Final del partido. El rival se lleva la victoria.']],
     finalE: [['e', 'Buen partido. Enhorabuena a los dos.'], ['e', 'Así se juega a pelota: con la mano y con la cabeza.']],
     descanso: [['e', 'Descanso: un minuto para respirar.'], ['e', 'Un minuto de descanso. Viene bien para pensar.']],
+    // (durante el peloteo, cortas: el golpe que se acaba de dar o lo que viene)
+    'j-dejada': [['n', '¡Buena dejada!'], ['n', '¡Qué bien la deja!']],
+    'j-gancho': [['n', '¡Buen gancho!'], ['n', '¡Qué gancho!']],
+    'j-cortada': [['n', '¡Buena cortada!']],
+    'j-dosparedes': [['n', '¡Buena dos paredes!']],
+    'j-aire': [['n', '¡Al aire!']],
+    'j-rebote': [['n', 'Esa puede ir a rebote.'], ['n', '¡Cuidado, que va a rebote!']],
+    'j-defensa': [['n', '¡Qué bien defiende!'], ['n', 'La saca desde atrás.']],
+    'j-peloteo': [['n', '¡Aguanta, aguanta!'], ['n', '¡Qué peloteo están dando!']],
+    // (entre tanto y tanto, para que no se haga el silencio: la mano, el frontis, el material, la grada, el marcador)
+    'r-mano': [['e', '¡Qué bien le está entrando la pelota en la mano esta tarde!'], ['e', 'Hoy la mano le responde de maravilla.']],
+    'r-frontis': [['n', '¡Qué bien sale esta pelota del frontis!'], ['n', 'La pelota sale con mucha alegría del frontis.']],
+    'r-viva': [['e', 'Este material es muy vivo: sale mucho del frontis.'], ['e', 'Con una pelota tan viva, el rebote está ahí.']],
+    'r-pesada': [['e', 'Esta pelota es pesada: cuesta mucho llevarla atrás.'], ['e', 'Material muerto: la pelota se queda corta.']],
+    'r-grada': [['n', '¡Qué ambiente hay hoy en el frontón!'], ['n', 'La grada está disfrutando de lo lindo.']],
+    'r-igualado': [['n', 'Partido muy igualado.'], ['n', 'Esto está muy disputado: nadie se escapa.']],
+    'r-consejo': [['e', 'Hay que tener paciencia y esperar el hueco.'], ['e', 'Mover al rival de lado a lado: esa es la clave.']],
+    'r-piernas': [['e', 'Ya se empiezan a notar las piernas.']],
   },
   eu: {
     inicio: [['n', 'Arratsalde on eta ongi etorri frontoira. Hasi da partida.'], ['n', 'Dena prest frontoian. Hasi dadila partida!'], ['n', 'Arratsalde on. Harmailak beteta daude, eta pilotariak prest.']],
@@ -68,8 +86,60 @@ export const F = {
     finalRival: [['n', 'Amaitu da. Oraingoan aurkariak irabazi du.'], ['n', 'Partidaren amaiera. Garaipena aurkariarentzat.']],
     finalE: [['e', 'Partida ona. Zorionak biei.'], ['e', 'Horrela jokatzen da pilotan: eskuarekin eta buruarekin.']],
     descanso: [['e', 'Atsedenaldia: minutu bat arnasa hartzeko.'], ['e', 'Minutu bateko atsedena. Ondo dator pentsatzeko.']],
+    'j-dejada': [['n', 'Utzi ederra!'], ['n', 'Zein ondo utzi duen!']],
+    'j-gancho': [['n', 'Gantxo ederra!'], ['n', 'Zer gantxoa!']],
+    'j-cortada': [['n', 'Cortada ederra!']],
+    'j-dosparedes': [['n', 'Bi pareta ederra!']],
+    'j-aire': [['n', 'Airez!']],
+    'j-rebote': [['n', 'Hori errebotera joan daiteke.'], ['n', 'Kontuz, errebotera doa!']],
+    'j-defensa': [['n', 'Zein ondo defendatzen duen!'], ['n', 'Atzetik atera du.']],
+    'j-peloteo': [['n', 'Eutsi, eutsi!'], ['n', 'Zer pilotakada sorta ematen ari diren!']],
+    'r-mano': [['e', 'Zein ondo sartzen zaion pilota eskura gaur arratsaldean!'], ['e', 'Gaur eskuak primeran erantzuten dio.']],
+    'r-frontis': [['n', 'Zein ondo ateratzen den pilota hau frontisetik!'], ['n', 'Pilota alai-alai ateratzen da frontisetik.']],
+    'r-viva': [['e', 'Material hau oso bizia da: asko ateratzen da frontisetik.'], ['e', 'Pilota hain biziarekin, errebotea hor dago.']],
+    'r-pesada': [['e', 'Pilota hau astuna da: kosta egiten da atzera eramatea.'], ['e', 'Material hila: pilota motz geratzen da.']],
+    'r-grada': [['n', 'Zer giroa dagoen gaur frontoian!'], ['n', 'Harmailak gozatzen ari dira.']],
+    'r-igualado': [['n', 'Partida oso berdindua.'], ['n', 'Oso lehiatua dago: inor ez da aurrera ateratzen.']],
+    'r-consejo': [['e', 'Pazientzia izan behar da, hutsunearen zain.'], ['e', 'Aurkaria alde batetik bestera mugitu: hori da gakoa.']],
+    'r-piernas': [['e', 'Hankak nabaritzen hasiak dira.']],
   },
 };
+// Los dos comentaristas hablan entre ellos de vez en cuando: Mikel (la voz de hombre) y Miren (la de mujer). Cada diálogo
+// es una pregunta y su respuesta, con la voz fijada ('h' él, 'm' ella); su archivo, «d-<tema>-<n>-<turno>» en la carpeta
+// de quien lo dice (src/assets/voz/hombre/es/d-viva-1-1.mp3 y src/assets/voz/mujer/es/d-viva-1-2.mp3). Solo con «Dos
+// comentaristas» (Ajustes) y solo si están grabados los dos turnos: si falta uno, se dice la frase de siempre (match.js)
+export const DIALOGO = {
+  es: {
+    inicio: [[['h', 'Buenas tardes. Hoy me acompaña Miren, que sabe mucho de pelota.'], ['m', 'Buenas tardes, Mikel. ¡Qué ganas tenía de este partido!']],
+      [['h', 'Miren, ¿cómo ves el partido de hoy?'], ['m', 'Muy abierto, Mikel. Puede pasar cualquier cosa.']]],
+    tanto: [[['h', '¿Qué te ha parecido, Miren?'], ['m', 'Espectacular, Mikel. Así se juega a pelota.']]],
+    viva: [[['h', 'Este material es muy vivo, ¿no te parece, Miren?'], ['m', 'Sí, Mikel: sale mucho del frontis y bota alto.']]],
+    pesada: [[['m', 'Mikel, esa pelota pesa: cuesta llevarla atrás.'], ['h', 'Tienes razón, Miren. Hay que pegarle con todo.']]],
+    mano: [[['m', 'Mikel, ¿has visto qué bien le entra la pelota en la mano?'], ['h', 'Lo he visto, Miren. Está en una tarde fantástica.']]],
+    igualado: [[['m', 'Esto está muy igualado, Mikel.'], ['h', 'Muy igualado, Miren: cualquiera lo puede ganar.']]],
+    peloteo: [[['h', '¡Qué peloteo, Miren!'], ['m', 'Eso se nota en las piernas, Mikel.']]],
+    grada: [[['h', 'Fíjate en la grada, Miren: no cabe ni un alfiler.'], ['m', '¡Qué ambiente, Mikel! Da gusto.']]],
+    descanso: [[['h', 'Descanso. ¿Qué harías tú ahora, Miren?'], ['m', 'Respirar hondo y pensar el siguiente saque, Mikel.']]],
+    final: [[['h', 'Hasta aquí el partido. Gracias por acompañarme, Miren.'], ['m', 'Gracias a ti, Mikel. Ha sido un placer.']]],
+  },
+  eu: {
+    inicio: [[['h', 'Arratsalde on. Gaur Miren dut ondoan, pilotaz asko dakiena.'], ['m', 'Arratsalde on, Mikel. Zer gogo nituen partida honen!']],
+      [['h', 'Miren, nola ikusten duzu gaurko partida?'], ['m', 'Oso irekia, Mikel. Edozer gerta daiteke.']]],
+    tanto: [[['h', 'Zer iruditu zaizu, Miren?'], ['m', 'Ikusgarria, Mikel. Horrela jokatzen da pilotan.']]],
+    viva: [[['h', 'Material hau oso bizia da, ez zaizu iruditzen, Miren?'], ['m', 'Bai, Mikel: asko ateratzen da frontisetik eta gora egiten du bote.']]],
+    pesada: [[['m', 'Mikel, pilota horrek pisua du: kosta egiten da atzera eramatea.'], ['h', 'Arrazoi duzu, Miren. Indar guztiarekin jo behar zaio.']]],
+    mano: [[['m', 'Mikel, ikusi duzu zein ondo sartzen zaion pilota eskura?'], ['h', 'Ikusi dut, Miren. Arratsalde zoragarria du.']]],
+    igualado: [[['m', 'Oso berdindua dago hau, Mikel.'], ['h', 'Oso berdindua, Miren: edonork irabaz dezake.']]],
+    peloteo: [[['h', 'Zer pilotakada sorta, Miren!'], ['m', 'Hori hanketan nabaritzen da, Mikel.']]],
+    grada: [[['h', 'Begira harmailei, Miren: ez dago leku hutsik.'], ['m', 'Zer giroa, Mikel! Gustura egoteko modukoa.']]],
+    descanso: [[['h', 'Atsedenaldia. Zuk zer egingo zenuke orain, Miren?'], ['m', 'Arnasa sakon hartu eta hurrengo sakea pentsatu, Mikel.']]],
+    final: [[['h', 'Hemen bukatu da partida. Eskerrik asko nirekin egoteagatik, Miren.'], ['m', 'Eskerrik asko zuri, Mikel. Plazer bat izan da.']]],
+  },
+};
+const QUIEN = { es: { h: 'Mikel', m: 'Miren' }, eu: { h: 'Mikel', m: 'Miren' } };
+// (de qué tema de relleno sale cada diálogo)
+const R2D = { 'r-viva': 'viva', 'r-pesada': 'pesada', 'r-mano': 'mano', 'r-igualado': 'igualado', 'r-grada': 'grada' };
+
 // (el rol, para los subtítulos)
 // (una sola voz, la del autor: el mismo comentarista narra y explica; pelota/voz.js)
 const ROL = { es: { n: 'Comentarista', e: 'Comentarista' }, eu: { n: 'Esataria', e: 'Esataria' } };
@@ -93,7 +163,8 @@ export class Comentarios {
     return { id: `${k}-${i + 1}`, texto, rol: ROL[this.lang][r], r, voz: vozDe(this.voz, r), lang: this.lang };
   }
   /** Lo que se dice al acabar un tanto. x: el tanto del registro (game.js, stats.log); o: { racha ('seguidos', 'iguala',
-   *  'remonta' o ''), n (tantos seguidos), final, gano (el que gana el partido eres tú) } */
+   *  'remonta' o ''), n (tantos seguidos), final, gano (el que gana el partido eres tú), y para el relleno: bola ('viva',
+   *  'pesada' o 'media'), mano (tantos limpios seguidos del mismo), igualado, tantos (los jugados) } */
   tanto(x, o) {
     if (!this.voz || !x) return null;
     this.n++;
@@ -102,8 +173,53 @@ export class Comentarios {
     if (o.racha === 'remonta') return this.frase('remonta');
     if (o.racha === 'seguidos' && o.n >= 3) return this.frase('racha');
     if (x.hits >= 10) return this.frase('largo');
-    // (los demás, uno sí y otro no, más o menos: con todos, cansaban)
-    if (Math.random() < 0.45) return null;
+    // (si durante el peloteo ya se ha comentado la jugada, no se repite: algo de relleno o nada)
+    if (o.yaDicho) return Math.random() < 0.35 ? this.relleno(o) : null;
+    // (de los demás, uno de cada tres sin la jugada: en su lugar, algo de relleno —la mano, el frontis, el material—, para
+    // que no se haga el silencio; y alguno, nada)
+    const r = Math.random();
+    if (r < 0.3) return this.relleno(o);
+    if (r < 0.42) return null;
     return this.frase(x.call === 'bote' ? (REMATE[x.kind] || 'golpe') : (TIPO[x.call] || 'fallo'));
+  }
+  /** Durante el peloteo, una frase corta del golpe que se acaba de dar (e, el evento 'hit' de game.js; n, los golpes del
+   *  peloteo; prof, lo hondo que está quien golpea, en metros desde el frontis). No en cada golpe: como mucho una cada
+   *  pocos segundos (t, el reloj del partido) y no siempre */
+  enJuego(e, n, t, prof = 0) {
+    if (!this.voz || !e || n < 2 || t - (this.jT ?? -99) < 4.5) return null;
+    let k = null;
+    if (e.shot === 'dejada' && e.q > 0.45) k = 'j-dejada';
+    else if (e.shot === 'gancho') k = 'j-gancho';
+    else if (e.shot === 'cortada' && e.q > 0.45) k = 'j-cortada';
+    else if (e.shot === 'dosparedes') k = 'j-dosparedes';
+    else if (e.shot === 'rebote' || e.shot === 'largo' && (e.pow ?? 0) > 0.85) k = 'j-rebote';
+    else if (e.volea && e.q > 0.4) k = 'j-aire';
+    else if (prof > 25 && n > 3) k = 'j-defensa';
+    else if (n === 8) k = 'j-peloteo';
+    if (!k || Math.random() > (k === 'j-peloteo' ? 0.8 : 0.42)) return null;
+    this.jT = t; return this.frase(k);
+  }
+  /** Un diálogo entre los dos (solo con «Dos comentaristas»): los turnos como frases con la voz fijada (estricta: sin la
+   *  otra voz de repuesto), o null. match.js los dice uno detrás de otro si están grabados todos */
+  dialogo(k) {
+    const L = DIALOGO[this.lang][k]; if (!L?.length || this.voz !== 'duo') return null;
+    let idx = L.map((_, j) => j); if (idx.length > 1) idx = idx.filter(j => j !== this.ult['d-' + k]);
+    const i = idx[Math.floor(Math.random() * idx.length)]; this.ult['d-' + k] = i;
+    return L[i].map(([q, texto], t) => ({ id: `d-${k}-${i + 1}-${t + 1}`, texto, rol: QUIEN[this.lang][q], r: q === 'h' ? 'n' : 'e', voz: q === 'h' ? 'hombre' : 'mujer', lang: this.lang, estricta: true }));
+  }
+  /** Algo de relleno entre tantos, según cómo va el partido (o: lo de tanto). Con los dos comentaristas, a veces se lo
+   *  cuentan entre ellos: devuelve entonces el diálogo (una lista) con la frase suelta de repuesto (.solo) */
+  relleno(o = {}) {
+    if (!this.voz) return null;
+    const ops = ['r-frontis', 'r-grada', 'r-consejo'];
+    if ((o.mano || 0) >= 2) ops.push('r-mano', 'r-mano');
+    if (o.bola === 'viva') ops.push('r-viva', 'r-viva'); else if (o.bola === 'pesada') ops.push('r-pesada', 'r-pesada');
+    if (o.igualado) ops.push('r-igualado', 'r-igualado');
+    if ((o.tantos || 0) >= 14) ops.push('r-piernas');
+    // (sin repetir el tema del último relleno)
+    const libres = ops.filter(k => k !== this.ultR), k = (libres.length ? libres : ops)[Math.floor(Math.random() * (libres.length || ops.length))];
+    this.ultR = k; const f = this.frase(k);
+    if (R2D[k] && this.voz === 'duo' && Math.random() < 0.45) { const d = this.dialogo(R2D[k]); if (d) { d.solo = f; return d; } }
+    return f;
   }
 }

@@ -3,7 +3,7 @@
 import { pzResultado } from '../ui/pausa.js';
 import { COURT, TEXT, courtFeel, LEVEL_ORDER, rivalQuote, pelotariRating, arqChips, pelotariArq, DURACIONES, duracionElegida, ponDuracion, tantosDe, RETOS } from './rules.js';
 import { Comentarios } from './comenta.js';
-import { Voz } from './voz.js';
+import { Voz, tiene } from './voz.js';
 import { subtitulos } from '../util/comentarios.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
@@ -1097,6 +1097,8 @@ export class PelotaMatch {
         this.bolaDelSaque();   // (quien saca elige la pelota del cestaño)
         // (la grada se calla para el saque; en el tanto de partido, contiene el aliento)
         this.rallyN = 0; this.golpazo = false; A.mood(0.2, 0.5);
+        // (si el saque se hace esperar y hace rato que nadie habla, algo de relleno: que no se haga el silencio)
+        if (g.mode === 'match') { const n0 = g.score.you + g.score.rival; setTimeout(() => { const G = this.game; if (!this.active || G !== g || G.phase !== 'serveWait' || G.score.you + G.score.rival !== n0 || this.t - (this.comT ?? -99) < 6) return; if (Math.random() < 0.6) this.decir(this.com?.relleno(this.comCtx()), 0, true); }, 5000); }
         if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
@@ -1121,12 +1123,12 @@ export class PelotaMatch {
           // (y en los que deciden, la cámara se mete un poco más en la jugada)
           if (this.golpazo && this.camDyn && e.q > 0.3) this.kick = Math.max(this.kick || 0, e.who === 'you' ? 0.5 : 0.35); }
         if (this.fp?.on) { if (e.who === 'you') this.fp.golpe(pw); else this.fp.impacto(0.35); }   // (en primera persona)
-        this.swingAnim(e.who, e); break;
+        this.swingAnim(e.who, e); this.comJuego(e); break;
       }
       case 'descanso': {   // (un minuto de descanso: tuyo o del rival; la grada se calma)
         const D = t.desc || TEXT.es.desc, mio = e.side === 'you';
         this.hud.call(mio ? D.tuyo : D.suyo(g.pairs && this.mateObjs ? `${this.names.rival} · ${this.mateObjs.rivalMate.name}` : this.names.rival), `${D.sub}${mio ? ' ' + D.quedan(e.left) : ''}`, '', 3.6);
-        A.mood(0.12, 0.6); this.decir(this.com?.frase('descanso'), 600); break;
+        A.mood(0.12, 0.6); this.decir(this.dialogoO('descanso', this.com?.frase('descanso')), 600); break;
       }
       case 'whiff': if (g.mode === 'rally') this.hud.quality(e.early ? (t.quality.early || TEXT.es.quality.early) : t.quality.whiff, '', 'whiff'); break;   // (pronto o tarde: solo entrenando)
       case 'claim': this.hud.quality((t.pairs || TEXT.es.pairs).claim); break;   // (pides la pelota de tu compañero)
@@ -1181,18 +1183,43 @@ export class PelotaMatch {
   // Los comentarios (comenta.js), hablados (voz.js): decir dice una frase dentro de ms; escrita, solo con los subtítulos
   // puestos en Ajustes y sin un panel delante. Al empezar, la presentación y el rival (su arquetipo y su golpe estrella);
   // en cada tanto, lo que toque
-  decir(c, ms = 0) { if (!c) return; setTimeout(() => { if (!this.active) return; this.voz ||= new Voz(); this.voz.habla(c); if (subtitulos() && !this.hud.panelEl) this.hud.comenta(c); }, ms); }
+  // (siCalla: solo si en ese momento no está hablando; las del peloteo, que pasado el momento ya no valen)
+  // (c también puede ser un diálogo entre los dos, comenta.js: una lista de turnos que se dicen seguidos; si falta la
+  // grabación de alguno, su frase suelta de repuesto, .solo)
+  decir(c, ms = 0, siCalla = false) { if (!c) return; setTimeout(() => { if (!this.active) return; this.voz ||= new Voz(); if (siCalla && this.voz.habla_) return;
+    if (Array.isArray(c)) { if (!tiene(c)) { if (c.solo) this.decir(c.solo, 0, siCalla); return; } c.forEach((q, i) => { q.sigue = c[i + 1] || null; }); }
+    const f = Array.isArray(c) ? c[0] : c;
+    if (this.voz.habla(f)) this.comT = this.t; if (subtitulos() && !this.hud.panelEl) this.hud.comenta(f); }, ms); }
+  // (un diálogo del tema k con la frase suelta f de repuesto; sin los dos comentaristas, la frase)
+  dialogoO(k, f) { const d = this.com?.dialogo(k); if (!d) return f; d.solo = f; return d; }
+  // (lo que el relleno necesita saber del partido: la pelota en juego, si a alguien le entra bien la mano, si va igualado)
+  comCtx() { const g = this.game, sc = g.score || { you: 0, rival: 0 }, R = this.rachas || {};
+    return { bola: clase(this.bola), mano: R.n || 0, igualado: Math.abs(sc.you - sc.rival) <= 1 && sc.you + sc.rival >= 6, tantos: sc.you + sc.rival }; }
+  // Durante el peloteo: una frase corta del golpe (comenta.js, enJuego), solo si no está hablando
+  comJuego(e) {
+    const c = this.com, g = this.game; if (!c?.on || g.mode !== 'match' || this.replay) return;
+    const P = g.players?.[e.who], f = c.enJuego(e, g.rally?.hits || this.rallyN || 0, this.t, P ? Math.abs(P.z || 0) : 0);
+    if (f) { this.jugadaT = this.t; this.decir(f, 120, true); }
+  }
   comInicio() {
     const c = this.com; if (!c?.on || this.game.mode !== 'match' || this.comIni) return; this.comIni = true;
-    this.decir(c.frase('inicio'), 400);
+    // (con los dos comentaristas, a veces se presentan: Mikel presenta a Miren; un diálogo dura más y lo del rival espera)
+    const d = Math.random() < 0.7 ? this.dialogoO('inicio', c.frase('inicio')) : c.frase('inicio'), largo = Array.isArray(d) && tiene(d);
+    this.decir(d, 400);
     const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false);
-    this.decir(c.frase(`rival-${A.arq}`), 4600); this.decir(c.frase(`estrella-${A.estrella}`), 4700);
+    this.decir(c.frase(`rival-${A.arq}`), largo ? 8200 : 4600); this.decir(c.frase(`estrella-${A.estrella}`), largo ? 8300 : 4700);
   }
   comTanto(e) {
     const c = this.com; if (!c?.on) return;
     const R = this.rachas || {};
-    this.decir(c.tanto(this.game.stats?.log?.at(-1), { racha: R.tipo || '', n: R.n, final: !!e.final, gano: e.winner === 'you' }), 300);
-    if (e.final) this.decir(c.frase('finalE'), 3200);
+    // (después del aplauso, cuando ya se va apagando: antes llegaba a los 0,3 s y se mezclaba con la grada aplaudiendo;
+    // audio.js, aplauso. Si durante el peloteo ya se ha comentado la jugada, no se repite)
+    const yaDicho = this.t - (this.jugadaT ?? -99) < 3.5;
+    const x = this.game.stats?.log?.at(-1), f = c.tanto(x, { racha: R.tipo || '', n: R.n, final: !!e.final, gano: e.winner === 'you', yaDicho, ...this.comCtx() });
+    // (tras un peloteo largo, a veces se lo comentan entre ellos: «¿Qué te ha parecido, Miren?»)
+    const dlg = !e.final && !R.tipo && (x?.hits || 0) >= 7 && Math.random() < 0.35 ? this.dialogoO(Math.random() < 0.5 ? 'peloteo' : 'tanto', f) : f;
+    this.decir(dlg, e.final ? 1800 : 1500);
+    if (e.final) this.decir(this.dialogoO('final', c.frase('finalE')), 5200);
   }
   // (el golpe que se ve: derecha o izquierda según de qué lado le llega la pelota, sotamano si viene baja y de aire si
   // viene alta; el pelotari de Meshy tiene uno para cada caso, pelotaMoves.js)
