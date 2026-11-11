@@ -58,14 +58,16 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
    balón en tus pies, apagado). Al pulsar, se rellenan con un toque de color. Al defender: ROBAR y ENTRADA. Medidas en
    --u (escala) para que no se toquen nunca: los centros están separados al menos 12 px más que la suma de los radios */
 .fb-btns{--u:1;position:absolute;right:calc(env(safe-area-inset-right,0px) + var(--thumb,16px));bottom:calc(env(safe-area-inset-bottom,0px) + var(--thumb,16px));width:calc(240px * var(--u));height:calc(178px * var(--u));pointer-events:none}
-.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid transparent;padding:0;border-radius:50%;background:linear-gradient(155deg,var(--mm-top),var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,'MZ Texto'),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:inset 0 2px 0 rgba(255,255,255,.27),inset 0 -3px 0 rgba(22,7,37,.5),0 3px 0 #12061b,0 5px 10px rgba(14,6,29,.4);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
+.fb-b{position:absolute;--mm-top:#6551b5;--mm-bottom:#24154a;border:1.5px solid transparent;padding:0;border-radius:50%;background:color-mix(in srgb,var(--mm-top) 78%,var(--mm-bottom));color:#fff;font:800 var(--fs-xs)/1.05 var(--f-cond,'MZ Texto'),system-ui,sans-serif;letter-spacing:.04em;text-transform:uppercase;text-shadow:0 1px 2px #090411;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;touch-action:none;pointer-events:auto;text-align:center;line-height:1;box-shadow:0 0 10px rgba(4,1,12,.28);-webkit-user-select:none;user-select:none;transition:transform .08s,box-shadow .08s,opacity .2s}
 /* (los símbolos de los controles del autor: trazo blanco grueso, nunca por debajo de 20 px) */
 .fb-b svg{width:max(20px,calc(24px * var(--u)));height:max(20px,calc(24px * var(--u)));flex:none;filter:drop-shadow(0 1px 1px rgba(18,6,27,.5));pointer-events:none}
 /* (el rótulo, en la letra estrecha del juego y en mayúsculas, siempre dentro del círculo y nunca por debajo de 12 px, la
    letra más pequeña de la escala: el icono es pequeño para que el rótulo quede cerca del centro, donde el círculo es más
    ancho; si no cabe en una línea, en dos. fitCircle() (src/ui/fitlabel.js) lo comprueba con el texto de verdad) */
 .fb-b span{pointer-events:none;max-width:84%;text-align:center;overflow-wrap:normal;hyphens:none;padding-left:.04em}
-.fb-b.down{background:linear-gradient(155deg,var(--mm-bottom),var(--mm-top));transform:translateY(2px) scale(.96);box-shadow:inset 0 2px 5px rgba(9,4,17,.5),0 1px 0 #12061b}
+/* (planos y redondos, del color de su función, sin el canto de abajo ni los brillos de dentro que los hacían de volumen;
+   al pulsar, un poco más oscuros y hacia dentro: como los del pueblo, noviembre de 2026) */
+.fb-b.down{background:color-mix(in srgb,var(--mm-top) 52%,var(--mm-bottom));transform:scale(.94);box-shadow:0 0 6px rgba(4,1,12,.28)}
 .fb-b:focus-visible,.fb-pause:focus-visible,.fb-cam:focus-visible{outline:3px solid #fff;outline-offset:3px}
 /* (del tamaño justo para que el rótulo más largo de cada uno quepa a 12 px, como ESTIRADA o CAMBIAR, con --u .9 del móvil
    tumbado; los círculos, separados al menos 12 px) */

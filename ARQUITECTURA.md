@@ -1700,7 +1700,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     mano, hablar, beber, la lupa para mirar y pelota), la X de la pelota y los botones del mapa (acercar, alejar,
     centrar y viajar). Sobre el degradado de los botones principales llevan un contorno oscuro fino.
   - El fútbol no: sus botones, la pausa, la cámara y la pantalla de controles llevan los símbolos de trazo de los
-    controles del autor (`ICON` en `futbol/hud.js`), sobre botones de color sólido con relieve (tiro fucsia, pase azul,
+    controles del autor (`ICON` en `futbol/hud.js`), sobre botones redondos y planos de color sólido, sin el canto de abajo ni los brillos de dentro, como los del pueblo (noviembre de 2026; antes, con relieve) (tiro fucsia, pase azul,
     cambiar marrón, el resto morado; con tu portero, turquesa). Sus 13 iconos 3D siguen en la carpeta sin cargarse.
   - Un animal con dos nombres usa el icono del autor (`SAME` en `icon3d.js`: águila, ardilla, jabalí, buitre, cigüeña,
     ciervo, trucha, zorro, pottoka y pito); sus renders de antes siguen en la carpeta sin cargarse. Los pocos que el
