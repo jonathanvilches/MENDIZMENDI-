@@ -42,6 +42,7 @@ export class Montura {
     if (P.blob) P.blob.visible = false;
     this.sienta(P);
     if (this.tipo === 'burguete' && this.g.sound?.relincho) this.g.sound.relincho(this.A.pos); else this.g.sound?.ui?.('click');   // (el caballo relincha al montarlo)
+    this.relT = 18; this.kAntes = 0;
   }
   baja() {
     const P = this.P; if (!P) return null;
@@ -86,8 +87,8 @@ export class Montura {
     if (waterLevelAt(nx, nz) - gNew > 0.75 || (m > 1e-4 && (gNew - gOld) / m > 1.0)) { nx = this.x; nz = this.z; this.speed = 0; }
     this.x = nx; this.z = nz;
     A.pos.set(nx, groundHeight(nx, nz), nz); A.heading = this.heading; A.speed = this.speed; A.state = 'walk'; A.t += dt; A.animate(dt); A.sync();
-    // (los cascos, al paso, al trote y al galope, con el sonido del suelo que pisa: la nieve, la hierba, la tierra, el
-    // empedrado o la madera de un puente, audio.js; y parado, de vez en cuando, un resoplido del caballo)
+    // (los cascos, al paso, al trote y al galope: la grabación del galope en bucle, audio.js; surf, el suelo que pisa,
+    // para sus huellas; y parado, de vez en cuando, un resoplido del caballo)
     const W = this.g.rt?.weather, nieve = !!W?.nevado?.();
     if ((this.surfT = (this.surfT || 0) - dt) <= 0) { this.surfT = 0.15; const br = bridgeAt(nx, nz);
       this.surf = waterLevelAt(nx, nz) - A.pos.y > 0.12 ? 'water' : br ? (br.wood ? 'wood' : 'stone') : nieve ? 'snow' : surfAt('street', nx, nz) > 0.5 ? 'stone' : surfAt('dirt', nx, nz) > 0.5 ? 'dirt' : surfAt('forest', nx, nz) > 0.5 ? 'leaves' : 'grass'; }
@@ -104,6 +105,13 @@ export class Montura {
       }
     }
     if (this.tipo === 'burguete' && this.speed < 0.3 && (this.resT = (this.resT ?? 4) - dt) <= 0) { this.resT = 7 + Math.random() * 8; this.g.sound?.resoplido?.(A.pos); }
+    // (y relincha, para que se sienta vivo: al arrancar a galopar, si hace al menos doce segundos del último, y de vez en
+    // cuando por el camino, cada 22 a 42 s. El primero, a los 18 s de montarlo, que al montarlo ya relincha)
+    if (this.tipo === 'burguete') {
+      const k = this.speed / T.vmax, arranca = k > 0.72 && (this.kAntes ?? 0) <= 0.72; this.kAntes = k;
+      this.relT = (this.relT ?? 18) - dt;
+      if ((arranca && this.relT < 30) || (this.relT <= 0 && this.speed > 0.5)) { this.relT = 22 + Math.random() * 20; this.g.sound?.relincho?.(A.pos); }
+    }
     P.pos.set(nx, A.pos.y + 0.55, nz); P.heading = this.heading; P.speed = this.speed;
     if (P.collider) { P.collider.x = nx; P.collider.z = nz; }
     // el jinete, en su sitio sobre el lomo, con el vaivén del paso
