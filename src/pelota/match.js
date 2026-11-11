@@ -313,7 +313,9 @@ export class PelotaMatch {
   labels() { return [this.label('you'), this.label('rival')]; }
   // el nombre sin el pueblo entre paréntesis y las temporadas de cada lado (la presentación y el sorteo de la chapa)
   nomLimpio(sd) { return this.label(sd).replace(/\s*\([^)]*\)/g, ''); }
-  tempDe(sd) { const TS = this.txt.toss || TEXT.es.toss; return this.seasons ? TS.seasons(this.seasons[sd] || 0) : ''; }
+  // (las temporadas de cada uno ya no se enseñan: viste de colorado quien debutó antes, pero no hace falta decirlo ni
+  // poner «debutante». Siguen decidiendo los colores, fronton.js)
+  tempDe() { return ''; }
 
   // ------------------------------------------------------------ retos (rules.js RETOS; la lógica, en game.js)
   retoTxt() { return this.txt.reto || TEXT.es.reto; }
@@ -500,7 +502,7 @@ export class PelotaMatch {
     try { if (this.court?.group && this.T) chapa = new Chapa3D(this.T, this.court.group, 0.8, COURT.CUADRO * 3, { azul: ['Azul', 'Urdina'], rojo: ['Colorado', 'Gorria'] }); } catch (e) { console.warn('chapa', e); chapa = null; }
     return new Promise(res => {
       const el = document.createElement('div'); el.className = `pel-toss${directo ? ' directo' : ''}${chapa ? ' tres' : ''}`; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', TS.title);
-      el.innerHTML = `<header class="pel-toss-top"><small class="pel-toss-k"><i aria-hidden="true"></i>${esc(TS.title)}<i aria-hidden="true"></i></small><p class="pel-toss-why">${esc(this.seasons ? TS.why : TS.auto)}</p></header>
+      el.innerHTML = `<header class="pel-toss-top"><small class="pel-toss-k"><i aria-hidden="true"></i>${esc(TS.title)}<i aria-hidden="true"></i></small><p class="pel-toss-why">${esc(TS.auto)}</p></header>
         ${lado('azul')}${lado('rojo')}
         <div class="pel-toss-mid">${chapa ? '' : '<div class="pel-toss-coin" aria-hidden="true"><div class="coin"><span class="f azul"></span><span class="f rojo"></span></div><div class="sh"></div></div>'}
           <button class="pel-go pel-toss-go">${esc(TS.throw)}</button><p class="pel-toss-res" aria-live="polite"></p></div>`;
@@ -1102,7 +1104,10 @@ export class PelotaMatch {
         this.rallyN = 0; this.golpazo = false; A.mood(0.2, 0.5);
         // (si el saque se hace esperar y hace rato que nadie habla, algo de relleno: que no se haga el silencio)
         if (g.mode === 'match') { const n0 = g.score.you + g.score.rival; setTimeout(() => { const G = this.game; if (!this.active || G !== g || G.phase !== 'serveWait' || G.score.you + G.score.rival !== n0 || this.t - (this.comT ?? -99) < 6) return; if (Math.random() < 0.6) this.decir(this.com?.relleno(this.comCtx()), 0, true); }, 5000); }
-        if (e.matchPoint) { this.hud.call(t.matchPoint, t.matchPointSub, '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
+        // (a un tanto del final: con empate, «último tanto»; si no, «tanto de partido» y quién está a un tanto. Antes salía
+        // siempre «el que gane este tanto, gana el partido», que solo es verdad con empate)
+        if (e.matchPoint) { const T1 = g.target - 1, ambos = g.score.you === T1 && g.score.rival === T1, lider = g.score.you === T1 ? 'you' : 'rival';
+          this.hud.call(ambos ? (t.lastPoint || TEXT.es.lastPoint) : t.matchPoint, ambos ? '' : (t.matchPointSub || TEXT.es.matchPointSub)(this.label(lider)), '', 1.6); A.mood(0.45, 0.3); if (g.score.you !== g.score.rival) this.decir(this.com?.frase('tantoPartido'), 200); }   // (la grada se mete: sin el «¡oooh!» sintetizado, que zumbaba)
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara

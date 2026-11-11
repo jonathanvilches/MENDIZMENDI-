@@ -351,7 +351,7 @@ export const TEXT = {
       energy: 'Correr y las cortadas cansan: si te cansas, deja que tu compañero juegue más; si se cansa él, pide tú la pelota manteniendo GOLPE.',
       claim: '¡Mía!', rest: 'Descansa: esta la coge tu compañero.', mateTired: (hit) => `Tu compañero está cansado: pide tú la pelota manteniendo ${hit}.`,
       pointUs: 'Tanto para vosotros', pointThem: (a, b) => `Tanto para ${a} y ${b}` },
-    finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.', matchPoint: 'Tanto de partido', matchPointSub: 'El que gane este tanto, gana el partido.',
+    finalCall: '¡Tanto y partido!', finalSub: 'Todo el frontón en pie aplaude.', matchPoint: 'Tanto de partido', matchPointSub: (n) => `${n}, a un tanto de ganar.`, lastPoint: 'Último tanto',
     // (los rótulos de racha, en el aviso del tanto y en el marcador: match.js, rachaDe)
     racha: { seguidos: (n) => `${n} tantos seguidos`, iguala: '¡Iguala el partido!', remonta: '¡Remontada!', marcador: (n) => `${n} seguidos` },
     serveYou: 'Sacas tú', serveRival: (n) => `Saca ${n}`,
@@ -482,7 +482,7 @@ export const TEXT = {
       energy: 'Korrika egiteak eta cortadek nekatzen dute: nekatzen bazara, utzi zure lagunari gehiago jokatzen; bera nekatzen bada, eskatu zuk pilota JO sakatuta mantenduz.',
       claim: 'Nirea!', rest: 'Atseden hartu: hau zure lagunak hartzen du.', mateTired: (hit) => `Zure laguna nekatuta dago: eskatu zuk pilota ${hit} sakatuta mantenduz.`,
       pointUs: 'Tantoa zuentzat', pointThem: (a, b) => `Tantoa ${a} eta ${b}rentzat` },
-    finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.', matchPoint: 'Partidarako tantoa', matchPointSub: 'Tanto hau irabazten duenak partida irabazten du.',
+    finalCall: 'Tantoa eta partida!', finalSub: 'Pilotaleku osoa zutik, txaloka.', matchPoint: 'Partidarako tantoa', matchPointSub: (n) => `${n}: tanto bat irabazteko.`, lastPoint: 'Azken tantoa',
     racha: { seguidos: (n) => `${n} tanto jarraian`, iguala: 'Partida berdindu du!', remonta: 'Buelta eman dio!', marcador: (n) => `${n} jarraian` },
     serveYou: 'Zuk ateratzen duzu', serveRival: (n) => `${n}k ateratzen du`,
     streak: (n, g) => `${n}/${g} jarraian`,
