@@ -15,7 +15,9 @@ mkdirSync(OUT, { recursive: true });
 await MeshoptDecoder.ready; await MeshoptEncoder.ready; await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
 const tris = (doc) => doc.getRoot().listMeshes().reduce((n, m) => n + m.listPrimitives().reduce((k, p) => k + (p.getIndices()?.getCount() ?? p.getAttribute('POSITION').getCount()) / 3, 0), 0);
-for (const f of readdirSync(SRC).filter(f => f.endsWith('.glb'))) {
+// (SOLO=explorador,pastor: solo esos modelos; sin él, todos)
+const SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null;
+for (const f of readdirSync(SRC).filter(f => f.endsWith('.glb') && (!SOLO || SOLO.includes(f.replace('.glb', ''))))) {
   const doc = await io.read(`${SRC}/${f}`), t0 = tris(doc);
   await doc.transform(
     weld(),

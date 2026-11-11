@@ -15,8 +15,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
-  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`: los cuatro elegibles (sanferminero,
-    pastor, futbolista de Osasuna y pelotari) y los del partido (pelotari colorado, segunda equipación de Osasuna).
+  - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`. El explorador (`explorador.glb`) es el
+    personaje del jugador, el único: en los pueblos y las misiones siempre es él y ya no se elige personaje (noviembre
+    de 2026: `CAST` de `data/cast.js` solo lo tiene a él, la bienvenida lo enseña sin flechas ni tira de retratos y el
+    menú ya no tiene «Avatar»; un guardado con otro personaje pasa a él). En el frontón se pone de pelotari, en El Sadar
+    de futbolista y en el encierro de sanferminero, como antes. Su GLB sale de los ocho archivos de Meshy con
+    `tools/explorador-glb.mjs`: los huesos con nombre de Mixamo, ocho animaciones (andar, correr, correr 2, andar
+    agachado, saltar un obstáculo, respirar y mirar alrededor, hablar y recoger algo) y solo el color, a 2048 px. Los
+    demás (sanferminero, pastor, futbolista de Osasuna y pelotari, y las chicas) siguen para sus usos y sus fichas, y
+    los del partido (pelotari colorado, segunda equipación de Osasuna).
     Cada modelo tiene una altura fija (`MESHY_H`) y se carga una sola vez; el pastor también hace de pastor del pueblo.
     Meshy reparte la textura en unas dos mil piezas muy pequeñas (la mediana, de tres triángulos); lo que quedaba entre
     pieza y pieza, restos de otros colores, se colaba en los bordes y al alejarse (motas rojizas en el pelo, claras en la

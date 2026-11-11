@@ -226,7 +226,7 @@ export class Hub {
     this.nav = isDidactico()
       ? [['home', 'Mapa', 'map'], ['aprende', 'Aprende Navarra', 'book'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
       // (sin «Mapa» aparte: el inicio ya es el mapa de Navarra en 3D; en el didáctico se llama así, y su portada es «Aprende Navarra»)
-      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['avatars', 'Avatar', 'person', 2], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['tradiciones', 'Tradiciones', 'mask', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
+      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['tradiciones', 'Tradiciones', 'mask', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', ventajas: 'Descuentos en comercios de Navarra con tus sellos, insignias y certificados', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
@@ -692,6 +692,14 @@ export class Hub {
   // selector de personaje estilo videojuego (pantalla Personajes y primera vez)
   selector(cur, { onb = false, extra = '', cta = '' } = {}) {
     const i = AVATARS.findIndex(a => a.id === cur.id);
+    // (con un solo personaje, el explorador, no hay nada que elegir: sin flechas, sin cuenta, sin tira de retratos y sin
+    // «Elige tu personaje». Se ve él, se le puede girar y saludar)
+    if (AVATARS.length < 2) return `<section class="csel2 solo ${onb ? 'onbsel' : ''}" style="--c:${cur.color}">
+      <div class="cs-stage"><div class="cs-bgname" aria-hidden="true">${esc(cur.name)}</div><div id="avStage" class="stage-host"></div>
+        <span class="cs-hint">Arrastra para girarlo · tócalo para saludar</span></div>
+      <div class="cs-side"><div class="csel-info" id="csInfo">${this.castInfo(cur)}</div>${cta ? `<div class="cs-cta">${cta}</div>` : ''}</div>
+      ${extra ? `<div class="cs-extra">${extra}</div>` : ''}
+    </section>`;
     return `<section class="csel2 ${onb ? 'onbsel' : ''}" style="--c:${cur.color}">
       <div class="cs-stage"><div class="cs-bgname" aria-hidden="true">${esc(cur.name)}</div><div id="avStage" class="stage-host"></div>
         <button class="cs-arrow prev" data-step="-1" aria-label="Anterior"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M15 4l-8 8 8 8" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
@@ -727,6 +735,7 @@ export class Hub {
     center(cur);
   }
   s_avatars() {
+    if (AVATARS.length < 2) return this.s_home ? (this.after = () => this.go('home', null, true), '') : '';   // (ya no se elige personaje: al inicio)
     const p = profile(), cur = castById(p.avatar);
     this.after = () => this.bindSelector(this.root, p.avatar, (a) => { p.avatar = a.id; saveProfile(); this.renderChip(); $('#csGo', this.root).innerHTML = `${I('play', 24)} Jugar con ${esc(a.name)}`; });
     // (el título y el botón de jugar van dentro del selector: en el móvil tumbado todo cabe en una pantalla; los personajes

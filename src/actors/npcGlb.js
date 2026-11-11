@@ -30,7 +30,8 @@ let ready = false;
  *  de reserva (y las vecinas, si no carga la suya, con el cuerpo de chico). */
 export async function preloadNpcs() {
   const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p, true)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
-  await Promise.all([Promise.all(MESHY_NAMES.map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas]);
+  // (el explorador es solo el jugador: su versión ligera no hace falta para los vecinos)
+  await Promise.all([Promise.all(MESHY_NAMES.filter(n => n !== 'explorador').map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas]);
   return meshyReady;
 }
 const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;

@@ -14,7 +14,9 @@ const SRC = 'src/assets/meshy';
 mkdirSync(OUT, { recursive: true });
 await MeshoptDecoder.ready; await MeshoptEncoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
-for (const f of readdirSync(SRC).filter(f => f.endsWith('.glb'))) {
+// (SOLO=explorador,pastor: solo esos modelos; sin él, todos)
+const SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null;
+for (const f of readdirSync(SRC).filter(f => f.endsWith('.glb') && (!SOLO || SOLO.includes(f.replace('.glb', ''))))) {
   const doc = await io.read(`${SRC}/${f}`);
   await doc.transform(textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [+px, +px], quality: 86 }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
   await io.write(`${OUT}/${f}`, doc);

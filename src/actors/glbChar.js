@@ -65,6 +65,11 @@ const MESHY_CUTS = {
 };
 // cortes propios de cada personaje (el pelotari trae un golpe con la derecha y un puño en alto en vez de la celebración)
 const MESHY_BY = {
+  // el explorador (el personaje del jugador): quieto, respirando y mirando alrededor; hablando, de su charla; saludar y
+  // golpear, de un gesto de la charla; el salto, de saltar un obstáculo; y recoger algo, agachándose y mirándolo
+  explorador: { Idle: ['Breathe', 0.05, 7.8], Still: ['Breathe', 0.1, 0.2, true, false, 0.12], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6],
+    Celebrate: ['Hop', 0, 0.62, false, true], Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.52, true, true], Land: ['Hop', 0.55, 0.86, false, true],
+    Ready: ['Breathe', 0.1, 0.4, true], Scared: ['Hop', 0.55, 0.86, false, true], Pick: ['PickUp', 0.3, 3.5], Hit: ['TalkP', 3.2, 3.9] },
   // el pastor: quieto y hablando, del principio y el final tranquilos de su charla; el salto, de saltar un obstáculo
   pastor: { Idle: ['TalkP', 7.2, 10.3, true], Talk: ['TalkP', 1.3, 6.8], Wave: ['TalkP', 3.0, 4.6], Celebrate: ['Hop', 0, 0.62, false, true],
     Jump_Start: ['Hop', 0, 0.3, false, true], Jump_Loop: ['Hop', 0.3, 0.55, true, true], Land: ['Hop', 0.6, 0.96, false, true],
@@ -136,7 +141,7 @@ function shrinkMap(m, max = MESHY_TEX) {
 }
 // altura de cada personaje (m): una sola para todo el juego, así el mismo modelo se carga una vez aunque salga como
 // jugador, como vecino o en un partido
-const MESHY_H = { sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62 };
+const MESHY_H = { explorador: 1.45, sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62 };
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
  *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
 export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };
@@ -524,7 +529,7 @@ export const GLB_AVATARS = {};
 // personajes propios (Meshy) elegibles: el sanferminero, el pastor, el futbolista de Osasuna y el pelotari; y las chicas
 // (chicas.js: Leire sobre el sanferminero, Nahia sobre el futbolista y Nerea sobre el pelotari), con sus retratos
 // (tools/retratos.mjs)
-for (const id of ['sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };   // (hero: el grande de la portada)
+for (const id of ['explorador', 'sanfermin', 'pastor', 'osasuna', 'pelotari']) if (MESHY[id]) GLB_AVATARS[id] = { meshy: id, bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };   // (hero: el grande de la portada)
 for (const [id, base] of [['leire', 'sanfermin'], ['nahia', 'osasuna'], ['nerea', 'pelotari']]) if (MESHY[base]) GLB_AVATARS[id] = { meshy: base, chica: 'coleta', bust: MESHY_PICS[id + '_bust'], full: MESHY_PICS[id + '_full'], hero: MESHY_PICS[id + '_hero'] };
 /** Si el avatar es una de las chicas. */
 export const avatarIsGirl = (id) => !!GLB_AVATARS[id]?.chica;
