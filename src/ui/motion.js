@@ -73,3 +73,67 @@ export function relieve(host) {
   host.addEventListener('pointermove', mueve, { passive: true }); host.addEventListener('pointerleave', fuera);
   return () => { host.removeEventListener('pointermove', mueve); host.removeEventListener('pointerleave', fuera); cancelAnimationFrame(raf); };
 }
+
+// ---------- Cartas (fase 3 del rediseño de la animación) ----------
+// (las cartas que reaccionan: las del menú y de las colecciones; las del partido van aparte, con su neón)
+export const CARTAS = '.pcard, .fcard, .lam, .ar, .scard, .ins, .ddc, .vt-cert, .ct-card, .sb-tile, .badge';
+
+/** Al pasar el ratón, la carta se inclina un poco hacia él, una luz suave la sigue y su imagen se mueve al revés (el
+ *  relieve). Pone --rx, --ry (la inclinación), --mx, --my (dónde está la luz) y --px, --py (-1 a 1) en la carta; el CSS
+ *  hace el resto (ui/cartas.css). Delegado en el documento, así vale para las que se pintan después. Solo con ratón */
+export function cartasVivas(sel = CARTAS) {
+  if (reducido() || typeof matchMedia !== 'function' || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  let cur = null, raf = 0, ev = null;
+  const pon = () => { raf = 0; if (!cur || !ev) return; const r = cur.getBoundingClientRect(); if (!r.width) return;
+    const x = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), y = Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)), S = cur.style;
+    S.setProperty('--ry', ((x - 0.5) * 8).toFixed(2) + 'deg'); S.setProperty('--rx', ((0.5 - y) * 6).toFixed(2) + 'deg');
+    S.setProperty('--mx', (x * 100).toFixed(1) + '%'); S.setProperty('--my', (y * 100).toFixed(1) + '%');
+    S.setProperty('--px', (x * 2 - 1).toFixed(3)); S.setProperty('--py', (y * 2 - 1).toFixed(3)); };
+  const suelta = () => { if (!cur) return; cur.classList.remove('viva'); for (const k of ['--rx', '--ry', '--px', '--py']) cur.style.removeProperty(k); cur = null; };
+  document.addEventListener('pointerover', (e) => {
+    if (e.pointerType !== 'mouse') return; const c = e.target.closest?.(sel); if (c === cur) return; suelta(); if (!c) return;
+    cur = c; if (!c.querySelector(':scope > .luz')) { const l = document.createElement('i'); l.className = 'luz'; l.setAttribute('aria-hidden', 'true'); if (getComputedStyle(c).position === 'static') c.style.position = 'relative'; c.appendChild(l); }
+    c.classList.add('viva');
+  }, { passive: true });
+  document.addEventListener('pointermove', (e) => { if (!cur) return; ev = e; if (!raf) raf = requestAnimationFrame(pon); }, { passive: true });
+  document.addEventListener('pointerout', (e) => { if (cur && !cur.contains(e.relatedTarget)) suelta(); }, { passive: true });
+}
+
+/** Continuidad: la ventana que abre una carta nace de la carta. Se apunta dónde estaba la carta que se toca y, si en
+ *  menos de 0,7 s se abre una ventana (.mg-overlay o el visor de láminas), su recuadro sale de ese sitio y de ese tamaño
+ *  hasta el suyo (FLIP: solo transform y opacity) */
+export function continuidad(sel = CARTAS) {
+  if (typeof MutationObserver === 'undefined') return;
+  let origen = null;
+  document.addEventListener('pointerdown', (e) => { const c = e.target.closest?.(sel + ', [data-carta]'); origen = c ? { r: c.getBoundingClientRect(), t: performance.now() } : null; }, { capture: true, passive: true });
+  new MutationObserver((ms) => {
+    if (!origen || performance.now() - origen.t > 700 || reducido()) return;
+    for (const m of ms) for (const n of m.addedNodes) {
+      if (n.nodeType !== 1 || !n.matches?.('.mg-overlay, .lam-view')) continue;
+      const caja = n.querySelector(':scope > .mg-card, :scope > figure'); if (!caja) continue;
+      const a = origen.r; origen = null;
+      requestAnimationFrame(() => { const b = caja.getBoundingClientRect(); if (!b.width || !b.height) return;
+        const sx = a.width / b.width, sy = a.height / b.height, dx = a.left - b.left, dy = a.top - b.top;
+        caja.animate([{ transformOrigin: '0 0', transform: `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, opacity: 0.35 }, { transformOrigin: '0 0', transform: 'none', opacity: 1 }],
+          { duration: tiempo('--d-panel', 380), easing: curva('muelle') }); });
+      return;
+    }
+  }).observe(document.body, { childList: true });
+}
+
+/** Filas de cartas que se arrastran con el ratón y siguen un poco con la inercia al soltar, como con el dedo en el móvil
+ *  (con el dedo ya lo hace el navegador). Un arrastre no cuenta como toque en la carta. Se marca la fila con data-inercia */
+export function inercia(fila) {
+  if (!fila || fila.dataset.inercia) return; fila.dataset.inercia = '1';
+  let x0 = 0, s0 = 0, v = 0, tU = 0, xU = 0, raf = 0, movio = false, activo = false;
+  const para = () => { if (raf) { cancelAnimationFrame(raf); raf = 0; fila.style.scrollSnapType = ''; } };
+  const iman = (on) => { fila.style.scrollSnapType = on ? '' : 'none'; };   // (con el imán de las cartas puesto, la fila saltaba de carta en carta mientras se arrastraba)
+  fila.addEventListener('pointerdown', (e) => { if (e.pointerType !== 'mouse' || e.button !== 0) return; para(); activo = true; movio = false; x0 = xU = e.clientX; s0 = fila.scrollLeft; v = 0; tU = performance.now(); });
+  addEventListener('pointermove', (e) => { if (!activo) return; const d = e.clientX - x0; if (Math.abs(d) > 6 && !movio) { movio = true; iman(false); } if (!movio) return;
+    fila.scrollLeft = s0 - d; const t = performance.now(), dt = Math.max(1, t - tU); v = 0.8 * ((xU - e.clientX) / dt) + 0.2 * v; xU = e.clientX; tU = t; }, { passive: true });
+  addEventListener('pointerup', () => { if (!activo) return; activo = false; if (!movio) return; if (reducido()) { iman(true); return; }
+    let vel = v * 16; const paso = () => { fila.scrollLeft += vel; vel *= 0.92; if (Math.abs(vel) > 0.4 && fila.isConnected) raf = requestAnimationFrame(paso); else { raf = 0; iman(true); } }; raf = requestAnimationFrame(paso); });
+  fila.addEventListener('click', (e) => { if (movio) { e.preventDefault(); e.stopPropagation(); movio = false; } }, { capture: true });
+  fila.addEventListener('wheel', para, { passive: true });
+  fila.addEventListener('dragstart', (e) => e.preventDefault());   // (sin esto el navegador arrastraba la imagen de la carta y cortaba el gesto)
+}

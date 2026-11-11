@@ -73,7 +73,8 @@ import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas, encima de todo: ui/neon.css)
-import { relieve, desdeAqui } from '../ui/motion.js';
+import { relieve, desdeAqui, cartasVivas, continuidad, inercia } from '../ui/motion.js';
+import '../ui/cartas.css';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -171,6 +172,7 @@ export class Hub {
       <nav class="hub-nav" id="hNav"></nav><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${XF}</button></div>`);
     document.body.appendChild(this.root);
     relieve(this.root);   // (con ratón, el fondo se mueve un poco con él: un relieve de capas; ui/motion.js)
+    cartasVivas(); continuidad();   // (las cartas que se inclinan hacia el ratón y la ventana que nace de la carta tocada: ui/motion.js)
     // (en el archivo único: en cuanto se sabe que se llega a la web, la pantalla del menú se repinta con las ilustraciones
     // que no van dentro, src/web/hd.js; solo si no se ha bajado en ella ni hay nada abierto encima)
     addEventListener('herrizherri-web', () => { const m = $('#hMain', this.root); if (this.visible && !this.sheet && m && m.scrollTop < 40 && !document.querySelector('.mg-overlay, .lam-view')) this.go(this.screen, this.arg, true); });
@@ -313,6 +315,7 @@ export class Hub {
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
+    m.querySelectorAll('.lam-rail, .figuras.rail, .rail, .cstrip').forEach(inercia);   // (las filas de cartas, que se arrastran con el ratón con inercia)
     this.renderChip();
   }
   // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas

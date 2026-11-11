@@ -231,14 +231,14 @@
 #hub.juego .hub-main > * { animation: none; }
 /* (al pasar de una sección a otra con la ventana ya abierta, lo de dentro llega en cascada, desde el lado de la sección a la
    que vas: «rise» de hub.css con --rise-x y --rise-y, que pone hub.js. Al abrirla, entra la ventana entera: hubVentana) */
-#hub.juego .hub-main.cambia > * { animation: rise var(--d-pantalla) var(--ease) both; }
+#hub.juego .hub-main.cambia > * { animation: rise var(--d-pantalla) var(--ease) backwards; }
 #hub.juego .hub-main.cambia > :nth-child(2) { animation-delay: var(--escalon); } #hub.juego .hub-main.cambia > :nth-child(3) { animation-delay: calc(var(--escalon) * 2); }
 #hub.juego .hub-main.cambia > :nth-child(4) { animation-delay: calc(var(--escalon) * 3); } #hub.juego .hub-main.cambia > :nth-child(n+5) { animation-delay: calc(var(--escalon) * 4); }
 /* (el título y el antetítulo de la sección, con su máscara y su desliz también dentro de la ventana: al abrirla y al
    cambiar de sección; hub.css, «mascara» y «rotDesliza») */
-#hub.juego .hub-main > .title { animation: mascara var(--d-rotulo) var(--ease) 60ms both; }
-#hub.juego .hub-main > .kicker { animation: rotDesliza var(--d-rotulo) var(--ease) both; }
-#hub.juego .hub-main.cambia > .title { animation: rise var(--d-pantalla) var(--ease) both, mascara var(--d-rotulo) var(--ease) both; }
+#hub.juego .hub-main > .title { animation: mascara var(--d-rotulo) var(--ease) 60ms backwards; }
+#hub.juego .hub-main > .kicker { animation: rotDesliza var(--d-rotulo) var(--ease) backwards; }
+#hub.juego .hub-main.cambia > .title { animation: rise var(--d-pantalla) var(--ease) backwards, mascara var(--d-rotulo) var(--ease) backwards; }
 
 /* ---------- mientras el mapa hace su entrada, se va a un pueblo o enseña las comarcas en fotos: lo de encima, fuera ---------- */
 #hub.juego.m3-cine .hub-menu-btn { opacity: 0; pointer-events: none; }
@@ -310,19 +310,21 @@
 #hub.juego.menu-on .hub-nav button:nth-child(8) { animation-delay: .14s; } #hub.juego.menu-on .hub-nav button:nth-child(9) { animation-delay: .16s; }
 #hub.juego.menu-on .hub-nav button:nth-child(n+10) { animation-delay: .18s; }
 #hub.juego:not([data-screen="home"]) .hub-cab .cab-t > span { animation: hubAsienta .5s var(--ease) both; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > * { animation: hubSube .45s var(--ease) both; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(2) { animation-delay: .03s; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(3) { animation-delay: .06s; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(4) { animation-delay: .09s; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(5) { animation-delay: .12s; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(6) { animation-delay: .15s; }
-#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport) > :nth-child(n+7) { animation-delay: .18s; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > * { animation: hubSube .45s var(--ease) backwards; }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > :nth-child(2) { animation-delay: calc(var(--escalon) * 1); }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > :nth-child(3) { animation-delay: calc(var(--escalon) * 2); }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > :nth-child(4) { animation-delay: calc(var(--escalon) * 3); }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > :nth-child(5) { animation-delay: calc(var(--escalon) * 4); }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > :nth-child(6) { animation-delay: calc(var(--escalon) * 5); }
+#hub.juego .hub-main :is(.cm-ts, .peaks, .ar-grid, .figuras, .lam-rail, .dd-grid, .badges, .passport, .ins-grid) > :nth-child(n+7) { animation-delay: calc(var(--escalon) * 6); }
 /* (al pasar por encima: la tarjeta sube dos píxeles y su imagen se acerca; al pulsar, cede) */
 @media (hover: hover) {
-  #hub.juego :is(.pcard, .fcard, .lam, .ar, .m3-chip) { transition: transform .3s var(--ease), border-color .2s, box-shadow .3s var(--ease); }
-  #hub.juego :is(.pcard, .fcard, .lam, .ar):hover { transform: translateY(-2px); }
-  #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic) > img { transition: transform .5s var(--ease); }
-  #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic) > img { transform: scale(1.04); }
+  /* (fase 3: además se inclina un poco hacia el ratón, --rx y --ry, y su imagen se mueve al revés, --px y --py: las pone
+     ui/motion.js, cartasVivas; sin ratón valen 0 y queda como antes) */
+  #hub.juego :is(.pcard, .fcard, .lam, .ar, .m3-chip) { transition: transform var(--d-encima) var(--ease), border-color .2s, box-shadow var(--d-encima) var(--ease); }
+  #hub.juego :is(.pcard, .fcard, .lam, .ar):hover { transform: perspective(800px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateY(-3px); }
+  #hub.juego :is(.pcard .pc-img, .cuentos .ct-lam, .fcard.pers.ilus .fpic, .lam) > img { transition: transform .5s var(--ease); }
+  #hub.juego :is(.pcard:hover .pc-img, .ar:hover .ct-lam, .fcard.pers.ilus:hover .fpic, .lam:hover) > img { transform: scale(1.06) translate(calc(var(--px, 0) * -5px), calc(var(--py, 0) * -4px)); }
 }
 #hub.juego :is(.hub-menu-btn, .hub-x, .hub-panel-x, .hub-nav button, .mm-go, .ft-go, .cb-b, .m3-b, .cm-t, .fcard, .lam, .btn, .filters button):active { transform: scale(.96); transition: transform .08s; }
 /* (la etiqueta del pueblo y el rótulo de la comarca entran con un pequeño impulso) */

@@ -143,6 +143,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   usa: allí los rótulos son otros y van con un fundido corto, como pidió el autor. Los títulos de las secciones del menú
   se destapan con una máscara de izquierda a derecha (`mascara`, un `clip-path`) y el antetítulo de las cabeceras entra
   deslizándose (`rotDesliza`), también dentro de la ventana del juego.
+- **Cartas vivas** (`ui/motion.js`: `cartasVivas`, `continuidad`, `inercia`; `ui/cartas.css`; fase 3 del rediseño de la
+  animación). Con ratón, la carta que tiene el puntero encima se inclina un poco hacia él (`--rx`, `--ry`, en la regla
+  común de `identidad.css` y en la del menú de `consola.css`; sin ratón valen 0), una luz suave la sigue (`.luz`, un brillo
+  blanco muy flojo) y su imagen se mueve al revés (`--px`, `--py`). La ventana que abre una carta nace de ella: se apunta
+  dónde estaba la carta tocada y, si en menos de 0,7 s se abre una ventana (`.mg-overlay`) o el visor de láminas, su
+  recuadro sale de ese sitio y tamaño hasta el suyo (FLIP). La carta nueva (la ventana con la cinta «Nueva carta») se
+  destapa: su imagen pasa de apagada y en gris a su color y la cinta entra con impulso. Las filas de cartas (`.lam-rail`,
+  `.figuras.rail`, `.rail`, `.cstrip`) se arrastran con el ratón y siguen con la inercia al soltar, sin el imán de las
+  cartas mientras tanto; al acabar, se asientan en una (con el dedo ya lo hacía el navegador); un arrastre no abre la carta.
+  Las cascadas de entrada van con «backwards»: con «both», la animación acabada seguía mandando sobre el transform y las
+  cartas no se inclinaban.
 
 - **Fidelidad a los pueblos de verdad** (regla del autor, noviembre de 2026; va por delante de cualquier mejora):
   - Los pueblos y las ciudades mantienen su estructura: las mismas calles, las mismas plazas y el frontón, la iglesia

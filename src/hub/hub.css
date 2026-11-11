@@ -102,8 +102,10 @@
 @media (min-width: 1600px) { .hub-main { padding-left: max(var(--gut), calc((100% - 1440px) / 2)); padding-right: max(var(--gut), calc((100% - 1440px) / 2)); } }
 .hub-main::-webkit-scrollbar { width: 8px; } .hub-main::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .14); border-radius: 8px; }
 /* (al abrir o cambiar de sección, lo de dentro llega en cascada: primero el rótulo y luego cada bloque; desde abajo o, si
-   es la sección de al lado, desde ese lado: --rise-x y --rise-y los pone hub.js. Tiempos y curva, de ui/motion.css) */
-.hub-main > * { animation: rise var(--d-pantalla) var(--ease) both; }
+   es la sección de al lado, desde ese lado: --rise-x y --rise-y los pone hub.js. Tiempos y curva, de ui/motion.css. Con
+   «backwards»: espera en su punto de salida mientras le toca y al acabar no deja nada puesto; con «both» la animación
+   acabada seguía mandando sobre el transform y las tarjetas no se inclinaban al pasar el ratón) */
+.hub-main > * { animation: rise var(--d-pantalla) var(--ease) backwards; }
 .hub-main > *:nth-child(2) { animation-delay: var(--escalon); } .hub-main > *:nth-child(3) { animation-delay: calc(var(--escalon) * 2); }
 .hub-main > *:nth-child(4) { animation-delay: calc(var(--escalon) * 3); } .hub-main > *:nth-child(n+5) { animation-delay: calc(var(--escalon) * 4); }
 @keyframes rise { from { opacity: 0; transform: translate(var(--rise-x, 0px), var(--rise-y, 14px)); } }
@@ -112,9 +114,9 @@
    clip-path, que no recoloca nada; al acabar queda abierta con margen para no cortar acentos ni sombras) */
 @keyframes mascara { from { clip-path: inset(-25% 100% -25% -4%); } to { clip-path: inset(-25% -4% -25% -4%); } }
 @keyframes rotDesliza { from { opacity: 0; transform: translateX(-16px); } }
-.hub-main > .title { animation: rise var(--d-pantalla) var(--ease) both, mascara var(--d-rotulo) var(--ease) both; }
-.hub-main :is(.ar-head, .sb-head, .frs-head) :is(h1, h2) { animation: mascara var(--d-rotulo) var(--ease) 80ms both; }
-.hub-main :is(.ar-head, .sb-head, .frs-head) > :is(.kicker, small) { animation: rotDesliza var(--d-rotulo) var(--ease) both; }
+.hub-main > .title { animation: rise var(--d-pantalla) var(--ease) backwards, mascara var(--d-rotulo) var(--ease) backwards; }
+.hub-main :is(.ar-head, .sb-head, .frs-head) :is(h1, h2) { animation: mascara var(--d-rotulo) var(--ease) 80ms backwards; }
+.hub-main :is(.ar-head, .sb-head, .frs-head) > :is(.kicker, small) { animation: rotDesliza var(--d-rotulo) var(--ease) backwards; }
 
 /* tipografía */
 .title { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-weight: 400; font-size: var(--fs-hero); line-height: 1; margin: 2px 0 var(--t-mb); display: flex; align-items: center; gap: 12px; color: #fff; letter-spacing: 0; }
