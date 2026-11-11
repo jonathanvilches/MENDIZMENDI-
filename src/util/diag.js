@@ -50,6 +50,17 @@ export function datos() {
   } else f.push(['Mapa 3D', 'aún sin mirar']);
   // (en el portátil, sin el cargador, Windows frena la gráfica y el procesador: el juego puede ir a la mitad)
   if (bateria) f.push(['Batería', bateria]);
+  f.push(['Sonido', sonido()]);
   f.push(['Navegador', navigator.userAgent]);
   return f;
+}
+// (cómo está el sonido: si en el iPhone no se oye nada, con esta fila se sabe si el contexto está parado, si la música
+// está esperando un toque o si el comentarista se ha quedado colgado)
+function sonido() {
+  try {
+    const S = window.__sound, c = S?.pistas?.cur, V = window.__game?.pelotaMatch?.voz;
+    return [`contexto ${S?.ctx?.state || 'sin crear'}`, `sesión ${navigator.audioSession?.type || 'no hay'}`,
+      `música ${S?.musicOn === false ? 'quitada' : c ? `${c.n} ${c.estado}${c.a.paused ? ', parada' : ''}` : 'ninguna'}`,
+      `volumen ${S?.musicBus ? S.musicBus.gain.value.toFixed(2) : '–'}`, V ? `voz ${V.habla_ ? 'hablando' : 'callada'}` : ''].filter(Boolean).join(' · ');
+  } catch (e) { return 'no se sabe'; }
 }
