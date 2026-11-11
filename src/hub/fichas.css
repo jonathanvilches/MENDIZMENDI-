@@ -218,6 +218,17 @@ section.rejilla > * { grid-column: span var(--sg, 4); }
    así el sitio queda a la misma altura en todas, con el aire sobrante dentro y no en una esquina) */
 .cm-cult .cult > div { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; } .cm-cult .cult > div > p { align-self: stretch; }
 .cm-cult .cult em { display: block; margin-top: auto; padding-top: var(--e2); }
+/* (las piezas sin ilustración: el icono, pequeño, junto al antetítulo, y debajo el título, el texto y el sitio a todo el
+   ancho de la pieza; el sitio, al pie, tras una raya fina. Antes el icono ocupaba una columna entera a la izquierda y el
+   texto, en una franja estrecha, se partía en muchas líneas y dejaba mucho aire; noviembre de 2026) */
+.cm-cult .cult:not(.con-img) { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto auto auto 1fr; column-gap: 10px; row-gap: 0; padding: 14px 16px 12px; }
+.cm-cult .cult:not(.con-img) > div { display: contents; }
+.cm-cult .cult:not(.con-img) > .fh-mi { grid-area: 1 / 1; align-self: center; width: 34px; height: 34px; } .cm-cult .cult:not(.con-img) > .fh-mi > :is(svg, img) { width: 20px; height: 20px; }
+.cm-cult .cult:not(.con-img) small { grid-area: 1 / 2; align-self: center; line-height: 1.25; }
+.cm-cult .cult:not(.con-img) b { grid-row: 2; grid-column: 1 / -1; margin-top: var(--e3); }
+.cm-cult .cult:not(.con-img) p { grid-row: 3; grid-column: 1 / -1; margin: var(--e2) 0 0; }
+.cm-cult .cult:not(.con-img) .vm-btn { grid-row: 4; grid-column: 1 / -1; }
+.cm-cult .cult:not(.con-img) em { grid-row: 5; grid-column: 1 / -1; align-self: end; margin-top: var(--e3); padding-top: var(--e2); border-top: 1px solid rgba(255, 255, 255, .08); }
 .cm-ng h3 { margin: 0 0 var(--e3); font-size: var(--fs-xs); color: var(--gold); text-transform: uppercase; letter-spacing: .1em; }
 /* los cuentos de la comarca, en retícula */
 .cm-ley { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }

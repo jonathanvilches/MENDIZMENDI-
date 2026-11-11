@@ -190,6 +190,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Cabecera de las secciones en la ventana del juego** (`#hub.juego .hub-main::before`, `hub/consola.css`). La franja de
   arriba es opaca en todo su alto y solo se funde en una tira de 12 px por debajo: antes era opaca solo en su mitad de
   arriba y, a la altura de los nombres de las secciones, se veía pasar por detrás lo que bajaba.
+- **Cultura de la comarca** (`.cm-cult .cult`, `hub/fichas.css`). Las piezas sin ilustración llevan el icono pequeño junto al
+  antetítulo y, debajo, el título, el texto y el sitio a todo el ancho de la pieza (el `div` de dentro va con
+  `display: contents` para que sus partes entren en la rejilla de la pieza); el sitio, al pie, tras una raya fina. Antes
+  el icono ocupaba una columna entera y el texto, estrecho, se partía en muchas líneas y dejaba mucho aire.
 - **Casillas de las misiones del pueblo** (`#misiones` de `style.css`, arriba a la izquierda; noviembre de 2026). Cada
   icono va sobre un fondo sólido del color de su categoría (46 % del color sobre morado oscuro; hecha, 78 % con su marca;
   la que sigues, un aro blanco por dentro con `box-shadow`, porque los botones no llevan borde: `neon.css`). El panel
