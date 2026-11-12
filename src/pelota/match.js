@@ -1191,7 +1191,7 @@ export class PelotaMatch {
       case 'front': if (!e.chapa) this.jugadaVa('front'); if (e.chapa) { C.chapaT = 0.6; if (!this.callada) A.chapa(1); } else if (e.alta) { if (!this.callada) A.chapa(0.85); } else if (!this.callada) A.front(); C.pop({ x: e.x, y: e.y, z: 0.02 }, 'z'); if (this.fp?.on) this.fp.impacto(Math.max(0, 1 - (g.players.you.z || 20) / 28) * 0.5); break;
       case 'wall': if (!this.callada) { if (e.alta) A.chapa(0.8); else A.wall(); } break;
       case 'back': if (e.live) this.jugadaVa('back'); if (!this.callada) A.wall(); if (e.live) this.hud.golpe((t.shots || TEXT.es.shots).rebote, this.cols[g.side(g.rally?.by || 'you')]); break;   // el rebote: la pared de atrás, en el rótulo de quien la mandó
-      case 'floor': if (!this.callada) A.floor(e.soft ? 0.5 : 0.8); break;
+      case 'floor': this.botaT = this.t; if (!this.callada) A.floor(e.soft ? 0.5 : 0.8); break;   // (botaT: para el bote pronto, swingAnim)
       case 'streak': if (g.reto) this.retoMarcador(); else this.hud.setScore(e.n, '', g.server); break;
       case 'reto': {   // (una pelota del reto: se rotula, se mueve la diana y el marcador dice cuántas llevas y lo que queda)
         const R = this.retoTxt();
@@ -1332,7 +1332,11 @@ export class PelotaMatch {
     // (cada golpe con la mano de su lado: la pelota a su derecha, la derecha; a su izquierda, la izquierda, también el
     // gancho, que antes iba siempre con la izquierda. La volea y el gancho, con la mano por encima de la cabeza; la dejada,
     // a la altura de la cintura. Lo pide así el autor, noviembre de 2026)
-    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^High/.test(g)) g = 'Volea' + iz; else if (e.shot === 'dejada') g = 'Dejada' + iz;
+    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^High/.test(g)) g = 'Volea' + iz; else if (e.shot === 'dejada') g = (e.y < 0.45 ? 'DejadaBaja' : 'Dejada') + iz;
+        // (las jugadas de defensa que pasó el autor: el besagain, con la pelota alta y lejos del frontis, por encima del hombro;
+        // y el bote pronto, nada más botar, muy agachado y corto. Noviembre de 2026)
+        else if (!e.volea && e.y > 1.35 && Math.abs(P.z) > 22) g = 'Besagain' + iz;
+        else if (!e.volea && e.y < 0.4 && this.t - (this.botaT ?? -9) < 0.1) g = 'BotePronto' + iz;
       if (this.game.rally?.serve && this.game.rally.hits === 1) g = 'Low';   // (el saque, de sotamano y con la derecha: de abajo arriba)
       (this.golpeDe ||= {})[who] = g; }
     // (dónde se golpea la pelota, en el mundo: la mano del pelotari va justo ahí; glbChar.js, armSwing)

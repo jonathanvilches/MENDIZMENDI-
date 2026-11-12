@@ -1300,7 +1300,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Cada golpe, con la mano de su lado (la pelota a su derecha, la derecha; a su izquierda, la izquierda), también el
   gancho, que antes iba siempre con la izquierda. La volea (antes del bote y de la altura del hombro para arriba) y el
   gancho, con el brazo recto hacia arriba y algo abierto, la mano por encima de la cabeza; la dejada (`DejadaFull`,
-  `Dejada`, `DejadaL`), un toque suave con la mano a la cintura (el autor, noviembre de 2026). Tienen la cabeza grande y
+  `Dejada`, `DejadaL`), un toque suave con la mano a la cintura (el autor, noviembre de 2026).
+  Con las jugadas básicas que pasó el autor, tres más con su movimiento (`pelotaMoves.js`; se eligen en `swingAnim` de
+  `match.js`): la dejada de abajo (`DejadaBaja`, la dejada con la pelota por debajo de 0,45 m: arma como una sotamano y solo
+  la acaricia hacia arriba), el bote pronto (`BotePronto`, la pelota a menos de 0,4 m y antes de 0,1 s de botar, `botaT`:
+  muy agachado y corto) y el besagain (`Besagain`, sin volea, la pelota por encima de 1,35 m y a más de 22 m del frontis:
+  el brazo por encima del hombro y el cuerpo echado atrás), cada uno también de izquierda. Tienen la cabeza grande y
   el brazo corto: la muñeca llega a lo alto del pelo, no más, y con la mano hacia delante se tapaban la cara. Con la
   cámara (`camaraCuerpo.js`), la mano del golpe es la que lo da, por el lado de su hombro, no por dónde empieza el gesto;
   la dejada que haces tú, a la cintura (`match.js`, `onGolpe`), y en primera persona (`primeraPersona.js`) el brazo sube

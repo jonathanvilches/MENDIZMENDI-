@@ -67,6 +67,19 @@ const SIGUE_V = { ...SIGUE, c: [0.04, -0.07, 0.07], H: [6, 24, 0], S: [8, 10, -2
 const ARMADO_D = { ...ARMADO, c: [-0.05, -0.12, -0.03], H: [8, -30, 0], S: [12, -12, 3], S1: [6, -6, 0], S2: [3, -4, 0], N: [-10, 24, 0], Hd: [-12, 18, 0], Rm: [-0.40, 0.86, -0.06], Rc: [0, -1, -0.4], Rw: 20, Lm: [0.44, 0.96, 0.20] };
 const IMPACTO_D = { ...IMPACTO, c: [0, -0.13, 0.04], H: [9, 4, 0], S: [13, 3, -2], S1: [6, 2, 0], N: [-12, -4, 0], Hd: [-12, -4, 0], Rm: [-0.24, 0.86, 0.30], Rc: [-0.4, -1, -0.1], Rw: -5, Lm: [0.42, 0.88, -0.12] };
 const SIGUE_D = { ...IMPACTO_D, c: [0.02, -0.12, 0.05], H: [8, 12, 0], S: [12, 6, -2], Rm: [-0.15, 0.92, 0.36], Rc: [-0.6, -1, -0.1], Rw: -10 };
+// (la dejada de abajo: arma como para una sotamano, agachado, y en el último momento solo la acaricia hacia arriba, para que
+// muera encima de la chapa; el autor pasó las jugadas básicas, noviembre de 2026)
+const IMPACTO_DB = { ...IMPACTO_B, Rm: [-0.26, 0.72, 0.26], Rc: [-0.3, -1, -0.2], Rw: -15 };
+const SIGUE_DB = { ...IMPACTO_B, c: [0.01, -0.20, 0.04], H: [14, 2, 0], S: [18, 2, -2], Rm: [-0.20, 0.84, 0.32], Rc: [-0.5, -1, -0.1], Rw: -20 };
+// (el bote pronto: le da nada más botar, muy agachado y con un golpe corto, casi parado, que no hay tiempo de más)
+const ARMADO_BP = { ...ARMADO_B, c: [-0.04, -0.26, -0.03], H: [18, -24, 0], S: [24, -8, 3], S1: [12, -4, 0], N: [-20, 18, 0], Hd: [-20, 16, 0], Rm: [-0.42, 0.74, -0.06] };
+const IMPACTO_BP = { ...IMPACTO_B, c: [0, -0.27, 0.05], H: [20, -4, 0], S: [26, 0, -2], S1: [12, 0, 0], N: [-22, 0, 0], Hd: [-20, 0, 0], Rm: [-0.28, 0.66, 0.28], Rc: [-0.2, -1, -0.2], Rw: 0 };
+const SIGUE_BP = { ...IMPACTO_BP, c: [0.02, -0.22, 0.06], H: [16, 10, 0], S: [20, 6, -2], Rm: [-0.18, 0.86, 0.34], Rc: [-0.7, -1, -0.2] };
+// (el besagain: de defensa, con la pelota alta y lejos del frontis; el brazo por encima del hombro y el cuerpo echado
+// atrás, para devolverla como se pueda)
+const ARMADO_BS = { ...ARMADO_A, c: [-0.05, -0.03, -0.06], H: [-4, -30, 0], S: [-8, -12, -6], S1: [-4, -6, -4], N: [-16, 22, 4], Hd: [-20, 16, 0], Rm: [-0.30, 1.38, -0.20], Rc: [-0.7, 0.3, -0.8], Rw: 25 };
+const IMPACTO_BS = { ...IMPACTO_A, c: [0, -0.04, -0.02], H: [-2, 4, 0], S: [-6, 4, -6], S1: [-3, 3, -3], N: [-20, -6, 4], Hd: [-22, -4, 0], Rm: [-0.26, 1.40, 0.10], Rc: [-1, 0.3, -0.3], Rw: 0 };
+const SIGUE_BS = { ...SIGUE_A, c: [0.03, -0.06, 0.04], H: [4, 20, 0], S: [2, 10, -4], Rm: [-0.06, 1.16, 0.30], Rc: [-0.9, -0.4, 0] };
 // (el saque: con la pelota en la izquierda, da un paso, la bota en el suelo y le pega de derecha según sube)
 const SAQUE_0 = { ...REPOSO, c: [0, -0.03, 0], S: [6, 0, 0], N: [-6, 0, 0], Lm: [0.10, 0.88, 0.30], Lc: [0.6, -1, -0.4], Rm: [-0.20, 0.76, 0.14] };
 const SAQUE_BOTA = { ...PASO, c: [-0.03, -0.10, 0.06], H: [10, -20, 0], S: [16, -10, 0], Lm: [0.16, 0.70, 0.34], Lc: [0.6, -1, -0.2], Rm: [-0.46, 0.84, -0.04], Lp: [0.08, 0.05, 0.16], Lr: [-8, 6, 0] };
@@ -102,6 +115,9 @@ const MOVS = [
   ['GanchoFull', 'Gancho', false, [T(0, ESPERA), T(0.16, PASO), T(0.30, ARMADO_A), T(0.37, IMPACTO_G), T(0.56, SIGUE_G), T(1.0, ESPERA)]],
   ['VoleaFull', 'Volea', false, [T(0, ESPERA), T(0.12, PASO), T(0.24, ARMADO_V), T(0.32, IMPACTO_V), T(0.46, SIGUE_V), T(0.84, ESPERA)]],
   ['DejadaFull', 'Dejada', false, [T(0, ESPERA), T(0.14, PASO), T(0.28, ARMADO_D), T(0.36, IMPACTO_D), T(0.52, SIGUE_D), T(0.9, ESPERA)]],
+  ['DejadaBajaFull', 'Dejada de abajo', false, [T(0, ESPERA), T(0.16, PASO), T(0.32, ARMADO_B), T(0.41, IMPACTO_DB), T(0.56, SIGUE_DB), T(0.95, ESPERA)]],
+  ['BoteProntoFull', 'Bote pronto', false, [T(0, ESPERA), T(0.12, PASO), T(0.26, ARMADO_BP), T(0.34, IMPACTO_BP), T(0.48, SIGUE_BP), T(0.9, ESPERA)]],
+  ['BesagainFull', 'Besagain', false, [T(0, ESPERA), T(0.16, PASO), T(0.30, ARMADO_BS), T(0.38, IMPACTO_BS), T(0.58, SIGUE_BS), T(1.0, ESPERA)]],
   ['Serve', 'Saque', false, [T(0, SAQUE_0), T(0.35, SAQUE_0), T(0.62, SAQUE_BOTA), T(0.86, ARMADO_B), T(0.95, IMPACTO_B), T(1.14, SIGUE), T(1.6, ESPERA)]],
   ['ShuffleR', 'Lateral a la derecha', true, [T(0, ESPERA), T(0.13, { ...ESPERA, c: [-0.05, -0.09, -0.03], Rp: [-0.19, 0.06, -0.05], Rr: [-6, -10, 0] }), T(0.26, { ...ESPERA, c: [-0.05, -0.13, -0.03], Rp: [-0.17, 0, -0.05], Lp: [0.02, 0, 0.05] }),
     T(0.39, { ...ESPERA, c: [0, -0.10, -0.03], Lp: [0.0, 0.06, 0.05], Lr: [-6, 10, 0] }), T(0.52, ESPERA)]],
@@ -117,12 +133,13 @@ const MOVS = [
 ];
 export const _movs = MOVS;
 // (izquierda y lateral a la izquierda: los de la derecha, en espejo)
-const ESPEJO = { GanchoFull: ['GanchoLFull', 'Gancho de izquierda'], VoleaFull: ['VoleaLFull', 'Volea de izquierda'], DejadaFull: ['DejadaLFull', 'Dejada de izquierda'], HitFull: ['HitLFull', 'Izquierda'], LowFull: ['LowLFull', 'Sotamano de izquierda'], HighFull: ['HighLFull', 'Golpe de aire de izquierda'], ShuffleR: ['ShuffleL', 'Lateral a la izquierda'] };
+const ESPEJO = { DejadaBajaFull: ['DejadaBajaLFull', 'Dejada de abajo de izquierda'], BoteProntoFull: ['BoteProntoLFull', 'Bote pronto de izquierda'], BesagainFull: ['BesagainLFull', 'Besagain de izquierda'], GanchoFull: ['GanchoLFull', 'Gancho de izquierda'], VoleaFull: ['VoleaLFull', 'Volea de izquierda'], DejadaFull: ['DejadaLFull', 'Dejada de izquierda'], HitFull: ['HitLFull', 'Izquierda'], LowFull: ['LowLFull', 'Sotamano de izquierda'], HighFull: ['HighLFull', 'Golpe de aire de izquierda'], ShuffleR: ['ShuffleL', 'Lateral a la izquierda'] };
 // (los cortes del juego: desde el armado, que la postura ya puso mientras llegaba la pelota)
 // (desde el impacto: el armado ya lo puso la postura mientras llegaba la pelota, y el golpe se decide en el instante en que
 // la pelota sale; si el clip empezaba en el armado, la mano llegaba a la pelota una décima después, cuando ya iba lejos)
 const CORTES = { Hit: ['HitFull', 0.40], HitL: ['HitLFull', 0.40], Low: ['LowFull', 0.41], LowL: ['LowLFull', 0.41], High: ['HighFull', 0.37], HighL: ['HighLFull', 0.37],
-  Gancho: ['GanchoFull', 0.37], GanchoL: ['GanchoLFull', 0.37], Volea: ['VoleaFull', 0.32], VoleaL: ['VoleaLFull', 0.32], Dejada: ['DejadaFull', 0.36], DejadaL: ['DejadaLFull', 0.36] };
+  Gancho: ['GanchoFull', 0.37], GanchoL: ['GanchoLFull', 0.37], Volea: ['VoleaFull', 0.32], VoleaL: ['VoleaLFull', 0.32], Dejada: ['DejadaFull', 0.36], DejadaL: ['DejadaLFull', 0.36],
+  DejadaBaja: ['DejadaBajaFull', 0.41], DejadaBajaL: ['DejadaBajaLFull', 0.41], BotePronto: ['BoteProntoFull', 0.34], BoteProntoL: ['BoteProntoLFull', 0.34], Besagain: ['BesagainFull', 0.38], BesagainL: ['BesagainLFull', 0.38] };
 // (y la postura de armado de cada golpe, para que el juego la mezcle mientras llega la pelota)
 // (y, para el saque, el brazo derecho con la pelota en la mano mientras corre, y el gesto de botarla contra el suelo)
 const LLEVA = { ...REPOSO, Rm: [-0.21, 0.84, 0.2], Rc: [-0.5, -1, -0.3] };
