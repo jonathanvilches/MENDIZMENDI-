@@ -8,7 +8,9 @@ import { QUALITY } from '../util/quality.js';
 
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/meshy/cerca/*.webp', { query: '?url', import: 'default', eager: true }))
   .map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
-const MAX = QUALITY === 'low' ? 1 : 3, CERCA = 9, LEJOS = 13;   // (en el móvil, uno: el del vecino más cercano o con el que hablas)
+// (en el móvil, uno: el del vecino más cercano o con el que hablas. Se mira cada vez: la calidad se decide al arrancar,
+// después de cargar este módulo)
+const MAX = () => QUALITY === 'low' ? 1 : 3, CERCA = 9, LEJOS = 13;
 const puestas = new Map(), pedidas = new Set(), loader = new THREE.TextureLoader();
 let mats = null;   // (name) → los materiales de ese modelo: los compartidos y los propios de los que llevan el pelo teñido (npcGlb.js)
 
@@ -34,7 +36,7 @@ export function cercaVecinos(actores, P) {
   const d = new Map();
   for (const a of actores) { const n = a?.obj?.userData?.vecino; if (!n || !URLS[n] || a.obj.visible === false) continue;
     const r = Math.hypot(a.pos.x - P.x, a.pos.z - P.z); if (r < (d.get(n) ?? Infinity)) d.set(n, r); }
-  const quiero = [...d].filter(([n, r]) => r < (puestas.has(n) ? LEJOS : CERCA)).sort((a, b) => a[1] - b[1]).slice(0, MAX).map(([n]) => n);
+  const quiero = [...d].filter(([n, r]) => r < (puestas.has(n) ? LEJOS : CERCA)).sort((a, b) => a[1] - b[1]).slice(0, MAX()).map(([n]) => n);
   for (const n of [...puestas.keys()]) if (!quiero.includes(n)) quita(n);
   for (const n of quiero) {
     if (puestas.has(n) || pedidas.has(n)) continue;
