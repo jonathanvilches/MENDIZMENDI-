@@ -71,7 +71,7 @@ const TIPS = [
   'Completa todas las misiones de un pueblo para ganar su sello.',
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.',
 ];
-const TIP_TOQUE = 'Toca el cuaderno, arriba a la derecha, para ver todas las misiones y sus pasos.';
+const TIP_TOQUE = 'Abre la pausa y toca «Cuaderno» para ver todas las misiones y sus pasos.';
 // el «¿Sabías que…?» de la carga de un partido de pelota: un dato de la historia de la pelota a mano, y no lo que se está
 // preparando (antes salía «Preparando el frontón…» como si fuera un dato). Comprobados en octubre de 2026: el récord y las
 // txapelas de Julián Retegi (Noticias de Navarra, Deia), el Labrit (Ayuntamiento de Pamplona), los Juegos Olímpicos (COI y

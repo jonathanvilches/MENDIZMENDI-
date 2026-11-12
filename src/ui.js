@@ -133,8 +133,6 @@ export class UI {
       <div id="topright">
         <div class="rbtns">
           <button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
-          <button class="round" id="bBook" aria-label="Cuaderno (C)">${ICON.book}</button>
-          <button class="round" id="bMap" aria-label="Mapa (M)">${ICON.map}</button>
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
         <div id="mini"><canvas width="248" height="248"></canvas></div>
@@ -155,8 +153,6 @@ export class UI {
     this.fade ||= document.body.appendChild(el('<div id="fade"></div>'));
     this.subtitle ||= document.body.appendChild(el('<div id="subtitle"></div>'));
     const tap = (id, fn) => { const b = $(id, h); b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); fn(); }); };
-    tap('#bBook', () => this.openBook());
-    tap('#bMap', () => this.openMap());
     tap('#bMenu', () => this.openMenu());
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
@@ -763,7 +759,7 @@ export class UI {
     const g = this.game, st = g.state, town = g.kind === 'town';
     const S = town ? g.P.settings : st.settings;
     const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.closeBtn()}</header><div class="pbody">
-      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
+      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><div class="par"><button class="btn" id="mBook">${I('book', 22)} Cuaderno</button><button class="btn" id="mMap">${I('map', 22)} ${town ? 'Mapa del pueblo' : 'Mapa del valle'}</button></div><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
       <label>Música <input type="checkbox" id="mMusic" ${S.music ? 'checked' : ''}></label>
       <label>Volumen <input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
       <label>Calidad gráfica <select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
@@ -778,6 +774,10 @@ export class UI {
     $('#mQ', s).onchange = e => { S.quality = e.target.value; S.qualityAuto = false; delete S.slowPc; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
+    // (el cuaderno y el mapa, aquí en la pausa: ya no tienen botón arriba a la derecha, para dejar sitio. El mapa se abre
+    // también tocando el minimapa y el cuaderno tocando la misión; en el ordenador, con C y M)
+    $('#mBook', s).onclick = () => this.openBook();
+    $('#mMap', s).onclick = () => this.openMap();
     // (fundido a negro por encima de la pausa, que ya no se toca, y detrás, el menú: antes se cerraba la pausa y asomaba
     // un momento el pueblo antes del fundido)
     $('#mExit', s).onclick = () => { g.save(); s.style.pointerEvents = 'none'; this.fadeOut().then(() => { this.closeModal(); g.onExit?.(); this.fadeIn(); }); };
