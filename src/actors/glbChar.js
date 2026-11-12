@@ -676,7 +676,16 @@ export function palmaDe(root, hand) {
   const mayor = (fuera) => { let a = new THREE.Vector3(0.61, 0.52, 0.6); for (let i = 0; i < 48; i++) { a = por(a); for (const f of fuera) a.addScaledVector(f, -a.dot(f)); if (a.lengthSq() < 1e-24) break; a.normalize(); } return a; };
   const d = mayor([]), ancho = mayor([d]), n = new THREE.Vector3().crossVectors(d, ancho).normalize();
   if (d.dot(c) < 0) d.negate();   // (los dedos, lejos de la muñeca, que es el origen del hueso)
-  if (n.dot(v.set(0, -1, 0).transformDirection(inv)) < 0) n.negate();
+  // (hacia qué lado mira la palma: hacia donde se doblan las puntas de los dedos, que siempre se curvan hacia ella. Antes
+  // se suponía que en reposo la palma mira al suelo, como en la postura en cruz; los pelotaris de Meshy están en reposo
+  // con los brazos abajo y la palma hacia delante, el juego la daba al revés y la pelota del saque iba en el dorso de la
+  // mano, asomando por el canto y metiéndose entre los dedos; noviembre de 2026. Con los dedos rectos, como antes)
+  let lo = Infinity, hi = -Infinity; for (const p of pts) { const t = v.copy(p).sub(c).dot(d); if (t < lo) lo = t; if (t > hi) hi = t; }
+  let punta = 0, np = 0, medio = 0, nm = 0;
+  for (const p of pts) { const r = v.copy(p).sub(c), t = (r.dot(d) - lo) / Math.max(1e-9, hi - lo), a = r.dot(n); if (t > 0.8) { punta += a; np++; } else if (t > 0.35 && t < 0.6) { medio += a; nm++; } }
+  const curva = np && nm ? punta / np - medio / nm : 0;
+  if (Math.abs(curva) > 0.02 * (hi - lo)) { if (curva < 0) n.negate(); }
+  else if (n.dot(v.set(0, -1, 0).transformDirection(inv)) < 0) n.negate();
   let largo = 0, grosor = 0; for (const p of pts) { largo = Math.max(largo, p.dot(d)); grosor = Math.max(grosor, v.copy(p).sub(c).dot(n)); }
   return { c, n, d, largo, grosor };
 }

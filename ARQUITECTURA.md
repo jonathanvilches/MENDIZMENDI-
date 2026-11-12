@@ -439,6 +439,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (en Mixamo, cien veces más grandes): al mundo, con la escala del hueso. Se mide con la malla deformada de verdad
   (`getVertexPosition`), fotograma a fotograma: antes, la pelota dentro de la mano en casi todas las imágenes del saque
   (1032 de 1041 en casa); ahora, en ninguna.
+  El lado de la palma (`palmaDe`) se elige por hacia dónde se doblan las puntas de los dedos, que siempre se curvan hacia
+  ella; con los dedos rectos, como antes, la palma al suelo en reposo. Los pelotaris de Meshy están en reposo con los brazos
+  abajo y la palma hacia delante: el juego la daba al revés y la pelota del saque iba en el dorso, asomando por el canto y
+  metiéndose entre los dedos, y en el golpe la mano llegaba con el dorso (noviembre de 2026).
 - **Más campeonatos, inventados** (`game/torneo.js`, `KINDS`, `EXTRA`, `reglaDe`; `game/townDeportes.js`): además del
   Manomanista, el de Parejas y el del Cuatro y Medio, cinco más en el menú de pelota, cada uno con su txapela:
   - el Torneo de Fiestas (mano a mano, ocho, corto);
