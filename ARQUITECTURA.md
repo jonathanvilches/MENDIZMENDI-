@@ -1873,6 +1873,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   peñas que asoman en el Esca, que la almadía tiene que esquivar. `cadena(real, rio, fuente)` da el río en el sentido de la
   corriente con su nivel y su distancia (`at(s)`, `proyecta(x, z)`); todo queda en `real.presas` para la bajada. Las
   pilas del puente famoso y su ojo grande quedan en `P.famoso` (`pilas`, `ojo`).
+- **La bajada en almadía por el Esca** (`game/almadia.js`, noviembre de 2026, tras «un juego de bajar por el río con las
+  almadías y que cuente su historia»): la misión del almadiero de Burgui (`race` de tipo `almadia` en `data/levels.js`)
+  ya no es una carrera de aros por las calles. Se baja el Esca de verdad, en el pueblo: unos 760 m desde río arriba, por el
+  casco, por el portillo de la presa y por el ojo grande del puente medieval, hasta la orilla de después del puente.
+  - La almadía es un vehículo como el tractor y la montura (`P.vehiculo`): tres tramos de nueve troncos de pino de 7 m
+    atados con avellano retorcido, con sus travesaños, unidos uno detrás de otro; cada tramo sigue el camino que hizo la
+    proa (`huella`), así que se doblan en las curvas como las de verdad. Un remo largo en la proa, con el almadiero (un
+    vecino con la ropa del de la misión), y otro en la popa, que lleva el jugador: con la cámara detrás, algo más alta y
+    lejos, se ve la almadía entera.
+  - Se maneja con la palanca o las flechas: a los lados, el remo la lleva a un lado u otro del río, con su inercia;
+    adelante se rema algo más deprisa y atrás se frena. La corriente es más viva en la presa y bajo el puente. Las peñas y
+    las pilas del puente chocan con los tramos (cada uno, un rectángulo; cada cosa, un círculo): frena, salta agua y se
+    cuenta un golpe. En la presa, o por el portillo (salto con espuma) o golpe; en el puente, si pasa por el ojo grande.
+  - La historia se cuenta en seis partes sin parar la bajada, en un cuadro a la izquierda (centrado y más abajo en la
+    pantalla estrecha): del monte al río, atar los troncos, con el deshielo, las presas (antes de llegar a la de Burgui),
+    hasta el mar (pasado el puente) y hoy (la última almadía de trabajo bajó en 1952 y Burgui celebra cada primavera el Día
+    de la Almadía). Antes, una ficha con la lámina y cómo se maneja; al final, de una a tres estrellas, «Antes y ahora» y la
+    carta «La almadía». Con la acción de bajar se deja a medias y se vuelve a la orilla.
 - **Puentes famosos como los de verdad** (`world/puentesFamosos.js` y su plan, `world/puentesFamososPlan.js`, noviembre
   de 2026): el de los Peregrinos de Puente la Reina y el medieval de Burgui se levantan con su forma y no con la de
   cualquier puente. Cada uno tiene su ficha (`FAMOSOS`): cuántos arcos, la luz del grande, el ancho, el grueso de las

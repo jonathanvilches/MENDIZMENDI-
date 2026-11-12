@@ -3,7 +3,7 @@ import { tantosDe } from '../pelota/rules.js';
 import { nombreLibre } from '../data/nombres.js';
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
-import { PLACES, BOUNDARY } from '../world/layout.js';
+import { PLACES, BOUNDARY, MOD } from '../world/layout.js';
 import { empiezaAccesos, alcanzable, acabaAccesos, sitiosBuenos } from '../world/acceso.js';
 import { QUALITY } from '../util/quality.js';
 import { Jornales } from './jornales.js';
@@ -178,7 +178,8 @@ export class TownGame {
       case 'legend': { const L = M.leg = m.leg ? { ...LEGENDS[m.who], ...m.leg } : LEGENDS[m.who]; M.figura = m.who;   // (un bosque cuenta la suya: leg) M.title = m.title || 'Leyenda'; M.icon = 'legend'; M.need = L?.clues.length || m.gather?.n || 4;
         M.steps = () => ['Escucha la leyenda: habla con ' + host(), 'Espera a que caiga la noche', `Sigue las pistas que brillan en la oscuridad (${M.count}/${M.need})`, `Encuentra a ${L?.creature || 'la criatura'}`]; break; }
       case 'race': { const r = RACE[m.kind] || RACE.camino; M.title = m.title || r[0]; M.icon = r[1]; M.need = 6;
-        M.steps = () => ['Habla con ' + host(), `${r[2]}: pasa por los aros (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
+        M.steps = m.kind === 'almadia' && MOD.real?.presas ? () => ['Habla con ' + host(), 'Baja el Esca en la almadía hasta el puente medieval']
+          : () => ['Habla con ' + host(), `${r[2]}: pasa por los aros (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break; }
       case 'observe': M.title = m.title || 'Observa'; M.icon = 'binoculars'; M.need = m.n || 3; M.species = [].concat(m.species || []);
         M.steps = () => ['Habla con ' + host(), `Con los prismáticos, encuentra ${M.species.map(faunaName).join(' o ').toLowerCase() || 'animales'} (${M.count}/${M.need})`, 'Vuelve con ' + host()]; break;
       case 'tradition': M.title = m.title || 'Tradición'; M.icon = m.kind === 'angel' ? 'angel' : 'music';
@@ -257,7 +258,7 @@ export class TownGame {
       case 'dance': case 'carnival': case 'tradition': return { x: P.plaza.x + (M.i % 2 ? 7 : -7), z: P.plaza.z + 6 };
       case 'trade': return m.kind === 'aizkolari' || m.kind === 'carbonero' ? { x: P.forest.x * 0.5 + P.plaza.x * 0.5, z: P.forest.z * 0.4 } : m.kind === 'palomero' ? P.edgeN : { x: P.market.x + 6, z: P.market.z + 4 };
       case 'legend': return M.leg?.teller ? { x: P.plaza.x + (M.i % 2 ? -9 : 9), z: P.plaza.z - 6 } : lm('cave')?.spot ? { x: (lm('cave').spot.x + P.plaza.x) / 2, z: (lm('cave').spot.z + P.plaza.z) / 2 } : { x: P.plaza.x - 9, z: P.plaza.z - 6 };
-      case 'race': return m.kind === 'encierro' && P.encierro ? { x: P.encierro[0].x + 5, z: P.encierro[0].z + 4 } : { x: P.spawn.x - 4, z: P.spawn.z - 20 };
+      case 'race': return m.kind === 'encierro' && P.encierro ? { x: P.encierro[0].x + 5, z: P.encierro[0].z + 4 } : m.kind === 'almadia' && lm('raft')?.spot ? { x: lm('raft').spot.x + 2, z: lm('raft').spot.z + 2 } : { x: P.spawn.x - 4, z: P.spawn.z - 20 };
       case 'observe': return lm('gorge')?.spot || P.edgeN;
       case 'pelota': return this.ensureFronton() ? { x: this.fronton.entry.x + 2, z: this.fronton.entry.z } : P.plaza;
       case 'summit': return { x: P.plaza.x + (P.edgeN ? (P.edgeN.x - P.plaza.x) * 0.25 : 10), z: P.plaza.z + (P.edgeN ? (P.edgeN.z - P.plaza.z) * 0.25 : -14) };
@@ -1141,6 +1142,7 @@ export class TownGame {
     for (const b of this.blasones || []) { b.mesh.geometry.dispose(); b.mesh.material.map?.dispose(); b.mesh.material.dispose(); }
     for (const c of this._carteles || []) c.userData.dispose?.();
     this._boc?.capa?.remove();
+    try { this.almadia?.cancela?.(); this.almadia?.dispose(); } catch (e) { } this.almadia = null;
     try { this.pajarillos?.dispose(); } catch (e) { } this.pajarillos = null;
     try { this.peces?.dispose(); } catch (e) { } this.peces = null;
     try { this.colada?.dispose(); } catch (e) { } this.colada = null;

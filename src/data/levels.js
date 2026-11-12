@@ -226,7 +226,7 @@ export const LEVELS = [
     missions: [
       { type: 'visit' },
       { type: 'race', kind: 'almadia', title: 'El Día de la Almadía', host: H('Almadiero', { shirt: '#ffffff', vest: '#2b2630', pants: '#2b2630', txapela: '#1d1d24', hair: '#6b4a2e', staff: true }),
-        text: 'Guía la almadía río abajo pasando por las boyas. ¡Cuidado con las piedras!' },
+        text: 'En el Día de la Almadía bajamos el Esca en una balsa de troncos, como los almadieros de antes. Hay que esquivar las peñas, entrar por el portillo de la presa y pasar por el ojo grande del puente.' },
       { type: 'trade', kind: 'aizkolari', title: 'Troncos para la almadía', host: H('Aizkolari', { shirt: '#ffffff', pants: '#ffffff', sash: '#2b2630', hair: '#2a1a12' }),
         text: 'Antes de montar la almadía hay que cortar y preparar los troncos.' },
       { type: 'quiz' },

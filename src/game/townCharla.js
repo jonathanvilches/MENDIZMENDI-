@@ -14,6 +14,7 @@ import { LEVELS } from '../data/levels.js';
 import { PROCESOS, TRADICIONES } from '../data/procesos.js';
 import { TAREAS } from './rutinas.js';
 import { TOWN } from '../world/townBuilder.js';
+import { MOD } from '../world/layout.js';
 import { addCard, addXP, checkBadges, saveProfile } from './profile.js';
 import { choiceGame, infoCard, sequenceGame, simonGame } from '../ui/minigames.js';
 import { greet, weatherNow } from './saludo.js';
@@ -174,6 +175,15 @@ export class PuebloCharla {
         return;
       }
       case 'race':
+        // (la almadía de Burgui: la bajada de verdad por el Esca, por la presa y el puente: almadia.js)
+        if (m.kind === 'almadia' && MOD.real?.presas) {
+          await S([m.text, 'Sube conmigo a la almadía. Yo voy delante, en la proa, y tú llevas el remo de popa. ¡Bajamos el Esca hasta el puente!']);
+          const { jugarAlmadia } = await import('./almadia.js');
+          const r = await jugarAlmadia(this, M, S);
+          if (this.disposed || r.salir || r.error) { if (r.salir) await S(['Cuando quieras, volvemos a subir a la almadía.']); return; }
+          M.step = 2; saveProfile(); await this.complete(M, { card: 'La almadía', cardText: 'Balsa de troncos atados con avellano que bajaba la madera del Pirineo por el Esca, el Aragón y el Ebro.' });
+          return;
+        }
         if (m.kind === 'encierro') {
           if (M.step === 2) { await S(['¡Has llegado a la plaza! Así se vive el encierro.']); await this.complete(M, { card: 'El encierro', cardText: m.text }); return; }
           await S([m.text, 'Recuerda: en la vida real solo pueden correr las personas mayores de 18 años. Aquí, en el juego, sí puedes probar. ¿Preparado? Vamos a la Estafeta.']);
