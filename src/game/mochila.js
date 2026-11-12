@@ -23,7 +23,7 @@ export class Mochila {
 
   // ---------- botón con anillo de energía (junto a la pausa) ----------
   button() {
-    // (va delante del botón de la pausa: el cuaderno, donde iba antes, está ahora dentro de la pausa)
+    // (va delante del botón de la pausa, al final de la barra de misiones; el cuaderno, donde iba antes, está dentro de la pausa)
     const book = document.getElementById('bMenu'); if (!book || document.getElementById('bBag')) { this.btn = document.getElementById('bBag'); this.paint(); return; }
     const b = document.createElement('button'); b.className = 'round bag'; b.id = 'bBag'; b.setAttribute('aria-label', 'Mochila (B)');
     b.innerHTML = `${iconSVG('backpack', 26)}<i class="ering"></i>`;

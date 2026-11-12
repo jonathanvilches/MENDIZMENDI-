@@ -1089,9 +1089,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   borde derecho, debajo del minimapa, y se quitó (noviembre de 2026: ahí no pintaba nada). Con él, la pausa del
   ordenador tiene cinco botones y en una pantalla baja, de 1280×720, va a dos columnas como en el móvil tumbado (si no,
   la ayuda de las teclas no cabía y había que desplazar). El mapa se abre tocando el
-  minimapa y, en el ordenador, con M. Arriba quedan la mochila (`mochila.js` la pone delante de la pausa), los
-  prismáticos cuando los tienes y la pausa. La rejilla de `#topright` tiene dos filas: botones y minimapa, y debajo de
-  los botones la distancia.
+  minimapa y, en el ordenador, con M.
+  En el pueblo, la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa van
+  al final de la barra de misiones (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las casillas por 12 px a
+  cada lado de una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla (noviembre de 2026, lo
+  pidió el autor: que se note la separación). Arriba a la derecha (`#topright.sin-b`) solo quedan el minimapa y, a su
+  izquierda, la distancia. `fitTop` (ui.js) decide la forma de la barra: en una fila si cabe; si no (móvil estrecho de
+  pie, o un pueblo de hasta 10 misiones como Pamplona), clase `.dos`: las casillas en dos filas y los botones en
+  columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa o a la distancia,
+  el minimapa baja debajo de ella (`top` en línea, con transición) y baja más cuando la misión se despliega; en el
+  pueblo la barra no se estrecha nunca. Un ResizeObserver en `#tl` vuelve a colocarlo todo. En la aventura de
+  Otsagabia los botones siguen arriba a la derecha (`.rbtns`), junto al minimapa.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
   desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de
   correr que se quedaba puesto; con el teclado sigue siendo Mayús y el mando del móvil conserva el suyo.

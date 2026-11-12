@@ -122,19 +122,20 @@ export class UI {
     this.destroyHUD();
     this.game = game;
     const town = game.kind === 'town';
+    // (los botones de arriba: en el pueblo, al final de la barra de misiones, detrás de una raya; en la aventura de
+    // Otsagabia, arriba a la derecha, junto al minimapa)
+    const botones = `<button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
+          <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>`;
     const h = el(`<div id="hud">
       ${town ? `<div id="tl" class="mis">
-        <div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div>
+        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><div id="mbtns">${botones}</div></div>
         <div id="quest" class="hidden"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div>
       </div>` : `<div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
         <div id="ribbons">${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span></div>
       </div>`}
-      <div id="topright">
-        <div class="rbtns">
-          <button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
-          <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
-        </div>
+      <div id="topright"${town ? ' class="sin-b"' : ''}>
+        ${town ? '' : `<div class="rbtns">${botones}</div>`}
         <div id="mini"><canvas width="248" height="248"></canvas></div>
         <div id="minfo"><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
       </div>
@@ -184,7 +185,7 @@ export class UI {
     this._fitTopR = () => this.queueFitTop(); addEventListener('resize', this._fitTopR);
     // (también la propia brújula: al salir de una escena con el panel oculto, aparece y se coloca; colocarla no cambia su
     // tamaño final, así que no se repite)
-    this.roTop = typeof ResizeObserver === 'function' ? new ResizeObserver(this._fitTopR) : null; this.roTop?.observe($('#topright .rbtns', h));
+    this.roTop = typeof ResizeObserver === 'function' ? new ResizeObserver(this._fitTopR) : null; this.roTop?.observe($(town ? '#tl' : '#topright .rbtns', h));
     this.queueFitTop();
   }
   queueFitTop() { clearTimeout(this._fitTopT); this._fitTopT = setTimeout(() => { this._fitTopT = 0; if (this.hud) this.fitTop(); }, 30); }
@@ -195,6 +196,18 @@ export class UI {
     const h = this.hud; if (!h) return;
     const T = $('#tl', h); if (!T) return;
     T.style.maxWidth = '';
+    // (en el pueblo, la barra de misiones con la mochila y la pausa al final: en una fila si cabe; si no, las casillas en
+    // dos filas y los botones en columna, como en el móvil tumbado pequeño. De pie, el minimapa baja debajo de la barra
+    // en vez de estrecharla; y vuelve a subir cuando cabe a su lado)
+    const R = $('#topright', h);
+    if (T.classList.contains('mis') && R) {
+      const dePie = matchMedia('(max-aspect-ratio: 1/1)').matches;
+      const choca = () => { const d = T.getBoundingClientRect().right + 8; return ['#mini', '#minfo'].some((q) => { const r = $(q, h)?.getBoundingClientRect(); return r && r.width > 0 && d > r.left; }); };
+      T.classList.remove('dos');
+      if (T.scrollWidth > T.clientWidth + 1 || (!dePie && choca())) T.classList.add('dos');
+      R.style.top = dePie && choca() ? Math.round(T.getBoundingClientRect().bottom + 8) + 'px' : '';
+      return;   // (la barra no se estrecha: sus casillas tienen ancho fijo y el texto de la misión ya toma el ancho del panel)
+    }
     const cajas = ['#topright .rbtns', '#mini', '#minfo'].map((s) => $(s, h)).filter(Boolean);
     for (const alto of [48, Infinity]) {
       const tr = T.getBoundingClientRect(); if (!tr.width) return;
