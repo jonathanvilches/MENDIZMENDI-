@@ -5,6 +5,7 @@
 // nuevo quita al anterior. No tapa nada que se toque (no recoge toques) y se anuncia a los lectores de pantalla.
 import './rotulo.css';
 import { cuenta } from './motion.js';
+import { cinetica } from './cinetica.js';
 import { esc } from '../util/html.js';
 
 let actual = null, tFuera = 0, tQuita = 0;
@@ -19,6 +20,8 @@ export function rotulo({ antetitulo = '', titulo = '', datos = [], icono = '', c
   r.innerHTML = `<i class="rt-barra"></i>${icono ? `<span class="rt-ic">${icono}</span>` : ''}<div class="rt-tx">${antetitulo ? `<span class="rt-k"><span>${esc(antetitulo)}</span></span>` : ''}`
     + `<span class="rt-t"><span>${esc(titulo)}</span></span>${datos.length ? `<span class="rt-d">${datos.map(dato).join('')}</span>` : ''}</div>`;
   document.body.appendChild(r); actual = r;
+  // (el antetítulo se junta y el título sube letra a letra, detrás del barrido de color; ui/cinetica.js)
+  cinetica(r.querySelector('.rt-k > span'), { estilo: 'junta', retardo: 110 }); cinetica(r.querySelector('.rt-t > span'), { estilo: 'sube', retardo: 420 });
   // (las cifras cuentan hasta su valor cuando su píldora aparece)
   r.querySelectorAll('[data-n]').forEach((b, i) => { const n = +b.dataset.n, u = b.dataset.u; setTimeout(() => cuenta(b, n, { dur: 900, fmt: (v) => Math.round(v).toLocaleString('es-ES') + (u ? ' ' + u : '') }), 380 + i * 70); });
   tFuera = setTimeout(() => { r.classList.add('fuera'); tQuita = setTimeout(() => { r.remove(); if (actual === r) actual = null; }, 300); }, ms);

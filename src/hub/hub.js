@@ -74,6 +74,7 @@ import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
 import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas, encima de todo: ui/neon.css)
 import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores, reducido } from '../ui/motion.js';
+import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -303,6 +304,7 @@ export class Hub {
       const [ant, sig] = this.vecinas(screen) || [];
       $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}"><kbd>Q</kbd><span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t">${I(n[2], 20)}<span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}"><span>${esc(sig[1])}</span><kbd>E</kbd></button>` : ''}`;
       $('#hCab', this.root).dataset.cat = kc(screen);
+      cinetica($('#hCab .cab-t > span', this.root), { estilo: 'sube', retardo: 60 });   // (el nombre de la sección, en la cabecera de la ventana)
     } else cierraMapa();
     m.dataset.cat = kc(screen);
     // (cambiar de sección: lo de dentro llega en cascada; si es la de al lado, desde ese lado, como al pasar una página. Q y E,
@@ -317,6 +319,7 @@ export class Hub {
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
     m.querySelectorAll('.lam-rail, .figuras.rail, .rail, .cstrip').forEach(inercia);   // (las filas de cartas, que se arrastran con el ratón con inercia)
     contadores(m);   // (las cifras que suben desde 0 al abrir la sección: lo descubierto, las cualidades, tu nivel; ui/motion.js)
+    titulosCineticos(m);   // (y los títulos y antetítulos, letra a letra, como los rótulos de la tele; ui/cinetica.js)
     this.renderChip();
   }
   // las secciones de antes y de después de una, en el orden del menú (sin el inicio, que es el mapa); null si no es una de ellas

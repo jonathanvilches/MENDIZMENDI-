@@ -146,6 +146,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   usa: allí los rótulos son otros y van con un fundido corto, como pidió el autor. Los títulos de las secciones del menú
   se destapan con una máscara de izquierda a derecha (`mascara`, un `clip-path`) y el antetítulo de las cabeceras entra
   deslizándose (`rotDesliza`), también dentro de la ventana del juego.
+- **Tipografía cinética** (`src/ui/cinetica.js` y `cinetica.css`; noviembre de 2026, con el encargo de motion graphics del
+  autor). Los títulos entran letra a letra (`cinetica`): cada palabra en su caja, que no se parte, y cada letra con su
+  retraso, como mucho medio segundo para el título entero. Tres maneras: `sube` (los títulos: desde abajo, con un pequeño
+  giro y un rebote corto), `junta` (los antetítulos: las letras llegan separadas y se juntan, como al cerrar el espaciado)
+  y `cae` (los nombres grandes: desde arriba y algo más grandes). El texto queda en `aria-label` y las letras, ocultas a
+  los lectores de pantalla; con «reducir movimiento», nada. Van en los títulos y antetítulos de cada sección del menú, de
+  la comarca y de su pueblo (`titulosCineticos`, desde `hub.js`), en el nombre de la sección de la cabecera de la ventana,
+  en la pantalla de carga (el nombre cae con su degradado, `degradado`, y la comarca se junta) y en el rótulo de la tele:
+  el antetítulo se junta, un barrido de su color cruza el título y, al recogerse, las letras suben desde detrás de la
+  máscara; al irse, salen hacia arriba una detrás de otra. En el partido de pelota, no: allí el autor quiere los rótulos sobrios.
 - **Cartas vivas** (`ui/motion.js`: `cartasVivas`, `continuidad`, `inercia`; `ui/cartas.css`; fase 3 del rediseño de la
   animación). Con ratón, la carta que tiene el puntero encima se inclina un poco hacia él (`--rx`, `--ry`, en la regla
   común de `identidad.css` y en la del menú de `consola.css`; sin ratón valen 0), una luz suave la sigue (`.luz`, un brillo

@@ -3,6 +3,7 @@
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
 import { HITZAK, HITZAK_TEMA, HITZAK_N, HIZKETAK, HIZKETAK_N, hizketaLines } from './data/hitzak.js';
 import { misionColor } from './data/misionCat.js';
+import { cinetica } from './ui/cinetica.js';
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
 import { clamp } from './util/math.js';
@@ -90,6 +91,8 @@ export class UI {
     $('.ld-pic figcaption', L).textContent = info.caption || '';
     $('.ld-k', L).textContent = info.comarca ? 'Comarca · ' + info.comarca : 'Navarra';
     $('.ld-name', L).textContent = title.split(' /')[0];
+    // (el nombre, letra a letra cayendo con su peso, y la comarca, juntándose; ui/cinetica.js)
+    { const nm = $('.ld-name', L); delete nm.dataset.cinTxt; nm.classList.add('degradado'); cinetica(nm, { estilo: 'cae', retardo: 160 }); const k = $('.ld-k', L); delete k.dataset.cinTxt; cinetica(k, { estilo: 'junta', retardo: 40 }); }
     $('.ld-intro', L).textContent = info.intro || '';
     const av = $('.ld-av', L); av.style.display = info.avatar ? '' : 'none'; if (info.avatar) av.src = info.avatar;
     // (las de tu edad y las que te quedan: antes contaba todas, aunque ya las hubieras hecho)

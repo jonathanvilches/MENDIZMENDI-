@@ -1,0 +1,31 @@
+/* ================= Tipografía cinética =================
+   Los títulos letra a letra (ui/cinetica.js). Cada palabra en su caja, que no se parte; cada letra entra con su
+   retraso (--k por --cin-p, después de --cin-d). Solo transform y opacity, con las curvas de ui/motion.css. */
+.cin .cw { display: inline-block; white-space: nowrap; }
+.cin .cl { display: inline-block; animation-duration: 560ms; animation-fill-mode: backwards; animation-delay: calc(var(--cin-d, 0ms) + var(--k, 0) * var(--cin-p, 22ms)); }
+/* (sube: desde abajo, con un pequeño giro, y se asienta con un rebote corto) */
+.cin.sube .cl { animation-name: cin-sube; animation-timing-function: var(--muelle, cubic-bezier(.34, 1.56, .64, 1)); }
+@keyframes cin-sube { from { opacity: 0; transform: translateY(.62em) rotate(7deg) scale(.86); } 55% { opacity: 1; } }
+/* (junta: las letras llegan separadas y se juntan, como cuando se cierra el espaciado de un antetítulo) */
+.cin.junta .cl { animation-name: cin-junta; animation-duration: 520ms; animation-timing-function: var(--ease, cubic-bezier(.22, 1, .36, 1)); }
+@keyframes cin-junta { from { opacity: 0; transform: translateX(calc(var(--o, 0) * .38em)); } }
+/* (cae: los nombres grandes, desde arriba y un poco más grandes, con su peso) */
+.cin.cae .cl { animation-name: cin-cae; animation-duration: 640ms; animation-timing-function: var(--muelle, cubic-bezier(.34, 1.56, .64, 1)); }
+@keyframes cin-cae { from { opacity: 0; transform: translateY(-.55em) scale(1.18); } 50% { opacity: 1; } }
+/* (las que llevan el texto con degradado: cada letra con el suyo, que es de arriba abajo y se ve igual) */
+.cin.degradado .cl { background: inherit; -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* (los títulos que antes se destapaban con una máscara, ahora letra a letra: sin la máscara) */
+.hub-main > .title.cin, #hub.juego .hub-main > .title.cin { animation: none; }
+#hub.juego .hub-main.cambia > .title.cin { animation: rise var(--d-pantalla) var(--ease) backwards; }
+#hub.juego:not([data-screen="home"]) .hub-cab .cab-t > span.cin { animation: none; }
+.hub-main :is(.ar-head, .sb-head, .frs-head) :is(h1, h2, .kicker, small).cin, #hub.juego .hub-main > .kicker.cin { animation: none; }
+/* el rótulo de la tele (ui/rotulo.css): un barrido de su color cruza el título y, al recogerse, deja las letras, que suben
+   desde detrás de la máscara; al irse, las letras salen hacia arriba una detrás de otra */
+.rt-k > span.cin, .rt-t > span.cin { animation: none; }
+.rt-t { position: relative; }
+.rt-t::after { content: ''; position: absolute; left: 0; right: 0; top: 10%; bottom: 8%; border-radius: 3px; background: var(--rt-c, #ff3fcf); transform: scaleX(0); transform-origin: 0 50%; pointer-events: none;
+  animation: rt-barrido 620ms var(--ease, cubic-bezier(.22, 1, .36, 1)) 160ms both; }
+@keyframes rt-barrido { 0% { transform: scaleX(0); transform-origin: 0 50%; } 48% { transform: scaleX(1); transform-origin: 0 50%; } 52% { transform: scaleX(1); transform-origin: 100% 50%; } 100% { transform: scaleX(0); transform-origin: 100% 50%; } }
+.rotulo.fuera .cin .cl { animation: cin-fuera 240ms var(--sale, ease-in) forwards; animation-delay: calc(var(--k, 0) * 8ms); }
+@keyframes cin-fuera { to { opacity: 0; transform: translateY(-.5em); } }
+@media (prefers-reduced-motion: reduce) { .cin .cl, .rt-t::after { animation: none !important; } }
