@@ -104,8 +104,12 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 // del mismo verde y con la misma luz, y Navarra no se distinguía)
 { vec2 nu = (vMun - uNavR.xy) / uNavR.zw; vec2 nm = nu.x < 0.0 || nu.y < 0.0 || nu.x > 1.0 || nu.y > 1.0 ? vec2(0.0) : texture2D(uNav, nu).rg;
   float fuera = (1.0 - nm.r) * uFuera, l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
-  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(0.84, 0.87, 1.0) * 0.64, fuera * 0.75);   // (desde noviembre de 2026, más apagado: Navarra se destaca más)
-  diffuseColor.rgb *= 1.0 - 0.5 * fuera * nm.g; }
+  // (desde el 12 de noviembre de 2026, oscuro y sin apenas contraste, de un añil como el del fondo: el relieve de fuera se
+  // sigue adivinando, pero ya no compite con el de Navarra. Antes era un gris con todas sus sombras, y de cerca, apagado
+  // a medias, se confundía con ella)
+  vec3 apag = vec3(0.105, 0.095, 0.16) + (l - 0.42) * vec3(0.26, 0.26, 0.32);
+  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * 0.92);
+  diffuseColor.rgb *= 1.0 - 0.45 * fuera * nm.g; }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
 // por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
 // Navarra, que va encima, se funde por transparencia en la de debajo)
@@ -1591,7 +1595,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // exageración los montes parecían agujas; y de muy cerca, el grano fino del terreno)
     // (y aún menos en la maqueta de un pueblo, donde ya casi es la de verdad)
     const exa = exaDe(v.d);
-    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); ANCHO_B.value = Math.max(0.004, v.d * 0.0026); FUERA.value = 0.4 + 0.6 * Math.min(1, Math.max(0, (v.d - 6) / 24)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
+    CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); ANCHO_B.value = Math.max(0.004, v.d * 0.0026); FUERA.value = 0.82 + 0.18 * Math.min(1, Math.max(0, (v.d - 6) / 24)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
     TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     const velC = Math.min(1, 0.15 + v.d / 3);
     for (const c of C) {

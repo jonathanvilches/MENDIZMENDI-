@@ -896,8 +896,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Navarra, que se distinga de lo de alrededor** (`hub/mapa3d.js`, el suelo de fuera y `contornoM`): el relieve de
   alrededor era del mismo verde y con la misma luz, y en la vista general Navarra no se distinguía.
   - Una máscara de Navarra (`NAV`: nítida en rojo y difuminada en verde, hecha dibujándola pequeña y agrandándola, sin
-    filtros del lienzo) apaga lo de fuera, algo más frío, y pone una sombra suave junto al borde, por fuera. Del todo en
-    la vista general (`FUERA`) y algo menos de cerca.
+    filtros del lienzo) apaga lo de fuera y pone una sombra suave junto al borde, por fuera. Desde el 12 de noviembre de
+    2026, lo de fuera va casi del todo a un añil oscuro como el del fondo, con su relieve a poco contraste: se adivina,
+    pero Navarra queda como una isla con luz. Casi igual de cerca que de lejos (`FUERA`, de 0,82 a 1). Antes era un gris
+    frío con todas sus sombras y, de cerca, apagado solo a medias (de 0,4), se confundía con Navarra.
   - El contorno de fuera de Navarra: una cinta clara sobre el borde de las losas, con otra oscura debajo que la recorta,
     del mismo ancho en pantalla a cualquier distancia (`ANCHO_B`). Solo los tramos que no dan a otra comarca; va con su
     comarca al levantarse.
