@@ -167,8 +167,11 @@ export function* ordenarCasasPasos(casas, o, cada = Infinity) {
     if (!libre(h)) continue;
     const c = { up: 0, um: 0, vp: 0, vm: 0 }, a0 = h.w * h.d, R = radio(h);
     for (const s of callesCerca(h.x, h.z) || []) {
-      if (!urbana(s.L)) continue;
-      const r = rCalle(s.L); if (segDist(h.x, h.z, s.a[0], s.a[1], s.b[0], s.b[1]).d > R + r) continue;
+      // (un camino de tierra solo cuenta si pasa por en medio de la casa: en Irulegi una caseta quedaba en mitad del
+      // cruce de dos caminos. Si solo la roza, como en las bordas, se queda como está)
+      const dc = segDist(h.x, h.z, s.a[0], s.a[1], s.b[0], s.b[1]).d;
+      if (!urbana(s.L) && dc > Math.min(h.w, h.d) / 2) continue;
+      const r = rCalle(s.L); if (dc > R + r) continue;
       recorte(h, s.a, s.b, r, c);
     }
     for (const P of puentes) {
