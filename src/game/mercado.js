@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import { Actor } from '../actors/people.js';
 import { addBox, isFree } from '../world/colliders.js';
 import { groundHeight, onPlatform, waterLevelAt } from '../world/heightfield.js';
-import { PLACES } from '../world/layout.js';
+import { PLACES, riverInfo } from '../world/layout.js';
 import { PRODUCTS, crateOf, mergeByMaterial } from '../world/products3d.js';
 
 // puestos según la comarca (la huerta cambia: espárragos y alcachofas en la Ribera, piquillos en Tierra Estella…)
@@ -47,6 +47,11 @@ export class Mercado {
       // (ni en el agua, ni el puesto ni quien vende detrás: en Roncal la plaza da al Esca y la hortelana quedaba en el río)
       const ry = Math.atan2(c.x - x, c.z - z), wet = (px, pz) => waterLevelAt(px, pz) > groundHeight(px, pz) - 0.3;
       if (wet(x, z) || wet(x - Math.sin(ry) * 1.6, z - Math.cos(ry) * 1.6) || wet(x + Math.cos(ry) * 1.4, z - Math.sin(ry) * 1.4) || wet(x - Math.cos(ry) * 1.4, z + Math.sin(ry) * 1.4)) continue;
+      // (y en suelo llano, lejos de la orilla: la mesa, los postes y quien vende detrás, a la misma altura. En Roncal uno
+      // quedaba en el talud del Esca, con dos patas al aire; noviembre de 2026)
+      const esq = [[0, 0], [-1.5, -0.7], [1.5, -0.7], [-1.5, 0.8], [1.5, 0.8], [0, -1.6]].map(([u, v]) => [x + Math.cos(ry) * u + Math.sin(ry) * v, z - Math.sin(ry) * u + Math.cos(ry) * v]);
+      const hs = esq.map(([px, pz]) => groundHeight(px, pz));
+      if (Math.max(...hs) - Math.min(...hs) > 0.3 || esq.some(([px, pz]) => (riverInfo?.(px, pz)?.edge ?? 99) < 2.5)) continue;
       const S = list[placed++], y = groundHeight(x, z);
       const st = new THREE.Group(); st.position.set(x, y, z); st.rotation.y = ry;
       const add = (o) => { st.add(o); return o; };
