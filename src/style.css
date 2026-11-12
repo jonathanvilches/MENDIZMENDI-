@@ -247,10 +247,7 @@ summary { line-height: 1.3; }
 #tl.mis #quest { width: 0; min-width: 100%; }
 @media (max-height: 520px) { #tl.mis { --chip: 28px; } }
 /* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
-@media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); justify-content: space-between; } }
-/* (y en cualquier tamaño, si no caben junto al minimapa: ui.js, fitTop. En dos filas, las columnas repartidas por el ancho
-   del panel, que tiene un mínimo para la misión desplegada: antes quedaban a la izquierda con un hueco a la derecha) */
-#tl.mis.dos #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); justify-content: space-between; }
+@media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
 @media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 36px; min-width: 260px; } #tl.mis #misiones { gap: 8px; } }
 #misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 6px; }
 /* (cada casilla, el icono sobre un fondo sólido del color de su categoría: con el 16 % del color y el borde, que los
@@ -399,10 +396,12 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 @media (max-aspect-ratio: 1/1) {
   /* (sin la barra de la brújula, la misión y los botones suben arriba; el minimapa, con la brújula en su borde, va debajo
      de la columna de botones: antes en el teléfono de pie no había minimapa) */
-  /* (de pie: el minimapa en la esquina, la fila de botones debajo y debajo la hora y la distancia; antes los botones iban
-     en columna y luego el minimapa, hasta casi media pantalla) */
-  #topright { grid-template-columns: auto; grid-template-areas: "mini" "btns" "info"; }
-  #tl { max-width: calc(calc(100vw / var(--z, 1)) - 140px); }   /* (hasta el minimapa: lo que queda a su izquierda arriba) */
+  /* (de pie: los botones en columna en el margen derecho, que arriba no quitan sitio a las misiones; debajo el minimapa y,
+     a su izquierda, la hora y la distancia una encima de otra, en vez de colgar debajo) */
+  #topright { grid-template-areas: ". btns" "info mini"; }
+  .rbtns { flex-direction: column; }
+  #minfo { flex-direction: column; align-items: flex-end; align-self: center; }
+  #tl { max-width: calc(calc(100vw / var(--z, 1)) - 90px); }
   #mini { width: 100px; height: 100px; }
   #lane { top: auto; bottom: calc(var(--sb) + 236px); flex-direction: column-reverse; }
   #mg { top: calc(var(--st) + 140px); }

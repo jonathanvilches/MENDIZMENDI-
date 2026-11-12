@@ -1056,12 +1056,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   deja su sitio; nada se monta). La hora y la distancia, en dos pastillas juntas (`#minfo`).
   Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
   una barra arriba en el centro y en el teléfono de pie no había minimapa.
-  El bloque de arriba a la derecha (`#topright`) es una rejilla: el minimapa en la esquina; tumbado, la fila de botones a
-  su izquierda y debajo de ella las dos pastillas; de pie, debajo del minimapa la fila de botones y debajo las pastillas.
-  Antes iba todo en columna (botones, minimapa y la hora colgando) y bajaba hasta y 184 en un teléfono tumbado de 390 de
-  alto (ahora 108) y hasta y 356 de pie (ahora 197). Los huecos de la rejilla no recogen toques. El panel de arriba a la
-  izquierda se ajusta a lo de la derecha en dos pasadas (`fitTop`: primero con lo que tiene al lado arriba del todo,
-  luego con todo); el de las misiones, si no cabe, pasa a dos filas de casillas repartidas por su ancho (`.dos`).
+  El bloque de arriba a la derecha (`#topright`) es una rejilla. Tumbado: el minimapa en la esquina, la fila de botones a
+  su izquierda y debajo de ella las dos pastillas; antes iba todo en columna (botones, minimapa y la hora colgando) y
+  bajaba hasta y 184 en un teléfono tumbado de 390 de alto (ahora 108). De pie: los botones en columna en el margen
+  derecho, que arriba no quitan sitio a las misiones (siguen en una fila, como estaban: el autor no quiere que se
+  toquen), debajo el minimapa y a su izquierda las dos pastillas, una encima de otra (hasta y 324 con cuatro botones;
+  antes 356). Los huecos de la rejilla no recogen toques. El panel de arriba a la izquierda se ajusta a lo de la derecha
+  en dos pasadas (`fitTop`: primero con lo que tiene al lado arriba del todo, luego con todo).
   El anillo es un camino de dos vueltas justas (de 0 a 2π, la de dentro al revés): con arcos de 0 a 7 radianes, la de
   dentro se quedaba 41° corta y por el hueco se veía una cuña del mapa sobre el anillo, a la derecha, debajo de la N.
   Lo que va en el anillo se aparta por lo que mide de verdad (`hueco`, `ang`): cada letra con su ancho medido, cada icono

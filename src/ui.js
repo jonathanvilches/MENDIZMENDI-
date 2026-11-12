@@ -195,22 +195,19 @@ export class UI {
   }
   queueFitTop() { clearTimeout(this._fitTopT); this._fitTopT = setTimeout(() => { this._fitTopT = 0; if (this.hud) this.fitTop(); }, 30); }
   // El panel de arriba a la izquierda no llega a lo de la derecha (los botones, el minimapa y la hora, cada uno con su caja:
-  // la de todo el bloque tiene huecos). Si llegara: el de las misiones del pueblo pasa a dos filas de casillas (estrecharlo
-  // sacaría las casillas del panel); el de la misión con texto se estrecha y el texto pasa a otra línea
-  // Dos pasadas: primero solo con lo que tiene a su lado arriba del todo (de pie, el minimapa) y luego, ya estrechado, con
-  // todo. Si no, el panel de texto, que de pie a todo lo ancho es alto, se medía también con la fila de botones de debajo
-  // del minimapa y se quedaba en 140 px, con las palabras partidas
+  // la de todo el bloque tiene huecos); si llegara, se estrecha y su texto pasa a otra línea. Dos pasadas: primero solo con
+  // lo que tiene a su lado arriba del todo y luego, ya estrechado, con todo (un panel alto no se mide con lo de más abajo)
   fitTop() {
     const h = this.hud; if (!h) return;
     const T = $('#tl', h); if (!T) return;
-    T.style.maxWidth = ''; T.classList.remove('dos');
+    T.style.maxWidth = '';
     const cajas = ['#topright .rbtns', '#mini', '#minfo'].map((s) => $(s, h)).filter(Boolean);
     for (const alto of [48, Infinity]) {
       const tr = T.getBoundingClientRect(); if (!tr.width) return;
       const abajo = Math.min(tr.bottom, tr.top + alto); let lim = Infinity;
       for (const e of cajas) { const r = e.getBoundingClientRect(); if (r.width && r.bottom > tr.top && r.top < abajo) lim = Math.min(lim, r.left); }
       if (tr.right <= lim - 8) continue;
-      if (T.classList.contains('mis')) T.classList.add('dos'); else T.style.maxWidth = Math.max(140, lim - 8 - tr.left) + 'px';
+      T.style.maxWidth = Math.max(140, lim - 8 - tr.left) + 'px';
     }
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
