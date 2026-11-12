@@ -14,6 +14,9 @@
   color: #fff; pointer-events: none; animation: rt-caja var(--d-panel, 380ms) var(--muelle) both; }
 @keyframes rt-caja { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.98); } }
 .rotulo.fuera { animation: rt-fuera 260ms var(--sale) forwards; }
+/* (con una ventana abierta encima del juego, la pausa, el cuaderno o el mapa, el rótulo no se ve: iba por encima de ellas
+   y, si se abría la pausa nada más llegar, el «Nueva comarca» del pueblo tapaba sus botones) */
+body:has(> .screen) > .rotulo { visibility: hidden; }
 @keyframes rt-fuera { to { opacity: 0; transform: translateX(-50%) translateY(-8px); } }
 /* la línea de color de la izquierda, que se dibuja de arriba abajo */
 .rt-barra { flex: none; width: 4px; border-radius: 2px; background: var(--rt-c, #ff3fcf); transform-origin: 50% 0; animation: rt-barra var(--d-entra, 300ms) var(--ease) 60ms both; }

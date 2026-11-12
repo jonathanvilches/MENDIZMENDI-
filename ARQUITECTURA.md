@@ -137,7 +137,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   los momentos con nombre, sobrio, como los de una retransmisión: una línea de color que se dibuja de arriba abajo, el
   antetítulo que entra deslizándose, el título que sube desde detrás de una máscara (su caja corta lo que sobresale) y
   los datos debajo, uno detrás de otro; las cifras cuentan hasta su valor (`cuenta`, motion.js). Uno a la vez, sin recoger
-  toques y anunciado a los lectores de pantalla. Va en el centro, debajo de la línea de los avisos y entre el panel de las
+  toques y anunciado a los lectores de pantalla. Con una ventana abierta encima del juego (la pausa, el cuaderno, el mapa:
+  `body > .screen`) no se ve; antes iba por encima y, abriendo la pausa nada más llegar, tapaba sus botones. Va en el centro, debajo de la línea de los avisos y entre el panel de las
   misiones y el minimapa (en el móvil tumbado, debajo del panel de las misiones). Sale al llegar a un pueblo (la comarca
   encima, el pueblo y sus misiones; la primera vez en una comarca, «Nueva comarca», en amarillo), en la cima (su nombre,
   la altura que cuenta y la dificultad de 1 a 4 con puntos), con cada pueblo que se ve desde la cumbre (hacia dónde queda
