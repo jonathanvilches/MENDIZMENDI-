@@ -131,8 +131,8 @@ export class UI {
     const botones = `<button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>`;
     const h = el(`<div id="hud">
-      ${town ? `<div id="tl" class="mis">
-        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><div id="mbtns">${botones}</div></div>
+      ${town ? `<div id="tlb">${botones}</div><div id="tl" class="mis">
+        <div id="misiones" role="toolbar" aria-orientation="vertical" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div>
         <div id="quest" class="hidden" role="dialog"><span class="mc-ic"></span><div class="mc-tx"><small></small><b class="mc-tit"></b><p class="qt"></p><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
       </div>` : `<div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
@@ -202,17 +202,19 @@ export class UI {
     const h = this.hud; if (!h) return;
     const T = $('#tl', h); if (!T) return;
     T.style.maxWidth = '';
-    // (en el pueblo, la barra de misiones con la mochila y la pausa al final: en una fila si cabe; si no, las casillas en
-    // dos filas y los botones en columna, como en el móvil tumbado pequeño. De pie, el minimapa baja debajo de la barra
-    // en vez de estrecharla; y vuelve a subir cuando cabe a su lado)
+    // (en el pueblo, las misiones en columna por el margen derecho, debajo del minimapa y sin llegar a los botones de abajo
+    // (saltar y la mano): las filas que caben; si no caben todas, siguen en otra columna hacia dentro, como en el móvil
+    // tumbado. 12 de noviembre de 2026; antes, una barra arriba a la izquierda con la mochila y la pausa al final)
     const R = $('#topright', h);
     if (T.classList.contains('mis') && R) {
-      const dePie = matchMedia('(max-aspect-ratio: 1/1)').matches;
-      const choca = () => { const d = T.getBoundingClientRect().right + 8; return ['#mini'].some((q) => { const r = $(q, h)?.getBoundingClientRect(); return r && r.width > 0 && d > r.left; }); };
-      T.classList.remove('dos');
-      if (T.scrollWidth > T.clientWidth + 1 || (!dePie && choca())) T.classList.add('dos');
-      R.style.top = dePie && choca() ? Math.round(T.getBoundingClientRect().bottom + 8) + 'px' : '';
-      return;   // (la barra no se estrecha: sus casillas tienen ancho fijo y el texto de la misión ya toma el ancho del panel)
+      R.style.top = '';
+      const mini = $('#mini', h)?.getBoundingClientRect(), tr = R.getBoundingClientRect(), C = $('#controls', h), ctl = C && getComputedStyle(C).display !== 'none' ? C.getBoundingClientRect() : null;
+      const top = Math.round((mini && mini.height ? mini.bottom : tr.bottom) + 12), bajo = ctl && ctl.height ? ctl.top - 12 : innerHeight - 16;
+      const M = $('#misiones', T), cs = getComputedStyle(T), chip = parseFloat(cs.getPropertyValue('--chip')) || 40, gap = 8, pad = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+      const filas = Math.max(2, Math.floor((bajo - top - pad + gap) / (chip + gap)));
+      T.style.top = top + 'px'; M.style.setProperty('--filas', Math.min(this.game?.missions?.length || 8, filas));
+      if (this.misAbierta != null) this.colocaMision(this.misAbierta);
+      return;
     }
     const cajas = ['#topright .rbtns', '#mini'].map((s) => $(s, h)).filter(Boolean);
     for (const alto of [48, Infinity]) {
@@ -247,10 +249,10 @@ export class UI {
   }
 
   // ---------- las misiones del pueblo: sus iconos y, al tocar uno, la misión ----------
-  // Arriba a la izquierda van los cuadrados de las misiones del pueblo (las hechas, llenas de su color y con su marca; la que
-  // sigues, con borde blanco), con la mochila y la pausa al final. Al tocar uno, esa pasa a ser la que sigues (la brújula y
-  // la luz dorada van a ella) y se despliega debajo lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo
-  // lejos que está. Se recoge sola a los 10 s, tocando otra vez su cuadrado o tocando la pantalla fuera de la barra; tocando el texto, el cuaderno. Nunca se
+  // En el margen derecho, en columna debajo del minimapa, van los cuadrados de las misiones del pueblo (las hechas, llenas de
+  // su color y con su marca; la que sigues, con borde blanco); la mochila, los prismáticos y la pausa, sueltos arriba a la
+  // izquierda. Al tocar uno, esa pasa a ser la que sigues (la brújula y la luz dorada van a ella) y sale deslizándose a su
+  // izquierda lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo lejos que está. Se recoge sola a los 10 s, tocando otra vez su cuadrado o tocando la pantalla fuera de la barra; tocando el texto, el cuaderno. Nunca se
   // despliega sola (noviembre de 2026: abierta siempre cargaba demasiado el visor); cuando cambia lo que toca hacer, solo
   // late el cuadrado de la misión
   eligeMision(i) {
@@ -262,10 +264,21 @@ export class UI {
   lateMision(i) { const b = this.hud?.querySelector(`#misiones button[data-m="${i}"]`); if (!b) return; b.classList.remove('late'); void b.offsetWidth; b.classList.add('late'); }
   abreMision(i, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;
-    const Q = $('#quest', T), b = $(`#misiones button[data-m="${i}"]`, T);
-    if (b) Q.style.setProperty('--px', Math.round(b.offsetLeft + b.offsetWidth / 2) + 'px');   // (la flechita de la tarjeta, debajo de su casilla)
-    this.misAbierta = i; Q.classList.remove('hidden'); this.pintaMision(i); this.refreshDots();
+    const Q = $('#quest', T);
+    this.misAbierta = i; Q.classList.remove('hidden'); this.pintaMision(i); this.colocaMision(i); this.refreshDots();
+    // (sale deslizándose desde su casilla; se vuelve a poner la animación cada vez que se abre otra)
+    Q.classList.remove('entra'); void Q.offsetWidth; Q.classList.add('entra');
     clearTimeout(this.tlT); this.tlT = ms ? setTimeout(() => this.cierraMision(), ms) : 0;
+  }
+  // (la tarjeta de la misión, a la izquierda de la columna: a la altura de su casilla, con la flechita apuntándola, sin salirse
+  // de la pantalla por arriba ni por abajo, y tan ancha como quepa hasta el borde izquierdo, 320 px como mucho)
+  colocaMision(i) {
+    const T = this.hud && $('#tl', this.hud), b = T && $(`#misiones button[data-m="${i}"]`, T); if (!b) return;
+    const Q = $('#quest', T), tr = T.getBoundingClientRect(), br = b.getBoundingClientRect();
+    Q.style.setProperty('--qw', Math.max(200, Math.min(320, Math.round(tr.left - 12 - 16))) + 'px');
+    const qh = Q.offsetHeight, mid = br.top + br.height / 2 - tr.top;
+    const y = Math.max(16 - tr.top, Math.min(mid - 28, innerHeight - 16 - qh - tr.top));
+    Q.style.setProperty('--qy', Math.round(y) + 'px'); Q.style.setProperty('--py', Math.round(Math.max(14, Math.min(qh - 14, mid - y))) + 'px');
   }
   // (se recoge: solo quedan los cuadrados)
   cierraMision() {

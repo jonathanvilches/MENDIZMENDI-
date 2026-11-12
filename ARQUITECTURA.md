@@ -1140,23 +1140,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ordenador tiene cinco botones y en una pantalla baja, de 1280×720, va a dos columnas como en el móvil tumbado (si no,
   la ayuda de las teclas no cabía y había que desplazar). El mapa se abre tocando el
   minimapa y, en el ordenador, con M.
-  En el pueblo, la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa van
-  al final de la barra de misiones (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las casillas por 12 px a
-  cada lado de una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla (noviembre de 2026, lo
-  pidió el autor: que se note la separación). Las casillas, algo más grandes y separadas desde el 12 de noviembre de 2026
-  (34 px con 8 de hueco; 32 en el móvil tumbado y 42 con 10 en el ordenador; antes 30, 28 y 36 con 6). Al tocar una
-  misión, su tarjeta sale suelta debajo de la barra (`#tl.mis #quest`, en posición absoluta, con una flechita hacia su
-  casilla, `--px`): el icono en el color de su categoría, la categoría y cuál es de las del pueblo (o «Hecha»), su
-  nombre, lo que toca hacer, sus pasos y lo lejos que está; antes se desplegaba dentro de la barra, que crecía. El autor
-  pidió llevar la barra al margen derecho y enseguida que no se moviera nada: se quedó en su sitio. Los corazones
-  (`aventuraHud.js`, `coloca`) van arriba en el centro; si pisan la barra, centrados en el hueco entre la barra y el
-  minimapa, y si no caben, debajo de la barra, apartados mientras la tarjeta está abierta. Arriba a la derecha
-  (`#topright.sin-b`) solo queda el minimapa. Durante unos minutos la barra fue abajo en el centro, desplegándose hacia arriba, y el autor
-  prefirió volver a tenerla arriba a la izquierda (noviembre de 2026). `fitTop` (ui.js) decide la forma de la barra: en una fila si cabe; si no (móvil estrecho de
-  pie, o un pueblo de hasta 10 misiones como Pamplona), clase `.dos`: las casillas en dos filas y los botones en
-  columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa,
-  el minimapa baja debajo de ella (`top` en línea, con transición) y baja más cuando la misión se despliega; en el
-  pueblo la barra no se estrecha nunca. Un ResizeObserver en `#tl` vuelve a colocarlo todo. En la aventura de
+  En el pueblo (12 de noviembre de 2026, lo pidió el autor), la mochila (`mochila.js` la pone delante de la pausa), los
+  prismáticos cuando los tienes y la pausa van sueltos arriba a la izquierda (`#tlb`), redondos de 48 px (52 en el
+  ordenador), oscuros y sin sombra, como los del partido de pelota. Las misiones van en columna por el margen derecho
+  (`#tl.mis`), debajo del minimapa y sin llegar a los botones de saltar y de la mano: `fitTop` pone su altura y cuántas
+  filas caben (`--filas`); si no caben todas, siguen en otra columna hacia dentro (`grid-auto-flow: column` con
+  `direction: rtl`): en el móvil tumbado, tres columnas cortas; de pie y en el ordenador, una sola. Las casillas, de 40 px
+  con 8 de hueco (36 en el tumbado pequeño, 48 con 10 en el ordenador). Al tocar una misión, su tarjeta sale deslizándose
+  a la izquierda de la columna (`#tl.mis #quest`, clase `entra`), a la altura de su casilla y con una flechita hacia ella
+  (`colocaMision`: `--qy`, `--py` y su ancho, `--qw`, hasta 320 px y sin salirse de la pantalla): el icono en el color de
+  su categoría, la categoría y cuál es de las del pueblo (o «Hecha»), su nombre, lo que toca hacer, sus pasos y lo lejos
+  que está. Antes, del 10 al 12 de noviembre, una barra arriba a la izquierda con la mochila y la pausa al final y la
+  tarjeta debajo. Los corazones (`aventuraHud.js`, `coloca`) van arriba en el centro; si pisan los botones de la
+  izquierda, centrados en el hueco entre ellos y el minimapa, y si no caben, debajo de los botones. Arriba a la derecha
+  (`#topright.sin-b`) solo queda el minimapa, siempre en su sitio. El rótulo de llegada (`rotulo.js`, `coloca`) se aparta
+  de la columna y de los botones. Un ResizeObserver en `#tl` y el cambio de tamaño de la pantalla vuelven a colocarlo
+  todo. En la aventura de
   Otsagabia los botones siguen arriba a la derecha (`.rbtns`), junto al minimapa.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
   desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de

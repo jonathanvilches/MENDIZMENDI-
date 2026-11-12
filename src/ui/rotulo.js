@@ -36,7 +36,7 @@ export function rotulo({ antetitulo = '', titulo = '', datos = [], icono = '', c
 function coloca(r) {
   const W = innerWidth, borde = 16, hud = document.getElementById('hud');
   const obst = hud && getComputedStyle(hud).display !== 'none'
-    ? ['#tl', '#mini', '#topright .rbtns'].map((q) => hud.querySelector(q)?.getBoundingClientRect()).filter((q) => q && q.width > 0 && q.height > 0) : [];
+    ? ['#tl', '#tlb', '#mini', '#topright .rbtns'].map((q) => hud.querySelector(q)?.getBoundingClientRect()).filter((q) => q && q.width > 0 && q.height > 0) : [];
   r.style.maxWidth = Math.min(560, W - 2 * borde) + 'px';
   // (lo que pide el texto, sin el ancho mínimo: si al lado de algo cabe el texto pero no el ancho mínimo, se estrecha el
   // mínimo en vez de bajar el rótulo)
