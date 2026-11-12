@@ -401,7 +401,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador con el menú dentro: su último
   tramo, con el mismo fondo y el mismo filete fucsia, separado por una raya fina, con el icono de pausa y debajo los
   descansos que te quedan (noviembre de 2026; antes era un botón redondo suelto a su derecha, con el número en una esquina).
-  El filete y la raya del botón van en sombra por dentro, porque los botones no llevan borde de color (`ui/neon.css`). En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro, una
+  Es una sola pieza (12 de noviembre de 2026): el fondo, el filete fucsia de arriba, las esquinas y la sombra son de `.pel-top`, que es
+  quien está en las listas de esquinas y sombras de `ui/neon.css`, y el marcador y el botón del menú van sin fondo, borde ni
+  sombra propios; entre los dos, solo una raya fina por dentro. Antes cada trozo llevaba lo suyo y se notaba la costura: el
+  marcador redondo por dentro, su sombra encima del botón y el filete del botón curvado en su esquina. En la repetición y
+  con un panel delante, el botón se queda en su sitio, apagado y sin tocar. La ventana de pausa, fija a la pantalla, no la
+  recorta la pieza. En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro, una
   sola barra: su energía, en dorado, naranja y luego roja parpadeando al cansarse; por parejas, la media de los dos.
   Delante de la barra, un rayo de su mismo color, para que se sepa que es la energía, en el borde de fuera de cada lado,
   como en espejo (`.ps-ico`). Los dos nombres van enteros y a la misma letra: si uno no cabe, los dos bajan a la vez,
