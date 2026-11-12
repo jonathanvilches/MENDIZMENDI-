@@ -693,7 +693,12 @@ export class UI {
   distancia(player, target, camYaw = 0) {
     const e = this.questEls?.cdist; if (!e) return;
     if (!target) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
-    const dx = target.x - player.pos.x, dz = target.z - player.pos.z, t = Math.round(Math.hypot(dx, dz)) + ' m';
+    const dx = target.x - player.pos.x, dz = target.z - player.pos.z, d = Math.hypot(dx, dz), t = Math.round(d) + ' m';
+    // (de cerca la pastilla sobra: la flecha grande ya está encima del objetivo y la punta del anillo señala hacia él. Sale
+    // solo de lejos, a más de 25 m, cuando la flecha aún no se ve, o si el objetivo no lleva flecha; con margen para que no
+    // parpadee en el límite)
+    e._lejos = !!target.noArrow || d > (e._lejos ? 23 : 26);
+    if (!e._lejos) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
     if (e._t !== t) { e._t = t; (e._b ||= e.querySelector('.cd-t') || e).textContent = t; }
     const cs = Math.cos(camYaw), sn = Math.sin(camYaw), a = Math.round(Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)) * 180 / Math.PI / 3) * 3;
     // (el giro, en la propia flecha: con una variable en la pastilla, el navegador no siempre volvía a pintar el dibujo)

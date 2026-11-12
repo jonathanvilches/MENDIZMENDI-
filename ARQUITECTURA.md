@@ -1054,7 +1054,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#cdist`, `#clock`): el mapa gira con la
   cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
   misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra
-  deja su sitio; nada se monta). La distancia, en una pastilla junto al minimapa (`#minfo`). La hora no va en la pantalla
+  deja su sitio; nada se monta). La distancia, en una pastilla junto al minimapa (`#minfo`), solo de lejos: a más de 25 m
+  (sale a los 26 y se va a los 23, para que no parpadee), cuando la flecha grande del objetivo aún no se ve, o si el
+  objetivo no lleva flecha; de cerca ya lo marcan la flecha y la punta del anillo. La hora no va en la pantalla
   de juego: se ve en la cabecera del mapa y de la pausa (`horaChip`; `setClock` la guarda y la pone al día si están
   abiertos).
   Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
