@@ -1113,7 +1113,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   En el pueblo, la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa van
   al final de la barra de misiones (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las casillas por 12 px a
   cada lado de una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla (noviembre de 2026, lo
-  pidió el autor: que se note la separación). Arriba a la derecha (`#topright.sin-b`) solo queda el minimapa. Durante unos minutos la barra fue abajo en el centro, desplegándose hacia arriba, y el autor
+  pidió el autor: que se note la separación). Las casillas, algo más grandes y separadas desde el 12 de noviembre de 2026
+  (34 px con 8 de hueco; 32 en el móvil tumbado y 42 con 10 en el ordenador; antes 30, 28 y 36 con 6). Al tocar una
+  misión, su tarjeta sale suelta debajo de la barra (`#tl.mis #quest`, en posición absoluta, con una flechita hacia su
+  casilla, `--px`): el icono en el color de su categoría, la categoría y cuál es de las del pueblo (o «Hecha»), su
+  nombre, lo que toca hacer, sus pasos y lo lejos que está; antes se desplegaba dentro de la barra, que crecía. El autor
+  pidió llevar la barra al margen derecho y enseguida que no se moviera nada: se quedó en su sitio. Los corazones
+  (`aventuraHud.js`, `coloca`) van arriba en el centro; si pisan la barra, centrados en el hueco entre la barra y el
+  minimapa, y si no caben, debajo de la barra, apartados mientras la tarjeta está abierta. Arriba a la derecha
+  (`#topright.sin-b`) solo queda el minimapa. Durante unos minutos la barra fue abajo en el centro, desplegándose hacia arriba, y el autor
   prefirió volver a tenerla arriba a la izquierda (noviembre de 2026). `fitTop` (ui.js) decide la forma de la barra: en una fila si cabe; si no (móvil estrecho de
   pie, o un pueblo de hasta 10 misiones como Pamplona), clase `.dos`: las casillas en dos filas y los botones en
   columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa,

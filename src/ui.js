@@ -2,7 +2,7 @@
 // Todos los iconos son de la familia del juego: los horneados (src/assets/icons3d) y, si falta alguno, los dibujos de src/ui/icons.js.
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, EGUZKILORES } from './game/content.js';
 import { HITZAK, HITZAK_TEMA, HITZAK_N, HIZKETAK, HIZKETAK_N, hizketaLines } from './data/hitzak.js';
-import { misionColor } from './data/misionCat.js';
+import { misionColor, CAT } from './data/misionCat.js';
 import { cinetica } from './ui/cinetica.js';
 import { HALF, N, PLACES } from './world/layout.js';
 import { H, SURF } from './world/heightfield.js';
@@ -11,7 +11,7 @@ import { iconSVG, iconImage, flecha } from './ui/icons.js';
 import { icon3DReady } from './ui/icon3d.js';
 import { vecinoSrc } from './ui/pelotariFig.js';
 import { mountMapView } from './ui/mapview.js';
-import { tr } from './i18n.js';
+import { tr, isEU } from './i18n.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
 import { esc, el } from './util/html.js';
 import { windowKeys } from './util/keys.js';
@@ -22,6 +22,9 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
 // (lo que dura desplegada una misión del pueblo al tocar su cuadrado, si no se vuelve a tocar)
 const ABIERTA_MS = 10000;
+// (los nombres de las categorías de las misiones, data/misionCat.js, para la tarjeta de la misión)
+const CAT_ES = { pat: 'Patrimonio', ofi: 'Oficios', cam: 'Campo', fie: 'Fiestas', ley: 'Leyendas', sab: 'Saberes', dep: 'Deporte' };
+const CAT_EU = { pat: 'Ondarea', ofi: 'Ofizioak', cam: 'Landa', fie: 'Jaiak', ley: 'Kondairak', sab: 'Jakintzak', dep: 'Kirola' };
 
 // (la flecha fina del botón que pliega y despliega las misiones del pueblo, como la del menú del inicio)
 // las misiones del pueblo, arriba a la izquierda: en el móvil, plegadas (solo la misión de ahora, con lo hecho en su
@@ -129,7 +132,7 @@ export class UI {
     const h = el(`<div id="hud">
       ${town ? `<div id="tl" class="mis">
         <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><div id="mbtns">${botones}</div></div>
-        <div id="quest" class="hidden"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div>
+        <div id="quest" class="hidden" role="dialog"><span class="mc-ic"></span><div class="mc-tx"><small></small><b class="mc-tit"></b><p class="qt"></p><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
       </div>` : `<div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
         <div id="ribbons">${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span></div>
@@ -180,7 +183,7 @@ export class UI {
     this.ro?.disconnect();
     this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(es => { for (const e of es) this.boxes.set(e.target, [e.contentRect.width, e.contentRect.height]); this.hudSig = {}; this.miniSig = null; }) : null;
     if (this.ro) this.ro.observe(this.mini.canvas);
-    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h) };
+    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), tit: $('#quest .mc-tit', h), ic: $('#quest .mc-ic', h) };
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
     // la brújula se recoloca al cambiar la pantalla, el texto de la misión o los botones (la mochila, los prismáticos)
@@ -258,7 +261,9 @@ export class UI {
   lateMision(i) { const b = this.hud?.querySelector(`#misiones button[data-m="${i}"]`); if (!b) return; b.classList.remove('late'); void b.offsetWidth; b.classList.add('late'); }
   abreMision(i, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;
-    this.misAbierta = i; $('#quest', T).classList.remove('hidden'); this.pintaMision(i); this.refreshDots();
+    const Q = $('#quest', T), b = $(`#misiones button[data-m="${i}"]`, T);
+    if (b) Q.style.setProperty('--px', Math.round(b.offsetLeft + b.offsetWidth / 2) + 'px');   // (la flechita de la tarjeta, debajo de su casilla)
+    this.misAbierta = i; Q.classList.remove('hidden'); this.pintaMision(i); this.refreshDots();
     clearTimeout(this.tlT); this.tlT = ms ? setTimeout(() => this.cierraMision(), ms) : 0;
   }
   // (se recoge: solo quedan los cuadrados)
@@ -269,7 +274,13 @@ export class UI {
   pintaMision(i) {
     const g = this.game, M = g.missions[i], E = this.questEls; if (!M || !E) return;
     const step = g.stepText(M), n = M.steps().length, idx = M.done ? n : Math.min(M.step, n);
-    if (E.small._t !== M.title) { E.small._t = M.title; E.small.textContent = M.title; }
+    // (la tarjeta: arriba su categoría y cuál es de las del pueblo, o que ya está hecha; su nombre; lo que toca hacer; sus
+    // pasos y lo lejos que está. Con el icono en el color de su categoría)
+    const eu = isEU(), cat = (eu ? CAT_EU : CAT_ES)[CAT[M.type]] || (eu ? 'Misioa' : 'Misión');
+    const kick = `${cat} · ${M.done ? (eu ? 'Eginda' : 'Hecha') : `${i + 1} / ${g.missions.length}`}`;
+    if (E.small._t !== kick) { E.small._t = kick; E.small.textContent = kick; }
+    if (E.tit && E.tit._t !== M.title) { E.tit._t = M.title; E.tit.textContent = M.title; }
+    if (E.ic && E.ic._t !== M.icon) { E.ic._t = M.icon; E.ic.innerHTML = I(M.icon || 'star', 26); E.ic.parentElement.style.setProperty('--mc', misionColor(M.type)); }
     if (E.qt._t !== step) { E.qt._t = step; E.qt.textContent = step; }
     const key = n + ':' + idx; if (E.pips.dataset.k !== key) { E.pips.dataset.k = key; E.pips.innerHTML = n ? Array.from({ length: n }, (_, k) => `<i class="${k < idx ? 'ok' : k === idx ? 'now' : ''}"></i>`).join('') : ''; }
     const q = this.lastQ, dt = i === g.tracked && q?.dist != null && q.dist < 1000 ? `${Math.round(q.dist)} m` : '';

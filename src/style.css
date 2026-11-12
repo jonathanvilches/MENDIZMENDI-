@@ -241,28 +241,26 @@ summary { line-height: 1.3; }
    color y con su marca; la que sigues, con borde blanco; la desplegada, además, con su piquito hacia la misión de debajo.
    Debajo, al tocar una, la misión: su nombre, lo que hay que hacer, sus pasos y lo lejos que está. El panel tiene un ancho
    mínimo para que, al desplegarse, no crezca y la brújula no se mueva */
-#tl.mis { --chip: 30px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
-/* (la misión desplegada toma el ancho del panel sin ensancharlo: así no se mueve la brújula al abrirse) */
-#tl.mis #quest { width: 0; min-width: 100%; }
-@media (max-height: 520px) { #tl.mis { --chip: 28px; } }
+#tl.mis { --chip: 34px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
+@media (max-height: 520px) { #tl.mis { --chip: 32px; } }
 /* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
 @media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
-@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 36px; min-width: 260px; } #tl.mis #misiones { gap: 8px; } }
-#misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 6px; }
+@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 42px; min-width: 260px; } #tl.mis #misiones { gap: 10px; } }
+#misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 8px; }
 /* la mochila, los prismáticos (cuando los tienes) y la pausa, al final de la barra de misiones y bien separados de ellas:
    12 px de hueco a cada lado de una raya clara de 2 px de arriba abajo, y redondos y de un gris translúcido, no cuadrados de
    color como las misiones. Del tamaño de una casilla. Si la barra no cabe en una fila (móvil estrecho de pie, o un pueblo
    con muchas misiones), las casillas van en dos filas y los botones en columna (ui.js, fitTop, clase .dos), como en el
    móvil tumbado pequeño */
 #tl.mis .mfila { display: flex; align-items: center; }
-#mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 2px solid rgba(255, 255, 255, .5); }
+#mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: 8px; margin-left: 14px; padding-left: 14px; border-left: 2px solid rgba(255, 255, 255, .5); }
 #mbtns .round { width: var(--chip); height: var(--chip); border: 0; background: rgba(255, 255, 255, .14); box-shadow: none; }
 #mbtns .round:hover { background: rgba(255, 255, 255, .24); }
 #mbtns .round.bag .ering { inset: 0; }
 #tl.mis.dos #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); }
 #tl.mis.dos #mbtns { flex-direction: column; justify-content: center; }
 @media (max-height: 520px) and (max-width: 740px) { #mbtns { flex-direction: column; justify-content: center; } }
-@media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: 8px; } }
+@media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: 10px; } }
 /* (cada casilla, el icono sobre un fondo sólido del color de su categoría: con el 16 % del color y el borde, que los
    botones ya no llevan, se veían apagadas y casi transparentes sobre el pueblo; noviembre de 2026, lo pidió el autor.
    Hecha, el color más lleno y su marca; la que sigues, un aro blanco por dentro) */
@@ -278,12 +276,27 @@ summary { line-height: 1.3; }
 @keyframes misLate { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mc) 85%, transparent); } 70% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--mc) 0%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (prefers-reduced-motion: reduce) { #misiones button.late { animation: none; } }
 #misiones button.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 13px; height: 13px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 8px/13px sans-serif; text-align: center; }
-#misiones button.sel::before { content: ''; position: absolute; left: 50%; bottom: -9px; width: 8px; height: 8px; margin-left: -4px; transform: rotate(45deg); background: color-mix(in srgb, var(--mc) 80%, #fff); }
-#tl.mis #quest { display: block; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255, 255, 255, .12); cursor: pointer; animation: tlAbre .28s var(--ease); }
+#misiones button.sel { outline: 2px solid color-mix(in srgb, var(--mc) 80%, #fff); outline-offset: 2px; }
+/* la tarjeta de la misión: al tocar su casilla sale suelta debajo de la barra, con una flechita hacia la casilla (--px,
+   ui.js abreMision). El icono en el color de su categoría; al lado, la categoría y cuál es, su nombre, lo que toca hacer,
+   sus pasos y lo lejos que está. Tocándola, el cuaderno; se cierra tocando su casilla, fuera de la barra o sola a los
+   10 s. Antes la misión se desplegaba dentro de la barra, que crecía hacia abajo (noviembre de 2026, el autor quería el
+   visor más limpio) */
+#tl.mis #quest { position: absolute; left: 0; top: calc(100% + 10px); z-index: 2; width: min(320px, calc(100vw / var(--z, 1) - 32px)); display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px 14px 12px; border-radius: 10px;
+  background: linear-gradient(170deg, rgba(36, 12, 78, .96), rgba(16, 7, 34, .95)); box-shadow: 0 10px 26px rgba(4, 1, 12, .45); cursor: pointer; animation: mcardIn .26s var(--ease); }
+#tl.mis #quest::before { content: ''; position: absolute; top: -5px; left: clamp(14px, var(--px, 24px), calc(100% - 14px)); width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: rgba(36, 12, 78, .96); }
 #tl.mis #quest.hidden { display: none; }
-#tl.mis #quest small, #tl.mis #quest b.qt { text-box: trim-both cap alphabetic; } #tl.mis #quest small + b.qt { margin-top: var(--r-ts); } #tl.mis #quest .qrow { margin-top: var(--r-ts); }
+#tl.mis #quest .mc-ic { flex: none; width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--mc, #c9b8ff) 70%, #1c0d38); }
+#tl.mis #quest .mc-ic :is(svg, img) { width: 70%; height: 70%; filter: drop-shadow(0 1px 1px rgba(13, 6, 28, .45)); }
+#tl.mis #quest .mc-tx { flex: 1; min-width: 0; hyphens: auto; -webkit-hyphens: auto; }
+#tl.mis #quest small { font-size: var(--fs-xs); }
+#tl.mis #quest .mc-tit { display: block; margin-top: 6px; font: 400 var(--fs-lg)/1.05 var(--f-display, 'MZ Titular'), sans-serif; text-transform: uppercase; color: #fff; text-wrap: balance; }
+#tl.mis #quest p.qt { margin: 6px 0 0; font: 700 var(--fs-sm)/1.3 var(--f-ui, 'MZ Texto'), sans-serif; color: #e6dcff; }
+#tl.mis #quest .qrow { margin-top: 8px; }
 #tl.mis #quest .qd { display: inline; color: #ff9bd6; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; }
+@keyframes mcardIn { from { opacity: 0; transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { #tl.mis #quest { animation: none; } }
+@media (min-width: 1000px) and (min-height: 640px) { #tl.mis #quest { width: 340px; padding: 14px 16px 16px 14px; } #tl.mis #quest .mc-ic { width: 52px; height: 52px; } #tl.mis #quest .mc-tit { font-size: var(--fs-xl); } #tl.mis #quest p.qt { font-size: var(--fs-md); } }
 #ribbons .eg { margin-left: 8px; font-size: var(--fs-sm); color: #ff7ac8; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 1px 2px #000; }
 /* la aventura de Otsagabia: el icono de la misión con lo que hay que hacer y las cintas, siempre a la vista (plegada hasta
    tocar, arriba solo quedaba un icono suelto sin sentido); al cambiar lo que hay que hacer, el texto entra de nuevo */

@@ -24,6 +24,7 @@ const CSS = `
 .av-cor.ve{opacity:1;transform:translate(-50%,0)}
 .av-cor.lado{transform:translate(0,-8px)}
 .av-cor.lado.ve{transform:none}
+body:has(#tl.mis > #quest:not(.hidden)) .av-cor.debajo{opacity:0}
 .av-cor svg{width:22px;height:22px}
 .av-cor .lleno path{fill:#ff5d73;stroke:#fff;stroke-width:1.4}
 .av-cor .vacio path{fill:none;stroke:#fff;stroke-width:1.8;stroke-dasharray:3 2.2}
@@ -49,15 +50,23 @@ export class AventuraHud {
     addEventListener('resize', this.alCambiar);
     this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(this.alCambiar) : null;
   }
-  /** Dónde van los corazones: arriba en el centro si no pisan nada; si no, debajo del panel de las misiones. */
+  /** Dónde van los corazones: arriba en el centro si no pisan nada; si no, centrados en el hueco entre el panel de las
+   *  misiones y el minimapa, si caben; y si tampoco, debajo del panel (y se apartan mientras la tarjeta de una misión está
+   *  abierta, que sale ahí). Con la barra de misiones algo más grande, en el móvil tumbado ya pisaba el centro y bajaban
+   *  debajo de ella, encima de la tarjeta (noviembre de 2026) */
   coloca() {
-    const c = this.cor; c.style.transition = 'none'; c.classList.remove('lado'); c.style.left = ''; c.style.top = '';   // (sin transición mientras se mide)
+    const c = this.cor; c.style.transition = 'none'; c.classList.remove('lado', 'debajo'); c.style.left = ''; c.style.top = '';   // (sin transición mientras se mide)
     const panel = document.querySelector('#hud #tl'), der = document.querySelector('#hud #topright');
     if (panel !== this.panel) { this.ro?.disconnect(); this.panel = panel; if (panel) this.ro?.observe(panel); }
     const t = panel?.getBoundingClientRect(), r = der?.getBoundingClientRect();
     const w = c.offsetWidth, x0 = innerWidth / 2 - w / 2 - 10, x1 = innerWidth / 2 + w / 2 + 10, y1 = c.offsetTop + c.offsetHeight + 4;
     const pisa = (q) => !!q && q.width > 0 && q.left < x1 && q.right > x0 && q.top < y1;
-    if (t && t.width > 0 && (pisa(t) || pisa(r))) { c.classList.add('lado'); c.style.left = Math.round(t.left) + 'px'; c.style.top = Math.round(t.bottom + 8) + 'px'; }
+    if (t && t.width > 0 && (pisa(t) || pisa(r))) {
+      const L = t.right + 12, R = (r && r.width > 0 && r.left > t.right ? r.left : innerWidth) - 12;
+      c.classList.add('lado');
+      if (R - L >= w) c.style.left = Math.round((L + R) / 2 - w / 2) + 'px';
+      else { c.classList.add('debajo'); c.style.left = Math.round(t.left) + 'px'; c.style.top = Math.round(t.bottom + 8) + 'px'; }
+    }
     void c.offsetWidth; c.style.transition = '';
   }
   /** Cada fotograma: dónde está el jugador en pantalla y cuánta resistencia le queda. */
