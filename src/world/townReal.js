@@ -11,6 +11,7 @@ import { terrainHeight, addPlatform } from './heightfield.js';
 import { addBox, COLLIDERS, isFree } from './colliders.js';
 import { riverInfo, villageMask, pathQuery, MOD, PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
+import { especFamoso, planFamoso, levantaFamoso } from './puentesFamosos.js';
 
 /** La iglesia de los datos: su eje largo y la fachada (+z local) hacia el lado de la plaza o de su calle. */
 export function realChurchRy(b, plaza) {
@@ -125,10 +126,22 @@ export function realBridges(B, real) {
         const q = [a[0] + dx * e, a[1] + dz * e]; if (fin) pts.push(q); else pts.unshift(q);
       }
     }
+    // (el famoso con una orilla mucho más baja, por ella sigue en rampa hasta 16 m, sin entrar en el agua ni en una casa)
+    const FAM = especFamoso(real.data?.id, P);
+    if (!P.alargado && FAM?.rampa) {
+      const y0 = terrainHeight(pts[0][0], pts[0][1]), y1 = terrainHeight(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+      if (Math.abs(y0 - y1) > 2) {
+        const fin = y1 < y0, a = fin ? pts[pts.length - 1] : pts[0], b = fin ? pts[pts.length - 2] : pts[1], l = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, dx = (a[0] - b[0]) / l, dz = (a[1] - b[1]) / l;
+        const enCasa = (x, z) => real.casas.some(c => !real.taken?.has(c) && Math.abs(c.x - x) < 20 && Math.abs(c.z - z) < 20 && (() => { const ex = x - c.x, ez = z - c.z, lx = ex * Math.cos(c.ry) - ez * Math.sin(c.ry), lz = ex * Math.sin(c.ry) + ez * Math.cos(c.ry); return Math.abs(lx) < c.w / 2 + FAM.ancho / 2 + 0.5 && Math.abs(lz) < c.d / 2 + FAM.ancho / 2 + 0.5; })());
+        let e = 0; while (e < FAM.rampa && riverInfo(a[0] + dx * (e + 1), a[1] + dz * (e + 1)).edge >= 1.2 && !enCasa(a[0] + dx * (e + 1), a[1] + dz * (e + 1))) e += 0.5;
+        if (e > 0) { const q = [a[0] + dx * e, a[1] + dz * e]; if (fin) pts.push(q); else pts.unshift(q); }
+      }
+    }
     P.alargado = true;
     const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
     const L = cum[cum.length - 1]; if (L < 3) continue;
-    const Wd = 2 * P.w + 1.0, off = Wd / 2 - 0.25, stone = 'stone', cap = 'ashlar';
+    // (los famosos, como los de verdad, con su ancho: src/world/puentesFamosos.js)
+    const Wd = FAM ? FAM.ancho + 0.84 : 2 * P.w + 1.0, off = Wd / 2 - 0.25, stone = FAM ? FAM.piedra : 'stone', cap = FAM ? FAM.sillar : 'ashlar';
     // el eje a s metros del principio: punto, dirección y normal (junto a un codo, la media de los dos tramos)
     const seg = []; for (let i = 0; i < pts.length - 1; i++) { const l = cum[i + 1] - cum[i] || 1e-6; seg.push([(pts[i + 1][0] - pts[i][0]) / l, (pts[i + 1][1] - pts[i][1]) / l]); }
     const eje = (s) => {
@@ -168,11 +181,17 @@ export function realBridges(B, real) {
     // el tablero: el lomo, por encima del suelo (salvo en los extremos, que llegan a la calle) y suavizado
     let Dk = S.map((s, k) => { const t = s / L; return Math.max(ya + (yb - ya) * t + hump * Math.sin(Math.PI * t), G[k] + 0.3 * Math.min(1, s / 3, (L - s) / 3), GX[k] + 0.05 - Math.max(0, 2.5 - Math.min(s, L - s))); });
     for (let r = 0; r < 2; r++) Dk = Dk.map((v, k) => k === 0 || k === N - 1 ? v : Math.max(v, (Dk[k - 1] + v + Dk[k + 1]) / 3));
+    // (el famoso: su lomo, del alto que hace falta para que quepan sus arcos)
+    const perfilF = FAM && { S, G, GX, W, N, L, ya, yb }, plan = FAM && planFamoso(FAM, perfilF);
+    if (FAM) P.perfilFamoso = perfilF;   // (para las pruebas: tools/puentes-famosos.mjs)
+    if (plan) Dk = plan.Dk;
     const deck = (s) => { const f = clamp(s / L, 0, 1) * (N - 1), k = Math.min(N - 2, Math.floor(f)); return Dk[k] + (Dk[k + 1] - Dk[k]) * (f - k); };
     // el tablero y los pretiles, de una pieza a lo largo del eje (antes, cajas de 2 m por tramo: en cada codo quedaba una
     // cuña abierta y los pretiles no casaban)
     const DkT = Dk.map(v => v - 0.6), DkP = Dk.map(v => v - 0.05), DkP1 = Dk.map(v => v + 0.83), DkC1 = Dk.map(v => v + 0.97);
-    prisma(B, stone, S, DkT, Dk, -Wd / 2, Wd / 2, 2, eje);
+    // (el empedrado, también en los famosos; en ellos, entre los muros, que suben hasta el pretil: así no asoma su canto gris)
+    const lo = FAM ? Wd / 2 - 0.3 : Wd / 2;
+    prisma(B, 'stone', S, DkT, Dk, -lo, lo, 2, eje);
     for (const side of [-1, 1]) {
       const c = side * (Wd / 2 - 0.21);
       prisma(B, stone, S, DkP, DkP1, c - 0.21, c + 0.21, 1.6, eje);
@@ -195,6 +214,7 @@ export function realBridges(B, real) {
     }
     // los arcos: donde queda hueco bajo el tablero (agua, vega o vaguada), repartidos en ojos de unos 13 m con sus pilas
     const yBot = Math.min(...G) - 1.6, arcos = [];
+    if (plan) { levantaFamoso(B, FAM, plan, { eje, deck, L, Wd, off, prisma, rios: real.rios, terrainHeight, riverInfo, yBot }); P.famoso = { titulo: FAM.titulo, arcos: plan.arcos.length, luces: plan.arcos.map(a => +a.sp.toFixed(1)) }; continue; }
     for (let k = 0; k < N;) {
       if (Dk[k] - 0.6 - G[k] <= 1.5) { k++; continue; }
       let e = k; while (e + 1 < N && (Dk[e + 1] - 0.6 - G[e + 1] > 1.5 || (e + 2 < N && Dk[e + 2] - 0.6 - G[e + 2] > 1.5))) e++;
