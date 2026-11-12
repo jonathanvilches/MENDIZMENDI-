@@ -26,9 +26,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     demás, `meshy-lod` y `meshy-costuras` (con `FUENTE`). El juego solo lleva la versión ligera (`src/assets/meshy/lod`:
     unos 5 500 triángulos y textura de 512 px, 8 MB los 21); los originales, en `src/assets/meshy/vecinos`, no entran en
     la web ni en el archivo único (17 MB) y solo los sirve el servidor de desarrollo, para los retratos. Sus gestos (`cortesVecino` de `glbChar.js`): quietos, mirando alrededor; hablando, su charla;
-    saludar, el principio de la charla o su saludo con la mano; asustarse, el respingo de mirar alrededor. Miden su
-    altura fija en `MESHY_H`: el explorador (1,45) y la exploradora (1,43) son más bajos que cualquier adulto (1,62 a 1,77; los
-    mayores, 1,55 a 1,68) y los niños del pueblo más bajos que ellos (1,13 a 1,24).
+    saludar, el principio de la charla o su saludo con la mano; asustarse, el respingo de mirar alrededor. La charla de
+    Meshy dobla la cabeza hacia atrás y encoge a la abuela del pañuelo y al abuelo: esos dos (`CHARLA_MAL`) hablan con su
+    reposo. Miden su altura fija en `MESHY_H`: el explorador (1,45) y la exploradora (1,43), de cabeza grande, quedan en
+    medio: los adultos les sacan entre un 23 y un 34 % (1,78 a 1,94; los mayores, 1,71 a 1,84) y los niños del pueblo son
+    más bajos (1,13 a 1,24). Las puertas miden 2,4 m.
     Quién es quién (`VECINOS` y `vecinoPara` de `actors/npcGlb.js`): por su oficio en el nombre («Iker, quesero»); si no,
     por edad y sexo, y entre esos el que más se le parece (barba, bigote, trenzas, moño, color de pelo), siempre el mismo
     para cada aspecto. Los de antes (el sanferminero, el pastor y los futbolistas teñidos) se quedan solo para los trajes:
