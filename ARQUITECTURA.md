@@ -145,7 +145,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   los datos debajo, uno detrás de otro; las cifras cuentan hasta su valor (`cuenta`, motion.js). Uno a la vez, sin recoger
   toques y anunciado a los lectores de pantalla. Con una ventana abierta encima del juego (la pausa, el cuaderno, el mapa:
   `body > .screen`) no se ve; antes iba por encima y, abriendo la pausa nada más llegar, tapaba sus botones. Va en el centro, debajo de la línea de los avisos, y tan ancho como pida
-  su texto, hasta 560 px (`coloca`, en rotulo.js): si a su altura le queda al lado la barra de misiones o el minimapa,
+  su texto, hasta 560 px, pero nunca más estrecho que su ancho mínimo: 460 px en el ordenador, 420 en el móvil tumbado,
+  con el nombre algo más grande, y de borde a borde de pie; con un nombre corto como Elizondo se quedaba en 190 px y al
+  autor le parecía muy estrecho (noviembre de 2026). `coloca`, en rotulo.js: si a su altura le queda al lado la barra de misiones o el minimapa,
   se estrecha lo justo para no llegar a ellos, pero solo si así le cabe el texto entero; si no, baja hasta
   debajo de ellos y usa todo el ancho. Antes tenía un ancho fijo pensado para lo peor (en el móvil tumbado, la pantalla
   menos 380 px): en un iPhone pequeño se quedaba en 287 px, la comarca se cortaba con puntos suspensivos y pisaba la barra

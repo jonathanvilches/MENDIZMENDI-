@@ -28,7 +28,7 @@ export function rotulo({ antetitulo = '', titulo = '', datos = [], icono = '', c
   tFuera = setTimeout(() => { r.classList.add('fuera'); tQuita = setTimeout(() => { r.remove(); if (actual === r) actual = null; }, 300); }, ms);
   return r;
 }
-// Dónde va: centrado y tan ancho como pida su texto (hasta 560 px). Si a su altura le queda al lado algo de arriba (la
+// Dónde va: centrado y tan ancho como pida su texto (hasta 560 px), nunca menos que su min-width del CSS. Si a su altura le queda al lado algo de arriba (la
 // barra de misiones, el minimapa), se estrecha lo justo para no llegar a ello, pero solo si así le cabe el
 // texto entero; si no, baja hasta debajo de eso y usa todo el ancho. Antes tenía un ancho fijo pensado para lo peor
 // (en el móvil tumbado, la pantalla menos 380 px): en un iPhone pequeño se quedaba en 287 px, la comarca se cortaba con
@@ -38,7 +38,10 @@ function coloca(r) {
   const obst = hud && getComputedStyle(hud).display !== 'none'
     ? ['#tl', '#mini', '#topright .rbtns'].map((q) => hud.querySelector(q)?.getBoundingClientRect()).filter((q) => q && q.width > 0 && q.height > 0) : [];
   r.style.maxWidth = Math.min(560, W - 2 * borde) + 'px';
-  const quiere = r.offsetWidth, alto = r.offsetHeight;
+  // (lo que pide el texto, sin el ancho mínimo: si al lado de algo cabe el texto pero no el ancho mínimo, se estrecha el
+  // mínimo en vez de bajar el rótulo)
+  const minimo = parseFloat(getComputedStyle(r).minWidth) || 0;
+  r.style.minWidth = '0px'; const quiere = r.offsetWidth, alto = r.offsetHeight; r.style.minWidth = '';
   let top = parseFloat(getComputedStyle(r).top) || 0;
   for (let i = 0; i < 4; i++) {
     const encima = obst.filter((o) => o.bottom + 8 > top && o.top < top + alto + 8);
@@ -48,7 +51,11 @@ function coloca(r) {
       else if (o.left - 8 >= W / 2) mitad = Math.min(mitad, o.left - 8 - W / 2);
       else centro = true;
     }
-    if (!encima.length || (!centro && 2 * mitad >= quiere)) { r.style.top = Math.round(top) + 'px'; if (encima.length) r.style.maxWidth = Math.floor(2 * mitad) + 'px'; return; }
+    if (!encima.length || (!centro && 2 * mitad >= quiere)) {
+      r.style.top = Math.round(top) + 'px';
+      if (encima.length) { const m = Math.floor(2 * mitad); r.style.maxWidth = m + 'px'; if (minimo > m) r.style.minWidth = m + 'px'; }
+      return;
+    }
     top = Math.max(...encima.map((o) => o.bottom)) + 10;
   }
   r.style.top = Math.round(top) + 'px';
