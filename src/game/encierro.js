@@ -321,12 +321,12 @@ export class Encierro {
       return { obj, char, anim: { update: (dt, st) => { char.setSpeed(st.speed || 0); char.update(dt); } } };
     };
     let me = sf ? sanfermin(1, false, false, null, sfMe) : null;
-    me ||= buildNpc({ ...white, height: 1.6 });
+    me ||= buildNpc({ ...white, height: 1.6 }, 'corredor del encierro');   // (el nombre: un mozo de blanco, no un vecino del pueblo)
     S.add(me.obj); this.me = { ...me, x: 0, z: -14, speed: 0, fall: 0, safe: 0 };
     this.runners = [];
     const nR = QUALITY === 'low' ? 7 : 12;
     for (let i = 0; i < nR; i++) {
-      const f = rnd() < 0.3, pelo = ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], n = sf ? sanfermin(0.97 + rnd() * 0.06, true, f, pelo) : buildNpc({ ...white, female: f, hair: pelo, skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 });
+      const f = rnd() < 0.3, pelo = ['#2a1a12', '#5a3a22', '#c9a46a', '#1d1d24'][i % 4], n = sf ? sanfermin(0.97 + rnd() * 0.06, true, f, pelo) : buildNpc({ ...white, female: f, hair: pelo, skin: ['#f1c4a0', '#e2b08a', '#c68a5e'][i % 3], height: 1.57 + rnd() * 0.06 }, 'corredor del encierro');
       S.add(n.obj); this.runners.push({ ...n, x: (rnd() - 0.5) * 4.6, z: -6 - rnd() * 70, speed: 4.6 + rnd() * 1.6, want: 0 });
     }
     // la manada: cabestros y toros juntos; luego un toro suelto que se ha quedado atrás (el más peligroso)

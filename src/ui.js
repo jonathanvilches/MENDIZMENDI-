@@ -10,6 +10,7 @@ import { clamp } from './util/math.js';
 import { iconSVG, iconImage, flecha } from './ui/icons.js';
 import { icon3DReady } from './ui/icon3d.js';
 import { vecinoSrc } from './ui/pelotariFig.js';
+import { retratoVecino } from './actors/npcGlb.js';
 import { mountMapView } from './ui/mapview.js';
 import { tr, isEU } from './i18n.js';
 import { buildMapVectorsIdle } from './ui/mapvector.js';
@@ -376,8 +377,9 @@ export class UI {
         const fk = L.look ? JSON.stringify(L.look) : L.icon || 'talk';
         if (fk !== lastFace) {
           lastFace = fk;
-          // (las personas, con las ilustraciones del autor, cabeza y hombros: antes era una foto del muñeco en 3D)
-          $('.face', d).innerHTML = L.look ? `<img class="ilus" src="${vecinoSrc(L.who, !!L.look.female)}" alt="" draggable="false">` : I(L.icon || 'talk', 64);
+          // (los vecinos de Meshy, con su retrato; las demás personas, con las ilustraciones del autor, cabeza y hombros)
+          const rv = L.look ? retratoVecino(L.look, L.who) : null;
+          $('.face', d).innerHTML = rv ? `<img class="retrato" src="${rv}" alt="" draggable="false">` : L.look ? `<img class="ilus" src="${vecinoSrc(L.who, !!L.look.female)}" alt="" draggable="false">` : I(L.icon || 'talk', 64);
         }
         $('h3', d).textContent = L.who || '';
         // (en euskera se escribe ya traducido: si no, se veía el castellano letra a letra y cambiaba al final; al

@@ -10,7 +10,7 @@ import sharp from 'sharp';
 import { readdirSync, mkdirSync, statSync } from 'fs';
 
 const [,, ratio = '0.26', px = '512', dir = 'lod'] = process.argv;
-const SRC = 'src/assets/meshy', OUT = SRC + '/' + dir;
+const SRC = process.env.FUENTE || 'src/assets/meshy', OUT = 'src/assets/meshy/' + dir;   // (FUENTE: los vecinos, src/assets/meshy/vecinos)
 mkdirSync(OUT, { recursive: true });
 await MeshoptDecoder.ready; await MeshoptEncoder.ready; await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });

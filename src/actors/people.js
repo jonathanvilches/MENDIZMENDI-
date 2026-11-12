@@ -44,7 +44,7 @@ export class Actor {
     this.id = def.id; this.name = def.name;
     // todos (vecinos, carnaval y seres de leyenda) con el cuerpo de los personajes nuevos (main.js los carga antes de
     // entrar en el pueblo); si aún no están, un vecino vacío que no se ve (antes salía una figura sencilla antigua)
-    const n = npcsReady() ? buildNpc(def.look) : null;
+    const n = npcsReady() ? buildNpc(def.look, def.name) : null;   // (el nombre, para el oficio: «Iker, quesero»)
     if (n) { this.obj = n.obj; this.glb = n.char; this.anim = n.anim; this.J = {};
       // el nombre va con el cuerpo: un chico con nombre de chico y una chica con nombre de chica (los seres de leyenda, como son)
       if (!def.look?.myth) this.name = nameFor(def.name, n.obj.userData.sex); }

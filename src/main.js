@@ -243,7 +243,8 @@ async function boot() {
       // (el campeonato de pelota, solo con su frontón: ni el pueblo ni sus vecinos; con suelo, los frontones al aire libre,
       // que van en su calle; engine/runtime.js, load)
       const campeonato = opt.sport === 'pelota';
-      const modP = juego(), npcP = preloadNpcs(); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m), { soloFronton: campeonato, conSuelo: campeonato && esExterior(d.id) }), npcP]);
+      // (los vecinos, con los datos del pueblo: así carga solo sus vecinos de Meshy, actors/npcGlb.js)
+      const modP = juego(), npcP = preloadNpcs(campeonato ? null : d); await preloadFood(); await Promise.all([rt.load(d, P.avatar, (p, m) => ui.progress(p, opt.sport ? sportMsg(p) : m), { soloFronton: campeonato, conSuelo: campeonato && esExterior(d.id) }), npcP]);
       const [{ Game }, { TownGame }] = await modP;
       const ctx = { scene: rt.scene, camera: rt.camera, player: rt.player, follow: rt.follow, ui, sound, input, sky: rt.sky, fauna: rt.fauna, particles: rt.particles, beacon: rt.beacon, rt, onExit: exit, campeonato };
       hookPlayer(rt.player);

@@ -8,6 +8,7 @@
 //   3. la misma textura, reducida, en sus versiones de 1024 px (src/assets/meshy-1024) y ligera (lod), solo la imagen.
 // (Con ANCHO=5, además, el color de cada lado de una costura se acerca al de en medio de los dos: probado en noviembre
 // de 2026, dejaba cortes nuevos dentro de las piezas y no se usa.)
+// (los vecinos, cuyos originales están en src/assets/meshy/vecinos: FUENTE=src/assets/meshy/vecinos)
 // Uso: node tools/meshy-costuras.mjs [modelo…]   (sin modelos, todos los de src/assets/meshy; reescribe los GLB)
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
@@ -15,7 +16,7 @@ import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer';
 import sharp from 'sharp';
 import { readdirSync, statSync, existsSync } from 'fs';
 
-const SRC = 'src/assets/meshy', DST = process.env.OUT || SRC, ANCHO = +(process.env.ANCHO ?? 0), RELLENO = 24;   // (OUT: otra carpeta, para probar)
+const SRC = process.env.FUENTE || 'src/assets/meshy', DST = process.env.OUT || SRC, ANCHO = +(process.env.ANCHO ?? 0), RELLENO = 24;   // (OUT: otra carpeta, para probar)
 await MeshoptDecoder.ready; await MeshoptEncoder.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
 const modelos = process.argv.slice(2).length ? process.argv.slice(2) : readdirSync(SRC).filter(f => f.endsWith('.glb')).map(f => f.replace('.glb', ''));
@@ -107,7 +108,7 @@ for (const m of modelos) {
   console.log(m, `${costuras} costuras`, `${kb0} → ${statSync(`${DST}/${m}.glb`).size >> 10} KB`);
   // (y la misma textura en sus versiones de 1024 px y ligera, cada una a su tamaño: solo la textura, sin tocar la malla,
   // que las chicas casan sus parches con el orden de sus vértices)
-  if (!process.env.OUT) for (const v of [`src/assets/meshy-1024/${m}.glb`, `${SRC}/lod/${m}.glb`]) {
+  if (!process.env.OUT) for (const v of [`src/assets/meshy-1024/${m}.glb`, `src/assets/meshy/lod/${m}.glb`].filter(v => existsSync(v))) {
     if (!existsSync(v)) continue;
     const dv = await io.read(v), tv = dv.getRoot().listTextures()[0], [w, h] = tv.getSize(), k0 = statSync(v).size >> 10;
     const img = await sharp(buf, { raw: { width: W, height: H, channels: 3 } }).resize(w, h, { kernel: 'lanczos3' }).webp({ quality: 88, smartSubsample: true, effort: 6 }).toBuffer();

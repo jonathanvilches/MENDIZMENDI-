@@ -401,6 +401,8 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 #dialog .face img { width: 100%; height: 100%; object-fit: cover; }
 /* (la ilustración del vecino, de cuerpo entero: se amplía y se encuadra en la cabeza y los hombros) */
 #dialog .face img.ilus { position: absolute; left: -34%; top: 4%; width: 168%; height: auto; max-width: none; object-fit: fill; }
+/* (los vecinos de Meshy: su retrato de busto, tools/meshy-retratos.mjs, la cara un poco por encima del centro) */
+#dialog .face img.retrato { object-fit: cover; object-position: 50% 28%; }
 #dialog .body { flex: 1; min-width: 0; }
 /* (quien habla, con el rótulo de todo el juego: letra estrecha en mayúsculas, en rosa) */
 #dialog h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 800 var(--fs-sm)/1.15 var(--f-cond, 'MZ Texto'); color: #ff7ac8; letter-spacing: .1em; text-transform: uppercase; }

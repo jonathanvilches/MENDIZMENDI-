@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadMeshy, hasMeshy, MESHY_GAIT, MESHY_NAMES } from './glbChar.js';
+import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, meshyBust, meshyHeight } from './glbChar.js';
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
 import { hairTint } from './hairColor.js';
@@ -28,10 +28,15 @@ let ready = false;
  *  carnaval y los seres de leyenda, y los de las vecinas (chicas.js: con la coleta; y sin peinado, para los trajes que
  *  traen su pelo o su toca). Se llama antes de montar el pueblo; si no cargan, los vecinos salen con la figura sencilla
  *  de reserva (y las vecinas, si no carga la suya, con el cuerpo de chico). */
-export async function preloadNpcs() {
+export async function preloadNpcs(d = null) {
   const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p, true)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
-  // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos)
-  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n)).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas]);
+  // los vecinos de Meshy de este pueblo (d, los datos del pueblo; sin él, ninguno: fuera de los pueblos, como antes)
+  for (const k of Object.keys(VEC_LOD)) delete VEC_LOD[k];
+  const vec = d ? vecinosDelPueblo(d) : [];
+  const vecP = Promise.all(vec.map(n => loadMeshy(n, true).then(g => { VEC_LOD[n] = g; }).catch(e => console.warn('vecino', n, e))));
+  // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos; los vecinos de
+  // Meshy, solo los del pueblo)
+  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP]);
   return meshyReady;
 }
 const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;
@@ -42,11 +47,85 @@ const isFemale = (L) => !!(L.female || L.skirt || L.ponytail || L.bun || L.braid
 // trajes que solo existen en los cuerpos antiguos (carnaval, leyendas): esos vecinos siguen con ellos
 const COSTUME = (L) => !!(L.traje || L.myth || L.fur || L.shaggy || L.horns || L.bells || L.bell || L.crown || L.ribbons || L.base || L.outfit || ['cone', 'mask', 'bicorne', 'mitre', 'basket'].includes(L.hat));
 const hashOf = (L) => JSON.stringify(L).split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 7) >>> 0;
+// Los vecinos de Meshy (modelos del autor del juego, noviembre de 2026; tools/vecinos-glb.mjs): abuelos con txapela,
+// abuelos sin ella, niños, adultos y oficios, cada uno con su ropa y su pelo, sin teñir. Son toda la gente normal de los
+// pueblos; los de antes (el sanferminero, el pastor y los futbolistas teñidos con los colores de cada vecino) se quedan
+// solo para los trajes: la ropa blanca de fiesta, el carnaval, los seres de leyenda y los jueces del frontón.
+// s: chico o chica; e: mayor, niño o adulto; y lo que se le ve (barba, bigote, trenzas, moño, pañuelo, pelo) y su oficio,
+// que se busca en el nombre del vecino («Iker, quesero»)
+export const VECINOS = {
+  abuelo_bigote: { s: 'm', e: 'mayor', bigote: 1, txapela: 1 }, abuelo_barba: { s: 'm', e: 'mayor', barba: 1, txapela: 1 }, abuelo: { s: 'm', e: 'mayor', barba: 1 },
+  abuela_trenzas: { s: 'f', e: 'mayor', trenzas: 1, txapela: 1 }, abuela_mono: { s: 'f', e: 'mayor', mono: 1, txapela: 1 }, abuela_panuelo: { s: 'f', e: 'mayor', mono: 1 },
+  nino_moreno: { s: 'm', e: 'nino', pelo: 'oscuro' }, nino_rubio: { s: 'm', e: 'nino', pelo: 'rubio' },
+  nina_pelirroja: { s: 'f', e: 'nino', pelo: 'rojo' }, nina_trenzas: { s: 'f', e: 'nino', trenzas: 1, pelo: 'oscuro' },
+  hombre: { s: 'm', e: 'adulto', barba: 1, pelo: 'oscuro' }, campesino: { s: 'm', e: 'adulto', oficio: /campesin|labrador|hortelan|agricult|segador|vendimi|olivar|pastor|cabrer|almadier|guarda|carbon|lenador|leñador|peregrin/ },
+  carpintero: { s: 'm', e: 'adulto', oficio: /carpinter|ebanist|cester|herrer|tonel|alfarer|cantero|molinero|zapater|artesan/ }, quesero: { s: 'm', e: 'adulto', oficio: /queser|criador|ganader|apicult|carnicer|vaquer/ },
+  panadero: { s: 'm', e: 'adulto', oficio: /panader|horner|pastel|cocin|taberner|posader|hospitaler/ },
+  mujer: { s: 'f', e: 'adulto', pelo: 'oscuro' }, joven_rubia: { s: 'f', e: 'adulto', pelo: 'rubio' }, campesina: { s: 'f', e: 'adulto', oficio: /campesin|hortelan|olivar|labrador|agricult|pastora|guarda|vendimi/ },
+  carpintera: { s: 'f', e: 'adulto', oficio: /carpinter|cester|alfarer|artesan|tejedor|herrer/ }, quesera: { s: 'f', e: 'adulto', oficio: /queser|ganader|apicult|carnicer|lecher/ },
+  panadera: { s: 'f', e: 'adulto', oficio: /panader|horner|pastel|cocin|taberner|posader|hospitaler/ },
+};
+const VEC = Object.keys(VECINOS);
+const sinTilde = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+const tono = (c) => { if (!c) return null; const [r, g, b] = hex(c); return r > 150 && g > 110 && b < 150 && r - b > 50 ? 'rubio' : r > 120 && r > g * 1.5 && r > b * 1.8 ? 'rojo' : 'oscuro'; };
+const edadDe = (L) => L.child || (L.height && L.height <= 1.45) ? 'nino' : L.old ? 'mayor' : 'adulto';
+// la ropa blanca de fiesta es un traje y se queda con el sanferminero, pero solo en quien la lleva por su papel (dantzaris,
+// aizkolaris, harrijasotzailes, el encierro): de blanco entero, con faja o pañuelo, y con ese oficio en el nombre. La
+// gente de la calle de blanco y faja, en un día cualquiera, es ya un vecino de Meshy
+const blanco = (c) => /^#(f|e[89a-f])/i.test(c || '');
+const deFiesta = (L, n = '') => blanco(L.shirt) && blanco(L.pants || L.skirt) && !!(L.sash || L.scarf || L.handkerchief) && /dantzari|aizkolari|harrijasotzaile|txistulari|gaiter|encierro|sanfermin|corredor|mozo/.test(n);
+/** El vecino de Meshy que mejor le va a este aspecto y este nombre, entre los que se den (por defecto, todos): el de
+ *  su oficio; si no, el de su edad y su sexo que más se le parezca (barba, bigote, trenzas, moño, color de pelo) y,
+ *  entre los que valen igual, uno fijo para cada vecino. null si no es gente normal (trajes, fiesta, leyendas, jueces). */
+export function vecinoPara(L = {}, nombre = '', entre = VEC) {
+  const n = sinTilde(nombre);
+  if (COSTUME(L) || L.juez || L.meshy || deFiesta(L, n)) return null;
+  const s = isFemale(L) ? 'f' : 'm', e = edadDe(L), pelo = tono(L.hair);
+  const cand = entre.filter(k => VECINOS[k] && VECINOS[k].s === s && VECINOS[k].e === e);
+  if (!cand.length) return null;
+  const nota = (k) => { const V = VECINOS[k]; let p = 0;
+    if (V.oficio && n && V.oficio.test(n)) p += 10;
+    if (V.barba && L.beard) p += 3; if (V.bigote && L.moustache && !L.beard) p += 3; if (V.trenzas && L.braids) p += 3; if (V.mono && L.bun) p += 2;
+    if (V.txapela && L.txapela) p += 1; if (pelo && V.pelo === pelo) p += 2; if (V.oficio && !(n && V.oficio.test(n))) p -= 0.5;
+    return p; };
+  const best = Math.max(...cand.map(nota)), top = cand.filter(k => nota(k) === best);
+  return top[hashOf(L) % top.length];
+}
+// los vecinos de Meshy de este pueblo (preloadNpcs): sus versiones ligeras, ya cargadas
+const VEC_LOD = {};
+// qué vecino de Meshy le tocó a cada aspecto, para su retrato en las charlas (ui.js)
+const VEC_DE = new Map();
+/** El retrato de busto del vecino de Meshy de este aspecto, para las charlas; null si no es uno de ellos. */
+export function retratoVecino(L, nombre = '') {
+  if (!L) return null;
+  const k = VEC_DE.get(hashOf(L)) || vecinoPara(L, nombre, Object.keys(VEC_LOD));
+  return k ? meshyBust(k) : null;
+}
+// los que carga cada pueblo: los que dan sus misiones y hablan en él (los que salen en sus datos con nombre y aspecto)
+// y, para la gente de la calle, dos mayores, dos niños y dos adultos de cada sexo, fijos para cada pueblo
+function vecinosDelPueblo(d) {
+  const quiero = new Set(), vistos = new Set();
+  const mira = (o, prof = 0) => {
+    if (!o || typeof o !== 'object' || prof > 7 || vistos.has(o)) return; vistos.add(o);
+    if (o.look && typeof o.look === 'object') { const k = vecinoPara(o.look, o.name || o.who || ''); if (k) quiero.add(k); }
+    for (const v of Array.isArray(o) ? o : Object.values(o)) mira(v, prof + 1);
+  };
+  mira(d);
+  let h = 7; for (const c of String(d?.id || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const de = (lista, cuantos) => { for (let i = 0; i < cuantos; i++) quiero.add(lista[(h + i * 7 + (h >>> 5)) % lista.length]); };
+  de(['abuelo_bigote', 'abuelo_barba', 'abuelo'], 2); de(['abuela_trenzas', 'abuela_mono', 'abuela_panuelo'], 2);
+  de(['nino_moreno', 'nino_rubio'], 2); de(['nina_pelirroja', 'nina_trenzas'], 2);
+  de(['hombre', 'campesino', 'carpintero', 'quesero', 'panadero'], 2); de(['mujer', 'joven_rubia', 'campesina', 'carpintera', 'quesera', 'panadera'], 2);
+  quiero.add('campesino');   // (el pastor del pueblo, que va con su rebaño: game/townGame.js, spawnShepherds)
+  return [...quiero].filter(k => hasMeshyLod(k));
+}
 /** Qué personaje nuevo hace de este vecino según su aspecto: boina, chaleco o mayor → el pastor; de blanco con faja o
  *  pañuelo rojo → el sanferminero; los demás, repartidos (sobre todo esos dos, alguno con la camiseta de Osasuna o de
  *  pelotari). */
-export function meshyFor(L = {}) {
+export function meshyFor(L = {}, nombre = '') {
   if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
+  // la gente normal del pueblo, con los vecinos de Meshy que ha cargado
+  const v = vecinoPara(L, nombre, Object.keys(VEC_LOD)); if (v) return v;
   // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
   // pelotari, que lleva tacos en los dedos)
   if (L.juez && MESHY_NAMES.includes('osasuna')) return 'osasuna';
@@ -66,8 +145,10 @@ export function preloadNpcMeshy(names) {
 const MESHY_NPC = {};
 // vecino con un personaje de Meshy: su modelo con sus clips, con la misma forma de animarse que los demás
 // (ella: si es chica, con su cuerpo de chica; peinado: el suyo, o null para los trajes que traen su pelo o su toca)
-function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), peinado = 'coleta') {
-  const name = meshyFor(L), chica = ella ? CHICA_LOD_NPC[name + ':' + peinado] : null, g = chica || MESHY_LOD_NPC[name] || MESHY_NPC[name];
+function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), peinado = 'coleta', nombre = '') {
+  const name = meshyFor(L, nombre);
+  if (!costume && !ropa && VEC_LOD[name]) return buildVecino(L, name);
+  const chica = ella ? CHICA_LOD_NPC[name + ':' + peinado] : null, g = chica || MESHY_LOD_NPC[name] || MESHY_NPC[name];
   const char = new GlbChar(g, { ...MESHY_GAIT, vary: true });   // zancada real (sin patinar); cada uno a su ritmo
   const female = ella;
   const hair = L.hair || (L.old ? '#d6d0c6' : null);
@@ -99,6 +180,26 @@ function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), pein
       else if ((s.cheer > 0 || s.dance || s.clap > 0) && !char.oneShot) char.playOnce('Celebrate', 1.2);
       char.setTalking?.(s.talking > 0); char.setSpeed(s.speed); char.update(dt); body?.();
       if (L.old) char.root.rotation.x = 0.06;   // (los mayores, un poco inclinados hacia delante)
+    },
+  };
+  return { obj, char, anim };
+}
+// vecino de Meshy (VECINOS): su modelo tal cual, con su ropa y su pelo; a la altura de su modelo con un poco de variedad
+// (±3 %), sin cabeza más pequeña ni inclinarse (los mayores ya están hechos así); los mayores que lo llevan, con su makila
+function buildVecino(L, name) {
+  const g = VEC_LOD[name], V = VECINOS[name], char = new GlbChar(g, { ...MESHY_GAIT, vary: true });
+  const k = 0.97 + (hashOf(L) % 7) * 0.01, H = meshyHeight(name) * k;
+  char.root.scale.setScalar((g.userData.fit || 1) * k);
+  if (L.staff && V.e === 'mayor') { char.root.updateMatrixWorld(true); try { dressMeshy(char.root, { staff: '#6b4a2a' }); } catch (e) { console.warn('makila', e); } }
+  const obj = new THREE.Group(); obj.add(char.root);
+  Object.assign(obj.userData, { glbNpc: true, sex: V.s === 'f' ? 'girl' : 'boy', H, look: L, meshy: name, vecino: name });
+  VEC_DE.set(hashOf(L), name);
+  const anim = {
+    t: 0, setExpr() {},
+    update(dt, s) {
+      if (s.wave > 0 && !char.oneShot && s.speed < 0.5) char.playOnce('Wave', Math.min(2.4, s.wave + 0.8));
+      else if ((s.cheer > 0 || s.dance || s.clap > 0) && !char.oneShot) char.playOnce('Celebrate', 1.2);
+      char.setTalking?.(s.talking > 0); char.setSpeed(s.speed); char.update(dt);
     },
   };
   return { obj, char, anim };
@@ -314,9 +415,9 @@ const EXPR = {
 };
 
 /** Vecino: devuelve { obj, char, anim } con la misma interfaz que usaba la figura antigua (anim.update / setExpr). */
-export function buildNpc(look = {}) {
+export function buildNpc(look = {}, nombre = '') {
   const L = look;
-  if (meshyReady && !COSTUME(L)) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
+  if (meshyReady && !COSTUME(L)) try { return buildNpcMeshy(L, false, null, isFemale(L), 'coleta', nombre); } catch (e) { console.warn('vecino Meshy', e); }
   if (meshyReady && COSTUME(L)) try { return buildNpcMeshyCostume(L); } catch (e) { console.warn('vecino Meshy con traje', e); }
   if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }
   if (!GLTF.boy) return null;   // sin cuerpo: la figura de reserva

@@ -504,9 +504,10 @@ export class TownGame {
     const d = this.def, P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm; if (!hasShepherd(d)) return;
     const route = [0, 1, 2, 3].map(i => { const a = i / 4 * Math.PI * 2 + 0.6, s = this.spot({ x: farm.x + Math.cos(a) * 42, z: farm.z + Math.sin(a) * 42 }, 6); return { x: s.x, z: s.z }; });
     const s0 = route[0];
-    // el pastor del pueblo, con su rebaño y su perro: es el personaje del pastor (modelo de Meshy con txapela)
+    // el pastor del pueblo, con su rebaño y su perro: uno de los vecinos de Meshy (actors/npcGlb.js, VECINOS), el
+    // campesino o, si es mayor, un abuelo con su makila (antes, el pastor antiguo con txapela)
     const pastor = new Actor({ id: 'pastor', name: 'Pastor', x: s0.x, z: s0.z, route, walkSpeed: 0.75,
-      look: { meshy: this.P.avatar === 'pastor' ? null : 'pastor', shirt: '#efe9dc', vest: '#3a2a22', pants: '#3a3530', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: R() < 0.5, bag: '#7a5a3a' } }, this.scene);
+      look: { shirt: '#efe9dc', vest: '#3a2a22', pants: '#3a3530', txapela: '#1d1d24', hair: '#8a8478', moustache: '#8a8478', staff: true, old: R() < 0.5, bag: '#7a5a3a' } }, this.scene);
     pastor.info = PASTOR_INFO(d.family); this.walkers.push(pastor);
     // el rebaño va detrás en fila: cada oveja sigue a otra (las primeras, al pastor)
     const flock = [];

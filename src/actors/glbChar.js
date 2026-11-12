@@ -90,6 +90,15 @@ const MESHY_BY = {
     Celebrate: ['Fist', 0, 1.58], Wave: ['Fist', 0.15, 1.4], Scared: ['Slash', 1.1, 1.5], Pick: ['Slash', 0.1, 0.4] },
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
+// los vecinos (tools/vecinos-glb.mjs: todos traen estar de pie mirando alrededor, Alert, y charlar, Chat): quietos, mirando
+// alrededor (el clip entero, que empieza y acaba igual); hablando, su charla entera; saludar, el gesto del principio de
+// la charla; asustarse, el respingo de mirar alrededor; y golpear, el golpe con los dos brazos de los que lo traen
+const cortesVecino = (src) => ({
+  Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
+  ...(src.Chat ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
+  ...(src.Attack ? { Hit: ['Attack', 0.5, 1.6] } : {}),
+  ...(src.WaveH ? { Wave: ['WaveH', 0, src.WaveH.duration] } : {}),   // (los que traen saludar con la mano: ese)
+});
 MESHY_BY.pastor.Wave = ['Hello', 0.6, 3.7];   // saluda con la mano en alto
 // bucle sin fotograma repetido: si el final coincide con el principio, el clip acaba un fotograma antes
 function seamless(clip) {
@@ -150,7 +159,12 @@ function shrinkMap(m, max = MESHY_TEX) {
 }
 // altura de cada personaje (m): una sola para todo el juego, así el mismo modelo se carga una vez aunque salga como
 // jugador, como vecino o en un partido
-const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62 };
+const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62,
+  // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS): a su altura de Meshy por 0,94, así los adultos miden 1,60 m,
+  // los abuelos con txapela 1,41, los panaderos y los campesinos 1,36 y los niños 1,13
+  ...Object.fromEntries([['abuelo_bigote', 1.5], ['abuelo_barba', 1.5], ['abuela_trenzas', 1.5], ['abuela_mono', 1.5], ['abuelo', 1.7], ['abuela_panuelo', 1.7],
+    ['nino_moreno', 1.2], ['nino_rubio', 1.2], ['nina_pelirroja', 1.2], ['nina_trenzas', 1.2], ['hombre', 1.7], ['mujer', 1.7], ['joven_rubia', 1.7],
+    ['carpintero', 1.7], ['carpintera', 1.7], ['quesero', 1.7], ['quesera', 1.7], ['panadero', 1.45], ['panadera', 1.42], ['campesino', 1.45], ['campesina', 1.42]].map(([n, h]) => [n, +(h * 0.94).toFixed(2)])) };
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
  *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
 export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };
@@ -164,7 +178,9 @@ export async function loadMeshy(name, lod = false) {
   lod = lod && !!MESHY_LOD[name];
   const key = 'meshy:' + name + (lod ? ':lod' : ''), height = MESHY_H[name] || 1.5;
   if (!cache.has(key)) cache.set(key, (async () => {
-    const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name]);
+    // (los vecinos, actors/npcGlb.js: sus originales, en src/assets/meshy/vecinos, no se publican; el juego lleva su versión
+    // ligera y solo el servidor de desarrollo sirve el original, para sus retratos: tools/meshy-retratos.mjs)
+    const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name] || (import.meta.env.DEV ? `/src/assets/meshy/vecinos/${name}.glb` : MESHY_LOD[name]));
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
@@ -179,7 +195,7 @@ export async function loadMeshy(name, lod = false) {
     // veces seguidas (un tirón en cada paso). Se quita ese fotograma repetido
     const animations = ['Walk', 'Run'].filter(n => src[n]).map(n => seamless(src[n]));
     // el futbolista trae su chut: es su golpe (pase y tiro), desde que echa la pierna atrás
-    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(MESHY_BY[name] || {}) };
+    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(src.Alert && !MESHY_BY[name] ? cortesVecino(src) : {}), ...(MESHY_BY[name] || {}) };
     for (const [want, [from, t0, t1, pp, flat, rate]] of Object.entries(cuts)) {
       if (!src[from]) continue;
       const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
@@ -543,6 +559,12 @@ for (const [id, base] of [['leire', 'sanfermin'], ['nahia', 'osasuna'], ['nerea'
 /** Si el avatar es una de las chicas (las de chicas.js o la exploradora, con su propio modelo: ella). */
 export const avatarIsGirl = (id) => !!(GLB_AVATARS[id]?.chica || GLB_AVATARS[id]?.ella);
 export const hasMeshy = (id) => !!MESHY[id];
+/** ¿Tiene versión ligera? (los vecinos solo tienen esa en el juego) */
+export const hasMeshyLod = (id) => !!MESHY_LOD[id];
+/** El retrato de busto de un personaje de Meshy (tools/meshy-retratos.mjs), para las charlas: el de los vecinos. */
+export const meshyBust = (id) => MESHY_PICS[id + '_bust'] || null;
+/** La altura de un personaje de Meshy en el juego (m). */
+export const meshyHeight = (id) => MESHY_H[id] || 1.5;
 export const isGlbAvatar = id => !!GLB_AVATARS[id];
 export const loadGlbAvatar = (id) => {
   const d = GLB_AVATARS[id];

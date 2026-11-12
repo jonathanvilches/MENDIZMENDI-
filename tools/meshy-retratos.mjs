@@ -2,6 +2,9 @@
 // fondo transparente, en su pose de reposo; y el del perfil (hero: cuerpo entero a 512×768, solo para la web, en
 // src/assets/meshy/portraits/web).
 // Y el de la pantalla VS de la pelota (vs: cuerpo entero a 384×512, con el gesto que se pida: CLIP=Celebrate T=0.8).
+// Con CABEZA=1 (los vecinos, actors/npcGlb.js), el busto se encuadra en su cabeza, donde esté (en su postura la cabeza
+// no siempre queda encima de los pies, y el gorro se salía por arriba): de los hombros a un poco por encima de la cabeza o
+// del gorro, a la medida de la cabeza de cada uno (la de los adultos es más pequeña para su altura que la de los niños).
 // Uso: node tools/meshy-retratos.mjs [personaje]   (SOLO=hero para hacer solo alguno: bust, full, hero, vs)
 import { chromium } from 'playwright-core';
 import { writeFileSync } from 'fs';
@@ -15,7 +18,7 @@ await p.goto(URL + '/', { timeout: 300000 });
 await p.waitForFunction(() => window.__ready && window.__THREE, null, { timeout: 300000 });
 const SIZES = [['bust', 256, 256, 0.47, 1.1], ['full', 256, 384, -0.03, 1.07], ['hero', 512, 768, -0.03, 1.07], ['vs', 384, 512, -0.03, 1.12]].filter(s => process.env.SOLO ? process.env.SOLO.split(',').includes(s[0]) : s[0] !== 'vs');
 const CLIP = process.env.CLIP || 'Idle', TT = +(process.env.T || 0.6);
-const out = await p.evaluate(async ([who, SIZES, CLIP, TT]) => {
+const out = await p.evaluate(async ([who, SIZES, CLIP, TT, CABEZA]) => {
   const THREE = window.__THREE, { loadMeshy, GlbChar } = await import('/src/actors/glbChar.js');
   const g = await loadMeshy(who), c = new GlbChar(g, {}); c.root.scale.setScalar(g.userData.fit);
   if (CLIP === "Idle") c.play(CLIP, 0); else c.hold(CLIP);   // (un gesto se mantiene: si no, la figura vuelve a quedarse quieta)
@@ -26,16 +29,19 @@ const out = await p.evaluate(async ([who, SIZES, CLIP, TT]) => {
   c.root.rotation.y = 0.3; c.root.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(c.root), H = box.max.y - box.min.y;
   const res = {};
+  let head = null; c.root.traverse(o => { if (o.isBone && /Head$/.test(o.name) && !head) head = o; });
+  const hp = head ? new THREE.Vector3().setFromMatrixPosition(head.matrixWorld) : null;
   for (const [name, w, h, y0, y1] of SIZES) {
     const R = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); R.setSize(w, h); R.setClearColor(0x000000, 0);
     R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.NeutralToneMapping;
-    const cam = new THREE.PerspectiveCamera(22, w / h, 0.1, 50), ya = box.min.y + H * y0, yb = box.min.y + H * y1, cy = (ya + yb) / 2, span = yb - ya;
+    const cab = CABEZA && name === 'bust' && hp, hh = cab ? box.max.y - hp.y : 0, ya = cab ? hp.y - hh * 0.62 : box.min.y + H * y0, yb = cab ? box.max.y + hh * 0.06 : box.min.y + H * y1;
+    const cam = new THREE.PerspectiveCamera(22, w / h, 0.1, 50), cy = (ya + yb) / 2, span = yb - ya, cx = cab ? hp.x : 0;
     const dist = span / 2 / Math.tan(THREE.MathUtils.degToRad(11)) * 1.02;
-    cam.position.set(0, cy + span * 0.04, dist); cam.lookAt(0, cy, 0);
+    cam.position.set(cx, cy + span * 0.04, (cab ? hp.z : 0) + dist); cam.lookAt(cx, cy, cab ? hp.z : 0);
     R.render(scene, cam); res[name] = R.domElement.toDataURL('image/png'); R.dispose();
   }
   return res;
-}, [who, SIZES, CLIP, TT]);
+}, [who, SIZES, CLIP, TT, !!process.env.CABEZA]);
 for (const [k, v] of Object.entries(out)) {
   const f = `src/assets/meshy/portraits/${k === 'hero' ? 'web/' : ''}${who}_${k}.png`; writeFileSync(f, Buffer.from(v.split(',')[1], 'base64'));
   // en WebP con transparencia (pesa la sexta parte que el PNG)

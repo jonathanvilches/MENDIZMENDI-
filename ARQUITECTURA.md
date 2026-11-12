@@ -15,6 +15,27 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
+  - Vecinos de Meshy (modelos del autor del juego, 12 de noviembre de 2026): 21 personajes que son toda la gente normal de
+    los pueblos: abuelos con txapela (`abuelo_bigote`, `abuelo_barba`, `abuela_trenzas`,
+    `abuela_mono`), abuelos sin ella (`abuelo`, `abuela_panuelo`), niños (`nino_moreno`, `nino_rubio`, `nina_pelirroja`,
+    `nina_trenzas`), adultos (`hombre`, `mujer`, `joven_rubia`) y oficios en hombre y mujer (carpintero, quesero, panadero
+    y campesino). Cada uno con su ropa y su pelo, sin teñir. Salen de los GLB de Meshy con todas sus animaciones y el
+    esqueleto de Mixamo con `tools/vecinos-glb.mjs`: los nombres cortos (Walk, Run, Alert, Chat, WalkW, Attack, Sit,
+    WaveH), la cadera de cada animación en el sitio de la de andar (la de charlar empezaba 30 cm a un lado) y, a quien le
+    falta estar de pie o charlar, la de otro vecino, hueso a hueso y con la cadera a su altura (`--de`). Luego, como los
+    demás, `meshy-lod` y `meshy-costuras` (con `FUENTE`). El juego solo lleva la versión ligera (`src/assets/meshy/lod`:
+    unos 5 500 triángulos y textura de 512 px, 8 MB los 21); los originales, en `src/assets/meshy/vecinos`, no entran en
+    la web ni en el archivo único (17 MB) y solo los sirve el servidor de desarrollo, para los retratos. Sus gestos (`cortesVecino` de `glbChar.js`): quietos, mirando alrededor; hablando, su charla;
+    saludar, el principio de la charla o su saludo con la mano; asustarse, el respingo de mirar alrededor. Miden su
+    altura de Meshy por 0,94 (`MESHY_H`): adultos 1,60 m, abuelos con txapela 1,41, panaderos y campesinos 1,36, niños 1,13.
+    Quién es quién (`VECINOS` y `vecinoPara` de `actors/npcGlb.js`): por su oficio en el nombre («Iker, quesero»); si no,
+    por edad y sexo, y entre esos el que más se le parece (barba, bigote, trenzas, moño, color de pelo), siempre el mismo
+    para cada aspecto. Los de antes (el sanferminero, el pastor y los futbolistas teñidos) se quedan solo para los trajes:
+    el carnaval, los seres de leyenda, los jueces del frontón y la ropa blanca de fiesta de quien la lleva por su papel
+    (dantzaris, aizkolaris, el encierro). Cada pueblo carga solo los suyos (`preloadNpcs(d)`, con los datos del pueblo):
+    los que dan sus misiones y hablan en él, dos de cada edad y sexo para la gente de la calle y el campesino para el
+    pastor; fuera de los pueblos, ninguno. En las charlas, su retrato de busto (`retratoVecino`; `tools/meshy-retratos.mjs`
+    con `CABEZA=1`, encuadrado en su cabeza) en vez de la ilustración.
   - Personajes de Meshy (modelos del autor del juego), en `src/assets/meshy`. El explorador (`explorador.glb`) es el
     personaje del jugador. La exploradora (`exploradora.glb`) está hecha pero de momento no se elige: le faltan cinco
     animaciones para tener todos los gestos de él, y en `data/cast.js` lleva `solo: false` (con `solo: true` vuelve a
