@@ -8,6 +8,7 @@ import { isEU, tr } from '../i18n.js';
 import { FIG } from '../data/armas-navarra.js';
 import { drawOfficial, officialHeight } from '../world/armas.js';
 import { armsImgBig } from './escudoImg.js';
+import { pieCorre } from './pieCorre.js';
 import { esc, el } from '../util/html.js';
 import { windowKeys } from '../util/keys.js';
 
@@ -42,7 +43,7 @@ function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', ston
         <div class="ix-pane es-pane" role="tabpanel">${all[0]?.[1] || ''}</div>
         ${note ? `<p class="ix-text es-note">${esc(note)}</p>` : ''}
         <div class="ix-foot"><button class="btn primary next">Seguir explorando</button></div></div></div></div>`);
-    document.body.appendChild(o); ui.modal = o;
+    document.body.appendChild(o); ui.modal = o; pieCorre(o);
     const cv = o.querySelector('.ix-frame canvas'), im = o.querySelector('.ix-frame > img'); if (cv && canvas) canvas.draw(cv, false);
     // (con la imagen del autor, «en color» es la imagen y «en piedra» el dibujo tallado, como se ve en la fachada)
     o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); const st = b.dataset.s === '1'; if (im && cv) { im.style.display = st ? 'none' : ''; cv.style.display = st ? '' : 'none'; } if (cv && canvas) canvas.draw(cv, st); ui.sound?.ui?.('click'); });

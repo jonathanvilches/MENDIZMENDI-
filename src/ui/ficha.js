@@ -14,6 +14,7 @@ import { floraFoto, floraCredito } from './floraFoto.js';
 import COMARCAS from '../data/comarcas.json';
 import { esc, el } from '../util/html.js';
 import { windowKeys } from '../util/keys.js';
+import { pieCorre } from './pieCorre.js';
 
 
 /** Datos de una ficha: { type, id, F, comarcas } (o null). */
@@ -30,7 +31,7 @@ export const allFichas = (type) => Object.keys(type === 'flora' ? FLORA : FAUNA)
 function open(ui, cls, html) {
   ui?.closeModal?.();
   const o = el(`<div class="mg-overlay ficha ${cls}"><div class="mg-card ix fc${/quiz/.test(cls) ? ' quiz fit' : ''}">${html}</div></div>`);
-  document.body.appendChild(o); if (ui) ui.modal = o;
+  document.body.appendChild(o); if (ui) ui.modal = o; pieCorre(o);
   return o;
 }
 function close(ui, o, k) { removeEventListener('keydown', k, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui?.modal === o) ui.modal = null; }
@@ -93,7 +94,9 @@ export function showFicha(key, { ui = null, badge = '', button = 'Seguir', kicke
           <div class="ix-foot"><button class="btn primary ix-go">${esc(button)}</button></div></div>
       </div>`);
     wireShots(o, ui); wireTabs(o, secs, ui);
-    const b = o.querySelector('.ix-go'); setTimeout(() => b.focus({ preventScroll: true }), 60);
+    // (sin darle el foco al abrir: con el foco salía el contorno blanco del teclado alrededor de «Seguir»; Intro, E y la
+    // barra ya lo pulsan desde la ventana, windowKeys)
+    const b = o.querySelector('.ix-go');
     const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); done(); } });
     const done = () => { ui?.sound?.ui?.('click'); close(ui, o, k); res(); };
     addEventListener('keydown', k, true);

@@ -2,6 +2,7 @@
 import { iconSVG } from './icons.js';
 import { esc, el } from '../util/html.js';
 import { windowKeys } from '../util/keys.js';
+import { pieCorre } from './pieCorre.js';
 // Los minijuegos 3D de los oficios van en su propio trozo de código: se descargan la primera vez que hacen falta
 let M3 = null;
 export const mini3d = () => (M3 ||= import('./mini3d/index.js').catch(e => { M3 = null; throw e; }));
@@ -20,7 +21,7 @@ function overlay(ui, cls, html, card = '') {
   ui.closeModal?.();
   const o = el(`<div class="mg-overlay ${cls}"><div class="mg-card${card ? ' ' + card : ''}">${html}</div></div>`);
   document.body.appendChild(o);
-  ui.modal = o;
+  ui.modal = o; if (/ix-ov/.test(cls)) pieCorre(o);
   return o;
 }
 function done(ui, o, keyFn) { if (keyFn) removeEventListener('keydown', keyFn, true); o.classList.add('out'); setTimeout(() => o.remove(), 250); if (ui.modal === o) ui.modal = null; }
