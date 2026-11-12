@@ -3,6 +3,7 @@ import { tantosDe } from '../pelota/rules.js';
 import { nombreLibre } from '../data/nombres.js';
 import * as THREE from 'three';
 import { Actor, cullActor, frameFrustum, sombraPersonas } from '../actors/people.js';
+import { cercaVecinos, sueltaCerca } from '../actors/vecinoCerca.js';
 import { PLACES, BOUNDARY, MOD } from '../world/layout.js';
 import { empiezaAccesos, alcanzable, acabaAccesos, sitiosBuenos } from '../world/acceso.js';
 import { QUALITY } from '../util/quality.js';
@@ -654,6 +655,8 @@ export class TownGame {
     const solo = this.soloCancha, fuera = (a) => { a.obj.visible = false; a.onScreen = false; };
     for (const a of this.actors) { if (solo && a !== solo.keep) { fuera(a); continue; } cull(a, lowQ ? 70 : 110); }
     for (const a of this.walkers) { if (solo) { fuera(a); continue; } cull(a, lowQ ? 50 : 70); }
+    // (los vecinos que están cerca, con su textura nítida; vecinoCerca.js)
+    if (!solo && (this.cercaT = (this.cercaT || 0) - dt) <= 0) { this.cercaT = 0.5; try { cercaVecinos([...this.actors, ...this.walkers], P.pos); } catch (e) { } }
     for (const a of this.balconVecinos || []) {   // (los del balcón saludan cuando pasas cerca; otra vez si vuelves)
       if (solo) { fuera(a); continue; }
       cull(a, lowQ ? 70 : 110);
@@ -1141,6 +1144,7 @@ export class TownGame {
     // (lo que estaba a medias —el menú de pelota, el cuadro del torneo, un partido preparándose— se para: el pueblo
     // nuevo no debe recibir sus ventanas ni sus controles)
     this.disposed = true;
+    try { sueltaCerca(); } catch (e) { }
     // (la vista del mirador por los prismáticos, townCimas.js: es una escena aparte y no cuelga del pueblo, así que
     // rt.unload no la ve. Sin esto, su relieve, sus casas y sus rótulos, con las marcas de las cumbres, se quedaban en la
     // gráfica al salir del pueblo)

@@ -8,6 +8,7 @@ import { outfitTint, adultBody } from './npcOutfit.js';
 import { hairTint } from './hairColor.js';
 import { TRAJES, vestirTraje, falda } from './trajes.js';
 import { loadChica, hasChica } from './chicas.js';
+import { fuenteCerca } from './vecinoCerca.js';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -32,6 +33,7 @@ export async function preloadNpcs(d = null) {
   const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p, true)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
   // los vecinos de Meshy de este pueblo (d, los datos del pueblo; sin él, ninguno: fuera de los pueblos, como antes)
   for (const k of Object.keys(VEC_LOD)) delete VEC_LOD[k];
+  for (const k of Object.keys(USO)) delete USO[k]; VEC_DE.clear();
   const vec = d ? vecinosDelPueblo(d) : [];
   const vecP = Promise.all(vec.map(n => loadMeshy(n, true).then(g => { VEC_LOD[n] = g; }).catch(e => console.warn('vecino', n, e))));
   // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos; los vecinos de
@@ -77,7 +79,7 @@ const deFiesta = (L, n = '') => blanco(L.shirt) && blanco(L.pants || L.skirt) &&
 /** El vecino de Meshy que mejor le va a este aspecto y este nombre, entre los que se den (por defecto, todos): el de
  *  su oficio; si no, el de su edad y su sexo que más se le parezca (barba, bigote, trenzas, moño, color de pelo) y,
  *  entre los que valen igual, uno fijo para cada vecino. null si no es gente normal (trajes, fiesta, leyendas, jueces). */
-export function vecinoPara(L = {}, nombre = '', entre = VEC) {
+export function vecinoPara(L = {}, nombre = '', entre = VEC, reparte = false) {
   const n = sinTilde(nombre);
   if (COSTUME(L) || L.juez || L.meshy || deFiesta(L, n)) return null;
   const s = isFemale(L) ? 'f' : 'm', e = edadDe(L), pelo = tono(L.hair);
@@ -87,12 +89,17 @@ export function vecinoPara(L = {}, nombre = '', entre = VEC) {
     if (V.oficio && n && V.oficio.test(n)) p += 10;
     if (V.barba && L.beard) p += 3; if (V.bigote && L.moustache && !L.beard) p += 3; if (V.trenzas && L.braids) p += 3; if (V.mono && L.bun) p += 2;
     if (V.txapela && L.txapela) p += 1; if (pelo && V.pelo === pelo) p += 2; if (V.oficio && !(n && V.oficio.test(n))) p -= 0.5;
+    // (repartidos: cada vez que un modelo ya ha salido en el pueblo, cuenta algo menos, para que no salgan cinco abuelas iguales)
+    if (reparte) p -= Math.min(6, (USO[k] || 0) * 1.5);
     return p; };
   const best = Math.max(...cand.map(nota)), top = cand.filter(k => nota(k) === best);
   return top[hashOf(L) % top.length];
 }
 // los vecinos de Meshy de este pueblo (preloadNpcs): sus versiones ligeras, ya cargadas
 const VEC_LOD = {};
+// cuántos vecinos de cada modelo hay ya en el pueblo (vecinoPara, reparte)
+const USO = {};
+fuenteCerca((n) => VEC_LOD[n]?.scene || null);   // (vecinoCerca.js: su textura nítida de cerca)
 // qué vecino de Meshy le tocó a cada aspecto, para su retrato en las charlas (ui.js)
 const VEC_DE = new Map();
 /** El retrato de busto del vecino de Meshy de este aspecto, para las charlas; null si no es uno de ellos. */
@@ -116,7 +123,7 @@ function vecinosDelPueblo(d) {
   // (con muchos más vecinos por la calle, más caras distintas: los seis mayores, los cuatro niños y tres adultos de cada sexo)
   de(['abuelo_bigote', 'abuelo_barba', 'abuelo'], 3); de(['abuela_trenzas', 'abuela_mono', 'abuela_panuelo'], 3);
   de(['nino_moreno', 'nino_rubio'], 2); de(['nina_pelirroja', 'nina_trenzas'], 2);
-  de(['hombre', 'campesino', 'carpintero', 'quesero', 'panadero'], 2); de(['mujer', 'joven_rubia', 'campesina', 'carpintera', 'quesera', 'panadera'], 2);
+  de(['hombre', 'campesino', 'carpintero', 'quesero', 'panadero'], 3); de(['mujer', 'joven_rubia', 'campesina', 'carpintera', 'quesera', 'panadera'], 3);
   quiero.add('campesino');   // (el pastor del pueblo, que va con su rebaño: game/townGame.js, spawnShepherds)
   return [...quiero].filter(k => hasMeshyLod(k));
 }
@@ -126,7 +133,7 @@ function vecinosDelPueblo(d) {
 export function meshyFor(L = {}, nombre = '') {
   if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
   // la gente normal del pueblo, con los vecinos de Meshy que ha cargado
-  const v = vecinoPara(L, nombre, Object.keys(VEC_LOD)); if (v) return v;
+  const ya = VEC_DE.get(hashOf(L)), v = (ya && VEC_LOD[ya] ? ya : null) || vecinoPara(L, nombre, Object.keys(VEC_LOD), true); if (v) return v;
   // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
   // pelotari, que lleva tacos en los dedos)
   if (L.juez && MESHY_NAMES.includes('osasuna')) return 'osasuna';
@@ -197,7 +204,7 @@ function buildVecino(L, name) {
   if (L.staff && V.e === 'mayor') { char.root.updateMatrixWorld(true); try { dressMeshy(char.root, { staff: '#6b4a2a' }); } catch (e) { console.warn('makila', e); } }
   const obj = new THREE.Group(); obj.add(char.root);
   Object.assign(obj.userData, { glbNpc: true, sex: V.s === 'f' ? 'girl' : 'boy', H, look: L, meshy: name, vecino: name });
-  VEC_DE.set(hashOf(L), name);
+  VEC_DE.set(hashOf(L), name); USO[name] = (USO[name] || 0) + 1;
   const anim = {
     t: 0, setExpr() {},
     update(dt, s) {
