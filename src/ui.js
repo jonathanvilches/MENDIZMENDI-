@@ -136,7 +136,6 @@ export class UI {
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
         <div id="mini"><canvas width="248" height="248"></canvas></div>
-        <div id="pestanas"><button class="pest" id="tBook" aria-label="Cuaderno (C)" title="Cuaderno">${ICON.book}</button></div>
         <div id="minfo"><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
@@ -154,7 +153,6 @@ export class UI {
     this.subtitle ||= document.body.appendChild(el('<div id="subtitle"></div>'));
     const tap = (id, fn) => { const b = $(id, h); b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); fn(); }); };
     tap('#bMenu', () => this.openMenu());
-    tap('#tBook', () => this.openBook());   // (la pestaña del borde derecho: el cuaderno; el mapa se abre tocando el minimapa)
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
     this.doneN = null; this.misAbierta = null; this.qKey = null; this.lastQ = null; this.tlVer = false;
@@ -767,7 +765,7 @@ export class UI {
     const g = this.game, st = g.state, town = g.kind === 'town';
     const S = town ? g.P.settings : st.settings;
     const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.horaChip()}${this.closeBtn()}</header><div class="pbody">
-      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
+      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mBook">Cuaderno</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
       <label>Música <input type="checkbox" id="mMusic" ${S.music ? 'checked' : ''}></label>
       <label>Volumen <input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
       <label>Calidad gráfica <select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
@@ -781,6 +779,9 @@ export class UI {
     $('#mVol', s).oninput = e => { S.volume = +e.target.value; this.sound.setVolume(+e.target.value); save(); };
     $('#mQ', s).onchange = e => { S.quality = e.target.value; S.qualityAuto = false; delete S.slowPc; save(); this.onQuality?.(e.target.value); $('#mQnote', s).hidden = false; };
     $('#mT', s).onchange = e => { S.timeSpeed = +e.target.value; g.applySettings(); save(); };
+    // (el cuaderno, aquí en la pausa y solo con su nombre: ya no tiene botón ni pestaña en el visor. Se abre también tocando
+    // el texto de la misión y, en el ordenador, con C)
+    $('#mBook', s).onclick = () => this.openBook();
     $('#mHome', s).onclick = () => { this.closeModal(); g.teleport(PLACES.plaza.x - 6, PLACES.plaza.z + 6); };
     // (fundido a negro por encima de la pausa, que ya no se toca, y detrás, el menú: antes se cerraba la pausa y asomaba
     // un momento el pueblo antes del fundido)

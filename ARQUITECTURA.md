@@ -1084,12 +1084,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`.round`): el icono es el 70 % de dentro del botón en todos los tamaños (en el de 44 px, 28; antes 26 fijos), sin el
   brillo de arriba, y el anillo de energía de la mochila va dentro de su borde (antes salía 4 px y la mochila parecía
   más grande que los demás).
-  El cuaderno va como una pestaña pegada al borde derecho de la pantalla, debajo del minimapa (`#pestanas`, `.pest`, en
-  la rejilla de `#topright`, con un margen negativo hasta el borde y el hueco de la muesca por dentro): asoma lo justo
-  para el icono y sale un poco al pasar por encima o tocarla. Ocupa menos que un botón redondo y sigue a un toque (es lo
-  que más se usa para seguir las misiones). El mapa no tiene pestaña: se abre tocando el minimapa. Arriba quedan la mochila (`mochila.js` la pone
-  delante de la pausa), los prismáticos cuando los tienes y la pausa, que vuelve a ser la de antes. El mapa se abre
-  también tocando el minimapa y el cuaderno tocando la misión; en el ordenador, con C y M.
+  El cuaderno no tiene botón ni pestaña en el visor: está en la pausa, como «Cuaderno», solo con su nombre y debajo de
+  «Seguir jugando», y se abre también tocando el texto de la misión; en el ordenador, con C. Hubo una pestaña pegada al
+  borde derecho, debajo del minimapa, y se quitó (noviembre de 2026: ahí no pintaba nada). Con él, la pausa del
+  ordenador tiene cinco botones y en una pantalla baja, de 1280×720, va a dos columnas como en el móvil tumbado (si no,
+  la ayuda de las teclas no cabía y había que desplazar). El mapa se abre tocando el
+  minimapa y, en el ordenador, con M. Arriba quedan la mochila (`mochila.js` la pone delante de la pausa), los
+  prismáticos cuando los tienes y la pausa. La rejilla de `#topright` tiene dos filas: botones y minimapa, y debajo de
+  los botones la distancia.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
   desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de
   correr que se quedaba puesto; con el teclado sigue siendo Mayús y el mando del móvil conserva el suyo.

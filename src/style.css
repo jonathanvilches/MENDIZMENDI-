@@ -285,18 +285,10 @@ summary { line-height: 1.3; }
    distancia. Antes iban unos debajo de otros (botones, minimapa y la hora colgando debajo) y en el teléfono tumbado bajaban
    hasta casi la mitad de la pantalla; así no pasan de lo que mide el minimapa. Una rejilla: el bloque no recoge toques en
    sus huecos */
-#topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: grid; grid-template-columns: auto auto; grid-template-areas: "btns mini" "info mini" ". tabs"; gap: 8px 10px; align-items: start; justify-items: end; pointer-events: none; }
+#topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: grid; grid-template-columns: auto auto; grid-template-areas: "btns mini" "info mini"; gap: 8px 10px; align-items: start; justify-items: end; pointer-events: none; }
 #topright > * { pointer-events: auto; }
 .rbtns { grid-area: btns; display: flex; gap: 8px; }
 #minfo { grid-area: info; display: flex; align-items: center; gap: 6px; }
-/* el cuaderno, como una pestaña pegada al borde derecho de la pantalla, debajo del minimapa: asoma lo justo para el icono
-   y, al pasar por encima o tocarla, sale un poco. Ocupa menos que un botón redondo y sigue a un toque (el mapa no lleva:
-   se abre tocando el minimapa) */
-#pestanas { grid-area: tabs; justify-self: end; display: flex; flex-direction: column; gap: 6px; margin: 2px calc(-1 * (var(--sr) + var(--edge))) 0 0; }
-.pest { box-sizing: content-box; width: 34px; height: 40px; padding: 0 var(--sr) 0 6px; display: grid; place-items: center; border-radius: 10px 0 0 10px; background: rgba(14, 10, 24, .72); box-shadow: -2px 3px 10px rgba(0, 0, 0, .3); transition: transform .14s var(--ease, ease), background .14s; }
-.pest :is(svg, .hico, .ico) { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
-@media (hover: hover) { .pest:hover { transform: translateX(-4px); background: rgba(14, 10, 24, .86); } }
-.pest:active { transform: translateX(-6px); }
 .round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
 .round:hover { border-color: #ff7ac8; background: rgba(12, 9, 20, .65); } .round:active { transform: scale(.92); }
 .round :is(svg, .hico, .ico) { width: 70%; height: 70%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }   /* (el icono, el 70 % de dentro del botón en todos los tamaños, la mochila también: en el de 44 px, 28; antes 26 fijos, que en el de 36 llenaban casi todo) */
@@ -404,7 +396,7 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
      de la columna de botones: antes en el teléfono de pie no había minimapa) */
   /* (de pie: los botones en columna en el margen derecho, que arriba no quitan sitio a las misiones; debajo el minimapa y,
      a su izquierda, la hora y la distancia una encima de otra, en vez de colgar debajo) */
-  #topright { grid-template-areas: ". btns" "info mini" ". tabs"; }
+  #topright { grid-template-areas: ". btns" "info mini"; }
   .rbtns { flex-direction: column; }
   #minfo { flex-direction: column; align-items: flex-end; align-self: center; }
   #tl { max-width: calc(calc(100vw / var(--z, 1)) - 90px); }
@@ -904,13 +896,13 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   #mini { width: 124px; height: 124px; }
 }
 /* pausa en el móvil tumbado: ancho, dos columnas (botones a la izquierda, ajustes a la derecha): todo a la vista sin desplazar */
-@media (max-height: 520px) and (orientation: landscape) {
+/* (y en una pantalla de ordenador baja, de 1280×720: en una columna, con el cuaderno en la pausa, la ayuda de las teclas
+   ya no cabía y había que desplazar) */
+@media (max-height: 520px) and (orientation: landscape), (min-width: 1000px) and (max-height: 760px) and (orientation: landscape) {
   .menu .paper { width: min(820px, 100%); }
   /* (los botones a la izquierda y los ajustes a la derecha van en las mismas filas: todos de 56 px de alto, con 8 px
      entre filas, para que las dos columnas queden alineadas; la letra, la de los botones) */
   .menu .pbody { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-auto-flow: row dense; gap: 8px 16px; align-items: stretch; }
-  /* (los lugares del pueblo, en una fila bajo su texto; si no caben, se desplaza: mejor cartas grandes que apretadas) */
-  .cards .card { height: 160px; }
   .menu .pbody .btns.top { display: contents; }
   .menu .pbody .btns.top .btn { grid-column: 1; min-height: 52px; margin: 0; padding: 8px 12px; font-size: var(--fs-md); }
   .menu .pbody > label { grid-column: 2; min-height: 52px; padding: 4px 4px 4px 12px; font-size: var(--fs-md); }
@@ -919,6 +911,8 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   .menu .keys { grid-column: 1 / -1; font-size: var(--fs-xs); margin: 0; }
   .menu #mQnote { grid-column: 2; }
 }
+/* (los lugares del pueblo, en una fila bajo su texto; si no caben, se desplaza: mejor cartas grandes que apretadas) */
+@media (max-height: 520px) and (orientation: landscape) { .cards .card { height: 160px; } }
 /* móvil pequeño tumbado (iPhone SE, 8): la brújula un poco más estrecha para no pisar el objetivo de la izquierda */
 /* (la misión, algo más ancha que antes, 29 %: con el icono, el botón de plegar y sus huecos, a una palabra larga como
    «importantes» no le cabía y se salía hasta rozar el botón) */

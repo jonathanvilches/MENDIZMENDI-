@@ -103,7 +103,7 @@ export const EU_EXACT = {
   'Deportes': 'Kirolak',
   'Láminas de Navarra': 'Nafarroako irudiak',
   'Las ilustraciones de cada pueblo y comarca': 'Herri eta eskualde bakoitzeko irudiak',
-  'Toca la pestaña del cuaderno, en el borde derecho, para ver todas las misiones y sus pasos.': 'Ukitu koadernoaren fitxa, eskuineko ertzean, misio guztiak eta haien urratsak ikusteko.',
+  'En la pausa tienes el cuaderno, con todas las misiones y sus pasos.': 'Pausan duzu koadernoa, misio guztiekin eta haien urratsekin.',
   'Si corres cerca de los animales se asustan: acércate despacio.': 'Animalien ondoan korrika eginez gero, beldurtu egiten dira: hurbildu poliki.',
   'Completa todas las misiones de un pueblo para ganar su sello.': 'Osatu herri bateko misio guztiak haren zigilua irabazteko.',
   'Cuando tengas todos los pueblos de una comarca, se iluminará en el mapa de Navarra.': 'Eskualde bateko herri guztiak dituzunean, Nafarroako mapan argituko da.',
