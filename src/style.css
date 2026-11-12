@@ -240,12 +240,14 @@ summary { line-height: 1.3; }
    de su misión (--mc: data/misionCat.js, como en las fichas del menú): sin hacer, un tinte y el borde; hecha, llena de su
    color y con su marca; la que sigues, con borde blanco; la desplegada, además, con su piquito hacia la misión de debajo.
    Debajo, al tocar una, la misión: su nombre, lo que hay que hacer, sus pasos y lo lejos que está. El panel tiene un ancho
-   mínimo para que, al desplegarse, no crezca y la brújula no se mueva */
-#tl.mis { --chip: 34px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
-@media (max-height: 520px) { #tl.mis { --chip: 32px; } }
+   mínimo para que, al desplegarse, no crezca y la brújula no se mueva.
+   El tamaño de las casillas y de los botones redondos, --chip: 40 px en el móvil, cerca de los 44 que pide Apple para un
+   dedo, y 48 en el ordenador. Hasta el 12 de noviembre de 2026 eran de 32 a 34 px en el móvil y 42 en el ordenador, y
+   al autor le costaba acertar con el dedo. En el tumbado más pequeño, 36 px, porque va en dos filas */
+#tl.mis { --chip: 40px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
 /* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
-@media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
-@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 42px; min-width: 260px; } #tl.mis #misiones { gap: 10px; } }
+@media (max-height: 520px) and (max-width: 740px) { #tl.mis { --chip: 36px; } #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
+@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 48px; min-width: 260px; } #tl.mis #misiones { gap: 10px; } }
 #misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 8px; }
 /* la mochila, los prismáticos (cuando los tienes) y la pausa, al final de la barra de misiones y bien separados de ellas:
    12 px de hueco a cada lado de una raya clara de 2 px de arriba abajo, y redondos y de un gris translúcido, no cuadrados de
@@ -275,7 +277,7 @@ summary { line-height: 1.3; }
 #misiones button.late { animation: misLate 1.1s ease-out 2; }
 @keyframes misLate { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--mc) 85%, transparent); } 70% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--mc) 0%, transparent); } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (prefers-reduced-motion: reduce) { #misiones button.late { animation: none; } }
-#misiones button.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 13px; height: 13px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 8px/13px sans-serif; text-align: center; }
+#misiones button.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 9px/15px sans-serif; text-align: center; }
 #misiones button.sel { outline: 2px solid color-mix(in srgb, var(--mc) 80%, #fff); outline-offset: 2px; }
 /* la tarjeta de la misión: al tocar su casilla sale suelta debajo de la barra, con una flechita hacia la casilla (--px,
    ui.js abreMision). El icono en el color de su categoría; al lado, la categoría y cuál es, su nombre, lo que toca hacer,
