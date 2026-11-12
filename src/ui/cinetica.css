@@ -13,7 +13,10 @@
 .cin.cae .cl { animation-name: cin-cae; animation-duration: 640ms; animation-timing-function: var(--muelle, cubic-bezier(.34, 1.56, .64, 1)); }
 @keyframes cin-cae { from { opacity: 0; transform: translateY(-.55em) scale(1.18); } 50% { opacity: 1; } }
 /* (las que llevan el texto con degradado: cada letra con el suyo, que es de arriba abajo y se ve igual) */
-.cin.degradado .cl { background: inherit; -webkit-background-clip: text; background-clip: text; color: transparent; }
+/* (y con la caja de cada letra alargada por arriba y por abajo sin cambiar lo que ocupa: el degradado solo pinta dentro de
+   ella y, con el interlineado justo, la tilde de la Ñ, los acentos y la diéresis quedaban fuera y no se veían: «SEÑORÍO DE
+   BERTIZ» salía como «SENORIO DE BERTIZ» en la pantalla de carga) */
+.cin.degradado .cl { background: inherit; -webkit-background-clip: text; background-clip: text; color: transparent; padding: .3em 0 .14em; margin: -.3em 0 -.14em; }
 /* (los títulos que antes se destapaban con una máscara, ahora letra a letra: sin la máscara) */
 .hub-main > .title.cin, #hub.juego .hub-main > .title.cin { animation: none; }
 #hub.juego .hub-main.cambia > .title.cin { animation: rise var(--d-pantalla) var(--ease) backwards; }

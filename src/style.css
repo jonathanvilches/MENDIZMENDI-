@@ -95,12 +95,15 @@ summary { line-height: 1.3; }
 #loading .ld-txt { grid-area: txt; align-self: end; min-width: 0; display: flex; flex-direction: column; gap: var(--r-tx); }
 /* (el ritmo de la tabla: antetítulo → nombre 12, nombre → presentación 16 y de ahí a las misiones 16, la letra recortada) */
 #loading .ld-head { display: flex; flex-direction: column; gap: 0; } #loading :is(.ld-k, .ld-name, .ld-intro, .ld-ms > span) { text-box: trim-both cap alphabetic; }
-#loading .ld-k + .ld-name { margin-top: var(--r-kt); } #loading .ld-name + .ld-intro { margin-top: var(--r-tx); }
+#loading .ld-k + .ld-name { margin-top: calc(var(--r-kt) - .3em); } #loading .ld-name + .ld-intro { margin-top: var(--r-tx); }
 #loading .ld-k { display: block; color: #ff9ad8; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .18em; text-transform: uppercase; text-shadow: var(--letra-carga); }
 #loading .ld-k::before { content: ''; display: inline-block; vertical-align: .3em; margin-right: 10px; width: 28px; height: 2px; background: linear-gradient(90deg, #ff7ac8, transparent); }
 #loading .ld-name { font-family: 'MZ Display', 'MZ Texto', sans-serif; font-size: clamp(44px, min(11vw, 17vh), 128px); line-height: .92; text-transform: uppercase; letter-spacing: .01em; overflow-wrap: anywhere;
   background: linear-gradient(180deg, #fff 30%, #e5d6ff 70%, #c9b2ff); -webkit-background-clip: text; background-clip: text; color: transparent;
-  filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35)); }
+  filter: drop-shadow(0 2px 12px rgba(8, 4, 16, .55)) drop-shadow(0 0 22px rgba(255, 122, 200, .35));
+  /* (la caja, recortada a la altura de las mayúsculas, se alarga por arriba y por abajo sin cambiar lo que ocupa: el
+     degradado solo pinta dentro y las tildes de la Ñ y los acentos quedaban fuera; ui/cinetica.css hace lo mismo con cada letra) */
+  padding: .3em 0 .14em; margin-bottom: -.14em; }
 #loading .ld-intro { margin: 0; max-width: 34em; font-size: var(--fs-sm); font-weight: 700; line-height: 1.45; color: #f4f0fb; text-shadow: var(--letra-carga); }
 /* (las misiones, como los objetivos de una fase: cada icono en su casilla de esquinas redondeadas) */
 #loading .ld-ms { display: flex; flex-direction: column; gap: 8px; }

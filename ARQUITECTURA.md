@@ -155,7 +155,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   autor). Los títulos entran letra a letra (`cinetica`): cada palabra en su caja, que no se parte, y cada letra con su
   retraso, como mucho medio segundo para el título entero. Tres maneras: `sube` (los títulos: desde abajo, con un pequeño
   giro y un rebote corto), `junta` (los antetítulos: las letras llegan separadas y se juntan, como al cerrar el espaciado)
-  y `cae` (los nombres grandes: desde arriba y algo más grandes). El texto queda en `aria-label` y las letras, ocultas a
+  y `cae` (los nombres grandes: desde arriba y algo más grandes). Con texto en degradado (`.degradado`, el nombre de la
+  pantalla de carga), la caja de cada letra se alarga .3em por arriba y .14em por abajo con márgenes negativos que la
+  dejan ocupando lo mismo: el degradado solo pinta dentro de la caja y, con el interlineado justo, la tilde de la Ñ, los
+  acentos y la diéresis quedaban fuera y no se veían («SEÑORÍO» salía «SENORIO»). El propio `.ld-name` hace lo mismo. El texto queda en `aria-label` y las letras, ocultas a
   los lectores de pantalla; con «reducir movimiento», nada. Van en los títulos y antetítulos de cada sección del menú, de
   la comarca y de su pueblo (`titulosCineticos`, desde `hub.js`), en el nombre de la sección de la cabecera de la ventana,
   en la pantalla de carga (el nombre cae con su degradado, `degradado`, y la comarca se junta) y en el rótulo de la tele:
