@@ -181,7 +181,7 @@ export class PuebloAventura {
   /** Devuelve true si la acción era de la aventura. */
   aventuraActua(it) {
     const A = this.av, D = aventuraDe(this.P), id = this.def.id; if (!A) return false;
-    if (it.kind === 'montar') { A.montura?.sube(this.player); const T = A.montura?.T; if (T?.saber && !aventuraDe(this.P).pistas['saber-' + A.montura.tipo]) this.aventuraPista('saber-' + A.montura.tipo, T.saber, 6400); else this.aventuraPista('montura', 'Se lleva como andando. Con la palanca a fondo o corriendo, trota y galopa.'); return true; }
+    if (it.kind === 'montar') { A.montura?.sube(this.player); this.faunaVista?.({ burguete: 'caballo', burro: 'burro' }[A.montura?.tipo]); const T = A.montura?.T; if (T?.saber && !aventuraDe(this.P).pistas['saber-' + A.montura.tipo]) this.aventuraPista('saber-' + A.montura.tipo, T.saber, 6400); else this.aventuraPista('montura', 'Se lleva como andando. Con la palanca a fondo o corriendo, trota y galopa.'); return true; }
     if (it.kind === 'desmontar') { A.montura?.baja(); return true; }
     if (it.kind === 'kutxa') {
       const k = it.k; if (k.abierta) return true;

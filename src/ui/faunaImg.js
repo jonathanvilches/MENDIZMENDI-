@@ -1,4 +1,4 @@
-// Las ilustraciones de los 35 animales de la fauna (31 del autor del proyecto y 4 peces hechos con Higgsfield: cuerpo entero, fondo transparente, lienzo
+// Las ilustraciones de los 40 animales de la fauna (31 del autor del proyecto y 9 hechos con Higgsfield: cuerpo entero, fondo transparente, lienzo
 // cuadrado; nombres = identificadores de src/data/fauna.js). La grande, para la ficha: de 1280 px en la web (cada una se
 // descarga al verla) y de 512 en el archivo único, para no pasar de su tamaño; la pequeña, para las tarjetas del
 // cuaderno: de 512 en todas partes (la tarjeta pide unos 310 píxeles en el iPhone; en el archivo único es la misma imagen que la

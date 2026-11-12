@@ -6,7 +6,8 @@
 // la calle por delante del jugador, a 18-34 m, y salen volando todos a la vez cuando llega cerca, con su aleteo, como una
 // nube que se abre y se va por encima de los tejados. La que se ha ido o queda atrás vuelve a posarse más adelante: andando
 // por el pueblo siempre hay alguna. Antes solo había las de la plaza y casi nunca se veían salir.
-//   new Pajarillos(scene, { quality, sound }) · update(dt, t, player, night, oculto)
+//   new Pajarillos(scene, { quality, sound }) · update(dt, t, player, night, oculto) · onVisto(especie): una bandada que sale
+//   volando o una gallina que se aparta al acercarse el jugador (se apunta en la fauna, game/townGame.js)
 import * as THREE from 'three';
 import { PLACES } from './layout.js';
 import { TOWN } from './townBuilder.js';
@@ -108,6 +109,7 @@ const ESPECIES = {
 
 class Especie {
   constructor(scene, id, n) {
+    this.id = id;   // (su nombre: el de la fauna, para apuntarla al verla, onVisto)
     const E = ESPECIES[id], g = cuerpoPajaro(E.L, E);
     for (const k of ['aExt', 'aAle', 'aFase']) g.setAttribute(k, new THREE.InstancedBufferAttribute(new Float32Array(n), 1));
     const { m, T } = materialPajaro(0.16 * E.L, 0.12 * E.L, E.freq);
@@ -188,7 +190,7 @@ export class Pajarillos {
   }
   // (sale volando toda: cada pájaro un poco después del anterior, alejándose del jugador con su rumbo y su altura)
   despega(F, px, pz) {
-    F.est = 'vuela'; F.t = 0;
+    F.est = 'vuela'; F.t = 0; this.onVisto?.(F.E?.id);
     const ax = F.x - px, az = F.z - pz, l = Math.hypot(ax, az) || 1, base = Math.atan2(ax / l, az / l);
     for (const a of F.aves) {
       const r = base + (this.rnd() - 0.5) * 1.4;
@@ -266,7 +268,7 @@ export class Pajarillos {
       const E = B.esp, base = this.bandadas.filter(b => b.esp === E).indexOf(B) * B.aves.length;
       // (si pasas cerca de alguna, sale volando toda la bandada; vuelve cuando te has ido)
       const cerca = B.aves.some(a => a.est === 'suelo' && Math.hypot(a.x - px, a.z - pz) < (E === this.pal ? 3 : 4));
-      if (cerca) for (const a of B.aves) if (a.est === 'suelo') { a.posa = this.destino(a); this.vuela(a, a.posa); }
+      if (cerca) { this.onVisto?.(E?.id); for (const a of B.aves) if (a.est === 'suelo') { a.posa = this.destino(a); this.vuela(a, a.posa); } }
       B.aves.forEach((a, i) => {
         a.t -= dt;
         if (a.est === 'suelo') {
@@ -308,7 +310,7 @@ export class Pajarillos {
     // se apartan corriendo con un aleteo (no salen volando)
     for (const a of this.gallinas) {
       const dP = Math.hypot(a.x - px, a.z - pz);
-      if (dP < 2.4 && a.huye <= 0) { const k = 1.9 / Math.max(0.3, dP); const nx = a.x + (a.x - px) * k, nz = a.z + (a.z - pz) * k; if (isFree(nx, nz, 0.25)) { a.tx = nx; a.tz = nz; } a.huye = 1.2; a.pica = 0; }
+      if (dP < 2.4 && a.huye <= 0) { this.onVisto?.('gallina'); const k = 1.9 / Math.max(0.3, dP); const nx = a.x + (a.x - px) * k, nz = a.z + (a.z - pz) * k; if (isFree(nx, nz, 0.25)) { a.tx = nx; a.tz = nz; } a.huye = 1.2; a.pica = 0; }
       a.t -= dt; a.huye = Math.max(0, a.huye - dt);
       const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz), v = a.huye > 0 ? 1.7 : 0.38;
       if (d > 0.05) {

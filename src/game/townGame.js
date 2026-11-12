@@ -397,10 +397,12 @@ export class TownGame {
     try { this.spawnBalcones(); } catch (e) { console.warn('balcones', e); }
     // gorriones, palomas y vencejos (pajarillos.js): después de los balcones, que son de sus posaderos
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY, sound: this.sound }); } catch (e) { console.warn('pajarillos', e); }
+    // (los gorriones, los jilgueros y las gallinas, al verlos salir volando o apartarse: a la fauna, una vez cada uno)
+    if (this.pajarillos) this.pajarillos.onVisto = (k) => this.faunaVista(k);
     // truchas, salmones, barbos, madrillas y chipas en los ríos, según la comarca (peces.js)
     if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca }); } catch (e) { console.warn('peces', e); }
     // (al ver huir un banco desde la orilla, su pez se apunta en la fauna del cuaderno, una vez por especie)
-    if (this.peces) this.peces.onVisto = (k) => { if (FAUNA[k] && addCard('fauna:' + k)) this.ui.toast(`${FAUNA[k].name}: apuntado en tu cuaderno de fauna`, 'book', 2800); };
+    if (this.peces) this.peces.onVisto = (k) => this.faunaVista(k);
     // la ropa tendida en algunos balcones (colada.js)
     try { this.colada = new Colada(this.scene, { quality: QUALITY }); } catch (e) { console.warn('colada', e); }
     this.spawnShepherds();
@@ -503,6 +505,9 @@ export class TownGame {
       a.cuento = C; this.actors.push(a);
     });
   }
+  /** Un animal visto de cerca (un pez que huye, una bandada que sale volando, una gallina, la montura): su ficha de
+   *  fauna se apunta en el cuaderno la primera vez, con un aviso. */
+  faunaVista(k) { if (k && FAUNA[k] && addCard('fauna:' + k)) this.ui.toast(`${FAUNA[k].name}: apuntado en tu cuaderno de fauna`, 'book', 2800); }
   spawnShepherds() {
     const d = this.def, P = PLACES, R = this.rnd, farm = TOWN.farm || P.farm; if (!hasShepherd(d)) return;
     const route = [0, 1, 2, 3].map(i => { const a = i / 4 * Math.PI * 2 + 0.6, s = this.spot({ x: farm.x + Math.cos(a) * 42, z: farm.z + Math.sin(a) * 42 }, 6); return { x: s.x, z: s.z }; });
