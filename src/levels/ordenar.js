@@ -305,18 +305,43 @@ export function suaviza(pts) {
 
 /** Los puentes: los que cruzan agua llegan a tierra firme por los dos lados, y donde una calle cruza el agua sin puente
  *  se pone uno. Devuelve la lista nueva (con hecho: si se levanta) sin tocar la de los datos. */
-export function ordenarPuentes(puentes, calles, riverInfo, rios = []) {
+export function ordenarPuentes(puentes, calles, riverInfo, rios = [], alto = null) {
   const moja = (x, z) => riverInfo(x, z).edge < 0.5;
   const out = puentes.map(P => ({ ...P, pts: P.pts.map(q => q.slice()) }));
   const mojado = (P) => { for (let i = 0; i < P.pts.length - 1; i++) for (let t = 0; t <= 1; t += 0.125) if (moja(P.pts[i][0] + (P.pts[i + 1][0] - P.pts[i][0]) * t, P.pts[i][1] + (P.pts[i + 1][1] - P.pts[i][1]) * t)) return true; return false; };
-  // (un extremo en el agua: se alarga en su dirección, de medio en medio metro, hasta pisar la orilla; como mucho 12 m)
-  const alarga = (pts, fin) => {
+  // (cada extremo se alarga en su dirección, de medio en medio metro, hasta pisar la orilla y luego mientras el suelo siga
+  // subiendo más de un 12 %, alto(x, z), hasta el tope, y un metro de propina por la rejilla del terreno: el tablero
+  // llega a lo alto de la orilla, a la altura de la calle. Antes acababa a 1-4 m del agua, a media cuesta, y la calle bajaba
+  // a él por un hoyo: en Roncal, el de la carretera quedaba 2 m por debajo de la calle por los dos lados y el de junto a la
+  // plaza, en el fondo de una zanja de 6 m)
+  // (el tope, según el agua que salva: sobre una regata de 4 m, unos 5 m por lado; sobre un río, hasta 12. En Ituren una
+  // pasarela sobre una regata de 4 m se iba a 43 m, cuesta arriba por el prado)
+  const tope = (pts) => { let m = 0; for (const [x, z] of muestras(pts)) if (riverInfo(x, z).edge < 0.5) m++; return clamp(m * 0.8 + 2, 3, 12); };
+  const alarga = (pts, fin, T = tope(pts)) => {
     const a = fin ? pts[pts.length - 1] : pts[0], b = fin ? pts[pts.length - 2] : pts[1];
     const l = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, dx = (a[0] - b[0]) / l, dz = (a[1] - b[1]) / l;
-    if (riverInfo(a[0], a[1]).edge >= 1.2) return;
-    for (let s = 0.5; s <= 12; s += 0.5) { const x = a[0] + dx * s, z = a[1] + dz * s; if (riverInfo(x, z).edge >= 1.2) { const q = [x + dx * 0.8, z + dz * 0.8]; if (fin) pts.push(q); else pts.unshift(q); return; } }
+    let s = 0;
+    if (riverInfo(a[0], a[1]).edge < 1.2) {
+      let s0 = -1;
+      for (let t = 0.5; t <= 12; t += 0.5) if (riverInfo(a[0] + dx * t, a[1] + dz * t).edge >= 1.2) { s0 = t + 0.8; break; }
+      if (s0 < 0) return;
+      s = s0;
+    }
+    if (alto) {
+      const s0 = s; let y = alto(a[0] + dx * s, a[1] + dz * s), sube = false;
+      // (y al menos a 2,5 m del agua: el muro del casco, con la rejilla de 2 m, se suaviza en una cuesta de 2 m)
+      // (y nunca hacia el agua: una punta que sigue la orilla se metía en el río)
+      while (s < s0 + T) { const x2 = a[0] + dx * (s + 0.5), z2 = a[1] + dz * (s + 0.5), y2 = alto(x2, z2); if (riverInfo(x2, z2).edge < 1.2 || (y2 - y < 0.06 && riverInfo(a[0] + dx * s, a[1] + dz * s).edge >= 2.5)) break; y = y2; s += 0.5; sube = true; }
+      if (sube) s += 1;
+    }
+    if (s <= 0) return;
+    const q = [a[0] + dx * s, a[1] + dz * s]; if (fin) pts.push(q); else pts.unshift(q);
   };
   for (const P of out) P.hecho = P.pts.length > 1 && (mojado(P) || !!P.mision);
+  // (un puente al que no llega ninguna calle ni camino por ninguna de sus dos puntas no se levanta: en Etxalar quedaba
+  // uno en mitad de un prado, a 40 m del camino más cercano)
+  const llega = (q, w) => calles.some(c => c.pts.some((a, i) => i < c.pts.length - 1 && segDist(q[0], q[1], a[0], a[1], c.pts[i + 1][0], c.pts[i + 1][1]).d < w + 3));
+  for (const P of out) if (P.hecho && !P.mision && !llega(P.pts[0], P.w) && !llega(P.pts[P.pts.length - 1], P.w)) { P.hecho = false; P.sinCalle = true; }
   juntaPuentes(out);
   // (un codo cerrado, de más de 35°, parte el puente: de piedra van rectos. Se quedan los trozos que cruzan el agua; los de
   // tierra son la calle que llega. Antes el tablero, los pretiles y los muros se doblaban en el codo y no casaban)
@@ -326,7 +351,7 @@ export function ordenarPuentes(puentes, calles, riverInfo, rios = []) {
     if (trozos.length < 2) continue;
     const vale = trozos.filter(t => mojado({ pts: t }));
     const quedan = vale.length ? vale : [trozos.reduce((a, t) => (largo(t) > largo(a) ? t : a))];
-    P.pts = quedan[0];
+    P.pts = quedan[0]; P.origen = out.indexOf(P) + 1;
     for (const t of quedan.slice(1)) out.push({ ...P, mision: false, pts: t });
   }
   for (const P of out) {
@@ -349,13 +374,33 @@ export function ordenarPuentes(puentes, calles, riverInfo, rios = []) {
       if (largo > 30 || a === 0 && riverInfo(S[0][0], S[0][1]).edge < 1.2 || j === S.length - 1 && riverInfo(S[j][0], S[j][1]).edge < 1.2) { i = j; continue; }
       // (y que la cruce: una calle que va a lo largo del río, por la orilla, no lleva puente)
       const m = S[Math.round((a + j) / 2)], e = S[Math.min(S.length - 1, j + 1)], el = Math.hypot(e[0] - S[a][0], e[1] - S[a][1]) || 1;
-      let rd = null, bd = 1e9;
-      for (const L of rios) for (let k = 0; k < L.pts.length - 1; k++) { const p = L.pts[k], q = L.pts[k + 1], d = segDist(m[0], m[1], p[0], p[1], q[0], q[1]).d; if (d < bd) { bd = d; rd = [q[0] - p[0], q[1] - p[1]]; } }
+      let rd = null, bd = 1e9, rl = null;
+      for (const L of rios) for (let k = 0; k < L.pts.length - 1; k++) { const p = L.pts[k], q = L.pts[k + 1], d = segDist(m[0], m[1], p[0], p[1], q[0], q[1]).d; if (d < bd) { bd = d; rd = [q[0] - p[0], q[1] - p[1]]; rl = L; } }
       if (rd && Math.abs((rd[0] * (e[0] - S[a][0]) + rd[1] * (e[1] - S[a][1])) / (Math.hypot(rd[0], rd[1]) || 1) / el) > 0.8) { i = j; continue; }
-      const pts = suaviza([S[a], ...(j - a > 2 ? [m] : []), e]);
+      // (solo el tramo del agua y 3 m a cada lado: el camino que cruza la regata en diagonal y sigue luego por la orilla no
+      // va todo él en puente. En Isaba y en Ituren salían pasarelas de 35-40 m sobre una regata de 4 m, con el prado
+      // asomando por el tablero)
+      let w0 = i, w1 = i; for (let k = i; k <= j; k++) if (riverInfo(S[k][0], S[k][1]).edge < -0.2) w1 = k;
+      if (w0 - 3 > a) a = w0 - 3;
+      const fin = Math.min(S.length - 1, j + 1, w1 + 3);
+      const m2 = S[Math.round((a + fin) / 2)], e2 = S[fin];
+      // (y que de verdad pase a la otra orilla: si las dos puntas quedan del mismo lado del cauce, el camino solo roza el
+      // agua, por un río algo más ancho en el juego que en los datos, y sigue por la orilla)
+      if (rl && Math.sign(ladoDe(S[a][0], S[a][1], rl.pts).s) === Math.sign(ladoDe(e2[0], e2[1], rl.pts).s)) { i = j; continue; }
+      const pts = suaviza([S[a], ...(fin - a > 2 ? [m2] : []), e2]);
+      alarga(pts, false); alarga(pts, true);
       out.push({ n: c.name || '', w: clamp(c.w, 1.1, 3), pts, hecho: true, nuevo: true });
       i = j;
     }
+  }
+  // (dos puentes que se cruzan o se montan: se queda uno, el de la misión, el de los datos antes que uno nuevo, el que
+  // tiene nombre, el más ancho y el más largo. En Isaba se levantaban dos en aspa sobre el Esca, y dos nuevos, de una
+  // calle y un camino que cruzaban el agua juntos, uno encima del otro)
+  const H = out.filter(P => P.hecho).sort((p, q) => (!!q.mision - !!p.mision) || (!!p.nuevo - !!q.nuevo) || (!!q.n - !!p.n) || (q.w - p.w) || (largo(q.pts) - largo(p.pts)));
+  const montan = (A, B) => muestras(B.pts).some(([x, z]) => A.pts.some((a, i) => i < A.pts.length - 1 && segDist(x, z, a[0], a[1], A.pts[i + 1][0], A.pts[i + 1][1]).d < A.w + B.w + 0.6));
+  for (let i = 0; i < H.length; i++) {
+    if (!H[i].hecho) continue;
+    for (let j = i + 1; j < H.length; j++) if (H[j].hecho && !(H[i].origen && H[i].origen === H[j].origen) && montan(H[i], H[j])) { H[j].hecho = false; H[j].montado = true; }
   }
   return out;
 }

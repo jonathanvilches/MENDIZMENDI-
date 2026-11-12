@@ -510,7 +510,14 @@ export function createRealTownLevel(def, D) {
   }
   // (si la orilla de las misiones daba a un tramo que ahora va cubierto, otra con el agua a la vista)
   if (RV.some(L => L.cubierto) && riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge > 8) PLACES.riverSpot = orilla();
-  const PUENTES = ordenarPuentes(D.puentes || [], PATHS, riverInfo, RV);
+  // (la altura del suelo junto al río, como la deja finalHeight sin el relieve fino: la plaza llana y el cauce con su talud;
+  // en el casco, con muro a 0,3 m del agua. Para saber hasta dónde alargar un puente: hasta lo alto de la orilla)
+  const altoOrilla = (x, z) => {
+    const r = riverInfo(x, z), inV = villageMask(x, z) > 0.5, h = plazaLlana(x, z, BASE + dem(x, z));
+    const talud = inV ? 1.0 : Math.max(4.5, Math.min(30, (h - r.level - 1.4) * 1.6)), k = inV ? smoothstep(-0.9, 0.3, r.edge) : smoothstep(-2.0, talud, r.edge);
+    return Math.min(h, lerp(r.level - 1.0, Math.max(h, r.level + 1.4), k));
+  };
+  const PUENTES = ordenarPuentes(D.puentes || [], PATHS, riverInfo, RV, altoOrilla);
   {
     const fijas = new Set([...TAKEN, LG.iglesia, ch, LG.ayuntamiento, LG.fronton, ...CASAS.filter(b => b.k === 'church' || b.k === 'townhall' || b.k === 'fronton')].filter(Boolean));
     const urbano = ['central', 'ribera', 'city'].includes(def.family) && CASAS.length >= 80;
