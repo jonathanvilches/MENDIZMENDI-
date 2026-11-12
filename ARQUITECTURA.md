@@ -1817,6 +1817,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     contexto, y al volver de Elizondo se perdía la imagen (informe del 12 de noviembre de 2026). El juego sigue
     dibujando retratos e iconos del menú, pero en su propia textura (`util/offscreen.js`). El tamaño de verdad vuelve
     en `applySize`, antes del primer dibujo del pueblo siguiente (`dibujoTapado`).
+  - Lo que se dibuja en una escena aparte, fuera de la del pueblo, lo suelta quien lo hizo, porque `unload` no lo ve:
+    la vista del mirador por los prismáticos (`Panorama`, con sus aves y las marcas de las cumbres) se guarda mientras
+    se está en el pueblo, para volver a mirar sin esperar, y se suelta en `TownGame.dispose`. Antes se quedaba en la
+    gráfica al salir (en Irurtzun, 3 mallas de aves y el relieve, comprobado con la prueba `mirador.mjs` de la carpeta
+    de trabajo: tras salir, el menú queda igual que sin haber mirado, 1 geometría y 27 texturas).
   - En un pueblo no hay dos personas con el mismo nombre ni ninguna con el del jugador (`nombresUnicos` en
     `townGame.js`, con `nombreLibre` de `data/nombres.js`). Los anfitriones de misión conservan el suyo.
   - Los sabios no se repiten en un pueblo: hay 16 en `data/sabios.js` y se coge el siguiente libre.

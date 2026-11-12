@@ -631,5 +631,6 @@ export class Panorama {
       for (const m of this.sectors) { const d = Math.abs(Math.atan2(Math.sin(m.userData.b - brg), Math.cos(m.userData.b - brg))); m.visible = d < hw + m.userData.hw + 0.06; }
     }
   }
-  dispose() { for (const o of this.owned) o.dispose(); }
+  // (las aves se hacen una a una con su propia malla, actors/beasts.js bird: también se sueltan; su material es el común)
+  dispose() { for (const o of this.owned) o.dispose(); for (const v of this.birds || []) v.obj.traverse(o => o.geometry?.dispose()); }
 }

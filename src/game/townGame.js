@@ -1118,6 +1118,11 @@ export class TownGame {
     // (lo que estaba a medias —el menú de pelota, el cuadro del torneo, un partido preparándose— se para: el pueblo
     // nuevo no debe recibir sus ventanas ni sus controles)
     this.disposed = true;
+    // (la vista del mirador por los prismáticos, townCimas.js: es una escena aparte y no cuelga del pueblo, así que
+    // rt.unload no la ve. Sin esto, su relieve, sus casas y sus rótulos, con las marcas de las cumbres, se quedaban en la
+    // gráfica al salir del pueblo)
+    try { this.pano?.dispose(); for (const sp of this.panoPins || []) { sp.material.map?.dispose(); sp.material.dispose(); } } catch (e) { }
+    this.pano = this.panoPins = null; this.panoOn = false;
     try { this.aventuraFin(); } catch (e) { }
     try { this.pelotaAbort?.(); } catch (e) { }
     for (const M of this.missions || []) try { this.quitaTractor(M); } catch (e) { }
