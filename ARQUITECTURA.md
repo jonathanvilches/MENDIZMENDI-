@@ -1051,6 +1051,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   deja su sitio; nada se monta). La distancia, en una pastilla rosa a la izquierda del círculo, y la hora, en otra debajo.
   Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
   una barra arriba en el centro y en el teléfono de pie no había minimapa; ahora sí, debajo de la columna de botones.
+  El anillo es un camino de dos vueltas justas (de 0 a 2π, la de dentro al revés): con arcos de 0 a 7 radianes, la de
+  dentro se quedaba 41° corta y por el hueco se veía una cuña del mapa sobre el anillo, a la derecha, debajo de la N.
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo

@@ -626,8 +626,10 @@ export class UI {
       if (Math.hypot(x, y) <= Ri - 10) { g.fillStyle = colRuta; g.strokeStyle = '#2a0638'; g.lineWidth = 2; g.beginPath(); g.arc(x, y, 8, 0, 7); g.fill(); g.stroke(); }
     }
     g.restore();
-    // el anillo de la brújula
-    g.beginPath(); g.arc(0, 0, R + 1, 0, 7); g.arc(0, 0, Ri, 0, 7, true); g.fillStyle = 'rgba(20, 8, 44, .84)'; g.fill();
+    // el anillo de la brújula (dos vueltas justas, de 0 a 2π: con 7 radianes, la de dentro, al revés, se quedaba 41° corta
+    // y por ese hueco se veía una cuña del mapa sobre el anillo, debajo de la N)
+    const V = 2 * Math.PI;
+    g.beginPath(); g.arc(0, 0, R + 1, 0, V); g.arc(0, 0, Ri, V, 0, true); g.fillStyle = 'rgba(20, 8, 44, .84)'; g.fill();
     g.beginPath(); g.arc(0, 0, Ri, 0, 7); g.strokeStyle = 'rgba(255, 255, 255, .4)'; g.lineWidth = Math.max(1, 0.8 * k); g.stroke();
     const cs = Math.cos(camYaw), sn = Math.sin(camYaw);
     const rumbo = (x, z) => { const dx = x - player.pos.x, dz = z - player.pos.z; return Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)); };
