@@ -1812,6 +1812,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     ahora `resetNature` la vacía con `TREES` al salir (noviembre de 2026: unos 40 MB menos en el menú, medido con
     instantáneas del montón tras salir de Aoiz, Lumbier, Estella y Lesaka). Lo que queda son plantillas que se reusan
     en el pueblo siguiente (los personajes y animales ya cargados), sin escena detrás.
+  - En el menú, el lienzo del juego se queda en un píxel y el postprocesado suelta su imagen (`unload`): con el
+    suavizado eran unos 25 o 30 MB de la gráfica del iPhone ocupados detrás del mapa del menú, que tiene su propio
+    contexto, y al volver de Elizondo se perdía la imagen (informe del 12 de noviembre de 2026). El juego sigue
+    dibujando retratos e iconos del menú, pero en su propia textura (`util/offscreen.js`). El tamaño de verdad vuelve
+    en `applySize`, antes del primer dibujo del pueblo siguiente (`dibujoTapado`).
   - En un pueblo no hay dos personas con el mismo nombre ni ninguna con el del jugador (`nombresUnicos` en
     `townGame.js`, con `nombreLibre` de `data/nombres.js`). Los anfitriones de misión conservan el suyo.
   - Los sabios no se repiten en un pueblo: hay 16 en `data/sabios.js` y se coge el siguiente libre.

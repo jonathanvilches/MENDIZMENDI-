@@ -223,6 +223,7 @@ export class Runtime {
   dibujoTapado() {
     const S = this.scene; if (!S) return;
     try {
+      this.applySize();   // (el lienzo, a su tamaño: en el menú se queda en un píxel, unload)
       let hecho = false;
       if (this.post?.on && this.sky) { this.post.ajusta(this.sky, this.elapsed, { fondo: this.fondoValle, cubierto: this.cubierto || 0, interior: !!this.sky.indoor }); hecho = this.post.render(S, this.camera); }
       if (!hecho) this.renderer.render(S, this.camera);
@@ -326,6 +327,11 @@ export class Runtime {
     this.weather?.dispose(); this.weather = null;
     this.terrain = this.sky = this.water = this.mats = this.nature = this.fauna = this.player = this.particles = this.waterfall = this.smoke = this.lights = this.beacon = this.sierras = null;
     this.canvas.style.visibility = 'hidden';
+    // (en el menú el lienzo del juego no se ve: se queda en un píxel y suelta la imagen del postprocesado. Son unos 25 o 30 MB
+    // de la gráfica del móvil, con el suavizado, que seguían ocupados con el mapa del menú encima, y al volver de Elizondo
+    // se perdía la imagen (informe del iPhone, noviembre de 2026). Los retratos y los iconos del menú se dibujan en su
+    // propia textura, no en el lienzo. El tamaño de verdad vuelve antes del primer dibujo, applySize)
+    try { this.post?.rt?.setSize(1, 1); this.renderer.setSize(1, 1, false); this.sizeDirty = true; } catch (e) { }
   }
   loop() {
     requestAnimationFrame(this.loop);
