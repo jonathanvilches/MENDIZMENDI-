@@ -968,7 +968,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
 - **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `eligeMision`, y `#misiones` en `style.css`): solo los
   iconos de las misiones del pueblo, una casilla por misión del color de su categoría (hecha, llena y con su marca verde
-  sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y encima se despliega (la barra va abajo en el centro): su
+  sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y debajo se despliega: su
   nombre, lo que toca hacer, sus pasos y lo lejos que está; se recoge sola a los 10 s, tocando la misma casilla o
   tocando la pantalla en cualquier sitio fuera de la barra (un `pointerdown` en captura en la ventana, que no detiene el
   toque: sigue sirviendo para andar, mirar o pulsar un botón; noviembre de 2026, lo pidió el autor), y tocando lo
@@ -1103,17 +1103,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   al final de la barra de misiones (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las casillas por 12 px a
   cada lado de una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla (noviembre de 2026, lo
   pidió el autor: que se note la separación). Arriba a la derecha (`#topright.sin-b`) solo quedan el minimapa y, a su
-  izquierda, la distancia. La barra va abajo en el centro, al alcance de los pulgares, y la misión se despliega hacia
-  arriba (`#tl.mis`: `bottom`, centrada con `translateX(-50%)`, `flex-direction: column-reverse`; la raya del panel
-  encima de los cuadrados y el piquito de la casilla elegida apuntando arriba; noviembre de 2026, lo pidió el autor,
-  antes iba arriba a la izquierda). `fitTop` (ui.js) la coloca: entre el joystick (`#stickHint`) y los botones
-  (`#controls`) en una fila si cabe; si no, clase `.dos` (las casillas en dos filas y los botones en columna); y si ni
-  así (el móvil de pie), encima del joystick y los botones, en una fila si cabe en la pantalla. No se estrecha nunca.
-  Pone en `--barra` (en el body, con la clase `barra-abajo`) hasta dónde llega desde abajo, también desplegada, y un
-  ResizeObserver en `#tl` lo actualiza: los avisos (`#lane`, en el móvil), los subtítulos y el texto de acción del
-  ordenador van encima; de pie, el texto de acción va a la derecha justo encima de la barra y los avisos encima de él.
-  Durante una charla la barra no se ve (la charla va abajo). Los corazones, si no caben arriba en el centro, van arriba
-  a la izquierda (`aventuraHud.js`), no debajo de la barra. En la aventura de
+  izquierda, la distancia. Durante unos minutos la barra fue abajo en el centro, desplegándose hacia arriba, y el autor
+  prefirió volver a tenerla arriba a la izquierda (noviembre de 2026). `fitTop` (ui.js) decide la forma de la barra: en una fila si cabe; si no (móvil estrecho de
+  pie, o un pueblo de hasta 10 misiones como Pamplona), clase `.dos`: las casillas en dos filas y los botones en
+  columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa o a la distancia,
+  el minimapa baja debajo de ella (`top` en línea, con transición) y baja más cuando la misión se despliega; en el
+  pueblo la barra no se estrecha nunca. Un ResizeObserver en `#tl` vuelve a colocarlo todo. En la aventura de
   Otsagabia los botones siguen arriba a la derecha (`.rbtns`), junto al minimapa.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
   desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de
@@ -1230,8 +1225,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   del norte (Ochagavía o Lesaka) y uno del sur.
 - **Misiones del pueblo, solo los cuadrados** (`eligeMision`, `cierraMision` y `setQuestPueblo` en `ui.js`; `#tl` en
   `style.css`; noviembre de 2026): durante unos días la misión que sigues iba siempre abierta debajo de los cuadrados, y
-  el autor pidió limpiar el visor. Ahora solo quedan los cuadrados (abajo en el centro desde noviembre de 2026): la que sigues, con borde blanco.
-  Al tocar uno, esa pasa a ser la que sigues y se despliega encima; se recoge sola a los 10 s (`ABIERTA_MS`), tocando
+  el autor pidió limpiar el visor. Ahora arriba a la izquierda solo quedan los cuadrados: la que sigues, con borde blanco.
+  Al tocar uno, esa pasa a ser la que sigues y se despliega debajo; se recoge sola a los 10 s (`ABIERTA_MS`), tocando
   otra vez su cuadrado o tocando la pantalla fuera de la barra, y tocando el texto se abre el cuaderno. Nunca se despliega sola: al cambiar lo que toca hacer,
   solo late su cuadrado y sale el aviso de abajo. En la aventura de Otsagabia, que tiene un solo icono redondo y no
   cuadrados, sigue a la vista el icono con lo que hay que hacer y las cintas: plegada, quedaba un icono suelto sin sentido.
