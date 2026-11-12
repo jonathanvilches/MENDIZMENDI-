@@ -289,8 +289,9 @@ summary { line-height: 1.3; }
 #topright > * { pointer-events: auto; }
 .rbtns { grid-area: btns; display: flex; gap: 8px; }
 #minfo { grid-area: info; display: flex; align-items: center; gap: 6px; }
-/* el cuaderno y el mapa, como pestañas pegadas al borde derecho de la pantalla, debajo del minimapa: asoman lo justo para
-   el icono y, al pasar por encima o tocarlas, salen un poco. Ocupan menos que un botón redondo y siguen a un toque */
+/* el cuaderno, como una pestaña pegada al borde derecho de la pantalla, debajo del minimapa: asoma lo justo para el icono
+   y, al pasar por encima o tocarla, sale un poco. Ocupa menos que un botón redondo y sigue a un toque (el mapa no lleva:
+   se abre tocando el minimapa) */
 #pestanas { grid-area: tabs; justify-self: end; display: flex; flex-direction: column; gap: 6px; margin: 2px calc(-1 * (var(--sr) + var(--edge))) 0 0; }
 .pest { box-sizing: content-box; width: 34px; height: 40px; padding: 0 var(--sr) 0 6px; display: grid; place-items: center; border-radius: 10px 0 0 10px; background: rgba(14, 10, 24, .72); box-shadow: -2px 3px 10px rgba(0, 0, 0, .3); transition: transform .14s var(--ease, ease), background .14s; }
 .pest :is(svg, .hico, .ico) { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }

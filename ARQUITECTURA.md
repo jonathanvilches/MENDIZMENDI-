@@ -1080,10 +1080,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`.round`): el icono es el 70 % de dentro del botón en todos los tamaños (en el de 44 px, 28; antes 26 fijos), sin el
   brillo de arriba, y el anillo de energía de la mochila va dentro de su borde (antes salía 4 px y la mochila parecía
   más grande que los demás).
-  El cuaderno y el mapa van como pestañas pegadas al borde derecho de la pantalla, debajo del minimapa (`#pestanas`,
-  `.pest`, en la rejilla de `#topright`, con un margen negativo hasta el borde y el hueco de la muesca por dentro): asoman
-  lo justo para el icono y salen un poco al pasar por encima o tocarlas. Ocupan menos que un botón redondo y siguen a un
-  toque (el cuaderno es lo que más se usa para seguir las misiones). Arriba quedan la mochila (`mochila.js` la pone
+  El cuaderno va como una pestaña pegada al borde derecho de la pantalla, debajo del minimapa (`#pestanas`, `.pest`, en
+  la rejilla de `#topright`, con un margen negativo hasta el borde y el hueco de la muesca por dentro): asoma lo justo
+  para el icono y sale un poco al pasar por encima o tocarla. Ocupa menos que un botón redondo y sigue a un toque (es lo
+  que más se usa para seguir las misiones). El mapa no tiene pestaña: se abre tocando el minimapa. Arriba quedan la mochila (`mochila.js` la pone
   delante de la pausa), los prismáticos cuando los tienes y la pausa, que vuelve a ser la de antes. El mapa se abre
   también tocando el minimapa y el cuaderno tocando la misión; en el ordenador, con C y M.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre

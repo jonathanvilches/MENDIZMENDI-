@@ -136,7 +136,7 @@ export class UI {
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
         <div id="mini"><canvas width="248" height="248"></canvas></div>
-        <div id="pestanas" role="toolbar" aria-label="Cuaderno y mapa"><button class="pest" id="tBook" aria-label="Cuaderno (C)" title="Cuaderno">${ICON.book}</button><button class="pest" id="tMap" aria-label="Mapa (M)" title="Mapa">${ICON.map}</button></div>
+        <div id="pestanas"><button class="pest" id="tBook" aria-label="Cuaderno (C)" title="Cuaderno">${ICON.book}</button></div>
         <div id="minfo"><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
@@ -154,8 +154,7 @@ export class UI {
     this.subtitle ||= document.body.appendChild(el('<div id="subtitle"></div>'));
     const tap = (id, fn) => { const b = $(id, h); b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); fn(); }); };
     tap('#bMenu', () => this.openMenu());
-    tap('#tBook', () => this.openBook());   // (las pestañas del borde derecho: el cuaderno y el mapa)
-    tap('#tMap', () => this.openMap());
+    tap('#tBook', () => this.openBook());   // (la pestaña del borde derecho: el cuaderno; el mapa se abre tocando el minimapa)
     tap('#bBino', () => game.toggleBinoculars());
     tap('#mini', () => this.openMap());
     this.doneN = null; this.misAbierta = null; this.qKey = null; this.lastQ = null; this.tlVer = false;
