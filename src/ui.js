@@ -137,7 +137,6 @@ export class UI {
       <div id="topright"${town ? ' class="sin-b"' : ''}>
         ${town ? '' : `<div class="rbtns">${botones}</div>`}
         <div id="mini"><canvas width="248" height="248"></canvas></div>
-        <div id="minfo"><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
       <div id="mg" class="glass hidden"></div>
@@ -181,7 +180,7 @@ export class UI {
     this.ro?.disconnect();
     this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(es => { for (const e of es) this.boxes.set(e.target, [e.contentRect.width, e.contentRect.height]); this.hudSig = {}; this.miniSig = null; }) : null;
     if (this.ro) this.ro.observe(this.mini.canvas);
-    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), cdist: $('#cdist', h) };
+    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h) };
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
     // la brújula se recoloca al cambiar la pantalla, el texto de la misión o los botones (la mochila, los prismáticos)
@@ -205,13 +204,13 @@ export class UI {
     const R = $('#topright', h);
     if (T.classList.contains('mis') && R) {
       const dePie = matchMedia('(max-aspect-ratio: 1/1)').matches;
-      const choca = () => { const d = T.getBoundingClientRect().right + 8; return ['#mini', '#minfo'].some((q) => { const r = $(q, h)?.getBoundingClientRect(); return r && r.width > 0 && d > r.left; }); };
+      const choca = () => { const d = T.getBoundingClientRect().right + 8; return ['#mini'].some((q) => { const r = $(q, h)?.getBoundingClientRect(); return r && r.width > 0 && d > r.left; }); };
       T.classList.remove('dos');
       if (T.scrollWidth > T.clientWidth + 1 || (!dePie && choca())) T.classList.add('dos');
       R.style.top = dePie && choca() ? Math.round(T.getBoundingClientRect().bottom + 8) + 'px' : '';
       return;   // (la barra no se estrecha: sus casillas tienen ancho fijo y el texto de la misión ya toma el ancho del panel)
     }
-    const cajas = ['#topright .rbtns', '#mini', '#minfo'].map((s) => $(s, h)).filter(Boolean);
+    const cajas = ['#topright .rbtns', '#mini'].map((s) => $(s, h)).filter(Boolean);
     for (const alto of [48, Infinity]) {
       const tr = T.getBoundingClientRect(); if (!tr.width) return;
       const abajo = Math.min(tr.bottom, tr.top + alto); let lim = Infinity;
@@ -611,12 +610,11 @@ export class UI {
   // El minimapa con la brújula en su borde. El mapa gira con la cámara (arriba, hacia donde miras) y alrededor, en un
   // anillo, van los puntos cardinales (la N en rosa), las rayas de los intermedios, los iconos de las misiones que quedan
   // fuera del mapa, cada uno hacia donde está, y el objetivo: una punta rosa en el anillo que señala hacia él (y su punto
-  // dentro del mapa si cabe). La distancia, en la pastilla rosa a la izquierda del círculo. Antes todo esto iba en una barra
+  // dentro del mapa si cabe). Sin la distancia en metros: el autor la quitó (noviembre de 2026). Antes todo esto iba en una barra
   // aparte, arriba en el centro de la pantalla
   updateMinimap(player, camYaw, markers, target, ruta = null) {
     if (!this.mini) return;
     const css = this.box(this.mini.canvas)[0];
-    this.distancia(player, target, camYaw);
     if (!css) return;
     const ms = this.miniSig ||= {}, nm = markers ? markers.length : 0, now = performance.now();
     if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm && ms.css === css && ms.r === ruta?.id) return;
@@ -700,26 +698,7 @@ export class UI {
     g.restore();
     this.drawPlayer(g, R, R, player.heading - camYaw, 1.3);
   }
-  // la distancia al objetivo, en la pastilla rosa junto al minimapa (solo cuando hay objetivo), con una flechita que
-  // señala hacia él como la punta del anillo (antes, un rombo que no decía nada). Es una flecha con astil: a 11 px, una
-  // punta con muesca como la del anillo se leía al revés. Solo se toca lo que cambia: el texto cuando cambia el metro y
-  // el giro cuando se mueve más de 3°
-  distancia(player, target, camYaw = 0) {
-    const e = this.questEls?.cdist; if (!e) return;
-    if (!target) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
-    const dx = target.x - player.pos.x, dz = target.z - player.pos.z, d = Math.hypot(dx, dz), t = Math.round(d) + ' m';
-    // (de cerca la pastilla sobra: la flecha grande ya está encima del objetivo y la punta del anillo señala hacia él. Sale
-    // solo de lejos, a más de 25 m, cuando la flecha aún no se ve, o si el objetivo no lleva flecha; con margen para que no
-    // parpadee en el límite)
-    e._lejos = !!target.noArrow || d > (e._lejos ? 23 : 26);
-    if (!e._lejos) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
-    if (e._t !== t) { e._t = t; (e._b ||= e.querySelector('.cd-t') || e).textContent = t; }
-    const cs = Math.cos(camYaw), sn = Math.sin(camYaw), a = Math.round(Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)) * 180 / Math.PI / 3) * 3;
-    // (el giro, en la propia flecha: con una variable en la pastilla, el navegador no siempre volvía a pintar el dibujo)
-    if (e._a !== a) { e._a = a; const fl = e._f ||= e.querySelector('.cd-f'); if (fl) fl.style.transform = `rotate(${a}deg)`; }
-    if (e._oro !== !!target.destino) { e._oro = !!target.destino; e.classList.toggle('oro', e._oro); }   // (a un destino marcado, dorada como su ruta)
-    if (e.style.display) e.style.display = '';
-  }
+
   // El mapa del pueblo: a un lado el mapa, que se amplía y se toca, con el camino hasta lo que sigues; al otro, las
   // misiones del pueblo, cada una con su icono del color de su categoría, lo que toca hacer y lo lejos que está. Al tocar
   // una, pasa a ser la que sigues: el mapa va a ella, se ve su camino y su ficha, con el botón para ir. En el valle de

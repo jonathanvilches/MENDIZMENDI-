@@ -145,8 +145,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   los datos debajo, uno detrás de otro; las cifras cuentan hasta su valor (`cuenta`, motion.js). Uno a la vez, sin recoger
   toques y anunciado a los lectores de pantalla. Con una ventana abierta encima del juego (la pausa, el cuaderno, el mapa:
   `body > .screen`) no se ve; antes iba por encima y, abriendo la pausa nada más llegar, tapaba sus botones. Va en el centro, debajo de la línea de los avisos, y tan ancho como pida
-  su texto, hasta 560 px (`coloca`, en rotulo.js): si a su altura le queda al lado la barra de misiones, el minimapa o la
-  distancia, se estrecha lo justo para no llegar a ellos, pero solo si así le cabe el texto entero; si no, baja hasta
+  su texto, hasta 560 px (`coloca`, en rotulo.js): si a su altura le queda al lado la barra de misiones o el minimapa,
+  se estrecha lo justo para no llegar a ellos, pero solo si así le cabe el texto entero; si no, baja hasta
   debajo de ellos y usa todo el ancho. Antes tenía un ancho fijo pensado para lo peor (en el móvil tumbado, la pantalla
   menos 380 px): en un iPhone pequeño se quedaba en 287 px, la comarca se cortaba con puntos suspensivos y pisaba la barra
   de misiones en dos filas; de pie pisaba el minimapa (noviembre de 2026: el autor vio los nombres muy estrechos). Sale al llegar a un pueblo (la comarca
@@ -1041,7 +1041,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `ui.js`, `updateMinimap` y `lugaresMapa`; `mapview.js`): se toman sus costumbres, no su aspecto, que es el de Herrizherri.
   En el mapa, un toque en un sitio (o en un lugar) da la ficha con «Marcar destino»; la pestaña Lugares lista la iglesia,
   los monumentos, el frontón, la granja y los campos del más cerca al más lejos, y tocar uno lo marca. Con destino, la
-  brújula, la luz dorada, la punta del anillo, la pastilla de la distancia y la ruta van allí en dorado, hasta llegar a 6 m
+  brújula, la luz dorada, la punta del anillo y la ruta van allí en dorado, hasta llegar a 6 m
   (aviso «Has llegado») o quitarlo; sin destino, a lo que toca de la misión que sigues, en rosa. La ruta va por calles y
   caminos en el minimapa (se pide a la cola de caminos de los vecinos, `nav.requestPath`, otra si cambia el objetivo o te
   alejas 6 m, como mucho una por segundo) y en el mapa grande. Marcar o quitar el destino no cierra el mapa.
@@ -1066,22 +1066,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ganadero), luego se juzga en la pista y se cierra el trato con el tratante. Las vallas van en dos mallas y los carteles
   en una (una textura con todos los nombres); pocos animales por corral, que cada uno son varias llamadas de dibujo.
   Prueba: `tools/feria.mjs <pueblo> <carpeta>`.
-- **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#cdist`, `#clock`): el mapa gira con la
+- **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#clock`): el mapa gira con la
   cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
   misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra
-  deja su sitio; nada se monta). La distancia, en una pastilla junto al minimapa (`#minfo`), solo de lejos: a más de 25 m
-  (sale a los 26 y se va a los 23, para que no parpadee), cuando la flecha grande del objetivo aún no se ve, o si el
-  objetivo no lleva flecha; de cerca ya lo marcan la flecha y la punta del anillo. La hora no va en la pantalla
+  deja su sitio; nada se monta). Sin la distancia en metros: hubo una pastilla rosa junto al minimapa, con una flechita
+  hacia el objetivo, y el autor la quitó (noviembre de 2026); lo marcan la punta del anillo y la flecha. La hora no va en la pantalla
   de juego: se ve en la cabecera del mapa y de la pausa (`horaChip`; `setClock` la guarda y la pone al día si están
   abiertos).
   Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
   una barra arriba en el centro y en el teléfono de pie no había minimapa.
   El bloque de arriba a la derecha (`#topright`) es una rejilla. Tumbado: el minimapa en la esquina, la fila de botones a
-  su izquierda y debajo de ella la pastilla de la distancia; antes iba todo en columna (botones, minimapa y la hora colgando) y
+  su izquierda; antes iba todo en columna (botones, minimapa y la hora colgando) y
   bajaba hasta y 184 en un teléfono tumbado de 390 de alto (ahora 108). De pie: los botones en columna en el margen
   derecho, que arriba no quitan sitio a las misiones (siguen en una fila, como estaban: el autor no quiere que se
-  toquen), debajo el minimapa y a su izquierda la pastilla de la distancia (hasta y 324 con cuatro botones;
-  antes 356). Los huecos de la rejilla no recogen toques. El panel de arriba a la izquierda se ajusta a lo de la derecha
+  toquen), debajo el minimapa (hasta y 324 con cuatro botones; antes 356). Los huecos de la rejilla no recogen toques. El panel de arriba a la izquierda se ajusta a lo de la derecha
   en dos pasadas (`fitTop`: primero con lo que tiene al lado arriba del todo, luego con todo).
   El anillo es un camino de dos vueltas justas (de 0 a 2π, la de dentro al revés): con arcos de 0 a 7 radianes, la de
   dentro se quedaba 41° corta y por el hueco se veía una cuña del mapa sobre el anillo, a la derecha, debajo de la N.
@@ -1092,9 +1090,6 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   El lienzo va a los píxeles de verdad de la pantalla (`fis`: lo que mide por la densidad, hasta 3, entre 120 y 420) y se
   dibuja en 248 puntos con la escala `f`, como antes: en un iPhone grande, unos 336 px en vez de 248 estirados; en el
   ordenador, 136 en vez de 248 (unas 3,3 veces menos que pintar).
-  En la pastilla de la distancia, una flechita con astil que señala hacia el objetivo como la punta del anillo
-  (`distancia(player, target, camYaw)`, el giro puesto en la propia flecha y solo cuando cambia 3°); antes, un rombo que
-  no decía nada. Con astil porque, a 11 px, una punta con muesca como la del anillo se leía al revés.
   El círculo, sin el halo oscuro de 4 px que llevaba alrededor (el anillo ya es oscuro). Los botones redondos de encima
   (`.round`): el icono es el 70 % de dentro del botón en todos los tamaños (en el de 44 px, 28; antes 26 fijos), sin el
   brillo de arriba, y el anillo de energía de la mochila va dentro de su borde (antes salía 4 px y la mochila parecía
@@ -1108,11 +1103,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   En el pueblo, la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa van
   al final de la barra de misiones (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las casillas por 12 px a
   cada lado de una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla (noviembre de 2026, lo
-  pidió el autor: que se note la separación). Arriba a la derecha (`#topright.sin-b`) solo quedan el minimapa y, a su
-  izquierda, la distancia. Durante unos minutos la barra fue abajo en el centro, desplegándose hacia arriba, y el autor
+  pidió el autor: que se note la separación). Arriba a la derecha (`#topright.sin-b`) solo queda el minimapa. Durante unos minutos la barra fue abajo en el centro, desplegándose hacia arriba, y el autor
   prefirió volver a tenerla arriba a la izquierda (noviembre de 2026). `fitTop` (ui.js) decide la forma de la barra: en una fila si cabe; si no (móvil estrecho de
   pie, o un pueblo de hasta 10 misiones como Pamplona), clase `.dos`: las casillas en dos filas y los botones en
-  columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa o a la distancia,
+  columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa,
   el minimapa baja debajo de ella (`top` en línea, con transición) y baja más cuando la misión se despliega; en el
   pueblo la barra no se estrecha nunca. Un ResizeObserver en `#tl` vuelve a colocarlo todo. En la aventura de
   Otsagabia los botones siguen arriba a la derecha (`.rbtns`), junto al minimapa.

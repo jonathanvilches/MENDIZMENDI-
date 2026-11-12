@@ -209,11 +209,7 @@ summary { line-height: 1.3; }
 #hud > * { pointer-events: auto; }
 #hud .glass { background: linear-gradient(160deg, rgba(20, 15, 30, .78), rgba(12, 9, 20, .72)); border: 1px solid rgba(255,255,255,.08); border-radius: 16px; box-shadow: 0 8px 26px rgba(0, 0, 0, .3); }
 /* brújula */
-/* (la brújula ya no es una barra arriba: va en el borde del minimapa, ui.js anilloBrujula. La distancia al objetivo, en una
-   pastilla rosa a la izquierda del círculo, con el rombo del objetivo delante) */
-#cdist { display: flex; align-items: center; gap: 4px; padding: 4px 10px 4px 8px; border-radius: 999px; background: #ff7ac8; color: #2a0638; font: 900 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; white-space: nowrap; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); pointer-events: none; font-variant-numeric: tabular-nums; }
-#cdist .cd-f { flex: none; width: 11px; height: 11px; display: block; fill: #2a0638; }   /* (hacia el objetivo, como la punta del anillo) */
-#cdist.oro { background: #ffd34d; }
+/* (la brújula ya no es una barra arriba: va en el borde del minimapa, ui.js anilloBrujula) */
 /* misión: arriba a la izquierda, sin caja */
 #tl { position: absolute; left: calc(var(--sl) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; flex-direction: column; gap: 8px; max-width: min(340px, calc(30vw / var(--z, 1))); pointer-events: none; }
 #tl > * { pointer-events: auto; }
@@ -298,17 +294,15 @@ summary { line-height: 1.3; }
 /* (sin misión que seguir, enseña las cintas: si no, se quedaría vacío) */
 #tl:not(.mis):has(#quest.hidden) #ribbons { display: flex; }
 @media (prefers-reduced-motion: reduce) { #tl #ribbons, #tl #quest .qtxt { animation: none; } }
-/* arriba a la derecha: el minimapa en la esquina, los botones en fila a su izquierda y, debajo de ellos, la hora y la
-   distancia. Antes iban unos debajo de otros (botones, minimapa y la hora colgando debajo) y en el teléfono tumbado bajaban
-   hasta casi la mitad de la pantalla; así no pasan de lo que mide el minimapa. Una rejilla: el bloque no recoge toques en
-   sus huecos */
-#topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: grid; grid-template-columns: auto auto; grid-template-areas: "btns mini" "info mini"; gap: 8px 10px; align-items: start; justify-items: end; pointer-events: none; }
+/* arriba a la derecha: el minimapa en la esquina y los botones en fila a su izquierda. Antes iban unos debajo de otros
+   (botones, minimapa y la hora colgando debajo) y en el teléfono tumbado bajaban hasta casi la mitad de la pantalla; así
+   no pasan de lo que mide el minimapa. Una rejilla: el bloque no recoge toques en sus huecos */
+#topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: grid; grid-template-columns: auto auto; grid-template-areas: "btns mini" ". mini"; gap: 8px 10px; align-items: start; justify-items: end; pointer-events: none; }
 #topright > * { pointer-events: auto; }
-/* (en el pueblo los botones van en la barra de misiones: aquí solo el minimapa y, a su izquierda, la distancia. De pie, si
-   la barra llega hasta él, ui.js lo baja debajo de ella) */
-#topright.sin-b { grid-template-areas: "info mini"; transition: top .25s var(--ease); }
+/* (en el pueblo los botones van en la barra de misiones: aquí solo el minimapa, sin la distancia en metros, que el autor
+   quitó. De pie, si la barra llega hasta él, ui.js lo baja debajo de ella) */
+#topright.sin-b { grid-template-columns: auto; grid-template-areas: "mini"; transition: top .25s var(--ease); }
 .rbtns { grid-area: btns; display: flex; gap: 8px; }
-#minfo { grid-area: info; display: flex; align-items: center; gap: 6px; }
 .round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
 .round:hover { border-color: #ff7ac8; background: rgba(12, 9, 20, .65); } .round:active { transform: scale(.92); }
 .round :is(svg, .hico, .ico) { width: 70%; height: 70%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }   /* (el icono, el 70 % de dentro del botón en todos los tamaños, la mochila también: en el de 44 px, 28; antes 26 fijos, que en el de 36 llenaban casi todo) */
@@ -414,11 +408,9 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 @media (max-aspect-ratio: 1/1) {
   /* (sin la barra de la brújula, la misión y los botones suben arriba; el minimapa, con la brújula en su borde, va debajo
      de la columna de botones: antes en el teléfono de pie no había minimapa) */
-  /* (de pie: los botones en columna en el margen derecho, que arriba no quitan sitio a las misiones; debajo el minimapa y,
-     a su izquierda, la hora y la distancia una encima de otra, en vez de colgar debajo) */
-  #topright { grid-template-areas: ". btns" "info mini"; }
+  /* (de pie: los botones en columna en el margen derecho, que arriba no quitan sitio a las misiones; debajo el minimapa) */
+  #topright { grid-template-areas: ". btns" ". mini"; }
   .rbtns { flex-direction: column; }
-  #minfo { flex-direction: column; align-items: flex-end; align-self: center; }
   #tl { max-width: calc(calc(100vw / var(--z, 1)) - 90px); }
   #mini { width: 100px; height: 100px; }
   #lane { top: auto; bottom: calc(var(--sb) + 236px); flex-direction: column-reverse; }
@@ -894,7 +886,6 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
 /* pantallas grandes (tableta en horizontal, escritorio): el HUD algo más grande, que no quede diminuto en una pantalla
    de 10 o 24 pulgadas (en el teléfono se queda como está) */
 @media (min-width: 1000px) and (min-height: 640px) {
-  #cdist { font-size: var(--fs-sm); }
   #tl { max-width: min(420px, calc(30vw / var(--z, 1))); top: calc(var(--st) + var(--edge)); }
   #quest .ic { flex-basis: 50px; height: 50px; } #quest .ic svg, #quest .ic img { width: 36px; height: 36px; }
   #quest b.qt { font-size: var(--fs-md); } #quest small { font-size: var(--fs-sm); }
