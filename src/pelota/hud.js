@@ -431,7 +431,7 @@ body.alto-contraste .pel-call :is(p,.pel-kantari){color:#fff!important}body.alto
 body.alto-contraste .pel-card{background:#000;border:2px solid #fff}body.alto-contraste .pel-card :is(p,li,small,.pel-sub,dt,dd){color:#fff!important}
 body.alto-contraste .pel-card :is(.pel-est,.pel-xp,.pel-clave,.pel-mapa,.pel-fact,.pel-ctrl){background:#0b0b0b;border:2px solid #fff}
 body.alto-contraste .pel-row{background:#000}body.alto-contraste .pel-go.alt,body.alto-contraste .pel-levels button,body.alto-contraste .pel-chip{background:#000;border:2px solid #fff;color:#fff}
-body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}body.alto-contraste .pm-btn{background:#000;border:2px solid #fff}
+body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}body.alto-contraste .pm-btn{background:#000;border:0;box-shadow:inset 0 2px 0 #fff,inset 2px 0 0 #fff,0 0 0 2px #fff;opacity:1}
 .pel-mapa span{display:flex;gap:10px}.pel-mapa i{font-style:normal}.pel-mapa i.rojo{color:#ff9cc8}.pel-mapa i.azul{color:#b9b1ff}
 .pel-est{margin:4px 0 12px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08)}
 .pel-est-top{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.pel-est-top b{font:400 var(--fs-lg)/1 var(--f-display,'MZ Display'),sans-serif;text-transform:uppercase;letter-spacing:.02em}
@@ -480,22 +480,26 @@ body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}body.alto-contraste .pm-b
   .pel-clave p{line-height:1.25}.pel-est ul{margin-top:6px;row-gap:4px}.pel-est li{gap:2px}.pel-xp-bar{margin-top:6px}.pel-xp ul{margin-top:6px}
   .pel-mapa svg{max-height:46px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}
   .pel-card:has(.pel-fin) .pel-row{padding-top:6px}}
-/* el menú del partido: un botón redondo a la derecha del marcador, con el icono de pausa como el del pueblo (al abrirlo, el
-   partido se para). Dentro, todo junto y ordenado: la pelota (se cambia mientras sacas tú), el descanso, las fichas de
-   los pelotaris y salir. En su badge, los descansos que te quedan; brilla si estás cansado y te quedan. Antes la pelota
-   y el descanso iban en otro botón a la izquierda, debajo de una X de salir */
-.pel-top{gap:8px;align-items:flex-start}
-.pel-menu{position:relative;flex:none;pointer-events:auto;color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif}
-.pm-btn{position:relative;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;cursor:pointer;transition:transform .18s cubic-bezier(.22,1.1,.36,1)}
+/* el menú del partido, dentro del marcador (noviembre de 2026): su último tramo, con el mismo fondo y el mismo filete de
+   arriba, separado por una raya fina; el icono de pausa como el del pueblo (al abrirlo, el partido se para) y, debajo, los
+   descansos que te quedan; brilla si estás cansado y te quedan. Dentro, todo junto: la pelota, el descanso, las fichas y
+   salir. Antes era un botón redondo suelto a la derecha del marcador, con su badge en la esquina. El filete y la raya van
+   en sombra por dentro: los botones no llevan borde de color (la regla de los botones planos, ui/neon.css) */
+.pel-top{gap:0;align-items:stretch}
+.pel-top .pel-score{border-top-right-radius:0;border-bottom-right-radius:0}
+.pel-menu{position:relative;flex:none;display:flex;pointer-events:auto;color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif}
+.pm-btn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:52px;min-height:44px;height:100%;padding:8px 0 6px;border:0;border-radius:0 6px 6px 0;background:rgba(7,2,15,.9);opacity:.95;box-shadow:inset 0 2px 0 #ff2bd6,inset 1px 0 0 rgba(255,255,255,.1),0 6px 20px rgba(0,0,0,.35);color:#fff;cursor:pointer;transition:background .18s}
+.pm-btn:hover,.pm-btn:focus-visible{background:rgba(42,18,74,.94)}.pm-btn:focus-visible{outline:2px solid #fff;outline-offset:-3px}
 .pm-btn img,.pm-btn svg{width:22px;height:22px;display:block;pointer-events:none}
-.pm-btn i:empty{display:none}.pm-btn i{position:absolute;right:-5px;bottom:-5px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--cta,#c21cff);font:900 11px/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.4)}
-.pel-menu.on .pm-btn{transform:scale(.94);border-color:#ff7ac8}
+.pm-btn i:empty{display:none}.pm-btn i{display:grid;place-items:center;min-width:22px;height:16px;padding:0 6px;border-radius:999px;background:var(--cta,#c21cff);font:900 11px/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;color:#fff}
+.pel-menu.on .pm-btn{background:rgba(42,18,74,.94)}
+.pel-root:is(.paneled,.repe) .pel-top .pel-score{border-radius:6px}
 /* (el menú del partido es la ventana de pausa de src/ui/pausa.js: centrada sobre el partido, con sus filas) */
 .pm-hoja{display:none}.pel-menu.on .pm-hoja{display:grid}
 .pz-k{flex:none;display:grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#e6def7}
 .pb-desc.pedido .pz-ico{background:#ff7ac8}
-.pel-menu.llama .pm-btn{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{box-shadow:0 0 18px rgba(255,43,214,.6)}}
-@media (prefers-reduced-motion:reduce){.pel-menu.llama .pm-btn{animation:none;box-shadow:none}}
+.pel-menu.llama .pm-btn{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{box-shadow:inset 0 2px 0 #ff2bd6,inset 1px 0 0 rgba(255,255,255,.1),0 0 18px rgba(255,43,214,.6)}}
+@media (prefers-reduced-motion:reduce){.pel-menu.llama .pm-btn{animation:none}}
 .pel-root.paneled .pel-menu,.pel-root.repe .pel-menu{visibility:hidden}
 `;
 const BOLA = bolaSVG();
@@ -708,10 +712,10 @@ export class PelotaHud {
    *  pequeño, bajo el marcador y del color de quien lo da (col: 'azul' o 'rojo') */
   golpe(text, col) {
     const g = this._g ||= this.$('.pel-golpe'); if (!g || !text) return;
-    // (justo debajo del marcador, con su borde derecho, sin llegar al botón de la pausa: antes iba a 50 px fijos del borde
-    // de arriba y pegado a la derecha, debajo de la pausa y montado sobre las barras de energía. Con las medidas sin zoom)
-    const sc = this.$('.pel-score'), mn = this.$('.pel-menu');
-    if (sc?.offsetHeight) { g.style.setProperty('--pg-y', `${sc.offsetHeight + 8}px`); g.style.setProperty('--pg-x', `${mn?.offsetWidth ? mn.offsetWidth + 8 : 0}px`); }
+    // (justo debajo del marcador, con su borde derecho, que ya lleva dentro la pausa: antes iba a 50 px fijos del borde de
+    // arriba y pegado a la derecha, montado sobre las barras de energía. Con las medidas sin zoom)
+    const sc = this.$('.pel-score');
+    if (sc?.offsetHeight) { g.style.setProperty('--pg-y', `${sc.offsetHeight + 8}px`); g.style.setProperty('--pg-x', '0px'); }
     g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 2.4;
   }
   tick(dt) {

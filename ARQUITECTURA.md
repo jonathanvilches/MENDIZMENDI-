@@ -299,7 +299,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Pelota, cansancio y descansos:** lo que cansa es esprintar (dejadas y cortadas que hacen correr); entre tantos se
   recupera poco. Descansos de un minuto como el reglamento de la Federación Navarra (cinco por lado a 22 tantos, en
   proporción en los cortos), pedidos con el botón Descanso o la tecla R para el próximo parón; el rival los pide cuando va
-  fundido (`pelota/game.js`, `EN` y `DESCANSO`). En los partidos, solo los rótulos de al aire, al rebote y los pelotazos. El del golpe (`golpe` de `pelota/hud.js`, `.pel-golpe`) va justo debajo del marcador, con su borde derecho y sin llegar a la pausa (`--pg-y` y `--pg-x`, del alto del marcador y el ancho del botón; noviembre de 2026: iba a 50 px fijos del borde de arriba, debajo de la pausa y montado sobre las barras de energía).
+  fundido (`pelota/game.js`, `EN` y `DESCANSO`). En los partidos, solo los rótulos de al aire, al rebote y los pelotazos. El del golpe (`golpe` de `pelota/hud.js`, `.pel-golpe`) va justo debajo del marcador, con el borde derecho del marcador y la pausa juntos (`--pg-y`, del alto del marcador; noviembre de 2026: iba a 50 px fijos del borde de arriba, debajo de la pausa y montado sobre las barras de energía).
 - **Sorteo del saque:** la chapa es de verdad, en 3D, en la cancha (`pelota/chapa.js`, `Chapa3D`): gira de canto, sube
   dando vueltas y cae con la cara que saca hacia arriba y el texto derecho para la cámara, que la sigue (`tossCam` de
   `pelota/match.js`). Encima, solo el título y, a cada lado de la chapa, la carta de cada pelotari, la misma de la
@@ -392,8 +392,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
   en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura. En el
   móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
-- **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador y, a su derecha, el botón
-  del menú. En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro, una
+- **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador con el menú dentro: su último
+  tramo, con el mismo fondo y el mismo filete fucsia, separado por una raya fina, con el icono de pausa y debajo los
+  descansos que te quedan (noviembre de 2026; antes era un botón redondo suelto a su derecha, con el número en una esquina).
+  El filete y la raya del botón van en sombra por dentro, porque los botones no llevan borde de color (`ui/neon.css`). En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro, una
   sola barra: su energía, en dorado, naranja y luego roja parpadeando al cansarse; por parejas, la media de los dos.
   Delante de la barra, un rayo de su mismo color, para que se sepa que es la energía, en el borde de fuera de cada lado,
   como en espejo (`.ps-ico`). Los dos nombres van enteros y a la misma letra: si uno no cabe, los dos bajan a la vez,
