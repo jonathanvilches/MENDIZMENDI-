@@ -1053,9 +1053,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#cdist`, `#clock`): el mapa gira con la
   cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
   misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra
-  deja su sitio; nada se monta). La distancia, en una pastilla rosa a la izquierda del círculo, y la hora, en otra debajo.
+  deja su sitio; nada se monta). La hora y la distancia, en dos pastillas juntas (`#minfo`).
   Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
-  una barra arriba en el centro y en el teléfono de pie no había minimapa; ahora sí, debajo de la columna de botones.
+  una barra arriba en el centro y en el teléfono de pie no había minimapa.
+  El bloque de arriba a la derecha (`#topright`) es una rejilla: el minimapa en la esquina; tumbado, la fila de botones a
+  su izquierda y debajo de ella las dos pastillas; de pie, debajo del minimapa la fila de botones y debajo las pastillas.
+  Antes iba todo en columna (botones, minimapa y la hora colgando) y bajaba hasta y 184 en un teléfono tumbado de 390 de
+  alto (ahora 108) y hasta y 356 de pie (ahora 197). Los huecos de la rejilla no recogen toques. El panel de arriba a la
+  izquierda se ajusta a lo de la derecha en dos pasadas (`fitTop`: primero con lo que tiene al lado arriba del todo,
+  luego con todo); el de las misiones, si no cabe, pasa a dos filas de casillas repartidas por su ancho (`.dos`).
   El anillo es un camino de dos vueltas justas (de 0 a 2π, la de dentro al revés): con arcos de 0 a 7 radianes, la de
   dentro se quedaba 41° corta y por el hueco se veía una cuña del mapa sobre el anillo, a la derecha, debajo de la N.
   Lo que va en el anillo se aparta por lo que mide de verdad (`hueco`, `ang`): cada letra con su ancho medido, cada icono

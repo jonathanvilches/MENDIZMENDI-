@@ -137,7 +137,8 @@ export class UI {
           <button class="round" id="bMap" aria-label="Mapa (M)">${ICON.map}</button>
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
-        <div id="mini"><canvas width="248" height="248"></canvas><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
+        <div id="mini"><canvas width="248" height="248"></canvas></div>
+        <div id="minfo"><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
       <div id="mg" class="glass hidden"></div>
@@ -193,14 +194,24 @@ export class UI {
     this.queueFitTop();
   }
   queueFitTop() { clearTimeout(this._fitTopT); this._fitTopT = setTimeout(() => { this._fitTopT = 0; if (this.hud) this.fitTop(); }, 30); }
-  // El panel de arriba: la misión no llega a los botones; si llegara, se estrecha (su texto pasa a otra línea). Antes aquí
-  // se colocaba la barra de la brújula en el hueco entre las dos; la brújula va ahora en el borde del minimapa
+  // El panel de arriba a la izquierda no llega a lo de la derecha (los botones, el minimapa y la hora, cada uno con su caja:
+  // la de todo el bloque tiene huecos). Si llegara: el de las misiones del pueblo pasa a dos filas de casillas (estrecharlo
+  // sacaría las casillas del panel); el de la misión con texto se estrecha y el texto pasa a otra línea
+  // Dos pasadas: primero solo con lo que tiene a su lado arriba del todo (de pie, el minimapa) y luego, ya estrechado, con
+  // todo. Si no, el panel de texto, que de pie a todo lo ancho es alto, se medía también con la fila de botones de debajo
+  // del minimapa y se quedaba en 140 px, con las palabras partidas
   fitTop() {
     const h = this.hud; if (!h) return;
-    const T = $('#tl', h), B = $('#topright .rbtns', h); if (!T || !B) return;
-    T.style.maxWidth = '';
-    const tr = T.getBoundingClientRect(), br = B.getBoundingClientRect();
-    if (tr.width && tr.right > br.left - 12 && tr.bottom > br.top && tr.top < br.bottom) T.style.maxWidth = Math.max(140, br.left - 12 - tr.left) + 'px';
+    const T = $('#tl', h); if (!T) return;
+    T.style.maxWidth = ''; T.classList.remove('dos');
+    const cajas = ['#topright .rbtns', '#mini', '#minfo'].map((s) => $(s, h)).filter(Boolean);
+    for (const alto of [48, Infinity]) {
+      const tr = T.getBoundingClientRect(); if (!tr.width) return;
+      const abajo = Math.min(tr.bottom, tr.top + alto); let lim = Infinity;
+      for (const e of cajas) { const r = e.getBoundingClientRect(); if (r.width && r.bottom > tr.top && r.top < abajo) lim = Math.min(lim, r.left); }
+      if (tr.right <= lim - 8) continue;
+      if (T.classList.contains('mis')) T.classList.add('dos'); else T.style.maxWidth = Math.max(140, lim - 8 - tr.left) + 'px';
+    }
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
