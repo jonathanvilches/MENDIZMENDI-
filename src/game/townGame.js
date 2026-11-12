@@ -346,7 +346,9 @@ export class TownGame {
     // los vecinos: cada uno con su tarea del día (ir a misa, la compra, la charla en la plaza, jugar a pillar, la fuente,
     // el pan, el paseo), con sus paradas y lo que hace en cada una; nadie pasea porque sí (rutinas.js)
     const pal = PALETTE[d.family] || PALETTE.central;
-    const nW = d.family === 'city' ? 10 : 7;
+    // (muchos vecinos por la calle, para que el pueblo tenga vida; en el móvil algo menos. Solo se dibujan los que están
+    // a menos de 50-70 m: game.js cullActor)
+    const nW = QUALITY === 'low' ? (d.family === 'city' ? 16 : 12) : (d.family === 'city' ? 24 : 18);
     const hs = TOWN.houses.filter((_, i) => i % 5 === 0).map(h => h.door).filter(Boolean).filter(h => Math.hypot(h.x - PLACES.plaza.x, h.z - PLACES.plaza.z) < 110);
     const shop = this.tienda?.pos || PLACES.market || null, view = TOWN.landmarks?.find?.(l => l.kind === 'mirador' || l.kind === 'ermita') || null;
     const tareas = repartirTareas(this, nW, { plaza: PLACES.plaza, church: TOWN.church?.door || PLACES.church || null, shop, fountain: TOWN.fountain, houses: hs, view });
@@ -362,7 +364,7 @@ export class TownGame {
       // con la misma ruta salían en el mismo punto y andaban y se paraban uno dentro del otro)
       const ga = i * 2.39996, ox = Math.cos(ga) * 0.8, oz = Math.sin(ga) * 0.8;
       const route = T.steps.map(p => isFree(p.x + ox, p.z + oz, 0.45) ? { ...p, x: p.x + ox, z: p.z + oz } : p), s0 = route[route.length - 1];   // (empieza en su última parada: en casa, en la plaza…)
-      const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren'][i % 8] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai'][i % 8], x: s0.x, z: s0.z, look, route, walkSpeed: kid ? 1.25 : old ? 0.8 + R() * 0.15 : 1 + R() * 0.3 }, this.scene);
+      const a = new Actor({ id: 'w' + i, name: female ? ['Maite', 'Amaia', 'Nekane', 'Itziar', 'Leire', 'Ainhoa', 'Garazi', 'Miren', 'Uxue', 'Irati', 'Lorea', 'Edurne'][i % 12] : ['Josu', 'Patxi', 'Koldo', 'Mikel', 'Fermín', 'Iñaki', 'Xabier', 'Unai', 'Aitor', 'Ibai', 'Gorka', 'Peio'][i % 12], x: s0.x, z: s0.z, look, route, walkSpeed: kid ? 1.25 : old ? 0.8 + R() * 0.15 : 1 + R() * 0.3 }, this.scene);
       a.tarea = T.kind;
       this.walkers.push(a);
     }

@@ -12,10 +12,13 @@ export const TAREAS = {
   juego: { name: 'juega a pillar', kid: true, run: true, lines: ['¡Estamos jugando a pillar! ¡A que no me coges!', '¡Uf, qué cansancio! Pero ahora la llevo yo.'] },
   fuente: { name: 'va a por agua', lines: ['Vengo a por agua fresca a la fuente: esta agua baja del monte.', 'Antes todo el pueblo venía aquí con sus cántaros.'] },
   pan: { name: 'lleva el pan a casa', basket: true, lines: ['Llevo el pan a casa, que se enfría. ¡Huele de maravilla!', 'Recién hecho: la corteza cruje.'] },
+  carrera: { name: 'echa carreras', kid: true, run: true, lines: ['¡Echamos una carrera hasta la fuente! ¿Te apuntas?', '¡He ganado yo! Bueno, casi…'] },
   paseo: { name: 'da su paseo', old: true, lines: ['Doy mi paseo de todos los días. El médico dice que es lo mejor.', 'Desde aquí se ve todo el valle. Cuando era joven subía al monte cada domingo.'] },
 };
-// en qué orden se reparten (con dos para la charla: un corrillo es de dos)
-const ORDEN = ['tertulia', 'tertulia', 'misa', 'compra', 'juego', 'juego', 'fuente', 'pan', 'paseo', 'compra'];
+// en qué orden se reparten (con dos para la charla: un corrillo es de dos). Con muchos vecinos, casi la mitad son niños:
+// unos juegan a pillar en la plaza y otros echan carreras por las calles de alrededor
+const ORDEN = ['tertulia', 'tertulia', 'misa', 'compra', 'juego', 'juego', 'fuente', 'pan', 'paseo', 'carrera', 'carrera', 'compra',
+  'juego', 'juego', 'tertulia', 'tertulia', 'carrera', 'misa', 'paseo', 'juego', 'pan', 'carrera', 'fuente', 'tertulia', 'tertulia'];
 
 /**
  * Reparte las tareas y prepara las paradas de cada vecino. g: el pueblo (spot, rnd); n: cuántos vecinos; places: { plaza,
@@ -54,6 +57,12 @@ export function repartirTareas(g, n, places) {
       // corriendo de una esquina a otra de la plaza, con un respiro y celebrando al pillar
       const P = places.plaza, r = 5.5, a0 = R() * 6.28;
       steps = [0, 1, 2, 3].map(j => { const q = S({ x: P.x + Math.cos(a0 + j * 1.57) * r, z: P.z + Math.sin(a0 + j * 1.57) * r }, 1.5); return { ...q, wait: j === 3 ? 2.2 : 0.4 + R() * 0.6, run: true, act: j === 3 ? 'cheer' : null }; });
+    } else if (kind === 'carrera') {
+      // de puerta en puerta por las calles cerca de la plaza, siempre corriendo; en la última, celebra y vuelve a empezar
+      const P = places.plaza, cerca = H.filter(h => Math.hypot(h.x - P.x, h.z - P.z) < 38), L = cerca.length >= 3 ? cerca : H;
+      const n0 = 3 + Math.floor(R() * 2), q0 = Math.floor(R() * L.length);
+      steps = Array.from({ length: n0 }, (_, j) => { const q = S(L[(q0 + j * 3) % L.length], 2); return { ...q, wait: j === n0 - 1 ? 2.4 : 0.2 + R() * 0.5, run: true, act: j === n0 - 1 ? 'cheer' : null }; });
+      steps.push({ ...S(P, 6), wait: 1.2, run: true, act: 'look' });
     } else if (kind === 'fuente') {
       const h = home(places.fountain), f = S(places.fountain, 1.6);
       steps = [{ ...f, wait: 24, face: face(f, places.fountain), act: 'look' }, { ...h, wait: 14 }];

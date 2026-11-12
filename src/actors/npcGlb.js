@@ -102,7 +102,7 @@ export function retratoVecino(L, nombre = '') {
   return k ? meshyBust(k) : null;
 }
 // los que carga cada pueblo: los que dan sus misiones y hablan en él (los que salen en sus datos con nombre y aspecto)
-// y, para la gente de la calle, dos mayores, dos niños y dos adultos de cada sexo, fijos para cada pueblo
+// y, para la gente de la calle, mayores, niños y adultos de cada sexo, fijos para cada pueblo
 function vecinosDelPueblo(d) {
   const quiero = new Set(), vistos = new Set();
   const mira = (o, prof = 0) => {
@@ -113,7 +113,8 @@ function vecinosDelPueblo(d) {
   mira(d);
   let h = 7; for (const c of String(d?.id || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const de = (lista, cuantos) => { for (let i = 0; i < cuantos; i++) quiero.add(lista[(h + i * 7 + (h >>> 5)) % lista.length]); };
-  de(['abuelo_bigote', 'abuelo_barba', 'abuelo'], 2); de(['abuela_trenzas', 'abuela_mono', 'abuela_panuelo'], 2);
+  // (con muchos más vecinos por la calle, más caras distintas: los seis mayores, los cuatro niños y tres adultos de cada sexo)
+  de(['abuelo_bigote', 'abuelo_barba', 'abuelo'], 3); de(['abuela_trenzas', 'abuela_mono', 'abuela_panuelo'], 3);
   de(['nino_moreno', 'nino_rubio'], 2); de(['nina_pelirroja', 'nina_trenzas'], 2);
   de(['hombre', 'campesino', 'carpintero', 'quesero', 'panadero'], 2); de(['mujer', 'joven_rubia', 'campesina', 'carpintera', 'quesera', 'panadera'], 2);
   quiero.add('campesino');   // (el pastor del pueblo, que va con su rebaño: game/townGame.js, spawnShepherds)
@@ -187,8 +188,11 @@ function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), pein
 // vecino de Meshy (VECINOS): su modelo tal cual, con su ropa y su pelo; a la altura de su modelo con un poco de variedad
 // (±3 %), sin cabeza más pequeña ni inclinarse (los mayores ya están hechos así); los mayores que lo llevan, con su makila
 function buildVecino(L, name) {
-  const g = VEC_LOD[name], V = VECINOS[name], char = new GlbChar(g, { ...MESHY_GAIT, vary: true });
-  const k = 0.97 + (hashOf(L) % 7) * 0.01, H = meshyHeight(name) * k;
+  const g = VEC_LOD[name], V = VECINOS[name], k = 0.97 + (hashOf(L) % 7) * 0.01, H = meshyHeight(name) * k;
+  // (los niños: zancada más corta y pasan a correr antes. Con el umbral de los mayores, 3,9 m/s, no llegaban nunca: jugando
+  // a pillar iban a 3,6 andando muy deprisa. Ahora corren con su clip de correr, al ritmo de sus piernas)
+  const hk = H / 1.6, gNino = { runAt: 2.4, gait: (v, n) => n === 'Run' ? Math.min(3, Math.max(0.8, v / (1.62 * hk))) : Math.min(2.1, Math.max(0.4, v / (0.92 * hk))) };
+  const char = new GlbChar(g, { ...MESHY_GAIT, vary: true, ...(V.e === 'nino' ? gNino : {}) });
   char.root.scale.setScalar((g.userData.fit || 1) * k);
   if (L.staff && V.e === 'mayor') { char.root.updateMatrixWorld(true); try { dressMeshy(char.root, { staff: '#6b4a2a' }); } catch (e) { console.warn('makila', e); } }
   const obj = new THREE.Group(); obj.add(char.root);
