@@ -1054,14 +1054,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#cdist`, `#clock`): el mapa gira con la
   cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
   misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra
-  deja su sitio; nada se monta). La hora y la distancia, en dos pastillas juntas (`#minfo`).
+  deja su sitio; nada se monta). La distancia, en una pastilla junto al minimapa (`#minfo`). La hora no va en la pantalla
+  de juego: se ve en la cabecera del mapa y de la pausa (`horaChip`; `setClock` la guarda y la pone al día si están
+  abiertos).
   Las letras y el anillo se dibujan a su tamaño en pantalla (unos 11 px), mida lo que mida el minimapa. Antes la brújula era
   una barra arriba en el centro y en el teléfono de pie no había minimapa.
   El bloque de arriba a la derecha (`#topright`) es una rejilla. Tumbado: el minimapa en la esquina, la fila de botones a
-  su izquierda y debajo de ella las dos pastillas; antes iba todo en columna (botones, minimapa y la hora colgando) y
+  su izquierda y debajo de ella la pastilla de la distancia; antes iba todo en columna (botones, minimapa y la hora colgando) y
   bajaba hasta y 184 en un teléfono tumbado de 390 de alto (ahora 108). De pie: los botones en columna en el margen
   derecho, que arriba no quitan sitio a las misiones (siguen en una fila, como estaban: el autor no quiere que se
-  toquen), debajo el minimapa y a su izquierda las dos pastillas, una encima de otra (hasta y 324 con cuatro botones;
+  toquen), debajo el minimapa y a su izquierda la pastilla de la distancia (hasta y 324 con cuatro botones;
   antes 356). Los huecos de la rejilla no recogen toques. El panel de arriba a la izquierda se ajusta a lo de la derecha
   en dos pasadas (`fitTop`: primero con lo que tiene al lado arriba del todo, luego con todo).
   El anillo es un camino de dos vueltas justas (de 0 a 2π, la de dentro al revés): con arcos de 0 a 7 radianes, la de

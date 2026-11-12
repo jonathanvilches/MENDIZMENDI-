@@ -137,7 +137,7 @@ export class UI {
         </div>
         <div id="mini"><canvas width="248" height="248"></canvas></div>
         <div id="pestanas"><button class="pest" id="tBook" aria-label="Cuaderno (C)" title="Cuaderno">${ICON.book}</button></div>
-        <div id="minfo"><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
+        <div id="minfo"><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
       <div id="mg" class="glass hidden"></div>
@@ -179,7 +179,7 @@ export class UI {
     this.ro?.disconnect();
     this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(es => { for (const e of es) this.boxes.set(e.target, [e.contentRect.width, e.contentRect.height]); this.hudSig = {}; this.miniSig = null; }) : null;
     if (this.ro) this.ro.observe(this.mini.canvas);
-    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), clock: $('#clock .ct', h), clockI: $('#clock .ci', h), cdist: $('#cdist', h) };
+    this.questEls = { qt: $('#quest .qt', h), small: $('#quest small', h), qd: $('#quest .qd', h), qe: $('#quest .qe', h), pips: $('#quest .qpips', h), cdist: $('#cdist', h) };
     this.lastQuestIcon = null;
     if (town) this.refreshDots();
     // la brújula se recoloca al cambiar la pantalla, el texto de la misión o los botones (la mochila, los prismáticos)
@@ -304,7 +304,10 @@ export class UI {
     }
     p.classList.remove('hidden'); a.classList.remove('off');
   }
-  setClock(s, night) { if (!this.hud) return; const E = this.questEls; if (E.clock._t !== s) { E.clock._t = s; E.clock.textContent = s; } if (this.night !== night) { this.night = night; E.clockI.innerHTML = night ? ICON.moon : ICON.sun; } }
+  // La hora ya no va en la pantalla de juego (no hace falta para jugar y era una pieza más junto al minimapa): se guarda y
+  // se ve en la cabecera del mapa y de la pausa, al día si están abiertos
+  setClock(s, night) { this.hora = s; this.horaNoche = night; const e = this.modal?.querySelector('.hora-chip'); if (e && e._t !== s + night) { e._t = s + night; e.innerHTML = this.horaChip(true); } }
+  horaChip(dentro = false) { if (!this.hora) return ''; const i = `${this.horaNoche ? ICON.moon : ICON.sun}<span>${esc(this.hora)}</span>`; return dentro ? i : `<span class="hora-chip" aria-label="Hora: ${esc(this.hora)}">${i}</span>`; }
   showBinoButton() { $('#bBino', this.hud)?.classList.remove('hidden'); }
   hideBinoButton() { $('#bBino', this.hud)?.classList.add('hidden'); }
   // Avisos en un solo carril: el aviso (con su icono) y la voz del narrador van uno debajo del otro, nunca encima. De
@@ -707,7 +710,7 @@ export class UI {
     const camino = '<svg class="lg-ruta" viewBox="0 0 30 10" width="30" height="10" aria-hidden="true"><path d="M3 5h24" stroke="#1c0b3a" stroke-width="7" stroke-linecap="round"/><path d="M3 5h24" stroke="#ff7ac8" stroke-width="3.5" stroke-dasharray="5 4" stroke-linecap="round"/></svg>';
     const leyenda = town ? `<span>${I('pin', 20)} la que sigues</span><span>${I('flag', 20)} tu destino</span><span>${camino} camino</span><span><i class="lg-b nueva">!</i> por empezar</span><span><i class="lg-b ok">✓</i> hecha</span><span>${I('pelota', 20)} frontón</span>`
       : `<span>${I('exclaim', 20)} misión nueva</span><span>${I('check', 20)} misión hecha</span><span>${I('pin', 20)} objetivo</span><span>${I('pelota', 20)} frontón</span><span>${I('eguzkilore', 20)} eguzkilore</span>`;
-    const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.closeBtn()}</header><div class="pbody${town ? ' con-mq' : ''}"><div id="mapbox"><canvas></canvas></div>${town ? this.misionesMapa() : ''}
+    const s = this.screen(`<header><h2>${I('map', 30)} ${town ? 'Mapa de ' + esc(g.def.name) : 'Mapa del valle'}</h2>${this.horaChip()}${this.closeBtn()}</header><div class="pbody${town ? ' con-mq' : ''}"><div id="mapbox"><canvas></canvas></div>${town ? this.misionesMapa() : ''}
       <div class="legend">${leyenda}<em>${touch ? 'Pellizca o usa + y − para ampliar · arrastra para moverte · toca un sitio para marcar tu destino' : 'Rueda o + y − para ampliar · arrastra para moverte · haz clic en un sitio para marcar tu destino'}</em></div></div>`, 'mapscr');
     this.mapView = mountMapView(this, $('#mapbox', s), { fitRadius: town ? 260 : 240, onDestino: () => pintaLugares() });
     if (!town) return;
@@ -758,7 +761,7 @@ export class UI {
   openMenu() {
     const g = this.game, st = g.state, town = g.kind === 'town';
     const S = town ? g.P.settings : st.settings;
-    const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.closeBtn()}</header><div class="pbody">
+    const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.horaChip()}${this.closeBtn()}</header><div class="pbody">
       <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} Salir al mapa de Navarra</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
       <label>Música <input type="checkbox" id="mMusic" ${S.music ? 'checked' : ''}></label>
       <label>Volumen <input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
