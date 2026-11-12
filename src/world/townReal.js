@@ -3,11 +3,12 @@
 // muros del cauce en el casco. La iglesia, los monumentos, la plaza y la granja los pone townBuilder.js como siempre.
 import * as THREE from 'three';
 import { box, boxChaflan, faldon, venceDe, M, MM, builderQuality } from './builder.js';
+import { taludZocalo } from './plot.js';
 import { climber } from './houses.js';
 import { celda, uvCelda } from './flores.js';
 import { TOWN } from './townBuilder.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
-import { addBox, COLLIDERS } from './colliders.js';
+import { addBox, COLLIDERS, isFree } from './colliders.js';
 import { riverInfo, villageMask, pathQuery, MOD, PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
 
@@ -505,6 +506,8 @@ export function realHouses(B, def, rnd, H) {
   const hall = real.data.lugares?.ayuntamiento;
   const fr = real.data.lugares?.fronton;
   let full = 0, simple = 0, lejos = 0;
+  // (los zócalos de más de 1,9 m, para sus bajeras cuando ya estén todas las casas)
+  const altos = [], zocalo = (B, x, z, w, d, ry, g) => { const y = slopeBase(B, x, z, w, d, ry, g); if (y - g.mn > 1.9) altos.push({ x, z, w, d, ry, y, bot: g.mn - 0.6, k: taludZocalo(y - g.mn) }); return y; };
   // (las casas con todo su detalle, solo las más cercanas a los lugares de las misiones: un pueblo real tiene muchas más
   // casas que uno generado y en el móvil no caben todas así; el resto, como bloque con su tejado y su fachada sencilla)
   const FULL = builderQuality() === 'low' ? 80 : builderQuality() === 'mid' ? 120 : 160;
@@ -536,7 +539,7 @@ export function realHouses(B, def, rnd, H) {
       const w = clamp(b.w, 3, 12), d = clamp(b.d, 3, 12), g = minGround(b.x, b.z, w, d, b.ry);
       if (g.mx - g.mn > 3) continue;
       const hr = hashRnd(b.x + 0.21, b.z - 0.43), h = 3.2 + hr() * 1.8, wall = fam === 'ribera' ? (hr() < 0.6 ? 'brick' : 'plasterOcher') : fam === 'central' || fam === 'city' ? (hr() < 0.5 ? 'stone' : 'plasterCream') : hr() < 0.6 ? 'stone' : 'plaster';
-      const hb = slopeBase(B, b.x, b.z, w, d, b.ry, g);
+      const hb = zocalo(B, b.x, b.z, w, d, b.ry, g);
       block(B, b.x, hb, b.z, b.ry, w, d, h, wall, 'tile', 0.45, PEG.get(b));
       fachada(B, M(b.x, hb, b.z, b.ry), w, d, h, { fam, wall, kind: 'shed', rnd: hashRnd(b.x, b.z), vecinas: PEG.get(b) });
       addBox(b.x, b.z, w + 0.2, d + 0.2, b.ry, { solidView: true });
@@ -557,7 +560,7 @@ export function realHouses(B, def, rnd, H) {
       const casco = b.k !== 'shed' && (vm > 0.45 || dist < 160 || templo), hr = hashRnd(x - 0.3, z + 0.9);
       const wall = b.k === 'shed' ? (fam === 'ribera' ? 'brick' : rnd() < 0.5 ? 'stone' : 'plaster') : templo ? 'ashlar' : casco ? MUROS[fam]?.[Math.floor(hr() * MUROS[fam].length)] || 'plaster' : fam === 'ribera' ? 'brick' : hr() < 0.6 ? 'stone' : 'plaster';   // (fuera del casco, un granero o un almacén de piedra, y no una nave de chapa crema)
       if (b.k === 'shed' && dist > 150) { lejos++; continue; }   // (las naves grandes y las escuelas, sí: se ven de lejos)
-      const hb = slopeBase(B, x, z, w, d, ry, g);
+      const hb = zocalo(B, x, z, w, d, ry, g);
       block(B, x, hb, z, ry, w, d, h, wall, 'tile', b.k === 'shed' ? 0.5 : templo ? 0.5 : casco ? 0.4 : 0.3, vec);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall, kind: b.k === 'shed' ? 'shed' : templo ? 'templo' : casco ? 'house' : b.k === 'school' ? 'school' : 'industrial', rnd: hashRnd(x, z), vecinas: vec });
       addBox(x, z, w + 0.2, d + 0.2, ry, { solidView: true });
@@ -579,7 +582,7 @@ export function realHouses(B, def, rnd, H) {
     // lejos del casco y fuera del pueblo, la versión sencilla (de lejos no se ven los detalles y pesa mucho menos)
     const sencilla = !isHall && (full >= FULL || dist > 210 || (vm < 0.3 && dist > 140));
     if (sencilla && (dist > LEJOS || (vm < 0.3 && dist > LEJOS * 0.7))) { lejos++; continue; }
-    const hb = slopeBase(B, x, z, w, d, ry, g);
+    const hb = zocalo(B, x, z, w, d, ry, g);
     if (sencilla) {
       block(B, x, hb, z, ry, w, d, h, st.wall, st.roof || 'tile', st.pitch || 0.45, vec);
       fachada(B, M(x, hb, z, ry), w, d, h, { fam, wall: st.wall, kind: b.k, rnd: hashRnd(x, z), vecinas: vec });
@@ -600,5 +603,49 @@ export function realHouses(B, def, rnd, H) {
     addHouse(x, z, ry, w, d, { real: b.n || null });
     full++;
   }
+  bajeras(B, altos);
   return { full, simple, lejos };
+}
+
+/** Las bajeras de las casas en cuesta: por el lado de abajo, el zócalo de piedra de más de 2 m es una planta más (la
+ *  cuadra, la bodega, el almacén), con su puerta de madera entre jambas y dintel de sillería y unos ventanucos. Solo en
+ *  las caras que dan a algo libre (no contra la casa de al lado ni al agua). Antes eran paredes ciegas de piedra de hasta
+ *  4 m bajo la casa, como en Artajona: la casa parecía puesta encima de un pedestal. */
+function bajeras(B, altos) {
+  for (const Z of altos) {
+    const { x, z, w, d, ry, y, bot, k } = Z, c = Math.cos(ry), s = Math.sin(ry), W = (lx, lz) => [x + lx * c + lz * s, z - lx * s + lz * c];
+    // (la cara va en talud: a la altura ly sale k·(1 − (ly − bot)/H) más que arriba)
+    const talud = (ly) => k * (1 - clamp((ly - bot) / (y - bot), 0, 1));
+    for (const [sx, sz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const o = (sx ? w : d) / 2 + 0.09, hl = (sx ? d : w) / 2, tx = -sz, tz = sx;
+      if (hl < 1.6) continue;
+      // (el suelo delante de la cara, a medio metro, a lo largo de ella)
+      const suelo = (u) => { const [px, pz] = W(sx * (o + 0.5) + tx * u, sz * (o + 0.5) + tz * u); return terrainHeight(px, pz); };
+      const libre = (u, m, r) => { const [px, pz] = W(sx * (o + m) + tx * u, sz * (o + m) + tz * u); return isFree(px, pz, r) && riverInfo(px, pz).edge > 1.5; };
+      // (con el grupo de las medianas: los ventanucos miden menos de 90 cm y, como menudos, no se dibujaban en calidad baja)
+      const pieza = (mat, u, ly, a, h, f, prof) => { const g = sx ? box(prof, h, a, 1) : box(a, h, prof, 1); const of = o + f + talud(ly); B.add(mat, g, MM(M(x, 0, z, ry), M(sx * of + tx * u, ly, sz * of + tz * u, 0)), 1); };
+      // (la puerta, donde la cara queda más alta sobre el suelo, lejos de las esquinas)
+      let uP = null, eP = 0;
+      for (let u = -hl + 1.2; u <= hl - 1.2; u += 0.5) { const e = y - suelo(u); if (e > eP) { eP = e; uP = u; } }
+      if (uP != null && eP >= 2.1 && libre(uP, 1.4, 0.5)) {
+        const g0 = Math.max(suelo(uP - 0.65), suelo(uP + 0.65)), hD = Math.min(2.3, y - g0 - 0.4);
+        if (hD >= 1.8) {
+          pieza('woodDark', uP, g0 + hD / 2, 1.3, hD, 0.03, 0.08);
+          for (const k of [-1, 1]) pieza('ashlar', uP + k * 0.76, g0 + (hD + 0.1) / 2, 0.22, hD + 0.1, 0.05, 0.14);
+          pieza('ashlar', uP, g0 + hD + 0.16, 1.76, 0.32, 0.05, 0.16);
+        } else uP = null;
+      } else uP = null;
+      // (los ventanucos, cada 3 m más o menos, donde quepan por encima del suelo y no den contra nada)
+      for (let u = -hl + 1.4; u <= hl - 1.4; u += 3.1) {
+        if (uP != null && Math.abs(u - uP) < 1.8) continue;
+        const g0 = Math.max(suelo(u - 0.4), suelo(u + 0.4)), e = y - g0;
+        if (e < 1.8 || !libre(u, 1.0, 0.35)) continue;
+        const ly = g0 + Math.min(1.45, e - 0.7);
+        pieza('dark', u, ly, 0.6, 0.5, 0.02, 0.06);
+        pieza('ashlar', u, ly - 0.31, 0.82, 0.12, 0.05, 0.16);
+        pieza('ashlar', u, ly + 0.31, 0.82, 0.12, 0.05, 0.16);
+        for (let k = -1; k <= 1; k++) pieza('iron', u + k * 0.18, ly, 0.03, 0.5, 0.06, 0.03);
+      }
+    }
+  }
 }

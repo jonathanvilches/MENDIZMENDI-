@@ -29,6 +29,19 @@ export function slopeBase(B, x, z, w, d, ry, g) {
   // (la base de piedra de una casa en cuesta: 9 cm por fuera de la pared, más que el zócalo (6 cm), y con la piedra a la
   // escala de las paredes. Antes iba justo en el plano del zócalo y, en el iPhone, los dos se turnaban a trozos en cada
   // imagen, un parpadeo de piedras pequeñas y piedras gigantes; y su textura iba estirada a lo largo de toda la cara)
-  if (drop > 0.15) B.add('stone', box(w + 0.18, drop + 0.6, d + 0.18, 2.6), M(x, g.mn - 0.6 + (drop + 0.6) / 2, z, ry));
+  if (drop > 0.15) {
+    const H = drop + 0.6, gz = box(w + 0.18, H, d + 0.18, 2.6), k = taludZocalo(drop);
+    // (el alto, en talud: más ancho abajo, como los muros de las casas en cuesta; con las caras a plomo de arriba abajo
+    // parecía un pedestal)
+    if (k > 0) {
+      const p = gz.attributes.position, hw = (w + 0.18) / 2, hd = (d + 0.18) / 2;
+      for (let i = 0; i < p.count; i++) if (p.getY(i) < 0) { p.setX(i, p.getX(i) * (hw + k) / hw); p.setZ(i, p.getZ(i) * (hd + k) / hd); }
+      gz.computeVertexNormals();
+    }
+    B.add('stone', gz, M(x, g.mn - 0.6 + H / 2, z, ry));
+  }
   return y;
 }
+/** Lo que se ensancha por abajo el zócalo de una casa en cuesta (cada lado): 6 cm por metro de alto, 25 cm como mucho, y
+ *  nada en los bajos de menos de 1,2 m. */
+export const taludZocalo = (drop) => drop > 1.2 ? Math.min(0.25, 0.06 * drop) : 0;
