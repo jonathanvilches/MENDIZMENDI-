@@ -601,6 +601,12 @@ export class UI {
     if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm && ms.css === css && ms.r === ruta?.id) return;
     ms.t = now; ms.cy = camYaw; ms.cx = player.pos.x; ms.cz = player.pos.z; ms.h = player.heading; ms.tx = target?.x; ms.tz = target?.z; ms.n = nm; ms.css = css; ms.r = ruta?.id;
     const g = this.mini, S = 248, R = S / 2, zoom = 1.8, k = S / css;   // (k: puntos del lienzo por píxel de pantalla)
+    // (el lienzo, a los píxeles de verdad de la pantalla: en el iPhone, 92 px por 3, unos 276, nítido; antes era siempre de
+    // 248 y allí se estiraba y salía blando, y en el ordenador, con 136 px, se dibujaba casi el doble de lo que se ve. Se
+    // dibuja en 248 puntos, como siempre, con la escala f)
+    const fis = Math.round(Math.min(420, Math.max(120, css * Math.min(3, devicePixelRatio || 1)))), cv = g.canvas;
+    if (cv.width !== fis) { cv.width = cv.height = fis; }
+    const f = fis / S; g.setTransform(f, 0, 0, f, 0, 0);
     const mpp = (2 * HALF) / 512, band = Math.min(R * 0.34, 15 * k), Ri = R - band, Rm = R - band / 2;
     const px = (player.pos.x + HALF) / mpp, pz = (player.pos.z + HALF) / mpp;
     const enMapa = (x, z) => [((x + HALF) / mpp - px) * zoom, ((z + HALF) / mpp - pz) * zoom];

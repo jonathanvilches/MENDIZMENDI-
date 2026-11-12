@@ -1062,6 +1062,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   con su aro (`rIc`, el 30 % del anillo, que deja aire con las dos rayas blancas) y la punta del objetivo; entre unos y
   otros quedan 7 px de pantalla, y si no caben, el icono no se pone. Antes se apartaban un ángulo fijo y en el minimapa
   de 112 px el icono casi tocaba la letra.
+  El lienzo va a los píxeles de verdad de la pantalla (`fis`: lo que mide por la densidad, hasta 3, entre 120 y 420) y se
+  dibuja en 248 puntos con la escala `f`, como antes: en un iPhone grande, unos 336 px en vez de 248 estirados; en el
+  ordenador, 136 en vez de 248 (unas 3,3 veces menos que pintar).
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo
