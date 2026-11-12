@@ -200,34 +200,42 @@
 .m3-rail { --chh: calc(var(--chw) * 9 / 16); position: absolute; z-index: 3; left: 16px; right: calc(16px + var(--sr, 0px)); bottom: 16px; display: flex; align-items: flex-end; gap: 10px; overflow-x: auto; padding: 4px 2px 6px; scrollbar-width: none; touch-action: pan-x; overscroll-behavior-x: contain;
   scroll-snap-type: x proximity; scroll-padding: 0 2px; }
 .m3-rail::-webkit-scrollbar { display: none; }
-/* (noviembre de 2026, con el diseño nuevo de los rótulos: la tarjeta con las esquinas de los paneles, 10 px, y la foto
-   dentro, separada del borde 4 px y con sus propias esquinas de 6 px; debajo o al lado, el nombre y los sellos en una
-   pastilla con un toque del color de la comarca. Antes la foto iba pegada al borde y la tarjeta se veía cuadrada) */
-.m3-chip { position: relative; flex: none; width: var(--chw); scroll-snap-align: start; display: grid; grid-template-rows: var(--chh) auto; padding: 4px; overflow: hidden; color: #fff; font: inherit; text-align: left; cursor: pointer;
-  border-radius: 10px; background: var(--cr, rgba(16, 6, 40, .8)); border: 1px solid var(--cr-l, rgba(255, 255, 255, .14)); box-shadow: 0 8px 22px rgba(4, 1, 12, .38);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2); backdrop-filter: blur(14px) saturate(1.2); transition: transform .2s, border-color .2s, box-shadow .2s; }
-.m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); border-color: rgba(255, 255, 255, .3); }
-.m3-chip.on { border-color: color-mix(in srgb, var(--c, #ff7ac8) 70%, #fff); box-shadow: 0 0 18px color-mix(in srgb, var(--c, #ff7ac8) 40%, transparent), 0 8px 22px rgba(4, 1, 12, .38); }
-.m3-foto, .m3-vid { grid-row: 1; grid-column: 1; display: block; width: 100%; height: var(--chh); object-fit: cover; border-radius: 6px; transition: filter .3s, opacity .9s ease; }
+/* (12 de noviembre de 2026, el autor: «no me gustan nada», el tamaño sí. Ahora son postales: la foto de la comarca ocupa
+   toda la tarjeta, de borde a borde, y encima, sobre un velo oscuro que sube desde abajo (en el móvil tumbado, desde la
+   izquierda), su nombre y una barra con un tramo por sello, los conseguidos en dorado, con la cuenta al lado. Sin el sello
+   redondo encima de la foto ni la pastilla con el icono. La terminada, con la marca amarilla y verde en su esquina; la
+   elegida, con el borde blanco y una raya de su color abajo. Antes: la foto dentro de la tarjeta, separada 4 px del borde,
+   con el sello de la comarca encima y los sellos en una pastilla con un toque de su color) */
+.m3-chip { position: relative; flex: none; width: var(--chw); height: calc(var(--chh) + 62px); scroll-snap-align: start; display: flex; flex-direction: column; justify-content: flex-end; padding: 0; overflow: hidden; isolation: isolate; color: #fff; font: inherit; text-align: left; cursor: pointer;
+  border-radius: 10px; background: #160830; border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 8px 22px rgba(4, 1, 12, .38); transition: transform .2s, border-color .2s; }
+.m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); border-color: rgba(255, 255, 255, .4); }
+.m3-chip.on { border-color: #fff; }
+.m3-chip.on::before { content: ''; position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 3px; background: var(--c, #ff7ac8); }
+.m3-foto, .m3-vid { position: absolute; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 60% 40%; border-radius: 0; transition: filter .3s, opacity .9s ease, transform .5s; }
+.m3-chip:hover :is(.m3-foto, .m3-vid) { transform: scale(1.04); }
+.m3-chip::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(0deg, rgba(12, 4, 28, .9) 0%, rgba(12, 4, 28, .55) 34%, rgba(12, 4, 28, 0) 62%); }
 .m3-vid { opacity: 0; pointer-events: none; } .m3-vid.on { opacity: 1; }
-.m3-chip:not(.go):not(.ok) :is(.m3-foto, .m3-vid) { filter: saturate(.65) brightness(.85); }
+.m3-chip:not(.go):not(.ok) :is(.m3-foto, .m3-vid) { filter: saturate(.7) brightness(.88); }
 .m3-sello { position: relative; flex: none; width: 48px; height: 48px; display: grid; place-items: center; }
 .m3-sello > .m3-aro { position: absolute; inset: 0; } .m3-sello > img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
-.m3-chip .m3-sello { position: absolute; z-index: 1; left: 9px; top: 9px; width: 32px; height: 32px; border-radius: 50%; background: rgba(13, 4, 32, .72); } .m3-chip .m3-sello > img { width: 23px; height: 23px; }
-.m3-chip.ok .m3-aro .ar { stroke: var(--gold); }
-.m3-chip:not(.go):not(.ok) .m3-sello > img { filter: grayscale(1) brightness(1.1); opacity: .75; }
-/* (lo de debajo de la foto: el nombre y, en la comarca, sus sellos; en el pueblo, el icono de cada misión) */
-.m3-ct { grid-row: 2; display: grid; gap: 6px; min-width: 0; padding: 8px 6px 4px; }
-.m3-ct b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.m3-ct small { display: flex; align-items: center; gap: 5px; justify-self: start; max-width: 100%; box-sizing: border-box; padding: 3px 9px 3px 4px; border-radius: 999px; background: color-mix(in srgb, var(--c, #ff7ac8) 20%, rgba(255, 255, 255, .06)); color: var(--tx2, #d9d0f2); font: 600 12px/1 var(--f-ui); white-space: nowrap; overflow: hidden; }
+/* (la marca de terminada: el check verde sobre amarillo de todo el juego) */
+.m3-hecha { position: absolute; z-index: 1; left: 8px; top: 8px; width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(12, 4, 28, .55); }
+.m3-hecha :is(svg, img) { width: 13px; height: 13px; }
+/* (lo de encima del velo: el nombre y, en la comarca, sus sellos) */
+.m3-ct { position: relative; display: grid; gap: 7px; min-width: 0; padding: 0 12px 12px; }
+.m3-ct b { font: 400 var(--fs-md)/1 var(--f-display); letter-spacing: .02em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 3px rgba(4, 1, 12, .7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.m3-ct small { display: flex; align-items: center; gap: 8px; min-width: 0; color: #efe8ff; font: 800 12px/1 var(--f-cond, var(--f-ui)); letter-spacing: .04em; white-space: nowrap; text-shadow: 0 1px 2px rgba(4, 1, 12, .7); }
 .m3-ct small :is(svg, img) { flex: none; width: 14px; height: 14px; }
+.m3-pr { flex: 0 1 auto; width: min(100%, var(--prw, 112px)); display: flex; gap: 3px; }
+.m3-pr i { flex: 1; min-width: 4px; height: 5px; border-radius: 3px; background: rgba(255, 255, 255, .3); }
+.m3-pr i.ok { background: #ffd166; }
 .m3-ms { display: flex; flex-wrap: nowrap; gap: 3px; overflow: hidden; }
 .m3-ms i { flex: none; width: 20px; height: 20px; display: grid; place-items: center; border-radius: 5px; background: color-mix(in srgb, var(--mc) 18%, rgba(13, 6, 28, .7)); border: 1px solid color-mix(in srgb, var(--mc) 55%, transparent); }
 .m3-ms i :is(svg, img) { width: 13px; height: 13px; opacity: .8; }
 .m3-ms i.ok { background: color-mix(in srgb, var(--mc) 55%, rgba(13, 6, 28, .6)); border-color: var(--mc); } .m3-ms i.ok :is(svg, img) { opacity: 1; }
 /* (la comarca elegida, con el libro sobre la foto: otro toque abre la página de la comarca. Con un pueblo abierto, tocar su
    comarca vuelve a ella) */
-.m3-vr { position: absolute; z-index: 1; right: 9px; top: 9px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255,255,255,.08); }
+.m3-vr { position: absolute; z-index: 1; right: 8px; top: 8px; display: none; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: rgba(13, 4, 32, .72); border: 1px solid rgba(255,255,255,.12); }
 .m3-vr :is(svg, img) { width: 17px; height: 17px; }
 .m3-chip.ver .m3-vr { display: grid; }
 
@@ -610,13 +618,15 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
    misiones. Con las fotos encima, la fila se comía un tercio de la pantalla) */
 @media (max-height: 520px) {
   .m3-rail { --chh: 54px; }
-  .m3-chip { width: 220px; grid-template-rows: var(--chh); grid-template-columns: 80px minmax(0, 1fr); border-radius: 10px; }
-  .m3-chip :is(.m3-foto, .m3-vid) { grid-row: 1; grid-column: 1; height: var(--chh); }
-  .m3-chip .m3-ct { grid-row: 1; grid-column: 2; align-content: center; gap: 5px; padding: 0 4px 0 10px; }
-  .m3-chip .m3-ct small { padding: 2px 8px 2px 3px; font-size: 11px; }
-  .m3-chip .m3-ct b { font-size: 14px; }
-  .m3-chip .m3-sello { width: 24px; height: 24px; left: 7px; top: 7px; } .m3-chip .m3-sello > img { width: 17px; height: 17px; }
-  .m3-vr { width: 24px; height: 24px; right: auto; left: 57px; top: 7px; } .m3-vr :is(svg, img) { width: 14px; height: 14px; }
+  .m3-chip { width: 220px; height: 64px; justify-content: center; }
+  .m3-chip::after { background: linear-gradient(90deg, rgba(12, 4, 28, .92) 0%, rgba(12, 4, 28, .7) 42%, rgba(12, 4, 28, 0) 78%); }
+  .m3-chip :is(.m3-foto, .m3-vid) { object-position: 75% 45%; }
+  .m3-chip .m3-ct { gap: 6px; padding: 0 64px 0 12px; }
+  .m3-chip .m3-ct small { font-size: 11px; }
+  .m3-chip .m3-ct b { font-size: 15px; }
+  .m3-pr { --prw: 70px; } .m3-pr i { height: 4px; } .m3-sw { display: none; }   /* (aquí, solo la cuenta: con «sellos», el texto llegaba encima del explorador de la foto) */
+  .m3-hecha { left: auto; right: 6px; top: 6px; width: 20px; height: 20px; } .m3-hecha :is(svg, img) { width: 12px; height: 12px; }
+  .m3-vr { width: 24px; height: 24px; right: 6px; top: auto; bottom: 6px; } .m3-vr :is(svg, img) { width: 14px; height: 14px; }
   .m3-ms { gap: 2px; } .m3-ms i { width: 17px; height: 17px; border-radius: 4px; } .m3-ms i :is(svg, img) { width: 11px; height: 11px; }
   .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-2px); }
 }

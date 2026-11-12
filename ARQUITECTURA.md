@@ -220,9 +220,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   las secciones de al lado con Q y E.
 
 - **Tarjetas de comarca y ficha del pueblo del mapa** (noviembre de 2026, con el diseño de los rótulos). Las tarjetas de
-  abajo (`.m3-chip`, `hub/inicio.css`) tienen las esquinas de los paneles (10 px) y la foto dentro, separada 4 px del
-  borde y con sus propias esquinas de 6 px; los sellos van en una pastilla con un toque del color de la comarca, y el
-  fondo es oscuro con un degradado muy suave (`ui/neon.css`). En el móvil tumbado siguen midiendo 64 px de alto. Con
+  abajo (`.m3-chip`, `hub/inicio.css`) son postales desde el 12 de noviembre de 2026 (al autor no le gustaban nada; el
+  tamaño, sí): la foto de la comarca ocupa toda la tarjeta, de borde a borde, con las esquinas de los paneles (10 px), y
+  encima, sobre un velo oscuro que sube desde abajo (en el móvil tumbado, desde la izquierda), el nombre y una barra con
+  un tramo por sello (`barraSellos` en `inicio.js`, `.m3-pr`; los conseguidos en dorado) con la cuenta al lado; en el
+  móvil tumbado, solo la cuenta, sin la palabra «sellos». La terminada lleva la marca amarilla con el check verde
+  (`.m3-hecha`); la elegida, el borde blanco y una raya de su color abajo. Antes la foto iba dentro, separada 4 px del
+  borde, con el sello redondo de la comarca encima y los sellos en una pastilla. En el móvil tumbado siguen midiendo
+  220 × 64 px y en el ordenador, 202 × 175. Con
   ratón, se inclinan y llevan la luz de las cartas vivas (están en `CARTAS`). La ficha del pueblo (`.m3-ft`) también va a
   10 px (antes 4 px), con la raya de color de arriba curvada con sus esquinas, y su caja de misiones a 6 px. En
   `neon.css`, las dos están en la lista de los paneles.

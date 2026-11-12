@@ -81,7 +81,7 @@ function mapaHTML(p, items) {
       <span class="m3-tt"><small>Navarra descubierta</small><b>${K.comp}/${K.C.length} comarcas</b><i>${I('stamp', 18)}${K.sell}/${K.tot} sellos</i></span></div>`}
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
-      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}<span class="m3-sello">${aro(DD ? 1 : r.stamps / r.towns)}<img src="${stampImg(c.id)}" alt=""></span>${VER('Ver comarca')}<span class="m3-ct"><b>${esc(c.name.replace(/^Comarca de /, ''))}</b><small>${DD ? pueblos(r.towns) : `${I('stamp', 14)}${r.stamps}/${r.towns} sellos`}</small></span></button>`; }).join('')}</div>
+      return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color}" role="listitem"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}${!DD && r.towns && r.stamps >= r.towns ? `<span class="m3-hecha" role="img" aria-label="Terminada">${I('check', 13)}</span>` : ''}${VER('Ver comarca')}<span class="m3-ct"><b>${esc(c.name.replace(/^Comarca de /, ''))}</b><small>${DD ? pueblos(r.towns) : `${barraSellos(r.stamps, r.towns)}<span>${r.stamps}/${r.towns}<span class="m3-sw"> sellos</span></span>`}</small></span></button>`; }).join('')}</div>
     <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
     <div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
@@ -121,6 +121,8 @@ function exComarcaHTML(p, id) {
 // toque, ver la página de la comarca. Los pueblos, en el mapa, en sus medallones. Volver a toda Navarra, con el botón de la
 // casa o Escape (noviembre de 2026)
 const VER = (txt) => `<i class="m3-vr" title="${txt}">${I('book', 16)}</i>`;
+// (los sellos de una comarca en las tarjetas de abajo: una barra con un tramo por pueblo, los conseguidos en dorado)
+const barraSellos = (n, de) => `<span class="m3-pr" aria-hidden="true">${Array.from({ length: de }, (_, k) => `<i class="${k < n ? 'ok' : ''}"></i>`).join('')}</span>`;
 // lo que sale junto a la chincheta del pueblo elegido, mientras se levanta su maqueta: de fondo, su portada; encima, su
 // comarca y su nombre, el icono de cada misión (las hechas, en el color de la comarca) y el botón de empezar, que hace el
 // zoom hasta tu personaje en el pueblo. Ancha y baja, a un lado, para no tapar el pueblo que se está formando
