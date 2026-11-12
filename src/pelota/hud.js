@@ -382,9 +382,13 @@ const CSS = `
 .pel-mat-what{margin:0 0 12px;font-size:var(--fs-sm);color:#d8cff0;line-height:1.35}
 .pel-mrv{margin:-4px 0 12px;font-size:var(--fs-xs);color:#b9addb}.pel-mrv:empty{display:none}
 /* la fila de los botones del panel (Ahora no y ¡A jugar!): con su hueco entre ellos y pegada abajo si el panel se
-   desplaza, sobre el color del fondo. En «Partido de pelota: menos cosas en pantalla» se borró sin querer junto a otra
-   regla y los dos botones quedaban pegados el uno al otro */
-.pel-row{display:flex;gap:12px;position:sticky;bottom:-16px;z-index:1;margin:8px -4px -8px;padding:8px 4px;background:#12052a}
+   desplaza. En «Partido de pelota: menos cosas en pantalla» se borró sin querer junto a otra regla y los dos botones
+   quedaban pegados el uno al otro. Sin fondo propio: solo cuando el panel no cabe y se desplaza (clase .desliza, hud.js,
+   panel) lleva un fundido al color del pie del panel, para que lo de debajo no asome entre los botones. Hasta el 12 de
+   noviembre de 2026 llevaba siempre un fondo liso, y en un panel corto, como el de «Sí, salir», se veía un recuadro
+   oscuro detrás de los botones */
+.pel-row{display:flex;gap:12px;position:sticky;bottom:-16px;z-index:1;margin:8px -4px -8px;padding:8px 4px;background:none}
+.pel-card.desliza .pel-row{background:linear-gradient(rgba(18,5,42,0),#12052a 10px)}
 .pel-row .pel-go{flex:1 1 0;min-width:0;white-space:nowrap}
 @media (max-width:440px){.pel-row{flex-direction:column-reverse}.pel-row .pel-go{flex:none;width:100%}}
 .pel-row .pel-go:disabled{opacity:.45;cursor:default;box-shadow:none}
@@ -395,7 +399,7 @@ const CSS = `
    golpes. En dos columnas cuando hay sitio (móvil tumbado y ordenador): en una sola, el nivel quedaba debajo de los
    botones */
 .pel-fin{display:block}
-:where(.pel-card:has(.pel-fin)) .pel-row{margin-left:0;margin-right:0;padding-left:0;padding-right:0;background:linear-gradient(rgba(21,6,49,0),rgba(21,6,49,.96) 8px)}
+:where(.pel-card:has(.pel-fin)) .pel-row{margin-left:0;margin-right:0;padding-left:0;padding-right:0}:where(.pel-card.desliza:has(.pel-fin)) .pel-row{background:linear-gradient(rgba(21,6,49,0),rgba(21,6,49,.96) 8px)}
 .pel-fin :is(.pel-big,.pel-clave,.pel-est,.pel-xp,.pel-mapa,.pel-fact){margin:0 0 16px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}.pel-fin-a:not(:empty)+.pel-fin-b{margin-top:16px}
 @media (min-width:600px){.pel-fin .pel-fin-a+.pel-fin-b{margin-top:0}}.pel-card:has(.pel-fin)>.pel-sub{margin-bottom:16px}
 /* el resultado en la cabecera del final: el tanteo entre los dos nombres, cada uno con su color, y las fichas a la derecha */
@@ -732,10 +736,15 @@ export class PelotaHud {
     this.onPanel?.();   // (al salir un aviso encima, el joystick se suelta)
     this.closePanel();
     const p = document.createElement('div'); p.className = 'pel-panel'; p.innerHTML = `<div class="pel-card">${html}</div>`;
-    this.root.appendChild(p); this.panelEl = p; this.root.classList.add('paneled'); return p;
+    this.root.appendChild(p); this.panelEl = p; this.root.classList.add('paneled');
+    // (si no cabe y se desplaza, la fila de los botones lleva su fundido: se mira al abrirlo y cada vez que cambia de tamaño
+    // lo de dentro, al elegir la pelota o al cargar las fichas)
+    const c = p.firstElementChild, mira = () => c.classList.toggle('desliza', c.scrollHeight > c.clientHeight + 2);
+    if (typeof ResizeObserver === 'function') { const ro = new ResizeObserver(mira); ro.observe(c); for (const h of c.children) ro.observe(h); p._ro = ro; }
+    requestAnimationFrame(mira); return p;
   }
   // (se desvanece mientras entra lo siguiente, el VS o el saque: antes se quitaba de golpe y asomaba un momento la cancha)
-  closePanel() { const p = this.panelEl; if (p) { this.panelEl = null; p.classList.add('pel-fuera'); setTimeout(() => p.remove(), 220); } this.root.classList.remove('paneled'); }
+  closePanel() { const p = this.panelEl; if (p) { this.panelEl = null; p._ro?.disconnect(); p.classList.add('pel-fuera'); setTimeout(() => p.remove(), 220); } this.root.classList.remove('paneled'); }
   controls(on) { for (const s of ['.pel-stick', '.pel-btns', '.pel-stickhint']) { const e = this.$(s); if (e) e.style.visibility = on ? '' : 'hidden'; } }
   // (se desvanece con lo que tuviera delante, el aviso de salir o el resultado, mientras entra lo siguiente)
   destroy() { removeEventListener('resize', this.onFit); if (this.fueraMenu) removeEventListener('pointerdown', this.fueraMenu, true); const r = this.root; r.classList.add('pel-fuera'); setTimeout(() => r.remove(), 320); }
