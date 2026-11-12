@@ -146,10 +146,13 @@ export function createRealTownLevel(def, D) {
   const LG = D.lugares || {};
   const PL = LG.plaza || { x: 0, z: 0, r: 14, pts: null };
   const PLAZAS = (LG.plazas || []).map(p => ({ ...p, bb: bbox(p.pts) }));
+  // (¿cae el centro, donde va la fuente, dentro de una plaza de los datos? Si no, alrededor de él se hace una plaza redonda:
+  // en Amaiur el centro de los datos quedaba fuera de su única plaza y la fuente iba en mitad de una cuesta)
+  const PL_DENTRO = PLAZAS.some(p => polyDist(PL.x, PL.z, p.pts) < 0);
+  const PLR = Math.min(PL.r > 0 ? PL.r : 14, 14);   // (el radio de esa plaza redonda)
   // lo que falta hasta la plaza más cercana, en metros (dentro, 0); más allá de hasta, solo se sabe que está lejos
   function aPlaza(x, z, hasta = 1e9) {
-    if (!PLAZAS.length) return Math.max(0, Math.hypot(x - PL.x, z - PL.z) - PL.r);
-    let d = hasta;
+    let d = PL_DENTRO ? hasta : Math.min(hasta, Math.max(0, Math.hypot(x - PL.x, z - PL.z) - PLR));
     for (const p of PLAZAS) {
       if (x < p.bb.x0 - d || x > p.bb.x1 + d || z < p.bb.z0 - d || z > p.bb.z1 + d) continue;
       d = Math.min(d, Math.max(0, polyDist(x, z, p.pts)));
@@ -171,20 +174,27 @@ export function createRealTownLevel(def, D) {
       if (x < p.bb.x0 - 2 || x > p.bb.x1 + 2 || z < p.bb.z0 - 2 || z > p.bb.z1 + 2) continue;
       m = Math.max(m, 1 - smoothstep(-0.6, 0.8, polyDist(x, z, p.pts)));
     }
-    if (!PLAZAS.length) m = 1 - smoothstep(PL.r - 2, PL.r + 1, Math.hypot(x - PL.x, z - PL.z));
+    if (!PL_DENTRO) m = Math.max(m, 1 - smoothstep(PLR - 2, PLR + 1, Math.hypot(x - PL.x, z - PL.z)));
     return m;
   }
 
   // (la altura de cada plaza, la del terreno en su centro)
   const centro = (P) => { let x = 0, z = 0; for (const [a, b] of P) { x += a; z += b; } return [x / P.length, z / P.length]; };
-  const NIVEL = PLAZAS.length ? PLAZAS.map(p => { const [cx, cz] = centro(p.pts); return { p, h: BASE + dem(cx, cz) }; }) : [{ p: null, h: BASE + dem(PL.x, PL.z) }];
+  const NIVEL = PLAZAS.map(p => { const [cx, cz] = centro(p.pts); return { p, h: BASE + dem(cx, cz) }; });
+  if (!PL_DENTRO) NIVEL.push({ p: null, h: BASE + dem(PL.x, PL.z) });
+  // (la fuente, en el centro de la plaza: su pie, del todo llano, al nivel de la plaza en la que está. La plaza se deja con
+  // algo de su cuesta de verdad, y en las de ladera la pila de la fuente quedaba medio enterrada por un lado y al aire por
+  // el otro; en Amaiur, 77 cm de desnivel bajo la pila)
+  const FUENTE_H = (NIVEL.find(n => n.p && polyDist(PL.x, PL.z, n.p.pts) < 0) || NIVEL[NIVEL.length - 1]).h;
   function plazaLlana(x, z, h) {
     for (const { p, h: ph } of NIVEL) {
       if (p && (x < p.bb.x0 - 18 || x > p.bb.x1 + 18 || z < p.bb.z0 - 18 || z > p.bb.z1 + 18)) continue;
-      const d = p ? polyDist(x, z, p.pts) : Math.hypot(x - PL.x, z - PL.z) - (PL.r - 0.5), dh = Math.abs(ph - h) * 0.7;
+      const d = p ? polyDist(x, z, p.pts) : Math.hypot(x - PL.x, z - PL.z) - (PLR - 0.5), dh = Math.abs(ph - h) * 0.7;
       const k = 1 - smoothstep(-0.6, 0.8 + Math.min(16, dh * 3), d);
       if (k > 0) h = lerp(h, ph, k * 0.7);
     }
+    const df = Math.hypot(x - PL.x, z - PL.z);
+    if (df < 6.5) h = lerp(h, FUENTE_H, 1 - smoothstep(3.8, 6.5, df));
     return h;
   }
 
