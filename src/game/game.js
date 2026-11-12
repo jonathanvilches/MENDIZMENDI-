@@ -304,7 +304,7 @@ export class Game {
       this.ambT = 2 + Math.random() * 4;
       const near = this.fauna.animals.filter(a => a.obj.visible && Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z) < 45);
       const a = near[Math.floor(Math.random() * near.length)];
-      if (a) { if (a.kind === 'sheep') { this.sound.baa(a.pos); if (Math.random() < 0.6) this.sound.cowbell(a.pos, 0.2); } else if (a.kind === 'cow') { if (Math.random() < 0.4) this.sound.moo(a.pos); else this.sound.cowbell(a.pos, 0.5); } else if (a.kind === 'dog') this.sound.bark(a.pos); }
+      if (a) { if (a.kind === 'sheep') { this.sound.baa(a.pos); if (Math.random() < 0.6) this.sound.cowbell(a.pos, 0.2); } else if (a.kind === 'cow') { if (Math.random() < 0.4) this.sound.moo(a.pos); else this.sound.cowbell(a.pos, 0.5); } else if (a.kind === 'dog') this.sound.bark(a.pos); else if (a.kind === 'burro' && Math.random() < 0.35) this.sound.rebuzno?.(a.pos); }
     }
     // guardado periódico
     this.saveT = (this.saveT || 0) + dt;

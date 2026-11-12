@@ -114,7 +114,8 @@ function corriente(x, z) {
 }
 
 export class Peces {
-  constructor(scene, { quality = 'high', comarca = '' } = {}) {
+  constructor(scene, { quality = 'high', comarca = '', sound = null } = {}) {
+    this.sound = sound;   // (el chapoteo al huir un banco y algún salto de vez en cuando, audio.js)
     this.scene = scene; const low = quality === 'low', rnd = this.rnd = mulberry32(4242);
     const lista = POR_COMARCA[comarca] || [['trucha', 3], ['chipa', 1]];
     this.bolsa = lista.flatMap(([k, n]) => Array(n).fill(k));
@@ -162,7 +163,9 @@ export class Peces {
       const E = ESPECIES[B.k], S = this.esp[B.k];
       // (el jugador cerca de la orilla o encima, en un puente: salen río abajo y se juntan otra vez más allá)
       const dJ = Math.hypot(B.x - px, B.z - pz);
-      if (dJ < 4.5 + E.L * 4 && B.huye <= 0 && py > B.nivel - 0.5) { B.huye = 1.6; for (const f of B.peces) f.dash = 1; if (dJ < 4 + E.L * 4) this.onVisto?.(B.k); }   // (onVisto: el juego apunta la especie en la fauna)
+      if (dJ < 4.5 + E.L * 4 && B.huye <= 0 && py > B.nivel - 0.5) { B.huye = 1.6; for (const f of B.peces) f.dash = 1; if (dJ < 4 + E.L * 4) this.onVisto?.(B.k); this.sound?.chapoteo?.({ x: B.x, y: B.nivel, z: B.z }); }   // (onVisto: el juego apunta la especie en la fauna)
+      // (cerca de un banco tranquilo, de vez en cuando un pez que salta o chapotea en la superficie: cada 10 a 25 s)
+      else if (dJ < 22 && B.huye <= 0 && (B.salta = (B.salta ?? 5 + Math.random() * 10) - dt) <= 0) { B.salta = 10 + Math.random() * 15; this.sound?.chapoteo?.({ x: B.x, y: B.nivel, z: B.z }, E.L > 0.3 && Math.random() < 0.5); }
       if (B.huye > 0) {
         B.huye -= dt; const v = 3.2 * E.vel;
         const nx = B.x + B.c.dx * v * dt, nz = B.z + B.c.dz * v * dt, ri = riverInfo(nx, nz);

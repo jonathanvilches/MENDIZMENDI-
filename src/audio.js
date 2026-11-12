@@ -23,12 +23,13 @@ const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'music
 const GRAB = {
   perro: ['perro-1', 'perro-2', 'perro-3'], oveja: ['oveja-1', 'oveja-2', 'oveja-3', 'oveja-4'], vaca: ['vaca'], cerdo: ['cerdo-1', 'cerdo-2', 'cerdo-3'],
   relincho: ['caballo-relincho'], resoplido: ['caballo-resoplido'],
+  burro: ['burro'], gallina: ['gallina-1', 'gallina-2', 'gallina-3'], gorriones: ['gorriones-1', 'gorriones-2', 'gorriones-3'], pez: ['pez-1', 'pez-2', 'pez-3', 'pez-4'], pezSalto: ['pez-salto'],
   piedra: ['paso-piedra-1', 'paso-piedra-2', 'paso-piedra-3', 'paso-piedra-4', 'paso-piedra-5', 'paso-piedra-6'], agua: ['paso-agua-1', 'paso-agua-2', 'paso-agua-3', 'paso-agua-4'],
   click: ['ui-click'], open: ['ui-abre'], coin: ['ui-moneda'], card: ['ui-carta'], error: ['ui-error'], magia: ['ui-magia'], fanfarria: ['ui-fanfarria'],
 };
 // (lo fuerte que va cada uno: los grabados vienen a −3 dB de pico; así quedan como los sintetizados, algo por encima)
-const GVOL = { perro: 0.3, oveja: 0.2, vaca: 0.26, cerdo: 0.24, relincho: 0.26, resoplido: 0.3, click: 0.22, open: 0.22, coin: 0.2, card: 0.2, error: 0.14, magia: 0.22, fanfarria: 0.24 };
-const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido'];
+const GVOL = { perro: 0.3, oveja: 0.2, vaca: 0.26, cerdo: 0.24, relincho: 0.26, resoplido: 0.3, burro: 0.26, gallina: 0.2, gorriones: 0.16, pez: 0.22, pezSalto: 0.22, click: 0.22, open: 0.22, coin: 0.2, card: 0.2, error: 0.14, magia: 0.22, fanfarria: 0.24 };
+const AL_ABRIR = ['click', 'open', 'coin', 'card', 'error', 'magia', 'fanfarria', 'piedra', 'agua'], EN_PUEBLO = ['perro', 'oveja', 'vaca', 'cerdo', 'relincho', 'resoplido', 'burro', 'gallina', 'gorriones', 'pez', 'pezSalto'];
 export class Sound {
   constructor() {
     this.ctx = null; this.enabled = true; this.musicOn = true; this.musVol = 0.42;   // (la música, con más protagonismo: 0,32 antes; y los efectos, más bajos, sfx)
@@ -169,6 +170,12 @@ export class Sound {
   // el caballo de montar (game/montura.js): relincho al montar, algún resoplido parado y los cascos al trote y al galope
   relincho(pos) { if (!this.ctx) return; const g = this.out(pos, 60, GVOL.relincho, 0.25); if (g) this.grab('relincho', g, 0.96 + Math.random() * 0.08); }
   resoplido(pos) { if (!this.ctx) return; const g = this.out(pos, 30, GVOL.resoplido, 0.1); if (g) this.grab('resoplido', g, 0.92 + Math.random() * 0.16); }
+  // (los grabados de Envato del 12 de noviembre de 2026, LICENCIAS.md: el burro de montar y el de la feria, las gallinas
+  // de las casas, las bandadas de gorriones y los peces del río; sin grabado listo, no suenan)
+  rebuzno(pos) { if (!this.ctx || !this.hay('burro')) return; const g = this.out(pos, 60, GVOL.burro, 0.25); if (g) this.grab('burro', g, 0.95 + Math.random() * 0.1); }
+  cacareo(pos) { if (!this.ctx || !this.hay('gallina')) return; const g = this.out(pos, 24, GVOL.gallina, 0.1); if (g) this.grab('gallina', g, 0.94 + Math.random() * 0.12); }
+  gorriones(pos) { if (!this.ctx || !this.hay('gorriones')) return; const g = this.out(pos, 30, GVOL.gorriones, 0.12); if (g) this.grab('gorriones', g, 0.96 + Math.random() * 0.1); }
+  chapoteo(pos, salto = false) { const k = salto ? 'pezSalto' : 'pez'; if (!this.ctx || !this.hay(k)) return; const g = this.out(pos, salto ? 30 : 22, GVOL[k], 0.12); if (g) this.grab(k, g, 0.92 + Math.random() * 0.16); }
   /** Los cascos de la montura (game/montura.js): k de 0 a 1, lo rápido que va (0, parada). La grabación del galope en
    *  bucle, que se acelera con ella y se calla al paso. (Del 10 al 11 de noviembre de 2026 cada pisada se armó con trozos
    *  de la grabación, un golpe grave, eco y el sonido del suelo; el autor prefiere el de antes y se ha vuelto a él) */

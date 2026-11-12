@@ -198,6 +198,8 @@ export class Pajarillos {
       a.v = 7 + this.rnd() * 3; a.sube = 9 + this.rnd() * 7; a.ond = this.rnd() * 6.28;
     }
     this.sound?.aleteo?.({ x: F.x, y: groundHeight(F.x, F.z), z: F.z }, F.n);
+    // (y los gorriones, piando al salir: la grabación de una bandada; los jilgueros, solo el aleteo)
+    if (F.E?.id === 'gorrion') this.sound?.gorriones?.({ x: F.x, y: groundHeight(F.x, F.z), z: F.z });
   }
   updateViajeras(dt, t, px, pz, corre) {
     for (const F of this.viajeras) {
@@ -268,7 +270,7 @@ export class Pajarillos {
       const E = B.esp, base = this.bandadas.filter(b => b.esp === E).indexOf(B) * B.aves.length;
       // (si pasas cerca de alguna, sale volando toda la bandada; vuelve cuando te has ido)
       const cerca = B.aves.some(a => a.est === 'suelo' && Math.hypot(a.x - px, a.z - pz) < (E === this.pal ? 3 : 4));
-      if (cerca) { this.onVisto?.(E?.id); for (const a of B.aves) if (a.est === 'suelo') { a.posa = this.destino(a); this.vuela(a, a.posa); } }
+      if (cerca) { this.onVisto?.(E?.id); if (E?.id === 'gorrion') { const a0 = B.aves[0]; this.sound?.gorriones?.({ x: a0.x, y: a0.y, z: a0.z }); } for (const a of B.aves) if (a.est === 'suelo') { a.posa = this.destino(a); this.vuela(a, a.posa); } }
       B.aves.forEach((a, i) => {
         a.t -= dt;
         if (a.est === 'suelo') {
@@ -310,7 +312,9 @@ export class Pajarillos {
     // se apartan corriendo con un aleteo (no salen volando)
     for (const a of this.gallinas) {
       const dP = Math.hypot(a.x - px, a.z - pz);
-      if (dP < 2.4 && a.huye <= 0) { this.onVisto?.('gallina'); const k = 1.9 / Math.max(0.3, dP); const nx = a.x + (a.x - px) * k, nz = a.z + (a.z - pz) * k; if (isFree(nx, nz, 0.25)) { a.tx = nx; a.tz = nz; } a.huye = 1.2; a.pica = 0; }
+      // (cacarea al apartarse y, de vez en cuando, mientras picotea cerca: cada 8 a 20 s una de las que tienes a menos de 14 m)
+      if (dP < 14 && (a.cac = (a.cac ?? 4 + this.rnd() * 10) - dt) <= 0) { a.cac = 8 + this.rnd() * 12; this.sound?.cacareo?.({ x: a.x, y: groundHeight(a.x, a.z), z: a.z }); }
+      if (dP < 2.4 && a.huye <= 0) { this.onVisto?.('gallina'); this.sound?.cacareo?.({ x: a.x, y: groundHeight(a.x, a.z), z: a.z }); a.cac = 6 + this.rnd() * 6; const k = 1.9 / Math.max(0.3, dP); const nx = a.x + (a.x - px) * k, nz = a.z + (a.z - pz) * k; if (isFree(nx, nz, 0.25)) { a.tx = nx; a.tz = nz; } a.huye = 1.2; a.pica = 0; }
       a.t -= dt; a.huye = Math.max(0, a.huye - dt);
       const dx = a.tx - a.x, dz = a.tz - a.z, d = Math.hypot(dx, dz), v = a.huye > 0 ? 1.7 : 0.38;
       if (d > 0.05) {

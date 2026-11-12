@@ -38,6 +38,20 @@ Descargados por el dueño del proyecto de Envato Elements y enviados sin el cert
 
 Cómo se han preparado: en un canal, MP3 de 64 kbps (los ambientes, 72; la música, 128 en estéreo), recortados a un solo sonido y con el pico a −3 dB. Los ambientes y la música, 30 s; en el juego, los ambientes suenan 20 s en bucle con el final fundido. A los pasos en el agua se les ha quitado el ruido de fondo. Del «Retro Game Sound Pack» no se usa nada todavía: es de 8 bits y no encaja con el estilo del juego.
 
+### Animales del pueblo y del río (12/11/2026)
+
+Descargados por el dueño del proyecto de Envato Elements y enviados sin el certificado de licencia. **Falta el código de licencia de cada uno**, como en la tabla de arriba.
+
+| Archivos | Uso en el juego | Elemento en Envato Elements | Autor | Código de licencia |
+|---|---|---|---|---|
+| burro | Rebuzno del burro de montar y del de la feria | Donkey Bray | LDj_Audio | pendiente |
+| gallina-1 a gallina-3 | Cacareo de las gallinas de las casas | Chicken Hen Clucking | pendiente | pendiente |
+| gorriones-1 a gorriones-3 | Bandada de gorriones que sale volando | Sparrows Flock Chirping | pendiente | pendiente |
+| pez-1 a pez-4 | Chapoteo de los peces del río | Water Splashes Water Tiny Splashes Small Fish Moves Close | pendiente | pendiente |
+| pez-salto | Salto de un pez grande | Fish Splash | pendiente | pendiente |
+
+Preparados como los de arriba: en un canal, MP3 de 64 kbps y el pico a −3 dB. De cada grabación, trozos sueltos: tres tandas de cacareo, tres de 2,5 s de los gorriones y cuatro chapoteos pequeños, con el final fundido. Un cuarto trozo de las gallinas se quitó: estaba muy bajo y al subirlo se oía el ruido de fondo.
+
 ## Cómo se han preparado
 
 - Están pasados a MP3.

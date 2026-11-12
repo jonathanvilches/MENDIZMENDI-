@@ -41,7 +41,7 @@ export class Montura {
     if (P.collider) P.collider.ghost = true;
     if (P.blob) P.blob.visible = false;
     this.sienta(P);
-    if (this.tipo === 'burguete' && this.g.sound?.relincho) this.g.sound.relincho(this.A.pos); else this.g.sound?.ui?.('click');   // (el caballo relincha al montarlo)
+    if (this.tipo === 'burguete' && this.g.sound?.relincho) this.g.sound.relincho(this.A.pos); else if (this.tipo === 'burro' && this.g.sound?.rebuzno) this.g.sound.rebuzno(this.A.pos); else this.g.sound?.ui?.('click');   // (el caballo relincha al montarlo y el burro rebuzna)
     this.relT = 60; this.relDesde = 0; this.kAntes = 0;
   }
   baja() {
@@ -107,6 +107,8 @@ export class Montura {
     if (this.tipo === 'burguete' && this.speed < 0.3 && (this.resT = (this.resT ?? 4) - dt) <= 0) { this.resT = 7 + Math.random() * 8; this.g.sound?.resoplido?.(A.pos); }
     // (y relincha de vez en cuando, para que se sienta vivo, pero no todo el rato: al arrancar a galopar si hace más de un
     // minuto del último, y por el camino cada minuto y medio o dos y medio. Antes, cada 22 a 42 s, era demasiado)
+    // (el burro, igual pero con su rebuzno, y menos: cada dos o tres minutos por el camino)
+    if (this.tipo === 'burro') { this.relT = (this.relT ?? 60) - dt; if (this.relT <= 0 && this.speed > 0.5) { this.relT = 120 + Math.random() * 60; this.g.sound?.rebuzno?.(A.pos); } }
     if (this.tipo === 'burguete') {
       const k = this.speed / T.vmax, arranca = k > 0.72 && (this.kAntes ?? 0) <= 0.72; this.kAntes = k;
       this.relT = (this.relT ?? 60) - dt; this.relDesde = (this.relDesde ?? 0) + dt;

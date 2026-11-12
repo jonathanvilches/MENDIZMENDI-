@@ -400,7 +400,7 @@ export class TownGame {
     // (los gorriones, los jilgueros y las gallinas, al verlos salir volando o apartarse: a la fauna, una vez cada uno)
     if (this.pajarillos) this.pajarillos.onVisto = (k) => this.faunaVista(k);
     // truchas, salmones, barbos, madrillas y chipas en los ríos, según la comarca (peces.js)
-    if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca }); } catch (e) { console.warn('peces', e); }
+    if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca, sound: this.sound }); } catch (e) { console.warn('peces', e); }
     // (al ver huir un banco desde la orilla, su pez se apunta en la fauna del cuaderno, una vez por especie)
     if (this.peces) this.peces.onVisto = (k) => this.faunaVista(k);
     // la ropa tendida en algunos balcones (colada.js)
