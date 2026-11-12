@@ -152,7 +152,7 @@ const CSS = `
    blanco y casi del mismo peso, y la «p» del título rozaba la línea de debajo) */
 .pel-call p{margin:var(--r-pp,12px) 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#d9ccff}.pel-call :is(h3,p,.pel-kantari){text-box:trim-both cap alphabetic}
 .pel-call .pel-kantari{margin-top:var(--r-pp,12px);font-size:var(--fs-md);font-weight:800;color:#ff7ac8}
-.pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + 50px);right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;border-radius:6px;opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
+.pel-golpe{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px) + var(--pg-y,50px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px) + var(--pg-x,52px));padding:5px 14px 5px 12px;font:800 var(--fs-sm)/1.1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.04em;text-transform:uppercase;color:#fff;background:rgba(7,2,15,.88);border-left:4px solid #e8247c;border-radius:6px;opacity:0;transform:translateX(24px);transition:opacity .16s,transform .22s cubic-bezier(.22,1.12,.36,1);pointer-events:none;white-space:nowrap}
 .pel-golpe.azul{border-left-color:#4b3cff}.pel-golpe.on{opacity:1;transform:none}
 /* la tarjeta del rival: bajo el marcador, del color que viste; la barra de energía grande y, encima de ella, la fuerza de
    su último golpe, que se llena y se apaga */
@@ -708,6 +708,10 @@ export class PelotaHud {
    *  pequeño, bajo el marcador y del color de quien lo da (col: 'azul' o 'rojo') */
   golpe(text, col) {
     const g = this._g ||= this.$('.pel-golpe'); if (!g || !text) return;
+    // (justo debajo del marcador, con su borde derecho, sin llegar al botón de la pausa: antes iba a 50 px fijos del borde
+    // de arriba y pegado a la derecha, debajo de la pausa y montado sobre las barras de energía. Con las medidas sin zoom)
+    const sc = this.$('.pel-score'), mn = this.$('.pel-menu');
+    if (sc?.offsetHeight) { g.style.setProperty('--pg-y', `${sc.offsetHeight + 8}px`); g.style.setProperty('--pg-x', `${mn?.offsetWidth ? mn.offsetWidth + 8 : 0}px`); }
     g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 2.4;
   }
   tick(dt) {

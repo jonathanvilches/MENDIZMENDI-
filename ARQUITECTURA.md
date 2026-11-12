@@ -273,7 +273,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Pelota, cansancio y descansos:** lo que cansa es esprintar (dejadas y cortadas que hacen correr); entre tantos se
   recupera poco. Descansos de un minuto como el reglamento de la Federación Navarra (cinco por lado a 22 tantos, en
   proporción en los cortos), pedidos con el botón Descanso o la tecla R para el próximo parón; el rival los pide cuando va
-  fundido (`pelota/game.js`, `EN` y `DESCANSO`). En los partidos, solo los rótulos de al aire, al rebote y los pelotazos.
+  fundido (`pelota/game.js`, `EN` y `DESCANSO`). En los partidos, solo los rótulos de al aire, al rebote y los pelotazos. El del golpe (`golpe` de `pelota/hud.js`, `.pel-golpe`) va justo debajo del marcador, con su borde derecho y sin llegar a la pausa (`--pg-y` y `--pg-x`, del alto del marcador y el ancho del botón; noviembre de 2026: iba a 50 px fijos del borde de arriba, debajo de la pausa y montado sobre las barras de energía).
 - **Sorteo del saque:** la chapa es de verdad, en 3D, en la cancha (`pelota/chapa.js`, `Chapa3D`): gira de canto, sube
   dando vueltas y cae con la cara que saca hacia arriba y el texto derecho para la cámara, que la sigue (`tossCam` de
   `pelota/match.js`). Encima, solo el título y, a cada lado de la chapa, la carta de cada pelotari, la misma de la
