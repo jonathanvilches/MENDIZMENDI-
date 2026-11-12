@@ -40,6 +40,7 @@ import { Perro } from './perro.js';
 import { makeTownSignpost } from './senales.js';
 import { Pajarillos } from '../world/pajarillos.js';
 import { Peces } from '../world/peces.js';
+import { FAUNA } from '../data/fauna.js';
 import { Colada } from '../world/colada.js';
 import { foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
@@ -398,6 +399,8 @@ export class TownGame {
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY, sound: this.sound }); } catch (e) { console.warn('pajarillos', e); }
     // truchas, salmones, barbos, madrillas y chipas en los ríos, según la comarca (peces.js)
     if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca }); } catch (e) { console.warn('peces', e); }
+    // (al ver huir un banco desde la orilla, su pez se apunta en la fauna del cuaderno, una vez por especie)
+    if (this.peces) this.peces.onVisto = (k) => { if (FAUNA[k] && addCard('fauna:' + k)) this.ui.toast(`${FAUNA[k].name}: apuntado en tu cuaderno de fauna`, 'book', 2800); };
     // la ropa tendida en algunos balcones (colada.js)
     try { this.colada = new Colada(this.scene, { quality: QUALITY }); } catch (e) { console.warn('colada', e); }
     this.spawnShepherds();

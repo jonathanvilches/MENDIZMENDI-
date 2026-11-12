@@ -10,7 +10,8 @@
 // Cada especie es una malla repetida (una llamada de dibujo), con su librea pintada en una textura pequeña; el meneo de la
 // cola va en el sombreador. Se dibujan después del agua, algo transparentes y teñidos del color del río, para que se vean a
 // través de ella como en un río limpio (bajo el agua, que no escribe profundidad, quedarían casi tapados por su color).
-//   new Peces(scene, { quality, comarca }) · update(dt, t, player, night, oculto)
+//   new Peces(scene, { quality, comarca }) · update(dt, t, player, night, oculto) · onVisto(especie): un banco que sale
+//   huyendo al acercarse el jugador (la especie se apunta en la fauna, game/townGame.js)
 import * as THREE from 'three';
 import { riverInfo, riverPointNear, MOD } from './layout.js';
 import { mulberry32 } from '../util/math.js';
@@ -161,7 +162,7 @@ export class Peces {
       const E = ESPECIES[B.k], S = this.esp[B.k];
       // (el jugador cerca de la orilla o encima, en un puente: salen río abajo y se juntan otra vez más allá)
       const dJ = Math.hypot(B.x - px, B.z - pz);
-      if (dJ < 4.5 + E.L * 4 && B.huye <= 0 && py > B.nivel - 0.5) { B.huye = 1.6; for (const f of B.peces) f.dash = 1; }
+      if (dJ < 4.5 + E.L * 4 && B.huye <= 0 && py > B.nivel - 0.5) { B.huye = 1.6; for (const f of B.peces) f.dash = 1; if (dJ < 4 + E.L * 4) this.onVisto?.(B.k); }   // (onVisto: el juego apunta la especie en la fauna)
       if (B.huye > 0) {
         B.huye -= dt; const v = 3.2 * E.vel;
         const nx = B.x + B.c.dx * v * dt, nz = B.z + B.c.dz * v * dt, ri = riverInfo(nx, nz);
