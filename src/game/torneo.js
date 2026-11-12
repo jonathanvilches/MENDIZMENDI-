@@ -24,6 +24,7 @@ import { profile } from './profile.js';
 import { LEVELS, esSede } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
 import { iconSVG } from '../ui/icons.js';
+import { laminaUrl } from '../ui/laminas.js';
 import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
@@ -438,30 +439,37 @@ const CSS = `
 .tq-rd h4{font-size:var(--fs-sm)}.tq-m>div{min-height:30px;padding:4px 12px;font-size:var(--fs-md)}.tq-m b{font-size:var(--fs-lg)}.tq-br.k4 .tq-m>div{min-height:24px;padding:2px 10px;font-size:var(--fs-sm)}.tq-br.k4 .tq-m b{font-size:var(--fs-md)}.tq-tab{font-size:var(--fs-md)}.tq-tab td,.tq-tab th{padding:5px 10px}.tq-vista button{min-height:40px;font-size:var(--fs-sm)}
 .tq-cup .ico{width:84px;height:84px}.tq-cup b{font-size:var(--fs-lg)}
 }
-/* las tarjetas de los campeonatos (noviembre de 2026): oscuras, el color de cada uno solo en la etiqueta, el halo detrás
-   del rival y la barra de rondas; esquinas de 10 px, sin brillo que barre ni neón (eso, solo en las cartas de pelotari) */
+/* las tarjetas de los campeonatos (noviembre de 2026): arriba, la lámina del frontón del juego con el rival de pie en la
+   cancha, cada campeonato con su encuadre; abajo, en oscuro, el nombre, la ronda y contra quién, con una raya de su color
+   entre las dos partes. Esquinas de 10 px, sin brillo que barre ni neón (eso, solo en las cartas de pelotari) */
 .tq-carr>.cp-row{flex:1 1 auto;min-height:0;min-width:0;width:100%}
 .cp-row{--cw:clamp(150px,calc((100% - 36px) / 3.35),300px);display:grid;grid-auto-flow:column;grid-auto-columns:var(--cw);gap:12px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px 0}
 .cp-row::-webkit-scrollbar{display:none}
-.cp-card{--ac:#ff4fd8;position:relative;scroll-snap-align:start;display:flex;flex-direction:column;gap:8px;min-width:0;min-height:0;height:100%;padding:12px 12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 10%,#1b1036),#130a28 70%);color:#fff;text-align:left;font:inherit;cursor:pointer;box-shadow:0 8px 22px rgba(4,1,12,.35);transition:transform .18s cubic-bezier(.2,.9,.3,1.1),border-color .18s;animation:lg-sube .45s cubic-bezier(.2,.9,.3,1.1) var(--d,0s) backwards}
+.cp-card{--ac:#ff4fd8;position:relative;scroll-snap-align:start;display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;padding:0;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#150b2e;color:#fff;text-align:left;font:inherit;cursor:pointer;box-shadow:0 8px 22px rgba(4,1,12,.35);transition:transform .18s cubic-bezier(.2,.9,.3,1.1),border-color .18s;animation:lg-sube .45s cubic-bezier(.2,.9,.3,1.1) var(--d,0s) backwards}
 .cp-card:hover,.cp-card:focus-visible{border-color:color-mix(in srgb,var(--ac) 55%,transparent);transform:translateY(-2px)}
 .cp-card:active{transform:scale(.98)}
 .cp-card:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.cp-mano{--ac:#ff4fd8}.cp-parejas{--ac:#9b7bff}.cp-cuatro{--ac:#ff8a3d}.cp-evento{--ac:#ffc94a}.cp-libre{--ac:#3ec7e0}.cp-retos{--ac:#ffd166}.cp-casa{--ac:#5fdca0}.cp-col{--ac:#c4a8ff}
+.cp-mano{--ac:#ff4fd8;--fx:16%}.cp-parejas{--ac:#9b7bff;--fx:40%;--fz:1.12}.cp-cuatro{--ac:#ff8a3d;--fx:66%;--fz:1.2}.cp-evento{--ac:#ffc94a;--fx:90%;--fz:1.1}.cp-libre{--ac:#3ec7e0;--fx:28%;--fz:1.06}.cp-retos{--ac:#ffd166;--fx:6%}.cp-casa{--ac:#5fdca0;--fx:52%;--fz:1.16}.cp-col{--ac:#c4a8ff;--fx:78%;--fz:1.08}
+/* (arriba, la foto: el frontón pintado del juego, cada campeonato con su encuadre, y delante el rival de pie en la cancha) */
+.cp-foto{position:relative;flex:1 1 0;min-height:0;display:block;overflow:hidden;isolation:isolate;background:#2a1650}
+.cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,none) var(--fx,30%) 50%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:var(--fx,30%) 72%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
+.cp-foto::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(14,8,32,.08) 40%,rgba(14,8,32,.38))}
+.cp-card:hover .cp-foto::before{transform:scale(calc(var(--fz,1) * 1.05))}
 .cp-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
-.cp-tag{display:inline-flex;align-items:center;gap:6px;min-width:0;padding:4px 10px 4px 8px;border-radius:999px;background:rgba(255,255,255,.06);font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:#efe8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cp-foto .cp-top{position:absolute;left:8px;right:8px;top:8px;z-index:3}
+.cp-est{padding:3px 6px;border-radius:999px;background:rgba(16,9,34,.8)}
+.cp-tag{display:inline-flex;align-items:center;gap:6px;min-width:0;padding:5px 10px 5px 8px;border-radius:999px;background:rgba(16,9,34,.8);font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:#efe8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cp-tag::before{content:'';flex:none;width:7px;height:7px;border-radius:50%;background:var(--ac)}
-.cp-tx{flex:none;display:inline-flex;align-items:center;gap:4px;padding:2px 8px 2px 4px;border-radius:999px;background:rgba(255,209,102,.12);color:#ffd166;font:800 var(--fs-sm)/1 var(--f-cond)}
+.cp-tx{flex:none;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 5px;border-radius:999px;background:rgba(16,9,34,.8);color:#ffd166;font:800 var(--fs-sm)/1 var(--f-cond)}
 .cp-txi,.cp-tx .ico,.cp-total .ico{flex:none;width:18px;height:18px}.cp-txi img,.cp-txi svg{width:100%;height:100%;display:block}
-.cp-card .figs{flex:1 1 0;min-height:0;position:relative;display:block;margin:0 -4px;pointer-events:none}
-.cp-card .figs::before{content:'';position:absolute;left:8%;right:8%;bottom:4%;height:70%;border-radius:50%;background:radial-gradient(closest-side,color-mix(in srgb,var(--ac) 24%,transparent),transparent);z-index:0}
-.cp-card .figs::after{content:'';position:absolute;left:30%;right:30%;bottom:2px;height:8px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.45),transparent);z-index:0}
-.cp-card .figs img.pf{position:absolute;z-index:1;bottom:4px;left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));transition:translate .2s}
+.cp-card .figs{position:absolute;left:0;right:0;top:9%;bottom:5%;display:block;margin:0;pointer-events:none;z-index:2}
+.cp-card .figs::after{content:'';position:absolute;left:28%;right:28%;bottom:-3px;height:10px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.5),transparent);z-index:0}
+.cp-card .figs img.pf{position:absolute;z-index:1;bottom:0;left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));filter:drop-shadow(0 6px 10px rgba(0,0,0,.4));transition:translate .2s}
 .cp-card:hover .figs img.pf{translate:0 -3px}
 .cp-card .figs.duo img.pf:first-child{--o:-.16}.cp-card .figs.duo img.pf:last-child{--o:.16}
 .cp-card .figs.trio img.pf:nth-child(1){--o:-.32}.cp-card .figs.trio img.pf:nth-child(2){z-index:2}.cp-card .figs.trio img.pf:nth-child(3){--o:.32}
-.cp-card .figs.reto-fig{display:flex;align-items:center;justify-content:center}.cp-card .figs.reto-fig svg{position:relative;z-index:1;height:84%;width:auto;max-width:100%}
-.cp-info{display:flex;flex-direction:column;gap:4px;min-width:0;padding-top:10px;border-top:1px solid rgba(255,255,255,.07)}
+.cp-card .figs.reto-fig{display:flex;align-items:center;justify-content:center;top:18%;bottom:8%}.cp-card .figs.reto-fig::after{display:none}.cp-card .figs.reto-fig svg{position:relative;z-index:1;height:100%;width:auto;max-width:86%;padding:6px;border-radius:10px;background:rgba(16,9,34,.78)}
+.cp-info{flex:none;display:flex;flex-direction:column;gap:4px;min-width:0;padding:10px 12px 12px;border-top:2px solid var(--ac);background:#150b2e}
 .cp-name{font:400 var(--fs-xl)/1 var(--f-display);text-transform:uppercase;letter-spacing:.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cp-fase{font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:color-mix(in srgb,var(--ac) 80%,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cp-contra{font:600 var(--fs-sm)/1.2 var(--f-cond);color:#d9cff2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -471,11 +479,11 @@ const CSS = `
 .cp-total .cp-txi{width:22px;height:22px}.cp-total b{font:400 var(--fs-xl)/1 var(--f-display)}.cp-total small{font:800 var(--fs-xs)/1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase}
 .cp-est{flex:none;display:flex;gap:2px}.cp-est i{display:block;width:18px;height:18px}.cp-est svg{width:100%;height:100%;fill:none;stroke:#b79cff;stroke-width:1.8}.cp-est i.on svg{fill:#ffd166;stroke:#ffe39a}
 .cp-row.cp-tres{--cw:calc((100% - 24px) / 3)}.cp-tres .cp-contra{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:2.4em}
-@media (orientation:portrait){.cp-card .figs{min-height:200px}}
+@media (orientation:portrait){.cp-foto{min-height:220px}}
 @media (orientation:portrait){.cp-row.cp-tres{--cw:calc((100% - 12px) / 1.55)}}
-@media (orientation:landscape) and (max-height:500px){.cp-card{padding:10px 10px 12px;gap:6px}.cp-info{padding-top:8px;gap:2px}.cp-name{font-size:var(--fs-lg)}}
-@media (min-width:1200px) and (min-height:700px){.cp-card{padding:16px 16px 18px}.cp-name{font-size:var(--fs-2xl)}.cp-contra{font-size:var(--fs-md)}}
-@media (prefers-reduced-motion:reduce){.cp-card{animation:none;transition:none}}
+@media (orientation:landscape) and (max-height:500px){.cp-info{padding:8px 10px 10px;gap:2px}.cp-name{font-size:var(--fs-lg)}}
+@media (min-width:1200px) and (min-height:700px){.cp-info{padding:14px 16px 16px}.cp-foto .cp-top{left:12px;right:12px;top:12px}.cp-name{font-size:var(--fs-2xl)}.cp-contra{font-size:var(--fs-md)}}
+@media (prefers-reduced-motion:reduce){.cp-card,.cp-foto::before{animation:none;transition:none}}
 `;
 const TXAPELA = () => iconSVG('txapela', 64);   // (la txapela de los iconos del autor)
 function card(T, p, s, w, l) {
@@ -839,6 +847,8 @@ const RETO_ART = {
   diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
   dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
 };
+// la foto de las tarjetas: el frontón pintado del juego (la misma lámina para todas, así se baja y se guarda una vez)
+const conFoto = (row) => { const u = row && laminaUrl('dep-fronton'); if (u) row.style.setProperty('--foto', `url("${u}")`); };
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
 /** Las estrellas que llevas en los tres retos (de 0 a 9) */
@@ -859,13 +869,13 @@ export function retosMenu() {
     // (las mismas tarjetas que los campeonatos: arriba, sus estrellas; en medio, su dibujo; abajo, el nombre y tu marca)
     const COL = { peloteo: 'cp-parejas', diana: 'cp-mano', dejada: 'cp-libre' };
     const tile = (k, i) => { const m = M[k] || {}, e = estrellasReto(k, m.n || 0);
-      return `<button class="cp-card ${COL[k] || 'cp-retos'}" data-reto="${k}" style="--d:${(0.05 + i * 0.05).toFixed(2)}s"><span class="cp-top"><span class="cp-tag">${eu ? 'Erronka' : 'Reto'} ${i + 1}</span><span class="cp-est" role="img" aria-label="${R.estrellas(e)}">${[0, 1, 2].map(j => `<i class="${j < e ? 'on' : ''}">${ESTR}</i>`).join('')}</span></span>`
-        + `<span class="figs reto-fig">${RETO_ART[k]}</span><span class="cp-info"><b class="cp-name">${R.name[k]}</b><span class="cp-fase">${m.n ? (eu ? 'Zure marka' : 'Tu mejor marca') : (eu ? 'Jokatu gabe' : 'Sin jugar')}</span><span class="cp-contra">${m.n ? R.mejor(m.n) : R.como[k]}</span></span></button>`; };
+      return `<button class="cp-card ${COL[k] || 'cp-retos'}" data-reto="${k}" style="--d:${(0.05 + i * 0.05).toFixed(2)}s"><span class="cp-foto"><span class="cp-top"><span class="cp-tag">${eu ? 'Erronka' : 'Reto'} ${i + 1}</span><span class="cp-est" role="img" aria-label="${R.estrellas(e)}">${[0, 1, 2].map(j => `<i class="${j < e ? 'on' : ''}">${ESTR}</i>`).join('')}</span></span>`
+        + `<span class="figs reto-fig">${RETO_ART[k]}</span></span><span class="cp-info"><b class="cp-name">${R.name[k]}</b><span class="cp-fase">${m.n ? (eu ? 'Zure marka' : 'Tu mejor marca') : (eu ? 'Jokatu gabe' : 'Sin jugar')}</span><span class="cp-contra">${m.n ? R.mejor(m.n) : R.como[k]}</span></span></button>`; };
     const tot = retosTotal();
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${eu ? 'Frontoian' : 'En el frontón'}</small><h2>${R.titulo}</h2></div><span class="cp-total cp-total-est"><b>${tot}</b><small>/9 ${eu ? 'izar' : 'estrellas'}</small></span></div>
       <div class="tq-carr"><div class="cp-row cp-tres">${Object.keys(RETOS).map(tile).join('')}</div></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.firstElementChild.classList.add('tq-menu-card');
+    r.firstElementChild.classList.add('tq-menu-card'); conFoto(r.querySelector('.cp-row'));
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-reto],[data-a]'); if (!b) return; lgFuera(r); res(b.dataset.reto || null); });
   });
 }
@@ -884,9 +894,10 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     const met = Object.values(profile().pelotaris || {}).sort((a, b) => (b.last || 0) - (a.last || 0)).map(c => c.name);
     const trio = [...new Set([...met, 'Oihana', 'Unai', 'Irati'])].slice(0, 3);
     const youName = T.players.find(q => q.you)?.name;
-    // las tarjetas de los campeonatos (noviembre de 2026): oscuras, con el color de cada uno solo en su etiqueta, en el halo
-    // detrás del rival y en la barra de rondas; abajo, el nombre, la ronda y contra quién, y cuántas rondas faltan. Antes
-    // eran losas de degradado fuerte de color a color, con el antetítulo lejos del título y la misma figura en todas
+    // las tarjetas de los campeonatos (noviembre de 2026): arriba, el frontón pintado con el rival en la cancha; abajo, en
+    // oscuro, el nombre, la ronda, contra quién y cuántas rondas faltan. El color de cada uno, en su etiqueta, en la raya
+    // entre foto e información y en la barra de rondas. Antes, oscuras del todo con el rival pequeño en medio de un halo, y
+    // antes aún, losas de degradado fuerte de color a color con el antetítulo lejos del título
     const txa = (n) => n ? `<span class="cp-tx" role="img" aria-label="${n} ${n === 1 ? 'txapela' : 'txapelas'}">${iconSVG('txapela', 18, 'cp-txi')}<b>${n}</b></span>` : '';
     const estado = (X) => {
       const m = yourMatch(X), plan = planOf(X), n = plan.length, ri = X.done ? n : Math.min(X.round, n - 1);
@@ -896,7 +907,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       return { fase: esc(m.round), contra: `contra ${esc(m.pairs ? m.rival.mates[0] : m.rival.name)}`, ronda };
     };
     const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '' }) => `<button class="cp-card ${cls}" data-a="${a}" style="--d:${d}s">
-      <span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>
+      <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span></span>
       <span class="cp-info"><b class="cp-name">${name}</b>${fase ? `<span class="cp-fase">${fase}</span>` : ''}${contra ? `<span class="cp-contra"${extra}>${contra}</span>` : ''}${ronda}</span></button>`;
     const torneoCarta = (X, a, cls, d, pairs = false) => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, d, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), ...estado(X) }); };
     const tarjetas = [
@@ -916,7 +927,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
     // la más apretada, la de los tres de la colección: en el ordenador salían pequeñas y abajo). Las ilustraciones tienen el
     // mismo encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
-    const tiles = r.querySelector('.cp-row');
+    const tiles = r.querySelector('.cp-row'); conFoto(tiles);
     const iguala = () => {
       if (!r.isConnected) { ro.disconnect(); return; }
       for (const f of tiles.querySelectorAll('.figs')) {
