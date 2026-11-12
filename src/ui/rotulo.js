@@ -22,10 +22,36 @@ export function rotulo({ antetitulo = '', titulo = '', datos = [], icono = '', c
   document.body.appendChild(r); actual = r;
   // (el antetítulo se junta y el título sube letra a letra, detrás del barrido de color; ui/cinetica.js)
   cinetica(r.querySelector('.rt-k > span'), { estilo: 'junta', retardo: 110 }); cinetica(r.querySelector('.rt-t > span'), { estilo: 'sube', retardo: 420 });
+  coloca(r);
   // (las cifras cuentan hasta su valor cuando su píldora aparece)
   r.querySelectorAll('[data-n]').forEach((b, i) => { const n = +b.dataset.n, u = b.dataset.u; setTimeout(() => cuenta(b, n, { dur: 900, fmt: (v) => Math.round(v).toLocaleString('es-ES') + (u ? ' ' + u : '') }), 380 + i * 70); });
   tFuera = setTimeout(() => { r.classList.add('fuera'); tQuita = setTimeout(() => { r.remove(); if (actual === r) actual = null; }, 300); }, ms);
   return r;
+}
+// Dónde va: centrado y tan ancho como pida su texto (hasta 560 px). Si a su altura le queda al lado algo de arriba (la
+// barra de misiones, el minimapa, la distancia), se estrecha lo justo para no llegar a ello, pero solo si así le cabe el
+// texto entero; si no, baja hasta debajo de eso y usa todo el ancho. Antes tenía un ancho fijo pensado para lo peor
+// (en el móvil tumbado, la pantalla menos 380 px): en un iPhone pequeño se quedaba en 287 px, la comarca se cortaba con
+// puntos suspensivos y, con la barra de misiones en dos filas, la pisaba; de pie pisaba el minimapa
+function coloca(r) {
+  const W = innerWidth, borde = 16, hud = document.getElementById('hud');
+  const obst = hud && getComputedStyle(hud).display !== 'none'
+    ? ['#tl', '#mini', '#minfo', '#topright .rbtns'].map((q) => hud.querySelector(q)?.getBoundingClientRect()).filter((q) => q && q.width > 0 && q.height > 0) : [];
+  r.style.maxWidth = Math.min(560, W - 2 * borde) + 'px';
+  const quiere = r.offsetWidth, alto = r.offsetHeight;
+  let top = parseFloat(getComputedStyle(r).top) || 0;
+  for (let i = 0; i < 4; i++) {
+    const encima = obst.filter((o) => o.bottom + 8 > top && o.top < top + alto + 8);
+    let mitad = Math.min(560, W - 2 * borde) / 2, centro = false;
+    for (const o of encima) {
+      if (o.right + 8 <= W / 2) mitad = Math.min(mitad, W / 2 - o.right - 8);
+      else if (o.left - 8 >= W / 2) mitad = Math.min(mitad, o.left - 8 - W / 2);
+      else centro = true;
+    }
+    if (!encima.length || (!centro && 2 * mitad >= quiere)) { r.style.top = Math.round(top) + 'px'; if (encima.length) r.style.maxWidth = Math.floor(2 * mitad) + 'px'; return; }
+    top = Math.max(...encima.map((o) => o.bottom)) + 10;
+  }
+  r.style.top = Math.round(top) + 'px';
 }
 /** Quita el rótulo que haya (al salir del pueblo o al abrir algo encima) */
 export function quitaRotulo() { clearTimeout(tFuera); clearTimeout(tQuita); actual?.remove(); actual = null; }

@@ -138,8 +138,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   antetítulo que entra deslizándose, el título que sube desde detrás de una máscara (su caja corta lo que sobresale) y
   los datos debajo, uno detrás de otro; las cifras cuentan hasta su valor (`cuenta`, motion.js). Uno a la vez, sin recoger
   toques y anunciado a los lectores de pantalla. Con una ventana abierta encima del juego (la pausa, el cuaderno, el mapa:
-  `body > .screen`) no se ve; antes iba por encima y, abriendo la pausa nada más llegar, tapaba sus botones. Va en el centro, debajo de la línea de los avisos y entre el panel de las
-  misiones y el minimapa (en el móvil tumbado, debajo del panel de las misiones). Sale al llegar a un pueblo (la comarca
+  `body > .screen`) no se ve; antes iba por encima y, abriendo la pausa nada más llegar, tapaba sus botones. Va en el centro, debajo de la línea de los avisos, y tan ancho como pida
+  su texto, hasta 560 px (`coloca`, en rotulo.js): si a su altura le queda al lado la barra de misiones, el minimapa o la
+  distancia, se estrecha lo justo para no llegar a ellos, pero solo si así le cabe el texto entero; si no, baja hasta
+  debajo de ellos y usa todo el ancho. Antes tenía un ancho fijo pensado para lo peor (en el móvil tumbado, la pantalla
+  menos 380 px): en un iPhone pequeño se quedaba en 287 px, la comarca se cortaba con puntos suspensivos y pisaba la barra
+  de misiones en dos filas; de pie pisaba el minimapa (noviembre de 2026: el autor vio los nombres muy estrechos). Sale al llegar a un pueblo (la comarca
   encima, el pueblo y sus misiones; la primera vez en una comarca, «Nueva comarca», en amarillo), en la cima (su nombre,
   la altura que cuenta y la dificultad de 1 a 4 con puntos), con cada pueblo que se ve desde la cumbre (hacia dónde queda
   y a cuántos kilómetros), con la misión siguiente (en el color de su categoría) y al llegar al destino. Los avisos de
