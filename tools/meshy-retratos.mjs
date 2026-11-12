@@ -34,7 +34,10 @@ const out = await p.evaluate(async ([who, SIZES, CLIP, TT, CABEZA]) => {
   for (const [name, w, h, y0, y1] of SIZES) {
     const R = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); R.setSize(w, h); R.setClearColor(0x000000, 0);
     R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.NeutralToneMapping;
-    const cab = CABEZA && name === 'bust' && hp, hh = cab ? box.max.y - hp.y : 0, ya = cab ? hp.y - hh * 0.62 : box.min.y + H * y0, yb = cab ? box.max.y + hh * 0.06 : box.min.y + H * y1;
+    // (con CABEZA, la caja de la figura en su postura de verdad, no en la de reposo del modelo: con la de reposo, a la niña de
+    // las trenzas y a la panadera se les cortaba lo alto de la cabeza; y con aire encima, para que en el círculo de las
+    // charlas la cabeza no toque el borde)
+    const cab = CABEZA && name === 'bust' && hp, top = cab ? new THREE.Box3().setFromObject(c.root, true).max.y : 0, hh = cab ? top - hp.y : 0, ya = cab ? hp.y - hh * 0.62 : box.min.y + H * y0, yb = cab ? top + hh * 0.2 : box.min.y + H * y1;
     const cam = new THREE.PerspectiveCamera(22, w / h, 0.1, 50), cy = (ya + yb) / 2, span = yb - ya, cx = cab ? hp.x : 0;
     const dist = span / 2 / Math.tan(THREE.MathUtils.degToRad(11)) * 1.02;
     cam.position.set(cx, cy + span * 0.04, (cab ? hp.z : 0) + dist); cam.lookAt(cx, cy, cab ? hp.z : 0);

@@ -41,7 +41,8 @@ for (const who of lista) {
       const hp = new THREE.Vector3().setFromMatrixPosition(head.matrixWorld);
       const R = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true }); R.setSize(256, 256); R.setClearColor(0x000000, 0);
       R.outputColorSpace = THREE.SRGBColorSpace; R.toneMapping = THREE.NeutralToneMapping;
-      const hh = box.max.y - hp.y, ya = hp.y - hh * 0.62, yb = box.max.y + hh * 0.06;
+      // (la caja en su postura de verdad y con aire encima, como tools/meshy-retratos.mjs)
+      const top = new THREE.Box3().setFromObject(c.root, true).max.y, hh = top - hp.y, ya = hp.y - hh * 0.62, yb = top + hh * 0.2;
       const cam = new THREE.PerspectiveCamera(22, 1, 0.1, 50), cy = (ya + yb) / 2, span = yb - ya;
       const dist = span / 2 / Math.tan(THREE.MathUtils.degToRad(11)) * 1.02;
       cam.position.set(hp.x, cy + span * 0.04, hp.z + dist); cam.lookAt(hp.x, cy, hp.z);
