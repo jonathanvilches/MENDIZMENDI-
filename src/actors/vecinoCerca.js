@@ -2,13 +2,13 @@
 // muchos vecinos en el pueblo, así caben en la memoria del móvil. A los que están a pocos metros del jugador o hablando
 // con él se les pone la textura de cerca, a 1024 px (tools/vecinos-cerca.mjs), y se les quita al alejarse. Como todos los
 // vecinos del mismo modelo comparten material, el cambio vale para todos los de ese modelo; como mucho tres modelos a la
-// vez (dos en el móvil): unos 5,6 MB de memoria gráfica cada uno.
+// vez (uno en el móvil): unos 5,6 MB de memoria gráfica cada uno.
 import * as THREE from 'three';
 import { QUALITY } from '../util/quality.js';
 
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/meshy/cerca/*.webp', { query: '?url', import: 'default', eager: true }))
   .map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
-const MAX = QUALITY === 'low' ? 2 : 3, CERCA = 9, LEJOS = 13;
+const MAX = QUALITY === 'low' ? 1 : 3, CERCA = 9, LEJOS = 13;   // (en el móvil, uno: el del vecino más cercano o con el que hablas)
 const puestas = new Map(), pedidas = new Set(), loader = new THREE.TextureLoader();
 let mats = null;   // (name) → los materiales de ese modelo: los compartidos y los propios de los que llevan el pelo teñido (npcGlb.js)
 

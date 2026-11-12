@@ -44,7 +44,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       color nuevo es el pintado en otro vecino (el rubio de la joven rubia…). El vecino teñido lleva material propio; sus
       retratos con cada color, en `src/assets/meshy/portraits/pelo` (`tools/vecinos-retratos-pelo.mjs`).
     - Nítidos de cerca (`actors/vecinoCerca.js`): por la calle, textura de 512 px; los modelos de los vecinos a menos de
-      9 m llevan la de 1024 (`src/assets/meshy/cerca`, `tools/vecinos-cerca.mjs`), como mucho tres a la vez (dos en el
+      9 m llevan la de 1024 (`src/assets/meshy/cerca`, `tools/vecinos-cerca.mjs`), como mucho tres a la vez (uno en el
       móvil), y la sueltan al alejarse o al salir del pueblo (`sueltaCerca`).
     - La calle (`game/rutinas.js`, `townGame.spawn`): 18 vecinos, 24 en las ciudades (12 y 16 en el móvil); casi la
       mitad son niños, que juegan a pillar en la plaza o echan carreras de puerta en puerta (`carrera`). Los niños pasan a
