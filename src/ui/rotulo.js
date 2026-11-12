@@ -28,7 +28,7 @@ export function rotulo({ antetitulo = '', titulo = '', datos = [], icono = '', c
   tFuera = setTimeout(() => { r.classList.add('fuera'); tQuita = setTimeout(() => { r.remove(); if (actual === r) actual = null; }, 300); }, ms);
   return r;
 }
-// Dónde va: centrado y tan ancho como pida su texto (hasta 560 px), nunca menos que su min-width del CSS. Si a su altura le queda al lado algo de arriba (la
+// Dónde va: centrado y tan ancho como pida su texto (hasta 560 px), nunca menos que su min-width del CSS, que es pequeño. Si a su altura le queda al lado algo de arriba (la
 // barra de misiones, el minimapa), se estrecha lo justo para no llegar a ello, pero solo si así le cabe el
 // texto entero; si no, baja hasta debajo de eso y usa todo el ancho. Antes tenía un ancho fijo pensado para lo peor
 // (en el móvil tumbado, la pantalla menos 380 px): en un iPhone pequeño se quedaba en 287 px, la comarca se cortaba con

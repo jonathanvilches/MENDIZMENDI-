@@ -8,10 +8,13 @@
    rótulos son otros y van con un fundido corto, como pidió el autor. */
 /* (dónde va: en el centro, debajo de la línea de los avisos, que en el ordenador está arriba, hasta unos 120 px. Esto es
    solo el punto de partida: rotulo.js, coloca, le da el ancho que pida su texto, hasta 560 px, y lo baja si a su altura
-   le queda al lado la barra de misiones o el minimapa y así no le cabe. Nunca más estrecho que min-width: con un nombre
-   corto, como Elizondo, se quedaba en una caja de 190 px que al autor le parecía muy estrecha, noviembre de 2026) */
+   le queda al lado la barra de misiones o el minimapa y así no le cabe.
+   Tan ancho como su texto más largo, el antetítulo o el nombre, con el mismo aire a la derecha que a la izquierda: cada
+   pueblo tiene su rótulo a su medida. Con un ancho mínimo de 460 px, Aoiz se quedaba en una caja larga con media caja
+   vacía a la derecha (12 de noviembre de 2026); sin mínimo, Elizondo se quedaba en 190 px y parecía apretado. Por eso
+   queda un mínimo pequeño, de 280 px, y el nombre algo más grande) */
 .rotulo { position: fixed; z-index: 40; left: 50%; top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 116px); transform: translateX(-50%);
-  display: flex; align-items: stretch; gap: 12px; box-sizing: border-box; width: max-content; min-width: min(460px, 44vw); max-width: min(560px, calc(100vw - 2 * 260px)); padding: 12px 20px 12px 12px;
+  display: flex; align-items: stretch; gap: 12px; box-sizing: border-box; width: max-content; min-width: 280px; max-width: min(560px, calc(100vw - 2 * 260px)); padding: 12px 24px 12px 12px;
   border-radius: 10px; background: linear-gradient(180deg, rgba(26, 12, 52, .94), rgba(16, 7, 34, .9)); box-shadow: 0 14px 34px rgba(4, 1, 12, .42), inset 0 1px 0 rgba(255, 255, 255, .06);
   color: #fff; pointer-events: none; animation: rt-caja var(--d-panel, 380ms) var(--muelle) both; }
 @keyframes rt-caja { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(.98); } }
@@ -46,8 +49,9 @@ body:has(> .screen) > .rotulo { visibility: hidden; }
 .rt-d .rt-pt i.on { background: var(--rt-c, #ff3fcf); }
 /* (en el móvil tumbado los avisos van abajo: el rótulo, justo debajo del panel de las misiones, que llega a unos 62 px, y
    sin llegar al minimapa de la derecha, de unos 185 px con su margen) */
-@media (max-height: 500px) { .rotulo { top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 58px); min-width: min(420px, 50vw); max-width: min(480px, calc(100vw - 2 * 190px)); padding: 8px 16px 8px 10px; }
+@media (max-height: 500px) { .rotulo { top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 58px); min-width: 260px; max-width: min(480px, calc(100vw - 2 * 190px)); padding: 8px 20px 8px 10px; }
   .rt-ic { width: 34px; height: 34px; } .rt-d { margin-top: 6px; } .rt-t > span { font-size: clamp(26px, calc(4.2vw / var(--z, 1)), 36px); } }
-/* (en el móvil de pie, de borde a borde con su margen, más abajo que los botones de arriba) */
-@media (max-width: 600px) and (min-height: 501px) { .rotulo { top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 120px); min-width: calc(100vw - 32px); max-width: calc(100vw - 32px); } }
+/* (en el móvil de pie, más abajo que los botones de arriba; también a la medida de su texto, hasta el ancho de la
+   pantalla con su margen) */
+@media (max-width: 600px) and (min-height: 501px) { .rotulo { top: calc(env(safe-area-inset-top, 0px) + var(--edge, 16px) + 120px); min-width: min(260px, calc(100vw - 32px)); max-width: calc(100vw - 32px); } }
 @media (prefers-reduced-motion: reduce) { .rotulo, .rotulo * { animation: none !important; } }
