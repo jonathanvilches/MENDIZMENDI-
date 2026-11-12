@@ -144,7 +144,6 @@ export class UI {
       <div id="stick"><i></i></div>
       <div id="stickHint"><i></i><span>Mover</span></div>
       <div id="controls">
-        <button class="cbtn" id="cRun" aria-label="Correr" title="Correr">${ICON.run}</button>
         <button class="cbtn" id="cJump" aria-label="Saltar" title="Saltar">${ICON.jump}</button>
         <button class="cbtn big off" id="cAct" aria-label="Acción" title="Acción">${ICON.hand}</button>
       </div>
@@ -168,7 +167,6 @@ export class UI {
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
     tap('#cJump', () => this.input.press(' '));
-    tap('#cRun', () => { this.input.runToggle = !this.input.runToggle; $('#cRun', h).classList.toggle('on', this.input.runToggle); });
     const stick = $('#stick', h), knob = $('#stick i', h), sh = $('#stickHint', h);
     this.input.onStick = (on, x, y, dx, dy) => {
       stick.style.display = on ? 'block' : 'none';
@@ -768,7 +766,7 @@ export class UI {
       <label>Calidad gráfica <select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
       <p id="mQnote" class="keys" hidden>La nueva calidad se aplicará al cargar el próximo pueblo.</p>
       <label>Paso del tiempo <select id="mT"><option value="1">Normal</option><option value="0">Detenido</option><option value="4">Rápido</option></select></label>
-      <div class="keys">${this.input.touch ? 'Izquierda: caminar · Derecha: mirar · Botón grande de la derecha: acción · botones de correr y saltar' : '<kbd>WASD</kbd> o flechas caminar · <kbd>Mayús</kbd> correr · <kbd>Espacio</kbd> saltar · <kbd>E</kbd> hablar/usar · <kbd>F</kbd> prismáticos · <kbd>C</kbd> cuaderno · <kbd>M</kbd> mapa · ratón para la cámara · rueda: zoom'}</div>
+      <div class="keys">${this.input.touch ? 'Izquierda: caminar; hasta el borde, correr · Derecha: mirar · Botón grande de la derecha: acción · botón de saltar' : '<kbd>WASD</kbd> o flechas caminar · <kbd>Mayús</kbd> correr · <kbd>Espacio</kbd> saltar · <kbd>E</kbd> hablar/usar · <kbd>F</kbd> prismáticos · <kbd>C</kbd> cuaderno · <kbd>M</kbd> mapa · ratón para la cámara · rueda: zoom'}</div>
     </div>`, 'menu');
     $('#mQ', s).value = S.quality || (this.input.touch ? 'mid' : 'high'); $('#mT', s).value = String(S.timeSpeed ?? 1);
     const save = () => g.save();

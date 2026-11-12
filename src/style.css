@@ -323,11 +323,10 @@ summary { line-height: 1.3; }
 #toast svg, #toast img { flex: none; width: 26px; height: 26px; }
 #lane #whisper { justify-content: center; text-align: center; font-style: italic; font-weight: 700; color: #f4efff; background: rgba(10, 6, 30, .66); box-shadow: none; text-shadow: 0 0 10px rgba(150, 190, 255, .55), 0 1px 2px #000; }
 /* controles táctiles */
-#controls { position: absolute; right: calc(var(--sr) + var(--thumb)); bottom: calc(var(--sb) + var(--thumb)); display: none; grid-template-columns: auto auto; grid-template-rows: auto auto; gap: 8px 8px; align-items: end; justify-items: center; }
+#controls { position: absolute; right: calc(var(--sr) + var(--thumb)); bottom: calc(var(--sb) + var(--thumb)); display: none; grid-template-columns: auto; grid-template-rows: auto auto; gap: 8px 8px; align-items: end; justify-items: center; }
 .touch #controls { display: grid; }
-#cJump { grid-column: 2; grid-row: 1; }
-#cRun { grid-column: 1; grid-row: 2; }
-#cAct { grid-column: 2; grid-row: 2; }
+#cJump { grid-column: 1; grid-row: 1; }   /* (sin botón de correr: se corre empujando el joystick hasta el borde, input.js) */
+#cAct { grid-column: 1; grid-row: 2; }
 .cbtn { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 0; background: radial-gradient(circle at 50% 30%, #4e2794, #1d0b3c); border: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; box-shadow: 0 0 10px rgba(4, 1, 12, .28); transition: transform .1s, background .15s, box-shadow .15s, opacity .2s; -webkit-tap-highlight-color: transparent; }
 .cbtn :is(svg, .hico) { width: 40px; height: 40px; flex: none; overflow: visible; filter: drop-shadow(0 2px 0 rgba(0, 0, 0, .35)); }
 .cbtn b { font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 0 #1f1a26; white-space: nowrap; }
@@ -417,8 +416,8 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
 }
 /* teléfono en horizontal: todo un poco más compacto */
 @media (max-height: 520px) {
-  #controls { grid-template-columns: auto auto auto; grid-template-rows: auto; bottom: calc(var(--sb) + var(--thumb)); align-items: center; }
-  #cRun { grid-column: 1; grid-row: 1; } #cJump { grid-column: 2; grid-row: 1; } #cAct { grid-column: 3; grid-row: 1; }
+  #controls { grid-template-columns: auto auto; grid-template-rows: auto; bottom: calc(var(--sb) + var(--thumb)); align-items: center; }
+  #cJump { grid-column: 1; grid-row: 1; } #cAct { grid-column: 2; grid-row: 1; }
   #tl { max-width: calc(30vw / var(--z, 1)); }
   #quest b.qt { font-size: var(--fs-md); } #quest .ic { flex-basis: 36px; height: 36px; } #quest .ic svg, #quest .ic img { width: 26px; height: 26px; }
   #ribbons { padding-left: 48px; }

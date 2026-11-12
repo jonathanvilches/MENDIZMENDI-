@@ -1086,6 +1086,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   toque (el cuaderno es lo que más se usa para seguir las misiones). Arriba quedan la mochila (`mochila.js` la pone
   delante de la pausa), los prismáticos cuando los tienes y la pausa, que vuelve a ser la de antes. El mapa se abre
   también tocando el minimapa y el cuaderno tocando la misión; en el ordenador, con C y M.
+  Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
+  desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de
+  correr que se quedaba puesto; con el teclado sigue siendo Mayús y el mando del móvil conserva el suyo.
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo

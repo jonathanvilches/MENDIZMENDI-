@@ -184,7 +184,7 @@ export class PuebloCharla {
           else await S(['No pasa nada: los toros son muy rápidos. Habla conmigo cuando quieras intentarlo otra vez.']);
           return;
         }
-        if (M.step === 0 || (M.step === 1 && !this.race)) { await S([m.text, `Pasa por los ${M.need} aros antes de que se acabe el tiempo. ¡Mantén pulsado Mayús o el botón de correr!`]); this.startRace(M); }
+        if (M.step === 0 || (M.step === 1 && !this.race)) { await S([m.text, `Pasa por los ${M.need} aros antes de que se acabe el tiempo. ¡Corre empujando el joystick hasta el borde o con Mayús!`]); this.startRace(M); }
         else if (M.step === 2) { await S(['¡Qué rapidez! Lo has conseguido.']); await this.complete(M, { card: M.title, cardText: m.text }); }
         return;
       case 'observe': {

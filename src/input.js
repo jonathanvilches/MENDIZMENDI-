@@ -83,7 +83,10 @@ export class Input {
     const l = Math.hypot(x, y);
     if (l > 1) { x /= l; y /= l; }
     this.move.x = x; this.move.y = y;
-    this.run = this.enabled && (k.has('shift') || this.runToggle);
+    // (correr con el joystick: empujado hasta el borde, corre; para volver a andar hay que aflojarlo un poco, para que en el
+    // borde no alterne andar y correr. Antes había un botón de correr aparte)
+    if (this.stick.id !== null) { const m = Math.hypot(this.stick.x, this.stick.y); this.stickRun = m > (this.stickRun ? 0.82 : 0.94); } else this.stickRun = false;
+    this.run = this.enabled && (k.has('shift') || this.runToggle || this.stickRun);
   }
   consume(action) { const has = this.pressed.has(action); this.pressed.delete(action); return has; }
   endFrame() { this.pressed.clear(); this.look.dx = 0; this.look.dy = 0; this.zoom = 0; }

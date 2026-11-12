@@ -2221,7 +2221,7 @@ export const EU_OFICIOS = {
   'La nueva calidad se aplicará al cargar el próximo pueblo.': 'Kalitate berria hurrengo herria kargatzean aplikatuko da.',
   'Paso del tiempo': 'Denboraren joana',
   'Rápido': 'Azkarra',
-  'Izquierda: caminar · Derecha: mirar · Botón grande de la derecha: acción · botones de correr y saltar': 'Ezkerra: ibili · Eskuina: begiratu · Eskuineko botoi handia: ekintza · korrika eta salto egiteko botoiak',
+  'Izquierda: caminar; hasta el borde, correr · Derecha: mirar · Botón grande de la derecha: acción · botón de saltar': 'Ezkerra: ibili; ertzeraino, korrika · Eskuina: begiratu · Eskuineko botoi handia: ekintza · salto egiteko botoia',
   '¿Seguro? Pulsa otra vez para borrar': 'Ziur? Sakatu berriro ezabatzeko',
   'Arrastra para mirar · botón amarillo para anotar · botón de prismáticos para salir': 'Arrastatu begiratzeko · botoi horia idazteko · prismatikoen botoia irteteko',
   'Mueve el ratón para mirar · E para anotar · F para salir': 'Mugitu sagua begiratzeko · E idazteko · F irteteko',
