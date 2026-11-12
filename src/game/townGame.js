@@ -749,7 +749,7 @@ export class TownGame {
   updateHUD() {
     const M = this.missions[this.tracked];
     const t = this.objetivo();
-    this.beacon.set(t && !t.noArrow ? t : null, t?.destino ? '#ffd34d' : '#ff7ac8');   // (rosa a la misión, dorada a un destino: como la ruta)
+    this.beacon.set(t && !t.noArrow ? t : null, '#ffd34d');   // (amarilla, como estaba: el autor prefirió esta a la rosa)
     if (M) {
       let dist = null, angle = null;
       const tm = t?.destino ? this.target() : t;   // (con un destino marcado, el panel de la misión sigue con la suya)

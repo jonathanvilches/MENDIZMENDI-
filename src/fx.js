@@ -208,19 +208,6 @@ export class NightLights {
 }
 
 // ---------- Marcador de objetivo ----------
-// (un contorno ensanchado d hacia fuera: cada vértice sale por la bisectriz de sus dos lados, con la punta limitada)
-function ensancha(pts, d) {
-  const n = pts.length; let area = 0;
-  for (let i = 0; i < n; i++) { const [x0, y0] = pts[i], [x1, y1] = pts[(i + 1) % n]; area += x0 * y1 - x1 * y0; }
-  const sg = area > 0 ? 1 : -1;
-  return pts.map((p, i) => {
-    const a = pts[(i + n - 1) % n], b = pts[(i + 1) % n];
-    const nor = (u, v) => { const dx = v[0] - u[0], dy = v[1] - u[1], l = Math.hypot(dx, dy) || 1; return [sg * dy / l, -sg * dx / l]; };
-    const n1 = nor(a, p), n2 = nor(p, b); let mx = n1[0] + n2[0], my = n1[1] + n2[1]; const ml = Math.hypot(mx, my) || 1; mx /= ml; my /= ml;
-    const k = Math.min(3, 1 / Math.max(0.2, mx * n1[0] + my * n1[1]));
-    return [p[0] + mx * d * k, p[1] + my * d * k];
-  });
-}
 export class Beacon {
   constructor(scene) {
     // haz del objetivo: una columna fina y suave, más clara en el centro que en los bordes (sin las rayas que subían
@@ -235,24 +222,19 @@ export class Beacon {
     this.k = 0;
     this.beam = new THREE.Mesh(g, this.mat); this.beam.visible = false; this.beam.frustumCulled = false;
     scene.add(this.beam);
-    // flecha flotante, con la punta hacia abajo: siempre de cara a la cámara (antes giraba sobre sí misma y, de canto, se
-    // quedaba en una raya), con su color de verdad (toneMapped: false; con el tono de cine salía pálida, casi blanca) y un
-    // filo oscuro alrededor, para que se lea sobre una pared clara, la hierba o el cielo. Del color de la ruta y de la
-    // pastilla de la distancia: rosa a la misión, dorada a un destino marcado. Dos mallas planas de 7 vértices
-    const pts = [[0, 0], [0.5, 0.6], [0.2, 0.6], [0.2, 1.1], [-0.2, 1.1], [-0.2, 0.6], [-0.5, 0.6]].map(([x, y]) => [x, y - 0.55]);
-    const forma = (q) => { const f = new THREE.Shape(); q.forEach(([x, y], i) => i ? f.lineTo(x, y) : f.moveTo(x, y)); f.closePath(); return f; };
-    const fondo = new THREE.Mesh(new THREE.ShapeGeometry(forma(ensancha(pts, 0.075))), new THREE.MeshBasicMaterial({ color: '#2a0638', toneMapped: false }));
-    fondo.position.z = -0.01;
-    this.arrowMat = new THREE.MeshBasicMaterial({ color: '#ffd34d', toneMapped: false });
-    this.arrow = new THREE.Group(); this.arrow.add(fondo, new THREE.Mesh(new THREE.ShapeGeometry(forma(pts)), this.arrowMat));
+    // flecha flotante, amarilla y con volumen, que gira sobre sí misma (así le gusta al autor: se probó una plana, siempre
+    // de cara a la cámara, rosa y con un filo oscuro, y pidió volver a esta, noviembre de 2026)
+    const s = new THREE.Shape(); s.moveTo(0, 0); s.lineTo(0.5, 0.6); s.lineTo(0.2, 0.6); s.lineTo(0.2, 1.1); s.lineTo(-0.2, 1.1); s.lineTo(-0.2, 0.6); s.lineTo(-0.5, 0.6); s.closePath();
+    const ag = new THREE.ExtrudeGeometry(s, { depth: 0.15, bevelEnabled: false }); ag.translate(0, 0, -0.075);
+    this.arrow = new THREE.Mesh(ag, new THREE.MeshBasicMaterial({ color: '#ffd34d' }));
     this.arrow.visible = false; scene.add(this.arrow);
   }
   set(target, color = '#ffd34d') {
     this.target = target;
-    if (color !== this.color) { this.color = color; this.mat.uniforms.uColor.value.set(color); this.arrowMat.color.set(color); }
+    if (color !== this.color) { this.color = color; this.mat.uniforms.uColor.value.set(color); this.arrow.material.color.set(color); }
   }
   // hide: en las escenas (cinemáticas, diálogos, partidos) no se ve
-  update(elapsed, player, hide = false, dt = 1 / 60, camera = null) {
+  update(elapsed, player, hide = false, dt = 1 / 60) {
     const t = this.target;
     this.mat.uniforms.uTime.value = elapsed;
     // (off: durante un partido el haz del objetivo no se ve; era una columna de luz plana sobre el frontón)
@@ -264,13 +246,9 @@ export class Beacon {
     this.beam.visible = this.k > 0.01;
     this.beam.position.set(t.x, y, t.z);
     this.beam.scale.set(1 + d / 120, 1, 1 + d / 120);
-    // (de cerca se achica, para no tapar media pantalla como a 4 m, y al llegar se va; de lejos, hasta 25 m, crece un poco)
-    this.arrow.visible = d <= 25 && d > 1.8 && !t.noArrow;
-    if (this.arrow.visible) {
-      this.arrow.scale.setScalar(Math.min(1.15, Math.max(0.5, d / 9)));
-      this.arrow.position.set(t.x, y + (t.h ?? 2.6) + Math.sin(elapsed * 2.6) * 0.14, t.z);
-      if (camera) this.arrow.rotation.y = Math.atan2(camera.position.x - t.x, camera.position.z - t.z);
-    }
+    this.arrow.visible = d <= 25 && !t.noArrow;
+    this.arrow.position.set(t.x, y + (t.h ?? 2.6) + Math.sin(elapsed * 3) * 0.2, t.z);
+    this.arrow.rotation.y = elapsed * 2;
   }
 }
 

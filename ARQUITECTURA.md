@@ -1045,11 +1045,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (aviso «Has llegado») o quitarlo; sin destino, a lo que toca de la misión que sigues, en rosa. La ruta va por calles y
   caminos en el minimapa (se pide a la cola de caminos de los vecinos, `nav.requestPath`, otra si cambia el objetivo o te
   alejas 6 m, como mucho una por segundo) y en el mapa grande. Marcar o quitar el destino no cierra el mapa.
-  Sobre el objetivo, la flecha (`fx.js`, `Beacon`): dos mallas planas, la flecha y su filo oscuro (`ensancha`), siempre de
-  cara a la cámara (`update` recibe la cámara; antes giraba sobre sí misma y de canto se quedaba en una raya), con su color
-  de verdad (`toneMapped: false`; con el tono de cine salía pálida) y del color de la ruta: rosa a la misión, dorada al
-  destino, como el haz. Mide según lo lejos que estés (la mitad a 4 m, entera a 9 m; antes, a 4 m, tapaba media pantalla)
-  y al llegar, a 1,8 m, se va.
+  Sobre el objetivo, la flecha (`fx.js`, `Beacon`): amarilla, con volumen, girando sobre sí misma y subiendo y bajando,
+  hasta 25 m, como el haz. Se probó una plana, siempre de cara a la cámara, rosa a la misión y con un filo oscuro, y el
+  autor prefirió la de antes (noviembre de 2026).
   La ficha de una misión en el mapa, con su único botón, es de una sola fila: icono, nombre y la flecha en un botón
   redondo rosa (`infocard.css`, con `:has`).
 - **Tradiciones en el menú del juego** (`hub.js`, en «Más»; `didactico.js`, `s_tradiciones`; `ddgal.js`): la misma galería

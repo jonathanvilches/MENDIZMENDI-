@@ -566,7 +566,7 @@ export class Runtime {
     this.smoke.update(dt, VIENTO.fuerza, VIENTO.uDir.value.x, VIENTO.uDir.value.y);
     this.lights.update(this.sky.night, P);
     { const fl = this.sky.floodK(); lampFill(skyFill(this.charFill, this.sky.hemi, this.sky.sun, this.sky.night * (1 - fl)), (this.lights.lampK || 0) * (1 - fl)); }   // (en el frontón, la luz de los focos: la misma de día y de noche)
-    this.beacon.update(this.elapsed, P, g.mode !== 'play' || !!this.follow.cinematic || !!g.ui.dialogOpen, dt, this.camera);
+    this.beacon.update(this.elapsed, P, g.mode !== 'play' || !!this.follow.cinematic || !!g.ui.dialogOpen, dt);
     this.forestK = surfAt('forest', P.pos.x, P.pos.z);   // (monte adentro: más pájaros, el pito negro y el cuco; en los bosques, su música)
     this.sound.update(dt, P, this.follow.yaw, this.sky.night, iratiMask(P.pos.x, P.pos.z) > 0.5 || this.forestK > 0.5, this.sportQuiet, !!g.def?.bosque);   // (en los deportes, sin el río: sonaba como la lluvia)
     g.ui.setClock(this.sky.clock(), this.sky.night > 0.5);
