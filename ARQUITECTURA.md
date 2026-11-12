@@ -1830,6 +1830,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 ## Herramientas y pruebas (`tools/`)
 
+**Servidor MCP de Meshy para las sesiones en la nube** (`.mcp.json`, noviembre de 2026): `meshy-nube` arranca el servidor
+oficial de Meshy (`@meshy-ai/meshy-mcp-server`, fijado en 0.6.6) para que el asistente pueda generar y bajar modelos 3D.
+La clave que lleva es de relleno, no es secreta: la de verdad se guarda en los ajustes del entorno de la nube, en los
+secretos de red, para `api.meshy.ai` con la cabecera `Authorization: Bearer`, y el proxy la pone en cada petición. Sin
+ese secreto el proxy no deja llegar a `api.meshy.ai`. Nunca se escribe una clave de verdad en este archivo ni en ningún
+otro del repositorio. Se llama `meshy-nube` y no `meshy` para no tapar, en un ordenador con Claude Code, el servidor
+`meshy` que el autor tenga configurado allí con su propia clave.
+
 | Herramienta | Qué hace |
 |---|---|
 | `meshy-costuras.mjs` | Las texturas de los personajes de Meshy sin motas: lo de fuera de cada pieza, con el color de su borde; WebP con el color a resolución completa en los bordes, también en las versiones de 1024 px y ligera (solo la imagen) |
