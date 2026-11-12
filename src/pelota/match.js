@@ -1284,7 +1284,9 @@ export class PelotaMatch {
       }
     }
   }
-  diJugada(f, ms) { this.decir(f, ms, true, () => { this.jugadaT = this.t; }); }
+  // (el gancho no se pierde si el comentarista está hablando: espera a que acabe la frase, como mucho 5 s, voz.js; las
+  // demás frases del peloteo, sí, que llegarían tarde)
+  diJugada(f, ms) { this.decir(f, ms, !/^j-gancho-/.test(f.id), () => { this.jugadaT = this.t; }); }
   // (la pelota del golpe pendiente ha llegado al frontis, bien, o a la pared del rebote: se dice si el tanto sigue vivo)
   jugadaVa(tipo) {
     const J = this.jPend; if (!J) return;

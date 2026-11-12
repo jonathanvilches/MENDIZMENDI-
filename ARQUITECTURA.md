@@ -534,7 +534,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   1,5 s, cuando el aplauso ya se apaga: antes llegaba a los 0,3 s y se mezclaba con la grada aplaudiendo.
   Para que no haya silencios: durante el peloteo, frases cortas del golpe que se acaba de dar («¡Buena dejada!», «¡Buen
   gancho!», «Esa puede ir a rebote», «¡Qué bien defiende!»; `enJuego`, como mucho una cada 4,5 s y solo si no está
-  hablando: las que llegan tarde ya no valen); entre tanto y tanto, en uno de cada tres sin la jugada, relleno según cómo
+  hablando: las que llegan tarde ya no valen; el gancho, siempre que haya uno, con 2,5 s desde la anterior y, si está hablando,
+  en cuanto acaba: antes salía en cuatro de cada diez y el autor no lo oía nunca, noviembre de 2026); entre tanto y tanto, en uno de cada tres sin la jugada, relleno según cómo
   va el partido (`relleno`: la mano del que encadena tantos, lo bien que sale la pelota del frontis, el material de la
   pelota en juego, viva o pesada, `material.js`, la grada, el marcador igualado, las piernas al final); y si el saque
   se hace esperar 5 s sin que nadie hable, relleno. Si en el peloteo ya se comentó la jugada, al cantar el tanto no se

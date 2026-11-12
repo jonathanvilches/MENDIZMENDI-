@@ -210,7 +210,10 @@ export class Comentarios {
    *  peloteo; prof, lo hondo que está quien golpea, en metros desde el frontis). No en cada golpe: como mucho una cada
    *  pocos segundos (t, el reloj del partido) y no siempre */
   enJuego(e, n, t, prof = 0) {
-    if (!this.voz || !e || n < 2 || t - (this.jT ?? -99) < 4.5) return null;
+    // (el gancho, siempre que haya uno y no acabe de hablar: es raro y vistoso, y el autor echaba en falta oírlo. Antes iba
+    // como los demás, en cuatro de cada diez y desde el segundo golpe del peloteo, y casi nunca se oía; noviembre de 2026)
+    const gancho = e?.shot === 'gancho';
+    if (!this.voz || !e || (n < 2 && !gancho) || t - (this.jT ?? -99) < (gancho ? 2.5 : 4.5)) return null;
     let k = null;
     if (e.shot === 'dejada' && e.q > 0.45) k = 'j-dejada';
     else if (e.shot === 'gancho') k = 'j-gancho';
@@ -220,7 +223,7 @@ export class Comentarios {
     else if (e.volea && e.q > 0.4) k = 'j-aire';
     else if (prof > 25 && n > 3) k = 'j-defensa';
     else if (n === 8) k = 'j-peloteo';
-    if (!k || Math.random() > (k === 'j-peloteo' ? 0.8 : 0.42)) return null;
+    if (!k || (k !== 'j-gancho' && Math.random() > (k === 'j-peloteo' ? 0.8 : 0.42))) return null;
     this.jT = t; return this.frase(k);
   }
   /** Un diálogo entre los dos (solo con «Dos comentaristas»): los turnos como frases con la voz fijada (estricta: sin la
