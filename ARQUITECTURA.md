@@ -1080,11 +1080,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`.round`): el icono es el 70 % de dentro del botón en todos los tamaños (en el de 44 px, 28; antes 26 fijos), sin el
   brillo de arriba, y el anillo de energía de la mochila va dentro de su borde (antes salía 4 px y la mochila parecía
   más grande que los demás).
-  El cuaderno y el mapa ya no tienen botón ahí: están en la pausa, juntos en una fila (`.btns .par`, «Cuaderno» y «Mapa
-  del pueblo», solo con el texto, sin icono: así caben en una línea también de pie); el mapa se abre también tocando el minimapa y el cuaderno tocando la misión, y en el ordenador con C y M.
-  Arriba quedan la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa. La
-  pausa va en dos columnas en el móvil tumbado y también en una pantalla de ordenador baja (hasta 760 de alto), para que
-  con la fila nueva no haya que desplazar.
+  El cuaderno y el mapa van como pestañas pegadas al borde derecho de la pantalla, debajo del minimapa (`#pestanas`,
+  `.pest`, en la rejilla de `#topright`, con un margen negativo hasta el borde y el hueco de la muesca por dentro): asoman
+  lo justo para el icono y salen un poco al pasar por encima o tocarlas. Ocupan menos que un botón redondo y siguen a un
+  toque (el cuaderno es lo que más se usa para seguir las misiones). Arriba quedan la mochila (`mochila.js` la pone
+  delante de la pausa), los prismáticos cuando los tienes y la pausa, que vuelve a ser la de antes. El mapa se abre
+  también tocando el minimapa y el cuaderno tocando la misión; en el ordenador, con C y M.
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo
