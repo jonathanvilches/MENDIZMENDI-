@@ -24,7 +24,6 @@ import { profile } from './profile.js';
 import { LEVELS, esSede } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
 import { iconSVG } from '../ui/icons.js';
-import { laminaUrl } from '../ui/laminas.js';
 import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
@@ -449,7 +448,7 @@ const CSS = `
 .cp-card:hover,.cp-card:focus-visible{border-color:color-mix(in srgb,var(--ac) 55%,transparent);transform:translateY(-2px)}
 .cp-card:active{transform:scale(.98)}
 .cp-card:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.cp-mano{--ac:#ff4fd8;--fx:16%}.cp-parejas{--ac:#9b7bff;--fx:40%;--fz:1.12}.cp-cuatro{--ac:#ff8a3d;--fx:66%;--fz:1.2}.cp-evento{--ac:#ffc94a;--fx:90%;--fz:1.1}.cp-libre{--ac:#3ec7e0;--fx:28%;--fz:1.06}.cp-retos{--ac:#ffd166;--fx:6%}.cp-casa{--ac:#5fdca0;--fx:52%;--fz:1.16}.cp-col{--ac:#c4a8ff;--fx:78%;--fz:1.08}
+.cp-mano{--ac:#ff4fd8;--fx:38%}.cp-parejas{--ac:#9b7bff;--fx:34%}.cp-cuatro{--ac:#ff8a3d;--fx:36%}.cp-evento{--ac:#ffc94a;--fx:62%}.cp-libre{--ac:#3ec7e0;--fx:40%}.cp-retos{--ac:#ffd166;--fx:30%}.cp-casa{--ac:#5fdca0;--fx:46%}.cp-col{--ac:#c4a8ff;--fx:40%}
 /* (arriba, la foto: el frontón pintado del juego, cada campeonato con su encuadre, y delante el rival de pie en la cancha) */
 .cp-foto{position:relative;flex:1 1 0;min-height:0;display:block;overflow:hidden;isolation:isolate;background:#2a1650}
 .cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,none) var(--fx,30%) 50%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:var(--fx,30%) 72%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
@@ -847,8 +846,26 @@ const RETO_ART = {
   diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
   dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
 };
-// la foto de las tarjetas: el frontón pintado del juego (la misma lámina para todas, así se baja y se guarda una vez)
-const conFoto = (row) => { const u = row && laminaUrl('dep-fronton'); if (u) row.style.setProperty('--foto', `url("${u}")`); };
+// la foto de las tarjetas: un frontón distinto para cada una, pintado con Higgsfield (src/assets/frontones-cartas, 800 px,
+// unos 50 KB cada uno): el manomanista en un frontón cubierto con gradas de madera, las parejas en uno de pueblo del Baztan,
+// el 4½ en uno moderno con butacas rojas y azules, los acontecimientos en la gran final con guirnaldas y la txapela, el
+// partido libre junto a una iglesia del Pirineo, los retos en uno de entrenamiento al anochecer con dianas en la pared, la
+// pelota en casa en el patio de un caserío y la colección en la plaza porticada de una villa medieval. Hasta el 12 de
+// noviembre de 2026 todas llevaban la misma lámina del frontón del juego, que al autor no le acababa de gustar
+const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/frontones-cartas/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, u]) => [k.match(/([\w-]+)\.webp$/)[1], u]));
+// (los campeonatos que se repiten de tipo, los otros manomanistas y 4½, toman uno de los de más, por orden, para que en la
+// fila no se repita ninguno: un frontón de la Ribera, uno junto a un puente medieval, uno nevado del Pirineo, uno cubierto
+// con galerías y uno en un claro del hayedo)
+const MAS = ['ribera', 'puente', 'nieve', 'galerias', 'hayedo'];
+const conFoto = (row, todas = null) => {
+  const usadas = new Set(); let e = 0;
+  for (const c of row?.querySelectorAll('.cp-card') || []) {
+    let k = todas || c.className.match(/\bcp-(mano|parejas|cuatro|evento|libre|retos|casa|col)\b/)?.[1];
+    if (!todas && usadas.has(k)) { while (e < MAS.length && !FONDOS[MAS[e]]) e++; if (e < MAS.length) k = MAS[e++]; }
+    usadas.add(k); const u = k && FONDOS[k];
+    if (u) c.style.setProperty('--foto', `url("${u}")`);
+  }
+};
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
 /** Las estrellas que llevas en los tres retos (de 0 a 9) */
@@ -875,7 +892,7 @@ export function retosMenu() {
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${eu ? 'Frontoian' : 'En el frontón'}</small><h2>${R.titulo}</h2></div><span class="cp-total cp-total-est"><b>${tot}</b><small>/9 ${eu ? 'izar' : 'estrellas'}</small></span></div>
       <div class="tq-carr"><div class="cp-row cp-tres">${Object.keys(RETOS).map(tile).join('')}</div></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.firstElementChild.classList.add('tq-menu-card'); conFoto(r.querySelector('.cp-row'));
+    r.firstElementChild.classList.add('tq-menu-card'); conFoto(r.querySelector('.cp-row'), 'retos');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-reto],[data-a]'); if (!b) return; lgFuera(r); res(b.dataset.reto || null); });
   });
 }
