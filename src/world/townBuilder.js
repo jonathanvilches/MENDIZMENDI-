@@ -10,6 +10,7 @@ import { polyLen, polyAt, minGround, slopeBase } from './plot.js';
 import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { realChurchRy, realBridges, realRiverWalls, realHouses, fachadaLejana } from './townReal.js';
+import { presas } from './presas.js';
 
 export const TOWN = { houses: [], balcones: [], shields: [], armsSpot: null, benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
@@ -82,6 +83,8 @@ export function buildTown(scene, mats, def) {
     bridge(B, b, riverInfo);
   }
   if (real) { realBridges(B, real); realRiverWalls(B, real, fam); }
+  // la presa del río y sus peñas (la de Burgui, la que saltan las almadías: presas.js)
+  if (real) try { presas(B, group, real, def.id); } catch (e) { console.warn('presa', e); }
   // muros de encauzamiento del río en el casco urbano
   if (!real && def.river && Math.abs(def.river.x) < 40) {
     const R = MOD.R || 80;

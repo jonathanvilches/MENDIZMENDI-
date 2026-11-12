@@ -1863,7 +1863,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   río desde su fuente, da la vuelta a los que van al revés y rehace el nivel con lo más bajo del cauce (a 12 m del eje)
   visto hasta ahí, bajando además un 0,2 %, sin quedar nunca por encima del suelo. En Burgui el Esca baja ahora de −22 a
   −24,4 m y en el casco queda 2,5 m más hondo; el puente medieval sale más alto sobre el agua, con su arco grande de 15 m.
-  Si se vuelve a sacar Burgui, hay que pasarlo otra vez (`python3 -I tools/corriente-rio.py burgui-burgi Ezka 498,-278`).
+  Si se vuelve a sacar Burgui, hay que pasarlo otra vez (`python3 -I tools/corriente-rio.py burgui-burgi Ezka 498,-278 --presa 51.3,149.8,1.1`).
+- **La presa del Esca en Burgui** (`world/presas.js`, noviembre de 2026): 70 m antes del puente medieval, la presa que
+  saltan las almadías. Un azud de piedra algo oblicuo a la corriente, como los de los molinos: paramento casi vertical
+  aguas arriba, coronación de sillería y glacis hasta el agua de abajo, con el portillo, el paso abierto por donde bajaba
+  la almadía con el agua, entre dos cajeros de sillar y con su rampa de losas. El agua baja 1,1 m en la presa
+  (`tools/corriente-rio.py ... --presa 51.3,149.8,1.1`, con dos puntos más a su lado para que el escalón sea corto) y
+  espumea por el glacis y, más blanca, por el portillo (láminas con rayas que corren, que se deshacen río abajo). Y nueve
+  peñas que asoman en el Esca, que la almadía tiene que esquivar. `cadena(real, rio, fuente)` da el río en el sentido de la
+  corriente con su nivel y su distancia (`at(s)`, `proyecta(x, z)`); todo queda en `real.presas` para la bajada. Las
+  pilas del puente famoso y su ojo grande quedan en `P.famoso` (`pilas`, `ojo`).
 - **Puentes famosos como los de verdad** (`world/puentesFamosos.js` y su plan, `world/puentesFamososPlan.js`, noviembre
   de 2026): el de los Peregrinos de Puente la Reina y el medieval de Burgui se levantan con su forma y no con la de
   cualquier puente. Cada uno tiene su ficha (`FAMOSOS`): cuántos arcos, la luz del grande, el ancho, el grueso de las
@@ -1951,7 +1960,7 @@ otro del repositorio. Se llama `meshy-nube` y no `meshy` para no tapar, en un or
 | `campeonato-pueblo.mjs` | El pelotari junto al frontón de un pueblo invita al campeonato de la comarca: el diálogo con sus cuatro opciones, el campeonato elegido con su cuadro (solo el frontón) y, al salir, la vuelta a la puerta del frontón del pueblo. |
 | `auditoria-entradas.mjs` | Entrar en cada pueblo y bosque como en el iPhone, con la app recién abierta y el botón de jugar del mapa: la carga con su foto, que la foto se descarga, que no hay vuelo desde el aire y que al acabar la carga se juega sin errores. Deja capturas de la carga y del juego de cada uno (`OUT=carpeta`, contra la web compilada en 8099). |
 | `plazas.mjs` | Las plazas de todos los pueblos, con el día de mercado puesto (`?market=1`): que la plaza no tenga trozos empinados ni agua dentro, que el pie de la fuente sea llano (25 cm como mucho) y que los puestos, quien vende, la tienda y quien da las misiones estén en suelo llano y seco. Mide el terreno, sin escalinatas ni tarimas (el kiosco de Pamplona contaba como cuesta). Una línea por pueblo, una captura desde arriba de cada plaza y la lista de los que fallan. `node tools/plazas.mjs <carpeta> [pueblos]`; con `BASE=http://127.0.0.1:8099/`, sobre la web compilada. Nació con la plaza de Roncal al borde del Esca (noviembre de 2026) |
-| `corriente-rio.py` | Da la vuelta a los tramos de un río que quedaron río arriba y rehace su nivel en el sentido de la corriente (`python3 -I tools/corriente-rio.py <pueblo> <río> <x,z de la fuente>`) |
+| `corriente-rio.py` | Da la vuelta a los tramos de un río que quedaron río arriba y rehace su nivel en el sentido de la corriente; con `--presa x,z,salto`, el escalón de una presa (`python3 -I tools/corriente-rio.py <pueblo> <río> <x,z de la fuente> [--presa x,z,salto]`) |
 | `puentes-famosos.mjs` | Fotos de un puente famoso (`world/puentesFamosos.js`): de lado desde aguas abajo y aguas arriba, en tres cuartos, de cerca bajo el arco grande y andando por el tablero, con los arcos que han salido |
 | `puentes-casas.mjs` | Los puentes y las casas de todos los pueblos con trazado de verdad: puentes con las dos puntas en tierra, agua debajo, sin cuestas imposibles ni escalón al subir, con sitio sobre el agua, sin casas encima ni una casa justo a la salida; calles que cruzan el agua sin puente; casas en el agua, atravesadas por una calle, metidas en otra, sobre un puente, en la plaza, torcidas respecto a su calle, en mucha cuesta o lejos de toda calle. Una línea por pueblo y capturas de lo peor (`BASE=http://127.0.0.1:8099/` para la web compilada) |
 | `carga-textos.mjs` | La pantalla de carga con la descripción de cada pueblo, cada consejo y cada «¿Sabías que…?» de la pelota y la pasaka, en 667×375, 844×390, 932×430 y 1280×720: que nada se corte con puntos suspensivos, se monte o se salga de la pantalla (`LNG=eu`, en euskera). |

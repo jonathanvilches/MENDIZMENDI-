@@ -214,7 +214,9 @@ export function realBridges(B, real) {
     }
     // los arcos: donde queda hueco bajo el tablero (agua, vega o vaguada), repartidos en ojos de unos 13 m con sus pilas
     const yBot = Math.min(...G) - 1.6, arcos = [];
-    if (plan) { levantaFamoso(B, FAM, plan, { eje, deck, L, Wd, off, prisma, rios: real.rios, terrainHeight, riverInfo, yBot }); P.famoso = { titulo: FAM.titulo, arcos: plan.arcos.length, luces: plan.arcos.map(a => +a.sp.toFixed(1)) }; continue; }
+    if (plan) { levantaFamoso(B, FAM, plan, { eje, deck, L, Wd, off, prisma, rios: real.rios, terrainHeight, riverInfo, yBot }); P.famoso = { titulo: FAM.titulo, arcos: plan.arcos.length, luces: plan.arcos.map(a => +a.sp.toFixed(1)),
+      // (las pilas y el ojo grande, para la almadía, que pasa por debajo: game/almadia.js)
+      pilas: plan.pilas.map(p => { const e = eje(p.s); return { x: e.x, z: e.z, r: p.p / 2 + 0.25 }; }), ojo: (() => { const g = plan.arcos.find(a => a.grande), e = eje(g.c); return { x: e.x, z: e.z, luz: g.sp, clave: g.ys + g.sp / 2 }; })() }; continue; }
     for (let k = 0; k < N;) {
       if (Dk[k] - 0.6 - G[k] <= 1.5) { k++; continue; }
       let e = k; while (e + 1 < N && (Dk[e + 1] - 0.6 - G[e + 1] > 1.5 || (e + 2 < N && Dk[e + 2] - 0.6 - G[e + 2] > 1.5))) e++;
