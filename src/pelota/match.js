@@ -33,6 +33,10 @@ function golpeDe(P, x, y, z) {
   const yaw = P.yaw ?? Math.PI, lat = (x - P.x) * Math.cos(yaw) - (z - P.z) * Math.sin(yaw);
   return (y > 1.35 ? 'High' : y < 0.42 ? 'Low' : 'Hit') + (lat > 0.15 ? 'L' : '');
 }
+// (estirarse hacia la pelota en el golpe, en metros y segundos: se queda a «cerca» de ella, como mucho «tope» más allá de su
+// sitio; empieza con la pelota a «empieza» metros y está del todo a «llega»; tras el golpe sigue «queda» y vuelve en «vuelve»)
+const ESTIRA = { cerca: 0.45, tope: 0.9, empieza: 2.4, llega: 1.1, queda: 0.08, vuelve: 0.4 };
+const suave = (u) => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
 // (pasos laterales: se mueve de lado sin dejar de mirar al frontis; 1 hacia su izquierda, -1 hacia su derecha, 0 si no)
 function lateral(P) {
   const sp = P.speed || 0; if (sp < 0.4 || sp > 3.0) return 0;
@@ -1332,7 +1336,7 @@ export class PelotaMatch {
       if (this.game.rally?.serve && this.game.rally.hits === 1) g = 'Low';   // (el saque, de sotamano y con la derecha: de abajo arriba)
       (this.golpeDe ||= {})[who] = g; }
     // (dónde se golpea la pelota, en el mundo: la mano del pelotari va justo ahí; glbChar.js, armSwing)
-    if (e && Number.isFinite(e.x)) (this.golpeEn ||= {})[who] = { w: this.court.group.localToWorld(new this.T.Vector3(e.x, e.y, e.z)), t: this.t };
+    if (e && Number.isFinite(e.x)) (this.golpeEn ||= {})[who] = { w: this.court.group.localToWorld(new this.T.Vector3(e.x, e.y, e.z)), l: { x: e.x, z: e.z }, t: this.t };
     if (who === 'you' && this.camGolpe && this.t - this.camGolpe.t < 0.8) this.golpeDe.you = this.camGolpe.golpe; }   // (con la cámara, el golpe que das tú: tu mano y tu altura)
 
   // ------------------------------------------------------------ dibujo
@@ -1440,6 +1444,24 @@ export class PelotaMatch {
       } else S.vel = 0;
       (g.lejos ||= {})[who] = Math.hypot(S.ox, S.oz) > 0.5;   // (aún volviendo: el saque espera, game.js)
       S.x = px; S.z = pz;
+      // (la pelota, al alcance de la mano: el que va a golpear se estira hacia ella en sus últimas décimas, lo justo para que
+      // su mano llegue, y vuelve a su sitio después del golpe. Solo en la imagen: el juego sigue con su sitio. Medido en
+      // partidos: golpeaban con la pelota a 0,6 o 1,2 m del hombro y el brazo mide medio metro, así que la mano se quedaba
+      // a 20 o 70 cm de la pelota y parecía que la pelota la atravesaba o salía sola; noviembre de 2026)
+      { const Lg = (this.estira ||= {})[who] ||= { x: 0, z: 0 }, R = g.rally, ce = this.golpeEn?.[who]; let tx = 0, tz = 0;
+        const hacia = (bx, bz, w) => { const dx = bx - P.x, dz = bz - P.z, d = Math.hypot(dx, dz); if (d <= ESTIRA.cerca || w <= 0) return; const k = Math.min(ESTIRA.tope, d - ESTIRA.cerca) / d * w; tx = dx * k; tz = dz * k; };
+        if (!this.replay && g.phase === 'rally' && R && P && Number.isFinite(P.x)) {
+          const tras = ce?.l ? this.t - ce.t : 9;
+          if (tras < ESTIRA.vuelve) hacia(ce.l.x, ce.l.z, tras < ESTIRA.queda ? 1 : 1 - suave((tras - ESTIRA.queda) / (ESTIRA.vuelve - ESTIRA.queda)));
+          else if (g.side(who) === R.turn) {
+            const b = g.ball.p, v = g.ball.v || { x: 0, z: 0 }, dB = (i) => Math.hypot(b.x - g.players[i].x, b.z - g.players[i].z);
+            const elMio = g.ids.filter(i => g.side(i) === R.turn).every(i => i === who || dB(i) >= dB(who));
+            const dx = b.x - P.x, dz = b.z - P.z, d = Math.hypot(dx, dz), viene = v.x * -dx + v.z * -dz > 0 || d < 1.2;
+            if (elMio && viene) hacia(b.x, b.z, Math.max(0, Math.min(1, (ESTIRA.empieza - Math.hypot(d, b.y - 1)) / (ESTIRA.empieza - ESTIRA.llega))));
+          }
+        }
+        const kL = 1 - Math.exp(-30 * dt); Lg.x += (tx - Lg.x) * kL; Lg.z += (tz - Lg.z) * kL;
+        px += Lg.x; pz += Lg.z; }
       this.v3.set(px, 0, pz); grp.localToWorld(this.v3);
       side.obj.position.copy(this.v3);
       // mira al frontis salvo cuando corre hacia atrás o hacia un lado

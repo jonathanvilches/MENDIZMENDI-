@@ -443,6 +443,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ella; con los dedos rectos, como antes, la palma al suelo en reposo. Los pelotaris de Meshy están en reposo con los brazos
   abajo y la palma hacia delante: el juego la daba al revés y la pelota del saque iba en el dorso, asomando por el canto y
   metiéndose entre los dedos, y en el golpe la mano llegaba con el dorso (noviembre de 2026).
+  Y la pelota, al alcance de la mano (`match.js`, `ESTIRA`): el que va a golpear se estira hacia ella en sus últimas
+  décimas (desde 2,4 m de la pelota; se queda a 0,45 m de ella, como mucho 0,9 m más allá de su sitio) y vuelve en 0,4 s
+  tras el golpe, solo en la imagen. Medido en partidos: golpeaban con la pelota a 0,6 o 1,2 m del hombro y el brazo mide
+  medio metro; la palma quedaba a 21-95 cm del centro de la pelota y ahora a 21-34 cm, con la palma hacia ella en 27 de 35
+  golpes (medido con el piloto automático en los dos lados).
 - **Más campeonatos, inventados** (`game/torneo.js`, `KINDS`, `EXTRA`, `reglaDe`; `game/townDeportes.js`): además del
   Manomanista, el de Parejas y el del Cuatro y Medio, cinco más en el menú de pelota, cada uno con su txapela:
   - el Torneo de Fiestas (mano a mano, ocho, corto);
