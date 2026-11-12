@@ -636,6 +636,9 @@ export class UI {
     const en = (a, r) => [r * Math.sin(a), -r * Math.cos(a)];
     const cerca = (a, b, w) => Math.abs(((a - b + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI) < w;
     const at = target ? rumbo(target.x, target.z) : null, W = 0.3;   // (W: lo que ocupa una letra o una marca en el anillo)
+    // (lo que ocupa cada cosa en el anillo, medido: entre una letra, un icono y la punta del objetivo quedan siempre 7 px
+    // de pantalla; antes se apartaban un ángulo fijo y en el minimapa pequeño el icono casi tocaba la letra)
+    const hueco = 7 * k, ang = (l) => l / Rm, rIc = band * 0.3, rvIc = rIc + 2.5, medT = band * 0.42 * 0.85;
     // rayas: largas en los intermedios (NE, SE…), cortas entre medias
     g.strokeStyle = 'rgba(230, 220, 255, .55)'; g.lineCap = 'round';
     for (let i = 0; i < 16; i++) {
@@ -648,16 +651,17 @@ export class UI {
     const NOM = document.documentElement.lang === 'eu' ? ['I', 'E', 'H', 'M'] : ['N', 'E', 'S', 'O'], letras = [];
     g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = `900 ${Math.round(11 * k)}px 'MZ Texto', Nunito, sans-serif`;
     for (let i = 0; i < 4; i++) {
-      const a = camYaw + i * Math.PI / 2; if (at != null && cerca(a, at, W)) continue;
-      const [x, y] = en(a, Rm); letras.push(a);
+      const a = camYaw + i * Math.PI / 2, m = Math.max(g.measureText(NOM[i]).width / 2, 4.5 * k);
+      if (at != null && cerca(a, at, ang(m + medT + hueco))) continue;
+      const [x, y] = en(a, Rm); letras.push({ a, m });
       g.fillStyle = i === 0 ? '#ff7ac8' : '#ffffff'; g.fillText(NOM[i], x, y + 0.5 * k);
     }
     // las misiones de fuera del mapa, hacia donde están (sin montarse con las letras, el objetivo ni entre ellas)
     const puestos = [];
     for (const m of fuera) {
       const a = rumbo(m.x, m.z);
-      if (letras.some(b => cerca(a, b, W)) || (at != null && cerca(a, at, W)) || puestos.some(b => cerca(a, b, W))) continue;
-      puestos.push(a); const [x, y] = en(a, Rm); this.drawIcon(g, m.icon, x, y, band * 0.36, m.color);
+      if (letras.some(b => cerca(a, b.a, ang(b.m + rvIc + hueco))) || (at != null && cerca(a, at, ang(medT + rvIc + hueco))) || puestos.some(b => cerca(a, b, ang(2 * rvIc + hueco * 0.6)))) continue;
+      puestos.push(a); const [x, y] = en(a, Rm); this.drawIcon(g, m.icon, x, y, rIc, m.color);
     }
     // el objetivo: una punta rosa en el anillo que señala hacia fuera, hacia él
     if (at != null) {
