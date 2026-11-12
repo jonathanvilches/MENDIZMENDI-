@@ -175,6 +175,8 @@ export function createRealTownLevel(def, D) {
       m = Math.max(m, 1 - smoothstep(-0.6, 0.8, polyDist(x, z, p.pts)));
     }
     if (!PL_DENTRO) m = Math.max(m, 1 - smoothstep(PLR - 2, PLR + 1, Math.hypot(x - PL.x, z - PL.z)));
+    // (el empedrado acaba antes del muro del río: en Roncal la plaza de los datos llega hasta el agua)
+    if (m > 0) m *= smoothstep(0.6, 2.0, riverInfo(x, z).edge);
     return m;
   }
 
