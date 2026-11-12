@@ -14,8 +14,21 @@ import { crowdProps } from './crowdProps.js';
 const baked = new Map();   // conjunto → promesa de [figura][pose] geometrías
 // con un poco de su propio color como luz propia (como los personajes de Meshy): a contraluz no se quedan oscuros y
 // casan con las láminas, que no reciben luz
+// (la misma que los pelotaris, glbChar.js: con 0,38 la piel del sol salía casi blanca y, de lejos, las caras se veían grises;
+// lo dijo el autor, noviembre de 2026)
+const LUZ_PROPIA = 0.28;
+// (la piel del público, algo más tostada y menos blanca: su textura es muy clara y, con el sol y en la pantalla pequeña del
+// móvil, la cara de los de las primeras filas se quedaba casi blanca y se veía gris, sin ojos ni boca; lo dijo el autor,
+// noviembre de 2026. Solo los tonos de piel: rosados o tostados claros, ni el blanco de la ropa ni el pelo ni los colores)
+const PIEL = `
+  { vec3 c = diffuseColor.rgb; float mx = max(c.r, max(c.g, c.b)), mn = min(c.r, min(c.g, c.b)), sat = (mx - mn) / max(mx, 1e-3);
+    float piel = step(c.b, c.g) * step(c.g, c.r) * smoothstep(0.22, 0.42, mx) * smoothstep(0.06, 0.16, sat) * (1.0 - smoothstep(0.44, 0.62, sat)) * 0.6;
+    diffuseColor.rgb = mix(c, c * vec3(0.94, 0.80, 0.70), piel);
+    totalEmissiveRadiance = mix(totalEmissiveRadiance, totalEmissiveRadiance * vec3(0.94, 0.80, 0.70), piel); }
+#include <lights_physical_fragment>`;
+const conPiel = (m) => { const prev = m.onBeforeCompile; m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <lights_physical_fragment>', PIEL); }; return m; };
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 });
-MAT.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vColor.rgb * 0.38;'); };
+MAT.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vColor.rgb * ' + LUZ_PROPIA.toFixed(2) + ';'); };
 MAT.customProgramCacheKey = () => 'crowd3d-fill';
 
 // píxeles de una textura (de la imagen o del lienzo recoloreado), para leer el color bajo cada vértice
@@ -115,7 +128,7 @@ const mapDe = (o) => [].concat(o.material)[0]?.map || null;
 const texMats = new Map();
 function texMat(map) {
   if (!map) return MAT;
-  if (!texMats.has(map)) { const m = new THREE.MeshStandardMaterial({ map, roughness: 0.82, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: 0.38 }); sharpMap(m); texMats.set(map, m); }
+  if (!texMats.has(map)) { const m = conPiel(new THREE.MeshStandardMaterial({ map, roughness: 0.82, emissive: 0xffffff, emissiveMap: map, emissiveIntensity: LUZ_PROPIA })); m.customProgramCacheKey = () => 'crowd3d-piel'; sharpMap(m); texMats.set(map, m); }
   return texMats.get(map);
 }
 const shown = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
@@ -210,7 +223,7 @@ function retratos(G, key, ch) {
 // el material del retrato: el de los de cerca (su textura, su luz propia, la luz del sitio), en un rectángulo que gira para
 // mirar a la cámara, con el retrato del ángulo desde el que se ve al espectador. Uno por figura y pose (la fila)
 function retratoMat(A, fila) {
-  const m = new THREE.MeshStandardMaterial({ map: A.tex, roughness: 0.82, emissive: 0xffffff, emissiveMap: A.tex, emissiveIntensity: 0.38, alphaTest: 0.4, side: THREE.DoubleSide });
+  const m = new THREE.MeshStandardMaterial({ map: A.tex, roughness: 0.82, emissive: 0xffffff, emissiveMap: A.tex, emissiveIntensity: LUZ_PROPIA, alphaTest: 0.4, side: THREE.DoubleSide });
   m.onBeforeCompile = (sh) => {
     sh.uniforms.uFila = { value: fila }; sh.uniforms.uFilas = { value: A.filas };
     sh.vertexShader = 'uniform float uFila, uFilas;\n' + sh.vertexShader
@@ -232,10 +245,12 @@ function retratoMat(A, fila) {
       .replace('#include <defaultnormal_vertex>', 'vec3 transformedNormal = normalize(mat3(viewMatrix) * bbD);')
       .replace('#include <project_vertex>', 'vec4 mvPosition = viewMatrix * vec4(bbW, 1.0);\n  gl_Position = projectionMatrix * mvPosition;')
       .replace('#include <worldpos_vertex>', 'vec4 worldPosition = vec4(bbW, 1.0);');
-    // (los bordes del retrato se mezclan con el fondo transparente al alejarse: se recupera su color)
+    // (los bordes del retrato se mezclan con el fondo transparente al alejarse: se recupera su color. Y se lee con algo más de
+    // detalle del que tocaría, -0,7: de lejos los ojos y la boca se fundían con la piel y la cara salía como una mancha)
     sh.fragmentShader = sh.fragmentShader
-      .replace('#include <map_fragment>', '#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D(map, vMapUv); sampledDiffuseColor.rgb /= max(sampledDiffuseColor.a, 0.004); diffuseColor *= sampledDiffuseColor;\n#endif')
-      .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n  vec4 emissiveColor = texture2D(emissiveMap, vEmissiveMapUv); totalEmissiveRadiance *= emissiveColor.rgb / max(emissiveColor.a, 0.004);\n#endif');
+      .replace('#include <map_fragment>', '#ifdef USE_MAP\n  vec4 sampledDiffuseColor = texture2D(map, vMapUv, -0.7); sampledDiffuseColor.rgb /= max(sampledDiffuseColor.a, 0.004); diffuseColor *= sampledDiffuseColor;\n#endif')
+      .replace('#include <emissivemap_fragment>', '#ifdef USE_EMISSIVEMAP\n  vec4 emissiveColor = texture2D(emissiveMap, vEmissiveMapUv, -0.7); totalEmissiveRadiance *= emissiveColor.rgb / max(emissiveColor.a, 0.004);\n#endif')
+      .replace('#include <lights_physical_fragment>', PIEL);
   };
   m.customProgramCacheKey = () => 'crowd3d-retrato';
   return m;
