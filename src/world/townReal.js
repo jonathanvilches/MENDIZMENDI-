@@ -59,6 +59,28 @@ export function realBridges(B, real) {
   for (const P of real.puentes) {
     if (!P.hecho) continue;
     const pts = P.pts; if (pts.length < 2) continue;
+    // (si con el terreno de verdad la orilla aún sube más allá de una punta, hasta 3 m más: src/levels/ordenar.js la alarga
+    // con una cuenta sin el relieve fino ni la rejilla del terreno, y quedaba a veces medio metro por debajo de la calle)
+    if (!P.alargado) for (const fin of [false, true]) {
+      const a = fin ? pts[pts.length - 1] : pts[0], b = fin ? pts[pts.length - 2] : pts[1], l = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, dx = (a[0] - b[0]) / l, dz = (a[1] - b[1]) / l;
+      let s = 0, y = terrainHeight(a[0], a[1]);
+      while (s < 3) { const x2 = a[0] + dx * (s + 0.5), z2 = a[1] + dz * (s + 0.5), y2 = terrainHeight(x2, z2); if (y2 - y < 0.06 || riverInfo(x2, z2).edge < 1.2) break; y = y2; s += 0.5; }
+      if (s > 0) { const q = [a[0] + dx * (s + 0.5), a[1] + dz * (s + 0.5)]; if (fin) pts.push(q); else pts.unshift(q); }
+    }
+    // (y si una orilla queda mucho más baja que la otra, el tablero no pasa del 12 %: sigue de rampa por el lado bajo hasta
+    // encontrar el suelo, como mucho 15 m (o la mitad de su largo) y nunca hacia el agua. En Roncal, el de junto a la plaza bajaba 6 m en 13: una cuesta del 45 %)
+    if (!P.alargado) {
+      let L0 = 0; for (let i = 1; i < pts.length; i++) L0 += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+      const y0 = terrainHeight(pts[0][0], pts[0][1]), y1 = terrainHeight(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+      if (Math.abs(y0 - y1) > 0.12 * L0) {
+        const fin = y1 < y0, alto = Math.max(y0, y1);
+        const a = fin ? pts[pts.length - 1] : pts[0], b = fin ? pts[pts.length - 2] : pts[1], l = Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, dx = (a[0] - b[0]) / l, dz = (a[1] - b[1]) / l;
+        const eMax = Math.max(4, Math.min(15, L0 * 0.5));
+        let e = 0.5; while (e < eMax && alto - 0.12 * (L0 + e) > terrainHeight(a[0] + dx * e, a[1] + dz * e) && riverInfo(a[0] + dx * (e + 0.5), a[1] + dz * (e + 0.5)).edge >= 1.2) e += 0.5;
+        const q = [a[0] + dx * e, a[1] + dz * e]; if (fin) pts.push(q); else pts.unshift(q);
+      }
+    }
+    P.alargado = true;
     const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
     const L = cum[cum.length - 1]; if (L < 3) continue;
     const Wd = 2 * P.w + 1.0, off = Wd / 2 - 0.25, stone = 'stone', cap = 'ashlar';
@@ -74,19 +96,32 @@ export function realBridges(B, real) {
       return { x, z, dx, dz, nx: dz, nz: -dx };
     };
     // el suelo bajo el puente (lo más bajo de los dos costados y el eje) y el agua, cada metro
-    const N = Math.max(3, Math.ceil(L) + 1), S = [], G = [], W = [];
+    // (y lo más alto de esos tres, GX: el tablero nunca queda por debajo del suelo en todo su ancho, salvo en los 2,5 m de
+    // cada punta, que llegan a la calle. Antes solo miraba lo más bajo y, donde el puente cruza una ladera de lado, el prado
+    // asomaba por el tablero)
+    const N = Math.max(3, Math.ceil(L) + 1), S = [], G = [], GX = [], W = [];
     for (let k = 0; k < N; k++) {
       const s = L * k / (N - 1), e = eje(s); S.push(s);
-      G.push(Math.min(terrainHeight(e.x, e.z), terrainHeight(e.x + e.nx * off, e.z + e.nz * off), terrainHeight(e.x - e.nx * off, e.z - e.nz * off)));
+      const t3 = [terrainHeight(e.x, e.z), terrainHeight(e.x + e.nx * off, e.z + e.nz * off), terrainHeight(e.x - e.nx * off, e.z - e.nz * off)];
+      G.push(Math.min(...t3)); GX.push(Math.max(...t3));
       const r = riverInfo(e.x, e.z); W.push(r.edge < 0.5 ? r.level : -Infinity);
     }
-    const water = Math.max(...W), ya = terrainHeight(pts[0][0], pts[0][1]), yb = terrainHeight(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+    // (cada extremo, a la altura de la calle que llega: lo más alto entre la punta y un metro más allá)
+    const e0 = eje(0), e1 = eje(L), water = Math.max(...W);
+    const ya = Math.max(terrainHeight(pts[0][0], pts[0][1]), terrainHeight(e0.x - e0.dx, e0.z - e0.dz));
+    const yb = Math.max(terrainHeight(pts[pts.length - 1][0], pts[pts.length - 1][1]), terrainHeight(e1.x + e1.dx, e1.z + e1.dz));
     // (los de piedra de siempre, el de la misión o los que se llaman románico, medieval o viejo, con su lomo de asno: así
     // caben sus arcos, como los seis del de Puente la Reina)
     const viejo = P.mision || /rom[aá]nic|medieval|viejo|zahar|zaharra|erromaniko/i.test(P.n || '');
-    const hump = Math.max(0.3, (water > -1e8 ? water + 2.2 : -Infinity) - (ya + yb) / 2, viejo ? Math.min(7, L * 0.06) : 0);
-    // el tablero: el lomo de siempre, por encima del suelo (salvo en los extremos, que llegan a la calle) y suavizado
-    let Dk = S.map((s, k) => { const t = s / L; return Math.max(ya + (yb - ya) * t + hump * Math.max(0, Math.sin(Math.PI * t)) ** 0.8, G[k] + 0.3 * Math.min(1, s / 3, (L - s) / 3)); });
+    // el lomo: lo justo para dejar sitio al agua, que no es lo mismo sobre una regata de 4 m (un metro) que sobre un río de
+    // 20 m (2,2 m), y nunca más cuesta que la de una calle, el 12 % en las puntas (el 22 % en los viejos). Antes pedía
+    // siempre 2,2 m sobre el agua, con la curva de pico en las puntas: sobre las regatas del casco de Roncal salían medios
+    // cilindros de 2 m de alto en 7 m de largo, con un 40 % de cuesta
+    const mojado = W.filter(v => v > -1e8).length * L / (N - 1), libre = clamp(0.6 + 0.08 * mojado, 1.0, 2.2);
+    const lomoMax = (viejo ? 0.22 : 0.12) * L / Math.PI;
+    const hump = Math.min(lomoMax, Math.max(L > 10 ? 0.3 : 0.12, (water > -1e8 ? water + libre : -Infinity) - (ya + yb) / 2, viejo ? Math.min(7, L * 0.06) : 0));
+    // el tablero: el lomo, por encima del suelo (salvo en los extremos, que llegan a la calle) y suavizado
+    let Dk = S.map((s, k) => { const t = s / L; return Math.max(ya + (yb - ya) * t + hump * Math.sin(Math.PI * t), G[k] + 0.3 * Math.min(1, s / 3, (L - s) / 3), GX[k] + 0.05 - Math.max(0, 2.5 - Math.min(s, L - s))); });
     for (let r = 0; r < 2; r++) Dk = Dk.map((v, k) => k === 0 || k === N - 1 ? v : Math.max(v, (Dk[k - 1] + v + Dk[k + 1]) / 3));
     const deck = (s) => { const f = clamp(s / L, 0, 1) * (N - 1), k = Math.min(N - 2, Math.floor(f)); return Dk[k] + (Dk[k + 1] - Dk[k]) * (f - k); };
     // el tablero y los pretiles, de una pieza a lo largo del eje (antes, cajas de 2 m por tramo: en cada codo quedaba una
