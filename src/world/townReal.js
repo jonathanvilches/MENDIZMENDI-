@@ -178,16 +178,23 @@ export function realRiverWalls(B, real, fam) {
       if (R.cubierto?.[i] && R.cubierto[i + 1]) continue;          // (bajo la calle: sin muros)
       const half = R.hv ? (R.hv[i] + R.hv[i + 1]) / 2 : R.half;   // (en el casco, más estrecho donde va una calle por la orilla)
       const tx = (x1 - x0) / sl, tz = (z1 - z0) / sl, nx = tz, nz = -tx, xm = (x0 + x1) / 2, zm = (z0 + z1) / 2;
-      if (villageMask(xm, zm) < 0.5 || nearBridge(xm, zm)) continue;
+      if (nearBridge(xm, zm)) continue;
       const level = (R.lv[i] + R.lv[i + 1]) / 2;
+      // (el muro va de 0,9 m fuera del agua hasta un poco dentro, lo justo para tapar el escalón del terreno, que con la
+      // rejilla de 2 m ocupa casi tres; en los ríos estrechos entra menos, para que siga viéndose el agua)
+      const dentro = Math.min(1.4, half * 0.4), grueso = 0.9 + dentro;
       for (const side of [-1, 1]) {
-        const off = half + 0.5, wx = xm + side * nx * off, wz = zm + side * nz * off;
+        const off = half + (0.9 - dentro) / 2, wx = xm + side * nx * off, wz = zm + side * nz * off;
+        // (cada orilla por su lado, donde el terreno se corta recto, que es donde la orilla es casco: levels/townReal.js,
+        // finalHeight. Antes se miraba en el centro del río y para las dos a la vez; junto a la plaza de Roncal quedaba un
+        // corte de roca de 7 m sin muro. Y hasta 14 m de alto: allí el muro pasa de 9)
+        if (villageMask(xm + side * nx * (half + 0.5), zm + side * nz * (half + 0.5)) < 0.5) continue;
         const top = terrainHeight(xm + side * nx * (half + 2.4), zm + side * nz * (half + 2.4)) + 0.6, bot = level - 1.4;
-        if (top - bot < 1.0 || top - bot > 9) continue;
+        if (top - bot < 1.0 || top - bot > 14) continue;
         const ry = Math.atan2(tx, tz);
-        B.add(fam === 'ribera' ? 'brick' : 'stone', box(0.8, top - bot, sl + 0.08, 2), M(wx, (top + bot) / 2, wz, ry));
-        B.add('ashlar', box(0.95, 0.14, sl + 0.1, 1), M(wx, top + 0.07, wz, ry));
-        addBox(wx, wz, 0.8, sl, ry);
+        B.add(fam === 'ribera' ? 'brick' : 'stone', box(grueso, top - bot, sl + 0.08, 2), M(wx, (top + bot) / 2, wz, ry));
+        B.add('ashlar', box(grueso + 0.15, 0.14, sl + 0.1, 1), M(wx, top + 0.07, wz, ry));
+        addBox(wx, wz, grueso, sl, ry);
       }
     }
   }

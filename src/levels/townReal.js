@@ -142,16 +142,29 @@ export function createRealTownLevel(def, D) {
   }
   marcarCasas();
   const vgrid = (G, x, z) => { const fx = clamp((x + half1) / VC, 0, VN - 1.001), fz = clamp((z + half1) / VC, 0, VN - 1.001), i = Math.floor(fx), j = Math.floor(fz), a = fx - i, c = fz - j; return G[j * VN + i] * (1 - a) * (1 - c) + G[j * VN + i + 1] * a * (1 - c) + G[(j + 1) * VN + i] * (1 - a) * c + G[(j + 1) * VN + i + 1] * a * c; };
-  function villageMask(x, z) {
-    if (!inner(x, z)) return 0;
-    const near = 1 - smoothstep(14, 34, vgrid(VD, x, z));
-    return near * smoothstep(2.5, 6, vgrid(DENS, x, z));
-  }
-
   // ---------- Plazas ----------
   const LG = D.lugares || {};
   const PL = LG.plaza || { x: 0, z: 0, r: 14, pts: null };
   const PLAZAS = (LG.plazas || []).map(p => ({ ...p, bb: bbox(p.pts) }));
+  // lo que falta hasta la plaza más cercana, en metros (dentro, 0); más allá de hasta, solo se sabe que está lejos
+  function aPlaza(x, z, hasta = 1e9) {
+    if (!PLAZAS.length) return Math.max(0, Math.hypot(x - PL.x, z - PL.z) - PL.r);
+    let d = hasta;
+    for (const p of PLAZAS) {
+      if (x < p.bb.x0 - d || x > p.bb.x1 + d || z < p.bb.z0 - d || z > p.bb.z1 + d) continue;
+      d = Math.min(d, Math.max(0, polyDist(x, z, p.pts)));
+    }
+    return d;
+  }
+
+  // (la plaza y lo que la rodea también son casco, aunque al lado no haya casas: en Roncal la plaza da al Esca y, sin casas
+  // en esa orilla, el río no llevaba muro sino un talud de roca de unos 7 m que se comía el borde de la plaza, con la fuente
+  // al filo y un puesto del mercado en la cuesta; noviembre de 2026. Así, junto a una plaza, el río va con su muro)
+  function villageMask(x, z) {
+    if (!inner(x, z)) return 0;
+    const near = 1 - smoothstep(14, 34, vgrid(VD, x, z));
+    return Math.max(near * smoothstep(2.5, 6, vgrid(DENS, x, z)), 1 - smoothstep(8, 14, aPlaza(x, z, 14)));
+  }
   function plazaMask(x, z) {
     let m = 0;
     for (const p of PLAZAS) {
@@ -556,7 +569,10 @@ export function createRealTownLevel(def, D) {
     if (r.edge < (inV ? 7 : Math.max(7, talud + 2))) {
       const inVillage = inV, bankW = talud;
       const bed = r.level - 1.0 - 0.4 * clamp(1 - r.d / Math.max(r.half, 0.1), 0, 1);
-      const k = smoothstep(inVillage ? -0.3 : -2.0, bankW, r.edge);
+      // (en el casco el escalón cae entre 0,3 m fuera del agua y 0,9 m dentro, tapado por el muro, world/townReal.js
+      // realRiverWalls; antes empezaba a bajar a 1 m de la orilla y, con la rejilla del terreno de 2 m, detrás del muro
+      // quedaba una zanja y delante asomaban puntas de roca)
+      const k = inVillage ? smoothstep(-0.9, 0.3, r.edge) : smoothstep(-2.0, bankW, r.edge);
       h = Math.min(h, lerp(bed, Math.max(h, r.level + 1.4), k));
       if (r.edge < -0.4) h = Math.min(h, bed);
     }
