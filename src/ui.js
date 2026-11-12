@@ -161,6 +161,9 @@ export class UI {
     // (en el pueblo, solo los cuadrados de las misiones: al tocar uno, esa pasa a ser la que sigues y se despliega debajo;
     // en la aventura de Otsagabia, el icono de la misión con lo que hay que hacer y las cintas, siempre a la vista.
     // Tocando el texto o el icono de la aventura, el cuaderno)
+    // (con una misión desplegada, tocar en cualquier sitio fuera de la barra la pliega; en captura y sin pararlo, así ese
+    // mismo toque sigue sirviendo para andar, mirar o pulsar un botón)
+    if (town) { this._plegar = (e) => { if (this.misAbierta != null && !e.target.closest?.('#tl')) this.cierraMision(); }; addEventListener('pointerdown', this._plegar, true); }
     if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
     else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
     tap('#prompt', () => this.input.press('e'));
@@ -231,7 +234,7 @@ export class UI {
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
-  destroyHUD() { document.body.classList.remove('barra-abajo'); document.body.style.removeProperty('--barra'); this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
+  destroyHUD() { if (this._plegar) { removeEventListener('pointerdown', this._plegar, true); this._plegar = null; } document.body.classList.remove('barra-abajo'); document.body.style.removeProperty('--barra'); this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
     // (y lo que apuntaba al pueblo: la interfaz dura toda la partida y, con estas referencias, el pueblo que se dejaba seguía
     // entero en la memoria, unos 160 MB, hasta entrar en otro; en el iPhone, al cambiar de pueblo, se cerraba el juego)
     this.game = null; this._fitTopR = null; this.mini = null; this.boxes = new Map(); this.questEls = null; }
@@ -253,10 +256,10 @@ export class UI {
   }
 
   // ---------- las misiones del pueblo: sus iconos y, al tocar uno, la misión ----------
-  // Arriba a la izquierda solo van los cuadrados de las misiones del pueblo (las hechas, llenas de su color y con su marca;
-  // la que sigues, con borde blanco), y nada más: el visor, limpio. Al tocar uno, esa pasa a ser la que sigues (la brújula y
-  // la luz dorada van a ella) y se despliega debajo lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo
-  // lejos que está. Se recoge sola a los 10 s o tocando otra vez su cuadrado; tocando el texto, el cuaderno. Nunca se
+  // Abajo en el centro van los cuadrados de las misiones del pueblo (las hechas, llenas de su color y con su marca; la que
+  // sigues, con borde blanco), con la mochila y la pausa al final. Al tocar uno, esa pasa a ser la que sigues (la brújula y
+  // la luz dorada van a ella) y se despliega encima lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo
+  // lejos que está. Se recoge sola a los 10 s, tocando otra vez su cuadrado o tocando la pantalla fuera de la barra; tocando el texto, el cuaderno. Nunca se
   // despliega sola (noviembre de 2026: abierta siempre cargaba demasiado el visor); cuando cambia lo que toca hacer, solo
   // late el cuadrado de la misión
   eligeMision(i) {

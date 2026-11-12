@@ -968,9 +968,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   encogen un poco) y sin la cuenta en los más estrechos. Antes las misiones subían hasta el rótulo y se montaban con él.
 - **Misiones en el pueblo, arriba a la izquierda** (`ui.js`, `eligeMision`, y `#misiones` en `style.css`): solo los
   iconos de las misiones del pueblo, una casilla por misión del color de su categoría (hecha, llena y con su marca verde
-  sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y debajo se despliega: su
-  nombre, lo que toca hacer, sus pasos y lo lejos que está; se recoge sola a los 10 s o tocando la misma casilla, y
-  tocando lo desplegado se abre el cuaderno. Empieza plegado y solo se despliega al tocar (lo pidió así el autor): al
+  sobre amarillo; la que sigues, con borde blanco). Al tocar una, pasa a ser la que sigues y encima se despliega (la barra va abajo en el centro): su
+  nombre, lo que toca hacer, sus pasos y lo lejos que está; se recoge sola a los 10 s, tocando la misma casilla o
+  tocando la pantalla en cualquier sitio fuera de la barra (un `pointerdown` en captura en la ventana, que no detiene el
+  toque: sigue sirviendo para andar, mirar o pulsar un botón; noviembre de 2026, lo pidió el autor), y tocando lo
+  desplegado se abre el cuaderno. Empieza plegado y solo se despliega al tocar (lo pidió así el autor): al
   cambiar lo que toca hacer, late la casilla de la misión (`lateMision`) y sale el aviso de abajo. En los tumbados más
   estrechos, las casillas van en dos filas. Se probó a volver al recuadro con la misión, el pueblo y el desplegable, y el
   autor prefirió los iconos. (En la aventura de Otsagabia, la de las cintas, sigue el recuadro de antes.)
@@ -1228,9 +1230,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   del norte (Ochagavía o Lesaka) y uno del sur.
 - **Misiones del pueblo, solo los cuadrados** (`eligeMision`, `cierraMision` y `setQuestPueblo` en `ui.js`; `#tl` en
   `style.css`; noviembre de 2026): durante unos días la misión que sigues iba siempre abierta debajo de los cuadrados, y
-  el autor pidió limpiar el visor. Ahora arriba a la izquierda solo quedan los cuadrados: la que sigues, con borde blanco.
-  Al tocar uno, esa pasa a ser la que sigues y se despliega debajo; se recoge sola a los 10 s (`ABIERTA_MS`) o tocando
-  otra vez su cuadrado, y tocando el texto se abre el cuaderno. Nunca se despliega sola: al cambiar lo que toca hacer,
+  el autor pidió limpiar el visor. Ahora solo quedan los cuadrados (abajo en el centro desde noviembre de 2026): la que sigues, con borde blanco.
+  Al tocar uno, esa pasa a ser la que sigues y se despliega encima; se recoge sola a los 10 s (`ABIERTA_MS`), tocando
+  otra vez su cuadrado o tocando la pantalla fuera de la barra, y tocando el texto se abre el cuaderno. Nunca se despliega sola: al cambiar lo que toca hacer,
   solo late su cuadrado y sale el aviso de abajo. En la aventura de Otsagabia, que tiene un solo icono redondo y no
   cuadrados, sigue a la vista el icono con lo que hay que hacer y las cintas: plegada, quedaba un icono suelto sin sentido.
 - **Chinchetas en el mapa del inicio** (`mapa3dSombreadores.js`, `PIN_VS`, `PIN_FS`, `MIRA_FS`; `mapa3d.js`; noviembre de
