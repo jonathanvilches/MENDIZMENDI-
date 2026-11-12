@@ -1081,7 +1081,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   brillo de arriba, y el anillo de energía de la mochila va dentro de su borde (antes salía 4 px y la mochila parecía
   más grande que los demás).
   El cuaderno y el mapa ya no tienen botón ahí: están en la pausa, juntos en una fila (`.btns .par`, «Cuaderno» y «Mapa
-  del pueblo»); el mapa se abre también tocando el minimapa y el cuaderno tocando la misión, y en el ordenador con C y M.
+  del pueblo», solo con el texto, sin icono: así caben en una línea también de pie); el mapa se abre también tocando el minimapa y el cuaderno tocando la misión, y en el ordenador con C y M.
   Arriba quedan la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa. La
   pausa va en dos columnas en el móvil tumbado y también en una pantalla de ordenador baja (hasta 760 de alto), para que
   con la fila nueva no haya que desplazar.
