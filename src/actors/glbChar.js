@@ -160,11 +160,13 @@ function shrinkMap(m, max = MESHY_TEX) {
 // altura de cada personaje (m): una sola para todo el juego, así el mismo modelo se carga una vez aunque salga como
 // jugador, como vecino o en un partido
 const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62,
-  // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS): a su altura de Meshy por 0,94, así los adultos miden 1,60 m,
-  // los abuelos con txapela 1,41, los panaderos y los campesinos 1,36 y los niños 1,13
-  ...Object.fromEntries([['abuelo_bigote', 1.5], ['abuelo_barba', 1.5], ['abuela_trenzas', 1.5], ['abuela_mono', 1.5], ['abuelo', 1.7], ['abuela_panuelo', 1.7],
-    ['nino_moreno', 1.2], ['nino_rubio', 1.2], ['nina_pelirroja', 1.2], ['nina_trenzas', 1.2], ['hombre', 1.7], ['mujer', 1.7], ['joven_rubia', 1.7],
-    ['carpintero', 1.7], ['carpintera', 1.7], ['quesero', 1.7], ['quesera', 1.7], ['panadero', 1.45], ['panadera', 1.42], ['campesino', 1.45], ['campesina', 1.42]].map(([n, h]) => [n, +(h * 0.94).toFixed(2)])) };
+  // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS), en metros. Regla: el explorador (1,45) y la exploradora
+  // (1,43) son más bajos que cualquier adulto, y los niños del pueblo más bajos que ellos. Con la variedad de cada vecino
+  // (±3 %), el mayor más bajo mide 1,50 y el niño más alto 1,28
+  abuelo_bigote: 1.63, abuelo_barba: 1.65, abuelo: 1.68, abuela_trenzas: 1.56, abuela_mono: 1.55, abuela_panuelo: 1.58,
+  nino_moreno: 1.2, nino_rubio: 1.24, nina_pelirroja: 1.17, nina_trenzas: 1.13,
+  hombre: 1.76, mujer: 1.65, joven_rubia: 1.66, carpintero: 1.77, carpintera: 1.65, quesero: 1.73, quesera: 1.63,
+  panadero: 1.71, panadera: 1.62, campesino: 1.74, campesina: 1.64 };
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
  *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
 export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };
