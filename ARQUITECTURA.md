@@ -1766,8 +1766,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     `tools/iconbake.mjs` a 512. La serie anterior de 192 se guarda en `icons3d/192` sin usarse. La lista del autor está
     en `icons3d/LICENSE_iconos-autor.txt` y `tools/iconbake.mjs` no la vuelve a hornear.
   - Los usan también los botones del HUD y los táctiles (`ICON` en `ui.js`: correr, saltar y, en el de acción, la
-    mano, hablar, beber, la lupa para mirar y pelota), la X de la pelota y los botones del mapa (acercar, alejar,
-    centrar y viajar). Sobre el degradado de los botones principales llevan un contorno oscuro fino.
+    mano, hablar, beber, la lupa para mirar y pelota), la X de la pelota y los botones del mapa (centrar y
+    viajar; acercar y alejar llevan solo un «+» y un «−» de trazo blanco, `.mapctl .zm`, en vez de las lupas, noviembre
+    de 2026). Sobre el degradado de los botones principales llevan un contorno oscuro fino.
   - El fútbol no: sus botones, la pausa, la cámara y la pantalla de controles llevan los símbolos de trazo de los
     controles del autor (`ICON` en `futbol/hud.js`), sobre botones redondos y planos de color sólido, sin el canto de abajo ni los brillos de dentro, como los del pueblo (noviembre de 2026; antes, con relieve) (tiro fucsia, pase azul,
     cambiar marrón, el resto morado; con tu portero, turquesa). Sus 13 iconos 3D siguen en la carpeta sin cargarse.

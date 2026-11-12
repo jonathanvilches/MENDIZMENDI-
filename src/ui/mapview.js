@@ -16,7 +16,7 @@ const hitsRect = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h
 
 export function mountMapView(ui, box, opts = {}) {
   const game = ui.game, cv = box.querySelector('canvas'), g = cv.getContext('2d');
-  box.insertAdjacentHTML('beforeend', `<div class="mapctl"><button data-z="in" aria-label="Ampliar">${iconSVG('zoom_in', 28)}</button><button data-z="out" aria-label="Alejar">${iconSVG('zoom_out', 28)}</button><button data-z="me" aria-label="Centrar en mí">${iconSVG('locate', 28)}</button></div><div class="mapcard" hidden></div>`);
+  box.insertAdjacentHTML('beforeend', `<div class="mapctl"><button data-z="in" aria-label="Ampliar"><svg class="zm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg></button><button data-z="out" aria-label="Alejar"><svg class="zm" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button><button data-z="me" aria-label="Centrar en mí">${iconSVG('locate', 28)}</button></div><div class="mapcard" hidden></div>`);
   const card = box.querySelector('.mapcard');
   let W = 0, H = 0, dpr = 1, raf = 0, sel = null, anim = null, hits = [];
   const v = { cx: 0, cz: 0, s: 1 };
