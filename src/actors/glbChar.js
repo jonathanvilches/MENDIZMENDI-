@@ -93,9 +93,12 @@ MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que 
 // los vecinos (tools/vecinos-glb.mjs: todos traen estar de pie mirando alrededor, Alert, y charlar, Chat): quietos, mirando
 // alrededor (el clip entero, que empieza y acaba igual); hablando, su charla entera; saludar, el gesto del principio de
 // la charla; asustarse, el respingo de mirar alrededor; y golpear, el golpe con los dos brazos de los que lo traen
-const cortesVecino = (src) => ({
+// (el clip de charla de Meshy está mal adaptado a estos dos: con él echaban la cabeza hacia atrás, hasta 80°, y se encogían
+// un 12-15 %; medido en los 21 vecinos, los demás no pasan del 3 %. Hablan con su reposo, como los que no traen charla)
+const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
+const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
-  ...(src.Chat ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
+  ...(src.Chat && !CHARLA_MAL.has(name) ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
   ...(src.Attack ? { Hit: ['Attack', 0.5, 1.6] } : {}),
   ...(src.WaveH ? { Wave: ['WaveH', 0, src.WaveH.duration] } : {}),   // (los que traen saludar con la mano: ese)
 });
