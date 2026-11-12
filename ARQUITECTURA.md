@@ -1068,6 +1068,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   En la pastilla de la distancia, una flechita con astil que señala hacia el objetivo como la punta del anillo
   (`distancia(player, target, camYaw)`, el giro puesto en la propia flecha y solo cuando cambia 3°); antes, un rombo que
   no decía nada. Con astil porque, a 11 px, una punta con muesca como la del anillo se leía al revés.
+  El círculo, sin el halo oscuro de 4 px que llevaba alrededor (el anillo ya es oscuro). Los botones redondos de encima
+  (`.round`): el icono es el 70 % de dentro del botón en todos los tamaños (en el de 44 px, 28; antes 26 fijos), sin el
+  brillo de arriba, y el anillo de energía de la mochila va dentro de su borde (antes salía 4 px y la mochila parecía
+  más grande que los demás).
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo

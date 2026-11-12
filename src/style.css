@@ -284,11 +284,11 @@ summary { line-height: 1.3; }
 /* arriba a la derecha: botones y minimapa */
 #topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .rbtns { display: flex; gap: 8px; }
-.round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .15); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
+.round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
 .round:hover { border-color: #ff7ac8; background: rgba(12, 9, 20, .65); } .round:active { transform: scale(.92); }
-.round :is(svg, .hico) { width: 26px; height: 26px; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }
+.round :is(svg, .hico, .ico) { width: 70%; height: 70%; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .6)); }   /* (el icono, el 70 % de dentro del botón en todos los tamaños, la mochila también: en el de 44 px, 28; antes 26 fijos, que en el de 36 llenaban casi todo) */
 .round.badge::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #FF69B4; top: -1px; right: -1px; }
-#mini { width: 112px; height: 112px; border-radius: 50%; position: relative; background: #5b8a3c; cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 0 0 4px rgba(12, 9, 20, .45), 0 6px 18px rgba(0, 0, 0, .35); }
+#mini { width: 112px; height: 112px; border-radius: 50%; position: relative; background: #5b8a3c; cursor: pointer; border: 2.5px solid #fff; box-shadow: 0 4px 14px rgba(0, 0, 0, .38); }   /* (sin el halo oscuro de 4 px alrededor: el anillo de la brújula ya es oscuro) */
 #mini canvas { width: 100%; height: 100%; display: block; border-radius: 50%; }   /* (el mapa, recortado en el círculo; la hora, fuera del recorte) */
 /* la hora, en una pastilla debajo del círculo, con el mismo borde blanco. Antes iba sobre el borde de abajo; ahora el borde
    es la brújula y la pastilla tapaba el punto cardinal que pasaba por debajo */
@@ -407,7 +407,7 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
   #quest b.qt { font-size: var(--fs-md); } #quest .ic { flex-basis: 36px; height: 36px; } #quest .ic svg, #quest .ic img { width: 26px; height: 26px; }
   #ribbons { padding-left: 48px; }
   #mini { width: 104px; height: 104px; }
-  .round { width: 38px; height: 38px; } .round :is(svg, .hico) { width: 23px; height: 23px; }
+  .round { width: 38px; height: 38px; }
   .cbtn { width: 56px; height: 56px; } .cbtn :is(svg, .hico) { width: 36px; height: 36px; } .cbtn.big { width: 70px; height: 70px; } .cbtn.big :is(svg, .hico) { width: 44px; height: 44px; }
   #stickHint { width: 88px; height: 88px; bottom: calc(var(--sb) + var(--thumb) + 18px); }
   #lane { top: auto; bottom: calc(var(--sb) + var(--thumb)); left: calc(50% - 22px); width: calc(calc(100vw / var(--z, 1)) - var(--sl) - var(--sr) - 450px); flex-direction: column-reverse; } #lane .note { font-size: var(--fs-sm); padding: 8px 12px; } #toast svg, #toast img { width: 22px; height: 22px; }
@@ -871,7 +871,7 @@ body.mg3d-on .learn-btn { bottom: auto; top: calc(env(safe-area-inset-top, 0px) 
   #quest .ic { flex-basis: 50px; height: 50px; } #quest .ic svg, #quest .ic img { width: 36px; height: 36px; }
   #quest b.qt { font-size: var(--fs-md); } #quest small { font-size: var(--fs-sm); }
   #ribbons { padding-left: 60px; } #ribbons .tname { font-size: var(--fs-sm); } #ribbons .dots i { width: 12px; height: 12px; }
-  .round { width: 50px; height: 50px; } .round :is(svg, .hico) { width: 30px; height: 30px; }
+  .round { width: 50px; height: 50px; }
   #topright, .rbtns { gap: 12px; }
   #mini { width: 140px; height: 140px; }
   .cbtn { width: 72px; height: 72px; } .cbtn :is(svg, .hico) { width: 46px; height: 46px; }

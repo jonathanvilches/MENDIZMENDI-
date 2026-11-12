@@ -710,9 +710,9 @@ html.tele-bajo .finale .mg-card { gap: 8px; } html.tele-bajo .finale .stampimg.b
 
 /* ---------- Mochila del explorador ---------- */
 .round.bag { overflow: visible; }
-.round.bag .ering { position: absolute; inset: -4px; border-radius: 50%; pointer-events: none;
+.round.bag .ering { position: absolute; inset: -2px; border-radius: 50%; pointer-events: none;   /* (el anillo, dentro del borde del botón: antes salía 4 px y la mochila parecía más grande que los demás) */
   background: conic-gradient(#c9b2ff calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0);   /* (la energía, en lila como en los partidos; poca, en rojo) */
-  -webkit-mask: radial-gradient(circle, transparent 58%, #000 60%); mask: radial-gradient(circle, transparent 58%, #000 60%); }
+  -webkit-mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); mask: radial-gradient(closest-side, transparent calc(100% - 3.5px), #000 calc(100% - 3px)); }
 .round.bag.low .ering { background: conic-gradient(#ff5a4a calc(var(--e, 100) * 1%), rgba(255, 255, 255, .14) 0); animation: pulse 1s infinite alternate; }
 @keyframes pulse { to { opacity: .45; } }
 /* ---------- la mochila ----------
