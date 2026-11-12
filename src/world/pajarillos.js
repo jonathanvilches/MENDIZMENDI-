@@ -194,8 +194,9 @@ export class Pajarillos {
     const ax = F.x - px, az = F.z - pz, l = Math.hypot(ax, az) || 1, base = Math.atan2(ax / l, az / l);
     for (const a of F.aves) {
       const r = base + (this.rnd() - 0.5) * 1.4;
-      a.de = { x: a.x, y: a.y, z: a.z }; a.dir = { x: Math.sin(r), z: Math.cos(r) }; a.esp = this.rnd() * 0.35;
-      a.v = 7 + this.rnd() * 3; a.sube = 9 + this.rnd() * 7; a.ond = this.rnd() * 6.28;
+      a.de = { x: a.x, y: a.y, z: a.z }; a.dir = { x: Math.sin(r), z: Math.cos(r) }; a.esp = this.rnd() * 0.6;
+      // (más despacio que antes: 7-10 m/s se veía como un disparo; ahora suben y se alejan con calma)
+      a.v = 3.2 + this.rnd() * 1.6; a.sube = 5 + this.rnd() * 3.5; a.ond = this.rnd() * 6.28;
     }
     this.sound?.aleteo?.({ x: F.x, y: groundHeight(F.x, F.z), z: F.z }, F.n);
     // (y los gorriones, piando al salir: la grabación de una bandada; los jilgueros, solo el aleteo)
@@ -228,11 +229,11 @@ export class Pajarillos {
         F.aves.forEach((a, i) => {
           const k = Math.max(0, F.t - a.esp);
           // (arranque fuerte hacia arriba y luego en línea, ondulando un poco, como los pájaros pequeños)
-          const sube = a.sube * (1 - Math.exp(-k * 1.4)), d = a.v * k + 1.2 * Math.min(1, k * 2);
+          const sube = a.sube * (1 - Math.exp(-k * 0.8)), d = a.v * k + 0.8 * Math.min(1, k * 1.2);
           const x = a.de.x + a.dir.x * d + Math.cos(a.ond + k * 3) * 0.4 * Math.min(1, k), z = a.de.z + a.dir.z * d + Math.sin(a.ond + k * 3) * 0.4 * Math.min(1, k);
           const y = a.de.y + E.alto + sube + Math.sin(k * 9 + a.ond) * 0.12 * Math.min(1, k);
-          if (k < 4.2) fuera = false;
-          const pitch = -Math.atan2(a.sube * 1.4 * Math.exp(-k * 1.4), a.v) * 0.8;
+          if (k < 7) fuera = false;
+          const pitch = -Math.atan2(a.sube * 0.8 * Math.exp(-k * 0.8), a.v) * 0.8;
           E.pon(F.base + i, x, k > 0 ? y : a.de.y + E.alto, z, Math.atan2(a.dir.x, a.dir.z), k > 0 ? pitch : -0.1, Math.sin(k * 2 + a.ond) * 0.25, k > 0 ? 1 : 0, k > 0 ? (k < 1.6 ? 1 : 0.6 + 0.4 * Math.max(0, Math.sin(k * 3 + a.ond))) : 0);
         });
         if (fuera) { F.est = 'ido'; F.t = 0.8 + this.rnd() * 1.5; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); }
@@ -253,7 +254,7 @@ export class Pajarillos {
   }
   vuela(a, to, vuelta) {
     a.est = 'vuela'; a.de = { x: a.x, y: a.y, z: a.z }; a.a = to; a.k = 0; a.vuelta = !!vuelta;
-    const d = Math.hypot(to.x - a.x, to.y - a.y, to.z - a.z); a.dur = Math.max(0.8, d / (5 + this.rnd() * 2));
+    const d = Math.hypot(to.x - a.x, to.y - a.y, to.z - a.z); a.dur = Math.max(1.4, d / (2.6 + this.rnd() * 1.2));
   }
   update(dt, t, player, night = 0, oculto = false) {
     const ver = night < 0.5 && !oculto;
