@@ -1804,6 +1804,38 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mucho a 70 cm alrededor; si no hay ningún sitio así, en el de menos desnivel, y no en el punto pedido a ciegas: el sabio
   de Leitza quedaba metido dentro de la escalinata de la iglesia y el de Estella al borde de un muro. Para revisarlo en
   todos los pueblos, `tools/plazas.mjs`.
+- **Puentes como los de verdad** (noviembre de 2026, tras «puentes mal construidos» en Roncal):
+  - Cada puente llega a lo alto de la orilla por los dos lados (`ordenarPuentes` en `levels/ordenar.js`, con
+    `altoOrilla` de `levels/townReal.js`, la altura del suelo como la deja `finalHeight` sin el relieve fino): se alarga
+    mientras el suelo siga subiendo más de un 12 %, al menos hasta 2,5 m del agua y nunca hacia ella, con un tope según el
+    agua que salva (unos 5 m por lado sobre una regata de 4 m, 12 m sobre un río). Al levantarlo
+    (`realBridges` en `world/townReal.js`), con el terreno de verdad, hasta 3 m más si aún sube. Antes acababa a 1-4 m del
+    agua, a media cuesta del talud, y la calle bajaba a él por un hoyo: en Roncal, la carretera quedaba 2 m por debajo de
+    la calle a los dos lados y el puente de junto a la plaza, en el fondo de una zanja de 6 m.
+  - Si una orilla queda mucho más baja que la otra, el tablero no pasa del 12 %: sigue de rampa por el lado bajo hasta el
+    suelo, como mucho 15 m.
+  - El lomo, lo justo para el agua que pasa debajo: un metro sobre una regata de 4 m y 2,2 m sobre un río de 20 m, y nunca
+    más del 12 % de cuesta en las puntas (el 22 % en los viejos y románicos). Antes pedía siempre 2,2 m y, sobre las regatas
+    del casco, salían medios cilindros de 2 m de alto en 7 m de largo.
+  - El tablero nunca queda por debajo del suelo en todo su ancho (antes solo miraba lo más bajo y, donde el puente cruza
+    una ladera de lado, el prado asomaba por el tablero).
+  - En cada esquina, una aleta (`aletas` en `world/townReal.js`): un muro que sale del pilar del pretil, se abre en curva
+    hacia el costado y baja poco a poco hasta el suelo, como los que sujetan la orilla y llevan la calle al tablero. No
+    donde caería al agua, dentro de una casa o encima de una calle que gira al salir del puente.
+  - No se levanta un puente al que no llega ninguna calle ni camino (en Etxalar había uno en mitad de un prado) y, de dos
+    que se cruzan o se montan, se queda uno: el de la misión, el de los datos antes que uno nuevo, el que tiene nombre, el
+    más ancho y el más largo (en Isaba había dos en aspa sobre el Esca). Los nuevos, donde una calle cruza el agua, solo
+    si pasa de verdad a la otra orilla y solo sobre el tramo del agua con 3 m a cada lado (en Isaba y en Ituren salían
+    pasarelas de 35-40 m sobre una regata de 4 m).
+  - Para revisarlo en todos los pueblos, `tools/puentes-casas.mjs`.
+- **Casas en cuesta como las de verdad** (noviembre de 2026): el zócalo de piedra de más de 1,2 m va en talud, algo más
+  ancho abajo (`slopeBase` y `taludZocalo` en `world/plot.js`: 6 cm por metro, 25 cm como mucho), y el de más de 2 m es
+  una planta más, la bajera (`bajeras` en `world/townReal.js`): puerta de madera entre jambas y dintel de sillería donde
+  la cara queda más alta y ventanucos con su alféizar cada 3 m, solo en las caras que dan a algo libre. Antes eran paredes
+  ciegas de piedra de hasta 4 m bajo la casa (en Artajona y Ujué, decenas): la casa parecía puesta en un pedestal. Las
+  piezas van en el grupo de las medianas: como menudas, de menos de 90 cm, no se dibujaban en calidad baja. Un camino de
+  tierra que pasa por en medio de una casa la recorta como una calle (en Irulegi una caseta quedaba en mitad de un cruce);
+  si solo la roza, como en las bordas, no.
 - **Comentarios en castellano**, explicando el porqué.
 - **Sin duplicados** (revisión de noviembre de 2026):
   - Toda escucha en `window` o `document` se quita al soltar lo que la puso, con una función con nombre. El mapa del
@@ -1861,6 +1893,7 @@ otro del repositorio. Se llama `meshy-nube` y no `meshy` para no tapar, en un or
 | `campeonato-pueblo.mjs` | El pelotari junto al frontón de un pueblo invita al campeonato de la comarca: el diálogo con sus cuatro opciones, el campeonato elegido con su cuadro (solo el frontón) y, al salir, la vuelta a la puerta del frontón del pueblo. |
 | `auditoria-entradas.mjs` | Entrar en cada pueblo y bosque como en el iPhone, con la app recién abierta y el botón de jugar del mapa: la carga con su foto, que la foto se descarga, que no hay vuelo desde el aire y que al acabar la carga se juega sin errores. Deja capturas de la carga y del juego de cada uno (`OUT=carpeta`, contra la web compilada en 8099). |
 | `plazas.mjs` | Las plazas de todos los pueblos, con el día de mercado puesto (`?market=1`): que la plaza no tenga trozos empinados ni agua dentro, que el pie de la fuente sea llano (25 cm como mucho) y que los puestos, quien vende, la tienda y quien da las misiones estén en suelo llano y seco. Mide el terreno, sin escalinatas ni tarimas (el kiosco de Pamplona contaba como cuesta). Una línea por pueblo, una captura desde arriba de cada plaza y la lista de los que fallan. `node tools/plazas.mjs <carpeta> [pueblos]`; con `BASE=http://127.0.0.1:8099/`, sobre la web compilada. Nació con la plaza de Roncal al borde del Esca (noviembre de 2026) |
+| `puentes-casas.mjs` | Los puentes y las casas de todos los pueblos con trazado de verdad: puentes con las dos puntas en tierra, agua debajo, sin cuestas imposibles ni escalón al subir, con sitio sobre el agua, sin casas encima ni una casa justo a la salida; calles que cruzan el agua sin puente; casas en el agua, atravesadas por una calle, metidas en otra, sobre un puente, en la plaza, torcidas respecto a su calle, en mucha cuesta o lejos de toda calle. Una línea por pueblo y capturas de lo peor (`BASE=http://127.0.0.1:8099/` para la web compilada) |
 | `carga-textos.mjs` | La pantalla de carga con la descripción de cada pueblo, cada consejo y cada «¿Sabías que…?» de la pelota y la pasaka, en 667×375, 844×390, 932×430 y 1280×720: que nada se corte con puntos suspensivos, se monte o se salga de la pantalla (`LNG=eu`, en euskera). |
 | `mapa-dron.mjs` | El vuelo de dron del mapa del inicio sobre los pueblos con montes alrededor: en 24 puntos de la vuelta, la cámara por encima del relieve y sin montes entre ella y el pueblo. Capturas. |
 | `revision.mjs` | Carga los 31 pueblos y comprueba misiones, anfitriones, suelo, perro y errores; deja el informe en `entrega/revision.json` |
