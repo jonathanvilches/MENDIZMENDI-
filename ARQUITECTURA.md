@@ -1799,7 +1799,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Nada en sitios imposibles** (noviembre de 2026, tras la plaza de Roncal): ningún árbol en el agua ni a menos de 1,5 m
   del cauce, venga de donde venga (`treeSpots` en `world/nature.js`: los de los linderos y los frutales no lo miraban y
   dos salían del Esca al pie del muro). Los puestos del día de mercado (`game/mercado.js`), solo en suelo llano, con la
-  mesa, los postes y quien vende detrás a menos de 30 cm de diferencia, y a 2,5 m del cauce como poco. Para revisarlo en
+  mesa, los postes y quien vende detrás a menos de 30 cm de diferencia, y a 2,5 m del cauce como poco. Las personas
+  (`TownGame.spot`), solo donde el suelo está parejo hacia los cuatro lados y en diagonal, con 45 cm de diferencia como
+  mucho a 70 cm alrededor; si no hay ningún sitio así, en el de menos desnivel, y no en el punto pedido a ciegas: el sabio
+  de Leitza quedaba metido dentro de la escalinata de la iglesia y el de Estella al borde de un muro. Para revisarlo en
   todos los pueblos, `tools/plazas.mjs`.
 - **Comentarios en castellano**, explicando el porqué.
 - **Sin duplicados** (revisión de noviembre de 2026):

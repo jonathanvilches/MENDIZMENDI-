@@ -108,6 +108,7 @@ const WALKER_LINES = [
  *  pueblo, para descargar su personaje solo donde hace falta. */
 export const hasShepherd = (d) => !!(TOWN.farm || PLACES.farm) && d.family !== 'city';
 
+const VECINOS = [[0.7, 0], [-0.7, 0], [0, 0.7], [0, -0.7], [0.5, 0.5], [-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5]];   // (townGame.spot)
 export class TownGame {
   constructor(ctx, def) {
     Object.assign(this, ctx);        // scene, camera, player, follow, ui, sound, input, sky, fauna, particles, beacon, onExit
@@ -226,6 +227,7 @@ export class TownGame {
     { const d = r4(p.x, p.z), lim = B - 14; if (d > lim) { const k = lim / d; p = { ...p, x: p.x * k, z: p.z * k }; } }
     const taken = this._taken ||= [];
     const done = (x, z) => { taken.push(x, z, gap); return { x, z }; };
+    let mejor = null, mv = 1e9;   // (si ningún sitio está del todo parejo, el que menos desnivel tenga, y no el punto pedido a ciegas)
     for (let k = 0; k < 60; k++) {
       const a = k * 2.4, d = k === 0 ? 0 : r * 0.3 + k * 0.6;
       const x = p.x + Math.cos(a) * d, z = p.z + Math.sin(a) * d;
@@ -233,12 +235,15 @@ export class TownGame {
       let near = false; for (let i = 0; i < taken.length && !near; i += 3) { const g = Math.max(gap, taken[i + 2]); near = Math.abs(taken[i] - x) < g && Math.abs(taken[i + 1] - z) < g; }
       if (near) continue;
       if (avoidWater && waterLevelAt(x, z) > groundHeight(x, z) - 0.05) continue;
-      const g0 = groundHeight(x, z), g1 = groundHeight(x + 1, z), g2 = groundHeight(x, z + 1);
-      if (Math.abs(g1 - g0) > 0.6 || Math.abs(g2 - g0) > 0.6) continue;
+      // (suelo parejo alrededor, hacia los cuatro lados: mirando solo dos, el sabio de Leitza quedaba al pie de la escalinata
+      // de la iglesia, metido dentro de los escalones, y el de Estella al borde de un muro; noviembre de 2026)
+      const g0 = groundHeight(x, z); let lo = g0, hi = g0;
+      for (const [dx, dz] of VECINOS) { const g = groundHeight(x + dx, z + dz); if (g < lo) lo = g; if (g > hi) hi = g; }
+      if (hi - lo > 0.45) { if (hi - lo < mv) { mv = hi - lo; mejor = [x, z]; } continue; }
       if (ok && !ok(x, z)) continue;   // (lo último: puede ser lo que más cuesta, townGame.repasaAccesos)
       return done(x, z);
     }
-    return done(p.x, p.z);
+    return mejor ? done(mejor[0], mejor[1]) : done(p.x, p.z);
   }
   placeFor(M) {
     const P = PLACES, m = M.m, lm = (k) => TOWN.landmarks.find(l => l.kind === k);
