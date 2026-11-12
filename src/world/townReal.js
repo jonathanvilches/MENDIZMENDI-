@@ -8,7 +8,7 @@ import { celda, uvCelda } from './flores.js';
 import { TOWN } from './townBuilder.js';
 import { terrainHeight, addPlatform } from './heightfield.js';
 import { addBox, COLLIDERS } from './colliders.js';
-import { riverInfo, villageMask, MOD, PLACES } from './layout.js';
+import { riverInfo, villageMask, pathQuery, MOD, PLACES } from './layout.js';
 import { clamp } from '../util/math.js';
 
 /** La iglesia de los datos: su eje largo y la fachada (+z local) hacia el lado de la plaza o de su calle. */
@@ -48,6 +48,50 @@ function prisma(B, mat, ss, Y0, Y1, o0, o1, esc, eje) {
   g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
   g.setIndex(idx); g.computeVertexNormals();
   B.add(mat, g, null);
+}
+
+/** Las aletas de un puente: en cada esquina, un muro que sale del pilar del pretil, se abre en curva hacia el costado
+ *  (de 15° a 65° del eje) y baja poco a poco hasta el suelo, como los de verdad, que sujetan la orilla y llevan la calle al
+ *  tablero. Antes el pretil acababa en su pilar y, al lado, el talud de tierra; el puente parecía puesto encima. No se
+ *  levanta la que caería al agua, dentro de una casa o encima de una calle. Con su choque, en tramos. */
+function aletas(B, eje, deck, L, Wd, real) {
+  const casas = (real.casas || []).filter(c => !real.taken?.has(c));
+  const enCasa = (x, z) => casas.some(c => { if (Math.abs(c.x - x) > 14 || Math.abs(c.z - z) > 14) return false; const dx = x - c.x, dz = z - c.z, lx = dx * Math.cos(c.ry) - dz * Math.sin(c.ry), lz = dx * Math.sin(c.ry) + dz * Math.cos(c.ry); return Math.abs(lx) < c.w / 2 + 0.3 && Math.abs(lz) < c.d / 2 + 0.3; });
+  for (const [s0, sg] of [[0.3, -1], [L - 0.3, 1]]) {
+    const e = eje(s0), top0 = deck(s0) + 0.97;
+    for (const side of [-1, 1]) {
+      const c = side * (Wd / 2 - 0.21);
+      // (la curva: de medio en medio metro, girando del eje hacia fuera)
+      const La = clamp(2.5 + (top0 - terrainHeight(e.x - sg * e.dx * 2, e.z - sg * e.dz * 2)) * 0.5, 2.5, 5), n = Math.round(La / 0.5);
+      const Q = [{ x: e.x + e.nx * c, z: e.z + e.nz * c }];
+      let ok = true;
+      for (let i = 1; i <= n; i++) {
+        const t = (i - 0.5) / n, th = (15 + 50 * t) * Math.PI / 180;
+        const dx = Math.cos(th) * sg * e.dx + Math.sin(th) * side * e.nx, dz = Math.cos(th) * sg * e.dz + Math.sin(th) * side * e.nz;
+        const q = { x: Q[i - 1].x + dx * 0.5, z: Q[i - 1].z + dz * 0.5 };
+        // (ni encima de una calle que gira al salir del puente: a partir del segundo tramo, fuera de toda calzada)
+        const pq = i > 1 ? pathQuery(q.x, q.z) : null;
+        if (riverInfo(q.x, q.z).edge < 0.3 || enCasa(q.x, q.z) || (pq && pq.d < pq.w + 0.2)) { ok = false; break; }
+        Q.push(q);
+      }
+      if (!ok || Q.length < 4) continue;
+      const cum = [0]; for (let i = 1; i < Q.length; i++) cum.push(cum[i - 1] + Math.hypot(Q[i].x - Q[i - 1].x, Q[i].z - Q[i - 1].z));
+      const G = Q.map(q => terrainHeight(q.x, q.z));
+      // (si el suelo ya está a la altura del pretil, no hace falta)
+      if (top0 - Math.min(...G) < 0.9) continue;
+      const Lw = cum[cum.length - 1];
+      const ejeA = (s) => {
+        let i = 1; while (i < Q.length - 1 && cum[i] < s) i++;
+        const a = Q[i - 1], b = Q[i], l = (cum[i] - cum[i - 1]) || 1e-6, t = clamp((s - cum[i - 1]) / l, 0, 1), dx = (b.x - a.x) / l, dz = (b.z - a.z) / l;
+        return { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t, dx, dz, nx: dz, nz: -dx };
+      };
+      // (la coronación baja en curva suave, de la del pretil a 30 cm del suelo)
+      const Y1 = cum.map((s, i) => { const t = s / Lw, k = t * t * (3 - 2 * t); return Math.max(G[i] + 0.3, top0 + (G[i] + 0.3 - top0) * k); });
+      const Y0 = G.map(g => g - 0.6);
+      prisma(B, 'stone', cum, Y0, Y1, -0.21, 0.21, 1.6, ejeA);
+      for (let i = 1; i < Q.length; i++) { const a = Q[i - 1], b = Q[i]; addBox((a.x + b.x) / 2, (a.z + b.z) / 2, 0.42, Math.hypot(b.x - a.x, b.z - a.z) + 0.05, Math.atan2(b.x - a.x, b.z - a.z)); }
+    }
+  }
 }
 
 /** Puentes de piedra: los tramos de calle que son puente y que src/levels/ordenar.js manda levantar (los que cruzan agua,
@@ -135,6 +179,7 @@ export function realBridges(B, real) {
       // (y en cada punta del pretil, un pilar de remate: el pretil ya no acaba cortado a ras)
       for (const s of [0.3, L - 0.3]) { const e = eje(s), y = deck(s); B.add(cap, box(0.66, 1.2, 0.66, 1), M(e.x + e.nx * c, y + 0.55, e.z + e.nz * c, Math.atan2(e.dx, e.dz))); }
     }
+    aletas(B, eje, deck, L, Wd, real);
     for (let i = 0; i < pts.length - 1; i++) {
       const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], sl = cum[i + 1] - cum[i]; if (sl < 0.2) continue;
       const dx = (x1 - x0) / sl, dz = (z1 - z0) / sl, ry = Math.atan2(dx, dz);
