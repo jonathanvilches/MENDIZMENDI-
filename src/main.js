@@ -283,6 +283,8 @@ async function boot() {
         rt.sky.time = q.get('t') ? +q.get('t') : 10;
         game.applySettings();
         if (!opt.sport) releaseOffscreen();   // (el renderizador oculto de la carga se suelta antes de jugar)
+        // (la aventura, ya ahora: así se compila con lo demás y no para la imagen nada más empezar; townGame.montaAventura)
+        if (!opt.sport) game.montaAventura?.();
         await rt.precompile();
         ui.progress(1, '¡Listo!');
         rt.start(game);

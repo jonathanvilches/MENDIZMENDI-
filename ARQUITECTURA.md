@@ -1478,8 +1478,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     (`onCaida`). Bajo un puente no se pasa nadando. Va con los mandos de siempre: la palanca o las flechas y el botón
     de saltar, así que sirve igual el teclado, el táctil, el mando y el móvil de mando. `puedeAventura` lo apaga
     donde no toca.
-  - *La aventura de cada pueblo* (`game/townAventura.js`, métodos de `TownGame`): se monta en el primer fotograma de
-    juego (`aventuraInicia`; con `?aventura=0`, no). Pone una atalaya en el alto más alto que se alcanza cerca de la
+  - *La aventura de cada pueblo* (`game/townAventura.js`, métodos de `TownGame`): se monta durante la carga, antes de
+    la segunda compilación (`montaAventura`, desde `main.js`; con `?aventura=0`, no). Antes se montaba en el primer
+    fotograma de juego y cada pieza nueva paraba la imagen mientras se compilaba, ya con el pueblo a la vista. Pone una atalaya en el alto más alto que se alcanza cerca de la
     plaza, con una banderola a trece metros; cinco kutxas (cofres) escondidas, cada una en el sitio más lejano de todo
     lo que ya hay, que solo se ven a menos de 16 m; y una montura junto a la entrada (`game/montura.js`: caballo de
     Burguete en la montaña, de 2,3 m con la cabeza alta y de tiro como los de verdad, la especie `burguete` de `actors/animalGlb.js`, el modelo de base tal cual, con sus colores de siempre (alazán con las crines claras), solo más grande, y los ojos más pequeños (`ojo` 0,75): deformarlo, pintarle las patas de negro y la crin oscura no le gustó al autor y se modelará aparte; las opciones de forma siguen en `caricatura` (`torso`, `cuello`, `vientre`, `grupa`, `patas`, `abre`, `melena`, `copete`, `cola`, `calzas`, `medias`) y `brillo`, sin usar; la pieza de cada vértice, crin y cola o cascos, va en el atributo `pieza` solo mientras se cuece); burro

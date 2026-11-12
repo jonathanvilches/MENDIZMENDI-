@@ -596,6 +596,17 @@ export class TownGame {
     if (this.sportIdleT > 45) { this.sportIdleT = 0; this.sportBusy = false; P.frozen = false; this.ui.hudVisible?.(true); console.warn('[vigilante] menú de deporte sin menú: el pueblo vuelve a responder'); (window.__errors ||= []).push('vigilante-deporte'); }
   }
   // ---------- Bucle ----------
+  /** La aventura del pueblo (townAventura.js), montada durante la pantalla de carga, antes de la última compilación
+   *  (main.js): así sus piezas (la atalaya, las kutxas, la montura) se compilan con el resto. Antes se montaba en el
+   *  primer fotograma de juego y, al añadirse a la escena ya en marcha, la imagen se paraba mientras se compilaban (hasta
+   *  1,5 s por pieza, runtime.warm): era el parón de alrededor de un segundo nada más cargar (noviembre de 2026, informes
+   *  del iPhone). Con ?aventura=0 no se monta: para comparar el pueblo con ella y sin ella (tools/puntos-interes.mjs) */
+  montaAventura() {
+    if (this.av || this.disposed || this.sinAventura) return;
+    if (/[?&]aventura=0/.test(location.search)) { this.sinAventura = true; return; }
+    try { this.aventuraInicia(); } catch (e) { this.sinAventura = true; console.warn('aventura', e); }
+  }
+
   update(dt) {
     this.elapsed += dt;
     const P = this.player;
@@ -643,9 +654,9 @@ export class TownGame {
     this.agro?.update(dt, P, this.particles);
     this.mercado?.cerca(this.camera.position);   // (el género del mercado, solo de cerca)
     this.tractorTick(dt);   // (las cosechas con tractor o cosechadora)
-    // la aventura (atalaya, kutxas, montura, anillo y corazones: townAventura.js): se monta en el primer fotograma de juego
-    // (con ?aventura=0 no se monta: para comparar el pueblo con ella y sin ella, tools/puntos-interes.mjs)
-    if (!this.av && this.mode === 'play' && !this.disposed && !this.sinAventura) { if (/[?&]aventura=0/.test(location.search)) this.sinAventura = true; else try { this.aventuraInicia(); } catch (e) { this.sinAventura = true; console.warn('aventura', e); } }
+    // la aventura (atalaya, kutxas, montura, anillo y corazones: townAventura.js): se monta ya en la carga (montaAventura,
+    // desde main.js); si no llegó a montarse, en el primer fotograma de juego
+    if (!this.av && this.mode === 'play') this.montaAventura();
     this.aventuraTick(dt);
     if (this.mode === 'play' && !this.sportBusy) this.mochila?.update(dt, P);   // (en los menús de pelota no da hambre)
     this.flora?.update(dt, P.pos);
