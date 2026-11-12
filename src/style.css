@@ -254,6 +254,23 @@ summary { line-height: 1.3; }
 #misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 8px; }
 #tl.mis #misiones { grid-template-columns: none; grid-auto-flow: column; grid-template-rows: repeat(var(--filas, 8), var(--chip)); grid-auto-columns: var(--chip); direction: rtl; }
 #tl.mis #misiones > button { direction: ltr; }
+/* (plegadas en un solo icono, el de la misión activa, con cuántas quedan sin hacer y un canto de otras detrás; al tocarlo
+   se despliegan debajo de ella una detrás de otra, con el botón de plegar al final, y al plegarse vuelven hacia la activa.
+   ui.js, despliegaMisiones y pliegaMisiones) */
+#misiones .plegar { --mc: #9d8fc2; order: 99; background: rgba(7, 2, 15, .7); border-radius: 50%; }
+#tl.mis #misiones > button.act { order: -1; }   /* (la activa, siempre la primera: al desplegarse no se mueve de su sitio) */
+#misiones .plegar svg { width: 55%; height: 55%; }
+#tl.mis.plegada #misiones { grid-template-rows: var(--chip); }   /* (y el panel, del alto de una casilla) */
+#tl.mis.plegada #misiones > button:not(.act) { display: none; }
+#tl.mis.plegada #misiones > button.act { box-shadow: 3px 3px 0 -1px color-mix(in srgb, var(--mc) 40%, #1c0d38), 6px 6px 0 -2px color-mix(in srgb, var(--mc) 25%, #1c0d38); }
+#tl.mis.plegada #misiones > button.act.cur { box-shadow: inset 0 0 0 2px #fff, 3px 3px 0 -1px color-mix(in srgb, var(--mc) 40%, #1c0d38), 6px 6px 0 -2px color-mix(in srgb, var(--mc) 25%, #1c0d38); }
+#tl.mis.plegada #misiones > button.act[data-mas]:not([data-mas=""])::before { content: attr(data-mas); position: absolute; left: -7px; bottom: -7px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #ffd166; color: #1c0d38; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 10px/18px var(--f-ui, 'MZ Texto'), sans-serif; text-align: center; }
+#tl.mis.abre #misiones > button:not(.act) { animation: misBaja .32s var(--ease) both; animation-delay: calc(var(--k, 0) * 28ms); }
+#tl.mis.abre #misiones > .plegar { animation-delay: 0ms; }
+#tl.mis.cierra #misiones > button:not(.act) { animation: misSube .22s ease-in both; }
+@keyframes misBaja { from { opacity: 0; transform: translateY(calc(var(--k, 1) * -10px)) scale(.6); } }
+@keyframes misSube { to { opacity: 0; transform: translateY(-14px) scale(.6); } }
+@media (prefers-reduced-motion: reduce) { #tl.mis.abre #misiones > button, #tl.mis.cierra #misiones > button { animation: none; } }
 /* la mochila, los prismáticos (cuando los tienes) y la pausa: sueltos arriba a la izquierda, redondos de 48 px, oscuros y sin
    sombra, como los del partido de pelota */
 #tlb { position: absolute; left: calc(var(--sl) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; gap: 10px; pointer-events: none; }
