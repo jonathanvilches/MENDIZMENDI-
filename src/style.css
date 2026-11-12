@@ -249,15 +249,12 @@ summary { line-height: 1.3; }
 /* (la misión desplegada toma el ancho del panel sin ensancharlo: así no se mueve la brújula al abrirse) */
 #tl.mis #quest { width: 0; min-width: 100%; }
 @media (max-height: 520px) { #tl.mis { --chip: 28px; } }
-/* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
-@media (max-height: 520px) and (max-width: 740px) { #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
 @media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 36px; min-width: 260px; } #tl.mis #misiones { gap: 8px; } }
 #misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 6px; }
 /* la mochila, los prismáticos (cuando los tienes) y la pausa, al final de la barra de misiones y bien separados de ellas:
    12 px de hueco a cada lado de una raya clara de 2 px de arriba abajo, y redondos y de un gris translúcido, no cuadrados de
-   color como las misiones. Del tamaño de una casilla. Si la barra no cabe en una fila (móvil estrecho de pie, o un pueblo
-   con muchas misiones), las casillas van en dos filas y los botones en columna (ui.js, fitTop, clase .dos), como en el
-   móvil tumbado pequeño */
+   color como las misiones. Del tamaño de una casilla. Si la barra no cabe en una fila entre el joystick y los botones, las
+   casillas van en dos filas y los botones en columna (ui.js, fitTop, clase .dos) */
 #tl.mis .mfila { display: flex; align-items: center; }
 #mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: 6px; margin-left: 12px; padding-left: 12px; border-left: 2px solid rgba(255, 255, 255, .5); }
 #mbtns .round { width: var(--chip); height: var(--chip); border: 0; background: rgba(255, 255, 255, .14); box-shadow: none; }
@@ -265,7 +262,6 @@ summary { line-height: 1.3; }
 #mbtns .round.bag .ering { inset: 0; }
 #tl.mis.dos #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); }
 #tl.mis.dos #mbtns { flex-direction: column; justify-content: center; }
-@media (max-height: 520px) and (max-width: 740px) { #mbtns { flex-direction: column; justify-content: center; } }
 @media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: 8px; } }
 /* (cada casilla, el icono sobre un fondo sólido del color de su categoría: con el 16 % del color y el borde, que los
    botones ya no llevan, se veían apagadas y casi transparentes sobre el pueblo; noviembre de 2026, lo pidió el autor.
@@ -288,6 +284,15 @@ summary { line-height: 1.3; }
 #tl.mis #quest small, #tl.mis #quest b.qt { text-box: trim-both cap alphabetic; } #tl.mis #quest small + b.qt { margin-top: var(--r-ts); } #tl.mis #quest .qrow { margin-top: var(--r-ts); }
 #tl.mis #quest .qd { display: inline; color: #ff9bd6; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; }
 @media (prefers-reduced-motion: reduce) { #tl.mis #quest { animation: none; } }
+/* la barra de misiones del pueblo, abajo en el centro, al alcance de los pulgares (noviembre de 2026, lo pidió el autor;
+   antes iba arriba a la izquierda). ui.js, fitTop, la deja entre el joystick y los botones o, si ahí no cabe, encima de
+   ellos. La misión se despliega hacia arriba: el panel crece desde abajo, con la raya encima de los cuadrados y el piquito
+   de la casilla elegida apuntando hacia arriba. Durante una charla no se ve: la charla va abajo y la taparía */
+#tl.mis { top: auto; bottom: calc(var(--sb) + var(--edge)); left: 50%; transform: translateX(-50%); flex-direction: column-reverse; }
+#tl.mis #quest { margin: 0 0 12px; padding: 0 0 12px; border-top: 0; border-bottom: 1px solid rgba(255, 255, 255, .12); animation-name: tlAbreArriba; }
+@keyframes tlAbreArriba { from { opacity: 0; transform: translateY(6px); } }
+#tl.mis #misiones button.sel::before { bottom: auto; top: -9px; }
+.talking #tl.mis { visibility: hidden; }
 #ribbons .eg { margin-left: 8px; font-size: var(--fs-sm); color: #ff7ac8; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 1px 2px #000; }
 /* la aventura de Otsagabia: el icono de la misión con lo que hay que hacer y las cintas, siempre a la vista (plegada hasta
    tocar, arriba solo quedaba un icono suelto sin sentido); al cambiar lo que hay que hacer, el texto entra de nuevo */
@@ -304,9 +309,8 @@ summary { line-height: 1.3; }
    sus huecos */
 #topright { position: absolute; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + var(--edge)); display: grid; grid-template-columns: auto auto; grid-template-areas: "btns mini" "info mini"; gap: 8px 10px; align-items: start; justify-items: end; pointer-events: none; }
 #topright > * { pointer-events: auto; }
-/* (en el pueblo los botones van en la barra de misiones: aquí solo el minimapa y, a su izquierda, la distancia. De pie, si
-   la barra llega hasta él, ui.js lo baja debajo de ella) */
-#topright.sin-b { grid-template-areas: "info mini"; transition: top .25s var(--ease); }
+/* (en el pueblo los botones van en la barra de misiones, abajo: aquí solo el minimapa y, a su izquierda, la distancia) */
+#topright.sin-b { grid-template-areas: "info mini"; }
 .rbtns { grid-area: btns; display: flex; gap: 8px; }
 #minfo { grid-area: info; display: flex; align-items: center; gap: 6px; }
 .round { position: relative; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: rgba(14, 10, 24, .66); border: 2px solid rgba(255, 255, 255, .82); box-shadow: 0 3px 12px rgba(0, 0, 0, .35); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); transition: transform .12s, background .12s, border-color .12s; }
@@ -440,6 +444,18 @@ html.tele #dialog { width: min(912px, calc(calc(100vw / var(--z, 1)) - 24px)); }
   #lane { top: auto; bottom: calc(var(--sb) + var(--thumb)); left: calc(50% - 22px); width: calc(calc(100vw / var(--z, 1)) - var(--sl) - var(--sr) - 450px); flex-direction: column-reverse; } #lane .note { font-size: var(--fs-sm); padding: 8px 12px; } #toast svg, #toast img { width: 22px; height: 22px; }
   #dialog { padding: 8px 16px; } #dialog p { font-size: var(--fs-md); min-height: 40px; }
   .touch #prompt { bottom: calc(var(--sb) + 92px); }
+}
+/* (en el pueblo, con la barra de misiones abajo: los avisos, los subtítulos y el texto de acción van encima de ella, también
+   cuando la misión se despliega; ui.js, fitTop, pone en --barra hasta dónde llega desde abajo. En el ordenador los avisos
+   siguen arriba; en el móvil, el texto de acción sigue a la derecha, encima de los botones) */
+@media (max-height: 520px), (max-aspect-ratio: 1/1) { .barra-abajo #lane { top: auto; bottom: calc(var(--barra, 0px) + 8px); flex-direction: column-reverse; } }
+.barra-abajo #subtitle { bottom: calc(var(--barra, 0px) + 12px); }
+body.barra-abajo:not(.touch) #prompt, .con-mando body.barra-abajo #prompt { bottom: max(calc(var(--sb) + 110px), calc(var(--barra, 0px) + 12px)); }
+/* (de pie, la barra va de lado a lado encima del joystick y los botones: el texto de acción, a la derecha justo encima de
+   ella, y los avisos, encima del texto de acción cuando lo hay, como antes) */
+@media (max-aspect-ratio: 1/1) {
+  body.barra-abajo.touch #prompt { bottom: calc(var(--barra, 0px) + 8px); }
+  .barra-abajo:has(#prompt:not(.hidden)) #lane { bottom: calc(var(--barra, 0px) + 60px); }
 }
 
 /* ---------- Pantallas (cuaderno, mapa, menú, premio) ---------- */

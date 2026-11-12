@@ -49,7 +49,8 @@ export class AventuraHud {
     addEventListener('resize', this.alCambiar);
     this.ro = typeof ResizeObserver === 'function' ? new ResizeObserver(this.alCambiar) : null;
   }
-  /** Dónde van los corazones: arriba en el centro si no pisan nada; si no, debajo del panel de las misiones. */
+  /** Dónde van los corazones: arriba en el centro si no pisan nada; si no, debajo del panel de las misiones o, si el panel
+   *  está abajo (la barra de misiones del pueblo), arriba a la izquierda. */
   coloca() {
     const c = this.cor; c.style.transition = 'none'; c.classList.remove('lado'); c.style.left = ''; c.style.top = '';   // (sin transición mientras se mide)
     const panel = document.querySelector('#hud #tl'), der = document.querySelector('#hud #topright');
@@ -57,7 +58,8 @@ export class AventuraHud {
     const t = panel?.getBoundingClientRect(), r = der?.getBoundingClientRect();
     const w = c.offsetWidth, x0 = innerWidth / 2 - w / 2 - 10, x1 = innerWidth / 2 + w / 2 + 10, y1 = c.offsetTop + c.offsetHeight + 4;
     const pisa = (q) => !!q && q.width > 0 && q.left < x1 && q.right > x0 && q.top < y1;
-    if (t && t.width > 0 && (pisa(t) || pisa(r))) { c.classList.add('lado'); c.style.left = Math.round(t.left) + 'px'; c.style.top = Math.round(t.bottom + 8) + 'px'; }
+    // (con la barra de misiones del pueblo abajo, no debajo de ella, que se saldría de la pantalla: arriba a la izquierda)
+    if (t && t.width > 0 && (pisa(t) || pisa(r))) { c.classList.add('lado'); const abajo = t.top > innerHeight / 2; c.style.left = (abajo ? 16 : Math.round(t.left)) + 'px'; if (!abajo) c.style.top = Math.round(t.bottom + 8) + 'px'; }
     void c.offsetWidth; c.style.transition = '';
   }
   /** Cada fotograma: dónde está el jugador en pantalla y cuánta resistencia le queda. */

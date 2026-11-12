@@ -150,6 +150,7 @@ export class UI {
     </div>`);
     this.root.appendChild(h);
     this.hud = h;
+    document.body.classList.toggle('barra-abajo', town);   // (la barra de misiones abajo: los avisos y los subtítulos, encima)
     this.fade ||= document.body.appendChild(el('<div id="fade"></div>'));
     this.subtitle ||= document.body.appendChild(el('<div id="subtitle"></div>'));
     const tap = (id, fn) => { const b = $(id, h); b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); fn(); }); };
@@ -196,17 +197,28 @@ export class UI {
     const h = this.hud; if (!h) return;
     const T = $('#tl', h); if (!T) return;
     T.style.maxWidth = '';
-    // (en el pueblo, la barra de misiones con la mochila y la pausa al final: en una fila si cabe; si no, las casillas en
-    // dos filas y los botones en columna, como en el móvil tumbado pequeño. De pie, el minimapa baja debajo de la barra
-    // en vez de estrecharla; y vuelve a subir cuando cabe a su lado)
-    const R = $('#topright', h);
-    if (T.classList.contains('mis') && R) {
-      const dePie = matchMedia('(max-aspect-ratio: 1/1)').matches;
-      const choca = () => { const d = T.getBoundingClientRect().right + 8; return ['#mini', '#minfo'].some((q) => { const r = $(q, h)?.getBoundingClientRect(); return r && r.width > 0 && d > r.left; }); };
-      T.classList.remove('dos');
-      if (T.scrollWidth > T.clientWidth + 1 || (!dePie && choca())) T.classList.add('dos');
-      R.style.top = dePie && choca() ? Math.round(T.getBoundingClientRect().bottom + 8) + 'px' : '';
-      return;   // (la barra no se estrecha: sus casillas tienen ancho fijo y el texto de la misión ya toma el ancho del panel)
+    // (en el pueblo, la barra de misiones con la mochila y la pausa al final va abajo en el centro, entre el joystick y los
+    // botones de la derecha, al alcance de los pulgares, y la misión se despliega hacia arriba. En una fila si cabe ahí; si
+    // no, las casillas en dos filas y los botones en columna; y si ni así (el móvil de pie), encima del joystick y de los
+    // botones, en una fila si cabe en la pantalla. La barra no se estrecha nunca: sus casillas tienen ancho fijo y el
+    // texto de la misión toma el ancho del panel. --barra (en el body) dice hasta dónde llega desde abajo, con la misión
+    // desplegada también: los avisos, los subtítulos y el texto de acción van encima)
+    if (T.classList.contains('mis')) {
+      const W = innerWidth, H = innerHeight;
+      const caja = (q) => { const e = $(q, h), r = e && getComputedStyle(e).display !== 'none' ? e.getBoundingClientRect() : null; return r && r.width > 0 ? r : null; };
+      const izq = caja('#stickHint'), der = caja('#controls');
+      const mitad = Math.min(W / 2 - (izq ? izq.right + 12 : 16), (der ? der.left - 12 : W - 16) - W / 2);
+      const cabe = () => T.offsetWidth / 2 <= mitad && T.scrollWidth <= T.clientWidth + 1;
+      T.classList.remove('dos'); T.style.bottom = '';
+      if (!cabe()) {
+        T.classList.add('dos');
+        if (!cabe()) {
+          T.classList.remove('dos'); if (T.scrollWidth > T.clientWidth + 1) T.classList.add('dos');
+          T.style.bottom = Math.round(H - Math.min(izq ? izq.top : H, der ? der.top : H) + 8) + 'px';
+        }
+      }
+      document.body.style.setProperty('--barra', Math.round(H - T.getBoundingClientRect().top) + 'px');
+      return;
     }
     const cajas = ['#topright .rbtns', '#mini', '#minfo'].map((s) => $(s, h)).filter(Boolean);
     for (const alto of [48, Infinity]) {
@@ -219,7 +231,7 @@ export class UI {
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
-  destroyHUD() { this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
+  destroyHUD() { document.body.classList.remove('barra-abajo'); document.body.style.removeProperty('--barra'); this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
     // (y lo que apuntaba al pueblo: la interfaz dura toda la partida y, con estas referencias, el pueblo que se dejaba seguía
     // entero en la memoria, unos 160 MB, hasta entrar en otro; en el iPhone, al cambiar de pueblo, se cerraba el juego)
     this.game = null; this._fitTopR = null; this.mini = null; this.boxes = new Map(); this.questEls = null; }

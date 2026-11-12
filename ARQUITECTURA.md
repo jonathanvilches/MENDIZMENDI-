@@ -1101,11 +1101,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   al final de la barra de misiones (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las casillas por 12 px a
   cada lado de una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla (noviembre de 2026, lo
   pidió el autor: que se note la separación). Arriba a la derecha (`#topright.sin-b`) solo quedan el minimapa y, a su
-  izquierda, la distancia. `fitTop` (ui.js) decide la forma de la barra: en una fila si cabe; si no (móvil estrecho de
-  pie, o un pueblo de hasta 10 misiones como Pamplona), clase `.dos`: las casillas en dos filas y los botones en
-  columna, lo mismo que en el móvil tumbado pequeño por CSS. De pie, si la barra llega al minimapa o a la distancia,
-  el minimapa baja debajo de ella (`top` en línea, con transición) y baja más cuando la misión se despliega; en el
-  pueblo la barra no se estrecha nunca. Un ResizeObserver en `#tl` vuelve a colocarlo todo. En la aventura de
+  izquierda, la distancia. La barra va abajo en el centro, al alcance de los pulgares, y la misión se despliega hacia
+  arriba (`#tl.mis`: `bottom`, centrada con `translateX(-50%)`, `flex-direction: column-reverse`; la raya del panel
+  encima de los cuadrados y el piquito de la casilla elegida apuntando arriba; noviembre de 2026, lo pidió el autor,
+  antes iba arriba a la izquierda). `fitTop` (ui.js) la coloca: entre el joystick (`#stickHint`) y los botones
+  (`#controls`) en una fila si cabe; si no, clase `.dos` (las casillas en dos filas y los botones en columna); y si ni
+  así (el móvil de pie), encima del joystick y los botones, en una fila si cabe en la pantalla. No se estrecha nunca.
+  Pone en `--barra` (en el body, con la clase `barra-abajo`) hasta dónde llega desde abajo, también desplegada, y un
+  ResizeObserver en `#tl` lo actualiza: los avisos (`#lane`, en el móvil), los subtítulos y el texto de acción del
+  ordenador van encima; de pie, el texto de acción va a la derecha justo encima de la barra y los avisos encima de él.
+  Durante una charla la barra no se ve (la charla va abajo). Los corazones, si no caben arriba en el centro, van arriba
+  a la izquierda (`aventuraHud.js`), no debajo de la barra. En la aventura de
   Otsagabia los botones siguen arriba a la derecha (`.rbtns`), junto al minimapa.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
   desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de
