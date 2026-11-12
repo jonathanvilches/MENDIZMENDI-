@@ -251,7 +251,7 @@ export class TownGame {
     const P = PLACES, m = M.m, lm = (k) => TOWN.landmarks.find(l => l.kind === k);
     const near = (key) => key === 'farm' ? (TOWN.farm?.door || P.farm) : key === 'cave' ? (lm('cave')?.spot || P.forest) : P[key] || P.market;
     switch (M.type) {
-      case 'visit': return { x: P.spawn.x + 3, z: P.spawn.z - 12 };
+      case 'visit': { const S = P.spawn, dx = P.plaza.x - S.x, dz = P.plaza.z - S.z, d = Math.hypot(dx, dz) || 1; return { x: S.x + (dx * 12 - dz * 3) / d, z: S.z + (dz * 12 + dx * 3) / d }; }   // (el guía, a 12 pasos de la llegada hacia el pueblo)
       case 'process': return m.gather?.near ? near(m.gather.near) : P.market;
       case 'harvest': return P.fields;
       case 'herd': return TOWN.pen ? { x: TOWN.pen.x, z: TOWN.pen.z + TOWN.pen.d / 2 + 4 } : P.farm;
@@ -432,16 +432,16 @@ export class TownGame {
     }
     this.nombresUnicos();
     try { this.repasaAccesos(); } catch (e) { console.warn('accesos', e); }
-    // aparición del jugador: la primera vez, en la entrada del pueblo; si ya hay misiones hechas, a unos pasos de quien
-    // da la siguiente, mirándole, para no cruzar el pueblo entero cada vez que se vuelve a jugar (antes, siempre en la
-    // entrada). El perro, a su lado
+    // aparición del jugador: siempre a las afueras, pasadas las últimas casas y mirando al pueblo. La primera vez, por la
+    // entrada principal; con misiones hechas, por la salida del pueblo más cercana a quien da la siguiente, mirando hacia
+    // él (levels/townReal.js, PLACES.entradas). Antes, con misiones hechas, se aparecía a unos pasos de quien la daba, en
+    // mitad del pueblo, y el autor quiere empezar siempre fuera (noviembre de 2026). El perro, a su lado
     this.autoTrack();
     const M0 = this.missions.some(M => M.done) && this.missions[this.tracked], h = M0 && !M0.done && M0.host?.pos;
+    const ent = PLACES.entradas?.length ? PLACES.entradas : [PLACES.spawn], lejos = (e) => Math.hypot(e.x - h.x, e.z - h.z);
     let sp, mira = PLACES.plaza;
-    if (h) {
-      const dx = PLACES.spawn.x - h.x, dz = PLACES.spawn.z - h.z, d = Math.hypot(dx, dz) || 1, k = Math.min(5, d) / d;
-      sp = this.spot({ x: h.x + dx * k, z: h.z + dz * k }, 3); mira = h;
-    } else sp = this.spot(PLACES.spawn, 4);
+    if (h) { sp = this.spot(ent.reduce((a, e) => lejos(e) < lejos(a) ? e : a), 4); mira = h; }
+    else sp = this.spot(PLACES.spawn, 4);
     this.player.place(sp.x, sp.z, Math.atan2(mira.x - sp.x, mira.z - sp.z));
     { const D = this.perro?.dog, P = this.player.pos; if (D) D.pos.set(P.x + 1.2, P.y, P.z + 1.2); }
     this.follow.snap(this.player);
@@ -832,7 +832,9 @@ export class TownGame {
       const g = makeTownSignpost(sitios); g.position.set(at.x, y, at.z); this.scene.add(g); (this._carteles ||= []).push(g);
     };
     pon({ x: PLACES.plaza.x + 6, z: PLACES.plaza.z + 6 });
-    if (PLACES.spawn && Math.hypot(PLACES.spawn.x - PLACES.plaza.x, PLACES.spawn.z - PLACES.plaza.z) > 45) pon({ x: PLACES.spawn.x + 3, z: PLACES.spawn.z + 3 });
+    // (el de la llegada, 6 m hacia el pueblo y 4 a un lado: a 3 m en diagonal quedaba pegado a la cámara y tapaba la vista)
+    { const S = PLACES.spawn, dx = PLACES.plaza.x - S.x, dz = PLACES.plaza.z - S.z, d = Math.hypot(dx, dz);
+      if (d > 45) pon({ x: S.x + (dx * 6 + dz * 4) / d, z: S.z + (dz * 6 - dx * 4) / d }); }
   }
   mapLabels() {
     const L = [{ x: PLACES.plaza.x, z: PLACES.plaza.z - 18, label: this.def.name }];

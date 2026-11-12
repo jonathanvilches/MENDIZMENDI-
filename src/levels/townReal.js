@@ -452,14 +452,14 @@ export function createRealTownLevel(def, D) {
   }
   // ---------- El núcleo: donde se juega ----------
   // El pueblo se levanta solo donde están las misiones: el círculo alrededor de la plaza y la envolvente de los lugares de
-  // las misiones del casco (iglesia, ayuntamiento, frontón, mercado, llegada, orilla del río y los monumentos que tienen
+  // las misiones del casco (iglesia, ayuntamiento, frontón, mercado, orilla del río y los monumentos que tienen
   // casas alrededor), con un margen. Dentro, todas las casas de los datos en su sitio, sin quitar ninguna: la misma
   // estructura del pueblo; fuera, campo. Con un círculo fijo de 300 m, en Estella quedaban fuera el palacio y el puente de
   // la misión y en Tudela se levantaban casi mil casas que no pisaba ninguna misión. Los miradores, dólmenes, cuevas y
   // demás lugares del monte no cuentan: están en el campo
   const MONTE = new Set(['lookout', 'pass', 'dig', 'monolith', 'dolmen', 'gorge', 'cave', 'tunnel', 'cromlech', 'menhir', 'cueva', 'castro', 'romana', 'villa']);
   const conCasas = (p) => CASAS.some(b => Math.hypot(b.x - p.x, b.z - p.z) < 35);
-  const ANCLAS = [PLACES.plaza, PLACES.church, PLACES.townhall, PLACES.frontonReal && PLACES.frontonNear, PLACES.market, PLACES.spawn,
+  const ANCLAS = [PLACES.plaza, PLACES.church, PLACES.townhall, PLACES.frontonReal && PLACES.frontonNear, PLACES.market,
     riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge < 12 && PLACES.riverSpot,
     ...PLACES.landmarks.filter(l => !MONTE.has(l.kind) && Math.hypot(l.x - PL.x, l.z - PL.z) < 460 && conCasas(l))].filter(Boolean).map(p => ({ x: p.x, z: p.z }));
   const HULL = envolvente(ANCLAS);
@@ -479,6 +479,41 @@ export function createRealTownLevel(def, D) {
     const urbana = (c) => c.type === 'street' || c.cls === 'footway' || c.cls === 'pedestrian';
     const quedan = PATHS.filter(c => !(urbana(c) && c.pts.every(([x, z]) => nucleoD(x, z) > 35)));
     PATHS.length = 0; PATHS.push(...quedan); pathAt = buckets(PATHS, 25, 10);
+  }
+  // ---------- La llegada: a las afueras ----------
+  // Se aparece al entrar en una carretera o calle que sale del pueblo, pasadas las últimas casas: con el pueblo a la
+  // espalda, de 15 a 45 m de la casa más cercana, y casi ninguna más allá, en llano y lejos del agua. De las que hay, una
+  // por cada lado del pueblo (PLACES.entradas): con misiones hechas se entra por la más cercana a quien da la siguiente.
+  // La primera, la mejor, por carretera. Antes la llegada iba a unos 110 m de la plaza y el núcleo la abrazaba con 40 m
+  // de margen, así que siempre caía entre casas: en Puente la Reina, 31 a menos de 40 m (noviembre de 2026)
+  {
+    const lejos = (x, z) => Math.pow(x ** 4 + z ** 4, 0.25) > 440 - 60;
+    const delante = (x, z, ux, uz) => { let n = 0; for (const b of CASAS) { const dx = b.x - x, dz = b.z - z; if (dx * ux + dz * uz > 4 && dx * dx + dz * dz < 1e4) n++; } return n; };
+    const prueba = (x, z, extra) => {
+      if (!inner(x, z) || lejos(x, z)) return null;
+      const vd = vgrid(VD, x, z); if (vd < 15 || vd > 45) return null;
+      const dP = Math.hypot(x - PL.x, z - PL.z); if (dP < 30) return null;
+      const sl = slopeAt(x, z); if (sl > 0.16 || riverInfo(x, z).edge < 5 || occupied(x, z, 3)) return null;
+      const ux = (x - PL.x) / dP, uz = (z - PL.z) / dP, n = delante(x, z, ux, uz); if (n > 2) return null;
+      return { x, z, a: Math.atan2(ux, uz), s: Math.abs(vd - 22) * 0.12 + n * 2 + sl * 25 + dP * 0.01 + extra };
+    };
+    const cands = [];
+    for (const P of PATHS) {
+      const tipo = P.type === 'road' ? -2 : P.type === 'trail' ? 2.5 : (P.cls === 'footway' || P.cls === 'pedestrian') ? 1 : 0;
+      for (let i = 0; i < P.pts.length - 1; i++) {
+        const [ax, az] = P.pts[i], [bx, bz] = P.pts[i + 1], l = Math.hypot(bx - ax, bz - az) || 1;
+        for (let t = 0; t < l; t += 5) { const c = prueba(ax + (bx - ax) * t / l, az + (bz - az) * t / l, tipo); if (c) cands.push(c); }
+      }
+    }
+    // (sin calle que salga del pueblo, en el campo de alrededor, con lo que falte hasta un camino de más)
+    if (!cands.length) for (let r = 40; r <= 380; r += 8) for (let k = 0; k < 48; k++) {
+      const a = (k / 48) * Math.PI * 2, x = PL.x + Math.sin(a) * r, z = PL.z + Math.cos(a) * r, q = pathQuery(x, z);
+      const c = prueba(x, z, 3 + Math.min(10, q.d * 0.1)); if (c) cands.push(c);
+    }
+    cands.sort((a, b) => a.s - b.s);
+    const ent = [];
+    for (const c of cands) if (ent.length < 6 && ent.every(e => Math.abs(Math.atan2(Math.sin(e.a - c.a), Math.cos(e.a - c.a))) > 0.7 && Math.hypot(e.x - c.x, e.z - c.z) > 60)) ent.push(c);
+    if (ent.length) { PLACES.spawn = { x: ent[0].x, z: ent[0].z }; PLACES.entradas = ent.map(({ x, z }) => ({ x, z })); }
   }
   // ---------- El orden: puentes que llegan a tierra, casas que no se pisan ni pisan la calle, puertas con salida ----------
   // (src/levels/ordenar.js; la iglesia, el ayuntamiento, el frontón y las casas de los monumentos no se tocan)

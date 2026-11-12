@@ -285,9 +285,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   como la cabecera de una retransmisión y toda en la página, sin nada nuevo en la escena 3D: sobre el frontón oscurecido,
   con el público en pie detrás, entran «GRAN» y «FINAL», cae la txapela, llegan las cartas de los dos finalistas (el azul
   por la izquierda y el colorado por la derecha), salta el «VS» y cae el confeti; se va sola a los 6,4 s o al tocar, y
-  de ahí al sorteo, sin la pantalla VS, que ya los ha enfrentado. Se prueba con `tools/labrit-final.mjs`. La
-  primera vez se aparece en la entrada del pueblo; con misiones ya hechas, a unos pasos de quien da la siguiente y
-  mirándole, con el perro al lado (`townGame.js`, al final de `spawn`), para no cruzar el pueblo cada vez. Los lienzos cuyos píxeles se leen van
+  de ahí al sorteo, sin la pantalla VS, que ya los ha enfrentado. Se prueba con `tools/labrit-final.mjs`. Se
+  aparece siempre a las afueras, pasadas las últimas casas y mirando al pueblo, con el perro al lado y, unos pasos por
+  delante, el cartel con las direcciones y la guía de la primera misión (`townGame.js`, al final de `spawn`). La primera
+  vez, por la entrada principal; con misiones ya hechas, por la salida del pueblo más cercana a quien da la siguiente,
+  mirando hacia él. La llegada la busca `levels/townReal.js` («La llegada: a las afueras») cuando ya sabe qué casas se
+  levantan: en una carretera o calle que sale del pueblo, de 15 a 45 m de la casa más cercana, con casi ninguna más
+  allá, en llano y lejos del agua; una por cada lado del pueblo en `PLACES.entradas`, la mejor por carretera. Antes iba a
+  unos 110 m de la plaza y el núcleo del pueblo la abrazaba con 40 m de margen, así que siempre caía entre casas (en
+  Puente la Reina, 31 a menos de 40 m), y con misiones hechas se aparecía en mitad del pueblo (noviembre de 2026). Los lienzos cuyos píxeles se leen van
   con `willReadFrequently`: en la tarjeta gráfica, la lectura espera a todo lo pendiente. En la carga, la descripción y
   el consejo van enteros, sin cortar (`tools/carga-textos.mjs`).
 - **Colecciones por descubrir:** jugando, naturaleza, personajes, escudos y leyendas salen bloqueados (imagen apagada,
