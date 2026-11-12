@@ -11,6 +11,7 @@ import PELO from './peloVecinos.json';
 import { TRAJES, vestirTraje, falda } from './trajes.js';
 import { loadChica, hasChica } from './chicas.js';
 import { fuenteCerca } from './vecinoCerca.js';
+import { QUALITY } from '../util/quality.js';
 
 // colores con los que se pintaron los modelos en Blender (build_protagonista.py / build_nerea.py)
 const BASE = {
@@ -153,10 +154,13 @@ function vecinosDelPueblo(d) {
   mira(d);
   let h = 7; for (const c of String(d?.id || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const de = (lista, cuantos) => { for (let i = 0; i < cuantos; i++) quiero.add(lista[(h + i * 7 + (h >>> 5)) % lista.length]); };
-  // (con muchos más vecinos por la calle, más caras distintas: los seis mayores, los cuatro niños y tres adultos de cada sexo)
-  de(['abuelo_bigote', 'abuelo_barba', 'abuelo'], 3); de(['abuela_trenzas', 'abuela_mono', 'abuela_panuelo'], 3);
+  // (con muchos más vecinos por la calle, más caras distintas: los seis mayores, los cuatro niños y tres adultos de cada sexo.
+  // En el móvil, dos mayores y dos adultos de cada sexo, como antes: cada modelo más son 1,3 MB de textura, y el pelo
+  // teñido ya da la variedad)
+  const k = QUALITY === 'low' ? 2 : 3;
+  de(['abuelo_bigote', 'abuelo_barba', 'abuelo'], k); de(['abuela_trenzas', 'abuela_mono', 'abuela_panuelo'], k);
   de(['nino_moreno', 'nino_rubio'], 2); de(['nina_pelirroja', 'nina_trenzas'], 2);
-  de(['hombre', 'campesino', 'carpintero', 'quesero', 'panadero'], 3); de(['mujer', 'joven_rubia', 'campesina', 'carpintera', 'quesera', 'panadera'], 3);
+  de(['hombre', 'campesino', 'carpintero', 'quesero', 'panadero'], k); de(['mujer', 'joven_rubia', 'campesina', 'carpintera', 'quesera', 'panadera'], k);
   quiero.add('campesino');   // (el pastor del pueblo, que va con su rebaño: game/townGame.js, spawnShepherds)
   return [...quiero].filter(k => hasMeshyLod(k));
 }
