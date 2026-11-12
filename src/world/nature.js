@@ -640,7 +640,9 @@ function treeSpots(rnd) {
   }
   spots.push(...townTrees(fits));
   // (ni en escalones ni escalinatas, con la copa: en Tafalla un pino crecía en la escalinata de la iglesia)
-  return spots.filter(s => s.special || (isFree(s.x, s.z, s.crop ? 1 : 1.6) && villageMask(s.x, s.z) < 0.35 && !onPlatform(s.x, s.z, 0.6 + 0.6 * s.s, true)));
+  // (ninguno en el agua ni al borde del cauce, venga de donde venga: los de los linderos y los frutales no lo miraban, y en
+  // Roncal, junto a la plaza, dos salían del Esca al pie del muro; noviembre de 2026)
+  return spots.filter(s => riverInfo(s.x, s.z).edge > 1.5 && (s.special || (isFree(s.x, s.z, s.crop ? 1 : 1.6) && villageMask(s.x, s.z) < 0.35 && !onPlatform(s.x, s.z, 0.6 + 0.6 * s.s, true))));
 }
 // Árboles del casco (con su propio azar: el resto del valle sale como antes). En las plazas, en hilera a unos metros del
 // borde, como los plátanos, tilos y castaños de Indias de las plazas de Navarra; y en los huertos y jardines de detrás de

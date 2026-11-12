@@ -1796,6 +1796,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Un animal con dos nombres usa el icono del autor (`SAME` en `icon3d.js`: águila, ardilla, jabalí, buitre, cigüeña,
     ciervo, trucha, zorro, pottoka y pito); sus renders de antes siguen en la carpeta sin cargarse. Los pocos que el
     autor no ha dibujado (corzo, grulla, lechuza, milano, quebrantahuesos, cabra) son renders del juego.
+- **Nada en sitios imposibles** (noviembre de 2026, tras la plaza de Roncal): ningún árbol en el agua ni a menos de 1,5 m
+  del cauce, venga de donde venga (`treeSpots` en `world/nature.js`: los de los linderos y los frutales no lo miraban y
+  dos salían del Esca al pie del muro). Los puestos del día de mercado (`game/mercado.js`), solo en suelo llano, con la
+  mesa, los postes y quien vende detrás a menos de 30 cm de diferencia, y a 2,5 m del cauce como poco. Para revisarlo en
+  todos los pueblos, `tools/plazas.mjs`.
 - **Comentarios en castellano**, explicando el porqué.
 - **Sin duplicados** (revisión de noviembre de 2026):
   - Toda escucha en `window` o `document` se quita al soltar lo que la puso, con una función con nombre. El mapa del
