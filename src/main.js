@@ -263,6 +263,7 @@ async function boot() {
         if (st.pos && st.introDone) rt.player.place(st.pos.x, st.pos.z, st.pos.h);
         else rt.player.place(PLACES.crucero.x - 2, PLACES.crucero.z + 5, Math.PI * 0.9);
         rt.follow.snap(rt.player);
+        rt.dibujoTapado();   // (el primer dibujo, aún tapado por la carga: runtime.js)
         ui.progress(1, '¡Listo!');
         rt.start(game);
         sinHub(); ui.hideLoading(); queueMode('light');
@@ -286,6 +287,7 @@ async function boot() {
         // (la aventura, ya ahora: así se compila con lo demás y no para la imagen nada más empezar; townGame.montaAventura)
         if (!opt.sport) game.montaAventura?.();
         await rt.precompile();
+        rt.dibujoTapado();   // (el primer dibujo, aún tapado por la carga: runtime.js)
         ui.progress(1, '¡Listo!');
         rt.start(game);
         sinHub(); ui.hideLoading(); queueMode('light');

@@ -216,6 +216,19 @@ export class Runtime {
     this.warmed.delete(this.scene);
     await this.warm(this.scene, this.camera, ms);
   }
+  /** Un dibujo de verdad del pueblo, por el mismo camino que el del juego (con el postprocesado si lo hay), aún tapado
+   *  por la pantalla de carga. Compilar no basta: en el iPhone cada material termina de prepararse la primera vez que se
+   *  dibuja, y ese primer dibujo, ya con el pueblo a la vista, era un parón (noviembre de 2026, informes del iPhone).
+   *  Así ese rato cae en la pantalla de carga. Se llama desde main.js justo antes de rt.start, con la cámara ya en su sitio. */
+  dibujoTapado() {
+    const S = this.scene; if (!S) return;
+    try {
+      let hecho = false;
+      if (this.post?.on && this.sky) { this.post.ajusta(this.sky, this.elapsed, { fondo: this.fondoValle, cubierto: this.cubierto || 0, interior: !!this.sky.indoor }); hecho = this.post.render(S, this.camera); }
+      if (!hecho) this.renderer.render(S, this.camera);
+    } catch (e) { }
+    this.clock.getDelta();
+  }
   /** Antes de enseñar algo nuevo (la escena de un minijuego, el partido de fútbol, el encierro, el frontón cubierto),
    *  compila sus sombreadores en paralelo y sube sus texturas, sin dibujar mientras tanto (como mucho ms). Dibujar a
    *  medio compilar obliga al navegador a terminar de golpe: la imagen se quedaba congelada uno o dos segundos al

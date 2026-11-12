@@ -59,6 +59,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 2. Precarga los vecinos, los animales y la comida.
 3. Abre el centro de mando (`src/hub`).
 4. Al elegir pueblo, `Runtime.load(def)` monta el mundo y crea `TownGame` (o `Game` para Salazar).
+5. Antes de quitar la pantalla de carga: la aventura del pueblo (`montaAventura`), una segunda compilación con todo
+   ya creado (`rt.precompile`) y un dibujo de verdad del pueblo, aún tapado, con la cámara ya en su sitio
+   (`rt.dibujoTapado`, por el mismo camino que el bucle, con el postprocesado si lo hay). Compilar no basta: el primer
+   dibujo de cada material termina de enlazar su programa y sube sus mallas a la tarjeta gráfica, y eso, en el primer
+   fotograma de juego, era el parón de un segundo que se veía en los informes del iPhone nada más llegar. En el
+   navegador de pruebas ese primer dibujo tarda unos 14 s, ahora con la carga delante.
 
 ## Capas
 
