@@ -39,6 +39,7 @@ import { Mochila } from './mochila.js';
 import { Perro } from './perro.js';
 import { makeTownSignpost } from './senales.js';
 import { Pajarillos } from '../world/pajarillos.js';
+import { Peces } from '../world/peces.js';
 import { Colada } from '../world/colada.js';
 import { foodFrom } from '../data/equipo.js';
 import { Tienda } from './tienda.js';
@@ -394,6 +395,8 @@ export class TownGame {
     try { this.spawnBalcones(); } catch (e) { console.warn('balcones', e); }
     // gorriones, palomas y vencejos (pajarillos.js): después de los balcones, que son de sus posaderos
     try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
+    // truchas, salmones, barbos, madrillas y chipas en los ríos, según la comarca (peces.js)
+    if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca }); } catch (e) { console.warn('peces', e); }
     // la ropa tendida en algunos balcones (colada.js)
     try { this.colada = new Colada(this.scene, { quality: QUALITY }); } catch (e) { console.warn('colada', e); }
     this.spawnShepherds();
@@ -646,6 +649,7 @@ export class TownGame {
     }
     for (const f of this.folk) { if (solo) { fuera(f); continue; } this.updateFolk(f, dt); }
     this.pajarillos?.update(dt, this.elapsed, P, this.sky?.night ?? 0, !!solo || this.mode === 'pelota' || this.mode === 'futbol');
+    this.peces?.update(dt, this.elapsed, P, this.sky?.night ?? 0, !!solo || this.mode === 'pelota' || this.mode === 'futbol');
     this.colada?.update(this.elapsed);
     if (this.mode === 'play') this.bocadillos(dt); if (this._boc?.capa) this._boc.capa.hidden = this.mode !== 'play';   // (en los vídeos, los diálogos y los minijuegos, sin bocadillos)
     // objetos
@@ -1138,6 +1142,7 @@ export class TownGame {
     for (const c of this._carteles || []) c.userData.dispose?.();
     this._boc?.capa?.remove();
     try { this.pajarillos?.dispose(); } catch (e) { } this.pajarillos = null;
+    try { this.peces?.dispose(); } catch (e) { } this.peces = null;
     try { this.colada?.dispose(); } catch (e) { } this.colada = null;
     // (que la interfaz, que dura toda la partida, no siga apuntando al pueblo que se deja: lo dejaba entero en memoria)
     if (this.ui.onDialogLine) this.ui.onDialogLine = null; this.ui.onMiniHit = null; if (this.ui.stage3d?.show) this.ui.stage3d = null;

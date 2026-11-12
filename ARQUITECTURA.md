@@ -1529,6 +1529,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     rojizas, como la «gorria», y una blanca), con cresta, barbilla, patas y la cola en abanico de pie. Andan despacio de
     un sitio a otro cabeceando y se paran a picotear; si te acercas se apartan corriendo con un aleteo, sin salir volando.
     Dos mallas repetidas más.
+  - *Peces* (`peces.js`, noviembre de 2026): bancos que nadan bajo el agua cerca del jugador, con los peces de cada
+    comarca según las normas de pesca de Navarra: trucha y salmón atlántico en la cuenca del Bidasoa, trucha y chipa en
+    el Pirineo, truchas, barbos y madrillas en el Prepirineo y la zona media, barbo de Graells y madrilla en la Ribera.
+    Cada pez mira contra la corriente (el tramo de río más cercano, por donde baja su nivel) y se mantiene meneando la
+    cola; a ratos uno da un acelerón y vuelve. Si el jugador llega a la orilla o pasa por encima por un puente, el banco
+    sale río abajo y se junta más allá. Un banco que queda lejos se va a otro trozo de río cerca, con otra especie del
+    río: siempre hay peces donde se mira, con 4-6 bancos en total. Una malla repetida por especie con su librea pintada
+    (lomo, flanco, vientre, motas con halo en la trucha, línea lateral) y el meneo en el sombreador. Se dibujan después
+    del agua (que no escribe profundidad y, por encima, los tapaba casi del todo con su color), algo transparentes y
+    teñidos del verde del río; un tercio más grandes que los de verdad y con el lomo más ancho, porque desde la orilla los
+    de su tamaño eran rayas. De noche no se ven.
   - *Vecinos en los balcones* (`spawnBalcones`): hasta 8, también en los balcones de las fachadas sencillas, que ahora se
     apuntan en `TOWN.balcones`.
   - *Ropa tendida* (`colada.js`, noviembre de 2026): en uno de cada tres balcones de `TOWN.balcones` (uno de cada cuatro en
