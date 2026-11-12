@@ -1065,6 +1065,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   El lienzo va a los píxeles de verdad de la pantalla (`fis`: lo que mide por la densidad, hasta 3, entre 120 y 420) y se
   dibuja en 248 puntos con la escala `f`, como antes: en un iPhone grande, unos 336 px en vez de 248 estirados; en el
   ordenador, 136 en vez de 248 (unas 3,3 veces menos que pintar).
+  En la pastilla de la distancia, una flechita con astil que señala hacia el objetivo como la punta del anillo
+  (`distancia(player, target, camYaw)`, el giro puesto en la propia flecha y solo cuando cambia 3°); antes, un rombo que
+  no decía nada. Con astil porque, a 11 px, una punta con muesca como la del anillo se leía al revés.
 - **Composición de la comarca, sin huecos de aire** (`hub.js`, `s_comarca` y `ajustaRejillas`; `fichas.css`, `section.rejilla`):
   cada sección es una rejilla de 12 columnas con el mismo hueco entre todo (`--hueco-m`). En cada ancho (ordenador,
   tumbado y estrecho, `data-max`) van por fila como mucho las piezas que tocan; si hay más, las filas justas con el mismo

@@ -137,7 +137,7 @@ export class UI {
           <button class="round" id="bMap" aria-label="Mapa (M)">${ICON.map}</button>
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>
         </div>
-        <div id="mini"><canvas width="248" height="248"></canvas><span id="cdist"></span><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
+        <div id="mini"><canvas width="248" height="248"></canvas><span id="cdist"><svg class="cd-f" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 .4 11.2 6.2H8.1v5.2H3.9V6.2H.8z"/></svg><b class="cd-t"></b></span><div id="clock"><span class="ci"></span><span class="ct">09:00</span></div></div>
       </div>
       <div id="prompt" class="hidden"><kbd>E</kbd><span></span></div>
       <div id="mg" class="glass hidden"></div>
@@ -595,7 +595,7 @@ export class UI {
   updateMinimap(player, camYaw, markers, target, ruta = null) {
     if (!this.mini) return;
     const css = this.box(this.mini.canvas)[0];
-    this.distancia(player, target);
+    this.distancia(player, target, camYaw);
     if (!css) return;
     const ms = this.miniSig ||= {}, nm = markers ? markers.length : 0, now = performance.now();
     if (now - ms.t < 250 && ms.cy === camYaw && ms.cx === player.pos.x && ms.cz === player.pos.z && ms.h === player.heading && ms.tx === target?.x && ms.tz === target?.z && ms.n === nm && ms.css === css && ms.r === ruta?.id) return;
@@ -679,12 +679,18 @@ export class UI {
     g.restore();
     this.drawPlayer(g, R, R, player.heading - camYaw, 1.3);
   }
-  // la distancia al objetivo, en la pastilla rosa junto al minimapa (solo cuando hay objetivo)
-  distancia(player, target) {
+  // la distancia al objetivo, en la pastilla rosa junto al minimapa (solo cuando hay objetivo), con una flechita que
+  // señala hacia él como la punta del anillo (antes, un rombo que no decía nada). Es una flecha con astil: a 11 px, una
+  // punta con muesca como la del anillo se leía al revés. Solo se toca lo que cambia: el texto cuando cambia el metro y
+  // el giro cuando se mueve más de 3°
+  distancia(player, target, camYaw = 0) {
     const e = this.questEls?.cdist; if (!e) return;
     if (!target) { if (e.style.display !== 'none') e.style.display = 'none'; return; }
-    const t = Math.round(Math.hypot(target.x - player.pos.x, target.z - player.pos.z)) + ' m';
-    if (e._t !== t) { e._t = t; e.textContent = t; }
+    const dx = target.x - player.pos.x, dz = target.z - player.pos.z, t = Math.round(Math.hypot(dx, dz)) + ' m';
+    if (e._t !== t) { e._t = t; (e._b ||= e.querySelector('.cd-t') || e).textContent = t; }
+    const cs = Math.cos(camYaw), sn = Math.sin(camYaw), a = Math.round(Math.atan2(dx * cs - dz * sn, -(dx * sn + dz * cs)) * 180 / Math.PI / 3) * 3;
+    // (el giro, en la propia flecha: con una variable en la pastilla, el navegador no siempre volvía a pintar el dibujo)
+    if (e._a !== a) { e._a = a; const fl = e._f ||= e.querySelector('.cd-f'); if (fl) fl.style.transform = `rotate(${a}deg)`; }
     if (e._oro !== !!target.destino) { e._oro = !!target.destino; e.classList.toggle('oro', e._oro); }   // (a un destino marcado, dorada como su ruta)
     if (e.style.display) e.style.display = '';
   }
