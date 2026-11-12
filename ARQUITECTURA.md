@@ -419,15 +419,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   información; el consejo y el pie de la lámina van en recuadros casi opacos. La ficha del pueblo
   en el mapa deja ver la portada (velo ligero) con el nombre en grande; las misiones van en su propia franja oscura. En el
   móvil tumbado es más pequeña, de 300 de ancho, con 14 a 16 de aire por dentro y sin la barra de progreso.
-- **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador con el menú dentro: su último
-  tramo, con el mismo fondo y el mismo filete fucsia, separado por una raya fina, con el icono de pausa y debajo los
-  descansos que te quedan (noviembre de 2026; antes era un botón redondo suelto a su derecha, con el número en una esquina).
-  Es una sola pieza (12 de noviembre de 2026): el fondo, el filete fucsia de arriba, las esquinas y la sombra son de `.pel-top`, que es
-  quien está en las listas de esquinas y sombras de `ui/neon.css`, y el marcador y el botón del menú van sin fondo, borde ni
-  sombra propios; entre los dos, solo una raya fina por dentro. Antes cada trozo llevaba lo suyo y se notaba la costura: el
-  marcador redondo por dentro, su sombra encima del botón y el filete del botón curvado en su esquina. En la repetición y
-  con un panel delante, el botón se queda en su sitio, apagado y sin tocar. La ventana de pausa, fija a la pantalla, no la
-  recorta la pieza. En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro, una
+- **Partido de pelota, lo que se ve** (`pelota/hud.js`): arriba a la derecha, el marcador, solo (su fondo, el filete fucsia,
+  las esquinas y la sombra son de `.pel-top`, que es quien está en las listas de esquinas y sombras de `ui/neon.css`).
+  Arriba a la izquierda, sueltos, tres botones redondos de 48 px (`.pel-rapidos`, 12 de noviembre de 2026, lo pidió el
+  autor para ir más rápido): la pausa, que abre la ventana de pausa; el descanso, con los que te quedan en su badge, que lo
+  pide sin parar el partido (rosa si está pedido, brilla si estás cansado; en pleno descanso se esconde y la ventana de
+  pausa sale sola con «Seguir»); y la pelota, que abre debajo su desplegable del cestaño (`.pr-bhoja`, la pista y una fila
+  por pelota; se elige mientras sacas tú). De pie van en columna por el borde izquierdo y la lista de la pelota se abre a la
+  derecha; con la cámara de la pelota en casa, a la derecha de su imagen; en la repetición y con un panel delante, no se
+  ven. Del 11 al 12 de noviembre la pausa fue el último tramo del marcador, con el descanso y la pelota dentro de la ventana
+  de pausa, y no le gustó al autor. En el marcador, cada lado lleva arriba su nombre y sus tantos en su color y, debajo, en el fondo oscuro, una
   sola barra: su energía, en dorado, naranja y luego roja parpadeando al cansarse; por parejas, la media de los dos.
   Delante de la barra, un rayo de su mismo color, para que se sepa que es la energía, en el borde de fuera de cada lado,
   como en espejo (`.ps-ico`). Los dos nombres van enteros y a la misma letra: si uno no cabe, los dos bajan a la vez,

@@ -483,31 +483,47 @@ body.alto-contraste .pel-btn{box-shadow:0 0 0 3px #fff}
   .pel-clave p{line-height:1.25}.pel-est ul{margin-top:6px;row-gap:4px}.pel-est li{gap:2px}.pel-xp-bar{margin-top:6px}.pel-xp ul{margin-top:6px}
   .pel-mapa svg{max-height:46px}.pel-fin :is(.pel-fin-a,.pel-fin-b)>:last-child{margin-bottom:0}
   .pel-card:has(.pel-fin) .pel-row{padding-top:6px}}
-/* el menú del partido, dentro del marcador (noviembre de 2026): su último tramo, separado por una raya fina; el icono de
-   pausa como el del pueblo (al abrirlo, el partido se para) y, debajo, los descansos que te quedan; brilla si estás
-   cansado y te quedan. Dentro, todo junto: la pelota, el descanso, las fichas y salir. Antes era un botón redondo suelto
-   a la derecha del marcador, con su badge en la esquina.
-   Una sola pieza: el fondo, el filete fucsia de arriba, las esquinas de 8 px y la sombra son de .pel-top, y el marcador y
-   el menú van sin fondo, sin borde y sin sombra propios. Hasta el 12 de noviembre de 2026 cada trozo llevaba lo suyo: el
-   marcador seguía redondo por dentro (ui/neon.css le pone las esquinas con !important), el filete del menú era una sombra
-   por dentro que se curvaba en su esquina y la sombra de uno caía sobre el otro, una costura oscura entre los dos. En la
-   repetición y con un panel delante, el menú se queda en su sitio, apagado y sin tocar (antes desaparecía y dejaba hueco) */
+/* el marcador, solo, arriba a la derecha: su fondo, el filete fucsia de arriba, las esquinas de 8 px y la sombra son de
+   .pel-top (ui/neon.css le pone las esquinas al marcador con !important; aquí no lleva fondo ni borde propios) */
 .pel-top{gap:0;align-items:stretch;border-radius:8px;overflow:hidden;background:rgba(7,2,15,.9);border-top:2px solid var(--fx,#ff2bd6);box-shadow:0 6px 20px rgba(0,0,0,.35)}
 .pel-top .pel-score{background:transparent;border:0;border-radius:0;box-shadow:none;opacity:1}
-.pel-menu{position:relative;flex:none;display:flex;pointer-events:auto;color:#e6def7;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif}
-.pm-btn{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:52px;min-height:44px;height:100%;padding:8px 0 6px;border:0;border-radius:0;background:transparent;box-shadow:inset 1px 0 0 rgba(255,255,255,.12);color:#fff;cursor:pointer;transition:background .18s}
-.pm-btn:hover,.pm-btn:focus-visible{background:rgba(255,255,255,.07)}.pm-btn:focus-visible{outline:2px solid #fff;outline-offset:-3px}
-.pm-btn img,.pm-btn svg{width:22px;height:22px;display:block;pointer-events:none}
-.pm-btn i:empty{display:none}.pm-btn i{display:grid;place-items:center;min-width:22px;height:16px;padding:0 6px;border-radius:999px;background:var(--cta,#c21cff);font:900 11px/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;color:#fff}
-.pel-menu.on .pm-btn{background:rgba(255,255,255,.1)}
-.pel-root:is(.paneled,.repe) .pel-menu{pointer-events:none}.pel-root:is(.paneled,.repe) .pm-btn>*{opacity:.35}
-body.alto-contraste .pel-top{background:#000;border-top-color:#fff;box-shadow:0 0 0 2px #fff}body.alto-contraste .pm-btn{box-shadow:inset 2px 0 0 #fff}
+body.alto-contraste .pel-top{background:#000;border-top-color:#fff;box-shadow:0 0 0 2px #fff}
+/* los botones del partido, sueltos arriba a la izquierda (12 de noviembre de 2026, lo pidió el autor: «mucho más rápido»):
+   la pausa, el descanso, con los que te quedan en su badge, y la pelota, con su desplegable del cestaño. Redondos, de 48 px,
+   oscuros y sin sombra, como los del pueblo. Del 11 al 12 de noviembre la pausa fue el último tramo del marcador, con el
+   descanso y la pelota dentro de la ventana de pausa: había que parar el partido para pedir un descanso. En la repetición y
+   con un panel delante no se ven (la repetición pone su rótulo en esa esquina); con la cámara de la pelota en casa, van a la
+   derecha de su imagen */
+.pel-rapidos{position:absolute;left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));z-index:4;display:flex;align-items:flex-start;gap:10px;pointer-events:none}
+.pel-root.con-camara .pel-rapidos{left:calc(env(safe-area-inset-left,0px) + 14px + clamp(150px,22vw,300px) + 12px)}
+.pel-rapidos>*{pointer-events:auto}
+.pel-root:is(.paneled,.repe) .pel-rapidos{visibility:hidden}
+.pel-menu,.pr-bola{position:relative;flex:none}
+.pr-b{position:relative;display:grid;place-items:center;width:48px;height:48px;padding:0;border:1px solid rgba(255,255,255,.16);border-radius:50%;background:rgba(7,2,15,.78);color:#fff;cursor:pointer;transition:background .18s,transform .12s}
+.pr-b:hover,.pr-b:focus-visible{background:rgba(40,16,80,.9)}.pr-b:focus-visible{outline:2px solid #fff;outline-offset:2px}.pr-b:active{transform:scale(.92)}
+.pr-b img,.pr-b svg{width:26px;height:26px;display:block;pointer-events:none}
+.pr-b:disabled{opacity:.4;cursor:default}
+.pr-n{position:absolute;right:-5px;top:-5px;display:grid;place-items:center;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--cta,#c21cff);box-shadow:0 0 0 2px rgba(7,2,15,.9);font:900 11px/1 var(--f-cond,'MZ Texto'),sans-serif;font-style:normal;color:#fff;pointer-events:none}.pr-n:empty{display:none}
+.pr-desc.pedido{background:#ff7ac8;border-color:#ff7ac8;color:#2a0a40}
+.pel-menu.on .pm-btn,.pr-bola.on .pr-bbtn{background:rgba(255,43,214,.42);border-color:rgba(255,255,255,.4)}
+/* (el desplegable de la pelota: debajo de su botón, con la pista de qué se puede hacer y una fila por pelota) */
+.pr-bhoja{display:none;position:absolute;left:0;top:calc(100% + 8px);z-index:5;width:max-content;min-width:200px;max-width:min(300px,calc(100vw - 32px));padding:10px;border-radius:10px;background:rgba(18,6,40,.96);border:1px solid rgba(255,255,255,.12);box-shadow:0 12px 30px rgba(0,0,0,.45);flex-direction:column;gap:6px;color:#fff}
+.pr-bola.on .pr-bhoja{display:flex}
+/* (de pie no caben en fila al lado del marcador: van en columna por el borde izquierdo y la pelota abre su lista a la derecha) */
+@media (max-aspect-ratio:1/1){.pel-rapidos{flex-direction:column}.pr-bhoja{left:calc(100% + 8px);top:0}}
+.pr-btit{font:800 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.pr-bhoja .pb-pista{font:600 var(--fs-xs)/1.3 var(--f-ui,'MZ Texto'),sans-serif;color:#cbbff0}.pr-bhoja .pb-pista:empty{display:none}
+.pr-bhoja .pb-lista{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+.pr-op{display:grid;grid-template-columns:28px 1fr auto;align-items:center;gap:10px;min-height:44px;padding:6px 14px 6px 8px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.06);color:#fff;text-align:left;cursor:pointer}
+.pr-op svg{width:28px;height:28px}.pr-op b{font:800 var(--fs-sm)/1.1 var(--f-cond,'MZ Texto'),sans-serif}.pr-op small{font:700 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#cbbff0}
+.pr-op[aria-checked="true"]{background:rgba(255,43,214,.3);border-color:rgba(255,122,200,.7)}
+.pr-op:disabled{cursor:default}.pr-op:disabled:not([aria-checked="true"]){opacity:.5}
+body.alto-contraste .pr-b{background:#000;border:2px solid #fff}body.alto-contraste .pr-bhoja{background:#000;border:2px solid #fff}
 /* (el menú del partido es la ventana de pausa de src/ui/pausa.js: centrada sobre el partido, con sus filas) */
 .pm-hoja{display:none}.pel-menu.on .pm-hoja{display:grid}
 .pz-k{flex:none;display:grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;color:#e6def7}
-.pb-desc.pedido .pz-ico{background:#ff7ac8}
-.pel-menu.llama .pm-btn{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{background:rgba(255,43,214,.3)}}
-@media (prefers-reduced-motion:reduce){.pel-menu.llama .pm-btn{animation:none}}
+.pr-desc.llama{animation:pel-llama 1s ease-in-out infinite alternate}@keyframes pel-llama{to{background:rgba(255,43,214,.45)}}
+@media (prefers-reduced-motion:reduce){.pr-desc.llama{animation:none}}
 `;
 const BOLA = bolaSVG();
 // (la llama de las rachas)
@@ -532,15 +548,17 @@ export class PelotaHud {
         <div class="pel-side ${cols.you === 'rojo' ? 'pel-red' : 'pel-blue'}" data-side="you"><div class="ps-cab"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><i class="ps-racha" data-pel-r="you"></i><b data-pel-n="you">0</b></div><div class="ps-barras"></div></div>
         <div class="pel-mid" data-pel-mid></div>
         <div class="pel-side ${cols.rival === 'azul' ? 'pel-blue' : 'pel-red'}" data-side="rival"><div class="ps-cab"><b data-pel-n="rival">0</b><i class="ps-racha" data-pel-r="rival"></i><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div><div class="ps-barras"></div></div>
-      </div><div class="pel-menu"><button type="button" class="pm-btn" aria-haspopup="true" aria-expanded="false" aria-label="${txt.menu || 'Menú'}">${PAUSA}<i class="pm-n"></i></button><div class="pm-hoja pz-fondo" role="dialog" aria-modal="true" aria-label="${esc(PZ.titulo || 'Pausa')}"><div class="pz-panel">${pzCabecera(esc(PZ.titulo || 'Pausa'), esc(PZ.cerrar || 'Cerrar'))}<div class="pz-lista">
+      </div></div>
+      <div class="pel-rapidos"><div class="pel-menu"><button type="button" class="pm-btn pr-b" aria-haspopup="true" aria-expanded="false" aria-label="${txt.menu || 'Menú'}">${PAUSA}</button><div class="pm-hoja pz-fondo" role="dialog" aria-modal="true" aria-label="${esc(PZ.titulo || 'Pausa')}"><div class="pz-panel">${pzCabecera(esc(PZ.titulo || 'Pausa'), esc(PZ.cerrar || 'Cerrar'))}<div class="pz-lista">
         ${pzFila({ cls: 'pm-seguir', titulo: esc(PZ.seguir?.[0] || 'Continuar'), sub: esc(PZ.seguir?.[1] || ''), ico: PZ_ICO.seguir })}
-        <div class="pm-bolas pz-grupo" hidden><span class="pz-tx"><b>${esc(txt.pelotaT || 'Pelota')}</b><small class="pb-pista"></small></span><div class="pb-lista pz-ops"></div></div>
-        ${pzFila({ cls: 'pb-desc', titulo: esc(txt.desc?.btn || 'Descanso'), ico: PZ_ICO.descanso, extra: '<em class="pz-n"></em>', attrs: 'hidden' })}
         ${pzFila({ cls: 'pm-vista', titulo: esc(txt.vistaFP || 'Primera persona'), sub: esc(PZ.vista || ''), ico: PZ_ICO.ojo, extra: tecla('V'), attrs: 'hidden aria-pressed="false"' })}
         ${pzFila({ cls: 'pm-plano', titulo: '', sub: esc(PZ.camara || ''), ico: PZ_ICO.camara, extra: tecla('C') })}
         ${pzFila({ cls: 'pm-fichas', titulo: esc(txt.fichas || 'Fichas'), sub: esc(PZ.fichas || ''), ico: PZ_ICO.fichas, attrs: 'hidden' })}
         ${pzFila({ cls: 'pm-salir', titulo: esc(txt.salirPartido || txt.exit), sub: esc(PZ.salir || ''), ico: PZ_ICO.salir })}
-      </div></div></div></div></div>
+      </div></div></div></div>
+        <button type="button" class="pr-b pr-desc" hidden aria-label="${esc(txt.desc?.btn || 'Descanso')}">${PZ_ICO.descanso}<i class="pr-n"></i></button>
+        <div class="pr-bola" hidden><button type="button" class="pr-b pr-bbtn" aria-haspopup="true" aria-expanded="false" aria-label="${esc(txt.pelotaT || 'Pelota')}">${BOLA}</button><div class="pr-bhoja" role="menu" aria-label="${esc(txt.pelotaT || 'Pelota')}"><b class="pr-btit">${esc(txt.pelotaT || 'Pelota')}</b><small class="pb-pista"></small><div class="pb-lista"></div></div></div>
+      </div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div></div>
       <div class="pel-golpe" aria-live="off"></div>
       <div class="pel-com" role="status" aria-live="polite"></div>
@@ -564,28 +582,32 @@ export class PelotaHud {
     this.callT = 0; this.qT = 0;
     // el menú: al tocar su botón se abre y el partido se para (onMenu); al elegir algo o tocar fuera, se cierra y sigue.
     // Con el descanso empezado se abre solo, con «Seguir», sin parar el partido (el minuto de descanso corre)
-    const m = this.menuEl = r.querySelector('.pel-menu');
+    const m = this.menuEl = r.querySelector('.pel-menu'), rap = r.querySelector('.pel-rapidos'), bol = this.bolaEl = r.querySelector('.pr-bola');
+    // (el desplegable de la pelota: se abre y se cierra con su botón, sin parar el partido; se elige y se cierra)
+    const bolas = this.abreBolas = (on) => { if (bol.classList.contains('on') === on) return; bol.classList.toggle('on', on); bol.querySelector('.pr-bbtn').setAttribute('aria-expanded', String(on)); };
     const abre = this.abreMenu = (on, mano = true) => {
       if (m.classList.contains('on') === on) return;
       m.classList.toggle('on', on); m.querySelector('.pm-btn').setAttribute('aria-expanded', String(on));
       if (mano || !on) this.onMenu?.(on, mano);
+      if (on) bolas(false);
     };
     const hoja = m.querySelector('.pm-hoja');
-    tap(m, (b) => {
+    tap(rap, (b) => {
       if (b.classList.contains('pm-btn')) return abre(!m.classList.contains('on'));
+      if (b.classList.contains('pr-desc')) { bolas(false); this.onDescanso?.(); return; }
+      if (b.classList.contains('pr-bbtn')) return bolas(!bol.classList.contains('on'));
       // (Continuar y la equis cierran la ventana y el partido sigue; en pleno descanso, además, lo terminan, como «Seguir»)
       if (b.classList.contains('pm-seguir') || b.classList.contains('pz-x')) { const desc = m._ahora; abre(false); if (desc) this.onDescanso?.(); return; }
-      if (b.classList.contains('pb-desc')) { abre(false); this.onDescanso?.(); return; }
       if (b.classList.contains('pm-fichas')) { abre(false); this.onFichas?.(); return; }
       if (b.classList.contains('pm-vista')) { abre(false); this.onVista?.(); return; }
       if (b.classList.contains('pm-plano')) { this.onPlano?.(); return; }   // (la cámara: cambia sin cerrar el menú, se ve detrás)
       if (b.classList.contains('pm-salir')) { abre(false); this.onSalir?.(); return; }
-      if (b.dataset.bola != null) { this.onBola?.(+b.dataset.bola); abre(false); }
+      if (b.dataset.bola != null) { this.onBola?.(+b.dataset.bola); bolas(false); }
     });
     // (tocar fuera de la ventana, en el partido oscurecido, también la cierra; en el descanso no, que se cierra con Seguir)
-    this.fueraMenu = (e) => { if (m.classList.contains('on') && !m._ahora && (!m.contains(e.target) || e.target === hoja)) abre(false); };
+    this.fueraMenu = (e) => { if (m.classList.contains('on') && !m._ahora && (!m.contains(e.target) || e.target === hoja)) abre(false); if (bol.classList.contains('on') && !bol.contains(e.target)) bolas(false); };
     addEventListener('pointerdown', this.fueraMenu, true);
-    this.cierraBolas = () => abre(false);
+    this.cierraBolas = () => bolas(false);
   }
   /** La vista en primera persona, en el menú (solo en la pelota en casa): on, si sale; fp, si está puesta */
   vista(on, fp) { const b = this.menuEl.querySelector('.pm-vista'); if (!b) return; b.hidden = !on; b.setAttribute('aria-pressed', String(!!fp)); }
@@ -613,25 +635,25 @@ export class PelotaHud {
       i.querySelector('u').style.transform = `scaleX(${v})`; i.classList.toggle('mid', v < 0.5 && v >= 0.25); i.classList.toggle('low', v < 0.25);
     }
   }
-  /** Los descansos, en el menú: cuántos te quedan, pedido o descansando ahora (entonces el menú se abre solo, con
-   *  «Seguir»); on: false, fuera. El badge del botón del menú, los que te quedan */
+  /** Los descansos, en su botón suelto de arriba a la izquierda: cuántos te quedan (en su badge), pedido (rosa) o
+   *  descansando ahora (entonces se abre sola la ventana de pausa, con «Seguir»); on: false, fuera */
   descansos(on, n, pedido, ahora) {
-    const el = this.menuEl, b = el?.querySelector('.pb-desc'); if (!b) return;
+    const el = this.menuEl, b = this.root.querySelector('.pr-desc'); if (!el || !b) return;
     const D = this.txt.desc || {}, k = `${on}|${n}|${pedido}|${ahora}`; if (b._k === k) return; b._k = k;
     // (en pleno descanso la ventana se abre sola con el título «Descanso» y Continuar lo termina: la fila del descanso se va)
     const PZ = this.txt.pausa || {}, seguir = el.querySelector('.pm-seguir small'), tit = el.querySelector('.pz-tit');
     if (seguir) seguir.textContent = ahora ? (PZ.descAhora || '') : (PZ.seguir?.[1] || '');
     if (tit) tit.textContent = ahora ? (PZ.descanso || D.tuyo || '') : (PZ.titulo || '');
-    b.hidden = !on || !!ahora; el.querySelector('.pm-n').textContent = on && n ? n : ''; if (!on) return;
-    b.querySelector('.pz-tx b').textContent = pedido ? (D.pedido || 'Pedido') : (D.btn || 'Descanso');
-    b.querySelector('.pz-tx small').textContent = pedido ? (PZ.descPedido || '') : (D.quedan ? D.quedan(n) : '');
-    b.querySelector('.pz-n').textContent = ahora || pedido ? '' : n; b.disabled = !ahora && !n && !pedido;
-    b.classList.toggle('pedido', !!pedido); b.classList.toggle('ahora', !!ahora);
-    b.setAttribute('aria-label', `${D.btn || 'Descanso'}: ${D.quedan ? D.quedan(n) : n}`);
+    b.hidden = !on || !!ahora;
+    if (on) {
+      b.querySelector('.pr-n').textContent = pedido ? '' : n; b.disabled = !n && !pedido; b.classList.toggle('pedido', !!pedido);
+      const t = pedido ? `${D.pedido || 'Pedido'}. ${PZ.descPedido || ''}` : `${D.btn || 'Descanso'}: ${D.quedan ? D.quedan(n) : n}`;
+      b.setAttribute('aria-label', t.trim()); b.title = t.trim();
+    }
     if (ahora !== el._ahora) { el._ahora = ahora; this.abreMenu?.(!!ahora, false); }
   }
-  /** El botón del menú brilla si estás cansado y te quedan descansos */
-  cansado(on) { this.menuEl?.classList.toggle('llama', !!on); }
+  /** El botón del descanso brilla si estás cansado y te quedan descansos */
+  cansado(on) { this.root.querySelector('.pr-desc')?.classList.toggle('llama', !!on); }
   setNames(you, rival) { const a = this.root.querySelector('[data-side=you] span'), b = this.root.querySelector('[data-side=rival] span'); if (a) a.textContent = short(you); if (b) b.textContent = short(rival); }
   setScore(you, rival, server, mid) {
     for (const [k, v] of [['you', you], ['rival', rival]]) {
@@ -684,15 +706,15 @@ export class PelotaHud {
   // (lo último escrito va en el propio elemento, _t: en euskera, el texto que se lee ya está traducido y no coincidiría)
   tip(text) { const t = this.$('.pel-tip'), v = text || ''; if (t._t !== v) { t._t = v; t.textContent = v; } t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
-  // el cestaño (material.js), en el menú: la pelota en juego y, mientras sacas tú, las tuyas para cambiar (tocando o con la
-  // tecla B). rotulo(b): [su clase, su peso]; pista: lo que se puede hacer
+  // el cestaño (material.js), en el desplegable del botón de la pelota: la pelota en juego y, mientras sacas tú, las tuyas
+  // para cambiar (tocando o con la tecla B). rotulo(b): [su clase, su peso]; pista: lo que se puede hacer
   bolas(lista, actual, editable, rotulo, pista) {
-    const el = this.menuEl?.querySelector('.pm-bolas'); if (!el) return;
+    const el = this.bolaEl; if (!el) return;
     el.hidden = false;
     const k = lista.map(b => b.n).join() + '|' + (actual?.n ?? '') + '|' + editable + '|' + pista;
     if (el._k === k) return; el._k = k;
     el.querySelector('.pb-pista').textContent = pista;
-    el.querySelector('.pb-lista').innerHTML = lista.map(b => { const [c, w] = rotulo(b); return `<button type="button" class="pz-op" data-bola="${b.n}" aria-pressed="${b === actual}"${editable ? '' : ' disabled'}>${BOLA}<b>${esc(c)}</b><small>${esc(w)}</small></button>`; }).join('');
+    el.querySelector('.pb-lista').innerHTML = lista.map(b => { const [c, w] = rotulo(b); return `<button type="button" class="pr-op" role="menuitemradio" data-bola="${b.n}" aria-checked="${b === actual}"${editable ? '' : ' disabled'}>${BOLA}<b>${esc(c)}</b><small>${esc(w)}</small></button>`; }).join('');
   }
   /** El aro del momento justo: t, segundos hasta el momento de soltar el golpe (null, sin aro). Llega al botón a tiempo */
   timing(t) {
@@ -719,8 +741,8 @@ export class PelotaHud {
    *  pequeño, bajo el marcador y del color de quien lo da (col: 'azul' o 'rojo') */
   golpe(text, col) {
     const g = this._g ||= this.$('.pel-golpe'); if (!g || !text) return;
-    // (justo debajo del marcador, con su borde derecho, que ya lleva dentro la pausa: antes iba a 50 px fijos del borde de
-    // arriba y pegado a la derecha, montado sobre las barras de energía. Con las medidas sin zoom)
+    // (justo debajo del marcador, con su borde derecho: antes iba a 50 px fijos del borde de arriba y pegado a la derecha,
+    // montado sobre las barras de energía. Con las medidas sin zoom)
     const sc = this.$('.pel-score');
     if (sc?.offsetHeight) { g.style.setProperty('--pg-y', `${sc.offsetHeight + 8}px`); g.style.setProperty('--pg-x', '0px'); }
     g.className = 'pel-golpe ' + (col === 'azul' ? 'azul' : 'rojo'); g.textContent = text; void g.offsetWidth; g.classList.add('on'); this.gT = 2.4;
