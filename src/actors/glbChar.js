@@ -164,12 +164,14 @@ function shrinkMap(m, max = MESHY_TEX) {
 // jugador, como vecino o en un partido
 const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62,
   // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS), en metros. Regla: el explorador (1,45) y la exploradora
-  // (1,43) son más bajos que cualquier adulto, y los niños del pueblo más bajos que ellos. Con la variedad de cada vecino
-  // (±3 %), el mayor más bajo mide 1,50 y el niño más alto 1,28
-  abuelo_bigote: 1.63, abuelo_barba: 1.65, abuelo: 1.68, abuela_trenzas: 1.56, abuela_mono: 1.55, abuela_panuelo: 1.58,
+  // (1,43) tienen un tamaño intermedio, los adultos son claramente más grandes y los niños del pueblo, más pequeños. El
+  // explorador tiene la cabeza muy grande y, con un 13 % más de alto, las mujeres parecían de su misma altura y más
+  // delgadas (lo vio el autor el 12 de noviembre): ahora le sacan un 23-25 % y los hombres un 30-34 %. Con la variedad de
+  // cada vecino (±3 %), el mayor más bajo mide 1,66 y el niño más alto 1,28. Las puertas de las casas miden 2,4 m
+  abuelo_bigote: 1.79, abuelo_barba: 1.81, abuelo: 1.84, abuela_trenzas: 1.72, abuela_mono: 1.71, abuela_panuelo: 1.74,
   nino_moreno: 1.2, nino_rubio: 1.24, nina_pelirroja: 1.17, nina_trenzas: 1.13,
-  hombre: 1.76, mujer: 1.65, joven_rubia: 1.66, carpintero: 1.77, carpintera: 1.65, quesero: 1.73, quesera: 1.63,
-  panadero: 1.71, panadera: 1.62, campesino: 1.74, campesina: 1.64 };
+  hombre: 1.93, mujer: 1.81, joven_rubia: 1.8, carpintero: 1.94, carpintera: 1.8, quesero: 1.9, quesera: 1.79,
+  panadero: 1.88, panadera: 1.78, campesino: 1.91, campesina: 1.8 };
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
  *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
 export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };
@@ -200,7 +202,7 @@ export async function loadMeshy(name, lod = false) {
     // veces seguidas (un tirón en cada paso). Se quita ese fotograma repetido
     const animations = ['Walk', 'Run'].filter(n => src[n]).map(n => seamless(src[n]));
     // el futbolista trae su chut: es su golpe (pase y tiro), desde que echa la pierna atrás
-    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(src.Alert && !MESHY_BY[name] ? cortesVecino(src) : {}), ...(MESHY_BY[name] || {}) };
+    const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(src.Alert && !MESHY_BY[name] ? cortesVecino(src, name) : {}), ...(MESHY_BY[name] || {}) };
     for (const [want, [from, t0, t1, pp, flat, rate]] of Object.entries(cuts)) {
       if (!src[from]) continue;
       const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);

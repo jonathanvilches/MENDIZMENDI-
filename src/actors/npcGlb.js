@@ -203,7 +203,8 @@ function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), pein
   else if (costume || L.meshy) hairTint(char.root, name, hair);
   else outfitTint(char.root, L.juez && name === 'osasuna' ? 'osasuna_juez' : name, { shirt: L.shirt, pants: L.pants || L.skirt, vest: L.vest, acc: L.scarf || L.sash || L.vest || L.pants || L.skirt, hair });
   // su altura: niños más bajos, el resto con un poco de variedad; los mayores, algo más bajos
-  const H = L.height || (L.child ? 1.22 : (L.old ? 1.5 : 1.55) + (hashOf(L) % 7) * 0.02), k = H / 1.6;
+  // (a la altura de los vecinos de Meshy: adultos claramente más altos que el explorador, 1,45, y niños más bajos)
+  const H = L.height || (L.child ? 1.22 : (L.old ? 1.68 : 1.74) + (hashOf(L) % 7) * 0.02), k = H / 1.6;
   char.root.scale.setScalar((g.userData.fit || 1) * k);
   // prendas encima: barba, delantal y makila; ellas, la falda y el delantal cosidos al cuerpo, que se mueven con las
   // piernas (trajes.js); con el cuerpo de chico de reserva, la falda de siempre
@@ -491,7 +492,7 @@ export function buildNpc(look = {}, nombre = '') {
   if (!P.scarf) for (const n of ['Acc_Scarf.001', 'Acc_Scarf', 'Acc_Scarf_Outline', 'Acc_Scarf.001_Outline']) if (char.meshes[n]) char.meshes[n].visible = false;
   char.root.traverse(o => { if (o.name.startsWith('Acc_Scarf') && o.userData.outline && !P.scarf) o.visible = false; });
   // altura: el modelo mide 1,68 m; niños más bajos, mayores algo encorvados
-  const H = L.height || (L.child ? 1.36 : 1.72);
+  const H = L.height || (L.child ? 1.22 : 1.8);   // (como los vecinos de Meshy: el explorador mide 1,45)
   const k = THREE.MathUtils.clamp(H / 1.68 * (L.old ? 0.98 : 1), 0.72, 1.12) * (L.build && L.build > 1.1 ? 1.03 : 1);
   char.root.scale.setScalar(k);
   addProps(char, gltf, L);
