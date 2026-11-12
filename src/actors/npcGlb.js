@@ -5,7 +5,9 @@ import * as THREE from 'three';
 import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, meshyBust, meshyHeight } from './glbChar.js';
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
-import { hairTint } from './hairColor.js';
+import { hairTint, peloVecino } from './hairColor.js';
+import { fillMaterial, sharpMap } from '../engine/charLight.js';
+import PELO from './peloVecinos.json';
 import { TRAJES, vestirTraje, falda } from './trajes.js';
 import { loadChica, hasChica } from './chicas.js';
 import { fuenteCerca } from './vecinoCerca.js';
@@ -33,7 +35,7 @@ export async function preloadNpcs(d = null) {
   const chicas = Promise.all(VECINAS.filter(([n, p]) => hasChica(n, p, true)).map(([n, p]) => loadChica(n, p, true).then(g => { CHICA_LOD_NPC[n + ':' + p] = g; }).catch(e => console.warn('vecina', n, e))));
   // los vecinos de Meshy de este pueblo (d, los datos del pueblo; sin él, ninguno: fuera de los pueblos, como antes)
   for (const k of Object.keys(VEC_LOD)) delete VEC_LOD[k];
-  for (const k of Object.keys(USO)) delete USO[k]; VEC_DE.clear();
+  for (const k of Object.keys(USO)) delete USO[k]; VEC_DE.clear(); for (const k of Object.keys(CLON)) delete CLON[k];
   const vec = d ? vecinosDelPueblo(d) : [];
   const vecP = Promise.all(vec.map(n => loadMeshy(n, true).then(g => { VEC_LOD[n] = g; }).catch(e => console.warn('vecino', n, e))));
   // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos; los vecinos de
@@ -99,15 +101,46 @@ export function vecinoPara(L = {}, nombre = '', entre = VEC, reparte = false) {
 const VEC_LOD = {};
 // cuántos vecinos de cada modelo hay ya en el pueblo (vecinoPara, reparte)
 const USO = {};
-fuenteCerca((n) => VEC_LOD[n]?.scene || null);   // (vecinoCerca.js: su textura nítida de cerca)
+// los materiales propios de los vecinos con el pelo teñido, por modelo (para cambiarles también la textura de cerca)
+const CLON = {};
+fuenteCerca((n) => { const out = []; VEC_LOD[n]?.scene?.traverse(o => { if (o.isMesh) out.push(...[].concat(o.material)); }); for (const m of CLON[n] || []) out.push(m); return out; });   // (vecinoCerca.js)
+// Los colores de pelo de los vecinos: los que pintó Meshy en otros vecinos (peloVecinos.json, su color típico en lineal),
+// así el nuevo es del mismo estilo; algún tono intermedio sale de ellos. Los mayores, canosos, blancos o grises.
+const col = (k, f = 1) => PELO[k]?.rgb?.map(v => v * f) || null;
+export const TONOS = { negro: col('hombre'), castanoOscuro: col('quesero'), castano: col('campesino'), castanoClaro: col('campesino', 2.2),
+  rubioOscuro: col('joven_rubia', 0.55), rubio: col('joven_rubia'), cobrizo: col('quesera'), pelirrojo: col('nina_pelirroja'),
+  canoso: col('abuelo_barba'), blanco: col('abuelo'), gris: col('abuela_trenzas') };
+const POOL_JOVEN = ['negro', 'castanoOscuro', 'castano', 'castanoClaro', 'rubioOscuro', 'rubio', 'cobrizo', 'pelirrojo'], POOL_MAYOR = ['canoso', 'blanco', 'gris'];
+const aSrgb = (v) => Math.round(255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * Math.pow(v, 1 / 2.4) - 0.055));
+/** El color de pelo de un vecino: el de su aspecto (el que se le dio al crearlo), llevado al más parecido de los que
+ *  quedan bien; sin color, uno fijo para él. Uno de cada cuatro, con el suyo de siempre (null). */
+// (la abuela del pañuelo claro: su pañuelo es del color de su pelo y se teñía con él; se queda con el suyo)
+const SIN_TINTE = new Set(['abuela_panuelo']);
+/** Los colores de pelo que puede llevar un vecino de Meshy (vacío: solo el suyo). */
+export function tonosDe(name) {
+  const V = VECINOS[name]; if (!V || !PELO[name]?.ref || SIN_TINTE.has(name)) return [];
+  return (V.e === 'mayor' ? POOL_MAYOR : POOL_JOVEN).filter(k => TONOS[k]);
+}
+export function peloDe(name, L = {}) {
+  const V = VECINOS[name], pool = tonosDe(name), h = hashOf(L);
+  if (!pool.length || (h >>> 4) % 4 === 0) return null;
+  if (L.hair && V.e !== 'mayor') { const [r, g, b] = hex(L.hair); let best = null, bd = 1e9;
+    for (const k of pool) { const [r2, g2, b2] = TONOS[k].map(aSrgb); const d = (r - r2) ** 2 + (g - g2) ** 2 + (b - b2) ** 2; if (d < bd) { bd = d; best = k; } } return best; }
+  return pool[(h >>> 7) % pool.length];
+}
 // qué vecino de Meshy le tocó a cada aspecto, para su retrato en las charlas (ui.js)
 const VEC_DE = new Map();
 /** El retrato de busto del vecino de Meshy de este aspecto, para las charlas; null si no es uno de ellos. */
 export function retratoVecino(L, nombre = '') {
   if (!L) return null;
   const k = VEC_DE.get(hashOf(L)) || vecinoPara(L, nombre, Object.keys(VEC_LOD));
-  return k ? meshyBust(k) : null;
+  if (!k) return null;
+  // (con el pelo de otro color, su retrato con ese pelo: tools/vecinos-retratos-pelo.mjs)
+  const pk = peloDe(k, L);
+  return (pk && BUST_PELO[k + '_' + pk]) || meshyBust(k);
 }
+const BUST_PELO = Object.fromEntries(Object.entries(import.meta.glob('../assets/meshy/portraits/pelo/*.webp', { eager: true, query: '?url', import: 'default' }))
+  .map(([f, u]) => [f.split('/').pop().replace('.webp', ''), u]));
 // los que carga cada pueblo: los que dan sus misiones y hablan en él (los que salen en sus datos con nombre y aspecto)
 // y, para la gente de la calle, mayores, niños y adultos de cada sexo, fijos para cada pueblo
 function vecinosDelPueblo(d) {
@@ -201,9 +234,14 @@ function buildVecino(L, name) {
   const hk = H / 1.6, gNino = { runAt: 2.4, gait: (v, n) => n === 'Run' ? Math.min(3, Math.max(0.8, v / (1.62 * hk))) : Math.min(2.1, Math.max(0.4, v / (0.92 * hk))) };
   const char = new GlbChar(g, { ...MESHY_GAIT, vary: true, ...(V.e === 'nino' ? gNino : {}) });
   char.root.scale.setScalar((g.userData.fit || 1) * k);
+  // (su color de pelo: material propio, con la máscara del pelo de su textura; peloDe y hairColor.js, peloVecino)
+  const pk = peloDe(name, L);
+  if (pk) char.root.traverse(o => { if (!o.isSkinnedMesh || !o.material?.map) return;
+    const m0 = o.material, m = m0.clone(); m.userData.own = true; if (m0.userData.fillK != null) fillMaterial(m, m0.userData.fillK);
+    o.material = peloVecino(sharpMap(m), TONOS[pk], PELO[name].ref); (CLON[name] ||= new Set()).add(o.material); });
   if (L.staff && V.e === 'mayor') { char.root.updateMatrixWorld(true); try { dressMeshy(char.root, { staff: '#6b4a2a' }); } catch (e) { console.warn('makila', e); } }
   const obj = new THREE.Group(); obj.add(char.root);
-  Object.assign(obj.userData, { glbNpc: true, sex: V.s === 'f' ? 'girl' : 'boy', H, look: L, meshy: name, vecino: name });
+  Object.assign(obj.userData, { glbNpc: true, sex: V.s === 'f' ? 'girl' : 'boy', H, look: L, meshy: name, vecino: name, pelo: pk });
   VEC_DE.set(hashOf(L), name); USO[name] = (USO[name] || 0) + 1;
   const anim = {
     t: 0, setExpr() {},

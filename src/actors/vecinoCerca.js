@@ -10,29 +10,27 @@ const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/meshy
   .map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
 const MAX = QUALITY === 'low' ? 2 : 3, CERCA = 9, LEJOS = 13;
 const puestas = new Map(), pedidas = new Set(), loader = new THREE.TextureLoader();
-let escena = null;   // (name) → la escena del modelo ligero cargado (actors/npcGlb.js)
+let mats = null;   // (name) → los materiales de ese modelo: los compartidos y los propios de los que llevan el pelo teñido (npcGlb.js)
 
-/** La forma de encontrar el modelo ligero de cada vecino (npcGlb.js). */
-export function fuenteCerca(fn) { escena = fn; }
+/** La forma de encontrar los materiales de cada modelo de vecino (npcGlb.js). */
+export function fuenteCerca(fn) { mats = fn; }
 
 function pon(name, tex) {
-  const sc = escena?.(name); if (!sc) { tex.dispose(); return; }
-  const mats = [];
-  sc.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) { if (!m?.map || mats.some(x => x.m === m)) continue;
-    const old = m.map;
-    tex.flipY = old.flipY; tex.colorSpace = old.colorSpace; tex.wrapS = old.wrapS; tex.wrapT = old.wrapT; tex.channel = old.channel; tex.anisotropy = 8;
-    mats.push({ m, map: old, emi: m.emissiveMap }); m.map = tex; if (m.emissiveMap === old) m.emissiveMap = tex; } });
-  tex.needsUpdate = true;
-  puestas.set(name, { tex, mats });
+  const lista = mats?.(name) || [], m0 = lista.find(m => m?.map);
+  if (!m0) { tex.dispose(); return; }
+  const lod = m0.map;
+  tex.flipY = lod.flipY; tex.colorSpace = lod.colorSpace; tex.wrapS = lod.wrapS; tex.wrapT = lod.wrapT; tex.channel = lod.channel; tex.anisotropy = 8; tex.needsUpdate = true;
+  for (const m of lista) { if (m?.map !== lod) continue; m.map = tex; if (m.emissiveMap === lod) m.emissiveMap = tex; }
+  puestas.set(name, { tex, lod });
 }
 function quita(name) {
   const p = puestas.get(name); if (!p) return;
-  for (const { m, map, emi } of p.mats) { m.map = map; m.emissiveMap = emi; }
+  for (const m of mats?.(name) || []) { if (m.map === p.tex) m.map = p.lod; if (m.emissiveMap === p.tex) m.emissiveMap = p.lod; }
   p.tex.dispose(); puestas.delete(name);
 }
 /** Cada medio segundo: los modelos de los vecinos más cercanos llevan su textura de cerca; los demás, la ligera. */
 export function cercaVecinos(actores, P) {
-  if (!escena) return;
+  if (!mats) return;
   const d = new Map();
   for (const a of actores) { const n = a?.obj?.userData?.vecino; if (!n || !URLS[n] || a.obj.visible === false) continue;
     const r = Math.hypot(a.pos.x - P.x, a.pos.z - P.z); if (r < (d.get(n) ?? Infinity)) d.set(n, r); }
@@ -46,3 +44,5 @@ export function cercaVecinos(actores, P) {
 }
 /** Al salir del pueblo: todos con su textura ligera otra vez (los modelos se quedan cargados para el siguiente). */
 export function sueltaCerca() { for (const n of [...puestas.keys()]) quita(n); pedidas.clear(); }
+/** (para las pruebas: los modelos que llevan ahora la textura de cerca y los que se están cargando) */
+export const estadoCerca = () => ({ puestas: [...puestas.keys()], pedidas: [...pedidas] });

@@ -103,3 +103,31 @@ export function hairTint(root, model, color) {
     o.material = hairMaterial(sharpMap(m), o.geometry, model, color);   // (own: GlbChar.dispose lo suelta con el personaje)
   });
 }
+
+// ---- el pelo de los vecinos de Meshy (actors/npcGlb.js): su máscara va en el alfa de su textura (tools/vecinos-pelo.mjs)
+// y el tono de cada píxel se conserva respecto al brillo típico del pelo de ese modelo (peloVecinos.json) ----
+const GLSL_V = `uniform vec3 uPeloC; uniform float uPeloRef;
+vec3 conPelo(vec3 c, float a){
+  if (a < 0.03) return c;
+  float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
+  vec3 o = uPeloC * clamp(pow(l / uPeloRef, 0.85), 0.4, 1.9);
+  return mix(c, o, smoothstep(0.03, 0.7, a));
+}`;
+/** Tiñe el pelo de un vecino de Meshy (m: material ya propio de este vecino; rgb: el color nuevo, en lineal, tal como
+ *  está pintado en la textura de otro vecino; ref: brillo típico de su propio pelo, en lineal). */
+export function peloVecino(m, rgb, ref) {
+  if (!rgb || !m.map) return m;
+  const U = { uPeloC: { value: new THREE.Vector3(...rgb) }, uPeloRef: { value: Math.max(0.004, ref || 0.05) } };
+  const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => {
+    prev?.call(m, sh, r); Object.assign(sh.uniforms, U);
+    // (la máscara es el alfa de la textura, de 1 sin pelo a 0,5 todo pelo: se lee justo después de pintarla y se deja la
+    // opacidad como estaba)
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + GLSL_V)
+      .replace('#include <color_fragment>', 'float mzPelo = clamp((1.0 - diffuseColor.a) * 2.0, 0.0, 1.0); diffuseColor.a = opacity;\n#include <color_fragment>\n diffuseColor.rgb = conPelo(diffuseColor.rgb, mzPelo);')
+      .replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment).replace(EMI, (l) => l + '\n emissiveColor.rgb = conPelo(emissiveColor.rgb, clamp((1.0 - emissiveColor.a) * 2.0, 0.0, 1.0));');
+  };
+  m.customProgramCacheKey = () => (key ? key.call(m) : '') + '+peloV';
+  m.needsUpdate = true;
+  return m;
+}
