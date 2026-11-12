@@ -189,6 +189,13 @@ export class Sound {
       else this.tone(base * 1.2, 0.09, 'sine', 0.1, o, t, 0.005, base * 0.8);
     }
   }
+  // el aleteo de una bandada de pajarillos que sale volando de golpe: muchos golpes de ala cortos y sordos, casi a la vez,
+  // que se apagan mientras se alejan, y algún pío
+  aleteo(pos, n = 8) {
+    if (!this.ctx) return; const o = this.out(pos, 30, 0.55, 0.15); if (!o) return;
+    for (let i = 0; i < n * 4; i++) { const k = i / (n * 4); this.noiseBurst(0.035 + Math.random() * 0.02, 500 + Math.random() * 900, 1.1, 0.07 * (1 - k) ** 1.4, o, k * 0.55 + Math.random() * 0.03); }
+    if (Math.random() < 0.7) this.tone(3600 + Math.random() * 900, 0.06, 'sine', 0.035, o, 0.05, 0.004, 4400);
+  }
   cuckoo(pos) { if (!this.ctx) return; const o = this.out(pos, 90, 0.5, 0.5); if (!o) return; for (let r = 0; r < 2; r++) { this.tone(650, 0.2, 'sine', 0.1, o, r * 0.9, 0.02, 630); this.tone(540, 0.32, 'sine', 0.1, o, r * 0.9 + 0.26, 0.02, 520); } }
   owl(pos) { if (!this.ctx) return; const o = this.out(pos, 80, 0.4, 0.6); if (!o) return; this.tone(380, 0.35, 'sine', 0.12, o, 0, 0.05, 360); this.tone(380, 0.6, 'sine', 0.12, o, 0.5, 0.05, 350); }
   // sonido propio de cada criatura: 'call' al avisar de que se mueve, 'ambient' de fondo

@@ -1529,6 +1529,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     rojizas, como la «gorria», y una blanca), con cresta, barbilla, patas y la cola en abanico de pie. Andan despacio de
     un sitio a otro cabeceando y se paran a picotear; si te acercas se apartan corriendo con un aleteo, sin salir volando.
     Dos mallas repetidas más.
+    Y las bandadas que se cruzan andando (noviembre de 2026): 6-8 grupos de 8-11 gorriones o jilgueros (la cara roja y la
+    banda amarilla de las alas, que es lo que se ve al volar) comen en la calle o junto a ella, por delante del jugador, a
+    18-34 m según el rumbo de sus últimos metros, en seco y lejos de las otras. Al llegar a 6,5 m (9 si corre) sale toda la
+    bandada: cada pájaro un poco después del anterior, hacia arriba con fuerza y luego en línea, alejándose del jugador y
+    ondulando, por encima de los tejados, con su aleteo (`aleteo` en `audio.js`: golpes de ala cortos y sordos casi a la
+    vez, que se apagan, y algún pío). La que se ha ido o queda atrás se posa otra vez más adelante. Andando por una calle de
+    Lesaka de 230 m salen unas cuantas; antes solo estaban las de la plaza y casi nunca se veían salir. Dos mallas más.
   - *Peces* (`peces.js`, noviembre de 2026): bancos que nadan bajo el agua cerca del jugador, con los peces de cada
     comarca según las normas de pesca de Navarra: trucha y salmón atlántico en la cuenca del Bidasoa, trucha y chipa en
     el Pirineo, truchas, barbos y madrillas en el Prepirineo y la zona media, barbo de Graells y madrilla en la Ribera.

@@ -394,7 +394,7 @@ export class TownGame {
     this.spawnKontalari();
     try { this.spawnBalcones(); } catch (e) { console.warn('balcones', e); }
     // gorriones, palomas y vencejos (pajarillos.js): después de los balcones, que son de sus posaderos
-    try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY }); } catch (e) { console.warn('pajarillos', e); }
+    try { this.pajarillos = new Pajarillos(this.scene, { quality: QUALITY, sound: this.sound }); } catch (e) { console.warn('pajarillos', e); }
     // truchas, salmones, barbos, madrillas y chipas en los ríos, según la comarca (peces.js)
     if (this.def.river) try { this.peces = new Peces(this.scene, { quality: QUALITY, comarca: this.def.comarca }); } catch (e) { console.warn('peces', e); }
     // la ropa tendida en algunos balcones (colada.js)

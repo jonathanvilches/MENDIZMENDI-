@@ -2,13 +2,18 @@
 // volando a una farola o a un balcón cuando pasas cerca (y vuelven al rato); palomas que andan cabeceando por la plaza; y
 // vencejos que dan vueltas deprisa sobre los tejados. Cada especie es una sola malla repetida (InstancedMesh: una llamada de
 // dibujo), y el aleteo y las alas plegadas se hacen en el sombreador. De noche duermen: no se ven.
-//   new Pajarillos(scene, { quality }) · update(dt, t, player, night, oculto)
+// Y las bandadas que se cruzan andando (noviembre de 2026): grupos de 8-11 gorriones o jilgueros que comen en el suelo de
+// la calle por delante del jugador, a 18-34 m, y salen volando todos a la vez cuando llega cerca, con su aleteo, como una
+// nube que se abre y se va por encima de los tejados. La que se ha ido o queda atrás vuelve a posarse más adelante: andando
+// por el pueblo siempre hay alguna. Antes solo había las de la plaza y casi nunca se veían salir.
+//   new Pajarillos(scene, { quality, sound }) · update(dt, t, player, night, oculto)
 import * as THREE from 'three';
 import { PLACES } from './layout.js';
 import { TOWN } from './townBuilder.js';
 import { VILLAGE } from './village.js';
 import { groundHeight } from './heightfield.js';
 import { isFree } from './colliders.js';
+import { pathQuery, riverInfo } from './layout.js';
 import { mulberry32 } from '../util/math.js';
 
 // ---------- el cuerpo: cuerpo, cabeza, pico, cola y dos alas (aAla: -1 la izquierda, 1 la derecha, 0 lo demás) ----------
@@ -89,6 +94,8 @@ const ESPECIES = {
   gorrion: { L: 0.15, lomo: '#7a5634', pecho: '#c9bfae', cabeza: '#8a6a4a', pico: '#3a3330', ala: '#6e4c2e', envergadura: 1.1, cuerda: 0.42, cola: 0.36, freq: 34 },
   // paloma: gris azulada, más grande y pesada
   paloma: { L: 0.3, lomo: '#8e939c', pecho: '#a3a6ad', cabeza: '#6e7582', pico: '#c9b9a8', ala: '#8a909a', envergadura: 1.25, cuerda: 0.45, cola: 0.42, freq: 18 },
+  // jilguero: pardo claro, la cara roja y las alas negras con la banda amarilla (que es lo que se ve al volar), 12 cm
+  jilguero: { L: 0.13, lomo: '#a3825a', pecho: '#e9dfcf', cabeza: '#c2302a', pico: '#e0cdb0', ala: '#d2ad2c', envergadura: 1.15, cuerda: 0.42, cola: 0.34, freq: 36 },
   // vencejo: casi negro, alas largas como una hoz y la cola en horquilla
   vencejo: { L: 0.17, lomo: '#2a2a2e', pecho: '#3a3a3e', cabeza: '#2a2a2e', pico: '#1a1a1a', ala: '#232327', envergadura: 2.3, cuerda: 0.32, cola: 0.5, horquilla: 0.22, freq: 26 },
   // gallinas de las casas (las vascas: la «gorria», rojiza, y alguna blanca), con su cresta, sus patas y la cola alta;
@@ -119,8 +126,8 @@ class Especie {
 const _q = new THREE.Quaternion(), _e = new THREE.Euler(), _m = new THREE.Matrix4(), _p = new THREE.Vector3(), _s = new THREE.Vector3();
 
 export class Pajarillos {
-  constructor(scene, { quality = 'high' } = {}) {
-    this.scene = scene; const low = quality === 'low', rnd = this.rnd = mulberry32(7331);
+  constructor(scene, { quality = 'high', sound = null } = {}) {
+    this.scene = scene; this.sound = sound; const low = quality === 'low', rnd = this.rnd = mulberry32(7331);
     // (dónde comen: la plaza, junto a la fuente, los bancos y algunas puertas cerca de la plaza; y dónde se posan: las farolas,
     // las barandillas de los balcones y el borde de la fuente)
     const P = PLACES.plaza || { x: 0, z: 0 }, cerca = (q, r) => Math.hypot(q.x - P.x, q.z - P.z) < r;
@@ -153,6 +160,80 @@ export class Pajarillos {
     // los vencejos: vueltas grandes sobre el centro del pueblo, cada uno a su altura y su velocidad
     this.vencejos = Array.from({ length: this.ven.n }, (_, i) => ({ c: { x: P.x + (rnd() - 0.5) * 30, z: P.z + (rnd() - 0.5) * 30 }, r: 9 + rnd() * 14, w: (0.7 + rnd() * 0.5) * (rnd() < 0.5 ? -1 : 1), a: rnd() * 6.28, h: 16 + rnd() * 12, f: rnd() * 6 }));
     this.yP = groundHeight(P.x, P.z);
+    // las bandadas que se cruzan andando: la mitad de gorriones y la mitad de jilgueros
+    const nV = low ? 6 : 8, porV = low ? 8 : 11;
+    this.vGor = new Especie(scene, 'gorrion', Math.ceil(nV / 2) * porV); this.vJil = new Especie(scene, 'jilguero', Math.floor(nV / 2) * porV);
+    this.viajeras = Array.from({ length: nV }, (_, i) => ({ E: i % 2 ? this.vJil : this.vGor, base: Math.floor(i / 2) * porV, n: porV, est: 'ido', t: i * 0.7, aves: [] }));
+    for (const E of [this.vGor, this.vJil]) for (let i = 0; i < E.n; i++) E.pon(i, 0, -50, 0, 0, 0, 0, 0, 0);
+    this.rumbo = { x: 0, z: 1 }; this.ultimo = null;
+  }
+  // (un sitio para una bandada viajera: en la calle o junto a ella, por delante del jugador, en seco y lejos de las otras)
+  sitioDelante(px, pz) {
+    const h = Math.atan2(this.rumbo.x, this.rumbo.z);
+    for (let k = 0; k < 14; k++) {
+      const a = h + (this.rnd() - 0.5) * 1.8, d = 18 + this.rnd() * 16, x = px + Math.sin(a) * d, z = pz + Math.cos(a) * d;
+      const q = pathQuery(x, z); if (!(q.d < (q.w || 2) + 3.5)) continue;
+      if (!isFree(x, z, 1.4) || riverInfo(x, z).edge < 2) continue;
+      if (Math.abs(groundHeight(x + 1.5, z) - groundHeight(x - 1.5, z)) > 0.9) continue;
+      if (this.viajeras.some(F => F.est !== 'ido' && Math.hypot(F.x - x, F.z - z) < 12)) continue;
+      return { x, z };
+    }
+    return null;
+  }
+  posaViajera(F, px, pz) {
+    const s = this.sitioDelante(px, pz); if (!s) return false;
+    F.x = s.x; F.z = s.z; F.est = 'suelo';
+    F.aves = Array.from({ length: F.n }, () => { const p = this.libre(s, 2.6); return { x: p.x, z: p.z, y: groundHeight(p.x, p.z), yaw: this.rnd() * 6.28, t: this.rnd(), salto: 0, pico: 0 }; });
+    return true;
+  }
+  // (sale volando toda: cada pájaro un poco después del anterior, alejándose del jugador con su rumbo y su altura)
+  despega(F, px, pz) {
+    F.est = 'vuela'; F.t = 0;
+    const ax = F.x - px, az = F.z - pz, l = Math.hypot(ax, az) || 1, base = Math.atan2(ax / l, az / l);
+    for (const a of F.aves) {
+      const r = base + (this.rnd() - 0.5) * 1.4;
+      a.de = { x: a.x, y: a.y, z: a.z }; a.dir = { x: Math.sin(r), z: Math.cos(r) }; a.esp = this.rnd() * 0.35;
+      a.v = 7 + this.rnd() * 3; a.sube = 9 + this.rnd() * 7; a.ond = this.rnd() * 6.28;
+    }
+    this.sound?.aleteo?.({ x: F.x, y: groundHeight(F.x, F.z), z: F.z }, F.n);
+  }
+  updateViajeras(dt, t, px, pz, corre) {
+    for (const F of this.viajeras) {
+      const E = F.E;
+      if (F.est === 'ido') { F.t -= dt; if (F.t <= 0 && !this.posaViajera(F, px, pz)) F.t = 0.6; continue; }
+      const dP = Math.hypot(F.x - px, F.z - pz);
+      if (F.est === 'suelo') {
+        // (queda atrás: se va a otro sitio de delante sin que se vea)
+        if (dP > 55) { F.est = 'ido'; F.t = 0.5; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); continue; }
+        if (F.aves.some(a => Math.hypot(a.x - px, a.z - pz) < (corre ? 9 : 6.5))) { this.despega(F, px, pz); }
+        else F.aves.forEach((a, i) => {
+          a.t -= dt;
+          if (a.t <= 0) {
+            const q = this.rnd();
+            if (q < 0.45) { const d = 0.12 + this.rnd() * 0.22, nx = a.x + Math.sin(a.yaw) * d, nz = a.z + Math.cos(a.yaw) * d; if (Math.hypot(nx - F.x, nz - F.z) < 3 && isFree(nx, nz, 0.2)) { a.x = nx; a.z = nz; a.salto = 1; } else a.yaw += 2 + this.rnd(); }
+            else if (q < 0.8) a.pico = 1; else a.yaw += (this.rnd() - 0.5) * 2.4;
+            a.t = 0.25 + this.rnd() * 1.1;
+          }
+          a.salto = Math.max(0, a.salto - dt * 6); a.pico = Math.max(0, a.pico - dt * 4); a.y = groundHeight(a.x, a.z);
+          E.pon(F.base + i, a.x, a.y + Math.sin(a.salto * Math.PI) * 0.06 + E.alto, a.z, a.yaw, Math.sin(a.pico * Math.PI) * 0.6 - 0.1, 0, 0, 0);
+        });
+      }
+      if (F.est === 'vuela') {
+        F.t += dt;
+        let fuera = true;
+        F.aves.forEach((a, i) => {
+          const k = Math.max(0, F.t - a.esp);
+          // (arranque fuerte hacia arriba y luego en línea, ondulando un poco, como los pájaros pequeños)
+          const sube = a.sube * (1 - Math.exp(-k * 1.4)), d = a.v * k + 1.2 * Math.min(1, k * 2);
+          const x = a.de.x + a.dir.x * d + Math.cos(a.ond + k * 3) * 0.4 * Math.min(1, k), z = a.de.z + a.dir.z * d + Math.sin(a.ond + k * 3) * 0.4 * Math.min(1, k);
+          const y = a.de.y + E.alto + sube + Math.sin(k * 9 + a.ond) * 0.12 * Math.min(1, k);
+          if (k < 4.2) fuera = false;
+          const pitch = -Math.atan2(a.sube * 1.4 * Math.exp(-k * 1.4), a.v) * 0.8;
+          E.pon(F.base + i, x, k > 0 ? y : a.de.y + E.alto, z, Math.atan2(a.dir.x, a.dir.z), k > 0 ? pitch : -0.1, Math.sin(k * 2 + a.ond) * 0.25, k > 0 ? 1 : 0, k > 0 ? (k < 1.6 ? 1 : 0.6 + 0.4 * Math.max(0, Math.sin(k * 3 + a.ond))) : 0);
+        });
+        if (fuera) { F.est = 'ido'; F.t = 0.8 + this.rnd() * 1.5; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); }
+      }
+    }
   }
   // (un sitio libre cerca de otro: fuera de las casas)
   libre(s, r) {
@@ -175,6 +256,12 @@ export class Pajarillos {
     for (const E of this.todas()) E.mesh.visible = ver;
     if (!ver) return;
     const px = player.pos.x, pz = player.pos.z, R = this.rnd;
+    // (hacia dónde va el jugador: el rumbo de los últimos metros, para posar las bandadas viajeras por delante)
+    if (!this.ultimo) this.ultimo = { x: px, z: pz };
+    const mx = px - this.ultimo.x, mz = pz - this.ultimo.z, ml = Math.hypot(mx, mz);
+    if (ml > 2) { this.rumbo = { x: mx / ml, z: mz / ml }; this.ultimo = { x: px, z: pz }; }
+    else if (ml < 0.01 && player.heading != null) this.rumbo = { x: Math.sin(player.heading), z: Math.cos(player.heading) };
+    this.updateViajeras(dt, t, px, pz, (player.speed || 0) > 4.5);
     for (const B of this.bandadas) {
       const E = B.esp, base = this.bandadas.filter(b => b.esp === E).indexOf(B) * B.aves.length;
       // (si pasas cerca de alguna, sale volando toda la bandada; vuelve cuando te has ido)
@@ -238,6 +325,6 @@ export class Pajarillos {
     }
     for (const E of this.todas()) E.fin(t);
   }
-  todas() { return [this.gor, this.pal, this.ven, this.gal, this.galB].filter(Boolean); }
+  todas() { return [this.gor, this.pal, this.ven, this.gal, this.galB, this.vGor, this.vJil].filter(Boolean); }
   dispose() { for (const E of this.todas()) E.dispose(this.scene); }
 }
