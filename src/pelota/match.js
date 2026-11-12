@@ -1209,11 +1209,14 @@ export class PelotaMatch {
         this.lastWin = e.winner; this.lastFinal = !!e.final; this.planoT = this.t;
         // (la racha: tantos seguidos, iguala o remontada; en el aviso y, mientras dure, en el marcador)
         const ex = g.mode === 'rally' ? null : { col: this.cols[e.winner], racha: this.rachaDe(e) };
-        const [title, sub] = t.calls[e.call] || t.calls.tanto;
+        // (el rótulo: lo que canta el juez, «¡Dos botes!», «¡Falta!», y para quién es el tanto, sin la explicación de la regla
+        // ni, en castellano, el tanteo cantado en euskera: el autor lo quiere todo en el idioma del juego y sin repetir la
+        // explicación en cada tanto; noviembre de 2026. La explicación sigue en las reglas, TEXT.calls[1])
+        const [title] = t.calls[e.call] || t.calls.tanto, kant = this.lang === 'eu' ? e.kantari : '';
         const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
-        if (g.mode === 'rally') this.hud.call(title, sub, '', 3, ex);
-        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, e.kantari, 5.5, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
-        else { this.hud.call(title, `${sub ? sub + ' ' : ''}${who}.`, e.kantari, ex?.racha ? 4 : 3.4, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
+        if (g.mode === 'rally') this.hud.call(title, '', '', 2.6, ex);
+        else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, kant, 5.5, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
+        else { this.hud.call(title, `${who}.`, kant, ex?.racha ? 3.6 : 2.8, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
         // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
         A.point(e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call], e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)));
         if (g.mode === 'match') this.comTanto(e);

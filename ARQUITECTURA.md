@@ -518,8 +518,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Rótulos del partido** (`pelota/hud.js`, `call`): el aviso grande entra y sale con un fundido de 0,3 s, sin más.
   Hubo una versión con las letras cayendo, botando o volando, una pelota cruzando el rótulo de los dos botes, la chapa
   temblando y los botones entrando de un salto: al autor no le gustó nada y se quitó (noviembre de 2026).
-  El aviso del tanto dura 3,4 s (4 con racha, 5,5 el último) y sigue a la vista durante la repetición, que empieza a
-  los 1,15 s.
+  El aviso del tanto dura 2,8 s (3,6 con racha, 5,5 el último) y sigue a la vista durante la repetición, que empieza a
+  los 1,15 s. Dice solo lo que canta el juez («¡Dos botes!», «¡Falta!», «¡Chapa!») y debajo para quién es el tanto: sin
+  la explicación de la regla, que el autor no quería ver en cada tanto, y sin el tanteo cantado en euskera cuando el
+  juego está en castellano (`pelota/match.js`, caso `call`: el kantari solo en euskera). Desde el 12 de noviembre de
+  2026; antes, 3,4 s con la regla explicada y el kantari siempre.
 - **Marcador de retransmisión y rachas** (`pelota/hud.js`, `setScore`, `setRacha`, `call`; `pelota/match.js`, `rachaDe`):
   al sumar, la cifra salta en dorado y su lado se ilumina. El aviso del tanto lleva arriba una raya del color de quien
   lo gana y, si toca, el rótulo de racha: tres tantos seguidos o más, o el que iba tres o más por detrás iguala el
