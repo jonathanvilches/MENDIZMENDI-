@@ -584,6 +584,10 @@ const CHUNK = 125;
 export const TREES = [];
 // (las matas y los arbustos de los jardines, con su choque y su sitio en las mallas: clearBushes los quita)
 const MATAS = [];
+/** Al soltar el pueblo (engine/runtime.js, unload): las listas de árboles y matas apuntan a sus mallas y, por el padre de
+ *  cada malla, a la escena entera del pueblo dejado. MATAS se quedaba llena hasta cargar el pueblo siguiente: en el menú
+ *  seguía en memoria todo el pueblo anterior, con sus vecinos (unos 4.400 huesos), junto al mapa de Navarra */
+export function resetNature() { TREES.length = 0; MATAS.length = 0; }
 const BUSH_K = 0.78;   // (las matas del valle, algo más pequeñas que como salen de arbol.js: entre 1 y 2,2 m de alto)
 
 function treeSpots(rnd) {

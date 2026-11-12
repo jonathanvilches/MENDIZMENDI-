@@ -1799,6 +1799,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin duplicados** (revisión de noviembre de 2026):
   - Toda escucha en `window` o `document` se quita al soltar lo que la puso, con una función con nombre. El mapa del
     inicio ponía una en `blur` sin nombre y, con cada vuelta al menú, se quedaba vivo el mapa anterior entero.
+  - Toda lista de módulo que apunte a mallas del pueblo se vacía al soltarlo (`unload` en `engine/runtime.js`): por el
+    padre de cada malla llega a la escena entera. `MATAS`, la de las matas de `world/nature.js`, solo se vaciaba al
+    cargar el pueblo siguiente, y en el menú seguía en memoria el pueblo anterior con sus vecinos (unos 4.400 huesos);
+    ahora `resetNature` la vacía con `TREES` al salir (noviembre de 2026: unos 40 MB menos en el menú, medido con
+    instantáneas del montón tras salir de Aoiz, Lumbier, Estella y Lesaka). Lo que queda son plantillas que se reusan
+    en el pueblo siguiente (los personajes y animales ya cargados), sin escena detrás.
   - En un pueblo no hay dos personas con el mismo nombre ni ninguna con el del jugador (`nombresUnicos` en
     `townGame.js`, con `nombreLibre` de `data/nombres.js`). Los anfitriones de misión conservan el suyo.
   - Los sabios no se repiten en un pueblo: hay 16 en `data/sabios.js` y se coge el siguiente libre.

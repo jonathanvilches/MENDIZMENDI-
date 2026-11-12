@@ -14,7 +14,7 @@ import { resetNpcCache } from '../actors/npcGlb.js';
 import { buildVillage, VILLAGE, resetVillage } from '../world/village.js';
 import { buildLandmarks, LANDMARKS } from '../world/landmarks.js';
 import { buildTown, preloadTown, TOWN } from '../world/townBuilder.js';
-import { Nature, TREES } from '../world/nature.js';
+import { Nature, TREES, resetNature } from '../world/nature.js';
 import { setLevel, PLACES, iratiMask } from '../world/layout.js';
 import * as SALAZAR from '../levels/salazar.js';
 import { createTownLevel } from '../levels/town.js';
@@ -304,7 +304,7 @@ export class Runtime {
     resetNpcCache();
     // (las listas de las piezas de detalle de las casas y de los árboles apuntan a sus mallas, y por ellas a todo el pueblo:
     // vacías ya al salir, y no al entrar en el siguiente. Antes quedaban unos 20 MB del pueblo dejado)
-    resetDetail(); TREES.length = 0; this.cola = null; this.colaVista = null;
+    resetDetail(); resetNature(); this.cola = null; this.colaVista = null;
     // los colisionadores móviles guardan a los vecinos (y, a través de ellos, el pueblo entero): fuera también
     resetColliders(); resetVillage(); clearPlatforms();
     this.scene = null;
