@@ -1158,6 +1158,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   misión y su texto (`#quest`); el icono del título de las ventanas de papel; el personaje de la barra de carga y el
   tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; el nombre de quien atiende la tienda bajo su icono (`.shop-keeper`); y, con el móvil de pie, la misión, que `fitTop`
   estrechaba a 140 px, y la distancia de la brújula y los avisos de la conversación, que se le montaban.
+- **Tarjetas de los campeonatos** (`pelotaMenu` y `retosMenu` en `game/torneo.js`, clases `cp-`, noviembre de 2026): oscuras,
+  con un degradado muy suave y esquinas de 10 px; el color de cada campeonato, solo en el punto de su etiqueta, en el halo
+  detrás del rival y en la barra de rondas. Arriba, la etiqueta (individual, por parejas, hasta el 4½…) y tus txapelas de
+  ese campeonato; en medio, el rival de tu ronda de pie; abajo, separado por una raya fina, el nombre, la ronda en su color,
+  contra quién y una barra con todas las rondas del cuadro (las jugadas, la de ahora y las que faltan). Las de partido
+  libre, retos, pelota en casa y colección, igual; los retos, con sus tres estrellas arriba. Sin brillo que barre ni neón
+  (eso, solo en las cartas de pelotari). En la cabecera, el total de txapelas en una píldora dorada. Antes eran losas de
+  degradado fuerte de color a color, con el antetítulo lejos del título y sin decir cuánto faltaba.
 - **Menú de pelota en carrusel** (`pelotaMenu` en `game/torneo.js`, noviembre de 2026): las cinco losas (individual,
   parejas, cuatro y medio, partido libre y colección) del mismo ancho, en una fila que se desliza de lado con el dedo, la
   rueda del ratón o las flechas de los lados, que solo salen si hay más hacia ese lado. Tumbado se ven tres y media y de

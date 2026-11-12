@@ -67,8 +67,8 @@ for (const pueblo of pueblos) {
     await p.waitForFunction(() => window.__hub?.visible && window.__ready, null, { timeout: 300000 });
     await p.evaluate((t) => window.__hub.onSport('pelota', t), pueblo);
     const toca = async (sel) => { const r = await p.evaluate((s) => { const e = document.querySelector(s); if (!e) return null; const q = e.getBoundingClientRect(); return q.width ? [q.x + q.width / 2, q.y + q.height / 2] : null; }, sel).catch(() => null); if (r) { await p.touchscreen.tap(r[0], r[1]); await p.waitForTimeout(500); } return !!r; };
-    if (!(await espera(p, () => !!document.querySelector('.tq-tile[data-a="libre"]'), 500000))) throw new Error('sin menú de pelota');
-    await p.waitForTimeout(1500); await toca('.tq-tile[data-a="libre"]');
+    if (!(await espera(p, () => !!document.querySelector('.cp-card[data-a="libre"]'), 500000))) throw new Error('sin menú de pelota');
+    await p.waitForTimeout(1500); await toca('.cp-card[data-a="libre"]');
     if (!(await espera(p, () => !!document.querySelector('[data-pel-go]'), 300000))) throw new Error('sin panel del partido');
     await toca('[data-pel-go]'); if (await espera(p, () => !!document.querySelector('[data-mat-go]'), 60000)) await toca('[data-mat-go]');
     if (!(await espera(p, () => ['serveWait', 'servePrep', 'rally', 'point'].includes(window.__game?.pelotaMatch?.game?.phase), 180000))) throw new Error('el partido no empieza');

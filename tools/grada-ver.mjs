@@ -15,8 +15,8 @@ await p.waitForFunction(() => window.__hub?.visible && window.__ready, null, { t
 await p.evaluate((t) => window.__hub.onSport('pelota', t), pueblo);
 const espera = async (fn, ms) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await p.evaluate(fn).catch(() => false)) return true; await p.waitForTimeout(700); } return false; };
 const clic = (sel) => p.evaluate((s) => document.querySelector(s)?.click(), sel);
-if (!(await espera(() => !!document.querySelector('.tq-tile[data-a="libre"]'), 500000))) throw new Error('sin menú');
-await p.waitForTimeout(1500); await clic('.tq-tile[data-a="libre"]');
+if (!(await espera(() => !!document.querySelector('.cp-card[data-a="libre"]'), 500000))) throw new Error('sin menú');
+await p.waitForTimeout(1500); await clic('.cp-card[data-a="libre"]');
 await espera(() => !!document.querySelector('[data-pel-go]'), 300000); await clic('[data-pel-go]');
 if (await espera(() => !!document.querySelector('[data-mat-go]'), 30000)) await clic('[data-mat-go]');
 if (!(await espera(() => ['serveWait', 'servePrep', 'rally', 'point'].includes(window.__game?.pelotaMatch?.game?.phase), 300000))) throw new Error('sin partido');
