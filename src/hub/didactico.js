@@ -37,7 +37,7 @@ import { allFichas } from '../ui/ficha.js';
 import { personajesHTML } from '../ui/personajes.js';
 import { figurasHTML } from '../ui/figuras.js';
 import { instrumentosHTML } from '../ui/instrumentos.js';
-import { laminaUrl, laminasDe, laminaRail, townImg, comarcaCover, leyendaUrl, tradicionUrl, openVisor, portadaPueblo } from '../ui/laminas.js';
+import { laminaUrl, laminasDe, laminaRail, townImg, comarcaCover, leyendaUrl, tradicionUrl, openVisor, portadaPueblo, posImg } from '../ui/laminas.js';
 import { stampImg } from '../assets.js';
 import { armsImg, oficioImg } from '../ui/escudoImg.js';
 import { readTownArms } from '../ui/escudo.js';
@@ -67,7 +67,7 @@ const sec = (icon, title, id = '') => `<h2 class="sec"${id ? ` id="${id}"` : ''}
  *  .dd-tx: así, cuando el bloque va a todo lo ancho, la ilustración se pone a su izquierda (didactico.css) */
 // (eu: su nombre en euskera, que el traductor deja como está)
 const block = (icon, kicker, title, body, { sub = '', eu = '', img = '', cls = '', where = '' } = {}) => `<article class="dd-b ${cls}">
-  ${img ? `<figure class="dd-img"><img src="${img}" alt="" loading="lazy" decoding="async"></figure>` : ''}
+  ${img ? `<figure class="dd-img"><img src="${img}" alt="" loading="lazy" decoding="async" style="${posImg(img)}"></figure>` : ''}
   <div class="dd-tx"><header>${I(icon, 34)}<div>${kicker ? `<small>${esc(kicker)}</small>` : ''}<h3>${esc(title)}</h3>${sub ? `<em>${esc(sub)}</em>` : ''}${eu ? `<em class="dd-eu" data-notr lang="eu">${esc(eu)}</em>` : ''}</div></header>
   ${body}${where}</div></article>`;
 const aa = (then, now) => then || now ? `<div class="antes-ahora"><div><b>Antes</b><span>${esc(then)}</span></div><div><b>Ahora</b><span>${esc(now)}</span></div></div>` : '';

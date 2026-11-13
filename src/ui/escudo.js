@@ -11,6 +11,7 @@ import { armsImgBig } from './escudoImg.js';
 import { pieCorre } from './pieCorre.js';
 import { esc, el } from '../util/html.js';
 import { windowKeys } from '../util/keys.js';
+import { posImg } from './laminas.js';
 
 
 function paint(canvas, A, stone) {
@@ -24,14 +25,16 @@ function paint(canvas, A, stone) {
 // wide (la imagen es una ilustración apaisada: entera y más grande, sin el papel de los escudos) }
 // (cómo se lee, en pestañas: una sección cada vez y entera, sin desplazar ni «Ver más»; antes iban las cuatro en rejilla,
 // plegadas, y en el móvil tumbado no cabían)
-function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', stone = false, secs, more = [], badge = '', note = '', wide = false }) {
+function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', stone = false, secs, more = [], badge = '', note = '', wide = false, entera = false }) {
   const all = [...secs, ...more].filter(x => x && x[1]);
   return new Promise(res => {
     ui.closeModal?.(); ui.sound?.ui?.('card');
-    // (la ilustración apaisada, entera, con la misma imagen difuminada detrás para que no queden bandas vacías; el resto,
-    // el escudo o el dibujo sobre su papel)
+    // (la ilustración apaisada cubre todo su hueco, sin bandas, con el recorte del lado contrario al explorador: posImg, de
+    // ui/laminas.js. Hasta el 13 de noviembre de 2026 iba entera, con la misma imagen difuminada arriba y abajo, y el autor
+    // la quería cuadrada en su hueco. Las que son un recorte sin fondo, entera, y las que no son apaisadas también, al
+    // cargarse: .cubre fuera. El resto, el escudo o el dibujo sobre su papel)
     wide = wide && !!image;
-    const frame = wide ? `<figure class="ix-frame photo wide"><span class="ix-bd" style="background-image:url(${image})"></span><img src="${image}" alt="${esc(title)}">`
+    const frame = wide ? `<figure class="ix-frame photo wide${entera ? '' : ' cubre'}"><span class="ix-bd" style="background-image:url(${image})"></span><img src="${image}" alt="${esc(title)}" style="${posImg(image)}">`
       : `<figure class="ix-frame paper${image || media ? ' img' : ''}">${media || (image ? `<img src="${image}" alt="${esc(title)}">${canvas && stone ? `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}" style="display:none"></canvas>` : ''}` : `<canvas width="${canvas.w}" height="${canvas.h}" aria-label="${esc(title)}"></canvas>`)}`;
     const o = el(`<div class="mg-overlay escudo ix-ov"><div class="mg-card ix${wide ? ' has-wide' : ''}">
       <div class="ix-media">${frame}</figure>
@@ -45,6 +48,8 @@ function armsCard(ui, { kicker, title, sub, canvas, image = '', media = '', ston
         <div class="ix-foot"><button class="btn primary next">Seguir explorando</button></div></div></div></div>`);
     document.body.appendChild(o); ui.modal = o; pieCorre(o);
     const cv = o.querySelector('.ix-frame canvas'), im = o.querySelector('.ix-frame > img'); if (cv && canvas) canvas.draw(cv, false);
+    const apaisada = () => { if (im?.naturalWidth && im.naturalWidth / im.naturalHeight < 1.4) im.parentElement.classList.remove('cubre'); };
+    if (im && wide) { if (im.complete) apaisada(); else im.addEventListener('load', apaisada, { once: true }); }
     // (con la imagen del autor, «en color» es la imagen y «en piedra» el dibujo tallado, como se ve en la fachada)
     o.querySelectorAll('.es-toggle button').forEach(b => b.onclick = () => { o.querySelectorAll('.es-toggle button').forEach(x => x.setAttribute('aria-pressed', String(x === b))); const st = b.dataset.s === '1'; if (im && cv) { im.style.display = st ? 'none' : ''; cv.style.display = st ? '' : 'none'; } if (cv && canvas) canvas.draw(cv, st); ui.sound?.ui?.('click'); });
     const pane = o.querySelector('.es-pane');

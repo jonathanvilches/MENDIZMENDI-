@@ -1201,6 +1201,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   debajo (subgrid) y el texto al lado; en cada pieza, el sitio al pie, a la misma altura en toda la fila. Con un solo
   pueblo, a su lado va lo que es, sus misiones y los botones (`puebloUnico`); una sola cima, en horizontal. Los párrafos
   ya no llevan `text-wrap: pretty`: en el iPhone acortaba todas las líneas y dejaba media caja vacía a la derecha.
+- **Las ilustraciones cubren su hueco sin cortar al explorador** (`FOCO_TRAD` en `data/laminas.js`; `focoImg` y `posImg`
+  en `ui/laminas.js`; `.cubre` en `ui/escudo.js` e `infocard.css`; `ddgal.js` y `block` de `didactico.js`; 13 de noviembre
+  de 2026): en la ficha de una tradición, la ilustración iba entera, con bandas difuminadas arriba y abajo, y el autor la
+  quería cuadrada en su hueco, en el ordenador y en el móvil, sin tapar nunca al explorador. Ahora cubre el hueco y el
+  recorte se lo lleva el lado contrario a él: `posImg` da el `object-position` con su sitio en la imagen, de modo que ese
+  punto queda en el mismo lugar del hueco. Su sitio, en las 53 tradiciones, medido a ojo sobre hojas con una rejilla de
+  diez en diez (x, de izquierda a derecha, y el centro de su alto); en las láminas, `FOCO` y el centro de `ALTO`. Se busca
+  por la dirección de la imagen, así que vale para cualquier sitio que la pinte. Las que son un recorte sin fondo (`fit`)
+  y las que no son apaisadas siguen enteras. Lo mismo en las tarjetas de las galerías y en los bloques del material.
 - **Las rejillas del material didáctico, sin huecos** (`.dd-grid` y `.dd-b` en `didactico.css`; `ajustaRejillas` en
   `hub.js`, que ahora se llama en cada cambio de sección; `block` y `d_cuento` en `didactico.js`; 13 de noviembre de 2026):
   el autor vio en Otsagabia una sola leyenda en una carta estrecha y el resto de la ventana vacío, y pidió que todas las

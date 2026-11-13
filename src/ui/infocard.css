@@ -27,6 +27,9 @@
    detrás, así no se pierde media planta ni quedan bandas vacías) */
 .ix-frame.photo > .ix-bd { position: absolute; inset: -24px; background: #1c0b3a center / cover no-repeat; filter: blur(16px) brightness(.5) saturate(1.1); pointer-events: none; }
 .ix-frame.photo > img { object-fit: contain; object-position: 50% 50%; }
+/* (la ilustración apaisada cubre su hueco entero, sin bandas difuminadas, con el object-position que deja dentro al
+   explorador, en línea desde ui/escudo.js; 13 de noviembre de 2026) */
+.ix-frame.photo.cubre > img { object-fit: cover; } .ix-frame.photo.cubre > .ix-bd { display: none; }
 /* (los dibujos: un icono, un animal o una señal, sobre un foco de luz) */
 .ix-frame.icon { display: grid; place-items: center; background: radial-gradient(60% 55% at 50% 48%, rgba(255, 122, 200, .3), transparent 70%), linear-gradient(160deg, var(--v3), var(--v1)); }
 .ix-frame.icon > :is(.ico, svg, img) { position: relative; inset: auto; width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 8px 14px rgba(7, 2, 15, .55)); animation: bob 3s ease-in-out infinite; }

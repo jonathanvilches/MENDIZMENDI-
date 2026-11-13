@@ -6,6 +6,7 @@
 // secs: [[pestaña, html]], towns: [ids] }
 import { iconSVG } from '../ui/icons.js';
 import { infoCard } from '../ui/escudo.js';
+import { posImg } from '../ui/laminas.js';
 import { levelById } from '../data/levels.js';
 import { esc } from '../util/html.js';
 
@@ -23,7 +24,7 @@ const pestanas = (hub, scr) => {
 
 // (locked: aún por descubrir jugando: la imagen apagada con el candado y, debajo, dónde se descubre)
 const card = (it) => `<button type="button" class="ddc${it.img ? (it.fit ? ' fit' : '') : ' sin-img'}${it.locked ? ' locked' : ''}" data-dd="${esc(it.k)}" style="--c:${it.c || '#c21cff'}">
-  <span class="ddc-pic">${it.img ? `<img src="${it.img}" alt="" loading="lazy" decoding="async">` : I(it.icon || 'star', 128)}${it.locked ? `<span class="ddc-lock">${I('lock', 34)}</span>` : ''}</span>
+  <span class="ddc-pic">${it.img ? `<img src="${it.img}" alt="" loading="lazy" decoding="async"${it.fit ? '' : ` style="${posImg(it.img)}"`}>` : I(it.icon || 'star', 128)}${it.locked ? `<span class="ddc-lock">${I('lock', 34)}</span>` : ''}</span>
   <span class="ddc-txt">${it.kicker ? `<small>${esc(it.kicker)}</small>` : ''}<b>${esc(it.title)}</b>${it.locked ? `<i class="ddc-pista">${esc(it.pista || 'Por descubrir')}</i>` : it.eu ? `<i data-notr lang="eu">${esc(it.eu)}</i>` : it.sub ? `<i>${esc(it.sub)}</i>` : ''}</span></button>`;
 
 /** La página: cabecera, pestañas (los apartados con algo) y las tarjetas del apartado elegido. hub: el menú. */
@@ -48,7 +49,7 @@ export function ficha(hub, it) {
   const secs = it.locked ? [['Cómo descubrirla', `<p>${esc(it.pista || '')}</p>`]] : it.secs.filter(s => s && s[1]);
   if (it.towns?.length) secs.push(['Dónde', `<p class="dd-where dd-where-f">${it.towns.map(id => `<button type="button" class="lnk" data-town="${id}">${I('pin', 20)}${esc(tn(id))}</button>`).join('')}</p>`]);
   const img = it.locked ? '' : it.img || '';
-  infoCard(ui, { kicker: it.locked ? `Por descubrir · ${it.kicker || ''}` : it.kicker || '', title: it.title, sub: it.locked ? '' : it.eu || it.sub || '', image: img, wide: !!img,
+  infoCard(ui, { kicker: it.locked ? `Por descubrir · ${it.kicker || ''}` : it.kicker || '', title: it.title, sub: it.locked ? '' : it.eu || it.sub || '', image: img, wide: !!img, entera: !!it.fit,
     media: img ? '' : `<span class="ddf-ico" style="--c:${it.c || '#c21cff'}">${I(it.locked ? 'lock' : it.icon || 'star', 240)}</span>`, secs });
   // (los enlaces de dentro: a un pueblo, a la ficha de una figura o de un animal; la ficha se cierra y se va allí)
   const o = ui.modal; if (!o) return;

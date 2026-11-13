@@ -179,6 +179,26 @@ export const ALTO = {
   'c-vendimia': [0.46, 0.92], 'c-cereal': [0.39, 0.84], 'c-pitillas': [0.29, 0.88], 'c-bardenas': [0.48, 0.84],
   'bosque-orgi': [0.36, 0.8], 'senorio-bertiz': [0.44, 0.86], 'sotos-ebro': [0.33, 0.9],
 };
+
+// dónde está el niño explorador en cada ilustración de las tradiciones (src/assets/tradiciones), de 0 a 1: x, de izquierda a
+// derecha, e y, el centro de su alto, de arriba abajo. Con eso la ilustración cubre todo su hueco en las fichas y en las
+// tarjetas sin cortarle: el recorte se lleva el lado contrario (ui/laminas.js, posImg). Medido a ojo, una a una, sobre
+// hojas con la rejilla de diez en diez, el 13 de noviembre de 2026. Sin dato, el centro
+export const FOCO_TRAD = {
+  'altsasu-alsasua-feria': [0.06, 0.45], bajada_angel: [0.2, 0.65], campanas: [0.17, 0.7], canto_gayarre: [0.34, 0.6], 'casa-escudo': [0.35, 0.8],
+  'casa-torre': [0.12, 0.75], 'castillo-partes': [0.12, 0.78], 'como-cuajada': [0.5, 0.35], 'comparsa-mendigorria': [0.24, 0.75],
+  'comparsa-peralta': [0.32, 0.6], crucero: [0.38, 0.6], 'danza-bidasoa': [0.06, 0.65], 'danza-larraun-leitzaldea': [0.05, 0.65],
+  'danza-pamplona': [0.08, 0.68], 'danza-pirineo': [0.08, 0.7], 'danza-prepirineo': [0.06, 0.72], 'danza-ribera-alta': [0.87, 0.75],
+  'danza-ribera': [0.06, 0.75], 'danza-sakana': [0.08, 0.75], 'danza-sanguesa': [0.08, 0.75], 'danza-tierra-estella': [0.08, 0.72],
+  'danza-valdizarbe-novenera': [0.07, 0.72], 'danza-zona-media': [0.08, 0.72], 'elizondo-dance': [0.07, 0.55], 'elizondo-feria': [0.07, 0.5],
+  ermita: [0.27, 0.75], estelas: [0.17, 0.72], 'estella-feria': [0.06, 0.45], horreo: [0.14, 0.72], 'iglesia-barroca': [0.12, 0.72],
+  'iglesia-fortaleza': [0.16, 0.78], 'iglesia-gotica': [0.36, 0.75], 'iglesia-ladrillo': [0.22, 0.78], 'iglesia-neobarroca': [0.16, 0.82],
+  'iglesia-neoclasica': [0.16, 0.82], 'iglesia-neogotica': [0.18, 0.82], 'iglesia-renacimiento': [0.16, 0.78], 'iglesia-romanica': [0.15, 0.75],
+  'lesaka-dance': [0.07, 0.65], 'miel-otxin': [0.12, 0.78], mirador: [0.33, 0.6], monolito: [0.19, 0.72], mozorro: [0.06, 0.78],
+  'portada-romanica': [0.15, 0.8], 'prod-cuajada': [0.1, 0.6], 'prod-esparrago': [0.13, 0.35], 'prod-queso-urbasa': [0.13, 0.55],
+  'prod-talo': [0.22, 0.42], 'puerto-montana': [0.3, 0.62], 'romeria-encierro': [0.1, 0.35], ruinas: [0.33, 0.65], trovadores_olite: [0.18, 0.65],
+  ttun_roncal: [0.1, 0.72],
+};
 // las panorámicas (src/assets/laminas/pano, solo en la web; entregadas el 2026-10-30): la misma escena de la portada,
 // ampliada a los lados, para las cabeceras de las fichas con la pantalla tumbada, que son mucho más anchas que 16:9 (antes
 // se llenaban con la lámina reflejada y borrosa). Por cada una, como FOCO y ALTO: dónde está el personaje de izquierda a

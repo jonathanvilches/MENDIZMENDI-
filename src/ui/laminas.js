@@ -5,7 +5,7 @@
 // la pantalla la necesita. En el archivo único solo está la de 640 × 360, y en el ligero, la de 1024 × 576
 // (tools/laminas-movil.mjs: sin conexión, la portada a todo el ancho del móvil tumbado se veía borrosa).
 // En WebP y no en AVIF: los visores de HTML del iPhone no siempre enseñan AVIF, y sin ellas las portadas salían vacías.
-import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA, FOCO, ALTO, PANO, PANO_BOSQUE } from '../data/laminas.js';
+import { LAMINAS, COMARCA_LAMINA, CUENTO_LAMINA, PERSONAJE_LAMINA, BOSQUE_LAMINA, FOCO, ALTO, PANO, PANO_BOSQUE, FOCO_TRAD } from '../data/laminas.js';
 import { hdTable, webUrl } from '../web/hd.js';
 import { esc } from '../util/html.js';
 import { byId } from '../util/glob.js';
@@ -54,6 +54,15 @@ const TRAD_HD = byId(import.meta.glob('@tradiciones-hd/*.webp', { eager: true, q
 hdTable('tradiciones', TRAD, TRAD_HD, 2560);
 /** La ilustración de una tradición (o null si no está en esta versión). */
 export const tradicionUrl = (id) => (id && (TRAD[id] || webUrl('tradiciones', id))) || null;
+// Dónde está el explorador en una imagen, por su dirección: [x, y] de 0 a 1, o null. Las tradiciones, con FOCO_TRAD; las
+// láminas, con FOCO y el centro de ALTO. posImg da el object-position que deja al explorador dentro cuando la imagen cubre
+// un hueco de otra forma (las fichas de ui/escudo.js, las tarjetas de hub/ddgal.js y los bloques de hub/didactico.js): el
+// punto suyo queda en el mismo sitio del hueco y el recorte se lo lleva el otro lado
+const POR_URL = new Map();
+for (const T of [TRAD, TRAD_HD]) for (const [id, u] of Object.entries(T)) if (FOCO_TRAD[id]) POR_URL.set(u, FOCO_TRAD[id]);
+for (const T of [URLS, BIG]) for (const [id, u] of Object.entries(T)) { const k = id.replace(/-s$/, ''), a = ALTO[k]; if (FOCO[k] != null) POR_URL.set(u, [FOCO[k], a ? (a[0] + a[1]) / 2 : 0.5]); }
+export const focoImg = (u) => (u && POR_URL.get(u)) || null;
+export const posImg = (u) => { const f = focoImg(u); return f ? `object-position:${Math.round(f[0] * 100)}% ${Math.round(f[1] * 100)}%` : ''; };
 /** La ilustración de un cuento (o, si no tiene, la lámina de su pueblo que lo recuerda); big: la grande. */
 export const leyendaUrl = (id, big = false) => (big && LEY_BIG[id]) || LEY[id] || webUrl('leyendas', id, big ? 1536 : 0) || laminaUrl(CUENTO_LAMINA[id], !big);
 // Las portadas son todas láminas: la de cada pueblo, la de cada comarca y, si un pueblo no tiene, la de su comarca.
