@@ -118,7 +118,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   float e = smoothstep(0.0, 1.0, length(vec2(kx, ky)));
   if (uModo < 1.5) diffuseColor.rgb = mix(diffuseColor.rgb, uFondoL, e); else diffuseColor.a *= 1.0 - e; }`); };
     m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav-funde';
-    new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4; Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
+    new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy()); Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
   };
   const [ex0, ey0, ex1, ey1] = [-3006, -451, 2824, 4150];   // (lo que cubre la imagen de la península, en unidades del mapa)
@@ -152,6 +152,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const TACTIL = !!matchMedia?.('(pointer: coarse)').matches, LENTO = !!o.ligero || TACTIL || calidadJuego() === 'low';
   // (en el ordenador de calidad baja, el relieve sin la sombra de las nubes ni el grano fino de cerca: mapa3dSombreadores.js)
   const PC_LENTO = LENTO && !TACTIL, LIGERO = PC_LENTO ? { LIGERO: '' } : {};
+  // (BAJA: la calidad rebajada del mapa, solo en el modo sencillo y en el ordenador con gráfica floja. El móvil, desde el 13 de
+  // noviembre de 2026, con la del ordenador: relieve, bosques, bordes, texturas de los pueblos y relieve fino. Medido en el
+  // móvil, el mapa entero pedía 116.000 triángulos y 112 llamadas, muy lejos de los 900.000 y 520 del presupuesto del iPhone,
+  // y el autor lo veía de bajísima calidad al acercarse el dron. LENTO sigue mandando en las 30 imágenes por segundo en reposo)
+  const BAJA = !!o.ligero || PC_LENTO;
   // (la entrada grande: solo la primera vez y sin movimiento reducido; en las pruebas automáticas, solo si se pide)
   // (ni en el modo sencillo ni en el didáctico, o.intro false, donde el mapa no es la portada)
   // (con «Reducir movimiento» en el móvil, también, pero suave: sin el temblor, el destello ni la onda; antes no salía, y en
@@ -192,7 +197,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   Object.assign(UNI, { uBosque: { value: bqTex }, uBosqueR: { value: new THREE.Vector4(BOSQ.x0, BOSQ.y0, BOSQ.w, BOSQ.h) } });
   const C = o.comarcas.map((c, i) => {
     const { P, cx, cy } = contorno(c);
-    const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, LENTO ? 0.42 : 0.3); geos.push(g); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1));
+    const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, BAJA ? 0.42 : 0.3); geos.push(g); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1));
     // (empezada, con los colores del mapa y un toque del suyo; sin descubrir, apagada y hacia el malva, bajo la niebla)
     const vivo = !!o.abiertas || c.pct > 0 || c.done, top = relieveM(c, vivo);
     const side = bordeM(c, vivo, 0.2, 1.3), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id; const fk = top.uniforms.uFinoK = { value: 0 };
@@ -351,7 +356,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
     m.customProgramCacheKey = () => crece ? 'mapa-arboles-fino' : 'mapa-arboles'; return m; };
   { let semilla = 7; const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
-    const tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = LENTO ? 1.1 : 2.2, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
+    const tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 1.1 : 2.2, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
     for (const c of C) {
       const b = c.mesh.geometry.boundingBox, L = [];
       const i0 = Math.max(0, Math.floor(((b.min.x / S + CX) - BOSQ.x0) / tx)), i1 = Math.min(BOSQ.nx - 1, Math.ceil(((b.max.x / S + CX) - BOSQ.x0) / tx));
@@ -695,7 +700,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       for (let i = 0; i < P.length; i += 2) { const a = P[i], b = P[(i + 1) % P.length], L = (Math.hypot(b[0] - a[0], b[1] - a[1]) || 1) / Math.sign(A), nx = (b[1] - a[1]) / L, nz = -(b[0] - a[0]) / L;
         if (!deQuien(a[0] + nx * 0.9, a[1] + nz * 0.9)) borde.push({ c, x: a[0], z: a[1], nx, nz }); }
     }
-    const NP = LENTO ? 320 : 820, ND = LENTO ? 160 : 360, paso = Math.max(1, Math.round(borde.length / (ND * 0.45)));
+    const NP = BAJA ? 320 : 820, ND = BAJA ? 160 : 360, paso = Math.max(1, Math.round(borde.length / (ND * 0.45)));
     const tg = new THREE.DodecahedronGeometry(0.5, 0), tm = new THREE.MeshLambertMaterial({ color: 0xffffff, toneMapped: false }); geos.push(tg); mats.push(tm);
     const im = new THREE.InstancedMesh(tg, tm, NP); im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.frustumCulled = false;
     const TONOS = ['#2a1a4e', '#3a2468', '#4b3184', '#5d3fa0', '#7b5cc4', '#9a86d6'].map(h => new THREE.Color(h)), M0 = new THREE.Matrix4().makeScale(0, 0, 0);
@@ -718,7 +723,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       p[k + 1] = c.py + (debajo ? -dentro * 0.8 : Math.random() * GROSOR) * c.sy;
       const sp = 0.3 + Math.random() * 1.7; vel[k] = b.nx * sp; vel[k + 1] = Math.random() * 1.2 - 0.4; vel[k + 2] = b.nz * sp;
       rot.set([Math.random() * 6, Math.random() * 6, Math.random() * 6, (Math.random() - 0.5) * 9], i * 4);
-      tam[i] = (0.35 + 1.6 * Math.random() ** 2.2) * (LENTO ? 1.25 : 1); vida[i] = 3; bote[i] = 0;
+      tam[i] = (0.35 + 1.6 * Math.random() ** 2.2) * (BAJA ? 1.25 : 1); vida[i] = 3; bote[i] = 0;
       if (Math.random() < 0.22) polvo(p[k], p[k + 1], p[k + 2], b.nx * 0.6, -1.2, b.nz * 0.6, 1.5, 4.5, 1.3);
     };
     const q = new THREE.Quaternion(), eu = new THREE.Euler(), pp = new THREE.Vector3(), sc = new THREE.Vector3(), MM = new THREE.Matrix4();
@@ -1075,7 +1080,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // hace más que no se ve se suelta. Si no llega (en el archivo único, sin conexión), se vuelve a probar a los 15 s. Se
   // piden de una en una y solo con la cámara quieta, y la imagen se descomprime aparte (createImageBitmap): al moverse
   // por el mapa no hay tirones
-  const MAXD = LENTO ? 2 : 4, carga = new THREE.TextureLoader().setCrossOrigin('anonymous'), det = new Map(), aniso = Math.min(8, r.capabilities.getMaxAnisotropy());
+  const MAXD = BAJA ? 2 : 4, carga = new THREE.TextureLoader().setCrossOrigin('anonymous'), det = new Map(), aniso = Math.min(8, r.capabilities.getMaxAnisotropy());
   const textura = (u) => (typeof createImageBitmap === 'function' ? fetch(u, { credentials: 'omit' }).then(x => x.ok ? x.blob() : Promise.reject())
     .then(b => createImageBitmap(b, { imageOrientation: 'none', premultiplyAlpha: 'none', colorSpaceConversion: 'none' })).then(im => new THREE.Texture(im)) : Promise.reject())
     .catch(() => new Promise((ok, mal) => carga.load(u, ok, undefined, mal)));
@@ -1083,8 +1088,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   let detT = -1e9, pidiendo = 0;
   const lejosDe = (c) => Math.hypot(c.mid.x - v.x, c.mid.z - v.z);
   function detalles(now, quieto) {
-    if (now - detT < 400 || !quieto) return; detT = now;
-    const cerca = v.d < 80 ? C.filter(c => MAPA_RELIEVE.detalle[c.id] && lejosDe(c) < v.d * 0.6 + 14).sort((a, b) => lejosDe(a) - lejosDe(b)) : [];
+    // (con la cámara en marcha, solo el de la comarca elegida, si aún no está: el dron vuela hacia ella y, si se esperaba a
+    // que parara, llegaba con el monte borroso)
+    if (now - detT < 400) return;
+    if (!quieto && !(sel && MAPA_RELIEVE.detalle[sel] && !det.get(sel) && !pidiendo)) return;
+    detT = now;
+    const cerca = quieto && v.d < 80 ? C.filter(c => MAPA_RELIEVE.detalle[c.id] && lejosDe(c) < v.d * 0.6 + 14).sort((a, b) => lejosDe(a) - lejosDe(b)) : [];
     if (sel) { const i = cerca.findIndex(c => c.id === sel); if (i >= 0) cerca.splice(i, 1); if (MAPA_RELIEVE.detalle[sel]) cerca.unshift(byId.get(sel)); }
     const quiere = new Set(cerca.slice(0, MAXD).map(c => c.id));
     for (const id of quiere) {
@@ -1093,7 +1102,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       if (pidiendo) continue;
       det.set(id, e = { t: now, tex: null, fallo: 0 }); pidiendo++;
       // (en el móvil, la comarca elegida también a 28 m: a 56 m, de cerca, el monte se veía borroso)
-      urlDetalle(id, !LENTO || id === sel).then(u => u ? textura(u) : Promise.reject()).then(tx => {
+      urlDetalle(id, !BAJA || id === sel).then(u => u ? textura(u) : Promise.reject()).then(tx => {
         pidiendo--; if (!vivo || det.get(id) !== e) { suelta(tx); return; }
         tx.flipY = false; tx.colorSpace = THREE.NoColorSpace; tx.anisotropy = aniso; tx.needsUpdate = true;
         e.tex = tx; byId.get(id).top.uniforms.uDet.value = tx;
@@ -1111,7 +1120,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // sus paredes y con las vecinas; sus ríos, sus árboles, sus medallones y los nombres de sus montes suben o bajan con ella,
   // y la cámara también. Entra y sale suave (fk, de 0 a 1); con la maqueta de un pueblo, se va. Se hace con la cámara
   // quieta, en tres pasos (la distancia al borde, la malla y lo demás), y se guardan las de las tres últimas comarcas
-  const DENSO = LENTO ? 0.1 : 0.075, finosHechos = [];
+  const DENSO = BAJA ? 0.1 : 0.075, finosHechos = [];
   const bordeDe = (c) => {
     if (c.bordeF) return c.bordeF;
     const b = c.gGrueso.boundingBox, P = c.Pw, st = 0.15, x0 = b.min.x - st, z0 = b.min.z - st, nx = Math.ceil((b.max.x - x0) / st) + 2, nz = Math.ceil((b.max.z - z0) / st) + 2, D = new Float32Array(nx * nz);
@@ -1139,7 +1148,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (el bosque denso: en la elegida, muchos más árboles donde hay bosque, sobre el relieve fino; salen con él)
     if (!c.bosqueFino) {
       let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
-      const b = c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = LENTO ? 7 : 14, L = [];
+      const b = c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 7 : 14, L = [];
       const i0 = Math.max(0, Math.floor(((b.min.x / S + CX) - BOSQ.x0) / tx)), i1 = Math.min(BOSQ.nx - 1, Math.ceil(((b.max.x / S + CX) - BOSQ.x0) / tx));
       const j0 = Math.max(0, Math.floor(((b.min.z / S + CY) - BOSQ.y0) / ty)), j1 = Math.min(BOSQ.ny - 1, Math.ceil(((b.max.z / S + CY) - BOSQ.y0) / ty));
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
@@ -1195,7 +1204,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (los patios, los terrenos industriales y las plazas, en tierra y piedra cálida: claros, con la luz del mapa salían como
     // losas grises que se leían como bloques blancos)
     cementerio: 'rgba(154, 165, 138, .65)', industria: 'rgba(160, 142, 108, .4)', plaza: 'rgba(214, 196, 162, .78)' };
-  function pintaNucleo(D, R, pizarra, N = LENTO ? 512 : 1024, velo = true) {
+  function pintaNucleo(D, R, pizarra, N = BAJA ? 512 : 1024, velo = true) {
     // (el de la maqueta, en el procesador y no en la tarjeta gráfica: son muchos trazos, y en ella se encolaban y paraban el mapa)
     const k = N / (2 * R), c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d', velo ? undefined : { willReadFrequently: true });
     const P = (x, z) => [(x + R) * k, (z + R) * k];
@@ -1375,8 +1384,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const e = m.e, c = e.c;
     // (primero, las casas en orden, de poco en poco: maqueta.js ordenaMaqueta)
     if (!e.D._maq) { (m.orden ||= ordenaMaqueta(e.D)).next(); return false; }
-    if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, LENTO ? 1024 : 2048, false); return false; }
-    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: LENTO, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO }, m.res);
+    if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, BAJA ? 1024 : 2048, false); return false; }
+    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: BAJA, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
     // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
     if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
@@ -1418,7 +1427,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z) + (c.fk?.value && c.dhF ? c.dhF(X, Z) * c.fk.value : 0); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
   // los pájaros: con un sitio elegido, sobre él (pajaros.js): en los pueblos y ciudades, sobre el corazón de sus casas; en
   // los espacios naturales, sobre su chincheta y a la escala de su cámara. En la vista general y en la de una comarca, ninguno
-  const aves = hacePajaros({ scene, lento: LENTO, suelo: (x, z) => { const c = deQuien(x, z); return c?.sy ? pisoEn(c, x, z) * c.sy + c.py : null; },
+  const aves = hacePajaros({ scene, lento: BAJA, suelo: (x, z) => { const c = deQuien(x, z); return c?.sy ? pisoEn(c, x, z) * c.sy + c.py : null; },
     pueblo: () => { if (!elegido) return null; const real = TR.includes(elegido), f = real ? 1 : 2.2 / DRON_D;
       if (dron?.id === elegido.id) return { X: dron.cc?.X ?? dron.X, Z: dron.cc?.Z ?? dron.Z, f, natural: !real };
       const cc = real ? (elegido._cc ||= centroCasas(elegido.id)) : null; return { X: cc?.X ?? elegido.X, Z: cc?.Z ?? elegido.Z, f, natural: !real }; } });
@@ -1435,8 +1444,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (la resolución del lienzo: hasta 1,5; en el ordenador de calidad baja, con un presupuesto de unos 0,9 millones de píxeles
   // y, si mientras se mueve no llega, puede bajar hasta 0,75. En un portátil con una Intel UHD, a 1920 × 868 iba a 9
   // imágenes por segundo)
-  let prMax = o.ligero ? 1 : 2, prT = 0, prN = 0;   // (hasta 2: con 1,5 los bordes y los nombres se veían blandos; baja solo si no da)
-  const prSuelo = PC_LENTO ? 0.75 : 1, prPres = (w, h) => PC_LENTO ? Math.max(prSuelo, Math.sqrt(0.9e6 / Math.max(1, w * h))) : 9;
+  // (hasta 2: con 1,5 los bordes y los nombres se veían blandos; baja solo si de verdad no da, por debajo de unas 28 imágenes por
+  // segundo, y nunca de 1,5 en una pantalla de retina. En cuanto la cámara se para un segundo y medio, vuelve a la máxima.
+  // Hasta el 13 de noviembre de 2026 bajaba ya por debajo de 40 imágenes, hasta 1, y no volvía a subir: tras el primer vuelo
+  // del dron, el mapa del iPhone se quedaba a un tercio de su resolución y el autor lo veía de bajísima calidad)
+  const PR_TOP = o.ligero ? 1 : 2;
+  let prMax = PR_TOP, prT = 0, prN = 0, prQuieto = 0;
+  const prSuelo = PC_LENTO ? 0.75 : Math.min(PR_TOP, Math.max(1, Math.min(1.5, devicePixelRatio || 1))), prPres = (w, h) => PC_LENTO ? Math.max(prSuelo, Math.sqrt(0.9e6 / Math.max(1, w * h))) : 9;
   const pv = new THREE.Vector3();
   // (si algo falla al pintar, se apunta una vez y se sigue; si falla imagen tras imagen, o el móvil se queda sin la tarjeta
   // gráfica y no la devuelve, el mapa se suelta y quien lo puso deja el plano: o.falla. Nunca una pantalla vacía)
@@ -1524,7 +1538,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // dron sobre un pueblo y el paseo por Navarra también se mueven siempre: a 30 imágenes, el dron iba a trompicones)
     const toca = ptrs.size || inercia || vuelo || keys.size || dron?.listo || paseo;
     if ((quieto || LENTO) && !toca && now - last < 30) return;
-    if (toca) { const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 25 && prMax > prSuelo) { prMax = Math.max(prSuelo, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
+    if (toca) { prQuieto = 0; const g = now - last; if (g < 200) { prT += g; prN++; } if (prN >= 40) { if (prT / prN > 36 && prMax > prSuelo) { prMax = Math.max(prSuelo, prMax - 0.25); sz.z = -1; } prT = prN = 0; } }
+    else if (prMax < PR_TOP) { prQuieto ||= now; if (now - prQuieto > 1500) { prMax = PR_TOP; sz.z = -1; prQuieto = 0; prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
     const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;

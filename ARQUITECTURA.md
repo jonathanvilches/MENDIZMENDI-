@@ -1689,6 +1689,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   que crece con el relieve. La vista de una comarca, algo más de lado (`PITCH_C` 0,82, antes 0,95) y con algo más de
   relieve a esa distancia (`exaDe`), para que se vean las siluetas de los montes; de cerca, los medallones ya no se
   agrandan. La comarca elegida, casi sin su color encima. Para verlo: `mapav.mjs` y `cerca.mjs`.
+- **Calidad del mapa al mover la cámara** (`BAJA`, `prMax`, `prSuelo`, `prQuieto` y `detalles` en `mapa3d.js`; 13 de
+  noviembre de 2026): el autor veía el mapa muy pobre en cuanto el dron se movía. Había tres causas. La resolución bajaba
+  un cuarto cada vez que un fotograma tardaba y no volvía a subir nunca: en el iPhone podía quedarse en 1, un tercio de
+  sus píxeles. Ahora el suelo es 1,5 en una pantalla de 2 o 3 (0,75 solo en un ordenador con gráfica floja), y con la
+  cámara 1,5 s quieta vuelve a la de partida. El relieve fino solo se pedía con la cámara quieta: el de la comarca elegida
+  se pide también moviéndose, y el de las vecinas, quieta. Y el móvil usaba la versión pobre de todo (losas, ríos,
+  bosque, maquetas a 512): eso queda solo para `?ligero` y el ordenador flojo (`BAJA`); el móvil, como el ordenador
+  (medido con el perfil del iPhone: 165.000 triángulos y 112 llamadas). Las texturas de las comarcas, con filtro
+  anisótropo hasta 8, para que no se emborronen de lado.
 - **Un solo navegador: la fila de las comarcas** (`enFila` en `inicio.js`; noviembre de 2026): la fila de abajo se queda
   siempre y lleva solo las comarcas. Al elegir una, su tarjeta se enciende y la fila se corre para que se vea; también al
   cambiarla arrastrando el mapa. Los pueblos se eligen en el mapa, en sus medallones, que con una comarca elegida se
