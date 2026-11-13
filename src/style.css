@@ -244,7 +244,7 @@ summary { line-height: 1.3; }
    El tamaño de las casillas y de los botones redondos, --chip: 40 px en el móvil, cerca de los 44 que pide Apple para un
    dedo, y 48 en el ordenador. Hasta el 12 de noviembre de 2026 eran de 32 a 34 px en el móvil y 42 en el ordenador, y
    al autor le costaba acertar con el dedo. Siempre en una sola fila: si no cabe, ui.js (fitTop) achica las casillas
-   hasta 30 px y el hueco entre ellas (--mg, --ms); y si ni así, la fila de las misiones se desliza de lado (.desliza).
+   hasta 28 px y el hueco entre ellas (--mg, --ms); y si ni así, la fila de las misiones se desliza de lado (.desliza).
    Hasta el 13 de noviembre de 2026, en el tumbado pequeño y de pie iba en dos filas */
 #tl.mis { --chip: 40px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
 @media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 48px; min-width: 260px; } #tl.mis #misiones { gap: var(--mg, 10px); } }
@@ -255,8 +255,11 @@ summary { line-height: 1.3; }
    12 px de hueco a cada lado de una raya clara de 2 px de arriba abajo, y redondos y de un gris translúcido, no cuadrados de
    color como las misiones. Del tamaño de una casilla y siempre en la misma fila */
 #tl.mis .mfila { display: flex; align-items: center; }
-#mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: var(--mg, 8px); margin-left: var(--ms, 14px); padding-left: var(--ms, 14px); border-left: 2px solid rgba(255, 255, 255, .5); }
-#mbtns .round { width: var(--chip); height: var(--chip); border: 0; background: rgba(255, 255, 255, .14); box-shadow: none; }
+/* (el menú personal del explorador: el catalejo, la mochila con su anillo de energía y la pausa, juntos en una cápsula clara al
+   final de la barra, del alto de una casilla; desde el 13 de noviembre de 2026, con el catalejo siempre. Antes, sueltos detrás
+   de una raya de 2 px) */
+#mbtns { flex: none; align-self: center; display: flex; align-items: center; gap: var(--mg, 8px); margin-left: var(--ms, 14px); padding: 0; border-radius: 999px; background: rgba(255, 255, 255, .08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); }
+#mbtns .round { width: var(--chip); height: var(--chip); border: 0; background: rgba(255, 255, 255, .13); box-shadow: none; }
 #mbtns .round:hover { background: rgba(255, 255, 255, .24); }
 #mbtns .round.bag .ering { inset: 0; }
 @media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: var(--mg, 10px); } }

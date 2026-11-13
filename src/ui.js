@@ -202,7 +202,7 @@ export class UI {
     const h = this.hud; if (!h) return;
     const T = $('#tl', h); if (!T) return;
     // (en el pueblo, la barra de misiones con la mochila y la pausa al final, siempre en una sola fila: si no cabe, las
-    // casillas se achican de 2 en 2 px hasta 30, con menos hueco entre ellas; y si ni así, la fila de las misiones se
+    // casillas se achican de 2 en 2 px hasta 28, con menos hueco entre ellas; y si ni así, la fila de las misiones se
     // desliza de lado. Tumbado y en el ordenador llega hasta el minimapa; de pie, hasta el borde, y el minimapa baja
     // debajo de la barra. Hasta el 13 de noviembre de 2026 pasaba a dos filas, y el autor la quiere en una. Se calcula de
     // una vez, sin probar tamaños: probarlos movía la barra, eso volvía a llamar aquí y el minimapa no llegaba a bajar)
@@ -214,10 +214,10 @@ export class UI {
       const grande = matchMedia('(min-width: 1000px) and (min-height: 640px)').matches;
       const cs = getComputedStyle(T), z = t0.width / (T.offsetWidth || t0.width), pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
       const n = h.querySelectorAll('#misiones button').length, nb = [...B.children].filter((e) => e.offsetWidth > 0).length;
-      const ancho = (c, mg, ms) => (pad + (n + nb) * c + Math.max(0, n - 1 + nb - 1) * mg + 2 * ms + 2) * z;
+      const ancho = (c, mg, ms) => (pad + (n + nb) * c + Math.max(0, n - 1 + nb - 1) * mg + ms) * z;   // (ms: el hueco antes de la cápsula del menú personal)
       const sitio = (!mr?.width ? innerWidth - 16 : dePie ? mr.right : mr.left - 8) - t0.left;
       let c = grande ? 48 : 40, mg = grande ? 10 : 8, ms = 14;
-      while (ancho(c, mg, ms) > sitio + 0.5 && c > 30) { c = Math.max(30, c - 2); if (c < 38) { mg = 5; ms = 10; } }
+      while (ancho(c, mg, ms) > sitio + 0.5 && c > 28) { c = Math.max(28, c - 2); if (c < 38) { mg = 5; ms = 10; } if (c < 34) { mg = 4; ms = 6; } }
       const desliza = ancho(c, mg, ms) > sitio + 0.5, pon = (k, v) => { if (T.style.getPropertyValue(k) !== v) { if (v) T.style.setProperty(k, v); else T.style.removeProperty(k); } };
       const base = c === (grande ? 48 : 40);
       pon('--chip', base ? '' : c + 'px'); pon('--mg', base ? '' : mg + 'px'); pon('--ms', base ? '' : ms + 'px');

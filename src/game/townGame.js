@@ -385,7 +385,9 @@ export class TownGame {
     // mochila del explorador: equipo visible, agua, comida y energía; frutos del campo para recoger
     this.mochila = new Mochila(this);
     this.gearProps = new GearProps(this.player.rig); this.gearProps.set(this.P.gear);
-    if (this.mochila.has('prismaticos')) { this.binoOn = true; this.ui.showBinoButton(); }
+    // (el catalejo, siempre en la barra junto a la mochila, como el menú personal del explorador: lo pidió el autor el 13 de
+    // noviembre de 2026. Antes solo salía al recibir los prismáticos en una misión de observar, que sigue dándolos)
+    this.binoOn = true; this.ui.showBinoButton();
     this.spawnForage();
     this.perro = new Perro(this);
     // el campo trabajando: tractores, cosechadoras y pacas en las parcelas

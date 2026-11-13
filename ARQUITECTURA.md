@@ -1163,12 +1163,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ordenador tiene cinco botones y en una pantalla baja, de 1280×720, va a dos columnas como en el móvil tumbado (si no,
   la ayuda de las teclas no cabía y había que desplazar). El mapa se abre tocando el
   minimapa y, en el ordenador, con M.
-  En el pueblo, la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa van
-  al final de la barra de misiones, arriba a la izquierda (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las
-  casillas por una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla. Todo desplegado y
+  En el pueblo, el catalejo (los prismáticos, `#bBino`), la mochila con su anillo de energía (`mochila.js` la pone delante
+  de la pausa) y la pausa van al final de la barra de misiones, arriba a la izquierda (`#tl.mis .mfila`: `#misiones` y
+  `#mbtns`), juntos en una cápsula clara del alto de una casilla, como el menú personal del explorador; redondos, grises
+  translúcidos y del tamaño de una casilla. Desde el 13 de noviembre de 2026 el catalejo sale siempre (`townGame.js`);
+  antes, solo al recibir los prismáticos en una misión de observar, y los botones iban detrás de una raya de 2 px. Todo desplegado y
   siempre en una sola fila (13 de noviembre de 2026, lo pidió el autor: la columna del margen derecho, del 12 de
   noviembre, ocupaba demasiado, y plegada en un icono tampoco le gustaba). Las casillas, de 40 px con 8 de hueco (48 con
-  10 en el ordenador); si la fila no cabe, `fitTop` (ui.js) achica las casillas hasta 30 px con 5 de hueco (`--chip`,
+  10 en el ordenador); si la fila no cabe, `fitTop` (ui.js) achica las casillas hasta 28 px con 4 de hueco (`--chip`,
   `--mg`, `--ms` en línea, calculados de una vez para no volver a disparar el ResizeObserver) y, si ni así, la fila de las
   misiones se desliza de lado (`.desliza`). Tumbado llega hasta el minimapa; de pie, hasta el borde, y el minimapa baja
   debajo de la barra (`top` en línea, con transición). Antes, en el tumbado pequeño y de pie, pasaba a dos filas. Al
