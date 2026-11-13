@@ -1173,7 +1173,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de la pausa) y la pausa van al final de la barra de misiones, arriba a la izquierda (`#tl.mis .mfila`: `#misiones` y
   `#mbtns`), juntos en una cápsula clara del alto de una casilla, como el menú personal del explorador; redondos, grises
   translúcidos y del tamaño de una casilla. Desde el 13 de noviembre de 2026 el catalejo sale siempre (`townGame.js`);
-  antes, solo al recibir los prismáticos en una misión de observar, y los botones iban detrás de una raya de 2 px. Todo desplegado y
+  antes, solo al recibir los prismáticos en una misión de observar, y los botones iban detrás de una raya de 2 px. En el
+  ordenador (sin puntero grueso, `#tl.plega`), las misiones van plegadas: solo se ve la que estás haciendo (`.ve`, que pone
+  `refreshDots`: la abierta, si no la que sigues, si no la primera sin hacer) y a su lado una flecha con las hechas de las
+  del pueblo (`#mPliega`, «0/7»), que despliega las demás con una entrada escalonada (`misEntra`, 28 ms entre una y otra);
+  al elegir una, o al pulsar fuera de la barra, se vuelven a plegar con la elegida a la vista (`pliegaMisiones`). Lo pidió
+  el autor el 13 de noviembre de 2026: en el ordenador salían todas a la vez. En el móvil, todo desplegado y
   siempre en una sola fila (13 de noviembre de 2026, lo pidió el autor: la columna del margen derecho, del 12 de
   noviembre, ocupaba demasiado, y plegada en un icono tampoco le gustaba). Las casillas, de 40 px con 8 de hueco (48 con
   10 en el ordenador); si la fila no cabe, `fitTop` (ui.js) achica las casillas hasta 28 px con 4 de hueco (`--chip`,

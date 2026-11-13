@@ -27,9 +27,8 @@ const ABIERTA_MS = 10000;
 const CAT_ES = { pat: 'Patrimonio', ofi: 'Oficios', cam: 'Campo', fie: 'Fiestas', ley: 'Leyendas', sab: 'Saberes', dep: 'Deporte' };
 const CAT_EU = { pat: 'Ondarea', ofi: 'Ofizioak', cam: 'Landa', fie: 'Jaiak', ley: 'Kondairak', sab: 'Jakintzak', dep: 'Kirola' };
 
-// (la flecha fina del botón que pliega y despliega las misiones del pueblo, como la del menú del inicio)
-// las misiones del pueblo, arriba a la izquierda: en el móvil, plegadas (solo la misión de ahora, con lo hecho en su
-// insignia); en el ordenador, abiertas. Lo que elija cada uno se recuerda
+// (la flecha fina del botón que pliega y despliega las misiones del pueblo en el ordenador)
+const FLECHA_MIS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 
 const ICON = {
   book: '<svg viewBox="0 0 24 24" stroke="#1f1a26" stroke-width="1.5" stroke-linejoin="round"><g transform="translate(-0.35 -0.2)"><path d="M5.2 4.6A2.1 2.1 0 017.3 2.5h11.2a1 1 0 011 1v15.8H7.3a2.1 2.1 0 00-2.1 2.1z" fill="#fff"/><path d="M5.2 21.4a2.1 2.1 0 012.1-2.1h12.2v2.6H7.3" fill="#e3d6ff"/><path d="M12.6 2.5v7.2l1.9-1.4 1.9 1.4V2.5" fill="#ff7ac8"/></g></svg>',
@@ -132,7 +131,7 @@ export class UI {
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>`;
     const h = el(`<div id="hud">
       ${town ? `<div id="tl" class="mis">
-        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><div id="mbtns">${botones}</div></div>
+        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length}">${game.missions.map((M, k) => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)};--k:${k}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><button type="button" id="mPliega" aria-expanded="false" aria-controls="misiones" aria-label="Ver todas las misiones">${FLECHA_MIS}<b></b></button><div id="mbtns">${botones}</div></div>
         <div id="quest" class="hidden" role="dialog"><span class="mc-ic"></span><div class="mc-tx"><small></small><b class="mc-tit"></b><p class="qt"></p><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
       </div>` : `<div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
@@ -165,8 +164,15 @@ export class UI {
     // Tocando el texto o el icono de la aventura, el cuaderno)
     // (con una misión desplegada, tocar en cualquier sitio fuera de la barra la pliega; en captura y sin pararlo, así ese
     // mismo toque sigue sirviendo para andar, mirar o pulsar un botón)
-    if (town) { this._plegar = (e) => { if (this.misAbierta != null && !e.target.closest?.('#tl')) this.cierraMision(); }; addEventListener('pointerdown', this._plegar, true); }
+    if (town) { this._plegar = (e) => { if (e.target.closest?.('#tl')) return; if (this.misAbierta != null) this.cierraMision(); if (this.hud?.querySelector('#tl.abierta')) this.pliegaMisiones(false); }; addEventListener('pointerdown', this._plegar, true); }
     if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
+    // (en el ordenador, las misiones plegadas: solo se ve la que estás haciendo, y la flecha de al lado, con las hechas de
+    // las del pueblo, despliega las demás con una pequeña entrada escalonada. Al elegir una, se vuelve a plegar con ella a la
+    // vista. El 13 de noviembre de 2026 lo pidió el autor: en el ordenador salían todas a la vez. En el móvil, como estaba)
+    if (town && !matchMedia('(pointer: coarse)').matches) {
+      const T = $('#tl', h), P = $('#mPliega', h); T.classList.add('plega');
+      P.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.sound?.ui?.('click'); this.pliegaMisiones(!T.classList.contains('abierta')); });
+    }
     else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
@@ -213,8 +219,9 @@ export class UI {
       // (los tamaños de partida, los de style.css: casillas de 40 px y 8 de hueco; en el ordenador, 48 y 10)
       const grande = matchMedia('(min-width: 1000px) and (min-height: 640px)').matches;
       const cs = getComputedStyle(T), z = t0.width / (T.offsetWidth || t0.width), pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
-      const n = h.querySelectorAll('#misiones button').length, nb = [...B.children].filter((e) => e.offsetWidth > 0).length;
-      const ancho = (c, mg, ms) => (pad + (n + nb) * c + Math.max(0, n - 1 + nb - 1) * mg + ms) * z;   // (ms: el hueco antes de la cápsula del menú personal)
+      const n = [...h.querySelectorAll('#misiones button')].filter((e) => e.offsetWidth > 0).length, nb = [...B.children].filter((e) => e.offsetWidth > 0).length;
+      const pl = $('#mPliega', h)?.offsetWidth || 0;   // (la flecha de las misiones plegadas, en el ordenador: no cambia con la casilla)
+      const ancho = (c, mg, ms) => (pad + (n + nb) * c + Math.max(0, n - 1 + nb - 1) * mg + ms + (pl ? pl + mg : 0)) * z;   // (ms: el hueco antes de la cápsula del menú personal)
       const sitio = (!mr?.width ? innerWidth - 16 : dePie ? mr.right : mr.left - 8) - t0.left;
       let c = grande ? 48 : 40, mg = grande ? 10 : 8, ms = 14;
       while (ancho(c, mg, ms) > sitio + 0.5 && c > 28) { c = Math.max(28, c - 2); if (c < 38) { mg = 5; ms = 10; } if (c < 34) { mg = 4; ms = 6; } }
@@ -248,6 +255,13 @@ export class UI {
     if (!this.hud || this.game.kind !== 'town') return;
     for (const i of this.hud.querySelectorAll('#misiones button')) { const M = this.game.missions[+i.dataset.m]; i.classList.toggle('on', !!M.done); i.classList.toggle('cur', !M.done && M.i === this.game.tracked); i.classList.toggle('sel', M.i === this.misAbierta); i.setAttribute('aria-pressed', String(M.i === this.misAbierta)); }
     const ms = this.game.missions, n = ms.filter(M => M.done).length, t = `${n}/${ms.length}`;
+    // (plegadas, en el ordenador: la que se ve es la abierta, si no la que sigues, si no la primera sin hacer o la última)
+    const P = this.hud.querySelector('#tl.plega #mPliega');
+    if (P) {
+      const sigue = ms.find(M => !M.done && M.i === this.game.tracked), ve = ms[this.misAbierta] || sigue || ms.find(M => !M.done) || ms[ms.length - 1];
+      for (const i of this.hud.querySelectorAll('#misiones button')) i.classList.toggle('ve', +i.dataset.m === ve?.i);
+      const b = P.querySelector('b'); if (b.textContent !== t) b.textContent = t;
+    }
     for (const c of this.hud.querySelectorAll('#ribbons .mc, #quest .qn')) c.textContent = t;
     this.doneN = n;
   }
@@ -271,7 +285,15 @@ export class UI {
     const g = this.game, M = g?.missions?.[i]; if (!M) return;
     if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); return; }
     if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
+    this.misAbierta = i; this.pliegaMisiones(false);   // (en el ordenador, desplegadas: se pliegan con la elegida a la vista)
     this.abreMision(i, ABIERTA_MS);
+  }
+  // (las misiones plegadas del ordenador: abrir = todas a la vista; si no, solo la que toca, refreshDots)
+  pliegaMisiones(abrir) {
+    const T = this.hud && $('#tl.plega', this.hud); if (!T) return;
+    T.classList.toggle('abierta', abrir); const P = $('#mPliega', T);
+    P.setAttribute('aria-expanded', String(abrir)); P.setAttribute('aria-label', abrir ? 'Plegar las misiones' : 'Ver todas las misiones');
+    this.refreshDots(); this.queueFitTop();
   }
   lateMision(i) { const b = this.hud?.querySelector(`#misiones button[data-m="${i}"]`); if (!b) return; b.classList.remove('late'); void b.offsetWidth; b.classList.add('late'); }
   abreMision(i, ms) {
