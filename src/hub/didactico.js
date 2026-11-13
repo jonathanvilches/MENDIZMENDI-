@@ -63,12 +63,13 @@ const ul = (a) => a?.length ? `<ul class="dd-ul">${a.map(s => `<li>${esc(s)}</li
 const tn = (id) => (levelById(id)?.name || id || '').split(' /')[0];
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 const sec = (icon, title, id = '') => `<h2 class="sec"${id ? ` id="${id}"` : ''}>${I(icon, 30)} ${esc(title)}</h2>`;
-/** Un bloque de material: icono, rótulo pequeño, título y lo de dentro (img: una ilustración apaisada arriba). */
+/** Un bloque de material: icono, rótulo pequeño, título y lo de dentro (img: una ilustración apaisada arriba). Lo escrito, en
+ *  .dd-tx: así, cuando el bloque va a todo lo ancho, la ilustración se pone a su izquierda (didactico.css) */
 // (eu: su nombre en euskera, que el traductor deja como está)
 const block = (icon, kicker, title, body, { sub = '', eu = '', img = '', cls = '', where = '' } = {}) => `<article class="dd-b ${cls}">
   ${img ? `<figure class="dd-img"><img src="${img}" alt="" loading="lazy" decoding="async"></figure>` : ''}
-  <header>${I(icon, 34)}<div>${kicker ? `<small>${esc(kicker)}</small>` : ''}<h3>${esc(title)}</h3>${sub ? `<em>${esc(sub)}</em>` : ''}${eu ? `<em class="dd-eu" data-notr lang="eu">${esc(eu)}</em>` : ''}</div></header>
-  ${body}${where}</article>`;
+  <div class="dd-tx"><header>${I(icon, 34)}<div>${kicker ? `<small>${esc(kicker)}</small>` : ''}<h3>${esc(title)}</h3>${sub ? `<em>${esc(sub)}</em>` : ''}${eu ? `<em class="dd-eu" data-notr lang="eu">${esc(eu)}</em>` : ''}</div></header>
+  ${body}${where}</div></article>`;
 const aa = (then, now) => then || now ? `<div class="antes-ahora"><div><b>Antes</b><span>${esc(then)}</span></div><div><b>Ahora</b><span>${esc(now)}</span></div></div>` : '';
 /** Una pregunta con su respuesta marcada y la explicación (para repasar o para clase). */
 const quiz = (Q) => Q ? `<details class="dd-q"><summary>${I('quiz', 22)}<span>${esc(Q.q)}</span></summary><ul>${Q.options.map((o, i) => `<li class="${i === Q.answer ? 'ok' : ''}">${I(i === Q.answer ? 'check' : 'close', 18)}<span>${esc(o)}</span></li>`).join('')}</ul>${P(Q.why)}</details>` : '';
@@ -262,8 +263,8 @@ export const DIDACTICO = {
   d_cuento(C) {
     const u = leyendaUrl(C.id);
     return `<article class="dd-b dd-ct" id="ct-${C.id}">${u ? `<figure class="dd-img" data-ley="${C.id}" role="button" tabindex="0"><img src="${u}" alt="" loading="lazy" decoding="async"></figure>` : ''}
-      <header>${I(C.icon, 34)}<div><small>${esc(KIND_LABEL[C.kind])}</small><h3>${esc(C.title)}</h3><em>${esc(C.place)}</em></div></header>
-      ${Ps(C.parts)}${H4('Lo que puedes ver hoy')}${P(C.today)}${quiz(C.q)}${where(C.towns)}</article>`;
+      <div class="dd-tx"><header>${I(C.icon, 34)}<div><small>${esc(KIND_LABEL[C.kind])}</small><h3>${esc(C.title)}</h3><em>${esc(C.place)}</em></div></header>
+      ${Ps(C.parts)}${H4('Lo que puedes ver hoy')}${P(C.today)}${quiz(C.q)}${where(C.towns)}</div></article>`;
   },
   d_bindLey() {
     const on = CUENTOS.filter(C => leyendaUrl(C.id, true)), list = on.map(C => ({ src: leyendaUrl(C.id, true), title: C.title }));

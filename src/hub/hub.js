@@ -94,20 +94,26 @@ const cnt = (n, one, many) => `${n} ${n === 1 ? one : many}`;   // (1 sello, 2 s
 // al final de una fila, como el de tres columnas con dos piezas o el de dos con tres. Cada pieza lleva su ancho en cada
 // tamaño (--sg, --sm, --sp: fichas.css)
 export function ajustaRejillas(root) {
-  for (const R of root.querySelectorAll('section.rejilla')) {
+  for (const R of root.querySelectorAll('section.rejilla, .dd-grid')) {
     // (la pieza destacada, como la danza con su ilustración, va a todo lo ancho y no cuenta: su imagen toma el ancho de la
     // primera pieza de la fila de debajo, --fg, --fm y --fp)
-    const H = [...R.children].filter(h => !h.matches('.con-img')), D = [...R.children].filter(h => h.matches('.con-img')), k = H.length, max = (R.dataset.max || '4,3,2').split(',').map(Number);
+    const H = [...R.children].filter(h => !h.matches('.con-img')), D = [...R.children].filter(h => h.matches('.con-img')), k = H.length;
+    // (en el material didáctico, si los bloques miden muy distinto, uno de un párrafo y otro de veinte, igualar la fila dejaba
+    // huecos enormes dentro de los cortos: entonces va uno por fila, a todo lo ancho, con la ilustración al lado o el texto en
+    // dos columnas, didactico.css; si miden parecido, en rejilla, hasta tres por fila y todos del mismo alto)
+    const alto = (h) => [...h.children].reduce((t, x) => t + x.offsetHeight, 0), hs = R.matches('.dd-grid') && k > 1 ? H.map(alto).filter(Boolean) : [];
+    const filas = hs.length > 1 && Math.max(...hs) > 1.8 * Math.min(...hs); R.classList.toggle('dd-filas', filas);
+    const max = (R.dataset.max || (R.matches('.dd-grid') ? '3,2,1' : '4,3,2')).split(',').map(Number);
     // (con data-igual, las piezas con imagen, como las cartas de los pueblos, van todas del mismo tamaño si se puede: si las
     // piezas se reparten justas en una columna más de las que tocan, se usa esa; tres pueblos en dos columnas dejaban la
     // tercera carta al doble de ancho)
     // (con imagen, de las columnas posibles, 2, 3, 4 o 6 y como mucho una más de las que tocan, la que deja la última fila
     // menos estirada: siete pueblos, 4 y 3, no 3, 3 y una carta sola a todo lo ancho)
-    const igual = 'igual' in R.dataset;
+    const igual = 'igual' in R.dataset || R.matches('.dd-grid');
     const cols = (x) => { if (k <= x) return k; if (!igual) return Math.ceil(k / Math.ceil(k / x));
       let mejor = null; for (const c of [2, 3, 4, 6]) { if (c > x + 1) continue; const resto = k % c, pena = (resto ? (c - resto) / c : 0) + (c > x ? 0.15 : 0) + (x - Math.min(c, x)) / x * 0.3;
         if (!mejor || pena < mejor.pena - 1e-9) mejor = { c, pena }; } return mejor?.c || x; };
-    const anchos = max.map(x => { const c = cols(x), resto = k % c; return H.map((_, i) => 12 / (resto && i >= k - resto ? resto : c)); });
+    const anchos = max.map(x => { const c = filas ? 1 : cols(x), resto = k % c; return H.map((_, i) => 12 / (resto && i >= k - resto ? resto : c)); });
     H.forEach((h, i) => ['--sg', '--sm', '--sp'].forEach((v, j) => h.style.setProperty(v, anchos[j][i])));
     D.forEach(d => ['g', 'm', 'p'].forEach((v, j) => { const a = anchos[j][0] || 4; d.style.setProperty('--f' + v, a); d.style.setProperty('--t' + v, 12 - a); }));
   }
@@ -319,7 +325,7 @@ export class Hub {
     m.classList.toggle('cambia', !!(juego && antes && antes !== 'home' && m.childElementCount));
     m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
-    m.scrollTop = 0; fitMaps(m);
+    m.scrollTop = 0; fitMaps(m); ajustaRejillas(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
     m.querySelectorAll('.lam-rail, .figuras.rail, .rail, .cstrip').forEach(inercia);   // (las filas de cartas, que se arrastran con el ratón con inercia)
     contadores(m);   // (las cifras que suben desde 0 al abrir la sección: lo descubierto, las cualidades, tu nivel; ui/motion.js)
@@ -664,7 +670,7 @@ export class Hub {
     return `${cabeza('Saberes · Cimas', 'peak', 'Cimas de Navarra')}${dd ? '<p class="lead">Los montes de Navarra con su altura, su recorrido y su perfil. Debajo, cómo se leen las señales de los senderos y cómo ir al monte.</p>' : `<p class="lead-chip">${I('peak', 24)}<b>${won}/${inGame.size}</b> cimas</p>`}
       <div class="filters"><button data-f="game" class="${filter === 'game' ? 'on' : ''}">${I('flag', 20)} En el juego</button><button data-f="all" class="${filter === 'all' ? 'on' : ''}">Todas</button>${COMARCAS.filter(c => MOUNTAINS.some(m => m.region === c.id)).map(c => `<button data-f="${c.id}" class="${filter === c.id ? 'on' : ''}" style="--c:${c.color}">${esc(c.name)}</button>`).join('')}</div>
       <section class="peaks">${list.map(m => this.peakCard(m, dd ? null : inGame.get(m.id))).join('')}</section>
-      ${dd ? `<h2 class="sec">${I('flag', 30)} Las señales de los senderos</h2><div class="dd-grid">${ORIENTA.map(o => `<article class="dd-b"><header>${I('flag', 34)}<div><h3>${esc(o.title)}</h3></div></header><p>${esc(o.text)}</p></article>`).join('')}</div>
+      ${dd ? `<h2 class="sec">${I('flag', 30)} Las señales de los senderos</h2><div class="dd-grid">${ORIENTA.map(o => `<article class="dd-b"><div class="dd-tx"><header>${I('flag', 34)}<div><h3>${esc(o.title)}</h3></div></header><p>${esc(o.text)}</p></div></article>`).join('')}</div>
         <h2 class="sec">${I('backpack', 30)} Para ir al monte</h2><ul class="dd-datos">${[...ORIENTA_TIPS, ...MONTE_TIPS].map(t => `<li>${esc(t)}</li>`).join('')}</ul>` : ''}`;
   }
   peakCard(m, town = null) {

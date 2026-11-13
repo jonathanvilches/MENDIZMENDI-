@@ -39,7 +39,7 @@
 .ddg .dd-tabs button small { border-radius: var(--r); }
 
 /* ---------- lo de dentro de las tarjetas ---------- */
-:is(.ddc-txt, .armorial .ar-tx, .ins-tx, .dd-b > header) small { font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase;
+:is(.ddc-txt, .armorial .ar-tx, .ins-tx, .dd-b header) small { font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .1em; text-transform: uppercase;
   color: color-mix(in srgb, var(--cat, #ff7ac8) 80%, #fff); }
 :is(.ddc-txt > b, .armorial .ar-nm, .ar-tx > h3, .dd-b h3, .ins-tx > b, .pcard .phead b, .scard > b, .fcard .ftx > b, .bcard > b) { font-family: var(--f-display); font-weight: 400; letter-spacing: .01em; line-height: 1.1; }
 /* (el nombre grande en las tarjetas anchas; algo menor en las de las rejillas apretadas) */

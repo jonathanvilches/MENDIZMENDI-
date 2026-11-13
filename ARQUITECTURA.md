@@ -1201,6 +1201,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   debajo (subgrid) y el texto al lado; en cada pieza, el sitio al pie, a la misma altura en toda la fila. Con un solo
   pueblo, a su lado va lo que es, sus misiones y los botones (`puebloUnico`); una sola cima, en horizontal. Los párrafos
   ya no llevan `text-wrap: pretty`: en el iPhone acortaba todas las líneas y dejaba media caja vacía a la derecha.
+- **Las rejillas del material didáctico, sin huecos** (`.dd-grid` y `.dd-b` en `didactico.css`; `ajustaRejillas` en
+  `hub.js`, que ahora se llama en cada cambio de sección; `block` y `d_cuento` en `didactico.js`; 13 de noviembre de 2026):
+  el autor vio en Otsagabia una sola leyenda en una carta estrecha y el resto de la ventana vacío, y pidió que todas las
+  cuadrículas fueran iguales y el texto encajara en ellas. Ahora van en las mismas 12 columnas que las fichas: hasta tres
+  bloques por fila en el ordenador, dos en la tableta y uno en el móvil, las filas justas para que no quede hueco al final
+  y todos los de una fila con el mismo alto. Si los bloques miden muy distinto, el largo más de 1,8 veces el corto, igualar
+  la fila dejaba huecos enormes dentro de los cortos: entonces van uno por fila (`.dd-filas`). Lo escrito de cada bloque va
+  en `.dd-tx`, y el bloque es un contenedor: cuando mide 760 px o más, porque va solo en su fila, la ilustración pasa a la
+  izquierda con el alto del texto y lo escrito a su derecha; sin ilustración, lo escrito en dos columnas, con cada
+  subtítulo pegado a lo suyo. Para verlo: `didactico-rejilla.mjs` en la carpeta de trabajo de la sesión.
 - **Cosechas de verdad, con tractor o cosechadora** (`game/townTractor.js`, `RECETAS` y `DESTINOS`; `game/conducir.js`):
   todas las misiones de cosecha. El trigo, con la cosechadora en un campo de cereal de verdad: se siega casilla a
   casilla (el trigo en pie baja a rastrojo), la tolva se llena y se descarga en el remolque del tractor que espera en la
