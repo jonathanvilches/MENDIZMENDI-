@@ -243,26 +243,23 @@ summary { line-height: 1.3; }
    mínimo para que, al desplegarse, no crezca y la brújula no se mueva.
    El tamaño de las casillas y de los botones redondos, --chip: 40 px en el móvil, cerca de los 44 que pide Apple para un
    dedo, y 48 en el ordenador. Hasta el 12 de noviembre de 2026 eran de 32 a 34 px en el móvil y 42 en el ordenador, y
-   al autor le costaba acertar con el dedo. En el tumbado más pequeño, 36 px, porque va en dos filas */
+   al autor le costaba acertar con el dedo. Siempre en una sola fila: si no cabe, ui.js (fitTop) achica las casillas
+   hasta 30 px y el hueco entre ellas (--mg, --ms); y si ni así, la fila de las misiones se desliza de lado (.desliza).
+   Hasta el 13 de noviembre de 2026, en el tumbado pequeño y de pie iba en dos filas */
 #tl.mis { --chip: 40px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
-/* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
-@media (max-height: 520px) and (max-width: 740px) { #tl.mis { --chip: 36px; } #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
-@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 48px; min-width: 260px; } #tl.mis #misiones { gap: 10px; } }
-#misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 8px; }
+@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 48px; min-width: 260px; } #tl.mis #misiones { gap: var(--mg, 10px); } }
+#misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: var(--mg, 8px); }
+#tl.mis.desliza #misiones { flex: 1 1 auto; min-width: 0; overflow-x: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 6px 4px; margin: -6px -4px; }
+#tl.mis.desliza #misiones::-webkit-scrollbar { display: none; }
 /* la mochila, los prismáticos (cuando los tienes) y la pausa, al final de la barra de misiones y bien separados de ellas:
    12 px de hueco a cada lado de una raya clara de 2 px de arriba abajo, y redondos y de un gris translúcido, no cuadrados de
-   color como las misiones. Del tamaño de una casilla. Si la barra no cabe en una fila (móvil estrecho de pie, o un pueblo
-   con muchas misiones), las casillas van en dos filas y los botones en columna (ui.js, fitTop, clase .dos), como en el
-   móvil tumbado pequeño */
+   color como las misiones. Del tamaño de una casilla y siempre en la misma fila */
 #tl.mis .mfila { display: flex; align-items: center; }
-#mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: 8px; margin-left: 14px; padding-left: 14px; border-left: 2px solid rgba(255, 255, 255, .5); }
+#mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: var(--mg, 8px); margin-left: var(--ms, 14px); padding-left: var(--ms, 14px); border-left: 2px solid rgba(255, 255, 255, .5); }
 #mbtns .round { width: var(--chip); height: var(--chip); border: 0; background: rgba(255, 255, 255, .14); box-shadow: none; }
 #mbtns .round:hover { background: rgba(255, 255, 255, .24); }
 #mbtns .round.bag .ering { inset: 0; }
-#tl.mis.dos #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); }
-#tl.mis.dos #mbtns { flex-direction: column; justify-content: center; }
-@media (max-height: 520px) and (max-width: 740px) { #mbtns { flex-direction: column; justify-content: center; } }
-@media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: 10px; } }
+@media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: var(--mg, 10px); } }
 /* (cada casilla, el icono sobre un fondo sólido del color de su categoría: con el 16 % del color y el borde, que los
    botones ya no llevan, se veían apagadas y casi transparentes sobre el pueblo; noviembre de 2026, lo pidió el autor.
    Hecha, el color más lleno y su marca; la que sigues, un aro blanco por dentro) */
@@ -284,6 +281,8 @@ summary { line-height: 1.3; }
    sus pasos y lo lejos que está. Tocándola, el cuaderno; se cierra tocando su casilla, fuera de la barra o sola a los
    10 s. Antes la misión se desplegaba dentro de la barra, que crecía hacia abajo (noviembre de 2026, el autor quería el
    visor más limpio) */
+/* (abierta, la tarjeta va por encima del minimapa: de pie, el minimapa baja junto a ella y la tapaba) */
+#tl.mis:has(> #quest:not(.hidden)) { z-index: 3; }
 #tl.mis #quest { position: absolute; left: 0; top: calc(100% + 10px); z-index: 2; width: min(320px, calc(100vw / var(--z, 1) - 32px)); display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px 14px 12px; border-radius: 10px;
   background: linear-gradient(170deg, rgba(36, 12, 78, .96), rgba(16, 7, 34, .95)); box-shadow: 0 10px 26px rgba(4, 1, 12, .45); cursor: pointer; animation: mcardIn .26s var(--ease); }
 #tl.mis #quest::before { content: ''; position: absolute; top: -5px; left: clamp(14px, var(--px, 24px), calc(100% - 14px)); width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: rgba(36, 12, 78, .96); }

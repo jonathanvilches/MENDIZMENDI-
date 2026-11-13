@@ -132,7 +132,7 @@ export class UI {
           <button class="round" id="bMenu" aria-label="Pausa (Esc)">${ICON.menu}</button>`;
     const h = el(`<div id="hud">
       ${town ? `<div id="tl" class="mis">
-        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length};--n2:${Math.ceil(game.missions.length / 2)}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><div id="mbtns">${botones}</div></div>
+        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length}">${game.missions.map(M => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><div id="mbtns">${botones}</div></div>
         <div id="quest" class="hidden" role="dialog"><span class="mc-ic"></span><div class="mc-tx"><small></small><b class="mc-tit"></b><p class="qt"></p><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
       </div>` : `<div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
@@ -201,19 +201,33 @@ export class UI {
   fitTop() {
     const h = this.hud; if (!h) return;
     const T = $('#tl', h); if (!T) return;
-    T.style.maxWidth = '';
-    // (en el pueblo, la barra de misiones con la mochila y la pausa al final: en una fila si cabe; si no, las casillas en
-    // dos filas y los botones en columna, como en el móvil tumbado pequeño. De pie, el minimapa baja debajo de la barra
-    // en vez de estrecharla; y vuelve a subir cuando cabe a su lado)
+    // (en el pueblo, la barra de misiones con la mochila y la pausa al final, siempre en una sola fila: si no cabe, las
+    // casillas se achican de 2 en 2 px hasta 30, con menos hueco entre ellas; y si ni así, la fila de las misiones se
+    // desliza de lado. Tumbado y en el ordenador llega hasta el minimapa; de pie, hasta el borde, y el minimapa baja
+    // debajo de la barra. Hasta el 13 de noviembre de 2026 pasaba a dos filas, y el autor la quiere en una. Se calcula de
+    // una vez, sin probar tamaños: probarlos movía la barra, eso volvía a llamar aquí y el minimapa no llegaba a bajar)
     const R = $('#topright', h);
     if (T.classList.contains('mis') && R) {
-      const dePie = matchMedia('(max-aspect-ratio: 1/1)').matches;
-      const choca = () => { const d = T.getBoundingClientRect().right + 8; return ['#mini'].some((q) => { const r = $(q, h)?.getBoundingClientRect(); return r && r.width > 0 && d > r.left; }); };
-      T.classList.remove('dos');
-      if (T.scrollWidth > T.clientWidth + 1 || (!dePie && choca())) T.classList.add('dos');
-      R.style.top = dePie && choca() ? Math.round(T.getBoundingClientRect().bottom + 8) + 'px' : '';
+      const B = $('#mbtns', h), t0 = T.getBoundingClientRect(); if (!t0.width || !B) return;
+      const dePie = matchMedia('(max-aspect-ratio: 1/1)').matches, mr = $('#mini', h)?.getBoundingClientRect();
+      // (los tamaños de partida, los de style.css: casillas de 40 px y 8 de hueco; en el ordenador, 48 y 10)
+      const grande = matchMedia('(min-width: 1000px) and (min-height: 640px)').matches;
+      const cs = getComputedStyle(T), z = t0.width / (T.offsetWidth || t0.width), pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+      const n = h.querySelectorAll('#misiones button').length, nb = [...B.children].filter((e) => e.offsetWidth > 0).length;
+      const ancho = (c, mg, ms) => (pad + (n + nb) * c + Math.max(0, n - 1 + nb - 1) * mg + 2 * ms + 2) * z;
+      const sitio = (!mr?.width ? innerWidth - 16 : dePie ? mr.right : mr.left - 8) - t0.left;
+      let c = grande ? 48 : 40, mg = grande ? 10 : 8, ms = 14;
+      while (ancho(c, mg, ms) > sitio + 0.5 && c > 30) { c = Math.max(30, c - 2); if (c < 38) { mg = 5; ms = 10; } }
+      const desliza = ancho(c, mg, ms) > sitio + 0.5, pon = (k, v) => { if (T.style.getPropertyValue(k) !== v) { if (v) T.style.setProperty(k, v); else T.style.removeProperty(k); } };
+      const base = c === (grande ? 48 : 40);
+      pon('--chip', base ? '' : c + 'px'); pon('--mg', base ? '' : mg + 'px'); pon('--ms', base ? '' : ms + 'px');
+      T.classList.toggle('desliza', desliza);
+      const mw = desliza ? Math.max(160, sitio / z) + 'px' : ''; if (T.style.maxWidth !== mw) T.style.maxWidth = mw;
+      const tr = T.getBoundingClientRect(), top = dePie && mr?.width && tr.right + 8 > mr.left ? Math.round(tr.bottom + 8) + 'px' : '';
+      if (R.style.top !== top) R.style.top = top;
       return;   // (la barra no se estrecha: sus casillas tienen ancho fijo y el texto de la misión ya toma el ancho del panel)
     }
+    T.style.maxWidth = '';
     const cajas = ['#topright .rbtns', '#mini'].map((s) => $(s, h)).filter(Boolean);
     for (const alto of [48, Infinity]) {
       const tr = T.getBoundingClientRect(); if (!tr.width) return;

@@ -1160,22 +1160,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ordenador tiene cinco botones y en una pantalla baja, de 1280×720, va a dos columnas como en el móvil tumbado (si no,
   la ayuda de las teclas no cabía y había que desplazar). El mapa se abre tocando el
   minimapa y, en el ordenador, con M.
-  En el pueblo (12 de noviembre de 2026, lo pidió el autor), la mochila (`mochila.js` la pone delante de la pausa), los
-  prismáticos cuando los tienes y la pausa van sueltos arriba a la izquierda (`#tlb`), redondos de 48 px (52 en el
-  ordenador), oscuros y sin sombra, como los del partido de pelota. Las misiones van en columna por el margen derecho
-  (`#tl.mis`), debajo del minimapa y sin llegar a los botones de saltar y de la mano: `fitTop` pone su altura y cuántas
-  filas caben (`--filas`); si no caben todas, siguen en otra columna hacia dentro (`grid-auto-flow: column` con
-  `direction: rtl`): en el móvil tumbado, tres columnas cortas; de pie y en el ordenador, una sola. Las casillas, de 40 px
-  con 8 de hueco (36 en el tumbado pequeño, 48 con 10 en el ordenador). Al tocar una misión, su tarjeta sale deslizándose
-  a la izquierda de la columna (`#tl.mis #quest`, clase `entra`), a la altura de su casilla y con una flechita hacia ella
-  (`colocaMision`: `--qy`, `--py` y su ancho, `--qw`, hasta 320 px y sin salirse de la pantalla): el icono en el color de
-  su categoría, la categoría y cuál es de las del pueblo (o «Hecha»), su nombre, lo que toca hacer, sus pasos y lo lejos
-  que está. Antes, del 10 al 12 de noviembre, una barra arriba a la izquierda con la mochila y la pausa al final y la
-  tarjeta debajo. Los corazones (`aventuraHud.js`, `coloca`) van arriba en el centro; si pisan los botones de la
-  izquierda, centrados en el hueco entre ellos y el minimapa, y si no caben, debajo de los botones. Arriba a la derecha
-  (`#topright.sin-b`) solo queda el minimapa, siempre en su sitio. El rótulo de llegada (`rotulo.js`, `coloca`) se aparta
-  de la columna y de los botones. Un ResizeObserver en `#tl` y el cambio de tamaño de la pantalla vuelven a colocarlo
-  todo. En la aventura de
+  En el pueblo, la mochila (`mochila.js` la pone delante de la pausa), los prismáticos cuando los tienes y la pausa van
+  al final de la barra de misiones, arriba a la izquierda (`#tl.mis .mfila`: `#misiones` y `#mbtns`), separados de las
+  casillas por una raya clara de 2 px, redondos, grises translúcidos y del tamaño de una casilla. Todo desplegado y
+  siempre en una sola fila (13 de noviembre de 2026, lo pidió el autor: la columna del margen derecho, del 12 de
+  noviembre, ocupaba demasiado, y plegada en un icono tampoco le gustaba). Las casillas, de 40 px con 8 de hueco (48 con
+  10 en el ordenador); si la fila no cabe, `fitTop` (ui.js) achica las casillas hasta 30 px con 5 de hueco (`--chip`,
+  `--mg`, `--ms` en línea, calculados de una vez para no volver a disparar el ResizeObserver) y, si ni así, la fila de las
+  misiones se desliza de lado (`.desliza`). Tumbado llega hasta el minimapa; de pie, hasta el borde, y el minimapa baja
+  debajo de la barra (`top` en línea, con transición). Antes, en el tumbado pequeño y de pie, pasaba a dos filas. Al
+  tocar una misión, su tarjeta sale suelta debajo de la barra (`#tl.mis #quest`, con una flechita hacia su casilla,
+  `--px`) y, mientras está abierta, por encima del minimapa: el icono en el color de su categoría, la categoría y cuál es
+  de las del pueblo (o «Hecha»), su nombre, lo que toca hacer, sus pasos y lo lejos que está. Los corazones
+  (`aventuraHud.js`, `coloca`) van arriba en el centro; si pisan la barra, centrados en el hueco entre la barra y el
+  minimapa, y si no caben, debajo de la barra, apartados mientras la tarjeta está abierta. Arriba a la derecha
+  (`#topright.sin-b`) solo queda el minimapa. Un ResizeObserver en `#tl` y el cambio de tamaño de la pantalla vuelven a
+  colocarlo todo. En la aventura de
   Otsagabia los botones siguen arriba a la derecha (`.rbtns`), junto al minimapa.
   Abajo a la derecha, solo saltar y acción: se corre empujando el joystick hasta el borde (`input.js`, `stickRun`: corre
   desde 0,94 de la palanca y vuelve a andar al bajar de 0,82, para que en el borde no alterne). Antes había un botón de
