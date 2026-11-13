@@ -1801,7 +1801,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   elegida, las demás no se quedan grises: guardan buena parte de su color (`fv`), y las paredes de todas van de roca.
   La cámara la mira primero de lado (`PITCH_ISLA` 0,3; se deja bajar hasta 0,24), para verla arrancarse, y cuando ya está
   en el aire (y acabado su vídeo, si lo hay) sube sola a mirarla desde más arriba (`PITCH_ALTA` 0,74, `vistaAlta`): se ve
-  el territorio entero, con sus pueblos y sus montes; si el jugador ya ha movido la cámara, no. La raya de la trashumancia
+  el territorio entero, con sus pueblos y sus montes; si el jugador ya ha movido la cámara, no. Arriba, la cámara se queda
+  volando como un dron, despacio (`sigueDronIsla`), hasta que el jugador toca algo. Hasta el 13 de noviembre por la tarde
+  esa subida no se veía nunca: la cuenta que la dispara (`tAlta`) estaba detrás de un comentario en su misma línea, así
+  que no contaba; y la ficha, al volver a elegir la comarca sin vuelo, la daba por hecha (ahora solo se rearma al
+  elegirla volando). Se mide con `alta-dbg.mjs`, con reloj propio: la inclinación pasa de 0,30 a 0,74 a los seis
+  segundos de elegir y luego deriva. La raya de la trashumancia
   se corta en su orilla. Para verlo: `isla.mjs` (con `PITCH` y `DK`), `isla-flujo.mjs`, `isla-salir.mjs` y `anim.mjs`, que
   graba la animación fotograma a fotograma con un reloj propio.
   El encaje de las piezas está comprobado con los datos (`comarcas-encaje.json`): cada linde entre dos comarcas es una sola

@@ -1149,7 +1149,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const x of C) { x.lab.classList.toggle('sel', x.id === sel); x.lab.classList.toggle('fondo', !!sel && x.id !== sel); }
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
-    islaDron = null; if (c) { islaDe(c); c.vistaAlta = !fly; c.tAlta = 0; c.dronPend = false; }
+    // (solo al elegirla volando: la ficha vuelve a llamar aquí sin vuelo, y eso no tiene que quitar la subida ni el dron)
+    if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) { c.vistaAlta = false; c.tAlta = 0; c.dronPend = false; } }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); }
@@ -1746,7 +1747,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo * (1 - 0.6 * cieloK);
       // (ya en el aire, y acabado su vídeo si lo hay, la cámara sube y mira más desde arriba: se ve el territorio entero, sus
       // pueblos y sus montes; la vista de lado es para verla arrancarse. Si el jugador ya ha movido la cámara, no)
-      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.97 && !tv && !vuelo && !window.__sinVistaAlta) {   // (__sinVistaAlta: para sacar los fotogramas del vídeo) c.tAlta = (c.tAlta || 0) + dt;
+      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.97 && !tv && !vuelo && !window.__sinVistaAlta) { c.tAlta = (c.tAlta || 0) + dt;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
         if (c.tAlta > 1.3) { c.vistaAlta = true;
           if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
             volar({ x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3)), yaw: 0, pitch: PITCH_ALTA }, 1.8); c.dronPend = true; } } }
