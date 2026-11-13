@@ -90,7 +90,7 @@ export function mapa3d(host, o) {
   let cargas = 0;   // (las imágenes del suelo y del sombreado que ya han llegado: la entrada grande las espera)
   const TIEMPO = { value: 0 };   // (el reloj de las nubes)
   // (lo de fuera de Navarra, apagado: la máscara de Navarra, nítida en rojo y difuminada en verde, dónde cae y cuánto se apaga)
-  const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 }, CIELO = { value: 0 };   // (CIELO: con una isla en el aire, el suelo de alrededor se vuelve un mar de nubes)
+  const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 }, CIELO = { value: 0 };   // (CIELO: con una isla en el aire, de día: lo de fuera, menos apagado)
   const FONDO_L = { value: new THREE.Color(FONDO) };
   // (funde: cuánto se funden sus bordes, oeste, este, sur y norte, en unidades del mapa; modo 1, en el fondo; 2, por transparencia)
   const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0) => {
@@ -114,14 +114,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   // sigue adivinando, pero ya no compite con el de Navarra. Antes era un gris con todas sus sombras, y de cerca, apagado
   // a medias, se confundía con ella)
   vec3 apag = vec3(0.105, 0.095, 0.16) + (l - 0.42) * vec3(0.26, 0.26, 0.32);
-  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * 0.92);
+  // (con una isla en el aire y el cielo de día, lo de fuera sigue siendo tierra, apagada pero con su luz, no de noche)
+  apag = mix(apag, vec3(l) * vec3(0.86, 0.9, 0.96) * 0.9, uCielo);
+  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.75, uCielo));
   diffuseColor.rgb *= 1.0 - 0.45 * fuera * nm.g; }
-// (con una isla en el aire, un mar de nubes blancas sobre azul claro, que pasa despacio: Navarra flota en el cielo, como su
-// isla; noviembre de 2026, con las imágenes del autor)
-if (uCielo > 0.0) { vec2 q = vMun * 0.05 + vec2(uT * 0.006, uT * 0.002);
-  float v = ruidoN(q) * 0.5 + ruidoN(q * 2.2 + 3.1) * 0.27 + ruidoN(q * 4.9 - 1.7) * 0.15 + ruidoN(q * 10.3 + 5.0) * 0.08;
-  vec3 mn = mix(vec3(0.42, 0.62, 0.86), vec3(1.0), smoothstep(0.42, 0.66, v)) * (0.86 + 0.14 * smoothstep(0.5, 0.8, v));
-  diffuseColor.rgb = mix(diffuseColor.rgb, mn, uCielo); }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
 // por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
 // Navarra, que va encima, se funde por transparencia en la de debajo)
@@ -247,7 +243,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // antes que nada, sin profundidad; con uK a cero es del color del fondo de siempre
   const cieloFondo = (() => { const m = new THREE.ShaderMaterial({ ...cieloShader(), depthTest: false, depthWrite: false, side: THREE.BackSide }); m.uniforms.uFondo.value.set(FONDO); mats.push(m);
     const gc = new THREE.SphereGeometry(50, 32, 16); geos.push(gc); const s2 = new THREE.Mesh(gc, m); s2.renderOrder = -100; s2.frustumCulled = false; s2.visible = false; scene.add(s2); return s2; })();
-  let cieloK = 0;
+  let cieloK = 0, islaFija = null;
   // la isla flotante de cada comarca (mapa3dIsla.js): la panza de roca, las cascadas y las piedras, la primera vez que se elige
   // (fuera: la altura del mapa de alrededor, la de la comarca vecina o el suelo, de donde se tira el agua al hueco)
   // (las texturas de la roca y del césped, de Higgsfield, una sola vez para todas las islas)
@@ -1478,7 +1474,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       if (dron?.id === elegido.id) return { X: dron.cc?.X ?? dron.X, Z: dron.cc?.Z ?? dron.Z, f, natural: !real };
       const cc = real ? (elegido._cc ||= centroCasas(elegido.id)) : null; return { X: cc?.X ?? elegido.X, Z: cc?.Z ?? elegido.Z, f, natural: !real }; } });
 
-  if (import.meta.env.DEV) window.__mapa3d = { det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
+  if (import.meta.env.DEV) window.__mapa3d = { islaK: (k) => { islaFija = k; }, det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
     relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 

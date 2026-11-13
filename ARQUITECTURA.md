@@ -1770,23 +1770,27 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   comarca subiera mucho más y se separase del mapa, como las islas flotantes de sus imágenes de referencia: una tierra en un
   cielo azul con nubes, con una capa gruesa de césped en el canto y debajo roca caliza clara con estrías verticales. Sube casi
   lo que mide de radio, con un muelle que se pasa un poco y vuelve, y se mece despacio. Por debajo le cuelga una panza de roca
-  de 0,62 veces su radio (la primera, de 0,85, era una punta de iceberg demasiado honda para el autor): casi recta al
-  principio y luego cerrándose hasta una punta roma, con estrías que se tuercen al bajar. El canto (`canto`) tapa la pared de
-  la comarca con el césped, que asoma por encima del borde, su tierra y la caliza. Las texturas de la roca y del césped son de
-  Higgsfield (`src/assets/isla`), repetibles. La luz va pintada en cada cara, para que de lado no salga negra.
-  Mientras la isla está en el aire, el fondo pasa a un cielo azul con cúmulos (una esfera alrededor de la cámara que se pinta
-  antes que nada), la niebla de lo lejano a la bruma de ese cielo y el suelo de alrededor de Navarra a un mar de nubes
-  (`uCielo` en el suelo); al bajar vuelve el fondo de siempre. El hueco que deja en Navarra se abre al cielo: con el búfer de
-  plantilla (stencil, `stencil: true` en `stage.js`), se marca la boca donde se ve, se borra ahí la profundidad y se pinta lo
-  de dentro, el canto de caliza de Navarra con el pie roto, el cielo de debajo y dos capas de nubes. El agua cae al vacío:
-  donde un río sale de la comarca, por el borde de la isla; donde un río de Navarra entraba en ella, por el borde del hueco
-  (los ríos van río abajo en los datos: `salen` y `entran`, hasta cuatro de cada). Son columnas de ocho lados que de canto se
-  desvanecen y se deshacen en bruma antes de las nubes, con su rocío. Al despegarse cae un derrumbe de piedras con polvo por
-  todo el borde, y luego se siguen soltando unas pocas cada segundo, de la panza y del borde del hueco, hasta perderse en las
-  nubes. Todo lo demás de la comarca (ríos, árboles, chinchetas, nombres y maqueta) sigue su altura, `c.py`. La cámara la
-  mira más de lado (`PITCH_ISLA` 0,3, y deja bajar hasta 0,24) y apunta a media isla. La raya de la trashumancia se corta en
-  su orilla. Cuesta unos 20.000 triángulos y unas 13 llamadas más (medido: 188.000 y 125 con la isla de Pamplona en el aire). Para verlo: `isla.mjs` (con `PITCH` y `DK`, una vista
-  más desde arriba), `isla-flujo.mjs` e `isla-salir.mjs`.
+  poco honda, 0,4 veces su radio (`D`; la primera, de 0,85, y la segunda, de 0,62, llevaban demasiada tierra para el autor):
+  casi recta al principio y luego cerrándose hasta una punta roma, con estrías que se tuercen al bajar. La panza empieza justo
+  bajo lo más bajo de la comarca (`base`), y la pared de la comarca se esconde mientras está en el aire: así no sobra tierra.
+  El canto (`canto`) cubre la orilla con el césped, que asoma por encima del borde, su tierra y la caliza. Las texturas de la
+  roca y del césped son de Higgsfield (`src/assets/isla`), repetibles. La luz va pintada en cada cara, para que de lado no
+  salga negra. Mientras la isla está en el aire, el fondo pasa a un cielo azul con cúmulos (una esfera alrededor de la cámara
+  que se pinta antes que nada) y la niebla de lo lejano a la bruma de ese cielo; el suelo de alrededor de Navarra se queda de
+  día (`uCielo` en el suelo) y las paredes de todas las comarcas pasan a roca. Al bajar vuelve el fondo de siempre.
+  El hueco que deja en Navarra no da al cielo («debajo no hay cielo: es tierra más oscura; pon lógica geográfica», pidió el
+  autor): es el cráter de donde se arrancó la tierra, de unas 0,32 veces su radio de hondo (`DC`, al menos 1,8), con paredes
+  casi rectas de tierra bajo la orilla y luego roca cada vez más oscura, a capas y rota (`CR`), que se cierran abajo; en el
+  fondo se junta el agua en un lago verde oscuro, con ondas suaves y algo del cielo reflejado de lado (`LAGO`). Se ve solo por
+  la boca, con el búfer de plantilla (stencil, `stencil: true` en `stage.js`): se marca la boca donde se ve, se borra ahí la
+  profundidad y se pinta lo de dentro. El agua cae: donde un río sale de la comarca, por el borde de la isla; donde un río de
+  Navarra entraba en ella, por el borde del cráter, pegada a su pared, hasta el lago (los ríos van río abajo en los datos:
+  `salen` y `entran`, hasta cuatro de cada). Son columnas de ocho lados que de canto se desvanecen, con su rocío y la bruma
+  donde caen. Al despegarse cae un derrumbe de piedras con polvo por todo el borde, y luego se siguen soltando unas pocas cada
+  segundo, de la panza y del borde del cráter; las que llegan al fondo levantan polvo. Todo lo demás de la comarca (ríos,
+  árboles, chinchetas, nombres y maqueta) sigue su altura, `c.py`. La cámara la mira más de lado (`PITCH_ISLA` 0,3, y deja
+  bajar hasta 0,24) y apunta a media isla. La raya de la trashumancia se corta en su orilla. Para verlo: `isla.mjs` (con
+  `PITCH` y `DK`, una vista más desde arriba), `isla-flujo.mjs` e `isla-salir.mjs`.
 - **El color de verdad del suelo: la ortofoto** (`tools/relieve/ortofoto.py`, `src/data/mapa-orto.js`, `ORTO_K`, `quiereOrto`
   y `cargaOrto` en `mapa3d.js`, `tonoOrto` en `mapa3dSombreadores.js`; 13 de noviembre de 2026): el autor quería un mapa del
   inicio con calidad casi de mapa real. El relieve tomaba el color de una paleta por alturas, con parcelas, bosque y roca

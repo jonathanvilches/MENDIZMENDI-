@@ -1,8 +1,8 @@
 // La isla flotante: lo que lleva la comarca elegida en el mapa del inicio cuando sube y se separa de Navarra, como en las
 // imágenes que pasó el autor el 13 de noviembre de 2026: una tierra que flota en un cielo azul con nubes, con una capa gruesa
-// de césped en el canto y debajo una roca caliza clara, con estrías verticales, que se va cerrando hasta una punta roma (menos
-// honda que en la primera versión, a petición del autor). Debajo, el hueco que deja en Navarra se abre al cielo: el canto de
-// roca de Navarra y, por debajo, cielo y nubes; el agua de los ríos cae al vacío por el borde de la isla y por el del hueco, y
+// de césped en el canto y debajo una roca caliza clara, con estrías verticales, que se va cerrando hasta una punta roma (con
+// poca tierra: el autor la quería menos honda). Debajo, el hueco que deja en Navarra es el cráter de donde se arrancó: paredes
+// de tierra y roca oscura y un lago en el fondo, donde cae el agua de los ríos por el borde de la isla y por el del hueco; y
 // se desprenden piedras y polvo sin parar. Las texturas de la roca y del césped, de Higgsfield (src/assets/isla). Se hace la
 // primera vez que se elige la comarca (mapa3d.js).
 import * as THREE from 'three';
@@ -54,7 +54,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // (lo largo del borde hasta cada punto: la textura va por metros de borde, y las estrías, también)
   const LQ = [0]; for (let i = 1; i <= N; i++) LQ.push(LQ[i - 1] + Math.hypot(Q[i % N][0] - Q[i - 1][0], Q[i % N][1] - Q[i - 1][1]));
   const TEX = 2.4;   // (lo que mide la textura de la roca en el mapa)
-  const D = 0.62 * rMed;   // (lo hondo de la panza: el autor la quería algo menos honda que la primera, 0,85)
+  const D = 0.4 * rMed;   // (lo hondo de la panza: el autor la quería menos honda; la primera, 0,85, y luego 0,62, eran mucha tierra)
   // (unas pocas puntas, cortas: la panza cuelga algo más donde caen)
   const puntas = Array.from({ length: 2 + ((R() * 2) | 0) }, () => ({ a: R() * Math.PI * 2, w: 0.3 + R() * 0.3, h: 0.1 + R() * 0.18 }));
   const cuelga = (a) => puntas.reduce((s, p) => { const d = Math.atan2(Math.sin(a - p.a), Math.cos(a - p.a)); return s + p.h * Math.exp(-(d * d) / (2 * p.w * p.w)); }, 0);
@@ -100,9 +100,12 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const NOR = Q.map((q, i) => { const a = Q[(i + N - 2) % N], b = Q[(i + 2) % N]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
     let nx = tz, nz = -tx; if (dentro(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz, tx, tz]; });
   const H0 = Q.map(([x, z]) => grosor + alto(x, z));
+  // (la panza no empieza en la base de la comarca sino algo por debajo de lo más bajo de su orilla: la pared de debajo, que con
+  // la exageración del relieve era muy alta, se queda en el canto de césped y algo de roca; la de la comarca se esconde)
+  const B = Math.min(...H0) - grosor * 0.15;
   // (filas: las puntas de la hierba por encima del borde, el pie de la hierba, el fondo de la tierra y, en la caliza, otra
   // vez el fondo de la tierra y el pie de la pared, bajo la comarca)
-  const FILAS = [[0.2, 0.11, 0, 0], [-0.06, 0.09, 0.55, 0], [-0.5, 0.06, 1, 0], [-0.5, 0.06, 0, 1], [null, 0.03, 0, 1]];   // (el césped, grueso, como en las imágenes)
+  const FILAS = [[0.2, 0.11, 0, 0], [-0.06, 0.09, 0.55, 0], [-0.5, 0.06, 1, 0], [-0.5, 0.06, 0, 1], [null, 0.04, 0, 1]];   // (el césped, grueso, como en las imágenes)
   const cantoPos = new Float32Array(FILAS.length * N1 * 3), cantoUv = [], cantoZ = [], cantoLuz = [], cantoIx = [];
   FILAS.forEach(([, , v, zona]) => { for (let i = 0; i <= N; i++) { const [nx, nz] = NOR[i % N]; cantoUv.push(LQ[i] / (zona ? TEX : 2.6), v); cantoZ.push(zona); cantoLuz.push(0.5 + 0.7 * Math.max(0, nx * LUZ.x + nz * LUZ.z)); } });
   for (const f of [0, 1, 3]) for (let i = 0; i < N; i++) { const a = f * N1 + i, b = a + 1; cantoIx.push(a, a + N1, b, b, a + N1, b + N1); }
@@ -120,16 +123,19 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const canto = new THREE.Mesh(cantoG, cantoM); canto.frustumCulled = false; canto.visible = false; scene.add(canto);
   let cantoSy = -1;
   const ponCanto = (sy) => { cantoSy = sy;
-    FILAS.forEach(([dy, o], f) => { for (let i = 0; i <= N; i++) { const q = Q[i % N], [nx, nz] = NOR[i % N], v = (f * N1 + i) * 3, y = dy == null ? -0.04 : H0[i % N] * sy + dy;
+    FILAS.forEach(([dy, o], f) => { for (let i = 0; i <= N; i++) { const q = Q[i % N], [nx, nz] = NOR[i % N], v = (f * N1 + i) * 3, y = dy == null ? B * sy - 0.04 : Math.max(B * sy, H0[i % N] * sy + dy);
       cantoPos[v] = q[0] + nx * o; cantoPos[v + 1] = y; cantoPos[v + 2] = q[1] + nz * o; } });
     cantoG.attributes.position.needsUpdate = true; };
 
-  // ---------- el hueco: se abre al cielo ----------
+  // ---------- el hueco: el cráter de donde se arrancó la tierra ----------
   // Se ve solo por la boca del hueco (el búfer de plantilla, stencil): primero se marca la boca donde se ve (lo de delante,
-  // la isla o una comarca vecina, la tapa); luego, en la boca, se borra la profundidad, y lo de dentro (el canto de roca de
-  // Navarra, el cielo, las nubes, el agua y las piedras que caen) se pinta con la suya. Así Navarra parece otra tierra que
-  // flota, y por el hueco se ve el cielo de debajo.
-  const NUBE1 = -Math.max(2.4, rMed * 0.3), NUBE2 = NUBE1 * 2.3, TIEMPO = { value: 0 };
+  // la isla o una comarca vecina, la tapa); luego, en la boca, se borra la profundidad, y lo de dentro (las paredes de tierra,
+  // el lago del fondo, el agua y las piedras que caen) se pinta con la suya. Debajo no hay cielo: es el molde de la tierra
+  // arrancada, de paredes casi rectas de tierra y roca oscura que se cierran abajo, y en el fondo se junta el agua de los ríos
+  // que caen por el borde (13 de noviembre de 2026: «pon un poco de lógica geográfica», pidió el autor).
+  const CR = [[1, 0], [0.996, 0.1], [0.986, 0.3], [0.968, 0.5], [0.935, 0.66], [0.86, 0.8], [0.72, 0.9], [0.45, 0.97], [0.2, 1]];
+  const DC = Math.max(1.8, rMed * 0.32), LAGO = -DC * 0.9, TIEMPO = { value: 0 };
+  const eCr = (f) => { for (let k = 1; k < CR.length; k++) if (CR[k][1] >= f) { const [e0, h0] = CR[k - 1], [e1, h1] = CR[k]; return lerp(e0, e1, (f - h0) / (h1 - h0)); } return CR[CR.length - 1][0]; };
   const PLANT = { stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp };
   const boca = (() => { const pos2 = [], ix = []; for (const [x, z] of P) pos2.push(x, 0.003, z);
     for (const t of THREE.ShapeUtils.triangulateShape(P.map(([x, z]) => new THREE.Vector2(x, z)), [])) ix.push(t[0], t[2], t[1]);
@@ -139,36 +145,36 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
     vertexShader: 'void main() { gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); gl_Position.z = gl_Position.w * 0.99999; }', fragmentShader: 'void main() { gl_FragColor = vec4(0.0); }' }); mats.push(borraM);
   const marca = new THREE.Mesh(boca, marcaM), borra = new THREE.Mesh(boca, borraM); marca.renderOrder = -0.95; borra.renderOrder = -0.9;
   const sima = new THREE.Group(); sima.name = 'sima-' + id; sima.visible = false; scene.add(sima); sima.add(marca, borra);
-  // (el cielo de debajo, una esfera alrededor de la cámara; y dos capas de nubes que pasan despacio)
-  const cieloM = new THREE.ShaderMaterial({ ...cieloShader(), depthTest: false, depthWrite: false, transparent: true, side: THREE.BackSide, ...PLANT }); mats.push(cieloM);
-  cieloM.uniforms.uK.value = 1; cieloM.uniforms.uT = TIEMPO;
-  const cieloG = new THREE.SphereGeometry(40, 24, 12); geos.push(cieloG);
-  const cielo = new THREE.Mesh(cieloG, cieloM); cielo.renderOrder = -0.88; cielo.frustumCulled = false; sima.add(cielo);
-  const LADO = rMax * 2 + 40, nubeG = new THREE.PlaneGeometry(LADO, LADO).rotateX(-Math.PI / 2); geos.push(nubeG);
-  for (const [y, cob, op, vel, ro] of [[NUBE2, 0.48, 0.95, 0.012, -0.86], [NUBE1, 0.6, 0.9, -0.02, -0.84]]) {
-    const nm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, ...PLANT, uniforms: { uT: TIEMPO, uCob: { value: cob }, uO: { value: op }, uV: { value: vel }, uS: { value: y } },
-      vertexShader: 'varying vec2 vP; void main() { vP = (modelMatrix * vec4(position, 1.0)).xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-      fragmentShader: `uniform float uT, uCob, uO, uV, uS; varying vec2 vP;
-        float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-        float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
-        void main() { vec2 q = vP * 0.22 + vec2(uT * uV * 3.0, uT * uV) + uS * 3.1;
-          float v = n(q) * 0.5 + n(q * 2.1 + 4.0) * 0.28 + n(q * 4.7 - 2.0) * 0.14 + n(q * 9.3 + 7.0) * 0.08;
-          float a = smoothstep(1.0 - uCob, 1.0 - uCob + 0.16, v);
-          vec3 c = mix(vec3(0.74, 0.82, 0.92), vec3(1.0), smoothstep(1.0 - uCob, 1.0 - uCob + 0.3, v));
-          gl_FragColor = vec4(c, a * uO); }` }); mats.push(nm);
-    const capa = new THREE.Mesh(nubeG, nm); capa.position.set(cx, y, cz); capa.renderOrder = ro; sima.add(capa);
-  }
-  // (el canto de Navarra en el hueco: de la boca hacia abajo, en caliza, con el pie roto, como su isla; no tiene fondo)
-  { const PR = [0, 0.06, 0.4, 0.75, 1], pp = [], cc = [], uu = [], ix = [], c2 = new THREE.Color();
-    const hondo = Q.map((_, i) => 1.1 + 0.35 * Math.sin(LQ[i] * 1.9 + seed) + 0.25 * Math.sin(LQ[i] * 5.3) + 0.15 * R());
-    PR.forEach((f, k) => { for (let i = 0; i <= N; i++) { const [x, z] = Q[i % N], [nx, nz] = NOR[i % N], y = -f * hondo[i % N];
-      const o = k ? 0.04 + estria(LQ[i], k) * 0.6 : 0; pp.push(x + nx * o, y, z + nz * o); uu.push(LQ[i] / TEX, -y / TEX);
-      if (f < 0.05) c2.copy(TIERRA); else c2.copy(CALIZA).multiplyScalar(0.92 - f * 0.18); cc.push(c2.r, c2.g, c2.b); } });
-    for (let k = 0; k + 1 < PR.length; k++) for (let i = 0; i < N; i++) { const a = k * N1 + i, b = a + 1; ix.push(a, b, b + N1, a, b + N1, a + N1); }
+  // (las paredes y el fondo: tierra arriba, bajo la hierba de la orilla, y luego roca cada vez más oscura, a capas, rota)
+  { const pp = [], cc = [], uu = [], ix = [], c2 = new THREE.Color(), SUELO = C('#4a3526'), ROCA_A = C('#7a6853'), ROCA_B = C('#2d231b');
+    CR.forEach(([e, h], k) => { for (let i = 0; i <= N; i++) { const [x, z] = Q[i % N], dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) || 1;
+      const jag = k && k < CR.length - 1 ? 0.05 * Math.sin(LQ[i] * 7.3 + k * 1.9) + 0.035 * (R() - 0.5) : 0;
+      const y = -h * DC * (1 + (k ? 0.035 * Math.sin(LQ[i] * 2.3 + k) : 0));
+      pp.push(cx + dx * e + dx / r * jag, y, cz + dz * e + dz / r * jag); uu.push(LQ[i] / TEX, -y / TEX);
+      if (h < 0.07) c2.copy(SUELO); else c2.copy(ROCA_A).lerp(ROCA_B, Math.min(1, h * 1.15)).multiplyScalar(0.82 + 0.28 * (0.5 + 0.5 * Math.sin(-y * 8.5 + Math.sin(LQ[i] * 0.7))));
+      c2.multiplyScalar(0.9 + R() * 0.15); cc.push(c2.r, c2.g, c2.b); } });
+    const L2 = (CR.length - 1) * N1, fondoI = pp.length / 3; pp.push(cx, -DC, cz); uu.push(0, DC / TEX); c2.copy(ROCA_B).multiplyScalar(0.8); cc.push(c2.r, c2.g, c2.b);
+    for (let k = 0; k + 1 < CR.length; k++) for (let i = 0; i < N; i++) { const a = k * N1 + i, b = a + 1; ix.push(a, b, b + N1, a, b + N1, a + N1); }
+    for (let i = 0; i < N; i++) ix.push(L2 + i, L2 + i + 1, fondoI);
     const w0 = new THREE.BufferGeometry(); w0.setAttribute('position', new THREE.Float32BufferAttribute(pp, 3)); w0.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3)); w0.setAttribute('uv', new THREE.Float32BufferAttribute(uu, 2)); w0.setIndex(ix);
-    const gp = w0.toNonIndexed(); w0.dispose(); pintaLuz(gp, false, cx, cz, 0.45, 0.7); geos.push(gp);
+    const gp = w0.toNonIndexed(); w0.dispose(); pintaLuz(gp, false, cx, cz, 0.5, 0.65); geos.push(gp);
     const pm = new THREE.MeshBasicMaterial({ map: tex.roca, vertexColors: true, side: THREE.DoubleSide, toneMapped: false, transparent: true, ...PLANT }); mats.push(pm);
     const pared = new THREE.Mesh(gp, pm); pared.renderOrder = -0.8; sima.add(pared); }
+  // (el lago del fondo, donde cae el agua: verde oscuro, con ondas y algún brillo)
+  { const e = eCr(0.9) + 0.03, p3 = [], i3 = [], RQ = Q.map(([x, z]) => new THREE.Vector2(cx + (x - cx) * e, cz + (z - cz) * e));
+    for (const v of RQ) p3.push(v.x, LAGO, v.y); for (const t of THREE.ShapeUtils.triangulateShape(RQ, [])) i3.push(t[0], t[2], t[1]);
+    const gl = new THREE.BufferGeometry(); gl.setAttribute('position', new THREE.Float32BufferAttribute(p3, 3)); gl.setIndex(i3); geos.push(gl);
+    const lm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, ...PLANT, uniforms: { uT: TIEMPO },
+      vertexShader: 'varying vec2 vP; varying vec3 vW; void main() { vP = position.xz; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
+      fragmentShader: `uniform float uT; varying vec2 vP; varying vec3 vW;
+        void main() { vec2 p = vP;
+          float w = 0.5 * sin(dot(p, vec2(5.3, 2.1)) + uT * 1.6 + sin(p.y * 1.3) * 1.4) + 0.32 * sin(dot(p, vec2(-3.4, 6.1)) - uT * 1.25 + sin(p.x * 1.1) * 1.2)
+                  + 0.18 * sin(dot(p, vec2(9.7, -7.9)) + uT * 2.3);
+          float f = pow(1.0 - clamp(normalize(cameraPosition - vW).y, 0.0, 1.0), 3.0);
+          vec3 c = mix(vec3(0.045, 0.09, 0.085), vec3(0.11, 0.18, 0.17), 0.5 + 0.35 * w);
+          c = mix(c, vec3(0.42, 0.5, 0.56), f * 0.45) + vec3(0.6, 0.66, 0.68) * pow(max(w, 0.0), 8.0) * 0.18;
+          gl_FragColor = vec4(c, 0.95); }` }); mats.push(lm);
+    const lago = new THREE.Mesh(gl, lm); lago.renderOrder = -0.78; sima.add(lago); }
 
   // ---------- el agua que cae al vacío ----------
   // Donde un río sale de la comarca, cae por el borde de la isla; donde un río de Navarra entraba en ella, ahora se tira por
@@ -240,15 +246,16 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   let antes = 0, reloj = 0;
 
   return {
-    D, rMed, alto: D + 0.9,   // (lo que sube: lo hondo de la panza y casi un metro más, para que la punta no toque Navarra)
+    D, rMed, alto: 0.62 * rMed + 0.9, base: B,   // (lo que sube: como antes, aunque la panza sea menos honda, para que se separe mucho)
     /** py: la altura de la comarca; sy: lo que se estira su relieve; k: cuánto está fuera, de 0 a 1; t, dt: el tiempo;
      *  esc: los píxeles que ocupa una unidad a una unidad de la cámara (para el tamaño del rocío y el polvo); cam: la cámara */
     update(py, sy, k, t, dt, esc = 600, cam = null) {
       const on = k > 0.004; grupo.visible = piedras.visible = sima.visible = agua.visible = pto.visible = canto.visible = on;
       if (!on) { antes = k; for (const p of caen) p.vivo = false; for (const p of polvo) p.t = 9; return; }
-      TIEMPO.value = t; PTO.uEsc.value = esc; if (cam) cielo.position.copy(cam.position);
+      const py0 = py; py = py + B * sy;   // (de aquí abajo, py es donde empieza la panza; py0, la base de la comarca)
+      TIEMPO.value = t; PTO.uEsc.value = esc;
       if (Math.abs(sy - cantoSy) > 0.002) ponCanto(sy);
-      canto.position.y = py;
+      canto.position.y = py0;
       // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo)
       if (k > 0.03 && antes <= 0.03) for (let n = 0; n < 46; n++) {
         const i = (R() * N) | 0, [x, z] = Q[i], [nx, nz] = NOR[i], s = 0.05 + R() * (n < 8 ? 0.28 : 0.13);
@@ -266,9 +273,9 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
       grupo.position.y = py; grupo.scale.y = Math.max(0.001, k);   // (la panza sale al subir: tira de ella desde el suelo)
       // el agua
       AGUA.uKI.value = Math.min(1, Math.max(0, (k - 0.55) / 0.35)); AGUA.uKB.value = Math.min(1, Math.max(0, (k - 0.2) / 0.4));
-      const fondo = NUBE1 - 0.3;
+      const fondo = LAGO;
       caidas.forEach((c3, n) => {
-        const top = c3.isla ? py + c3.h0 * sy : fuera(c3.xo, c3.zo), L2 = Math.max(0.5, top - fondo); c3.top = top; c3.L = L2;
+        const top = c3.isla ? py0 + c3.h0 * sy : fuera(c3.xo, c3.zo), L2 = Math.max(0.5, top - fondo); c3.top = top; c3.L = L2;
         const b = n * VC;
         for (let s = 0; s <= SEG; s++) {
           const f = (s / SEG) ** 1.15, y = top - L2 * f, cae = top - y;
@@ -276,7 +283,9 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
           // del canto de la vecina hacia dentro)
           const off = c3.isla ? 0.1 - 0.25 * Math.min(1, Math.max(0, (py - y) / (D * k * 0.14 + 0.05))) : 0.12 - 0.24 * Math.min(1, cae / 0.2);
           const ww = c3.w * (c3.isla ? 1 + 0.9 * f ** 0.7 : 0.9 + 0.7 * f ** 0.8), mece = Math.sin(t * 0.7 + f * 3 + c3.fase) * 0.05 * f;
-          const ox = c3.x + c3.nx * off + c3.tx * mece, oz = c3.z + c3.nz * off + c3.tz * mece;
+          // (bajo la orilla, por la pared del cráter, que se va cerrando, hasta el lago)
+          let ox = c3.x + c3.nx * off + c3.tx * mece, oz = c3.z + c3.nz * off + c3.tz * mece;
+          if (y < 0) { const e = eCr(Math.min(1, -y / DC)), rx = c3.x - cx, rz = c3.z - cz, rr = Math.hypot(rx, rz) || 1; ox = cx + rx * e - rx / rr * 0.16 + c3.tx * mece; oz = cz + rz * e - rz / rr * 0.16 + c3.tz * mece; }
           for (let j = 0; j <= LAD; j++) { const th = j / LAD * Math.PI * 2, ct = Math.cos(th) * ww / 2, st = Math.sin(th) * ww * 0.26, vi = b + s * (LAD + 1) + j;
             aPos[vi * 3] = ox + c3.tx * ct + c3.nx * st; aPos[vi * 3 + 1] = y; aPos[vi * 3 + 2] = oz + c3.tz * ct + c3.nz * st;
             aF[vi * 4] = j / LAD; aF[vi * 4 + 1] = cae; aF[vi * 4 + 2] = L2; aF[vi * 4 + 3] = c3.isla ? 0 : 1;
@@ -293,7 +302,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
           pPos[pi * 3] = c3.x + c3.tx * sx + c3.nx * (sz2 + de); pPos[pi * 3 + 1] = y; pPos[pi * 3 + 2] = c3.z + c3.tz * sx + c3.nz * (sz2 + de);
           pS[pi] = c3.w * (0.5 + u * 2.4); pC[pi * 4] = 0.92; pC[pi * 4 + 1] = 0.96; pC[pi * 4 + 2] = 1; pC[pi * 4 + 3] = kk * 0.32 * Math.sin(Math.PI * Math.min(1, u * 1.25)) * (1 - u * 0.5); pi++; }
         for (let r = 0; r < NB2; r++) { const a = r / NB2 * Math.PI * 2 + t * 0.05 + c3.fase, rr = c3.w * 1.6;
-          pPos[pi * 3] = c3.x - c3.nx * 0.4 + Math.cos(a) * rr; pPos[pi * 3 + 1] = NUBE1 + 0.4 + Math.sin(t * 0.4 + r) * 0.2; pPos[pi * 3 + 2] = c3.z - c3.nz * 0.4 + Math.sin(a) * rr;
+          pPos[pi * 3] = c3.x - c3.nx * 0.4 + Math.cos(a) * rr; pPos[pi * 3 + 1] = LAGO + 0.25 + Math.sin(t * 0.4 + r) * 0.08; pPos[pi * 3 + 2] = c3.z - c3.nz * 0.4 + Math.sin(a) * rr;
           pS[pi] = c3.w * 6; pC[pi * 4] = 0.95; pC[pi * 4 + 1] = 0.97; pC[pi * 4 + 2] = 1; pC[pi * 4 + 3] = kk * 0.35; pi++; }
       });
       for (const p of polvo) {
@@ -312,10 +321,10 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
       for (const p of caen) {
         if (!p.vivo) continue;
         p.vy -= 5.5 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.vx *= 1 - dt * 0.3; p.vz *= 1 - dt * 0.3;
-        if (p.y < NUBE1) { p.vivo = false; continue; }   // (se pierden en las nubes)
+        if (p.y < LAGO + 0.08) { p.vivo = false; if (dentro(p.x, p.z) && p.s > 0.07) echaPolvo(p.x, LAGO + 0.15, p.z, 0.35 + p.s * 2); continue; }   // (llegan al fondo del cráter: salpican)
         const enHueco = dentro(p.x, p.z);
         if (!enHueco && p.y < fuera(p.x, p.z)) { p.vivo = false; continue; }   // (fuera del hueco, al llegar al suelo, se queda)
-        const sc = p.s * Math.min(1, (p.y - NUBE1) / 0.8);
+        const sc = p.s;
         e.set(p.rx + t * p.wr, p.ry + t * p.wr * 0.7, 0); q.setFromEuler(e); m4.compose(v3.set(p.x, p.y, p.z), q, s3.set(sc, sc * 0.8, sc));
         if (p.y > 0.02 || !enHueco) piedras.setMatrixAt(n++, m4); else piedrasA.setMatrixAt(na++, m4);
       }
