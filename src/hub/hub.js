@@ -112,6 +112,10 @@ export function ajustaRejillas(root) {
     D.forEach(d => ['g', 'm', 'p'].forEach((v, j) => { const a = anchos[j][0] || 4; d.style.setProperty('--f' + v, a); d.style.setProperty('--t' + v, 12 - a); }));
   }
 }
+// (la flecha de la sección de antes y la de después, en la barra de arriba de la ventana: la misma en el ordenador y en el
+// móvil; la de después, girada en consola.css. Hasta el 13 de noviembre de 2026, en el ordenador salían las teclas Q y E,
+// que siguen valiendo)
+const FLECHA = '<i class="cab-fl" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></i>';
 const cabeza = (rotulo, ic, titulo, cls = '') => `<small class="kicker${cls}">${I(ic, 20)} ${rotulo}</small><h1 class="title${cls}">${titulo}</h1>`;
 const comarca = (id) => COMARCAS.find(c => c.id === id);
 // el otro nombre de un pueblo o de una comarca, el de la otra lengua: en euskera el nombre se traduce solo (Olite pasa a ser
@@ -302,7 +306,7 @@ export class Hub {
         : screen === 'pueblo' ? [, levelById(arg)?.name.split(' / ')[0] || 'Pueblo', 'church'] : OTRAS[screen] || [, '', 'home']);
       m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', n[1]);
       const [ant, sig] = this.vecinas(screen) || [];
-      $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}"><kbd>Q</kbd><span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t">${I(n[2], 20)}<span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}"><span>${esc(sig[1])}</span><kbd>E</kbd></button>` : ''}`;
+      $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}" aria-keyshortcuts="Q" title="${esc(ant[1])} (Q)">${FLECHA}<span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t">${I(n[2], 20)}<span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}" aria-keyshortcuts="E" title="${esc(sig[1])} (E)"><span>${esc(sig[1])}</span>${FLECHA}</button>` : ''}`;
       $('#hCab', this.root).dataset.cat = kc(screen);
       cinetica($('#hCab .cab-t > span', this.root), { estilo: 'sube', retardo: 60 });   // (el nombre de la sección, en la cabecera de la ventana)
     } else cierraMapa();

@@ -1715,6 +1715,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tarjetas, con su foto y sus misiones.
   La página de cada comarca lleva a los lados de su nombre la anterior y la siguiente (`vecinas` en `hub.js`, también con Q
   y E), y la ficha de cada pueblo, arriba a la izquierda, el anterior y el siguiente de su comarca con cuál es (`.fh-nav`).
+  En la barra de arriba de la ventana, cada lado lleva una flecha en su círculo (`FLECHA` en `hub.js`, `.cab-fl` en
+  `consola.css`), igual en el ordenador y en el móvil; Q y E siguen valiendo y salen al pasar el ratón. Hasta el 13 de
+  noviembre de 2026, en el ordenador se dibujaban las teclas Q y E, y el autor prefería flechas, que entiende todo el mundo.
 - **Las colecciones en el mapa** (`coleccionMapa.js`, `modoColeccion` en `inicio.js`, `coleccion` y `encuadra` en
   `mapa3d.js`; noviembre de 2026): al abrir Naturaleza, Escudos o Personajes desde el menú del juego, en lugar
   de su ventana se queda el mapa con su colección. Arriba, su cabecera con cuántas llevas, sus pestañas, «Lista» (la

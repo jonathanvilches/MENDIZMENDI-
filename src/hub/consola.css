@@ -369,9 +369,11 @@ body:has(> .mg-overlay, > .lam-view) #hub.juego .hub-main { transform: scale(.97
 #hub.juego .cab-v.sig { grid-column: 3; justify-self: end; }
 #hub.juego .cab-v span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 #hub.juego .cab-v:hover, #hub.juego .cab-v:focus-visible { color: #fff; border-color: var(--cr-l); }
-#hub.juego .cab-v kbd { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; border: 1px solid var(--cr-l2); color: #fff; font: 600 11px/1 var(--f-ui); letter-spacing: 0; }
-html.tactil #hub.juego .cab-v kbd { display: none; }
-html.tactil #hub.juego .cab-v::before { content: '‹'; font-size: 20px; line-height: 1; } html.tactil #hub.juego .cab-v.sig::before { content: none; } html.tactil #hub.juego .cab-v.sig::after { content: '›'; font-size: 20px; line-height: 1; }
+/* (la flecha de cada lado, en su círculo: en el ordenador y en el móvil; con Q y E también se pasa. Antes, en el ordenador,
+   las teclas Q y E dibujadas, y en el móvil, ‹ y › de texto) */
+#hub.juego .cab-fl { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1px solid var(--cr-l2); color: #fff; transition: background .15s, border-color .15s; }
+#hub.juego .cab-fl svg { width: 16px; height: 16px; } #hub.juego .cab-v.sig .cab-fl svg { transform: scaleX(-1); }
+#hub.juego .cab-v:hover .cab-fl, #hub.juego .cab-v:focus-visible .cab-fl { background: rgba(255, 255, 255, .12); border-color: #fff; }
 @media (max-width: 760px) { #hub.juego .cab-v span { display: none; } }
 /* (abajo a la derecha iba una pista de teclas, «Esc Volver al mapa · Q E Otra sección», flotando sobre la pantalla: en
    ventanas de 1366 × 768 o 1024 × 640 tapaba el botón de jugar y otros de abajo. Las teclas Q y E ya van junto a las
