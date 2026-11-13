@@ -546,10 +546,10 @@ export function createRealTownLevel(def, D) {
   // (si la orilla de las misiones daba a un tramo que ahora va cubierto, otra con el agua a la vista)
   if (RV.some(L => L.cubierto) && riverInfo(PLACES.riverSpot.x, PLACES.riverSpot.z).edge > 8) PLACES.riverSpot = orilla();
   // (la altura del suelo junto al río, como la deja finalHeight sin el relieve fino: la plaza llana y el cauce con su talud;
-  // en el casco, con muro a 0,3 m del agua. Para saber hasta dónde alargar un puente: hasta lo alto de la orilla)
+  // en el casco, en talud corto de 1,8 m. Para saber hasta dónde alargar un puente: hasta lo alto de la orilla)
   const altoOrilla = (x, z) => {
     const r = riverInfo(x, z), inV = villageMask(x, z) > 0.5, h = plazaLlana(x, z, BASE + dem(x, z));
-    const talud = inV ? 1.0 : Math.max(4.5, Math.min(30, (h - r.level - 1.4) * 1.6)), k = inV ? smoothstep(-0.9, 0.3, r.edge) : smoothstep(-2.0, talud, r.edge);
+    const talud = inV ? 1.8 : Math.max(4.5, Math.min(30, (h - r.level - 1.4) * 1.6)), k = smoothstep(inV ? -1.2 : -2.0, talud, r.edge);
     return Math.min(h, lerp(r.level - 1.0, Math.max(h, r.level + 1.4), k));
   };
   const PUENTES = ordenarPuentes(D.puentes || [], PATHS, riverInfo, RV, altoOrilla);
@@ -616,17 +616,18 @@ export function createRealTownLevel(def, D) {
     // un talud que se ensancha con el desnivel: antes todas al de la plaza mayor y con el borde de metro y medio, y en los
     // pueblos de ladera las otras quedaban metros por encima o por debajo de sus calles, con un muro de adoquín
     h = plazaLlana(x, z, h);
-    // el cauce: el agua a su nivel y la orilla un metro y pico por encima; en el casco, con muro (el escalón es recto)
+    // el cauce: el agua a su nivel y la orilla un metro y pico por encima; en el casco, en talud corto de tierra y hierba,
+    // como el cauce de una regata de pueblo (hasta el 13 de noviembre de 2026, un escalón recto tapado con muro de piedra)
     // (fuera del casco, la orilla en talud según lo alto que quede la ladera sobre el agua: antes, con 4,5 m de ancho, donde
     // el río va al pie de un monte, como en Ituren, el cauce cortaba la ladera en un muro de roca gris de 15 m)
-    const r = riverInfo(x, z), inV = a.vm > 0.5, talud = inV ? 1.0 : Math.max(4.5, Math.min(30, (h - r.level - 1.4) * 1.6));
+    const r = riverInfo(x, z), inV = a.vm > 0.5, talud = inV ? 1.8 : Math.max(4.5, Math.min(30, (h - r.level - 1.4) * 1.6));
     if (r.edge < (inV ? 7 : Math.max(7, talud + 2))) {
       const inVillage = inV, bankW = talud;
       const bed = r.level - 1.0 - 0.4 * clamp(1 - r.d / Math.max(r.half, 0.1), 0, 1);
-      // (en el casco el escalón cae entre 0,3 m fuera del agua y 0,9 m dentro, tapado por el muro, world/townReal.js
-      // realRiverWalls; antes empezaba a bajar a 1 m de la orilla y, con la rejilla del terreno de 2 m, detrás del muro
-      // quedaba una zanja y delante asomaban puntas de roca)
-      const k = inVillage ? smoothstep(-0.9, 0.3, r.edge) : smoothstep(-2.0, bankW, r.edge);
+      // (en el casco la orilla baja en talud desde 1,8 m fuera del agua hasta 1,2 m dentro: con la rejilla del terreno de
+      // 2 m queda una ladera corta y no un corte. Antes caía entre 0,3 m fuera y 0,9 m dentro, un escalón recto que tapaba
+      // un muro de piedra)
+      const k = smoothstep(inVillage ? -1.2 : -2.0, bankW, r.edge);
       h = Math.min(h, lerp(bed, Math.max(h, r.level + 1.4), k));
       if (r.edge < -0.4) h = Math.min(h, bed);
     }
@@ -672,7 +673,7 @@ export function createRealTownLevel(def, D) {
     if (f === 'ribera') return riverInfo(x, z).edge < 30 ? 'poplar' : n > 0 ? 'pine' : 'olive';
     return n > 0.2 ? 'pine' : n > -0.3 ? 'oak' : 'olive';
   }
-  const RIVERS = RV.map(L => ({ pts: L.pts, levels: L.lv, half: L.half, name: L.name }));
+  const RIVERS = RV.map(L => ({ pts: L.pts, levels: L.lv, half: L.half, name: L.name, hv: L.hv, cubierto: L.cubierto }));   // (hv y cubierto, para el agua que se ve: world/water.js)
   const real = { data: D, casas: CASAS, anclas: ANCLAS, taken: TAKEN, puentes: PUENTES, rios: RV, plazas: PLAZAS, piscinas: D.piscinas || [], atribucion: D.atribucion };
   return {
     rx, zz: () => 9999, CONF: { x: 9999, z: 9999 }, FA: () => BASE, FZ: () => BASE, riverHalfA: () => 0, RIVER_HALF_Z: 0,

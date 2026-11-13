@@ -270,38 +270,9 @@ export function realBridges(B, real) {
   }
 }
 
-/** Muros de piedra del cauce donde el río pasa por el casco (en los trozos sin puente). */
-export function realRiverWalls(B, real, fam) {
-  const nearBridge = (x, z) => real.puentes.some(P => P.pts.some(([px, pz]) => Math.hypot(px - x, pz - z) < P.w + 3.5));
-  for (const R of real.rios) {
-    if (R.half < 1.2) continue;
-    const pts = R.pts;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], sl = Math.hypot(x1 - x0, z1 - z0); if (sl < 0.5) continue;
-      if (R.cubierto?.[i] && R.cubierto[i + 1]) continue;          // (bajo la calle: sin muros)
-      const half = R.hv ? (R.hv[i] + R.hv[i + 1]) / 2 : R.half;   // (en el casco, más estrecho donde va una calle por la orilla)
-      const tx = (x1 - x0) / sl, tz = (z1 - z0) / sl, nx = tz, nz = -tx, xm = (x0 + x1) / 2, zm = (z0 + z1) / 2;
-      if (nearBridge(xm, zm)) continue;
-      const level = (R.lv[i] + R.lv[i + 1]) / 2;
-      // (el muro va de 0,9 m fuera del agua hasta un poco dentro, lo justo para tapar el escalón del terreno, que con la
-      // rejilla de 2 m ocupa casi tres; en los ríos estrechos entra menos, para que siga viéndose el agua)
-      const dentro = Math.min(1.4, half * 0.4), grueso = 0.9 + dentro;
-      for (const side of [-1, 1]) {
-        const off = half + (0.9 - dentro) / 2, wx = xm + side * nx * off, wz = zm + side * nz * off;
-        // (cada orilla por su lado, donde el terreno se corta recto, que es donde la orilla es casco: levels/townReal.js,
-        // finalHeight. Antes se miraba en el centro del río y para las dos a la vez; junto a la plaza de Roncal quedaba un
-        // corte de roca de 7 m sin muro. Y hasta 14 m de alto: allí el muro pasa de 9)
-        if (villageMask(xm + side * nx * (half + 0.5), zm + side * nz * (half + 0.5)) < 0.5) continue;
-        const top = terrainHeight(xm + side * nx * (half + 2.4), zm + side * nz * (half + 2.4)) + 0.6, bot = level - 1.4;
-        if (top - bot < 1.0 || top - bot > 14) continue;
-        const ry = Math.atan2(tx, tz);
-        B.add(fam === 'ribera' ? 'brick' : 'stone', box(grueso, top - bot, sl + 0.08, 2), M(wx, (top + bot) / 2, wz, ry));
-        B.add('ashlar', box(grueso + 0.15, 0.14, sl + 0.1, 1), M(wx, top + 0.07, wz, ry));
-        addBox(wx, wz, grueso, sl, ry);
-      }
-    }
-  }
-}
+// (sin muros en el cauce: el río va por su cauce de tierra, con la orilla en talud, levels/townReal.js finalHeight. Hasta
+// el 13 de noviembre de 2026 iba entre muros de piedra con albardilla, realRiverWalls, y el autor no los quería: «que el
+// río tenga un cauce normal, como tendría cualquier pueblo»)
 
 // ---------- Fachadas sencillas ----------
 // Las ventanas, la puerta y los balcones de las casas que no se levantan con todo su detalle (las lejanas y las que

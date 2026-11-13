@@ -133,17 +133,22 @@ export class Water {
       for (const rv of RIVERS || []) {
         // ríos de los pueblos reales: una polilínea con el nivel del agua en cada vértice (src/levels/townReal.js)
         if (rv.pts) {
-          const sP = [], lv = [], P = rv.pts;
+          const sP = [], lv = [], an = [], P = rv.pts;
           for (let i = 0; i < P.length - 1; i++) {
             const [x0, z0] = P[i], [x1, z1] = P[i + 1], l = Math.hypot(x1 - x0, z1 - z0); if (l < 0.01) continue;
-            const tx = (x1 - x0) / l, tz = (z1 - z0) / l, n = Math.max(1, Math.round(l / 3));
-            for (let k = 0; k < n; k++) { const t = k / n; sP.push([x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, tz, -tx]); lv.push(rv.levels[i] + (rv.levels[i + 1] - rv.levels[i]) * t); }
-            if (i === P.length - 2) { sP.push([x1, z1, tz, -tx]); lv.push(rv.levels[i + 1]); }
+            const tx = (x1 - x0) / l, tz = (z1 - z0) / l, n = Math.max(1, Math.round(l / 3)), h0 = rv.hv ? rv.hv[i] : rv.half, h1 = rv.hv ? rv.hv[i + 1] : rv.half;
+            for (let k = 0; k < n; k++) { const t = k / n; sP.push([x0 + (x1 - x0) * t, z0 + (z1 - z0) * t, tz, -tx]); lv.push(rv.levels[i] + (rv.levels[i + 1] - rv.levels[i]) * t); an.push(h0 + (h1 - h0) * t); }
+            if (i === P.length - 2) { sP.push([x1, z1, tz, -tx]); lv.push(rv.levels[i + 1]); an.push(h1); }
           }
           if (sP.length < 2) continue;
           // (en los codos, la normal media de los dos tramos: la cinta no se pliega)
           for (let i = 1; i < sP.length - 1; i++) { const nx = sP[i - 1][2] + sP[i + 1][2], nz = sP[i - 1][3] + sP[i + 1][3], l = Math.hypot(nx, nz) || 1; sP[i][2] = nx / l; sP[i][3] = nz / l; }
-          add(new THREE.Mesh(ribbon(sP, () => rv.half + 0.4, i => lv[i]), riverMat(rv.half)));
+          // (el ancho, el del cauce: donde el río se estrecha en el casco, levels/townReal.js hv, el agua llega 1 m más allá
+          // de la orilla, que es donde el talud corta su nivel. Antes, siempre el del río entero más 1,6 m: con un cauce de
+          // 1 m, la cinta medía hasta 4,6 m a cada lado, asomaba por los huecos de la rejilla del suelo fuera del cauce y en
+          // los codos se doblaba en una franja blanca, como una cascada junto a las casas)
+          const ancho = i => { const e = Math.max(0, rv.half - an[i]); return rv.half + 0.4 - e - 0.6 * Math.min(1, e / 0.3); };
+          add(new THREE.Mesh(ribbon(sP, ancho, i => lv[i]), riverMat(rv.half)));
           continue;
         }
         const sA = [];
