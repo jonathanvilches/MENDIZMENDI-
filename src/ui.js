@@ -166,6 +166,7 @@ export class UI {
     // mismo toque sigue sirviendo para andar, mirar o pulsar un botón)
     if (town) { this._plegar = (e) => { if (e.target.closest?.('#tl')) return; if (this.misAbierta != null) this.cierraMision(); if (this.hud?.querySelector('#tl.abierta')) this.pliegaMisiones(false); }; addEventListener('pointerdown', this._plegar, true); }
     if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
+    else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
     // (en el ordenador, las misiones plegadas: solo se ve la que estás haciendo, y la flecha de al lado, con las hechas de
     // las del pueblo, despliega las demás con una pequeña entrada escalonada. Al elegir una, se vuelve a plegar con ella a la
     // vista. El 13 de noviembre de 2026 lo pidió el autor: en el ordenador salían todas a la vez. En el móvil, como estaba)
@@ -173,7 +174,6 @@ export class UI {
       const T = $('#tl', h), P = $('#mPliega', h); T.classList.add('plega');
       P.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.sound?.ui?.('click'); this.pliegaMisiones(!T.classList.contains('abierta')); });
     }
-    else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
     tap('#cJump', () => this.input.press(' '));
