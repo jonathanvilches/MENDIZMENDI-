@@ -1,0 +1,1 @@
+var e=new URL(`sanguesa-Rnef1JIM.webp`,import.meta.url).href;export{e as default};

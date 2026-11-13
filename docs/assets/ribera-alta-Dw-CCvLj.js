@@ -1,0 +1,1 @@
+var e=new URL(`ribera-alta-vfBeA9Kl.webp`,import.meta.url).href;export{e as default};

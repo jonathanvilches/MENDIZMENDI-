@@ -1,0 +1,1 @@
+var e=new URL(`pirineo-CutO0G8_.webp`,import.meta.url).href;export{e as default};

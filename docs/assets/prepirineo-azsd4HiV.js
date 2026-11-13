@@ -1,0 +1,1 @@
+var e=new URL(`prepirineo-DNqIR_R6.webp`,import.meta.url).href;export{e as default};

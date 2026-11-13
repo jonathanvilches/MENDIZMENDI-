@@ -1,0 +1,1 @@
+var e=new URL(`pamplona-BeMP4jrm.webp`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`sakana-BECHseLk.webp`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`larraun-leitzaldea-5IsISYq9.webp`,import.meta.url).href;export{e as default};
