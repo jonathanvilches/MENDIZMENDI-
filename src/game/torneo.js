@@ -26,6 +26,7 @@ import COMARCAS from '../data/comarcas.json';
 import { iconSVG } from '../ui/icons.js';
 import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
+import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg } from '../ui/frontonFotos.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
@@ -693,7 +694,7 @@ const EF_CSS = `
 .ef-pic>.ico{position:absolute;inset:0;margin:auto;width:38%;height:auto;opacity:.8}
 .ef-real{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;align-items:center;gap:2px;width:34%;padding:4px 4px 3px;border-radius:8px;background:rgba(18,6,40,.55);border:1px solid rgba(255,255,255,.18)}
 .ef-real img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:6px}
-.ef-real small{font:800 10px/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:#ffe6a6}
+.ef-real small{font:800 10px/1.1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:#ffe6a6;text-align:center;max-width:100%}
 .ef-txt{display:flex;flex-direction:column;flex:none;gap:3px;padding:10px 14px 14px}
 .ef-txt small{color:var(--rosa);font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
 .ef-txt b{font:400 var(--fs-xl)/1.05 var(--f-display);text-transform:uppercase}
@@ -714,7 +715,11 @@ const idDe = (nombre) => LEVELS.find(l => l.name.split(' /')[0] === nombre)?.id 
 const comarcaDe = (id) => COMARCAS.find(c => c.id === levelById(id)?.comarca)?.name || '';
 // (la tarjeta de un frontón: k, la sede; id, el pueblo)
 function efTarjeta(k, id, here, o, sel) {
-  const eu = isEU(), real = k === 'labrit' ? fotoFronton('labrit') : k === 'plaza' && id === 'leitza' ? fotoFronton('leitza') : '';
+  // (la foto pequeña: la del frontón de verdad, el Labrit y la plaza de Leitza; en los cubiertos, la del frontón real en
+  // que se basa su arquitectura, data/frontonArq.js: «Como el de Isaba»)
+  const eu = isEU(), aid = k === 'cubierto' ? id : k === 'fuera' ? o.fueraId : null, ref = aid ? ARQ_REF[arqDe(levelById(aid))] : null;
+  const real = k === 'labrit' ? fotoFronton('labrit') : k === 'plaza' && id === 'leitza' ? fotoFronton('leitza') : ref ? fotoFronton(ref[0]) : '';
+  const realTxt = ref && real ? (eu ? ref[2] : ref[1]) : (eu ? 'Benetakoa' : 'El de verdad');
   const img = canchaImg(k === 'fuera' ? o.fueraId : id, k === 'fuera' ? 'cubierto' : k);
   const D = {
     plaza: [comarcaDe(id), eu ? `${here} · frontoia` : `Frontón de ${here}`, eu ? 'Kanpoan' : 'Al aire libre', SEDE_SUB.plaza()],
@@ -723,7 +728,7 @@ function efTarjeta(k, id, here, o, sel) {
     fuera: [comarcaDe(o.fueraId), eu ? `${o.fuera} · estalia` : `Cubierto de ${o.fuera}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.fuera()],
   }[k];
   return `<button type="button" class="ef-it${k === sel ? ' on' : ''}" data-k="${k}" aria-pressed="${k === sel}">
-    <span class="ef-pic">${img ? `<img src="${img}" alt="" decoding="async">` : iconSVG('pelota', 96)}${real ? `<i class="ef-real"><img src="${real}" alt="" decoding="async"><small>${eu ? 'Benetakoa' : 'El de verdad'}</small></i>` : ''}</span>
+    <span class="ef-pic">${img ? `<img src="${img}" alt="" decoding="async">` : iconSVG('pelota', 96)}${real ? `<i class="ef-real"><img src="${real}" alt="" decoding="async"><small>${esc(realTxt)}</small></i>` : ''}</span>
     <span class="ef-txt"><small>${esc(D[0])}</small><b>${esc(D[1])}</b><em>${esc(D[2])}</em><span>${esc(D[3])}</span></span></button>`;
 }
 function eligeFronton(btn, o, here) {

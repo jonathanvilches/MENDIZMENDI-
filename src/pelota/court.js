@@ -121,6 +121,23 @@ const THEMES = {
 const LABRIT_CONTRA = 4.4;
 // el frontón cubierto de los campeonatos: alto hasta el techo y contracancha algo más ancha (con la grada al lado)
 const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
+// La arquitectura del cubierto de cada sede, sacada de las fotos de frontones de verdad del capítulo «Frontones de
+// Navarra» (src/assets/frontones): el techo, las paredes de encima de la cancha, la de detrás de la grada y el fondo. Los
+// colores de la cancha (frontis, pared izquierda, marco, suelo y rayas) van en fronton.js (ARQ_LOOK), con el contraste que
+// pide la pelota. pabellon: el de siempre, oscuro y moderno (el Navarra Arena); erminea: el Erminea de Isaba, techo blanco
+// con cerchas claras y tubos de luz; ziordia: igual de claro, con el frontis de sillería en su marco azul; iraneta: bóveda
+// de madera laminada con el ventanal en arco encima del frontis; igantzi: a dos aguas con cerchas de madera; urroz: a dos
+// aguas con cerchas rojas de acero en celosía y placas de policarbonato; peralta: la nave en dientes de sierra
+const ARQ = {
+  pabellon: { techo: 'oscuro', alto: '#e3dccd', sobre: '#24202c', derecha: 'madera', ventanas: 'franja', fondo: '#a7a29a' },
+  erminea: { techo: 'blanco', alto: '#f0ede6', sobre: '#f0ede6', claro: '#ece9e2', derecha: 'claro', ventanas: 'franja', fondo: '#d6d1c6', marcoLado: true, acero: '#cfd0d4' },
+  ziordia: { techo: 'blanco', alto: '#f1eee8', sobre: '#f1eee8', claro: '#ece8e0', derecha: 'claro', ventanas: 'franja', fondo: '#d9d3c7', marcoLado: true, acero: '#cfd0d4' },
+  iraneta: { techo: 'arco', alto: null, sobre: null, claro: '#e8e4d8', derecha: 'madera', ventanas: 'none', fondo: null },
+  igantzi: { techo: 'madera', alto: '#ebe6d9', sobre: '#ebe6d9', claro: '#e6e0d2', derecha: 'madera', ventanas: 'none', fondo: '#cdc6b6', marcoLado: true },
+  urroz: { techo: 'cerchas', alto: '#f4f1eb', sobre: '#f4f1eb', claro: '#efe9dc', derecha: 'policarbonato', ventanas: 'none', fondo: '#e0b84a' },
+  peralta: { techo: 'sierra', alto: '#ece6d8', sobre: '#e4ddcc', claro: '#ebe5d6', derecha: 'claro', ventanas: 'none', fondo: '#d4c8b0' },
+};
+export const ARQUITECTURAS = Object.keys(ARQ);
 export function labritExtent() {
   const W = COURT.W, EXT = COURT.L + 3, xr = W / 2 + LABRIT_CONTRA, zf = EXT + 0.3, xa = -W / 2 - 0.6, xb = xr + 14.6, za = -1.0, zb = zf + 14.6;
   return { x0: xa - 4.9, x1: xb + 4.9, z0: za - 4.9, z1: zb + 6.5 };
@@ -277,7 +294,7 @@ export class PelotaCourt {
     chapaLine.position.set(0, C.CHAPA, 0.035); g.add(chapaLine);   // (la raya, donde siempre: lo que da por debajo es chapa)
     // y arriba, como en los frontones de verdad, otra chapa: la franja de metal por encima de la raya de arriba del frontis
     // (lo que da ahí es fuera, y suena a chapa) con su colchón, el remate doblado que sobresale, como el de la de abajo
-    const chapaArribaMat = M({ color: th.chapa, metalness: th.chapaMetal ? 0.3 : 0, roughness: 0.48 }), hA = C.FRONT_H - C.FRONT_TOP;
+    const chapaArribaMat = M({ color: th.marco || th.chapa, metalness: th.chapaMetal && !th.marco ? 0.3 : 0, roughness: 0.48 }), hA = C.FRONT_H - C.FRONT_TOP;   // (con marco, del color del marco: el azul del Erminea de Isaba o de Ziordia)
     const chapaArriba = new T.Mesh(new T.BoxGeometry(W, hA, 0.05), chapaArribaMat); chapaArriba.position.set(0, C.FRONT_TOP + hA / 2, 0.025); chapaArriba.receiveShadow = true; chapaArriba.name = 'chapa-arriba'; g.add(chapaArriba);
     const colchonArriba = new T.Mesh(new T.BoxGeometry(W, 0.06, 0.11), chapaArribaMat); colchonArriba.position.set(0, C.FRONT_TOP + 0.03, 0.055); colchonArriba.castShadow = true; g.add(colchonArriba);
 
@@ -371,7 +388,7 @@ export class PelotaCourt {
     { const raya = new T.Mesh(new T.PlaneGeometry(EXT, 12 / 512 * C.LEFT_H), M({ color: th.mark, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya);
       // (y encima de la raya, la chapa de arriba de la pared izquierda con su colchón, como la del frontis)
-      const mA = M({ color: th.chapa, metalness: th.chapaMetal ? 0.3 : 0, roughness: 0.48 }), hL = C.LEFT_H - C.LEFT_LINE - 0.02;
+      const mA = M({ color: th.marco || th.chapa, metalness: th.chapaMetal && !th.marco ? 0.3 : 0, roughness: 0.48 }), hL = C.LEFT_H - C.LEFT_LINE - 0.02;
       const chL = new T.Mesh(new T.BoxGeometry(0.05, hL, EXT), mA); chL.position.set(-W / 2 + 0.025, C.LEFT_LINE + 0.02 + hL / 2, EXT / 2); chL.receiveShadow = true; chL.name = 'chapa-izquierda'; g.add(chL);
       const coL = new T.Mesh(new T.BoxGeometry(0.11, 0.06, EXT), mA); coL.position.set(-W / 2 + 0.055, C.LEFT_LINE + 0.05, EXT / 2); coL.castShadow = true; g.add(coL); }
 
@@ -434,6 +451,7 @@ export class PelotaCourt {
     else if (HALL) this.buildHall(T, M, th, W, CONTRA, EXT, L, opts);
     else if (th.roof) this.buildRoof(T, M, th, -W / 2 - 0.6, W / 2 + CONTRA + 3.3, -0.9, EXT + 0.5);
     if (!opts.labrit && !HALL) this.buildFloods(T, M, !!th.roof, W, CONTRA, EXT, CALLE);
+    if (!opts.labrit && !HALL && th.red && !th.roof) this.buildRed(T, M, W, EXT);
     // dónde cabe la cámara del partido (match.js, cabe): bajo la cubierta, sin llegar a su estructura (más arriba, las
     // vigas, los tirantes y la chapa quedaban delante y tapaban la imagen entera); en el cubierto, sin pasar del rebote,
     // que llega al techo; en el Labrit, sin meterse en la grada del fondo. En el pueblo, Fronton añade las casas de detrás
@@ -768,41 +786,111 @@ export class PelotaCourt {
   // Sin anuncios ni escudos de clubes. Dentro no se ve nada de fuera: no hace falta paisaje.
   buildHall(T, M, th, W, CONTRA, EXT, L, opts = {}) {
     const C = COURT, g = this.group, H = HALL_H, xs = W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
+    const A = ARQ[opts.arq] || ARQ.pabellon, ALTO = A.alto || th.wall, SOBRE = A.sobre || th.wall, FONDO = A.fondo || th.wall;
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
-    // (el verde, solo en la cancha: las paredes altas y la de delante de la contracancha, claras; la de detrás de la grada,
-    // de madera de pino barnizada; el fondo, de hormigón)
-    const wallM = M({ color: '#e3dccd', roughness: 0.92 }), concrete = M({ color: '#bdb6c4', roughness: 0.95 }), dark = M({ color: '#24202c', roughness: 0.8 });   // (la grada, de hormigón claro: oscura parecía un muro)
-    const fondoM = M({ color: '#a7a29a', roughness: 0.95 });
-    const steel = M({ color: '#5d5a66', roughness: 0.5, metalness: 0.45 });
-    // el muro alto: la pared izquierda sube hasta el techo con una franja de ventanales arriba (luz de día, sin sol directo)
+    // una barra de x0,y0 a x1,y1 en el plano z (las cerchas, los arcos y las correas)
+    const barra = (x0, y0, x1, y1, z, t, mat, d = t) => { const m = new T.Mesh(new T.BoxGeometry(Math.hypot(x1 - x0, y1 - y0), t, d), mat); m.position.set((x0 + x1) / 2, (y0 + y1) / 2, z); m.rotation.z = Math.atan2(y1 - y0, x1 - x0); g.add(m); return m; };
+    const tri = (pts, mat) => { const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pts.flat(), 3)); geo.computeVertexNormals(); const m = new T.Mesh(geo, mat); g.add(m); return m; };
+    // (el verde, solo en la cancha: las paredes altas y la de delante de la contracancha, del color de su modelo; la de
+    // detrás de la grada, de madera, clara o de policarbonato; el fondo, de hormigón o pintado)
+    const wallM = M({ color: A.claro || '#e3dccd', roughness: 0.92 }), altoM = M({ color: ALTO, roughness: 0.92 }), concrete = M({ color: '#bdb6c4', roughness: 0.95 }), dark = M({ color: SOBRE, roughness: 0.85 });   // (la grada, de hormigón claro: oscura parecía un muro)
+    const fondoM = M({ color: FONDO, roughness: 0.95 });
+    const steel = M({ color: A.acero || '#5d5a66', roughness: 0.5, metalness: A.acero ? 0.2 : 0.45 });
+    // el muro alto: la pared izquierda sube hasta el techo; con franja de ventanales arriba (luz de día, sin sol directo)
     const winTex = canvasTex(T, 1024, 256, (c, w, h) => {
-      c.fillStyle = '#e3dccd'; c.fillRect(0, 0, w, h); grain(c, w, h, 5000, 0.05);
+      c.fillStyle = ALTO; c.fillRect(0, 0, w, h); grain(c, w, h, 5000, 0.05);
       const n = 12, pw = w / n; for (let i = 0; i < n; i++) { const gr = c.createLinearGradient(0, h * 0.2, 0, h * 0.8); gr.addColorStop(0, '#e9f0ff'); gr.addColorStop(1, '#b9c4e6');
         c.fillStyle = gr; c.fillRect(i * pw + pw * 0.12, h * 0.22, pw * 0.76, h * 0.56); c.fillStyle = 'rgba(40,40,60,.55)'; c.fillRect(i * pw + pw * 0.5 - 2, h * 0.22, 4, h * 0.56); c.fillRect(i * pw + pw * 0.12, h * 0.5 - 2, pw * 0.76, 4); }
     });
-    const upH = H - C.LEFT_H - 0.2, upL = new T.Mesh(new T.BoxGeometry(0.6, upH, EXT + 1.2), [M({ map: winTex, emissive: '#ffffff', emissiveMap: winTex, emissiveIntensity: 0.25 }), wallM, wallM, wallM, wallM, wallM]);
+    const upH = H - C.LEFT_H - 0.2, upL = new T.Mesh(new T.BoxGeometry(0.6, upH, EXT + 1.2), [A.ventanas === 'franja' ? M({ map: winTex, emissive: '#ffffff', emissiveMap: winTex, emissiveIntensity: 0.25 }) : altoM, wallM, wallM, wallM, wallM, wallM]);
     upL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.2 + upH / 2, EXT / 2); g.add(upL);
-    // por encima del frontis, hasta el techo, oscuro (así resalta el marcador); y la pared de delante de la contracancha
+    // por encima del frontis, hasta el techo (oscuro en el pabellón: así resalta el marcador); y la pared de delante de la
+    // contracancha
     box(xr - (-W / 2 - 0.6), H - C.FRONT_H, 0.6, dark, (xr + (-W / 2 - 0.6)) / 2, C.FRONT_H + (H - C.FRONT_H) / 2, za);
     box(xr - (W / 2 + 0.3), C.FRONT_H, 0.6, wallM, (xr + W / 2 + 0.3) / 2, C.FRONT_H / 2, za);
+    // el marco del frontis por su lado derecho (el Erminea de Isaba, Ziordia, Igantzi): la franja de color que lo cierra,
+    // fuera de la cancha, sobre la pared de delante de la contracancha
+    if (th.marco && A.marcoLado) { const mm = M({ color: th.marco, roughness: 0.6 }); box(0.5, C.FRONT_H, 0.04, mm, W / 2 + 0.55, C.FRONT_H / 2, za + 0.32); box(0.32, C.FRONT_H, 0.3, mm, W / 2 + 0.16, C.FRONT_H / 2, -0.18); }
     // el fondo, detrás de la contracancha y de la grada (el rebote ya llega al techo)
     box(xr - (W / 2 + 0.3), H, 0.6, fondoM, (xr + W / 2 + 0.3) / 2, H / 2, zb);
-    // la pared derecha, detrás de la grada: ventanales arriba, sin escudo ni nombre (el autor los quiere solo en la pared
-    // izquierda; antes llevaba el escudo grande en medio)
+    // la pared derecha, detrás de la grada: de tablas de pino barnizado con ventanales arriba (el pabellón, Irañeta,
+    // Igantzi), clara con su franja de ventanas (Isaba, Ziordia, Peralta) o de placas de policarbonato que dejan pasar la
+    // luz (Urroz). Sin escudo ni nombre: el autor los quiere solo en la pared izquierda
     const rTex = canvasTex(T, 2048, 512, (c, w, h) => {
-      // (tablas verticales de pino barnizado, cada una de su tono, con su junta)
-      const nt = 96, tw = w / nt;
-      for (let i = 0; i < nt; i++) { const k = 0.9 + ((i * 37) % 11) / 55; c.fillStyle = `rgb(${Math.round(176 * k)},${Math.round(124 * k)},${Math.round(74 * k)})`; c.fillRect(i * tw, 0, tw, h); c.fillStyle = 'rgba(60,32,12,.35)'; c.fillRect(i * tw, 0, 2, h); }
-      grain(c, w, h, 9000, 0.04); grain(c, w, h, 3000, 0.04, false);
-      const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); }
+      if (A.derecha === 'madera') {   // (tablas verticales de pino barnizado, cada una de su tono, con su junta)
+        const nt = 96, tw = w / nt;
+        for (let i = 0; i < nt; i++) { const k = 0.9 + ((i * 37) % 11) / 55; c.fillStyle = `rgb(${Math.round(176 * k)},${Math.round(124 * k)},${Math.round(74 * k)})`; c.fillRect(i * tw, 0, tw, h); c.fillStyle = 'rgba(60,32,12,.35)'; c.fillRect(i * tw, 0, 2, h); }
+        grain(c, w, h, 9000, 0.04); grain(c, w, h, 3000, 0.04, false);
+      } else if (A.derecha === 'policarbonato') {   // (placas onduladas translúcidas, con su perfil cada metro)
+        const gr = c.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, '#f4f7fb'); gr.addColorStop(1, '#d7dde6'); c.fillStyle = gr; c.fillRect(0, 0, w, h);
+        for (let x = 0; x < w; x += 6) { c.fillStyle = `rgba(120,130,150,${x % 12 ? 0.05 : 0.12})`; c.fillRect(x, 0, 3, h); }
+        const n = 40, pw = w / n; for (let i = 0; i <= n; i++) { c.fillStyle = 'rgba(70,74,86,.55)'; c.fillRect(i * pw - 3, 0, 6, h); }
+        c.fillStyle = 'rgba(70,74,86,.55)'; c.fillRect(0, h * 0.5 - 3, w, 6);
+      } else { c.fillStyle = A.claro || '#ece8e0'; c.fillRect(0, 0, w, h); grain(c, w, h, 6000, 0.04); }
+      if (A.derecha !== 'policarbonato') { const n = 14, pw = w / n; for (let i = 0; i < n; i++) { c.fillStyle = '#d8e2fa'; c.fillRect(i * pw + pw * 0.15, h * 0.04, pw * 0.7, h * 0.16); } }
     });
-    const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, M({ map: rTex }), wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
+    const rIn = A.derecha === 'policarbonato' ? M({ map: rTex, emissive: '#ffffff', emissiveMap: rTex, emissiveIntensity: 0.35 }) : M({ map: rTex });
+    const rw = new T.Mesh(new T.BoxGeometry(0.6, H, zb - za), [wallM, rIn, wallM, wallM, wallM, wallM]);   // (la cara −x mira a la cancha)
     rw.position.set(xr + 0.3, H / 2, (za + zb) / 2); g.add(rw);
-    // el techo: oscuro, con cerchas de acero de lado a lado y filas de luces del pabellón (paneles blancos encendidos)
-    box(xr - (-W / 2 - 0.6) + 0.6, 0.3, zb - za + 0.6, dark, (xr + (-W / 2 - 0.6)) / 2, H + 0.15, (za + zb) / 2);
-    for (let z = 2; z < zb; z += 4) { box(xr + W / 2 + 0.6, 0.5, 0.18, steel, (xr + (-W / 2 - 0.6)) / 2, H - 0.45, z); }
-    box(0.2, 0.6, zb - za, steel, 0, H - 0.75, (za + zb) / 2); box(0.2, 0.6, zb - za, steel, xs - 0.5, H - 0.75, (za + zb) / 2);
-    const lampM = new T.MeshBasicMaterial({ color: '#fbfaff', toneMapped: false }), lampG = new T.BoxGeometry(1.5, 0.12, 0.7);
+    // el techo, como el de su modelo
+    const xl = -W / 2 - 0.6, xR = xr + 0.6, xm = (xl + xR) / 2, span = xR - xl, z0r = za - 0.3, z1r = zb + 0.3;
+    const lampM = new T.MeshBasicMaterial({ color: '#fbfaff', toneMapped: false }), lampG = new T.BoxGeometry(A.techo === 'blanco' ? 0.35 : 1.5, 0.12, A.techo === 'blanco' ? 3.2 : 0.7);
+    if (A.techo === 'oscuro' || A.techo === 'blanco') {
+      // plano: oscuro con cerchas de acero (el pabellón) o blanco con cerchas claras y tubos de luz a lo largo (Isaba, Ziordia)
+      box(span, 0.3, z1r - z0r, A.techo === 'blanco' ? M({ color: '#efece6', roughness: 0.9 }) : M({ color: '#24202c', roughness: 0.8 }), xm, H + 0.15, (za + zb) / 2);
+      for (let z = 2; z < zb; z += 4) box(span - 1.2, 0.5, 0.18, steel, xm, H - 0.45, z);
+      box(0.2, 0.6, zb - za, steel, 0, H - 0.75, (za + zb) / 2); box(0.2, 0.6, zb - za, steel, xs - 0.5, H - 0.75, (za + zb) / 2);
+    } else if (A.techo === 'cerchas' || A.techo === 'madera') {
+      // a dos aguas, con cerchas de lado a lado cada 4 m: de acero pintado de rojo y celosía (Urroz) o de madera, con su
+      // pendolón y sus tornapuntas (Igantzi); por encima, las correas y la chapa (o las tablas)
+      const R = 2.6, ym = H + R, madera = A.techo === 'madera', t = madera ? 0.26 : 0.14, bajo = H - (madera ? 0.2 : 0.55);
+      const cub = canvasTex(T, 512, 512, (c, w, h) => {
+        if (madera) { const n = 24, ph = h / n; for (let i = 0; i < n; i++) { const k = 0.88 + ((i * 29) % 9) / 40; c.fillStyle = `rgb(${Math.round(190 * k)},${Math.round(140 * k)},${Math.round(88 * k)})`; c.fillRect(0, i * ph, w, ph - 2); } grain(c, w, h, 6000, 0.05); }
+        else { c.fillStyle = '#d5dade'; c.fillRect(0, 0, w, h); for (let x = 0; x < w; x += 16) { c.fillStyle = 'rgba(255,255,255,.35)'; c.fillRect(x, 0, 5, h); c.fillStyle = 'rgba(0,0,0,.12)'; c.fillRect(x + 8, 0, 4, h); } }
+      }, [4, 6]);
+      const cubM = M({ map: cub, side: T.DoubleSide, roughness: 0.75 });
+      for (const [xa, xb] of [[xl, xm], [xR, xm]]) tri([[xa, H, z0r], [xb, ym, z0r], [xb, ym, z1r], [xa, H, z0r], [xb, ym, z1r], [xa, H, z1r]], cubM);
+      // (los dos hastiales, cerrando el techo por delante y por detrás)
+      const hastM = M({ color: SOBRE, roughness: 0.9, side: T.DoubleSide }), fondoD = M({ color: FONDO, roughness: 0.9, side: T.DoubleSide });
+      tri([[xl, H, za], [xR, H, za], [xm, ym, za]], hastM); tri([[xl, H, zb], [xR, H, zb], [xm, ym, zb]], fondoD);
+      const cer = M({ color: madera ? '#8a5a30' : '#c22a24', roughness: madera ? 0.7 : 0.45, metalness: madera ? 0 : 0.25 });
+      for (let z = 1.8; z < zb - 0.5; z += 4) {
+        barra(xl + 0.3, H - 0.1, xm, ym - 0.12, z, t, cer); barra(xR - 0.3, H - 0.1, xm, ym - 0.12, z, t, cer);   // (los pares)
+        barra(xl + 0.3, bajo, xR - 0.3, bajo, z, t, cer);   // (el tirante)
+        if (madera) { barra(xm, bajo, xm, ym - 0.2, z, t, cer); for (const s of [-1, 1]) barra(xm, bajo + 0.3, xm + s * span * 0.22, H + R * 0.47, z, t * 0.8, cer); }   // (el pendolón y las tornapuntas)
+        else { const n = 8; for (let i = 1; i < n; i++) { const x = xl + 0.3 + (xR - xl - 0.6) * i / n, yt = H - 0.1 + (ym - 0.12 - (H - 0.1)) * (1 - Math.abs(x - xm) / (xm - xl - 0.3)), xp = xl + 0.3 + (xR - xl - 0.6) * (i - 1) / n;
+          barra(x, bajo, x, yt, z, t * 0.7, cer); const ytp = H - 0.1 + (ym - 0.12 - (H - 0.1)) * (1 - Math.abs(xp - xm) / (xm - xl - 0.3)); barra(i <= n / 2 ? xp : x, i <= n / 2 ? bajo : yt, i <= n / 2 ? x : xp, i <= n / 2 ? yt : bajo, z, t * 0.55, cer); } }   // (la celosía)
+      }
+      for (const k of [0.25, 0.55, 0.85]) for (const [xa, xb] of [[xl, xm], [xR, xm]]) { const x = xa + (xb - xa) * k, y = H + R * k - 0.18; box(0.12, 0.18, zb - za, cer, x, y, (za + zb) / 2); }   // (las correas)
+    } else if (A.techo === 'arco') {
+      // bóveda de madera laminada (Irañeta): arcos de lado a lado cada 4 m, el techo de tablas y, por encima del frontis,
+      // el ventanal en arco que llena la cancha de luz
+      const R = 3.6, N = 18, curva = (k) => [xl + span * k, H + R * Math.sin(Math.PI * k)];
+      const tab = canvasTex(T, 512, 512, (c, w, h) => { const n = 28, ph = h / n; for (let i = 0; i < n; i++) { const k = 0.88 + ((i * 29) % 9) / 40; c.fillStyle = `rgb(${Math.round(200 * k)},${Math.round(150 * k)},${Math.round(96 * k)})`; c.fillRect(0, i * ph, w, ph - 2); } grain(c, w, h, 6000, 0.05); }, [6, 8]);
+      const pos = [], uv = [];
+      for (let i = 0; i < N; i++) { const [x0, y0] = curva(i / N), [x1, y1] = curva((i + 1) / N);
+        pos.push(x0, y0, z0r, x1, y1, z0r, x1, y1, z1r, x0, y0, z0r, x1, y1, z1r, x0, y0, z1r); uv.push(i / N, 0, (i + 1) / N, 0, (i + 1) / N, 1, i / N, 0, (i + 1) / N, 1, i / N, 1); }
+      const vg = new T.BufferGeometry(); vg.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); vg.setAttribute('uv', new T.Float32BufferAttribute(uv, 2)); vg.computeVertexNormals();
+      g.add(new T.Mesh(vg, M({ map: tab, side: T.DoubleSide, roughness: 0.75 })));
+      const lam = M({ color: '#b07a44', roughness: 0.65 });
+      for (let z = 1.8; z < zb - 0.5; z += 4) for (let i = 0; i < N; i++) { const [x0, y0] = curva(i / N), [x1, y1] = curva((i + 1) / N); barra(x0, y0 - 0.32, x1, y1 - 0.32, z, 0.55, lam, 0.24); }
+      // (los dos tímpanos: el de delante, acristalado con sus montantes; el de detrás, de la pared)
+      const vid = M({ color: '#dfe9fb', emissive: '#cfdcf5', emissiveIntensity: 0.55, roughness: 0.2, side: T.DoubleSide }), fondoD = M({ color: FONDO, roughness: 0.9, side: T.DoubleSide });
+      for (let i = 0; i < N; i++) { const [x0, y0] = curva(i / N), [x1, y1] = curva((i + 1) / N); tri([[x0, H, za], [x1, H, za], [x1, y1, za], [x0, H, za], [x1, y1, za], [x0, y0, za]], vid); tri([[x0, H, zb], [x1, H, zb], [x1, y1, zb], [x0, H, zb], [x1, y1, zb], [x0, y0, zb]], fondoD); }
+      for (let i = 1; i < 8; i++) { const [x, y] = curva(i / 8); box(0.12, y - H, 0.12, lam, x, H + (y - H) / 2, za + 0.1); }
+      box(span, 0.14, 0.14, lam, xm, H + 0.07, za + 0.1);
+    } else if (A.techo === 'sierra') {
+      // dientes de sierra (la nave de Peralta): faldones inclinados y, entre uno y otro, el lucernario vertical que mete la
+      // luz del norte; cerchas blancas debajo
+      const R = 2.4, P = (zb - za) / 5, vid = M({ color: '#e3ecfb', emissive: '#d3def5', emissiveIntensity: 0.6, roughness: 0.2, side: T.DoubleSide });
+      const fal = M({ color: '#e4e2dc', roughness: 0.85, side: T.DoubleSide }), bl = M({ color: '#f2f1ec', roughness: 0.5 });
+      for (let k = 0; k < 5; k++) { const zA = za + k * P, zB = zA + P;
+        tri([[xl, H + R, zA], [xR, H + R, zA], [xR, H, zB], [xl, H + R, zA], [xR, H, zB], [xl, H, zB]], fal);
+        if (k < 4) tri([[xl, H, zB], [xR, H, zB], [xR, H + R, zB], [xl, H, zB], [xR, H + R, zB], [xl, H + R, zB]], vid);
+        barra(xl, H - 0.4, xR, H - 0.4, zB - 0.2, 0.22, bl); for (let i = 1; i < 6; i++) box(0.1, R + 0.4, 0.1, bl, xl + span * i / 6, H - 0.4 + (R + 0.4) / 2, zA + 0.15);
+      }
+      tri([[xl, H, za], [xR, H, za], [xR, H + R, za], [xl, H, za], [xR, H + R, za], [xl, H + R, za]], dark);
+    }
     const lamps = []; for (const x of [-W / 4, W / 4, xs + 1.6]) for (let z = 2.8; z < EXT - 0.5; z += 4) lamps.push([x, z]);
     const LI = new T.InstancedMesh(lampG, lampM, lamps.length), m4 = new T.Matrix4();
     lamps.forEach(([x, z], i) => LI.setMatrixAt(i, m4.makeTranslation(x, H - 1.1, z))); LI.name = 'luces-pabellon'; g.add(LI);
@@ -833,6 +921,28 @@ export class PelotaCourt {
     this.entry = { x: W / 2 + CONTRA / 2, z: EXT - 1.2 };
     this.hall = true;
     g.traverse(o => { if (o.isMesh) o.castShadow = false; });   // (bajo techo, con la luz del pabellón: sin sombras que crucen la cancha)
+  }
+  // La red de las plazas (Leitza, Mendaza, Areso, Nazar, Genevilla: casi todos los frontones de pueblo la tienen): postes
+  // de acero sobre el frontis y sobre el principio de la pared izquierda, con la red tendida entre ellos para que la pelota
+  // no se vaya a los tejados. Por encima de lo que se juega: no cambia nada del partido
+  buildRed(T, M, W, EXT) {
+    const C = COURT, g = this.group, HR = 5.2, LR = Math.min(EXT * 0.42, 14), steel = M({ color: '#6c7176', roughness: 0.45, metalness: 0.55 });
+    const netTex = canvasTex(T, 256, 256, (c, w, h) => {
+      c.strokeStyle = 'rgba(34,44,40,.85)'; c.lineWidth = 3.5; const n = 8, st = w / n;   // (hilos gruesos: con hilos finos, a lo lejos la red desaparecía)
+      for (let i = -n; i <= 2 * n; i++) { c.beginPath(); c.moveTo(i * st, 0); c.lineTo(i * st + h, h); c.stroke(); c.beginPath(); c.moveTo(i * st, 0); c.lineTo(i * st - h, h); c.stroke(); }
+    });
+    netTex.wrapS = netTex.wrapT = T.RepeatWrapping;
+    const netM = M({ map: netTex, transparent: true, depthWrite: false, side: T.DoubleSide, roughness: 0.9 });
+    const tela = (w, h) => { const geo = new T.PlaneGeometry(w, h), uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * w / 1.1, uv.getY(i) * h / 1.1); return geo; };
+    // sobre el frontis
+    const x0 = -W / 2 - 0.6, x1 = W / 2, fw = x1 - x0;
+    const nf = new T.Mesh(tela(fw, HR), netM); nf.position.set((x0 + x1) / 2, C.FRONT_H + 0.24 + HR / 2, -0.4); nf.renderOrder = 2; g.add(nf);
+    for (let i = 0; i <= 4; i++) { const p = new T.Mesh(new T.BoxGeometry(0.12, HR + 0.6, 0.12), steel); p.position.set(x0 + 0.06 + (fw - 0.12) * i / 4, C.FRONT_H + 0.24 + (HR + 0.6) / 2 - 0.3, -0.4); g.add(p); }
+    for (const y of [C.FRONT_H + 0.3, C.FRONT_H + 0.24 + HR]) { const t = new T.Mesh(new T.BoxGeometry(fw, 0.07, 0.07), steel); t.position.set((x0 + x1) / 2, y, -0.4); g.add(t); }
+    // y sobre el principio de la pared izquierda, algo más baja
+    const hl = HR - 1.2, nl = new T.Mesh(tela(LR, hl), netM); nl.rotation.y = Math.PI / 2; nl.position.set(-W / 2 - 0.3, C.LEFT_H + 0.2 + hl / 2, LR / 2); nl.renderOrder = 2; g.add(nl);
+    for (let i = 1; i <= 3; i++) { const z = LR * i / 3, p = new T.Mesh(new T.BoxGeometry(0.12, hl + 0.5, 0.12), steel); p.position.set(-W / 2 - 0.3, C.LEFT_H + 0.2 + (hl + 0.5) / 2 - 0.25, z); g.add(p); }
+    { const t = new T.Mesh(new T.BoxGeometry(0.07, 0.07, LR), steel); t.position.set(-W / 2 - 0.3, C.LEFT_H + 0.2 + hl, LR / 2); g.add(t); }
   }
   /** El marcador del Labrit: los dos nombres con su color y los tantos. */
   setScore(you, rival, a, b) {

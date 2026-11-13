@@ -1,5 +1,6 @@
 // Frontón de los pueblos y partido de pelota a mano con el motor común de src/pelota.
 // Aquí solo se adapta el motor al juego: dónde va el frontón, colisiones, personajes, cámara e interfaz.
+import { arqDe, ARQ_LOOK } from '../data/frontonArq.js';
 import * as THREE from 'three';
 import { armSwing, GlbRig, loadMeshy, hasMeshy, loadedMeshy, fullTexFor, avatarIsGirl } from '../actors/glbChar.js';
 import { hairTint } from '../actors/hairColor.js';
@@ -141,11 +142,12 @@ const LOOK_TOWN = {
   tafalla: { ...COVERED, roof: 'metal', frontis: GREEN, wall: GREEN },
   tudela: { roof: 'metal', chapa: '#c9d0d4', chapaMetal: true },
   ujue: { stone: STONE.grey, wall: PLASTER }, javier: { stone: STONE.grey },
+  leitza: { frontis: '#b3b1aa', stone: null },   // (el de la plaza, como el de verdad: frontis de revoco gris, gastado, con su red encima)
 };
 export function frontonLook(def = {}) {
   const cid = LOOK_COMARCA[def.comarca] ? def.comarca : FAMILY[def.family], c = LOOK_COMARCA[cid] || {};
   const i = Math.max(0, LEVELS.filter(l => l.comarca === cid && !l.special && !l.bosque).findIndex(l => l.id === def.id)), V = VARIANTS[cid] || [{}];
-  return legible({ ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) });
+  return legible({ red: true, ...c, ...V[i % V.length], ...(LOOK_TOWN[def.id] || {}) });   // (red: la de encima del frontis, en las plazas)
 }
 // que la pelota se vea siempre bien: contra el frontis, la pared izquierda y el suelo, la pelota (casi blanca) ha de ser
 // al menos tres veces más clara (el cociente de luminancias de las pautas de legibilidad; 2,6 contra el suelo, que se ve
@@ -331,15 +333,18 @@ const HALL_LOOK = { frontis: '#2b6a56', wall: '#2b6a56', floor: '#5b6461', contr
 // (cada cubierto con sus colores: las paredes, del color del frontón de la calle del pueblo si son de color, o uno de los
 // de los reglamentos; las butacas, de otro. Antes eran todos verdes con butacas moradas, iguales en todos los pueblos)
 const HALL_PARED = [GREEN, BLUE, '#2b6a56', '#3d5f8a', '#4f7a5c', '#6a5a8c'], HALL_SILLA = [['#5b34c4', '#8e6ae8'], ['#b0262c', '#e0565c'], ['#1f5fa8', '#5a8fd8'], ['#1f7a4a', '#4fb07a'], ['#c06a12', '#eba04a'], ['#2a2a32', '#6a6a78']];
-function hallLook(def, seed = 0) {
+function hallLook(def, seed = 0, arq = 'pabellon') {
   const L = frontonLook(def), col = L.frontis && !L.stone && L.frontis !== PLASTER ? L.frontis : HALL_PARED[seed % HALL_PARED.length], [s1, s2] = HALL_SILLA[(seed >> 3) % HALL_SILLA.length];
-  return { ...HALL_LOOK, frontis: col, wall: col, cap: col, seat: s1, seat2: s2 };
+  // (con la arquitectura de su modelo de verdad, sus colores: data/frontonArq.js; el pabellón, los de antes)
+  const A = ARQ_LOOK[arq] || {};
+  return legible({ ...HALL_LOOK, frontis: col, wall: col, seat: s1, seat2: s2, ...A, cap: A.wall || col });
 }
 export function hallVenue(scene, out, def) {
   if (HALL && HALL.court.group.parent === scene && HALL.town === def?.id) return HALL;
   if (HALL) { try { HALL.dispose(); } catch (e) { console.warn('frontón cubierto', e); } }
   const W = frontonWall(def || {}), town = (def?.name || '').split(' /')[0];
-  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed), hall: true, noClear: true });
+  const arq = arqDe(def || {});
+  HALL = new Fronton(scene, { x: out.x, z: out.z, y: 2400, ry: 0 }, town, { ...W, estilo: null, look: hallLook(def || {}, W.seed, arq), hall: true, arq, noClear: true });
   HALL.town = def?.id; HALL.townName = town;   // (el de otro pueblo, en los campeonatos: su nombre en el partido)
   return HALL;
 }
