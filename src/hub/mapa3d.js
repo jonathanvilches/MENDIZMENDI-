@@ -125,7 +125,8 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   vec3 apag = vec3(0.105, 0.095, 0.16) + (l - 0.42) * vec3(0.26, 0.26, 0.32);
   // (con una isla en el aire y el cielo de día, lo de fuera sigue siendo tierra, apagada pero con su luz, no de noche)
   apag = mix(apag, vec3(l) * vec3(0.86, 0.9, 0.96) * 0.9, uCielo);
-  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.75, uCielo));
+  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.3, uCielo));
+  diffuseColor.rgb *= 1.0 + 0.22 * uCielo;   // (de día, la imagen de alrededor, hecha para la noche, algo más clara)
   diffuseColor.rgb *= 1.0 - 0.45 * fuera * nm.g; }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
 // por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
@@ -252,7 +253,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // antes que nada, sin profundidad; con uK a cero es del color del fondo de siempre
   const cieloFondo = (() => { const m = new THREE.ShaderMaterial({ ...cieloShader(), depthTest: false, depthWrite: false, side: THREE.BackSide }); m.uniforms.uFondo.value.set(FONDO); mats.push(m);
     const gc = new THREE.SphereGeometry(50, 32, 16); geos.push(gc); const s2 = new THREE.Mesh(gc, m); s2.renderOrder = -100; s2.frustumCulled = false; s2.visible = false; scene.add(s2); return s2; })();
-  let cieloK = 0, islaFija = null;
+  // (el mapa, de día desde el principio: cielo azul, mar y tierra con su color, como un paisaje de verdad; 13 de noviembre de
+  // 2026: el autor no quería que empezase con el mapa morado y solo al subir la isla pasase a ser de día)
+  let cieloK = 1, islaFija = null;
   // la isla flotante de cada comarca (mapa3dIsla.js): la panza de roca, las cascadas y las piedras, la primera vez que se elige
   // (fuera: la altura del mapa de alrededor, la de la comarca vecina o el suelo, de donde se tira el agua al hueco)
   // (las texturas de la roca y del césped, de Higgsfield, una sola vez para todas las islas)
@@ -474,6 +477,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   caja.max.y = GROSOR + Math.max(...C.map(c => c.hmax + c.alzado)) + 0.5;
   const esquinas = []; for (const x of [caja.min.x, caja.max.x]) for (const y of [0, caja.max.y]) for (const z of [caja.min.z, caja.max.z]) esquinas.push(new THREE.Vector3(x, y, z));
   const centro = caja.getCenter(new THREE.Vector3());
+  // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 26 : TACTIL ? 48 : 96, nav: centro, aniso: Math.min(4, r.capabilities.getMaxAnisotropy()) });
 
 
   // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo
@@ -483,8 +488,6 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const T = o.towns.filter(t => byId.has(t.comarca)).map((t, i) => {
     // (en los pueblos con su trazado, en su plaza, que es donde se levanta su maqueta)
     const [X, Z] = CENTROS[t.id] ? W(...mapaXY(...CENTROS[t.id])) : W(t.sx, t.sy), g = new THREE.Group();
-  // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
-  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 26 : TACTIL ? 48 : 96, nav: centro, aniso: Math.min(4, r.capabilities.getMaxAnisotropy()) });
     const bola = new THREE.Object3D(); bola.position.y = CRISTAL_Y;   // (el cristal: lo que se toca)
     g.add(bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
     let haz = null; if (t.here) { haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
@@ -840,7 +843,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // soltar, sigue un poco y frena. Dos dedos: pellizcar acerca o aleja hacia el punto de entre los dedos, que se queda debajo
   // de ellos, moverlos arrastra y girarlos gira. Al levantar uno, el otro sigue arrastrando
   const ptrs = new Map(); let arr = null, gesto = null, inercia = null;
-  const usado = () => { host.classList.add('m3-usado'); quietoDesde = performance.now(); paseo = null; };   // (la ayuda de los controles se va en cuanto se usan; y el paseo de dron se para)
+  const usado = () => { host.classList.add('m3-usado'); quietoDesde = performance.now(); paseo = null; islaDron = null; };   // (la ayuda de los controles se va en cuanto se usan; y el paseo de dron se para)
   const camT = new THREE.PerspectiveCamera(), sT = { x: 0, z: 0, d: 1, yaw: 0, pitch: 1, hy: 0.8 };
   const aNdcXY = (x, y) => { const b = cv.getBoundingClientRect(); return ndc.set((x - b.left) / b.width * 2 - 1, -((y - b.top) / b.height) * 2 + 1); };
   const sueloCon = (c, x, y) => { ray.setFromCamera(aNdcXY(x, y), c); return ray.ray.intersectPlane(plano, new THREE.Vector3()); };
@@ -1000,7 +1003,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.3, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.3, PITCH_ALTA = 0.74, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1060,7 +1063,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // norte a sur, como un dron: del Baztan y el Pirineo a la Ribera, y vuelve; se inclina para que se vea el relieve y se
   // mece un poco. Se para con cualquier toque, tecla o rueda y al elegir una comarca o un pueblo (se queda donde está), y
   // vuelve a los 10 s sin tocar nada. Antes Navarra se veía entera, pero pequeña encima de la tira de comarcas
-  let paseo = null, quietoDesde = performance.now(), paseoVisto = false;   // (la primera vez empieza a los 3 s)
+  let paseo = null, islaDron = null, quietoDesde = performance.now(), paseoVisto = false;   // (la primera vez empieza a los 3 s)
   // (sin paseo con «menos movimiento» en el sistema; ni en el navegador de las pruebas, como la entrada, salvo que lo pidan)
   const MOV_REDUCIDO = matchMedia?.('(prefers-reduced-motion: reduce)').matches || (navigator.webdriver && !window.__paseo);
   // (el recorrido: la línea por el medio de Navarra, de su punta norte a la sur, por los centros de las comarcas)
@@ -1078,6 +1081,15 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const d = base.d * 0.4, pitch = 0.74 + 0.04 * Math.sin(p.t * 0.21), yaw = 0.12 * Math.sin(p.t * 0.09);
     goal.x = mezcla(base.x, q.x, k); goal.z = mezcla(base.z, q.z, k); goal.d = Math.exp(mezcla(Math.log(base.d), Math.log(d), k));
     goal.pitch = mezcla(base.pitch, pitch, k); goal.yaw = mezcla(base.yaw, yaw, k);
+  }
+  // (y sobre la isla de la comarca elegida, ya vista desde arriba: un vuelo de dron suave, que la recorre despacio, se acerca
+  // y se aleja un poco y se mece; se para con cualquier toque, como el paseo. Lo pidió el autor: que la cámara acabe encima
+  // del territorio «con ese vuelo de dron»)
+  function sigueDronIsla(dt) {
+    const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed * 0.2, k = ease(Math.min(1, p.t / 3)), t = p.t;
+    goal.x = p.base.x + r * Math.sin(t * 0.11) * k; goal.z = p.base.z + r * 0.6 * Math.sin(t * 0.07 + 1) * k;
+    goal.d = p.base.d * (1 - 0.14 * (0.5 - 0.5 * Math.cos(t * 0.08)) * k);
+    goal.yaw = p.base.yaw + 0.16 * Math.sin(t * 0.09) * k; goal.pitch = p.base.pitch + 0.04 * Math.sin(t * 0.17) * k;
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -1111,7 +1123,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   function quitaVideoIsla(fundir) {
     if (!tv) return; const { vid } = tv; tv = null; capa.style.visibility = ''; capa.style.opacity = '';
     const fuera = () => { vid.pause(); vid.removeAttribute('src'); vid.load(); vid.remove(); };
-    if (fundir) { vid.style.transition = 'opacity .6s ease'; vid.style.opacity = '0'; setTimeout(fuera, 700); } else fuera();
+    if (fundir) { vid.style.transition = 'opacity 1.4s ease-in-out'; vid.style.opacity = '0'; setTimeout(fuera, 1500); } else fuera();   // (el paso al 3D, muy gradual: no se tiene que notar)
   }
   function videoIsla(c) {
     const P = VIDEOS_ISLA[c.id], A = (host.clientWidth || 1) / (host.clientHeight || 1);
@@ -1137,7 +1149,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const x of C) { x.lab.classList.toggle('sel', x.id === sel); x.lab.classList.toggle('fondo', !!sel && x.id !== sel); }
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
-    if (c) islaDe(c);
+    islaDron = null; if (c) { islaDe(c); c.vistaAlta = !fly; c.tAlta = 0; c.dronPend = false; }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); }
@@ -1293,6 +1305,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const linea = (pts, w, color) => { if (pts.length < 2) return; g.beginPath(); pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.lineWidth = Math.max(1, w * k); g.strokeStyle = color; g.lineCap = g.lineJoin = 'round'; g.stroke(); };
     const area = (pts, color) => { if (pts.length < 3) return; g.beginPath(); pts.forEach(([x, z], i) => { const [a, b] = P(x, z); i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.closePath(); g.fillStyle = color; g.fill(); };
     const casa = (b, dx, dz, color) => { g.save(); const [a, bb] = P(b.x + dx, b.z + dz); g.translate(a, bb); g.rotate(-b.ry); g.fillStyle = color; g.fillRect(-b.w * k / 2, -b.d * k / 2, b.w * k, b.d * k); g.restore(); };
+    // (con la ortofoto fina del pueblo, el suelo es la foto de verdad, con sus calles, sus tejados, sus huertas y su río: no
+    // se pinta nada encima, solo, en la maqueta, la sombra de las casas que se levantan. 13 de noviembre de 2026: el autor
+    // pidió la mayor definición posible, también en el zoom de los pueblos)
+    const Rf = foto && ORTO_PUEBLOS[D.id];
+    if (Rf) { g.filter = 'saturate(1.14) brightness(1.06)'; g.drawImage(foto, (R - Rf) * k, (R - Rf) * k, 2 * Rf * k, 2 * Rf * k); g.filter = 'none'; }
+    if (!Rf) {
     // (un velo claro bajo lo edificado, que de lejos se lee como el núcleo)
     if (velo) { g.filter = `blur(${Math.round(N / 50)}px)`; for (const b of D.casas) casa(b, 0, 0, 'rgba(246, 236, 214, .5)'); g.filter = 'none'; }
     // (en la maqueta, el suelo con su grano: motas de hierba más oscura y más clara, en un dibujo pequeño que se repite)
@@ -1305,12 +1323,6 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const rayas = new Map(), raya = (paso, ancho, color) => { const key = paso + ancho + color; let pt = rayas.get(key);
       if (!pt) { const t = document.createElement('canvas'), pp = Math.max(2, Math.round(paso * k)); t.width = pp; t.height = 2; const tg = t.getContext('2d'); tg.fillStyle = color; tg.fillRect(0, 0, Math.max(1, Math.round(ancho * k)), 2); rayas.set(key, pt = g.createPattern(t, 'repeat')); }
       return pt; };
-    // (con la ortofoto fina del pueblo, el suelo es la foto de verdad, con sus calles, sus tejados, sus huertas y su río: no
-    // se pinta nada encima, solo, en la maqueta, la sombra de las casas que se levantan. 13 de noviembre de 2026: el autor
-    // pidió la mayor definición posible, también en el zoom de los pueblos)
-    const Rf = foto && ORTO_PUEBLOS[D.id];
-    if (Rf) { g.filter = 'saturate(1.14) brightness(1.06)'; g.drawImage(foto, (R - Rf) * k, (R - Rf) * k, 2 * Rf * k, 2 * Rf * k); g.filter = 'none'; }
-    if (!Rf) {
     if (!velo) for (const u of D.usos || []) {
       const s0 = Math.abs(Math.sin(u.pts[0][0] * 12.9898 + u.pts[0][1] * 78.233)) % 1, ang = s0 * 180;
       const hileras = (paso, ancho, color) => { const pt = raya(paso, ancho, color); pt.setTransform(new DOMMatrix().rotateSelf(ang)); area(u.pts, pt); };
@@ -1344,6 +1356,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       for (const s of D.calles) linea(s.pts, 2 * (s.w || 2) - 0.6, s.t === 'trail' ? tierra : 1.2 * k >= 4 ? adoquin : motas);
     }
     for (const s of D.puentes || []) { linea(s.pts, 2 * (s.w || 2) + 2, 'rgba(90, 76, 62, .6)'); linea(s.pts, 2 * (s.w || 2), '#d6c8ae'); }
+    }
     // (en la maqueta, las mismas casas que se levantan, con los bloques grandes ya partidos: maqueta.js casasMaqueta. Si no,
     // bajo ellos quedaba su huella entera, una losa gris de hasta 130 m)
     const CS = velo ? D.casas : casasMaqueta(D);
@@ -1649,6 +1662,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (!libreP) { if (paseo) paseo = null; if (ptrs.size || keys.size || inercia || sel || elegido) quietoDesde = now; }
     else if (!paseo && now - quietoDesde > 10000 + (paseoVisto ? 0 : -7000)) { paseo = { t: 0, base: { ...goal } }; paseoVisto = true; }
     if (paseo) sigueDronNavarra(dt);
+    if (islaDron) { if (sel !== islaDron.c.id || vuelo || dron || elegido || ptrs.size || keys.size || inercia) islaDron = null; else sigueDronIsla(dt); }
     if (keys.size) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }
@@ -1729,16 +1743,25 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
-      c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
+      c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo * (1 - 0.6 * cieloK);
+      // (ya en el aire, y acabado su vídeo si lo hay, la cámara sube y mira más desde arriba: se ve el territorio entero, sus
+      // pueblos y sus montes; la vista de lado es para verla arrancarse. Si el jugador ya ha movido la cámara, no)
+      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.97 && !tv && !vuelo && !window.__sinVistaAlta) {   // (__sinVistaAlta: para sacar los fotogramas del vídeo) c.tAlta = (c.tAlta || 0) + dt;
+        if (c.tAlta > 1.3) { c.vistaAlta = true;
+          if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
+            volar({ x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3)), yaw: 0, pitch: PITCH_ALTA }, 1.8); c.dronPend = true; } } }
+      if (c.dronPend && sel === c.id && !vuelo) { c.dronPend = false; if (!MOV_REDUCIDO) islaDron = { c, t: 0, base: { ...goal } }; }
       if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam);
         c.mesh.material[1].visible = (c.isla.k || 0) < 0.02; }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
       // (y con el cielo, las paredes de todas, de roca: las de las vecinas se ven por el hueco, y Navarra flota como la isla)
       { const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.max(c.isla ? Math.min(1, c.isla.k || 0) : 0, cieloK * 0.9)); }
-      const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * c.fondo - 0.18 * c.lift;
-      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * c.fondo;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
-      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * c.fondo)
+      // (con una isla en el aire y el cielo de día, las demás no se quedan grises: guardan buena parte de su color de verdad)
+      const fv = c.fondo * (1 - 0.6 * cieloK);
+      const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * fv - 0.18 * c.lift;
+      u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, fv); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * fv;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
+      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
-      c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
+      c.rioM.opacity = 1 - 0.85 * fv; c.lagoM.opacity = 0.92 * (1 - 0.8 * fv); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
       const ok = c.top.uniforms.uOrtoDK; ok.value += ((det.get(c.id)?.orto ? 1 : 0) - ok.value) * (1 - Math.exp(-dt * 4));
     }
@@ -1757,9 +1780,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     hRef.c = ref; hRef.sy = ref?.sy; hRef.py = ref?.py;
     if (tv) { tv.t += dt;
       if (tv.fase === 'vuelo') {
-        if (!vuelo && tv.vid.readyState >= 3) { tv.fase = 'video'; tv.vid.style.opacity = '1'; capa.style.visibility = 'hidden'; const vv = tv.vid; vv.play().catch(() => { if (tv?.vid === vv) quitaVideoIsla(false); }); }
+        if (!vuelo && tv.vid.readyState >= 3) { tv.fase = 'video'; tv.vid.style.transition = 'opacity .5s ease'; tv.vid.style.opacity = '1'; capa.style.visibility = 'hidden'; const vv = tv.vid; vv.play().catch(() => { if (tv?.vid === vv) quitaVideoIsla(false); }); }
         else if (tv.t > 4.5) quitaVideoIsla(false);   // (no ha llegado: la isla sube como siempre)
-      } else if (tv.fin || tv.vid.ended || (tv.vid.duration && tv.vid.currentTime > tv.vid.duration - 0.55)) quitaVideoIsla(true);
+      } else if (tv.fin || tv.vid.ended || (tv.vid.duration && tv.vid.currentTime > tv.vid.duration - 1.35)) quitaVideoIsla(true);
     }
     { const f = tv && tv.fase === 'video' ? tv.fov : FOV0; if (Math.abs(cam.fov - f) > 1e-3) { cam.fov = tv ? f : cam.fov + (f - cam.fov) * (1 - Math.exp(-dt * 2)); cam.updateProjectionMatrix(); } }
     const ci = sel && byId.get(sel), fi = ci?.isla ? Math.min(1, ci.isla.k || 0) * Math.min(1, Math.max(0, (v.d - 8) / 10)) : 0;
@@ -1779,8 +1802,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // aire sobre el monte, y no el azul casi negro del fondo)
     // (con una isla en el aire, el fondo se vuelve un cielo azul con nubes, como en las imágenes del autor, y la niebla de lo
     // lejano, la bruma clara de ese cielo; al bajar, vuelve el fondo de siempre)
-    const kCielo = ci?.isla ? Math.min(1, Math.max(0, ci.isla.k || 0)) : 0; cieloK += (kCielo - cieloK) * (1 - Math.exp(-dt * 3));
+    cieloK = 1;
     cieloFondo.visible = cieloK > 0.004; cieloFondo.material.uniforms.uK.value = cieloK; cieloFondo.material.uniforms.uT.value = t; cieloFondo.position.copy(cam.position);
+    nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA);
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
     ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
     scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK * 0.85); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
@@ -1817,7 +1841,6 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)
-    nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA);
       e.op += (kN * f - e.op) * (1 - Math.exp(-dt * 5)); e.c.top.uniforms.uPK.value[e.slot] = e.op;
       e.op2 += ((maq?.e === e && maq.malla ? 0 : kC) * f - e.op2) * (1 - Math.exp(-dt * 5)); e.casas.material.opacity = e.op2; e.casas.visible = e.op2 > 0.01;
     }

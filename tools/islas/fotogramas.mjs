@@ -9,7 +9,7 @@ const [W, H] = (process.env.TAM || '1280x720').split('x').map(Number), I = +(pro
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: +(process.env.DPR || 1.5) })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 160)));
-await p.addInitScript(() => { window.__sinVideoIsla = true; localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'explorador', seen: { heroBenat: true, dog: true, comoJugar: true, intro: true } })); });
+await p.addInitScript(() => { window.__sinVideoIsla = window.__sinVistaAlta = true; localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'explorador', seen: { heroBenat: true, dog: true, comoJugar: true, intro: true } })); });
 await p.goto('http://127.0.0.1:5173/?skipintro=1', { timeout: 300000 });
 await p.waitForFunction(() => window.__mapa3d && document.querySelectorAll('.m3-chip').length > 3, null, { timeout: 300000 });
 await p.waitForTimeout(3000);

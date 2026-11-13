@@ -1765,32 +1765,63 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   bosque, maquetas a 512): eso queda solo para `?ligero` y el ordenador flojo (`BAJA`); el móvil, como el ordenador
   (medido con el perfil del iPhone: 165.000 triángulos y 112 llamadas). Las texturas de las comarcas, con filtro
   anisótropo hasta 8, para que no se emborronen de lado.
-- **La comarca elegida, una isla flotante** (`mapa3dIsla.js`, `hazIsla`, `texturasIsla` y `cieloShader`; `islaDe`,
-  `PITCH_ISLA`, `hyIsla`, `cieloFondo` y `CIELO` en `mapa3d.js`; 13 de noviembre de 2026): el autor quería que al elegir una
-  comarca subiera mucho más y se separase del mapa, como las islas flotantes de sus imágenes de referencia: una tierra en un
-  cielo azul con nubes, con una capa gruesa de césped en el canto y debajo roca caliza clara con estrías verticales. Sube casi
-  lo que mide de radio, con un muelle que se pasa un poco y vuelve, y se mece despacio. Por debajo le cuelga una panza de roca
-  poco honda, 0,4 veces su radio (`D`; la primera, de 0,85, y la segunda, de 0,62, llevaban demasiada tierra para el autor):
-  casi recta al principio y luego cerrándose hasta una punta roma, con estrías que se tuercen al bajar. La panza empieza justo
-  bajo lo más bajo de la comarca (`base`), y la pared de la comarca se esconde mientras está en el aire: así no sobra tierra.
-  El canto (`canto`) cubre la orilla con el césped, que asoma por encima del borde, su tierra y la caliza. Las texturas de la
-  roca y del césped son de Higgsfield (`src/assets/isla`), repetibles. La luz va pintada en cada cara, para que de lado no
-  salga negra. Mientras la isla está en el aire, el fondo pasa a un cielo azul con cúmulos (una esfera alrededor de la cámara
-  que se pinta antes que nada) y la niebla de lo lejano a la bruma de ese cielo; el suelo de alrededor de Navarra se queda de
-  día (`uCielo` en el suelo) y las paredes de todas las comarcas pasan a roca. Al bajar vuelve el fondo de siempre.
+- **La comarca elegida, una isla flotante** (`mapa3dIsla.js`, `hazIsla`, `texturasIsla`, `materialRoca` y `cieloShader`;
+  `islaDe`, `PITCH_ISLA`, `PITCH_ALTA`, `hyIsla`, `cieloFondo` y `CIELO` en `mapa3d.js`; 13 de noviembre de 2026): el autor
+  quería que al elegir una comarca subiera mucho más y se separase del mapa, como las islas flotantes de sus imágenes de
+  referencia, y luego, con realismo: «hiperrealismo». Sube casi lo que mide de radio, con un muelle que se pasa un poco y
+  vuelve, y se mece despacio. Es una pieza rígida: sale entera del hueco, que es su molde.
+  Cuánta tierra se arranca se calcula por lógica (lo pidió el autor): las montañas tienen raíz, la corteza es más gruesa
+  bajo las sierras, así que la pieza es tan honda como su relieve, lo que va del valle a las cumbres (sin el 2 % más bajo
+  ni el más alto), por 1,3, y nunca menos de 0,22 ni más de 0,5 veces su radio (`D`). Con el relieve exagerado del mapa
+  (`EXA`), de 400 m de roca en la Ribera Alta, una losa, a 1.330 m en el Pirineo; Pamplona, 880 m. La panza empieza justo
+  bajo lo más bajo de la comarca (`base`), casi recta al principio y luego cerrándose hasta una punta roma, con estrías que
+  se pierden hacia abajo, y la pared de la comarca se esconde mientras está en el aire. El canto (`canto`) cubre la orilla
+  con el césped, fino y de un verde apagado de prado (el primero era «verde fosforito» para el autor), su tierra y la roca.
+  La roca son fotos de verdad con su relieve (mapa de normales), de Poly Haven, CC0: caliza clara con estrías verticales
+  en la panza («Marble Cliff 04») y roca en estratos en las paredes del hueco («Cliff Side»); el césped, de Higgsfield
+  (`src/assets/isla`). `materialRoca` les da la luz en la propia isla, un sol de lado y la luz del cielo y la que rebota
+  del suelo, porque con las luces del mapa la roca de debajo salía negra.
   El hueco que deja en Navarra no da al cielo («debajo no hay cielo: es tierra más oscura; pon lógica geográfica», pidió el
-  autor): es el cráter de donde se arrancó la tierra, de unas 0,32 veces su radio de hondo (`DC`, al menos 1,8), con paredes
-  casi rectas de tierra bajo la orilla y luego roca cada vez más oscura, a capas y rota (`CR`), que se cierran abajo; en el
-  fondo se junta el agua en un lago verde oscuro, con ondas suaves y algo del cielo reflejado de lado (`LAGO`). Se ve solo por
-  la boca, con el búfer de plantilla (stencil, `stencil: true` en `stage.js`): se marca la boca donde se ve, se borra ahí la
-  profundidad y se pinta lo de dentro. El agua cae: donde un río sale de la comarca, por el borde de la isla; donde un río de
-  Navarra entraba en ella, por el borde del cráter, pegada a su pared, hasta el lago (los ríos van río abajo en los datos:
-  `salen` y `entran`, hasta cuatro de cada). Son columnas de ocho lados que de canto se desvanecen, con su rocío y la bruma
-  donde caen. Al despegarse cae un derrumbe de piedras con polvo por todo el borde, y luego se siguen soltando unas pocas cada
-  segundo, de la panza y del borde del cráter; las que llegan al fondo levantan polvo. Todo lo demás de la comarca (ríos,
-  árboles, chinchetas, nombres y maqueta) sigue su altura, `c.py`. La cámara la mira más de lado (`PITCH_ISLA` 0,3, y deja
-  bajar hasta 0,24) y apunta a media isla. La raya de la trashumancia se corta en su orilla. Para verlo: `isla.mjs` (con
-  `PITCH` y `DK`, una vista más desde arriba), `isla-flujo.mjs` e `isla-salir.mjs`.
+  autor): es el molde exacto de la panza (su misma geometría: pieza y hueco, el mismo volumen), a la altura del corte
+  (`CORTE`), con la roca a la sombra, oscura, más cuanto más honda; en lo más hondo se junta el agua en una charca verde
+  oscuro, con ondas de ruido, algo del cielo reflejado de lado y la orilla suave (`LAGO`; el fondo va liso, que si ondula
+  la orilla sale a dientes y a puntos). Se ve solo por la boca, con el búfer de plantilla (stencil, `stencil: true` en
+  `stage.js`): se marca la boca donde se ve, se borra ahí la profundidad y se pinta lo de dentro; la panza se pinta dos
+  veces, la de siempre y, dentro del hueco mientras sale de él, con la plantilla (`panzaA`). El agua cae: donde un río
+  sale de la comarca, por el borde de la isla; donde un río de Navarra entraba en ella, por el borde del hueco, pegada a su
+  pared (`porPared`), hasta la charca (los ríos van río abajo en los datos: `salen` y `entran`, hasta cuatro de cada). Son
+  columnas de ocho lados que de canto se desvanecen, con su rocío y la bruma donde caen. Al despegarse cae un derrumbe de
+  piedras con polvo por todo el borde, y luego se siguen soltando unas pocas cada segundo, de la panza y del borde del
+  hueco; las que llegan al fondo levantan polvo. Todo lo demás de la comarca (ríos, árboles, chinchetas, nombres y
+  maqueta) sigue su altura, `c.py`.
+  El mapa es de día desde el principio (`cieloK` vale siempre 1): cielo azul con cúmulos (una esfera alrededor de la cámara
+  que se pinta antes que nada), bruma de ese cielo a lo lejos, y la península de alrededor con su mar y su tierra, apenas
+  apagada (`uCielo` en el suelo). Antes el mapa era morado, de noche, y solo pasaba a ser de día con una isla en el aire;
+  el autor pidió que empezase ya «como un paisaje terrestre, con el cielo azul, el mar y la tierra». Con una comarca
+  elegida, las demás no se quedan grises: guardan buena parte de su color (`fv`), y las paredes de todas van de roca.
+  La cámara la mira primero de lado (`PITCH_ISLA` 0,3; se deja bajar hasta 0,24), para verla arrancarse, y cuando ya está
+  en el aire (y acabado su vídeo, si lo hay) sube sola a mirarla desde más arriba (`PITCH_ALTA` 0,74, `vistaAlta`): se ve
+  el territorio entero, con sus pueblos y sus montes; si el jugador ya ha movido la cámara, no. La raya de la trashumancia
+  se corta en su orilla. Para verlo: `isla.mjs` (con `PITCH` y `DK`), `isla-flujo.mjs`, `isla-salir.mjs` y `anim.mjs`, que
+  graba la animación fotograma a fotograma con un reloj propio.
+  El encaje de las piezas está comprobado con los datos (`comarcas-encaje.json`): cada linde entre dos comarcas es una sola
+  línea que comparten las dos (988 tramos, cada uno en dos comarcas justas y ninguno en tres), el borde de fuera es un
+  único anillo cerrado de 1.733 tramos y su área es la suma de las doce (250.104 unidades, sin huecos ni solapes); y
+  Navarra cae en la imagen de la península con la misma proyección (`mapaXY`), así que encaja en ella.
+- **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; `src/assets/isla/nubes.webp`; 13 de noviembre de 2026): el autor
+  pidió «nubes que se van apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y
+  textura, «no manchas blancas al uso» (la primera versión, unas capas planas de ruido, lo eran). Son cúmulos sueltos (96,
+  48 en el móvil y 26 en los equipos flojos): cada uno, una imagen de una nube de verdad con su bulto y su sombra (cuatro
+  distintas en una hoja con transparencia, de Higgsfield), puesta en su sitio en el espacio, entre 17 y 23 unidades de alto,
+  por encima de los montes y de la isla, y siempre de cara a la cámara. Así tienen perspectiva: las de cerca, grandes; las
+  de lejos, pequeñas y del color de la bruma; se tapan unas a otras y se mueven distinto al mover la cámara. Pasan despacio
+  con el viento por un campo de 340 unidades. Con Navarra entera a la vista casi no hay encima de ella, para que se lea el
+  mapa. Al acercarse la cámara (`abre`, de 112 a 42 de distancia), las de en medio se corren hacia fuera y se deshacen;
+  una de cada cinco se queda, a medias. Ninguna se pone delante de la cámara. Se ordenan de lejos a cerca cada imagen.
+- **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
+  con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
+  móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin
+  desenfoque al 55 %. (La clase no puede llamarse «ins»: ya hay otra con ese nombre que cambia la posición.)
 - **Vídeo de la isla** (`src/data/videos-isla.js`, `public/videos/islas/`, `videoIsla`, `quitaVideoIsla` y `tv` en
   `mapa3d.js`, `tools/islas/fotogramas.mjs`; 13 de noviembre de 2026): el autor pidió juntar Higgsfield con lo hecho para
   que el momento en que la tierra se arranca fuera espectacular. La primera vez que se elige una comarca que tiene vídeo, con
@@ -1798,11 +1829,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sacaron sus fotogramas, sin rótulos, con la isla quieta abajo. Cuando el vídeo ya puede reproducirse, se pone encima del
   lienzo, justo donde está el 3D (de alto, o de ancho cerrando un poco la cámara si la pantalla es más ancha que el vídeo), y
   la isla sube detrás. El vídeo empieza en ese mismo fotograma y acaba en el de la isla en el aire, así que al final se funde
-  en 0,6 s con el 3D sin que se note. Tocarlo lo salta; si no llega en 4,5 s, la isla sube como siempre. Cada vídeo se hace
+  con el 3D muy despacio, en 1,4 s y desde 1,35 s antes del final, sin que se note (el autor pidió que el paso del vídeo
+  al 3D fuese muy gradual); después la cámara sube a la vista alta y empieza su vuelo de dron (`sigueDronIsla`). Tocarlo lo salta; si no llega en 4,5 s, la isla sube como siempre. Cada vídeo se hace
   en Higgsfield (MiniMax H3 Max, 5 s, 768p, unos 12,5 créditos) con el primer y el último fotograma sacados del propio mapa
   (`fotogramas.mjs`, a 1280 × 720 por 1,5, que deja también la cámara para `videos-isla.js`), y se recomprime con
   `ffmpeg -an -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -profile:v main -movflags +faststart` (el de Pamplona,
-  1,2 MB). Sale a 1344 × 768 (1,75), algo recortado de lado respecto a 16:9 (`ar`). De momento solo Pamplona.
+  1,2 MB). Sale a 1344 × 768 (1,75), algo recortado de lado respecto a 16:9 (`ar`). De momento solo Pamplona. Si cambia
+  el aspecto de la isla o del mapa, hay que volver a sacar los fotogramas y rehacer el vídeo: su final tiene que ser el 3D.
 - **El color de verdad del suelo: la ortofoto** (`tools/relieve/ortofoto.py`, `src/data/mapa-orto.js`, `ORTO_K`, `quiereOrto`
   y `cargaOrto` en `mapa3d.js`, `tonoOrto` en `mapa3dSombreadores.js`; 13 de noviembre de 2026): el autor quería un mapa del
   inicio con calidad casi de mapa real. El relieve tomaba el color de una paleta por alturas, con parcelas, bosque y roca
@@ -1816,6 +1849,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   alrededor, crestas y barrancos. Lo pintado a mano (parcelas, bosque, roca y el tinte del clima) se apaga con ella
   (`pin`); la nieve, las nubes, los pueblos pintados y el tinte de cada comarca siguen. Para la web y el archivo único, como
   el relieve de detalle (`@orto-full` y `@orto-medio` en `vite.config.js`). Para verlo: `vista.mjs` e `isla.mjs`.
+- **La ortofoto fina de los pueblos** (`tools/relieve/ortofoto.py pueblos-bajar` y `pueblos-hacer`,
+  `tools/relieve/pueblos-lista.mjs`, `src/data/mapa-orto-pueblos.js`, `fotoPueblo` y `pintaNucleo` en `mapa3d.js`; 13 de
+  noviembre de 2026): el autor pidió la mayor definición posible, también en el zoom de los pueblos. La ortofoto de la
+  comarca va a 28 m por píxel y de cerca se emborronaba bajo el núcleo pintado. Ahora cada pueblo del mapa tiene la suya,
+  del PNOA en el nivel 18 (medio metro por píxel): el cuadrado de su núcleo, de lado 2R (R, su radio, casi siempre 700 m),
+  centrado en su centro y en sus mismos metros (los de `pueblo-real.py`), a 2.048 px (`hd/orto-pueblos`, 0,68 m por píxel)
+  y a 1.024 para el móvil y los equipos flojos (`hd/orto-pueblos-medio`). Se baja con los datos del pueblo, la primera vez
+  que se acerca la cámara, y es el suelo del lienzo de su núcleo y del de su maqueta: la foto de verdad, con sus calles,
+  sus tejados, sus huertas y su río, sin nada pintado encima salvo, en la maqueta, la sombra de las casas que se levantan.
+  Si no hay foto o no llega, el núcleo se pinta como antes. La lista de pueblos con su centro y su radio sale del propio
+  juego (`pueblos-lista.mjs`), y el radio de cada imagen va en `mapa-orto-pueblos.js`. En el archivo único no van
+  (`@orto-pueblos` apunta a una carpeta vacía en `vite.config.js`).
 - **Un solo navegador: la fila de las comarcas** (`enFila` en `inicio.js`; noviembre de 2026): la fila de abajo se queda
   siempre y lleva solo las comarcas. Al elegir una, su tarjeta se enciende y la fila se corre para que se vea; también al
   cambiarla arrastrando el mapa. Los pueblos se eligen en el mapa, en sus medallones, que con una comarca elegida se
