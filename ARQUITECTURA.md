@@ -1562,7 +1562,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     los pueblos, con frío, se enciende el fuego. Cada casa guarda la boca de su chimenea (`o.chimenea`, y `chim` en
     `TOWN.houses` y `VILLAGE.houses`) y el humo sale de ahí. Nevando humean casi ocho de cada diez casas, con un humo
     más denso, oscuro para que se vea contra el cielo gris, más alto y más largo; con lluvia, una de cada tres; con buen
-    tiempo, alguna cocina. Hasta 90 chimeneas, 45 en calidad baja, en un solo sistema de puntos y una sola llamada. Cada
+    tiempo, alguna cocina. Solo humea lo que tiene chimenea: las casas sencillas y los edificios de Pamplona, que no la
+    guardan, no. Hasta 90 chimeneas, 45 en calidad baja, en un solo sistema de puntos y una sola llamada. Cada
     una va a su ritmo, ondea un poco, se tumba con `VIENTO` y se pierde en la niebla (los fragmentos de niebla de three
     en el sombreador). Antes humeaban 14 casas como mucho, todas a la vez, flojo y desde el centro del tejado, hiciera
     el tiempo que hiciera. Y las chimeneas iban a media altura del faldón con una caña de 1,9 m, así que casi siempre

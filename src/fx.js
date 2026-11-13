@@ -138,10 +138,9 @@ const HUMO = {
 export class Smoke {
   constructor(scene, houses, { tiempo = 'clear', q = 'high' } = {}) {
     const H = HUMO[tiempo] || HUMO.clear, rnd = mulberry32(houses.length * 7919 + 13), max = q === 'low' ? 45 : 90;
-    // (las chimeneas de verdad; en Pamplona, que no las guarda, lo alto de la casa, como antes)
-    let bocas = houses.filter(h => h.chim).map(h => h.chim);
-    if (!bocas.length) bocas = houses.filter((_, i) => i % 3 === 0).map(h => ({ x: h.x, z: h.z, y: h.top ?? terrainHeight(h.x, h.z) + 11 }));
-    bocas = bocas.filter(() => rnd() < H.parte);
+    // (solo de las chimeneas de verdad: una casa sin chimenea, como las sencillas o los edificios de Pamplona, no humea.
+    // Antes, en Pamplona, el humo salía de lo alto del tejado)
+    let bocas = houses.filter(h => h.chim).map(h => h.chim).filter(() => rnd() < H.parte);
     if (bocas.length > max) { const paso = bocas.length / max; bocas = Array.from({ length: max }, (_, k) => bocas[Math.floor(k * paso)]); }
     this.H = H; this.spots = bocas.map(b => ({ ...b, f: rnd(), v: 0.85 + rnd() * 0.3, g: 0.8 + rnd() * 0.45 }));
     const n = Math.max(1, this.spots.length * H.n);
