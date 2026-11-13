@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
+import { hazNubes } from './mapa3dNubes.js';
 import { VIDEOS_ISLA } from '../data/videos-isla.js';
 import { puedenVideos } from '../ui/videos.js';
 import { escala } from '../util/tele.js';
@@ -476,6 +477,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const T = o.towns.filter(t => byId.has(t.comarca)).map((t, i) => {
     // (en los pueblos con su trazado, en su plaza, que es donde se levanta su maqueta)
     const [X, Z] = CENTROS[t.id] ? W(...mapaXY(...CENTROS[t.id])) : W(t.sx, t.sy), g = new THREE.Group();
+  // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 26 : TACTIL ? 48 : 96, nav: centro, aniso: Math.min(4, r.capabilities.getMaxAnisotropy()) });
     const bola = new THREE.Object3D(); bola.position.y = CRISTAL_Y;   // (el cristal: lo que se toca)
     g.add(bola); g.position.set(X, 0, Z); g.scale.setScalar(0.01); scene.add(g);
     let haz = null; if (t.here) { haz = new THREE.Mesh(hazG, hazM); haz.position.set(X, 6, Z); haz.scale.y = 0.01; scene.add(haz); }
@@ -1801,6 +1804,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)
+    nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA);
       e.op += (kN * f - e.op) * (1 - Math.exp(-dt * 5)); e.c.top.uniforms.uPK.value[e.slot] = e.op;
       e.op2 += ((maq?.e === e && maq.malla ? 0 : kC) * f - e.op2) * (1 - Math.exp(-dt * 5)); e.casas.material.opacity = e.op2; e.casas.visible = e.op2 > 0.01;
     }
