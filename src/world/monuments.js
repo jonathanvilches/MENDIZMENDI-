@@ -583,6 +583,25 @@ export function landmark(B, lm, ctx) {
       B.add('woodDark', box(0.14, 1.3, 0.14), MM(T, M(4.2, 0.65, 0))); B.add('wood', box(1.1, 0.7, 0.08), MM(T, M(4.2, 1.35, 0.08, -0.2)));
       addCircle(x + 4.2, z, 0.4); return { x: x + 3, z: z + 4 };
     }
+    case 'castildetierra': {
+      // el pie (la ladera de arcilla que se desmorona), el cuello estrecho y el sombrero de roca dura que vuela por fuera;
+      // con vetas blancas y ocres, como las capas de arcilla, yeso y arenisca de la Bardena Blanca, y los regueros que abre
+      // la lluvia en la arcilla (surcos de arriba abajo, más hondos en la ladera)
+      const P = [[14, 0], [10.5, 2.5], [7.5, 5], [5.2, 8], [3.8, 11], [3, 14], [2.6, 17], [2.4, 19.2], [2.8, 20.2], [4.6, 20.6], [4.9, 21.6], [4.6, 22.6], [3.2, 23.3], [0, 23.5]];
+      const pts = []; for (let i = 0; i < P.length - 1; i++) { const [r0, y0] = P[i], [r1, y1] = P[i + 1], n = Math.max(1, Math.ceil(Math.abs(y1 - y0) / 0.6)); for (let j = 0; j < n; j++) pts.push([r0 + (r1 - r0) * j / n, y0 + (y1 - y0) * j / n]); }
+      pts.push(P[P.length - 1]);
+      const g = new THREE.LatheGeometry(pts.map(([r, y]) => new THREE.Vector2(r, y)), 28), pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color(), VETA = ['#d8c9a8', '#c9ad80', '#e6dcc6', '#bfa47a'];
+      for (let i = 0; i < pos.count; i++) {
+        const px = pos.getX(i), py = pos.getY(i), pz = pos.getZ(i), th = Math.atan2(pz, px), cap = py > 20.4;
+        const k = cap ? 1 + 0.06 * Math.sin(5 * th + 1.3) + 0.04 * Math.sin(11 * th) : 1 - (0.12 * Math.max(0, Math.sin(9 * th + py * 0.15)) ** 2 + 0.05 * Math.sin(17 * th + 2)) * Math.min(1, Math.max(0, (20 - py) / 6));
+        pos.setX(i, px * k); pos.setZ(i, pz * k);
+        c.set(cap ? '#8f7a5c' : VETA[Math.floor(py / 1.3) % 4]).multiplyScalar(0.9 + 0.1 * Math.sin(th * 3 + py));
+        col.set([c.r, c.g, c.b], i * 3);
+      }
+      g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
+      B.add('paint', g, MM(T, M(0, -0.6, 0))); addCircle(x, z, 8);
+      return { x, z: z + 18 };
+    }
     case 'rocks': {
       for (const s of [-1, 1]) { B.add('stoneDark', new THREE.CylinderGeometry(3, 5, 26, 7), MM(T, M(s * 9, 12, 0))); B.add('stoneDark', new THREE.DodecahedronGeometry(4, 0), MM(T, M(s * 9, 25, 0))); addCircle(x + s * 9, z, 5); }
       return { x, z: z + 7 };

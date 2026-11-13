@@ -30,6 +30,8 @@ const TONES = {
   // la selva (Irati, Orgi, Bertiz): verdes hondos y húmedos y roca con musgo; la caliza (Urbasa, Aralar): roca clara
   selva: { grassA: '#3f8432', grassB: '#6a9c3e', grassDry: '#8a9a4a', meadow: '#5fa63c', lush: '#3a7f2c', forest: '#33521f', litter: '#5e4426', rock: '#7f8379', rockDark: '#5e625a' },
   karst: { grassA: '#5f9a3e', grassB: '#8aae50', grassDry: '#aaa860', meadow: '#72ac44', rock: '#b7b2a6', rockDark: '#918c80', forest: '#3e5e27' },
+  // las Bardenas: arcilla y yeso, blancos y grises de la Bardena Blanca con vetas ocres; casi sin hierba
+  bardena: { grassA: '#b8a983', grassB: '#cbbd96', grassDry: '#ddd1ae', meadow: '#a9a174', hay: '#d8c99a', cut: '#e3d7b2', cut2: '#d6c79f', soil: '#c9b690', rock: '#e4dac5', rockDark: '#b9a786', gravel: '#d6cab0', forest: '#6e7748', mud: '#a8916c', snow: '#efe6d2' },
   arid: { grassA: '#8f9a52', grassB: '#b2ac68', grassDry: '#d6c38a', meadow: '#98a353', hay: '#d0bb70', cut: '#decb8c', cut2: '#cfb876', soil: '#9b7a50', rock: '#c2ab82', rockDark: '#a58c66', gravel: '#b7a88a', forest: '#5d6e3a', snow: '#e9d9b8' },
 };
 let PAL = {};
@@ -164,8 +166,8 @@ function empaca(g) {
 
 // el suelo del bosque según la zona (de norte a sur): lo que el musgo tapa la hojarasca (uMoss, en el sombreador) y lo que
 // el color de base tira al pardo de la hoja caída
-const MUSGO = { selva: 0.72, lush: 0.68, karst: 0.62, alpine: 0.55, dry: 0.1, arid: -0.06 };
-const HOJARASCA = { selva: 0.06, lush: 0.08, karst: 0.12, alpine: 0.18, dry: 0.45, arid: 0.5 };
+const MUSGO = { selva: 0.72, lush: 0.68, karst: 0.62, alpine: 0.55, dry: 0.1, arid: -0.06, bardena: -0.3 };
+const HOJARASCA = { selva: 0.06, lush: 0.08, karst: 0.12, alpine: 0.18, dry: 0.45, arid: 0.5, bardena: 0.1 };
 function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
   const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
   queueMicrotask(() => snowable(m, 0.85));   // nieve en el suelo (después del sombreador del terreno)
@@ -193,7 +195,7 @@ function makeTerrainMaterial({ outer = false, quality = 'high' } = {}) {
     sh.uniforms.uLitter = { value: new THREE.Vector3(...(TONE === 'dry' || TONE === 'arid' ? [1.1, 1.02, 0.8] : [1, 1, 1])) };
     sh.uniforms.uRock = { value: rockCol };
     sh.uniforms.uSnowY = { value: TONE === 'alpine' ? cota(2150, 212) : 1e5 };   // cota de la nieve perpetua (solo en el Pirineo)
-    sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], karst: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47] })[TONE] || [0.46, 0.62])) };
+    sh.uniforms.uRockSlope = { value: new THREE.Vector2(...(({ alpine: [0.3, 0.44], karst: [0.3, 0.44], dry: [0.36, 0.5], arid: [0.33, 0.47], bardena: [0.2, 0.32] })[TONE] || [0.46, 0.62])) };
     sh.defines = sh.defines || {};
     if (outer) sh.defines.OUTER = 1;
     if (quality === 'low') sh.defines.LOWQ = 1;   // móvil: menos lecturas de textura por píxel

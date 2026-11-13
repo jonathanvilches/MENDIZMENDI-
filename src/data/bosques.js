@@ -8,6 +8,7 @@ const GUARDA = { shirt: '#4f6b3a', vest: '#3f5530', pants: '#3f4a33', hair: '#2a
 const GUARDESA = { ...GUARDA, hair: '#6b3b1f', bun: true, female: true };
 const PASTOR = { txapela: '#1d1d24', shirt: '#efe9dc', vest: '#2d2b33', pants: '#3a3530', staff: true, hair: '#d6d0c6', moustache: '#ece8e0', old: true };
 const AMONA = { shirt: '#3d3350', skirt: '#2a2440', pants: '#2a2440', hair: '#dcd7cf', old: true, bun: true, female: true, staff: true };
+const BARDENERA = { shirt: '#d8c39a', vest: '#7a5a3a', pants: '#6b5a44', hat: 'straw', hair: '#3a2418', ponytail: true, female: true, bag: '#8a6a3a' };
 const ARQUEO = { shirt: '#c9a46a', vest: '#4a5a3a', pants: '#5a4a3a', hair: '#3b2418', ponytail: true, female: true, hat: 'straw', bag: '#7a5a3a' };
 
 export const BOSQUES = [
@@ -168,6 +169,26 @@ export const BOSQUES = [
         hint: 'Las truchas saltan en el Bidasoa; el pito negro, en los troncos de las hayas.', outro: '¡Genial! Cuando se cuida un bosque, los animales vuelven.' },
       { type: 'trade', kind: 'carbonero', title: 'Carbón para las ferrerías', host: H('Joxe Mari, carbonero', { shirt: '#4a4540', pants: '#2b2630', hair: '#2a2a2a', beard: '#2a2a2a', txapela: '#1d1d24' }),
         text: 'Antes, en los montes del Bidasoa se hacía carbón con la leña para las ferrerías, donde se trabajaba el hierro. Por eso se cortaban tantos árboles. Aprende cómo se levantaba una carbonera.' },
+      { type: 'quiz' },
+    ] },
+  // las Bardenas Reales: el desierto de Navarra, en la Ribera (data/bardenas: notas de las fuentes, en ARQUITECTURA.md)
+  { id: 'bardenas-reales', name: 'Bardenas Reales', comarca: 'ribera', family: 'ribera', relief: 'plain', size: 1, bosque: 'bardenas', lat: 42.19, lon: -1.49,
+    sky: ['buitre', 'alimoche', 'buitre', 'aguila', 'alimoche', 'milano'],   // (las aves de su cielo: las de la Ribera son cigüeñas)
+    intro: 'El desierto de Navarra: unas 40.000 hectáreas de cabezos, barrancos y llanuras de arcilla y yeso que el agua y el cierzo llevan millones de años tallando. Es parque natural desde 1999 y Reserva de la Biosfera de la UNESCO desde 2000.',
+    church: { name: 'Corral de pastores', style: 'borda', label: 'Corral', text: 'Las corralizas de piedra y adobe donde los pastores que bajan del Pirineo guardan sus ovejas durante el invierno.' },
+    landmarks: [
+      { kind: 'castildetierra', name: 'Castildetierra', text: 'El cabezo más famoso de las Bardenas, en la Bardena Blanca: una chimenea de tierra con un sombrero de roca dura. La roca de arriba hace de paraguas y protege la arcilla blanda de abajo. La lluvia y el cierzo lo van gastando, y un día se caerá.' },
+    ],
+    missions: [
+      { type: 'visit' },
+      { type: 'observe', species: ['buitre', 'alimoche', 'aguila', 'milano'], n: 3, title: 'Alas sobre el desierto', host: H('Nerea, guarda de las Bardenas', BARDENERA),
+        story: ['Las Bardenas tienen tres partes: al norte, El Plano, con campos de cereal; en el centro, la Bardena Blanca, la más gastada por el agua y el viento; y al sur, la Bardena Negra, más verde, con pinos.', 'Parece que aquí no vive nadie, pero el cielo está lleno de alas. En los cortados anidan más de cien parejas de buitres leonados, y en primavera llega el alimoche desde África.', 'En el suelo, entre las matas, se esconden aves de estepa como el sisón y las gangas. Hay que mirar con mucha paciencia.'],
+        text: 'Busca con los prismáticos tres aves de las Bardenas: el buitre leonado, el alimoche, el águila real o el milano real.',
+        hint: 'Los buitres y el águila planean altos sobre los cabezos; el alimoche es más pequeño, blanco con las puntas de las alas negras.', outro: '¡Muy bien! Las Bardenas son uno de los mejores sitios de Navarra para ver aves de estepa y rapaces.' },
+      { type: 'herd', animal: 'sheep', n: 6, title: 'Llegan las ovejas del Roncal', host: H('Fermín, pastor roncalés', PASTOR),
+        text: 'Cada otoño, hacia el 18 de septiembre, las ovejas del valle de Roncal y de Salazar entran en las Bardenas después de una semana andando por la Cañada Real de los Roncaleses, unos 135 kilómetros. Aquí pasan el invierno, con menos frío y más pasto que en el Pirineo. Los roncaleses fueron los primeros en tener derecho a este pasto. Lleva las ovejas al corral.' },
+      { type: 'race', kind: 'bardena', title: 'Los caminos de Sanchicorrota', host: H('Txomin, bardenero', { ...PASTOR, hair: '#2a1a12', moustache: '#2a1a12', old: false }),
+        text: 'Cuenta la leyenda que hace más de quinientos años un bandolero, Sanchicorrota, el rey de las Bardenas, conocía cada barranco y cada cueva, y que repartía entre los pobres lo que quitaba a los viajeros ricos. Recorre sus caminos hasta su cueva antes de que lleguen los guardias del rey.' },
       { type: 'quiz' },
     ] },
   { id: 'sotos-ebro', name: 'Sotos del Ebro', comarca: 'ribera', family: 'ribera', relief: 'plain', size: 2, bosque: 'sotos', lat: 42.165, lon: -1.665,

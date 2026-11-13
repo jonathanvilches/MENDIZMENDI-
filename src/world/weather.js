@@ -93,7 +93,7 @@ void main() {${wrap.replaceAll('SPEED', '1.6').replaceAll('DRIFT', '0.03').repla
 export function pickWeather(def, rnd = Math.random) {
   const q = new URLSearchParams(location.search).get('weather');
   if (q) return q;
-  if (def?.bosque) return 'niebla';   // (los bosques: niebla que se espesa monte adentro)
+  if (def?.bosque) return def.bosque === 'bardenas' ? 'clear' : 'niebla';   // (los bosques: niebla que se espesa monte adentro; en las Bardenas, sol y cierzo)
   if (def?.special) return 'clear';
   const c = def?.comarca, r = rnd();
   // en el norte nieva a menudo (más en el Pirineo): tejados blancos, niebla baja y copos

@@ -91,7 +91,7 @@ const TRADE = {
 const _to = new THREE.Vector3();   // (vector de trabajo de los bocadillos)
 // nombre del guía del pueblo, nunca el mismo que el de quien juega («Guía Ane: ¡Kaixo, Ane!» confundía)
 const guideName = (g, me = '') => (g ? ['Ane', 'Maite'] : ['Iker', 'Unai']).find(n => n.toLowerCase() !== String(me).trim().toLowerCase());
-const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'], senda: ['La senda del bosque', 'footprint', 'Sigue la senda del bosque'] };
+const RACE = { camino: ['El Camino de Santiago', 'camino', 'Sigue las conchas y flechas amarillas'], almadia: ['Bajada en almadía', 'raft', 'Guía la almadía por el río'], encierro: ['Carrera del encierro', 'bull', '¡Corre delante de los toros!'], romeria: ['Romería', 'footprint', 'Sube por el camino de los romeros'], bici: ['Vía verde', 'bike', 'Recorre el viejo trazado del tren'], senda: ['La senda del bosque', 'footprint', 'Sigue la senda del bosque'], bardena: ['Los caminos de la Bardena', 'footprint', 'Corre por los barrancos de la Bardena'] };
 // Paletas de trajes para los vecinos según la zona
 const PALETTE = {
   atlantic: { shirts: ['#f4f1ea', '#e8e0cc', '#c9d8e6', '#d9e4c8'], pants: ['#2b2630', '#3a3530', '#1d2a4a'], extras: ['#d42f2f', '#2b5a3a', '#1d1d24'] },

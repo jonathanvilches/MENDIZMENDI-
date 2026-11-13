@@ -1130,6 +1130,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   jugando cada una se descubre al hacer su misión, o la de una comarca al visitar uno de sus pueblos. La que falta sale
   apagada con su candado y dice dónde descubrirla; su ficha solo cuenta cómo y sus pueblos. Arriba, cuántas van
   descubiertas. La pelota, las campanas y lo que no está en ningún pueblo del juego se ven desde el principio.
+- **Bardenas Reales** (`data/bosques.js`, `bardenas-reales`; noviembre de 2026): el desierto de Navarra como paraje de la
+  Ribera, con la clase de monte `bardenas` (`levels/town.js`): llano de arcilla y yeso casi sin árboles y unos 40 cabezos,
+  mesas de techo plano y laderas empinadas con el borde mordido (`CABEZOS` en `bosqueH`), que se quitan si caen encima de
+  un sitio de la misión, del corral o de las sendas, y a más de 55 m de Castildetierra, que se alza solo en el llano. Suelo
+  `bardena` (`world/terrain.js`: blancos y grises de la Bardena Blanca con vetas ocres) y la roca de los cabezos a la
+  vista (`rockMask`). Castildetierra (`world/monuments.js`): la chimenea de arcilla con su sombrero de roca dura, con
+  vetas y regueros. Sol en vez de la niebla de los bosques (`weather.js`) y corralizas de una planta (`townBuilder.js`).
+  Su cielo (`def.sky`, en `actors/animals.js` y `townCimas.js`): buitres, alimoches, águila real y milano; el alimoche es
+  ave nueva (`actors/beasts.js`). Misiones: las aves, las ovejas del Roncal que bajan por la Cañada Real (hacia el 18 de
+  septiembre), los caminos de Sanchicorrota (carrera `bardena`) y el sabio. Portada, la lámina «Las Bardenas»
+  (`BOSQUE_LAMINA`). Fuentes de los datos: Parque Natural (1999), Reserva de la Biosfera (2000), unas 40.000 ha.
 - **Frontones de Navarra** (`hub/frontones.js`, `s_frontones`, en «Más» y en el material didáctico; datos en
   `data/frontones.js` y `data/frontones-pueblos.json`; fotos en `assets/frontones` con su `LICENCIAS.md`): la galería de
   `ddgal.js` con seis pestañas. «Con historia»: el Labrit (1952), el Navarra Arena (2018), el Euskal Jai Berri (1977), el

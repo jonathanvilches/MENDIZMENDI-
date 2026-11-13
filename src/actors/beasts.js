@@ -594,6 +594,18 @@ export const BIRDS = {
     wing: wing({ span: 1.0, chord: 0.46, tipChord: 0.7, fingers: 6, fingerLen: 0.3, cov: '#5a4030', flight: '#2a1e16', dihedral: 0.14 }),
     root: 0.09, flap: 0.16, speed: 1.9, scale: 1,
   }),
+  // Alimoche: el buitre pequeño (1,6 m de envergadura), blanco sucio con las remeras negras, la cara amarilla sin plumas y
+  // la cola en cuña, blanca; llega de África en primavera y cría en los cortados (en las Bardenas, en los cabezos)
+  alimoche: () => ({
+    body: mergeAll([
+      loft({ pts: [V(0, 0, -0.3), V(0, 0.01, -0.14), V(0, 0.02, 0.08), V(0, 0.03, 0.22)], r: [[0.05, 0.015, 0.015], [0.09, 0.07, 0.08], [0.095, 0.07, 0.085], [0.065, 0.06, 0.06]], color: '#ece4d4', tex: 7, ring: 16 }),
+      loft({ pts: [V(0, 0.03, 0.22), V(0, 0.04, 0.3), V(0, 0.03, 0.36)], r: [[0.06, 0.055, 0.055], [0.045, 0.042, 0.042], [0.025, 0.022, 0.022]], color: (u) => u > 0.45 ? C('#e8b830') : C('#efe8da'), tex: 7, ring: 14, bump: (u, th, p) => u < 0.4 ? 0.02 * vnoise3(p.x * 40, p.y * 40, p.z * 40) : 0 }),
+      loft({ pts: [V(0, 0.03, 0.36), V(0, 0.02, 0.41), V(0, -0.01, 0.43)], r: [[0.014, 0.016, 0.01], [0.01, 0.011, 0.006], [0.003, 0.003, 0.002]], color: '#2a2622', tex: 4, ring: 10 }),
+      (() => { const sh = new THREE.Shape(); sh.moveTo(-0.05, 0); sh.lineTo(0.05, 0); sh.lineTo(0.11, -0.2); sh.lineTo(0, -0.34); sh.lineTo(-0.11, -0.2); sh.closePath(); const g = new THREE.ShapeGeometry(sh); g.rotateX(Math.PI / 2); return prep(g, '#e6dece', 7, Mx(0, 0, -0.26)); })(),
+    ]),
+    wing: wing({ span: 0.82, chord: 0.36, tipChord: 0.6, fingers: 5, fingerLen: 0.24, cov: '#e8e0d0', flight: '#1e1b18', dihedral: 0.04 }),
+    root: 0.07, flap: 0.18, speed: 1.9, scale: 1,
+  }),
   // Cigüeña blanca: blanca con remeras negras, cuello estirado, pico y patas rojas que asoman por detrás
   ciguena: () => ({
     body: mergeAll([

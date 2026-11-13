@@ -254,7 +254,7 @@ export class PuebloCimas {
   // aves que vuelan delante del mirador: las del cielo de la comarca y las que pide la misión de las aves (con modelo)
   panoBirdKinds() {
     const M = this.missions.find(x => x.type === 'observe'), want = [].concat(M?.species || []).filter(k => k in BIRDS);
-    const sky = SKY[this.def.comarca] || ['buitre', 'milano'];
+    const sky = this.def.sky || SKY[this.def.comarca] || ['buitre', 'milano'];
     return [...new Set([...want, ...sky])];
   }
   // montes que se ven desde el mirador: los de la misión o, si no la hay, los cuatro más vistosos desde el pueblo

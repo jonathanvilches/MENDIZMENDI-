@@ -133,7 +133,7 @@ export const PERSONAJE_LAMINA = { sancho: 'orreaga-roncesvalles', golondrinas: '
 export const OFICIO_LAMINA = { herrero: 'of-herreria', palomero: 'etxalar-palomeras', cantero: 'puente-cantero', aizkolari: 'leitza-aizkolari', harrijasotzaile: 'leitza-harrijasotzaile', alpargatero: 'of-alpargatas', cestero: 'of-cesteria', carbonero: 'aribe-carbonera', hilandera: 'of-telar', panadero: 'of-pan', tonelero: 'viana-tonelero' };
 // la portada de cada bosque que no tiene la suya, con su mismo id, por orden (si en esta versión falta la primera, la
 // siguiente; si no, la de su comarca). Orgi, Bertiz y los sotos ya tienen la suya: estas quedan para donde no esté
-export const BOSQUE_LAMINA = { 'selva-irati': ['aribe-irati'], 'sierra-urbasa': ['c-urbasa'], 'sierra-aralar': ['c-aralar'], 'bosque-orgi': ['c-setas'], 'senorio-bertiz': ['c-bidasoa-aves', 'c-baztan'], 'sotos-ebro': ['c-pitillas'] };
+export const BOSQUE_LAMINA = { 'selva-irati': ['aribe-irati'], 'sierra-urbasa': ['c-urbasa'], 'sierra-aralar': ['c-aralar'], 'bosque-orgi': ['c-setas'], 'senorio-bertiz': ['c-bidasoa-aves', 'c-baztan'], 'sotos-ebro': ['c-pitillas'], 'bardenas-reales': ['c-bardenas'] };
 // la de la cabecera de cada comarca: su paisaje (o, si no tiene, la de un pueblo suyo)
 export const COMARCA_LAMINA = { bidasoa: 'c-baztan', 'larraun-leitzaldea': 'c-aralar', pirineo: 'c-pirineos', sakana: 'c-sakana', pamplona: 'pamplona-murallas', prepirineo: 'c-prepirineo', sanguesa: 'lumbier', 'tierra-estella': 'c-vendimia', 'valdizarbe-novenera': 'puente-la-reina', 'zona-media': 'c-cereal', 'ribera-alta': 'c-pitillas', ribera: 'c-bardenas' };
 

@@ -287,7 +287,7 @@ export class Fauna {
     this.vultures = []; this.farView = false;
     const gorge = (P.landmarks || []).find(l => l.kind === 'gorge');
     // (con los prismáticos tiene que haber aves que buscar: las del cielo de la comarca y unas cuantas más)
-    const sky = SKY[com] || ['buitre', 'milano'], list = [...sky, ...sky.slice(0, 3)];
+    const sky = spec.def.sky || SKY[com] || ['buitre', 'milano'], list = [...sky, ...sky.slice(0, 3)];
     list.forEach((k, i) => {
       const o = bird(k); scene.add(o);
       const low = k === 'ciguena' || k === 'milano';

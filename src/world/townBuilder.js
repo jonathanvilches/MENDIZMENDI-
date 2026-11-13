@@ -170,6 +170,8 @@ export function buildTown(scene, mats, def) {
     let s = 2 + rnd() * 4;
     while (s < L - 3 && count < cap) {
       const st = houseStyle(fam, rnd); if (def.bosque) st.h = [5.8, 6.8];   // (en el bosque, casas bajas: la del guarda, la borda)
+      // (en las Bardenas no hay pueblo: corralizas de una planta, de adobe encalado de ocre o de piedra, sin balcones)
+      if (def.bosque === 'bardenas') Object.assign(st, { wall: rnd() < 0.6 ? 'plasterOcher' : 'stone', noQuoins: true, h: [3.6, 4.3], gallery: false, ironBalcony: false, balcony: false, roofType: 'gableX', pitch: 0.3 });
       const w = (st.wide ? 9 : 7) + rnd() * 3.5, d = 7.5 + rnd() * 3, h = st.h[0] + rnd() * (st.h[1] - st.h[0]);
       const a = polyAt(path.pts, s + w / 2);
       const nx = -a.tz * side, nz = a.tx * side;

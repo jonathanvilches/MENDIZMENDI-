@@ -393,7 +393,7 @@ vec4 triR(vec3 p, vec3 bw, float s) { return texture2D(tRock, p.zy / s) * bw.x +
   m.customProgramCacheKey = () => 'rock-tri' + (low ? '-low' : '');
   return m;
 }
-const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684', selva: '#7d8076', karst: '#bab5a9' };
+const ROCK_TINT = { alpine: '#8f8d88', lush: '#8a8a80', dry: '#a39a88', arid: '#b8a684', selva: '#7d8076', karst: '#bab5a9', bardena: '#ddd2bc' };
 
 function makeOlive(rnd, detail) {
   // tronco retorcido y copa gris verdosa
