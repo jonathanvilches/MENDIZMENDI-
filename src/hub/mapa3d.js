@@ -10,6 +10,8 @@
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
+import { VIDEOS_ISLA } from '../data/videos-isla.js';
+import { puedenVideos } from '../ui/videos.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
@@ -1090,15 +1092,44 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     volar({ x: mx, z: mz, d: Math.max(22, encaja(esq, mx, mz, PITCH_C, 1)), yaw: 0, pitch: PITCH_C });
   }
   // ---------- elegir una comarca: vuela hasta ella y se levanta ----------
+  // ---------- el vídeo de la isla (Higgsfield) ----------
+  // La primera vez que se elige una comarca que lo tiene, en una pantalla apaisada: la cámara va a la vista con que se
+  // sacaron los fotogramas del vídeo, con la isla aún abajo y sin rótulos; ahí el vídeo se pone encima del mapa (debajo de
+  // los rótulos y de lo de encima) y, mientras se ve, la isla sube de verdad detrás; al acabar se funde y queda el 3D, que
+  // está igual que su último fotograma. Tocarlo lo salta. Si no llega a tiempo, la isla sube como siempre (13 de noviembre de
+  // 2026: el autor pidió juntar Higgsfield con el mapa para que la tierra se desprenda)
+  const vistosV = new Set(), FOV0 = cam.fov; let tv = null;
+  function quitaVideoIsla(fundir) {
+    if (!tv) return; const { vid } = tv; tv = null; capa.style.visibility = ''; capa.style.opacity = '';
+    const fuera = () => { vid.pause(); vid.removeAttribute('src'); vid.load(); vid.remove(); };
+    if (fundir) { vid.style.transition = 'opacity .6s ease'; vid.style.opacity = '0'; setTimeout(fuera, 700); } else fuera();
+  }
+  function videoIsla(c) {
+    const P = VIDEOS_ISLA[c.id], A = (host.clientWidth || 1) / (host.clientHeight || 1);
+    if (!P || vistosV.has(c.id) || !puedenVideos() || A < 1.3 || SUAVE || COL || window.__sinVideoIsla) return false;   // (__sinVideoIsla: para sacar sus fotogramas)
+    vistosV.add(c.id);
+    const vid = document.createElement('video'); vid.className = 'm3-vi'; vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
+    vid.setAttribute('playsinline', ''); vid.setAttribute('muted', ''); vid.src = `./videos/islas/${c.id}.mp4`;
+    // (de alto, todo el mapa, como la cámara; si la pantalla es más ancha que el vídeo, de ancho, y la cámara se cierra un poco)
+    const w = A <= P.ar ? P.ar / A * 100 : 100, h = A <= P.ar ? 100 : A / P.ar * 100;
+    Object.assign(vid.style, { width: w + '%', height: h + '%', left: (100 - w) / 2 + '%', top: (100 - h) / 2 + '%', opacity: '0' });
+    cv.after(vid);
+    vid.addEventListener('pointerdown', (e) => { e.stopPropagation(); if (tv?.vid === vid && tv.fase === 'video') tv.fin = true; });
+    tv = { c, vid, fase: 'vuelo', t: 0, fov: 2 * Math.atan(Math.tan(FOV0 * Math.PI / 360) * Math.min(1, P.ar / A)) * 180 / Math.PI };
+    capa.style.transition = 'opacity .4s'; capa.style.opacity = '0';
+    volar({ x: P.x, z: P.z, d: P.d, yaw: P.yaw, pitch: P.pitch }, 1.1);
+    return true;
+  }
   function select(id, fly = true, moviendo = false) {
     const c = id && byId.get(id);
+    if (tv && tv.c !== c) quitaVideoIsla(false);
     sel = c ? c.id : null; cierraPueblo(); navega = moviendo; cand = null;
     host.classList.toggle('con-sel', !!c);
     for (const x of C) { x.lab.classList.toggle('sel', x.id === sel); x.lab.classList.toggle('fondo', !!sel && x.id !== sel); }
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
     if (c) islaDe(c);
-    if (c && fly) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
+    if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); }
   }
@@ -1678,11 +1709,15 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // (la isla: sube con un muelle, se pasa un poco y se posa en el aire; arriba, se mece despacio, y de cerca, quieta)
       let vuela = 0;
       if (c.isla) { const I = c.isla, ob = sel === c.id && !COL ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 24 - (I.v || 0) * 6.5) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+        if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
+        if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
       if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam);
-        const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.min(1, c.isla.k || 0)); }   // (el canto, de roca y tierra en la isla)
+        c.mesh.material[1].visible = (c.isla.k || 0) < 0.02; }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
+      // (y con el cielo, las paredes de todas, de roca: las de las vecinas se ven por el hueco, y Navarra flota como la isla)
+      { const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.max(c.isla ? Math.min(1, c.isla.k || 0) : 0, cieloK * 0.9)); }
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * c.fondo - 0.18 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * c.fondo;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * c.fondo)
@@ -1704,6 +1739,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // y la cámara la seguía después; era el golpe al elegir otro pueblo o al volver)
     if (ref && ref === hRef.c) v.hy += (pisoEn(ref, v.x, v.z) * (ref.sy - hRef.sy) + ref.py - hRef.py) * kh;
     hRef.c = ref; hRef.sy = ref?.sy; hRef.py = ref?.py;
+    if (tv) { tv.t += dt;
+      if (tv.fase === 'vuelo') {
+        if (!vuelo && tv.vid.readyState >= 3) { tv.fase = 'video'; tv.vid.style.opacity = '1'; capa.style.visibility = 'hidden'; const vv = tv.vid; vv.play().catch(() => { if (tv?.vid === vv) quitaVideoIsla(false); }); }
+        else if (tv.t > 4.5) quitaVideoIsla(false);   // (no ha llegado: la isla sube como siempre)
+      } else if (tv.fin || tv.vid.ended || (tv.vid.duration && tv.vid.currentTime > tv.vid.duration - 0.55)) quitaVideoIsla(true);
+    }
+    { const f = tv && tv.fase === 'video' ? tv.fov : FOV0; if (Math.abs(cam.fov - f) > 1e-3) { cam.fov = tv ? f : cam.fov + (f - cam.fov) * (1 - Math.exp(-dt * 2)); cam.updateProjectionMatrix(); } }
     const ci = sel && byId.get(sel), fi = ci?.isla ? Math.min(1, ci.isla.k || 0) * Math.min(1, Math.max(0, (v.d - 8) / 10)) : 0;
     const hyIsla = fi ? ci.py + ((GROSOR + ci.hmax * 0.5) * ci.sy - ci.isla.D * Math.min(1, ci.isla.k)) / 2 : 0;
     v.hy += (0.8 + (hs - 0.8) * kh + (hyIsla - 0.8 - (hs - 0.8) * kh) * fi - v.hy) * (1 - Math.exp(-dt * 4));   // (con la isla en el aire, la cámara mira a su mitad)
@@ -1855,7 +1897,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (!vivo) return; vivo = false; aves.dispose(); cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku); removeEventListener('blur', sueltaTeclas);
-    for (const c of C) c.isla?.dispose(); for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); orto.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) { if (e.tex) suelta(e.tex); if (e.orto) suelta(e.orto); } quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
+    quitaVideoIsla(false); for (const c of C) c.isla?.dispose(); for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); orto.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) { if (e.tex) suelta(e.tex); if (e.orto) suelta(e.orto); } quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }

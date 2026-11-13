@@ -1791,6 +1791,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   árboles, chinchetas, nombres y maqueta) sigue su altura, `c.py`. La cámara la mira más de lado (`PITCH_ISLA` 0,3, y deja
   bajar hasta 0,24) y apunta a media isla. La raya de la trashumancia se corta en su orilla. Para verlo: `isla.mjs` (con
   `PITCH` y `DK`, una vista más desde arriba), `isla-flujo.mjs` e `isla-salir.mjs`.
+- **Vídeo de la isla** (`src/data/videos-isla.js`, `public/videos/islas/`, `videoIsla`, `quitaVideoIsla` y `tv` en
+  `mapa3d.js`, `tools/islas/fotogramas.mjs`; 13 de noviembre de 2026): el autor pidió juntar Higgsfield con lo hecho para
+  que el momento en que la tierra se arranca fuera espectacular. La primera vez que se elige una comarca que tiene vídeo, con
+  la pantalla tumbada (ancho/alto de 1,3 o más) y si se pueden vídeos (`puedenVideos`), la cámara vuela a la vista con que se
+  sacaron sus fotogramas, sin rótulos, con la isla quieta abajo. Cuando el vídeo ya puede reproducirse, se pone encima del
+  lienzo, justo donde está el 3D (de alto, o de ancho cerrando un poco la cámara si la pantalla es más ancha que el vídeo), y
+  la isla sube detrás. El vídeo empieza en ese mismo fotograma y acaba en el de la isla en el aire, así que al final se funde
+  en 0,6 s con el 3D sin que se note. Tocarlo lo salta; si no llega en 4,5 s, la isla sube como siempre. Cada vídeo se hace
+  en Higgsfield (MiniMax H3 Max, 5 s, 768p, unos 12,5 créditos) con el primer y el último fotograma sacados del propio mapa
+  (`fotogramas.mjs`, a 1280 × 720 por 1,5, que deja también la cámara para `videos-isla.js`), y se recomprime con
+  `ffmpeg -an -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -profile:v main -movflags +faststart` (el de Pamplona,
+  1,2 MB). Sale a 1344 × 768 (1,75), algo recortado de lado respecto a 16:9 (`ar`). De momento solo Pamplona.
 - **El color de verdad del suelo: la ortofoto** (`tools/relieve/ortofoto.py`, `src/data/mapa-orto.js`, `ORTO_K`, `quiereOrto`
   y `cargaOrto` en `mapa3d.js`, `tonoOrto` en `mapa3dSombreadores.js`; 13 de noviembre de 2026): el autor quería un mapa del
   inicio con calidad casi de mapa real. El relieve tomaba el color de una paleta por alturas, con parcelas, bosque y roca

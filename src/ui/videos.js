@@ -40,6 +40,8 @@ function puede() {
   } catch (e) { SI = false; }
   return SI;
 }
+/** ¿Se pueden poner vídeos aquí? (la web con conexión, sin el modo sencillo, sin «reducir movimiento» ni ahorro de datos) */
+export const puedenVideos = () => puede();
 export const videoDe = (id, peque = false) => (id && VIDEOS.has(id) && puede() ? `./videos/${peque ? 's/' : ''}${id}.mp4` : '');
 
 // las figuras de jugador animadas: la figura del autor moviéndose en su sitio (respira, cambia el peso de pierna,

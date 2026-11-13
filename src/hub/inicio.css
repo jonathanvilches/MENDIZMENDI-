@@ -109,6 +109,8 @@
 .m3d::after { content: ''; position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: inherit;
   background: linear-gradient(180deg, rgba(13, 4, 32, .78) 0, rgba(13, 4, 32, 0) 140px), linear-gradient(0deg, rgba(13, 4, 32, .7) 0, rgba(13, 4, 32, 0) 120px), radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(8, 2, 20, .55) 100%); }
 .m3-cv { position: absolute; left: 0; top: 0; z-index: 0; display: block; touch-action: none; outline: 0; cursor: grab; }
+/* (el vídeo de la isla de Higgsfield: encima del mapa, debajo de los rótulos; mapa3d.js videoIsla) */
+.m3-vi { position: absolute; z-index: 0; display: block; object-fit: fill; pointer-events: auto; cursor: pointer; }
 .m3-capa { position: absolute; inset: 0; z-index: 2; overflow: hidden; pointer-events: none; }
 .m3d .ini-head { position: absolute; z-index: 4; left: auto; right: calc(16px + var(--sr, 0px)); top: 16px; margin: 0; }
 /* (los nombres encima del mapa: el de cada comarca en su color; el de cada pueblo, pequeño, al acercarse) */
