@@ -246,6 +246,31 @@
 .m3-vr :is(svg, img) { width: 17px; height: 17px; }
 .m3-chip.ver .m3-vr { display: grid; }
 
+/* el ordenador y la tableta: menos tarjetas y más grandes, con la foto entera en su 16:9 y el nombre y los sellos encima,
+   y que se vea que es un carrusel: la siguiente asoma cortada, los bordes se funden y hay flechas a los lados (.m3-fl,
+   pasa en inicio.js). Unas tres y media en todas, de 1024 a 1920. (13 de noviembre de 2026, el autor: «que salgan
+   menos, más grandes, con su tamaño de fotografía y que se intuya que es un carrusel». Antes salían cinco y media, casi
+   cuadradas, con la portada recortada por los lados.) --cw es solo de estas tarjetas: las de las colecciones siguen con
+   --chw. En el móvil, de pie o tumbado, como estaban */
+.m3-fl { display: none; }
+@media (min-width: 761px) and (min-height: 521px) {
+  .m3d { --cw: clamp(220px, min(27vw, 46vh), 396px); --railh: calc(var(--cw) * 9 / 16 + 10px); }
+  .m3-rail { --chh: calc(var(--cw) * 9 / 16); --fi: 0px; --fd: 72px; gap: 12px; scroll-padding: 0 64px;
+    -webkit-mask: linear-gradient(90deg, transparent, #000 var(--fi), #000 calc(100% - var(--fd)), transparent); mask: linear-gradient(90deg, transparent, #000 var(--fi), #000 calc(100% - var(--fd)), transparent); }
+  .m3d:not(.rail-ini) .m3-rail { --fi: 64px; } .m3d.rail-fin .m3-rail { --fd: 0px; }
+  .m3-rail .m3-chip { width: var(--cw); height: var(--chh); }
+  .m3-rail .m3-chip :is(.m3-foto, .m3-vid) { --H: 100cqh; --W: 100cqw; left: 0; top: 0; -webkit-mask: none; mask: none; }
+  .m3-rail .m3-fondo { display: none; }
+  .m3-rail .m3-ct { gap: 8px; padding: 0 14px 14px; }
+  .m3-rail .m3-ct b { font-size: var(--fs-lg); }
+  .m3-fl { --fb: 44px; position: absolute; z-index: 4; bottom: calc(22px + var(--cw) * 9 / 32 - var(--fb) / 2); display: grid; place-items: center; width: var(--fb); height: var(--fb); padding: 0; border-radius: 50%; cursor: pointer;
+    color: #fff; background: rgba(16, 6, 40, .72); border: 1px solid var(--line2); box-shadow: 0 6px 18px rgba(4, 1, 12, .45); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: opacity .25s, background .15s, transform .15s; }
+  .m3-fl :is(svg, img) { width: 22px; height: 22px; } .m3-fl.sig :is(svg, img) { transform: scaleX(-1); }
+  .m3-fl:hover { background: rgba(48, 18, 96, .86); } .m3-fl:active { transform: scale(.92); } .m3-fl:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+  .m3-fl.ant { left: 8px; } .m3-fl.sig { right: calc(8px + var(--sr, 0px)); }
+  .m3d.rail-ini .m3-fl.ant, .m3d.rail-fin .m3-fl.sig { opacity: 0; pointer-events: none; }
+}
+
 /* los botones de la cámara: acercar, ver toda Navarra y alejar (moverse y girar van con el dedo, el ratón y el teclado).
    En una columna de cristal en forma de pastilla, a media altura del borde derecho, grandes y redondos: antes iban pequeños
    en la esquina de abajo, entre las comarcas, y no se veían */
@@ -365,7 +390,7 @@
 }
 @media (prefers-reduced-motion: reduce) { .m3-aro .ar { animation: none !important; } }
 /* la entrada grande (Navarra se despega del mapa de España): sin nada encima hasta que se posa; luego, todo aparece */
-.m3d.m3-intro :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; }
+.m3d.m3-intro :is(.ini-head, .m3-tot, .m3-rail, .m3-fl, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; }
 .m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-mision, .m3-capa) { animation: m3-aparece .7s ease-out both; }
 /* (como en el cine: el mapa a toda la pantalla, sin la cabecera ni los botones del menú, que vuelven al final) */
 #hub:is(.m3-cine, .m3-cine-sale) .hub-main { position: absolute; inset: 0; grid-area: auto; z-index: 3; }
@@ -539,7 +564,7 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 
 /* ---------- las colecciones en el mapa (inicio.js, modoColeccion): la naturaleza, los escudos, los personajes y los torneos.
    Arriba, su cabecera; abajo, sus tarjetas en lugar de las comarcas; en el mapa, cada sitio con lo suyo ---------- */
-.m3d.con-col :is(.m3-tot, .m3-mision, .m3-rail, .m3-ayuda, .m3-cb, .m3-ft) { display: none !important; }
+.m3d.con-col :is(.m3-tot, .m3-mision, .m3-rail, .m3-fl, .m3-ayuda, .m3-cb, .m3-ft) { display: none !important; }
 .m3-col[hidden], .m3-crail[hidden] { display: none; }
 .m3-col { position: absolute; z-index: 4; left: 16px; top: var(--hud); max-width: min(560px, calc(100% - 120px - var(--sr, 0px))); display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center; column-gap: 10px; row-gap: 8px;
   padding: 8px 8px 8px 16px; border-radius: 18px; background: rgba(16, 6, 40, .72); border: 1px solid var(--line2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: 0 8px 24px rgba(4, 1, 12, .4); animation: m3-aparece .35s ease-out both; }

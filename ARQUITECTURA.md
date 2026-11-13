@@ -239,7 +239,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tamaño, sí): la foto de la comarca ocupa toda la tarjeta, de borde a borde, con las esquinas de los paneles (10 px).
   Desde el 13 de noviembre de 2026, encuadrada con los datos de `laminas.js` (`encuadreComarca`: el explorador entero de alto
   y con su centro a `--tx` del ancho, 62 % y 76 % en el móvil tumbado), con los bordes fundidos sobre la misma portada
-  desenfocada (`.m3-fondo`); antes salía cortado por abajo o por la derecha. Encima, sobre un velo oscuro de muchos pasos,
+  desenfocada (`.m3-fondo`); antes salía cortado por abajo o por la derecha. En el ordenador y la tableta (desde 761 × 521),
+  menos y más grandes, en el 16:9 de la foto, que sale entera y sin fundir, con el nombre encima (`--cw`, de 220 a 396 px:
+  unas tres y media a la vista de 1024 a 1920; antes, cinco y media casi cuadradas). Se ve que es un carrusel: la
+  siguiente asoma cortada, los bordes de la fila se funden (`--fi` y `--fd`, que se apagan en cada punta con `.rail-ini`
+  y `.rail-fin`) y a los lados hay flechas (`.m3-fl`, `pasa` en `inicio.js`) que pasan las tarjetas que se ven enteras
+  y dejan la anterior asomando 64 px por la izquierda. `--railh`, lo que ocupa la fila, sale de `--cw`; las tarjetas de
+  las colecciones siguen con `--chw`. Encima, sobre un velo oscuro de muchos pasos,
   sin raya, que sube desde abajo (en el móvil tumbado, un óvalo desde la izquierda), el nombre y una barra con
   un tramo por sello (`barraSellos` en `inicio.js`, `.m3-pr`; los conseguidos en dorado) con la cuenta al lado; en el
   móvil tumbado, solo la cuenta, sin la palabra «sellos». La terminada lleva la marca amarilla con el check verde

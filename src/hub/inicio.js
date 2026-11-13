@@ -82,6 +82,7 @@ function mapaHTML(p, items) {
     <span class="m3-ayuda" aria-hidden="true">${I('hand', 20)}<span class="fino">Arrastra para moverte · rueda para acercar · clic derecho para girar</span><span class="dedo">Arrastra para moverte · pellizca para acercar</span></span>
     <div class="m3-rail" role="list">${K.C.map(({ c, r }) => { const st = estadoC(p, c, r);
       return `<button class="m3-chip ${DD ? 'ok' : st}" data-sel="${c.id}" style="--c:${c.color};${encuadreComarca(c.id)}" role="listitem"><img class="m3-fondo" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async"><img class="m3-foto" src="${comarcaCover(c.id, true)}" alt="" loading="lazy" decoding="async">${videoTag(comarcaVideo(c.id, true), 'm3-vid')}${!DD && r.towns && r.stamps >= r.towns ? `<span class="m3-hecha" role="img" aria-label="Terminada">${I('check', 13)}</span>` : ''}${VER('Ver comarca')}<span class="m3-ct"><b>${esc(c.name.replace(/^Comarca de /, ''))}</b><small>${DD ? pueblos(r.towns) : `${barraSellos(r.stamps, r.towns)}<span>${r.stamps}/${r.towns}<span class="m3-sw"> sellos</span></span>`}</small></span></button>`; }).join('')}</div>
+    <button class="m3-fl ant" type="button" aria-label="Comarcas anteriores">${I('back', 22)}</button><button class="m3-fl sig" type="button" aria-label="Más comarcas">${I('back', 22)}</button>
     <div class="m3-col" hidden></div><div class="m3-crail" hidden role="list"></div>
     <div class="m3-ft" hidden aria-live="polite"></div><div class="m3-ex" hidden role="dialog" aria-label="Las comarcas de Navarra" tabindex="-1"></div>`;
 }
@@ -238,13 +239,29 @@ function mapaOn(root, p) {
   const sin3d = () => { sec.classList.add('sin-3d'); abreEx(null); };
   const falla = () => { cierraMapa(); releaseStage(); if (++rehechos > 2) return sin3d(); setTimeout(() => { if (sec.isConnected) monta(); }, 400); };
   const monta = () => {
-    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-pad, .m3-ft, .m3-mision, .m3-col, .m3-crail, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
+    try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-fl, .m3-pad, .m3-ft, .m3-mision, .m3-col, .m3-crail, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
     catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
     if (!MAPA) sin3d(); else COLX?.pinta();
   };
   monta();
   // (lo que mide lo descubierto, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)
   rail.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { e.preventDefault(); rail.scrollLeft += e.deltaY; } }, { passive: false });
+  // (las flechas de la fila de las comarcas, en el ordenador y la tableta, para que se vea que es un carrusel: pasan las
+  // tarjetas que se ven enteras, y la siguiente queda con la anterior asomando por la izquierda. La de un lado se va al
+  // llegar a su punta, y ese borde deja de fundirse: .rail-ini y .rail-fin en la sección)
+  const ASOMA = 64, puntas = () => { const L = rail.scrollLeft, M = rail.scrollWidth - rail.clientWidth; sec.classList.toggle('rail-ini', L <= 2); sec.classList.toggle('rail-fin', L >= M - 2); };
+  let puT = 0; rail.addEventListener('scroll', () => { puT ||= requestAnimationFrame(() => { puT = 0; puntas(); }); }, { passive: true });
+  new ResizeObserver(puntas).observe(rail); puntas();
+  const pasa = (d) => {
+    const cs = [...rail.querySelectorAll('.m3-chip')]; if (!cs.length) return;
+    const L = rail.scrollLeft, W = rail.clientWidth, iz = L > 2 ? ASOMA : 0;
+    const vis = cs.map((c, i) => [i, c.offsetLeft, c.offsetLeft + c.offsetWidth]).filter(([, a, b]) => a >= L + iz - 4 && b <= L + W - ASOMA + 4);
+    const i0 = vis.length ? vis[0][0] : cs.findIndex(c => c.offsetLeft + c.offsetWidth > L + iz), n = Math.max(1, vis.length);
+    const i = Math.max(0, Math.min(cs.length - 1, i0 + d * n));
+    rail.scrollTo({ left: i === 0 ? 0 : Math.max(0, cs[i].offsetLeft - ASOMA), behavior: 'smooth' });
+  };
+  sec.querySelector('.m3-fl.ant')?.addEventListener('click', () => pasa(-1));
+  sec.querySelector('.m3-fl.sig')?.addEventListener('click', () => pasa(1));
   const tot = sec.querySelector('.m3-tot'); if (tot) new ResizeObserver(() => sec.style.setProperty('--totw', tot.offsetWidth + 'px')).observe(tot);
   const mis = sec.querySelector('.m3-mision'); if (mis) new ResizeObserver(() => sec.style.setProperty('--misw', mis.offsetWidth + 'px')).observe(mis);
   sec.addEventListener('click', (e) => {
