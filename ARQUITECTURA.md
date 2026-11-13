@@ -236,8 +236,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 - **Tarjetas de comarca y ficha del pueblo del mapa** (noviembre de 2026, con el diseño de los rótulos). Las tarjetas de
   abajo (`.m3-chip`, `hub/inicio.css`) son postales desde el 12 de noviembre de 2026 (al autor no le gustaban nada; el
-  tamaño, sí): la foto de la comarca ocupa toda la tarjeta, de borde a borde, con las esquinas de los paneles (10 px), y
-  encima, sobre un velo oscuro que sube desde abajo (en el móvil tumbado, desde la izquierda), el nombre y una barra con
+  tamaño, sí): la foto de la comarca ocupa toda la tarjeta, de borde a borde, con las esquinas de los paneles (10 px).
+  Desde el 13 de noviembre de 2026, encuadrada con los datos de `laminas.js` (`encuadreComarca`: el explorador entero de alto
+  y con su centro a `--tx` del ancho, 62 % y 76 % en el móvil tumbado), con los bordes fundidos sobre la misma portada
+  desenfocada (`.m3-fondo`); antes salía cortado por abajo o por la derecha. Encima, sobre un velo oscuro de muchos pasos,
+  sin raya, que sube desde abajo (en el móvil tumbado, un óvalo desde la izquierda), el nombre y una barra con
   un tramo por sello (`barraSellos` en `inicio.js`, `.m3-pr`; los conseguidos en dorado) con la cuenta al lado; en el
   móvil tumbado, solo la cuenta, sin la palabra «sellos». La terminada lleva la marca amarilla con el check verde
   (`.m3-hecha`); la elegida, el borde blanco y una raya de su color abajo. Antes la foto iba dentro, separada 4 px del

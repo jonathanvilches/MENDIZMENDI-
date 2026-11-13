@@ -206,14 +206,21 @@
    redondo encima de la foto ni la pastilla con el icono. La terminada, con la marca amarilla y verde en su esquina; la
    elegida, con el borde blanco y una raya de su color abajo. Antes: la foto dentro de la tarjeta, separada 4 px del borde,
    con el sello de la comarca encima y los sellos en una pastilla con un toque de su color) */
-.m3-chip { position: relative; flex: none; width: var(--chw); height: calc(var(--chh) + 62px); scroll-snap-align: start; display: flex; flex-direction: column; justify-content: flex-end; padding: 0; overflow: hidden; isolation: isolate; color: #fff; font: inherit; text-align: left; cursor: pointer;
+.m3-chip { position: relative; flex: none; width: var(--chw); height: calc(var(--chh) + 62px); container-type: size; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: flex-end; padding: 0; overflow: hidden; isolation: isolate; color: #fff; font: inherit; text-align: left; cursor: pointer;
   border-radius: 10px; background: #160830; border: 1px solid rgba(255, 255, 255, .16); box-shadow: 0 8px 22px rgba(4, 1, 12, .38); transition: transform .2s, border-color .2s; }
 .m3-chip:hover, .m3-chip:focus-visible { transform: translateY(-3px); border-color: rgba(255, 255, 255, .4); }
 .m3-chip.on { border-color: #fff; }
 .m3-chip.on::before { content: ''; position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 3px; background: var(--c, #ff7ac8); }
-.m3-foto, .m3-vid { position: absolute; inset: 0; z-index: -2; display: block; width: 100%; height: 100%; object-fit: cover; object-position: 60% 40%; border-radius: 0; transition: filter .3s, opacity .9s ease, transform .5s; }
+/* (la portada, encuadrada con los datos de laminas.js, encuadreComarca: el explorador entero de alto, --zf y --sy, y con su
+   centro a --tx del ancho de la tarjeta, --cx; los bordes de la imagen se funden con la misma portada desenfocada y oscura de
+   detrás, .m3-fondo. Hasta el 13 de noviembre de 2026 la portada llenaba la tarjeta y el explorador salía cortado por abajo o
+   por la derecha, y lo oscurecía una franja dura) */
+.m3-fondo { position: absolute; z-index: -3; left: -10px; top: -10px; width: calc(100% + 20px); height: calc(100% + 20px); max-width: none; object-fit: cover; filter: blur(7px) brightness(.8) saturate(.9); pointer-events: none; }
+.m3-foto, .m3-vid { --H: calc(100cqh * var(--zf, 1)); --W: calc(var(--H) * 16 / 9); position: absolute; z-index: -2; left: calc(var(--tx, 62cqw) - var(--cx, .6) * var(--W)); top: calc(-1 * var(--sy, 0) * var(--H)); display: block; width: var(--W); height: var(--H); max-width: none; object-fit: cover; border-radius: 0; transition: filter .3s, opacity .9s ease, transform .5s;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent); mask: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent); }
 .m3-chip:hover :is(.m3-foto, .m3-vid) { transform: scale(1.04); }
-.m3-chip::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(0deg, rgba(12, 4, 28, .9) 0%, rgba(12, 4, 28, .55) 34%, rgba(12, 4, 28, 0) 62%); }
+/* (el velo de detrás del nombre, con muchos pasos para que se funda sin raya) */
+.m3-chip::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(0deg, rgba(12, 4, 28, .82) 0%, rgba(12, 4, 28, .7) 12%, rgba(12, 4, 28, .52) 24%, rgba(12, 4, 28, .32) 36%, rgba(12, 4, 28, .15) 48%, rgba(12, 4, 28, .05) 58%, rgba(12, 4, 28, 0) 68%); }
 .m3-vid { opacity: 0; pointer-events: none; } .m3-vid.on { opacity: 1; }
 .m3-chip:not(.go):not(.ok) :is(.m3-foto, .m3-vid) { filter: saturate(.7) brightness(.88); }
 .m3-sello { position: relative; flex: none; width: 48px; height: 48px; display: grid; place-items: center; }
@@ -619,8 +626,8 @@ button.ex-c:hover .ex-img, .ex-fot:hover .ex-img { filter: brightness(1.12); }
 @media (max-height: 520px) {
   .m3-rail { --chh: 54px; }
   .m3-chip { width: 220px; height: 64px; justify-content: center; }
-  .m3-chip::after { background: linear-gradient(90deg, rgba(12, 4, 28, .92) 0%, rgba(12, 4, 28, .7) 42%, rgba(12, 4, 28, 0) 78%); }
-  .m3-chip :is(.m3-foto, .m3-vid) { object-position: 75% 45%; }
+  .m3-chip { --tx: 76cqw; }
+  .m3-chip::after { background: radial-gradient(130% 160% at 0% 50%, rgba(12, 4, 28, .78) 0%, rgba(12, 4, 28, .62) 18%, rgba(12, 4, 28, .42) 34%, rgba(12, 4, 28, .22) 48%, rgba(12, 4, 28, .08) 60%, rgba(12, 4, 28, 0) 72%); }
   .m3-chip .m3-ct { gap: 6px; padding: 0 64px 0 12px; }
   .m3-chip .m3-ct small { font-size: 11px; }
   .m3-chip .m3-ct b { font-size: 15px; }
