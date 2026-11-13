@@ -445,14 +445,17 @@ const CSS = `
 .cp-row{--cw:clamp(150px,calc((100% - 36px) / 3.35),300px);display:grid;grid-auto-flow:column;grid-auto-columns:var(--cw);gap:12px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;padding:2px 0}
 .cp-row::-webkit-scrollbar{display:none}
 .cp-card{--ac:#ff4fd8;position:relative;scroll-snap-align:start;display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;padding:0;border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.08);background:#150b2e;color:#fff;text-align:left;font:inherit;cursor:pointer;box-shadow:0 8px 22px rgba(4,1,12,.35);transition:transform .18s cubic-bezier(.2,.9,.3,1.1),border-color .18s;animation:lg-sube .45s cubic-bezier(.2,.9,.3,1.1) var(--d,0s) backwards}
+/* (la cancha de fondo de las tarjetas, CANCHA: un frontón oscuro dibujado, visto desde el fondo de la cancha, con su frontis, la pared
+   izquierda, las rayas del suelo y la chapa en naranja apagado. Oscuro a propósito: el pelotari y los textos se leen bien encima) */
+.cp-card{--cancha:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' preserveAspectRatio='xMidYMax slice'%3E%3Cdefs%3E%3ClinearGradient id='w' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23301860'/%3E%3Cstop offset='1' stop-color='%23211044'/%3E%3C/linearGradient%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23221146'/%3E%3Cstop offset='1' stop-color='%230e0620'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='%23130a2a'/%3E%3Cg stroke='%23fff' stroke-opacity='.07'%3E%3Cpath d='M336 92H400M336 118H400M336 144H400M336 170H400'/%3E%3C/g%3E%3Cpolygon points='0,0 120,46 120,196 0,300' fill='%23251249'/%3E%3Crect x='120' y='46' width='210' height='150' fill='url%28%23w%29'/%3E%3Cpolygon points='120,196 330,196 400,300 0,300' fill='url%28%23f%29'/%3E%3Cg stroke='%23fff' stroke-opacity='.11' fill='none'%3E%3Cpath d='M30 11.5V274M60 23V248M90 34.5V222'/%3E%3Cpath d='M90 222H347.5M60 248H365M30 274H382.5'/%3E%3Cpath d='M120 58H330'/%3E%3C/g%3E%3Cpath d='M120 182H330M0 286L120 184' stroke='%23ff8a5c' stroke-opacity='.4' stroke-width='2' fill='none'/%3E%3C/svg%3E")}
 .cp-card:hover,.cp-card:focus-visible{border-color:color-mix(in srgb,var(--ac) 55%,transparent);transform:translateY(-2px)}
 .cp-card:active{transform:scale(.98)}
 .cp-card:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.cp-mano{--ac:#ff4fd8;--fx:38%}.cp-parejas{--ac:#9b7bff;--fx:34%}.cp-cuatro{--ac:#ff8a3d;--fx:36%}.cp-evento{--ac:#ffc94a;--fx:62%}.cp-libre{--ac:#3ec7e0;--fx:40%}.cp-retos{--ac:#ffd166;--fx:30%}.cp-casa{--ac:#5fdca0;--fx:46%}.cp-col{--ac:#c4a8ff;--fx:40%}
+.cp-mano{--ac:#ff4fd8}.cp-parejas{--ac:#9b7bff}.cp-cuatro{--ac:#ff8a3d}.cp-evento{--ac:#ffc94a}.cp-libre{--ac:#3ec7e0}.cp-retos{--ac:#ffd166}.cp-casa{--ac:#5fdca0}.cp-col{--ac:#c4a8ff}
 /* (arriba, la foto: el frontón pintado del juego, cada campeonato con su encuadre, y delante el rival de pie en la cancha) */
-.cp-foto{position:relative;flex:1 1 0;min-height:0;display:block;overflow:hidden;isolation:isolate;background:#2a1650}
-.cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,none) var(--fx,30%) 50%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:var(--fx,30%) 72%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
-.cp-foto::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(14,8,32,.08) 40%,rgba(14,8,32,.38))}
+.cp-foto{position:relative;flex:1 1 0;min-height:0;display:block;overflow:hidden;isolation:isolate;background:#140a2c}
+.cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,var(--cancha)) var(--fx,50%) 100%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:50% 80%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
+.cp-foto::after{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 46% 40% at 50% 62%,color-mix(in srgb,var(--ac) 20%,transparent),transparent 72%),linear-gradient(180deg,rgba(14,8,32,.3),rgba(14,8,32,0) 30%,rgba(14,8,32,0) 70%,rgba(14,8,32,.6))}
 .cp-card:hover .cp-foto::before{transform:scale(calc(var(--fz,1) * 1.05))}
 .cp-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .cp-foto .cp-top{position:absolute;left:8px;right:8px;top:8px;z-index:3}
@@ -462,8 +465,9 @@ const CSS = `
 .cp-tx{flex:none;display:inline-flex;align-items:center;gap:4px;padding:3px 9px 3px 5px;border-radius:999px;background:rgba(16,9,34,.8);color:#ffd166;font:800 var(--fs-sm)/1 var(--f-cond)}
 .cp-txi,.cp-tx .ico,.cp-total .ico{flex:none;width:18px;height:18px}.cp-txi img,.cp-txi svg{width:100%;height:100%;display:block}
 .cp-card .figs{position:absolute;left:0;right:0;top:9%;bottom:5%;display:block;margin:0;pointer-events:none;z-index:2}
-.cp-card .figs::after{content:'';position:absolute;left:28%;right:28%;bottom:-3px;height:10px;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.5),transparent);z-index:0}
-.cp-card .figs img.pf{position:absolute;z-index:1;bottom:0;left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));filter:drop-shadow(0 6px 10px rgba(0,0,0,.4));transition:translate .2s}
+.cp-card .figs::after{content:'';position:absolute;left:30%;right:30%;bottom:-6px;height:16px;border-radius:50%;background:radial-gradient(closest-side,rgba(4,1,12,.75),rgba(4,1,12,.35) 55%,transparent);z-index:0}
+.cp-card .figs.duo::after{left:14%;right:14%}
+.cp-card .figs img.pf{position:absolute;z-index:1;bottom:0;left:50%;height:var(--fh,100%);width:auto;max-width:none;transform:translateX(calc(-50% + var(--o,0) * var(--fh,0px)));filter:drop-shadow(0 0 1px rgba(255,236,250,.45)) drop-shadow(0 10px 12px rgba(4,1,12,.6));transition:translate .2s}
 .cp-card:hover .figs img.pf{translate:0 -3px}
 .cp-card .figs.duo img.pf:first-child{--o:-.16}.cp-card .figs.duo img.pf:last-child{--o:.16}
 .cp-card .figs.trio img.pf:nth-child(1){--o:-.32}.cp-card .figs.trio img.pf:nth-child(2){z-index:2}.cp-card .figs.trio img.pf:nth-child(3){--o:.32}
@@ -846,26 +850,9 @@ const RETO_ART = {
   diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
   dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
 };
-// la foto de las tarjetas: un frontón distinto para cada una, pintado con Higgsfield (src/assets/frontones-cartas, 800 px,
-// unos 50 KB cada uno): el manomanista en un frontón cubierto con gradas de madera, las parejas en uno de pueblo del Baztan,
-// el 4½ en uno moderno con butacas rojas y azules, los acontecimientos en la gran final con guirnaldas y la txapela, el
-// partido libre junto a una iglesia del Pirineo, los retos en uno de entrenamiento al anochecer con dianas en la pared, la
-// pelota en casa en el patio de un caserío y la colección en la plaza porticada de una villa medieval. Hasta el 12 de
-// noviembre de 2026 todas llevaban la misma lámina del frontón del juego, que al autor no le acababa de gustar
-const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/frontones-cartas/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, u]) => [k.match(/([\w-]+)\.webp$/)[1], u]));
-// (los campeonatos que se repiten de tipo, los otros manomanistas y 4½, toman uno de los de más, por orden, para que en la
-// fila no se repita ninguno: un frontón de la Ribera, uno junto a un puente medieval, uno nevado del Pirineo, uno cubierto
-// con galerías y uno en un claro del hayedo)
-const MAS = ['ribera', 'puente', 'nieve', 'galerias', 'hayedo'];
-const conFoto = (row, todas = null) => {
-  const usadas = new Set(); let e = 0;
-  for (const c of row?.querySelectorAll('.cp-card') || []) {
-    let k = todas || c.className.match(/\bcp-(mano|parejas|cuatro|evento|libre|retos|casa|col)\b/)?.[1];
-    if (!todas && usadas.has(k)) { while (e < MAS.length && !FONDOS[MAS[e]]) e++; if (e < MAS.length) k = MAS[e++]; }
-    usadas.add(k); const u = k && FONDOS[k];
-    if (u) c.style.setProperty('--foto', `url("${u}")`);
-  }
-};
+// (la foto de las tarjetas: hasta el 13 de noviembre de 2026, un frontón pintado con Higgsfield en cada una; al autor no le
+// gustaron porque no eran frontones de verdad. Ahora todas llevan la cancha oscura de CANCHA, en el CSS, hasta tener los
+// frontones reales; para ponerlos, --foto en cada .cp-card)
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
 /** Las estrellas que llevas en los tres retos (de 0 a 9) */
@@ -892,7 +879,7 @@ export function retosMenu() {
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${eu ? 'Frontoian' : 'En el frontón'}</small><h2>${R.titulo}</h2></div><span class="cp-total cp-total-est"><b>${tot}</b><small>/9 ${eu ? 'izar' : 'estrellas'}</small></span></div>
       <div class="tq-carr"><div class="cp-row cp-tres">${Object.keys(RETOS).map(tile).join('')}</div></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.firstElementChild.classList.add('tq-menu-card'); conFoto(r.querySelector('.cp-row'), 'retos');
+    r.firstElementChild.classList.add('tq-menu-card');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-reto],[data-a]'); if (!b) return; lgFuera(r); res(b.dataset.reto || null); });
   });
 }
@@ -944,7 +931,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
     // la más apretada, la de los tres de la colección: en el ordenador salían pequeñas y abajo). Las ilustraciones tienen el
     // mismo encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
-    const tiles = r.querySelector('.cp-row'); conFoto(tiles);
+    const tiles = r.querySelector('.cp-row');
     const iguala = () => {
       if (!r.isConnected) { ro.disconnect(); return; }
       for (const f of tiles.querySelectorAll('.figs')) {

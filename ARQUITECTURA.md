@@ -1226,14 +1226,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; el nombre de quien atiende la tienda bajo su icono (`.shop-keeper`); y, con el móvil de pie, la misión, que `fitTop`
   estrechaba a 140 px, y la distancia de la brújula y los avisos de la conversación, que se le montaban.
 - **Tarjetas de los campeonatos** (`pelotaMenu` y `retosMenu` en `game/torneo.js`, clases `cp-`, noviembre de 2026): arriba,
-  la foto (`.cp-foto`): un frontón distinto en cada una, pintado con Higgsfield (`src/assets/frontones-cartas`, 13 de
-  800 px, unos 700 KB en total; `FONDOS` y `conFoto`, que pone `--foto` en cada tarjeta según su clase: el manomanista en
-  uno cubierto con gradas de madera, las parejas en uno de pueblo del Baztan, el 4½ en uno moderno, los acontecimientos en
-  la gran final, el partido libre junto a una iglesia del Pirineo, los retos en uno de entrenamiento con dianas, la pelota
-  en casa en el patio de un caserío y la colección en una plaza porticada medieval; los campeonatos que repiten tipo toman,
-  por orden, los de más, `MAS`: Ribera, puente medieval, nieve, galerías y hayedo, para que en la fila no se repita
-  ninguno; en los retos, todas el de entrenamiento; hasta el 12 de noviembre de 2026, la misma lámina del juego para
-  todas), cada campeonato con su encuadre (`--fx`), y delante el rival de tu ronda de pie en la cancha; encima de la foto, la etiqueta (individual, por parejas, hasta el 4½…) y tus txapelas, en píldoras oscuras.
+  la foto (`.cp-foto`): una cancha oscura dibujada (`--cancha`, un SVG en el CSS: el frontis, la pared izquierda, las rayas del
+  suelo y la chapa en naranja apagado), con una luz suave del color del campeonato detrás del pelotari, y delante el rival
+  de tu ronda de pie en la cancha, con su sombra en el suelo y un filo de luz claro alrededor para que no parezca pegado.
+  Del 12 al 13 de noviembre de 2026 cada tarjeta llevó un frontón pintado con Higgsfield (`src/assets/frontones-cartas`, ya
+  fuera del juego); al autor no le gustaron porque no eran frontones de verdad ni dejaban leer bien las figuras. Los
+  frontones reales irán en `--foto` de cada `.cp-card`, encima de la cancha; encima de la foto, la etiqueta (individual, por parejas, hasta el 4½…) y tus txapelas, en píldoras oscuras.
   Abajo, en oscuro y separado por una raya de 2 px del color del campeonato, el nombre, la ronda en su color, contra quién
   y una barra con todas las rondas del cuadro. Las de partido libre, retos, pelota en casa y colección, igual; los dibujos
   de los retos, en una placa oscura sobre la foto. Al pasar por encima, la foto se acerca un poco. Sin brillo que barre ni
