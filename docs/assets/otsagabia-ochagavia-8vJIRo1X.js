@@ -1,0 +1,1 @@
+var e=new URL(`otsagabia-ochagavia-DOl0wuuo.webp`,import.meta.url).href;export{e as default};

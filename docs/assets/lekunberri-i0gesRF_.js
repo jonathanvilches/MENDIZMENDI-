@@ -1,0 +1,1 @@
+var e=new URL(`lekunberri-CvP7QbB4.webp`,import.meta.url).href;export{e as default};

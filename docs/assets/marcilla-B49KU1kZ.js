@@ -1,0 +1,1 @@
+var e=new URL(`marcilla-sCpgmxsh.webp`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`lekunberri-CUZA400L.webp`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`marcilla-DHt-WnTA.webp`,import.meta.url).href;export{e as default};

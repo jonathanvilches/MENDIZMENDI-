@@ -1,0 +1,1 @@
+var e=new URL(`tafalla-B_WN35-N.webp`,import.meta.url).href;export{e as default};

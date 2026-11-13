@@ -1,0 +1,1 @@
+var e=new URL(`orreaga-roncesvalles-Do-FAB_A.webp`,import.meta.url).href;export{e as default};

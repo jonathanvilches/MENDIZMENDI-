@@ -1,0 +1,1 @@
+var e=new URL(`etxalar-C8A5B5tW.webp`,import.meta.url).href;export{e as default};

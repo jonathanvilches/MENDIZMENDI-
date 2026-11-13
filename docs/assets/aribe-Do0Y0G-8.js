@@ -1,0 +1,1 @@
+var e=new URL(`aribe-Cb9ZWxwI.webp`,import.meta.url).href;export{e as default};

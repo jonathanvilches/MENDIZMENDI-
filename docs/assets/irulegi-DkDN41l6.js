@@ -1,0 +1,1 @@
+var e=new URL(`irulegi-IBvOnBE-.webp`,import.meta.url).href;export{e as default};

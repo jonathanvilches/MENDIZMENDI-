@@ -1,0 +1,1 @@
+var e=new URL(`elizondo-C2W_0h8P.webp`,import.meta.url).href;export{e as default};

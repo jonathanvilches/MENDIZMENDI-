@@ -1,0 +1,1 @@
+var e=new URL(`ituren-DRgIPdf8.webp`,import.meta.url).href;export{e as default};

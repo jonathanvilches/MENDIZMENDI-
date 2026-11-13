@@ -1,0 +1,1 @@
+var e=new URL(`isaba-izaba-CeKBoMq1.webp`,import.meta.url).href;export{e as default};
