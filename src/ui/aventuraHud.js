@@ -56,7 +56,7 @@ export class AventuraHud {
    *  debajo de ella, encima de la tarjeta (noviembre de 2026) */
   coloca() {
     const c = this.cor; c.style.transition = 'none'; c.classList.remove('lado', 'debajo'); c.style.left = ''; c.style.top = '';   // (sin transición mientras se mide)
-    const panel = document.querySelector('#hud #tlb') || document.querySelector('#hud #tl'), der = document.querySelector('#hud #topright');   // (en el pueblo, los botones sueltos de arriba a la izquierda; las misiones van a la derecha)
+    const panel = document.querySelector('#hud #tl'), der = document.querySelector('#hud #topright');
     if (panel !== this.panel) { this.ro?.disconnect(); this.panel = panel; if (panel) this.ro?.observe(panel); }
     const t = panel?.getBoundingClientRect(), r = der?.getBoundingClientRect();
     const w = c.offsetWidth, x0 = innerWidth / 2 - w / 2 - 10, x1 = innerWidth / 2 + w / 2 + 10, y1 = c.offsetTop + c.offsetHeight + 4;

@@ -244,42 +244,25 @@ summary { line-height: 1.3; }
    El tamaño de las casillas y de los botones redondos, --chip: 40 px en el móvil, cerca de los 44 que pide Apple para un
    dedo, y 48 en el ordenador. Hasta el 12 de noviembre de 2026 eran de 32 a 34 px en el móvil y 42 en el ordenador, y
    al autor le costaba acertar con el dedo. En el tumbado más pequeño, 36 px, porque va en dos filas */
-/* (12 de noviembre de 2026, lo pidió el autor: en columna por el margen derecho, debajo del minimapa y sin llegar a los
-   botones de saltar y de la mano; ui.js, fitTop, pone su altura y cuántas filas caben, --filas, y si no caben todas siguen
-   en otra columna hacia dentro, como pasa en el móvil tumbado. Antes, una barra arriba a la izquierda con la mochila y la
-   pausa al final; ahora esos tres van sueltos arriba a la izquierda, #tlb) */
-#tl.mis { --chip: 40px; left: auto; right: calc(var(--sr) + var(--edge)); top: calc(var(--st) + 140px); padding: 8px; gap: 0; min-width: 0; max-width: none; }
-@media (max-height: 520px) and (max-width: 740px) { #tl.mis { --chip: 36px; } }
-@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 48px; } #tl.mis #misiones { gap: 10px; } }
+#tl.mis { --chip: 40px; padding: 8px; gap: 0; min-width: 212px; max-width: calc(100vw / var(--z, 1) - 32px); }
+/* (en los tumbados más estrechos, en dos filas: en una no queda sitio para la brújula) */
+@media (max-height: 520px) and (max-width: 740px) { #tl.mis { --chip: 36px; } #tl.mis #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); } }
+@media (min-width: 1000px) and (min-height: 640px) { #tl.mis { --chip: 48px; min-width: 260px; } #tl.mis #misiones { gap: 10px; } }
 #misiones { display: grid; grid-template-columns: repeat(var(--n, 8), var(--chip)); gap: 8px; }
-#tl.mis #misiones { grid-template-columns: none; grid-auto-flow: column; grid-template-rows: repeat(var(--filas, 8), var(--chip)); grid-auto-columns: var(--chip); direction: rtl; }
-#tl.mis #misiones > button { direction: ltr; }
-/* (plegadas en un solo icono, el de la misión activa, con cuántas quedan sin hacer y un canto de otras detrás; al tocarlo
-   se despliegan debajo de ella una detrás de otra, con el botón de plegar al final, y al plegarse vuelven hacia la activa.
-   ui.js, despliegaMisiones y pliegaMisiones) */
-#misiones .plegar { --mc: #9d8fc2; order: 99; background: rgba(7, 2, 15, .7); border-radius: 50%; }
-#tl.mis #misiones > button.act { order: -1; }   /* (la activa, siempre la primera: al desplegarse no se mueve de su sitio) */
-#misiones .plegar svg { width: 55%; height: 55%; }
-#tl.mis.plegada #misiones { grid-template-rows: var(--chip); }   /* (y el panel, del alto de una casilla) */
-#tl.mis.plegada #misiones > button:not(.act) { display: none; }
-#tl.mis.plegada #misiones > button.act { box-shadow: 3px 3px 0 -1px color-mix(in srgb, var(--mc) 40%, #1c0d38), 6px 6px 0 -2px color-mix(in srgb, var(--mc) 25%, #1c0d38); }
-#tl.mis.plegada #misiones > button.act.cur { box-shadow: inset 0 0 0 2px #fff, 3px 3px 0 -1px color-mix(in srgb, var(--mc) 40%, #1c0d38), 6px 6px 0 -2px color-mix(in srgb, var(--mc) 25%, #1c0d38); }
-#tl.mis.plegada #misiones > button.act[data-mas]:not([data-mas=""])::before { content: attr(data-mas); position: absolute; left: -7px; bottom: -7px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px; background: #ffd166; color: #1c0d38; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 10px/18px var(--f-ui, 'MZ Texto'), sans-serif; text-align: center; }
-#tl.mis.abre #misiones > button:not(.act) { animation: misBaja .32s var(--ease) both; animation-delay: calc(var(--k, 0) * 28ms); }
-#tl.mis.abre #misiones > .plegar { animation-delay: 0ms; }
-#tl.mis.cierra #misiones > button:not(.act) { animation: misSube .22s ease-in both; }
-@keyframes misBaja { from { opacity: 0; transform: translateY(calc(var(--k, 1) * -10px)) scale(.6); } }
-@keyframes misSube { to { opacity: 0; transform: translateY(-14px) scale(.6); } }
-@media (prefers-reduced-motion: reduce) { #tl.mis.abre #misiones > button, #tl.mis.cierra #misiones > button { animation: none; } }
-/* la mochila, los prismáticos (cuando los tienes) y la pausa: sueltos arriba a la izquierda, redondos de 48 px, oscuros y sin
-   sombra, como los del partido de pelota */
-#tlb { position: absolute; left: calc(var(--sl) + var(--edge)); top: calc(var(--st) + var(--edge)); display: flex; gap: 10px; pointer-events: none; }
-#tlb > * { pointer-events: auto; }
-#tlb .round { width: 48px; height: 48px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(7, 2, 15, .78); box-shadow: none; }
-#tlb .round:hover { background: rgba(40, 16, 80, .9); }
-#tlb .round.bag .ering { inset: 0; }
-@media (min-width: 1000px) and (min-height: 640px) { #tlb .round { width: 52px; height: 52px; } }
-body.alto-contraste #tlb .round { background: #000; border: 2px solid #fff; }
+/* la mochila, los prismáticos (cuando los tienes) y la pausa, al final de la barra de misiones y bien separados de ellas:
+   12 px de hueco a cada lado de una raya clara de 2 px de arriba abajo, y redondos y de un gris translúcido, no cuadrados de
+   color como las misiones. Del tamaño de una casilla. Si la barra no cabe en una fila (móvil estrecho de pie, o un pueblo
+   con muchas misiones), las casillas van en dos filas y los botones en columna (ui.js, fitTop, clase .dos), como en el
+   móvil tumbado pequeño */
+#tl.mis .mfila { display: flex; align-items: center; }
+#mbtns { flex: none; align-self: stretch; display: flex; align-items: center; gap: 8px; margin-left: 14px; padding-left: 14px; border-left: 2px solid rgba(255, 255, 255, .5); }
+#mbtns .round { width: var(--chip); height: var(--chip); border: 0; background: rgba(255, 255, 255, .14); box-shadow: none; }
+#mbtns .round:hover { background: rgba(255, 255, 255, .24); }
+#mbtns .round.bag .ering { inset: 0; }
+#tl.mis.dos #misiones { grid-template-columns: repeat(var(--n2, 4), var(--chip)); }
+#tl.mis.dos #mbtns { flex-direction: column; justify-content: center; }
+@media (max-height: 520px) and (max-width: 740px) { #mbtns { flex-direction: column; justify-content: center; } }
+@media (min-width: 1000px) and (min-height: 640px) { #mbtns { gap: 10px; } }
 /* (cada casilla, el icono sobre un fondo sólido del color de su categoría: con el 16 % del color y el borde, que los
    botones ya no llevan, se veían apagadas y casi transparentes sobre el pueblo; noviembre de 2026, lo pidió el autor.
    Hecha, el color más lleno y su marca; la que sigues, un aro blanco por dentro) */
@@ -296,15 +279,14 @@ body.alto-contraste #tlb .round { background: #000; border: 2px solid #fff; }
 @media (prefers-reduced-motion: reduce) { #misiones button.late { animation: none; } }
 #misiones button.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 9px/15px sans-serif; text-align: center; }
 #misiones button.sel { outline: 2px solid color-mix(in srgb, var(--mc) 80%, #fff); outline-offset: 2px; }
-/* la tarjeta de la misión: al tocar su casilla sale deslizándose a la izquierda de la columna, a la altura de la casilla y
-   con una flechita hacia ella (--qy, --py y su ancho, --qw: ui.js, colocaMision). El icono en el color de su categoría; al lado, la categoría y cuál es, su nombre, lo que toca hacer,
+/* la tarjeta de la misión: al tocar su casilla sale suelta debajo de la barra, con una flechita hacia la casilla (--px,
+   ui.js abreMision). El icono en el color de su categoría; al lado, la categoría y cuál es, su nombre, lo que toca hacer,
    sus pasos y lo lejos que está. Tocándola, el cuaderno; se cierra tocando su casilla, fuera de la barra o sola a los
    10 s. Antes la misión se desplegaba dentro de la barra, que crecía hacia abajo (noviembre de 2026, el autor quería el
    visor más limpio) */
-#tl.mis #quest { position: absolute; left: auto; right: calc(100% + 12px); top: var(--qy, 0px); z-index: 2; width: var(--qw, 320px); display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px 14px 12px; border-radius: 10px;
-  background: linear-gradient(170deg, rgba(36, 12, 78, .96), rgba(16, 7, 34, .95)); box-shadow: 0 10px 26px rgba(4, 1, 12, .45); cursor: pointer; }
-#tl.mis #quest.entra { animation: mcardIn .3s var(--ease); }
-#tl.mis #quest::before { content: ''; position: absolute; right: -5px; top: var(--py, 28px); width: 10px; height: 10px; margin-top: -5px; transform: rotate(45deg); background: rgba(30, 10, 64, .96); }
+#tl.mis #quest { position: absolute; left: 0; top: calc(100% + 10px); z-index: 2; width: min(320px, calc(100vw / var(--z, 1) - 32px)); display: flex; gap: 12px; align-items: flex-start; padding: 12px 14px 14px 12px; border-radius: 10px;
+  background: linear-gradient(170deg, rgba(36, 12, 78, .96), rgba(16, 7, 34, .95)); box-shadow: 0 10px 26px rgba(4, 1, 12, .45); cursor: pointer; animation: mcardIn .26s var(--ease); }
+#tl.mis #quest::before { content: ''; position: absolute; top: -5px; left: clamp(14px, var(--px, 24px), calc(100% - 14px)); width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: rgba(36, 12, 78, .96); }
 #tl.mis #quest.hidden { display: none; }
 #tl.mis #quest .mc-ic { flex: none; width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: color-mix(in srgb, var(--mc, #c9b8ff) 70%, #1c0d38); }
 #tl.mis #quest .mc-ic :is(svg, img) { width: 70%; height: 70%; filter: drop-shadow(0 1px 1px rgba(13, 6, 28, .45)); }
@@ -314,7 +296,7 @@ body.alto-contraste #tlb .round { background: #000; border: 2px solid #fff; }
 #tl.mis #quest p.qt { margin: 6px 0 0; font: 700 var(--fs-sm)/1.3 var(--f-ui, 'MZ Texto'), sans-serif; color: #e6dcff; }
 #tl.mis #quest .qrow { margin-top: 8px; }
 #tl.mis #quest .qd { display: inline; color: #ff9bd6; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; }
-@keyframes mcardIn { from { opacity: 0; transform: translateX(18px); } }
+@keyframes mcardIn { from { opacity: 0; transform: translateY(-6px); } }
 @media (prefers-reduced-motion: reduce) { #tl.mis #quest { animation: none; } }
 @media (min-width: 1000px) and (min-height: 640px) { #tl.mis #quest { width: 340px; padding: 14px 16px 16px 14px; } #tl.mis #quest .mc-ic { width: 52px; height: 52px; } #tl.mis #quest .mc-tit { font-size: var(--fs-xl); } #tl.mis #quest p.qt { font-size: var(--fs-md); } }
 #ribbons .eg { margin-left: 8px; font-size: var(--fs-sm); color: #ff7ac8; font-weight: 900; display: inline-flex; align-items: center; gap: 4px; text-shadow: 0 1px 2px #000; }
