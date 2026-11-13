@@ -192,6 +192,18 @@ const CSS = `
 .pel-hit.charging::after,.pel-cut.charging::after,.pel-drop.charging::after{content:'';position:absolute;inset:-8px;border-radius:50%;background:conic-gradient(#ff2bd6 var(--cp),rgba(255,255,255,.18) 0 var(--tope,100%),rgba(255,70,70,.5) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));mask:radial-gradient(farthest-side,transparent calc(100% - 7px),#000 calc(100% - 6px));pointer-events:none}
 .pel-hit.full::after,.pel-cut.full::after,.pel-drop.full::after{background:#ff2e88;animation:pel-full .25s infinite alternate}
 .pel-hit.tope::after,.pel-cut.tope::after,.pel-drop.tope::after{background:conic-gradient(#ff9d3b var(--cp),rgba(255,70,70,.5) 0)}
+.pel-pw{position:absolute;left:50%;bottom:calc(100% + 12px);z-index:2;min-width:44px;padding:4px 8px;border-radius:6px;transform:translate(-50%,4px) scale(.9);opacity:0;pointer-events:none;white-space:nowrap;
+  background:rgba(28,10,52,.86);color:#fff;font:800 var(--fs-xs)/1 var(--f-ui,'MZ Texto'),sans-serif;letter-spacing:.04em;text-align:center;font-variant-numeric:tabular-nums;transition:opacity .12s,transform .12s}
+.pel-btn.charging .pel-pw{opacity:1;transform:translate(-50%,0) scale(1)}
+.pel-btn.full .pel-pw{background:linear-gradient(180deg,#ff7fdc,#ff2e88);font-size:var(--fs-sm);letter-spacing:.08em;box-shadow:0 0 0 2px rgba(255,255,255,.85),0 0 18px rgba(255,46,136,.75)}
+.pel-btn.tope .pel-pw{background:linear-gradient(180deg,#ffb765,#ff8a1f);color:#2a1300}
+.pel-pw.pop{animation:pel-max .42s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pel-max{0%{transform:translate(-50%,6px) scale(.6)}60%{transform:translate(-50%,-3px) scale(1.18)}100%{transform:translate(-50%,0) scale(1)}}
+.pel-drop .pel-pw{left:auto;bottom:auto;right:calc(100% + 10px);top:50%;transform:translate(4px,-50%) scale(.9)}
+.pel-drop.charging .pel-pw{transform:translate(0,-50%) scale(1)}
+.pel-drop .pel-pw.pop{animation-name:pel-max-l}
+@keyframes pel-max-l{0%{transform:translate(6px,-50%) scale(.6)}60%{transform:translate(-3px,-50%) scale(1.18)}100%{transform:translate(0,-50%) scale(1)}}
+@media (prefers-reduced-motion:reduce){.pel-pw.pop,.pel-drop .pel-pw.pop{animation:none}}
 @keyframes pel-full{to{filter:brightness(1.6)}}
 /* (las ventanas del partido, por encima de todo: la etiqueta de GOLPE asomaba encima de «Seguir jugando» y se llevaba el toque) */
 .pel-panel{position:absolute;inset:0;z-index:10;display:grid;place-items:center;background:rgba(14,4,34,.6);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);pointer-events:auto;padding:calc(env(safe-area-inset-top,0px) + 16px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
@@ -566,7 +578,7 @@ export class PelotaHud {
       <div class="pel-tip"></div>
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
-      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span></button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span></button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div>`;
+      <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span><b class="pel-pw" aria-hidden="true"></b></button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span><b class="pel-pw" aria-hidden="true"></b></button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div>`;
     container.appendChild(r);
     this.$ = (s) => r.querySelector(s);
     // (los dos nombres del marcador, enteros y a la misma letra: si uno no cabe, los dos bajan a la vez, nunca de 11 px.
@@ -734,7 +746,18 @@ export class PelotaHud {
       const b = this.$(sel); if (!b) continue;
       const v = kind === k ? p : 0, key = v + ':' + tope.toFixed(2); if (b._cp === key) continue; b._cp = key;
       b.style.setProperty('--cp', (v * 100).toFixed(0) + '%'); b.style.setProperty('--tope', (tope * 100).toFixed(0) + '%');
-      b.classList.toggle('charging', v > 0); b.classList.toggle('full', v >= 1); b.classList.toggle('tope', v > 0 && tope < 0.99 && v >= tope - 0.01);
+      const full = v >= 0.995, top = v > 0 && tope < 0.99 && v >= tope - 0.01, eraMax = b.classList.contains('full') || b.classList.contains('tope');
+      b.classList.toggle('charging', v > 0); b.classList.toggle('full', full); b.classList.toggle('tope', top);
+      // (junto al botón, cuánto lleva cargado y, a tope, «MÁX» con un golpe de luz; cansado, su tope en naranja: encima del
+      // golpe y a la izquierda de la cortada y la dejada, que van una encima de otra. Igual en los tres botones. El autor no
+      // notaba la diferencia entre pulsar poco y pulsar a tope, 13 nov 2026)
+      const w = b.querySelector('.pel-pw');
+      if (w) {
+        const t = full ? (this.txt.potMax || 'MÁX') : top ? `${Math.round(v * 100)} %` : v > 0 ? `${Math.round(v * 100)} %` : '';
+        if (w._t !== t) { w._t = t; w.textContent = t; }
+        if ((full || top) && !eraMax) { w.classList.remove('pop'); void w.offsetWidth; w.classList.add('pop'); try { navigator.vibrate?.(full ? 18 : 8); } catch (e) { /* sin vibración */ } }
+        if (!v) w.classList.remove('pop');
+      }
     }
   }
   /** El nombre del golpe que se acaba de dar (dos paredes, gancho al ancho, dejada al txoko…), como el rótulo de la tele:

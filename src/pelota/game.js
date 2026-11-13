@@ -62,7 +62,7 @@ export function cutHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.45 + Math.
 // el joystick a un lado se exagera: medio lado ya va casi a la pared y del todo, pegada a ella o a dos paredes
 export const aimSide = (x) => Math.sign(x) * Math.min(1, Math.pow(Math.abs(x), 0.6) * 1.12);
 // (la dejada: la carga dice la altura, de rozar la chapa a unos 2 m; el joystick arriba o abajo afina un palmo más)
-export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.1 + pow01(pow) * 1.05 + ay * 0.32, COURT.CHAPA + 0.06, 2.3); }
+export function dropHeight(pow, ay = 0) { return clamp(COURT.CHAPA + 0.1 + pow01(pow) * 1.4 + ay * 0.32, COURT.CHAPA + 0.06, 2.6); }
 // a qué altura da en el frontis y dónde bota después (el Cuatro y Medio: que no pase de la raya del 4 y medio ni baje a la chapa)
 function firstBounce(p, v) {
   const b = new Ball(); b.set({ ...p }, { ...v }); const out = []; let fy = null;
@@ -324,15 +324,16 @@ export class PelotaGame {
       const lx = clamp(aimSide(rawX) * 3.7 + gauss(rnd) * err * 1.2, -4.6, 4.6), ay = clamp(aim.y || 0, -1, 1);
       if (req === 'cortada') {
         sub = 'saqueCortado';
-        const speed = (31 + q * 4 + pow * 8) * this.cortaCam(who), T = Math.max(0.2, p.z / speed);
-        const lzT = (this.cuatro ? clamp(11.4 + pow * 2 + ay * 1.2, 10.9, 14.5) : clamp(15.3 + pow * 2.6 + ay * 1.6, 14.6, 19.5)) + gauss(rnd) * err * 2.2;
+        const f = pow01(pow), speed = (29 + q * 4 + f * 12) * this.cortaCam(who), T = Math.max(0.2, p.z / speed);
+        const lzT = (this.cuatro ? clamp(11.1 + f * 2.8 + ay * 1.2, 10.9, 14.5) : clamp(14.9 + f * 3.8 + ay * 1.6, 14.6, 19.5)) + gauss(rnd) * err * 2.2;
         // (la altura del frontis con la que bota ahí: cuanto más alta, más lejos; mal dado, puede ir a la chapa o a falta)
         let lo = COURT.CHAPA + 0.28, hi = 3.4, ty = lo;
         for (let i = 0; i < 10; i++) { ty = (lo + hi) / 2; const r = landingOf(p, aimVelocity(p, lx * 0.4, ty, T), 1); if ((r.land?.z ?? 99) < lzT) lo = ty; else hi = ty; }
         ty += gauss(rnd) * err * 0.22;
         v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1);
       } else {
-        const landZ = this.cuatro ? clamp(13.4 + pow * 2.4 + ay * 1.2, 11.2, 16.6) + gauss(rnd) * err * 4.5 : clamp(18.3 + pow * 2 + ay * 2.6, 15.4, 23.4) + gauss(rnd) * err * 7.5, speed = 17 + q * 3 + pow * 6;
+        // (la fuerza se nota: un saque flojo bota nada más pasar la falta y uno a tope, cerca del pasa)
+        const f = pow01(pow), landZ = this.cuatro ? clamp(12.6 + f * 3.4 + ay * 1.2, 11.2, 16.6) + gauss(rnd) * err * 4.5 : clamp(16.8 + f * 5.4 + ay * 2.2, 15.4, 23.4) + gauss(rnd) * err * 7.5, speed = 17.5 + q * 3 + f * 8;
         v = aimWide(p, lx, (tx) => solveShot(p, tx, landZ, speed).v);
       }
     } else if (forceDrop) {
@@ -342,7 +343,8 @@ export class PelotaGame {
       // la raya del ancho; con el joystick en medio, recta desde donde estás
       shot = 'dejada';
       const c0 = clamp(p.x * 0.4, -3, 3), lx = clamp((aim.x < 0 ? c0 + aim.x * (c0 + 4.6) : c0 + aim.x * (4.3 - c0)) + gauss(rnd) * err * 1.2, -4.75, 4.75);
-      const ty = dropHeight(pow, aim.y) + err * 0.6 + gauss(rnd) * err * 0.45, T = p.z / (12 + q * 3 + pow * 4);
+      // (y la velocidad: tocada apenas, muere junto al frontis; cargada, va más alta y más rápida y bota más atrás)
+      const ty = dropHeight(pow, aim.y) + err * 0.6 + gauss(rnd) * err * 0.45, T = p.z / (9.5 + q * 3 + pow01(pow) * 11);
       v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T));
       sub = lx < -3.4 ? 'dejadaTxoko' : lx > 3.2 ? 'dejadaAncho' : '';   // (al rincón de la pared o junto a la raya del ancho)
     } else if (req === 'cortada') {
@@ -352,7 +354,7 @@ export class PelotaGame {
       // cargada del todo, a media altura del frontis (más segura y vuelve más larga). El joystick arriba o abajo
       // afina medio metro
       shot = 'cortada';
-      const speed = (27 + q * 5 + pow * 12) * (o.volea ? 1.08 : 1) * this.cortaCam(who);   // (de volea, aún más rápida: le quitas tiempo)
+      const speed = (24 + q * 5 + pow01(pow) * 18) * (o.volea ? 1.08 : 1) * this.cortaCam(who);   // (de volea, aún más rápida: le quitas tiempo; la fuerza, de 24 a 42 m/s más la calidad)
       const lx = clamp(aim.x * (aim.x < 0 ? 4.4 : 4.3) + gauss(rnd) * err * 1.1, -4.75, 5.4);   // (dónde bota a lo ancho: de la pared al ancho; mal dada al ancho, se puede ir fuera)
       const ty = cutHeight(pow, aim.y) + gauss(rnd) * err * 0.3;
       // a dos paredes: con el joystick bien a la izquierda, pega primero en la pared izquierda y después bajo en el
@@ -364,7 +366,7 @@ export class PelotaGame {
       // a bote junto a la raya del ancho; arriba, más larga; abajo, más corta, junto al frontis)
       if (rawX < -0.45 && !serve) {
         const ang = clamp((-rawX - 0.45) / 0.5, 0, 1);
-        const tgt = { x: 0.8 + ang * 3.6 + gauss(rnd) * err * 0.9, z: clamp(9.5 + pow * 4 + aim.y * 3, 6.5, 16) + gauss(rnd) * err * 1.6 };
+        const tgt = { x: 0.8 + ang * 3.6 + gauss(rnd) * err * 0.9, z: clamp(8 + pow01(pow) * 7 + aim.y * 3, 6.5, 16) + gauss(rnd) * err * 1.6 };
         const r = twoWallsTo(p, speed, tgt, { low: 1.5, maxFront: ty + 1.4, spin: 1 });
         if (r) { v = r.v; sub = 'cortDos'; }
       }
@@ -377,7 +379,7 @@ export class PelotaGame {
       // (el golpe, con bombeo: da en el frontis por encima de la mitad, a unos 6 m desde el cuadro 4 y más arriba desde atrás,
       // y la pelota vuelve alta; la cortada es la que va de media pared abajo. De volea y de gancho, más tenso)
       // (desde más atrás, más fuerte: si no, para llegar tendría que dar arriba del todo)
-      let tx, landZ, speed = (14 + q * 3 + pow * 13 + (S - 3) * 1.3) * (0.72 + clamp(p.z, 8, 30) / 50) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
+      let tx, landZ, speed = (12 + q * 3 + pow * 17 + (S - 3) * 1.3) * (0.72 + clamp(p.z, 8, 30) / 50) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
       if (gancho) aim = { x: rawX < -0.6 ? -0.9 : Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
@@ -400,11 +402,14 @@ export class PelotaGame {
         // el joystick manda de verdad: a la izquierda va a la izquierda (pegada a la pared del todo) y a la derecha, a
         // la derecha (al ancho del todo), en proporción a lo que se inclina; arriba larga y abajo corta. Se apunta al
         // bote y se corrige el punto del frontis hasta que cae ahí; el error solo depende de lo bien que se golpee
-        const depth = clamp(12 + aim.y * 5 + pow * 9, 9, 25);
+        // (lo largo lo dice sobre todo la fuerza: un toque se queda hacia el cuadro 2 o 3 y a tope va al 6 o 7; el joystick
+        // arriba o abajo afina 4,5 m. Antes, de 13 a 21 m: entre poco y mucho apenas había diferencia, 13 nov 2026)
+        const depth = clamp(9.5 + aim.y * 4.5 + Math.pow(pow01(pow), 0.9) * 15, 8, 26);
         let lx = aim.x * (aim.x < 0 ? 4.1 : 4.4);   // (a la izquierda, del todo, a medio metro de la pared: si no, la roza alta)
         // a tope y largo, un pelotari con fuerza la manda al fondo: bota en el último cuadro y llega al rebote (la pared de
         // atrás), que la devuelve; uno flojo no llega
-        const rebote = !this.cuatro && pow > 0.88 && aim.y > 0.3 && q > 0.5 && S >= 2;
+        // (a tope basta: no hace falta además el joystick arriba, solo no tirarlo hacia abajo)
+        const rebote = !this.cuatro && pow > 0.9 && aim.y > -0.3 && q > 0.5 && S >= 2;
         if (rebote) { shot = 'rebote'; landZ = clamp(28.8 + (S - 3) * 0.9 + (pow - 0.88) * 6, 26.5, 30.8); speed += 5 + (S - 3) * 2; }
         // (con el joystick arriba, más arriba en el frontis: un globo que pasa por encima del rival, para cuando está delante
         // tras una dejada o para que no la coja de aire; cuanto más arriba, más alto y más largo)
