@@ -457,6 +457,10 @@ const CSS = `
 .cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,var(--cancha)) var(--fx,50%) 100%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:50% 80%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
 .cp-foto::after{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse 46% 40% at 50% 62%,color-mix(in srgb,var(--ac) 20%,transparent),transparent 72%),linear-gradient(180deg,rgba(14,8,32,.3),rgba(14,8,32,0) 30%,rgba(14,8,32,0) 70%,rgba(14,8,32,.6))}
 .cp-card:hover .cp-foto::before{transform:scale(calc(var(--fz,1) * 1.05))}
+/* (con un frontón de verdad, la foto algo apagada y más oscura arriba y abajo: el pelotari, la etiqueta y las txapelas
+   se leen encima, y la luz del color del campeonato detrás del pelotari lo separa del fondo) */
+.cp-card.con-foto .cp-foto::before{filter:brightness(.68) saturate(.85)}
+.cp-card.con-foto .cp-foto::after{background:radial-gradient(ellipse 46% 40% at 50% 62%,color-mix(in srgb,var(--ac) 22%,transparent),transparent 72%),linear-gradient(180deg,rgba(14,8,32,.45),rgba(14,8,32,0) 32%,rgba(14,8,32,.08) 60%,rgba(14,8,32,.72))}
 .cp-top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .cp-foto .cp-top{position:absolute;left:8px;right:8px;top:8px;z-index:3}
 .cp-est{padding:3px 6px;border-radius:999px;background:rgba(16,9,34,.8)}
@@ -850,9 +854,24 @@ const RETO_ART = {
   diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
   dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
 };
-// (la foto de las tarjetas: hasta el 13 de noviembre de 2026, un frontón pintado con Higgsfield en cada una; al autor no le
-// gustaron porque no eran frontones de verdad. Ahora todas llevan la cancha oscura de CANCHA, en el CSS, hasta tener los
-// frontones reales; para ponerlos, --foto en cada .cp-card)
+// la foto de las tarjetas: un frontón de verdad de Navarra en cada una, pintado con Higgsfield a partir de una foto de
+// Wikimedia Commons, fiel a la foto (src/assets/frontones-cartas; autores y licencias en LICENCIAS.md de esa carpeta y en
+// legal/registro-licencias.csv). Del 12 al 13 de noviembre de 2026 eran frontones inventados, y al autor no le gustaron.
+// Cada campeonato, el suyo: la Gran Txapela, el Labrit de Iruña al anochecer; el manomanista, el cubierto de Ziordia; las
+// parejas, el de Areso; el 4½, el cubierto de Ariztialde; el de Comarcas, el de Berrioplano; el de Fiestas, la plaza de
+// Lanz; el de los Valles, el de Roncal; la Copa de Invierno, el cubierto de Urroz de Santesteban; las Promesas, el otro
+// lado del de Ariztialde; el partido libre, el de Mendaza; los retos, el de Irurtzun; la pelota en casa, la pared de
+// Fontellas; la colección, el viejo de Irurtzun. Sin foto, la cancha oscura de CANCHA
+const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/frontones-cartas/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, u]) => [k.match(/([\w-]+)\.webp$/)[1], u]));
+const FONDO_DE = { torneo: 'ziordia', torneoParejas: 'areso', torneoCuatro: 'ariztialde2', 't:gran': 'labrit', 't:comarcas': 'berrioplano',
+  't:fiestas': 'lanz', 't:valles': 'roncal', 't:invierno': 'urroz', 't:promesas': 'ariztialde1', libre: 'mendaza', retos: 'irurtzun1',
+  camara: 'fontellas', pelotaris: 'irurtzun2' };
+const conFoto = (row) => {
+  for (const c of row?.querySelectorAll('.cp-card') || []) {
+    const u = FONDOS[FONDO_DE[c.dataset.reto ? 'retos' : c.dataset.a]];
+    if (u) { c.style.setProperty('--foto', `url("${u}")`); c.classList.add('con-foto'); }
+  }
+};
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
 /** Las estrellas que llevas en los tres retos (de 0 a 9) */
@@ -879,7 +898,7 @@ export function retosMenu() {
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${eu ? 'Frontoian' : 'En el frontón'}</small><h2>${R.titulo}</h2></div><span class="cp-total cp-total-est"><b>${tot}</b><small>/9 ${eu ? 'izar' : 'estrellas'}</small></span></div>
       <div class="tq-carr"><div class="cp-row cp-tres">${Object.keys(RETOS).map(tile).join('')}</div></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.firstElementChild.classList.add('tq-menu-card');
+    r.firstElementChild.classList.add('tq-menu-card'); conFoto(r.querySelector('.cp-row'));
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-reto],[data-a]'); if (!b) return; lgFuera(r); res(b.dataset.reto || null); });
   });
 }
@@ -931,7 +950,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
     // la más apretada, la de los tres de la colección: en el ordenador salían pequeñas y abajo). Las ilustraciones tienen el
     // mismo encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
-    const tiles = r.querySelector('.cp-row');
+    const tiles = r.querySelector('.cp-row'); conFoto(tiles);
     const iguala = () => {
       if (!r.isConnected) { ro.disconnect(); return; }
       for (const f of tiles.querySelectorAll('.figs')) {
