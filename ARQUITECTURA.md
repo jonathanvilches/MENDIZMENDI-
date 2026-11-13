@@ -1799,6 +1799,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   apagada (`uCielo` en el suelo). Antes el mapa era morado, de noche, y solo pasaba a ser de día con una isla en el aire;
   el autor pidió que empezase ya «como un paisaje terrestre, con el cielo azul, el mar y la tierra». Con una comarca
   elegida, las demás no se quedan grises: guardan buena parte de su color (`fv`), y las paredes de todas van de roca.
+  Por debajo del horizonte, y justo encima, ese cielo es del color de la niebla de lo lejano (`uBruma`, que cada imagen
+  copia de `scene.fog.color`): donde el mapa se acaba, la tierra se deshace en el cielo sin raya. Antes el cielo se
+  repetía hacia abajo como un espejo, y con la cámara mirando al mapa entero quedaba arriba una franja de azul fuerte.
   La cámara la mira primero de lado (`PITCH_ISLA` 0,3; se deja bajar hasta 0,24), para verla arrancarse, y cuando ya está
   en el aire (y acabado su vídeo, si lo hay) sube sola a mirarla desde más arriba (`PITCH_ALTA` 0,74, `vistaAlta`): se ve
   el territorio entero, con sus pueblos y sus montes; si el jugador ya ha movido la cámara, no. Arriba, la cámara se queda
