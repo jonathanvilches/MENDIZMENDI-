@@ -13,9 +13,7 @@ import { esc } from '../util/html.js';
 import { lettersOnly } from '../util/text.js';
 
 const I = (n, s = 24) => iconSVG(n, s);
-const FOTOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/frontones/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, u]) => [k.match(/([\w-]+)\.webp$/)[1], u]));
-/** La foto de un frontón (su clave en data/frontones.js) o ''. */
-export const fotoFronton = (k) => (k && FOTOS[k]) || '';
+import { fotoFronton } from '../ui/frontonFotos.js';
 const colorDe = (c) => COMARCAS.find(x => x.id === c)?.color;
 const nombreComarca = (c) => { const x = COMARCAS.find(y => y.id === c); return x ? x.full || x.name : ''; };
 const num = (n) => n.toLocaleString('es-ES');

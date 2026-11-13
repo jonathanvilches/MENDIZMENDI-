@@ -21,11 +21,12 @@ import { pelotariCard, CARTA_ALTO } from '../ui/sportCard.js';
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
 import { camaraDisponible } from '../ui/camaraAR.js';
 import { profile } from './profile.js';
-import { LEVELS, esSede } from '../data/levels.js';
+import { LEVELS, esSede, levelById } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
 import { iconSVG } from '../ui/icons.js';
 import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
+import { fotoFronton, canchaImg } from '../ui/frontonFotos.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 /** Las cualidades de un pelotari del torneo y sus golpes preferidos (los de los torneos guardados antes sin golpes se
@@ -356,19 +357,11 @@ const CSS = `
 @media (orientation:portrait){.tq-tiles.retos3{--cw:calc((100% - 12px) / 1.55)}}
 .lg-bar .lg-btn.tq-pick{min-width:max-content;padding-inline:14px}.lg-bar .tq-pick~.lg-btn.go{min-width:132px}.tq-tile.main,.tq-tile.mano2{--t1:#ff2bd6;--t2:#3a0b6b}.tq-tile.evento{--t1:#ffb21a;--t2:#4a1405}.tq-tile.evento .k{color:#ffd166}.tq-tile.c45{--t1:#ff7a1a;--t2:#3b0d3a}.tq-tile.c45 .k{color:#ffb26b}.tq-tile.pair{--t1:#7b2ff7;--t2:#160636}.tq-tile.free{--t1:#5b4bff;--t2:#120a40}.tq-tile.col{--t1:#c21cff;--t2:#2a0638}.tq-tile.casa{--t1:#e0a21a;--t2:#2a0b40}.tq-tile.casa .k{color:#ffd166}
 .tq-menu-foot{display:flex;justify-content:space-between;align-items:center;gap:12px}
-/* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre la lista de los frontones con una
-   línea de cada uno; en el menú, a la derecha de Salir; en el torneo, junto a tus txapelas. La lista de pueblos, por comarcas */
+/* el frontón del partido: un botón (el nombre corto del elegido y una flecha) que abre «Elige tu frontón», con una
+   tarjeta grande por frontón (eligeFronton, EF_CSS); en el menú, a la derecha de Salir; en el torneo, en la cabecera */
 .tq-sede{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 16px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
 .tq-sede span{font-size:var(--fs-xs);letter-spacing:.1em;color:var(--lila)}.tq-sede::after{content:'';width:7px;height:7px;margin:-4px 0 0 4px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg)}
 .tq-sede[aria-expanded=true]{background:var(--cta);border-color:transparent}.tq-sede[aria-expanded=true] span{color:#fff}.tq-menu-foot .tq-sede{margin-left:auto}
-.tq-pop{position:fixed;inset:0;z-index:30001}.tq-pop>div{position:fixed;display:flex;flex-direction:column;gap:4px;padding:8px;max-height:calc(100% - 16px);overflow-y:auto;border-radius:16px;border:1px solid rgba(255,255,255,.08);background:#1c0b3a;box-shadow:0 12px 32px rgba(0,0,0,.55)}
-.tq-pop button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;padding:8px 16px;border:0;border-radius:12px;background:transparent;color:#fff;text-align:left;cursor:pointer}
-.tq-pop b{font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase}.tq-pop small{font:600 var(--fs-xs)/1.3 var(--f-cond);color:#cbbcf0}
-.tq-pop button:hover,.tq-pop button:focus-visible{background:rgba(255,255,255,.1)}.tq-pop button.on{background:var(--cta)}.tq-pop button.on small{color:#fff}
-.tq-pueblos button{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
-.tq-pueblos button.on{background:var(--cta);border-color:transparent;box-shadow:0 0 12px rgba(255,43,214,.45)}
-.tq-pueblos{display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto}.tq-pueblos h3{margin:0 0 6px;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.1em;text-transform:uppercase;color:var(--rosa)}
-.tq-pueblos section>div{display:flex;flex-wrap:wrap;gap:6px}
 @media (orientation:landscape) and (max-height:520px){
 .lg-card.tq-card{gap:4px 16px;padding:8px 16px}.tq-card .lg-pn{padding:4px 10px 6px;gap:4px}.tq-txa>.ico{width:40px;height:40px}.tq-top .lg-head h2{font-size:var(--fs-xl)}
 .tq-duel{padding:0 4px}.tq-mid b{font-size:var(--fs-3xl)}.tq-left{gap:4px}.tq-card .lg-bar .lg-btn{min-height:44px}
@@ -675,38 +668,106 @@ const sedeHtml = (o, here) => !o?.sedes?.length ? '' : `<button type="button" cl
 // (al tocarlo, la lista; lo elegido se apunta en o.sede; «Otro pueblo» abre la lista de pueblos y devuelve su id)
 async function sedeClick(e, r, o, here) {
   const b = e.target.closest('[data-sede]'); if (!b) return false;
-  const k = await sedeLista(b, o, here);
+  const k = await eligeFronton(b, o, here);
   if (k === 'otro') return { otro: await otroPueblo(here) };
   if (k && k !== o.sede) { o.sede = k; o.onSede?.(k); b.lastChild.textContent = SEDE_CORTO[k](here, o); }
   return true;
 }
-/** La lista de los frontones, junto al botón (encima si cabe): devuelve el elegido, 'otro' o null (tocando fuera o
- *  con Escape, que es «Atrás» en el mando del móvil, que copia sus botones porque es un diálogo). */
-function sedeLista(btn, o, here) {
+// «Elige tu frontón», como elegir estadio en los juegos de fútbol: una tarjeta grande por frontón con la cancha tal como
+// se juega (sacada del propio partido, con los pelotaris y el público: ui/frontonFotos.js) y, si la hay, la foto del de
+// verdad en una esquina («El de verdad»: el Labrit, la plaza de Leitza). Debajo, su nombre, dónde está y cómo es. Se toca
+// una para elegirla y «Jugar aquí»; «Otro pueblo» abre los frontones de las demás sedes. Hasta el 13 de noviembre de 2026
+// era una lista corta de nombres junto al botón. Devuelve el elegido, 'otro' o null (con «Volver», Escape o fuera)
+const EF_CSS = `
+.ef-card{display:flex;flex-direction:column;gap:12px;max-height:100%;min-height:0}
+.ef-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
+.ef-head h2{margin:var(--t-mt) 0 0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase}
+.ef-head p{margin:6px 0 0;color:var(--lila2);font:500 var(--fs-sm)/1.35 var(--f-body);max-width:62ch}
+.ef-row{display:grid;grid-auto-flow:column;grid-auto-columns:clamp(220px,30vw,340px);gap:16px;overflow-x:auto;overflow-y:hidden;padding:8px 4px 12px;scroll-snap-type:x proximity;scrollbar-width:none;min-height:0}
+.ef-row::-webkit-scrollbar{display:none}
+.ef-it{scroll-snap-align:center;display:flex;flex-direction:column;min-width:0;padding:0;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,#24104a,#170833);color:#fff;text-align:left;cursor:pointer;overflow:hidden;transition:transform var(--d-encima,200ms) var(--ease,ease),border-color .2s,box-shadow .2s}
+.ef-it:hover,.ef-it:focus-visible{transform:translateY(-3px);border-color:rgba(255,122,200,.5)}
+.ef-it.on{border-color:#ffd166;box-shadow:0 0 0 1px #ffd166,0 0 16px rgba(255,209,102,.4),0 12px 26px rgba(0,0,0,.45);transform:translateY(-4px)}
+.ef-pic{position:relative;display:block;flex:none;aspect-ratio:16/10;background:#170833;overflow:hidden}
+.ef-pic>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ef-pic>.ico{position:absolute;inset:0;margin:auto;width:38%;height:auto;opacity:.8}
+.ef-real{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;align-items:center;gap:2px;width:34%;padding:4px 4px 3px;border-radius:8px;background:rgba(18,6,40,.55);border:1px solid rgba(255,255,255,.18)}
+.ef-real img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:6px}
+.ef-real small{font:800 10px/1.1 var(--f-cond);letter-spacing:.08em;text-transform:uppercase;color:#ffe6a6}
+.ef-txt{display:flex;flex-direction:column;flex:none;gap:3px;padding:10px 14px 14px}
+.ef-txt small{color:var(--rosa);font:800 var(--fs-xs)/1.2 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
+.ef-txt b{font:400 var(--fs-xl)/1.05 var(--f-display);text-transform:uppercase}
+.ef-txt em{align-self:flex-start;margin-top:2px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);color:#ffd166;font:800 var(--fs-xs)/1.3 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;font-style:normal}
+.ef-txt span{color:var(--lila2);font:500 var(--fs-sm)/1.35 var(--f-body)}
+.ef-it.on .ef-txt em{background:#ffd166;color:#2a1450}
+.ef-otro .ef-pic{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}
+.ef-otro .ef-pic img{position:static;width:100%;height:100%;object-fit:cover}
+@media (prefers-reduced-motion:reduce){.ef-it{transition:none}.ef-it.on,.ef-it:hover{transform:none}}
+@media (orientation:landscape) and (max-height:500px){.ef-head p{display:none}.ef-row{grid-auto-columns:clamp(180px,26vw,280px)}.ef-txt{padding:8px 12px 10px}.ef-txt span{display:none}}
+@media (orientation:portrait) and (max-width:700px){.ef-row{grid-auto-flow:row;grid-template-columns:1fr;grid-auto-columns:auto;grid-auto-rows:max-content;overflow-x:hidden;overflow-y:auto;scroll-snap-type:y proximity}}
+.efp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));grid-auto-rows:max-content;gap:12px;min-height:0;overflow-y:auto;padding:4px 2px 8px}
+@media (orientation:portrait) and (max-width:700px){.efp-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.efp-grid .ef-txt b{font-size:var(--fs-lg)}
+`;
+const efCss = () => { if (!document.getElementById('ef-css')) { const st = document.createElement('style'); st.id = 'ef-css'; st.textContent = EF_CSS; document.head.appendChild(st); } };
+const idDe = (nombre) => LEVELS.find(l => l.name.split(' /')[0] === nombre)?.id || '';
+const comarcaDe = (id) => COMARCAS.find(c => c.id === levelById(id)?.comarca)?.name || '';
+// (la tarjeta de un frontón: k, la sede; id, el pueblo)
+function efTarjeta(k, id, here, o, sel) {
+  const eu = isEU(), real = k === 'labrit' ? fotoFronton('labrit') : k === 'plaza' && id === 'leitza' ? fotoFronton('leitza') : '';
+  const img = canchaImg(k === 'fuera' ? o.fueraId : id, k === 'fuera' ? 'cubierto' : k);
+  const D = {
+    plaza: [comarcaDe(id), eu ? `${here} · frontoia` : `Frontón de ${here}`, eu ? 'Kanpoan' : 'Al aire libre', SEDE_SUB.plaza()],
+    cubierto: [comarcaDe(id), eu ? `${here} · estalia` : `Cubierto de ${here}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.cubierto()],
+    labrit: ['Iruña · Pamplona', 'Frontón Labrit', eu ? 'Estalia · 1952' : 'Cubierto · 1952', eu ? '«La Bombonera», finalen frontoia' : '«La Bombonera»: el frontón de las finales'],
+    fuera: [comarcaDe(o.fueraId), eu ? `${o.fuera} · estalia` : `Cubierto de ${o.fuera}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.fuera()],
+  }[k];
+  return `<button type="button" class="ef-it${k === sel ? ' on' : ''}" data-k="${k}" aria-pressed="${k === sel}">
+    <span class="ef-pic">${img ? `<img src="${img}" alt="" decoding="async">` : iconSVG('pelota', 96)}${real ? `<i class="ef-real"><img src="${real}" alt="" decoding="async"><small>${eu ? 'Benetakoa' : 'El de verdad'}</small></i>` : ''}</span>
+    <span class="ef-txt"><small>${esc(D[0])}</small><b>${esc(D[1])}</b><em>${esc(D[2])}</em><span>${esc(D[3])}</span></span></button>`;
+}
+function eligeFronton(btn, o, here) {
+  efCss();
+  const eu = isEU(), id = idDe(here);
   return new Promise(res => {
-    const ks = [...o.sedes, ...(o.otro ? ['otro'] : [])], pop = document.createElement('div');
-    pop.className = 'tq-pop'; pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', FRONTON()); pop.dataset.notr = '';
-    pop.innerHTML = `<div>${ks.map(k => `<button type="button" class="${k === o.sede ? 'on' : ''}" aria-pressed="${k === o.sede}" data-k="${k}"><b>${esc(SEDE[k](here, o))}</b><small>${esc(SEDE_SUB[k]())}</small></button>`).join('')}</div>`;
-    document.body.appendChild(pop); btn.setAttribute('aria-expanded', 'true');
-    // (en píxeles del CSS: en la tele, la interfaz va ampliada y lo que se mide sale en píxeles de la pantalla)
-    const L = pop.firstElementChild, q = btn.getBoundingClientRect(), P = L.getBoundingClientRect(), c = enCss, W = c(innerWidth), H = c(innerHeight);
-    const bw = c(q.width), w = Math.max(c(P.width), bw), h = c(P.height), arriba = c(q.top) - h - 8;
-    L.style.minWidth = bw + 'px'; L.style.left = Math.max(8, Math.min(W - w - 8, c(q.right) - w)) + 'px';
-    L.style.top = Math.max(8, arriba >= 8 ? arriba : Math.min(H - h - 8, c(q.bottom) + 8)) + 'px';
-    const fin = (k) => { removeEventListener('keydown', tecla, true); pop.remove(); btn.setAttribute('aria-expanded', 'false'); btn.focus?.(); res(k); };
-    const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } };
+    let sel = o.sede;
+    const otros = LEVELS.filter(l => esSede(l.id) && l.id !== id).slice(0, 4).map(l => canchaImg(l.id, 'cubierto')).filter(Boolean);
+    const otro = o.otro ? `<button type="button" class="ef-it ef-otro" data-k="otro"><span class="ef-pic">${otros.map(u => `<img src="${u}" alt="" decoding="async">`).join('') || iconSVG('map', 96)}</span>
+      <span class="ef-txt"><small>${eu ? 'Txapelketen egoitzak' : 'Las sedes de los Campeonatos'}</small><b>${esc(SEDE.otro())}</b><span>${esc(SEDE_SUB.otro())}</span></span></button>` : '';
+    const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Aukeratu frontoia' : 'Elige tu frontón'}</h2>
+      <p>${eu ? 'Ukitu bat: hor jokatuko duzu partida.' : 'Toca uno: ahí se juega el partido. La imagen es la cancha tal como la verás al jugar.'}</p></div>
+      <div class="ef-row" role="listbox" data-notr>${o.sedes.map(k => efTarjeta(k, id, here, o, sel)).join('')}${otro}</div>
+      <div class="lg-bar" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div>`);
+    r.firstElementChild.classList.add('ef-card'); btn?.setAttribute('aria-expanded', 'true');
+    requestAnimationFrame(() => r.querySelector('.ef-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }));
+    const fin = (k) => { removeEventListener('keydown', tecla, true); btn?.setAttribute('aria-expanded', 'false'); lgFuera(r); res(k); };
+    const elige = (k) => { sel = k; r.querySelectorAll('.ef-it[data-k]').forEach(x => { const on = x.dataset.k === k; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
+    const tecla = (e) => {
+      if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ks = o.sedes, i = ks.indexOf(sel); elige(ks[(i + (e.key === 'ArrowRight' ? 1 : ks.length - 1)) % ks.length]); r.querySelector('.ef-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }); e.preventDefault(); }
+      else if (e.key === 'Enter') { e.preventDefault(); fin(sel); }
+    };
     addEventListener('keydown', tecla, true);
-    pop.addEventListener('click', (e) => { e.stopPropagation(); const b = e.target.closest('[data-k]'); fin(b ? b.dataset.k : null); });
-    (L.querySelector('.on') || L.querySelector('button'))?.focus?.();
+    r.addEventListener('click', (e) => {
+      const c = e.target.closest('.ef-it[data-k]');
+      if (c) { if (c.dataset.k === 'otro') return fin('otro'); if (c.dataset.k === sel && e.detail > 1) return fin(sel); return elige(c.dataset.k); }
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      fin(b.dataset.a === 'ok' ? sel : null);
+    });
   });
 }
 /** La lista de los pueblos, por comarcas, para jugar en el frontón de otro: devuelve su id (o null). */
 function otroPueblo(here) {
+  efCss();
   return new Promise(res => {
-    const grupos = COMARCAS.map(c => [c, LEVELS.filter(l => esSede(l.id) && l.comarca === c.id)]).filter(([, ts]) => ts.length);
-    const r = lgPanel(`<div class="lg-head" data-notr><div><small>${isEU() ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${isEU() ? 'Zein frontoitan?' : '¿En qué frontón?'}</h2></div></div>
-      <div class="lg-list tq-pueblos">${grupos.map(([c, ts]) => `<section><h3>${esc(c.name)}</h3><div>${ts.map(l => { const n = l.name.split(' /')[0]; return `<button type="button" class="${n === here ? 'on' : ''}" data-pueblo="${l.id}">${esc(n)}</button>`; }).join('')}</div></section>`).join('')}</div>
-      <div class="lg-btns"><button class="lg-btn" data-a="no" data-notr>${isEU() ? 'Itzuli' : 'Volver'}</button></div>`);
+    // (cada sede con la imagen de su cancha, la de la plaza si juega al aire libre, el Labrit en Iruña y, si no, su cubierto)
+    const ts = COMARCAS.flatMap(c => LEVELS.filter(l => esSede(l.id) && l.comarca === c.id).map(l => [c, l]));
+    const img = (l) => canchaImg(l.id, 'plaza') || (l.id === 'pamplona' ? canchaImg(l.id, 'labrit') : '') || canchaImg(l.id, 'cubierto');
+    const r = lgPanel(`<div class="ef-head" data-notr><small>${isEU() ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${isEU() ? 'Zein frontoitan?' : '¿En qué frontón?'}</h2></div>
+      <div class="efp-grid" data-notr>${ts.map(([c, l]) => { const n = l.name.split(' /')[0], u = img(l); return `<button type="button" class="ef-it${n === here ? ' on' : ''}" data-pueblo="${l.id}">
+        <span class="ef-pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : iconSVG('pelota', 80)}</span><span class="ef-txt"><small>${esc(c.name)}</small><b>${esc(n)}</b></span></button>`; }).join('')}</div>
+      <div class="lg-bar" data-notr><button class="lg-btn" data-a="no">${isEU() ? 'Itzuli' : 'Volver'}</button></div>`);
+    r.firstElementChild.classList.add('ef-card');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-pueblo], [data-a]'); if (!b) return; lgFuera(r); res(b.dataset.pueblo || null); });
   });
 }
@@ -741,7 +802,7 @@ export function torneoPanel(T, here = null, o = null) {
     const m = yourMatch(T), pairs = T.kind === 'parejas', lang = isEU() ? 'eu' : 'es', yp = T.players.find(p => p.you);
     // (el frontón del partido: el elegido para esta ronda o, si no, el que le toca: ver sedeRonda)
     // (y el cubierto de otro pueblo: el del rival o, si no es de un pueblo del juego, uno de la comarca; ver fueraDe)
-    const fu = o && m ? fueraDe(T) : null; if (fu && !o.sedes.includes('fuera')) { o.sedes = [...o.sedes, 'fuera']; o.fuera = fu.name; }
+    const fu = o && m ? fueraDe(T) : null; if (fu && !o.sedes.includes('fuera')) { o.sedes = [...o.sedes, 'fuera']; o.fuera = fu.name; o.fueraId = fu.id; }
     if (o && m) { o.sede = sedeDe(T, m, o.sedes); o.onSede = (k) => { T.sede = { ri: T.round, round: m.round, edition: T.edition, kind: k }; }; }
     const how = comoFunciona(T);
     // (las cartas del duelo, con el color que cada uno viste en el partido)

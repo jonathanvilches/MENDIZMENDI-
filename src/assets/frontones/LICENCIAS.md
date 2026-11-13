@@ -29,7 +29,9 @@ recortadas se comparten con su misma licencia. No se usa la de Alsasua de Common
 | `labrit.webp` | Frontón Labrit - DSC 1955.JPG | Juanje 2712 | CC BY-SA 3.0 | [Frontón Labrit - DSC 1955.JPG](https://commons.wikimedia.org/wiki/File:Front%C3%B3n_Labrit_-_DSC_1955.JPG) |
 | `lakuntza.webp` | Lakuntza - Frontón 4.jpg | Zarateman | CC0 | [Lakuntza - Frontón 4.jpg](https://commons.wikimedia.org/wiki/File:Lakuntza_-_Front%C3%B3n_4.jpg) |
 | `lana.webp` | Lana - Galbarra - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | [Lana - Galbarra - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Lana_-_Galbarra_-_Front%C3%B3n_01.jpg) |
+| `leitza.webp` | Pilotalekua Leitza a03.jpg | Luistxo | CC BY-SA 4.0 | [Pilotalekua Leitza a03.jpg](https://commons.wikimedia.org/wiki/File:Pilotalekua_Leitza_a03.jpg) |
 | `lekunberri.webp` | Lekunberriko pilotalekua - Lekunberri - Tagzania - 1770570434815.jpg | csBulegotik (Tagzania) | CC BY-SA 4.0 | [Lekunberriko pilotalekua - Lekunberri - Tagzania - 1770570434815.jpg](https://commons.wikimedia.org/wiki/File:Lekunberriko_pilotalekua_-_Lekunberri_-_Tagzania_-_1770570434815.jpg) |
+| `lopez.webp` | Forntón López 2.jpg | JLVwiki | CC BY-SA 4.0 | [Forntón López 2.jpg](https://commons.wikimedia.org/wiki/File:Fornt%C3%B3n_L%C3%B3pez_2.jpg) |
 | `luquin.webp` | Luquin - Frontón Viejo 01.jpg | Basotxerri | CC BY-SA 4.0 | [Luquin - Frontón Viejo 01.jpg](https://commons.wikimedia.org/wiki/File:Luquin_-_Front%C3%B3n_Viejo_01.jpg) |
 | `manueta.webp` | Frontón de la Mañueta, Pamplona.jpg | Jialxv | CC BY-SA 4.0 | [Frontón de la Mañueta, Pamplona.jpg](https://commons.wikimedia.org/wiki/File:Front%C3%B3n_de_la_Ma%C3%B1ueta,_Pamplona.jpg) |
 | `maranon.webp` | Frontón de Marañón.jpg | Mentxuwiki | CC BY-SA 4.0 | [Frontón de Marañón.jpg](https://commons.wikimedia.org/wiki/File:Front%C3%B3n_de_Mara%C3%B1%C3%B3n.jpg) |
