@@ -508,11 +508,12 @@ if (uCopas.z > 0.004) {
 roughnessFactor = mix(roughnessFactor, 0.8, smoothstep(0.2,0.9,vSurf.x));
 // con la lluvia: el suelo se oscurece (más las calles y los caminos, que la hierba empapa menos) y coge brillo, y donde
 // es llano se encharca; el charco refleja el cielo, más cuanto más rasante se mira (una sola lectura de textura más, y
-// solo mientras está mojado)
+// solo mientras está mojado). Los charcos, pocos y pequeños: solo en lo más alto del ruido, de 0,70 a 0,78. Antes, de 0,5
+// a 0,66, cubrían casi media plaza y al autor le parecían demasiados (13 de noviembre de 2026)
 float charco = 0.0;
 if (uMojado > 0.001) {
   float duro = max(smoothstep(0.2, 0.9, vSurf.x), smoothstep(0.3, 0.9, vSurf.y));
-  charco = smoothstep(0.5, 0.66, texture2D(tDetail, vWP.xz * 0.031).r) * smoothstep(0.988, 0.998, vNW.y) * (0.06 + 0.94 * duro) * uMojado;   // (en la hierba, casi nada: el agua se la bebe)
+  charco = smoothstep(0.70, 0.78, texture2D(tDetail, vWP.xz * 0.031).r) * smoothstep(0.988, 0.998, vNW.y) * (0.06 + 0.94 * duro) * uMojado;   // (en la hierba, casi nada: el agua se la bebe)
   diffuseColor.rgb *= 1.0 - uMojado * (0.16 + 0.16 * duro) - 0.2 * charco;
   roughnessFactor = mix(mix(roughnessFactor, 0.34, uMojado * 0.7 * duro), 0.06, charco);
 }`)

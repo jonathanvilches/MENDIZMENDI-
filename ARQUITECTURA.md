@@ -1549,7 +1549,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - *Suelo mojado y charcos* (`world/weather.js MOJADO`, `world/terrain.js`, tanda 1): con la lluvia, calles y caminos
     se oscurecen y cogen brillo, y en lo llano se forman charcos que reflejan el cielo, más cuanto más rasante se
     mira. Es una lectura de textura más en el sombreador del terreno, solo mientras está mojado; no añade geometría.
-    Sube mientras llueve y tarda en secarse al escampar. En la hierba apenas se encharca.
+    Sube mientras llueve y tarda en secarse al escampar. En la hierba apenas se encharca. Los charcos son pocos y
+    pequeños (solo lo más alto del ruido, de 0,70 a 0,78): con el umbral de 0,5 cubrían casi media plaza y al autor le
+    parecían demasiados (13 de noviembre de 2026).
   - *Un solo viento* (`world/viento.js`, tanda 1): `VIENTO` guarda la fuerza de ahora (`uWind`), hacia dónde sopla
     (`uDir`, el lado al que van las nubes) y el tiempo; `sopla()` la calcula cada fotograma en `runtime.js` con dos
     ondas lentas que no casan (rachas cada medio minuto más o menos), el aire de la comarca (en la Ribera, más) y el
