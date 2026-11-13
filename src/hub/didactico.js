@@ -28,6 +28,7 @@ import { FIGURAS } from '../data/figuras.js';
 import { HITZAK, HIZKETAK, hizketaLines } from '../data/hitzak.js';
 import { INSTRUMENTOS, instrumentosDe } from '../data/instrumentos.js';
 import { PASAKA } from '../data/pasaka.js';
+import { CUENTA as FRONTONES_N } from '../data/frontones.js';
 import { ARMAS, armsOfTown } from '../data/armas-navarra.js';
 import { LAMINAS, OFICIO_LAMINA } from '../data/laminas.js';
 import { montesFrom, townLatLon } from '../data/miradores.js';
@@ -140,6 +141,7 @@ export const DIDACTICO = {
       ['cuentos', 'legend', 'Cuentos y leyendas', 'Las leyendas e historias de cada pueblo, enteras', CUENTOS.length + Object.keys(LEGENDS).length, 'relatos'],
       ['personajes', 'book', 'Personajes', 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval', nPer, 'fichas'],
       ['tradiciones', 'mask', 'Tradiciones', 'Danzas, carnavales, fiestas, romerías, ferias y pelota', '', ''],
+      ['frontones', 'pelota', 'Frontones de Navarra', 'Los frontones con historia, sus fotos, los tipos de cancha y todos, pueblo a pueblo', FRONTONES_N.total, 'frontones'],
       ['oficios', 'anvil', 'Oficios de antes', 'Cómo trabajaban, con qué herramientas y cómo es hoy', Object.keys(OFICIOS).length, 'oficios'],
       ['productos', 'cheese', 'Producto local y campo', 'Quesos, aceite, vino, huerta, cosechas y ganadería', '', ''],
       ['historia', 'castle', 'Historia y arquitectura', 'Castillos, dólmenes, los vascones y cómo reconocer cada monumento', '', ''],
@@ -336,7 +338,9 @@ export const DIDACTICO = {
     }
     const head = `<div class="ar-head dd-head"><small class="kicker">${I('mask', 20)} Saberes · Tradiciones</small><h1>Tradiciones de Navarra</h1>${cuenta}
       <p>Las danzas, los carnavales, las fiestas y los trajes de cada comarca; las tradiciones de los pueblos, las romerías y los caminos, las ferias de ganado, la pelota y la música. Toca una para ver su ficha${cuenta ? ' o dónde descubrirla' : ''}.</p></div>`;
-    grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="instrumentos">${I('music', 22)} Los instrumentos de la música de siempre</button><button type="button" class="btn ghost" data-go="personajes">${I('mask', 22)} Las fichas de los personajes de leyenda y carnaval</button></p>`;
+    grupos.at(-1).after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="frontones">${I('pelota', 22)} Los frontones de Navarra</button><button type="button" class="btn ghost" data-go="instrumentos">${I('music', 22)} Los instrumentos de la música de siempre</button><button type="button" class="btn ghost" data-go="personajes">${I('mask', 22)} Las fichas de los personajes de leyenda y carnaval</button></p>`;
+    // (y desde la pelota, al capítulo de los frontones)
+    grupos.find(g => g.k === 'pelota').after = `<p class="dd-more"><button type="button" class="btn ghost" data-go="frontones">${I('pelota', 22)} Los frontones de Navarra</button></p>`;
     return galeria(this, 'tradiciones', tab, head, grupos);
   },
 

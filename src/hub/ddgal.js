@@ -3,7 +3,8 @@
 // Al tocarla se abre su ficha, con el texto repartido en pestañas (Qué es, Cómo se hace, Antes y ahora, Dónde…): así
 // cada cosa tiene su sitio y se lee bien, también en una pantalla grande. Antes todo el texto iba seguido en la página.
 // Cada cosa: { k, img, fit (la imagen es un recorte sin fondo: entera), icon, c (su color), kicker, title, eu, sub,
-// secs: [[pestaña, html]], towns: [ids] }
+// secs: [[pestaña, html]], towns: [ids] }. Un apartado puede llevar, en vez de tarjetas, su propio contenido: { html, n (el número
+// de su pestaña), init (root) (lo que hay que enganchar al pintarlo) }; así va la lista de todos los frontones de Navarra
 import { iconSVG } from '../ui/icons.js';
 import { infoCard } from '../ui/escudo.js';
 import { posImg } from '../ui/laminas.js';
@@ -29,16 +30,17 @@ const card = (it) => `<button type="button" class="ddc${it.img ? (it.fit ? ' fit
 
 /** La página: cabecera, pestañas (los apartados con algo) y las tarjetas del apartado elegido. hub: el menú. */
 export function galeria(hub, scr, tab, head, grupos) {
-  const G = grupos.filter(g => g.items.length), cur = G.find(g => g.k === tab) || G[0];
-  const porK = new Map(cur.items.map(it => [it.k, it]));
+  const G = grupos.filter(g => g.items?.length || g.html), cur = G.find(g => g.k === tab) || G[0];
+  const porK = new Map((cur.items || []).map(it => [it.k, it]));
   hub.after = () => {
     pestanas(hub, scr);
     hub.root.querySelectorAll('.ddc[data-dd]').forEach(c => c.onclick = (e) => { e.stopPropagation(); ficha(hub, porK.get(c.dataset.dd)); });
+    cur.init?.(hub.root);
   };
   return `<section class="armorial dd ddg">${head}
-    ${G.length > 1 ? `<div class="filters dd-tabs" role="tablist">${G.map(g => `<button data-f="${g.k}" class="${g === cur ? 'on' : ''}" role="tab" aria-selected="${g === cur}">${I(g.icon, 26)}<span>${esc(g.name)}</span><small>${g.items.length}</small></button>`).join('')}</div>` : ''}
+    ${G.length > 1 ? `<div class="filters dd-tabs" role="tablist">${G.map(g => `<button data-f="${g.k}" class="${g === cur ? 'on' : ''}" role="tab" aria-selected="${g === cur}">${I(g.icon, 26)}<span>${esc(g.name)}</span><small>${g.n ?? g.items.length}</small></button>`).join('')}</div>` : ''}
     ${cur.intro ? `<p class="dd-intro">${esc(cur.intro)}</p>` : ''}
-    <div class="ddc-grid">${cur.items.map(card).join('')}</div>${cur.after || ''}</section>`;
+    ${cur.html || `<div class="ddc-grid">${cur.items.map(card).join('')}</div>`}${cur.after || ''}</section>`;
 }
 
 /** La ficha de una cosa: su imagen (o su icono), el título y el texto en pestañas; «Dónde» lleva a sus pueblos. */

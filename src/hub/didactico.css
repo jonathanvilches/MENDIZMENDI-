@@ -131,6 +131,37 @@ html.didactico #hub [data-play], html.didactico #hub [data-sport], html.didactic
 .ddch-b.tu { align-self: flex-end; border-radius: 18px 18px 4px 18px; background: linear-gradient(100deg, rgba(255, 43, 214, .35), rgba(123, 47, 247, .35)); text-align: right; }
 .ddch-b b { color: #ffd76a; font: 900 var(--fs-lg)/1.25 'MZ Texto', sans-serif; } .ddch-b i { color: #eae4f6; font-size: var(--fs-sm); font-weight: 700; font-style: normal; }
 
+/* Frontones de Navarra (frontones.js): las cifras de la cabecera; en la ficha, los datos en casillas y el crédito de la
+   foto; y la lista de todos, con su buscador: un bloque por comarca (con su color en el filo) y, en cada pueblo, cuántos
+   hay de cada tipo en una pastilla (plaza libre, pared izquierda, trinquete) */
+.ftn-cifras { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 0; }
+.ftn-cifras span { display: inline-flex; align-items: baseline; gap: 6px; padding: 4px 12px; border-radius: 8px; background: rgba(255, 255, 255, .07); border: 1px solid var(--line); color: var(--mute); font-size: var(--fs-sm); font-weight: 700; }
+.ftn-cifras b { color: #ffd76a; font: 900 var(--fs-lg)/1 'MZ Texto', sans-serif; }
+.ftn-datos { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.ftn-datos li { display: flex; flex-direction: column; gap: 2px; padding: 8px 12px; border-radius: 8px; background: rgba(255, 255, 255, .06); border: 1px solid var(--line); }
+.ftn-datos small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs)/1.2 var(--f-cond); letter-spacing: .08em; text-transform: uppercase; }
+.ftn-datos b { color: #fff; font: 800 var(--fs-md)/1.3 'MZ Texto', sans-serif; }
+.ftn-cred { margin-top: 12px !important; font-size: var(--fs-xs); } .ftn-cred a { color: inherit; }
+.ftn-cat { display: flex; flex-direction: column; gap: 16px; }
+.ftn-busca { display: flex; align-items: center; gap: 8px; max-width: 480px; padding: 4px 4px 4px 12px; border-radius: 10px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); }
+.ftn-busca:focus-within { border-color: #ff7ac8; box-shadow: 0 0 0 1px #ff7ac8, 0 0 12px rgba(255, 122, 200, .35); }
+.ftn-busca > :is(svg, img) { flex: none; opacity: .8; }
+.ftn-busca input { flex: 1; min-width: 0; min-height: 44px; padding: 0 8px; border: 0; background: none; color: #fff; font: 700 var(--fs-md) 'MZ Texto', sans-serif; outline: none; }
+.ftn-busca input::placeholder { color: var(--mute); }
+.ftn-ley { display: flex; flex-wrap: wrap; gap: 16px; margin: -4px 0 0; color: var(--mute); font-size: var(--fs-sm); font-weight: 700; }
+.ftn-ley span { display: inline-flex; align-items: center; gap: 6px; } .ftn-ley .ftn-n { width: 14px; height: 14px; min-width: 0; padding: 0; }
+.ftn-nada { margin: 0; color: var(--mute); font-weight: 700; }
+.ftn-com { padding: 12px 16px 16px; border-radius: 10px; background: var(--glass); border: 1px solid var(--line); border-left: 3px solid var(--c, #ff7ac8); }
+.ftn-com h3 { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 0 0 8px; color: #fff; font: 900 var(--fs-lg)/1.2 'MZ Texto', sans-serif; }
+.ftn-com h3 small { color: var(--mute); font: 700 var(--fs-sm)/1 'MZ Texto', sans-serif; white-space: nowrap; }
+.ftn-com ul { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 4px 16px; margin: 0; padding: 0; list-style: none; }
+.ftn-com li { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 36px; padding: 2px 0; border-bottom: 1px solid rgba(255, 255, 255, .06); }
+.ftn-pueblo { min-width: 0; color: #eae4f6; font-weight: 700; overflow-wrap: anywhere; }
+.ftn-pueblo .lnk { display: inline-flex; align-items: center; gap: 4px; min-height: 0; padding: 0; border: 0; background: none; color: #ffd76a; font: 700 var(--fs-md)/1.3 'MZ Texto', sans-serif; letter-spacing: normal; text-transform: none; text-decoration: none; text-align: left; cursor: pointer; }
+.ftn-ns { display: inline-flex; flex: none; gap: 4px; }
+.ftn-n { display: inline-grid; place-items: center; min-width: 26px; height: 22px; padding: 0 6px; border-radius: 6px; color: #1e0a44; font: 900 var(--fs-xs)/1 'MZ Texto', sans-serif; font-style: normal; }
+.ftn-n.pl { background: #8fe3a8; } .ftn-n.iz { background: #ffd76a; } .ftn-n.tr { background: #ff7ac8; }
+
 /* móvil de pie y móvil tumbado */
 @media (max-width: 720px) {
   .dd-tools tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); border-top: 1px solid var(--line); }

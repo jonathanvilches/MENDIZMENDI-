@@ -1130,6 +1130,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   jugando cada una se descubre al hacer su misión, o la de una comarca al visitar uno de sus pueblos. La que falta sale
   apagada con su candado y dice dónde descubrirla; su ficha solo cuenta cómo y sus pueblos. Arriba, cuántas van
   descubiertas. La pelota, las campanas y lo que no está en ningún pueblo del juego se ven desde el principio.
+- **Frontones de Navarra** (`hub/frontones.js`, `s_frontones`, en «Más» y en el material didáctico; datos en
+  `data/frontones.js` y `data/frontones-pueblos.json`; fotos en `assets/frontones` con su `LICENCIAS.md`): la galería de
+  `ddgal.js` con seis pestañas. «Con historia»: el Labrit (1952), el Navarra Arena (2018), el Euskal Jai Berri (1977), el
+  Euskal Jai (1909 a 2004), el Atarrabia (1931), el López (1935), la Mañueta, el Jito Alai (1962), el Juanjo Atxa de
+  Elizondo, los trinquetes de Elizondo y de Sangüesa (siglo XVI), Muzqui, Nagore y Alloz. «La Montaña», «Zona Media y
+  Tierra Estella» y «La Ribera»: frontones de los pueblos con su foto de Wikimedia Commons (CC0, CC BY y CC BY-SA; en la
+  ficha, el autor, la licencia y el enlace). «Tipos de cancha»: plaza libre, pared izquierda, trinquete y las medidas.
+  «Todos»: los 653 frontones del directorio frontons.net (noviembre de 2026) contados por pueblo y comarca, con un
+  buscador; el pueblo que está en el juego lleva su enlace. Solo van años y aforos que dice una fuente; donde no
+  coinciden, lo que dicen todas. Fuera las fotos de Commons con pintadas o carteles políticos (Alsasua, una de Leitza).
+  `ddgal.js` admite ahora un apartado con contenido propio (`html`, `n`, `init`) en vez de tarjetas.
 - **Ferias de ganado** (`data/ferias.js`, `CORRALES` y `FERIA_TOWNS`; `townActividades.js`, `buildFair`,
   `conoceCorral` y `judgeFair`): en Estella, Elizondo, Altsasu, Lesaka, Lumbier y Lekunberri (las tres últimas, con
   datos del archivo de patrimonio inmaterial de Navarra y prensa, van al final de la lista del pueblo para no mover el
