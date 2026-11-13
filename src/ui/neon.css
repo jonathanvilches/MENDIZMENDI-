@@ -5,7 +5,8 @@
      cintas de premio y las dos mitades del VS son formas, no cajas.
    · El filo de neón de 1 px, con su destello que da la vuelta y la luz de su color alrededor, es de las cartas de
      jugador y de nadie más (.gx-card, ui/sportCard.js: el cuadro del torneo, la presentación del partido, la Gran final
-     y la colección de pelotaris). Antes lo llevaba todo lo que flotaba (paneles, ventanas, marcador, losas, rótulos,
+     y la colección de pelotaris). Una excepción, pedida por el autor el 13 de noviembre de 2026: las casillas de las
+     misiones del pueblo (#misiones button, style.css), con un filo de 1 px del color de su categoría. Antes lo llevaba todo lo que flotaba (paneles, ventanas, marcador, losas, rótulos,
      tarjetas del menú) y muchos botones, y el autor lo pidió así: «todos los botones no deben tener el borde de un píxel
      neón (...) solo para las cards de jugadores».
    Lo demás se separa del fondo con su relleno y una sombra oscura; como mucho, una raya neutra muy tenue (--linea, blanco

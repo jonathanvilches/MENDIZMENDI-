@@ -212,15 +212,15 @@
 .m3-chip.on { border-color: #fff; }
 .m3-chip.on::before { content: ''; position: absolute; z-index: 2; left: 0; right: 0; bottom: 0; height: 3px; background: var(--c, #ff7ac8); }
 /* (la portada, encuadrada con los datos de laminas.js, encuadreComarca: el explorador entero de alto, --zf y --sy, y con su
-   centro a --tx del ancho de la tarjeta, --cx; los bordes de la imagen se funden con la misma portada desenfocada y oscura de
-   detrás, .m3-fondo. Hasta el 13 de noviembre de 2026 la portada llenaba la tarjeta y el explorador salía cortado por abajo o
-   por la derecha, y lo oscurecía una franja dura) */
-.m3-fondo { position: absolute; z-index: -3; left: -10px; top: -10px; width: calc(100% + 20px); height: calc(100% + 20px); max-width: none; object-fit: cover; filter: blur(7px) brightness(.8) saturate(.9); pointer-events: none; }
-.m3-foto, .m3-vid { --H: calc(100cqh * var(--zf, 1)); --W: calc(var(--H) * 16 / 9); position: absolute; z-index: -2; left: calc(var(--tx, 62cqw) - var(--cx, .6) * var(--W)); top: calc(-1 * var(--sy, 0) * var(--H)); display: block; width: var(--W); height: var(--H); max-width: none; object-fit: cover; border-radius: 0; transition: filter .3s, opacity .9s ease, transform .5s;
-  -webkit-mask: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent); mask: linear-gradient(90deg, transparent, #000 24%, #000 76%, transparent); }
+   centro a --tx del ancho de la tarjeta, --cx, sin salirse nunca de la tarjeta por los lados: la llena siempre, sin bordes
+   fundidos ni copia desenfocada detrás. Hasta el 13 de noviembre de 2026 los lados de la imagen se fundían con la misma
+   portada desenfocada y oscura, .m3-fondo, y el autor lo veía duro y sin sentido: «no intentes cuadrar la imagen
+   añadiéndoles difuminados») */
+.m3-foto, .m3-vid { --H: calc(100cqh * var(--zf, 1)); --W: max(calc(var(--H) * 16 / 9), 100cqw); position: absolute; z-index: -2; left: clamp(calc(100cqw - var(--W)), calc(var(--tx, 62cqw) - var(--cx, .6) * var(--W)), 0px); top: calc(-1 * var(--sy, 0) * var(--H)); display: block; width: var(--W); height: var(--H); max-width: none; object-fit: cover; border-radius: 0; transition: filter .3s, opacity .9s ease, transform .5s; }
 .m3-chip:hover :is(.m3-foto, .m3-vid) { transform: scale(1.04); }
-/* (el velo de detrás del nombre, con muchos pasos para que se funda sin raya) */
-.m3-chip::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(0deg, rgba(12, 4, 28, .82) 0%, rgba(12, 4, 28, .7) 12%, rgba(12, 4, 28, .52) 24%, rgba(12, 4, 28, .32) 36%, rgba(12, 4, 28, .15) 48%, rgba(12, 4, 28, .05) 58%, rgba(12, 4, 28, 0) 68%); }
+/* (el velo de detrás del nombre: fino y sencillo, solo para que se lea, y nunca opaco del todo, como mucho al 55 %; sin
+   desenfoque. Antes llegaba al 82 % y subía hasta media tarjeta) */
+.m3-chip::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: linear-gradient(0deg, rgba(12, 4, 28, .55) 0%, rgba(12, 4, 28, .3) 22%, rgba(12, 4, 28, 0) 46%); }
 .m3-vid { opacity: 0; pointer-events: none; } .m3-vid.on { opacity: 1; }
 .m3-chip:not(.go):not(.ok) :is(.m3-foto, .m3-vid) { filter: saturate(.7) brightness(.88); }
 .m3-sello { position: relative; flex: none; width: 48px; height: 48px; display: grid; place-items: center; }
@@ -256,7 +256,7 @@
 @media (min-width: 761px) and (min-height: 521px) {
   .m3d { --cw: clamp(220px, min(27vw, 46vh), 396px); --railh: calc(var(--cw) * 9 / 16 + 10px); }
   .m3-rail { --chh: calc(var(--cw) * 9 / 16); --fi: 0px; --fd: 72px; gap: 12px; scroll-padding: 0 64px;
-    -webkit-mask: linear-gradient(90deg, transparent, #000 var(--fi), #000 calc(100% - var(--fd)), transparent); mask: linear-gradient(90deg, transparent, #000 var(--fi), #000 calc(100% - var(--fd)), transparent); }
+    -webkit-mask: linear-gradient(90deg, rgba(0, 0, 0, .45), #000 var(--fi), #000 calc(100% - var(--fd)), rgba(0, 0, 0, .45)); mask: linear-gradient(90deg, rgba(0, 0, 0, .45), #000 var(--fi), #000 calc(100% - var(--fd)), rgba(0, 0, 0, .45)); }   /* (la que asoma se apaga solo un poco, al 45 %: nunca se pierde del todo) */
   .m3d:not(.rail-ini) .m3-rail { --fi: 64px; } .m3d.rail-fin .m3-rail { --fd: 0px; }
   .m3-rail .m3-chip { width: var(--cw); height: var(--chh); }
   .m3-rail .m3-chip :is(.m3-foto, .m3-vid) { --H: 100cqh; --W: 100cqw; left: 0; top: 0; -webkit-mask: none; mask: none; }

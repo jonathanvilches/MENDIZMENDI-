@@ -267,10 +267,14 @@ summary { line-height: 1.3; }
    botones ya no llevan, se veían apagadas y casi transparentes sobre el pueblo; noviembre de 2026, lo pidió el autor.
    Hecha, el color más lleno y su marca; la que sigues, un aro blanco por dentro) */
 #misiones button { --mc: #c9b8ff; position: relative; width: var(--chip); height: var(--chip); padding: 0; display: grid; place-items: center; border-radius: 6px; cursor: pointer;
-  background: color-mix(in srgb, var(--mc) 46%, #1c0d38); border: 0; color: #fff; transition: transform .15s; }
+  background: color-mix(in srgb, var(--mc) 46%, #1c0d38); border: 0; color: #fff; transition: transform .15s;
+  /* (un filo de neón de 1 px del color de su categoría, con un poco de su luz alrededor: lo pidió el autor el 13 de
+     noviembre de 2026, «que las cuadrículas de las misiones tengan un pequeño borde estilo neón». Por fuera, sin quitar
+     sitio al icono; ui/neon.css lo deja como excepción a la regla de las cartas de jugador) */
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mc) 72%, #fff), 0 0 9px color-mix(in srgb, var(--mc) 55%, transparent); }
 #misiones button :is(svg, img) { width: 68%; height: 68%; opacity: 1; pointer-events: none; filter: drop-shadow(0 1px 1px rgba(13, 6, 28, .45)); }
 #misiones button.on { background: color-mix(in srgb, var(--mc) 78%, #1c0d38); }
-#misiones button.cur { box-shadow: inset 0 0 0 2px #fff; }
+#misiones button.cur { box-shadow: inset 0 0 0 2px #fff, 0 0 0 1px color-mix(in srgb, var(--mc) 72%, #fff), 0 0 12px color-mix(in srgb, var(--mc) 70%, transparent); }
 #misiones button:is(.on, .cur, .sel) :is(svg, img) { opacity: 1; }
 #misiones button:active { transform: scale(.92); }
 /* (cambia lo que toca hacer en la misión que sigues: su icono late dos veces, sin desplegar el panel) */
