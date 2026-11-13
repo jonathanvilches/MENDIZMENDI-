@@ -165,10 +165,30 @@ function quoins(B, T, w, d, h, vec = []) {
   }
 }
 
-function chimney(B, T, x, y, z) {
-  B.add('stone', box(0.8, 1.9, 0.8, 1.5), MM(T, M(x, y, z)));
-  B.add('slate', box(1.1, 0.12, 1.1, 1), MM(T, M(x, y + 1.05, z)));
-  B.add('stone', box(0.3, 0.3, 0.3, 1), MM(T, M(x, y + 1.25, z)));
+// La chimenea, de base (metida en el tejado) a top; devuelve su boca en el mundo, para que el humo salga de ella (fx.js,
+// Smoke)
+function chimney(B, T, x, z, base, top) {
+  const hs = top - base;
+  B.add('stone', box(0.8, hs, 0.8, 1.5), MM(T, M(x, base + hs / 2, z)));
+  B.add('slate', box(1.1, 0.12, 1.1, 1), MM(T, M(x, top + 0.06, z)));
+  B.add('stone', box(0.3, 0.3, 0.3, 1), MM(T, M(x, top + 0.27, z)));
+  const b = new THREE.Vector3(x, top + 0.5, z).applyMatrix4(T); return { x: b.x, y: b.y, z: b.z };
+}
+// Dónde va la chimenea de una casa: cerca de la cumbrera, un poco caída hacia un faldón, y asomando por encima de la
+// cumbrera (0,6 m) y del faldón (1,5 m). a y b, de −0,5 a 0,5: a lo largo de la cumbrera y hacia un lado. Hasta el 13 de
+// noviembre de 2026 iba a media altura del faldón con una caña de 1,9 m y casi siempre quedaba enterrada en el tejado
+function sitioChimenea(o, w, d, h, rise, a, b) {
+  const rt = o.roofType === 'gableZ' || o.roofType === 'hip' ? o.roofType : 'gableX', lado = (0.08 + 0.32 * Math.abs(b)) * Math.sign(b || 1);
+  let x, z, yr;
+  if (rt === 'gableZ') { x = lado * w / 2; z = a * d * 0.5; yr = h + rise * (1 - Math.abs(lado)); }
+  else if (rt === 'hip') {
+    const hw = w / 2 + 0.7, hd = d / 2 + 0.7, r = Math.min(hw, hd) * 0.9, drop = rise * 0.7 / (Math.min(w, d) / 2), largo = Math.max(hw, hd) - r;
+    const porX = hw >= hd, media = (porX ? hd : hw), f = Math.abs(lado) * 0.8;
+    x = porX ? a * largo : Math.sign(lado) * f * (w / 2); z = porX ? Math.sign(lado) * f * (d / 2) : a * largo;
+    yr = h + rise - (rise + drop) * (porX ? Math.abs(z) : Math.abs(x)) / media;
+  } else { x = a * w * 0.5; z = lado * d / 2; yr = h + rise * (1 - Math.abs(lado)); }
+  yr += 0.22;   // (el grosor de las tejas)
+  return { x, z, base: yr - 0.7, top: Math.max(yr + 1.5, h + rise + 0.6) };
 }
 
 // Vuelo del tejado por cada lado: el de la casa o, donde la casa está pegada a otra (o.vecinas: [−x, +x, −z]), casi nada:
@@ -336,7 +356,7 @@ export function buildHouse(B, T, o, rnd) {
   if (o.trepa && w >= 5) { const sd = doorX > 0.1 ? -1 : doorX < -0.1 ? 1 : o.trepa.side || 1; climber(B, front, { ...o.trepa, x: sd * (w / 2 - 0.8), w: Math.min(o.trepa.w, 1.5), h: Math.min(h * 0.92, o.trepa.h) }); }
   // (sin la placa azul del número junto a la puerta: era de calle de ahora)
   // chimenea
-  chimney(B, T, (rnd() - 0.5) * w * 0.4, h + rise * 0.55, (rnd() - 0.5) * d * 0.3);
+  { const c = sitioChimenea(o, w, d, h, rise, rnd() - 0.5, rnd() - 0.5); o.chimenea = chimney(B, T, c.x, c.z, c.base, c.top); }   // (su boca, en o.chimenea)
   // buhardilla ocasional
   if (o.roofType === 'gableX' && rnd() < 0.3 && w > 8) {
     const dm = MM(T, M(w * 0.2, h + rise * 0.25, d / 4 + 0.2));

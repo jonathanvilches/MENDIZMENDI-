@@ -187,7 +187,7 @@ export function buildTown(scene, mats, def) {
           fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);   // (de lejos, sus ventanas ya no se dibujan: src/world/townReal.js)
           houseShield(x, hb, z, ry, ho, hall); addBalcon(x, hb, z, ry, ho);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
-          addHouse(x, z, ry, w, d);
+          addHouse(x, z, ry, w, d, { chim: ho.chimenea });
           count++; s += w + 1.2 + rnd() * 2.5; continue;
         }
       }

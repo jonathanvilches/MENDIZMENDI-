@@ -622,7 +622,7 @@ export function realHouses(B, def, rnd, H) {
     fachadaLejana(B, M(x, hb, z, ry), ho, fam, x, z);
     houseShield(x, hb, z, ry, ho, isHall); addBalcon(x, hb, z, ry, ho);
     addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
-    addHouse(x, z, ry, w, d, { real: b.n || null });
+    addHouse(x, z, ry, w, d, { real: b.n || null, chim: ho.chimenea });
     full++;
   }
   bajeras(B, altos);

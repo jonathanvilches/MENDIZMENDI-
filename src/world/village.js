@@ -104,7 +104,7 @@ export function buildVillage(scene, mats) {
           buildHouse(B, T, ho, rnd);
           fachadaLejana(B, T, ho, 'pyrenean', x, z);
           addBox(x, z, w + 0.3, d + 0.3, ry, { solidView: true });
-          VILLAGE.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) } });
+          VILLAGE.houses.push({ x, z, ry, w, d, door: { x: x + Math.sin(ry) * (d / 2 + 1.2), z: z + Math.cos(ry) * (d / 2 + 1.2) }, chim: ho.chimenea });
           s += w + 1.5 + rnd() * 3;
           continue;
         }

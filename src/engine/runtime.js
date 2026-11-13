@@ -191,7 +191,7 @@ export class Runtime {
     this.particles = new Particles(scene);
     this.waterfall = salazar ? new Waterfall(scene, LANDMARKS.waterfall, this.particles) : null;
     const houses = salazar ? VILLAGE.houses : TOWN.houses;
-    this.smoke = solo ? vacio.smoke() : new Smoke(scene, houses);
+    this.smoke = solo ? vacio.smoke() : new Smoke(scene, houses, { tiempo: this.weather?.kind, q });   // (cuando nieva, humean casi todas: fx.js)
     this.lights = solo ? vacio.lights() : new NightLights(scene, VILLAGE.lamps, this.mats);
     this.charFill = new THREE.Color(1, 1, 1);
     this.beacon = new Beacon(scene);

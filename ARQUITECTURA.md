@@ -1557,6 +1557,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     el mismo objeto), el humo de las chimeneas (`fx.js Smoke`, que se tumba hacia donde sopla) y los banderines de
     fiesta (`fiestas.js`: la punta de cada banderita, marcada con `aCuelga`, aletea en el sombreador). Lo que se
     mueva con el viento de aquí en adelante, que lea `VIENTO`.
+  - *Humo de las chimeneas según el tiempo* (`fx.js`, `Smoke` y `HUMO`; `sitioChimenea` y `chimney` en
+    `world/houses.js`; 13 de noviembre de 2026): el autor pidió que, nevando, saliera humo de las chimeneas, porque en
+    los pueblos, con frío, se enciende el fuego. Cada casa guarda la boca de su chimenea (`o.chimenea`, y `chim` en
+    `TOWN.houses` y `VILLAGE.houses`) y el humo sale de ahí. Nevando humean casi ocho de cada diez casas, con un humo
+    más denso, oscuro para que se vea contra el cielo gris, más alto y más largo; con lluvia, una de cada tres; con buen
+    tiempo, alguna cocina. Hasta 90 chimeneas, 45 en calidad baja, en un solo sistema de puntos y una sola llamada. Cada
+    una va a su ritmo, ondea un poco, se tumba con `VIENTO` y se pierde en la niebla (los fragmentos de niebla de three
+    en el sombreador). Antes humeaban 14 casas como mucho, todas a la vez, flojo y desde el centro del tejado, hiciera
+    el tiempo que hiciera. Y las chimeneas iban a media altura del faldón con una caña de 1,9 m, así que casi siempre
+    quedaban enterradas en el tejado: ahora van cerca de la cumbrera, algo caídas hacia un faldón, y asoman 0,6 m sobre
+    la cumbrera y 1,5 m sobre las tejas. Con los mismos dos números al azar de antes, para no mover nada más del
+    pueblo. Para verlo: `humo-vista.mjs` y `humo-chimeneas.mjs` en la carpeta de trabajo de la sesión.
   - *Agua pintada* (`world/water.js`, tanda 1): el reflejo del cielo va en degradado (el horizonte si se mira rasante,
     el azul del cenit si el reflejo sube: `uZen`), la profundidad se lee por color en tres pasos (hondo, verde claro
     y casi turquesa donde se hace pie) y a la orilla llegan líneas finas de espuma, una detrás de otra. Todo en el

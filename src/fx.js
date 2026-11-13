@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { glowTexture } from './actors/animals.js';
 import { terrainHeight } from './world/heightfield.js';
-import { clamp } from './util/math.js';
+import { clamp, mulberry32 } from './util/math.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const GLOW = glowTexture();
@@ -124,37 +124,69 @@ export class Waterfall {
 }
 
 // ---------- Humo de chimeneas (un solo sistema de puntos) ----------
+// Sale de la boca de cada chimenea (o.chimenea en world/houses.js, chim en TOWN.houses y VILLAGE.houses). Cuánto, según el
+// tiempo del pueblo: cuando nieva, en las casas se enciende el fuego y humean casi todas, con un humo más denso, más alto
+// y más largo; con lluvia, una de cada tres; con buen tiempo, alguna cocina. Cada chimenea va a su ritmo, el humo se tumba
+// con el viento (world/viento.js), ondea un poco y se pierde en la niebla. (13 de noviembre de 2026, el autor: «si está
+// nevando, que salga humo de las chimeneas: en los pueblos, cuando hace frío, se hace fuego». Antes humeaban 14 casas
+// como mucho, todas a la vez, flojo y desde el centro del tejado, hiciera el tiempo que hiciera)
+const HUMO = {
+  snow: { parte: 0.78, alfa: 0.58, sube: 9, ciclo: 6.5, n: 9, tam: [1.9, 10.5], color: '#979da5' },   // (más oscuro que el cielo gris de la nevada, para que se vea)
+  rain: { parte: 0.35, alfa: 0.44, sube: 6.5, ciclo: 5, n: 6, tam: [1.4, 6.5], color: '#9da2a9' },
+  clear: { parte: 0.12, alfa: 0.28, sube: 5.5, ciclo: 4.5, n: 5, tam: [1.3, 6], color: '#d2d2d2' },
+};
 export class Smoke {
-  constructor(scene, houses) {
-    this.spots = houses.filter((_, i) => i % 3 === 0).slice(0, 14).map(h => ({ x: h.x, z: h.z, y: h.top ?? terrainHeight(h.x, h.z) + 11 }));
-    const n = this.spots.length * 5;
+  constructor(scene, houses, { tiempo = 'clear', q = 'high' } = {}) {
+    const H = HUMO[tiempo] || HUMO.clear, rnd = mulberry32(houses.length * 7919 + 13), max = q === 'low' ? 45 : 90;
+    // (las chimeneas de verdad; en Pamplona, que no las guarda, lo alto de la casa, como antes)
+    let bocas = houses.filter(h => h.chim).map(h => h.chim);
+    if (!bocas.length) bocas = houses.filter((_, i) => i % 3 === 0).map(h => ({ x: h.x, z: h.z, y: h.top ?? terrainHeight(h.x, h.z) + 11 }));
+    bocas = bocas.filter(() => rnd() < H.parte);
+    if (bocas.length > max) { const paso = bocas.length / max; bocas = Array.from({ length: max }, (_, k) => bocas[Math.floor(k * paso)]); }
+    this.H = H; this.spots = bocas.map(b => ({ ...b, f: rnd(), v: 0.85 + rnd() * 0.3, g: 0.8 + rnd() * 0.45 }));
+    const n = Math.max(1, this.spots.length * H.n);
     const g = new THREE.BufferGeometry();
     this.pos = new Float32Array(n * 3); this.alpha = new Float32Array(n); this.size = new Float32Array(n);
     g.setAttribute('position', new THREE.BufferAttribute(this.pos, 3));
     g.setAttribute('alpha', new THREE.BufferAttribute(this.alpha, 1));
     g.setAttribute('size', new THREE.BufferAttribute(this.size, 1));
     this.mat = new THREE.ShaderMaterial({
-      uniforms: { map: { value: GLOW }, scale: { value: innerHeight / 2 }, color: { value: new THREE.Color('#d8d8d8') } },
+      uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { map: { value: GLOW }, scale: { value: innerHeight / 2 }, color: { value: new THREE.Color(H.color) } }]),
       vertexShader: `attribute float size; attribute float alpha; varying float vA; uniform float scale;
-        void main(){ vA = alpha; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = size * scale / -mv.z; gl_Position = projectionMatrix * mv; }`,
-      fragmentShader: `uniform sampler2D map; uniform vec3 color; varying float vA; void main(){ vec4 t = texture2D(map, gl_PointCoord); gl_FragColor = vec4(color, t.a * vA); }`,
-      transparent: true, depthWrite: false,
+        #include <fog_pars_vertex>
+        void main(){ vA = alpha; vec4 mvPosition = modelViewMatrix * vec4(position,1.0); gl_PointSize = size * scale / -mvPosition.z; gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+        }`,
+      fragmentShader: `uniform sampler2D map; uniform vec3 color; varying float vA;
+        #include <fog_pars_fragment>
+        void main(){ vec4 t = texture2D(map, gl_PointCoord); gl_FragColor = vec4(color, t.a * vA);
+        #include <fog_fragment>
+        #ifdef USE_FOG
+        gl_FragColor.a *= 1.0 - 0.75 * fogFactor;
+        #endif
+        }`,
+      transparent: true, depthWrite: false, fog: true,
     });
-    this.points = new THREE.Points(g, this.mat); this.points.frustumCulled = false;
+    this.mat.uniforms.map.value = GLOW;
+    this.points = new THREE.Points(g, this.mat); this.points.frustumCulled = false; this.points.name = 'humo de chimeneas';
+    this.points.visible = this.spots.length > 0;
     scene.add(this.points);
     this.t = 0;
   }
   // (wind: la fuerza del viento; dx, dz: hacia dónde sopla. El humo se tumba con él: world/viento.js)
   update(dt, wind = 1, dx = 0.9, dz = 0.43) {
+    if (!this.spots.length) return;
     this.t += dt; this.mat.uniforms.scale.value = innerHeight / 2;
+    const H = this.H, N = H.n, [s0, s1] = H.tam, baja = 1 / (1 + 0.25 * Math.max(0, wind - 1)), lejos = 3.4 * wind * H.sube / 5;
     let k = 0;
-    for (const s of this.spots) for (let i = 0; i < 5; i++, k++) {
-      const u = ((this.t + i / 5 * 4) % 4) / 4;
-      const d = u * u * 3.4 * wind; this.pos[k * 3] = s.x + d * dx; this.pos[k * 3 + 1] = s.y + u * 5 / (1 + 0.25 * Math.max(0, wind - 1)); this.pos[k * 3 + 2] = s.z + d * dz;
-      this.size[k] = 1.6 + u * 6; this.alpha[k] = 0.32 * Math.sin(u * Math.PI);
+    for (const s of this.spots) for (let i = 0; i < N; i++, k++) {
+      const u = (this.t * s.v / H.ciclo + i / N + s.f) % 1, d = u * u * lejos, o = Math.sin(this.t * 0.9 + s.f * 6.283 + i * 1.7) * 0.35 * u;
+      this.pos[k * 3] = s.x + d * dx - o * dz; this.pos[k * 3 + 1] = s.y + u * H.sube * baja * s.g; this.pos[k * 3 + 2] = s.z + d * dz + o * dx;
+      this.size[k] = (s0 + u * (s1 - s0)) * s.g; this.alpha[k] = H.alfa * Math.sin(u * Math.PI) * (1 - 0.35 * u);
     }
     const g = this.points.geometry; g.attributes.position.needsUpdate = g.attributes.alpha.needsUpdate = g.attributes.size.needsUpdate = true;
   }
+  dispose() { this.points.removeFromParent(); this.points.geometry.dispose(); this.mat.dispose(); }
 }
 
 // ---------- Luces nocturnas de farolas y ventanas ----------
