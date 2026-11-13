@@ -11,8 +11,16 @@
 #   src/assets/relieve/hd/orto-medio/<id>.webp  lo mismo a 56 m, para el móvil
 # y el recuadro de cada imagen en src/data/mapa-orto.js.
 #
+# Y, para el zoom de los pueblos, la ortofoto fina de cada uno (nivel 18, medio metro por píxel): el cuadrado de su núcleo,
+# de lado 2R (R: su radio en metros, como lo calcula haceNucleo en mapa3d.js; casi siempre 700 m), centrado en su centro y
+# en sus metros (los de tools/pueblo-real.py: x al este, z al sur), a 2.048 px (hd/orto-pueblos) y a 1.024 (hd/orto-pueblos-medio),
+# y el radio de cada imagen en src/data/mapa-orto-pueblos.js. La lista de los pueblos ([{ id, lat, lon, R }]) sale del
+# juego: tools/relieve/pueblos-lista.mjs.
+#
 # Uso: python3 tools/relieve/ortofoto.py bajar <carpeta de teselas>         (baja las que falten, de cuatro en cuatro)
 #      python3 tools/relieve/ortofoto.py hacer <carpeta de teselas>         (hace las imágenes; necesita PIL y numpy)
+#      python3 tools/relieve/ortofoto.py pueblos-bajar <carpeta de teselas> <lista.json>
+#      python3 tools/relieve/ortofoto.py pueblos-hacer <carpeta de teselas> <lista.json>
 import sys, os, math, json, re, time, threading, queue, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -36,9 +44,9 @@ def teselas():
     x0, y0 = tilexy(lo0, la0, Z); x1, y1 = tilexy(lo1, la1, Z)
     return [(Z, x, y) for x in range(int(x0) - 1, int(x1) + 2) for y in range(int(y0) - 1, int(y1) + 2)]
 
-def bajar(D):
+def bajar(D, lista=None):
     os.makedirs(D, exist_ok=True); q = queue.Queue(); hechas = [0]; fallos = []
-    for t in teselas():
+    for t in (lista or teselas()):
         p = os.path.join(D, '%d-%d-%d.jpg' % t)
         if not (os.path.exists(p) and os.path.getsize(p) > 0): q.put(t)
     total = q.qsize(); print('faltan', total, flush=True)
@@ -113,5 +121,62 @@ def hacer(D):
         '// Geográfico Nacional (CC BY 4.0, scne.es).\n'
         'export const MAPA_ORTO = ' + json.dumps(meta['navarra']) + ';\n')
 
+# ---------- los pueblos ----------
+ZP = 18; KY = 110574.0
+def _pueblos(lista): return [p for p in json.load(open(lista, encoding='utf-8')) if not p.get('sin')]
+def _ll(p, x, z):   # (metros del pueblo → lon, lat; vale con tablas de numpy)
+    return p['lon'] + x / (111320.0 * math.cos(math.radians(p['lat']))), p['lat'] - z / KY
+
+def pueblos_bajar(D, lista):
+    T = set()
+    for p in _pueblos(lista):
+        R = p['R'] + 8; (lo0, la0), (lo1, la1) = _ll(p, -R, -R), _ll(p, R, R)
+        x0, y0 = tilexy(lo0, la0, ZP); x1, y1 = tilexy(lo1, la1, ZP)
+        for x in range(int(x0), int(x1) + 1):
+            for y in range(int(y0), int(y1) + 1): T.add((ZP, x, y))
+    bajar(D, sorted(T))
+
+def pueblos_hacer(D, lista):
+    import numpy as np
+    from PIL import Image
+    for carpeta in ('orto-pueblos', 'orto-pueblos-medio'): os.makedirs(os.path.join(SALIDA, 'src/assets/relieve/hd', carpeta), exist_ok=True)
+    meta = {}; N = 2048
+    # (el tono de cada una, igualado al de la ortofoto de toda Navarra en su sitio: las del nivel 18 son de otros vuelos, más
+    # oscuras y azuladas, y el pueblo salía como un parche de otro color en medio del verde de la comarca)
+    base = np.asarray(Image.open(os.path.join(ROOT, 'src/assets/relieve/orto.webp')).convert('RGB'), np.float32)
+    def tono_de(p):
+        sx = 19 + (p['lon'] + 2.52) / 1.80 * 709; sy = 17 + (43.325 - p['lat']) / 1.43 * 765
+        i = int((sx - NAV[0]) / 0.45); j = int((sy - NAV[1]) / 0.45); r = 22   # (unos 2 km a cada lado)
+        v = base[max(0, j - r):j + r, max(0, i - r):i + r].reshape(-1, 3)
+        return v.mean(0) if len(v) else None
+    for p in _pueblos(lista):
+        R = p['R']; c = -R + (np.arange(N) + 0.5) * (2 * R / N); X, Zm = np.meshgrid(c, c)
+        lon, lat = _ll(p, X, Zm); gx, gy = tilexy(lon, lat, ZP); gx = gx * 256 - 0.5; gy = gy * 256 - 0.5
+        # (el mosaico de las teselas del pueblo, de una vez, y de él, cada píxel con interpolación bilineal)
+        tx0, ty0, tx1, ty1 = int(gx.min()) // 256, int(gy.min()) // 256, int(gx.max() + 1) // 256, int(gy.max() + 1) // 256
+        M = np.zeros(((ty1 - ty0 + 1) * 256, (tx1 - tx0 + 1) * 256, 3), np.float32)
+        for ty in range(ty0, ty1 + 1):
+            for tx in range(tx0, tx1 + 1):
+                f = os.path.join(D, '%d-%d-%d.jpg' % (ZP, tx, ty))
+                if os.path.exists(f): M[(ty - ty0) * 256:(ty - ty0 + 1) * 256, (tx - tx0) * 256:(tx - tx0 + 1) * 256] = np.asarray(Image.open(f).convert('RGB'), np.float32)
+                else: print('  falta', f, flush=True)
+        gx -= tx0 * 256; gy -= ty0 * 256
+        x0 = np.clip(np.floor(gx).astype(np.int64), 0, M.shape[1] - 2); y0 = np.clip(np.floor(gy).astype(np.int64), 0, M.shape[0] - 2); fx = (gx - x0)[..., None]; fy = (gy - y0)[..., None]
+        acc = (M[y0, x0] * (1 - fx) + M[y0, x0 + 1] * fx) * (1 - fy) + (M[y0 + 1, x0] * (1 - fx) + M[y0 + 1, x0 + 1] * fx) * fy
+        t = tono_de(p)
+        if t is not None:
+            m = acc.reshape(-1, 3).mean(0); g = np.clip(t / np.maximum(m, 1), 0.7, 1.7); g = 1 + (g - 1) * 0.8
+            acc = acc * g
+        im = Image.fromarray(np.clip(acc, 0, 255).astype(np.uint8))
+        im.save(os.path.join(SALIDA, 'src/assets/relieve/hd/orto-pueblos', p['id'] + '.webp'), 'WEBP', quality=78, method=6)
+        im.resize((N // 2, N // 2), Image.LANCZOS).save(os.path.join(SALIDA, 'src/assets/relieve/hd/orto-pueblos-medio', p['id'] + '.webp'), 'WEBP', quality=80, method=6)
+        meta[p['id']] = round(R, 1); print(p['id'], R, flush=True)
+    os.makedirs(os.path.join(SALIDA, 'src/data'), exist_ok=True)
+    open(os.path.join(SALIDA, 'src/data/mapa-orto-pueblos.js'), 'w', encoding='utf-8').write(
+        '// La ortofoto fina de cada pueblo del mapa del inicio (tools/relieve/ortofoto.py pueblos-hacer): el radio, en metros,\n'
+        '// del cuadrado que cubre su imagen, centrado en el centro del pueblo. PNOA cedido por © Instituto Geográfico Nacional\n'
+        '// (CC BY 4.0, scne.es).\n'
+        'export const ORTO_PUEBLOS = ' + json.dumps(meta, separators=(',', ':')) + ';\n')
+
 if __name__ == '__main__':
-    {'bajar': bajar, 'hacer': hacer}[sys.argv[1]](sys.argv[2])
+    {'bajar': bajar, 'hacer': hacer, 'pueblos-bajar': pueblos_bajar, 'pueblos-hacer': pueblos_hacer}[sys.argv[1]](*sys.argv[2:])

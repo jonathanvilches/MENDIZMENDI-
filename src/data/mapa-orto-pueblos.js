@@ -1,0 +1,4 @@
+// La ortofoto fina de cada pueblo del mapa del inicio (tools/relieve/ortofoto.py pueblos-hacer): el radio, en metros,
+// del cuadrado que cubre su imagen, centrado en el centro del pueblo. PNOA cedido por © Instituto Geográfico Nacional
+// (CC BY 4.0, scne.es).
+export const ORTO_PUEBLOS = {"altsasu-alsasua":700,"amaiur-maya-del-baztan":700,"aoiz":700,"aribe":623.3,"artajona":700,"burgui-burgi":684.3,"cortes":671.5,"elizondo":700,"erronkari-roncal":700,"estella":700,"etxalar":700,"irulegi":610.6,"irurtzun":700,"isaba-izaba":700,"ituren":700,"javier":700,"leitza":700,"lekunberri":700,"lesaka":700,"lumbier":700,"marcilla":682.9,"olite":700,"orreaga-roncesvalles":699.6,"puente-la-reina":700,"sanguesa":700,"tafalla":700,"tudela":700,"ujue":625.0,"viana":700,"zugarramurdi":700,"otsagabia-ochagavia":700,"pamplona":700};

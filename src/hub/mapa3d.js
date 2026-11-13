@@ -29,6 +29,7 @@ import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
 import ORTO from '../assets/relieve/orto.webp?url';
 import { MAPA_ORTO } from '../data/mapa-orto.js';
+import { ORTO_PUEBLOS } from '../data/mapa-orto-pueblos.js';
 import { webUrl } from '../web/hd.js';
 import { haceMaqueta, casasMaqueta, ordenaMaqueta } from './maqueta.js';
 import { EMB, SUELTOS, haceEmblema, materialEmblema } from './emblemas.js';
@@ -62,6 +63,11 @@ const DET_FULL = porId(import.meta.glob('@relieve-full/*.webp', { query: '?url',
 const urlDetalle = async (id, fino) => { const f = (fino ? DET_FULL[id] : DET_MEDIO[id]) || DET_FULL[id] || DET_MEDIO[id]; return f ? f() : webUrl('relieve', id, fino ? 2 : 1); };
 // (y su ortofoto, en la misma rejilla: tools/relieve/ortofoto.py)
 const ORTO_FULL = porId(import.meta.glob('@orto-full/*.webp', { query: '?url', import: 'default' })), ORTO_MEDIO = porId(import.meta.glob('@orto-medio/*.webp', { query: '?url', import: 'default' }));
+// (y la ortofoto fina de cada pueblo, medio metro por píxel, para su núcleo y su maqueta: tools/relieve/ortofoto.py
+// pueblos-hacer; a 2.048 px, o a 1.024 en el móvil y en los equipos flojos. Si no la hay o no llega, null: se pinta como antes)
+const ORTO_P = porId(import.meta.glob('@orto-pueblos/*.webp', { query: '?url', import: 'default' })), ORTO_P_MEDIO = porId(import.meta.glob('@orto-pueblos-medio/*.webp', { query: '?url', import: 'default' }));
+const fotoPueblo = async (id, fino) => { const f = (fino ? ORTO_P[id] : ORTO_P_MEDIO[id]) || ORTO_P_MEDIO[id] || ORTO_P[id]; if (!f || !ORTO_PUEBLOS[id]) return null;
+  try { const img = new Image(); img.decoding = 'async'; img.src = await f(); await img.decode(); return img; } catch (e) { return null; } };
 const urlOrto = async (id, fino) => { const f = (fino ? ORTO_FULL[id] : ORTO_MEDIO[id]) || ORTO_FULL[id] || ORTO_MEDIO[id]; return f ? f() : webUrl('orto', id, fino ? 2 : 1); };
 const srgb = (hex) => new THREE.Color(hex).getRGB(new THREE.Color(), THREE.SRGBColorSpace);
 // (la bruma: en el relieve, que pinta sus colores tal cual, y en los árboles, que van con la luz de la escena)
@@ -1280,7 +1286,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (los patios, los terrenos industriales y las plazas, en tierra y piedra cálida: claros, con la luz del mapa salían como
     // losas grises que se leían como bloques blancos)
     cementerio: 'rgba(154, 165, 138, .65)', industria: 'rgba(160, 142, 108, .4)', plaza: 'rgba(214, 196, 162, .78)' };
-  function pintaNucleo(D, R, pizarra, N = BAJA ? 512 : 1024, velo = true) {
+  function pintaNucleo(D, R, pizarra, N = BAJA ? 512 : 1024, velo = true, foto = null) {
     // (el de la maqueta, en el procesador y no en la tarjeta gráfica: son muchos trazos, y en ella se encolaban y paraban el mapa)
     const k = N / (2 * R), c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d', velo ? undefined : { willReadFrequently: true });
     const P = (x, z) => [(x + R) * k, (z + R) * k];
@@ -1299,6 +1305,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const rayas = new Map(), raya = (paso, ancho, color) => { const key = paso + ancho + color; let pt = rayas.get(key);
       if (!pt) { const t = document.createElement('canvas'), pp = Math.max(2, Math.round(paso * k)); t.width = pp; t.height = 2; const tg = t.getContext('2d'); tg.fillStyle = color; tg.fillRect(0, 0, Math.max(1, Math.round(ancho * k)), 2); rayas.set(key, pt = g.createPattern(t, 'repeat')); }
       return pt; };
+    // (con la ortofoto fina del pueblo, el suelo es la foto de verdad, con sus calles, sus tejados, sus huertas y su río: no
+    // se pinta nada encima, solo, en la maqueta, la sombra de las casas que se levantan. 13 de noviembre de 2026: el autor
+    // pidió la mayor definición posible, también en el zoom de los pueblos)
+    const Rf = foto && ORTO_PUEBLOS[D.id];
+    if (Rf) { g.filter = 'saturate(1.14) brightness(1.06)'; g.drawImage(foto, (R - Rf) * k, (R - Rf) * k, 2 * Rf * k, 2 * Rf * k); g.filter = 'none'; }
+    if (!Rf) {
     if (!velo) for (const u of D.usos || []) {
       const s0 = Math.abs(Math.sin(u.pts[0][0] * 12.9898 + u.pts[0][1] * 78.233)) % 1, ang = s0 * 180;
       const hileras = (paso, ancho, color) => { const pt = raya(paso, ancho, color); pt.setTransform(new DOMMatrix().rotateSelf(ang)); area(u.pts, pt); };
@@ -1335,8 +1347,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (en la maqueta, las mismas casas que se levantan, con los bloques grandes ya partidos: maqueta.js casasMaqueta. Si no,
     // bajo ellos quedaba su huella entera, una losa gris de hasta 130 m)
     const CS = velo ? D.casas : casasMaqueta(D);
-    for (const b of CS) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
-    for (const b of CS) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); }
+    if (Rf) { if (!velo) for (const b of CS) casa(b, 2, 3, 'rgba(30, 20, 14, .26)'); }
+    else { for (const b of CS) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
+      for (const b of CS) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); } }
     g.globalCompositeOperation = 'destination-in';
     const fin = g.createRadialGradient(N / 2, N / 2, N * 0.4, N / 2, N / 2, N / 2); fin.addColorStop(0, '#000'); fin.addColorStop(1, 'rgba(0, 0, 0, 0)');
     g.fillStyle = fin; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
@@ -1344,12 +1357,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   }
   // (el núcleo de un pueblo: su lienzo va pintado en el propio relieve de su comarca, en uno de sus cuatro huecos, y así
   // queda pegado al terreno; las casas en pie, una caja por casa con su altura algo exagerada, como el relieve)
-  function haceNucleo(t, D) {
+  function haceNucleo(t, D, foto = null) {
     const [cx, cy] = mapaXY(D.lat, D.lon), [X0, Z0] = W(cx, cy); let R = 120;
     for (const b of D.casas) R = Math.max(R, Math.hypot(b.x, b.z) + Math.max(b.w, b.d) / 2);
     for (const s of D.calles) for (const [x, z] of s.pts) R = Math.max(R, Math.hypot(x, z));
     R = Math.min(700, R + 20);
-    const pizarra = t.comarca === 'pirineo', tex = pintaNucleo(D, R, pizarra), Rs = R / 207.6;
+    const pizarra = t.comarca === 'pirineo', tex = pintaNucleo(D, R, pizarra, undefined, true, foto), Rs = R / 207.6;
     const cm2 = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
     // (en los pueblos junto al borde de su comarca, solo las casas que caen dentro: las demás quedaban en el aire, sobre la
     // comarca de al lado o colgando de la pared)
@@ -1380,8 +1393,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // la hora pisaba al pueblo: la maqueta no sabía de qué pueblo era, y sus rótulos salían sin la iglesia del juego)
       const e = nuc.get(t.id); if (e) { e.visto = now; continue; } if (nucPide) continue;
       const nuevo = { visto: now }; nuc.set(t.id, nuevo); nucPide++;
-      loadMapa(t.id).then(D => { nucPide--; if (!vivo || nuc.get(t.id) !== nuevo || !D?.casas) return;
-        Object.assign(nuevo, haceNucleo(t, D)); if (!ponNucleo(nuevo)) { quitaNucleo(nuevo); nuc.delete(t.id); } }).catch(() => { nucPide = Math.max(0, nucPide - 1); });
+      Promise.all([loadMapa(t.id), fotoPueblo(t.id, !BAJA && !TACTIL)]).then(([D, foto]) => { nucPide--; if (!vivo || nuc.get(t.id) !== nuevo || !D?.casas) return;
+        Object.assign(nuevo, haceNucleo(t, D, foto), { foto }); if (!ponNucleo(nuevo)) { quitaNucleo(nuevo); nuc.delete(t.id); } }).catch(() => { nucPide = Math.max(0, nucPide - 1); });
     }
     // (si hay más de ocho, se sueltan los que hace más que no se ven)
     const viejos = [...nuc].filter(([id]) => !quiere.some(t => t.id === id)).sort((a, b) => a[1].visto - b[1].visto);
@@ -1460,7 +1473,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const e = m.e, c = e.c;
     // (primero, las casas en orden, de poco en poco: maqueta.js ordenaMaqueta)
     if (!e.D._maq) { (m.orden ||= ordenaMaqueta(e.D)).next(); return false; }
-    if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, BAJA ? 1024 : 2048, false); return false; }
+    if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, BAJA ? 1024 : 2048, false, e.foto); return false; }
     if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: BAJA, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
     // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
