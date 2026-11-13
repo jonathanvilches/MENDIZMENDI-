@@ -1787,6 +1787,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   mira más de lado (`PITCH_ISLA` 0,3, y deja bajar hasta 0,24) y apunta a media isla. La raya de la trashumancia se corta en
   su orilla. Cuesta unos 20.000 triángulos y unas 13 llamadas más (medido: 188.000 y 125 con la isla de Pamplona en el aire). Para verlo: `isla.mjs` (con `PITCH` y `DK`, una vista
   más desde arriba), `isla-flujo.mjs` e `isla-salir.mjs`.
+- **El color de verdad del suelo: la ortofoto** (`tools/relieve/ortofoto.py`, `src/data/mapa-orto.js`, `ORTO_K`, `quiereOrto`
+  y `cargaOrto` en `mapa3d.js`, `tonoOrto` en `mapa3dSombreadores.js`; 13 de noviembre de 2026): el autor quería un mapa del
+  inicio con calidad casi de mapa real. El relieve tomaba el color de una paleta por alturas, con parcelas, bosque y roca
+  pintados a mano; ahora lo toma de la ortofoto del PNOA del Instituto Geográfico Nacional (CC BY 4.0, con su crédito en
+  Perfil › Créditos): campos, bosques, ríos, pueblos y roca como son. Se bajaron 2.160 teselas del nivel 13 (unos 14 m) del
+  servicio WMTS `pnoa-ma` y se pasaron a la rejilla del mapa: toda Navarra cada 93 m (`orto.webp`, 1600 × 1726, 0,6 MB),
+  que se ve siempre, y cada comarca en la rejilla de su relieve de detalle, a 28 m (`hd/orto`, 3,9 MB entre todas) y a 56 m
+  (`hd/orto-medio`), que se pide con su relieve de detalle. En el móvil, la de 28 m solo para la comarca elegida y las de
+  alrededor ni la ortofoto de cerca ni el relieve a 28 m: así no se pasa de los 80 MB de texturas del iPhone. Encima va
+  la luz del relieve, algo más suave (la foto ya trae la suya), y del relieve de detalle solo lo que se aparta de lo de
+  alrededor, crestas y barrancos. Lo pintado a mano (parcelas, bosque, roca y el tinte del clima) se apaga con ella
+  (`pin`); la nieve, las nubes, los pueblos pintados y el tinte de cada comarca siguen. Para la web y el archivo único, como
+  el relieve de detalle (`@orto-full` y `@orto-medio` en `vite.config.js`). Para verlo: `vista.mjs` e `isla.mjs`.
 - **Un solo navegador: la fila de las comarcas** (`enFila` en `inicio.js`; noviembre de 2026): la fila de abajo se queda
   siempre y lleva solo las comarcas. Al elegir una, su tarjeta se enciende y la fila se corre para que se vea; también al
   cambiarla arrastrando el mapa. Los pueblos se eligen en el mapa, en sus medallones, que con una comarca elegida se

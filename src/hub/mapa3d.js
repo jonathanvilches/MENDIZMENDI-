@@ -24,6 +24,8 @@ import SOMBRA from '../assets/relieve/sombra.webp?url';
 import FINO from '../assets/relieve/fino.webp?url';
 import ENTORNO from '../assets/relieve/entorno.webp?url';
 import ESPANA from '../assets/relieve/espana.webp?url';
+import ORTO from '../assets/relieve/orto.webp?url';
+import { MAPA_ORTO } from '../data/mapa-orto.js';
 import { webUrl } from '../web/hd.js';
 import { haceMaqueta, casasMaqueta, ordenaMaqueta } from './maqueta.js';
 import { EMB, SUELTOS, haceEmblema, materialEmblema } from './emblemas.js';
@@ -55,6 +57,9 @@ const hazTex = () => lienzo(4, 128, (g) => { const gr = g.createLinearGradient(0
 const porId = (g) => Object.fromEntries(Object.entries(g).map(([p, f]) => [p.split('/').pop().replace('.webp', ''), f]));
 const DET_FULL = porId(import.meta.glob('@relieve-full/*.webp', { query: '?url', import: 'default' })), DET_MEDIO = porId(import.meta.glob('@relieve-medio/*.webp', { query: '?url', import: 'default' }));
 const urlDetalle = async (id, fino) => { const f = (fino ? DET_FULL[id] : DET_MEDIO[id]) || DET_FULL[id] || DET_MEDIO[id]; return f ? f() : webUrl('relieve', id, fino ? 2 : 1); };
+// (y su ortofoto, en la misma rejilla: tools/relieve/ortofoto.py)
+const ORTO_FULL = porId(import.meta.glob('@orto-full/*.webp', { query: '?url', import: 'default' })), ORTO_MEDIO = porId(import.meta.glob('@orto-medio/*.webp', { query: '?url', import: 'default' }));
+const urlOrto = async (id, fino) => { const f = (fino ? ORTO_FULL[id] : ORTO_MEDIO[id]) || ORTO_FULL[id] || ORTO_MEDIO[id]; return f ? f() : webUrl('orto', id, fino ? 2 : 1); };
 const srgb = (hex) => new THREE.Color(hex).getRGB(new THREE.Color(), THREE.SRGBColorSpace);
 // (la bruma: en el relieve, que pinta sus colores tal cual, y en los árboles, que van con la luz de la escena)
 const BRUMA_C = srgb(BRUMA), BRUMA_A = `vec3(${new THREE.Color(BRUMA).toArray().map(x => x.toFixed(3)).join(', ')})`;
@@ -139,9 +144,15 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const UNI = { uSombra: { value: sombra }, uListo: LISTO, uRect: { value: new THREE.Vector4(R.x0 - R.paso / 2, R.y0 - R.paso / 2, R.w * R.paso, R.h * R.paso) },
     uGrosor: { value: GROSOR }, uExa: { value: EXA }, uPal: { value: PALETA.map(([, h]) => srgb(h)) }, uCota: { value: PALETA.map(([m]) => m) } };
   const nada = new THREE.DataTexture(new Uint8Array([128, 140, 90, 255]), 1, 1); nada.needsUpdate = true;
+  // la ortofoto de toda Navarra (PNOA del Instituto Geográfico Nacional, CC BY 4.0; tools/relieve/ortofoto.py): el color de
+  // verdad del suelo. Entra poco a poco al llegar (uOrtoK)
+  const ORTO_K = { value: 0 }; let ortoListo = 0;
+  const orto = new THREE.TextureLoader().load(ORTO, () => { ortoListo = 1; });
+  orto.flipY = false; orto.colorSpace = THREE.NoColorSpace; orto.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy());
+  Object.assign(UNI, { uOrto: { value: orto }, uOrtoK: ORTO_K, uOrtoR: { value: new THREE.Vector4(MAPA_ORTO.x0, MAPA_ORTO.y0, MAPA_ORTO.w * MAPA_ORTO.paso, MAPA_ORTO.h * MAPA_ORTO.paso) } });
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true,
-    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO,
+    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uOrtoD: { value: nada }, uOrtoDK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO,
       uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.1 }, uTinte: { value: srgb(c.color) }, uTintK: { value: vivo ? 0.16 : 0.2 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
@@ -1108,6 +1119,15 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     .catch(() => new Promise((ok, mal) => carga.load(u, ok, undefined, mal)));
   const suelta = (tx) => { tx.dispose(); tx.image?.close?.(); };
   let detT = -1e9, pidiendo = 0;
+  // (la ortofoto de cerca de una comarca, en la rejilla de su relieve: la de la elegida, a 28 m; en el ordenador, también la
+  // de las de alrededor, a 56 m. Si no llega, se queda la de toda Navarra)
+  const quiereOrto = (id) => id === sel || !TACTIL;
+  const cargaOrto = (id, e) => { e.pidOrto = true;
+    urlOrto(id, id === sel && !BAJA || id === sel && TACTIL).then(u => u ? textura(u) : Promise.reject()).then(to => {
+      e.pidOrto = false; if (!vivo || det.get(id) !== e || !quiereOrto(id)) { suelta(to); return; }
+      to.flipY = false; to.colorSpace = THREE.NoColorSpace; to.anisotropy = aniso; to.needsUpdate = true;
+      e.orto = to; byId.get(id).top.uniforms.uOrtoD.value = to;
+    }).catch(() => { e.pidOrto = false; }); };
   const lejosDe = (c) => Math.hypot(c.mid.x - v.x, c.mid.z - v.z);
   function detalles(now, quieto) {
     // (con la cámara en marcha, solo el de la comarca elegida, si aún no está: el dron vuela hacia ella y, si se esperaba a
@@ -1120,20 +1140,24 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const quiere = new Set(cerca.slice(0, MAXD).map(c => c.id));
     for (const id of quiere) {
       let e = det.get(id); if (e?.fallo && now > e.fallo) { det.delete(id); e = null; }
-      if (e) { e.t = now; continue; }
+      if (e) { e.t = now; if (e.tex && !e.orto && !e.pidOrto && quiereOrto(id)) cargaOrto(id, e); continue; }
       if (pidiendo) continue;
       det.set(id, e = { t: now, tex: null, fallo: 0 }); pidiendo++;
-      // (en el móvil, la comarca elegida también a 28 m: a 56 m, de cerca, el monte se veía borroso)
-      urlDetalle(id, !BAJA || id === sel).then(u => u ? textura(u) : Promise.reject()).then(tx => {
+      // (en el móvil, la comarca elegida también a 28 m: a 56 m, de cerca, el monte se veía borroso; las de alrededor, a 56 m,
+      // que con la ortofoto no cabían en los 80 MB de texturas del iPhone)
+      urlDetalle(id, !BAJA && !TACTIL || id === sel).then(u => u ? textura(u) : Promise.reject()).then(tx => {
         pidiendo--; if (!vivo || det.get(id) !== e) { suelta(tx); return; }
         tx.flipY = false; tx.colorSpace = THREE.NoColorSpace; tx.anisotropy = aniso; tx.needsUpdate = true;
         e.tex = tx; byId.get(id).top.uniforms.uDet.value = tx;
+        if (quiereOrto(id)) cargaOrto(id, e);
       }).catch(() => { pidiendo = Math.max(0, pidiendo - 1); e.fallo = performance.now() + 15000; });
     }
+    // (en el móvil, la ortofoto de cerca solo en la elegida: la de las demás se suelta)
+    for (const [id, e] of det) if (e.orto && !quiereOrto(id)) { const u = byId.get(id).top.uniforms; u.uOrtoD.value = nada; u.uOrtoDK.value = 0; suelta(e.orto); e.orto = null; }
     // (las que sobran, primero las que hace más que no se ven)
     const sobran = [...det].filter(([id, e]) => !quiere.has(id) && e.tex).sort((a, b) => a[1].t - b[1].t);
     let n = [...det.values()].filter(e => e.tex).length;
-    for (const [id, e] of sobran) { if (n <= MAXD + 1) break; const u = byId.get(id).top.uniforms; u.uDet.value = nada; u.uDetK.value = 0; suelta(e.tex); det.delete(id); n--; }
+    for (const [id, e] of sobran) { if (n <= MAXD + 1) break; const u = byId.get(id).top.uniforms; u.uDet.value = nada; u.uDetK.value = 0; u.uOrtoD.value = nada; u.uOrtoDK.value = 0; suelta(e.tex); if (e.orto) suelta(e.orto); det.delete(id); n--; }
   }
 
   // ---------- el relieve fino de la comarca elegida ----------
@@ -1669,6 +1693,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.85 * c.fondo; c.lagoM.opacity = 0.92 * (1 - 0.8 * c.fondo); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
+      const ok = c.top.uniforms.uOrtoDK; ok.value += ((det.get(c.id)?.orto ? 1 : 0) - ok.value) * (1 - Math.exp(-dt * 4));
     }
     // la cámara, ya con las comarcas en su sitio de esta imagen
     // (de cerca, la cámara mira a la altura del suelo que tiene debajo: con una altura fija, el pueblo quedaba por encima del
@@ -1703,6 +1728,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const kCielo = ci?.isla ? Math.min(1, Math.max(0, ci.isla.k || 0)) : 0; cieloK += (kCielo - cieloK) * (1 - Math.exp(-dt * 3));
     cieloFondo.visible = cieloK > 0.004; cieloFondo.material.uniforms.uK.value = cieloK; cieloFondo.material.uniforms.uT.value = t; cieloFondo.position.copy(cam.position);
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
+    ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
     scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK * 0.85); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
     // el pueblo)
@@ -1833,7 +1859,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (!vivo) return; vivo = false; aves.dispose(); cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku); removeEventListener('blur', sueltaTeclas);
-    for (const c of C) c.isla?.dispose(); for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
+    for (const c of C) c.isla?.dispose(); for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); orto.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) { if (e.tex) suelta(e.tex); if (e.orto) suelta(e.orto); } quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }

@@ -102,10 +102,12 @@ float hashN(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 15731.743); 
 float ruidoN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hashN(i), hashN(i + vec2(1, 0)), f.x), mix(hashN(i + vec2(0, 1)), hashN(i + vec2(1, 1)), f.x), f.y); }
 float nubes(vec2 p) { vec2 q = p * 0.075 + vec2(uT * 0.03, uT * 0.008); float n = ruidoN(q) * 0.62 + ruidoN(q * 2.3 + 4.1) * 0.28 + ruidoN(q * 5.3 + 9.7) * 0.1; return smoothstep(0.48, 0.7, n); }
 `;
-export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
+export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque, uOrto, uOrtoD; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR, uOrtoR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo, uOrtoK, uOrtoDK; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
 varying vec2 vXZ; varying float vH, vSom;
 ${NUBES}
 #include <fog_pars_fragment>
+// (la ortofoto, con algo más de color y de luz, cálida: el PNOA sale apagado y frío al lado de lo demás del juego)
+vec3 tonoOrto(vec3 o) { float l = dot(o, vec3(0.299, 0.587, 0.114)); o = mix(vec3(l), o, 1.14); o = pow(max(o, 0.0), vec3(0.93)) * 1.04; return clamp(o * vec3(1.01, 1.02, 0.98), 0.0, 1.0); }
 // (un pueblo pintado encima, si el punto cae en su recuadro)
 vec4 pue(sampler2D t, vec4 r, float k, vec2 sv) { vec2 u = (sv - r.xy) / r.zw; if (k <= 0.0 || u.x < 0.0 || u.y < 0.0 || u.x > 1.0 || u.y > 1.0) return vec4(0.0); vec4 p = texture2D(t, u); return vec4(p.rgb, p.a * k); }
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
@@ -140,48 +142,57 @@ void main() {
   // (las laderas en sombra, sin llegar al negro: en los valles cerrados del norte se perdía el dibujo del monte)
   s += 0.22 * (1.0 - smoothstep(0.0, 0.7, s));
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
+  // (la ortofoto, el color de verdad del suelo: campos, bosques, ríos, pueblos y roca, con la luz del relieve encima, algo
+  // más suave, que la foto ya trae la suya; de cerca, la de la comarca, a 28 m)
+  if (uOrtoK > 0.0) { vec3 o = texture2D(uOrto, (sv - uOrtoR.xy) / uOrtoR.zw).rgb;
+    if (uOrtoDK > 0.0) o = mix(o, texture2D(uOrtoD, (sv - uDetRect.xy) / uDetRect.zw).rgb, uOrtoDK);
+    c = mix(c, tonoOrto(o) * (1.0 + (s - 1.0) * 0.7), uOrtoK); }
+  float pin = 1.0 - uOrtoK;   // (lo pintado a mano, que la ortofoto ya trae de verdad: parcelas, bosque, roca, el clima)
   // (el relieve fino, más nítido: de cerca, cuando cada punto de su imagen ocupa más de un píxel, se le resta lo borroso
   // de alrededor y se marcan crestas y barrancos; de lejos no, que titilaría)
-  { vec2 du = (sv - uDetRect.xy) / uDetRect.zw; vec3 d0 = texture2D(uDet, du).rgb;
+  { vec2 du = (sv - uDetRect.xy) / uDetRect.zw; vec3 d0 = texture2D(uDet, du).rgb; float lb = dot(d0, vec3(0.299, 0.587, 0.114));
 #ifndef LIGERO
     vec2 px = 1.0 / vec2(textureSize(uDet, 0));
     float ppt = px.x / max(1e-7, fwidth(du.x)), nit = smoothstep(0.7, 2.2, ppt) * 0.9 * uDetK;
-    if (nit > 0.01) { vec3 bl = (texture2D(uDet, du + vec2(px.x, 0.0)).rgb + texture2D(uDet, du - vec2(px.x, 0.0)).rgb + texture2D(uDet, du + vec2(0.0, px.y)).rgb + texture2D(uDet, du - vec2(0.0, px.y)).rgb) * 0.25;
-      d0 = clamp(d0 + (d0 - bl) * nit, 0.0, 1.0); }
+    if (nit > 0.01 || uOrtoK * uDetK > 0.0) { vec3 bl = (texture2D(uDet, du + vec2(px.x, 0.0)).rgb + texture2D(uDet, du - vec2(px.x, 0.0)).rgb + texture2D(uDet, du + vec2(0.0, px.y)).rgb + texture2D(uDet, du - vec2(0.0, px.y)).rgb) * 0.25;
+      lb = dot(bl, vec3(0.299, 0.587, 0.114)); d0 = clamp(d0 + (d0 - bl) * nit, 0.0, 1.0); }
 #endif
-    // (de su imagen se toman las luces y las sombras; el color, el de la paleta: la imagen traía pintados los verdes de antes)
+    // (de su imagen se toman las luces y las sombras; el color, el de la paleta: la imagen traía pintados los verdes de antes.
+    // Con la ortofoto, solo lo que se aparta de lo de alrededor: crestas y barrancos, sin cambiar su color)
     float ld = dot(d0, vec3(0.299, 0.587, 0.114)), lc = dot(c, vec3(0.299, 0.587, 0.114));
-    c = mix(c, c * clamp(ld / max(lc, 0.04), 0.35, 1.9), uDetK); }
+    vec3 cPal = mix(c, c * clamp(ld / max(lc, 0.04), 0.35, 1.9), uDetK), cOrt = c * mix(1.0, clamp(1.0 + (ld - lb) * 3.0, 0.72, 1.32), uDetK);
+    c = mix(cPal, cOrt, uOrtoK); }
   // (el clima en el color: el norte atlántico, más verde y jugoso; la Ribera, seca, de cereal y viña, dorada y ocre)
   float surC = smoothstep(380.0, 600.0, sv.y), norC = 1.0 - smoothstep(120.0, 300.0, sv.y);
-  c = mix(c, c * vec3(1.16, 1.02, 0.74) + vec3(0.04, 0.02, 0.0), surC * 0.55);
-  c = mix(c, c * vec3(0.94, 1.02, 0.96), norC * 0.4);
+  c = mix(c, c * vec3(1.16, 1.02, 0.74) + vec3(0.04, 0.02, 0.0), surC * 0.55 * pin);
+  c = mix(c, c * vec3(0.94, 1.02, 0.96), norC * 0.4 * pin);
   // (de lejos, en la vista de toda Navarra: manchas grandes de tono, unas tierras más claras y otras más oscuras, unas
   // más doradas y otras más verdes, como los campos, los pastos y los montes vistos desde un avión)
   float mk = ruido(sv * 0.09) * 0.6 + ruido(sv * 0.31) * 0.4 - 0.5, mh = ruido(sv * 0.17 + 7.3) - 0.5;
-  c *= 1.0 + mk * 0.34 * uTex;
-  c = mix(c, c * vec3(1.1, 1.0, 0.82), clamp(mh * 1.8, 0.0, 1.0) * 0.55 * uTex);
-  c = mix(c, c * vec3(0.88, 1.07, 0.88), clamp(-mh * 1.8, 0.0, 1.0) * 0.55 * uTex);
+  float tx = uTex * pin;
+  c *= 1.0 + mk * 0.34 * tx;
+  c = mix(c, c * vec3(1.1, 1.0, 0.82), clamp(mh * 1.8, 0.0, 1.0) * 0.55 * tx);
+  c = mix(c, c * vec3(0.88, 1.07, 0.88), clamp(-mh * 1.8, 0.0, 1.0) * 0.55 * tx);
   // (las texturas del terreno, desde la vista de una comarca: en el llano, parcelas de cultivo de colores, con sus lindes, en
   // una rejilla que cambia de rumbo por zonas y de tamaño con la distancia, para que nunca tiemble; en el sur, viñas en
   // hileras; en el monte del norte, el moteado de las copas del bosque; en las cumbres y en lo muy pendiente, roca; y de
   // muy cerca, el grano fino)
-  if (uTex > 0.0) {
+  if (tx > 0.0) {
     float pend = fwidth(vH) / (length(fwidth(vXZ)) + 1e-6), sur = smoothstep(430.0, 560.0, sv.y), lum = dot(c, vec3(0.3, 0.59, 0.11));
     float llano = (1.0 - smoothstep(0.18, 0.55, pend)) * (1.0 - smoothstep(750.0, 1050.0, m));
     float bosque = texture2D(uBosque, (sv - uBosqueR.xy) / uBosqueR.zw).r;   // (donde están los árboles: la misma máscara)
     float lv = log2(max(length(fwidth(sv)) * 30.0, 0.9)), l0 = floor(lv), fl = smoothstep(0.38, 0.62, fract(lv));
     vec4 pa = mix(parcela(sv, exp2(l0)), parcela(sv, exp2(l0 + 1.0)), fl);
     vec3 tono = pa.rgb;
-    c = mix(c, tono * (lum / dot(tono, vec3(0.3, 0.59, 0.11))) * (1.0 - 0.2 * pa.a), llano * (1.0 - bosque) * 0.62 * uTex);
+    c = mix(c, tono * (lum / dot(tono, vec3(0.3, 0.59, 0.11))) * (1.0 - 0.2 * pa.a), llano * (1.0 - bosque) * 0.62 * tx);
     float ko = exp2(-l0) * 2.4, copas = ruido(sv * ko) * 0.6 + ruido(sv * ko * 2.7) * 0.4;
-    c = mix(c, vec3(0.25, 0.31, 0.21) * (lum * 1.9) * (0.72 + 0.56 * copas), bosque * 0.42 * uTex);   // (el bosque, oliva apagado)
+    c = mix(c, vec3(0.25, 0.31, 0.21) * (lum * 1.9) * (0.72 + 0.56 * copas), bosque * 0.42 * tx);   // (el bosque, oliva apagado)
     float roca = clamp(smoothstep(1450.0, 1750.0, m) + smoothstep(0.9, 1.7, pend) * 0.6, 0.0, 1.0);
-    c = mix(c, vec3(dot(c, vec3(0.34))) * vec3(1.02, 1.0, 0.98) * (0.84 + 0.32 * ruido(sv * ko * 4.0)), roca * 0.4 * uTex);
-#ifndef LIGERO
-    if (uCerca > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
-#endif
+    c = mix(c, vec3(dot(c, vec3(0.34))) * vec3(1.02, 1.0, 0.98) * (0.84 + 0.32 * ruido(sv * ko * 4.0)), roca * 0.4 * tx);
   }
+#ifndef LIGERO
+  if (uCerca > 0.0 && uTex > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
+#endif
   // (las cumbres nevadas: por encima de unos 1.250 a 1.500 m, con el borde roto, más en lo llano de las cimas que en las
   // paredes, que en lo muy pendiente la nieve no se queda; en Navarra, solo el Pirineo: Larra, Anie, la Mesa de los Tres
   // Reyes, Orhi)
