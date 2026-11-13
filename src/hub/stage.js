@@ -14,7 +14,8 @@ function renderer() {
   const c = document.createElement('canvas');
   // (en un ordenador de calidad baja, sin suavizado de bordes: con una Intel UHD el mapa del menú no llegaba a 10 imágenes
   // por segundo; y la gráfica potente, si el portátil tiene dos, como el juego: src/engine/runtime.js)
-  R = new THREE.WebGLRenderer({ canvas: c, antialias: COARSE || calidadJuego() !== 'low', alpha: true, powerPreference: 'high-performance' });
+  // (con búfer de plantilla, stencil: la sima bajo la isla del mapa del inicio solo se ve por la boca del hueco, mapa3dIsla.js)
+  R = new THREE.WebGLRenderer({ canvas: c, antialias: COARSE || calidadJuego() !== 'low', alpha: true, stencil: true, powerPreference: 'high-performance' });
   R.debug.checkShaderErrors = false;
   R.setPixelRatio(Math.min(devicePixelRatio, 2));
   R.toneMapping = THREE.ACESFilmicToneMapping; R.outputColorSpace = THREE.SRGBColorSpace;

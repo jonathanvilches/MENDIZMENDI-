@@ -9,7 +9,7 @@
 // caja sale de la página o deja de verse. Los nombres van en HTML encima del lienzo, nítidos a cualquier tamaño.
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
-import { hazIsla } from './mapa3dIsla.js';
+import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
@@ -41,7 +41,7 @@ let ENTRADA_VISTA = false;
 const rampa = (s, a, b) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 // (el fondo del mapa, el mismo que el borde del suelo; y el borde de las comarcas, morado muy oscuro)
 const FONDO = 0x101626, OSCURO = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
-const NIEBLA_LEJOS = new THREE.Color(FONDO), NIEBLA_CERCA = new THREE.Color('#d4cde6');
+const NIEBLA_LEJOS = new THREE.Color(FONDO), NIEBLA_CERCA = new THREE.Color('#d4cde6'), CIELO_BRUMA = new THREE.Color('#b4d2ec');
 // (las comarcas que no son la elegida se quedan con sus colores de mapa, más suaves, como bajo una bruma clara: en negro,
 // el mapa se quedaba a oscuras, y en lila no gustaba)
 const BRUMA = '#d8ccb2';
@@ -85,18 +85,18 @@ export function mapa3d(host, o) {
   let cargas = 0;   // (las imágenes del suelo y del sombreado que ya han llegado: la entrada grande las espera)
   const TIEMPO = { value: 0 };   // (el reloj de las nubes)
   // (lo de fuera de Navarra, apagado: la máscara de Navarra, nítida en rojo y difuminada en verde, dónde cae y cuánto se apaga)
-  const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 };
+  const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 }, CIELO = { value: 0 };   // (CIELO: con una isla en el aire, el suelo de alrededor se vuelve un mar de nubes)
   const FONDO_L = { value: new THREE.Color(FONDO) };
   // (funde: cuánto se funden sus bordes, oeste, este, sur y norte, en unidades del mapa; modo 1, en el fondo; 2, por transparencia)
   const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0) => {
     const g = new THREE.PlaneGeometry(w, h); geos.push(g);
     const m = new THREE.MeshBasicMaterial({ color: FONDO, toneMapped: false, transparent: transp, opacity: transp ? 0 : 1, depthWrite: !transp }); mats.push(m);
     m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uNav = NAV; sh.uniforms.uNavR = NAVR; sh.uniforms.uFuera = FUERA;   // (las mismas nubes que sobre Navarra)
-      sh.uniforms.uFunde = { value: new THREE.Vector4(...funde) }; sh.uniforms.uModo = { value: modo }; sh.uniforms.uTam = { value: new THREE.Vector2(w, h) }; sh.uniforms.uFondoL = FONDO_L;
+      sh.uniforms.uCielo = CIELO; sh.uniforms.uFunde = { value: new THREE.Vector4(...funde) }; sh.uniforms.uModo = { value: modo }; sh.uniforms.uTam = { value: new THREE.Vector2(w, h) }; sh.uniforms.uFondoL = FONDO_L;
       sh.vertexShader = 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;');
       // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
       // encima del verde y del rojo)
-      sh.fragmentShader = 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      sh.fragmentShader = 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo, uCielo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
 { float mar = smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g));
   if (mar > 0.0) { vec2 q = vMun * 2.2; float w = sin(q.x * 1.7 + uT * 0.5 + sin(q.y * 1.1 + uT * 0.3) * 2.0) * sin(q.y * 2.3 - uT * 0.4 + sin(q.x * 0.9) * 1.5);
@@ -111,6 +111,12 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   vec3 apag = vec3(0.105, 0.095, 0.16) + (l - 0.42) * vec3(0.26, 0.26, 0.32);
   diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * 0.92);
   diffuseColor.rgb *= 1.0 - 0.45 * fuera * nm.g; }
+// (con una isla en el aire, un mar de nubes blancas sobre azul claro, que pasa despacio: Navarra flota en el cielo, como su
+// isla; noviembre de 2026, con las imágenes del autor)
+if (uCielo > 0.0) { vec2 q = vMun * 0.05 + vec2(uT * 0.006, uT * 0.002);
+  float v = ruidoN(q) * 0.5 + ruidoN(q * 2.2 + 3.1) * 0.27 + ruidoN(q * 4.9 - 1.7) * 0.15 + ruidoN(q * 10.3 + 5.0) * 0.08;
+  vec3 mn = mix(vec3(0.42, 0.62, 0.86), vec3(1.0), smoothstep(0.42, 0.66, v)) * (0.86 + 0.14 * smoothstep(0.5, 0.8, v));
+  diffuseColor.rgb = mix(diffuseColor.rgb, mn, uCielo); }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
 // por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
 // Navarra, que va encima, se funde por transparencia en la de debajo)
@@ -226,8 +232,18 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const m = new THREE.MeshBasicMaterial({ color: 0x150d26, transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }); mats.push(m);   // (violeta muy oscuro: con la isla en el aire se ve entero, y negro quedaba duro)
     const hueco = new THREE.Mesh(g, m); hueco.renderOrder = -1; scene.add(hueco); }
   const byId = new Map(C.map(c => [c.id, c]));
+  // el cielo de fondo con una isla en el aire (mapa3dIsla.js cieloShader): una esfera alrededor de la cámara que se pinta
+  // antes que nada, sin profundidad; con uK a cero es del color del fondo de siempre
+  const cieloFondo = (() => { const m = new THREE.ShaderMaterial({ ...cieloShader(), depthTest: false, depthWrite: false, side: THREE.BackSide }); m.uniforms.uFondo.value.set(FONDO); mats.push(m);
+    const gc = new THREE.SphereGeometry(50, 32, 16); geos.push(gc); const s2 = new THREE.Mesh(gc, m); s2.renderOrder = -100; s2.frustumCulled = false; s2.visible = false; scene.add(s2); return s2; })();
+  let cieloK = 0;
   // la isla flotante de cada comarca (mapa3dIsla.js): la panza de roca, las cascadas y las piedras, la primera vez que se elige
-  const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, salidas: c.salidas, geos, mats, scene }));
+  // (fuera: la altura del mapa de alrededor, la de la comarca vecina o el suelo, de donde se tira el agua al hueco)
+  // (las texturas de la roca y del césped, de Higgsfield, una sola vez para todas las islas)
+  let texIsla = null;
+  const islaTex = () => texIsla || (texIsla = texturasIsla(Math.min(8, r.capabilities.getMaxAnisotropy())), mats.push(texIsla), texIsla);
+  const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
+    fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? (GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
   const sobre = (c, x, z) => {
@@ -330,7 +346,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (let i = 0; i + 1 < P.length; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 0.1)); for (let k = 0; k < n; k++) Q.push([ax + (bx - ax) * k / n, az + (bz - az) * k / n]); }
     Q.push(P.at(-1));
     let tramo = [], de = null;
-    for (const q of Q) { const c = deQuien(q[0], q[1], de); if (c !== de) { if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]); if (de && tramo.length) (de.salidas ||= []).push([...tramo.at(-1), rio.k]); if (c && de) (c.salidas ||= []).push([q[0], q[1], rio.k]); tramo = []; de = c; } if (c) tramo.push(q); }   // (y dónde sale o entra cada río por el borde: las cascadas de la isla, mapa3dIsla.js)
+    for (const q of Q) { const c = deQuien(q[0], q[1], de); if (c !== de) { if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]); if (de && tramo.length) (de.salen ||= []).push([...tramo.at(-1), rio.k]); if (c) (c.entran ||= []).push([q[0], q[1], rio.k]); tramo = []; de = c; } if (c) tramo.push(q); }   // (y dónde sale o entra cada río por el borde, río abajo: las cascadas de la isla y del hueco, mapa3dIsla.js)
     if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]);
   }
   // los embalses: una lámina de agua a su nivel (el relieve, alrededor, no pasa de él)
@@ -1645,7 +1661,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
-      if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt);
+      if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam);
         const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.min(1, c.isla.k || 0)); }   // (el canto, de roca y tierra en la isla)
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * c.fondo - 0.18 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * c.fondo;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
@@ -1682,7 +1698,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (lo más cerca que se pinta, según lo lejos que está la cámara: así el suelo, el hueco y lo de encima no se pisan desde lo alto)
     // (y la niebla de lo lejano: de lejos, del color del fondo, donde Navarra flota; de cerca, una bruma clara, como la del
     // aire sobre el monte, y no el azul casi negro del fondo)
-    scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
+    // (con una isla en el aire, el fondo se vuelve un cielo azul con nubes, como en las imágenes del autor, y la niebla de lo
+    // lejano, la bruma clara de ese cielo; al bajar, vuelve el fondo de siempre)
+    const kCielo = ci?.isla ? Math.min(1, Math.max(0, ci.isla.k || 0)) : 0; cieloK += (kCielo - cieloK) * (1 - Math.exp(-dt * 3));
+    cieloFondo.visible = cieloK > 0.004; cieloFondo.material.uniforms.uK.value = cieloK; cieloFondo.material.uniforms.uT.value = t; cieloFondo.position.copy(cam.position);
+    FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
+    scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK * 0.85); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
     // el pueblo)
     // (a media distancia, no menos de 0,42, para que se lean; dentro de la maqueta, diminutas)
