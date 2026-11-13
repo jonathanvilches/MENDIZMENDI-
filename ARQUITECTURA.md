@@ -1765,6 +1765,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   bosque, maquetas a 512): eso queda solo para `?ligero` y el ordenador flojo (`BAJA`); el móvil, como el ordenador
   (medido con el perfil del iPhone: 165.000 triángulos y 112 llamadas). Las texturas de las comarcas, con filtro
   anisótropo hasta 8, para que no se emborronen de lado.
+- **La comarca elegida, una isla flotante** (`mapa3dIsla.js`, `hazIsla`; `islaDe`, `PITCH_ISLA` y `hyIsla` en
+  `mapa3d.js`; 13 de noviembre de 2026): el autor quería que al elegir una comarca subiera mucho más y se separase del
+  mapa, como las islas flotantes de sus imágenes de referencia. Ahora sube casi lo que mide de radio, con un muelle que se pasa un
+  poco y vuelve, se mece despacio y deja debajo su hueco oscuro. Por debajo le cuelga una panza de roca: diez anillos que
+  se van cerrando desde su contorno, con tierra y raíces arriba, roca clara en medio y de cuatro a seis puntas que cuelgan
+  más. La luz va pintada en cada cara (`MeshBasicMaterial` con colores por vértice), para que de lado no salga negra.
+  Donde un río sale de la comarca cae una cascada, hasta tres, con su espuma abajo; si no sale ninguno, una en el punto más
+  bajo de la orilla. Alrededor flotan piedras y, al subir, caen chinarros. Todo lo demás de la comarca (ríos, árboles,
+  chinchetas, nombres y maqueta) ya seguía su altura, `c.py`, así que sube con ella. La cámara la mira más de lado
+  (`PITCH_ISLA` 0,3, y deja bajar hasta 0,24) y apunta a media isla, para que quepa con la panza; al alejarse, la isla
+  deja de mecerse. La raya de la trashumancia se corta en su orilla (`<path>` con un `M` al cambiar de comarca), que antes
+  bajaba en vertical de la isla al suelo. Se hace la primera vez que se elige cada comarca y se esconde al bajar.
+  Cuesta unos 3.000 triángulos y cuatro llamadas más. Para verlo: `isla.mjs`, `isla-flujo.mjs` e `isla-salir.mjs`.
 - **Un solo navegador: la fila de las comarcas** (`enFila` en `inicio.js`; noviembre de 2026): la fila de abajo se queda
   siempre y lleva solo las comarcas. Al elegir una, su tarjeta se enciende y la fila se corre para que se vea; también al
   cambiarla arrastrando el mapa. Los pueblos se eligen en el mapa, en sus medallones, que con una comarca elegida se

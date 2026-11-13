@@ -9,6 +9,7 @@
 // caja sale de la página o deja de verse. Los nombres van en HTML encima del lienzo, nítidos a cualquier tamaño.
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
+import { hazIsla } from './mapa3dIsla.js';
 import { escala } from '../util/tele.js';
 import { esc } from '../util/html.js';
 import { mapaXY } from '../util/geo.js';
@@ -222,9 +223,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const c of C) { const b = pos.length / 3; for (const [x, z] of c.Pw) pos.push(x, 0.003, z);
       for (const t of THREE.ShapeUtils.triangulateShape(c.Pw.map(([x, z]) => new THREE.Vector2(x, z)), [])) idx.push(b + t[0], b + t[2], b + t[1]); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); geos.push(g);
-    const m = new THREE.MeshBasicMaterial({ color: 0x06080c, transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }); mats.push(m);
+    const m = new THREE.MeshBasicMaterial({ color: 0x150d26, transparent: true, depthWrite: false, toneMapped: false, side: THREE.DoubleSide }); mats.push(m);   // (violeta muy oscuro: con la isla en el aire se ve entero, y negro quedaba duro)
     const hueco = new THREE.Mesh(g, m); hueco.renderOrder = -1; scene.add(hueco); }
   const byId = new Map(C.map(c => [c.id, c]));
+  // la isla flotante de cada comarca (mapa3dIsla.js): la panza de roca, las cascadas y las piedras, la primera vez que se elige
+  const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, salidas: c.salidas, geos, mats, scene }));
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
   const sobre = (c, x, z) => {
@@ -327,7 +330,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (let i = 0; i + 1 < P.length; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 0.1)); for (let k = 0; k < n; k++) Q.push([ax + (bx - ax) * k / n, az + (bz - az) * k / n]); }
     Q.push(P.at(-1));
     let tramo = [], de = null;
-    for (const q of Q) { const c = deQuien(q[0], q[1], de); if (c !== de) { if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]); tramo = []; de = c; } if (c) tramo.push(q); }
+    for (const q of Q) { const c = deQuien(q[0], q[1], de); if (c !== de) { if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]); if (de && tramo.length) (de.salidas ||= []).push([...tramo.at(-1), rio.k]); if (c && de) (c.salidas ||= []).push([q[0], q[1], rio.k]); tramo = []; de = c; } if (c) tramo.push(q); }   // (y dónde sale o entra cada río por el borde: las cascadas de la isla, mapa3dIsla.js)
     if (de && tramo.length > 1) cinta(de, tramo, ANCHO[rio.k]);
   }
   // los embalses: una lámina de agua a su nivel (el relieve, alrededor, no pasa de él)
@@ -430,7 +433,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (let i = 0; i + 1 < Wp.length; i++) for (let k = 0; k < 10; k++) { const t = k / 10, X = Wp[i][0] + (Wp[i + 1][0] - Wp[i][0]) * t, Z = Wp[i][1] + (Wp[i + 1][1] - Wp[i][1]) * t; canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) }); }
     const [X, Z] = Wp[Wp.length - 1]; canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) }); }
   const canCom = new Set(canP.map(p => p.c?.id).filter(Boolean));
-  const canSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); canSvg.setAttribute('class', 'm3-canada'); canSvg.innerHTML = '<polyline class="s"/><polyline class="r"/>';
+  const canSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); canSvg.setAttribute('class', 'm3-canada'); canSvg.innerHTML = '<path class="s"/><path class="r"/>';
   const rebano = document.createElement('button'); rebano.type = 'button'; rebano.className = 'm3-tr'; rebano.hidden = true;
   rebano.innerHTML = `${iconSVG('sheep', 20)}<span>Trashumancia</span>`; rebano.setAttribute('aria-label', 'La trashumancia: Cañada Real de los Roncaleses');
   for (const ev of ['pointerdown', 'pointerup', 'click']) rebano.addEventListener(ev, (e) => { e.stopPropagation(); if (ev === 'click') o.onTrashumancia?.(); });
@@ -522,10 +525,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (se prueba a qué distancia caben todas las esquinas de Navarra en el hueco libre, con la misma cámara)
   // (fb: cuánto de lo de abajo cuenta: con toda Navarra, casi todo, porque la tira de fotos de abajo tapa)
   const prueba = new THREE.PerspectiveCamera(cam.fov, 1, 0.5, 2000), pq = new THREE.Vector3();
-  function encaja(pts, x, z, pitch, fb) {
+  function encaja(pts, x, z, pitch, fb, hy = 0.8) {   // (hy: a qué altura mira la cámara; la isla, a su mitad)
     const L = libre(), hu = huecoAhora();
     prueba.aspect = L.W / L.H; prueba.setViewOffset(L.W, L.H, (hu.r || 0) / 2, ((hu.b || 0) - (hu.t || 0)) / 2, L.W, L.H);
-    const s = { x, z, yaw: 0, pitch, d: 0, hy: 0.8 }, m = 0.025;
+    const s = { x, z, yaw: 0, pitch, d: 0, hy }, m = 0.025;
     const cabe = (d) => { s.d = d; camPos(s, prueba.position); prueba.lookAt(x, s.hy, z); prueba.updateMatrixWorld(); prueba.updateProjectionMatrix();
       return pts.every(e => { pq.copy(e).project(prueba); const px = (pq.x + 1) / 2 * L.W, py = (1 - pq.y) / 2 * L.H;
         return pq.z < 1 && px > L.W * m && px < L.W - (hu.r || 0) - L.W * m && py > (hu.t || 0) + L.H * m && py < L.H - (hu.b || 0) * fb - L.H * m * fb; }); };
@@ -570,7 +573,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const n = Math.round(v.yaw / (2 * Math.PI)) * 2 * Math.PI; if (!n) return;
     v.yaw -= n; goal.yaw -= n; if (dron) dron.yaw -= n; if (paseo) paseo.base.yaw -= n;
   }
-  const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.12 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(0.45, Math.min(1.35, goal.pitch));
+  const lim = () => { goal.x = Math.max(-42, Math.min(42, goal.x)); goal.z = Math.max(-44, Math.min(44, goal.z)); goal.d = Math.max(TR.some(t => Math.hypot(t.X - goal.x, t.Z - goal.z) < 0.6) ? 0.12 : 1.4, Math.min(DMAX, goal.d)); goal.pitch = Math.max(sel && byId.get(sel)?.isla?.k > 0.2 ? 0.24 : 0.45, Math.min(1.35, goal.pitch));   // (con la isla en el aire, se puede mirar más de lado: así se ve la roca de debajo)
     if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   DMAX = Math.max(150, goal.d * 1.35);
   // (el comienzo, sin la entrada grande: desde muy alto, la cámara baja y se inclina mientras las comarcas crecen una tras otra)
@@ -963,7 +966,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const PITCH_C = 0.82, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.3, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1071,7 +1074,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     for (const x of C) { x.lab.classList.toggle('sel', x.id === sel); x.lab.classList.toggle('fondo', !!sel && x.id !== sel); }
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
-    if (c && fly) volar({ x: c.mid.x, z: c.mid.z, d: Math.max(22, encaja(c.esq, c.mid.x, c.mid.z, PITCH_C, 1)), yaw: 0, pitch: PITCH_C });
+    if (c) islaDe(c);
+    if (c && fly) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
+      const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
+      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); }
   }
 
   // ---------- el relieve fino ----------
@@ -1633,8 +1639,14 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // su borde casi no se ven; la elegida, más viva. Antes las demás apenas cambiaban y no se distinguía cuál era)
       c.fondo += (((sel && sel !== c.id) || (COL?.resalta && !COL.resalta.has(c.id)) ? 1 : 0) - c.fondo) * (1 - Math.exp(-dt * 6 * velC));   // (con una colección, las que no tienen lo elegido, también)
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
-      c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift - 0.35 * c.fondo) * nace + alza;
+      // (la isla: sube con un muelle, se pasa un poco y se posa en el aire; arriba, se mece despacio, y de cerca, quieta)
+      let vuela = 0;
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 24 - (I.v || 0) * 6.5) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+        if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
+      c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo;
+      if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt);
+        const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.min(1, c.isla.k || 0)); }   // (el canto, de roca y tierra en la isla)
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * c.fondo - 0.18 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, c.fondo); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * c.fondo;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * c.fondo)
@@ -1655,7 +1667,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // y la cámara la seguía después; era el golpe al elegir otro pueblo o al volver)
     if (ref && ref === hRef.c) v.hy += (pisoEn(ref, v.x, v.z) * (ref.sy - hRef.sy) + ref.py - hRef.py) * kh;
     hRef.c = ref; hRef.sy = ref?.sy; hRef.py = ref?.py;
-    v.hy += (0.8 + (hs - 0.8) * kh - v.hy) * (1 - Math.exp(-dt * 4));
+    const ci = sel && byId.get(sel), fi = ci?.isla ? Math.min(1, ci.isla.k || 0) * Math.min(1, Math.max(0, (v.d - 8) / 10)) : 0;
+    const hyIsla = fi ? ci.py + ((GROSOR + ci.hmax * 0.5) * ci.sy - ci.isla.D * Math.min(1, ci.isla.k)) / 2 : 0;
+    v.hy += (0.8 + (hs - 0.8) * kh + (hyIsla - 0.8 - (hs - 0.8) * kh) * fi - v.hy) * (1 - Math.exp(-dt * 4));   // (con la isla en el aire, la cámara mira a su mitad)
     camPos(v, cam.position);
     // (la cámara nunca entra en el relieve ni lo deja entre ella y lo que mira: si una sierra, o la comarca levantada, se
     // mete por medio, sube por la ladera lo justo, como un dron, y cuando ya no hace falta baja despacio. Antes, en el vuelo
@@ -1735,8 +1749,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     { const on = !COL && !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
       if (!canSvg.isConnected) { capa.prepend(canSvg); capa.append(rebano); }
       canSvg.style.display = on ? '' : 'none';
-      if (on) { let pts = ''; for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam); if (pv.z < 1) pts += `${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; }
-        for (const pl of canSvg.children) pl.setAttribute('points', pts); }
+      // (con una comarca subida como isla, la raya se corta en su orilla: si no, bajaba en vertical desde la isla al mapa)
+      if (on) { let d = '', ant = null; const isla = (c) => c?.isla?.k > 0.05;
+        for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam);
+          if (pv.z >= 1) { ant = null; continue; }
+          d += `${!ant || (ant.c !== p.c && (isla(ant.c) || isla(p.c))) ? 'M' : 'L'}${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; ant = p; }
+        for (const pl of canSvg.children) pl.setAttribute('d', d); }
       const u = (now / 1000 / 80) % 1, f = u * (canP.length - 1), i = Math.floor(f), a = canP[i], b = canP[Math.min(i + 1, canP.length - 1)], t = f - i;
       lista.push([6, rebano, a.X + (b.X - a.X) * t, Y(a) + (Y(b) - Y(a)) * t + 0.3, a.Z + (b.Z - a.Z) * t, on]); }
     lista.sort((a, b) => a[0] - b[0]);
@@ -1794,7 +1812,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (!vivo) return; vivo = false; aves.dispose(); cancelAnimationFrame(raf); io.disconnect(); clearTimeout(perdido); cv.removeEventListener('webglcontextlost', pierde); cv.removeEventListener('webglcontextrestored', vuelve); document.removeEventListener('visibilitychange', otraVez); CINE.classList.remove('m3-cine', 'm3-cine-fin', 'm3-cine-sale'); clearTimeout(salida); show?.quita();
     const hm = CINE.querySelector?.('.hub-main'); if (hm) for (const k of ['left', 'top', 'right', 'bottom']) hm.style[k] = '';
     removeEventListener('keydown', kd); removeEventListener('keyup', ku); removeEventListener('blur', sueltaTeclas);
-    for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
+    for (const c of C) c.isla?.dispose(); for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) if (e.tex) suelta(e.tex); quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
   }

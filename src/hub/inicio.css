@@ -166,7 +166,7 @@
 @media (min-width: 1200px) and (min-height: 560px) { .m3-tf { width: 30px; height: 30px; } }
 /* (la trashumancia: la cañada, una raya discontinua clara con su sombra, y el rebaño que baja por ella, que se puede tocar) */
 .m3-canada { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
-.m3-canada polyline { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.m3-canada path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
 /* (la raya, un poco más gruesa y con los trazos más largos: muy fina y punteada apenas se veía sobre el relieve) */
 .m3-canada .s { stroke: rgba(13, 4, 32, .55); stroke-width: 6; }
 .m3-canada .r { stroke: #fff1d6; stroke-width: 3; stroke-dasharray: 5 6; }
