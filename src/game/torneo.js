@@ -854,24 +854,12 @@ const RETO_ART = {
   diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
   dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
 };
-// la foto de las tarjetas: un frontón de verdad de Navarra en cada una, pintado con Higgsfield a partir de una foto de
-// Wikimedia Commons, fiel a la foto (src/assets/frontones-cartas; autores y licencias en LICENCIAS.md de esa carpeta y en
-// legal/registro-licencias.csv). Del 12 al 13 de noviembre de 2026 eran frontones inventados, y al autor no le gustaron.
-// Cada campeonato, el suyo: la Gran Txapela, el Labrit de Iruña al anochecer; el manomanista, el cubierto de Ziordia; las
-// parejas, el de Areso; el 4½, el cubierto de Ariztialde; el de Comarcas, el de Berrioplano; el de Fiestas, la plaza de
-// Lanz; el de los Valles, el de Roncal; la Copa de Invierno, el cubierto de Urroz de Santesteban; las Promesas, el otro
-// lado del de Ariztialde; el partido libre, el de Mendaza; los retos, el de Irurtzun; la pelota en casa, la pared de
-// Fontellas; la colección, el viejo de Irurtzun. Sin foto, la cancha oscura de CANCHA
-const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/frontones-cartas/*.webp', { eager: true, query: '?url', import: 'default' })).map(([k, u]) => [k.match(/([\w-]+)\.webp$/)[1], u]));
-const FONDO_DE = { torneo: 'ziordia', torneoParejas: 'areso', torneoCuatro: 'ariztialde2', 't:gran': 'labrit', 't:comarcas': 'berrioplano',
-  't:fiestas': 'lanz', 't:valles': 'roncal', 't:invierno': 'urroz', 't:promesas': 'ariztialde1', libre: 'mendaza', retos: 'irurtzun1',
-  camara: 'fontellas', pelotaris: 'irurtzun2' };
-const conFoto = (row) => {
-  for (const c of row?.querySelectorAll('.cp-card') || []) {
-    const u = FONDOS[FONDO_DE[c.dataset.reto ? 'retos' : c.dataset.a]];
-    if (u) { c.style.setProperty('--foto', `url("${u}")`); c.classList.add('con-foto'); }
-  }
-};
+// (el fondo de las tarjetas: la cancha oscura dibujada de CANCHA, con el pelotari asentado en ella. Del 13 de noviembre de
+// 2026 por la mañana a la tarde llevaron cada una un frontón real de Navarra pintado con Higgsfield a partir de una foto de
+// Wikimedia Commons, con el pelotari encima, y al autor no le gustaron: «no está bien integrado el personaje, está puesto
+// por poner el fondo». Las imágenes siguen en src/assets/frontones-cartas como referencia, sin usar; las fotos de verdad de
+// los frontones van ahora en el catálogo y al elegir frontón)
+const conFoto = () => {};
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
 /** Las estrellas que llevas en los tres retos (de 0 a 9) */

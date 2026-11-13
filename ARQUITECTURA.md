@@ -1265,15 +1265,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tanto por ciento (`.ld-prog`); los rótulos de los cambios de fútbol; el nombre de quien atiende la tienda bajo su icono (`.shop-keeper`); y, con el móvil de pie, la misión, que `fitTop`
   estrechaba a 140 px, y la distancia de la brújula y los avisos de la conversación, que se le montaban.
 - **Tarjetas de los campeonatos** (`pelotaMenu` y `retosMenu` en `game/torneo.js`, clases `cp-`, noviembre de 2026): arriba,
-  la foto (`.cp-foto`): un frontón real de Navarra en cada tarjeta (`src/assets/frontones-cartas`, 13 de 800 px, 600 KB en
-  total), pintado con Higgsfield a partir de una foto de Wikimedia Commons y fiel a ella; autores y licencias en el
-  `LICENCIAS.md` de esa carpeta y en `legal/registro-licencias.csv` (fotos CC0, CC BY y CC BY-SA, esta última aprobada
-  por el autor el 13 de noviembre de 2026). `FONDO_DE` (game/torneo.js) da el suyo a cada campeonato por su `data-a`: la
-  Gran Txapela, el Labrit de Iruña al anochecer; el manomanista, el cubierto de Ziordia; las parejas, Areso; el 4½,
-  Ariztialde; Comarcas, Berrioplano; Fiestas, Lanz; Valles, Roncal; Invierno, Urroz de Santesteban; Promesas, el otro lado
-  de Ariztialde; el partido libre, Mendaza; los retos, Irurtzun; la pelota en casa, Fontellas; la colección, el viejo de
-  Irurtzun. `conFoto` pone `--foto` y la clase `.con-foto`, que apaga la foto (`brightness .68`) y la oscurece arriba y
-  abajo para que se lean el pelotari y los textos. Sin foto, una cancha oscura dibujada (`--cancha`, un SVG en el CSS).
+  la foto (`.cp-foto`): la cancha oscura dibujada (`--cancha`, un SVG en el CSS). Del 13 de noviembre de 2026 por la
+  mañana a la tarde cada tarjeta llevó un frontón real de Navarra pintado con Higgsfield a partir de una foto de Wikimedia
+  Commons, con el pelotari encima, y al autor no le gustaron: «no está bien integrado el personaje, está puesto por poner
+  el fondo». Esas imágenes siguen en `src/assets/frontones-cartas` como referencia, sin usar (`conFoto` ya no hace nada);
+  las fotos de verdad de los frontones van en el catálogo y al elegir frontón.
   Delante, el rival de tu ronda de pie en la cancha, con su sombra en el suelo, un filo de luz claro alrededor y una luz
   suave del color del campeonato detrás. Del 12 al 13 de noviembre de 2026 los frontones eran inventados y al autor no le
   gustaron; encima de la foto, la etiqueta (individual, por parejas, hasta el 4½…) y tus txapelas, en píldoras oscuras.
