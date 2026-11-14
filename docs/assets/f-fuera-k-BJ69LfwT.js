@@ -1,0 +1,1 @@
+var e=new URL(`f-fuera-k-BCC_XMsC.mp3`,import.meta.url).href;export{e as default};

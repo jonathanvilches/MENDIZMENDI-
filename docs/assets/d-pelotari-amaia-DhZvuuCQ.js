@@ -1,1 +1,0 @@
-var e=new URL(`d-pelotari-amaia-CNK-dvKg.mp3`,import.meta.url).href;export{e as default};

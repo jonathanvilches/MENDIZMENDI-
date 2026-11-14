@@ -1,0 +1,1 @@
+var e=new URL(`t-cortada-ancho-1-BUQzzvdA.mp3`,import.meta.url).href;export{e as default};

@@ -1,1 +1,0 @@
-var e=new URL(`n-partido-leire-Dvn8QI4g.mp3`,import.meta.url).href;export{e as default};

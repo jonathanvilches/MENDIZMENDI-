@@ -1,1 +1,0 @@
-var e=new URL(`n-remonta-nerea-2LX6ZyJV.mp3`,import.meta.url).href;export{e as default};

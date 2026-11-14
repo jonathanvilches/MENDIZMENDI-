@@ -1,0 +1,1 @@
+var e=new URL(`n-remonta-nerea-DP8_ddsa.mp3`,import.meta.url).href;export{e as default};

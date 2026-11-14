@@ -1,0 +1,1 @@
+var e=new URL(`n-remonta-jokin-BEZxko1_.mp3`,import.meta.url).href;export{e as default};

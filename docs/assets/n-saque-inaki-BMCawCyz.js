@@ -1,0 +1,1 @@
+var e=new URL(`n-saque-inaki-BugueGx2.mp3`,import.meta.url).href;export{e as default};

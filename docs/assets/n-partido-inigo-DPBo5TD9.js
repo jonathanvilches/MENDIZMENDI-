@@ -1,0 +1,1 @@
+var e=new URL(`n-partido-inigo-Ban5fbbM.mp3`,import.meta.url).href;export{e as default};

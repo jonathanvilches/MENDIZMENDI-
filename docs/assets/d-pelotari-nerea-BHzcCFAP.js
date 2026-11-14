@@ -1,0 +1,1 @@
+var e=new URL(`d-pelotari-nerea-Ch8LoGz0.mp3`,import.meta.url).href;export{e as default};

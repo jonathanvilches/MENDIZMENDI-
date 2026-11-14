@@ -1,1 +1,0 @@
-var e=new URL(`inicio-2-DfVh_WF-.mp3`,import.meta.url).href;export{e as default};

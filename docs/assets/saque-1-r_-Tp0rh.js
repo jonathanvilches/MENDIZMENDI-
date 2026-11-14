@@ -1,1 +1,0 @@
-var e=new URL(`saque-1-1v_vLV-u.mp3`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`n-presenta-a-nahia-6M7hujx0.mp3`,import.meta.url).href;export{e as default};

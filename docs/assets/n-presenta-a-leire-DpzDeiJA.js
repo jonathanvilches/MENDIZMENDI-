@@ -1,0 +1,1 @@
+var e=new URL(`n-presenta-a-leire-DUk0BFi2.mp3`,import.meta.url).href;export{e as default};

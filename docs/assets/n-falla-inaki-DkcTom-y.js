@@ -1,0 +1,1 @@
+var e=new URL(`n-falla-inaki-XTq-odPc.mp3`,import.meta.url).href;export{e as default};

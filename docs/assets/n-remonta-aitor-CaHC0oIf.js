@@ -1,1 +1,0 @@
-var e=new URL(`n-remonta-aitor-DVs6iUSe.mp3`,import.meta.url).href;export{e as default};

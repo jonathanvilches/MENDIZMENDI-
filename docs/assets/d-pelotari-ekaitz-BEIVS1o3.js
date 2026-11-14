@@ -1,1 +1,0 @@
-var e=new URL(`d-pelotari-ekaitz-EXMQU8EW.mp3`,import.meta.url).href;export{e as default};

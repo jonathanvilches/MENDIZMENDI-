@@ -1,0 +1,1 @@
+var e=new URL(`n-golazo-aitor-CScXWcZS.mp3`,import.meta.url).href;export{e as default};

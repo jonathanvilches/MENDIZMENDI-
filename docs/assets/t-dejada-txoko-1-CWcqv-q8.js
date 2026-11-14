@@ -1,1 +1,0 @@
-var e=new URL(`t-dejada-txoko-1-rEOkXXDY.mp3`,import.meta.url).href;export{e as default};

@@ -1,1 +1,0 @@
-var e=new URL(`j-saque-cortado-CANYC1DX.mp3`,import.meta.url).href;export{e as default};

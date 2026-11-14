@@ -1,1 +1,0 @@
-var e=new URL(`n-presenta-b-leire-BaTdevV3.mp3`,import.meta.url).href;export{e as default};

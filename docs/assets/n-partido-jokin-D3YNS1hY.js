@@ -1,0 +1,1 @@
+var e=new URL(`n-partido-jokin-Cc-43U_q.mp3`,import.meta.url).href;export{e as default};
