@@ -3,7 +3,7 @@ import { chromium } from '/home/user/mendimendiz/node_modules/playwright-core/in
 import fs from 'node:fs';
 const [W, H] = (process.env.TAM || '960x540').split('x').map(Number);
 const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await (await b.newContext({ viewport: { width: W, height: H } })).newPage();
+const movil = !!process.env.MOVIL, p = await (await b.newContext({ viewport: { width: W, height: H }, deviceScaleFactor: +(process.env.DPR || 1), isMobile: movil, hasTouch: movil })).newPage();
 const errs = []; p.on('pageerror', e => errs.push(e.message.slice(0, 200)));
 await p.addInitScript(() => { window.__sinVideoIsla = true; window.__sinVistaAlta = true; localStorage.setItem('herrizherri-lang', 'es'); localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, name: 'Ane', avatar: 'explorador', seen: { heroBenat: true, dog: true, comoJugar: true, intro: true } })); });
 await p.goto('http://127.0.0.1:5173/?skipintro=1' + (process.env.Q ? '&q=' + process.env.Q : ''), { timeout: 300000 });
