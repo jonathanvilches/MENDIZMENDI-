@@ -6,10 +6,14 @@ const R = COURT.BALL_R;
 // cómo es el frontón donde se juega: cuánto sale la pelota del frontis, cuánto bota en el suelo y cuánto corre al botar
 // (1 = lo de siempre). Lo pone el partido al empezar (setFeel, con courtFeel de rules.js) y lo quita al acabar; la
 // predicción de la IA usa la misma física, así que el rival también juega con el frontón como es
-export const FEEL = { front: 1, floor: 1, run: 1, backH: 0, leftH: 0 };
+export const FEEL = { front: 1, floor: 1, run: 1, backH: 0, leftH: 0, tipo: 'izquierda' };
+// el trinquete (tipo 'trinquete'): a la izquierda, la red de la galería del público, del suelo al borde del tejadillo
+// (Y0), y el tejadillo, que sube hacia la pared del fondo de la galería (a FONDO metros); a la derecha, pared. Medidas de
+// un trinquete de verdad (28,5 × 9,3 m, con el tejadillo a todo lo largo de la pared izquierda), en la cancha del juego
+export const TRINQ = { Y0: 2.35, FONDO: 2.2, PEND: 0.42 };
 // (backH y leftH: alto del rebote y de la pared izquierda; en el frontón cubierto llegan hasta el techo y la pelota no
 // se sale: por encima de la raya sigue siendo mala, pero rebota en la pared)
-export function setFeel(f = null) { FEEL.front = f?.front ?? 1; FEEL.floor = f?.floor ?? 1; FEEL.run = f?.run ?? 1; FEEL.backH = f?.backH || 0; FEEL.leftH = f?.leftH || 0; }
+export function setFeel(f = null) { FEEL.front = f?.front ?? 1; FEEL.floor = f?.floor ?? 1; FEEL.run = f?.run ?? 1; FEEL.backH = f?.backH || 0; FEEL.leftH = f?.leftH || 0; FEEL.tipo = f?.tipo || 'izquierda'; }
 export const vec = (x = 0, y = 0, z = 0) => ({ x, y, z });
 
 // (un solo array para los eventos de las simulaciones de los golpes: no crea uno nuevo en cada paso)
@@ -31,15 +35,30 @@ export class Ball {
       if (this.spin === 1) { p.z = R; v.z = -v.z * PHYS.CUT_E * FEEL.front; v.x *= PHYS.FRONT_FX; v.y = Math.max(0.6, Math.abs(v.y) * 0.25); }
       else { p.z = R; v.z = -v.z * PHYS.FRONT_E * FEEL.front; v.x *= PHYS.FRONT_FX; v.y *= PHYS.FRONT_F; }
     }
-    // pared izquierda
-    // (por encima de la pared no hay rebote: sale fuera, pero se avisa para el árbitro)
-    if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2 && p.y > (FEEL.leftH || COURT.LEFT_H)) { if (!this.over) { this.over = true; out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z, over: true }); } }
-    else if (p.x < -COURT.W / 2 + R && v.x < 0 && p.z < COURT.L + 2) {
-      out.push({ type: 'left', x: -COURT.W / 2, y: p.y, z: p.z });
-      p.x = -COURT.W / 2 + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97;
+    const xe = -COURT.W / 2;
+    if (FEEL.tipo === 'trinquete') {
+      // la red de la galería: a ella es falta (el árbitro), y la pelota se queda muerta en ella
+      if (p.x < xe + R && p.x > xe - 0.6 && v.x < 0 && p.y < TRINQ.Y0) { out.push({ type: 'red', x: xe, y: p.y, z: p.z }); p.x = xe + R; v.x = -v.x * 0.18; v.y *= 0.4; v.z *= 0.35; }
+      // el tejadillo: rebota en su plano inclinado y cae rodando hacia la cancha (sigue viva)
+      else if (p.x < xe && p.x > xe - TRINQ.FONDO) {
+        const yr = TRINQ.Y0 + (xe - p.x) * TRINQ.PEND, nl = Math.hypot(TRINQ.PEND, 1), nx = TRINQ.PEND / nl, ny = 1 / nl, vn = v.x * nx + v.y * ny;
+        if (p.y < yr + R && p.y > yr - 0.5 && vn < 0) { out.push({ type: 'teja', x: p.x, y: yr, z: p.z }); p.y = yr + R; v.x -= 1.5 * vn * nx; v.y -= 1.5 * vn * ny; v.z *= 0.8; v.x = Math.max(v.x, 0.8); }
+      }
+      // la pared del fondo de la galería, por encima del tejadillo (vale, como la izquierda de siempre)
+      if (p.x < xe - TRINQ.FONDO + R && v.x < 0 && p.y > TRINQ.Y0) { out.push({ type: 'left', x: xe - TRINQ.FONDO, y: p.y, z: p.z }); p.x = xe - TRINQ.FONDO + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97; }
+      // la pared derecha
+      if (p.x > -xe - R && v.x > 0 && p.z < COURT.REBOTE) { out.push({ type: 'right', x: -xe, y: p.y, z: p.z }); p.x = -xe - R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97; }
     }
-    // el rebote: la pared de atrás, baja (por encima pasa y se pierde)
-    if (p.z > COURT.REBOTE - R && v.z > 0 && p.y < (FEEL.backH || COURT.REBOTE_H) && p.x > -COURT.W / 2 - 0.6 && p.x < COURT.W / 2 + 0.3) {
+    // pared izquierda (en la plaza libre no hay: la pelota sigue y el árbitro mira dónde bota)
+    // (por encima de la pared no hay rebote: sale fuera, pero se avisa para el árbitro)
+    else if (FEEL.tipo === 'plaza') { /* sin pared */ }
+    else if (p.x < xe + R && v.x < 0 && p.z < COURT.L + 2 && p.y > (FEEL.leftH || COURT.LEFT_H)) { if (!this.over) { this.over = true; out.push({ type: 'left', x: xe, y: p.y, z: p.z, over: true }); } }
+    else if (p.x < xe + R && v.x < 0 && p.z < COURT.L + 2) {
+      out.push({ type: 'left', x: xe, y: p.y, z: p.z });
+      p.x = xe + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97;
+    }
+    // el rebote: la pared de atrás, baja (por encima pasa y se pierde; en la plaza libre no hay)
+    if (FEEL.tipo !== 'plaza' && p.z > COURT.REBOTE - R && v.z > 0 && p.y < (FEEL.backH || COURT.REBOTE_H) && p.x > -COURT.W / 2 - (FEEL.tipo === 'trinquete' ? TRINQ.FONDO : 0.6) && p.x < COURT.W / 2 + 0.3) {
       out.push({ type: 'back', x: p.x, y: p.y, z: COURT.REBOTE });
       p.z = COURT.REBOTE - R; v.z = -v.z * PHYS.BACK_E; v.x *= 0.9;
     }

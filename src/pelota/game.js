@@ -1,7 +1,7 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
 import { COURT, LEVELS, SHOTS, kantari, CUATRO, PHYS, RETOS, estrellasReto } from './rules.js';
-import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec } from './physics.js';
+import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec, FEEL } from './physics.js';
 import { clamp } from '../util/math.js';
 
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
@@ -366,7 +366,7 @@ export class PelotaGame {
       // más cruzada sale; arriba, más larga; abajo, más corta)
       // (se apunta al bote, desde cualquier sitio: cuanto más a la izquierda el joystick, más cruzada sale, de bote al centro
       // a bote junto a la raya del ancho; arriba, más larga; abajo, más corta, junto al frontis)
-      if (rawX < -0.45 && !serve) {
+      if (rawX < -0.45 && !serve && FEEL.tipo === 'izquierda') {   // (en la plaza libre no hay pared para la dos paredes; en el trinquete, a la izquierda está la red)
         const ang = clamp((-rawX - 0.45) / 0.5, 0, 1);
         const tgt = { x: 0.8 + ang * 3.6 + gauss(rnd) * err * 0.9, z: clamp(8 + pow01(pow) * 7 + aim.y * 3, 6.5, 16) + gauss(rnd) * err * 1.6 };
         const r = twoWallsTo(p, speed, tgt, { low: 1.5, maxFront: ty + 1.4, spin: 1 });
@@ -394,7 +394,7 @@ export class PelotaGame {
       // (a dos paredes con el joystick casi del todo a la izquierda; a medias, pegada a la pared)
       // (el ángulo, con todo el recorrido que queda del joystick, de 0,7 al tope, y algo de abajo; la fuerza dice lo larga
       // que sale, de la mitad de la cancha al cuadro 6: antes ese recorrido era la mitad y la fuerza se notaba poco)
-      if (!gancho && rawX < -0.7 && aim.y < 0.3) {
+      if (!gancho && rawX < -0.7 && aim.y < 0.3 && FEEL.tipo === 'izquierda') {
         const ang = clamp(Math.pow(clamp((-rawX - 0.7) / 0.3, 0, 1), 0.85) + Math.max(0, -aim.y) * 0.3, 0, 1), lz = clamp(10.5 + pow * 10.5 + aim.y * 1.5 + gauss(rnd) * err * 2, 10, this.cuatro ? 14.6 : 22);
         // (y se apunta al bote: más a la izquierda, más cruzada, del centro al ancho)
         const r = twoWallsTo(p, speed + 1, { x: 0.6 + ang * 3.6 + gauss(rnd) * err * 0.9, z: lz });   // (más fuerza, más rápida y más larga)
@@ -540,7 +540,8 @@ export class PelotaGame {
       if (R.front) return;                                    // ya había dado
       if (e.y < COURT.CHAPA) { this.emit({ type: 'front', ...e, chapa: true }); return this.point(receiver, 'chapa'); }
       if (e.y > COURT.FRONT_TOP) { this.emit({ type: 'front', ...e, alta: true }); return this.point(receiver, 'alta'); }   // (en la chapa de arriba)
-      if (e.x > COURT.W / 2) { this.emit({ type: 'front', ...e }); return this.point(receiver, 'lado'); }   // fuera de la raya lateral del frontis
+      if (e.x > COURT.W / 2 && FEEL.tipo !== 'trinquete') { this.emit({ type: 'front', ...e }); return this.point(receiver, 'lado'); }   // fuera de la raya lateral del frontis
+      if (e.x < -COURT.W / 2 && FEEL.tipo === 'plaza') { this.emit({ type: 'front', ...e }); return this.point(receiver, 'ladoIzq'); }   // (en la plaza libre, también por la izquierda)
       R.front = true; R.bounces = 0;
       this.emit({ type: 'front', ...e });
       if (this.reto === 'diana' && striker === 'you') { const d = this.diana; return this.retoTiro(Math.hypot(e.x - d.x, e.y - d.y) <= d.r, { x: e.x, y: e.y }); }
@@ -549,6 +550,12 @@ export class PelotaGame {
       this.emit({ type: 'wall', ...e, alta: e.y > COURT.LEFT_LINE });   // (alta: en la chapa de arriba de la pared)
       // en la pared izquierda, por encima de su raya roja (o por encima de la pared) es mala, antes o después del frontis
       if (e.y > COURT.LEFT_LINE) return this.point(receiver, 'pared');
+    } else if (e.type === 'red') {
+      // (el trinquete: a la red de la galería es falta, antes o después del frontis; si ya había botado bien, la pierde
+      // el que tenía que devolverla)
+      this.emit({ type: 'wall', ...e }); return R.front && R.bounces >= 1 ? this.point(striker, 'red') : this.point(receiver, 'red');
+    } else if (e.type === 'right' || e.type === 'teja') {
+      this.emit({ type: 'wall', ...e });   // (la pared derecha y el tejadillo del trinquete: valen, y la pelota sigue)
     } else if (e.type === 'back') {
       // en el rebote sin haber botado: larga (fuera); tras un bote, vuelve y se sigue jugando
       if (!R.front || R.bounces < 1) { this.emit({ type: 'back', ...e }); return this.point(receiver, 'largo'); }
@@ -559,7 +566,8 @@ export class PelotaGame {
       if (!R.front) return this.point(receiver, 'corta');
       R.bounces++;
       if (R.bounces === 1) {
-        if (e.x > COURT.W / 2) return this.point(receiver, 'fuera');
+        if (e.x > COURT.W / 2 && FEEL.tipo !== 'trinquete') return this.point(receiver, 'fuera');
+        if (e.x < -COURT.W / 2 && FEEL.tipo === 'plaza') return this.point(receiver, 'fuera');   // (en la plaza libre, fuera de la raya de la izquierda)
         if (e.z > COURT.L) return this.point(receiver, 'largo');
         if (this.reto === 'dejada' && striker === 'you' && !R.serve) return this.retoTiro(e.z <= RETOS.dejada.z, { z: e.z });
         if (this.cuatro) {   // (el saque, entre el 3 y el 5; el tanto, nunca más allá de la raya del 4 y medio)
@@ -713,7 +721,7 @@ export class PelotaGame {
     let x = this.rnd() * tot, k = SHOTS[0]; for (const s of SHOTS) { x -= S[s] || 0; if (x <= 0) { k = s; break; } }
     const g = gauss(this.rnd);
     if (k === 'cortada') return { aim: { x: this.rnd() < 0.5 ? -0.55 : 0.5, y: g * 0.3 }, drop: 'cortada' };
-    if (k === 'dosparedes') return me.x > -3.6 ? { aim: { x: -0.85, y: -0.5 } } : null;
+    if (k === 'dosparedes') return me.x > -3.6 && FEEL.tipo === 'izquierda' ? { aim: { x: -0.85, y: -0.5 } } : null;
     if (k === 'gancho') return { aim: { x: -0.92, y: 0.35 } };   // pegada a la pared izquierda
     if (k === 'dejada') return me.z < 21 ? { aim: { x: g * 0.3, y: -1 }, drop: true } : null;
     return { aim: { x: g * 0.3, y: 1 }, pow: 0.9 + this.rnd() * 0.1 };   // largo, al rebote
@@ -1012,7 +1020,7 @@ export class PelotaGame {
     this.giveWay(dt, inp);
     const all = this.ids.map(id => this.players[id]);
     for (const p of all) {
-      p.x = clamp(p.x + p.vx * dt, -COURT.W / 2 + 0.45, COURT.W / 2 + 2.5);
+      p.x = clamp(p.x + p.vx * dt, -COURT.W / 2 + 0.45, COURT.W / 2 + (FEEL.tipo === 'trinquete' ? -0.45 : 2.5));   // (en el trinquete, la pared derecha)
       p.z = clamp(p.z + p.vz * dt, 2, COURT.L + 3);
       const sp = Math.hypot(p.vx, p.vz); p.speed = sp;
       if (sp > 0.3) p.face = Math.atan2(p.vx, p.vz);

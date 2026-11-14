@@ -29,6 +29,7 @@ import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg } from '../ui/frontonFotos.js';
+import { DESTACADOS, TIPOS } from '../data/frontones.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 /** Las cualidades de un pelotari del torneo y sus golpes preferidos (los de los torneos guardados antes sin golpes se
@@ -473,7 +474,7 @@ const CSS = `
 .cp-card:hover,.cp-card:focus-visible{border-color:color-mix(in srgb,var(--ac) 55%,transparent);transform:translateY(-2px)}
 .cp-card:active{transform:scale(.98)}
 .cp-card:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.cp-mano{--ac:#ff4fd8}.cp-parejas{--ac:#9b7bff}.cp-cuatro{--ac:#ff8a3d}.cp-evento{--ac:#ffc94a}.cp-libre{--ac:#3ec7e0}.cp-retos{--ac:#ffd166}.cp-casa{--ac:#5fdca0}.cp-col{--ac:#c4a8ff}
+.cp-mano{--ac:#ff4fd8}.cp-parejas{--ac:#9b7bff}.cp-cuatro{--ac:#ff8a3d}.cp-evento{--ac:#ffc94a}.cp-libre{--ac:#3ec7e0}.cp-retos{--ac:#ffd166}.cp-front{--ac:#7ee0b0}.cp-casa{--ac:#5fdca0}.cp-col{--ac:#c4a8ff}
 /* (arriba, la foto: el frontón pintado del juego, cada campeonato con su encuadre, y delante el rival de pie en la cancha) */
 .cp-foto{position:relative;flex:1 1 0;min-height:0;display:block;overflow:hidden;isolation:isolate;background:#140a2c}
 .cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,var(--cancha)) var(--fx,50%) 100%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:50% 80%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
@@ -789,6 +790,55 @@ function eligeFronton(btn, o, here) {
     });
   });
 }
+// «Frontones» (pelota a mano): los frontones de verdad del capítulo «Frontones de Navarra» (data/frontones.js), para
+// jugar en ellos y conocerlos. Arriba, los tres tipos de cancha para filtrar (plaza libre, pared izquierda y trinquete,
+// con cuántos hay en el juego y cómo es cada uno); debajo, una tarjeta por frontón con su foto, dónde está, cómo es y su
+// historia en una línea. Se toca uno y «Jugar aquí» (o dos toques). Devuelve el frontón elegido o null
+const FR_CSS = `
+.frg-tabs{display:flex;flex-wrap:wrap;gap:8px}
+.frg-tabs button{min-height:40px;padding:6px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);color:#fff;font:700 var(--fs-sm)/1.1 var(--f-cond);letter-spacing:.04em;text-transform:uppercase;cursor:pointer}
+.frg-tabs button b{margin-left:6px;color:var(--lila2);font-weight:800}
+.frg-tabs button[aria-pressed=true]{background:#7ee0b0;border-color:transparent;color:#10241b}.frg-tabs button[aria-pressed=true] b{color:#10241b}
+.frg-que{margin:0;color:var(--lila2);font:500 var(--fs-sm)/1.35 var(--f-body);max-width:72ch;min-height:2.7em}
+.frg .ef-pic>img{filter:saturate(1.05)}
+.frg .ef-txt span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.frg .ef-it[hidden]{display:none}
+.ef-card .lg-btn.go:disabled{opacity:.45;cursor:default;filter:saturate(.6)}
+@media (orientation:landscape) and (max-height:500px){.frg-que{display:none}}
+`;
+const tipoTxt = (F) => { const eu = isEU(), T = TIPOS[F.tipo] || TIPOS.izquierda, a = typeof F.anio === 'number' ? ` · ${F.anio}` : '';
+  return `${eu ? T.eu : T.nombre}${F.tipo === 'izquierda' ? (F.cubierto ? (eu ? ' · estalia' : ' · cubierto') : (eu ? ' · kanpoan' : ' · al aire libre')) : ''}${a}${F.sub ? ` · ${eu ? 'jada ez dago' : F.sub}` : ''}`; };
+const primera = (t = '') => (String(t).match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
+export function frontonesMenu() {
+  efCss(); if (!document.getElementById('frg-css')) { const st = document.createElement('style'); st.id = 'frg-css'; st.textContent = FR_CSS; document.head.appendChild(st); }
+  const eu = isEU(), N = { todos: DESTACADOS.length }; for (const F of DESTACADOS) N[F.tipo] = (N[F.tipo] || 0) + 1;
+  return new Promise(res => {
+    let filtro = 'todos', sel = null;
+    const tarjeta = (F) => { const u = F.foto ? fotoFronton(F.foto) : '';
+      return `<button type="button" class="ef-it" data-f="${F.id}" aria-pressed="false"><span class="ef-pic">${u ? `<img src="${u}" alt="" decoding="async" loading="lazy">` : iconSVG(TIPOS[F.tipo]?.icon || 'pelota', 96)}</span>
+        <span class="ef-txt"><small>${esc(F.lugar)}</small><b>${esc(F.nombre)}</b><em>${esc(tipoTxt(F))}</em><span>${esc(primera(F.texto))}</span></span></button>`; };
+    const que = (k) => k === 'todos' ? (eu ? 'Nafarroako benetako frontoiak: ukitu bat hor jokatzeko.' : 'Frontones de verdad de Navarra: toca uno para jugar en él. En Navarra hay unos 650: plazas libres, de pared izquierda y seis trinquetes.') : (TIPOS[k]?.texto || '');
+    const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Frontoiak' : 'Frontones'}</h2></div>
+      <div class="frg-tabs" role="tablist" data-notr>${['todos', 'plaza', 'izquierda', 'trinquete'].map(k => `<button type="button" data-t="${k}" aria-pressed="${k === filtro}">${k === 'todos' ? (eu ? 'Denak' : 'Todos') : esc(eu ? TIPOS[k].eu : TIPOS[k].nombre)}<b>${N[k] || 0}</b></button>`).join('')}</div>
+      <p class="frg-que" data-notr>${esc(que(filtro))}</p>
+      <div class="efp-grid frg" data-notr>${DESTACADOS.map(tarjeta).join('')}</div>
+      <div class="lg-bar" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok" disabled>${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div>`);
+    r.firstElementChild.classList.add('ef-card');
+    const ok = r.querySelector('[data-a="ok"]');
+    const fin = (F) => { removeEventListener('keydown', tecla, true); lgFuera(r); res(F); };
+    const elige = (id) => { sel = DESTACADOS.find(F => F.id === id) || null; ok.disabled = !sel; r.querySelectorAll('.ef-it[data-f]').forEach(x => { const on = x.dataset.f === id; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
+    const filtra = (k) => { filtro = k; r.querySelectorAll('.frg-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === k))); r.querySelector('.frg-que').textContent = que(k);
+      r.querySelectorAll('.ef-it[data-f]').forEach(x => { const F = DESTACADOS.find(f => f.id === x.dataset.f); x.hidden = k !== 'todos' && F.tipo !== k; }); if (sel && k !== 'todos' && sel.tipo !== k) elige(null); };
+    const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } else if (e.key === 'Enter' && sel) { e.preventDefault(); fin(sel); } };
+    addEventListener('keydown', tecla, true);
+    r.addEventListener('click', (e) => {
+      const t = e.target.closest('.frg-tabs [data-t]'); if (t) return filtra(t.dataset.t);
+      const c = e.target.closest('.ef-it[data-f]'); if (c) { if (sel?.id === c.dataset.f && e.detail > 1) return fin(sel); return elige(c.dataset.f); }
+      const b = e.target.closest('[data-a]'); if (!b) return;
+      if (b.dataset.a === 'ok') { if (sel) fin(sel); } else fin(null);
+    });
+  });
+}
 /** La lista de los pueblos, por comarcas, para jugar en el frontón de otro: devuelve su id (o null). */
 function otroPueblo(here) {
   efCss();
@@ -1021,6 +1071,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro', 0.15) : '',
       ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2)); }),
       carta({ a: 'libre', cls: 'cp-libre', d: 0.5, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½' }),
+      carta({ a: 'frontones', cls: 'cp-front', d: 0.52, figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
       carta({ a: 'retos', cls: 'cp-retos', d: 0.55, figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
       camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', d: 0.6, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
       carta({ a: 'pelotaris', cls: 'cp-col', d: 0.65, figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc' }),

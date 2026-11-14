@@ -84,19 +84,28 @@ const FEEL_TXT = {
     stone: ['Frontis de piedra', 'La pelota sale más lenta del frontis: da más tiempo, pero para llegar atrás hay que pegar fuerte.'],
     wet: ['Suelo mojado', 'Llueve: la pelota bota menos y llega baja. Hay que agacharse antes.'],
     snow: ['Suelo con nieve', 'Nieva: la pelota bota menos y llega baja. Hay que agacharse antes.'],
-    labrit: ['Labrit', 'El frontón de las finales: pelota viva, sale rápida del frontis y bota alegre.'] },
+    labrit: ['Labrit', 'El frontón de las finales: pelota viva, sale rápida del frontis y bota alegre.'],
+    plaza: ['Plaza libre', 'Solo el frontis: no hay pared izquierda. Lo que bota fuera de las rayas de los lados es falta y no se juega a dos paredes.'],
+    trinquete: ['Trinquete', 'Cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la del tejadillo rueda y sigue viva.'] },
   eu: { hall: ['Frontoi estalia', 'Itxia eta errebotea sabairaino: pilota ez da ateratzen. Pabiloiko argia.'], covered: ['Estalita', 'Haizerik eta euririk gabe: pilotak berdin botatzen du partida osoan.'], open: ['Aire zabalean', 'Lur lehorra: betiko botea.'],
     stone: ['Harrizko frontisa', 'Pilota motelago ateratzen da frontisetik: denbora gehiago dago, baina atzera iristeko gogor jo behar da.'],
     wet: ['Lur bustia', 'Euria ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
     snow: ['Lurra elurtuta', 'Elurra ari du: pilotak gutxiago botatzen du eta baxu iristen da. Lehenago makurtu behar da.'],
-    labrit: ['Labrit', 'Finaletako frontoia: pilota bizia, frontisetik azkar ateratzen da eta alai botatzen du.'] },
+    labrit: ['Labrit', 'Finaletako frontoia: pilota bizia, frontisetik azkar ateratzen da eta alai botatzen du.'],
+    plaza: ['Plaza librea', 'Frontisa bakarrik: ez dago ezker paretarik. Alboetako marretatik kanpo botatzen duena falta da, eta ez da bi paretara jokatzen.'],
+    trinquete: ['Trinketea', 'Lau pareta: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatukoa jiraka doa eta bizirik jarraitzen du.'] },
 };
-export function courtFeel({ covered = false, stone = false, wet = false, snow = false, labrit = false, hall = false } = {}, lang = 'es') {
-  const T = FEEL_TXT[lang] || FEEL_TXT.es, f = { front: 1, floor: 1, run: 1 }, tags = [];
+// tipo: cómo es la cancha (los «Frontones» de pelota a mano, game/frontonesJuego.js): 'izquierda', el de siempre, con
+// frontis y pared izquierda; 'plaza', la plaza libre, solo con el frontis; 'trinquete', cerrado por las cuatro paredes,
+// con la red y el tejadillo a la izquierda (physics.js)
+export function courtFeel({ covered = false, stone = false, wet = false, snow = false, labrit = false, hall = false, tipo = 'izquierda' } = {}, lang = 'es') {
+  const T = FEEL_TXT[lang] || FEEL_TXT.es, f = { front: 1, floor: 1, run: 1, tipo }, tags = [];
   // (cerrado por todas partes: el rebote llega al techo y la pelota no se sale por detrás)
-  if (hall) { f.backH = 30; f.leftH = 30; }
+  if (hall || tipo === 'trinquete') { f.backH = 30; f.leftH = 30; }
   const tag = (k) => tags.push({ k, name: T[k][0], what: T[k][1] });
-  if (labrit) { f.front *= 1.05; f.floor *= 1.05; tag('labrit'); }
+  if (tipo === 'plaza' || tipo === 'trinquete') tag(tipo);
+  if (tipo === 'trinquete') { f.front *= 0.97; f.floor *= 0.96; }   // (sala pequeña y suelo de baldosa: algo menos viva)
+  else if (labrit) { f.front *= 1.05; f.floor *= 1.05; tag('labrit'); }
   else if (hall) tag('hall');
   else if (covered) tag('covered');
   else if (wet) { f.floor *= 0.86; f.run *= 1.06; tag(snow ? 'snow' : 'wet'); }   // (al aire libre y lloviendo o nevando: el suelo, mojado)
@@ -318,6 +327,8 @@ export const TEXT = {
       alta: ['¡Fuera!', 'Ha dado por encima de la raya del frontis.'],
       pared: ['¡Fuera!', 'Ha dado en la pared izquierda por encima de la raya roja.'],
       lado: ['¡Fuera!', 'Ha dado en el frontis fuera de la raya de la derecha.'],
+      ladoIzq: ['¡Fuera!', 'Ha dado en el frontis fuera de la raya de la izquierda.'],
+      red: ['¡Falta!', 'Ha ido a la red de la galería.'],
       fuera: ['¡Fuera!', 'Ha botado fuera de la cancha.'],
       largo: ['¡Fuera!', 'Ha botado más allá de la última raya.'],
       falta: ['¡Falta!', 'El saque ha botado antes de la raya del 4.'],
@@ -453,6 +464,8 @@ export const TEXT = {
       alta: ['Kanpo!', 'Frontiseko marraren gainetik jo du.'],
       pared: ['Kanpo!', 'Ezkerreko paretan marra gorriaren gainetik jo du.'],
       lado: ['Kanpo!', 'Frontisean eskuineko marratik kanpo jo du.'],
+      ladoIzq: ['Kanpo!', 'Frontisean ezkerreko marratik kanpo jo du.'],
+      red: ['Falta!', 'Galeriako sarera joan da.'],
       fuera: ['Kanpo!', 'Kantxatik kanpo egin du bote.'],
       largo: ['Kanpo!', 'Azken marratik haratago egin du bote.'],
       falta: ['Falta!', 'Sakeak 4ko marra baino lehen egin du bote.'],

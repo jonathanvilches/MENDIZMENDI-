@@ -2,14 +2,14 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, EXTRA, reglaDe, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, estDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
 import { addXP, checkBadges, profile, saveProfile, townState } from './profile.js';
 import { clubOfTown, teamOfClub } from '../futbol/clubs.js';
 import { clubPanel, season as ligaSeason } from '../futbol/liga.js';
-import { freeVenues, hallVenue, labrit } from './fronton.js';
+import { freeVenues, hallVenue, labrit, realVenue } from './fronton.js';
 import { armsOfTown } from '../data/armas-navarra.js';
 import { armsReady } from '../ui/escudoImg.js';
 import { infoCard } from '../ui/minigames.js';
@@ -192,6 +192,7 @@ export class PuebloDeportes {
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
       if (pick === 'retos') return await this.pelotaRetos(a, sel);
+      if (pick === 'frontones') return await this.pelotaFrontones(a);
       const v = await this.venueListo(sel.sede); await this.venuePrep(v);
       if (this.disposed) return;
       const r = await v.play(this, a, { ...(v === this.fronton ? {} : { returnTo: this.fronton }), intro: (m) => llegaFronton(this, v, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
@@ -284,6 +285,7 @@ export class PuebloDeportes {
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
         if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : 'mano'); if (this.disposed) return; continue; }
         if (pick === 'retos') { await this.pelotaRetos(a, sel); if (this.disposed) return; continue; }
+        if (pick === 'frontones') { await this.pelotaFrontones(a); if (this.disposed) return; continue; }
         // (el fondo sigue delante mientras se preparan los pelotaris: lo quita el vuelo de la llegada; antes se veía al
         // jugador quieto en la puerta del frontón hasta que empezaba el partido)
         const hv = await this.venueListo(sel.sede); await this.venuePrep(hv);
@@ -406,6 +408,25 @@ export class PuebloDeportes {
   }
   // el frontón Labrit: muy por encima del pueblo y fuera de sus límites (solo se ve por dentro y en la llegada)
   labritVenue() { return labrit(this.scene, { x: PLACES.plaza.x + 2600, z: PLACES.plaza.z }); }
+  // «Frontones» (pelota a mano): eliges un frontón de verdad (torneo.js frontonesMenu) y juegas en él un partido libre; al
+  // acabar, de vuelta a la lista, hasta «Volver». La plaza libre, sin pared izquierda; el trinquete, con su red, su
+  // tejadillo y su pared derecha (pelota/physics.js y court.js); el Labrit, el de siempre
+  async pelotaFrontones(a) {
+    for (;;) {
+      this.ui.hudVisible(false); this.player.frozen = true; this.sportBackdrop(true, true);
+      const F = await frontonesMenu();
+      if (this.disposed || !F) { if (!this.disposed && !this.sportMode) this.sportBackdrop(false); return; }
+      const v = F.id === 'labrit' ? this.labritVenue() : this.realVenue(F);
+      await this.venuePrep(v);
+      if (this.disposed) return;
+      const r = await v.play(this, a, { returnTo: this.fronton, comp: F.nombre, stay: true, intro: (m) => llegaFronton(this, v, m) });
+      if (this.disposed) return;
+      this.sportBackdrop(true, true);
+      if (r.error) this.ui.toast?.(isEU() ? 'Partidak ezin izan du jarraitu. Saiatu berriro.' : 'El partido no ha podido seguir. Vuelve a intentarlo.', 'pelota', 3200);
+    }
+  }
+  // (el frontón de verdad elegido en «Frontones»: aparte, como el cubierto, por el otro lado del pueblo)
+  realVenue(F) { return realVenue(this.scene, { x: PLACES.plaza.x, z: PLACES.plaza.z - 2600 }, F); }
   // el frontón cubierto del pueblo (los campeonatos): también muy por encima y fuera de sus límites, al otro lado
   hallVenue(def = this.def) { return hallVenue(this.scene, { x: PLACES.plaza.x - 2600, z: PLACES.plaza.z }, def); }
 }

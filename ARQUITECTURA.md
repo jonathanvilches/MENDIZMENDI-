@@ -1251,6 +1251,37 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   buscador; el pueblo que está en el juego lleva su enlace. Solo van años y aforos que dice una fuente; donde no
   coinciden, lo que dicen todas. Fuera las fotos de Commons con pintadas o carteles políticos (Alsasua, una de Leitza).
   `ddgal.js` admite ahora un apartado con contenido propio (`html`, `n`, `init`) en vez de tarjetas.
+- **«Frontones» en pelota a mano: jugar en los frontones de verdad, con plaza libre y trinquete** (`frontonesMenu` y la
+  tarjeta `cp-front` en `game/torneo.js`; `pelotaFrontones` y `realVenue` en `game/townDeportes.js`; `realVenue` en
+  `game/fronton.js`; `tipo` en `courtFeel` de `pelota/rules.js`, `TRINQ` y `FEEL.tipo` en `pelota/physics.js`, el árbitro
+  en `pelota/game.js` y la cancha en `pelota/court.js`, `buildTrinquete`; 15 de noviembre de 2026). El autor: «cuando
+  elijo frontones, esa parte no está terminada. Tiene que haber muchos más frontones», «diseñar también un frontón estilo
+  trinquete», «frontones con pared izquierda y pared derecha, quizá frontones con solo la pared frontal» y «que dentro de
+  la pelota a mano haya una opción que sea frontones para poder jugar en esos frontones y conocerlos también».
+  - En el menú de pelota a mano, una tarjeta más, «Frontones». Abre la galería de los 46 frontones del capítulo
+    «Frontones de Navarra» (`DESTACADOS`), con su foto si la hay, dónde está, su tipo (y si es cubierto o al aire libre y
+    su año) y la primera frase de su historia. Arriba se filtra por tipo de cancha, con cuántos hay de cada uno y lo que es
+    cada tipo. Se toca uno y «Jugar aquí»: un partido libre en él; al acabar, de vuelta a la galería.
+  - Qué pueblos tienen qué: del directorio frontons.net (`frontones-pueblos.json`), Navarra tiene 185 plazas libres y 6
+    trinquetes (Elizondo, Lekunberri, Mutilva y tres en Iruña). En la galería van los trinquetes de Elizondo, Lekunberri
+    y el juego de pelota de Sangüesa; las plazas libres de Muzqui, Arraioz, Irurita, Urroz, Areso, Roncal, Izco, Nazar,
+    Mendaza, Asarta, Mirafuentes, Genevilla, Marañón, Luquin y Fontellas; y el resto, de pared izquierda.
+  - La plaza libre (`tipo: 'plaza'`): solo el frontis, con raya a los dos lados; sin pared izquierda ni rebote; a la
+    izquierda, plaza. Es fuera lo que da en el frontis o bota fuera de la raya de la izquierda (`ladoIzq`, `fuera`) y no
+    hay dos paredes (ni para ti ni para el rival). Se monta al aire libre con la iglesia detrás del frontis, sobre un prado
+    que llega al horizonte, sin focos en la pared que no hay.
+  - El trinquete (`tipo: 'trinquete'`): cerrado por las cuatro paredes, sin contracancha. A la izquierda, la galería del
+    público tras la red metálica (del suelo a 2,35 m) y el tejadillo de tejas que sube 2,2 m hacia la pared del fondo,
+    a todo lo largo, como en los trinquetes de verdad (28,5 × 9,3 m, con el tejadillo en la pared izquierda). La pelota que
+    da en el tejadillo rebota en su plano y cae rodando, viva; la que va a la red es falta (`red`), o tanto para quien
+    la mandó si ya había botado bien; la pared derecha vale. Sin dos paredes: a la izquierda está la red. La pared derecha
+    es de una sola cara, la de la cancha, para que la cámara de la contracancha vea a través. Algo menos vivo que un
+    frontón: sala pequeña y suelo de baldosa.
+  - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
+    (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
+    Labrit es el Labrit. En el partido se dice su nombre de verdad.
+  - Lo que no se ha hecho: frontones de pared izquierda y derecha al aire libre. No se encontró ninguno en Navarra; el
+    que tiene las dos es el trinquete.
 - **Ferias de ganado** (`data/ferias.js`, `CORRALES` y `FERIA_TOWNS`; `townActividades.js`, `buildFair`,
   `conoceCorral` y `judgeFair`): en Estella, Elizondo, Altsasu, Lesaka, Lumbier y Lekunberri (las tres últimas, con
   datos del archivo de patrimonio inmaterial de Navarra y prensa, van al final de la lista del pueblo para no mover el

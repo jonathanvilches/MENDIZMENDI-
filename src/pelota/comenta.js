@@ -57,8 +57,8 @@ const GANA = (kind, sub) => kind === 'saque' ? 't-saque' : kind === 'dejada' ? (
   : kind === 'dosparedes' ? 't-dosparedes' : kind === 'gancho' ? (sub === 'ganchoPared' ? 't-gancho-pared' : 't-gancho-ancho')
   : kind === 'volea' ? 't-volea' : kind === 'largo' || kind === 'rebote' ? 't-largo' : 't-hueco';
 // (el fallo que pierde el tanto: el canto del juez, game.js)
-const FALLO = { chapa: 'e-chapa', alta: 'e-alta', pared: 'e-fuera', lado: 'e-fuera', fuera: 'e-fuera', largo: 'e-largo', falta: 'e-falta', falta45: 'e-falta45', pasa: 'e-pasa', pasa45: 'e-pasa45', cuatro: 'e-cuatro' };
-const FALLO_E = { chapa: 'e-chapa-e', alta: 'e-alta-e', pared: 'e-fuera-e', lado: 'e-fuera-e', fuera: 'e-fuera-e', largo: 'e-fuera-e', falta: 'e-falta-e', pasa: 'e-pasa-e', cuatro: 'e-cuatro-e' };
+const FALLO = { chapa: 'e-chapa', alta: 'e-alta', pared: 'e-fuera', lado: 'e-fuera', ladoIzq: 'e-fuera', red: 'e-fuera', fuera: 'e-fuera', largo: 'e-largo', falta: 'e-falta', falta45: 'e-falta45', pasa: 'e-pasa', pasa45: 'e-pasa45', cuatro: 'e-cuatro' };
+const FALLO_E = { chapa: 'e-chapa-e', alta: 'e-alta-e', pared: 'e-fuera-e', lado: 'e-fuera-e', ladoIzq: 'e-fuera-e', red: 'e-fuera-e', fuera: 'e-fuera-e', largo: 'e-fuera-e', falta: 'e-falta-e', pasa: 'e-pasa-e', cuatro: 'e-cuatro-e' };
 const VISTOSO = new Set(['t-gancho-ancho', 't-gancho-pared', 't-cortada-2p', 't-dosparedes', 't-volea']);
 const ROL = { M: 'Mikel', E: 'Edurne' };
 

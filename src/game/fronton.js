@@ -206,7 +206,7 @@ function myRecord() {
 export function frontonCond(G, fronton) {
   const C = fronton?.court || {}, L = C.look || {}, labrit = !!C.labrit, hall = !!C.hall, covered = labrit || hall || !!L.roof, W = G?.rt?.weather;
   const wet = !covered && !!W && W.kind !== 'clear' && (W.kind === 'snow' || W.raining) && (W.k ?? 1) > 0.25;
-  return { covered, stone: !!L.stone && !labrit && !hall, wet, snow: wet && W.kind === 'snow', labrit, hall };   // (snow: si lo que cae es nieve, se dice «nieva» y no «llueve»)
+  return { covered, stone: !!L.stone && !labrit && !hall, wet, snow: wet && W.kind === 'snow', labrit, hall, tipo: C.tipo || 'izquierda' };   // (snow: si lo que cae es nieve, se dice «nieva» y no «llueve»)
 }
 // nombres para los compañeros de los partidos por parejas
 const MATE_NAMES = RIVALES;   // (los compañeros y los rivales por parejas: de la plantilla del autor, cada uno con su figura)
@@ -348,6 +348,34 @@ export function hallVenue(scene, out, def) {
   HALL.town = def?.id; HALL.townName = town;   // (el de otro pueblo, en los campeonatos: su nombre en el partido)
   return HALL;
 }
+// Los «Frontones» de pelota a mano (game/frontonesJuego.js): cada frontón de verdad de data/frontones.js, montado aparte
+// como el cubierto, muy por encima del pueblo. El trinquete y los cubiertos, cerrados (dentro no se ve nada de fuera); la
+// plaza libre y los de pared izquierda al aire libre, en su plaza (con la iglesia detrás del frontis en la plaza libre,
+// como tantos de Tierra Estella y Baztan) sobre un prado que llega al horizonte. La arquitectura de los cubiertos, la de
+// su foto si es uno de los modelos (data/frontonArq.js) y, si no, la de su comarca
+let REAL = null;
+const ARQ_FOTO = { isaba: 'erminea', ziordia: 'ziordia', iraneta: 'iraneta', igantzi: 'igantzi', peralta: 'peralta', 'navarra-arena': 'pabellon' };
+export function realVenue(scene, out, F) {
+  if (REAL && REAL.court.group.parent === scene && REAL.realId === F.id) return REAL;
+  if (REAL) { try { REAL.dispose(); } catch (e) { console.warn('frontón', e); } REAL = null; }
+  const def = LEVELS.find(l => l.id === F.town) || { id: F.id, name: F.lugar, comarca: F.comarca };
+  const W = frontonWall({ ...def, name: F.lugar }), town = String(F.lugar || '').split(/[,/]/)[0].trim(), tipo = F.tipo || 'izquierda';
+  const at = { x: out.x, z: out.z, y: 2400, ry: 0 };
+  if (tipo === 'trinquete' || F.cubierto) {
+    const arq = ARQ_FOTO[F.id] || arqDe({ comarca: F.comarca });
+    REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: hallLook(def, W.seed, arq), hall: true, arq, tipo, noClear: true });
+  } else {
+    REAL = new Fronton(scene, at, town, { ...W, estilo: tipo === 'plaza' ? 'iglesia' : 'plaza', look: { ...frontonLook(def), roof: null }, tipo, noClear: true });
+    // (el prado, hasta el horizonte: del verde del valle a la bruma azulada de lo lejos, debajo de la plaza)
+    const R = 2600, geo = new THREE.CircleGeometry(R, 48, 0, Math.PI * 2), col = [], cA = new THREE.Color('#6f9a4a'), cB = new THREE.Color('#a9c7c9'), c = new THREE.Color();
+    const pos = geo.attributes.position; for (let i = 0; i < pos.count; i++) { const r = Math.hypot(pos.getX(i), pos.getY(i)) / R; c.copy(cA).lerp(cB, Math.min(1, r * 1.6)); col.push(c.r, c.g, c.b); }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    const prado = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true })); prado.rotation.x = -Math.PI / 2; prado.position.set(0, -0.06, 10); prado.receiveShadow = true; prado.name = 'prado';
+    REAL.court.group.add(prado);
+  }
+  REAL.realId = F.id; REAL.town = def.id; REAL.townName = town; REAL.realNombre = `${F.nombre} · ${town}`;   // (en el partido, su nombre de verdad)
+  return REAL;
+}
 // En el móvil (calidad baja), un solo frontón aparte a la vez, el que se va a usar (keep; ninguno al volver al pueblo).
 // Montados los dos, el cubierto y el Labrit, junto al pueblo entero, ocupaban en la tarjeta gráfica casi tanto como el
 // pueblo, y al entrar en un campeonato tras otro el iPhone se quedaba sin memoria: perdía la imagen y te devolvía al
@@ -361,6 +389,7 @@ export function anclaFronton(at, labrit = false) {
 }
 export function freeVenues(keep = null) {
   if (HALL && HALL !== keep) { HALL.dispose(); HALL = null; }
+  if (REAL && REAL !== keep) { REAL.dispose(); REAL = null; }
   if (LABRIT && LABRIT !== keep) { LABRIT.dispose(); LABRIT = null; }
 }
 // En Iruña, el frontón de la ciudad es el Labrit de verdad: el edificio entero en la calle, junto a la plaza de toros
@@ -532,7 +561,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
       } } catch (e) { console.warn('público del frontón', e); apunta('público del frontón', e); }
     // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
-    try { pancartas = pancartasDe(fronton.court, tuNombre, rivName, (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
+    try { pancartas = pancartasDe(fronton.court, tuNombre, rivName, fronton.realId ? fronton.townName : (G.def?.name || '').split(' /')[0], colors);   // (en un frontón de «Frontones», su pueblo) } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     // (entre tanto y tanto, parado y sin nada que hacer, de vez en cuando un gesto de pelotari: se sopla la mano o suelta
     // el brazo. Cada uno a su aire, cada 4 a 9 segundos)
@@ -616,7 +645,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       cond: frontonCond(G, fronton),   // (cómo es el frontón: a cubierto o al aire libre, de piedra, mojado o el Labrit)
       final,   // (la final de un campeonato: su entrada de «Gran final», pelota/granFinal.js)
       camp,   // (el campeonato y la ronda, { kind, ronda }: lo que comentan al empezar; pelota/comenta.js, camp-* y ronda-*)
-      venue: fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null, vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
+      venue: fronton.realNombre || (fronton.court.labrit ? (isEU() ? 'Labrit frontoia · Iruña' : 'Frontón Labrit · Iruña') : fronton.court.hall ? (isEU() ? `${fronton.townName || (G.def?.name || '').split(' /')[0]} · frontoi estalia` : `Frontón cubierto de ${fronton.townName || (G.def?.name || '').split(' /')[0]}`) : null), vsImg: { fig: (name, side) => pelotariFig(name, side, '', true) }, comp,
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
       onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true, null, 3.2); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
