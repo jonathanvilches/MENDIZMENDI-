@@ -168,8 +168,10 @@ def pueblos_hacer(D, lista):
             m = acc.reshape(-1, 3).mean(0); g = np.clip(t / np.maximum(m, 1), 0.7, 1.7); g = 1 + (g - 1) * 0.8
             acc = acc * g
         im = Image.fromarray(np.clip(acc, 0, 255).astype(np.uint8))
-        im.save(os.path.join(SALIDA, 'src/assets/relieve/hd/orto-pueblos', p['id'] + '.webp'), 'WEBP', quality=78, method=6)
-        im.resize((N // 2, N // 2), Image.LANCZOS).save(os.path.join(SALIDA, 'src/assets/relieve/hd/orto-pueblos-medio', p['id'] + '.webp'), 'WEBP', quality=80, method=6)
+        # (afinada con un enfoque suave, desde el 15 de noviembre de 2026: tejados, calles y copas más definidos, sin halos)
+        from PIL import ImageFilter
+        im.filter(ImageFilter.UnsharpMask(radius=1.4, percent=70, threshold=2)).save(os.path.join(SALIDA, 'src/assets/relieve/hd/orto-pueblos', p['id'] + '.webp'), 'WEBP', quality=80, method=6)
+        im.resize((N // 2, N // 2), Image.LANCZOS).filter(ImageFilter.UnsharpMask(radius=1.0, percent=70, threshold=2)).save(os.path.join(SALIDA, 'src/assets/relieve/hd/orto-pueblos-medio', p['id'] + '.webp'), 'WEBP', quality=80, method=6)
         meta[p['id']] = round(R, 1); print(p['id'], R, flush=True)
     os.makedirs(os.path.join(SALIDA, 'src/data'), exist_ok=True)
     open(os.path.join(SALIDA, 'src/data/mapa-orto-pueblos.js'), 'w', encoding='utf-8').write(

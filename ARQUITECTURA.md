@@ -2067,6 +2067,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   bajo el borde; bajo el labio, roca con algo de musgo que se va hacia abajo; la tierra, parda media y algo más gruesa; la
   nieve del labio, la del filo ya bajado; y el labio, un cojín de hierba que sobresale y se dobla, con el fleco colgando en
   mechones. Hierba, tierra y roca, en ese orden.
+- **Copas con grano y ortofoto de los pueblos afinada** (`arbolM` en `mapa3d.js`; `tools/relieve/ortofoto.py`; 15 de
+  noviembre de 2026): «que tengan la mayor posible textura de copas, de roca y afinar el ortofoto». Las copas de los árboles
+  del mapa llevan matas de hojas más claras y más hondas, cada árbol con las suyas, y la punta más clara, donde da el sol;
+  antes, un cono liso de un solo verde. Las 32 ortofotos finas de los pueblos, con un enfoque suave (máscara de enfoque de
+  1,4 px en las de 2.048 y de 1 px en las de 1.024): tejados, calles y copas más definidos, sin halos; pasan de 32 a 37 MB y
+  de 9,5 a 11 MB. No se hicieron más grandes: la maqueta pinta el suelo en un lienzo de 2.048 px, y uno de 4.096 serían
+  64 MB de memoria gráfica, demasiado para el iPhone y los ordenadores con gráfica integrada.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora
