@@ -228,7 +228,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const ENC = ENC0.map((_, i) => { let m = 1; for (let k = -2; k <= 2; k++) m = Math.min(m, ENC0[(i + k + N) % N]); return m * m; });
   const NF = FILAS.length, cantoPos = new Float32Array(NF * N1 * 3), cantoUv = [], cantoZ = [], cantoLuz = [], cantoA = [], cantoS = [], cantoH = [], cantoIx = [];
   FILAS.forEach(([o, , , zona, v, alfa, luz], f) => { for (let i = 0; i <= N; i++) { const k = i % N, [nx, nz] = NS[k], lado = 0.62 + 0.55 * Math.max(0, nx * LUZ.x + nz * LUZ.z);
-    cantoUv.push(LQ[i], v); cantoZ.push(zona); cantoA.push(alfa); cantoLuz.push(zona === 0 ? luz * (0.75 + 0.25 * Math.min(1, lado + 0.38 * (1 - v))) : luz * lado);
+    cantoUv.push(LQ[i], v); cantoZ.push(zona); cantoA.push(alfa); cantoLuz.push(zona === 0 ? luz * (0.75 + 0.25 * Math.min(1, lado + 0.38 * (1 - v))) : zona < 3 ? luz * (0.86 + 0.24 * (lado - 0.62) / 0.55) : luz * lado);
     // (de dónde toma su color cada punto: del suelo de la comarca justo dentro del borde, nunca de lo de fuera, que es de la
     // vecina; y a qué altura, para la nieve de las cumbres)
     // (lo que sale del borde toma el color en espejo, hacia dentro: si todos los puntos de una columna lo tomaban del mismo
@@ -282,8 +282,11 @@ void main() {
     vec4 t = vZ < 1.5 ? texture2D(uColg, vec2(vUv.x / 1.25, 1.0 - vUv.y)) : texture2D(uTierra, vec2(vUv.x / 1.4 + 0.37, 1.0 - vUv.y));   // (la imagen, con su arriba arriba)
     if (t.a < 0.42) discard; a = smoothstep(0.42, 0.62, t.a);
     float luz = pow(clamp(dot(t.rgb, vec3(0.299, 0.587, 0.114)) / 0.09, 0.05, 3.0), 0.45);
-    if (vZ < 1.5) c = suelo(vS, vH, 2.5) * clamp(luz, 0.32, 1.12) * (1.0 - 0.25 * vUv.y);
-    else c = mix(linearToOutputTexel(vec4(t.rgb, 1.0)).rgb, suelo(vS, vH, 3.0) * 0.5 * clamp(luz, 0.4, 1.3), 0.35) * (1.0 - 0.2 * vUv.y); }
+    // (el 14 de noviembre de 2026, de cerca, el autor: «estos cortes hay que corregir». El fleco salía mucho más oscuro que
+    // el césped de encima y la tierra, casi negra: de lado se leían como dos rayas a lo largo del borde. Ahora el fleco
+    // lleva la luz de sus hojas a medias, sin bajar de casi el tono del suelo, y la tierra es parda y clara)
+    if (vZ < 1.5) c = suelo(vS, vH, 2.5) * mix(1.0, clamp(luz, 0.62, 1.1), 0.55) * (1.0 - 0.1 * vUv.y);
+    else c = mix(linearToOutputTexel(vec4(t.rgb, 1.0)).rgb * 1.35, suelo(vS, vH, 3.0) * 0.72 * clamp(luz, 0.6, 1.2), 0.45) * (1.0 - 0.1 * vUv.y); }
   else c = linearToOutputTexel(vec4(texture2D(uRoca, vec2(vUv.x / 2.4, -vRv / 2.4)).rgb * vec3(0.72, 0.71, 0.72), 1.0)).rgb;   // (la caliza de debajo, con la luz de la panza)
   if (a < 0.01) discard;
   c *= vL; c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))) * vec3(0.95, 0.92, 1.1), uGris);
