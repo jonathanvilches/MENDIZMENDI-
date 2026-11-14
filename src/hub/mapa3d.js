@@ -48,7 +48,7 @@ let ENTRADA_VISTA = false;
 const rampa = (s, a, b) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 // (el fondo del mapa, el mismo que el borde del suelo; y el borde de las comarcas, morado muy oscuro)
 const FONDO = 0x101626, OSCURO = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
-const NIEBLA_LEJOS = new THREE.Color(FONDO), NIEBLA_CERCA = new THREE.Color('#d4cde6'), CIELO_BRUMA = new THREE.Color('#b4d2ec');
+const NIEBLA_LEJOS = new THREE.Color(FONDO), NIEBLA_CERCA = new THREE.Color('#d4cde6'), CIELO_BRUMA = new THREE.Color('#a6d1f8');
 // (las comarcas que no son la elegida se quedan con sus colores de mapa, más suaves, como bajo una bruma clara: en negro,
 // el mapa se quedaba a oscuras, y en lila no gustaba)
 const BRUMA = '#d8ccb2';
@@ -1812,7 +1812,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA);
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
     ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
-    scene.fog.near = Math.max(4, v.d * 0.95); scene.fog.far = Math.max(10, v.d * 2.2); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK * 0.85); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
+    scene.fog.near = Math.max(4, v.d * 0.9); scene.fog.far = Math.max(10, v.d * 2.05); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
     cieloFondo.material.uniforms.uBruma.value.copy(scene.fog.color);   // (el cielo, junto al horizonte, del color de la bruma en la que se pierde la tierra)
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
     // el pueblo)

@@ -1802,14 +1802,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Por debajo del horizonte, y justo encima, ese cielo es del color de la niebla de lo lejano (`uBruma`, que cada imagen
   copia de `scene.fog.color`): donde el mapa se acaba, la tierra se deshace en el cielo sin raya. Antes el cielo se
   repetía hacia abajo como un espejo, y con la cámara mirando al mapa entero quedaba arriba una franja de azul fuerte.
+  El azul sube deprisa desde el horizonte (`CIELO_HORIZONTE`, `CIELO_MEDIO`, `CIELO_ARRIBA`): claro abajo, vivo a poca
+  altura y hondo arriba, porque en las vistas del mapa solo se ve una franja baja del cielo y con el degradado de verdad
+  quedaba toda pálida («me falta más cielo azul»). La bruma de lo lejano es de ese mismo azul claro, sin gris, y empieza
+  algo antes. El cielo ya no pinta nubes: son las de `mapa3dNubes.js`.
   La cámara la mira primero de lado (`PITCH_ISLA` 0,3; se deja bajar hasta 0,24), para verla arrancarse, y cuando ya está
-  en el aire (y acabado su vídeo, si lo hay) sube sola a mirarla desde más arriba (`PITCH_ALTA` 0,74, `vistaAlta`): se ve
+  en el aire (y acabado su vídeo, si lo hay) sube sola a mirarla desde arriba (`PITCH_ALTA` 0,96, `vistaAlta`): se ve
   el territorio entero, con sus pueblos y sus montes; si el jugador ya ha movido la cámara, no. Arriba, la cámara se queda
-  volando como un dron, despacio (`sigueDronIsla`), hasta que el jugador toca algo. Hasta el 13 de noviembre por la tarde
+  volando como un dron (`sigueDronIsla`), hasta que el jugador toca algo: gira a un lado y a otro de la isla (medio
+  radián), va y viene por el territorio, baja a mirar de cerca y algo de lado el relieve y los pueblos (un cuarto más
+  cerca) y vuelve a subir. El 14 de noviembre el autor pidió la cámara «más dinámica» y «más de arriba»; antes subía a
+  0,74 y apenas se mecía. Hasta el 13 de noviembre por la tarde
   esa subida no se veía nunca: la cuenta que la dispara (`tAlta`) estaba detrás de un comentario en su misma línea, así
   que no contaba; y la ficha, al volver a elegir la comarca sin vuelo, la daba por hecha (ahora solo se rearma al
-  elegirla volando). Se mide con `alta-dbg.mjs`, con reloj propio: la inclinación pasa de 0,30 a 0,74 a los seis
-  segundos de elegir y luego deriva. La raya de la trashumancia
+  elegirla volando). Se mide con `alta-dbg.mjs`, con reloj propio: la inclinación pasa de 0,30 a 0,96 a los seis
+  segundos de elegir y luego va de 0,8 a 1, con el giro entre −0,48 y 0,48. La raya de la trashumancia
   se corta en su orilla. Para verlo: `isla.mjs` (con `PITCH` y `DK`), `isla-flujo.mjs`, `isla-salir.mjs` y `anim.mjs`, que
   graba la animación fotograma a fotograma con un reloj propio.
   El encaje de las piezas está comprobado con los datos (`comarcas-encaje.json`): cada linde entre dos comarcas es una sola

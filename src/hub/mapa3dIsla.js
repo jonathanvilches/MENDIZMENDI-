@@ -17,7 +17,7 @@ const lerp = (a, b, k) => a + (b - a) * k;
 const C = (h) => new THREE.Color(h);
 const CALIZA = C('#ffffff'), HONDO = C('#a9a196');
 // (el cielo: azul intenso arriba y claro junto al horizonte, como en las imágenes del autor)
-export const CIELO_ARRIBA = C('#2f80d0'), CIELO_HORIZONTE = C('#bcdcf3');
+export const CIELO_ARRIBA = C('#2473d2'), CIELO_MEDIO = C('#4f9eec'), CIELO_HORIZONTE = C('#a6d1f8');
 const LUZ = new THREE.Vector3(-0.6, 0.35, 0.72).normalize();   // (de la izquierda, por delante y algo alta, con contraste)
 
 /** Las texturas de la isla, una vez por mapa: fotos de roca de verdad, repetibles, con su relieve (mapa de normales), de
@@ -384,21 +384,19 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
  *  (el color de siempre del mapa). Lo usan la isla, por el hueco, y el mapa, de fondo mientras hay una isla en el aire. */
 export function cieloShader() {
   return {
-    uniforms: { uK: { value: 0 }, uT: { value: 0 }, uFondo: { value: C('#101626') }, uArriba: { value: CIELO_ARRIBA }, uHorizonte: { value: CIELO_HORIZONTE }, uBruma: { value: CIELO_HORIZONTE.clone() } },
+    uniforms: { uK: { value: 0 }, uT: { value: 0 }, uFondo: { value: C('#101626') }, uArriba: { value: CIELO_ARRIBA }, uHorizonte: { value: CIELO_HORIZONTE }, uMedio: { value: CIELO_MEDIO }, uBruma: { value: CIELO_HORIZONTE.clone() } },
     vertexShader: 'varying vec3 vD; void main() { vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-    fragmentShader: `uniform float uK, uT; uniform vec3 uFondo, uArriba, uHorizonte, uBruma; varying vec3 vD;
+    fragmentShader: `uniform float uK, uT; uniform vec3 uFondo, uArriba, uHorizonte, uMedio, uBruma; varying vec3 vD;
       float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
       float n(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
       void main() {
         // (por debajo del horizonte, y justo encima, la bruma de lo lejano, la misma en la que se pierde la tierra: donde
         // el mapa se acaba no hay raya ni franja de otro azul, el suelo se deshace en el cielo)
+        // (azul de verdad en cuanto se levanta la vista del horizonte: claro abajo, vivo a media altura y hondo arriba. Las
+        // nubes ya no se pintan aquí, que salían planas: son las de mapa3dNubes.js, con su volumen)
         vec3 d = normalize(vD); float e = max(d.y, 0.0);
-        vec3 c = mix(uBruma, mix(uHorizonte, uArriba, smoothstep(0.02, 0.75, e)), smoothstep(0.0, 0.1, d.y));
-        // (cúmulos sueltos: manchas de ruido por encima de un umbral alto, en el cielo cerca del horizonte)
-        vec2 q = vec2(atan(d.z, d.x) * 5.0 + uT * 0.004, e * 14.0);
-        float v = n(q) * 0.55 + n(q * 2.3 + 3.7) * 0.3 + n(q * 5.1 + 1.3) * 0.15;
-        float nube = smoothstep(0.66, 0.78, v) * (1.0 - smoothstep(0.12, 0.42, e)) * smoothstep(0.0, 0.04, e);
-        c = mix(c, mix(vec3(0.86, 0.9, 0.96), vec3(1.0), smoothstep(0.7, 0.9, v)), nube * 0.95);
+        vec3 cs = mix(mix(uHorizonte, uMedio, smoothstep(0.0, 0.085, e)), uArriba, smoothstep(0.07, 0.36, e));
+        vec3 c = mix(uBruma, cs, smoothstep(0.0, 0.06, d.y));
         gl_FragColor = linearToOutputTexel(vec4(mix(uFondo, c, uK), 1.0));
       }` };
 }
