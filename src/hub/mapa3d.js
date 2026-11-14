@@ -557,7 +557,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const esquinas = []; for (const x of [caja.min.x, caja.max.x]) for (const y of [0, caja.max.y]) for (const z of [caja.min.z, caja.max.z]) esquinas.push(new THREE.Vector3(x, y, z));
   const centro = caja.getCenter(new THREE.Vector3());
   // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
-  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 24 : TACTIL ? 54 : 92, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 5 : TACTIL ? 8 : 12, nav: centro, sol: sol.position });   // (más nubes y más pequeñas de media: los copos que se pintan, los mismos)
+  // (y desde la última hora del 14 de noviembre de 2026, bastantes más, casi el doble: «tiene que haber bastantes más
+  // nubes». Son copos sueltos en una sola malla: más copos, la misma llamada de dibujo)
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 36 : TACTIL ? 100 : 180, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 8 : TACTIL ? 18 : 30, nav: centro, sol: sol.position });
 
 
   // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo
@@ -1082,7 +1084,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.4, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.72, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1182,6 +1184,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // arriba, lo quiero en perspectiva». En 3,4 s pasa suave del plano bajo de la subida a la perspectiva de la órbita
   // (PITCH_ORBITA, 23°: se ven el territorio y la roca de debajo) y gira alrededor de la isla una vuelta por minuto; el
   // giro arranca desde parado y coge su paso en 4 s. La distancia, la que deja ver la isla entera desde cualquier lado)
+  // (y desde la última hora del 14, más arriba, 41°: «aún quiero que salga un poco más arriba [...] tenemos que conseguir
+  // ver todo el territorio de la comarca» y «el ángulo de la cámara tienes que inclinarlo más hacia arriba para conseguir
+  // ver toda la superficie». A 23° los montes de delante tapaban los valles de detrás; sigue en perspectiva, no cenital)
   const LLEGA_ISLA = 3.4, VUELTA_ISLA = 60;
   function sigueDronIsla(dt) {
     const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * u * (u * (6 * u - 15) + 10);

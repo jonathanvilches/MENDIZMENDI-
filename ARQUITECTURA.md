@@ -2037,7 +2037,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - La cámara: ya no sube en arco hasta casi encima ni gira de golpe. En 3,4 s pasa suave del plano bajo de la subida a
     la perspectiva de la órbita (`PITCH_ORBITA`, 23°: se ven el territorio y la roca de debajo) y gira alrededor de la
     isla una vuelta por minuto; el giro arranca desde parado y coge su paso en 4 s. La distancia es la que deja ver la
-    isla entera desde cualquier lado (un cilindro alrededor de ella y su punta). Con cualquier toque se para. En las
+    isla entera desde cualquier lado (un cilindro alrededor de ella y su punta). Con cualquier toque se para. Esa misma
+    noche, a 41° en vez de 23°: «aún quiero que salga un poco más arriba [...] tenemos que conseguir ver todo el
+    territorio de la comarca» y «el ángulo de la cámara tienes que inclinarlo más hacia arriba para conseguir ver toda
+    la superficie»; a 23° los montes de delante tapaban los valles de detrás. Sigue en perspectiva, no cenital. En las
     pruebas automáticas el mapa se toma por «reducir movimiento» y no gira: `isla-orbita.mjs` lo evita con `__paseo`.
   - La roca de la panza es una imagen generada con Higgsfield a partir de la referencia del autor
     (`src/assets/isla/roca-musgo.webp`, repetible, caliza cálida con surcos que bajan y matas de musgo), con sus normales
@@ -2082,6 +2085,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     repartidos en una mancha ancha y baja, más transparentes y con la mitad de sombra (`nube`, `suelta`). Hay más nubes
     (92 en el ordenador, 54 en el móvil y 24 en calidad baja; antes 60, 34 y 16) pero los copos que se pintan son casi
     los mismos: unos 700, 300 y 115. Las de junto a la isla, 12, 8 y 5, también de tamaños distintos.
+    Esa misma noche, casi el doble: 180, 100 y 36, y junto a la isla 30, 18 y 8 («tiene que haber bastantes más nubes»).
+    Son copos en una sola malla: más copos, la misma llamada de dibujo.
 - **La barra de misiones, plegada del todo** (`ui.js buildHUD`, `pliegaMisiones`, `eligeMision`; 13 y 14 de noviembre de
   2026): el autor pidió «un menú desplegable horizontal que entre en las misiones, la mochila, un poco todo, [...] que se
   quede el icono marcado de la misión que estamos haciendo y que cuando queramos hacer otra misión o ver las misiones
