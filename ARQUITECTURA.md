@@ -643,6 +643,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de aire, es un gancho (con la izquierda, como lo pinta `match.js`, `swingAnim`), y rasa, un golpe al ancho. «Cuando le
   damos de aire con la mano izquierda hacia la derecha [...] eso se llama gancho, no cortada». Y en el registro del tanto,
   «volea» solo para los golpes sin nombre propio: antes un gancho ganador se contaba como volea y el locutor lo llamaba así.
+- **El locutor, con el pelotari y el golpe que son** (misma noche, `pelota/comenta.js`, `pelotariVoz`): las frases con
+  nombre de un pelotari de la plantilla solo salen si también coincide el pueblo con el que juega (el que dice su
+  presentación grabada, «Y enfrente, Unai, de Tafalla»); un Unai de otro pueblo, o el jugador que se llama Ane, ya no
+  sale presentado con el pueblo de la grabación. Y la frase del golpe en el peloteo se pierde si el locutor está
+  hablando, también la del gancho, que antes esperaba hasta 5 s y llegaba nombrando un golpe que ya no era el de la
+  imagen («falla en los golpes que nombra [...] y con el nombre y la procedencia del pelotari»).
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en

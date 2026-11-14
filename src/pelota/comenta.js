@@ -36,8 +36,19 @@ export function sedeVoz(venue, town, fuera = false) {
   const s = SEDES.find(([, re]) => re.test(t) || re.test(v))?.[0]; if (!s) return null;
   return !v && G.has(`f-${s}-plaza-k`) ? `${s}-plaza` : s;
 }
-/** El pelotari de la plantilla con frases propias para un nombre («Unai», «Unai (Tafalla)»), o null */
-export function pelotariVoz(name) { const id = fold(String(name || '').split(/[,·(]/)[0]).split(/\s+/)[0]; return G.has(`n-tanto-${id}`) ? id : null; }
+// (el pueblo que dice la presentación grabada de cada uno, «Y enfrente, Unai, de Tafalla.»: sus frases solo valen para ese
+// Unai. Antes bastaba con el nombre, y un Unai de otro pueblo, o el propio jugador si se llamaba Ane, salían presentados
+// con el pueblo de la grabación. El autor, el 14 de noviembre de 2026: «falla con el nombre y la procedencia del pelotari»)
+const PUEBLO_VOZ = {};
+for (const k of Object.keys(GUION)) { const m = /^n-presenta-b-(.+)$/.exec(k), t = m && /, de ([^.]+)\.?\s*$/.exec(GUION[k][1]); if (t) PUEBLO_VOZ[m[1]] = fold(t[1]); }
+const mismoPueblo = (a, b) => { const x = fold(a).split(/[\s/-]+/)[0], y = fold(b).split(/[\s/-]+/)[0]; return !!x && !!y && (x === y || fold(a).includes(fold(b)) || fold(b).includes(fold(a))); };
+/** El pelotari de la plantilla con frases propias para un nombre («Unai», «Unai (Tafalla)») y el pueblo con el que sale en
+ *  el partido, o null si no es él (otro pueblo, o sin pueblo cuando su grabación dice uno) */
+export function pelotariVoz(name, town = '') {
+  const id = fold(String(name || '').split(/[,·(]/)[0]).split(/\s+/)[0]; if (!G.has(`n-tanto-${id}`)) return null;
+  const pv = PUEBLO_VOZ[id], tw = town || (/\(([^)]+)\)/.exec(String(name || ''))?.[1] ?? '');
+  return !pv || mismoPueblo(pv, tw) ? id : null;
+}
 // (la ronda de un campeonato, para su frase)
 const ronda = (r = '') => (/semi/i.test(r) ? 'semis' : /cuartos/i.test(r) ? 'cuartos' : /octavos/i.test(r) ? 'octavos' : /final$/i.test(r) ? 'final' : /liguilla|jornada/i.test(r) ? 'liguilla' : null);
 // (el golpe que gana el tanto: el grupo de Mikel; la explicación de Edurne es el mismo con «-e»)

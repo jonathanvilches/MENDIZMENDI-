@@ -1296,9 +1296,10 @@ export class PelotaMatch {
       }
     }
   }
-  // (el gancho no se pierde si el comentarista está hablando: espera a que acabe la frase, como mucho 5 s, voz.js; las
-  // demás frases del peloteo, sí, que llegarían tarde)
-  diJugada(f, ms) { this.decir(f, ms, !/^j-gancho/.test(f.g || ''), () => { this.jugadaT = this.t; }); }
+  // (si el comentarista está hablando, la frase del golpe se pierde, también la del gancho: llegaría tarde y nombraría un
+  // golpe que ya no es el que se ve. Hasta la noche del 14 de noviembre de 2026 el gancho esperaba hasta 5 s, y el autor
+  // oía nombrar golpes que no eran el que se acababa de dar)
+  diJugada(f, ms) { this.decir(f, ms, true, () => { this.jugadaT = this.t; }); }
   // (la pelota del golpe pendiente ha llegado al frontis, bien, o a la pared del rebote: se dice si el tanto sigue vivo)
   jugadaVa(tipo) {
     const J = this.jPend; if (!J) return;
@@ -1314,7 +1315,7 @@ export class PelotaMatch {
     const c = this.com; if (!c?.on || this.game.mode !== 'match' || this.comIni) return; this.comIni = true;
     const rn = splitName(this.names.rival), A = pelotariArq(this.o.rivalStats || {}, rn.name, rn.town || this.o.town || '', false), C = this.o.camp;
     // (los pelotaris de la plantilla con frases propias, sin parejas: las frases con nombre son de uno; comenta.js, pelotariVoz)
-    const yo = this.pairs ? null : pelotariVoz(splitName(this.names.you).name), riv = this.pairs ? null : pelotariVoz(rn.name);
+    const yo = this.pairs ? null : pelotariVoz(splitName(this.names.you).name, splitName(this.names.you).town || this.o.town || ''), riv = this.pairs ? null : pelotariVoz(rn.name, rn.town || this.o.town || '');
     // (cómo llega al partido: lo que se sabe del campeonato, townDeportes.js; y si alguno es claro favorito o van parejos)
     const fy = pelotariRating(this.o.youStats || {}, '', this.o.youBonus ?? 2).ovr, fr = pelotariRating(this.o.rivalStats || {}, '', this.o.rivalBonus ?? 0).ovr;
     const est = C?.est || (C ? (fr - fy >= 5 ? 'favorito' : Math.abs(fr - fy) <= 2 ? 'igualados' : null) : null);
