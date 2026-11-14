@@ -2058,6 +2058,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   referencia: van en medidas de la isla, a entre 1,75 y 3,25 radios de su centro y entre la mitad de su roca y algo por
   encima de su base, y solo se ven las que quedan detrás de ella o a los lados vistas desde la cámara; las de delante se
   deshacen, y al girar la cámara salen unas y se van otras, despacio. No dan sombra.
+  - De tamaños distintos y dispersas (noche del 14 de noviembre de 2026; el autor: «más nubes de diferentes tamaños, no
+    que sean igual» y «muchas veces las nubes son más dispersas, no están tan centralizadas en núcleos»). Casi la mitad
+    son jirones pequeños, de 3,5 a 8,5 unidades; algo más de un tercio, medianas, de 9 a 18; y unas pocas, grandes, de
+    hasta 32 (antes todas medían de 11 a 26). Y entre un tercio y la mitad no son un cúmulo apretado sino copos sueltos
+    repartidos en una mancha ancha y baja, más transparentes y con la mitad de sombra (`nube`, `suelta`). Hay más nubes
+    (92 en el ordenador, 54 en el móvil y 24 en calidad baja; antes 60, 34 y 16) pero los copos que se pintan son casi
+    los mismos: unos 700, 300 y 115. Las de junto a la isla, 12, 8 y 5, también de tamaños distintos.
 - **La barra de misiones, plegada del todo** (`ui.js buildHUD`, `pliegaMisiones`, `eligeMision`; 13 y 14 de noviembre de
   2026): el autor pidió «un menú desplegable horizontal que entre en las misiones, la mochila, un poco todo, [...] que se
   quede el icono marcado de la misión que estamos haciendo y que cuando queramos hacer otra misión o ver las misiones

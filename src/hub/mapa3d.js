@@ -557,7 +557,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const esquinas = []; for (const x of [caja.min.x, caja.max.x]) for (const y of [0, caja.max.y]) for (const z of [caja.min.z, caja.max.z]) esquinas.push(new THREE.Vector3(x, y, z));
   const centro = caja.getCenter(new THREE.Vector3());
   // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
-  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 16 : TACTIL ? 34 : 60, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 4 : TACTIL ? 6 : 9, nav: centro, sol: sol.position });
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 24 : TACTIL ? 54 : 92, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 5 : TACTIL ? 8 : 12, nav: centro, sol: sol.position });   // (más nubes y más pequeñas de media: los copos que se pintan, los mismos)
 
 
   // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo

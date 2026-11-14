@@ -66,30 +66,35 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
   const R = rnd(20261114), tex = ruidoTex(); mats.push(tex);
   const SOL = sol.clone().normalize(), solV = new THREE.Vector3();
   // (cada una: dónde nace, a qué altura, su tamaño y sus copos; unas pocas, de las que se quedan)
-  const N = [];
-  while (N.length < n) {
-    const w = 11 + R() * 15, l = w * (0.62 + R() * 0.3), h = w * (0.3 + R() * 0.14), k = Math.max(5, Math.round(copos * (0.6 + 0.4 * (w - 11) / 15))), C = [];
+  // (desde la noche del 14 de noviembre de 2026, de tamaños muy distintos y de dos maneras; el autor: «más nubes de
+  // diferentes tamaños, no que sean igual», y «muchas veces las nubes son más dispersas, no están tan centralizadas en
+  // núcleos». Casi la mitad son jirones pequeños, de 3,5 a 8,5 unidades; algo más de un tercio, medianas; y unas pocas,
+  // grandes, de hasta 32. Y casi la mitad no son un cúmulo apretado sino copos sueltos repartidos en una mancha ancha y
+  // baja, cada uno a su aire, más transparentes y con menos sombra)
+  const nube = (w, suelta, k) => { const l = w * (suelta ? 0.8 + R() * 0.6 : 0.62 + R() * 0.3), h = w * (suelta ? 0.1 + R() * 0.08 : 0.3 + R() * 0.14), C = [];
     for (let i = 0; i < k; i++) {
+      if (suelta) { const a = R() * Math.PI * 2, rr = Math.sqrt(R()), s = w * (0.2 + 0.2 * R());
+        C.push({ dx: Math.cos(a) * rr * w * 0.8, dz: Math.sin(a) * rr * l * 0.8, dy: R() * h + s * 0.16, s, alt: 0.3 + 0.5 * R(), sem: R() }); continue; }
       // (una cúpula: alta en medio, baja en los bordes; los primeros copos, la base, grandes y abajo)
       const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * (i < 3 ? 0.55 : 1), cima = 1 - rr * rr, ey = i < 3 ? R() * 0.2 : R() * cima;
       const s = w * (0.27 + 0.19 * cima + 0.08 * R()) * (i < 3 ? 1.12 : 1 - 0.38 * ey);
       C.push({ dx: Math.cos(a) * rr * w * 0.4, dz: Math.sin(a) * rr * l * 0.4, dy: ey * h + s * 0.16, s, alt: Math.min(1, 0.18 + ey * 0.9 + 0.12 * cima), sem: R() });
     }
-    N.push({ x: (R() - 0.5) * CAMPO, z: (R() - 0.5) * CAMPO, y: 17 + R() * 5.5, w, l, queda: R() < 0.22, op: 0.86 + R() * 0.14, C, vx: 0, vz: 0, vo: 0 });
+    return { w, l, C }; };
+  const N = [];
+  while (N.length < n) {
+    const r = R(), w = r < 0.45 ? 3.5 + R() * 5 : r < 0.82 ? 9 + R() * 9 : 19 + R() * 13, suelta = R() < (w < 9 ? 0.35 : 0.5);
+    const k = Math.max(3, Math.round(copos * (suelta ? 0.3 + 0.4 * Math.min(1, w / 20) : 0.25 + 0.75 * Math.min(1, (w - 3.5) / 22))));
+    N.push({ ...nube(w, suelta, k), x: (R() - 0.5) * CAMPO, z: (R() - 0.5) * CAMPO, y: 16 + R() * 8, queda: R() < 0.22, op: (suelta ? 0.68 : 0.86) + R() * 0.14, so: suelta ? 0.5 : 1, vx: 0, vz: 0, vo: 0 });
   }
   // (las de la isla: unas pocas que se quedan alrededor de la comarca que flota, detrás de ella y a su altura, como los
   // cúmulos de la imagen de referencia del autor, del 14 de noviembre de 2026. Las de arriba se apartan al acercarse la
   // cámara y junto a la isla no quedaba ninguna. Se guardan en medidas de la isla: a qué lado, a cuántos radios, a qué
-  // altura entre su punta y su hierba, y de qué tamaño)
+  // altura entre su punta y su hierba, y de qué tamaño; también de tamaños distintos, y alguna, dispersa)
   const NI = [];
   while (NI.length < deIsla) {
-    const w = 0.62 + R() * 0.5, l = w * (0.62 + R() * 0.3), h = w * (0.32 + R() * 0.14), k = Math.max(5, Math.round(copos * (0.55 + 0.4 * R()))), C = [];
-    for (let i = 0; i < k; i++) {
-      const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * (i < 3 ? 0.55 : 1), cima = 1 - rr * rr, ey = i < 3 ? R() * 0.2 : R() * cima;
-      const s = w * (0.27 + 0.19 * cima + 0.08 * R()) * (i < 3 ? 1.12 : 1 - 0.38 * ey);
-      C.push({ dx: Math.cos(a) * rr * w * 0.4, dz: Math.sin(a) * rr * l * 0.4, dy: ey * h + s * 0.16, s, alt: Math.min(1, 0.18 + ey * 0.9 + 0.12 * cima), sem: R() });
-    }
-    NI.push({ a: (NI.length + R() * 0.7) / deIsla * Math.PI * 2, rf: 1.75 + R() * 1.5, yf: R(), op: 0.86 + R() * 0.14, C, k: 0 });
+    const w = 0.28 + R() * R() * 1.0, suelta = R() < 0.3, k = Math.max(3, Math.round(copos * (suelta ? 0.4 : 0.3 + 0.65 * Math.min(1, w))));
+    NI.push({ ...nube(w, suelta, k), a: (NI.length + R() * 0.7) / deIsla * Math.PI * 2, rf: 1.6 + R() * 1.8, yf: R(), op: (suelta ? 0.7 : 0.86) + R() * 0.14, k: 0 });
   }
   const total = N.reduce((s, q) => s + q.C.length, 0) + NI.reduce((s, q) => s + q.C.length, 0);
   const cuad = () => { const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); geos.push(g); return g; };
@@ -131,7 +136,7 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
         op *= suave(9, 28, Math.hypot(x - cp.x, q.y - cp.y, z - cp.z));
         if (op < 0.02) continue;
         for (const c of q.C) { const p = P[k++]; p.x = x + c.dx; p.y = q.y + c.dy; p.z = z + c.dz; p.s = c.s; p.op = op; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); }
-        sPos[ks * 3] = x + SX * q.y; sPos[ks * 3 + 1] = 0.03; sPos[ks * 3 + 2] = z + SZ * q.y; sDat[ks * 3] = q.w * 1.25; sDat[ks * 3 + 1] = q.l * 1.25; sDat[ks * 3 + 2] = op * 0.42; ks++;
+        sPos[ks * 3] = x + SX * q.y; sPos[ks * 3 + 1] = 0.03; sPos[ks * 3 + 2] = z + SZ * q.y; sDat[ks * 3] = q.w * 1.25; sDat[ks * 3 + 1] = q.l * 1.25; sDat[ks * 3 + 2] = op * 0.42 * q.so; ks++;
       }
       // (las de la isla: solo las que quedan detrás de ella vistas desde la cámara, o a los lados; las de delante se deshacen,
       // y al girar la cámara van saliendo unas y yéndose otras, despacio)
