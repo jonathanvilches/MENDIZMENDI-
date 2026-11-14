@@ -1961,6 +1961,28 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     entre algo más de la mitad y el 93 % del radio según el ángulo, y no en un círculo. Para verlo: `tools/islas/ir-pueblo.mjs`
     (vuela a un pueblo como al tocarlo y saca fotos de la bajada) y `tools/islas/vistas-mapa.mjs` (el mapa desde varias
     cámaras).
+- **Los montes terminan en la orilla de la isla** (`orT`, `orillaEn`, `RIM`, `WI`, `WO` y `KI` en `mapa3dIsla.js`;
+  `ORILLA` en `mapa3dSombreadores.js`; `ORS`, `orU`, `orJS` y `orillas` en `mapa3d.js`; 14 de noviembre de 2026). El
+  autor: «sigue habiendo como cortes transversales. Quiero que todo termine, como en las referencias, que todos los
+  montes terminen, no que tengan un corte perimetral». El borde de la isla seguía la altura del terreno: donde un monte
+  tocaba la muga, la isla lo cortaba en seco y debajo del césped se veía su perfil en roca; y alrededor del hueco, las
+  vecinas quedaban cortadas en pared.
+  - Con la isla en el aire, su terreno baja poco a poco hasta un borde bajo (`RIM`): algo por encima de donde empieza la
+    roca, más un poco si el tramo de muga es de monte alto. La ladera es más larga cuanto más alto era el monte (`WI`,
+    de 0,45 unidades hasta un 30 % del radio). Fuera, el terreno de las vecinas y la falda baja igual hasta la boca del
+    hueco (`WO`), que se abre como una hondonada.
+  - Todo sale de un campo en una imagen pequeña de unos 168 píxeles por lado (`orT`): en el rojo, cuánto baja dentro;
+    en el verde, cuánto fuera; en el azul, la altura del borde. Cada lado se pasa dos píxeles al otro, para que los puntos
+    que caen justo en la muga bajen del todo: si no, quedaban de pie, como pinchos.
+  - Lo leen el relieve (con la luz de su pendiente nueva donde ha bajado), sus paredes, los árboles, los ríos, los
+    embalses, la falda, los caseríos, las casas de los núcleos y el suelo de la maqueta del pueblo; las casas de la
+    maqueta bajan todas lo que baja el centro del pueblo. En las cuentas (`orJS`): las chinchetas, los nombres, la
+    cámara, los pájaros y la cabeza de las cascadas. El canto de césped va a la altura del borde ya bajado.
+  - Baja mientras la isla sube (de un 8 % a un 70 % del camino) y vuelve al bajar; en tierra no cambia nada.
+  - Los colores, más vivos el mismo día («para dar esa sensación de mundos de fantasía», `acabado`): más color en todo
+    (1,3 a 1,72 en vez de 1,15 a 1,51), medios tonos más claros y un tope al color algo más alto. Medido en la bajada a
+    Etxalar, la saturación media del terreno pasa de 0,53 a 0,59, lejos de un verde fosforito. Para verlo:
+    `tools/islas/isla-lado.mjs` con `ISLAS=0,4`.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora

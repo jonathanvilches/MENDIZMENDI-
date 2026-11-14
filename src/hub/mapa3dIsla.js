@@ -163,6 +163,47 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // (la panza no empieza en la base de la comarca sino algo por debajo de lo más bajo de su orilla: la pared de debajo, que con
   // la exageración del relieve era muy alta, se queda en el canto de césped y algo de roca; la de la comarca se esconde)
   const B = Math.min(...H0) - grosor * 0.15;
+
+  // ---------- la orilla: los montes no se cortan en el borde ----------
+  // (14 de noviembre de 2026, el autor: «sigue habiendo cortes transversales. Quiero que todo termine, como en las
+  // referencias, que todos los montes terminen, no que tengan un corte perimetral». El borde de la isla seguía la altura del
+  // terreno: donde un monte tocaba la muga, la isla lo cortaba y debajo del césped quedaba su perfil en roca. Ahora, con la
+  // isla en el aire, el terreno de su orilla baja poco a poco hasta un borde bajo (RIM), algo por encima de donde empieza la
+  // roca, como el prado de las islas de su referencia, y la ladera es más larga cuanto más alto era el monte (WI). Fuera,
+  // alrededor del hueco, el terreno de las vecinas baja igual hasta la boca (B, WO): el hueco se abre como una hondonada, sin
+  // paredes cortadas. Todo sale de un campo en una imagen pequeña (r, cuánto baja dentro: 1 en el borde y 0 pasada la
+  // ladera; g, lo mismo fuera; b, la altura del borde en doceavos), que leen el relieve, los árboles, los ríos, las paredes y
+  // la falda (mapa3dSombreadores.js ORILLA), y en las cuentas, orillaEn)
+  const ss = (a, b2, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b2 - a))); return t * t * (3 - 2 * t); };
+  const HS = H0.map((_, i) => { let s2 = 0; for (let d = -8; d <= 8; d++) s2 += H0[(i + d + N) % N]; return s2 / 17; });
+  const RIM = H0.map((h, i) => Math.min(h, B + grosor * 0.4 + 0.1 * Math.max(0, HS[i] - B)));
+  const WI = H0.map((h, i) => Math.min(rMed * 0.3, Math.max(0.45, 0.3 + (h - RIM[i]) * 0.85)));
+  const WO = H0.map((h) => Math.min(rMed * 0.3, Math.max(0.45, 0.3 + (h - B) * 0.85)));
+  const orT = (() => {
+    let WM = 0; for (let i = 0; i < N; i++) WM = Math.max(WM, WI[i], WO[i]); WM += 0.3;
+    let qx0 = 1e9, qx1 = -1e9, qz0 = 1e9, qz1 = -1e9; for (const [x, z] of Q) { qx0 = Math.min(qx0, x); qx1 = Math.max(qx1, x); qz0 = Math.min(qz0, z); qz1 = Math.max(qz1, z); }
+    const ox = qx0 - WM, oz = qz0 - WM, ow = qx1 - qx0 + 2 * WM, oh = qz1 - qz0 + 2 * WM, ppu = 168 / Math.max(ow, oh), tw = Math.ceil(ow * ppu) + 2, th = Math.ceil(oh * ppu) + 2, px = Math.max(ow / tw, oh / th);
+    const OD = new Uint8Array(tw * th * 4), OF = new Float32Array(tw * th * 3);
+    for (let j = 1; j < th - 1; j++) for (let i = 1; i < tw - 1; i++) {
+      const x = ox + (i + 0.5) * ow / tw, z = oz + (j + 0.5) * oh / th; let m2 = 1e9, k = 0;
+      for (let q = 0; q < N; q++) { const dx = Q[q][0] - x, dz = Q[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2) { m2 = d2; k = q; } }
+      const d = Math.sqrt(m2); if (d > WM) continue;
+      // (cada lado se pasa un poco al otro: los puntos que caen justo en el borde, el de la isla y el de sus vecinas, bajan
+      // del todo. Con el corte limpio en la muga, la imagen los mezclaba a medias y quedaban de pie, como pinchos)
+      const den = dentro(x, z), cruza = 1 - ss(px * 1.2, px * 2.6, d), r = den ? 1 - ss(0, WI[k], d) : cruza, g = den ? cruza : 1 - ss(0, WO[k], d), o = (j * tw + i);
+      OD[o * 4] = Math.round(r * 255); OD[o * 4 + 1] = Math.round(g * 255); OD[o * 4 + 2] = Math.round(Math.min(1, RIM[k] / 12) * 255); OD[o * 4 + 3] = 255;
+      OF[o * 3] = r; OF[o * 3 + 1] = g; OF[o * 3 + 2] = RIM[k];
+    }
+    const t = new THREE.DataTexture(OD, tw, th, THREE.RGBAFormat); t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true; mats.push(t);
+    return { tex: t, rect: new THREE.Vector4(ox, oz, ow, oh), OF, ox, oz, ow, oh, tw, th };
+  })();
+  /** la altura y (sin estirar) de un punto, con la orilla bajada: ki, cuánto dentro de la isla; ko, cuánto fuera */
+  const orillaEn = (x, z, y, ki, ko) => {
+    if (ki + ko <= 0) return y; const { OF, ox, oz, ow, oh, tw, th } = orT, u = (x - ox) / ow * tw - 0.5, v = (z - oz) / oh * th - 0.5;
+    if (!(u >= 0 && v >= 0 && u <= tw - 1 && v <= th - 1)) return y;
+    const i = Math.min(tw - 2, u | 0), j = Math.min(th - 2, v | 0), fx = u - i, fz = v - j, L = (c2) => (OF[(j * tw + i) * 3 + c2] * (1 - fx) + OF[(j * tw + i + 1) * 3 + c2] * fx) * (1 - fz) + (OF[((j + 1) * tw + i) * 3 + c2] * (1 - fx) + OF[((j + 1) * tw + i + 1) * 3 + c2] * fx) * fz;
+    return y - L(0) * ki * Math.max(0, y - L(2)) - L(1) * ko * Math.max(0, y - B); };
+  let KI = 0;   // (cuánto ha bajado ya la orilla: con la isla en el aire, todo)
   // El canto es un labio de hierba, no una tira: el prado de arriba dobla sobre el borde, redondeado, cuelga en un fleco de
   // hierba y musgo sobre una franja de tierra con raíces metida hacia dentro, y debajo sigue la caliza hasta la roca. Lo pidió el autor el
   // 14 de noviembre de 2026, con una foto de la isla muy de cerca: «los bordes de los mapas no están bien integrados. No
@@ -258,9 +299,10 @@ void main() {
   for (const k of ['uOrto', 'uOrtoD', 'uOrtoR', 'uDetRect', 'uOrtoK', 'uOrtoDK', 'uTinte', 'uTintK', 'uGris', 'uSombra', 'uRect', 'uListo', 'uT', 'uCerca', 'uTex', 'uGrosor', 'uExa', 'uBrillo']) cantoM.uniforms[k] = orto?.[k] || { value: DEF[k] ? DEF[k]() : 0 };
   const canto = new THREE.Mesh(cantoG, cantoM); canto.name = 'canto-' + id; canto.frustumCulled = false; canto.visible = false; canto.renderOrder = 1; scene.add(canto);
   let cantoSy = -1;
+  // (el canto va a la altura del borde, la de la orilla ya bajada)
   const ponCanto = (sy) => { cantoSy = sy;
-    FILAS.forEach(([o, dy, cu, , , ], f) => { for (let i = 0; i <= N; i++) { const k = i % N, q = Q[k], [nx, nz] = NS[k], v = (f * N1 + i) * 3, oo = f >= 2 && f <= 7 ? o * ANCHO[k] * ENC[k] : o;
-      cantoPos[v] = q[0] + nx * oo; cantoPos[v + 1] = dy == null ? B * sy - 0.04 : Math.max(B * sy, H0[k] * sy + dy - cu * CUELGA[k]); cantoPos[v + 2] = q[1] + nz * oo; } });
+    FILAS.forEach(([o, dy, cu, , , ], f) => { for (let i = 0; i <= N; i++) { const k = i % N, q = Q[k], [nx, nz] = NS[k], v = (f * N1 + i) * 3, oo = f >= 2 && f <= 7 ? o * ANCHO[k] * ENC[k] : o, hk = H0[k] - KI * (H0[k] - RIM[k]);
+      cantoPos[v] = q[0] + nx * oo; cantoPos[v + 1] = dy == null ? B * sy - 0.04 : Math.max(B * sy, hk * sy + dy - cu * CUELGA[k]); cantoPos[v + 2] = q[1] + nz * oo; } });
     cantoG.attributes.position.needsUpdate = true; };
 
   // ---------- el hueco: el molde de la tierra arrancada ----------
@@ -391,14 +433,18 @@ void main() {
     /** si un punto cae dentro del cuerpo de la isla: x, z en el mapa; h, lo que queda por debajo de la base, en partes de
      *  D (negativo: por encima, en la comarca). Para no pintar encima de la roca los rótulos de lo que queda detrás */
     cuerpo(x, z, h) { if (h <= 0) return dentro(x, z); const f = 1 - Math.min(1, h) ** 1.6; return f > 0.03 && dentro(cx + (x - cx - ladoX * h ** 1.6) / f, cz + (z - cz - ladoZ * h ** 1.6) / f); },
-    D, rMed, rMax, cx, cz, alto: Math.max(0.62 * rMed, D + 0.26 * rMed) + 0.9, base: B,   // (lo que sube: lo que mide la roca y algo más, para que la punta salga del hueco y se vea el lago debajo)
+    D, rMed, rMax, cx, cz, alto: Math.max(0.62 * rMed, D + 0.26 * rMed) + 0.9, base: B,
+    /** la orilla (ver arriba): su campo, para los sombreadores, y la cuenta en JS; ki, cuánto ha bajado ya */
+    orilla: { tex: orT.tex, rect: orT.rect, B, en: orillaEn }, get ki() { return KI; },   // (lo que sube: lo que mide la roca y algo más, para que la punta salga del hueco y se vea el lago debajo)
     /** py: la altura de la comarca; sy: lo que se estira su relieve; k: cuánto está fuera, de 0 a 1; t, dt: el tiempo;
      *  esc: los píxeles que ocupa una unidad a una unidad de la cámara (para el tamaño del rocío y el polvo); cam: la cámara */
     update(py, sy, k, t, dt, esc = 600, cam = null, hundidas = 0) {
       const on = k > 0.004; grupo.visible = piedras.visible = sima.visible = agua.visible = pto.visible = canto.visible = panzaA.visible = on;
-      if (!on) { antes = k; for (const p of caen) p.vivo = false; for (const p of polvo) p.t = 9; return; }
+      if (!on) { antes = k; KI = 0; for (const p of caen) p.vivo = false; for (const p of polvo) p.t = 9; return; }
       const py0 = py; py = py + B * sy;   // (de aquí abajo, py es donde empieza la panza; py0, la base de la comarca)
       TIEMPO.value = t; PTO.uEsc.value = esc;
+      // (la orilla baja mientras la isla sube: en tierra, nada; a algo más de la mitad, ya entera)
+      const ki = ss(0.08, 0.7, k); if (Math.abs(ki - KI) > 0.002 || (ki === 0) !== (KI === 0)) { KI = ki; ponCanto(sy); }
       if (Math.abs(sy - cantoSy) > 0.002) ponCanto(sy);
       canto.position.y = py0;
       // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo)
@@ -424,7 +470,7 @@ void main() {
       AGUA.uKI.value = Math.min(1, Math.max(0, (k - 0.55) / 0.35)); AGUA.uKB.value = Math.min(1, Math.max(0, (k - 0.2) / 0.4));
       const fondo = corte + LAGO;
       caidas.forEach((c3, n) => {
-        const top = c3.isla ? py0 + c3.h0 * sy : fuera(c3.xo, c3.zo), L2 = Math.max(0.5, top - fondo); c3.top = top; c3.L = L2;
+        const top = c3.isla ? py0 + (c3.h0 - KI * (c3.h0 - RIM[c3.i])) * sy : fuera(c3.xo, c3.zo), L2 = Math.max(0.5, top - fondo); c3.top = top; c3.L = L2;
         const b = n * VC;
         for (let s = 0; s <= SEG; s++) {
           const f = (s / SEG) ** 1.15, y = top - L2 * f, cae = top - y;

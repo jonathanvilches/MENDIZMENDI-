@@ -89,12 +89,22 @@ export const BORDE_FS = ['uniform float uLuzP; uniform vec3 uFilo; varying float
 export const PALETA = [[0, '#8ea38c'], [250, '#97a587'], [450, '#98a382'], [650, '#8a977a'], [850, '#7e8b72'], [1050, '#76806d'], [1250, '#847d74'], [1450, '#9f9891'], [1650, '#d3d3d9'], [1900, '#f2f3f6']];
 // (aFino: lo que sube o baja cada punto con el relieve fino, src/assets/relieve/fino.webp, solo en la malla densa de la
 // comarca elegida y a cero junto a su borde; uFinoK, cuánto se ve, de 0 a 1, para que entre y salga suave)
-const relieveVS = (antes, alt) => `${antes}varying vec2 vXZ; varying float vH, vSom;
+// (la orilla de una isla en el aire: su terreno baja hasta el borde bajo de la isla (i) y, alrededor del hueco, el de las
+// vecinas hasta la boca (o), con el campo de mapa3dIsla.js hazIsla. xz, en el mundo; y, la altura sin estirar. La usan el
+// relieve, sus paredes, los árboles, los ríos, los lagos y la falda)
+export const ORILLA = `uniform sampler2D uOrTi, uOrTo; uniform vec4 uOrRi, uOrRo; uniform float uOrKi, uOrKo, uOrB;
+float orilla(vec2 xz, float y) {
+  if (uOrKi > 0.0) { vec2 u = (xz - uOrRi.xy) / uOrRi.zw; if (u.x > 0.0 && u.y > 0.0 && u.x < 1.0 && u.y < 1.0) { vec4 o = texture2D(uOrTi, u); y -= o.r * uOrKi * max(0.0, y - o.b * 12.0); } }
+  if (uOrKo > 0.0) { vec2 u = (xz - uOrRo.xy) / uOrRo.zw; if (u.x > 0.0 && u.y > 0.0 && u.x < 1.0 && u.y < 1.0) { vec4 o = texture2D(uOrTo, u); y -= o.g * uOrKo * max(0.0, y - uOrB); } }
+  return y; }
+`;
+const relieveVS = (antes, alt) => `${antes}varying vec2 vXZ; varying float vH, vSom, vOr;
 #include <fog_pars_vertex>
-void main() { vec3 p0 = position; ${alt} vXZ = p0.xz; vH = p0.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(p0, 1.0); gl_Position = projectionMatrix * mvPosition;
+void main() { vec3 p0 = position; vOr = 0.0; ${alt} vXZ = p0.xz; vH = p0.y; vSom = color.r; vec4 mvPosition = modelViewMatrix * vec4(p0, 1.0); gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
-export const RELIEVE_VS = relieveVS('attribute float aFino; uniform float uFinoK; ', 'p0.y += aFino * uFinoK;');
+// (vOr: cuánto ha bajado el terreno en la orilla de una isla, para darle la luz de su pendiente nueva)
+export const RELIEVE_VS = relieveVS('attribute float aFino; uniform float uFinoK; ' + ORILLA, 'p0.y += aFino * uFinoK; { float y0 = p0.y; p0.y = orilla(p0.xz, p0.y); vOr = clamp((y0 - p0.y) * 0.8, 0.0, 1.0); }');
 // (la sombra de las nubes que pasan despacio por encima de Navarra y de lo que la rodea, en unidades del mundo: manchas
 // grandes y blandas, de unos diez kilómetros, que van hacia el este con el viento del oeste)
 export const NUBES = `uniform float uT;
@@ -110,19 +120,21 @@ vec3 tonoOrto(vec3 o) { float l = dot(o, vec3(0.299, 0.587, 0.114)); o = mix(vec
 // (desde el 14 de noviembre de 2026, más vivo, como el mundo pintado de la imagen de referencia del autor («los colores
 // son quizá más vivos»): más color en todo, sobre todo donde había poco; los verdes, de oliva a prado, quitándoles rojo
 // (los ocres del cereal, que tienen más rojo que verde, se quedan como son); y los medios tonos, algo más claros)
+// (y el mismo día, más aún: «los colores, que sean más vivos, para dar esa sensación de mundos de fantasía». Más color,
+// medios tonos más claros y un tope al color algo más alto; el verde, de prado, sin llegar a fosforito)
 vec3 acabado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
-  c = max(vec3(0.0), mix(vec3(l), c, 1.15 + 0.36 * (1.0 - smoothstep(0.06, 0.36, sat))));   // (lo que ya tiene mucho color, poco más: los verdes del monte no llegan a fosforito)
+  c = max(vec3(0.0), mix(vec3(l), c, 1.3 + 0.42 * (1.0 - smoothstep(0.06, 0.36, sat))));   // (lo que ya tiene mucho color, poco más: los verdes del monte no llegan a fosforito)
   float verde = smoothstep(-0.035, 0.03, c.g - c.r) * smoothstep(0.015, 0.1, c.g - c.b);
   c.r = mix(c.r, c.b + (c.r - c.b) * 0.66, verde); c.g *= 1.0 + 0.04 * verde;
-  c = pow(max(c, 0.0), vec3(0.94));
+  c = pow(max(c, 0.0), vec3(0.88));
   // (y un tope al color: el verde de un prado, muy de cerca, se quedaba fosforito (lo vio el autor esa misma tarde). El
   // color que pasa de 0,45 se va apretando, sin escalón: vivo, pero de hierba)
-  { float l2 = dot(c, vec3(0.299, 0.587, 0.114)), cr = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b)); c = mix(vec3(l2), c, inversesqrt(1.0 + (cr / 0.5) * (cr / 0.5))); }
+  { float l2 = dot(c, vec3(0.299, 0.587, 0.114)), cr = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b)); c = mix(vec3(l2), c, inversesqrt(1.0 + (cr / 0.62) * (cr / 0.62))); }
   c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
   return c * mix(vec3(1.0), vec3(1.03, 1.015, 0.97), smoothstep(0.42, 0.85, l)); }
 `;
 export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque, uOrto, uOrtoD; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR, uOrtoR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo, uOrtoK, uOrtoDK; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
-varying vec2 vXZ; varying float vH, vSom;
+varying vec2 vXZ; varying float vH, vSom, vOr;
 ${NUBES}
 #include <fog_pars_fragment>
 ${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
@@ -169,6 +181,10 @@ void main() {
   s = s < 1.0 ? 1.0 + (s - 1.0) * 1.25 : 1.0 + (s - 1.0) * 0.62;
   // (las laderas en sombra, sin llegar al negro: en los valles cerrados del norte se perdía el dibujo del monte)
   s += 0.22 * (1.0 - smoothstep(0.0, 0.7, s));
+  // (en la orilla de una isla en el aire, donde el terreno ha bajado: la luz de su pendiente nueva, sacada de la propia
+  // malla, y no la sombra del monte que había allí)
+  if (vOr > 0.002) { vec3 pw = vec3(vXZ.x, vH, vXZ.y), nn = normalize(cross(dFdx(pw), dFdy(pw))); if (nn.y < 0.0) nn = -nn;
+    s = mix(s, clamp(0.45 + 0.96 * dot(nn, normalize(vec3(-0.75, 0.57, -0.33))), 0.4, 1.4), vOr); }
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   // (la ortofoto, el color de verdad del suelo: campos, bosques, ríos, pueblos y roca, con la luz del relieve encima, algo
   // más suave, que la foto ya trae la suya; de cerca, la de la comarca, a 28 m)
@@ -258,4 +274,4 @@ void main() {
 #endif
 }`;
 // (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
-export const PARCHE_VS = relieveVS('attribute float hd; uniform float uMaqK; ', 'p0.y = mix(p0.y, hd, uMaqK);');
+export const PARCHE_VS = relieveVS('attribute float hd; uniform float uMaqK; ' + ORILLA, 'p0.y = mix(p0.y, hd, uMaqK); p0.y = orilla(p0.xz, p0.y);');

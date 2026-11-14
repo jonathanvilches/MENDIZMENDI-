@@ -40,7 +40,7 @@ import { hacePajaros } from './pajaros.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
 import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
-import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, PIN_VS, PIN_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS, TONO_ORTO } from './mapa3dSombreadores.js';
+import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, PIN_VS, PIN_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS, TONO_ORTO, ORILLA } from './mapa3dSombreadores.js';
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
@@ -105,11 +105,30 @@ export function mapa3d(host, o) {
   const FONDO_L = { value: new THREE.Color(FONDO) };
   // (funde: cuánto se funden sus bordes, oeste, este, sur y norte, en unidades del mapa; modo 1, en el fondo; 2, por transparencia)
   // (falda: el material de la falda de relieve de alrededor de Navarra, con la luz de sus laderas, aLuz, que en lo llano es 1)
+  // (la orilla de la isla en el aire, mapa3dIsla.js: ORS, la de fuera, la del hueco, que leen todas las demás comarcas y la
+  // falda; orU(c), la de dentro de cada comarca. Los valores, en cada imagen, orillas())
+  const orNada = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); orNada.needsUpdate = true;
+  const ORS = { uOrTo: { value: orNada }, uOrRo: { value: new THREE.Vector4(0, 0, 1, 1) }, uOrB: { value: 0 } }, FALDA_KO = { value: 0 };
+  const orU = (c) => c.orU ||= { uOrTi: { value: orNada }, uOrRi: { value: new THREE.Vector4(0, 0, 1, 1) }, uOrKi: { value: 0 }, uOrKo: { value: 0 } };
+  const FALDA_OR = { uOrTi: { value: orNada }, uOrRi: { value: new THREE.Vector4(0, 0, 1, 1) }, uOrKi: { value: 0 }, uOrKo: FALDA_KO };
+  // (orSI: la comarca en el aire, si la hay; orJS, la altura sin estirar de un punto de la comarca c con su orilla, en las
+  // cuentas: chinchetas, nombres, la cámara y las cascadas)
+  let orSI = null;
+  const orJS = (c, X, Z, h) => { const I = c.isla; if (I && I.ki > 0) h = I.orilla.en(X, Z, h, I.ki, 0); if (orSI && orSI !== c) h = orSI.isla.orilla.en(X, Z, h, 0, orSI.isla.ki); return h; };
+  /** en cada imagen: lo que ha bajado la orilla de cada isla, a sus materiales */
+  const orillas = () => {
+    let S = null; for (const c of C) if (c.isla && c.isla.ki > 0 && (!S || c.isla.ki > S.isla.ki)) S = c;
+    orSI = S; const ko = S ? S.isla.ki : 0;
+    if (S) { const O = S.isla.orilla; ORS.uOrTo.value = O.tex; ORS.uOrRo.value.copy(O.rect); ORS.uOrB.value = O.B; }
+    for (const c of C) { const u = orU(c), I = c.isla, ki = I ? I.ki : 0; u.uOrKi.value = ki; if (ki > 0) { u.uOrTi.value = I.orilla.tex; u.uOrRi.value.copy(I.orilla.rect); } u.uOrKo.value = c !== S ? ko : 0; }
+    FALDA_KO.value = ko;
+  };
   const sueloM = (transp, funde = [0, 0, 0, 0], modo = 0, w = 1, h = 1, falda = false) => {
     const m = new THREE.MeshBasicMaterial({ color: FONDO, toneMapped: false, transparent: transp, opacity: transp ? 0 : 1, depthWrite: !transp }); mats.push(m);
     m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uNav = NAV; sh.uniforms.uNavR = NAVR; sh.uniforms.uFuera = FUERA;   // (las mismas nubes que sobre Navarra)
       sh.uniforms.uCielo = CIELO; sh.uniforms.uFunde = { value: new THREE.Vector4(...funde) }; sh.uniforms.uModo = { value: modo }; sh.uniforms.uTam = { value: new THREE.Vector2(w, h) }; sh.uniforms.uFondoL = FONDO_L;
-      sh.vertexShader = (falda ? 'attribute vec2 aLuz; varying vec2 vLuz;\n' : '') + 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;' + (falda ? ' vLuz = aLuz;' : ''));
+      if (falda) Object.assign(sh.uniforms, ORS, FALDA_OR);
+      sh.vertexShader = (falda ? 'attribute vec2 aLuz; varying vec2 vLuz;\n' + ORILLA : '') + 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n' + (falda ? 'transformed.y = orilla(transformed.xz, transformed.y);\n' : '') + 'vMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;' + (falda ? ' vLuz = aLuz;' : ''));
       // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
       // encima del verde y del rojo)
       sh.fragmentShader = (falda ? 'varying vec2 vLuz;\n' : '') + 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo, uCielo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + TONO_ORTO + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
@@ -177,7 +196,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   Object.assign(UNI, { uOrto: { value: orto }, uOrtoK: ORTO_K, uOrtoR: { value: new THREE.Vector4(MAPA_ORTO.x0, MAPA_ORTO.y0, MAPA_ORTO.w * MAPA_ORTO.paso, MAPA_ORTO.h * MAPA_ORTO.paso) } });
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true,
-    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uOrtoD: { value: nada }, uOrtoDK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO,
+    uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uOrtoD: { value: nada }, uOrtoDK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO, ...orU(c), ...ORS,
       uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.05 }, uTinte: { value: srgb(c.color) }, uTintK: { value: vivo ? 0.16 : 0.17 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
@@ -185,7 +204,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const bordeM = (c, vivo, luz, filo) => {
     const m = M({ color: OSCURO.clone().lerp(new THREE.Color(c.color), vivo ? 0.3 : 0.14), roughness: 0.4, metalness: 0.2, side: THREE.DoubleSide });
     const uFilo = new THREE.Color(c.color).lerp(BLANCO, 0.35).multiplyScalar(filo * (vivo ? 1 : 0.5));
-    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uLuzP: { value: luz }, uFilo: { value: uFilo } }); sh.vertexShader = BORDE_VS[0] + sh.vertexShader.replace('#include <begin_vertex>', BORDE_VS[1]);
+    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uLuzP: { value: luz }, uFilo: { value: uFilo } }, orU(c), ORS); sh.vertexShader = ORILLA + BORDE_VS[0] + sh.vertexShader.replace('#include <begin_vertex>', BORDE_VS[1] + '\ntransformed.y = orilla(transformed.xz, transformed.y);');
       sh.fragmentShader = BORDE_FS[0] + sh.fragmentShader.replace('#include <color_fragment>', BORDE_FS[1]).replace('#include <emissivemap_fragment>', BORDE_FS[2]); };
     m.userData.filo = uFilo; m.userData.filo0 = uFilo.clone(); m.customProgramCacheKey = () => 'borde-comarca'; return m;
   };
@@ -284,7 +303,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   let texIsla = null;
   const islaTex = () => texIsla || (texIsla = texturasIsla(Math.min(8, r.capabilities.getMaxAnisotropy())), mats.push(texIsla), texIsla);
   const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
-    fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? (GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
+    fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
   const sobre = (c, x, z) => {
@@ -447,8 +466,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const INVEXA = { value: 1 }, TAM = { value: 1 }, arbolG = new THREE.ConeGeometry(0.07, 0.24, 6, 1, true), arboles = []; arbolG.translate(0, 0.12, 0); geos.push(arbolG);
   // (el material de los árboles de una comarca; crece: los del bosque denso de la elegida, que salen con su relieve fino)
   const arbolM = (c, fondo, crece) => { const m = M({ roughness: 0.9 });
-    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco, uFinoK: c.fk });
-      sh.vertexShader = 'uniform float uInvExa, uTam, uFinoK; uniform vec4 uHueco; attribute float aFinoI;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed *= uTam${crece ? ' * smoothstep(0.35, 1.0, uFinoK)' : ''}; transformed.y *= uInvExa; transformed.y += aFinoI * uFinoK / instanceMatrix[1][1];\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;`);
+    m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco, uFinoK: c.fk }, orU(c), ORS);
+      sh.vertexShader = ORILLA + 'uniform float uInvExa, uTam, uFinoK; uniform vec4 uHueco; attribute float aFinoI;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed *= uTam${crece ? ' * smoothstep(0.35, 1.0, uFinoK)' : ''}; transformed.y *= uInvExa; transformed.y += aFinoI * uFinoK / instanceMatrix[1][1];\n{ vec3 b0 = instanceMatrix[3].xyz; transformed.y += (orilla(b0.xz, b0.y) - b0.y) / instanceMatrix[1][1]; }\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;`);
       // (con un poco de su propio verde como luz: con la luz malva del cielo, de lejos salían como motas negras)
       sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
@@ -484,8 +503,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (y donde está la maqueta de un pueblo, el río no se pinta: allí va el suyo, pintado en el suelo)
   // (el agua corre: destellos que bajan por el río, más en el centro de la cinta; uv.x es lo andado a lo largo del río,
   // y RIO_ESC los hace más menudos al acercarse, para que no se vean como manchas grandes)
-  const anchoRio = (m, hueco, fk) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco; sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC; sh.uniforms.uFinoK = fk;
-    sh.vertexShader = 'attribute vec3 lado; attribute float aFino; uniform float uAncho, uFinoK; varying vec2 vHx, vRuv;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; transformed.y += aFino * uFinoK; vHx = transformed.xz; vRuv = uv;');
+  const anchoRio = (m, hueco, fk, ou) => { m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco; sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC; sh.uniforms.uFinoK = fk; Object.assign(sh.uniforms, ou, ORS);
+    sh.vertexShader = ORILLA + 'attribute vec3 lado; attribute float aFino; uniform float uAncho, uFinoK; varying vec2 vHx, vRuv;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; transformed.y += aFino * uFinoK; transformed.y = orilla(transformed.xz, transformed.y); vHx = transformed.xz; vRuv = uv;');
     sh.fragmentShader = 'uniform vec4 uHueco; uniform float uT, uRioE; varying vec2 vHx, vRuv;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (uHueco.w > 0.5 && distance(vHx, uHueco.xy) < uHueco.z) discard;')
       .replace('#include <map_fragment>', `#include <map_fragment>
 { float x = vRuv.x * uRioE, cen = 1.0 - abs(vRuv.y - 0.5) * 2.0;
@@ -493,13 +512,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   diffuseColor.rgb = diffuseColor.rgb * (0.86 + 0.14 * o1) + vec3(0.55, 0.62, 0.6) * smoothstep(0.6, 1.0, o1 * 0.6 + o2 * 0.4) * cen * 0.75; }`); };
     m.customProgramCacheKey = () => 'rio-ancho'; };
   // (los embalses: ondas que se cruzan y algún destello, despacio)
-  const aguaLago = (m) => { m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC;
-    sh.vertexShader = 'varying vec2 vLx;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLx = position.xz;');
+  const aguaLago = (m, ou) => { m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uRioE = RIO_ESC; Object.assign(sh.uniforms, ou, ORS);
+    sh.vertexShader = ORILLA + 'varying vec2 vLx;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLx = position.xz; transformed.y = orilla(transformed.xz, transformed.y);');
     sh.fragmentShader = 'uniform float uT, uRioE; varying vec2 vLx;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
 { vec2 q = vLx * 5.0 * uRioE; float w = sin(q.x + uT * 0.9 + sin(q.y * 0.8 - uT * 0.5) * 1.6) * sin(q.y * 1.3 - uT * 0.7 + sin(q.x * 0.6) * 1.2);
   diffuseColor.rgb = diffuseColor.rgb * (0.94 + 0.06 * w) + vec3(0.5, 0.6, 0.62) * smoothstep(0.7, 1.0, w) * 0.35; }`); };
     m.customProgramCacheKey = () => 'mapa-lago'; };
-  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco, c.fk); c.lagoM = lagoM.clone(); aguaLago(c.lagoM); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
+  for (const c of C) { c.rioM = rioM.clone(); anchoRio(c.rioM, c.top.uniforms.uHueco, c.fk, orU(c)); c.lagoM = lagoM.clone(); aguaLago(c.lagoM, orU(c)); mats.push(c.rioM, c.lagoM); for (const m of c.mesh.children) if (m.userData.lago) m.material = c.lagoM; }
   for (const [c, a] of cintas) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3)); g.setAttribute('lado', new THREE.Float32BufferAttribute(a.lado, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2)); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(a.p.length / 3), 1)); g.setIndex(a.i); geos.push(g); const m = new THREE.Mesh(g, c.rioM); m.renderOrder = 1; c.mesh.add(m); c.rioG = g; }
   // los nombres de las sierras, de los ríos y de los embalses, como en los mapas (por debajo de los de las comarcas y los
   // pueblos: si no caben, se esconden)
@@ -1355,7 +1374,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   }
 
   // ---------- los caseríos: cada pueblo, a la vista sobre el relieve (mapa3dCaserios.js) ----------
-  const caserios = hazCaserios({ C, T, sobre, dentro: enComarca, grosor: GROSOR, ligero: BAJA || TACTIL, sol: sol.position, geos, mats });
+  const caserios = hazCaserios({ C, T, sobre, dentro: enComarca, grosor: GROSOR, ligero: BAJA || TACTIL, sol: sol.position, geos, mats, orilla: { glsl: ORILLA, u: (c) => ({ ...orU(c), ...ORS }) } });
 
   // ---------- los núcleos de los pueblos, al acercarse ----------
   // Solo los pueblos del juego, con su trazado de verdad (src/data/reales: casas, calles, ríos y plazas de OpenStreetMap):
@@ -1460,6 +1479,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     R = Math.min(700, R + 20);
     const pizarra = t.comarca === 'pirineo', tex = pintaNucleo(D, R, pizarra, undefined, true, foto), Rs = R / 207.6;
     const cm2 = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0 });
+    // (junto a la orilla de una isla en el aire, cada casa baja con el suelo que tiene debajo: mapa3dIsla.js)
+    cm2.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, orU(t.c), ORS);
+      sh.vertexShader = ORILLA + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n{ vec3 b0 = instanceMatrix[3].xyz; transformed.y += (orilla(b0.xz, b0.y) - b0.y) / instanceMatrix[1][1]; }'); };
+    cm2.customProgramCacheKey = () => 'nucleo-casas';
     // (en los pueblos junto al borde de su comarca, solo las casas que caen dentro: las demás quedaban en el aire, sobre la
     // comarca de al lado o colgando de la pared)
     const dentro = D.casas.filter(b => enComarca(t.c.Pw, X0 + b.x * MU, Z0 + b.z * MU, Math.hypot(b.w, b.d) / 2 * MU));
@@ -1561,6 +1584,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // a media bajada, donde era un tirón)
     const primera = !m.estrenada; m.estrenada = true;
     m.res.mat.opacity = m.op; if (m.res.matEmb) m.res.matEmb.opacity = m.op; m.res.casas.visible = m.op > 0.01 || primera; m.alz.value = 1 / Math.max(0.05, c.sy);
+    // (junto a la orilla de una isla en el aire, las casas bajan con el suelo, lo que baja en el centro del pueblo)
+    { const h0 = m.res.alto ? m.res.alto(e.X0, e.Z0) : GROSOR + alto(e.X0, e.Z0); m.res.casas.position.y = orJS(c, e.X0, e.Z0, h0) - h0; }
     if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
   }
   // (un paso de la maqueta: el suelo pintado, sus piezas, las sombras de los árboles y, al final, la malla en la comarca;
@@ -1609,7 +1634,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     }
   }
   // (la altura del suelo en un punto de una comarca, con la de la maqueta donde la hay)
-  const pisoEn = (c, X, Z) => { const h = GROSOR + alto(X, Z) + (c.fk?.value && c.dhF ? c.dhF(X, Z) * c.fk.value : 0); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
+  const pisoEn0 = (c, X, Z) => { const h = GROSOR + alto(X, Z) + (c.fk?.value && c.dhF ? c.dhF(X, Z) * c.fk.value : 0); if (!maq?.malla || maq.e.c !== c || Math.hypot(X - maq.e.X0, Z - maq.e.Z0) > maq.e.R * MU) return h; return h + (maq.res.alto(X, Z) - h) * maq.k.value; };
+  // (con la orilla de una isla en el aire, bajada: mapa3dIsla.js)
+  const pisoEn = (c, X, Z) => orJS(c, X, Z, pisoEn0(c, X, Z));
   // los pájaros: con un sitio elegido, sobre él (pajaros.js): en los pueblos y ciudades, sobre el corazón de sus casas; en
   // los espacios naturales, sobre su chincheta y a la escala de su cámara. En la vista general y en la de una comarca, ninguno
   const aves = hacePajaros({ scene, lento: BAJA, suelo: (x, z) => { const c = deQuien(x, z); return c?.sy ? pisoEn(c, x, z) * c.sy + c.py : null; },
@@ -1860,6 +1887,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
       const ok = c.top.uniforms.uOrtoDK; ok.value += ((det.get(c.id)?.orto ? 1 : 0) - ok.value) * (1 - Math.exp(-dt * 4));
     }
+    orillas();
     // (la falda crece con ellas y se hunde con las que quedan de fondo: así su borde sigue pegado al de las comarcas)
     if (falda) { falda.scale.y = Math.max(0.01, naceF) * exa; falda.position.y = -0.35 * fondoF * naceF; }
     // la cámara, ya con las comarcas en su sitio de esta imagen
@@ -1927,7 +1955,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       x.k += ((COL ? (COL.pines?.has(x.id) ? 1 : 0) : sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));   // (con una colección, solo las de sus pueblos)
       // (señalada, crece y brilla; elegida, la mira lo fija)
       x.sen += ((hover === 't:' + x.id ? 1 : 0) - x.sen) * (1 - Math.exp(-dt * 10)); x.fija += ((elegido === x ? 1 : 0) - x.fija) * (1 - Math.exp(-dt * 6));
-      const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : x.hs + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
+      const gy = x.g.position.y = (maq?.malla && maq.e.t === x ? pisoEn(x.c, x.X, x.Z) : orJS(x.c, x.X, x.Z, x.hs + (x.dh || 0) * x.c.fk.value)) * x.c.sy + x.c.py + 0.04 * Math.min(1, v.d / 4);
       // (la chincheta, quieta: ni gira ni se mece)
       const s = Math.max(0.01, nace * (1 + 0.35 * x.sen) * lejos * x.k), cy = gy + s * CRISTAL_Y * (1 + (medG - 1) * 0.45);
       x.g.scale.setScalar(s); x.bola.position.y = 0;   // (la bola: lo que se toca y donde se ancla la ficha: el sitio del pueblo, donde apunta el pico de su ficha)
@@ -1979,9 +2007,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         if (I.cuerpo(cp.x + dx * u, cp.z + dz * u, (base - y) / I.D)) return true; }
       return false; };
     for (const c of C) { const suya = sel === c.id, y = c.hc * c.sy + c.py + 1.4; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, y, c.Z, !COL && (!sel || suya || !elegido) && (suya || !(tapaIsla(c.X, y, c.Z) || tapaIsla(c.X, y + 1.8, c.Z)))]); }   // (el rótulo ocupa un trecho por encima de su punto: se mira también ahí)
-    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && !sinNombres && (sel ? x.c?.id === sel : v.d < 55)]);
+    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? orJS(x.c, x.X, x.Z, x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && !sinNombres && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
-    for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && !sinNombres && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
+    for (const x of PK) { const y = x.c ? orJS(x.c, x.X, x.Z, x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && !sinNombres && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
     // (en la vista de toda Navarra y con una comarca elegida por la que pasa; con otra comarca, con un pueblo o una maqueta,

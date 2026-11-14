@@ -50,7 +50,11 @@ void main() {
   vec3 e = vec3(length(instanceMatrix[0].xyz), length(instanceMatrix[1].xyz), length(instanceMatrix[2].xyz));
   vec3 n = normalize(mat3(modelMatrix) * (mat3(instanceMatrix) * (normal / (e * e))));
   vC = color * instanceColor * (0.7 + 0.46 * max(0.0, dot(n, uSol)) + 0.08 * n.y);
-  vec4 mvPosition = viewMatrix * (modelMatrix * (instanceMatrix * vec4(position, 1.0))); gl_Position = projectionMatrix * mvPosition;
+  vec4 lp = instanceMatrix * vec4(position, 1.0);
+#ifdef ORILLA
+  { vec3 b0 = instanceMatrix[3].xyz; lp.y += orilla(b0.xz, b0.y) - b0.y; }
+#endif
+  vec4 mvPosition = viewMatrix * (modelMatrix * lp); gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
 const FS = `uniform float uK; varying vec3 vC;
@@ -66,7 +70,7 @@ void main() {
  *  de la cara de arriba de la comarca; dentro(P, x, z, r): si un punto cae dentro de un contorno con ese margen; grosor:
  *  el de la base de las comarcas; ligero: en el móvil y en los equipos flojos, algo menos de casas; geos y mats, para
  *  soltarlo todo; sol: hacia dónde está el sol del mapa. */
-export function hazCaserios({ C, T, sobre, dentro, grosor, ligero = false, sol = new THREE.Vector3(-50, 38, -22), geos, mats }) {
+export function hazCaserios({ C, T, sobre, dentro, grosor, ligero = false, sol = new THREE.Vector3(-50, 38, -22), geos, mats, orilla = null }) {
   const gTeja = casaGeo(0xea6f38), gPizarra = casaGeo(0x7f7b8c), SOL = sol.clone().normalize(); geos.push(gTeja, gPizarra);
   const col = new THREE.Color(), M = new THREE.Matrix4(), q = new THREE.Quaternion(), p = new THREE.Vector3(), s = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
   const grupos = [];
@@ -90,7 +94,9 @@ export function hazCaserios({ C, T, sobre, dentro, grosor, ligero = false, sol =
       }
     }
     if (!casas.length) continue;
-    const m = new THREE.ShaderMaterial({ vertexColors: true, fog: true, vertexShader: VS, fragmentShader: FS, uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uSol: { value: SOL.clone() }, uK: { value: 1 } }]) }); mats.push(m);
+    // (con la orilla de una isla en el aire, mapa3dIsla.js: cada caserío baja con el suelo que tiene debajo)
+    const m = new THREE.ShaderMaterial({ vertexColors: true, fog: true, vertexShader: (orilla ? orilla.glsl : '') + VS, fragmentShader: FS, defines: orilla ? { ORILLA: '' } : {},
+      uniforms: { ...THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uSol: { value: SOL.clone() }, uK: { value: 1 } }]), ...(orilla ? orilla.u(c) : {}) } }); mats.push(m);
     const malla = new THREE.InstancedMesh(c.id === 'pirineo' ? gPizarra : gTeja, m, casas.length); malla.name = 'caserios-' + c.id; malla.frustumCulled = false; malla.visible = false;
     casas.forEach((h, i) => malla.setColorAt(i, col.set(h.color).multiplyScalar(0.94 + 0.06 * ((i * 7) % 5) / 4)));
     c.mesh.add(malla); grupos.push({ c, casas, malla, m, f: -1, sy: -1 });
