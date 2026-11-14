@@ -25,7 +25,7 @@ import HIERBA_T from '../assets/isla/hierba.webp?url';
 const rnd = (s) => () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 const lerp = (a, b, k) => a + (b - a) * k;
 const C = (h) => new THREE.Color(h);
-const CALIZA = C('#ffffff'), HONDO = C('#9d9fb2');
+const CALIZA = C('#ffffff'), HONDO = C('#9d9fb2'), TIERRA_ARRIBA = C('#8a6a4e');
 // (el cielo: azul intenso arriba y claro junto al horizonte, como en las imágenes del autor)
 // (14 de noviembre de 2026, el autor: «el color del cielo sigue estando como nublado, muy claro; que sea más oscuro, más
 // azul, más vivo». Un azul hondo arriba, vivo enseguida, y el horizonte también azul, no blanquecino)
@@ -146,7 +146,11 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // (desde el 14 de noviembre de 2026, sin cara plana bajo el césped: el autor seguía viendo «un corte transversal» en el
   // perímetro, la roca bajaba recta desde el borde con su mismo contorno, como una tajada. Ahora, justo bajo el labio, se
   // abomba hacia fuera y luego se cierra, como las islas de su referencia)
-  const ANI = [[1, 0, 0], [1.012, 0.012, 0], [1.028, 0.035, 0.01], [1.032, 0.065, 0.02], [1.012, 0.105, 0.04], [0.965, 0.16, 0.07], [0.9, 0.23, 0.11], [0.83, 0.31, 0.16],
+  // (y desde la noche del 14, sin abombarse: esa panza de fuera asomaba más que la hierba y, de lado y desde arriba, se veía
+  // una repisa de roca alrededor de toda la isla, el «contorno» y los «cortes verticales» que el autor seguía viendo. Ahora
+  // la roca nace justo bajo el filo de la hierba y se mete hacia dentro desde el primer anillo, por la normal de cada punto
+  // del borde (y no hacia el centro, que en las bahías la sacaba fuera); las estrías y los bultos, solo más abajo)
+  const ANI = [[1, 0, 0], [0.997, 0.012, 0], [0.99, 0.035, 0.01], [0.98, 0.065, 0.02], [0.962, 0.105, 0.04], [0.935, 0.16, 0.07], [0.89, 0.23, 0.11], [0.83, 0.31, 0.16],
     [0.75, 0.4, 0.24], [0.66, 0.51, 0.34], [0.55, 0.62, 0.45], [0.44, 0.72, 0.56], [0.33, 0.81, 0.67], [0.22, 0.89, 0.77], [0.12, 0.95, 0.86], [0.04, 0.99, 0.92]];
   // (los bultos: la roca no baja lisa, tiene panzas y entrantes grandes, y repisas a lo largo, como estratos que asoman)
   const bulto = (a, h) => { const u = Math.cos(a) * 1.6 + seed % 17, w = Math.sin(a) * 1.6 + 3.3;
@@ -154,15 +158,21 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // (las estrías: surcos verticales cada medio metro largo del mapa, que se tuercen un poco al bajar, y bultos más grandes)
   const estria = (s, k) => { const ss = s + 0.12 * Math.sin(k * 1.7 + s * 0.6), g = 0.5 + 0.5 * Math.sin(ss * 13.4 + 1.3 * Math.sin(ss * 0.9)); return 0.09 * g * g + 0.14 * Math.sin(s * 2.7 + k * 0.45 + seed); };
   const pos = [], col = [], uv = [], c = new THREE.Color();
+  const NIN = Q.map((q, i) => { const a2 = Q[(i + N - 3) % N], b2 = Q[(i + 3) % N]; let tx = b2[0] - a2[0], tz = b2[1] - a2[1]; const l = Math.hypot(tx, tz) || 1; let nx = -tz / l, nz = tx / l; if (!dentro(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz]; });   // (hacia dentro)
+  const ssI = (a0, b0, x) => { const t = Math.min(1, Math.max(0, (x - a0) / (b0 - a0))); return t * t * (3 - 2 * t); };
   ANI.forEach(([e, h, m], k) => { for (let i = 0; i <= N; i++) {
     const [x, z] = Q[i % N], dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) || 1, a = Math.atan2(dz, dx);
     const bx = lerp(dx, dx / r * rMed, m) * e + ladoX * h ** 1.6, bz = lerp(dz, dz / r * rMed, m) * e + ladoZ * h ** 1.6;
-    const ex = k ? estria(LQ[i], k) * (1 - h) ** 1.3 * Math.min(1, rMed / 7) + (k > 1 ? bulto(a, h) : 0) : 0;   // (las estrías se pierden hacia la punta)
+    const fe = ssI(0.06, 0.22, h);   // (las estrías y los bultos empiezan algo más abajo: arriba la roca sigue el filo de la hierba)
+    const ex = k ? (estria(LQ[i], k) * (1 - h) ** 1.3 * Math.min(1, rMed / 7) + (k > 1 ? bulto(a, h) : 0)) * fe : 0;   // (las estrías se pierden hacia la punta)
     const y = k ? -D * (h * (1 + cuelga(a) * h ** 1.4) + 0.03 * h * Math.max(0, 1 - h * 1.25) * Math.sin(LQ[i] * 3.1 + k)) : 0;   // (el fondo, liso: si ondula, la orilla del lago sale a dientes)
-    pos.push(cx + bx + dx / r * ex, y, cz + bz + dz / r * ex); uv.push(LQ[i] / TEX, -y / TEX);
+    // (arriba, el punto del borde metido hacia dentro por su normal, como una ladera que se esconde bajo el césped: un
+    // cuarto de lo que baja; más abajo pasa a la forma de montaña del revés)
+    const [ix, iz] = NIN[i % N], hd = -y * 0.28, w = ssI(0.08, 0.3, h), px0 = x + ix * hd, pz0 = z + iz * hd, px1 = cx + bx + dx / r * ex, pz1 = cz + bz + dz / r * ex;
+    pos.push(lerp(px0, px1, w), y, lerp(pz0, pz1, w)); uv.push(LQ[i] / TEX, -y / TEX);
     // (la caliza pone su color la foto; algo más oscura hacia la punta, adonde llega menos luz)
     const f = -y / D;
-    c.copy(CALIZA).lerp(HONDO, Math.min(1, Math.max(0, (f - 0.3) / 0.65))); c.multiplyScalar(0.94 + R() * 0.08); col.push(c.r, c.g, c.b);
+    c.copy(CALIZA).lerp(HONDO, Math.min(1, Math.max(0, (f - 0.3) / 0.65))); c.lerp(TIERRA_ARRIBA, (1 - ssI(0.0, 0.07, h)) * 0.7); c.multiplyScalar(0.94 + R() * 0.08); col.push(c.r, c.g, c.b);   // (justo bajo la hierba, la tierra, en la misma pieza: antes era una franja aparte)
   } });
   const base = pos.length / 3; { let yb = 0; for (let i = 0; i < N; i++) yb = Math.min(yb, pos[((ANI.length - 1) * N1 + i) * 3 + 1]); pos.push(cx + ladoX, yb - D * 0.012, cz + ladoZ); } uv.push(0, D / TEX); c.copy(HONDO); col.push(c.r, c.g, c.b);
   const idx = [], L = (ANI.length - 1) * N1;
@@ -254,8 +264,13 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // zona: 0 hierba del labio, 1 briznas, 2 tierra, 3 caliza
   // (desde el 15 de noviembre de 2026, el labio con más vuelo, un cojín de hierba que sobresale y se dobla, y el fleco
   // colgando más en mechones: de lado, el filo era una línea recta y fina, «no me gusta cómo están los bordes»)
-  const FILAS = [[-0.2, 0.03, 0, 0, 0, 0, 1], [-0.02, 0.04, 0, 0, 0.3, 1, 1], [0.09, 0.035, 0, 0, 0.55, 1, 1], [0.18, -0.02, 0, 0, 0.8, 1, 0.95], [0.22, -0.13, 0, 0, 1, 1, 0.84],
-    [0.24, -0.02, 0, 1, 0, 1, 1.02], [0.22, -0.08, 0.75, 1, 1, 1, 0.9], [0.14, -0.1, 0, 2, 0, 1, 0.8], [0.08, -0.24, 0.45, 2, 1, 1, 0.8], [0.03, -0.17, 0.16, 3, 0, 1, 1], [0.03, null, 0, 3, 1, 1, 1]];
+  // (y desde la noche del 14, solo la hierba del propio prado que dobla sobre el filo y se mete bajo él, hasta la roca: sin
+  // el fleco que colgaba ni las franjas de tierra y de caliza, que se leían como un borde añadido alrededor. «El labio que
+  // estás creando en el borde tiene que ser orgánico con el resto. No puede ser un añadido»)
+  // (la luz, algo por debajo de la del prado de al lado, que lleva la sombra del relieve: con la misma, el labio salía como
+  // una cinta más clara alrededor)
+  const FILAS = [[-0.2, 0.03, 0, 0, 0, 0, 0.92], [-0.02, 0.04, 0, 0, 0.3, 1, 0.9], [0.08, 0.03, 0, 0, 0.55, 1, 0.86], [0.14, -0.02, 0, 0, 0.75, 1, 0.8], [0.15, -0.08, 0, 0, 0.9, 1, 0.7],
+    [0.08, -0.14, 0, 0, 1, 1, 0.58], [-0.06, -0.2, 0, 0, 1, 1, 0.48]];
   const ANCHO = Q.map((_, i) => 0.65 + 0.95 * ruidoV(LQ[i] * 1.05 + seed % 13, 3.3) + 0.4 * ruidoV(LQ[i] * 3.6 + 5.1, 9.1));
   // (las normales, suavizadas: la media de cinco; y cuánto se cierra el borde en cada punto, comparando lo que se separan
   // dos puntos vecinos del borde con lo que se separarían corridos hacia fuera)
@@ -271,7 +286,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
     // (lo que sale del borde toma el color en espejo, hacia dentro: si todos los puntos de una columna lo tomaban del mismo
     // sitio, el labio salía rayado, con el color estirado)
     const oe = f >= 2 && f <= 7 ? o * ANCHO[k] * ENC[k] : o, os = oe < -0.02 ? oe : -0.02 - Math.max(0, oe) * 0.7; cantoS.push(Q[k][0] + nx * os, Q[k][1] + nz * os); cantoH.push(RIM[k]); } });   // (la altura, la del filo ya bajado: con la de la cumbre, en el Pirineo el labio salía nevado, un saliente blanco)
-  for (const f of [9, 7, 0, 1, 2, 3, 5]) for (let i = 0; i < N; i++) { const a = f * N1 + i, b = a + 1; cantoIx.push(a, a + N1, b, b, a + N1, b + N1); }
+  for (const f of [0, 1, 2, 3, 4, 5]) for (let i = 0; i < N; i++) { const a = f * N1 + i, b = a + 1; cantoIx.push(a, a + N1, b, b, a + N1, b + N1); }
   const cantoG = new THREE.BufferGeometry(); cantoG.setAttribute('position', new THREE.BufferAttribute(cantoPos, 3)); cantoG.setAttribute('uv', new THREE.Float32BufferAttribute(cantoUv, 2));
   cantoG.setAttribute('aZona', new THREE.Float32BufferAttribute(cantoZ, 1)); cantoG.setAttribute('aLuz', new THREE.Float32BufferAttribute(cantoLuz, 1)); cantoG.setAttribute('aA', new THREE.Float32BufferAttribute(cantoA, 1));
   cantoG.setAttribute('aS', new THREE.Float32BufferAttribute(cantoS, 2)); cantoG.setAttribute('aH', new THREE.Float32BufferAttribute(cantoH, 1)); cantoG.setIndex(cantoIx); geos.push(cantoG);

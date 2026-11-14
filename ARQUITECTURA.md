@@ -2117,6 +2117,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   bajo el borde; bajo el labio, roca con algo de musgo que se va hacia abajo; la tierra, parda media y algo más gruesa; la
   nieve del labio, la del filo ya bajado; y el labio, un cojín de hierba que sobresale y se dobla, con el fleco colgando en
   mechones. Hierba, tierra y roca, en ese orden.
+- **Sin contorno: la tierra termina sola y la roca nace debajo** (`ANI`, `NIN`, `FILAS` y `TIERRA_ARRIBA` en
+  `mapa3dIsla.js`; 15 de noviembre de 2026). El autor seguía viendo un contorno: «no tiene cortes, solo tiene un corte
+  horizontal, no hay cortes verticales», «todo lo que está sobre un territorio horizontal plano está terminado [...] solo
+  está arrancada la parte de abajo» y «el labio que estás creando en el borde tiene que ser orgánico con el resto. No puede
+  ser un añadido». En fotos muy de cerca se veía por qué: la roca se abombaba hasta un 3 % hacia fuera bajo el filo y, con
+  las estrías y los bultos, asomaba más que la hierba; desde arriba y de lado era una repisa clara alrededor de toda la
+  isla, con caras casi verticales. Y debajo del labio colgaban tres franjas de colores (el fleco, la tierra y la caliza),
+  que se leían como un borde pegado.
+  - La roca ya no sale: desde el primer anillo se mete hacia dentro, y arriba no hacia el centro de la isla (que en las
+    bahías la empujaba fuera) sino por la normal de cada punto del borde, un cuarto de lo que baja. Más abajo pasa a la
+    forma de montaña del revés de siempre. Las estrías y los bultos, solo desde algo más abajo.
+  - El labio es la propia hierba del prado que dobla sobre el filo y se mete bajo él hasta la roca: siete filas en vez de
+    once, sin fleco, sin franja de tierra y sin franja de caliza; con una luz algo más baja que la del prado de al lado,
+    que lleva la sombra del relieve (con la misma salía como una cinta más clara).
+  - La tierra, en la misma pieza que la roca: los anillos de arriba de la panza van pardos (`#8a6a4e`) y pasan a la caliza
+    en el primer 7 % de lo hondo.
+  - Las paredes de la losa de la comarca ya se ocultaban con la isla subida; antes las tapaban la tierra y la caliza del
+    canto.
 - **Copas con grano y ortofoto de los pueblos afinada** (`arbolM` en `mapa3d.js`; `tools/relieve/ortofoto.py`; 15 de
   noviembre de 2026): «que tengan la mayor posible textura de copas, de roca y afinar el ortofoto». Las copas de los árboles
   del mapa llevan matas de hojas más claras y más hondas, cada árbol con las suyas, y la punta más clara, donde da el sol;
