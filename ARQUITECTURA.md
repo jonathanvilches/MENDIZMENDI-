@@ -2058,6 +2058,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     sacadas de su propia luz (`roca-musgo-n.webp`) y al doble de tamaño (`uEscT` 0,5) para que tenga formas grandes. La
     caliza de Poly Haven de antes sigue en la carpeta, sin cargarse.
   - En la orilla bajada, donde es muy pendiente, la ortofoto se toma más difuminada: se estiraba en vetas.
+- **El borde de cada isla, que se lea** (`FILAS`, `cantoH`, el musgo de `rocaM` y el canto en `mapa3dIsla.js`; la orilla en
+  `RELIEVE_FS`; 15 de noviembre de 2026): «no me gusta cómo están los bordes individuales de cada comarca 3D». De lado, entre
+  los montes y el filo quedaba una rampa verde lisa, porque la foto se difuminaba mucho en la orilla; el musgo de la roca
+  subía en lenguas largas y la franja de bajo el labio era un 82 % verde, así que no se leía dónde acababa la tierra; y en
+  la punta este del Pirineo el labio salía nevado, un saliente blanco, porque tomaba la nieve de la altura de la cumbre.
+  Ahora la rampa guarda la foto, apenas suavizada, con un grano de hierba a matas; el musgo de la panza son manchas cortas
+  bajo el borde; bajo el labio, roca con algo de musgo que se va hacia abajo; la tierra, parda media y algo más gruesa; la
+  nieve del labio, la del filo ya bajado; y el labio, un cojín de hierba que sobresale y se dobla, con el fleco colgando en
+  mechones. Hierba, tierra y roca, en ese orden.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora

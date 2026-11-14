@@ -171,7 +171,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); geos.push(g);
   // (roca cálida, ocre y parda, como la de las islas de referencia)
-  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(2.4, Math.max(0.7, D * 0.24)); mats.push(rocaM);   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
+  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(1.05, Math.max(0.32, D * 0.1)); mats.push(rocaM);   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
   const grupo = new THREE.Group(); grupo.name = 'isla-' + id; grupo.visible = false; scene.add(grupo);
   grupo.add(new THREE.Mesh(g, rocaM));
   // (la misma panza, dentro del hueco: mientras la isla sale de él, se ve por la boca delante de las paredes)
@@ -252,8 +252,10 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   //   fleco sube algo por encima del filo del labio, y sus matas le dan una silueta de bultos. Todo con la niebla del mapa.
   // [lo que sale del borde (× ANCHO desde la tercera), lo que sube o baja, lo que cuelga (× CUELGA), zona, v, alfa, luz]
   // zona: 0 hierba del labio, 1 briznas, 2 tierra, 3 caliza
-  const FILAS = [[-0.2, 0.03, 0, 0, 0, 0, 1], [-0.02, 0.035, 0, 0, 0.3, 1, 1], [0.06, 0.03, 0, 0, 0.55, 1, 1], [0.12, -0.015, 0, 0, 0.8, 1, 0.95], [0.15, -0.09, 0, 0, 1, 1, 0.86],
-    [0.165, -0.015, 0, 1, 0, 1, 1.02], [0.155, -0.06, 0.5, 1, 1, 1, 0.92], [0.1, -0.1, 0, 2, 0, 1, 0.78], [0.06, -0.15, 0.3, 2, 1, 1, 0.78], [0.03, -0.11, 0.12, 3, 0, 1, 1], [0.03, null, 0, 3, 1, 1, 1]];
+  // (desde el 15 de noviembre de 2026, el labio con más vuelo, un cojín de hierba que sobresale y se dobla, y el fleco
+  // colgando más en mechones: de lado, el filo era una línea recta y fina, «no me gusta cómo están los bordes»)
+  const FILAS = [[-0.2, 0.03, 0, 0, 0, 0, 1], [-0.02, 0.04, 0, 0, 0.3, 1, 1], [0.09, 0.035, 0, 0, 0.55, 1, 1], [0.18, -0.02, 0, 0, 0.8, 1, 0.95], [0.22, -0.13, 0, 0, 1, 1, 0.84],
+    [0.24, -0.02, 0, 1, 0, 1, 1.02], [0.22, -0.08, 0.75, 1, 1, 1, 0.9], [0.14, -0.1, 0, 2, 0, 1, 0.8], [0.08, -0.24, 0.45, 2, 1, 1, 0.8], [0.03, -0.17, 0.16, 3, 0, 1, 1], [0.03, null, 0, 3, 1, 1, 1]];
   const ANCHO = Q.map((_, i) => 0.65 + 0.95 * ruidoV(LQ[i] * 1.05 + seed % 13, 3.3) + 0.4 * ruidoV(LQ[i] * 3.6 + 5.1, 9.1));
   // (las normales, suavizadas: la media de cinco; y cuánto se cierra el borde en cada punto, comparando lo que se separan
   // dos puntos vecinos del borde con lo que se separarían corridos hacia fuera)
@@ -268,7 +270,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
     // vecina; y a qué altura, para la nieve de las cumbres)
     // (lo que sale del borde toma el color en espejo, hacia dentro: si todos los puntos de una columna lo tomaban del mismo
     // sitio, el labio salía rayado, con el color estirado)
-    const oe = f >= 2 && f <= 7 ? o * ANCHO[k] * ENC[k] : o, os = oe < -0.02 ? oe : -0.02 - Math.max(0, oe) * 0.7; cantoS.push(Q[k][0] + nx * os, Q[k][1] + nz * os); cantoH.push(H0[k]); } });
+    const oe = f >= 2 && f <= 7 ? o * ANCHO[k] * ENC[k] : o, os = oe < -0.02 ? oe : -0.02 - Math.max(0, oe) * 0.7; cantoS.push(Q[k][0] + nx * os, Q[k][1] + nz * os); cantoH.push(RIM[k]); } });   // (la altura, la del filo ya bajado: con la de la cumbre, en el Pirineo el labio salía nevado, un saliente blanco)
   for (const f of [9, 7, 0, 1, 2, 3, 5]) for (let i = 0; i < N; i++) { const a = f * N1 + i, b = a + 1; cantoIx.push(a, a + N1, b, b, a + N1, b + N1); }
   const cantoG = new THREE.BufferGeometry(); cantoG.setAttribute('position', new THREE.BufferAttribute(cantoPos, 3)); cantoG.setAttribute('uv', new THREE.Float32BufferAttribute(cantoUv, 2));
   cantoG.setAttribute('aZona', new THREE.Float32BufferAttribute(cantoZ, 1)); cantoG.setAttribute('aLuz', new THREE.Float32BufferAttribute(cantoLuz, 1)); cantoG.setAttribute('aA', new THREE.Float32BufferAttribute(cantoA, 1));
@@ -321,10 +323,14 @@ void main() {
     // el césped de encima y la tierra, casi negra: de lado se leían como dos rayas a lo largo del borde. Ahora el fleco
     // lleva la luz de sus hojas a medias, sin bajar de casi el tono del suelo, y la tierra es parda y clara)
     if (vZ < 1.5) c = suelo(vS, vH, 2.5) * mix(1.0, clamp(luz, 0.62, 1.1), 0.55) * (1.0 - 0.1 * vUv.y);
-    else c = mix(linearToOutputTexel(vec4(t.rgb, 1.0)).rgb * 1.35, suelo(vS, vH, 3.0) * 0.72 * clamp(luz, 0.6, 1.2), 0.45) * (1.0 - 0.1 * vUv.y); }
+    // (y desde el 15, la tierra, parda de verdad y algo más gruesa: tomaba casi la mitad del verde del suelo y se leía como
+    // más hierba, sin capa de tierra entre el césped y la roca; parda media, no negra, para que no vuelva a ser una raya)
+    else c = mix(linearToOutputTexel(vec4(t.rgb, 1.0)).rgb * 1.3, vec3(0.5, 0.37, 0.25) * clamp(luz, 0.7, 1.15), 0.5) * (1.0 - 0.12 * vUv.y); }
   else { vec3 r = linearToOutputTexel(vec4(texture2D(uRoca, vec2(vUv.x / 2.4, -vRv / 2.4)).rgb * vec3(0.72, 0.71, 0.72), 1.0)).rgb;   // (la caliza de debajo, con la luz de la panza)
     // (y musgo: del labio a la roca, sin raya; la roca asoma más abajo, con el musgo de la panza)
-    c = mix(r, suelo(vS, vH, 3.0) * (0.5 + 0.9 * dot(r, vec3(0.3, 0.59, 0.11))), 0.82); }
+    // (desde el 15, roca con algo de musgo, no musgo con algo de roca: con el 82 % de verde, bajo la tierra seguía una banda
+    // verde y el borde no se leía)
+    c = mix(r, suelo(vS, vH, 3.0) * (0.5 + 0.9 * dot(r, vec3(0.3, 0.59, 0.11))), 0.3 * (1.0 - vUv.y)); }
   if (a < 0.01) discard;
   c *= vL; c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))) * vec3(0.95, 0.92, 1.1), uGris);
   c *= 1.0 - 0.12 * nubes(vS);
