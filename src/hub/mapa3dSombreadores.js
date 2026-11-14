@@ -102,13 +102,21 @@ float hashN(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 15731.743); 
 float ruidoN(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hashN(i), hashN(i + vec2(1, 0)), f.x), mix(hashN(i + vec2(0, 1)), hashN(i + vec2(1, 1)), f.x), f.y); }
 float nubes(vec2 p) { vec2 q = p * 0.075 + vec2(uT * 0.03, uT * 0.008); float n = ruidoN(q) * 0.62 + ruidoN(q * 2.3 + 4.1) * 0.28 + ruidoN(q * 5.3 + 9.7) * 0.1; return smoothstep(0.48, 0.7, n); }
 `;
+// (el tono de la ortofoto y el acabado del color, en valores de pantalla. Los comparte el suelo de alrededor de Navarra
+// (mapa3d.js suelo), que desde el 14 de noviembre de 2026 también es imagen de verdad: así lo de dentro y lo de fuera pasan
+// por las mismas cuentas y no cambia el tono al cruzar la muga)
+export const TONO_ORTO = `// (la ortofoto, con algo más de color y de luz, cálida: el PNOA sale apagado y frío al lado de lo demás del juego)
+vec3 tonoOrto(vec3 o) { float l = dot(o, vec3(0.299, 0.587, 0.114)); o = mix(vec3(l), o, 1.14); o = pow(max(o, 0.0), vec3(0.93)) * 1.04; return clamp(o * vec3(1.01, 1.02, 0.98), 0.0, 1.0); }
+vec3 acabado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
+  c = max(vec3(0.0), mix(vec3(l), c, 1.0 + 0.22 * (1.0 - smoothstep(0.05, 0.32, sat))));
+  c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
+  return c * mix(vec3(1.0), vec3(1.03, 1.015, 0.97), smoothstep(0.42, 0.85, l)); }
+`;
 export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque, uOrto, uOrtoD; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR, uOrtoR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo, uOrtoK, uOrtoDK; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
 varying vec2 vXZ; varying float vH, vSom;
 ${NUBES}
 #include <fog_pars_fragment>
-// (la ortofoto, con algo más de color y de luz, cálida: el PNOA sale apagado y frío al lado de lo demás del juego)
-vec3 tonoOrto(vec3 o) { float l = dot(o, vec3(0.299, 0.587, 0.114)); o = mix(vec3(l), o, 1.14); o = pow(max(o, 0.0), vec3(0.93)) * 1.04; return clamp(o * vec3(1.01, 1.02, 0.98), 0.0, 1.0); }
-// (un pueblo pintado encima, si el punto cae en su recuadro)
+${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
 vec4 pue(sampler2D t, vec4 r, float k, vec2 sv) { vec2 u = (sv - r.xy) / r.zw; if (k <= 0.0 || u.x < 0.0 || u.y < 0.0 || u.x > 1.0 || u.y > 1.0) return vec4(0.0); vec4 p = texture2D(t, u); return vec4(p.rgb, p.a * k); }
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -202,10 +210,7 @@ void main() {
   // (el color, más vivo y más limpio: los verdes y ocres apagados, con algo más de color; las sombras, sin llegar al negro,
   // hacia un azul malva, como en los mapas de relieve dibujados (de cerca, en los valles entre montes, se veían negras); y
   // las luces, algo más cálidas, de sol de tarde)
-  { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
-    c = max(vec3(0.0), mix(vec3(l), c, 1.0 + 0.22 * (1.0 - smoothstep(0.05, 0.32, sat))));
-    c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
-    c *= mix(vec3(1.0), vec3(1.03, 1.015, 0.97), smoothstep(0.42, 0.85, l)); }
+  c = acabado(c);
   vec4 p = pue(uP0, uPR[0], uPK[0], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP1, uPR[1], uPK[1], sv); c = mix(c, p.rgb, p.a);
   p = pue(uP2, uPR[2], uPK[2], sv); c = mix(c, p.rgb, p.a);
@@ -221,10 +226,14 @@ void main() {
   }
   c = mix(c, vec3(dot(c, vec3(0.299, 0.587, 0.114))) * vec3(0.95, 0.92, 1.1), uGris);
 #ifndef LIGERO
-  c *= 1.0 - 0.3 * nubes(vXZ);   // (en el ordenador de calidad baja, LIGERO, sin la sombra de las nubes ni el grano fino)
+  c *= 1.0 - 0.12 * nubes(vXZ);   // (en el ordenador de calidad baja, LIGERO, sin la sombra de las nubes ni el grano fino)
 #endif
   gl_FragColor = vec4(mix(c, uTinte, uTintK) * uBrillo, 1.0);
-#include <fog_fragment>
+  // (la niebla, del mismo color que la del suelo de alrededor y la del cielo: este sombreador pinta en valores de pantalla,
+  // y con el color de la niebla tal cual, que viene lineal, lo lejano de Navarra salía más oscuro que lo de fuera)
+#ifdef USE_FOG
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, linearToOutputTexel(vec4(fogColor, 1.0)).rgb, smoothstep(fogNear, fogFar, vFogDepth));
+#endif
 }`;
 // (el relieve de la maqueta de un pueblo: pasa poco a poco de la altura de la comarca, position.y, a la del pueblo, hd)
 export const PARCHE_VS = relieveVS('attribute float hd; uniform float uMaqK; ', 'p0.y = mix(p0.y, hd, uMaqK);');

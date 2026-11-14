@@ -1112,7 +1112,7 @@ export class Hub {
       <li>Fotos de las plantas: iNaturalist, de dominio público (CC0).</li>
       <li>Cortezas de los árboles: Poly Haven y TextureCan, de dominio público (CC0). Las hojas y los árboles, dibujados con código para el juego.</li>
       <li>Mapas de los pueblos: © colaboradores de OpenStreetMap (ODbL), Overture Maps y relieve EU-DEM de Copernicus (Unión Europea).</li>
-      <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ortofoto PNOA cedida por © Instituto Geográfico Nacional (CC BY 4.0, scne.es); ríos, embalses y cimas © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
+      <li>Mapa de Navarra del inicio: relieve de SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y EU-DEM de Copernicus (Unión Europea); ortofoto PNOA cedida por © Instituto Geográfico Nacional (CC BY 4.0, scne.es), también alrededor de Navarra, con su fondo de satélite (NASA Blue Marble, dominio público); ríos, embalses y cimas © colaboradores de OpenStreetMap (ODbL), con Overture Maps.</li>
       <li>Paisaje de los prismáticos en los miradores: relieve EU-DEM de Copernicus (Unión Europea), SRTM y GMTED2010 (U.S. Geological Survey, dominio público) y ETOPO1 (NOAA, dominio público).</li>
       <li>Músicas, público y gol: de Envato Elements, con licencia solo para este juego («Epic» de MrClaps y de MDFactory, «Game» de cinematic-alex, «Brazil Soccer crowd steady» de rhumphriesDC, «Crowd Cheering and Applauding» de GameChestAudio y «Football Goal» de WistanSound). No se pueden usar fuera del juego.</li>
       <li>Música del paseo por los pueblos: «Viking Village Dance» de Andy Slatter (Envato Elements, con licencia solo para este juego).</li>

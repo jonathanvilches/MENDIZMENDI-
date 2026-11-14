@@ -25,8 +25,9 @@ import MOUNTAINS from '../data/mountains.json';
 import { MONTES_MAPA } from '../data/montes-mapa.js';
 import SOMBRA from '../assets/relieve/sombra.webp?url';
 import FINO from '../assets/relieve/fino.webp?url';
-import ENTORNO from '../assets/relieve/entorno.webp?url';
-import ESPANA from '../assets/relieve/espana.webp?url';
+import ENTORNO from '../assets/relieve/entorno-sat.webp?url';
+import ENTORNO_M from '../assets/relieve/entorno-sat-medio.webp?url';
+import ESPANA from '../assets/relieve/espana-sat.webp?url';
 import ORTO from '../assets/relieve/orto.webp?url';
 import { MAPA_ORTO } from '../data/mapa-orto.js';
 import { ORTO_PUEBLOS } from '../data/mapa-orto-pueblos.js';
@@ -38,7 +39,7 @@ import { hacePajaros } from './pajaros.js';
 import { calidadJuego } from '../util/gpu.js';
 import { apunta } from '../util/diag.js';
 import { CX, CY, S, W, contorno, GROSOR, EXA, ruidoV, suave, hacerRelieve, losa, panza, enComarca, enPoligono } from './mapa3dFormas.js';
-import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, PIN_VS, PIN_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS } from './mapa3dSombreadores.js';
+import { BALIZA, CRISTAL_Y, MIRA_VS, MIRA_FS, HILO_VS, HILO_FS, PIN_VS, PIN_FS, HALO_VS, HALO_FS, BORDE_VS, BORDE_FS, PALETA, RELIEVE_VS, NUBES, RELIEVE_FS, PARCHE_VS, TONO_ORTO } from './mapa3dSombreadores.js';
 
 const ease = (t) => t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2;
 const mezcla = (a, b, t) => a + (b - a) * t;
@@ -110,11 +111,13 @@ export function mapa3d(host, o) {
       sh.vertexShader = 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;');
       // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
       // encima del verde y del rojo)
-      sh.fragmentShader = 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo, uCielo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
-diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
+      sh.fragmentShader = 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo, uCielo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + TONO_ORTO + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+// (la imagen de verdad de alrededor, por las mismas cuentas que la ortofoto de Navarra, en valores de pantalla)
+{ vec3 d = pow(max(diffuseColor.rgb, 0.0), vec3(1.0 / 2.2)); d = acabado(tonoOrto(d)); diffuseColor.rgb = pow(d, vec3(2.2)); }
+diffuseColor.rgb *= 1.0 - 0.12 * nubes(vMun);
 { float mar = smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g));
   if (mar > 0.0) { vec2 q = vMun * 2.2; float w = sin(q.x * 1.7 + uT * 0.5 + sin(q.y * 1.1 + uT * 0.3) * 2.0) * sin(q.y * 2.3 - uT * 0.4 + sin(q.x * 0.9) * 1.5);
-    diffuseColor.rgb += mar * (vec3(0.04, 0.07, 0.1) * smoothstep(0.55, 1.0, w) + vec3(0.0, 0.008, 0.016) * w); } }
+    diffuseColor.rgb += mar * (vec3(0.014, 0.026, 0.038) * smoothstep(0.3, 1.0, w) + vec3(0.0, 0.008, 0.016) * w); } }
 // (fuera de Navarra, más apagado y algo frío, y junto a su borde, por fuera, una sombra suave: el relieve de alrededor era
 // del mismo verde y con la misma luz, y Navarra no se distinguía)
 { vec2 nu = (vMun - uNavR.xy) / uNavR.zw; vec2 nm = nu.x < 0.0 || nu.y < 0.0 || nu.x > 1.0 || nu.y > 1.0 ? vec2(0.0) : texture2D(uNav, nu).rg;
@@ -125,9 +128,10 @@ diffuseColor.rgb *= 1.0 - 0.3 * nubes(vMun);
   vec3 apag = vec3(0.105, 0.095, 0.16) + (l - 0.42) * vec3(0.26, 0.26, 0.32);
   // (con una isla en el aire y el cielo de día, lo de fuera sigue siendo tierra, apagada pero con su luz, no de noche)
   apag = mix(apag, vec3(l) * vec3(0.86, 0.9, 0.96) * 0.9, uCielo);
-  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.3, uCielo));
-  diffuseColor.rgb *= 1.0 + 0.22 * uCielo;   // (de día, la imagen de alrededor, hecha para la noche, algo más clara)
-  diffuseColor.rgb *= 1.0 - 0.45 * fuera * nm.g; }
+  // (desde el 14 de noviembre de 2026 lo de fuera es imagen de verdad, del mismo tono que la ortofoto de Navarra: de día
+  // apenas se apaga, lo justo para que Navarra mande, y la sombra junto a su borde es más leve)
+  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.1, uCielo));
+  diffuseColor.rgb *= 1.0 - mix(0.45, 0.22, uCielo) * fuera * nm.g; }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
 // por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
 // Navarra, que va encima, se funde por transparencia en la de debajo)
@@ -135,13 +139,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   float kx = max(max(uFunde.x - a.x, 0.0) / uFunde.x, max(uFunde.y - b.x, 0.0) / uFunde.y), ky = max(max(uFunde.z - a.y, 0.0) / uFunde.z, max(uFunde.w - b.y, 0.0) / uFunde.w);
   float e = smoothstep(0.0, 1.0, length(vec2(kx, ky)));
   if (uModo < 1.5) diffuseColor.rgb = mix(diffuseColor.rgb, uFondoL, e); else diffuseColor.a *= 1.0 - e; }`); };
-    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav-funde';
+    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav-funde-sat';
     new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy()); Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
   };
   const [ex0, ey0, ex1, ey1] = [-3006, -451, 2824, 4150];   // (lo que cubre la imagen de la península, en unidades del mapa)
   suelo(ESPANA, (ex1 - ex0) * S, (ey1 - ey0) * S, ((ex0 + ex1) / 2 - CX) * S, ((ey0 + ey1) / 2 - CY) * S, -0.04, false, [130, 130, 150, 26], 1);
-  suelo(ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2).renderOrder = -2;
+  suelo(matchMedia?.('(pointer: coarse)').matches || o.ligero ? ENTORNO_M : ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2).renderOrder = -2;
 
   // el sombreado fino, compartido por todas las comarcas (mientras llega, el de cada vértice)
   const R = MAPA_RELIEVE.sombra, LISTO = { value: 0 };
@@ -342,7 +346,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
 
 
   // los ríos: una cinta de luz azul sobre el relieve, cortada por comarcas (cada trozo va con la suya cuando se levanta)
-  const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x7cd0ff, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
+  const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x58a8e2, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
   const ANCHO = [0, 0.42, 0.32, 0.24], cintas = new Map();
   const cinta = (c, Q, w) => {
     let a = cintas.get(c); if (!a) cintas.set(c, a = { p: [], uv: [], i: [], lado: [] });
@@ -1757,7 +1761,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // (y con el cielo, las paredes de todas, de roca: las de las vecinas se ven por el hueco, y Navarra flota como la isla)
       { const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.max(c.isla ? Math.min(1, c.isla.k || 0) : 0, cieloK * 0.9)); }
       // (con una isla en el aire y el cielo de día, las demás no se quedan grises: guardan buena parte de su color de verdad)
-      const fv = c.fondo * (1 - 0.6 * cieloK);
+      const fv = c.fondo * (1 - 0.78 * cieloK);
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * fv - 0.18 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, fv); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * fv;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)

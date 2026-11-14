@@ -1857,6 +1857,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   alrededor, crestas y barrancos. Lo pintado a mano (parcelas, bosque, roca y el tinte del clima) se apaga con ella
   (`pin`); la nieve, las nubes, los pueblos pintados y el tinte de cada comarca siguen. Para la web y el archivo único, como
   el relieve de detalle (`@orto-full` y `@orto-medio` en `vite.config.js`). Para verlo: `vista.mjs` e `isla.mjs`.
+- **El suelo de alrededor, imagen de verdad** (`tools/relieve/fuera.py`; `entorno-sat.webp`, `entorno-sat-medio.webp` y
+  `espana-sat.webp` en `src/assets/relieve`; `suelo` en `mapa3d.js`, `TONO_ORTO` en `mapa3dSombreadores.js`; 14 de
+  noviembre de 2026): el autor pidió «mejor integración de los mapas reales en el mapa 3D». Navarra llevaba la ortofoto y
+  lo de fuera era un relieve pintado, hecho para el mapa de noche: otro dibujo. Ahora lo de fuera también es imagen de
+  verdad, del mismo servicio del IGN (WMS «pnoa-ma», CC BY 4.0): su ortoimagen, que solo cubre España, y su capa de
+  fondo, el Blue Marble de la NASA, para Francia, Portugal y el mar. Las dos se piden ya en la rejilla del mapa (que es
+  lineal en longitud y latitud), el fondo se lleva al tono de la ortoimagen por sus histogramas, canal a canal, en lo
+  que las dos cubren, y se juntan con el borde fundido: al cruzar la frontera no cambia el color. El relieve sale de las
+  imágenes de antes (`entorno.webp` y `espana.webp`, que se quedan en el repositorio para eso): sus luces y sombras, sin
+  su color. El mar, que en el servicio es un morado plano, se pinta de azul, más claro junto a la costa. En el juego, el
+  suelo pasa por las mismas cuentas que la ortofoto de Navarra (`tonoOrto` y `acabado`, en valores de pantalla), apenas
+  se apaga fuera de Navarra y la sombra junto a su borde es más leve. La niebla del relieve de Navarra usaba el color
+  lineal tal cual y salía más oscura que la del suelo y la del cielo: ahora es la misma. Las comarcas que no están
+  elegidas guardan casi todo su color (`fv`), y los ríos son de un azul de agua, no de neón. El móvil y el modo sencillo
+  usan la imagen de 1.280 px.
 - **La ortofoto fina de los pueblos** (`tools/relieve/ortofoto.py pueblos-bajar` y `pueblos-hacer`,
   `tools/relieve/pueblos-lista.mjs`, `src/data/mapa-orto-pueblos.js`, `fotoPueblo` y `pintaNucleo` en `mapa3d.js`; 13 de
   noviembre de 2026): el autor pidió la mayor definición posible, también en el zoom de los pueblos. La ortofoto de la
