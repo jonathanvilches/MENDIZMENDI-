@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { MAPA_RELIEVE, MAPA_ALTURAS } from '../data/mapa-relieve.js';
 import ENCAJE from '../data/comarcas-encaje.json';
+import { CENTROS } from '../data/reales/centros.js';
+import { mapaXY } from '../util/geo.js';
 
 // (las coordenadas son las del mapa de comarcas de comarcas.json, viewBox 10 10 725 780: se centran y se pasan a metros
 // del mundo 3D, con el norte hacia el fondo)
@@ -26,7 +28,7 @@ const chaikin = (P) => P.flatMap((p, i) => { const q = P[(i + 1) % P.length]; re
 // tools/comarcas-encaje.mjs. Una comarca que no esté ahí, con el suyo de siempre, suavizado)
 export function contorno(c) {
   let P;
-  if (ENCAJE[c.id]) { const a = ENCAJE[c.id]; P = []; for (let i = 0; i + 1 < a.length; i += 2) P.push([a[i], a[i + 1]]); }
+  if (ENCAJE[c.id]) P = organico(c.id);
   else { P = puntos(c.path); if (P.length > 2 && P[0][0] === P.at(-1)[0] && P[0][1] === P.at(-1)[1]) P.pop(); P = chaikin(chaikin(simplifica(P, 1.1))); }
   let cx = 0, cy = 0; for (const [x, y] of P) { cx += x; cy += y; } cx /= P.length; cy /= P.length;
   return { P, cx, cy };
@@ -41,6 +43,47 @@ const hashV = (i, j) => { let n = (i * 374761393 + j * 668265263) | 0; n = Math.
 export const ruidoV = (x, y) => { const i = Math.floor(x), j = Math.floor(y), fx = x - i, fy = y - j, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
   return (hashV(i, j) * (1 - u) + hashV(i + 1, j) * u) * (1 - v) + (hashV(i, j + 1) * (1 - u) + hashV(i + 1, j + 1) * u) * v; };
 export const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+// ---------- las mugas entre comarcas, orgánicas ----------
+// Las líneas por las que se rompe el mapa venían de un mapa administrativo simplificado: tramos largos casi rectos, y una
+// comarca arrancada con el canto a escuadra no parece tierra. El autor, el 14 de noviembre de 2026: «no hacer tanto borde
+// recto: hace que sea poco orgánico». Ahora cada muga entre dos comarcas se tuerce con un campo de ruido: cada punto se
+// corre lo que diga el campo en su sitio (tres ondas, de unos 9 km, 3,5 km y 1,5 km, de hasta 1.000, 700 y 230 m). Como lo
+// que se corre un punto solo depende de dónde está, las dos comarcas que comparten una muga la tuercen igual, y los puntos
+// donde se juntan tres, también: el encaje sigue siendo exacto, pieza con pieza. Los tramos largos se parten antes (cada
+// unos 500 m, a partes iguales contadas desde el mismo extremo, para que las dos saquen los mismos puntos).
+// No se toca el borde de fuera, el de Navarra, que es el de verdad y ya es irregular: cerca de él el corrimiento se apaga
+// (en 2,5 km), y también cerca del centro de un pueblo (de 1,7 a 3,7 km), para que ninguno cambie de comarca ni se quede
+// con la muga cruzando sus casas.
+const A_ORG = [[42, 5, 11.3, 5.1, 37.9, 62.4], [17, 3.4, 71.7, 33.3, 8.6, 19.2], [7, 1.1, 5.5, 91.2, 55.1, 3.8]];   // (onda, cuánto, y las semillas de x e y; en unidades del mapa: 1 = 207 m)
+const campoOrg = (x, y) => { let dx = 0, dy = 0; for (const [L, A, ax, ay, bx, by] of A_ORG) { dx += (ruidoV(x / L + ax, y / L + ay) - 0.5) * 2 * A; dy += (ruidoV(x / L + bx, y / L + by) - 0.5) * 2 * A; } return [dx, dy]; };
+const dSeg = (x, y, ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, t = Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy || 1))); return Math.hypot(x - ax - dx * t, y - ay - dy * t); };
+let ORG = null;
+function organico(id) {
+  if (!ORG) {
+    // (las aristas de fuera: las que solo tiene una comarca; en una rejilla, para medir deprisa lo lejos que queda un punto)
+    const kA = (ax, ay, bx, by) => { const p = ax.toFixed(3) + ',' + ay.toFixed(3), q = bx.toFixed(3) + ',' + by.toFixed(3); return p < q ? p + '|' + q : q + '|' + p; };
+    const veces = new Map(), todas = [];
+    for (const a of Object.values(ENCAJE)) for (let i = 0; i < a.length; i += 2) { const j = (i + 2) % a.length, k = kA(a[i], a[i + 1], a[j], a[j + 1]); veces.set(k, (veces.get(k) || 0) + 1); todas.push([a[i], a[i + 1], a[j], a[j + 1], k]); }
+    const CEL = 16, LEJOS = 12, rej = new Map();
+    for (const [ax, ay, bx, by, k] of todas) if (veces.get(k) === 1) for (let i = Math.floor((Math.min(ax, bx) - LEJOS) / CEL); i <= Math.floor((Math.max(ax, bx) + LEJOS) / CEL); i++) for (let j = Math.floor((Math.min(ay, by) - LEJOS) / CEL); j <= Math.floor((Math.max(ay, by) + LEJOS) / CEL); j++) { const c = i + ',' + j; (rej.get(c) || rej.set(c, []).get(c)).push([ax, ay, bx, by]); }
+    const aFuera = (x, y) => { let d = LEJOS; for (const [ax, ay, bx, by] of rej.get(Math.floor(x / CEL) + ',' + Math.floor(y / CEL)) || []) d = Math.min(d, dSeg(x, y, ax, ay, bx, by)); return d; };
+    const pueblos = Object.values(CENTROS).map(c => mapaXY(...c));
+    const mueve = (x, y) => { const k = suave(0, LEJOS, aFuera(x, y)); if (k <= 0) return [x, y]; let dp = 1e9; for (const [px, py] of pueblos) dp = Math.min(dp, Math.hypot(x - px, y - py)); const w = k * suave(8, 18, dp); if (w <= 0) return [x, y]; const [dx, dy] = campoOrg(x, y); return [x + dx * w, y + dy * w]; };
+    ORG = { veces, kA, mueve, hechas: new Map() };
+  }
+  if (ORG.hechas.has(id)) return ORG.hechas.get(id);
+  const a = ENCAJE[id], P = [], { veces, kA, mueve } = ORG;
+  for (let i = 0; i < a.length; i += 2) {
+    const j = (i + 2) % a.length, ax = a[i], ay = a[i + 1], bx = a[j], by = a[j + 1];
+    P.push(mueve(ax, ay));
+    if (veces.get(kA(ax, ay, bx, by)) !== 2) continue;   // (el borde de Navarra, como viene)
+    const n = Math.ceil(Math.hypot(bx - ax, by - ay) / 2.4); if (n < 2) continue;
+    // (los puntos de en medio, contados siempre desde el mismo extremo, el menor, para que a las dos comarcas les salgan iguales)
+    const alReves = ax > bx || (ax === bx && ay > by), [x0, y0, x1, y1] = alReves ? [bx, by, ax, ay] : [ax, ay, bx, by];
+    for (let k = 1; k < n; k++) { const t = (alReves ? n - k : k) / n; P.push(mueve(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t)); }
+  }
+  ORG.hechas.set(id, P); return P;
+}
 export function hacerRelieve() {
   const R = MAPA_RELIEVE, nx = R.nx;
   // (de cada fila viene solo el tramo que toca Navarra; lo demás, a cero)
