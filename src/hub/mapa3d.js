@@ -1873,7 +1873,17 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       lista.push([x.here || sh || ya ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y, x.Z, on, x.g.position.y, true]); }   // (si encima no cabe, debajo, con el pico arriba; y si tampoco, solo la foto)
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
     // dónde ir arrastrando el mapa. No con un pueblo elegido)
-    for (const c of C) { const suya = sel === c.id; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, c.hc * c.sy + c.py + 1.4, c.Z, !COL && (!sel || suya || !elegido)]); }
+    // (el rótulo de una comarca vecina que queda detrás de la isla no se pinta encima de su roca: si la línea de la cámara
+    // al rótulo atraviesa el cuerpo de la isla, la comarca o la roca de debajo, que se va cerrando, se quita. Primero, a
+    // bulto, con el círculo que la envuelve; luego, con unos pocos puntos de la línea y su forma de verdad)
+    const cIsla = sel ? C.find(c => c.id === sel) : null, tapaIsla = (X, Y, Z) => { const I = cIsla?.isla; if (!I || (I.k || 0) < 0.3) return false;
+      const cp = cam.position, dx = X - cp.x, dy = Y - cp.y, dz = Z - cp.z, l2 = dx * dx + dz * dz || 1, u0 = ((I.cx - cp.x) * dx + (I.cz - cp.z) * dz) / l2;
+      if (u0 <= 0 || Math.hypot(cp.x + dx * u0 - I.cx, cp.z + dz * u0 - I.cz) > I.rMax * 1.03) return false;
+      const base = cIsla.py + I.base * cIsla.sy, top = cIsla.py + (GROSOR + cIsla.hmax) * cIsla.sy, du = I.rMax / Math.sqrt(l2);
+      for (let n = 0; n <= 14; n++) { const u = u0 + (n / 7 - 1) * du; if (u <= 0 || u >= 0.995) continue; const y = cp.y + dy * u; if (y > top || y < base - I.D) continue;
+        if (I.cuerpo(cp.x + dx * u, cp.z + dz * u, (base - y) / I.D)) return true; }
+      return false; };
+    for (const c of C) { const suya = sel === c.id, y = c.hc * c.sy + c.py + 1.4; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, y, c.Z, !COL && (!sel || suya || !elegido) && (suya || !tapaIsla(c.X, y, c.Z))]); }
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
     for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
@@ -1886,7 +1896,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       canSvg.style.display = on ? '' : 'none';
       // (con una comarca subida como isla, la raya se corta en su orilla: si no, bajaba en vertical desde la isla al mapa)
       if (on) { let d = '', ant = null; const isla = (c) => c?.isla?.k > 0.05;
-        for (const p of canP) { pv.set(p.X, Y(p), p.Z).project(cam);
+        for (const p of canP) { const y = Y(p);
+          if (!isla(p.c) && tapaIsla(p.X, y, p.Z)) { ant = null; continue; }   // (y lo que pasa por detrás de la isla, tampoco)
+          pv.set(p.X, y, p.Z).project(cam);
           if (pv.z >= 1) { ant = null; continue; }
           d += `${!ant || (ant.c !== p.c && (isla(ant.c) || isla(p.c))) ? 'M' : 'L'}${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; ant = p; }
         for (const pl of canSvg.children) pl.setAttribute('d', d); }
