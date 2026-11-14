@@ -373,6 +373,10 @@ export class PelotaGame {
         if (r) { v = r.v; sub = 'cortDos'; }
       }
       if (!v) { const T = Math.max(0.2, p.z / speed); v = aimWide(p, lx, (tx) => aimVelocity(p, tx, ty, T), 1); sub = lx < -2.4 ? 'cortPared' : lx > 3.2 ? 'cortAncho' : ''; }
+      // (la cortada es con la derecha y hacia la pared izquierda. Hacia el ancho, a la contracancha, no es cortada: de aire,
+      // con la izquierda, es un gancho; rasa, un golpe al ancho. Lo corrigió el autor el 14 de noviembre de 2026: «cuando le
+      // damos de aire con la mano izquierda hacia la derecha [...] eso se llama gancho, no cortada»)
+      if (sub !== 'cortDos' && lx > 1.2) { shot = o.volea || p.y > 1.35 ? 'gancho' : 'ancho'; sub = ''; }
     } else {
       // el joystick manda: de lado (x) dónde cae a lo ancho y de arriba abajo (y) lo largo; el error solo depende de lo
       // bien que se golpee (antes cada golpe tenía mucho azar y no se notaba hacia dónde se apuntaba)
@@ -519,7 +523,9 @@ export class PelotaGame {
     }
     this.score[winner]++;
     this.server = winner;
-    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea ? 'volea' : R?.kind || '', sub: R?.sub || '', you: this.score.you, rival: this.score.rival });   // (sub: hacia dónde, para los comentarios: dejada al txoko o al ancho…)
+    // (de volea, solo los golpes sin nombre propio: un gancho, una cortada o una dejada de aire se nombran por lo que son; antes
+    // todo lo de aire se contaba como «volea» y el locutor llamaba volea a un gancho)
+    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea && /^(normal|pared|ancho|largo)$/.test(R?.kind || 'normal') ? 'volea' : R?.kind || '', sub: R?.sub || '', you: this.score.you, rival: this.score.rival });   // (sub: hacia dónde, para los comentarios: dejada al txoko o al ancho…)
     // el último tanto: el partido se decide y el frontón entero aplaude (se deja más tiempo antes del final)
     this.finalPoint = this.score[winner] >= this.target;
     this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you), final: this.finalPoint });

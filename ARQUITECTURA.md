@@ -638,6 +638,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   picos a -1 dBFS, mp3 mono de 64 kbps; las 660 comprobadas contra su texto. El euskera aún no tiene voz: usa el
   castellano. Guion completo en el documento «Guion de los comentaristas de pelota» (Claude Docs). Lo que sigue en esta
   sección sobre Iñaki, Miren y Envato es la versión anterior.
+- **Gancho y cortada, cada uno con su nombre** (noche del 14 de noviembre de 2026, `pelota/game.js`, `strike`): la cortada es
+  con la derecha y hacia la pared izquierda; con CORTADA hacia el ancho, a la contracancha, ya no sale «cortada al ancho»:
+  de aire, es un gancho (con la izquierda, como lo pinta `match.js`, `swingAnim`), y rasa, un golpe al ancho. «Cuando le
+  damos de aire con la mano izquierda hacia la derecha [...] eso se llama gancho, no cortada». Y en el registro del tanto,
+  «volea» solo para los golpes sin nombre propio: antes un gancho ganador se contaba como volea y el locutor lo llamaba así.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en

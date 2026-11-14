@@ -1355,7 +1355,9 @@ export class PelotaMatch {
     // (cada golpe con la mano de su lado: la pelota a su derecha, la derecha; a su izquierda, la izquierda, también el
     // gancho, que antes iba siempre con la izquierda. La volea y el gancho, con la mano por encima de la cabeza; la dejada,
     // a la altura de la cintura. Lo pide así el autor, noviembre de 2026)
-    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'Gancho' + iz; else if (e.volea && /^High/.test(g)) g = 'Volea' + iz; else if (e.shot === 'dejada') g = (e.y < 0.45 ? 'DejadaBaja' : 'Dejada') + iz;
+    // (y desde la noche del 14: el gancho, siempre con la izquierda, y la cortada, con la derecha: «cortada es con la mano
+    // derecha hacia la pared izquierda»)
+    if (e && P) { let g = golpeDe(P, e.x, e.y, e.z); if (e.shot === 'cortada') g = g.replace(/L$/, ''); const iz = g.endsWith('L') ? 'L' : ''; if (e.shot === 'gancho') g = 'GanchoL'; else if (e.volea && /^High/.test(g)) g = 'Volea' + iz; else if (e.shot === 'dejada') g = (e.y < 0.45 ? 'DejadaBaja' : 'Dejada') + iz;
         // (las jugadas de defensa que pasó el autor: el besagain, con la pelota alta y lejos del frontis, por encima del hombro;
         // y el bote pronto, nada más botar, muy agachado y corto. Noviembre de 2026)
         else if (!e.volea && e.y > 1.35 && Math.abs(P.z) > 22) g = 'Besagain' + iz;
