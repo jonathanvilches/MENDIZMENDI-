@@ -149,12 +149,17 @@ export class Almadia {
     const C = this.C, R = this.R; this.t += dt; input.consume?.(' ');
     const lado = clamp(input.move?.x || 0, -1, 1), f = clamp(input.move?.y || 0, -1, 1); this.empuje = f;
     // la corriente: más viva en la presa y bajo el puente; remando, algo más; frenando, algo menos; tras un golpe, despacio
-    const ds = this.s - R.presa.s, rapida = Math.exp(-(ds * ds) / 200) * 1.8 + Math.exp(-((this.s - this.sPuente) ** 2) / 300) * 0.6;
-    const quiere = (3.6 + rapida + f * 0.9) * (this.lento > 0 ? 0.45 : 1);
-    this.v = damp(this.v, quiere, 1.6, dt); this.lento -= dt; this.golpeT -= dt;
+    // (desde el 14 de noviembre de 2026, casi el doble de deprisa: 6,4 m/s en vez de 3,6, y remando, 8,8: la bajada dura
+    // unos dos minutos y no más de tres. El autor: «va muy despacio»)
+    const ds = this.s - R.presa.s, rapida = Math.exp(-(ds * ds) / 200) * 2.2 + Math.exp(-((this.s - this.sPuente) ** 2) / 300) * 0.8;
+    const quiere = (6.4 + rapida + (f > 0 ? f * 2.4 : f * 2.8)) * (this.lento > 0 ? 0.55 : 1);
+    this.v = damp(this.v, quiere, 1.8, dt); this.lento -= dt; this.golpeT -= dt;
+    if (Math.abs(lado) > 0.25) this.llevada = (this.llevada || 0) + dt;   // (ya sabe llevarla: se quita el aviso de la palanca)
     this.s += this.v * dt;
     // a un lado o a otro con el remo (con su inercia: es una balsa de 20 m), sin salirse del agua
-    this.vu = damp(this.vu, -lado * 2.6, 2.2, dt);
+    // (hacia el lado de la pantalla al que se empuja la palanca. Hasta el 14 de noviembre de 2026 iba al revés: la palanca
+    // a la derecha llevaba la almadía a la izquierda, y no había quien la entendiese)
+    this.vu = damp(this.vu, lado * 3.9 * this.derecha(), 3.2, dt);
     const lim = this.C.half - MEDIO - 0.6;
     this.u += this.vu * dt;
     if (Math.abs(this.u) > lim) { if (Math.abs(this.vu) > 0.9) this.golpe(null, 'Cuidado con la orilla'); this.u = Math.sign(this.u) * lim; this.vu *= -0.3; }
