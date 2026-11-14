@@ -2040,7 +2040,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     isla entera desde cualquier lado (un cilindro alrededor de ella y su punta). Con cualquier toque se para. Esa misma
     noche, a 41° en vez de 23°: «aún quiero que salga un poco más arriba [...] tenemos que conseguir ver todo el
     territorio de la comarca» y «el ángulo de la cámara tienes que inclinarlo más hacia arriba para conseguir ver toda
-    la superficie»; a 23° los montes de delante tapaban los valles de detrás. Sigue en perspectiva, no cenital. En las
+    la superficie»; a 23° los montes de delante tapaban los valles de detrás. Sigue en perspectiva, no cenital.
+    El 15, a 33°: a 41° quedaba demasiado cenital («que tenga un poco de perspectiva para ver todo el relieve de los
+    montes, de los pueblos»). Y el cambio de plano, antes: «tarda mucho entre la elevación del territorio y el cambio de
+    plano». La isla empieza a subir a los dos quintos del vuelo de llegada; la cámara arranca en cuanto la isla despega,
+    con el vuelo ya en su último tercio, que se deja; y pasa a la órbita en 2,4 s con una curva que sale viva y frena
+    suave. Antes esperaba al vuelo entero, de hasta 3,7 s, y luego tardaba 3,4 s más, con un arranque casi parado. En las
     pruebas automáticas el mapa se toma por «reducir movimiento» y no gira: `isla-orbita.mjs` lo evita con `__paseo`.
   - La roca de la panza es una imagen generada con Higgsfield a partir de la referencia del autor
     (`src/assets/isla/roca-musgo.webp`, repetible, caliza cálida con surcos que bajan y matas de musgo), con sus normales

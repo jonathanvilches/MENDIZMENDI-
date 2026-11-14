@@ -1084,7 +1084,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.72, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.58, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1184,13 +1184,16 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // arriba, lo quiero en perspectiva». En 3,4 s pasa suave del plano bajo de la subida a la perspectiva de la órbita
   // (PITCH_ORBITA, 23°: se ven el territorio y la roca de debajo) y gira alrededor de la isla una vuelta por minuto; el
   // giro arranca desde parado y coge su paso en 4 s. La distancia, la que deja ver la isla entera desde cualquier lado)
-  // (y desde la última hora del 14, más arriba, 41°: «aún quiero que salga un poco más arriba [...] tenemos que conseguir
-  // ver todo el territorio de la comarca» y «el ángulo de la cámara tienes que inclinarlo más hacia arriba para conseguir
-  // ver toda la superficie». A 23° los montes de delante tapaban los valles de detrás; sigue en perspectiva, no cenital)
-  const LLEGA_ISLA = 3.4, VUELTA_ISLA = 60;
+  // (y desde la última hora del 14, más arriba: «aún quiero que salga un poco más arriba [...] tenemos que conseguir ver
+  // todo el territorio de la comarca». A 23° los montes de delante tapaban los valles de detrás; a 41°, el 15, «que no
+  // sea tan cenital, que tenga un poco de perspectiva para ver todo el relieve de los montes, de los pueblos». A 33°)
+  // (y desde el 15, antes y más rápido: «tarda mucho entre la elevación del territorio y el cambio de plano». La cámara
+  // arranca en cuanto la isla despega, sin esperar a que acabe el vuelo de llegada, y pasa a la órbita en 2,4 s con una
+  // curva que sale viva y frena suave; antes, 3,4 s después del vuelo entero, con un arranque casi parado)
+  const LLEGA_ISLA = 2.4, VUELTA_ISLA = 60;
   function sigueDronIsla(dt) {
-    const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * u * (u * (6 * u - 15) + 10);
-    const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 4));
+    const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u);
+    const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 3));
     p.yaw = (p.yaw ?? p.de.yaw) + p.giro * w * dt; goal.yaw = p.yaw;
     goal.x = mezcla(p.de.x, p.alta.x, s); goal.z = mezcla(p.de.z, p.alta.z, s);
     goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(p.alta.d), s));
@@ -1867,7 +1870,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       let vuela = 0;
       // (sube en un segundo, con un muelle que se pasa un poco y vuelve; y si la
       // cámara viene volando a su plano de lado, espera a que vaya a medio camino: la ascensión empieza con ese plano)
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.5 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 17 - (I.v || 0) * 5.6) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.4 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 17 - (I.v || 0) * 5.6) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
@@ -1877,8 +1880,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // (con la tierra a medio salir, y acabado su vídeo si lo hay, la cámara arranca: pasa a la perspectiva de la órbita y
       // gira despacio alrededor de la isla (sigueDronIsla). Si el jugador ya ha movido la cámara, no. Con «reducir
       // movimiento», va a esa perspectiva y se queda)
-      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.5 && !tv && !vuelo && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
-        if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, yT = Math.max(...c.esq.map(q => q.y)) + I.alto, yB = I.alto - I.D, R = I.rMax + Math.hypot(c.mid.x - I.cx, c.mid.z - I.cz), esq = [];
+      // (en cuanto la isla despega: con el vuelo de llegada ya en su último tercio, se deja y la órbita sigue desde donde va
+      // la cámara)
+      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.3 && !tv && (!vuelo || vuelo.t > 0.65 && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
+        const enVuelo = !!vuelo; if (enVuelo) { vuelo = null; Object.assign(goal, { x: v.x, z: v.z, d: v.d, yaw: v.yaw, pitch: v.pitch }); }
+        if ((enVuelo || Math.abs(goal.pitch - PITCH_ISLA) < 0.03) && !gesto && !ptrs.size) { const I = c.isla, yT = Math.max(...c.esq.map(q => q.y)) + I.alto, yB = I.alto - I.D, R = I.rMax + Math.hypot(c.mid.x - I.cx, c.mid.z - I.cz), esq = [];
           // (un cilindro alrededor de la isla, y su punta: lo que tiene que caber, se mire desde donde se mire)
           for (let a = 0; a < 12; a++) { const cs = Math.cos(a * Math.PI / 6), sn = Math.sin(a * Math.PI / 6); esq.push(new THREE.Vector3(c.mid.x + cs * R, yT, c.mid.z + sn * R), new THREE.Vector3(c.mid.x + cs * R * 0.3, yB, c.mid.z + sn * R * 0.3)); }
           const alta = { x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ORBITA, 1, c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2)), pitch: PITCH_ORBITA };
