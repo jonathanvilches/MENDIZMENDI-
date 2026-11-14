@@ -1816,16 +1816,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   línea que comparten las dos (988 tramos, cada uno en dos comarcas justas y ninguno en tres), el borde de fuera es un
   único anillo cerrado de 1.733 tramos y su área es la suma de las doce (250.104 unidades, sin huecos ni solapes); y
   Navarra cae en la imagen de la península con la misma proyección (`mapaXY`), así que encaja en ella.
-- **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; `src/assets/isla/nubes.webp`; 13 de noviembre de 2026): el autor
-  pidió «nubes que se van apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y
-  textura, «no manchas blancas al uso» (la primera versión, unas capas planas de ruido, lo eran). Son cúmulos sueltos (96,
-  48 en el móvil y 26 en los equipos flojos): cada uno, una imagen de una nube de verdad con su bulto y su sombra (cuatro
-  distintas en una hoja con transparencia, de Higgsfield), puesta en su sitio en el espacio, entre 17 y 23 unidades de alto,
-  por encima de los montes y de la isla, y siempre de cara a la cámara. Así tienen perspectiva: las de cerca, grandes; las
-  de lejos, pequeñas y del color de la bruma; se tapan unas a otras y se mueven distinto al mover la cámara. Pasan despacio
-  con el viento por un campo de 340 unidades. Con Navarra entera a la vista casi no hay encima de ella, para que se lea el
-  mapa. Al acercarse la cámara (`abre`, de 112 a 42 de distancia), las de en medio se corren hacia fuera y se deshacen;
-  una de cada cinco se queda, a medias. Ninguna se pone delante de la cámara. Se ordenan de lejos a cerca cada imagen.
+- **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
+  apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
+  al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la
+  cámara, se veía plana: «no son en 3D». Ahora cada nube tiene volumen: es un montón de copos (hasta 14; 10 en el móvil y 8
+  en los equipos flojos) repartidos en una cúpula, grandes abajo y en medio y pequeños arriba y en los bordes, cada uno en
+  su sitio del espacio. Al mover la cámara, los copos se mueven unos respecto de otros, y la nube se ve desde arriba, de
+  lado o desde abajo como lo que es. Cada copo es una bola con la luz del sol del mapa (`uSolV`, el sol en la vista de la
+  cámara): blanco por donde le da, azulado por el otro lado y por la base; con el borde deshilachado y bultos pequeños, de
+  un ruido que se repite, hecho una vez en una textura de 128 px. Son 60 nubes (34 en el móvil, 16 en los equipos flojos),
+  entre 17 y 23 unidades de alto, y pasan despacio con el viento por un campo de 340 unidades. Dan sombra: una mancha
+  suave en el suelo de alrededor, corrida hacia donde no da el sol (la sombra de nubes pintada con ruido que había en el
+  suelo y en el relieve se queda en casi nada). Con Navarra entera a la vista casi no hay encima de ella, para que se lea
+  el mapa. Al acercarse la cámara (`abre`, de 112 a 42 de distancia), las de en medio se corren hacia fuera y se
+  deshacen; una de cada cinco se queda, a medias. Ninguna se pone delante de la cámara. Los copos se ordenan de lejos a
+  cerca cada imagen. En las pruebas, con `?q=high`: sin tarjeta gráfica el mapa entra en calidad baja y pone pocas.
 - **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
   con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
   móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin
