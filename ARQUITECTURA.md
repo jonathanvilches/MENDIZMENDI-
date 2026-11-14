@@ -1858,6 +1858,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   deshace en jirones, blanca hasta el final. Y lo que más apagaba el cielo no estaba en el mapa: el velo morado de
   encima (`#hub.juego .m3d::after`, en `consola.css`), de cuando el mapa era de noche, tapaba un tercio arriba y las
   esquinas. Se ha dejado en casi nada; lo de encima lleva su propio fondo.
+- **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
+  integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
+  tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora
+  cada pueblo del juego tiene su caserío sobre el relieve: de 6 a 10 casas de paredes claras y tejado a dos aguas, 16 en
+  las ciudades, alrededor de su iglesia con torre, cada una a la altura del suelo que pisa, con un solar claro debajo
+  que junta el suelo del pueblo. Van agrandadas, como el relieve y los árboles: son un dibujo del pueblo, no su plano.
+  De teja en casi toda Navarra y de pizarra en el Pirineo; de cal en el norte, piedra dorada en el centro y ocre en la
+  Ribera. Las zonas de naturaleza no llevan. Crecen algo al alejarse la cámara (`f`, de 0,8 a 1,55) y a menos de 9,5 de
+  distancia se encogen y se van: ahí salen las casas de verdad. Una malla con instancias por comarca, hija de la comarca,
+  así que sube con ella cuando flota; las de las comarcas del fondo se apagan con ellas. Su luz es propia, clara, para
+  que los tejados salgan de su color. En total, unas 420 casas y 12 llamadas de dibujo como mucho.
 - **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
   apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
   al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la
