@@ -1992,7 +1992,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     en el verde, cuánto fuera; en el azul, la altura del borde. Cada lado se pasa dos píxeles al otro, para que los puntos
     que caen justo en la muga bajen del todo: si no, quedaban de pie, como pinchos.
   - Lo leen el relieve (con la luz de su pendiente nueva donde ha bajado), sus paredes, los árboles, los ríos, los
-    embalses, la falda, los caseríos, las casas de los núcleos y el suelo de la maqueta del pueblo; las casas de la
+    embalses, la falda, las casas de los núcleos y el suelo de la maqueta del pueblo; las casas de la
     maqueta bajan todas lo que baja el centro del pueblo. En las cuentas (`orJS`): las chinchetas, los nombres, la
     cámara, los pájaros y la cabeza de las cascadas. El canto de césped va a la altura del borde ya bajado.
   - Baja mientras la isla sube (de un 8 % a un 70 % del camino) y vuelve al bajar; en tierra no cambia nada.
@@ -2063,6 +2063,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   distancia se encogen y se van: ahí salen las casas de verdad. Una malla con instancias por comarca, hija de la comarca,
   así que sube con ella cuando flota; las de las comarcas del fondo se apagan con ellas. Su luz es propia, clara, para
   que los tejados salgan de su color. En total, unas 420 casas y 12 llamadas de dibujo como mucho.
+  Se quitaron el 15 de noviembre de 2026, con su archivo: al acercarse desaparecían y salía el pueblo de verdad, y el
+  autor no les veía sentido («que sea el pueblo»). Está en la historia de git, en el commit anterior a «Mapa: sin caseríos».
 - **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
   apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
   al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la

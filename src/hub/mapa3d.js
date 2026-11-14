@@ -11,7 +11,6 @@ import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
 import { hazNubes } from './mapa3dNubes.js';
-import { hazCaserios } from './mapa3dCaserios.js';
 import { VIDEOS_ISLA } from '../data/videos-isla.js';
 import { puedenVideos } from '../ui/videos.js';
 import { escala } from '../util/tele.js';
@@ -1386,8 +1385,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     }
   }
 
-  // ---------- los caseríos: cada pueblo, a la vista sobre el relieve (mapa3dCaserios.js) ----------
-  const caserios = hazCaserios({ C, T, sobre, dentro: enComarca, grosor: GROSOR, ligero: BAJA || TACTIL, sol: sol.position, geos, mats, orilla: { glsl: ORILLA, u: (c) => ({ ...orU(c), ...ORS }) } });
+  // (los caseríos, unas casas de dibujo sobre cada pueblo a la distancia de la comarca, se quitaron el 15 de noviembre de
+  // 2026: al acercarse se iban y salía el pueblo de verdad, y el autor: «no tiene sentido, que sea el pueblo»)
 
   // ---------- los núcleos de los pueblos, al acercarse ----------
   // Solo los pueblos del juego, con su trazado de verdad (src/data/reales: casas, calles, ríos y plazas de OpenStreetMap):
@@ -1992,7 +1991,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
     // los núcleos: el pintado entra al acercarse y las casas en pie, ya muy cerca
-    nucleos(now, quieto); maqueta(dt, quieto); emblemas(dt, quieto); caserios.update(v.d);
+    nucleos(now, quieto); maqueta(dt, quieto); emblemas(dt, quieto);
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)
