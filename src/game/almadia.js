@@ -140,7 +140,7 @@ export class Almadia {
       m.updateMatrixWorld(true);
     });
     // los remos: el de proa, a donde se lleva la almadía; el de popa, al contrario, para ayudarla a girar
-    const giro = clamp(this.vu / 2.6, -1, 1);
+    const giro = clamp(this.vu / 3.9, -1, 1);
     this.remos[0].rotation.set(0.38, -giro * 0.5, 0);
     this.remos[1].rotation.set(0.38 + Math.sin(this.t * 2.2) * 0.04 * (1 + Math.abs(this.empuje || 0)), giro * 0.55, 0);
   }
@@ -170,7 +170,7 @@ export class Almadia {
     this.pon(P, dt);
     // la cámara, detrás de la almadía
     const F = this.g.follow, quiereYaw = this.tramos[0].rotation.y + Math.PI;
-    let d = ((quiereYaw - F.yaw) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; F.yaw += d * Math.min(1, dt * 2.2);
+    let d = ((quiereYaw - F.yaw) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI; F.yaw += d * Math.min(1, dt * 2.8);
     // el agua que salta en la proa
     if ((this.salpica -= dt) <= 0) { this.salpica = 0.18; const b = this.tramos[0].localToWorld(_v.set((Math.random() - 0.5) * ANCHO, 0, TRAMO / 2)); this.g.particles?.emit({ x: b.x, y: b.y + 0.1, z: b.z }, { n: 2 + Math.round(rapida * 3), color: ['#ffffff', '#d8eef5'], speed: 1.2 + rapida, size: 0.22, life: 0.6, gravity: 6 }); }
     if (this.s >= this.sFin) this.acaba();
@@ -185,7 +185,7 @@ export class Almadia {
   // un golpe: frena, salta agua, suena y se aparta de lo que ha tocado
   golpe(o, txt) {
     if (this.golpeT > 0) return;
-    this.golpeT = 1.1; this.golpes++; this.lento = 1.2;
+    this.golpeT = 1.1; this.golpes++; this.lento = 0.9;
     const b = this.tramos[0].localToWorld(_v.set(0, 0, TRAMO / 2));
     this.g.particles?.emit({ x: b.x, y: b.y + 0.2, z: b.z }, { n: 26, color: ['#ffffff', '#cfe8f0'], speed: 3.5, size: 0.3, life: 0.8, gravity: 7 });
     this.g.sound?.splash?.({ x: b.x, y: b.y, z: b.z }, 0.7); this.g.sound?.noiseBurst && this.g.sound.ctx && this.g.sound.noiseBurst(0.25, 180, 0.8, 0.35, this.g.sound.sfx);
