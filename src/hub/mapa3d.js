@@ -466,11 +466,16 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (el material de los árboles de una comarca; crece: los del bosque denso de la elegida, que salen con su relieve fino)
   const arbolM = (c, fondo, crece) => { const m = M({ roughness: 0.9 });
     m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco, uFinoK: c.fk }, orU(c), ORS);
-      sh.vertexShader = ORILLA + 'uniform float uInvExa, uTam, uFinoK; uniform vec4 uHueco; attribute float aFinoI;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed *= uTam${crece ? ' * smoothstep(0.35, 1.0, uFinoK)' : ''}; transformed.y *= uInvExa; transformed.y += aFinoI * uFinoK / instanceMatrix[1][1];\n{ vec3 b0 = instanceMatrix[3].xyz; transformed.y += (orilla(b0.xz, b0.y) - b0.y) / instanceMatrix[1][1]; }\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;`);
+      sh.vertexShader = ORILLA + 'uniform float uInvExa, uTam, uFinoK; uniform vec4 uHueco; attribute float aFinoI; varying vec3 vTp; varying float vSem;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>\nvTp = position; vSem = fract(sin(dot(instanceMatrix[3].xz, vec2(12.9898, 78.233))) * 43758.5453);\ntransformed *= uTam${crece ? ' * smoothstep(0.35, 1.0, uFinoK)' : ''}; transformed.y *= uInvExa; transformed.y += aFinoI * uFinoK / instanceMatrix[1][1];\n{ vec3 b0 = instanceMatrix[3].xyz; transformed.y += (orilla(b0.xz, b0.y) - b0.y) / instanceMatrix[1][1]; }\nif (uHueco.w > 0.5 && distance(instanceMatrix[3].xz, uHueco.xy) < uHueco.z) transformed *= 0.0;`);
       // (con un poco de su propio verde como luz: con la luz malva del cielo, de lejos salían como motas negras)
-      sh.fragmentShader = 'uniform float uFondo;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>\ndiffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
+      // (y desde el 15 de noviembre de 2026, la copa con su grano: matas de hojas más claras y más hondas, cada árbol con las
+      // suyas, y arriba, donde da el sol, más clara; antes, un cono liso de un solo verde)
+      sh.fragmentShader = 'uniform float uFondo; varying vec3 vTp; varying float vSem;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+{ float hj = sin(vTp.x * 90.0 + vSem * 40.0) * sin(vTp.y * 70.0 - vSem * 17.0) * sin(vTp.z * 85.0 + vSem * 9.0);
+  diffuseColor.rgb *= (0.78 + 0.32 * smoothstep(-0.2, 0.6, hj)) * mix(0.82, 1.12, clamp(vTp.y / 0.24, 0.0, 1.0)); }
+diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance += diffuseColor.rgb * 0.3;'); };
-    m.customProgramCacheKey = () => crece ? 'mapa-arboles-fino' : 'mapa-arboles'; return m; };
+    m.customProgramCacheKey = () => crece ? 'mapa-arboles-fino2' : 'mapa-arboles2'; return m; };
   { let semilla = 7; const azar = () => (semilla = (semilla * 16807) % 2147483647) / 2147483647;
     const tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 1.1 : 2.2, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
     for (const c of C) {
