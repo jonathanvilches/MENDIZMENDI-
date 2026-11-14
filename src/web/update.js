@@ -2,12 +2,15 @@
 // otra vez, así que podía seguir días con la versión de antes. Al volver a la app (y cada 10 minutos) se mira qué versión
 // hay publicada; si el código principal ha cambiado:
 //  · si se vuelve a la app estando en el menú, se carga la nueva al momento (el progreso ya está guardado)
+//  · si se está en el menú o en el mapa sin tocar la pantalla desde hace 6 s, también se carga sola: el 14 de noviembre de
+//    2026 el autor seguía viendo en su iPhone la versión de la tarde anterior, con el aviso sin tocar o sin llegar a verlo
 //  · si no, sale un aviso en el menú para actualizar con un toque; en un pueblo o en un partido no sale: espera al menú
 // (la página nueva se pide con ?v=…: así ni el navegador ni GitHub Pages sirven la copia guardada de la anterior; y no se
 // recarga sola dos veces por la misma versión, por si aun así llegase la de antes)
 const SRC = /assets\/(index-[\w-]+\.js)/;
 const mine = () => (document.querySelector('script[type="module"][src*="assets/index-"]')?.getAttribute('src') || '').match(SRC)?.[1];
-let pub = null, note = null, last = 0;
+let pub = null, note = null, last = 0, toque = Date.now();
+const quieto = () => Date.now() - toque > 6000;
 const inMenu = () => { const h = document.getElementById('hub'); return !!h && !h.classList.contains('hidden') && !document.querySelector('.pvs, .lg-root, .mg-overlay'); };
 const reload = () => location.replace(`./?v=${Date.now()}`);
 function tried() { try { return sessionStorage.getItem('herrizherri-version') === pub; } catch (e) { return false; } }
@@ -38,7 +41,7 @@ async function check(back = false) {
       pub = p;
     } catch (e) { return; /* sin conexión: se mira la próxima vez */ }
   }
-  if (back && inMenu() && !tried()) { remember(); reload(); return; }
+  if ((back || quieto()) && inMenu() && !tried()) { remember(); reload(); return; }
   show();
 }
 /** Empieza a vigilar si hay versión nueva publicada (solo en la web) */
@@ -46,9 +49,10 @@ export function watchUpdates() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(true); });
   // (y al volver a la página desde la memoria del navegador)
   addEventListener('pageshow', (e) => { if (e.persisted) check(true); });
-  setInterval(() => check(), 10 * 60 * 1000);
+  addEventListener('pointerdown', () => { toque = Date.now(); }, true);
+  setInterval(() => check(), 4 * 60 * 1000);
   // (si ya se sabe que la hay, el aviso sale en cuanto se vuelva al menú)
-  setInterval(() => { if (pub) show(); }, 3000);
+  setInterval(() => { if (!pub) return; if (quieto() && inMenu() && !tried()) { remember(); reload(); } else show(); }, 3000);
   // (y al abrirla: en cuanto se ve el menú, se mira; antes se esperaba 20 s y, si había versión nueva, solo salía el aviso,
   // así que el iPhone podía seguir con la de antes aunque se cerrase y se abriese la app)
   const alAbrir = setInterval(() => { if (!window.__ready) return; clearInterval(alAbrir); last = 0; check(true); }, 1000);

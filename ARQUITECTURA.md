@@ -2487,7 +2487,9 @@ La web se guarda con un service worker (`src/web/sw.js`): la página se pide pri
 navegador, y lo demás sale de la caché. La app instalada en el iPhone vuelve de segundo plano tal como estaba, así que
 `src/web/update.js` mira al volver qué versión hay publicada: si ha cambiado y se está en el menú, carga la nueva al
 momento (con `?v=…`, una sola vez por versión); si se está jugando, sale en el menú un aviso «Versión nueva» para
-actualizar con un toque.
+actualizar con un toque. Desde el 14 de noviembre de 2026, también la carga sola si se está en el menú o en el mapa sin
+tocar la pantalla desde hace 6 s, y mira cada 4 minutos en vez de cada 10: el autor seguía viendo en su iPhone la versión
+de la tarde anterior, con el alrededor del mapa en relieve gris, y daba por no hecho lo que ya estaba publicado.
 
 Cómo jugar (`src/hub/comojugar.js`): la primera pantalla de quien empieza, tras el idioma y antes del nombre, y
 siempre a mano con «Cómo jugar» arriba del menú (en el móvil de pie, en «Más») y en Ajustes; no sale en el modo
