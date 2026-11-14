@@ -126,10 +126,21 @@ varying vec2 vXZ; varying float vH, vSom;
 ${NUBES}
 #include <fog_pars_fragment>
 ${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
-vec4 pue(sampler2D t, vec4 r, float k, vec2 sv) { vec2 u = (sv - r.xy) / r.zw; if (k <= 0.0 || u.x < 0.0 || u.y < 0.0 || u.x > 1.0 || u.y > 1.0) return vec4(0.0); vec4 p = texture2D(t, u); return vec4(p.rgb, p.a * k); }
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+// (el núcleo pintado de un pueblo, en su cuadrado del relieve; el borde, desigual: un círculo que se deshace a lenguas, con
+// un ruido de unos 250 m, y no un redondel. El autor, el 14 de noviembre de 2026, al acercarse a Etxalar: se veía el
+// círculo del pueblo pegado encima del mapa)
+vec4 pue(sampler2D t, vec4 r, float k, vec2 sv) { vec2 u = (sv - r.xy) / r.zw; if (k <= 0.0 || u.x < 0.0 || u.y < 0.0 || u.x > 1.0 || u.y > 1.0) return vec4(0.0); vec4 p = texture2D(t, u);
+  float rr = length(u - 0.5) * 2.0, nb = ruido(sv * 0.8 + 3.0) * 0.6 + ruido(sv * 2.1 + 9.0) * 0.4;
+  return vec4(p.rgb, p.a * k * (1.0 - smoothstep(0.4 + 0.32 * nb, 1.0, rr))); }
+// (y su color medio alrededor del punto, de una imagen más pequeña de la misma: para llevarlo al del relieve)
+vec3 pueM(sampler2D t, vec4 r, vec2 sv) { return texture2D(t, clamp((sv - r.xy) / r.zw, 0.0, 1.0), 5.0).rgb; }
+// (el núcleo con el tono de alrededor: la foto fina del pueblo es más clara y más viva que la ortofoto del mapa, y el
+// pueblo se veía como un parche pegado. Se le quita su color medio y se le pone el del relieve en ese sitio, casi todo;
+// el detalle, sus calles, tejados y huertas, se queda)
+vec3 pueC(vec3 c, sampler2D t, vec4 r, vec2 sv, vec3 rgb, float lz) { vec3 pc = acabado(tonoOrto(rgb) * lz), pm = acabado(tonoOrto(pueM(t, r, sv)) * lz); return max(pc + (c - pm) * 0.75, 0.0); }
 // (una parcela de cultivo, en una rejilla girada de casillas de t de lado: su color, trigo, verde, barbecho, viña u olivo o
 // arado, y lo cerca que está de su linde; en el sur, las viñas en hileras, si se ven)
 vec4 parcela(vec2 sv, float t) {
@@ -220,10 +231,12 @@ void main() {
   // hacia un azul malva, como en los mapas de relieve dibujados (de cerca, en los valles entre montes, se veían negras); y
   // las luces, algo más cálidas, de sol de tarde)
   c = acabado(c);
-  vec4 p = pue(uP0, uPR[0], uPK[0], sv); c = mix(c, p.rgb, p.a);
-  p = pue(uP1, uPR[1], uPK[1], sv); c = mix(c, p.rgb, p.a);
-  p = pue(uP2, uPR[2], uPK[2], sv); c = mix(c, p.rgb, p.a);
-  p = pue(uP3, uPR[3], uPK[3], sv); c = mix(c, p.rgb, p.a);
+  // (los núcleos de los pueblos, con las mismas cuentas que la ortofoto del relieve: su tono, la luz del monte y el acabado.
+  // Antes iban tal cual, más claros y de otro color, y se veía dónde empezaban)
+  vec4 p = pue(uP0, uPR[0], uPK[0], sv); float lz = 1.0 + (s - 1.0) * 0.7; if (p.a > 0.0) c = mix(c, pueC(c, uP0, uPR[0], sv, p.rgb, lz), p.a);
+  p = pue(uP1, uPR[1], uPK[1], sv); if (p.a > 0.0) c = mix(c, pueC(c, uP1, uPR[1], sv, p.rgb, lz), p.a);
+  p = pue(uP2, uPR[2], uPK[2], sv); if (p.a > 0.0) c = mix(c, pueC(c, uP2, uPR[2], sv, p.rgb, lz), p.a);
+  p = pue(uP3, uPR[3], uPK[3], sv); if (p.a > 0.0) c = mix(c, pueC(c, uP3, uPR[3], sv, p.rgb, lz), p.a);
   // (el agua pintada en el suelo de los pueblos, ríos, balsas y piscinas, se mueve: ondas de unos 7 m que se cruzan y
   // destellos; en metros desde el centro de la maqueta, y solo donde se distinguen, para que de lejos no titile)
   float ag = smoothstep(0.14, 0.05, abs(c.b - 0.91)) * smoothstep(0.25, 0.4, c.b - c.r);

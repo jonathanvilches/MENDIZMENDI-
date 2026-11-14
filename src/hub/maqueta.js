@@ -549,12 +549,16 @@ totalEmissiveRadiance += diffuseColor.rgb * 0.14;   // (las caras en sombra, con
   for (const s of D.calles) for (let i = 0; i + 1 < s.pts.length; i++) { const [ax, az] = s.pts[i], [bx, bz] = s.pts[i + 1], L = Math.hypot(bx - ax, bz - az), m = Math.max(1, Math.ceil(L / CEL));
     for (let t = 0; t <= m; t++) meter(ax + (bx - ax) * t / m, az + (bz - az) * t / m, { a: s.pts[i], b: s.pts[i + 1], r: (s.w || 2) + 2 }); }
   for (const r of D.rios) for (let i = 0; i + 1 < r.pts.length; i++) meter(r.pts[i][0], r.pts[i][1], { a: r.pts[i], b: r.pts[i + 1], r: (r.w || 2) + 1.5 });
+  const bsem = (hashStr((D.id || 'b') + ':borde') % 1000) / 159;   // (el giro del borde desigual, propio de cada pueblo)
   const libre = (x, z) => {
     const cx = Math.floor(x / CEL), cz = Math.floor(z / CEL);
     for (let p = -1; p <= 1; p++) for (let q2 = -1; q2 <= 1; q2++) for (const it of ocupa.get((cx + p) * 8192 + cz + q2) || []) {
       if (it.c ? Math.hypot(x - it.c.x, z - it.c.z) < it.r : segDist(x, z, it.a[0], it.a[1], it.b[0], it.b[1]).d < it.r) return false;
     }
-    return Math.hypot(x, z) < R * 0.93 && cabe(x, z, 4);
+    // (hasta un borde desigual, entre algo más de la mitad y el 93 % del radio según el ángulo: el bosque de la maqueta
+    // acababa en un círculo, y al acercarse se veía el redondel del pueblo sobre el mapa)
+    const an = Math.atan2(z, x);
+    return Math.hypot(x, z) < R * (0.75 + 0.1 * Math.sin(an * 3 + bsem) + 0.08 * Math.sin(an * 7 + bsem * 2.3)) && cabe(x, z, 4);
   };
   const sombras = res.sombras = [];   // (cada árbol, su sombra en el suelo pintado: [x, z, radio], en metros)
   const arbol = (x, z, r, alto2, tono = verde, lista = piezas.arboles) => {

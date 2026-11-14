@@ -1927,6 +1927,40 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     oscura (`TIERRA_HUECO`) y sin el filo claro de arriba.
   - El contorno tiene entre 300 y 560 puntos según lo que mide (antes 300 siempre), para que en las comarcas grandes el
     labio no vaya a tramos rectos.
+- **Sin cortes ni rayas: todo termina** (`hazFalda`, `faldaM`, `sueloM` y `navDentro` en `mapa3d.js`; `pue`, `pueM` y
+  `pueC` en `mapa3dSombreadores.js`; `libre` en `maqueta.js`; 14 de noviembre de 2026). El autor, con un vídeo de su
+  teléfono y una imagen de islas flotantes de referencia: «no quiero un fondo como si hubiera niebla, quiero un fondo bien
+  azul, bien claro, con nubes», «no quiero líneas separatorias», «que termine todo, no quiero cortes», y luego: «no hay
+  cortes, todos los bordes terminan».
+  - Sin rayas: fuera la cinta clara del contorno de Navarra con la oscura de debajo, la junta clara entre comarcas, la
+    franja del color de cada una hacia dentro y la línea del borde de cada comarca (`linea`, que se queda oculta porque
+    otras partes la mueven). Tampoco la sombra del suelo de fuera junto al borde, que de día se leía como una raya. Las
+    comarcas se distinguen por su color, su nombre y la luz al pasar por encima.
+  - Sin escalones: las comarcas ya no se levantan con sus sellos (`alzado` vale 0). Levantada, entre ella y sus vecinas
+    quedaba una pared, un corte en el monte; lo que lleva cada una se ve en su tarjeta de abajo.
+  - La falda: el borde de Navarra era una pared del suelo a la altura del monte, con la raya encima y el suelo plano
+    detrás. Ahora el relieve sigue fuera y baja hasta meterse bajo el suelo de alrededor: una malla que empieza en cada
+    punto del borde a su misma altura (las paredes de las comarcas quedan dentro, tapadas) y baja en 8 o 12 filas, más
+    larga cuanto más alto es el monte (de 1,2 a 6,5 unidades), deprisa al principio y lisa abajo, con lomas a dos escalas.
+    Hacia fuera, cada punto con su normal de cerca y, más lejos, la de muchos vecinos, para que en las entradas no se
+    cruce consigo misma, y sin llegar nunca a la otra orilla de Navarra (`navDentro`, de la máscara de Navarra). Lleva la
+    imagen de verdad de alrededor, con las mismas cuentas que el suelo plano, la luz de cada ladera (en lo llano vale 1,
+    así abajo casa con el suelo) y roca clara con grano en lo muy pendiente. Crece con las comarcas al empezar y se
+    hunde con las que quedan de fondo al subir una isla, así su borde sigue pegado al suyo. Unos 42.000 triángulos. Con
+    montes muy altos, como en el Pirineo, de muy cerca aún se ve lisa: no hay relieve de verdad fuera de Navarra.
+  - El fondo azul: la bruma empieza a vez y media la distancia de la cámara y tapa del todo a más de tres veces y media
+    (antes, a una y a dos), y la cámara ve hasta cuatro veces su distancia. Lo lejano se ve con su color, el mar y la
+    tierra, y solo al fondo se funde con el cielo.
+  - Navarra sin descubrir, menos apagada (`uGris` 0,05, `uTintK` 0,17, brillo 0,95), y lo de fuera algo más (0,17):
+    con el suelo de alrededor de verdad, Navarra quedaba más gris que España.
+  - El paso del pueblo al mapa: el núcleo pintado de cada pueblo se funde con el relieve desde el 12 % del radio, en
+    varios tramos, y su borde no es un círculo: se deshace a lenguas con un ruido de unos 250 m (`pue`). Su color pasa
+    por las mismas cuentas que la ortofoto del relieve y, además, se le quita su color medio, tomado de una imagen más
+    pequeña de la misma, y se le pone el del relieve en ese sitio (`pueC`): la foto fina del pueblo es más clara y más
+    viva que la del mapa y se veía como un parche pegado. En la maqueta, los árboles llegan hasta un borde desigual,
+    entre algo más de la mitad y el 93 % del radio según el ángulo, y no en un círculo. Para verlo: `tools/islas/ir-pueblo.mjs`
+    (vuela a un pueblo como al tocarlo y saca fotos de la bajada) y `tools/islas/vistas-mapa.mjs` (el mapa desde varias
+    cámaras).
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora

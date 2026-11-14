@@ -104,17 +104,21 @@ export function mapa3d(host, o) {
   const NAV = { value: null }, NAVR = { value: new THREE.Vector4(0, 0, 1, 1) }, FUERA = { value: 0 }, CIELO = { value: 0 };   // (CIELO: con una isla en el aire, de día: lo de fuera, menos apagado)
   const FONDO_L = { value: new THREE.Color(FONDO) };
   // (funde: cuánto se funden sus bordes, oeste, este, sur y norte, en unidades del mapa; modo 1, en el fondo; 2, por transparencia)
-  const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0) => {
-    const g = new THREE.PlaneGeometry(w, h); geos.push(g);
+  // (falda: el material de la falda de relieve de alrededor de Navarra, con la luz de sus laderas, aLuz, que en lo llano es 1)
+  const sueloM = (transp, funde = [0, 0, 0, 0], modo = 0, w = 1, h = 1, falda = false) => {
     const m = new THREE.MeshBasicMaterial({ color: FONDO, toneMapped: false, transparent: transp, opacity: transp ? 0 : 1, depthWrite: !transp }); mats.push(m);
     m.onBeforeCompile = (sh) => { sh.uniforms.uT = TIEMPO; sh.uniforms.uNav = NAV; sh.uniforms.uNavR = NAVR; sh.uniforms.uFuera = FUERA;   // (las mismas nubes que sobre Navarra)
       sh.uniforms.uCielo = CIELO; sh.uniforms.uFunde = { value: new THREE.Vector4(...funde) }; sh.uniforms.uModo = { value: modo }; sh.uniforms.uTam = { value: new THREE.Vector2(w, h) }; sh.uniforms.uFondoL = FONDO_L;
-      sh.vertexShader = 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;');
+      sh.vertexShader = (falda ? 'attribute vec2 aLuz; varying vec2 vLuz;\n' : '') + 'varying vec2 vMun; varying vec2 vUs;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvMun = (modelMatrix * vec4(position, 1.0)).xz; vUs = uv;' + (falda ? ' vLuz = aLuz;' : ''));
       // (y el mar, el Cantábrico y los embalses de fuera, con ondas lentas y algún destello: es lo que tiene el azul por
       // encima del verde y del rojo)
-      sh.fragmentShader = 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo, uCielo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + TONO_ORTO + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+      sh.fragmentShader = (falda ? 'varying vec2 vLuz;\n' : '') + 'varying vec2 vMun; varying vec2 vUs; uniform sampler2D uNav; uniform vec4 uNavR; uniform float uFuera, uModo, uCielo; uniform vec4 uFunde; uniform vec2 uTam; uniform vec3 uFondoL;\n' + NUBES + TONO_ORTO + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 // (la imagen de verdad de alrededor, por las mismas cuentas que la ortofoto de Navarra, en valores de pantalla)
-{ vec3 d = pow(max(diffuseColor.rgb, 0.0), vec3(1.0 / 2.2)); d = acabado(tonoOrto(d)); diffuseColor.rgb = pow(d, vec3(2.2)); }
+{ vec3 d = pow(max(diffuseColor.rgb, 0.0), vec3(1.0 / 2.2)); d = acabado(tonoOrto(d)); diffuseColor.rgb = pow(d, vec3(2.2)); }${falda ? `
+// (en la falda: en lo muy pendiente, roca clara entre la hierba, con grano; y la luz de cada ladera)
+{ float l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)); vec2 q = vMun * 3.1; float gr = fract(sin(dot(floor(q), vec2(127.1, 311.7))) * 43758.5453);
+  diffuseColor.rgb = mix(diffuseColor.rgb, vec3(l) * vec3(1.05, 1.0, 0.92) * (0.85 + 0.3 * gr) + 0.03, vLuz.y * 0.6); }
+diffuseColor.rgb *= vLuz.x;` : ''}
 diffuseColor.rgb *= 1.0 - 0.12 * nubes(vMun);
 { float mar = smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g));
   if (mar > 0.0) { vec2 q = vMun * 2.2; float w = sin(q.x * 1.7 + uT * 0.5 + sin(q.y * 1.1 + uT * 0.3) * 2.0) * sin(q.y * 2.3 - uT * 0.4 + sin(q.x * 0.9) * 1.5);
@@ -131,8 +135,9 @@ diffuseColor.rgb *= 1.0 - 0.12 * nubes(vMun);
   apag = mix(apag, vec3(l) * vec3(0.86, 0.9, 0.96) * 0.9, uCielo);
   // (desde el 14 de noviembre de 2026 lo de fuera es imagen de verdad, del mismo tono que la ortofoto de Navarra: de día
   // apenas se apaga, lo justo para que Navarra mande, y la sombra junto a su borde es más leve)
-  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.1, uCielo));
-  diffuseColor.rgb *= 1.0 - mix(0.45, 0.22, uCielo) * fuera * nm.g; }
+  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.17, uCielo));
+  // (y de día, sin la sombra junto al borde: se leía como una raya alrededor de Navarra; el autor no quiere rayas que separen)
+  diffuseColor.rgb *= 1.0 - mix(0.45, 0.0, uCielo) * fuera * nm.g; }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
 // por el norte, que está pegado a Navarra; antes se veía su rectángulo flotando, como un cuadrado. La de alrededor de
 // Navarra, que va encima, se funde por transparencia en la de debajo)
@@ -140,13 +145,22 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   float kx = max(max(uFunde.x - a.x, 0.0) / uFunde.x, max(uFunde.y - b.x, 0.0) / uFunde.y), ky = max(max(uFunde.z - a.y, 0.0) / uFunde.z, max(uFunde.w - b.y, 0.0) / uFunde.w);
   float e = smoothstep(0.0, 1.0, length(vec2(kx, ky)));
   if (uModo < 1.5) diffuseColor.rgb = mix(diffuseColor.rgb, uFondoL, e); else diffuseColor.a *= 1.0 - e; }`); };
-    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav-funde-sat';
-    new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy()); Object.assign(m, { map: tx, opacity: 1, needsUpdate: true }); m.color.set(0xffffff); });
+    m.customProgramCacheKey = () => 'mapa-suelo-nubes-nav-funde-sat' + (falda ? '-falda' : '');
+    return m;
+  };
+  // (tambien: otros materiales que usan la misma imagen, la falda)
+  const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0, tambien = []) => {
+    const g = new THREE.PlaneGeometry(w, h); geos.push(g);
+    const m = sueloM(transp, funde, modo, w, h);
+    new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy());
+      for (const o of [m, ...tambien]) { Object.assign(o, { map: tx, opacity: 1, needsUpdate: true, visible: true }); o.color.set(0xffffff); } });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
   };
+  // (la falda, con la imagen de alrededor de Navarra, la de 200 × 152 centrada en el mapa; sin ella aún, no se pinta)
+  const faldaM = sueloM(false, [0, 0, 0, 0], 0, 200, 152, true); faldaM.visible = false;
   const [ex0, ey0, ex1, ey1] = [-3006, -451, 2824, 4150];   // (lo que cubre la imagen de la península, en unidades del mapa)
   suelo(ESPANA, (ex1 - ex0) * S, (ey1 - ey0) * S, ((ex0 + ex1) / 2 - CX) * S, ((ey0 + ey1) / 2 - CY) * S, -0.04, false, [130, 130, 150, 26], 1);
-  suelo(matchMedia?.('(pointer: coarse)').matches || o.ligero ? ENTORNO_M : ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2).renderOrder = -2;
+  suelo(matchMedia?.('(pointer: coarse)').matches || o.ligero ? ENTORNO_M : ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2, [faldaM]).renderOrder = -2;
 
   // el sombreado fino, compartido por todas las comarcas (mientras llega, el de cada vértice)
   const R = MAPA_RELIEVE.sombra, LISTO = { value: 0 };
@@ -164,7 +178,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true,
     uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uOrtoD: { value: nada }, uOrtoDK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO,
-      uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.1 }, uTinte: { value: srgb(c.color) }, uTintK: { value: vivo ? 0.16 : 0.2 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
+      uP0: { value: nada }, uP1: { value: nada }, uP2: { value: nada }, uP3: { value: nada }, uPR: { value: [0, 1, 2, 3].map(() => new THREE.Vector4(0, 0, 1, 1)) }, uPK: { value: [0, 0, 0, 0] }, uDetRect: { value: d ? new THREE.Vector4(d.x0, d.y0, d.w * d.paso, d.h * d.paso) : new THREE.Vector4(0, 0, 1, 1) }, uGris: { value: vivo ? 0 : 0.05 }, uTinte: { value: srgb(c.color) }, uTintK: { value: vivo ? 0.16 : 0.17 }, uBrillo: { value: 1 }, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) } } });
     mats.push(m); return m; };
 
   // (el borde: luz, la propia, para lo que queda a la sombra; filo, cuánto brilla su canto de arriba)
@@ -232,12 +246,15 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const side = bordeM(c, vivo, 0.2, 1.3), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id; const fk = top.uniforms.uFinoK = { value: 0 };
     // (la panza, solo en la entrada: a la sombra, con más luz propia para que se vea su forma)
     let bajo = null; if (INTRO) { const pg = panza(Pw); geos.push(pg); bajo = new THREE.Mesh(pg, bordeM(c, vivo, 0.6, 0)); mesh.add(bajo); }
-    // (lo que se levanta la comarca con sus sellos)
-    const alzado = 0.35 * c.pct + (c.done ? 0.35 : 0);
+    // (lo que se levanta la comarca con sus sellos: nada desde el 14 de noviembre de 2026. Levantada, entre ella y sus vecinas
+    // quedaba un escalón con su pared, un corte en el monte, y el autor no quiere cortes: lo que lleva cada una se ve abajo,
+    // en su tarjeta)
+    const alzado = 0;
     mesh.scale.y = 0.01; scene.add(mesh);
     // (el borde de arriba, una línea clara del color de la comarca, por encima del relieve)
     const lg = new THREE.BufferGeometry().setFromPoints(Pw.map(([X, Z]) => new THREE.Vector3(X, GROSOR + alto(X, Z) + 0.05, Z))); geos.push(lg);
     const linea = new THREE.LineLoop(lg, new THREE.LineBasicMaterial({ color: new THREE.Color(c.color).lerp(BLANCO, 0.4), transparent: true, opacity: vivo ? 1 : 0.85, toneMapped: false })); mats.push(linea.material);
+    linea.visible = false;   // (sin rayas que separen: el autor, 14 de noviembre de 2026; la línea se queda por quien la mueve)
     scene.add(linea);
     const [X, Z] = W(cx, cy);
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
@@ -282,14 +299,18 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
 
   // ---------- Navarra, que se distinga de lo de alrededor ----------
   // (la máscara para el suelo de fuera: Navarra en rojo, nítida, y en verde difuminada, para la sombra junto al borde. El
-  // difuminado, dibujándola pequeña y agrandándola, sin filtros del lienzo, que Safari no siempre tiene)
+  // difuminado, dibujándola pequeña y agrandándola, sin filtros del lienzo, que Safari no siempre tiene. Y navDentro, si un
+  // punto cae en Navarra, de la misma máscara nítida: para la falda)
+  let navDentro = () => false;
   { let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
     for (const c of C) for (const [X, Z] of c.Pw) { x0 = Math.min(x0, X); z0 = Math.min(z0, Z); x1 = Math.max(x1, X); z1 = Math.max(z1, Z); }
     x0 -= 8; z0 -= 8; x1 += 8; z1 += 8;
     const N = 768, w = N, h = Math.round(N * (z1 - z0) / (x1 - x0)), k = w / (x1 - x0);
     const pinta = (g, kk, col) => { g.fillStyle = col; g.beginPath(); for (const c of C) c.Pw.forEach(([X, Z], i) => { const a = (X - x0) * kk, b = (Z - z0) * kk; i ? g.lineTo(a, b) : g.moveTo(a, b); }); g.fill('nonzero'); };
-    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d');
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const g = cv.getContext('2d', { willReadFrequently: true });
     g.fillStyle = '#000'; g.fillRect(0, 0, w, h); pinta(g, k, '#f00');
+    { const d = g.getImageData(0, 0, w, h).data, rojo = new Uint8Array(w * h); for (let q = 0; q < rojo.length; q++) rojo[q] = d[q * 4];
+      navDentro = (X, Z) => { const a = Math.floor((X - x0) * k), b = Math.floor((Z - z0) * k); return a >= 0 && b >= 0 && a < w && b < h && rojo[b * w + a] > 127; }; }
     const sw = Math.round(w / 14), sh = Math.round(h / 14), cs = document.createElement('canvas'); cs.width = sw; cs.height = sh; const gs = cs.getContext('2d');
     gs.fillStyle = '#000'; gs.fillRect(0, 0, sw, sh); pinta(gs, sw / (x1 - x0), '#0f0');
     g.globalCompositeOperation = 'lighter'; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high'; g.drawImage(cs, 0, 0, w, h);
@@ -297,54 +318,88 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     NAV.value = t; NAVR.value.set(x0, z0, x1 - x0, z1 - z0);
     mats.push({ dispose: () => t.dispose() });
   }
-  // (y su contorno de fuera, una cinta clara sobre el borde de las losas, con otra oscura debajo, algo más ancha, que la
-  // recorta; y entre comarcas, una junta oscura y, a cada lado, una franja del color de cada comarca que se apaga hacia
-  // dentro: así se ve dónde acaba una y empieza otra, aunque sean del mismo verde. Todo del mismo ancho en pantalla a
-  // cualquier distancia (ANCHO_B) y en la losa de su comarca, que se levanta con ella)
+  // (sin rayas: hasta el 14 de noviembre de 2026, el contorno de Navarra llevaba una cinta clara con otra oscura debajo, y
+  // entre comarcas una junta clara con una franja del color de cada una hacia dentro. El autor, con su imagen de referencia:
+  // «no quiero líneas separatorias, que tenga una terminación, como en la referencia». Las comarcas se distinguen por su
+  // color, su nombre y la luz al pasar por encima. ANCHO_B se queda, que lo mueve el bucle)
   const ANCHO_B = { value: 0.1 };
-  const haciaDentro = () => lienzo(4, 64, (g) => { const gr = g.createLinearGradient(0, 64, 0, 0); for (const [k, a] of [[0, 1], [0.3, 0.75], [1, 0]]) gr.addColorStop(k, `rgba(255,255,255,${a})`); g.fillStyle = gr; g.fillRect(0, 0, 4, 64); });
-  const cintaB = (color, op, fac, orden, map = rioTex()) => { const m = new THREE.MeshBasicMaterial({ color, map, transparent: true, opacity: op, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 });
-    m.onBeforeCompile = (sh) => { sh.uniforms.uAnchoB = ANCHO_B; sh.uniforms.uFacB = { value: fac };
-      sh.vertexShader = 'attribute vec3 lado; uniform float uAnchoB, uFacB;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAnchoB * uFacB;'); };
-    m.customProgramCacheKey = () => 'mapa-contorno'; mats.push(m); m.userData.orden = orden; return m; };
-  // (finas: la raya oscura de la junta y, a cada lado, la luz de la comarca hacia dentro, estrecha, como un canto biselado.
-  // En noviembre de 2026 se hicieron el doble de anchas y pesaban demás: se dejaron así)
-  // (la junta entre comarcas, una raya fina y clara, crema como el contorno de Navarra: oscura, casi negra, no le gustaba
-  // al autor, noviembre de 2026)
-  const contornoM = [cintaB(0x1d1240, 0.6, 2.1, 2), cintaB(0xfff1cf, 0.9, 0.9, 3)], juntaM = cintaB(0xfff4dc, 0.62, 0.55, 3), gradB = haciaDentro();
-  mats.push({ dispose: () => gradB.dispose() });
   // (los tramos seguidos de lados que cumplen algo, empezando donde cambia, para no partir ni repetir uno que da la vuelta)
   const tramos = (P, ok) => { const n = P.length, out = []; let s = 0; while (s < n && ok[(s - 1 + n) % n] === ok[s]) s++; if (s === n) s = 0;
     let cur = null; for (let k = 0; k < n; k++) { const i = (s + k) % n; if (ok[i]) { if (!cur) out.push(cur = [P[i]]); cur.push(P[(i + 1) % n]); } else cur = null; } return out; };
-  // (una cinta a lo largo de unos puntos: par(ox, oz) da los dos desplazamientos de cada punto, en anchos)
-  const cinta2 = (runs, par) => { const pos = [], lado = [], uv = [], idx = [];
-    for (const pts of runs) { const b0 = pos.length / 3;
-      pts.forEach(([X, Z], k) => {
-        const p0 = pts[Math.max(0, k - 1)], p1 = pts[Math.min(pts.length - 1, k + 1)], L = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]) || 1, ox = -(p1[1] - p0[1]) / L, oz = (p1[0] - p0[0]) / L, y = GROSOR + alto(X, Z) + 0.06, [a, b] = par(ox, oz);
-        pos.push(X, y, Z, X, y, Z); lado.push(a[0], 0, a[1], b[0], 0, b[1]); uv.push(k * 0.1, 0, k * 0.1, 1);
-        if (k) { const v = b0 + k * 2; idx.push(v - 2, v, v - 1, v - 1, v, v + 1); }
-      }); }
-    if (!idx.length) return null;
-    const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gb.setAttribute('lado', new THREE.Float32BufferAttribute(lado, 3)); gb.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gb.setIndex(idx); geos.push(gb);
-    return gb; };
-  const ponCinta = (c, gb, m) => { if (!gb) return; const me = new THREE.Mesh(gb, m); me.renderOrder = m.userData.orden; me.raycast = () => {}; me.frustumCulled = false; c.mesh.add(me); (c.cintas ||= []).push(me); };
+  // (el borde de fuera de Navarra: los lados de cada comarca que no tocan a ninguna otra)
+  const bordeFuera = [];
   for (const c of C) {
-    const P = c.Pw, n = P.length, fuera = new Array(n), dentro = new Array(n), e = 0.22;
+    const P = c.Pw, n = P.length, fuera = new Array(n), e = 0.22;
     const otro = (x, z) => C.some(o => o !== c && en(o, x, z));
     for (let i = 0; i < n; i++) {
       const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n], L = Math.hypot(bx - ax, bz - az) || 1, nx = -(bz - az) / L * e, nz = (bx - ax) / L * e, mx = (ax + bx) / 2, mz = (az + bz) / 2;
-      fuera[i] = !otro(mx + nx, mz + nz) && !otro(mx - nx, mz - nz); dentro[i] = !fuera[i];
+      fuera[i] = !otro(mx + nx, mz + nz) && !otro(mx - nx, mz - nz);
     }
-    // (hacia dentro de la comarca: el lado izquierdo de sus bordes si va en sentido contrario a las agujas, si no, el derecho;
-    // y se comprueba en su lado más largo, por si acaso)
-    let area = 0, larga = 0, li = 0; for (let i = 0; i < n; i++) { const [ax, az] = P[i], [bx, bz] = P[(i + 1) % n]; area += ax * bz - bx * az; const L = Math.hypot(bx - ax, bz - az); if (L > larga) { larga = L; li = i; } }
-    let sg = area > 0 ? 1 : -1; { const [ax, az] = P[li], [bx, bz] = P[(li + 1) % n]; if (!en(c, (ax + bx) / 2 - (bz - az) / larga * e * sg, (az + bz) / 2 + (bx - ax) / larga * e * sg)) sg = -sg; }
-    const gFuera = cinta2(tramos(P, fuera), (ox, oz) => [[ox, oz], [-ox, -oz]]); for (const m of contornoM) ponCinta(c, gFuera, m);
-    const junta = tramos(P, dentro), luz = cintaB(new THREE.Color(c.color).lerp(BLANCO, 0.55), 0.75, 1, 3, gradB); c.bordeIn = luz;
-    ponCinta(c, cinta2(junta, (ox, oz) => [[ox, oz], [-ox, -oz]]), juntaM);
-    ponCinta(c, cinta2(junta, (ox, oz) => [[ox * sg * 0.8, oz * sg * 0.8], [ox * sg * 2.6, oz * sg * 2.6]]), luz);
+    bordeFuera.push(...tramos(P, fuera));
   }
-
+  // la falda: el relieve sigue fuera de Navarra y baja poco a poco hasta el suelo de alrededor, con la imagen de verdad de
+  // ese suelo encima (faldaM, la misma de alrededor, con la luz de sus laderas). Hasta el 14 de noviembre de 2026, en el
+  // borde el monte se cortaba en una pared, con la raya clara encima y el suelo plano detrás; el autor: «no quiero cortes,
+  // que termine todo». Empieza justo en el borde, punto por punto a su altura (la de las paredes de las comarcas, que quedan
+  // dentro, tapadas), y baja con una ladera más larga cuanto más alto es el monte, de forma desigual, con lomas, hasta
+  // meterse bajo el suelo. Hacia fuera, cada punto con su normal de cerca y, más lejos, la de muchos vecinos, para que en
+  // las entradas no se cruce consigo misma, y sin pasar nunca a la otra orilla de Navarra
+  function hazFalda(runs) {
+    // (los tramos, en anillos: cada uno sigue con el que empieza donde acaba, del derecho o del revés)
+    const K = ([x, z]) => Math.round(x * 400) + ',' + Math.round(z * 400), usado = new Array(runs.length).fill(false), anillos = [];
+    for (let a = 0; a < runs.length; a++) {
+      if (usado[a]) continue; usado[a] = true; const L = runs[a].slice();
+      for (let vuelta = 0; vuelta < runs.length; vuelta++) {
+        const fin = K(L[L.length - 1]); if (L.length > 2 && fin === K(L[0])) break;
+        let b = -1, rev = false;
+        for (let q = 0; q < runs.length; q++) if (!usado[q]) { if (K(runs[q][0]) === fin) { b = q; break; } if (K(runs[q][runs[q].length - 1]) === fin) { b = q; rev = true; break; } }
+        if (b < 0) break; usado[b] = true; const r2 = rev ? runs[b].slice().reverse() : runs[b]; for (let q = 1; q < r2.length; q++) L.push(r2[q]);
+      }
+      const cerrado = L.length > 2 && K(L[L.length - 1]) === K(L[0]); if (cerrado) L.pop();
+      const Q = L.filter((p, q) => q === 0 || Math.hypot(p[0] - L[q - 1][0], p[1] - L[q - 1][1]) > 0.02);
+      if (Q.length > 8) anillos.push({ Q, cerrado });
+    }
+    const FIL = BAJA ? 8 : 12, pos = [], uv = [], idx = [], Ld = sol.position.clone().normalize();
+    for (const { Q, cerrado } of anillos) {
+      const n = Q.length, at = (q) => Q[cerrado ? (q % n + n) % n : Math.max(0, Math.min(n - 1, q))];
+      const nor = (q, w) => { const a = at(q - w), b = at(q + w), tx = b[0] - a[0], tz = b[1] - a[1], l = Math.hypot(tx, tz) || 1; return [-tz / l, tx / l]; };
+      // (hacia fuera: el lado al que no queda Navarra, a votos por si algún punto engaña)
+      let votos = 0; for (let q = 0; q < n; q += 5) { const [nx, nz] = nor(q, 3), p = Q[q]; votos += navDentro(p[0] + nx * 0.35, p[1] + nz * 0.35) ? -1 : 1; }
+      const sg = votos >= 0 ? 1 : -1;
+      // (lo larga que es la ladera: más cuanto más alto el monte, de 1,2 a 6,5 unidades, con un ruido para que no sea pareja.
+      // Más larga, en el Pirineo salían laderas enormes y lisas, como una sábana estirada)
+      const top = Q.map(([x, z]) => GROSOR + alto(x, z));
+      let Lr = Q.map(([x, z], q) => Math.min(6.5, Math.max(1.2, 0.8 + top[q] * 1.1)) * (0.8 + 0.45 * ruidoV(x * 0.35 + 3.1, z * 0.35 + 9.7)));
+      Lr = Lr.map((_, q) => { let s2 = 0, m2 = 0; for (let d = -6; d <= 6; d++) { const j2 = cerrado ? ((q + d) % n + n) % n : q + d; if (j2 < 0 || j2 >= n) continue; s2 += Lr[j2]; m2++; } return s2 / m2; });
+      // (y que no llegue a la otra orilla: si el rayo hacia fuera vuelve a entrar en Navarra, se queda en menos de la mitad)
+      for (let q = 0; q < n; q++) { const [nx, nz] = nor(q, 12), p = Q[q]; for (let d = 0.6; d < Lr[q]; d += 0.3) if (navDentro(p[0] + nx * sg * d, p[1] + nz * sg * d)) { Lr[q] = Math.max(0.3, d * 0.45); break; } }
+      const b0 = pos.length / 3;
+      for (let q = 0; q < n; q++) {
+        const p = Q[q], n1 = nor(q, 2), n2 = nor(q, 18);
+        for (let k = 0; k <= FIL; k++) {
+          const t = k / FIL, s2 = Lr[q] * Math.pow(t, 1.15);
+          let nx = n1[0] + (n2[0] - n1[0]) * t, nz = n1[1] + (n2[1] - n1[1]) * t; const l = Math.hypot(nx, nz) || 1; nx = nx / l * sg; nz = nz / l * sg;
+          const x = p[0] + nx * s2, z = p[1] + nz * s2;
+          // (de la altura del borde a algo por debajo del suelo de alrededor: cae deprisa al principio y llega lisa abajo, con lomas)
+          const pr = (1 - t) * (1 - t) * (1 + 0.6 * t), loma = k && k < FIL ? ((ruidoV(x * 0.7 + 1.7, z * 0.7 + 4.2) - 0.5) * 0.5 + (ruidoV(x * 2.3 + 5.1, z * 2.3 + 2.6) - 0.5) * 0.3) * top[q] * t * (1 - t) * 4 : 0;
+          pos.push(x, k ? Math.max(-0.03, -0.03 + (top[q] + 0.03) * pr + loma) : top[q], z); uv.push(x / 200 + 0.5, 0.5 - z / 152);
+        }
+      }
+      const F = FIL + 1, nq = cerrado ? n : n - 1;
+      for (let q = 0; q < nq; q++) { const a = b0 + q * F, b = b0 + ((q + 1) % n) * F; for (let k = 0; k < FIL; k++) idx.push(a + k, b + k, a + k + 1, b + k, b + k + 1, a + k + 1); }
+    }
+    if (!idx.length) return null;
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
+    // (la luz de cada ladera, con el sol del mapa, que en lo llano vale 1, así abajo casa con el suelo de alrededor, que no
+    // tiene luz; y cuánta roca, en lo muy pendiente)
+    const nr = g.attributes.normal, luz = new Float32Array(nr.count * 2), den = 0.58 + 0.42 * Ld.y;
+    for (let q = 0; q < nr.count; q++) { let x = nr.getX(q), y = nr.getY(q), z = nr.getZ(q); if (y < 0) { x = -x; y = -y; z = -z; }
+      luz[q * 2] = (0.55 + 0.45 * Math.max(0, x * Ld.x + y * Ld.y + z * Ld.z)) / (0.55 + 0.45 * Ld.y); luz[q * 2 + 1] = suave(0.5, 0.82, 1 - y); }
+    g.setAttribute('aLuz', new THREE.BufferAttribute(luz, 2)); g.deleteAttribute('normal'); g.computeBoundingBox(); g.computeBoundingSphere(); geos.push(g);
+    faldaM.side = THREE.DoubleSide;
+    const me = new THREE.Mesh(g, faldaM); me.raycast = () => {}; me.name = 'falda'; me.scale.y = 0.01; scene.add(me); return me;
+  }
+  const falda = hazFalda(bordeFuera);
 
   // los ríos: una cinta de luz azul sobre el relieve, cortada por comarcas (cada trozo va con la suya cuando se levanta)
   const rioM = new THREE.MeshBasicMaterial({ map: rioTex(), color: 0x58a8e2, transparent: true, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }); mats.push(rioM);
@@ -1335,7 +1390,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // se pinta nada encima, solo, en la maqueta, la sombra de las casas que se levantan. 13 de noviembre de 2026: el autor
     // pidió la mayor definición posible, también en el zoom de los pueblos)
     const Rf = foto && ORTO_PUEBLOS[D.id];
-    if (Rf) { g.filter = 'saturate(1.14) brightness(1.06)'; g.drawImage(foto, (R - Rf) * k, (R - Rf) * k, 2 * Rf * k, 2 * Rf * k); g.filter = 'none'; }
+    // (tal cual: el tono se lo da el relieve, con las mismas cuentas que a su ortofoto; mapa3dSombreadores.js)
+    if (Rf) g.drawImage(foto, (R - Rf) * k, (R - Rf) * k, 2 * Rf * k, 2 * Rf * k);
     if (!Rf) {
     // (un velo claro bajo lo edificado, que de lejos se lee como el núcleo)
     if (velo) { g.filter = `blur(${Math.round(N / 50)}px)`; for (const b of D.casas) casa(b, 0, 0, 'rgba(246, 236, 214, .5)'); g.filter = 'none'; }
@@ -1390,7 +1446,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     else { for (const b of CS) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
       for (const b of CS) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); } }
     g.globalCompositeOperation = 'destination-in';
-    const fin = g.createRadialGradient(N / 2, N / 2, N * 0.4, N / 2, N / 2, N / 2); fin.addColorStop(0, '#000'); fin.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    // (hacia el borde se funde con el relieve en más de la mitad del radio y sin escalón; antes, solo en el último quinto)
+    const fin = g.createRadialGradient(N / 2, N / 2, N * 0.12, N / 2, N / 2, N / 2); for (const [q, a] of [[0, 1], [0.3, 0.92], [0.55, 0.62], [0.78, 0.28], [1, 0]]) fin.addColorStop(q, `rgba(0, 0, 0, ${a})`);
     g.fillStyle = fin; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
     const t = new THREE.CanvasTexture(c); t.anisotropy = aniso; t.flipY = false; t.colorSpace = THREE.NoColorSpace; return t;
   }
@@ -1745,6 +1802,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     const velC = Math.min(1, 0.15 + v.d / 3);
     const islaArriba = sel ? Math.min(1, Math.max(0, ((byId.get(sel)?.isla?.k) || 0) - 0.05) / 0.5) : 0;   // (cuánto está en el aire la isla elegida)
+    let naceF = 1, fondoF = 0;   // (para la falda: lo que ha crecido la que menos y lo que se ha hundido la que más, sin la elegida)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
@@ -1774,6 +1832,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
+      naceF = Math.min(naceF, nace); if (c.id !== sel) fondoF = Math.max(fondoF, c.fondo);
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo * (1 - 0.6 * cieloK);
       // (con la tierra a medio salir, y acabado su vídeo si lo hay, la cámara arranca: sube en arco hasta casi encima y se
       // queda planeando (sigueDronIsla). Si el jugador ya ha movido la cámara, no. Con «reducir movimiento», sube y se queda)
@@ -1795,12 +1854,14 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const fv = c.fondo * (1 - 0.78 * cieloK);
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * fv - 0.18 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, fv); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * fv;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
-      u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)
+      u.uBrillo.value = ((c.vivo ? 1 : 0.95) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.85 * fv; c.lagoM.opacity = 0.92 * (1 - 0.8 * fv); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo) * (c.isla ? 1 - Math.min(1, (c.isla.k || 0) * 2.5) : 1);   // (en el aire, sin su raya blanca: el borde de la isla es su labio de hierba) if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
       const ok = c.top.uniforms.uOrtoDK; ok.value += ((det.get(c.id)?.orto ? 1 : 0) - ok.value) * (1 - Math.exp(-dt * 4));
     }
+    // (la falda crece con ellas y se hunde con las que quedan de fondo: así su borde sigue pegado al de las comarcas)
+    if (falda) { falda.scale.y = Math.max(0.01, naceF) * exa; falda.position.y = -0.35 * fondoF * naceF; }
     // la cámara, ya con las comarcas en su sitio de esta imagen
     // (de cerca, la cámara mira a la altura del suelo que tiene debajo: con una altura fija, el pueblo quedaba por encima del
     // centro, bajo la cabecera; de lejos, a la de siempre, con la que se calcula la vista de toda Navarra)
@@ -1844,10 +1905,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA, I && (I.k || 0) > 0.02 ? { x: I.cx, z: I.cz, r: I.rMed, y: ci.py + I.base * ci.sy, D: I.D, k: Math.min(1, I.k) } : null); }
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
     ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
-    scene.fog.near = Math.max(4, v.d * 0.9); scene.fog.far = Math.max(10, v.d * 2.05);
+    // (la bruma, mucho más lejos desde el 14 de noviembre de 2026: el autor no quiere «un fondo como si hubiera niebla», sino
+    // azul, claro y vivo. Antes empezaba a la distancia de la cámara y a dos veces ya lo tapaba todo, y de cerca el horizonte
+    // era un blanco azulado liso; ahora lo lejano se ve con su color y solo al fondo se funde con el cielo)
+    scene.fog.near = Math.max(8, v.d * 1.5 + 6); scene.fog.far = Math.max(30, v.d * 3.6 + 40);
     // (muy cerca de una isla, la niebla no se traga lo de abajo: se sigue viendo, velado, el mapa sobre el que flota. Sin
     // esto, mirando su borde de cerca, alrededor solo había un blanco liso)
-    { const I = sel ? byId.get(sel)?.isla : null; if (I && (I.k || 0) > 0.3) scene.fog.far = Math.max(scene.fog.far, (I.alto + v.d) * 2.2 * Math.min(1, I.k)); } scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
+    { const I = sel ? byId.get(sel)?.isla : null; if (I && (I.k || 0) > 0.3) scene.fog.far = Math.max(scene.fog.far, (I.alto + v.d) * 2.2 * Math.min(1, I.k)); } scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 4.2 + 90; cam.updateProjectionMatrix();
     cieloFondo.material.uniforms.uBruma.value.copy(scene.fog.color);   // (el cielo, junto al horizonte, del color de la bruma en la que se pierde la tierra)
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
     // el pueblo)
