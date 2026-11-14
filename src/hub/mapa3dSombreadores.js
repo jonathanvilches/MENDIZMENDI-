@@ -188,7 +188,8 @@ void main() {
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   // (la ortofoto, el color de verdad del suelo: campos, bosques, ríos, pueblos y roca, con la luz del relieve encima, algo
   // más suave, que la foto ya trae la suya; de cerca, la de la comarca, a 28 m)
-  if (uOrtoK > 0.0) { vec3 o = texture2D(uOrto, (sv - uOrtoR.xy) / uOrtoR.zw).rgb;
+  // (en la orilla bajada de una isla, en lo muy pendiente, la foto se estiraba en vetas: allí, más difuminada)
+  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (vOr > 0.05) o = mix(o, texture2D(uOrto, ou, 3.5).rgb, smoothstep(0.05, 0.7, vOr));
     if (uOrtoDK > 0.0) o = mix(o, texture2D(uOrtoD, (sv - uDetRect.xy) / uDetRect.zw).rgb, uOrtoDK);
     c = mix(c, tonoOrto(o) * (1.0 + (s - 1.0) * 0.7), uOrtoK); }
   float pin = 1.0 - uOrtoK;   // (lo pintado a mano, que la ortofoto ya trae de verdad: parcelas, bosque, roca, el clima)

@@ -1082,7 +1082,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.4, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1177,14 +1177,19 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // ser mucho más rápido». La subida en arco pasa de 4,6 s a 2,6; el planeo entra en 1,6 s en vez de 3,4 y va a casi el
   // doble de paso; la tierra sale en un segundo; y el vuelo de llegada al plano bajo, un tercio más corto)
   const SUBE_ISLA = 2.6;
+  // (y desde la noche del 14 de noviembre, sin el giro brusco del principio ni el plano desde arriba: «la cámara no gira
+  // tan rápido, simplemente se pone en la perspectiva que queramos y empieza a girar 360» y «no quiero un plano visto de
+  // arriba, lo quiero en perspectiva». En 3,4 s pasa suave del plano bajo de la subida a la perspectiva de la órbita
+  // (PITCH_ORBITA, 23°: se ven el territorio y la roca de debajo) y gira alrededor de la isla una vuelta por minuto; el
+  // giro arranca desde parado y coge su paso en 4 s. La distancia, la que deja ver la isla entera desde cualquier lado)
+  const LLEGA_ISLA = 3.4, VUELTA_ISLA = 60;
   function sigueDronIsla(dt) {
-    const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed, u = Math.min(1, p.t / SUBE_ISLA), s = u * u * u * (u * (6 * u - 15) + 10);
-    // (el planeo entra antes de acabar la subida: no hay un momento quieto entre los dos)
-    const td = Math.max(0, p.t - SUBE_ISLA * 0.6), k = ease(Math.min(1, td / 1.6)), baja = (0.5 - 0.5 * Math.cos(td * 0.36)) * k;
-    goal.yaw = p.de.yaw + p.giro * (0.95 * s + 0.5 * Math.sin(td * 0.3) * k);
-    goal.x = mezcla(p.de.x, p.alta.x, s) + r * 0.36 * Math.sin(td * 0.27 + 0.3) * k; goal.z = mezcla(p.de.z, p.alta.z, s) + r * 0.3 * Math.sin(td * 0.21 + 1.9) * k;
-    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(p.alta.d), s)) * (1 - 0.27 * k - 0.15 * baja);
-    goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s) + (0.06 * Math.sin(td * 0.38 + 1) - 0.2 * baja) * k;
+    const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * u * (u * (6 * u - 15) + 10);
+    const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 4));
+    p.yaw = (p.yaw ?? p.de.yaw) + p.giro * w * dt; goal.yaw = p.yaw;
+    goal.x = mezcla(p.de.x, p.alta.x, s); goal.z = mezcla(p.de.z, p.alta.z, s);
+    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(p.alta.d), s));
+    goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s);
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -1861,11 +1866,14 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
       naceF = Math.min(naceF, nace); if (c.id !== sel) fondoF = Math.max(fondoF, c.fondo);
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo * (1 - 0.6 * cieloK);
-      // (con la tierra a medio salir, y acabado su vídeo si lo hay, la cámara arranca: sube en arco hasta casi encima y se
-      // queda planeando (sigueDronIsla). Si el jugador ya ha movido la cámara, no. Con «reducir movimiento», sube y se queda)
+      // (con la tierra a medio salir, y acabado su vídeo si lo hay, la cámara arranca: pasa a la perspectiva de la órbita y
+      // gira despacio alrededor de la isla (sigueDronIsla). Si el jugador ya ha movido la cámara, no. Con «reducir
+      // movimiento», va a esa perspectiva y se queda)
       if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.5 && !tv && !vuelo && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
-        if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
-          const alta = { x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3) * 1.07), pitch: PITCH_ALTA };
+        if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, yT = Math.max(...c.esq.map(q => q.y)) + I.alto, yB = I.alto - I.D, R = I.rMax + Math.hypot(c.mid.x - I.cx, c.mid.z - I.cz), esq = [];
+          // (un cilindro alrededor de la isla, y su punta: lo que tiene que caber, se mire desde donde se mire)
+          for (let a = 0; a < 12; a++) { const cs = Math.cos(a * Math.PI / 6), sn = Math.sin(a * Math.PI / 6); esq.push(new THREE.Vector3(c.mid.x + cs * R, yT, c.mid.z + sn * R), new THREE.Vector3(c.mid.x + cs * R * 0.3, yB, c.mid.z + sn * R * 0.3)); }
+          const alta = { x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ORBITA, 1, c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2)), pitch: PITCH_ORBITA };
           if (MOV_REDUCIDO) volar({ ...alta, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
       if (c.isla) { let hund = 0; if ((c.isla.k || 0) > 0.004) for (const o of C) if (o !== c) hund = Math.max(hund, 0.35 * o.fondo);   // (lo que se hunden las vecinas de fondo: la boca del hueco baja con ellas)
         c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam, hund);

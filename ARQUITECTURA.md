@@ -2004,6 +2004,29 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     junto al borde y en el Pirineo dejaba paredes: se quedó la bajada suave.
   - El cielo: azul hondo arriba (`#0a4cc2`), vivo enseguida (`#1d7ce8`) y azul también en el horizonte (`#5cb0f4`, antes
     casi blanco), con la bruma de lo lejano azul (`#74b8f3`).
+- **El corte, en llano; la cámara, en perspectiva; la roca, de Higgsfield** (`RIM`, `WI` y `uEscT` en `mapa3dIsla.js`;
+  `sigueDronIsla` y `PITCH_ORBITA` en `mapa3d.js`; `tools/islas/isla-orbita.mjs`; noche del 14 de noviembre de 2026). El
+  autor, con dos imágenes de islas flotantes: «no se parte una montaña por medio: intenta que el corte coincida en
+  territorios llanos», «la cámara no gira tan rápido, simplemente se pone en la perspectiva que queramos y empieza a
+  girar 360», «no quiero un plano visto de arriba, lo quiero en perspectiva» y «te puedes apoyar mucho más en Higgsfield».
+  - El corte, en llano: el borde de la isla queda bajo y casi a nivel en todo el contorno (`RIM`: apenas un 3 % de lo
+    que sube el tramo de muga, antes un 10 %) y la ladera hacia él es más larga (`WI`, hasta un 70 % del radio). Los
+    montes bajan hasta el borde en vez de asomar partidos, y la orilla baja nada más despegarse la isla (a un 30 % del
+    camino, antes a un 70 %), para que no se vea el monte cortado mientras sube.
+  - Se probó antes llevar las mugas por el fondo de los valles (el camino más bajo dentro de una franja de 3 km a cada
+    lado de la muga de verdad) y se descartó: las mugas de Navarra van por las cumbres y dentro de esa franja casi no
+    hay valle; la altura media de cada tramo apenas cambiaba (unos 30 m de más de 900) y la mitad de los tramos se
+    cruzaban con otros. Lo que quita el corte es bajar el terreno hasta un borde llano, no mover la muga.
+  - La cámara: ya no sube en arco hasta casi encima ni gira de golpe. En 3,4 s pasa suave del plano bajo de la subida a
+    la perspectiva de la órbita (`PITCH_ORBITA`, 23°: se ven el territorio y la roca de debajo) y gira alrededor de la
+    isla una vuelta por minuto; el giro arranca desde parado y coge su paso en 4 s. La distancia es la que deja ver la
+    isla entera desde cualquier lado (un cilindro alrededor de ella y su punta). Con cualquier toque se para. En las
+    pruebas automáticas el mapa se toma por «reducir movimiento» y no gira: `isla-orbita.mjs` lo evita con `__paseo`.
+  - La roca de la panza es una imagen generada con Higgsfield a partir de la referencia del autor
+    (`src/assets/isla/roca-musgo.webp`, repetible, caliza cálida con surcos que bajan y matas de musgo), con sus normales
+    sacadas de su propia luz (`roca-musgo-n.webp`) y al doble de tamaño (`uEscT` 0,5) para que tenga formas grandes. La
+    caliza de Poly Haven de antes sigue en la carpeta, sin cargarse.
+  - En la orilla bajada, donde es muy pendiente, la ortofoto se toma más difuminada: se estiraba en vetas.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora
