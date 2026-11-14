@@ -1810,17 +1810,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   altura y hondo arriba, porque en las vistas del mapa solo se ve una franja baja del cielo y con el degradado de verdad
   quedaba toda pálida («me falta más cielo azul»). La bruma de lo lejano es de ese mismo azul claro, sin gris, y empieza
   algo antes. El cielo ya no pinta nubes: son las de `mapa3dNubes.js`.
-  La cámara la mira primero de lado (`PITCH_ISLA` 0,3; se deja bajar hasta 0,24), para verla arrancarse, y cuando ya está
-  en el aire (y acabado su vídeo, si lo hay) sube sola a mirarla desde arriba (`PITCH_ALTA` 0,96, `vistaAlta`): se ve
-  el territorio entero, con sus pueblos y sus montes; si el jugador ya ha movido la cámara, no. Arriba, la cámara se queda
-  volando como un dron (`sigueDronIsla`), hasta que el jugador toca algo: gira a un lado y a otro de la isla (medio
-  radián), va y viene por el territorio, baja a mirar de cerca y algo de lado el relieve y los pueblos (un cuarto más
-  cerca) y vuelve a subir. El 14 de noviembre el autor pidió la cámara «más dinámica» y «más de arriba»; antes subía a
-  0,74 y apenas se mecía. Hasta el 13 de noviembre por la tarde
-  esa subida no se veía nunca: la cuenta que la dispara (`tAlta`) estaba detrás de un comentario en su misma línea, así
-  que no contaba; y la ficha, al volver a elegir la comarca sin vuelo, la daba por hecha (ahora solo se rearma al
-  elegirla volando). Se mide con `alta-dbg.mjs`, con reloj propio: la inclinación pasa de 0,30 a 0,96 a los seis
-  segundos de elegir y luego va de 0,8 a 1, con el giro entre −0,48 y 0,48. La raya de la trashumancia
+  La cámara de la isla es una sola toma, sin paradas (`sigueDronIsla`, `SUBE_ISLA`; 14 de noviembre de 2026). El autor,
+  con su imagen de referencia: «es el plano cuando iniciamos la ascensión, pero luego la cámara termina en un plano mucho
+  más cenital. Pero la cámara es muy dinámica. Vemos como la tierra sale hacia arriba y enseguida la cámara ya se va
+  desplazando y empieza a planear con vuelo de dron sobre el territorio». Al elegir la comarca la cámara vuela a un plano
+  bajo, de lado (`PITCH_ISLA` 0,27; a mano se deja bajar hasta 0,24), y la tierra espera a que vaya a medio camino para
+  empezar a salir: la ascensión arranca con ese plano. Sube en segundo y medio (antes, en uno). Con la tierra a medio
+  salir (`I.k` > 0,5) la cámara arranca despacio de lado, sube en arco girando casi un radián alrededor de la isla hasta
+  casi encima (`PITCH_ALTA` 1,2, unos 69°; en 4,6 s) y, antes de acabar de subir, ya se acerca y planea sobre el
+  territorio: va y viene por la comarca (un tercio de su radio), gira, baja a mirar el relieve y los pueblos algo de lado
+  y vuelve a subir. Cualquier toque la para. Con «reducir movimiento» sube y se queda quieta. Si el jugador ya ha movido la
+  cámara, no arranca. Antes esperaba quieta 1,3 s de lado, subía recta a 0,96 y solo entonces empezaba a moverse; y antes
+  de eso, el 13 de noviembre, la subida no se veía nunca porque la cuenta que la disparaba estaba detrás de un comentario
+  en su misma línea. Se mide con `tools/islas/alta-dbg.mjs`, con reloj propio: de 0,27 de inclinación a 1,2 a los seis
+  segundos de elegir, con el giro de 0 a 0,9, y luego entre 0,95 y 1,25, a tres cuartos de la distancia. La raya de la trashumancia
   se corta en su orilla. Para verlo: `isla.mjs` (con `PITCH` y `DK`), `isla-flujo.mjs`, `isla-salir.mjs` y `anim.mjs`, que
   graba la animación fotograma a fotograma con un reloj propio.
   El encaje de las piezas está comprobado con los datos (`comarcas-encaje.json`): cada linde entre dos comarcas es una sola

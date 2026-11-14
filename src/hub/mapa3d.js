@@ -1008,7 +1008,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.3, PITCH_ALTA = 0.96, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1087,17 +1087,22 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     goal.x = mezcla(base.x, q.x, k); goal.z = mezcla(base.z, q.z, k); goal.d = Math.exp(mezcla(Math.log(base.d), Math.log(d), k));
     goal.pitch = mezcla(base.pitch, pitch, k); goal.yaw = mezcla(base.yaw, yaw, k);
   }
-  // (y sobre la isla de la comarca elegida, ya vista desde arriba: un vuelo de dron suave, que la recorre despacio, se acerca
-  // y se aleja un poco y se mece; se para con cualquier toque, como el paseo. Lo pidió el autor: que la cámara acabe encima
-  // del territorio «con ese vuelo de dron»)
+  // (la cámara de la isla, de una sola toma. El autor, el 14 de noviembre de 2026, con su imagen de referencia: «es el plano
+  // cuando iniciamos la ascensión, pero luego la cámara termina en un plano mucho más cenital. Pero la cámara es muy
+  // dinámica. Vemos como la tierra sale hacia arriba y enseguida la cámara ya se va desplazando y empieza a planear con
+  // vuelo de dron sobre el territorio». Antes esperaba quieta 1,3 s de lado, subía recta a 55° y solo entonces empezaba a
+  // moverse. Ahora, con la tierra aún saliendo, arranca despacio de lado, sube en arco girando alrededor de la isla hasta
+  // casi encima (`PITCH_ALTA`, 69°) y, sin parar, se acerca y planea sobre el territorio: va y viene por la comarca, gira,
+  // baja a mirar el relieve y los pueblos algo de lado y vuelve a subir. Se para con cualquier toque, como el paseo)
+  const SUBE_ISLA = 4.6;
   function sigueDronIsla(dt) {
-    // (desde el 14 de noviembre de 2026, con más movimiento: gira alrededor de la isla, va y viene por el territorio, baja a
-    // mirar de cerca y algo de lado el relieve y los pueblos, y vuelve a subir. El autor: «la cámara debe ser más dinámica»)
-    const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed, k = ease(Math.min(1, p.t / 2.5)), t = p.t, baja = (0.5 - 0.5 * Math.cos(t * 0.19)) * k;
-    goal.yaw = p.base.yaw + 0.55 * Math.sin(t * 0.21) * k;
-    goal.x = p.base.x + r * 0.24 * Math.sin(t * 0.17 + 0.6) * k; goal.z = p.base.z + r * 0.18 * Math.sin(t * 0.13 + 2.1) * k;
-    goal.d = p.base.d * (1 - 0.25 * baja);
-    goal.pitch = p.base.pitch + 0.06 * Math.sin(t * 0.23 + 1) * k - 0.12 * baja;
+    const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed, u = Math.min(1, p.t / SUBE_ISLA), s = u * u * u * (u * (6 * u - 15) + 10);
+    // (el planeo entra antes de acabar la subida: no hay un momento quieto entre los dos)
+    const td = Math.max(0, p.t - SUBE_ISLA * 0.6), k = ease(Math.min(1, td / 3.4)), baja = (0.5 - 0.5 * Math.cos(td * 0.2)) * k;
+    goal.yaw = p.de.yaw + p.giro * (0.95 * s + 0.5 * Math.sin(td * 0.17) * k);
+    goal.x = mezcla(p.de.x, p.alta.x, s) + r * 0.36 * Math.sin(td * 0.15 + 0.3) * k; goal.z = mezcla(p.de.z, p.alta.z, s) + r * 0.3 * Math.sin(td * 0.115 + 1.9) * k;
+    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(p.alta.d), s)) * (1 - 0.27 * k - 0.15 * baja);
+    goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s) + (0.06 * Math.sin(td * 0.21 + 1) - 0.2 * baja) * k;
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -1158,7 +1163,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
     // (solo al elegirla volando: la ficha vuelve a llamar aquí sin vuelo, y eso no tiene que quitar la subida ni el dron)
-    if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) { c.vistaAlta = false; c.tAlta = 0; c.dronPend = false; } }
+    if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) c.vistaAlta = false; }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); }
@@ -1750,19 +1755,20 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       // (la isla: sube con un muelle, se pasa un poco y se posa en el aire; arriba, se mece despacio, y de cerca, quieta)
       let vuela = 0;
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 24 - (I.v || 0) * 6.5) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      // (desde el 14 de noviembre de 2026 sube más despacio, en segundo y medio y no en uno, para que se la vea salir; y si la
+      // cámara viene volando a su plano de lado, espera a que vaya a medio camino: la ascensión empieza con ese plano)
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.5 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 4.2) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
       c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo * (1 - 0.6 * cieloK);
-      // (ya en el aire, y acabado su vídeo si lo hay, la cámara sube y mira más desde arriba: se ve el territorio entero, sus
-      // pueblos y sus montes; la vista de lado es para verla arrancarse. Si el jugador ya ha movido la cámara, no)
-      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.97 && !tv && !vuelo && !window.__sinVistaAlta) { c.tAlta = (c.tAlta || 0) + dt;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
-        if (c.tAlta > 1.3) { c.vistaAlta = true;
-          if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
-            volar({ x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3) * 1.07), yaw: 0, pitch: PITCH_ALTA }, 2.3); c.dronPend = true; } } }
-      if (c.dronPend && sel === c.id && !vuelo) { c.dronPend = false; if (!MOV_REDUCIDO) islaDron = { c, t: 0, base: { ...goal } }; }
+      // (con la tierra a medio salir, y acabado su vídeo si lo hay, la cámara arranca: sube en arco hasta casi encima y se
+      // queda planeando (sigueDronIsla). Si el jugador ya ha movido la cámara, no. Con «reducir movimiento», sube y se queda)
+      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.5 && !tv && !vuelo && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
+        if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
+          const alta = { x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3) * 1.07), pitch: PITCH_ALTA };
+          if (MOV_REDUCIDO) volar({ ...alta, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
       if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam);
         c.mesh.material[1].visible = (c.isla.k || 0) < 0.02; }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
       // (y con el cielo, las paredes de todas, de roca: las de las vecinas se ven por el hueco, y Navarra flota como la isla)
@@ -1884,10 +1890,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const cp = cam.position, dx = X - cp.x, dy = Y - cp.y, dz = Z - cp.z, l2 = dx * dx + dz * dz || 1, u0 = ((I.cx - cp.x) * dx + (I.cz - cp.z) * dz) / l2;
       if (u0 <= 0 || Math.hypot(cp.x + dx * u0 - I.cx, cp.z + dz * u0 - I.cz) > I.rMax * 1.03) return false;
       const base = cIsla.py + I.base * cIsla.sy, top = cIsla.py + (GROSOR + cIsla.hmax) * cIsla.sy, du = I.rMax / Math.sqrt(l2);
-      for (let n = 0; n <= 14; n++) { const u = u0 + (n / 7 - 1) * du; if (u <= 0 || u >= 0.995) continue; const y = cp.y + dy * u; if (y > top || y < base - I.D) continue;
+      for (let n = 0; n <= 30; n++) { const u = u0 + (n / 15 - 1) * du; if (u <= 0 || u >= 0.995) continue; const y = cp.y + dy * u; if (y > top || y < base - I.D) continue;
         if (I.cuerpo(cp.x + dx * u, cp.z + dz * u, (base - y) / I.D)) return true; }
       return false; };
-    for (const c of C) { const suya = sel === c.id, y = c.hc * c.sy + c.py + 1.4; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, y, c.Z, !COL && (!sel || suya || !elegido) && (suya || !tapaIsla(c.X, y, c.Z))]); }
+    for (const c of C) { const suya = sel === c.id, y = c.hc * c.sy + c.py + 1.4; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, y, c.Z, !COL && (!sel || suya || !elegido) && (suya || !(tapaIsla(c.X, y, c.Z) || tapaIsla(c.X, y + 1.8, c.Z)))]); }   // (el rótulo ocupa un trecho por encima de su punto: se mira también ahí)
     for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
     for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
