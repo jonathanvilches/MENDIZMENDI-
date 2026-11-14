@@ -2051,7 +2051,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     montes, de los pueblos»). Y el cambio de plano, antes: «tarda mucho entre la elevación del territorio y el cambio de
     plano». La isla empieza a subir a los dos quintos del vuelo de llegada; la cámara arranca en cuanto la isla despega,
     con el vuelo ya en su último tercio, que se deja; y pasa a la órbita en 2,4 s con una curva que sale viva y frena
-    suave. Antes esperaba al vuelo entero, de hasta 3,7 s, y luego tardaba 3,4 s más, con un arranque casi parado. En las
+    suave. Antes esperaba al vuelo entero, de hasta 3,7 s, y luego tardaba 3,4 s más, con un arranque casi parado.
+    Esa misma noche, más corto aún, porque el autor lo seguía viendo lento: el vuelo de llegada, a 0,55 de su duración
+    (antes 0,68, como mucho 3 s); la isla, subiendo desde los tres décimos del vuelo; la cámara, en cuanto ha subido un
+    cuarto y con medio vuelo hecho; y la órbita, en 1,8 s. De tocar la comarca a la vista de la órbita, unos 3,3 s como
+    mucho; antes, unos 4,8. En las
     pruebas automáticas el mapa se toma por «reducir movimiento» y no gira: `isla-orbita.mjs` lo evita con `__paseo`.
   - La roca de la panza es una imagen generada con Higgsfield a partir de la referencia del autor
     (`src/assets/isla/roca-musgo.webp`, repetible, caliza cálida con surcos que bajan y matas de musgo), con sus normales

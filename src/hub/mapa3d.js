@@ -1228,7 +1228,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (y desde el 15, antes y más rápido: «tarda mucho entre la elevación del territorio y el cambio de plano». La cámara
   // arranca en cuanto la isla despega, sin esperar a que acabe el vuelo de llegada, y pasa a la órbita en 2,4 s con una
   // curva que sale viva y frena suave; antes, 3,4 s después del vuelo entero, con un arranque casi parado)
-  const LLEGA_ISLA = 2.4, VUELTA_ISLA = 60;
+  const LLEGA_ISLA = 1.8, VUELTA_ISLA = 60;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
   function sigueDronIsla(dt) {
     const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u);
     const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 3));
@@ -1299,7 +1299,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) c.vistaAlta = false; }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
-      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.68;
+      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.55;   // (un vuelo de llegada más corto: antes, 0,68)
       sinNombres = { id: c.id, t: 0 }; }
   }
 
@@ -1908,7 +1908,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       let vuela = 0;
       // (sube en un segundo, con un muelle que se pasa un poco y vuelve; y si la
       // cámara viene volando a su plano de lado, espera a que vaya a medio camino: la ascensión empieza con ese plano)
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.4 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 17 - (I.v || 0) * 5.6) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.3 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 17 - (I.v || 0) * 5.6) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
@@ -1920,7 +1920,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       // movimiento», va a esa perspectiva y se queda)
       // (en cuanto la isla despega: con el vuelo de llegada ya en su último tercio, se deja y la órbita sigue desde donde va
       // la cámara)
-      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.3 && !tv && (!vuelo || vuelo.t > 0.65 && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
+      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.25 && !tv && (!vuelo || vuelo.t > 0.5 && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
         const enVuelo = !!vuelo; if (enVuelo) { vuelo = null; Object.assign(goal, { x: v.x, z: v.z, d: v.d, yaw: v.yaw, pitch: v.pitch }); }
         if ((enVuelo || Math.abs(goal.pitch - PITCH_ISLA) < 0.03) && !gesto && !ptrs.size) { const I = c.isla, yT = Math.max(...c.esq.map(q => q.y)) + I.alto, yB = I.alto - I.D, R = I.rMax + Math.hypot(c.mid.x - I.cx, c.mid.z - I.cz), esq = [];
           // (un cilindro alrededor de la isla, y su punta: lo que tiene que caber, se mire desde donde se mire)
