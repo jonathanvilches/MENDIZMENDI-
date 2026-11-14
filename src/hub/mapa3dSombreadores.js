@@ -115,6 +115,9 @@ vec3 acabado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.
   float verde = smoothstep(-0.035, 0.03, c.g - c.r) * smoothstep(0.015, 0.1, c.g - c.b);
   c.r = mix(c.r, c.b + (c.r - c.b) * 0.66, verde); c.g *= 1.0 + 0.04 * verde;
   c = pow(max(c, 0.0), vec3(0.94));
+  // (y un tope al color: el verde de un prado, muy de cerca, se quedaba fosforito (lo vio el autor esa misma tarde). El
+  // color que pasa de 0,45 se va apretando, sin escalón: vivo, pero de hierba)
+  { float l2 = dot(c, vec3(0.299, 0.587, 0.114)), cr = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b)); c = mix(vec3(l2), c, inversesqrt(1.0 + (cr / 0.5) * (cr / 0.5))); }
   c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
   return c * mix(vec3(1.0), vec3(1.03, 1.015, 0.97), smoothstep(0.42, 0.85, l)); }
 `;

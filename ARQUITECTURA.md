@@ -1864,8 +1864,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   a todo, sobre todo donde había poco, pasa los verdes de oliva a prado quitándoles rojo (los ocres del cereal se quedan
   como son) y aclara algo los medios tonos. El cielo es más azul (`CIELO_ARRIBA`, `CIELO_MEDIO`, `CIELO_HORIZONTE`, y la
   bruma, que es la misma). La roca de la isla tiene la sombra azulada, de la luz del lago y del cielo, y la luz cálida;
-  antes la sombra era parda. El césped del canto, de un verde de prado vivo, sin llegar al de la foto, que el autor vio
-  fosforito. Las cascadas, con más cuerpo y más azules. Una nube que se va ya no se vuelve un velo gris: se encoge y se
+  antes la sombra era parda. Y un tope al color al final de `acabado`: el color que pasa de 0,45 se va apretando, sin escalón, porque
+  muy de cerca el verde de un prado se quedaba fosforito (lo vio el autor esa misma tarde). Las cascadas, con más cuerpo y más azules. Una nube que se va ya no se vuelve un velo gris: se encoge y se
   deshace en jirones, blanca hasta el final. Y lo que más apagaba el cielo no estaba en el mapa: el velo morado de
   encima (`#hub.juego .m3d::after`, en `consola.css`), de cuando el mapa era de noche, tapaba un tercio arriba y las
   esquinas. Se ha dejado en casi nada; lo de encima lleva su propio fondo.
