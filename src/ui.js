@@ -178,8 +178,9 @@ export class UI {
     if (town) {
       const T = $('#tl', h), P = $('#mPliega', h); T.classList.add('plega');
       P.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.sound?.ui?.('click'); this.pliegaMisiones(!T.classList.contains('abierta')); });
-      // (usar el catalejo, la mochila o la pausa la recoge; y tocar dentro de la barra le da otros 10 s)
-      $('#mbtns', h).addEventListener('click', () => this.pliegaMisiones(false));
+      // (usar el catalejo, la mochila o la pausa la recoge; y tocar dentro de la barra le da otros 10 s. En la bajada del
+      // evento y un instante después: la mochila corta su clic, y si la barra se plegase antes, el botón ya no estaría)
+      $('#mbtns', h).addEventListener('click', () => setTimeout(() => this.pliegaMisiones(false), 0), true);
       T.addEventListener('pointerdown', () => { if (T.classList.contains('abierta')) this.esperaPlegar(); }, true);
     }
     tap('#prompt', () => this.input.press('e'));
