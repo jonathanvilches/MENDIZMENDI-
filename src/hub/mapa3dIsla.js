@@ -6,6 +6,7 @@
 // se desprenden piedras y polvo sin parar. Las texturas de la roca y del césped, de Higgsfield (src/assets/isla). Se hace la
 // primera vez que se elige la comarca (mapa3d.js).
 import * as THREE from 'three';
+import { ruidoV } from './mapa3dFormas.js';
 import CESPED from '../assets/isla/cesped.webp?url';
 import CALIZA_T from '../assets/isla/caliza.webp?url';
 import CALIZA_N from '../assets/isla/caliza-n.webp?url';
@@ -136,6 +137,9 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const NOR = Q.map((q, i) => { const a = Q[(i + N - 2) % N], b = Q[(i + 2) % N]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
     let nx = tz, nz = -tx; if (dentro(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz, tx, tz]; });
   const H0 = Q.map(([x, z]) => grosor + alto(x, z));
+  // (la hierba del canto no cuelga igual en todo el borde: en unos sitios apenas asoma y en otros cae en mechones, como en
+  // la imagen de referencia del autor, del 14 de noviembre de 2026; con dos ondas de ruido a lo largo del borde)
+  const CUELGA = Q.map(([x, z]) => 0.45 + 1.75 * (0.62 * ruidoV(x * 0.6 + 3.1, z * 0.6 + 7.7) + 0.38 * ruidoV(x * 1.9 + 21.4, z * 1.9 + 4.2)));
   // (la panza no empieza en la base de la comarca sino algo por debajo de lo más bajo de su orilla: la pared de debajo, que con
   // la exageración del relieve era muy alta, se queda en el canto de césped y algo de roca; la de la comarca se esconde)
   const B = Math.min(...H0) - grosor * 0.15;
@@ -159,7 +163,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const canto = new THREE.Mesh(cantoG, cantoM); canto.frustumCulled = false; canto.visible = false; scene.add(canto);
   let cantoSy = -1;
   const ponCanto = (sy) => { cantoSy = sy;
-    FILAS.forEach(([dy, o], f) => { for (let i = 0; i <= N; i++) { const q = Q[i % N], [nx, nz] = NOR[i % N], v = (f * N1 + i) * 3, y = dy == null ? B * sy - 0.04 : Math.max(B * sy, H0[i % N] * sy + dy);
+    FILAS.forEach(([dy, o], f) => { for (let i = 0; i <= N; i++) { const q = Q[i % N], [nx, nz] = NOR[i % N], v = (f * N1 + i) * 3, y = dy == null ? B * sy - 0.04 : Math.max(B * sy, H0[i % N] * sy + (dy < 0 ? dy * CUELGA[i % N] : dy));
       cantoPos[v] = q[0] + nx * o; cantoPos[v + 1] = y; cantoPos[v + 2] = q[1] + nz * o; } });
     cantoG.attributes.position.needsUpdate = true; };
 

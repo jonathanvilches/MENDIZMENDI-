@@ -1823,6 +1823,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   línea que comparten las dos (988 tramos, cada uno en dos comarcas justas y ninguno en tres), el borde de fuera es un
   único anillo cerrado de 1.733 tramos y su área es la suma de las doce (250.104 unidades, sin huecos ni solapes); y
   Navarra cae en la imagen de la península con la misma proyección (`mapaXY`), así que encaja en ella.
+  Las mugas entre comarcas son orgánicas (`organico` en `mapa3dFormas.js`; 14 de noviembre de 2026): venían de un mapa
+  administrativo simplificado, con tramos largos casi rectos, y el autor pidió «no hacer tanto borde recto» en las
+  líneas de rotura. Cada punto de una muga se corre lo que diga un campo de ruido en su sitio (tres ondas, de unos 9 km,
+  3,5 km y 1,5 km; hasta 1.000, 700 y 230 m), y los tramos largos se parten antes cada 500 m. Como el corrimiento solo
+  depende de dónde está el punto, las dos comarcas que comparten la muga la tuercen igual y el encaje sigue siendo
+  exacto. No se toca el borde de Navarra, que es el de verdad (cerca de él el corrimiento se apaga en 2,5 km), ni las
+  cercanías de los pueblos (de 1,7 a 3,7 km de su centro). De ese contorno sale todo lo demás (la losa, las paredes, la
+  isla, su molde, la máscara de Navarra, a quién pertenece cada río), así que todo lo sigue. Comprobado con
+  `tools/encaje-org.mjs`: 1.580 tramos de dentro, cada uno en dos comarcas justas; los 1.733 de fuera, como estaban, en
+  un anillo cerrado; el área, 250.104, la misma; ningún contorno se cruza; ningún pueblo cambia de comarca; y ninguna
+  comarca cambia más de un 2,5 % de superficie. Con ondas mayores (11 km y 2,3 km de corrimiento) dos contornos se
+  cruzaban y alguna comarca cambiaba un 13 %: por eso se quedó en estas.
+  La hierba del canto de la isla cuelga desigual (`CUELGA` en `mapa3dIsla.js`): entre la mitad y el doble según el sitio,
+  con dos ondas de ruido a lo largo del borde, como en la imagen de referencia del autor.
 - **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
   apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
   al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la
