@@ -173,7 +173,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const uFilo = new THREE.Color(c.color).lerp(BLANCO, 0.35).multiplyScalar(filo * (vivo ? 1 : 0.5));
     m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uLuzP: { value: luz }, uFilo: { value: uFilo } }); sh.vertexShader = BORDE_VS[0] + sh.vertexShader.replace('#include <begin_vertex>', BORDE_VS[1]);
       sh.fragmentShader = BORDE_FS[0] + sh.fragmentShader.replace('#include <color_fragment>', BORDE_FS[1]).replace('#include <emissivemap_fragment>', BORDE_FS[2]); };
-    m.customProgramCacheKey = () => 'borde-comarca'; return m;
+    m.userData.filo = uFilo; m.userData.filo0 = uFilo.clone(); m.customProgramCacheKey = () => 'borde-comarca'; return m;
   };
   // las comarcas
   // (en el móvil, en el modo sencillo (o.ligero, src/util/sencillo.js) y en los ordenadores con una gráfica floja (el juego
@@ -266,7 +266,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (las texturas de la roca y del césped, de Higgsfield, una sola vez para todas las islas)
   let texIsla = null;
   const islaTex = () => texIsla || (texIsla = texturasIsla(Math.min(8, r.capabilities.getMaxAnisotropy())), mats.push(texIsla), texIsla);
-  const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
+  const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
     fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? (GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
@@ -327,7 +327,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (!idx.length) return null;
     const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gb.setAttribute('lado', new THREE.Float32BufferAttribute(lado, 3)); gb.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gb.setIndex(idx); geos.push(gb);
     return gb; };
-  const ponCinta = (c, gb, m) => { if (!gb) return; const me = new THREE.Mesh(gb, m); me.renderOrder = m.userData.orden; me.raycast = () => {}; me.frustumCulled = false; c.mesh.add(me); };
+  const ponCinta = (c, gb, m) => { if (!gb) return; const me = new THREE.Mesh(gb, m); me.renderOrder = m.userData.orden; me.raycast = () => {}; me.frustumCulled = false; c.mesh.add(me); (c.cintas ||= []).push(me); };
   for (const c of C) {
     const P = c.Pw, n = P.length, fuera = new Array(n), dentro = new Array(n), e = 0.22;
     const otro = (x, z) => C.some(o => o !== c && en(o, x, z));
@@ -1008,7 +1008,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1744,6 +1744,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     CERCA.value = Math.min(1, Math.max(0, (14 - v.d) / 8)); TEXK.value = Math.min(1, Math.max(0.9, (95 - v.d) / 45)); ANCHO_RIO.value = Math.min(1, Math.max(0.12, v.d / 40)); ANCHO_B.value = Math.max(0.004, v.d * 0.0026); FUERA.value = 0.82 + 0.18 * Math.min(1, Math.max(0, (v.d - 6) / 24)); RIO_ESC.value = Math.min(10, Math.max(1, 25 / v.d));
     TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     const velC = Math.min(1, 0.15 + v.d / 3);
+    const islaArriba = sel ? Math.min(1, Math.max(0, ((byId.get(sel)?.isla?.k) || 0) - 0.05) / 0.5) : 0;   // (cuánto está en el aire la isla elegida)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
@@ -1780,17 +1781,23 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
           const alta = { x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3) * 1.07), pitch: PITCH_ALTA };
           if (MOV_REDUCIDO) volar({ ...alta, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
-      if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam);
-        c.mesh.material[1].visible = (c.isla.k || 0) < 0.02; }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
+      if (c.isla) { let hund = 0; if ((c.isla.k || 0) > 0.004) for (const o of C) if (o !== c) hund = Math.max(hund, 0.35 * o.fondo);   // (lo que se hunden las vecinas de fondo: la boca del hueco baja con ellas)
+        c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam, hund);
+        c.mesh.material[1].visible = (c.isla.k || 0) < 0.02;
+        // (y sin las cintas de la muga y del contorno, que subían con la losa y dibujaban una raya clara a trozos sobre el labio)
+        if (c.cintas) { const ve = (c.isla.k || 0) < 0.3; if (c.cintas[0].visible !== ve) for (const me of c.cintas) me.visible = ve; } }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
       // (y con el cielo, las paredes de todas, de roca: las de las vecinas se ven por el hueco, y Navarra flota como la isla)
-      { const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.max(c.isla ? Math.min(1, c.isla.k || 0) : 0, cieloK * 0.9)); }
+      { const bm = c.mesh.material[1]; bm.userData.c0 ||= bm.color.clone(); bm.color.copy(bm.userData.c0).lerp(ROCA_BORDE, Math.max(c.isla ? Math.min(1, c.isla.k || 0) : 0, cieloK * 0.9));
+        // (con una isla en el aire, las paredes de las demás, que se ven junto a la boca del hueco, de la misma tierra oscura que
+        // las del hueco y sin el filo claro de arriba: eran de un pardo claro con una raya brillante encima de la pared oscura)
+        const ik = c.id === sel ? 0 : islaArriba; bm.color.lerp(TIERRA_HUECO, ik * 0.85); if (bm.userData.filo) bm.userData.filo.copy(bm.userData.filo0).multiplyScalar(1 - 0.9 * ik); }
       // (con una isla en el aire y el cielo de día, las demás no se quedan grises: guardan buena parte de su color de verdad)
       const fv = c.fondo * (1 - 0.78 * cieloK);
       const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * fv - 0.18 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, fv); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * fv;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
       u.uBrillo.value = ((c.vivo ? 1 : 0.9) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
-      c.rioM.opacity = 1 - 0.85 * fv; c.lagoM.opacity = 0.92 * (1 - 0.8 * fv); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo); if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
+      c.rioM.opacity = 1 - 0.85 * fv; c.lagoM.opacity = 0.92 * (1 - 0.8 * fv); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo) * (c.isla ? 1 - Math.min(1, (c.isla.k || 0) * 2.5) : 1);   // (en el aire, sin su raya blanca: el borde de la isla es su labio de hierba) if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
       const ok = c.top.uniforms.uOrtoDK; ok.value += ((det.get(c.id)?.orto ? 1 : 0) - ok.value) * (1 - Math.exp(-dt * 4));
     }
@@ -1837,7 +1844,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA, I && (I.k || 0) > 0.02 ? { x: I.cx, z: I.cz, r: I.rMed, y: ci.py + I.base * ci.sy, D: I.D, k: Math.min(1, I.k) } : null); }
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
     ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
-    scene.fog.near = Math.max(4, v.d * 0.9); scene.fog.far = Math.max(10, v.d * 2.05); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
+    scene.fog.near = Math.max(4, v.d * 0.9); scene.fog.far = Math.max(10, v.d * 2.05);
+    // (muy cerca de una isla, la niebla no se traga lo de abajo: se sigue viendo, velado, el mapa sobre el que flota. Sin
+    // esto, mirando su borde de cerca, alrededor solo había un blanco liso)
+    { const I = sel ? byId.get(sel)?.isla : null; if (I && (I.k || 0) > 0.3) scene.fog.far = Math.max(scene.fog.far, (I.alto + v.d) * 2.2 * Math.min(1, I.k)); } scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();
     cieloFondo.material.uniforms.uBruma.value.copy(scene.fog.color);   // (el cielo, junto al horizonte, del color de la bruma en la que se pierde la tierra)
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
     // el pueblo)

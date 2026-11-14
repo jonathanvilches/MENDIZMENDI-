@@ -1780,10 +1780,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   punta no queda en el centro sino corrida a un lado (`ladoX`, `ladoZ`), cuelga más por tres o cuatro sitios (`puntas`) y
   no baja lisa: tiene panzas y entrantes grandes y repisas a lo largo (`bulto`, de ruido), además de las estrías, que
     se pierden hacia abajo, y la pared de la comarca se esconde mientras está en el aire. El canto (`canto`) cubre la orilla
-  con el césped, fino y de un verde apagado de prado (el primero era «verde fosforito» para el autor), su tierra y la roca.
-  La roca son fotos de verdad con su relieve (mapa de normales), de Poly Haven, CC0: caliza clara con estrías verticales
-  en la panza («Marble Cliff 04») y roca en estratos en las paredes del hueco («Cliff Side»); el césped, de Higgsfield
-  (`src/assets/isla`). `materialRoca` les da la luz en la propia isla, un sol de lado y la luz del cielo y la que rebota
+  con un labio de hierba, un fleco que cuelga, su tierra y la roca (ver «El borde de la isla, integrado», más abajo).
+  La roca son fotos con su relieve (mapa de normales): la caliza de la panza, con grietas verticales, generada con
+  Higgsfield (`caliza.webp`, desde el 14 de noviembre de 2026; antes «Marble Cliff 04» de Poly Haven), y la roca en
+  estratos de las paredes del hueco, de Poly Haven, CC0 («Cliff Side») (`src/assets/isla`). `materialRoca` les da la luz en la propia isla, un sol de lado y la luz del cielo y la que rebota
   del suelo, porque con las luces del mapa la roca de debajo salía negra.
   El hueco que deja en Navarra no da al cielo («debajo no hay cielo: es tierra más oscura; pon lógica geográfica», pidió el
   autor): es el molde exacto de la panza (su misma geometría: pieza y hueco, el mismo volumen), a la altura del corte
@@ -1869,6 +1869,33 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   deshace en jirones, blanca hasta el final. Y lo que más apagaba el cielo no estaba en el mapa: el velo morado de
   encima (`#hub.juego .m3d::after`, en `consola.css`), de cuando el mapa era de noche, tapaba un tercio arriba y las
   esquinas. Se ha dejado en casi nada; lo de encima lleva su propio fondo.
+- **El borde de la isla, integrado** (`canto`, `FILAS`, `suelo` en `mapa3dIsla.js`; 14 de noviembre de 2026): con una foto
+  de la isla muy de cerca, el autor: «los bordes de los mapas no están bien integrados. No tienen bordes»; y luego: «ese
+  labio que has puesto en el contorno no tiene nada que ver con el verde del césped» y «no puede haber cambios de colores
+  bruscos que se note que son elementos pegados». Antes el canto era una cinta plana con una foto de césped estirada,
+  que asomaba como una valla oscura, con la raya blanca de la muga encima.
+  - El borde es un labio: el prado dobla sobre el filo, redondeado (11 filas, `FILAS`), sale más o menos según el sitio
+    (`ANCHO`, de ruido) y menos en los entrantes (`ENC`); por dentro empieza transparente, en lenguas desiguales.
+  - Debajo cuelga un fleco de hierba y musgo con enredaderas (`colgante.webp`) y, metida detrás, tierra con raíces
+    (`tierra.webp`); luego la caliza. Son tiras con transparencia generadas con Higgsfield (Seedream 5.5 con fondo
+    transparente; la caliza y la hierba vista de arriba, GPT Image 2) y hechas repetibles con
+    `tools/islas/texturas-borde.py` (las tiras, solo a lo largo). Las raíces de antes, rayas de un píxel que colgaban como
+    alambres, se han quitado.
+  - El color no es suyo: labio y fleco toman el del suelo de la comarca justo dentro del borde (`suelo`), con las mismas
+    cuentas que el terreno: la ortofoto con `tonoOrto`, la luz del relieve, el grano de cerca, la nieve, `acabado`, la
+    sombra de las nubes y el velo de la comarca, con los mismos uniformes que su `relieveM`. De las fotos solo se toma la
+    luz de cada hoja y su transparencia. Lo que sale fuera del borde toma el color en espejo, hacia dentro: tomado del
+    mismo punto, el labio salía rayado.
+  - La caliza ya no se repite en mosaico: `uVar` mezcla la misma foto a otra escala, a manchas grandes.
+  - Mientras la isla está en el aire, ni la raya clara de la muga ni las cintas del contorno (`c.cintas`): subían con la
+    losa y dibujaban una raya a trozos sobre el labio. La boca del hueco baja lo que se hunden las vecinas al quedar de
+    fondo (`hundidas` en `update`): quedaba por encima de su borde y se veía una cuña de la base oscura del mapa. De cerca
+    de la isla la niebla empieza más lejos.
+  - Las paredes del hueco llevan la mitad de niebla (`uNiebla`): por estar más hondas que el suelo se aclaraban hacia el
+    color del cielo y parecían de cristal. Y las paredes de las vecinas que asoman junto a la boca, de la misma tierra
+    oscura (`TIERRA_HUECO`) y sin el filo claro de arriba.
+  - El contorno tiene entre 300 y 560 puntos según lo que mide (antes 300 siempre), para que en las comarcas grandes el
+    labio no vaya a tramos rectos.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora
