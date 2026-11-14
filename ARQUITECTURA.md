@@ -2110,6 +2110,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   todas las misiones, la cuenta, el catalejo, la mochila y la pausa, y cada casilla elige su misión a la primera. El
   autor no veía en el escritorio ni las misiones, ni el catalejo, ni la mochila («tiene que estar la misma barra que en
   el móvil»), y en una pantalla de ordenador la barra entera, unos 660 px, cabe de sobra.
+  El 15 vuelve a plegarse en el móvil y en el ordenador, pero el catalejo, la mochila y el menú se ven siempre: «me
+  gusta que esté todo plegado, pero obviamente debe haber una flecha que indique que despliega y que pliega» y «quiero
+  que sean visibles el icono de la mochila y del catalejo y el del menú, aunque tapen pantalla». Plegada: la misión que
+  haces, la flecha con la cuenta (2/7) en una pastilla clara y la cápsula del menú personal; desplegada, la flecha se da
+  la vuelta y apunta a la izquierda.
 - **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
   con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
   móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin

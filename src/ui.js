@@ -178,7 +178,8 @@ export class UI {
     if (town) {
       const T = $('#tl', h), P = $('#mPliega', h); T.classList.add('plega');
       P.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.sound?.ui?.('click'); this.pliegaMisiones(!T.classList.contains('abierta')); });
-      // (usar el catalejo, la mochila o la pausa la recoge; y tocar dentro de la barra le da otros 10 s. En la bajada del
+      // (desde el 15 de noviembre de 2026 el catalejo, la mochila y la pausa se ven siempre, también plegada: style.css)
+    // (usar el catalejo, la mochila o la pausa la recoge; y tocar dentro de la barra le da otros 10 s. En la bajada del
       // evento y un instante después: la mochila corta su clic, y si la barra se plegase antes, el botón ya no estaría)
       $('#mbtns', h).addEventListener('click', () => setTimeout(() => this.pliegaMisiones(false), 0), true);
       T.addEventListener('pointerdown', () => { if (T.classList.contains('abierta')) this.esperaPlegar(); }, true);
@@ -292,7 +293,7 @@ export class UI {
   // late el cuadrado de la misión
   eligeMision(i) {
     const g = this.game, M = g?.missions?.[i]; if (!M) return;
-    // (en el ordenador la barra no se pliega, style.css: la flecha no está y cada casilla elige su misión a la primera)
+    // (si la flecha no estuviera, style.css, cada casilla elige su misión a la primera)
     const T = this.hud && $('#tl.plega', this.hud), plegada = !!T && !T.classList.contains('abierta') && $('#mPliega', T)?.offsetWidth > 0;
     // (plegada, la única casilla que se ve es la puerta de todo: tocarla despliega la barra, con su misión debajo)
     if (plegada) { this.sound?.ui?.('click'); if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } this.pliegaMisiones(true); this.abreMision(i, ABIERTA_MS); return; }
@@ -305,7 +306,7 @@ export class UI {
   pliegaMisiones(abrir) {
     const T = this.hud && $('#tl.plega', this.hud); if (!T) return;
     T.classList.toggle('abierta', abrir); const P = $('#mPliega', T);
-    P.setAttribute('aria-expanded', String(abrir)); P.setAttribute('aria-label', abrir ? 'Plegar la barra' : 'Ver las misiones, la mochila y la pausa');
+    P.setAttribute('aria-expanded', String(abrir)); P.setAttribute('aria-label', abrir ? 'Plegar las misiones' : 'Ver todas las misiones');
     clearTimeout(this.plT); this.plT = 0; if (abrir) this.esperaPlegar();
     this.refreshDots(); this.queueFitTop();
   }

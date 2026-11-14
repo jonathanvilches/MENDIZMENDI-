@@ -287,26 +287,24 @@ summary { line-height: 1.3; }
    haciendo (.ve, refreshDots) y, pegada a ella, una flecha fina. Al tocar cualquiera de las dos se despliega a lo ancho
    lo demás, con una entrada escalonada: las otras misiones, la flecha con las que llevas hechas, y el catalejo, la
    mochila y la pausa. Hasta el 14 de noviembre de 2026 la flecha con su cuenta y esos tres botones se quedaban fuera */
-/* (desde la tarde del 14 de noviembre de 2026, plegada solo con el dedo, html.tactil: en el ordenador la barra va siempre
-   entera, con todas las misiones, cuántas llevas, el catalejo, la mochila y la pausa, como en el móvil desplegada. Plegada,
-   el autor no veía en el escritorio ni las misiones, ni el catalejo, ni la mochila; y sitio, en una pantalla de ordenador,
-   sobra: la barra entera mide unos 660 px de 1.280 o más) */
+/* (desde el 15 de noviembre de 2026, plegada otra vez en el móvil y en el ordenador, pero con el catalejo, la mochila y el
+   menú siempre a la vista: «me gusta que esté todo plegado, pero obviamente debe haber una flecha que indique que despliega
+   y que pliega» y «quiero que sean visibles el icono de la mochila y del catalejo y el del menú, porque tienen sentido
+   que estén visibles, aunque tapen pantalla». Plegada: la misión que haces, la flecha con su cuenta, 2/7, en una pastilla
+   clara que se ve que se puede tocar, y la cápsula del menú personal. Desplegada, la flecha se da la vuelta y apunta a la
+   izquierda, para plegar. La tarde del 14, en el ordenador, iba siempre entera) */
 #mPliega { display: none; }
-html.tactil #tl.mis.plega #mPliega { display: inline-flex; align-items: center; gap: 6px; flex: none; height: var(--chip); margin-left: var(--mg, 10px); padding: 0 10px 0 8px; border: 0; border-radius: 6px; cursor: pointer;
-  background: rgba(255, 255, 255, .12); color: #fff; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; transition: background-color .2s; }
-html.tactil #tl.mis.plega #mPliega:hover { background: rgba(255, 255, 255, .2); }
-html.tactil #tl.mis.plega #mPliega svg { transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
-html.tactil #tl.mis.plega.abierta #mPliega svg { transform: rotate(180deg); }
-html.tactil #tl.mis.plega:not(.abierta) { min-width: 0; }
-html.tactil #tl.mis.plega:not(.abierta) #mbtns { display: none; }
-html.tactil #tl.mis.plega:not(.abierta) #mPliega { margin-left: 2px; padding: 0; width: 24px; justify-content: center; background: none; }
-html.tactil #tl.mis.plega:not(.abierta) #mPliega b { display: none; }
-html.tactil #tl.mis.plega.abierta #mbtns { animation: misEntra .28s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--n, 7) * 28ms); }
-html.tactil #tl.mis.plega:not(.abierta) #misiones { grid-template-columns: var(--chip); }
-html.tactil #tl.mis.plega:not(.abierta) #misiones button:not(.ve) { display: none; }
-html.tactil #tl.mis.plega.abierta #misiones button:not(.ve) { animation: misEntra .28s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--k, 0) * 28ms); }
+#tl.mis.plega #mPliega { display: inline-flex; align-items: center; gap: 4px; flex: none; height: var(--chip); margin-left: var(--mg, 10px); padding: 0 10px 0 8px; border: 0; border-radius: 8px; cursor: pointer;
+  background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); color: #fff; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; font-variant-numeric: tabular-nums; transition: background-color .2s; }
+#tl.mis.plega #mPliega:hover { background: rgba(255, 255, 255, .26); }
+#tl.mis.plega #mPliega svg { width: 18px; height: 18px; transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
+#tl.mis.plega.abierta #mPliega svg { transform: rotate(180deg); }
+#tl.mis.plega:not(.abierta) { min-width: 0; }
+#tl.mis.plega:not(.abierta) #misiones { grid-template-columns: var(--chip); }
+#tl.mis.plega:not(.abierta) #misiones button:not(.ve) { display: none; }
+#tl.mis.plega.abierta #misiones button:not(.ve) { animation: misEntra .28s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--k, 0) * 28ms); }
 @keyframes misEntra { from { opacity: 0; transform: translateX(-8px) scale(.9); } }
-@media (prefers-reduced-motion: reduce) { html.tactil #tl.mis.plega.abierta :is(#misiones button:not(.ve), #mbtns) { animation: none; } html.tactil #tl.mis.plega #mPliega svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { #tl.mis.plega.abierta #misiones button:not(.ve) { animation: none; } #tl.mis.plega #mPliega svg { transition: none; } }
 /* la tarjeta de la misión: al tocar su casilla sale suelta debajo de la barra, con una flechita hacia la casilla (--px,
    ui.js abreMision). El icono en el color de su categoría; al lado, la categoría y cuál es, su nombre, lo que toca hacer,
    sus pasos y lo lejos que está. Tocándola, el cuaderno; se cierra tocando su casilla, fuera de la barra o sola a los
