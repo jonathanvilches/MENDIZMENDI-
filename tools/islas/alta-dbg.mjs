@@ -12,6 +12,6 @@ await p.waitForFunction(() => { const e = window.__mapa3d.estado(); return !e.vu
 await p.evaluate(() => document.querySelectorAll('.m3-chip[data-sel]')[3].click());
 let k = 0; const fs = await import('node:fs');
 for (const n of (process.env.PASOS || '90,60,60,90,150,150,150,150').split(',').map(Number)) { await p.waitForTimeout(300);
-  const r = await p.evaluate((n) => { for (let i = 0; i < n; i++) window.__paso(1000 / 30); const m = window.__mapa3d, e = m.estado(); return { vuelo: e.vuelo, vp: +e.v.pitch.toFixed(2), d: +e.v.d.toFixed(1), yaw: +e.v.yaw.toFixed(2), x: +e.v.x.toFixed(1), z: +e.v.z.toFixed(1), img: document.querySelector('.m3-cv').toDataURL('image/jpeg', 0.9) }; }, n);
+  const r = await p.evaluate((n) => { for (let i = 0; i < n; i++) window.__paso(1000 / 30); const m = window.__mapa3d, e = m.estado(); return { vuelo: e.vuelo, vp: +e.v.pitch.toFixed(2), d: +e.v.d.toFixed(1), yaw: +e.v.yaw.toFixed(2), x: +e.v.x.toFixed(1), z: +e.v.z.toFixed(1), pueblos: [...document.querySelectorAll('.m3-tl')].filter(l => l._on).length, montes: m.montes().filter(q => q.on).length, img: document.querySelector('.m3-cv').toDataURL('image/jpeg', 0.9) }; }, n);
   fs.writeFileSync(`${process.env.OUT}-${k++}.jpg`, Buffer.from(r.img.split(',')[1], 'base64')); delete r.img; console.log(JSON.stringify(r)); }
 console.log('errores', errs.length, JSON.stringify(errs.slice(0, 3))); await b.close();

@@ -1068,6 +1068,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // norte a sur, como un dron: del Baztan y el Pirineo a la Ribera, y vuelve; se inclina para que se vea el relieve y se
   // mece un poco. Se para con cualquier toque, tecla o rueda y al elegir una comarca o un pueblo (se queda donde está), y
   // vuelve a los 10 s sin tocar nada. Antes Navarra se veía entera, pero pequeña encima de la tira de comarcas
+  // (los nombres de los pueblos, los montes y los ríos de la comarca elegida no salen mientras la tierra se arranca y la
+  // cámara sube: salen cuando el dron empieza a planear sobre ella. Lo pidió el autor el 14 de noviembre de 2026: «que al
+  // principio no aparezcan los pueblos y que luego, cuando se empiece a mover el dron entre las nubes, entonces ya salen».
+  // Si el jugador toca antes, o no hay vuelo de dron, salen en cuanto la cámara se queda quieta; y nunca más tarde de 8 s)
+  let sinNombres = null;
   let paseo = null, islaDron = null, quietoDesde = performance.now(), paseoVisto = false;   // (la primera vez empieza a los 3 s)
   // (sin paseo con «menos movimiento» en el sistema; ni en el navegador de las pruebas, como la entrada, salvo que lo pidan)
   const MOV_REDUCIDO = matchMedia?.('(prefers-reduced-motion: reduce)').matches || (navigator.webdriver && !window.__paseo);
@@ -1094,15 +1099,18 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // moverse. Ahora, con la tierra aún saliendo, arranca despacio de lado, sube en arco girando alrededor de la isla hasta
   // casi encima (`PITCH_ALTA`, 69°) y, sin parar, se acerca y planea sobre el territorio: va y viene por la comarca, gira,
   // baja a mirar el relieve y los pueblos algo de lado y vuelve a subir. Se para con cualquier toque, como el paseo)
-  const SUBE_ISLA = 4.6;
+  // (el 14 de noviembre por la tarde, al verlo en su teléfono: «me gusta cómo acaba la escena y el movimiento, pero tiene que
+  // ser mucho más rápido». La subida en arco pasa de 4,6 s a 2,6; el planeo entra en 1,6 s en vez de 3,4 y va a casi el
+  // doble de paso; la tierra sale en un segundo; y el vuelo de llegada al plano bajo, un tercio más corto)
+  const SUBE_ISLA = 2.6;
   function sigueDronIsla(dt) {
     const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed, u = Math.min(1, p.t / SUBE_ISLA), s = u * u * u * (u * (6 * u - 15) + 10);
     // (el planeo entra antes de acabar la subida: no hay un momento quieto entre los dos)
-    const td = Math.max(0, p.t - SUBE_ISLA * 0.6), k = ease(Math.min(1, td / 3.4)), baja = (0.5 - 0.5 * Math.cos(td * 0.2)) * k;
-    goal.yaw = p.de.yaw + p.giro * (0.95 * s + 0.5 * Math.sin(td * 0.17) * k);
-    goal.x = mezcla(p.de.x, p.alta.x, s) + r * 0.36 * Math.sin(td * 0.15 + 0.3) * k; goal.z = mezcla(p.de.z, p.alta.z, s) + r * 0.3 * Math.sin(td * 0.115 + 1.9) * k;
+    const td = Math.max(0, p.t - SUBE_ISLA * 0.6), k = ease(Math.min(1, td / 1.6)), baja = (0.5 - 0.5 * Math.cos(td * 0.36)) * k;
+    goal.yaw = p.de.yaw + p.giro * (0.95 * s + 0.5 * Math.sin(td * 0.3) * k);
+    goal.x = mezcla(p.de.x, p.alta.x, s) + r * 0.36 * Math.sin(td * 0.27 + 0.3) * k; goal.z = mezcla(p.de.z, p.alta.z, s) + r * 0.3 * Math.sin(td * 0.21 + 1.9) * k;
     goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(p.alta.d), s)) * (1 - 0.27 * k - 0.15 * baja);
-    goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s) + (0.06 * Math.sin(td * 0.21 + 1) - 0.2 * baja) * k;
+    goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s) + (0.06 * Math.sin(td * 0.38 + 1) - 0.2 * baja) * k;
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -1166,7 +1174,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) c.vistaAlta = false; }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
-      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); }
+      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.68;
+      sinNombres = { id: c.id, t: 0 }; }
   }
 
   // ---------- el relieve fino ----------
@@ -1680,6 +1689,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     else if (!paseo && now - quietoDesde > 10000 + (paseoVisto ? 0 : -7000)) { paseo = { t: 0, base: { ...goal } }; paseoVisto = true; }
     if (paseo) sigueDronNavarra(dt);
     if (islaDron) { if (sel !== islaDron.c.id || vuelo || dron || elegido || ptrs.size || keys.size || inercia) islaDron = null; else sigueDronIsla(dt); }
+    if (sinNombres) { const q = sinNombres, c = byId.get(q.id); q.t += dt;
+      if (sel !== q.id || elegido || ptrs.size || keys.size || q.t > 8 || (islaDron?.c === c ? islaDron.t > SUBE_ISLA * 0.6 + 0.25 : c.vistaAlta && !vuelo)) sinNombres = null; }
     if (keys.size) {
       const sp = goal.d * 0.9 * dt, fx = -Math.sin(goal.yaw), fz = -Math.cos(goal.yaw);
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }
@@ -1755,9 +1766,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       // (crece del suelo al empezar; se levanta con sus sellos y al elegirla)
       // (la isla: sube con un muelle, se pasa un poco y se posa en el aire; arriba, se mece despacio, y de cerca, quieta)
       let vuela = 0;
-      // (desde el 14 de noviembre de 2026 sube más despacio, en segundo y medio y no en uno, para que se la vea salir; y si la
+      // (sube en un segundo, con un muelle que se pasa un poco y vuelve; y si la
       // cámara viene volando a su plano de lado, espera a que vaya a medio camino: la ascensión empieza con ese plano)
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.5 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 4.2) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.5 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 17 - (I.v || 0) * 5.6) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
@@ -1878,7 +1889,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (COL) for (const it of COL.items) { const x = it.t, c = it.c;
       if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);
       else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
-    for (const x of T) { const on = !COL && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
+    for (const x of T) { const on = !COL && sinNombres?.id !== x.comarca && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
       const ya = elegido === x, sh = hover === 't:' + x.id; if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
       lista.push([x.here || sh || ya ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y, x.Z, on, x.g.position.y, true]); }   // (si encima no cabe, debajo, con el pico arriba; y si tampoco, solo la foto)
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
@@ -1894,9 +1905,9 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
         if (I.cuerpo(cp.x + dx * u, cp.z + dz * u, (base - y) / I.D)) return true; }
       return false; };
     for (const c of C) { const suya = sel === c.id, y = c.hc * c.sy + c.py + 1.4; lista.push([suya && cerca ? 4 : !sel || suya ? 2 : 10, c.lab, c.X, y, c.Z, !COL && (!sel || suya || !elegido) && (suya || !(tapaIsla(c.X, y, c.Z) || tapaIsla(c.X, y + 1.8, c.Z)))]); }   // (el rótulo ocupa un trecho por encima de su punto: se mira también ahí)
-    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && (sel ? x.c?.id === sel : v.d < 55)]);
+    for (const x of N) lista.push([x.k ? 5 + x.k : 5, x.lab, x.X, x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h, x.Z, !COL && !sinNombres && (sel ? x.c?.id === sel : v.d < 55)]);
     // (los montes, si encima no caben, debajo de su cima, como los pueblos: así se leen aunque haya dos muy juntos)
-    for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
+    for (const x of PK) { const y = x.c ? (x.h + (x.dh || 0) * x.c.fk.value) * x.c.sy + x.c.py : x.h; lista.push([x.p, x.lab, x.X, y, x.Z, !COL && !maq && !sinNombres && (sel ? x.c?.id === sel : v.d < 30), y, true]); }
     if (maq?.labs) { const c = maq.e.c, on = v.d < 1.3 && maq.op > 0.6; for (const x of maq.labs) lista.push([9, x.lab, x.X, pisoEn(c, x.X, x.Z) * c.sy + c.py + 30 * MU, x.Z, on]); }
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
     // (en la vista de toda Navarra y con una comarca elegida por la que pasa; con otra comarca, con un pueblo o una maqueta,

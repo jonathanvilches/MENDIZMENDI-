@@ -1822,8 +1822,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   y vuelve a subir. Cualquier toque la para. Con «reducir movimiento» sube y se queda quieta. Si el jugador ya ha movido la
   cámara, no arranca. Antes esperaba quieta 1,3 s de lado, subía recta a 0,96 y solo entonces empezaba a moverse; y antes
   de eso, el 13 de noviembre, la subida no se veía nunca porque la cuenta que la disparaba estaba detrás de un comentario
-  en su misma línea. Se mide con `tools/islas/alta-dbg.mjs`, con reloj propio: de 0,27 de inclinación a 1,2 a los seis
-  segundos de elegir, con el giro de 0 a 0,9, y luego entre 0,95 y 1,25, a tres cuartos de la distancia. La raya de la trashumancia
+  en su misma línea. Esa misma tarde, al verlo en su teléfono: «me gusta cómo acaba la escena y el movimiento, pero tiene
+  que ser mucho más rápido». La subida en arco pasó de 4,6 s a 2,6; el planeo entra en 1,6 s y va a casi el doble de
+  paso; la tierra sale en un segundo; y el vuelo de llegada al plano bajo es un tercio más corto. Se mide con
+  `tools/islas/alta-dbg.mjs`, con reloj propio: de 0,27 de inclinación a 1,2 a los tres segundos de elegir (antes, a los
+  seis), con el giro de 0 a 0,9, y luego entre 0,95 y 1,25, a tres cuartos de la distancia.
+  Los nombres no salen mientras la tierra se arranca (`sinNombres`): los de los pueblos, los montes y los ríos de la
+  comarca elegida aparecen cuando el dron empieza a planear sobre ella, a los tres segundos. El autor: «que al principio
+  no aparezcan los pueblos y que luego, cuando se empiece a mover el dron entre las nubes, entonces ya salen». Si el
+  jugador toca antes, o no hay vuelo de dron, salen en cuanto la cámara se queda quieta; y nunca más tarde de 8 s. El
+  nombre de la comarca sí se ve desde el principio. La raya de la trashumancia
   se corta en su orilla. Para verlo: `isla.mjs` (con `PITCH` y `DK`), `isla-flujo.mjs`, `isla-salir.mjs` y `anim.mjs`, que
   graba la animación fotograma a fotograma con un reloj propio.
   El encaje de las piezas está comprobado con los datos (`comarcas-encaje.json`): cada linde entre dos comarcas es una sola
