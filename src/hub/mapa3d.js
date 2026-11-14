@@ -1466,8 +1466,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (en la maqueta, las mismas casas que se levantan, con los bloques grandes ya partidos: maqueta.js casasMaqueta. Si no,
     // bajo ellos quedaba su huella entera, una losa gris de hasta 130 m)
     const CS = velo ? D.casas : casasMaqueta(D);
-    if (Rf) { if (!velo) for (const b of CS) casa(b, 2, 3, 'rgba(30, 20, 14, .26)'); }
-    else { for (const b of CS) casa(b, 3, 4, 'rgba(40, 24, 18, .35)');   // (la sombra, hacia el sureste)
+    // (la sombra de las casas: en la maqueta, hacia el noreste y azul fría, con su luz del suroeste, maqueta.js; de lejos,
+    // con la luz del mapa, hacia el sureste)
+    if (Rf) { if (!velo) for (const b of CS) casa(b, 2.2, -3, 'rgba(20, 30, 58, .3)'); }
+    else { for (const b of CS) velo ? casa(b, 3, 4, 'rgba(40, 24, 18, .35)') : casa(b, 2.2, -3, 'rgba(20, 30, 58, .34)');
       for (const b of CS) { const [h, sa, l] = b.k === 'fronton' ? [0.38, 0.3, 0.5] : tono(b, pizarra); casa(b, 0, 0, `hsl(${h * 360}, ${sa * 100}%, ${l * 92}%)`); } }
     g.globalCompositeOperation = 'destination-in';
     // (hacia el borde se funde con el relieve en más de la mitad del radio y sin escalón; antes, solo en el último quinto)
@@ -1602,9 +1604,10 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, BAJA ? 1024 : 2048, false, e.foto); return false; }
     if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: BAJA, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
-    // (la sombra de cada árbol en el suelo pintado, hacia el sureste; y la imagen, a la tarjeta gráfica en su propia imagen)
-    if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(28, 40, 18, .3)'; g.beginPath();
-      for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R + rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, 0.5, 0, 6.2832); }
+    // (la sombra de cada árbol en el suelo pintado, hacia el noreste, como la luz de la maqueta, que viene del suroeste:
+    // maqueta.js; azul fría, como las sombras de un día de sol. Hasta el 14 de noviembre de 2026, hacia el sureste y parda)
+    if (!m.subida) { m.subida = true; const g = m.tex.image.getContext('2d', { willReadFrequently: true }), N = m.tex.image.width, k = N / (2 * e.R); g.fillStyle = 'rgba(20, 34, 58, .32)'; g.beginPath();
+      for (const [x, z, rr] of m.res.sombras) { const a = (x + e.R + rr * 0.9) * k, b = (z + e.R - rr * 1.2) * k; g.moveTo(a + rr * 1.1 * k, b); g.ellipse(a, b, rr * 1.1 * k, rr * 0.8 * k, -0.5, 0, 6.2832); }
       g.fill(); return true; }
     // (y la imagen, a la tarjeta gráfica, en su propia imagen y en un paso aparte: con las sombras en el mismo, era el paso
     // más largo y, volando hasta el pueblo, un tirón)

@@ -152,7 +152,17 @@ vec3 pueM(sampler2D t, vec4 r, vec2 sv) { return texture2D(t, clamp((sv - r.xy) 
 // (el núcleo con el tono de alrededor: la foto fina del pueblo es más clara y más viva que la ortofoto del mapa, y el
 // pueblo se veía como un parche pegado. Se le quita su color medio y se le pone el del relieve en ese sitio, casi todo;
 // el detalle, sus calles, tejados y huertas, se queda)
-vec3 pueC(vec3 c, sampler2D t, vec4 r, vec2 sv, vec3 rgb, float lz) { vec3 pc = acabado(tonoOrto(rgb) * lz), pm = acabado(tonoOrto(pueM(t, r, sv)) * lz); return max(pc + (c - pm) * 0.75, 0.0); }
+// (y la hierba del pueblo, de prado: en la foto fina, de verano, los prados y huertas salían verde oliva, un tono de 70 a
+// 75 grados, al lado del verde de 100 del monte de alrededor. Solo lo que es verde, con más verde que rojo y que azul, se
+// lleva a prado y gana algo de color; el cereal y el rastrojo, con más rojo que verde, la tierra, las calles, los tejados
+// y el agua se quedan como son. El autor, el 14 de noviembre de 2026: «lo más feo son las casas y el suelo», y nada de
+// verdes oliva donde no los hay)
+vec3 prado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), veg = smoothstep(-0.05, 0.02, c.g - c.r) * smoothstep(0.03, 0.1, c.g - c.b);
+  c.r = mix(c.r, c.b + (c.r - c.b) * 0.4, veg); c *= l / max(dot(c, vec3(0.299, 0.587, 0.114)), 1e-3);
+  // (con el color y la luz del monte de alrededor, unos 100° y algo menos de luz: lo claro, más hondo, que si no se iba a
+  // verde lima)
+  return max(mix(vec3(l), c, 1.0 + 0.4 * veg) * mix(1.0, 0.88 - 0.3 * max(l - 0.55, 0.0), veg), 0.0); }
+vec3 pueC(vec3 c, sampler2D t, vec4 r, vec2 sv, vec3 rgb, float lz) { vec3 pc = acabado(tonoOrto(rgb) * lz), pm = acabado(tonoOrto(pueM(t, r, sv)) * lz); return prado(max(pc + (c - pm) * 0.75, 0.0)); }
 // (una parcela de cultivo, en una rejilla girada de casillas de t de lado: su color, trigo, verde, barbecho, viña u olivo o
 // arado, y lo cerca que está de su linde; en el sur, las viñas en hileras, si se ven)
 vec4 parcela(vec2 sv, float t) {

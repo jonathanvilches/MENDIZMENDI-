@@ -938,7 +938,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     tono de su lista y un punto de luz propio; alguna teja nueva, más viva. El hastial lleva el color de su propia pared
     (atributo `aPared` de cada instancia), las contraventanas son pardas, verdes o rojo almagre de verdad y el musgo de
     los tejados, verde oscuro. Iglesias, torres, palacios y monumentos, de la piedra de su tierra.
-  - La luz malva del cielo del mapa se corrige en la maqueta con un punto de calidez al final del sombreador.
+  - La maqueta lleva su propia luz y no el tono de cine (`toneMapped: false`; caché `maqueta8`): al final del sombreador,
+    un sol de media tarde del suroeste, a unos 40°, cálido, y un cielo azul que llena las caras en sombra de gris
+    azulado, con algo del verde del prado en las que miran abajo. Cada casa tiene un lado soleado y otro en sombra. Hasta
+    el 14 de noviembre de 2026 iba con la luz del mapa, del noroeste: desde la cámara se veían casi siempre las caras en
+    sombra y, con el tono de cine, el blanco salía gris y las tejas de un mismo naranja quemado («lo más feo son las
+    casas y el suelo»). Las sombras pintadas en el suelo de la maqueta, de casas y árboles, caen por eso hacia el noreste
+    y son azul frías; las del núcleo de lejos siguen hacia el sureste, con la luz del mapa.
+  - Desde ese día, «un mundo de fantasía, pero con una lógica»: la teja con más variedad de una casa a otra, del coral al
+    pardo viejo; la cal, blanca y limpia; la pizarra del Pirineo, gris azulada, como la losa de Roncal y Salazar. Los
+    árboles, tres verdes de hoja por comarca (`VERDES`, en HSL lineal) que se reparten según el mismo número al azar de
+    cada árbol: fresco en el norte, algo más hondo en la Zona Media, el amarillo verdoso de los chopos en la Ribera; los
+    abetos, verde azulado hondo; los cipreses, casi negros. Abajo, a la sombra de la copa, más hondos y azulados; arriba,
+    más claros y cálidos. Ni rosas ni olivas donde no los hay.
+  - El suelo de los núcleos (`prado` en `pueC`, `mapa3dSombreadores.js`): en la foto fina de verano los prados salían
+    verde oliva, de 70 a 75°, al lado del verde de 100° del monte. Lo que es verde, con más verde que rojo y que azul, se
+    lleva a prado y gana color; el cereal, la tierra, las calles, los tejados y el agua se quedan como son.
+  - Antes de eso, la luz malva del cielo del mapa se corregía en la maqueta con un punto de calidez al final del
+    sombreador.
   - A media distancia, una franja más oscura por piso en las fachadas, para leer la altura de cada casa.
   - En el suelo pintado de la maqueta, los adoquines y las losas solo si sus juntas caben en el lienzo; si no, piedra a
     motas. Los ríos, con orilla oscura y un brillo en el centro.
