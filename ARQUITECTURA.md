@@ -1287,7 +1287,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - La plaza libre (`tipo: 'plaza'`): solo el frontis, con raya a los dos lados; sin pared izquierda ni rebote; a la
     izquierda, plaza. Es fuera lo que da en el frontis o bota fuera de la raya de la izquierda (`ladoIzq`, `fuera`) y no
     hay dos paredes (ni para ti ni para el rival). Se monta al aire libre con la iglesia detrás del frontis, sobre un prado
-    que llega al horizonte, sin focos en la pared que no hay.
+    que llega al horizonte, sin focos en la pared que no hay. Sin pared izquierda, tampoco su remate de arriba (`capL`), que
+    sin la pared quedaba como una viga suelta por el cielo; en el trinquete, ese remate va sobre la pared de la galería.
   - El trinquete (`tipo: 'trinquete'`): cerrado por las cuatro paredes, sin contracancha. A la izquierda, la galería del
     público tras la red metálica (del suelo a 2,35 m) y el tejadillo de tejas que sube 2,2 m hacia la pared del fondo,
     a todo lo largo, como en los trinquetes de verdad (28,5 × 9,3 m, con el tejadillo en la pared izquierda). La pelota que

@@ -265,6 +265,7 @@ export class PelotaCourt {
       const back = new T.Mesh(new T.BoxGeometry(bw + 0.18, bh + 0.18, 0.12), steelB); back.position.set(0, by, 0.06); back.castShadow = true; B.add(back);
       this.setScore('', '', 0, 0); }
     const capL = new T.Mesh(new T.BoxGeometry(0.85, 0.2, EXT + 0.2), capMat); capL.position.set(-W / 2 - 0.3, C.LEFT_H + 0.1, EXT / 2 - 0.1); capL.castShadow = true; g.add(capL);
+    if (PLZ) capL.visible = false; else if (TRQ) capL.position.x -= TRINQ.FONDO;   // (el remate de la pared izquierda: en la plaza libre no hay pared; en el trinquete, sobre la de la galería)
     // la chapa de abajo (el colchón): la plancha que sobresale del frontis, hecha de paneles atornillados con sus juntas,
     // de metal o pintada del color del frontón de cada sitio, con las marcas de los pelotazos; arriba, el remate de chapa
     // doblada y la raya. Antes era una losa lisa de un solo color, sin nada que dijera que es una chapa
@@ -420,13 +421,13 @@ export class PelotaCourt {
     this.rebMeshes = [back];
     if (!opts.labrit && !HALL) { const capR = new T.Mesh(new T.BoxGeometry(W + 0.9, 0.2, 0.85), rebCap); capR.position.set(-0.3, RH + 0.1, EXT + 0.2); capR.castShadow = true; g.add(capR); this.rebMeshes.push(capR); }
     this.rebMats = [rebIn, rebOut, rebCap]; this.rebFade = 1; this.contra = CONTRA;
-    if (PLZ) { for (const o of this.rebMeshes) o.visible = false; this.rebMeshes = []; this.rebRaya.visible = false; this.rebRaya = null; }   // (la plaza libre no tiene rebote: lo largo, a la plaza)
     // (cuando la cámara queda detrás, del rebote solo queda su contorno: una raya clara por los bordes de su cara, a ras de
     // la cancha. Antes se quedaba a medias, como un velo sobre toda la imagen, y la oscurecía)
     { const x0 = -W / 2 - 0.6, x1 = W / 2, z = EXT - 0.01, y1 = RH, pts = [x0, 0.02, z, x0, y1, z, x0, y1, z, x1, y1, z, x1, y1, z, x1, 0.02, z, x1, 0.02, z, x0, 0.02, z];
       const geo = new T.BufferGeometry(); geo.setAttribute('position', new T.Float32BufferAttribute(pts, 3));
       this.rebRaya = new T.LineSegments(geo, new T.LineBasicMaterial({ color: '#fff3dc', transparent: true, opacity: 0, depthWrite: false }));
       this.rebRaya.visible = false; this.rebRaya.renderOrder = 2; g.add(this.rebRaya); }
+    if (PLZ) { for (const o of this.rebMeshes) o.visible = false; this.rebMeshes = []; this.rebRaya.visible = false; this.rebRaya = null; }   // (la plaza libre no tiene rebote: lo largo, a la plaza)
     if (!opts.labrit && !HALL && !CALLE) for (let i = 0; i < 3; i++) {
       const st = new T.Mesh(new T.BoxGeometry(1.1, 0.42 * (i + 1), L * 0.78), M({ color: th.stands, roughness: 0.9 }));
       st.position.set(W / 2 + CONTRA + 0.55 + i * 1.1, 0.21 * (i + 1), L * 0.52); st.castShadow = true; st.receiveShadow = true; g.add(st);
