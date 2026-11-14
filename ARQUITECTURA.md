@@ -951,6 +951,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     cada árbol: fresco en el norte, algo más hondo en la Zona Media, el amarillo verdoso de los chopos en la Ribera; los
     abetos, verde azulado hondo; los cipreses, casi negros. Abajo, a la sombra de la copa, más hondos y azulados; arriba,
     más claros y cálidos. Ni rosas ni olivas donde no los hay.
+  - La noche del 14, otra vez, con Estella y Leitza de cerca: «son unos colores horribles. Los tejados, el color de las
+    paredes, el color del suelo». La teja, de barro cocido envejecido y no naranja: tonos pardos y de barro, de 20 a 25°,
+    con menos color y más diferencia de una casa a otra (cada casa, entre 0,86 y 1,12 de luz); en el norte, más oscura,
+    de clima húmedo, y en la Ribera, más de barro. La cal del norte, blanca sin amarillo; en Estella y la Zona Media,
+    piedra de miel y revoco ocre; en el Pirineo, más casas encaladas entre las de piedra gris (antes, seis de cada diez
+    de piedra; ahora, menos de la mitad). La luz de la maqueta, más baja (sol 0,66 y cielo algo más gris; caché
+    `maqueta9`): con la de antes, la cara al sol pasaba de 1 y el blanco se quemaba y la teja se iba a naranja. Los
+    verdes de los árboles, con algo más de la mitad del color de antes. Las casas del núcleo visto de lejos, con la misma
+    teja envejecida (antes, naranja vivo).
+  - Y el suelo: de cerca (`uCerca`, a menos de unos 10 m de mapa), la hierba más honda y sin pasarse a lima, y lo seco y
+    claro, de un amarillo de verano en la foto, hacia piedra cálida. En `prado` del núcleo, la hierba ya no gana color.
+    El acabado vivo del relieve sigue para ver el mapa entero.
   - El suelo de los núcleos (`prado` en `pueC`, `mapa3dSombreadores.js`): en la foto fina de verano los prados salían
     verde oliva, de 70 a 75°, al lado del verde de 100° del monte. Lo que es verde, con más verde que rojo y que azul, se
     lleva a prado y gana color; el cereal, la tierra, las calles, los tejados y el agua se quedan como son.

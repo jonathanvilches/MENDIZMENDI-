@@ -1440,7 +1440,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   const tono = (b, pizarra) => { const v = ((b.x * 7 + b.z * 13) % 9 + 9) % 9 / 9;
     // (de barro cocido, como en la maqueta: maqueta.js PAL; las naves, gris cálido y no azulado)
     return b.k === 'industrial' || b.k === 'shed' ? [0.09, 0.12, 0.6 + v * 0.08] : ['church', 'tower', 'palacio', 'castillo', 'muralla', 'kiosko', 'lavadero', 'pabellon'].includes(b.k) ? [0.09, 0.22, 0.56 + v * 0.06]
-      : pizarra ? [0.04, 0.08, 0.32 + v * 0.1] : [0.035 + v * 0.02, 0.6, 0.47 + v * 0.07]; };
+      : pizarra ? [0.04, 0.08, 0.32 + v * 0.1] : [0.03 + v * 0.025, 0.4, 0.42 + v * 0.08]; };   // (desde la noche del 14, teja envejecida y variada, como la maqueta: antes, naranja vivo)
   // (el núcleo pintado: un lienzo de un metro y medio por píxel, tres en el móvil, y el doble de fino en la maqueta; los
   // campos, huertas y parques, las calles y los ríos con su ancho de verdad, los puentes, la cancha de los frontones y
   // los tejados, de teja en casi toda Navarra y de pizarra en el Pirineo; hacia el borde se funde con el relieve)

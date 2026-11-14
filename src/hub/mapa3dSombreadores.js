@@ -158,10 +158,16 @@ vec3 pueM(sampler2D t, vec4 r, vec2 sv) { return texture2D(t, clamp((sv - r.xy) 
 // y el agua se quedan como son. El autor, el 14 de noviembre de 2026: «lo más feo son las casas y el suelo», y nada de
 // verdes oliva donde no los hay)
 vec3 prado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), veg = smoothstep(-0.05, 0.02, c.g - c.r) * smoothstep(0.03, 0.1, c.g - c.b);
-  c.r = mix(c.r, c.b + (c.r - c.b) * 0.4, veg); c *= l / max(dot(c, vec3(0.299, 0.587, 0.114)), 1e-3);
+  c.r = mix(c.r, c.b + (c.r - c.b) * 0.45, veg); c *= l / max(dot(c, vec3(0.299, 0.587, 0.114)), 1e-3);
   // (con el color y la luz del monte de alrededor, unos 100° y algo menos de luz: lo claro, más hondo, que si no se iba a
   // verde lima)
-  return max(mix(vec3(l), c, 1.0 + 0.4 * veg) * mix(1.0, 0.88 - 0.3 * max(l - 0.55, 0.0), veg), 0.0); }
+  // (desde la noche del 14, sin más color en la hierba, más honda; y lo seco y claro, las calles, las plazas, las eras y el
+  // rastrojo, de piedra y no del amarillo de verano de la foto. El autor, con Estella y Leitza de cerca: «los colores son
+  // horribles. Los tejados, el color de las paredes, el color del suelo»; la hierba salía verde fosforito y las calles
+  // amarillas)
+  vec3 o = mix(vec3(l), c, 1.0 - 0.06 * veg) * mix(1.0, 0.84 - 0.32 * max(l - 0.45, 0.0), veg);
+  float seco = (1.0 - veg) * smoothstep(0.03, 0.14, c.r - c.b) * smoothstep(0.32, 0.6, l);
+  return max(mix(o, mix(vec3(l), o, 0.5) * vec3(1.0, 0.985, 0.96) * 0.94, seco * 0.75), 0.0); }
 vec3 pueC(vec3 c, sampler2D t, vec4 r, vec2 sv, vec3 rgb, float lz) { vec3 pc = acabado(tonoOrto(rgb) * lz), pm = acabado(tonoOrto(pueM(t, r, sv)) * lz); return prado(max(pc + (c - pm) * 0.75, 0.0)); }
 // (una parcela de cultivo, en una rejilla girada de casillas de t de lado: su color, trigo, verde, barbecho, viña u olivo o
 // arado, y lo cerca que está de su linde; en el sur, las viñas en hileras, si se ven)
@@ -264,6 +270,13 @@ void main() {
   p = pue(uP1, uPR[1], uPK[1], sv); if (p.a > 0.0) c = mix(c, pueC(c, uP1, uPR[1], sv, p.rgb, lz), p.a);
   p = pue(uP2, uPR[2], uPK[2], sv); if (p.a > 0.0) c = mix(c, pueC(c, uP2, uPR[2], sv, p.rgb, lz), p.a);
   p = pue(uP3, uPR[3], uPK[3], sv); if (p.a > 0.0) c = mix(c, pueC(c, uP3, uPR[3], sv, p.rgb, lz), p.a);
+  // (de cerca, a la altura de los tejados, la hierba más honda y sin pasarse a lima, y lo seco y claro, de piedra: el acabado
+  // vivo es para ver el mapa entero; de cerca, al lado de las casas, se iba a verde fosforito y a amarillo. Desde la noche
+  // del 14 de noviembre de 2026, con Leitza y Estella: «los colores son horribles [...] el color del suelo»)
+  if (uCerca > 0.0) { float l = dot(c, vec3(0.299, 0.587, 0.114)), vg = smoothstep(-0.03, 0.04, c.g - c.r) * smoothstep(0.02, 0.1, c.g - c.b);
+    vec3 h = mix(vec3(l), c, 0.78); h.r = h.b + (h.r - h.b) * 0.6; h *= 0.86;
+    float sc = (1.0 - vg) * smoothstep(0.03, 0.14, max(c.r, c.g) - c.b) * smoothstep(0.4, 0.7, l);
+    c = mix(c, h, vg * uCerca); c = mix(c, mix(vec3(l) * vec3(1.03, 1.0, 0.95), c, 0.35) * 0.95, sc * uCerca * 0.75); }
   // (el agua pintada en el suelo de los pueblos, ríos, balsas y piscinas, se mueve: ondas de unos 7 m que se cruzan y
   // destellos; en metros desde el centro de la maqueta, y solo donde se distinguen, para que de lejos no titile)
   float ag = smoothstep(0.14, 0.05, abs(c.b - 0.91)) * smoothstep(0.25, 0.4, c.b - c.r);

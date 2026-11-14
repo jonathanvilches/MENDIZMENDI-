@@ -40,12 +40,12 @@ function claseReal(b) {
 // Pirineo, gris azulado, que es el color de la losa de Roncal y Salazar. Antes las tejas eran casi iguales y, con el
 // tono del mapa, todas salían del mismo naranja quemado)
 const PAL = {
-  atlantico: { cal: [0xf7f0e3, 0xfaf5ec, 0xf3e8d4, 0xf6ecdb], sillar: [0xb89c78, 0xa98b69, 0xc4a985], teja: [0xbf5f3b, 0xa9503a, 0xc87447, 0x93493a, 0xb5653f] },
-  pirineo: { cal: [0xeee3cb, 0xe7d8ba, 0xf2e8d3], sillar: [0xc4ab8a, 0xb69c7c, 0xcfb898, 0xab9274], teja: [0xb05f3e, 0x9c5440, 0xbb6a44] },
-  centro: { cal: [0xe9d3a6, 0xdfbf8a, 0xd6a972, 0xedddbb, 0xcf9e68], sillar: [0xd1af78, 0xc6a168, 0xdbbf8c], teja: [0xc4683f, 0xb85c3a, 0xd07f4f, 0xa9573c] },
-  ribera: { cal: [0xe7c999, 0xdaad75, 0xf0dfbe, 0xcb905e], ladrillo: [0xb76f4c, 0xab6247, 0xc27c54], sillar: [0xcca773, 0xc09a63, 0xd6b580], teja: [0xc8693f, 0xd27a4a, 0xb35a38] },
+  atlantico: { cal: [0xefebe3, 0xf3f0ea, 0xe7e2d8, 0xece6dc], sillar: [0xa8968a, 0x9a8a7c, 0xb4a596], teja: [0x965a45, 0x85503e, 0xa26a50, 0x7a4b3c, 0xab7a5f, 0x8f604c] },
+  pirineo: { cal: [0xe6dfd2, 0xdbd3c4, 0xeee8dd], sillar: [0xb2a898, 0xa39a8b, 0xbdb3a3, 0x958c7e], teja: [0x8c5844, 0x7a5041, 0x99664e, 0x845a47] },
+  centro: { cal: [0xe8dcc4, 0xdfcca8, 0xd4bb92, 0xefe6d6, 0xcdb08a], sillar: [0xc9ad80, 0xbca071, 0xd3ba90], teja: [0xa36648, 0xb27852, 0x95593f, 0xbc8862, 0x9c6e55, 0x8a5a44] },
+  ribera: { cal: [0xe6d6ba, 0xdac29e, 0xf0e8d8, 0xc8a27c], ladrillo: [0xa8664c, 0x9c5c46, 0xb27558], sillar: [0xc9a97e, 0xbd9c70, 0xd3b68c], teja: [0xa66a48, 0xb57c52, 0x94603f, 0xbb8a5e, 0x8c5a40] },
 };
-const PIZARRA = [0x56606c, 0x4b545f, 0x646d78], NAVE = { pared: [0xcdbfa6, 0xbcae94, 0xd8ccb5], teja: [0x9f5c40, 0x8e5a46, 0xa86a4c] };
+const PIZARRA = [0x5d636b, 0x52585f, 0x6a7078], NAVE = { pared: [0xc4b8a4, 0xb3a792, 0xd0c5b2], teja: [0x8f5b46, 0x7f5848, 0x9a6a52] };
 // (las barandillas de los balcones: madera parda, roja o verde en el norte; forja en el sur)
 const BALCON = { norte: [0x6e4326, 0x7d4c2b, 0x5a3a24, 0x8a3022, 0x2f5a3c], sur: [0x2c2a27, 0x34302b] };
 // (un color sRGB más claro u oscuro, k veces; y uno de una lista según v, de 0 a 1, con su punto de luz según l, de 0 a 1)
@@ -423,7 +423,7 @@ if (vVent > 20.5) {
       diffuseColor.rgb *= mix(0.74, 1.0, smoothstep(0.0, 0.5, sl));
     }
   // (los árboles: abajo, a la sombra de su copa, más hondos y azulados; arriba, donde da el sol, más claros y cálidos)
-  } else if (t > 7.5) diffuseColor.rgb *= mix(vec3(0.5, 0.56, 0.68), vec3(1.14, 1.1, 0.88), vObj.y) * (0.9 + 0.2 * vSemilla);
+  } else if (t > 7.5) diffuseColor.rgb *= mix(vec3(0.52, 0.58, 0.66), vec3(1.06, 1.06, 0.92), vObj.y) * (0.9 + 0.2 * vSemilla);
 }`)
       // (la luz de la maqueta, propia: el sol de media tarde, del suroeste y a unos 40 grados, cálido; y el cielo azul, que
       // llena las caras en sombra de un gris azulado, con algo del verde del prado en las que miran abajo. Así cada casa
@@ -433,11 +433,11 @@ if (vVent > 20.5) {
       // casas y el suelo», dijo el autor. En Navarra el sol va siempre por el sur)
       .replace('#include <opaque_fragment>', `{ vec3 nW = inverseTransformDirection(normal, viewMatrix);
   float sol = max(dot(nW, vec3(-0.456, 0.66, 0.6)), 0.0), arb = vVent > 7.5 && vVent < 20.5 ? 1.0 : 0.0;
-  vec3 cielo = mix(vec3(0.36, 0.41, 0.36), vec3(0.47, 0.54, 0.74), nW.y * 0.5 + 0.5);
-  outgoingLight = diffuseColor.rgb * (cielo + vec3(1.0, 0.9, 0.74) * (0.8 - 0.08 * arb) * sol); }
+  vec3 cielo = mix(vec3(0.33, 0.36, 0.35), vec3(0.43, 0.48, 0.6), nW.y * 0.5 + 0.5);
+  outgoingLight = diffuseColor.rgb * (cielo + vec3(1.0, 0.93, 0.8) * (0.66 - 0.06 * arb) * sol); }
 #include <opaque_fragment>`);
   };
-  mat.customProgramCacheKey = () => 'maqueta8';
+  mat.customProgramCacheKey = () => 'maqueta9';
   res.mat = mat;
   const piezas = { paredes: [], tejados: [], agujas: [], ochavos: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();
@@ -465,10 +465,10 @@ if (vVent > 20.5) {
     // (los pajares y las naves pequeñas, de piedra parda y con su tejado de teja: antes, gris claro y lisos, como bloques blancos)
     // (la piedra de iglesias, torres y palacios, dorada en la Zona Media y la Ribera y parda en el norte)
     // (de piedra: las iglesias, torres y palacios, y parte de las casas del Pirineo y la Zona Media; el ladrillo, en la Ribera)
-    const v2 = hash01(b, 1), l = hash01(b, 2), deSillar = !nave && (piedra || (estilo === 'pirineo' && v < 0.6) || (estilo === 'centro' && v < 0.35));
+    const v2 = hash01(b, 1), l = hash01(b, 2), deSillar = !nave && (piedra || (estilo === 'pirineo' && v < 0.45) || (estilo === 'centro' && v < 0.35));
     const pared = nave ? tono(NAVE.pared, v2, l) : k === 'fronton' ? 0xf2ecdc : deSillar ? tono(PT.sillar, v2, l) : PT.ladrillo && v < 0.35 ? tono(PT.ladrillo, v2, l) : tono(PT.cal, v2, l);
     // (y alguna teja nueva, más viva, entre las viejas)
-    const teja = nave ? tono(NAVE.teja, v2, l) : pizarra ? tono(PIZARRA, v2, l) : hash01(b, 3) > 0.93 ? escala(0xbf6a3e, 0.95 + 0.1 * l) : tono(PT.teja, hash01(b, 4), l);
+    const teja = nave ? tono(NAVE.teja, v2, l) : pizarra ? tono(PIZARRA, v2, l) : hash01(b, 3) > 0.93 ? escala(0xb87458, 0.95 + 0.1 * l) : escala(tono(PT.teja, hash01(b, 4), 0.5), 0.86 + 0.26 * l);
     if (k === 'fronton') {   // (el frontis y la pared izquierda; la cancha va pintada en el suelo)
       const rx = b.w >= b.d ? b.ry : b.ry + Math.PI / 2, ax = Math.cos(rx), az = -Math.sin(rx), bx = Math.sin(rx), bz = Math.cos(rx);
       pon(piezas.paredes, X - ax * (largo / 2 - 0.8) * MU, Z - az * (largo / 2 - 0.8) * MU, base, rx, 1.6 * MU, (10 + 2) * MU * K, corto * MU, 0, pared);
@@ -558,8 +558,8 @@ if (vVent > 20.5) {
   // hoja de verdad y vivos: haya, roble y castaño en el norte, de un verde fresco; en la Zona Media, algo más hondo; en la
   // Ribera, el amarillo verdoso de los chopos y sotos. Antes, un verde salvia apagado, el mismo en todos, que con el tono
   // del mapa se quedaba en gris oliva. Ni rosas ni olivas donde no los hay)
-  const VERDES = { atlantico: [[0.317, 0.76, 0.197], [0.344, 0.71, 0.154], [0.295, 0.74, 0.215]], pirineo: [[0.319, 0.68, 0.156], [0.344, 0.71, 0.154], [0.29, 0.78, 0.22]],
-    centro: [[0.305, 0.71, 0.148], [0.317, 0.74, 0.18], [0.29, 0.76, 0.22]], ribera: [[0.273, 0.79, 0.252], [0.305, 0.71, 0.17], [0.259, 0.79, 0.29]] };
+  const VERDES = { atlantico: [[0.31, 0.58, 0.16], [0.335, 0.54, 0.125], [0.29, 0.56, 0.18]], pirineo: [[0.315, 0.52, 0.13], [0.345, 0.54, 0.115], [0.29, 0.58, 0.17]],
+    centro: [[0.3, 0.54, 0.125], [0.315, 0.56, 0.15], [0.28, 0.58, 0.18]], ribera: [[0.26, 0.6, 0.2], [0.295, 0.54, 0.145], [0.25, 0.6, 0.23]] };
   const TOPE = lento ? 1800 : 5000, verde = VERDES[estilo];
   const CEL = 16, celda = (x, z) => Math.floor(x / CEL) * 8192 + Math.floor(z / CEL);
   const ocupa = new Map(), meter = (x, z, it) => { const k = celda(x, z); let l = ocupa.get(k); if (!l) ocupa.set(k, l = []); l.push(it); };
@@ -587,13 +587,13 @@ if (vVent > 20.5) {
     pon(lista, X, Z, alto(X, Z) - hund * 0.5, rnd() * 6.28, r * 2 * MU, alto2 * MU * K, r * 2 * MU, 0, [t0[0] + (f - 0.5) * 0.03, t0[1], t0[2] * (0.88 + 0.24 * f)], lista === piezas.abetos ? 9 : 8);
     sombras.push([x, z, r]);
   };
-  const abeto = (x, z) => arbol(x, z, 2.4 + rnd(), 14 + rnd() * 7, [0.397, 0.8, 0.08], piezas.abetos);
+  const abeto = (x, z) => arbol(x, z, 2.4 + rnd(), 14 + rnd() * 7, [0.4, 0.55, 0.07], piezas.abetos);
   // (las orillas)
   for (const rio of D.rios) for (let i = 0; i + 1 < rio.pts.length; i++) {
     const [ax, az] = rio.pts[i], [bx, bz] = rio.pts[i + 1], L = Math.hypot(bx - ax, bz - az) || 1, nx = -(bz - az) / L, nz = (bx - ax) / L;
     // (en la Ribera y la Zona Media, chopos altos y estrechos; en el norte, alisos)
     for (let t = 0; t < L; t += 9) for (const s of [-1, 1]) if (rnd() < 0.7) { const o2 = (rio.w || 2) + 3 + rnd() * 4, f = t / L, x = ax + (bx - ax) * f + nx * o2 * s, z = az + (bz - az) * f + nz * o2 * s;
-      if (estilo === 'ribera' || estilo === 'centro') arbol(x, z, 1.8 + rnd() * 0.7, 15 + rnd() * 6, [0.259, 0.79, 0.29]); else arbol(x, z, 3 + rnd() * 1.5, 9 + rnd() * 5); }
+      if (estilo === 'ribera' || estilo === 'centro') arbol(x, z, 1.8 + rnd() * 0.7, 15 + rnd() * 6, [0.25, 0.6, 0.23]); else arbol(x, z, 3 + rnd() * 1.5, 9 + rnd() * 5); }
   }
   // (dentro de un polígono, en rejilla con algo de azar)
   const relleno = (pts, paso, prob, f) => { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of pts) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
@@ -601,8 +601,8 @@ if (vVent > 20.5) {
   const lindes = (pts, paso, prob, f) => { for (let i = 0; i < pts.length; i++) { const [ax, az] = pts[i], [bx, bz] = pts[(i + 1) % pts.length], L = Math.hypot(bx - ax, bz - az); for (let t = paso / 2; t < L; t += paso) if (rnd() < prob) f(ax + (bx - ax) * t / L, az + (bz - az) * t / L); } };
   for (const u of D.usos || []) {
     if (u.k === 'parque') relleno(u.pts, 13, 0.75, (x, z) => arbol(x, z, 3.5 + rnd() * 2, 9 + rnd() * 6));
-    else if (u.k === 'frutales') relleno(u.pts, 7, 0.95, (x, z) => arbol(x, z, 2 + rnd() * 0.6, 4.5 + rnd(), [0.285, 0.79, 0.239]));
-    else if (u.k === 'cementerio') lindes(u.pts, 6, 0.9, (x, z) => arbol(x, z, 1.3, 9 + rnd() * 3, [0.387, 0.7, 0.056]));
+    else if (u.k === 'frutales') relleno(u.pts, 7, 0.95, (x, z) => arbol(x, z, 2 + rnd() * 0.6, 4.5 + rnd(), [0.275, 0.58, 0.19]));
+    else if (u.k === 'cementerio') lindes(u.pts, 6, 0.9, (x, z) => arbol(x, z, 1.3, 9 + rnd() * 3, [0.385, 0.5, 0.05]));
     else if (u.k === 'huerta' || u.k === 'prado') lindes(u.pts, 12, estilo === 'ribera' ? 0.2 : 0.45, (x, z) => arbol(x, z, 3 + rnd() * 1.5, 7 + rnd() * 5));
     else if (u.k === 'cesped') relleno(u.pts, 20, 0.3, (x, z) => arbol(x, z, 3 + rnd(), 8 + rnd() * 4));
   }
