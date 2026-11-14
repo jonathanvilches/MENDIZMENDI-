@@ -659,6 +659,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cada diez reacciones son suyas («¡Qué tacto tiene!», «Le quita el tiempo», «Esto es un pulso»…) y con «Solo Edurne»,
   todas; tras el tanto, su explicación sale dos de cada tres veces (antes dos de cinco) y hay algo más de relleno, que es
   casi todo suyo. «Solo habla Miquel y se me queda muy soso el partido».
+- **La voz de Mikel, tan limpia como la de Edurne** (misma noche): medidas las dos, la de Mikel tenía mucho más brillo duro
+  entre 1 y 3 kHz y poco cuerpo (centro espectral de 2.570 Hz frente a 1.810), y era más áspera (periodicidad 0,74 frente
+  a 0,86). Sus 429 frases, pasadas por un filtro: algo de cuerpo en los graves (+5,5 dB a 160 Hz), menos dureza (-6 dB a
+  2,3 kHz y -3,5 a 4,2), un poco de reducción de ruido, un quita-eses y corte por encima de 11 kHz; cada una al mismo nivel
+  medio que tenía, picos a -1 dBFS, mp3 de 80 kbps. Queda en 2.130 Hz y 0,82. Las originales siguen en la historia de git.
+  Para igualarlas del todo habría que hacer una voz «limpia» de Mikel, como la de Edurne, y grabarlo de nuevo.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
