@@ -32,7 +32,7 @@ import ORTO from '../assets/relieve/orto.webp?url';
 import { MAPA_ORTO } from '../data/mapa-orto.js';
 import { ORTO_PUEBLOS } from '../data/mapa-orto-pueblos.js';
 import { webUrl } from '../web/hd.js';
-import { haceMaqueta, casasMaqueta, ordenaMaqueta } from './maqueta.js';
+import { haceMaqueta, casasMaqueta, ordenaMaqueta, sinSueltas } from './maqueta.js';
 import { EMB, SUELTOS, haceEmblema, materialEmblema } from './emblemas.js';
 import { compilarAsync } from '../util/compilar.js';
 import { hacePajaros } from './pajaros.js';
@@ -1539,7 +1539,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     cm2.customProgramCacheKey = () => 'nucleo-casas';
     // (en los pueblos junto al borde de su comarca, solo las casas que caen dentro: las demás quedaban en el aire, sobre la
     // comarca de al lado o colgando de la pared)
-    const dentro = D.casas.filter(b => enComarca(t.c.Pw, X0 + b.x * MU, Z0 + b.z * MU, Math.hypot(b.w, b.d) / 2 * MU));
+    const dentro = sinSueltas(D.casas).filter(b => enComarca(t.c.Pw, X0 + b.x * MU, Z0 + b.z * MU, Math.hypot(b.w, b.d) / 2 * MU));
     const casas = new THREE.InstancedMesh(cajaG, cm2, Math.max(1, dentro.length)), M4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), col = new THREE.Color(), up = new THREE.Vector3(0, 1, 0);
     casas.count = dentro.length;
     dentro.forEach((b, i) => { const x = X0 + b.x * MU, z = Z0 + b.z * MU;
@@ -1997,10 +1997,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (la bruma, mucho más lejos desde el 14 de noviembre de 2026: el autor no quiere «un fondo como si hubiera niebla», sino
     // azul, claro y vivo. Antes empezaba a la distancia de la cámara y a dos veces ya lo tapaba todo, y de cerca el horizonte
     // era un blanco azulado liso; ahora lo lejano se ve con su color y solo al fondo se funde con el cielo)
-    scene.fog.near = Math.max(8, v.d * 1.5 + 6); scene.fog.far = Math.max(30, v.d * 3.6 + 40);
+    // (y desde la noche del 14, sin niebla: «es que no tiene que haber niebla». Solo el último quinto antes de donde acaba
+    // lo que se dibuja se funde con el cielo, para que no se vea el corte del mapa contra el fondo; antes la bruma empezaba
+    // a vez y media la distancia de la cámara y velaba los montes de detrás)
+    { const lejos = v.d * 4.2 + 90; scene.fog.near = lejos * 0.8; scene.fog.far = lejos; }
     // (muy cerca de una isla, la niebla no se traga lo de abajo: se sigue viendo, velado, el mapa sobre el que flota. Sin
     // esto, mirando su borde de cerca, alrededor solo había un blanco liso)
-    { const I = sel ? byId.get(sel)?.isla : null; if (I && (I.k || 0) > 0.3) scene.fog.far = Math.max(scene.fog.far, (I.alto + v.d) * 2.2 * Math.min(1, I.k)); } scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 4.2 + 90; cam.updateProjectionMatrix();
+    scene.fog.color.copy(NIEBLA_LEJOS).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 4.2 + 90; cam.updateProjectionMatrix();
     cieloFondo.material.uniforms.uBruma.value.copy(scene.fog.color);   // (el cielo, junto al horizonte, del color de la bruma en la que se pierde la tierra)
     // (las chinchetas, algo más grandes de lejos para que se vean desde toda Navarra y pequeñas de cerca, para que no tapen
     // el pueblo)

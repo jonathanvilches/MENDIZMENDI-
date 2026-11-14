@@ -990,6 +990,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Y el suelo: de cerca (`uCerca`, a menos de unos 10 m de mapa), la hierba más honda y sin pasarse a lima, y lo seco y
     claro, de un amarillo de verano en la foto, hacia piedra cálida. En `prado` del núcleo, la hierba ya no gana color.
     El acabado vivo del relieve sigue para ver el mapa entero.
+  - Sin bordas ni casas sueltas (`sinSueltas`, `maqueta.js`, también en las casas del núcleo de lejos): fuera de los 120 m
+    del centro solo se quedan las casas con al menos dos vecinas a menos de 30 m, y las bordas, solo dentro de 80 m; lo que
+    tiene nombre se queda siempre. Desde el aire y el dron se veían como cajas grandes sueltas por el monte («eliminar
+    esas bordas gigantes que se ven desde la vista aérea»).
+  - Sin niebla (noche del 14): la bruma solo cubre el último quinto antes de donde acaba lo que se dibuja, para que no se
+    vea el corte del mapa contra el cielo, y ya no se vuelve lila de cerca. «Es que no tiene que haber niebla».
   - El suelo de los núcleos (`prado` en `pueC`, `mapa3dSombreadores.js`): en la foto fina de verano los prados salían
     verde oliva, de 70 a 75°, al lado del verde de 100° del monte. Lo que es verde, con más verde que rojo y que azul, se
     lleva a prado y gana color; el cereal, la tierra, las calles, los tejados y el agua se quedan como son.

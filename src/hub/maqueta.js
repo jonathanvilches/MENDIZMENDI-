@@ -129,6 +129,22 @@ function cajaChaflan() {
  *  y los bloques, una cuadrícula: en Tafalla, una de cada tres pisaba la calle, y en Tudela y Pamplona, cientos se
  *  montaban unas en otras. Lo que queda grande lejos del casco, en casas de unos 12 × 13 m; las naves grandes lejos del
  *  centro, las de los polígonos, fuera: es un juego rural) */
+/** Sin las bordas ni las casas sueltas lejos del núcleo: de lejos y desde el dron se veían como cajas grandes aisladas por
+ *  el monte. Se quedan las que tienen al menos dos vecinas a menos de 30 m, todo lo que cae a menos de 120 m del centro y
+ *  lo que tiene nombre (la iglesia, la ermita, el palacio). El autor, el 14 de noviembre de 2026: «eliminar esas bordas
+ *  gigantes que se ven desde la vista aérea» y «las bordas y casas que se ven desde el dron» */
+export function sinSueltas(casas) {
+  const G = new Map(), k = (x, z) => Math.floor(x / 30) * 100003 + Math.floor(z / 30);
+  for (const b of casas) { const q = k(b.x, b.z); if (!G.has(q)) G.set(q, []); G.get(q).push(b); }
+  return casas.filter(b => {
+    const r = Math.hypot(b.x, b.z); if (b.n) return true;
+    if ((b.k === 'borda' || claseReal(b) === 'borda') && r > 80) return false;
+    if (r < 120) return true;
+    let n = 0; const cx = Math.floor(b.x / 30), cz = Math.floor(b.z / 30);
+    for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const o of G.get((cx + i) * 100003 + cz + j) || []) if (o !== b && Math.hypot(o.x - b.x, o.z - b.z) < 30 && ++n >= 2) return true;
+    return false;
+  });
+}
 export function casasMaqueta(D) {
   if (!D._maq) { const g = ordenaMaqueta(D); while (!g.next().done); }
   return D._maq;
@@ -190,7 +206,7 @@ export function* ordenaMaqueta(D) {
   partidas.splice(0, partidas.length, ...partidas.flatMap(parte));
   yield;
   const ok = yield* ordenarCasasPasos(partidas, { callesCerca, rios, puentes, riverInfo, pathQuery, plazaMask, fijas }, 60);
-  D._maq = ok;
+  D._maq = sinSueltas(ok);
 }
 // (rejilla de cubos de 25 m con los tramos de unas polilíneas, para preguntar deprisa por los que hay cerca de un punto)
 function cubos(lineas, T = 25, m = 12) {
