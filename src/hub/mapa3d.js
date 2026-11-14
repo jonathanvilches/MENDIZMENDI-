@@ -1007,7 +1007,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.3, PITCH_ALTA = 0.74, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), PITCH_C = 0.82, PITCH_ISLA = 0.3, PITCH_ALTA = 0.96, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1090,10 +1090,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // y se aleja un poco y se mece; se para con cualquier toque, como el paseo. Lo pidió el autor: que la cámara acabe encima
   // del territorio «con ese vuelo de dron»)
   function sigueDronIsla(dt) {
-    const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed * 0.2, k = ease(Math.min(1, p.t / 3)), t = p.t;
-    goal.x = p.base.x + r * Math.sin(t * 0.11) * k; goal.z = p.base.z + r * 0.6 * Math.sin(t * 0.07 + 1) * k;
-    goal.d = p.base.d * (1 - 0.14 * (0.5 - 0.5 * Math.cos(t * 0.08)) * k);
-    goal.yaw = p.base.yaw + 0.16 * Math.sin(t * 0.09) * k; goal.pitch = p.base.pitch + 0.04 * Math.sin(t * 0.17) * k;
+    // (desde el 14 de noviembre de 2026, con más movimiento: gira alrededor de la isla, va y viene por el territorio, baja a
+    // mirar de cerca y algo de lado el relieve y los pueblos, y vuelve a subir. El autor: «la cámara debe ser más dinámica»)
+    const p = islaDron; p.t += dt; const c = p.c, r = c.isla.rMed, k = ease(Math.min(1, p.t / 2.5)), t = p.t, baja = (0.5 - 0.5 * Math.cos(t * 0.19)) * k;
+    goal.yaw = p.base.yaw + 0.55 * Math.sin(t * 0.21) * k;
+    goal.x = p.base.x + r * 0.24 * Math.sin(t * 0.17 + 0.6) * k; goal.z = p.base.z + r * 0.18 * Math.sin(t * 0.13 + 2.1) * k;
+    goal.d = p.base.d * (1 - 0.25 * baja);
+    goal.pitch = p.base.pitch + 0.06 * Math.sin(t * 0.23 + 1) * k - 0.12 * baja;
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -1754,7 +1757,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.97 && !tv && !vuelo && !window.__sinVistaAlta) { c.tAlta = (c.tAlta || 0) + dt;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
         if (c.tAlta > 1.3) { c.vistaAlta = true;
           if (Math.abs(goal.pitch - PITCH_ISLA) < 0.03 && !gesto && !ptrs.size) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto));
-            volar({ x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3)), yaw: 0, pitch: PITCH_ALTA }, 1.8); c.dronPend = true; } } }
+            volar({ x: c.mid.x, z: c.mid.z, d: Math.max(14, encaja(esq, c.mid.x, c.mid.z, PITCH_ALTA, 1, c.alzado + I.alto + GROSOR + c.hmax * 0.3) * 1.07), yaw: 0, pitch: PITCH_ALTA }, 2.3); c.dronPend = true; } } }
       if (c.dronPend && sel === c.id && !vuelo) { c.dronPend = false; if (!MOV_REDUCIDO) islaDron = { c, t: 0, base: { ...goal } }; }
       if (c.isla) { c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam);
         c.mesh.material[1].visible = (c.isla.k || 0) < 0.02; }   // (en el aire, la pared de la comarca se esconde: la tapan el canto de césped y la panza)
