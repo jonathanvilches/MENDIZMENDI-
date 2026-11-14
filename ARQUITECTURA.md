@@ -1987,6 +1987,23 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     (1,3 a 1,72 en vez de 1,15 a 1,51), medios tonos más claros y un tope al color algo más alto. Medido en la bajada a
     Etxalar, la saturación media del terreno pasa de 0,53 a 0,59, lejos de un verde fosforito. Para verlo:
     `tools/islas/isla-lado.mjs` con `ISLAS=0,4`.
+- **El bloque de tierra sin corte transversal y el cielo hondo** (`ANI`, `aTope`, `uMusgo` y `cieloShader` en
+  `mapa3dIsla.js`; `CIELO_BRUMA` en `mapa3d.js`; 14 de noviembre de 2026). El autor: «los bordes perimetrales siguen
+  teniendo un corte transversal», «en el bloque de tierra no puede haber esos cortes» y «el cielo sigue como nublado,
+  muy claro: más oscuro, más azul, más vivo». Con sus referencias de islas flotantes se generaron en Higgsfield dos
+  imágenes de cómo debería verse; de ellas salen estas reglas:
+  - La roca empieza justo bajo el césped en cada punto del contorno (`aTope`, en el sombreador de la roca: cada columna
+    de la panza sube lo que va de su borde a la base, menguando hacia abajo). Antes empezaba a la altura más baja de toda
+    la orilla y, en el monte alto, entre el césped y la roca quedaba una pared lisa, la banda que se leía como corte.
+  - La roca se abomba bajo el labio (anillos de `ANI`, hasta un 3 % hacia fuera) y luego se cierra: ya no baja recta con
+    el mismo contorno de arriba, como una tajada.
+  - Musgo (`uMusgo`): el verde del césped baja por la roca en lenguas y mechones desiguales, hasta una cuarta parte de lo
+    hondo de la pieza, con manchas sueltas más abajo; la caliza del canto, verde también. La roca, ocre y parda.
+  - El hueco, como una hondonada: hierba por casi toda la pared del molde y roca solo abajo, junto al lago.
+  - La ladera de la orilla, más larga (`WI`, hasta un 36 % del radio). Se probó un perfil redondeado que bajaba deprisa
+    junto al borde y en el Pirineo dejaba paredes: se quedó la bajada suave.
+  - El cielo: azul hondo arriba (`#0a4cc2`), vivo enseguida (`#1d7ce8`) y azul también en el horizonte (`#5cb0f4`, antes
+    casi blanco), con la bruma de lo lejano azul (`#74b8f3`).
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora
