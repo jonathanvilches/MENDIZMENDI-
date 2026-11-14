@@ -1440,6 +1440,8 @@ export class PelotaMatch {
     else if (h && h.yourTurn) tip = assist ? tt.tipMove : '';
     else if (h && h.tired > 0.5) tip = tt.tiredYou;
     this.hud.tip(tip);
+    // (las teclas, en el ordenador, mientras se saca en los tres primeros tantos de cada partido)
+    { const sc = g.score || { you: 0, rival: 0 }; this.hud.teclas(!this.hud.touch && (g.phase === 'serveWait' || g.phase === 'servePrep') && sc.you + sc.rival < 3 && !this.replay); }
     // los descansos, en el menú del botón de la pelota (con los que te quedan en su badge); el botón brilla si estás cansado
     this.hud.descansos(g.mode === 'match' && g.phase !== 'intro' && g.phase !== 'end', g.descansos?.you ?? 0, !!g.pedido?.you, g.phase === 'descanso' && g.descanso?.side === 'you');
     this.hud.cansado(g.mode === 'match' && (g.descansos?.you > 0) && g.players.you.en < 0.35 && !g.pedido?.you);

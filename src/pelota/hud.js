@@ -172,6 +172,13 @@ const CSS = `
 .pel-tip{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px + var(--pel-tip-sube,0px));width:max-content;max-width:min(560px,calc(calc(100vw / var(--z, 1)) - 330px));padding:8px 16px;border-radius:14px;background:rgba(28,11,58,.86);border:1px solid rgba(255,255,255,.08);font-size:var(--fs-md);font-weight:700;line-height:1.3;text-align:center;opacity:0;transition:opacity .2s}
 /* (con tu energía abajo en el centro, el consejo, encima de ella) */
 .pel-tip.on{opacity:1}
+/* (en el ordenador, al empezar el partido, las teclas a la vista, como teclas: lo pidió el autor el 14 de noviembre de 2026,
+   «en el ordenador no sé qué controles son para dejada, cortada y golpeo». Solo en los primeros saques; luego, en Controles) */
+.pel-teclas{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 16px;width:max-content;max-width:min(720px,calc(calc(100vw / var(--z, 1)) - 360px));padding:8px 16px;border-radius:10px;background:rgba(28,11,58,.55);border:1px solid rgba(255,255,255,.1);font:700 var(--fs-sm)/1.2 'MZ Texto',sans-serif;color:#efe8ff;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s;pointer-events:none}
+.pel-teclas.on{opacity:1;visibility:visible}
+.pel-teclas span{display:flex;align-items:center;gap:8px;white-space:nowrap}
+.pel-teclas kbd{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:6px;background:linear-gradient(#fff,#e9e3f6);color:#2a1650;font:900 var(--fs-sm)/1 'MZ Texto',sans-serif;box-shadow:0 2px 0 #9a86c8}
+html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-stick{position:absolute;left:0;bottom:0;width:calc(46vw / var(--z, 1));height:calc(62dvh / var(--z, 1));pointer-events:auto;touch-action:none}
 .pel-knob{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(28,11,58,.3);display:none}
 .pel-knob i{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(255,255,255,.85)}
@@ -576,6 +583,7 @@ export class PelotaHud {
       <div class="pel-com" role="status" aria-live="polite"></div>
       <div class="pel-q"></div>
       <div class="pel-tip"></div>
+      ${touch ? '' : `<div class="pel-teclas" aria-hidden="true">${(txt.teclas || []).map(([k, t]) => `<span>${k ? `<kbd>${k}</kbd>` : ''}${t}</span>`).join('')}</div>`}
       <div class="pel-stick"><div class="pel-knob"><i></i></div></div>
       ${touch ? '<div class="pel-stickhint"><svg viewBox="0 0 48 48" width="46" height="46"><path d="M24 6l6 7h-4v8h8v-4l7 7-7 7v-4h-8v8h4l-6 7-6-7h4v-8h-8v4l-7-7 7-7v4h8v-8h-4z" fill="#fff" opacity=".9"/></svg></div>' : ''}
       <div class="pel-btns"><div class="pel-bcol"><button class="pel-btn pel-drop pel-cut" data-k="cut" aria-label="${txt.cut}"><span>${txt.cut}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.cutKey || ''}</small>`}</button><button class="pel-btn pel-drop pel-dejada" data-k="drop" aria-label="${txt.drop}"><span>${txt.drop}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.dropKey || ''}</small>`}</button></div><button class="pel-btn pel-hit" aria-label="${txt.hit}"><span class="pel-hl">${txt.hit}</span><b class="pel-pw" aria-hidden="true"></b>${touch ? '' : `<small class="pel-hk">${txt.hitKey || ''}</small>`}<i class="pel-tring" aria-hidden="true"></i></button></div>`;
@@ -716,6 +724,7 @@ export class PelotaHud {
     void q.offsetWidth; q.classList.toggle('on', !!text); this.qT = kind ? 1 : 0.8;   // (se vuelve a poner para que rebote cada vez)
   }
   // (lo último escrito va en el propio elemento, _t: en euskera, el texto que se lee ya está traducido y no coincidiría)
+  teclas(on) { this.$('.pel-teclas')?.classList.toggle('on', !!on); }
   tip(text) { const t = this.$('.pel-tip'), v = text || ''; if (t._t !== v) { t._t = v; t.textContent = v; } t.classList.toggle('on', !!text); }
   ready(on) { this.$('.pel-hit').classList.toggle('ready', !!on); }
   // el cestaño (material.js), en el desplegable del botón de la pelota: la pelota en juego y, mientras sacas tú, las tuyas

@@ -649,6 +649,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sale presentado con el pueblo de la grabación. Y la frase del golpe en el peloteo se pierde si el locutor está
   hablando, también la del gancho, que antes esperaba hasta 5 s y llegaba nombrando un golpe que ya no era el de la
   imagen («falla en los golpes que nombra [...] y con el nombre y la procedencia del pelotari»).
+- **Las teclas de la pelota en el ordenador** (misma noche, `pelota/hud.js`, `.pel-teclas`; `pelota/rules.js`, `teclas`):
+  J golpe, K dejada y L cortada, juntas en la fila de casa (siguen valiendo espacio y mayúsculas), con su tecla en cada
+  botón y, mientras se saca en los tres primeros tantos de cada partido, una tira abajo con las teclas dibujadas como
+  teclas: flechas para moverte y apuntar, J, K, L y «mantén la tecla para cargar». No sale en el móvil ni con mando. El
+  autor: «en el ordenador no sé qué controles son para dejada, cortada y golpeo».
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
