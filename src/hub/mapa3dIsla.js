@@ -85,32 +85,39 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const TEX = 2.4;   // (lo que mide la textura de la roca en el mapa)
   const dentro = (x, z) => { let s = false; for (let i = 0, j = N - 1; i < N; j = i++) { const a = Q[i], b = Q[j]; if ((a[1] > z) !== (b[1] > z) && x < a[0] + (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1])) s = !s; } return s; };
   // (cuánta tierra se arranca, por lógica: las montañas tienen raíz, la corteza es más gruesa bajo las sierras (isostasia),
-  // así que la pieza es tan honda como su relieve, lo que va del valle a las cumbres (sin el 2 % más bajo ni el más alto),
-  // por 1,3, y nunca menos de 0,22 ni más de 0,5 veces su radio. El Pirineo arranca una raíz honda; la Ribera, una losa)
+  // así que la pieza es más honda cuanto más relieve tiene, lo que va del valle a las cumbres (sin el 2 % más bajo ni el más
+  // alto). Desde el 14 de noviembre de 2026 es una montaña del revés, como en la imagen de referencia del autor: de 0,62 a
+  // 0,9 veces su radio (antes era una losa, de 0,22 a 0,5, y de lado apenas se veía roca). El Pirineo arranca la raíz más
+  // honda; la Ribera, la más corta)
   const hs = []; { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of Q) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
     const paso = Math.max(0.15, rMed / 30); for (let x = x0; x <= x1; x += paso) for (let z = z0; z <= z1; z += paso) if (dentro(x, z)) hs.push(alto(x, z)); hs.sort((a, b) => a - b); }
   const relieve = hs.length > 10 ? hs[Math.floor(hs.length * 0.98)] - hs[Math.floor(hs.length * 0.02)] : rMed * 0.3;
-  const D = Math.min(0.5 * rMed, Math.max(0.22 * rMed, 1.3 * relieve));
-  // (unas pocas puntas, cortas: la panza cuelga algo más donde caen)
-  const puntas = Array.from({ length: 2 + ((R() * 2) | 0) }, () => ({ a: R() * Math.PI * 2, w: 0.3 + R() * 0.3, h: 0.1 + R() * 0.18 }));
+  const D = Math.min(0.9 * rMed, Math.max(0.62 * rMed, 2.4 * relieve));
+  // (unas pocas puntas: la roca cuelga más donde caen, y la de abajo del todo no queda en el centro sino corrida a un lado)
+  const puntas = Array.from({ length: 3 + ((R() * 2) | 0) }, () => ({ a: R() * Math.PI * 2, w: 0.3 + R() * 0.35, h: 0.1 + R() * 0.2 }));
+  const ladoA = R() * Math.PI * 2, ladoD = rMed * (0.06 + R() * 0.1), ladoX = Math.cos(ladoA) * ladoD, ladoZ = Math.sin(ladoA) * ladoD;
   const cuelga = (a) => puntas.reduce((s, p) => { const d = Math.atan2(Math.sin(a - p.a), Math.cos(a - p.a)); return s + p.h * Math.exp(-(d * d) / (2 * p.w * p.w)); }, 0);
-  // los anillos de la panza, como la roca de las imágenes: casi recta al principio, luego se cierra hasta una punta roma.
-  // [lo que se estrecha, lo hondo (en parte de D), cuánto se redondea hacia un círculo]
-  const ANI = [[1, 0, 0], [1, 0.05, 0], [0.985, 0.13, 0.03], [0.955, 0.25, 0.08], [0.9, 0.38, 0.16], [0.8, 0.52, 0.28], [0.66, 0.66, 0.42], [0.49, 0.79, 0.58], [0.3, 0.9, 0.74], [0.12, 0.98, 0.88]];
+  // los anillos de la roca, como la de la imagen de referencia: un escalón casi recto bajo el césped, hombros anchos y
+  // luego se cierra, cada vez más deprisa, hasta la punta: una montaña del revés, con cuerpo (en cono recto se veía un
+  // tallo fino bajo una losa). [lo que se estrecha, lo hondo (en parte de D), cuánto se redondea hacia un círculo]
+  const ANI = [[1, 0, 0], [1, 0.03, 0], [0.97, 0.1, 0.03], [0.92, 0.19, 0.08], [0.85, 0.29, 0.15], [0.76, 0.4, 0.24], [0.66, 0.51, 0.34], [0.55, 0.62, 0.45], [0.44, 0.72, 0.56], [0.33, 0.81, 0.67], [0.22, 0.89, 0.77], [0.12, 0.95, 0.86], [0.04, 0.99, 0.92]];
+  // (los bultos: la roca no baja lisa, tiene panzas y entrantes grandes, y repisas a lo largo, como estratos que asoman)
+  const bulto = (a, h) => { const u = Math.cos(a) * 1.6 + seed % 17, w = Math.sin(a) * 1.6 + 3.3;
+    return ((ruidoV(u + h * 1.3, w + h * 2.9) - 0.5) * 0.2 + (ruidoV(u * 2.7 + 9.1, w * 2.7 + h * 6.5) - 0.5) * 0.085 + 0.02 * Math.sin(h * 21 + 4 * ruidoV(u, w))) * rMed * Math.sin(Math.PI * Math.min(1, h * 1.08)) ** 0.7; };
   // (las estrías: surcos verticales cada medio metro largo del mapa, que se tuercen un poco al bajar, y bultos más grandes)
   const estria = (s, k) => { const ss = s + 0.12 * Math.sin(k * 1.7 + s * 0.6), g = 0.5 + 0.5 * Math.sin(ss * 13.4 + 1.3 * Math.sin(ss * 0.9)); return 0.09 * g * g + 0.14 * Math.sin(s * 2.7 + k * 0.45 + seed); };
   const pos = [], col = [], uv = [], c = new THREE.Color();
   ANI.forEach(([e, h, m], k) => { for (let i = 0; i <= N; i++) {
     const [x, z] = Q[i % N], dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) || 1, a = Math.atan2(dz, dx);
-    const bx = lerp(dx, dx / r * rMed, m) * e, bz = lerp(dz, dz / r * rMed, m) * e;
-    const ex = k ? estria(LQ[i], k) * (1 - h) ** 1.3 * Math.min(1, rMed / 7) : 0;   // (las estrías se pierden hacia la punta, que es roma)
+    const bx = lerp(dx, dx / r * rMed, m) * e + ladoX * h ** 1.6, bz = lerp(dz, dz / r * rMed, m) * e + ladoZ * h ** 1.6;
+    const ex = k ? estria(LQ[i], k) * (1 - h) ** 1.3 * Math.min(1, rMed / 7) + (k > 1 ? bulto(a, h) : 0) : 0;   // (las estrías se pierden hacia la punta)
     const y = k ? -D * (h * (1 + cuelga(a) * h ** 1.4) + 0.03 * h * Math.max(0, 1 - h * 1.25) * Math.sin(LQ[i] * 3.1 + k)) : 0;   // (el fondo, liso: si ondula, la orilla del lago sale a dientes)
     pos.push(cx + bx + dx / r * ex, y, cz + bz + dz / r * ex); uv.push(LQ[i] / TEX, -y / TEX);
     // (la caliza pone su color la foto; algo más oscura hacia la punta, adonde llega menos luz)
     const f = -y / D;
     c.copy(CALIZA).lerp(HONDO, Math.min(1, Math.max(0, (f - 0.3) / 0.65))); c.multiplyScalar(0.94 + R() * 0.08); col.push(c.r, c.g, c.b);
   } });
-  const base = pos.length / 3; pos.push(cx, -D * 0.99, cz); uv.push(0, D / TEX); c.copy(HONDO); col.push(c.r, c.g, c.b);
+  const base = pos.length / 3; { let yb = 0; for (let i = 0; i < N; i++) yb = Math.min(yb, pos[((ANI.length - 1) * N1 + i) * 3 + 1]); pos.push(cx + ladoX, yb - D * 0.012, cz + ladoZ); } uv.push(0, D / TEX); c.copy(HONDO); col.push(c.r, c.g, c.b);
   const idx = [], L = (ANI.length - 1) * N1;
   for (let k = 0; k + 1 < ANI.length; k++) for (let i = 0; i < N; i++) { const a = k * N1 + i, b = a + 1; idx.push(a, b + N1, b, a, a + N1, b + N1); }
   for (let i = 0; i < N; i++) idx.push(L + i, base, L + i + 1);
@@ -175,7 +182,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // ríos que caen por el borde. Se ve solo por la boca (el búfer de plantilla, stencil): primero se marca la boca donde se ve
   // (lo de delante, la isla o una comarca vecina, la tapa); luego, en la boca, se borra la profundidad y lo de dentro (las
   // paredes, el lago, la panza mientras sale, el agua y las piedras que caen) se pinta con la suya.
-  const TIEMPO = { value: 0 }, CORTE = { value: 0 }, LAGO = -D * 0.88;   // (el agua, solo en lo más hondo)
+  const TIEMPO = { value: 0 }, CORTE = { value: 0 }, LAGO = -D * 0.5;   // (el agua llena medio hueco: un lago ancho y azul bajo la isla, como en la imagen de referencia; antes, un charco oscuro en lo más hondo)
   const PLANT = { stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp };
   const boca = (() => { const pos2 = [], ix = []; for (const [x, z] of P) pos2.push(x, 0.003, z);
     for (const t of THREE.ShapeUtils.triangulateShape(P.map(([x, z]) => new THREE.Vector2(x, z)), [])) ix.push(t[0], t[2], t[1]);
@@ -198,7 +205,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const porPared = (i, yl) => { for (let k = 0; k + 1 < ANI.length; k++) { const a = (k * N1 + i) * 3, b = ((k + 1) * N1 + i) * 3, ya = pos[a + 1], yb = pos[b + 1];
       if (yl <= ya && yl >= yb) { const f = (ya - yl) / ((ya - yb) || 1); return [lerp(pos[a], pos[b], f), lerp(pos[a + 2], pos[b + 2], f)]; } }
     const a = ((ANI.length - 1) * N1 + i) * 3; return [pos[a], pos[a + 2]]; };
-  // (el lago del fondo, donde cae el agua: verde oscuro, con ondas suaves y algo del cielo reflejado de lado; su contorno, el
+  // (el lago del hueco, donde cae el agua: azul, con ondas suaves y el cielo reflejado de lado, turquesa en la orilla; su contorno, el
   // del anillo de encima, para que llegue a las paredes, que tapan lo que sobra)
   { const p3 = [cx, LAGO, cz], o3 = [0], i3 = [];
     const RL = Array.from({ length: N }, (_, i) => { const [x, z] = porPared(i, LAGO); return [x - cx, z - cz]; });
@@ -214,10 +221,10 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
           // (ondas sin dibujo que se repita: ruido que se mueve en dos sentidos; de lado refleja el cielo, de frente se ve el fondo)
           float w = n(vP * 2.3 + vec2(uT * 0.22, uT * 0.13)) * 0.6 + n(vP * 5.1 - vec2(uT * 0.31, -uT * 0.18)) * 0.4;
           float f = pow(1.0 - clamp(normalize(cameraPosition - vW).y, 0.0, 1.0), 3.0);
-          vec3 c = mix(vec3(0.03, 0.075, 0.07), vec3(0.085, 0.16, 0.15), w);
-          c = mix(c, vec3(0.5, 0.6, 0.68), f * 0.5 + 0.1 * smoothstep(0.62, 0.8, w));
+          vec3 c = mix(vec3(0.05, 0.3, 0.6), vec3(0.13, 0.47, 0.78), w);
+          c = mix(c, vec3(0.62, 0.83, 0.98), f * 0.5 + 0.12 * smoothstep(0.62, 0.8, w));
           // (la orilla: el agua, poco honda, deja ver la roca mojada, y una raya de espuma donde toca la pared)
-          float o = smoothstep(0.55, 1.0, vO); c = mix(c, vec3(0.2, 0.19, 0.15), o * 0.55) + vec3(0.42) * smoothstep(0.94, 1.0, vO) * 0.4;
+          float o = smoothstep(0.55, 1.0, vO); c = mix(c, vec3(0.3, 0.68, 0.76), o * 0.6) + vec3(0.42) * smoothstep(0.94, 1.0, vO) * 0.45;
           gl_FragColor = vec4(c, 0.96); }` }); mats.push(lm);
     const lago = new THREE.Mesh(gl, lm); lago.renderOrder = -0.78; molde.add(lago); }
 
@@ -292,7 +299,10 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   let antes = 0, reloj = 0;
 
   return {
-    D, rMed, alto: 0.62 * rMed + 0.9, base: B,   // (lo que sube: como antes, aunque la panza sea menos honda, para que se separe mucho)
+    /** si un punto cae dentro del cuerpo de la isla: x, z en el mapa; h, lo que queda por debajo de la base, en partes de
+     *  D (negativo: por encima, en la comarca). Para no pintar encima de la roca los rótulos de lo que queda detrás */
+    cuerpo(x, z, h) { if (h <= 0) return dentro(x, z); const f = 1 - Math.min(1, h) ** 1.6; return f > 0.03 && dentro(cx + (x - cx - ladoX * h ** 1.6) / f, cz + (z - cz - ladoZ * h ** 1.6) / f); },
+    D, rMed, rMax, cx, cz, alto: Math.max(0.62 * rMed, D + 0.1 * rMed) + 0.9, base: B,   // (lo que sube: lo que mide la roca y algo más, para que la punta salga del hueco y se vea el lago debajo)
     /** py: la altura de la comarca; sy: lo que se estira su relieve; k: cuánto está fuera, de 0 a 1; t, dt: el tiempo;
      *  esc: los píxeles que ocupa una unidad a una unidad de la cámara (para el tamaño del rocío y el polvo); cam: la cámara */
     update(py, sy, k, t, dt, esc = 600, cam = null) {

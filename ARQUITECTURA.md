@@ -1771,11 +1771,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   referencia, y luego, con realismo: «hiperrealismo». Sube casi lo que mide de radio, con un muelle que se pasa un poco y
   vuelve, y se mece despacio. Es una pieza rígida: sale entera del hueco, que es su molde.
   Cuánta tierra se arranca se calcula por lógica (lo pidió el autor): las montañas tienen raíz, la corteza es más gruesa
-  bajo las sierras, así que la pieza es tan honda como su relieve, lo que va del valle a las cumbres (sin el 2 % más bajo
-  ni el más alto), por 1,3, y nunca menos de 0,22 ni más de 0,5 veces su radio (`D`). Con el relieve exagerado del mapa
-  (`EXA`), de 400 m de roca en la Ribera Alta, una losa, a 1.330 m en el Pirineo; Pamplona, 880 m. La panza empieza justo
-  bajo lo más bajo de la comarca (`base`), casi recta al principio y luego cerrándose hasta una punta roma, con estrías que
-  se pierden hacia abajo, y la pared de la comarca se esconde mientras está en el aire. El canto (`canto`) cubre la orilla
+  bajo las sierras, así que la pieza es más honda cuanto más relieve tiene, lo que va del valle a las cumbres (sin el 2 %
+  más bajo ni el más alto). Hasta el 14 de noviembre de 2026 era ese relieve por 1,3, entre 0,22 y 0,5 veces su radio:
+  una losa, y de lado apenas se veía roca. Ese día el autor mandó su «imagen de referencia por excelencia», una isla
+  pintada cuya roca es una montaña del revés, y ahora es el relieve por 2,4, entre 0,62 y 0,9 veces el radio (`D`). La
+  roca empieza justo bajo lo más bajo de la comarca (`base`): un escalón casi recto bajo el césped, hombros anchos y luego
+  se cierra cada vez más deprisa hasta la punta (`ANI`, 13 anillos; en cono recto se veía un tallo fino bajo una losa). La
+  punta no queda en el centro sino corrida a un lado (`ladoX`, `ladoZ`), cuelga más por tres o cuatro sitios (`puntas`) y
+  no baja lisa: tiene panzas y entrantes grandes y repisas a lo largo (`bulto`, de ruido), además de las estrías, que
+    se pierden hacia abajo, y la pared de la comarca se esconde mientras está en el aire. El canto (`canto`) cubre la orilla
   con el césped, fino y de un verde apagado de prado (el primero era «verde fosforito» para el autor), su tierra y la roca.
   La roca son fotos de verdad con su relieve (mapa de normales), de Poly Haven, CC0: caliza clara con estrías verticales
   en la panza («Marble Cliff 04») y roca en estratos en las paredes del hueco («Cliff Side»); el césped, de Higgsfield
@@ -1837,6 +1841,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cruzaban y alguna comarca cambiaba un 13 %: por eso se quedó en estas.
   La hierba del canto de la isla cuelga desigual (`CUELGA` en `mapa3dIsla.js`): entre la mitad y el doble según el sitio,
   con dos ondas de ruido a lo largo del borde, como en la imagen de referencia del autor.
+  El hueco es el molde de esa roca, así que también es más hondo, y el agua lo llena hasta la mitad (`LAGO`): un lago
+  ancho y azul bajo la isla, turquesa en la orilla, con el cielo reflejado de lado, al que llegan las cascadas. Antes era
+  un charco verde oscuro en lo más hondo. La isla sube lo que mide su roca y algo más (`alto`), para que la punta salga
+  del hueco y se vea el lago debajo.
+  Los rótulos de las comarcas vecinas y la raya de la cañada que quedan detrás de la isla no se pintan encima de su roca
+  (`tapaIsla` en `mapa3d.js`, con `cuerpo` de la isla): si la línea de la cámara al rótulo atraviesa la comarca o la roca
+  de debajo, se quitan. Con la roca honda, tapaban media isla.
 - **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
   apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
   al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la
