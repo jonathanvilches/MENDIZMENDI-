@@ -1892,10 +1892,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   referencia: van en medidas de la isla, a entre 1,75 y 3,25 radios de su centro y entre la mitad de su roca y algo por
   encima de su base, y solo se ven las que quedan detrás de ella o a los lados vistas desde la cámara; las de delante se
   deshacen, y al girar la cámara salen unas y se van otras, despacio. No dan sombra.
-- **La barra de misiones, plegada también en el móvil** (`ui.js buildHUD`; 14 de noviembre de 2026): en el móvil salían
-  todas las misiones a la vez y la barra ocupaba media pantalla («quita muchísima visión de juego»). Ahora va como en el
-  ordenador, con la misma técnica (`#tl.plega`): se ve la misión que se está haciendo y, al lado, la flecha con las hechas;
-  al tocarla se despliegan las demás, y al elegir una se vuelve a plegar. El catalejo, la mochila y la pausa siguen al final.
+- **La barra de misiones, plegada del todo** (`ui.js buildHUD`, `pliegaMisiones`, `eligeMision`; 13 y 14 de noviembre de
+  2026): el autor pidió «un menú desplegable horizontal que entre en las misiones, la mochila, un poco todo, [...] que se
+  quede el icono marcado de la misión que estamos haciendo y que cuando queramos hacer otra misión o ver las misiones
+  que nos quedan, pulsemos y se nos despliegue, porque si no, ocupa muchísima pantalla». Plegada (`#tl.plega`), solo
+  queda la casilla de la misión que se está haciendo, con una flecha fina pegada: 84 px de ancho en el móvil y 92 en el
+  ordenador. Al tocar la casilla o la flecha se despliega a lo ancho todo lo demás (`.abierta`), con una entrada
+  escalonada: las otras misiones, la flecha con las que llevas hechas, y el catalejo, la mochila y la pausa; y debajo,
+  la tarjeta de la misión. Se recoge al elegir una misión (queda esa a la vista, con su tarjeta), al usar el catalejo, la
+  mochila o la pausa, al tocar fuera o a los 10 s sin tocarla (`esperaPlegar`). Igual en el móvil y en el ordenador.
+  La primera versión, del 14 por la mañana, plegaba solo las otras misiones: la flecha con su cuenta, el catalejo, la
+  mochila y la pausa seguían fuera, y de pie la barra ocupaba 276 px de los 390 de la pantalla. El autor: «sigue sin estar
+  plegada como hablamos». La pausa queda a dos toques. Para verlo: `tools/barra-plegada.mjs`.
 - **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
   con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
   móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin

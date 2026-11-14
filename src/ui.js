@@ -167,13 +167,20 @@ export class UI {
     if (town) { this._plegar = (e) => { if (e.target.closest?.('#tl')) return; if (this.misAbierta != null) this.cierraMision(); if (this.hud?.querySelector('#tl.abierta')) this.pliegaMisiones(false); }; addEventListener('pointerdown', this._plegar, true); }
     if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
     else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
-    // (en el ordenador, las misiones plegadas: solo se ve la que estás haciendo, y la flecha de al lado, con las hechas de
-    // las del pueblo, despliega las demás con una pequeña entrada escalonada. Al elegir una, se vuelve a plegar con ella a la
-    // vista. El 13 de noviembre de 2026 lo pidió el autor: en el ordenador salían todas a la vez. Y ese mismo día, que en
-    // el móvil fuese igual: desplegada ocupaba media pantalla y quitaba visión de juego. Desde el 14, plegadas en los dos)
+    // (la barra, plegada, en el ordenador y en el móvil: solo queda la casilla de la misión que estás haciendo, con una
+    // flecha fina pegada. Al tocarla se despliega a lo ancho todo lo demás: las otras misiones, cuántas llevas, el
+    // catalejo, la mochila y la pausa. Al elegir una misión o usar uno de los botones, al tocar fuera o a los 10 s sin
+    // tocar nada, se vuelve a plegar. Lo pidió el autor el 13 de noviembre de 2026: «un menú desplegable horizontal que
+    // entre en las misiones, la mochila, un poco todo, [...] que se quede el icono marcado de la misión que estamos
+    // haciendo y que cuando queramos hacer otra misión o ver las misiones que nos quedan, pulsemos y se nos despliegue,
+    // porque si no, ocupa muchísima pantalla». Hasta el 14 se plegaban solo las otras misiones: la flecha con su cuenta,
+    // el catalejo, la mochila y la pausa seguían fuera, y de pie la barra ocupaba 276 px de los 390 de la pantalla)
     if (town) {
       const T = $('#tl', h), P = $('#mPliega', h); T.classList.add('plega');
       P.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.sound?.ui?.('click'); this.pliegaMisiones(!T.classList.contains('abierta')); });
+      // (usar el catalejo, la mochila o la pausa la recoge; y tocar dentro de la barra le da otros 10 s)
+      $('#mbtns', h).addEventListener('click', () => this.pliegaMisiones(false));
+      T.addEventListener('pointerdown', () => { if (T.classList.contains('abierta')) this.esperaPlegar(); }, true);
     }
     tap('#prompt', () => this.input.press('e'));
     tap('#cAct', () => this.input.press('e'));
@@ -221,7 +228,7 @@ export class UI {
       const grande = matchMedia('(min-width: 1000px) and (min-height: 640px)').matches;
       const cs = getComputedStyle(T), z = t0.width / (T.offsetWidth || t0.width), pad = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
       const n = [...h.querySelectorAll('#misiones button')].filter((e) => e.offsetWidth > 0).length, nb = [...B.children].filter((e) => e.offsetWidth > 0).length;
-      const pl = $('#mPliega', h)?.offsetWidth || 0;   // (la flecha de las misiones plegadas, en el ordenador: no cambia con la casilla)
+      const pl = $('#mPliega', h)?.offsetWidth || 0;   // (la flecha de la barra plegada: no cambia con la casilla)
       const ancho = (c, mg, ms) => (pad + (n + nb) * c + Math.max(0, n - 1 + nb - 1) * mg + ms + (pl ? pl + mg : 0)) * z;   // (ms: el hueco antes de la cápsula del menú personal)
       const sitio = (!mr?.width ? innerWidth - 16 : dePie ? mr.right : mr.left - 8) - t0.left;
       let c = grande ? 48 : 40, mg = grande ? 10 : 8, ms = 14;
@@ -247,7 +254,7 @@ export class UI {
   }
   // caja (ancho, alto) de un elemento del HUD: la da el ResizeObserver; sin él, se mide (más lento)
   box(el) { if (this.ro) return this.boxes.get(el) || [0, 0]; return el.offsetParent ? [el.clientWidth, el.clientHeight] : [0, 0]; }
-  destroyHUD() { if (this._plegar) { removeEventListener('pointerdown', this._plegar, true); this._plegar = null; } this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
+  destroyHUD() { clearTimeout(this.plT); this.plT = 0; if (this._plegar) { removeEventListener('pointerdown', this._plegar, true); this._plegar = null; } this.ro?.disconnect(); this.ro = null; this.roTop?.disconnect(); this.roTop = null; if (this._fitTopR) removeEventListener('resize', this._fitTopR); clearTimeout(this._fitTopT); this._fitTopT = 0; this._dlgCleanup?.(); this.closeModal(); this.hud?.remove(); this.hud = null; this.bino?.remove(); this.bino = null; document.body.classList.remove('bino-on'); this.setCinematic?.(false); this.input.onStick = null;
     // (y lo que apuntaba al pueblo: la interfaz dura toda la partida y, con estas referencias, el pueblo que se dejaba seguía
     // entero en la memoria, unos 160 MB, hasta entrar en otro; en el iPhone, al cambiar de pueblo, se cerraba el juego)
     this.game = null; this._fitTopR = null; this.mini = null; this.boxes = new Map(); this.questEls = null; }
@@ -256,7 +263,7 @@ export class UI {
     if (!this.hud || this.game.kind !== 'town') return;
     for (const i of this.hud.querySelectorAll('#misiones button')) { const M = this.game.missions[+i.dataset.m]; i.classList.toggle('on', !!M.done); i.classList.toggle('cur', !M.done && M.i === this.game.tracked); i.classList.toggle('sel', M.i === this.misAbierta); i.setAttribute('aria-pressed', String(M.i === this.misAbierta)); }
     const ms = this.game.missions, n = ms.filter(M => M.done).length, t = `${n}/${ms.length}`;
-    // (plegadas, en el ordenador: la que se ve es la abierta, si no la que sigues, si no la primera sin hacer o la última)
+    // (plegada: la que se ve es la abierta, si no la que sigues, si no la primera sin hacer o la última)
     const P = this.hud.querySelector('#tl.plega #mPliega');
     if (P) {
       const sigue = ms.find(M => !M.done && M.i === this.game.tracked), ve = ms[this.misAbierta] || sigue || ms.find(M => !M.done) || ms[ms.length - 1];
@@ -284,18 +291,24 @@ export class UI {
   // late el cuadrado de la misión
   eligeMision(i) {
     const g = this.game, M = g?.missions?.[i]; if (!M) return;
-    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); return; }
+    const T = this.hud && $('#tl.plega', this.hud), plegada = !!T && !T.classList.contains('abierta');
+    // (plegada, la única casilla que se ve es la puerta de todo: tocarla despliega la barra, con su misión debajo)
+    if (plegada) { this.sound?.ui?.('click'); if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } this.pliegaMisiones(true); this.abreMision(i, ABIERTA_MS); return; }
+    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); return; }
     if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
-    this.misAbierta = i; this.pliegaMisiones(false);   // (en el ordenador, desplegadas: se pliegan con la elegida a la vista)
+    this.misAbierta = i; this.pliegaMisiones(false);   // (elegida: la barra se pliega con ella a la vista, y su tarjeta debajo)
     this.abreMision(i, ABIERTA_MS);
   }
-  // (las misiones plegadas del ordenador: abrir = todas a la vista; si no, solo la que toca, refreshDots)
+  // (la barra plegada: abrir = todo a la vista; si no, solo la misión que toca, refreshDots)
   pliegaMisiones(abrir) {
     const T = this.hud && $('#tl.plega', this.hud); if (!T) return;
     T.classList.toggle('abierta', abrir); const P = $('#mPliega', T);
-    P.setAttribute('aria-expanded', String(abrir)); P.setAttribute('aria-label', abrir ? 'Plegar las misiones' : 'Ver todas las misiones');
+    P.setAttribute('aria-expanded', String(abrir)); P.setAttribute('aria-label', abrir ? 'Plegar la barra' : 'Ver las misiones, la mochila y la pausa');
+    clearTimeout(this.plT); this.plT = 0; if (abrir) this.esperaPlegar();
     this.refreshDots(); this.queueFitTop();
   }
+  // (desplegada y sin tocarla, se recoge sola: 10 s, lo que dura la tarjeta de la misión)
+  esperaPlegar() { clearTimeout(this.plT); this.plT = setTimeout(() => { this.plT = 0; this.pliegaMisiones(false); }, ABIERTA_MS); }
   lateMision(i) { const b = this.hud?.querySelector(`#misiones button[data-m="${i}"]`); if (!b) return; b.classList.remove('late'); void b.offsetWidth; b.classList.add('late'); }
   abreMision(i, ms) {
     const T = this.hud && $('#tl', this.hud); if (!T) return;

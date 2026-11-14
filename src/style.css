@@ -283,8 +283,10 @@ summary { line-height: 1.3; }
 @media (prefers-reduced-motion: reduce) { #misiones button.late { animation: none; } }
 #misiones button.on::after { content: '✓'; position: absolute; right: -5px; top: -5px; width: 15px; height: 15px; border-radius: 50%; background: #ffd166; color: #148a3f; box-shadow: 0 0 0 2px rgba(13, 6, 28, .9); font: 900 9px/15px sans-serif; text-align: center; }
 #misiones button.sel { outline: 2px solid color-mix(in srgb, var(--mc) 80%, #fff); outline-offset: 2px; }
-/* en el ordenador, las misiones plegadas: solo la que estás haciendo (.ve, ui.js refreshDots) y la flecha con las hechas,
-   que despliega las demás con una entrada escalonada. En el móvil, la flecha no sale */
+/* la barra plegada, en el ordenador y en el móvil (ui.js, pliegaMisiones): solo queda la casilla de la misión que estás
+   haciendo (.ve, refreshDots) y, pegada a ella, una flecha fina. Al tocar cualquiera de las dos se despliega a lo ancho
+   lo demás, con una entrada escalonada: las otras misiones, la flecha con las que llevas hechas, y el catalejo, la
+   mochila y la pausa. Hasta el 14 de noviembre de 2026 la flecha con su cuenta y esos tres botones se quedaban fuera */
 #mPliega { display: none; }
 #tl.mis.plega #mPliega { display: inline-flex; align-items: center; gap: 6px; flex: none; height: var(--chip); margin-left: var(--mg, 10px); padding: 0 10px 0 8px; border: 0; border-radius: 6px; cursor: pointer;
   background: rgba(255, 255, 255, .12); color: #fff; font: 800 var(--fs-xs)/1 var(--f-ui, 'MZ Texto'), sans-serif; transition: background-color .2s; }
@@ -292,11 +294,15 @@ summary { line-height: 1.3; }
 #tl.mis.plega #mPliega svg { transition: transform .25s cubic-bezier(.2, .8, .2, 1); }
 #tl.mis.plega.abierta #mPliega svg { transform: rotate(180deg); }
 #tl.mis.plega:not(.abierta) { min-width: 0; }
+#tl.mis.plega:not(.abierta) #mbtns { display: none; }
+#tl.mis.plega:not(.abierta) #mPliega { margin-left: 2px; padding: 0; width: 24px; justify-content: center; background: none; }
+#tl.mis.plega:not(.abierta) #mPliega b { display: none; }
+#tl.mis.plega.abierta #mbtns { animation: misEntra .28s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--n, 7) * 28ms); }
 #tl.mis.plega:not(.abierta) #misiones { grid-template-columns: var(--chip); }
 #tl.mis.plega:not(.abierta) #misiones button:not(.ve) { display: none; }
 #tl.mis.plega.abierta #misiones button:not(.ve) { animation: misEntra .28s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--k, 0) * 28ms); }
 @keyframes misEntra { from { opacity: 0; transform: translateX(-8px) scale(.9); } }
-@media (prefers-reduced-motion: reduce) { #tl.mis.plega.abierta #misiones button:not(.ve) { animation: none; } #tl.mis.plega #mPliega svg { transition: none; } }
+@media (prefers-reduced-motion: reduce) { #tl.mis.plega.abierta :is(#misiones button:not(.ve), #mbtns) { animation: none; } #tl.mis.plega #mPliega svg { transition: none; } }
 /* la tarjeta de la misión: al tocar su casilla sale suelta debajo de la barra, con una flechita hacia la casilla (--px,
    ui.js abreMision). El icono en el color de su categoría; al lado, la categoría y cuál es, su nombre, lo que toca hacer,
    sus pasos y lo lejos que está. Tocándola, el cuaderno; se cierra tocando su casilla, fuera de la barra o sola a los
