@@ -679,7 +679,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
         // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
         safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null });
+        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null, remonta: !!r.remonta });
       }
     }
   });

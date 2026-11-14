@@ -1,6 +1,6 @@
 // Los comentarios de los partidos de pelota (pelota/comenta.js y pelota/voz.js), aparte para que Ajustes (hub/hub.js)
-// los lea sin cargar las frases: los comentaristas, 'duo' (los dos, de serie: la voz de hombre narra y la de mujer
-// explica, por turnos; noviembre de 2026), 'hombre', 'mujer' o 'no' (sin comentarios), en herrizherri-comentarios; y los subtítulos, apagados de serie (herrizherri-subtitulos): los comentarios se oyen, no se
+// los lea sin cargar las frases: los comentaristas, 'duo' (los dos, de serie: Mikel narra y Edurne explica y cuenta;
+// noviembre de 2026), 'hombre' (solo Mikel), 'mujer' (solo Edurne) o 'no' (sin comentarios), en herrizherri-comentarios; y los subtítulos, apagados de serie (herrizherri-subtitulos): los comentarios se oyen, no se
 // leen, para no tapar la pantalla. (Los valores de antes, 'a' y 'b', los dúos escritos, pasan a 'hombre')
 const K = 'herrizherri-comentarios', KS = 'herrizherri-subtitulos';
 /** Los comentaristas elegidos: 'duo', 'hombre', 'mujer' o 'no'. */

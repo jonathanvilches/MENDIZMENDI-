@@ -335,6 +335,8 @@ export class PelotaGame {
         // (la fuerza se nota: un saque flojo bota nada más pasar la falta y uno a tope, cerca del pasa)
         const f = pow01(pow), landZ = this.cuatro ? clamp(12.6 + f * 3.4 + ay * 1.2, 11.2, 16.6) + gauss(rnd) * err * 4.5 : clamp(16.8 + f * 5.4 + ay * 2.2, 15.4, 23.4) + gauss(rnd) * err * 7.5, speed = 17.5 + q * 3 + f * 8;
         v = aimWide(p, lx, (tx) => solveShot(p, tx, landZ, speed).v);
+        // (hacia dónde, para los comentarios: pegado a la pared izquierda o abierto, junto a la raya del ancho)
+        sub = lx < -2.6 ? 'saquePared' : lx > 2.6 ? 'saqueAncho' : '';
       }
     } else if (forceDrop) {
       // dejada: la fuerza dice a qué altura pega: suave, justo encima de la chapa (muere enseguida); cargada, más
@@ -517,7 +519,7 @@ export class PelotaGame {
     }
     this.score[winner]++;
     this.server = winner;
-    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea ? 'volea' : R?.kind || '', you: this.score.you, rival: this.score.rival });
+    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea ? 'volea' : R?.kind || '', sub: R?.sub || '', you: this.score.you, rival: this.score.rival });   // (sub: hacia dónde, para los comentarios: dejada al txoko o al ancho…)
     // el último tanto: el partido se decide y el frontón entero aplaude (se deja más tiempo antes del final)
     this.finalPoint = this.score[winner] >= this.target;
     this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you), final: this.finalPoint });

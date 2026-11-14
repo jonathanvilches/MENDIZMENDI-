@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, EXTRA, reglaDe, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, pelotaMenu, playTorneoRound, sedeDe, torneo, estDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -334,7 +334,7 @@ export class PuebloDeportes {
         const m = yourMatch(T);
         // (en el frontón elegido para este partido; si no, en el que le toca a la ronda, distinto del de la anterior: el
         // del pueblo, su cubierto o el cubierto de otro pueblo; la final, en el Labrit de Iruña)
-        const venue = await this.venueListo(sedeDe(T, m, this.sedes()), fueraDe(T));
+        const sedeK = sedeDe(T, m, this.sedes()), venue = await this.venueListo(sedeK, fueraDe(T));
         await this.venuePrep(venue);
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
@@ -344,7 +344,7 @@ export class PuebloDeportes {
           comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T),
           rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: reglaDe(kind) === 'cuatro',
           yo: T.yo ? { name: T.yo.name, town: T.yo.town, stats: tusStats(T) } : null,   // (el pelotari con el que juegas el campeonato, si no es el tuyo)
-          camp: { kind, ronda: m.round } });   // (el campeonato y la ronda, para los comentarios del principio)
+          camp: { kind, ronda: m.round, fuera: sedeK === 'fuera', est: estDe(T, m) } });   // (el campeonato y la ronda, si se juega en el frontón del rival y cómo llegas, para los comentarios: comenta.js)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         played = true;
@@ -354,6 +354,7 @@ export class PuebloDeportes {
         if (r.error) { this.ui.toast?.(isEU() ? 'Partidak ezin izan du jarraitu. Saiatu berriro.' : 'El partido no ha podido seguir. Vuelve a intentarlo.', 'pelota', 3200); continue; }
         if (r.quit) return;   // (salir del partido es salir: de vuelta al pueblo, no al panel del torneo otra vez)
         if (r.color) T.tuColor = r.color;   // (el color con que jugaste: el de tu carta de campeón)
+        T.remonta = !!(r.win && r.remonta);   // (si lo ganaste remontando: lo cuenta Edurne en el partido siguiente, torneo.js estDe)
         playTorneoRound(T, r.you, r.cpu);
         if (T.done && T.players[T.champion].you) {
           P.txapelas = (P.txapelas || 0) + 1; addXP(150); saveProfile();

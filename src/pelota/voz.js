@@ -1,14 +1,11 @@
-// La voz del comentarista de pelota (las frases, comenta.js): siempre la grabada por el autor, nunca una voz sintética.
-// src/assets/voz/<hombre|mujer>/<es|eu>/<clave>.mp3 (la clave, «dejada-2», sale en el guion de grabación); si no está la
-// de esa voz, la de la otra; y si en ese idioma no hay grabación (el euskera, de momento), la misma frase en castellano.
-// Con los dos comentaristas (Ajustes, de serie), las que narran («n», comenta.js) con la voz de hombre y las que explican
-// la jugada («e») con la de mujer (util/comentarios.js, vozDe); mientras falte una de las dos, todas con la otra.
-// (Hubo una segunda voz sacada de la misma grabación, más grave: sonaba robótica y se quitó, noviembre de 2026.) Sin
-// ninguna grabación de esa frase, no se dice nada. Antes, sin grabación, hablaba la voz del sistema (la del teléfono
-// o el ordenador), y el autor no la quiere: solo su voz. Una frase cada vez: si llega otra mientras habla, espera, y solo
-// la última. Mientras habla, la música baja a un tercio para que no lo tape (audio.js, voz) y vuelve al acabar.
-// Los diálogos entre los dos (comenta.js, DIALOGO): cada turno con su voz y sin la otra de repuesto (estricta), y el
-// siguiente turno (.sigue) justo detrás del anterior; tiene() dice si están grabados todos antes de empezar.
+// Las voces de los comentaristas de pelota (las frases, comenta.js): siempre grabadas, nunca la voz sintética del sistema.
+// src/assets/voz/<hombre|mujer>/<es|eu>/<clave>.mp3: en hombre, las de Mikel, y en mujer, las de Edurne (ElevenLabs,
+// noviembre de 2026; antes, la voz del autor, que se guarda en old/voz-autor). Si no está la de esa voz, la de la otra;
+// y si en ese idioma no hay grabación (el euskera, de momento), la misma frase en castellano. Cada frase lleva su voz
+// (comenta.js) y las de un diálogo o una presentación van sin la otra de repuesto (estricta), cada una justo detrás de
+// la anterior (.sigue); tiene() dice si están grabadas todas antes de empezar. Sin ninguna grabación de esa frase, no
+// se dice nada. Una frase cada vez: si llega otra mientras habla, espera, y solo la última. Mientras habla, la música
+// baja a un tercio para que no lo tape (audio.js, voz) y vuelve al acabar.
 const CLIPS = import.meta.glob('../assets/voz/*/*/*.mp3', { query: '?url', import: 'default' });
 const clip = (voz, lang, id) => CLIPS[`../assets/voz/${voz}/${lang}/${id}.mp3`];
 const otra = (v) => (v === 'hombre' ? 'mujer' : 'hombre');

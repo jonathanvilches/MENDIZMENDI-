@@ -1,14 +1,14 @@
 // Los sonidos de las pantallas que no ponían los suyos: los partidos de pelota y de fútbol (sus paneles, el sorteo, la
 // ficha, la pausa, la Gran final) y los campeonatos (los paneles de liga y torneo, lg-root). El menú y los pueblos ya
 // suenan por su cuenta (hub.js, ui.js). Todo con los sonidos grabados del juego (src/assets/sonidos: el toque, el de
-// abrir, el de la carta, la magia y la fanfarria) y, para hablar, solo la voz grabada por el autor (pelota/voz.js): si
-// la frase aún no está grabada, no se dice nada (noviembre de 2026; las frases que faltan, en VOZ_INTERFAZ).
+// abrir, el de la carta, la magia y la fanfarria) y, para hablar, las voces grabadas de los comentaristas (pelota/voz.js):
+// Mikel tiene todas y Edurne, la segunda de cada pareja (ElevenLabs, noviembre de 2026); sin grabación, no se dice nada.
 // Se escucha en el documento (un toque y lo que aparece), así cada pantalla no tiene que acordarse de sonar.
 //   sonidosInterfaz(sound)   (una vez, al arrancar: main.js)
 import { Voz } from '../pelota/voz.js';
 import { duoElegido, MUJER } from '../util/comentarios.js';
-// (con los dos comentaristas, cualquiera de las dos frases, casi siempre con la voz del hombre, que las tiene todas; la
-// segunda de cada pareja también la grabó la comentarista, y de vez en cuando la dice ella)
+// (con los dos comentaristas, cualquiera de las dos frases, casi siempre Mikel, que las tiene todas; la segunda de
+// cada pareja la tiene también Edurne, y de vez en cuando la dice ella)
 import { isEU } from '../i18n.js';
 
 // dónde suenan los toques (las pantallas que no ponen los suyos) y dónde no: los botones del juego (golpe, cortada,

@@ -11,6 +11,7 @@
 // Se guarda en localStorage ('herrizherri-torneo-v1'): uno de cada campeonato por comarca. (Los de antes, de ocho y tres
 // rondas, que ya iban por la mitad, se acaban con su cuadro de siempre; los que no habían empezado, se rehacen.)
 import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
+import { fichaDe } from '../data/pelotaris.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier, tantosDe, TEXT, RETOS, estrellasReto } from '../pelota/rules.js';
 import { openFicha } from '../pelota/ficha.js';
@@ -148,10 +149,14 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
       const rivals = Array.from({ length: N - 1 }, (_, i) => { const a = pool[i * 2], b = pool[i * 2 + 1], t = townOf(i); return { id: 'p' + i, name: `${a} · ${b}`, mates: [a, b], town: t.name, townId: t.id, lv: lvOf() }; });
       players = [{ id: 'you', name: `${you.name} · ${partner}`, mates: [you.name, partner], town: you.town, lv: 2, you: true }, ...rivals];
     } else {
-      const rivals = Array.from({ length: N - 1 }, (_, i) => { const t = townOf(i); return { id: 'p' + i, name: names[i], town: t.name, townId: t.id, lv: lvOf() }; });
+      // (cada pelotari de la plantilla, de su pueblo de siempre, data/pelotaris.js; en el de comarcas, por una comarca)
+      const rivals = Array.from({ length: N - 1 }, (_, i) => { const f = !K.comarcas && fichaDe(names[i]), t = f ? { name: f.town, id: ctx.towns.find(x => x.name === f.town)?.id || null } : townOf(i); return { id: 'p' + i, name: names[i], town: t.name, townId: t.id, lv: lvOf() }; });
       players = [{ id: 'you', name: you.name, town: K.comarcas ? suya.name || you.town : you.town, lv: 2, you: true }, ...rivals];
     }
-    T = { kind, fmt, comarca: ctx.comarca, comarcaName: ctx.comarcaName, venues: ctx.towns, edition: ed, txapelas, players, round: 0, matches: [], past: [], done: false, champion: null };
+    // (de la edición anterior, para lo que cuentan los comentaristas: quién ganó la txapela y contra quién jugaste)
+    const pp = prev && !rehacer ? prev.players || [] : [], pc = prev?.done ? pp[prev.champion] : null;
+    const ant = pp.length ? { champ: pc ? (pc.you ? 'you' : pc.name) : null, rivals: [...new Set((prev.past || []).flatMap(R => R.matches || []).filter(m => pp[m.a]?.you || pp[m.b]?.you).map(m => pp[pp[m.a]?.you ? m.b : m.a]?.name).filter(Boolean))] } : null;
+    T = { kind, fmt, comarca: ctx.comarca, comarcaName: ctx.comarcaName, venues: ctx.towns, edition: ed, txapelas, players, round: 0, matches: [], past: [], done: false, champion: null, ant };
     // (tú, el primero; los rivales, del más fuerte al más flojo)
     const order = [0, ...players.slice(1).map((p, i) => i + 1).sort((a, b) => fuerza(T, players[b]) - fuerza(T, players[a]))];
     if (fmt === 'ko16' || fmt === 'ko8') {
@@ -227,6 +232,29 @@ export function playTorneoRound(T, you = null, rival = null) {
   return T;
 }
 export const youOut = (T) => !T.done && !T.matches.some(m => T.players[m.a].you || T.players[m.b].you);
+/** Cómo llegas a tu partido del campeonato (m, yourMatch), para lo que cuenta Edurne entre tanto y tanto (pelota/comenta.js,
+ *  las frases est-*): tu primera final, que defiendes la txapela de la edición pasada, la revancha contra uno de entonces,
+ *  que el campeón del año pasado ya cayó, que no has perdido ninguno, que vas primero de tu grupo o que en la última jornada
+ *  de la liguilla ya solo vale ganar, que vienes de remontar o que ya tienes txapela. Si vale más de uno, uno a suertes */
+export function estDe(T, m) {
+  if (!T || !m) return null;
+  const yo = T.players.findIndex(p => p.you), A = T.ant || {}, L = [];
+  const mios = T.past.flatMap(R => R.matches).filter(x => x.s && (x.a === yo || x.b === yo)), gane = (x) => (x.a === yo) === (x.s[0] > x.s[1]);
+  if (m.round === 'Final' && !T.txapelas) L.push('primera-final');
+  if (A.champ === 'you') L.push('defiende');
+  if (m.rival?.name && A.rivals?.includes(m.rival.name)) L.push('revancha');
+  if (A.champ && A.champ !== 'you') { const c = T.players.findIndex(p => p.name === A.champ); if (c >= 0 && !T.matches.some(x => x.a === c || x.b === c)) L.push('campeon-fuera'); }
+  if (mios.length >= 2 && mios.every(gane)) L.push('invicto');
+  if (m.liga && T.groups) {
+    const g = Math.max(0, T.groups.findIndex(G => G.includes(yo))), st = clasificacion(T, g), pos = st.findIndex(x => x.p === yo), j = st[pos]?.j || 0;
+    const pasan = T.groups.length === 1 ? 4 : 2, quedan = (T.sched?.length || 0) - j;
+    if (j >= 1 && pos === 0) L.push('lider');
+    else if (quedan === 1 && pos >= pasan) L.push('obligado');
+  }
+  if (T.remonta && mios.length && gane(mios[mios.length - 1])) L.push('remonta');
+  if (T.txapelas > 0) L.push('txapelas');
+  return L.length ? L[Math.floor(Math.random() * L.length)] : null;
+}
 
 // ---------------------------------------------------------------- pantalla: el cuadro del torneo
 // Como en las retransmisiones: a la izquierda tu próximo partido con las dos cartas (tú de azul, el rival de colorado,

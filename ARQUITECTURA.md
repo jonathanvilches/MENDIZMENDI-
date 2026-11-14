@@ -607,6 +607,37 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   castellano y euskera y por parejas (con textos grandes se desplaza, con los botones siempre a la vista). El momento clave es
   la remontada, si el que gana iba tres o más por detrás; si no, el tanto que deshizo el último empate, contado según
   cómo se ganó (golpe y remate, saque directo o fallo del otro); y si nunca empataron, el tanto más largo.
+- **Mikel y Edurne, los comentaristas nuevos** (14 de noviembre de 2026; `pelota/guionVoz.js`, el guion; `pelota/comenta.js`,
+  qué se dice y cuándo; `data/pelotaris.js`, la ficha fija de cada pelotari). Toda la locución en castellano, de nuevo y
+  sin recortar, con las voces de ElevenLabs de la cuenta del autor (plan Creator, uso comercial): Mikel narra y Edurne,
+  que jugó a pelota, explica la jugada y cuenta historias del frontón y de los pelotaris. 648 claves, 660 grabaciones: 429
+  de Mikel en `src/assets/voz/hombre/es` y 231 de Edurne en `src/assets/voz/mujer/es`; unos 32 000 créditos. Las de
+  Envato de Iñaki y Miren y las del autor se guardan en `old/voz-autor/` (no se borran). Cada clave es `grupo-n`: se
+  elige una frase del grupo sin repetir la última; las que acaban en `-e1`, `-e2` son la explicación de Edurne detrás de
+  la de Mikel; los diálogos, `d-<tema>-<n>-<turno>`, suenan seguidos y una vez por partido. Lo que se oye: la presentación
+  (saludo o diálogo, el frontón por su nombre o la plaza del pueblo, la ronda, el campeonato, los dos pelotaris y lo que
+  se sabe de ellos, el favorito o si van igualados), el primer saque y alguno más, el tanto (cómo se ganó con el golpe
+  concreto: saque cortado, dejada al txoko, cortada a dos paredes, gancho a la pared…; la racha, la que se corta, la
+  remontada, el empate, quien se escapa en el marcador, la mitad del partido, un peloteo largo), el tanto de partido, el
+  descanso, el final (la txapela, la vuelta al marcador, si fue justo o claro, si pasa de ronda) y, entre tanto y tanto,
+  relleno con peso por temas sin repetir el último (el frontón y su historia, la ficha de cada pelotari, la grada, el
+  material, la mano, las piernas, la energía, el Cuatro y Medio, las parejas, el zurdo). Cómo llegas al partido del
+  campeonato lo cuenta Edurne una vez (`game/torneo.js`, `estDe`, frases `est-*`): tu primera final, que defiendes la
+  txapela, la revancha contra uno de la edición pasada, que el campeón del año pasado ya cayó, invicto, primero del grupo,
+  obligado a ganar en la última jornada de la liguilla, que vienes de remontar o que ya tienes txapela; fuera de los
+  campeonatos, si el rival es favorito o van igualados. Para eso cada campeonato nuevo guarda de la edición anterior quién
+  ganó y contra quién jugaste (`ant`), y el partido avisa si lo ganaste remontando (`remonta`, de `pelota/match.js` a
+  `game/fronton.js` y `townDeportes.js`). Durante el peloteo, el golpe que se acaba de dar, también el saque pegado a la
+  pared o abierto al ancho (`game.js`, `saquePared` y `saqueAncho`), el besagain, el bote pronto y el sotamano según la
+  animación del pelotari. Ninguna frase del guion se queda sin poder salir (simulado con 6000 partidos y 120
+  campeonatos; las de Iñigo, cuando juegas con él). Con «Solo Mikel» o
+  «Solo Edurne», solo las frases de esa voz. Cada pelotari de la plantilla tiene ya su pueblo, su estilo y su golpe estrella
+  fijos (`FICHAS`), los que cuentan los comentaristas, en la carta y en el cuadro (`pelota/rules.js`, `game/torneo.js`).
+  Cómo se cortó: cada tanda con su transcripción por palabras de ElevenLabs Scribe, el corte en el silencio más largo entre
+  la última palabra de una frase y la primera de la siguiente, 50 ms de silencio en cada borde, voz a -16 dBFS de media,
+  picos a -1 dBFS, mp3 mono de 64 kbps; las 660 comprobadas contra su texto. El euskera aún no tiene voz: usa el
+  castellano. Guion completo en el documento «Guion de los comentaristas de pelota» (Claude Docs). Lo que sigue en esta
+  sección sobre Iñaki, Miren y Envato es la versión anterior.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en

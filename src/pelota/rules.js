@@ -2,6 +2,7 @@
 // Coordenadas del frontón: el frontis está en z = 0 y la cancha crece hacia +z; la pared izquierda
 // está en x = −W/2 (a la izquierda de quien mira al frontis) y la derecha queda abierta (contracancha).
 import { esc } from '../util/html.js';
+import { fichaDe } from '../data/pelotaris.js';
 
 export const COURT = {
   W: 10,            // ancho de la cancha (m)
@@ -168,6 +169,8 @@ export const esZurdo = (name = '', town = '') => fnv(`zurdo ${name} ${town}`) % 
 const BASE_GOLPE = (st) => ({ cortada: st.fuerza, largo: st.fuerza, dosparedes: st.agilidad, gancho: st.agilidad, dejada: (st.velocidad + st.agilidad) / 2 });
 /** { arq: 'rematador'|'defensor'|'estratega'|'zurdo', zurdo, estrella (un golpe de SHOTS) } de un pelotari. */
 export function pelotariArq(st = {}, name = '', town = '', yo = false) {
+  // (los de la plantilla, con su estilo y su golpe estrella fijos: data/pelotaris.js; lo que cuentan los comentaristas)
+  const fi = !yo && fichaDe(name); if (fi) return { arq: fi.arq, zurdo: fi.arq === 'zurdo', estrella: fi.estrella };
   const q = { fuerza: st.fuerza || 3, agilidad: st.agilidad || 3, velocidad: st.velocidad || 3 }, sty = st.style || {}, s = (k) => sty[k] || 0;
   const pts = { rematador: q.fuerza * 2 + s('cortada') + s('largo'), defensor: q.velocidad * 2 + s('dejada') * 0.8, estratega: q.agilidad * 2 + s('dosparedes') + s('gancho') };
   const orden = ['rematador', 'estratega', 'defensor'], h = fnv(`arq ${name} ${town}`);
