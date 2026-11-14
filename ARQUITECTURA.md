@@ -1860,6 +1860,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   `ffmpeg -an -c:v libx264 -preset slow -crf 24 -pix_fmt yuv420p -profile:v main -movflags +faststart` (el de Pamplona,
   1,2 MB). Sale a 1344 × 768 (1,75), algo recortado de lado respecto a 16:9 (`ar`). De momento solo Pamplona. Si cambia
   el aspecto de la isla o del mapa, hay que volver a sacar los fotogramas y rehacer el vídeo: su final tiene que ser el 3D.
+  En pausa desde el 14 de noviembre de 2026 (`VIDEOS_ISLA_EN_PAUSA`): el de Pamplona se hizo con el mapa de antes, y con
+  el suelo real, el cielo nuevo y los bordes orgánicos el fundido enseñaba dos islas distintas. Hay que volver a sacar
+  sus fotogramas y rehacerlo cuando el autor dé por bueno el aspecto nuevo.
 - **El color de verdad del suelo: la ortofoto** (`tools/relieve/ortofoto.py`, `src/data/mapa-orto.js`, `ORTO_K`, `quiereOrto`
   y `cargaOrto` en `mapa3d.js`, `tonoOrto` en `mapa3dSombreadores.js`; 13 de noviembre de 2026): el autor quería un mapa del
   inicio con calidad casi de mapa real. El relieve tomaba el color de una paleta por alturas, con parcelas, bosque y roca
