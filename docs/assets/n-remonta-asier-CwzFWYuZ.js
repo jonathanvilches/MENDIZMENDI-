@@ -1,0 +1,1 @@
+var e=new URL(`n-remonta-asier-DX6pyGvo.mp3`,import.meta.url).href;export{e as default};

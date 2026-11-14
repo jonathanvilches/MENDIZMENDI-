@@ -1,1 +1,0 @@
-var e=new URL(`r-piernas-1-TSNTHO24.mp3`,import.meta.url).href;export{e as default};

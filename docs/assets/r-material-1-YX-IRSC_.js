@@ -1,0 +1,1 @@
+var e=new URL(`r-material-1-I2B1_5r5.mp3`,import.meta.url).href;export{e as default};

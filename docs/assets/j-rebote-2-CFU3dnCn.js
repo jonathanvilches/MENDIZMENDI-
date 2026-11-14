@@ -1,1 +1,0 @@
-var e=new URL(`j-rebote-2-_VziOjno.mp3`,import.meta.url).href;export{e as default};

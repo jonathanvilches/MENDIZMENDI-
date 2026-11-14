@@ -1,0 +1,1 @@
+var e=new URL(`d-historia-4-2-ByHmQHRy.mp3`,import.meta.url).href;export{e as default};

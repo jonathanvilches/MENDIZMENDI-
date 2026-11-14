@@ -1,0 +1,1 @@
+var e=new URL(`d-cansancio-1-2-BgsCoNWr.mp3`,import.meta.url).href;export{e as default};

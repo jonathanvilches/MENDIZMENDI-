@@ -1,0 +1,1 @@
+var e=new URL(`t-saque-2-Bo_S9-5M.mp3`,import.meta.url).href;export{e as default};

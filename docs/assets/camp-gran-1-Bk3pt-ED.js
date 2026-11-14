@@ -1,0 +1,1 @@
+var e=new URL(`camp-gran-1-DcZLBk9e.mp3`,import.meta.url).href;export{e as default};

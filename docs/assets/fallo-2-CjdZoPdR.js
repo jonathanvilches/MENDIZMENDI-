@@ -1,1 +1,0 @@
-var e=new URL(`fallo-2-BMoPSg9K.mp3`,import.meta.url).href;export{e as default};

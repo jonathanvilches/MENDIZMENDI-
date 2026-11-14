@@ -1,0 +1,1 @@
+var e=new URL(`n-remonta-garazi-8SE9MFdW.mp3`,import.meta.url).href;export{e as default};

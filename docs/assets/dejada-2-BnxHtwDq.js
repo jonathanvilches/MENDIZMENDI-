@@ -1,1 +1,0 @@
-var e=new URL(`dejada-2-Bv_nnSmr.mp3`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`f-elizondo-2-Co8HMSON.mp3`,import.meta.url).href;export{e as default};

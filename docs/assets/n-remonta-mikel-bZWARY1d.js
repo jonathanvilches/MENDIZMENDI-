@@ -1,0 +1,1 @@
+var e=new URL(`n-remonta-mikel-BKLKFn7N.mp3`,import.meta.url).href;export{e as default};

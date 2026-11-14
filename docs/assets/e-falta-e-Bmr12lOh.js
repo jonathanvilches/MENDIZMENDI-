@@ -1,0 +1,1 @@
+var e=new URL(`e-falta-e-BLOpeTgX.mp3`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`camp-invierno-BN6JdnIi.mp3`,import.meta.url).href;export{e as default};

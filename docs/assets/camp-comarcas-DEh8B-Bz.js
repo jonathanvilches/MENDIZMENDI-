@@ -1,0 +1,1 @@
+var e=new URL(`camp-comarcas-BYkKSgIP.mp3`,import.meta.url).href;export{e as default};

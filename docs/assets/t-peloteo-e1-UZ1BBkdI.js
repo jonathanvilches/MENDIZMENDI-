@@ -1,0 +1,1 @@
+var e=new URL(`t-peloteo-e1-B1BcUXrP.mp3`,import.meta.url).href;export{e as default};

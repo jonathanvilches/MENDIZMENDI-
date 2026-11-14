@@ -1,0 +1,1 @@
+var e=new URL(`n-partido-garazi-Cs28rNjW.mp3`,import.meta.url).href;export{e as default};

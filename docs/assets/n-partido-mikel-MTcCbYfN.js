@@ -1,0 +1,1 @@
+var e=new URL(`n-partido-mikel-DR2w8abm.mp3`,import.meta.url).href;export{e as default};

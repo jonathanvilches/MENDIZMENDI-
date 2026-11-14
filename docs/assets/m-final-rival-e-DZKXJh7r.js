@@ -1,0 +1,1 @@
+var e=new URL(`m-final-rival-e-CzU16-hr.mp3`,import.meta.url).href;export{e as default};
