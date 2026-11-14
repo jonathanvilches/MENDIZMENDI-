@@ -1,6 +1,6 @@
 // La isla flotante: lo que lleva la comarca elegida en el mapa del inicio cuando sube y se separa de Navarra, como en las
 // imágenes que pasó el autor el 13 de noviembre de 2026: una tierra que flota en un cielo azul con nubes, con una capa gruesa
-// de césped en el canto y debajo una roca caliza clara, con estrías verticales, que se va cerrando hasta una punta roma (con
+// de césped en el canto y debajo tierra parda con piedras y terrones, que se va cerrando hasta una punta roma (con
 // poca tierra: el autor la quería menos honda). Debajo, el hueco que deja en Navarra es el cráter de donde se arrancó: paredes
 // de tierra y roca oscura y un lago en el fondo, donde cae el agua de los ríos por el borde de la isla y por el del hueco; y
 // se desprenden piedras y polvo sin parar. Las texturas de la roca y del césped, de Higgsfield (src/assets/isla). Se hace la
@@ -8,11 +8,12 @@
 import * as THREE from 'three';
 import { ruidoV, S, CX, CY } from './mapa3dFormas.js';
 import { TONO_ORTO, NUBES } from './mapa3dSombreadores.js';
-// (la roca de la panza, desde la noche del 14 de noviembre de 2026: generada con Higgsfield con la cuenta del autor a partir
-// de su imagen de islas flotantes, repetible, caliza cálida con surcos que bajan y matas de musgo; sus normales salen de su
-// propia luz. Antes, la caliza de Poly Haven, que sigue en la carpeta sin cargarse)
-import CALIZA_T from '../assets/isla/roca-musgo.webp?url';
-import CALIZA_N from '../assets/isla/roca-musgo-n.webp?url';
+// (la panza, desde el 15 de noviembre de 2026: tierra parda con piedras y terrones, raíces y algo de musgo, como la
+// segunda referencia del autor, una isla con cascada; generada con Higgsfield con la cuenta del autor, repetible y con sus
+// normales sacadas de su propia luz, tools/islas/tierra-roca.py. Antes, una caliza clara con surcos que bajaban, que de
+// lejos se leía como rayas verticales estiradas; sigue en la carpeta sin cargarse, como la de Poly Haven)
+import CALIZA_T from '../assets/isla/tierra-roca.webp?url';
+import CALIZA_N from '../assets/isla/tierra-roca-n.webp?url';
 import ESTRATOS_T from '../assets/isla/estratos.webp?url';
 import ESTRATOS_N from '../assets/isla/estratos-n.webp?url';
 // (el borde: el fleco de hierba y musgo que cuelga, la tierra con raíces de debajo y la hierba vista de arriba; y la caliza
@@ -25,7 +26,7 @@ import HIERBA_T from '../assets/isla/hierba.webp?url';
 const rnd = (s) => () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 const lerp = (a, b, k) => a + (b - a) * k;
 const C = (h) => new THREE.Color(h);
-const CALIZA = C('#ffffff'), HONDO = C('#9d9fb2'), TIERRA_ARRIBA = C('#8a6a4e');
+const CALIZA = C('#ffffff'), HONDO = C('#8e8478'), TIERRA_ARRIBA = C('#7a5c42');
 // (el cielo: azul intenso arriba y claro junto al horizonte, como en las imágenes del autor)
 // (14 de noviembre de 2026, el autor: «el color del cielo sigue estando como nublado, muy claro; que sea más oscuro, más
 // azul, más vivo». Un azul hondo arriba, vivo enseguida, y el horizonte también azul, no blanquecino)
@@ -155,6 +156,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // (los bultos: la roca no baja lisa, tiene panzas y entrantes grandes, y repisas a lo largo, como estratos que asoman)
   const bulto = (a, h) => { const u = Math.cos(a) * 1.6 + seed % 17, w = Math.sin(a) * 1.6 + 3.3;
     return ((ruidoV(u + h * 1.3, w + h * 2.9) - 0.5) * 0.2 + (ruidoV(u * 2.7 + 9.1, w * 2.7 + h * 6.5) - 0.5) * 0.085 + 0.02 * Math.sin(h * 21 + 4 * ruidoV(u, w))) * rMed * Math.sin(Math.PI * Math.min(1, h * 1.08)) ** 0.7; };
+  const terron = (a, h) => { const u = Math.cos(a) * 5.2 + seed % 11, w = Math.sin(a) * 5.2 + 7.7; return ((ruidoV(u + h * 9.3, w + h * 6.1) - 0.5) * 0.07 + (ruidoV(u * 2.3 + 2.2, w * 2.3 + h * 15) - 0.5) * 0.035) * rMed * Math.sin(Math.PI * Math.min(1, h * 1.05)); };
   // (las estrías: surcos verticales cada medio metro largo del mapa, que se tuercen un poco al bajar, y bultos más grandes)
   const estria = (s, k) => { const ss = s + 0.12 * Math.sin(k * 1.7 + s * 0.6), g = 0.5 + 0.5 * Math.sin(ss * 13.4 + 1.3 * Math.sin(ss * 0.9)); return 0.09 * g * g + 0.14 * Math.sin(s * 2.7 + k * 0.45 + seed); };
   const pos = [], col = [], uv = [], c = new THREE.Color();
@@ -164,7 +166,9 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
     const [x, z] = Q[i % N], dx = x - cx, dz = z - cz, r = Math.hypot(dx, dz) || 1, a = Math.atan2(dz, dx);
     const bx = lerp(dx, dx / r * rMed, m) * e + ladoX * h ** 1.6, bz = lerp(dz, dz / r * rMed, m) * e + ladoZ * h ** 1.6;
     const fe = ssI(0.06, 0.22, h);   // (las estrías y los bultos empiezan algo más abajo: arriba la roca sigue el filo de la hierba)
-    const ex = k ? (estria(LQ[i], k) * (1 - h) ** 1.3 * Math.min(1, rMed / 7) + (k > 1 ? bulto(a, h) : 0)) * fe : 0;   // (las estrías se pierden hacia la punta)
+    // (desde el 15 de noviembre de 2026, apenas estrías: la panza es de tierra con piedras, no de caliza rayada. Los
+    // terrones, bultos pequeños que no siguen una dirección, le dan la silueta de pedazo de tierra de la referencia)
+    const ex = k ? (estria(LQ[i], k) * 0.22 * (1 - h) ** 1.3 * Math.min(1, rMed / 7) + (k > 1 ? bulto(a, h) + terron(a, h) : 0)) * fe : 0;
     const y = k ? -D * (h * (1 + cuelga(a) * h ** 1.4) + 0.03 * h * Math.max(0, 1 - h * 1.25) * Math.sin(LQ[i] * 3.1 + k)) : 0;   // (el fondo, liso: si ondula, la orilla del lago sale a dientes)
     // (arriba, el punto del borde metido hacia dentro por su normal, como una ladera que se esconde bajo el césped: un
     // cuarto de lo que baja; más abajo pasa a la forma de montaña del revés)

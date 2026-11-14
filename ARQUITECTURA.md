@@ -2162,10 +2162,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - El labio es la propia hierba del prado que dobla sobre el filo y se mete bajo él hasta la roca: siete filas en vez de
     once, sin fleco, sin franja de tierra y sin franja de caliza; con una luz algo más baja que la del prado de al lado,
     que lleva la sombra del relieve (con la misma salía como una cinta más clara).
-  - La tierra, en la misma pieza que la roca: los anillos de arriba de la panza van pardos (`#8a6a4e`) y pasan a la caliza
+  - La tierra, en la misma pieza que la roca: los anillos de arriba de la panza van pardos (`#8a6a4e`; con la panza de tierra, `#7a5c42`) y pasan a la caliza
     en el primer 7 % de lo hondo.
   - Las paredes de la losa de la comarca ya se ocultaban con la isla subida; antes las tapaban la tierra y la caliza del
     canto.
+- **La panza, de tierra parda con piedras, como la isla de la cascada** (`terron`, `HONDO`, `TIERRA_ARRIBA` y la textura
+  `tierra-roca` en `mapa3dIsla.js`; `tools/islas/tierra-roca.py`; 15 de noviembre de 2026). El autor pasó otra imagen de
+  referencia, una isla pequeña con césped que cuelga del borde, una cascada y debajo un pedazo de tierra que se cierra en
+  punta: «me vas entendiendo, te paso otra referencia». Comparada con la isla del juego, lo que más se apartaba era la
+  panza: aquí, caliza clara con surcos verticales que de lejos se leía como rayas estiradas; allí, tierra parda con piedras
+  y terrones, sin dirección.
+  - La textura nueva, generada con Higgsfield con la cuenta del autor (tierra con piedras ocres y pardas, grietas oscuras,
+    raíces y algo de musgo), hecha repetible sin costuras, algo menos roja y con sus normales sacadas de su propia luz.
+  - Las estrías de la forma se quedan en una quinta parte; en su lugar, terrones: bultos pequeños en las dos direcciones,
+    que dan la silueta de pedazo de tierra. El fondo, pardo a la sombra en vez de azulado, y la tierra de debajo del
+    césped, algo más oscura.
 - **Copas con grano y ortofoto de los pueblos afinada** (`arbolM` en `mapa3d.js`; `tools/relieve/ortofoto.py`; 15 de
   noviembre de 2026): «que tengan la mayor posible textura de copas, de roca y afinar el ortofoto». Las copas de los árboles
   del mapa llevan matas de hojas más claras y más hondas, cada árbol con las suyas, y la punta más clara, donde da el sol;
