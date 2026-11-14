@@ -1838,6 +1838,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el mapa. Al acercarse la cámara (`abre`, de 112 a 42 de distancia), las de en medio se corren hacia fuera y se
   deshacen; una de cada cinco se queda, a medias. Ninguna se pone delante de la cámara. Los copos se ordenan de lejos a
   cerca cada imagen. En las pruebas, con `?q=high`: sin tarjeta gráfica el mapa entra en calidad baja y pone pocas.
+- **La barra de misiones, plegada también en el móvil** (`ui.js buildHUD`; 14 de noviembre de 2026): en el móvil salían
+  todas las misiones a la vez y la barra ocupaba media pantalla («quita muchísima visión de juego»). Ahora va como en el
+  ordenador, con la misma técnica (`#tl.plega`): se ve la misión que se está haciendo y, al lado, la flecha con las hechas;
+  al tocarla se despliegan las demás, y al elegir una se vuelve a plegar. El catalejo, la mochila y la pausa siguen al final.
 - **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
   con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
   móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin

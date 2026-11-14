@@ -169,8 +169,9 @@ export class UI {
     else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
     // (en el ordenador, las misiones plegadas: solo se ve la que estás haciendo, y la flecha de al lado, con las hechas de
     // las del pueblo, despliega las demás con una pequeña entrada escalonada. Al elegir una, se vuelve a plegar con ella a la
-    // vista. El 13 de noviembre de 2026 lo pidió el autor: en el ordenador salían todas a la vez. En el móvil, como estaba)
-    if (town && !matchMedia('(pointer: coarse)').matches) {
+    // vista. El 13 de noviembre de 2026 lo pidió el autor: en el ordenador salían todas a la vez. Y ese mismo día, que en
+    // el móvil fuese igual: desplegada ocupaba media pantalla y quitaba visión de juego. Desde el 14, plegadas en los dos)
+    if (town) {
       const T = $('#tl', h), P = $('#mPliega', h); T.classList.add('plega');
       P.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.sound?.ui?.('click'); this.pliegaMisiones(!T.classList.contains('abierta')); });
     }
