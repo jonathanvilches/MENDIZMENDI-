@@ -1852,6 +1852,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   el mapa. Al acercarse la cámara (`abre`, de 112 a 42 de distancia), las de en medio se corren hacia fuera y se
   deshacen; una de cada cinco se queda, a medias. Ninguna se pone delante de la cámara. Los copos se ordenan de lejos a
   cerca cada imagen. En las pruebas, con `?q=high`: sin tarjeta gráfica el mapa entra en calidad baja y pone pocas.
+  Junto a la isla de la comarca elegida no quedaba ninguna: el campo es grande y las de cerca se apartan. Desde el 14 de
+  noviembre hay unas pocas suyas (`deIsla`: 9, 6 en el móvil y 4 en los equipos flojos), como los cúmulos de la imagen de
+  referencia: van en medidas de la isla, a entre 1,75 y 3,25 radios de su centro y entre la mitad de su roca y algo por
+  encima de su base, y solo se ven las que quedan detrás de ella o a los lados vistas desde la cámara; las de delante se
+  deshacen, y al girar la cámara salen unas y se van otras, despacio. No dan sombra.
 - **La barra de misiones, plegada también en el móvil** (`ui.js buildHUD`; 14 de noviembre de 2026): en el móvil salían
   todas las misiones a la vez y la barra ocupaba media pantalla («quita muchísima visión de juego»). Ahora va como en el
   ordenador, con la misma técnica (`#tl.plega`): se ve la misión que se está haciendo y, al lado, la flecha con las hechas;

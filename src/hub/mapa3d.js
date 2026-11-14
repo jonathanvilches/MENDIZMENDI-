@@ -482,7 +482,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const esquinas = []; for (const x of [caja.min.x, caja.max.x]) for (const y of [0, caja.max.y]) for (const z of [caja.min.z, caja.max.z]) esquinas.push(new THREE.Vector3(x, y, z));
   const centro = caja.getCenter(new THREE.Vector3());
   // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
-  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 16 : TACTIL ? 34 : 60, copos: BAJA ? 8 : TACTIL ? 10 : 14, nav: centro, sol: sol.position });
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 16 : TACTIL ? 34 : 60, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 4 : TACTIL ? 6 : 9, nav: centro, sol: sol.position });
 
 
   // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo
@@ -1812,7 +1812,8 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // lejano, la bruma clara de ese cielo; al bajar, vuelve el fondo de siempre)
     cieloK = 1;
     cieloFondo.visible = cieloK > 0.004; cieloFondo.material.uniforms.uK.value = cieloK; cieloFondo.material.uniforms.uT.value = t; cieloFondo.position.copy(cam.position);
-    nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA);
+    { const ci = sel && !COL ? C.find(c => c.id === sel) : null, I = ci?.isla;   // (y junto a la isla de la comarca elegida, las suyas)
+      nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA, I && (I.k || 0) > 0.02 ? { x: I.cx, z: I.cz, r: I.rMed, y: ci.py + I.base * ci.sy, D: I.D, k: Math.min(1, I.k) } : null); }
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
     ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
     scene.fog.near = Math.max(4, v.d * 0.9); scene.fog.far = Math.max(10, v.d * 2.05); scene.fog.color.copy(NIEBLA_LEJOS).lerp(NIEBLA_CERCA, Math.min(1, Math.max(0, (14 - v.d) / 10))).lerp(CIELO_BRUMA, cieloK); cam.near = Math.max(Math.min(0.5, v.d * 0.2), v.d * 0.1 - 1.5); cam.far = v.d * 2.6 + 60; cam.updateProjectionMatrix();

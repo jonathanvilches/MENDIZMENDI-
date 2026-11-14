@@ -56,9 +56,10 @@ void main() { vP = position.xy * 2.0; vOp = aDat.z; gl_Position = projectionMatr
 const FS_S = `varying vec2 vP; varying float vOp;
 void main() { float a = (1.0 - smoothstep(0.15, 1.0, length(vP))) * vOp; if (a < 0.004) discard; gl_FragColor = vec4(0.02, 0.035, 0.07, a); }`;
 
-/** Las nubes. n: cuántas; copos: cuántos copos lleva cada una, como mucho; nav: el centro de Navarra ({ x, z }); sol: hacia
+/** Las nubes. n: cuántas; copos: cuántos copos lleva cada una, como mucho; deIsla: cuántas se quedan junto a la isla de la
+ *  comarca elegida; nav: el centro de Navarra ({ x, z }); sol: hacia
  *  dónde está el sol; geos y mats, para soltarlo todo. */
-export function hazNubes({ scene, geos, mats, n = 56, copos = 12, nav = { x: 0, z: 0 }, sol = new THREE.Vector3(-50, 38, -22) }) {
+export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, nav = { x: 0, z: 0 }, sol = new THREE.Vector3(-50, 38, -22) }) {
   const R = rnd(20261114), tex = ruidoTex(); mats.push(tex);
   const SOL = sol.clone().normalize(), solV = new THREE.Vector3();
   // (cada una: dónde nace, a qué altura, su tamaño y sus copos; unas pocas, de las que se quedan)
@@ -73,7 +74,21 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, nav = { x: 0, 
     }
     N.push({ x: (R() - 0.5) * CAMPO, z: (R() - 0.5) * CAMPO, y: 17 + R() * 5.5, w, l, queda: R() < 0.22, op: 0.86 + R() * 0.14, C, vx: 0, vz: 0, vo: 0 });
   }
-  const total = N.reduce((s, q) => s + q.C.length, 0);
+  // (las de la isla: unas pocas que se quedan alrededor de la comarca que flota, detrás de ella y a su altura, como los
+  // cúmulos de la imagen de referencia del autor, del 14 de noviembre de 2026. Las de arriba se apartan al acercarse la
+  // cámara y junto a la isla no quedaba ninguna. Se guardan en medidas de la isla: a qué lado, a cuántos radios, a qué
+  // altura entre su punta y su hierba, y de qué tamaño)
+  const NI = [];
+  while (NI.length < deIsla) {
+    const w = 0.62 + R() * 0.5, l = w * (0.62 + R() * 0.3), h = w * (0.32 + R() * 0.14), k = Math.max(5, Math.round(copos * (0.55 + 0.4 * R()))), C = [];
+    for (let i = 0; i < k; i++) {
+      const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * (i < 3 ? 0.55 : 1), cima = 1 - rr * rr, ey = i < 3 ? R() * 0.2 : R() * cima;
+      const s = w * (0.27 + 0.19 * cima + 0.08 * R()) * (i < 3 ? 1.12 : 1 - 0.38 * ey);
+      C.push({ dx: Math.cos(a) * rr * w * 0.4, dz: Math.sin(a) * rr * l * 0.4, dy: ey * h + s * 0.16, s, alt: Math.min(1, 0.18 + ey * 0.9 + 0.12 * cima), sem: R() });
+    }
+    NI.push({ a: (NI.length + R() * 0.7) / deIsla * Math.PI * 2, rf: 1.75 + R() * 1.5, yf: R(), op: 0.86 + R() * 0.14, C, k: 0 });
+  }
+  const total = N.reduce((s, q) => s + q.C.length, 0) + NI.reduce((s, q) => s + q.C.length, 0);
   const cuad = () => { const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); geos.push(g); return g; };
   const g = cuad(), aPos = new Float32Array(total * 3), aDat = new Float32Array(total * 4);
   g.setAttribute('aPos', new THREE.InstancedBufferAttribute(aPos, 3).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('aDat', new THREE.InstancedBufferAttribute(aDat, 4).setUsage(THREE.DynamicDrawUsage));
@@ -90,8 +105,9 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, nav = { x: 0, 
   let abre = 0;
   return {
     /** t, dt: el tiempo; v: la vista de la cámara ({ x, z, d }); cam: la cámara; far: hasta dónde llega la niebla; bruma:
-     *  el color de lo lejano */
-    update(t, dt, v, cam, far, bruma) {
+     *  el color de lo lejano; isla: la comarca que flota, si la hay ({ x, z, r: su radio, y: la altura de su base, D: lo que
+     *  mide su roca, k: cuánto ha subido, de 0 a 1 }) */
+    update(t, dt, v, cam, far, bruma, isla = null) {
       // (cuánto se han apartado: nada con Navarra entera a la vista, del todo ya cerca de una comarca; con algo de retraso,
       // para que se las vea irse)
       const quiere = 1 - Math.min(1, Math.max(0, (v.d - 42) / 70)); abre += (quiere - abre) * (1 - Math.exp(-dt * 1.4));
@@ -114,6 +130,15 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, nav = { x: 0, 
         for (const c of q.C) { const p = P[k++]; p.x = x + c.dx; p.y = q.y + c.dy; p.z = z + c.dz; p.s = c.s; p.op = op; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); }
         sPos[ks * 3] = x + SX * q.y; sPos[ks * 3 + 1] = 0.03; sPos[ks * 3 + 2] = z + SZ * q.y; sDat[ks * 3] = q.w * 1.25; sDat[ks * 3 + 1] = q.l * 1.25; sDat[ks * 3 + 2] = op * 0.42; ks++;
       }
+      // (las de la isla: solo las que quedan detrás de ella vistas desde la cámara, o a los lados; las de delante se deshacen,
+      // y al girar la cámara van saliendo unas y yéndose otras, despacio)
+      if (isla && isla.k > 0.02) { let fx = isla.x - cp.x, fz = isla.z - cp.z; const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
+        for (const q of NI) { const a = q.a + t * 0.006, rr = isla.r * q.rf, x = isla.x + Math.cos(a) * rr, z = isla.z + Math.sin(a) * rr, y = isla.y - isla.D * 0.55 + (isla.D * 0.55 + 2.5) * q.yf, e = isla.r;
+          const detras = ((x - isla.x) * fx + (z - isla.z) * fz) / rr, quiereK = suave(-0.15, 0.45, detras) * suave(9, 26, Math.hypot(x - cp.x, y - cp.y, z - cp.z));
+          q.k += (quiereK - q.k) * (1 - Math.exp(-dt * 1.1)); const op = q.op * q.k * suave(0.25, 0.95, isla.k);
+          if (op < 0.02) continue;
+          for (const c of q.C) { const p = P[k++]; p.x = x + c.dx * e; p.y = y + c.dy * e; p.z = z + c.dz * e; p.s = c.s * e; p.op = op; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); } } }
+      else for (const q of NI) q.k = 0;
       // (de lejos a cerca, para que se mezclen bien unos con otros)
       vis.sort((a, b) => b.d - a.d);
       for (let i = 0; i < vis.length; i++) { const p = vis[i]; aPos[i * 3] = p.x; aPos[i * 3 + 1] = p.y; aPos[i * 3 + 2] = p.z; aDat[i * 4] = p.s; aDat[i * 4 + 1] = p.op; aDat[i * 4 + 2] = p.alt; aDat[i * 4 + 3] = p.sem; }
