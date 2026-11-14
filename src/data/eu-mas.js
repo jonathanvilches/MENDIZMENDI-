@@ -78,7 +78,7 @@ const PORTADA = {
   'Ver toda Navarra': 'Ikusi Nafarroa osoa', 'Volver al mapa (Esc)': 'Itzuli mapara (Esc)', 'Pueblos de la comarca': 'Eskualdeko herriak',
   'Pueblo anterior': 'Aurreko herria', 'Pueblo siguiente': 'Hurrengo herria', 'Verlo en lista': 'Zerrendan ikusi', 'Lista': 'Zerrenda',
   'Las etxekoandreak': 'Etxekoandreak', 'Las conserveras': 'Kontserba-langileak', 'Maite junto al crucero': 'Maite gurutzearen ondoan',
-  'Kike en el frontón': 'Kike frontoian', 'Amaia junto al río': 'Amaia ibaiaren ondoan',
+  'Kike en el frontón': 'Kike frontoian', 'Ainhoa junto al río': 'Ainhoa ibaiaren ondoan',
   'Taller de artesanía': 'Artisautza-tailerra', 'Tienda de montaña': 'Mendi-denda', 'Librería': 'Liburu-denda', 'Escuela de música': 'Musika-eskola',
   'Tienda de producto local': 'Tokiko produktuen denda', 'Visita guiada': 'Bisita gidatua',
   // (el mapa del pueblo: la leyenda, el botón y la ayuda)

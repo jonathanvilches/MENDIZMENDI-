@@ -19,6 +19,7 @@ import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { Pajarillos } from '../world/pajarillos.js';
 import { Colada } from '../world/colada.js';
 import { QUALITY } from '../util/quality.js';
+import { hablaVecino, callaVecino } from './vozVecinos.js';
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
@@ -458,7 +459,11 @@ export class Game {
   }
   say(who, lines) {
     const look = who.obj?.userData.look, icon = who.icon;
-    return this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, look, icon, text: greet(this, t) } : { who: who.name, look, icon, ...t }));   // (greet: el saludo a la hora y con el tiempo de ahora)
+    // (cada línea, con la voz grabada de su vecino si la tiene, game/vozVecinos.js; al acabar la charla, se calla)
+    const prev = this.ui.onDialogLine; this.ui.onDialogLine = (L) => { prev?.(L); hablaVecino(L, this.state.name); };
+    const fin = () => { if (this.ui.onDialogLine !== prev) this.ui.onDialogLine = prev; callaVecino(); };
+    const p = this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, look, icon, text: greet(this, t) } : { who: who.name, look, icon, ...t }));   // (greet: el saludo a la hora y con el tiempo de ahora)
+    p.then(fin, fin); return p;
   }
 
   // ---------- Conversaciones ----------
@@ -494,7 +499,7 @@ export class Game {
         if (q.state === 'done') {
           const left = RIBBONS.filter(r => !st.ribbons.includes(r.id));
           if (!left.length) return S(['¡Tienes las ocho cintas! Corre a Muskilda: el Bobo y los danzantes te esperan en la explanada del santuario.']);
-          const hints = { horia: 'Itziar sabe mucho de los palacios y sus escudos.', zuria: 'Joxemari, el pastor, tiene problemas con su rebaño en la borda, al oeste.', berdea: 'Kike está en el frontón. ¡Le encanta la pelota!', urdina: 'Iñaki, el guarda, vigila la entrada de Irati, al norte.', laranja: 'Dicen que en lo más profundo de Irati vive el Basajaun…', morea: 'En la balsa de Irati, al noreste, a veces se ve a una Lamia peinándose.', arrosa: 'Amaia está junto al río. ¡Dice que ha visto al Zarratrako!' };
+          const hints = { horia: 'Itziar sabe mucho de los palacios y sus escudos.', zuria: 'Joxemari, el pastor, tiene problemas con su rebaño en la borda, al oeste.', berdea: 'Kike está en el frontón. ¡Le encanta la pelota!', urdina: 'Joseba, el guarda, vigila la entrada de Irati, al norte.', laranja: 'Dicen que en lo más profundo de Irati vive el Basajaun…', morea: 'En la balsa de Irati, al noreste, a veces se ve a una Lamia peinándose.', arrosa: 'Ainhoa está junto al río. ¡Dice que ha visto al Zarratrako!' };
           return S([left.length === 1 ? 'Te falta 1 cinta.' : `Te faltan ${left.length} cintas.`, hints[left[0].id]]);
         }
         return S(['¡Sigue la flecha dorada! Primero el puente medieval, luego la fuente y después la iglesia.']);
@@ -567,7 +572,7 @@ export class Game {
       case 'inaki': {
         const q = this.q('irati');
         if (q.state === 'available' || (q.state === 'active' && q.step === 0)) {
-          await S([`Kaixo. Soy Iñaki, guarda de Irati. Cuidamos uno de los bosques de hayas y abetos mejor conservados de Europa.`,
+          await S([`Kaixo. Soy Joseba, guarda de Irati. Cuidamos uno de los bosques de hayas y abetos mejor conservados de Europa.`,
             'En el bosque viven corzos, ciervos, jabalíes, ardillas, pájaros carpinteros… y en el cielo planean los buitres.',
             'Toma estos prismáticos. Obsérvalos sin molestarlos: acércate despacio, sin correr.',
             `Anota cinco animales distintos y vuelve. ${this.input.touch ? 'Usa el botón de los prismáticos' : 'Pulsa F para usar los prismáticos'}.`]);
@@ -636,7 +641,7 @@ export class Game {
     const st = this.state;
     const pool = QUIZ.filter((_, i) => !st.quiz.includes(i));
     if (cheese && !st.cards.includes('mesa')) {
-      await this.say(a, [`¡Kaixo! Soy Garazi. Vendo queso de oveja del valle.`, 'Aquí, en la mesa del valle, no faltan el queso, la trucha y las migas de pastor.']);
+      await this.say(a, [`¡Kaixo! Soy Arantxa. Vendo queso de oveja del valle.`, 'Aquí, en la mesa del valle, no faltan el queso, la trucha y las migas de pastor.']);
       this.giveCard('mesa');
     }
     if (!pool.length) return this.say(a, ['¡Ya has respondido todas mis preguntas! Eres una enciclopedia del valle.']);
@@ -819,7 +824,7 @@ export class Game {
         this.giveCard(best.id);
         this.ui.toast(`¡${name} anotado en el cuaderno!`, 'binoculars');
         const q = this.q('irati');
-        if (q.state === 'active' && q.step === 1 && this.state.observed.length >= 5) { this.advance('irati', 2); this.ui.toast('¡Cinco especies! Vuelve con Iñaki', 'binoculars', 3500); }
+        if (q.state === 'active' && q.step === 1 && this.state.observed.length >= 5) { this.advance('irati', 2); this.ui.toast('¡Cinco especies! Vuelve con Joseba', 'binoculars', 3500); }
         this.save();
       } else this.sound.ui('photo');
     }
