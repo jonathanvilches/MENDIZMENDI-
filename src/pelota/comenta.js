@@ -135,15 +135,17 @@ export class Comentarios {
     if (o.yaDicho) return this.azar(0.4) ? this.nombre('tanto', quien) : this.azar(0.4) ? this.relleno(o) : null;
     // (de los demás, alguno con relleno en vez de la jugada y alguno sin nada, para que no se haga pesado)
     const r = Math.random();
-    if (r < 0.2) return this.relleno(o);
-    if (r < 0.3) return null;
+    // (desde la noche del 14 de noviembre de 2026, Edurne habla más: «solo habla Miquel y se me queda muy soso el partido»;
+    // más relleno, que es casi todo suyo, y su explicación detrás de la jugada dos de cada tres veces en vez de dos de cinco)
+    if (r < 0.28) return this.relleno(o);
+    if (r < 0.34) return null;
     if (x.call === 'bote') {
       const g = GANA(x.kind, x.sub);
       const m = (this.azar(VISTOSO.has(g) ? 0.3 : 0.2) && this.nombre(VISTOSO.has(g) ? 'golazo' : 'tanto', quien)) || this.frase(g);
-      return this.seguidas(m, this.azar(0.4) && (this.frase(`${g}-e`) || (g === 't-gancho-pared' || g === 't-gancho-ancho' ? this.frase('t-gancho-e') : null)));
+      return this.seguidas(m, this.azar(0.66) && (this.frase(`${g}-e`) || (g === 't-gancho-pared' || g === 't-gancho-ancho' ? this.frase('t-gancho-e') : null)));
     }
     const m = (this.azar(0.2) && this.nombre('falla', otro)) || this.frase(FALLO[x.call] || 'e-fallo');
-    return this.seguidas(m, this.azar(0.4) && this.frase(FALLO_E[x.call] || 'e-fallo-e'));
+    return this.seguidas(m, this.azar(0.6) && this.frase(FALLO_E[x.call] || 'e-fallo-e'));
   }
   /** El tanto de partido: ambos (los dos a un tanto) o el de quien está a uno (id) */
   tantoPartido(ambos, id) {
@@ -190,7 +192,10 @@ export class Comentarios {
     else if (e.shot === 'pared' && e.q > 0.6) g = 'j-pared';
     else if (e.shot === 'ancho' && e.q > 0.6) g = 'j-ancho';
     if (!g || (!gancho && g !== 'j-saque-cortado' && !this.azar(g === 'j-peloteo' ? 0.8 : g === 'j-pared' || g === 'j-ancho' ? 0.2 : 0.42))) return null;
-    const f = this.frase(g); if (f) this.jT = t; return f;
+    // (y en el peloteo, a veces la reacción es de Edurne y no de Mikel: sus frases cortas de jugada, «j-…-e»; con «Solo
+    // Edurne», siempre las suyas)
+    const ge = /^j-gancho/.test(g) ? 'j-gancho-e' : `${g}-e`, deElla = this.hay(ge) && (this.voz === 'mujer' || (this.voz === 'duo' && this.azar(0.4)));
+    const f = (deElla && this.frase(ge)) || this.frase(g); if (f) this.jT = t; return f;
   }
   /** Algo entre tanto y tanto, según cómo va el partido, para que no se haga el silencio: la historia del frontón, la de
    *  los pelotaris, cómo llega cada uno, la pelota, la mano, la grada, consejos y, con los dos, alguna charla entre ellos.

@@ -654,6 +654,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   botón y, mientras se saca en los tres primeros tantos de cada partido, una tira abajo con las teclas dibujadas como
   teclas: flechas para moverte y apuntar, J, K, L y «mantén la tecla para cargar». No sale en el móvil ni con mando. El
   autor: «en el ordenador no sé qué controles son para dejada, cortada y golpeo».
+- **Edurne habla más** (misma noche, `pelota/comenta.js`; 24 frases nuevas suyas, `j-…-e` en `guionVoz.js`, con su voz
+  limpia de ElevenLabs, 760 créditos, cortadas en los silencios y a -16 dBFS como las demás): en el peloteo, cuatro de
+  cada diez reacciones son suyas («¡Qué tacto tiene!», «Le quita el tiempo», «Esto es un pulso»…) y con «Solo Edurne»,
+  todas; tras el tanto, su explicación sale dos de cada tres veces (antes dos de cinco) y hay algo más de relleno, que es
+  casi todo suyo. «Solo habla Miquel y se me queda muy soso el partido».
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
