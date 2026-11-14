@@ -1122,7 +1122,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.58, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.5, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1224,7 +1224,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // giro arranca desde parado y coge su paso en 4 s. La distancia, la que deja ver la isla entera desde cualquier lado)
   // (y desde la última hora del 14, más arriba: «aún quiero que salga un poco más arriba [...] tenemos que conseguir ver
   // todo el territorio de la comarca». A 23° los montes de delante tapaban los valles de detrás; a 41°, el 15, «que no
-  // sea tan cenital, que tenga un poco de perspectiva para ver todo el relieve de los montes, de los pueblos». A 33°)
+  // sea tan cenital, que tenga un poco de perspectiva para ver todo el relieve de los montes, de los pueblos». A 33°; y
+  // esa noche, a 29°: «la visión tiene que quedar en perspectiva para poder ver el relieve, no que quede cenital 100%»)
   // (y desde el 15, antes y más rápido: «tarda mucho entre la elevación del territorio y el cambio de plano». La cámara
   // arranca en cuanto la isla despega, sin esperar a que acabe el vuelo de llegada, y pasa a la órbita en 2,4 s con una
   // curva que sale viva y frena suave; antes, 3,4 s después del vuelo entero, con un arranque casi parado)
