@@ -292,7 +292,8 @@ export class UI {
   // late el cuadrado de la misión
   eligeMision(i) {
     const g = this.game, M = g?.missions?.[i]; if (!M) return;
-    const T = this.hud && $('#tl.plega', this.hud), plegada = !!T && !T.classList.contains('abierta');
+    // (en el ordenador la barra no se pliega, style.css: la flecha no está y cada casilla elige su misión a la primera)
+    const T = this.hud && $('#tl.plega', this.hud), plegada = !!T && !T.classList.contains('abierta') && $('#mPliega', T)?.offsetWidth > 0;
     // (plegada, la única casilla que se ve es la puerta de todo: tocarla despliega la barra, con su misión debajo)
     if (plegada) { this.sound?.ui?.('click'); if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } this.pliegaMisiones(true); this.abreMision(i, ABIERTA_MS); return; }
     if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); return; }
