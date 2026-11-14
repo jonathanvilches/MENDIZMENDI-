@@ -1,0 +1,1 @@
+var e=new URL(`tafalla-BRs_JYX4.webp`,import.meta.url).href;export{e as default};

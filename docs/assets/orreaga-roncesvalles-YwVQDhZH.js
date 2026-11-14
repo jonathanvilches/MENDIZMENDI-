@@ -1,0 +1,1 @@
+var e=new URL(`orreaga-roncesvalles-CvnCGO1-.webp`,import.meta.url).href;export{e as default};

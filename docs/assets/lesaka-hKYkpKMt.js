@@ -1,1 +1,0 @@
-var e=new URL(`lesaka-gIDQSZC0.webp`,import.meta.url).href;export{e as default};

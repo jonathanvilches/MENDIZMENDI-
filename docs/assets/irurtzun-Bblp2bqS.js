@@ -1,1 +1,0 @@
-var e=new URL(`irurtzun-BPY-WOEj.webp`,import.meta.url).href;export{e as default};

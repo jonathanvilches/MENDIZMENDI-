@@ -1,1 +1,0 @@
-var e=new URL(`estella-MXAJzyN9.webp`,import.meta.url).href;export{e as default};

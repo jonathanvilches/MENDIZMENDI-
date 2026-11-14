@@ -1,0 +1,1 @@
+var e=new URL(`viana-BD2KY-kV.webp`,import.meta.url).href;export{e as default};

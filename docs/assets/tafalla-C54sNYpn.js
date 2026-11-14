@@ -1,1 +1,0 @@
-var e=new URL(`tafalla-Cax4Yq-H.webp`,import.meta.url).href;export{e as default};

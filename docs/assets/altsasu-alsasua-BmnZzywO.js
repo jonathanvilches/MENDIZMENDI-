@@ -1,0 +1,1 @@
+var e=new URL(`altsasu-alsasua-HCyWXs16.webp`,import.meta.url).href;export{e as default};

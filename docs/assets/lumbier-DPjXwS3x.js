@@ -1,1 +1,0 @@
-var e=new URL(`lumbier-DzT4ZTeA.webp`,import.meta.url).href;export{e as default};

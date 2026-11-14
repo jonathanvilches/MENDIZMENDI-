@@ -1,1 +1,0 @@
-var e=new URL(`zugarramurdi-CN0kmzwM.webp`,import.meta.url).href;export{e as default};

@@ -1,1 +1,0 @@
-var e=new URL(`olite-G65oWZwu.webp`,import.meta.url).href;export{e as default};

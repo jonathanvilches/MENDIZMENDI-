@@ -1,0 +1,1 @@
+var e=new URL(`artajona-D525WgD3.webp`,import.meta.url).href;export{e as default};

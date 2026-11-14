@@ -1,1 +1,0 @@
-var e=new URL(`pamplona-Dok9jsAw.webp`,import.meta.url).href;export{e as default};

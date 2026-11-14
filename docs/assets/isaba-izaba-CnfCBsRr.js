@@ -1,1 +1,0 @@
-var e=new URL(`isaba-izaba-BTo-lN40.webp`,import.meta.url).href;export{e as default};

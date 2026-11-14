@@ -1,0 +1,1 @@
+var e=new URL(`isaba-izaba-Ddri-p3t.webp`,import.meta.url).href;export{e as default};

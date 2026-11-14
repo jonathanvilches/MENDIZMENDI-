@@ -1,0 +1,1 @@
+var e=new URL(`puente-la-reina-B7tLwqvG.webp`,import.meta.url).href;export{e as default};

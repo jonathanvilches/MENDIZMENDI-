@@ -1,1 +1,0 @@
-var e=new URL(`tudela-Cu4U4a1n.webp`,import.meta.url).href;export{e as default};

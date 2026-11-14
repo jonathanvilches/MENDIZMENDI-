@@ -1,1 +1,0 @@
-var e=new URL(`erronkari-roncal-oKFat2ZW.webp`,import.meta.url).href;export{e as default};

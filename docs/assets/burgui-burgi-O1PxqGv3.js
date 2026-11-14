@@ -1,0 +1,1 @@
+var e=new URL(`burgui-burgi-BxAWTGCt.webp`,import.meta.url).href;export{e as default};

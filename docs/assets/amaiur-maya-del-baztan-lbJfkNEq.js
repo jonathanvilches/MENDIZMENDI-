@@ -1,1 +1,0 @@
-var e=new URL(`amaiur-maya-del-baztan-DmJil8Vw.webp`,import.meta.url).href;export{e as default};

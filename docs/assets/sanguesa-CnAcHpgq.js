@@ -1,1 +1,0 @@
-var e=new URL(`sanguesa-BpytJwru.webp`,import.meta.url).href;export{e as default};

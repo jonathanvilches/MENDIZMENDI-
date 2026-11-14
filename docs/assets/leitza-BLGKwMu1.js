@@ -1,1 +1,0 @@
-var e=new URL(`leitza-DJ4wQcbE.webp`,import.meta.url).href;export{e as default};

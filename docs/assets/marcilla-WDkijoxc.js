@@ -1,0 +1,1 @@
+var e=new URL(`marcilla-dxoIA2rF.webp`,import.meta.url).href;export{e as default};
