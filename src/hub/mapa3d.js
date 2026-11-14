@@ -538,15 +538,49 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     return { lab, X, Z, p: m.p, h: GROSOR + alto(X, Z) + 0.15, c: deQuien(X, Z) || byId.get(m.c) };
   });
   // la trashumancia: la Cañada Real de los Roncaleses, del valle de Roncal a las Bardenas Reales (trazado aproximado, por
-  // Burgui, la sierra de Leyre, Sangüesa, Cáseda y Carcastillo), pintada sobre el relieve con una raya discontinua, y su
-  // rebaño, que baja por ella poco a poco; tocándolo, su ficha (o.onTrashumancia). Una raya en una capa encima del mapa
-  // (un polígono de unos 60 puntos) y un nombre: nada que dibuje la tarjeta gráfica
+  // Burgui, la sierra de Leyre, Sangüesa, Cáseda y Carcastillo), y su rebaño, que baja por ella poco a poco; tocándolo,
+  // su ficha (o.onTrashumancia)
+  // (desde el 15 de noviembre de 2026, la cañada es un camino pegado al relieve, como los ríos: una cinta cortada por
+  // comarcas, cada trozo con la suya, que sube con ella cuando flota, la tapan los montes que tiene delante y nunca cruza
+  // el hueco ni el cielo. Discontinua, color de tierra pisada, con el trazo que avanza despacio hacia las Bardenas, como el
+  // rebaño. Antes era una raya en una capa plana encima de todo el mapa, y con las islas en el aire se cortaba, pasaba por
+  // encima de los montes y se cruzaba con los nombres: «lo de la trashumancia ahora está generando un conflicto»)
   const CANADA = [[42.81, -0.958], [42.725, -1.011], [42.663, -1.124], [42.59, -1.215], [42.52, -1.37], [42.38, -1.445], [42.2, -1.5]];
-  const canP = []; { const Wp = CANADA.map(([la, lo]) => W(...mapaXY(la, lo)));
-    for (let i = 0; i + 1 < Wp.length; i++) for (let k = 0; k < 10; k++) { const t = k / 10, X = Wp[i][0] + (Wp[i + 1][0] - Wp[i][0]) * t, Z = Wp[i][1] + (Wp[i + 1][1] - Wp[i][1]) * t; canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) }); }
-    const [X, Z] = Wp[Wp.length - 1]; canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) }); }
-  const canCom = new Set(canP.map(p => p.c?.id).filter(Boolean));
-  const canSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); canSvg.setAttribute('class', 'm3-canada'); canSvg.innerHTML = '<path class="s"/><path class="r"/>';
+  const canP = [], canCom = new Set(), canM = new Map();
+  { let P = CANADA.map(([la, lo]) => W(...mapaXY(la, lo)));
+    for (let it = 0; it < 3 && P.length > 2; it++) { const S = [P[0]]; for (let i = 0; i + 1 < P.length; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1]; S.push([ax * 0.75 + bx * 0.25, az * 0.75 + bz * 0.25], [ax * 0.25 + bx * 0.75, az * 0.25 + bz * 0.75]); } S.push(P.at(-1)); P = S; }
+    const Q = []; for (let i = 0; i + 1 < P.length; i++) { const [ax, az] = P[i], [bx, bz] = P[i + 1], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 0.1)); for (let k = 0; k < n; k++) Q.push([ax + (bx - ax) * k / n, az + (bz - az) * k / n]); }
+    Q.push(P.at(-1));
+    for (const [X, Z] of Q) canP.push({ X, Z, h: GROSOR + alto(X, Z) + 0.12, c: deQuien(X, Z) });
+    // (cada comarca, su trozo, con lo andado desde Roncal en uv.x para el discontinuo)
+    const trozos = new Map(); let ant = null, tr = null;
+    canP.forEach((q, k) => { if (q.c !== ant) { tr = q.c ? [] : null; if (q.c) { if (!trozos.has(q.c)) trozos.set(q.c, []); trozos.get(q.c).push(tr); } ant = q.c; } if (tr) tr.push([q.X, q.Z, k * 0.1]); });
+    const W_CAN = 0.3;
+    for (const [c, lista] of trozos) {
+      canCom.add(c.id); const a = { p: [], uv: [], i: [], lado: [] };
+      for (const Tq of lista) { if (Tq.length < 2) continue; const b = a.p.length / 3;
+        for (let k = 0; k < Tq.length; k++) { const p0 = Tq[Math.max(0, k - 1)], n0 = Tq[Math.min(Tq.length - 1, k + 1)], L = Math.hypot(n0[0] - p0[0], n0[1] - p0[1]) || 1;
+          const [x, z, u] = Tq[k], ox = -(n0[1] - p0[1]) / L * W_CAN / 2, oz = (n0[0] - p0[0]) / L * W_CAN / 2;
+          const yc = GROSOR + sobre(c, x, z) + 0.07, yl = sobre(c, x + ox, z + oz) - sobre(c, x, z), yr = sobre(c, x - ox, z - oz) - sobre(c, x, z);
+          a.p.push(x, yc, z, x, yc, z); a.lado.push(ox, yl, oz, -ox, yr, -oz); a.uv.push(u, 0, u, 1);
+          if (k) { const v2 = b + k * 2; a.i.push(v2 - 2, v2, v2 - 1, v2 - 1, v2, v2 + 1); } } }
+      if (!a.i.length) continue;
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(a.p, 3)); g.setAttribute('lado', new THREE.Float32BufferAttribute(a.lado, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(a.uv, 2)); g.setIndex(a.i); geos.push(g);
+      const m = new THREE.MeshBasicMaterial({ color: 0xf6e7c3, transparent: true, opacity: 0, depthWrite: false, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }); mats.push(m);
+      const hueco = c.top.uniforms.uHueco, ou = orU(c);
+      m.onBeforeCompile = (sh) => { sh.uniforms.uAncho = ANCHO_RIO; sh.uniforms.uHueco = hueco; sh.uniforms.uT = TIEMPO; Object.assign(sh.uniforms, ou, ORS);
+        sh.vertexShader = ORILLA + 'attribute vec3 lado; uniform float uAncho; varying vec2 vHx, vRuv; varying float vAn;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += lado * uAncho; transformed.y = orilla(transformed.xz, transformed.y); vHx = transformed.xz; vRuv = uv; vAn = uAncho;');
+        // (el discontinuo: tramos de tierra clara con su orilla parda, y el hueco entre ellos; se alarga con la distancia, como
+        // el ancho, para que de lejos no se vuelva un punteado)
+        sh.fragmentShader = 'uniform vec4 uHueco; uniform float uT; varying vec2 vHx, vRuv; varying float vAn;\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  if (uHueco.w > 0.5 && distance(vHx, uHueco.xy) < uHueco.z) discard;')
+          .replace('#include <color_fragment>', `#include <color_fragment>
+{ float d = fract(vRuv.x / (0.8 * max(vAn, 0.4)) - uT * 0.08), cen = 1.0 - abs(vRuv.y - 0.5) * 2.0;
+  float tramo = smoothstep(0.0, 0.06, d) * (1.0 - smoothstep(0.56, 0.62, d));
+  diffuseColor.rgb = mix(vec3(0.36, 0.24, 0.16), diffuseColor.rgb, smoothstep(0.22, 0.42, cen));
+  diffuseColor.a *= tramo * smoothstep(0.0, 0.18, cen); }`); };
+      m.customProgramCacheKey = () => 'canada';
+      const me = new THREE.Mesh(g, m); me.renderOrder = 2; me.raycast = () => {}; me.name = 'cañada'; c.mesh.add(me); canM.set(c, m);
+    } }
   const rebano = document.createElement('button'); rebano.type = 'button'; rebano.className = 'm3-tr'; rebano.hidden = true;
   rebano.innerHTML = `${iconSVG('sheep', 20)}<span>Trashumancia</span>`; rebano.setAttribute('aria-label', 'La trashumancia: Cañada Real de los Roncaleses');
   for (const ev of ['pointerdown', 'pointerup', 'click']) rebano.addEventListener(ev, (e) => { e.stopPropagation(); if (ev === 'click') o.onTrashumancia?.(); });
@@ -2035,19 +2069,14 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     // (la cañada de la trashumancia y su rebaño: de lejos, o con una de las comarcas por las que pasa; no en un pueblo)
     // (en la vista de toda Navarra y con una comarca elegida por la que pasa; con otra comarca, con un pueblo o una maqueta,
     // no. Un tiempo solo salía con una de sus comarcas elegida y el autor la echaba de menos: noviembre de 2026)
-    { const on = !COL && !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? p.h * p.c.sy + p.c.py : p.h;
-      if (!canSvg.isConnected) { capa.prepend(canSvg); capa.append(rebano); }
-      canSvg.style.display = on ? '' : 'none';
-      // (con una comarca subida como isla, la raya se corta en su orilla: si no, bajaba en vertical desde la isla al mapa)
-      if (on) { let d = '', ant = null; const isla = (c) => c?.isla?.k > 0.05;
-        for (const p of canP) { const y = Y(p);
-          if (!isla(p.c) && tapaIsla(p.X, y, p.Z)) { ant = null; continue; }   // (y lo que pasa por detrás de la isla, tampoco)
-          pv.set(p.X, y, p.Z).project(cam);
-          if (pv.z >= 1) { ant = null; continue; }
-          d += `${!ant || (ant.c !== p.c && (isla(ant.c) || isla(p.c))) ? 'M' : 'L'}${((pv.x + 1) / 2 * sz.w).toFixed(1)},${((1 - pv.y) / 2 * sz.h).toFixed(1)} `; ant = p; }
-        for (const pl of canSvg.children) pl.setAttribute('d', d); }
+    { const on = !COL && !elegido && !maq && v.d > 2.6 && (!sel || canCom.has(sel)), Y = (p) => p.c ? orJS(p.c, p.X, p.Z, p.h) * p.c.sy + p.c.py : p.h;
+      if (!rebano.isConnected) capa.append(rebano);
+      // (la cinta: se enciende y se apaga suave; la de una comarca del fondo, apagada)
+      for (const [c, m] of canM) { const meta = on && !(sel && sel !== c.id) ? 0.92 * (1 - 0.85 * c.fondo) : 0; m.opacity += (meta - m.opacity) * (1 - Math.exp(-dt * 6)); }
       const u = (now / 1000 / 80) % 1, f = u * (canP.length - 1), i = Math.floor(f), a = canP[i], b = canP[Math.min(i + 1, canP.length - 1)], t = f - i;
-      lista.push([6, rebano, a.X + (b.X - a.X) * t, Y(a) + (Y(b) - Y(a)) * t + 0.3, a.Z + (b.Z - a.Z) * t, on]); }
+      // (el rebaño, sobre el camino; detrás de una isla en el aire, no)
+      const rx = a.X + (b.X - a.X) * t, ry = Y(a) + (Y(b) - Y(a)) * t + 0.3, rz = a.Z + (b.Z - a.Z) * t;
+      lista.push([6, rebano, rx, ry, rz, on && (a.c?.isla?.k > 0.05 || !tapaIsla(rx, ry, rz))]); }
     lista.sort((a, b) => a[0] - b[0]);
     for (const [, el, x, y, z, on, y2, punto] of lista) etiqueta(el, x, y, z, on, ocupado, y2, punto);
     // (dónde queda la cabeza de la chincheta del pueblo elegido: ahí se ancla su ficha)

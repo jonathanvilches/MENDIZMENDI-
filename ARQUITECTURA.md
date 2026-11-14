@@ -1066,6 +1066,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Bardenas (trazado aproximado), en una raya discontinua de una capa encima del mapa, y su rebaño, un nombre que baja por
   ella poco a poco; tocándolo, su ficha (`hub.trashumancia`), con la misión «La trashumancia» del Roncal (juntar el
   rebaño en el redil antes de salir a la cañada, al final de sus misiones para no mover las hechas).
+  Desde el 15 de noviembre de 2026 la cañada es un camino pegado al relieve, como los ríos: una cinta cortada por
+  comarcas (`canM`), cada trozo hijo de la suya, que sube con ella cuando flota, queda tapada por los montes de delante y
+  nunca cruza el hueco ni el cielo; discontinua, color de tierra pisada con su orilla parda, y el trazo avanza despacio
+  hacia las Bardenas. La raya de la capa plana, con las islas en el aire, se cortaba, pasaba por encima de los montes y se
+  cruzaba con los nombres («lo de la trashumancia ahora está generando un conflicto. Ponlo de otra manera»). El rebaño
+  sigue siendo una ficha sobre el camino, que se esconde detrás de una isla en el aire.
 - **Ritmo de los textos** (`style.css`, `:root`): un solo orden de aire para todo. La escala, en la rejilla de 4 px:
   `--e1` 4, `--e2` 8, `--e3` 12, `--e4` 16, `--e5` 20, `--e6` 24, `--e7` 32 y `--e8` 48. Entre textos, siempre medido de
   lo que se ve (de la línea base de uno a la mayúscula del siguiente): antetítulo a título, 12 (`--r-kt`); título a
