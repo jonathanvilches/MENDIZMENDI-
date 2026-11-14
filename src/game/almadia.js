@@ -8,8 +8,14 @@
 // lleva el jugador (así, con la cámara detrás, se ve toda la almadía por delante y al almadiero en la punta). Diseño propio, a partir de las descripciones de los almadieros: troncos de igual largo atados con
 // «cuerdas» de avellano y mimbre, con remos en proa y popa.
 // Se maneja con la palanca o las flechas: a los lados, el remo lleva la almadía a un lado u otro del río; adelante, se rema
-// para ir algo más deprisa; atrás, se frena. Hay que esquivar las peñas y las pilas del puente, entrar por el portillo de la
+// para ir más deprisa; atrás, se frena. Hay que esquivar las peñas y las pilas del puente, entrar por el portillo de la
 // presa y pasar por el ojo grande. Cada golpe se cuenta; al final, una a tres estrellas y lo que se ha aprendido.
+// El 13 de noviembre de 2026 el autor la probó en el iPhone: los paneles se montaban unos sobre otros, iba «muy despacio» y
+// no se entendía qué había que hacer. Desde entonces: va casi el doble de deprisa; todo lo suyo (el avance, lo que toca
+// hacer y la historia) va en una sola columna bajo la barra de arriba, así que no puede pisarse; una línea dice siempre
+// qué hacer y hacia qué lado, con su flecha («Peña delante», «Al portillo de la presa», «Recto, por el ojo del puente»);
+// y en el agua, una fila de flechas lleva al portillo y otra al ojo grande. La historia, en una frase por parte: el texto
+// largo queda para el material didáctico (HISTORIA[i].largo).
 //   new Almadia(game, real.presas) · bajada() → Promise<{ fin, golpes, estrellas, salir }>
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
@@ -24,14 +30,14 @@ import { clamp, damp, mulberry32 } from '../util/math.js';
 const TRAMO = 7, HUECO = 0.45, ANCHO = 3.4, MEDIO = ANCHO / 2;   // (m)
 const PASO = TRAMO + HUECO;
 
-// ---------- la historia, en seis partes, por el camino (a qué distancia de la salida) ----------
+// ---------- la historia, en seis partes, por el camino: una frase cada una (t); el texto entero, en largo ----------
 export const HISTORIA = [
-  { d: 25, k: 'Del monte al río', t: 'En invierno, los del valle cortaban pinos y abetos en el monte y los bajaban hasta la orilla del Esca, donde esperaban a la primavera.' },
-  { d: 150, k: 'Atar los troncos', t: 'Los almadieros ataban los troncos en tramos con ramas de avellano retorcidas, y unían unos tramos detrás de otros. Así la almadía se doblaba en las curvas del río.' },
-  { d: 300, k: 'Con el deshielo', t: 'Bajaban en primavera, cuando el río venía crecido por la nieve que se derrite. Con un remo largo en la proa y otro en la popa la llevaban por donde hay más agua.' },
-  { en: 'presa', d: -110, k: 'Las presas', t: 'Las presas de los molinos tenían un portillo, un paso abierto para las almadías. Había que entrar justo por él. ¡Ahí delante está el de Burgui!' },
-  { en: 'puente', d: 6, k: 'Hasta el mar', t: 'Desde aquí seguían por el Aragón y el Ebro hasta Zaragoza, y algunas hasta Tortosa, junto al mar. La madera se vendía y los almadieros volvían a casa andando.' },
-  { en: 'fin', d: -10, k: 'Hoy', t: 'La última almadía de trabajo bajó en 1952. Desde entonces, cada primavera, Burgui celebra el Día de la Almadía y las bajan otra vez por el Esca.' },
+  { k: 'Del monte al río', t: 'En invierno cortaban pinos y abetos y los bajaban hasta la orilla del Esca.', largo: 'En invierno, los del valle cortaban pinos y abetos en el monte y los bajaban hasta la orilla del Esca, donde esperaban a la primavera.' },
+  { k: 'Atar los troncos', t: 'Ataban los troncos con ramas de avellano. Por eso la almadía se dobla en las curvas.', largo: 'Los almadieros ataban los troncos en tramos con ramas de avellano retorcidas, y unían unos tramos detrás de otros. Así la almadía se doblaba en las curvas del río.' },
+  { k: 'Con el deshielo', t: 'Bajaban en primavera, con el río crecido, con un remo delante y otro detrás.', largo: 'Bajaban en primavera, cuando el río venía crecido por la nieve que se derrite. Con un remo largo en la proa y otro en la popa la llevaban por donde hay más agua.' },
+  { k: 'Las presas', t: 'Cada presa tenía un portillo: un paso abierto para las almadías.', largo: 'Las presas de los molinos tenían un portillo, un paso abierto para las almadías. Había que entrar justo por él.' },
+  { k: 'Hasta el mar', t: 'Seguían por el Aragón y el Ebro hasta Zaragoza, y algunas hasta el mar.', largo: 'Desde aquí seguían por el Aragón y el Ebro hasta Zaragoza, y algunas hasta Tortosa, junto al mar. La madera se vendía y los almadieros volvían a casa andando.' },
+  { k: 'Hoy', t: 'La última bajó en 1952. Burgui lo celebra cada primavera.', largo: 'La última almadía de trabajo bajó en 1952. Desde entonces, cada primavera, Burgui celebra el Día de la Almadía y las bajan otra vez por el Esca.' },
 ];
 const PARTES = HISTORIA.length;
 
@@ -96,10 +102,17 @@ export class Almadia {
     this.s = this.s0 + PASO * 3; this.u = 0; this.vu = 0; this.v = 0; this.golpes = 0; this.hechos = new Set(); this.parte = -1;
     this.huella = [];   // (por dónde ha ido la proa: s y desvío, para que los tramos de detrás sigan el mismo camino)
     // (lo que hay que esquivar: las peñas y las pilas del puente que pisan el agua)
-    this.obst = [...R.peñas.map(p => ({ ...p, k: 'peña' })), ...(fam?.pilas || []).map(p => ({ ...p, k: 'pila' }))].map(o => ({ ...o, s: C.proyecta(o.x, o.z) }));
+    // (de cada cosa, por dónde va: s, a lo largo del río, y u, a un lado u otro de su eje)
+    const lat = (x, z, s) => { const q = C.at(s); return (x - q.x) * q.nx + (z - q.z) * q.nz; };
+    this.obst = [...R.peñas.map(p => ({ ...p, k: 'peña' })), ...(fam?.pilas || []).map(p => ({ ...p, k: 'pila' }))].map(o => { const s = C.proyecta(o.x, o.z); return { ...o, s, u: lat(o.x, o.z, s) }; });
+    this.uPortillo = lat(R.presa.portillo.x, R.presa.portillo.z, R.presa.s); this.uOjo = fam ? lat(fam.ojo.x, fam.ojo.z, this.sPuente) : 0;
     this.salpica = 0; this.golpeT = 0; this.lento = 0; this.t = 0;
-    // (dónde sale cada parte de la historia: a tanto de la salida, o antes o después de la presa, del puente o del final)
-    this.marcas = HISTORIA.map(h => h.en === 'presa' ? R.presa.s + h.d : h.en === 'puente' ? this.sPuente + h.d : h.en === 'fin' ? this.sFin + h.d : this.s0 + h.d);
+    // (dónde sale cada parte de la historia: tres repartidas hasta la presa, la de las presas un poco antes de llegar, otra
+    // a medio camino del puente y la última al pasar por debajo; nunca a menos de 60 m una de otra)
+    const ini = this.s + 14, pre = R.presa.s - 95;
+    this.marcas = [ini, ini + (pre - ini) / 3, ini + (pre - ini) * 2 / 3, pre, (R.presa.s + this.sPuente) / 2 + 10, this.sPuente + 4];
+    for (let k = 1; k < this.marcas.length; k++) this.marcas[k] = Math.max(this.marcas[k], this.marcas[k - 1] + 60);
+    this.flechas = this.hazFlechas();
   }
   // el desvío de la proa cuando pasó por s (para los tramos de detrás)
   desvioEn(s) {
@@ -117,6 +130,7 @@ export class Almadia {
     const host = this.host;
     try { this.alm = new Actor({ id: 'almadiero-bajada', name: host?.name || 'Almadiero', x: 0, z: 0, heading: 0, look: host?.def?.look || { shirt: '#ffffff', vest: '#2b2630', pants: '#2b2630', txapela: '#1d1d24' }, y: 0, ghost: true }, g.scene); this.alm.frozen = true; } catch (e) { this.alm = null; }
     this.place(0); this.pon(P, 0); F.snap?.(P);
+    this.hud(); this.pintaHud(); this.pintaFlechas();
   }
   // (sin sitio: se deja la bajada a medias, con la acción de bajar; quien la empezó deja al jugador en la orilla)
   baja(x, z, heading) {
@@ -167,6 +181,7 @@ export class Almadia {
     this.place(dt);
     this.choques();
     this.momentos();
+    this.pintaHud(); this.pintaFlechas();
     this.pon(P, dt);
     // la cámara, detrás de la almadía
     const F = this.g.follow, quiereYaw = this.tramos[0].rotation.y + Math.PI;
@@ -189,7 +204,7 @@ export class Almadia {
     const b = this.tramos[0].localToWorld(_v.set(0, 0, TRAMO / 2));
     this.g.particles?.emit({ x: b.x, y: b.y + 0.2, z: b.z }, { n: 26, color: ['#ffffff', '#cfe8f0'], speed: 3.5, size: 0.3, life: 0.8, gravity: 7 });
     this.g.sound?.splash?.({ x: b.x, y: b.y, z: b.z }, 0.7); this.g.sound?.noiseBurst && this.g.sound.ctx && this.g.sound.noiseBurst(0.25, 180, 0.8, 0.35, this.g.sound.sfx);
-    if (o) this.vu = Math.sign(this.u - o.u || 1) * 2.4;
+    if (o) this.vu = Math.sign(this.u - o.u || 1) * 3;
     this.aviso(txt || 'Cuidado con las peñas', 'warn');
   }
   // contra las peñas y las pilas: cada tramo, un rectángulo; cada cosa, un círculo
@@ -199,7 +214,7 @@ export class Almadia {
       for (const m of this.tramos) {
         const dx = o.x - m.position.x, dz = o.z - m.position.z, c = Math.cos(m.rotation.y), s = Math.sin(m.rotation.y);
         const lx = dx * c - dz * s, lz = dx * s + dz * c, ex = Math.max(0, Math.abs(lx) - MEDIO), ez = Math.max(0, Math.abs(lz) - TRAMO / 2);
-        if (Math.hypot(ex, ez) < o.r) { const q = this.C.at(o.s); o.u = (o.x - q.x) * q.nx + (o.z - q.z) * q.nz; this.golpe(o, o.k === 'pila' ? 'Cuidado con la pila del puente' : 'Cuidado con las peñas'); return; }
+        if (Math.hypot(ex, ez) < o.r) { this.golpe(o, o.k === 'pila' ? 'Cuidado con la pila del puente' : 'Cuidado con las peñas'); return; }
       }
     }
   }
@@ -221,15 +236,72 @@ export class Almadia {
       const q = C.at(this.sPuente), uo = (this.fam.ojo.x - q.x) * q.nx + (this.fam.ojo.z - q.z) * q.nz;
       if (Math.abs(this.u - uo) < this.fam.ojo.luz / 2 - MEDIO) { this.ojo = true; this.aviso('¡Por el ojo grande del puente!', 'ok'); }
     }
-    this.g.ui.setMG(`<b>La almadía</b><span class="alm-barra"><i style="width:${Math.round(clamp((this.s - this.s0) / (this.sFin - this.s0), 0, 1) * 100)}%"></i></span><small>${this.golpes ? `Golpes: ${this.golpes}` : 'Sin golpes'} · Historia ${Math.max(0, this.parte + 1)}/${PARTES}</small>`);
   }
-  // una parte de la historia: arriba, sin parar la bajada, unos segundos
+  // ---------- lo que se ve: su columna, bajo la barra de arriba ----------
+  // (dentro de #tl, como la ficha de una misión: siempre justo debajo de la barra, mida lo que mida; y en una columna, el
+  // avance con lo que toca hacer y, debajo, la historia: así nada puede pisar a nada. No coge los toques: la palanca
+  // sigue naciendo donde se pone el dedo)
+  hud() {
+    if (this.el) return this.el;
+    const tl = this.g.ui.hud?.querySelector('#tl') || document.body, el = document.createElement('div'); el.className = 'alm-hud';
+    const pct = (s) => Math.round(clamp((s - this.s0) / (this.sFin - this.s0), 0, 1) * 100);
+    el.innerHTML = `<div class="alm-estado"><div class="alm-f1"><span class="alm-ic">${iconSVG('raft', 18)}</span><span class="alm-barra"><i></i><u style="left:${pct(this.R.presa.s)}%"></u>${this.fam ? `<u style="left:${pct(this.sPuente)}%"></u>` : ''}</span><span class="alm-golpes"></span></div>`
+      + `<div class="alm-guia" role="status" aria-live="polite"><span class="alm-fl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><b></b><small></small></div></div><div class="alm-cuento fuera"></div>`;
+    tl.appendChild(el); document.body.classList.add('alm-on');
+    return (this.el = el);
+  }
+  // hacia qué lado de la pantalla cae un desvío: la cámara va detrás, mirando río abajo
+  derecha() { const q = this.C.at(this.s); return q.nx * -q.dz + q.nz * q.dx > 0 ? 1 : -1; }   // (+1: el desvío que crece va a la derecha de la pantalla)
+  ladoDe(du) { return du * this.derecha() > 0 ? 'der' : 'izq'; }
+  // qué toca hacer ahora: esquivar lo que hay delante, ir al portillo o al ojo grande, o seguir
+  guia() {
+    const R = this.R, s = this.s, lim = this.C.half - MEDIO - 0.6;
+    if (this.parado) return { t: 'ok', dir: 'recto', txt: '¡Has llegado!' };
+    let o = null; for (const x of this.obst) { const d = x.s - s; if (d < -3 || d > Math.max(28, this.v * 4.2)) continue; if (Math.abs(x.u - this.u) < MEDIO + x.r + 0.8 && (!o || x.s < o.s)) o = x; }
+    if (o) {   // (por el lado en el que ya está, si cabe; si no, por el otro)
+      const cabe = (k) => k > 0 ? o.u + o.r + MEDIO + 0.6 < lim : o.u - o.r - MEDIO - 0.6 > -lim, k0 = this.u >= o.u ? 1 : -1, k = cabe(k0) ? k0 : -k0;
+      return { t: 'warn', dir: this.ladoDe(k), txt: o.k === 'pila' ? 'Pila del puente delante' : 'Peña delante' };
+    }
+    const dp = R.presa.s - s, dq = this.sPuente - s;
+    if (dp > 0 && dp < 150) { const du = this.uPortillo - this.u, hol = R.presa.portillo.ancho / 2 - MEDIO + 0.7; return Math.abs(du) > hol * 0.55 ? { t: 'ir', dir: this.ladoDe(du), txt: 'Al portillo de la presa', m: dp } : { t: 'ok', dir: 'recto', txt: 'Recto, por el portillo', m: dp }; }
+    if (this.fam && dq > 0 && dq < 130) { const du = this.uOjo - this.u, hol = this.fam.ojo.luz / 2 - MEDIO; return Math.abs(du) > hol * 0.55 ? { t: 'ir', dir: this.ladoDe(du), txt: 'Al ojo grande del puente', m: dq } : { t: 'ok', dir: 'recto', txt: 'Recto, por el ojo del puente', m: dq }; }
+    if (!(this.llevada > 0.6) && this.t < 14) return { t: 'ir', dir: 'recto', txt: this.g.input?.touch ? 'Arrastra el dedo a los lados para llevarla' : 'Flechas ← → para llevarla a los lados' };
+    return dp > 0 ? { t: 'libre', dir: 'recto', txt: 'Esquiva las peñas', m: dp, hito: 'presa' } : dq > 0 && this.fam ? { t: 'libre', dir: 'recto', txt: 'Esquiva las peñas', m: dq, hito: 'puente' } : { t: 'libre', dir: 'recto', txt: 'A la orilla', m: this.sFin - s };
+  }
+  // (solo se toca la página cuando algo cambia: el avance, de uno en uno; la distancia, de diez en diez metros)
+  pintaHud() {
+    const el = this.el; if (!el) return;
+    const p = Math.round(clamp((this.s - this.s0) / (this.sFin - this.s0), 0, 1) * 100), g = this.guia(), m = g.m != null ? Math.max(10, Math.round(g.m / 10) * 10) : null;
+    const k = `${p}|${this.golpes}|${g.t}|${g.dir}|${g.txt}|${m}`; if (k === this.hudK) return; this.hudK = k;
+    el.querySelector('.alm-barra i').style.width = p + '%';
+    el.querySelector('.alm-golpes').textContent = this.golpes ? `${this.golpes} ${this.golpes === 1 ? 'golpe' : 'golpes'}` : 'Sin golpes';
+    const G = el.querySelector('.alm-guia'); G.className = `alm-guia ${g.t} ${g.dir}`; G.querySelector('b').textContent = g.txt;
+    G.querySelector('small').textContent = m == null ? '' : g.hito ? `${g.hito === 'presa' ? 'Presa' : 'Puente'} a ${m} m` : `${m} m`;
+  }
+  // las flechas en el agua: una fila que lleva al portillo de la presa y otra al ojo grande del puente, los últimos 80 m
+  hazFlechas() {
+    const P = [], fila = (sObj, uObj) => { for (let d = 80; d >= 8; d -= 9) if (sObj - d > this.s) P.push({ s: sObj - d, u: uObj }); };
+    fila(this.R.presa.s, this.uPortillo); if (this.fam) fila(this.sPuente, this.uOjo);
+    const g = new THREE.BufferGeometry(), a = 1.9, L = 2.3, b = 0.95; this.geos.push(g);
+    g.setAttribute('position', new THREE.Float32BufferAttribute([-a, 0, -L / 2, 0, 0, L / 2, 0, 0, L / 2 - b, -a, 0, -L / 2 - b, a, 0, -L / 2, 0, 0, L / 2, 0, 0, L / 2 - b, a, 0, -L / 2 - b], 3));
+    g.setIndex([0, 1, 2, 0, 2, 3, 4, 6, 5, 4, 7, 6]);
+    const m = new THREE.MeshBasicMaterial({ color: '#ffe27a', transparent: true, opacity: 0.9, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, fog: false });
+    const im = new THREE.InstancedMesh(g, m, Math.max(1, P.length)); im.count = P.length; im.frustumCulled = false; im.renderOrder = 30; im.name = 'flechas de la almadía'; this.g.scene.add(im);
+    return { im, m, P, M: new THREE.Matrix4(), q: new THREE.Quaternion(), e: new THREE.Euler(), v: new THREE.Vector3(), sc: new THREE.Vector3() };
+  }
+  // (laten una tras otra, río abajo; las que alcanza la proa se quitan)
+  pintaFlechas() {
+    const F = this.flechas, C = this.C; if (!F?.P.length) return;
+    F.P.forEach((p, i) => { const q = C.at(p.s), k = this.s + 2 > p.s ? 0.001 : 0.88 + 0.22 * Math.sin(this.t * 5 - p.s * 0.35);   // (bajo la almadía ya no se ven)
+      F.v.set(q.x + q.nx * p.u, q.nivel + 0.34, q.z + q.nz * p.u); F.q.setFromEuler(F.e.set(0, Math.atan2(q.dx, q.dz), 0)); F.M.compose(F.v, F.q, F.sc.set(k, 1, k)); F.im.setMatrixAt(i, F.M); });
+    F.im.instanceMatrix.needsUpdate = true;
+  }
+  // una parte de la historia: en su columna, sin parar la bajada, unos segundos
   cuento(i) {
-    const h = HISTORIA[i]; let el = document.querySelector('.alm-cuento');
-    if (!el) { el = document.createElement('div'); el.className = 'alm-cuento'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite'); document.body.appendChild(el); }
-    el.innerHTML = `<span class="alm-k">${iconSVG('raft', 16)}<b>La historia de la almadía · ${i + 1}/${PARTES}</b></span><strong>${h.k}</strong><p>${h.t}</p>`;
+    const h = HISTORIA[i], el = this.hud().querySelector('.alm-cuento');
+    el.innerHTML = `<span class="alm-k">${i + 1}/${PARTES} · ${h.k}</span><p>${h.t}</p>`;
     el.classList.remove('fuera'); void el.offsetWidth; el.classList.add('dentro');
-    clearTimeout(this.tCuento); this.tCuento = setTimeout(() => el.classList.add('fuera'), Math.max(7000, h.t.length * 75));
+    clearTimeout(this.tCuento); this.tCuento = setTimeout(() => { el.classList.remove('dentro'); el.classList.add('fuera'); }, Math.max(6500, h.t.length * 85));
   }
   aviso(txt, tipo) { this.g.ui.toast?.(txt, tipo === 'ok' ? 'check' : 'raft', 1800); }
   acaba() {
@@ -252,7 +324,8 @@ export class Almadia {
   }
   dispose() {
     if (this.muerta) return; this.muerta = true;
-    clearTimeout(this.tCuento); document.querySelector('.alm-cuento')?.remove();
+    clearTimeout(this.tCuento); this.el?.remove(); this.el = null; document.body.classList.remove('alm-on');
+    if (this.flechas) { this.flechas.im.parent?.remove(this.flechas.im); this.flechas.m.dispose(); this.flechas = null; }
     if (this.alm) { try { this.alm.obj.parent?.remove(this.alm.obj); removeMover(this.alm.collider); } catch (e) { } this.alm = null; }
     this.obj.parent?.remove(this.obj); for (const g of this.geos) g.dispose(); this.mat.dispose();
     this.g.ui.setMG(null);
@@ -265,8 +338,8 @@ export async function jugarAlmadia(game, M, say) {
   if (!R) return { error: true };
   css();
   await infoCard(game.ui, { icon: 'raft', lamina: laminaUrl('burgui-almadia'), kicker: 'El Día de la Almadía · Burgui', title: 'La almadía',
-    text: 'Una almadía es una balsa de troncos atados. Así bajaba la madera del Pirineo por los ríos, hasta las ciudades. Hoy vas a bajar el Esca en una, como los almadieros.',
-    extra: '<ul class="tools"><li><b>A los lados</b><i></i><span>el remo lleva la almadía a un lado u otro del río</span></li><li><b>Adelante</b><i></i><span>remas para ir más deprisa</span></li><li><b>Atrás</b><i></i><span>frenas</span></li></ul><p class="alm-meta">Esquiva las peñas, entra por el portillo de la presa y pasa por el ojo grande del puente.</p>', button: '¡A la almadía!' });
+    text: 'Una balsa de troncos atados: así bajaba la madera del Pirineo. Llévala río abajo hasta pasar el puente.',
+    extra: `<ul class="tools"><li><b>${game.input?.touch ? 'Dedo a los lados' : 'Flechas ← →'}</b><i></i><span>llevas la almadía a un lado u otro</span></li><li><b>${game.input?.touch ? 'Dedo arriba' : 'Flecha ↑'}</b><i></i><span>remas más deprisa</span></li></ul><p class="alm-meta">Sigue las flechas del agua: esquiva las peñas, entra por el portillo de la presa y pasa por el ojo grande del puente.</p>`, button: '¡A la almadía!' });
   const A = new Almadia(game, R); A.host = M.host;
   game.almadia = A;
   const P = game.player;
@@ -289,16 +362,37 @@ function css() {
   if (CSS) return; CSS = true;
   const s = document.createElement('style'); s.id = 'alm-css';
   s.textContent = `
-.alm-cuento{position:fixed;left:calc(env(safe-area-inset-left,0px) + 16px);top:calc(env(safe-area-inset-top,0px) + 76px);z-index:40;width:min(400px,40vw);transform:translateY(-8px);opacity:0;padding:12px 16px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(32,20,58,.94),rgba(18,10,36,.94));box-shadow:0 10px 30px rgba(0,0,0,.35);color:#fff;pointer-events:none;transition:opacity .35s,transform .35s}
-.alm-cuento.dentro{opacity:1;transform:none}.alm-cuento.fuera{opacity:0;transform:translateY(-8px)}
-.alm-cuento .alm-k{display:flex;align-items:center;gap:8px;color:#ffd166;font-size:var(--fs-xs,12px);letter-spacing:.06em;text-transform:uppercase}
-.alm-cuento .alm-k svg{flex:none}.alm-cuento strong{display:block;margin-top:6px;font-size:var(--fs-lg,18px);line-height:1.15}
-.alm-cuento p{margin:4px 0 0;font-size:var(--fs-sm,14px);line-height:1.45;color:rgba(255,255,255,.88)}
-#mg .alm-barra{display:block;width:180px;height:6px;margin:6px auto 4px;border-radius:999px;background:rgba(255,255,255,.15);overflow:hidden}
-#mg .alm-barra i{display:block;height:100%;border-radius:999px;background:#ffd166}
+#tl > .alm-hud{position:absolute;left:0;top:calc(100% + 8px);width:min(330px,calc(100vw / var(--z,1) - 32px));display:flex;flex-direction:column;gap:8px;pointer-events:none;z-index:1}
+#tl:has(> #quest:not(.hidden)) > .alm-hud{display:none}
+.alm-estado,.alm-cuento{box-sizing:border-box;border-radius:10px;border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(32,20,58,.9),rgba(18,10,36,.9));box-shadow:0 8px 22px rgba(0,0,0,.28);color:#fff}
+.alm-estado{padding:10px 12px}
+.alm-f1{display:flex;align-items:center;gap:10px}
+.alm-ic{flex:none;display:grid;place-items:center}
+.alm-barra{position:relative;flex:1;height:6px;border-radius:999px;background:rgba(255,255,255,.16)}
+.alm-barra i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:#ffd166;transition:width .3s linear}
+.alm-barra u{position:absolute;top:-3px;width:2px;height:12px;margin-left:-1px;border-radius:1px;background:rgba(255,255,255,.75)}
+.alm-golpes{flex:none;font:800 var(--fs-xs,12px)/1 var(--f-ui,'MZ Texto'),sans-serif;color:#e6dcff;white-space:nowrap}
+.alm-guia{display:flex;align-items:center;gap:10px;margin-top:10px;min-height:30px}
+.alm-guia b{flex:1;min-width:0;font:800 var(--fs-md,16px)/1.15 var(--f-ui,'MZ Texto'),sans-serif;text-wrap:balance}
+.alm-guia small{flex:none;font:700 var(--fs-xs,12px)/1 var(--f-ui,'MZ Texto'),sans-serif;color:#cfc4ee;white-space:nowrap}
+.alm-fl{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.16);color:#fff}
+.alm-fl svg{width:18px;height:18px;transition:transform .2s}
+.alm-guia.izq .alm-fl svg{transform:rotate(180deg)}.alm-guia.recto .alm-fl svg{transform:rotate(-90deg)}
+.alm-guia.ir .alm-fl{background:#ffd166;color:#2a1a05}
+.alm-guia.ok .alm-fl{background:#3fbf7f}
+.alm-guia.warn .alm-fl{background:#ff5d7a;animation:almLate .45s ease-in-out infinite alternate}.alm-guia.warn b{color:#ffe1e6}
+@keyframes almLate{to{transform:scale(1.14)}}
+.alm-cuento{padding:10px 12px 12px;transition:opacity .35s,transform .35s}
+.alm-cuento.fuera{opacity:0;transform:translateY(-6px)}.alm-cuento.dentro{opacity:1;transform:none}
+.alm-cuento .alm-k{display:block;color:#ffd166;font:800 var(--fs-xs,12px)/1.2 var(--f-ui,'MZ Texto'),sans-serif;letter-spacing:.06em;text-transform:uppercase}
+.alm-cuento p{margin:6px 0 0;font:700 var(--fs-sm,14px)/1.4 var(--f-ui,'MZ Texto'),sans-serif;color:rgba(255,255,255,.92)}
 .alm-meta{margin:10px 0 0;font-weight:700}
-@media (max-width:760px){.alm-cuento{left:16px;right:16px;width:auto;top:calc(env(safe-area-inset-top,0px) + 136px)}}
-@media (max-height:500px){.alm-cuento{top:calc(env(safe-area-inset-top,0px) + 70px);width:min(360px,38vw);left:calc(env(safe-area-inset-left,0px) + 16px);right:auto;padding:8px 12px 10px}.alm-cuento strong{font-size:var(--fs-md,16px)}.alm-cuento p{font-size:var(--fs-xs,12px)}}
-@media (prefers-reduced-motion:reduce){.alm-cuento{transition:none}}`;
+/* (los avisos, abajo en el centro mientras dura la bajada: arriba caerían junto a su columna) */
+@media (min-height:521px){body.alm-on #lane{top:auto;bottom:calc(var(--sb) + 96px);flex-direction:column-reverse}}
+body.alm-on #mg{display:none}
+/* (de pie, la columna baja hasta pasar el minimapa, que queda a su derecha) */
+@media (max-aspect-ratio:1/1){#tl > .alm-hud{top:calc(100% + 64px)}}
+@media (max-height:500px){#tl > .alm-hud{width:min(300px,calc(42vw / var(--z,1)))}.alm-estado{padding:8px 10px}.alm-guia{margin-top:8px}.alm-guia b{font-size:var(--fs-sm,14px)}.alm-cuento{padding:8px 10px 10px}.alm-cuento p{font-size:var(--fs-xs,12px);margin-top:4px}}
+@media (prefers-reduced-motion:reduce){.alm-cuento,.alm-barra i,.alm-fl svg{transition:none}.alm-guia.warn .alm-fl{animation:none}}`;
   document.head.appendChild(s);
 }

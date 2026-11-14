@@ -2186,6 +2186,25 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     hasta el mar (pasado el puente) y hoy (la última almadía de trabajo bajó en 1952 y Burgui celebra cada primavera el Día
     de la Almadía). Antes, una ficha con la lámina y cómo se maneja; al final, de una a tres estrellas, «Antes y ahora» y la
     carta «La almadía». Con la acción de bajar se deja a medias y se vuelve a la orilla.
+  - El 13 de noviembre de 2026 el autor la probó en el iPhone: los paneles se montaban (la historia pisaba el cuadro del
+    avance y la barra de misiones), iba «muy despacio» y no se entendía qué había que hacer. Desde el 14:
+    - Todo lo suyo va en una sola columna (`hud()`, `.alm-hud`), colgada de la barra de arriba (`#tl`) como la ficha de
+      una misión: el avance con las rayas de la presa y del puente, los golpes y, debajo, la historia. Al ir en columna,
+      nada puede pisar a nada. No coge los toques, para que la palanca siga naciendo bajo el dedo. Ya no usa el cuadro de
+      en medio (`#mg`), y los avisos van abajo en el centro mientras dura (`body.alm-on`).
+    - Una línea dice siempre qué toca hacer y hacia qué lado, con su flecha (`guia()`): «Peña delante» en rojo, con el
+      lado por el que cabe; «Al portillo de la presa» o «Al ojo grande del puente» en amarillo, con los metros; «Recto,
+      por el portillo» en verde cuando ya va bien; y al principio, cómo se lleva. En el agua, una fila de flechas
+      amarillas lleva al portillo y otra al ojo grande, los últimos 80 m (`hazFlechas`).
+    - La palanca iba al revés: a la derecha, la almadía se iba a la izquierda de la pantalla. La normal del río mira a la
+      derecha de la corriente (`presas.js`) y el remo empujaba hacia el otro lado. Ahora va hacia donde se empuja
+      (`derecha()`).
+    - Casi el doble de deprisa: 6,4 m/s en vez de 3,6 (8,8 remando), y a los lados 3,9 en vez de 2,6. La bajada, de 741 m,
+      dura menos de dos minutos; antes, más de tres.
+    - La historia, en una frase por parte (`HISTORIA[i].t`); el texto entero se guarda en `largo`, para el material
+      didáctico. Sale tres veces hasta la presa, un poco antes de ella, a medio camino del puente y al pasar por debajo.
+    - Para verlo: `almadia-movil.mjs` (en 932 × 430 con dedo, con un piloto que la lleva sola): fotos por el camino y lo
+      que mide cada panel, con los que se pisan, que tienen que ser ninguno.
 - **Puentes famosos como los de verdad** (`world/puentesFamosos.js` y su plan, `world/puentesFamososPlan.js`, noviembre
   de 2026): el de los Peregrinos de Puente la Reina y el medieval de Burgui se levantan con su forma y no con la de
   cualquier puente. Cada uno tiene su ficha (`FAMOSOS`): cuántos arcos, la luz del grande, el ancho, el grueso de las
