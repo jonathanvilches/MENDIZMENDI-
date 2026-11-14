@@ -561,7 +561,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         seated.tick = (t, ex, f, cam) => { tick0(t, ex, f, cam); crew.tick(t, 0, f, cam); }; seated.dispose = () => { dispose0(); crew.dispose(); };
       } } catch (e) { console.warn('público del frontón', e); apunta('público del frontón', e); }
     // las pancartas de la afición en la grada: «¡Aupa…!» para cada uno, de su color, y la de los pelotazales del pueblo
-    try { pancartas = pancartasDe(fronton.court, tuNombre, rivName, fronton.realId ? fronton.townName : (G.def?.name || '').split(' /')[0], colors);   // (en un frontón de «Frontones», su pueblo) } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
+    // (en un frontón de «Frontones», el pueblo de ese frontón)
+    try { pancartas = pancartasDe(fronton.court, tuNombre, rivName, fronton.realId ? fronton.townName : (G.def?.name || '').split(' /')[0], colors); } catch (e) { console.warn('pancartas', e); apunta('pancartas', e); }
     const once = (who, key, on, fn) => { if (on && !flags[who][key]) { flags[who][key] = true; fn(); } else if (!on) flags[who][key] = false; };
     // (entre tanto y tanto, parado y sin nada que hacer, de vez en cuando un gesto de pelotari: se sopla la mano o suelta
     // el brazo. Cada uno a su aire, cada 4 a 9 segundos)
