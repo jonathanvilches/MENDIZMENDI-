@@ -42,7 +42,10 @@ void main() {
   vec2 n2 = texture2D(uRuido, vP * 0.27 + vSem * vec2(7.31, 3.17)).rg, n3 = texture2D(uRuido, vP * 0.71 + vSem * vec2(1.7, 9.2)).rg;
   // (el borde, deshilachado: unos copos se deshacen antes que otros)
   float r = length(vP) + (n2.r - 0.5) * 0.52 + (n3.g - 0.5) * 0.24;
-  float a = (1.0 - smoothstep(0.66, 0.9, r)) * vOp; if (a < 0.012) discard;
+  // (una nube que se va no se vuelve un velo gris, que ensuciaba el azul del cielo: se encoge y se deshace en jirones,
+  // blanca hasta el final)
+  r += (1.0 - vOp) * 0.85;
+  float a = (1.0 - smoothstep(0.66, 0.9, r)) * min(1.0, vOp * 3.0); if (a < 0.012) discard;
   // (el bulto: el copo es una bola, con bultos pequeños; la luz del sol le da de un lado, y su base queda en sombra)
   vec2 g = vP * 0.92 + (n2 - 0.5) * 0.75 + (n3 - 0.5) * 0.3; float z = sqrt(max(0.0, 1.0 - min(1.0, dot(g, g))));
   vec3 n = normalize(vec3(g, z + 0.22));
@@ -92,7 +95,7 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
   const cuad = () => { const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); geos.push(g); return g; };
   const g = cuad(), aPos = new Float32Array(total * 3), aDat = new Float32Array(total * 4);
   g.setAttribute('aPos', new THREE.InstancedBufferAttribute(aPos, 3).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('aDat', new THREE.InstancedBufferAttribute(aDat, 4).setUsage(THREE.DynamicDrawUsage));
-  const U = { uRuido: { value: tex }, uBruma: { value: new THREE.Color('#a8d2f7') }, uFar: { value: 200 }, uSolV: { value: solV }, uLuz: { value: new THREE.Color('#ffffff') }, uSombra: { value: new THREE.Color('#9fb2cf') } };
+  const U = { uRuido: { value: tex }, uBruma: { value: new THREE.Color('#a8d2f7') }, uFar: { value: 200 }, uSolV: { value: solV }, uLuz: { value: new THREE.Color('#ffffff') }, uSombra: { value: new THREE.Color('#b2caee') } };
   const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: U, vertexShader: VS, fragmentShader: FS }); mats.push(m);
   const malla = new THREE.Mesh(g, m); malla.name = 'nubes'; malla.frustumCulled = false; malla.renderOrder = 5; scene.add(malla);
   // (las sombras: una por nube, a ras del suelo de alrededor)

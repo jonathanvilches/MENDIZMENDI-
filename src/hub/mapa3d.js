@@ -48,7 +48,7 @@ let ENTRADA_VISTA = false;
 const rampa = (s, a, b) => Math.min(1, Math.max(0, (s - a) / (b - a)));
 // (el fondo del mapa, el mismo que el borde del suelo; y el borde de las comarcas, morado muy oscuro)
 const FONDO = 0x101626, OSCURO = new THREE.Color('#1d1240'), BLANCO = new THREE.Color('#ffffff');
-const NIEBLA_LEJOS = new THREE.Color(FONDO), NIEBLA_CERCA = new THREE.Color('#d4cde6'), CIELO_BRUMA = new THREE.Color('#a6d1f8');
+const NIEBLA_LEJOS = new THREE.Color(FONDO), NIEBLA_CERCA = new THREE.Color('#d4cde6'), CIELO_BRUMA = new THREE.Color('#98cdfb');
 // (las comarcas que no son la elegida se quedan con sus colores de mapa, más suaves, como bajo una bruma clara: en negro,
 // el mapa se quedaba a oscuras, y en lila no gustaba)
 const BRUMA = '#d8ccb2';

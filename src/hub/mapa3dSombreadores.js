@@ -107,8 +107,14 @@ float nubes(vec2 p) { vec2 q = p * 0.075 + vec2(uT * 0.03, uT * 0.008); float n 
 // por las mismas cuentas y no cambia el tono al cruzar la muga)
 export const TONO_ORTO = `// (la ortofoto, con algo más de color y de luz, cálida: el PNOA sale apagado y frío al lado de lo demás del juego)
 vec3 tonoOrto(vec3 o) { float l = dot(o, vec3(0.299, 0.587, 0.114)); o = mix(vec3(l), o, 1.14); o = pow(max(o, 0.0), vec3(0.93)) * 1.04; return clamp(o * vec3(1.01, 1.02, 0.98), 0.0, 1.0); }
+// (desde el 14 de noviembre de 2026, más vivo, como el mundo pintado de la imagen de referencia del autor («los colores
+// son quizá más vivos»): más color en todo, sobre todo donde había poco; los verdes, de oliva a prado, quitándoles rojo
+// (los ocres del cereal, que tienen más rojo que verde, se quedan como son); y los medios tonos, algo más claros)
 vec3 acabado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.r, max(c.g, c.b)) - min(c.r, min(c.g, c.b));
-  c = max(vec3(0.0), mix(vec3(l), c, 1.0 + 0.22 * (1.0 - smoothstep(0.05, 0.32, sat))));
+  c = max(vec3(0.0), mix(vec3(l), c, 1.15 + 0.36 * (1.0 - smoothstep(0.06, 0.36, sat))));   // (lo que ya tiene mucho color, poco más: los verdes del monte no llegan a fosforito)
+  float verde = smoothstep(-0.035, 0.03, c.g - c.r) * smoothstep(0.015, 0.1, c.g - c.b);
+  c.r = mix(c.r, c.b + (c.r - c.b) * 0.66, verde); c.g *= 1.0 + 0.04 * verde;
+  c = pow(max(c, 0.0), vec3(0.94));
   c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
   return c * mix(vec3(1.0), vec3(1.03, 1.015, 0.97), smoothstep(0.42, 0.85, l)); }
 `;

@@ -1848,6 +1848,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Los rótulos de las comarcas vecinas y la raya de la cañada que quedan detrás de la isla no se pintan encima de su roca
   (`tapaIsla` en `mapa3d.js`, con `cuerpo` de la isla): si la línea de la cámara al rótulo atraviesa la comarca o la roca
   de debajo, se quitan. Con la roca honda, tapaban media isla.
+- **Los colores vivos del mapa** (14 de noviembre de 2026): el autor, con su imagen de referencia, un mundo pintado: «los
+  colores son quizá más vivos». `acabado` (en `TONO_ORTO`, que comparten el relieve y el suelo de alrededor) da más color
+  a todo, sobre todo donde había poco, pasa los verdes de oliva a prado quitándoles rojo (los ocres del cereal se quedan
+  como son) y aclara algo los medios tonos. El cielo es más azul (`CIELO_ARRIBA`, `CIELO_MEDIO`, `CIELO_HORIZONTE`, y la
+  bruma, que es la misma). La roca de la isla tiene la sombra azulada, de la luz del lago y del cielo, y la luz cálida;
+  antes la sombra era parda. El césped del canto, de un verde de prado vivo, sin llegar al de la foto, que el autor vio
+  fosforito. Las cascadas, con más cuerpo y más azules. Una nube que se va ya no se vuelve un velo gris: se encoge y se
+  deshace en jirones, blanca hasta el final. Y lo que más apagaba el cielo no estaba en el mapa: el velo morado de
+  encima (`#hub.juego .m3d::after`, en `consola.css`), de cuando el mapa era de noche, tapaba un tercio arriba y las
+  esquinas. Se ha dejado en casi nada; lo de encima lleva su propio fondo.
 - **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
   apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
   al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la

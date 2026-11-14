@@ -16,9 +16,9 @@ import ESTRATOS_N from '../assets/isla/estratos-n.webp?url';
 const rnd = (s) => () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 const lerp = (a, b, k) => a + (b - a) * k;
 const C = (h) => new THREE.Color(h);
-const CALIZA = C('#ffffff'), HONDO = C('#a9a196');
+const CALIZA = C('#ffffff'), HONDO = C('#9d9fb2');
 // (el cielo: azul intenso arriba y claro junto al horizonte, como en las imágenes del autor)
-export const CIELO_ARRIBA = C('#2473d2'), CIELO_MEDIO = C('#4f9eec'), CIELO_HORIZONTE = C('#a6d1f8');
+export const CIELO_ARRIBA = C('#1766d8'), CIELO_MEDIO = C('#3b95f0'), CIELO_HORIZONTE = C('#98cdfb');
 const LUZ = new THREE.Vector3(-0.6, 0.35, 0.72).normalize();   // (de la izquierda, por delante y algo alta, con contraste)
 
 /** Las texturas de la isla, una vez por mapa: fotos de roca de verdad, repetibles, con su relieve (mapa de normales), de
@@ -123,11 +123,11 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   for (let i = 0; i < N; i++) idx.push(L + i, base, L + i + 1);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); geos.push(g);
-  const rocaM = conTex(materialRoca(null, null, { sol: 1.0, amb: 0.82, suelo: '#8e7a64', tinte: '#d2cbc0' }), tex.caliza, tex.calizaN); mats.push(rocaM);
+  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#d6cfc6' }), tex.caliza, tex.calizaN); mats.push(rocaM);   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
   const grupo = new THREE.Group(); grupo.name = 'isla-' + id; grupo.visible = false; scene.add(grupo);
   grupo.add(new THREE.Mesh(g, rocaM));
   // (la misma panza, dentro del hueco: mientras la isla sale de él, se ve por la boca delante de las paredes)
-  const rocaAM = conTex(materialRoca(null, null, { sol: 0.5, amb: 0.7, suelo: '#8e7a64', tinte: '#d2cbc0', extra: { transparent: true, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp } }), tex.caliza, tex.calizaN); mats.push(rocaAM);
+  const rocaAM = conTex(materialRoca(null, null, { sol: 0.5, amb: 0.7, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#d6cfc6', extra: { transparent: true, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp } }), tex.caliza, tex.calizaN); mats.push(rocaAM);
   const panzaA = new THREE.Mesh(g, rocaAM); panzaA.renderOrder = -0.7; panzaA.visible = false; scene.add(panzaA);
   // (unas raíces finas que asoman bajo el césped)
   { const lp = [];
@@ -163,7 +163,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
     fragmentShader: `uniform sampler2D uRoca, uCesped; varying vec2 vUv; varying float vZ, vL, vRv;
       void main() {
         vec4 t;
-        if (vZ < 0.5) { t = texture2D(uCesped, vUv); if (t.a < 0.5) discard; float l = dot(t.rgb, vec3(0.3, 0.55, 0.15)); t.rgb = mix(vec3(l), t.rgb, 0.5) * vec3(0.58, 0.64, 0.44); }   // (de verdad: un verde de prado de otoño, no el de la foto)
+        if (vZ < 0.5) { t = texture2D(uCesped, vUv); if (t.a < 0.5) discard; float l = dot(t.rgb, vec3(0.3, 0.55, 0.15)); t.rgb = mix(vec3(l), t.rgb, 0.7) * vec3(0.6, 0.76, 0.36); }   // (un verde de prado vivo, como el de la imagen de referencia, sin llegar al de la foto, que el autor vio fosforito)
         else t = vec4(texture2D(uRoca, vec2(vUv.x, -vRv / 2.4)).rgb * vec3(0.82, 0.8, 0.75), 1.0);
         gl_FragColor = linearToOutputTexel(vec4(t.rgb * vL, 1.0));
       }` }); mats.push(cantoM);
@@ -256,12 +256,12 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
       float u = vF.x, fall = vF.y, f = fall / max(vF.z, 0.001), col = floor(u * 32.0);
       float s1 = fract(fall * 0.5 - uT * 1.7 + h(col) * 3.0), s2 = fract(fall * 1.3 - uT * 2.6 + h(col + 7.0) * 5.0);
       float hilo = 0.62 + 0.38 * sin(u * 6.2832 * 9.0 + h(col) * 6.0);
-      float a = (0.24 + 0.36 * smoothstep(0.6, 1.0, s1) + 0.24 * smoothstep(0.78, 1.0, s2)) * hilo;
+      float a = (0.36 + 0.38 * smoothstep(0.6, 1.0, s1) + 0.24 * smoothstep(0.78, 1.0, s2)) * hilo;
       a = max(a, (1.0 - smoothstep(0.0, 0.18, fall)) * 0.8);
       vec3 V = normalize(cameraPosition - vW), Vh = normalize(vec3(V.x, 0.0, V.z) + 1e-4);
       a *= smoothstep(0.08, 0.75, abs(dot(normalize(vN + 1e-4), Vh)));
       a *= 1.0 - smoothstep(0.5, 1.0, f);
-      vec3 c = mix(vec3(0.74, 0.88, 1.0), vec3(1.0), smoothstep(0.55, 1.0, max(s1, s2)) * 0.85);
+      vec3 c = mix(vec3(0.5, 0.78, 1.0), vec3(1.0), smoothstep(0.5, 1.0, max(s1, s2)) * 0.9);
       gl_FragColor = vec4(c, a * (vF.w > 0.5 ? uKB : uKI));
     }`;
   const aguaM = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, uniforms: AGUA, vertexShader: aguaVS, fragmentShader: aguaFS(false) }); mats.push(aguaM);
@@ -302,7 +302,7 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
     /** si un punto cae dentro del cuerpo de la isla: x, z en el mapa; h, lo que queda por debajo de la base, en partes de
      *  D (negativo: por encima, en la comarca). Para no pintar encima de la roca los rótulos de lo que queda detrás */
     cuerpo(x, z, h) { if (h <= 0) return dentro(x, z); const f = 1 - Math.min(1, h) ** 1.6; return f > 0.03 && dentro(cx + (x - cx - ladoX * h ** 1.6) / f, cz + (z - cz - ladoZ * h ** 1.6) / f); },
-    D, rMed, rMax, cx, cz, alto: Math.max(0.62 * rMed, D + 0.1 * rMed) + 0.9, base: B,   // (lo que sube: lo que mide la roca y algo más, para que la punta salga del hueco y se vea el lago debajo)
+    D, rMed, rMax, cx, cz, alto: Math.max(0.62 * rMed, D + 0.26 * rMed) + 0.9, base: B,   // (lo que sube: lo que mide la roca y algo más, para que la punta salga del hueco y se vea el lago debajo)
     /** py: la altura de la comarca; sy: lo que se estira su relieve; k: cuánto está fuera, de 0 a 1; t, dt: el tiempo;
      *  esc: los píxeles que ocupa una unidad a una unidad de la cámara (para el tamaño del rocío y el polvo); cam: la cámara */
     update(py, sy, k, t, dt, esc = 600, cam = null) {

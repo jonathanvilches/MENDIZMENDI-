@@ -28,8 +28,10 @@
 #hub.juego .hub-mapa .m3d { --sr: env(safe-area-inset-right, 0px); height: 100%; border-radius: 0; border: 0; box-shadow: none; }
 /* (en el móvil tumbado, el margen de la muesca ya va en --hud-r: sin sumarlo dos veces) */
 @media (max-height: 520px) { #hub.juego .hub-mapa .m3d, #hub.juego .m3d { --sr: 0px; } }
-/* (el velo de arriba y abajo, para leer lo de encima: suave, sin franjas marcadas) */
-#hub.juego .m3d::after { background: linear-gradient(180deg, rgba(13, 4, 32, .34) 0, rgba(13, 4, 32, 0) 22%), linear-gradient(0deg, rgba(13, 4, 32, .3) 0, rgba(13, 4, 32, 0) 20%), radial-gradient(130% 100% at 50% 50%, transparent 62%, rgba(8, 2, 20, .32) 100%); }
+/* (el velo de arriba y abajo, para leer lo de encima: suave, sin franjas marcadas. Desde el 14 de noviembre de 2026, casi
+   nada: el mapa es de día, con cielo azul, y el velo morado de cuando era de noche (un tercio arriba y en las esquinas)
+   lo dejaba gris. Lo de encima lleva su propio fondo) */
+#hub.juego .m3d::after { background: linear-gradient(180deg, rgba(13, 4, 32, .1) 0, rgba(13, 4, 32, 0) 16%), linear-gradient(0deg, rgba(13, 4, 32, .2) 0, rgba(13, 4, 32, 0) 20%), radial-gradient(130% 100% at 50% 50%, transparent 70%, rgba(8, 2, 20, .1) 100%); }
 
 /* ---------- la fila de arriba ---------- */
 #hub.juego :is(.hub-menu-btn, .hub-x),
