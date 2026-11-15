@@ -1,7 +1,7 @@
 # Voces de Otsagabia que faltan por locutar
 
 Inventario del 15 de noviembre de 2026, sacado del código. Ya tienen voz 78 frases de ocho vecinos.
-Faltan 70 frases fijas y 7 que llevan números o nombres que cambian.
+Faltan 71 frases fijas y 7 que llevan números o nombres que cambian.
 
 No se ha generado ninguna voz. Antes hay que decidir:
 

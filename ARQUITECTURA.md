@@ -691,7 +691,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   voz: en la biblioteca no hay voz de niño de España. Falta elegir entre una de niño de Latinoamérica o diseñar una con
   la descripción y una frase de muestra del autor. El autor: «Vamos a locutar a los vecinos… Les ponemos nombres y vamos
   a ponerles voz también». Lo que falta por locutar está en `entrega/voces-ochagavia-pendientes.md` (15 de noviembre):
-  70 frases fijas (la narración de los sitios, las de Kike, los paseantes, los saludos según el tiempo, las misiones,
+  71 frases fijas (la narración de los sitios, las de Kike, los paseantes, los saludos según el tiempo, las misiones,
   las cartas y las preguntas de Arantxa) y 7 con cuentas; sin grabar hasta que el autor elija las voces.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
