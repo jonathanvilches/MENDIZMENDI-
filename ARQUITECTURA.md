@@ -2563,6 +2563,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   que sean visibles el icono de la mochila y del catalejo y el del menú, aunque tapen pantalla». Plegada: la misión que
   haces, la flecha con la cuenta (2/7) en una pastilla clara y la cápsula del menú personal; desplegada, la flecha se da
   la vuelta y apunta a la izquierda.
+  Ese mismo día, la misión que juegas lleva en su esquina un triángulo de «en juego» (`#misiones button.cur::before`),
+  además del aro blanco: «que sea un icono donde se marque qué misión estamos jugando y el resto esté plegado». Y el
+  botón de pausa pasa a ser el de menú, con tres rayas (`ICON.menu` en `ui.js`, «Menú (Esc)»): con el símbolo de pausa
+  no se veía que abría el menú.
 - **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
   con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
   móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin
