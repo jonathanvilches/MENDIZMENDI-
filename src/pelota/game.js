@@ -3,6 +3,7 @@
 import { COURT, LEVELS, SHOTS, kantari, CUATRO, PHYS, RETOS, estrellasReto } from './rules.js';
 import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec, FEEL, TRINQ } from './physics.js';
 import { clamp } from '../util/math.js';
+import { HERRAMIENTAS } from './herramientas.js';
 
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 // lo que corres tú (m/s): algo más que antes, ahora que la pelota va más deprisa
@@ -127,6 +128,8 @@ export class PelotaGame {
     // y se da con el cuerpo, no con un dedo; el golpe dura algo más y el momento justo se mide descontando ese retraso
     this.camara = !!o.camara;
     this.tempo = this.lvl.tempo * (this.camara ? CAM_TEMPO : 1);
+    // (en el trinquete, con herramienta, todo va más deprisa: la pala corta, la paleta y el xare; herramientas.js)
+    this.herr = o.herr && HERRAMIENTAS[o.herr] ? o.herr : 'mano'; this.tempo *= HERRAMIENTAS[this.herr].tempo;
     let s = o.seed || (Math.random() * 1e9) | 0;
     this.rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
     if (this.reto === 'diana') this.nuevaDiana();

@@ -8,6 +8,7 @@ import { subtitulos } from '../util/comentarios.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
+import { HERRAMIENTAS, HERR_ORDEN, herrValida, ponHerramienta } from './herramientas.js';
 import { openFicha, splitName } from './ficha.js';
 import { pelotariCard } from '../ui/sportCard.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
@@ -76,6 +77,8 @@ export class PelotaMatch {
     // detrás de ti; antes la fija era un interruptor aparte)
     this.plano = PLANOS.includes(ls('herrizherri-pelota-plano')) ? ls('herrizherri-pelota-plano') : ls('herrizherri-pelota-camfija') === '1' ? 'fija' : 'general';
     this.camFija = this.plano === 'fija';
+    // (en el trinquete, la modalidad: a mano, pala corta, paleta o xare; herramientas.js. Se guarda la última elegida)
+    this.herr = herrValida(ls('herrizherri-pelota-herr'));
     this.audio = new PelotaAudio(o.audio);
     this.hud = new PelotaHud(o.container || document.body, this.txt, this.names, this.touch, this.cols);
     this.hud.onPanel = () => this.resetStick?.();
@@ -216,9 +219,12 @@ export class PelotaMatch {
   }
   // la física del partido: la del frontón por la de la pelota que está en juego
   applyFeel() {
-    const f = this.feel = courtFeel(this.o.cond || {}, this.lang), B = siente(this.bola);
-    f.front *= B.front; f.floor *= B.floor; f.run *= B.run; setFeel(f);
+    const f = this.feel = courtFeel(this.o.cond || {}, this.lang), B = siente(this.bola), H = HERRAMIENTAS[this.herrDe()];
+    f.front *= B.front * H.front; f.floor *= B.floor * H.floor; f.run *= B.run; setFeel(f);
   }
+  // (la modalidad que vale en este partido: la elegida, solo en el trinquete y no en los retos ni en los campeonatos, que
+  // son a mano, como el Torneo de Trinquete; si no, a mano)
+  herrDe() { return this.court?.tipo === 'trinquete' && !this.o.reto && !this.o.fixedLevel ? this.herr : 'mano'; }
 
   // ------------------------------------------------------------ el material (material.js)
   // El cestaño: las pelotas de cada lado. Sin elección (el partido que empieza solo, el peloteo, las pruebas), cada uno
@@ -302,7 +308,8 @@ export class PelotaMatch {
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
     this.game = new PelotaGame({ mode: o.mode || 'match', target: o.target, level: this.level, seed: o.seed, autoplay: o.autoplay, rivalStats: o.rivalStats, youStats: o.youStats,
-      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara, reto: o.reto });
+      pairs: !!M, youRole: this.role, youMateStats: M?.youMate.stats, rivalMateStats: M?.rivalMate.stats, cuatro: this.cuatro && !M, camara: !!o.camara, reto: o.reto, herr: this.herrDe() });
+    this.herrK = this.herrDe();   // (la herramienta en la mano de cada pelotari: se pone en el bucle, cuando su figura está cargada)
     this.court.setCuatro?.(!!this.game.cuatro);   // (la raya del 4 y medio, solo en el Cuatro y Medio)
     this.rec = null; this.repAt = 0;
     for (const m of Object.values(this.mateObjs || {})) if (m.obj) m.obj.visible = !!M;
@@ -366,11 +373,12 @@ export class PelotaMatch {
     // una de pie; lo demás va en su columna, .pel-lado. El peloteo y los retos no tienen rival: la ventana de siempre)
     const duelo = g.reto ? '' : this.rivalHtml();
     const RT = this.retoTxt(), cab = g.reto ? `<h2>${RT.name[g.reto]}</h2><p class="pel-sub">${RT.como[g.reto]}</p><p class="pel-sub pel-metas"><b>${RT.metas}</b> ${this.retoMetas(g.reto)}</p>`
-      : duelo ? `<h2>${t.title}</h2><p class="pel-sub">${[this.o.comp, t.to(g.target)].filter(Boolean).map(esc).join(' · ')}</p>`
+      : duelo ? `<h2>${this.herrDe() !== 'mano' ? esc(HERRAMIENTAS[this.herrDe()][this.lang === 'eu' ? 'eu' : 'es']) : t.title}</h2><p class="pel-sub">${[this.o.comp, t.to(g.target)].filter(Boolean).map(esc).join(' · ')}</p>`
       : `<h2>${t.title}</h2><p class="pel-sub">${esc(this.label('you'))} vs ${esc(this.label('rival'))} · ${g.mode === 'rally' ? t.rally(g.target) : t.to(g.target)} <button class="pel-chip" data-pel-tour>${TT.btn}</button></p>`;
     const p = this.hud.panel(`${duelo ? `${duelo}<div class="pel-lado">` : ''}${cab}
       ${this.conCamara ? `<p class="pel-pairs">${esc(this.lang === 'eu' ? 'Jarri zutik pantailatik bi bat metrora, kamerak gerritik gora eta besoak barruan ikusteko moduan; ikusten zaituenean, kameraren irudia kendu egiten da. Mugitu alboetara; pilota datorrenean, jo. Eskuinarekin eta oso ezkerrean amaituz, bi pareta; eskuinetik ezkerrera, paretara; eskuinera, zabalera. Ohi baino askoz azkarrago, cortada; motelago, luzea; eskua behean eta ibilbide laburrarekin, dejada.' : 'Ponte de pie a unos dos metros de la pantalla, que la cámara te vea de cintura para arriba y con los brazos dentro; en cuanto te vea, la imagen de la cámara se quita. Muévete a los lados; cuando venga la pelota, golpea. De derecha y acabando muy a la izquierda, dos paredes; de derecha a izquierda, a la pared; hacia la derecha, al ancho. Mucho más rápido que de normal, cortada; más lento, largo; con la mano baja y poco recorrido, dejada.')}</p>` : ''}
       ${this.courtHtml()}
+      ${this.court?.tipo === 'trinquete' && !g.reto && !this.o.fixedLevel ? `<small class="pel-lbl">${this.lang === 'eu' ? 'Modalitatea' : 'Modalidad'}</small><div class="pel-levels pel-herr" role="group" aria-label="${this.lang === 'eu' ? 'Modalitatea' : 'Modalidad'}">${HERR_ORDEN.map(k => `<button data-pel-herr="${k}" aria-pressed="${k === this.herrDe()}">${esc(HERRAMIENTAS[k][this.lang === 'eu' ? 'eu' : 'es'])}</button>`).join('')}</div>` : ''}
       <div class="pel-mas"><button class="pel-more" data-pel-more aria-expanded="false"><b>${t.moreTitle || TEXT.es.moreTitle}</b><span class="pel-sum">${esc(sum)}</span></button>${duelo ? `<button class="pel-chip" data-pel-tour>${TT.btn}</button>` : ''}</div>
       <section class="pel-opts"${this.moreOpen ? '' : ' hidden'}>
         <div class="pel-otabs" role="tablist"><button class="pel-back" data-pel-back>${t.optBack || TEXT.es.optBack}</button>${OT.map((l, i) => `<button role="tab" data-pel-tab="${i}" aria-selected="${i === (this.optTab || 0)}">${l}</button>`).join('')}</div>
@@ -413,6 +421,8 @@ export class PelotaMatch {
     tap(p, (b) => {
       if (b.dataset.pelLv) { this.level = b.dataset.pelLv; for (const x of p.querySelectorAll('[data-pel-lv]')) x.setAttribute('aria-pressed', x.dataset.pelLv === this.level); this.newGame(); }
       if (b.dataset.pelMod) { this.chooseMode(b.dataset.pelMod); return; }
+      if (b.dataset.pelHerr) { this.herr = herrValida(b.dataset.pelHerr); try { localStorage.setItem('herrizherri-pelota-herr', this.herr); } catch (e) { }
+        this.newGame(); this.applyFeel(); this.intro(); return; }   // (de nuevo el panel: el título dice la modalidad)
       if (b.dataset.pelDur) { ponDuracion(b.dataset.pelDur); this.o.target = tantosDe(this.o.tBase ?? 5, b.dataset.pelDur); this.newGame(); this.intro(); return; }   // (la duración: rules.js)
       if (b.hasAttribute('data-pel-more')) { showOpts(true); p.querySelector(`[data-pel-tab="${this.optTab || 0}"]`)?.focus({ preventScroll: true }); return; }
       if (b.hasAttribute('data-pel-back')) { showOpts(false); p.querySelector('[data-pel-more]')?.focus({ preventScroll: true }); return; }
@@ -1452,6 +1462,8 @@ export class PelotaMatch {
     this.esquiva(dt);
     for (const who of g.ids) {
       const P = g.players[who], side = this.o[who] || this.mateObjs?.[who]; if (!side?.obj) continue;
+      // (la herramienta de la modalidad, en su mano derecha, en cuanto su figura está cargada; herramientas.js)
+      { const k = this.herrK || 'mano', u = side.obj.userData; if ((u.herrK || 'mano') !== k && (ponHerramienta(this.T, side.obj, k) || k === 'mano')) u.herrK = k; }
       // vigía de saltos: al colocarse para el saque la lógica los pone en su sitio de golpe; la figura llega andando
       const S = (this.slide ||= {})[who] ||= { x: P.x, z: P.z, ox: 0, oz: 0, v: 0, vel: 0, px: P.x, pz: P.z };
       let px = P.x, pz = P.z; if (!Number.isFinite(px) || !Number.isFinite(pz)) { px = S.x; pz = S.z; }

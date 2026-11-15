@@ -1354,6 +1354,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       Después, con otro «seguimos», el fondo de sus balcones con la red negra de la foto de Baiona (`redT` en
       `buildTrinquete`): una malla fina sobre negro, con unas franjas azules de las filas del público detrás. Comprobado
       también qué trinquete toca en la final: Herrizherri, Beltza, Herrizherri, Beltza en las ediciones 1 a 4.
+    - Las modalidades del trinquete (`pelota/herramientas.js`; `herr` en `game.js` y en `match.js`), con otro
+      «seguimos» tras proponérselo: en Navarra el trinquete se juega a mano, a pala corta, a paleta y a xare. En el panel
+      del partido, solo en un trinquete y no en los retos ni en los campeonatos, que son a mano, la fila «Modalidad»: A mano, Pala corta, Paleta y Xare; se
+      guarda la última (`herrizherri-pelota-herr`) y el título del panel dice la elegida. Cada una lleva su herramienta en
+      la mano derecha de los pelotaris, colgada del hueso de la mano en cuanto la figura está cargada (`ponHerramienta`,
+      en el bucle de las figuras): la pala corta, tabla clara con el mango encintado; la paleta, más fina y estrecha; el
+      xare, el aro ovalado de madera con la red floja. Y cambia el juego, sin tocar los golpes: el ritmo de la partida
+      (`tempo`: 1,16 la pala, 1,10 la paleta y 1,12 el xare), lo que sale la pelota del frontis y lo que bota (la paleta,
+      con su pelota de goma, bota un 8 % más; la pala, un 4 % menos). Los golpes y las animaciones son los de mano: la
+      mano va a la pelota, no la pala. Las tres herramientas, 4 llamadas de dibujo más; con xare, 86 en total.
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.
