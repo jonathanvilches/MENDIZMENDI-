@@ -191,6 +191,9 @@ export async function loadMeshy(name, lod = false) {
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
+    // (y su puño cerrado para agarrar la herramienta del trinquete, en la geometría que comparten todas las copias: agarreDe)
+    let agarre = null;
+    if (pel.length) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; }); try { agarre = h ? agarreDe(g.scene, h) : null; } catch (e) { console.warn('agarre', e); } }
     const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['Bota', 'Bota', false], ['Saque', 'Saque', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
@@ -214,7 +217,7 @@ export async function loadMeshy(name, lod = false) {
       const q = pel.find(c => c.name === 'Idle'); if (q) { const st = q.clone(); st.name = 'Still'; st.userData = {}; animations.push(st); }
     }
     const box = new THREE.Box3().setFromObject(g.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
-    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(armados ? { armados } : {}) } };
+    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(armados ? { armados } : {}), ...(agarre ? { agarre } : {}) } };
   })());
   return cache.get(key);
 }
@@ -240,6 +243,7 @@ export class GlbChar {
   constructor(gltf, opt = {}) {
     this.root = SkeletonUtils.clone(gltf.scene);
     this.armados = gltf.userData?.armados || null;   // (el pelotari: la postura de armado de cada golpe)
+    this.agarre = gltf.userData?.agarre || null;   // (el pelotari: dónde queda el hueco del puño cerrado, agarreDe)
     this.root.name = 'GlbChar'; this.root.userData.glbChar = this;   // (el vigía de las pruebas lo encuentra así)
     this.switches = 0;
     this.opt = { timeScale: 1, walkAt: 0.15, runAt: 3.2, ...opt };
@@ -545,6 +549,9 @@ export class GlbChar {
     }
   }
 
+  /** Cierra (1) o abre (0) la mano derecha: el puño de agarreDe, en las mallas que lo tienen */
+  cierraMano(v) { this.root.traverse(o => { if (o.morphTargetDictionary?.puno !== undefined) o.morphTargetInfluences[o.morphTargetDictionary.puno] = v; }); }
+
   dispose() {
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.root);
@@ -717,6 +724,57 @@ export function palmaDe(root, hand) {
   else if (n.dot(v.set(0, -1, 0).transformDirection(inv)) < 0) n.negate();
   let largo = 0, grosor = 0; for (const p of pts) { largo = Math.max(largo, p.dot(d)); grosor = Math.max(grosor, v.copy(p).sub(c).dot(n)); }
   return { c, n, d, largo, grosor };
+}
+/** El puño cerrado de una mano, para agarrar el mango de la pala, la paleta o el xare (el autor, 15 de noviembre de 2026:
+ *  «el agarre de la mano no está bien»: la herramienta colgaba del dorso de la mano abierta). Los pelotaris de Meshy no
+ *  tienen huesos en los dedos, así que se cierran doblando la malla: un objetivo de forma («puno») en la que cada punto de
+ *  los dedos, de los nudillos a la punta, se enrolla en un arco hacia la palma, alrededor de una línea paralela a los
+ *  nudillos; con su peso a 1, la mano queda en puño con un hueco dentro del grosor del mango. Se hace una vez, en la malla
+ *  cargada y antes de copiarla para cada pelotari (las copias comparten la geometría y cada una lleva su peso). Devuelve,
+ *  en el espacio del hueso, dónde queda el hueco (centro), hacia dónde sale el mango por el lado del pulgar (eje), hacia
+ *  dónde mira la palma (n) y el radio del hueco; null si no se puede. */
+export function agarreDe(root, hand, curva = 1.3 * Math.PI) {
+  const P = palmaDe(root, hand); if (!P) return null;
+  let mesh = null; root.traverse(o => { if (!mesh && o.isSkinnedMesh && o.skeleton?.bones.includes(hand)) mesh = o; });
+  const g = mesh.geometry; if (g.morphAttributes.position) return null;   // (ya tiene formas: no se tocan)
+  const { c, n, d } = P, A = new THREE.Vector3().crossVectors(d, n).normalize();
+  const ih = mesh.skeleton.bones.indexOf(hand), Pos = g.attributes.position, si = g.attributes.skinIndex, sw = g.attributes.skinWeight;
+  const M = new THREE.Matrix4().multiplyMatrices(mesh.skeleton.boneInverses[ih], mesh.bindMatrix), Mi = M.clone().invert();
+  const v = new THREE.Vector3(), r = new THREE.Vector3(), idx = [], loc = [];
+  for (let i = 0; i < Pos.count; i++) {
+    let w = 0; for (let k = 0; k < 4; k++) if (si.getComponent(i, k) === ih) w += sw.getComponent(i, k);
+    if (w < 0.3) continue;
+    v.fromBufferAttribute(Pos, i).applyMatrix4(M); r.subVectors(v, c); idx.push(i); loc.push(r.dot(d), r.dot(n), r.dot(A));
+  }
+  if (idx.length < 8) return null;
+  let lo = Infinity, hi = -Infinity; for (let k = 0; k < loc.length; k += 3) { lo = Math.min(lo, loc[k]); hi = Math.max(hi, loc[k]); }
+  // (los nudillos, algo más allá de la mitad del largo de la mano; el grosor de la palma por su cara, junto a ellos; el
+  // pulgar, el lado que más sobresale en la mitad de la muñeca)
+  const tk = lo + 0.46 * (hi - lo), Lf = hi - tk;
+  let gp = 0, mas = 0, menos = 0;
+  for (let k = 0; k < loc.length; k += 3) {
+    const t = loc[k], h = loc[k + 1], a = loc[k + 2];
+    if (Math.abs(t - tk) < 0.12 * (hi - lo)) gp = Math.max(gp, h);
+    if (t < lo + 0.5 * (hi - lo)) { mas = Math.max(mas, a); menos = Math.max(menos, -a); }
+  }
+  // (el radio del arco: el que enrolla los dedos más o menos una vuelta y cuarto, pero con un hueco dentro de algo más de la
+  // mitad del grosor de la palma, que en los pelotaris de dibujo es grande: así cabe un mango de su tamaño)
+  const R = Math.max(Lf / curva, gp * 1.6);
+  const delta = new Float32Array(Pos.count * 3);
+  for (let j = 0; j < idx.length; j++) {
+    const s = loc[j * 3] - tk; if (s <= 0) continue;
+    const h = loc[j * 3 + 1], a = loc[j * 3 + 2], f = s / R, rho = R - h;
+    const u = tk + rho * Math.sin(f), vv = R - rho * Math.cos(f);
+    v.copy(c).addScaledVector(d, u).addScaledVector(n, vv).addScaledVector(A, a).applyMatrix4(Mi);
+    const i = idx[j]; delta[i * 3] = v.x - Pos.getX(i); delta[i * 3 + 1] = v.y - Pos.getY(i); delta[i * 3 + 2] = v.z - Pos.getZ(i);
+  }
+  g.morphAttributes.position = [new THREE.BufferAttribute(delta, 3)]; g.morphTargetsRelative = true;
+  root.traverse(o => { if (o.isMesh && o.geometry === g) { o.updateMorphTargets(); o.morphTargetDictionary = { puno: 0 }; o.morphTargetInfluences = [0]; } });
+  // (el centro del puño, en el de los dedos que se cierran, no en el de toda la mano, que el pulgar lleva hacia su lado; y lo
+  // ancho que es el puño, para que el final del mango asome justo por el lado del meñique)
+  let aMin = Infinity, aMax = -Infinity; for (let k = 0; k < loc.length; k += 3) if (loc[k] > tk) { aMin = Math.min(aMin, loc[k + 2]); aMax = Math.max(aMax, loc[k + 2]); }
+  const eje = mas >= menos ? A.clone() : A.clone().negate(), cen = c.clone().addScaledVector(d, tk).addScaledVector(n, R).addScaledVector(A, (aMin + aMax) / 2);
+  return { centro: cen.toArray(), eje: eje.toArray(), n: n.toArray(), d: d.toArray(), R, hueco: R - gp, ancho: aMax - aMin, largo: hi - lo, giro: Lf / R };
 }
 /** Los puntos de la malla que mueve una mano (ella y sus dedos, y los tacos que lleve), cada uno pegado al hueso que más
  *  lo mueve: así se sabe dónde está la mano de verdad en cada imagen con un solo producto por punto, sin deformar la malla

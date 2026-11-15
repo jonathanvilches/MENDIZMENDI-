@@ -1370,6 +1370,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         la pelota del saque va en la mano izquierda (`st.manoIzq` en `glbChar.js`), sin el gesto de llevarla y botarla
         con la derecha; y los comentaristas no dicen las frases que hablan de la mano o de jugar a mano
         (`Comentarios.sinMano`, por el texto de cada frase del guion).
+      - El agarre (el autor: «el agarre de la mano no está bien»; la herramienta colgaba del dorso de la mano abierta).
+        Los pelotaris de Meshy no tienen huesos en los dedos: el puño se hace doblando la malla, con un objetivo de forma,
+        `puno` (`agarreDe` en `glbChar.js`), hecho una vez al cargar el pelotari y antes de copiarlo. Los puntos de los
+        dedos, de los nudillos (al 46 % del largo de la mano) a la punta, se enrollan en un arco hacia la palma de radio
+        1,6 veces el medio grosor de la palma (unos 4,7 cm: el hueco, 1,75 cm, es el del mango), unos 165°. Con
+        herramienta, `cierraMano(1)`; a mano, abierta. La herramienta va con el mango por el hueco del puño, en el centro
+        de los dedos y no de toda la mano, el final del mango asomando por el lado del meñique y la pala o el aro saliendo
+        por el del pulgar, con su cara paralela a la palma (`ponHerramienta`). Sin coste de llamadas; unos 0,8 MB más por
+        modelo de pelotari en la tarjeta gráfica.
     - Los trinquetes de verdad en los pueblos (`world/trinquetePueblo.js`, «sigue con lo que falte»): un monumento nuevo,
       `trinquete`, en Elizondo (Trinquete Antxitonea) y en Lekunberri (Trinquete de Lekunberri), al final de su lista para
       no mover los índices de los demás. Va sobre su edificio de los datos, el que se llama «Trinkete…»
