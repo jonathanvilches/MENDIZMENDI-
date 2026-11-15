@@ -40,7 +40,16 @@ export function bake() {
       // una franja de prado y las calles parecían caminos entre el césped)
       const acera = f.vm > 0.5 ? 1.6 * smoothstep(0.5, 0.8, f.vm) : 0;
       if (p.type === 'street') street = 1 - smoothstep(p.w - 0.6 + acera, p.w + 0.4 + acera, p.d);
-      else if (p.type) dirt = 1 - smoothstep(p.w - 0.7, p.w + 0.5, p.d);
+      else if (p.type) {
+        // (dentro del casco, los callejones, los pasos, las escaleras y la carretera que cruza el pueblo, también empedrados;
+        // fuera, tierra. El 15 de noviembre de 2026, el autor: «no entiendo por qué el suelo tiene ese color amarillo. Si es
+        // un suelo empedrado, debería tener de textura un suelo empedrado. Todas las calles de los pueblos». Antes solo las
+        // calles de los datos llevaban el adoquín: la carretera, que en los pueblos suele ser la calle mayor, y los pasos
+        // entre las casas iban con la tierra clara de los caminos, y en pleno casco se veían franjas amarillas)
+        const cas = smoothstep(0.3, 0.6, f.vm);
+        street = cas * (1 - smoothstep(p.w - 0.6 + acera, p.w + 0.4 + acera, p.d));
+        dirt = (1 - cas) * (1 - smoothstep(p.w - 0.7, p.w + 0.5, p.d));
+      }
       street = Math.max(street, plazaMask(x, z));
       // cancha del frontón
       for (const c of PLACES.courts || []) if (Math.abs(x - c.x) < c.hw && Math.abs(z - c.z) < c.hd) street = 1;
