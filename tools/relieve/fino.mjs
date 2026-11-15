@@ -6,14 +6,15 @@
 // datos del relieve grueso, cero.
 // Datos: las teselas «terrarium» de nivel 11 (unos 56 m por píxel) de AWS Terrain Tiles, que en Navarra salen de
 // Copernicus EU-DEM («Produced using Copernicus data and information funded by the European Union - EU-DEM layers»);
-// se comprueba la fuente de cada una en su cabecera (descargar-detalle.sh, con la lista de x 1009 a 1020 e y 749 a 761).
+// se comprueba la fuente de cada una en su cabecera (descargar-detalle.sh, con la lista de x 1008 a 1020 e y 748 a 762:
+// desde el 15 de noviembre de 2026, también alrededor de Navarra, como el relieve grueso, tools/relieve/alrededor.mjs).
 // uso: node tools/relieve/fino.mjs <carpeta de teselas> <salida .webp>
 import { readFileSync, existsSync, writeFileSync } from 'fs';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url), sharp = require('sharp');
 const [, , TES, OUT] = process.argv;
 if (!TES || !OUT) { console.error('uso: node tools/relieve/fino.mjs <teselas> <salida.webp>'); process.exit(1); }
-const Z = 11, X0 = 1009, X1 = 1020, Y0 = 749, Y1 = 761, FUENTES = /^(eudem|srtm|gmted|etopo1)\//i;
+const Z = 11, X0 = 1008, X1 = 1020, Y0 = 748, Y1 = 762, FUENTES = /^(eudem|srtm|gmted|etopo1)\//i;
 // (el relieve grueso del juego, leído del módulo de datos tal cual)
 const src = readFileSync(new URL('../../src/data/mapa-relieve.js', import.meta.url), 'utf8');
 const R = JSON.parse(src.match(/export const MAPA_RELIEVE = (\{.*\});?\s*$/m)[1]), B64 = src.match(/export const MAPA_ALTURAS = ['"]([^'"]+)['"]/)[1];

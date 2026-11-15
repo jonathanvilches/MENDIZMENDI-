@@ -2241,6 +2241,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     volvía la rampa verde lisa que el autor no quiso el 14 de noviembre; los montes fantasma venían del relieve fino.
   - Medido con el contorno de las 12: crecen entre un 11 % (Ribera Alta) y un 54 % (Pirineo). Con la isla del Pirineo en
     el aire, su losa densa tiene 92.000 triángulos y los árboles del mapa con su bosque denso, 191.000.
+- **El relieve, también alrededor de Navarra** (`tools/relieve/alrededor.mjs`; `src/data/mapa-relieve.js`, `fino.webp`
+  y `FINO_R` en `mapa3d.js`; 15 de noviembre de 2026). El autor: «no te dejes ningún monte de los Pirineos nevado; no me
+  importa que coja montes de provincias, localidades o países limítrofes. Lo que sí quiero es que esté completo». Hasta
+  entonces el relieve del mapa guardaba solo el tramo de cada fila que toca Navarra; fuera era cero, y lo que cogía de
+  fuera la isla de una comarca era inventado, el lado de dentro en un espejo.
+  - Ahora la rejilla llega 20 puntos más a cada lado, 60 unidades del mapa, unos 12 km: Gipuzkoa, Araba, La Rioja, Aragón
+    y Francia, con las mismas teselas y las mismas cuentas que `mapa-relieve.py` (SRTM y GMTED2010, dominio público). Lo
+    que ya había no se toca; al sacarlo de nuevo salen iguales los 30.790 puntos de antes. Lo nuevo, 52.930 puntos, hasta
+    2.400 m.
+  - El relieve fino, `fino.webp`, igual, de las teselas de nivel 11 de EU-DEM: de 1.025 × 1.106 a 1.196 × 1.278 puntos.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la

@@ -232,7 +232,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (el relieve fino, src/assets/relieve/fino.webp de tools/relieve/fino.mjs: cada 0,7 unidades del mapa, unos 145 m, lo que
   // se aparta la altura de verdad de la gruesa, en pasos de 3 m. Se lee una vez en un lienzo, sin estorbar a la entrada; con
   // él, la comarca elegida se rehace con una malla densa y sus sierras toman su forma: crestas, barrancos y cumbres)
-  const FINO_R = { x0: 15, y0: 12, paso: 0.7, w: 1025, h: 1106 }, FINO_G = 1.35 * 3 * EXA;   // (algo más marcado que el de verdad, como el grueso)
+  const FINO_R = { x0: -45, y0: -48, paso: 0.7, w: 1196, h: 1278 }, FINO_G = 1.35 * 3 * EXA;   // (algo más marcado que el de verdad, como el grueso)
   let finoD = null;
   const finoEn = (X, Z) => {
     if (!finoD) return 0;
