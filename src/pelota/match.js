@@ -8,7 +8,7 @@ import { subtitulos } from '../util/comentarios.js';
 import { lote, elige, perfil, saqueRival, siente, clase, POR_LADO, pesoTxt } from './material.js';
 import { showVs, courtIcon } from './vs.js';
 import { setFeel } from './physics.js';
-import { HERRAMIENTAS, HERR_ORDEN, herrValida, ponHerramienta } from './herramientas.js';
+import { HERRAMIENTAS, HERR_ORDEN, herrValida, ponHerramienta, ALCANCE } from './herramientas.js';
 import { openFicha, splitName } from './ficha.js';
 import { pelotariCard } from '../ui/sportCard.js';
 import { PelotaGame, cutHeight, dropHeight, aimSide } from './game.js';
@@ -303,7 +303,7 @@ export class PelotaMatch {
   }
   newGame() {
     this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
-    this.com = new Comentarios(this.lang); this.comIni = false; this.vocesC = null; this.mpLider = null; this.escapo = false; this.mitadDicha = false; this.voz?.calla(); this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
+    this.com = new Comentarios(this.lang); this.com.sinMano = this.herrDe() !== 'mano'; this.comIni = false; this.vocesC = null; this.mpLider = null; this.escapo = false; this.mitadDicha = false; this.voz?.calla(); this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
     const o = this.o;
     this.cestaPorDefecto();
     const M = this.pairs ? this.mateObjs : null;
@@ -1540,12 +1540,15 @@ export class PelotaMatch {
         // (el armado del golpe que viene y el golpe que se da; y si se desplaza de lado mirando al frontis: pasos laterales)
         arma: cam ? cam.arma : arma, golpe: this.golpeDe?.[who] || 'Hit', lado: lateral(P) };
       if (cam) st.wind = Math.max(cam.wind, wind * 0.25);
+      // (con herramienta, todos los golpes con la derecha, que es la que la lleva: el de la izquierda, de revés)
+      const conHerr = !!ALCANCE[this.herrK]; if (conHerr) { st.arma = String(st.arma || 'Hit').replace(/L$/, ''); st.golpe = String(st.golpe || 'Hit').replace(/L$/, ''); }
       // (y tus brazos y lo agachado que estás, siempre que la cámara te vea: tu pelotari hace lo que haces; glbChar.js, post)
       if (who === 'you' && this.cuerpo?.visto && !this.replay) st.cuerpo = this.cuerpo.brazos();
       // el saque: el que saca lleva la pelota en la mano derecha mientras espera y mientras corre (lleva); al botarla, el
       // brazo baja con ella un instante (bota) y luego arma. manoW: dónde queda su mano, para dibujar ahí la pelota
       { const saca = g.serverP?.() === who && (g.phase === 'serveWait' || g.phase === 'servePrep');
         st.lleva = saca && g.phase === 'serveWait' ? 1 : 0; st.bota = saca && g.phase === 'servePrep' && g.phaseT < 0.19 ? 1 : 0;
+        if (conHerr) { st.lleva = 0; st.bota = 0; st.manoIzq = true; }   // (con herramienta, la pelota del saque va en la izquierda)
         if (st.bota) st.wind = 0; else if (saca && g.phase === 'servePrep') st.wind *= Math.min(1, (g.phaseT - 0.19) / 0.15);
         // (tras botarla arma como se arma corriendo: el brazo derecho atrás y abajo y el izquierdo recogido delante; el
         // saque se da de sotamano, a la altura de la cadera. Antes armaba como para una derecha de parado, con los dos
@@ -1555,7 +1558,13 @@ export class PelotaMatch {
         if (saca) { st.manoW = ((this.manoW ||= {})[who] ||= new T.Vector3()); st.manoN = ((this.manoN ||= {})[who] ||= new T.Vector3()); st.bolaW = ((this.bolaW ||= {})[who] ||= new T.Vector3()); st.bolaR = this.radioBola(BOLA_EN_MANO); } }
       // (y la mano, a la pelota en el golpe: el sitio donde se ha golpeado, durante una décima de segundo; con la palma
       // pegada a la pelota por fuera, y para eso su radio tal como se dibuja)
-      { const ce = this.golpeEn?.[who]; if (ce && this.t - ce.t < 0.12) { st.contacto = ce.w; st.bolaR = this.radioBola(C.ball.scale.x); } }
+      { const ce = this.golpeEn?.[who]; if (ce && this.t - ce.t < 0.12) {
+        // (con herramienta, la mano se queda antes de la pelota lo que mide del puño a la pala, en la línea del pecho a la
+        // pelota: lo que llega a ella es la herramienta)
+        const A = ALCANCE[this.herrK] || 0;
+        if (A) { const pe = side.obj.getWorldPosition(this.herrP ||= new T.Vector3()); pe.y += 1.35; const d = (this.herrD ||= new T.Vector3()).copy(ce.w).sub(pe), n = d.length() || 1;
+          st.contacto = (this.herrC ||= new T.Vector3()).copy(ce.w).addScaledVector(d, -Math.min(A, n * 0.6) / n); st.bolaR = 0.01; }
+        else { st.contacto = ce.w; st.bolaR = this.radioBola(C.ball.scale.x); } } }
       this.suda(who, st.tired, side.obj, dt);
       // un golpe nuevo (al pulsar), una sola vez: el gesto no se repite mientras dura el estado
       const sw = P.act === 'swing', SP = this.swPrev ||= {}; if (sw && !SP[who] && who === 'you' && swingAge > 0.4) this.lastSwing[who] = this.t; SP[who] = sw;

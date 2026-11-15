@@ -13,6 +13,9 @@ export const HERRAMIENTAS = {
   xare: { es: 'Xare', eu: 'Xarea', tempo: 1.12, front: 1.07, floor: 1 },
 };
 export const HERR_ORDEN = ['mano', 'pala', 'paleta', 'xare'];
+// (del puño al centro de la pala o del aro, en metros: en el golpe, la mano se queda eso antes de la pelota, para que lo
+// que llega a ella sea la herramienta; match.js)
+export const ALCANCE = { pala: 0.28, paleta: 0.27, xare: 0.29 };
 export const herrValida = (k) => (HERRAMIENTAS[k] ? k : 'mano');
 
 // (el giro de la herramienta en la mano: el mango, cruzado en el puño, y la pala hacia donde apuntan los dedos. En los

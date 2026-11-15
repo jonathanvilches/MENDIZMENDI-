@@ -936,14 +936,16 @@ export function armSwing(char, get, { windOnly = false } = {}) {
       }
       // (y dónde queda la mano derecha, para que el juego dibuje en ella la pelota que lleva)
       // (en la palma, no en la muñeca: su centro y hacia dónde mira, para que la pelota quede agarrada)
-      if (st.manoW && IKR) {
-        c.root.updateMatrixWorld(true); const p = palma();
-        if (p) { IKR.h.localToWorld(st.manoW.copy(p.c)); st.manoN?.copy(p.n).transformDirection(IKR.h.matrixWorld); }
-        else { IKR.h.getWorldPosition(st.manoW); st.manoN?.set(0, 0, 0); }
+      // (o la izquierda, st.manoIzq: con la pala, la paleta o el xare en la derecha, la pelota del saque va en la otra)
+      const IKM = st.manoIzq ? IKL : IKR;
+      if (st.manoW && IKM) {
+        c.root.updateMatrixWorld(true); const p = st.manoIzq ? palmaL() : palma();
+        if (p) { IKM.h.localToWorld(st.manoW.copy(p.c)); st.manoN?.copy(p.n).transformDirection(IKM.h.matrixWorld); }
+        else { IKM.h.getWorldPosition(st.manoW); st.manoN?.set(0, 0, 0); }
         // (y el centro de la pelota que lleva, apoyada en la palma por fuera: desde el centro de la mano hacia donde mira la
         // palma, lo justo para que ningún punto de la mano, de los dedos ni de los tacos quede dentro. Antes iba a tres
         // cuartos de su radio del centro de la mano y se hundía 4 cm en ella)
-        if (st.bolaW && st.bolaR && p) { st.bolaW.copy(st.manoW); const L = puntos('R'); if (L) apartaDeMano(L, st.bolaW, st.bolaR + 0.003, st.manoN); else st.bolaW.addScaledVector(st.manoN, st.bolaR + p.grosor * IKR.h.getWorldScale(_ps).x); }
+        if (st.bolaW && st.bolaR && p) { st.bolaW.copy(st.manoW); const L = puntos(st.manoIzq ? 'L' : 'R'); if (L) apartaDeMano(L, st.bolaW, st.bolaR + 0.003, st.manoN); else st.bolaW.addScaledVector(st.manoN, st.bolaR + p.grosor * IKM.h.getWorldScale(_ps).x); }
       }
       return;
     }

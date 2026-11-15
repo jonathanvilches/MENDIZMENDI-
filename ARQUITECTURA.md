@@ -1364,6 +1364,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       (`tempo`: 1,16 la pala, 1,10 la paleta y 1,12 el xare), lo que sale la pelota del frontis y lo que bota (la paleta,
       con su pelota de goma, bota un 8 % más; la pala, un 4 % menos). Los golpes y las animaciones son los de mano: la
       mano va a la pelota, no la pala. Las tres herramientas, 4 llamadas de dibujo más; con xare, 86 en total.
+      - Y con «seguimos con lo que falte»: con herramienta, todos los golpes van con la derecha, que es la que la lleva
+        (se quita la «L» de los golpes y del armado); en el golpe, la mano se queda antes de la pelota lo que mide del
+        puño a la pala o al aro (`ALCANCE`), en la línea del pecho a la pelota, y lo que llega a ella es la herramienta;
+        la pelota del saque va en la mano izquierda (`st.manoIzq` en `glbChar.js`), sin el gesto de llevarla y botarla
+        con la derecha; y los comentaristas no dicen las frases que hablan de la mano o de jugar a mano
+        (`Comentarios.sinMano`, por el texto de cada frase del guion).
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.

@@ -77,7 +77,8 @@ export class Comentarios {
    *  Mikel ('M') o de Edurne ('E'), en los grupos con frases de los dos. { id, texto, … } o null */
   frase(g, una = false, q = null) {
     if (!this.voz || !g) return null;
-    let L = (G.get(g) || []).filter(k => this.puede(GUION[k][0]) && (!q || GUION[k][0] === q) && !(una && this.dichas.has(k)));
+    // (con herramienta, en el trinquete: fuera las frases que hablan de la mano o de jugar a mano; match.js, sinMano)
+    let L = (G.get(g) || []).filter(k => this.puede(GUION[k][0]) && (!q || GUION[k][0] === q) && !(una && this.dichas.has(k)) && !(this.sinMano && /\bmanos?\b/i.test(GUION[k][1])));
     if (L.length > 1) L = L.filter(k => k !== this.ult[g]);
     if (!L.length) return null;
     const k = L[Math.floor(Math.random() * L.length)]; this.ult[g] = k; this.dichas.add(k);
@@ -87,7 +88,7 @@ export class Comentarios {
   dialogo(tema) {
     if (this.voz !== 'duo') return null;
     const T = DLG.get(tema); if (!T) return null;
-    const L = [...T.entries()].filter(([n]) => !this.dichas.has(`d-${tema}-${n}`)); if (!L.length) return null;
+    const L = [...T.entries()].filter(([n, ks]) => !this.dichas.has(`d-${tema}-${n}`) && !(this.sinMano && ks.some(k => k && /\bmanos?\b/i.test(GUION[k][1])))); if (!L.length) return null;
     const [n, ks] = L[Math.floor(Math.random() * L.length)]; this.dichas.add(`d-${tema}-${n}`);
     return ks.filter(Boolean).map(k => this.item(k, `d-${tema}`));
   }
