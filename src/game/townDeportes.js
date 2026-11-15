@@ -185,12 +185,13 @@ export class PuebloDeportes {
       this.ui.hudVisible(false);
       // (el partido libre, en el frontón que elijas: de primeras, el de la plaza, que es donde estás)
       const sel = { sedes: this.sedes(), sede: this.fronton.court.labrit ? 'labrit' : 'plaza' };
-      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'), EXTRA.map(k => torneo(you, ctx, false, k)));
+      const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'), EXTRA.map(k => torneo(you, ctx, false, k)), torneo(you, ctx, false, 'trinquete'));
       if (this.disposed || pick === 'exit') return;
       if (pick.startsWith('t:')) return await this.pelotaTorneo(a, ctx, pick.slice(2));   // (los campeonatos inventados)
       if (pick === 'torneo') return await this.pelotaTorneo(a, ctx);
       if (pick === 'torneoParejas') return await this.pelotaTorneo(a, ctx, 'parejas');
       if (pick === 'torneoCuatro') return await this.pelotaTorneo(a, ctx, 'cuatro');
+      if (pick === 'torneoTrinquete') return await this.pelotaTorneo(a, ctx, 'trinquete');
       if (pick === 'retos') return await this.pelotaRetos(a, sel);
       if (pick === 'frontones') return await this.pelotaFrontones(a);
       const v = await this.venueListo(sel.sede); await this.venuePrep(v);
@@ -241,16 +242,16 @@ export class PuebloDeportes {
     // modelos de los pelotaris, no: si el rival es una chica, el del colorado no se usaba y ocupaba 5 MB
     if (this.rt?.quality === 'low' && this.rt.subePoco) this.rt.subePoco(this.scene, false, new Set([this.player?.obj].filter(Boolean)));
   }
-  // En el pueblo, el pelotari junto al frontón te invita al campeonato de la comarca: el que elijas (Manomanista, Parejas
-  // o Cuatro y Medio); si te apuntas, se va a jugarlo (main.js: solo el frontón, con su cuadro ya abierto) y, al acabar,
+  // En el pueblo, el pelotari junto al frontón te invita al campeonato de la comarca: el que elijas (Manomanista, Parejas,
+  // Cuatro y Medio o Trinquete); si te apuntas, se va a jugarlo (main.js: solo el frontón, con su cuadro ya abierto) y, al acabar,
   // vuelves aquí, a la puerta del frontón. En el pueblo no se juega a pelota: cada partido, en un frontón distinto
   async invitaCampeonato() {
     const a = this.pelotari; if (!a || this.campeonato || this.disposed) return;
     const P = profile(), cm = this.comarca?.name || 'la comarca'; let kind = null;
     a.say?.(2);
     await this.say(a, [`¡Aupa${P.name ? ', ' + P.name : ''}! Se está jugando el campeonato de pelota de ${cm}.`,
-      { text: '¿Te apuntas? Cada partido, en un frontón distinto, y la final en el Labrit de Iruña. ¿En cuál?', choices: ['Manomanista', 'Parejas', 'Cuatro y Medio', 'Ahora no'],
-        onChoice: (j) => { kind = ['mano', 'parejas', 'cuatro'][j] || null; return kind ? [] : ['Cuando quieras, aquí estaré.']; } }]);
+      { text: '¿Te apuntas? Cada partido, en un frontón distinto, y la final en el Labrit de Iruña; el de trinquete, en los trinquetes. ¿En cuál?', choices: ['Manomanista', 'Parejas', 'Cuatro y Medio', 'Trinquete', 'Ahora no'],
+        onChoice: (j) => { kind = ['mano', 'parejas', 'cuatro', 'trinquete'][j] || null; return kind ? [] : ['Cuando quieras, aquí estaré.']; } }]);
     if (!kind || this.disposed) return;
     const e = this.fronton?.entry || this.player.pos, c = this.fronton?.toWorld?.(0, 12);
     this.onExit?.('pueblo', { pelota: this.def.id, torneo: kind, vuelta: { id: this.def.id, x: e.x, z: e.z, h: c ? Math.atan2(c.x - e.x, c.z - e.z) : this.player.heading } });
@@ -279,11 +280,11 @@ export class PuebloDeportes {
         const you = { name: P.name || 'Tú', town };
         // (el frontón del partido libre, a elegir: el de la plaza, el cubierto, el Labrit u otro pueblo; se recuerda)
         const S = this.sedes(), sel = { sedes: S, sede: S.includes(P.pelotaSede) ? P.pelotaSede : this.fronton.court.labrit ? 'labrit' : S[0], otro: true, onSede: (k) => { P.pelotaSede = k; saveProfile(); } };
-        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'), EXTRA.map(k => torneo(you, ctx, false, k)));
+        const pick = await pelotaMenu(torneo(you, ctx), town, torneo(you, ctx, false, 'parejas'), sel, torneo(you, ctx, false, 'cuatro'), EXTRA.map(k => torneo(you, ctx, false, k)), torneo(you, ctx, false, 'trinquete'));
         if (this.disposed || pick === 'exit') return;
         if (pick.startsWith('t:')) { await this.pelotaTorneo(a, ctx, pick.slice(2)); if (this.disposed) return; continue; }   // (los campeonatos inventados)
         if (pick.startsWith('otro:')) { if (pick.slice(5) !== this.def.id) { this.luego = { pelota: pick.slice(5) }; return; } continue; }
-        if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : 'mano'); if (this.disposed) return; continue; }
+        if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro' || pick === 'torneoTrinquete') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : pick === 'torneoTrinquete' ? 'trinquete' : 'mano'); if (this.disposed) return; continue; }
         if (pick === 'retos') { await this.pelotaRetos(a, sel); if (this.disposed) return; continue; }
         if (pick === 'frontones') { await this.pelotaFrontones(a); if (this.disposed) return; continue; }
         // (el fondo sigue delante mientras se preparan los pelotaris: lo quita el vuelo de la llegada; antes se veía al

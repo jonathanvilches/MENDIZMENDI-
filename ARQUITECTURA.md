@@ -1379,6 +1379,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         de los dedos y no de toda la mano, el final del mango asomando por el lado del meñique y la pala o el aro saliendo
         por el del pulgar, con su cara paralela a la palma (`ponHerramienta`). Sin coste de llamadas; unos 0,8 MB más por
         modelo de pelotari en la tarjeta gráfica.
+    - El trinquete, un campeonato más (el autor: «tiene que ser un campeonato más, como el manomanista y el 4,5»): ya no
+      es el «Torneo de Trinquete» de ocho para toda Navarra, al final de los inventados, sino el Campeonato de Trinquete
+      de cada comarca, como el Manomanista, el de Parejas y el del Cuatro y Medio (`KINDS.trinquete`, fuera de `EXTRA`).
+      Dieciséis por eliminatorias, como el Manomanista: octavos y cuartos en el trinquete de Elizondo, semifinales en el
+      de Lekunberri y la final en el Herrizherri o en el Beltza, un año en cada uno (`trinqueteDe`). Su carta va justo
+      después de la del Cuatro y Medio (`pelotaMenu`, `T4`; `torneoTrinquete` en `townDeportes.js`), y el pelotari del
+      pueblo lo ofrece con los otros tres. Las txapelas del torneo de antes pasan una vez al de la primera comarca donde
+      se juegue y el guardado viejo se borra.
     - Los trinquetes de verdad en los pueblos (`world/trinquetePueblo.js`, «sigue con lo que falte»): un monumento nuevo,
       `trinquete`, en Elizondo (Trinquete Antxitonea) y en Lekunberri (Trinquete de Lekunberri), al final de su lista para
       no mover los índices de los demás. Va sobre su edificio de los datos, el que se llama «Trinkete…»

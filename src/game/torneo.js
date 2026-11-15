@@ -54,12 +54,19 @@ const NAMES = RIVALES;   // (21 chicos y chicas, cada uno con su figura)
 const TOWNS = ['Leitza', 'Lesaka', 'Elizondo', 'Altsasu', 'Lekunberri', 'Aoiz', 'Sangüesa', 'Estella-Lizarra', 'Tafalla', 'Olite', 'Tudela', 'Puente la Reina', 'Viana', 'Lumbier', 'Doneztebe', 'Irurtzun'];
 const loadAll = () => { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } };
 const keyOf = (comarca, kind) => kind === 'mano' || !kind ? comarca : comarca + ':' + kind;
-/** Los tres campeonatos de pelota de cada comarca, como los de los profesionales: el Manomanista (mano a mano, en toda la
- *  cancha), el de Parejas (delantero y zaguero) y el del Cuatro y Medio (mano a mano hasta la raya del 4 y medio) */
+/** Los cuatro campeonatos de pelota de cada comarca, como los de los profesionales: el Manomanista (mano a mano, en toda la
+ *  cancha), el de Parejas (delantero y zaguero), el del Cuatro y Medio (mano a mano hasta la raya del 4 y medio) y el de
+ *  Trinquete (mano a mano, entre cuatro paredes) */
 export const KINDS = {
   mano: { name: 'Manomanista', full: 'Campeonato Manomanista', k: 'Individual' },
   parejas: { name: 'Parejas', full: 'Campeonato de Parejas', k: 'Por parejas' },
   cuatro: { name: 'Cuatro y Medio', full: 'Campeonato del Cuatro y Medio', k: 'Hasta el 4½' },
+  // el del trinquete, otro de los de cada comarca, como el Manomanista y el del 4½ (el autor, 15 de noviembre de 2026: «el
+  // trinquete tiene que ser un campeonato más»; antes, «Torneo de Trinquete», uno solo para Navarra y de ocho, al final de
+  // los inventados). Dieciséis por eliminatorias, como el Manomanista, en los trinquetes del juego (trinqueteDe): octavos y
+  // cuartos en el de Elizondo, semifinales en el de Lekunberri y la final en uno de los dos modernos, un año en cada uno
+  trinquete: { name: 'Trinquete', full: 'Campeonato de Trinquete', k: 'Cuatro paredes', base: 'mano', fmt: 'ko16', trinquete: true,
+    como: { es: 'dieciséis pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Octavos a 5 tantos y cuartos a 6 en el trinquete de Elizondo, semifinales a 7 en el de Lekunberri y la final, a 9, en uno de los dos trinquetes modernos del juego: un año en el Herrizherri, con la pared derecha de cristal, y otro en el Beltza, oscuro y con balcones de cristal.', eu: 'hamasei pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-zortzirenak 5 tantora eta final-laurdenak 6ra Elizondoko trinketean, finalaurrekoak 7ra Lekunberrikoan eta finala, 9ra, jokoko bi trinkete berrietako batean: urte batean Herrizherrin, eskuineko horma kristalezkoarekin, eta hurrengoan Beltzan, iluna eta kristalezko balkoiekin.' } },
   // los inventados para el juego, con más txapelas que ganar (noviembre de 2026): base, las reglas (mano a mano en toda
   // la cancha o hasta el 4½); fmt, el formato; lv, cuánto más fuertes o flojos son los rivales; global, uno solo para
   // toda Navarra en vez de uno por comarca; como, su «Cómo funciona»
@@ -75,13 +82,9 @@ export const KINDS = {
     como: { es: 'cada pelotari juega por su comarca: tú, por la tuya, contra los campeones de otras siete comarcas de Navarra. Mano a mano: cuartos y semifinales a 5 tantos y la final, a 7, en el frontón Labrit de Iruña.', eu: 'pilotari bakoitzak bere eskualdearen alde jokatzen du: zuk, zurearen alde, Nafarroako beste zazpi eskualdetako txapeldunen aurka. Buruz buru: final-laurdenak eta finalerdiak 5 tantora eta finala, 7ra, Iruñeko Labrit frontoian.' } },
   gran: { name: 'Gran Txapela de Navarra', full: 'Gran Txapela de Navarra', k: 'El acontecimiento del año', base: 'mano', fmt: 'ko16', lv: 1, global: true, evento: true,
     como: { es: 'el acontecimiento del año: los dieciséis mejores pelotaris de toda Navarra, mano a mano por eliminatorias. Octavos a 5 tantos, cuartos a 6, semifinales a 7 y la gran final, a 9, en el frontón Labrit de Iruña lleno hasta arriba. Una sola txapela para todo el viejo reino.', eu: 'urteko gertaera handia: Nafarroa osoko hamasei pilotari onenak, buruz buru kanporaketetan. Final-zortzirenak 5 tantora, final-laurdenak 6ra, finalerdiak 7ra eta final handia, 9ra, Iruñeko Labrit frontoian, beteta. Txapela bakarra erresuma zahar osorako.' } },
-  // (el del trinquete, el 15 de noviembre de 2026: el autor, «no te olvides del trinquete». Se jugaba solo como partido
-  // libre en «Frontones»; ahora tiene su torneo, de toda Navarra, en los dos trinquetes de verdad del juego: trinqueteDe)
-  trinquete: { name: 'Torneo de Trinquete', full: 'Torneo de Trinquete', k: 'Cuatro paredes · 8', base: 'mano', fmt: 'ko8', lv: 0.2, global: true, trinquete: true,
-    como: { es: 'ocho pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Cuartos en el trinquete de Elizondo, semifinales en el de Lekunberri y la final, a 7 tantos, en uno de los dos trinquetes modernos del juego, un año en el Herrizherri, con la pared derecha de cristal, y otro en el Beltza, oscuro y con balcones de cristal.', eu: 'zortzi pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-laurdenak Elizondoko trinketean, finalerdiak Lekunberrikoan eta finala, 7 tantora, jokoko bi trinkete berrietako batean: urte batean Herrizherrin, eskuineko horma kristalezkoarekin, eta hurrengoan Beltzan, ilunean, kristalezko balkoiekin.' } },
 };
 /** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
-export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas', 'trinquete'];
+export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas'];
 /** La final del Torneo de Trinquete, desde el 15 de noviembre de 2026: un trinquete moderno, inventado para el juego, como
  *  los de las dos fotos que pasó el autor después de las del de Elizondo: las paredes azules con sus rayas blancas, la
  *  pared derecha de cristal con la grada detrás y la galería oscura bajo el tejadillo. No está en el catálogo de los
@@ -151,7 +154,10 @@ export function torneo(you, ctx, fresh = false, kind = 'mano') {
   const rehacer = !!T && !T.fmt && !T.past?.length && !T.done;
   if (T && ((T.done && fresh) || rehacer)) T = null;
   if (!T) {
-    const prev = loadAll()[key];
+    let prev = loadAll()[key];
+    // (las txapelas del Torneo de Trinquete de antes, uno solo para Navarra, pasan al de la primera comarca donde se juegue
+    // el campeonato nuevo, y el viejo se borra para no contarlas dos veces)
+    if (!prev && kind === 'trinquete') { const all = loadAll(), v = all['navarra:trinquete']; if (v) { prev = { edition: v.edition || 1, txapelas: v.txapelas || 0 }; delete all['navarra:trinquete']; try { localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } } }
     const ed = rehacer ? prev.edition || 1 : (prev?.edition || 0) + 1, txapelas = prev?.txapelas || 0, r = minstd(ed * 7919 + ctx.comarca.length * 31 + 13);
     const fmt = K.fmt || FMT[kind] || FMT.mano, N = fmt === 'liga8' || fmt === 'ko8' ? 8 : 16;
     const names = NAMES.filter(n => n !== you.name).sort(() => r() - 0.5);   // (nadie con tu mismo nombre)
@@ -1061,11 +1067,11 @@ export function retosMenu() {
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */
-export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = []) {
+export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [], T4 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
     const sub = (X) => { const m = yourMatch(X); return X.done ? 'Nueva edición' : m ? `${m.round} contra ${esc(m.pairs ? m.rival.mates[0] : m.rival.name)}` : 'Siguiente ronda'; };
-    const tx = (T.txapelas || 0) + (T2?.txapelas || 0) + (T3?.txapelas || 0) + X.reduce((n, x) => n + (x?.txapelas || 0), 0), C = pelotarisCount();
+    const tx = (T.txapelas || 0) + (T2?.txapelas || 0) + (T3?.txapelas || 0) + (T4?.txapelas || 0) + X.reduce((n, x) => n + (x?.txapelas || 0), 0), C = pelotarisCount();
     // las portadas, con los pelotaris del autor: en el torneo, tu rival de la ronda (o quien ganó); por parejas, la pareja
     // rival; en el partido libre, tú, de azul; en la colección, los tres últimos que has conocido (o tres de la plantilla)
     const who = (X) => yourMatch(X)?.rival || (X.done ? X.players[X.champion] : X.players.find(q => !q.you));
@@ -1093,6 +1099,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       torneoCarta(T, 'torneo', 'cp-mano', 0.05),
       T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', 0.1, true) : '',
       T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro', 0.15) : '',
+      T4 ? torneoCarta(T4, 'torneoTrinquete', 'cp-trinq', 0.18) : '',   // (el de trinquete, uno más de los de la comarca)
       ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2)); }),
       carta({ a: 'libre', cls: 'cp-libre', d: 0.5, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½' }),
       carta({ a: 'frontones', cls: 'cp-front', d: 0.52, figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
