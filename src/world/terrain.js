@@ -292,10 +292,13 @@ float grassM = 0.0, dirtM = 0.0, dirtB = 0.0;   // (para el relieve, más abajo)
     float cerca = 1.0 - smoothstep(16.0, 55.0, distance(vWP, cameraPosition));
     vec3 fc = col;
     if (ft == 2.0) {
-      fc = mix(sr(vec3(0.78, 0.62, 0.31)), sr(vec3(0.93, 0.79, 0.46)), d2.r * 0.6 + d1.g * 0.4) * (0.9 + 0.2 * big);
-      fc *= mix(1.0, 0.82 + 0.3 * (0.5 + 0.5 * sin(rw * 34.9 + d2.g * 2.0)), cerca);
+      // (el rastrojo, paja más apagada con la tierra asomando entre las hileras: el 15 de noviembre de 2026 el autor no
+      // entendía «por qué el suelo tiene ese color amarillo»; de un dorado claro y liso, junto a las calles parecía arena)
+      fc = mix(sr(vec3(0.62, 0.52, 0.32)), sr(vec3(0.80, 0.69, 0.45)), d2.r * 0.6 + d1.g * 0.4) * (0.88 + 0.2 * big);
+      float surco = 0.5 + 0.5 * sin(rw * 34.9 + d2.g * 2.0);
+      fc = mix(fc, sr(vec3(0.44, 0.36, 0.25)) * (0.85 + 0.3 * d1.r), (1.0 - surco) * mix(0.18, 0.45, cerca));
       float cord = smoothstep(0.84, 0.97, 0.5 + 0.5 * sin(rw * 0.8976 + (d1.r - 0.5) * 0.6));
-      fc = mix(fc, sr(vec3(0.96, 0.87, 0.6)) * (0.8 + 0.35 * d2.g), cord * 0.75);
+      fc = mix(fc, sr(vec3(0.86, 0.78, 0.56)) * (0.8 + 0.35 * d2.g), cord * 0.6);
     } else if (ft == 3.0) {
       float f = 0.5 + 0.5 * sin(rw * 7.854);
       fc = mix(sr(vec3(0.40, 0.29, 0.18)), sr(vec3(0.60, 0.45, 0.29)), mix(0.5, f, cerca) * 0.7 + d2.r * 0.3) * (0.85 + 0.3 * d2.g);

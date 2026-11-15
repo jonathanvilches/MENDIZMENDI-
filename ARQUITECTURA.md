@@ -1523,6 +1523,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   hasta las fachadas que las calles; fuera, los caminos siguen siendo de tierra, y entre los dos se pasa poco a poco.
   La carretera, empedrada siempre, también fuera del casco: es la calle por la que se entra al pueblo (en Lumbier se
   llegaba por una franja de tierra con piedrecitas).
+- **El rastrojo de los campos, menos amarillo** (el cereal segado, `ft == 2.0`, en el sombreador de `world/terrain.js`;
+  15 de noviembre de 2026). Con la misma queja del suelo amarillo: el campo de cereal junto a la entrada de Lumbier era
+  de un dorado claro y liso que, al lado de la calle, parecía arena. Ahora la paja es más apagada y entre las hileras
+  asoma la tierra, más de cerca; de media pasa de 218, 197, 141 a 196, 172, 123 con el sol de mediodía.
 - **Misiones del pueblo, solo los cuadrados** (`eligeMision`, `cierraMision` y `setQuestPueblo` en `ui.js`; `#tl` en
   `style.css`; noviembre de 2026): durante unos días la misión que sigues iba siempre abierta debajo de los cuadrados, y
   el autor pidió limpiar el visor. Ahora arriba a la izquierda solo quedan los cuadrados: la que sigues, con borde blanco.
