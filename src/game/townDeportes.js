@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, EXTRA, reglaDe, fueraDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -328,7 +328,7 @@ export class PuebloDeportes {
         this.ui.hudVisible(false); this.player.frozen = true; this.sportBackdrop(true);   // (con el cuadro del torneo delante, nada del pueblo debajo)
         // (antes de la primera ronda de un campeonato nuevo, con qué pelotari lo juegas: como elegir equipo en el FIFA)
         if (sinEmpezar(T) && !T.elegido) { await eligePelotari(T, yo); if (this.disposed) return; }
-        const sel = { sedes: this.sedes() }, act = await torneoPanel(T, town, sel);
+        const tq = KINDS[kind]?.trinquete, sel = { sedes: tq ? [] : this.sedes() }, act = await torneoPanel(T, town, sel);
         if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
         if (act === 'pick') { await eligePelotari(T, yo); continue; }
         if (act === 'new') { T = torneo(yo, ctx, true, kind); continue; }
@@ -336,7 +336,8 @@ export class PuebloDeportes {
         const m = yourMatch(T);
         // (en el frontón elegido para este partido; si no, en el que le toca a la ronda, distinto del de la anterior: el
         // del pueblo, su cubierto o el cubierto de otro pueblo; la final, en el Labrit de Iruña)
-        const sedeK = sedeDe(T, m, this.sedes()), venue = await this.venueListo(sedeK, fueraDe(T));
+        // (el Torneo de Trinquete, en el trinquete de verdad de su ronda: trinqueteDe)
+        const sedeK = tq ? 'trinquete' : sedeDe(T, m, this.sedes()), venue = tq ? this.realVenue(trinqueteDe(T, m)) : await this.venueListo(sedeK, fueraDe(T));
         await this.venuePrep(venue);
         if (this.disposed) return;
         // (por parejas: juegas con tu compañero contra el delantero y el zaguero rivales)
@@ -366,7 +367,9 @@ export class PuebloDeportes {
             await showChampion({ kind: 'pelota', kicker: `${KINDS.parejas.full} · ${ctx.comarcaName}`, title: '¡Txapeldunak!', name: T.players[T.champion].name, sub: `La txapela de parejas de ${ctx.comarcaName} es vuestra. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           } else {
             const gran = KINDS[kind]?.global, donde = gran ? 'Navarra' : ctx.comarcaName;   // (el acontecimiento del año, de toda Navarra)
-            await showChampion({ kind: 'pelota', kicker: gran ? KINDS[kind].full : `${(KINDS[kind] || KINDS.mano).full} · ${donde}`, title: '¡Txapeldun!', name: T.yo?.name || P.name || 'Campeón', sub: `${gran ? 'La Gran Txapela de Navarra' : `La txapela de ${donde}`} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
+            // (la txapela de cada uno de toda Navarra con su nombre: antes todos decían la Gran Txapela)
+            const suTx = KINDS[kind]?.evento ? 'La Gran Txapela de Navarra' : gran ? `La txapela del ${KINDS[kind].full}` : `La txapela de ${donde}`;
+            await showChampion({ kind: 'pelota', kicker: gran ? KINDS[kind].full : `${(KINDS[kind] || KINDS.mano).full} · ${donde}`, title: '¡Txapeldun!', name: T.yo?.name || P.name || 'Campeón', sub: `${suTx} es tuya. Llevas ${P.txapelas} ${P.txapelas === 1 ? 'txapela' : 'txapelas'}. Zorionak!`, score: `Final · ${r.you} – ${r.cpu}`, sound: this.sound, button: 'Ponerme la txapela' });
           }
         }
         // (sin charla en el pueblo entre ronda y ronda: el cuadro del torneo ya dice si sigues, la ronda que viene y dónde)

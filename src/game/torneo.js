@@ -75,9 +75,16 @@ export const KINDS = {
     como: { es: 'cada pelotari juega por su comarca: tú, por la tuya, contra los campeones de otras siete comarcas de Navarra. Mano a mano: cuartos y semifinales a 5 tantos y la final, a 7, en el frontón Labrit de Iruña.', eu: 'pilotari bakoitzak bere eskualdearen alde jokatzen du: zuk, zurearen alde, Nafarroako beste zazpi eskualdetako txapeldunen aurka. Buruz buru: final-laurdenak eta finalerdiak 5 tantora eta finala, 7ra, Iruñeko Labrit frontoian.' } },
   gran: { name: 'Gran Txapela de Navarra', full: 'Gran Txapela de Navarra', k: 'El acontecimiento del año', base: 'mano', fmt: 'ko16', lv: 1, global: true, evento: true,
     como: { es: 'el acontecimiento del año: los dieciséis mejores pelotaris de toda Navarra, mano a mano por eliminatorias. Octavos a 5 tantos, cuartos a 6, semifinales a 7 y la gran final, a 9, en el frontón Labrit de Iruña lleno hasta arriba. Una sola txapela para todo el viejo reino.', eu: 'urteko gertaera handia: Nafarroa osoko hamasei pilotari onenak, buruz buru kanporaketetan. Final-zortzirenak 5 tantora, final-laurdenak 6ra, finalerdiak 7ra eta final handia, 9ra, Iruñeko Labrit frontoian, beteta. Txapela bakarra erresuma zahar osorako.' } },
+  // (el del trinquete, el 15 de noviembre de 2026: el autor, «no te olvides del trinquete». Se jugaba solo como partido
+  // libre en «Frontones»; ahora tiene su torneo, de toda Navarra, en los dos trinquetes de verdad del juego: trinqueteDe)
+  trinquete: { name: 'Torneo de Trinquete', full: 'Torneo de Trinquete', k: 'Cuatro paredes · 8', base: 'mano', fmt: 'ko8', lv: 0.2, global: true, trinquete: true,
+    como: { es: 'ocho pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Cuartos en el trinquete de Elizondo, semifinales en el de Lekunberri y la final, a 7 tantos, otra vez en Elizondo.', eu: 'zortzi pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-laurdenak Elizondoko trinketean, finalerdiak Lekunberrikoan eta finala, 7 tantora, berriro Elizondon.' } },
 };
 /** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
-export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas'];
+export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas', 'trinquete'];
+/** El trinquete de cada ronda del Torneo de Trinquete: los dos de verdad del juego (data/frontones.js), el de Elizondo
+ *  para los cuartos y la final y el de Lekunberri para las semifinales. El de Sangüesa es del siglo XVI y ya no existe */
+export const trinqueteDe = (T, m) => DESTACADOS.find(f => f.id === (/^Semi/.test(m?.round || '') ? 'lekunberri' : 'elizondo-trinquete'));
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
@@ -474,7 +481,7 @@ const CSS = `
 .cp-card:hover,.cp-card:focus-visible{border-color:color-mix(in srgb,var(--ac) 55%,transparent);transform:translateY(-2px)}
 .cp-card:active{transform:scale(.98)}
 .cp-card:focus-visible{outline:2px solid #fff;outline-offset:2px}
-.cp-mano{--ac:#ff4fd8}.cp-parejas{--ac:#9b7bff}.cp-cuatro{--ac:#ff8a3d}.cp-evento{--ac:#ffc94a}.cp-libre{--ac:#3ec7e0}.cp-retos{--ac:#ffd166}.cp-front{--ac:#7ee0b0}.cp-casa{--ac:#5fdca0}.cp-col{--ac:#c4a8ff}
+.cp-mano{--ac:#ff4fd8}.cp-parejas{--ac:#9b7bff}.cp-cuatro{--ac:#ff8a3d}.cp-evento{--ac:#ffc94a}.cp-libre{--ac:#3ec7e0}.cp-retos{--ac:#ffd166}.cp-front{--ac:#7ee0b0}.cp-trinq{--ac:#ff6a5a}.cp-casa{--ac:#5fdca0}.cp-col{--ac:#c4a8ff}
 /* (arriba, la foto: el frontón pintado del juego, cada campeonato con su encuadre, y delante el rival de pie en la cancha) */
 .cp-foto{position:relative;flex:1 1 0;min-height:0;display:block;overflow:hidden;isolation:isolate;background:#140a2c}
 .cp-foto::before{content:'';position:absolute;inset:0;z-index:-2;background:var(--foto,var(--cancha)) var(--fx,50%) 100%/cover no-repeat;transform:scale(var(--fz,1));transform-origin:50% 80%;transition:transform .5s cubic-bezier(.2,.9,.3,1)}
@@ -885,7 +892,9 @@ export function torneoPanel(T, here = null, o = null) {
     const m = yourMatch(T), pairs = T.kind === 'parejas', lang = isEU() ? 'eu' : 'es', yp = T.players.find(p => p.you);
     // (el frontón del partido: el elegido para esta ronda o, si no, el que le toca: ver sedeRonda)
     // (y el cubierto de otro pueblo: el del rival o, si no es de un pueblo del juego, uno de la comarca; ver fueraDe)
-    const fu = o && m ? fueraDe(T) : null; if (fu && !o.sedes.includes('fuera')) { o.sedes = [...o.sedes, 'fuera']; o.fuera = fu.name; o.fueraId = fu.id; }
+    // (en el Torneo de Trinquete no se elige: cada ronda tiene su trinquete, trinqueteDe)
+    const tq = KINDS[T.kind]?.trinquete && m ? trinqueteDe(T, m) : null; if (tq && o) o.sedes = [];
+    const fu = o && m && !tq ? fueraDe(T) : null; if (fu && !o.sedes.includes('fuera')) { o.sedes = [...o.sedes, 'fuera']; o.fuera = fu.name; o.fueraId = fu.id; }
     if (o && m) { o.sede = sedeDe(T, m, o.sedes); o.onSede = (k) => { T.sede = { ri: T.round, round: m.round, edition: T.edition, kind: k }; }; }
     const how = comoFunciona(T);
     // (las cartas del duelo, con el color que cada uno viste en el partido)
@@ -901,7 +910,7 @@ export function torneoPanel(T, here = null, o = null) {
       etiqueta = m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round;
       left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="tq-a">A ${tantosDe(m.target)} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
 `;
-      sede = o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
+      sede = tq ? `<span class="tq-where">${esc(tq.nombre.replace(/ de .*/, ''))} de <b>${esc(tq.lugar.split(',')[0])}</b></span>` : o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
     } else left = `<div class="tq-banner"><div class="tq-bt"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div></div>`;
     // (con liguilla, dos pestañas: la clasificación y el cuadro de las eliminatorias; se abre la de la ronda que toca)
     const v0 = T.groups && !T.done && planOf(T)[T.round]?.liga != null ? 'liga' : 'cuadro';
@@ -1069,7 +1078,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       torneoCarta(T, 'torneo', 'cp-mano', 0.05),
       T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', 0.1, true) : '',
       T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro', 0.15) : '',
-      ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2)); }),
+      ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2)); }),
       carta({ a: 'libre', cls: 'cp-libre', d: 0.5, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½' }),
       carta({ a: 'frontones', cls: 'cp-front', d: 0.52, figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
       carta({ a: 'retos', cls: 'cp-retos', d: 0.55, figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),

@@ -559,6 +559,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Cada uno dice sus reglas (`base`: mano a mano en toda la cancha o hasta el 4½), su formato (`fmt`), lo fuertes que
   son los rivales (`lv`) y su «Cómo funciona» (`como`, en castellano y euskera). Todos son de cada comarca salvo el
   acontecimiento del año y el de comarcas: cuatro por comarca y dos para Navarra, 50 txapelas más.
+  - Y desde el 15 de noviembre de 2026, el Torneo de Trinquete (`trinquete`, `trinqueteDe`): el autor, «no te olvides
+    del trinquete». El trinquete solo se jugaba como partido libre en «Frontones». Ahora tiene su torneo, mano a mano,
+    ocho, uno para toda Navarra, y cada ronda en un trinquete de verdad del juego: los cuartos y la final en el de
+    Elizondo y las semifinales en el de Lekunberri. No se elige frontón: el cuadro dice en qué trinquete toca. El de
+    Sangüesa, del siglo XVI, ya no existe y no entra. La celebración dice la txapela de cada campeonato de toda
+    Navarra; antes, todos los de Navarra decían «la Gran Txapela». Sin frases del locutor para este torneo: harían
+    falta grabarlas.
 - **Elegir tu pelotari en un campeonato** (`game/torneo.js`, `eligePelotari`, `ponPelotari`, `elegibles`, `tusStats`,
   `sinEmpezar`; `game/townDeportes.js`, `pelotaTorneo`; `game/fronton.js`, opción `yo`): como elegir equipo en el FIFA.
   Al abrir un campeonato nuevo sale «Elige tu pelotari»: tu carta y las de los 21 pelotaris del juego, cada uno con su
