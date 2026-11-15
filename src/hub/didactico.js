@@ -129,7 +129,7 @@ const ROMERIA_LAM = { 'orreaga-roncesvalles': 'orreaga-camino', 'burgui-burgi': 
 const IGLESIA_ILUS = { romanesque: 'iglesia-romanica', gothic: 'iglesia-gotica', baroque: 'iglesia-barroca', fortress: 'iglesia-fortaleza', 'Iglesia neoclásica': 'iglesia-neoclasica', 'Iglesia neobarroca': 'iglesia-neobarroca', 'Basílica neogótica': 'iglesia-neogotica', 'Iglesia del siglo XIX': 'iglesia-neogotica', 'Iglesia del siglo XVI': 'iglesia-renacimiento', 'Iglesia de ladrillo': 'iglesia-ladrillo', 'Iglesia medieval': 'iglesia-romanica', 'Portada románica': 'portada-romanica' };
 const MONUMENTO_ILUS = { house: 'casa-escudo', towerhouse: 'casa-torre', ruin: 'ruinas', chapel: 'ermita', cross: 'crucero', monolith: 'monolito', lookout: 'mirador', pass: 'puerto-montana', horreo: 'horreo', stelae: 'estelas' };
 const MONUMENTO_LAM = { bridge: 'puente-la-reina', castle: 'javier', walls: 'pamplona-murallas', palace: 'olite', dolmen: 'artajona-dolmen', mill: 'c-molino', tunnel: 'lekunberri-plazaola', cave: 'zugarramurdi', dig: 'irulegi-mano', palomeras: 'etxalar-palomeras', townhall: 'pamplona', arch: 'amaiur-maya-del-baztan', gorge: 'lumbier' };
-export const LM_ICON = { chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
+export const LM_ICON = { trinquete: 'pelota', chapel: 'church', pass: 'mountain', dig: 'dolmen', palomeras: 'net', gorge: 'gorge', fountain: 'fountain', kiosk: 'kiosk', arch: 'arch' };
 const towns = (pred) => LEVELS.filter(l => (l.missions || []).some(pred)).map(l => l.id);
 
 export const DIDACTICO = {

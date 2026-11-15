@@ -1370,6 +1370,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         la pelota del saque va en la mano izquierda (`st.manoIzq` en `glbChar.js`), sin el gesto de llevarla y botarla
         con la derecha; y los comentaristas no dicen las frases que hablan de la mano o de jugar a mano
         (`Comentarios.sinMano`, por el texto de cada frase del guion).
+    - Los trinquetes de verdad en los pueblos (`world/trinquetePueblo.js`, «sigue con lo que falte»): un monumento nuevo,
+      `trinquete`, en Elizondo (Trinquete Antxitonea) y en Lekunberri (Trinquete de Lekunberri), al final de su lista para
+      no mover los índices de los demás. Va sobre su edificio de los datos, el que se llama «Trinkete…»
+      (`levels/townReal.js`, `trinqueteTraza`): una nave de 26 a 36 m por 14 a 18, a lo largo del lado largo del edificio,
+      con la fachada hacia el lado con menos casas y sin río delante (hacia la plaza, en Elizondo daba contra las casas);
+      las casas que pisa y las de una placita de 8 m delante no se levantan, y el suelo de debajo queda llano. Lekunberri:
+      revoco azul verdoso, tejado de cinc, banda de luz corrida, un pelotari pintado de blanco con la faja roja, un xare,
+      una pala y la pelota en la fachada (un dibujo del juego, no el mural de verdad), el rótulo azul «TRINKETEA» sin
+      escudo y, a un costado, un anexo bajo de chapa gris, como en la foto. Elizondo: casa de revoco blanco con esquinales
+      de sillar, tejado de teja, ventanas con marco y su rótulo. El mural y el rótulo, en un solo lienzo (768 × 384 en
+      Lekunberri: 1,6 MB); las paredes teñidas, una malla con el revoco del juego. En Lekunberri ese edificio era además
+      el «frontón» de los datos: el frontón del juego se levanta ahora junto a la plaza. Con el perfil del iPhone, en la
+      puerta del pueblo: Elizondo 606k triángulos y 436 llamadas (antes 600k y 424); Lekunberri 489k y 366 (antes 480k y
+      289; de esas 77, el trinquete pone unas 6 y el resto es el frontón, que ahora se ve desde la puerta). Las texturas,
+      92 y 94 MB, ya pasaban de 80 antes del trinquete (93 y 93). Icono, el de la pelota (`ALIAS` en `ui/icons.js`).
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.

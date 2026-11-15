@@ -11,6 +11,7 @@ import { addBox, addCircle, isFree, rectFree } from './colliders.js';
 import { mulberry32, clamp } from '../util/math.js';
 import { realChurchRy, realBridges, realHouses, fachadaLejana } from './townReal.js';
 import { presas } from './presas.js';
+import { trinqueteEdificio } from './trinquetePueblo.js';
 
 export const TOWN = { houses: [], balcones: [], shields: [], armsSpot: null, benches: [], church: null, fountain: null, landmarks: [], farm: null, pen: null };
 if (typeof window !== 'undefined') window.__TOWN = TOWN;   // (para las herramientas de capturas)
@@ -126,7 +127,8 @@ export function buildTown(scene, mats, def) {
       if (po.shieldLocal) shieldAt(lm.x, pb, lm.z, r2, po.shieldLocal, true);
       addBox(lm.x, lm.z, w + 0.4, d + 0.4, r2, { solidView: true });
       spot = { x: lm.x + Math.sin(r2) * (d / 2 + 2), z: lm.z + Math.cos(r2) * (d / 2 + 2) };
-    } else spot = landmark(B, lm, ctx);
+    } else if (lm.kind === 'trinquete') spot = trinqueteEdificio(B, group, mats, lm, def);   // (Elizondo y Lekunberri: trinquetePueblo.js)
+    else spot = landmark(B, lm, ctx);
     TOWN.landmarks.push({ ...lm, spot: spot || { x: lm.x, z: lm.z } });
   }
   // plaza: fuente (si no hay kiosco), bancos y árboles

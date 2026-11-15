@@ -10,6 +10,7 @@ import { skylineFor } from '../data/horizonte.js';
 import { sierrasDe } from '../world/sierras.js';
 import { ordenarCasas, ordenarPuentes, partirBloques, anexosManzana } from './ordenar.js';
 import { iglesiaReal } from '../data/reales/iglesia.js';
+import { trinqueteTraza, trinqueteToca, trinqueteFrente, trinqueteDelante } from '../world/trinquetePueblo.js';
 
 const FAMILY = {
   atlantic: { forest: 0.55, grass: 'lush', crops: [0, 0, 4, 4, 1, 8] },
@@ -407,6 +408,12 @@ export function createRealTownLevel(def, D) {
     // (las ruinas con nombre propio, en el edificio que se llama así: las de San Pedro de Viana, en su iglesia, no en el
     // punto de los datos de lugares, que caía 160 m más allá, en el centro)
     else if (k === 'ruin' && keys.length) { b = byName(keys, /ruina|iglesia|ermita|eliza|castillo|torre/); }
+    // (el trinquete, sobre su edificio de los datos, el que se llama «Trinkete…»: Antxitonea en Elizondo; en Lekunberri ese
+    // edificio es además el «frontón» de los datos, y el frontón del juego se levanta entonces en otro sitio, cerca de la plaza)
+    else if (k === 'trinquete') {
+      b = CASAS.find(c => c.n && /trinke|trinque/.test(nrm(c.n)) && !TAKEN.has(c)) || null;
+      if (b && LG.fronton && Math.hypot(b.x - LG.fronton.x, b.z - LG.fronton.z) < 1) { PLACES.frontonNear = null; PLACES.frontonReal = false; }
+    }
     if (!pos && !b && !['bridge', 'townhall', 'kiosk', 'fountain', 'plaza'].includes(k)) {
       const pl = placeByName(keys, KIND_RE[k] || null, NATURAL.has(k));
       if (pl) {
@@ -443,6 +450,18 @@ export function createRealTownLevel(def, D) {
     if (lm.x != null) pos = { x: lm.x, z: lm.z };
     const o = { ...lm, x: pos.x, z: pos.z, center: pos.center, ring: pos.ring, realBuilding: b || null, realPlace: placeName };
     PLACES.landmarks.push(o);
+    // (la nave del trinquete y su anexo, con su traza: las casas que pisa no se levantan y el suelo de debajo queda llano)
+    // (la fachada, hacia el lado que tenga menos casas y nada de río delante: en Elizondo, hacia la plaza, daba contra las
+    // casas de al lado y no se veía; y delante, una placita de 8 m sin casas, para llegar a la puerta)
+    if (k === 'trinquete') {
+      const tapan = (t) => CASAS.filter(c => c !== b && c !== ch && !TAKEN.has(c) && trinqueteFrente(t, c, 16)).length
+        + [4, 9, 14].filter(d => { const q = trinqueteDelante(t, d); return riverInfo(q.x, q.z).edge < 2; }).length * 3;
+      let tq = trinqueteTraza(o, b, PL); const otro = { ...tq, ry: tq.ry + Math.PI };
+      if (tapan(otro) < tapan(tq)) tq = otro;
+      o.tq = tq;
+      for (const c of CASAS) if (c !== b && c !== ch && !TAKEN.has(c) && (trinqueteToca(tq, c) || trinqueteFrente(tq, c, 8))) TAKEN.add(c);
+      pads.push({ x: tq.x, z: tq.z, r: Math.hypot(tq.w, tq.d) / 2 + 2, blend: 12 });
+    }
     // (las casas que pisaría el monumento no se levantan: el castillo ocupa su recinto; los demás, unos metros)
     const rr = clearR || (k === 'walls' && pos.ring ? 0 : ['bridge', 'plaza', 'kiosk', 'fountain', 'townhall'].includes(k) || b ? 0 : 8);
     if (rr) for (const c of CASAS) if (Math.hypot(c.x - o.x, c.z - o.z) < rr + Math.max(c.w, c.d) / 2) TAKEN.add(c);

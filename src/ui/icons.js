@@ -219,7 +219,7 @@ export const ALIAS = {
   race: 'running', observe: 'binoculars', tradition: 'music', quiz: 'quiz',
   romanesque: 'church', gothic: 'church', baroque: 'church', fortress: 'castle', cathedral: 'cathedral', pamplona: 'cathedral',
   aizkolari: 'axe', harrijasotzaile: 'stone', herrero: 'anvil', palomero: 'net', cantero: 'hammer', alpargatero: 'espadrille',
-  camino: 'camino', almadia: 'raft', encierro: 'bull', romeria: 'footprint', bici: 'bike', song: 'music',
+  trinquete: 'pelota', camino: 'camino', almadia: 'raft', encierro: 'bull', romeria: 'footprint', bici: 'bike', song: 'music',
   sheep: 'sheep', cows: 'cow', pottoka: 'horse', horses: 'horse', pigs: 'pig', goats: 'sheep',
   uva: 'grapes', olivo: 'olive', piquillo: 'pepper', esparrago: 'asparagus', alcachofa: 'artichoke', cardo: 'cardo', tomate: 'tomato',
   trigo: 'wheat', patata: 'potato', manzana: 'apple', almendra: 'almond', pocha: 'beans', maiz: 'corn', corn: 'corn', milk: 'milk', herb: 'herb',

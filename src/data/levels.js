@@ -99,7 +99,7 @@ export const LEVELS = [
     river: { name: 'Baztan', x: 0, w: 5, amp: 4 },
     intro: 'Capital del valle de Baztan, con palacios de indianos y casas blasonadas a orillas del río.',
     church: { name: 'Iglesia de Santiago', style: 'baroque', twin: true, label: 'Iglesia neobarroca', text: 'Construida entre 1916 y 1925, después de que la gran riada de 1913 destruyera la iglesia anterior. Es de piedra rojiza y tiene dos torres gemelas con cúpulas.' },
-    landmarks: [{ kind: 'palace', name: 'Palacio de Arizkunenea', text: 'Casa-palacio del siglo XVIII. Muchos baztaneses emigraron a América y al volver construyeron casas palacio: eran los indianos.' }, { kind: 'bridge', name: 'Puente de Elizondo', text: 'El río Baztan atraviesa el pueblo; más abajo pasa a llamarse Bidasoa.' }],
+    landmarks: [{ kind: 'palace', name: 'Palacio de Arizkunenea', text: 'Casa-palacio del siglo XVIII. Muchos baztaneses emigraron a América y al volver construyeron casas palacio: eran los indianos.' }, { kind: 'bridge', name: 'Puente de Elizondo', text: 'El río Baztan atraviesa el pueblo; más abajo pasa a llamarse Bidasoa.' }, { kind: 'trinquete', name: 'Trinquete Antxitonea', text: 'En el trinquete se juega entre cuatro paredes: la pelota rebota en el tejadillo de la izquierda y en la pared de la derecha, y el público mira detrás de la red. En el campeonato de trinquete del juego, aquí se juegan las primeras rondas.' }],
     missions: [
       { type: 'visit' },
       { type: 'trade', kind: 'cestero', title: 'El cestero', host: H('Martín, cestero', { shirt: '#e8e0cc', vest: '#3a4a3a', pants: '#3a3530', txapela: '#1d1d24', hair: '#bdb6aa', old: true }) },
@@ -131,7 +131,7 @@ export const LEVELS = [
     river: { name: 'Larraun', x: 40, w: 2.6, amp: 5 },
     intro: 'Pueblo del valle de Larraun, a los pies de la sierra de Aralar, entre prados, caseríos y hayedos.',
     church: { name: 'Iglesia de San Juan Bautista', style: 'gothic', text: 'Iglesia del siglo XIV, entre el románico y el gótico, en el corazón del pueblo viejo. Conserva dos ventanas de aire románico.' },
-    landmarks: [{ kind: 'tunnel', name: 'Vía verde del Plazaola', text: 'El tren del Plazaola paraba en Lekunberri en su viaje entre Pamplona y San Sebastián. Hoy la vía es un camino para ir a pie o en bici, con túneles y puentes.' }, { kind: 'dolmen', name: 'Dolmen de Aralar', text: 'En la sierra de Aralar hay decenas de dólmenes: tumbas de piedra que levantaron los primeros pastores hace unos 5.000 años.' }],
+    landmarks: [{ kind: 'tunnel', name: 'Vía verde del Plazaola', text: 'El tren del Plazaola paraba en Lekunberri en su viaje entre Pamplona y San Sebastián. Hoy la vía es un camino para ir a pie o en bici, con túneles y puentes.' }, { kind: 'dolmen', name: 'Dolmen de Aralar', text: 'En la sierra de Aralar hay decenas de dólmenes: tumbas de piedra que levantaron los primeros pastores hace unos 5.000 años.' }, { kind: 'trinquete', name: 'Trinquete de Lekunberri', text: 'En la fachada hay un gran pelotari pintado, con un xare y una pala. Dentro, cuatro paredes y el tejadillo de la izquierda. En el campeonato de trinquete del juego, aquí se juegan las semifinales.' }],
     missions: [
       { type: 'visit' },
       { type: 'herd', animal: 'pigs', n: 5, title: 'El euskal txerri', card: 'Euskal txerri', host: H('Joxe, criador', { shirt: '#e9e1cf', vest: '#3a4a3a', pants: '#3a3530', txapela: '#1d1d24', hair: '#9a948a', moustache: '#9a948a', staff: true }),
