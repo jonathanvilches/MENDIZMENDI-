@@ -2299,6 +2299,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - A 32° en vez de 29°: de cerca, con 29° los montes de delante tapaban los valles.
   - En el móvil tumbado, con el Pirineo, la cámara queda a entre 37 y 46 de distancia según el lado, en vez de 61, y la
     isla llena la imagen.
+  - Esa misma noche, con otra captura del autor, el Pirineo visto de punta desde el oeste: «se aleja mucho la cámara y la
+    comarca está demasiado lejos». Para que cupieran los dos extremos de una isla larga, la cámara se iba a 46 y la isla
+    quedaba estrecha en medio de la imagen. Ahora, desde ningún lado se aleja más de un 15 % de lo que se acerca desde el
+    lado más cercano (`c.dOrb`): de punta se recortan un poco los extremos. Y con márgenes más justos arriba y a los
+    lados, ya sin nombres encima. El Pirineo, entre 36 y 41.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la

@@ -727,7 +727,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // relieve, desde cada lado de la órbita (dY, una distancia cada 30°), mirando a su cara de arriba; la punta de la panza
   // puede quedar detrás de la fila de fichas. La isla llena la imagen y se ve en perspectiva: lo de delante, con su canto,
   // grande, y los montes del fondo detrás)
-  const ENC_ISLA = { pitch: 0.56, arriba: 0.08, lados: 0.05, abajo: 0.03 };
+  const ENC_ISLA = { pitch: 0.56, arriba: 0.05, lados: 0.03, abajo: 0.03 };   // (márgenes en partes de la imagen: sin nombres encima, arriba basta con poco)
   function encuadreIsla(c) {
     const I = c.isla, A = ampDe(c), P = A.amplia ? A.P : c.Pw, al = A.amplia ? A.alto : alto, n = P.length, salto = Math.max(1, Math.round(n / 64));
     const E = { ...ENC_ISLA, ...(import.meta.env.DEV && window.__encIsla || {}) };
@@ -754,6 +754,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (y suavizadas con las de al lado, solo hacia arriba: en el Pirineo, de un lado a otro pasaba de 37 a 30 y a 39, y al
     // girar la cámara se acercaba y se alejaba a golpes; así no corta nada y respira menos)
     for (let n = 0; n < 2; n++) dY = dY.map((d, k) => Math.max(d, 0.5 * d + 0.25 * (dY[(k + 11) % 12] + dY[(k + 1) % 12])));
+    // (y como mucho un 15 % más lejos que desde el lado más cercano: vista de punta, una isla larga como el Pirineo pedía 46
+    // para que cupieran los dos extremos, y quedaba estrecha en medio de la imagen y lejos, «la comarca está demasiado
+    // lejos», el 15 de noviembre de 2026 por la noche. Así, de punta, se recortan un poco sus extremos y se ve de cerca)
+    const dMin = Math.min(...dY); dY = dY.map(d => Math.min(d, dMin * 1.15)); c.dOrb = dMin;
     return { x: X, z: Z, pitch: E.pitch, dY, d: dY[0] };
   }
   // (a qué altura mira la cámara con la isla en el aire: de la mitad del bloque, entre la cara de arriba y la punta de la
