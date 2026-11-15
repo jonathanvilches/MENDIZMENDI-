@@ -2237,8 +2237,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     bajado, sus crestas salían como pinchos bajo un velo.
   - Con la isla crecida, la orilla de dentro solo baja hasta el fondo del valle de cerca (`VAL` en `hazIsla`), no hasta
     lo más bajo de toda la isla: en Bidasoa quedaba alrededor una repisa llana y, dentro, un escalón.
-  - En la orilla y en lo que crece, la ortofoto, más difuminada, también la fina: la foto trae pintadas las sombras de los
-    montes de verdad, y donde el terreno ha bajado se veían montes fantasma.
+  - En la orilla y en lo que crece, la ortofoto, solo algo difuminada como antes, y la fina, a medias. Más difuminada
+    volvía la rampa verde lisa que el autor no quiso el 14 de noviembre; los montes fantasma venían del relieve fino.
   - Medido con el contorno de las 12: crecen entre un 11 % (Ribera Alta) y un 54 % (Pirineo). Con la isla del Pirineo en
     el aire, su losa densa tiene 92.000 triángulos y los árboles del mapa con su bosque denso, 191.000.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
