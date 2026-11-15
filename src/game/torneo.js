@@ -838,7 +838,8 @@ const tipoTxt = (F) => { const eu = isEU(), T = TIPOS[F.tipo] || TIPOS.izquierda
 const primera = (t = '') => (String(t).match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
 export function frontonesMenu() {
   efCss(); if (!document.getElementById('frg-css')) { const st = document.createElement('style'); st.id = 'frg-css'; st.textContent = FR_CSS; document.head.appendChild(st); }
-  // (y al final, los dos trinquetes modernos inventados para el juego, con la imagen sacada del propio partido: TRINQ_JUEGO)
+  // (y al final, los dos trinquetes modernos inventados para el juego, con su imagen pintada en Higgsfield a partir de una
+  // del propio partido, la misma cancha y el mismo encuadre: TRINQ_JUEGO)
   const LISTA = [...DESTACADOS, ...TRINQ_JUEGO], eu = isEU(), N = { todos: LISTA.length }; for (const F of LISTA) N[F.tipo] = (N[F.tipo] || 0) + 1;
   return new Promise(res => {
     let filtro = 'todos', sel = null;

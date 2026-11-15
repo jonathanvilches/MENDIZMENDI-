@@ -13,6 +13,10 @@ import { terrainHeight } from './heightfield.js';
 import { addBox } from './colliders.js';
 import { freeCanvasOnUpload } from '../util/freeCanvas.js';
 import { clamp } from '../util/math.js';
+// (el mural de Lekunberri, pintado en Higgsfield, GPT Image: el pelotari de blanco con la faja roja, el xare, la pala y las
+// pelotas, sobre la pared azul verdosa, que se quita para que asome el revoco de la nave; 672 × 288 con transparencia. El
+// autor: «apóyate en Higgsfield para las imágenes». Mientras llega, o si no llega, el dibujo de mural())
+import MURAL from '../assets/murales/trinquete-lekunberri.webp?url';
 
 const LOOK = {
   lekunberri: { pared: null, paredColor: '#3f8d94', zocalo: 'stoneDark', tejado: 'zinc', puerta: '#1f56a6', mural: true, anexo: true, ventanas: 'banda',
@@ -179,6 +183,17 @@ export function trinqueteEdificio(B, group, mats, lm, def) {
   if (L.mural) { g.save(); g.beginPath(); g.rect(0, 0, MW, MH); g.clip(); mural(g, MW, MH); g.restore(); }
   g.save(); g.translate(0, CH - RH); g.beginPath(); g.rect(0, 0, RW, RH); g.clip(); rotulo(L.rotulo)(g, RW, RH); g.restore();
   const tx = freeCanvasOnUpload(new THREE.CanvasTexture(cv)); tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = 4;
+  if (L.mural) {
+    const img = new Image(); img.decoding = 'async';
+    img.onload = () => {
+      const c2 = document.createElement('canvas'); c2.width = CW; c2.height = CH; const g2 = c2.getContext('2d');
+      const k = Math.min(MW / img.width, MH / img.height), w = img.width * k, h = img.height * k;
+      g2.drawImage(img, (MW - w) / 2, (MH - h) / 2, w, h);
+      g2.save(); g2.translate(0, CH - RH); g2.beginPath(); g2.rect(0, 0, RW, RH); g2.clip(); rotulo(L.rotulo)(g2, RW, RH); g2.restore();
+      tx.image = c2; freeCanvasOnUpload(tx); tx.needsUpdate = true;
+    };
+    img.src = MURAL;
+  }
   const geos = [plano(5.2, 1.3, 0, CH - RH, RW, RH, CW, CH).applyMatrix4(at(0, 4.15, zf + 0.05))];
   if (L.mural) geos.push(plano(13.3, 5.0, 0, 0, MW, MH, CW, CH).applyMatrix4(at(0, 7.3, zf + 0.03)));
   const lam = new THREE.Mesh(mergeGeometries(geos), new THREE.MeshStandardMaterial({ map: tx, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));

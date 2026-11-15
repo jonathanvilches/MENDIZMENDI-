@@ -1387,6 +1387,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       después de la del Cuatro y Medio (`pelotaMenu`, `T4`; `torneoTrinquete` en `townDeportes.js`), y el pelotari del
       pueblo lo ofrece con los otros tres. Las txapelas del torneo de antes pasan una vez al de la primera comarca donde
       se juegue y el guardado viejo se borra.
+    - Las imágenes, con Higgsfield (el autor: «apóyate en Higgsfield para las imágenes»): las de las cartas del Trinquete
+      Herrizherri y del Beltza en «Frontones» (`src/assets/frontones-juego`), pintadas con GPT Image a partir de una imagen
+      del propio partido, la misma cancha y el mismo encuadre, como una foto, vacía y sin letras (antes, la captura del
+      juego con los pelotaris y el público); y el mural del trinquete de Lekunberri (`src/assets/murales`), un pelotari de
+      blanco con la faja roja, un xare, una pala y dos pelotas, con el fondo quitado para que asome el revoco de la nave;
+      se carga encima del dibujo de `mural()`, que queda si no llega. Seis imágenes, 9 créditos.
     - Los trinquetes de verdad en los pueblos (`world/trinquetePueblo.js`, «sigue con lo que falte»): un monumento nuevo,
       `trinquete`, en Elizondo (Trinquete Antxitonea) y en Lekunberri (Trinquete de Lekunberri), al final de su lista para
       no mover los índices de los demás. Va sobre su edificio de los datos, el que se llama «Trinkete…»
