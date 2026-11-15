@@ -7,5 +7,7 @@ const FOTOS = urls(import.meta.glob('../assets/frontones/*.webp', { eager: true,
 const CANCHAS = urls(import.meta.glob('../assets/frontones-juego/*.webp', { eager: true, query: '?url', import: 'default' }));
 /** La foto de verdad de un frontón (su clave en data/frontones.js) o ''. */
 export const fotoFronton = (k) => (k && FOTOS[k]) || '';
+/** Una cancha sacada del propio juego por su nombre (los trinquetes inventados de «Frontones»: torneo.js TRINQ_JUEGO) o ''. */
+export const canchaFoto = (k) => (k && CANCHAS[k]) || '';
 /** La cancha de un pueblo tal como se juega: sede 'plaza', 'cubierto' o 'labrit' (la de Iruña), o ''. */
 export const canchaImg = (town, sede) => CANCHAS[sede === 'labrit' ? 'pamplona-labrit' : `${town}-${sede}`] || '';

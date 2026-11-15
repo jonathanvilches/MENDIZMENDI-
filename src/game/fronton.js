@@ -358,6 +358,9 @@ const TRINQ_LOOK = { frontis: '#3f9655', wall: '#3f9655', cap: '#3f9655', stone:
 // (y el moderno de la final del Torneo de Trinquete, como la foto azul que pasó el autor el 15 de noviembre de 2026: todo
 // azul, con las rayas blancas, el suelo gris oscuro y la chapa de abajo en un azul más hondo)
 const TRINQ_MODERNO = { frontis: '#2f62c6', wall: '#2f62c6', cap: '#2f62c6', stone: null, marco: '#f2f4f7', floor: '#5b5f66', contra: '#62666d', line: '#f2f4f7', mark: '#f2f4f7', chapa: '#1b3c8c', chapaMetal: false };
+// (y el oscuro, el Trinquete Beltza, como el de Baiona de la otra foto: las paredes casi negras, el tejadillo y el tambor
+// verdes, el suelo claro con las rayas rojas y el techo oscuro del pabellón)
+const TRINQ_BELTZA = { frontis: '#2a2d33', wall: '#2a2d33', cap: '#2f9a5c', stone: null, marco: '#d6402e', floor: '#cdc6b8', contra: '#c4bdaf', line: '#d6402e', mark: '#d6402e', chapa: '#c2412b', chapaMetal: false, tejadillo: '#2f9a5c', tambor: '#2f9a5c' };
 const ARQ_FOTO = { isaba: 'erminea', ziordia: 'ziordia', iraneta: 'iraneta', igantzi: 'igantzi', peralta: 'peralta', 'navarra-arena': 'pabellon' };
 export function realVenue(scene, out, F) {
   if (REAL && REAL.court.group.parent === scene && REAL.realId === F.id) return REAL;
@@ -369,7 +372,8 @@ export function realVenue(scene, out, F) {
     // (el trinquete, con su propio aspecto y no el del cubierto de su comarca, que le ponía el frontis de piedra y el suelo
     // rosado: todas las paredes pintadas del mismo verde, también el frontis, con el remate amarillo, el suelo de hormigón
     // gris y las rayas amarillas, como el de Elizondo de las fotos; y el techo, claro y bajo, justo encima de los balcones)
-    REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: legible({ ...hallLook(def, W.seed, 'erminea'), ...(F.moderno ? TRINQ_MODERNO : TRINQ_LOOK) }), hall: true, arq: 'erminea', tipo, moderno: !!F.moderno, noClear: true });   // (techo claro con sus tubos de luz, como el de las fotos)
+    const arq = F.beltza ? 'pabellon' : 'erminea';   // (el oscuro, con el techo oscuro y las cerchas de acero del pabellón)
+    REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: legible({ ...hallLook(def, W.seed, arq), ...(F.moderno ? TRINQ_MODERNO : F.beltza ? TRINQ_BELTZA : TRINQ_LOOK) }), hall: true, arq, tipo, moderno: !!F.moderno, trinq: F.beltza ? 'beltza' : undefined, noClear: true });   // (techo claro con sus tubos de luz, como el de las fotos)
   } else if (F.cubierto) {
     const arq = ARQ_FOTO[F.id] || arqDe({ comarca: F.comarca });
     REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: hallLook(def, W.seed, arq), hall: true, arq, tipo, noClear: true });

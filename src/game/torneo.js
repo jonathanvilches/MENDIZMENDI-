@@ -28,7 +28,7 @@ import { iconSVG } from '../ui/icons.js';
 import { enCss } from '../util/tele.js';
 import { minstd } from '../util/math.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
-import { fotoFronton, canchaImg } from '../ui/frontonFotos.js';
+import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
@@ -78,7 +78,7 @@ export const KINDS = {
   // (el del trinquete, el 15 de noviembre de 2026: el autor, «no te olvides del trinquete». Se jugaba solo como partido
   // libre en «Frontones»; ahora tiene su torneo, de toda Navarra, en los dos trinquetes de verdad del juego: trinqueteDe)
   trinquete: { name: 'Torneo de Trinquete', full: 'Torneo de Trinquete', k: 'Cuatro paredes · 8', base: 'mano', fmt: 'ko8', lv: 0.2, global: true, trinquete: true,
-    como: { es: 'ocho pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Cuartos en el trinquete de Elizondo, semifinales en el de Lekunberri y la final, a 7 tantos, en el Trinquete Herrizherri, uno moderno, con la pared derecha de cristal y la grada detrás.', eu: 'zortzi pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-laurdenak Elizondoko trinketean, finalerdiak Lekunberrikoan eta finala, 7 tantora, Herrizherri trinketean: trinkete berri bat, eskuineko horma kristalezkoa eta atzean harmailak.' } },
+    como: { es: 'ocho pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Cuartos en el trinquete de Elizondo, semifinales en el de Lekunberri y la final, a 7 tantos, en uno de los dos trinquetes modernos del juego, un año en el Herrizherri, con la pared derecha de cristal, y otro en el Beltza, oscuro y con balcones de cristal.', eu: 'zortzi pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-laurdenak Elizondoko trinketean, finalerdiak Lekunberrikoan eta finala, 7 tantora, jokoko bi trinkete berrietako batean: urte batean Herrizherrin, eskuineko horma kristalezkoarekin, eta hurrengoan Beltzan, ilunean, kristalezko balkoiekin.' } },
 };
 /** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
 export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas', 'trinquete'];
@@ -86,11 +86,19 @@ export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'prom
  *  los de las dos fotos que pasó el autor después de las del de Elizondo: las paredes azules con sus rayas blancas, la
  *  pared derecha de cristal con la grada detrás y la galería oscura bajo el tejadillo. No está en el catálogo de los
  *  frontones de verdad (data/frontones.js) ni en «Frontones»: solo es la sede de la final */
-export const TRINQ_FINAL = { id: 'herrizherri-trinquete', nombre: 'Trinquete Herrizherri', lugar: 'Navarra', comarca: 'pamplona', tipo: 'trinquete', cubierto: true, moderno: true };
+export const TRINQ_FINAL = { id: 'herrizherri-trinquete', nombre: 'Trinquete Herrizherri', lugar: 'Navarra', comarca: 'pamplona', tipo: 'trinquete', cubierto: true, moderno: true, inventado: true, cancha: 'herrizherri-trinquete',
+  texto: 'Un trinquete moderno, inventado para el juego: las paredes azules y la pared derecha de cristal, con la grada del público detrás. Aquí se juega la final del Torneo de Trinquete.' };
+/** El otro trinquete moderno del juego, también inventado: el Trinquete Beltza, oscuro, como el de Baiona de la segunda foto
+ *  (Trinquet Moderne): las paredes casi negras, el tejadillo y el tambor verdes y los balcones de cristal con el pasamanos
+ *  rojo encima de las dos paredes. Sin el xilo, el agujero del frontis de los de Iparralde: en Navarra no se juega */
+export const TRINQ_BELTZA = { id: 'beltza-trinquete', nombre: 'Trinquete Beltza', lugar: 'Navarra', comarca: 'pamplona', tipo: 'trinquete', cubierto: true, beltza: true, inventado: true, cancha: 'beltza-trinquete',
+  texto: 'Otro trinquete moderno del juego, oscuro, con el tejadillo verde y balcones de cristal a los dos lados. Un año de cada dos, la final del Torneo de Trinquete es aquí.' };
+/** Los dos trinquetes inventados, al final de «Frontones» */
+export const TRINQ_JUEGO = [TRINQ_FINAL, TRINQ_BELTZA];
 /** El trinquete de cada ronda del Torneo de Trinquete: los dos de verdad del juego (data/frontones.js), el de Elizondo
  *  para los cuartos y el de Lekunberri para las semifinales, y la final en el moderno, TRINQ_FINAL. El de Sangüesa es del
  *  siglo XVI y ya no existe */
-export const trinqueteDe = (T, m) => m?.round === 'Final' ? TRINQ_FINAL : DESTACADOS.find(f => f.id === (/^Semi/.test(m?.round || '') ? 'lekunberri' : 'elizondo-trinquete'));
+export const trinqueteDe = (T, m) => m?.round === 'Final' ? ((T?.edition || 1) % 2 ? TRINQ_FINAL : TRINQ_BELTZA) : DESTACADOS.find(f => f.id === (/^Semi/.test(m?.round || '') ? 'lekunberri' : 'elizondo-trinquete'));
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
@@ -824,24 +832,25 @@ const tipoTxt = (F) => { const eu = isEU(), T = TIPOS[F.tipo] || TIPOS.izquierda
 const primera = (t = '') => (String(t).match(/^.*?[.!?](\s|$)/) || [t])[0].trim();
 export function frontonesMenu() {
   efCss(); if (!document.getElementById('frg-css')) { const st = document.createElement('style'); st.id = 'frg-css'; st.textContent = FR_CSS; document.head.appendChild(st); }
-  const eu = isEU(), N = { todos: DESTACADOS.length }; for (const F of DESTACADOS) N[F.tipo] = (N[F.tipo] || 0) + 1;
+  // (y al final, los dos trinquetes modernos inventados para el juego, con la imagen sacada del propio partido: TRINQ_JUEGO)
+  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO], eu = isEU(), N = { todos: LISTA.length }; for (const F of LISTA) N[F.tipo] = (N[F.tipo] || 0) + 1;
   return new Promise(res => {
     let filtro = 'todos', sel = null;
-    const tarjeta = (F) => { const u = F.foto ? fotoFronton(F.foto) : '';
+    const tarjeta = (F) => { const u = F.foto ? fotoFronton(F.foto) : canchaFoto(F.cancha);
       return `<button type="button" class="ef-it" data-f="${F.id}" aria-pressed="false"><span class="ef-pic">${u ? `<img src="${u}" alt="" decoding="async" loading="lazy">` : iconSVG(TIPOS[F.tipo]?.icon || 'pelota', 96)}</span>
-        <span class="ef-txt"><small>${esc(F.lugar)}</small><b>${esc(F.nombre)}</b><em>${esc(tipoTxt(F))}</em><span>${esc(primera(F.texto))}</span></span></button>`; };
+        <span class="ef-txt"><small>${esc(F.inventado ? (eu ? 'Jokorako asmatua' : 'Inventado para el juego') : F.lugar)}</small><b>${esc(F.nombre)}</b><em>${esc(tipoTxt(F))}</em><span>${esc(primera(F.texto))}</span></span></button>`; };
     const que = (k) => k === 'todos' ? (eu ? 'Nafarroako benetako frontoiak: ukitu bat hor jokatzeko.' : 'Frontones de verdad de Navarra: toca uno para jugar en él. En Navarra hay unos 650: plazas libres, de pared izquierda y seis trinquetes.') : (TIPOS[k]?.texto || '');
     const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Frontoiak' : 'Frontones'}</h2></div>
       <div class="frg-tabs" role="tablist" data-notr>${['todos', 'plaza', 'izquierda', 'trinquete'].map(k => `<button type="button" data-t="${k}" aria-pressed="${k === filtro}">${k === 'todos' ? (eu ? 'Denak' : 'Todos') : esc(eu ? TIPOS[k].eu : TIPOS[k].nombre)}<b>${N[k] || 0}</b></button>`).join('')}</div>
       <p class="frg-que" data-notr>${esc(que(filtro))}</p>
-      <div class="efp-grid frg" data-notr>${DESTACADOS.map(tarjeta).join('')}</div>
+      <div class="efp-grid frg" data-notr>${LISTA.map(tarjeta).join('')}</div>
       <div class="lg-bar" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok" disabled>${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div>`);
     r.firstElementChild.classList.add('ef-card');
     const ok = r.querySelector('[data-a="ok"]');
     const fin = (F) => { removeEventListener('keydown', tecla, true); lgFuera(r); res(F); };
-    const elige = (id) => { sel = DESTACADOS.find(F => F.id === id) || null; ok.disabled = !sel; r.querySelectorAll('.ef-it[data-f]').forEach(x => { const on = x.dataset.f === id; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
+    const elige = (id) => { sel = LISTA.find(F => F.id === id) || null; ok.disabled = !sel; r.querySelectorAll('.ef-it[data-f]').forEach(x => { const on = x.dataset.f === id; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
     const filtra = (k) => { filtro = k; r.querySelectorAll('.frg-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === k))); r.querySelector('.frg-que').textContent = que(k);
-      r.querySelectorAll('.ef-it[data-f]').forEach(x => { const F = DESTACADOS.find(f => f.id === x.dataset.f); x.hidden = k !== 'todos' && F.tipo !== k; }); if (sel && k !== 'todos' && sel.tipo !== k) elige(null); };
+      r.querySelectorAll('.ef-it[data-f]').forEach(x => { const F = LISTA.find(f => f.id === x.dataset.f); x.hidden = k !== 'todos' && F.tipo !== k; }); if (sel && k !== 'todos' && sel.tipo !== k) elige(null); };
     const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } else if (e.key === 'Enter' && sel) { e.preventDefault(); fin(sel); } };
     addEventListener('keydown', tecla, true);
     r.addEventListener('click', (e) => {
@@ -916,7 +925,7 @@ export function torneoPanel(T, here = null, o = null) {
       etiqueta = m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round;
       left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="tq-a">A ${tantosDe(m.target)} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
 `;
-      sede = tq ? (tq.moderno ? `<span class="tq-where">Trinquete <b>Herrizherri</b></span>` : `<span class="tq-where">${esc(tq.nombre.replace(/ de .*/, ''))} de <b>${esc(tq.lugar.split(',')[0])}</b></span>`) : o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
+      sede = tq ? (tq.inventado ? `<span class="tq-where">Trinquete <b>${esc(tq.nombre.replace(/^Trinquete /, ''))}</b></span>` : `<span class="tq-where">${esc(tq.nombre.replace(/ de .*/, ''))} de <b>${esc(tq.lugar.split(',')[0])}</b></span>`) : o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
     } else left = `<div class="tq-banner"><div class="tq-bt"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div></div>`;
     // (con liguilla, dos pestañas: la clasificación y el cuadro de las eliminatorias; se abre la de la ronda que toca)
     const v0 = T.groups && !T.done && planOf(T)[T.round]?.liga != null ? 'liga' : 'cuadro';

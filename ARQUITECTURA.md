@@ -1342,6 +1342,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       izquierda, sin balcón, la pared azul hasta el techo y la galería oscura por dentro, con postes de acero. El juego
       es el de siempre: el cristal es pared. No está en el catálogo de frontones de verdad ni en «Frontones». Cuartos en
       Elizondo, semifinales en Lekunberri y la final, ahí. 76 llamadas de dibujo y 443.000 triángulos en el partido.
+    - Y el otro trinquete moderno inventado, el Trinquete Beltza (`TRINQ_BELTZA` en `torneo.js` y en `fronton.js`;
+      `beltza` en `court.js`), como el Trinquet Moderne de Baiona de la otra foto: el autor volvió a decir «seguimos» tras
+      ofrecérselo. Las paredes casi negras, la raya y las rayas del suelo rojas, el suelo claro, el tejadillo y el tambor
+      verdes (`th.tejadillo` y `th.tambor`), el techo oscuro del pabellón, la galería con postes de acero y, encima de las
+      dos paredes, los balcones de siempre con la barandilla de cristal, el pasamanos rojo, los bancos azules y la pared
+      del fondo oscura. Sin el xilo, el agujero del frontis de los trinquetes de Iparralde: en Navarra no se juega. La
+      final del Torneo de Trinquete va un año a cada uno (`trinqueteDe`, por la edición: las impares en el Herrizherri).
+      Los dos están ahora al final de «Frontones», también en la pestaña del trinquete, con «Inventado para el juego» en vez del
+      lugar y la imagen sacada del propio juego (`src/assets/frontones-juego`, `canchaFoto` en `frontonFotos.js`).
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.
