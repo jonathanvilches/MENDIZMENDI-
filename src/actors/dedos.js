@@ -269,6 +269,8 @@ function dedosDe(root, hand, lado, metro) {
 }
 
 // ---- las posturas: cuánto gira cada falange, para cada manera de tener la mano -------------------------------------
+// (el mango en diagonal: cuánto se tuerce hacia los dedos en la foto del autor, desde lo ancho de la mano)
+const DIAG = { alfa: 35 * GR };
 function posturas(digs, { d, N, pc, grosor, metro }) {
   const dedos = digs.filter(g => !g.pulgar), pulgar = digs.find(g => g.pulgar), q = new THREE.Quaternion(), tmp = new THREE.Vector3();
   // (el eje de cada dedo para doblarse hacia la palma; el del pulgar, hacia donde vaya a cerrar)
@@ -290,7 +292,7 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   // (una esfera, como superficie que tocar: si un punto del dedo, con su grosor, queda dentro)
   const esf = (C, rho) => (p, r) => p.distanceTo(C) < rho + r;
   // (y los dedos ya cerrados, para que el pulgar se apoye encima)
-  const encima = (cerrados) => { const caps = []; for (const [g, J] of cerrados) for (let j = 0; j < 3; j++) caps.push([J[j], J[j + 1], g.r]); return (p, r) => caps.some(([a, b, rr]) => { const ab = b.clone().sub(a), t = Math.min(1, Math.max(0, p.clone().sub(a).dot(ab) / ab.lengthSq())); return p.distanceTo(a.clone().addScaledVector(ab, t)) < rr + r; }); };
+  const encima = (cerrados, k = 1) => { const caps = []; for (const [g, J] of cerrados) for (let j = 0; j < 3; j++) caps.push([J[j], J[j + 1], g.r]); return (p, r) => caps.some(([a, b, rr]) => { const ab = b.clone().sub(a), t = Math.min(1, Math.max(0, p.clone().sub(a).dot(ab) / ab.lengthSq())); return p.distanceTo(a.clone().addScaledVector(ab, t)) < k * (rr + r); }); };
   const MAXD = [95 * GR, 110 * GR, 85 * GR], MAXP = [45 * GR, 55 * GR, 70 * GR];
   const largos = (g) => [g.J[1].distanceTo(g.J[0]), g.J[2].distanceTo(g.J[1]), g.J[3].distanceTo(g.J[2])];
   // (un dedo que rodea un cilindro de radio R tocando la palma a «delta» antes del nudillo: cada falange queda tangente al
@@ -314,8 +316,76 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   const rel = dedos.map((g, k) => [g.eje, [(10 + 3 * k) * GR, (18 + 4 * k) * GR, (10 + 2 * k) * GR]]);
   if (pulgar) rel.push([ejePulgar(pc.clone().addScaledVector(N, grosor * 2)), [6 * GR, 8 * GR, 10 * GR]]);
   poses.relajada = quats(rel);
-  // (el mango: los dedos alrededor de un cilindro del grueso del mango de verdad, apoyado en la palma junto a los nudillos)
-  const rho = 0.0165 / metro, m = agarra(g => rho + g.r, g => 0.22 * g.Lf, MAXD);
+  // (el mango, como se coge una pala de verdad (la foto del autor, 16 de noviembre de 2026): en diagonal por la mano, de la
+  // primera falange del índice al talón de la mano por el lado del meñique, no recto como un martillo. Cada dedo lo rodea
+  // por donde le cruza: la primera falange, tangente al mango, y las otras dos, tangentes por su mitad. El pulgar se
+  // cierra por encima, sobre el mango, el índice y el corazón)
+  const rho = 0.0115 / metro, ind = dedos[0], men = dedos[dedos.length - 1], MAXM = [95 * GR, 110 * GR, 95 * GR];
+  const plano = (g) => [g.f, new THREE.Vector3().crossVectors(g.eje, g.f).normalize()];
+  // (cortado en diagonal por el plano de un dedo, el mango es una elipse: su radio, entre el corto y el largo; el dedo
+  // aprieta y se hunde un poco en él, como la carne de verdad)
+  const Rde = (g, e) => rho * (1 + 1 / Math.max(0.5, Math.abs(e.dot(g.eje)))) / 2 + 0.55 * g.r;
+  // (la diagonal: de lo ancho de la mano, hacia el pulgar, girada «alfa» hacia los dedos y algo hacia la palma o el dorso.
+  // Cada mano es distinta (las de los personajes, de dedos gordos, no dan para tanto), así que se prueban giros y sitios
+  // del mango y se queda el que mejor cumple: que ningún nudillo quede dentro del mango, que no se hunda en la palma, que
+  // cada dedo lo toque con su primera falange, más afuera en el índice y más adentro en el meñique, y la diagonal más
+  // cerca de la de la foto)
+  const w = new THREE.Vector3().crossVectors(N, d).normalize(); if (w.dot(ind.J[0].clone().sub(men.J[0])) < 0) w.negate();
+  const cor = dedos[1] || ind, [cx, cy] = plano(cor), lc = largos(cor)[0], META = [0.8, 0.55, 0.4, 0.35], C0 = cor.J[0];
+  const corte = (g, A, e) => { const k = e.dot(g.eje); return Math.abs(k) < 1e-3 ? A.clone() : A.clone().addScaledVector(e, g.J[0].clone().sub(A).dot(g.eje) / k); };
+  // (todo en números sueltos, sin crear vectores: se hace con cada personaje al cargarlo, vecinos incluidos)
+  const F = dedos.map((g, k) => { const [x, y] = plano(g), n = g.eje, D0 = C0.clone().sub(g.J[0]);
+    return { k: Math.min(3, k), x, y, n, l1: largos(g)[0], r: g.r, dx: D0.dot(x), dy: D0.dot(y), dn: D0.dot(n), cxx: cx.dot(x), cxy: cx.dot(y), cxn: cx.dot(n), cyx: cy.dot(x), cyy: cy.dot(y), cyn: cy.dot(n) }; });
+  let e = null, A = null, mejor = Infinity; const ee = new THREE.Vector3();
+  for (let ia = 0; ia <= 6; ia++) for (let ib = -2; ib <= 2; ib++) {
+    const al = ia * 6 * GR; ee.copy(w).multiplyScalar(Math.cos(al)).addScaledVector(d, Math.sin(al)).addScaledVector(N, Math.tan(ib * 6 * GR)).normalize();
+    const pre = F.map(f => { const kd = ee.dot(f.n); return { kd, ex: ee.dot(f.x), ey: ee.dot(f.y), R: rho * (1 + 1 / Math.max(0.5, Math.abs(kd))) / 2 + 0.55 * f.r }; });
+    const Rc = rho * (1 + 1 / Math.max(0.5, Math.abs(ee.dot(cor.eje)))) / 2 + 0.55 * cor.r, base = 5 * (DIAG.alfa - al) ** 2;
+    for (let ix = 0; ix <= 10; ix++) for (let iy = 0; iy <= 8; iy++) {
+      const u = (-0.8 + 2 * ix / 10) * lc, v = Rc * (0.6 + 1.6 * iy / 8);
+      let c = base;
+      for (let i = 0; i < F.length && c < mejor; i++) {
+        const f = F[i], P = pre[i]; if (Math.abs(P.kd) < 1e-3) { c += 100; continue; }
+        const t = -(f.dn + u * f.cxn + v * f.cyn) / P.kd, px = f.dx + u * f.cxx + v * f.cyx + t * P.ex, py = f.dy + u * f.cxy + v * f.cyy + t * P.ey;
+        const R = P.R, D = Math.hypot(px, py);
+        if (D < 1.02 * R) { c += 100; continue; }
+        if (px < 0 && py < 0.95 * R) c += 100 * (0.95 * R - py) / R;
+        const sl = Math.sqrt(D * D - R * R) / f.l1, th = Math.atan2(py, px) - Math.atan2(R, sl * f.l1);
+        if (f.k < 2 && sl > 1) c += 10 * (sl - 1) ** 2; else if (sl > 1.5) c += 10 * (sl - 1.5) ** 2;   // (el anular y el meñique pueden doblarse del todo en el nudillo)
+        if (th < 5 * GR) c += 10 * (5 * GR - th) ** 2; else if (th > 95 * GR) c += 10 * (th - 95 * GR) ** 2;
+        c += (sl - META[f.k]) ** 2;
+      }
+      if (c < mejor) { mejor = c; e = ee.clone(); A = C0.clone().addScaledVector(cx, u).addScaledVector(cy, v); }
+    }
+  }
+  // (las falanges no están rectas en reposo: cada articulación gira lo que falta desde como está hasta como la quiere el
+  // mango, todo visto en el plano del dedo)
+  const rodea = (g, P, R, max) => {
+    const [x, y] = plano(g), loc = (p) => { const v = p.clone().sub(g.J[0]); return [v.dot(x), v.dot(y)]; }, Q = g.J.map(loc);
+    const l = [0, 1, 2].map(j => Math.hypot(Q[j + 1][0] - Q[j][0], Q[j + 1][1] - Q[j][1])), fi = [0, 1, 2].map(j => Math.atan2(Q[j + 1][1] - Q[j][1], Q[j + 1][0] - Q[j][0]));
+    const [px, py] = loc(P), D = Math.hypot(px, py), h = (k) => Math.atan(l[k] / (2 * R)), s = Math.sqrt(Math.max(0, D * D - R * R));
+    let p0 = Math.atan2(py, px) - Math.atan2(R, s), p1;
+    if (s <= l[0]) p1 = p0 + Math.atan((l[0] - s) / R) + h(1);
+    else {   // (el mango le queda más allá de la primera falange: esa se dobla hasta que su punta lo toque)
+      const K = (l[0] * l[0] + D * D - R * R) / (2 * l[0]); p0 = Math.atan2(py, px) - (K < D ? Math.acos(K / D) : 0);
+      p1 = Math.atan2(l[0] * Math.sin(p0) - py, l[0] * Math.cos(p0) - px) + Math.PI / 2 + 0.5 * h(1);
+    }
+    const p2 = p1 + h(1) + h(2), a = [p0 - fi[0], (p1 - p0) - (fi[1] - fi[0]), (p2 - p1) - (fi[2] - fi[1])];
+    return a.map((v, j) => Math.min(max[j], Math.max(-10 * GR, v)));
+  };
+  const m = { lista: [], cerrados: [], centros: [] };
+  for (const g of dedos) { const P = corte(g, A, e), a = rodea(g, P, Rde(g, e), MAXM); m.lista.push([g.eje, a]); m.cerrados.push([g, cadena(g, g.eje, a)]); m.centros.push(P); }
+  const cil = (p, r) => { const v = p.clone().sub(A); return v.addScaledVector(e, -v.dot(e)).length() < rho + r; };
+  // (el pulgar, por encima del mango: se cierra hasta que su punta queda apoyada por fuera en la falange del medio del
+  // corazón, como en la foto; ni se queda abierto ni se pasa de largo)
+  if (pulgar) {
+    const [gm, Jm] = m.cerrados[Math.min(1, m.cerrados.length - 1)], M = Jm[1].clone().lerp(Jm[2], 0.5), fuera = M.clone().sub(A);
+    fuera.addScaledVector(e, -fuera.dot(e)).normalize();
+    const T = M.clone().addScaledVector(fuera, gm.r + 0.6 * pulgar.r), ej = ejePulgar(T);
+    let a = [0, 0, 0], bd = Infinity;
+    for (let i = 0; i <= 40; i++) { const b = MAXP.map(v => v * i / 40), J = cadena(pulgar, ej, b), dd = J[3].distanceTo(T) + 0.5 * J[2].distanceTo(T); if (dd < bd) { bd = dd; a = b; } }
+    m.lista.push([ej, a]); m.cerrados.push([pulgar, cadena(pulgar, ej, a)]);
+  }
   poses.mango = quats(m.lista);
   // (el puño, sin nada dentro: lo mismo con un hueco más pequeño que un dedo)
   poses.puno = quats(agarra(g => 0.8 * g.r, g => 0.15 * g.Lf, MAXD).lista);
@@ -327,9 +397,8 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   const Rbola = (g) => { const Rs = rb + g.r, lat = Math.abs(g.J[0].clone().sub(Cb).dot(g.eje)); return lat < 0.9 * Rs ? Math.sqrt(Rs * Rs - lat * lat) : 0.45 * Rs; };
   poses.pelota = quats(agarra(Rbola, g => g.J[0].clone().sub(pc).dot(g.f), [70 * GR, 80 * GR, 62 * GR], esf(Cb, rb)).lista);
   // (dónde queda el hueco del puño con el mango: su centro, el eje del mango hacia el pulgar y lo ancho del puño)
-  const Cm = m.centros.reduce((a, c) => a.add(c), new THREE.Vector3()).divideScalar(m.centros.length);
-  const eje = m.centros[3].clone().sub(m.centros[0]); eje.addScaledVector(N, -eje.dot(N)).normalize();
-  if (pulgar && eje.dot(pulgar.J[0].clone().sub(Cm)) < 0) eje.negate();
+  const Cm = m.centros.reduce((a, c) => a.add(c.clone()), new THREE.Vector3()).divideScalar(m.centros.length);
+  const eje = e.clone();   // (ya va hacia el lado del pulgar: del meñique al índice)
   let lo = Infinity, hi = -Infinity; for (const [g, J] of m.cerrados) if (!g.pulgar) for (const p of J) { const s = p.dot(eje); lo = Math.min(lo, s - g.r); hi = Math.max(hi, s + g.r); }
   const agarre = { centro: Cm.toArray(), eje: eje.toArray(), n: N.toArray(), d: d.toArray(), hueco: rho, ancho: hi - lo, R: rho + rMed, largo: 0 };
   return { poses, agarre };

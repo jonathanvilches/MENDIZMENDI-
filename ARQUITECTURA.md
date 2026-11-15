@@ -1388,13 +1388,23 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           sola falange, para que no se partan en picos.
         - Los pesos: lo que cada punto tenía en la mano se reparte entre la mano y sus falanges, con un paso suave en cada
           articulación. Los huesos nuevos empiezan sin giro, así que en reposo la malla queda igual que antes.
-        - Las posturas (`poses`): `relajada` (la de siempre), `carrera` (a medio cerrar, corriendo), `puno`, `mango` (los
-          dedos rodean un cilindro de 1,65 cm de radio: cada falange tangente por su mitad, el pulgar cerrado encima del
-          índice y el corazón), `pelota` (la del saque, apoyada en la palma y recogida por los dedos) y `abierta` (al
-          golpear a mano). `GlbChar.mano(lado, postura)` y, cada imagen, `Dedos.update` las alcanza poco a poco.
+        - Las posturas (`poses`): `relajada` (la de siempre), `carrera` (a medio cerrar, corriendo), `puno`, `mango`,
+          `pelota` (la del saque, apoyada en la palma y recogida por los dedos) y `abierta` (al golpear a mano).
+        - El `mango`, como en la foto que pasó el autor el 16 de noviembre (la mano abierta sobre la cara de la pala, se
+          baja al mango y se cierran los dedos): el mango cruza la mano en diagonal, de la primera falange del índice al
+          talón de la mano por el lado del meñique, no recto como un martillo, y la cara de la pala queda paralela a la
+          palma. Antes iba recto y los dedos, gordos en estos personajes, no llegaban a rodearlo: se veía el mango por
+          delante de los dedos. Ahora el mango es de 1,15 cm de radio, cada dedo se hunde un poco en él, y cada uno lo
+          rodea por donde le cruza: la primera falange, tangente al mango, y las otras dos, tangentes por su mitad,
+          contando con lo dobladas que ya están en reposo. El pulgar se cierra hasta apoyar la punta por fuera en la falange
+          del medio del corazón. Como cada mano es distinta, al cargar se prueban giros y sitios del mango (`DIAG`, en
+          números sueltos, 1 o 2 ms por mano) y se queda el que cumple mejor: ningún nudillo dentro del mango, que no se
+          hunda en la palma, que cada dedo lo toque con su primera falange y la diagonal más cerca de la de la foto, que
+          es de 35°. En el explorador sale de unos 17° y en el pelotari de unos 24°: con dedos tan gordos no da para más.
+          La pala, por eso, sale del puño más en la línea del antebrazo que antes. `GlbChar.mano(lado, postura)` y, cada imagen, `Dedos.update` las alcanza poco a poco.
         - Lo pide el juego: con herramienta, la derecha en `mango` (`cierraMano`); la mano que lleva la pelota del saque,
           en `pelota`; la que golpea, abierta en el golpe (`armSwing`). La herramienta va con el mango por el hueco del
-          puño (`agarre`: el centro de los círculos de los cuatro dedos y el eje del mango, hacia el pulgar), el final del
+          puño (`agarre`: el punto medio del mango entre los cuatro dedos y su eje, hacia el pulgar), el final del
           mango asomando por el lado del meñique. La palma ya medida al ponerlos se guarda en el hueso (`palma`), para
           dejar la pelota en ella (`palmaDe`).
         - Coste: unos 100 ms al cargar el pelotari y entre 10 y 50 ms cada vecino, en el ordenador de pruebas; en cada
