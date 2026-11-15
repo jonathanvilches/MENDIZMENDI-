@@ -304,7 +304,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   let texIsla = null;
   const islaTex = () => texIsla || (texIsla = texturasIsla(Math.min(8, r.capabilities.getMaxAnisotropy())), mats.push(texIsla), texIsla);
   // (la isla con sus montes enteros, mapa3dAmplia.js: donde la muga pasa por un monte, la isla crece hasta su pie, con el
-  // relieve de la vecina o, fuera de Navarra, el de dentro en un espejo. Su contorno y su relieve, una vez por comarca; su
+  // relieve de verdad, el de la vecina o el de fuera de Navarra. Su contorno y su relieve, una vez por comarca; su
   // losa, gIsla, con la rejilla de la de siempre, sale en lugar de esa mientras la isla está en el aire)
   const ampDe = (c) => c.amp || (c.amp = islaAmpliada(c.Pw, alto, { navarra: (x, z) => navDentro(x, z), evita: [...(c.salen || []), ...(c.entran || [])] }));
   const ampAttr = (g, A) => { const n = g.attributes.position.count, pa = g.attributes.position.array, am = new Float32Array(n); if (A.amplia) for (let v = 0; v < n; v++) am[v] = A.amp(pa[v * 3], pa[v * 3 + 2]); g.setAttribute('aAmp', new THREE.BufferAttribute(am, 1)); };
@@ -1421,14 +1421,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (!c.bosqueFino) {
       let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
       const PI = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(PI.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 7 : 14, L = [];
-      // (fuera de Navarra no hay bosque en la máscara: en lo que crece allí, el del punto que le hace de espejo)
-      const bosqueDe = (X, Z) => { const i = Math.floor((X / S + CX - BOSQ.x0) / tx), j = Math.floor((Z / S + CY - BOSQ.y0) / ty); return i >= 0 && j >= 0 && i < BOSQ.nx && j < BOSQ.ny ? bqD[j * BOSQ.nx + i] / 255 : 0; };
       const i0 = Math.max(0, Math.floor(((b.min.x / S + CX) - BOSQ.x0) / tx)), i1 = Math.min(BOSQ.nx - 1, Math.ceil(((b.max.x / S + CX) - BOSQ.x0) / tx));
       const j0 = Math.max(0, Math.floor(((b.min.z / S + CY) - BOSQ.y0) / ty)), j1 = Math.min(BOSQ.ny - 1, Math.ceil(((b.max.z / S + CY) - BOSQ.y0) / ty));
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-        let k = bqD[j * BOSQ.nx + i] / 255;
-        if (A.amplia && k < 0.3) { const [Xc, Zc] = W(BOSQ.x0 + (i + 0.5) * tx, BOSQ.y0 + (j + 0.5) * ty); if (!navDentro(Xc, Zc) && enPoligono(PI, Xc, Zc)) { const [sx, sz, kk] = A.fuente(Xc, Zc); k = bosqueDe(sx, sz) * Math.min(1, kk * 1.5); } }
-        if (k < 0.3) continue;
+        const k = bqD[j * BOSQ.nx + i] / 255; if (k < 0.3) continue;   // (también fuera de Navarra: la máscara sale del relieve, que ya llega alrededor)
         for (let n = Math.floor(k * k * dens + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(PI, X, Z)) L.push([X, Z]); }
       }
       const mF = L.length ? arbolM(c, c.arbolFondo || { value: 0 }, true) : null, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
