@@ -1309,6 +1309,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     la mandó si ya había botado bien; la pared derecha vale. Sin dos paredes: a la izquierda está la red. La pared derecha
     es de una sola cara, la de la cancha, para que la cámara de la contracancha vea a través. Algo menos vivo que un
     frontón: sala pequeña y suelo de baldosa.
+    - Revisado el 15 de noviembre de 2026 contra la foto del de Elizondo y el reglamento: el autor, «así no es el
+      trinquete, revisa bien». Tenía el aspecto del cubierto de su comarca, con el frontis de piedra, el suelo rosado y
+      las paredes azules en Lekunberri; el tejadillo era de tejas rojas, como un tejado de casa, de 2,2 m de ancho y de
+      2,35 a 3,27 m; la red bajaba hasta el suelo; y la pared izquierda llevaba los números de los cuadros, que el
+      trinquete no tiene. Ahora (`TRINQ_LOOK` en `fronton.js`; `buildTrinquete` en `court.js`; `TRINQ` en `physics.js`):
+      - todas las paredes y el frontis pintados del mismo verde, con el remate amarillo, la chapa roja abajo, el suelo
+        de hormigón gris con rayas amarillas y el techo de cerchas de madera;
+      - el tejadillo liso y claro, de 1,30 m de ancho, de 1,90 m en su borde a 2,25 m en la pared, un 27 % de pendiente;
+      - delante de la galería, el peto pintado de 0,95 m con su listón de madera y, encima, la red entre postes de
+        madera hasta la viga del tejadillo; dentro, un banco corrido con una fila de público;
+      - el tambor, o fraile: el plano a 45° de 0,46 m del rincón del frontis y la pared derecha, con sus dos aristas
+        marcadas. Cuenta como frontis y la pelota sale de él hacia la izquierda, pegada al frontis.
+      - Sin cambiar: la cancha mide lo que la de los frontones del juego, 31,5 × 10 m, y no 28,5 × 9,3; y el rosa del
+        suelo es la zona de saque, que se ilumina al sacar en todos los frontones.
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.

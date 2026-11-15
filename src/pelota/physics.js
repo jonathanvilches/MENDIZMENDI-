@@ -10,7 +10,13 @@ export const FEEL = { front: 1, floor: 1, run: 1, backH: 0, leftH: 0, tipo: 'izq
 // el trinquete (tipo 'trinquete'): a la izquierda, la red de la galería del público, del suelo al borde del tejadillo
 // (Y0), y el tejadillo, que sube hacia la pared del fondo de la galería (a FONDO metros); a la derecha, pared. Medidas de
 // un trinquete de verdad (28,5 × 9,3 m, con el tejadillo a todo lo largo de la pared izquierda), en la cancha del juego
-export const TRINQ = { Y0: 2.35, FONDO: 2.2, PEND: 0.42 };
+// (y desde el 15 de noviembre de 2026, con las medidas del reglamento: el autor, «así no es el trinquete, revisa bien».
+// El tejadillo mide 1,30 m de ancho y va de 1,90 m en su borde, sobre la cancha, a 2,25 m en la pared: un 27 % de
+// pendiente; antes, 2,2 m de ancho, de 2,35 a 3,27 m, como un tejado. PETO: el murete de la galería, bajo la red, y
+// TAMBOR: el ancho del plano a 45° del rincón del frontis y la pared derecha, el «tambor» o «fraile», que cuenta como
+// frontis y desvía la pelota hacia la izquierda)
+export const TRINQ = { Y0: 1.9, FONDO: 1.3, PEND: 0.27, PETO: 0.95, TAMBOR: 0.46 };
+const TAMBOR_A = TRINQ.TAMBOR / Math.SQRT2;   // (lo que se come del frontis y de la pared derecha)
 // (backH y leftH: alto del rebote y de la pared izquierda; en el frontón cubierto llegan hasta el techo y la pelota no
 // se sale: por encima de la raya sigue siendo mala, pero rebota en la pared)
 export function setFeel(f = null) { FEEL.front = f?.front ?? 1; FEEL.floor = f?.floor ?? 1; FEEL.run = f?.run ?? 1; FEEL.backH = f?.backH || 0; FEEL.leftH = f?.leftH || 0; FEEL.tipo = f?.tipo || 'izquierda'; }
@@ -48,6 +54,14 @@ export class Ball {
       if (p.x < xe - TRINQ.FONDO + R && v.x < 0 && p.y > TRINQ.Y0) { out.push({ type: 'left', x: xe - TRINQ.FONDO, y: p.y, z: p.z }); p.x = xe - TRINQ.FONDO + R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97; }
       // la pared derecha
       if (p.x > -xe - R && v.x > 0 && p.z < COURT.REBOTE) { out.push({ type: 'right', x: -xe, y: p.y, z: p.z }); p.x = -xe - R; v.x = -v.x * PHYS.WALL_E; v.z *= 0.97; }
+      // el tambor: el plano a 45° del rincón del frontis y la pared derecha. Cuenta como frontis (el árbitro), y la
+      // pelota sale de él hacia la izquierda, pegada al frontis
+      const dT = (-xe - p.x + p.z - TAMBOR_A) / Math.SQRT2, vT = (v.z - v.x) / Math.SQRT2;
+      if (dT < R && vT < 0 && p.z < TAMBOR_A + R && p.x > -xe - TAMBOR_A - R) {
+        out.push({ type: 'front', x: -xe - TAMBOR_A / 2, y: p.y, z: 0, tambor: true });
+        const k = (1 + PHYS.FRONT_E * FEEL.front) * vT / Math.SQRT2; v.x += k; v.z -= k; v.y *= PHYS.FRONT_F;
+        const e = (R - dT) / Math.SQRT2; p.x -= e; p.z += e;
+      }
     }
     // pared izquierda (en la plaza libre no hay: la pelota sigue y el árbitro mira dónde bota)
     // (por encima de la pared no hay rebote: sale fuera, pero se avisa para el árbitro)

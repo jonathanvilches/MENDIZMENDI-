@@ -338,12 +338,12 @@ export class PelotaCourt {
       const geo = new T.BufferGeometry();
       geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
       const marks = new T.Mesh(geo, M({ map: markTex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      marks.receiveShadow = true; marks.name = 'cuadros'; g.add(marks); }
+      marks.receiveShadow = true; marks.name = 'cuadros'; if (!TRQ) g.add(marks); }   // (el trinquete no tiene cuadros en la pared izquierda: reglamento de la FIPV, título VI; las rayas van en el suelo)
     // y encima del 4 y del 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega)
     for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
       const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = th.line; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
       const lab = new T.Mesh(new T.PlaneGeometry(1.7, 0.51), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      lab.position.set(-W / 2 + 0.014, MH + 0.42, z); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); g.add(lab);
+      lab.position.set(-W / 2 + 0.014, MH + 0.42, z); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
     }
     // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
     if (opts.wallName || opts.shield) {
@@ -956,21 +956,34 @@ export class PelotaCourt {
     // el frontis y el rebote siguen delante y detrás de la galería, hasta el techo
     const fm = M({ color: th.wall, roughness: 0.9 });
     box(F, H, 0.8, fm, xe - 0.6 - F / 2, H / 2, -0.4); box(F, H, 0.4, fm, xe - 0.6 - F / 2, H / 2, EXT + 0.2);
-    // el suelo de la galería, una grada de dos escalones de madera, y el público en ella, mirando a la cancha
-    const madera = M({ color: '#8a5a34', roughness: 0.75 }), losa = M({ color: '#9c968c', roughness: 0.95 });
-    box(F, 0.12, EXT, losa, xe - F / 2, 0.06, EXT / 2); box(F * 0.45, 0.42, EXT - 1.2, madera, XL + F * 0.225, 0.21, EXT / 2);
-    box(0.42, 0.06, EXT - 1.2, madera, xe - 0.75, 0.45, EXT / 2); box(0.42, 0.06, EXT - 1.2, madera, XL + F * 0.3, 0.87, EXT / 2);   // (los bancos corridos)
-    for (let z = 1.2; z < EXT - 1.2; z += 0.6) { this.standSpots.push([xe - 0.7, 0.5, z + (Math.random() - 0.5) * 0.1, Math.PI / 2]); this.standSpots.push([XL + F * 0.3, 0.88, z + 0.3, Math.PI / 2]); }
-    // la red metálica, del suelo al borde del tejadillo, con sus postes cada 3,5 m (en cada raya)
-    const red = canvasTex(T, 256, 256, (c, w, h) => { c.clearRect(0, 0, w, h); c.strokeStyle = 'rgba(40,44,52,.85)'; c.lineWidth = 2; for (let i = 0; i <= w; i += 16) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, h); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(w, i); c.stroke(); } }, [EXT / 1.2, Y0 / 1.2]);
-    const net = new T.Mesh(new T.PlaneGeometry(EXT, Y0), M({ map: red, transparent: true, alphaTest: 0.2, side: T.DoubleSide, roughness: 0.6 })); net.rotation.y = Math.PI / 2; net.position.set(xe, Y0 / 2, EXT / 2); net.name = 'red'; g.add(net);
-    const poste = M({ color: '#3a3e46', roughness: 0.5, metalness: 0.4 });
-    for (let z = 0; z <= EXT + 0.01; z += COURT.CUADRO) box(0.08, Y0, 0.08, poste, xe - 0.04, Y0 / 2, Math.min(EXT - 0.05, z + 0.05));
-    // el tejadillo: de tejas rojas, inclinado hacia la cancha, de la red a la pared del fondo de la galería
-    const teja = canvasTex(T, 512, 128, (c, w, h) => { c.fillStyle = '#9c4f36'; c.fillRect(0, 0, w, h); const n = 40, tw = w / n; for (let i = 0; i < n; i++) { const k = 0.85 + ((i * 37) % 11) / 40; c.fillStyle = `rgb(${Math.round(176 * k)},${Math.round(92 * k)},${Math.round(64 * k)})`; c.fillRect(i * tw + 1, 0, tw - 2, h); c.fillStyle = 'rgba(0,0,0,.25)'; c.fillRect(i * tw, 0, 2, h); } for (let y = 0; y < h; y += 32) { c.fillStyle = 'rgba(0,0,0,.2)'; c.fillRect(0, y, w, 3); } }, [EXT / 8, 1]);
-    const ln = Math.hypot(F, Y1 - Y0), tj = new T.Mesh(new T.PlaneGeometry(EXT, ln), M({ map: teja, side: T.DoubleSide, roughness: 0.8 }));
+    // (desde el 15 de noviembre de 2026, como el de Elizondo de la foto y con las medidas del reglamento: el autor, «así no
+    // es el trinquete, revisa bien». Antes la red bajaba hasta el suelo, el tejadillo era de tejas rojas, como un tejado de
+    // casa, y la galería, de 2,2 m con dos filas de público. Ahora, delante de la galería, el peto pintado como las paredes
+    // con su listón de madera; encima, la red entre postes de madera hasta la viga del tejadillo; y el tejadillo, liso y
+    // claro, de 1,30 m, de 1,90 a 2,25 m. En la galería, un banco corrido con una fila de público)
+    const madera = M({ color: '#7a5434', roughness: 0.75 }), losa = M({ color: '#9c968c', roughness: 0.95 }), PETO = TRINQ.PETO;
+    box(F, 0.12, EXT, losa, xe - F / 2, 0.06, EXT / 2);
+    box(0.4, 0.06, EXT - 1.2, madera, xe - F + 0.42, 0.45, EXT / 2); box(0.06, 0.4, EXT - 1.2, madera, xe - F + 0.3, 0.22, EXT / 2);   // (el banco corrido, contra la pared)
+    for (let z = 1.2; z < EXT - 1.2; z += 0.6) this.standSpots.push([xe - F + 0.42, 0.48, z + (Math.random() - 0.5) * 0.1, Math.PI / 2]);
+    // el peto: el murete de delante de la galería, del color de las paredes, con su listón de madera
+    const pt = canvasTex(T, 1024, 64, (c, w, h) => { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 3000, 0.06); }, [EXT / 6, 1]);
+    box(0.16, PETO, EXT, M({ map: pt, roughness: 0.9 }), xe - 0.08, PETO / 2, EXT / 2);
+    box(0.24, 0.07, EXT, madera, xe - 0.08, PETO + 0.035, EXT / 2);
+    // la red metálica, del peto a la viga del tejadillo, entre postes de madera cada 3,5 m (en cada raya)
+    const HR = Y0 - PETO - 0.07;
+    const red = canvasTex(T, 256, 256, (c, w, h) => { c.clearRect(0, 0, w, h); c.strokeStyle = 'rgba(40,44,52,.85)'; c.lineWidth = 2; for (let i = 0; i <= w; i += 16) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, h); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(w, i); c.stroke(); } }, [EXT / 1.2, HR / 1.2]);
+    const net = new T.Mesh(new T.PlaneGeometry(EXT, HR), M({ map: red, transparent: true, alphaTest: 0.2, side: T.DoubleSide, roughness: 0.6 })); net.rotation.y = Math.PI / 2; net.position.set(xe - 0.02, PETO + 0.07 + HR / 2, EXT / 2); net.name = 'red'; g.add(net);
+    for (let z = 0; z <= EXT + 0.01; z += COURT.CUADRO) box(0.12, HR, 0.12, madera, xe - 0.06, PETO + 0.07 + HR / 2, Math.min(EXT - 0.06, z + 0.06));
+    // el tejadillo: liso, pintado de claro, inclinado hacia la cancha, de la viga a la pared del fondo de la galería
+    const tejaT = canvasTex(T, 512, 64, (c, w, h) => { c.fillStyle = '#cfccc4'; c.fillRect(0, 0, w, h); grain(c, w, h, 2500, 0.05); c.fillStyle = 'rgba(0,0,0,.07)'; for (let x = 0; x < w; x += 32) c.fillRect(x, 0, 2, h); }, [EXT / 8, 1]);
+    const ln = Math.hypot(F, Y1 - Y0), tj = new T.Mesh(new T.PlaneGeometry(EXT, ln), M({ map: tejaT, side: T.DoubleSide, roughness: 0.85 }));
     tj.rotation.order = 'YXZ'; tj.rotation.y = Math.PI / 2; tj.rotation.x = -Math.PI / 2 + Math.atan2(Y1 - Y0, F); tj.position.set(xe - F / 2, (Y0 + Y1) / 2, EXT / 2); tj.name = 'tejadillo'; g.add(tj);
-    box(0.14, 0.14, EXT, M({ color: '#6b4a30', roughness: 0.7 }), xe - 0.05, Y0 - 0.05, EXT / 2);   // (la viga del borde)
+    box(0.16, 0.16, EXT, madera, xe - 0.06, Y0 - 0.08, EXT / 2);   // (la viga del borde)
+    // el tambor (o fraile): el plano a 45° del rincón del frontis y la pared derecha, de 0,46 m (physics.js, TRINQ.TAMBOR)
+    const tbT = canvasTex(T, 64, 512, (c, w, h) => { const k = new T.Color(th.wall).offsetHSL(0, 0, 0.08); c.fillStyle = '#' + k.getHexString(); c.fillRect(0, 0, w, h); grain(c, w, h, 800, 0.06); c.fillStyle = th.chapa; c.fillRect(0, h * (1 - COURT.CHAPA / H), w, h * COURT.CHAPA / H); });
+    const a = TRINQ.TAMBOR / Math.SQRT2, tb = new T.Mesh(new T.PlaneGeometry(TRINQ.TAMBOR, H), M({ map: tbT, roughness: 0.9 }));
+    tb.rotation.y = -Math.PI / 4; tb.position.set(W / 2 - a / 2, H / 2, a / 2); tb.name = 'tambor'; g.add(tb);
+    { const am = M({ color: th.marco || th.line, roughness: 0.6 }); for (const [x, z] of [[W / 2 - a, 0.03], [W / 2 - 0.03, a]]) { const m = new T.Mesh(new T.BoxGeometry(0.06, H, 0.06), am); m.position.set(x, H / 2, z); g.add(m); } }   // (sus dos aristas, con el frontis y con la pared derecha, marcadas: así se ve dónde está)
     // (la pared del fondo de la galería es la pared izquierda de siempre, movida a XL en el constructor)
   }
   // La red de las plazas (Leitza, Mendaza, Areso, Nazar, Genevilla: casi todos los frontones de pueblo la tienen): postes

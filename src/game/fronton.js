@@ -354,6 +354,7 @@ export function hallVenue(scene, out, def) {
 // como tantos de Tierra Estella y Baztan) sobre un prado que llega al horizonte. La arquitectura de los cubiertos, la de
 // su foto si es uno de los modelos (data/frontonArq.js) y, si no, la de su comarca
 let REAL = null;
+const TRINQ_LOOK = { frontis: '#3c8250', wall: '#3c8250', cap: '#3c8250', stone: null, marco: '#e9c43b', floor: '#8c8e89', contra: '#9a9c97', line: '#ecc63c', mark: '#c8322c', chapa: '#b8342e', chapaMetal: false };
 const ARQ_FOTO = { isaba: 'erminea', ziordia: 'ziordia', iraneta: 'iraneta', igantzi: 'igantzi', peralta: 'peralta', 'navarra-arena': 'pabellon' };
 export function realVenue(scene, out, F) {
   if (REAL && REAL.court.group.parent === scene && REAL.realId === F.id) return REAL;
@@ -361,7 +362,12 @@ export function realVenue(scene, out, F) {
   const def = LEVELS.find(l => l.id === F.town) || { id: F.id, name: F.lugar, comarca: F.comarca };
   const W = frontonWall({ ...def, name: F.lugar }), town = String(F.lugar || '').split(/[,/]/)[0].trim(), tipo = F.tipo || 'izquierda';
   const at = { x: out.x, z: out.z, y: 2400, ry: 0 };
-  if (tipo === 'trinquete' || F.cubierto) {
+  if (tipo === 'trinquete') {
+    // (el trinquete, con su propio aspecto y no el del cubierto de su comarca, que le ponía el frontis de piedra y el suelo
+    // rosado: todas las paredes pintadas del mismo verde, también el frontis, con el remate amarillo, el suelo de hormigón
+    // gris y las rayas amarillas, como el de Elizondo de la foto; y el techo de cerchas de madera)
+    REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: legible({ ...hallLook(def, W.seed, 'igantzi'), ...TRINQ_LOOK }), hall: true, arq: 'igantzi', tipo, noClear: true });
+  } else if (F.cubierto) {
     const arq = ARQ_FOTO[F.id] || arqDe({ comarca: F.comarca });
     REAL = new Fronton(scene, at, town, { ...W, estilo: null, look: hallLook(def, W.seed, arq), hall: true, arq, tipo, noClear: true });
   } else {
