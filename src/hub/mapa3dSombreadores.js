@@ -104,7 +104,9 @@ void main() { vec3 p0 = position; vOr = 0.0; ${alt} vXZ = p0.xz; vH = p0.y; vSom
 #include <fog_vertex>
 }`;
 // (vOr: cuánto ha bajado el terreno en la orilla de una isla, para darle la luz de su pendiente nueva)
-export const RELIEVE_VS = relieveVS('attribute float aFino; uniform float uFinoK; ' + ORILLA, 'p0.y += aFino * uFinoK; { float y0 = p0.y; p0.y = orilla(p0.xz, p0.y); vOr = clamp((y0 - p0.y) * 0.8, 0.0, 1.0); }');
+// (aAmp: en lo que crece una isla para que sus montes salgan enteros, mapa3dAmplia.js, donde el relieve ya no es el de los
+// datos ni el del sombreado del mapa: allí la luz, como en la orilla, de la propia malla)
+export const RELIEVE_VS = relieveVS('attribute float aFino, aAmp; uniform float uFinoK; ' + ORILLA, 'p0.y += aFino * uFinoK; { float y0 = p0.y; p0.y = orilla(p0.xz, p0.y); vOr = max(clamp((y0 - p0.y) * 0.8, 0.0, 1.0), aAmp); }');
 // (la sombra de las nubes que pasan despacio por encima de Navarra y de lo que la rodea, en unidades del mundo: manchas
 // grandes y blandas, de unos diez kilómetros, que van hacia el este con el viento del oeste)
 export const NUBES = `uniform float uT;
@@ -185,6 +187,9 @@ vec4 parcela(vec2 sv, float t) {
   float h9 = fract(pr.x * 9.0), vina = step(0.58, hp) * step(hp, 0.76) * smoothstep(430.0, 560.0, sv.y) * (1.0 - smoothstep(0.25, 0.6, fwidth(pr.x * 9.0)));
   return vec4(tono * (1.0 - vina * 0.3 * smoothstep(0.35, 0.65, abs(h9 - 0.5) * 2.0)), linde);
 }
+// (dentro del cuadro de las imágenes finas de la comarca, 1; fuera, 0: lo que crece una isla cae a veces fuera, y allí la
+// imagen se estiraba desde su borde)
+float enRect(vec2 q) { vec2 e = min(q, 1.0 - q); return smoothstep(0.0, 0.012, min(e.x, e.y)); }
 void main() {
   if (uHueco.w > 0.5 && distance(vXZ, uHueco.xy) < uHueco.z) discard;   // (donde está la maqueta de un pueblo)
   float m = max(0.0, (vH - uGrosor) / uExa);
@@ -204,24 +209,26 @@ void main() {
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   // (la ortofoto, el color de verdad del suelo: campos, bosques, ríos, pueblos y roca, con la luz del relieve encima, algo
   // más suave, que la foto ya trae la suya; de cerca, la de la comarca, a 28 m)
-  // (en la orilla bajada de una isla, en lo muy pendiente, la foto se estiraba en vetas: allí, más difuminada)
-  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (vOr > 0.05) o = mix(o, texture2D(uOrto, ou, 1.2).rgb, 0.6 * smoothstep(0.15, 0.8, vOr)); if (vOr > 0.05) o *= 1.0 + (ruido(sv * 7.0) * 0.6 + ruido(sv * 19.0) * 0.4 - 0.5) * 0.22 * smoothstep(0.05, 0.6, vOr);   // (y su grano de hierba, a matas)   // (desde el 15 de noviembre de 2026, apenas suavizada: muy borrosa, la rampa de la orilla salía como una banda verde lisa)
-    if (uOrtoDK > 0.0) o = mix(o, texture2D(uOrtoD, (sv - uDetRect.xy) / uDetRect.zw).rgb, uOrtoDK);
+  // (en la orilla bajada de una isla, en lo muy pendiente, la foto se estiraba en vetas: allí, más difuminada. Y desde el 15
+  // de noviembre de 2026, bastante más, también la fina: la foto trae pintadas las sombras de los montes de verdad, y donde
+  // el terreno ha bajado, en la orilla o en lo que crece una isla, se veían montes fantasma bajo un velo)
+  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (vOr > 0.05) o = mix(o, texture2D(uOrto, ou, 3.5).rgb, 0.85 * smoothstep(0.1, 0.7, vOr)); if (vOr > 0.05) o *= 1.0 + (ruido(sv * 7.0) * 0.6 + ruido(sv * 19.0) * 0.4 - 0.5) * 0.22 * smoothstep(0.05, 0.6, vOr);   // (y su grano de hierba, a matas)   // (desde el 15 de noviembre de 2026, apenas suavizada: muy borrosa, la rampa de la orilla salía como una banda verde lisa)
+    if (uOrtoDK > 0.0) { vec2 dq = (sv - uDetRect.xy) / uDetRect.zw; o = mix(o, texture2D(uOrtoD, dq).rgb, uOrtoDK * enRect(dq) * (1.0 - 0.85 * smoothstep(0.1, 0.7, vOr))); }
     c = mix(c, tonoOrto(o) * (1.0 + (s - 1.0) * 0.7), uOrtoK); }
   float pin = 1.0 - uOrtoK;   // (lo pintado a mano, que la ortofoto ya trae de verdad: parcelas, bosque, roca, el clima)
   // (el relieve fino, más nítido: de cerca, cuando cada punto de su imagen ocupa más de un píxel, se le resta lo borroso
   // de alrededor y se marcan crestas y barrancos; de lejos no, que titilaría)
-  { vec2 du = (sv - uDetRect.xy) / uDetRect.zw; vec3 d0 = texture2D(uDet, du).rgb; float lb = dot(d0, vec3(0.299, 0.587, 0.114));
+  { vec2 du = (sv - uDetRect.xy) / uDetRect.zw; vec3 d0 = texture2D(uDet, du).rgb; float lb = dot(d0, vec3(0.299, 0.587, 0.114)), dk = uDetK * enRect(du);
 #ifndef LIGERO
     vec2 px = 1.0 / vec2(textureSize(uDet, 0));
-    float ppt = px.x / max(1e-7, fwidth(du.x)), nit = smoothstep(0.7, 2.2, ppt) * 0.9 * uDetK;
-    if (nit > 0.01 || uOrtoK * uDetK > 0.0) { vec3 bl = (texture2D(uDet, du + vec2(px.x, 0.0)).rgb + texture2D(uDet, du - vec2(px.x, 0.0)).rgb + texture2D(uDet, du + vec2(0.0, px.y)).rgb + texture2D(uDet, du - vec2(0.0, px.y)).rgb) * 0.25;
+    float ppt = px.x / max(1e-7, fwidth(du.x)), nit = smoothstep(0.7, 2.2, ppt) * 0.9 * dk;
+    if (nit > 0.01 || uOrtoK * dk > 0.0) { vec3 bl = (texture2D(uDet, du + vec2(px.x, 0.0)).rgb + texture2D(uDet, du - vec2(px.x, 0.0)).rgb + texture2D(uDet, du + vec2(0.0, px.y)).rgb + texture2D(uDet, du - vec2(0.0, px.y)).rgb) * 0.25;
       lb = dot(bl, vec3(0.299, 0.587, 0.114)); d0 = clamp(d0 + (d0 - bl) * nit, 0.0, 1.0); }
 #endif
     // (de su imagen se toman las luces y las sombras; el color, el de la paleta: la imagen traía pintados los verdes de antes.
     // Con la ortofoto, solo lo que se aparta de lo de alrededor: crestas y barrancos, sin cambiar su color)
     float ld = dot(d0, vec3(0.299, 0.587, 0.114)), lc = dot(c, vec3(0.299, 0.587, 0.114));
-    vec3 cPal = mix(c, c * clamp(ld / max(lc, 0.04), 0.35, 1.9), uDetK), cOrt = c * mix(1.0, clamp(1.0 + (ld - lb) * 3.0, 0.72, 1.32), uDetK);
+    vec3 cPal = mix(c, c * clamp(ld / max(lc, 0.04), 0.35, 1.9), dk), cOrt = c * mix(1.0, clamp(1.0 + (ld - lb) * 3.0, 0.72, 1.32), dk);
     c = mix(cPal, cOrt, uOrtoK); }
   // (el clima en el color: el norte atlántico, más verde y jugoso; la Ribera, seca, de cereal y viña, dorada y ocre)
   float surC = smoothstep(380.0, 600.0, sv.y), norC = 1.0 - smoothstep(120.0, 300.0, sv.y);

@@ -10,6 +10,7 @@
 import * as THREE from 'three';
 import { hubRenderer, rendererVivo, sueltaEscenario } from './stage.js';
 import { hazIsla, texturasIsla, cieloShader } from './mapa3dIsla.js';
+import { islaAmpliada } from './mapa3dAmplia.js';
 import { hazNubes } from './mapa3dNubes.js';
 import { VIDEOS_ISLA } from '../data/videos-isla.js';
 import { puedenVideos } from '../ui/videos.js';
@@ -258,7 +259,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   Object.assign(UNI, { uBosque: { value: bqTex }, uBosqueR: { value: new THREE.Vector4(BOSQ.x0, BOSQ.y0, BOSQ.w, BOSQ.h) } });
   const C = o.comarcas.map((c, i) => {
     const { P, cx, cy } = contorno(c);
-    const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, BAJA ? 0.42 : 0.3); geos.push(g); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1));
+    const Pw = P.map(([x, y]) => W(x, y)), { g, hmax, malla } = losa(Pw, alto, BAJA ? 0.42 : 0.3); geos.push(g); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); g.setAttribute('aAmp', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1));
     // (empezada, con los colores del mapa y un toque del suyo; sin descubrir, apagada y hacia el malva, bajo la niebla)
     const vivo = !!o.abiertas || c.pct > 0 || c.done, top = relieveM(c, vivo);
     const side = bordeM(c, vivo, 0.2, 1.3), mesh = new THREE.Mesh(g, [top, side]); mesh.userData.c = c.id; const fk = top.uniforms.uFinoK = { value: 0 };
@@ -301,8 +302,18 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (las texturas de la roca y del césped, de Higgsfield, una sola vez para todas las islas)
   let texIsla = null;
   const islaTex = () => texIsla || (texIsla = texturasIsla(Math.min(8, r.capabilities.getMaxAnisotropy())), mats.push(texIsla), texIsla);
-  const islaDe = (c) => c.isla || (c.isla = hazIsla({ id: c.id, P: c.Pw, grosor: GROSOR, alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
-    fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
+  // (la isla con sus montes enteros, mapa3dAmplia.js: donde la muga pasa por un monte, la isla crece hasta su pie, con el
+  // relieve de la vecina o, fuera de Navarra, el de dentro en un espejo. Su contorno y su relieve, una vez por comarca; su
+  // losa, gIsla, con la rejilla de la de siempre, sale en lugar de esa mientras la isla está en el aire)
+  const ampDe = (c) => c.amp || (c.amp = islaAmpliada(c.Pw, alto, { navarra: (x, z) => navDentro(x, z), evita: [...(c.salen || []), ...(c.entran || [])] }));
+  const ampAttr = (g, A) => { const n = g.attributes.position.count, pa = g.attributes.position.array, am = new Float32Array(n); if (A.amplia) for (let v = 0; v < n; v++) am[v] = A.amp(pa[v * 3], pa[v * 3 + 2]); g.setAttribute('aAmp', new THREE.BufferAttribute(am, 1)); };
+  const islaDe = (c) => {
+    if (c.isla) return c.isla;
+    const A = ampDe(c);
+    if (A.amplia && !c.gIsla) { const { g } = losa(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; }
+    return (c.isla = hazIsla({ id: c.id, P: A.amplia ? A.P : c.Pw, hueco: A.amplia ? c.Pw : null, grosor: GROSOR, alto: A.alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
+      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
+  };
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
   const sobre = (c, x, z) => {
@@ -1382,7 +1393,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   const DENSO = BAJA ? 0.1 : 0.075, finosHechos = [];
   const bordeDe = (c) => {
     if (c.bordeF) return c.bordeF;
-    const b = c.gGrueso.boundingBox, P = c.Pw, st = 0.15, x0 = b.min.x - st, z0 = b.min.z - st, nx = Math.ceil((b.max.x - x0) / st) + 2, nz = Math.ceil((b.max.z - z0) / st) + 2, D = new Float32Array(nx * nz);
+    const A = ampDe(c), P = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(P.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, st = 0.15, x0 = b.min.x - st, z0 = b.min.z - st, nx = Math.ceil((b.max.x - x0) / st) + 2, nz = Math.ceil((b.max.z - z0) / st) + 2, D = new Float32Array(nx * nz);
     for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
       const x = x0 + i * st, z = z0 + j * st; let m = 1e9;
       for (let a = 0, e = P.length - 1; a < P.length; e = a++) { const ax = P[e][0], az = P[e][1], dx = P[a][0] - ax, dz = P[a][1] - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1e-9))), ex = ax + dx * t - x, ez = az + dz * t - z, d2 = ex * ex + ez * ez; if (d2 < m) m = d2; }
@@ -1392,11 +1403,12 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       return suave(0.12, 0.75, (D[k] * (1 - fx) + D[k + 1] * fx) * (1 - fz) + (D[k + nx] * (1 - fx) + D[k + nx + 1] * fx) * fz); });
   };
   function hazFino(c) {
-    const f = bordeDe(c), dh = c.dhF = (x, z) => finoEn(x, z) * f(x, z);
+    // (con la isla crecida, la malla densa es la de la isla, y lo que crece toma el relieve fino de donde sale el suyo)
+    const f = bordeDe(c), A = ampDe(c), dh = c.dhF = A.amplia ? (x, z) => { const [sx, sz, k] = A.fino(x, z); return finoEn(sx, sz) * f(x, z) * k; } : (x, z) => finoEn(x, z) * f(x, z);
     if (!c.gFino) {
-      const { g } = losa(c.Pw, alto, DENSO), pa = g.attributes.position.array, a = new Float32Array(pa.length / 3);
+      const { g } = A.amplia ? losa(A.P, A.alto, DENSO, c.malla) : losa(c.Pw, alto, DENSO), pa = g.attributes.position.array, a = new Float32Array(pa.length / 3);
       for (let v = 0; v < a.length; v++) if (pa[v * 3 + 1] > 0.01) a[v] = dh(pa[v * 3], pa[v * 3 + 2]);
-      g.setAttribute('aFino', new THREE.BufferAttribute(a, 1)); c.gFino = g;
+      g.setAttribute('aFino', new THREE.BufferAttribute(a, 1)); ampAttr(g, A); c.gFino = g;
       finosHechos.push(c);
       while (finosHechos.length > 3) { const i = finosHechos.findIndex(o2 => o2 !== c && o2.mesh.geometry !== o2.gFino); if (i < 0) break; const o2 = finosHechos.splice(i, 1)[0]; o2.gFino.dispose(); o2.gFino = null; }
       return;   // (lo demás, en el paso siguiente: así ninguno se come más de un par de imágenes)
@@ -1407,21 +1419,25 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (el bosque denso: en la elegida, muchos más árboles donde hay bosque, sobre el relieve fino; salen con él)
     if (!c.bosqueFino) {
       let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
-      const b = c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 7 : 14, L = [];
+      const PI = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(PI.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 7 : 14, L = [];
+      // (fuera de Navarra no hay bosque en la máscara: en lo que crece allí, el del punto que le hace de espejo)
+      const bosqueDe = (X, Z) => { const i = Math.floor((X / S + CX - BOSQ.x0) / tx), j = Math.floor((Z / S + CY - BOSQ.y0) / ty); return i >= 0 && j >= 0 && i < BOSQ.nx && j < BOSQ.ny ? bqD[j * BOSQ.nx + i] / 255 : 0; };
       const i0 = Math.max(0, Math.floor(((b.min.x / S + CX) - BOSQ.x0) / tx)), i1 = Math.min(BOSQ.nx - 1, Math.ceil(((b.max.x / S + CX) - BOSQ.x0) / tx));
       const j0 = Math.max(0, Math.floor(((b.min.z / S + CY) - BOSQ.y0) / ty)), j1 = Math.min(BOSQ.ny - 1, Math.ceil(((b.max.z / S + CY) - BOSQ.y0) / ty));
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-        const k = bqD[j * BOSQ.nx + i] / 255; if (k < 0.3) continue;
-        for (let n = Math.floor(k * k * dens + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(c.Pw, X, Z)) L.push([X, Z]); }
+        let k = bqD[j * BOSQ.nx + i] / 255;
+        if (A.amplia && k < 0.3) { const [Xc, Zc] = W(BOSQ.x0 + (i + 0.5) * tx, BOSQ.y0 + (j + 0.5) * ty); if (!navDentro(Xc, Zc) && enPoligono(PI, Xc, Zc)) { const [sx, sz, kk] = A.fuente(Xc, Zc); k = bosqueDe(sx, sz) * Math.min(1, kk * 1.5); } }
+        if (k < 0.3) continue;
+        for (let n = Math.floor(k * k * dens + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(PI, X, Z)) L.push([X, Z]); }
       }
       const mF = L.length ? arbolM(c, c.arbolFondo || { value: 0 }, true) : null, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
-      const Lc = [], Lh = []; for (const t of L) (conifera(alto(t[0], t[1]) / EXA, az()) ? Lc : Lh).push(t);
+      const Lc = [], Lh = []; for (const t of L) (conifera(A.alto(t[0], t[1]) / EXA, az()) ? Lc : Lh).push(t);
       c.bosqueFino = [];
       for (const [G, Ls, hi] of [[arbolG, Lc, true], [copaG, Lh, false]]) {
         if (!Ls.length) continue;
         const im = new THREE.InstancedMesh(G.clone(), mF, Ls.length), a = new Float32Array(Ls.length);
         Ls.forEach(([X, Z], n) => { const sc = 0.55 + az() * 0.45;
-          im.setMatrixAt(n, m4.compose(e3.set(X, GROSOR + alto(X, Z), Z), q, new THREE.Vector3(sc, sc * (hi ? 1.2 : 0.95), sc))); a[n] = dh(X, Z);
+          im.setMatrixAt(n, m4.compose(e3.set(X, GROSOR + A.alto(X, Z), Z), q, new THREE.Vector3(sc, sc * (hi ? 1.2 : 0.95), sc))); a[n] = dh(X, Z);
           im.setColorAt(n, col.set(hi ? '#2f5a36' : '#558a3e').offsetHSL((az() - 0.5) * (hi ? 0.04 : 0.06), 0, (az() - 0.5) * 0.12)); });
         im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(a, 1)); im.raycast = () => {}; im.frustumCulled = false; c.mesh.add(im); c.bosqueFino.push(im); geos.push(im.geometry);
       }
@@ -1436,10 +1452,12 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     const quiere = finoD && sel && !COL && !maq?.malla ? byId.get(sel) : null;
     if (quiere && !quiere.finoListo && quieto && now - finoT > 250) { const t0 = performance.now(); if (!quiere.bordeF) bordeDe(quiere); else hazFino(quiere); finoT = performance.now(); (quiere.finoMs ||= []).push(Math.round(finoT - t0)); }   // (tres pasos: el borde, la malla y lo demás)
     for (const c of C) {
-      const want = c === quiere && c.finoListo && c.gFino ? 1 : 0;
+      // (con la isla crecida: en el aire, su losa, y la densa, que es la de la isla; en el mapa, la de siempre)
+      const up = !!c.gIsla && (c.isla?.k || 0) > 0.002, base = up ? c.gIsla : c.gGrueso;
+      const want = c === quiere && c.finoListo && c.gFino && (!c.gIsla || up) ? 1 : 0;
       if (want && c.mesh.geometry !== c.gFino) c.mesh.geometry = c.gFino;
       c.fk.value += (want - c.fk.value) * (1 - Math.exp(-dt * (want ? 2.2 : 5)));
-      if (!want && c.fk.value < 0.004 && c.fk.value) { c.fk.value = 0; if (c.mesh.geometry !== c.gGrueso) c.mesh.geometry = c.gGrueso; }
+      if (!want && (c.fk.value < 0.004 || (c.gIsla && !up))) { if (c.fk.value < 0.004) c.fk.value = 0; if (c.mesh.geometry !== base) c.mesh.geometry = base; }
       if (!c.gFino && c.finoListo) c.finoListo = false;   // (soltada: se rehace si se vuelve a elegir)
       if (c.bosqueFino) for (const im of c.bosqueFino) im.visible = c.fk.value > 0.01;
     }

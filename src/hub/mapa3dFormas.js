@@ -113,9 +113,11 @@ function recorte(P, x0, z0, x1, z1) {
 }
 // cada comarca, una losa con su relieve: la cara de arriba, una rejilla de cuadrados (los del borde, recortados por el
 // contorno) con la altura de cada punto, que comparten vértices para que la luz caiga suave sobre los montes; y las
-// paredes, del suelo a esa altura. Grupos: 0 arriba, 1 paredes
-export function losa(P, alto, paso) {
+// paredes, del suelo a esa altura. Grupos: 0 arriba, 1 paredes. org: {x0, z0}, para que la rejilla case con la de otra
+// losa (la de una isla crecida con la de su comarca: así sus ríos y sus árboles quedan a la misma altura en las dos)
+export function losa(P, alto, paso, org = null) {
   let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+  if (org) { x0 = org.x0 + Math.floor((x0 - org.x0) / paso + 1e-9) * paso; z0 = org.z0 + Math.floor((z0 - org.z0) / paso + 1e-9) * paso; }
   const nx = Math.ceil((x1 - x0) / paso), nz = Math.ceil((z1 - z0) / paso), fila = nx + 1;
   // (qué esquinas de la rejilla caen dentro del contorno: fila a fila, entre los puntos donde la cortan los lados)
   const inn = new Uint8Array(fila * (nz + 1)), cortes = [];

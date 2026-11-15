@@ -115,8 +115,10 @@ function reparte(P, N) {
 /** La isla de una comarca. P: su contorno (en unidades del mapa); alto(x, z): la altura del relieve sin el grosor;
  *  salen y entran: [x, z, k] donde sus ríos salen de ella o le llegan por el borde (k: 1 río grande, 3 pequeño);
  *  fuera(x, z): la altura del mapa de alrededor en un punto (la de la comarca vecina, o el suelo); tex: texturasIsla();
+ *  hueco: el contorno de lo que se arranca del mapa, si no es P (con la isla crecida para que sus montes salgan enteros,
+ *  mapa3dAmplia.js, P es el de la isla y hueco el de la comarca);
  *  geos y mats, para soltarlo todo. */
-export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = () => 0, orto = null, tex, geos, mats, scene }) {
+export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran = [], fuera = () => 0, orto = null, tex, geos, mats, scene }) {
   let seed = 7; for (const ch of id) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
   // (un punto del borde cada cuarto de unidad, entre 300 y 560: con 300 fijos, en las comarcas grandes el canto iba a
   // tramos rectos de media unidad, y de cerca se veían)
@@ -127,7 +129,13 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   // (lo largo del borde hasta cada punto: la textura va por metros de borde, y las estrías, también)
   const LQ = [0]; for (let i = 1; i <= N; i++) LQ.push(LQ[i - 1] + Math.hypot(Q[i % N][0] - Q[i - 1][0], Q[i % N][1] - Q[i - 1][1]));
   const TEX = 2.4;   // (lo que mide la textura de la roca en el mapa)
-  const dentro = (x, z) => { let s = false; for (let i = 0, j = N - 1; i < N; j = i++) { const a = Q[i], b = Q[j]; if ((a[1] > z) !== (b[1] > z) && x < a[0] + (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1])) s = !s; } return s; };
+  const dentroDe = (QQ) => (x, z) => { let s = false; for (let i = 0, j = N - 1; i < N; j = i++) { const a = QQ[i], b = QQ[j]; if ((a[1] > z) !== (b[1] > z) && x < a[0] + (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1])) s = !s; } return s; };
+  const dentro = dentroDe(Q);
+  // (el hueco: con la isla crecida, el contorno de la comarca, que es lo que se arranca del mapa, con los mismos N puntos;
+  // si no, el de la isla. Lo suyo, con h: Qh, LQh, el centro, cuánto mide, sus normales y su altura)
+  const amplia = !!hueco && hueco !== P, Qh = amplia ? reparte(hueco, N) : Q, dentroH = amplia ? dentroDe(Qh) : dentro;
+  const LQh = amplia ? [0] : LQ; if (amplia) for (let i = 1; i <= N; i++) LQh.push(LQh[i - 1] + Math.hypot(Qh[i % N][0] - Qh[i - 1][0], Qh[i % N][1] - Qh[i - 1][1]));
+  let cxh = cx, czh = cz, rMedH = rMed; if (amplia) { cxh = 0; czh = 0; rMedH = 0; for (const [x, z] of Qh) { cxh += x / N; czh += z / N; } for (const [x, z] of Qh) rMedH += Math.hypot(x - cxh, z - czh) / N; }
   // (cuánta tierra se arranca, por lógica: las montañas tienen raíz, la corteza es más gruesa bajo las sierras (isostasia),
   // así que la pieza es más honda cuanto más relieve tiene, lo que va del valle a las cumbres (sin el 2 % más bajo ni el más
   // alto). Desde el 14 de noviembre de 2026 es una montaña del revés, como en la imagen de referencia del autor: de 0,62 a
@@ -159,6 +167,8 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const terron = (a, h) => { const u = Math.cos(a) * 5.2 + seed % 11, w = Math.sin(a) * 5.2 + 7.7; return ((ruidoV(u + h * 9.3, w + h * 6.1) - 0.5) * 0.07 + (ruidoV(u * 2.3 + 2.2, w * 2.3 + h * 15) - 0.5) * 0.035) * rMed * Math.sin(Math.PI * Math.min(1, h * 1.05)); };
   // (las estrías: surcos verticales cada medio metro largo del mapa, que se tuercen un poco al bajar, y bultos más grandes)
   const estria = (s, k) => { const ss = s + 0.12 * Math.sin(k * 1.7 + s * 0.6), g = 0.5 + 0.5 * Math.sin(ss * 13.4 + 1.3 * Math.sin(ss * 0.9)); return 0.09 * g * g + 0.14 * Math.sin(s * 2.7 + k * 0.45 + seed); };
+  // (los anillos para un contorno: el de la isla, la panza; y el del hueco, su molde)
+  const anillos = (Q, LQ, cx, cz, rMed, dentro) => {
   const pos = [], col = [], uv = [], c = new THREE.Color();
   const NIN = Q.map((q, i) => { const a2 = Q[(i + N - 3) % N], b2 = Q[(i + 3) % N]; let tx = b2[0] - a2[0], tz = b2[1] - a2[1]; const l = Math.hypot(tx, tz) || 1; let nx = -tz / l, nz = tx / l; if (!dentro(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz]; });   // (hacia dentro)
   const ssI = (a0, b0, x) => { const t = Math.min(1, Math.max(0, (x - a0) / (b0 - a0))); return t * t * (3 - 2 * t); };
@@ -184,6 +194,8 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   for (let i = 0; i < N; i++) idx.push(L + i, base, L + i + 1);
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx);
   g.computeVertexNormals(); geos.push(g);
+  return { pos, g }; };
+  const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro), MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g;
   // (roca cálida, ocre y parda, como la de las islas de referencia)
   const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(1.05, Math.max(0.32, D * 0.1)); mats.push(rocaM);   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
   const grupo = new THREE.Group(); grupo.name = 'isla-' + id; grupo.visible = false; scene.add(grupo);
@@ -198,12 +210,15 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const NOR = Q.map((q, i) => { const a = Q[(i + N - 2) % N], b = Q[(i + 2) % N]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
     let nx = tz, nz = -tx; if (dentro(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz, tx, tz]; });
   const H0 = Q.map(([x, z]) => grosor + alto(x, z));
+  const NORh = amplia ? Qh.map((q, i) => { const a = Qh[(i + N - 2) % N], b = Qh[(i + 2) % N]; let tx = b[0] - a[0], tz = b[1] - a[1]; const l = Math.hypot(tx, tz) || 1; tx /= l; tz /= l;
+    let nx = tz, nz = -tx; if (dentroH(q[0] + nx * 0.08, q[1] + nz * 0.08)) { nx = -nx; nz = -nz; } return [nx, nz, tx, tz]; }) : NOR;
+  const H0h = amplia ? Qh.map(([x, z]) => grosor + alto(x, z)) : H0;
   // (la hierba del canto no cuelga igual en todo el borde: en unos sitios apenas asoma y en otros cae en mechones, como en
   // la imagen de referencia del autor, del 14 de noviembre de 2026; con dos ondas de ruido a lo largo del borde)
   const CUELGA = Q.map(([x, z]) => 0.45 + 1.75 * (0.62 * ruidoV(x * 0.6 + 3.1, z * 0.6 + 7.7) + 0.38 * ruidoV(x * 1.9 + 21.4, z * 1.9 + 4.2)));
   // (la panza no empieza en la base de la comarca sino algo por debajo de lo más bajo de su orilla: la pared de debajo, que con
   // la exageración del relieve era muy alta, se queda en el canto de césped y algo de roca; la de la comarca se esconde)
-  const B = Math.min(...H0) - grosor * 0.15;
+  const B = Math.min(...H0, ...(amplia ? H0h : [])) - grosor * 0.15;
 
   // ---------- la orilla: los montes no se cortan en el borde ----------
   // (14 de noviembre de 2026, el autor: «sigue habiendo cortes transversales. Quiero que todo termine, como en las
@@ -219,21 +234,27 @@ export function hazIsla({ id, P, grosor, alto, salen = [], entran = [], fuera = 
   const HS = H0.map((_, i) => { let s2 = 0; for (let d = -8; d <= 8; d++) s2 += H0[(i + d + N) % N]; return s2 / 17; });
   // (el borde, bajo y casi llano en todo el contorno: el corte cae siempre en tierra llana y los montes no se parten, bajan
   // hasta él, como pidió el autor el 14 de noviembre de 2026: «intenta que el corte coincida en territorios llanos»)
-  const RIM = H0.map((h, i) => Math.min(h, B + grosor * 0.35 + 0.03 * Math.max(0, HS[i] - B)));
+  // (con la isla crecida, su borde ya cae al pie de los montes, en el fondo de los valles: allí la orilla solo baja hasta
+  // ese fondo, lo más bajo del borde cerca. Bajándola hasta lo más bajo de toda la isla, alrededor quedaba una repisa llana
+  // y, dentro, un escalón)
+  const VAL = amplia ? H0.map((_, i) => { let m = 1e9; for (let d = -12; d <= 12; d++) m = Math.min(m, H0[(i + d + N) % N]); return m; }) : null;
+  const RIM = H0.map((h, i) => Math.min(h, Math.max(B + grosor * 0.35 + 0.03 * Math.max(0, HS[i] - B), amplia ? VAL[i] - grosor * 0.15 : 0)));
   const WI = H0.map((h, i) => Math.min(rMed * 0.7, Math.max(0.5, 0.4 + (h - RIM[i]) * 1.5)));   // (larga: con una ladera corta, en el Pirineo quedaban paredes)
-  const WO = H0.map((h) => Math.min(rMed * 0.3, Math.max(0.45, 0.3 + (h - B) * 0.85)));
+  const WO = H0h.map((h) => Math.min(rMedH * 0.3, Math.max(0.45, 0.3 + (h - B) * 0.85)));   // (la de fuera, alrededor del hueco)
   const orT = (() => {
     let WM = 0; for (let i = 0; i < N; i++) WM = Math.max(WM, WI[i], WO[i]); WM += 0.3;
-    let qx0 = 1e9, qx1 = -1e9, qz0 = 1e9, qz1 = -1e9; for (const [x, z] of Q) { qx0 = Math.min(qx0, x); qx1 = Math.max(qx1, x); qz0 = Math.min(qz0, z); qz1 = Math.max(qz1, z); }
+    let qx0 = 1e9, qx1 = -1e9, qz0 = 1e9, qz1 = -1e9; for (const [x, z] of [...Q, ...(amplia ? Qh : [])]) { qx0 = Math.min(qx0, x); qx1 = Math.max(qx1, x); qz0 = Math.min(qz0, z); qz1 = Math.max(qz1, z); }
     const ox = qx0 - WM, oz = qz0 - WM, ow = qx1 - qx0 + 2 * WM, oh = qz1 - qz0 + 2 * WM, ppu = 168 / Math.max(ow, oh), tw = Math.ceil(ow * ppu) + 2, th = Math.ceil(oh * ppu) + 2, px = Math.max(ow / tw, oh / th);
     const OD = new Uint8Array(tw * th * 4), OF = new Float32Array(tw * th * 3);
     for (let j = 1; j < th - 1; j++) for (let i = 1; i < tw - 1; i++) {
-      const x = ox + (i + 0.5) * ow / tw, z = oz + (j + 0.5) * oh / th; let m2 = 1e9, k = 0;
+      const x = ox + (i + 0.5) * ow / tw, z = oz + (j + 0.5) * oh / th; let m2 = 1e9, k = 0, m2h = 1e9, kh = 0;
       for (let q = 0; q < N; q++) { const dx = Q[q][0] - x, dz = Q[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2) { m2 = d2; k = q; } }
-      const d = Math.sqrt(m2); if (d > WM) continue;
+      if (amplia) { for (let q = 0; q < N; q++) { const dx = Qh[q][0] - x, dz = Qh[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2h) { m2h = d2; kh = q; } } } else { m2h = m2; kh = k; }
+      const d = Math.sqrt(m2), dh = Math.sqrt(m2h); if (d > WM && dh > WM) continue;
       // (cada lado se pasa un poco al otro: los puntos que caen justo en el borde, el de la isla y el de sus vecinas, bajan
       // del todo. Con el corte limpio en la muga, la imagen los mezclaba a medias y quedaban de pie, como pinchos)
-      const den = dentro(x, z), cruza = 1 - ss(px * 1.2, px * 2.6, d), r = den ? 1 - ss(0, WI[k], d) : cruza, g = den ? cruza : 1 - ss(0, WO[k], d), o = (j * tw + i);
+      const den = dentro(x, z), denH = amplia ? dentroH(x, z) : den, cruza = 1 - ss(px * 1.2, px * 2.6, d), cruzaH = 1 - ss(px * 1.2, px * 2.6, dh);
+      const r = d > WM ? 0 : den ? 1 - ss(0, WI[k], d) : cruza, g = dh > WM ? 0 : denH ? cruzaH : 1 - ss(0, WO[kh], dh), o = (j * tw + i);
       OD[o * 4] = Math.round(r * 255); OD[o * 4 + 1] = Math.round(g * 255); OD[o * 4 + 2] = Math.round(Math.min(1, RIM[k] / 12) * 255); OD[o * 4 + 3] = 255;
       OF[o * 3] = r; OF[o * 3 + 1] = g; OF[o * 3 + 2] = RIM[k];
     }
@@ -380,8 +401,9 @@ void main() {
   // paredes, el lago, la panza mientras sale, el agua y las piedras que caen) se pinta con la suya.
   const TIEMPO = { value: 0 }, CORTE = { value: 0 }, LAGO = -D * 0.5;   // (el agua llena medio hueco: un lago ancho y azul bajo la isla, como en la imagen de referencia; antes, un charco oscuro en lo más hondo)
   const PLANT = { stencilWrite: true, stencilRef: 1, stencilFunc: THREE.EqualStencilFunc, stencilFail: THREE.KeepStencilOp, stencilZFail: THREE.KeepStencilOp, stencilZPass: THREE.KeepStencilOp };
-  const boca = (() => { const pos2 = [], ix = []; for (const [x, z] of P) pos2.push(x, 0.003, z);
-    for (const t of THREE.ShapeUtils.triangulateShape(P.map(([x, z]) => new THREE.Vector2(x, z)), [])) ix.push(t[0], t[2], t[1]);
+  const PH = hueco || P;
+  const boca = (() => { const pos2 = [], ix = []; for (const [x, z] of PH) pos2.push(x, 0.003, z);
+    for (const t of THREE.ShapeUtils.triangulateShape(PH.map(([x, z]) => new THREE.Vector2(x, z)), [])) ix.push(t[0], t[2], t[1]);
     const gb = new THREE.BufferGeometry(); gb.setAttribute('position', new THREE.Float32BufferAttribute(pos2, 3)); gb.setIndex(ix); geos.push(gb); return gb; })();
   const marcaM = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false, transparent: true, side: THREE.DoubleSide, stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp }); mats.push(marcaM);
   const borraM = new THREE.ShaderMaterial({ colorWrite: false, depthWrite: true, depthFunc: THREE.AlwaysDepth, transparent: true, side: THREE.DoubleSide, ...PLANT,
@@ -391,22 +413,22 @@ void main() {
   const molde = new THREE.Group(); sima.add(molde); molde.add(marca, borra);   // (molde: a la altura del CORTE; el agua y las piedras, en el mundo)
   // (las paredes: la geometría de la panza, con la roca en estratos; arriba algo de tierra, y abajo, a la sombra, oscura)
   { const cc = [], c2 = new THREE.Color(), SUELO = C('#54402f'), ARRIBA = C('#a3865f'), ABAJO = C('#3d3226');   // (tierra y roca a la sombra, oscuras: el autor las veía claras)
-    for (let v = 0; v < pos.length / 3; v++) { const f = Math.min(1, -pos[v * 3 + 1] / D);
+    for (let v = 0; v < posH.length / 3; v++) { const f = Math.min(1, -posH[v * 3 + 1] / D);
       if (f < 0.05) c2.copy(SUELO); else c2.copy(ARRIBA).lerp(ABAJO, Math.min(1, (f - 0.05) / 0.85) ** 0.75);
       c2.multiplyScalar(0.9 + R() * 0.12); cc.push(c2.r, c2.g, c2.b); }
-    const gp = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv']) gp.setAttribute(k, g.attributes[k]); gp.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3)); gp.setIndex(g.index); geos.push(gp);
+    const gp = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv']) gp.setAttribute(k, gH.attributes[k]); gp.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3)); gp.setIndex(gH.index); geos.push(gp);
     const pm = conTex(materialRoca(null, null, { sol: 0.6, amb: 0.8, cielo: '#b6c4d2', suelo: '#4a3c30', norK: 1.5, extra: { transparent: true, ...PLANT } }), tex.estratos, tex.estratosN); pm.uniforms.uNiebla.value = 0.5; pm.uniforms.uMusgo.value = Math.min(3.2, Math.max(0.9, D * 0.5)); pm.uniforms.uMusgoC.value = C('#4a8a2c');   // (el hueco, como una hondonada: hierba por casi toda la pared y roca solo abajo, junto al lago) mats.push(pm);
     const pared = new THREE.Mesh(gp, pm); pared.renderOrder = -0.8; molde.add(pared); }
   // (por dónde baja el agua por la pared del molde, en el punto i del borde: el anillo a esa hondura, algo hacia dentro)
-  const porPared = (i, yl) => { for (let k = 0; k + 1 < ANI.length; k++) { const a = (k * N1 + i) * 3, b = ((k + 1) * N1 + i) * 3, ya = pos[a + 1], yb = pos[b + 1];
-      if (yl <= ya && yl >= yb) { const f = (ya - yl) / ((ya - yb) || 1); return [lerp(pos[a], pos[b], f), lerp(pos[a + 2], pos[b + 2], f)]; } }
-    const a = ((ANI.length - 1) * N1 + i) * 3; return [pos[a], pos[a + 2]]; };
+  const porPared = (i, yl) => { for (let k = 0; k + 1 < ANI.length; k++) { const a = (k * N1 + i) * 3, b = ((k + 1) * N1 + i) * 3, ya = posH[a + 1], yb = posH[b + 1];
+      if (yl <= ya && yl >= yb) { const f = (ya - yl) / ((ya - yb) || 1); return [lerp(posH[a], posH[b], f), lerp(posH[a + 2], posH[b + 2], f)]; } }
+    const a = ((ANI.length - 1) * N1 + i) * 3; return [posH[a], posH[a + 2]]; };
   // (el lago del hueco, donde cae el agua: azul, con ondas suaves y el cielo reflejado de lado, turquesa en la orilla; su contorno, el
   // del anillo de encima, para que llegue a las paredes, que tapan lo que sobra)
-  { const p3 = [cx, LAGO, cz], o3 = [0], i3 = [];
-    const RL = Array.from({ length: N }, (_, i) => { const [x, z] = porPared(i, LAGO); return [x - cx, z - cz]; });
+  { const p3 = [cxh, LAGO, czh], o3 = [0], i3 = [];
+    const RL = Array.from({ length: N }, (_, i) => { const [x, z] = porPared(i, LAGO); return [x - cxh, z - czh]; });
     for (let i = 0; i < N; i++) { let x = 0, z = 0; for (let j = -4; j <= 4; j++) { const q2 = RL[(i + j + N) % N]; x += q2[0] / 9; z += q2[1] / 9; }   // (la orilla, suave)
-      p3.push(cx + x * 1.03, LAGO, cz + z * 1.03); o3.push(1); i3.push(0, 1 + (i + 1) % N, 1 + i); }
+      p3.push(cxh + x * 1.03, LAGO, czh + z * 1.03); o3.push(1); i3.push(0, 1 + (i + 1) % N, 1 + i); }
     const gl = new THREE.BufferGeometry(); gl.setAttribute('position', new THREE.Float32BufferAttribute(p3, 3)); gl.setAttribute('aO', new THREE.Float32BufferAttribute(o3, 1)); gl.setIndex(i3); geos.push(gl);
     const lm = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, side: THREE.DoubleSide, ...PLANT, uniforms: { uT: TIEMPO },
       vertexShader: 'attribute float aO; varying vec2 vP; varying vec3 vW; varying float vO; void main() { vP = position.xz; vO = aO; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }',
@@ -430,14 +452,17 @@ void main() {
   // el borde del hueco al cielo de abajo. Columnas de agua (un corte de ocho lados, para que se vean desde cualquier lado, y
   // que de canto se desvanecen) que se abren al caer y se deshacen en bruma antes de las nubes. Si no le sale ningún río, un
   // manantial en lo más bajo de su orilla.
-  const cerca = ([x, z]) => { let b = 0, bd = 1e9; for (let i = 0; i < N; i++) { const d = (Q[i][0] - x) ** 2 + (Q[i][1] - z) ** 2; if (d < bd) { bd = d; b = i; } } return b; };
-  const elige = (L2, max) => { const out = []; for (const s of [...L2].sort((a, b) => a[2] - b[2])) { if (out.length >= max) break; const i = cerca(s); if (out.every(o => Math.hypot(Q[o.i][0] - Q[i][0], Q[o.i][1] - Q[i][1]) > rMed * 0.32)) out.push({ i, k: s[2] }); } return out; };
+  const cerca = ([x, z], QQ = Q) => { let b = 0, bd = 1e9; for (let i = 0; i < N; i++) { const d = (QQ[i][0] - x) ** 2 + (QQ[i][1] - z) ** 2; if (d < bd) { bd = d; b = i; } } return b; };
+  const elige = (L2, max, QQ = Q) => { const out = []; for (const s of [...L2].sort((a, b) => a[2] - b[2])) { if (out.length >= max) break; const i = cerca(s, QQ); if (out.every(o => Math.hypot(QQ[o.i][0] - QQ[i][0], QQ[o.i][1] - QQ[i][1]) > rMed * 0.32)) out.push({ i, k: s[2] }); } return out; };
   const caidas = [];
   const anchoDe = (k) => (k === 1 ? 0.8 : k === 2 ? 0.58 : 0.42) * Math.max(1, rMed / 9);
   for (const s of elige(salen, 4)) caidas.push({ ...s, isla: true, w: anchoDe(s.k) });
-  if (!caidas.length) { let b = 0, bh = 1e9; for (let i = 0; i < N; i++) { const h = alto(Q[i][0], Q[i][1]); if (h < bh) { bh = h; b = i; } } caidas.push({ i: b, k: 2, isla: true, w: anchoDe(2) }); }
-  for (const s of elige(entran, 4)) caidas.push({ ...s, isla: false, w: anchoDe(s.k) * 0.85 });
-  caidas.forEach((c3, n) => { const [x, z] = Q[c3.i], [nx, nz, tx, tz] = NOR[c3.i]; Object.assign(c3, { x, z, nx, nz, tx, tz, h0: H0[c3.i], fase: n * 1.7 + R() * 3, xo: x + nx * 0.3, zo: z + nz * 0.3 }); });
+  // (el manantial, en lo más bajo de la orilla que no haya crecido: el agua, al pasar el corte, sigue por la pared del hueco)
+  const junto = (i) => !amplia || Math.hypot(Q[i][0] - Qh[cerca(Q[i], Qh)][0], Q[i][1] - Qh[cerca(Q[i], Qh)][1]) < 0.2;
+  if (!caidas.length) { let b = -1, bh = 1e9; for (let i = 0; i < N; i++) { const h = alto(Q[i][0], Q[i][1]); if (h < bh && junto(i)) { bh = h; b = i; } } if (b < 0) b = 0; caidas.push({ i: b, k: 2, isla: true, w: anchoDe(2) }); }
+  for (const s of elige(entran, 4, Qh)) caidas.push({ ...s, isla: false, w: anchoDe(s.k) * 0.85 });
+  caidas.forEach((c3, n) => { const QQ = c3.isla ? Q : Qh, [x, z] = QQ[c3.i], [nx, nz, tx, tz] = (c3.isla ? NOR : NORh)[c3.i];
+    Object.assign(c3, { x, z, nx, nz, tx, tz, h0: (c3.isla ? H0 : H0h)[c3.i], ip: c3.isla && amplia ? cerca([x, z], Qh) : c3.i, fase: n * 1.7 + R() * 3, xo: x + nx * 0.3, zo: z + nz * 0.3 }); });
   const SEG = 30, LAD = 8, VC = (SEG + 1) * (LAD + 1);
   const aguaG = new THREE.BufferGeometry();
   const aPos = new Float32Array(caidas.length * VC * 3), aF = new Float32Array(caidas.length * VC * 4), aN = new Float32Array(caidas.length * VC * 2), aIx = [];
@@ -514,7 +539,7 @@ void main() {
       canto.position.y = py0; rocaM.uniforms.uTopeK.value = sy; rocaM.uniforms.uTopeI.value = KI;
       // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo)
       if (k > 0.03 && antes <= 0.03) for (let n = 0; n < 46; n++) {
-        const i = (R() * N) | 0, [x, z] = Q[i], [nx, nz] = NOR[i], s = 0.05 + R() * (n < 8 ? 0.28 : 0.13);
+        const i = (R() * N) | 0, [x, z] = (n % 2 ? Q : Qh)[i], [nx, nz] = (n % 2 ? NOR : NORh)[i], s = 0.05 + R() * (n < 8 ? 0.28 : 0.13);
         if (n % 2) suelta(x + nx * 0.05, py - 0.05, z + nz * 0.05, nx * (0.3 + R() * 0.7), 0.3 + R() * 0.6, nz * (0.3 + R() * 0.7), s);
         else { const y0 = fuera(x + nx * 0.3, z + nz * 0.3); suelta(x - nx * 0.08, y0, z - nz * 0.08, -nx * (0.05 + R() * 0.25), R() * 0.3, -nz * (0.05 + R() * 0.25), s); if (n % 6 === 0) echaPolvo(x, y0 - 0.2, z, 0.9 + R() * 0.8); }
         if (n % 5 === 0) echaPolvo(x, py - 0.2, z, 0.8 + R() * 0.9);
@@ -524,7 +549,7 @@ void main() {
       reloj -= dt;
       if (k > 0.35 && reloj <= 0) { reloj = 0.12 + R() * 0.35;
         if (R() < 0.6) { const [x, y, z, [nx, nz]] = deLaIsla(py, k); suelta(x, y, z, nx * R() * 0.25, -R() * 0.2, nz * R() * 0.25, 0.04 + R() * 0.12); if (R() < 0.18) echaPolvo(x, y, z, 0.5 + R() * 0.6); }
-        else { const i = (R() * N) | 0, [x, z] = Q[i], [nx, nz] = NOR[i], y0 = fuera(x + nx * 0.3, z + nz * 0.3); suelta(x - nx * 0.06, y0 - 0.05, z - nz * 0.06, -nx * R() * 0.15, 0, -nz * R() * 0.15, 0.03 + R() * 0.1); if (R() < 0.12) echaPolvo(x, y0 - 0.1, z, 0.5 + R() * 0.5); }
+        else { const i = (R() * N) | 0, [x, z] = Qh[i], [nx, nz] = NORh[i], y0 = fuera(x + nx * 0.3, z + nz * 0.3); suelta(x - nx * 0.06, y0 - 0.05, z - nz * 0.06, -nx * R() * 0.15, 0, -nz * R() * 0.15, 0.03 + R() * 0.1); if (R() < 0.12) echaPolvo(x, y0 - 0.1, z, 0.5 + R() * 0.5); }
       }
       // (la isla es una pieza: sale entera del hueco, que se queda a la altura del corte. La boca baja lo que se hunden las
       // comarcas vecinas al quedar de fondo: si quedaba por encima de su borde, entre las dos se veía una cuña de la base
@@ -545,7 +570,7 @@ void main() {
           const ww = c3.w * (c3.isla ? 1 + 0.9 * f ** 0.7 : 0.9 + 0.7 * f ** 0.8), mece = Math.sin(t * 0.7 + f * 3 + c3.fase) * 0.05 * f;
           // (bajo la orilla, por la pared del cráter, que se va cerrando, hasta el lago)
           let ox = c3.x + c3.nx * off + c3.tx * mece, oz = c3.z + c3.nz * off + c3.tz * mece;
-          if (y < corte) { const [wx, wz] = porPared(c3.i, y - corte), rx = wx - cx, rz = wz - cz, rr = Math.hypot(rx, rz) || 1; ox = wx - rx / rr * 0.16 + c3.tx * mece; oz = wz - rz / rr * 0.16 + c3.tz * mece; }
+          if (y < corte) { const [wx, wz] = porPared(c3.ip, y - corte), rx = wx - cxh, rz = wz - czh, rr = Math.hypot(rx, rz) || 1; ox = wx - rx / rr * 0.16 + c3.tx * mece; oz = wz - rz / rr * 0.16 + c3.tz * mece; }
           for (let j = 0; j <= LAD; j++) { const th = j / LAD * Math.PI * 2, ct = Math.cos(th) * ww / 2, st = Math.sin(th) * ww * 0.26, vi = b + s * (LAD + 1) + j;
             aPos[vi * 3] = ox + c3.tx * ct + c3.nx * st; aPos[vi * 3 + 1] = y; aPos[vi * 3 + 2] = oz + c3.tz * ct + c3.nz * st;
             aF[vi * 4] = j / LAD; aF[vi * 4 + 1] = cae; aF[vi * 4 + 2] = L2; aF[vi * 4 + 3] = c3.isla ? 0 : 1;
@@ -581,8 +606,8 @@ void main() {
       for (const p of caen) {
         if (!p.vivo) continue;
         p.vy -= 5.5 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.vx *= 1 - dt * 0.3; p.vz *= 1 - dt * 0.3;
-        if (p.y < corte + LAGO + 0.08) { p.vivo = false; if (dentro(p.x, p.z) && p.s > 0.07) echaPolvo(p.x, corte + LAGO + 0.15, p.z, 0.35 + p.s * 2); continue; }   // (llegan al fondo del hueco: salpican)
-        const enHueco = dentro(p.x, p.z);
+        if (p.y < corte + LAGO + 0.08) { p.vivo = false; if (dentroH(p.x, p.z) && p.s > 0.07) echaPolvo(p.x, corte + LAGO + 0.15, p.z, 0.35 + p.s * 2); continue; }   // (llegan al fondo del hueco: salpican)
+        const enHueco = dentroH(p.x, p.z);
         if (!enHueco && p.y < fuera(p.x, p.z)) { p.vivo = false; continue; }   // (fuera del hueco, al llegar al suelo, se queda)
         const sc = p.s;
         e.set(p.rx + t * p.wr, p.ry + t * p.wr * 0.7, 0); q.setFromEuler(e); m4.compose(v3.set(p.x, p.y, p.z), q, s3.set(sc, sc * 0.8, sc));
