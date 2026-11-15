@@ -1000,13 +1000,17 @@ export class PelotaCourt {
     if (!MOD) { const BL = TQ_BALCON, y0 = HW, altoC = BZ ? '#1e2127' : A.alto || A.claro || '#ebe6d9', alto = M({ color: altoC, roughness: 0.92, emissive: altoC, emissiveIntensity: BZ ? 0.08 : 0.28 }), mad = BZ ? M({ color: '#c8322c', roughness: 0.5 }) : M({ color: '#a8744a', roughness: 0.7 }), banco = BZ ? M({ color: '#2f4f9e', roughness: 0.7 }) : mad;
       const bal = canvasTex(T, 1024, 64, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = '#9c6a42'; for (let x = 4; x < w; x += 16) c.fillRect(x, 0, 6, h); c.fillRect(0, h - 8, w, 8); }, [EXT / 2.5, 1]);
       const balM = BZ ? M({ color: '#d2e6f2', transparent: true, opacity: 0.2, roughness: 0.08, metalness: 0.2, depthWrite: false, side: T.DoubleSide }) : M({ map: bal, transparent: true, alphaTest: 0.4, side: T.DoubleSide, roughness: 0.75 });
+      // (y en el oscuro, el fondo de los balcones, la red negra de la foto de Baiona, con las filas azules del público detrás)
+      const redT = BZ ? canvasTex(T, 512, 512, (c, w, h) => { c.fillStyle = '#15171c'; c.fillRect(0, 0, w, h); c.fillStyle = 'rgba(47,79,158,.32)'; for (let y = 40; y < h; y += 64) c.fillRect(0, y, w, 18);
+        c.strokeStyle = 'rgba(78,84,96,.6)'; c.lineWidth = 2; for (let i = 0; i <= w; i += 12) { c.beginPath(); c.moveTo(i, 0); c.lineTo(i, h); c.stroke(); c.beginPath(); c.moveTo(0, i); c.lineTo(w, i); c.stroke(); } }, [EXT / 4, (H - y0 + 3) / 4]) : null;
+      const fondoB = BZ ? M({ map: redT, roughness: 0.95 }) : alto;
       for (const [xw, s] of [[XL - 0.6, -1], [W / 2 + 0.3, 1]]) {   // (xw: el canto de fuera de la pared; s: hacia dónde queda el balcón)
         const xb = xw + s * BL / 2;
         box(BL, 0.3, EXT + 0.8, alto, xb, y0 - 0.15, EXT / 2);   // (el suelo)
         if (s > 0) box(0.3, 0.12, EXT + 0.8, M({ color: th.cap, roughness: 0.7 }), W / 2 + 0.15, y0 + 0.06, EXT / 2);   // (el remate de la derecha; el de la izquierda ya está)
         const rail = new T.Mesh(new T.PlaneGeometry(EXT + 0.8, 0.9), balM); rail.rotation.y = Math.PI / 2; rail.position.set(xw - s * 0.15, y0 + 0.45 + 0.1, EXT / 2); g.add(rail);
         box(0.12, 0.08, EXT + 0.8, mad, xw - s * 0.15, y0 + 1.04, EXT / 2);   // (el pasamanos)
-        box(0.12, H - y0 + 3, EXT + 1.2, alto, xw + s * (BL + 0.06), y0 + (H - y0 + 3) / 2 - 0.3, EXT / 2);   // (la pared del fondo del balcón)
+        box(0.12, H - y0 + 3, EXT + 1.2, fondoB, xw + s * (BL + 0.06), y0 + (H - y0 + 3) / 2 - 0.3, EXT / 2);   // (la pared del fondo del balcón)
         for (const z of [za, zb]) box(BL + 0.3, H - y0 + 3, 0.5, alto, xb - s * 0.15, y0 + (H - y0 + 3) / 2 - 0.3, z);   // (los extremos)
         box(0.42, 0.06, EXT - 1.6, banco, xw + s * 0.95, y0 + 0.45, EXT / 2); box(0.06, 0.42, EXT - 1.6, banco, xw + s * 1.1, y0 + 0.22, EXT / 2);   // (el banco corrido)
         for (let z = 1.4; z < EXT - 1.4; z += 0.72) this.standSpots.push([xw + s * 0.95, y0 + 0.48, z + (Math.random() - 0.5) * 0.12, s > 0 ? -Math.PI / 2 : Math.PI / 2]);

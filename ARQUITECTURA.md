@@ -1351,6 +1351,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       final del Torneo de Trinquete va un año a cada uno (`trinqueteDe`, por la edición: las impares en el Herrizherri).
       Los dos están ahora al final de «Frontones», también en la pestaña del trinquete, con «Inventado para el juego» en vez del
       lugar y la imagen sacada del propio juego (`src/assets/frontones-juego`, `canchaFoto` en `frontonFotos.js`).
+      Después, con otro «seguimos», el fondo de sus balcones con la red negra de la foto de Baiona (`redT` en
+      `buildTrinquete`): una malla fina sobre negro, con unas franjas azules de las filas del público detrás. Comprobado
+      también qué trinquete toca en la final: Herrizherri, Beltza, Herrizherri, Beltza en las ediciones 1 a 4.
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.
