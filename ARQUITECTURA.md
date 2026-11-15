@@ -2329,6 +2329,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   que los tejados salgan de su color. En total, unas 420 casas y 12 llamadas de dibujo como mucho.
   Se quitaron el 15 de noviembre de 2026, con su archivo: al acercarse desaparecían y salía el pueblo de verdad, y el
   autor no les veía sentido («que sea el pueblo»). Está en la historia de git, en el commit anterior a «Mapa: sin caseríos».
+- **La isla, a la primera sin nombres encima** (`lejosIsla` en el bucle de los nombres de `mapa3d.js`; 15 de noviembre de
+  2026). «Las insignias o letreros de cada pueblo hacen que se tape la comarca [...] de primer vistazo no». Con la isla
+  en el aire y la cámara a la distancia de la órbita no salen las fichas de sus pueblos, ni los rótulos de las comarcas,
+  ni los parajes, los montes o el rebaño de la trashumancia. Al acercarse, a un 80 % de esa distancia, van saliendo:
+  con el botón de acercar, un toque algo largo.
 - **Las animaciones del mapa, a su paso aunque el móvil vaya justo** (el paso de cada imagen, `dt`, en el bucle de
   `mapa3d.js`; 15 de noviembre de 2026). «Revisar por qué las animaciones van muy lentas». El paso de cada imagen tenía
   un tope de 0,05 s: por debajo de 20 imágenes por segundo, todo iba a cámara lenta, la isla que sube, el vuelo y la
