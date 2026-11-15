@@ -1120,7 +1120,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // panel): antes solo con el ratón encima, y al elegir una comarca abajo las flechas ya no movían nada. No mientras se
   // escribe ni con una ficha abierta encima
   const keys = new Set();
-  const MOV = { w: 'f', arrowup: 'f', s: 'b', arrowdown: 'b', a: 'l', arrowleft: 'l', d: 'r', arrowright: 'r', q: 'ql', e: 'qr', '+': 'in', '=': 'in', '-': 'out' };
+  const MOV = { w: 'f', arrowup: 'f', s: 'b', arrowdown: 'b', a: 'l', arrowleft: 'l', d: 'r', arrowright: 'r', q: 'ql', e: 'qr', '+': 'in', '=': 'in', '-': 'out', r: 'pu', f: 'pd', pageup: 'pu', pagedown: 'pd' };
   const kd = (e) => { if (e.key === 'Escape' && visible && !document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) { if (saltaIntro()) return; if (elegido) select(sel); else if (sel) vista(); return; }
     const k = MOV[e.key.toLowerCase()];
     // (en la entrada grande, las flechas, el espacio y la tecla de entrar la pasan deprisa)
@@ -1140,7 +1140,18 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   const B = [['in', 'Acercar', 'M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z'], ['home', 'Ver toda Navarra', 'M4 11l8-7 8 7v9h-5v-6H9v6H4z'], ['out', 'Alejar', 'M5 11h14v2H5z']];
   pad.innerHTML = B.map(([k, t, d]) => `<button type="button" class="m3-b b-${k}" data-k="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${d}"/></svg></button>`).join('');
   host.append(pad);
-  pad.addEventListener('pointerdown', (e) => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); usado(); vuelo = null; if (b.dataset.k === 'home') { vista(); return; } keys.add(b.dataset.k); try { b.setPointerCapture(e.pointerId); } catch (x) { } const fin = () => { keys.delete(b.dataset.k); b.removeEventListener('pointerup', fin); b.removeEventListener('pointercancel', fin); }; b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); });
+  // (y al lado, girar e inclinar: el 15 de noviembre de 2026, el autor, «tendrás que añadir también nuevos controles para
+  // navegar por el mapa». Girar solo iba con dos dedos, el clic derecho o Q y E, e inclinar solo con dos dedos: en el
+  // móvil, sin saberlo, no había manera. Se mantienen pulsados como los otros. Inclinar baja la cámara hacia el
+  // horizonte, para ver el relieve de lado; «desde arriba» la sube. En el teclado, R y F o las teclas de página)
+  const pad2 = document.createElement('div'); pad2.className = 'm3-pad2';
+  const L = 'fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"';
+  const B2 = [['ql', 'Girar a la izquierda', `<path ${L} d="M5.94 9.5A7 7 0 1 0 12 6"/><path ${L} d="M13.5 3.5 11 6l2.5 2.5"/>`], ['qr', 'Girar a la derecha', `<path ${L} d="M18.06 9.5A7 7 0 1 1 12 6"/><path ${L} d="M10.5 3.5 13 6l-2.5 2.5"/>`],
+    ['pd', 'Ver más de lado', `<path ${L} d="M7.5 7h9l4.5 12H3z"/><path ${L} d="M10.2 7 9 19M13.8 7l1.2 12"/>`], ['pu', 'Ver desde arriba', `<path ${L} d="M5 11h14v9H5z"/><path ${L} d="M12 2.5v6M9.6 6.2 12 8.6l2.4-2.4"/>`]];
+  pad2.innerHTML = B2.map(([k, t, d]) => `<button type="button" class="m3-b b-${k}" data-k="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg></button>`).join('');
+  host.append(pad2);
+  const pulsa = (e) => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); usado(); vuelo = null; if (b.dataset.k === 'home') { vista(); return; } keys.add(b.dataset.k); try { b.setPointerCapture(e.pointerId); } catch (x) { } const fin = () => { keys.delete(b.dataset.k); b.removeEventListener('pointerup', fin); b.removeEventListener('pointercancel', fin); }; b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); };
+  pad.addEventListener('pointerdown', pulsa); pad2.addEventListener('pointerdown', pulsa);
 
   // (un pueblo: si su comarca no estaba elegida, primero la comarca entera; si ya lo estaba, o desde el buscador, de cerca,
   // con su núcleo y lo de alrededor)
@@ -1934,6 +1945,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       if (keys.has('f')) { goal.x += fx * sp; goal.z += fz * sp; } if (keys.has('b')) { goal.x -= fx * sp; goal.z -= fz * sp; }
       if (keys.has('l')) { goal.x += fz * sp; goal.z -= fx * sp; } if (keys.has('r')) { goal.x -= fz * sp; goal.z += fx * sp; }
       if (keys.has('ql')) goal.yaw += dt * 1.4; if (keys.has('qr')) goal.yaw -= dt * 1.4;
+      if (keys.has('pu')) goal.pitch += dt * 0.8; if (keys.has('pd')) goal.pitch -= dt * 0.8;   // (lim la deja entre los topes)
       if (keys.has('in')) goal.d *= Math.exp(-dt * 1.6); if (keys.has('out')) goal.d *= Math.exp(dt * 1.6);
       lim();
     }
@@ -2246,7 +2258,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     removeEventListener('keydown', kd); removeEventListener('keyup', ku); removeEventListener('blur', sueltaTeclas);
     quitaVideoIsla(false); for (const c of C) c.isla?.dispose(); for (const g of geos) g.dispose(); for (const m of mats) { m.map?.dispose(); m.alphaMap?.dispose(); m.dispose(); } sombra.dispose(); orto.dispose(); nada.dispose(); bqTex.dispose(); for (const a of arboles) a.dispose(); for (const e of det.values()) { if (e.tex) suelta(e.tex); if (e.orto) suelta(e.orto); } quitaMaqueta(); for (const e of [...nuc.values()]) quitaNucleo(e);
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
-    if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove();
+    if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove(); pad2.remove();
   }
   return { select, vista, dispose, volar: irPueblo, cierraPueblo, coleccion, encuadra };
 }

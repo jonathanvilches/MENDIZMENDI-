@@ -275,6 +275,11 @@
 .m3-pad { --b: 48px; position: absolute; z-index: 3; right: calc(16px + var(--sr, 0px)); top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: var(--b); grid-template-rows: repeat(3, var(--b)); gap: 6px;
   grid-template-areas: "in" "h" "out"; padding: 6px; border-radius: 999px; background: rgba(16, 6, 40, .66); border: 1px solid var(--line2); box-shadow: 0 10px 30px rgba(4, 1, 12, .45);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: right .35s; }
+/* (girar e inclinar, en dos por dos a la izquierda de los de siempre y más pequeños: son los de menos uso) */
+.m3-pad2 { --b: 40px; position: absolute; z-index: 3; right: calc(16px + 62px + 8px + var(--sr, 0px)); top: 50%; transform: translateY(-50%); display: grid; grid-template-columns: repeat(2, var(--b));
+  grid-template-rows: repeat(2, var(--b)); gap: 4px; padding: 5px; border-radius: 22px; background: rgba(16, 6, 40, .66); border: 1px solid var(--line2); box-shadow: 0 10px 30px rgba(4, 1, 12, .45);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); transition: right .35s; }
+.m3-pad2 .m3-b svg { width: 22px; height: 22px; }
 .m3-b { width: var(--b); height: var(--b); display: grid; place-items: center; padding: 0; border-radius: 50%; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255,255,255,.08); color: #fff; cursor: pointer; touch-action: none; transition: background .15s, transform .15s; }
 .m3-b svg { width: 24px; height: 24px; fill: currentColor; } .m3-b:hover { background: rgba(255, 255, 255, .18); } .m3-b:active { transform: scale(.92); background: var(--pink); }
 .m3-b:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
@@ -311,6 +316,7 @@
   .m3-ayuda { display: none; }
   .m3-rail { left: 8px; right: calc(8px + var(--sr, 0px)); bottom: 6px; gap: 8px; padding: 2px 2px 3px; }
   .m3-pad { --b: 40px; right: calc(8px + var(--sr, 0px)); top: calc(50% - 24px); gap: 4px; padding: 4px; } .m3-b svg { width: 20px; height: 20px; }
+  .m3-pad2 { --b: 34px; right: calc(8px + 50px + 6px + var(--sr, 0px)); top: calc(50% - 24px); gap: 3px; padding: 4px; border-radius: 18px; } .m3-pad2 .m3-b svg { width: 18px; height: 18px; }
   /* (con una comarca elegida, lo demás deja sitio al mapa) */
   .m3d.con-sel :is(.m3-tot, .ini-sq) { display: none; }
 }
@@ -388,8 +394,8 @@
 }
 @media (prefers-reduced-motion: reduce) { .m3-aro .ar { animation: none !important; } }
 /* la entrada grande (Navarra se despega del mapa de España): sin nada encima hasta que se posa; luego, todo aparece */
-.m3d.m3-intro :is(.ini-head, .m3-tot, .m3-rail, .m3-fl, .m3-pad, .m3-cb, .m3-ft, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; }
-.m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-mision, .m3-capa) { animation: m3-aparece .7s ease-out both; }
+.m3d.m3-intro :is(.ini-head, .m3-tot, .m3-rail, .m3-fl, .m3-pad, .m3-pad2, .m3-cb, .m3-ft, .m3-mision, .m3-capa, .m3-ayuda) { opacity: 0; pointer-events: none; }
+.m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-pad2, .m3-mision, .m3-capa) { animation: m3-aparece .7s ease-out both; }
 /* (como en el cine: el mapa a toda la pantalla, sin la cabecera ni los botones del menú, que vuelven al final) */
 #hub:is(.m3-cine, .m3-cine-sale) .hub-main { position: absolute; inset: 0; grid-area: auto; z-index: 3; }
 /* (al acabar, el mapa va de la pantalla entera a su sitio en el menú poco a poco, mientras aparecen la barra y la cabecera:
@@ -398,7 +404,7 @@
 #hub.m3-cine :is(.hub-top, .hub-nav) { opacity: 0; pointer-events: none; }
 #hub.m3-cine-fin :is(.hub-top, .hub-nav) { animation: m3-aparece .7s ease-out both; }
 @keyframes m3-aparece { from { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-mision, .m3-capa), #hub.m3-cine-fin :is(.hub-top, .hub-nav) { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .m3d.m3-aparece :is(.ini-head, .m3-tot, .m3-rail, .m3-pad, .m3-pad2, .m3-mision, .m3-capa), #hub.m3-cine-fin :is(.hub-top, .hub-nav) { animation: none; } }
 /* el espectáculo de la entrada (mapa3d.js lo mueve con el reloj de la entrada): las nubes, el nombre del juego con su
    lema, la luz dorada bajo Navarra en el aire y el destello al posarse */
 .m3-show { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
@@ -465,7 +471,7 @@
 /* (con la ficha abierta, la misión de ahora se aparta; en el móvil, también las comarcas y los botones de la cámara) */
 .m3d.con-ficha .m3-mision { display: none; }
 @media (max-width: 639px) {
-  .m3d.con-ficha .m3-pad { display: none; }
+  .m3d.con-ficha :is(.m3-pad, .m3-pad2) { display: none; }
 }
 @media (max-width: 760px) { .m3-cb { top: 12px; left: 12px; right: calc(68px + var(--sr, 0px)); transform: none; max-width: none; } .m3-cb.entra { animation-name: ft-entra; } }
 @media (max-height: 520px) {

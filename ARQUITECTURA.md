@@ -2396,6 +2396,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     los mismos: unos 700, 300 y 115. Las de junto a la isla, 12, 8 y 5, también de tamaños distintos.
     Esa misma noche, casi el doble: 180, 100 y 36, y junto a la isla 30, 18 y 8 («tiene que haber bastantes más nubes»).
     Son copos en una sola malla: más copos, la misma llamada de dibujo.
+- **Girar e inclinar el mapa con botones** (`.m3-pad2`, `B2` y las teclas `pu` y `pd` en `mapa3d.js`; `inicio.css` y
+  `consola.css`; 15 de noviembre de 2026). El autor: «tendrás que añadir también nuevos controles para navegar por el
+  mapa». Girar solo iba con dos dedos, el clic derecho o Q y E, e inclinar solo con dos dedos; en el móvil, quien no lo
+  sabía no tenía manera. Ahora, a la izquierda de acercar, ver toda Navarra y alejar, cuatro botones más pequeños en dos
+  por dos: girar a la izquierda, girar a la derecha, ver más de lado y ver desde arriba. Se mantienen pulsados, como los
+  otros, y paran el dron de la isla. En el teclado, R y F o las teclas de página inclinan. Con la ficha abierta en el
+  móvil estrecho se esconden con los demás.
 - **La barra de misiones, plegada del todo** (`ui.js buildHUD`, `pliegaMisiones`, `eligeMision`; 13 y 14 de noviembre de
   2026): el autor pidió «un menú desplegable horizontal que entre en las misiones, la mochila, un poco todo, [...] que se
   quede el icono marcado de la misión que estamos haciendo y que cuando queramos hacer otra misión o ver las misiones
