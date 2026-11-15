@@ -265,7 +265,7 @@ function dedosDe(root, hand, lado, metro) {
   hand.userData.palma = { c: pc.toArray(), n: N.toArray(), d: d.toArray(), largo: L, grosor };
   // (las posturas)
   const P = posturas(digs, { d, N, W, pc, grosor, metro, L });
-  return { huesos: nombres, poses: P.poses, agarre: P.agarre };
+  return { huesos: nombres, poses: P.poses, agarre: P.agarre, bola: P.bola };
 }
 
 // ---- las posturas: cuánto gira cada falange, para cada manera de tener la mano -------------------------------------
@@ -289,8 +289,6 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   };
   const quats = (lista) => { const out = []; for (const [eje, a] of lista) for (let j = 0; j < 3; j++) { q.setFromAxisAngle(eje, a[j]); out.push(q.x, q.y, q.z, q.w); } return out; };
   const rMed = dedos.reduce((s, g) => s + g.r, 0) / 4;
-  // (una esfera, como superficie que tocar: si un punto del dedo, con su grosor, queda dentro)
-  const esf = (C, rho) => (p, r) => p.distanceTo(C) < rho + r;
   // (y los dedos ya cerrados, para que el pulgar se apoye encima)
   const encima = (cerrados, k = 1) => { const caps = []; for (const [g, J] of cerrados) for (let j = 0; j < 3; j++) caps.push([J[j], J[j + 1], g.r]); return (p, r) => caps.some(([a, b, rr]) => { const ab = b.clone().sub(a), t = Math.min(1, Math.max(0, p.clone().sub(a).dot(ab) / ab.lengthSq())); return p.distanceTo(a.clone().addScaledVector(ab, t)) < k * (rr + r); }); };
   const MAXD = [95 * GR, 110 * GR, 85 * GR], MAXP = [45 * GR, 55 * GR, 70 * GR];
@@ -391,17 +389,46 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   poses.puno = quats(agarra(g => 0.8 * g.r, g => 0.15 * g.Lf, MAXD).lista);
   // (corriendo: a medio cerrar)
   poses.carrera = mezcla(poses.relajada, poses.puno, 0.55);
-  // (la pelota del saque, apoyada en el centro de la palma y recogida por los dedos; los de los lados la rodean por donde
-  // es más estrecha)
-  const rb = 0.047 / metro, Cb = pc.clone().addScaledVector(N, grosor + rb);
-  const Rbola = (g) => { const Rs = rb + g.r, lat = Math.abs(g.J[0].clone().sub(Cb).dot(g.eje)); return lat < 0.9 * Rs ? Math.sqrt(Rs * Rs - lat * lat) : 0.45 * Rs; };
-  poses.pelota = quats(agarra(Rbola, g => g.J[0].clone().sub(pc).dot(g.f), [70 * GR, 80 * GR, 62 * GR], esf(Cb, rb)).lista);
+  // (la pelota del saque, cogida como la coge un pelotari (la foto del autor, 16 de noviembre de 2026): metida en el hueco
+  // de la mano, contra la base de los dedos; los cuatro la rodean por debajo y el pulgar la aprieta por encima. Antes
+  // quedaba apoyada en el centro de la palma, por fuera, y los dedos apenas la tocaban. Se prueban sitios para la pelota
+  // y se queda el que mejor rodean los dedos, cada uno tocándola con su primera falange; el juego la pone luego en ese
+  // sitio (bola, glbChar.js). El radio es el de la pelota del juego en la mano, en metros: BOLA_EN_MANO en match.js)
+  const rb = 0.047 / metro, nud = dedos.reduce((a, g) => a + g.J[0].dot(d), 0) / dedos.length, t0 = pc.dot(d), META_B = [0.45, 0.4, 0.4, 0.45], MAXB = [90 * GR, 100 * GR, 80 * GR];
+  const anchoM = Math.abs(ind.J[0].clone().sub(men.J[0]).dot(w)), corteB = (g, C) => { const v = C.clone().sub(g.J[0]), lat = v.dot(g.eje), Rs = rb + 0.55 * g.r; return Math.abs(lat) < 0.95 * Rs ? Math.sqrt(Rs * Rs - lat * lat) : 0; };
+  let Cb = null, mejorB = Infinity;
+  // (en el plano del corazón: de su nudillo hacia la muñeca o hacia la punta, y apoyada en la palma, que queda a la altura
+  // de la cara de dentro de los dedos; y algo hacia el pulgar o el meñique)
+  const hb = rb + 0.8 * cor.r;
+  for (let iu = 0; iu <= 12; iu++) for (let iw = -3; iw <= 3; iw++) for (let ih = 0; ih <= 4; ih++) {
+    const C = C0.clone().addScaledVector(cx, (-1.4 + 2 * iu / 12) * lc).addScaledVector(cy, hb * (1 + 0.08 * ih)).addScaledVector(w, iw * 0.1 * anchoM);
+    let c = 0.2 * ih * ih / 16;   // (mejor pegada a la palma)
+    dedos.forEach((g, k) => {
+      const R = corteB(g, C); if (!R) { c += 3; return; }   // (ese dedo no llega a la pelota)
+      const [x, y] = plano(g), v = C.clone().sub(g.J[0]), px = v.dot(x), py = v.dot(y), D = Math.hypot(px, py), l1 = largos(g)[0];
+      if (D < 1.02 * R) { c += 100; return; }
+      const sl = Math.sqrt(D * D - R * R) / l1, th = Math.atan2(py, px) - Math.atan2(R, sl * l1);
+      if (sl > 1.2) c += 10 * (sl - 1.2) ** 2;
+      if (th < 0) c += 10 * th * th; else if (th > 90 * GR) c += 10 * (th - 90 * GR) ** 2;
+      c += (sl - META_B[Math.min(3, k)]) ** 2;
+    });
+    if (c < mejorB) { mejorB = c; Cb = C; }
+  }
+  const lb = dedos.map(g => { const R = corteB(g, Cb); return [g.eje, R ? rodea(g, Cb, R, MAXB) : [40 * GR, 60 * GR, 40 * GR]]; });
+  // (el pulgar, hacia el centro de la pelota hasta que su punta la toca; su arranque, que ya puede rozarla, no cuenta)
+  if (pulgar) {
+    const ej = ejePulgar(Cb), Rt = rb + 0.6 * pulgar.r; let a = [0, 0, 0];
+    for (let i = 1; i <= 40; i++) { const b = MAXP.map(v => v * i / 40); if (muestras(cadena(pulgar, ej, b), 1).some(p => p.distanceTo(Cb) < Rt)) break; a = b; }
+    lb.push([ej, a]);
+  }
+  poses.pelota = quats(lb);
+
   // (dónde queda el hueco del puño con el mango: su centro, el eje del mango hacia el pulgar y lo ancho del puño)
   const Cm = m.centros.reduce((a, c) => a.add(c.clone()), new THREE.Vector3()).divideScalar(m.centros.length);
   const eje = e.clone();   // (ya va hacia el lado del pulgar: del meñique al índice)
   let lo = Infinity, hi = -Infinity; for (const [g, J] of m.cerrados) if (!g.pulgar) for (const p of J) { const s = p.dot(eje); lo = Math.min(lo, s - g.r); hi = Math.max(hi, s + g.r); }
   const agarre = { centro: Cm.toArray(), eje: eje.toArray(), n: N.toArray(), d: d.toArray(), hueco: rho, ancho: hi - lo, R: rho + rMed, largo: 0 };
-  return { poses, agarre };
+  return { poses, agarre, bola: { c: Cb.toArray(), r: rb } };
 }
 function mezcla(a, b, k) {
   const out = [], qa = new THREE.Quaternion(), qb = new THREE.Quaternion();

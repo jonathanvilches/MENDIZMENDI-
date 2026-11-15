@@ -1389,7 +1389,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         - Los pesos: lo que cada punto tenía en la mano se reparte entre la mano y sus falanges, con un paso suave en cada
           articulación. Los huesos nuevos empiezan sin giro, así que en reposo la malla queda igual que antes.
         - Las posturas (`poses`): `relajada` (la de siempre), `carrera` (a medio cerrar, corriendo), `puno`, `mango`,
-          `pelota` (la del saque, apoyada en la palma y recogida por los dedos) y `abierta` (al golpear a mano).
+          `pelota` (la del saque) y `abierta` (al golpear a mano).
         - El `mango`, como en la foto que pasó el autor el 16 de noviembre (la mano abierta sobre la cara de la pala, se
           baja al mango y se cierran los dedos): el mango cruza la mano en diagonal, de la primera falange del índice al
           talón de la mano por el lado del meñique, no recto como un martillo, y la cara de la pala queda paralela a la
@@ -1401,7 +1401,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           números sueltos, 1 o 2 ms por mano) y se queda el que cumple mejor: ningún nudillo dentro del mango, que no se
           hunda en la palma, que cada dedo lo toque con su primera falange y la diagonal más cerca de la de la foto, que
           es de 35°. En el explorador sale de unos 17° y en el pelotari de unos 24°: con dedos tan gordos no da para más.
-          La pala, por eso, sale del puño más en la línea del antebrazo que antes. `GlbChar.mano(lado, postura)` y, cada imagen, `Dedos.update` las alcanza poco a poco.
+          La pala, por eso, sale del puño más en la línea del antebrazo que antes.
+        - La `pelota` del saque, como en la otra foto del autor (la mano vendada de un pelotari con la pelota): metida en
+          el hueco de la mano, contra la base de los dedos; los dedos la rodean por debajo y el pulgar la aprieta por
+          encima. Antes quedaba apoyada por fuera en el centro de la palma y los dedos apenas la tocaban. Se prueban sitios
+          en el plano del corazón, apoyada en la palma, y se queda el que mejor rodean los dedos, cada uno tocándola con su
+          primera falange; el radio es el de la pelota del juego en la mano (`BOLA_EN_MANO`, 4,7 cm). Ese centro se guarda
+          (`bola`) y el juego pone ahí la pelota (`armSwing`, `bolaW`), en vez de apartarla de la palma hacia fuera; y la
+          red que saca la pelota de las manos (`fueraDeManos`) deja en paz a la mano que la coge mientras siga en su sitio,
+          porque los dedos la aprietan a propósito y apartarla la sacaba 10 cm de la mano. `GlbChar.mano(lado, postura)` y, cada imagen, `Dedos.update` las alcanza poco a poco.
         - Lo pide el juego: con herramienta, la derecha en `mango` (`cierraMano`); la mano que lleva la pelota del saque,
           en `pelota`; la que golpea, abierta en el golpe (`armSwing`). La herramienta va con el mango por el hueco del
           puño (`agarre`: el punto medio del mango entre los cuatro dedos y su eje, hacia el pulgar), el final del

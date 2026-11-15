@@ -972,7 +972,11 @@ export function armSwing(char, get, { windOnly = false } = {}) {
         // (y el centro de la pelota que lleva, apoyada en la palma por fuera: desde el centro de la mano hacia donde mira la
         // palma, lo justo para que ningún punto de la mano, de los dedos ni de los tacos quede dentro. Antes iba a tres
         // cuartos de su radio del centro de la mano y se hundía 4 cm en ella)
-        if (st.bolaW && st.bolaR && p) { st.bolaW.copy(st.manoW); const L = puntos(st.manoIzq ? 'L' : 'R'); if (L) apartaDeMano(L, st.bolaW, st.bolaR + 0.003, st.manoN); else st.bolaW.addScaledVector(st.manoN, st.bolaR + p.grosor * IKM.h.getWorldScale(_ps).x); }
+        // (con dedos, donde la cogen ellos: metida en el hueco de la mano, como la coge un pelotari; dedos.js, bola. Si la del
+        // juego es de otro tamaño, se aparta de la palma lo que cambia el radio)
+        const bo = st.bolaW && st.bolaR && c.dedos?.D?.[st.manoIzq ? 'L' : 'R']?.bola;
+        if (bo) { IKM.h.localToWorld(st.bolaW.fromArray(bo.c)); if (p && st.manoN) st.bolaW.addScaledVector(st.manoN, st.bolaR - bo.r * IKM.h.getWorldScale(_ps).x); }
+        else if (st.bolaW && st.bolaR && p) { st.bolaW.copy(st.manoW); const L = puntos(st.manoIzq ? 'L' : 'R'); if (L) apartaDeMano(L, st.bolaW, st.bolaR + 0.003, st.manoN); else st.bolaW.addScaledVector(st.manoN, st.bolaR + p.grosor * IKM.h.getWorldScale(_ps).x); }
       }
       return;
     }
@@ -997,6 +1001,10 @@ export function armSwing(char, get, { windOnly = false } = {}) {
     for (const lado of ['R', 'L']) {
       const K = lado === 'R' ? IKR : IKL; if (!K) continue;
       K.h.getWorldPosition(_fw); if (_fw.distanceToSquared(Bc) > (0.32 + r) * (0.32 + r)) continue;
+      // (la pelota del saque que cogen sus dedos, en su sitio: los dedos la aprietan a propósito, como los de un pelotari, y
+      // apartarla la sacaba de la mano; dedos.js, bola)
+      const bo = char.dedos?.pedidos?.[lado] === 'pelota' && char.dedos.D?.[lado]?.bola;
+      if (bo && K.h.localToWorld(_fc.fromArray(bo.c)).distanceTo(Bc) < 0.5 * r) continue;
       const L = puntos(lado); if (!L) continue;
       const pal = lado === 'R' ? palma() : palmaL();
       if (pal) K.h.localToWorld(_fc.copy(pal.c)); else _fc.copy(_fw);
