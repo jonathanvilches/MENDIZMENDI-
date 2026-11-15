@@ -1081,6 +1081,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     2026, lo de fuera va casi del todo a un añil oscuro como el del fondo, con su relieve a poco contraste: se adivina,
     pero Navarra queda como una isla con luz. Casi igual de cerca que de lejos (`FUERA`, de 0,82 a 1). Antes era un gris
     frío con todas sus sombras y, de cerca, apagado solo a medias (de 0,4), se confundía con Navarra.
+  - Desde que el fondo es un cielo de día (`uCielo` a 1), lo de fuera apenas se apagaba, un 17 %, y con el relieve y la
+    foto también alrededor Navarra volvía a no distinguirse. El 15 de noviembre de 2026, el autor: «que se distinga algo
+    el mapa de Navarra del resto de la península». Ahora lo de fuera va a la mitad hacia un gris pajizo algo frío, como
+    lejano; junto al borde algo menos y del todo a un par de kilómetros, con la máscara difuminada, para que no haya
+    escalón ni raya. El mar guarda su azul.
   - El contorno de fuera de Navarra: una cinta clara sobre el borde de las losas, con otra oscura debajo que la recorta,
     del mismo ancho en pantalla a cualquier distancia (`ANCHO_B`). Solo los tramos que no dan a otra comarca; va con su
     comarca al levantarse.

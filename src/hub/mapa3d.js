@@ -145,16 +145,21 @@ diffuseColor.rgb *= 1.0 - 0.12 * nubes(vMun);
 // (fuera de Navarra, más apagado y algo frío, y junto a su borde, por fuera, una sombra suave: el relieve de alrededor era
 // del mismo verde y con la misma luz, y Navarra no se distinguía)
 { vec2 nu = (vMun - uNavR.xy) / uNavR.zw; vec2 nm = nu.x < 0.0 || nu.y < 0.0 || nu.x > 1.0 || nu.y > 1.0 ? vec2(0.0) : texture2D(uNav, nu).rg;
-  float fuera = (1.0 - nm.r) * uFuera, l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+  // (y sin escalón en el borde: junto a él se apaga algo menos y del todo a un par de kilómetros, con la máscara difuminada)
+  // (el mar, con su azul: apagado se volvía gris)
+  float fuera = (1.0 - nm.r) * uFuera * (1.0 - 0.55 * nm.g) * (1.0 - 0.75 * smoothstep(0.03, 0.07, diffuseColor.b - max(diffuseColor.r, diffuseColor.g))), l = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
   // (desde el 12 de noviembre de 2026, oscuro y sin apenas contraste, de un añil como el del fondo: el relieve de fuera se
   // sigue adivinando, pero ya no compite con el de Navarra. Antes era un gris con todas sus sombras, y de cerca, apagado
   // a medias, se confundía con ella)
   vec3 apag = vec3(0.105, 0.095, 0.16) + (l - 0.42) * vec3(0.26, 0.26, 0.32);
   // (con una isla en el aire y el cielo de día, lo de fuera sigue siendo tierra, apagada pero con su luz, no de noche)
-  apag = mix(apag, vec3(l) * vec3(0.86, 0.9, 0.96) * 0.9, uCielo);
+  apag = mix(apag, vec3(l) * vec3(0.8, 0.86, 0.95) * 0.84 + vec3(0.015, 0.03, 0.055), uCielo);
   // (desde el 14 de noviembre de 2026 lo de fuera es imagen de verdad, del mismo tono que la ortofoto de Navarra: de día
   // apenas se apaga, lo justo para que Navarra mande, y la sombra junto a su borde es más leve)
-  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.17, uCielo));
+  // (el 15 de noviembre de 2026 por la noche, con el relieve y la foto también alrededor, el autor: «que se distinga algo el
+  // mapa de Navarra del resto de la península». Con un 17 % apenas se notaba dónde acababa; ahora lo de fuera va a la mitad
+  // hacia un gris pajizo algo frío, como lejano: se ve su relieve y su color, pero Navarra manda)
+  diffuseColor.rgb = mix(diffuseColor.rgb, apag, fuera * mix(0.92, 0.5, uCielo));
   // (y de día, sin la sombra junto al borde: se leía como una raya alrededor de Navarra; el autor no quiere rayas que separen)
   diffuseColor.rgb *= 1.0 - mix(0.45, 0.0, uCielo) * fuera * nm.g; }
 // (los bordes de la imagen, fundidos en el fondo, con las esquinas redondas: la península, mucho por los lados lejanos y poco
