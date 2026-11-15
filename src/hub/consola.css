@@ -388,3 +388,6 @@ body:has(> .mg-overlay, > .lam-view) #hub.juego .hub-main { transform: scale(.97
 @media (prefers-reduced-motion: reduce) { #hub.juego .hub-panel, #hub.juego.menu-on .hub-panel, #hub.juego .fl-ind { transition-duration: .01s; } }
 /* (de pie en el móvil, tres columnas y el nombre algo más pequeño: con más, «Instrumentos» no cabía) */
 @media (max-width: 760px) and (min-height: 521px) { #hub.juego .hub-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); } #hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) { min-height: 88px; padding-inline: 2px; } #hub.juego .hub-nav button :is(svg, img) { width: 36px; height: 36px; } #hub.juego .hub-nav button span { font-size: var(--fs-sm); } }
+
+/* (en las pantallas táctiles, del mapa solo queda el botón de ver toda Navarra: lo demás va con los dedos, inicio.css) */
+@media (hover: none) and (pointer: coarse) { #hub.juego .m3d .m3-pad { right: calc(var(--hud-r) + var(--sr, 0px)); background: none; border: 0; } }

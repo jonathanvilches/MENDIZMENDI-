@@ -732,7 +732,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // relieve, desde cada lado de la órbita (dY, una distancia cada 30°), mirando a su cara de arriba; la punta de la panza
   // puede quedar detrás de la fila de fichas. La isla llena la imagen y se ve en perspectiva: lo de delante, con su canto,
   // grande, y los montes del fondo detrás)
-  const ENC_ISLA = { pitch: 0.56, arriba: 0.05, lados: 0.03, abajo: 0.03 };   // (márgenes en partes de la imagen: sin nombres encima, arriba basta con poco)
+  // (y a los lados, desde el 15 por la tarde, un 12 % de aire, como en la captura del autor del plano final; antes, un 3 %.
+  // Con la pantalla de pie, el 3 % de antes: si no, la isla se quedaba pequeña en medio)
+  const ENC_ISLA = { pitch: 0.56, arriba: 0.05, lados: 0.12, abajo: 0.03 };   // (márgenes en partes de la imagen: sin nombres encima, arriba basta con poco)
   function encuadreIsla(c) {
     const I = c.isla, A = ampDe(c), P = A.amplia ? A.P : c.Pw, al = A.amplia ? A.alto : alto, n = P.length, salto = Math.max(1, Math.round(n / 64));
     const E = { ...ENC_ISLA, ...(import.meta.env.DEV && window.__encIsla || {}) };
@@ -741,7 +743,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (el contorno, con la altura del relieve en cada punto, y una rejilla de dentro con sus montes; y la punta de la panza)
     const xz = []; for (let i = 0; i < n; i += salto) xz.push(P[i]);
     for (let i = 0; i < 9; i++) for (let j = 0; j < 9; j++) { const x = x0 + (i + 0.5) / 9 * (x1 - x0), z = z0 + (j + 0.5) / 9 * (z1 - z0); if (enPoligono(P, x, z)) xz.push([x, z]); }
-    const L = libre(), hu = huecoAhora(), s = { x: X, z: Z, yaw: 0, pitch: E.pitch, d: 0, hy: 0 };
+    const L = libre(), hu = huecoAhora(), s = { x: X, z: Z, yaw: 0, pitch: E.pitch, d: 0, hy: 0 }, lad = L.W / L.H > 1.3 ? E.lados : Math.min(E.lados, 0.03);
     prueba.aspect = L.W / L.H; prueba.setViewOffset(L.W, L.H, (hu.r || 0) / 2, ((hu.b || 0) - (hu.t || 0)) / 2, L.W, L.H);
     const punta = new THREE.Vector3(I.cx, base - I.D, I.cz);
     const ajusta = (yaw, S) => {
@@ -749,7 +751,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       s.yaw = yaw; s.hy = hyMira(c, base, S, 1, 1);
       const cabe = (d) => { s.d = d; camPos(s, prueba.position); prueba.lookAt(X, s.hy, Z); prueba.updateMatrixWorld(); prueba.updateProjectionMatrix();
         const dentro = (e, b) => { pq.copy(e).project(prueba); const px = (pq.x + 1) / 2 * L.W, py = (1 - pq.y) / 2 * L.H;
-          return pq.z < 1 && px > L.W * E.lados && px < L.W - (hu.r || 0) - L.W * E.lados && py > (hu.t || 0) + L.H * E.arriba && py < b; };
+          return pq.z < 1 && px > L.W * lad && px < L.W - (hu.r || 0) - L.W * lad && py > (hu.t || 0) + L.H * E.arriba && py < b; };
         return pts.every(e => dentro(e, L.H - (hu.b || 0) - L.H * E.abajo)) && dentro(punta, L.H); };
       let a = 8, b = 400; for (let i = 0; i < 18; i++) { const m = (a + b) / 2; if (cabe(m)) b = m; else a = m; }
       return b;
@@ -1049,10 +1051,19 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   const camDe = (s) => { camT.copy(cam); camPos(s, camT.position); camT.lookAt(s.x, s.hy, s.z); camT.updateMatrixWorld(); return camT; };
   const agarra = (id) => { const q = ptrs.get(id), c0 = cam.clone(); plano.constant = -v.hy; goal.x = v.x; goal.z = v.z;
     arr = { id, x: q.x, y: q.y, c0, p: sueloCon(c0, q.x, q.y), x0: v.x, z0: v.z, rot: q.rot, yaw: goal.yaw, pitch: goal.pitch, movido: q.movido, h: [] }; };
+  // (y desde el 15 de noviembre de 2026, deslizar los dos dedos juntos arriba o abajo inclina, como en los mapas del móvil:
+  // hacia arriba, más de lado; hacia abajo, más desde arriba. Se decide al moverlos los primeros píxeles: si los dos van en
+  // vertical y hacia el mismo lado, con los dedos uno al lado del otro, inclina; si no, pellizca, gira y arrastra. Así los
+  // botones de girar e inclinar, «densos», sobran en las pantallas táctiles)
   const pellizca = () => { const [a, b] = [...ptrs.values()]; plano.constant = -v.hy;
-    gesto = { dist: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), ang: Math.atan2(b.y - a.y, b.x - a.x), s0: { ...v }, p: sueloCon(cam, (a.x + b.x) / 2, (a.y + b.y) / 2) }; };
+    gesto = { dist: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)), ang: Math.atan2(b.y - a.y, b.x - a.x), s0: { ...v }, p: sueloCon(cam, (a.x + b.x) / 2, (a.y + b.y) / 2), ini: [{ ...a }, { ...b }], modo: null }; };
   function mueveGesto() {
     const [a, b] = [...ptrs.values()], g = gesto, ang = Math.atan2(b.y - a.y, b.x - a.x);
+    if (!g.modo) { const [a0, b0] = g.ini, ya = a.y - a0.y, yb = b.y - b0.y, xa = a.x - a0.x, xb = b.x - b0.x;
+      if (Math.max(Math.hypot(xa, ya), Math.hypot(xb, yb)) < 10) return;
+      g.modo = ya * yb > 0 && Math.abs(ya) > 1.4 * Math.abs(xa) && Math.abs(yb) > 1.4 * Math.abs(xb) && Math.abs(b0.x - a0.x) > Math.abs(b0.y - a0.y) ? 'inclina' : 'mueve'; }
+    if (g.modo === 'inclina') { const [a0, b0] = g.ini, bb = cv.getBoundingClientRect();
+      goal.pitch = g.s0.pitch + ((a.y + b.y) - (a0.y + b0.y)) / 2 / bb.height * 1.6; lim(); v.pitch = goal.pitch; navega = true; return; }
     goal.d = g.s0.d * g.dist / Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)); goal.yaw = g.s0.yaw - (ang - g.ang); goal.pitch = g.s0.pitch; lim();
     Object.assign(sT, g.s0, { d: goal.d, yaw: goal.yaw, pitch: goal.pitch });
     const q = g.p && sueloCon(camDe(sT), (a.x + b.x) / 2, (a.y + b.y) / 2);
@@ -1325,15 +1336,20 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // subida baja a CERCA_DRON de la distancia que enseña la isla entera y a PITCH_DRON, 23°, y gira así, sobre los montes y
   // los pueblos, con sus nombres. Con la vuelta va subiendo: a media vuelta, a los 30 s, enseña la isla entera a 32°, y
   // luego vuelve a bajar. La curva es un coseno: sale y llega sin tirones)
-  const LLEGA_ISLA = 1.8, VUELTA_ISLA = 60, CERCA_DRON = 0.52, PITCH_DRON = 0.4;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
+  // (y desde el 15 por la tarde, el vuelo acaba y se queda en la isla entera de frente, desde el sur, con el norte arriba:
+  // el autor mandó la captura de ese plano, «este sería el plano perfecto después de la animación». Ya no da vueltas: sale
+  // de cerca, a CERCA_DRON y a PITCH_DRON, se abre hacia un lado SESGO_DRON y vuelve mientras se aleja, y en DRON_ISLA
+  // segundos llega a la isla entera a 32° y se para. Las dos curvas llegan con velocidad cero: no frena de golpe)
+  const LLEGA_ISLA = 1.8, DRON_ISLA = 9, SESGO_DRON = 0.5, CERCA_DRON = 0.52, PITCH_DRON = 0.4;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
   function sigueDronIsla(dt) {
-    const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u);
-    const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 3));
-    p.yaw = (p.yaw ?? p.de.yaw) + p.giro * w * dt; goal.yaw = p.yaw;
-    const cerca = 0.5 + 0.5 * Math.cos(Math.PI * 2 * p.t / VUELTA_ISLA);   // (1 al empezar, 0 a media vuelta)
+    const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u), k = Math.min(1, p.t / DRON_ISLA);
+    const y1 = Math.round(p.de.yaw / (Math.PI * 2)) * Math.PI * 2, sk = Math.sin(Math.PI * k);   // (de frente: el giro entero más cercano)
+    goal.yaw = mezcla(p.de.yaw, y1, k * k * (3 - 2 * k)) + p.giro * SESGO_DRON * sk * sk;
+    const cerca = 0.5 + 0.5 * Math.cos(Math.PI * k);   // (1 al empezar, 0 al llegar)
     goal.x = mezcla(p.de.x, p.alta.x, s); goal.z = mezcla(p.de.z, p.alta.z, s);
-    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(dDeGiro(p.alta.dY, p.yaw) * mezcla(1, CERCA_DRON, cerca)), s));   // (más cerca o más lejos según el lado que mira)
+    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(dDeGiro(p.alta.dY, goal.yaw) * mezcla(1, CERCA_DRON, cerca)), s));   // (más cerca o más lejos según el lado que mira)
     goal.pitch = mezcla(p.de.pitch, mezcla(p.alta.pitch, PITCH_DRON, cerca), s);
+    if (k >= 1 && u >= 1) islaDron = null;   // (y ahí se queda)
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -2165,13 +2181,18 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // rótulos de las comarcas, ni los parajes y montes. Al acercarse, a un 80 % de esa distancia, van saliendo. El 15 de
     // noviembre de 2026, el autor: «las insignias o letreros de cada pueblo hacen que se tape la comarca [...] de primer
     // vistazo no»)
-    const cS = sel && byId.get(sel), lejosIsla = !!cS?.dOrb && (cS.isla?.k || 0) > 0.05 && v.d > cS.dOrb * 0.8;
+    // (y desde el 15 por la tarde, los pueblos sí salen, pero mínimos: solo su nombre, pequeño, con un punto en su sitio,
+    // sin ficha ni foto. El autor: «que salgan los nombres de los pueblos de una manera minimalista. Que no emborrone». Los
+    // montes, las sierras, los ríos y el rótulo de la comarca, tampoco en el vuelo de dron de después de la subida: salen,
+    // y los pueblos con su ficha, al acercarse a menos de la mitad de esa distancia; antes, al 80 %)
+    const cS = sel && byId.get(sel), lejosIsla = !!cS?.dOrb && (cS.isla?.k || 0) > 0.05 && v.d > cS.dOrb * 0.45;
     // (con una colección, sus marcadores primero, y fuera los nombres de pueblos, comarcas, ríos y montes: ya los dicen ellos)
     if (COL) for (const it of COL.items) { const x = it.t, c = it.c;
       if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);
       else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
-    for (const x of T) { const on = !COL && sinNombres?.id !== x.comarca && (sel ? (sel === x.comarca && !lejosIsla) || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
-      const ya = elegido === x, sh = hover === 't:' + x.id; if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
+    for (const x of T) { const on = !COL && sinNombres?.id !== x.comarca && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
+      const ya = elegido === x, sh = hover === 't:' + x.id, mini = lejosIsla && sel === x.comarca && !ya;
+      if (mini !== !!x._mini) { x._mini = mini; x.lab.classList.toggle('mini', mini); x.lab._w = 0; x.lab._sp = mini ? [8, 8] : [32, 40]; }   // (otro tamaño: se vuelve a medir) if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
       lista.push([x.here || sh || ya ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y, x.Z, on, x.g.position.y, true]); }   // (si encima no cabe, debajo, con el pico arriba; y si tampoco, solo la foto)
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
     // dónde ir arrastrando el mapa. No con un pueblo elegido)

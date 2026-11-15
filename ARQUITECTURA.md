@@ -2360,6 +2360,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     encaja la comarca entera con su bloque. Tras ella, el dron baja a la mitad de la distancia de la isla entera y a 23°,
     sobre los montes y con los nombres de los pueblos. Con la vuelta va subiendo: a los 30 s enseña la isla entera a 32°
     y luego vuelve a bajar. En el Pirineo, del móvil tumbado: 34 en la subida, 20 al empezar el dron y 37 a media vuelta.
+  - Y desde el 15 por la tarde, el vuelo acaba en un plano fijo (`DRON_ISLA`, `SESGO_DRON`): la isla entera de frente,
+    desde el sur y con el norte arriba, a 32°. El autor mandó la captura de ese plano: «este sería el plano perfecto
+    después de la animación». Ya no da vueltas. Sale de cerca, se abre medio radián hacia un lado y vuelve mientras se
+    aleja, y a los 9 s llega y se para; las dos curvas llegan con velocidad cero. A los lados deja un 12 % de aire, como
+    la captura; con la pantalla de pie, el 3 % de antes. En Sakana, del móvil tumbado, a 20,4; de pie, a 56,5.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la
@@ -2390,6 +2395,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   en el aire y la cámara a la distancia de la órbita no salen las fichas de sus pueblos, ni los rótulos de las comarcas,
   ni los parajes, los montes o el rebaño de la trashumancia. Al acercarse, a un 80 % de esa distancia, van saliendo:
   con el botón de acercar, un toque algo largo.
+  - Desde el 15 por la tarde, los pueblos sí salen, pero mínimos (`.m3-tl.mini` en `inicio.css`): solo su nombre, en
+    11 px, blanco con una sombra fina, y un punto en su sitio; sin ficha, sin foto y sin fondo. El tuyo, con el punto
+    rosa; los sellados, dorado. El autor: «que salgan los nombres de los pueblos de una manera minimalista. Que no
+    emborrone». Lo demás, y los pueblos con su ficha, sale al acercarse a menos de la mitad de esa distancia, también
+    en el vuelo de dron de después de la subida, que antes iba lleno de montes y sierras.
 - **Las animaciones del mapa, a su paso aunque el móvil vaya justo** (el paso de cada imagen, `dt`, en el bucle de
   `mapa3d.js`; 15 de noviembre de 2026). «Revisar por qué las animaciones van muy lentas». El paso de cada imagen tenía
   un tope de 0,05 s: por debajo de 20 imágenes por segundo, todo iba a cámara lenta, la isla que sube, el vuelo y la
@@ -2432,6 +2442,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   por dos: girar a la izquierda, girar a la derecha, ver más de lado y ver desde arriba. Se mantienen pulsados, como los
   otros, y paran el dron de la isla. En el teclado, R y F o las teclas de página inclinan. Con la ficha abierta en el
   móvil estrecho se esconden con los demás.
+  - El mismo día por la tarde, «y los controles densos, que sean táctiles»: en las pantallas táctiles, `(hover: none)
+    and (pointer: coarse)`, solo queda el botón de ver toda Navarra, suelto y de 46 px. Lo demás va con los dedos: un dedo
+    mueve; con dos, pellizcar acerca, girarlos gira y deslizarlos juntos arriba o abajo inclina (`mueveGesto`, el
+    `modo` de `gesto`: se decide en los primeros 10 px; si los dos van en vertical y hacia el mismo lado, con los dedos uno
+    al lado del otro, inclina). La ayuda del móvil de pie lo dice. En el ordenador siguen los siete botones.
 - **La barra de misiones, plegada del todo** (`ui.js buildHUD`, `pliegaMisiones`, `eligeMision`; 13 y 14 de noviembre de
   2026): el autor pidió «un menú desplegable horizontal que entre en las misiones, la mochila, un poco todo, [...] que se
   quede el icono marcado de la misión que estamos haciendo y que cuando queramos hacer otra misión o ver las misiones
