@@ -2312,6 +2312,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   que los tejados salgan de su color. En total, unas 420 casas y 12 llamadas de dibujo como mucho.
   Se quitaron el 15 de noviembre de 2026, con su archivo: al acercarse desaparecían y salía el pueblo de verdad, y el
   autor no les veía sentido («que sea el pueblo»). Está en la historia de git, en el commit anterior a «Mapa: sin caseríos».
+- **Las animaciones del mapa, a su paso aunque el móvil vaya justo** (el paso de cada imagen, `dt`, en el bucle de
+  `mapa3d.js`; 15 de noviembre de 2026). «Revisar por qué las animaciones van muy lentas». El paso de cada imagen tenía
+  un tope de 0,05 s: por debajo de 20 imágenes por segundo, todo iba a cámara lenta, la isla que sube, el vuelo y la
+  órbita, y con la isla del Pirineo y sus montes de alrededor el teléfono baja de ahí. El tope pasa a una décima: van a
+  su paso hasta 10 imágenes por segundo. Los muelles de la isla, las piedras que caen y las curvas de la cámara aguantan
+  esa décima sin desbocarse.
 - **Las nubes del mapa** (`mapa3dNubes.js`, `hazNubes`; 13 y 14 de noviembre de 2026): el autor pidió «nubes que se van
   apartando conforme la cámara se va acercando y alguna residual se queda», con perspectiva y textura, «no manchas blancas
   al uso». La primera versión, unas capas planas de ruido, lo eran; la segunda, una imagen de nube siempre de cara a la

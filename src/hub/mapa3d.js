@@ -1887,7 +1887,11 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     else if (prMax < PR_TOP) { prQuieto ||= now; if (now - prQuieto > 1500) { prMax = PR_TOP; sz.z = -1; prQuieto = 0; prT = prN = 0; } }
     // (el tiempo de cada imagen, nunca hacia atrás: la marca del navegador puede ser anterior a la de al crear el mapa, y un
     // paso negativo hacía que la cámara se disparara)
-    const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
+    // (el paso de cada imagen, hasta una décima: el 15 de noviembre de 2026, el autor, en su teléfono, «revisar por qué las
+    // animaciones van muy lentas». Con el tope en 0,05 s, por debajo de 20 imágenes por segundo todo iba a cámara lenta: la
+    // isla que sube, el vuelo y la órbita. Con la isla del Pirineo y sus montes de alrededor, el móvil baja de ahí. Ahora
+    // van a su paso hasta 10 imágenes por segundo; los muelles y las curvas aguantan esa décima)
+    const dt = Math.max(0, Math.min(0.1, (now - last) / 1000)); last = Math.max(last, now); const t = Math.max(0, now - t0) / 1000;
     // (el reloj de la entrada grande)
     let tI = 99, dI = 0;
     if (intro) { if (!intro.t && ((cargas < 3 && intro.espera < 2.5) || document.querySelector('.onb'))) intro.espera += dt; else { dI = dt * intro.rapido; intro.t += dI; } tI = intro.t; }
