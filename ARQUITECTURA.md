@@ -2325,6 +2325,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     quedaba estrecha en medio de la imagen. Ahora, desde ningún lado se aleja más de un 15 % de lo que se acerca desde el
     lado más cercano (`c.dOrb`): de punta se recortan un poco los extremos. Y con márgenes más justos arriba y a los
     lados, ya sin nombres encima. El Pirineo, entre 36 y 41.
+  - Y el dron, desde el 15 a mediodía, empieza volando sobre la superficie (`CERCA_DRON`, `PITCH_DRON` y
+    `ACERCA_SUBIDA`). El autor: «cuando se anima la comarca y sale de la tierra hay que acercar más el plano y más
+    perspectiva para que el dron comience a volar sobre la superficie». La subida se ve más cerca, al 72 % de lo que
+    encaja la comarca entera con su bloque. Tras ella, el dron baja a la mitad de la distancia de la isla entera y a 23°,
+    sobre los montes y con los nombres de los pueblos. Con la vuelta va subiendo: a los 30 s enseña la isla entera a 32°
+    y luego vuelve a bajar. En el Pirineo, del móvil tumbado: 34 en la subida, 20 al empezar el dron y 37 a media vuelta.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la

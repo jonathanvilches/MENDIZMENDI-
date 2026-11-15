@@ -1201,7 +1201,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, ACERCA_SUBIDA = 0.72, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1309,14 +1309,20 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // arranca en cuanto la isla despega, sin esperar a que acabe el vuelo de llegada, y pasa a la órbita en 2,4 s con una
   // curva que sale viva y frena suave; antes, 3,4 s después del vuelo entero, con un arranque casi parado)
   // (y desde el 15 por la noche, de cerca y a 32°, encuadrando el contorno de verdad de la isla desde cada lado: encuadreIsla)
-  const LLEGA_ISLA = 1.8, VUELTA_ISLA = 60;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
+  // (y desde el 15 a mediodía, el dron empieza volando sobre la superficie: «cuando se anima la comarca y sale de la
+  // tierra hay que acercar más el plano y más perspectiva para que el dron comience a volar sobre la superficie». Tras la
+  // subida baja a CERCA_DRON de la distancia que enseña la isla entera y a PITCH_DRON, 23°, y gira así, sobre los montes y
+  // los pueblos, con sus nombres. Con la vuelta va subiendo: a media vuelta, a los 30 s, enseña la isla entera a 32°, y
+  // luego vuelve a bajar. La curva es un coseno: sale y llega sin tirones)
+  const LLEGA_ISLA = 1.8, VUELTA_ISLA = 60, CERCA_DRON = 0.52, PITCH_DRON = 0.4;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
   function sigueDronIsla(dt) {
     const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u);
     const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 3));
     p.yaw = (p.yaw ?? p.de.yaw) + p.giro * w * dt; goal.yaw = p.yaw;
+    const cerca = 0.5 + 0.5 * Math.cos(Math.PI * 2 * p.t / VUELTA_ISLA);   // (1 al empezar, 0 a media vuelta)
     goal.x = mezcla(p.de.x, p.alta.x, s); goal.z = mezcla(p.de.z, p.alta.z, s);
-    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(dDeGiro(p.alta.dY, p.yaw)), s));   // (más cerca o más lejos según el lado que mira)
-    goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s);
+    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(dDeGiro(p.alta.dY, p.yaw) * mezcla(1, CERCA_DRON, cerca)), s));   // (más cerca o más lejos según el lado que mira)
+    goal.pitch = mezcla(p.de.pitch, mezcla(p.alta.pitch, PITCH_DRON, cerca), s);
   }
   // ---------- una colección en el mapa ----------
   // cfg: { items: [{ el, town | comarca, sel }], resalta: Set de comarcas (las demás, al fondo) | null, pines: Set de
@@ -1380,7 +1386,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) c.vistaAlta = false; }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
-      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.55;   // (un vuelo de llegada más corto: antes, 0,68)
+      // (y la subida, desde el 15 a mediodía, más cerca: ACERCA_SUBIDA de lo que encaja la comarca entera con su bloque; «hay
+      // que acercar más a cámara la comarca cuando sale de la tierra». Los lados de la isla pueden salirse de la imagen)
+      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(16, ACERCA_SUBIDA * encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.55;   // (un vuelo de llegada más corto: antes, 0,68)
       sinNombres = { id: c.id, t: 0 }; }
   }
 
