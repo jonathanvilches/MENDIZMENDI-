@@ -152,6 +152,13 @@ export const BOSQUES = [
       { type: 'race', kind: 'senda', title: 'La senda del robledal', host: H('Iñigo, corredor de montaña', { shirt: '#2fb276', pants: '#1a1a1a', hair: '#3b2418' }),
         text: 'Recorre la senda del bosque y pasa por los aros antes de que se acabe el tiempo.' },
       { type: 'quiz' },
+      // (la misión de las setas: qué son y cómo se cogen, para los pequeños. Entre las buenas hay dos venenosas que se miran
+      // y se dejan, data/setas.js. Al final de la lista, para no mover el número de las misiones guardadas)
+      { type: 'process', id: 'setas', title: 'Setas y hongos del robledal', host: H('Koldo, micólogo', { shirt: '#6b7a3a', vest: '#4f5a2c', pants: '#4a3b2e', hair: '#8a8a86', beard: '#8a8a86', bag: '#8a6a3a' }), product: 'Setas del robledal',
+        text: 'Soy micólogo: estudio las setas. En otoño el robledal de Orgi se llena de ellas, pero no todas se pueden coger. Te enseño cuáles sí y cómo se cogen.',
+        gather: { item: 'seta', n: 3, label: 'Coger tres setas buenas', near: 'forest' },
+        ahora: '¡Muy bien! Has dejado las venenosas en su sitio. Ahora, ¿cómo se coge una seta?', asi: '¡Eso es! Así se cogen las setas sin estropear el bosque.',
+        steps: ['Mirar bien la seta y dejar las pequeñas', 'Cortarla por el pie con la navaja', 'Quitarle la tierra allí mismo', 'Ponerla en la cesta de mimbre', 'Enseñarla a quien sepa de setas'] },
     ] },
   { id: 'senorio-bertiz', name: 'Señorío de Bertiz / Bertizko jaurerria', comarca: 'bidasoa', family: 'atlantic', relief: 'valley', size: 3, bosque: 'bertiz', lat: 43.14, lon: -1.611,
     river: { name: 'Bidasoa', x: 75, w: 6, amp: 8 },

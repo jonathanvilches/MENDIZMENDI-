@@ -111,11 +111,11 @@ export class PuebloCharla {
         else if (M.step === 1) await S([`Aún faltan ${M.need - M.count}. ¡Tú puedes!`]);
         else if (M.step === 2 || M.step === 3) {
           M.step = 3;
-          await S([`¡Perfecto! Ahora hagamos ${m.product} paso a paso.`]);
+          await S([m.ahora || `¡Perfecto! Ahora hagamos ${m.product} paso a paso.`]);
           await this.explain(PROCESOS[m.id], m.product, 'how');
           await S(['Ordena los pasos: ¿qué se hace primero?']);
           const r = await sequenceGame(this.ui, { title: m.product, hint: 'Toca los pasos en el orden correcto', icon: M.icon, steps: m.steps });
-          if (r.win) { await S([`¡Así se hace ${m.product}! Es un producto de ${this.comarca?.name || 'Navarra'}.`]); await this.explain(PROCESOS[m.id], m.product, 'then'); await this.complete(M, { card: m.product, cardText: m.text }); }
+          if (r.win) { await S([m.asi || `¡Así se hace ${m.product}! Es un producto de ${this.comarca?.name || 'Navarra'}.`]); await this.explain(PROCESOS[m.id], m.product, 'then'); await this.complete(M, { card: m.product, cardText: m.text }); }
         }
         return;
       case 'harvest': {

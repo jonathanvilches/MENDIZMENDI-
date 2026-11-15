@@ -22,6 +22,7 @@ import { lerp } from '../util/math.js';
 import { makeGate, makeItem } from './items.js';
 import { oficioImg } from '../ui/escudoImg.js';
 import { showFicha } from '../ui/ficha.js';
+import { SETAS, SETAS_BUENAS, SETAS_MALAS } from '../data/setas.js';
 export const ANIMAL = { sheep: ['ovejas', 'sheep'], cows: ['vacas', 'cow'], pottoka: ['pottokas', 'pottoka'], horses: ['caballos', 'pottoka'], goats: ['cabras', 'sheep'], pigs: ['cerdos', 'pig'] };
 
 export class PuebloActividades {
@@ -31,16 +32,21 @@ export class PuebloActividades {
     const P = PLACES, lm = (k) => TOWN.landmarks.find(l => l.kind === k);
     const c = near === 'farm' ? (TOWN.farm || P.farm) : near === 'cave' ? (lm('cave')?.spot || P.forest) : near === 'river' ? P.riverSpot : near === 'forest' ? P.forest : near === 'church' ? P.church : P[near] || (M.type === 'harvest' ? P.fields : P.market);
     const R = M.type === 'harvest' ? 28 : 26;
-    for (let i = 0; i < M.need; i++) {
-      const a = (i / M.need) * Math.PI * 2 + this.rnd() * 0.6, r = 6 + this.rnd() * R;
+    // (las setas: las buenas, una de cada, y entre ellas dos venenosas que se miran y se dejan, data/setas.js. Todas con
+    // el mismo letrero, «Mirar la seta»: hay que fijarse en cuál es cuál)
+    const setas = kind === 'seta' ? [...Array.from({ length: M.need }, (_, i) => SETAS_BUENAS[i % SETAS_BUENAS.length]), ...SETAS_MALAS] : null;
+    const n = setas ? setas.length : M.need;
+    for (let i = 0; i < n; i++) {
+      const a = (i / n) * Math.PI * 2 + this.rnd() * 0.6, r = 6 + this.rnd() * R;
       const s = this.spot({ x: c.x + Math.cos(a) * r, z: c.z + Math.sin(a) * r }, 4, true);
-      const o = makeItem(kind); o.position.set(s.x, terrainHeight(s.x, s.z), s.z); this.scene.add(o);
-      this.items.push({ M, x: s.x, z: s.z, obj: o, label: label.split(' (')[0] || 'Recoger', kind });
+      const k = setas ? setas[i] : kind, o = makeItem(k); o.position.set(s.x, terrainHeight(s.x, s.z), s.z); this.scene.add(o);
+      this.items.push({ M, x: s.x, z: s.z, obj: o, label: setas ? 'Mirar la seta' : label.split(' (')[0] || 'Recoger', kind: k, seta: setas ? k : null, mala: !!SETAS[k]?.mala });
     }
     this.ui.toast(`${this.stepText(M)}`, M.icon);
   }
   pick(it) {
     const M = it.M;
+    if (it.seta) return this.pickSeta(it);
     this.items = this.items.filter(x => x !== it); this.scene.remove(it.obj);
     if (!M) { this.player.rig.doAct('pick', 0.6); this.sound.ui('coin'); this.mochila.addFood(it.food); return; }
     if (it.part != null) {
@@ -64,6 +70,25 @@ export class PuebloActividades {
     M.count++;
     this.ui.toast(`${this.stepText(M)}`, M.icon, 1800);
     if (M.count >= M.need) { M.step = 2; this.sound.magic(); this.ui.toast(`¡Ya está! Vuelve con ${M.host.name}`, 'check', 3200); }
+  }
+  // (una seta de la misión de las setas: la buena, a la cesta, con su nombre y cómo se reconoce; la venenosa se queda en
+  // el suelo, sin su brillo, y no cuenta)
+  pickSeta(it) {
+    const M = it.M, S = SETAS[it.seta], icon = it.seta === 'seta-hongo' ? 'mushroom' : it.seta;   // (el hongo, con el dibujo del autor; las demás, con su modelo)
+    this.items = this.items.filter(x => x !== it);
+    this.player.frozen = true;
+    if (S.mala) {
+      if (it.obj.userData.ring) it.obj.userData.ring.visible = false;
+      this.sound.ui('open');
+      infoCard(this.ui, { icon, kicker: 'Esta no se coge', title: S.name, text: S.text, button: 'La dejo en su sitio' }).finally(() => { this.player.frozen = false; });
+      return;
+    }
+    this.scene.remove(it.obj);
+    this.player.rig.doAct('pick', 0.6); this.sound.ui('coin'); M.count++;
+    this.particles.emit({ x: it.x, y: terrainHeight(it.x, it.z) + 0.3, z: it.z }, { n: 16, color: ['#c9a46a', '#f2e6c8'], speed: 1.2, size: 0.22, life: 0.9 });
+    if (M.count >= M.need) M.step = 2;
+    infoCard(this.ui, { icon, kicker: `A la cesta · ${M.count} de ${M.need}`, title: S.name, text: S.text, badge: addCard('seta:' + S.name) ? 'Nueva carta' : '', button: M.count >= M.need ? `¡Hecho! Vuelve con ${M.host.name}` : 'Seguir buscando' })
+      .finally(() => { this.player.frozen = false; if (M.count >= M.need) this.sound.magic(); });
   }
   // ---------- Visitar lugares ----------
   startVisit(M) {

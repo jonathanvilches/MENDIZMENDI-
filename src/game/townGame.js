@@ -165,7 +165,7 @@ export class TownGame {
         M.steps = () => ['Habla con ' + host(), `Visita los lugares importantes (${M.count}/${M.need})`, 'Vuelve con ' + host()];
         break;
       }
-      case 'process': M.title = m.title || m.product; M.icon = m.gather?.item === 'milk' ? 'cheese' : m.gather?.item === 'corn' ? 'corn' : m.gather?.item === 'litter' ? 'fish' : 'basket'; M.need = m.gather?.n || 4;
+      case 'process': M.title = m.title || m.product; M.icon = m.gather?.item === 'milk' ? 'cheese' : m.gather?.item === 'seta' ? 'mushroom' : m.gather?.item === 'corn' ? 'corn' : m.gather?.item === 'litter' ? 'fish' : 'basket'; M.need = m.gather?.n || 4;
         M.steps = () => ['Habla con ' + host(), `${m.gather?.label || 'Recoge los ingredientes'} (${M.count}/${M.need})`, `Lleva todo a ${host()}`, `Ordena los pasos: ${m.product}`]; break;
       case 'harvest': { const c = CROP[m.crop] || ['frutos', 'star']; M.title = `La cosecha: ${c[0]}`; M.icon = m.crop; M.need = m.n || 8; M.item = c[1];
         M.steps = () => ['Habla con ' + host(), `Recoge ${c[0]} (${M.count}/${M.need})`, `Lleva la cosecha a ${host()}`]; break; }
@@ -673,7 +673,7 @@ export class TownGame {
     for (const it of this.items) {
       const o = it.obj; o.visible = Math.abs(it.x - P.pos.x) + Math.abs(it.z - P.pos.z) < 120;
       if (!o.visible) continue;
-      o.userData.body.rotation.y += dt * 1.4; o.userData.body.position.y = 0.2 + Math.sin(this.elapsed * 2.5 + it.x) * 0.1;
+      if (!o.userData.body.userData.quieto) { o.userData.body.rotation.y += dt * 1.4; o.userData.body.position.y = 0.2 + Math.sin(this.elapsed * 2.5 + it.x) * 0.1; }   // (las setas, quietas en el suelo)
       o.userData.ring.material.opacity = 0.45 + Math.sin(this.elapsed * 4) * 0.25;
     }
     for (const g of this.gates) if (g.obj.visible) g.obj.userData.torus.rotation.z += dt * (g.next ? 2 : 0.3);

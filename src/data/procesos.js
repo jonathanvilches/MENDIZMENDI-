@@ -1,6 +1,10 @@
 // Productos y tradiciones explicados: qué es, cómo se hace (por qué cada paso) y cómo era antes y cómo es ahora.
 // Las misiones de producto (process) usan su id; las de tradición, su título.
 export const PROCESOS = {
+  setas: { what: 'Una seta es el fruto de un hongo. El hongo vive escondido bajo tierra: es una red de hilos finísimos, pegada a las raíces de los árboles, que les ayuda a beber agua. La seta es solo la parte que sale fuera para soltar sus esporas, que son como semillas diminutas.',
+    how: 'Solo se cogen las setas que se conocen bien y que ya son grandes; las pequeñas se dejan para que crezcan. Se cortan por el pie con una navaja o se giran con cuidado, sin arrancar el hongo de debajo. Se les quita la tierra allí mismo y se ponen en una cesta de mimbre, que deja pasar el aire y no las aplasta.',
+    then: 'Los abuelos enseñaban a los nietos qué setas se cogían y dónde salían, y cada familia guardaba en secreto sus rincones del monte. Se llevaban a casa en cestas y se comían en revuelto o asadas.',
+    now: 'En el valle de Ultzama hay un parque micológico: para coger setas hay que sacar un permiso y no se pueden llevar demasiadas. Nunca se usan rastrillos, porque rompen el hongo de debajo de la tierra. Y antes de comer una seta, siempre la tiene que ver alguien que sepa mucho de setas.' },
   cuajada: { what: 'La cuajada es leche de oveja que se ha cuajado: se vuelve sólida y suave, como un flan.',
     how: 'Se calienta la leche y se le añade cuajo, que hace que la leche se espese. Luego se deja reposar en cuencos sin moverla hasta que cuaja.',
     then: 'Se hacía en el kaiku, un recipiente de madera. Para calentar la leche se metía dentro una piedra puesta al rojo en el fuego: por eso sabía un poco a tostado.',

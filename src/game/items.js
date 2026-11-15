@@ -63,6 +63,32 @@ export function makeItem(kind) {
     }
     case 'hearth': add(new THREE.CylinderGeometry(0.3, 0.32, 0.06, 16), '#7a4a32', 0, 0.06, 0); for (let i = 0; i < 4; i++) add(new THREE.DodecahedronGeometry(0.045, 0), '#1f1a18', Math.cos(i * 1.6) * 0.12, 0.12, Math.sin(i * 1.6) * 0.12); add(new THREE.SphereGeometry(0.05, 8, 6), '#ff7a2a', 0, 0.13, 0, { emissive: new THREE.Color('#c04a10') }); break;
     case 'brick': for (let i = 0; i < 4; i++) add(new THREE.BoxGeometry(0.22, 0.05, 0.22), i % 2 ? '#a8583a' : '#b8683f', 0, 0.12 + i * 0.06, 0); break;
+    // (setas y hongos del bosque, la misión de las setas, data/bosques.js y data/setas.js: las buenas, el hongo de sombrero
+    // pardo, el hongo beltza, casi negro, y el rebozuelo, naranja y con forma de embudo; y las que no se cogen, la
+    // matamoscas, roja con motas blancas, y la oronja verde, con su anillo y su volva al pie. Más grandes que las de verdad,
+    // para que se vean entre la hojarasca)
+    case 'seta-rebozuelo': {
+      // (de una pieza, torneada: el pie se abre en embudo, con el borde enrollado y ondulado, y la cara de arriba algo hundida)
+      const P = [[0.001, 0], [0.036, 0.004], [0.04, 0.06], [0.05, 0.12], [0.08, 0.17], [0.125, 0.205], [0.165, 0.228], [0.182, 0.242], [0.172, 0.256], [0.13, 0.252], [0.07, 0.238], [0.001, 0.232]].map(([r, y]) => new THREE.Vector2(r, y));
+      const geo = new THREE.LatheGeometry(P, 28), pos = geo.attributes.position;
+      for (let i = 0; i < pos.count; i++) { const x = pos.getX(i), z = pos.getZ(i), r = Math.hypot(x, z); if (r < 0.09) continue; const k = 1 + 0.07 * Math.sin(Math.atan2(z, x) * 5) * (r - 0.09) / 0.09; pos.setX(i, x * k); pos.setZ(i, z * k); pos.setY(i, pos.getY(i) + 0.012 * Math.sin(Math.atan2(z, x) * 5 + 1) * (r - 0.09) / 0.09); }
+      geo.computeVertexNormals(); add(geo, '#e59a2c', 0, 0, 0);
+      body.userData.quieto = true; break;
+    }
+    case 'seta-hongo': case 'seta-beltza': case 'seta-matamoscas': case 'seta-oronja': {
+      const [cap, pie, rc, rp, h] = { 'seta-hongo': ['#8a5a32', '#efe4cc', 0.21, 0.1, 0.25], 'seta-beltza': ['#3e2a1e', '#e6d8bc', 0.21, 0.1, 0.25],
+'seta-matamoscas': ['#d42f22', '#f6f2e8', 0.2, 0.06, 0.3], 'seta-oronja': ['#a7ae78', '#f2f0e6', 0.18, 0.055, 0.28] }[kind];
+      const poros = kind === 'seta-hongo' || kind === 'seta-beltza', amanita = kind === 'seta-matamoscas' || kind === 'seta-oronja';
+      add(new THREE.CylinderGeometry(rp * 0.85, rp * (poros ? 1.35 : 1.1), h, 12), pie, 0, h / 2, 0);   // (el pie: el del hongo, panzudo)
+      const c = mesh(new THREE.SphereGeometry(rc, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2), cap, 0, h - 0.02, 0); c.scale.y = poros ? 0.7 : 0.55; body.add(c);   // (el sombrero)
+      const bajo = mesh(new THREE.CircleGeometry(rc * 0.97, 18), poros ? '#c9b25a' : '#f4efe4', 0, h - 0.022, 0, { side: THREE.DoubleSide }); bajo.rotation.x = Math.PI / 2; body.add(bajo);   // (debajo: los poros del hongo o las láminas)
+      if (kind === 'seta-matamoscas') for (let i = 0; i < 11; i++) { const a = i * 2.4, r = rc * (0.15 + (i % 4) * 0.21), y = h - 0.02 + Math.sqrt(Math.max(0, rc * rc - r * r)) * 0.55; add(new THREE.SphereGeometry(0.02, 6, 4), '#ffffff', Math.cos(a) * r, y, Math.sin(a) * r); }
+      if (amanita) {   // (el anillo, que cuelga como una faldita, y la volva, la bolsa de abajo que abraza el pie)
+        add(new THREE.CylinderGeometry(rp * 1.15, rp * 1.75, 0.04, 14, 1, true), pie, 0, h * 0.68, 0, { side: THREE.DoubleSide });
+        add(new THREE.LatheGeometry([[0.001, 0], [rp * 1.45, 0.006], [rp * 1.75, 0.03], [rp * 1.6, 0.058], [rp * 1.3, 0.072]].map(([r, y]) => new THREE.Vector2(r, y)), 14), pie, 0, 0, 0, { side: THREE.DoubleSide });
+      }
+      body.userData.quieto = true; break;
+    }
     default: add(new THREE.OctahedronGeometry(0.2, 0), '#f5c542', 0, 0.35, 0, { emissive: new THREE.Color('#a07a1a') });
   }
   body.userData.spin = true;

@@ -164,7 +164,9 @@ CUSTOM.mosaic = () => { const g = new THREE.Group(), K = ['#7a2a22', '#efe6d2', 
   for (let i = 0; i < 5; i++) for (let j = 0; j < 5; j++) { const d = Math.min(i, j, 4 - i, 4 - j); g.add(M(new THREE.BoxGeometry(0.17, 0.06, 0.17), K[d === 0 ? 0 : d === 1 ? ((i + j) % 2 ? 2 : 1) : 3], (i - 2) * 0.19, 0, (j - 2) * 0.19, 0, 0, 0, { roughness: 0.5 })); }
   g.rotation.set(0.75, 0.5, 0); return g; };
 // nombre del icono → constructor del modelo
-const ITEM = { grapes: 'uva', olive: 'olivo', pepper: 'piquillo', asparagus: 'esparrago', tomato: 'tomate', potato: 'patata', apple: 'manzana', almond: 'almendra', beans: 'pocha', corn: 'corn', herb: 'herb', herbs: 'herb', litter: 'litter', stone: 'stone' };
+const ITEM = { grapes: 'uva', olive: 'olivo', pepper: 'piquillo', asparagus: 'esparrago', tomato: 'tomate', potato: 'patata', apple: 'manzana', almond: 'almendra', beans: 'pocha', corn: 'corn', herb: 'herb', herbs: 'herb', litter: 'litter', stone: 'stone',
+  // (las setas de la misión de las setas, con su modelo del juego: la ficha de la matamoscas no puede llevar el dibujo de un hongo bueno)
+  'seta-beltza': 'seta-beltza', 'seta-rebozuelo': 'seta-rebozuelo', 'seta-matamoscas': 'seta-matamoscas', 'seta-oronja': 'seta-oronja' };
 const ANIMAL = { sheep: 'sheep', latxa: 'sheep', lamb: 'sheep', cow: 'cow', horse: 'pottoka', pottoka: 'pottoka', dog: 'dog', deer: 'corzo', corzo: 'corzo', ciervo: 'ciervo', chamois: 'goat', goat: 'goat', boar: 'jabali', jabali: 'jabali', fox: 'zorro', zorro: 'zorro' };
 const SMALL = { ardilla: squirrel, squirrel, pito: woodpecker, woodpecker, lechuza: owl, owl, trucha: trout };
 const FLY = { vulture: 'buitre', eagle: 'aguila', stork: 'ciguena' };

@@ -1316,6 +1316,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ganadero), luego se juzga en la pista y se cierra el trato con el tratante. Las vallas van en dos mallas y los carteles
   en una (una textura con todos los nombres); pocos animales por corral, que cada uno son varias llamadas de dibujo.
   Prueba: `tools/feria.mjs <pueblo> <carpeta>`.
+- **La misión de las setas, en el bosque de Orgi** (`data/setas.js`; `setas` en `data/procesos.js` y en la lista de
+  `bosque-orgi`, `data/bosques.js`; `pickSeta` en `townActividades.js`; los modelos en `items.js`; 15 de noviembre de
+  2026). El autor: «una misión para la recogida de setas y hongos. Que los pequeños aprendan qué son y cómo se cogen».
+  Koldo, micólogo, cuenta qué es una seta, el fruto de un hongo que vive bajo tierra pegado a las raíces, y pide tres
+  setas buenas. En el robledal salen cinco con el mismo letrero, «Mirar la seta»: el hongo, el hongo beltza y el
+  rebozuelo, que van a la cesta con su nombre y cómo se reconocen, y la matamoscas y la oronja verde, que se miran, se
+  explica por qué son venenosas y se quedan en su sitio, sin su brillo y sin contar. Después se ordenan los pasos de
+  coger una seta: mirarla y dejar las pequeñas, cortarla por el pie, quitarle la tierra allí, a la cesta de mimbre y
+  enseñarla a quien sepa. Termina con el parque micológico de Ultzama y la regla de oro: ninguna seta se come sin que la
+  vea alguien que sepa.
+  - Setas de otoño de robledal; el perretxiko no, que sale en primavera y en prados. Más grandes que las de verdad y
+    quietas en el suelo (`quieto`), sin girar ni flotar como los demás objetos de las misiones.
+  - En su ficha, cada una con su modelo del juego (`ITEM` en `ui/icon3d.js`), menos el hongo, con el dibujo del autor:
+    la matamoscas no podía salir con el dibujo de un hongo bueno.
+  - Va la última de la lista de Orgi, para no mover el número de las misiones guardadas. `ahora` y `asi` cambian dos
+    frases de las misiones de producto, que dicen «hagamos…» y «es un producto de…».
 - **Minimapa con la brújula en su borde** (`ui.js`, `updateMinimap`; `#mini`, `#clock`): el mapa gira con la
   cámara y alrededor va un anillo con los puntos cardinales (la N en rosa), rayas en los intermedios, los iconos de las
   misiones que quedan fuera del mapa hacia donde están y una punta rosa hacia el objetivo (si cae sobre una letra, la letra
