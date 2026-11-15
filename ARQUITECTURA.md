@@ -2272,6 +2272,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Medido con el contorno de las 12: crecen entre un 22 % (Ribera Alta) y algo más del doble (Larraun-Leitzaldea y
     Sakana, que cogen enteras Aralar, Urbasa y Andía). Con la isla del Pirineo en el aire, su malla tiene 116.000
     triángulos y los árboles del mapa con su bosque denso, 216.000.
+- **La isla, de cerca y en perspectiva, como la captura del autor** (`encuadreIsla`, `ENC_ISLA`, `hyMira` y `dDeGiro` en
+  `mapa3d.js`; 15 de noviembre de 2026). «El plano de cámara, cuando se levanta la comarca, sigue terminando en un plano
+  desde arriba. Y no, tiene que estar con más perspectiva» y «se aleja demasiado la cámara», con una captura del Pirineo
+  en el aire de referencia. La inclinación ya era de 29°, pero la cámara se quedaba lejos: encajaba un cilindro alrededor
+  de la isla, con el radio de su punta más lejana, y la punta de la panza; desde que las islas crecen con los montes de
+  alrededor, ese cilindro era aún mayor. En el móvil tumbado la isla salía pequeña en lo alto de la imagen, con el mapa
+  ocupándolo casi todo, y se leía como un mapa visto desde arriba.
+  - La órbita encaja ahora el contorno de verdad de la isla, con la altura del relieve en cada punto, y una rejilla de
+    dentro con sus montes. Lo hace desde cada lado, una distancia cada 30° (`dY`), suavizadas con las de al lado solo
+    hacia arriba para que la cámara no se acerque y se aleje a golpes; al girar pasa de una a otra con una curva suave.
+  - Mira a la cara de arriba de la isla y no a la mitad del bloque (`hyMira`): en la subida, a la mitad, como antes; con
+    la órbita, poco a poco, a la cara de arriba. La punta de la panza puede quedar detrás de la fila de fichas.
+  - A 32° en vez de 29°: de cerca, con 29° los montes de delante tapaban los valles.
+  - En el móvil tumbado, con el Pirineo, la cámara queda a entre 37 y 46 de distancia según el lado, en vez de 61, y la
+    isla llena la imagen.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la

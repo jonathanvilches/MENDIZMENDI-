@@ -719,6 +719,48 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     let a = 8, b = 400; for (let i = 0; i < 18; i++) { const c = (a + b) / 2; if (cabe(c)) b = c; else a = c; }
     return b;
   }
+  // (la isla en el aire, encuadrada como en la captura que pasó el autor el 15 de noviembre de 2026: «el plano de cámara,
+  // cuando se levanta la comarca, sigue terminando en un plano desde arriba. Y no, tiene que estar con más perspectiva». La
+  // inclinación ya era de 29°, pero la cámara se quedaba lejos: encajaba un cilindro alrededor de la isla, con el radio de
+  // su punta más lejana y la punta de la panza dentro; la isla salía pequeña en lo alto de la imagen, con el mapa ocupándolo
+  // casi todo, y se leía como un mapa visto desde arriba. Ahora encaja el contorno de verdad de la isla y lo alto de su
+  // relieve, desde cada lado de la órbita (dY, una distancia cada 30°), mirando a su cara de arriba; la punta de la panza
+  // puede quedar detrás de la fila de fichas. La isla llena la imagen y se ve en perspectiva: lo de delante, con su canto,
+  // grande, y los montes del fondo detrás)
+  const ENC_ISLA = { pitch: 0.56, arriba: 0.08, lados: 0.05, abajo: 0.03 };
+  function encuadreIsla(c) {
+    const I = c.isla, A = ampDe(c), P = A.amplia ? A.P : c.Pw, al = A.amplia ? A.alto : alto, n = P.length, salto = Math.max(1, Math.round(n / 64));
+    const E = { ...ENC_ISLA, ...(import.meta.env.DEV && window.__encIsla || {}) };
+    let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity; for (const [x, z] of P) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
+    const X = (x0 + x1) / 2, Z = (z0 + z1) / 2, base = c.alzado + 0.9 + I.alto;
+    // (el contorno, con la altura del relieve en cada punto, y una rejilla de dentro con sus montes; y la punta de la panza)
+    const xz = []; for (let i = 0; i < n; i += salto) xz.push(P[i]);
+    for (let i = 0; i < 9; i++) for (let j = 0; j < 9; j++) { const x = x0 + (i + 0.5) / 9 * (x1 - x0), z = z0 + (j + 0.5) / 9 * (z1 - z0); if (enPoligono(P, x, z)) xz.push([x, z]); }
+    const L = libre(), hu = huecoAhora(), s = { x: X, z: Z, yaw: 0, pitch: E.pitch, d: 0, hy: 0 };
+    prueba.aspect = L.W / L.H; prueba.setViewOffset(L.W, L.H, (hu.r || 0) / 2, ((hu.b || 0) - (hu.t || 0)) / 2, L.W, L.H);
+    const punta = new THREE.Vector3(I.cx, base - I.D, I.cz);
+    const ajusta = (yaw, S) => {
+      const pts = xz.map(([x, z]) => new THREE.Vector3(x, base + (GROSOR + al(x, z)) * S, z));
+      s.yaw = yaw; s.hy = hyMira(c, base, S, 1, 1);
+      const cabe = (d) => { s.d = d; camPos(s, prueba.position); prueba.lookAt(X, s.hy, Z); prueba.updateMatrixWorld(); prueba.updateProjectionMatrix();
+        const dentro = (e, b) => { pq.copy(e).project(prueba); const px = (pq.x + 1) / 2 * L.W, py = (1 - pq.y) / 2 * L.H;
+          return pq.z < 1 && px > L.W * E.lados && px < L.W - (hu.r || 0) - L.W * E.lados && py > (hu.t || 0) + L.H * E.arriba && py < b; };
+        return pts.every(e => dentro(e, L.H - (hu.b || 0) - L.H * E.abajo)) && dentro(punta, L.H); };
+      let a = 8, b = 400; for (let i = 0; i < 18; i++) { const m = (a + b) / 2; if (cabe(m)) b = m; else a = m; }
+      return b;
+    };
+    // (lo exagerado del relieve depende de la distancia, exaDe: se encaja una vez con la de 40 y otra con la que sale)
+    let dY = []; for (let k = 0; k < 12; k++) { const yaw = k * Math.PI / 6; dY.push(Math.max(18, ajusta(yaw, exaDe(ajusta(yaw, exaDe(40)))))); }
+    // (y suavizadas con las de al lado, solo hacia arriba: en el Pirineo, de un lado a otro pasaba de 37 a 30 y a 39, y al
+    // girar la cámara se acercaba y se alejaba a golpes; así no corta nada y respira menos)
+    for (let n = 0; n < 2; n++) dY = dY.map((d, k) => Math.max(d, 0.5 * d + 0.25 * (dY[(k + 11) % 12] + dY[(k + 1) % 12])));
+    return { x: X, z: Z, pitch: E.pitch, dY, d: dY[0] };
+  }
+  // (a qué altura mira la cámara con la isla en el aire: de la mitad del bloque, entre la cara de arriba y la punta de la
+  // panza, como en el plano bajo de la subida, a su cara de arriba en la órbita, con mira de 0 a 1)
+  const hyMira = (c, py, sy, k, mira) => { const D = c.isla.D * Math.min(1, k), mitad = py + ((GROSOR + c.hmax * 0.5) * sy - D) / 2, cara = py + (GROSOR + c.hmax * 0.3) * sy - 0.1 * D; return mitad + (cara - mitad) * mira; };
+  // (la distancia de la órbita para un giro: entre las de cada 30°, con una curva suave)
+  const dDeGiro = (dY, yaw) => { const u = ((yaw / (Math.PI / 6)) % 12 + 12) % 12, i = Math.floor(u), f = u - i, g = f * f * (3 - 2 * f); return dY[i] + (dY[(i + 1) % 12] - dY[i]) * g; };
   function casa() {
     const L = libre(), pitch = L.w / L.h < 1.05 ? 1.02 : L.w / L.h < 1.6 ? 0.82 : 0.7;
     return { x: centro.x, z: centro.z, d: encaja(esquinas, centro.x, centro.z, pitch, 0.9), yaw: 0, pitch };
@@ -1150,7 +1192,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, PITCH_ORBITA = 0.5, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -1257,13 +1299,14 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (y desde el 15, antes y más rápido: «tarda mucho entre la elevación del territorio y el cambio de plano». La cámara
   // arranca en cuanto la isla despega, sin esperar a que acabe el vuelo de llegada, y pasa a la órbita en 2,4 s con una
   // curva que sale viva y frena suave; antes, 3,4 s después del vuelo entero, con un arranque casi parado)
+  // (y desde el 15 por la noche, de cerca y a 32°, encuadrando el contorno de verdad de la isla desde cada lado: encuadreIsla)
   const LLEGA_ISLA = 1.8, VUELTA_ISLA = 60;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
   function sigueDronIsla(dt) {
     const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u);
     const w = (Math.PI * 2 / VUELTA_ISLA) * ease(Math.min(1, p.t / 3));
     p.yaw = (p.yaw ?? p.de.yaw) + p.giro * w * dt; goal.yaw = p.yaw;
     goal.x = mezcla(p.de.x, p.alta.x, s); goal.z = mezcla(p.de.z, p.alta.z, s);
-    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(p.alta.d), s));
+    goal.d = Math.exp(mezcla(Math.log(p.de.d), Math.log(dDeGiro(p.alta.dY, p.yaw)), s));   // (más cerca o más lejos según el lado que mira)
     goal.pitch = mezcla(p.de.pitch, p.alta.pitch, s);
   }
   // ---------- una colección en el mapa ----------
@@ -1736,7 +1779,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
 
   if (import.meta.env.DEV) window.__mapa3d = { islaK: (k) => { islaFija = k; }, det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
-    relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
+    dronIsla: () => islaDron, relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 
   // ---------- el bucle: solo mientras se ve ----------
   let vivo = true, visible = true, t0 = performance.now(), last = t0, raf = 0, compilado = false;
@@ -1958,11 +2001,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       // la cámara)
       if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.25 && !tv && (!vuelo || vuelo.t > 0.5 && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
         const enVuelo = !!vuelo; if (enVuelo) { vuelo = null; Object.assign(goal, { x: v.x, z: v.z, d: v.d, yaw: v.yaw, pitch: v.pitch }); }
-        if ((enVuelo || Math.abs(goal.pitch - PITCH_ISLA) < 0.03) && !gesto && !ptrs.size) { const I = c.isla, yT = Math.max(...c.esq.map(q => q.y)) + I.alto, yB = I.alto - I.D, R = I.rMax + Math.hypot(c.mid.x - I.cx, c.mid.z - I.cz), esq = [];
-          // (un cilindro alrededor de la isla, y su punta: lo que tiene que caber, se mire desde donde se mire)
-          for (let a = 0; a < 12; a++) { const cs = Math.cos(a * Math.PI / 6), sn = Math.sin(a * Math.PI / 6); esq.push(new THREE.Vector3(c.mid.x + cs * R, yT, c.mid.z + sn * R), new THREE.Vector3(c.mid.x + cs * R * 0.3, yB, c.mid.z + sn * R * 0.3)); }
-          const alta = { x: c.mid.x, z: c.mid.z, d: Math.max(18, encaja(esq, c.mid.x, c.mid.z, PITCH_ORBITA, 1, c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2)), pitch: PITCH_ORBITA };
-          if (MOV_REDUCIDO) volar({ ...alta, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
+        if ((enVuelo || Math.abs(goal.pitch - PITCH_ISLA) < 0.03) && !gesto && !ptrs.size) { const alta = encuadreIsla(c);   // (la isla entera, de cerca, desde cada lado)
+          if (MOV_REDUCIDO) volar({ x: alta.x, z: alta.z, d: alta.d, pitch: alta.pitch, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
       if (c.isla) { let hund = 0; if ((c.isla.k || 0) > 0.004) for (const o of C) if (o !== c) hund = Math.max(hund, 0.35 * o.fondo);   // (lo que se hunden las vecinas de fondo: la boca del hueco baja con ellas)
         c.isla.update(c.py, c.sy, Math.min(1.15, c.isla.k || 0), t, dt, r.domElement.height * cam.projectionMatrix.elements[5] * 0.5, cam, hund);
         c.mesh.material[1].visible = (c.isla.k || 0) < 0.02;
@@ -2007,7 +2047,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     }
     { const f = tv && tv.fase === 'video' ? tv.fov : FOV0; if (Math.abs(cam.fov - f) > 1e-3) { cam.fov = tv ? f : cam.fov + (f - cam.fov) * (1 - Math.exp(-dt * 2)); cam.updateProjectionMatrix(); } }
     const ci = sel && byId.get(sel), fi = ci?.isla ? Math.min(1, ci.isla.k || 0) * Math.min(1, Math.max(0, (v.d - 8) / 10)) : 0;
-    const hyIsla = fi ? ci.py + ((GROSOR + ci.hmax * 0.5) * ci.sy - ci.isla.D * Math.min(1, ci.isla.k)) / 2 : 0;
+    // (y con la órbita, poco a poco, a su cara de arriba: encuadreIsla)
+    if (ci?.isla) ci.mira = (ci.mira || 0) + ((ci.vistaAlta ? 1 : 0) - (ci.mira || 0)) * (1 - Math.exp(-dt * 1.6));
+    const hyIsla = fi ? hyMira(ci, ci.py, ci.sy, ci.isla.k, ci.mira || 0) : 0;
     v.hy += (0.8 + (hs - 0.8) * kh + (hyIsla - 0.8 - (hs - 0.8) * kh) * fi - v.hy) * (1 - Math.exp(-dt * 4));   // (con la isla en el aire, la cámara mira a su mitad)
     camPos(v, cam.position);
     // (la cámara nunca entra en el relieve ni lo deja entre ella y lo que mira: si una sierra, o la comarca levantada, se
