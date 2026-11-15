@@ -1323,6 +1323,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         marcadas. Cuenta como frontis y la pelota sale de él hacia la izquierda, pegada al frontis.
       - Sin cambiar: la cancha mide lo que la de los frontones del juego, 31,5 × 10 m, y no 28,5 × 9,3; y el rosa del
         suelo es la zona de saque, que se ilumina al sacar en todos los frontones.
+    - Revisado otra vez el mismo día con tres fotos del de Elizondo que mandó el autor:
+      - encima de las dos paredes laterales, un balcón corrido con barandilla de balaustres de madera y su fila de
+        público mirando a la cancha; la pared derecha, por eso, se queda en 8,5 m, como la izquierda, y el alto de encima
+        de la pared izquierda ya no se pinta;
+      - el techo, a 11 m y claro, con sus tubos de luz (la arquitectura `erminea`), no de cerchas de madera;
+      - el tejadillo, verde como las paredes y algo más claro, y su madera más rubia;
+      - en el suelo, solo las rayas de falta y pasa, amarillas; en las paredes, una raya fina amarilla a 8,4 m
+        (`TRINQ.LINEA`): la pelota que da por encima, en la izquierda o en la derecha, es mala (`game.js`).
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.

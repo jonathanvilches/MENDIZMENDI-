@@ -1,7 +1,7 @@
 // Lógica del partido de pelota a mano (sin gráficos): saque, peloteo, árbitro, tanteo y rival.
 // La vista (match.js) le pasa la entrada del jugador y recibe eventos para dibujar, sonar y rotular.
 import { COURT, LEVELS, SHOTS, kantari, CUATRO, PHYS, RETOS, estrellasReto } from './rules.js';
-import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec, FEEL } from './physics.js';
+import { Ball, predict, solveShot, twoWallsTo, aimVelocity, landingOf, vec, FEEL, TRINQ } from './physics.js';
 import { clamp } from '../util/math.js';
 
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
@@ -547,15 +547,18 @@ export class PelotaGame {
       if (this.reto === 'diana' && striker === 'you') { const d = this.diana; return this.retoTiro(Math.hypot(e.x - d.x, e.y - d.y) <= d.r, { x: e.x, y: e.y }); }
       if (this.mode === 'rally' && striker === 'you' && (!this.reto || this.reto === 'peloteo')) { this.streak++; this.best = Math.max(this.best, this.streak); this.emit({ type: 'streak', n: this.streak }); if (this.streak >= this.target) this.finish(); }
     } else if (e.type === 'left') {
-      this.emit({ type: 'wall', ...e, alta: e.y > COURT.LEFT_LINE });   // (alta: en la chapa de arriba de la pared)
+      const lin = FEEL.tipo === 'trinquete' ? TRINQ.LINEA : COURT.LEFT_LINE;   // (en el trinquete, la línea amarilla del borde de arriba)
+      this.emit({ type: 'wall', ...e, alta: e.y > lin });   // (alta: en la chapa de arriba de la pared)
       // en la pared izquierda, por encima de su raya roja (o por encima de la pared) es mala, antes o después del frontis
-      if (e.y > COURT.LEFT_LINE) return this.point(receiver, 'pared');
+      if (e.y > lin) return this.point(receiver, 'pared');
     } else if (e.type === 'red') {
       // (el trinquete: a la red de la galería es falta, antes o después del frontis; si ya había botado bien, la pierde
       // el que tenía que devolverla)
       this.emit({ type: 'wall', ...e }); return R.front && R.bounces >= 1 ? this.point(striker, 'red') : this.point(receiver, 'red');
     } else if (e.type === 'right' || e.type === 'teja') {
-      this.emit({ type: 'wall', ...e });   // (la pared derecha y el tejadillo del trinquete: valen, y la pelota sigue)
+      this.emit({ type: 'wall', ...e, alta: e.type === 'right' && e.y > TRINQ.LINEA });   // (la pared derecha y el tejadillo del trinquete: valen, y la pelota sigue)
+      // (en la pared derecha, como en la izquierda, por encima de su línea amarilla es mala: ahí empieza el balcón)
+      if (e.type === 'right' && e.y > TRINQ.LINEA) return this.point(receiver, 'pared');
     } else if (e.type === 'back') {
       // en el rebote sin haber botado: larga (fuera); tras un bote, vuelve y se sigue jugando
       if (!R.front || R.bounces < 1) { this.emit({ type: 'back', ...e }); return this.point(receiver, 'largo'); }

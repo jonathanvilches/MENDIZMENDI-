@@ -15,7 +15,9 @@ export const FEEL = { front: 1, floor: 1, run: 1, backH: 0, leftH: 0, tipo: 'izq
 // pendiente; antes, 2,2 m de ancho, de 2,35 a 3,27 m, como un tejado. PETO: el murete de la galería, bajo la red, y
 // TAMBOR: el ancho del plano a 45° del rincón del frontis y la pared derecha, el «tambor» o «fraile», que cuenta como
 // frontis y desvía la pelota hacia la izquierda)
-export const TRINQ = { Y0: 1.9, FONDO: 1.3, PEND: 0.27, PETO: 0.95, TAMBOR: 0.46 };
+// LINEA: la línea amarilla del borde de arriba de las paredes de los lados, donde empiezan los balcones (las fotos del de
+// Elizondo): por encima, la pelota es mala, a la izquierda y a la derecha
+export const TRINQ = { Y0: 1.9, FONDO: 1.3, PEND: 0.27, PETO: 0.95, TAMBOR: 0.46, LINEA: 8.4 };
 const TAMBOR_A = TRINQ.TAMBOR / Math.SQRT2;   // (lo que se come del frontis y de la pared derecha)
 // (backH y leftH: alto del rebote y de la pared izquierda; en el frontón cubierto llegan hasta el techo y la pelota no
 // se sale: por encima de la raya sigue siendo mala, pero rebota en la pared)

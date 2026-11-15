@@ -122,6 +122,10 @@ const THEMES = {
 const LABRIT_CONTRA = 4.4;
 // el frontón cubierto de los campeonatos: alto hasta el techo y contracancha algo más ancha (con la grada al lado)
 const HALL_H = 13, HALL_CONTRA = 3.4, HALL_ROWS = 7;
+// el fondo de los balcones del público del trinquete, encima de las paredes de los lados (buildTrinquete)
+const TQ_BALCON = 2.4;
+// y su techo, justo encima de los balcones, como en las fotos del de Elizondo: a 11 m y no a los 13 del cubierto
+const TQ_H = 11;
 // La arquitectura del cubierto de cada sede, sacada de las fotos de frontones de verdad del capítulo «Frontones de
 // Navarra» (src/assets/frontones): el techo, las paredes de encima de la cancha, la de detrás de la grada y el fondo. Los
 // colores de la cancha (frontis, pared izquierda, marco, suelo y rayas) van en fronton.js (ARQ_LOOK), con el contraste que
@@ -176,9 +180,10 @@ export class PelotaCourt {
       }
       grain(c, w, h, 9000, 0.07); grain(c, w, h, 3000, 0.05, false);
       c.strokeStyle = th.line; c.lineWidth = 4;
-      for (let k = 1; k * C.CUADRO <= L + 0.01; k++) { const z = Z(k * C.CUADRO); c.beginPath(); c.moveTo(0, z); c.lineTo(X(W / 2), z); c.stroke(); }
+      // (el trinquete no tiene cuadros: en su suelo, como en las fotos del de Elizondo, solo las rayas de falta y pasa, amarillas)
+      if (!TRQ) for (let k = 1; k * C.CUADRO <= L + 0.01; k++) { const z = Z(k * C.CUADRO); c.beginPath(); c.moveTo(0, z); c.lineTo(X(W / 2), z); c.stroke(); }
       // falta (4) y pasa (7), más gruesas y rojas
-      c.strokeStyle = th.mark; c.lineWidth = 9;
+      c.strokeStyle = TRQ ? th.line : th.mark; c.lineWidth = TRQ ? 7 : 9;
       for (const z of [C.FALTA, C.PASA]) { c.beginPath(); c.moveTo(0, Z(z)); c.lineTo(X(W / 2), Z(z)); c.stroke(); }
       // raya de la derecha (contracancha) y del fondo
       c.strokeStyle = th.line; c.lineWidth = 8;
@@ -392,12 +397,13 @@ export class PelotaCourt {
     left.position.set(-W / 2 - 0.3, C.LEFT_H / 2, EXT / 2); left.castShadow = true; left.receiveShadow = true; g.add(left);
     // la raya de arriba de la pared izquierda (por encima, la pelota es mala), una tira de verdad pegada a la pared: pintada
     // en la textura, de 40 m de largo, a lo lejos y vista de lado se emborronaba hasta desaparecer
-    { const raya = new T.Mesh(new T.PlaneGeometry(EXT, 12 / 512 * C.LEFT_H), M({ color: th.mark, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya);
+    // (en el trinquete, como en las fotos del de Elizondo, una sola línea amarilla fina: sin la raya roja ni la chapa de encima)
+    { const raya = new T.Mesh(new T.PlaneGeometry(EXT, (TRQ ? 0.12 : 12 / 512 * C.LEFT_H)), M({ color: TRQ ? (th.marco || th.line) : th.mark, roughness: 0.7, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      raya.rotation.y = Math.PI / 2; raya.position.set(-W / 2 + 0.008, TRQ ? TRINQ.LINEA : C.LEFT_LINE, EXT / 2); raya.receiveShadow = true; raya.name = 'raya-izquierda'; g.add(raya);
       // (y encima de la raya, la chapa de arriba de la pared izquierda con su colchón, como la del frontis)
       const mA = M({ color: th.marco || th.chapa, metalness: th.chapaMetal && !th.marco ? 0.3 : 0, roughness: 0.48 }), hL = C.LEFT_H - C.LEFT_LINE - 0.02;
-      const chL = new T.Mesh(new T.BoxGeometry(0.05, hL, EXT), mA); chL.position.set(-W / 2 + 0.025, C.LEFT_LINE + 0.02 + hL / 2, EXT / 2); chL.receiveShadow = true; chL.name = 'chapa-izquierda'; g.add(chL);
-      const coL = new T.Mesh(new T.BoxGeometry(0.11, 0.06, EXT), mA); coL.position.set(-W / 2 + 0.055, C.LEFT_LINE + 0.05, EXT / 2); coL.castShadow = true; g.add(coL); }
+      const chL = new T.Mesh(new T.BoxGeometry(0.05, hL, EXT), mA); chL.position.set(-W / 2 + 0.025, C.LEFT_LINE + 0.02 + hL / 2, EXT / 2); chL.receiveShadow = true; chL.name = 'chapa-izquierda'; if (!TRQ) g.add(chL);
+      const coL = new T.Mesh(new T.BoxGeometry(0.11, 0.06, EXT), mA); coL.position.set(-W / 2 + 0.055, C.LEFT_LINE + 0.05, EXT / 2); coL.castShadow = true; if (!TRQ) g.add(coL); }
     for (const o of g.children.slice(nIzq0)) { if (PLZ) o.visible = false; else if (TRQ) o.position.x -= TRINQ.FONDO; }
     // la plaza libre: a la izquierda, plaza (losas del color de la contracancha) con la raya del lado, que es la que manda
     if (PLZ) {
@@ -409,7 +415,7 @@ export class PelotaCourt {
     // el rebote cierra la cancha por detrás, tan alto como la pared izquierda (solo detrás de la cancha: se entra por la
     // contracancha). En el Labrit, el muro bajo con la grada en herradura detrás. Cuando la cámara queda detrás de él,
     // se ve a través, como en los dibujos de las partes del frontón
-    const RH = this.reboteH = opts.labrit ? 2.2 : HALL ? HALL_H : C.LEFT_H;
+    const RH = this.reboteH = opts.labrit ? 2.2 : TRQ ? TQ_H : HALL ? HALL_H : C.LEFT_H;
     const rebTex = canvasTex(T, 512, 512, (c, w, h) => {
       if (th.brick) bricks(c, w, h, W + 0.6, RH, '#a85c3e');
       else { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); }
@@ -471,7 +477,7 @@ export class PelotaCourt {
     // dónde cabe la cámara del partido (match.js, cabe): bajo la cubierta, sin llegar a su estructura (más arriba, las
     // vigas, los tirantes y la chapa quedaban delante y tapaban la imagen entera); en el cubierto, sin pasar del rebote,
     // que llega al techo; en el Labrit, sin meterse en la grada del fondo. En el pueblo, Fronton añade las casas de detrás
-    this.camTecho = opts.labrit ? 11.6 : HALL ? HALL_H - 2 : th.roof ? C.FRONT_H : Infinity;
+    this.camTecho = opts.labrit ? 11.6 : TRQ ? TQ_H - 1.2 : HALL ? HALL_H - 2 : th.roof ? C.FRONT_H : Infinity;
     this.camZMax = opts.labrit ? EXT + 3.8 : HALL ? C.REBOTE - 0.7 : Infinity;
 
     // --- pelota, sombra, estela y ayudas
@@ -804,7 +810,7 @@ export class PelotaCourt {
     // (el trinquete: la galería del público a la izquierda, tras la red y bajo el tejadillo, y la pared derecha junto a la
     // cancha, sin grada; XL, la pared del fondo de la galería)
     const TQ = this.tipo === 'trinquete', XL = -W / 2 - (TQ ? TRINQ.FONDO : 0);
-    const C = COURT, g = this.group, H = HALL_H, xs = TQ ? W / 2 : W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = TQ ? W / 2 : xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
+    const C = COURT, g = this.group, H = TQ ? TQ_H : HALL_H, xs = TQ ? W / 2 : W / 2 + CONTRA + 0.2, RD = 0.8, RU = 0.42, xr = TQ ? W / 2 : xs + HALL_ROWS * RD + 0.5, za = -0.8, zb = EXT + 0.4;
     const A = ARQ[opts.arq] || ARQ.pabellon, ALTO = A.alto || th.wall, SOBRE = A.sobre || th.wall, FONDO = A.fondo || th.wall;
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
     // una barra de x0,y0 a x1,y1 en el plano z (las cerchas, los arcos y las correas)
@@ -822,7 +828,7 @@ export class PelotaCourt {
         c.fillStyle = gr; c.fillRect(i * pw + pw * 0.12, h * 0.22, pw * 0.76, h * 0.56); c.fillStyle = 'rgba(40,40,60,.55)'; c.fillRect(i * pw + pw * 0.5 - 2, h * 0.22, 4, h * 0.56); c.fillRect(i * pw + pw * 0.12, h * 0.5 - 2, pw * 0.76, 4); }
     });
     const upH = H - C.LEFT_H - 0.2, upL = new T.Mesh(new T.BoxGeometry(0.6, upH, EXT + 1.2), [A.ventanas === 'franja' ? M({ map: winTex, emissive: '#ffffff', emissiveMap: winTex, emissiveIntensity: 0.25 }) : altoM, wallM, wallM, wallM, wallM, wallM]);
-    upL.position.set(XL - 0.3, C.LEFT_H + 0.2 + upH / 2, EXT / 2); g.add(upL);
+    upL.position.set(XL - 0.3, C.LEFT_H + 0.2 + upH / 2, EXT / 2); if (!TQ) g.add(upL);   // (en el trinquete, encima, el balcón del público: buildTrinquete)
     // por encima del frontis, hasta el techo (oscuro en el pabellón: así resalta el marcador); y la pared de delante de la
     // contracancha
     box(xr - (XL - 0.6), H - C.FRONT_H, 0.6, dark, (xr + (XL - 0.6)) / 2, C.FRONT_H + (H - C.FRONT_H) / 2, za);
@@ -853,7 +859,7 @@ export class PelotaCourt {
       rw.position.set(xr + 0.3, H / 2, (za + zb) / 2); g.add(rw); }
     if (TQ) this.buildTrinquete(T, M, th, W, EXT, H, za, zb, XL, A);
     // el techo, como el de su modelo
-    const xl = XL - 0.6, xR = xr + 0.6, xm = (xl + xR) / 2, span = xR - xl, z0r = za - 0.3, z1r = zb + 0.3;
+    const xl = XL - 0.6 - (TQ ? TQ_BALCON : 0), xR = xr + 0.6 + (TQ ? TQ_BALCON + 0.3 : 0), xm = (xl + xR) / 2, span = xR - xl, z0r = za - 0.3, z1r = zb + 0.3;   // (en el trinquete, también sobre los balcones)
     const lampM = new T.MeshBasicMaterial({ color: '#fbfaff', toneMapped: false }), lampG = new T.BoxGeometry(A.techo === 'blanco' ? 0.35 : 1.5, 0.12, A.techo === 'blanco' ? 3.2 : 0.7);
     if (A.techo === 'oscuro' || A.techo === 'blanco') {
       // plano: oscuro con cerchas de acero (el pabellón) o blanco con cerchas claras y tubos de luz a lo largo (Isaba, Ziordia)
@@ -951,8 +957,27 @@ export class PelotaCourt {
     const g = this.group, xe = -W / 2, F = TRINQ.FONDO, Y0 = TRINQ.Y0, Y1 = Y0 + F * TRINQ.PEND;
     const box = (w, h, d, mat, x, y, z) => { const m = new T.Mesh(new T.BoxGeometry(w, h, d), mat); m.position.set(x, y, z); m.receiveShadow = true; g.add(m); return m; };
     // la pared derecha: solo su cara hacia la cancha (desde fuera, donde va la cámara de la contracancha, no tapa)
-    const rt = canvasTex(T, 1024, 512, (c, w, h) => { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); c.fillStyle = th.mark; c.fillRect(0, h * (1 - COURT.LEFT_LINE / H) - 5, w, 10); });
-    const rwall = new T.Mesh(new T.PlaneGeometry(zb - za, H), M({ map: rt })); rwall.rotation.y = -Math.PI / 2; rwall.position.set(W / 2, H / 2, (za + zb) / 2); rwall.name = 'pared-derecha'; g.add(rwall);
+    // (hasta 8,5 m, como la izquierda, con su línea amarilla fina: encima, el balcón del público)
+    const HW = COURT.LEFT_H;
+    const rt = canvasTex(T, 1024, 512, (c, w, h) => { c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 9000, 0.06); grain(c, w, h, 3000, 0.05, false); c.fillStyle = th.marco || th.mark; c.fillRect(0, h * (1 - TRINQ.LINEA / HW) - 4, w, 8); });   // (la línea amarilla fina, a la altura de la de la izquierda)
+    const rwall = new T.Mesh(new T.PlaneGeometry(zb - za, HW), M({ map: rt })); rwall.rotation.y = -Math.PI / 2; rwall.position.set(W / 2, HW / 2, (za + zb) / 2); rwall.name = 'pared-derecha'; g.add(rwall);
+    // los balcones del público, encima de las dos paredes de los lados, como en las fotos del de Elizondo: el remate de
+    // la pared, la barandilla de madera de balaustres, el suelo, un banco corrido con su fila de público y la pared clara
+    // del fondo hasta el techo; y cerrados por los dos extremos
+    { const BL = TQ_BALCON, y0 = HW, altoC = A.alto || A.claro || '#ebe6d9', alto = M({ color: altoC, roughness: 0.92, emissive: altoC, emissiveIntensity: 0.28 }), mad = M({ color: '#a8744a', roughness: 0.7 });
+      const bal = canvasTex(T, 1024, 64, (c, w, h) => { c.clearRect(0, 0, w, h); c.fillStyle = '#9c6a42'; for (let x = 4; x < w; x += 16) c.fillRect(x, 0, 6, h); c.fillRect(0, h - 8, w, 8); }, [EXT / 2.5, 1]);
+      const balM = M({ map: bal, transparent: true, alphaTest: 0.4, side: T.DoubleSide, roughness: 0.75 });
+      for (const [xw, s] of [[XL - 0.6, -1], [W / 2 + 0.3, 1]]) {   // (xw: el canto de fuera de la pared; s: hacia dónde queda el balcón)
+        const xb = xw + s * BL / 2;
+        box(BL, 0.3, EXT + 0.8, alto, xb, y0 - 0.15, EXT / 2);   // (el suelo)
+        if (s > 0) box(0.3, 0.12, EXT + 0.8, M({ color: th.cap, roughness: 0.7 }), W / 2 + 0.15, y0 + 0.06, EXT / 2);   // (el remate de la derecha; el de la izquierda ya está)
+        const rail = new T.Mesh(new T.PlaneGeometry(EXT + 0.8, 0.9), balM); rail.rotation.y = Math.PI / 2; rail.position.set(xw - s * 0.15, y0 + 0.45 + 0.1, EXT / 2); g.add(rail);
+        box(0.12, 0.08, EXT + 0.8, mad, xw - s * 0.15, y0 + 1.04, EXT / 2);   // (el pasamanos)
+        box(0.12, H - y0 + 3, EXT + 1.2, alto, xw + s * (BL + 0.06), y0 + (H - y0 + 3) / 2 - 0.3, EXT / 2);   // (la pared del fondo del balcón)
+        for (const z of [za, zb]) box(BL + 0.3, H - y0 + 3, 0.5, alto, xb - s * 0.15, y0 + (H - y0 + 3) / 2 - 0.3, z);   // (los extremos)
+        box(0.42, 0.06, EXT - 1.6, mad, xw + s * 0.95, y0 + 0.45, EXT / 2); box(0.06, 0.42, EXT - 1.6, mad, xw + s * 1.1, y0 + 0.22, EXT / 2);   // (el banco corrido)
+        for (let z = 1.4; z < EXT - 1.4; z += 0.72) this.standSpots.push([xw + s * 0.95, y0 + 0.48, z + (Math.random() - 0.5) * 0.12, s > 0 ? -Math.PI / 2 : Math.PI / 2]);
+      } }
     // el frontis y el rebote siguen delante y detrás de la galería, hasta el techo
     const fm = M({ color: th.wall, roughness: 0.9 });
     box(F, H, 0.8, fm, xe - 0.6 - F / 2, H / 2, -0.4); box(F, H, 0.4, fm, xe - 0.6 - F / 2, H / 2, EXT + 0.2);
@@ -960,8 +985,9 @@ export class PelotaCourt {
     // es el trinquete, revisa bien». Antes la red bajaba hasta el suelo, el tejadillo era de tejas rojas, como un tejado de
     // casa, y la galería, de 2,2 m con dos filas de público. Ahora, delante de la galería, el peto pintado como las paredes
     // con su listón de madera; encima, la red entre postes de madera hasta la viga del tejadillo; y el tejadillo, liso y
-    // claro, de 1,30 m, de 1,90 a 2,25 m. En la galería, un banco corrido con una fila de público)
-    const madera = M({ color: '#7a5434', roughness: 0.75 }), losa = M({ color: '#9c968c', roughness: 0.95 }), PETO = TRINQ.PETO;
+    // pintado del verde de las paredes, algo más claro (las fotos que pasó el autor), de 1,30 m, de 1,90 a 2,25 m. En la
+    // galería, un banco corrido con una fila de público)
+    const madera = M({ color: '#a8744a', roughness: 0.75 }), losa = M({ color: '#9c968c', roughness: 0.95 }), PETO = TRINQ.PETO;
     box(F, 0.12, EXT, losa, xe - F / 2, 0.06, EXT / 2);
     box(0.4, 0.06, EXT - 1.2, madera, xe - F + 0.42, 0.45, EXT / 2); box(0.06, 0.4, EXT - 1.2, madera, xe - F + 0.3, 0.22, EXT / 2);   // (el banco corrido, contra la pared)
     for (let z = 1.2; z < EXT - 1.2; z += 0.6) this.standSpots.push([xe - F + 0.42, 0.48, z + (Math.random() - 0.5) * 0.1, Math.PI / 2]);
@@ -975,7 +1001,7 @@ export class PelotaCourt {
     const net = new T.Mesh(new T.PlaneGeometry(EXT, HR), M({ map: red, transparent: true, alphaTest: 0.2, side: T.DoubleSide, roughness: 0.6 })); net.rotation.y = Math.PI / 2; net.position.set(xe - 0.02, PETO + 0.07 + HR / 2, EXT / 2); net.name = 'red'; g.add(net);
     for (let z = 0; z <= EXT + 0.01; z += COURT.CUADRO) box(0.12, HR, 0.12, madera, xe - 0.06, PETO + 0.07 + HR / 2, Math.min(EXT - 0.06, z + 0.06));
     // el tejadillo: liso, pintado de claro, inclinado hacia la cancha, de la viga a la pared del fondo de la galería
-    const tejaT = canvasTex(T, 512, 64, (c, w, h) => { c.fillStyle = '#cfccc4'; c.fillRect(0, 0, w, h); grain(c, w, h, 2500, 0.05); c.fillStyle = 'rgba(0,0,0,.07)'; for (let x = 0; x < w; x += 32) c.fillRect(x, 0, 2, h); }, [EXT / 8, 1]);
+    const tejaT = canvasTex(T, 512, 64, (c, w, h) => { c.fillStyle = '#' + new T.Color(th.wall).offsetHSL(0, 0, 0.06).getHexString(); c.fillRect(0, 0, w, h); grain(c, w, h, 2500, 0.05); c.fillStyle = 'rgba(0,0,0,.07)'; for (let x = 0; x < w; x += 32) c.fillRect(x, 0, 2, h); }, [EXT / 8, 1]);
     const ln = Math.hypot(F, Y1 - Y0), tj = new T.Mesh(new T.PlaneGeometry(EXT, ln), M({ map: tejaT, side: T.DoubleSide, roughness: 0.85 }));
     tj.rotation.order = 'YXZ'; tj.rotation.y = Math.PI / 2; tj.rotation.x = -Math.PI / 2 + Math.atan2(Y1 - Y0, F); tj.position.set(xe - F / 2, (Y0 + Y1) / 2, EXT / 2); tj.name = 'tejadillo'; g.add(tj);
     box(0.16, 0.16, EXT, madera, xe - 0.06, Y0 - 0.08, EXT / 2);   // (la viga del borde)
