@@ -2203,6 +2203,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   1,4 px en las de 2.048 y de 1 px en las de 1.024): tejados, calles y copas más definidos, sin halos; pasan de 32 a 37 MB y
   de 9,5 a 11 MB. No se hicieron más grandes: la maqueta pinta el suelo en un lienzo de 2.048 px, y uno de 4.096 serían
   64 MB de memoria gráfica, demasiado para el iPhone y los ordenadores con gráfica integrada.
+- **Copas redondas para hayas y robles; conos solo para pinos y abetos** (`copaG` y `conifera` en `mapa3d.js`; 15 de
+  noviembre de 2026). Con la isla de la cascada de referencia del autor, de copas frondosas y redondas, y su «los árboles
+  simplemente son polígonos»: todos los árboles del mapa eran conos de seis caras, también los robles y las hayas de abajo.
+  Ahora los de hoja ancha son una bola algo aplastada, con bultos y la luz de una esfera (80 triángulos; 20 en calidad baja)
+  y un verde más vivo; los conos quedan para lo alto: por encima de 1.350 m, coníferas; de 900 a 1.350, mezclados (cuatro
+  de cada diez, coníferas), como en Irati, que es un hayedo con abetos; y abajo, hoja ancha. Igual en el bosque denso de la
+  comarca elegida. Medido en el mapa: 3.451 árboles, 62.000 triángulos en calidad alta.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora

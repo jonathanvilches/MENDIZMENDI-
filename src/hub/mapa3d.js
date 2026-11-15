@@ -463,6 +463,18 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // (TAM: de cerca, junto a la maqueta de un pueblo, los árboles del mapa menguan hasta irse: son maqueta de comarca, de
   // cientos de metros, y al lado de las casas de verdad parecían montañas)
   const INVEXA = { value: 1 }, TAM = { value: 1 }, arbolG = new THREE.ConeGeometry(0.07, 0.24, 6, 1, true), arboles = []; arbolG.translate(0, 0.12, 0); geos.push(arbolG);
+  // (la copa de los árboles de hoja ancha, hayas, robles y castaños: una bola algo aplastada, con bultos y con la luz de una
+  // esfera, frondosa como las de la isla de referencia del autor; los conos quedan para los pinos y los abetos de lo
+  // alto. Antes todos eran conos, también abajo: «los árboles simplemente son polígonos». 20 triángulos en calidad
+  // baja, 80 en las demás)
+  const copaG = (() => { const g = new THREE.IcosahedronGeometry(0.082, BAJA ? 0 : 1), P = g.attributes.position, nor = [];
+    for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), l = Math.hypot(x, y, z) || 1;
+      const b = 1 + 0.13 * Math.sin(x * 61 + z * 37) * Math.sin(y * 53 - x * 29 + 1.3);   // (los bultos de las matas)
+      P.setXYZ(i, x * b, y * b * 0.86 + 0.125, z * b); nor.push(x / l, y / l, z / l); }
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return g; })(); geos.push(copaG);
+  // (pino o abeto, o de hoja ancha: arriba del todo, coníferas; de 900 a 1.350 m, mezclados; abajo, hoja ancha, como en
+  // Irati, que es un hayedo con abetos)
+  const conifera = (mt, r) => mt > 1350 || (mt > 900 && r < 0.4);
   // (el material de los árboles de una comarca; crece: los del bosque denso de la elegida, que salen con su relieve fino)
   const arbolM = (c, fondo, crece) => { const m = M({ roughness: 0.9 });
     m.onBeforeCompile = (sh) => { Object.assign(sh.uniforms, { uInvExa: INVEXA, uTam: TAM, uFondo: fondo, uHueco: c.top.uniforms.uHueco, uFinoK: c.fk }, orU(c), ORS);
@@ -490,15 +502,19 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         }
       }
       if (!L.length) continue;
-      const fondo = { value: 0 }, m = arbolM(c, fondo, false); c.arbolFondo = fondo;
-      const im = new THREE.InstancedMesh(arbolG, m, L.length); im.raycast = () => {};
-      L.forEach(([X, y, Z, mt], n) => {
-        const sc = 0.75 + azar() * 0.55, alt = mt > 900;   // (en lo alto, pinos y abetos, más oscuros; abajo, robles y hayas, más claros)
-        im.setMatrixAt(n, m4.compose(e3.set(X, y, Z), q.identity(), new THREE.Vector3(sc, sc * (alt ? 1.15 : 0.9), sc)));
-        im.setColorAt(n, col.set(alt ? '#33603a' : '#548640').offsetHSL((azar() - 0.5) * 0.03, 0, (azar() - 0.5) * 0.1));
-      });
-      im.frustumCulled = false; c.mesh.add(im); arboles.push(im);
-      im.geometry = arbolG.clone(); im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(new Float32Array(L.length), 1)); geos.push(im.geometry); c.arboles = { im, L };   // (cada comarca, lo suyo del relieve fino)
+      const fondo = { value: 0 }, m = arbolM(c, fondo, false); c.arbolFondo = fondo; c.arboles = [];
+      const Lc = [], Lh = []; for (const t of L) (conifera(t[3], azar()) ? Lc : Lh).push(t);
+      for (const [G, Ls, alt] of [[arbolG, Lc, true], [copaG, Lh, false]]) {
+        if (!Ls.length) continue;
+        const im = new THREE.InstancedMesh(G.clone(), m, Ls.length); im.raycast = () => {};
+        Ls.forEach(([X, y, Z], n) => {
+          const sc = 0.75 + azar() * 0.55;   // (en lo alto, pinos y abetos, más oscuros; abajo, robles y hayas, más claros)
+          im.setMatrixAt(n, m4.compose(e3.set(X, y, Z), q.identity(), new THREE.Vector3(sc, sc * (alt ? 1.15 : 0.95), sc)));
+          im.setColorAt(n, col.set(alt ? '#33603a' : '#5a8c40').offsetHSL((azar() - 0.5) * (alt ? 0.03 : 0.05), 0, (azar() - 0.5) * 0.12));
+        });
+        im.frustumCulled = false; c.mesh.add(im); arboles.push(im);
+        im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(new Float32Array(Ls.length), 1)); geos.push(im.geometry); c.arboles.push({ im, L: Ls });   // (cada comarca, lo suyo del relieve fino)
+      }
     }
   }
   // (cada comarca, con su copia de los materiales del agua: se apaga con ella cuando pasa al fondo)
@@ -1387,7 +1403,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     }
     // (los ríos y los árboles se pusieron sobre la rejilla gruesa: pasan a la altura de los datos y suben o bajan con el fino)
     if (c.rioG) { const p = c.rioG.attributes.position.array, a = c.rioG.attributes.aFino; for (let v = 0; v < a.count; v++) { const x = p[v * 3], z = p[v * 3 + 2]; a.array[v] = alto(x, z) - sobre(c, x, z) + dh(x, z); } a.needsUpdate = true; }
-    if (c.arboles) { const { im, L } = c.arboles, a = im.geometry.attributes.aFinoI; L.forEach(([X, , Z], n) => { a.array[n] = alto(X, Z) - sobre(c, X, Z) + dh(X, Z); }); a.needsUpdate = true; }
+    for (const { im, L } of c.arboles || []) { const a = im.geometry.attributes.aFinoI; L.forEach(([X, , Z], n) => { a.array[n] = alto(X, Z) - sobre(c, X, Z) + dh(X, Z); }); a.needsUpdate = true; }
     // (el bosque denso: en la elegida, muchos más árboles donde hay bosque, sobre el relieve fino; salen con él)
     if (!c.bosqueFino) {
       let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
@@ -1398,12 +1414,16 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         const k = bqD[j * BOSQ.nx + i] / 255; if (k < 0.3) continue;
         for (let n = Math.floor(k * k * dens + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(c.Pw, X, Z)) L.push([X, Z]); }
       }
-      if (L.length) {
-        const im = new THREE.InstancedMesh(arbolG.clone(), arbolM(c, c.arbolFondo || { value: 0 }, true), L.length), a = new Float32Array(L.length), m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
-        L.forEach(([X, Z], n) => { const mt = alto(X, Z) / EXA, sc = 0.55 + az() * 0.45, hi = mt > 900;
-          im.setMatrixAt(n, m4.compose(e3.set(X, GROSOR + alto(X, Z), Z), q, new THREE.Vector3(sc, sc * (hi ? 1.2 : 0.9), sc))); a[n] = dh(X, Z);
-          im.setColorAt(n, col.set(hi ? '#2f5a36' : '#4f803c').offsetHSL((az() - 0.5) * 0.04, 0, (az() - 0.5) * 0.12)); });
-        im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(a, 1)); im.raycast = () => {}; im.frustumCulled = false; c.mesh.add(im); c.bosqueFino = im; geos.push(im.geometry);
+      const mF = L.length ? arbolM(c, c.arbolFondo || { value: 0 }, true) : null, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
+      const Lc = [], Lh = []; for (const t of L) (conifera(alto(t[0], t[1]) / EXA, az()) ? Lc : Lh).push(t);
+      c.bosqueFino = [];
+      for (const [G, Ls, hi] of [[arbolG, Lc, true], [copaG, Lh, false]]) {
+        if (!Ls.length) continue;
+        const im = new THREE.InstancedMesh(G.clone(), mF, Ls.length), a = new Float32Array(Ls.length);
+        Ls.forEach(([X, Z], n) => { const sc = 0.55 + az() * 0.45;
+          im.setMatrixAt(n, m4.compose(e3.set(X, GROSOR + alto(X, Z), Z), q, new THREE.Vector3(sc, sc * (hi ? 1.2 : 0.95), sc))); a[n] = dh(X, Z);
+          im.setColorAt(n, col.set(hi ? '#2f5a36' : '#558a3e').offsetHSL((az() - 0.5) * (hi ? 0.04 : 0.06), 0, (az() - 0.5) * 0.12)); });
+        im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(a, 1)); im.raycast = () => {}; im.frustumCulled = false; c.mesh.add(im); c.bosqueFino.push(im); geos.push(im.geometry);
       }
     }
     for (const x of T) if (x.c === c) x.dh = dh(x.X, x.Z);
@@ -1421,7 +1441,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       c.fk.value += (want - c.fk.value) * (1 - Math.exp(-dt * (want ? 2.2 : 5)));
       if (!want && c.fk.value < 0.004 && c.fk.value) { c.fk.value = 0; if (c.mesh.geometry !== c.gGrueso) c.mesh.geometry = c.gGrueso; }
       if (!c.gFino && c.finoListo) c.finoListo = false;   // (soltada: se rehace si se vuelve a elegir)
-      if (c.bosqueFino) c.bosqueFino.visible = c.fk.value > 0.01;
+      if (c.bosqueFino) for (const im of c.bosqueFino) im.visible = c.fk.value > 0.01;
     }
   }
 
