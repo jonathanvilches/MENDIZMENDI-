@@ -1331,6 +1331,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       - el tejadillo, verde como las paredes y algo más claro, y su madera más rubia;
       - en el suelo, solo las rayas de falta y pasa, amarillas; en las paredes, una raya fina amarilla a 8,4 m
         (`TRINQ.LINEA`): la pelota que da por encima, en la izquierda o en la derecha, es mala (`game.js`).
+    - Y la final del Torneo de Trinquete, en un trinquete moderno inventado para el juego, el Trinquete Herrizherri
+      (`TRINQ_FINAL` en `torneo.js`; `TRINQ_MODERNO` en `fronton.js`; `moderno` y `TQ_GRADA` en `court.js`). Sale de las
+      dos fotos que mandó el autor después de las de Elizondo, sin texto: un trinquete azul con la pared derecha de
+      cristal y la grada detrás, y el Trinquet Moderne de Baiona. Se le preguntó qué hacer con ellas y dijo «seguimos»:
+      se hizo lo recomendado, dejar Elizondo como sus fotos y añadir uno moderno. Como el azul: todas las paredes azules,
+      la raya blanca a 8,4 m, el suelo gris oscuro con falta y pasa en blanco y la chapa de abajo en azul hondo; la pared
+      derecha, de cristal hasta el techo, de una sola cara, con montantes de acero en cada raya y la raya blanca; detrás,
+      un pasillo de 1,6 m, donde cabe la cámara del saque, y la grada de siete filas con su banco y su público; a la
+      izquierda, sin balcón, la pared azul hasta el techo y la galería oscura por dentro, con postes de acero. El juego
+      es el de siempre: el cristal es pared. No está en el catálogo de frontones de verdad ni en «Frontones». Cuartos en
+      Elizondo, semifinales en Lekunberri y la final, ahí. 76 llamadas de dibujo y 443.000 triángulos en el partido.
   - Los de pared izquierda, como los de siempre: cubiertos con la arquitectura de su foto si es uno de los modelos
     (Isaba, Ziordia, Irañeta, Igantzi, Peralta, el Navarra Arena) o la de su comarca; al aire libre, en su plaza. El
     Labrit es el Labrit. En el partido se dice su nombre de verdad.

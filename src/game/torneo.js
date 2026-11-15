@@ -78,13 +78,19 @@ export const KINDS = {
   // (el del trinquete, el 15 de noviembre de 2026: el autor, «no te olvides del trinquete». Se jugaba solo como partido
   // libre en «Frontones»; ahora tiene su torneo, de toda Navarra, en los dos trinquetes de verdad del juego: trinqueteDe)
   trinquete: { name: 'Torneo de Trinquete', full: 'Torneo de Trinquete', k: 'Cuatro paredes · 8', base: 'mano', fmt: 'ko8', lv: 0.2, global: true, trinquete: true,
-    como: { es: 'ocho pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Cuartos en el trinquete de Elizondo, semifinales en el de Lekunberri y la final, a 7 tantos, otra vez en Elizondo.', eu: 'zortzi pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-laurdenak Elizondoko trinketean, finalerdiak Lekunberrikoan eta finala, 7 tantora, berriro Elizondon.' } },
+    como: { es: 'ocho pelotaris mano a mano en trinquete, la cancha cerrada por cuatro paredes: la de la derecha también vale. A la izquierda, la red y el tejadillo: a la red es falta y la que cae al tejadillo rueda y sigue viva. Cuartos en el trinquete de Elizondo, semifinales en el de Lekunberri y la final, a 7 tantos, en el Trinquete Herrizherri, uno moderno, con la pared derecha de cristal y la grada detrás.', eu: 'zortzi pilotari buruz buru trinketean, lau paretak itxitako kantxan: eskuinekoak ere balio du. Ezkerrean, sarea eta teilatua: sarera falta da, eta teilatura erortzen dena jiraka doa eta bizirik jarraitzen du. Final-laurdenak Elizondoko trinketean, finalerdiak Lekunberrikoan eta finala, 7 tantora, Herrizherri trinketean: trinkete berri bat, eskuineko horma kristalezkoa eta atzean harmailak.' } },
 };
 /** Los campeonatos inventados, en el orden del menú (el acontecimiento del año, el primero) */
 export const EXTRA = ['gran', 'comarcas', 'fiestas', 'valles', 'invierno', 'promesas', 'trinquete'];
+/** La final del Torneo de Trinquete, desde el 15 de noviembre de 2026: un trinquete moderno, inventado para el juego, como
+ *  los de las dos fotos que pasó el autor después de las del de Elizondo: las paredes azules con sus rayas blancas, la
+ *  pared derecha de cristal con la grada detrás y la galería oscura bajo el tejadillo. No está en el catálogo de los
+ *  frontones de verdad (data/frontones.js) ni en «Frontones»: solo es la sede de la final */
+export const TRINQ_FINAL = { id: 'herrizherri-trinquete', nombre: 'Trinquete Herrizherri', lugar: 'Navarra', comarca: 'pamplona', tipo: 'trinquete', cubierto: true, moderno: true };
 /** El trinquete de cada ronda del Torneo de Trinquete: los dos de verdad del juego (data/frontones.js), el de Elizondo
- *  para los cuartos y la final y el de Lekunberri para las semifinales. El de Sangüesa es del siglo XVI y ya no existe */
-export const trinqueteDe = (T, m) => DESTACADOS.find(f => f.id === (/^Semi/.test(m?.round || '') ? 'lekunberri' : 'elizondo-trinquete'));
+ *  para los cuartos y el de Lekunberri para las semifinales, y la final en el moderno, TRINQ_FINAL. El de Sangüesa es del
+ *  siglo XVI y ya no existe */
+export const trinqueteDe = (T, m) => m?.round === 'Final' ? TRINQ_FINAL : DESTACADOS.find(f => f.id === (/^Semi/.test(m?.round || '') ? 'lekunberri' : 'elizondo-trinquete'));
 const save = (T) => { try { const all = loadAll(); all[keyOf(T.comarca, T.kind)] = T; localStorage.setItem(KEY, JSON.stringify(all)); } catch (e) { /* sin guardado */ } };
 /** Las cualidades de cada uno de una pareja (i = 0 el delantero, 1 el zaguero). */
 export const mateStats = (p, i) => (p.mst ||= [])[i]?.style ? p.mst[i] : (p.mst[i] = pelotariStats(`${p.mates[i]} ${p.town}`, p.lv || 2));
@@ -910,7 +916,7 @@ export function torneoPanel(T, here = null, o = null) {
       etiqueta = m.liga ? `Jornada ${planOf(T)[T.round].liga + 1} de ${planOf(T).filter(R => R.liga != null).length}` : m.round;
       left = `<div class="tq-duel">${youCard(120)}<div class="tq-mid"><b>VS</b><small class="tq-a">A ${tantosDe(m.target)} tantos</small></div>${pelotariCard({ name: pairs ? rv.mates[0] : rv.name, town: rv.town, side: col.rival, role: pairs ? 'Del' : 'Mano', w: 120, bonus: rivalBonus(rv), stats: rvStats, tag: 'button', attr: 'data-f="rival" aria-label="Ficha del rival"', d: 0.08, pop: true, lang })}</div>
 `;
-      sede = tq ? `<span class="tq-where">${esc(tq.nombre.replace(/ de .*/, ''))} de <b>${esc(tq.lugar.split(',')[0])}</b></span>` : o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
+      sede = tq ? (tq.moderno ? `<span class="tq-where">Trinquete <b>Herrizherri</b></span>` : `<span class="tq-where">${esc(tq.nombre.replace(/ de .*/, ''))} de <b>${esc(tq.lugar.split(',')[0])}</b></span>`) : o?.sedes?.length ? sedeHtml(o, here) : here ? `<span class="tq-where">Frontón de <b>${esc(here)}</b></span>` : '';
     } else left = `<div class="tq-banner"><div class="tq-bt"><small>Eliminado</small><b>El torneo sigue</b><p>Mira quién se lleva la txapela.</p></div></div>`;
     // (con liguilla, dos pestañas: la clasificación y el cuadro de las eliminatorias; se abre la de la ronda que toca)
     const v0 = T.groups && !T.done && planOf(T)[T.round]?.liga != null ? 'liga' : 'cuadro';
