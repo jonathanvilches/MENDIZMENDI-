@@ -2241,6 +2241,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     volvía la rampa verde lisa que el autor no quiso el 14 de noviembre; los montes fantasma venían del relieve fino.
   - Medido con el contorno de las 12: crecen entre un 11 % (Ribera Alta) y un 54 % (Pirineo). Con la isla del Pirineo en
     el aire, su losa densa tiene 92.000 triángulos y los árboles del mapa con su bosque denso, 191.000.
+- **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
+  `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
+  está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la
+  nuestra era la panza, casi toda tierra parda.
+  - Una foto de musgo en cojines con helechos pequeños, generada con Higgsfield con la cuenta del autor, repetible, con
+    sus normales y en dos escalas mezcladas para que no se repita.
+  - El musgo baja más, hasta algo más de una quinta parte de lo hondo de la panza, en lenguas con hebras que cuelgan en
+    las puntas, a matas con la tierra asomando entre ellas, y en manchas en las repisas que miran arriba. La roca de
+    justo debajo, a su sombra. En el sur seco, la Ribera, menos.
+  - Para que siga leyéndose dónde acaba la tierra, lo que se quiso el 14 de noviembre: el musgo es más oscuro que el
+    césped del labio, y en muchos sitios queda debajo del labio una franja de tierra a la sombra.
+  - Las paredes del hueco llevan la misma foto de musgo.
 - **Los caseríos** (`mapa3dCaserios.js`, `hazCaserios`; 14 de noviembre de 2026): «los pueblos tienen que estar muy bien
   integrados dentro del mapa». A la distancia de una comarca, un pueblo era solo su ficha con foto flotando encima: a su
   tamaño de verdad mide dos o tres píxeles, y sus casas reales no se levantan hasta estar muy cerca (los núcleos). Ahora

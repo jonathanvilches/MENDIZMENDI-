@@ -22,6 +22,10 @@ import ESTRATOS_N from '../assets/isla/estratos-n.webp?url';
 import COLGANTE_T from '../assets/isla/colgante.webp?url';
 import TIERRA_T from '../assets/isla/tierra.webp?url';
 import HIERBA_T from '../assets/isla/hierba.webp?url';
+// (el musgo de la panza, desde el 15 de noviembre de 2026: cojines de musgo con helechos pequeños, generado con Higgsfield con
+// la cuenta del autor a partir de su tercera referencia, una isla con la roca cubierta de musgo; tools/islas/musgo.py)
+import MUSGO_T from '../assets/isla/musgo.webp?url';
+import MUSGO_N from '../assets/isla/musgo-n.webp?url';
 
 const rnd = (s) => () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
 const lerp = (a, b, k) => a + (b - a) * k;
@@ -40,8 +44,9 @@ export function texturasIsla(aniso = 4) {
   const L = new THREE.TextureLoader(), t = (u, rep, color = true) => { const x = L.load(u); x.colorSpace = color ? THREE.SRGBColorSpace : THREE.NoColorSpace; x.wrapS = THREE.RepeatWrapping; x.wrapT = rep ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping; x.anisotropy = aniso; return x; };
   const caliza = t(CALIZA_T, true), calizaN = t(CALIZA_N, true, false), estratos = t(ESTRATOS_T, true), estratosN = t(ESTRATOS_N, true, false);
   const colgante = t(COLGANTE_T, false), tierra = t(TIERRA_T, false), hierba = t(HIERBA_T, true);   // (las tiras, repetidas solo a lo largo del borde)
-  const todas = [caliza, calizaN, estratos, estratosN, colgante, tierra, hierba];
-  return { caliza, calizaN, estratos, estratosN, colgante, tierra, hierba, dispose() { for (const x of todas) x.dispose(); } };
+  const musgo = t(MUSGO_T, true), musgoN = t(MUSGO_N, true, false);
+  const todas = [caliza, calizaN, estratos, estratosN, colgante, tierra, hierba, musgo, musgoN];
+  return { caliza, calizaN, estratos, estratosN, colgante, tierra, hierba, musgo, musgoN, dispose() { for (const x of todas) x.dispose(); } };
 }
 
 // (la roca con luz de verdad: el color de la foto, su relieve con el mapa de normales y la luz de la isla, un sol de lado y
@@ -58,11 +63,12 @@ void main() { vUv = uv; vCol = color; vec3 p0 = position;
   vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
-const ROCA_FS = `uniform sampler2D uMap, uNor; uniform vec3 uLuz, uCieloC, uSueloC, uTinte, uMusgoC; uniform float uSol, uAmb, uNorK, uVar, uNiebla, uMusgo, uEscT;
+const ROCA_FS = `uniform sampler2D uMap, uNor, uMusgoT, uMusgoN; uniform vec3 uLuz, uCieloC, uSueloC, uTinte, uMusgoC; uniform float uSol, uAmb, uNorK, uVar, uNiebla, uMusgo, uEscT, uMusgoTK;
 varying vec2 vUv; varying vec3 vCol, vW, vN;
 #include <fog_pars_fragment>
 float h1(float p) { return fract(sin(p * 127.1) * 43758.5453); }
 float n1(float x) { float i = floor(x), f = fract(x); f = f * f * (3.0 - 2.0 * f); return mix(h1(i), h1(i + 1.0), f); }
+float n2(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float a = h1(i.x + i.y * 57.0), b = h1(i.x + 1.0 + i.y * 57.0), c = h1(i.x + (i.y + 1.0) * 57.0), d = h1(i.x + 1.0 + (i.y + 1.0) * 57.0); return mix(mix(a, b, f.x), mix(c, d, f.x), f.y); }
 vec3 relieve(vec3 n, vec3 p, vec2 uv, vec3 tn) {
   vec3 q0 = dFdx(p), q1 = dFdy(p); vec2 st0 = dFdx(uv), st1 = dFdy(uv);
   vec3 a = cross(q1, n), b = cross(n, q0), T = a * st0.x + b * st1.x, B = a * st0.y + b * st1.y;
@@ -78,17 +84,33 @@ void main() {
     float h00 = fract(sin(dot(i, vec2(127.1, 311.7))) * 43758.5), h10 = fract(sin(dot(i + vec2(1, 0), vec2(127.1, 311.7))) * 43758.5), h01 = fract(sin(dot(i + vec2(0, 1), vec2(127.1, 311.7))) * 43758.5), h11 = fract(sin(dot(i + vec2(1, 1), vec2(127.1, 311.7))) * 43758.5);
     float m = smoothstep(0.3, 0.7, mix(mix(h00, h10, f.x), mix(h01, h11, f.x), f.y)) * uVar; vec2 uv2 = tuv * vec2(0.61, 0.53) + vec2(0.37, 0.71);
     alb = mix(alb, texture2D(uMap, uv2).rgb, m); tn = mix(tn, texture2D(uNor, uv2).xyz * 2.0 - 1.0, m); }
+  // (el musgo: el césped de arriba no acaba en una raya, baja por la roca en lenguas desiguales y mechones que cuelgan,
+  // como en las islas de la referencia del autor; uMusgo, hasta dónde baja como mucho, en unidades del mapa. vUv va en
+  // partes de 2,4 unidades: x, a lo largo del borde; y, lo hondo. Desde el 15 de noviembre de 2026, con la tercera
+  // referencia, una isla con la roca cubierta de musgo: más largo, con hebras que cuelgan en las puntas, manchas en las
+  // repisas que miran arriba y la foto de musgo en cojines (uMusgoT), más oscuro que el césped del labio y, en muchos
+  // sitios, con una franja de tierra a la sombra justo debajo de él: así sigue leyéndose dónde acaba la tierra)
+  float m = 0.0, som = 0.0; vec3 mt = vec3(0.0);
+  if (uMusgo > 0.0) { float x = vUv.x * 2.4, dep = vUv.y * 2.4;
+    float lim = uMusgo * (0.22 + 0.55 * n1(x * 1.1 + 7.0) + 0.5 * pow(n1(x * 4.3 + 2.0), 3.0) + 0.25 * pow(n1(x * 13.0), 4.0));
+    float heb = n1(x * 47.0 + 3.0), lim2 = lim * (1.0 + 0.32 * pow(heb, 4.0));
+    m = 1.0 - smoothstep(lim * 0.8, lim, dep);
+    m = max(m, (1.0 - smoothstep(lim * 0.9, lim2, dep)) * smoothstep(0.45, 0.75, heb));
+    m *= max(smoothstep(0.06, 0.3, dep), smoothstep(0.55, 0.75, n1(x * 1.7 + 3.0)));
+    // (a matas, con la roca asomando entre ellas, sobre todo hacia abajo: si no, era un faldón verde seguido)
+    float mata = n2(vec2(x * 1.9, dep * 1.6)) * 0.55 + n2(vec2(x * 5.3 + 1.7, dep * 4.2)) * 0.45;
+    m *= mix(1.0, smoothstep(0.32, 0.52, mata), smoothstep(0.15, 0.6, dep / max(lim, 0.01)));
+    m = max(m, 0.7 * smoothstep(0.72, 0.9, n1(x * 2.2 + dep * 1.7) * n1(dep * 2.9 - x * 0.7 + 5.0) * 1.6) * (1.0 - smoothstep(uMusgo * 0.9, uMusgo * 1.8, dep)));
+    m = max(m, smoothstep(0.15, 0.55, n.y) * smoothstep(0.35, 0.6, n1(x * 3.1 + dep * 2.3 + 9.0)) * (1.0 - smoothstep(uMusgo * 1.2, uMusgo * 2.2, dep)));
+    som = smoothstep(lim * 0.97, lim * 1.05, dep) * (1.0 - smoothstep(lim * 1.05, lim * 1.4, dep));   // (la roca, a la sombra del musgo que asoma)
+    if (uMusgoTK > 0.0) { vec2 mu = vUv * 2.6, mu2 = mu * 0.57 + vec2(0.31, 0.77); float mv = smoothstep(0.35, 0.65, n1(x * 0.7 + 1.3) * 0.5 + n1(dep * 0.9 + 4.0) * 0.5);
+      mt = mix(texture2D(uMusgoT, mu).rgb, texture2D(uMusgoT, mu2).rgb, mv);
+      tn = mix(tn, mix(texture2D(uMusgoN, mu).xyz, texture2D(uMusgoN, mu2).xyz, mv) * 2.0 - 1.0, m * uMusgoTK); } }
   tn.xy *= uNorK; n = relieve(n, vW, tuv, tn);
   float lt = dot(alb, vec3(0.3, 0.59, 0.11));
   alb *= vCol * uTinte;
-  // (el musgo: el césped de arriba no acaba en una raya, baja por la roca en lenguas desiguales y mechones que cuelgan,
-  // como en las islas de la referencia del autor; uMusgo, hasta dónde baja como mucho, en unidades del mapa. vUv va en
-  // partes de 2,4 unidades: x, a lo largo del borde; y, lo hondo)
-  if (uMusgo > 0.0) { float x = vUv.x * 2.4, dep = vUv.y * 2.4;
-    float lim = uMusgo * (0.22 + 0.55 * n1(x * 1.1 + 7.0) + 0.5 * pow(n1(x * 4.3 + 2.0), 3.0) + 0.25 * pow(n1(x * 13.0), 4.0));
-    float m = 1.0 - smoothstep(lim * 0.82, lim, dep);
-    m = max(m, 0.55 * smoothstep(0.72, 0.9, n1(x * 2.2 + dep * 1.7) * n1(dep * 2.9 - x * 0.7 + 5.0) * 1.6) * (1.0 - smoothstep(uMusgo * 0.8, uMusgo * 1.6, dep)));
-    alb = mix(alb, uMusgoC * (0.55 + 1.6 * lt), m * 0.95); }
+  // (el musgo, más oscuro que el césped del labio, y más en sus huecos)
+  if (uMusgo > 0.0) { vec3 mc = mix(uMusgoC * (0.55 + 1.6 * lt), mt * (0.5 + 0.35 * smoothstep(0.0, 0.35, dot(mt, vec3(0.3, 0.59, 0.11)))), uMusgoTK); alb = mix(alb * (1.0 - 0.35 * som), mc, m * 0.96); }
   vec3 luz = mix(uSueloC, uCieloC, n.y * 0.5 + 0.5) * uAmb + vec3(1.0, 0.95, 0.86) * max(0.0, dot(n, uLuz)) * uSol;
   gl_FragColor = linearToOutputTexel(vec4(alb * luz, 1.0));
   // (la niebla, como la de three, pero con uNiebla: las paredes del hueco, que están más hondas que el suelo de alrededor,
@@ -100,10 +122,12 @@ void main() {
 function materialRoca(map, nor, { tinte = '#ffffff', sol = 1.1, amb = 0.75, cielo = '#d4e2f2', suelo = '#8a7660', norK = 1, fog = true, extra = {} } = {}) {
   return new THREE.ShaderMaterial({ vertexColors: true, side: THREE.DoubleSide, fog, ...extra,
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uMap: { value: null }, uNor: { value: null }, uLuz: { value: LUZ.clone() }, uCieloC: { value: C(cielo) }, uSueloC: { value: C(suelo) },
-      uTinte: { value: C(tinte) }, uSol: { value: sol }, uAmb: { value: amb }, uNorK: { value: norK }, uVar: { value: 0 }, uNiebla: { value: 1 }, uMusgo: { value: 0 }, uMusgoC: { value: C('#4a8a2c') }, uEscT: { value: 1 }, uTopeK: { value: 0 }, uTopeI: { value: 0 }, uTopeD: { value: 1 } }]),
+      uTinte: { value: C(tinte) }, uSol: { value: sol }, uAmb: { value: amb }, uNorK: { value: norK }, uVar: { value: 0 }, uNiebla: { value: 1 }, uMusgo: { value: 0 }, uMusgoC: { value: C('#4a8a2c') }, uMusgoT: { value: null }, uMusgoN: { value: null }, uMusgoTK: { value: 0 }, uEscT: { value: 1 }, uTopeK: { value: 0 }, uTopeI: { value: 0 }, uTopeD: { value: 1 } }]),
     vertexShader: ROCA_VS, fragmentShader: ROCA_FS });
 }
 const conTex = (m, map, nor) => { m.uniforms.uMap.value = map; m.uniforms.uNor.value = nor; return m; };
+const conMusgo = (m, tex) => { if (tex.musgo) { m.uniforms.uMusgoT.value = tex.musgo; m.uniforms.uMusgoN.value = tex.musgoN; m.uniforms.uMusgoTK.value = 1; } return m; };
+const ss0 = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
 /** El contorno, con N puntos repartidos por igual a lo largo del borde. */
 function reparte(P, N) {
@@ -197,7 +221,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   return { pos, g }; };
   const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro), MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g;
   // (roca cálida, ocre y parda, como la de las islas de referencia)
-  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(1.05, Math.max(0.32, D * 0.1)); mats.push(rocaM);   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
+  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(2.4, Math.max(0.7, D * 0.22)) * (0.4 + 0.6 * (1 - ss0(4, 28, cz))); conMusgo(rocaM, tex); mats.push(rocaM);   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
   const grupo = new THREE.Group(); grupo.name = 'isla-' + id; grupo.visible = false; scene.add(grupo);
   grupo.add(new THREE.Mesh(g, rocaM));
   // (la misma panza, dentro del hueco: mientras la isla sale de él, se ve por la boca delante de las paredes)
@@ -417,7 +441,7 @@ void main() {
       if (f < 0.05) c2.copy(SUELO); else c2.copy(ARRIBA).lerp(ABAJO, Math.min(1, (f - 0.05) / 0.85) ** 0.75);
       c2.multiplyScalar(0.9 + R() * 0.12); cc.push(c2.r, c2.g, c2.b); }
     const gp = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv']) gp.setAttribute(k, gH.attributes[k]); gp.setAttribute('color', new THREE.Float32BufferAttribute(cc, 3)); gp.setIndex(gH.index); geos.push(gp);
-    const pm = conTex(materialRoca(null, null, { sol: 0.6, amb: 0.8, cielo: '#b6c4d2', suelo: '#4a3c30', norK: 1.5, extra: { transparent: true, ...PLANT } }), tex.estratos, tex.estratosN); pm.uniforms.uNiebla.value = 0.5; pm.uniforms.uMusgo.value = Math.min(3.2, Math.max(0.9, D * 0.5)); pm.uniforms.uMusgoC.value = C('#4a8a2c');   // (el hueco, como una hondonada: hierba por casi toda la pared y roca solo abajo, junto al lago) mats.push(pm);
+    const pm = conTex(materialRoca(null, null, { sol: 0.6, amb: 0.8, cielo: '#b6c4d2', suelo: '#4a3c30', norK: 1.5, extra: { transparent: true, ...PLANT } }), tex.estratos, tex.estratosN); pm.uniforms.uNiebla.value = 0.5; pm.uniforms.uMusgo.value = Math.min(3.2, Math.max(0.9, D * 0.5)); pm.uniforms.uMusgoC.value = C('#4a8a2c'); conMusgo(pm, tex);   // (el hueco, como una hondonada: hierba por casi toda la pared y roca solo abajo, junto al lago) mats.push(pm);
     const pared = new THREE.Mesh(gp, pm); pared.renderOrder = -0.8; molde.add(pared); }
   // (por dónde baja el agua por la pared del molde, en el punto i del borde: el anillo a esa hondura, algo hacia dentro)
   const porPared = (i, yl) => { for (let k = 0; k + 1 < ANI.length; k++) { const a = (k * N1 + i) * 3, b = ((k + 1) * N1 + i) * 3, ya = posH[a + 1], yb = posH[b + 1];
