@@ -1371,14 +1371,32 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         con la derecha; y los comentaristas no dicen las frases que hablan de la mano o de jugar a mano
         (`Comentarios.sinMano`, por el texto de cada frase del guion).
       - El agarre (el autor: «el agarre de la mano no está bien»; la herramienta colgaba del dorso de la mano abierta).
-        Los pelotaris de Meshy no tienen huesos en los dedos: el puño se hace doblando la malla, con un objetivo de forma,
-        `puno` (`agarreDe` en `glbChar.js`), hecho una vez al cargar el pelotari y antes de copiarlo. Los puntos de los
-        dedos, de los nudillos (al 46 % del largo de la mano) a la punta, se enrollan en un arco hacia la palma de radio
-        1,6 veces el medio grosor de la palma (unos 4,7 cm: el hueco, 1,75 cm, es el del mango), unos 165°. Con
-        herramienta, `cierraMano(1)`; a mano, abierta. La herramienta va con el mango por el hueco del puño, en el centro
-        de los dedos y no de toda la mano, el final del mango asomando por el lado del meñique y la pala o el aro saliendo
-        por el del pulgar, con su cara paralela a la palma (`ponHerramienta`). Sin coste de llamadas; unos 0,8 MB más por
-        modelo de pelotari en la tarjeta gráfica.
+        Al principio se hizo doblando la malla con un objetivo de forma y desde la cámara del juego no se notaba (el autor:
+        «las manos no cierran, no agarran ... las falanges no se doblan»). Ahora son dedos de verdad (`actors/dedos.js`):
+        - Los personajes de Meshy traen la mano entera en un solo hueso, aunque la malla tiene los cinco dedos. Al cargar
+          cada modelo, una vez y antes de copiarlo (`loadMeshy`; también en la versión ligera de los vecinos, que es la que
+          llevan siempre, pero no en la de las multitudes de la grada y el campo), se buscan en la
+          malla el pulgar y los cuatro dedos y a cada uno se le ponen tres huesos, hijos del de la mano: 15 por mano.
+        - Cómo se encuentran: la distancia por la superficie desde la muñeca crece hasta cada punta; bajando desde las
+          puntas, cada dedo es un trozo aparte hasta su pliegue con el de al lado. El pulgar, el que se junta más abajo. Los
+          dedos que se tocan, como el corazón y el anular del pelotari con sus cintas, se separan tarde: de la altura del
+          pliegue más hondo para arriba, cada punto va al dedo cuyo eje le queda más cerca. En manos con los dedos juntos,
+          como una manopla, o de pocos puntos, como las de los vecinos ligeros, los cuatro dedos son cuatro tiras a lo
+          ancho. Las piezas sueltas, como las cintas, enteras a una
+          sola falange, para que no se partan en picos.
+        - Los pesos: lo que cada punto tenía en la mano se reparte entre la mano y sus falanges, con un paso suave en cada
+          articulación. Los huesos nuevos empiezan sin giro, así que en reposo la malla queda igual que antes.
+        - Las posturas (`poses`): `relajada` (la de siempre), `carrera` (a medio cerrar, corriendo), `puno`, `mango` (los
+          dedos rodean un cilindro de 1,65 cm de radio: cada falange tangente por su mitad, el pulgar cerrado encima del
+          índice y el corazón), `pelota` (la del saque, apoyada en la palma y recogida por los dedos) y `abierta` (al
+          golpear a mano). `GlbChar.mano(lado, postura)` y, cada imagen, `Dedos.update` las alcanza poco a poco.
+        - Lo pide el juego: con herramienta, la derecha en `mango` (`cierraMano`); la mano que lleva la pelota del saque,
+          en `pelota`; la que golpea, abierta en el golpe (`armSwing`). La herramienta va con el mango por el hueco del
+          puño (`agarre`: el centro de los círculos de los cuatro dedos y el eje del mango, hacia el pulgar), el final del
+          mango asomando por el lado del meñique. La palma ya medida al ponerlos se guarda en el hueso (`palma`), para
+          dejar la pelota en ella (`palmaDe`).
+        - Coste: unos 100 ms al cargar el pelotari y entre 10 y 50 ms cada vecino, en el ordenador de pruebas; en cada
+          imagen, solo mientras una mano cambia de postura. Sin llamadas de dibujo de más.
     - El trinquete, un campeonato más (el autor: «tiene que ser un campeonato más, como el manomanista y el 4,5»): ya no
       es el «Torneo de Trinquete» de ocho para toda Navarra, al final de los inventados, sino el Campeonato de Trinquete
       de cada comarca, como el Manomanista, el de Parejas y el del Cuatro y Medio (`KINDS.trinquete`, fuera de `EXTRA`).

@@ -18,7 +18,7 @@ export const HERR_ORDEN = ['mano', 'pala', 'paleta', 'xare'];
 export const ALCANCE = { pala: 0.28, paleta: 0.27, xare: 0.29 };
 export const herrValida = (k) => (HERRAMIENTAS[k] ? k : 'mano');
 
-// (el giro de la herramienta en la mano, para los personajes sin puño (agarreDe): el mango cruzado y la pala hacia donde
+// (el giro de la herramienta en la mano, para los personajes sin dedos (dedos.js): el mango cruzado y la pala hacia donde
 // apuntan los dedos; el hueso de la mano derecha apunta con su eje Y hacia los dedos; DEV: window.__herrRot)
 const GIRO = [0, 0, Math.PI / 2], DESPLAZA = [0, 0.06, 0.02];
 // (dónde acaba el mango de cada una, en metros desde el arranque de la pala o del aro: ese extremo asoma un poco por el lado
