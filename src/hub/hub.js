@@ -61,7 +61,7 @@ const MOVIL_JUSTO = TACTIL && !(navigator.deviceMemory >= 6);
 import { DIDACTICO, LM_ICON } from './didactico.js';
 import { FRONTONES } from './frontones.js';
 import './fichas.css';
-import { inicioHTML, inicioOn, cierraMapa, modoColeccion } from './inicio.js';
+import { inicioHTML, inicioOn, cierraMapa, modoColeccion, enMapa } from './inicio.js';
 import { COLECCIONES_MAPA } from './coleccionMapa.js';
 import { galeria } from './galeria.js';
 import './consola.css';
@@ -275,6 +275,7 @@ export class Hub {
     if (screen === 'map') screen = 'home';   // (el mapa es el inicio, debajo de todo: en el didáctico también)
     if (screen?.includes(':')) [screen, arg] = screen.split(':');   // («comarca:pirineo»: la pantalla y lo que abre)
     this.screen = screen; this.arg = arg;
+    if (screen === 'home' && arg && COMARCAS.some(c => c.id === arg)) enMapa(arg);   // (el mapa con esa comarca levantada: al salir de uno de sus pueblos)
     if (this.root.dataset.col) { delete this.root.dataset.col; modoColeccion(null); }   // (la colección que había en el mapa, fuera)
     if (!silent) this.sound?.ui('click');
     this.sheet?.remove(); this.sheet = null;

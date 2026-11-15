@@ -1019,6 +1019,14 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     const b = cv.getBoundingClientRect(), k = b.width / (sz.w || 1) || 1, mx = (e.clientX - b.left) / k, my = (e.clientY - b.top) / k;
     let best = null, bd = (e.pointerType === 'mouse' ? 22 : 30) * Math.max(1, medG * 0.8);   // (los medallones grandes, con una comarca elegida, se tocan en todo su disco)
     for (const t of T) {
+      // (en la isla, el punto de cada pueblo se toca con un margen generoso alrededor, de un dedo: la chincheta de debajo es
+      // diminuta a esa distancia y antes no se podía elegir)
+      if (t._mini && t.lab._on && t.lab._x != null && sel === t.comarca) {
+        const dy = t.lab.classList.contains('abajo') ? t.lab._y - t.lab._h : t.lab._y, dd = Math.hypot(mx - t.lab._x, my - dy) * 0.8;
+        if (dd < Math.max(bd, e.pointerType === 'mouse' ? 26 : 38)) { bd = dd; best = t; }
+        if (Math.abs(mx - t.lab._x) < t.lab._w / 2 + 6 && my < t.lab._y + 6 && my > t.lab._y - t.lab._h - 6) { best = t; bd = 0; }
+        continue;
+      }
       if (t.g.scale.x < 0.3 || (sel ? t.comarca !== sel : v.d > PUEBLO_D)) continue;
       t.bola.getWorldPosition(bw).project(cam); if (bw.z > 1) continue;
       const px = (bw.x + 1) / 2 * sz.w, py = (1 - bw.y) / 2 * sz.h, dd = Math.hypot(px - mx, py - my);
@@ -1132,7 +1140,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // escribe ni con una ficha abierta encima
   const keys = new Set();
   const MOV = { w: 'f', arrowup: 'f', s: 'b', arrowdown: 'b', a: 'l', arrowleft: 'l', d: 'r', arrowright: 'r', q: 'ql', e: 'qr', '+': 'in', '=': 'in', '-': 'out', r: 'pu', f: 'pd', pageup: 'pu', pagedown: 'pd' };
-  const kd = (e) => { if (e.key === 'Escape' && visible && !document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) { if (saltaIntro()) return; if (elegido) select(sel); else if (sel) vista(); return; }
+  const kd = (e) => { if (e.key === 'Escape' && visible && !document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) { if (saltaIntro()) return; if (elegido || sel) atras(); return; }
     const k = MOV[e.key.toLowerCase()];
     // (en la entrada grande, las flechas, el espacio y la tecla de entrar la pasan deprisa)
     if (!(k || e.key === ' ' || e.key === 'Enter') || e.ctrlKey || e.metaKey || e.altKey || !visible || document.hidden || e.target.closest?.('input,textarea,select,[contenteditable="true"]') || document.querySelector('.sheet, .onb, [role="dialog"]:not([hidden])')) return;
@@ -1161,7 +1169,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     ['pd', 'Ver más de lado', `<path ${L} d="M7.5 7h9l4.5 12H3z"/><path ${L} d="M10.2 7 9 19M13.8 7l1.2 12"/>`], ['pu', 'Ver desde arriba', `<path ${L} d="M5 11h14v9H5z"/><path ${L} d="M12 2.5v6M9.6 6.2 12 8.6l2.4-2.4"/>`]];
   pad2.innerHTML = B2.map(([k, t, d]) => `<button type="button" class="m3-b b-${k}" data-k="${k}" aria-label="${t}" title="${t}"><svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg></button>`).join('');
   host.append(pad2);
-  const pulsa = (e) => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); usado(); vuelo = null; if (b.dataset.k === 'home') { vista(); return; } keys.add(b.dataset.k); try { b.setPointerCapture(e.pointerId); } catch (x) { } const fin = () => { keys.delete(b.dataset.k); b.removeEventListener('pointerup', fin); b.removeEventListener('pointercancel', fin); }; b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); };
+  const pulsa = (e) => { const b = e.target.closest('[data-k]'); if (!b) return; e.preventDefault(); usado(); vuelo = null; if (b.dataset.k === 'home') { atras(); return; } keys.add(b.dataset.k); try { b.setPointerCapture(e.pointerId); } catch (x) { } const fin = () => { keys.delete(b.dataset.k); b.removeEventListener('pointerup', fin); b.removeEventListener('pointercancel', fin); }; b.addEventListener('pointerup', fin); b.addEventListener('pointercancel', fin); };
   pad.addEventListener('pointerdown', pulsa); pad2.addEventListener('pointerdown', pulsa);
 
   // (un pueblo: si su comarca no estaba elegida, primero la comarca entera; si ya lo estaba, o desde el buscador, de cerca,
@@ -1277,6 +1285,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   function cierraPueblo() { dron = null; if (!elegido) return; elegido = null; o.onTown?.(null); }
   // (toda Navarra, desde arriba)
   function vista() { select(null); volar(casa(), 1.1); }
+  // (la casa y Escape, un paso atrás: del pueblo a su comarca y de la comarca a toda Navarra; el autor, 15 de noviembre de
+  // 2026: «el paso es mapa de Navarra, comarca, pueblo y para atrás comarca, mapa de Navarra»)
+  function atras() { if (elegido && sel) select(sel); else vista(); }
 
   // ---------- el paseo de dron por Navarra ----------
   // En el inicio, con el mapa quieto unos segundos y nada elegido, la cámara baja, se acerca y recorre Navarra despacio de
@@ -2190,9 +2201,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (COL) for (const it of COL.items) { const x = it.t, c = it.c;
       if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);
       else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
-    for (const x of T) { const on = !COL && sinNombres?.id !== x.comarca && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
-      const ya = elegido === x, sh = hover === 't:' + x.id, mini = lejosIsla && sel === x.comarca && !ya;
-      if (mini !== !!x._mini) { x._mini = mini; x.lab.classList.toggle('mini', mini); x.lab._w = 0; x.lab._sp = mini ? [8, 8] : [32, 40]; }   // (otro tamaño: se vuelve a medir) if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
+    // (el 15 de noviembre de 2026, por la noche, el autor: «cuando sale la comarca hacia arriba, la animación, tiene que haber
+    // un punto que indique dónde está cada pueblo, minimalista, muy fácil de acceder, pero que se note claro cuál es cada
+    // pueblo». Los puntos de los pueblos salen en cuanto la isla empieza a subir, sin esperar al vuelo del dron; los montes,
+    // los ríos y el rótulo de la comarca siguen esperando)
+    for (const x of T) { const ya = elegido === x, sh = hover === 't:' + x.id, mini = lejosIsla && sel === x.comarca && !ya;
+      const on = !COL && (sinNombres?.id !== x.comarca || mini) && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
+      if (mini !== !!x._mini) { x._mini = mini; x.lab.classList.toggle('mini', mini); x.lab._w = 0; x.lab._sp = mini ? [16, 16] : [32, 40]; }   // (otro tamaño: se vuelve a medir) if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
       lista.push([x.here || sh || ya ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y, x.Z, on, x.g.position.y, true]); }   // (si encima no cabe, debajo, con el pico arriba; y si tampoco, solo la foto)
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
     // dónde ir arrastrando el mapa. No con un pueblo elegido)
@@ -2281,5 +2296,5 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     cv.removeEventListener('pointerdown', onDown); cv.removeEventListener('pointermove', onMove); cv.removeEventListener('pointerup', onUp); cv.removeEventListener('pointercancel', onUp);
     if (cv.parentNode === host) cv.remove(); capa.remove(); pad.remove(); pad2.remove();
   }
-  return { select, vista, dispose, volar: irPueblo, cierraPueblo, coleccion, encuadra };
+  return { select, vista, atras, dispose, volar: irPueblo, cierraPueblo, coleccion, encuadra };
 }

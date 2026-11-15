@@ -2495,6 +2495,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     rosa; los sellados, dorado. El autor: «que salgan los nombres de los pueblos de una manera minimalista. Que no
     emborrone». Lo demás, y los pueblos con su ficha, sale al acercarse a menos de la mitad de esa distancia, también
     en el vuelo de dron de después de la subida, que antes iba lleno de montes y sierras.
+  - Esa noche, los puntos salen en cuanto la isla empieza a subir, sin esperar al vuelo del dron, y se tocan con un
+    margen de un dedo (`quien`: hasta 38 px alrededor del punto en el móvil, 26 con el ratón; la chincheta de debajo es
+    diminuta a esa distancia y antes no se podía elegir el pueblo). El punto, de 13 px, blanco con el filo oscuro si el
+    pueblo está por descubrir, rosa si está empezado y dorado si está sellado; el nombre, en 12 px sobre una pastilla
+    oscura al 50 %, sin desenfoque. El autor: «un punto minimalista, muy fácil de acceder, pero que se note claro cuál es
+    cada pueblo».
+  - Y un paso atrás cada vez (`atras`): la casa del mapa y Escape llevan del pueblo a su comarca y de la comarca a toda
+    Navarra; antes la casa iba siempre a toda Navarra. Al salir de un pueblo («Volver a la comarca», en el menú de pausa),
+    el inicio se abre con su comarca levantada (`hub.show('home', comarca)` en `main.js` y `enMapa` en `inicio.js`), y no
+    en la página de la comarca. El autor: «el paso es mapa de Navarra, comarca, pueblo y para atrás comarca, mapa de
+    Navarra».
 - **Las animaciones del mapa, a su paso aunque el móvil vaya justo** (el paso de cada imagen, `dt`, en el bucle de
   `mapa3d.js`; 15 de noviembre de 2026). «Revisar por qué las animaciones van muy lentas». El paso de cada imagen tenía
   un tope de 0,05 s: por debajo de 20 imágenes por segundo, todo iba a cámara lenta, la isla que sube, el vuelo y la

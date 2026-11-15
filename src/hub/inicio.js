@@ -144,6 +144,11 @@ function misionesHTML(ms, t) {
     <span class="ft-ms-g" style="--n:${cols}">${ms.map(m => `<i class="${m.done ? 'ok' : m === sig ? 'sig' : ''}" style="--mc:${m.mc || '#c9b8ff'}" title="${esc(m.title)}">${I(m.icon || 'star', 16)}</i>`).join('')}</span></span>`;
 }
 let MAPA = null;
+// (la comarca que hay que enseñar levantada en cuanto el mapa esté: al salir de un pueblo, la suya, y no toda Navarra. El
+// autor, 15 de noviembre de 2026: «cuando salimos de ese pueblo [...] que vuelva a la comarca, no al mapa entero de Navarra»)
+let PIDE = null;
+/** Enseña levantada en el mapa del inicio una comarca (por su id), ya o en cuanto el mapa esté hecho. */
+export function enMapa(cid) { PIDE = cid || null; if (MAPA && PIDE) { const id = PIDE; PIDE = null; MAPA.select(id); } }
 /** Para el mapa 3D (al cambiar de pantalla o al entrar a jugar): suelta lo suyo y deja libre el renderizador. */
 export function cierraMapa() { MAPA?.dispose(); MAPA = null; }
 /** El inicio, como la pantalla del mapa del mundo de un juego: Navarra en 3D a toda la pantalla y, encima, la misión de
@@ -242,7 +247,7 @@ function mapaOn(root, p) {
   const monta = () => {
     try { MAPA = mapa3d(sec, { comarcas, towns, hueco, icono: (n) => I(n, 16), tapa: '.m3-tot, .m3-rail, .m3-fl, .m3-pad, .m3-pad2, .m3-ft, .m3-mision, .m3-col, .m3-crail, .hub-menu-btn', onSelect: abre, onTown: pueblo, sigue, onTrashumancia: () => OPC.trashumancia?.(), falla, pausado: () => !ex.hidden || tapado(), ligero: sencillo() || graficaFloja(), intro: !DD, abiertas: DD }); }
     catch (e) { console.error('mapa 3D', e); (window.__errors ||= []).push('mapa 3D: ' + (e?.message || e)); MAPA = null; }
-    if (!MAPA) sin3d(); else COLX?.pinta();
+    if (!MAPA) sin3d(); else { COLX?.pinta(); if (PIDE) { const id = PIDE; PIDE = null; requestAnimationFrame(() => MAPA?.select(id)); } }
   };
   monta();
   // (lo que mide lo descubierto, para que en el móvil tumbado lo de arriba empiece justo a su lado, en cualquier idioma)

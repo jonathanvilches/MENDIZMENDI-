@@ -169,12 +169,19 @@
 /* (en la isla, de primer vistazo, cada pueblo solo con su nombre, pequeño, y un punto en su sitio: sin ficha, sin foto y
    sin fondo, para que no emborronen la comarca. El autor, el 15 de noviembre de 2026: «que salgan los nombres de los
    pueblos de una manera minimalista. Que no emborrone». El tuyo, con el punto rosa; los sellados, con el punto dorado) */
-.m3-tl.mini { flex-direction: column; gap: 0; margin-top: 0; padding: 0 0 8px; border: 0; border-radius: 0; background: none; box-shadow: none; color: rgba(255, 255, 255, .96); font: 700 11px/1.15 'MZ Texto', sans-serif; letter-spacing: .03em; text-shadow: 0 1px 2px rgba(13, 4, 32, .95), 0 0 8px rgba(13, 4, 32, .6); }
+/* (en la isla, cada pueblo es un punto claro con su nombre encima: el punto, blanco con el filo oscuro si está por descubrir,
+   rosa si está empezado y dorado si está sellado; el nombre, en una pastilla oscura muy fina, sin desenfoque. El autor, 15
+   de noviembre de 2026: «un punto minimalista, muy fácil de acceder, pero que se note claro cuál es cada pueblo». Se toca
+   con un margen de un dedo alrededor del punto: mapa3d.js, quien) */
+.m3-tl.mini { flex-direction: column; align-items: center; gap: 0; margin-top: 0; padding: 0 0 16px; border: 0; border-radius: 0; background: none; box-shadow: none; color: #fff; font: 800 12px/1.15 'MZ Texto', sans-serif; letter-spacing: .02em; text-shadow: 0 1px 2px rgba(13, 4, 32, .9); }
+.m3-tl.mini span { padding: 2px 7px 3px; border-radius: 6px; background: rgba(13, 4, 32, .5); }
 .m3-tl.mini .m3-tf { display: none; }
-.m3-tl.mini::after, .m3-tl.mini.abajo::after { left: 50%; top: auto; bottom: 0; margin-left: -2.5px; width: 5px; height: 5px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1.5px rgba(13, 4, 32, .55); }
-.m3-tl.mini.abajo { padding: 8px 0 0; } .m3-tl.mini.abajo::after { top: 0; bottom: auto; }
-.m3-tl.mini.here, .m3-tl.mini.sel { box-shadow: none; background: none; color: #fff; } .m3-tl.mini.here::after { background: var(--pink); } .m3-tl.mini.ok::after { background: var(--gold); }
-.m3-tl.mini.punto { padding: 0; }
+.m3-tl.mini::after, .m3-tl.mini.abajo::after { left: 50%; top: auto; bottom: 0; margin-left: -6.5px; width: 13px; height: 13px; box-sizing: border-box; border: 2.5px solid rgba(13, 4, 32, .85); border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(13, 4, 32, .55); }
+.m3-tl.mini.abajo { padding: 16px 0 0; } .m3-tl.mini.abajo::after { top: 0; bottom: auto; }
+.m3-tl.mini.go::after { background: var(--pink); border-color: #fff; } .m3-tl.mini.ok::after { background: var(--gold); border-color: #fff; }
+.m3-tl.mini.here, .m3-tl.mini.sel { box-shadow: none; background: none; color: #fff; } .m3-tl.mini.here::after { border-color: var(--pink); box-shadow: 0 0 0 3px rgba(255, 43, 214, .45); }
+.m3-tl.mini.hov span { background: rgba(13, 4, 32, .55); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5); }
+.m3-tl.mini.punto { padding: 0; height: 13px; } .m3-tl.mini.punto span { display: none; }
 @media (min-width: 1200px) and (min-height: 560px) { .m3-tl.mini { font-size: 13px; } }
 /* (la trashumancia: el rebaño que baja por la cañada, que se puede tocar; la cañada, desde el 15 de noviembre de 2026,
    va pegada al relieve, en 3D: mapa3d.js) */

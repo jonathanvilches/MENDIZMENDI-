@@ -399,7 +399,7 @@ async function boot() {
     if (ui.game === game) ui.game = null;
     game = null;
     // (desde un campeonato, de vuelta a Torneos, de donde se vino; y en el menú, su tema)
-    sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports' || to === 'pasaka') hub.show(to); else hub.show('comarca', def?.comarca);
+    sound.setMood('inicio'); queueMode('all'); if (to === 'home' || to === 'sports' || to === 'pasaka') hub.show(to); else hub.show('home', def?.comarca);   // (de un pueblo, al mapa con su comarca levantada; la casa, de ahí a toda Navarra)
     // (desde el menú de pelota de Campeonatos, a jugar en el frontón de otro pueblo: se carga ese pueblo)
     // (y desde un pueblo, apuntado al campeonato por el pelotari: el campeonato, con su cuadro; al acabarlo, de vuelta al
     // pueblo, a la puerta del frontón)
