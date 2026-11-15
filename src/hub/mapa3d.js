@@ -168,18 +168,19 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     return m;
   };
   // (tambien: otros materiales que usan la misma imagen, la falda)
-  const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0, tambien = []) => {
+  const suelo = (url, w, h, x, z, y, transp, funde = [0, 0, 0, 0], modo = 0, tambien = [], alCargar = null) => {
     const g = new THREE.PlaneGeometry(w, h); geos.push(g);
     const m = sueloM(transp, funde, modo, w, h);
     new THREE.TextureLoader().load(url, (tx) => { if (!vivo) return tx.dispose(); cargas++; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy());
-      for (const o of [m, ...tambien]) { Object.assign(o, { map: tx, opacity: 1, needsUpdate: true, visible: true }); o.color.set(0xffffff); } });
+      for (const o of [m, ...tambien]) { Object.assign(o, { map: tx, opacity: 1, needsUpdate: true, visible: true }); o.color.set(0xffffff); } alCargar?.(tx); });
     const s = new THREE.Mesh(g, m); s.rotation.x = -Math.PI / 2; s.position.set(x, y, z); scene.add(s); return s;
   };
   // (la falda, con la imagen de alrededor de Navarra, la de 200 × 152 centrada en el mapa; sin ella aún, no se pinta)
   const faldaM = sueloM(false, [0, 0, 0, 0], 0, 200, 152, true); faldaM.visible = false;
   const [ex0, ey0, ex1, ey1] = [-3006, -451, 2824, 4150];   // (lo que cubre la imagen de la península, en unidades del mapa)
   suelo(ESPANA, (ex1 - ex0) * S, (ey1 - ey0) * S, ((ex0 + ex1) / 2 - CX) * S, ((ey0 + ey1) / 2 - CY) * S, -0.04, false, [130, 130, 150, 26], 1);
-  suelo(matchMedia?.('(pointer: coarse)').matches || o.ligero ? ENTORNO_M : ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2, [faldaM]).renderOrder = -2;
+  // (y la misma imagen, para el relieve y el canto de la isla donde caen fuera del cuadro de la ortofoto: RELIEVE_FS ortoFuera)
+  suelo(matchMedia?.('(pointer: coarse)').matches || o.ligero ? ENTORNO_M : ENTORNO, 200, 152, 0, 0, -0.02, true, [14, 14, 14, 14], 2, [faldaM], (tx) => { UNI.uEnt.value = tx; UNI.uEntK.value = 1; }).renderOrder = -2;
 
   // el sombreado fino, compartido por todas las comarcas (mientras llega, el de cada vértice)
   const R = MAPA_RELIEVE.sombra, LISTO = { value: 0 };
@@ -193,7 +194,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const ORTO_K = { value: 0 }; let ortoListo = 0;
   const orto = new THREE.TextureLoader().load(ORTO, () => { ortoListo = 1; });
   orto.flipY = false; orto.colorSpace = THREE.NoColorSpace; orto.anisotropy = Math.min(8, r.capabilities.getMaxAnisotropy());
-  Object.assign(UNI, { uOrto: { value: orto }, uOrtoK: ORTO_K, uOrtoR: { value: new THREE.Vector4(MAPA_ORTO.x0, MAPA_ORTO.y0, MAPA_ORTO.w * MAPA_ORTO.paso, MAPA_ORTO.h * MAPA_ORTO.paso) } });
+  Object.assign(UNI, { uEnt: { value: nada }, uEntK: { value: 0 }, uOrto: { value: orto }, uOrtoK: ORTO_K, uOrtoR: { value: new THREE.Vector4(MAPA_ORTO.x0, MAPA_ORTO.y0, MAPA_ORTO.w * MAPA_ORTO.paso, MAPA_ORTO.h * MAPA_ORTO.paso) } });
   const CERCA = { value: 0 }, TEXK = { value: 0 };   // (lo cerca que está la cámara, de 0 a 1: el grano fino del terreno; y las texturas, desde la vista de una comarca)
   const relieveM = (c, vivo) => { const d = MAPA_RELIEVE.detalle[c.id], m = new THREE.ShaderMaterial({ vertexShader: RELIEVE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true,
     uniforms: { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), ...UNI, uDet: { value: nada }, uDetK: { value: 0 }, uOrtoD: { value: nada }, uOrtoDK: { value: 0 }, uCerca: CERCA, uTex: TEXK, uT: TIEMPO, ...orU(c), ...ORS,

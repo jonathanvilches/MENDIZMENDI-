@@ -7,7 +7,7 @@
 // primera vez que se elige la comarca (mapa3d.js).
 import * as THREE from 'three';
 import { ruidoV, S, CX, CY } from './mapa3dFormas.js';
-import { TONO_ORTO, NUBES } from './mapa3dSombreadores.js';
+import { TONO_ORTO, NUBES, ORTO_FUERA } from './mapa3dSombreadores.js';
 // (la panza, desde el 15 de noviembre de 2026: tierra parda con piedras y terrones, raíces y algo de musgo, como la
 // segunda referencia del autor, una isla con cascada; generada con Higgsfield con la cuenta del autor, repetible y con sus
 // normales sacadas de su propia luz, tools/islas/tierra-roca.py. Antes, una caliza clara con surcos que bajaban, que de
@@ -354,14 +354,14 @@ void main() { vUv = uv; vZ = aZona; vL = aLuz; vA = aA; vRv = position.y; vS = a
     fragmentShader: `uniform sampler2D uRoca, uColg, uTierra, uHierba, uOrto, uOrtoD, uSombra; uniform vec4 uOrtoR, uDetRect, uRect; uniform float uOrtoK, uOrtoDK, uTintK, uGris, uListo, uCerca, uTex, uGrosor, uExa, uBrillo; uniform vec3 uTinte;
 varying vec2 vUv, vS; varying float vZ, vL, vA, vRv, vH;
 #include <fog_pars_fragment>
-${NUBES}${TONO_ORTO}float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+${NUBES}${TONO_ORTO}${ORTO_FUERA}float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float n2(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h2(i), h2(i + vec2(1, 0)), f.x), mix(h2(i + vec2(0, 1)), h2(i + vec2(1, 1)), f.x), f.y); }
 // (el color del suelo de la comarca en un punto, como lo pinta el terreno; b, cuánto se suaviza: el fleco lo toma algo
 // borroso, que no titile)
 vec3 suelo(vec2 p, float h, float b) {
   vec2 sv = p / ${S.toFixed(1)} + vec2(${CX.toFixed(1)}, ${CY.toFixed(1)});
-  vec3 o = texture2D(uOrto, (sv - uOrtoR.xy) / uOrtoR.zw, b).rgb;
-  if (uOrtoDK > 0.0) o = mix(o, texture2D(uOrtoD, (sv - uDetRect.xy) / uDetRect.zw, b).rgb, uOrtoDK);
+  vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = ortoFuera(texture2D(uOrto, ou, b).rgb, sv, ou);
+  if (uOrtoDK > 0.0) { vec2 dq = (sv - uDetRect.xy) / uDetRect.zw; o = mix(o, texture2D(uOrtoD, dq, b).rgb, uOrtoDK * enCuadro(dq, 0.012)); }
   float s = mix(1.0, texture2D(uSombra, (sv - uRect.xy) / uRect.zw, b).r * 1.7, uListo);
   s = s < 1.0 ? 1.0 + (s - 1.0) * 1.25 : 1.0 + (s - 1.0) * 0.62; s += 0.22 * (1.0 - smoothstep(0.0, 0.7, s));
   vec3 c = mix(vec3(0.42, 0.55, 0.3) * s, tonoOrto(o) * (1.0 + (s - 1.0) * 0.7), uOrtoK);
@@ -406,7 +406,7 @@ void main() {
   // (los mismos uniformes que el terreno de su comarca, que cambian con él: la ortofoto, la luz del relieve, el tiempo de las
   // nubes, el velo)
   const DEF = { uTinte: () => new THREE.Color(), uOrtoR: () => new THREE.Vector4(0, 0, 1, 1), uDetRect: () => new THREE.Vector4(0, 0, 1, 1), uRect: () => new THREE.Vector4(0, 0, 1, 1), uBrillo: () => 1, uExa: () => 1, uOrto: () => null, uOrtoD: () => null, uSombra: () => null };
-  for (const k of ['uOrto', 'uOrtoD', 'uOrtoR', 'uDetRect', 'uOrtoK', 'uOrtoDK', 'uTinte', 'uTintK', 'uGris', 'uSombra', 'uRect', 'uListo', 'uT', 'uCerca', 'uTex', 'uGrosor', 'uExa', 'uBrillo']) cantoM.uniforms[k] = orto?.[k] || { value: DEF[k] ? DEF[k]() : 0 };
+  for (const k of ['uOrto', 'uOrtoD', 'uOrtoR', 'uEnt', 'uEntK', 'uDetRect', 'uOrtoK', 'uOrtoDK', 'uTinte', 'uTintK', 'uGris', 'uSombra', 'uRect', 'uListo', 'uT', 'uCerca', 'uTex', 'uGrosor', 'uExa', 'uBrillo']) cantoM.uniforms[k] = orto?.[k] || { value: DEF[k] ? DEF[k]() : 0 };
   const canto = new THREE.Mesh(cantoG, cantoM); canto.name = 'canto-' + id; canto.frustumCulled = false; canto.visible = false; canto.renderOrder = 1; scene.add(canto);
   let cantoSy = -1;
   // (el canto va a la altura del borde, la de la orilla ya bajada)

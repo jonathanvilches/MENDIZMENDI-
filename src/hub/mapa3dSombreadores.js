@@ -135,9 +135,18 @@ vec3 acabado(vec3 c) { float l = dot(c, vec3(0.299, 0.587, 0.114)), sat = max(c.
   c = mix(c, vec3(0.3, 0.31, 0.47) * (0.45 + l * 1.45), (1.0 - smoothstep(0.05, 0.42, l)) * 0.6);
   return c * mix(vec3(1.0), vec3(1.03, 1.015, 0.97), smoothstep(0.42, 0.85, l)); }
 `;
+// (la ortofoto fuera de su cuadro: lo que crece una isla para que sus montes salgan enteros, mapa3dAmplia.js, cae a veces
+// más allá, y allí la foto se estiraba desde su borde. Se toma la imagen de alrededor del mapa, entorno-sat.webp, la del
+// suelo de fuera, que es del mismo servicio y con el mismo tono; uEnt llega cargada como color, de ahí la vuelta al tono
+// de la foto. Y la fina de la comarca, solo dentro de su cuadro)
+export const ORTO_FUERA = `uniform sampler2D uEnt; uniform float uEntK;
+float enCuadro(vec2 q, float w) { vec2 e = min(q, 1.0 - q); return smoothstep(0.0, w, min(e.x, e.y)); }
+vec3 ortoFuera(vec3 o, vec2 sv, vec2 ou) { if (uEntK <= 0.0) return o; float d = enCuadro(ou, 0.004); if (d > 0.999) return o;
+  vec2 eu = vec2((sv.x + 628.0) / 2000.0, 1.0 - (sv.y + 360.0) / 1520.0); return mix(pow(max(texture2D(uEnt, eu).rgb, 0.0), vec3(0.4545)), o, d); }
+`;
 export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque, uOrto, uOrtoD; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR, uOrtoR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo, uOrtoK, uOrtoDK; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
 varying vec2 vXZ; varying float vH, vSom, vOr;
-${NUBES}
+${ORTO_FUERA}${NUBES}
 #include <fog_pars_fragment>
 ${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
@@ -212,7 +221,7 @@ void main() {
   // (en la orilla bajada de una isla, en lo muy pendiente, la foto se estiraba en vetas: allí, algo difuminada, y la fina,
   // a medias. Más difuminada, la orilla quedaba como una rampa verde lisa, que el autor ya no quiso el 14 de noviembre de
   // 2026; los montes fantasma bajo un velo que se veían en lo que crece una isla venían del relieve fino, no de la foto)
-  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (vOr > 0.05) o = mix(o, texture2D(uOrto, ou, 1.2).rgb, 0.6 * smoothstep(0.15, 0.8, vOr)); if (vOr > 0.05) o *= 1.0 + (ruido(sv * 7.0) * 0.6 + ruido(sv * 19.0) * 0.4 - 0.5) * 0.22 * smoothstep(0.05, 0.6, vOr);   // (y su grano de hierba, a matas)   // (desde el 15 de noviembre de 2026, apenas suavizada: muy borrosa, la rampa de la orilla salía como una banda verde lisa)
+  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (vOr > 0.05) o = mix(o, texture2D(uOrto, ou, 1.2).rgb, 0.6 * smoothstep(0.15, 0.8, vOr)); o = ortoFuera(o, sv, ou); if (vOr > 0.05) o *= 1.0 + (ruido(sv * 7.0) * 0.6 + ruido(sv * 19.0) * 0.4 - 0.5) * 0.22 * smoothstep(0.05, 0.6, vOr);   // (y su grano de hierba, a matas)   // (desde el 15 de noviembre de 2026, apenas suavizada: muy borrosa, la rampa de la orilla salía como una banda verde lisa)
     if (uOrtoDK > 0.0) { vec2 dq = (sv - uDetRect.xy) / uDetRect.zw; o = mix(o, texture2D(uOrtoD, dq).rgb, uOrtoDK * enRect(dq) * (1.0 - 0.5 * smoothstep(0.15, 0.8, vOr))); }
     c = mix(c, tonoOrto(o) * (1.0 + (s - 1.0) * 0.7), uOrtoK); }
   float pin = 1.0 - uOrtoK;   // (lo pintado a mano, que la ortofoto ya trae de verdad: parcelas, bosque, roca, el clima)

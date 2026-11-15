@@ -2251,6 +2251,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     que ya había no se toca; al sacarlo de nuevo salen iguales los 30.790 puntos de antes. Lo nuevo, 52.930 puntos, hasta
     2.400 m.
   - El relieve fino, `fino.webp`, igual, de las teselas de nivel 11 de EU-DEM: de 1.025 × 1.106 a 1.196 × 1.278 puntos.
+- **La ortofoto, sin la mancha de Francia y también fuera de su cuadro** (`tools/relieve/orto-fuera.py`; `ORTO_FUERA` en
+  `mapa3dSombreadores.js`; el canto en `mapa3dIsla.js`; `uEnt` en `mapa3d.js`; 15 de noviembre de 2026). Para que lo que
+  coge la isla de fuera de Navarra no parezca una pieza de puzle:
+  - En Francia, la ortofoto era la capa de fondo del servicio, oscura y a cuadros. Donde la foto es de esa capa, casi sin
+    detalle y mucho más oscura, va la imagen de alrededor del mapa, `entorno-sat.webp`, del mismo servicio y con el mismo
+    tono, con el borde fundido en ancho. Un 10 % de la imagen; lo demás no se toca.
+  - Fuera del cuadro de la ortofoto, el relieve y el canto de la isla toman esa misma imagen de alrededor, la del suelo de
+    fuera; antes la foto se estiraba desde su borde. La foto fina de cada comarca, solo dentro de su cuadro.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la
