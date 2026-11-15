@@ -46,7 +46,8 @@ export function bake() {
         // un suelo empedrado, debería tener de textura un suelo empedrado. Todas las calles de los pueblos». Antes solo las
         // calles de los datos llevaban el adoquín: la carretera, que en los pueblos suele ser la calle mayor, y los pasos
         // entre las casas iban con la tierra clara de los caminos, y en pleno casco se veían franjas amarillas)
-        const cas = smoothstep(0.3, 0.6, f.vm);
+        // (la carretera, siempre empedrada: es la calle por la que se entra al pueblo y en tierra se leía como un camino)
+        const cas = p.type === 'road' ? 1 : smoothstep(0.3, 0.6, f.vm);
         street = cas * (1 - smoothstep(p.w - 0.6 + acera, p.w + 0.4 + acera, p.d));
         dirt = (1 - cas) * (1 - smoothstep(p.w - 0.7, p.w + 0.5, p.d));
       }

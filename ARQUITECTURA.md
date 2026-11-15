@@ -1521,6 +1521,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ser la calle mayor, y los pasos, callejones y escaleras entre las casas iban con la tierra clara de los caminos, y en
   pleno casco se veían franjas amarillas. Ahora, dentro del casco, todo lo que se pisa es empedrado, con la misma acera
   hasta las fachadas que las calles; fuera, los caminos siguen siendo de tierra, y entre los dos se pasa poco a poco.
+  La carretera, empedrada siempre, también fuera del casco: es la calle por la que se entra al pueblo (en Lumbier se
+  llegaba por una franja de tierra con piedrecitas).
 - **Misiones del pueblo, solo los cuadrados** (`eligeMision`, `cierraMision` y `setQuestPueblo` en `ui.js`; `#tl` en
   `style.css`; noviembre de 2026): durante unos días la misión que sigues iba siempre abierta debajo de los cuadrados, y
   el autor pidió limpiar el visor. Ahora arriba a la izquierda solo quedan los cuadrados: la que sigues, con borde blanco.
