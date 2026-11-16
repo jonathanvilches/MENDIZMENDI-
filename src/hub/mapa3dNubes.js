@@ -41,11 +41,11 @@ const FS = `uniform sampler2D uRuido; uniform vec3 uSolV, uBruma, uLuz, uSombra;
 void main() {
   vec2 n2 = texture2D(uRuido, vP * 0.27 + vSem * vec2(7.31, 3.17)).rg, n3 = texture2D(uRuido, vP * 0.71 + vSem * vec2(1.7, 9.2)).rg;
   // (el borde, deshilachado: unos copos se deshacen antes que otros)
-  float r = length(vP) + (n2.r - 0.5) * 0.52 + (n3.g - 0.5) * 0.24;
+  float r = length(vP) + (n2.r - 0.5) * 0.6 + (n3.g - 0.5) * 0.28;
   // (una nube que se va no se vuelve un velo gris, que ensuciaba el azul del cielo: se encoge y se deshace en jirones,
   // blanca hasta el final)
   r += (1.0 - vOp) * 0.85;
-  float a = (1.0 - smoothstep(0.66, 0.9, r)) * min(1.0, vOp * 3.0); if (a < 0.012) discard;
+  float a = (1.0 - smoothstep(0.56, 0.92, r)) * min(1.0, vOp * 3.0); if (a < 0.012) discard;
   // (el bulto: el copo es una bola, con bultos pequeños; la luz del sol le da de un lado, y su base queda en sombra)
   vec2 g = vP * 0.92 + (n2 - 0.5) * 0.75 + (n3 - 0.5) * 0.3; float z = sqrt(max(0.0, 1.0 - min(1.0, dot(g, g))));
   vec3 n = normalize(vec3(g, z + 0.22));
@@ -74,11 +74,11 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
   const nube = (w, suelta, k) => { const l = w * (suelta ? 0.8 + R() * 0.6 : 0.62 + R() * 0.3), h = w * (suelta ? 0.1 + R() * 0.08 : 0.3 + R() * 0.14), C = [];
     for (let i = 0; i < k; i++) {
       if (suelta) { const a = R() * Math.PI * 2, rr = Math.sqrt(R()), s = w * (0.2 + 0.2 * R());
-        C.push({ dx: Math.cos(a) * rr * w * 0.8, dz: Math.sin(a) * rr * l * 0.8, dy: R() * h + s * 0.16, s, alt: 0.3 + 0.5 * R(), sem: R() }); continue; }
+        C.push({ dx: Math.cos(a) * rr * w * 0.8, dz: Math.sin(a) * rr * l * 0.8, dy: R() * h + s * 0.16, s, alt: 0.3 + 0.5 * R(), sem: R(), o: 0.55 + 0.4 * R() }); continue; }
       // (una cúpula: alta en medio, baja en los bordes; los primeros copos, la base, grandes y abajo)
       const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * (i < 3 ? 0.55 : 1), cima = 1 - rr * rr, ey = i < 3 ? R() * 0.2 : R() * cima;
-      const s = w * (0.27 + 0.19 * cima + 0.08 * R()) * (i < 3 ? 1.12 : 1 - 0.38 * ey);
-      C.push({ dx: Math.cos(a) * rr * w * 0.4, dz: Math.sin(a) * rr * l * 0.4, dy: ey * h + s * 0.16, s, alt: Math.min(1, 0.18 + ey * 0.9 + 0.12 * cima), sem: R() });
+      const s = w * (0.23 + 0.17 * cima + 0.08 * R()) * (i < 3 ? 1.12 : 1 - 0.38 * ey);
+      C.push({ dx: Math.cos(a) * rr * w * 0.5, dz: Math.sin(a) * rr * l * 0.5, dy: ey * h + s * 0.16, s, alt: Math.min(1, 0.18 + ey * 0.9 + 0.12 * cima), sem: R(), o: rr > 0.7 ? 0.62 + 0.3 * R() : 0.9 + 0.1 * R() });
     }
     return { w, l, C }; };
   const N = [];
@@ -91,10 +91,17 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
   // cúmulos de la imagen de referencia del autor, del 14 de noviembre de 2026. Las de arriba se apartan al acercarse la
   // cámara y junto a la isla no quedaba ninguna. Se guardan en medidas de la isla: a qué lado, a cuántos radios, a qué
   // altura entre su punta y su hierba, y de qué tamaño; también de tamaños distintos, y alguna, dispersa)
+  // (desde el 16 de noviembre de 2026, más y más sueltas. El autor: «Las nubes son muy compactas. En la realidad no son así,
+  // hay más nubes entre las islas flotantes y de diferentes tamaños». Junto a la isla, casi el doble; de tres tamaños, de
+  // jirones de un quinto de radio a bancos de casi dos; más de la mitad, copos sueltos; en un anillo de 1,1 a 3,9
+  // radios, casi todas cerca; a más alturas, también por debajo de la roca y por encima de la hierba; y no solo detrás:
+  // también a los lados y algo por delante; solo se deshacen las que quedan entre la cámara y la isla. En todas, la cúpula
+  // de copos es más ancha y sus copos más pequeños; los del borde, más transparentes; y el borde de cada copo, algo más
+  // suave y deshilachado)
   const NI = [];
   while (NI.length < deIsla) {
-    const w = 0.28 + R() * R() * 1.0, suelta = R() < 0.3, k = Math.max(3, Math.round(copos * (suelta ? 0.4 : 0.3 + 0.65 * Math.min(1, w))));
-    NI.push({ ...nube(w, suelta, k), a: (NI.length + R() * 0.7) / deIsla * Math.PI * 2, rf: 1.6 + R() * 1.8, yf: R(), op: (suelta ? 0.7 : 0.86) + R() * 0.14, k: 0 });
+    const r = R(), w = r < 0.4 ? 0.22 + R() * 0.25 : r < 0.8 ? 0.47 + R() * 0.5 : 0.97 + R() * 0.9, suelta = R() < (w > 0.8 ? 0.7 : 0.5), k = Math.max(3, Math.round(copos * (suelta ? 0.35 + 0.3 * Math.min(1, w) : 0.3 + 0.65 * Math.min(1, w))));
+    NI.push({ ...nube(w, suelta, k), a: (NI.length * 0.618 + R() * 0.4) % 1 * Math.PI * 2, rf: 1.12 + R() * R() * 2.8, yf: -0.5 + R() * 1.9, op: (suelta ? 0.62 : 0.84) + R() * 0.14, k: 0 });
   }
   const total = N.reduce((s, q) => s + q.C.length, 0) + NI.reduce((s, q) => s + q.C.length, 0);
   const cuad = () => { const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); geos.push(g); return g; };
@@ -135,17 +142,17 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
         // (y ninguna delante de la cámara)
         op *= suave(9, 28, Math.hypot(x - cp.x, q.y - cp.y, z - cp.z));
         if (op < 0.02) continue;
-        for (const c of q.C) { const p = P[k++]; p.x = x + c.dx; p.y = q.y + c.dy; p.z = z + c.dz; p.s = c.s; p.op = op; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); }
+        for (const c of q.C) { const p = P[k++]; p.x = x + c.dx; p.y = q.y + c.dy; p.z = z + c.dz; p.s = c.s; p.op = op * c.o; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); }
         sPos[ks * 3] = x + SX * q.y; sPos[ks * 3 + 1] = 0.03; sPos[ks * 3 + 2] = z + SZ * q.y; sDat[ks * 3] = q.w * 1.25; sDat[ks * 3 + 1] = q.l * 1.25; sDat[ks * 3 + 2] = op * 0.42 * q.so; ks++;
       }
       // (las de la isla: solo las que quedan detrás de ella vistas desde la cámara, o a los lados; las de delante se deshacen,
       // y al girar la cámara van saliendo unas y yéndose otras, despacio)
       if (isla && isla.k > 0.02) { let fx = isla.x - cp.x, fz = isla.z - cp.z; const fl = Math.hypot(fx, fz) || 1; fx /= fl; fz /= fl;
         for (const q of NI) { const a = q.a + t * 0.006, rr = isla.r * q.rf, x = isla.x + Math.cos(a) * rr, z = isla.z + Math.sin(a) * rr, y = isla.y - isla.D * 0.55 + (isla.D * 0.55 + 2.5) * q.yf, e = isla.r;
-          const detras = ((x - isla.x) * fx + (z - isla.z) * fz) / rr, quiereK = suave(-0.15, 0.45, detras) * suave(9, 26, Math.hypot(x - cp.x, y - cp.y, z - cp.z));
+          const detras = ((x - isla.x) * fx + (z - isla.z) * fz) / rr, quiereK = suave(-0.75, 0.05, detras) * suave(9, 26, Math.hypot(x - cp.x, y - cp.y, z - cp.z));
           q.k += (quiereK - q.k) * (1 - Math.exp(-dt * 1.1)); const op = q.op * q.k * suave(0.25, 0.95, isla.k);
           if (op < 0.02) continue;
-          for (const c of q.C) { const p = P[k++]; p.x = x + c.dx * e; p.y = y + c.dy * e; p.z = z + c.dz * e; p.s = c.s * e; p.op = op; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); } } }
+          for (const c of q.C) { const p = P[k++]; p.x = x + c.dx * e; p.y = y + c.dy * e; p.z = z + c.dz * e; p.s = c.s * e; p.op = op * c.o; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); } } }
       else for (const q of NI) q.k = 0;
       // (de lejos a cerca, para que se mezclen bien unos con otros)
       vis.sort((a, b) => b.d - a.d);

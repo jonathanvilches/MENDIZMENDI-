@@ -630,7 +630,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
   // (y desde la última hora del 14 de noviembre de 2026, bastantes más, casi el doble: «tiene que haber bastantes más
   // nubes». Son copos sueltos en una sola malla: más copos, la misma llamada de dibujo)
-  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 36 : TACTIL ? 100 : 180, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 8 : TACTIL ? 18 : 30, nav: centro, sol: sol.position });
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 36 : TACTIL ? 100 : 180, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 12 : TACTIL ? 30 : 50, nav: centro, sol: sol.position });
 
 
   // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo

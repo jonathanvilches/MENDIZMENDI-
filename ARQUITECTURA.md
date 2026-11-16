@@ -2700,6 +2700,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     los mismos: unos 700, 300 y 115. Las de junto a la isla, 12, 8 y 5, también de tamaños distintos.
     Esa misma noche, casi el doble: 180, 100 y 36, y junto a la isla 30, 18 y 8 («tiene que haber bastantes más nubes»).
     Son copos en una sola malla: más copos, la misma llamada de dibujo.
+  El 16 de noviembre de 2026, el autor: «Las nubes son muy compactas. En la realidad no son así, hay más nubes entre las
+  islas flotantes y de diferentes tamaños». Junto a la isla, 50 en el ordenador, 30 en el móvil y 12 en calidad baja (antes
+  30, 18 y 8), de tres tamaños (de un quinto de radio a casi dos), más de la mitad de copos sueltos, en un anillo de 1,1 a
+  3,9 radios y a más alturas, por debajo de la roca y por encima de la hierba; solo se deshacen las que quedan entre la
+  cámara y la isla. En todas, la cúpula de copos es más ancha, los copos más pequeños, los del borde más transparentes y el
+  borde de cada copo algo más suave y deshilachado.
 - **Girar e inclinar el mapa con botones** (`.m3-pad2`, `B2` y las teclas `pu` y `pd` en `mapa3d.js`; `inicio.css` y
   `consola.css`; 15 de noviembre de 2026). El autor: «tendrás que añadir también nuevos controles para navegar por el
   mapa». Girar solo iba con dos dedos, el clic derecho o Q y E, e inclinar solo con dos dedos; en el móvil, quien no lo
