@@ -2776,6 +2776,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   además del aro blanco: «que sea un icono donde se marque qué misión estamos jugando y el resto esté plegado». Y el
   botón de pausa pasa a ser el de menú, con tres rayas (`ICON.menu` en `ui.js`, «Menú (Esc)»): con el símbolo de pausa
   no se veía que abría el menú.
+  - También en la aventura de Otsagabia (16 de noviembre de 2026; el autor: «en Ochagavía no sale la barra de misiones.
+    Revisa todo por favor»). La aventura tenía su propio recuadro, solo con la misión que seguías y las cintas. Ahora
+    `Game` da lo mismo que los pueblos (`barraMisiones`, `missions`, `tracked` y `setBook` en `game/game.js`): las nueve
+    misiones en el orden de siempre (`ORDEN_MIS`), cada una con su categoría de color (`Q_CAT` de `data/misionCat.js`), y
+    `ui.js` pinta la misma barra (`esBarra`). Tocar una misión que ya está abierta la sigue; las que aún no lo están dicen
+    con quién hay que hablar, y la fiesta, que faltan las cintas. Debajo de la barra, pequeñas, las ocho cintas y los
+    eguzkilores (`#ribbons.bajo`). Al entrar salía además un error, porque el nombre de la barra se leía del pueblo
+    (`game.def`), que la aventura no tiene.
 - **Las tarjetas de abajo, con la insignia** (`inicio.js`, `.m3-rail.m3-insig` en `inicio.css`; 13 de noviembre de 2026):
   con el mapa de día, la foto de cada comarca tapaba demasiado. Ahora son tarjetas pequeñas, de 60 px de alto (50 en el
   móvil), en carrusel: la insignia de la comarca (su sello, `stampImg`), su nombre y sus sellos, sobre un velo sin

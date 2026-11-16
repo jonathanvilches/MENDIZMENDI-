@@ -1,6 +1,7 @@
 // Lógica del juego: estado, misiones, interacción, minijuegos y escenas
 import * as THREE from 'three';
 import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, QUIZ, EGUZKILORES } from './content.js';
+import { Q_CAT } from '../data/misionCat.js';
 import { npcDefs, walkerDefs, WALKER_LINES } from './npcs.js';
 import { greet } from './saludo.js';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
@@ -21,6 +22,7 @@ import { Pajarillos } from '../world/pajarillos.js';
 import { Colada } from '../world/colada.js';
 import { QUALITY } from '../util/quality.js';
 import { hablaVecino, callaVecino, narra } from './vozVecinos.js';
+const ORDEN_MIS = ['bienvenida', 'escudos', 'zarratrako', 'pelota', 'ovejas', 'irati', 'lamia', 'basajaun', 'muskilda'];   // (el orden de la barra y de seguir la siguiente)
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
@@ -150,8 +152,21 @@ export class Game {
 
   // ---------- Utilidades de misiones ----------
   q(id) { return this.state.quests[id] || (this.state.quests[id] = { state: 'locked', step: 0 }); }
+  // (la barra de misiones de los pueblos, también en Otsagabia: ui.js la pinta con missions y tracked como en los demás
+  // pueblos. Antes la aventura solo enseñaba la misión que seguías y las cintas, y el autor, el 16 de noviembre de 2026:
+  // «en Ochagavía no sale la barra de misiones». Cada misión, con su cuadrado; tocarla la sigue y abre su tarjeta)
+  get barraMisiones() { return true; }
+  get missions() {
+    const g = this;
+    return (this._mis ||= ORDEN_MIS.map((id, i) => ({ i, id, cat: Q_CAT[id], get title() { return QUESTS[id].title; }, icon: QUESTS[id].icon,
+      get done() { return g.q(id).state === 'done'; }, get step() { return g.q(id).step || 0; }, steps: () => QUESTS[id].steps })));
+  }
+  get tracked() { return ORDEN_MIS.indexOf(this.state.tracked); }
+  setBook(M) { if (M && this.q(M.id).state !== 'locked') this.track(M.id); }
   stepText(id) {
+    if (id && typeof id === 'object') id = id.id;
     const q = this.q(id), Q = QUESTS[id];
+    if (q.state === 'locked') return id === 'muskilda' ? 'Consigue las 8 cintas para la fiesta' : `Habla con ${this.npcs?.[Q.giver]?.name || 'los vecinos'} para empezarla`;
     if (id === 'escudos' && q.step === 0) return `${Q.steps[0]} (${this.state.palaces.length}/3)`;
     if (id === 'ovejas' && q.step === 1) return `${Q.steps[1]} (${this.penned || 0}/6)`;
     if (id === 'irati' && q.step === 1) return `${Q.steps[1]} (${Math.min(5, this.state.observed.length)}/5)`;
@@ -191,7 +206,7 @@ export class Game {
   autoTrack() {
     const qs = this.state.quests;
     if (qs[this.state.tracked]?.state === 'active' && !(this.state.tracked === 'muskilda' && qs.muskilda.step === 0)) return;
-    const order = ['bienvenida', 'escudos', 'zarratrako', 'pelota', 'ovejas', 'irati', 'lamia', 'basajaun', 'muskilda'];
+    const order = ORDEN_MIS;
     const pick = order.find(id => qs[id]?.state === 'active' && !(id === 'muskilda' && qs[id].step === 0)) || order.find(id => qs[id]?.state === 'available');
     this.state.tracked = pick || 'muskilda';
   }

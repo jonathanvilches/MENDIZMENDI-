@@ -126,15 +126,16 @@ export class UI {
   buildHUD(game) {
     this.destroyHUD();
     this.game = game;
-    const town = game.kind === 'town';
+    const town = game.kind === 'town' || !!game.barraMisiones; this.esBarra = town;   // (con barra de misiones: los pueblos y la aventura de Otsagabia)
     // (los botones de arriba: en el pueblo, al final de la barra de misiones, detrás de una raya; en la aventura de
     // Otsagabia, arriba a la derecha, junto al minimapa)
     const botones = `<button class="round hidden" id="bBino" aria-label="Prismáticos (F)">${ICON.bino}</button>
           <button class="round" id="bMenu" aria-label="Menú (Esc)" title="Menú (Esc)">${ICON.menu}</button>`;
     const h = el(`<div id="hud">
       ${town ? `<div id="tl" class="mis">
-        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc(game.def.name.split(' /')[0])}" style="--n:${game.missions.length}">${game.missions.map((M, k) => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type)};--k:${k}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><button type="button" id="mPliega" aria-expanded="false" aria-controls="misiones" aria-label="Ver todas las misiones">${FLECHA_MIS}<b></b></button><div id="mbtns">${botones}</div></div>
+        <div class="mfila"><div id="misiones" role="toolbar" aria-label="Misiones de ${esc((game.def?.name || 'Otsagabia').split(' /')[0])}" style="--n:${game.missions.length}">${game.missions.map((M, k) => `<button type="button" data-m="${M.i}" title="${esc(M.title)}" aria-label="${esc(M.title)}" style="--mc:${misionColor(M.type, M.cat)};--k:${k}">${I(M.icon || 'star', 20)}</button>`).join('')}</div><button type="button" id="mPliega" aria-expanded="false" aria-controls="misiones" aria-label="Ver todas las misiones">${FLECHA_MIS}<b></b></button><div id="mbtns">${botones}</div></div>
         <div id="quest" class="hidden" role="dialog"><span class="mc-ic"></span><div class="mc-tx"><small></small><b class="mc-tit"></b><p class="qt"></p><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
+        ${game.kind !== 'town' ? `<div id="ribbons" class="bajo">${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span></div>` : ''}
       </div>` : `<div id="tl">
         <div id="quest"><div class="ic"><span class="qe"></span><b class="qn"></b></div><div class="qtxt"><small></small><b class="qt"></b><div class="qrow"><span class="qpips"></span><span class="qd"></span></div></div></div>
         <div id="ribbons">${RIBBONS.map(r => `<i data-r="${r.id}" title="${r.name}"></i>`).join('')}<span class="eg">${I('eguzkilore', 18)} <b>0/${EGUZKILORES.length}</b></span></div>
@@ -264,7 +265,7 @@ export class UI {
     this.game = null; this._fitTopR = null; this.mini = null; this.boxes = new Map(); this.questEls = null; }
   // (las misiones del pueblo, bajo la de ahora: cada casilla con su icono, las hechas de color y la que sigues encendida)
   refreshDots() {
-    if (!this.hud || this.game.kind !== 'town') return;
+    if (!this.hud || !this.esBarra) return;
     for (const i of this.hud.querySelectorAll('#misiones button')) { const M = this.game.missions[+i.dataset.m]; i.classList.toggle('on', !!M.done); i.classList.toggle('cur', !M.done && M.i === this.game.tracked); i.classList.toggle('sel', M.i === this.misAbierta); i.setAttribute('aria-pressed', String(M.i === this.misAbierta)); }
     const ms = this.game.missions, n = ms.filter(M => M.done).length, t = `${n}/${ms.length}`;
     // (plegada: la que se ve es la abierta, si no la que sigues, si no la primera sin hacer o la última)
@@ -332,11 +333,11 @@ export class UI {
     const step = g.stepText(M), n = M.steps().length, idx = M.done ? n : Math.min(M.step, n);
     // (la tarjeta: arriba su categoría y cuál es de las del pueblo, o que ya está hecha; su nombre; lo que toca hacer; sus
     // pasos y lo lejos que está. Con el icono en el color de su categoría)
-    const eu = isEU(), cat = (eu ? CAT_EU : CAT_ES)[CAT[M.type]] || (eu ? 'Misioa' : 'Misión');
+    const eu = isEU(), cat = (eu ? CAT_EU : CAT_ES)[M.cat || CAT[M.type]] || (eu ? 'Misioa' : 'Misión');
     const kick = `${cat} · ${M.done ? (eu ? 'Eginda' : 'Hecha') : `${i + 1} / ${g.missions.length}`}`;
     if (E.small._t !== kick) { E.small._t = kick; E.small.textContent = kick; }
     if (E.tit && E.tit._t !== M.title) { E.tit._t = M.title; E.tit.textContent = M.title; }
-    if (E.ic && E.ic._t !== M.icon) { E.ic._t = M.icon; E.ic.innerHTML = I(M.icon || 'star', 26); E.ic.parentElement.style.setProperty('--mc', misionColor(M.type)); }
+    if (E.ic && E.ic._t !== M.icon) { E.ic._t = M.icon; E.ic.innerHTML = I(M.icon || 'star', 26); E.ic.parentElement.style.setProperty('--mc', misionColor(M.type, M.cat)); }
     if (E.qt._t !== step) { E.qt._t = step; E.qt.textContent = step; }
     const key = n + ':' + idx; if (E.pips.dataset.k !== key) { E.pips.dataset.k = key; E.pips.innerHTML = n ? Array.from({ length: n }, (_, k) => `<i class="${k < idx ? 'ok' : k === idx ? 'now' : ''}"></i>`).join('') : ''; }
     const q = this.lastQ, dt = i === g.tracked && q?.dist != null && q.dist < 1000 ? `${Math.round(q.dist)} m` : '';
@@ -351,7 +352,7 @@ export class UI {
     if (this.misAbierta === g.tracked) this.pintaMision(g.tracked);
   }
   setQuest(q) {
-    if (this.game?.kind === 'town') return this.setQuestPueblo(q);
+    if (this.esBarra) return this.setQuestPueblo(q);
     const b = $('#quest', this.hud), E = this.questEls;
     if (!q) { if (!this.questHidden) { b.classList.add('hidden'); this.questHidden = true; this.queueFitTop(); } return; }
     if (this.questHidden !== false) { b.classList.remove('hidden'); this.questHidden = false; this.queueFitTop(); }
