@@ -1426,6 +1426,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           puño (`agarre`: el punto medio del mango entre los cuatro dedos y su eje, hacia el pulgar), el final del
           mango asomando por el lado del meñique. La palma ya medida al ponerlos se guarda en el hueso (`palma`), para
           dejar la pelota en ella (`palmaDe`).
+        - En todo el juego (el autor, 16 de noviembre: «aplica el agarre a todo el juego, a todos los personajes que agarren
+          una herramienta o cualquier cosa»): `actors/agarrar.js` pone cualquier cosa en el puño de un personaje con
+          dedos, con el mango por el hueco y los dedos cerrados encima. Tres maneras: `erguido` (de pie, con la postura
+          `baston`: cada imagen, encima de su animación, el antebrazo hacia delante y la muñeca girada y doblada, hasta
+          40°, para que quede derecho), `colgando` (un cesto, el asa cruzando el puño, también con `baston`) y `suelto`
+          (solo en el puño, con la diagonal del `mango`; el brazo, el de su animación). Lo usan los disfrazados
+          (`trajes.js`, `hold`: el isipu del joaldun, la sarde del momotxorro, el cesto y la vara del zipotero, el peine de
+          la lamia, las ramas de Basajaun y Tartalo, la escoba de la sorgina, la espada de Roldán), el bastón de los
+          mayores (`outfits.js`, más fino, del grueso del puño, y con la punta apoyada en el suelo: baja o sube por el puño
+          cada imagen, hasta un cuarto de su largo), el banderín de los jueces de línea y la tarjeta del árbitro (`futbol.js`;
+          la mano solo se cierra mientras la enseña). Sin dedos (las figuras de reserva), cada uno sigue como antes.
         - Coste: unos 100 ms al cargar el pelotari y entre 10 y 50 ms cada vecino, en el ordenador de pruebas; en cada
           imagen, solo mientras una mano cambia de postura. Sin llamadas de dibujo de más.
         - Quién los lleva: los modelos completos, los vecinos del pueblo (su versión ligera, la única que tienen) y, desde

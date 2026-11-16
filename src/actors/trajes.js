@@ -10,6 +10,7 @@
 // · Las texturas (lana rizada, puntilla, mimbre, crin, plumas, manchas, rayas…) se pintan en un lienzo al vuelo: no
 //   ocupan imágenes en el juego.
 import * as THREE from 'three';
+import { agarrar } from './agarrar.js';
 import { fillMaterial } from '../engine/charLight.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { mulberry32 } from '../util/math.js';
@@ -848,7 +849,7 @@ export const TRAJES = {
       nudo.add(new THREE.Mesh(new THREE.SphereGeometry(u(0.024), 10, 8), pn));
       for (const s of [-1, 1]) { const c = new THREE.Mesh(new THREE.ConeGeometry(u(0.032), u(0.1), 4, 1, true), pn); c.rotation.set(Math.PI - 0.35, 0, s * 0.45); c.position.set(s * u(0.02), -u(0.045), -u(0.01)); c.scale.z = 0.3; nudo.add(c); }
       nudo.position.copy(P(0, 0.755, -0.198)); V.put(nudo, 'Head');
-      V.hold(cesto(u(0.17), pa), 'LeftHand');
+      V.hold(cesto(u(0.17), pa), 'LeftHand', 'colgando');
       V.hold(gerren(u(0.62)), 'RightHand');
     },
   },
@@ -1156,9 +1157,13 @@ function contexto(char) {
     mesh, H, u: (f) => f * H, P: (x, y, z) => new V3(x * H, y0 + y * H, z * H),
     // pieza hecha en el espacio del modelo en reposo: va con su hueso tal como está ahora
     put(obj, bone) { toWorld(bone); hang(obj, bone); },
-    // herramienta en la mano, de pie (vertical ahora, con la mano donde esté; la pieza tiene su agarre en el origen)
-    hold(obj, bone) {
-      if (!bones[bone]) return; toWorld(bone); M.decompose(ps, q, sc); const [b] = bones[bone], hp = new V3().setFromMatrixPosition(b.matrixWorld);
+    // herramienta en la mano (la pieza tiene su agarre en el origen y está de pie): con dedos, cogida de verdad, en el puño
+    // y con los dedos cerrados, de pie con el codo doblado o, el cesto (modo 'colgando'), colgando del brazo (agarrar.js);
+    // sin dedos, vertical con la mano donde esté
+    hold(obj, bone, modo = 'erguido') {
+      if (!bones[bone]) return; toWorld(bone); M.decompose(ps, q, sc);
+      if (agarrar(char, /Left/.test(bone) ? 'L' : 'R', obj, { modo, escala: sc.x })) return;
+      const [b] = bones[bone], hp = new V3().setFromMatrixPosition(b.matrixWorld);
       M.compose(hp, new THREE.Quaternion(), sc); hang(obj, bone);
     },
     tick(f) { ticks.push(f); },

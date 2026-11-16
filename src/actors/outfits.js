@@ -1,6 +1,7 @@
 // Trajes navarros para los vecinos (los personajes propios, de Meshy): prendas de aquí cosidas a los huesos
 // (txapela, pañuelico rojo, faja, faldas, gorros de carnaval, cencerros, pieles…) y los trajes de cada comarca.
 import * as THREE from 'three';
+import { agarrar } from './agarrar.js';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 const OUTFITS = [
@@ -122,7 +123,13 @@ function garments(root, O, G) {
   }
   if (O.staff) {   // makila o cayado en la mano derecha, de pie
     const hand = bone('handslot.r') || bone('hand.r');
-    if (hand) { const hp = new THREE.Vector3().setFromMatrixPosition(hand.matrixWorld), L = (bb.max.y - lb.min.y) * 1.25; const st = new THREE.Mesh(new THREE.CylinderGeometry(L * 0.018, L * 0.024, L, 7), mat(O.staff)); put(st, hand.name, new THREE.Vector3(hp.x, lb.min.y + L / 2, hp.z)); }
+    if (hand) { const hp = new THREE.Vector3().setFromMatrixPosition(hand.matrixWorld), L = (bb.max.y - lb.min.y) * 1.25; const st = new THREE.Mesh(new THREE.CylinderGeometry(L * 0.018, L * 0.024, L, 7), mat(O.staff));
+      // (con dedos, cogido de verdad: en el puño, de pie, con el codo doblado, la mano a la altura de la cintura y la punta
+      // en el suelo; más fino, del grueso del puño cerrado, unos 2,5 cm; agarrar.js)
+      const ch = root.userData.glbChar;
+      if (ch?.dedos?.D?.R?.agarreBaston) { st.geometry.dispose(); st.geometry = new THREE.CylinderGeometry(0.0115, 0.0145, L, 7); }
+      if (ch && agarrar(ch, 'R', st, { modo: 'erguido', desde: -L / 2 + (bb.max.y - lb.min.y) * 0.52, pie: -L / 2, largo: L })) added.push(st);
+      else put(st, hand.name, new THREE.Vector3(hp.x, lb.min.y + L / 2, hp.z)); }
   }
   if (O.comb && G.hasHead) {   // peine de oro de la lamia, prendido en el pelo
     const g = new THREE.Group(), w = sz.x * 0.5;
