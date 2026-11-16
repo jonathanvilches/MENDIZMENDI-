@@ -81,12 +81,19 @@ def cuerpo(y, t=0.6):
     vs = [v.co for v in ob.data.vertices if abs(v.co.y - y) < 0.06 * N['L'] and abs(v.co.x - cx) < 0.18 * N['H']]
     top = max(v.z for v in vs); bot = min(v.z for v in vs if v.z > z0 + 0.22 * N['H'])
     return bot + t * (top - bot)
-hoofZ = B['FrontLowerLeg.L'][1].z   # (la punta del hueso de la caña queda por encima del suelo: la pezuña)
+# las patas: la pezuña junto al suelo, y la rodilla y el corvejón en la pata que se ve, por debajo de la lana (la rodilla a
+# algo más de un tercio de lo que va del suelo a la tripa, encima de la pezuña; el corvejón algo más alto y un poco detrás).
+# Hasta el 16 de noviembre de 2026 solo se ponía la pezuña, a la altura de la del esqueleto de antes, y la rodilla y el
+# corvejón quedaban donde caían: dentro de la lana y, el corvejón, muy detrás de la pata. La caña trasera iba en diagonal
+# y al andar la pata se doblaba en zeta. El autor: «las piernas no están bien»
+zv = N['vientre'].z - z0
 P = []
 for lado, kL in (('L', 'FL'), ('R', 'FR')):
-    p = N['pat'][kL]; P.append((B[f'FrontLowerLeg.{lado}'][1], Vector((p.x, p.y, z0 + hoofZ))))
+    p = N['pat'][kL]; P.append((B[f'FrontLowerLeg.{lado}'][1], Vector((p.x, p.y, z0 + 0.03 * N['H']))))
+    P.append((B[f'FrontLowerLeg.{lado}'][0], Vector((p.x, p.y, z0 + 0.42 * zv))))
 for lado, kL in (('L', 'BL'), ('R', 'BR')):
-    p = N['pat'][kL]; P.append((B[f'BackLowerLeg.{lado}'][1], Vector((p.x, p.y, z0 + B['BackLowerLeg.L'][1].z))))
+    p = N['pat'][kL]; P.append((B[f'BackLowerLeg.{lado}'][1], Vector((p.x, p.y, z0 + 0.03 * N['H']))))
+    P.append((B[f'BackLowerLeg.{lado}'][0], Vector((p.x, p.y + 0.03 * N['L'], z0 + 0.46 * zv))))
 yF, yB = N['yF'], N['yB']
 # el espinazo: tres puntos del torso y la cadera
 for nb in ('Torso3', 'Torso2', 'Torso'):
@@ -160,7 +167,10 @@ for v in ob.data.vertices:
     wS = suaves(ESP, p, 3, lambda n: 1.6 if n.startswith('Ear') else (2.5 if n == 'Tail1' else 1.0))
     # la pata más cercana (por sus huesos de abajo, sin el hombro)
     dl, kl = min((min(dseg(p, a, b) for n, a, b in L[1:]), k) for k, L in PATAS.items())
-    t = (1 - ss(0.05 * H_, 0.11 * H_, dl)) * ss(zb + 0.07 * H_, zb - 0.03 * H_, p.z)
+    # (pegado a la pata: con 0,05 a 0,11 los flecos de lana de al lado se iban con ella. Abajo, más ancho: la pezuña lo es más
+    # que la pata y, si su punta se quedaba con el cuerpo, al andar se estiraba en una cuchilla plana)
+    rr = 0.035 * H_ + 0.05 * H_ * (1 - ss(z0 + 0.15 * zv, z0 + 0.5 * zv, p.z))
+    t = (1 - ss(rr, rr + 0.03 * H_, dl)) * ss(zb + 0.07 * H_, zb - 0.03 * H_, p.z)
     W = {n: (1 - t) * w for n, w in wS.items()}
     if t > 0:
         for n, w in suaves(PATAS[kl], p, 2).items(): W[n] = W.get(n, 0) + t * w
@@ -168,6 +178,58 @@ for v in ob.data.vertices:
         if w > 0.02: vg(n).add([v.index], w, 'REPLACE')
 mod = ob.modifiers.new('Armature', 'ARMATURE'); mod.object = arm
 ob.parent = arm; ob.matrix_parent_inverse = arm.matrix_world.inverted()
+# ---- las patas a la par: las ovejas de Meshy están de pie con una pata de cada par adelantada (en la latxa, la trasera
+# derecha 0,6 detrás de la izquierda) y las animaciones, hechas para patas a la par, las cruzaban al andar. Se gira cada
+# pata desde el hombro o la cadera hasta poner su pezuña a la altura de la media de su par, se aplica a la malla y esa
+# pose pasa a ser la de reposo
+from mathutils import Matrix
+bpy.context.view_layer.update()
+M = arm.matrix_world.copy(); Mi = M.inverted()
+bpy.context.view_layer.objects.active = arm
+for o in bpy.context.selected_objects: o.select_set(False)
+arm.select_set(True); bpy.ops.object.mode_set(mode='POSE')
+def girada(p, piv, th):
+    d = p - piv; return Vector((d.x, d.y * math.cos(th) - d.z * math.sin(th), d.y * math.sin(th) + d.z * math.cos(th))) + piv
+for arriba, abajo in ((('FrontUpperLeg.L', 'FrontUpperLeg.R'), ('FrontLowerLeg.L', 'FrontLowerLeg.R')), (('BackLeg.L', 'BackLeg.R'), ('BackLowerLeg.L', 'BackLowerLeg.R'))):
+    pies = [M @ arm.pose.bones[n].tail for n in abajo]; ym = (pies[0].y + pies[1].y) / 2
+    for na, pie in zip(arriba, pies):
+        pb = arm.pose.bones[na]; piv = M @ pb.head
+        lo, hi = -0.6, 0.6
+        for _ in range(40):
+            mid = (lo + hi) / 2
+            if (girada(pie, piv, mid).y - ym) * (girada(pie, piv, hi).y - ym) <= 0: lo = mid
+            else: hi = mid
+        th = (lo + hi) / 2
+        W = Matrix.Translation(piv) @ Matrix.Rotation(th, 4, 'X') @ Matrix.Translation(-piv)
+        pb.matrix = Mi @ W @ M @ pb.matrix
+        bpy.context.view_layer.update()
+        print('  a la par', na, round(math.degrees(th), 1), 'grados')
+bpy.ops.object.mode_set(mode='OBJECT')
+for o in bpy.context.selected_objects: o.select_set(False)
+bpy.context.view_layer.objects.active = ob; ob.select_set(True)
+bpy.ops.object.modifier_apply(modifier=mod.name)
+ob.select_set(False); bpy.context.view_layer.objects.active = arm; arm.select_set(True)
+bpy.ops.object.mode_set(mode='POSE'); bpy.ops.pose.armature_apply(selected=False); bpy.ops.object.mode_set(mode='OBJECT')
+mod = ob.modifiers.new('Armature', 'ARMATURE'); mod.object = arm
+# ---- zancadas más cortas: las animaciones son las de la oveja de antes, derivada de la alpaca, de patas largas; en una oveja
+# de patas cortas y lana hasta media pata, con toda la zancada la pata trasera se estiraba en cuña bajo la lana. Los giros
+# de los huesos de las patas, a ZANCADA de lo que eran (desde su reposo, ya con las patas rectas y a la par)
+from mathutils import Quaternion
+ZANCADA = 0.55
+def curvas(act):
+    try: return list(act.fcurves)
+    except AttributeError: return [fc for ly in act.layers for st in ly.strips for cb in st.channelbags for fc in cb.fcurves]
+HUESOS_PATA = {n for L in PATAS.values() for n, a, b in L}
+for act in bpy.data.actions:
+    fcs = curvas(act)
+    for bn in HUESOS_PATA:
+        q4 = [next((fc for fc in fcs if fc.data_path == f'pose.bones["{bn}"].rotation_quaternion' and fc.array_index == i), None) for i in range(4)]
+        if not all(q4) or len({len(fc.keyframe_points) for fc in q4}) != 1: continue
+        for k in range(len(q4[0].keyframe_points)):
+            q = Quaternion([q4[i].keyframe_points[k].co[1] for i in range(4)])
+            q2 = Quaternion((1, 0, 0, 0)).slerp(q, ZANCADA * (0.7 if 'LowerLeg' in bn else 1))   # (la caña, aún menos: doblada del todo quedaba en pincho)
+            for i in range(4): q4[i].keyframe_points[k].co[1] = q2[i]
+        for fc in q4: fc.update()
 # ---- exportar: el esqueleto, la malla nueva y las ocho acciones
 for o in bpy.data.objects:
     if o not in (arm, ob): bpy.data.objects.remove(o, do_unlink=True)

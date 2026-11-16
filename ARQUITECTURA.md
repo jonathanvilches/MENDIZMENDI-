@@ -719,6 +719,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   demás animales (`texScene`, `texMaterial`, sin mezclar las piezas de Meshy: `sharpMap`); la lana del minijuego de
   esquilar es lo que no mueven la cabeza, las orejas ni las patas, y `woolMaterial` admite la textura. Sheep.glb sigue en
   el repositorio, sin usar, por si hubiera que volver.
+  - Las patas, rehechas la noche del 16 de noviembre (`tools/blender/fauna/oveja-meshy.py`). El autor: «las piernas no
+    están bien». Vistas de lado en el paso y el galope, las patas se doblaban en zeta, se cruzaban y las pezuñas se
+    estiraban en cuchillas. Tres causas: la rodilla y el corvejón del esqueleto quedaban donde caían al encajarlo, dentro de
+    la lana y, el corvejón, muy detrás de la pata, con la caña trasera en diagonal; las ovejas de Meshy están de pie con una
+    pata de cada par adelantada (en la latxa, la trasera derecha 0,6 detrás de la izquierda); y la punta de la pezuña, más
+    ancha que la pata, se quedaba con el cuerpo. Ahora la rodilla va a algo más de un tercio de lo que hay del suelo a la
+    tripa, encima de la pezuña, y el corvejón algo más alto y un poco detrás; cada pata se gira desde el hombro o la
+    cadera hasta poner su pezuña a la par de la otra (de 3° a 8°), se aplica a la malla y esa pose pasa a ser la de reposo;
+    lo que sigue a cada pata es lo pegado a ella y, abajo, más ancho, para la pezuña; y los giros de las patas en las
+    animaciones, que son de la oveja de antes, de patas largas, van al 55 % (la caña, al 39 %). Comprobado de lado en el
+    paso, el galope y comiendo, en la foto de familia del laboratorio y en el esquileo, sin errores.
 - **Los vecinos de Otsagabia hablan** (14 de noviembre de 2026; `game/vozVecinos.js`, `assets/voz/vecinos/ochagavia/`).
   Quién da las pruebas en Ochagavía (`content.js`, QUESTS): Maite (la bienvenida, cinta roja), Itziar (los escudos,
   amarilla), Joxemari (las ovejas, blanca), Kike (la pelota, verde), Joseba (Irati, azul), el Basajaun (naranja), la
