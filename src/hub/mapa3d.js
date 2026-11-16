@@ -630,7 +630,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (las nubes, que se apartan al acercarse la cámara: mapa3dNubes.js; en el móvil y en los equipos flojos, menos)
   // (y desde la última hora del 14 de noviembre de 2026, bastantes más, casi el doble: «tiene que haber bastantes más
   // nubes». Son copos sueltos en una sola malla: más copos, la misma llamada de dibujo)
-  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 36 : TACTIL ? 100 : 180, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 12 : TACTIL ? 30 : 50, nav: centro, sol: sol.position });
+  const nubes = hazNubes({ scene, geos, mats, n: BAJA ? 36 : TACTIL ? 100 : 180, copos: BAJA ? 8 : TACTIL ? 10 : 14, deIsla: BAJA ? 12 : TACTIL ? 30 : 50, dePueblo: BAJA ? 8 : TACTIL ? 14 : 22, nav: centro, sol: sol.position });
 
 
   // los pueblos: su baliza (arriba) y, en el pueblo donde estás, un haz de luz que se ve desde toda Navarra. Cada pueblo
@@ -1196,7 +1196,14 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     dron.perfil = perfilDron(dron); dron.p0 = dron.perfil[0];
     // (y el vuelo hasta él, más tranquilo: de toda Navarra a los tejados en dos segundos y medio parecía un salto)
     volar({ x: dron.X, z: dron.Z, d, yaw, pitch: dron.p0 }, Math.min(4.2, 1.8 + 0.26 * Math.log2(Math.max(1, v.d / d)))); vuelo.dron = dron;
+    // (las nubes del acercamiento: mapa3dNubes.js. La que se atraviesa, a algo más de media altura del camino de la cámara)
+    // (las demás, quietas a lo largo de la recta por la que llega la cámara, desde 19 unidades hasta cerca del pueblo; la que
+    // se atraviesa, en esa recta a 2,6 veces su distancia final: al final del vuelo la cámara entra en ella y sale ya sobre
+    // el pueblo)
+    const S = Math.min(32, Math.max(8, v.d)), q = d * 2.6;
+    acerca = v.d > d * 3 ? { x: dron.X, z: dron.Z, c, d0: S, d1: d, yaw, p: dron.p0, q } : null;
   }
+  let acerca = null;
   // ---------- el vuelo de dron sobre el pueblo elegido ----------
   // La cámara pasa por encima del pueblo muy despacio, como un dron: le da la vuelta poco a poco (una vuelta en tres
   // minutos), se acerca y se aleja un poco y va y viene sobre sus calles, sin perderlo nunca de vista. Los espacios
@@ -2178,7 +2185,12 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     cieloK = 1;
     cieloFondo.visible = cieloK > 0.004; cieloFondo.material.uniforms.uK.value = cieloK; cieloFondo.material.uniforms.uT.value = t; cieloFondo.position.copy(cam.position);
     { const ci = sel && !COL ? C.find(c => c.id === sel) : null, I = ci?.isla;   // (y junto a la isla de la comarca elegida, las suyas)
-      nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA, I && (I.k || 0) > 0.02 ? { x: I.cx, z: I.cz, r: I.rMed, y: ci.py + I.base * ci.sy, D: I.D, k: Math.min(1, I.k) } : null); }
+      if (acerca && !elegido) acerca = null;
+      // (el suelo del pueblo, el de ahora: con la isla en el aire, su altura cambia mientras baja; la que se atraviesa, en la
+      // recta por la que llega la cámara)
+      const A = acerca, ay = A ? (A.c?.sy ? pisoEn(A.c, A.x, A.z) * A.c.sy + A.c.py : v.hy) : 0, ach = A ? Math.cos(A.p) : 0;
+      const P = acerca ? { x: acerca.x, z: acerca.z, y: ay, s: acerca.d0, d1: acerca.d1, yaw: acerca.yaw, p: acerca.p, paso: { x: A.x + Math.sin(A.yaw) * ach * A.q, y: ay + Math.sin(A.p) * A.q, z: A.z + Math.cos(A.yaw) * ach * A.q }, k: Math.min(1, Math.max(0, Math.log(acerca.d0 / Math.max(1e-3, v.d)) / Math.log(acerca.d0 / acerca.d1))) } : null;
+      nubes.update(t, dt, v, cam, scene.fog.far, CIELO_BRUMA, I && (I.k || 0) > 0.02 ? { x: I.cx, z: I.cz, r: I.rMed, y: ci.py + I.base * ci.sy, D: I.D, k: Math.min(1, I.k) } : null, P); }
     FONDO_L.value.set(FONDO).lerp(CIELO_BRUMA, cieloK); CIELO.value = cieloK;
     ORTO_K.value += (ortoListo - ORTO_K.value) * (1 - Math.exp(-dt * 3));
     // (la bruma, mucho más lejos desde el 14 de noviembre de 2026: el autor no quiere «un fondo como si hubiera niebla», sino

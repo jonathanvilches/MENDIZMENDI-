@@ -2728,6 +2728,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   una bola iluminada con sombra azulada y pasa a ser una bruma blanda que se apaga desde el centro, deshilachada por el
   ruido y con grano por dentro; más clara arriba y hacia el sol, con un gris suave y neutro en la base (`uSombra`
   `#c6d0dd`), y algo tendida, 1,55 de ancho por 1 de alto. Juntas hacen nubes algodonosas como las de la imagen.
+  - Al acercarse a un pueblo (16 de noviembre de 2026; el autor: «debe haber más nubes en la atmósfera que se apartan al
+    acercar un pueblo y empezar la cámara de dron a acercarse, y alguna pasa por medio»). Al elegir un pueblo,
+    `irPueblo` guarda en `acerca` la recta por la que llega la cámara (su giro y su inclinación finales) y lo lejos que
+    empieza, como mucho 32 unidades. `hazNubes` tiene 22 nubes más para eso (`dePueblo`; 14 en el móvil y 8 en calidad
+    baja), quietas en el aire a lo largo de esa recta, desde el 60 % de la distancia de salida hasta 3,5 veces la de
+    llegada, repartidas por igual en escala y un poco a los lados, del tamaño que les toca a su distancia. La cámara baja
+    entre ellas y, por la perspectiva, cada una crece y se va hacia el borde de la imagen al pasar; las que quedan muy cerca
+    de la cámara se deshacen. Y una más, en la recta a 2,6 veces la distancia final: la cámara la atraviesa al final del
+    vuelo y la imagen se vela un momento de blanco antes de salir sobre los tejados. La altura del suelo del pueblo se lee
+    en cada imagen (`pisoEn`), porque con la isla en el aire cambia. Al llegar se deshacen. Son copos de la misma malla:
+    ninguna llamada de dibujo más.
 - **Girar e inclinar el mapa con botones** (`.m3-pad2`, `B2` y las teclas `pu` y `pd` en `mapa3d.js`; `inicio.css` y
   `consola.css`; 15 de noviembre de 2026). El autor: «tendrás que añadir también nuevos controles para navegar por el
   mapa». Girar solo iba con dos dedos, el clic derecho o Q y E, e inclinar solo con dos dedos; en el móvil, quien no lo

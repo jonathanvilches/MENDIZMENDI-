@@ -64,7 +64,7 @@ void main() { float a = (1.0 - smoothstep(0.15, 1.0, length(vP))) * vOp; if (a <
 /** Las nubes. n: cuántas; copos: cuántos copos lleva cada una, como mucho; deIsla: cuántas se quedan junto a la isla de la
  *  comarca elegida; nav: el centro de Navarra ({ x, z }); sol: hacia
  *  dónde está el sol; geos y mats, para soltarlo todo. */
-export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, nav = { x: 0, z: 0 }, sol = new THREE.Vector3(-50, 38, -22) }) {
+export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, dePueblo = 12, nav = { x: 0, z: 0 }, sol = new THREE.Vector3(-50, 38, -22) }) {
   const R = rnd(20261114), tex = ruidoTex(); mats.push(tex);
   const SOL = sol.clone().normalize(), solV = new THREE.Vector3();
   // (cada una: dónde nace, a qué altura, su tamaño y sus copos; unas pocas, de las que se quedan)
@@ -105,7 +105,18 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
     const r = R(), w = r < 0.4 ? 0.22 + R() * 0.25 : r < 0.8 ? 0.47 + R() * 0.5 : 0.97 + R() * 0.9, suelta = R() < (w > 0.8 ? 0.7 : 0.5), k = Math.max(3, Math.round(copos * (suelta ? 0.35 + 0.3 * Math.min(1, w) : 0.3 + 0.65 * Math.min(1, w))));
     NI.push({ ...nube(w, suelta, k), a: (NI.length * 0.618 + R() * 0.4) % 1 * Math.PI * 2, rf: 1.12 + R() * R() * 2.8, yf: -0.5 + R() * 1.9, op: (suelta ? 0.62 : 0.84) + R() * 0.14, k: 0 });
   }
-  const total = N.reduce((s, q) => s + q.C.length, 0) + NI.reduce((s, q) => s + q.C.length, 0);
+  // (las del vuelo a un pueblo: desde el 16 de noviembre de 2026. El autor: «debe haber más nubes en la atmósfera que se
+  // apartan al acercar un pueblo y empezar la cámara de dron a acercarse, y alguna pasa por medio». Al elegir un pueblo,
+  // nubes quietas a lo largo del camino de la cámara y un poco a los lados, que se apartan solas al pasar entre ellas;
+  // y una, en medio del camino, que la cámara atraviesa: al entrar en ella la imagen se vela un momento de blanco, sin
+  // llegar a tapar)
+  const NP = [];
+  while (NP.length < dePueblo) {
+    const r = R(), w = r < 0.5 ? 0.3 + R() * 0.35 : 0.65 + R() * 0.6, suelta = R() < 0.45, k = Math.max(3, Math.round(copos * (suelta ? 0.4 : 0.35 + 0.5 * Math.min(1, w))));
+    NP.push({ ...nube(w, suelta, k), a: (NP.length * 0.618 + R() * 0.3) % 1 * Math.PI * 2, rf: 0.35 + R() * 0.8, u: Math.min(1, (NP.length + R() * 0.9) / dePueblo), op: (suelta ? 0.62 : 0.84) + R() * 0.14 });
+  }
+  const PASO = nube(1.1, false, copos);
+  const total = N.reduce((s, q) => s + q.C.length, 0) + NI.reduce((s, q) => s + q.C.length, 0) + NP.reduce((s, q) => s + q.C.length, 0) + PASO.C.length;
   const cuad = () => { const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); geos.push(g); return g; };
   const g = cuad(), aPos = new Float32Array(total * 3), aDat = new Float32Array(total * 4);
   g.setAttribute('aPos', new THREE.InstancedBufferAttribute(aPos, 3).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('aDat', new THREE.InstancedBufferAttribute(aDat, 4).setUsage(THREE.DynamicDrawUsage));
@@ -124,7 +135,7 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
     /** t, dt: el tiempo; v: la vista de la cámara ({ x, z, d }); cam: la cámara; far: hasta dónde llega la niebla; bruma:
      *  el color de lo lejano; isla: la comarca que flota, si la hay ({ x, z, r: su radio, y: la altura de su base, D: lo que
      *  mide su roca, k: cuánto ha subido, de 0 a 1 }) */
-    update(t, dt, v, cam, far, bruma, isla = null) {
+    update(t, dt, v, cam, far, bruma, isla = null, pueblo = null) {
       // (cuánto se han apartado: nada con Navarra entera a la vista, del todo ya cerca de una comarca; con algo de retraso,
       // para que se las vea irse)
       const quiere = 1 - Math.min(1, Math.max(0, (v.d - 42) / 70)); abre += (quiere - abre) * (1 - Math.exp(-dt * 1.4));
@@ -156,6 +167,25 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
           if (op < 0.02) continue;
           for (const c of q.C) { const p = P[k++]; p.x = x + c.dx * e; p.y = y + c.dy * e; p.z = z + c.dz * e; p.s = c.s * e; p.op = op * c.o; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); } } }
       else for (const q of NI) q.k = 0;
+      // (las del vuelo a un pueblo: pueblo = { x, z, y: su suelo, s: lo lejos que empezó la cámara, d1: lo cerca que
+      // acaba, yaw y p: la recta por la que llega, k: lo que lleva del acercamiento, de 0 a 1, paso: el punto de esa recta
+      // donde está la que se atraviesa }. Quietas en el aire, repartidas a lo largo de esa recta y un poco a los lados:
+      // la cámara baja entre ellas y, al acercarse, cada una crece y se va hacia el borde de la imagen, como al bajar de
+      // verdad entre nubes; las de más cerca del pueblo, más pequeñas, para que se vean del mismo tamaño)
+      if (pueblo && pueblo.k > 0.001) {
+        const kk = pueblo.k, entra = suave(0, 0.08, kk), sale = 1 - suave(0.8, 1, kk), s0 = pueblo.d1 * 3.5, s1 = Math.max(s0 * 1.5, pueblo.s * 0.6);
+        const sy = Math.sin(pueblo.yaw), cy = Math.cos(pueblo.yaw), sp = Math.sin(pueblo.p), cpp = Math.cos(pueblo.p);
+        for (const q of NP) {
+          const sq = s0 * (s1 / s0) ** q.u, e = sq * 0.44, m = sq * q.rf * 0.42, f = q.a + t * 0.01, lu = Math.cos(f) * m * 1.5, lw = Math.sin(f) * m;
+          const x = pueblo.x + sy * cpp * sq + cy * lu - sy * sp * lw, z = pueblo.z + cy * cpp * sq - sy * lu - cy * sp * lw;
+          const y = Math.max(pueblo.y + sq * 0.12, pueblo.y + sp * sq + cpp * lw);
+          const op = q.op * entra * sale * suave(e * 0.45, e * 1.5, Math.hypot(x - cp.x, y - cp.y, z - cp.z));
+          if (op < 0.02) continue;
+          for (const c of q.C) { const p = P[k++]; p.x = x + c.dx * e; p.y = y + c.dy * e; p.z = z + c.dz * e; p.s = c.s * e; p.op = op * c.o; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); }
+        }
+        if (pueblo.paso) { const { x, y, z } = pueblo.paso, ep = pueblo.d1 * 1.6, op = 0.95 * entra * (1 - suave(0.8, 1, kk)) * suave(ep * 0.12, ep * 0.9, Math.hypot(x - cp.x, y - cp.y, z - cp.z));
+          if (op >= 0.02) for (const c of PASO.C) { const p = P[k++]; p.x = x + c.dx * ep; p.y = y + c.dy * ep; p.z = z + c.dz * ep; p.s = c.s * ep; p.op = op * c.o; p.alt = c.alt; p.sem = c.sem; p.d = (p.x - cp.x) ** 2 + (p.y - cp.y) ** 2 + (p.z - cp.z) ** 2; vis.push(p); } }
+      }
       // (de lejos a cerca, para que se mezclen bien unos con otros)
       vis.sort((a, b) => b.d - a.d);
       for (let i = 0; i < vis.length; i++) { const p = vis[i]; aPos[i * 3] = p.x; aPos[i * 3 + 1] = p.y; aPos[i * 3 + 2] = p.z; aDat[i * 4] = p.s; aDat[i * 4 + 1] = p.op; aDat[i * 4 + 2] = p.alt; aDat[i * 4 + 3] = p.sem; }
