@@ -1428,6 +1428,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           dejar la pelota en ella (`palmaDe`).
         - Coste: unos 100 ms al cargar el pelotari y entre 10 y 50 ms cada vecino, en el ordenador de pruebas; en cada
           imagen, solo mientras una mano cambia de postura. Sin llamadas de dibujo de más.
+        - Quién los lleva: los modelos completos, los vecinos del pueblo (su versión ligera, la única que tienen) y, desde
+          el 16 de noviembre, también la versión ligera de los dos cuerpos de los disfrazados, la sanferminera y el pastor
+          (`DEDOS_LIGEROS` en `loadMeshy`), porque llevan cosas en la mano. Las multitudes de la grada usan esos mismos
+          cuerpos, pero las hornean quietas: los dedos no les cuestan nada al jugar, solo unos 80 ms más al cargar.
     - El trinquete, un campeonato más (el autor: «tiene que ser un campeonato más, como el manomanista y el 4,5»): ya no
       es el «Torneo de Trinquete» de ocho para toda Navarra, al final de los inventados, sino el Campeonato de Trinquete
       de cada comarca, como el Manomanista, el de Parejas y el del Cuatro y Medio (`KINDS.trinquete`, fuera de `EXTRA`).

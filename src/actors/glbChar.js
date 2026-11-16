@@ -182,6 +182,8 @@ export const MESHY_SPEEDS = { walk: 2.4, run: 5.8 };
 /** ¿Está ya cargado (o cargándose) este personaje de Meshy? */
 export const loadedMeshy = (name) => cache.has('meshy:' + name);
 /** Personaje de Meshy con los clips del juego, escalado a su altura. lod: la versión ligera (para multitudes). */
+// (los cuerpos de los vecinos disfrazados, npcGlb.js y trajes.js: llevan su versión ligera y cosas en la mano)
+const DEDOS_LIGEROS = new Set(['sanfermin', 'pastor']);
 export async function loadMeshy(name, lod = false) {
   lod = lod && !!MESHY_LOD[name];
   const key = 'meshy:' + name + (lod ? ':lod' : ''), height = MESHY_H[name] || 1.5;
@@ -217,9 +219,10 @@ export async function loadMeshy(name, lod = false) {
     const box = new THREE.Box3().setFromObject(g.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
     // (los dedos: huesos nuevos en cada falange, para que las manos se doblen y agarren; dedos.js. Después de las posturas de
     // armado, que no deben tocarlos. También en la versión ligera de los vecinos del pueblo, que es la que llevan siempre,
-    // pero no en la de las multitudes de la grada y el campo, que no se ven de cerca)
+    // y en la de los cuerpos de los disfrazados (DEDOS_LIGEROS), que llevan en la mano el isipu, la escoba o la espada
+    // (agarrar.js); no en las demás de las multitudes de la grada y el campo, que no se ven de cerca)
     let dedos = null;
-    if (!lod || !MESHY[name]) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; });
+    if (!lod || !MESHY[name] || DEDOS_LIGEROS.has(name)) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; });
       if (h) { g.scene.updateMatrixWorld(true); try { dedos = ponDedos(g.scene, h.getWorldScale(new THREE.Vector3()).x * fit); } catch (e) { console.warn('dedos', name, e); } } }
     return { scene: g.scene, animations, userData: { fit, meshy: true, ...(armados ? { armados } : {}), ...(dedos ? { dedos } : {}) } };
   })());
