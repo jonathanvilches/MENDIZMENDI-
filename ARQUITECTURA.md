@@ -1401,6 +1401,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           misma búsqueda que el `mango`, pero casi recto por la mano, como un martillo (`RECTO`, 8°), y algo más grueso
           (1,35 cm de radio). Con la diagonal de la pala, para llevar un bastón derecho había que torcer la muñeca más de lo
           que se tuerce. Su hueco se guarda aparte (`agarreBaston`), al lado del de la pala (`agarre`).
+          En el bastón el mango va en la base de los dedos, todos tocándolo cerca del nudillo, y los dedos se hunden algo
+          más en él (`hunde`, 0,3 de su grosor en vez de 0,55): los vecinos tienen dedos de unos 4 cm de grueso y, con un
+          palo de 2,7 cm, solo lo rodeaban a medias y parecía la mano abierta. Y en las dos posturas, el dedo que se queda
+          sin tocar el mango se sigue cerrando hasta tocarlo (`aprieta`).
         - El `mango`, como en la foto que pasó el autor el 16 de noviembre (la mano abierta sobre la cara de la pala, se
           baja al mango y se cierran los dedos): el mango cruza la mano en diagonal, de la primera falange del índice al
           talón de la mano por el lado del meñique, no recto como un martillo, y la cara de la pala queda paralela a la
