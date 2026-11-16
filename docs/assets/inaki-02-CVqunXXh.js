@@ -1,0 +1,1 @@
+var e=new URL(`inaki-02-Det_3ETL.mp3`,import.meta.url).href;export{e as default};
