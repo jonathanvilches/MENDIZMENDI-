@@ -2,6 +2,7 @@
 // Unidades en metros. Norte = -Z, Este = +X.
 import { clamp, lerp, smoothstep, segDist } from '../util/math.js';
 import { fbm } from '../util/noise.js';
+import { orillaCharca } from './charca.js';
 
 export const HALF = 500;         // el mundo jugable va de -500 a 500
 export const CELL = 2;           // resolución del mapa de alturas
@@ -153,15 +154,8 @@ function rawHeight(x, z, detail) {
   // Muskilda: explanada
   const mp = smoothstep(26, 14, dm);
   if (mp > 0) h = lerp(h, rawHeightMuskildaTop, mp);
-  // balsa de Irati
-  const dp = Math.hypot(x - PLACES.pond.x, z - PLACES.pond.z);
-  if (dp < PLACES.pond.r + 14) {
-    const lvl = pondLevel;
-    const bowl = lvl - 1.6 + Math.pow(Math.max(0, dp - PLACES.pond.r + 6) / 20, 1.6) * 3;
-    const k = smoothstep(PLACES.pond.r + 14, PLACES.pond.r - 2, dp);
-    h = lerp(h, Math.min(h, Math.max(bowl, lvl - 1.6)), k);
-    if (dp < PLACES.pond.r + 6) h = Math.min(h, lerp(lvl + 0.8, h, smoothstep(PLACES.pond.r + 1, PLACES.pond.r + 10, dp)));
-  }
+  // balsa de Irati: el cuenco, la orilla y, por el lado que baja, su dique de tierra (levels/charca.js)
+  if (pondLevel) h = orillaCharca(h, x, z, { x: PLACES.pond.x, z: PLACES.pond.z, r: PLACES.pond.r, level: pondLevel });
   return { h, r, d, F, vm, mm };
 }
 let rawHeightMuskildaTop = 0, pondLevel = 0;
@@ -259,7 +253,9 @@ export function fieldInfo(x, z) {
 // Datos para los módulos genéricos del motor
 export const PONDS = [PLACES.pond];
 PLACES.courts = [{ x: PLACES.fronton.x, z: PLACES.fronton.z, hw: 16, hd: 6.5 }];
-PLACES.clearings = [{ x: PLACES.muskilda.x, z: PLACES.muskilda.z, r0: 35, r1: 16 }, { x: PLACES.waterfall.x, z: PLACES.waterfall.z, r0: 16, r1: 8 }];
+// (y la orilla de la lamia, al oeste de la balsa: antes los abetos le crecían encima y había que rodearlos para hablar con ella)
+PLACES.clearings = [{ x: PLACES.muskilda.x, z: PLACES.muskilda.z, r0: 35, r1: 16 }, { x: PLACES.waterfall.x, z: PLACES.waterfall.z, r0: 16, r1: 8 },
+  { x: PLACES.pond.x - PLACES.pond.r - 3.5, z: PLACES.pond.z + 2, r0: 13, r1: 6 }];
 // (true: si alguno no cabe donde se puso, busca un hueco cerca en vez de quitarse)
 export const SPECIAL_TREES = [
   [PLACES.plaza.x + 11, PLACES.plaza.z - 7, 'oak', 1.25, true], [PLACES.plaza.x - 11, PLACES.plaza.z + 8, 'oak', 1.15, true],

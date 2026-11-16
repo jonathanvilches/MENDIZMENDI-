@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { rx, zz, CONF, FA, FZ, riverHalfA, RIVER_HALF_Z, HALF, RIVERS, PONDS, KIND } from './layout.js';
+import { ORILLA } from '../levels/charca.js';
 
 const waterVS = `
 varying vec3 vWP; varying vec2 vUv; varying float vEdge;
@@ -163,10 +164,11 @@ export class Water {
     for (const pd of PONDS) {
       const mP = makeMat(0.0); this.mats.push(mP);
       mP.uniforms.uDeep.value.set('#143f4d'); mP.uniforms.uShallow.value.set('#3b7f78');
-      const pg = new THREE.CircleGeometry(pd.r + 3, 64);
+      // (el disco llega justo bajo la tierra de la orilla, levels/charca.js: antes, con 3 m más que la charca, asomaba)
+      const R = pd.r + ORILLA, pg = new THREE.CircleGeometry(R, 64);
       pg.rotateX(-Math.PI / 2);
       const e = [], p = pg.attributes.position;
-      for (let i = 0; i < p.count; i++) e.push(Math.min(1, Math.hypot(p.getX(i), p.getZ(i)) / (pd.r + 3)) * 0.9);
+      for (let i = 0; i < p.count; i++) e.push(Math.min(1, Math.hypot(p.getX(i), p.getZ(i)) / R) * 0.9);
       pg.setAttribute('aEdge', new THREE.Float32BufferAttribute(e, 1));
       const uvp = pg.attributes.uv; for (let i = 0; i < uvp.count; i++) uvp.setXY(i, uvp.getX(i) * 6, uvp.getY(i) * 6);
       const pond = new THREE.Mesh(pg, mP);

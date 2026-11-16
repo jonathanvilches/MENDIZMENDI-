@@ -1,6 +1,7 @@
 // Generador de localidades: terreno, río, calles, plaza y huecos para monumentos a partir de una ficha
 import { clamp, lerp, smoothstep, segDist, mulberry32 } from '../util/math.js';
 import { fbm, ridged } from '../util/noise.js';
+import { orillaCharca } from './charca.js';
 import { skylineFor, bardenasFrom } from '../data/horizonte.js';
 
 const FAMILY = {
@@ -480,12 +481,7 @@ export function createTownLevel(def) {
       }
     }
     // las charcas: un cuenco con la orilla suave (como la balsa de Irati de Otsagabia)
-    for (const pd of PONDS) {
-      const dp = Math.hypot(x - pd.x, z - pd.z); if (dp > pd.r + 14) continue;
-      const bowl = pd.level - 1.4 + Math.pow(Math.max(0, dp - pd.r + 5) / 18, 1.6) * 3;
-      h = lerp(h, Math.min(h, Math.max(bowl, pd.level - 1.4)), smoothstep(pd.r + 14, pd.r - 2, dp));
-      if (dp < pd.r + 5) h = Math.min(h, lerp(pd.level + 0.7, h, smoothstep(pd.r + 1, pd.r + 9, dp)));
-    }
+    for (const pd of PONDS) h = orillaCharca(h, x, z, pd, 1.4);
     return { h, river: riverInfo(x, z), vm: a.vm, mm: a.mm };
   }
   const plazaMask = BQ ? () => 0 : PLACES.plaza.rect

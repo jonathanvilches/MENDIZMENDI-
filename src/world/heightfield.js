@@ -186,7 +186,9 @@ export function addStep(x, z, ry, x0, x1, z0, z1, y) { addPlatform(x, z, ry, x0,
 
 // Nivel de agua en un punto (o -Infinity si no hay agua cerca)
 export function waterLevelAt(x, z) {
-  for (const pd of PONDS) if (Math.hypot(x - pd.x, z - pd.z) < pd.r + 8) return pd.level;
+  // (solo donde está el disco del agua: más allá, el dique de la orilla, levels/charca.js, ya baja por debajo del agua y
+  // el jugador parecía vadear en seco)
+  for (const pd of PONDS) if (Math.hypot(x - pd.x, z - pd.z) < pd.r + 2) return pd.level;
   const r = riverInfo(x, z);
   if (r.edge < 3) return r.level;
   return -Infinity;

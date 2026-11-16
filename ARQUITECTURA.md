@@ -3066,6 +3066,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   anillo de montes de siempre, con la nieve en metros del juego). Ahora las laderas del borde son lomas redondeadas y
   boscosas, detrás van las sierras de verdad (`world/sierras.js`) y la nieve y la roca van a su altitud real (la plaza, a
   765 m: `ALT0` y `sierras` en una copia del módulo del nivel, que no se deja modificar).
+- **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
+  del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
+  nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba
+  hasta 6 m por debajo del agua: el disco del agua se veía como una lámina en el aire, y la lamia, en la orilla oeste,
+  estaba a 1 m por debajo del agua. El juego trataba esa zona como agua honda hasta 8 m más allá del borde, así que desde el
+  sur el jugador se quedaba parado a 6,5 m de ella y desde el oeste llegaba vadeando en seco (captura del autor del 16 de
+  noviembre de 2026). Ahora dentro hay un cuenco 1,6 m por debajo del agua y la orilla, con algo de ruido, queda 0,45 m por
+  encima. Por el lado alto la ladera se rebaja hasta esa orilla. Por el lado bajo se levanta un dique de tierra, llano hasta
+  5 m del agua y luego en talud de 0,35. El disco del agua llega solo 1,2 m más allá de la charca, ya bajo la tierra, y el
+  agua para el jugador, 2 m. Alrededor de la lamia hay un claro sin árboles (`PLACES.clearings`). Comprobado andando hacia
+  ella desde el oeste, el norte y el sur: llega a 2 m, sin vadear, con «Hablar con Lamia».
 - **Orillas en talud** (`finalHeight` en `levels/townReal.js`): fuera del casco, el ancho de la orilla crece con lo alto que
   queda la ladera sobre el agua (1,6 veces el desnivel, entre 4,5 y 30 m; el río se busca hasta 36 m, `riverAt`). Antes, con
   4,5 m fijos, donde el río va al pie de un monte, como en Ituren, el cauce cortaba la ladera en un muro de roca gris.
