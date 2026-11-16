@@ -2627,6 +2627,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     vez de 17, amortiguado 8,2) y sube en unos 0,4 s en vez de 0,6; el vuelo de llegada dura un 45 % del normal en vez de
     un 55 %; y el dron llega al plano final en 5 s en vez de 9 (`LLEGA_ISLA`, 1,4 s en vez de 1,8). Ojo: el mapa no deja
     pasar más de 0,1 s por imagen, así que en un ordenador que vaya a menos de 10 imágenes por segundo todo va a cámara lenta.
+    La tarde del 16 de noviembre se deshace y se hace con calma. El autor: «no quiero que aumente la velocidad. Quiero que se
+    vea perfectamente cómo la comarca se despega de Navarra, sube, y cuando pasamos de comarca a comarca también [...] con
+    una pausa». Ahora va por pasos: la cámara llega (vuelo al 70 % del normal); la isla espera a que llegue y se despega
+    con un muelle blando (6 y 4,2), que sube en algo más de 1,2 s; se queda quieta arriba 0,8 s (`PAUSA_ISLA`) y entonces
+    arranca el dron, que llega a su sitio en 2,6 s (`LLEGA_ISLA`) y al plano de la isla entera en 10 (`DRON_ISLA`). Medido
+    en el navegador de pruebas: la cámara llega a 1,2 s, la isla empieza a subir ahí y el dron arranca a 3,1 s.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la

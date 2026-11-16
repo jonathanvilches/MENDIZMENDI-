@@ -1329,6 +1329,14 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // ser mucho más rápido». La subida en arco pasa de 4,6 s a 2,6; el planeo entra en 1,6 s en vez de 3,4 y va a casi el
   // doble de paso; la tierra sale en un segundo; y el vuelo de llegada al plano bajo, un tercio más corto)
   const SUBE_ISLA = 2.6;
+  // (desde la tarde del 16 de noviembre de 2026, con calma y por pasos. El autor: «no quiero que aumente la velocidad. Quiero
+  // que se vea perfectamente cómo la comarca se despega de Navarra, sube, y cuando pasamos de comarca a comarca también, que
+  // esas animaciones vayan fluidas, vayan con una pausa y se vea perfectamente la acción. Ahora mismo va muy rápido,
+  // extremadamente rápido». Primero la cámara llega (el vuelo, al 70 % del normal); la isla espera a que llegue y entonces se
+  // despega con un muelle blando, 6 y 4,2, que sube en algo más de un segundo y medio con un pequeño rebote; se queda arriba PAUSA_ISLA
+  // y solo entonces arranca el dron, que llega a su sitio en 2,6 s y al plano de la isla entera en 10. Antes, la isla salía
+  // al 15 % del vuelo con un muelle de 34 y 8,2 (0,4 s) y el dron arrancaba a medio salir)
+  const PAUSA_ISLA = 0.8;
   // (y desde el 16 de noviembre de 2026, todo más deprisa: «la animación [...] de las comarcas que salen de la tierra va muy
   // lenta». La tierra arranca con el vuelo de llegada al 15 % en vez de al 30 %, y su muelle es el doble de firme, 34 en vez
   // de 17, con el mismo amortiguado: sube en unos 0,4 s en vez de 0,6; el vuelo de llegada, un 45 % del normal en vez de un
@@ -1355,7 +1363,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // el autor mandó la captura de ese plano, «este sería el plano perfecto después de la animación». Ya no da vueltas: sale
   // de cerca, a CERCA_DRON y a PITCH_DRON, se abre hacia un lado SESGO_DRON y vuelve mientras se aleja, y en DRON_ISLA
   // segundos llega a la isla entera a 32° y se para. Las dos curvas llegan con velocidad cero: no frena de golpe)
-  const LLEGA_ISLA = 1.4, DRON_ISLA = 5, SESGO_DRON = 0.5, CERCA_DRON = 0.52, PITCH_DRON = 0.4;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
+  const LLEGA_ISLA = 2.6, DRON_ISLA = 10, SESGO_DRON = 0.5, CERCA_DRON = 0.52, PITCH_DRON = 0.4;   // (y desde la noche del 14, 1,8 s: el autor lo seguía viendo lento)
   function sigueDronIsla(dt) {
     const p = islaDron; p.t += dt; const u = Math.min(1, p.t / LLEGA_ISLA), s = u * u * (3 - 2 * u), k = Math.min(1, p.t / DRON_ISLA);
     const y1 = Math.round(p.de.yaw / (Math.PI * 2)) * Math.PI * 2, sk = Math.sin(Math.PI * k);   // (de frente: el giro entero más cercano)
@@ -1430,7 +1438,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       // (y la subida, desde el 15 a mediodía, más cerca: ACERCA_SUBIDA de lo que encaja la comarca entera con su bloque; «hay
       // que acercar más a cámara la comarca cuando sale de la tierra». Los lados de la isla pueden salirse de la imagen)
-      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(16, ACERCA_SUBIDA * encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.45;   // (un vuelo de llegada más corto: antes, 0,68; hasta el 16 de noviembre, 0,55)
+      volar({ x: c.mid.x, z: c.mid.z, d: Math.max(16, ACERCA_SUBIDA * encaja(esq, c.mid.x, c.mid.z, PITCH_ISLA, 1, hyI)), yaw: 0, pitch: PITCH_ISLA }); if (vuelo) vuelo.dur *= 0.7;   // (un vuelo de llegada más corto: antes, 0,68; hasta el 16 de noviembre, 0,55)
       sinNombres = { id: c.id, t: 0 }; }
   }
 
@@ -2088,7 +2096,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       let vuela = 0;
       // (sube en un segundo, con un muelle que se pasa un poco y vuelve; y si la
       // cámara viene volando a su plano de lado, espera a que vaya a medio camino: la ascensión empieza con ese plano)
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && vuelo.t < 0.15 && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 34 - (I.v || 0) * 8.2) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 6 - (I.v || 0) * 4.2) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
@@ -2100,7 +2108,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       // movimiento», va a esa perspectiva y se queda)
       // (en cuanto la isla despega: con el vuelo de llegada ya en su último tercio, se deja y la órbita sigue desde donde va
       // la cámara)
-      if (c.isla && sel === c.id && !c.vistaAlta && (c.isla.k || 0) > 0.25 && !tv && (!vuelo || vuelo.t > 0.5 && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
+      if (c.isla) c.isla.tArriba = (c.isla.k || 0) > 0.9 ? (c.isla.tArriba || 0) + dt : 0;   // (lo que lleva arriba, quieta)
+      if (c.isla && sel === c.id && !c.vistaAlta && c.isla.tArriba > PAUSA_ISLA && !tv && !vuelo && !window.__sinVistaAlta) { c.vistaAlta = true;   // (__sinVistaAlta: para sacar los fotogramas del vídeo)
         const enVuelo = !!vuelo; if (enVuelo) { vuelo = null; Object.assign(goal, { x: v.x, z: v.z, d: v.d, yaw: v.yaw, pitch: v.pitch }); }
         if ((enVuelo || Math.abs(goal.pitch - PITCH_ISLA) < 0.03) && !gesto && !ptrs.size) { const alta = encuadreIsla(c);   // (la isla entera, de cerca, desde cada lado)
           if (MOV_REDUCIDO) volar({ x: alta.x, z: alta.z, d: alta.d, pitch: alta.pitch, yaw: 0 }, 2.3); else islaDron = { c, t: 0, de: { ...goal }, alta, giro: c.mid.x < centro.x ? 1 : -1 }; } }
