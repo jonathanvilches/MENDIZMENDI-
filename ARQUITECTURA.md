@@ -1210,8 +1210,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pie asoman por el borde. Desde noviembre de 2026 no hay un carrusel por comarca: todos los pueblos van en una sola fila,
   comarca tras comarca, sin repetir ninguno, y al pasar el último de una comarca sigue el primero de la siguiente, con su
   pestaña encendida arriba y cada carta del color de la suya. Las pestañas (y ↑ ↓) saltan al primer pueblo de cada comarca:
-  si está lejos, las cartas se apagan, se pasa y entran las de allí desde su lado, sin recorrer las de en medio. Solo se
-  apaga la flecha en el primer pueblo de todos y en el último. Las portadas se piden al acercarse a la de delante y se
+  si está lejos, las cartas se apagan, se pasa y entran las de allí desde su lado, sin recorrer las de en medio. Es
+  circular desde el 16 de noviembre de 2026: tras el último viene el primero, por el lado más corto, y las flechas no se
+  apagan nunca. Empezando por la primera, el lado izquierdo quedaba vacío y la de delante parecía descentrada («las
+  imágenes del carrusel no están bien centradas [...] que sean un carrusel circular»). Vale igual para el menú de pelota. Las portadas se piden al acercarse a la de delante y se
   sueltan al alejarse mucho (`foto` en `galeria.js`): con las 38 a la vez, el móvil se quedaba sin memoria. Las flechas del
   teclado son de la galería solo mientras se ve: escondida detrás de un pueblo, se las quedaba y en el ordenador el
   personaje no andaba con ellas. Antes, al

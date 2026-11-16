@@ -23,7 +23,12 @@ export function galeria(m, o) {
   let rot = 0, meta = 0, frente = -1, raf = 0, last = 0, arrastre = null, saltando = false;
   // (los pueblos de cada comarca: desde qué tarjeta y cuántos; y la comarca de cada tarjeta)
   const R = [], deC = [];
-  const tope = (v) => Math.max(0, Math.min((N - 1) * paso, v));
+  // (circular: pasado el último de todos viene el primero, y antes del primero, el último. Así a los dos lados de la de
+  // delante siempre hay tarjetas y queda en medio; empezando por la primera, todo el lado izquierdo quedaba vacío y las demás
+  // amontonadas a la derecha: «las imágenes del carrusel no están bien centradas [...] que sean un carrusel circular»,
+  // 16 de noviembre de 2026. rot y meta corren sin tope; la tarjeta de cada sitio es el resto de dividir por N)
+  const md = (k) => ((k % N) + N) % N;
+  const tope = (v) => v;
 
   // ---------- la fila entera: todas las comarcas, una detrás de otra ----------
   // (las portadas, sin cargar: cada una se pide cuando su tarjeta se acerca a la de delante, y se suelta al alejarse mucho;
@@ -85,8 +90,10 @@ export function galeria(m, o) {
   // de delante, encendida y algo adelantada)
   function pinta() {
     for (let k = 0; k < N; k++) {
-      const s = (k * paso - rot) / paso, a = Math.abs(s), sg = Math.sign(s), t = T[k];
-      if (a >= VIS + 0.6) { if (t.style.visibility !== 'hidden') t.style.visibility = 'hidden'; foto(t, a < VIS + 3); continue; }
+      const L = N * paso, dd = (((k * paso - rot) % L) + L * 1.5) % L - L / 2;
+      const s = dd / paso, a = Math.abs(s), sg = Math.sign(s), t = T[k];
+      // (con pocas tarjetas, la misma no sale a los dos lados a la vez: solo hasta la mitad de la vuelta)
+      if (a >= Math.min(VIS + 0.6, N / 2)) { if (t.style.visibility !== 'hidden') t.style.visibility = 'hidden'; foto(t, a < VIS + 3); continue; }
       const i = Math.min(Math.floor(a), PU.length - 2), u = Math.min(1, a - i), A = PU[i], B = PU[i + 1];
       const x = sg * (A.x + (B.x - A.x) * u), z = A.z + (B.z - A.z) * u, g = sg * (A.g + (B.g - A.g) * u);
       t.style.transform = `translate3d(${x.toFixed(1)}px, 0, ${z.toFixed(1)}px) rotateY(${g.toFixed(2)}deg)`;
@@ -94,11 +101,11 @@ export function galeria(m, o) {
       t.style.setProperty('--o', (a <= VIS ? 1 : Math.max(0, (VIS + 0.6 - a) / 0.6)).toFixed(3));
       t.style.visibility = ''; foto(t, true);
     }
-    const f = !N ? -1 : Math.max(0, Math.min(N - 1, Math.round(rot / paso)));
+    const f = !N ? -1 : md(Math.round(rot / paso));
     if (f !== frente) {
       frente = f; T.forEach((t, k) => { t.classList.toggle('frente', k === f); t.tabIndex = k === f ? 0 : -1; t.setAttribute('aria-current', String(k === f)); });
-      // (la flecha del lado donde ya no hay más, apagada: solo en el primer pueblo de todos y en el último)
-      G.querySelectorAll('[data-gal]').forEach(b => { b.disabled = +b.dataset.gal < 0 ? f <= 0 : f >= N - 1; });
+      // (las flechas, siempre encendidas: en un carrusel circular siempre hay otra; con una sola tarjeta, apagadas)
+      G.querySelectorAll('[data-gal]').forEach(b => { b.disabled = N < 2; });
       if (f >= 0) {
         enComarca(deC[f]); const r = R[ci], k = f - r.a;
         puntos.querySelectorAll('i').forEach((p, j) => p.classList.toggle('on', j === k));
@@ -123,12 +130,14 @@ export function galeria(m, o) {
   // (a la tarjeta k: si está cerca, pasando; si está lejos, sin recorrer todas las de en medio: se apagan, se pasa y entran
   // las de allí desde su lado)
   function aTarjeta(k, sonido = 'click') {
-    const cur = Math.round(meta / paso); k = Math.max(0, Math.min(N - 1, k)); if (k === cur && rot === meta) return;
-    if (Math.abs(k - cur) <= 3 || reduce()) { meta = k * paso; o.sonido?.(sonido); anima(); return; }
+    // (por el lado más corto de la vuelta)
+    const base = Math.round(meta / paso), cur = md(base); k = md(k); let dk = k - cur; if (dk > N / 2) dk -= N; else if (dk < -N / 2) dk += N;
+    if (!dk && rot === meta) return;
+    if (Math.abs(dk) <= 3 || reduce()) { meta = (base + dk) * paso; o.sonido?.(sonido); anima(); return; }
     if (saltando) return; saltando = true; o.sonido?.('open');
     anillo.classList.add('sale');
     setTimeout(() => {
-      const dir = Math.sign(k - cur); meta = k * paso; rot = meta - paso * 0.6 * dir;
+      const dir = Math.sign(dk); meta = (base + dk) * paso; rot = meta - paso * 0.6 * dir;
       anillo.classList.remove('sale'); anillo.classList.add('entra'); setTimeout(() => anillo.classList.remove('entra'), 700);
       saltando = false; anima();
     }, 230);
@@ -153,8 +162,6 @@ export function galeria(m, o) {
     const now = performance.now(), ddt = Math.max(1, now - a.t);
     a.v = (e.clientX - a.lx) / ddt; a.lx = e.clientX; a.t = now;
     rot = a.r - dx / w * paso;
-    // (pasado el primero o el último de todos, cuesta: se estira un poco y vuelve al soltar)
-    const t0 = tope(rot); rot = t0 + (rot - t0) * 0.3;
   };
   addEventListener('pointermove', mueve);
   const suelta = (e) => {
