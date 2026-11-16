@@ -793,6 +793,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   pero Maite dice mal «José Mari» e Itziar pone el acento en la i de «Otsagabia». Pruebas de pronunciación, aún fuera
   del juego: `entrega/voces-prueba/maite-ines-josemari-1.mp3` y `-2`, `itziar-nuria-otsagabia-1.mp3` y `-2`. Esperan a
   que el autor diga cuál vale.
+  El autor, después: Maite dice bien «José Mari» y «Otsagabia», pero no «Zarratrako», que tiene que marcar más la zeta;
+  Itziar tiene que poner el acento en la i, como en «Ochagavía». Nuevas pruebas, aún fuera del juego, cada una con dos
+  formas de escribirlo: `maite-ines-zarratrako-1` y `-2` (en fonética y «Sarratráko»), `maite-ines-zarratraco-z-1` y
+  `-2` («Zarratraco» y en fonética con zeta), `itziar-nuria-otsagabya-1` y `-2` y `itziar-nuria-otsagabia-acento-1` y
+  `-2` («Otsagabía» y en fonética con el acento en la i).
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
