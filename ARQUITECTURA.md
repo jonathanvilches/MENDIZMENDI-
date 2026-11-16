@@ -684,6 +684,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   2,3 kHz y -3,5 a 4,2), un poco de reducción de ruido, un quita-eses y corte por encima de 11 kHz; cada una al mismo nivel
   medio que tenía, picos a -1 dBFS, mp3 de 80 kbps. Queda en 2.130 Hz y 0,82. Las originales siguen en la historia de git.
   Para igualarlas del todo habría que hacer una voz «limpia» de Mikel, como la de Edurne, y grabarlo de nuevo.
+- **Comentarios menos repetidos y con sentido** (16 de noviembre de 2026; `pelota/comenta.js`, `pelota/match.js`,
+  `game/torneo.js` `otrosDe`). El autor: «los comentarios son muy repetitivos y hay muchos que no tienen sentido».
+  Contra la repetición, `frase()` no repite ninguna de las 24 últimas si queda otra, y los grupos de jugada, tanto y relleno
+  con una o dos frases se callan cuatro tantos después de usarse. Contra lo que no viene a cuento, `fuera()`: el consejo
+  contra un zurdo solo si el rival es zurdo, lo de la pared izquierda nunca en una plaza, lo de las cortadas seguidas solo
+  si alguien lleva cuatro, la grada en pie solo tras un tanto vistoso o en el último tanto, y «llega»/«qué manera de
+  defender» solo si el golpe fue bueno. Situaciones nuevas, con las ideas del autor: «está a dos tantos» (y a tres en los
+  partidos largos, una vez por pelotari), «vaya resto de saque» (el resto que gana el tanto), «le ha pasado la pelota por
+  encima», «¡atrás!» en la pelota larga, «qué bien ha sacado esa pelota de la pared», el partido perfecto (5 de ventaja,
+  8 tantos o más, como mucho un fallo), el que falla 3 de los 5 últimos («no le está entrando la pelota», a veces «se le
+  nota cansado»), el que anda fino con la derecha o la izquierda (2 de los 3 últimos tantos con esa mano; `match.js`
+  `formaCtx`, que guarda la mano del último golpe en `swingAnim`) y lo que ha pasado en los otros partidos del campeonato
+  (`otrosDe`: sorpresa, ajustado, sin historia, el favorito sigue o ha caído, otro invicto, la siguiente ronda, la liguilla).
+  Las 92 frases nuevas están grabadas (Mikel con su voz de siempre y el mismo filtro, Edurne con la limpia) pero no entran
+  hasta que el autor las apruebe: `frase()` se salta toda clave sin audio (`voz.js`, `tiene`), así que sin ellas callan.
 - **Los vecinos de Otsagabia hablan** (14 de noviembre de 2026; `game/vozVecinos.js`, `assets/voz/vecinos/ochagavia/`).
   Quién da las pruebas en Ochagavía (`content.js`, QUESTS): Maite (la bienvenida, cinta roja), Itziar (los escudos,
   amarilla), Joxemari (las ovejas, blanca), Kike (la pelota, verde), Joseba (Irati, azul), el Basajaun (naranja), la

@@ -290,6 +290,31 @@ export function estDe(T, m) {
   return L.length ? L[Math.floor(Math.random() * L.length)] : null;
 }
 
+/** Lo que se sabe de los demás partidos del campeonato, para que Edurne lo cuente entre tanto y tanto (pelota/comenta.js,
+ *  las frases o-*): cómo acabó otro partido de la ronda anterior (sorpresa, muy ajustado o sin historia), si el gran
+ *  favorito sigue o ya ha caído, si hay otro que aún no ha perdido, que el ganador de hoy se mide al del otro partido o
+ *  que la liguilla está apretada. Desde el 16 de noviembre de 2026; el autor: «también se pueden comentar otros partidos
+ *  que se hayan jugado en el campeonato, cómo están otros pelotaris». Devuelve las claves que valen, sin repetir */
+export function otrosDe(T, m) {
+  if (!T || !m) return [];
+  const yo = T.players.findIndex(p => p.you), L = [], gana = (x) => (x.s[0] > x.s[1] ? x.a : x.b), pierde = (x) => (x.s[0] > x.s[1] ? x.b : x.a);
+  const ult = T.past.at(-1), otros = (ult?.matches || []).filter(x => x.s && x.a !== yo && x.b !== yo);
+  if (otros.length) {
+    const x = otros[Math.floor(Math.random() * otros.length)], d = Math.abs(x.s[0] - x.s[1]), w = T.players[gana(x)], l = T.players[pierde(x)];
+    if (fuerza(T, w) + 3 < fuerza(T, l)) L.push('sorpresa'); else if (d <= 2) L.push('ajustado'); else if (d >= 5) L.push('claro');
+  }
+  // (el gran favorito: el más fuerte de los demás; si ha perdido algún partido de eliminatoria, ya ha caído)
+  const fav = T.players.map((p, i) => [i, fuerza(T, p)]).filter(([i]) => i !== yo).sort((a, b) => b[1] - a[1])[0]?.[0];
+  if (fav != null && T.past.length) {
+    const ko = T.past.filter(R => !R.liga).flatMap(R => R.matches).filter(x => x.s && (x.a === fav || x.b === fav));
+    if (ko.some(x => pierde(x) === fav)) L.push('favorito-cae'); else if (ko.length && m.rival !== T.players[fav]) L.push('favorito-sigue');
+  }
+  const jugados = (i) => T.past.flatMap(R => R.matches).filter(x => x.s && (x.a === i || x.b === i));
+  if (T.players.some((p, i) => i !== yo && jugados(i).length >= 2 && jugados(i).every(x => gana(x) === i))) L.push('invicto');
+  if (m.liga) L.push('liguilla'); else if (m.round !== 'Final' && T.matches.length > 1) L.push('siguiente');
+  return L;
+}
+
 // ---------------------------------------------------------------- pantalla: el cuadro del torneo
 // Como en las retransmisiones: a la izquierda tu próximo partido con las dos cartas (tú de azul, el rival de colorado,
 // con su media y sus cualidades; tocar la del rival abre su ficha) y a la derecha el cuadro, con las líneas que unen

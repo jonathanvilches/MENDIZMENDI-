@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, otrosDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -348,7 +348,7 @@ export class PuebloDeportes {
           comp: `${(KINDS[kind] || KINDS.mano).name} · ${m.round}`, final: m.round === 'Final', youBonus: youBonus(T),
           rivalBonus: ((m.rival.lv || 2) - 2) * 3, intro: (pm) => llegaFronton(this, venue, pm), cuatro: reglaDe(kind) === 'cuatro',
           yo: T.yo ? { name: T.yo.name, town: T.yo.town, stats: tusStats(T) } : null,   // (el pelotari con el que juegas el campeonato, si no es el tuyo)
-          camp: { kind, ronda: m.round, fuera: sedeK === 'fuera', est: estDe(T, m) } });   // (el campeonato y la ronda, si se juega en el frontón del rival y cómo llegas, para los comentarios: comenta.js)
+          camp: { kind, ronda: m.round, fuera: sedeK === 'fuera', est: estDe(T, m), otros: otrosDe(T, m) } });   // (el campeonato y la ronda, si se juega en el frontón del rival y cómo llegas, para los comentarios: comenta.js)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         played = true;
