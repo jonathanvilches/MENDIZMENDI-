@@ -29,7 +29,9 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 
 Ninguna voz entra en el juego sin que el autor la haya escuchado y aprobado.
 
-Las voces de castellano leen x, tx, tz y z con reglas de castellano. Una primera prueba escribía lo dicho como suena: Kaisho, Joshemari, Churi, lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore y Sarratrako. Al autor no le convenció y se retiró del juego: siguen las 25 grabaciones de antes. La siguiente prueba usa eleven_v4 con la pronunciación en alfabeto fonético y se manda al autor antes de tocar el juego. Zatoya se dice en castellano.
+Las voces de castellano leen x, tx, tz y z con reglas de castellano. Una primera prueba escribía lo dicho como suena: Kaisho, Joshemari, Churi, lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore y Sarratrako. Al autor no le convenció y se retiró del juego: siguen las 25 grabaciones de antes. La siguiente prueba usó eleven_v4 con la pronunciación en alfabeto fonético. El 16 de noviembre el autor aprobó 25 grabaciones y ya están en el juego. Zatoya se dice en castellano.
+
+Pendientes de que el autor las escuche: los saludos de tarde y noche de Itziar, escritos como su versión B, y el «Kaixo» de Joseba en dos formas, «Kaixo» y «Kaisho».
 
 ## Sin voz a propósito
 

@@ -727,6 +727,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   juego». Vuelven al juego las 25 grabaciones de antes y las escritas como suenan quedan fuera, guardadas para comparar.
   Regla: ninguna voz entra en el juego sin que el autor la haya escuchado y aprobado. La siguiente prueba usa eleven_v4,
   que acepta la pronunciación en alfabeto fonético (AFI entre barras, por ejemplo /ˈkajʃo/), y se manda antes al autor.
+  16 de noviembre de 2026: con eleven_v4 y AFI, el autor aprueba 25 grabaciones y entran en el juego, con sus mismos
+  nombres de archivo. Itziar va con «Egunon» junto y su nombre escrito «Itsiar», sin parones (la de AFI, /iˈtsjaɾ/,
+  hacía pausas). Queda fuera el «Kaixo» de Joseba (`inaki-00`), que no le sonó bien: se graban dos formas, «Kaixo» y
+  «Kaisho», y se le mandan, igual que los saludos de tarde y noche de Itziar, antes de meterlas.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
