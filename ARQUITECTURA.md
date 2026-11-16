@@ -3066,6 +3066,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   anillo de montes de siempre, con la nieve en metros del juego). Ahora las laderas del borde son lomas redondeadas y
   boscosas, detrás van las sierras de verdad (`world/sierras.js`) y la nieve y la roca van a su altitud real (la plaza, a
   765 m: `ALT0` y `sierras` en una copia del módulo del nivel, que no se deja modificar).
+- **Lo que falta de voz y de personajes en Otsagabia** (`entrega/voces-ochagavia-pendientes.md`, recontado el 16 de
+  noviembre de 2026 por la noche contra `dialogFor` de `game/game.js` y el manifiesto): las frases fijas de las misiones
+  tienen todas su grabación; sin voz quedan las que llevan una cuenta o un nombre (unas 120 grabaciones cortas, una por
+  número), los paseantes y, a falta de aprobar sus voces nuevas, Maite e Itziar. La Lamia, el Basajaun, el Bobo, el
+  Zarratrako y los danzantes de Muskilda siguen con el cuerpo antiguo (`COSTUME` en `actors/npcGlb.js`).
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba
