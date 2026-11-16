@@ -31,6 +31,11 @@ import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
 import { galeria } from '../hub/galeria.js';   // (el carrusel de los pueblos, también para el menú de pelota)
+// (los fondos de las cartas del menú de pelota, ilustrados con Higgsfield el 16 de noviembre de 2026: el autor, «hay que
+// cambiar la página de selección de competiciones de pelota y sus fondos más divertidos». Uno por campeonato y por
+// opción, con el suelo libre en medio y abajo para que el pelotari pise en él; de 960 px, unos 60 KB cada uno)
+const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/pelota/fondos/*.webp', { eager: true, query: '?url', import: 'default' }))
+  .map(([k, u]) => [k.split('/').pop().replace('.webp', ''), u]));
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 /** Las cualidades de un pelotari del torneo y sus golpes preferidos (los de los torneos guardados antes sin golpes se
@@ -917,6 +922,9 @@ const MENU_CSS = `
 @media (max-height:430px){.cp-emb{width:34px;height:34px;left:8px;bottom:8px}.cp-emb svg{width:20px;height:20px}}
 .lg-card.tq-menu-card{height:100%;grid-template-rows:auto minmax(0,1fr) auto}
 .pel-gal{height:100%;min-height:0;border-radius:8px;background:radial-gradient(120% 90% at 50% 40%,rgba(52,22,128,.5) 0%,rgba(23,10,58,.28) 55%,transparent 100%)}
+.pel-gal::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(rgba(18,9,40,.55),rgba(18,9,40,.55)),var(--fondo-pag,none) 50% 60%/cover no-repeat;transition:background-image .6s ease}
+.pel-gal .gal-info{text-shadow:0 1px 3px rgba(8,3,20,.85)}
+.cp-card.con-fondo .cp-foto::after{background:radial-gradient(ellipse 40% 34% at 50% 72%,color-mix(in srgb,var(--ac) 16%,transparent),transparent 72%),linear-gradient(180deg,rgba(14,8,32,.34),rgba(14,8,32,0) 26%,rgba(14,8,32,0) 66%,rgba(14,8,32,.5))}
 .pel-gal .gal-cm{justify-content:center;padding:4px 16px 0}
 .pel-gal .gal-cm button{gap:8px;min-height:36px;padding:0 6px 0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(16,9,34,.55);color:#ddd3f7;font:800 var(--fs-sm)/1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;transition:background .2s,border-color .2s,color .2s}
 .pel-gal .gal-cm button b{min-width:20px;padding:3px 6px;border-radius:999px;background:rgba(255,255,255,.12);font:800 var(--fs-xs)/1 var(--f-cond);text-align:center}
@@ -1163,27 +1171,28 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // los de una. Cada carta, con su cancha dibujada, el rival y su emblema, y en la franja de abajo el nombre y la ronda;
     // debajo del carrusel, la del centro con su ronda, contra quién y el botón de jugar)
     const D = {};   // (lo de cada carta, por su acción: para la ficha de debajo y para su grupo)
-    const carta = ({ a, cls, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', boton = '' }) => {
-      D[a] = { g, cls, tag, tx, name, fase, contra, ronda, extra, boton };
-      return `<button type="button" class="gal-t" data-gt="${a}"><span class="gt-marco ${cls}"><span class="gt-foto"><span class="cp-card ${cls}${v ? ' cv-' + v : ''}"><span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span></span></span>`
+    const carta = ({ a, cls, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', boton = '', fondo = '' }) => {
+      const fu = FONDOS[fondo] || '';
+      D[a] = { g, cls, tag, tx, name, fase, contra, ronda, extra, boton, fu };
+      return `<button type="button" class="gal-t" data-gt="${a}"><span class="gt-marco ${cls}"><span class="gt-foto"><span class="cp-card ${cls}${v ? ' cv-' + v : ''}${fu ? ' con-fondo' : ''}"${fu ? ` style="--foto:url('${fu}')"` : ''}><span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span></span></span>`
         + `<span class="gt-dato"><span class="gt-nom"><b>${name}</b><small>${fase || tag}</small></span>${ronda ? `<span class="gt-mis">${ronda}</span>` : ''}</span></span></button>`;
     };
     // (cada campeonato, con su cancha dibujada y su emblema, para que no sean todas iguales: el trinquete con sus cuatro
     // paredes y el tejadillo, el 4½ con su raya, la Gran Txapela con focos, el de fiestas con banderines y el de los valles
     // al aire libre; y en su grupo: los de tu comarca, los de toda Navarra y los demás)
     const ARTE = { mano: '', parejas: '', cuatro: 'cuatro', trinquete: 'trinq', gran: 'evento', comarcas: '', fiestas: 'fiestas', valles: 'valles', invierno: 'cuatro', promesas: 'cuatro' };
-    const torneoCarta = (X, a, cls, pairs = false, g = 'comarca') => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), g, v: ARTE[X.kind] || '', emb: X.kind, boton: X.done ? 'Nueva edición' : 'Jugar', ...estado(X) }); };
+    const torneoCarta = (X, a, cls, pairs = false, g = 'comarca') => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), g, v: ARTE[X.kind] || '', emb: X.kind, fondo: X.kind, boton: X.done ? 'Nueva edición' : 'Jugar', ...estado(X) }); };
     const lista = [
       torneoCarta(T, 'torneo', 'cp-mano'),
       T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', true) : '',
       T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro') : '',
       T4 ? torneoCarta(T4, 'torneoTrinquete', 'cp-trinq') : '',   // (el de trinquete, uno más de los de la comarca)
       ...X.map((x) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', false, K.global ? 'navarra' : 'mas'); }),
-      carta({ a: 'libre', cls: 'cp-libre', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½', emb: 'libre' }),
-      carta({ a: 'frontones', cls: 'cp-front', emb: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete', boton: isEU() ? 'Aukeratu' : 'Elegir frontón' }),
-      carta({ a: 'retos', cls: 'cp-retos', emb: 'retos', figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
-      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', emb: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
-      carta({ a: 'pelotaris', cls: 'cp-col', emb: 'pelotaris', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc', boton: isEU() ? 'Ikusi' : 'Ver colección' }),
+      carta({ a: 'libre', cls: 'cp-libre', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½', emb: 'libre', fondo: 'libre' }),
+      carta({ a: 'frontones', cls: 'cp-front', emb: 'frontones', fondo: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete', boton: isEU() ? 'Aukeratu' : 'Elegir frontón' }),
+      carta({ a: 'retos', cls: 'cp-retos', emb: 'retos', fondo: 'retos', figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
+      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', emb: 'camara', fondo: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
+      carta({ a: 'pelotaris', cls: 'cp-col', emb: 'pelotaris', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc', boton: isEU() ? 'Ikusi' : 'Ver colección' }),
     ].filter(Boolean);
     const aDe = (h) => /data-gt="([^"]+)"/.exec(h)?.[1];
     // (los grupos, arriba, con su color y cuántas cartas tiene cada uno; solo los que tienen alguna)
@@ -1205,7 +1214,9 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');
     // (la ficha de la del centro: su grupo, su nombre, su ronda y contra quién, sus txapelas y el botón)
+    // (y detrás de todo, el fondo de la del centro, velado: la página cambia con cada campeonato)
     const info = (a) => { const x = D[a]; if (!x) return ''; const gN = GRUPOS.find(q => q[0] === x.g)?.[1] || '';
+      const pg = r.querySelector('.pel-gal'); if (pg && x.fu) pg.style.setProperty('--fondo-pag', `url('${x.fu}')`);
       return `<div class="gi-t ${x.cls}"><small>${esc(gN)}</small><div class="gi-fila"><h2>${x.name}</h2></div><p class="pg-linea">${x.fase ? `<span>${x.fase}</span>` : ''}${x.contra ? `<span${x.extra}>${x.contra}</span>` : ''}</p></div>`
         + `<div class="gi-b">${txa(x.tx)}<button type="button" class="lg-btn go" data-a="${a}">${iconSVG('play', 22)}<span>${x.boton || (eu ? 'Jokatu' : 'Jugar')}</span></button></div>`; };
     const elige = async (a) => {

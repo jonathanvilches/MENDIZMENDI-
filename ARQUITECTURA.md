@@ -1751,6 +1751,20 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     contra quién, sus txapelas y el botón (Jugar, Nueva edición, Elegir frontón o Ver colección). Se abre con delante la
     última elegida (`herrizherri-pelota-carta`). Las figuras ponen `--o` a 0 en `.figs`: el carrusel usa `--o` en cada
     carta para su transparencia y los pelotaris se corrían al borde.
+  - Con fondos ilustrados (16 de noviembre de 2026; el autor: «hay que cambiar la página de selección de competiciones de
+    pelota y sus fondos más divertidos. Recuerda las conexiones con Higgsfield»). Quince fondos pintados con Higgsfield
+    (`src/assets/pelota/fondos/*.webp`, de 960 px y unos 60 KB; `FONDOS` en `game/torneo.js`), uno por campeonato y por
+    opción: el Manomanista en un frontón cubierto con la grada llena y confeti; las Parejas en una plaza con banderines;
+    el 4½ de noche con focos de colores; el Trinquete con su tejadillo de madera; la Gran Txapela con la txapela gigante
+    en un pedestal; Comarcas con estandartes de colores lisos; Fiestas con farolillos y fuegos artificiales; los Valles en
+    un prado del Pirineo con ovejas; Invierno con nieve; Promesas en el patio de una escuela; el partido libre junto a una
+    iglesia; Frontones con una maqueta de Navarra llena de frontones; los Retos con dianas pintadas en el frontis; Pelota
+    en casa en un salón; y la colección, en una sala de trofeos. Sin personas reconocibles, sin letras ni escudos. Todos
+    dejan libre el suelo en medio y abajo: el pelotari pisa en él, con su sombra, y no queda «puesto por poner el fondo»,
+    como los frontones reales del 13 de noviembre, que el autor retiró. Van en `--foto` de cada carta (`con-fondo`), con
+    un velo suave arriba y abajo, como mucho al 50 %. Y la página entera lleva detrás el fondo de la carta del centro
+    (`--fondo-pag` en `.pel-gal::before`) bajo un velo del 55 %: cambia con cada campeonato, con un fundido en Chrome y
+    Safari; los textos de debajo, con una sombra fina para leerse encima.
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los
