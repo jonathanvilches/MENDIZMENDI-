@@ -1726,7 +1726,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     calentado = true; aves.estrena();
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
     const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
-    const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 }, tiempo: TIEMPO }, res);
+    const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 }, tiempo: TIEMPO, orilla: { glsl: ORILLA, uniforms: { ...orU(C[0]), ...ORS }, centro: { value: 0 } } }, res);
     while (!pasos.next().done);
     const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
     const im = new THREE.InstancedMesh(caja, res.mat, 1); im.setColorAt(0, new THREE.Color());
@@ -1751,7 +1751,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     const quiere = va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
       .sort((a, b) => Math.hypot(a.X0 - v.x, a.Z0 - v.z) - Math.hypot(b.X0 - v.x, b.Z0 - v.z))[0] : null);
     if (!maq) {
-      if (quiere && (quieto || va)) maq = { e: quiere, k: { value: 0 }, alz: { value: 1 }, op: 0, res: {}, pasos: null, tex: null, malla: null };
+      if (quiere && (quieto || va)) maq = { e: quiere, k: { value: 0 }, alz: { value: 1 }, orC: { value: 0 }, op: 0, res: {}, pasos: null, tex: null, malla: null };
       return;
     }
     const m = maq, e = m.e, c = e.c, sigue = quiere === e;
@@ -1771,8 +1771,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // a media bajada, donde era un tirón)
     const primera = !m.estrenada; m.estrenada = true;
     m.res.mat.opacity = m.op; if (m.res.matEmb) m.res.matEmb.opacity = m.op; m.res.casas.visible = m.op > 0.01 || primera; m.alz.value = 1 / Math.max(0.05, c.sy);
-    // (junto a la orilla de una isla en el aire, las casas bajan con el suelo, lo que baja en el centro del pueblo)
-    { const h0 = m.res.alto ? m.res.alto(e.X0, e.Z0) : GROSOR + alto(e.X0, e.Z0); m.res.casas.position.y = orJS(c, e.X0, e.Z0, h0) - h0; }
+    // (junto a la orilla de una isla en el aire, las casas bajan con el suelo: el grupo, lo que baja en el centro del pueblo,
+    // que es lo que necesitan los emblemas; y cada pieza, en su sombreador, lo que le falta en su sitio, maqueta.js)
+    { const h0 = m.res.alto ? m.res.alto(e.X0, e.Z0) : GROSOR + alto(e.X0, e.Z0); m.orC.value = m.res.casas.position.y = orJS(c, e.X0, e.Z0, h0) - h0; }
     if (!sigue && m.k.value < 0.01 && m.op < 0.01) quitaMaqueta();
   }
   // (un paso de la maqueta: el suelo pintado, sus piezas, las sombras de los árboles y, al final, la malla en la comarca;
@@ -1782,7 +1783,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (primero, las casas en orden, de poco en poco: maqueta.js ordenaMaqueta)
     if (!e.D._maq) { (m.orden ||= ordenaMaqueta(e.D)).next(); return false; }
     if (!m.tex) { m.tex = pintaNucleo(e.D, e.R, e.pizarra, BAJA ? 1024 : 2048, false, e.foto); return false; }
-    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: BAJA, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO }, m.res);
+    if (!m.pasos) m.pasos = haceMaqueta(e.D, { X0: e.X0, Z0: e.Z0, MU, EXA, GROSOR, R: e.R, sobre: (X, Z) => sobre(c, X, Z), P: c.Pw, comarca: c.id, lento: BAJA, K: MAQ_K, alzado: m.alz, nivel: levelById(e.t?.id), tiempo: TIEMPO, orilla: { glsl: ORILLA, uniforms: { ...orU(c), ...ORS }, centro: m.orC } }, m.res);
     if (!m.hecha) { m.hecha = m.pasos.next().done; return false; }
     // (la sombra de cada árbol en el suelo pintado, hacia el noreste, como la luz de la maqueta, que viene del suroeste:
     // maqueta.js; azul fría, como las sombras de un día de sol. Hasta el 14 de noviembre de 2026, hacia el sureste y parda)

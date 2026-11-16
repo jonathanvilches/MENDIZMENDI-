@@ -221,7 +221,9 @@ function cubos(lineas, T = 25, m = 12) {
 /**
  * D: el pueblo (expandido). o: { X0, Z0 (su centro en el mapa), MU (unidades por metro), EXA, GROSOR, R (su radio, m),
  * sobre(X, Z) (la altura de la comarca en ese punto, sin GROSOR), P (el contorno de la comarca), comarca, lento, K (lo que
- * se exageran las casas y los árboles), alzado ({ value }: 1 / la escala en y de la comarca) }.
+ * se exageran las casas y los árboles), alzado ({ value }: 1 / la escala en y de la comarca), orilla ({ glsl, uniforms,
+ * centro }: la orilla de una isla en el aire, para que cada pieza baje con el suelo que tiene debajo; centro, { value }: lo
+ * que ya baja el grupo entero) }.
  * Deja en res: { geo (el relieve: position, la altura de la comarca; hd, la del pueblo), alto(X, Z), casas (un grupo),
  * mat, monumentos: [{ n, X, Z }] }.
  */
@@ -287,12 +289,18 @@ export function* haceMaqueta(D, o, res) {
   // piedra, 23 leña apilada, 24 paca de hierba, 25 oveja o vaca, 26 pila de fuente con su agua)
   // (sin el tono de cine, toneMapped: false; la luz se la pone ella misma al final, ver «la luz de la maqueta»)
   const mat = new THREE.MeshLambertMaterial({ transparent: true, opacity: 0, toneMapped: false });
+  // (junto a la orilla de una isla en el aire, cada pieza baja con el suelo que tiene debajo, como el suelo de la maqueta.
+  // Hasta el 16 de noviembre de 2026 bajaba el grupo entero lo que bajaba el centro del pueblo: en Burgui, la mitad del
+  // pueblo, la más lejos de la orilla, bajaba de más y quedaba enterrada bajo su propio suelo. «En el mapa faltan por
+  // construir pueblos», dijo el autor)
+  const orl = o.orilla || null;
   const PT = PAL[estilo], hastial = new THREE.Color(estilo === 'pirineo' ? PT.sillar[0] : PT.cal[0]);
   // (el musgo en los tejados: mucho en los valles húmedos del norte, algo en el Pirineo, casi nada en la Ribera)
   const musgo = { atlantico: 1, pirineo: 0.6, centro: 0.25, ribera: 0.1 }[estilo];
   mat.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, { uAlzado: o.alzado, uMetro: { value: 1 / MU }, uK: { value: K }, uHastial: { value: hastial }, uMusgo: { value: musgo }, uT: o.tiempo || { value: 0 } });
-    sh.vertexShader = 'attribute float aOff, aVent; attribute vec3 aPared; attribute vec2 aCh; uniform float uAlzado, uMetro, uT; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;\n' + sh.vertexShader
+    if (orl) Object.assign(sh.uniforms, orl.uniforms, { uOrC: orl.centro });
+    sh.vertexShader = (orl ? orl.glsl + 'uniform float uOrC;\n' : '') + 'attribute float aOff, aVent; attribute vec3 aPared; attribute vec2 aCh; uniform float uAlzado, uMetro, uT; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;\n' + sh.vertexShader
       .replace('#include <begin_vertex>', `#include <begin_vertex>
 vObj = position; vNo = normal; vVent = aVent; vPared = aPared; vEsc = vec3(1.0); vSemilla = 0.5;
 #ifdef USE_INSTANCING
@@ -306,7 +314,8 @@ vObj = transformed;
 if (aVent > 7.5 && aVent < 9.5) { float sw = sin(uT * 1.3 + vSemilla * 40.0) * 0.03 + sin(uT * 2.1 + vSemilla * 17.0) * 0.012; transformed.x += sw * position.y * position.y; transformed.z += sw * 0.6 * position.y * position.y; }`)
       .replace('#include <project_vertex>', `vec4 mvPosition = vec4(transformed, 1.0);
 #ifdef USE_INSTANCING
-  mvPosition = instanceMatrix * mvPosition; float b0 = instanceMatrix[3].y; mvPosition.y = b0 + (aOff + mvPosition.y - b0) * uAlzado;
+  mvPosition = instanceMatrix * mvPosition; float b0 = instanceMatrix[3].y; mvPosition.y = b0 + (aOff + mvPosition.y - b0) * uAlzado;${orl ? `
+  mvPosition.y += orilla(instanceMatrix[3].xz, b0) - b0 - uOrC;` : ''}
 #endif
 mvPosition = modelViewMatrix * mvPosition; gl_Position = projectionMatrix * mvPosition;`);
     sh.fragmentShader = `uniform float uMetro, uK, uMusgo, uT; uniform vec3 uHastial; varying vec3 vObj, vEsc, vNo, vPared; varying float vVent, vSemilla;
@@ -453,7 +462,7 @@ if (vVent > 20.5) {
   outgoingLight = diffuseColor.rgb * (cielo + vec3(1.0, 0.93, 0.8) * (0.66 - 0.06 * arb) * sol); }
 #include <opaque_fragment>`);
   };
-  mat.customProgramCacheKey = () => 'maqueta9';
+  mat.customProgramCacheKey = () => orl ? 'maqueta10o' : 'maqueta10';
   res.mat = mat;
   const piezas = { paredes: [], tejados: [], agujas: [], ochavos: [], arboles: [], abetos: [], detalles: [], pacas: [], animales: [], pilas: [] };
   const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), e3 = new THREE.Vector3(), sc = new THREE.Vector3(), M4 = new THREE.Matrix4(), col = new THREE.Color();

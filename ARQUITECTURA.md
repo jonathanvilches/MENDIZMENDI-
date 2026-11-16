@@ -2368,8 +2368,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     en el verde, cuánto fuera; en el azul, la altura del borde. Cada lado se pasa dos píxeles al otro, para que los puntos
     que caen justo en la muga bajen del todo: si no, quedaban de pie, como pinchos.
   - Lo leen el relieve (con la luz de su pendiente nueva donde ha bajado), sus paredes, los árboles, los ríos, los
-    embalses, la falda, las casas de los núcleos y el suelo de la maqueta del pueblo; las casas de la
-    maqueta bajan todas lo que baja el centro del pueblo. En las cuentas (`orJS`): las chinchetas, los nombres, la
+    embalses, la falda, las casas de los núcleos, el suelo de la maqueta del pueblo y cada pieza de la maqueta en
+    su sitio (casas, tejados, árboles y detalles: `orilla` en `haceMaqueta`, `maqueta.js`; el grupo baja lo del
+    centro, que es lo que necesitan los emblemas, y cada pieza, en su sombreador, la diferencia, `uOrC`). Hasta el
+    16 de noviembre de 2026 todas las casas bajaban lo del centro: en Burgui, la mitad del pueblo más lejos de la
+    orilla bajaba de más y quedaba enterrada bajo su propio suelo, con solo los tejados de la ortofoto a la vista
+    («En el mapa faltan por construir pueblos»). En las cuentas (`orJS`): las chinchetas, los nombres, la
     cámara, los pájaros y la cabeza de las cascadas. El canto de césped va a la altura del borde ya bajado.
   - Baja mientras la isla sube (de un 8 % a un 70 % del camino) y vuelve al bajar; en tierra no cambia nada.
   - El labio, sin rayas: con una foto de muy cerca («estos cortes hay que corregir»), el fleco de hierba salía mucho más
