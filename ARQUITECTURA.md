@@ -3093,6 +3093,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   5 m del agua y luego en talud de 0,35. El disco del agua llega solo 1,2 m más allá de la charca, ya bajo la tierra, y el
   agua para el jugador, 2 m. Alrededor de la lamia hay un claro sin árboles (`PLACES.clearings`). Comprobado andando hacia
   ella desde el oeste, el norte y el sur: llega a 2 m, sin vadear, con «Hablar con Lamia».
+- **La cascada de la balsa de Irati, peña y agua nuevas** (`buildWaterfall` en `world/landmarks.js`, `Waterfall` en `fx.js`,
+  16 de noviembre de 2026, noche; el autor: «esa cascada es un horror»): la roca son cinco peñascos de roca natural, esferas
+  de muchos triángulos aplastadas y rotas con ruido en dos tamaños (grietas, repisas), a los lados del canal, detrás del agua
+  y en los hombros; nada de bolas apiladas. El agua son tres láminas de distinto ancho y velocidad, con hilos blancos, que se
+  abren al caer; al pie, una poza de espuma que hierve y más rocío.
 - **La cascada de la balsa de Irati, en la orilla** (`buildWaterfall` en `world/landmarks.js`; `PLACES.waterfall` y la peña
   en `rawHeight` de `levels/salazar.js`): antes el salto, de 9 m, caía sobre la hierba, a 4 m del agua, desde una caja de
   16 × 15 m con la textura de los muros de piedra, más alta que la ladera de detrás. Ahora está en la orilla y cae en la

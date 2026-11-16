@@ -94,32 +94,55 @@ export class Particles {
 
 // ---------- Cascada ----------
 export class Waterfall {
+  // (el salto: tres láminas de agua de distinto ancho y velocidad, la de delante que se abre al caer, y al pie una
+  // poza de espuma que hierve y una nube de rocío. Antes, una sola tira de 4 m, lisa, como una cortina. 16 de noviembre de
+  // 2026: «esa cascada es un horror, no está bien hecha»)
   constructor(scene, info, particles) {
     const h = info.top - info.bottom;
-    const g = new THREE.PlaneGeometry(4.2, h, 8, 16);
-    this.mat = new THREE.ShaderMaterial({
-      uniforms: { uTime: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
-      vertexShader: `varying vec2 vUv; void main(){ vUv = uv; vec3 p = position; p.z += sin(uv.y * 6.0) * 0.15 + (1.0 - uv.y) * (1.0 - uv.y) * 1.4; gl_Position = projectionMatrix * modelViewMatrix * vec4(p,1.0); }`,
-      fragmentShader: `uniform float uTime; varying vec2 vUv;
+    this.mats = [];
+    const capa = (ancho, vel, dz, alfa, abre) => {
+      const g = new THREE.PlaneGeometry(ancho, h, 10, 24);
+      const m = new THREE.ShaderMaterial({
+        uniforms: { uTime: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; vec3 p = position; float d = 1.0 - uv.y;
+          p.x *= 1.0 + d * d * ${abre.toFixed(2)}; p.z += d * d * 1.6 + sin(uv.y * 7.0 + uv.x * 3.0) * 0.08;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(p, 1.0); }`,
+        fragmentShader: `uniform float uTime; varying vec2 vUv;
+          float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
+          float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
+          void main(){ vec2 p = vec2(vUv.x * 11.0, vUv.y * 2.2 + uTime * ${vel.toFixed(2)});
+            float s = n(p) * 0.5 + n(p * vec2(2.1, 3.7) + 4.0) * 0.32 + n(p * vec2(5.3, 9.0) - 2.0) * 0.18;
+            float hilos = smoothstep(0.35, 0.9, n(vec2(vUv.x * 26.0, vUv.y * 1.2 + uTime * ${(vel * 1.4).toFixed(2)})));
+            float edge = smoothstep(0.0, 0.22, vUv.x) * smoothstep(1.0, 0.78, vUv.x) * smoothstep(0.0, 0.06, vUv.y) * smoothstep(1.0, 0.94, vUv.y);
+            vec3 c = mix(vec3(0.5, 0.68, 0.74), vec3(0.97, 0.99, 1.0), clamp(smoothstep(0.42, 0.78, s) + hilos * 0.5 + (1.0 - vUv.y) * 0.35, 0.0, 1.0));
+            gl_FragColor = vec4(c, edge * ${alfa.toFixed(2)} * (0.45 + s * 0.55 + hilos * 0.3)); }`,
+      });
+      this.mats.push(m);
+      const mesh = new THREE.Mesh(g, m);
+      mesh.position.set(info.x + Math.sin(info.face) * dz, info.bottom + h / 2, info.z + Math.cos(info.face) * dz);
+      mesh.rotation.y = info.face; scene.add(mesh);
+    };
+    capa(3.2, 2.0, -0.15, 0.7, 0.2); capa(4.4, 2.6, 0.05, 0.75, 0.45); capa(2.4, 3.1, 0.25, 0.65, 0.7);
+    // la poza de espuma al pie
+    const pg = new THREE.CircleGeometry(3.4, 40); pg.rotateX(-Math.PI / 2);
+    const pm = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, transparent: true, depthWrite: false,
+      vertexShader: 'varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `uniform float uTime; varying vec2 vP;
         float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
         float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
-        void main(){ vec2 p = vec2(vUv.x * 8.0, vUv.y * 3.0 + uTime * 2.2);
-          float s = n(p) * 0.6 + n(p * 2.3 + 4.0) * 0.4;
-          float edge = smoothstep(0.0, 0.18, vUv.x) * smoothstep(1.0, 0.82, vUv.x);
-          vec3 c = mix(vec3(0.55, 0.78, 0.85), vec3(1.0), smoothstep(0.45, 0.8, s));
-          gl_FragColor = vec4(c, edge * (0.55 + s * 0.4)); }`,
-    });
-    const m = new THREE.Mesh(g, this.mat);
-    m.position.set(info.x, info.bottom + h / 2, info.z);
-    m.rotation.y = info.face;
-    scene.add(m);
-    this.base = new THREE.Vector3(info.x + Math.sin(info.face) * 1.4, info.bottom + 0.2, info.z + Math.cos(info.face) * 1.4);
+        void main(){ float r = length(vP) / 3.4, a = atan(vP.y, vP.x);
+          float s = n(vec2(a * 4.0, r * 6.0 - uTime * 1.6)) * 0.6 + n(vP * 2.4 + uTime * 0.7) * 0.4;
+          gl_FragColor = vec4(vec3(0.95, 0.98, 1.0), smoothstep(1.0, 0.25, r) * smoothstep(0.35, 0.7, s) * 0.85); }` });
+    this.mats.push(pm);
+    const poza = new THREE.Mesh(pg, pm); poza.position.set(info.x + Math.sin(info.face) * 1.6, info.bottom + 0.06, info.z + Math.cos(info.face) * 1.6); scene.add(poza);
+    this.mat = this.mats[0];
+    this.base = new THREE.Vector3(info.x + Math.sin(info.face) * 1.6, info.bottom + 0.2, info.z + Math.cos(info.face) * 1.6);
     this.p = particles; this.t = 0;
   }
   update(dt, elapsed, near) {
-    this.mat.uniforms.uTime.value = elapsed;
+    for (const m of this.mats) m.uniforms.uTime.value = elapsed;
     this.t += dt;
-    if (near && this.t > 0.05) { this.t = 0; this.p.emit(this.base, { n: 3, color: '#dff4ff', speed: 2.5, size: 0.9, life: 1.2, gravity: 1, spread: 2.5, up: 0.6 }); }
+    if (near && this.t > 0.04) { this.t = 0; this.p.emit(this.base, { n: 4, color: '#eef8ff', speed: 2.8, size: 1.1, life: 1.5, gravity: 0.6, spread: 3.2, up: 0.9 }); }
   }
 }
 

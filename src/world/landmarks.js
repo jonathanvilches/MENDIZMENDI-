@@ -6,6 +6,7 @@ import { terrainHeight } from './heightfield.js';
 import { addBox, addCircle, isFree } from './colliders.js';
 import { bench } from './village.js';
 import { mulberry32 } from '../util/math.js';
+import { fbm } from '../util/noise.js';
 
 export const LANDMARKS = {};
 
@@ -130,24 +131,33 @@ function buildWaterfall(B, rnd) {
   const face = Math.atan2(p.x - w.x, p.z - w.z);
   const fx = Math.sin(face), fz = Math.cos(face), sx = Math.cos(face), sz = -Math.sin(face);
   const h = 7, lvl = p.level;
-  const at = (side, back) => [w.x + sx * side - fx * back, w.z + sz * side - fz * back];
-  const R = (side, back, y, s, sy = 1) => { const [x, z] = at(side, back); B.add('rock', new THREE.DodecahedronGeometry(s, 1), M(x, y, z, rnd() * 6, rnd() * 0.6, rnd() * 0.4, 1, sy, 1)); };
-  // la peña: roca de verdad (no la de los muros) a los dos lados del canal del agua, desde la balsa hasta el labio del salto,
-  // y bloques sueltos medio hundidos en la ladera que sube detrás (rawHeight en levels/salazar.js). Antes, una caja de
-  // 16 × 15 m de piedra de muro con piedras pegadas, suelta sobre la hierba
-  for (const lado of [-1, 1]) {
-    for (let k = 0; k < 4; k++) R(lado * (1.9 + rnd() * 0.5), 0.5 + rnd() * 0.7, lvl - 0.3 + k * 2.0, 1.4 + rnd() * 0.4, 0.85);
-    for (let i = 0; i < 7; i++) {
-      const side = lado * (3.2 + rnd() * 8), back = 0.8 + rnd() * 7, [x, z] = at(side, back), s = 1.1 + rnd() * 1.3;
-      B.add('rock', new THREE.DodecahedronGeometry(s, 1), M(x, terrainHeight(x, z) + s * 0.15, z, rnd() * 6, rnd() * 0.5, rnd() * 0.5, 1.2, 0.7, 1));
+  // la peña: un solo peñasco de roca natural (`rock`), con su cara rota por el ruido, partido por el canal del agua; no bolas
+  // sueltas. Una esfera de muchos triángulos se aplasta en un bloque ancho y se deforma con ruido en dos tamaños: grietas,
+  // repisas y salientes. Delante, el canal: la cara se mete hacia atrás donde baja el agua. (16 de noviembre de 2026, el
+  // autor: «esa cascada es un horror, no está bien hecha». Antes, piedras redondas apiladas como un muñeco de nieve)
+  const peña = (side, back, ancho, alto, fondo, sem) => {
+    const g = new THREE.IcosahedronGeometry(1, 4), P = g.attributes.position;
+    for (let i = 0; i < P.count; i++) {
+      let x = P.getX(i), y = P.getY(i), z = P.getZ(i);
+      const n1 = fbm(x * 1.7 + sem, y * 1.7 + z * 1.3, 4), n2 = fbm(x * 5.1 - sem, z * 4.7 + y * 3.1, 3);
+      const k = 1 + n1 * 0.28 + n2 * 0.09 + Math.max(0, -y) * 0.15;   // (más ancho abajo, como una ladera)
+      y = Math.max(y, -0.55);   // (asienta en el suelo)
+      x *= k; z *= k; y *= 1 + n1 * 0.12;
+      // (repisas: la roca se escalona un poco en horizontal)
+      y = y + Math.sin(y * 9 + n1 * 3) * 0.025;
+      P.setXYZ(i, x, y, z);
     }
-  }
-  R(0, 1.3, lvl + h + 0.1, 1.3, 0.55);   // el labio del salto
-  for (let k = 0; k < 3; k++) R((rnd() - 0.5) * 1.0, 2.0, lvl + 0.8 + k * 2.2, 1.5, 0.9);   // la pared del canal, detrás del agua
-  // piedras sueltas al pie, en el agua
-  for (let i = 0; i < 6; i++) B.add('rock', new THREE.DodecahedronGeometry(0.6 + rnd() * 0.8, 1), M(w.x + fx * (1.5 + rnd() * 2) + sx * (rnd() - 0.5) * 6, lvl - 0.25, w.z + fz * (1.5 + rnd() * 2) + sz * (rnd() - 0.5) * 6, rnd() * 6, 0, 0, 1, 0.6, 1));
-  addBox(w.x - fx * 3.4, w.z - fz * 3.4, 12, 6, face, { solidView: true });
-  LANDMARKS.waterfall = { x: w.x + fx * 0.2, z: w.z + fz * 0.2, top: lvl + h, bottom: lvl, face };
+    g.computeVertexNormals();
+    const [x, z] = [w.x + sx * side - fx * back, w.z + sz * side - fz * back];
+    B.add('rock', g, M(x, lvl + alto * 0.42, z, face + (sem % 1) * 0.6, 0, 0, ancho, alto, fondo));
+  };
+  peña(-3.6, 1.8, 3.4, h * 1.05, 2.8, 1.3); peña(3.8, 2.0, 3.6, h * 0.95, 3.0, 4.7);   // (los dos lados del canal)
+  peña(0, 3.9, 2.6, h * 1.0, 2.0, 8.1);    // (la pared de detrás del agua, más atrás: el canal)
+  peña(-7.2, 3.2, 3.0, h * 0.6, 2.6, 2.9); peña(7.6, 3.4, 3.2, h * 0.55, 2.6, 6.2);   // (los hombros, que bajan a la ladera)
+  // piedras sueltas al pie, en el agua, rotas también
+  for (let i = 0; i < 7; i++) { const g = new THREE.DodecahedronGeometry(0.5 + rnd() * 0.7, 1); B.add('rock', g, M(w.x + fx * (1.4 + rnd() * 2.2) + sx * (rnd() - 0.5) * 7, lvl - 0.25, w.z + fz * (1.4 + rnd() * 2.2) + sz * (rnd() - 0.5) * 7, rnd() * 6, rnd(), 0, 1.3, 0.55, 1)); }
+  addBox(w.x - fx * 3.4, w.z - fz * 3.4, 14, 6, face, { solidView: true });
+  LANDMARKS.waterfall = { x: w.x + fx * 0.4, z: w.z + fz * 0.4, top: lvl + h, bottom: lvl, face };
 }
 
 function buildFieldWalls(B, rnd) {
