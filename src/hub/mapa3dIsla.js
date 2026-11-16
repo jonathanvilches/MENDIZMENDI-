@@ -544,7 +544,7 @@ void main() {
   scene.add(agua); sima.add(aguaA); agua.visible = false;
 
   // ---------- rocío, bruma y polvo: puntos blandos (dos pasadas, como el agua: en el aire y dentro del hueco) ----------
-  const NR = 26, NB2 = 6, NP = 44, NT = caidas.length * (NR + NB2) + NP;
+  const NR = 26, NB2 = 6, NP = 120, NT = caidas.length * (NR + NB2) + NP;
   const pPos = new Float32Array(NT * 3), pS = new Float32Array(NT), pC = new Float32Array(NT * 4);
   const ptoG = new THREE.BufferGeometry(); ptoG.setAttribute('position', new THREE.BufferAttribute(pPos, 3).setUsage(THREE.DynamicDrawUsage)); ptoG.setAttribute('aS', new THREE.BufferAttribute(pS, 1).setUsage(THREE.DynamicDrawUsage)); ptoG.setAttribute('aC', new THREE.BufferAttribute(pC, 4).setUsage(THREE.DynamicDrawUsage)); geos.push(ptoG);
   const PTO = { uEsc: { value: 600 }, uCorte: CORTE };
@@ -560,7 +560,7 @@ void main() {
   // ---------- piedras: las que flotan alrededor y las que se desprenden, de la isla y del borde del hueco ----------
   const piedraG = new THREE.DodecahedronGeometry(1, 0); geos.push(piedraG);
   const flota = Array.from({ length: 12 }, () => ({ a: R() * Math.PI * 2, r: rMed * (0.8 + R() * 0.5), y: -D * (0.1 + R() * 0.7), s: 0.08 + R() * 0.2, w: (R() < 0.5 ? -1 : 1) * (0.05 + R() * 0.08), ph: R() * 6, rot: R() * 6 }));
-  const NC = 90, caen = Array.from({ length: NC }, () => ({ vivo: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s: 0.1, rx: 0, ry: 0, wr: 1 }));
+  const NC = 140, caen = Array.from({ length: NC }, () => ({ vivo: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s: 0.1, rx: 0, ry: 0, wr: 1 }));
   let caeN = 0;
   const suelta = (x, y, z, vx, vy, vz, s) => { const p = caen[caeN++ % NC]; Object.assign(p, { vivo: true, x, y, z, vx, vy, vz, s, rx: R() * 6, ry: R() * 6, wr: 1 + R() * 3 }); };
   const piedraM = new THREE.MeshLambertMaterial({ color: '#c9bfae', emissive: '#6b6052', flatShading: true }); mats.push(piedraM);   // (caliza, como la roca)
@@ -583,19 +583,26 @@ void main() {
      *  esc: los píxeles que ocupa una unidad a una unidad de la cámara (para el tamaño del rocío y el polvo); cam: la cámara */
     update(py, sy, k, t, dt, esc = 600, cam = null, hundidas = 0) {
       const on = k > 0.004; grupo.visible = piedras.visible = sima.visible = agua.visible = pto.visible = canto.visible = panzaA.visible = on;
-      if (!on) { antes = k; KI = 0; for (const p of caen) p.vivo = false; for (const p of polvo) p.t = 9; return; }
+      if (!on) { antes = k; KI = 0; for (const p of caen) p.vivo = false; for (const p of polvo) p.t = 9; return; }   // (p.t 9: apagada)
       const py0 = py; py = py + B * sy;   // (de aquí abajo, py es donde empieza la panza; py0, la base de la comarca)
       TIEMPO.value = t; PTO.uEsc.value = esc;
       // (la orilla baja nada más despegarse la isla: a un 30 % del camino ya está entera)
       const ki = ss(0.02, 0.3, k); if (Math.abs(ki - KI) > 0.002 || (ki === 0) !== (KI === 0)) { KI = ki; ponCanto(sy); }   // (enseguida: si no, mientras sube se veía el monte cortado, con su roca alta)
       if (Math.abs(sy - cantoSy) > 0.002) ponCanto(sy);
       canto.position.y = py0; rocaM.uniforms.uTopeK.value = sy; rocaM.uniforms.uTopeI.value = KI;
-      // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo)
-      if (k > 0.03 && antes <= 0.03) for (let n = 0; n < 46; n++) {
-        const i = (R() * N) | 0, [x, z] = (n % 2 ? Q : Qh)[i], [nx, nz] = (n % 2 ? NOR : NORh)[i], s = 0.05 + R() * (n < 8 ? 0.28 : 0.13);
-        if (n % 2) suelta(x + nx * 0.05, py - 0.05, z + nz * 0.05, nx * (0.3 + R() * 0.7), 0.3 + R() * 0.6, nz * (0.3 + R() * 0.7), s);
-        else { const y0 = fuera(x + nx * 0.3, z + nz * 0.3); suelta(x - nx * 0.08, y0, z - nz * 0.08, -nx * (0.05 + R() * 0.25), R() * 0.3, -nz * (0.05 + R() * 0.25), s); if (n % 6 === 0) echaPolvo(x, y0 - 0.2, z, 0.9 + R() * 0.8); }
-        if (n % 5 === 0) echaPolvo(x, py - 0.2, z, 0.8 + R() * 0.9);
+      // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo. Desde el 16 de noviembre de 2026,
+      // se rompe de verdad: el doble de piedras, algunas grandes, y una nube de polvo, como humo, que sale de toda la grieta y
+      // sube despacio. El autor: «cuando se despega de la tierra, debería romperse y salir un poco más de humo, como polvo»)
+      if (k > 0.03 && antes <= 0.03) {
+        for (let n = 0; n < 90; n++) {
+          const i = (R() * N) | 0, [x, z] = (n % 2 ? Q : Qh)[i], [nx, nz] = (n % 2 ? NOR : NORh)[i], s = 0.05 + R() * (n < 16 ? 0.32 : 0.14);
+          if (n % 2) suelta(x + nx * 0.05, py - 0.05, z + nz * 0.05, nx * (0.3 + R() * 0.8), 0.3 + R() * 0.7, nz * (0.3 + R() * 0.8), s);
+          else { const y0 = fuera(x + nx * 0.3, z + nz * 0.3); suelta(x - nx * 0.08, y0, z - nz * 0.08, -nx * (0.05 + R() * 0.3), R() * 0.35, -nz * (0.05 + R() * 0.3), s); }
+        }
+        // (la nube: repartida a lo largo de toda la grieta, por fuera de la isla y por dentro del hueco)
+        for (let n = 0; n < 72; n++) { const i = Math.floor((n + R() * 0.8) / 72 * N) % N;
+          if (n % 2) { const [x, z] = Q[i], [nx, nz] = NOR[i]; echaPolvo(x + nx * 0.15, py - 0.1 - R() * 0.3, z + nz * 0.15, 1.1 + R() * 1.3); }
+          else { const [x, z] = Qh[i], [nx, nz] = NORh[i], y0 = fuera(x + nx * 0.3, z + nz * 0.3); echaPolvo(x - nx * 0.1, y0 - 0.15, z - nz * 0.1, 1.0 + R() * 1.2); } }
       }
       antes = k;
       // (y luego, sin parar, unas pocas cada segundo; de vez en cuando, con polvo)
@@ -643,10 +650,11 @@ void main() {
           pPos[pi * 3] = c3.x - c3.nx * 0.4 + Math.cos(a) * rr; pPos[pi * 3 + 1] = corte + LAGO + 0.25 + Math.sin(t * 0.4 + r) * 0.08; pPos[pi * 3 + 2] = c3.z - c3.nz * 0.4 + Math.sin(a) * rr;
           pS[pi] = c3.w * 6; pC[pi * 4] = 0.95; pC[pi * 4 + 1] = 0.97; pC[pi * 4 + 2] = 1; pC[pi * 4 + 3] = kk * 0.35; pi++; }
       });
+      // (cada bocanada de polvo se abre, sube despacio y se deshace en algo más de 3 s)
       for (const p of polvo) {
-        if (p.t < 2.2) { p.t += dt; p.y += p.vy * dt; }
-        const f = Math.min(1, p.t / 2.2); pPos[pi * 3] = p.x; pPos[pi * 3 + 1] = p.y; pPos[pi * 3 + 2] = p.z;
-        pS[pi] = p.s * (0.6 + f * 1.8); pC[pi * 4] = 0.86; pC[pi * 4 + 1] = 0.82; pC[pi * 4 + 2] = 0.74; pC[pi * 4 + 3] = p.t < 2.2 ? 0.42 * (1 - f) * Math.min(1, p.t * 6) : 0; pi++;
+        if (p.t < 3.2) { p.t += dt; p.y += p.vy * dt * (1 - p.t / 4); }
+        const f = Math.min(1, p.t / 3.2); pPos[pi * 3] = p.x; pPos[pi * 3 + 1] = p.y; pPos[pi * 3 + 2] = p.z;
+        pS[pi] = p.s * (0.6 + f * 2.4); pC[pi * 4] = 0.84; pC[pi * 4 + 1] = 0.79; pC[pi * 4 + 2] = 0.7; pC[pi * 4 + 3] = p.t < 3.2 ? 0.5 * (1 - f) ** 1.3 * Math.min(1, p.t * 5) : 0; pi++;
       }
       ptoG.attributes.position.needsUpdate = ptoG.attributes.aS.needsUpdate = ptoG.attributes.aC.needsUpdate = true;
       // las piedras

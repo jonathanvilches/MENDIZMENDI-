@@ -2730,6 +2730,31 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   isla con sus montes y pueblos, y a la vez la roca y el hueco de debajo. El muelle de la isla pasa de 6 y 4,2 a 9,5 y 5,3,
   con el mismo poco rebote: sube en algo menos de un segundo en vez de en algo más de 1,2. La pausa de arriba antes del
   dron (`PAUSA_ISLA`, 0,8 s) y el resto de la toma no cambian. Comprobado con fotogramas de Sangüesa a 844 × 390.
+- **La isla sube ya hecha, con árboles por todo y más polvo al romperse** (`finoYa`, `preIslas`, `finos`, `hazFino` y
+  `TOPE_ARB` en `mapa3d.js`; el derrumbe y el polvo de `update` en `mapa3dIsla.js`; noche del 16 de noviembre de 2026). El
+  autor, al verlo en su teléfono: «los cambios de cámara y de plano van a trompicones», «hay árboles en una parte, en otra
+  parte no hay árboles, no queda orgánico [...] o pones árboles por todo, que tenga sentido, que se construyan a la vez»,
+  «cuando se despega de la Tierra, debería romperse y salir un poco más de humo, como polvo» y «ya se despega construido
+  todo, no se va construyendo conforme va subiendo».
+  - Los tirones venían del relieve fino y del bosque denso de la isla: se hacían en tres pasos con la cámara quieta, que
+    caían a medio vuelo del dron (de 0,2 a 0,7 s cada comarca en el navegador de pruebas, el más pesado la malla densa), y
+    luego entraban poco a poco, con los árboles creciendo, que era lo que se veía construirse. Además el bosque denso
+    tenía su propio programa, que se compilaba justo al aparecer. Ahora todo se hace al tocar la comarca, antes de que se
+    mueva nada (`finoYa`), y entra de golpe en cuanto la isla se despega: sube entera. Si ya estaba hecho de antes, tocar
+    no para nada; si no, la pausa es al principio, con la cámara quieta, y no a mitad de un movimiento.
+  - Se hace de antemano (`preIslas`) para la elegida y las dos de cada lado en la fila de abajo (una en calidad baja), un
+    paso cada vez con la cámara quieta, después de sus islas. Ya no se hace nada durante el vuelo del dron de la isla. Se
+    guardan las seis últimas (cuatro en calidad baja), unos 6 MB cada una.
+  - El bosque de la isla, con el mismo material de los árboles de siempre: salen todos a la vez y sin programa nuevo. Con
+    él a la vista, los árboles gruesos de esa comarca se esconden, que si no salían dos tamaños mezclados.
+  - Árboles por toda la comarca, con sentido: el bosque, espeso donde dice la máscara, como antes, y fuera de él árboles
+    sueltos y en grupitos, como setos, riberas y bordes de campos, menos en el sur seco y ninguno en lo más alto; del
+    bosque a los campos se pasa poco a poco, sin el corte que había. Ninguno encima de los pueblos. Como mucho 9.000 por
+    comarca (4.500 en calidad baja), quitando al azar, y con una copa sencilla de 20 triángulos: en el Pirineo salían
+    20.000, el doble de lo que cabe en el presupuesto del iPhone.
+  - Al despegarse se rompe de verdad: el doble de piedras al soltarse, algunas grandes, y una nube de polvo, como humo, de
+    setenta y dos bocanadas repartidas por toda la grieta, por fuera de la isla y dentro del hueco, que se abren, suben
+    despacio y se deshacen en algo más de 3 s.
 - **Sin tirones al elegir una comarca** (`orT` y `crucesDe` en `mapa3dIsla.js`; `losaDe`, `preIslas` e `islaMueve` en
   `mapa3d.js`; 16 de noviembre de 2026). El autor mandó un vídeo del iPhone pasando de comarca a comarca por la fila de
   abajo: «para que veas también lo lento que va y a trompicones». Medido en la grabación: entre 40 y 50 imágenes por

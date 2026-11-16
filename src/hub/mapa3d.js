@@ -491,6 +491,11 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const b = 1 + 0.13 * Math.sin(x * 61 + z * 37) * Math.sin(y * 53 - x * 29 + 1.3);   // (los bultos de las matas)
       P.setXYZ(i, x * b, y * b * 0.86 + 0.125, z * b); nor.push(x / l, y / l, z / l); }
     g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return g; })(); geos.push(copaG);
+  // (la misma copa con 20 triángulos, para el bosque de la isla, que lleva muchos más árboles; TOPE_ARB, los que caben)
+  const copaBajaG = (() => { const g = new THREE.IcosahedronGeometry(0.082, 0), P = g.attributes.position, nor = [];
+    for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), l = Math.hypot(x, y, z) || 1;
+      P.setXYZ(i, x, y * 0.86 + 0.125, z); nor.push(x / l, y / l, z / l); }
+    g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return g; })(), TOPE_ARB = BAJA ? 4500 : 9000; geos.push(copaBajaG);
   // (pino o abeto, o de hoja ancha: arriba del todo, coníferas; de 900 a 1.350 m, mezclados; abajo, hoja ancha, como en
   // Irati, que es un hayedo con abetos)
   const conifera = (mt, r) => mt > 1350 || (mt > 900 && r < 0.4);
@@ -1442,7 +1447,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
     // (solo al elegirla volando: la ficha vuelve a llamar aquí sin vuelo, y eso no tiene que quitar la subida ni el dron)
-    if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) c.vistaAlta = false; }
+    if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) { c.vistaAlta = false; finoYa(c); } }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       // (y la subida, desde el 15 a mediodía, más cerca: ACERCA_SUBIDA de lo que encaja la comarca entera con su bloque; «hay
@@ -1530,7 +1535,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       for (let v = 0; v < a.length; v++) if (pa[v * 3 + 1] > 0.01) a[v] = dh(pa[v * 3], pa[v * 3 + 2]);
       g.setAttribute('aFino', new THREE.BufferAttribute(a, 1)); ampAttr(g, A); c.gFino = g;
       finosHechos.push(c);
-      while (finosHechos.length > 3) { const i = finosHechos.findIndex(o2 => o2 !== c && o2.mesh.geometry !== o2.gFino); if (i < 0) break; const o2 = finosHechos.splice(i, 1)[0]; o2.gFino.dispose(); o2.gFino = null; }
+      while (finosHechos.length > (BAJA ? 4 : 6)) { const i = finosHechos.findIndex(o2 => o2 !== c && o2.mesh.geometry !== o2.gFino); if (i < 0) break; const o2 = finosHechos.splice(i, 1)[0]; o2.gFino.dispose(); o2.gFino = null; }
       return;   // (lo demás, en el paso siguiente: así ninguno se come más de un par de imágenes)
     }
     // (los ríos y los árboles se pusieron sobre la rejilla gruesa: pasan a la altura de los datos y suben o bajan con el fino)
@@ -1539,29 +1544,51 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (el bosque denso: en la elegida, muchos más árboles donde hay bosque, sobre el relieve fino; salen con él)
     if (!c.bosqueFino) {
       let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
+      const PU = T.filter(x => x.c === c || Math.hypot(x.X - c.mid.x, x.Z - c.mid.z) < 60), R2 = (2.4 * S) ** 2, cercaPueblo = (X, Z) => PU.some(x => (x.X - X) ** 2 + (x.Z - Z) ** 2 < R2);   // (sin árboles encima de los pueblos)
       const PI = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(PI.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 7 : 14, L = [];
       const i0 = Math.max(0, Math.floor(((b.min.x / S + CX) - BOSQ.x0) / tx)), i1 = Math.min(BOSQ.nx - 1, Math.ceil(((b.max.x / S + CX) - BOSQ.x0) / tx));
       const j0 = Math.max(0, Math.floor(((b.min.z / S + CY) - BOSQ.y0) / ty)), j1 = Math.min(BOSQ.ny - 1, Math.ceil(((b.max.z / S + CY) - BOSQ.y0) / ty));
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
-        const k = bqD[j * BOSQ.nx + i] / 255; if (k < 0.3) continue;   // (también fuera de Navarra: la máscara sale del relieve, que ya llega alrededor)
-        for (let n = Math.floor(k * k * dens + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(PI, X, Z)) L.push([X, Z]); }
+        // (también fuera de Navarra: la máscara sale del relieve, que ya llega alrededor. Y desde el 16 de noviembre de 2026,
+        // también fuera del bosque: árboles sueltos y en grupitos por toda la comarca, en los setos, las riberas y los bordes
+        // de los campos, menos en el sur seco y ninguno en lo más alto; del bosque a los campos se pasa poco a poco. El autor:
+        // «hay árboles en una parte, en otra parte no hay árboles, no queda orgánico [...] o pones árboles por todo, que tenga
+        // sentido, que se construyan a la vez»)
+        const k = bqD[j * BOSQ.nx + i] / 255, sx = BOSQ.x0 + (i + 0.5) * tx, sy = BOSQ.y0 + (j + 0.5) * ty, [Xc, Zc] = W(sx, sy), mt = alto(Xc, Zc) / EXA;
+        const suelto = 0.08 * suave(0.42, 0.8, ruidoV(sx * 0.09 + 3.1, sy * 0.09 + 8.7)) * (1 - 0.75 * suave(430, 560, sy)) * (1 - suave(1500, 1800, mt));
+        const dd = dens * Math.max(k >= 0.3 ? k * k : 0, suelto);
+        for (let n = Math.floor(dd + az()); n > 0; n--) { const [X, Z] = W(BOSQ.x0 + (i + az()) * tx, BOSQ.y0 + (j + az()) * ty); if (f(X, Z) > 0.05 && enPoligono(PI, X, Z) && !cercaPueblo(X, Z)) L.push([X, Z]); }
       }
-      const mF = L.length ? arbolM(c, c.arbolFondo || { value: 0 }, true) : null, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
+      // (con el material de los árboles de siempre: salen todos a la vez, ya hechos, y sin un programa nuevo que compilar justo
+      // al despegarse la isla; antes crecían con el relieve fino y se compilaba su programa en ese momento)
+      const mF = L.length ? arbolM(c, c.arbolFondo || { value: 0 }, false) : null, m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e3 = new THREE.Vector3(), col = new THREE.Color();
+      // (como mucho TOPE_ARB árboles por comarca, quitando al azar, para que el reparto siga igual de natural: en el Pirineo
+      // salían 20.000, el doble de lo que cabe en el presupuesto del iPhone; y con la copa sencilla, de 20 triángulos, que de
+      // tan lejos no se distingue de la de 80)
+      while (L.length > TOPE_ARB) { const i = (az() * L.length) | 0; L[i] = L[L.length - 1]; L.pop(); }
       const Lc = [], Lh = []; for (const t of L) (conifera(A.alto(t[0], t[1]) / EXA, az()) ? Lc : Lh).push(t);
       c.bosqueFino = [];
-      for (const [G, Ls, hi] of [[arbolG, Lc, true], [copaG, Lh, false]]) {
+      for (const [G, Ls, hi] of [[arbolG, Lc, true], [copaBajaG, Lh, false]]) {
         if (!Ls.length) continue;
         const im = new THREE.InstancedMesh(G.clone(), mF, Ls.length), a = new Float32Array(Ls.length);
         Ls.forEach(([X, Z], n) => { const sc = 0.55 + az() * 0.45;
           im.setMatrixAt(n, m4.compose(e3.set(X, GROSOR + A.alto(X, Z), Z), q, new THREE.Vector3(sc, sc * (hi ? 1.2 : 0.95), sc))); a[n] = dh(X, Z);
           im.setColorAt(n, col.set(hi ? '#2f5a36' : '#558a3e').offsetHSL((az() - 0.5) * (hi ? 0.04 : 0.06), 0, (az() - 0.5) * 0.12)); });
-        im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(a, 1)); im.raycast = () => {}; im.frustumCulled = false; c.mesh.add(im); c.bosqueFino.push(im); geos.push(im.geometry);
+        im.geometry.setAttribute('aFinoI', new THREE.InstancedBufferAttribute(a, 1)); im.raycast = () => {}; im.frustumCulled = false; im.visible = false; c.mesh.add(im); c.bosqueFino.push(im); geos.push(im.geometry);
       }
     }
     for (const x of T) if (x.c === c) x.dh = dh(x.X, x.Z);
     for (const x of N) if (x.c === c) x.dh = dh(x.X, x.Z);
     for (const x of PK) if (x.c === c) x.dh = dh(x.X, x.Z);
     c.finoListo = true;
+  }
+  // (todo el relieve fino de una comarca de una vez, con la cámara aún quieta: al elegirla, para que la isla se despegue ya
+  // hecha, con su relieve y sus árboles, y no se vaya construyendo mientras sube ni dé tirones a medio vuelo del dron. El
+  // autor, el 16 de noviembre de 2026: «ya se despega construido todo, no se va construyendo conforme va subiendo»)
+  function finoYa(c) {
+    if (!finoD || !c || c.finoListo) return;
+    const t0 = performance.now(); if (!c.bordeF) bordeDe(c); const t1 = performance.now(); if (!c.gFino) hazFino(c); const t2 = performance.now(); if (!c.finoListo) hazFino(c);
+    (c.finoMs ||= []).push([t1 - t0, t2 - t1, performance.now() - t2].map(Math.round).join('+'));   // (lo que tarda cada paso: el borde, la malla y lo demás)
   }
   let finoT = 0;
   function finos(dt, now, quieto) {
@@ -1575,10 +1602,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       const up = !!c.gIsla && (c.isla?.k || 0) > 0.002, base = up ? c.gIsla : c.gGrueso;
       const want = c === quiere && c.finoListo && c.gFino && (!c.gIsla || up) ? 1 : 0;
       if (want && c.mesh.geometry !== c.gFino) c.mesh.geometry = c.gFino;
-      c.fk.value += (want - c.fk.value) * (1 - Math.exp(-dt * (want ? 2.2 : 5)));
+      // (hecho antes de subir: entra de golpe, con la isla aún abajo o despegándose; si llega tarde, ya arriba, poco a poco)
+      if (want && (c.isla?.k || 0) < 0.9) c.fk.value = 1;
+      else c.fk.value += (want - c.fk.value) * (1 - Math.exp(-dt * (want ? 2.2 : 5)));
       if (!want && (c.fk.value < 0.004 || (c.gIsla && !up))) { if (c.fk.value < 0.004) c.fk.value = 0; if (c.mesh.geometry !== base) c.mesh.geometry = base; }
       if (!c.gFino && c.finoListo) c.finoListo = false;   // (soltada: se rehace si se vuelve a elegir)
-      if (c.bosqueFino) for (const im of c.bosqueFino) im.visible = c.fk.value > 0.01;
+      // (con el bosque de la isla, los árboles de siempre de esa comarca se esconden: si no, salían dos tamaños a la vez)
+      if (c.bosqueFino) { const on = c.fk.value > 0.01; for (const im of c.bosqueFino) im.visible = on; for (const a of c.arboles || []) a.im.visible = !on; }
     }
   }
 
@@ -1806,13 +1836,18 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // fila de abajo, que es por donde va el jugador. Escondidas no se pintan; las doce ocupan unos 12 MB)
   let preT = 0;
   const islaMueve = (c) => c.isla && (((c.isla.k || 0) > 0.003 && (c.isla.k || 0) < 0.97) || Math.abs(c.isla.v || 0) > 0.02);
+  // (y desde la noche del 16, también el relieve fino y el bosque de la elegida y de las de al lado, dos por cada lado (en
+  // calidad baja, una), para que al tocarlas la isla suba ya hecha; y nunca durante el vuelo del dron de la isla, que es
+  // cuando más se mira: allí daba tirones. Se guardan las seis últimas, cuatro en calidad baja: unos 6 MB cada una)
   function preIslas(dt, quieto) {
-    if (!islaLista || !calentado || tv || elegido || vuelo || ptrs.size || keys.size || inercia || (intro && !intro.hecho) || (islaDron && islaDron.t < LLEGA_ISLA + 0.5) || C.some(islaMueve)) { preT = 0; return; }
-    if ((preT += dt) < (quieto && !paseo && !islaDron ? 1.2 : 3)) return;
+    if (!islaLista || !calentado || tv || elegido || vuelo || ptrs.size || keys.size || inercia || (intro && !intro.hecho) || islaDron || C.some(islaMueve)) { preT = 0; return; }
+    if ((preT += dt) < (quieto && !paseo ? 1.2 : 3)) return;
+    preT = 0;
     const i0 = sel ? C.findIndex(c => c.id === sel) : C.length >> 1;
-    let otra = null, md = 1e9; C.forEach((c, i) => { if (!c.isla && Math.abs(i - i0) < md) { md = Math.abs(i - i0); otra = c; } });
-    preT = 0; if (!otra) return;
-    if (!otra.amp || (otra.amp.amplia && !otra.gIsla)) losaDe(otra); else islaDe(otra);
+    for (const [d, x] of C.map((c, i) => [Math.abs(i - i0), c]).sort((a, b) => a[0] - b[0])) {
+      if (!x.isla) { if (!x.amp || (x.amp.amplia && !x.gIsla)) losaDe(x); else islaDe(x); return; }
+      if (d <= (BAJA ? 1 : 2) && finoD && !x.finoListo) { if (!x.bordeF) bordeDe(x); else hazFino(x); return; }
+    }
   }
   let estreno = null;   // (lo calentado, en la escena una sola imagen; luego fuera)
   function maqueta(dt, quieto) {
@@ -1909,7 +1944,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       if (dron?.id === elegido.id) return { X: dron.cc?.X ?? dron.X, Z: dron.cc?.Z ?? dron.Z, f, natural: !real };
       const cc = real ? (elegido._cc ||= centroCasas(elegido.id)) : null; return { X: cc?.X ?? elegido.X, Z: cc?.Z ?? elegido.Z, f, natural: !real }; } });
 
-  if (import.meta.env.DEV) window.__mapa3d = { islaK: (k) => { islaFija = k; }, det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
+  if (import.meta.env.DEV) window.__mapa3d = { islaK: (k) => { islaFija = k; }, det, nuc, v, goal, ren: r, scene, cam, fino: () => ({ datos: !!finoD, C: C.filter(c => c.gFino || c.fk.value).map(c => ({ id: c.id, k: +c.fk.value.toFixed(2), tris: c.gFino ? c.gFino.index.count / 3 | 0 : 0, arb: (c.bosqueFino || []).reduce((n, im) => n + im.count, 0), ms: c.finoMs })) }), calentado: () => calentado, maqueta: () => maq, sueltos, ir: irPueblo, comarca: (id) => select(id ?? C[3].id), intro: () => intro, pueblos: () => T.map(x => ({ id: x.id, X: x.X, Z: x.Z })),
     // (la cámara frente al relieve: su altura, la del suelo bajo ella y lo que sube; y adelantar el vuelo de dron)
     dronIsla: () => islaDron, relieve: () => { const cp = cam.position, c = deQuien(cp.x, cp.z); return { cam: cp.y, suelo: c?.sy ? pisoEn(c, cp.x, cp.z) * c.sy + c.py : 0, subida, dron: !!dron?.listo }; }, dronT: (t) => { if (dron) dron.t = t; }, saltaVuelo: () => { if (vuelo) vuelo.t = 1; }, fija: () => { Object.assign(v, goal); const c = deQuien(v.x, v.z); if (c?.sy) v.hy = pisoEn(c, v.x, v.z) * c.sy + c.py; }, despeje: () => despeje(v), dron: () => dron, vista: () => vista(), estado: () => ({ vuelo: !!vuelo, dron: dron?.id || null, listo: !!dron?.listo, paseo: !!paseo, sel, elegido: elegido?.id || null, intro: intro ? !!intro.hecho : null, maq: maq?.e?.t?.id || null, inercia: !!inercia, subida, py: hRef.py || 0, v: { ...v }, goal: { ...goal } }), centro: () => { if (!dron) return null; const X = dron.cc?.X ?? dron.X, Z = dron.cc?.Z ?? dron.Z, c = deQuien(X, Z); return { X, Z, Y: c?.sy ? pisoEn(c, X, Z) * c.sy + c.py : v.hy }; }, sonda: (u) => { const g = posDron(dron, u), q = (u / DRON_PASO) % DRON_N, P = dron.perfil[Math.floor(q)], c = deQuien(v.x, v.z), exa = exaDe(v.d); return { P, est: holgura(g.x, g.z, g.d, g.yaw, P, exa), real: despeje(v), vhy: v.hy, hyEst: c ? pisoEn(c, v.x, v.z) * exa : null, sy: c?.sy, py: c?.py, exa, vd: v.d, gd: g.d, vp: v.pitch, gp: goal.pitch, vx: v.x - g.x, vyaw: v.yaw - g.yaw }; }, paseo: () => paseo && { t: paseo.t }, paseoT: (t) => { if (paseo) paseo.t = t; }, chinchetas: () => T.map(t => { t.bola.getWorldPosition(bw).project(cam); return { id: t.id, c: t.comarca, px: Math.round((bw.x + 1) / 2 * sz.w), py: Math.round((1 - bw.y) / 2 * sz.h), s: t.g.scale.x }; }), montes: () => PK.map(x => { pv.set(x.X, x.c ? x.h * x.c.sy + x.c.py : x.h, x.Z).project(cam); return { n: x.lab.querySelector('b').textContent, c: x.c?.id || null, on: !!x.lab._on, px: Math.round((pv.x + 1) / 2 * sz.w), py: Math.round((1 - pv.y) / 2 * sz.h), w: x.lab._w || 0 }; }) };   // (para las pruebas en el servidor de desarrollo)
 
