@@ -324,7 +324,9 @@ export class PelotaGame {
       // de la chapa; bota nada más pasar la falta y corre bajo. Antes el joystick solo movía el punto del frontis (a lo
       // ancho, poco) y no había saque de cortada
       shot = 'saque';
-      const lx = clamp(aimSide(rawX) * 3.7 + gauss(rnd) * err * 1.2, -4.6, 4.6), ay = clamp(aim.y || 0, -1, 1);
+      // (del todo a la izquierda, el bote casi pegado a la pared, a un palmo: antes llegaba a 1,3 m y el autor, «cuando saco con
+      // el botón de cortada no puedo arrimarlo más a la pared. Hay que tener un control absoluto», 16 de noviembre de 2026)
+      const W2 = COURT.W / 2, lx = clamp(aimSide(rawX) * (rawX < 0 ? W2 - 0.3 : 3.9) + gauss(rnd) * err * 1.2, -W2 + 0.18, 4.6), ay = clamp(aim.y || 0, -1, 1);
       if (req === 'cortada') {
         sub = 'saqueCortado';
         const f = pow01(pow), speed = (29 + q * 4 + f * 12) * this.cortaCam(who), T = Math.max(0.2, p.z / speed);

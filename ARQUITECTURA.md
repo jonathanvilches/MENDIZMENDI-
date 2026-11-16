@@ -514,6 +514,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   CORTADA es saque cortado: rápido y raso, bota nada más pasar la falta y gasta como una cortada. La línea de puntería se
   ve también al preparar el saque. Cansado, la fuerza tiene tope (`powTope`): el aro del botón no pasa de ahí y lo que no
   se alcanza se ve en rojo.
+  - Desde el 16 de noviembre de 2026, el saque, normal o cortado, con el mando del todo a la izquierda bota a 27 cm de la
+    pared (a 0,3 m del borde de la cancha más el error del golpe). Antes llegaba a 1,3 m y el autor no podía «arrimarlo
+    más a la pared». A la derecha sigue hasta 3,9 m.
 - **Partido de pelota, el cansancio se ve** (`actors/glbChar.js`, `armSwing`; `pelota/match.js`, `suda`): por debajo de
   la mitad de la energía, el pelotari se encorva (más parado y entre tanto y tanto) y respira deprisa; le saltan gotas de
   sudor y lleva sobre la cabeza su aviso de sudor, que se ve también en el rival, lejos.
