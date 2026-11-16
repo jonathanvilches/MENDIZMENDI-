@@ -6,6 +6,8 @@
 // - Pala corta: tabla de madera maciza y pelota de cuero dura; la más rápida y la que va más baja.
 // - Paleta (de goma): una pala más fina y estrecha y pelota de goma, que bota mucho.
 // - Xare: un aro de madera con la red floja, que recoge la pelota y la lanza; rápida y que sale mucho del frontis.
+import { sinTacos } from '../actors/sinTacos.js';
+
 export const HERRAMIENTAS = {
   mano: { es: 'A mano', eu: 'Eskuz', tempo: 1, front: 1, floor: 1 },
   pala: { es: 'Pala corta', eu: 'Pala motza', tempo: 1.16, front: 1.06, floor: 0.96 },
@@ -61,6 +63,8 @@ export function ponHerramienta(T, obj, k) {
   if (!obj) return null;
   const ch = figuraDe(obj);
   const vieja = obj.userData.herramienta; if (vieja) { vieja.parent?.remove(vieja); vieja.traverse(o => { o.geometry?.dispose?.(); o.material?.map?.dispose?.(); o.material?.dispose?.(); }); obj.userData.herramienta = null; }
+  // (con herramienta, las manos sin tacos ni vendas: a pala, paleta o xare no se llevan; sinTacos.js)
+  sinTacos(ch, !!k && k !== 'mano');
   if (!k || k === 'mano') { ch?.cierraMano?.(0); return null; }
   const h = manoDerecha(ch); if (!h) return null;
   const t = herramienta3D(T, k), G = ch.agarre, R = (import.meta.env?.DEV && globalThis.__herrRot) || (!G && { giro: GIRO, desplaza: DESPLAZA });

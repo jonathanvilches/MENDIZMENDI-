@@ -1372,6 +1372,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         la pelota del saque va en la mano izquierda (`st.manoIzq` en `glbChar.js`), sin el gesto de llevarla y botarla
         con la derecha; y los comentaristas no dicen las frases que hablan de la mano o de jugar a mano
         (`Comentarios.sinMano`, por el texto de cada frase del guion).
+      - Con herramienta, las manos sin tacos ni vendas (16 de noviembre de 2026; el autor: «si la mano lleva herramienta,
+        no lleva tacos en las manos»; `actors/sinTacos.js`, desde `ponHerramienta`). Las vendas del pelotari no son piezas
+        aparte, son la propia malla de la mano pintada de beis (toda la mano es una sola pieza), así que no se quitan: se
+        pintan de piel en el sombreador, solo en las manos y las muñecas (`aTaco`, por los pesos de la mano y la distancia a
+        la muñeca) y solo lo que tiene color de venda (en sRGB, verde bastante por encima del azul y rojo poco por encima
+        del verde). La piel sale de la textura de cada modelo, de las yemas rosadas, y conserva el brillo de cada píxel.
+        A mano, como siempre. La forma de las vendas sigue: los dedos, algo más gruesos que los de un pelotari sin vendar.
       - El agarre (el autor: «el agarre de la mano no está bien»; la herramienta colgaba del dorso de la mano abierta).
         Al principio se hizo doblando la malla con un objetivo de forma y desde la cámara del juego no se notaba (el autor:
         «las manos no cierran, no agarran ... las falanges no se doblan»). Ahora son dedos de verdad (`actors/dedos.js`):
