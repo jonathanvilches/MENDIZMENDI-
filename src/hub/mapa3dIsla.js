@@ -318,9 +318,14 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   // estás creando en el borde tiene que ser orgánico con el resto. No puede ser un añadido»)
   // (la luz, algo por debajo de la del prado de al lado, que lleva la sombra del relieve: con la misma, el labio salía como
   // una cinta más clara alrededor)
-  const FILAS = [[-0.2, 0.03, 0, 0, 0, 0, 0.92], [-0.02, 0.04, 0, 0, 0.3, 1, 0.9], [0.08, 0.03, 0, 0, 0.55, 1, 0.86], [0.14, -0.02, 0, 0, 0.75, 1, 0.8], [0.15, -0.08, 0, 0, 0.9, 1, 0.7],
-    [0.08, -0.14, 0, 0, 1, 1, 0.58], [-0.06, -0.2, 0, 0, 1, 1, 0.48]];
-  const ANCHO = Q.map((_, i) => 0.65 + 0.95 * ruidoV(LQ[i] * 1.05 + seed % 13, 3.3) + 0.4 * ruidoV(LQ[i] * 3.6 + 5.1, 9.1));
+  // (y desde el 16 de noviembre de 2026, mucho más fino y desigual: «en el ordenador los labios de contorno de las islas
+  // flotantes se nota que están pegados y que no son orgánicos». Era un cojín de hasta 600 m que sobresalía y colgaba igual
+  // en todo el contorno, liso y más claro que el prado: de cerca, un tubo hinchable alrededor. Ahora sobresale y cuelga
+  // menos de la mitad; su grosor va de casi nada, donde asoma la tierra, a matas que cuelgan, con bultos pequeños entre
+  // medias; tiene la luz del prado, sin aclararse del lado del sol; y el filo de abajo se deshilacha, como la hierba)
+  const FILAS = [[-0.2, 0.025, 0, 0, 0, 0, 0.86], [-0.02, 0.03, 0, 0, 0.3, 1, 0.84], [0.035, 0.02, 0, 0, 0.55, 1, 0.8], [0.06, -0.015, 0, 0, 0.75, 1, 0.72], [0.06, -0.05, 0, 0, 0.9, 1, 0.6],
+    [0.03, -0.09, 0, 0, 1, 1, 0.48], [-0.04, -0.13, 0, 0, 1, 1, 0.38]];
+  const ANCHO = Q.map((_, i) => 0.15 + 1.6 * Math.pow(ruidoV(LQ[i] * 1.05 + seed % 13, 3.3), 1.6) + 0.35 * ruidoV(LQ[i] * 3.6 + 5.1, 9.1) + 0.25 * ruidoV(LQ[i] * 11 + 2.3, 4.4));
   // (las normales, suavizadas: la media de cinco; y cuánto se cierra el borde en cada punto, comparando lo que se separan
   // dos puntos vecinos del borde con lo que se separarían corridos hacia fuera)
   const NS = Q.map((_, i) => { let x = 0, z = 0; for (let k = -2; k <= 2; k++) { const n = NOR[(i + k + N) % N]; x += n[0]; z += n[1]; } const l = Math.hypot(x, z) || 1; return [x / l, z / l]; });
@@ -329,7 +334,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   const ENC = ENC0.map((_, i) => { let m = 1; for (let k = -2; k <= 2; k++) m = Math.min(m, ENC0[(i + k + N) % N]); return m * m; });
   const NF = FILAS.length, cantoPos = new Float32Array(NF * N1 * 3), cantoUv = [], cantoZ = [], cantoLuz = [], cantoA = [], cantoS = [], cantoH = [], cantoIx = [];
   FILAS.forEach(([o, , , zona, v, alfa, luz], f) => { for (let i = 0; i <= N; i++) { const k = i % N, [nx, nz] = NS[k], lado = 0.62 + 0.55 * Math.max(0, nx * LUZ.x + nz * LUZ.z);
-    cantoUv.push(LQ[i], v); cantoZ.push(zona); cantoA.push(alfa); cantoLuz.push(zona === 0 ? luz * (0.75 + 0.25 * Math.min(1, lado + 0.38 * (1 - v))) : zona < 3 ? luz * (0.86 + 0.24 * (lado - 0.62) / 0.55) : luz * lado);
+    cantoUv.push(LQ[i], v); cantoZ.push(zona); cantoA.push(alfa); cantoLuz.push(zona === 0 ? luz * (0.84 + 0.16 * Math.min(1, lado)) : zona < 3 ? luz * (0.86 + 0.24 * (lado - 0.62) / 0.55) : luz * lado);
     // (de dónde toma su color cada punto: del suelo de la comarca justo dentro del borde, nunca de lo de fuera, que es de la
     // vecina; y a qué altura, para la nieve de las cumbres)
     // (lo que sale del borde toma el color en espejo, hacia dentro: si todos los puntos de una columna lo tomaban del mismo
@@ -375,8 +380,11 @@ void main() {
     // (el labio: el mismo suelo; por dentro se funde con el terreno en lenguas desiguales, no en una raya, y hacia el filo
     // asoma el grano de la hierba, solo en la luz)
     float lengua = n2(vec2(vUv.x * 5.5, 3.0)) * 0.6 + n2(vec2(vUv.x * 19.0, 9.0)) * 0.4; a = smoothstep(lengua * 0.7, lengua * 0.7 + 0.3, vA);
-    float fib = clamp(dot(texture2D(uHierba, vS * 2.6).rgb, vec3(0.3, 0.59, 0.11)) / 0.155, 0.6, 1.4);
-    c = suelo(vS, vH, 0.0) * mix(1.0, 0.9 + 0.1 * fib, smoothstep(0.3, 0.85, vUv.y)); }
+    // (el filo de abajo, deshilachado: mechones de hierba de distinto largo en vez de una línea lisa)
+    float mecha = n2(vec2(vUv.x * 90.0, 1.7)) * 0.55 + n2(vec2(vUv.x * 260.0, 5.3)) * 0.45;
+    a *= 1.0 - smoothstep(0.8 + 0.18 * mecha, 0.86 + 0.18 * mecha, vUv.y);
+    float fib = clamp(dot(texture2D(uHierba, vS * 2.6).rgb, vec3(0.3, 0.59, 0.11)) / 0.155, 0.55, 1.45);
+    c = suelo(vS, vH, 0.0) * mix(1.0, 0.82 + 0.18 * fib, smoothstep(0.2, 0.8, vUv.y)); }
   else if (vZ < 2.5) {
     // (el fleco que cuelga y, detrás, la tierra con raíces: de sus fotos, la transparencia y la luz de cada hoja; lo casi
     // transparente se descarta, para que la tierra de detrás no se tape con su halo)

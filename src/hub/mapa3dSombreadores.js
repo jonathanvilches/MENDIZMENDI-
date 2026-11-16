@@ -213,16 +213,20 @@ void main() {
   s += 0.22 * (1.0 - smoothstep(0.0, 0.7, s));
   // (en la orilla de una isla en el aire, donde el terreno ha bajado: la luz de su pendiente nueva, sacada de la propia
   // malla, y no la sombra del monte que había allí)
+  // (empin: lo que la orilla bajada tiene de muy pendiente, donde la foto se estira; desde el 16 de noviembre de 2026 solo
+  // ahí se difumina la foto: antes, en toda la orilla, y en las penínsulas estrechas el prado entero quedaba liso y más
+  // claro, como una pieza pegada: «se nota que están pegadas y que no son orgánicas»)
+  float empin = 0.0;
   if (vOr > 0.002) { vec3 pw = vec3(vXZ.x, vH, vXZ.y), nn = normalize(cross(dFdx(pw), dFdy(pw))); if (nn.y < 0.0) nn = -nn;
-    s = mix(s, clamp(0.45 + 0.96 * dot(nn, normalize(vec3(-0.75, 0.57, -0.33))), 0.4, 1.4), vOr); }
+    s = mix(s, clamp(0.45 + 0.96 * dot(nn, normalize(vec3(-0.75, 0.57, -0.33))), 0.4, 1.4), vOr); empin = vOr * smoothstep(0.3, 0.7, 1.0 - nn.y); }
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   // (la ortofoto, el color de verdad del suelo: campos, bosques, ríos, pueblos y roca, con la luz del relieve encima, algo
   // más suave, que la foto ya trae la suya; de cerca, la de la comarca, a 28 m)
   // (en la orilla bajada de una isla, en lo muy pendiente, la foto se estiraba en vetas: allí, algo difuminada, y la fina,
   // a medias. Más difuminada, la orilla quedaba como una rampa verde lisa, que el autor ya no quiso el 14 de noviembre de
   // 2026; los montes fantasma bajo un velo que se veían en lo que crece una isla venían del relieve fino, no de la foto)
-  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (vOr > 0.05) o = mix(o, texture2D(uOrto, ou, 1.2).rgb, 0.6 * smoothstep(0.15, 0.8, vOr)); o = ortoFuera(o, sv, ou); if (vOr > 0.05) o *= 1.0 + (ruido(sv * 7.0) * 0.6 + ruido(sv * 19.0) * 0.4 - 0.5) * 0.22 * smoothstep(0.05, 0.6, vOr);   // (y su grano de hierba, a matas)   // (desde el 15 de noviembre de 2026, apenas suavizada: muy borrosa, la rampa de la orilla salía como una banda verde lisa)
-    if (uOrtoDK > 0.0) { vec2 dq = (sv - uDetRect.xy) / uDetRect.zw; o = mix(o, texture2D(uOrtoD, dq).rgb, uOrtoDK * enRect(dq) * (1.0 - 0.5 * smoothstep(0.15, 0.8, vOr))); }
+  if (uOrtoK > 0.0) { vec2 ou = (sv - uOrtoR.xy) / uOrtoR.zw; vec3 o = texture2D(uOrto, ou).rgb; if (empin > 0.02) o = mix(o, texture2D(uOrto, ou, 1.2).rgb, 0.6 * empin); o = ortoFuera(o, sv, ou); if (vOr > 0.05) o *= 1.0 + (ruido(sv * 7.0) * 0.45 + ruido(sv * 19.0) * 0.35 + ruido(sv * 47.0) * 0.2 - 0.5) * 0.32 * smoothstep(0.05, 0.6, vOr);   // (y su grano de hierba, a matas)   // (desde el 15 de noviembre de 2026, apenas suavizada: muy borrosa, la rampa de la orilla salía como una banda verde lisa)
+    if (uOrtoDK > 0.0) { vec2 dq = (sv - uDetRect.xy) / uDetRect.zw; o = mix(o, texture2D(uOrtoD, dq).rgb, uOrtoDK * enRect(dq) * (1.0 - 0.5 * empin)); }
     c = mix(c, tonoOrto(o) * (1.0 + (s - 1.0) * 0.7), uOrtoK); }
   float pin = 1.0 - uOrtoK;   // (lo pintado a mano, que la ortofoto ya trae de verdad: parcelas, bosque, roca, el clima)
   // (el relieve fino, más nítido: de cerca, cuando cada punto de su imagen ocupa más de un píxel, se le resta lo borroso

@@ -2388,6 +2388,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     oscuro que el césped y la tierra de debajo casi negra, y de lado se leían como rayas a lo largo del borde. El fleco
     toma ahora la luz de sus hojas a medias y casi el tono del suelo (`cantoM`, zona 1), con menos diferencia entre el
     lado al sol y el de sombra; la tierra, parda y clara.
+  - El labio, fino y desigual (16 de noviembre de 2026: «en el ordenador los labios de contorno de las islas flotantes se
+    nota que están pegadas y que no son orgánicas»). Era un cojín de hasta 600 m que sobresalía y colgaba igual en todo el
+    contorno, liso y más claro que el prado: de cerca, un tubo alrededor. Ahora (`FILAS`, `ANCHO` de `mapa3dIsla.js`)
+    sobresale y cuelga menos de la mitad; su grosor va de casi nada a matas, con bultos pequeños; tiene la luz del prado,
+    sin aclararse del lado del sol; y el filo de abajo se deshilacha en mechones. En el terreno de la orilla bajada
+    (`RELIEVE_FS`), la foto solo se difumina donde la pendiente es fuerte (`empin`), no en toda la orilla: en las penínsulas
+    estrechas el prado entero quedaba liso, y lleva más grano de hierba. La península de delante de Burgui aún se ve algo lisa.
   - Los colores, más vivos el mismo día («para dar esa sensación de mundos de fantasía», `acabado`): más color en todo
     (1,3 a 1,72 en vez de 1,15 a 1,51), medios tonos más claros y un tope al color algo más alto. Medido en la bajada a
     Etxalar, la saturación media del terreno pasa de 0,53 a 0,59, lejos de un verde fosforito. Para verlo:
