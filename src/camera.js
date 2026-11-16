@@ -3,8 +3,19 @@ import * as THREE from 'three';
 import { groundHeight } from './world/heightfield.js';
 import { nearby } from './world/colliders.js';
 import { clamp, damp, dampAngle, angleDiff } from './util/math.js';
+import { reducido } from './ui/motion.js';
 
 const _want = new THREE.Vector3(), _dir = new THREE.Vector3(), _p = new THREE.Vector3();   // (sin crear vectores en cada fotograma)
+const _l = new THREE.Vector3(), _l2 = new THREE.Vector3(), _box = new THREE.Box3();
+// ¿se puede poner la cámara en (x, y, z) sin meterla en una casa? (las mismas cajas que acercan la cámara al jugador)
+function libre(x, y, z) {
+  for (const c of nearby(x, z, 0.5)) {
+    if (c.type !== 'box' || !c.solidView) continue;
+    const dx = x - c.x, dz = z - c.z, lx = dx * c.cos - dz * c.sin, lz = dx * c.sin + dz * c.cos;
+    if (Math.abs(lx) < c.hw + 0.3 && Math.abs(lz) < c.hd + 0.3 && y < (c.top ?? 99)) return false;
+  }
+  return true;
+}
 // muelle amortiguado (el SmoothDamp de siempre): de x hacia x1 en unos «tiempo» segundos, con la velocidad v que lleva;
 // devuelve [posición, velocidad]
 function muelle(x, x1, v, tiempo, dt) {
@@ -33,6 +44,45 @@ export class FollowCamera {
   }
   /** El jugador va a cambiar de sitio de golpe (subir o bajar de la montura): la cámara lo sigue suave s segundos */
   suaviza(s = 0.45) { this.suave = s; }
+  /** Charla con un vecino (el autor, 16 de noviembre: «Cuando hablemos con los vecinos la cámara se acerca a los
+   *  personajes»). Plano por encima del hombro del jugador, con el vecino de frente y la cara en el tercio de arriba,
+   *  que abajo va el cuadro de la charla. Detrás del hombro derecho; si ahí hay una casa, del izquierdo, y si no, más
+   *  cerca. Si ningún sitio está libre, o el vecino está lejos, o ya hay otro plano de cine, la cámara no cambia.
+   *  Varias charlas seguidas con el mismo vecino son un solo plano: finCharla() espera un poco antes de volver */
+  charla(a, player) {
+    if (this._charla && this._charla.a === a && this.cinematic === this._charla) { this.finPendiente = 0; return; }
+    if (this.cinematic || !a?.pos || !a.obj || !player?.pos) return;
+    const P = player.pos, A = a.pos; let dx = A.x - P.x, dz = A.z - P.z; const dd = Math.hypot(dx, dz);
+    if (dd < 0.3 || dd > 6) return;
+    dx /= dd; dz /= dd;
+    // la altura del vecino, de su figura (los niños, más bajos; el Basajaun, más alto), una vez
+    if (a.altoCharla == null) { _box.setFromObject(a.obj); a.altoCharla = Number.isFinite(_box.max.y) ? _box.max.y - A.y : 1.7; }
+    // (a la altura de la cara del vecino: el explorador es más bajo y su cabeza queda abajo, sin tapar)
+    const cara = A.y + clamp(a.altoCharla, 0.9, 2.8) * 0.9, y = Math.max(P.y + 1.45, cara);
+    let pos = null, lado = 0;
+    // (bien abierto a un lado: con la cámara casi detrás de la cabeza del explorador, su pelo tapaba medio vecino)
+    for (const [atras, l] of [[1.2, 1], [1.2, -1], [0.8, 0.9], [0.8, -0.9], [0.5, 1], [0.5, -1]]) {
+      const x = P.x - dx * atras + dz * l, z = P.z - dz * atras - dx * l;
+      if (!libre(x, y, z) || !libre((x + P.x) / 2, y, (z + P.z) / 2)) continue;
+      pos = new THREE.Vector3(x, Math.max(y, groundHeight(x, z) + 0.45), z); lado = l; break;
+    }
+    if (!pos) return;
+    // mirando un poco hacia el lado de la cámara: el vecino casi en el centro y el hombro del explorador en el borde
+    const sl = Math.sign(lado) * 0.3, look = new THREE.Vector3(A.x - dx * 0.15 + dz * sl, cara - 0.28, A.z - dz * 0.15 - dx * sl);
+    // y con el objetivo algo más cerrado, como un plano de cine: el vecino de cintura para arriba, sin meter la cámara encima
+    const fov0 = this.cam.userData.fov0 || this.cam.fov;
+    const c = this._charla = this.cinematic = { pos, look, t: 0, a, p0: P.clone(), fov: fov0 * 0.72 };
+    this.finPendiente = 0; this.salida = null; this.fovTocado = true;
+    if (reducido()) { this.cam.position.copy(pos); c.lookCur = look.clone(); this.cam.lookAt(look); this.cam.fov = c.fov; this.cam.updateProjectionMatrix(); }   // (sin deslizarse: de corte)
+  }
+  /** Se acaba la charla: en un cuarto de segundo, si no empieza otra con el mismo vecino, la cámara vuelve, suave */
+  finCharla(ahora = false) {
+    const c = this._charla;
+    if (!c || this.cinematic !== c) { this._charla = null; this.finPendiente = 0; return; }
+    if (!ahora) { this.finPendiente = 0.25; return; }
+    this._charla = null; this.finPendiente = 0; this.cinematic = null;
+    this.salida = reducido() ? null : { pos: this.cam.position.clone(), look: (c.lookCur || c.look).clone(), t: 0, fov: this.cam.fov };
+  }
   update(dt, player, input, instant = false) {
     const sens = input.touch ? 0.006 : 0.005;
     if (input.look.dx || input.look.dy) this.idle = 0; else this.idle += dt;
@@ -41,6 +91,12 @@ export class FollowCamera {
     // se quedaba mirando desde lo alto sin ver por dónde se iba; el vídeo del autor del 11 de noviembre)
     this.pitch = clamp(this.pitch + input.look.dy * sens, -0.15, 0.95);
     if (input.zoom) this.targetDist = clamp(this.targetDist + input.zoom * 0.9, 3, 16);
+    // la charla se acaba (un poco después de cerrarse el cuadro) o el jugador se ha ido de allí
+    if (this._charla && this.cinematic === this._charla) {
+      if (this.finPendiente > 0 && (this.finPendiente -= dt) <= 0) this.finCharla(true);
+      else if (Math.hypot(player.pos.x - this._charla.p0.x, player.pos.z - this._charla.p0.z) > 1.2) this.finCharla(true);
+    }
+    if (instant || this.cinematic) this.salida = null;
     // seguimiento automático suave detrás del jugador cuando se mueve y no se toca la cámara
     const moving = Math.hypot(input.move.x, input.move.y) > 0.1;
     // (solo con la palanca hacia delante: con ella de lado, la cámara se ponía detrás, ese lado pasaba a ser otro y el
@@ -68,6 +124,8 @@ export class FollowCamera {
       c.t += dt;
       if (c.fly) { c.fly(this.cam, c.t); return; }   // (un vuelo: la cámara va por su camino, c.fly; sin uso desde que se quitaron los vuelos de llegada)
       const k = instant ? 1 : 1 - Math.exp(-2.5 * dt);
+      if (c.fov && Math.abs(this.cam.fov - c.fov) > 0.01) { this.cam.fov += (c.fov - this.cam.fov) * k; this.cam.updateProjectionMatrix(); }
+      else if (!c.fov && this.fovTocado) { this.fovTocado = false; const f0 = this.cam.userData.fov0; if (f0) { this.cam.fov = f0; this.cam.updateProjectionMatrix(); } }   // (otro plano de cine que corta la charla, con su objetivo de siempre)
       this.cam.position.lerp(c.pos, k);
       const look = c.lookCur || (c.lookCur = this.focus.clone());
       look.lerp(c.look, k);
@@ -117,6 +175,17 @@ export class FollowCamera {
     this.lift = instant ? needLift : damp(this.lift, needLift, needLift > this.lift ? 30 : 6, dt);
     p.y += Math.max(this.lift, needLift - 0.35);
     if (this.shake > 0) { this.shake -= dt; p.x += (Math.random() - 0.5) * this.shake * 0.3; p.y += (Math.random() - 0.5) * this.shake * 0.3; }
+    // al acabar una charla, de su plano al de siempre en 0,7 s, con la curva suave de entrada y salida
+    if (this.salida) {
+      const s = this.salida; s.t += dt; const k = Math.min(1, s.t / 0.7), e = k * k * (3 - 2 * k);
+      this.cam.position.lerpVectors(s.pos, p, e);
+      this.cam.lookAt(_l2.lerpVectors(s.look, _l.set(this.focus.x, this.focus.y + 0.1, this.focus.z), e));
+      const f0 = this.cam.userData.fov0 || s.fov; this.cam.fov = s.fov + (f0 - s.fov) * e; this.cam.updateProjectionMatrix();
+      if (k >= 1) { this.salida = null; this.fovTocado = false; }
+      return;
+    }
+    // (si la charla se cortó de otra manera, sin su vuelta, el objetivo vuelve a ser el de siempre)
+    if (this.fovTocado) { this.fovTocado = false; const f0 = this.cam.userData.fov0; if (f0 && this.cam.fov !== f0) { this.cam.fov = f0; this.cam.updateProjectionMatrix(); } }
     this.cam.position.copy(p);
     this.cam.lookAt(this.focus.x, this.focus.y + 0.1, this.focus.z);
   }

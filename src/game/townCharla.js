@@ -30,7 +30,9 @@ export const QUIZ_N = 3;
 export class PuebloCharla {
   say(a, lines) {
     const look = a.obj?.userData.look;
-    return this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)
+    this.follow?.charla?.(a, this.player);   // (la cámara se acerca al vecino mientras habla; camera.js)
+    const p = this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)
+    const fin = () => this.follow?.finCharla?.(); p.then(fin, fin); return p;
   }
   // Euskera con los vecinos (data/hitzak.js): cada vecino enseña una palabra de lo que está haciendo (quien pasea, del
   // tiempo que hace) y pregunta cómo se dice; si ya sabes las suyas, repasa una que sabes. Cuando ya sabes unas cuantas,
