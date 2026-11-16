@@ -28,7 +28,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     la web ni en el archivo único (17 MB) y solo los sirve el servidor de desarrollo, para los retratos. Sus gestos (`cortesVecino` de `glbChar.js`): quietos, mirando alrededor; hablando, su charla;
     saludar, el principio de la charla o su saludo con la mano; asustarse, el respingo de mirar alrededor. La charla de
     Meshy dobla la cabeza hacia atrás y encoge a la abuela del pañuelo y al abuelo: esos dos (`CHARLA_MAL`) hablan con su
-    reposo. Miden su altura fija en `MESHY_H`: el explorador (1,45) y la exploradora (1,43), de cabeza grande, quedan en
+    reposo. Y la charla de todos, más tranquila (`calmaClip`, 16 de noviembre de 2026: «a veces los personajes se
+    balancean demasiado al hablar»): al cargar el clip, cada hueso se acerca a su postura media, el cuerpo, la cadera y la
+    cabeza al 40 % de su vaivén y los brazos al 80 %; también la del pastor y la del explorador. Miden su altura fija en `MESHY_H`: el explorador (1,45) y la exploradora (1,43), de cabeza grande, quedan en
     medio: los adultos les sacan entre un 23 y un 34 % (1,78 a 1,94; los mayores, 1,71 a 1,84) y los niños del pueblo son
     más bajos (1,13 a 1,24). Las puertas miden 2,4 m.
     Quién es quién (`VECINOS` y `vecinoPara` de `actors/npcGlb.js`): por su oficio en el nombre («Iker, quesero»); si no,

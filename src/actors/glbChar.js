@@ -130,6 +130,26 @@ function cutClip(clip, name, t0, t1, flatHips, fps = 30) {
   }
   return new THREE.AnimationClip(name, t1 - t0, tracks);
 }
+// (la charla, más tranquila: cada hueso se acerca a su postura media del clip, el cuerpo, la cadera y la cabeza a menos de
+// la mitad de su vaivén y los brazos casi enteros. El clip de charlar de Meshy balancea todo el cuerpo de un lado a otro, y
+// con la cámara de cerca en las charlas se notaba demasiado: «a veces los personajes se balancean demasiado al hablar»,
+// 16 de noviembre de 2026. La media mantiene la postura y el bucle sigue sin salto, porque principio y final se acercan igual)
+const _qm = new THREE.Quaternion(), _qa = new THREE.Quaternion();
+function calmaClip(clip, kCuerpo = 0.4, kBrazos = 0.8) {
+  for (const tr of clip.tracks) {
+    const k = /(Shoulder|Arm|Hand)/i.test(tr.name) ? kBrazos : kCuerpo, v = tr.values, n = tr.times.length;
+    if (/\.quaternion$/.test(tr.name)) {
+      let x = 0, y = 0, z = 0, w = 0;
+      for (let i = 0; i < n; i++) { const j = i * 4, sg = v[j] * v[0] + v[j + 1] * v[1] + v[j + 2] * v[2] + v[j + 3] * v[3] < 0 ? -1 : 1; x += sg * v[j]; y += sg * v[j + 1]; z += sg * v[j + 2]; w += sg * v[j + 3]; }
+      _qm.set(x, y, z, w).normalize();
+      for (let i = 0; i < n; i++) { _qa.fromArray(v, i * 4); _qa.copy(_qm.clone().slerp(_qa, k)).toArray(v, i * 4); }
+    } else if (/\.position$/.test(tr.name)) {
+      const m = [0, 0, 0]; for (let i = 0; i < n; i++) for (let c = 0; c < 3; c++) m[c] += v[i * 3 + c] / n;
+      for (let i = 0; i < n; i++) for (let c = 0; c < 3; c++) v[i * 3 + c] = m[c] + (v[i * 3 + c] - m[c]) * k;
+    }
+  }
+  return clip;
+}
 // su textura viene a 2048 px (con todo el detalle); en calidad baja (móviles) se usa a 1024 para no agotar la memoria
 let MESHY_TEX = 2048;
 export const setMeshyTexMax = (px) => { MESHY_TEX = px; };
@@ -214,7 +234,7 @@ export async function loadMeshy(name, lod = false) {
     const cuts = { ...MESHY_CUTS, ...(src.Kick ? { Hit: ['Kick', 0.46, 1.15] } : {}), ...(src.Alert && !MESHY_BY[name] ? cortesVecino(src, name) : {}), ...(MESHY_BY[name] || {}) };
     for (const [want, [from, t0, t1, pp, flat, rate]] of Object.entries(cuts)) {
       if (!src[from]) continue;
-      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
+      const k = cutClip(src[from], want, t0, Math.min(t1, src[from].duration), flat); if (want === 'Talk' && (from === 'Chat' || from === 'TalkP')) calmaClip(k); k.userData = { ...(pp ? { pingpong: true } : {}), ...(rate ? { rate } : {}) }; animations.push(k);
     }
     // (los del pelotari sustituyen a los recortes de los de Meshy; de pie y quieto, su reposo)
     if (pel.length) {
