@@ -27,7 +27,9 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 
 ## Pronunciación del euskera
 
-Las voces de castellano leen x, tx, tz y z con reglas de castellano. En el texto que se dice se escriben como suenan: Kaisho, Joshemari, Churi, lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore y Sarratrako. Lo que se lee en pantalla no cambia. Zatoya se dice en castellano.
+Ninguna voz entra en el juego sin que el autor la haya escuchado y aprobado.
+
+Las voces de castellano leen x, tx, tz y z con reglas de castellano. Una primera prueba escribía lo dicho como suena: Kaisho, Joshemari, Churi, lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore y Sarratrako. Al autor no le convenció y se retiró del juego: siguen las 25 grabaciones de antes. La siguiente prueba usa eleven_v4 con la pronunciación en alfabeto fonético y se manda al autor antes de tocar el juego. Zatoya se dice en castellano.
 
 ## Sin voz a propósito
 
