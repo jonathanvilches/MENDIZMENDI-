@@ -1706,6 +1706,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     cancha dibujada (`CANCHAS`, clases `cv-*`): el trinquete con la pared de la derecha, el tejadillo y la red; el 4½ con
     su raya encendida; la Gran Txapela con focos y la grada llena; el de fiestas con banderines; el de los valles al
     aire libre, con cielo y montes.
+  - En el carrusel de los pueblos (16 de noviembre de 2026, por la tarde; el autor: «no me gusta la nueva navegación de
+    la pelota, puede ser estilo carrusel como en los pueblos»). Fuera las pestañas que dejaban ver solo un grupo: el menú
+    usa `galeria()` de `hub/galeria.js`, la misma de la sección Pueblos. Todos los campeonatos en una sola fila en 3D,
+    grupo tras grupo; el de delante, grande y encendido, y los demás a los lados, más hondos y en penumbra. Se pasa
+    arrastrando, con las flechas, la rueda o el teclado. Arriba, los cuatro grupos con su color y cuántas cartas tienen
+    (Tu comarca, fucsia; Navarra, oro; Más torneos, lila; Jugar, turquesa) se encienden según se pasa y saltan al primero
+    del suyo (↑ ↓ también). Cada carta (`.gal-t`): arriba su cancha dibujada con el rival y su emblema, como antes, y en
+    la franja de abajo el nombre, la fase y la ronda. Debajo del carrusel, la del centro: su grupo, su nombre, la fase y
+    contra quién, sus txapelas y el botón (Jugar, Nueva edición, Elegir frontón o Ver colección). Se abre con delante la
+    última elegida (`herrizherri-pelota-carta`). Las figuras ponen `--o` a 0 en `.figs`: el carrusel usa `--o` en cada
+    carta para su transparencia y los pelotaris se corrían al borde.
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los
