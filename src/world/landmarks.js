@@ -129,17 +129,24 @@ function buildWaterfall(B, rnd) {
   const w = PLACES.waterfall, p = PLACES.pond;
   const face = Math.atan2(p.x - w.x, p.z - w.z);
   const fx = Math.sin(face), fz = Math.cos(face), sx = Math.cos(face), sz = -Math.sin(face);
-  const h = 9, lvl = p.level;
-  // pared de roca detrás de la cascada
-  B.add('stoneDark', box(16, h + 6, 6, 3), M(w.x - fx * 3.4, lvl + (h + 6) / 2 - 3, w.z - fz * 3.4, face));
-  for (let i = 0; i < 16; i++) {
-    const side = (i % 2 ? 1 : -1) * (3 + rnd() * 6);
-    const back = 1 + rnd() * 3;
-    const s = 1.6 + rnd() * 2.2;
-    B.add('stoneDark', new THREE.DodecahedronGeometry(s, 0), M(w.x + sx * side - fx * back, lvl - 0.5 + rnd() * (h + 1.5), w.z + sz * side - fz * back, rnd() * 6, rnd(), 0, 1, 1.2, 1));
+  const h = 7, lvl = p.level;
+  const at = (side, back) => [w.x + sx * side - fx * back, w.z + sz * side - fz * back];
+  const R = (side, back, y, s, sy = 1) => { const [x, z] = at(side, back); B.add('rock', new THREE.DodecahedronGeometry(s, 1), M(x, y, z, rnd() * 6, rnd() * 0.6, rnd() * 0.4, 1, sy, 1)); };
+  // la peña: roca de verdad (no la de los muros) a los dos lados del canal del agua, desde la balsa hasta el labio del salto,
+  // y bloques sueltos medio hundidos en la ladera que sube detrás (rawHeight en levels/salazar.js). Antes, una caja de
+  // 16 × 15 m de piedra de muro con piedras pegadas, suelta sobre la hierba
+  for (const lado of [-1, 1]) {
+    for (let k = 0; k < 4; k++) R(lado * (1.9 + rnd() * 0.5), 0.5 + rnd() * 0.7, lvl - 0.3 + k * 2.0, 1.4 + rnd() * 0.4, 0.85);
+    for (let i = 0; i < 7; i++) {
+      const side = lado * (3.2 + rnd() * 8), back = 0.8 + rnd() * 7, [x, z] = at(side, back), s = 1.1 + rnd() * 1.3;
+      B.add('rock', new THREE.DodecahedronGeometry(s, 1), M(x, terrainHeight(x, z) + s * 0.15, z, rnd() * 6, rnd() * 0.5, rnd() * 0.5, 1.2, 0.7, 1));
+    }
   }
-  for (let i = 0; i < 6; i++) B.add('stoneDark', new THREE.DodecahedronGeometry(0.8 + rnd(), 0), M(w.x + fx * (1.5 + rnd() * 2) + sx * (rnd() - 0.5) * 6, lvl - 0.2, w.z + fz * (1.5 + rnd() * 2) + sz * (rnd() - 0.5) * 6, rnd() * 6));
-  addBox(w.x - fx * 3.4, w.z - fz * 3.4, 16, 7, face, { solidView: true });
+  R(0, 1.3, lvl + h + 0.1, 1.3, 0.55);   // el labio del salto
+  for (let k = 0; k < 3; k++) R((rnd() - 0.5) * 1.0, 2.0, lvl + 0.8 + k * 2.2, 1.5, 0.9);   // la pared del canal, detrás del agua
+  // piedras sueltas al pie, en el agua
+  for (let i = 0; i < 6; i++) B.add('rock', new THREE.DodecahedronGeometry(0.6 + rnd() * 0.8, 1), M(w.x + fx * (1.5 + rnd() * 2) + sx * (rnd() - 0.5) * 6, lvl - 0.25, w.z + fz * (1.5 + rnd() * 2) + sz * (rnd() - 0.5) * 6, rnd() * 6, 0, 0, 1, 0.6, 1));
+  addBox(w.x - fx * 3.4, w.z - fz * 3.4, 12, 6, face, { solidView: true });
   LANDMARKS.waterfall = { x: w.x + fx * 0.2, z: w.z + fz * 0.2, top: lvl + h, bottom: lvl, face };
 }
 

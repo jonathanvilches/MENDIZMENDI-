@@ -3077,6 +3077,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   5 m del agua y luego en talud de 0,35. El disco del agua llega solo 1,2 m más allá de la charca, ya bajo la tierra, y el
   agua para el jugador, 2 m. Alrededor de la lamia hay un claro sin árboles (`PLACES.clearings`). Comprobado andando hacia
   ella desde el oeste, el norte y el sur: llega a 2 m, sin vadear, con «Hablar con Lamia».
+- **La cascada de la balsa de Irati, en la orilla** (`buildWaterfall` en `world/landmarks.js`; `PLACES.waterfall` y la peña
+  en `rawHeight` de `levels/salazar.js`): antes el salto, de 9 m, caía sobre la hierba, a 4 m del agua, desde una caja de
+  16 × 15 m con la textura de los muros de piedra, más alta que la ladera de detrás. Ahora está en la orilla y cae en la
+  balsa, desde 7 m. Detrás, la ladera sube hasta el labio del salto en unos 8 m, sin entrar en el agua. A los lados del canal
+  van bloques de roca natural (`rock`, con su relieve) y otros medio hundidos en la ladera, a la altura del suelo.
 - **Orillas en talud** (`finalHeight` en `levels/townReal.js`): fuera del casco, el ancho de la orilla crece con lo alto que
   queda la ladera sobre el agua (1,6 veces el desnivel, entre 4,5 y 30 m; el río se busca hasta 36 m, `riverAt`). Antes, con
   4,5 m fijos, donde el río va al pie de un monte, como en Ituren, el cauce cortaba la ladera en un muro de roca gris.

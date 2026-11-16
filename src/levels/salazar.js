@@ -50,7 +50,7 @@ export const PLACES = {
   muskilda: { x: 196, z: -52, name: 'Santuario de Muskilda' },
   borda: { x: -236, z: 26, name: 'Borda de Joxemari' },
   pond: { x: 78, z: -345, r: 26, name: 'Balsa de Irati' },
-  waterfall: { x: 99, z: -367 },
+  waterfall: { x: 95.5, z: -363.5 },   // (en la orilla: el salto cae en la balsa. Antes, en x 99, z -367, caía en la hierba)
   irati: { x: 0, z: -300, name: 'Selva de Irati' },
   mirador: { x: -110, z: -150, name: 'Mirador' },
 };
@@ -156,6 +156,17 @@ function rawHeight(x, z, detail) {
   if (mp > 0) h = lerp(h, rawHeightMuskildaTop, mp);
   // balsa de Irati: el cuenco, la orilla y, por el lado que baja, su dique de tierra (levels/charca.js)
   if (pondLevel) h = orillaCharca(h, x, z, { x: PLACES.pond.x, z: PLACES.pond.z, r: PLACES.pond.r, level: pondLevel });
+  // la peña de la cascada: detrás del salto la ladera sube hasta su borde, para que el agua baje del monte (antes caía de
+  // una caja de piedra suelta sobre la hierba, más alta que la ladera de detrás). Delante del salto no se toca nada
+  if (pondLevel) {
+    const w = PLACES.waterfall, fx = PLACES.pond.x - w.x, fz = PLACES.pond.z - w.z, fl = Math.hypot(fx, fz);
+    const dx = x - w.x, dz = z - w.z, v = -(dx * fx + dz * fz) / fl, u = Math.abs((dx * fz - dz * fx) / fl);
+    if (v > -24 && v < 40 && u < 30) {
+      const dp = Math.hypot(x - PLACES.pond.x, z - PLACES.pond.z);   // (sin meterse en el agua)
+      const a = smoothstep(0.3 - 0.4 * u, 8, v) * (1 - smoothstep(8, 26, u)) * (1 - smoothstep(16, 36, v)) * smoothstep(PLACES.pond.r + 0.3, PLACES.pond.r + 3, dp);
+      if (a > 0) h = Math.max(h, lerp(h, pondLevel + 7.2 + fbm(x / 12, z / 12, 2) * 0.8, a));
+    }
+  }
   return { h, r, d, F, vm, mm };
 }
 let rawHeightMuskildaTop = 0, pondLevel = 0;
