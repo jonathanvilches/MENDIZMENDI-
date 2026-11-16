@@ -313,6 +313,10 @@
   [
    "Bailan danzas de palos, de pañuelos y una jota. Yo marco el ritmo y tú bailas con nosotros.",
    "bobo-03.mp3"
+  ],
+  [
+   "¡Probemos otra vez!",
+   "bobo-04.mp3"
   ]
  ],
  "garazi": [
@@ -581,6 +585,88 @@
   [
    "Caballito de monte, pequeño y fuerte, que vive en libertad en las sierras del Pirineo occidental.",
    "narra-32.mp3"
+  ],
+  [
+   "¡Has cruzado el puente medieval!",
+   "narra-33.mp3"
+  ],
+  [
+   "¡Qué agua tan fresca! Ahora sube a la iglesia.",
+   "narra-34.mp3"
+  ],
+  [
+   "¡Qué vistas del pueblo y sus cuatro barrios!",
+   "narra-35.mp3"
+  ],
+  [
+   "Entras en la Selva de Irati",
+   "narra-36.mp3"
+  ],
+  [
+   "Empuja las ovejas hacia el redil",
+   "narra-37.mp3"
+  ],
+  [
+   "¡Todas dentro! Vuelve con Joxemari",
+   "narra-38.mp3"
+  ],
+  [
+   "¡Cinco especies! Vuelve con Joseba",
+   "narra-39.mp3"
+  ],
+  [
+   "¡Te pillé! El Zarratrako te da la cinta rosa",
+   "narra-40.mp3"
+  ],
+  [
+   "¡Casi! Habla con Kike para volver a intentarlo",
+   "narra-41.mp3"
+  ],
+  [
+   "¡Tienes las 8 cintas! Sube a Muskilda",
+   "narra-42.mp3"
+  ],
+  [
+   "¡Tu primera estrella!",
+   "narra-43.mp3"
+  ],
+  [
+   "Habla con Maite: acércate y pulsa E",
+   "narra-44.mp3"
+  ],
+  [
+   "Habla con Maite: acércate y toca el botón de hablar",
+   "narra-45.mp3"
+  ]
+ ],
+ "kike": [
+  [
+   "¡Aupa! Soy Kike. ¿Juegas a pelota?",
+   "kike-00.mp3"
+  ],
+  [
+   "Se golpea la pelota contra el frontis, la pared grande. Cuando vuelva botando, ponte cerca y dale con la mano.",
+   "kike-01.mp3"
+  ],
+  [
+   "Si me devuelves seis seguidas, te doy la cinta verde. Ve al círculo verde y pulsa GOLPE cuando la pelota brille.",
+   "kike-02.mp3"
+  ],
+  [
+   "¿Otra partida? ¡Vamos!",
+   "kike-03.mp3"
+  ],
+  [
+   "¡Eres un pelotari de verdad! Vuelve cuando quieras a jugar.",
+   "kike-04.mp3"
+  ],
+  [
+   "¡Seis seguidas! ¡Eres un txapeldun, un campeón!",
+   "kike-05.mp3"
+  ],
+  [
+   "Toma la cinta verde, como el frontón. ¡Vuelve a jugar cuando quieras!",
+   "kike-06.mp3"
   ]
  ]
 }

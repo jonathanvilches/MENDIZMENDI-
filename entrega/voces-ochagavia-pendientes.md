@@ -1,49 +1,43 @@
-# Voces de Otsagabia que faltan por locutar
+# Voces de Otsagabia
 
-Inventario del 16 de noviembre de 2026, sacado del código. Ya tienen voz 141 frases.
+Inventario del 16 de noviembre de 2026, sacado del código. Tienen voz 162 frases.
 
-| Quién | Frases con voz |
-|---|---|
-| Ocho vecinos en sus charlas | 78 |
-| Narradora, con la voz de Maite: avisos, premios, catalejo y cartas | 33 |
-| Arantxa: las diez preguntas del queso, con el acierto y el fallo | 30 |
+Las voces las elige el autor escuchando las muestras gratis de la biblioteca de ElevenLabs. No se pone voz a ningún personaje ni se gastan créditos sin que el autor la haya escuchado y elegido.
 
-Solo tienen voz las misiones y la información. Los paseantes y los saludos según el tiempo se quedan sin voz: el autor, 16 de noviembre de 2026, «La gente que pasa y saluda no hace falta. Solo misiones y información».
+Solo tienen voz las misiones y la información. Los paseantes y los saludos según el tiempo se quedan sin voz: el autor, «La gente que pasa y saluda no hace falta. Solo misiones y información».
 
-Faltan 7 frases fijas, 6 de Kike y 1 del Bobo, y 7 frases que llevan números o nombres que cambian.
+| Quién | Voz | Frases |
+|---|---|---|
+| Maite | Lulú, sin elegir todavía | 18 |
+| Itziar | Rosa | 11 |
+| Joxemari | Rafael | 11 |
+| Kike | Leo | 7 |
+| Ainhoa | Sofía | 9 |
+| Joseba | Martín | 7 |
+| El Basajaun | Ezequiel | 7 |
+| La Lamia | Sophie | 8 |
+| El Bobo | Lucas | 5 |
+| Arantxa | Mari | 33 |
+| Narradora: avisos, premios, catalejo y cartas | Nico | 46 |
 
-Antes de grabar hay que decidir:
+## Pendiente
 
-- Kike, el niño del frontón: hace falta una descripción de su voz y una frase de muestra para diseñarla.
-- Las voces de cada vecino: las elige el autor escuchando las muestras gratis de la biblioteca. No se pone voz a ningún personaje ni se gastan créditos sin que el autor la haya escuchado y elegido.
-
-## Kike, en el frontón (game.js)
-
-- ¡Aupa! Soy Kike. ¿Juegas a pelota?
-- Se golpea la pelota contra el frontis, la pared grande. Cuando vuelva botando, ponte cerca y dale con la mano.
-- Si me devuelves seis seguidas, te doy la cinta verde. Ve al círculo verde y pulsa GOLPE cuando la pelota brille.
-- ¡Eres un pelotari de verdad! Vuelve cuando quieras a jugar.
-- ¡Seis seguidas! ¡Eres un txapeldun, un campeón!
-- Toma la cinta verde, como el frontón. ¡Vuelve a jugar cuando quieras!
-
-## El Bobo, en Muskilda (game.js)
-
-- ¡Probemos otra vez!
+- Maite: el autor aún no ha elegido su voz. Si elige otra, se graban de nuevo sus 18 frases.
 
 ## Sin voz a propósito
 
-El título de la misión «¿Dónde está el Zarratrako?» y las respuestas que se eligen con botón se leen, no se dicen.
-
-Los cinco paseantes, Patxi, Itxaso, Fermín, Txaro e Iker, y los cuatro saludos según el tiempo se leen, no se dicen.
+- El título de la misión «¿Dónde está el Zarratrako?» y las respuestas que se eligen con botón se leen, no se dicen.
+- Los cinco paseantes, Patxi, Itxaso, Fermín, Txaro e Iker, y los cuatro saludos según el tiempo.
 
 ## Con datos que cambian
 
 Se pueden grabar por trozos o dejarlas sin voz.
 
-- Te faltan ${left.length} cintas.
-- Llevas ${st.observed.length} de 5. Los buitres se ven mejor desde zonas abiertas; el pito negro, en troncos de haya del fondo del bosque.
-- Llevas ${st.litter.length} de 5. Busca cerca de los senderos de Irati.
-- Pero sin sus cintas no pueden bailar… Tienes ${st.ribbons.length} de 8. ¡Tráelas todas y bailaremos juntos!
-- ¡Encontrado! (${q.found}/3) …¡y se escapa!
-- ¡${name} anotado en el cuaderno!
-- ¡Muy bien! Has acertado ${D.hits} de ${D.total}. Para la fiesta hacen falta al menos ${Math.ceil(D.total * 0.55)}.
+- Maite: Te faltan ${left.length} cintas.
+- Joseba: Llevas ${st.observed.length} de 5. Los buitres se ven mejor desde zonas abiertas; el pito negro, en troncos de haya del fondo del bosque.
+- El Basajaun: Llevas ${st.litter.length} de 5. Busca cerca de los senderos de Irati.
+- El Bobo: Pero sin sus cintas no pueden bailar… Tienes ${st.ribbons.length} de 8. ¡Tráelas todas y bailaremos juntos!
+- El Bobo: ¡Muy bien! Has acertado ${D.hits} de ${D.total}. Para la fiesta hacen falta al menos ${Math.ceil(D.total * 0.55)}.
+- Narradora: ¡Encontrado! (${q.found}/3) …¡y se escapa!
+- Narradora: ¡${name} anotado en el cuaderno!
+- Narradora: ovejas en el redil, basura recogida, eguzkilores, escudos encontrados, estrellas, nueva misión y nueva carta, con su cuenta o su título.
