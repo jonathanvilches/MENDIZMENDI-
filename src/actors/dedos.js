@@ -265,12 +265,16 @@ function dedosDe(root, hand, lado, metro) {
   hand.userData.palma = { c: pc.toArray(), n: N.toArray(), d: d.toArray(), largo: L, grosor };
   // (las posturas)
   const P = posturas(digs, { d, N, W, pc, grosor, metro, L });
-  return { huesos: nombres, poses: P.poses, agarre: P.agarre, bola: P.bola };
+  return { huesos: nombres, poses: P.poses, agarre: P.agarre, agarreBaston: P.agarreBaston, bola: P.bola };
 }
 
 // ---- las posturas: cuánto gira cada falange, para cada manera de tener la mano -------------------------------------
 // (el mango en diagonal: cuánto se tuerce hacia los dedos en la foto del autor, desde lo ancho de la mano)
 const DIAG = { alfa: 35 * GR };
+// (y el de lo que se lleva de pie, un bastón, una escoba, una horca, o colgando, el asa de un cesto: casi recto por la
+// mano, como un martillo, y algo más grueso. Con la diagonal de la pala, para llevarlo derecho había que torcer la
+// muñeca más de lo que se tuerce; agarrar.js)
+const RECTO = { alfa: 8 * GR };
 function posturas(digs, { d, N, pc, grosor, metro }) {
   const dedos = digs.filter(g => !g.pulgar), pulgar = digs.find(g => g.pulgar), q = new THREE.Quaternion(), tmp = new THREE.Vector3();
   // (el eje de cada dedo para doblarse hacia la palma; el del pulgar, hacia donde vaya a cerrar)
@@ -318,11 +322,11 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   // primera falange del índice al talón de la mano por el lado del meñique, no recto como un martillo. Cada dedo lo rodea
   // por donde le cruza: la primera falange, tangente al mango, y las otras dos, tangentes por su mitad. El pulgar se
   // cierra por encima, sobre el mango, el índice y el corazón)
-  const rho = 0.0115 / metro, ind = dedos[0], men = dedos[dedos.length - 1], MAXM = [95 * GR, 110 * GR, 95 * GR];
+  const ind = dedos[0], men = dedos[dedos.length - 1], MAXM = [95 * GR, 110 * GR, 95 * GR];
   const plano = (g) => [g.f, new THREE.Vector3().crossVectors(g.eje, g.f).normalize()];
   // (cortado en diagonal por el plano de un dedo, el mango es una elipse: su radio, entre el corto y el largo; el dedo
   // aprieta y se hunde un poco en él, como la carne de verdad)
-  const Rde = (g, e) => rho * (1 + 1 / Math.max(0.5, Math.abs(e.dot(g.eje)))) / 2 + 0.55 * g.r;
+  const Rde = (g, e, rho) => rho * (1 + 1 / Math.max(0.5, Math.abs(e.dot(g.eje)))) / 2 + 0.55 * g.r;
   // (la diagonal: de lo ancho de la mano, hacia el pulgar, girada «alfa» hacia los dedos y algo hacia la palma o el dorso.
   // Cada mano es distinta (las de los personajes, de dedos gordos, no dan para tanto), así que se prueban giros y sitios
   // del mango y se queda el que mejor cumple: que ningún nudillo quede dentro del mango, que no se hunda en la palma, que
@@ -334,11 +338,12 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   // (todo en números sueltos, sin crear vectores: se hace con cada personaje al cargarlo, vecinos incluidos)
   const F = dedos.map((g, k) => { const [x, y] = plano(g), n = g.eje, D0 = C0.clone().sub(g.J[0]);
     return { k: Math.min(3, k), x, y, n, l1: largos(g)[0], r: g.r, dx: D0.dot(x), dy: D0.dot(y), dn: D0.dot(n), cxx: cx.dot(x), cxy: cx.dot(y), cxn: cx.dot(n), cyx: cy.dot(x), cyy: cy.dot(y), cyn: cy.dot(n) }; });
+  const busca = (alfa, rho) => {
   let e = null, A = null, mejor = Infinity; const ee = new THREE.Vector3();
   for (let ia = 0; ia <= 6; ia++) for (let ib = -2; ib <= 2; ib++) {
     const al = ia * 6 * GR; ee.copy(w).multiplyScalar(Math.cos(al)).addScaledVector(d, Math.sin(al)).addScaledVector(N, Math.tan(ib * 6 * GR)).normalize();
     const pre = F.map(f => { const kd = ee.dot(f.n); return { kd, ex: ee.dot(f.x), ey: ee.dot(f.y), R: rho * (1 + 1 / Math.max(0.5, Math.abs(kd))) / 2 + 0.55 * f.r }; });
-    const Rc = rho * (1 + 1 / Math.max(0.5, Math.abs(ee.dot(cor.eje)))) / 2 + 0.55 * cor.r, base = 5 * (DIAG.alfa - al) ** 2;
+    const Rc = rho * (1 + 1 / Math.max(0.5, Math.abs(ee.dot(cor.eje)))) / 2 + 0.55 * cor.r, base = 5 * (alfa - al) ** 2;
     for (let ix = 0; ix <= 10; ix++) for (let iy = 0; iy <= 8; iy++) {
       const u = (-0.8 + 2 * ix / 10) * lc, v = Rc * (0.6 + 1.6 * iy / 8);
       let c = base;
@@ -356,6 +361,8 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
       if (c < mejor) { mejor = c; e = ee.clone(); A = C0.clone().addScaledVector(cx, u).addScaledVector(cy, v); }
     }
   }
+  return { e, A };
+  };
   // (las falanges no están rectas en reposo: cada articulación gira lo que falta desde como está hasta como la quiere el
   // mango, todo visto en el plano del dedo)
   const rodea = (g, P, R, max) => {
@@ -371,9 +378,10 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
     const p2 = p1 + h(1) + h(2), a = [p0 - fi[0], (p1 - p0) - (fi[1] - fi[0]), (p2 - p1) - (fi[2] - fi[1])];
     return a.map((v, j) => Math.min(max[j], Math.max(-10 * GR, v)));
   };
-  const m = { lista: [], cerrados: [], centros: [] };
-  for (const g of dedos) { const P = corte(g, A, e), a = rodea(g, P, Rde(g, e), MAXM); m.lista.push([g.eje, a]); m.cerrados.push([g, cadena(g, g.eje, a)]); m.centros.push(P); }
-  const cil = (p, r) => { const v = p.clone().sub(A); return v.addScaledVector(e, -v.dot(e)).length() < rho + r; };
+  // (cada agarre: la diagonal que se busca, alfa, y el radio del mango, rho, en metros)
+  const empuna = (alfa, radio) => {
+  const rho = radio / metro, { e, A } = busca(alfa, rho), m = { lista: [], cerrados: [], centros: [], e, rho };
+  for (const g of dedos) { const P = corte(g, A, e), a = rodea(g, P, Rde(g, e, rho), MAXM); m.lista.push([g.eje, a]); m.cerrados.push([g, cadena(g, g.eje, a)]); m.centros.push(P); }
   // (el pulgar, por encima del mango: se cierra hasta que su punta queda apoyada por fuera en la falange del medio del
   // corazón, como en la foto; ni se queda abierto ni se pasa de largo)
   if (pulgar) {
@@ -384,7 +392,11 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
     for (let i = 0; i <= 40; i++) { const b = MAXP.map(v => v * i / 40), J = cadena(pulgar, ej, b), dd = J[3].distanceTo(T) + 0.5 * J[2].distanceTo(T); if (dd < bd) { bd = dd; a = b; } }
     m.lista.push([ej, a]); m.cerrados.push([pulgar, cadena(pulgar, ej, a)]);
   }
+  return m;
+  };
+  const m = empuna(DIAG.alfa, 0.0115), mb = empuna(RECTO.alfa, 0.0135);
   poses.mango = quats(m.lista);
+  poses.baston = quats(mb.lista);
   // (el puño, sin nada dentro: lo mismo con un hueco más pequeño que un dedo)
   poses.puno = quats(agarra(g => 0.8 * g.r, g => 0.15 * g.Lf, MAXD).lista);
   // (corriendo: a medio cerrar)
@@ -424,11 +436,13 @@ function posturas(digs, { d, N, pc, grosor, metro }) {
   poses.pelota = quats(lb);
 
   // (dónde queda el hueco del puño con el mango: su centro, el eje del mango hacia el pulgar y lo ancho del puño)
-  const Cm = m.centros.reduce((a, c) => a.add(c.clone()), new THREE.Vector3()).divideScalar(m.centros.length);
-  const eje = e.clone();   // (ya va hacia el lado del pulgar: del meñique al índice)
-  let lo = Infinity, hi = -Infinity; for (const [g, J] of m.cerrados) if (!g.pulgar) for (const p of J) { const s = p.dot(eje); lo = Math.min(lo, s - g.r); hi = Math.max(hi, s + g.r); }
-  const agarre = { centro: Cm.toArray(), eje: eje.toArray(), n: N.toArray(), d: d.toArray(), hueco: rho, ancho: hi - lo, R: rho + rMed, largo: 0 };
-  return { poses, agarre, bola: { c: Cb.toArray(), r: rb } };
+  // (el eje ya va hacia el lado del pulgar: del meñique al índice)
+  const marco = (m) => {
+    const Cm = m.centros.reduce((a, c) => a.add(c.clone()), new THREE.Vector3()).divideScalar(m.centros.length), eje = m.e.clone();
+    let lo = Infinity, hi = -Infinity; for (const [g, J] of m.cerrados) if (!g.pulgar) for (const p of J) { const s = p.dot(eje); lo = Math.min(lo, s - g.r); hi = Math.max(hi, s + g.r); }
+    return { centro: Cm.toArray(), eje: eje.toArray(), n: N.toArray(), d: d.toArray(), hueco: m.rho, ancho: hi - lo, R: m.rho + rMed, largo: 0 };
+  };
+  return { poses, agarre: marco(m), agarreBaston: marco(mb), bola: { c: Cb.toArray(), r: rb } };
 }
 function mezcla(a, b, k) {
   const out = [], qa = new THREE.Quaternion(), qb = new THREE.Quaternion();
@@ -447,7 +461,7 @@ export class Dedos {
     }
     this.listo = true;
   }
-  /** Pone una mano en una postura ('abierta', 'relajada', 'carrera', 'puno', 'mango', 'pelota'); null: la de siempre. */
+  /** Pone una mano en una postura ('abierta', 'relajada', 'carrera', 'puno', 'mango', 'baston', 'pelota'); null: la de siempre. */
   pon(lado, modo) { this.pedidos[lado] = modo; const L = this.lados[lado]; if (L && L.modo !== modo) { L.modo = modo; L.hecho = null; } }
   update(dt, corre) {
     const k = 1 - Math.exp(-Math.min(dt, 0.1) * 16);

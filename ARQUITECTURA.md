@@ -1396,7 +1396,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
         - Los pesos: lo que cada punto tenía en la mano se reparte entre la mano y sus falanges, con un paso suave en cada
           articulación. Los huesos nuevos empiezan sin giro, así que en reposo la malla queda igual que antes.
         - Las posturas (`poses`): `relajada` (la de siempre), `carrera` (a medio cerrar, corriendo), `puno`, `mango`,
-          `pelota` (la del saque) y `abierta` (al golpear a mano).
+          `baston`, `pelota` (la del saque) y `abierta` (al golpear a mano).
+        - El `baston`, para lo que se lleva de pie o colgando (un bastón, una escoba, una horca, el asa de un cesto): la
+          misma búsqueda que el `mango`, pero casi recto por la mano, como un martillo (`RECTO`, 8°), y algo más grueso
+          (1,35 cm de radio). Con la diagonal de la pala, para llevar un bastón derecho había que torcer la muñeca más de lo
+          que se tuerce. Su hueco se guarda aparte (`agarreBaston`), al lado del de la pala (`agarre`).
         - El `mango`, como en la foto que pasó el autor el 16 de noviembre (la mano abierta sobre la cara de la pala, se
           baja al mango y se cierran los dedos): el mango cruza la mano en diagonal, de la primera falange del índice al
           talón de la mano por el lado del meñique, no recto como un martillo, y la cara de la pala queda paralela a la
