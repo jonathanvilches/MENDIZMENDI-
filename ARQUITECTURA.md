@@ -3174,12 +3174,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 ## Herramientas y pruebas (`tools/`)
 
 **Servidor MCP de Meshy para las sesiones en la nube** (`.mcp.json`, noviembre de 2026): `meshy-nube` arranca el servidor
-oficial de Meshy (`@meshy-ai/meshy-mcp-server`, fijado en 0.6.6) para que el asistente pueda generar y bajar modelos 3D.
+oficial de Meshy (`@meshy-ai/meshy-mcp-server`, fijado en 0.6.11; antes, 0.6.6) para que el asistente pueda generar y bajar modelos 3D.
 La clave que lleva es de relleno, no es secreta: la de verdad se guarda en los ajustes del entorno de la nube, en los
 secretos de red, para `api.meshy.ai` con la cabecera `Authorization: Bearer`, y el proxy la pone en cada petición. Sin
 ese secreto el proxy no deja llegar a `api.meshy.ai`. Nunca se escribe una clave de verdad en este archivo ni en ningún
 otro del repositorio. Se llama `meshy-nube` y no `meshy` para no tapar, en un ordenador con Claude Code, el servidor
 `meshy` que el autor tenga configurado allí con su propia clave.
+Lleva `NODE_USE_ENV_PROXY=1`: sin él, el `fetch` de Node no pasa por el proxy de la nube y no llega a Meshy (probado el 16
+de noviembre de 2026: sin él, «ENOTFOUND»). Con el servidor arrancado da sus 28 herramientas (`meshy_text_to_3d`,
+`meshy_retexture`, `meshy_remesh`, `meshy_rig`, `meshy_check_balance` y demás). El secreto se añade a mano en los ajustes
+del entorno: menú del entorno en la barra de la sesión, Editar, Secretos de red, servidor `api.meshy.ai`, cabecera
+`Authorization`, valor `Bearer` y la clave. Una sesión nueva lo recoge.
 
 | Herramienta | Qué hace |
 |---|---|

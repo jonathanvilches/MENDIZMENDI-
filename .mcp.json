@@ -2,8 +2,8 @@
   "mcpServers": {
     "meshy-nube": {
       "command": "npx",
-      "args": ["-y", "@meshy-ai/meshy-mcp-server@0.6.6"],
-      "env": { "MESHY_API_KEY": "msy_clave_en_el_proxy" }
+      "args": ["-y", "@meshy-ai/meshy-mcp-server@0.6.11"],
+      "env": { "MESHY_API_KEY": "msy_clave_en_el_proxy", "NODE_USE_ENV_PROXY": "1" }
     }
   }
 }
