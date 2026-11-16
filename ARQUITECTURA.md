@@ -697,8 +697,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   nota cansado»), el que anda fino con la derecha o la izquierda (2 de los 3 últimos tantos con esa mano; `match.js`
   `formaCtx`, que guarda la mano del último golpe en `swingAnim`) y lo que ha pasado en los otros partidos del campeonato
   (`otrosDe`: sorpresa, ajustado, sin historia, el favorito sigue o ha caído, otro invicto, la siguiente ronda, la liguilla).
-  Las 92 frases nuevas están grabadas (Mikel con su voz de siempre y el mismo filtro, Edurne con la limpia) pero no entran
-  hasta que el autor las apruebe: `frase()` se salta toda clave sin audio (`voz.js`, `tiene`), así que sin ellas callan.
+  Las 92 frases nuevas (Mikel con su voz de siempre y el mismo filtro, Edurne con la limpia; al mismo nivel medio que las
+  demás, -18 y -17 dB) las escuchó el autor en una página de escucha y las aprobó todas el mismo día («Perfecto, añade
+  todos los comentarios»): están en `guionVoz.js` y en `assets/voz/hombre|mujer/es/`. `frase()` se salta toda clave sin
+  audio (`voz.js`, `tiene`), así que una frase del guion sin su archivo calla en vez de fallar.
 - **Ovejas nuevas, de las razas de verdad** (16 de noviembre de 2026; `actors/animalGlb.js`, `sheep` y `sheepRasa`;
   `actors/animals.js`, `razaOveja`). El autor: «las ovejas no están nada bien diseñadas». La de antes (Sheep.glb,
   derivada de la alpaca de Quaternius) parecía una oveja inglesa. Ahora hay dos razas, buscadas antes en fuentes reales
