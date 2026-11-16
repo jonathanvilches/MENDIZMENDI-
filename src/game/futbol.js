@@ -140,15 +140,22 @@ export async function makeCharacter(d) {
   // (con dedos, cogido de verdad: el palo por el puño cerrado, un poco por encima de su punta; agarrar.js)
   let fl = null; if (d.line && B.RightHand) { fl = flag(); if (!agarrar(char, 'R', fl, { modo: 'suelto', desde: 0.07 })) { B.RightHand.add(fl); char.root.updateMatrixWorld(true); fl.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); } }
   // el árbitro lleva las tarjetas: la que enseña aparece en su mano derecha, en alto
-  // (con dedos, en el puño cerrado solo mientras la enseña: el canto de abajo entre los dedos y la palma, y lo demás por
-  // encima de la mano; agarrar.js)
+  // (con dedos, en el puño cerrado solo mientras la enseña: el canto de abajo metido en el puño y casi toda la tarjeta por
+  // encima de los nudillos, hacia donde apuntan los dedos, que con el brazo en alto es hacia arriba; de cara, como la palma.
+  // Por el eje del mango, como el banderín, salía de lado y con el brazo en alto se quedaba metida en el pelo)
   let card = null, cardPuno = false; if (d.referee && !d.line && B.RightHand) {
-    card = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.105, 0.075), new THREE.MeshBasicMaterial({ color: '#ffd400' })); card.visible = false;
-    cardPuno = agarrar(char, 'R', card, { modo: 'suelto', desde: -0.042 });
-    if (cardPuno) char.mano('R', null);
-    else { card.geometry.dispose(); card.geometry = new THREE.BoxGeometry(0.075, 0.105, 0.006); card.position.set(0, 0.09, 0.02); B.RightHand.add(card); char.root.updateMatrixWorld(true); card.scale.setScalar(1 / B.RightHand.getWorldScale(new THREE.Vector3()).x); card.position.multiplyScalar(card.scale.x); }
+    card = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.105, 0.006), new THREE.MeshBasicMaterial({ color: '#ffd400' })); card.visible = false;
+    char.root.updateMatrixWorld(true);
+    const G = char.dedos?.D?.R?.agarre, k = 1 / B.RightHand.getWorldScale(new THREE.Vector3()).x;
+    if (G) {
+      const Y = new THREE.Vector3().fromArray(G.d).normalize(), X = new THREE.Vector3().fromArray(G.eje), Z = new THREE.Vector3();
+      X.addScaledVector(Y, -X.dot(Y)).normalize(); Z.crossVectors(X, Y);
+      card.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(X, Y, Z)); card.scale.setScalar(k);
+      card.position.fromArray(G.centro).addScaledVector(Y, 0.075 * k).addScaledVector(X, 0.01 * k);
+      B.RightHand.add(card); cardPuno = true; char.mano('R', null);
+    } else { card.position.set(0, 0.09 * k, 0.02 * k); card.scale.setScalar(k); B.RightHand.add(card); }
   }
-  const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion();
+  const up = new THREE.Vector3(0, 1, 0), fw = new THREE.Vector3(), out = new THREE.Vector3(), w = new THREE.Quaternion(), lat = new THREE.Vector3(), cen = new THREE.Vector3(), cardM = new THREE.Matrix4();
   return { obj: char.root, female: girl, anim: { setSpeed: (v) => char.setSpeed(v), once: (n, s, fit) => char.playOnce(n, s, fit), update: (dt) => { char.update(dt); } },
     // brazos arriba sobre la cabeza (saque de banda) o el derecho en alto con el banderín (fuera de juego)
     post: (st) => {
@@ -158,8 +165,17 @@ export async function makeCharacter(d) {
       arms.forEach(([a, f, h], i) => {
         if (st.arms === 'flag' && i === 0) return;
         out.copy(up).addScaledVector(fw, st.arms === 'up' ? 0.25 : 0.1);
+        // (el banderín y la tarjeta, en alto pero algo hacia fuera y hacia delante: con la cabeza tan grande, recto hacia
+        // arriba la mano se quedaba metida en el pelo y la tarjeta no se veía)
+        if (st.arms === 'flag') { lat.copy(a.getWorldPosition(lat)).sub(char.root.getWorldPosition(cen)); lat.y = 0; if (lat.lengthSq() > 1e-8) out.addScaledVector(lat.normalize(), 0.55); out.addScaledVector(fw, 0.25); }
         aimBone(a, f, out); aimBone(f, h, out);
       });
+      // (la tarjeta, de cara hacia delante, a donde mira el árbitro, y de pie: así se ve, sea cual sea el giro de la muñeca)
+      if (card?.visible && cardPuno) {
+        const h = B.RightHand; char.root.updateMatrixWorld(true);
+        lat.crossVectors(up, fw).normalize(); cardM.makeBasis(lat, up, cen.copy(fw).setY(0).normalize());
+        card.quaternion.setFromRotationMatrix(cardM).premultiply(h.getWorldQuaternion(w).invert());
+      }
     },
     dispose: () => { char.dispose(); for (const m of mats) m.dispose(); if (card) { card.geometry.dispose(); card.material.dispose(); } if (fl) fl.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.map?.dispose(); o.material.dispose(); } }); } };
 }

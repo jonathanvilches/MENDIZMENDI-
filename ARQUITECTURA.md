@@ -1441,6 +1441,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           mayores (`outfits.js`, más fino, del grueso del puño, y con la punta apoyada en el suelo: baja o sube por el puño
           cada imagen, hasta un cuarto de su largo), el banderín de los jueces de línea y la tarjeta del árbitro (`futbol.js`;
           la mano solo se cierra mientras la enseña). Sin dedos (las figuras de reserva), cada uno sigue como antes.
+          La tarjeta no va por el eje del mango, como el banderín, sino con el canto de abajo metido en el puño y casi toda
+          por encima de los nudillos, y cada imagen se pone de pie y de cara hacia donde mira el árbitro. El brazo del
+          banderín y de la tarjeta sube algo hacia fuera y hacia delante: con la cabeza tan grande de estos personajes,
+          recto hacia arriba la mano se metía en el pelo y la tarjeta no se veía.
         - Coste: unos 100 ms al cargar el pelotari y entre 10 y 50 ms cada vecino, en el ordenador de pruebas; en cada
           imagen, solo mientras una mano cambia de postura. Sin llamadas de dibujo de más.
         - Quién los lleva: los modelos completos, los vecinos del pueblo (su versión ligera, la única que tienen) y, desde
