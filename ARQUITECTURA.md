@@ -741,6 +741,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   nombres de archivo. Itziar va con «Egunon» junto y su nombre escrito «Itsiar», sin parones (la de AFI, /iˈtsjaɾ/,
   hacía pausas). Queda fuera el «Kaixo» de Joseba (`inaki-00`), que no le sonó bien: se graban dos formas, «Kaixo» y
   «Kaisho», y se le mandan, igual que los saludos de tarde y noche de Itziar, antes de meterlas.
+  Al autor le valen las dos y entra «Kaisho» (`inaki-00`). Los saludos de tarde y noche de Itziar no entran: el autor
+  rechaza la voz de Itziar y la de Maite («son un horror y pronuncian fatal»); las dos esperan voz nueva.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en

@@ -8,8 +8,8 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 
 | Quién | Voz | Frases |
 |---|---|---|
-| Maite | Lulú, sin elegir todavía | 18 |
-| Itziar | Rosa | 11 |
+| Maite | Lulú, rechazada: busca voz nueva | 18 |
+| Itziar | Rosa, rechazada: busca voz nueva | 11 |
 | Joxemari | Rafael | 11 |
 | Kike | Leo | 7 |
 | Ainhoa | Sofía | 9 |
@@ -22,7 +22,7 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 
 ## Pendiente
 
-- Maite: el autor aún no ha elegido su voz. Si elige otra, se graban de nuevo sus 18 frases.
+- Maite e Itziar: el autor rechaza sus voces, «son un horror y pronuncian fatal». Se le mandan muestras gratis de voces nuevas de castellano de España y, cuando elija, se graban de nuevo sus 18 y 11 frases.
 - Maite dice cuatro palabras en euskera que su voz actual lee mal: Kaixo, Itziar, Joxemari y Zarratrako. Se arreglan al grabarla con la voz que elija el autor.
 
 ## Pronunciación del euskera
@@ -31,7 +31,7 @@ Ninguna voz entra en el juego sin que el autor la haya escuchado y aprobado.
 
 Las voces de castellano leen x, tx, tz y z con reglas de castellano. Una primera prueba escribía lo dicho como suena: Kaisho, Joshemari, Churi, lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore y Sarratrako. Al autor no le convenció y se retiró del juego: siguen las 25 grabaciones de antes. La siguiente prueba usó eleven_v4 con la pronunciación en alfabeto fonético. El 16 de noviembre el autor aprobó 25 grabaciones y ya están en el juego. Zatoya se dice en castellano.
 
-Pendientes de que el autor las escuche: los saludos de tarde y noche de Itziar, escritos como su versión B, y el «Kaixo» de Joseba en dos formas, «Kaixo» y «Kaisho».
+El «Kaixo» de Joseba va escrito «Kaisho»: al autor le valían las dos formas. Los saludos de tarde y noche de Itziar no entran, porque el autor rechaza su voz.
 
 ## Sin voz a propósito
 
