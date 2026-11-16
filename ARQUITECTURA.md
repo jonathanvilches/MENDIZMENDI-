@@ -3566,3 +3566,10 @@ cp dist/index.html docs/index.html
 cp dist/index.html HERRIZHERRI-jugar.html
 git push origin master:main
 ```
+- **Tráiler para inversores, primer guion** (`entrega/trailer/guion-trailer.md`; 16 de noviembre de 2026). El autor:
+  «tenemos que ver cuántos créditos tenemos en Higgsfield para crear un tráiler del videojuego. Un tráiler que
+  presentaremos a inversores» y «le pondremos un locutor, una voz en off, que tendré que elegir». Guion de 75 s, casi todo
+  con imágenes grabadas del propio juego (la isla que se despega, Ochagavía, las misiones, las leyendas, la pelota en el
+  Labrit) y solo tres planos de Higgsfield. Muestras públicas de seis voces de narrador en castellano de España en
+  `entrega/trailer/voces-muestra`, sacadas de la biblioteca de ElevenLabs sin gastar créditos; la voz se elige antes de
+  generar nada. Quedaban 341,25 créditos de Higgsfield.
