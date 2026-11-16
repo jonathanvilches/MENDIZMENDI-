@@ -401,7 +401,8 @@ export class UI {
     n.classList.add('on'); n.hidden = false;
     clearTimeout(n._t); n._t = setTimeout(() => { n.classList.remove('on'); n._t = setTimeout(() => { n.hidden = true; n.dataset.t = ''; }, 400); }, ms);
   }
-  toast(text, icon = 'sparkle', ms = 2800) { this.note('toast', `${I(icon, 26)}<span>${esc(text)}</span>`, text, ms); }
+  // (onVoz: quien quiera, el pueblo de Otsagabia, dice en alto los avisos, premios y cartas que tienen voz grabada)
+  toast(text, icon = 'sparkle', ms = 2800) { this.note('toast', `${I(icon, 26)}<span>${esc(text)}</span>`, text, ms); this.onVoz?.(text); }
   // Voz del narrador: frase en cursiva (pistas y momentos de misterio)
   whisper(text, ms = 4000) { this.note('whisper', `<span>${esc(text)}</span>`, text, ms); }
   hudVisible(v) { if (this.hud) { this.hud.style.display = v ? '' : 'none'; if (v) this.queueFitTop(); } }
@@ -489,14 +490,15 @@ export class UI {
       document.body.appendChild(r);
       this.modal = r;
       const btn = $('button', r); setTimeout(() => btn.focus(), 50);
-      const close = () => { r.remove(); this.modal = null; removeEventListener('keydown', k, true); this.sound.ui('click'); res(); };
+      const vz = setTimeout(() => this.onVoz?.(`${title} ${text || ''}`), 900);   // (después de la fanfarria)
+      const close = () => { clearTimeout(vz); this.onVoz?.(null); r.remove(); this.modal = null; removeEventListener('keydown', k, true); this.sound.ui('click'); res(); };
       const k = windowKeys((e) => { e.stopImmediatePropagation(); if (['e', 'enter', ' ', 'escape'].includes(e.key.toLowerCase())) { e.preventDefault(); close(); } }, 400);
       addEventListener('keydown', k, true);
       btn.onclick = close;
     });
   }
 
-  closeModal() { if (this.modal) { this.mapView?.destroy(); this.mapView = null; this.modal.remove(); this.modal = null; this.onModalClose?.(); } }
+  closeModal() { if (this.modal) { this.mapView?.destroy(); this.mapView = null; this.modal.remove(); this.modal = null; this.onVoz?.(null); this.onModalClose?.(); } }
   get busy() { return !!this.modal || this.dialogOpen; }
 
   screen(inner, cls = '') {
@@ -543,7 +545,7 @@ export class UI {
             const has = st.cards.includes(c.id);
             return `<button class="card ${has ? '' : 'locked'}" data-c="${c.id}"><div class="in"><div class="f"><small>${c.cat}</small><div class="e">${has ? I(c.icon, 56) : I('lock', 44)}</div><b>${has ? c.title : '¿?'}</b></div><div class="b">${has ? esc(c.text) : 'Sigue explorando para descubrir esta carta.'}</div></div></button>`;
           }).join('')}</div>`).join('');
-        body.querySelectorAll('.card').forEach(c => c.onclick = () => { if (!c.classList.contains('locked')) { c.classList.toggle('flip'); this.sound.ui('click'); } });
+        body.querySelectorAll('.card').forEach(c => c.onclick = () => { if (!c.classList.contains('locked')) { c.classList.toggle('flip'); this.sound.ui('click'); this.onVoz?.(c.classList.contains('flip') ? CARDS.find(x => x.id === c.dataset.c)?.text : null); } });
       } else {
         const r = st.ribbons.length;
         body.innerHTML = `<div class="stats"><div>${I('ribbon')} ${r}/8 cintas</div><div>${I('eguzkilore')} ${st.eguz.length}/${EGUZKILORES.length} eguzkilores</div><div>${I('book')} ${st.cards.length} ${st.cards.length === 1 ? 'carta' : 'cartas'}</div><div>${I('star')} ${st.stars} ${st.stars === 1 ? 'estrella' : 'estrellas'}</div></div>

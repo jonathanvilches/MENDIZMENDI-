@@ -19,7 +19,7 @@ import { clamp, lerp, angleDiff, mulberry32 } from '../util/math.js';
 import { Pajarillos } from '../world/pajarillos.js';
 import { Colada } from '../world/colada.js';
 import { QUALITY } from '../util/quality.js';
-import { hablaVecino, callaVecino } from './vozVecinos.js';
+import { hablaVecino, callaVecino, narra } from './vozVecinos.js';
 
 // prismáticos: vectores de trabajo (sin crear objetos en cada fotograma ni por cada animal que se mira)
 const _eye = new THREE.Vector3(), _dir = new THREE.Vector3(), _to = new THREE.Vector3(), _near = new THREE.Vector3(), _look = new THREE.Vector3();
@@ -46,6 +46,8 @@ export class Game {
     this.mode = 'play'; // play | bino | pelota | dance | cine
     this.elapsed = 0; this.lastHour = -1; this.ambT = 3;
     this.rnd = mulberry32(12345);
+    // (los avisos, premios y cartas del cuaderno con voz grabada, con la de Maite; vozVecinos.js)
+    if (this.ui) this.ui.onVoz = (t) => narra(t, this.state.name);
   }
   // ---------- Guardado ----------
   load() {

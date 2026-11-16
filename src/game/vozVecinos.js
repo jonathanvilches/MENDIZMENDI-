@@ -5,6 +5,9 @@
 // cuentas o pistas que cambian y los saludos que cambian con la hora («Arratsalde on», «Gabon») no tienen grabación y
 // se leen sin voz. En euskera, nada: las grabaciones son en castellano. Una frase cada vez: la siguiente, o cerrar la
 // charla, calla la anterior. Mientras habla, la música baja (audio.js, voz), como con los comentaristas de pelota.
+// Además de las charlas (hablaVecino), con la voz de Maite como narradora (manifiesto, «narra»): los avisos del pueblo
+// (la fuente, el peine de la Lamia, los cencerros, los premios) y las cartas del cuaderno al darles la vuelta (narra,
+// desde ui.js: onVoz). Las preguntas del queso de Arantxa van por su charla, con su voz.
 import MANI from '../assets/voz/vecinos/ochagavia/manifiesto.json';
 import { getLang } from '../i18n.js';
 
@@ -32,10 +35,20 @@ export function callaVecino() {
 }
 
 /** Dice la línea L de una charla con la voz grabada de su vecino, si la tiene */
-export async function hablaVecino(L, nombre) {
+export function hablaVecino(L, nombre) { return dice(L?.text, nombre); }
+
+/** Dice un texto suelto (un aviso, un premio, una carta del cuaderno) si tiene grabación; si no la tiene, no calla lo que
+ *  esté sonando (un aviso sin voz no corta una charla). null: calla */
+export function narra(texto, nombre) {
+  if (texto == null) return callaVecino();
+  if (getLang() === 'eu' || !clipDe(texto, nombre)) return;
+  return dice(texto, nombre);
+}
+
+async function dice(texto, nombre) {
   callaVecino();
   if (getLang() === 'eu') return;
-  const arch = clipDe(L?.text, nombre), load = arch && CLIPS[`../assets/voz/vecinos/ochagavia/${arch}`];
+  const arch = clipDe(texto, nombre), load = arch && CLIPS[`../assets/voz/vecinos/ochagavia/${arch}`];
   const S = window.__sound, ctx = S?.ctx;
   if (!load || !ctx) return;
   const t = tok;
