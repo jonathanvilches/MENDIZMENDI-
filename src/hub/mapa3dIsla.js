@@ -155,6 +155,10 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   const TEX = 2.4;   // (lo que mide la textura de la roca en el mapa)
   const dentroDe = (QQ) => (x, z) => { let s = false; for (let i = 0, j = N - 1; i < N; j = i++) { const a = QQ[i], b = QQ[j]; if ((a[1] > z) !== (b[1] > z) && x < a[0] + (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1])) s = !s; } return s; };
   const dentro = dentroDe(Q);
+  // (lo mismo, por filas: los cruces del contorno con una fila z, ordenados, una sola vez; con la x que va creciendo, dentro
+  // es que quedan impares a su derecha. Da lo mismo que dentroDe punto a punto, que con cada punto recorría todo el contorno:
+  // al elegir una comarca, la isla tardaba en hacerse de 0,1 a 0,4 s y la cámara daba un tirón. 16 de noviembre de 2026)
+  const crucesDe = (QQ, z) => { const xs = []; for (let i = 0, j = N - 1; i < N; j = i++) { const a = QQ[i], b = QQ[j]; if ((a[1] > z) !== (b[1] > z)) xs.push(a[0] + (b[0] - a[0]) * (z - a[1]) / (b[1] - a[1])); } return xs.sort((p, q) => p - q); };
   // (el hueco: con la isla crecida, el contorno de la comarca, que es lo que se arranca del mapa, con los mismos N puntos;
   // si no, el de la isla. Lo suyo, con h: Qh, LQh, el centro, cuánto mide, sus normales y su altura)
   const amplia = !!hueco && hueco !== P, Qh = amplia ? reparte(hueco, N) : Q, dentroH = amplia ? dentroDe(Qh) : dentro;
@@ -166,7 +170,9 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   // 0,9 veces su radio (antes era una losa, de 0,22 a 0,5, y de lado apenas se veía roca). El Pirineo arranca la raíz más
   // honda; la Ribera, la más corta)
   const hs = []; { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const [x, z] of Q) { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }
-    const paso = Math.max(0.15, rMed / 30); for (let x = x0; x <= x1; x += paso) for (let z = z0; z <= z1; z += paso) if (dentro(x, z)) hs.push(alto(x, z)); hs.sort((a, b) => a - b); }
+    const paso = Math.max(0.15, rMed / 30), XS = [], ZS = []; for (let x = x0; x <= x1; x += paso) XS.push(x); for (let z = z0; z <= z1; z += paso) ZS.push(z);
+    for (const z of ZS) { const xs = crucesDe(Q, z); let k = 0; for (const x of XS) { while (k < xs.length && xs[k] <= x) k++; if ((xs.length - k) & 1) hs.push(alto(x, z)); } }
+    hs.sort((a, b) => a - b); }
   const relieve = hs.length > 10 ? hs[Math.floor(hs.length * 0.98)] - hs[Math.floor(hs.length * 0.02)] : rMed * 0.3;
   const D = Math.min(0.9 * rMed, Math.max(0.62 * rMed, 2.4 * relieve));
   // (unas pocas puntas: la roca cuelga más donde caen, y la de abajo del todo no queda en el centro sino corrida a un lado)
@@ -270,18 +276,33 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
     let qx0 = 1e9, qx1 = -1e9, qz0 = 1e9, qz1 = -1e9; for (const [x, z] of [...Q, ...(amplia ? Qh : [])]) { qx0 = Math.min(qx0, x); qx1 = Math.max(qx1, x); qz0 = Math.min(qz0, z); qz1 = Math.max(qz1, z); }
     const ox = qx0 - WM, oz = qz0 - WM, ow = qx1 - qx0 + 2 * WM, oh = qz1 - qz0 + 2 * WM, ppu = 168 / Math.max(ow, oh), tw = Math.ceil(ow * ppu) + 2, th = Math.ceil(oh * ppu) + 2, px = Math.max(ow / tw, oh / th);
     const OD = new Uint8Array(tw * th * 4), OF = new Float32Array(tw * th * 3);
-    for (let j = 1; j < th - 1; j++) for (let i = 1; i < tw - 1; i++) {
-      const x = ox + (i + 0.5) * ow / tw, z = oz + (j + 0.5) * oh / th; let m2 = 1e9, k = 0, m2h = 1e9, kh = 0;
-      for (let q = 0; q < N; q++) { const dx = Q[q][0] - x, dz = Q[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2) { m2 = d2; k = q; } }
-      if (amplia) { for (let q = 0; q < N; q++) { const dx = Qh[q][0] - x, dz = Qh[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2h) { m2h = d2; kh = q; } } } else { m2h = m2; kh = k; }
+    // (el punto del borde más cercano a cada píxel, buscado por casillas y en anillos que se abren hasta que ya no puede haber
+    // otro más cerca; con empate, el de menor número, como al recorrerlos todos. Antes se recorrían los N puntos, dos veces, en
+    // cada píxel: era casi la mitad de lo que tardaba la isla en hacerse)
+    const CS = Math.max(ow, oh) / 24, GW = Math.ceil(ow / CS) + 1, GH = Math.ceil(oh / CS) + 1;
+    const casillas = (QQ) => { const G = Array.from({ length: GW * GH }, () => []); QQ.forEach(([x, z], q) => { const a = Math.min(GW - 1, Math.max(0, Math.floor((x - ox) / CS))), b2 = Math.min(GH - 1, Math.max(0, Math.floor((z - oz) / CS))); G[b2 * GW + a].push(q); }); return G; };
+    const GQ = casillas(Q), GQh = amplia ? casillas(Qh) : GQ, cerca = { m2: 0, k: 0 };
+    const masCerca = (QQ, G, x, z) => { const ci = Math.min(GW - 1, Math.max(0, Math.floor((x - ox) / CS))), cj = Math.min(GH - 1, Math.max(0, Math.floor((z - oz) / CS))); let m2 = 1e9, k = 0;
+      for (let r = 0; r < GW + GH; r++) {
+        for (let b2 = cj - r; b2 <= cj + r; b2++) { if (b2 < 0 || b2 >= GH) continue; const salta = b2 !== cj - r && b2 !== cj + r;
+          for (let a = ci - r; a <= ci + r; a += salta ? 2 * r || 1 : 1) { if (a < 0 || a >= GW) continue;
+            for (const q of G[b2 * GW + a]) { const dx = QQ[q][0] - x, dz = QQ[q][1] - z, d2 = dx * dx + dz * dz; if (d2 < m2 || (d2 === m2 && q < k)) { m2 = d2; k = q; } } } }
+        if (m2 < 1e9 && Math.sqrt(m2) < r * CS) break; }
+      cerca.m2 = m2; cerca.k = k; };
+    for (let j = 1; j < th - 1; j++) {
+      const z = oz + (j + 0.5) * oh / th, xs = crucesDe(Q, z), xsH = amplia ? crucesDe(Qh, z) : xs; let p = 0, pH = 0;
+      for (let i = 1; i < tw - 1; i++) {
+      const x = ox + (i + 0.5) * ow / tw; masCerca(Q, GQ, x, z); const m2 = cerca.m2, k = cerca.k; let m2h = m2, kh = k;
+      if (amplia) { masCerca(Qh, GQh, x, z); m2h = cerca.m2; kh = cerca.k; }
+      while (p < xs.length && xs[p] <= x) p++; while (pH < xsH.length && xsH[pH] <= x) pH++;
       const d = Math.sqrt(m2), dh = Math.sqrt(m2h); if (d > WM && dh > WM) continue;
       // (cada lado se pasa un poco al otro: los puntos que caen justo en el borde, el de la isla y el de sus vecinas, bajan
       // del todo. Con el corte limpio en la muga, la imagen los mezclaba a medias y quedaban de pie, como pinchos)
-      const den = dentro(x, z), denH = amplia ? dentroH(x, z) : den, cruza = 1 - ss(px * 1.2, px * 2.6, d), cruzaH = 1 - ss(px * 1.2, px * 2.6, dh);
+      const den = !!((xs.length - p) & 1), denH = amplia ? !!((xsH.length - pH) & 1) : den, cruza = 1 - ss(px * 1.2, px * 2.6, d), cruzaH = 1 - ss(px * 1.2, px * 2.6, dh);
       const r = d > WM ? 0 : den ? 1 - ss(0, WI[k], d) : cruza, g = dh > WM ? 0 : denH ? cruzaH : 1 - ss(0, WO[kh], dh), o = (j * tw + i);
       OD[o * 4] = Math.round(r * 255); OD[o * 4 + 1] = Math.round(g * 255); OD[o * 4 + 2] = Math.round(Math.min(1, RIM[k] / 12) * 255); OD[o * 4 + 3] = 255;
       OF[o * 3] = r; OF[o * 3 + 1] = g; OF[o * 3 + 2] = RIM[k];
-    }
+    } }
     const t = new THREE.DataTexture(OD, tw, th, THREE.RGBAFormat); t.magFilter = t.minFilter = THREE.LinearFilter; t.needsUpdate = true; mats.push(t);
     return { tex: t, rect: new THREE.Vector4(ox, oz, ow, oh), OF, ox, oz, ow, oh, tw, th };
   })();

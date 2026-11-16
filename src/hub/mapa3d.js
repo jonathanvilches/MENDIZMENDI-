@@ -313,10 +313,12 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   // losa, gIsla, con la rejilla de la de siempre, sale en lugar de esa mientras la isla está en el aire)
   const ampDe = (c) => c.amp || (c.amp = islaAmpliada(c.Pw, alto, { navarra: (x, z) => navDentro(x, z), evita: [...(c.salen || []), ...(c.entran || [])] }));
   const ampAttr = (g, A) => { const n = g.attributes.position.count, pa = g.attributes.position.array, am = new Float32Array(n); if (A.amplia) for (let v = 0; v < n; v++) am[v] = A.amp(pa[v * 3], pa[v * 3 + 2]); g.setAttribute('aAmp', new THREE.BufferAttribute(am, 1)); };
+  const losaDe = (c) => { const A = ampDe(c);
+    if (A.amplia && !c.gIsla) { const { g } = losa(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; }
+    return A; };
   const islaDe = (c) => {
     if (c.isla) return c.isla;
-    const A = ampDe(c);
-    if (A.amplia && !c.gIsla) { const { g } = losa(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; }
+    const A = losaDe(c);
     return (c.isla = hazIsla({ id: c.id, P: A.amplia ? A.P : c.Pw, hueco: A.amplia ? c.Pw : null, grosor: GROSOR, alto: A.alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
       fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
   };
@@ -1564,7 +1566,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   let finoT = 0;
   function finos(dt, now, quieto) {
     const quiere = finoD && sel && !COL && !maq?.malla ? byId.get(sel) : null;
-    if (quiere && !quiere.finoListo && quieto && now - finoT > 250) { const t0 = performance.now(); if (!quiere.bordeF) bordeDe(quiere); else hazFino(quiere); finoT = performance.now(); (quiere.finoMs ||= []).push(Math.round(finoT - t0)); }   // (tres pasos: el borde, la malla y lo demás)
+    // (y no mientras la isla se despega, se queda arriba esperando o el dron llega a su sitio: sus tres pasos paraban la imagen
+    // justo en lo que más se mira; 16 de noviembre de 2026)
+    const subiendo = quiere?.isla && (islaMueve(quiere) || ((quiere.isla.k || 0) > 0.5 && !quiere.vistaAlta) || (islaDron?.c === quiere && islaDron.t < LLEGA_ISLA + 0.4));
+    if (quiere && !quiere.finoListo && quieto && !subiendo && now - finoT > 250) { const t0 = performance.now(); if (!quiere.bordeF) bordeDe(quiere); else hazFino(quiere); finoT = performance.now(); (quiere.finoMs ||= []).push(Math.round(finoT - t0)); }   // (tres pasos: el borde, la malla y lo demás)
     for (const c of C) {
       // (con la isla crecida: en el aire, su losa, y la densa, que es la de la isla; en el mapa, la de siempre)
       const up = !!c.gIsla && (c.isla?.k || 0) > 0.002, base = up ? c.gIsla : c.gGrueso;
@@ -1792,6 +1797,22 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     const sube = () => { if (!vivo) return; for (let i = pend.length - 1; i >= 0; i--) { const t = pend[i], im = t.image; if (im && (im.width || im.naturalWidth)) { try { r.initTexture(t); } catch (e) { } pend.splice(i, 1); break; } }
       if (pend.length) setTimeout(sube, 250); };   // (una por vez, para no parar la imagen)
     setTimeout(sube, 250);
+  }
+  // (las islas de las demás comarcas, hechas de antemano, una cada vez y en dos trozos (su contorno crecido y su losa; luego la
+  // roca, el hueco y el agua): al elegir una comarca la suya se hacía en ese momento, de 0,1 a 0,4 s, y la imagen se paraba
+  // justo al empezar el vuelo; en el vídeo del iPhone del 16 de noviembre de 2026, un tirón en cada comarca. Un trozo cada
+  // 1,2 s con la cámara quieta y cada 3 s en los movimientos lentos (el paseo por Navarra, el dron de la isla ya en su sitio);
+  // nunca en un vuelo, con el dedo en la pantalla ni mientras una isla sube o baja. Primero las de al lado de la elegida en la
+  // fila de abajo, que es por donde va el jugador. Escondidas no se pintan; las doce ocupan unos 12 MB)
+  let preT = 0;
+  const islaMueve = (c) => c.isla && (((c.isla.k || 0) > 0.003 && (c.isla.k || 0) < 0.97) || Math.abs(c.isla.v || 0) > 0.02);
+  function preIslas(dt, quieto) {
+    if (!islaLista || !calentado || tv || elegido || vuelo || ptrs.size || keys.size || inercia || (intro && !intro.hecho) || (islaDron && islaDron.t < LLEGA_ISLA + 0.5) || C.some(islaMueve)) { preT = 0; return; }
+    if ((preT += dt) < (quieto && !paseo && !islaDron ? 1.2 : 3)) return;
+    const i0 = sel ? C.findIndex(c => c.id === sel) : C.length >> 1;
+    let otra = null, md = 1e9; C.forEach((c, i) => { if (!c.isla && Math.abs(i - i0) < md) { md = Math.abs(i - i0); otra = c; } });
+    preT = 0; if (!otra) return;
+    if (!otra.amp || (otra.amp.amplia && !otra.gIsla)) losaDe(otra); else islaDe(otra);
   }
   let estreno = null;   // (lo calentado, en la escena una sola imagen; luego fuera)
   function maqueta(dt, quieto) {
@@ -2233,7 +2254,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (terr && !terr.fin) { if (!intro.hecho) terr.suelta(dI); terr.ESC.value = r.domElement.height / (2 * Math.tan(cam.fov * Math.PI / 360));
       if (!terr.mueve(dI || dt) && intro.hecho) { terr.fin = true; scene.remove(terr.im, terr.nube); } }
     // los núcleos: el pintado entra al acercarse y las casas en pie, ya muy cerca
-    nucleos(now, quieto); maqueta(dt, quieto); emblemas(dt, quieto);
+    nucleos(now, quieto); maqueta(dt, quieto); emblemas(dt, quieto); preIslas(dt, quieto);
     const kN = Math.min(1, Math.max(0, (NUC_LEJOS - v.d) / (NUC_LEJOS - NUC_CERCA))), kC = v.d < CASAS_D ? 1 : 0;
     for (const e of nuc.values()) {
       if (!(e.slot >= 0)) continue; const f = 1 - 0.85 * e.c.fondo;   // (en una comarca al fondo, casi no se ve)

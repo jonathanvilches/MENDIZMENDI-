@@ -2682,6 +2682,26 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     con un muelle blando (6 y 4,2), que sube en algo más de 1,2 s; se queda quieta arriba 0,8 s (`PAUSA_ISLA`) y entonces
     arranca el dron, que llega a su sitio en 2,6 s (`LLEGA_ISLA`) y al plano de la isla entera en 10 (`DRON_ISLA`). Medido
     en el navegador de pruebas: la cámara llega a 1,2 s, la isla empieza a subir ahí y el dron arranca a 3,1 s.
+- **Sin tirones al elegir una comarca** (`orT` y `crucesDe` en `mapa3dIsla.js`; `losaDe`, `preIslas` e `islaMueve` en
+  `mapa3d.js`; 16 de noviembre de 2026). El autor mandó un vídeo del iPhone pasando de comarca a comarca por la fila de
+  abajo: «para que veas también lo lento que va y a trompicones». Medido en la grabación: entre 40 y 50 imágenes por
+  segundo y, en cada comarca nueva, uno o varios parones de 0,1 a 0,4 s justo al empezar el vuelo y la subida.
+  - La isla de cada comarca se hacía entera en el momento de tocarla: de 0,12 a 0,41 s en el navegador de pruebas, con la
+    imagen parada. Casi la mitad se iba en el dibujo de la orilla (`orT`): por cada píxel se recorrían los 300 a 560 puntos
+    del borde, dos veces, para buscar el más cercano, y otras dos para saber si estaba dentro. Ahora el más cercano se busca
+    por casillas, en anillos que se abren hasta que ya no puede haber otro más cerca (con empate, el de menor número, como
+    antes), y lo de dentro, por filas: los cruces del contorno con cada fila, una sola vez (`crucesDe`). Lo mismo para el
+    relieve de la comarca que decide lo honda que es la roca. El resultado es idéntico, comprobado con una huella de la
+    imagen de la orilla y del relieve en las doce comarcas, y la isla se hace en menos de la mitad: de 2 s a 0,9 s las doce.
+  - Y se hacen de antemano (`preIslas`), una cada vez y en dos trozos (su contorno crecido y su losa; luego la roca, el
+    hueco y el agua): un trozo cada 1,2 s con la cámara quieta y cada 3 s en los movimientos lentos, el paseo por Navarra o
+    el dron de la isla ya en su sitio. Nunca en un vuelo, con el dedo en la pantalla ni mientras una isla sube o baja.
+    Primero las de al lado de la elegida en la fila de abajo. Hechas, se esconden y no se pintan ni se suben a la tarjeta;
+    las doce ocupan unos 12 MB de memoria. Con una ya hecha, tocar su comarca no para nada.
+  - El relieve fino de la comarca elegida, que se hace en tres pasos con la cámara quieta, esperaba a que la cámara llegara
+    y caía justo en la subida y la pausa de arriba. Ahora espera a que la isla esté arriba y el dron haya llegado a su sitio.
+  - Las pruebas automáticas, con reloj propio y la tarjeta de mentira del navegador, no sirven para medir la fluidez: allí
+    una imagen con la isla tarda segundos. Se mide la parte de los cálculos, que es la misma en el teléfono.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la
