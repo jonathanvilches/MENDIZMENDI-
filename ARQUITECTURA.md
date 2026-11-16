@@ -2607,6 +2607,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     pueblo está por descubrir, rosa si está empezado y dorado si está sellado; el nombre, en 12 px sobre una pastilla
     oscura al 50 %, sin desenfoque. El autor: «un punto minimalista, muy fácil de acceder, pero que se note claro cuál es
     cada pueblo».
+  - El 16 de noviembre, fuera el punto: el autor, «No me gusta el punto del pueblo para seleccionar». En la isla, cada
+    pueblo lleva ya su ficha, la misma de cuando se acerca la cámara (como la de Burgui), algo más pequeña: foto de 24 px
+    con el aro de cómo va, nombre en 12 px y el pico abajo; si no cabe, solo la foto (`.m3-tl.mini` en `inicio.css`; lo
+    que ocupa sin nombre, 30 por 36 px). Se sigue tocando en toda la ficha y con el margen de un dedo alrededor del pico.
   - Y un paso atrás cada vez (`atras`): la casa del mapa y Escape llevan del pueblo a su comarca y de la comarca a toda
     Navarra; antes la casa iba siempre a toda Navarra. Al salir de un pueblo («Volver a la comarca», en el menú de pausa),
     el inicio se abre con su comarca levantada (`hub.show('home', comarca)` en `main.js` y `enMapa` en `inicio.js`), y no

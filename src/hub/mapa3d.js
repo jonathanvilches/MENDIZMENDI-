@@ -2203,11 +2203,12 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       else lista.push([it.sel ? -2 : -1, it.el, c.X, c.hc * c.sy + c.py + 1.4, c.Z, true, c.py]); }   // (si encima no cabe, debajo)
     // (el 15 de noviembre de 2026, por la noche, el autor: «cuando sale la comarca hacia arriba, la animación, tiene que haber
     // un punto que indique dónde está cada pueblo, minimalista, muy fácil de acceder, pero que se note claro cuál es cada
-    // pueblo». Los puntos de los pueblos salen en cuanto la isla empieza a subir, sin esperar al vuelo del dron; los montes,
-    // los ríos y el rótulo de la comarca siguen esperando)
+    // pueblo». Los pueblos salen en cuanto la isla empieza a subir, sin esperar al vuelo del dron; los montes, los ríos y el
+    // rótulo de la comarca siguen esperando. Desde el 16, con su ficha pequeña de foto y nombre en vez del punto: el autor,
+    // «No me gusta el punto del pueblo para seleccionar»; inicio.css, .m3-tl.mini)
     for (const x of T) { const ya = elegido === x, sh = hover === 't:' + x.id, mini = lejosIsla && sel === x.comarca && !ya;
       const on = !COL && (sinNombres?.id !== x.comarca || mini) && (sel ? sel === x.comarca || hover === 't:' + x.id : cerca || x.here || hover === 't:' + x.id);
-      if (mini !== !!x._mini) { x._mini = mini; x.lab.classList.toggle('mini', mini); x.lab._w = 0; x.lab._sp = mini ? [16, 16] : [32, 40]; }   // (otro tamaño: se vuelve a medir) if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
+      if (mini !== !!x._mini) { x._mini = mini; x.lab.classList.toggle('mini', mini); x.lab._w = 0; x.lab._sp = mini ? [30, 36] : [32, 40]; }   // (otro tamaño: se vuelve a medir) if (ya !== !!x._sel) { x._sel = ya; x.lab.classList.toggle('sel', ya); } if (sh !== !!x._hov) { x._hov = sh; x.lab.classList.toggle('hov', sh); }
       lista.push([x.here || sh || ya ? 0 : cerca || sel === x.comarca ? 1 : 3, x.lab, x.X, x.g.position.y, x.Z, on, x.g.position.y, true]); }   // (si encima no cabe, debajo, con el pico arriba; y si tampoco, solo la foto)
     // (con una comarca elegida, también los nombres de las de alrededor, apagados y los últimos, donde quepan: así se ve hacia
     // dónde ir arrastrando el mapa. No con un pueblo elegido)
