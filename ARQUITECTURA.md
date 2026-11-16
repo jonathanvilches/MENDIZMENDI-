@@ -2589,6 +2589,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     después de la animación». Ya no da vueltas. Sale de cerca, se abre medio radián hacia un lado y vuelve mientras se
     aleja, y a los 9 s llega y se para; las dos curvas llegan con velocidad cero. A los lados deja un 12 % de aire, como
     la captura; con la pantalla de pie, el 3 % de antes. En Sakana, del móvil tumbado, a 20,4; de pie, a 56,5.
+  - Y desde el 16 de noviembre de 2026, todo más deprisa («la animación de las comarcas que salen de la tierra va muy
+    lenta»): la tierra arranca con el vuelo de llegada al 15 % en vez de al 30 %, su muelle es el doble de firme (34 en
+    vez de 17, amortiguado 8,2) y sube en unos 0,4 s en vez de 0,6; el vuelo de llegada dura un 45 % del normal en vez de
+    un 55 %; y el dron llega al plano final en 5 s en vez de 9 (`LLEGA_ISLA`, 1,4 s en vez de 1,8). Ojo: el mapa no deja
+    pasar más de 0,1 s por imagen, así que en un ordenador que vaya a menos de 10 imágenes por segundo todo va a cámara lenta.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la
