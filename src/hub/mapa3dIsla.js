@@ -227,7 +227,7 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   return { pos, g }; };
   const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro), MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g;
   // (roca cálida, ocre y parda, como la de las islas de referencia)
-  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(2.4, Math.max(0.7, D * 0.22)) * (0.4 + 0.6 * (1 - ss0(4, 28, cz))); conMusgo(rocaM, tex); mats.push(rocaM);   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
+  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(2.4, Math.max(0.7, D * 0.22)) * (0.4 + 0.6 * (1 - ss0(4, 28, cz))) * 0.22;   // (desde el 16 de noviembre de 2026, casi sin musgo pintado: el autor lo veía «apegado», no 3D; el musgo, en matas que cuelgan del borde) conMusgo(rocaM, tex); mats.push(rocaM);   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
   const grupo = new THREE.Group(); grupo.name = 'isla-' + id; grupo.visible = false; scene.add(grupo);
   grupo.add(new THREE.Mesh(g, rocaM));
   // (la misma panza, dentro del hueco: mientras la isla sale de él, se ve por la boca delante de las paredes)
@@ -442,7 +442,66 @@ void main() {
   const ponCanto = (sy) => { cantoSy = sy;
     FILAS.forEach(([o, dy, cu, , , ], f) => { for (let i = 0; i <= N; i++) { const k = i % N, q = Q[k], [nx, nz] = NS[k], v = (f * N1 + i) * 3, oo = f >= 2 && f <= 7 ? o * ANCHO[k] * ENC[k] : o, hk = H0[k] - KI * (H0[k] - RIM[k]);
       cantoPos[v] = q[0] + nx * oo; cantoPos[v + 1] = dy == null ? B * sy - 0.04 : Math.max(B * sy, hk * sy + dy - cu * CUELGA[k]); cantoPos[v + 2] = q[1] + nz * oo; } });
-    cantoG.attributes.position.needsUpdate = true; };
+    cantoG.attributes.position.needsUpdate = true; ponColgantes(sy); };
+
+  // ---------- lo que cuelga del borde: raíces y matas de musgo, en 3D, que se mecen con el aire ----------
+  // (16 de noviembre de 2026, el autor: «en la parte de la tierra que has puesto como una especie de musgo, se nota que está
+  // apegado, se nota que no es 3D. No cuelgan raíces tampoco con movimiento». El musgo de la panza era una foto pintada sobre
+  // la roca; ahora casi no queda, y bajo el filo de la hierba asoman matas de musgo de verdad, con volumen, y raíces que
+  // cuelgan más o menos largas, algunas hasta medio cuerpo de la isla. Cada una con su largo, su grosor y su ritmo; el
+  // vértice baja la punta más que la base y la mece con el viento)
+  const TCOLG = { value: 0 };   // (el tiempo del viento: TIEMPO se crea más abajo)
+  const colgV = `attribute float aFase, aL; attribute vec2 aN; uniform float uT, uOnda, uSale; varying float vD, vF; varying vec3 vNw;
+#include <fog_pars_vertex>
+void main() { float d = -position.y; vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
+  float sw = sin(uT * 0.85 + aFase * 6.283 + d * 2.3) * 0.6 + sin(uT * 1.6 + aFase * 11.0 + d) * 0.4, d2 = d * d;
+  w.xz += aN * aL * uSale * sin(d * 1.9) + vec2(aN.y, -aN.x) * sw * aL * uOnda * d2 + aN * sw * aL * uOnda * 0.5 * d2;
+  vD = d; vF = aFase; vNw = normalize(mat3(modelMatrix * instanceMatrix) * normal);
+  vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
+#include <fog_vertex>
+}`;
+  const colgF = (base, punta) => `uniform vec3 uLuz; varying float vD, vF; varying vec3 vNw;
+#include <fog_pars_fragment>
+void main() { vec3 n = normalize(vNw); if (!gl_FrontFacing) n = -n;
+  vec3 c = mix(${base}, ${punta}, smoothstep(0.0, 1.0, vD)) * (0.82 + 0.36 * fract(vF * 7.31));
+  float l = 0.5 + 0.55 * max(0.0, dot(n, uLuz)) + 0.12 * n.y; c *= l * mix(0.62, 1.0, smoothstep(0.0, 0.5, vD));   // (arriba, a la sombra del labio)
+  gl_FragColor = vec4(c, 1.0);
+#ifdef USE_FOG
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, linearToOutputTexel(vec4(fogColor, 1.0)).rgb, smoothstep(fogNear, fogFar, vFogDepth));
+#endif
+}`;
+  const colgM = (base, punta, onda, sale) => { const m = new THREE.ShaderMaterial({ side: THREE.DoubleSide, fog: true, vertexShader: colgV, fragmentShader: colgF(base, punta),
+    uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uLuz: { value: LUZ.clone() }, uOnda: { value: onda }, uSale: { value: sale } }]) }); m.uniforms.uT = TCOLG; mats.push(m); return m; };
+  // la raíz: un tubo que se afina, de la base (y 0) a la punta (y -1); la mata: briznas planas en estrella, que se afinan
+  const raizG = new THREE.CylinderGeometry(1, 0.12, 1, 5, 9, true); raizG.translate(0, -0.5, 0); geos.push(raizG);
+  const mataG = (() => { const pos = [], ix = []; const NB = 5, SG = 4;
+    for (let b = 0; b < NB; b++) { const a = b / NB * Math.PI, ca = Math.cos(a), sa = Math.sin(a), o = pos.length / 3;
+      for (let k = 0; k <= SG; k++) { const t = k / SG, w = 0.5 * (1 - t) ** 0.8 * (0.7 + 0.3 * ((b * 7) % 3) / 2), ln = 1 - 0.22 * ((b * 5) % 3) / 2;
+        pos.push(-w * ca, -t * ln, -w * sa, w * ca, -t * ln, w * sa); }
+      for (let k = 0; k < SG; k++) { const v = o + k * 2; ix.push(v, v + 1, v + 2, v + 1, v + 3, v + 2); } }
+    const g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g2.setIndex(ix); g2.computeVertexNormals(); geos.push(g2); return g2; })();
+  // (cuántas y dónde: una cada pocos puntos del borde, con su largo; en el borde más alto de la isla, menos)
+  const RAIZ = [], MATA = [];
+  for (let i = 0; i < N; i++) {
+    if (R() < 0.75) RAIZ.push({ k: i, off: -0.04 + R() * 0.06, L: (R() < 0.18 ? 1.4 + R() * 2.4 : 0.35 + R() * 1.0) * Math.min(1.3, Math.max(0.6, rMed / 7)), r: 0.03 + R() * 0.045, f: R() });
+    if (R() < 0.9) MATA.push({ k: i, off: 0.0 + R() * 0.05, L: (0.12 + R() * 0.38) * Math.min(1.2, Math.max(0.6, rMed / 7)), r: 0.07 + R() * 0.1, f: R() });
+  }
+  const colgantes = (L, g2, m) => { const im = new THREE.InstancedMesh(g2, m, L.length); im.frustumCulled = false; im.raycast = () => {};
+    const aF = new Float32Array(L.length), aLl = new Float32Array(L.length), aNn = new Float32Array(L.length * 2);
+    L.forEach((o, n) => { aF[n] = o.f; aLl[n] = o.L; aNn[n * 2] = NS[o.k][0]; aNn[n * 2 + 1] = NS[o.k][1]; });
+    im.geometry = g2.clone(); geos.push(im.geometry);
+    im.geometry.setAttribute('aFase', new THREE.InstancedBufferAttribute(aF, 1)); im.geometry.setAttribute('aL', new THREE.InstancedBufferAttribute(aLl, 1)); im.geometry.setAttribute('aN', new THREE.InstancedBufferAttribute(aNn, 2));
+    canto.add(im); return im; };
+  const raices = colgantes(RAIZ, raizG, colgM('vec3(0.2, 0.14, 0.09)', 'vec3(0.42, 0.33, 0.23)', 0.09, 0.1));
+  const matas = colgantes(MATA, mataG, colgM('vec3(0.16, 0.22, 0.1)', 'vec3(0.38, 0.45, 0.2)', 0.14, 0.16));
+  const m4c = new THREE.Matrix4(), q0 = new THREE.Quaternion(), qy = new THREE.Quaternion(), ejeY = new THREE.Vector3(0, 1, 0), v3c = new THREE.Vector3(), s3c = new THREE.Vector3();
+  function ponColgantes(sy) {
+    const pon = (L, im, bajo, plano) => { L.forEach((o, n) => { const q = Q[o.k], [nx, nz] = NS[o.k], hk = H0[o.k] - KI * (H0[o.k] - RIM[o.k]);
+      if (plano) qy.setFromAxisAngle(ejeY, Math.atan2(nx, nz) + o.f * 2.4); else qy.copy(q0);
+      m4c.compose(v3c.set(q[0] + nx * o.off, Math.max(B * sy, hk * sy - bajo), q[1] + nz * o.off), qy, s3c.set(o.r, o.L, o.r)); im.setMatrixAt(n, m4c); });
+      im.instanceMatrix.needsUpdate = true; };
+    pon(RAIZ, raices, 0.11, false); pon(MATA, matas, 0.07, true);
+  }
 
   // ---------- el hueco: el molde de la tierra arrancada ----------
   // La tierra que sube es la que falta: el hueco tiene justo la forma de la panza (las mismas posiciones: molde y pieza, el
@@ -585,7 +644,7 @@ void main() {
       const on = k > 0.004; grupo.visible = piedras.visible = sima.visible = agua.visible = pto.visible = canto.visible = panzaA.visible = on;
       if (!on) { antes = k; KI = 0; for (const p of caen) p.vivo = false; for (const p of polvo) p.t = 9; return; }   // (p.t 9: apagada)
       const py0 = py; py = py + B * sy;   // (de aquí abajo, py es donde empieza la panza; py0, la base de la comarca)
-      TIEMPO.value = t; PTO.uEsc.value = esc;
+      TIEMPO.value = t; TCOLG.value = t; PTO.uEsc.value = esc;
       // (la orilla baja nada más despegarse la isla: a un 30 % del camino ya está entera)
       const ki = ss(0.02, 0.3, k); if (Math.abs(ki - KI) > 0.002 || (ki === 0) !== (KI === 0)) { KI = ki; ponCanto(sy); }   // (enseguida: si no, mientras sube se veía el monte cortado, con su roca alta)
       if (Math.abs(sy - cantoSy) > 0.002) ponCanto(sy);

@@ -491,6 +491,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
       const b = 1 + 0.13 * Math.sin(x * 61 + z * 37) * Math.sin(y * 53 - x * 29 + 1.3);   // (los bultos de las matas)
       P.setXYZ(i, x * b, y * b * 0.86 + 0.125, z * b); nor.push(x / l, y / l, z / l); }
     g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); return g; })(); geos.push(copaG);
+  const ARBOLES_ISLA = false;   // (el bosque de polígonos de la isla, apagado: ver hazFino)
   // (la misma copa con 20 triángulos, para el bosque de la isla, que lleva muchos más árboles; TOPE_ARB, los que caben)
   const copaBajaG = (() => { const g = new THREE.IcosahedronGeometry(0.082, 0), P = g.attributes.position, nor = [];
     for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i), z = P.getZ(i), l = Math.hypot(x, y, z) || 1;
@@ -1542,7 +1543,11 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (c.rioG) { const p = c.rioG.attributes.position.array, a = c.rioG.attributes.aFino; for (let v = 0; v < a.count; v++) { const x = p[v * 3], z = p[v * 3 + 2]; a.array[v] = alto(x, z) - sobre(c, x, z) + dh(x, z); } a.needsUpdate = true; }
     for (const { im, L } of c.arboles || []) { const a = im.geometry.attributes.aFinoI; L.forEach(([X, , Z], n) => { a.array[n] = alto(X, Z) - sobre(c, X, Z) + dh(X, Z); }); a.needsUpdate = true; }
     // (el bosque denso: en la elegida, muchos más árboles donde hay bosque, sobre el relieve fino; salen con él)
-    if (!c.bosqueFino) {
+    // (desde el 16 de noviembre de 2026, sin bosque de polígonos en la isla: el autor, «desde el ángulo de la cámara por la que gira
+    // la isla, en la realidad no se verían árboles, se vería que hay frondosidad, pero no los árboles como silueta [...] No me
+    // gusta que sean polígonos rectos». La masa del bosque la pinta el terreno, con sus copas de luz y sombra (RELIEVE_FS,
+    // mapa3dSombreadores.js, «la frondosidad»). El código del bosque denso se queda, apagado, por si hiciera falta)
+    if (ARBOLES_ISLA && !c.bosqueFino) {
       let sem = 11 + c.d * 997; const az = () => (sem = (sem * 16807) % 2147483647) / 2147483647;
       const PU = T.filter(x => x.c === c || Math.hypot(x.X - c.mid.x, x.Z - c.mid.z) < 60), R2 = (2.4 * S) ** 2, cercaPueblo = (X, Z) => PU.some(x => (x.X - X) ** 2 + (x.Z - Z) ** 2 < R2);   // (sin árboles encima de los pueblos)
       const PI = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(PI.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, tx = BOSQ.w / BOSQ.nx, ty = BOSQ.h / BOSQ.ny, dens = BAJA ? 7 : 14, L = [];
@@ -1608,7 +1613,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       if (!want && (c.fk.value < 0.004 || (c.gIsla && !up))) { if (c.fk.value < 0.004) c.fk.value = 0; if (c.mesh.geometry !== base) c.mesh.geometry = base; }
       if (!c.gFino && c.finoListo) c.finoListo = false;   // (soltada: se rehace si se vuelve a elegir)
       // (con el bosque de la isla, los árboles de siempre de esa comarca se esconden: si no, salían dos tamaños a la vez)
-      if (c.bosqueFino) { const on = c.fk.value > 0.01; for (const im of c.bosqueFino) im.visible = on; for (const a of c.arboles || []) a.im.visible = !on; }
+      // (y en el aire, tampoco los de siempre: la isla lleva solo la frondosidad pintada)
+      const enAire = (c.isla?.k || 0) > 0.002, finoOn = !!c.bosqueFino && !enAire && c.fk.value > 0.01;
+      if (c.bosqueFino) for (const im of c.bosqueFino) im.visible = finoOn;
+      for (const a of c.arboles || []) a.im.visible = !enAire && !finoOn;
     }
   }
 

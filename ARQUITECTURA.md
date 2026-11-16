@@ -3074,6 +3074,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   tienen todas su grabación; sin voz quedan las que llevan una cuenta o un nombre (unas 120 grabaciones cortas, una por
   número), los paseantes y, a falta de aprobar sus voces nuevas, Maite e Itziar. La Lamia, el Basajaun, el Bobo, el
   Zarratrako y los danzantes de Muskilda siguen con el cuerpo antiguo (`COSTUME` en `actors/npcGlb.js`).
+- **Isla: frondosidad sin árboles, raíces y musgo en 3D** (16 de noviembre de 2026; `ARBOLES_ISLA` en `hub/mapa3d.js`,
+  «la frondosidad» de `RELIEVE_FS` en `hub/mapa3dSombreadores.js`, `ponColgantes` en `hub/mapa3dIsla.js`): el autor no quería
+  árboles de polígonos en la isla («desde el ángulo de la cámara no se verían árboles, se vería frondosidad») y veía el musgo
+  del costado pegado, sin raíces. En el aire la isla ya no lleva árboles (tampoco se construye el bosque denso, que costaba
+  unos 300 ms al elegir el Pirineo); el terreno pinta, donde la máscara dice bosque, una masa de copas con su lado al sol, su
+  sombra y huecos, a un tamaño de pantalla fijo que se funde entre dos escalas. El musgo pintado de la panza baja al 22 %.
+  Bajo el filo de la hierba cuelgan raíces (tubos que se afinan, una de cada cuatro largas) y matas de musgo (briznas en
+  estrella), instanciadas, que se apartan un poco de la roca y se mecen con el aire en el vértice.
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba

@@ -155,6 +155,11 @@ ${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
 // (el grano fino de cerca: ruido de valores en dos octavas, en unidades del mapa)
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float ruido(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+// (la frondosidad: la masa de copas del bosque vista desde lo alto, bultos redondos con su lado al sol, su lado en sombra y
+// huecos oscuros entre ellos, sin árboles sueltos; q, en copas)
+float copa(vec2 q) { return ruido(q) * 0.62 + ruido(q * 2.31 + 3.7) * 0.38; }
+float copas(vec2 q) { float h0 = copa(q), hx = copa(q + vec2(0.16, 0.0)), hz = copa(q + vec2(0.0, 0.16));
+  float lit = clamp(0.66 + (h0 - hx) * 3.4 + (h0 - hz) * 2.2, 0.3, 1.28); return lit * mix(0.6, 1.0, smoothstep(0.26, 0.52, h0)); }
 // (el núcleo pintado de un pueblo, en su cuadrado del relieve; el borde, desigual: un círculo que se deshace a lenguas, con
 // un ruido de unos 250 m, y no un redondel. El autor, el 14 de noviembre de 2026, al acercarse a Etxalar: se veía el
 // círculo del pueblo pegado encima del mapa)
@@ -273,6 +278,18 @@ void main() {
     c = mix(c, vec3(0.25, 0.31, 0.21) * (lum * 1.9) * (0.72 + 0.56 * copas), bosque * 0.42 * tx);   // (el bosque, oliva apagado)
     float roca = clamp(smoothstep(1450.0, 1750.0, m) + smoothstep(0.9, 1.7, pend) * 0.6, 0.0, 1.0);
     c = mix(c, vec3(dot(c, vec3(0.34))) * vec3(1.02, 1.0, 0.98) * (0.84 + 0.32 * ruido(sv * ko * 4.0)), roca * 0.4 * tx);
+  }
+  // (la frondosidad del bosque, también sobre la ortofoto: desde el 16 de noviembre de 2026, en la isla no hay árboles de
+  // polígonos (mapa3d.js, ARBOLES_ISLA) y el bosque se lee por su masa de copas, con luz y sombra, a un tamaño de unos
+  // pocos píxeles que se mantiene al acercarse: dos tamaños que se funden, para que no salte)
+  if (uTex > 0.0) {
+    float bq = texture2D(uBosque, (sv - uBosqueR.xy) / uBosqueR.zw).r;
+    if (bq > 0.02) {
+      float lb = log2(max(length(fwidth(sv)) * 70.0, 0.5)), lb0 = floor(lb), fb = smoothstep(0.3, 0.7, fract(lb));
+      float fr = mix(copas(sv * exp2(-lb0) * 1.6), copas(sv * exp2(-lb0 - 1.0) * 1.6), fb), kb = bq * uTex;
+      c = mix(c, c * vec3(0.72, 0.86, 0.66), kb * 0.55);
+      c *= mix(1.0, fr, min(1.0, kb * 1.1));
+    }
   }
 #ifndef LIGERO
   if (uCerca > 0.0 && uTex > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
