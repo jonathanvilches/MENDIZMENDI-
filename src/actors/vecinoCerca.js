@@ -5,6 +5,7 @@
 // vez (uno en el móvil): unos 5,6 MB de memoria gráfica cada uno.
 import * as THREE from 'three';
 import { QUALITY } from '../util/quality.js';
+import { loadMeshy, hayVecinoCompleto } from './glbChar.js';
 
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/meshy/cerca/*.webp', { query: '?url', import: 'default', eager: true }))
   .map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
@@ -48,3 +49,30 @@ export function cercaVecinos(actores, P) {
 export function sueltaCerca() { for (const n of [...puestas.keys()]) quita(n); pedidas.clear(); }
 /** (para las pruebas: los modelos que llevan ahora la textura de cerca y los que se están cargando) */
 export const estadoCerca = () => ({ puestas: [...puestas.keys()], pedidas: [...pedidas] });
+
+// ---------- el que habla contigo, con todos sus triángulos ----------
+// En la charla la cámara se acerca a su cara (camera.js charla), y con la versión ligera, un tercio de triángulos, se veía
+// de mala calidad: «los personajes tienen muy mala calidad. Me he dado cuenta al ampliar la imagen la cámara en las
+// conversaciones», 16 de noviembre de 2026. Mientras habla, su malla ligera se cambia por la completa del mismo modelo
+// (src/assets/meshy/vecinos, solo en la web: se baja la primera vez que hablas con uno de ese modelo); su material, su
+// textura de cerca y su pelo teñido no cambian. Solo si los huesos son los mismos y en el mismo orden; al acabar, la ligera.
+const cambiadas = new Map();
+export async function vecinoNitido(a, on) {
+  const n = a?.obj?.userData?.vecino; if (!n) return;
+  const turno = (a._nitido = (a._nitido || 0) + 1);
+  if (!on) { const L = cambiadas.get(a); if (L) { for (const { mesh, geo } of L) mesh.geometry = geo; cambiadas.delete(a); } return; }
+  if (cambiadas.has(a) || !hayVecinoCompleto(n)) return;
+  let full; try { full = await loadMeshy(n, false, true); } catch (e) { return; }
+  if (a._nitido !== turno) return;   // (la charla ya acabó o empezó otra)
+  // (su textura no se usa: fuera de la memoria)
+  full.scene.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) { if (m.map && !m.userData.suelta) { m.userData.suelta = true; m.map.dispose(); } } });
+  const porNombre = {}; full.scene.traverse(o => { if (o.isSkinnedMesh) porNombre[o.name] = o; });
+  const nuevas = new Map();
+  a.obj.traverse(o => { if (!o.isSkinnedMesh || o.userData.outline) return; const f = porNombre[o.name]; if (!f) return;
+    const bs = o.skeleton.bones, bf = f.skeleton.bones;
+    if (bs.length !== bf.length || bs.some((b, i) => b.name !== bf[i].name)) return;
+    nuevas.set(o.geometry, f.geometry); });
+  if (!nuevas.size) return;
+  const L = []; a.obj.traverse(o => { if (o.isSkinnedMesh && nuevas.has(o.geometry)) { L.push({ mesh: o, geo: o.geometry }); o.geometry = nuevas.get(o.geometry); } });
+  cambiadas.set(a, L);
+}

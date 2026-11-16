@@ -50,6 +50,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     - Nítidos de cerca (`actors/vecinoCerca.js`): por la calle, textura de 512 px; los modelos de los vecinos a menos de
       9 m llevan la de 1024 (`src/assets/meshy/cerca`, `tools/vecinos-cerca.mjs`), como mucho tres a la vez (uno en el
       móvil), y la sueltan al alejarse o al salir del pueblo (`sueltaCerca`).
+    - Y el que habla contigo, con todos sus triángulos (`vecinoNitido`, 16 de noviembre de 2026: «los personajes tienen
+      muy mala calidad. Me he dado cuenta al ampliar la imagen la cámara en las conversaciones»). Mientras dura la charla,
+      su malla ligera se cambia por la completa del mismo modelo (Maite, de 6.720 a 14.598 triángulos), si los huesos son
+      los mismos y en el mismo orden; material, textura de cerca y pelo teñido no cambian, y al acabar vuelve la ligera.
+      Los completos (`src/assets/meshy/vecinos`, 18 MB los 21) van solo en la web (`@vecinos-full` en `vite.config.js`;
+      en el archivo único, una carpeta vacía) y se bajan la primera vez que hablas con uno de ese modelo; su textura se
+      suelta al cargarlos. Mejorarlos con Meshy (más detalle en la cara y la ropa) queda pendiente: este entorno no tiene
+      la clave ni acceso a su servidor.
     - La calle (`game/rutinas.js`, `townGame.spawn`): 18 vecinos, 24 en las ciudades (12 y 16 en el móvil); casi la
       mitad son niños, que juegan a pillar en la plaza o echan carreras de puerta en puerta (`carrera`). Los niños pasan a
       su clip de correr antes que los mayores y al ritmo de sus piernas (`buildVecino`).

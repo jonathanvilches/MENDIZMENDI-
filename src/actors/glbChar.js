@@ -55,6 +55,10 @@ hdTable('retratos', MESHY_PICS);   // (archivo único con conexión: el de cuerp
 const MESHY_LOD = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/meshy/lod/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY_LOD[p.split('/').pop().replace('.glb', '')] = u;
 export const MESHY_NAMES = Object.keys(MESHY);
+// (y los vecinos completos, con todos sus triángulos: solo en la web, para el que habla contigo de cerca; vecinoCerca.js)
+const VEC_FULL = {};
+for (const [p, u] of Object.entries(import.meta.glob('@vecinos-full/*.glb', { eager: true, query: '?url', import: 'default' }))) VEC_FULL[p.split('/').pop().replace('.glb', '')] = u;
+export const hayVecinoCompleto = (name) => !!VEC_FULL[name];
 // nombre del juego: [clip de origen, desde (s), hasta (s), ida y vuelta, sin subir la cadera (el salto lo hace el juego)]
 const MESHY_CUTS = {
   Idle: ['Celebrate', 6.9, 9.3, true], Talk: ['Celebrate', 6.4, 9.3, true], Wave: ['Celebrate', 3.55, 6.1], Celebrate: ['Celebrate', 0.3, 1.75],
@@ -210,13 +214,13 @@ const DEDOS_LIGEROS = new Set(['sanfermin', 'pastor']);
 // mayores pegado a la mano (agarrar.js devuelve false) y la tarjeta del árbitro sobre la mano abierta. Para retomarlo,
 // a true
 const CON_DEDOS = false;
-export async function loadMeshy(name, lod = false) {
-  lod = lod && !!MESHY_LOD[name];
-  const key = 'meshy:' + name + (lod ? ':lod' : ''), height = MESHY_H[name] || 1.5;
+export async function loadMeshy(name, lod = false, completo = false) {
+  lod = lod && !!MESHY_LOD[name]; completo = completo && !lod && !!VEC_FULL[name];
+  const key = 'meshy:' + name + (lod ? ':lod' : completo ? ':full' : ''), height = MESHY_H[name] || 1.5;
   if (!cache.has(key)) cache.set(key, (async () => {
     // (los vecinos, actors/npcGlb.js: sus originales, en src/assets/meshy/vecinos, no se publican; el juego lleva su versión
     // ligera y solo el servidor de desarrollo sirve el original, para sus retratos: tools/meshy-retratos.mjs)
-    const g = await loadChar(lod ? MESHY_LOD[name] : MESHY[name] || (import.meta.env.DEV ? `/src/assets/meshy/vecinos/${name}.glb` : MESHY_LOD[name]));
+    const g = await loadChar(lod ? MESHY_LOD[name] : completo ? VEC_FULL[name] : MESHY[name] || (import.meta.env.DEV ? `/src/assets/meshy/vecinos/${name}.glb` : MESHY_LOD[name]));
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];

@@ -4,6 +4,7 @@ import { RIBBONS, QUESTS, CARDS, SPECIES_OBS, QUIZ, EGUZKILORES } from './conten
 import { npcDefs, walkerDefs, WALKER_LINES } from './npcs.js';
 import { greet } from './saludo.js';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
+import { vecinoNitido } from '../actors/vecinoCerca.js';
 import { Animal } from '../actors/animals.js';
 import { PLACES, BRIDGES, rx, MEADOW, riverInfo } from '../world/layout.js';
 import { terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
@@ -464,7 +465,8 @@ export class Game {
     // (cada línea, con la voz grabada de su vecino si la tiene, game/vozVecinos.js; al acabar la charla, se calla)
     const prev = this.ui.onDialogLine; this.ui.onDialogLine = (L) => { prev?.(L); hablaVecino(L, this.state.name); };
     this.follow.charla?.(who, this.player);   // (y la cámara se acerca al vecino mientras habla; camera.js)
-    const fin = () => { if (this.ui.onDialogLine !== prev) this.ui.onDialogLine = prev; callaVecino(); this.follow.finCharla?.(); };
+    vecinoNitido(who, true);   // (y, de cerca, con todos sus triángulos; actors/vecinoCerca.js)
+    const fin = () => { if (this.ui.onDialogLine !== prev) this.ui.onDialogLine = prev; callaVecino(); this.follow.finCharla?.(); vecinoNitido(who, false); };
     const p = this.ui.dialog(lines.map(t => typeof t === 'string' ? { who: who.name, look, icon, text: greet(this, t) } : { who: who.name, look, icon, ...t }));   // (greet: el saludo a la hora y con el tiempo de ahora)
     p.then(fin, fin); return p;
   }

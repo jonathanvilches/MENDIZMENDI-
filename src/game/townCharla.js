@@ -3,6 +3,7 @@
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
 import { CASTILLOS, CASTLE_QUIZ, PARTS } from '../data/castillos.js';
+import { vecinoNitido } from '../actors/vecinoCerca.js';
 import COMARCAS from '../data/comarcas.json';
 import { CROP } from '../data/campo.js';
 import { FAUNA } from '../data/fauna.js';
@@ -31,8 +32,9 @@ export class PuebloCharla {
   say(a, lines) {
     const look = a.obj?.userData.look;
     this.follow?.charla?.(a, this.player);   // (la cámara se acerca al vecino mientras habla; camera.js)
+    vecinoNitido(a, true);   // (y, de cerca, con todos sus triángulos; actors/vecinoCerca.js)
     const p = this.ui.dialog(lines.map(t => ({ who: a.name, look, ...(typeof t === 'string' ? { text: greet(this, t) } : t) })));   // (greet: el saludo a la hora y con el tiempo de ahora)
-    const fin = () => this.follow?.finCharla?.(); p.then(fin, fin); return p;
+    const fin = () => { this.follow?.finCharla?.(); vecinoNitido(a, false); }; p.then(fin, fin); return p;
   }
   // Euskera con los vecinos (data/hitzak.js): cada vecino enseña una palabra de lo que está haciendo (quien pasea, del
   // tiempo que hace) y pregunta cómo se dice; si ya sabes las suyas, repasa una que sabes. Cuando ya sabes unas cuantas,
