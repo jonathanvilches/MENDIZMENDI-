@@ -2682,6 +2682,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     con un muelle blando (6 y 4,2), que sube en algo más de 1,2 s; se queda quieta arriba 0,8 s (`PAUSA_ISLA`) y entonces
     arranca el dron, que llega a su sitio en 2,6 s (`LLEGA_ISLA`) y al plano de la isla entera en 10 (`DRON_ISLA`). Medido
     en el navegador de pruebas: la cámara llega a 1,2 s, la isla empieza a subir ahí y el dron arranca a 3,1 s.
+- **La subida, en perspectiva y algo más rápida** (`PITCH_ISLA` y el muelle de la isla en `mapa3d.js`; noche del 16 de
+  noviembre de 2026). El autor, con su vídeo del iPhone: «cuando sale la comarca de la tierra, el plano que no sea
+  horizontal, también que esté un poco en perspectiva. Y cuando se arranca la tierra de la comarca, que vaya un poquito más
+  deprisa». La cámara de la subida baja ahora a 24° (`PITCH_ISLA` 0,42) en vez de a 15°: se ve la cara de arriba de la
+  isla con sus montes y pueblos, y a la vez la roca y el hueco de debajo. El muelle de la isla pasa de 6 y 4,2 a 9,5 y 5,3,
+  con el mismo poco rebote: sube en algo menos de un segundo en vez de en algo más de 1,2. La pausa de arriba antes del
+  dron (`PAUSA_ISLA`, 0,8 s) y el resto de la toma no cambian. Comprobado con fotogramas de Sangüesa a 844 × 390.
 - **Sin tirones al elegir una comarca** (`orT` y `crucesDe` en `mapa3dIsla.js`; `losaDe`, `preIslas` e `islaMueve` en
   `mapa3d.js`; 16 de noviembre de 2026). El autor mandó un vídeo del iPhone pasando de comarca a comarca por la fila de
   abajo: «para que veas también lo lento que va y a trompicones». Medido en la grabación: entre 40 y 50 imágenes por

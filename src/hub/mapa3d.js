@@ -1240,7 +1240,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // (lo exagerado del relieve a cada distancia de la cámara: el mismo cálculo que en cada imagen)
   // (desde noviembre de 2026, con el relieve fino en la comarca elegida, algo más alto a la distancia de una comarca: los
   // montes ya no salen en aguja; y su vista, algo más de lado, PITCH_C, para que se vean sus siluetas. Antes, 0,45 y 0,95)
-  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.27, ACERCA_SUBIDA = 0.72, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
+  const ROCA_BORDE = new THREE.Color('#a68d6e'), TIERRA_HUECO = new THREE.Color('#6b5641'), PITCH_C = 0.82, PITCH_ISLA = 0.42, ACERCA_SUBIDA = 0.72, PITCH_ALTA = 1.2, exaDe = (d) => d >= 4 ? 0.52 + 0.48 * Math.min(1, Math.max(0, (d - 8) / 32)) : 0.3 + 0.22 * Math.min(1, Math.max(0, (d - 1.5) / 2.5));
   const nearDe = (d) => Math.max(Math.min(0.5, d * 0.2), d * 0.1 - 1.5);
   // (lo que le falta a una vista para no tocar el relieve, con este ya a la exageración de esa distancia)
   const _cpH = new THREE.Vector3();
@@ -2124,7 +2124,11 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       let vuela = 0;
       // (sube en un segundo, con un muelle que se pasa un poco y vuelve; y si la
       // cámara viene volando a su plano de lado, espera a que vaya a medio camino: la ascensión empieza con ese plano)
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 6 - (I.v || 0) * 4.2) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      // (desde la noche del 16 de noviembre de 2026, el muelle algo más firme, 9,5 y 5,3, con el mismo poco rebote: sube en algo
+      // menos de un segundo en vez de en algo más de 1,2. El autor: «cuando se arranca la tierra de la comarca, que vaya un
+      // poquito más deprisa». Y el plano de la subida, PITCH_ISLA, a 24° en vez de 15°: «que no sea horizontal, también que
+      // esté un poco en perspectiva»)
+      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 5.3) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
