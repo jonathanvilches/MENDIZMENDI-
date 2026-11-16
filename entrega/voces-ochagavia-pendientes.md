@@ -8,13 +8,14 @@ Inventario del 16 de noviembre de 2026, sacado del código. Ya tienen voz 141 fr
 | Narradora, con la voz de Maite: avisos, premios, catalejo y cartas | 33 |
 | Arantxa: las diez preguntas del queso, con el acierto y el fallo | 30 |
 
-Faltan 17 frases fijas y 7 que llevan números o nombres que cambian.
+Solo tienen voz las misiones y la información. Los paseantes y los saludos según el tiempo se quedan sin voz: el autor, 16 de noviembre de 2026, «La gente que pasa y saluda no hace falta. Solo misiones y información».
+
+Faltan 7 frases fijas, 6 de Kike y 1 del Bobo, y 7 frases que llevan números o nombres que cambian.
 
 Antes de grabar hay que decidir:
 
 - Kike, el niño del frontón: hace falta una descripción de su voz y una frase de muestra para diseñarla.
-- Itxaso y Txaro, las paseantes: se proponen dos voces de mujer de España de la biblioteca, que aún no usa nadie. Se escuchan antes de grabar.
-- Los saludos según el tiempo: con la voz de cada vecino o con una sola.
+- Las voces de cada vecino: las elige el autor escuchando las muestras gratis de la biblioteca. No se pone voz a ningún personaje ni se gastan créditos sin que el autor la haya escuchado y elegido.
 
 ## Kike, en el frontón (game.js)
 
@@ -24,27 +25,16 @@ Antes de grabar hay que decidir:
 - ¡Eres un pelotari de verdad! Vuelve cuando quieras a jugar.
 - ¡Seis seguidas! ¡Eres un txapeldun, un campeón!
 - Toma la cinta verde, como el frontón. ¡Vuelve a jugar cuando quieras!
+
+## El Bobo, en Muskilda (game.js)
+
 - ¡Probemos otra vez!
-
-## Paseantes, Itxaso y Txaro (npcs.js)
-
-- ¡Egun on! Hace un día precioso en el valle.
-- "Egun on" significa "buenos días" en euskera.
-- Mañana es la fiesta de Muskilda. ¡Toda la villa sube al santuario!
-- ¿Has probado el queso de Arantxa? Está en la plaza.
-- Cuando nieva, los tejados tan inclinados hacen que la nieve resbale.
-- He oído cencerros por las calles… ¿será el Zarratrako?
-
-## Saludos según el tiempo, de cualquier vecino (saludo.js)
-
-- ¡Cómo nieva! Abrígate bien si subes al monte.
-- Vaya día de lluvia… ¡pero el campo lo agradece!
-- Qué noche más tranquila para pasear.
-- Qué día más bonito para pasear.
 
 ## Sin voz a propósito
 
 El título de la misión «¿Dónde está el Zarratrako?» y las respuestas que se eligen con botón se leen, no se dicen.
+
+Los cinco paseantes, Patxi, Itxaso, Fermín, Txaro e Iker, y los cuatro saludos según el tiempo se leen, no se dicen.
 
 ## Con datos que cambian
 

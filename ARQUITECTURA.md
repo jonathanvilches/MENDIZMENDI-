@@ -703,6 +703,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   fanfarria (900 ms, y se calla al cerrarlo) y al dar la vuelta a una carta del cuaderno (se calla al volverla o al
   cerrar el cuaderno). Las preguntas van por la charla de Arantxa, como el resto. Siguen sin grabar Kike (7 frases), las
   paseantes Itxaso y Txaro (6) y los saludos según el tiempo (4). El autor: «Sigue con las voces de los vecinos».
+  Ese mismo día, dos decisiones del autor. Los paseantes (Patxi, Itxaso, Fermín, Txaro e Iker) y los saludos según el
+  tiempo se quedan sin voz: «La gente que pasa y saluda no hace falta. Solo misiones y información». Y las voces las
+  elige él: «No puedes poner voces a un personaje sin preguntarme primero… No gastes créditos sin escuchar la voz
+  primero». Antes de grabar se le mandan las muestras gratis de la biblioteca de ElevenLabs; las voces puestas hasta
+  ahora en Otsagabia se cambiarán si elige otras.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
