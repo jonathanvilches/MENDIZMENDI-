@@ -2705,6 +2705,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   3,9 radios y a más alturas, por debajo de la roca y por encima de la hierba; solo se deshacen las que quedan entre la
   cámara y la isla. En todas, la cúpula de copos es más ancha, los copos más pequeños, los del borde más transparentes y el
   borde de cada copo algo más suave y deshilachado.
+  Ese mismo día, con una imagen de referencia: «las nubes son así, no como las estás haciendo tú». Cada copo deja de ser
+  una bola iluminada con sombra azulada y pasa a ser una bruma blanda que se apaga desde el centro, deshilachada por el
+  ruido y con grano por dentro; más clara arriba y hacia el sol, con un gris suave y neutro en la base (`uSombra`
+  `#c6d0dd`), y algo tendida, 1,55 de ancho por 1 de alto. Juntas hacen nubes algodonosas como las de la imagen.
 - **Girar e inclinar el mapa con botones** (`.m3-pad2`, `B2` y las teclas `pu` y `pd` en `mapa3d.js`; `inicio.css` y
   `consola.css`; 15 de noviembre de 2026). El autor: «tendrás que añadir también nuevos controles para navegar por el
   mapa». Girar solo iba con dos dedos, el clic derecho o Q y E, e inclinar solo con dos dedos; en el móvil, quien no lo

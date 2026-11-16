@@ -33,24 +33,26 @@ function ruidoTex() {
 
 const VS = `attribute vec3 aPos; attribute vec4 aDat; uniform float uFar; varying vec2 vP; varying float vOp, vAlt, vSem, vNiebla;
 void main() {
-  vec4 mv = viewMatrix * vec4(aPos, 1.0); mv.xy += position.xy * aDat.x;
+  vec4 mv = viewMatrix * vec4(aPos, 1.0); mv.xy += position.xy * aDat.x * vec2(1.55, 1.0);   // (algo tendidos, como las de verdad)
   gl_Position = projectionMatrix * mv;
   vP = position.xy * 2.0; vOp = aDat.y; vAlt = aDat.z; vSem = aDat.w; vNiebla = 0.5 * smoothstep(uFar * 0.45, uFar * 1.3, -mv.z);
 }`;
 const FS = `uniform sampler2D uRuido; uniform vec3 uSolV, uBruma, uLuz, uSombra; varying vec2 vP; varying float vOp, vAlt, vSem, vNiebla;
 void main() {
-  vec2 n2 = texture2D(uRuido, vP * 0.27 + vSem * vec2(7.31, 3.17)).rg, n3 = texture2D(uRuido, vP * 0.71 + vSem * vec2(1.7, 9.2)).rg;
-  // (el borde, deshilachado: unos copos se deshacen antes que otros)
-  float r = length(vP) + (n2.r - 0.5) * 0.6 + (n3.g - 0.5) * 0.28;
+  vec2 n2 = texture2D(uRuido, vP * 0.33 + vSem * vec2(7.31, 3.17)).rg, n3 = texture2D(uRuido, vP * 0.86 + vSem * vec2(1.7, 9.2)).rg;
+  // (desde el 16 de noviembre de 2026, como la imagen del autor: «las nubes son así, no como las estás haciendo tú». Nada
+  // de bolas con sombra azul: cada copo es una bruma blanda que se va apagando desde el centro, deshilachada por el ruido y
+  // con su grano de dentro, más clara arriba y apenas gris abajo; muchos juntos hacen la nube algodonosa)
+  float r = length(vP) + (n2.r - 0.5) * 0.62 + (n3.g - 0.5) * 0.32;
   // (una nube que se va no se vuelve un velo gris, que ensuciaba el azul del cielo: se encoge y se deshace en jirones,
   // blanca hasta el final)
   r += (1.0 - vOp) * 0.85;
-  float a = (1.0 - smoothstep(0.56, 0.92, r)) * min(1.0, vOp * 3.0); if (a < 0.012) discard;
-  // (el bulto: el copo es una bola, con bultos pequeños; la luz del sol le da de un lado, y su base queda en sombra)
-  vec2 g = vP * 0.92 + (n2 - 0.5) * 0.75 + (n3 - 0.5) * 0.3; float z = sqrt(max(0.0, 1.0 - min(1.0, dot(g, g))));
-  vec3 n = normalize(vec3(g, z + 0.22));
-  float l = (dot(n, uSolV) * 0.5 + 0.5) * mix(0.66, 1.0, vAlt);
-  vec3 c = mix(uSombra, uLuz, smoothstep(0.3, 0.7, l)) * (0.9 + 0.2 * n3.r);
+  float a = 1.0 - smoothstep(0.12, 1.0, r); a = a * (2.0 - a);
+  a *= (0.6 + 0.4 * smoothstep(0.25, 0.75, n3.r)) * min(1.0, vOp * 2.4); if (a < 0.01) discard;
+  // (la luz: casi toda blanca; más clara arriba y hacia el sol, y un gris suave en la base)
+  float arriba = smoothstep(-0.95, 0.55, vP.y + (n2.g - 0.5) * 0.6), sol = dot(normalize(vec3(vP * 0.55, 0.85)), uSolV) * 0.5 + 0.5;
+  float l = (arriba * 0.7 + sol * 0.3) * mix(0.78, 1.0, vAlt);
+  vec3 c = mix(uSombra, uLuz, smoothstep(0.1, 0.8, l)) * (0.95 + 0.07 * n3.r);
   gl_FragColor = linearToOutputTexel(vec4(mix(c, uBruma, vNiebla), a));
 }`;
 // (la sombra en el suelo: una mancha suave)
@@ -107,7 +109,7 @@ export function hazNubes({ scene, geos, mats, n = 56, copos = 12, deIsla = 8, na
   const cuad = () => { const g = new THREE.InstancedBufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3)); g.setIndex([0, 1, 2, 0, 2, 3]); geos.push(g); return g; };
   const g = cuad(), aPos = new Float32Array(total * 3), aDat = new Float32Array(total * 4);
   g.setAttribute('aPos', new THREE.InstancedBufferAttribute(aPos, 3).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('aDat', new THREE.InstancedBufferAttribute(aDat, 4).setUsage(THREE.DynamicDrawUsage));
-  const U = { uRuido: { value: tex }, uBruma: { value: new THREE.Color('#a8d2f7') }, uFar: { value: 200 }, uSolV: { value: solV }, uLuz: { value: new THREE.Color('#ffffff') }, uSombra: { value: new THREE.Color('#b2caee') } };
+  const U = { uRuido: { value: tex }, uBruma: { value: new THREE.Color('#a8d2f7') }, uFar: { value: 200 }, uSolV: { value: solV }, uLuz: { value: new THREE.Color('#ffffff') }, uSombra: { value: new THREE.Color('#c6d0dd') } };
   const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: U, vertexShader: VS, fragmentShader: FS }); mats.push(m);
   const malla = new THREE.Mesh(g, m); malla.name = 'nubes'; malla.frustumCulled = false; malla.renderOrder = 5; scene.add(malla);
   // (las sombras: una por nube, a ras del suelo de alrededor)
