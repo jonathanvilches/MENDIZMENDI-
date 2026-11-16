@@ -146,6 +146,9 @@ vec3 ortoFuera(vec3 o, vec2 sv, vec2 ou) { if (uEntK <= 0.0) return o; float d =
 `;
 export const RELIEVE_FS = `uniform sampler2D uSombra, uDet, uP0, uP1, uP2, uP3, uBosque, uOrto, uOrtoD; uniform vec4 uRect, uDetRect, uPR[4], uHueco, uBosqueR, uOrtoR; uniform float uPK[4], uCerca, uTex, uDetK, uListo, uGrosor, uExa, uGris, uTintK, uBrillo, uOrtoK, uOrtoDK; uniform vec3 uTinte, uPal[${PALETA.length}]; uniform float uCota[${PALETA.length}];
 varying vec2 vXZ; varying float vH, vSom, vOr;
+#ifdef CALLES
+uniform sampler2D uCalles; uniform vec4 uCallesR;
+#endif
 ${ORTO_FUERA}${NUBES}
 #include <fog_pars_fragment>
 ${TONO_ORTO}// (un pueblo pintado encima, si el punto cae en su recuadro)
@@ -297,6 +300,22 @@ void main() {
     vec3 h = mix(vec3(l), c, 0.78); h.r = h.b + (h.r - h.b) * 0.6; h *= 0.86;
     float sc = (1.0 - vg) * smoothstep(0.03, 0.14, max(c.r, c.g) - c.b) * smoothstep(0.4, 0.7, l);
     c = mix(c, h, vg * uCerca); c = mix(c, mix(vec3(l) * vec3(1.03, 1.0, 0.95), c, 0.35) * 0.95, sc * uCerca * 0.75); }
+#ifdef CALLES
+  // (el suelo de la maqueta: el empedrado de las calles y las plazas, adoquines de 90 por 60 cm en hiladas con sus juntas, y
+  // el asfalto de las carreteras, con su color fijo, sin el tono de la foto, que los volvía pardos o amarillos; de lejos, la
+  // piedra a manchas, sin juntas, que titilarían. 16 de noviembre de 2026)
+  { vec2 cu = (sv - uCallesR.xy) / uCallesR.zw; vec4 kc = texture2D(uCalles, clamp(cu, 0.0, 1.0));
+    float ka = kc.a * step(0.0, cu.x) * step(cu.x, 1.0) * step(0.0, cu.y) * step(cu.y, 1.0);
+    if (ka > 0.004) {
+      vec2 pmm = vXZ * 2076.0, qa = pmm / vec2(0.9, 0.6); qa.x += 0.5 * mod(floor(qa.y), 2.0);
+      vec2 cel = floor(qa), fa = fract(qa); float hc = fract(sin(dot(cel, vec2(12.9898, 78.233))) * 43758.5453);
+      float junta = smoothstep(0.0, 0.12, fa.x) * smoothstep(1.0, 0.88, fa.x) * smoothstep(0.0, 0.16, fa.y) * smoothstep(1.0, 0.84, fa.y);
+      float fino = 1.0 - smoothstep(0.15, 0.6, length(fwidth(pmm)));
+      vec3 piedra = vec3(0.5, 0.48, 0.455) * mix(1.0, (0.86 + 0.24 * hc) * mix(0.62, 1.0, junta), fino) * (0.9 + 0.2 * ruido(pmm * 0.35));
+      vec3 asfalto = vec3(0.36, 0.36, 0.37) * (0.94 + 0.12 * ruido(pmm * 1.3));
+      c = mix(c, mix(asfalto, piedra, kc.r / max(kc.r + kc.g, 0.001)) * (1.0 + (s - 1.0) * 0.5), ka);
+    } }
+#endif
   // (el agua pintada en el suelo de los pueblos, ríos, balsas y piscinas, se mueve: ondas de unos 7 m que se cruzan y
   // destellos; en metros desde el centro de la maqueta, y solo donde se distinguen, para que de lejos no titile)
   float ag = smoothstep(0.14, 0.05, abs(c.b - 0.91)) * smoothstep(0.25, 0.4, c.b - c.r);

@@ -1659,7 +1659,24 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (hacia el borde se funde con el relieve en más de la mitad del radio y sin escalón; antes, solo en el último quinto)
     const fin = g.createRadialGradient(N / 2, N / 2, N * 0.12, N / 2, N / 2, N / 2); for (const [q, a] of [[0, 1], [0.3, 0.92], [0.55, 0.62], [0.78, 0.28], [1, 0]]) fin.addColorStop(q, `rgba(0, 0, 0, ${a})`);
     g.fillStyle = fin; g.fillRect(0, 0, N, N); g.globalCompositeOperation = 'source-over';
-    const t = new THREE.CanvasTexture(c); t.anisotropy = aniso; t.flipY = false; t.colorSpace = THREE.NoColorSpace; return t;
+    const t = new THREE.CanvasTexture(c); t.anisotropy = aniso; t.flipY = false; t.colorSpace = THREE.NoColorSpace;
+    // (en la maqueta con foto, dónde van las calles, en rojo, y las carreteras, en verde, en una imagen aparte: el suelo de la
+    // maqueta pinta encima el empedrado y el asfalto con su color fijo, RELIEVE_FS con CALLES. Pintadas en la foto, el tono
+    // del mapa y el acabado las volvían pardas o amarillas: «en las maquetas recuerda poner también el suelo empedrado de
+    // las calles. No ese amarillo», 16 de noviembre de 2026. Los caminos de tierra, como en la foto)
+    if (Rf && !velo) {
+      const NM = N / 2, km = NM / (2 * R), mc = document.createElement('canvas'); mc.width = mc.height = NM; const q = mc.getContext('2d');
+      q.lineCap = 'round'; q.lineJoin = 'round';
+      const via = (pts, w, color) => { if (pts.length < 2) return; q.beginPath(); pts.forEach(([x, z], i) => { const a = (x + R) * km, b = (z + R) * km; i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.lineWidth = Math.max(1, w * km); q.strokeStyle = color; q.stroke(); };
+      for (const v of D.calles) if (v.t === 'road') via(v.pts, 2 * (v.w || 3), 'rgb(0, 255, 0)');
+      for (const v of D.calles) if (v.t === 'street') via(v.pts, 2 * (v.w || 2), 'rgb(255, 0, 0)');
+      for (const p2 of D.lugares?.plazas || []) if (p2.pts?.length > 2) { q.beginPath(); p2.pts.forEach(([x, z], i) => { const a = (x + R) * km, b = (z + R) * km; i ? q.lineTo(a, b) : q.moveTo(a, b); }); q.closePath(); q.fillStyle = 'rgb(255, 0, 0)'; q.fill(); }
+      q.globalCompositeOperation = 'destination-in';
+      const fm = q.createRadialGradient(NM / 2, NM / 2, NM * 0.12, NM / 2, NM / 2, NM / 2); for (const [st, al] of [[0, 1], [0.55, 1], [0.8, 0.5], [1, 0]]) fm.addColorStop(st, `rgba(0, 0, 0, ${al})`);
+      q.fillStyle = fm; q.fillRect(0, 0, NM, NM);
+      const tc = new THREE.CanvasTexture(mc); tc.anisotropy = aniso; tc.flipY = false; tc.colorSpace = THREE.NoColorSpace; t.userData.calles = tc;
+    }
+    return t;
   }
   // (el núcleo de un pueblo: su lienzo va pintado en el propio relieve de su comarca, en uno de sus cuatro huecos, y así
   // queda pegado al terreno; las casas en pie, una caja por casa con su altura algo exagerada, como el relieve)
@@ -1729,7 +1746,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   function calienta() {
     calentado = true; aves.estrena();
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 0, 1], 3)); g.setAttribute('hd', new THREE.Float32BufferAttribute([0, 0, 0], 1)); g.setAttribute('color', new THREE.Float32BufferAttribute(new Array(9).fill(1), 3));
-    const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 } } });
+    const pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO, CALLES: '' }, vertexColors: true, fog: true, uniforms: { ...C[0].top.uniforms, uHueco: { value: new THREE.Vector4() }, uMaqK: { value: 0 }, uCalles: { value: new THREE.DataTexture(new Uint8Array(4), 1, 1) }, uCallesR: { value: new THREE.Vector4(0, 0, 1, 1) } } });
     const res = {}, pasos = haceMaqueta({ id: 'x', alt0: 0, dem: { step: 20, n: 2, h: [0, 0, 0, 0] }, casas: [], calles: [], rios: [] }, { X0: 0, Z0: 0, MU, EXA, GROSOR, R: 10, sobre: () => 0, P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], lento: true, K: 1, alzado: { value: 1 }, tiempo: TIEMPO, orilla: { glsl: ORILLA, uniforms: { ...orU(C[0]), ...ORS }, centro: { value: 0 } } }, res);
     while (!pasos.next().done);
     const caja = new THREE.BoxGeometry(); caja.setAttribute('aOff', new THREE.InstancedBufferAttribute(new Float32Array(1), 1));
@@ -1797,7 +1814,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (y la imagen, a la tarjeta gráfica, en su propia imagen y en un paso aparte: con las sombras en el mismo, era el paso
     // más largo y, volando hasta el pueblo, un tirón)
     if (!m.enviada) { m.enviada = true; m.tex.needsUpdate = true; r.initTexture(m.tex); return true; }
-    const u = c.top.uniforms, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO }, vertexColors: true, fog: true, uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k } });
+    const u = c.top.uniforms, mk = m.tex.userData.calles, pm = new THREE.ShaderMaterial({ vertexShader: PARCHE_VS, fragmentShader: RELIEVE_FS, defines: { ...LIGERO, ...(mk ? { CALLES: '' } : {}) }, vertexColors: true, fog: true,
+      uniforms: { ...u, uHueco: { value: new THREE.Vector4(0, 0, 0, 0) }, uMaqK: m.k, ...(mk ? { uCalles: { value: mk }, uCallesR: { value: new THREE.Vector4(...e.rect) } } : {}) } });
     m.malla = new THREE.Mesh(m.res.geo, pm); c.mesh.add(m.malla); c.mesh.add(m.res.casas);
     u.uHueco.value.set(e.X0, e.Z0, e.R * MU * 0.97, 1); if (e.slot >= 0) u['uP' + e.slot].value = m.tex;
     m.labs = m.res.monumentos.map(x => { const lab = document.createElement('div'); lab.className = 'm3-ml'; lab.textContent = x.n; lab.hidden = true; capa.append(lab); return { ...x, lab }; });
@@ -1809,7 +1827,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (m.malla) { m.malla.removeFromParent(); m.malla.material.dispose(); u.uHueco.value.set(0, 0, 0, 0); if (e.slot >= 0 && e.tex) u['uP' + e.slot].value = e.tex; }
     m.res.geo?.dispose();
     if (m.res.casas) { m.res.casas.removeFromParent(); for (const x of m.res.casas.children) x.geometry.dispose(); m.res.mat.dispose(); m.res.matEmb?.dispose(); }
-    m.tex?.dispose(); for (const x of m.labs || []) x.lab.remove();
+    m.tex?.userData.calles?.dispose(); m.tex?.dispose(); for (const x of m.labs || []) x.lab.remove();
   }
   // ---------- los lugares emblemáticos sueltos: la Ciudadela de Pamplona, El Sadar y Castildetierra (emblemas.js) ----------
   // (con su forma de verdad, sobre el relieve de su comarca; se levantan, una vez, al acercarse a ellos con el mapa quieto,

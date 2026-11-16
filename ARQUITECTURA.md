@@ -2781,6 +2781,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   y a 1.024 para el móvil y los equipos flojos (`hd/orto-pueblos-medio`). Se baja con los datos del pueblo, la primera vez
   que se acerca la cámara, y es el suelo del lienzo de su núcleo y del de su maqueta: la foto de verdad, con sus calles,
   sus tejados, sus huertas y su río, sin nada pintado encima salvo, en la maqueta, la sombra de las casas que se levantan.
+  Desde el 16 de noviembre de 2026, en la maqueta, además, el empedrado de las calles y las plazas y el asfalto de las
+  carreteras («en las maquetas recuerda poner también el suelo empedrado de las calles. No ese amarillo»): `pintaNucleo`
+  dibuja aparte una máscara (calles en rojo, carreteras en verde, a la mitad de resolución y con el mismo fundido del
+  borde), y el suelo de la maqueta (`RELIEVE_FS` con `CALLES`, `uCalles`, `uCallesR`) pinta encima piedra gris parda en
+  adoquines de 90 por 60 cm con sus juntas, solo de cerca, y asfalto gris, con su color fijo. Pintadas en la foto, el
+  tono del mapa (`tonoOrto`, `pueC`) y el acabado las volvían pardas o amarillas. Los caminos de tierra, como en la foto.
   Si no hay foto o no llega, el núcleo se pinta como antes. La lista de pueblos con su centro y su radio sale del propio
   juego (`pueblos-lista.mjs`), y el radio de cada imagen va en `mapa-orto-pueblos.js`. En el archivo único no van
   (`@orto-pueblos` apunta a una carpeta vacía en `vite.config.js`).
