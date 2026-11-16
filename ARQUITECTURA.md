@@ -517,6 +517,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   - Desde el 16 de noviembre de 2026, el saque, normal o cortado, con el mando del todo a la izquierda bota a 27 cm de la
     pared (a 0,3 m del borde de la cancha más el error del golpe). Antes llegaba a 1,3 m y el autor no podía «arrimarlo
     más a la pared». A la derecha sigue hasta 3,9 m.
+  - **Control total** (17 de noviembre de 2026, `pelota/game.js`, `aimSide`, `RAYA`, `errRaya`, `TX_MAX`): el joystick a
+    un lado va casi en proporción (medio lado, media cancha). A tope a la derecha, golpe, cortada, dejada y saque botan a
+    5 cm de la raya de la contracancha (el saque a 13 cm), con un error propio que crece del 80 % del recorrido al tope:
+    medido, a tope y bien dado (calidad 0,85) se van fuera de un 27 a un 38 %; al 90 % del recorrido, casi nunca. El punto
+    del frontis ya puede pasar 45 cm de la raya (antes se paraba a 15 cm y nada salía nunca fuera); en el trinquete sigue
+    en la pared. En el Cuatro y Medio, tu joystick arriba del todo apunta a 15 cm de la raya del 4 y medio y se pasa un 8 %
+    bien dado y un 41 % con calidad 0,7. El rival y el compañero no apuntan a la raya. Arreglado de paso: la cortada que
+    va al ancho (gancho o al ancho) se apuntaba con el efecto de la cortada y salía sin él, y se quedaba a medio metro.
+    Pedido del autor: «tenemos que tener control absoluto y puede que a veces se nos salga de la contracancha y hagamos
+    mala [...] El control tiene que ser total». Medido con partidos y golpes simulados en node.
 - **Partido de pelota, el cansancio se ve** (`actors/glbChar.js`, `armSwing`; `pelota/match.js`, `suda`): por debajo de
   la mitad de la energía, el pelotari se encorva (más parado y entre tanto y tanto) y respira deprisa; le saltan gotas de
   sudor y lleva sobre la cabeza su aviso de sudor, que se ve también en el rival, lejos.
