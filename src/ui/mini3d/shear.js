@@ -48,7 +48,7 @@ export function shearGame(ui, { title = 'Esquilar a mano', icon = 'wool', second
     const cuts = Array.from({ length: MAXCUT }, () => new THREE.Vector4(0, 0, 0, 0));
     geo.computeBoundingBox(); const size = geo.boundingBox.getSize(new THREE.Vector3()).length();
     const uniforms = { uCut: { value: cuts }, uNCut: { value: 0 }, uThick: { value: size * 0.03 }, uSkin: { value: new THREE.Color('#e3ab98') } };
-    body.material = S.own(woolMaterial(geo, { uniforms }));
+    body.material = S.own(woolMaterial(geo, { uniforms }, body.material.map || null));   // (con su textura: las ovejas de Meshy)
     const R = size * 0.075;
     // la cabeza: los vértices que mueve el hueso de la cabeza (o el último del cuello) no se cortan
     const bones = body.skeleton.bones, headIdx = new Set(bones.map((b, i) => (/Head|Ear|Neck3/.test(b.name) ? i : -1)).filter(i => i >= 0));

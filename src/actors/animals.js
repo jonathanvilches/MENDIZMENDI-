@@ -203,6 +203,12 @@ export const SKY = {
 };
 const CRANES = ['zona-media', 'ribera-alta', 'ribera', 'valdizarbe-novenera'];
 
+// La raza de oveja de cada pueblo (animalGlb.js): la latxa en los valles húmedos del noroeste (Baztan-Bidasoa, Larraun,
+// Sakana, la cuenca de Pamplona) y en Aezkoa y Orreaga, hasta donde llega la zona lachera por el Pirineo; la rasa navarra
+// en el Roncal, el Salazar y del Prepirineo al sur
+const LATXA_COM = new Set(['bidasoa', 'larraun-leitzaldea', 'sakana', 'pamplona']);
+export const razaOveja = (def) => (def && (LATXA_COM.has(def.comarca) || /orreaga|roncesvalles|aribe|auritz|burguete|orbaizeta|garralda/.test(def.id || '')) ? undefined : 'rasa');
+
 // ---------- Gestor de fauna ----------
 export class Fauna {
   constructor(scene, quality, spec) {
@@ -217,7 +223,7 @@ export class Fauna {
     for (let i = 0; i < 4; i++) this.add('pottoka', 150 + rnd() * 40, 40 + rnd() * 30, { range: 30, walk: 1.0, run: 5, radius: 0.6, flee: 5 });
     // Rebaño de la borda (ambientación)
     this.flock = [];
-    for (let i = 0; i < 14; i++) { const a = this.add('sheep', PLACES.borda.x + 30 + rnd() * 30, PLACES.borda.z + 20 + rnd() * 30, { range: 16, walk: 0.5, run: 2.8, flee: 3.5, radius: 0.45 }); this.flock.push(a); }
+    for (let i = 0; i < 14; i++) { const a = this.add('sheep', PLACES.borda.x + 30 + rnd() * 30, PLACES.borda.z + 20 + rnd() * 30, { range: 16, walk: 0.5, run: 2.8, flee: 3.5, radius: 0.45, breed: 'rasa' }); this.flock.push(a); }   // (Otsagabia, en el Salazar: rasa navarra)
     // Fauna salvaje observable
     this.wild = [];
     const corzoSpots = [[-60, -190], [120, -150], [-150, -230], [60, -250]];
@@ -264,7 +270,8 @@ export class Fauna {
     const farm = P.farm || { x: 150, z: 40 };
     this.flock = [];
     const sheepN = fam === 'ribera' ? 6 : 10;
-    for (let i = 0; i < sheepN; i++) { const [x, z] = near({ x: farm.x + (P.farm.x > 0 ? 25 : -25), z: farm.z + 30 }, 30); this.flock.push(this.add('sheep', x, z, { range: 14, walk: 0.5, run: 2.8, flee: 3.5, radius: 0.45 })); }
+    const breed = razaOveja(spec.def);
+    for (let i = 0; i < sheepN; i++) { const [x, z] = near({ x: farm.x + (P.farm.x > 0 ? 25 : -25), z: farm.z + 30 }, 30); this.flock.push(this.add('sheep', x, z, { range: 14, walk: 0.5, run: 2.8, flee: 3.5, radius: 0.45, breed })); }
     if (fam === 'atlantic' || fam === 'pyrenean') for (let i = 0; i < 5; i++) { const [x, z] = near({ x: farm.x, z: farm.z - 45 }, 40); this.add('cow', x, z, { range: 25, walk: 0.6, radius: 0.8, flee: 0 }); }
     // pottokas: unas sueltas en el monte y otras en el prado cerca del pueblo, para poder verlas de cerca
     if (['bidasoa', 'larraun-leitzaldea', 'sakana', 'pirineo', 'pamplona'].includes(com)) {

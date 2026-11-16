@@ -699,6 +699,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`otrosDe`: sorpresa, ajustado, sin historia, el favorito sigue o ha caído, otro invicto, la siguiente ronda, la liguilla).
   Las 92 frases nuevas están grabadas (Mikel con su voz de siempre y el mismo filtro, Edurne con la limpia) pero no entran
   hasta que el autor las apruebe: `frase()` se salta toda clave sin audio (`voz.js`, `tiene`), así que sin ellas callan.
+- **Ovejas nuevas, de las razas de verdad** (16 de noviembre de 2026; `actors/animalGlb.js`, `sheep` y `sheepRasa`;
+  `actors/animals.js`, `razaOveja`). El autor: «las ovejas no están nada bien diseñadas». La de antes (Sheep.glb,
+  derivada de la alpaca de Quaternius) parecía una oveja inglesa. Ahora hay dos razas, buscadas antes en fuentes reales
+  (RFEAGAS, Interempresas, el MITECO sobre la trashumancia): la **latxa de cara negra**, cara y patas oscuras sin lana,
+  orejas horizontales, cuernos pequeños y lana larga y basta que cuelga en mechones partida por el lomo, en
+  Baztan-Bidasoa, Larraun, Sakana, la cuenca de Pamplona, Aezkoa y Orreaga; y la **rasa navarra**, toda blanca, sin
+  cuernos, pecas en el morro, orejas algo caídas y lana más cerrada, en el Roncal, el Salazar (Otsagabia) y del
+  Prepirineo al sur. Sin raza, sale la latxa (el minijuego de esquilar, la diorama del inicio). Cómo se hicieron: un
+  boceto de cada una con Higgsfield, el modelo en Meshy (imagen a 3D, topología de juego, unos 4.200 triángulos, 15
+  créditos cada una) y, como Meshy no monta esqueletos de cuatro patas, en Blender
+  (`tools/blender/fauna/oveja-meshy.py`): el esqueleto de la oveja de antes se deforma para encajar en la malla nueva
+  (pezuñas, espinazo, cabeza, cola) y la malla se pesa a los huesos (el cuerpo solo con el espinazo, el cuello y la
+  cabeza; las patas solo por debajo de la tripa y pegadas a cada pata; la cola no tira de la lana), así que siguen las
+  ocho animaciones de siempre. `tools/ovejapack.mjs` deja la textura en WebP de 1024 (4 MB en el iPhone en vez de 16),
+  cuantiza y comprime con meshopt: 571 y 511 KB. En el juego llevan su textura con la luz de relleno y la pintura de los
+  demás animales (`texScene`, `texMaterial`, sin mezclar las piezas de Meshy: `sharpMap`); la lana del minijuego de
+  esquilar es lo que no mueven la cabeza, las orejas ni las patas, y `woolMaterial` admite la textura. Sheep.glb sigue en
+  el repositorio, sin usar, por si hubiera que volver.
 - **Los vecinos de Otsagabia hablan** (14 de noviembre de 2026; `game/vozVecinos.js`, `assets/voz/vecinos/ochagavia/`).
   Quién da las pruebas en Ochagavía (`content.js`, QUESTS): Maite (la bienvenida, cinta roja), Itziar (los escudos,
   amarilla), Joxemari (las ovejas, blanca), Kike (la pelota, verde), Joseba (Irati, azul), el Basajaun (naranja), la

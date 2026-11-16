@@ -8,7 +8,7 @@ import * as SkeletonUtils from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { mergeGeometries, mergeVertices, toCreasedNormals } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';   // los modelos van comprimidos
 import { dogPart, dogShape, dogFur, dogGear, dogDress } from './dogDetail.js';
-import { FILL_DECL, useFill, pintura } from '../engine/charLight.js';
+import { FILL_DECL, useFill, pintura, sharpMap } from '../engine/charLight.js';
 
 const URLS = {};
 for (const [p, u] of Object.entries(import.meta.glob('../assets/animals/*.glb', { eager: true, query: '?url', import: 'default' }))) URLS[p.split('/').pop().replace('.glb', '')] = u;
@@ -38,8 +38,17 @@ const SPEC = {
   corzo: { model: 'Deer', h: 1.05 }, ciervo: { model: 'Stag', h: 2.1 }, zorro: { model: 'Fox', h: 0.55 },
   burro: { model: 'Donkey', h: 1.4 },
   // derivadas en Blender de los modelos de Quaternius (tools/blender/fauna/derivar.py)
-  // oveja latxa: sin cuernos (las hembras del rebaño no los llevan) y con vellón de lana rizada
-  sheep: { model: 'Sheep', h: 0.9, col: { Main: '#ece4d2', Main_Light: '#f2ebdc', Main_Dark: '#1f1915', Muzzle: '#1f1915', Hooves: '#1a1512' }, drop: ['MAT_ANI_Sheep_Cuernos'], wool: ['Main', 'Main_Light'] },
+  // Las ovejas, de Meshy y con su textura, sobre el esqueleto y las animaciones de la oveja de antes (16 de noviembre de
+  // 2026; el autor: «las ovejas no están nada bien diseñadas»; se hacen con tools/blender/fauna/oveja-meshy.py y
+  // tools/ovejapack.mjs, a partir de bocetos con los rasgos de las razas de verdad). La de antes (Sheep.glb, de la
+  // alpaca de Quaternius) parecía una oveja inglesa: cara negra de máscara, orejas de conejo y lana lisa.
+  // · latxa de cara negra, la de los valles húmedos del noroeste (Baztan, Bidasoa, Larraun, Sakana, Aezkoa): cara y
+  //   patas oscuras sin lana, orejas horizontales, cuernos pequeños y lana larga y basta que cuelga en mechones a los dos
+  //   lados de una raya en el lomo
+  sheep: { model: 'OvejaLatxa', h: 0.9, tex: true },
+  // · rasa navarra, la del Roncal, el Salazar y del Prepirineo al sur (la de la trashumancia a las Bardenas): toda
+  //   blanca, sin cuernos, con pecas en el morro, orejas algo caídas y lana más cerrada en mechones cortos
+  sheepRasa: { model: 'OvejaRasa', h: 0.86, tex: true },
   goat: { model: 'Goat', h: 0.92, col: { Main: '#4a3a2e', Main_Light: '#8a6a4a', Main_Dark: '#2a1e18', Hooves: '#15100e' } },                                 // cabra pirenaica
   // cerdo y jabalí con cuerpo propio (tools/blender/fauna/cerdos.py): euskal txerria rosado con cabeza y grupa negras
   pig: { model: 'Pig', h: 0.8, col: { Main: '#efc4b4', Main_Light: '#f6d4c6', Main_Dark: '#2a2422', Muzzle: '#d9a094', Hooves: '#5e4a40' } },
@@ -53,7 +62,7 @@ const DOG = {
   aleman: { model: 'Husky', h: 0.8, col: {}, dog: { paint: 'aleman', tail: -1.8, tailUncurl: -0.14, hair: 0.0008 } },
   mastin: { model: 'Husky', h: 0.92, col: {}, dog: { paint: 'mastin', tail: -1.6, tailUncurl: -0.05, ears: 'drop', bulk: true, hair: 0.001, long: true } },
 };
-export function animalSpec(kind, opts = {}) { return kind === 'dog' ? DOG[opts.breed] || DOG.gorbeia : SPEC[kind] || null; }
+export function animalSpec(kind, opts = {}) { return kind === 'dog' ? DOG[opts.breed] || DOG.gorbeia : kind === 'sheep' && opts.breed === 'rasa' ? SPEC.sheepRasa : SPEC[kind] || null; }
 export const hasGlbAnimal = (kind, opts) => { const s = animalSpec(kind, opts); return !!(s && GLTF[s.model]); };
 
 /** Carga todos los modelos (una vez); se llama durante la pantalla de carga del pueblo. */
@@ -82,6 +91,7 @@ export const animalPending = (kind, opts) => { const s = animalSpec(kind, opts);
 // aristas vivas. Así cada animal cuesta una llamada de dibujo en vez de seis, y se ve más orgánico.
 const BAKED = new Map(), GEAR = new Map();
 function bakedScene(key, S, g) {
+  if (S.tex) return texScene(key, S, g);
   if (BAKED.has(key)) return BAKED.get(key);
   const sc = SkeletonUtils.clone(g.scene), skinned = [];
   sc.traverse(o => { if (o.isSkinnedMesh) skinned.push(o); });
@@ -122,6 +132,38 @@ function bakedScene(key, S, g) {
   mesh.name = 'body'; mesh.position.copy(s0.position); mesh.quaternion.copy(s0.quaternion); mesh.scale.copy(s0.scale);
   s0.parent.add(mesh); mesh.bind(s0.skeleton, s0.bindMatrix);
   for (const m of skinned) m.removeFromParent();
+  BAKED.set(key, sc); return sc;
+}
+
+// Los animales con textura propia (las ovejas de Meshy): su malla tal cual, con un material que recibe la luz de relleno
+// y la pintura como los demás animales, y la textura leída sin mezclar las piezas de Meshy (charLight.js, sharpMap).
+// La lana, para el minijuego de esquilar (ui/mini3d/shear.js), es lo que no mueven la cabeza, las orejas ni las patas.
+const TEXMATS = new Map();
+function texMaterial(m) {
+  if (TEXMATS.has(m)) return TEXMATS.get(m);
+  const t = new THREE.MeshStandardMaterial({ map: m.map || null, roughness: 0.92, metalness: 0 });
+  if (t.map) { t.map.colorSpace = THREE.SRGBColorSpace; t.map.anisotropy = 4; }
+  t.onBeforeCompile = (sh) => {
+    useFill(sh); pintura(sh);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>' + FILL_DECL)
+      .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n  totalEmissiveRadiance += uCharFill * diffuseColor.rgb * 0.12;');
+  };
+  t.customProgramCacheKey = () => 'animalTex';
+  sharpMap(t); TEXMATS.set(m, t); return t;
+}
+function texScene(key, S, g) {
+  if (BAKED.has(key)) return BAKED.get(key);
+  const sc = SkeletonUtils.clone(g.scene);
+  sc.traverse(o => {
+    if (!o.isSkinnedMesh) return;
+    const geo = o.geometry, SI = geo.attributes.skinIndex, SW = geo.attributes.skinWeight, n = SI.count;
+    const no = new Set(o.skeleton.bones.map((b, i) => (/^(Head|Ear|FrontUpperLeg|FrontLowerLeg|BackUpperLeg|BackLowerLeg)/.test(b.name) ? i : -1)).filter(i => i >= 0));
+    const wool = new Float32Array(n);
+    for (let i = 0; i < n; i++) { let w = 0; for (let k = 0; k < 4; k++) if (no.has(SI.getComponent(i, k))) w += SW.getComponent(i, k); wool[i] = w < 0.5 ? 1 : 0; }
+    geo.setAttribute('wool', new THREE.BufferAttribute(wool, 1));
+    if (!geo.attributes.color) geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 3).fill(1), 3));
+    o.material = texMaterial(o.material); o.name = 'body';
+  });
   BAKED.set(key, sc); return sc;
 }
 
@@ -282,9 +324,9 @@ function aligera(g) {
 // Con «cut» (el minijuego de esquilar), además: una lista de cortes (posición y radio en el espacio del modelo) y un
 // atributo «shorn» por vértice; donde se ha cortado, el vellón se hunde y asoma la piel con la lana muy corta.
 export const MAXCUT = 96;
-export function woolMaterial(geo, cut = null) {
+export function woolMaterial(geo, cut = null, map = null) {
   geo.computeBoundingBox(); const size = geo.boundingBox.getSize(new THREE.Vector3()), f = (34 / Math.max(size.x, size.y, size.z)).toFixed(3);
-  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
+  const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, map });   // (map: la textura de las ovejas de Meshy)
   m.onBeforeCompile = (sh) => {
     if (cut) Object.assign(sh.uniforms, cut.uniforms);
     useFill(sh); pintura(sh);
@@ -313,7 +355,7 @@ float cell(vec3 p){ vec3 i = floor(p), fr = fract(p); float d = 8.0;
       .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
   totalEmissiveRadiance += uCharFill * vWool * ${cut ? '(1.0 - vCut) *' : ''} diffuseColor.rgb * 0.22 * pow(1.0 - abs(dot(normalize(vNormal), normalize(vViewPosition))), 2.0);`);
   };
-  m.customProgramCacheKey = () => 'lana' + f + (cut ? '-corte' : '');
+  m.customProgramCacheKey = () => 'lana' + f + (cut ? '-corte' : '') + (map ? '-tex' : '');
   return m;
 }
 
