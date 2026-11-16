@@ -1447,6 +1447,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
           recto hacia arriba la mano se metía en el pelo y la tarjeta no se veía.
         - Coste: unos 100 ms al cargar el pelotari y entre 10 y 50 ms cada vecino, en el ordenador de pruebas; en cada
           imagen, solo mientras una mano cambia de postura. Sin llamadas de dibujo de más.
+        - Apagados desde el 16 de noviembre en todos los personajes (`CON_DEDOS = false` en `loadMeshy`; el autor: «no
+          deformes los dedos, está quedándote fatal; ya seguirás más adelante»). No se ponen los huesos de los dedos y la
+          malla de las manos queda como viene. Todo lo que los usa tiene su camino sin ellos y vuelve a como iba antes: la
+          herramienta y la pelota del saque junto a la mano, lo que llevan los disfrazados, el bastón de los mayores y el
+          banderín sin puño, y la tarjeta del árbitro sobre la mano abierta. Lo de abajo describe cómo funcionan cuando se
+          vuelvan a encender.
         - Quién los lleva: los modelos completos, los vecinos del pueblo (su versión ligera, la única que tienen) y, desde
           el 16 de noviembre, también la versión ligera de los dos cuerpos de los disfrazados, la sanferminera y el pastor
           (`DEDOS_LIGEROS` en `loadMeshy`), porque llevan cosas en la mano. Las multitudes de la grada usan esos mismos

@@ -184,6 +184,12 @@ export const loadedMeshy = (name) => cache.has('meshy:' + name);
 /** Personaje de Meshy con los clips del juego, escalado a su altura. lod: la versión ligera (para multitudes). */
 // (los cuerpos de los vecinos disfrazados, npcGlb.js y trajes.js: llevan su versión ligera y cosas en la mano)
 const DEDOS_LIGEROS = new Set(['sanfermin', 'pastor']);
+// Los dedos que se doblan (dedos.js), apagados en todos los personajes: el autor, 16 de noviembre de 2026, «no deformes
+// los dedos, está quedándote fatal; ya seguirás más adelante». Sin ellos, cada cosa vuelve a como iba antes: la pala y
+// la pelota del saque junto a la mano (herramientas.js, glbChar.js), lo que llevan los disfrazados y el bastón de los
+// mayores pegado a la mano (agarrar.js devuelve false) y la tarjeta del árbitro sobre la mano abierta. Para retomarlo,
+// a true
+const CON_DEDOS = false;
 export async function loadMeshy(name, lod = false) {
   lod = lod && !!MESHY_LOD[name];
   const key = 'meshy:' + name + (lod ? ':lod' : ''), height = MESHY_H[name] || 1.5;
@@ -222,7 +228,7 @@ export async function loadMeshy(name, lod = false) {
     // y en la de los cuerpos de los disfrazados (DEDOS_LIGEROS), que llevan en la mano el isipu, la escoba o la espada
     // (agarrar.js); no en las demás de las multitudes de la grada y el campo, que no se ven de cerca)
     let dedos = null;
-    if (!lod || !MESHY[name] || DEDOS_LIGEROS.has(name)) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; });
+    if (CON_DEDOS && (!lod || !MESHY[name] || DEDOS_LIGEROS.has(name))) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; });
       if (h) { g.scene.updateMatrixWorld(true); try { dedos = ponDedos(g.scene, h.getWorldScale(new THREE.Vector3()).x * fit); } catch (e) { console.warn('dedos', name, e); } } }
     return { scene: g.scene, animations, userData: { fit, meshy: true, ...(armados ? { armados } : {}), ...(dedos ? { dedos } : {}) } };
   })());
