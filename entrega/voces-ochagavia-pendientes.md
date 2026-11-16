@@ -23,6 +23,11 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 ## Pendiente
 
 - Maite: el autor aún no ha elegido su voz. Si elige otra, se graban de nuevo sus 18 frases.
+- Maite dice cuatro palabras en euskera que su voz actual lee mal: Kaixo, Itziar, Joxemari y Zarratrako. Se arreglan al grabarla con la voz que elija el autor.
+
+## Pronunciación del euskera
+
+Las voces de castellano leen x, tx, tz y z con reglas de castellano. En el texto que se dice se escriben como suenan: Kaisho, Joshemari, Churi, lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore y Sarratrako. Lo que se lee en pantalla no cambia. Zatoya se dice en castellano.
 
 ## Sin voz a propósito
 

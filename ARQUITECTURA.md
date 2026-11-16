@@ -715,6 +715,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   fuente, el mirador, Irati, las ovejas, los prismáticos, el Zarratrako, la pelota, las ocho cintas, la primera estrella
   y «Habla con Maite», en teclado y en táctil). 162 frases con voz, 8 MB. Kike, Leo: la biblioteca no tiene voces de niño
   de España; es la voz joven que eligió el autor. Coste: unos 19.500 créditos (dos tomas de cada grupo).
+  Pronunciación del euskera (el autor: «Revisa bien las pronunciaciones en euskera»). Las voces de castellano leen el
+  euskera con reglas de castellano y fallan en cuatro grafías: x (Kaixo, Joxemari), que es «sh»; tx (Txuri, latxa,
+  katxutxa, txapeldun, Arantxa), que es «ch»; tz (Itziar, Artzai), que es «ts», y z (gazte, eguzkilore, Zarratrako),
+  que es «s». En lo que se dice, no en lo que se lee en pantalla, se escriben como suenan: Kaisho, Joshemari, Churi,
+  lachas, kachucha, chapeldun, Arancha, Itsiar, Artsai, gaste, egusquilore, Sarratrako. 25 frases grabadas de nuevo con
+  sus mismas voces (unos 4.800 créditos). Bien leídas ya: Otsagabia, Egun on, Arratsalde on, Gabon, Ongi etorri, Eskerrik
+  asko, Muskilda, Irati, Aupa, Basajaun. Zatoya se dice en castellano, que es su nombre en castellano (en euskera,
+  Zatoia). Las de Maite (Kaixo, Itziar, Joxemari, Zarratrako) esperan a que el autor elija su voz.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
