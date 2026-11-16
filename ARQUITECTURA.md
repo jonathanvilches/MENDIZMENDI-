@@ -1828,6 +1828,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     `.cp-foto::before`) con un velo arriba y abajo de como mucho el 50 % y un brillo suave del color del campeonato donde
     pisa el pelotari. Ya no hay fondo de página (`--fondo-pag` y `.pel-gal::before` se van con el carrusel) ni se usa
     `hub/galeria.js` en la pelota. La prueba de humo pulsa la pestaña Jugar (`.cp-pest [data-g="jugar"]`).
+  - Frontones de verdad con el pelotari dentro (16 de noviembre de 2026, noche). El autor: «esos fondos no encajan bien
+    con el avatar», «las posturas no es la postura de un pelotari», «deja la imagen de pelotaris que ya tenías, intégralos
+    en un frontón [...] todo tiene que ser muy básico, muy rural» y «que sean frontones reales [...] como el Labrit, el
+    Navarra Arena [...] una foto que sea idéntica a la realidad, pero con el ecosistema [...] del juego, del mismo estilo
+    de dibujo, el personaje bien integrado». Cada carta lleva ahora un frontón de los que tenemos foto (el Labrit, el
+    Navarra Arena, Areso, Lana, Irañeta, el trinquete de Elizondo, Nazar, Genevilla, Igal, Roncal nevado, Marañón,
+    Mendaza, Mirafuentes, Fontellas y Urroz de Santesteban), pintado con Higgsfield en el estilo del juego, sin gente, sin
+    letras ni escudos, y dentro uno de los pelotaris del autor con su postura de siempre, de pie, con la luz del frontón y
+    su sombra en el suelo. La figura ya va en la imagen: la carta no pone la de encima (`figs`) cuando tiene imagen, y
+    la imagen se encuadra algo por debajo del centro (`50% 62%`) para que el pelotari salga entero en el móvil tumbado y
+    en el ordenador. Velo arriba, para leer la etiqueta, y otro suave abajo, sin pasar del 36 %. Créditos y licencias en
+    `src/assets/pelota/fondos/LICENCIAS.md`; los fondos anteriores, sin pelotari, en `entrega/pelota-fondos-anteriores`.
+    Se probaron antes pelotaris generados en plena jugada: el autor los rechazó por las posturas, y no se usan.
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los

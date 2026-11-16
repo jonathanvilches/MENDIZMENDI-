@@ -30,9 +30,12 @@ import { minstd } from '../util/math.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
-// (los fondos de las cartas del menú de pelota, ilustrados con Higgsfield el 16 de noviembre de 2026: el autor, «hay que
-// cambiar la página de selección de competiciones de pelota y sus fondos más divertidos». Uno por campeonato y por
-// opción, con el suelo libre en medio y abajo para que el pelotari pise en él; de 960 px, unos 60 KB cada uno)
+// (las imágenes de las cartas del menú de pelota, desde la noche del 16 de noviembre de 2026: un frontón de verdad de los
+// que tenemos foto (el Labrit, el Navarra Arena, Areso, Lana, Irañeta, el trinquete de Elizondo...) pintado con Higgsfield
+// en el estilo del juego, con uno de los pelotaris del autor dentro, con su postura de siempre, la luz del frontón y su
+// sombra en el suelo. El autor: «que sean frontones reales [...] una foto que sea idéntica a la realidad, pero con el
+// ecosistema [...] del juego, del mismo estilo de dibujo, el personaje bien integrado». Una por campeonato y por opción;
+// la figura ya va en la imagen, sin la de encima)
 const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/pelota/fondos/*.webp', { eager: true, query: '?url', import: 'default' }))
   .map(([k, u]) => [k.split('/').pop().replace('.webp', ''), u]));
 // (el idioma, el que marca la página: en euskera, «eu»)
@@ -952,7 +955,8 @@ const MENU_CSS = `
 .cp-emb svg{width:23px;height:23px;display:block}
 @media (orientation:portrait){.cp-pest{order:3;flex-basis:100%;justify-content:space-between;flex-wrap:nowrap;gap:4px}.cp-pest button{flex:1 1 auto;justify-content:center;min-width:0;padding:6px 8px;letter-spacing:.03em;white-space:nowrap}.cp-pest button b{display:none}}
 @media (max-height:430px){.cp-pest button{min-height:32px;padding:5px 7px 5px 11px}.cp-emb{width:34px;height:34px;left:8px;bottom:8px}.cp-emb svg{width:20px;height:20px}}
-.cp-card.con-fondo .cp-foto::after{background:radial-gradient(ellipse 40% 34% at 50% 72%,color-mix(in srgb,var(--ac) 16%,transparent),transparent 72%),linear-gradient(180deg,rgba(14,8,32,.34),rgba(14,8,32,0) 26%,rgba(14,8,32,0) 66%,rgba(14,8,32,.5))}
+.cp-card.con-fondo .cp-foto::before{background-position:50% 62%}
+.cp-card.con-fondo .cp-foto::after{background:linear-gradient(180deg,rgba(14,8,32,.36),rgba(14,8,32,0) 24%,rgba(14,8,32,0) 80%,rgba(14,8,32,.32))}
 `;
 const cssMenu = () => { if (!document.getElementById('tq-css-menu')) { const st = document.createElement('style'); st.id = 'tq-css-menu'; st.textContent = MENU_CSS + CANCHAS_CSS; document.head.appendChild(st); } };
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
@@ -1180,7 +1184,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // formato no me gusta. Hazlo como estaba antes, que las cards eran más grandes». En el carrusel de los pueblos, la del
     // centro medía en el móvil tumbado 141 × 80 px; aquí, cada una, 186 × 252)
     const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', fondo = '' }) => `<button class="cp-card ${cls}${v ? ' cv-' + v : ''}${FONDOS[fondo] ? ' con-fondo' : ''}" data-a="${a}" data-g="${g}" style="--d:${d}s${FONDOS[fondo] ? `;--foto:url('${FONDOS[fondo]}')` : ''}">
-      <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span>
+      <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span>${FONDOS[fondo] ? '' : `<span class="figs${fc ? ' ' + fc : ''}">${figs}</span>`}${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span>
       <span class="cp-info"><b class="cp-name">${name}</b>${fase ? `<span class="cp-fase">${fase}</span>` : ''}${contra ? `<span class="cp-contra"${extra}>${contra}</span>` : ''}${ronda}</span></button>`;
     // (cada campeonato, con su cancha dibujada y su emblema, para que no sean todas iguales: el trinquete con sus cuatro
     // paredes y el tejadillo, el 4½ con su raya, la Gran Txapela con focos, el de fiestas con banderines y el de los valles
