@@ -1620,6 +1620,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   rueda del ratón o las flechas de los lados, que solo salen si hay más hacia ese lado. Tumbado se ven tres y media y de
   pie una y media, para que asome la siguiente; el ancho lo pone el menú (`--cw`) con el del carrusel. Antes se repartían
   el ancho con proporciones distintas y cada una salía de un tamaño.
+  - Con pestañas (16 de noviembre de 2026; el autor: «el carrusel, al final, es todo igual ... no puedes encontrar qué
+    campeonato es, de tanto campeonato que hay»). Ya eran quince losas seguidas, con la misma cancha y el mismo pelotari
+    de rojo. Arriba, en la cabecera, cuatro pestañas con cuántas hay en cada una: Tu comarca (Manomanista, Parejas,
+    Cuatro y Medio y Trinquete), Navarra (Gran Txapela y Campeonato de Comarcas, los de `global`), Más torneos (Fiestas,
+    Valles, Invierno y Promesas) y Jugar (partido libre, Frontones, Retos, Pelota en casa y Pelotaris). En el carrusel
+    solo van las de la elegida (`data-g`), y se recuerda (`herrizherri-pelota-grupo`). Tumbado caben hasta cuatro sin
+    moverlo; con menos, del ancho de tres. De pie, las pestañas en su propia fila y sin el número.
+  - Cada campeonato, distinto: un emblema abajo a la izquierda de su cancha (`EMBLEMA`: la mano, la pareja, la raya del
+    4½, las cuatro paredes, la txapela, la comarca en el mapa, banderines, montes, copo y brote; y los de jugar) y su
+    cancha dibujada (`CANCHAS`, clases `cv-*`): el trinquete con la pared de la derecha, el tejadillo y la red; el 4½ con
+    su raya encendida; la Gran Txapela con focos y la grada llena; el de fiestas con banderines; el de los valles al
+    aire libre, con cielo y montes.
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los

@@ -907,6 +907,23 @@ function comoFunciona(T) {
 }
 /** Pantalla del torneo (here: el nombre del pueblo del frontón donde se juega; o: los frontones a elegir, ver sedeHtml:
  *  la elección se apunta en T.sede con su ronda). Devuelve 'play' | 'sim' | 'new' | 'exit'. */
+// (lo del menú de pelota que va aparte: las pestañas, los emblemas y las canchas dibujadas de cada campeonato)
+const MENU_CSS = `
+.cp-card[hidden]{display:none}
+.tq-menu-card .lg-head{flex-wrap:wrap;row-gap:8px}
+.cp-pest{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.cp-pest button{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:6px 8px 6px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(16,9,34,.6);color:#ddd3f7;font:800 var(--fs-sm)/1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.cp-pest button b{min-width:20px;padding:3px 6px;border-radius:999px;background:rgba(255,255,255,.12);font:800 var(--fs-xs)/1 var(--f-cond);text-align:center}
+.cp-pest button:hover{border-color:rgba(255,122,200,.6)}
+.cp-pest button[aria-selected=true]{background:linear-gradient(180deg,#ff6fe0,#f046c9);border-color:#ff7ad8;color:#1c0a30}
+.cp-pest button[aria-selected=true] b{background:rgba(28,10,48,.22)}
+.cp-pest button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.cp-emb{position:absolute;left:10px;bottom:10px;z-index:3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(16,9,34,.84);border:1.5px solid color-mix(in srgb,var(--ac) 75%,transparent);color:var(--ac);box-shadow:0 4px 12px rgba(4,1,12,.4)}
+.cp-emb svg{width:23px;height:23px;display:block}
+@media (orientation:portrait){.cp-pest{order:3;flex-basis:100%;justify-content:space-between;flex-wrap:nowrap;gap:4px}.cp-pest button{flex:1 1 auto;justify-content:center;min-width:0;padding:6px 8px;letter-spacing:.03em;white-space:nowrap}.cp-pest button b{display:none}}
+@media (max-height:430px){.cp-pest button{min-height:32px;padding:5px 7px 5px 11px}.cp-emb{width:34px;height:34px;left:8px;bottom:8px}.cp-emb svg{width:20px;height:20px}}
+`;
+const cssMenu = () => { if (!document.getElementById('tq-css-menu')) { const st = document.createElement('style'); st.id = 'tq-css-menu'; st.textContent = MENU_CSS + CANCHAS_CSS; document.head.appendChild(st); } };
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
 export function torneoPanel(T, here = null, o = null) {
   css();
@@ -1029,6 +1046,41 @@ const RETO_ART = {
   diana: `<svg viewBox="0 0 120 112" aria-hidden="true">${FRONTIS}<circle cx="64" cy="42" r="22" fill="#ffd166" fill-opacity=".14" stroke="#ffd166" stroke-width="4"/><circle cx="64" cy="42" r="11" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="2"/><circle cx="64" cy="42" r="4.5" fill="#ff2bd6"/><path d="M22 108 Q36 70 56 48" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="5 6" stroke-linecap="round"/>${BOLA(54, 50)}</svg>`,
   dejada: `<svg viewBox="0 0 120 112" aria-hidden="true"><path d="M10 104 L36 60 H84 L110 104 Z" fill="#2a1260" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="14" width="48" height="46" rx="4" fill="#3a1a7a" stroke="#b79cff" stroke-opacity=".5"/><rect x="36" y="52" width="48" height="8" fill="#ff7ac8" fill-opacity=".55"/><path d="M28 76 H92" stroke="#ffd166" stroke-width="3"/><text x="98" y="80" fill="#ffd166" font-size="13" font-weight="800" font-family="sans-serif">2</text><path d="M60 40 Q62 64 64 70 Q68 60 74 66" fill="none" stroke="#fff" stroke-opacity=".65" stroke-width="2.5" stroke-dasharray="4 5" stroke-linecap="round"/>${BOLA(64, 70)}</svg>`,
 };
+// (los emblemas de cada tarjeta del menú de pelota, abajo a la izquierda de su cancha, para reconocer cada campeonato de un
+// vistazo: la mano, la pareja, la raya del 4½, las cuatro paredes del trinquete, la txapela grande, la comarca en el mapa,
+// los banderines de fiestas, los montes de los valles, el copo del invierno y el brote de las promesas)
+const EM = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const EMBLEMA = {
+  mano: EM('<path d="M8 13V6.5a1.5 1.5 0 0 1 3 0V11M11 10.5V5a1.5 1.5 0 0 1 3 0v6M14 10.5V6.5a1.5 1.5 0 0 1 3 0V14c0 4-2.6 7-6.2 7-2.4 0-4-1.2-5.3-3.2L3.3 13.6a1.5 1.5 0 0 1 2.5-1.6L8 14"/>'),
+  parejas: EM('<circle cx="8.5" cy="7.5" r="3"/><path d="M3 20c0-3.1 2.5-5.5 5.5-5.5S14 16.9 14 20"/><circle cx="16.5" cy="8.5" r="2.5"/><path d="M15.6 14.4c2.8.2 5.4 2.4 5.4 5.6"/>'),
+  cuatro: EM('<path d="M4 4h16v16H4z"/><path d="M4 12.5h16" stroke-dasharray="2.4 2"/><path d="M8 8.6h3M9.5 7v3.4M14 7l-1.4 3.4h3"/>'),
+  trinquete: EM('<path d="M3 10l9-6 9 6"/><path d="M5 9v11h14V9"/><path d="M5 14h14M9 20v-6M15 20v-6"/>'),
+  gran: EM('<path d="M4 15c0-4.4 3.6-8 8-8s8 3.6 8 8"/><path d="M3 15h18v2.5H3z"/><path d="M12 7V4.5M12 4.5h.01"/><path d="M8 4.5l1.2 2.6M16 4.5l-1.2 2.6"/>'),
+  comarcas: EM('<path d="M12 21s-6.5-5.6-6.5-11.2a6.5 6.5 0 0 1 13 0C18.5 15.4 12 21 12 21z"/><circle cx="12" cy="10" r="2.4"/>'),
+  fiestas: EM('<path d="M2.5 5c6 3 13 3 19 0"/><path d="M5 6.2l1.6 5 2.2-4.4M10.6 7.4l1.4 5 1.6-5M16.2 6.7l2 4.6 1.4-5.3"/>'),
+  valles: EM('<path d="M2 19l6.5-10 4 5.5 2.8-3.8L22 19z"/><path d="M7 11.3l1.5-2.3 1.6 2.3"/>'),
+  invierno: EM('<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M9.6 4.6L12 7l2.4-2.4M9.6 19.4L12 17l2.4 2.4"/>'),
+  promesas: EM('<path d="M12 21v-9"/><path d="M12 12c0-4 3-6.5 7.5-6.5 0 4.2-3 6.5-7.5 6.5z"/><path d="M12 15c0-3-2.5-5-6.2-5 0 3 2.5 5 6.2 5z"/>'),
+  libre: EM('<circle cx="12" cy="12" r="8.5"/><path d="M5 8.5c4.4 2 9.6 2 14 0M5 15.5c4.4-2 9.6-2 14 0"/>'),
+  frontones: EM('<path d="M3 20V7l9-3.5L21 7v13"/><path d="M3 20h18M8 20v-6.5h8V20"/>'),
+  retos: EM('<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/>'),
+  camara: EM('<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/>'),
+  pelotaris: EM('<path d="M8 3.5h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-14a1 1 0 0 1 1-1z"/><path d="M4.5 6.5v13a1 1 0 0 0 1 1H15"/>'),
+};
+// (las canchas dibujadas de cada campeonato, en el mismo trazo oscuro que CANCHA: el trinquete, con la pared de la derecha y
+// el tejadillo sobre la izquierda; el 4½, con su raya encendida; la Gran Txapela, con focos y la grada llena; el de fiestas,
+// con banderines; y el de los valles, al aire libre, con el cielo y los montes detrás del frontis)
+const CANCHA_DEF = "<defs><linearGradient id='w' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#301860'/><stop offset='1' stop-color='#211044'/></linearGradient><linearGradient id='f' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='#221146'/><stop offset='1' stop-color='#0e0620'/></linearGradient></defs>";
+const FRONTON_BASE = "<polygon points='0,0 120,46 120,196 0,300' fill='#251249'/><rect x='120' y='46' width='210' height='150' fill='url(#w)'/><polygon points='120,196 330,196 400,300 0,300' fill='url(#f)'/><g stroke='#fff' stroke-opacity='.11' fill='none'><path d='M30 11.5V274M60 23V248M90 34.5V222'/><path d='M90 222H347.5M60 248H365M30 274H382.5'/><path d='M120 58H330'/></g><path d='M120 182H330M0 286L120 184' stroke='#ff8a5c' stroke-opacity='.4' stroke-width='2' fill='none'/>";
+const svgCancha = (cuerpo, fondo = '#130a2a') => 'url("data:image/svg+xml,' + encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300' preserveAspectRatio='xMidYMax slice'>${CANCHA_DEF}<rect width='400' height='300' fill='${fondo}'/>${cuerpo}</svg>`).replace(/'/g, '%27') + '")';
+const CANCHAS = {
+  trinq: svgCancha("<polygon points='0,0 120,46 120,196 0,300' fill='#251249'/><polygon points='400,0 300,46 300,196 400,300' fill='#2b1552'/><rect x='120' y='46' width='180' height='150' fill='url(#w)'/><polygon points='120,196 300,196 400,300 0,300' fill='url(#f)'/><polygon points='0,52 120,84 120,100 0,80' fill='#5a3596'/><g stroke='#fff' stroke-opacity='.16'><path d='M20 57.3V85.3M40 62.7V90.7M60 68V96M80 73.3V101.3M100 78.7V106.7'/></g><polygon points='0,80 120,100 120,104 0,90' fill='#0b0518' fill-opacity='.55'/><g stroke='#fff' stroke-opacity='.11' fill='none'><path d='M90 222H322M60 248H345M30 274H372M120 58H300'/></g><path d='M120 182H300M0 286L120 184M400 286L300 184' stroke='#ff8a5c' stroke-opacity='.45' stroke-width='2' fill='none'/><g stroke='#ff6a5a' stroke-opacity='.5'><path d='M0 236L120 166M0 250L120 174'/><path d='M12 243V229M32 231V217M52 220V206M72 208V194M92 196V182M112 185V171' stroke-opacity='.35'/></g>"),
+  cuatro: svgCancha(FRONTON_BASE + "<path d='M48 256H372' stroke='#ff8a3d' stroke-opacity='.9' stroke-width='3.5'/><text x='18' y='250' font-family='Arial,sans-serif' font-weight='900' font-size='24' fill='#ff8a3d' fill-opacity='.9'>4½</text>"),
+  evento: svgCancha("<g fill='#ffc94a' fill-opacity='.14'><polygon points='150,0 182,0 240,196 200,196'/><polygon points='300,0 330,0 262,196 222,196'/></g>" + FRONTON_BASE + "<g fill='#ffc94a' fill-opacity='.55'>" + Array.from({ length: 24 }, (_, i) => `<circle cx='${344 + (i % 4) * 15}' cy='${86 + Math.floor(i / 4) * 18}' r='3.2'/>`).join('') + "</g><path d='M120 58H330' stroke='#ffc94a' stroke-opacity='.5' stroke-width='2'/>"),
+  fiestas: svgCancha(FRONTON_BASE + "<path d='M0 30Q100 70 200 40T400 36' stroke='#fff' stroke-opacity='.35' fill='none'/>" + Array.from({ length: 12 }, (_, i) => { const x = 14 + i * 33, y = 30 + Math.sin(i * 0.9) * 10 + (i < 6 ? i * 2.5 : (11 - i) * 2); return `<polygon points='${x},${y} ${x + 16},${y + 1} ${x + 7},${y + 20}' fill='${['#ff4fd8', '#ffd166', '#3ec7e0', '#ff6a5a'][i % 4]}' fill-opacity='.7'/>`; }).join('')),
+  valles: svgCancha("<rect width='400' height='196' fill='#2d4f8f'/><polygon points='0,160 70,90 130,140 190,70 260,130 320,80 400,150 400,196 0,196' fill='#24406f'/><polygon points='0,190 90,140 170,175 250,130 330,170 400,140 400,196 0,196' fill='#1c3358'/>" + FRONTON_BASE.replace("<polygon points='0,0 120,46 120,196 0,300' fill='#251249'/>", "<polygon points='0,96 120,110 120,196 0,300' fill='#251249'/>").replace("<rect x='120' y='46' width='210' height='150' fill='url(#w)'/>", "<rect x='150' y='60' width='160' height='136' fill='url(#w)'/>"), '#3b66a8'),
+};
+const CANCHAS_CSS = Object.entries(CANCHAS).map(([k, u]) => `.cp-card.cv-${k}{--cancha:${u}}`).join('\n');
 // (el fondo de las tarjetas: la cancha oscura dibujada de CANCHA, con el pelotari asentado en ella. Del 13 de noviembre de
 // 2026 por la mañana a la tarde llevaron cada una un frontón real de Navarra pintado con Higgsfield a partir de una foto de
 // Wikimedia Commons, con el pelotari encima, y al autor no le gustaron: «no está bien integrado el personaje, está puesto
@@ -1092,23 +1144,33 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       if (!m) return { fase: 'Fuera del cuadro', contra: 'Sigue la siguiente ronda', ronda };
       return { fase: esc(m.round), contra: `contra ${esc(m.pairs ? m.rival.mates[0] : m.rival.name)}`, ronda };
     };
-    const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '' }) => `<button class="cp-card ${cls}" data-a="${a}" style="--d:${d}s">
-      <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span></span>
+    const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '' }) => `<button class="cp-card ${cls}${v ? ' cv-' + v : ''}" data-a="${a}" data-g="${g}" style="--d:${d}s">
+      <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span>
       <span class="cp-info"><b class="cp-name">${name}</b>${fase ? `<span class="cp-fase">${fase}</span>` : ''}${contra ? `<span class="cp-contra"${extra}>${contra}</span>` : ''}${ronda}</span></button>`;
-    const torneoCarta = (X, a, cls, d, pairs = false) => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, d, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), ...estado(X) }); };
-    const tarjetas = [
+    // (cada campeonato, con su cancha dibujada y su emblema, para que no sean todas iguales: el trinquete con sus cuatro
+    // paredes y el tejadillo, el 4½ con su raya, la Gran Txapela con focos, el de fiestas con banderines y el de los valles
+    // al aire libre; y en su grupo, que se elige arriba: los de tu comarca, los de toda Navarra y los demás)
+    const ARTE = { mano: '', parejas: '', cuatro: 'cuatro', trinquete: 'trinq', gran: 'evento', comarcas: '', fiestas: 'fiestas', valles: 'valles', invierno: 'cuatro', promesas: 'cuatro' };
+    const torneoCarta = (X, a, cls, d, pairs = false, g = 'comarca') => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, d, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), g, v: ARTE[X.kind] || '', emb: X.kind, ...estado(X) }); };
+    const lista = [
       torneoCarta(T, 'torneo', 'cp-mano', 0.05),
       T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', 0.1, true) : '',
       T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro', 0.15) : '',
       T4 ? torneoCarta(T4, 'torneoTrinquete', 'cp-trinq', 0.18) : '',   // (el de trinquete, uno más de los de la comarca)
-      ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2)); }),
-      carta({ a: 'libre', cls: 'cp-libre', d: 0.5, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½' }),
-      carta({ a: 'frontones', cls: 'cp-front', d: 0.52, figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
-      carta({ a: 'retos', cls: 'cp-retos', d: 0.55, figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
-      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', d: 0.6, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
-      carta({ a: 'pelotaris', cls: 'cp-col', d: 0.65, figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc' }),
-    ].join('');
-    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
+      ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2), false, K.global ? 'navarra' : 'mas'); }),
+      carta({ a: 'libre', cls: 'cp-libre', d: 0.5, figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½', emb: 'libre' }),
+      carta({ a: 'frontones', cls: 'cp-front', d: 0.52, emb: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
+      carta({ a: 'retos', cls: 'cp-retos', d: 0.55, emb: 'retos', figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
+      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', d: 0.6, emb: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
+      carta({ a: 'pelotaris', cls: 'cp-col', d: 0.65, emb: 'pelotaris', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc' }),
+    ].filter(Boolean);
+    const tarjetas = lista.join('');
+    // (las pestañas, arriba: los campeonatos de tu comarca, los de toda Navarra, los demás torneos y jugar sin torneo. En el
+    // carrusel solo van las tarjetas de la elegida, que se recuerda; antes iban las quince seguidas y todas parecían iguales:
+    // el autor, 16 de noviembre de 2026: «no puedes encontrar qué campeonato es, de tanto campeonato que hay»)
+    const eu = isEU(), GRUPOS = [['comarca', eu ? 'Eskualdea' : 'Tu comarca'], ['navarra', eu ? 'Nafarroa' : 'Navarra'], ['mas', eu ? 'Txapelketa gehiago' : 'Más torneos'], ['jugar', eu ? 'Jolastu' : 'Jugar']];
+    cssMenu();
+    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div><div class="cp-pest" role="tablist" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${GRUPOS.map(([g, t]) => { const n = lista.filter(h => h.includes(`data-g="${g}"`)).length; return n ? `<button role="tab" data-g="${g}" aria-selected="false">${t}<b>${n}</b></button>` : ''; }).join('')}</div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
       <div class="tq-carr"><button class="tq-flecha izq" aria-label="Anteriores" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cp-row">${tarjetas}</div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');
@@ -1132,8 +1194,20 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // (el ancho de las losas, el mismo para todas: tumbado se ven tres y media, de pie una y media; así la última asoma
     // lo bastante para que se note que hay más. Con un tope por arriba, en CSS, solo cabían casi cuatro y la cuarta salía
     // cortada por un dedo, como un error)
-    const carr = tiles.parentElement, ancho = () => { const W = carr.clientWidth, v = innerWidth > innerHeight ? 3.5 : 1.55, cw = Math.floor((W - 12 * Math.floor(v)) / v) + 'px'; if (W > 0 && tiles.style.getPropertyValue('--cw') !== cw) tiles.style.setProperty('--cw', cw); };
-    const ro = new ResizeObserver(() => { ancho(); iguala(); flechas(); }); ancho(); ro.observe(carr); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); iguala(); flechas();
+    // (con pestañas, en cada una caben casi todas: tumbado, hasta cuatro a la vez sin mover nada; con menos, del ancho de
+    // tres, para que no salgan enormes)
+    const carr = tiles.parentElement, ancho = () => { const W = carr.clientWidth, n = tiles.querySelectorAll('.cp-card:not([hidden])').length, v = innerWidth > innerHeight ? (n <= 4 ? Math.max(3, n) : 3.5) : 1.55, cw = Math.floor((W - 12 * Math.floor(v)) / v) + 'px'; if (W > 0 && tiles.style.getPropertyValue('--cw') !== cw) tiles.style.setProperty('--cw', cw); };
+    const pest = r.querySelectorAll('.cp-pest [data-g]'), CLAVE = 'herrizherri-pelota-grupo';
+    const ponGrupo = (g) => {
+      if (![...pest].some(b => b.dataset.g === g)) g = pest[0]?.dataset.g;
+      pest.forEach(b => b.setAttribute('aria-selected', String(b.dataset.g === g)));
+      tiles.querySelectorAll('.cp-card').forEach(c => { c.hidden = c.dataset.g !== g; });
+      tiles.scrollLeft = 0; try { localStorage.setItem(CLAVE, g); } catch (e) { /* sin guardado */ }
+      ancho(); iguala(); flechas();
+    };
+    pest.forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); ponGrupo(b.dataset.g); }));
+    let g0 = 'comarca'; try { g0 = localStorage.getItem(CLAVE) || g0; } catch (e) { /* sin guardado */ }
+    const ro = new ResizeObserver(() => { ancho(); iguala(); flechas(); }); ro.observe(carr); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); ponGrupo(g0);
     // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
     r.addEventListener('click', async (e) => {
       const s = o && await sedeClick(e, r, o, here); if (s?.otro) { ro.disconnect(); lgFuera(r); res('otro:' + s.otro); return; } if (s) return;
