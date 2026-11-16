@@ -1,0 +1,1 @@
+var e=new URL(`o-favorito-cae-1-5bLpu189.mp3`,import.meta.url).href;export{e as default};

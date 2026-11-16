@@ -1,0 +1,1 @@
+var e=new URL(`r-perfecto-4-DCgJJ_sw.mp3`,import.meta.url).href;export{e as default};

@@ -1,0 +1,1 @@
+var e=new URL(`j-pared-saca-1-Cq8-M9og.mp3`,import.meta.url).href;export{e as default};

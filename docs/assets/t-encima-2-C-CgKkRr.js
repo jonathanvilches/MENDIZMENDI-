@@ -1,0 +1,1 @@
+var e=new URL(`t-encima-2-CVQWSJci.mp3`,import.meta.url).href;export{e as default};
