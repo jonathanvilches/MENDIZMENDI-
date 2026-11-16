@@ -1275,6 +1275,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   El 16 de noviembre de 2026 se probó todo el comienzo más deprisa y se deshizo el mismo día. El autor: «no quiero que
   modifiques la velocidad en las animaciones del inicio y comarcas, quiero que no parpadee y vaya súper fluido». Siguen el
   vuelo de bajada de 1,8 s, las comarcas cada 0,07 s y el paseo de 42 s.
+  Lo que se hizo en su lugar, medido con una sonda en el navegador (programas nuevos, cambios de la clase `fuera` de los
+  nombres, cambios de resolución y tareas largas, por fases):
+  - Al elegir la primera comarca se compilaban 18 programas de golpe, justo al empezar a subir la isla. Ahora
+    `preparaIsla` los compila antes, a los 2,5 s del inicio (3,5 s en el móvil), con una isla de mentira de dos unidades
+    que nunca se pinta, y pide las texturas de roca, musgo y hierba y las sube a la tarjeta de una en una (`initTexture`).
+    Antes llegaban después de subir la isla y aparecían de golpe. `calienta` (maqueta y casas) también se hace en el móvil,
+    a los 6,5 s, y no al tocar la comarca. Al elegir comarca ya no se compila ningún programa.
+  - Los nombres del mapa esperan antes de cambiar: uno que se ve no se esconde, ni salta de encima a debajo, ni se queda
+    en foto hasta que lleva 0,3 s queriéndolo; uno escondido espera 0,15 s antes de salir (`etiqueta`).
+  - Un nombre que se vuelve a medir, al pasar de ficha pequeña a grande o al llegar la letra, ya no se esconde para
+    medirse. Y el paso a ficha pequeña (`lejosIsla`) tiene margen: lejos por encima del 48 % de la órbita y cerca por
+    debajo del 42 %. Antes, con la cámara rondando el 45 %, los nombres de los pueblos parpadeaban.
+  - Resultado en la sonda: en el inicio, de 244 cambios de los nombres a 4.
 - **Llegar siempre a quien da la misión** (`townGame.js`, `spot` y `repasaAccesos`; `world/acceso.js`; `freeFarm` en
   `levels/townReal.js`; la foz en `world/monuments.js`; noviembre de 2026). En algunos pueblos una barrera invisible no
   dejaba llegar a la persona de la misión: en los pueblos de verdad la granja se elegía en prados más allá del límite

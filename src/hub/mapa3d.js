@@ -1761,12 +1761,30 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     compilarAsync(r, grupo, cam, scene).then(() => { if (!vivo) return;
       grupo.position.y = -500; grupo.traverse(x => { x.frustumCulled = false; }); scene.add(grupo); estreno = { grupo, n: 0 }; });
   }
+  // (lo de la isla, preparado de antemano en cuanto el mapa está a la vista, en todos los equipos: sus programas, con una isla
+  // de mentira de dos unidades que nunca se pinta, y sus texturas de roca, musgo y hierba, pedidas y subidas a la tarjeta
+  // al llegar. El 16 de noviembre de 2026 el autor: «quiero que no parpadee y vaya súper fluido». Al elegir la primera
+  // comarca se compilaban 18 programas de golpe, justo cuando la isla empezaba a subir, y las texturas de la roca llegaban
+  // después y aparecían de repente)
+  let islaLista = false;
+  function preparaIsla() {
+    islaLista = true;
+    const T = islaTex(), g = new THREE.Group();
+    try { hazIsla({ id: 'calienta', P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], grosor: GROSOR, alto: () => 0.5, orto: C[0].top.uniforms, tex: T, geos, mats, scene: g }); } catch (e) { return; }
+    g.traverse(x => { x.visible = true; x.frustumCulled = false; });
+    compilarAsync(r, g, cam, scene).catch(() => { });
+    const pend = ['caliza', 'calizaN', 'estratos', 'estratosN', 'colgante', 'tierra', 'hierba', 'musgo', 'musgoN'].map(k => T[k]).filter(Boolean);
+    const sube = () => { if (!vivo) return; for (let i = pend.length - 1; i >= 0; i--) { const t = pend[i], im = t.image; if (im && (im.width || im.naturalWidth)) { try { r.initTexture(t); } catch (e) { } pend.splice(i, 1); break; } }
+      if (pend.length) setTimeout(sube, 250); };   // (una por vez, para no parar la imagen)
+    setTimeout(sube, 250);
+  }
   let estreno = null;   // (lo calentado, en la escena una sola imagen; luego fuera)
   function maqueta(dt, quieto) {
     if (estreno && estreno.n++) { estreno.grupo.removeFromParent(); estreno = null; }   // (ya pintado una vez, con sus programas estrenados: fuera)
-    // (en el ordenador, a los 4 s; en el móvil, solo al acercarse, para no cargarle memoria nada más abrir. El mapa siempre se
-    // mueve un poco: no se espera a que esté quieto)
-    if (!calentado && (v.d < 8 || (!LENTO && (!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > 4000))) calienta();
+    // (en el ordenador, a los 4 s; en el móvil, a los 6,5 s o al acercarse: antes, solo al acercarse o al tocar, y se compilaba
+    // a la vez que subía la isla. El mapa siempre se mueve un poco: no se espera a que esté quieto)
+    if (!calentado && (v.d < 8 || ((!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > (LENTO ? 6500 : 4000)))) calienta();   // (en el móvil también, a los 6,5 s: si no, se compilaba al tocar la comarca, mientras subía la isla)
+    if (!islaLista && (!intro || intro.hecho) && cargas >= 3 && performance.now() - t0 > (LENTO ? 3500 : 2500)) preparaIsla();
     // (volando a un pueblo tocado, la suya se va haciendo por el camino: al llegar ya está y solo tiene que levantarse)
     const vaE = elegido && vuelo ? nuc.get(elegido.id) : null, va = vaE?.D && vaE.slot >= 0 ? vaE : null;
     const quiere = va || (v.d < MAQ_D ? [...nuc.values()].filter(e => e.D && e.slot >= 0 && Math.hypot(e.X0 - v.x, e.Z0 - v.z) < e.R * MU * 0.8)
@@ -2219,7 +2237,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // sin ficha ni foto. El autor: «que salgan los nombres de los pueblos de una manera minimalista. Que no emborrone». Los
     // montes, las sierras, los ríos y el rótulo de la comarca, tampoco en el vuelo de dron de después de la subida: salen,
     // y los pueblos con su ficha, al acercarse a menos de la mitad de esa distancia; antes, al 80 %)
-    const cS = sel && byId.get(sel), lejosIsla = !!cS?.dOrb && (cS.isla?.k || 0) > 0.05 && v.d > cS.dOrb * 0.45;
+    // (con margen: pasa a lejos por encima del 48 % de la órbita y vuelve por debajo del 42 %; con un solo límite, la cámara
+    // que rondaba el 45 % cambiaba los nombres de tamaño una y otra vez)
+    const cS = sel && byId.get(sel), lejosIsla = lejosEst = !!cS?.dOrb && (cS.isla?.k || 0) > 0.05 && v.d > cS.dOrb * (lejosEst ? 0.42 : 0.48);
     // (con una colección, sus marcadores primero, y fuera los nombres de pueblos, comarcas, ríos y montes: ya los dicen ellos)
     if (COL) for (const it of COL.items) { const x = it.t, c = it.c;
       if (x) lista.push([it.sel ? -2 : -1, it.el, x.X, x.g.position.y + 2.2 * x.g.scale.y, x.Z, true, x.g.position.y]);
@@ -2266,6 +2286,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // (dónde queda la cabeza de la chincheta del pueblo elegido: ahí se ancla su ficha)
     if (elegido && o.sigue) { elegido.bola.getWorldPosition(bw).project(cam); o.sigue((bw.x + 1) / 2 * sz.w, (1 - bw.y) / 2 * sz.h, bw.z < 1); }
   }
+  let lejosEst = false;   // (si la cámara está lejos de la isla elegida: los nombres de sus pueblos, en ficha pequeña)
   // (lo de encima, medido de vez en cuando, en píxeles del mapa)
   const tapas = { t: -1e9, r: [] };
   function medirTapas(now) {
@@ -2287,8 +2308,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (ok) {
       // (al medirlo se esconde un momento; luego vuelve a decidirse si se ve: antes, al llegar la letra, todos los nombres se
       // volvían a medir y se quedaban escondidos hasta que se movía el mapa)
-      if (!el._w) { el.hidden = false; el.classList.add('fuera'); el._w = el.offsetWidth; el._h = el.offsetHeight; el._ya = 0; }
-      const g = el._on ? -3 : 4, w = el._w / 2;
+      // (uno que ya se ve y se vuelve a medir, porque pasa de ficha pequeña a grande o llega la letra, no se esconde: la medida
+      // vale igual con él a la vista. Antes se escondía un momento y, con la cámara en el límite, parpadeaba)
+      if (!el._w) { el.hidden = false; if (!el._on) { el.classList.add('fuera'); el._ya = 0; } el._w = el.offsetWidth; el._h = el.offsetHeight; }
+      const g = el._on ? -3 : 4, w = el._w / 2, bx = px, by = py;
       if (!libreEn([px - w - g, py - el._h - g, px + w + g, py + 1 + g], g, ocupado)) {
         ok = false;
         if (y2 != null) { pv.set(x, y2, z).project(cam); const qx = (pv.x + 1) / 2 * sz.w, qy = (1 - pv.y) / 2 * sz.h + 6 + el._h;
@@ -2296,6 +2319,18 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         const sp = el._sp || [12, 11];   // (lo que ocupa sin nombre: el triángulo de una cima o la foto de un pueblo)
         if (!ok && punto && libreEn([px - sp[0] / 2, py - sp[1], px + sp[0] / 2, py + 2], 2, ocupado)) ok = solo = true;
         if (!ok && punto && el._siempre) ok = solo = true;   // (un pueblo de la comarca elegida no se esconde nunca: al menos su foto)
+      }
+      // (sin parpadeos: un nombre que ya se ve no se esconde, ni salta de encima a debajo ni se queda en foto, hasta que lleva
+      // 0,3 s queriéndolo; uno escondido espera 0,15 s antes de salir. Antes, al mover la cámara o subir la isla, los que se
+      // rozaban se encendían y apagaban varias veces por segundo: el 16 de noviembre de 2026, el autor, «que no parpadee»)
+      const est = ok ? (solo ? 2 : abajo ? 1 : 3) : 0, cur = el._ya ? (el._on ? (el._solo ? 2 : el.classList.contains('abajo') ? 1 : 3) : 0) : est, tn = performance.now();
+      if (est === cur) el._qe = -1;
+      else {
+        if (el._qe !== est) { el._qe = est; el._qt = tn; }
+        if (tn - el._qt < (cur === 0 ? 150 : 300)) {
+          ok = cur > 0; solo = cur === 2; abajo = cur === 1; px = bx; py = by;
+          if (abajo) { if (y2 == null) ok = abajo = false; else { pv.set(x, y2, z).project(cam); px = (pv.x + 1) / 2 * sz.w; py = (1 - pv.y) / 2 * sz.h + 6 + el._h; } }
+        }
       }
       if (ok) { const sp = el._sp || [12, 11]; ocupado.push(solo ? [px - sp[0] / 2, py - sp[1], px + sp[0] / 2, py + 2] : [px - w - 3, py - el._h - 3, px + w + 3, py + 1]); }
     }
