@@ -30,7 +30,6 @@ import { minstd } from '../util/math.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
-import { galeria } from '../hub/galeria.js';   // (el carrusel de los pueblos, también para el menú de pelota)
 // (los fondos de las cartas del menú de pelota, ilustrados con Higgsfield el 16 de noviembre de 2026: el autor, «hay que
 // cambiar la página de selección de competiciones de pelota y sus fondos más divertidos». Uno por campeonato y por
 // opción, con el suelo libre en medio y abajo para que el pelotari pise en él; de 960 px, unos 60 KB cada uno)
@@ -942,31 +941,18 @@ function comoFunciona(T) {
 const MENU_CSS = `
 .cp-card[hidden]{display:none}
 .tq-menu-card .lg-head{flex-wrap:wrap;row-gap:8px}
+.cp-pest{flex:1 1 auto;min-width:0;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+.cp-pest button{display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:6px 8px 6px 13px;border-radius:999px;border:1px solid rgba(255,255,255,.14);background:rgba(16,9,34,.6);color:#ddd3f7;font:800 var(--fs-sm)/1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.cp-pest button b{min-width:20px;padding:3px 6px;border-radius:999px;background:rgba(255,255,255,.12);font:800 var(--fs-xs)/1 var(--f-cond);text-align:center}
+.cp-pest button:hover{border-color:rgba(255,122,200,.6)}
+.cp-pest button[aria-selected=true]{background:linear-gradient(180deg,#ff6fe0,#f046c9);border-color:#ff7ad8;color:#1c0a30}
+.cp-pest button[aria-selected=true] b{background:rgba(28,10,48,.22)}
+.cp-pest button:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .cp-emb{position:absolute;left:10px;bottom:10px;z-index:3;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:rgba(16,9,34,.84);border:1.5px solid color-mix(in srgb,var(--ac) 75%,transparent);color:var(--ac);box-shadow:0 4px 12px rgba(4,1,12,.4)}
 .cp-emb svg{width:23px;height:23px;display:block}
-@media (max-height:430px){.cp-emb{width:34px;height:34px;left:8px;bottom:8px}.cp-emb svg{width:20px;height:20px}}
-.lg-card.tq-menu-card{height:100%;grid-template-rows:auto minmax(0,1fr) auto}
-.pel-gal{height:100%;min-height:0;border-radius:8px;background:radial-gradient(120% 90% at 50% 40%,rgba(52,22,128,.5) 0%,rgba(23,10,58,.28) 55%,transparent 100%)}
-.pel-gal::before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(rgba(18,9,40,.55),rgba(18,9,40,.55)),var(--fondo-pag,none) 50% 60%/cover no-repeat;transition:background-image .6s ease}
-.pel-gal .gal-info{text-shadow:0 1px 3px rgba(8,3,20,.85)}
+@media (orientation:portrait){.cp-pest{order:3;flex-basis:100%;justify-content:space-between;flex-wrap:nowrap;gap:4px}.cp-pest button{flex:1 1 auto;justify-content:center;min-width:0;padding:6px 8px;letter-spacing:.03em;white-space:nowrap}.cp-pest button b{display:none}}
+@media (max-height:430px){.cp-pest button{min-height:32px;padding:5px 7px 5px 11px}.cp-emb{width:34px;height:34px;left:8px;bottom:8px}.cp-emb svg{width:20px;height:20px}}
 .cp-card.con-fondo .cp-foto::after{background:radial-gradient(ellipse 40% 34% at 50% 72%,color-mix(in srgb,var(--ac) 16%,transparent),transparent 72%),linear-gradient(180deg,rgba(14,8,32,.34),rgba(14,8,32,0) 26%,rgba(14,8,32,0) 66%,rgba(14,8,32,.5))}
-.pel-gal .gal-cm{justify-content:center;padding:4px 16px 0}
-.pel-gal .gal-cm button{gap:8px;min-height:36px;padding:0 6px 0 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(16,9,34,.55);color:#ddd3f7;font:800 var(--fs-sm)/1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;transition:background .2s,border-color .2s,color .2s}
-.pel-gal .gal-cm button b{min-width:20px;padding:3px 6px;border-radius:999px;background:rgba(255,255,255,.12);font:800 var(--fs-xs)/1 var(--f-cond);text-align:center}
-.pel-gal .gal-cm button.on{color:#fff;border-color:var(--c);background:color-mix(in srgb,var(--c) 30%,rgba(16,9,34,.7))}
-.pel-gal .gal-cm button.on b{background:color-mix(in srgb,var(--c) 55%,transparent)}
-.pel-gal .gt-foto .cp-card{position:absolute;inset:0;height:100%;border:0;border-radius:0;transform:none!important}
-.pel-gal .gt-foto .cp-foto{position:absolute;inset:0;min-height:0}
-.pel-gal .figs{--o:0}
-.pel-gal .gt-mis .cp-ronda{width:min(88px,22cqw);margin-top:0}
-.pel-gal .gi-t small{color:color-mix(in srgb,var(--ac,var(--c)) 70%,#fff)}
-.pel-gal .pg-linea{display:flex;gap:6px 14px;flex-wrap:wrap;margin:var(--r-tx,8px) 0 0;color:#d9cff2;font:600 var(--fs-sm)/1.25 var(--f-cond)}
-.pel-gal .pg-linea span:first-child{color:color-mix(in srgb,var(--ac,#fff) 75%,#fff);font-weight:800;letter-spacing:.06em;text-transform:uppercase}
-.pel-gal .gi-b{align-items:center}
-.pel-gal .gi-b .lg-btn{display:inline-flex;align-items:center;min-height:48px;padding:0 22px;gap:10px;white-space:nowrap}
-.pel-gal .gi-b .lg-btn :is(svg,img){width:22px;height:22px}
-@media (max-height:520px){.pel-gal .gal-cm button{min-height:30px;padding:0 5px 0 11px;font-size:var(--fs-xs)}.pel-gal .pg-linea{margin-top:4px;font-size:var(--fs-xs)}.pel-gal .gi-b .lg-btn{min-height:40px;padding:0 16px}}
-@media (orientation:portrait){.pel-gal .gal-cm{justify-content:flex-start}.pel-gal .gal-cm button b{display:none}}
 `;
 const cssMenu = () => { if (!document.getElementById('tq-css-menu')) { const st = document.createElement('style'); st.id = 'tq-css-menu'; st.textContent = MENU_CSS + CANCHAS_CSS; document.head.appendChild(st); } };
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
@@ -1189,82 +1175,78 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       if (!m) return { fase: 'Fuera del cuadro', contra: 'Sigue la siguiente ronda', ronda };
       return { fase: esc(m.round), contra: `contra ${esc(m.pairs ? m.rival.mates[0] : m.rival.name)}`, ronda };
     };
-    // (el menú, en el carrusel de los pueblos, src/hub/galeria.js; el autor, 16 de noviembre de 2026: «no me gusta la
-    // nueva navegación de la pelota, puede ser estilo carrusel como en los pueblos». Todos los campeonatos en una sola
-    // fila en 3D, grupo tras grupo: el de delante, grande y encendido, y los demás a los lados, más lejos y en penumbra.
-    // Arriba, los grupos se encienden según se pasa y saltan al primero del suyo; antes eran pestañas que dejaban ver solo
-    // los de una. Cada carta, con su cancha dibujada, el rival y su emblema, y en la franja de abajo el nombre y la ronda;
-    // debajo del carrusel, la del centro con su ronda, contra quién y el botón de jugar)
-    const D = {};   // (lo de cada carta, por su acción: para la ficha de debajo y para su grupo)
-    const carta = ({ a, cls, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', boton = '', fondo = '' }) => {
-      const fu = FONDOS[fondo] || '';
-      D[a] = { g, cls, tag, tx, name, fase, contra, ronda, extra, boton, fu };
-      return `<button type="button" class="gal-t" data-gt="${a}"><span class="gt-marco ${cls}"><span class="gt-foto"><span class="cp-card ${cls}${v ? ' cv-' + v : ''}${fu ? ' con-fondo' : ''}"${fu ? ` style="--foto:url('${fu}')"` : ''}><span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span></span></span>`
-        + `<span class="gt-dato"><span class="gt-nom"><b>${name}</b><small>${fase || tag}</small></span>${ronda ? `<span class="gt-mis">${ronda}</span>` : ''}</span></span></button>`;
-    };
+    // (con su fondo ilustrado de Higgsfield, FONDOS, debajo del pelotari; desde la noche del 16 de noviembre de 2026, otra vez
+    // en las cartas grandes de las pestañas. El autor: «me gustan las imágenes que has puesto para los campeonatos, pero el
+    // formato no me gusta. Hazlo como estaba antes, que las cards eran más grandes». En el carrusel de los pueblos, la del
+    // centro medía en el móvil tumbado 141 × 80 px; aquí, cada una, 186 × 252)
+    const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', fondo = '' }) => `<button class="cp-card ${cls}${v ? ' cv-' + v : ''}${FONDOS[fondo] ? ' con-fondo' : ''}" data-a="${a}" data-g="${g}" style="--d:${d}s${FONDOS[fondo] ? `;--foto:url('${FONDOS[fondo]}')` : ''}">
+      <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span><span class="figs${fc ? ' ' + fc : ''}">${figs}</span>${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span>
+      <span class="cp-info"><b class="cp-name">${name}</b>${fase ? `<span class="cp-fase">${fase}</span>` : ''}${contra ? `<span class="cp-contra"${extra}>${contra}</span>` : ''}${ronda}</span></button>`;
     // (cada campeonato, con su cancha dibujada y su emblema, para que no sean todas iguales: el trinquete con sus cuatro
     // paredes y el tejadillo, el 4½ con su raya, la Gran Txapela con focos, el de fiestas con banderines y el de los valles
-    // al aire libre; y en su grupo: los de tu comarca, los de toda Navarra y los demás)
+    // al aire libre; y en su grupo, que se elige arriba: los de tu comarca, los de toda Navarra y los demás)
     const ARTE = { mano: '', parejas: '', cuatro: 'cuatro', trinquete: 'trinq', gran: 'evento', comarcas: '', fiestas: 'fiestas', valles: 'valles', invierno: 'cuatro', promesas: 'cuatro' };
-    const torneoCarta = (X, a, cls, pairs = false, g = 'comarca') => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), g, v: ARTE[X.kind] || '', emb: X.kind, fondo: X.kind, boton: X.done ? 'Nueva edición' : 'Jugar', ...estado(X) }); };
+    const torneoCarta = (X, a, cls, d, pairs = false, g = 'comarca') => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, d, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), g, v: ARTE[X.kind] || '', emb: X.kind, fondo: X.kind, ...estado(X) }); };
     const lista = [
-      torneoCarta(T, 'torneo', 'cp-mano'),
-      T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', true) : '',
-      T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro') : '',
-      T4 ? torneoCarta(T4, 'torneoTrinquete', 'cp-trinq') : '',   // (el de trinquete, uno más de los de la comarca)
-      ...X.map((x) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', false, K.global ? 'navarra' : 'mas'); }),
-      carta({ a: 'libre', cls: 'cp-libre', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½', emb: 'libre', fondo: 'libre' }),
-      carta({ a: 'frontones', cls: 'cp-front', emb: 'frontones', fondo: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete', boton: isEU() ? 'Aukeratu' : 'Elegir frontón' }),
-      carta({ a: 'retos', cls: 'cp-retos', emb: 'retos', fondo: 'retos', figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
-      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', emb: 'camara', fondo: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
-      carta({ a: 'pelotaris', cls: 'cp-col', emb: 'pelotaris', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc', boton: isEU() ? 'Ikusi' : 'Ver colección' }),
+      torneoCarta(T, 'torneo', 'cp-mano', 0.05),
+      T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', 0.1, true) : '',
+      T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro', 0.15) : '',
+      T4 ? torneoCarta(T4, 'torneoTrinquete', 'cp-trinq', 0.18) : '',   // (el de trinquete, uno más de los de la comarca)
+      ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2), false, K.global ? 'navarra' : 'mas'); }),
+      carta({ a: 'libre', cls: 'cp-libre', d: 0.5, fondo: 'libre', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½', emb: 'libre' }),
+      carta({ a: 'frontones', cls: 'cp-front', d: 0.52, fondo: 'frontones', emb: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
+      carta({ a: 'retos', cls: 'cp-retos', d: 0.55, fondo: 'retos', emb: 'retos', figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
+      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', d: 0.6, fondo: 'camara', emb: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
+      carta({ a: 'pelotaris', cls: 'cp-col', d: 0.65, fondo: 'coleccion', emb: 'pelotaris', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc' }),
     ].filter(Boolean);
-    const aDe = (h) => /data-gt="([^"]+)"/.exec(h)?.[1];
-    // (los grupos, arriba, con su color y cuántas cartas tiene cada uno; solo los que tienen alguna)
-    const eu = isEU(), GRUPOS = [['comarca', eu ? 'Eskualdea' : 'Tu comarca', '#ff4fd8'], ['navarra', eu ? 'Nafarroa' : 'Navarra', '#ffc94a'], ['mas', eu ? 'Txapelketa gehiago' : 'Más torneos', '#9b7bff'], ['jugar', eu ? 'Jolastu' : 'Jugar', '#3ec7e0']]
-      .filter(([g]) => Object.values(D).some(x => x.g === g));
-    const cuantos = (g) => Object.values(D).filter(x => x.g === g).length;
-    // (se abre con delante la última que se eligió; si no, la primera de tu comarca)
-    const CLAVE = 'herrizherri-pelota-carta'; let a0 = null; try { a0 = localStorage.getItem(CLAVE); } catch (e) { /* sin guardado */ }
-    if (!D[a0]) a0 = null;
+    const tarjetas = lista.join('');
+    // (las pestañas, arriba: los campeonatos de tu comarca, los de toda Navarra, los demás torneos y jugar sin torneo. En el
+    // carrusel solo van las tarjetas de la elegida, que se recuerda; antes iban las quince seguidas y todas parecían iguales:
+    // el autor, 16 de noviembre de 2026: «no puedes encontrar qué campeonato es, de tanto campeonato que hay»)
+    const eu = isEU(), GRUPOS = [['comarca', eu ? 'Eskualdea' : 'Tu comarca'], ['navarra', eu ? 'Nafarroa' : 'Navarra'], ['mas', eu ? 'Txapelketa gehiago' : 'Más torneos'], ['jugar', eu ? 'Jolastu' : 'Jugar']];
     cssMenu();
-    const fl = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="${d}"/></svg>`;
-    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
-      <div class="gal pel-gal">
-        <nav class="gal-cm" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${GRUPOS.map(([g, t]) => `<button type="button" data-gc="${g}" aria-pressed="false">${t}<b>${cuantos(g)}</b></button>`).join('')}</nav>
-        <div class="gal-centro"><div class="gal-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}"><div class="gal-anillo"></div></div>
-        <button type="button" class="gal-fl ant" data-gal="-1" aria-label="${eu ? 'Aurrekoa' : 'Anterior'}">${fl('M15 5l-7 7 7 7')}</button><button type="button" class="gal-fl sig" data-gal="1" aria-label="${eu ? 'Hurrengoa' : 'Siguiente'}">${fl('M9 5l7 7-7 7')}</button>
-        <div class="gal-puntos" aria-hidden="true"></div></div>
-        <div class="gal-info" aria-live="polite"></div></div>
+    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div><div class="cp-pest" role="tablist" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${GRUPOS.map(([g, t]) => { const n = lista.filter(h => h.includes(`data-g="${g}"`)).length; return n ? `<button role="tab" data-g="${g}" aria-selected="false">${t}<b>${n}</b></button>` : ''; }).join('')}</div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
+      <div class="tq-carr"><button class="tq-flecha izq" aria-label="Anteriores" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cp-row">${tarjetas}</div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
     r.firstElementChild.classList.add('tq-menu-card');
-    // (la ficha de la del centro: su grupo, su nombre, su ronda y contra quién, sus txapelas y el botón)
-    // (y detrás de todo, el fondo de la del centro, velado: la página cambia con cada campeonato)
-    const info = (a) => { const x = D[a]; if (!x) return ''; const gN = GRUPOS.find(q => q[0] === x.g)?.[1] || '';
-      const pg = r.querySelector('.pel-gal'); if (pg && x.fu) pg.style.setProperty('--fondo-pag', `url('${x.fu}')`);
-      return `<div class="gi-t ${x.cls}"><small>${esc(gN)}</small><div class="gi-fila"><h2>${x.name}</h2></div><p class="pg-linea">${x.fase ? `<span>${x.fase}</span>` : ''}${x.contra ? `<span${x.extra}>${x.contra}</span>` : ''}</p></div>`
-        + `<div class="gi-b">${txa(x.tx)}<button type="button" class="lg-btn go" data-a="${a}">${iconSVG('play', 22)}<span>${x.boton || (eu ? 'Jokatu' : 'Jugar')}</span></button></div>`; };
-    const elige = async (a) => {
-      if (D[a]) try { localStorage.setItem(CLAVE, a); } catch (e) { /* sin guardado */ }
-      // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
-      if (a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); D.pelotaris.contra = `${c.have}/${c.total} pelotaris`; const s2 = r.querySelector('[data-pc]'); if (s2) s2.textContent = D.pelotaris.contra; return; }
-      ro.disconnect(); lgFuera(r); res(a);
-    };
-    galeria(r, { comarcas: GRUPOS.map(([id, nombre, color]) => ({ id, nombre, color })), inicial: a0 ? D[a0].g : GRUPOS[0]?.[0], pueblo: a0,
-      tarjetas: (g) => lista.filter(h => D[aDe(h)]?.g === g).join(''), info: (a) => info(a), abre: (a) => elige(a) });
-    // las figuras de cada carta, del mayor alto que cabe en ella y en medio de su hueco (--o, lo que se corre cada una a
-    // un lado, vuelve a 0 en .figs: el carrusel usa --o en cada carta para su transparencia y las figuras se iban al borde). Las ilustraciones tienen el mismo
-    // encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
-    const figs = [...r.querySelectorAll('.pel-gal .figs')];
+    // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
+    // la más apretada, la de los tres de la colección: en el ordenador salían pequeñas y abajo). Las ilustraciones tienen el
+    // mismo encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
+    const tiles = r.querySelector('.cp-row'); conFoto(tiles);
     const iguala = () => {
       if (!r.isConnected) { ro.disconnect(); return; }
-      for (const f of figs) { const n = f.children.length || 1, h = Math.min(f.clientHeight, f.clientWidth * 0.94 / (0.36 + (n - 1) * 0.32)); if (h > 0) f.style.setProperty('--fh', Math.floor(h) + 'px'); }
+      for (const f of tiles.querySelectorAll('.figs')) {
+        const n = f.children.length || 1, h = Math.min(f.clientHeight, f.clientWidth * 0.94 / (0.36 + (n - 1) * 0.32));
+        if (h > 0) f.style.setProperty('--fh', Math.floor(h) + 'px');
+      }
     };
-    const ro = new ResizeObserver(iguala); figs.forEach(f => ro.observe(f)); iguala();
+    // (el carrusel: cada flecha solo si hay más losas hacia su lado; y la rueda del ratón lo mueve de lado)
+    const fl = r.querySelectorAll('.tq-flecha'), paso = () => (tiles.querySelector('.cp-card')?.offsetWidth || 200) + 12;
+    const flechas = () => { const m = tiles.scrollWidth - tiles.clientWidth; fl[0].hidden = tiles.scrollLeft <= 2; fl[1].hidden = tiles.scrollLeft >= m - 2; };
+    fl.forEach((b, i) => b.addEventListener('click', (e) => { e.stopPropagation(); tiles.scrollBy({ left: (i ? 1 : -1) * paso(), behavior: 'smooth' }); }));
+    tiles.addEventListener('scroll', flechas, { passive: true });
+    tiles.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && tiles.scrollWidth > tiles.clientWidth + 2) { tiles.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+    // (el ancho de las losas, el mismo para todas: tumbado se ven tres y media, de pie una y media; así la última asoma
+    // lo bastante para que se note que hay más. Con un tope por arriba, en CSS, solo cabían casi cuatro y la cuarta salía
+    // cortada por un dedo, como un error)
+    // (con pestañas, en cada una caben casi todas: tumbado, hasta cuatro a la vez sin mover nada; con menos, del ancho de
+    // tres, para que no salgan enormes)
+    const carr = tiles.parentElement, ancho = () => { const W = carr.clientWidth, n = tiles.querySelectorAll('.cp-card:not([hidden])').length, v = innerWidth > innerHeight ? (n <= 4 ? Math.max(3, n) : 3.5) : 1.55, cw = Math.floor((W - 12 * Math.floor(v)) / v) + 'px'; if (W > 0 && tiles.style.getPropertyValue('--cw') !== cw) tiles.style.setProperty('--cw', cw); };
+    const pest = r.querySelectorAll('.cp-pest [data-g]'), CLAVE = 'herrizherri-pelota-grupo';
+    const ponGrupo = (g) => {
+      if (![...pest].some(b => b.dataset.g === g)) g = pest[0]?.dataset.g;
+      pest.forEach(b => b.setAttribute('aria-selected', String(b.dataset.g === g)));
+      tiles.querySelectorAll('.cp-card').forEach(c => { c.hidden = c.dataset.g !== g; });
+      tiles.scrollLeft = 0; try { localStorage.setItem(CLAVE, g); } catch (e) { /* sin guardado */ }
+      ancho(); iguala(); flechas();
+    };
+    pest.forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); ponGrupo(b.dataset.g); }));
+    let g0 = 'comarca'; try { g0 = localStorage.getItem(CLAVE) || g0; } catch (e) { /* sin guardado */ }
+    const ro = new ResizeObserver(() => { ancho(); iguala(); flechas(); }); ro.observe(carr); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); ponGrupo(g0);
+    // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
     r.addEventListener('click', async (e) => {
       const s = o && await sedeClick(e, r, o, here); if (s?.otro) { ro.disconnect(); lgFuera(r); res('otro:' + s.otro); return; } if (s) return;
-      const b = e.target.closest('[data-a]'); if (!b) return; elige(b.dataset.a);
-    });
+      const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const s2 = b.querySelector('[data-pc]'); if (s2) s2.textContent = `${c.have}/${c.total} pelotaris`; return; } lgFuera(r); res(b.dataset.a); });
   });
 }
 

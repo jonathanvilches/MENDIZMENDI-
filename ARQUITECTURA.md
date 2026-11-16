@@ -1811,6 +1811,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     un velo suave arriba y abajo, como mucho al 50 %. Y la página entera lleva detrás el fondo de la carta del centro
     (`--fondo-pag` en `.pel-gal::before`) bajo un velo del 55 %: cambia con cada campeonato, con un fundido en Chrome y
     Safari; los textos de debajo, con una sombra fina para leerse encima.
+  - De vuelta a las pestañas y las cartas grandes (16 de noviembre de 2026, por la noche; el autor: «me gustan las
+    imágenes que has puesto para los campeonatos de frontones, pero el formato no me gusta. Hazlo como estaba antes, que
+    las cards eran más grandes y me gustaban más»). Fuera el carrusel: vuelve el menú de antes, con las cuatro pestañas
+    (`.cp-pest`, `data-g`) y las cartas grandes (`.cp-card`), de unos 186 por 252 en el móvil y 281 por 507 en el
+    ordenador. Se quedan los quince fondos: cada carta lleva el suyo en `--foto` (`con-fondo`, que pinta
+    `.cp-foto::before`) con un velo arriba y abajo de como mucho el 50 % y un brillo suave del color del campeonato donde
+    pisa el pelotari. Ya no hay fondo de página (`--fondo-pag` y `.pel-gal::before` se van con el carrusel) ni se usa
+    `hub/galeria.js` en la pelota. La prueba de humo pulsa la pestaña Jugar (`.cp-pest [data-g="jugar"]`).
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los
