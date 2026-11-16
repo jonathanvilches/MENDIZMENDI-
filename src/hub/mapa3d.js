@@ -285,7 +285,7 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
     const lab = document.createElement('div'); lab.className = 'm3-cl' + (c.done ? ' ok' : vivo ? ' go' : ' lk'); lab.style.setProperty('--c', c.color);
     // (sin el candado, que ya sale en la fila de abajo, y sin «Comarca de»: los nombres, cortos, para que quepan todos)
     lab.innerHTML = `${c.done && o.icono ? `<i>${o.icono('stamp')}</i>` : ''}<b>${esc(c.name.replace(/^Comarca de /, ''))}</b>`;
-    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, gGrueso: g, fk, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.1 + i * 0.045, hov: 0 };
+    return { ...c, vivo, Pw, hmax, malla, hc: GROSOR + alto(X, Z), mesh, top, gGrueso: g, fk, linea, bajo, alzado, lift: 0, fondo: 0, gris: top.uniforms.uGris.value, tinte: top.uniforms.uTinte.value.clone(), tintK: top.uniforms.uTintK.value, lineaOp: vivo ? 1 : 0.85, X, Z, lab, d: 0.25 + i * 0.07, hov: 0 };
   });
   // el hueco de Navarra en el mapa de España: oscuro, bajo las comarcas, justo de su tamaño (las comarcas encajan sin raya
   // entre ellas: solo se ve el de la que se levanta). Va con lo transparente, después del suelo de alrededor y antes que lo demás
@@ -814,10 +814,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     if (goal.d < 3) goal.pitch = Math.min(goal.pitch, 0.62 + 0.11 * goal.d); };   // (muy cerca, más de lado: así se ve la maqueta en pie)
   DMAX = Math.max(150, goal.d * 1.35);
   // (el comienzo, sin la entrada grande: desde muy alto, la cámara baja y se inclina mientras las comarcas crecen una tras otra)
-  // (desde el 16 de noviembre de 2026, más deprisa. El autor: «revisa la animación de la Home. Va muy lento». El vuelo de
-  // bajada, 1,1 s en vez de 1,8; las comarcas salen cada 0,045 s en vez de 0,07 y crecen en 0,5 s en vez de 0,7; los
-  // nombres llegan a los 0,45 s en vez de a los 0,9; y el paseo del dron por Navarra va a un tercio más de paso)
-  if (!INTRO) { Object.assign(v, { d: goal.d * 1.35, pitch: 1.22 }); vuelo = { de: { ...v }, a: { ...goal }, t: 0, dur: 1.1 }; }
+  if (!INTRO) { Object.assign(v, { d: goal.d * 1.45, pitch: 1.25 }); vuelo = { de: { ...v }, a: { ...goal }, t: 0, dur: 1.8 }; }
 
   // ---------- la entrada grande ----------
   // Navarra, pintada en el mapa de España, tiembla, se despega en una ola de noroeste a sureste con su panza, soltando
@@ -1315,8 +1312,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   const enRuta = (l) => { const P = rutaDron.P; for (let i = 1; i < P.length; i++) if (P[i].l >= l) { const a = P[i - 1], b = P[i], k = (l - a.l) / (b.l - a.l || 1); return { x: a.x + (b.x - a.x) * k, z: a.z + (b.z - a.z) * k }; } return P.at(-1); };
   function sigueDronNavarra(dt) {
     const p = paseo; p.t += dt;
-    const vel = Math.max(1.6, rutaDron.L / 28), ida = (p.t * vel) % (2 * rutaDron.L), l = ida < rutaDron.L ? ida : 2 * rutaDron.L - ida;   // (unos 28 s de ida y otros tantos de vuelta; antes, 42)
-    const q = enRuta(l), base = p.base, k = ease(Math.min(1, p.t / 2.2));   // (al empezar, de la vista de toda Navarra al vuelo, poco a poco)
+    const vel = Math.max(1.2, rutaDron.L / 42), ida = (p.t * vel) % (2 * rutaDron.L), l = ida < rutaDron.L ? ida : 2 * rutaDron.L - ida;   // (unos 42 s de ida y otros tantos de vuelta)
+    const q = enRuta(l), base = p.base, k = ease(Math.min(1, p.t / 3.5));   // (al empezar, de la vista de toda Navarra al vuelo, poco a poco)
     const d = base.d * 0.4, pitch = 0.74 + 0.04 * Math.sin(p.t * 0.21), yaw = 0.12 * Math.sin(p.t * 0.09);
     goal.x = mezcla(base.x, q.x, k); goal.z = mezcla(base.z, q.z, k); goal.d = Math.exp(mezcla(Math.log(base.d), Math.log(d), k));
     goal.pitch = mezcla(base.pitch, pitch, k); goal.yaw = mezcla(base.yaw, yaw, k);
@@ -2050,7 +2047,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     const islaArriba = sel ? Math.min(1, Math.max(0, ((byId.get(sel)?.isla?.k) || 0) - 0.05) / 0.5) : 0;   // (cuánto está en el aire la isla elegida)
     let naceF = 1, fondoF = 0;   // (para la falda: lo que ha crecido la que menos y lo que se ha hundido la que más, sin la elegida)
     for (const c of C) {
-      let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.5))), alza = 0, posa = 0;
+      let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
       if (intro) {
         // (en la entrada: tiembla, crece mientras sube y se posa; suelta fragmentos mientras sube y aún algo arriba)
         const [k, y, sube, baja, tl] = despegue(c, tI), tb = 0.12 * rampa(tI, IT.tiembla, IT.sube) * (1 - sube);
@@ -2177,7 +2174,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     // abierto, pequeños)
     medG += ((sel && !COL && !elegido ? 1 + 1.2 * Math.min(1, Math.max(0, (v.d - 4) / 12)) : 1) - medG) * (1 - Math.exp(-dt * 5));   // (de cerca, sin agrandar: tapaban el monte)   // (con un pueblo abierto, pequeños: no tapan su maqueta)
     T.forEach((x, i) => {
-      const nace = ease(intro ? rampa(tI, IT.pines + x.c.d * 0.4, IT.pines + x.c.d * 0.4 + 0.5) : Math.max(0, Math.min(1, (t - 0.45 - x.c.d * 0.5) / 0.4)));
+      const nace = ease(intro ? rampa(tI, IT.pines + x.c.d * 0.4, IT.pines + x.c.d * 0.4 + 0.5) : Math.max(0, Math.min(1, (t - 0.9 - x.c.d * 0.6) / 0.5)));
       // (con una comarca elegida, solo quedan las suyas: las demás se encogen hasta desaparecer)
       x.k += ((COL ? (COL.pines?.has(x.id) ? 1 : 0) : sel && sel !== x.comarca ? 0 : 1) - x.k) * (1 - Math.exp(-dt * 8));   // (con una colección, solo las de sus pueblos)
       // (señalada, crece y brilla; elegida, la mira lo fija)

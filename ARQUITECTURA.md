@@ -1272,10 +1272,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   cada sentido), meciéndose un poco. Se para con cualquier toque, tecla o rueda y al elegir una comarca o un pueblo, y se
   queda donde está. Sin paseo con «menos movimiento» en el sistema ni en el navegador de las pruebas (salvo
   `window.__paseo`). Antes Navarra se veía entera pero pequeña encima de la tira de comarcas.
-  El 16 de noviembre de 2026, el autor: «revisa la animación de la Home. Va muy lento». Todo el comienzo, más deprisa: el
-  vuelo de bajada dura 1,1 s en vez de 1,8 y sale de algo menos alto; las comarcas salen cada 0,045 s en vez de 0,07 y
-  crecen en 0,5 s en vez de 0,7 (todas fuera en algo más de 1 s, antes en 1,7); los nombres de los pueblos llegan a los
-  0,45 s en vez de a los 0,9; y el paseo va a 28 s cada sentido en vez de 42, y entra en 2,2 s en vez de 3,5.
+  El 16 de noviembre de 2026 se probó todo el comienzo más deprisa y se deshizo el mismo día. El autor: «no quiero que
+  modifiques la velocidad en las animaciones del inicio y comarcas, quiero que no parpadee y vaya súper fluido». Siguen el
+  vuelo de bajada de 1,8 s, las comarcas cada 0,07 s y el paseo de 42 s.
 - **Llegar siempre a quien da la misión** (`townGame.js`, `spot` y `repasaAccesos`; `world/acceso.js`; `freeFarm` en
   `levels/townReal.js`; la foz en `world/monuments.js`; noviembre de 2026). En algunos pueblos una barrera invisible no
   dejaba llegar a la persona de la misión: en los pueblos de verdad la granja se elegía en prados más allá del límite
