@@ -16,12 +16,16 @@ Lo que se ha aprendido (17 nov):
   (rodilla y codo sólo hacia un lado y hasta 150°, cadera, hombro, muñeca, tobillo, columna en tres tramos, cuello y
   cabeza), el tobillo y los dedos del pie son bisagras (la dirección del pie la marca la cadera), la pelvis acompaña
   sólo media inclinación del tronco y la clavícula sube cuando el brazo pasa de la horizontal. Al acabar, el script
-  dice cuántas veces y cuánto ha tenido que corregir cada hueso.
+  dice cuántas veces y cuánto ha tenido que corregir cada hueso. Y fuera los fotogramas imposibles (tronco tumbado
+  más de 70° o media vuelta de un fotograma a otro): se rellenan con los de al lado.
 - El modelo grande de MediaPipe (`MODELO=pose_landmarker_heavy.task`) es bastante más preciso que el ligero del juego.
 
 | Archivo | Fuente | Golpe | fps | Fotogramas |
 |---|---|---|---|---|
+| `irribarria-gancho.json` | Irribarria, partido (de lado, lejos, dos jugadores; poco fiable) | gancho | 30 | 40 |
 | `jaka-golpe-por-arriba.json` | Erik Jaka, entrenamiento (de frente, cerca) | derecha, por encima de la cabeza | 30 | 51 |
+| `jaka-izquierda-por-arriba.json` | Erik Jaka, entrenamiento (de frente, cerca; modelo grande) | golpe por arriba con la izquierda | 30 | 51 |
+| `jaka-salto.json` | Erik Jaka, entrenamiento (lejos, con rótulo encima; poco fiable) | golpe en salto (los fotogramas del salto los confunde el detector) | 30 | 44 |
 | `tabar-derecha-1.json` | Elpelotari Tabar, técnica (de espalda, cerca; modelo grande de MediaPipe) | golpe normal de derecha | 30 | 51 |
 | `tabar-derecha-2.json` | Elpelotari Tabar, técnica (de espalda, cerca; modelo grande de MediaPipe) | golpe normal de derecha | 30 | 51 |
 | `tabar-izquierda.json` | Elpelotari Tabar, técnica (de espalda, cerca; modelo grande de MediaPipe) | golpe normal de izquierda (OJO: en la preparación el jugador está medio fuera del encuadre; sólo vale el final) | 30 | 51 |

@@ -132,6 +132,25 @@ def suaviza(W, s=1.0):
             for m in range(33): acc[m] += W[j][m] * kw
         out.append([v / ws for v in acc])
     return out
+# fotogramas imposibles fuera: un tronco tumbado más de 70° (cabeza abajo) o media vuelta de golpe de un fotograma a
+# otro son errores del detector (un rótulo encima, la cámara que barre), no posturas: se rellenan con los de al lado
+def tronco(w): return ((w[11] + w[12]) * 0.5 - (w[23] + w[24]) * 0.5).normalized()
+def caderas(w): v = w[23] - w[24]; v.z = 0; return v.normalized() if v.length > 1e-6 else Vector((1, 0, 0))
+malo = [tronco(w).z < math.cos(math.radians(70)) for w in W]
+ult = None
+for i in range(len(W)):
+    if malo[i]: continue
+    if ult is not None and caderas(W[i]).dot(caderas(W[ult])) < math.cos(math.radians(100)) and i - ult <= 2: malo[i] = True; continue
+    ult = i
+buenos = [i for i in range(len(W)) if not malo[i]]
+if buenos and len(buenos) < len(W):
+    for i in range(len(W)):
+        if not malo[i]: continue
+        a = max((j for j in buenos if j < i), default=None); b = min((j for j in buenos if j > i), default=None)
+        a = b if a is None else a; b = a if b is None else b
+        t = 0 if a == b else (i - a) / (b - a)
+        W[i] = [W[a][m] * (1 - t) + W[b][m] * t for m in range(33)]
+    print('fotogramas imposibles rellenados', sum(malo))
 W = suaviza(W, float(os.environ.get('SIGMA', '1.2')))
 print('fotogramas', len(W))
 
