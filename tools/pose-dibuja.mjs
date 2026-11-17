@@ -14,9 +14,9 @@ for (const F of P.fotos) {
     const im = new Image(); im.src = 'data:image/jpeg;base64,' + b64; await im.decode();
     const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const g = c.getContext('2d'); g.drawImage(im, 0, 0);
     const cols = ['#ffd36a', '#39f0ff', '#ff5ad1'];
-    gente.forEach((pe, k) => { g.strokeStyle = cols[k % 3]; g.lineWidth = 2.5; g.lineCap = 'round';
+    gente.forEach((pe, k) => { const col = pe.quien === 'azul' ? '#39f0ff' : pe.quien === 'rojo' ? '#ff5ad1' : cols[k % 3]; g.strokeStyle = col; g.lineWidth = 2.5; g.lineCap = 'round';
       for (const [a, z] of H) { const A = pe.img[a], Z = pe.img[z]; if (A[2] < 0.3 || Z[2] < 0.3) continue; g.beginPath(); g.moveTo(A[0] * c.width, A[1] * c.height); g.lineTo(Z[0] * c.width, Z[1] * c.height); g.stroke(); }
-      g.fillStyle = cols[k % 3]; for (const q of [pe.img[15], pe.img[16]]) { g.beginPath(); g.arc(q[0] * c.width, q[1] * c.height, 4, 0, 7); g.fill(); } });
+      g.fillStyle = col; for (const q of [pe.img[15], pe.img[16]]) { g.beginPath(); g.arc(q[0] * c.width, q[1] * c.height, 4, 0, 7); g.fill(); } });
     return c.toDataURL('image/jpeg', 0.88);
   }, [b64, F.gente, HUESOS]);
   writeFileSync(`${dir}/d/${F.f}`, Buffer.from(url.split(',')[1], 'base64'));

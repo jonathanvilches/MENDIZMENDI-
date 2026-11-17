@@ -3,7 +3,7 @@
 # dirección de cada segmento (el codo y la rodilla doblan como bisagra, en su plano), los pies tocan el suelo.
 # Necesita bpy 5.x (Blender como módulo de Python 3.13) y un GLB sin meshopt (tools/glb-descomprime.mjs).
 # python tools/blender/pose-a-esqueleto.py -- entrada.glb pose.json salida.glb [carpeta_render|-] [desde] [hasta] [ancho] [alto]
-# (variables: SIGMA suavizado en fotogramas, DIST distancia de cámara, MUESTRAS de Cycles, FR=1,20,40 solo esos fotogramas)
+# (variables: QUIEN=azul|rojo el pelotari a seguir, SIGMA suavizado en fotogramas, DIST distancia de cámara, MUESTRAS de Cycles, FR=1,20,40 solo esos fotogramas)
 import bpy, sys, json, math, os
 from mathutils import Matrix, Quaternion, Vector
 a = sys.argv[sys.argv.index('--') + 1:]
@@ -28,8 +28,9 @@ def mx(n): return 'mixamorig:' + n
 # ---- la pose del vídeo, en el espacio del esqueleto (Z arriba, X a la izquierda del jugador si mira a cámara)
 J = json.load(open(POSE))
 fotos = [f for f in J['fotos']][F0:F1]
+QUIEN = os.environ.get('QUIEN')  # con tools/pose-video.mjs SEGUIR=azul,rojo: el pelotari de ese color
 def elige(F, prev):  # la persona: la más parecida (por centro) a la del fotograma anterior
-    g = F['gente']
+    g = [p for p in F['gente'] if not QUIEN or p.get('quien') == QUIEN]
     if not g: return None
     if prev is None: return max(g, key=lambda p: sum(q[2] for q in p['img']))
     return min(g, key=lambda p: (p['cx'] - prev['cx']) ** 2 + (p['cy'] - prev['cy']) ** 2)

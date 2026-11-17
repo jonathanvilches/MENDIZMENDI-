@@ -229,6 +229,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`court.estela`), temblor de cámara desde el 70 % y, al 100 %, una pausa de impacto (`match.parada`). Para medirlo:
   `node tools/pelota-fuerza.mjs` (velocidad, frontis y bote por carga y zona) y `JUEGA=150 node tools/pelota-rayas.mjs`
   (partido solo, sin dibujar, buscando errores).
+- **Los movimientos de pelota salen de vídeos de pelotaris de verdad** (el autor, 17 nov: los de las bibliotecas
+  «intuyen el golpeo, pero no son iguales que en la pelota vasca»). Cadena: `tools/pose-video.mjs` saca el esqueleto
+  fotograma a fotograma con el mismo MediaPipe del juego (en la vista de la tele, `SEGUIR=azul,rojo` sigue a cada
+  pelotari por el color de la camiseta y busca en un recorte ampliado); `tools/pose-dibuja.mjs` lo pinta encima para
+  comprobarlo; `tools/pose-golpes.py` encuentra los golpes (la mano que más corre respecto a la cadera), con su mano,
+  altura y tramo; `tools/blender/pose-a-esqueleto.py` pasa ese tramo al esqueleto mixamorig (bisagra en codo y rodilla,
+  pies al suelo) y exporta la acción y su render. Rinde mucho mejor un vídeo cercano (entrenamientos) que la tele:
+  ahí los brazos tiemblan. El resultado es la referencia sobre la que se afina en Blender el movimiento de Meshy.
 - **La txapela es lo más importante de la pelota** (el autor, 17 de noviembre de 2026: «que te pongan la txapela es el
   mayor honor del mundo; tiene que estar sí o sí»). Al acabar la final de un campeonato, después de los highlights, la
   entrega en el frontón (`src/pelota/ceremonia.js`, lanzada desde `match.js ceremonia`): el podio de cajones blancos
