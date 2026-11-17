@@ -4,7 +4,8 @@
 // centro). Como en la vista de la tele los pelotaris salen pequeños, se busca en trozos de la imagen ampliados.
 // Con SEGUIR=azul,rojo se sigue a cada pelotari por el color de su camiseta (la mancha de ese color con pantalón blanco
 // debajo, cerca de donde estaba antes) y se busca su esqueleto en un recorte a su alrededor, ampliado: mucho más fiable
-// que la imagen entera cuando salen pequeños, y sin confundirse con los carteles.
+// que la imagen entera cuando salen pequeños, y sin confundirse con los carteles. Con ENTERO=1, sólo la imagen entera
+// sin ampliar (un pelotari grande, grabado de cerca: mucho más rápido).
 // Uso: node tools/pose-video.mjs <vídeo> <carpeta> [fps] [desde_s] [hasta_s]
 import { chromium } from 'playwright-core';
 import { mkdirSync, readdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
@@ -86,13 +87,13 @@ for (let i = 0; i < fotos.length; i++) {
     if (i % 30 === 0) console.log(i, r.out.map(o => o.quien).join(' ') || 'nadie');
     continue;
   }
-  const r = await p.evaluate(async (b64) => {
+  const r = await p.evaluate(async ([b64, ENTERO]) => {
     const im = new Image(); im.src = 'data:image/jpeg;base64,' + b64; await im.decode();
     const W = im.naturalWidth, H = im.naturalHeight, out = [];
     // (trozos: la imagen entera y dos mitades de la parte de abajo, ampliadas al doble; se juntan las personas sin repetir)
-    const trozos = [[0, 0, W, H], [0, H * 0.25, W * 0.6, H * 0.75], [W * 0.4, H * 0.25, W * 0.6, H * 0.75]];
+    const trozos = ENTERO ? [[0, 0, W, H]] : [[0, 0, W, H], [0, H * 0.25, W * 0.6, H * 0.75], [W * 0.4, H * 0.25, W * 0.6, H * 0.75]];
     for (const [x0, y0, w, h] of trozos) {
-      const c = document.createElement('canvas'); c.width = Math.round(w * 2); c.height = Math.round(h * 2);
+      const k = ENTERO ? 1 : 2, c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k);
       c.getContext('2d').drawImage(im, x0, y0, w, h, 0, 0, c.width, c.height);
       const d = window.__pose.detect(c);
       (d.landmarks || []).forEach((lm, k) => {
@@ -103,7 +104,7 @@ for (let i = 0; i < fotos.length; i++) {
       });
     }
     return out;
-  }, b64);
+  }, [b64, !!process.env.ENTERO]);
   res.push({ f: fotos[i], gente: r });
   if (i % 30 === 0) console.log(i, r.length, 'personas');
 }
