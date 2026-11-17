@@ -100,7 +100,7 @@ export class Waterfall {
   constructor(scene, info, particles) {
     const h = info.top - info.bottom;
     this.mats = [];
-    const capa = (ancho, vel, dz, alfa, abre) => {
+    const capa = (ancho, vel, dz, alfa, abre, lado = 0) => {
       const g = new THREE.PlaneGeometry(ancho, h, 10, 24);
       const m = new THREE.ShaderMaterial({
         uniforms: { uTime: { value: 0 } }, transparent: true, depthWrite: false, side: THREE.DoubleSide,
@@ -119,18 +119,21 @@ export class Waterfall {
       });
       this.mats.push(m);
       const mesh = new THREE.Mesh(g, m);
-      mesh.position.set(info.x + Math.sin(info.face) * dz, info.bottom + h / 2, info.z + Math.cos(info.face) * dz);
+      mesh.position.set(info.x + Math.sin(info.face) * dz + Math.cos(info.face) * lado, info.bottom + h / 2, info.z + Math.cos(info.face) * dz - Math.sin(info.face) * lado);
       mesh.rotation.y = info.face; scene.add(mesh);
     };
-    capa(3.2, 2.0, -0.15, 0.7, 0.2); capa(4.4, 2.6, 0.05, 0.75, 0.45); capa(2.4, 3.1, 0.25, 0.65, 0.7);
+    // (desde el 17 de noviembre de 2026, más ancho y con un hilo aparte a un lado, como los saltos de verdad, que nunca caen
+    // de una pieza: antes era una tira estrecha en medio de la peña)
+    capa(4.2, 2.0, -0.15, 0.72, 0.25); capa(5.6, 2.6, 0.05, 0.78, 0.5); capa(3.0, 3.1, 0.25, 0.68, 0.75);
+    capa(1.1, 2.4, 0.1, 0.55, 0.9, 2.9);
     // la poza de espuma al pie
-    const pg = new THREE.CircleGeometry(3.4, 40); pg.rotateX(-Math.PI / 2);
+    const pg = new THREE.CircleGeometry(4.6, 48); pg.rotateX(-Math.PI / 2);
     const pm = new THREE.ShaderMaterial({ uniforms: { uTime: { value: 0 } }, transparent: true, depthWrite: false,
       vertexShader: 'varying vec2 vP; void main(){ vP = position.xz; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
       fragmentShader: `uniform float uTime; varying vec2 vP;
         float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233)))*43758.5453); }
         float n(vec2 p){ vec2 i=floor(p), f=fract(p); f=f*f*(3.0-2.0*f); return mix(mix(h(i),h(i+vec2(1,0)),f.x), mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x), f.y); }
-        void main(){ float r = length(vP) / 3.4, a = atan(vP.y, vP.x);
+        void main(){ float r = length(vP) / 4.6, a = atan(vP.y, vP.x);
           float s = n(vec2(a * 4.0, r * 6.0 - uTime * 1.6)) * 0.6 + n(vP * 2.4 + uTime * 0.7) * 0.4;
           gl_FragColor = vec4(vec3(0.95, 0.98, 1.0), smoothstep(1.0, 0.25, r) * smoothstep(0.35, 0.7, s) * 0.85); }` });
     this.mats.push(pm);
@@ -142,7 +145,7 @@ export class Waterfall {
   update(dt, elapsed, near) {
     for (const m of this.mats) m.uniforms.uTime.value = elapsed;
     this.t += dt;
-    if (near && this.t > 0.04) { this.t = 0; this.p.emit(this.base, { n: 4, color: '#eef8ff', speed: 2.8, size: 1.1, life: 1.5, gravity: 0.6, spread: 3.2, up: 0.9 }); }
+    if (near && this.t > 0.04) { this.t = 0; this.p.emit(this.base, { n: 5, color: '#eef8ff', speed: 3.0, size: 1.4, life: 1.7, gravity: 0.5, spread: 4.2, up: 1.0 }); }
   }
 }
 

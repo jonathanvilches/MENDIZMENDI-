@@ -7,6 +7,7 @@ import { addBox, addCircle, isFree } from './colliders.js';
 import { bench } from './village.js';
 import { mulberry32 } from '../util/math.js';
 import { fbm } from '../util/noise.js';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 export const LANDMARKS = {};
 
@@ -130,33 +131,59 @@ function buildWaterfall(B, rnd) {
   const w = PLACES.waterfall, p = PLACES.pond;
   const face = Math.atan2(p.x - w.x, p.z - w.z);
   const fx = Math.sin(face), fz = Math.cos(face), sx = Math.cos(face), sz = -Math.sin(face);
-  const h = 7, lvl = p.level;
-  // la peña: un solo peñasco de roca natural (`rock`), con su cara rota por el ruido, partido por el canal del agua; no bolas
-  // sueltas. Una esfera de muchos triángulos se aplasta en un bloque ancho y se deforma con ruido en dos tamaños: grietas,
-  // repisas y salientes. Delante, el canal: la cara se mete hacia atrás donde baja el agua. (16 de noviembre de 2026, el
-  // autor: «esa cascada es un horror, no está bien hecha». Antes, piedras redondas apiladas como un muñeco de nieve)
-  const peña = (side, back, ancho, alto, fondo, sem) => {
-    const g = new THREE.IcosahedronGeometry(1, 4), P = g.attributes.position;
+  const h = 10.5, lvl = p.level;
+  // la peña: un anfiteatro de roca caliza alrededor del salto, como los de los barrancos del Pirineo navarro, con musgo en
+  // las repisas y en lo alto, la roca mojada y oscura junto al agua y vetas claras y oscuras; no un bulto gris suelto.
+  // Cada peñasco es una esfera de muchos triángulos aplastada y deformada con ruido en dos tamaños, con estratos que la
+  // escalonan en horizontal; el color va en cada vértice (`rockMoss`). (17 de noviembre de 2026, el autor, de nuevo:
+  // «esa cascada es un horror, no está bien hecha». La del 16 era una peña gris pequeña con una tira de agua estrecha en
+  // medio de la hierba)
+  const ROCA = [new THREE.Color('#b5ad9b'), new THREE.Color('#cbc2ae'), new THREE.Color('#8a8478')];
+  const MUSGO = [new THREE.Color('#6a8a3a'), new THREE.Color('#88a44e'), new THREE.Color('#4f6d30')], MOJADO = new THREE.Color('#5d5a52');
+  const ss = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+  const peña = (side, back, ancho, alto, fondo, sem, giro, moja) => {
+    // (los vértices compartidos: la esfera de three trae cada triángulo suelto y la luz la pintaba en facetas planas)
+    const g0 = new THREE.IcosahedronGeometry(1, 4); g0.deleteAttribute('uv'); g0.deleteAttribute('normal');
+    const g = mergeVertices(g0), P = g.attributes.position;
     for (let i = 0; i < P.count; i++) {
       let x = P.getX(i), y = P.getY(i), z = P.getZ(i);
       const n1 = fbm(x * 1.7 + sem, y * 1.7 + z * 1.3, 4), n2 = fbm(x * 5.1 - sem, z * 4.7 + y * 3.1, 3);
-      const k = 1 + n1 * 0.28 + n2 * 0.09 + Math.max(0, -y) * 0.15;   // (más ancho abajo, como una ladera)
+      const k = 1 + n1 * 0.3 + n2 * 0.1 + Math.max(0, -y) * 0.18;   // (más ancho abajo, como una ladera)
       y = Math.max(y, -0.55);   // (asienta en el suelo)
       x *= k; z *= k; y *= 1 + n1 * 0.12;
-      // (repisas: la roca se escalona un poco en horizontal)
-      y = y + Math.sin(y * 9 + n1 * 3) * 0.025;
+      // (estratos: la caliza se escalona en repisas horizontales)
+      y += Math.sin(y * 11 + n1 * 3) * 0.03 + (Math.round(y * 6) / 6 - y) * 0.35;
       P.setXYZ(i, x, y, z);
     }
     g.computeVertexNormals();
+    // (coordenadas para el relieve de la roca: de lado y en alto, sin costuras)
+    const uv = new Float32Array(P.count * 2);
+    for (let i = 0; i < P.count; i++) { uv[i * 2] = (P.getX(i) * ancho + P.getZ(i) * fondo) * 0.35; uv[i * 2 + 1] = P.getY(i) * alto * 0.35; }
+    g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+    const N = g.attributes.normal, col = new Float32Array(P.count * 3), c = new THREE.Color();
+    for (let i = 0; i < P.count; i++) {
+      const x = P.getX(i), y = P.getY(i), z = P.getZ(i), ny = N.getY(i), nz = N.getZ(i);
+      const n = fbm(x * 3.1 + sem, y * 2.7 + z * 2.3, 3), veta = fbm(y * 9 + sem, x * 0.7, 2);
+      c.copy(ROCA[0]).lerp(ROCA[1], ss(-0.3, 0.5, n + veta * 0.4)); c.lerp(ROCA[2], ss(0.1, 0.5, -n) * 0.7);
+      // (musgo: en lo que mira arriba, en lo alto y en el pie, nunca en las caras lisas del todo)
+      const musgo = Math.max(ss(0.18, 0.62, ny + n * 0.45) * (0.55 + 0.45 * ss(-0.2, 0.4, y)), ss(-0.3, -0.52, y) * ss(-0.1, 0.4, n) * 0.8);
+      c.lerp(MUSGO[n > 0.15 ? 1 : n < -0.2 ? 2 : 0], Math.min(1, musgo));
+      // (la cara que da al agua, mojada y oscura, más abajo que arriba)
+      c.lerp(MOJADO, moja * ss(0.0, 0.8, nz) * (0.55 + 0.35 * ss(0.3, -0.5, y)) * (1 - musgo * 0.6));
+      col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+    }
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     const [x, z] = [w.x + sx * side - fx * back, w.z + sz * side - fz * back];
-    B.add('rock', g, M(x, lvl + alto * 0.42, z, face + (sem % 1) * 0.6, 0, 0, ancho, alto, fondo));
+    B.add('rockMoss', g, M(x, lvl + alto * 0.42, z, face + giro, 0, 0, ancho, alto, fondo));
   };
-  peña(-3.6, 1.8, 3.4, h * 1.05, 2.8, 1.3); peña(3.8, 2.0, 3.6, h * 0.95, 3.0, 4.7);   // (los dos lados del canal)
-  peña(0, 3.9, 2.6, h * 1.0, 2.0, 8.1);    // (la pared de detrás del agua, más atrás: el canal)
-  peña(-7.2, 3.2, 3.0, h * 0.6, 2.6, 2.9); peña(7.6, 3.4, 3.2, h * 0.55, 2.6, 6.2);   // (los hombros, que bajan a la ladera)
-  // piedras sueltas al pie, en el agua, rotas también
-  for (let i = 0; i < 7; i++) { const g = new THREE.DodecahedronGeometry(0.5 + rnd() * 0.7, 1); B.add('rock', g, M(w.x + fx * (1.4 + rnd() * 2.2) + sx * (rnd() - 0.5) * 7, lvl - 0.25, w.z + fz * (1.4 + rnd() * 2.2) + sz * (rnd() - 0.5) * 7, rnd() * 6, rnd(), 0, 1.3, 0.55, 1)); }
-  addBox(w.x - fx * 3.4, w.z - fz * 3.4, 14, 6, face, { solidView: true });
+  // (los dos lados del canal, mojados por dentro; la pared de detrás del agua; los hombros y las alas, que bajan a la ladera)
+  peña(-3.5, 1.7, 3.7, h * 1.05, 3.1, 1.3, 0.25, 1); peña(3.7, 1.9, 3.9, h * 0.98, 3.3, 4.7, -0.25, 1);
+  peña(0, 4.3, 3.2, h * 1.1, 2.5, 8.1, 0, 1);
+  peña(-7.7, 3.1, 3.7, h * 0.74, 3.1, 2.9, 0.4, 0.3); peña(8.1, 3.3, 3.9, h * 0.68, 3.1, 6.2, -0.4, 0.3);
+  peña(-11.4, 5.2, 3.7, h * 0.46, 3.3, 3.7, 0.7, 0); peña(11.8, 5.4, 3.5, h * 0.42, 3.1, 9.4, -0.7, 0);
+  // piedras sueltas al pie, en el agua y en la orilla, rotas también
+  for (let i = 0; i < 11; i++) { const g = new THREE.DodecahedronGeometry(0.45 + rnd() * 0.75, 1); B.add('rock', g, M(w.x + fx * (1.4 + rnd() * 2.8) + sx * (rnd() - 0.5) * 11, lvl - 0.25, w.z + fz * (1.4 + rnd() * 2.8) + sz * (rnd() - 0.5) * 11, rnd() * 6, rnd(), 0, 1, 0.55 + rnd() * 0.3, 1)); }
+  addBox(w.x - fx * 3.6, w.z - fz * 3.6, 24, 6.5, face, { solidView: true });
   LANDMARKS.waterfall = { x: w.x + fx * 0.4, z: w.z + fz * 0.4, top: lvl + h, bottom: lvl, face };
 }
 

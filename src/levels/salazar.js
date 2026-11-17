@@ -164,7 +164,7 @@ function rawHeight(x, z, detail) {
     if (v > -24 && v < 40 && u < 30) {
       const dp = Math.hypot(x - PLACES.pond.x, z - PLACES.pond.z);   // (sin meterse en el agua)
       const a = smoothstep(0.3 - 0.4 * u, 8, v) * (1 - smoothstep(8, 26, u)) * (1 - smoothstep(16, 36, v)) * smoothstep(PLACES.pond.r + 0.3, PLACES.pond.r + 3, dp);
-      if (a > 0) h = Math.max(h, lerp(h, pondLevel + 7.2 + fbm(x / 12, z / 12, 2) * 0.8, a));
+      if (a > 0) h = Math.max(h, lerp(h, pondLevel + 10.4 + fbm(x / 12, z / 12, 2) * 0.8, a));
     }
   }
   return { h, r, d, F, vm, mm };

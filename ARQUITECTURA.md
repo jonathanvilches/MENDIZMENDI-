@@ -3146,6 +3146,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   de muchos triángulos aplastadas y rotas con ruido en dos tamaños (grietas, repisas), a los lados del canal, detrás del agua
   y en los hombros; nada de bolas apiladas. El agua son tres láminas de distinto ancho y velocidad, con hilos blancos, que se
   abren al caer; al pie, una poza de espuma que hierve y más rocío.
+- **Cascada de la lamia en anfiteatro de roca con musgo** (`buildWaterfall` en `world/landmarks.js`, material `rockMoss`
+  en `world/builder.js`, `Waterfall` en `fx.js` y la peña en `rawHeight` de `levels/salazar.js`; 17 de noviembre de 2026, el
+  autor otra vez: «la cascada de la lamia es un horror»): la peña sube a 10,5 m y son siete peñascos de caliza en
+  anfiteatro, los dos lados del canal, la pared de detrás del agua, los hombros y las alas que bajan a la ladera. Cada uno
+  es una esfera con los vértices compartidos (con `mergeVertices`; la de three trae los triángulos sueltos y la luz la
+  pintaba en facetas), ensanchada abajo, con estratos en repisas y el color en cada vértice: caliza clara con vetas, musgo
+  en lo que mira arriba, en lo alto y en el pie, y la cara que da al agua mojada y más oscura. Las coordenadas del relieve
+  van de lado y en alto, sin costuras. El agua es más ancha, cuatro láminas con un hilo aparte a un lado, la poza de espuma
+  de 4,6 m y más rocío. La ladera de detrás sube hasta 10,4 m sobre la balsa para que el salto salga de ella.
 - **La cascada de la balsa de Irati, en la orilla** (`buildWaterfall` en `world/landmarks.js`; `PLACES.waterfall` y la peña
   en `rawHeight` de `levels/salazar.js`): antes el salto, de 9 m, caía sobre la hierba, a 4 m del agua, desde una caja de
   16 × 15 m con la textura de los muros de piedra, más alta que la ladera de detrás. Ahora está en la orilla y cae en la

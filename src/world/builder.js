@@ -115,6 +115,8 @@ export function makeMaterials() {
     stoneDark: weather(withTex(TEX.stoneDark)),
     // roca natural sin labrar (losas de dolmen, peñas)
     rock: snowable(weather(std({ normalMap: TEX.rockN, normalScale: new THREE.Vector2(1.4, 1.4), color: '#8e877b', roughness: 0.95 }), 1.3, 1)),
+    // la misma roca con su color en cada vértice (musgo, vetas, lo mojado): la peña de la cascada de Otsagabia
+    rockMoss: snowable(weather(std({ normalMap: TEX.rockN, normalScale: new THREE.Vector2(1.4, 1.4), vertexColors: true, roughness: 0.95 }), 1.3, 1)),
     ashlar: weather(withTex(TEX.ashlar), 0.9),
     // piedra arenisca dorada (catedral de Pamplona, palacios de la Ribera)
     sandstone: weather(withTex(TEX.ashlar, { color: new THREE.Color(1.3, 1.08, 0.76), emissive: new THREE.Color('#3d2f17') }), 1.0, 0.5),

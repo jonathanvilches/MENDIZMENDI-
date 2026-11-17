@@ -38,6 +38,7 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 | El Bobo de Muskilda | Boceto hecho el 17 de noviembre, falta tu visto bueno |
 | Los ocho danzantes de Muskilda | Sin boceto: falta una foto real del traje |
 | Sorgina, Tartalo, Roldán, Cascabobo, Zipotero, Orido y lagunero | Bocetos hechos, sin modelo |
+| Cascada de la lamia | Rehecha el 17 de noviembre: peña de 10,5 m en anfiteatro, caliza con musgo y agua más ancha. Falta que la veas |
 | Vecinos de cerca con más calidad | Pendiente |
 | Retratos ilustrados de los vecinos en las charlas | Pendiente |
 
