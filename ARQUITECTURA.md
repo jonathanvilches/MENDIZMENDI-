@@ -26,8 +26,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     VECINOS con edad «leyenda» (nadie de la calle la tiene) y `ser`: `buildNpc` usa su modelo cuando el aspecto lleva
     `myth` y el pueblo lo ha cargado; `vecinosDelPueblo` los carga solo donde salen: en Otsagabia los cuatro de
     `game/npcs.js` (`SERES_DE`), y en los demás pueblos las figuras de sus misiones de carnaval (`type: 'carnival'`,
-    las de `FOLK` en `townLeyendas.js`). Alturas: lamia 1,84 m, Bobo 1,9, joaldun y Zarratrako 2,05, momotxorro 2,15 y
-    Basajaun 2,5. La versión ligera no baja de unos 13 000 triángulos en el Bobo y de 24 000 a 40 000 en los demás: con
+    las de `FOLK` en `townLeyendas.js`). Alturas, con el gorro, la cesta o los cuernos: lamia 1,84 m, Bobo 1,9, Zarratrako
+    2,15, momotxorro 2,15, joaldun 2,25 y Basajaun 2,5. El autor vio al joaldun «tan pequeño» y pidió que fuera «del mismo
+    tamaño que un personaje adulto del juego»: con 2,05 su gorro de cintas se comía casi un sexto del alto y su cabeza es
+    más pequeña que la de los vecinos, así que la cara le quedaba 15 cm por debajo de la de un adulto. Con 2,25 queda a la
+    par (el Zarratrako, por su gorro, pasa de 2,05 a 2,15). Comparación en fila, con rayas cada 50 cm:
+    `entrega/personajes/tamanos-seres-antes.png` y `-despues.png`. La versión ligera no baja de unos 13 000 triángulos en el Bobo y de 24 000 a 40 000 en los demás: con
     50 000 triángulos y la textura en muchas islas, sus costuras no dejan simplificar más (antes, la lamia ligera tenía
     unos 12 000). De 0,5 a 1,7 MB cada uno. Si pesan en el iPhone, Meshy puede rehacer la malla más ligera antes del
     esqueleto (remesh, 5 créditos más por personaje y repetir el esqueleto y los movimientos).
