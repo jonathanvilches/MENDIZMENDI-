@@ -3819,5 +3819,12 @@ git push origin master:main
     `montar.mjs` lo carga con `MONTAJE=montaje-inversores.js` y toma la duración del propio montaje.
   - La voz va en una mezcla aparte: la música de los torneos, las seis frases de Salva en su sitio y la música que baja
     sola cuando habla (compresión con la voz como llave), a unos -15 LUFS.
-  Aprovecha planos del tráiler de 60 s (fauna, pelota, público, Olite, plaza, mercado, subida, Javier y el horizonte).
-  Grabar a 1080p con el pintado por software tarda unos 6 s por fotograma: los 600 de los planos nuevos, una hora larga.
+  Grabar a 1080p con el pintado por software tarda unos 4 a 6 s por fotograma: los 670 de los planos nuevos, una hora larga.
+  De los planos del tráiler de 60 s solo quedan los que no enseñan los personajes de antes (Olite, plaza, subida, Javier
+  y la pelota en el frontis); los huecos los llenan láminas del juego (`src/assets/laminas/grande`). El partido salió en
+  el frontón de Lesaka, no en el Labrit (el clic del frontón en `rodar.mjs` no lo cambia): se rotula «Lesaka». Del plano
+  que sigue a la pelota (`pelotaLabrit`) solo valían los primeros fotogramas y no se usa; sí la vista de la tele
+  (`pelotaLabrit2`), también dentro del móvil. Los seres que giran solos se usan solo en el trozo en que miran a la cámara
+  (`desde` y la duración de la toma). El Zarratrako está fuera: al autor no le gusta («no me gusta el zarratrako», 17 de
+  noviembre de 2026); en su sitio, la lámina de Otsagabia. El vídeo: 75 s a 1920 × 1080 (437 MB con el grano del montador)
+  y una versión ligera de 33 MB para enviar.

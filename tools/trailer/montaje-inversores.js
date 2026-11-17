@@ -25,22 +25,25 @@ const TOMAS = [
   // 14,8-29,2 s: los vecinos y los seres del carnaval (Cada vecino te pide ayuda…)
   { a: 14.8, b: 17.2, src: 'p:maite', luz: 'dia', entra: ['funde', 0.35], rotulo: ['Otsagabia', 'Maite'] },
   { a: 17.2, b: 19.6, src: 'p:joxemari', luz: 'dia', rotulo: ['Otsagabia', 'Joxemari, el pastor'] },
-  { a: 19.6, b: 21.8, src: 'p:zarratrako', luz: 'dia', golpe: '#ffd6f0', rotulo: ['Carnaval', 'Zarratrako'] },
-  { a: 21.8, b: 24.4, src: 'p:joaldun', luz: 'dia', golpe: '#ffe2b8', rotulo: ['Ituren', 'Joaldunak'] },
-  { a: 24.4, b: 27.0, src: 'p:momotxorro', luz: 'noche', golpe: '#ff9a6a', rotulo: ['Altsasu', 'Momotxorro'] },
-  { a: 27.0, b: 29.2, src: 'p:bobo', luz: 'dia', golpe: '#ffd6f0', rotulo: ['Carnaval', 'Bobo'] },
+  // (el Zarratrako, fuera: al autor no le gusta, 17 de noviembre de 2026; en su sitio, la lámina de Otsagabia)
+  { a: 19.6, b: 21.0, src: 'a:laminas/grande/otsagabia-ochagavia.webp', luz: 'ilus', entra: ['funde', 0.25], kb: [1.0, 1.1, 0.5, 0.5, 0.52, 0.46], rotulo: ['Pirineo', 'Otsagabia'] },
+  { a: 21.0, b: 23.6, src: 'p:joaldun', luz: 'dia', golpe: '#ffe2b8', rotulo: ['Ituren', 'Joaldunak'] },
+  { a: 23.6, b: 24.9, src: 'p:momotxorro', luz: 'calido', golpe: '#ff9a6a', rotulo: ['Altsasu', 'Momotxorro'] },
+  { a: 24.9, b: 26.2, src: 'a:laminas/grande/altsasu-momotxorro.webp', luz: 'ilus', entra: ['funde', 0.25], kb: [1.0, 1.1, 0.5, 0.5, 0.5, 0.44] },
+  { a: 26.2, b: 28.4, src: 'p:bobo', luz: 'dia', golpe: '#ffd6f0', rotulo: ['Carnaval', 'Bobo'] },
+  { a: 28.4, b: 29.2, src: 'a:laminas/grande/amaiur-basajaun.webp', luz: 'ilus', entra: ['funde', 0.3], kb: [1.0, 1.08, 0.5, 0.5, 0.5, 0.46] },
   // 29,2-34 s: las leyendas (La naturaleza y la cultura, contadas jugando.)
-  { a: 29.2, b: 31.6, src: 'p:basajaun', luz: 'ocaso', entra: ['negro', 0.3], rotulo: ['Leyendas', 'Basajaun'] },
-  { a: 31.6, b: 34.0, src: 'p:lamia', luz: 'ocaso', entra: ['funde', 0.4], rotulo: ['Leyendas', 'Lamia'] },
-  { a: 34.0, b: 35.0, src: 'p:fauna', luz: 'dia', entra: ['funde', 0.3] },
+  { a: 29.2, b: 31.2, src: 'p:basajaun', luz: 'ocaso', entra: ['negro', 0.3], desde: 0.45, rotulo: ['Leyendas', 'Basajaun'] },
+  { a: 31.2, b: 33.6, src: 'p:lamia', luz: 'ocaso', entra: ['funde', 0.4], rotulo: ['Leyendas', 'Lamia'] },
+  { a: 33.6, b: 35.0, src: 'a:laminas/grande/aribe-irati.webp', luz: 'ilus', entra: ['funde', 0.3], kb: [1.0, 1.08, 0.5, 0.5, 0.52, 0.48] },
   // 35-50 s: la pelota (en pantalla, sin voz: La pelota vasca · Campeonatos · Frontones · En directo)
   { a: 35.0, b: 38.6, src: 'f:menu-sports.png', luz: 'menu', entra: ['blanco', 0.35], kb: [1.0, 1.1, 0.5, 0.5, 0.36, 0.42] },
-  { a: 38.6, b: 41.6, src: 'p:pelotaLabrit', luz: 'calido', entra: ['blanco', 0.25], rotulo: ['Pamplona', 'Frontón Labrit'] },
+  { a: 38.6, b: 41.6, src: 'p:pelotaLabrit2', luz: 'calido', entra: ['blanco', 0.25], rotulo: ['Lesaka', 'Frontón'] },
   { a: 41.6, b: 43.6, src: 'p:pelota', luz: 'calido' },
-  { a: 43.6, b: 46.6, src: 'p:publico', luz: 'calido', entra: ['funde', 0.3] },
+  { a: 43.6, b: 46.6, src: 'a:laminas/grande/dep-fronton.webp', luz: 'ilus', entra: ['funde', 0.3], kb: [1.0, 1.1, 0.5, 0.5, 0.46, 0.46] },
   { a: 46.6, b: 50.0, src: 'a:laminas/grande/dep-pelotari.webp', luz: 'ilus', entra: ['funde', 0.4], kb: [1.0, 1.12, 0.5, 0.45, 0.5, 0.4] },
   // 50-56 s: el móvil como mando (en pantalla: Tú eres el pelotari.)
-  { a: 50.0, b: 56.0, src: 'p:vecinos', luz: 'calido', entra: ['negro', 0.4], movil: true },
+  { a: 50.0, b: 56.0, src: 'p:plaza', luz: 'calido', entra: ['negro', 0.4], movil: true },
   // 56-64 s: el pasaporte, las ventajas y las láminas (Para aprender, descubrir y visitar…)
   { a: 56.0, b: 58.6, src: 'f:menu-passport.png', luz: 'menu', entra: ['blanco', 0.3], kb: [1.0, 1.1, 0.5, 0.5, 0.42, 0.46] },
   { a: 58.6, b: 61.2, src: 'f:menu-ventajas.png', luz: 'menu', entra: ['funde', 0.35], kb: [1.06, 1.0, 0.45, 0.55, 0.5, 0.5] },
@@ -48,13 +51,13 @@ const TOMAS = [
   // 64-72 s: montaje rápido (Navarra, pueblo a pueblo.)
   { a: 64.0, b: 65.4, src: 'p:olite', luz: 'ocaso', entra: ['blanco', 0.3], desde: 1 },
   { a: 65.4, b: 66.4, src: 'p:subida', luz: 'ocaso' },
-  { a: 66.4, b: 67.4, src: 'p:mercado', luz: 'dia' },
+  { a: 66.4, b: 67.4, src: 'p:lamia', luz: 'ocaso', desde: 1.2 },
   { a: 67.4, b: 68.4, src: 'p:plaza', luz: 'dia' },
   { a: 68.4, b: 69.5, src: 'p:joaldun', luz: 'dia', desde: 1.2 },
   { a: 69.5, b: 70.6, src: 'p:otsaVuelo', luz: 'dia', desde: 2.6 },
   { a: 70.6, b: 72.0, src: 'p:javier', luz: 'ocaso', desde: 1.5 },
   // 72-75 s: el logo y la frase para los socios
-  { a: 72.0, b: 75.0, src: 'p:horizonte', luz: 'ocaso', entra: ['negro', 0.4], desde: 1.5, logo: 72.4 },
+  { a: 72.0, b: 75.0, src: 'p:mapa', luz: 'mapa', entra: ['negro', 0.4], desde: 9.6, logo: 72.4 },
 ];
 
 // destellos blancos en los golpes de la música (cuándo, cuánto, cuánto dura)
@@ -210,7 +213,7 @@ async function realidad(x0, T, t) {
 }
 
 // ---------- el móvil como mando: la pelota en la pantalla del móvil, delante de la plaza ----------
-// (el partido del Labrit, en bucle, dentro del móvil; detrás, la plaza desenfocada; a la izquierda, la frase)
+// (el partido, con la vista de la tele, en bucle, dentro del móvil; detrás, la plaza desenfocada; a la izquierda, la frase)
 async function movil(x0, T, t) {
   const s = t - T.a, sube = easeOutExpo(s / 0.75), dy = (1 - sube) * 760, d = T.b - T.a;
   if (s < 0) return;
@@ -221,8 +224,8 @@ async function movil(x0, T, t) {
   x.save(); x.shadowColor = 'rgba(10,4,24,0.6)'; x.shadowBlur = 70; x.shadowOffsetY = 26;
   redondo(x, X, Y, M.w, M.h, M.r); x.fillStyle = '#121018'; x.fill(); x.shadowColor = 'transparent';
   x.lineWidth = 2; x.strokeStyle = 'rgba(255,255,255,0.16)'; x.stroke(); x.restore();
-  const n = CUANTOS.pelotaLabrit || 1, i = Math.floor((s * FPS * 0.9) % n);
-  const im = await carga(`/p/pelotaLabrit/${String(i).padStart(4, '0')}.jpg`);
+  const n = CUANTOS.pelotaLabrit2 || 1, i = Math.floor((s * FPS * 0.9) % n);
+  const im = await carga(`/p/pelotaLabrit2/${String(i).padStart(4, '0')}.jpg`);
   x.save(); redondo(x, sx, sy, sw, sh, M.r - M.borde); x.clip();
   // (la imagen del partido recortada a la pantalla, sin deformar)
   const k = Math.max(sw / im.width, sh / im.height), iw = im.width * k, ih = im.height * k;

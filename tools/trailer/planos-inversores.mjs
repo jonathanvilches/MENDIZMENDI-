@@ -80,12 +80,12 @@ export const PLANOS = {
     cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.2, { d: 3.6, acerca: 0.8, lado: -0.9, alto: 1.3, mira: 1.5, giro: -0.3 }),
   },
   zarratrako: {
-    pueblo: 'otsagabia-ochagavia', hora: 12.2, tiempo: 'clear', seg: 2.2, antes: 24,
+    pueblo: 'otsagabia-ochagavia', hora: 12.2, tiempo: 'clear', seg: 2.2, antes: 100,   // (antes largo: tarda en girarse hacia la cámara)
     prep: (U, est) => {
       const pl = window.__layout.PLACES.plaza;
       est.a = window.__ay.posa(U, U.G.npcs?.zarratrako, pl.x + 6, pl.z - 4, Math.PI * 0.8); U.G.player.place(pl.x - 12, pl.z + 10, 0); U.G.player.obj.visible = false; window.__ay.despeja(U, est.a.pos, 14, [est.a, ...(est.folk || [])]); est.fog = [90, 1100];
     },
-    cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.2, { d: 3.8, acerca: 0.7, lado: 1.2, alto: 1.35, mira: 1.55, giro: 0.35, h: Math.PI * 1.8, vuelta: Math.PI }),
+    cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.2, { d: 3.8, acerca: 0.7, lado: 1.2, alto: 1.35, mira: 1.55, giro: 0.12, h: Math.PI * 1.8, vuelta: Math.PI }),
   },
   joaldun: {
     pueblo: 'ituren', hora: 11.0, tiempo: 'clear', seg: 2.6, antes: 24,
@@ -93,10 +93,10 @@ export const PLANOS = {
     cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.6, { d: 4.2, acerca: 1.0, lado: 1.0, alto: 1.25, mira: 1.7, giro: 0.3 }),
   },
   momotxorro: {
-    pueblo: 'altsasu-alsasua', hora: 21.6, tiempo: 'clear', seg: 2.6, antes: 24,
+    pueblo: 'altsasu-alsasua', hora: 21.6, tiempo: 'clear', seg: 2.6, antes: 100,
     // (de noche los momotxorros huyen del jugador; aquí se dan por encontrados para que se queden en la plaza)
     prep: (U, est) => { est.a = window.__ay.carnaval(U, est); for (const f of est.folk || []) { f.found = true; f.chase?.dispose?.(); f.chase = null; } const p = est.a.pos; U.G.player.place(p.x + 14, p.z + 14, 0); U.G.player.obj.visible = false; window.__ay.despeja(U, est.a.pos, 14, [est.a, ...(est.folk || [])]); est.fog = [40, 600]; },
-    cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.6, { d: 4.4, acerca: 1.2, lado: -1.0, alto: 1.1, mira: 1.6, giro: -0.3, fov: 42 }),
+    cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.6, { d: 4.4, acerca: 1.2, lado: -1.0, alto: 1.1, mira: 1.6, giro: -0.12, fov: 42 }),
   },
   // ---------- 30-36 s: las leyendas y la naturaleza ----------
   basajaun: {
@@ -110,6 +110,20 @@ export const PLANOS = {
     cuadro: (t, U, est) => window.__ay.frente(U, est.a, t, 2.4, { d: 3.6, acerca: 0.6, lado: -1.3, alto: 1.4, mira: 1.5, giro: -0.45 }),
   },
   // ---------- 36-50 s: la pelota en el Labrit, con público ----------
+  // la vista de la tele: la cámara fija clásica del partido (alta, por detrás y centrada), con la cancha entera y la grada
+  pelotaLabrit2: {
+    campeonato: 'labrit', seg: 3.0, antes: 0,
+    prep: async (U, est) => {
+      const m = U.G.pelotaMatch, g = m.game; est.g = g; est.grp = m.court.group;
+      est.C = (await import('/src/pelota/rules.js')).COURT;
+      for (let i = 0; i < 9000; i++) { U.rt.step(1 / 30, U.G, U.G.input); if (g.phase === 'rally' && g.ball.v.z < -6 && g.ball.p.z > 18) break; }
+    },
+    cuadro: () => { },
+    despues: (t, U, est) => {
+      const C = est.C, k = U.ease(t / 3), zf = Math.min(C.L + 1.4, C.REBOTE - 0.6);
+      U.cam(est.grp.localToWorld(U.v(1.2 - k * 1.6, 9.8 - k * 1.2, zf - k * 2)), est.grp.localToWorld(U.v(0, 0.6, C.L * 0.48)), 48);
+    },
+  },
   pelotaLabrit: {
     campeonato: 'labrit', seg: 3.0, antes: 0,
     prep: (U, est) => {
