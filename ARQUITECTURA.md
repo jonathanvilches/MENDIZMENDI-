@@ -860,6 +860,15 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   El autor rechaza también a Inés para Maite y a Nuria para Itziar: las dos vuelven a esperar voz. De las pruebas
   quedan apuntadas las formas que le valen para cuando haya voz: «José Mari», «Sarratráko» con el acento en la tercera
   a, y la fonética con el acento en la i para «Otsagabía».
+  17 de noviembre de 2026: voces nuevas. Maite con Francesca Dari e Itziar con Irma la Dulce (biblioteca de ElevenLabs,
+  castellano de España, modelo eleven_v4), elegidas por el autor tras una frase de prueba. Se graban sus 29 frases con
+  dos tomas cada una (`$SP/voces-mi`, fuera del repositorio) y el autor elige en la cuarta ronda de la página de
+  elecciones: la toma 2 en todas menos «¿Sabes que en Otsagabia hay palacios…?» de Itziar (`itziar-04`), que va con la 1.
+  Entran 27, recortadas en los bordes (50 ms), a -18 LUFS, mono y 80 kbps. Lo que se le pide a la voz va escrito para que
+  lo diga bien y el manifiesto guarda el texto de pantalla: «José Mari» por «Joxemari», «Sarratráko» por «Zarratrako»,
+  «Itsiar» por «Itziar», Otsagabia en fonética (/ot͡saˈɣaβja/ en Maite, /ot͡saɣaˈβia/ en Itziar) y los siglos en letra.
+  El autor pide rehacer dos: «¡Ya conoces el corazón de Otsagabia!» (`maite-05`) y el saludo de noche, «Gabon…»
+  (`itziar-00n`). Hasta que apruebe las nuevas, salen del manifiesto y se leen sin voz, para no mezclar con la voz de antes.
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
