@@ -216,6 +216,24 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   movimiento, nunca su verde ni su web. Al acabar cada partido, los highlights (`finPartido` → `verHl` → `sigHl` en
   `match.js`): los tres mejores tantos según su nota (`guardaHl`), del tercero al primero, cada uno con su rótulo grande;
   empiezan 2,4 s después del «¡Tanto y partido!», que se quita antes. Prueba: `tools/pelota-highlights.mjs`.
+- **La txapela es lo más importante de la pelota** (el autor, 17 de noviembre de 2026: «que te pongan la txapela es el
+  mayor honor del mundo; tiene que estar sí o sí»). Al acabar la final de un campeonato, después de los highlights, la
+  entrega en el frontón (`src/pelota/ceremonia.js`, lanzada desde `match.js ceremonia`): el podio de cajones blancos
+  delante del frontis (1 en medio, 2 a su izquierda), cada uno con su copa de plata bien agarrada (el puño cerrado,
+  `dedos.js`; el finalista con `agarrar.js`), la txapela que baja en primer plano y se posa a la medida de la cabeza, el
+  «¡Txapeldun!» en ese momento con el diálogo de Mikel y Edurne, el campeón que levanta la copa (solo él), confeti
+  dorado, la familia y los amigos en la cancha (vecinos con ropa de calle teñida, `npcOutfit.js`; casi todos del color
+  del campeón y ninguno del rival) y el rótulo de retransmisión. La medida de la cabeza sale de la figura (lo más alto
+  de la caja del personaje), no del esqueleto: en los pelotaris la cabeza es mucho mayor que su esqueleto. Las clases
+  del rótulo llevan el prefijo `pc-`: `.rotulo` ya es el cartel del pueblo (`ui/rotulo.css`). Tras ella, el campeonato
+  no repite la celebración plana de `ui/champion.js` (`r.ceremonia`). Pruebas: `tools/pelota-ceremonia.mjs` (fotos) y
+  `tools/pelota-ceremonia-video.mjs` (vídeo con sonido, fotograma a fotograma con el reloj parado).
+- **El personaje del jugador no se reproporciona**: el explorador, la exploradora y el pelotari son el mismo personaje
+  y no están en `CABEZA` (`glbChar.js`); al achicarle la cabeza al explorador el cuerpo le crecía y dejaba de parecerse
+  al pelotari.
+- **Contraste del rosa**: el magenta vivo (`#ff2bd6`) con letra blanca no llega a 4,5:1. En los fondos con texto (botones
+  principales, rótulo de la final, el bando colorado del marcador) va el degradado `#d0189f → #a51ee0 → #6a2ff0` y el
+  colorado `#d81a72 → #a8125c`; el magenta vivo queda para filos, barras y detalles sin texto encima.
 - **Movimiento: un solo sistema** (`src/ui/motion.css` y `src/ui/motion.js`; noviembre de 2026, fase 1 del rediseño de
   la animación). Las curvas y los tiempos de todo el juego están en un sitio, como variables de `:root`: `--ease` para
   entrar (rápida al empezar y se posa), `--muelle` para abrirse (un pelo de sobrepaso), `--sale` para cerrar, `--anticipa`

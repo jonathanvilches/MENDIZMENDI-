@@ -220,8 +220,11 @@ const SIN_GIRO_CABEZA = new Set(['zarratrako']);
 export const CABEZA = {
   hombre: 0.61, carpintero: 0.71, quesero: 0.93, panadero: 0.78, mujer: 0.69, joven_rubia: 0.7, carpintera: 0.71, panadera: 0.93,
   abuelo_bigote: 0.69, abuelo_barba: 0.63, abuelo: 0.64, abuela_trenzas: 0.69, abuela_mono: 0.73, abuela_panuelo: 0.69,
-  nino_moreno: 0.82, nino_rubio: 0.8, nina_pelirroja: 0.82, nina_trenzas: 0.83, explorador: 0.67, exploradora: 0.75,
-  // (el pelotari no: ya mide 4,3 cabezas y sus golpes, su saque y la vista en primera persona salen de su esqueleto)
+  nino_moreno: 0.82, nino_rubio: 0.8, nina_pelirroja: 0.82, nina_trenzas: 0.83,
+  // (ni el pelotari ni el explorador y la exploradora: son el mismo personaje, el tuyo, y se quedan como son. El pelotari
+  // ya mide 4,3 cabezas y sus golpes, su saque y la vista en primera persona salen de su esqueleto; al explorador se le
+  // achicó la cabeza al 67 % y el cuerpo le crecía hasta su altura: dejó de parecerse a sí mismo en el partido, el autor,
+  // 17 de noviembre de 2026)
   sanfermin: 0.58, pastor: 0.61, osasuna: 0.59, osasuna_fuera: 0.59,
   // (la lamia, el Bobo y el Basajaun, al revés: cabeza más grande; el Basajaun, gigante, se queda en unas 5,5)
   lamia: 1.52, bobo: 1.27, basajaun: 1.25,

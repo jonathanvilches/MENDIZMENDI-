@@ -44,11 +44,11 @@ const CSS = `
 .mnd-vias span::before{content:'';width:8px;height:8px;border-radius:50%;background:#f2c230}.mnd-vias .ok::before{background:#3ee07a}.mnd-vias .mal::before{background:#ff5d5d}
 .mnd-pide{grid-column:1/-1;display:grid;gap:12px;margin:0;padding:16px;border-radius:8px;background:rgba(242,194,48,.12);border:1px solid rgba(255,255,255,.08)}.mnd-pide[hidden]{display:none}
 .mnd-pide p{margin:0;font-weight:800;line-height:1.4}.mnd-pide div{display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
-.mnd-pide button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}.mnd-pide button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
+.mnd-pide button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}.mnd-pide button.go{border:0;background:linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0)}
 .mnd-bts{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:12px;justify-content:flex-end}
 .mnd-bts button{min-height:44px;padding:8px 20px;border-radius:4px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;cursor:pointer}
-.mnd-bts button.go{border:0;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7)}
-.mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;text-decoration:none}
+.mnd-bts button.go{border:0;background:linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0)}
+.mnd-bts a.go{display:inline-flex;align-items:center;min-height:44px;padding:8px 20px;border-radius:4px;background:linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0);color:#fff;font:800 var(--fs-md,16px) 'MZ Texto',sans-serif;text-decoration:none}
 @media (max-width:620px),(orientation:landscape) and (max-height:520px){.mnd-card{grid-template-columns:1fr;justify-items:center;padding:16px}.mnd-qr{width:min(200px,calc(50dvh / var(--z, 1)))}}
 .mnd-pill{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 12px);z-index:9400;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(20,8,40,.82);color:#fff;font:800 var(--fs-sm,14px) 'MZ Texto',sans-serif;cursor:pointer;opacity:.75}
 .mnd-pill[hidden]{display:none}.mnd-pill:hover{opacity:1}.mnd-pill i{width:10px;height:10px;border-radius:50%;background:#f2c230}.mnd-pill.ok i{background:#3ee07a}

@@ -642,7 +642,10 @@ export class PelotaMatch {
   }
   finPartido(e) {
     const H = (this.hl || []).slice().sort((a, b) => a.nota - b.nota);   // (del tercero al primero)
-    if (this.game.mode === 'match' && H.length && !(navigator.webdriver && !window.__hl)) { this.hlTodos = H; this.verHl(e, 2400); } else this.endPanel(e);
+    // (en la final de un campeonato, después de los highlights, la entrega de la txapela en el podio: pelota/ceremonia.js)
+    this.cerePend = this.o.final && this.game.mode === 'match' && !this.o.reto && !(navigator.webdriver && !window.__ceremonia) ? e : null;
+    if (this.game.mode === 'match' && H.length && !(navigator.webdriver && !window.__hl)) { this.hlTodos = H; this.verHl(e, 2400); }
+    else if (this.cerePend) setTimeout(() => this.ceremonia(), 2400); else this.endPanel(e);
   }
   // (los highlights empiezan cuando se ha visto el «¡Tanto y partido!» del último tanto, y ese rótulo se quita antes: si
   // no, el rótulo grande del primero se montaba encima de él)
@@ -654,8 +657,32 @@ export class PelotaMatch {
   }
   sigHl() {
     const h = this.hlCola?.shift();
-    if (!h) { const e = this.hlFin; this.hlCola = null; this.hlFin = null; this.hlEl?.remove(); this.hlEl = null; if (e) this.endPanel(e); return; }
+    if (!h) { const e = this.hlFin; this.hlCola = null; this.hlFin = null; this.hlEl?.remove(); this.hlEl = null; if (this.cerePend) { this.ceremonia(); return; } if (e) this.endPanel(e); return; }
     this.startReplay(h.F, { n: this.hlCola.length + 1, h });
+  }
+  // la entrega de la txapela al acabar la final (pelota/ceremonia.js): el podio en la cancha, delante del frontis; los
+  // que ganan, en el 1 con la txapela y la copa; los otros, en el 2. Al tocar «Continuar», el panel del final
+  async ceremonia() {
+    const e = this.cerePend; this.cerePend = null; if (!e || !this.active || this.cere) return;
+    const g = this.game, gana = e.win ? 'you' : 'rival', pierde = e.win ? 'rival' : 'you';
+    const lado = (sd) => { const M = this.pairs ? this.mateObjs?.[sd === 'you' ? 'youMate' : 'rivalMate'] : null;
+      const L = [{ ...this.o[sd], nombre: String(this.names[sd] || '').replace(/\s*\([^)]*\)/g, '').split(',')[0].trim() }];
+      if (M?.obj) L.push({ obj: M.obj, animate: M.animate, rig: M.rig, nombre: (M.name || '').split(/[,(]/)[0].trim() });
+      return L; };
+    this.hud.closePanel(); this.hud.controls(false); this.hud.tip('');
+    try {
+      const { Ceremonia } = await import('./ceremonia.js');
+      if (!this.active) return;
+      const C = this.o.camp || {}, sc = g.score || { you: 0, rival: 0 };
+      this.hud.root.classList.add('cere'); this.cereHecha = true;
+      this.cere = new Ceremonia({ T: this.T, grp: this.court.group, cam: this.cam, root: this.hud.root, audio: this.audio, lang: this.lang,
+        gana: lado(gana), pierde: lado(pierde), color: this.cols?.[gana] || 'azul', titulo: C.titulo || (this.o.comp || '').replace(/\s*·\s*(Final|Finala)\s*$/i, ''), donde: C.donde || this.o.venue || '',
+        marcador: `${Math.max(sc.you, sc.rival)}–${Math.min(sc.you, sc.rival)}`, ligero: !!this.o.ligero,
+        // (al posarse la txapela: la grada en pie y los comentaristas, «¡Txapela, Edurne! ¿Cómo se vive esto?»)
+        onGrito: () => { this.o.onEvent?.({ type: 'ceremonia', dur: 7, color: gana }); this.decir(this.com?.dialogo?.('txapela') || this.com?.frase?.('m-txapela-e'), 300); },
+        onFin: () => { this.cere = null; this.hud.root.classList.remove('cere'); this.camInit = false; if (this.active) this.endPanel(e); } });
+      this.o.onEvent?.({ type: 'ceremonia', dur: 5 });
+    } catch (err) { console.warn('ceremonia', err); this.cere = null; this.hud.root.classList.remove('cere'); if (this.active) this.endPanel(e); }
   }
   stepReplay(dt) {
     const R = this.replay, C = this.court, T = this.T, grp = C.group;
@@ -892,7 +919,7 @@ export class PelotaMatch {
     // destroy, que se lleva las rachas)
     const remonta = !!e.win && (this.rachas?.peor?.you ?? 0) <= -3;
     this.destroy();
-    this.o.onEnd?.({ win: e.win, score: e.score, best: e.best, mode: this.game.mode, level: this.level, reto: e.reto || null, remonta });
+    this.o.onEnd?.({ win: e.win, score: e.score, best: e.best, mode: this.game.mode, level: this.level, reto: e.reto || null, remonta, ceremonia: !!this.cereHecha });
   }
 
   // ------------------------------------------------------------ entrada
@@ -1162,6 +1189,7 @@ export class PelotaMatch {
     if (!this.active) return false;
     dt = Math.min(dt, 0.05); this.t += dt;
     this.vigia(dt);
+    if (this.cere) { this.cere.update(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }   // (la entrega de la txapela: ni juego ni cámara del partido)
     if (this.replay) { if (this.fp?.on) this.camaraFP(dt, this.court.group, this.court); this.stepReplay(dt); this.hud.tick(dt); this.court.tick(dt); return this.active; }
     this.chapa?.update(dt);   // (la chapa del sorteo)
     if (this.repAt && this.t >= this.repAt && !this.paused && !this.hud.panelEl) { this.repAt = 0; this.startReplay(); if (this.replay) return this.active; }
@@ -1873,7 +1901,7 @@ export class PelotaMatch {
     this.hud.vista(this.conCamara, this.vistaFP);
   }
   destroy() {
-    this.finalFin?.(); this.dianaQuita();
+    this.finalFin?.(); this.dianaQuita(); this.cere?.dispose(); this.cere = null; this.hud?.root?.classList.remove('cere');
     if (!this.active) return;
     this.active = false; setFeel(null); this.audio.stop(); this.voz?.calla(); this.cuerpo?.stop(); this.cuerpo = null; this.flyAbort?.(); this.saltaOff?.(); this.entra = null; this.endReplay(); this.tossOff?.(); this.court.setCuatro?.(false);
     removeEventListener('keydown', this.onKey, true); removeEventListener('keyup', this.onKey, true); removeEventListener('blur', this.onBlur); removeEventListener('pointerup', this.onPtrEnd, true); removeEventListener('pointercancel', this.onPtrEnd, true); removeEventListener('touchend', this.onTouchEnd, true); removeEventListener('touchcancel', this.onTouchEnd, true); document.removeEventListener('visibilitychange', this.onHide);

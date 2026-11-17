@@ -171,10 +171,10 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
    fucsia arriba, título en mayúsculas, el botón principal con el degradado fucsia y morado y letra blanca, los demás con
    borde lila, y la opción elegida en morado. Los botones del partido no cambian: ya son los finos de los juegos de fútbol */
 .fb-card{position:relative;border:1px solid rgba(255,255,255,.08);background:radial-gradient(80% 60% at 100% 0%,rgba(255,43,214,.2),transparent 60%),linear-gradient(170deg,#31106b 0%,#12052a 78%);border-radius:10px;}
-.fb-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 24px rgba(255,43,214,.45);pointer-events:none;z-index:1}
+.fb-card::before{content:'';position:absolute;left:16px;right:0;top:0;height:3px;background:var(--cta,linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0));box-shadow:0 0 24px rgba(255,43,214,.45);pointer-events:none;z-index:1}
 .fb-card h2{text-transform:uppercase;text-shadow:0 3px 0 rgba(7,2,15,.5)}
 .fb-card .fb-kick{font-family:var(--f-cond,'MZ Texto'),sans-serif;font-weight:800;letter-spacing:.1em}
-.fb-go{border-radius:999px;color:#fff;text-transform:uppercase;letter-spacing:.04em;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}
+.fb-go{border-radius:999px;color:#fff;text-transform:uppercase;letter-spacing:.04em;background:var(--cta,linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}
 .fb-go:active{transform:translateY(2px)}
 .fb-alt,.fb-card .fb-alt{border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.08);font-family:var(--f-cond,'MZ Texto'),sans-serif;text-transform:uppercase;letter-spacing:.04em;font-weight:800}
 .fb-chip{border-radius:4px;border:1px solid rgba(255,255,255,.08)}
@@ -183,7 +183,7 @@ const CSS = `.fb-tac{display:grid;grid-template-columns:minmax(120px,190px) 1fr;
    final es el cansancio del partido, que ya no vuelve); en naranja cuando le queda poca. Con su tarjeta y una cruz si
    está lesionado */
 .fb-me{display:flex;align-items:center;gap:8px;padding:2px 8px 2px 2px;border-radius:4px;background:rgba(14,8,30,.74);border:1px solid rgba(255,255,255,.08);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap}
-.fb-me>b{flex:none;width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));font:400 var(--fs-sm)/1 'MZ Display','MZ Texto',sans-serif;letter-spacing:0}
+.fb-me>b{flex:none;width:24px;height:24px;border-radius:3px;display:grid;place-items:center;background:var(--cta,linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0));font:400 var(--fs-sm)/1 'MZ Display','MZ Texto',sans-serif;letter-spacing:0}
 .fb-me-e{position:relative;flex:1 1 auto;min-width:32px;height:6px;border-radius:3px;background:rgba(255,255,255,.14);overflow:hidden}
 .fb-me-e i{position:absolute;inset:0;border-radius:3px;background:linear-gradient(90deg,#c9b2ff,#efe8ff);transform-origin:left}
 .fb-me-e s{position:absolute;top:0;bottom:0;right:0;width:0;background:repeating-linear-gradient(-45deg,rgba(255,255,255,.24) 0 2px,transparent 2px 5px)}

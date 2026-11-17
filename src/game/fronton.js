@@ -619,7 +619,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         else { const m = new THREE.Mesh(new THREE.CapsuleGeometry(0.24, 1.1, 4, 8), new THREE.MeshStandardMaterial({ color: model === 'pelotari_rojo' ? '#c0392b' : '#f2f2f2' })); m.position.y = 0.8; obj.add(m); }
         const st = { v: null }, fl = {}; if (r) armSwing(r.char, () => st.v, { windOnly: true });
         const flag = (k, on, fn) => { if (on && !fl[k]) { fl[k] = true; fn(); } else if (!on) fl[k] = false; };
-        return { obj, name, stats: stats || pelotariStats(name, lv),
+        return { obj, name, rig: r, stats: stats || pelotariStats(name, lv),
           animate: (o, s2, dt = 1 / 60) => { st.v = s2; if (r) { r.char.back = s2.back; r.char.lado = s2.lado; r.update(dt, s2.speed, true, 0); flag('swing', s2.swing >= 0, () => r.doAct('hit', 0.5, s2.golpe)); flag('won', s2.won, () => r.doCheer()); flag('lost', s2.lost, () => r.doAct('sad')); flag('saluda', s2.saluda, () => r.doWave()); } },
           dispose() { obj.parent?.remove(obj); if (r) { r.char.post = null; r.dispose(); } else obj.traverse(c => { c.geometry?.dispose(); c.material?.dispose?.(); }); } };
       };
@@ -641,8 +641,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     const rStats = rivalStats || pelotariStats(rivName, levelTier(level)); rStatsKeep = rStats;
     try { match = G.pelotaMatch = new PelotaMatch({
       THREE, court: fronton.court, camera: G.camera, lang: isEU() ? 'eu' : 'es', mode, target, tBase, level, fixedLevel, rivalStats: rStats,
-      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou },   // (sombra: la redonda de los móviles, que en primera persona se esconde)
-      rival: { obj: rival.obj, name: rivName, animate: animRival },
+      you: { obj: P.obj, sombra: P.blob, name: tuNombre, animate: animYou, rig },   // (rig: su esqueleto, para la entrega de la txapela; pelota/ceremonia.js)   // (sombra: la redonda de los móviles, que en primera persona se esconde)
+      rival: { obj: rival.obj, name: rivName, animate: animRival, rig: red },
       onEnd: (r) => done(r), onExit: (r) => done(r),
       // (el sonido del juego, ya desbloqueado con el primer toque: en el iPhone, uno nuevo creado sin tocar la pantalla
       // empezaba callado y no se oían la chapa del sorteo ni los aplausos de la presentación hasta tocar)
@@ -663,6 +663,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       youBonus, rivalBonus,   // (la presentación: qué se juega y la media de cada uno)
       caras: { you: avatarPortrait(profile().avatar), fig: (name, side) => pelotariFig(name, side, 'pfx-fig') },   // (las caras del panel: tu retrato y la figura de cada pelotari)
       onEvent: (e) => { if (e.type === 'entrada' && seated) { seated.cheer(true, null, 3.2); cheerT = 3.2; }   // (la grada, al salir los pelotaris)
+        if (e.type === 'ceremonia' && seated) { seated.cheer(true, e.color ? colors[e.color] || null : null, e.dur || 6); cheerT = e.dur || 6; }   // (la entrega de la txapela: todos en pie)
         if (e.type === 'call' && e.score) { const [a, b] = match?.labels?.() || [youName, rivName]; marca(a, b, e.score.you, e.score.rival); } if (e.type === 'call' && seated) { cheerT = e.final ? 4.6 : 1.6; seated.cheer(true, colors[e.winner] || null, cheerT); }
         if (e.type === 'call') senalaJuez(jueces, e.call, match?.game?.ball?.p); },
     }); } catch (e) { console.warn('frontón', e); apunta('frontón', e); done({ win: false, error: true }); return; }   // (si no se monta, de vuelta al pueblo)
@@ -722,7 +723,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
         safe(() => { G.follow.cinematic = null; G.follow.snap(P); });
         // (la colección de pelotaris: el rival queda en su pueblo en cuanto se juega contra él; el resultado, si se acabó)
         safe(() => { if (mode === 'match' && (match?.met || match?.game?.phase !== 'intro') && !r.later && !r.error) { const tw = rivalTown || { id: G.def?.id, name: (G.def?.name || '').split(' /')[0] }; meetPelotari(tw, { name: rivName, stats: rStatsKeep }, r.quit ? null : !!r.win); } });
-        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null, remonta: !!r.remonta });
+        res({ win: !!r.win, you: r.score?.you ?? 0, cpu: r.score?.rival ?? 0, best: r.best ?? 0, quit: !!r.quit, later: !!r.later, error: !!r.error, color: colors.you, reto: r.reto || null, remonta: !!r.remonta, ceremonia: !!r.ceremonia });
       }
     }
   });

@@ -111,7 +111,7 @@ const CSS = `
 .pel-side b{font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-lg);font-weight:400;line-height:1;min-width:1em;text-align:center}
 .pel-side span{flex:1;min-width:0;font:800 var(--fs-sm)/1 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.04em;text-transform:uppercase;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pel-side[data-side=rival] span{text-align:right}
-.pel-side.pel-red .ps-cab{background:linear-gradient(180deg,#f22c84,#c01a6c)}.pel-side.pel-blue .ps-cab{background:linear-gradient(180deg,#5546f2,#3b2bc4)}
+.pel-side.pel-red .ps-cab{background:linear-gradient(180deg,#d81a72,#a8125c)}.pel-side.pel-blue .ps-cab{background:linear-gradient(180deg,#5546f2,#3b2bc4)}
 /* (delante de la barra, un rayo del color de la barra, para que se sepa que es la energía: en el borde de fuera de cada
    lado, como en espejo, donde empieza a llenarse) */
 .ps-barras{display:flex;align-items:center;gap:8px;padding:10px}.ps-barras:empty{display:none}.pel-side[data-side=rival] .ps-barras{flex-direction:row-reverse}
@@ -147,11 +147,11 @@ const CSS = `
 /* (el aviso del tanto, con una raya arriba del color de quien lo gana y, si toca, la racha: tantos seguidos, iguala,
    remontada) */
 .pel-call.c-azul{box-shadow:inset 0 3px 0 #6b5bff,0 14px 40px rgba(0,0,0,.4)}.pel-call.c-rojo{box-shadow:inset 0 3px 0 #ff2e88,0 14px 40px rgba(0,0,0,.4)}
-.pel-racha{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin-top:var(--r-pp,12px);padding:4px 14px;border-radius:999px;background:var(--rc,linear-gradient(100deg,#ff2bd6,#7b2ff7));font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fff;box-shadow:0 0 14px rgba(255,122,200,.45);animation:pelRacha .5s .15s cubic-bezier(.2,1.6,.4,1) both}
+.pel-racha{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;margin-top:var(--r-pp,12px);padding:4px 14px;border-radius:999px;background:var(--rc,linear-gradient(100deg,#d0189f,#6a2ff0));font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Texto'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#fff;box-shadow:0 0 14px rgba(255,122,200,.45);animation:pelRacha .5s .15s cubic-bezier(.2,1.6,.4,1) both}
 .pel-racha svg{width:16px;height:16px;flex:none;color:#ffd166}
 .pel-call.c-azul .pel-racha{--rc:linear-gradient(100deg,#6b5bff,#3b2bc4)}.pel-call.c-rojo .pel-racha{--rc:linear-gradient(100deg,#ff2e88,#c01a6c)}
 @keyframes pelRacha{from{opacity:0;transform:translateY(8px) scale(.8)}}
-.pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7));border-color:#ffc2ec;color:#fff;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
+.pel-root.final .pel-call{background:var(--cta,linear-gradient(100deg,#d0189f,#6a2ff0));border-color:#ffc2ec;color:#fff;box-shadow:0 14px 40px rgba(0,0,0,.45);animation:pelFinal .6s cubic-bezier(.2,1.6,.4,1)}
 .pel-root.final .pel-call :is(.pel-kantari,p){color:#fff}
 @keyframes pelFinal{0%{transform:translateX(-50%) scale(.5)}100%{transform:translateX(-50%) scale(1)}}
 .pel-call h3{margin:0;font-family:var(--pel-display,'MZ Display','MZ Texto',sans-serif);font-size:var(--fs-hero);line-height:1;letter-spacing:0}
@@ -243,7 +243,7 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-levels button{flex:1;min-width:90px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff;padding:8px 8px;font:inherit;font-weight:900;cursor:pointer}
 .pel-dur button small{font:inherit;font-weight:700;opacity:.7;margin-left:4px}
 .pel-levels button[aria-pressed=true]{background:linear-gradient(180deg,#8338ec,#5e22c4);border-color:#c9a6ff;color:#fff;box-shadow:none}
-.pel-go{border:0;border-radius:999px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#ff2bd6,#c21cff 55%,#7b2ff7));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
+.pel-go{border:0;border-radius:999px;padding:12px 24px;font:400 var(--fs-xl)/1 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;text-transform:uppercase;letter-spacing:.04em;min-height:48px;cursor:pointer;color:#fff;background:var(--cta,linear-gradient(100deg,#d0189f,#a51ee0 55%,#6a2ff0));box-shadow:0 0 18px rgba(255,43,214,.45);text-shadow:0 2px 0 rgba(74,10,94,.5)}.pel-go:active{transform:translateY(2px);box-shadow:0 2px 0 #8a1c8f}
 .pel-go.alt{font:800 var(--fs-md)/1.15 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.04em;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.08);color:#fff;box-shadow:none;text-shadow:none}
 .pel-root.calling .pel-tip,.pel-root.calling .pel-q{opacity:0}
 .pel-root.paneled .pel-exit,.pel-root.paneled .pel-q,.pel-root.paneled .pel-call,.pel-root.paneled .pel-tip{visibility:hidden}
@@ -470,7 +470,7 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-call .pel-kantari{font-style:italic}
 .pel-call.c-azul{--pc:#4b5bff}.pel-call.c-rojo{--pc:#ff2e88}
 .pel-root.final .pel-call{animation:none;background:none!important}
-.pel-root.final .pel-call::before{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7))}.pel-root.final .pel-call{--pc:#ffd36a}
+.pel-root.final .pel-call::before{background:var(--cta,linear-gradient(100deg,#d0189f,#6a2ff0))}.pel-root.final .pel-call{--pc:#ffd36a}
 .pel-call .pel-racha{border-radius:2px;animation:none}
 .pel-call.on>.pel-racha{transform:skewX(-12deg)}.pel-call>.pel-racha{transform:skewX(-12deg) translateX(-22px)}
 /* (el nombre del golpe, arriba a la derecha: la misma franja, más pequeña, que entra desde la derecha) */
