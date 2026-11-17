@@ -751,6 +751,7 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     lo que sigue a cada pata es lo pegado a ella y, abajo, más ancho, para la pezuña; y los giros de las patas en las
     animaciones, que son de la oveja de antes, de patas largas, van al 55 % (la caña, al 39 %). Comprobado de lado en el
     paso, el galope y comiendo, en la foto de familia del laboratorio y en el esquileo, sin errores.
+- **Boceto del Bobo de Muskilda** (17 de noviembre de 2026, `entrega/bocetos/bobo-muskilda.jpg`, Higgsfield): arlequín verde y rojo, máscara de dos caras y castañuelas, según las fuentes de `entrega/voces-ochagavia-pendientes.md`. El Zarratrako y los danzantes, sin boceto hasta tener fotos reales.
 - **Inventario global** (17 de noviembre de 2026, `entrega/inventario-global.md`): todo lo pendiente por partes (pelota, voces, personajes, transportes, mapa, pueblos y tráiler), con lo que depende de una decisión del autor. Se rehace cuando cambie mucho.
 - **Voces del tráiler** (`entrega/trailer/`): seis muestras el 16 de noviembre y ocho más el 17 (`voces-muestra-2`), todas gratis de la biblioteca de ElevenLabs. Ninguna elegida todavía.
 - **Frases con cuenta de Otsagabia, para escuchar** (17 de noviembre de 2026; `entrega/voces-cuentas/`): 26 grabaciones de

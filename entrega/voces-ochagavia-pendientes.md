@@ -71,8 +71,18 @@ Los vecinos normales de Otsagabia ya son de Meshy. Los que llevan traje de leyen
 
 | Personaje | Boceto |
 |---|---|
-| La Lamia | Hecho, falta el visto bueno |
-| El Basajaun | Hecho, falta el visto bueno |
-| El Bobo de Muskilda | Falta, con referencias reales de la danza de Muskilda |
+| La Lamia | Aprobada y ya en el juego con su modelo de Meshy (17 de noviembre) |
+| El Basajaun | Aprobado y ya en el juego con su modelo de Meshy, con un pie de persona y una pezuña |
+| El Bobo de Muskilda | Boceto hecho, falta el visto bueno: `entrega/bocetos/bobo-muskilda.jpg` |
 | El Zarratrako | Falta, con referencias reales del carnaval de Otsagabia |
 | Los ocho danzantes de Muskilda | Falta |
+
+## Referencias reales del Bobo y del Zarratrako
+
+Buscadas el 17 de noviembre de 2026.
+
+- El Bobo: arlequín vestido de verde y rojo, con máscara de dos caras, blanca delante y negra detrás, y castañuelas en la danza de procesión. Dirige a los ocho danzantes de Muskilda, que bailan cuatro danzas de palos, una de pañuelos, una jota y la de procesión. Su gorro ha cambiado con los años. Está documentado desde 1695. El boceto sigue esto; la faja roja y las alpargatas atadas son suposición.
+- Los danzantes: van de blanco. No he encontrado una descripción completa y fiable del resto del traje. Falta una foto buena antes de hacer el boceto.
+- El Zarratrako: las fuentes solo dicen que los zarratrakos van de casa en casa pidiendo comida al grito de «tia-tia, txula-txula!» y que antiguamente unos iban de oso y otros de oveja. No describen el traje de hoy. Sin una foto real no hago el boceto: sería inventado.
+
+Fuentes: [Danzas de Otsagabia, Dantzatlas](https://www.dantzatlas.navarchivo.com/es/node/1482), [Muskilda y las danzas de Ochagavía, Labayru](https://www.labayru.eus/en/basque-ethnography-at-a-glance/muskilda-and-the-dances-of-ochagavia-navarre/), [Danzantes de Ochagavía, Noticias de Navarra](https://www.noticiasdenavarra.com/navarra/fiestas/2022/09/08/danzantes-ochagavia-5989183.html), [Cultura y tradiciones, ochagavia.com](https://www.ochagavia.com/el-pueblo/cultura-y-tradiciones/), [Archivo del patrimonio inmaterial de Navarra](https://navarchivo.com/en/node/181973).
