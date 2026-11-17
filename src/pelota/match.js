@@ -1720,9 +1720,11 @@ export class PelotaMatch {
     const cz = you.z + behind, cx = behind > 0.5 ? you.x * 0.6 + rv.x * 0.4 : you.x, up = Math.min(2.4, behind * 0.16) + (g.pairs ? 0.8 : 0);
     // cámara de retransmisión: alta y por detrás, como en la tele (se ve la cancha entera con sus rayas, los dos pelotaris
     // y el frontis), y sigue al jugador con suavidad. En el frontón cubierto no pasa del rebote: si tú estás muy atrás,
-    // sube en vez de retroceder
-    const lp = portrait ? [cx * 0.3 + 0.6, 7.4 + up, cz + 10.5 + behind * 0.12] : [cx * 0.32 + 1.1, 6.0 + up * 0.7, cz + 8.6 + behind * 0.12];
-    const ll = portrait ? [cx * 0.18, 1.4, cz - 9] : [cx * 0.2, 1.5, cz - 11];
+    // sube en vez de retroceder. Algo más cerca y más baja que antes (en horizontal, a 7,6 m y 5,2 de alto, antes a 8,6 y
+    // 6; en vertical, a 9,4 y 6,6, antes a 10,5 y 7,4): el autor, 17 de noviembre de 2026, veía al pelotari muy pequeño
+    // frente al frontón. Sale una quinta parte más grande y los pies, a la misma altura de la pantalla
+    const lp = portrait ? [cx * 0.3 + 0.6, 6.6 + up, cz + 9.4 + behind * 0.12] : [cx * 0.32 + 1.1, 5.2 + up * 0.7, cz + 7.6 + behind * 0.12];
+    const ll = portrait ? [cx * 0.18, 1.2, cz - 9] : [cx * 0.2, 1.2, cz - 11];
     // la pelota larga: si va hacia el rebote, por detrás de ti, la cámara retrocede y sube hasta verla llegar (y al
     // pelotari que va a por ella); antes se quedaba detrás de ti y la pelota se perdía por arriba
     if (g.phase === 'rally' && !this.tour) {

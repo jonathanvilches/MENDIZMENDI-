@@ -62,14 +62,15 @@ function paintName(c, text, cx, cy, maxW, size, color = '#f6f1e4') {
 const rgb = (s) => [1, 3, 5].map(i => parseInt(s.slice(i, i + 2), 16));
 const tone = (c, k) => `rgb(${c.map(v => Math.max(0, Math.min(255, Math.round(v * k)))).join(',')})`;
 // sillería: hiladas de unos 45 cm con sillares de largo distinto, cada uno con su tono, llagas de mortero y una sombra
-// fina bajo cada piedra (mW × mH: metros que cubre el lienzo)
+// fina bajo cada piedra (mW × mH: metros que cubre el lienzo). A la medida de verdad: hiladas de 38 a 50 cm y sillares de
+// 70 cm a 1,3 m (antes, de 50-64 cm y hasta 1,6 m: parecían ladrillos gigantes y el pelotari, a su lado, un muñeco)
 export function ashlar(c, w, h, mW, mH, base) {
   const B = rgb(base), px = w / mW, py = h / mH;
   c.fillStyle = tone(B, 1.12); c.fillRect(0, 0, w, h);
   for (let y = 0, row = 0; y < mH; row++) {
-    const rh = 0.5 + Math.random() * 0.14;
-    for (let x = row % 2 ? -0.6 : 0; x < mW;) {
-      const bw = 0.8 + Math.random() * 0.8, k = 0.9 + Math.random() * 0.17, X = x * px + 1.5, Y = h - (y + rh) * py + 1.5, BW = bw * px - 3, BH = rh * py - 3;
+    const rh = 0.38 + Math.random() * 0.12;
+    for (let x = row % 2 ? -0.45 : 0; x < mW;) {
+      const bw = 0.7 + Math.random() * 0.6, k = 0.9 + Math.random() * 0.17, X = x * px + 1.5, Y = h - (y + rh) * py + 1.5, BW = bw * px - 3, BH = rh * py - 3;
       c.fillStyle = tone(B, k); c.fillRect(X, Y, BW, BH);
       // vetas y manchas de la piedra dentro de cada sillar
       for (let i = 0; i < 5; i++) { c.fillStyle = Math.random() < 0.5 ? 'rgba(0,0,0,.06)' : 'rgba(255,245,225,.07)'; c.beginPath(); c.ellipse(X + Math.random() * BW, Y + Math.random() * BH, BW * (0.08 + Math.random() * 0.2), BH * (0.08 + Math.random() * 0.2), 0, 0, Math.PI * 2); c.fill(); }
@@ -317,8 +318,10 @@ export class PelotaCourt {
       c.fillStyle = th.wall; c.fillRect(0, 0, w, h); grain(c, w, h, 12000, 0.06); grain(c, w, h, 3000, 0.05, false); weather(c, w, h, C.LEFT_H, EXT, DRY);
     });   // (la raya de arriba, la que marca lo que es malo, va aparte, de verdad: abajo, junto a la pared)
     // números de los cuadros, como en los frontones de verdad: en la pared izquierda, una raya blanca vertical
-    // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada)
-    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 480, MW = 0.9, MH = MW * CH / CW;
+    // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada). A la
+    // medida de los de verdad (el autor, 17 de noviembre de 2026: con los números grandes el pelotari se veía pequeño
+    // frente al frontón): el disco, de unos 40 cm, con el centro a 2,5 m del suelo, y la raya de 10 cm
+    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 640, MW = 0.55, MH = MW * CH / CW;
     const markTex = canvasTex(T, CW * nK, CH, (c, w, h) => {
       for (let k = 1; k <= nK; k++) {
         const cx = (k - 0.5) * CW, R = CW * 0.4, cy = R + 8;
@@ -347,8 +350,8 @@ export class PelotaCourt {
     // y encima del 4 y del 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega)
     for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
       const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = th.line; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
-      const lab = new T.Mesh(new T.PlaneGeometry(1.7, 0.51), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      lab.position.set(-W / 2 + 0.014, MH + 0.42, z); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
+      const lab = new T.Mesh(new T.PlaneGeometry(1.1, 0.33), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      lab.position.set(-W / 2 + 0.014, MH + 0.3, z); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
     }
     // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
     if (opts.wallName || opts.shield) {
@@ -531,7 +534,7 @@ export class PelotaCourt {
       this.group.add(m); this.materials?.push(mat);
       // (el cartel: del ancho de los números de los cuadros y por debajo de ellos, con la punta a 70 cm del suelo; la
       // pintura, algo viva, para que el amarillo se lea de lejos)
-      const PW = 0.9, PH = PW * 384 / 224, PUNTA = 0.7, tex = canvasTex(T, 224, 384, (c, w, h) => pintaPin45(c, w, h, 1.3));
+      const PW = 0.6, PH = PW * 384 / 224, PUNTA = 0.7, tex = canvasTex(T, 224, 384, (c, w, h) => pintaPin45(c, w, h, 1.3));
       const pm = new T.MeshStandardMaterial({ map: tex, emissiveMap: tex, emissive: '#474747', alphaTest: 0.5, roughness: 0.7, metalness: 0, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 });
       const pin = this.cuatroPin = new T.Mesh(new T.PlaneGeometry(PW, PH), pm); pin.name = 'cartel-4-y-medio';
       pin.rotation.y = Math.PI / 2; pin.position.set(-C.W / 2 + 0.016, PUNTA - PH * 14 / 192 + PH / 2, CUATRO.LIMITE); pin.receiveShadow = true;
