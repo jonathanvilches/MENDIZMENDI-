@@ -6,6 +6,7 @@
 // se desprenden piedras y polvo sin parar. Las texturas de la roca y del césped, de Higgsfield (src/assets/isla). Se hace la
 // primera vez que se elige la comarca (mapa3d.js).
 import * as THREE from 'three';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ruidoV, S, CX, CY } from './mapa3dFormas.js';
 import { TONO_ORTO, NUBES, ORTO_FUERA } from './mapa3dSombreadores.js';
 // (la panza, desde el 15 de noviembre de 2026: tierra parda con piedras y terrones, raíces y algo de musgo, como la
@@ -63,7 +64,7 @@ void main() { vUv = uv; vCol = color; vec3 p0 = position;
   vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
 }`;
-const ROCA_FS = `uniform sampler2D uMap, uNor, uMusgoT, uMusgoN; uniform vec3 uLuz, uCieloC, uSueloC, uTinte, uMusgoC; uniform float uSol, uAmb, uNorK, uVar, uNiebla, uMusgo, uEscT, uMusgoTK;
+const ROCA_FS = `uniform sampler2D uMap, uNor, uMusgoT, uMusgoN; uniform vec3 uLuz, uCieloC, uSueloC, uTinte, uMusgoC; uniform float uSol, uAmb, uNorK, uVar, uNiebla, uMusgo, uEscT, uMusgoTK, uHumus;
 varying vec2 vUv; varying vec3 vCol, vW, vN;
 #include <fog_pars_fragment>
 float h1(float p) { return fract(sin(p * 127.1) * 43758.5453); }
@@ -106,9 +107,17 @@ void main() {
     if (uMusgoTK > 0.0) { vec2 mu = vUv * 2.6, mu2 = mu * 0.57 + vec2(0.31, 0.77); float mv = smoothstep(0.35, 0.65, n1(x * 0.7 + 1.3) * 0.5 + n1(dep * 0.9 + 4.0) * 0.5);
       mt = mix(texture2D(uMusgoT, mu).rgb, texture2D(uMusgoT, mu2).rgb, mv);
       tn = mix(tn, mix(texture2D(uMusgoN, mu).xyz, texture2D(uMusgoN, mu2).xyz, mv) * 2.0 - 1.0, m * uMusgoTK); } }
+  // (la tierra de arriba, desde el 17 de noviembre de 2026: bajo la hierba, una capa de tierra negra con su grano, de
+  // grosor desigual, antes de la roca; uHumus, lo que baja de media, en unidades del mapa. Así se lee que la isla es un
+  // pedazo de suelo arrancado y no una roca con césped encima)
+  float hm = 0.0;
+  if (uHumus > 0.0) { float x = vUv.x * 2.4, dep = vUv.y * 2.4;
+    float lim = uHumus * (0.5 + 0.65 * n1(x * 1.3 + 11.0) + 0.4 * pow(n1(x * 5.1 + 4.0), 2.0) + 0.25 * pow(n1(x * 17.0 + 1.0), 3.0));
+    hm = 1.0 - smoothstep(lim * 0.8, lim * 1.05, dep); tn.xy *= 1.0 + hm * 0.6; }
   tn.xy *= uNorK; n = relieve(n, vW, tuv, tn);
   float lt = dot(alb, vec3(0.3, 0.59, 0.11));
   alb *= vCol * uTinte;
+  alb = mix(alb, alb * vec3(0.42, 0.34, 0.27) + vec3(0.012, 0.008, 0.004), hm);
   // (el musgo, más oscuro que el césped del labio, y más en sus huecos)
   if (uMusgo > 0.0) { vec3 mc = mix(uMusgoC * (0.55 + 1.6 * lt), mt * (0.5 + 0.35 * smoothstep(0.0, 0.35, dot(mt, vec3(0.3, 0.59, 0.11)))), uMusgoTK); alb = mix(alb * (1.0 - 0.35 * som), mc, m * 0.96); }
   vec3 luz = mix(uSueloC, uCieloC, n.y * 0.5 + 0.5) * uAmb + vec3(1.0, 0.95, 0.86) * max(0.0, dot(n, uLuz)) * uSol;
@@ -122,7 +131,7 @@ void main() {
 function materialRoca(map, nor, { tinte = '#ffffff', sol = 1.1, amb = 0.75, cielo = '#d4e2f2', suelo = '#8a7660', norK = 1, fog = true, extra = {} } = {}) {
   return new THREE.ShaderMaterial({ vertexColors: true, side: THREE.DoubleSide, fog, ...extra,
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uMap: { value: null }, uNor: { value: null }, uLuz: { value: LUZ.clone() }, uCieloC: { value: C(cielo) }, uSueloC: { value: C(suelo) },
-      uTinte: { value: C(tinte) }, uSol: { value: sol }, uAmb: { value: amb }, uNorK: { value: norK }, uVar: { value: 0 }, uNiebla: { value: 1 }, uMusgo: { value: 0 }, uMusgoC: { value: C('#4a8a2c') }, uMusgoT: { value: null }, uMusgoN: { value: null }, uMusgoTK: { value: 0 }, uEscT: { value: 1 }, uTopeK: { value: 0 }, uTopeI: { value: 0 }, uTopeD: { value: 1 } }]),
+      uTinte: { value: C(tinte) }, uSol: { value: sol }, uAmb: { value: amb }, uNorK: { value: norK }, uVar: { value: 0 }, uNiebla: { value: 1 }, uMusgo: { value: 0 }, uHumus: { value: 0 }, uMusgoC: { value: C('#4a8a2c') }, uMusgoT: { value: null }, uMusgoN: { value: null }, uMusgoTK: { value: 0 }, uEscT: { value: 1 }, uTopeK: { value: 0 }, uTopeI: { value: 0 }, uTopeD: { value: 1 } }]),
     vertexShader: ROCA_VS, fragmentShader: ROCA_FS });
 }
 const conTex = (m, map, nor) => { m.uniforms.uMap.value = map; m.uniforms.uNor.value = nor; return m; };
@@ -227,7 +236,8 @@ export function hazIsla({ id, P, hueco = null, grosor, alto, salen = [], entran 
   return { pos, g }; };
   const { pos, g } = anillos(Q, LQ, cx, cz, rMed, dentro), MH = amplia ? anillos(Qh, LQh, cxh, czh, rMedH, dentroH) : { pos, g }, posH = MH.pos, gH = MH.g;
   // (roca cálida, ocre y parda, como la de las islas de referencia)
-  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = Math.min(2.4, Math.max(0.7, D * 0.22)) * (0.4 + 0.6 * (1 - ss0(4, 28, cz))) * 0.22;   // (desde el 16 de noviembre de 2026, casi sin musgo pintado: el autor lo veía «apegado», no 3D; el musgo, en matas que cuelgan del borde) conMusgo(rocaM, tex); mats.push(rocaM);   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
+  const sc0 = Math.min(1.3, Math.max(0.6, rMed / 7));
+  const rocaM = conTex(materialRoca(null, null, { sol: 1.12, amb: 0.84, cielo: '#cfe0ff', suelo: '#7386c4', tinte: '#fff2e2' }), tex.caliza, tex.calizaN); rocaM.uniforms.uVar.value = 1; rocaM.uniforms.uEscT.value = 0.5; rocaM.uniforms.uMusgo.value = 0; rocaM.uniforms.uHumus.value = 0.3 * sc0;   // (desde el 17 de noviembre de 2026, nada de musgo pintado en la roca: el autor lo seguía viendo «apegado», «no es 3D»; el verde que cuelga es de matas y terrones con volumen)   // (desde el 16 de noviembre de 2026, casi sin musgo pintado: el autor lo veía «apegado», no 3D; el musgo, en matas que cuelgan del borde) conMusgo(rocaM, tex); mats.push(rocaM);   // (desde la tercera referencia, 15 de noviembre de 2026, más largo y con la foto de musgo; menos en el sur seco, la Ribera)   // (desde el 15 de noviembre de 2026, el musgo de la panza en manchas cortas bajo el borde: en lenguas largas se juntaba con la hierba de arriba y no se leía dónde acababa la tierra)   // (la sombra, azulada: le llega la luz del lago y del cielo, como en la imagen de referencia; antes, parda)
   const grupo = new THREE.Group(); grupo.name = 'isla-' + id; grupo.visible = false; scene.add(grupo);
   grupo.add(new THREE.Mesh(g, rocaM));
   // (la misma panza, dentro del hueco: mientras la isla sale de él, se ve por la boca delante de las paredes)
@@ -451,11 +461,12 @@ void main() {
   // cuelgan más o menos largas, algunas hasta medio cuerpo de la isla. Cada una con su largo, su grosor y su ritmo; el
   // vértice baja la punta más que la base y la mece con el viento)
   const TCOLG = { value: 0 };   // (el tiempo del viento: TIEMPO se crea más abajo)
-  const colgV = `attribute float aFase, aL; attribute vec2 aN; uniform float uT, uOnda, uSale; varying float vD, vF; varying vec3 vNw;
+  // (aC: hacia dónde se tuerce cada una al bajar, en el plano; desde el 17 de noviembre de 2026 ninguna cuelga recta)
+  const colgV = `attribute float aFase, aL; attribute vec2 aN, aC; uniform float uT, uOnda, uSale; varying float vD, vF; varying vec3 vNw;
 #include <fog_pars_vertex>
 void main() { float d = -position.y; vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
   float sw = sin(uT * 0.85 + aFase * 6.283 + d * 2.3) * 0.6 + sin(uT * 1.6 + aFase * 11.0 + d) * 0.4, d2 = d * d;
-  w.xz += aN * aL * uSale * sin(d * 1.9) + vec2(aN.y, -aN.x) * sw * aL * uOnda * d2 + aN * sw * aL * uOnda * 0.5 * d2;
+  w.xz += aN * aL * uSale * sin(d * 1.9) + vec2(aN.y, -aN.x) * sw * aL * uOnda * d2 + aN * sw * aL * uOnda * 0.5 * d2 + aC * aL * d2 * 0.55;
   vD = d; vF = aFase; vNw = normalize(mat3(modelMatrix * instanceMatrix) * normal);
   vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
 #include <fog_vertex>
@@ -472,35 +483,85 @@ void main() { vec3 n = normalize(vNw); if (!gl_FrontFacing) n = -n;
 }`;
   const colgM = (base, punta, onda, sale) => { const m = new THREE.ShaderMaterial({ side: THREE.DoubleSide, fog: true, vertexShader: colgV, fragmentShader: colgF(base, punta),
     uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uLuz: { value: LUZ.clone() }, uOnda: { value: onda }, uSale: { value: sale } }]) }); m.uniforms.uT = TCOLG; mats.push(m); return m; };
-  // la raíz: un tubo que se afina, de la base (y 0) a la punta (y -1); la mata: briznas planas en estrella, que se afinan
-  const raizG = new THREE.CylinderGeometry(1, 0.12, 1, 5, 9, true); raizG.translate(0, -0.5, 0); geos.push(raizG);
+  // la raíz: un tubo que se afina, de la base (y 0) a la punta (y -1); la raicilla, igual pero de tres caras; la mata:
+  // briznas planas en estrella, que se afinan
+  const raizG = new THREE.CylinderGeometry(1, 0.1, 1, 5, 9, true); raizG.translate(0, -0.5, 0); geos.push(raizG);
+  const peloG = new THREE.CylinderGeometry(1, 0.15, 1, 3, 4, true); peloG.translate(0, -0.5, 0); geos.push(peloG);
   const mataG = (() => { const pos = [], ix = []; const NB = 5, SG = 4;
     for (let b = 0; b < NB; b++) { const a = b / NB * Math.PI, ca = Math.cos(a), sa = Math.sin(a), o = pos.length / 3;
-      for (let k = 0; k <= SG; k++) { const t = k / SG, w = 0.5 * (1 - t) ** 0.8 * (0.7 + 0.3 * ((b * 7) % 3) / 2), ln = 1 - 0.22 * ((b * 5) % 3) / 2;
+      for (let k = 0; k <= SG; k++) { const t = k / SG, w = 0.5 * (1 - 0.62 * t) * (0.7 + 0.3 * ((b * 7) % 3) / 2), ln = 1 - 0.22 * ((b * 5) % 3) / 2;
         pos.push(-w * ca, -t * ln, -w * sa, w * ca, -t * ln, w * sa); }
       for (let k = 0; k < SG; k++) { const v = o + k * 2; ix.push(v, v + 1, v + 2, v + 1, v + 3, v + 2); } }
     const g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g2.setIndex(ix); g2.computeVertexNormals(); geos.push(g2); return g2; })();
-  // (cuántas y dónde: una cada pocos puntos del borde, con su largo; en el borde más alto de la isla, menos)
-  const RAIZ = [], MATA = [];
+  // (cuántas y dónde, desde el 17 de noviembre de 2026: en mechones, no una en cada punto del borde. El autor: «no cuelgan
+  // raíces tampoco con movimiento», «hay que darle muchísimo más realismo», y de lado se veía un peine de palos oscuros
+  // iguales, uno cada cuarto de unidad. Las raíces de verdad salen a grupos donde la tierra se ha desgarrado, con huecos
+  // entre medias: casi todas cortas, unas pocas largas, cada una torcida a su manera, finas y del color de la tierra, con
+  // raicillas alrededor. Las matas de musgo, más claras, donde no hay raíces; y terrones que asoman rotos bajo la hierba)
+  const sc = Math.min(1.3, Math.max(0.6, rMed / 7));
+  const grupoDe = (i) => { const [x, z] = Q[i]; return 0.65 * ruidoV(x * 0.55 + seed % 13, z * 0.55 + 4.4) + 0.35 * ruidoV(x * 1.7 + 8.8, z * 1.7 + seed % 7); };
+  const RAIZ = [], PELO = [], MATA = [], TERRON = [];
   for (let i = 0; i < N; i++) {
-    if (R() < 0.75) RAIZ.push({ k: i, off: -0.04 + R() * 0.06, L: (R() < 0.18 ? 1.4 + R() * 2.4 : 0.35 + R() * 1.0) * Math.min(1.3, Math.max(0.6, rMed / 7)), r: 0.03 + R() * 0.045, f: R() });
-    if (R() < 0.9) MATA.push({ k: i, off: 0.0 + R() * 0.05, L: (0.12 + R() * 0.38) * Math.min(1.2, Math.max(0.6, rMed / 7)), r: 0.07 + R() * 0.1, f: R() });
+    const g0 = grupoDe(i), c = ss0(0.42, 0.7, g0), tan = () => (R() - 0.5) * 0.25;
+    if (R() < 0.03 + c * 1.05) { const largo = R() < 0.08 + c * 0.14;
+      RAIZ.push({ k: i, t: tan(), off: -0.03 + R() * 0.05, L: (largo ? 0.55 + R() * 0.75 : 0.1 + R() ** 2 * 0.45) * sc, r: largo ? 0.014 + R() * 0.01 : 0.008 + R() * 0.008, f: R(), cx: (R() - 0.5) * 1.6, cz: 0.2 + R() * 0.9 }); }
+    if (c > 0.15) for (let n = (R() * 3.2 * c) | 0; n-- > 0;) PELO.push({ k: i, t: tan(), off: -0.02 + R() * 0.04, L: (0.05 + R() * 0.2) * sc, r: 0.005 + R() * 0.004, f: R(), cx: (R() - 0.5) * 2.2, cz: R() * 1.4 });
+    if (R() < 0.08 + 0.42 * ss0(0.32, 0.6, 1 - g0)) MATA.push({ k: i, t: tan(), off: R() * 0.05, L: (0.06 + R() * 0.16) * sc, r: 0.06 + R() * 0.07, f: R(), cx: 0, cz: 0 });
+    if (R() < 0.03 + c * 0.22) TERRON.push({ k: i, t: tan(), off: R() * 0.06, s: (0.07 + R() ** 1.6 * 0.16) * sc, f: R(), baja: R() ** 3, rx: R() * 6.28, ry: R() * 6.28, sx: 0.9 + R() * 0.6, sy: 0.55 + R() * 0.3, sz: 0.8 + R() * 0.5 });
   }
-  const colgantes = (L, g2, m) => { const im = new THREE.InstancedMesh(g2, m, L.length); im.frustumCulled = false; im.raycast = () => {};
-    const aF = new Float32Array(L.length), aLl = new Float32Array(L.length), aNn = new Float32Array(L.length * 2);
-    L.forEach((o, n) => { aF[n] = o.f; aLl[n] = o.L; aNn[n * 2] = NS[o.k][0]; aNn[n * 2 + 1] = NS[o.k][1]; });
+  const colgantes = (L, g2, m) => { const im = new THREE.InstancedMesh(g2, m, Math.max(1, L.length)); im.count = L.length; im.frustumCulled = false; im.raycast = () => {};
+    const aF = new Float32Array(L.length), aLl = new Float32Array(L.length), aNn = new Float32Array(L.length * 2), aCc = new Float32Array(L.length * 2);
+    L.forEach((o, n) => { const [nx, nz] = NS[o.k]; aF[n] = o.f; aLl[n] = o.L; aNn[n * 2] = nx; aNn[n * 2 + 1] = nz; aCc[n * 2] = nx * o.cz - nz * o.cx; aCc[n * 2 + 1] = nz * o.cz + nx * o.cx; });
     im.geometry = g2.clone(); geos.push(im.geometry);
-    im.geometry.setAttribute('aFase', new THREE.InstancedBufferAttribute(aF, 1)); im.geometry.setAttribute('aL', new THREE.InstancedBufferAttribute(aLl, 1)); im.geometry.setAttribute('aN', new THREE.InstancedBufferAttribute(aNn, 2));
+    im.geometry.setAttribute('aFase', new THREE.InstancedBufferAttribute(aF, 1)); im.geometry.setAttribute('aL', new THREE.InstancedBufferAttribute(aLl, 1));
+    im.geometry.setAttribute('aN', new THREE.InstancedBufferAttribute(aNn, 2)); im.geometry.setAttribute('aC', new THREE.InstancedBufferAttribute(aCc, 2));
     canto.add(im); return im; };
-  const raices = colgantes(RAIZ, raizG, colgM('vec3(0.2, 0.14, 0.09)', 'vec3(0.42, 0.33, 0.23)', 0.09, 0.1));
-  const matas = colgantes(MATA, mataG, colgM('vec3(0.16, 0.22, 0.1)', 'vec3(0.38, 0.45, 0.2)', 0.14, 0.16));
-  const m4c = new THREE.Matrix4(), q0 = new THREE.Quaternion(), qy = new THREE.Quaternion(), ejeY = new THREE.Vector3(0, 1, 0), v3c = new THREE.Vector3(), s3c = new THREE.Vector3();
+  const raices = colgantes(RAIZ, raizG, colgM('vec3(0.45, 0.36, 0.26)', 'vec3(0.72, 0.63, 0.5)', 0.09, 0.1));
+  const pelos = colgantes(PELO, peloG, colgM('vec3(0.5, 0.41, 0.3)', 'vec3(0.78, 0.7, 0.57)', 0.14, 0.12));
+  const matas = colgantes(MATA, mataG, colgM('vec3(0.27, 0.38, 0.13)', 'vec3(0.5, 0.62, 0.24)', 0.14, 0.16));
+  // (los terrones: pedazos de tierra con su hierba encima, medio salidos del canto, como si el borde se hubiera roto al
+  // arrancar la isla y no hubiera terminado de caer; bolas de veinte caras deformadas con ruido, sin aristas)
+  const terronG = (() => { const g1 = new THREE.IcosahedronGeometry(1, 2); g1.deleteAttribute('uv'); g1.deleteAttribute('normal'); const g2 = mergeVertices(g1), p2 = g2.attributes.position; g1.dispose();
+    for (let v = 0; v < p2.count; v++) { const x = p2.getX(v), y = p2.getY(v), z = p2.getZ(v), k = 0.62 + 0.6 * ruidoV(x * 1.3 + y * 0.7 + 5.1, z * 1.3 - y * 0.9 + 2.7) + 0.3 * ruidoV(x * 3.7 + 1.7, z * 3.7 + y * 2.9) + 0.12 * ruidoV(x * 9.1 - y * 4.1, z * 9.1 + 3.3);
+      p2.setXYZ(v, x * k, y > 0 ? 0.25 + y * 0.35 * k : y * k * (1.1 + 0.5 * ruidoV(x * 2.1 + 9.0, z * 2.1)), z * k); }
+    g2.computeVertexNormals(); geos.push(g2); return g2; })();
+  const terronM = new THREE.ShaderMaterial({ fog: true, uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { uLuz: { value: LUZ.clone() } }]),
+    vertexShader: `attribute float aFase; varying vec3 vNw, vPw; varying float vF;
+#include <fog_pars_vertex>
+void main() { vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0); vPw = w.xyz; vF = aFase; vNw = normalize(mat3(modelMatrix * instanceMatrix) * normal);
+  vec4 mvPosition = viewMatrix * w; gl_Position = projectionMatrix * mvPosition;
+#include <fog_vertex>
+}`, fragmentShader: `uniform vec3 uLuz; varying vec3 vNw, vPw; varying float vF;
+#include <fog_pars_fragment>
+float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h2(i), h2(i + vec2(1, 0)), f.x), mix(h2(i + vec2(0, 1)), h2(i + vec2(1, 1)), f.x), f.y); }
+void main() { vec3 n = normalize(vNw);
+  float gr = vn(vPw.xz * 9.0 + vPw.y * 7.0) * 0.6 + vn(vPw.xz * 31.0 - vPw.y * 23.0) * 0.4;
+  float mi = vn(vPw.xz * 61.0 + vPw.y * 47.0);
+  vec3 tierra = mix(vec3(0.3, 0.21, 0.14), vec3(0.5, 0.38, 0.26), gr) * (0.7 + 0.45 * mi) * (0.88 + 0.24 * fract(vF * 5.7));
+  vec3 piedra = mix(vec3(0.5, 0.47, 0.41), vec3(0.68, 0.64, 0.57), gr);
+  vec3 c = mix(tierra, piedra, step(0.86, vn(vPw.xz * 17.0 + vPw.y * 9.0 + 3.0)) * 0.75);
+  float hi = smoothstep(0.25, 0.65, n.y + (gr - 0.5) * 0.35);
+  c = mix(c, mix(vec3(0.3, 0.47, 0.12), vec3(0.45, 0.63, 0.19), gr) * (0.85 + 0.3 * mi), hi);
+  float l = 0.55 + 0.6 * max(0.0, dot(n, uLuz)) + 0.12 * n.y; gl_FragColor = vec4(c * l, 1.0);
+#ifdef USE_FOG
+  gl_FragColor.rgb = mix(gl_FragColor.rgb, linearToOutputTexel(vec4(fogColor, 1.0)).rgb, smoothstep(fogNear, fogFar, vFogDepth));
+#endif
+}` }); mats.push(terronM);
+  const terrones = new THREE.InstancedMesh(terronG, terronM, Math.max(1, TERRON.length)); terrones.count = TERRON.length; terrones.frustumCulled = false; terrones.raycast = () => {};
+  terrones.geometry = terronG.clone(); geos.push(terrones.geometry); terrones.geometry.setAttribute('aFase', new THREE.InstancedBufferAttribute(new Float32Array(TERRON.map(o => o.f)), 1)); canto.add(terrones);
+  const m4c = new THREE.Matrix4(), q0 = new THREE.Quaternion(), qy = new THREE.Quaternion(), ejeY = new THREE.Vector3(0, 1, 0), v3c = new THREE.Vector3(), s3c = new THREE.Vector3(), eul = new THREE.Euler();
   function ponColgantes(sy) {
-    const pon = (L, im, bajo, plano) => { L.forEach((o, n) => { const q = Q[o.k], [nx, nz] = NS[o.k], hk = H0[o.k] - KI * (H0[o.k] - RIM[o.k]);
+    const pon = (L, im, bajo, plano) => { L.forEach((o, n) => { const q = Q[o.k], [nx, nz] = NS[o.k], hk = H0[o.k] - KI * (H0[o.k] - RIM[o.k]), tx = -nz * o.t, tz = nx * o.t;
       if (plano) qy.setFromAxisAngle(ejeY, Math.atan2(nx, nz) + o.f * 2.4); else qy.copy(q0);
-      m4c.compose(v3c.set(q[0] + nx * o.off, Math.max(B * sy, hk * sy - bajo), q[1] + nz * o.off), qy, s3c.set(o.r, o.L, o.r)); im.setMatrixAt(n, m4c); });
+      m4c.compose(v3c.set(q[0] + nx * o.off + tx, Math.max(B * sy, hk * sy - bajo), q[1] + nz * o.off + tz), qy, s3c.set(o.r, o.L, o.r)); im.setMatrixAt(n, m4c); });
       im.instanceMatrix.needsUpdate = true; };
-    pon(RAIZ, raices, 0.11, false); pon(MATA, matas, 0.07, true);
+    pon(RAIZ, raices, 0.11, false); pon(PELO, pelos, 0.09, false); pon(MATA, matas, 0.07, true);
+    TERRON.forEach((o, n) => { const q = Q[o.k], [nx, nz] = NS[o.k], hk = H0[o.k] - KI * (H0[o.k] - RIM[o.k]), out = o.off + o.s * o.sx * 0.25;
+      qy.setFromEuler(eul.set((o.rx - 3.14) * 0.06, o.ry, (o.f - 0.5) * 0.25));
+      // (la cara de arriba, con hierba, a ras del canto y algo más abajo si el terrón ya se ha soltado un poco)
+      m4c.compose(v3c.set(q[0] + nx * out - nz * o.t, Math.max(B * sy, hk * sy - 0.03 - o.s * o.sy * 0.55 - o.baja * 0.2 * sc), q[1] + nz * out + nx * o.t), qy, s3c.set(o.s * o.sx, o.s * o.sy, o.s * o.sz)); terrones.setMatrixAt(n, m4c); });
+    terrones.instanceMatrix.needsUpdate = true;
   }
 
   // ---------- el hueco: el molde de la tierra arrancada ----------

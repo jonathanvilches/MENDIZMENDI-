@@ -57,7 +57,7 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 
 | Qué | Estado |
 |---|---|
-| Labio y borde de la isla: tierra en 3D, raíces que cuelgan y se mueven | Hecho el 16 de noviembre; el rediseño completo, orgánico y «roto», sigue pendiente |
+| Labio y borde de la isla: tierra en 3D, raíces que cuelgan y se mueven | El 17 de noviembre: raíces en mechones, terrones rotos, franja de tierra negra y sin musgo pintado. Se puede seguir afinando el labio de hierba |
 | Árboles de la isla sin polígonos, solo frondosidad | Hecho |
 | Integrar mejor el mapa con las maquetas de los pueblos | Pendiente |
 | Terminar las 12 comarcas una a una | Pendiente |

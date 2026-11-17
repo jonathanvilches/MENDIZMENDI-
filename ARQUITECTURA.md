@@ -3119,6 +3119,17 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   sombra y huecos, a un tamaño de pantalla fijo que se funde entre dos escalas. El musgo pintado de la panza baja al 22 %.
   Bajo el filo de la hierba cuelgan raíces (tubos que se afinan, una de cada cuatro largas) y matas de musgo (briznas en
   estrella), instanciadas, que se apartan un poco de la roca y se mecen con el aire en el vértice.
+  - Borde roto en vez de peine (17 de noviembre de 2026). El autor: «se nota que está apegado, se nota que no es 3D», «no
+    cuelgan raíces tampoco con movimiento», «que todo parezca que es de la misma pieza, que es orgánico, que realmente se
+    ha roto». De lado, las raíces eran un peine de palos oscuros iguales, una cada cuarto de unidad, y de cerca las largas
+    bajaban casi toda la isla como postes. Ahora salen en mechones donde dice un ruido a lo largo del borde, con huecos entre
+    medias: casi todas cortas, alguna larga de hasta 1,3 unidades, finas, del color de la tierra y cada una torcida a su
+    manera (`aC` en el vértice), con raicillas de tres caras alrededor. Las matas de musgo son romas, más cortas y claras, y
+    van donde no hay raíces. Bajo la hierba asoman terrones (`terrones`, bolas de veinte caras deformadas con ruido, tierra
+    con grano, alguna piedra y hierba arriba), medio salidos del canto y algunos ya caídos un poco, como si el borde se
+    hubiera roto al arrancar la isla. La roca de la panza ya no lleva musgo pintado (`uMusgo` a 0): en su lugar, bajo la
+    hierba, una franja de tierra negra de grosor desigual (`uHumus`), para que se lea un pedazo de suelo arrancado y no una
+    roca con césped encima. Unos 55.000 triángulos más en la isla elegida.
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba
