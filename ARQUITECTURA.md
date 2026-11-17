@@ -3130,6 +3130,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     hubiera roto al arrancar la isla. La roca de la panza ya no lleva musgo pintado (`uMusgo` a 0): en su lugar, bajo la
     hierba, una franja de tierra negra de grosor desigual (`uHumus`), para que se lea un pedazo de suelo arrancado y no una
     roca con césped encima. Unos 55.000 triángulos más en la isla elegida.
+  - La isla, del color del mapa (17 de noviembre de 2026; `uGris` y `uBrillo` de cada comarca en el bucle de `hub/mapa3d.js`).
+    El autor: «hay que integrar mejor el mapa con la maqueta». Medido en Sakana: la isla en el aire iba un 32 % más clara que
+    las comarcas de alrededor (`uBrillo` 1,17 frente a 0,88) y con mucho más color (`uGris` −0,11 frente a 0,22), un verde
+    chillón al lado de la foto apagada, como una pieza de otro juego puesta encima. Ahora la isla sube solo un poco de luz y
+    de color al levantarse (0,08 y 0,05 por cada unidad de `lift`, antes 0,24 y 0,18) y las de alrededor, con el cielo de
+    día, se apagan la mitad que antes (`fv` con 0,88 en vez de 0,78): la isla manda, pero es el mismo terreno.
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba

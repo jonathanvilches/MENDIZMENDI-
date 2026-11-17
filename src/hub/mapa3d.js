@@ -2199,10 +2199,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
         // las del hueco y sin el filo claro de arriba: eran de un pardo claro con una raya brillante encima de la pared oscura)
         const ik = c.id === sel ? 0 : islaArriba; bm.color.lerp(TIERRA_HUECO, ik * 0.85); if (bm.userData.filo) bm.userData.filo.copy(bm.userData.filo0).multiplyScalar(1 - 0.9 * ik); }
       // (con una isla en el aire y el cielo de día, las demás no se quedan grises: guardan buena parte de su color de verdad)
-      const fv = c.fondo * (1 - 0.78 * cieloK);
-      const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * fv - 0.18 * c.lift;
+      // (y la isla, del mismo color que el mapa del que sale, apenas más viva y más clara: el 17 de noviembre de 2026 iba un
+      // 32 % más clara y con mucho más color que las de alrededor, verde chillón al lado de la foto apagada, y se veía como una
+      // pieza de otro juego puesta encima. El autor: «hay que integrar mejor el mapa con la maqueta»)
+      const fv = c.fondo * (1 - 0.88 * cieloK);
+      const u = c.top.uniforms; u.uGris.value = c.gris + (0.8 - c.gris) * fv - 0.05 * c.lift;
       u.uTinte.value.copy(c.tinte).lerp(BRUMA_C, fv); u.uTintK.value = c.tintK * (1 - 0.7 * c.lift / 0.9) + (0.38 - c.tintK) * fv;   // (la elegida, casi sin su color encima: se ven el monte y el campo)
-      u.uBrillo.value = ((c.vivo ? 1 : 0.95) + c.lift * 0.24 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)
+      u.uBrillo.value = ((c.vivo ? 1 : 0.95) + c.lift * 0.08 + c.hov * 0.08 + (c.done ? Math.sin(t * 2 + c.d * 9) * 0.03 : 0)) * (1 - 0.32 * fv)
         + (intro ? 0.35 * (1 - rampa(tI, IT.sube, IT.sube + 0.8)) * (0.5 - 0.5 * Math.cos(tI * 7)) + 0.45 * posa : 0);   // (en la entrada, Navarra late en el mapa antes de soltarse, y cada comarca brilla al posarse)
       c.rioM.opacity = 1 - 0.85 * fv; c.lagoM.opacity = 0.92 * (1 - 0.8 * fv); c.linea.material.opacity = c.lineaOp * (1 - 0.85 * c.fondo) * (c.isla ? 1 - Math.min(1, (c.isla.k || 0) * 2.5) : 1);   // (en el aire, sin su raya blanca: el borde de la isla es su labio de hierba) if (c.bordeIn) c.bordeIn.opacity = 0.9 * (1 - 0.55 * c.fondo);
       const dk = c.top.uniforms.uDetK; dk.value += ((det.get(c.id)?.tex ? 1 : 0) - dk.value) * (1 - Math.exp(-dt * 4));
