@@ -30,12 +30,12 @@ import { minstd } from '../util/math.js';
 import { arqDe, ARQ_REF } from '../data/frontonArq.js';
 import { fotoFronton, canchaImg, canchaFoto } from '../ui/frontonFotos.js';
 import { DESTACADOS, TIPOS } from '../data/frontones.js';
-// (las imágenes de las cartas del menú de pelota, desde la noche del 16 de noviembre de 2026: un frontón de verdad de los
-// que tenemos foto (el Labrit, el Navarra Arena, Areso, Lana, Irañeta, el trinquete de Elizondo...) pintado con Higgsfield
-// en el estilo del juego, con uno de los pelotaris del autor dentro, con su postura de siempre, la luz del frontón y su
-// sombra en el suelo. El autor: «que sean frontones reales [...] una foto que sea idéntica a la realidad, pero con el
-// ecosistema [...] del juego, del mismo estilo de dibujo, el personaje bien integrado». Una por campeonato y por opción;
-// la figura ya va en la imagen, sin la de encima)
+// (las imágenes de las cartas del menú de pelota, desde el 17 de noviembre de 2026: la foto de un frontón que existe
+// (el Ogueta, el Beotibar, el trinquete de Elizondo, Nazar, Areso, Marañón...) calcada tal cual con Higgsfield, sin
+// publicidad, letras ni gente, con uno de los pelotaris del autor dentro, de brazos cruzados y al tamaño de un chico de
+// doce años en ese sitio. El autor: «calques tal cual, centímetro a centímetro, fotografías» y, para las portadas,
+// «frontones grandes, frontones cubiertos». Una por campeonato y por opción; la figura ya va en la imagen, sin la de
+// encima. Fotos, autores y licencias en assets/pelota/fondos/LICENCIAS.md)
 const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/pelota/fondos/*.webp', { eager: true, query: '?url', import: 'default' }))
   .map(([k, u]) => [k.split('/').pop().replace('.webp', ''), u]));
 // (el idioma, el que marca la página: en euskera, «eu»)

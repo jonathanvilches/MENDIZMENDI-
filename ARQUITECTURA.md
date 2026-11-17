@@ -1869,6 +1869,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     en el ordenador. Velo arriba, para leer la etiqueta, y otro suave abajo, sin pasar del 36 %. Créditos y licencias en
     `src/assets/pelota/fondos/LICENCIAS.md`; los fondos anteriores, sin pelotari, en `entrega/pelota-fondos-anteriores`.
     Se probaron antes pelotaris generados en plena jugada: el autor los rechazó por las posturas, y no se usan.
+  - Frontones calcados de fotos (17 de noviembre de 2026). El autor: «no quiero que generes imágenes de frontones que no
+    existen», «quiero que calques tal cual, centímetro a centímetro, fotografías», «para las portadas quiero frontones
+    grandes, frontones cubiertos», «me valen el Ogueta y el Beotibar» y «las posturas de los pelotaris es la postura A».
+    Las quince cartas son ahora la foto de un frontón que existe, editada con Higgsfield sin mover nada: la misma cámara,
+    paredes, rayas, chapas, gradas y casas; fuera la publicidad, las letras y la gente; dentro un pelotari del autor de
+    brazos cruzados. Las cuatro de campeonato van en frontones cubiertos grandes: el Manomanista, la Gran Txapela y el
+    Cuatro y medio en el Ogueta de Vitoria (tres vistas distintas) y Parejas en el Beotibar de Tolosa, lleno de público.
+    El pelotari sale al tamaño de un chico de doce años en el sitio donde está, medido contra las rayas, las chapas y la
+    gente que había en la foto: la primera prueba los ponía de casi el doble de alto que los jueces, y no tenía sentido.
+    Esas versiones grandes quedan en `entrega/pelota-fondos-reales-17nov/alternativas`. Las dibujadas del 16 de noviembre,
+    en `entrega/pelota-fondos-dibujados-16nov`. Las fotos del Navarra Arena que mandó el autor no tienen licencia libre y
+    no se usan; la foto del Labrit que había es de la fachada, sin interior.
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los

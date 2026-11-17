@@ -1,30 +1,38 @@
 # Imágenes de las cartas del menú de pelota
 
-Quince imágenes hechas para el juego con Higgsfield (modelo gpt_image_2_6) la noche del 16 de noviembre de 2026. Cada una
-pinta un frontón de verdad de Navarra en el estilo del juego, a partir de su foto, y pone dentro a uno de los pelotaris del
-autor (src/assets/pelotaris, sus ilustraciones), con su postura de siempre, la luz del frontón y su sombra. Sin personas
-reconocibles, sin letras, sin escudos ni publicidad. Reducidas a 896 px y pasadas a WebP.
+Quince imágenes hechas para el juego con Higgsfield (modelo gpt_image_2_6) la noche del 17 de noviembre de 2026. Cada
+una es la foto de un frontón que existe, calcada tal cual: la misma cámara, las mismas paredes, rayas, chapas, gradas y
+casas. Solo se ha quitado la publicidad, las letras y la gente que salía, y se ha puesto dentro a uno de los pelotaris
+del autor (src/assets/pelotaris, sus ilustraciones) con los brazos cruzados (la postura A que eligió el autor), al tamaño
+que tendría un chico de doce años en ese sitio y con la luz de la foto. La del Invierno lleva además una capa fina de
+nieve. Reducidas a 896 px y pasadas a WebP.
 
-Las fotos de referencia son las del capítulo «Frontones de Navarra» (src/assets/frontones, autores y enlaces en su
-LICENCIAS.md). Como las imágenes salen de ellas, llevan el crédito de cada autor y, las que vienen de una foto CC BY-SA,
-se comparten con esa misma licencia. El Labrit también toma la cancha del propio juego (src/assets/frontones-juego).
+El autor pidió el 17 de noviembre que fueran «frontones reales», calcados «centímetro a centímetro» de fotografías, y
+que para las portadas hubiera «frontones grandes, frontones cubiertos»; dijo «me valen el Ogueta y el Beotibar». El
+Ogueta está en Vitoria y el Beotibar en Tolosa. Las dos fotos del Navarra Arena que mandó no tienen licencia libre y no
+se han usado.
 
-| Imagen | Carta | Frontón | Foto de referencia | Autor | Licencia | Pelotari |
+Como las imágenes salen de las fotos, llevan el crédito de cada autor y las que vienen de una foto CC BY-SA se comparten
+con esa misma licencia.
+
+| Imagen | Carta | Frontón | Foto | Autor | Licencia | Pelotari |
 |---|---|---|---|---|---|---|
-| `mano.webp` | Manomanista | Labrit, Pamplona | Frontón Labrit - DSC 1955.JPG y la cancha del juego | Juanje 2712 | CC BY-SA 3.0 | Iñigo |
-| `gran.webp` | Gran Txapela | Navarra Arena, Pamplona | Navarra Arena (Pamplona, ESP) 2017.jpg | Navarrarena | CC BY-SA 4.0 | Garazi |
-| `parejas.webp` | Parejas | Lana | Lana - Galbarra - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | Mikel y Amaia |
-| `cuatro.webp` | Cuatro y medio | Irañeta | Irañeta - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | Nahia |
-| `trinquete.webp` | Trinquete | Trinquete de Elizondo | Elizondo trinquete.jpg | JMSE | CC BY-SA 3.0 | Unai |
-| `comarcas.webp` | Comarcas | Nazar | Nazar - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | Ander |
-| `fiestas.webp` | Fiestas | Genevilla | Frontón, Genevilla.jpg | Mentxuwiki | CC BY-SA 4.0 | Irati |
-| `valles.webp` | Valles | Igal | Igal - Frontón.jpg | Jialxv | CC BY-SA 4.0 | Xabier |
-| `invierno.webp` | Invierno | Roncal, con nieve | Roncal fronton.jpg | Ardo Beltz | CC BY-SA 3.0 | Leire |
-| `promesas.webp` | Promesas | Marañón | Frontón de Marañón.jpg | Mentxuwiki | CC BY-SA 4.0 | Ane |
-| `libre.webp` | Partido libre | Areso | Areso - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | Jokin |
-| `frontones.webp` | Frontones | Mendaza | Frontón de Mendaza.jpg | Mentxuwiki | CC BY-SA 4.0 | Maialen |
-| `retos.webp` | Retos | Mirafuentes | Mirafuentes - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | Ekaitz |
-| `camara.webp` | Pelota en casa | Fontellas | Fontellas - Frontón 1.jpg | Zarateman | CC0 | Oihana |
-| `coleccion.webp` | Pelotaris | Urroz de Santesteban | Urroz de Santesteban - Frontón 01.jpg | Basotxerri | CC BY-SA 4.0 | Amaia |
+| `mano.webp` | Manomanista | Ogueta, Vitoria | [Ogeta pilotalekua 2.jpg](https://commons.wikimedia.org/wiki/File:Ogeta_pilotalekua_2.jpg) | Assar | CC BY-SA 3.0 | Iñigo |
+| `gran.webp` | Gran Txapela | Ogueta, Vitoria | [Ogeta pilotalekua 1.jpg](https://commons.wikimedia.org/wiki/File:Ogeta_pilotalekua_1.jpg) | Assar | CC BY-SA 3.0 | Garazi |
+| `parejas.webp` | Parejas | Beotibar, Tolosa | [Beotibar pilotalekua, 2014-12-26 (1).JPG](https://commons.wikimedia.org/wiki/File:Beotibar_pilotalekua,_2014-12-26_(1).JPG) | Xabier Armendaritz | CC BY-SA 4.0 | Mikel y Amaia |
+| `cuatro.webp` | Cuatro y medio | Ogueta, Vitoria | [Vitoria - Frontón Ogueta 06.jpg](https://commons.wikimedia.org/wiki/File:Vitoria_-_Front%C3%B3n_Ogueta_06.jpg) | Zarateman | CC0 | Nahia |
+| `trinquete.webp` | Trinquete | Trinquete de Elizondo | [Elizondo trinquete.jpg](https://commons.wikimedia.org/wiki/File:Elizondo_trinquete.jpg) | JMSE | CC BY-SA 3.0 | Unai |
+| `comarcas.webp` | Comarcas | Nazar | [Nazar - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Nazar_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Ander |
+| `fiestas.webp` | Fiestas | Genevilla | [Frontón, Genevilla.jpg](https://commons.wikimedia.org/wiki/File:Front%C3%B3n,_Genevilla.jpg) | Mentxuwiki | CC BY-SA 4.0 | Irati |
+| `valles.webp` | Valles | Igal | [Igal - Frontón.jpg](https://commons.wikimedia.org/wiki/File:Igal_-_Front%C3%B3n.jpg) | Jialxv | CC BY-SA 4.0 | Xabier |
+| `invierno.webp` | Invierno | Roncal, con nieve | [Roncal fronton.jpg](https://commons.wikimedia.org/wiki/File:Roncal_fronton.jpg) | Ardo Beltz | CC BY-SA 3.0 | Leire |
+| `promesas.webp` | Promesas | Marañón | [Frontón de Marañón.jpg](https://commons.wikimedia.org/wiki/File:Front%C3%B3n_de_Mara%C3%B1%C3%B3n.jpg) | Mentxuwiki | CC BY-SA 4.0 | Ane |
+| `libre.webp` | Partido libre | Areso | [Areso - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Areso_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Jokin |
+| `frontones.webp` | Frontones | Mendaza | [Frontón de Mendaza.jpg](https://commons.wikimedia.org/wiki/File:Front%C3%B3n_de_Mendaza.jpg) | Mentxuwiki | CC BY-SA 4.0 | Maialen |
+| `retos.webp` | Retos | Mirafuentes | [Mirafuentes - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Mirafuentes_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Ekaitz |
+| `camara.webp` | Pelota en casa | Fontellas | [Fontellas - Frontón 1.jpg](https://commons.wikimedia.org/wiki/File:Fontellas_-_Front%C3%B3n_1.jpg) | Zarateman | CC0 | Oihana |
+| `coleccion.webp` | Pelotaris | Urroz de Santesteban | [Urroz de Santesteban - Frontón 01.jpg](https://commons.wikimedia.org/wiki/File:Urroz_de_Santesteban_-_Front%C3%B3n_01.jpg) | Basotxerri | CC BY-SA 4.0 | Amaia |
 
-Las anteriores, sin pelotari, en entrega/pelota-fondos-anteriores.
+Las del 16 de noviembre, dibujadas en el estilo del juego, están en entrega/pelota-fondos-dibujados-16nov; las de antes,
+sin pelotari, en entrega/pelota-fondos-anteriores. En entrega/pelota-fondos-reales-17nov/alternativas quedan otras
+versiones con el pelotari más grande, por si el autor las prefiere.
