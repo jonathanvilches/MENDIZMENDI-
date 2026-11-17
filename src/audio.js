@@ -12,8 +12,11 @@ import { Frases } from './audio/frases.js';
 // de Torneos · none: nada)
 // (el partido de pelota sigue con la épica de Torneos, la del autor: la de antes, «Minstrel Guild», era medieval y no se
 // buscó él; se quitó en noviembre de 2026)
+// (y desde el 17 de noviembre de 2026, todo el juego de pelota, sus pantallas de elegir y el partido, con «Sport», de
+// rvstudio, que pasó el autor: «para el juego de pelota para todas las pantallas de selección y demás». La pantalla de
+// Torneos, que es de pelota y de fútbol, sigue con la épica)
 const MUSICA = { explore: 'musica-juego', night: 'musica-juego', mystery: 'musica-juego', tension: 'musica-accion', game: 'musica-juego', fiesta: 'musica-juego',
-  sport: 'musica-torneos', pelota: 'musica-torneos', inicio: 'musica-inicio', torneos: 'musica-torneos',
+  sport: 'musica-torneos', pelota: 'musica-pelota', inicio: 'musica-inicio', torneos: 'musica-torneos',
   // (de paseo por los pueblos, «Viking Village Dance» de Andy Slatter, que pasó el autor en noviembre de 2026)
   paseo: 'musica-pueblo' };
 

@@ -518,7 +518,10 @@ export class Runtime {
     // inicio del menú lo pone main.js)
     // (y en el partido de pelota en sí, su música: una pieza de gaita y percusión a buen paso, de fiesta de pueblo. La de
     // los campeonatos, épica y lenta, se quedaba corta de ritmo para un peloteo)
-    if (g.pelotaMatch) return 'pelota';
+    // (todo el juego de pelota con su música: el partido y también sus pantallas de elegir, el campeonato, el pelotari, el
+    // sorteo y el resumen; el autor, 17 de noviembre de 2026. Las mismas señales que usa main.js para saber que se está en
+    // la pelota)
+    if (g.pelotaMatch || g.pelotaLoading || (g.fronton && (m === 'pelota' || g.sportMode)) || document.querySelector('.pel-root, .lg-root')) return 'pelota';
     if (m === 'pelota' || m === 'futbol' || m === 'menu' || g.sportMode) return 'sport';
     if (m === 'mini') return 'game';
     if (m === 'dance') return 'fiesta';

@@ -12,6 +12,7 @@ Los términos son los de la licencia de Envato Elements: https://elements.envato
 |---|---|---|---|---|---|
 | musica-inicio.mp3 | Música del menú | Epic | MrClaps | 64Y9SAKUQD | 27/10/2026 |
 | musica-torneos.mp3 | Música de la pantalla Torneos | Epic | MDFactory | AURMTFK68H | 27/10/2026 |
+| musica-pelota.mp3 | Música de todo el juego de pelota: sus pantallas de elegir y el partido | Sport (main, completa) | rvstudio | pendiente: lo pasó el autor sin el certificado | 17/11/2026 |
 | musica-juego.mp3 | Música de fondo en los pueblos | Game | cinematic-alex | NUP6LR3DX2 | 27/10/2026 |
 | publico-grada.mp3 | Público de los partidos de pelota y fútbol | Brazil Soccer crowd steady | rhumphriesDC | R9TX34Q2AZ | 27/10/2026 |
 | aplausos-final.mp3 | Ovación del último tanto de pelota | Crowd Cheering and Applauding | GameChestAudio | 3SCH4TRP26 | 27/10/2026 |
