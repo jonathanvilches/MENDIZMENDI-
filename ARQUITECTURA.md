@@ -3150,6 +3150,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     asomaban como setas pardas pegadas, son más pequeños, menos, más metidos en el canto y del color de la tierra negra de
     la franja de arriba. Las raíces salían casi negras, como estacas: su sombreador aplicaba la luz sobre el color de
     pantalla y no lo pasaba a la salida como la roca (`linearToOutputTexel`); ahora cuelgan como hebras pálidas de tierra.
+  - Alrededor de la maqueta de un pueblo (17 de noviembre de 2026; al final del grano fino de `RELIEVE_FS`,
+    `hub/mapa3dSombreadores.js`): la foto fina de la comarca es de 28 m por punto y, al acercarse a un pueblo, cada punto
+    ocupa varios píxeles de pantalla; junto a las casas nítidas el prado era una mancha verde lisa y clara y la maqueta
+    parecía puesta encima. Ahora, en cuanto la foto se estira (más de 1,3 píxeles por punto, a tope desde 4), se le suma un
+    grano de prado en tres tamaños, de unos 20, 7 y 2,5 m, y matas algo más hondas en lo verde. Solo con la foto fina
+    cargada y fuera del modo ligero del ordenador.
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba

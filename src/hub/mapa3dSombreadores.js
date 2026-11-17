@@ -293,6 +293,16 @@ void main() {
   }
 #ifndef LIGERO
   if (uCerca > 0.0 && uTex > 0.0) c *= 1.0 + (ruido(sv * 18.0) * 0.6 + ruido(sv * 55.0) * 0.4 - 0.5) * 0.14 * uCerca;
+  // (donde la foto de la comarca, de 28 m, ya se ve más grande que un píxel de la pantalla, junto a la maqueta nítida de un
+  // pueblo: grano de prado y matas en tres tamaños, de unos 20, 7 y 2,5 m, que crece a medida que la foto se estira. Antes
+  // alrededor de las casas el suelo era una mancha verde lisa y clara, y la maqueta parecía puesta encima. 17 de noviembre
+  // de 2026, el autor: «hay que integrar mejor el mapa con la maqueta»)
+  if (uOrtoK > 0.0 && uTex > 0.0) { vec2 dq3 = (sv - uDetRect.xy) / uDetRect.zw;
+    float mg = smoothstep(1.3, 4.0, (1.0 / float(textureSize(uOrtoD, 0).x)) / max(1e-7, fwidth(dq3.x))) * uOrtoDK * enRect(dq3);
+    if (mg > 0.01) { float g1 = ruido(sv * 10.0 + 1.3), g2 = ruido(sv * 29.0 + 5.1), g3 = ruido(sv * 83.0 + 2.7);
+      float vg = smoothstep(-0.03, 0.04, c.g - c.r);
+      c *= 1.0 + ((g1 - 0.5) * 0.16 + (g2 - 0.5) * 0.12 + (g3 - 0.5) * 0.08) * mg;
+      c = mix(c, c * vec3(0.9, 0.96, 0.86), smoothstep(0.62, 0.8, g1) * vg * 0.5 * mg); } }   // (matas más hondas en el prado)
 #endif
   // (las cumbres nevadas: por encima de unos 1.250 a 1.500 m, con el borde roto, más en lo llano de las cimas que en las
   // paredes, que en lo muy pendiente la nieve no se queda; en Navarra, solo el Pirineo: Larra, Anie, la Mesa de los Tres
