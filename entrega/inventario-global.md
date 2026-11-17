@@ -10,6 +10,7 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 |---|---|---|
 | Control total del golpe: derecha a la raya, izquierda a la pared, arriba a tope | Hecho el 17 de noviembre. A tope a la derecha, bien dado, se va fuera de 1 a 4 de cada 10 | Que lo pruebes jugando |
 | Cartas de campeonato con frontones reales calcados de fotos, grandes y cubiertos, postura A | Por hacer. Ogueta y Beotibar valen; las dos fotos del Navarra Arena no tienen licencia libre | Tú: permiso del Navarra Arena o usar solo fotos libres |
+| Fotos del Ogueta en Wikimedia Commons | Hay 12: «Vitoria - Frontón Ogueta 01» a «09» y «Ogeta pilotalekua» 1, 2 y sin número. Falta mirar su licencia: Commons cortó las consultas por exceso | |
 | Público de los frontones que no se vea raro | Pendiente | |
 | Pelota en casa: mejor golpeo y cámara que capte los golpes | Pendiente | |
 | Más comentarios entre medias (dejada, gancho, rebote, la mano, el material) | A medias | Tú: voz de Edurne y Mikel ya aprobadas, se graban cuando digas |
