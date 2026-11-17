@@ -751,6 +751,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     lo que sigue a cada pata es lo pegado a ella y, abajo, más ancho, para la pezuña; y los giros de las patas en las
     animaciones, que son de la oveja de antes, de patas largas, van al 55 % (la caña, al 39 %). Comprobado de lado en el
     paso, el galope y comiendo, en la foto de familia del laboratorio y en el esquileo, sin errores.
+- **Frases con cuenta de Otsagabia, para escuchar** (17 de noviembre de 2026; `entrega/voces-cuentas/`): 26 grabaciones de
+  Joxemari, Joseba, el Basajaun y el Bobo, una por cada número posible («Llevas 3 de 6») y las dos explicaciones del baile
+  del Bobo. Fuera del juego hasta que el autor las apruebe; para instalarlas, copiar los mp3 a `assets/voz/vecinos/ochagavia/`
+  y añadir `manifiesto-nuevo.json` al manifiesto (se buscan por el texto ya con el número, sin tocar el código).
 - **Los vecinos de Otsagabia hablan** (14 de noviembre de 2026; `game/vozVecinos.js`, `assets/voz/vecinos/ochagavia/`).
   Quién da las pruebas en Ochagavía (`content.js`, QUESTS): Maite (la bienvenida, cinta roja), Itziar (los escudos,
   amarilla), Joxemari (las ovejas, blanca), Kike (la pelota, verde), Joseba (Irati, azul), el Basajaun (naranja), la
