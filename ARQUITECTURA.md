@@ -3142,6 +3142,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     franja de tierra negra bajo el borde (`uHumus`, como en la panza), estratos más oscuros cuanto más hondo y solo un fleco de
     hierba de un verde apagado en lo alto (`uMusgo` de 0,35 a 0,9). Los materiales de la panza y de la pared se vuelven a
     soltar al cambiar de isla (`mats.push`, que se había quedado dentro de un comentario).
+  - El borde, de cerca (17 de noviembre de 2026, por la mañana; `piedraG`, `mataG`, `TERRON` y `colgF` en
+    `hub/mapa3dIsla.js`). Las piedras que flotan y caen eran dodecaedros de doce caras planas, grises y con brillo propio:
+    ahora son cantos de 80 caras con los vértices compartidos, deformados con ruido, de caliza con vetas y tierra pegada por
+    abajo. Las matas eran estrellas de cinco hojas anchas, que de lado parecían colmillos verdes: ahora son once briznas
+    finas que salen de puntos distintos y se abren al colgar, de un verde más apagado, y algunas más. Los terrones, que
+    asomaban como setas pardas pegadas, son más pequeños, menos, más metidos en el canto y del color de la tierra negra de
+    la franja de arriba. Las raíces salían casi negras, como estacas: su sombreador aplicaba la luz sobre el color de
+    pantalla y no lo pasaba a la salida como la roca (`linearToOutputTexel`); ahora cuelgan como hebras pálidas de tierra.
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba

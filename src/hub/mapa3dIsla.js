@@ -475,8 +475,10 @@ void main() { float d = -position.y; vec4 w = modelMatrix * instanceMatrix * vec
 #include <fog_pars_fragment>
 void main() { vec3 n = normalize(vNw); if (!gl_FrontFacing) n = -n;
   vec3 c = mix(${base}, ${punta}, smoothstep(0.0, 1.0, vD)) * (0.82 + 0.36 * fract(vF * 7.31));
-  float l = 0.5 + 0.55 * max(0.0, dot(n, uLuz)) + 0.12 * n.y; c *= l * mix(0.62, 1.0, smoothstep(0.0, 0.5, vD));   // (arriba, a la sombra del labio)
-  gl_FragColor = vec4(c, 1.0);
+  float l = 0.5 + 0.55 * max(0.0, dot(n, uLuz)) + 0.12 * n.y; c = pow(c, vec3(2.2)) * l * mix(0.62, 1.0, smoothstep(0.0, 0.5, vD));   // (arriba, a la sombra del labio)
+  // (con la luz en valores lineales y pasada a la pantalla como la roca: antes la luz se aplicaba al color de pantalla y las
+  // raíces salían casi negras al lado de la tierra, como estacas; 17 de noviembre de 2026)
+  gl_FragColor = linearToOutputTexel(vec4(c, 1.0));
 #ifdef USE_FOG
   gl_FragColor.rgb = mix(gl_FragColor.rgb, linearToOutputTexel(vec4(fogColor, 1.0)).rgb, smoothstep(fogNear, fogFar, vFogDepth));
 #endif
@@ -487,10 +489,14 @@ void main() { vec3 n = normalize(vNw); if (!gl_FrontFacing) n = -n;
   // briznas planas en estrella, que se afinan
   const raizG = new THREE.CylinderGeometry(1, 0.1, 1, 5, 9, true); raizG.translate(0, -0.5, 0); geos.push(raizG);
   const peloG = new THREE.CylinderGeometry(1, 0.15, 1, 3, 4, true); peloG.translate(0, -0.5, 0); geos.push(peloG);
-  const mataG = (() => { const pos = [], ix = []; const NB = 5, SG = 4;
-    for (let b = 0; b < NB; b++) { const a = b / NB * Math.PI, ca = Math.cos(a), sa = Math.sin(a), o = pos.length / 3;
-      for (let k = 0; k <= SG; k++) { const t = k / SG, w = 0.5 * (1 - 0.62 * t) * (0.7 + 0.3 * ((b * 7) % 3) / 2), ln = 1 - 0.22 * ((b * 5) % 3) / 2;
-        pos.push(-w * ca, -t * ln, -w * sa, w * ca, -t * ln, w * sa); }
+  // (desde el 17 de noviembre de 2026, una mata de hierba que cuelga y no una estrella de cinco hojas anchas, que de lado se
+  // leían como colmillos verdes: once briznas finas, cada una salida de un punto distinto de la mata, que se abren hacia fuera
+  // al colgar, de largos distintos y que acaban en punta)
+  const mataG = (() => { const pos = [], ix = []; const NB = 11, SG = 4, hb = (b, k) => { const x = Math.sin(b * 12.9898 + k * 78.233) * 43758.5453; return x - Math.floor(x); };
+    for (let b = 0; b < NB; b++) { const ar = hb(b, 1) * Math.PI * 2, rb = 0.12 + 0.3 * hb(b, 2), bx = Math.cos(ar) * rb, bz = Math.sin(ar) * rb, a = ar + Math.PI / 2 + (hb(b, 3) - 0.5) * 0.8, ca = Math.cos(a), sa = Math.sin(a), o = pos.length / 3;
+      const ln = 0.55 + 0.45 * hb(b, 4), ab = 0.25 + 0.55 * hb(b, 5);
+      for (let k = 0; k <= SG; k++) { const t = k / SG, w = 0.075 * (1 - 0.9 * t), cx = bx + Math.cos(ar) * ab * t * t, cz = bz + Math.sin(ar) * ab * t * t, y = -t * ln;
+        pos.push(cx - w * ca, y, cz - w * sa, cx + w * ca, y, cz + w * sa); }
       for (let k = 0; k < SG; k++) { const v = o + k * 2; ix.push(v, v + 1, v + 2, v + 1, v + 3, v + 2); } }
     const g2 = new THREE.BufferGeometry(); g2.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g2.setIndex(ix); g2.computeVertexNormals(); geos.push(g2); return g2; })();
   // (cuántas y dónde, desde el 17 de noviembre de 2026: en mechones, no una en cada punto del borde. El autor: «no cuelgan
@@ -506,8 +512,8 @@ void main() { vec3 n = normalize(vNw); if (!gl_FrontFacing) n = -n;
     if (R() < 0.03 + c * 1.05) { const largo = R() < 0.08 + c * 0.14;
       RAIZ.push({ k: i, t: tan(), off: -0.03 + R() * 0.05, L: (largo ? 0.55 + R() * 0.75 : 0.1 + R() ** 2 * 0.45) * sc, r: largo ? 0.014 + R() * 0.01 : 0.008 + R() * 0.008, f: R(), cx: (R() - 0.5) * 1.6, cz: 0.2 + R() * 0.9 }); }
     if (c > 0.15) for (let n = (R() * 3.2 * c) | 0; n-- > 0;) PELO.push({ k: i, t: tan(), off: -0.02 + R() * 0.04, L: (0.05 + R() * 0.2) * sc, r: 0.005 + R() * 0.004, f: R(), cx: (R() - 0.5) * 2.2, cz: R() * 1.4 });
-    if (R() < 0.08 + 0.42 * ss0(0.32, 0.6, 1 - g0)) MATA.push({ k: i, t: tan(), off: R() * 0.05, L: (0.06 + R() * 0.16) * sc, r: 0.06 + R() * 0.07, f: R(), cx: 0, cz: 0 });
-    if (R() < 0.03 + c * 0.22) TERRON.push({ k: i, t: tan(), off: R() * 0.06, s: (0.07 + R() ** 1.6 * 0.16) * sc, f: R(), baja: R() ** 3, rx: R() * 6.28, ry: R() * 6.28, sx: 0.9 + R() * 0.6, sy: 0.55 + R() * 0.3, sz: 0.8 + R() * 0.5 });
+    if (R() < 0.12 + 0.55 * ss0(0.32, 0.6, 1 - g0)) MATA.push({ k: i, t: tan(), off: R() * 0.05, L: (0.05 + R() * 0.13) * sc, r: 0.1 + R() * 0.08, f: R(), cx: 0, cz: 0 });
+    if (R() < 0.02 + c * 0.14) TERRON.push({ k: i, t: tan(), off: R() * 0.03, s: (0.05 + R() ** 1.6 * 0.11) * sc, f: R(), baja: R() ** 3, rx: R() * 6.28, ry: R() * 6.28, sx: 0.9 + R() * 0.6, sy: 0.55 + R() * 0.3, sz: 0.8 + R() * 0.5 });
   }
   const colgantes = (L, g2, m) => { const im = new THREE.InstancedMesh(g2, m, Math.max(1, L.length)); im.count = L.length; im.frustumCulled = false; im.raycast = () => {};
     const aF = new Float32Array(L.length), aLl = new Float32Array(L.length), aNn = new Float32Array(L.length * 2), aCc = new Float32Array(L.length * 2);
@@ -518,7 +524,7 @@ void main() { vec3 n = normalize(vNw); if (!gl_FrontFacing) n = -n;
     canto.add(im); return im; };
   const raices = colgantes(RAIZ, raizG, colgM('vec3(0.45, 0.36, 0.26)', 'vec3(0.72, 0.63, 0.5)', 0.09, 0.1));
   const pelos = colgantes(PELO, peloG, colgM('vec3(0.5, 0.41, 0.3)', 'vec3(0.78, 0.7, 0.57)', 0.14, 0.12));
-  const matas = colgantes(MATA, mataG, colgM('vec3(0.27, 0.38, 0.13)', 'vec3(0.5, 0.62, 0.24)', 0.14, 0.16));
+  const matas = colgantes(MATA, mataG, colgM('vec3(0.23, 0.32, 0.12)', 'vec3(0.44, 0.53, 0.22)', 0.14, 0.16));
   // (los terrones: pedazos de tierra con su hierba encima, medio salidos del canto, como si el borde se hubiera roto al
   // arrancar la isla y no hubiera terminado de caer; bolas de veinte caras deformadas con ruido, sin aristas)
   const terronG = (() => { const g1 = new THREE.IcosahedronGeometry(1, 2); g1.deleteAttribute('uv'); g1.deleteAttribute('normal'); const g2 = mergeVertices(g1), p2 = g2.attributes.position; g1.dispose();
@@ -538,7 +544,7 @@ float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
 void main() { vec3 n = normalize(vNw);
   float gr = vn(vPw.xz * 9.0 + vPw.y * 7.0) * 0.6 + vn(vPw.xz * 31.0 - vPw.y * 23.0) * 0.4;
   float mi = vn(vPw.xz * 61.0 + vPw.y * 47.0);
-  vec3 tierra = mix(vec3(0.3, 0.21, 0.14), vec3(0.5, 0.38, 0.26), gr) * (0.7 + 0.45 * mi) * (0.88 + 0.24 * fract(vF * 5.7));
+  vec3 tierra = mix(vec3(0.19, 0.14, 0.095), vec3(0.36, 0.27, 0.19), gr) * (0.7 + 0.45 * mi) * (0.88 + 0.24 * fract(vF * 5.7));
   vec3 piedra = mix(vec3(0.5, 0.47, 0.41), vec3(0.68, 0.64, 0.57), gr);
   vec3 c = mix(tierra, piedra, step(0.86, vn(vPw.xz * 17.0 + vPw.y * 9.0 + 3.0)) * 0.75);
   float hi = smoothstep(0.25, 0.65, n.y + (gr - 0.5) * 0.35);
@@ -557,7 +563,7 @@ void main() { vec3 n = normalize(vNw);
       m4c.compose(v3c.set(q[0] + nx * o.off + tx, Math.max(B * sy, hk * sy - bajo), q[1] + nz * o.off + tz), qy, s3c.set(o.r, o.L, o.r)); im.setMatrixAt(n, m4c); });
       im.instanceMatrix.needsUpdate = true; };
     pon(RAIZ, raices, 0.11, false); pon(PELO, pelos, 0.09, false); pon(MATA, matas, 0.07, true);
-    TERRON.forEach((o, n) => { const q = Q[o.k], [nx, nz] = NS[o.k], hk = H0[o.k] - KI * (H0[o.k] - RIM[o.k]), out = o.off + o.s * o.sx * 0.25;
+    TERRON.forEach((o, n) => { const q = Q[o.k], [nx, nz] = NS[o.k], hk = H0[o.k] - KI * (H0[o.k] - RIM[o.k]), out = o.off + o.s * o.sx * 0.08;
       qy.setFromEuler(eul.set((o.rx - 3.14) * 0.06, o.ry, (o.f - 0.5) * 0.25));
       // (la cara de arriba, con hierba, a ras del canto y algo más abajo si el terrón ya se ha soltado un poco)
       m4c.compose(v3c.set(q[0] + nx * out - nz * o.t, Math.max(B * sy, hk * sy - 0.03 - o.s * o.sy * 0.55 - o.baja * 0.2 * sc), q[1] + nz * out + nx * o.t), qy, s3c.set(o.s * o.sx, o.s * o.sy, o.s * o.sz)); terrones.setMatrixAt(n, m4c); });
@@ -681,13 +687,22 @@ void main() { vec3 n = normalize(vNw);
   const echaPolvo = (x, y, z, s) => { const p = polvo[polvoN++ % NP]; Object.assign(p, { t: 0, x, y, z, s, vy: 0.15 + R() * 0.25 }); };
 
   // ---------- piedras: las que flotan alrededor y las que se desprenden, de la isla y del borde del hueco ----------
-  const piedraG = new THREE.DodecahedronGeometry(1, 0); geos.push(piedraG);
+  // (cada piedra, un canto roto de verdad y no un dodecaedro de doce caras planas: una bola de 80 caras con los vértices
+  // compartidos, deformada con ruido en tres tamaños y con una cara más llana, de caliza clara con vetas y tierra pegada por
+  // un lado. Desde el 17 de noviembre de 2026; antes eran poliedros grises que brillaban, «polígonos rectos»)
+  const piedraG = (() => { const g1 = new THREE.IcosahedronGeometry(1, 1); g1.deleteAttribute('uv'); g1.deleteAttribute('normal'); const g2 = mergeVertices(g1), p2 = g2.attributes.position; g1.dispose();
+    const col = new Float32Array(p2.count * 3), cal = C('#b9ae9b'), cal2 = C('#8f8676'), tie = C('#6a5541'), cc = new THREE.Color();
+    for (let v = 0; v < p2.count; v++) { const x = p2.getX(v), y = p2.getY(v), z = p2.getZ(v), k = 0.7 + 0.42 * ruidoV(x * 1.4 + 3.3, z * 1.4 + y * 1.1) + 0.18 * ruidoV(x * 3.9 - y * 2.2, z * 3.9 + 1.9);
+      p2.setXYZ(v, x * k * 1.15, Math.max(y * k * 0.8, -0.45), z * k);
+      const n = ruidoV(x * 2.7 + y * 3.1, z * 2.7 - 4.1), sucio = Math.min(1, Math.max(0, (-y + 0.1 + (n - 0.5) * 0.6) * 1.6));
+      cc.copy(cal).lerp(cal2, Math.min(1, Math.max(0, n * 1.4 - 0.3))).lerp(tie, sucio * 0.85); col[v * 3] = cc.r; col[v * 3 + 1] = cc.g; col[v * 3 + 2] = cc.b; }
+    g2.setAttribute('color', new THREE.BufferAttribute(col, 3)); g2.computeVertexNormals(); return g2; })(); geos.push(piedraG);
   const flota = Array.from({ length: 12 }, () => ({ a: R() * Math.PI * 2, r: rMed * (0.8 + R() * 0.5), y: -D * (0.1 + R() * 0.7), s: 0.08 + R() * 0.2, w: (R() < 0.5 ? -1 : 1) * (0.05 + R() * 0.08), ph: R() * 6, rot: R() * 6 }));
   const NC = 140, caen = Array.from({ length: NC }, () => ({ vivo: false, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s: 0.1, rx: 0, ry: 0, wr: 1 }));
   let caeN = 0;
   const suelta = (x, y, z, vx, vy, vz, s) => { const p = caen[caeN++ % NC]; Object.assign(p, { vivo: true, x, y, z, vx, vy, vz, s, rx: R() * 6, ry: R() * 6, wr: 1 + R() * 3 }); };
-  const piedraM = new THREE.MeshLambertMaterial({ color: '#c9bfae', emissive: '#6b6052', flatShading: true }); mats.push(piedraM);   // (caliza, como la roca)
-  const piedraAM = new THREE.MeshLambertMaterial({ color: '#c9bfae', emissive: '#6b6052', flatShading: true, transparent: true, ...PLANT }); mats.push(piedraAM);
+  const piedraM = new THREE.MeshLambertMaterial({ vertexColors: true, emissive: '#2e2820' }); mats.push(piedraM);   // (caliza, como la roca, y tierra)
+  const piedraAM = new THREE.MeshLambertMaterial({ vertexColors: true, emissive: '#2e2820', transparent: true, ...PLANT }); mats.push(piedraAM);
   const piedras = new THREE.InstancedMesh(piedraG, piedraM, flota.length + NC), piedrasA = new THREE.InstancedMesh(piedraG, piedraAM, NC);
   piedras.frustumCulled = piedrasA.frustumCulled = false; piedras.visible = false; piedrasA.renderOrder = -0.75; scene.add(piedras); sima.add(piedrasA);
   const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Euler(), v3 = new THREE.Vector3(), s3 = new THREE.Vector3();
