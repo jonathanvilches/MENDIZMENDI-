@@ -15,11 +15,11 @@ import { COSTUMES } from '../actors/minifig.js';
 import { addCard, saveProfile } from './profile.js';
 // Aspecto de los personajes de carnaval y leyenda
 const FOLK = {
-  joaldun: { traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
+  joaldun: { myth: 'joaldun', traje: 'joaldun', shirt: '#f4f1ea', fur: '#ece4d2', hat: 'cone', hatColor: '#f4f1ea', skirt: '#f4f1ea', pants: '#1d2a4a', bells: true, scarf: '#3a8fd6', handkerchief: '#e8e0cc', face: 'brave' },
   mozorro: { shirt: '#6b8a3a', pattern: 'check', pattern2: '#e03c3c', pants: '#3a2a1a', hat: 'mask', hatColor: '#6b4a2e', maskColor: '#f1e7d6', stick: '#8a5a32' },
-  momotxorro: { ...COSTUMES.momotxorro, traje: 'momotxorro', height: 1.8 },   // (un mozo alto: la cesta y los cuernos ya lo agrandan)
+  momotxorro: { ...COSTUMES.momotxorro, myth: 'momotxorro', traje: 'momotxorro', height: 1.8 },   // (un mozo alto: la cesta y los cuernos ya lo agrandan)
   'miel-otxin': { traje: 'miel-otxin', shirt: '#e03c3c', ribbons: true, pants: '#f2c230', hat: 'cone', hatColor: '#3a8fd6', height: 2.1, build: 1.2, face: 'angry' },
-  zarratrako: { shirt: '#8a6a4a', pattern: 'stripes', pattern2: '#3ca05a', pants: '#6b4a2e', fur: '#b08650', hat: 'mask', hatColor: '#3a2a1a', bell: true, stick: '#6b4a2e' },
+  zarratrako: { myth: 'zarratrako', shirt: '#8a6a4a', pattern: 'stripes', pattern2: '#3ca05a', pants: '#6b4a2e', fur: '#b08650', hat: 'mask', hatColor: '#3a2a1a', bell: true, stick: '#6b4a2e' },
   cascabobo: { traje: 'cascabobo', shirt: '#f2c230', pattern: 'dots', pattern2: '#e03c3c', pants: '#e03c3c', hat: 'cone', hatColor: '#e03c3c', bladder: true, face: 'happy' },
   irasko: { traje: 'irasko', shirt: '#3ca05a', pattern: 'check', pattern2: '#f2c230', pants: '#2b3a6b', hat: 'mask', hatColor: '#3ca05a', bell: true },
   paloki: { traje: 'paloki', shirt: '#b34fc4', ribbons: true, pants: '#f4f1ea', hat: 'cone', hatColor: '#f2c230', height: 2.0 },

@@ -198,7 +198,9 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
   hombre: 1.93, mujer: 1.81, joven_rubia: 1.8, carpintero: 1.94, carpintera: 1.8, quesero: 1.9, quesera: 1.79,
   panadero: 1.88, panadera: 1.78, campesino: 1.91, campesina: 1.8,
   // (los seres de leyenda: la lamia, de la altura de una mujer alta; el Basajaun, un gigante del bosque, como el de antes)
-  lamia: 1.84, basajaun: 2.5 };
+  lamia: 1.84, basajaun: 2.5,
+  // (y los del carnaval, de Meshy desde el 17 de noviembre de 2026: mozos altos, con el gorro, la cesta o los cuernos encima)
+  joaldun: 2.05, bobo: 1.9, momotxorro: 2.15, zarratrako: 2.05 };
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
  *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
 export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };

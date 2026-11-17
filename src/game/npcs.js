@@ -27,9 +27,9 @@ export function npcDefs() {
     { id: 'lamia', name: 'Lamia', color: '#2f8f8a', x: PLACES.pond.x - PLACES.pond.r - 3.5, z: PLACES.pond.z + 2, heading: Math.PI / 2,
       look: { myth: 'lamia', skin: '#f6dcc8', hair: '#f3c94a', longHair: true, eyes: '#2f7f7a', shirt: '#9fd6d2', skirt: '#5fb0a8', pants: '#f6dcc8', feet: 'duck', crown: true } },
     { id: 'bobo', name: 'El Bobo', color: '#e03c3c', x: m.dance.x - 3, z: m.dance.z, heading: -Math.PI / 2,
-      look: { skin: '#f0c8a8', hair: '#3a2418', shirt: '#e03c3c', sleeves: '#f2c230', vest: '#3a8fd6', pants: '#3ca05a', hat: 'mask', hatColor: '#f2c230', castanets: true, shoes: '#1a1a1a' } },
+      look: { myth: 'bobo', skin: '#f0c8a8', hair: '#3a2418', shirt: '#e03c3c', sleeves: '#f2c230', vest: '#3a8fd6', pants: '#3ca05a', hat: 'mask', hatColor: '#f2c230', castanets: true, shoes: '#1a1a1a' } },
     { id: 'zarratrako', name: 'Zarratrako', color: '#6b5a48', x: 0, z: 0, heading: 0, hidden: true,
-      look: { skin: '#e2b08a', hair: '#2a2a2a', fur: '#e8dcc0', shirt: '#e8dcc0', pants: '#4a4038', hat: 'mask', hatColor: '#2b2b2b', bell: true, staff: true, height: 1.8, build: 1.2 } },
+      look: { myth: 'zarratrako', skin: '#e2b08a', hair: '#2a2a2a', fur: '#e8dcc0', shirt: '#e8dcc0', pants: '#4a4038', hat: 'mask', hatColor: '#2b2b2b', bell: true, staff: true, height: 1.8, build: 1.2 } },
   ];
 }
 

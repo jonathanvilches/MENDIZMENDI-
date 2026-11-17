@@ -73,6 +73,10 @@ export const VECINOS = {
   // mismos (su edad, «leyenda», no la tiene nadie de la calle) y solo se cargan en el pueblo donde salen (vecinosDelPueblo).
   // El Basajaun lleva un pie de persona y una pezuña, como en el boceto
   lamia: { s: 'f', e: 'leyenda', ser: 'lamia' }, basajaun: { s: 'm', e: 'leyenda', ser: 'basajaun' },
+  // (y las figuras del carnaval, de los bocetos que aprobó el autor el 17 de noviembre de 2026: el Bobo y el Zarratrako de
+  // Otsagabia, el joaldun de Ituren y el momotxorro de Altsasu, que salen en las misiones de carnaval de sus pueblos)
+  joaldun: { s: 'm', e: 'leyenda', ser: 'joaldun' }, bobo: { s: 'm', e: 'leyenda', ser: 'bobo' },
+  momotxorro: { s: 'm', e: 'leyenda', ser: 'momotxorro' }, zarratrako: { s: 'm', e: 'leyenda', ser: 'zarratrako' },
 };
 const VEC = Object.keys(VECINOS);
 /** El modelo de Meshy de este ser de leyenda (la lamia, el Basajaun), o null. */
@@ -150,16 +154,17 @@ const BUST_PELO = Object.fromEntries(Object.entries(import.meta.glob('../assets/
   .map(([f, u]) => [f.split('/').pop().replace('.webp', ''), u]));
 // los que carga cada pueblo: los que dan sus misiones y hablan en él (los que salen en sus datos con nombre y aspecto)
 // y, para la gente de la calle, mayores, niños y adultos de cada sexo, fijos para cada pueblo
-const SERES_DE = { 'otsagabia-ochagavia': ['lamia', 'basajaun'] };
+const SERES_DE = { 'otsagabia-ochagavia': ['lamia', 'basajaun', 'bobo', 'zarratrako'] };
 function vecinosDelPueblo(d) {
   const quiero = new Set(), vistos = new Set();
   const mira = (o, prof = 0) => {
     if (!o || typeof o !== 'object' || prof > 7 || vistos.has(o)) return; vistos.add(o);
     if (o.look && typeof o.look === 'object') { const k = serDe(o.look) || vecinoPara(o.look, o.name || o.who || ''); if (k) quiero.add(k); }
+    if (o.type === 'carnival' && VECINOS[o.character]?.ser) quiero.add(o.character);   // (las figuras del carnaval que salen en sus misiones)
     for (const v of Array.isArray(o) ? o : Object.values(o)) mira(v, prof + 1);
   };
   mira(d);
-  // (en Otsagabia, la lamia y el Basajaun salen en game/npcs.js, no en los datos del pueblo)
+  // (en Otsagabia, la lamia, el Basajaun, el Bobo y el Zarratrako salen en game/npcs.js, no en los datos del pueblo)
   for (const k of SERES_DE[d?.id] || []) quiero.add(k);
   let h = 7; for (const c of String(d?.id || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const de = (lista, cuantos) => { for (let i = 0; i < cuantos; i++) quiero.add(lista[(h + i * 7 + (h >>> 5)) % lista.length]); };
