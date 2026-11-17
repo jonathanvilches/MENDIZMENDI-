@@ -2,6 +2,7 @@
 // Uso: node tools/trailer/montar.mjs <planos rodados> <fotos fijas> <música.wav> <salida.mp4>
 //   CUADROS=24,250,…  en vez del vídeo, guarda esos fotogramas sueltos (en la carpeta de la salida) para revisarlos
 //   DESDE=s HASTA=s   solo ese trozo (para probar)
+//   MONTAJE=montaje-inversores.js  otro montaje (el del tráiler para inversores); la duración la da el propio montaje
 import { chromium } from 'playwright-core';
 import { readFileSync, readdirSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { spawn } from 'node:child_process';
@@ -10,7 +11,7 @@ import { fileURLToPath } from 'node:url';
 const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..');
 const [, , planos, fijas, musica, salida] = process.argv;
 const CUADROS = process.env.CUADROS ? process.env.CUADROS.split(',').map(Number) : null;
-const FPS = 24, N = 60 * FPS, i0 = Math.round((+process.env.DESDE || 0) * FPS), i1 = Math.min(N, Math.round((+process.env.HASTA || 60) * FPS));
+const FPS = 24, MONTAJE = process.env.MONTAJE || 'montaje.js';
 const cuantos = {};
 for (const d of readdirSync(planos, { withFileTypes: true })) if (d.isDirectory()) cuantos[d.name] = readdirSync(join(planos, d.name)).filter(f => f.endsWith('.jpg')).length;
 const TIPO = { '.jpg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.woff2': 'font/woff2', '.js': 'text/javascript', '.html': 'text/html' };
@@ -18,7 +19,7 @@ const FUENTES = [join(RAIZ, 'node_modules/@fontsource/barlow-condensed/files'), 
 const archivo = (ruta) => {
   if (ruta === '/') return { body: '<!doctype html><meta charset="utf-8"><body style="margin:0;background:#000"><script type="module">import * as M from "/montaje.js"; window.M = M;</script>', ct: 'text/html' };
   let f = null;
-  if (ruta === '/montaje.js') f = join(AQUI, 'montaje.js');
+  if (ruta === '/montaje.js') f = join(AQUI, MONTAJE);
   else if (ruta.startsWith('/p/')) f = join(planos, ruta.slice(3));
   else if (ruta.startsWith('/f/')) f = join(fijas, ruta.slice(3));
   else if (ruta.startsWith('/a/')) f = join(RAIZ, 'src/assets', ruta.slice(3));
@@ -32,7 +33,9 @@ p.on('pageerror', e => errs.push(e.message.slice(0, 200))); p.on('console', m =>
 await p.route('http://hz.local/**', (r) => { const u = new URL(r.request().url()), a = archivo(decodeURIComponent(u.pathname)); a ? r.fulfill({ status: 200, contentType: a.ct, body: a.body }) : r.fulfill({ status: 404, body: 'no' }); });
 await p.goto('http://hz.local/');
 await p.waitForFunction(() => window.M, null, { timeout: 60000 });
-console.log(await p.evaluate((c) => window.M.prepara(c), cuantos), cuantos);
+const info = await p.evaluate((c) => window.M.prepara(c), cuantos); console.log(info, cuantos);
+// (cuántos fotogramas tiene: lo dice el montaje; 60 s el primero, 75 s el de inversores)
+const N = info.fotogramas, i0 = Math.round((+process.env.DESDE || 0) * FPS), i1 = Math.min(N, Math.round((+process.env.HASTA || N / FPS) * FPS));
 const foto = async (i) => Buffer.from((await p.evaluate((i) => window.M.cuadro(i), i)).split(',')[1], 'base64');
 const t0 = Date.now();
 if (CUADROS) {

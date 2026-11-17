@@ -7,7 +7,8 @@
 //   (URL=http://127.0.0.1:5173/ por defecto: el servidor de pruebas, que sirve /src y deja importar los módulos)
 import { chromium } from 'playwright-core';
 import { mkdirSync, writeFileSync, readdirSync } from 'node:fs';
-import { PLANOS, FPS } from './planos.mjs';
+// (PLANOS=./planos-inversores.mjs: los del tráiler para inversores)
+const { PLANOS, FPS, AYUDA } = await import(process.env.PLANOS || './planos.mjs');
 const [, , nombres, out, modo] = process.argv;
 const prueba = modo === 'prueba', URL = process.env.URL || 'http://127.0.0.1:5173/';
 const [W, H] = prueba ? [960, 540] : [1920, 1080];
@@ -41,7 +42,7 @@ for (const nombre of nombres.split(',')) {
   // (que suba antes todo lo que se ve: texturas pintadas, árboles, vecinos; si no, salían las casas sin textura)
   await p.waitForTimeout(P.espera ?? 9000);
   // el rodaje: el bucle parado; cada paso avanza el mundo, mueve la cámara del plano y devuelve la imagen
-  await p.evaluate(async ([prep, cuadro, despues]) => {
+  await p.evaluate(async ([prep, cuadro, despues, ayuda]) => {
     const rt = window.__rt, G = window.__game, THREE = window.__THREE, H = window.__hf;
     const CF = await import('/src/engine/charLight.js').catch(() => null);
     rt.active = false; G.ui.hudVisible?.(false);
@@ -79,6 +80,7 @@ for (const nombre of nombres.split(',')) {
       },
     };
     window.__U = U;
+    if (ayuda) eval('(' + ayuda + ')')();   // (las ayudas de los planos, si las hay: planos-inversores.mjs)
     // (la cámara del plano por la vía del juego: así la copa de los árboles no se abre ante el personaje, que es lo que
     // hace al jugar para que no lo tape)
     const S = window.__shot = { prep: eval('(' + prep + ')'), cuadro: eval('(' + cuadro + ')'), despues: despues ? eval('(' + despues + ')') : null, t: 0, est: {} };
@@ -101,7 +103,7 @@ for (const nombre of nombres.split(',')) {
       G.input.endFrame?.();
       return rt.renderer.domElement.toDataURL('image/jpeg', 0.93);
     };
-  }, [P.prep.toString(), P.cuadro.toString(), P.despues ? P.despues.toString() : null]);
+  }, [P.prep.toString(), P.cuadro.toString(), P.despues ? P.despues.toString() : null, AYUDA ? AYUDA.toString() : null]);
   const n = Math.round(P.seg * FPS), dt = 1 / FPS;
   // (unos pasos antes de empezar, para que el mundo esté asentado: animales, vecinos y luz)
   const antes = P.antes ?? 12;

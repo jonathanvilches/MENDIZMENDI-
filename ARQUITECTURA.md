@@ -3795,3 +3795,25 @@ git push origin master:main
   Labrit) y solo tres planos de Higgsfield. Muestras públicas de seis voces de narrador en castellano de España en
   `entrega/trailer/voces-muestra`, sacadas de la biblioteca de ElevenLabs sin gastar créditos; la voz se elige antes de
   generar nada. Quedaban 341,25 créditos de Higgsfield.
+- **Tráiler para inversores, primer montaje** (17 de noviembre de 2026). El autor: «Estos personajes quiero que los añadas
+  también al tráiler. El tráiler tiene que ir avanzando. El tráiler lo necesito cuanto antes». Las piezas, en
+  `tools/trailer/`:
+  - `rodar-mapa.mjs` graba el mapa del inicio fotograma a fotograma con un reloj propio (performance.now, Date.now y
+    requestAnimationFrame solo avanzan con `__paso`): Navarra entera, la cámara baja y la comarca sube como una isla. El
+    vuelo de dron sobre la isla tarda unos 15 s por fotograma con el pintado por software; con 11 s basta para el principio.
+  - `planos-inversores.mjs` son los planos del pueblo con los seis seres de Meshy, Maite, Joxemari y sus ovejas, Otsagabia
+    desde el aire y un partido en el Labrit. Sus ayudas (`AYUDA`) van a la página como texto, porque los planos se ejecutan
+    allí y no ven lo que hay fuera de su función. `frente` pone la cámara delante del personaje con un rumbo fijo y le gira
+    hacia ella en cada fotograma: las figuras del carnaval y los seres de leyenda giraban solos. El Zarratrako tiene el
+    frente al revés (`vuelta`). De noche los momotxorros huyen del jugador; en su plano se dan por encontrados. `despeja`
+    aparta a los vecinos que se cruzaban delante de la cámara. `rodar.mjs` carga otro archivo de planos con `PLANOS=`.
+  - `capturas-menu.mjs` saca las pantallas del juego a 1920 × 1080 (torneos, pasaporte, ventajas, láminas e insignias) con
+    un perfil de ejemplo que ya tiene sellos.
+  - `montaje-inversores.js` es el montaje de 75 s con el motor de `montaje.js`: tomas, textos, rótulos con el nombre de cada
+    personaje, el móvil tumbado con el partido dentro y la cámara del jugador en una esquina, y el logo con «Buscamos
+    socios para llevarlo a cada pueblo». Las tres frases que no se pudieron grabar con la voz de Salva salen escritas.
+    `montar.mjs` lo carga con `MONTAJE=montaje-inversores.js` y toma la duración del propio montaje.
+  - La voz va en una mezcla aparte: la música de los torneos, las seis frases de Salva en su sitio y la música que baja
+    sola cuando habla (compresión con la voz como llave), a unos -15 LUFS.
+  Aprovecha planos del tráiler de 60 s (fauna, pelota, público, Olite, plaza, mercado, subida, Javier y el horizonte).
+  Grabar a 1080p con el pintado por software tarda unos 6 s por fotograma: los 600 de los planos nuevos, una hora larga.
