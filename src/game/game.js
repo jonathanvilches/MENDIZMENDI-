@@ -759,7 +759,8 @@ export class Game {
     if (q.step !== 1) { a.visible = false; a.collider.ghost = true; a.sync(); this.zarra = null; return; }
     Z.bell -= dt;
     const d = Math.hypot(a.pos.x - P.x, a.pos.z - P.z);
-    if (Z.bell < 0) { Z.bell = d > 40 ? 1.6 : 1.0; for (let i = 0; i < 3; i++) setTimeout(() => this.sound.cowbell(a.pos, 1.2), i * 160); }
+    // (sus cencerros, que se oyen en todo el pueblo y cada vez más deprisa al acercarse: audio.js, cencerroGuia)
+    if (Z.bell < 0) { Z.bell = d > 70 ? 1.5 : d > 30 ? 1.1 : 0.75; this.sound.cencerroGuia(a.pos, 3); }
     // con el modelo nuevo no hay «torso» suelto: se balancea la figura entera
     if (a.J.torso) a.J.torso.rotation.z = Math.sin(this.elapsed * 8) * 0.12; else a.obj.rotation.z = Math.sin(this.elapsed * 8) * 0.08;
     if (a.J.bell) a.J.bell.rotation.z = Math.sin(this.elapsed * 14) * 0.5;

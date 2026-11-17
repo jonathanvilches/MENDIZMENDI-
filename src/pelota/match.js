@@ -302,7 +302,7 @@ export class PelotaMatch {
     this.hud.bolas(mio ? this.cesta.you : [this.bola], this.bola, mio, (b) => [t.kinds[clase(b)], pesoTxt(b)], mio ? (this.touch ? t.changeTouch : t.change) : t.cesta);
   }
   newGame() {
-    this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
+    this.hud?.root?.classList.remove('final'); this.callada = false; this.rachas = null; this.hl = []; this.hlN = 0; this.hlCola = null; this.hlTodos = null; this.hud?.setRacha?.('', '');   // (las rachas, de cero)
     this.com = new Comentarios(this.lang); this.com.sinMano = this.herrDe() !== 'mano'; this.com.tiene = tiene; this.forma = { mano: { you: [], rival: [] }, fallo: { you: [], rival: [] }, err: { you: 0, rival: 0 }, cort: { you: 0, rival: 0 }, ados: {}, perf: {}, lado: { you: '', rival: '' } }; this.comIni = false; this.vocesC = null; this.mpLider = null; this.escapo = false; this.mitadDicha = false; this.voz?.calla(); this.hud?.comenta?.(null);   // (los comentarios del partido: comenta.js)
     const o = this.o;
     this.cestaPorDefecto();
@@ -556,16 +556,19 @@ export class PelotaMatch {
     const P = {}; for (const id of g.ids) { const sd = this.o[id] || this.mateObjs?.[id]; if (sd?.obj && sd.obj.visible !== false) P[id] = [sd.obj.position.x, sd.obj.position.y, sd.obj.position.z, sd.obj.rotation.y, { ...(this.recSt?.[id] || {}) }]; }
     const b = g.ball.p; this.recT = (this.recT || 0) + dt; this.rec.push({ dt, b: [b.x, b.y, b.z], P, call: !!this.recCall }); this.recCall = false;
   }
-  startReplay() {
-    const F = this.rec || []; if (F.length < 30) return;
+  startReplay(F = this.rec || [], hl = null) {
+    if (F.length < 30) { if (hl) this.sigHl(); return; }
     let ts = 0; for (const f of F) { f.ts = ts; ts += f.dt; }
     const call = F.find(f => f.call)?.ts ?? ts, t0 = Math.max(0, call - 5);   // (los 5 últimos segundos del tanto y lo de después)
-    const RP = this.txt.replay || TEXT.es.replay;
-    const n = (this.repN = (this.repN || 0) + 1), w = n % 5 === 4 && F.some(f => f.P[this.lastWin]) ? this.lastWin : null;   // (una de cada cinco, desde el que gana)
-    this.replay = { F, t: t0, end: ts, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n, w };
-    const el = this.repEl = document.createElement('div'); el.className = 'pel-rep';
-    const pv = w ? `<span class="pv">${esc((RP.desde || TEXT.es.replay.desde)(this.nomLimpio(w)))}</span>` : '';
-    el.innerHTML = `<div class="pel-rep-b"><i aria-hidden="true"></i><b>${esc(RP.label)}</b>${pv}<span class="sl">${esc(RP.slow)}</span></div><small>${esc(RP.skip)}</small>`;
+    const RP = this.txt.replay || TEXT.es.replay, H = hl?.h, ganador = H ? H.winner : this.lastWin;
+    const n = (this.repN = (this.repN || 0) + 1), w = (H ? hl.n === 1 : n % 5 === 4) && F.some(f => f.P[ganador]) ? ganador : null;   // (una de cada cinco, desde el que gana; en los highlights, el mejor)
+    this.replay = { F, t: t0, end: ts, call, i: Math.max(0, F.findIndex(f => f.ts >= t0)), n, w, hl: !!H };
+    const el = this.repEl = document.createElement('div'); el.className = 'pel-rep' + (H ? ' hl' : '');
+    const pv = H ? `<span class="pv">${esc((RP.hlN || TEXT.es.replay.hlN)(hl.n))}</span>` : w ? `<span class="pv">${esc((RP.desde || TEXT.es.replay.desde)(this.nomLimpio(w)))}</span>` : '';
+    const que = H ? [H.nm, H.quien, H.marcador].filter(Boolean).join(' · ') : '';
+    el.innerHTML = `<div class="pel-rep-b"><i aria-hidden="true"></i><b>${esc(H ? (RP.hl || TEXT.es.replay.hl) : RP.label)}</b>${pv}<span class="sl">${esc(RP.slow)}</span></div>${que ? `<span class="pel-hl-que">${esc(que)}</span>` : ''}<small>${esc(RP.skip)}</small>`;
+    // (en los highlights, un rótulo grande en el centro al empezar cada uno: el número y lo que fue)
+    if (H) { this.hlEl?.remove(); const c = this.hlEl = document.createElement('div'); c.className = 'pel-hlts'; c.innerHTML = `<small>${esc(RP.hl || TEXT.es.replay.hl)}</small><b>${esc((RP.hlN || TEXT.es.replay.hlN)(hl.n))}</b>${que ? `<span>${esc(que)}</span>` : ''}`; this.hud.root.appendChild(c); setTimeout(() => { if (this.hlEl === c) { c.remove(); this.hlEl = null; } }, 2200); this.audio.aplauso(0.45, 2.6); }
     this.hud.root.appendChild(el); this.hud.root.classList.add('repe'); this.camInit = false; this.colocaRep();
     this.repSkip = (e) => { e.stopPropagation?.(); this.endReplay(); };
     this.repArm = setTimeout(() => { if (this.replay) { addEventListener('pointerdown', this.repSkip, true); addEventListener('keydown', this.repSkip, true); } }, 300);
@@ -624,6 +627,35 @@ export class PelotaMatch {
     this.replay = null; clearTimeout(this.repArm);
     removeEventListener('pointerdown', this.repSkip, true); removeEventListener('keydown', this.repSkip, true);
     this.repEl?.remove(); this.repEl = null; this.hud.root.classList.remove('repe'); this.camInit = false;
+    if (this.hlCola) this.sigHl();   // (en los highlights, el siguiente; tras el último, el panel del final)
+  }
+  // ------------------------------------------------------------ los highlights
+  // Los tres mejores tantos del partido, al acabar (lo pidió el autor el 17 de noviembre de 2026): de cada tanto se guarda su
+  // grabación con una nota (los golpes del peloteo, un golpe ganador de los que deciden, de volea, si lo ganas tú, el último
+  // tanto) y se quedan los tres mejores. Al final se repiten del tercero al primero, con su rótulo, y después el panel
+  guardaHl(e, limpio) {
+    const g = this.game, F = this.rec; if (!F || F.length < 30) return;
+    const u = this.ultGolpe, suyo = !!u && g.side(u.who) === e.winner && limpio;
+    const nota = (this.rallyN || 0) + (suyo ? 2.5 : 0) + (suyo && u.golpazo ? 4 : 0) + (suyo && u.volea ? 1.5 : 0) + (e.winner === 'you' ? 2 : 0) + (e.final ? 4 : 0) + Math.random() * 0.4;
+    const h = { F, nota, winner: e.winner, nm: suyo ? u.nm : '', quien: this.nomLimpio(e.winner), marcador: e.score ? `${e.score.you}-${e.score.rival}` : '', i: this.hlN = (this.hlN || 0) + 1 };
+    this.hl = [...(this.hl || []), h].sort((a, b) => b.nota - a.nota).slice(0, 3);
+  }
+  finPartido(e) {
+    const H = (this.hl || []).slice().sort((a, b) => a.nota - b.nota);   // (del tercero al primero)
+    if (this.game.mode === 'match' && H.length && !(navigator.webdriver && !window.__hl)) { this.hlTodos = H; this.verHl(e, 2400); } else this.endPanel(e);
+  }
+  // (los highlights empiezan cuando se ha visto el «¡Tanto y partido!» del último tanto, y ese rótulo se quita antes: si
+  // no, el rótulo grande del primero se montaba encima de él)
+  verHl(e, espera = 0) {
+    this.hud.closePanel(); this.hud.controls(false);
+    const va = () => { if (!this.active) return; this.hud.callT = 0; this.hud.$('.pel-call')?.classList.remove('on'); this.hud.root.classList.remove('calling');
+      this.hlCola = this.hlTodos.slice(); this.hlFin = e; this.sigHl(); };
+    if (espera > 0) setTimeout(va, espera); else va();
+  }
+  sigHl() {
+    const h = this.hlCola?.shift();
+    if (!h) { const e = this.hlFin; this.hlCola = null; this.hlFin = null; this.hlEl?.remove(); this.hlEl = null; if (e) this.endPanel(e); return; }
+    this.startReplay(h.F, { n: this.hlCola.length + 1, h });
   }
   stepReplay(dt) {
     const R = this.replay, C = this.court, T = this.T, grp = C.group;
@@ -778,13 +810,14 @@ export class PelotaMatch {
     const sub = RE ? `<p class="pel-sub">${RT.name[RE.kind]}</p>` : `<p class="pel-sub">${marca}${reto ? '' : ` <button class="pel-chip" data-pel-fichas>${t.fichas || TEXT.es.fichas}</button>`}</p>`;
     const p = this.hud.panel(`<h2>${pzResultado(!!e.win)}${titulo}</h2>${sub}
       <div class="pel-fin"><div class="pel-fin-a">${RE ? retoA : reto ? `<div class="pel-big">${big}</div>` : ''}${RE ? '' : this.claveBloque(g)}${xpHtml || (RE ? '' : `<div class="pel-fact"><b>${t.factsTitle}</b><br>${fact}</div>`)}</div><div class="pel-fin-b">${this.estBloque(g)}${RE ? '' : this.mapaBloque(g)}</div></div>
-      <div class="pel-row">${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${RE ? RT.otra : t.again}</button>`}<button class="pel-go" data-pel-cont>${this.o.back === 'retos' ? RT.cont : cont}</button></div>`);
+      <div class="pel-row">${this.hlTodos?.length ? `<button class="pel-go alt" data-pel-hl>${esc((t.replay || TEXT.es.replay).hlVer || TEXT.es.replay.hlVer)}</button>` : ''}${this.o.back === 'torneo' ? '' : `<button class="pel-go alt" data-pel-again>${RE ? RT.otra : t.again}</button>`}<button class="pel-go" data-pel-cont>${this.o.back === 'retos' ? RT.cont : cont}</button></div>`);
     tap(p, (b) => {
       if (b.hasAttribute('data-pel-again')) {   // (la revancha, también con su elección de material)
         this.newGame(); const va = () => { if (!this.active) return; this.hud.controls(true); this.game.start(); this.audio.mood(0.22, 0.6); };
         if (this.game.mode === 'match' && !window.__autoWin && !(navigator.webdriver && !window.__material)) this.eleccion().then(va); else { this.hud.closePanel(); va(); }
       }
       if (b.hasAttribute('data-pel-cont')) this.finish(e);
+      if (b.hasAttribute('data-pel-hl')) this.verHl(e);   // (volver a ver los highlights)
       if (b.hasAttribute('data-pel-fichas')) this.ficha('rival');
     });
     this.result = e;
@@ -1153,7 +1186,7 @@ export class PelotaMatch {
   onEvent(e) {
     const t = this.txt, g = this.game, A = this.audio, C = this.court;
     // (al cantar el tanto, la repetición, salvo en las pruebas automáticas)
-    if (e.type === 'call') { this.recCall = true; if (g.mode === 'match' && this.repe && this.rec?.length > 30 && !(navigator.webdriver && !window.__repe)) this.repAt = this.t + 1.15; }
+    if (e.type === 'call') { this.recCall = true; if (g.mode === 'match' && this.repe && !e.final && this.rec?.length > 30 && !(navigator.webdriver && !window.__repe)) this.repAt = this.t + 1.15; }   // (el último tanto no: luego vienen los highlights)
     switch (e.type) {
       case 'serveReady':   // (cansado y con descansos, ya no hay aviso escrito: brilla el botón de la pelota y el descanso)
         this.callada = false;
@@ -1187,6 +1220,7 @@ export class PelotaMatch {
         // (el nombre, por lo que hace de verdad la pelota: game.js, nombreReal)
         { const SH = t.shots || TEXT.es.shots, kk = e.real ?? e.shot, ss = e.real != null ? e.realSub : e.sub, nm = (ss && SH[ss]) || SH[kk] || '';
           this.golpazo = !!nm && !['pared', 'ancho', 'largo', 'rebote', 'normal'].includes(kk);
+          this.ultGolpe = { who: e.who, nm, golpazo: this.golpazo, volea: !!e.volea };   // (para los highlights: el golpe que decide)
           const pelotazo = this.golpazo && e.label === 'perfect' && pw >= 0.9;
           const rotulo = e.volea ? (t.deAire || TEXT.es.deAire) : pelotazo ? nm : '';
           if (rotulo && e.q > 0.3) this.hud.golpe(rotulo, this.cols[g.side(e.who)]);
@@ -1238,10 +1272,10 @@ export class PelotaMatch {
         // solo en el partido, no entrenando ni en los retos. El autor, 17 de noviembre de 2026)
         const limpio = e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call];
         A.point(limpio, e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)), g.mode === 'match' && !limpio && e.winner !== 'you');
-        if (g.mode === 'match') this.comTanto(e);
+        if (g.mode === 'match') { this.comTanto(e); this.guardaHl(e, limpio); }
         break;
       }
-      case 'end': this.endPanel(e); break;
+      case 'end': this.finPartido(e); break;
     }
   }
   // Las rachas de un partido, como las cuenta la tele: tres tantos seguidos o más; y si el que iba tres o más por detrás

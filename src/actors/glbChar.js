@@ -194,16 +194,38 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
   // delgadas (lo vio el autor el 12 de noviembre): ahora le sacan un 23-25 % y los hombres un 30-34 %. Con la variedad de
   // cada vecino (±3 %), el mayor más bajo mide 1,66 y el niño más alto 1,28. Las puertas de las casas miden 2,4 m
   abuelo_bigote: 1.79, abuelo_barba: 1.81, abuelo: 1.84, abuela_trenzas: 1.72, abuela_mono: 1.71, abuela_panuelo: 1.74,
-  nino_moreno: 1.2, nino_rubio: 1.24, nina_pelirroja: 1.17, nina_trenzas: 1.13,
+  // (los niños, desde el 17 de noviembre de 2026, «un poquito más bajos» que los adultos, como pidió el autor, y aún por
+  // debajo del explorador: antes medían 1,13-1,24 y parecían muñecos al lado de un adulto)
+  nino_moreno: 1.36, nino_rubio: 1.4, nina_pelirroja: 1.34, nina_trenzas: 1.32,
   hombre: 1.93, mujer: 1.81, joven_rubia: 1.8, carpintero: 1.94, carpintera: 1.8, quesero: 1.9, quesera: 1.79,
-  panadero: 1.88, panadera: 1.78, campesino: 1.91, campesina: 1.8,
+  panadero: 1.88, panadera: 1.78, campesino: 1.93, campesina: 1.8,   // (el campesino, como el hombre: lo pidió el autor)
   // (los seres de leyenda: la lamia, de la altura de una mujer alta; el Basajaun, un gigante del bosque, como el de antes)
-  lamia: 1.84, basajaun: 2.5,
+  lamia: 1.9, basajaun: 2.5,   // (la lamia, del tamaño del hombre, como pidió el autor el 17 de noviembre de 2026)
   // (y los del carnaval, de Meshy desde el 17 de noviembre de 2026: mozos altos, con el gorro, la cesta o los cuernos encima.
   // La altura cuenta el gorro, así que el joaldun, con un gorro de cintas que es casi un sexto de su alto y una cabeza más
   // pequeña que la de los vecinos, parecía un niño a su lado: el autor pidió que tuviera el tamaño de un adulto del juego.
   // Con 2,25 su cara queda a la altura de la de un vecino adulto; el Zarratrako, con el mismo problema por su gorro, 2,15)
   joaldun: 2.25, bobo: 1.9, momotxorro: 2.15, zarratrako: 2.15 };
+// LAS PROPORCIONES, iguales para todos (el autor, 17 de noviembre de 2026: «los personajes no tienen el mismo tamaño de
+// cabeza, de cara; hay que unificarlos, estilo joaldun y el campesino»). Medido con los huesos de cada modelo (de la base
+// del cráneo, Head, a la coronilla, HeadTop_End; tools/proporciones-personajes.mjs): el campesino mide 4,99 cabezas y el
+// joaldun 4,88, pero el hombre, la mujer, los mayores, el explorador y los cuerpos de los trajes, 3,2-3,7 (cabezones), y
+// la lamia y el Basajaun, 6,6-6,7 (cabeza pequeña). Hasta tener modelos nuevos de Meshy (la auditoría,
+// entrega/personajes/auditoria-estilo.html), el hueso de la cabeza de cada uno se escala para llegar a unas 4,75 cabezas
+// los adultos, 4,6 los mayores, 4,3 el explorador y 4,1 los niños (k = (cabezas - 1) / (objetivo - 1)), y después todo el
+// personaje para que siga midiendo su altura: así el cuerpo y los hombros crecen lo que encoge la cabeza. Para volver a
+// como estaban, PROPORCION = false
+const PROPORCION = true;
+const SIN_GIRO_CABEZA = new Set(['zarratrako']);
+export const CABEZA = {
+  hombre: 0.61, carpintero: 0.71, quesero: 0.93, panadero: 0.78, mujer: 0.69, joven_rubia: 0.7, carpintera: 0.71, panadera: 0.93,
+  abuelo_bigote: 0.69, abuelo_barba: 0.63, abuelo: 0.64, abuela_trenzas: 0.69, abuela_mono: 0.73, abuela_panuelo: 0.69,
+  nino_moreno: 0.82, nino_rubio: 0.8, nina_pelirroja: 0.82, nina_trenzas: 0.83, explorador: 0.67, exploradora: 0.75,
+  // (el pelotari no: ya mide 4,3 cabezas y sus golpes, su saque y la vista en primera persona salen de su esqueleto)
+  sanfermin: 0.58, pastor: 0.61, osasuna: 0.59, osasuna_fuera: 0.59,
+  // (la lamia, el Bobo y el Basajaun, al revés: cabeza más grande; el Basajaun, gigante, se queda en unas 5,5)
+  lamia: 1.52, bobo: 1.27, basajaun: 1.25,
+};
 /** Ritmo de las piernas de los personajes de Meshy según su zancada real (tools/zancada.mjs: andar ~0,92 m/s y correr
  *  ~1,62 m/s a ritmo 1). Andando, su clip de andar (hasta ×2,1); corriendo (desde 3,6 m/s), el de correr (hasta ×2,8). */
 export const MESHY_GAIT = { walkAt: 0.15, runAt: 3.6, gait: (v, n) => n === 'Run' ? Math.min(2.8, Math.max(0.8, v / 1.62)) : Math.min(2.1, Math.max(0.4, v / 0.92)) };
@@ -228,6 +250,16 @@ export async function loadMeshy(name, lod = false, completo = false) {
     // (los vecinos, actors/npcGlb.js: sus originales, en src/assets/meshy/vecinos, no se publican; el juego lleva su versión
     // ligera y solo el servidor de desarrollo sirve el original, para sus retratos: tools/meshy-retratos.mjs)
     const g = await loadChar(lod ? MESHY_LOD[name] : completo ? VEC_FULL[name] : MESHY[name] || (import.meta.env.DEV ? `/src/assets/meshy/vecinos/${name}.glb` : MESHY_LOD[name]));
+    // (las proporciones de todos, CABEZA: la cabeza a su tamaño; sin la escala de la cabeza que traen algunos clips, que
+    // la devolvería a 1 en cada fotograma)
+    const kCab = PROPORCION ? CABEZA[name] || 1 : 1;
+    if (kCab !== 1) { let head = null; g.scene.traverse(o => { if (!head && o.isBone && /Head$/.test(o.name)) head = o; });
+      if (head) { head.scale.setScalar(kCab); head.userData.cabK = kCab; for (const a of g.animations) a.tracks = a.tracks.filter(t => !/Head\.scale$/.test(t.name)); } }
+    // (el Zarratrako, con la cabeza quieta respecto al cuerpo: su cara va dentro de las cintas del gorro, que cuelgan del
+    // cuerpo, y al girar la cabeza la cara se salía de ellas; lo vio el autor el 17 de noviembre de 2026. Sin el giro de la
+    // cabeza de sus animaciones ni el de mirar a quien le habla, GlbChar con sinGiroCabeza)
+    const quieta = SIN_GIRO_CABEZA.has(name);
+    if (quieta) for (const a of g.animations) a.tracks = a.tracks.filter(t => !/(Head|Neck)\.quaternion$/.test(t.name));
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
@@ -253,7 +285,9 @@ export async function loadMeshy(name, lod = false, completo = false) {
       for (const c of pel) { c.userData = {}; animations.push(c); }
       const q = pel.find(c => c.name === 'Idle'); if (q) { const st = q.clone(); st.name = 'Still'; st.userData = {}; animations.push(st); }
     }
-    const box = new THREE.Box3().setFromObject(g.scene), fit = height / Math.max(0.1, box.max.y - box.min.y);
+    // (con la cabeza cambiada, la altura se mide con la malla deformada por sus huesos: si no, saldría la de antes)
+    if (kCab !== 1) g.scene.updateMatrixWorld(true);
+    const box = new THREE.Box3().setFromObject(g.scene, kCab !== 1), fit = height / Math.max(0.1, box.max.y - box.min.y);
     // (los dedos: huesos nuevos en cada falange, para que las manos se doblen y agarren; dedos.js. Después de las posturas de
     // armado, que no deben tocarlos. También en la versión ligera de los vecinos del pueblo, que es la que llevan siempre,
     // y en la de los cuerpos de los disfrazados (DEDOS_LIGEROS), que llevan en la mano el isipu, la escoba o la espada
@@ -261,7 +295,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     let dedos = null;
     if (CON_DEDOS && (!lod || !MESHY[name] || DEDOS_LIGEROS.has(name))) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; });
       if (h) { g.scene.updateMatrixWorld(true); try { dedos = ponDedos(g.scene, h.getWorldScale(new THREE.Vector3()).x * fit); } catch (e) { console.warn('dedos', name, e); } } }
-    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(armados ? { armados } : {}), ...(dedos ? { dedos } : {}) } };
+    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(quieta ? { sinGiroCabeza: true } : {}), ...(armados ? { armados } : {}), ...(dedos ? { dedos } : {}) } };
   })());
   return cache.get(key);
 }
@@ -356,7 +390,7 @@ export class GlbChar {
     this.lookT = 1 + Math.random() * 2;
     this.talkT = 0;
     this._initSprings();
-    this.headBone = this.bones.Head || this.bones.mixamorigHead || null; this.headYaw = 0;
+    this.headBone = gltf.userData?.sinGiroCabeza ? null : this.bones.Head || this.bones.mixamorigHead || null; this.headYaw = 0;
     this.postBones = [...this.eyeBones, ...this.springs.map(s => s.b), ...(this.headBone ? [this.headBone] : [])];
     for (const b of this.postBones) b.userData.q0 = b.quaternion.clone();
     if (opt.outline) this._addOutline(opt.outline);

@@ -1,0 +1,332 @@
+{
+ "hombre": {
+  "alto": 1.93,
+  "estatura": 1.9,
+  "cabeza": 0.303,
+  "cabezas": 3.3,
+  "hombros": 0.211,
+  "torso": 0.207,
+  "piernas": 0.449,
+  "cabezaM": 0.574
+ },
+ "campesino": {
+  "alto": 1.91,
+  "estatura": 1.87,
+  "cabeza": 0.2,
+  "cabezas": 4.99,
+  "hombros": 0.227,
+  "torso": 0.234,
+  "piernas": 0.496,
+  "cabezaM": 0.375
+ },
+ "carpintero": {
+  "alto": 1.94,
+  "estatura": 1.91,
+  "cabeza": 0.272,
+  "cabezas": 3.67,
+  "hombros": 0.19,
+  "torso": 0.191,
+  "piernas": 0.483,
+  "cabezaM": 0.52
+ },
+ "quesero": {
+  "alto": 1.9,
+  "estatura": 1.84,
+  "cabeza": 0.223,
+  "cabezas": 4.48,
+  "hombros": 0.205,
+  "torso": 0.195,
+  "piernas": 0.519,
+  "cabezaM": 0.411
+ },
+ "panadero": {
+  "alto": 1.88,
+  "estatura": 1.85,
+  "cabeza": 0.255,
+  "cabezas": 3.92,
+  "hombros": 0.211,
+  "torso": 0.214,
+  "piernas": 0.477,
+  "cabezaM": 0.471
+ },
+ "mujer": {
+  "alto": 1.81,
+  "estatura": 1.79,
+  "cabeza": 0.278,
+  "cabezas": 3.6,
+  "hombros": 0.19,
+  "torso": 0.194,
+  "piernas": 0.478,
+  "cabezaM": 0.496
+ },
+ "joven_rubia": {
+  "alto": 1.8,
+  "estatura": 1.76,
+  "cabeza": 0.275,
+  "cabezas": 3.64,
+  "hombros": 0.173,
+  "torso": 0.195,
+  "piernas": 0.482,
+  "cabezaM": 0.483
+ },
+ "campesina": {
+  "alto": 1.8,
+  "estatura": 1.78,
+  "cabeza": 0.206,
+  "cabezas": 4.86,
+  "hombros": 0.164,
+  "torso": 0.184,
+  "piernas": 0.554,
+  "cabezaM": 0.366
+ },
+ "carpintera": {
+  "alto": 1.8,
+  "estatura": 1.68,
+  "cabeza": 0.273,
+  "cabezas": 3.67,
+  "hombros": 0.188,
+  "torso": 0.193,
+  "piernas": 0.482,
+  "cabezaM": 0.457
+ },
+ "quesera": {
+  "alto": 1.79,
+  "estatura": 1.76,
+  "cabeza": 0.206,
+  "cabezas": 4.86,
+  "hombros": 0.172,
+  "torso": 0.187,
+  "piernas": 0.548,
+  "cabezaM": 0.361
+ },
+ "panadera": {
+  "alto": 1.78,
+  "estatura": 1.75,
+  "cabeza": 0.223,
+  "cabezas": 4.49,
+  "hombros": 0.165,
+  "torso": 0.162,
+  "piernas": 0.557,
+  "cabezaM": 0.389
+ },
+ "abuelo_bigote": {
+  "alto": 1.79,
+  "estatura": 1.7,
+  "cabeza": 0.286,
+  "cabezas": 3.5,
+  "hombros": 0.229,
+  "torso": 0.228,
+  "piernas": 0.443,
+  "cabezaM": 0.487
+ },
+ "abuelo_barba": {
+  "alto": 1.81,
+  "estatura": 1.78,
+  "cabeza": 0.306,
+  "cabezas": 3.27,
+  "hombros": 0.202,
+  "torso": 0.195,
+  "piernas": 0.457,
+  "cabezaM": 0.545
+ },
+ "abuelo": {
+  "alto": 1.84,
+  "estatura": 1.26,
+  "cabeza": 0.013,
+  "cabezas": 78.34,
+  "hombros": 0.322,
+  "torso": 0.346,
+  "piernas": 0.583,
+  "cabezaM": 0.016
+ },
+ "abuela_trenzas": {
+  "alto": 1.72,
+  "estatura": 1.67,
+  "cabeza": 0.287,
+  "cabezas": 3.49,
+  "hombros": 0.215,
+  "torso": 0.202,
+  "piernas": 0.467,
+  "cabezaM": 0.479
+ },
+ "abuela_mono": {
+  "alto": 1.71,
+  "estatura": 1.66,
+  "cabeza": 0.275,
+  "cabezas": 3.63,
+  "hombros": 0.203,
+  "torso": 0.15,
+  "piernas": 0.533,
+  "cabezaM": 0.456
+ },
+ "abuela_panuelo": {
+  "alto": 1.74,
+  "estatura": 1.23,
+  "cabeza": -0.001,
+  "cabezas": -808.1,
+  "hombros": 0.307,
+  "torso": 0.298,
+  "piernas": 0.6,
+  "cabezaM": -0.002
+ },
+ "nino_moreno": {
+  "alto": 1.2,
+  "estatura": 1.14,
+  "cabeza": 0.282,
+  "cabezas": 3.55,
+  "hombros": 0.179,
+  "torso": 0.192,
+  "piernas": 0.478,
+  "cabezaM": 0.323
+ },
+ "nino_rubio": {
+  "alto": 1.24,
+  "estatura": 1.2,
+  "cabeza": 0.288,
+  "cabezas": 3.47,
+  "hombros": 0.172,
+  "torso": 0.18,
+  "piernas": 0.482,
+  "cabezaM": 0.345
+ },
+ "nina_pelirroja": {
+  "alto": 1.17,
+  "estatura": 1.11,
+  "cabeza": 0.283,
+  "cabezas": 3.54,
+  "hombros": 0.186,
+  "torso": 0.184,
+  "piernas": 0.484,
+  "cabezaM": 0.315
+ },
+ "nina_trenzas": {
+  "alto": 1.13,
+  "estatura": 1.11,
+  "cabeza": 0.279,
+  "cabezas": 3.58,
+  "hombros": 0.174,
+  "torso": 0.149,
+  "piernas": 0.528,
+  "cabezaM": 0.311
+ },
+ "explorador": {
+  "alto": 1.45,
+  "estatura": 1.43,
+  "cabeza": 0.311,
+  "cabezas": 3.22,
+  "hombros": 0.232,
+  "torso": 0.198,
+  "piernas": 0.45,
+  "cabezaM": 0.443
+ },
+ "exploradora": {
+  "alto": 1.43,
+  "estatura": 1.36,
+  "cabeza": 0.288,
+  "cabezas": 3.47,
+  "hombros": 0.191,
+  "torso": 0.176,
+  "piernas": 0.494,
+  "cabezaM": 0.391
+ },
+ "sanfermin": {
+  "alto": 1.6,
+  "estatura": 1.6,
+  "cabeza": 0.313,
+  "cabezas": 3.19,
+  "hombros": 0.207,
+  "torso": 0.202,
+  "piernas": 0.445,
+  "cabezaM": 0.501
+ },
+ "pastor": {
+  "alto": 1.6,
+  "estatura": 1.6,
+  "cabeza": 0.305,
+  "cabezas": 3.28,
+  "hombros": 0.209,
+  "torso": 0.202,
+  "piernas": 0.454,
+  "cabezaM": 0.487
+ },
+ "osasuna": {
+  "alto": 1.6,
+  "estatura": 1.6,
+  "cabeza": 0.311,
+  "cabezas": 3.22,
+  "hombros": 0.207,
+  "torso": 0.204,
+  "piernas": 0.445,
+  "cabezaM": 0.498
+ },
+ "pelotari": {
+  "alto": 1.62,
+  "estatura": 1.62,
+  "cabeza": 0.231,
+  "cabezas": 4.34,
+  "hombros": 0.216,
+  "torso": 0.217,
+  "piernas": 0.511,
+  "cabezaM": 0.373
+ },
+ "joaldun": {
+  "alto": 2.25,
+  "estatura": 1.92,
+  "cabeza": 0.205,
+  "cabezas": 4.88,
+  "hombros": 0.263,
+  "torso": 0.211,
+  "piernas": 0.537,
+  "cabezaM": 0.394
+ },
+ "bobo": {
+  "alto": 1.9,
+  "estatura": 1.88,
+  "cabeza": 0.173,
+  "cabezas": 5.76,
+  "hombros": 0.197,
+  "torso": 0.224,
+  "piernas": 0.562,
+  "cabezaM": 0.325
+ },
+ "momotxorro": {
+  "alto": 2.15,
+  "estatura": 2.1,
+  "cabeza": 0.278,
+  "cabezas": 3.6,
+  "hombros": 0.272,
+  "torso": 0.227,
+  "piernas": 0.454,
+  "cabezaM": 0.583
+ },
+ "zarratrako": {
+  "alto": 2.15,
+  "estatura": 2.08,
+  "cabeza": 0.203,
+  "cabezas": 4.92,
+  "hombros": 0.23,
+  "torso": 0.206,
+  "piernas": 0.542,
+  "cabezaM": 0.422
+ },
+ "lamia": {
+  "alto": 1.84,
+  "estatura": 1.82,
+  "cabeza": 0.149,
+  "cabezas": 6.7,
+  "hombros": 0.179,
+  "torso": 0.204,
+  "piernas": 0.606,
+  "cabezaM": 0.271
+ },
+ "basajaun": {
+  "alto": 2.5,
+  "estatura": 2.47,
+  "cabeza": 0.151,
+  "cabezas": 6.61,
+  "hombros": 0.319,
+  "torso": 0.252,
+  "piernas": 0.556,
+  "cabezaM": 0.374
+ }
+}

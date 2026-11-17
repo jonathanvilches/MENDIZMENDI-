@@ -11,6 +11,7 @@
 // Se guarda en localStorage ('herrizherri-torneo-v1'): uno de cada campeonato por comarca. (Los de antes, de ocho y tres
 // rondas, que ya iban por la mitad, se acaban con su cuadro de siempre; los que no habían empezado, se rehacen.)
 import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
+import { carrusel3d, CSS_CARRUSEL3D } from './carrusel3d.js';
 import { fichaDe } from '../data/pelotaris.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier, tantosDe, TEXT, RETOS, estrellasReto } from '../pelota/rules.js';
@@ -38,6 +39,23 @@ import { DESTACADOS, TIPOS } from '../data/frontones.js';
 // encima. Fotos, autores y licencias en assets/pelota/fondos/LICENCIAS.md)
 const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/pelota/fondos/*.webp', { eager: true, query: '?url', import: 'default' }))
   .map(([k, u]) => [k.split('/').pop().replace('.webp', ''), u]));
+// dónde está la figura en cada portada (fracciones de la imagen, que es cuadrada): el centro de lado y de la cabeza a los
+// pies, medido sobre las ilustraciones. Con eso, encuadre() acerca la imagen para que la figura ocupe unos dos tercios del
+// alto de la portada (3 × 4), centrada de lado y con los pies por encima del nombre. El autor, 17 de noviembre de 2026:
+// «que se vea más al pelotari o a la pelotari, no tanto fondo; y cuadra los pelotaris en la imagen». Antes se veía la
+// ilustración entera, con la figura pequeña en medio del frontón
+const FIGURA = { camara: [0.46, 0.73, 0.93], coleccion: [0.52, 0.37, 0.93], comarcas: [0.53, 0.66, 0.93], cuatro: [0.52, 0.43, 0.78],
+  fiestas: [0.49, 0.64, 0.98], frontones: [0.54, 0.64, 0.97], gran: [0.49, 0.68, 0.91], invierno: [0.65, 0.57, 0.75], libre: [0.69, 0.51, 0.73],
+  mano: [0.48, 0.6, 0.82], parejas: [0.485, 0.6, 0.93], promesas: [0.5, 0.48, 0.85], retos: [0.47, 0.62, 0.9], trinquete: [0.52, 0.52, 0.89], valles: [0.54, 0.63, 0.95] };
+/** El tamaño y la posición del fondo para encuadrar la figura de la portada k en una carta de proporción ar (alto / ancho). */
+export function encuadre(k, ar = 4 / 3) {
+  const f = FIGURA[k]; if (!f) return null;
+  const [cx, y0, y1] = f, hf = y1 - y0;
+  // (lo que se ve de la imagen: la figura, un 64 % del alto; sin acercar más de 3,2 veces, que se vería borrosa)
+  const hc = Math.min(0.98, Math.max(0.31, hf / 0.64)), wc = hc / ar;
+  const L = Math.min(Math.max(cx - wc / 2, 0), 1 - wc), T = Math.min(Math.max(y1 - hc * 0.8, 0), 1 - hc);
+  return { size: `${(100 / wc).toFixed(1)}% auto`, pos: `${(wc < 1 ? L / (1 - wc) * 100 : 50).toFixed(1)}% ${(hc < 1 ? T / (1 - hc) * 100 : 50).toFixed(1)}%` };
+}
 // (el idioma, el que marca la página: en euskera, «eu»)
 const isEU = () => typeof document !== 'undefined' && document.documentElement?.lang === 'eu';
 /** Las cualidades de un pelotari del torneo y sus golpes preferidos (los de los torneos guardados antes sin golpes se
@@ -873,29 +891,36 @@ export function frontonesMenu() {
   efCss(); if (!document.getElementById('frg-css')) { const st = document.createElement('style'); st.id = 'frg-css'; st.textContent = FR_CSS; document.head.appendChild(st); }
   // (y al final, los dos trinquetes modernos inventados para el juego, con su imagen pintada en Higgsfield a partir de una
   // del propio partido, la misma cancha y el mismo encuadre: TRINQ_JUEGO)
-  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO], eu = isEU(), N = { todos: LISTA.length }; for (const F of LISTA) N[F.tipo] = (N[F.tipo] || 0) + 1;
+  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO], eu = isEU();
   return new Promise(res => {
-    let filtro = 'todos', sel = null;
-    const tarjeta = (F) => { const u = F.foto ? fotoFronton(F.foto) : canchaFoto(F.cancha);
-      return `<button type="button" class="ef-it" data-f="${F.id}" aria-pressed="false"><span class="ef-pic">${u ? `<img src="${u}" alt="" decoding="async" loading="lazy">` : iconSVG(TIPOS[F.tipo]?.icon || 'pelota', 96)}</span>
-        <span class="ef-txt"><small>${esc(F.inventado ? (eu ? 'Jokorako asmatua' : 'Inventado para el juego') : F.lugar)}</small><b>${esc(F.nombre)}</b><em>${esc(tipoTxt(F))}</em><span>${esc(primera(F.texto))}</span></span></button>`; };
-    const que = (k) => k === 'todos' ? (eu ? 'Nafarroako benetako frontoiak: ukitu bat hor jokatzeko.' : 'Frontones de verdad de Navarra: toca uno para jugar en él. En Navarra hay unos 650: plazas libres, de pared izquierda y seis trinquetes.') : (TIPOS[k]?.texto || '');
+    let sel = null;
+    // (desde el 17 de noviembre de 2026, el mismo carrusel 3D que los campeonatos: el autor no podía elegir frontón en la
+    // rejilla de antes, que en el móvil tumbado solo enseñaba las fotos cortadas, y la barra de filtros de arriba sobraba:
+    // «no es una página web, es un videojuego». La foto grande de cada frontón; debajo, de la de delante, dónde está, cómo es
+    // y una línea de su historia. Tocar la de delante, «Jugar aquí» o Intro: a jugar)
+    const portadaF = (F) => { const u = F.foto ? fotoFronton(F.foto) : canchaFoto(F.cancha), T = TIPOS[F.tipo];
+      return `<button type="button" class="c3-port cp-front" data-f="${F.id}" aria-label="${esc(F.nombre)}"${u ? ` data-foto="${u}"` : ''}>${u ? '' : `<span class="c3-figs">${iconSVG(T?.icon || 'pelota', 96)}</span>`}<span class="c3-pie"><small>${esc(eu ? T?.eu || '' : T?.nombre || '')}</small><b>${esc(F.nombre)}</b></span></button>`; };
+    const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+    cssCarrusel();
+    const CLAVE = 'herrizherri-fronton-carta'; let f0 = ''; try { f0 = localStorage.getItem(CLAVE) || ''; } catch (e) { /* sin guardado */ }
     const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Frontoiak' : 'Frontones'}</h2></div>
-      <div class="frg-tabs" role="tablist" data-notr>${['todos', 'plaza', 'izquierda', 'trinquete'].map(k => `<button type="button" data-t="${k}" aria-pressed="${k === filtro}">${k === 'todos' ? (eu ? 'Denak' : 'Todos') : esc(eu ? TIPOS[k].eu : TIPOS[k].nombre)}<b>${N[k] || 0}</b></button>`).join('')}</div>
-      <p class="frg-que" data-notr>${esc(que(filtro))}</p>
-      <div class="efp-grid frg" data-notr>${LISTA.map(tarjeta).join('')}</div>
-      <div class="lg-bar" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok" disabled>${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div>`);
-    r.firstElementChild.classList.add('ef-card');
-    const ok = r.querySelector('[data-a="ok"]');
-    const fin = (F) => { removeEventListener('keydown', tecla, true); lgFuera(r); res(F); };
-    const elige = (id) => { sel = LISTA.find(F => F.id === id) || null; ok.disabled = !sel; r.querySelectorAll('.ef-it[data-f]').forEach(x => { const on = x.dataset.f === id; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
-    const filtra = (k) => { filtro = k; r.querySelectorAll('.frg-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.t === k))); r.querySelector('.frg-que').textContent = que(k);
-      r.querySelectorAll('.ef-it[data-f]').forEach(x => { const F = LISTA.find(f => f.id === x.dataset.f); x.hidden = k !== 'todos' && F.tipo !== k; }); if (sel && k !== 'todos' && sel.tipo !== k) elige(null); };
-    const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } else if (e.key === 'Enter' && sel) { e.preventDefault(); fin(sel); } };
+      <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Frontoiak' : 'Frontones'}">${flecha('izq')}<div class="c3-anillo">${LISTA.map(portadaF).join('')}</div>${flecha('der')}</div>
+      <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div></div>
+      <div class="tq-menu-foot" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
+    r.firstElementChild.classList.add('ef-card', 'c3-card');
+    const info = r.querySelector('.c3-info');
+    const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 3 / 4, inicio: Math.max(0, LISTA.findIndex(F => F.id === f0)),
+      alCambiar: (i) => { const F = LISTA[i]; if (!F) return; sel = F;
+        info.querySelector('.c3-que b').textContent = F.inventado ? (eu ? 'Jokorako asmatua' : 'Inventado para el juego') : F.lugar;
+        info.querySelector('.c3-que span').textContent = `${tipoTxt(F)} · ${primera(F.texto)}`;
+        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
+        try { localStorage.setItem(CLAVE, F.id); } catch (e) { /* sin guardado */ } } });
+    r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
+    const fin = (F) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(F); };
+    const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } };
     addEventListener('keydown', tecla, true);
     r.addEventListener('click', (e) => {
-      const t = e.target.closest('.frg-tabs [data-t]'); if (t) return filtra(t.dataset.t);
-      const c = e.target.closest('.ef-it[data-f]'); if (c) { if (sel?.id === c.dataset.f && e.detail > 1) return fin(sel); return elige(c.dataset.f); }
+      const c = e.target.closest('.c3-port[data-f]'); if (c) return fin(LISTA.find(F => F.id === c.dataset.f) || sel);
       const b = e.target.closest('[data-a]'); if (!b) return;
       if (b.dataset.a === 'ok') { if (sel) fin(sel); } else fin(null);
     });
@@ -955,7 +980,7 @@ const MENU_CSS = `
 .cp-emb svg{width:23px;height:23px;display:block}
 @media (orientation:portrait){.cp-pest{order:3;flex-basis:100%;justify-content:space-between;flex-wrap:nowrap;gap:4px}.cp-pest button{flex:1 1 auto;justify-content:center;min-width:0;padding:6px 8px;letter-spacing:.03em;white-space:nowrap}.cp-pest button b{display:none}}
 @media (max-height:430px){.cp-pest button{min-height:32px;padding:5px 7px 5px 11px}.cp-emb{width:34px;height:34px;left:8px;bottom:8px}.cp-emb svg{width:20px;height:20px}}
-.cp-card.con-fondo .cp-foto::before{background-position:50% 62%}
+.cp-card.con-fondo .cp-foto::before{background-size:var(--fsz,cover);background-position:var(--fpos,50% 62%)}
 .cp-card.con-fondo .cp-foto::after{background:linear-gradient(180deg,rgba(14,8,32,.36),rgba(14,8,32,0) 24%,rgba(14,8,32,0) 80%,rgba(14,8,32,.32))}
 `;
 const cssMenu = () => { if (!document.getElementById('tq-css-menu')) { const st = document.createElement('style'); st.id = 'tq-css-menu'; st.textContent = MENU_CSS + CANCHAS_CSS; document.head.appendChild(st); } };
@@ -1122,6 +1147,8 @@ const CANCHAS_CSS = Object.entries(CANCHAS).map(([k, u]) => `.cp-card.cv-${k}{--
 // por poner el fondo». Las imágenes siguen en src/assets/frontones-cartas como referencia, sin usar; las fotos de verdad de
 // los frontones van ahora en el catálogo y al elegir frontón)
 const conFoto = () => {};
+let cssC3 = false; const cssCarrusel = () => { if (cssC3) return; cssC3 = true; const st = document.createElement('style'); st.textContent = CSS_CARRUSEL3D + `
+.lg-card.c3-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%;display:grid}.lg-card.c3-card.ef-card{display:grid;max-height:none}.c3-card .lg-head{flex-wrap:nowrap}`; document.head.appendChild(st); };
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
 /** Las estrellas que llevas en los tres retos (de 0 a 9) */
@@ -1183,74 +1210,52 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     // en las cartas grandes de las pestañas. El autor: «me gustan las imágenes que has puesto para los campeonatos, pero el
     // formato no me gusta. Hazlo como estaba antes, que las cards eran más grandes». En el carrusel de los pueblos, la del
     // centro medía en el móvil tumbado 141 × 80 px; aquí, cada una, 186 × 252)
-    const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', fondo = '' }) => `<button class="cp-card ${cls}${v ? ' cv-' + v : ''}${FONDOS[fondo] ? ' con-fondo' : ''}" data-a="${a}" data-g="${g}" style="--d:${d}s${FONDOS[fondo] ? `;--foto:url('${FONDOS[fondo]}')` : ''}">
+    const carta = ({ a, cls, d, figs, fc = '', tag, tx = 0, name, fase = '', contra = '', ronda = '', extra = '', g = 'jugar', v = '', emb = '', fondo = '' }) => `<button class="cp-card ${cls}${v ? ' cv-' + v : ''}${FONDOS[fondo] ? ' con-fondo' : ''}" data-a="${a}" data-g="${g}" style="--d:${d}s${FONDOS[fondo] ? `;--foto:url('${FONDOS[fondo]}')${(e => e ? `;--fsz:${e.size};--fpos:${e.pos}` : '')(encuadre(fondo, 252 / 186))}` : ''}">
       <span class="cp-foto"><span class="cp-top"><span class="cp-tag">${tag}</span>${txa(tx)}</span>${FONDOS[fondo] ? '' : `<span class="figs${fc ? ' ' + fc : ''}">${figs}</span>`}${EMBLEMA[emb] ? `<span class="cp-emb" aria-hidden="true">${EMBLEMA[emb]}</span>` : ''}</span>
       <span class="cp-info"><b class="cp-name">${name}</b>${fase ? `<span class="cp-fase">${fase}</span>` : ''}${contra ? `<span class="cp-contra"${extra}>${contra}</span>` : ''}${ronda}</span></button>`;
     // (cada campeonato, con su cancha dibujada y su emblema, para que no sean todas iguales: el trinquete con sus cuatro
     // paredes y el tejadillo, el 4½ con su raya, la Gran Txapela con focos, el de fiestas con banderines y el de los valles
     // al aire libre; y en su grupo, que se elige arriba: los de tu comarca, los de toda Navarra y los demás)
     const ARTE = { mano: '', parejas: '', cuatro: 'cuatro', trinquete: 'trinq', gran: 'evento', comarcas: '', fiestas: 'fiestas', valles: 'valles', invierno: 'cuatro', promesas: 'cuatro' };
-    const torneoCarta = (X, a, cls, d, pairs = false, g = 'comarca') => { const K = KINDS[X.kind] || KINDS.mano; return carta({ a, cls, d, figs: figOf(X, pairs), fc: pairs ? 'duo' : '', tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), g, v: ARTE[X.kind] || '', emb: X.kind, fondo: X.kind, ...estado(X) }); };
-    const lista = [
-      torneoCarta(T, 'torneo', 'cp-mano', 0.05),
-      T2 ? torneoCarta(T2, 'torneoParejas', 'cp-parejas', 0.1, true) : '',
-      T3 ? torneoCarta(T3, 'torneoCuatro', 'cp-cuatro', 0.15) : '',
-      T4 ? torneoCarta(T4, 'torneoTrinquete', 'cp-trinq', 0.18) : '',   // (el de trinquete, uno más de los de la comarca)
-      ...X.map((x, i) => { const K = KINDS[x.kind]; return torneoCarta(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano', +(0.2 + i * 0.05).toFixed(2), false, K.global ? 'navarra' : 'mas'); }),
-      carta({ a: 'libre', cls: 'cp-libre', d: 0.5, fondo: 'libre', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½', emb: 'libre' }),
-      carta({ a: 'frontones', cls: 'cp-front', d: 0.52, fondo: 'frontones', emb: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' }),
-      carta({ a: 'retos', cls: 'cp-retos', d: 0.55, fondo: 'retos', emb: 'retos', figs: RETO_ART.diana, fc: 'reto-fig', tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' }),
-      camaraDisponible() ? carta({ a: 'camara', cls: 'cp-casa', d: 0.6, fondo: 'camara', emb: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' }) : '',
-      carta({ a: 'pelotaris', cls: 'cp-col', d: 0.65, fondo: 'coleccion', emb: 'pelotaris', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), fc: 'trio', tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris`, extra: ' data-pc' }),
+    // (cada portada: su ilustración entera, el tipo arriba en pequeño, el nombre y sus txapelas. La ronda y contra quién,
+    // debajo del anillo y solo de la de delante: el autor, 17 de noviembre de 2026, «solo las portadas de cada campeonato»)
+    const torneoItem = (X, a, cls, pairs = false) => { const K = KINDS[X.kind] || KINDS.mano; return { a, cls, fondo: X.kind, figs: figOf(X, pairs), tag: esc(K.k), tx: X.txapelas || 0, name: esc(K.name), ...estado(X) }; };
+    const items = [
+      torneoItem(T, 'torneo', 'cp-mano'),
+      T2 ? torneoItem(T2, 'torneoParejas', 'cp-parejas', true) : null,
+      T3 ? torneoItem(T3, 'torneoCuatro', 'cp-cuatro') : null,
+      T4 ? torneoItem(T4, 'torneoTrinquete', 'cp-trinq') : null,   // (el de trinquete, uno más de los de la comarca)
+      ...X.map((x) => { const K = KINDS[x.kind]; return torneoItem(x, `t:${x.kind}`, K.evento ? 'cp-evento' : K.trinquete ? 'cp-trinq' : K.base === 'cuatro' ? 'cp-cuatro' : 'cp-mano'); }),
+      { a: 'libre', cls: 'cp-libre', fondo: 'libre', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Amistoso', name: 'Partido libre', fase: `A ${tantosDe(5)} tantos`, contra: 'Mano, parejas o&nbsp;4½' },
+      { a: 'frontones', cls: 'cp-front', fondo: 'frontones', figs: pelotariFig(youName, 'azul', 'fig'), tag: isEU() ? 'Nafarroa' : 'Navarra', name: isEU() ? 'Frontoiak' : 'Frontones', fase: `${DESTACADOS.length} ${isEU() ? 'benetakoak' : 'de verdad'}`, contra: isEU() ? 'Plaza librea, ezker pareta eta trinketea' : 'Plaza libre, pared izquierda y&nbsp;trinquete' },
+      { a: 'retos', cls: 'cp-retos', fondo: 'retos', figs: RETO_ART.diana, tag: `${retosTotal()}/9 ${isEU() ? 'izar' : 'estrellas'}`, name: retoT().titulo, fase: isEU() ? 'Hiru erronka' : 'Tres retos', contra: isEU() ? 'Pilotakada, itua eta dejadak' : 'Peloteo, diana y&nbsp;dejadas' },
+      camaraDisponible() ? { a: 'camara', cls: 'cp-casa', fondo: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' } : null,
+      { a: 'pelotaris', cls: 'cp-col', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris` },
     ].filter(Boolean);
-    const tarjetas = lista.join('');
-    // (las pestañas, arriba: los campeonatos de tu comarca, los de toda Navarra, los demás torneos y jugar sin torneo. En el
-    // carrusel solo van las tarjetas de la elegida, que se recuerda; antes iban las quince seguidas y todas parecían iguales:
-    // el autor, 16 de noviembre de 2026: «no puedes encontrar qué campeonato es, de tanto campeonato que hay»)
-    const eu = isEU(), GRUPOS = [['comarca', eu ? 'Eskualdea' : 'Tu comarca'], ['navarra', eu ? 'Nafarroa' : 'Navarra'], ['mas', eu ? 'Txapelketa gehiago' : 'Más torneos'], ['jugar', eu ? 'Jolastu' : 'Jugar']];
-    cssMenu();
-    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div><div class="cp-pest" role="tablist" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${GRUPOS.map(([g, t]) => { const n = lista.filter(h => h.includes(`data-g="${g}"`)).length; return n ? `<button role="tab" data-g="${g}" aria-selected="false">${t}<b>${n}</b></button>` : ''; }).join('')}</div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
-      <div class="tq-carr"><button class="tq-flecha izq" aria-label="Anteriores" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button><div class="cp-row">${tarjetas}</div><button class="tq-flecha der" aria-label="Siguientes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    const portada = (it) => `<button type="button" class="c3-port ${it.cls}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo))}"` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
+    const eu = isEU(), CLAVE = 'herrizherri-pelota-carta';
+    cssMenu(); cssCarrusel();
+    let a0 = 'torneo'; try { a0 = localStorage.getItem(CLAVE) || a0; } catch (e) { /* sin guardado */ }
+    const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
+      <div class="c3"><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${flecha('izq')}<div class="c3-anillo">${items.map(portada).join('')}</div>${flecha('der')}</div>
+      <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><span class="c3-ronda"></span><button type="button" class="lg-btn go c3-jugar" data-jugar>${eu ? 'Jolastu' : 'Jugar'}</button></div></div>
       <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
-    r.firstElementChild.classList.add('tq-menu-card');
-    // las figuras de cada losa, del mayor alto que cabe en ella y en medio de su hueco (antes, todas del alto que cabía en
-    // la más apretada, la de los tres de la colección: en el ordenador salían pequeñas y abajo). Las ilustraciones tienen el
-    // mismo encuadre (el cuerpo, de ancho, un 36 % de su alto como mucho) y van en fila a un paso del 32 % de su alto
-    const tiles = r.querySelector('.cp-row'); conFoto(tiles);
-    const iguala = () => {
-      if (!r.isConnected) { ro.disconnect(); return; }
-      for (const f of tiles.querySelectorAll('.figs')) {
-        const n = f.children.length || 1, h = Math.min(f.clientHeight, f.clientWidth * 0.94 / (0.36 + (n - 1) * 0.32));
-        if (h > 0) f.style.setProperty('--fh', Math.floor(h) + 'px');
-      }
-    };
-    // (el carrusel: cada flecha solo si hay más losas hacia su lado; y la rueda del ratón lo mueve de lado)
-    const fl = r.querySelectorAll('.tq-flecha'), paso = () => (tiles.querySelector('.cp-card')?.offsetWidth || 200) + 12;
-    const flechas = () => { const m = tiles.scrollWidth - tiles.clientWidth; fl[0].hidden = tiles.scrollLeft <= 2; fl[1].hidden = tiles.scrollLeft >= m - 2; };
-    fl.forEach((b, i) => b.addEventListener('click', (e) => { e.stopPropagation(); tiles.scrollBy({ left: (i ? 1 : -1) * paso(), behavior: 'smooth' }); }));
-    tiles.addEventListener('scroll', flechas, { passive: true });
-    tiles.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && tiles.scrollWidth > tiles.clientWidth + 2) { tiles.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
-    // (el ancho de las losas, el mismo para todas: tumbado se ven tres y media, de pie una y media; así la última asoma
-    // lo bastante para que se note que hay más. Con un tope por arriba, en CSS, solo cabían casi cuatro y la cuarta salía
-    // cortada por un dedo, como un error)
-    // (con pestañas, en cada una caben casi todas: tumbado, hasta cuatro a la vez sin mover nada; con menos, del ancho de
-    // tres, para que no salgan enormes)
-    const carr = tiles.parentElement, ancho = () => { const W = carr.clientWidth, n = tiles.querySelectorAll('.cp-card:not([hidden])').length, v = innerWidth > innerHeight ? (n <= 4 ? Math.max(3, n) : 3.5) : 1.55, cw = Math.floor((W - 12 * Math.floor(v)) / v) + 'px'; if (W > 0 && tiles.style.getPropertyValue('--cw') !== cw) tiles.style.setProperty('--cw', cw); };
-    const pest = r.querySelectorAll('.cp-pest [data-g]'), CLAVE = 'herrizherri-pelota-grupo';
-    const ponGrupo = (g) => {
-      if (![...pest].some(b => b.dataset.g === g)) g = pest[0]?.dataset.g;
-      pest.forEach(b => b.setAttribute('aria-selected', String(b.dataset.g === g)));
-      tiles.querySelectorAll('.cp-card').forEach(c => { c.hidden = c.dataset.g !== g; });
-      tiles.scrollLeft = 0; try { localStorage.setItem(CLAVE, g); } catch (e) { /* sin guardado */ }
-      ancho(); iguala(); flechas();
-    };
-    pest.forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); ponGrupo(b.dataset.g); }));
-    let g0 = 'comarca'; try { g0 = localStorage.getItem(CLAVE) || g0; } catch (e) { /* sin guardado */ }
-    const ro = new ResizeObserver(() => { ancho(); iguala(); flechas(); }); ro.observe(carr); ro.observe(tiles); tiles.querySelectorAll('.figs').forEach(f => ro.observe(f)); ponGrupo(g0);
+    r.firstElementChild.classList.add('tq-menu-card', 'c3-card');
+    const info = r.querySelector('.c3-info');
+    const car = carrusel3d(r.querySelector('.c3-escena'), {
+      inicio: Math.max(0, items.findIndex(it => it.a === a0)),
+      alCambiar: (i) => { const it = items[i]; if (!it) return;
+        info.querySelector('.c3-que b').innerHTML = it.fase || it.tag; info.querySelector('.c3-que span').innerHTML = it.contra || ''; info.querySelector('.c3-ronda').innerHTML = it.ronda || '';
+        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
+        try { localStorage.setItem(CLAVE, it.a); } catch (e) { /* sin guardado */ } },
+    });
+    r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
+    r.querySelector('[data-jugar]').addEventListener('click', (e) => { e.stopPropagation(); car.actual()?.click(); });
     // (la colección se abre encima y, al cerrarla, el menú sigue ahí)
     r.addEventListener('click', async (e) => {
-      const s = o && await sedeClick(e, r, o, here); if (s?.otro) { ro.disconnect(); lgFuera(r); res('otro:' + s.otro); return; } if (s) return;
-      const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const s2 = b.querySelector('[data-pc]'); if (s2) s2.textContent = `${c.have}/${c.total} pelotaris`; return; } lgFuera(r); res(b.dataset.a); });
+      const s = o && await sedeClick(e, r, o, here); if (s?.otro) { car.destroy(); lgFuera(r); res('otro:' + s.otro); return; } if (s) return;
+      const b = e.target.closest('[data-a]'); if (!b) return; if (b.dataset.a === 'pelotaris') { await pelotarisPanel(T.comarca); const c = pelotarisCount(); const it = items.find(x => x.a === 'pelotaris'); if (it) { it.contra = `${c.have}/${c.total} pelotaris`; info.querySelector('.c3-que span').textContent = it.contra; } return; } car.destroy(); lgFuera(r); res(b.dataset.a); });
   });
 }
 

@@ -219,7 +219,7 @@ export class PuebloLeyendas {
       if (a.chase && d < 70) a.chase.update(dt);
     } else if (d < 60) a.update(dt, P);
     a.bellT -= dt;
-    if (!a.found && a.bellT < 0) { a.bellT = 0.35 + this.rnd() * 0.25; if (d < 90) this.sound.cowbell(a.pos, clamp(1.2 - d / 80, 0.1, 0.9)); if (a.J.bell) a.J.bell.rotation.z = 0.6; }
+    if (!a.found && a.bellT < 0) { a.bellT = (d > 60 ? 0.9 : 0.5) + this.rnd() * 0.25; if (d < 160) this.sound.cencerroGuia(a.pos, d < 40 ? 2 : 1); if (a.J.bell) a.J.bell.rotation.z = 0.6; }   // (que se oigan en todo el pueblo: audio.js, cencerroGuia)
     if (a.J.bell) a.J.bell.rotation.z *= 0.9;
     if (!a.found && !a.chase && d < 3.2 && this.mode === 'play') this.catchFolk(a);
     if (a.aura) a.aura.userData.tick?.(dt);

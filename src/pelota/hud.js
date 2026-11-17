@@ -28,6 +28,13 @@ const CSS = `
 .pel-rep-b .pv{font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;color:#fff;padding:4px 8px;border-radius:999px;background:rgba(157,140,255,.38);max-width:24ch;overflow:hidden;text-overflow:ellipsis}
 .pel-rep small{font:700 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#e8dcff;text-shadow:0 1px 3px #000;padding:3px 12px;border-radius:999px;background:rgba(7,2,15,.55)}
 @keyframes pel-repin{from{opacity:0;transform:translateX(-24px)}}@keyframes pel-rec{50%{opacity:.25}}
+.pel-hl-que{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#fff;padding:5px 12px;border-radius:8px;background:rgba(7,2,15,.55);max-width:min(70vw,40ch);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pel-rep.hl .pel-rep-b{border-top-color:#ffd36a}.pel-rep.hl .pel-rep-b i{background:#ffd36a;box-shadow:0 0 8px #ffd36a}
+.pel-hlts{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:6px;padding:18px 34px 16px;border-radius:10px;background:linear-gradient(180deg,rgba(28,8,52,.55),rgba(7,2,15,.55));box-shadow:0 18px 50px rgba(4,1,12,.45);pointer-events:none;text-align:center;animation:pel-hltsin 2.2s cubic-bezier(.2,1,.3,1) both}
+.pel-hlts small{font:800 var(--fs-sm)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.32em;text-transform:uppercase;color:#ffd36a}
+.pel-hlts b{font:400 clamp(56px,11vw,120px)/.9 var(--f-display,'MZ Display'),'MZ Texto',sans-serif;color:#fff;text-shadow:0 0 28px rgba(255,43,214,.55),0 4px 0 rgba(109,59,92,.9)}
+.pel-hlts span{font:800 var(--fs-md)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#f1e8ff;max-width:min(80vw,42ch)}
+@keyframes pel-hltsin{0%{opacity:0;transform:translate(-50%,-50%) scale(1.25)}14%{opacity:1;transform:translate(-50%,-50%) scale(1)}78%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.92)}}
 /* el sorteo del saque. La chapa, en 3D en la cancha (chapa.js), con el centro despejado para verla: arriba el título
    entre dos rayas de color y por qué viste cada uno de su color; abajo, a cada lado, la tarjeta de cada pelotari con su
    figura, el cristal morado y el filo de su color, como las cartas del juego; en medio, el botón y, al caer, quién saca.
@@ -91,7 +98,7 @@ const CSS = `
   .pel-toss{--tw:clamp(104px,40vw,190px)}.pel-toss-mid{grid-column:1/-1;grid-row:3}.pel-toss-p{grid-row:4}.pel-toss-p.azul{grid-column:1}.pel-toss-p.rojo{grid-column:2}
   .pel-toss-res{white-space:normal}}
 @media (prefers-reduced-motion:reduce){.pel-toss-p,.pel-toss-k,.pel-toss-go,.pel-toss-res{animation:none!important}}
-@media (prefers-reduced-motion:reduce){.pel-toss *,.pel-rep *{animation-duration:.01s!important}}
+@media (prefers-reduced-motion:reduce){.pel-toss *,.pel-rep *,.pel-hlts{animation-duration:.01s!important}}
 .pel-root *{box-sizing:border-box}
 .pel-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));right:calc(env(safe-area-inset-right,0px) + var(--edge,16px));display:flex;justify-content:flex-end}
 .pel-exit{padding:0;position:absolute;top:calc(env(safe-area-inset-top,0px) + var(--edge,16px));left:calc(env(safe-area-inset-left,0px) + var(--edge,16px));width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.82);background:rgba(14,10,24,.66);box-shadow:0 3px 12px rgba(0,0,0,.35);color:#fff;pointer-events:auto;cursor:pointer;display:grid;place-items:center}.pel-exit svg{width:20px;height:20px;display:block}.pel-exit .pel-xi{width:22px;height:22px;display:block;pointer-events:none}
@@ -440,6 +447,51 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-com .pc-q{grid-row:1/3;width:30px;height:30px;border-radius:50%;background:var(--cc);display:grid;place-items:center;font:400 var(--fs-md)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);color:#fff;font-style:normal}
 .pel-com b{font:800 var(--fs-xs)/1.2 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--cc)}.pel-com b small{font:inherit;color:#cbbcf0;letter-spacing:.04em}
 .pel-com p{margin:2px 0 0;font-size:var(--fs-sm);font-weight:600;line-height:1.3;color:#fff}
+/* LOS RÓTULOS DEL PARTIDO, CON ESTILO DE RETRANSMISIÓN (el autor, 17 de noviembre de 2026: «todos los rótulos que salen
+   durante el partido tienen que tener un estilo mucho más FIFA, más dinámico, mucho más moderno»). Un mismo lenguaje en
+   todos: franjas inclinadas (sesgadas 14°) en vez de burbujas redondeadas, un bloque del color de quien gana el tanto o de
+   quien golpea, letra condensada en cursiva y en mayúsculas, y un barrido rápido al entrar (la franja se abre de izquierda
+   a derecha y el texto llega detrás, por capas) y al salir (se cierra hacia la derecha), con un destello que cruza una vez.
+   Solo se animan transform y opacity. Lo que no volvió: letras que caen o botan, pelotas que cruzan y temblores */
+.pel-call{background:none!important;border:0!important;border-radius:0;box-shadow:none!important;padding:13px 40px 13px 46px;text-align:left;opacity:1;transform:translateX(-50%);visibility:hidden;isolation:isolate;transition:visibility 0s .26s;--pc:#ff2bd6;--sk:-14deg}
+.pel-call.on{visibility:visible;transition:none}
+.pel-call::before{content:'';position:absolute;inset:0;z-index:-2;background:linear-gradient(100deg,rgba(12,5,30,.95),rgba(36,13,78,.93));box-shadow:0 14px 34px rgba(0,0,0,.42),inset 0 -2px 0 rgba(255,255,255,.14);transform:skewX(var(--sk)) scaleX(0);transform-origin:right;transition:transform .22s cubic-bezier(.7,0,.84,0)}
+.pel-call.on::before{transform:skewX(var(--sk)) scaleX(1);transform-origin:left;transition:transform .34s cubic-bezier(.16,1,.3,1)}
+.pel-call::after{content:'';position:absolute;top:0;bottom:0;left:-4px;width:24px;z-index:-1;background:var(--pc);box-shadow:0 0 18px color-mix(in srgb,var(--pc) 60%,transparent);transform:skewX(var(--sk)) scaleY(0);transform-origin:bottom;transition:transform .16s}
+.pel-call.on::after{transform:skewX(var(--sk)) scaleY(1);transform-origin:top;transition:transform .28s .1s cubic-bezier(.16,1,.3,1)}
+.pel-call>*{opacity:0;transform:translateX(-22px);transition:opacity .12s,transform .12s}
+.pel-call.on>*{opacity:1;transform:none;transition:opacity .22s .14s,transform .4s .14s cubic-bezier(.16,1,.3,1)}
+.pel-call.on>p{transition-delay:.2s}.pel-call.on>.pel-kantari{transition-delay:.26s}.pel-call.on>.pel-racha{transition-delay:.32s}
+.pel-call h3{position:relative;overflow:hidden;font-style:italic;text-transform:uppercase;letter-spacing:.02em;text-shadow:0 3px 0 rgba(7,2,15,.55)}
+.pel-call h3::after{content:'';position:absolute;inset:-20% auto -20% 0;width:38%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:translateX(-140%) skewX(-18deg);opacity:0}
+.pel-call.on h3::after{animation:pel-destello .7s .3s cubic-bezier(.4,0,.2,1) both}
+@keyframes pel-destello{0%{transform:translateX(-140%) skewX(-18deg);opacity:1}100%{transform:translateX(380%) skewX(-18deg);opacity:1}}
+.pel-call p{font:800 var(--fs-sm)/1.2 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#d9ccff}
+.pel-call .pel-kantari{font-style:italic}
+.pel-call.c-azul{--pc:#4b5bff}.pel-call.c-rojo{--pc:#ff2e88}
+.pel-root.final .pel-call{animation:none;background:none!important}
+.pel-root.final .pel-call::before{background:var(--cta,linear-gradient(100deg,#ff2bd6,#7b2ff7))}.pel-root.final .pel-call{--pc:#ffd36a}
+.pel-call .pel-racha{border-radius:2px;animation:none}
+.pel-call.on>.pel-racha{transform:skewX(-12deg)}.pel-call>.pel-racha{transform:skewX(-12deg) translateX(-22px)}
+/* (el nombre del golpe, arriba a la derecha: la misma franja, más pequeña, que entra desde la derecha) */
+.pel-golpe{background:none;border:0;border-radius:0;padding:6px 18px 6px 20px;font-style:italic;isolation:isolate;transform:translateX(18px);transition:opacity .14s,transform .3s cubic-bezier(.16,1,.3,1);--gc:#ff2e88}
+.pel-golpe::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,rgba(12,5,30,.94),rgba(36,13,78,.92));border-left:5px solid var(--gc);box-shadow:0 8px 22px rgba(0,0,0,.35);transform:skewX(-14deg) scaleX(0);transform-origin:right;transition:transform .18s cubic-bezier(.7,0,.84,0)}
+.pel-golpe.on::before{transform:skewX(-14deg) scaleX(1);transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.pel-golpe.azul{--gc:#4b5bff}
+/* (el aviso del golpe en medio: cursiva y entrada de barrido, sin el giro con rebote de antes) */
+.pel-q b{font-style:italic}
+.pel-q.on b{animation:pel-qbarre .38s cubic-bezier(.16,1,.3,1) both}
+@keyframes pel-qbarre{from{transform:translateX(-36px) skewX(-10deg);opacity:0}to{transform:none;opacity:1}}
+.pel-q small{border-radius:2px;transform:skewX(-12deg)}
+/* (la repetición y los highlights, con la misma franja) */
+.pel-rep-b{border-radius:0;border-top:0;border-left:5px solid var(--fx,#ff2bd6);transform:skewX(-12deg);padding-left:14px}
+.pel-rep-b>*{transform:skewX(12deg)}
+.pel-rep.hl .pel-rep-b{border-left-color:#ffd36a}
+.pel-rep small,.pel-hl-que{border-radius:2px}
+.pel-hlts{border-radius:0;background:none;box-shadow:none;isolation:isolate}
+.pel-hlts::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,rgba(12,5,30,.9),rgba(36,13,78,.88));border-left:8px solid #ffd36a;box-shadow:0 18px 44px rgba(4,1,12,.45);transform:skewX(-12deg)}
+.pel-com{border-radius:0}
+@media (prefers-reduced-motion:reduce){.pel-call::before,.pel-call::after,.pel-call>*,.pel-golpe::before{transition:none!important}.pel-call.on h3::after{animation:none}}
 @media (orientation:portrait){.pel-com{left:16px;right:16px;width:auto;max-width:none;transform:translateY(8px);bottom:calc(env(safe-area-inset-bottom,0px) + 200px)}.pel-com.on{transform:none}}
 .pel-root.paneled .pel-com{visibility:hidden}
 body.alto-contraste .pel-com{background:#000;border:2px solid #fff;border-left:4px solid var(--cc)}

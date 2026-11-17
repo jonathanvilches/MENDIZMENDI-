@@ -189,6 +189,20 @@ export class Sound {
     this.galope.g.gain.setTargetAtTime(v, t, 0.15); this.galope.s.playbackRate.setTargetAtTime(0.78 + clamp(k, 0, 1) * 0.36, t, 0.3);
   }
   cowbell(pos, v = 0.4) { if (!this.ctx) return; const o = this.out(pos, 45, v, 0.3); if (!o) return; const f = 520 + Math.random() * 90; this.tone(f, 0.5, 'square', 0.05, o); this.tone(f * 1.48, 0.4, 'triangle', 0.05, o); this.tone(f * 2.7, 0.2, 'sine', 0.03, o); }
+  /** Los cencerros que hay que seguir para encontrar a alguien (el Zarratrako de Otsagabia, las figuras de carnaval de los
+   *  demás pueblos): se oyen en todo el pueblo, más fuertes cuanto más cerca y con la dirección en cada oído, y por encima
+   *  de la música. El cencerro de siempre (cowbell) solo llegaba a 45 m, a 30 m ya casi no se oía y, con la música más alta
+   *  desde noviembre, quedaba tapado: el autor, 17 de noviembre de 2026, «se han eliminado cosas muy necesarias, como que
+   *  se escuchen los cencerros en Ochagavía para encontrar al Zarratrako». n: golpes seguidos */
+  cencerroGuia(pos, n = 3) {
+    if (!this.ctx) return; const ctx = this.ctx, s = this.spatial(pos, 220);
+    const g = ctx.createGain(); g.gain.value = 0.26 + 1.05 * s.gain;
+    const p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    if (p) { p.pan.value = s.pan; g.connect(p); p.connect(this.sfx); const vg = ctx.createGain(); vg.gain.value = 0.3 + (1 - s.gain) * 0.35; p.connect(vg); vg.connect(this.verb); } else g.connect(this.sfx);
+    const f = 540 + Math.random() * 70;
+    for (let i = 0; i < n; i++) { const t = i * 0.16 + Math.random() * 0.03, k = 1 - i * 0.12;
+      this.tone(f, 0.6, 'square', 0.06 * k, g, t); this.tone(f * 1.48, 0.5, 'triangle', 0.065 * k, g, t); this.tone(f * 2.71, 0.3, 'sine', 0.04 * k, g, t); this.tone(f * 0.5, 0.35, 'sine', 0.05 * k, g, t); }
+  }
   woodpecker(pos) { if (!this.ctx) return; const o = this.out(pos, 70, 0.8, 0.5); if (!o) return; for (let i = 0; i < 16; i++) this.noiseBurst(0.025, 1400, 3, 0.5 * (1 - i / 20), o, i * 0.055); }
   bird(pos) {
     if (!this.ctx) return; const o = this.out(pos, 50, 0.1, 0.3); if (!o) return;   // (más bajo: 0,35, luego 0,2)

@@ -196,6 +196,26 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 
 ## Convenciones
 
+- **Nada que ayude a cumplir una misión se quita** (regla del autor, 17 de noviembre de 2026: «no puedes eliminar cosas
+  que ayuden a cumplir misiones»). Pistas de sonido, rótulos de ayuda, flechas, el perro guía, el brillo de lo que se
+  busca: si se cambia el sonido, la música o el diseño, la pista tiene que seguir funcionando igual o mejor. Lo que pasó:
+  al bajar los efectos y subir la música, los cencerros del Zarratrako de Otsagabia (que solo llegaban a 45 m) dejaron
+  de oírse y la misión «sigue sus cencerros» quedó sin pista. Ahora suenan con `cencerroGuia` (`src/audio.js`), en todo
+  el pueblo y con la dirección en cada oído, también los de las figuras de carnaval de los demás pueblos
+  (`townLeyendas.js`). Antes de tocar el volumen o un sonido, buscar en `game.js`, `townGame.js`, `townCharla.js` y
+  `townLeyendas.js` las misiones que dicen «escucha» o «sigue».
+- **Una sola línea de diseño** (el autor, 17 de noviembre de 2026: «el juego se ha ido creando poco a poco y tiene retazos
+  de todos los añadidos; hay que unificar»). Personajes: la referencia es el campesino y el joaldun, y todo personaje nuevo
+  se mide con `tools/proporciones-personajes.mjs` (unas 4,75 cabezas los adultos; `CABEZA` en `glbChar.js`). Elegir algo
+  de una lista (campeonatos, frontones): el carrusel 3D de `src/game/carrusel3d.js`, sin barras de filtros.
+- **El partido de pelota se ve como una retransmisión** (el autor, 17 de noviembre de 2026: «rótulos mucho más FIFA, más
+  dinámicos, más modernos»). Los rótulos del tanto (`.pel-call`, `.pel-golpe`, `.pel-rep-b`, `.pel-hlts` en
+  `src/pelota/hud.js`) son placas inclinadas que entran barriendo (`scaleX` de un pseudo-elemento) y el texto detrás, en
+  cascada; solo se animan `transform` y `opacity`. El color del bando va en `--pc` (`c-azul`, `c-rojo`). Los colores, los
+  del juego: morado noche, magenta, azul y el oro de los highlights; de la referencia (FC Mobile) se toma la forma y el
+  movimiento, nunca su verde ni su web. Al acabar cada partido, los highlights (`finPartido` → `verHl` → `sigHl` en
+  `match.js`): los tres mejores tantos según su nota (`guardaHl`), del tercero al primero, cada uno con su rótulo grande;
+  empiezan 2,4 s después del «¡Tanto y partido!», que se quita antes. Prueba: `tools/pelota-highlights.mjs`.
 - **Movimiento: un solo sistema** (`src/ui/motion.css` y `src/ui/motion.js`; noviembre de 2026, fase 1 del rediseño de
   la animación). Las curvas y los tiempos de todo el juego están en un sitio, como variables de `:root`: `--ease` para
   entrar (rápida al empezar y se posa), `--muelle` para abrirse (un pelo de sobrepaso), `--sale` para cerrar, `--anticipa`

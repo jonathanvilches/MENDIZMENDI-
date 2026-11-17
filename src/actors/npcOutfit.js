@@ -94,7 +94,7 @@ vec3 noOutfit(vec3 lin){
 export function adultBody(char, L) {
   if (L.child) return null;
   let head = null; char.root.traverse(o => { if (o.isBone && /Head$/.test(o.name) && !head) head = o; });
-  if (!head) return null;
+  if (!head || head.userData.cabK) return null;   // (con las proporciones de glbChar.js, CABEZA, ya tiene la suya)
   const k = L.old ? 0.9 : 0.87;
   return () => { head.scale.setScalar(k); };
 }
