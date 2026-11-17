@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, meshyBust, meshyHeight } from './glbChar.js';
+import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, meshyBust, meshyHeight, REDISENO } from './glbChar.js';
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
 import { hairTint, peloVecino } from './hairColor.js';
@@ -41,7 +41,9 @@ export async function preloadNpcs(d = null) {
   const vecP = Promise.all(vec.map(n => loadMeshy(n, true).then(g => { VEC_LOD[n] = g; }).catch(e => console.warn('vecino', n, e))));
   // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos; los vecinos de
   // Meshy, solo los del pueblo)
-  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP]);
+  // (y el juez del frontón, solo su versión ligera: no está entre los de archivo completo)
+  const juezP = hasMeshyLod('juez') && !MESHY_LOD_NPC.juez ? loadMeshy('juez', true).then(g => { MESHY_LOD_NPC.juez = g; }).catch(e => console.warn('juez', e)) : null;
+  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP, juezP]);
   return meshyReady;
 }
 const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;
@@ -129,7 +131,7 @@ const aSrgb = (v) => Math.round(255 * (v <= 0.0031308 ? v * 12.92 : 1.055 * Math
 const SIN_TINTE = new Set(['abuela_panuelo']);
 /** Los colores de pelo que puede llevar un vecino de Meshy (vacío: solo el suyo). */
 export function tonosDe(name) {
-  const V = VECINOS[name]; if (!V || !PELO[name]?.ref || SIN_TINTE.has(name)) return [];
+  const V = VECINOS[name]; if (!V || !PELO[name]?.ref || SIN_TINTE.has(name) || REDISENO.has(name)) return [];   // (los rediseñados, aún sin máscara del pelo)
   return (V.e === 'mayor' ? POOL_MAYOR : POOL_JOVEN).filter(k => TONOS[k]);
 }
 export function peloDe(name, L = {}) {
@@ -187,6 +189,8 @@ export function meshyFor(L = {}, nombre = '') {
   const ya = VEC_DE.get(hashOf(L)), v = (ya && VEC_LOD[ya] ? ya : null) || vecinoPara(L, nombre, Object.keys(VEC_LOD), true); if (v) return v;
   // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
   // pelotari, que lleva tacos en los dedos)
+  // (desde el rediseño, el juez propio: polo negro, pantalón blanco y zapatillas blancas, glbChar.js REDISENO)
+  if (L.juez && MESHY_LOD_NPC.juez) return 'juez';
   if (L.juez && MESHY_NAMES.includes('osasuna')) return 'osasuna';
   const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
   // ellas, con su cuerpo de chica (chicas.js: la sanferminera, con su coleta, vestida con su ropa); ellos con boina o
@@ -215,10 +219,11 @@ function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), pein
   // (el pelo de su color con hairColor.js: rubio, castaño claro, pelirrojo, canoso…; sin color, el suyo de siempre)
   if (ropa) outfitTint(char.root, name, { ...ropa, hair });   // (los trajes de trajes.js: su ropa pintada, de sus colores)
   else if (costume || L.meshy) hairTint(char.root, name, hair);
+  else if (name === 'juez') { /* (el juez nuevo ya va vestido de juez: ni se tiñe su ropa ni su pelo) */ }
   else outfitTint(char.root, L.juez && name === 'osasuna' ? 'osasuna_juez' : name, { shirt: L.shirt, pants: L.pants || L.skirt, vest: L.vest, acc: L.scarf || L.sash || L.vest || L.pants || L.skirt, hair });
   // su altura: niños más bajos, el resto con un poco de variedad; los mayores, algo más bajos
   // (a la altura de los vecinos de Meshy: adultos claramente más altos que el explorador, 1,45, y niños más bajos)
-  const H = L.height || (L.child ? 1.22 : (L.old ? 1.68 : 1.74) + (hashOf(L) % 7) * 0.02), k = H / 1.6;
+  const H = L.height || (L.child ? 1.22 : (L.old ? 1.68 : 1.74) + (hashOf(L) % 7) * 0.02), k = H / (name === 'juez' ? meshyHeight(name) : 1.6);
   char.root.scale.setScalar((g.userData.fit || 1) * k);
   // prendas encima: barba, delantal y makila; ellas, la falda y el delantal cosidos al cuerpo, que se mueven con las
   // piernas (trajes.js); con el cuerpo de chico de reserva, la falda de siempre

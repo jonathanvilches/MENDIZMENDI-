@@ -20,7 +20,9 @@ const SETS = {
   // (la afición de los partidos de pelota: chicos y chicas con el polo de su bando, colorado o azul, y pantalón oscuro,
   // para no confundirse con los pelotaris, que van de blanco. La azul es la misma figura con el polo pasado a azul:
   // crowd3d.js, camisetaAzul. Las chicas, el chico del polo con la cabeza y la coleta de chicas.js)
-  aficion: [{ meshy: 'osasuna', camiseta: 'rojo' }, { meshy: 'osasuna', camiseta: 'azul' }, { meshy: 'osasuna', chica: true, camiseta: 'rojo' }, { meshy: 'osasuna', chica: true, camiseta: 'azul' }],
+  // (desde el rediseño de noviembre de 2026, el chico y la chica propios de la afición, con la camiseta colorada; la
+  // azul, la misma figura con la camiseta pasada a azul)
+  aficion: [{ meshy: 'espectador', camiseta: 'rojo' }, { meshy: 'espectador', camiseta: 'azul' }, { meshy: 'espectadora', camiseta: 'rojo' }, { meshy: 'espectadora', camiseta: 'azul' }],
 };
 const cache = new Map();
 // sentado en la grada: los muslos hacia delante y las espinillas hacia abajo, con la cadera bajada lo que mide el muslo

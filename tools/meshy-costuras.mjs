@@ -108,7 +108,9 @@ for (const m of modelos) {
   console.log(m, `${costuras} costuras`, `${kb0} → ${statSync(`${DST}/${m}.glb`).size >> 10} KB`);
   // (y la misma textura en sus versiones de 1024 px y ligera, cada una a su tamaño: solo la textura, sin tocar la malla,
   // que las chicas casan sus parches con el orden de sus vértices)
-  if (!process.env.OUT) for (const v of [`src/assets/meshy-1024/${m}.glb`, `src/assets/meshy/lod/${m}.glb`].filter(v => existsSync(v))) {
+  // (SOLO_CERCA=1: no las toca. Los del rediseño, con la ligera de tools/meshy-lod-rehorneo.mjs, tienen otra textura y
+  // otro reparto en la ligera: se pasan las costuras al de cerca y después se hornea de nuevo la ligera)
+  if (!process.env.OUT && !process.env.SOLO_CERCA) for (const v of [`src/assets/meshy-1024/${m}.glb`, `src/assets/meshy/lod/${m}.glb`].filter(v => existsSync(v))) {
     if (!existsSync(v)) continue;
     const dv = await io.read(v), tv = dv.getRoot().listTextures()[0], [w, h] = tv.getSize(), k0 = statSync(v).size >> 10;
     const img = await sharp(buf, { raw: { width: W, height: H, channels: 3 } }).resize(w, h, { kernel: 'lanczos3' }).webp({ quality: 88, smartSubsample: true, effort: 6 }).toBuffer();
