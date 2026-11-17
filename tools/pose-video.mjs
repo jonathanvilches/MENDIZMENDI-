@@ -14,16 +14,21 @@ const [,, video, out, fps = '15', desde = '0', hasta = '999'] = process.argv;
 mkdirSync(out, { recursive: true }); const fd = `${out}/f`; rmSync(fd, { recursive: true, force: true }); mkdirSync(fd);
 execFileSync('ffmpeg', ['-loglevel', 'error', '-ss', desde, '-to', hasta, '-i', video, '-vf', `fps=${fps}`, '-q:v', '3', `${fd}/%04d.jpg`]);
 const fotos = readdirSync(fd).filter(f => f.endsWith('.jpg')).sort();
+const [ancho, alto] = execFileSync('ffprobe', ['-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=width,height', '-of', 'csv=p=0', `${fd}/${fotos[0]}`]).toString().trim().split(',').map(Number);
 console.log(fotos.length, 'fotogramas');
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const p = await b.newPage({ viewport: { width: 800, height: 600 } });
 const errs = []; p.on('pageerror', e => errs.push(e.message));
+// (MODELO=ruta/pose_landmarker_heavy.task: el modelo grande de MediaPipe, bastante más preciso que el ligero del juego,
+// sobre todo de espaldas; no se guarda en el repositorio por su tamaño, se descarga de storage.googleapis.com/mediapipe-models)
+const MODELO = process.env.MODELO;
+if (MODELO) await p.route('**/__modelo.task', r => r.fulfill({ body: readFileSync(MODELO), contentType: 'application/octet-stream' }));
 await p.goto('http://127.0.0.1:5173/src/pelota/rules.js', { timeout: 120000 });
-await p.evaluate(async () => {
+await p.evaluate(async (externo) => {
   const { motorVision, rutaAR } = await import('/src/ui/camaraAR.js');
   const { V, fs } = await motorVision();
-  window.__pose = await V.PoseLandmarker.createFromOptions(fs, { baseOptions: { modelAssetPath: rutaAR('pose_landmarker_lite.task'), delegate: 'CPU' }, runningMode: 'IMAGE', numPoses: 2, minPoseDetectionConfidence: 0.3, minPosePresenceConfidence: 0.3, minTrackingConfidence: 0.3 });
-});
+  window.__pose = await V.PoseLandmarker.createFromOptions(fs, { baseOptions: { modelAssetPath: externo ? '/__modelo.task' : rutaAR('pose_landmarker_lite.task'), delegate: 'CPU' }, runningMode: 'IMAGE', numPoses: 2, minPoseDetectionConfidence: 0.3, minPosePresenceConfidence: 0.3, minTrackingConfidence: 0.3 });
+}, !!MODELO);
 const SEGUIR = (process.env.SEGUIR || '').split(',').filter(Boolean);
 const res = []; let antes = {};
 for (let i = 0; i < fotos.length; i++) {
@@ -108,5 +113,5 @@ for (let i = 0; i < fotos.length; i++) {
   res.push({ f: fotos[i], gente: r });
   if (i % 30 === 0) console.log(i, r.length, 'personas');
 }
-writeFileSync(`${out}/pose.json`, JSON.stringify({ fps: +fps, desde: +desde, fotos: res }));
+writeFileSync(`${out}/pose.json`, JSON.stringify({ fps: +fps, desde: +desde, ancho, alto, fotos: res }));
 console.log('guardado', `${out}/pose.json`, errs.slice(0, 3)); await b.close();

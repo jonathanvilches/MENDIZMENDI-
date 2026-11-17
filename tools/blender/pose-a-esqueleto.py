@@ -40,7 +40,87 @@ for F in fotos:
 # relleno de huecos con el anterior
 for i in range(len(sel)):
     if sel[i] is None: sel[i] = sel[i - 1] if i else next(s for s in sel if s)
-W = [[Vector((q[0], q[2], -q[1])) for q in p['mundo']] for p in sel]
+N = len(sel)
+img = [[list(q) for q in p['img']] for p in sel]
+mun = [[list(q) for q in p['mundo']] for p in sel]
+CRUDO = os.environ.get('CRUDO')  # (como antes: las marcas en metros del detector, tal cual)
+if CRUDO:
+    W = [[Vector((q[0], q[2], -q[1])) for q in m] for m in mun]
+else:
+    # 1) Marcas fiables: las que el detector ve poco o caen fuera de la imagen (un pie tapado, el jugador saliéndose del
+    #    encuadre) no se usan: se rellenan con las de los fotogramas buenos de al lado. Si no, se inventa piernas.
+    def fiable(q): return q[2] >= 0.08 and 0.01 < q[0] < 0.99 and 0.005 < q[1] < 0.995  # (de espaldas, codos y muñecas tapados dan poca visibilidad pero bien situados)
+    ok = [[fiable(q) for q in fila] for fila in img]
+    rell = 0
+    for k in range(33):
+        buenos = [i for i in range(N) if ok[i][k]]
+        if not buenos: continue
+        for i in range(N):
+            if ok[i][k]: continue
+            a = max((j for j in buenos if j < i), default=None); b = min((j for j in buenos if j > i), default=None)
+            a = b if a is None else a; b = a if b is None else b
+            t = 0 if a == b else (i - a) / (b - a); rell += 1
+            img[i][k] = [img[a][k][c] * (1 - t) + img[b][k][c] * t for c in range(2)] + [0.0]
+            mun[i][k] = [mun[a][k][c] * (1 - t) + mun[b][k][c] * t for c in range(3)]
+    print('marcas rellenadas', rell, 'de', N * 33)
+    # 2) La forma, de la imagen (lo fiable); la profundidad, de la longitud de cada hueso: si un hueso se ve más corto de
+    #    lo que mide es que va hacia la cámara o hacia el fondo, y cuánto lo dice el teorema de Pitágoras. Del detector
+    #    sólo se toma hacia qué lado (su profundidad es lo que más falla, sobre todo de espaldas).
+    VIRT = {'mc': (23, 24), 'mh': (11, 12), 'mo': (7, 8)}
+    def gi(i, j):  # en la imagen (x, y), de 0 a 1
+        if j in VIRT: a, b = VIRT[j]; return [(img[i][a][c] + img[i][b][c]) / 2 for c in range(2)]
+        return img[i][j][:2]
+    def gw(i, j):
+        if j in VIRT: a, b = VIRT[j]; return [(mun[i][a][c] + mun[i][b][c]) / 2 for c in range(3)]
+        return mun[i][j]
+    ARBOL = [('mc', 23), ('mc', 24), ('mc', 'mh'), ('mh', 11), ('mh', 12), ('mh', 'mo'), ('mo', 7), ('mo', 8), ('mo', 0),
+             (11, 13), (13, 15), (15, 17), (15, 19), (15, 21), (12, 14), (14, 16), (16, 18), (16, 20), (16, 22),
+             (23, 25), (25, 27), (27, 29), (27, 31), (24, 26), (26, 28), (28, 30), (28, 32)]
+    def med(xs): xs = sorted(xs); return xs[len(xs) // 2] if xs else 1.0
+    if J.get('ancho') and J.get('alto'): ASP = J['alto'] / J['ancho']
+    else:  # (sin tamaño guardado: la proporción de la imagen, comparando las marcas en metros con las de la imagen)
+        rx, ry = [], []
+        for i in range(N):
+            for a, b in ARBOL:
+                dxi, dyi = gi(i, b)[0] - gi(i, a)[0], gi(i, b)[1] - gi(i, a)[1]; dxw, dyw = gw(i, b)[0] - gw(i, a)[0], gw(i, b)[1] - gw(i, a)[1]
+                if abs(dxi) > 0.02: rx.append(abs(dxw / dxi))
+                if abs(dyi) > 0.01: ry.append(abs(dyw / dyi))
+        ASP = med(ry) / med(rx)
+    L = {e: med([math.dist(gw(i, e[0]), gw(i, e[1])) for i in range(N)]) for e in ARBOL}
+    esc = []
+    for i in range(N):  # metros por unidad de imagen, en cada fotograma (el jugador se acerca y se aleja)
+        r = []
+        for a, b in ARBOL:
+            dxi, dyi = gi(i, b)[0] - gi(i, a)[0], (gi(i, b)[1] - gi(i, a)[1]) * ASP
+            li = math.hypot(dxi, dyi)
+            if li > 0.012: r.append(math.hypot(gw(i, b)[0] - gw(i, a)[0], gw(i, b)[1] - gw(i, a)[1]) / li)
+        esc.append(med(r))
+    esc = [sum(esc[j] * math.exp(-0.5 * ((j - i) / 4) ** 2) for j in range(N)) / sum(math.exp(-0.5 * ((j - i) / 4) ** 2) for j in range(N)) for i in range(N)]
+    W = []
+    for i in range(N):
+        s = esc[i]; pos = {'mc': Vector((0, 0, 0))}
+        for a, b in ARBOL:
+            dX = (gi(i, b)[0] - gi(i, a)[0]) * s; dZ = -(gi(i, b)[1] - gi(i, a)[1]) * ASP * s
+            dz = math.sqrt(max(L[(a, b)] ** 2 - dX * dX - dZ * dZ, 0))
+            lado = math.tanh((gw(i, b)[2] - gw(i, a)[2]) / 0.06)
+            pos[b] = pos[a] + Vector((dX, dz * lado, dZ))
+        # la rodilla sólo se dobla hacia delante: de espaldas a la cámara esa flexión va toda en la profundidad y el detector
+        # a veces la pone al revés; de las cuatro combinaciones de hacia dónde van muslo y espinilla, la primera que cumple
+        izq_ = pos[23] - pos[24]; arr_ = pos['mh'] - pos['mc']; dl_ = izq_.cross(arr_).normalized() if izq_.cross(arr_).length > 1e-6 else Vector((0, -1, 0))
+        for ca, ro, to, pies in ((23, 25, 27, (29, 31)), (24, 26, 28, (30, 32))):
+            def tramo(a, b, sg):
+                dX = (gi(i, b)[0] - gi(i, a)[0]) * s; dZ = -(gi(i, b)[1] - gi(i, a)[1]) * ASP * s
+                return Vector((dX, math.sqrt(max(L[(a, b)] ** 2 - dX * dX - dZ * dZ, 0)) * sg, dZ))
+            st = 1 if gw(i, ro)[2] >= gw(i, ca)[2] else -1; ss = 1 if gw(i, to)[2] >= gw(i, ro)[2] else -1
+            mejor = None
+            for a1, a2 in ((st, ss), (st, -ss), (-st, ss), (-st, -ss)):
+                k_ = pos[ca] + tramo(ca, ro, a1); t_ = k_ + tramo(ro, to, a2)
+                fw = (k_ - (pos[ca] + t_) * 0.5).dot(dl_)
+                if mejor is None or fw > mejor[0] + 1e-9: mejor = (fw, k_, t_)
+                if fw >= -0.015: mejor = (fw, k_, t_); break
+            mov = mejor[2] - pos[to]; pos[ro], pos[to] = mejor[1], mejor[2]
+            for pk in pies: pos[pk] = pos[pk] + mov
+        W.append([pos[k] if k in pos else Vector((mun[i][k][0], mun[i][k][2], -mun[i][k][1])) for k in range(33)])
 # suavizado en el tiempo (gaussiano, sigma ~1 fotograma): quita el temblor sin comerse el golpe
 def suaviza(W, s=1.0):
     k = [math.exp(-0.5 * (d / s) ** 2) for d in range(-3, 4)]
@@ -52,7 +132,7 @@ def suaviza(W, s=1.0):
             for m in range(33): acc[m] += W[j][m] * kw
         out.append([v / ws for v in acc])
     return out
-W = suaviza(W, float(os.environ.get('SIGMA', '1.0')))
+W = suaviza(W, float(os.environ.get('SIGMA', '1.2')))
 print('fotogramas', len(W))
 
 # ---- el esqueleto en reposo
@@ -110,13 +190,30 @@ for i, w in enumerate(W):
     g = lambda k: w[L[k]]
     mh = mid(g('caL'), g('caR')); ms = mid(g('hL'), g('hR'))
     Rh = basis(g('caL') - g('caR'), ms - mh) @ hips0.transposed()
-    Rc = basis(g('hL') - g('hR'), ms - mh) @ chest0.transposed()
+    # el pecho gira respecto a la cadera sólo lo que da el cuerpo (y con los brazos arriba, menos: entonces los hombros se
+    # suben y se juntan, y el detector cree que el tronco está girado)
+    up = (ms - mh).normalized()
+    def plano(v): v = v - v.dot(up) * up; return v.normalized() if v.length > 1e-6 else Vector((1, 0, 0))
+    hl, sl = plano(g('caL') - g('caR')), plano(g('hL') - g('hR'))
+    th = math.atan2(hl.cross(sl).dot(up), hl.dot(sl))
+    brazos = max(g('cL').z - g('hL').z, g('cR').z - g('hR').z) > 0.05
+    th = max(-math.radians(35), min(math.radians(35), th * (0.35 if brazos else 0.7)))
+    Rc = basis(Quaternion(up, th) @ hl, ms - mh) @ chest0.transposed()
+    # la cabeza: de cara a la cámara, la de la cara; de espaldas (la cara se la inventa el detector), derecha y mirando
+    # adonde mira el pecho, como quien sigue la pelota
     me = mid(g('oreL'), g('oreR'))
-    Rk = basis(g('oreL') - g('oreR'), me - ms) @ head0.transposed()
+    de_cara = (g('caL') - g('caR')).normalized().x > 0.3
+    if de_cara: Rk = basis(g('oreL') - g('oreR'), me - ms) @ head0.transposed()
+    else:
+        cl = Rc @ chest0 @ Vector((1, 0, 0)); cl.z = 0
+        Rk = basis(cl if cl.length > 1e-6 else Vector((1, 0, 0)), Vector((0, 0, 1))) @ head0.transposed()
     gira(mx('Hips'), Rh.to_4x4())
     q = (Rc @ Rh.transposed()).to_quaternion(); q3 = Quaternion().slerp(q, 1 / 3)
     for n in ('Spine', 'Spine1', 'Spine2'): gira(mx(n), q3)
-    qk = (Rk @ Rc.transposed()).to_quaternion(); q2 = Quaternion().slerp(qk, 0.5)
+    qk = (Rk @ Rc.transposed()).to_quaternion()
+    ang = qk.angle if qk.angle <= math.pi else 2 * math.pi - qk.angle
+    f = (0.6 if de_cara else 1.0) * min(1, math.radians(50 if not de_cara else 35) / max(ang, 1e-6))  # (con tope)
+    q2 = Quaternion().slerp(qk, f / 2)
     for n in ('Neck', 'Head'): gira(mx(n), q2)
     for s, k in (('Left', 'L'), ('Right', 'R')):
         u = g('c' + k) - g('h' + k); f = g('m' + k) - g('c' + k)
@@ -126,7 +223,7 @@ for i, w in enumerate(W):
         # (la mano no tiene hijo en el esqueleto: su dirección de reposo, de la muñeca hacia los dedos, es la del antebrazo)
         Mh = P[mx(s + 'Hand')].matrix; Q = Mh.to_3x3() @ rest[mx(s + 'Hand')].to_3x3().inverted()
         d0 = (H0[mx(s + 'Hand')] - H0[mx(s + 'ForeArm')]).normalized()
-        gira(mx(s + 'Hand'), (Q @ d0).rotation_difference(hand.normalized()))
+        gira(mx(s + 'Hand'), Quaternion().slerp((Q @ d0).rotation_difference(hand.normalized()), 0.5))  # (la muñeca, firme)
         u = g('r' + k) - g('ca' + k); f = g('t' + k) - g('r' + k)
         prevn['p' + k] = bisagra(mx(s + 'UpLeg'), mx(s + 'Leg'), mx(s + 'Foot'), u, f, BACK, prevn.get('p' + k), None)
         apunta(mx(s + 'Leg'), mx(s + 'Foot'), f)

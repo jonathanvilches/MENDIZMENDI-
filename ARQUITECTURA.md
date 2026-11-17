@@ -237,6 +237,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   altura y tramo; `tools/blender/pose-a-esqueleto.py` pasa ese tramo al esqueleto mixamorig (bisagra en codo y rodilla,
   pies al suelo) y exporta la acción y su render. Rinde mucho mejor un vídeo cercano (entrenamientos) que la tele:
   ahí los brazos tiemblan. El resultado es la referencia sobre la que se afina en Blender el movimiento de Meshy.
+  De espaldas a la cámara la profundidad es ambigua (el autor, 17 nov: «hace posiciones bastante raras»): el paso al
+  esqueleto toma la forma de la imagen y la profundidad de la longitud de cada hueso, y aplica reglas del cuerpo (giro
+  del pecho limitado, rodilla que sólo dobla hacia delante, cabeza derecha de espaldas, marcas fuera de la imagen
+  descartadas). Con `MODELO=` el modelo grande de MediaPipe, más preciso. Detalle en `investigacion/movimientos-reales/`.
 - **La txapela es lo más importante de la pelota** (el autor, 17 de noviembre de 2026: «que te pongan la txapela es el
   mayor honor del mundo; tiene que estar sí o sí»). Al acabar la final de un campeonato, después de los highlights, la
   entrega en el frontón (`src/pelota/ceremonia.js`, lanzada desde `match.js ceremonia`): el podio de cajones blancos
