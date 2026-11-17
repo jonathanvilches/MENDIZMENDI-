@@ -833,6 +833,18 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   formas de escribirlo: `maite-ines-zarratrako-1` y `-2` (en fonética y «Sarratráko»), `maite-ines-zarratraco-z-1` y
   `-2` («Zarratraco» y en fonética con zeta), `itziar-nuria-otsagabya-1` y `-2` y `itziar-nuria-otsagabia-acento-1` y
   `-2` («Otsagabía» y en fonética con el acento en la i).
+  17 de noviembre de 2026, el autor en la página de elecciones: las frases con cuenta de Joxemari, el Basajaun y el
+  Bobo «valen, mételas en el juego», con una nota en cada una: «no hace falta el recuento». La voz ya no dice el número:
+  de cada grabación se corta «Llevas N de M» (en el Bobo, «Tienes N de 8», que va en medio) por el silencio que lo
+  separa, y queda una sola frase por vecino: `joxemari-09`, «Colócate detrás de cada oveja para que camine hacia el
+  redil»; `basajaun-07`, «Busca cerca de los senderos de Irati», y `bobo-05`, «Pero sin sus cintas no pueden bailar…
+  ¡Tráelas todas y bailaremos juntos!». `clipDe` busca primero la frase tal cual y, si no la encuentra, sin la cuenta
+  (`CUENTA`), así que el texto en pantalla sigue diciendo cuántas llevas. Entran también las dos explicaciones del baile
+  del Bobo: `bobo-06` para el móvil y `bobo-07` para el ordenador. La de Joseba no entra: el autor no la marcó; su corte
+  espera en `entrega/voces-cuentas/sin-cuenta/joseba.mp3`. Las 80 cuentas de la narradora no se graban.
+  El autor rechaza también a Inés para Maite y a Nuria para Itziar: las dos vuelven a esperar voz. De las pruebas
+  quedan apuntadas las formas que le valen para cuando haya voz: «José Mari», «Sarratráko» con el acento en la tercera
+  a, y la fonética con el acento en la i para «Otsagabía».
 - **Locución más viva** (`tools/aviva-voz.py`, noviembre de 2026): sobre las frases ya cortadas, sin crear voz, acorta
   las pausas de dentro (en Miren, las de más de 0,45 s a 0,24 y las de más de 0,2 a 0,13; en Iñaki, las de más de 0,4 a
   0,24 y las de más de 0,28 a 0,16; junto a «Iñaki», en las frases de Miren, a 0,07, que la voz de Envato se paraba en
