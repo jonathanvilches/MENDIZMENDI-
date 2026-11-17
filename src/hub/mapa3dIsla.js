@@ -725,7 +725,7 @@ void main() { vec3 n = normalize(vNw);
       const py0 = py; py = py + B * sy;   // (de aquí abajo, py es donde empieza la panza; py0, la base de la comarca)
       TIEMPO.value = t; TCOLG.value = t; PTO.uEsc.value = esc;
       // (la orilla baja nada más despegarse la isla: a un 30 % del camino ya está entera)
-      const ki = ss(0.02, 0.3, k); if (Math.abs(ki - KI) > 0.002 || (ki === 0) !== (KI === 0)) { KI = ki; ponCanto(sy); }   // (enseguida: si no, mientras sube se veía el monte cortado, con su roca alta)
+      const ki = ss(0.004, 0.16, k); if (Math.abs(ki - KI) > 0.002 || (ki === 0) !== (KI === 0)) { KI = ki; ponCanto(sy); }   // (17 de noviembre de 2026: la grieta se abre al despegar, casi a ras, y luego sube de una pieza; antes la orilla seguía bajando a media subida)   // (enseguida: si no, mientras sube se veía el monte cortado, con su roca alta)
       if (Math.abs(sy - cantoSy) > 0.002) ponCanto(sy);
       canto.position.y = py0; rocaM.uniforms.uTopeK.value = sy; rocaM.uniforms.uTopeI.value = KI;
       // (al soltarse: un derrumbe por todo el borde, de la isla y del hueco, con su polvo. Desde el 16 de noviembre de 2026,

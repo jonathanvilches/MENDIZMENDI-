@@ -135,14 +135,22 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   };
   // (lo añadido es el relieve de verdad; solo junto al borde de la isla baja hasta el pie: en el último quinto de lo que
   // crece, o en la mitad si el monte no llegó a bajar antes del tope)
+  // (17 de noviembre de 2026: lo añadido bajaba al pie en el último quinto de lo que crece, y con el relieve exagerado
+  // quedaba una ladera casi vertical, lisa y con la foto estirada en vetas: unas «cortinas» verdes delante de la isla. Ahora
+  // empieza a bajar mucho antes, en algo más de la mitad, y no a la misma distancia en todo el borde sino en lenguas, con una
+  // onda suave a lo largo: baja como la falda de un monte, con sus estribaciones)
+  const onda = (i) => 0.5 + 0.5 * Math.sin(i * 0.31 + 1.3) * Math.cos(i * 0.113 + 0.4);
   // (y cada punto, una vez: el relieve, la luz, el fino y el bosque lo piden para los mismos vértices, y la búsqueda del borde
   // más cercano era lo que más tardaba en hacerse la isla)
   const memo = new Map();
   const fuera = (x, z) => { const kq = (Math.round(x * 1e4) + 4e6) * 1e7 + Math.round(z * 1e4) + 4e6, m = memo.get(kq); if (m) return m;
-    const c = cerca(x, z), b = base[c.i] * (1 - c.t) + base[c.j] * c.t, e = extL[c.i] * (1 - c.t) + extL[c.j] * c.t, tp = tapaL[c.i] * (1 - c.t) + tapaL[c.j] * c.t;
-    const r = { b, k: 1 - ss(e * (0.8 - 0.3 * tp), e, c.d), nav: navarra(x, z), d: c.d, sx: x, sz: z };
+    const c = cerca(x, z), b = base[c.i] * (1 - c.t) + base[c.j] * c.t, e = extL[c.i] * (1 - c.t) + extL[c.j] * c.t, tp = tapaL[c.i] * (1 - c.t) + tapaL[c.j] * c.t, on = onda(c.i) * (1 - c.t) + onda(c.j) * c.t;
+    const r = { b, k: 1 - ss(e * (0.32 + 0.24 * on - 0.12 * tp), e, c.d), hq: HQ[c.i] * (1 - c.t) + HQ[c.j] * c.t - b, nav: navarra(x, z), d: c.d, sx: x, sz: z };
     if (memo.size > 150000) memo.clear(); memo.set(kq, r); return r; };
-  const altoI = (x, z) => { if (dentro(x, z)) return alto(x, z); const f = fuera(x, z); return f.b + (alto(x, z) - f.b) * f.k; };
+  // (y baja sin aplanarse: se le resta una rampa, lo que el monte del borde sube sobre su pie, y no se encoge todo hacia el
+  // pie, que dejaba la falda lisa como una lona; así guarda sus crestas y barrancos, y los fondos llegan antes al pie. Solo
+  // lo que queda más alto que el monte del borde se encoge, y en el borde de la isla todo acaba en el pie)
+  const altoI = (x, z) => { if (dentro(x, z)) return alto(x, z); const f = fuera(x, z), h = alto(x, z) - f.b; return f.b + Math.max(0, h - (1 - f.k) * Math.max(h, f.hq)) * Math.pow(f.k, 0.35); };
   const fuente = (x, z) => { if (dentro(x, z)) return [x, z, 1]; const f = fuera(x, z); return [x, z, f.k]; };
   // (la luz de la malla: donde el relieve ha bajado al pie, y fuera de Navarra, donde el sombreado del mapa no llega)
   const ampDe = (f) => f.nav ? ss(0.05, 0.4, 1 - f.k) : ss(0, 0.4, f.d);

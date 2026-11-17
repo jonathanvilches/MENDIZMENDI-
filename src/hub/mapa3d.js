@@ -2154,6 +2154,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     TIEMPO.value = t; aves.update(dt, t, v, !intro || intro.hecho); INVEXA.value = 1 / exa; TAM.value = Math.min(1, Math.max(0, (v.d - 4) / 18));   // (las texturas, ya algo en la vista de toda Navarra: los campos, el bosque y la roca; y las nubes, que pasan)
     const velC = Math.min(1, 0.15 + v.d / 3);
     const islaArriba = sel ? Math.min(1, Math.max(0, ((byId.get(sel)?.isla?.k) || 0) - 0.05) / 0.5) : 0;   // (cuánto está en el aire la isla elegida)
+    // (y las de alrededor no se hunden hasta que la isla se rompe: si no, la elegida quedaba con un escalón de pared parda)
+    const cSel = sel && byId.get(sel), hundeK = cSel?.isla && !COL ? Math.min(1, ((cSel.isla.k) || 0) / 0.25) : 1;
     let naceF = 1, fondoF = 0;   // (para la falda: lo que ha crecido la que menos y lo que se ha hundido la que más, sin la elegida)
     for (const c of C) {
       let nace = ease(Math.max(0, Math.min(1, (t - c.d) / 0.7))), alza = 0, posa = 0;
@@ -2169,7 +2171,9 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       // puntero, bajaba y volvía a subir, y el mapa daba saltos al pasar por encima)
       // (con la cámara muy cerca, más despacio: así, al saltar de un pueblo a otro o al volver, la de debajo baja mientras la
       // cámara ya va subiendo, y no de golpe a ras de tejado; la cámara va con ella: frame)
-      c.lift += ((sel === c.id ? 0.9 : 0) - c.lift) * (1 - Math.exp(-dt * 10 * velC));
+      // (con isla, la elegida no se levanta del mapa antes de romperse: subía 0,9 con sus paredes pardas a la vista, como una
+      // galleta recortada, y luego salía la isla. Ahora se queda a ras hasta que se rompe y sube; 17 de noviembre de 2026)
+      c.lift += ((sel === c.id ? (c.isla && !COL ? 0 : 0.9) : 0) - c.lift) * (1 - Math.exp(-dt * 10 * velC));
       c.hov += ((hover === 'c:' + c.id ? 1 : 0) - c.hov) * (1 - Math.exp(-dt * 12));
       // (con otra elegida, pasa al fondo: más baja, casi sin color y más oscura bajo una bruma de piedra templada, y su agua y
       // su borde casi no se ven; la elegida, más viva. Antes las demás apenas cambiaban y no se distinguía cuál era)
@@ -2183,12 +2187,14 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       // menos de un segundo en vez de en algo más de 1,2. El autor: «cuando se arranca la tierra de la comarca, que vaya un
       // poquito más deprisa». Y el plano de la subida, PITCH_ISLA, a 24° en vez de 15°: «que no sea horizontal, también que
       // esté un poco en perspectiva»)
-      // (y no se despega hasta tener compilados sus programas, o 1,6 s después de elegirla)
-      if (c.isla) { const I = c.isla, hecha = islaComp || (I.k || 0) > 0.002 || performance.now() - (c.tSel || 0) > 1600, ob = sel === c.id && !COL && hecha && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 5.3) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      // (y no se despega hasta tener hecho su relieve fino, o 1,6 s después de elegirla: si no, subía con la malla gruesa,
+      // casi llana, y a media subida le crecían los montes de golpe; el autor, el 17 de noviembre de 2026: «esa generación de
+      // todo lo que es el modelado, queda fatal»)
+      if (c.isla) { const I = c.isla, hecha = ((!finoD || c.finoListo) && islaComp) || (I.k || 0) > 0.002 || performance.now() - (c.tSel || 0) > 1600, ob = sel === c.id && !COL && hecha && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 5.3) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }
-      c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo) * nace + alza;
+      c.sy = Math.max(0.01, nace) * exa; c.py = (c.alzado + c.lift + vuela - 0.35 * c.fondo * (c.id === sel ? 1 : hundeK)) * nace + alza;
       naceF = Math.min(naceF, nace); if (c.id !== sel) fondoF = Math.max(fondoF, c.fondo);
       c.mesh.scale.y = c.sy; c.mesh.position.y = c.py; c.linea.scale.y = c.sy; c.linea.position.y = c.py; if (c.arbolFondo) c.arbolFondo.value = c.fondo * (1 - 0.6 * cieloK);
       // (con la tierra a medio salir, y acabado su vídeo si lo hay, la cámara arranca: pasa a la perspectiva de la órbita y

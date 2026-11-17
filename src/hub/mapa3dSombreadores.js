@@ -226,7 +226,11 @@ void main() {
   // claro, como una pieza pegada: «se nota que están pegadas y que no son orgánicas»)
   float empin = 0.0;
   if (vOr > 0.002) { vec3 pw = vec3(vXZ.x, vH, vXZ.y), nn = normalize(cross(dFdx(pw), dFdy(pw))); if (nn.y < 0.0) nn = -nn;
-    s = mix(s, clamp(0.45 + 0.96 * dot(nn, normalize(vec3(-0.75, 0.57, -0.33))), 0.4, 1.4), vOr); empin = vOr * smoothstep(0.3, 0.7, 1.0 - nn.y); }
+    s = mix(s, clamp(0.45 + 0.96 * dot(nn, normalize(vec3(-0.75, 0.57, -0.33))), 0.4, 1.4), vOr); empin = vOr * smoothstep(0.3, 0.7, 1.0 - nn.y);
+    // (y en lo pendiente, surcos de erosión ladera abajo, de unos 300 m de uno a otro: la falda que baja al pie salía lisa,
+    // como una lona verde, y con ellos se lee como monte; 17 de noviembre de 2026)
+    if (empin > 0.02) { vec2 dn = normalize(nn.xz + vec2(1e-5)), pp = vec2(-dn.y, dn.x); float rg = 1.0 - abs(2.0 * (ruido(vec2(dot(vXZ, pp) * 7.0, dot(vXZ, dn) * 0.9)) * 0.7 + ruido(vec2(dot(vXZ, pp) * 17.0, dot(vXZ, dn) * 2.1)) * 0.3) - 1.0);
+      s *= mix(1.0, 0.74 + 0.38 * rg, empin * 0.85); } }
   c = c * s + 0.35 * pow(clamp((s - 0.3) / 1.05, 0.0, 1.0), 8.0);
   // (la ortofoto, el color de verdad del suelo: campos, bosques, ríos, pueblos y roca, con la luz del relieve encima, algo
   // más suave, que la foto ya trae la suya; de cerca, la de la comarca, a 28 m)
