@@ -34,8 +34,9 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 | El Basajaun | Hecho en Meshy, con un pie de persona y una pezuña, ya en el juego |
 | El Momotxorro | Boceto hecho, falta tu visto bueno |
 | Los joaldunak | Boceto hecho, falta tu visto bueno |
-| El Zarratrako | Falta el boceto, con referencias reales del carnaval de Otsagabia |
-| El Bobo de Muskilda y los ocho danzantes | Falta el boceto, con referencias reales de la danza |
+| El Zarratrako | Sin boceto: las fuentes no describen su traje y hace falta una foto real |
+| El Bobo de Muskilda | Boceto hecho el 17 de noviembre, falta tu visto bueno |
+| Los ocho danzantes de Muskilda | Sin boceto: falta una foto real del traje |
 | Sorgina, Tartalo, Roldán, Cascabobo, Zipotero, Orido y lagunero | Bocetos hechos, sin modelo |
 | Vecinos de cerca con más calidad | Pendiente |
 | Retratos ilustrados de los vecinos en las charlas | Pendiente |
