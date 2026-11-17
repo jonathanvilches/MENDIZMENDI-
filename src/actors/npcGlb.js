@@ -69,8 +69,14 @@ export const VECINOS = {
   mujer: { s: 'f', e: 'adulto', pelo: 'oscuro' }, joven_rubia: { s: 'f', e: 'adulto', pelo: 'rubio' }, campesina: { s: 'f', e: 'adulto', oficio: /campesin|hortelan|olivar|labrador|agricult|pastora|guarda|vendimi/ },
   carpintera: { s: 'f', e: 'adulto', oficio: /carpinter|cester|alfarer|artesan|tejedor|herrer/ }, quesera: { s: 'f', e: 'adulto', oficio: /queser|ganader|apicult|carnicer|lecher/ },
   panadera: { s: 'f', e: 'adulto', oficio: /panader|horner|pastel|cocin|taberner|posader|hospitaler/ },
+  // los seres de leyenda hechos en Meshy (17 de noviembre de 2026, de los bocetos que aprobó el autor): solo hacen de ellos
+  // mismos (su edad, «leyenda», no la tiene nadie de la calle) y solo se cargan en el pueblo donde salen (vecinosDelPueblo).
+  // El Basajaun lleva un pie de persona y una pezuña, como en el boceto
+  lamia: { s: 'f', e: 'leyenda', ser: 'lamia' }, basajaun: { s: 'm', e: 'leyenda', ser: 'basajaun' },
 };
 const VEC = Object.keys(VECINOS);
+/** El modelo de Meshy de este ser de leyenda (la lamia, el Basajaun), o null. */
+const serDe = (L) => (L?.myth && VECINOS[L.myth]?.ser && hasMeshyLod(L.myth) ? L.myth : null);
 const sinTilde = (t) => String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 const tono = (c) => { if (!c) return null; const [r, g, b] = hex(c); return r > 150 && g > 110 && b < 150 && r - b > 50 ? 'rubio' : r > 120 && r > g * 1.5 && r > b * 1.8 ? 'rojo' : 'oscuro'; };
 const edadDe = (L) => L.child || (L.height && L.height <= 1.45) ? 'nino' : L.old ? 'mayor' : 'adulto';
@@ -144,14 +150,17 @@ const BUST_PELO = Object.fromEntries(Object.entries(import.meta.glob('../assets/
   .map(([f, u]) => [f.split('/').pop().replace('.webp', ''), u]));
 // los que carga cada pueblo: los que dan sus misiones y hablan en él (los que salen en sus datos con nombre y aspecto)
 // y, para la gente de la calle, mayores, niños y adultos de cada sexo, fijos para cada pueblo
+const SERES_DE = { 'otsagabia-ochagavia': ['lamia', 'basajaun'] };
 function vecinosDelPueblo(d) {
   const quiero = new Set(), vistos = new Set();
   const mira = (o, prof = 0) => {
     if (!o || typeof o !== 'object' || prof > 7 || vistos.has(o)) return; vistos.add(o);
-    if (o.look && typeof o.look === 'object') { const k = vecinoPara(o.look, o.name || o.who || ''); if (k) quiero.add(k); }
+    if (o.look && typeof o.look === 'object') { const k = serDe(o.look) || vecinoPara(o.look, o.name || o.who || ''); if (k) quiero.add(k); }
     for (const v of Array.isArray(o) ? o : Object.values(o)) mira(v, prof + 1);
   };
   mira(d);
+  // (en Otsagabia, la lamia y el Basajaun salen en game/npcs.js, no en los datos del pueblo)
+  for (const k of SERES_DE[d?.id] || []) quiero.add(k);
   let h = 7; for (const c of String(d?.id || '')) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const de = (lista, cuantos) => { for (let i = 0; i < cuantos; i++) quiero.add(lista[(h + i * 7 + (h >>> 5)) % lista.length]); };
   // (con muchos más vecinos por la calle, más caras distintas: los seis mayores, los cuatro niños y tres adultos de cada sexo.
@@ -471,6 +480,9 @@ const EXPR = {
 /** Vecino: devuelve { obj, char, anim } con la misma interfaz que usaba la figura antigua (anim.update / setExpr). */
 export function buildNpc(look = {}, nombre = '') {
   const L = look;
+  // (los seres de leyenda con su modelo de Meshy, si este pueblo lo ha cargado; si no, con el traje de siempre)
+  const ser = serDe(L);
+  if (ser && VEC_LOD[ser]) try { return buildVecino(L, ser); } catch (e) { console.warn('ser de leyenda', e); }
   if (meshyReady && !COSTUME(L)) try { return buildNpcMeshy(L, false, null, isFemale(L), 'coleta', nombre); } catch (e) { console.warn('vecino Meshy', e); }
   if (meshyReady && COSTUME(L)) try { return buildNpcMeshyCostume(L); } catch (e) { console.warn('vecino Meshy con traje', e); }
   if (L.meshy && MESHY_NPC[L.meshy]) try { return buildNpcMeshy(L); } catch (e) { console.warn('vecino Meshy', e); }

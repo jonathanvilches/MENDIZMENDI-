@@ -15,6 +15,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
+  - **La lamia y el Basajaun de Meshy** (17 de noviembre de 2026, de los bocetos que aprobó el autor; el Basajaun con un pie
+    de persona y una pezuña): hechos por la API de Meshy (image_to_3d, meshy_rig y meshy_animate: andar, correr, estar de
+    pie y charlar) y juntados con `tools/meshy-rig-vecino.mjs`, que pone a los huesos los nombres de Mixamo (el esqueleto
+    de la API los llama Hips, Spine02, Spine01, Spine, neck...) y a las animaciones los que entiende `vecinos-glb.mjs`.
+    Después, como los vecinos: `vecinos-glb`, `meshy-lod`, `meshy-costuras` y el busto. En `npcGlb.js` son VECINOS con edad
+    «leyenda» (nadie de la calle la tiene) y `ser`: `buildNpc` usa su modelo cuando el aspecto lleva `myth` y el pueblo lo
+    ha cargado; `vecinosDelPueblo` los carga solo donde salen (`SERES_DE`: en Otsagabia vienen de `game/npcs.js`, no de los
+    datos del pueblo). Altura: lamia 1,84 m, Basajaun 2,5 m. Unos 12 000 triángulos y 0,7 MB cada uno.
   - Vecinos de Meshy (modelos del autor del juego, 12 de noviembre de 2026): 21 personajes que son toda la gente normal de
     los pueblos: abuelos con txapela (`abuelo_bigote`, `abuelo_barba`, `abuela_trenzas`,
     `abuela_mono`), abuelos sin ella (`abuelo`, `abuela_panuelo`), niños (`nino_moreno`, `nino_rubio`, `nina_pelirroja`,
