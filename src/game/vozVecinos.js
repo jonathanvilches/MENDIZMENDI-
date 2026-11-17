@@ -3,9 +3,9 @@
 // Joseba, Martín; la Lamia, Sophie; el Basajaun, Ezequiel; el Bobo, Lucas; Arantxa, Mari; la narradora, Nico. Maite
 // sigue con Lulú hasta que el autor elija la suya. Los paseantes no hablan: solo misiones e información.
 // src/assets/voz/vecinos/ochagavia/<vecino>-<nn>.mp3 y manifiesto.json ({ vecino: [[frase, archivo]] }): la frase se
-// busca por su texto, sin el nombre de quien juega (las grabaciones no lo dicen), sin tildes ni signos. En las frases con
-// cuenta la voz no dice el número («no hace falta el recuento», el autor, 17 nov): «Llevas 3 de 6. Colócate…» se busca
-// sin «Llevas 3 de 6» y suena la instrucción sola, mientras el texto sí lo dice; los saludos de Itziar y Joxemari están grabados
+// busca por su texto, sin el nombre de quien juega (las grabaciones no lo dicen), sin tildes ni signos. Las frases con
+// cuenta («Llevas 3 de 6. Colócate…») tienen su grabación con el número; si falta, se busca sin «Llevas 3 de 6» y suena
+// la instrucción sola, mientras el texto sí lo dice (el autor, 17 nov); los saludos de Itziar y Joxemari están grabados
 // con «Egun on», «Arratsalde on» y «Gabon» (saludo.js cambia el saludo con la hora). En euskera, nada: las grabaciones son en castellano. Una frase cada vez: la siguiente, o cerrar la
 // charla, calla la anterior. Mientras habla, la música baja (audio.js, voz), como con los comentaristas de pelota.
 // Además de las charlas (hablaVecino), la narradora (manifiesto, «narra»): los avisos del pueblo (la fuente, el puente,

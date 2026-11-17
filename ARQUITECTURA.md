@@ -842,6 +842,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`CUENTA`), así que el texto en pantalla sigue diciendo cuántas llevas. Entran también las dos explicaciones del baile
   del Bobo: `bobo-06` para el móvil y `bobo-07` para el ordenador. La de Joseba no entra: el autor no la marcó; su corte
   espera en `entrega/voces-cuentas/sin-cuenta/joseba.mp3`. Las 80 cuentas de la narradora no se graban.
+  El autor, a continuación: «aunque si ya las has generado las voces de recuento, añádelas para no perderlas, para no
+  tirar créditos». Entran las 24 grabaciones con la cuenta, cada una con su frase entera en el manifiesto: Joxemari de
+  0 a 5 de 6 (`joxemari-10` a `-15`), Joseba de 0 a 4 de 5 (`inaki-07` a `-11`), el Basajaun de 0 a 4 de 5
+  (`basajaun-08` a `-12`) y el Bobo de 0 a 7 de 8 (`bobo-08` a `-15`). Como `clipDe` prueba primero la frase tal cual,
+  suena la que dice el número; las cortadas sin cuenta quedan de reserva por si cambia el total de una misión.
   El autor rechaza también a Inés para Maite y a Nuria para Itziar: las dos vuelven a esperar voz. De las pruebas
   quedan apuntadas las formas que le valen para cuando haya voz: «José Mari», «Sarratráko» con el acento en la tercera
   a, y la fonética con el acento en la i para «Otsagabía».
