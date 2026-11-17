@@ -528,7 +528,11 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   solo se oyen los aplausos: la pelota se calla hasta el saque siguiente (`callada`), la chapa ya no hace su «¡clonc!», la
   repetición va sin sonido y, si la grabación de los aplausos aún no ha llegado, no suena nada en su lugar. El aplauso dura
   de 3 a 5 s, entra con un fundido de algo más de medio segundo y se apaga despacio (`aplauso`; antes entraba de golpe,
-  en una décima), y el murmullo de la grada no sube a la vez (los dos juntos sonaban a vibración). La ovación del último
+  en una décima), y el murmullo de la grada no sube a la vez (los dos juntos sonaban a vibración). Desde el 17 de noviembre
+  de 2026, si el tanto lo pierdes tú o tu pareja con un fallo (chapa, fuera, falta, pasa), la grada abuchea en vez de
+  aplaudir (`abucheo`, la grabación «Crowd Booing» que pasó el autor: «Abucheos para fallos jugando»), un trozo de unos 3 s
+  de un sitio distinto cada vez, con su fundido; solo en el partido, no entrenando ni en los retos, y nunca en el último
+  tanto, que es la ovación del que gana. Si la grabación aún no ha llegado, suena el aplauso de siempre. La ovación del último
   tanto también entra con fundido (`efecto` de `audio/pistas.js`, con su tiempo de entrada). Suena
   la música de los campeonatos (`audio.js`, `nivelMusica`): baja mientras se juega (`match.js`, `enJuego`) y vuelve en la
   presentación, el sorteo, las repeticiones y el final. El partido usa el sonido del juego, ya desbloqueado con el primer

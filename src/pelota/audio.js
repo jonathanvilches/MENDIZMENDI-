@@ -32,7 +32,7 @@ export class PelotaAudio {
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
     if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.bus); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
     // (la grada grabada suena siempre; la sintetizada, solo con PUBLICO)
-    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); }
+    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); carga(this.ctx, 'abucheo'); }
     return this.ctx;
   }
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
@@ -43,9 +43,12 @@ export class PelotaAudio {
    *  ovación. Fallo o acierto, solo los aplausos: sin señal propia (las dos notas de madera, cue, no gustaban), sin el
    *  «¡clonc!» de la chapa y sin la pelota, que se calla al cantarse el tanto (match.js, callada). Antes, en cada fallo
    *  sonaba también el «¡oooh!» sintetizado de la grada */
-  point(clean, mine, final, big = 0) {
+  // (abucheo: el tanto lo has perdido tú con un fallo, chapa, fuera, falta o pasa; en vez del aplauso, la grada abuchea.
+  // Lo pidió el autor el 17 de noviembre de 2026: «Abucheos para fallos jugando»)
+  point(clean, mine, final, big = 0, abucheo = false) {
     const c = this.ensure(); if (!c) return;
     if (final) { this.ovation(); this.mood(0.6, 0.2); return; }
+    if (abucheo && this.abucheo(0.62, 3.4)) return;
     // el aplauso de todo el frontón en cada tanto (antes solo con el público sintetizado, que está apagado: el tanto
     // sonaba con la señal y nada más). Más fuerte y más largo si el tanto ha sido bueno o el peloteo largo (big, de 0 a 1)
     // (largo: de 4 a 7 segundos, que se apaga despacio. Antes duraba 2 y se cortaba enseguida)
@@ -73,6 +76,19 @@ export class PelotaAudio {
       s.start(t, off); s.stop(t + dur + 0.6);
     }
     // (si la grabación aún no ha llegado, nada: las palmas sintetizadas sonaban a ruido)
+  }
+  /** El abucheo de la grada: un trozo de la grabación (de un sitio distinto cada vez), con su fundido de entrada y de
+   *  salida, como el aplauso. Si la grabación aún no ha llegado, false: entonces suena el aplauso de siempre */
+  abucheo(v = 0.6, dur = 3.2) {
+    const c = this.ensure(); if (!c) return false; const t = c.currentTime;
+    const b = carga(c, 'abucheo').buf; if (!b) return false;
+    const s = c.createBufferSource(), g = c.createGain(), off = 0.2 + Math.random() * Math.max(0, b.duration - dur - 1.4);
+    const sube = 0.35, baja = Math.max(1, dur * 0.45), quieto = t + dur - baja;
+    s.buffer = b; s.connect(g); g.connect(this.bus || c.destination);
+    g.gain.setValueAtTime(0.0001, t); g.gain.setTargetAtTime(Math.min(0.95, v), t, sube / 3);
+    g.gain.setTargetAtTime(0.0001, quieto, baja / 4);
+    s.start(t, off); s.stop(t + dur + 0.6);
+    return true;
   }
   /** La señal del tanto: dos notas de madera, como de txalaparta afinada, que suben si el tanto es tuyo (falla el rival
    *  o le ganas) y bajan, más suaves, si es del rival (fallas tú) */

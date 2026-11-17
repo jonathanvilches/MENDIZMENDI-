@@ -16,6 +16,7 @@ Los términos son los de la licencia de Envato Elements: https://elements.envato
 | musica-juego.mp3 | Música de fondo en los pueblos | Game | cinematic-alex | NUP6LR3DX2 | 27/10/2026 |
 | publico-grada.mp3 | Público de los partidos de pelota y fútbol | Brazil Soccer crowd steady | rhumphriesDC | R9TX34Q2AZ | 27/10/2026 |
 | aplausos-final.mp3 | Ovación del último tanto de pelota | Crowd Cheering and Applauding | GameChestAudio | 3SCH4TRP26 | 27/10/2026 |
+| abucheo.mp3 | Abucheo de la grada cuando fallas tú en el partido de pelota | Crowd Booing | sin dato en el archivo | pendiente: lo pasó el autor sin el certificado | 17/11/2026 |
 | gol.mp3 | Grito de gol del equipo propio | Football Goal | WistanSound | U7PM9VNFYE | 27/10/2026 |
 
 ### Efectos, ambientes y música de acción (10/11/2026)

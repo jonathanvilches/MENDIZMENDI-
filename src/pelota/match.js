@@ -1234,7 +1234,10 @@ export class PelotaMatch {
         else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, kant, 5.5, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
         else { this.hud.call(title, `${who}.`, kant, ex?.racha ? 3.6 : 2.8, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
         // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
-        A.point(e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call], e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)));
+        // (si el tanto lo pierdes tú, o tu pareja, con un fallo, chapa, fuera, falta o pasa, la grada abuchea en vez de aplaudir;
+        // solo en el partido, no entrenando ni en los retos. El autor, 17 de noviembre de 2026)
+        const limpio = e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call];
+        A.point(limpio, e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)), g.mode === 'match' && !limpio && e.winner !== 'you');
         if (g.mode === 'match') this.comTanto(e);
         break;
       }
