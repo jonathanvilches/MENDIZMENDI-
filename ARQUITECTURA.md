@@ -2845,6 +2845,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     y caía justo en la subida y la pausa de arriba. Ahora espera a que la isla esté arriba y el dron haya llegado a su sitio.
   - Las pruebas automáticas, con reloj propio y la tarjeta de mentira del navegador, no sirven para medir la fluidez: allí
     una imagen con la isla tarda segundos. Se mide la parte de los cálculos, que es la misma en el teléfono.
+- **Menos tirones al preparar y subir la isla** (`bordeDe` y `detalles` en `mapa3d.js`; `fuera` en `mapa3dAmplia.js`; 17
+  de noviembre de 2026). El autor, con otro vídeo del iPhone: «hay que revisarlo y optimizarlo porque cada vez va más
+  lento». Medido con el perfil de la CPU al elegir comarcas en el navegador de pruebas:
+  - La distancia al borde del relieve fino (`bordeDe`) recorría, en cada punto de su rejilla, todos los lados del contorno:
+    114 ms de una vez en el Pirineo. Solo hace falta hasta 0,75, donde su curva ya vale 1: ahora cada lado mira solo los
+    puntos que tiene a esa distancia, y ya no sale en el perfil.
+  - El relieve, la luz, el fino y el bosque de lo que crece una isla pedían cada uno el punto del borde más cercano para
+    los mismos vértices (`cerca`, lo que más tardaba): ahora cada punto se busca una vez y se guarda mientras se hace esa
+    malla (`olvida` lo suelta al acabar). En el Pirineo, de 142 a 33 ms.
+  - Las texturas de cerca de la comarca elegida (relieve y ortofoto, hasta 22 MB cada una en el Pirineo) llegaban a media
+    subida y se subían a la tarjeta en ese momento: 2,8 s parados en el navegador de pruebas. Ahora, si una isla se mueve,
+    esperan (`pendD`) y se suben una a una, con `initTexture`, en cuanto está quieta.
+  - Si se toca una comarca antes de que el mapa haya preparado la isla, se prepara en ese momento (`preparaIsla` en
+    `select`): sus programas se compilan durante el vuelo de llegada, y la isla no despega hasta tenerlos (`islaComp`).
+  - Con todo, el montón de memoria tras tres comarcas, de 191 a 164 MB.
 - **Musgo en la panza, como la isla de la tercera referencia** (`uMusgoT`, `conMusgo` y el musgo de `ROCA_FS` en
   `mapa3dIsla.js`; `tools/islas/musgo.py`; 15 de noviembre de 2026). El autor pasó otra referencia, una isla cuya roca
   está cubierta de musgo y hierba que baja desde el borde: «más referencias que te ayuden». Lo que más se apartaba de la

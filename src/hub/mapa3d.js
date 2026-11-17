@@ -314,13 +314,13 @@ if (uModo > 0.0) { vec2 a = vUs * uTam, b = (1.0 - vUs) * uTam;
   const ampDe = (c) => c.amp || (c.amp = islaAmpliada(c.Pw, alto, { navarra: (x, z) => navDentro(x, z), evita: [...(c.salen || []), ...(c.entran || [])] }));
   const ampAttr = (g, A) => { const n = g.attributes.position.count, pa = g.attributes.position.array, am = new Float32Array(n); if (A.amplia) for (let v = 0; v < n; v++) am[v] = A.amp(pa[v * 3], pa[v * 3 + 2]); g.setAttribute('aAmp', new THREE.BufferAttribute(am, 1)); };
   const losaDe = (c) => { const A = ampDe(c);
-    if (A.amplia && !c.gIsla) { const { g } = losa(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; }
+    if (A.amplia && !c.gIsla) { const { g } = losa(A.P, A.alto, BAJA ? 0.42 : 0.3, c.malla); g.setAttribute('aFino', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count), 1)); ampAttr(g, A); geos.push(g); c.gIsla = g; A.olvida?.(); }
     return A; };
   const islaDe = (c) => {
     if (c.isla) return c.isla;
     const A = losaDe(c);
     return (c.isla = hazIsla({ id: c.id, P: A.amplia ? A.P : c.Pw, hueco: A.amplia ? c.Pw : null, grosor: GROSOR, alto: A.alto, orto: c.top.uniforms, salen: c.salen, entran: c.entran, tex: islaTex(), geos, mats, scene,
-      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }));
+      fuera: (x, z) => { const o = deQuien(x, z); return o && o !== c ? orJS(o, x, z, GROSOR + alto(x, z)) * o.sy + o.py : 0; } }), c.amp?.olvida?.(), c.isla);
   };
   // (la altura de la cara de arriba de una comarca en un punto, la de su rejilla de triángulos y no la de los datos: en
   // los valles estrechos se apartan, y los ríos y las casas, con la de los datos, quedaban bajo el monte)
@@ -1448,7 +1448,10 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     o.onSelect?.(sel);   // (antes de volar: el panel que se abre cambia el hueco donde se encaja)
     if (c && !calentado) calienta();   // (al tocar, con la cámara aún quieta; no a medio vuelo: maqueta)
     // (solo al elegirla volando: la ficha vuelve a llamar aquí sin vuelo, y eso no tiene que quitar la subida ni el dron)
-    if (fly || !c) islaDron = null; if (c) { islaDe(c); if (fly) { c.vistaAlta = false; finoYa(c); } }
+    // (si se toca una comarca antes de tener preparada la isla, se prepara ya: sus programas se compilan durante el vuelo de
+    // llegada y no al despegar; en el navegador de pruebas eran 1,9 s parados con la isla a medio subir)
+    if (c && !islaLista) preparaIsla();
+    if (fly || !c) islaDron = null; if (c) { c.tSel = performance.now(); islaDe(c); if (fly) { c.vistaAlta = false; finoYa(c); } }
     if (c && fly && !videoIsla(c)) { const I = c.isla, esq = c.esq.map(q => q.clone().setY(q.y > 0.5 ? q.y + I.alto : I.alto - I.D));
       const hyI = c.alzado + I.alto + (GROSOR + c.hmax * 0.4 - I.D) / 2;
       // (y la subida, desde el 15 a mediodía, más cerca: ACERCA_SUBIDA de lo que encaja la comarca entera con su bloque; «hay
@@ -1476,10 +1479,17 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     urlOrto(id, id === sel && !BAJA || id === sel && TACTIL).then(u => u ? textura(u) : Promise.reject()).then(to => {
       e.pidOrto = false; if (!vivo || det.get(id) !== e || !quiereOrto(id)) { suelta(to); return; }
       to.flipY = false; to.colorSpace = THREE.NoColorSpace; to.anisotropy = aniso; to.needsUpdate = true;
-      e.orto = to; byId.get(id).top.uniforms.uOrtoD.value = to;
+      sube(to, () => { if (!vivo || det.get(id) !== e || !quiereOrto(id)) { suelta(to); return false; } e.orto = to; byId.get(id).top.uniforms.uOrtoD.value = to; });
     }).catch(() => { e.pidOrto = false; }); };
+  // (una textura de cerca llega mientras la isla sube: subirla a la gráfica entonces, de 16 a 22 MB en el Pirineo, paraba
+  // la imagen a media subida. Se guarda y se sube en cuanto la isla está quieta, de una en una y antes de usarla; 17 de
+  // noviembre de 2026, el autor, con el vídeo del iPhone: «cada vez va más lento»)
+  const pendD = [];
+  const sube = (tx, pon) => { if (C.some(islaMueve)) { pendD.push([tx, pon]); return; } try { r.initTexture(tx); } catch (e) { } pon(); };
+  const subePend = () => { if (!pendD.length || C.some(islaMueve)) return; const [tx, pon] = pendD.shift(); if (pon() === false) return; try { r.initTexture(tx); } catch (e) { } };
   const lejosDe = (c) => Math.hypot(c.mid.x - v.x, c.mid.z - v.z);
   function detalles(now, quieto) {
+    subePend();
     // (con la cámara en marcha, solo el de la comarca elegida, si aún no está: el dron vuela hacia ella y, si se esperaba a
     // que parara, llegaba con el monte borroso)
     if (now - detT < 400) return;
@@ -1498,8 +1508,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       urlDetalle(id, !BAJA && !TACTIL || id === sel).then(u => u ? textura(u) : Promise.reject()).then(tx => {
         pidiendo--; if (!vivo || det.get(id) !== e) { suelta(tx); return; }
         tx.flipY = false; tx.colorSpace = THREE.NoColorSpace; tx.anisotropy = aniso; tx.needsUpdate = true;
-        e.tex = tx; byId.get(id).top.uniforms.uDet.value = tx;
-        if (quiereOrto(id)) cargaOrto(id, e);
+        sube(tx, () => { if (!vivo || det.get(id) !== e) { suelta(tx); return false; } e.tex = tx; byId.get(id).top.uniforms.uDet.value = tx; if (quiereOrto(id)) cargaOrto(id, e); });
       }).catch(() => { pidiendo = Math.max(0, pidiendo - 1); e.fallo = performance.now() + 15000; });
     }
     // (en el móvil, la ortofoto de cerca solo en la elegida: la de las demás se suelta)
@@ -1519,12 +1528,15 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   const DENSO = BAJA ? 0.1 : 0.075, finosHechos = [];
   const bordeDe = (c) => {
     if (c.bordeF) return c.bordeF;
-    const A = ampDe(c), P = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(P.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, st = 0.15, x0 = b.min.x - st, z0 = b.min.z - st, nx = Math.ceil((b.max.x - x0) / st) + 2, nz = Math.ceil((b.max.z - z0) / st) + 2, D = new Float32Array(nx * nz);
-    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) {
-      const x = x0 + i * st, z = z0 + j * st; let m = 1e9;
-      for (let a = 0, e = P.length - 1; a < P.length; e = a++) { const ax = P[e][0], az = P[e][1], dx = P[a][0] - ax, dz = P[a][1] - az, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / (dx * dx + dz * dz || 1e-9))), ex = ax + dx * t - x, ez = az + dz * t - z, d2 = ex * ex + ez * ez; if (d2 < m) m = d2; }
-      D[j * nx + i] = Math.sqrt(m);
-    }
+    const A = ampDe(c), P = A.amplia ? A.P : c.Pw, b = A.amplia ? new THREE.Box3().setFromPoints(P.map(([x, z]) => new THREE.Vector3(x, 0, z))) : c.gGrueso.boundingBox, st = 0.15, x0 = b.min.x - st, z0 = b.min.z - st, nx = Math.ceil((b.max.x - x0) / st) + 2, nz = Math.ceil((b.max.z - z0) / st) + 2, D = new Float32Array(nx * nz).fill(1e9);
+    // (la distancia al borde solo hace falta hasta 0,75, donde la curva ya vale 1: cada lado del contorno mira solo los
+    // puntos de la rejilla que tiene a esa distancia. Antes cada punto recorría todos los lados, y en el Pirineo eran más de
+    // 100 ms de una vez; 17 de noviembre de 2026, el autor: «cada vez va más lento»)
+    const R = 0.8;
+    for (let a = 0, e = P.length - 1; a < P.length; e = a++) { const ax = P[e][0], az = P[e][1], dx = P[a][0] - ax, dz = P[a][1] - az, l2 = dx * dx + dz * dz || 1e-9;
+      const i0 = Math.max(0, Math.floor((Math.min(ax, ax + dx) - R - x0) / st)), i1 = Math.min(nx - 1, Math.ceil((Math.max(ax, ax + dx) + R - x0) / st)), j0 = Math.max(0, Math.floor((Math.min(az, az + dz) - R - z0) / st)), j1 = Math.min(nz - 1, Math.ceil((Math.max(az, az + dz) + R - z0) / st));
+      for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const x = x0 + i * st, z = z0 + j * st, t = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / l2)), ex = ax + dx * t - x, ez = az + dz * t - z, d2 = ex * ex + ez * ez, k = j * nx + i; if (d2 < D[k]) D[k] = d2; } }
+    for (let k = 0; k < D.length; k++) D[k] = D[k] < 1e8 ? Math.sqrt(D[k]) : 9;
     return (c.bordeF = (x, z) => { const gx = Math.max(0, Math.min(nx - 1.001, (x - x0) / st)), gz = Math.max(0, Math.min(nz - 1.001, (z - z0) / st)), i = gx | 0, j = gz | 0, fx = gx - i, fz = gz - j, k = j * nx + i;
       return suave(0.12, 0.75, (D[k] * (1 - fx) + D[k + 1] * fx) * (1 - fz) + (D[k + nx] * (1 - fx) + D[k + nx + 1] * fx) * fz); });
   };
@@ -1585,7 +1597,7 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
     for (const x of T) if (x.c === c) x.dh = dh(x.X, x.Z);
     for (const x of N) if (x.c === c) x.dh = dh(x.X, x.Z);
     for (const x of PK) if (x.c === c) x.dh = dh(x.X, x.Z);
-    c.finoListo = true;
+    c.finoListo = true; c.amp?.olvida?.();   // (lo guardado de cada punto, fuera: ya no hace falta)
   }
   // (todo el relieve fino de una comarca de una vez, con la cámara aún quieta: al elegirla, para que la isla se despegue ya
   // hecha, con su relieve y sus árboles, y no se vaya construyendo mientras sube ni dé tirones a medio vuelo del dron. El
@@ -1824,13 +1836,13 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
   // al llegar. El 16 de noviembre de 2026 el autor: «quiero que no parpadee y vaya súper fluido». Al elegir la primera
   // comarca se compilaban 18 programas de golpe, justo cuando la isla empezaba a subir, y las texturas de la roca llegaban
   // después y aparecían de repente)
-  let islaLista = false;
+  let islaLista = false, islaComp = false;   // (islaComp: sus programas ya compilados; la isla no despega antes, o 1,6 s)
   function preparaIsla() {
     islaLista = true;
     const T = islaTex(), g = new THREE.Group();
-    try { hazIsla({ id: 'calienta', P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], grosor: GROSOR, alto: () => 0.5, orto: C[0].top.uniforms, tex: T, geos, mats, scene: g }); } catch (e) { return; }
+    try { hazIsla({ id: 'calienta', P: [[-1, -1], [1, -1], [1, 1], [-1, 1]], grosor: GROSOR, alto: () => 0.5, orto: C[0].top.uniforms, tex: T, geos, mats, scene: g }); } catch (e) { islaComp = true; return; }
     g.traverse(x => { x.visible = true; x.frustumCulled = false; });
-    compilarAsync(r, g, cam, scene).catch(() => { });
+    compilarAsync(r, g, cam, scene).then(() => { islaComp = true; }).catch(() => { islaComp = true; });
     const pend = ['caliza', 'calizaN', 'estratos', 'estratosN', 'colgante', 'tierra', 'hierba', 'musgo', 'musgoN'].map(k => T[k]).filter(Boolean);
     const sube = () => { if (!vivo) return; for (let i = pend.length - 1; i >= 0; i--) { const t = pend[i], im = t.image; if (im && (im.width || im.naturalWidth)) { try { r.initTexture(t); } catch (e) { } pend.splice(i, 1); break; } }
       if (pend.length) setTimeout(sube, 250); };   // (una por vez, para no parar la imagen)
@@ -2171,7 +2183,8 @@ diffuseColor.rgb = mix(diffuseColor.rgb, ${BRUMA_A} * 0.45, uFondo * 0.55);`)
       // menos de un segundo en vez de en algo más de 1,2. El autor: «cuando se arranca la tierra de la comarca, que vaya un
       // poquito más deprisa». Y el plano de la subida, PITCH_ISLA, a 24° en vez de 15°: «que no sea horizontal, también que
       // esté un poco en perspectiva»)
-      if (c.isla) { const I = c.isla, ob = sel === c.id && !COL && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 5.3) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
+      // (y no se despega hasta tener compilados sus programas, o 1,6 s después de elegirla)
+      if (c.isla) { const I = c.isla, hecha = islaComp || (I.k || 0) > 0.002 || performance.now() - (c.tSel || 0) > 1600, ob = sel === c.id && !COL && hecha && !(vuelo && !(I.k > 0.02) && Math.abs(vuelo.a.pitch - PITCH_ISLA) < 0.03) ? 1 : 0; I.v = (I.v || 0) + ((ob - (I.k || 0)) * 9.5 - (I.v || 0) * 5.3) * dt; I.k = Math.max(0, (I.k || 0) + I.v * dt);
         if (islaFija != null && sel === c.id) { I.k = islaFija; I.v = 0; }   // (en las pruebas: la isla quieta a esa altura)
         if (tv?.c === c && tv.fase === 'vuelo') { I.k = 0; I.v = 0; }   // (con vídeo, la isla espera abajo a que empiece)
         if (!ob && I.k < 0.002) { I.k = 0; I.v = 0; } vuela = I.alto * I.k + Math.sin(t * 0.8 + c.d * 5) * 0.14 * Math.min(1, I.k) * Math.min(1, Math.max(0, (v.d - 8) / 10)); }

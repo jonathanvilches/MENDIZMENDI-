@@ -93,7 +93,7 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   // isla. Si bajaba por su cuenta, a veces aún iba alto al acabar la isla y la orilla lo cortaba en un escalón)
   const extL = Float32Array.from(ext, (_, i) => { let m = 0; for (let d = -6; d <= 6; d++) m = Math.max(m, ext[(i + d + n) % n]); return Math.max(0.15, m); });
   const tapaL = Float32Array.from(tapa, (_, i) => { let s = 0; for (let d = -8; d <= 8; d++) s += tapa[(i + d + n) % n]; return s / 17; });
-  const nada = { amplia: false, P, alto, fuente: (x, z) => [x, z, 1], amp: () => 0 };
+  const nada = { amplia: false, P, alto, fuente: (x, z) => [x, z, 1], amp: () => 0, olvida: () => {} };
   if (max < 0.25) return nada;
   // (el contorno de la isla: cada punto, hacia fuera lo que crece, sin cruces)
   const Pi = desenreda(B.map(([x, z], i) => [x + NO[i][0] * ext[i], z + NO[i][1] * ext[i]]));
@@ -135,8 +135,13 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   };
   // (lo añadido es el relieve de verdad; solo junto al borde de la isla baja hasta el pie: en el último quinto de lo que
   // crece, o en la mitad si el monte no llegó a bajar antes del tope)
-  const fuera = (x, z) => { const c = cerca(x, z), b = base[c.i] * (1 - c.t) + base[c.j] * c.t, e = extL[c.i] * (1 - c.t) + extL[c.j] * c.t, tp = tapaL[c.i] * (1 - c.t) + tapaL[c.j] * c.t;
-    return { b, k: 1 - ss(e * (0.8 - 0.3 * tp), e, c.d), nav: navarra(x, z), d: c.d, sx: x, sz: z }; };
+  // (y cada punto, una vez: el relieve, la luz, el fino y el bosque lo piden para los mismos vértices, y la búsqueda del borde
+  // más cercano era lo que más tardaba en hacerse la isla)
+  const memo = new Map();
+  const fuera = (x, z) => { const kq = (Math.round(x * 1e4) + 4e6) * 1e7 + Math.round(z * 1e4) + 4e6, m = memo.get(kq); if (m) return m;
+    const c = cerca(x, z), b = base[c.i] * (1 - c.t) + base[c.j] * c.t, e = extL[c.i] * (1 - c.t) + extL[c.j] * c.t, tp = tapaL[c.i] * (1 - c.t) + tapaL[c.j] * c.t;
+    const r = { b, k: 1 - ss(e * (0.8 - 0.3 * tp), e, c.d), nav: navarra(x, z), d: c.d, sx: x, sz: z };
+    if (memo.size > 150000) memo.clear(); memo.set(kq, r); return r; };
   const altoI = (x, z) => { if (dentro(x, z)) return alto(x, z); const f = fuera(x, z); return f.b + (alto(x, z) - f.b) * f.k; };
   const fuente = (x, z) => { if (dentro(x, z)) return [x, z, 1]; const f = fuera(x, z); return [x, z, f.k]; };
   // (la luz de la malla: donde el relieve ha bajado al pie, y fuera de Navarra, donde el sombreado del mapa no llega)
@@ -147,5 +152,5 @@ export function islaAmpliada(P, alto, { navarra = () => true, evita = [] } = {})
   const fino = (x, z) => { if (dentro(x, z)) return [x, z, 1]; const f = fuera(x, z); return [x, z, f.k * f.k]; };
   let a0 = 0, a1 = 0; for (let i = 0; i < n; i++) { const p = B[i], q = B[(i + 1) % n]; a0 += p[0] * q[1] - q[0] * p[1]; }
   for (let i = 0; i < Pi.length; i++) { const r = Pi[i], s = Pi[(i + 1) % Pi.length]; a1 += r[0] * s[1] - s[0] * r[1]; }
-  return { amplia: true, P: Pi, alto: altoI, fuente, fino, amp, M, crece: Math.abs(a1 / a0) - 1, max };
+  return { amplia: true, P: Pi, alto: altoI, fuente, fino, amp, M, crece: Math.abs(a1 / a0) - 1, max, olvida: () => memo.clear() };
 }
