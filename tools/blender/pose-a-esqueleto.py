@@ -175,6 +175,57 @@ def bisagra(n, hijo, nieto, u, f, fwd0, prevn, ref):
     Bc = Matrix((cur_u, cur_n, cur_u.cross(cur_n))).transposed(); Bt = Matrix((u, nn, u.cross(nn))).transposed()
     gira(n, (Bt @ Bc.transposed()).to_4x4())
     return nn
+# ---- límites del cuerpo humano: cada articulación sólo gira lo que gira una persona (en grados, en el reposo del
+# esqueleto): «f» la flexión (rodilla y codo sólo hacia un lado), «b» de lado, «t» sobre el propio hueso. Así ningún
+# movimiento sacado de vídeo dobla un codo al revés o retuerce un brazo como si se rompiera.
+ARRIBA = Vector((0, 0, 1))
+def dir0(n, hijo=None):
+    if hijo and hijo in H0: return (H0[hijo] - H0[n]).normalized()
+    return None
+LIM = {}
+def lim(n, a, f, fl, bl, tl):
+    if n not in H0 or a is None: return
+    a = a.normalized(); f = (f - f.dot(a) * a)
+    if f.length < 1e-6: return
+    f = f.normalized(); LIM[n] = (a, f, a.cross(f).normalized(), fl, bl, tl)
+for s_, lat in (('Left', Vector((1, 0, 0))), ('Right', Vector((-1, 0, 0)))):
+    a = dir0(mx(s_ + 'UpLeg'), mx(s_ + 'Leg')); lim(mx(s_ + 'UpLeg'), a, a.cross(FWD), (-25, 125), (-30, 50), (-40, 40))
+    a = dir0(mx(s_ + 'Leg'), mx(s_ + 'Foot')); lim(mx(s_ + 'Leg'), a, a.cross(BACK), (-3, 150), (-6, 6), (-12, 12))
+    a = dir0(mx(s_ + 'Foot'), mx(s_ + 'ToeBase')); lim(mx(s_ + 'Foot'), a, a.cross(ARRIBA), (-50, 30), (-25, 25), (-15, 15))
+    a = dir0(mx(s_ + 'Foot'), mx(s_ + 'ToeBase')); a = Vector((a.x, a.y, 0)); lim(mx(s_ + 'ToeBase'), a, a.cross(ARRIBA), (-20, 60), (-8, 8), (-5, 5))
+    a = dir0(mx(s_ + 'Shoulder'), mx(s_ + 'Arm')); lim(mx(s_ + 'Shoulder'), a, a.cross(ARRIBA), (-10, 30), (-20, 20), (-10, 10))
+    a = dir0(mx(s_ + 'Arm'), mx(s_ + 'ForeArm')); lim(mx(s_ + 'Arm'), a, a.cross(FWD), (-70, 180), (-180, 180), (-95, 95))
+    a = dir0(mx(s_ + 'ForeArm'), mx(s_ + 'Hand')); lim(mx(s_ + 'ForeArm'), a, a.cross(FWD), (-3, 150), (-12, 12), (-75, 75))
+    lim(mx(s_ + 'Hand'), a, a.cross(-ARRIBA), (-70, 80), (-25, 25), (-12, 12))
+for n_, h_ in (('Spine', 'Spine1'), ('Spine1', 'Spine2'), ('Spine2', 'Neck')):
+    a = dir0(mx(n_), mx(h_)); lim(mx(n_), a, a.cross(FWD), (-15, 35), (-15, 15), (-18, 18))
+lim(mx('Neck'), dir0(mx('Neck'), mx('Head')), dir0(mx('Neck'), mx('Head')).cross(FWD), (-30, 35), (-25, 25), (-40, 40))
+lim(mx('Head'), ARRIBA, ARRIBA.cross(FWD), (-30, 35), (-20, 20), (-40, 40))
+CORR = {}
+def limita():
+    for n, (a, f, b, fl, bl, tl) in LIM.items():
+        pb = P[n]; R3 = rest[n].to_3x3()
+        Q = (R3 @ pb.rotation_quaternion.to_matrix() @ R3.transposed()).to_quaternion()
+        if Q.w < 0: Q = Quaternion((-Q.w, -Q.x, -Q.y, -Q.z))
+        pr = Vector((Q.x, Q.y, Q.z)).dot(a)
+        tw = Quaternion((Q.w, a.x * pr, a.y * pr, a.z * pr)); tw.normalize()
+        ta = 2 * math.atan2(pr, Q.w)
+        sw = Q @ tw.inverted()
+        if sw.w < 0: sw = Quaternion((-sw.w, -sw.x, -sw.y, -sw.z))
+        ang = 2 * math.atan2(Vector((sw.x, sw.y, sw.z)).length, sw.w)
+        ax = Vector((sw.x, sw.y, sw.z)); rv = ax.normalized() * ang if ax.length > 1e-9 else Vector((0, 0, 0))
+        sf, sb = math.degrees(rv.dot(f)), math.degrees(rv.dot(b))
+        c = lambda v, l: max(l[0], min(l[1], v))
+        sf2, sb2, ta2 = c(sf, fl), c(sb, bl), math.radians(c(math.degrees(ta), tl))
+        if (sf2, sb2) == (sf, sb) and abs(ta2 - ta) < 1e-6: continue
+        ex = max(abs(sf2 - sf), abs(sb2 - sb), abs(math.degrees(ta2 - ta)))
+        if os.environ.get('DEPURA') and os.environ['DEPURA'] in n and ex > 20: print('  ', n, 'f %.0f b %.0f t %.0f' % (sf, sb, math.degrees(ta)))
+        c0 = CORR.setdefault(n.replace('mixamorig:', ''), [0, 0.0]); c0[0] += 1; c0[1] = max(c0[1], ex)
+        rv2 = f * math.radians(sf2) + b * math.radians(sb2)
+        sw2 = Quaternion(rv2.normalized(), rv2.length) if rv2.length > 1e-9 else Quaternion()
+        Q2 = sw2 @ Quaternion(a, ta2)
+        pb.rotation_quaternion = (R3.transposed() @ Q2.to_matrix() @ R3).to_quaternion()
+    bpy.context.view_layer.update()
 L = dict(nariz=0, oreL=7, oreR=8, hL=11, hR=12, cL=13, cR=14, mL=15, mR=16, meL=17, meR=18, iL=19, iR=20,
          caL=23, caR=24, rL=25, rR=26, tL=27, tR=28, taL=29, taR=30, pL=31, pR=32)
 prevn = {}
@@ -189,7 +240,8 @@ for i, w in enumerate(W):
     bpy.context.view_layer.update()
     g = lambda k: w[L[k]]
     mh = mid(g('caL'), g('caR')); ms = mid(g('hL'), g('hR'))
-    Rh = basis(g('caL') - g('caR'), ms - mh) @ hips0.transposed()
+    # la pelvis acompaña sólo la mitad de la inclinación del tronco (el resto lo hace la columna, como en una persona)
+    Rh = basis(g('caL') - g('caR'), (ms - mh).normalized() * 0.5 + Vector((0, 0, 0.5))) @ hips0.transposed()
     # el pecho gira respecto a la cadera sólo lo que da el cuerpo (y con los brazos arriba, menos: entonces los hombros se
     # suben y se juntan, y el detector cree que el tronco está girado)
     up = (ms - mh).normalized()
@@ -217,6 +269,11 @@ for i, w in enumerate(W):
     for n in ('Neck', 'Head'): gira(mx(n), q2)
     for s, k in (('Left', 'L'), ('Right', 'R')):
         u = g('c' + k) - g('h' + k); f = g('m' + k) - g('c' + k)
+        # la clavícula: al subir el brazo por encima de la horizontal, el hombro entero sube (si no, se estira la axila)
+        elev = math.degrees(math.asin(max(-1, min(1, u.normalized().z))))
+        cl = cabeza(mx(s + 'Arm')) - cabeza(mx(s + 'Shoulder'))
+        ej = cl.cross(Vector((0, 0, 1)))
+        if ej.length > 1e-6: gira(mx(s + 'Shoulder'), Quaternion(ej.normalized(), math.radians(max(0, min(28, 0.35 * (elev - 5))))))
         prevn['a' + k] = bisagra(mx(s + 'Arm'), mx(s + 'ForeArm'), mx(s + 'Hand'), u, f, FWD, prevn.get('a' + k), None)
         apunta(mx(s + 'ForeArm'), mx(s + 'Hand'), f)
         hand = mid(g('me' + k), g('i' + k)) - g('m' + k)
@@ -227,7 +284,19 @@ for i, w in enumerate(W):
         u = g('r' + k) - g('ca' + k); f = g('t' + k) - g('r' + k)
         prevn['p' + k] = bisagra(mx(s + 'UpLeg'), mx(s + 'Leg'), mx(s + 'Foot'), u, f, BACK, prevn.get('p' + k), None)
         apunta(mx(s + 'Leg'), mx(s + 'Foot'), f)
-        apunta(mx(s + 'Foot'), mx(s + 'ToeBase'), g('p' + k) - g('t' + k))
+        # el tobillo es una bisagra: el pie sólo sube o baja la punta (hacia dónde apunta lo decide la cadera, no el tobillo)
+        def bisagra_pie(n, padre, f0, objetivo_elev):
+            Qn = P[n].matrix.to_3x3() @ rest[n].to_3x3().inverted(); fc = Qn @ f0
+            ej = fc.cross(Vector((0, 0, 1)))
+            if ej.length < 1e-6: return
+            d = objetivo_elev - math.asin(max(-1, min(1, fc.z)))
+            gira(n, Quaternion(ej.normalized(), d))
+        f0 = (H0[mx(s + 'ToeBase')] - H0[mx(s + 'Foot')]); f0.z = 0; f0.normalize()  # (en reposo el pie va plano)
+        fw = (g('p' + k) - g('ta' + k)).normalized()
+        bisagra_pie(mx(s + 'Foot'), None, f0, math.asin(max(-1, min(1, fw.z))))
+        # de puntillas (talón levantado): los dedos se doblan y quedan planos en el suelo
+        if g('ta' + k).z - g('p' + k).z > 0.03: bisagra_pie(mx(s + 'ToeBase'), None, f0, 0.0)
+    limita()
     # los pies, al suelo: baja (o sube) la cadera para que el pie más bajo apoye
     suelo = min(min(cabeza(mx(s + 'Foot')).z - ankle0[s], cabeza(mx(s + 'ToeBase')).z - toe0[s]) for s in ('Left', 'Right'))
     M = P[mx('Hips')].matrix.copy(); M.translation = M.translation - Vector((0, 0, suelo)); P[mx('Hips')].matrix = M
@@ -237,6 +306,7 @@ for i, w in enumerate(W):
         if pb.name == mx('Hips'): pb.keyframe_insert('location', frame=i + 1)
 sc.frame_start, sc.frame_end = 1, len(W)
 print('animación hecha', len(W))
+print('límites humanos aplicados (hueso: fotogramas corregidos, máximo exceso en grados):', ', '.join(f'{k} {v[0]} ({v[1]:.0f}°)' for k, v in sorted(CORR.items(), key=lambda kv: -kv[1][0])) or 'ninguno')
 bpy.ops.export_scene.gltf(filepath=SAL, export_format='GLB', export_animations=True, export_animation_mode='ACTIONS', export_force_sampling=True)
 print('exportado', SAL)
 if REN:

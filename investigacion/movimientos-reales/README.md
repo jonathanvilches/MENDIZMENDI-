@@ -12,6 +12,11 @@ Lo que se ha aprendido (17 nov):
   profundidad de la longitud de cada hueso; el pecho sólo gira lo que da la cintura (menos con los brazos arriba); la
   rodilla sólo dobla hacia delante; de espaldas la cabeza va derecha mirando al frente; la muñeca, firme.
 - Lo que cae fuera de la imagen se lo inventa el detector aunque diga verlo al 99 %: no se usa, se rellena.
+- Posturas humanas (el autor: «lo que me mandas se rompería huesos»): cada articulación tiene su límite en grados
+  (rodilla y codo sólo hacia un lado y hasta 150°, cadera, hombro, muñeca, tobillo, columna en tres tramos, cuello y
+  cabeza), el tobillo y los dedos del pie son bisagras (la dirección del pie la marca la cadera), la pelvis acompaña
+  sólo media inclinación del tronco y la clavícula sube cuando el brazo pasa de la horizontal. Al acabar, el script
+  dice cuántas veces y cuánto ha tenido que corregir cada hueso.
 - El modelo grande de MediaPipe (`MODELO=pose_landmarker_heavy.task`) es bastante más preciso que el ligero del juego.
 
 | Archivo | Fuente | Golpe | fps | Fotogramas |
