@@ -41,14 +41,17 @@ export const PHYS = {
 // tempo: lo deprisa que va la pelota (1, a su velocidad de verdad). Antes iba a poco más de la mitad y sobraba tiempo
 // para colocarse y golpear; ahora, más viva: en el experto, la de verdad. dash: la arrancada del rival a una pelota corta
 // (con la pelota más rápida, sin ella no llegaba casi nunca a una dejada)
+// (17 de noviembre de 2026: un 10-15 % más rápida en todos los niveles, por el vídeo de un entrenamiento que pasó el
+// autor. Allí la pelota tarda 0,3 s del golpe al frontis desde 7 u 8 m, unos 27 m/s; en el juego tardaba 0,7 s desde
+// 10-16 m en el nivel normal y 0,6 en el experto, cuando un profesional tarda alrededor de medio segundo)
 export const LEVELS = {
-  facil: { tempo: 0.7, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35, dash: 1.3 } },
-  normal: { tempo: 0.8, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 } },
-  dificil: { tempo: 0.92, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.45 } },
+  facil: { tempo: 0.8, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35, dash: 1.3 } },
+  normal: { tempo: 0.92, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 } },
+  dificil: { tempo: 1.03, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.45 } },
   // (los dos de los extremos: para empezar, más lento y con más ayuda que el fácil; para los que ya lo dominan, el rival
   // casi no falla y apenas hay ayuda)
-  iniciacion: { tempo: 0.6, reach: 2.05, assist: 2.4, rival: { speed: 4.3, react: 0.44, error: 0.17, smart: 0.22, dash: 1.25 } },
-  experto: { tempo: 1, reach: 1.3, assist: 0.15, rival: { speed: 6.6, react: 0.13, error: 0.02, smart: 0.95, dash: 1.5 } },
+  iniciacion: { tempo: 0.68, reach: 2.05, assist: 2.4, rival: { speed: 4.3, react: 0.44, error: 0.17, smart: 0.22, dash: 1.25 } },
+  experto: { tempo: 1.1, reach: 1.3, assist: 0.15, rival: { speed: 6.6, react: 0.13, error: 0.02, smart: 0.95, dash: 1.5 } },
 };
 // los cinco niveles, de menos a más, y lo fuerte que es el rival en cada uno (de 1 a 4, para sus cualidades)
 export const LEVEL_ORDER = ['iniciacion', 'facil', 'normal', 'dificil', 'experto'];

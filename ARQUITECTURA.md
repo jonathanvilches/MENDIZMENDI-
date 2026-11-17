@@ -548,6 +548,13 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   1,05 a 1,25 s que pierde antes los agudos). Tres variantes de la mano, el frontis, el bote y la pared izquierda, en
   `src/assets/sonidos/pelota-*.mp3` (200 KB todos), sin repetir la última y algo más agudos y fuertes cuanto más fuerte el
   golpe. Si aún no han llegado, suena el sintetizado de antes. Al aire libre suenan con la misma sala (pendiente).
+- **La pelota, un 10-15 % más rápida** (17 de noviembre de 2026; `pelota/rules.js`, `tempo` de cada nivel, y la fuerza
+  del golpe normal según la distancia en `pelota/game.js`). En el vídeo del entrenamiento que pasó el autor, la pelota
+  tarda 0,3 s del golpe al frontis desde 7 u 8 m, unos 27 m/s. Medido con partidos simulados entre dos pelotaris del
+  ordenador, del golpe al frontis desde 10-16 m: en el nivel normal, de 0,70 a 0,59 s; en el experto, de 0,62 a 0,57 s.
+  Ritmos: iniciación 0,68, fácil 0,8, normal 0,92, difícil 1,03 y experto 1,1. Desde cerca del frontis el golpe sale algo
+  más rápido que antes (factor 0,8 + distancia / 62) y desde el fondo, igual. La pelota en casa, con la cámara, sigue
+  más despacio (`CAM_TEMPO`).
 - **Partido de pelota, la dirección** (`pelota/game.js`, `strike`; `pelota/physics.js`, `twoWallsTo`): el joystick apunta
   al bote. A dos paredes se busca por toda la pared izquierda el golpe que bota más cerca de donde se apunta, así que sale
   desde cualquier sitio de la cancha: con la cortada, desde media izquierda; cuanto más a la izquierda, más cruzada, y

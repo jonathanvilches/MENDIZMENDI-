@@ -432,7 +432,7 @@ export class PelotaGame {
       // (el golpe, con bombeo: da en el frontis por encima de la mitad, a unos 6 m desde el cuadro 4 y más arriba desde atrás,
       // y la pelota vuelve alta; la cortada es la que va de media pared abajo. De volea y de gancho, más tenso)
       // (desde más atrás, más fuerte: si no, para llegar tendría que dar arriba del todo)
-      let tx, landZ, speed = (12 + q * 3 + pow * 17 + (S - 3) * 1.3) * (0.72 + clamp(p.z, 8, 30) / 50) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
+      let tx, landZ, speed = (12 + q * 3 + pow * 17 + (S - 3) * 1.3) * (0.8 + clamp(p.z, 8, 30) / 62) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
       if (gancho) aim = { x: Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
