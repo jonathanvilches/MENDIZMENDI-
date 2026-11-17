@@ -3136,6 +3136,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     chillón al lado de la foto apagada, como una pieza de otro juego puesta encima. Ahora la isla sube solo un poco de luz y
     de color al levantarse (0,08 y 0,05 por cada unidad de `lift`, antes 0,24 y 0,18) y las de alrededor, con el cielo de
     día, se apagan la mitad que antes (`fv` con 0,88 en vez de 0,78): la isla manda, pero es el mismo terreno.
+  - El hueco, el molde de la panza (17 de noviembre de 2026; la pared del molde en `hazIsla`, `hub/mapa3dIsla.js`): la pared
+    del hueco era una hondonada con hierba por casi toda ella (`uMusgo` hasta 3,2 unidades, de un verde vivo), un embudo verde
+    con rayas pardas debajo de una panza de tierra que acababa de salir de él. Ahora es la misma tierra rota que la panza: la
+    franja de tierra negra bajo el borde (`uHumus`, como en la panza), estratos más oscuros cuanto más hondo y solo un fleco de
+    hierba de un verde apagado en lo alto (`uMusgo` de 0,35 a 0,9). Los materiales de la panza y de la pared se vuelven a
+    soltar al cambiar de isla (`mats.push`, que se había quedado dentro de un comentario).
 - **Charcas con orilla y dique** (`orillaCharca` en `levels/charca.js`, para la balsa de Irati de Otsagabia y las charcas
   del bosque de `levels/town.js`; `ORILLA` en `world/water.js`; `waterLevelAt` en `world/heightfield.js`): el agua tiene un
   nivel fijo y la ladera no. Antes el terreno solo se rebajaba, y por el lado que baja de la balsa de Irati el suelo quedaba
