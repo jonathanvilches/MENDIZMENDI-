@@ -9,7 +9,7 @@
 //  - la camiseta del otro color (COLOR=rojo pasa el azul a colorado; COLOR=azul, el colorado a azul), cambiando el tono
 //    solo en la ropa: la cabeza (cara, labios, pelo) se deja como está;
 //  - la textura a webp (2048 px en el ordenador; PX=1024 para el móvil) y la malla comprimida.
-// Uso: node tools/pelotari-nuevo-glb.mjs <unido.glb> <salida.glb>   [COLOR=rojo|azul] [PX=2048] [RATIO=1]
+// Uso: node tools/pelotari-nuevo-glb.mjs <unido.glb> <salida.glb>   [COLOR=rojo|azul] [PX=2048] [RATIO=1] [REALES=golpes.glb]
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { weld, simplify, textureCompress, prune, dedup, reorder, meshopt } from '@gltf-transform/functions';
@@ -75,6 +75,24 @@ for (const clip of ['Slash', 'Fist']) {
   for (const [n, arr] of salidaR) canal(n, 'rotation', arr, 'VEC4');
   if (salidaT.length) canal(caderaT, 'translation', salidaT, 'VEC3');
   console.log(`  ${clip}: ${T.length} fotogramas, ${salidaR.size} huesos`);
+}
+// ---- los golpes reales (REALES=archivo.glb, de tools/blender/golpes-al-juego.py): movimientos de pelotaris de verdad
+// sacados de vídeo y pasados a este mismo esqueleto (los nodos se buscan por su nombre). actors/glbChar.js los usa en
+// vez de los hechos a mano (pelotaMoves.js) para los golpes que traen
+if (process.env.REALES) {
+  const dr = await io.read(process.env.REALES);
+  for (const a of dr.getRoot().listAnimations()) {
+    if (!/^Real_/.test(a.getName())) continue;
+    const A = doc.createAnimation(a.getName()); let n = 0;
+    for (const c of a.listChannels()) {
+      const dst = NT.get(nombre(c.getTargetNode())), s = c.getSampler(); if (!dst) continue;
+      const inp = doc.createAccessor().setType('SCALAR').setArray(new Float32Array(s.getInput().getArray())).setBuffer(buf);
+      const out = doc.createAccessor().setType(s.getOutput().getType()).setArray(new Float32Array(s.getOutput().getArray())).setBuffer(buf);
+      const ns = doc.createAnimationSampler().setInterpolation(s.getInterpolation()).setInput(inp).setOutput(out);
+      A.addSampler(ns); A.addChannel(doc.createAnimationChannel().setTargetNode(dst).setTargetPath(c.getTargetPath()).setSampler(ns)); n++;
+    }
+    console.log(`  ${a.getName()}: ${n} canales`);
+  }
 }
 // ---- los nombres de los clips del de siempre
 for (const a of R.listAnimations()) { if (a.getName() === 'Walking') a.setName('Walk'); if (a.getName() === 'Running') a.setName('Run'); }

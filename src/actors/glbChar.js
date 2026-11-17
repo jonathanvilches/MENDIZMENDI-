@@ -103,9 +103,17 @@ for (const m of ['pelotari_nuevo', 'pelotari_nuevo_rojo', 'pelotari_nueva', 'pel
 // (el clip de charla de Meshy está mal adaptado a estos dos: con él echaban la cabeza hacia atrás, hasta 80°, y se encogían
 // un 12-15 %; medido en los 21 vecinos, los demás no pasan del 3 %. Hablan con su reposo, como los que no traen charla)
 const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
+// LOS REDISEÑADOS (el autor, 17 de noviembre de 2026: «rehacer todos los personajes del videojuego con la misma identidad de
+// diseño» que los pelotaris nuevos): Meshy desde una lámina de cuatro vistas de cada uno en el estilo de los pelotaris
+// (proporciones de adulto de verdad, no cabezones), con su esqueleto y sus animaciones de Meshy (andar, correr, estar de
+// pie y charlar). A estos no se les achica la cabeza (CABEZA), su charla está bien (CHARLA_MAL) y su versión ligera lleva
+// otra textura (tools/meshy-lod-rehorneo.mjs), sin la máscara del pelo para teñirlo (npcGlb.js, tonosDe). Los mismos
+// nombres que los de antes: el juego los coloca igual. El juez y la afición del frontón son nuevos
+export const REDISENO = new Set(['juez', 'espectador', 'espectadora', 'abuelo_bigote', 'abuelo', 'abuelo_barba', 'abuela_mono', 'abuela_panuelo',
+  'abuela_trenzas', 'mujer', 'hombre', 'carpintera', 'quesero']);
 const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
-  ...(src.Chat && !CHARLA_MAL.has(name) ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
+  ...(src.Chat && (REDISENO.has(name) || !CHARLA_MAL.has(name)) ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
   ...(src.Attack ? { Hit: ['Attack', 0.5, 1.6] } : {}),
   ...(src.WaveH ? { Wave: ['WaveH', 0, src.WaveH.duration] } : {}),   // (los que traen saludar con la mano: ese)
 });
@@ -211,7 +219,10 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
   // La altura cuenta el gorro, así que el joaldun, con un gorro de cintas que es casi un sexto de su alto y una cabeza más
   // pequeña que la de los vecinos, parecía un niño a su lado: el autor pidió que tuviera el tamaño de un adulto del juego.
   // Con 2,25 su cara queda a la altura de la de un vecino adulto; el Zarratrako, con el mismo problema por su gorro, 2,15)
-  joaldun: 2.25, bobo: 1.9, momotxorro: 2.15, zarratrako: 2.15 };
+  joaldun: 2.25, bobo: 1.9, momotxorro: 2.15, zarratrako: 2.15,
+  // (el juez del frontón, a la altura de los pelotaris nuevos; npcGlb.js lo varía un poco. La afición, sentada en la grada:
+  // algo más bajos que de verdad, para que de pie no se metan en la fila de detrás; crowd3d.js)
+  juez: 1.8, espectador: 1.7, espectadora: 1.6 };
 // LAS PROPORCIONES, iguales para todos (el autor, 17 de noviembre de 2026: «los personajes no tienen el mismo tamaño de
 // cabeza, de cara; hay que unificarlos, estilo joaldun y el campesino»). Medido con los huesos de cada modelo (de la base
 // del cráneo, Head, a la coronilla, HeadTop_End; tools/proporciones-personajes.mjs): el campesino mide 4,99 cabezas y el
@@ -252,6 +263,21 @@ const DEDOS_LIGEROS = new Set(['sanfermin', 'pastor']);
 // mayores pegado a la mano (agarrar.js devuelve false) y la tarjeta del árbitro sobre la mano abierta. Para retomarlo,
 // a true
 const CON_DEDOS = false;
+// (los golpes reales empiezan 0,3 s antes del instante del golpe: tools/blender/golpes-al-juego.py)
+const REAL_GOLPE = 0.3;
+function recortaReal(clip, nombre, t0) {
+  const tracks = clip.tracks.map(tr => { const vs = tr.getValueSize(), i0 = Math.max(0, tr.times.findIndex(t => t >= t0 - 1e-4)); return new tr.constructor(tr.name, tr.times.slice(i0).map(t => t - tr.times[i0]), tr.values.slice(i0 * vs)); });
+  return new THREE.AnimationClip(nombre, Math.max(0.05, clip.duration - t0), tracks);
+}
+// la postura de un clip en un instante, como la de poseArmado (pelotaMoves.js): el giro de cada hueso y el sitio de la cadera
+function poseDeClip(scene, clip, t) {
+  const huesos = []; scene.traverse(o => { if (o.isBone) huesos.push([o, o.quaternion.clone(), o.position.clone()]); });
+  const mixer = new THREE.AnimationMixer(scene), act = mixer.clipAction(clip); act.play(); mixer.setTime(t);
+  const out = { q: {}, pos: new THREE.Vector3() };
+  for (const [b] of huesos) { out.q[b.name] = b.quaternion.clone(); if (/Hips$/.test(b.name)) out.pos.copy(b.position); }
+  act.stop(); mixer.uncacheRoot(scene); for (const [b, q, p] of huesos) { b.quaternion.copy(q); b.position.copy(p); }
+  return out;
+}
 export async function loadMeshy(name, lod = false, completo = false) {
   lod = lod && !!MESHY_LOD[name]; completo = completo && !lod && !!VEC_FULL[name];
   const key = 'meshy:' + name + (lod ? ':lod' : completo ? ':full' : ''), height = MESHY_H[name] || 1.5;
@@ -261,7 +287,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     const g = await loadChar(lod ? MESHY_LOD[name] : completo ? VEC_FULL[name] : MESHY[name] || (import.meta.env.DEV ? `/src/assets/meshy/vecinos/${name}.glb` : MESHY_LOD[name]));
     // (las proporciones de todos, CABEZA: la cabeza a su tamaño; sin la escala de la cabeza que traen algunos clips, que
     // la devolvería a 1 en cada fotograma)
-    const kCab = PROPORCION ? CABEZA[name] || 1 : 1;
+    const kCab = PROPORCION && !REDISENO.has(name) ? CABEZA[name] || 1 : 1;
     if (kCab !== 1) { let head = null; g.scene.traverse(o => { if (!head && o.isBone && /Head$/.test(o.name)) head = o; });
       if (head) { head.scale.setScalar(kCab); head.userData.cabK = kCab; for (const a of g.animations) a.tracks = a.tracks.filter(t => !/Head\.scale$/.test(t.name)); } }
     // (el Zarratrako, con la cabeza quieta respecto al cuerpo: su cara va dentro de las cintas del gorro, que cuelgan del
@@ -273,6 +299,15 @@ export async function loadMeshy(name, lod = false, completo = false) {
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
     const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['LlevaC', 'LlevaC', false], ['Bota', 'Bota', false], ['Saque', 'Saque', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
+    // (los golpes reales: movimientos de pelotaris de verdad sacados de vídeo y pasados a su esqueleto en Blender
+    // (tools/blender/golpes-al-juego.py, «Real_Hit», «Real_Volea»...). Sustituyen a los hechos a mano de los golpes que
+    // traen: el clip del juego empieza en el golpe y la postura de armado es la del pelotari de verdad un poco antes. El
+    // autor, 17 de noviembre de 2026: «imitando la postura de los pelotaris»)
+    if (pel.length) for (const r of g.animations.filter(a => /^Real_/.test(a.name))) {
+      const n = r.name.slice(5); r.tracks = r.tracks.filter(t => /\.quaternion$/.test(t.name) || /Hips\.position$/.test(t.name));
+      const k = recortaReal(r, n, REAL_GOLPE), i = pel.findIndex(c => c.name === n); if (i >= 0) pel[i] = k; else pel.push(k);
+      if (armados && armados[n]) armados[n] = poseDeClip(g.scene, r, REAL_GOLPE - 0.08);
+    }
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
@@ -942,7 +977,7 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   let fat = 0, resp = 0;   // el cansancio, suavizado, y la fase de la respiración
   // (para el saque: las posturas de llevar y de botar la pelota, solo los huesos del brazo derecho; y la de ir al saque
   // con la pelota delante del pecho, los dos brazos)
-  const BRAZO_D = /Right(Shoulder|Arm|ForeArm|Hand)$/, BRAZOS = /(Left|Right)(Shoulder|Arm|ForeArm|Hand)$/, ARD = {}; let llevaK = 0, llevaCK = 0, botaK = 0;
+  const BRAZO_D = /Right(Shoulder|Arm|ForeArm|ForeArmTwist|Hand)$/, BRAZOS = /(Left|Right)(Shoulder|Arm|ForeArm|ForeArmTwist|Hand)$/, ARD = {}; let llevaK = 0, llevaCK = 0, botaK = 0;
   if (ARB) for (const k of ['Lleva', 'LlevaC', 'Bota']) if (ARB[k]) ARD[k] = ARB[k].filter(([b]) => (k === 'LlevaC' ? BRAZOS : BRAZO_D).test(b.name));
   // (y los huesos de cada brazo, para llevar la mano a un sitio: hombro, codo y mano)
   const brazo = (s) => { const a = B['mixamorig' + s + 'Arm'], f = B['mixamorig' + s + 'ForeArm'], h = B['mixamorig' + s + 'Hand']; return a && f && h ? { a, f, h } : null; };

@@ -181,6 +181,11 @@ function montaje(scene) {
     m.decompose(P, W, s); pm.decompose(new THREE.Vector3(), PW, ps);
     R[k] = { b, q0: b.quaternion.clone(), p0: b.position.clone(), P, W, PW, ps: ps.x, M: m };
   }
+  // (los huesos de giro del antebrazo, si los tiene: tools/blender/huesos-extra.py; van de la mitad del antebrazo a la muñeca)
+  for (const [k, n] of [['LFT', 'LeftForeArmTwist'], ['RFT', 'RightForeArmTwist']]) {
+    let b = null; scene.traverse(o => { if (!b && o.isBone && o.name.replace(/^mixamorig:?/, '') === n) b = o; });
+    if (b && b.parent === B[k[0] + 'F']) { const m = new THREE.Matrix4().multiplyMatrices(inv, b.matrixWorld), P = new THREE.Vector3(), W = new THREE.Quaternion(); m.decompose(P, W, new THREE.Vector3()); R[k] = { b, q0: b.quaternion.clone(), p0: b.position.clone(), P, W, M: m }; }
+  }
   const len = (a, z) => R[a].P.distanceTo(R[z].P);
   const L = { LA: [len('LA', 'LF'), len('LF', 'LH')], RA: [len('RA', 'RF'), len('RF', 'RH')], LU: [len('LU', 'LL'), len('LL', 'LP')], RU: [len('RU', 'RL'), len('RL', 'RP')] };
   // (las poses se hicieron sobre el pelotari de siempre, con el hombro a 1,04 y el brazo de 0,39; en un esqueleto de otra
@@ -189,7 +194,24 @@ function montaje(scene) {
   // cadera y los golpes se daban todos bajos)
   const brazo = (L.LA[0] + L.LA[1] + L.RA[0] + L.RA[1]) / 2, pierna = R.H.P.y;
   R[ESC] = { LA: R.LA.P, RA: R.RA.P, kB: brazo / REF.brazo, kP: pierna / REF.cadera };
-  return { B, R, L, inv, scene };
+  // EL CODO, COMO EL DE UNA PERSONA: solo se dobla hacia delante (hacia la cara de la palma con el brazo colgando). Antes
+  // ese lado se sacaba de cómo viene doblado el codo en reposo; en algún modelo de Meshy el reposo viene recto o un poco
+  // pasado hacia atrás (la pelotari de la melena, 23° hacia atrás en el brazo derecho) y ese brazo se doblaba al revés en
+  // todos los golpes. Ahora, si el reposo no se dobla claramente hacia delante, el lado bueno es el de delante del cuerpo
+  const anat = {};
+  for (const s of ['L', 'R']) {
+    const up = R[s + 'F'].P.clone().sub(R[s + 'A'].P).normalize(), lo = R[s + 'H'].P.clone().sub(R[s + 'F'].P).normalize();
+    const delante = new THREE.Vector3(0, 0, 1).addScaledVector(up, -up.z).normalize(), loP = lo.clone().addScaledVector(up, -lo.dot(up));
+    const a = loP.length() > 0.12 && loP.clone().normalize().dot(delante) > 0.3 ? loP.normalize() : delante;
+    // (y la referencia para medir cuánto gira el húmero sobre sí mismo: el brazo abajo, adelante y afuera, con su cara de
+    // delante llevada desde el reposo. Medido desde el reposo, con el brazo cruzando al otro lado en el seguimiento de un
+    // golpe la medida daba saltos de 180° y el codo volcaba de un fotograma a otro; lo opuesto a esta referencia, el brazo
+    // arriba, atrás y hacia el otro lado, es donde un hombro no llega)
+    const ref = new THREE.Vector3(s === 'L' ? 0.5 : -0.5, -0.6, 0.6).normalize();
+    const aRef = a.clone().applyQuaternion(new THREE.Quaternion().setFromUnitVectors(up, ref)); aRef.addScaledVector(ref, -aRef.dot(ref)).normalize();
+    anat[s] = { upR: up, aR: a, bisR: new THREE.Vector3().crossVectors(up, a).normalize(), ref, aRef };
+  }
+  return { B, R, L, inv, scene, anat };
 }
 
 // (el esqueleto sobre el que se hicieron las poses: hombros, brazo entero y altura de la cadera; montaje, valor)
@@ -237,6 +259,49 @@ function base(dir, bis, out) {
   return out.makeBasis(x, y, z);
 }
 function mundo(R, k, inv) { const m = new THREE.Matrix4().multiplyMatrices(inv, R[k].b.matrixWorld), P = new THREE.Vector3(), W = new THREE.Quaternion(); m.decompose(P, W, _v); return { P, W, m }; }
+// LOS LÍMITES DEL BRAZO HUMANO (grados): el húmero gira sobre sí mismo unos 70-80° hacia dentro y 90° hacia fuera (con
+// el omóplato, algo más); el codo se dobla de 0 a 150° y nunca hacia atrás; el antebrazo prona y supina desde la palma
+// adelante (supinación completa) hasta la palma atrás (unos 150°); la muñeca, ±70°. El autor, 17 de noviembre de 2026:
+// «en ningún momento puedes doblar o girar partes del cuerpo que no sean lógicos u orgánicos»
+export const ANATOMIA = { humeroDentro: 80, humeroFuera: 95, codoMax: 150, pronaMax: 150, supinaMax: 10, muneca: 70 };
+// (lo que se ha corregido al hornear, para la prueba: tools/anatomia-pelotaris.mjs)
+export const _anatomia = { brazos: 0, corregidos: 0, peor: 0, codo: 0, sinSolucion: 0, restoPeor: 0 };
+const _sw = new THREE.Quaternion(), _a0 = new THREE.Vector3(), _aC = new THREE.Vector3(), _upC = new THREE.Vector3(), _u = new THREE.Vector3(), _pr = new THREE.Vector3();
+// giro del húmero (positivo, hacia dentro) con el codo hacia u: el de ahora frente al de la referencia llevada por el camino
+// más corto a la dirección de ahora (lo que el brazo tendría sin girar sobre sí mismo), en el pecho en reposo
+function giroHumero(an, s, n, u, L1, L2, ln, pqInv) {
+  const d = Math.min(L1 + L2 - 1e-4, Math.max(Math.abs(L1 - L2) + 1e-4, ln)), a = Math.min(L1, (L1 * L1 - L2 * L2 + d * d) / (2 * d));   // (como dosHuesos)
+  _upC.copy(n).multiplyScalar(a).addScaledVector(u, Math.sqrt(Math.max(0, L1 * L1 - a * a))).normalize().applyQuaternion(pqInv);
+  _aC.copy(u).negate().applyQuaternion(pqInv); _aC.addScaledVector(_upC, -_aC.dot(_upC)).normalize();
+  _a0.copy(an.aRef).applyQuaternion(_sw.setFromUnitVectors(an.ref, _upC)); _a0.addScaledVector(_upC, -_a0.dot(_upC)).normalize();
+  const t = Math.atan2(_pr.crossVectors(_a0, _aC).dot(_upC), _a0.dot(_aC)) / G;
+  return s === 'L' ? t : -t;
+}
+// el polo del codo dentro de lo humano: si el de la pose obliga a girar el húmero más de lo que gira, se rota alrededor de
+// la línea hombro-mano hasta el más cercano que sí se puede (el codo hacia donde lo pondría una persona)
+// (la corrección del fotograma anterior de cada brazo: se sigue por el mismo lado, sin que el codo salte de un lado al
+// otro entre dos fotogramas; hornea la pone a cero al empezar cada movimiento)
+const _ant = { L: 0, R: 0 };
+function poloHumano(an, s, S, T, pole, L1, L2, pqInv) {
+  const n = T.clone().sub(S), ln = Math.max(1e-4, n.length()); n.normalize();
+  const fuera = (phi) => { const p = pole.clone().applyAxisAngle(n, phi * G); _u.copy(p).addScaledVector(n, -n.dot(p)); if (_u.lengthSq() < 1e-8) return 1e9; _u.normalize();
+    const t = giroHumero(an, s, n, _u, L1, L2, ln, pqInv); return Math.max(0, t - ANATOMIA.humeroDentro) + Math.max(0, -ANATOMIA.humeroFuera - t); };
+  const v0 = fuera(0); _anatomia.brazos++; _anatomia.peor = Math.max(_anatomia.peor, v0);
+  if (v0 === 0) { _ant[s] = 0; return pole; }
+  // (de 5 en 5 grados desde el de la pose, primero por el lado del fotograma anterior; en el primero que vale, el borde
+  // exacto entre el último que no valía y él: así el codo se mueve seguido, sin saltos)
+  const lados = _ant[s] ? [Math.sign(_ant[s]), -Math.sign(_ant[s])] : [1, -1];
+  let best = 0, bestV = v0;
+  const busca = (lado) => { for (let i = 1; i <= 36; i++) { const phi = lado * i * 5, v = fuera(phi); if (v < bestV) { bestV = v; best = phi; }
+    if (v === 0) { let a = phi - lado * 5, b = phi; for (let j = 0; j < 6; j++) { const m = (a + b) / 2; if (fuera(m) === 0) b = m; else a = m; } best = b; bestV = 0; return true; } } return false; };
+  if (_ant[s]) { if (!busca(lados[0])) busca(lados[1]); }
+  else { // (sin corrección antes: el lado más cercano)
+    let bp = null; for (let i = 1; i <= 36 && bp == null; i++) for (const lado of lados) if (fuera(lado * i * 5) === 0) { bp = lado; break; }
+    if (bp != null) busca(bp); else { busca(1); busca(-1); } }
+  if (bestV > 0) { _anatomia.sinSolucion++; _anatomia.restoPeor = Math.max(_anatomia.restoPeor, bestV); }
+  _anatomia.corregidos++; _ant[s] = best;
+  return pole.clone().applyAxisAngle(n, best * G);
+}
 // dos huesos (brazo y antebrazo, muslo y pierna) hasta un sitio, con el codo o la rodilla hacia el polo
 function dosHuesos(S, T, pole, L1, L2) {
   const d = T.clone().sub(S), ln = Math.min(L1 + L2 - 1e-4, Math.max(Math.abs(L1 - L2) + 1e-4, d.length())), n = d.normalize();
@@ -255,19 +320,32 @@ function posa(M, pose) {
   // brazos: la mano, contada en el pecho en reposo, pasa al pecho de ahora
   const pecho = mundo(R, 'S2', inv).m.multiply(_m.copy(R.S2.M).invert());
   const pq = new THREE.Quaternion().setFromRotationMatrix(_m2.extractRotation(pecho));
+  const pqInv = pq.clone().invert();
   for (const s of ['L', 'R']) {
-    const A = R[s + 'A'], F = R[s + 'F'], Hh = R[s + 'H'], [L1, L2] = L[s + 'A'];
-    const Sh = mundo(R, s + 'A', inv).P, T = new THREE.Vector3(...pose[s + 'm']).applyMatrix4(pecho), pole = new THREE.Vector3(...pose[s + 'c']).applyQuaternion(pq);
+    const A = R[s + 'A'], F = R[s + 'F'], Hh = R[s + 'H'], [L1, L2] = L[s + 'A'], an = M.anat[s];
+    const Sh = mundo(R, s + 'A', inv).P, T = new THREE.Vector3(...pose[s + 'm']).applyMatrix4(pecho);
+    // (el codo no se cierra más de 150°: si la mano pide estar más cerca del hombro, se queda a esa distancia)
+    const dMin = Math.sqrt(L1 * L1 + L2 * L2 - 2 * L1 * L2 * Math.cos((180 - ANATOMIA.codoMax) * G)), dST = T.distanceTo(Sh);
+    if (dST < dMin) { T.sub(Sh).multiplyScalar(dMin / Math.max(1e-5, dST)).add(Sh); _anatomia.codo++; }
+    const pole = poloHumano(an, s, Sh, T, new THREE.Vector3(...pose[s + 'c']).applyQuaternion(pq), L1, L2, pqInv);
     const k = dosHuesos(Sh, T, pole, L1, L2);
     const upR = F.P.clone().sub(A.P).normalize(), loR = Hh.P.clone().sub(F.P).normalize();
-    let bisR = new THREE.Vector3().crossVectors(upR, loR); if (bisR.lengthSq() < 1e-6) bisR.set(s === 'L' ? -1 : 1, 0, 0); bisR.normalize();
+    // (el lado hacia el que se dobla, el anatómico: montaje)
+    const bisR = an.bisR.clone();
     const Ru = base(k.up, k.bis, new THREE.Matrix4()).multiply(base(upR, bisR, _m).transpose()), Rf = base(k.lo, k.bis, new THREE.Matrix4()).multiply(base(loR, bisR, _m).transpose());
     const Wu = new THREE.Quaternion().setFromRotationMatrix(Ru).multiply(A.W), Wf = new THREE.Quaternion().setFromRotationMatrix(Rf).multiply(F.W);
-    const Wh = new THREE.Quaternion().setFromAxisAngle(k.bis, (pose[s + 'w'] || 0) * G).multiply(_q.setFromRotationMatrix(Rf)).multiply(Hh.W);
-    // (el antebrazo y la mano giran sobre el antebrazo: la palma hacia dentro o hacia abajo)
-    const tw = new THREE.Quaternion().setFromAxisAngle(k.lo, (pose[s + 't'] || 0) * G); Wf.premultiply(tw); Wh.premultiply(tw);
+    const w = Math.max(-ANATOMIA.muneca, Math.min(ANATOMIA.muneca, pose[s + 'w'] || 0));
+    const Wh = new THREE.Quaternion().setFromAxisAngle(k.bis, w * G).multiply(_q.setFromRotationMatrix(Rf)).multiply(Hh.W);
+    // (el antebrazo gira sobre sí mismo como el de una persona: la pronación y la supinación las hace el radio rodando sobre
+    // el cúbito, desde la muñeca; el codo no gira. Con hueso de giro, el antebrazo solo se dobla, el hueso de giro lleva
+    // la mitad del giro y la mano el giro entero; sin él, como antes, el antebrazo entero. Y dentro de su recorrido:
+    // de la palma adelante, 10° más como mucho, a la palma atrás, 150°)
+    const t0 = pose[s + 't'] || 0, prona = s === 'L' ? t0 : -t0, pr = Math.max(-ANATOMIA.supinaMax, Math.min(ANATOMIA.pronaMax, prona)), t = s === 'L' ? pr : -pr;
+    const tw = new THREE.Quaternion().setFromAxisAngle(k.lo, t * G); Wh.premultiply(tw);
+    const FT = R[s + 'FT']; if (!FT) Wf.premultiply(tw);
     const Wp = mundo(R, s + 'S', inv).W;
     A.b.quaternion.copy(_q.copy(Wp).invert().multiply(Wu)); F.b.quaternion.copy(_q.copy(Wu).invert().multiply(Wf)); Hh.b.quaternion.copy(_q.copy(Wf).invert().multiply(Wh));
+    if (FT) FT.b.quaternion.copy(FT.q0).multiply(_q.setFromAxisAngle(_v.set(0, 1, 0), t * G * 0.5));
   }
   // piernas: el tobillo donde dice la pose, la rodilla hacia delante (entre la cadera y la punta del pie)
   const cad = mundo(R, 'H', inv), fwdH = new THREE.Vector3(0, 0, 1).applyQuaternion(cad.W.clone().multiply(_q.copy(R.H.W).invert())); fwdH.y = 0;
@@ -287,6 +365,7 @@ function posa(M, pose) {
 }
 
 function hornea(M, nombre, keys, loop) {
+  _ant.L = _ant.R = 0;
   const { R } = M, D = keys[keys.length - 1][0], n = Math.max(2, Math.round(D * FPS) + 1), ks = Object.keys(R);
   const times = new Float32Array(n), Q = Object.fromEntries(ks.map(k => [k, new Float32Array(n * 4)])), Pp = new Float32Array(n * 3);
   for (let i = 0; i < n; i++) {

@@ -1236,7 +1236,7 @@ export class PelotaMatch {
         break;
       case 'hit': {
         // la fuerza también se oye y se nota: un golpe a tope suena más fuerte y sacude un poco la cámara
-        const pw = e.pow ?? 0.5; if (!this.callada) A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
+        const pw = e.pow ?? 0.5; if (!this.callada) A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75));   /* (sin el destello blanco en la mano: crecía hasta un metro y cruzaba el cuerpo del pelotari como una mancha; queda el del frontis) */
         // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
         this.rallyN = (this.rallyN || 0) + 1; A.mood(Math.min(0.52, 0.2 + this.rallyN * 0.03), 0.8);
         // (17 nov: desde el 70 % ya tiembla, y más cuanto más; al 100 %, el instante del golpe se para un pelín, como en
