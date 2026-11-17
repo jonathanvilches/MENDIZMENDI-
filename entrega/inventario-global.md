@@ -40,7 +40,7 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 | Los ocho danzantes de Muskilda | Sin boceto: falta una foto real del traje |
 | Sorgina, Tartalo, Roldán, Cascabobo, Zipotero, Orido y lagunero | Bocetos hechos, sin modelo |
 | Cascada de la lamia | Rehecha el 17 de noviembre: peña de 10,5 m en anfiteatro, caliza con musgo y agua más ancha. Falta que la veas |
-| Vecinos de cerca con más calidad | Pendiente |
+| Vecinos de cerca con más calidad | El 17 de noviembre: textura de cerca también en Otsagabia, con la lamia y el Basajaun, y 2048 px al hablar fuera del móvil. Más triángulos que los 12.000 a 16.000 de Meshy exige rehacerlos en Meshy, con créditos |
 | Retratos ilustrados de los vecinos en las charlas | Pendiente |
 
 ## Transportes
