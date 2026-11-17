@@ -538,6 +538,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   presentación, el sorteo, las repeticiones y el final. El partido usa el sonido del juego, ya desbloqueado con el primer
   toque (`fronton.js`, `audio`): en el iPhone, uno propio creado sin tocar empezaba callado y no se oía la chapa del sorteo,
   que ahora cae, rebota y repiquetea hasta quedarse quieta (`moneda`).
+- **Golpes de la pelota con el sonido de un frontón de verdad** (17 de noviembre de 2026; `pelota/audio.js`, `golpe`;
+  `tools/sonidos/golpes-pelota.py`). El autor pasó el vídeo de un entrenamiento: «este es el sonido real que hace la
+  pelota al pegar contra la pared del frontón. Y este es el sonido que tiene que tener nuestro juego». El audio es de quien
+  subió el vídeo, sin licencia para el juego, así que no se usa la grabación: se midió y se fabricaron golpes propios
+  calcados de ella. El del frontis es un chasquido seco y muy brillante, casi plano de 250 a 4000 Hz; el de la mano lleva
+  más grave; el bote es como el frontis, más corto. Cada uno: un chasquido de ruido de 6 a 10 ms con ese reparto por
+  octavas, un golpe grave muy flojo que le da cuerpo y la sala de un frontón cubierto (reflexiones a 11-94 ms y una cola de
+  1,05 a 1,25 s que pierde antes los agudos). Tres variantes de la mano, el frontis, el bote y la pared izquierda, en
+  `src/assets/sonidos/pelota-*.mp3` (200 KB todos), sin repetir la última y algo más agudos y fuertes cuanto más fuerte el
+  golpe. Si aún no han llegado, suena el sintetizado de antes. Al aire libre suenan con la misma sala (pendiente).
 - **Partido de pelota, la dirección** (`pelota/game.js`, `strike`; `pelota/physics.js`, `twoWallsTo`): el joystick apunta
   al bote. A dos paredes se busca por toda la pared izquierda el golpe que bota más cerca de donde se apunta, así que sale
   desde cualquier sitio de la cancha: con la cortada, desde media izquierda; cuanto más a la izquierda, más cruzada, y

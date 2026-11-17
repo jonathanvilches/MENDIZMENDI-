@@ -3,6 +3,8 @@
 // grada llena durante todo el partido y la ovación del último tanto.
 import { Crowd, PUBLICO } from '../crowdAudio.js';
 import { Grada, carga, efecto } from '../audio/pistas.js';
+// (los golpes grabados de la pelota: la mano, el frontis, el bote y la pared izquierda, tres de cada)
+const GOLPES = ['mano', 'frontis', 'bote', 'pared'];
 const SHARED = { ctx: null };
 export class PelotaAudio {
   constructor(ctx) { this.ctx = ctx || null; this.muted = false; }
@@ -32,7 +34,7 @@ export class PelotaAudio {
     // (el público, desde el primer toque: murmura en la presentación y durante todo el partido)
     if (PUBLICO && !this.crowdN && !this.stopped) try { this.crowdN = new Crowd(this.ctx, this.bus); this.crowdN.setLevel(0.4); } catch (e) { console.warn('público', e); this.crowdN = null; }
     // (la grada grabada suena siempre; la sintetizada, solo con PUBLICO)
-    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); carga(this.ctx, 'abucheo'); }
+    if (!this.grada && !this.stopped) { this.grada = new Grada(this.ctx, this.bus); this.grada.nivel(0.4); carga(this.ctx, 'aplausos-final'); carga(this.ctx, 'abucheo'); for (const k of GOLPES) for (let i = 1; i <= 3; i++) carga(this.ctx, `pelota-${k}-${i}`); }
     return this.ctx;
   }
   /** Cómo está la grada: callada al sacar, más metida cuanto más largo es el peloteo, encendida tras un tanto */
@@ -111,10 +113,23 @@ export class PelotaAudio {
     g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
     o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.02);
   }
+  /** Un golpe de la pelota con su sonido de frontón (tools/sonidos/golpes-pelota.py: fabricado a partir de lo medido en
+   *  el vídeo de un entrenamiento que pasó el autor el 17 de noviembre de 2026, con la sala de un frontón cubierto): una
+   *  de sus tres variantes, distinta de la anterior, algo más aguda y fuerte cuanto más fuerte el golpe. false si aún no
+   *  ha llegado, y entonces suena el sintetizado de antes */
+  golpe(tipo, v) {
+    const c = this.ctx; if (!c) return false;
+    let i = 1 + Math.floor(Math.random() * 3); if (i === this['ult' + tipo]) i = (i % 3) + 1;
+    const b = carga(c, `pelota-${tipo}-${i}`).buf; if (!b) return false;
+    this['ult' + tipo] = i;
+    const s = c.createBufferSource(), g = c.createGain(); s.buffer = b;
+    s.playbackRate.value = 0.95 + Math.random() * 0.07 + Math.min(1, v) * 0.04; g.gain.value = Math.min(1, v);
+    s.connect(g); g.connect(this.bus || c.destination); s.start(); return true;
+  }
   // mano contra la pelota: «¡pac!» seco
-  hit(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }
+  hit(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('mano', 0.62 * power)) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }
   // pelota en el frontis: golpe con eco de pared
-  front(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
+  front(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('frontis', 0.7 * power)) return; const t = c.currentTime; this.noise(t, 0.08, 1200, 0.9, 0.45 * power); this.tone(t, 0.12, 140, 0.35 * power, 'sine', 0.6); this.noise(t + 0.11, 0.1, 900, 0.8, 0.08 * power); }
   // la chapa del sorteo contra el suelo: el golpe metálico al caer, un rebote y el repiqueteo de la moneda que baila
   // sobre su canto, cada vez más rápido y más flojo hasta quedarse quieta (como la chapa 3D, chapa.js). Antes eran tres
   // «¡tin!» flojos y casi no se oía
@@ -125,8 +140,8 @@ export class PelotaAudio {
     let u = t + 0.34, dt = 0.085, g = 0.12;
     for (let i = 0; i < 16; i++) { tin(u, g); u += dt; dt *= 0.88; g *= 0.86; }
   }
-  floor(power = 1) { const c = this.ensure(); if (!c) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
-  wall() { this.front(0.6); }
+  floor(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('bote', 0.42 * power)) return; const t = c.currentTime; this.noise(t, 0.05, 700, 1, 0.3 * power); this.tone(t, 0.07, 110, 0.25 * power, 'sine', 0.7); }
+  wall() { const c = this.ensure(); if (!c) return; if (this.golpe('pared', 0.5)) return; this.front(0.6); }
   // la pelota en la chapa, la de abajo o las de arriba: el golpe de la plancha de metal, con su vibración que se apaga, y el
   // golpe sordo del colchón de detrás. Antes en la chapa no sonaba nada (sintetizado: mejor con una grabación de chapa)
   chapa(power = 1) {

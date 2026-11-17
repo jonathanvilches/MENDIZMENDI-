@@ -72,6 +72,10 @@ Cada página de la pista: https://app.envato.com/item/ y el identificador del ce
 
 El archivo son los 33 primeros segundos, en un canal, sin los graves del viento y con el volumen igualado. Lo pasó el autor del juego.
 
+## Sonidos fabricados para el juego
+
+Los golpes de la pelota (`pelota-mano-*`, `pelota-frontis-*`, `pelota-bote-*` y `pelota-pared-*`) no son grabaciones: los fabrica `tools/sonidos/golpes-pelota.py` a partir de lo medido en un vídeo de un entrenamiento que pasó el autor el 17/11/2026. Son del propio juego.
+
 ## Música retirada
 
 «Minstrel Guild», de Kevin MacLeod (CC BY 4.0), sonó en los partidos de pelota del 9 al 10 de noviembre de 2026. Se quitó a petición del autor del juego (era medieval y no la había elegido él); el partido suena con la épica de Torneos.
