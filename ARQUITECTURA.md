@@ -216,6 +216,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   movimiento, nunca su verde ni su web. Al acabar cada partido, los highlights (`finPartido` → `verHl` → `sigHl` en
   `match.js`): los tres mejores tantos según su nota (`guardaHl`), del tercero al primero, cada uno con su rótulo grande;
   empiezan 2,4 s después del «¡Tanto y partido!», que se quita antes. Prueba: `tools/pelota-highlights.mjs`.
+- **Las rayas de la cancha, perfectas a cualquier distancia** (el autor, 17 de noviembre de 2026, con una captura del
+  iPhone: «Las líneas del frontón se difuminan. La línea tiene que ser perfecta»). Las rayas del suelo no se pintan en la
+  textura (vista tan de lado y a la mitad en el móvil se emborronaba): se calculan en el sombreador del suelo
+  (`court.js rayasNitidas`), cada píxel con su distancia exacta a la raya, suavizada solo un píxel y nunca más fina que
+  algo más de un píxel. Cuadros, falta y pasa, contracancha, fondo y la raya del 4½ (`uCuatro`). Cualquier raya nueva en
+  el suelo, ahí; nada de rayas pintadas en texturas que se vean de lado.
+- **La carga del golpe se nota de verdad** (el autor, 17 nov: no notaba la diferencia entre un toque y mantener al 100 %).
+  En `game.js strike`, golpe normal: un toque sale lento (lo justo para llegar al frontis desde donde se pega) y bota
+  hacia el cuadro 3; al 30 %, el 4; a medias, el 5; al 75 %, el 7; a tope, el 9 o el rebote. Quien recibe un pelotazo
+  lo controla peor (`quality`, `this.ultimo`) y uno flojo, mejor. Y se ve y se oye: estela según la velocidad
+  (`court.estela`), temblor de cámara desde el 70 % y, al 100 %, una pausa de impacto (`match.parada`). Para medirlo:
+  `node tools/pelota-fuerza.mjs` (velocidad, frontis y bote por carga y zona) y `JUEGA=150 node tools/pelota-rayas.mjs`
+  (partido solo, sin dibujar, buscando errores).
 - **La txapela es lo más importante de la pelota** (el autor, 17 de noviembre de 2026: «que te pongan la txapela es el
   mayor honor del mundo; tiene que estar sí o sí»). Al acabar la final de un campeonato, después de los highlights, la
   entrega en el frontón (`src/pelota/ceremonia.js`, lanzada desde `match.js ceremonia`): el podio de cajones blancos

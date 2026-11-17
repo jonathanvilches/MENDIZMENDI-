@@ -327,7 +327,9 @@ export class PelotaGame {
     const qt = timing == null ? 0.75 : 1 - clamp(Math.abs(timing) / tol, 0, 1);
     // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene)
     const wall = clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1) * (0.2 - this.qual[who].agilidad * 0.025);
-    return clamp(0.25 * qh + 0.25 * qd + 0.5 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.04 : 0) - wall - this.tired(who) * 0.3, 0, 1);   // (cansado, peor)
+    // (lo que llega: un pelotazo a tope del otro cuesta controlarlo y sale peor; uno flojo se coge cómodo. 17 nov 2026)
+    const U = this.ultimo, llega = U && U.who !== who ? clamp((U.v - 24) / 14, 0, 1) * 0.2 - clamp((19 - U.v) / 8, 0, 1) * 0.06 : 0;
+    return clamp(0.25 * qh + 0.25 * qd + 0.5 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.04 : 0) - wall - this.tired(who) * 0.3 - llega, 0, 1);   // (cansado, peor)
   }
   // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada); req: golpe pedido
   // con su botón ('dejada' o 'cortada'; true es la dejada, como antes); pow: fuerza de 0 a 1 (cuanto más se mantiene
@@ -432,7 +434,11 @@ export class PelotaGame {
       // (el golpe, con bombeo: da en el frontis por encima de la mitad, a unos 6 m desde el cuadro 4 y más arriba desde atrás,
       // y la pelota vuelve alta; la cortada es la que va de media pared abajo. De volea y de gancho, más tenso)
       // (desde más atrás, más fuerte: si no, para llegar tendría que dar arriba del todo)
-      let tx, landZ, speed = (12 + q * 3 + pow * 17 + (S - 3) * 1.3) * (0.8 + clamp(p.z, 8, 30) / 62) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
+      // (la carga manda de verdad, 17 nov 2026: el autor no notaba la diferencia entre un toque y mantener al 100 %. Un toque
+      // sale lento, a la velocidad justa para llegar bien al frontis desde donde se pega; a medias, un golpe normal; a tope,
+      // un pelotazo. Antes iba de unos 17 a unos 31 m/s y casi no se veía; ahora de unos 14-17 a unos 33-36, y a medias bastante menos que antes)
+      const fz = pow01(pow), vMin = 9 + clamp(p.z, 6, 30) * 0.32;
+      let tx, landZ, speed = Math.max(vMin, (9 + q * 3 + Math.pow(fz, 1.25) * 19 + (S - 3) * 1.3) * (0.8 + clamp(p.z, 8, 30) / 62)) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
       if (gancho) aim = { x: Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
@@ -457,7 +463,8 @@ export class PelotaGame {
         // bote y se corrige el punto del frontis hasta que cae ahí; el error solo depende de lo bien que se golpee
         // (lo largo lo dice sobre todo la fuerza: un toque se queda hacia el cuadro 2 o 3 y a tope va al 6 o 7; el joystick
         // arriba o abajo afina 4,5 m. Antes, de 13 a 21 m: entre poco y mucho apenas había diferencia, 13 nov 2026)
-        const depth = clamp(9.5 + aim.y * 4.5 + Math.pow(pow01(pow), 0.9) * 15, 8, 26);
+        // (17 nov: aún más: un toque bota hacia el cuadro 2 o 3, a medias hacia el 5 y a tope hacia el 8; el joystick afina 4 m)
+        const depth = clamp(7.5 + aim.y * 4 + Math.pow(fz, 1.05) * 19.5, 6.5, 27.5);
         let lx = aim.x * (aim.x < 0 ? 4.4 : RAYA);   // (a la izquierda, del todo, a 60 cm de la pared, y la pasada por encima se evita abajo; a la derecha, a la raya)
         // a tope y largo, un pelotari con fuerza la manda al fondo: bota en el último cuadro y llega al rebote (la pared de
         // atrás), que la devuelve; uno flojo no llega
@@ -474,7 +481,7 @@ export class PelotaGame {
         landZ += gauss(rnd) * err * 2.5;
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
         // desde más atrás llega algo más lejos (le da más alto en el frontis) y un golpe flojo se queda antes
-        if (!rebote) landZ = Math.min(landZ, 15.5 + q * 2 + pow * 8 + clamp(p.z - COURT.FALTA, -4, 8) * 0.18 + (S - 3) * 1.3, COURT.L - 2.5);
+        if (!rebote) landZ = Math.min(landZ, 13 + q * 2 + pow * 12.5 + clamp(p.z - COURT.FALTA, -4, 8) * 0.18 + (S - 3) * 1.3, COURT.L - 2.5);
         // (en el Cuatro y Medio, lo largo se queda antes de la raya del 4 y medio; un golpe malo se puede pasar)
         // (con el joystick arriba del todo, lo largo a tope: a 15 cm de la raya, con su error propio: a veces se pasa)
         if (this.cuatro) landZ = Math.min(landZ, CUATRO.LIMITE - 1.2 + q * 0.6 + arriba * (1.05 - q * 0.6)) + Math.max(0, gauss(rnd)) * err * 1.6 + gauss(rnd) * (0.4 + err) * arriba;
@@ -526,6 +533,7 @@ export class PelotaGame {
       v = rnd() < 0.6 ? aimVelocity(p, p.x * 0.5, COURT.CHAPA * (0.3 + rnd() * 0.5), T) : aimVelocity(p, p.x + gauss(rnd) * 3, COURT.FRONT_TOP + 0.6 + rnd(), T);
     }
     b.set(p, v); b.spin = cut ? 1 : 0;
+    this.ultimo = { who, pow, v: Math.hypot(v.x, v.y, v.z) };   // (lo que se le manda al otro: quality)
     // (lo que hace de verdad la pelota, para nombrar el golpe: nombreReal)
     const real = serve ? { kind: shot, sub } : nombreReal(shot, sub, p, boteReal(p, v));
     const pl = this.players[who], sd = this.side(who); pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
@@ -544,7 +552,7 @@ export class PelotaGame {
     const off = o.timing != null && Math.abs(o.timing) > this.tol * 0.35;
     const label = q > 0.85 && !off ? 'perfect' : off && q < 0.75 ? (o.timing < 0 ? 'early' : 'late') : q > 0.6 ? 'good' : q > 0.35 ? 'ok' : o.timing > 0 ? 'late' : 'early';
     if (who === 'you' && label === 'perfect') this.stats.perfect++;
-    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, real: real.kind, realSub: real.sub, pow, volea: !!o.volea, timing: o.timing ?? null, x: p.x, y: p.y, z: p.z, en: pl.en, cost });
+    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, real: real.kind, realSub: real.sub, pow, vel: this.ultimo.v, volea: !!o.volea, timing: o.timing ?? null, x: p.x, y: p.y, z: p.z, en: pl.en, cost });
   }
 
   // ---------------------------------------------------------------- árbitro

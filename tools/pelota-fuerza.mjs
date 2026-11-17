@@ -1,28 +1,26 @@
-// Pelota en el navegador: la fuerza se ve. Con el golpe y la cortada mantenidos poco, medio y casi a tope, la barra de
-// carga sube y la marca de la cancha (dónde botará) se aleja. Capturas. Uso: node tools/pelota-fuerza.mjs [pueblo] [carpeta]
+// Mide qué hace la pelota según la carga del golpe (toque, a medias, a tope) desde varias zonas de la cancha: velocidad
+// al salir, dónde da en el frontis y dónde bota. Con el motor del partido, sin dibujar (golpe en seco, sin azar).
+// Uso: node tools/pelota-fuerza.mjs
 import { chromium } from 'playwright-core';
-import { mkdirSync } from 'fs';
-const [,, town = 'lumbier', out = 'entrega/pelota-fuerza'] = process.argv; mkdirSync(out, { recursive: true });
 const b = await chromium.launch({ executablePath: process.env.CHROMIUM || '/opt/pw-browsers/chromium', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
-const p = await (await b.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true })).newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
-await p.addInitScript(() => { localStorage.setItem('herrizherri-perfil-v1', JSON.stringify({ v: 1, seen: { heroBenat: true, dog: true }, settings: { quality: 'low' } })); });
-await p.goto(`http://127.0.0.1:5173/?town=${town}&q=low&weather=clear&skipintro=1&noflora`, { timeout: 300000 });
-await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 500000 });
-await p.evaluate(() => { const G = window.__game; G.fronton.play(G, G.pelotari || G.missions.find(M => M.type === 'pelota')?.host); });
-await p.waitForSelector('.pel-panel [data-pel-go]', { timeout: 180000 });
-await p.evaluate(() => document.querySelector('.pel-panel [data-pel-go]').click());
-await p.waitForFunction(() => window.__game.pelotaMatch?.game.phase === 'serveWait', null, { timeout: 120000 });
-const res = {};
-for (const [k, sx, sy, n, kind] of [['golpe-flojo', 0.3, 0, 3, 'hit'], ['golpe-medio', 0.3, 0, 10, 'hit'], ['golpe-tope', 0.3, 0, 19, 'hit'], ['cortada-floja', 0, 0, 3, 'cut'], ['cortada-tope', 0, 0, 19, 'cut']]) {
-  res[k] = await p.evaluate(([sx, sy, n, kind]) => { const M = window.__game.pelotaMatch, g = M.game;
-    g.phase = 'rally'; g.rally = { striker: 'rival', turn: 'you', front: true, bounces: 0, hits: 1 }; g.players.you.x = 1; g.players.you.z = 21; g.players.rival.z = 12;
-    g.ball.set({ x: 0.5, y: 2.5, z: 1 }, { x: 0.1, y: 6, z: 17 }); g.pred = null; g._pv = null;
-    M.input.charge = null; M.chargeStart(kind); M.input.stick.x = sx; M.input.stick.y = sy;
-    for (let i = 0; i < n; i++) { g.players.rival.cool = 9; M.update(1 / 30); }
-    const C = M.court; return { carga: +M.chargeLevel().toFixed(2), bote: C.aimLand.visible && +C.aimLand.position.z.toFixed(1), marca: C.aimMark?.visible ? +C.aimMark.position.y.toFixed(2) : null };
-  }, [sx, sy, n, kind]);
-  await p.screenshot({ path: `${out}/${k}.png` });
-}
-await p.evaluate(() => { const M = window.__game.pelotaMatch; M.input.charge = null; M.input.stick.x = M.input.stick.y = 0; });
-console.log(JSON.stringify(res), errs.length ? errs.slice(0, 3) : 'sin errores');
-await b.close();
+const p = await b.newPage({ viewport: { width: 900, height: 500 } });
+const errs = []; p.on('pageerror', e => errs.push(e.message));
+await p.goto('http://127.0.0.1:5173/?town=lumbier&q=low&weather=clear&skipintro=1&noflora', { timeout: 300000 });
+const r = await p.evaluate(async () => {
+  const { PelotaGame } = await import('/src/pelota/game.js').then(m => ({ PelotaGame: m.PelotaGame || m.default || Object.values(m).find(v => typeof v === 'function' && /strike/.test(v.toString().slice(0, 4000) + Object.getOwnPropertyNames(v.prototype || {}).join())) }));
+  const M = await import('/src/pelota/game.js'), out = [];
+  const Cls = Object.values(M).find(v => typeof v === 'function' && v.prototype && v.prototype.strike);
+  if (!Cls) return { err: 'sin clase', keys: Object.keys(M) };
+  let g; try { g = new Cls({ mode: 'match' }); } catch (e) { return { err: 'new: ' + e.message, keys: Object.keys(M) }; }
+  const { Ball, predict } = await import('/src/pelota/physics.js');
+  const firstBounce = (p0, v, spin) => { const b = new Ball(); b.set(p0, v); b.spin = spin || 0; const pr = predict(b, 5, 1 / 120); const f = pr.events.find(e => e.type === 'front'), l = pr.events.find(e => e.type === 'floor' && e.n === 1); return l ? { z: l.z, fy: f ? f.y : null, t: l.t } : null; };
+  for (const z of [10, 17, 24]) for (const pow of [0.15, 0.4, 0.575, 0.8, 1]) {
+    const s = g.strike('you', 0.85, { x: 0, y: 0 }, false, pow, true, { x: 0.5, y: 1.0, z });
+    if (!s?.v) { out.push({ z, pow, nada: true }); continue; }
+    const v = Math.hypot(s.v.x, s.v.y, s.v.z), fb = firstBounce(s.p, s.v, s.spin);
+    out.push({ desde: z, carga: Math.round((pow - 0.15) / 0.85 * 100) + '%', vel: +v.toFixed(1), kmh: Math.round(v * 3.6), frontis: fb?.fy != null ? +fb.fy.toFixed(1) : null, bota: fb ? +fb.z.toFixed(1) : null, cuadro: fb ? Math.ceil(fb.z / 3.5) : null, llega_s: fb ? +fb.t.toFixed(2) : null, golpe: s.shot });
+  }
+  return out;
+});
+console.log(JSON.stringify(r, null, 0).replace(/},{/g, '},\n{'));
+console.log(errs.slice(0, 3)); await b.close();

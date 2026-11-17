@@ -37,6 +37,7 @@ function golpeDe(P, x, y, z) {
 // (estirarse hacia la pelota en el golpe, en metros y segundos: se queda a «cerca» de ella, como mucho «tope» más allá de su
 // sitio; empieza con la pelota a «empieza» metros y está del todo a «llega»; tras el golpe sigue «queda» y vuelve en «vuelve»)
 const ESTIRA = { cerca: 0.45, tope: 0.9, empieza: 2.4, llega: 1.1, queda: 0.08, vuelve: 0.4 };
+const clamp01 = (x) => x < 0 ? 0 : x > 1 ? 1 : x;
 const suave = (u) => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
 // (pasos laterales: se mueve de lado sin dejar de mirar al frontis; 1 hacia su izquierda, -1 hacia su derecha, 0 si no)
 function lateral(P) {
@@ -1199,6 +1200,8 @@ export class PelotaMatch {
     if ((this.paused || this.hud.panelEl) && this.input.charge) this.input.charge = null;
     if (this.entra?.go && !this.flying) this.pasoEntrada(dt);
     const g = this.game, inp = this.paused || this.hud.panelEl ? {} : this.readInput();
+    // (la parada del pelotazo a tope: el juego va al 12 % unos instantes; la cámara y la interfaz, normales)
+    if (this.parada > 0) { this.parada -= dt; dt *= 0.12; }
     const ev = this.paused ? [] : g.update(dt, inp);
     // (con la cámara, la fuerza del golpe sigue subiendo mientras la mano acelera, justo después de salir: lo más deprisa que va)
     if (this.camGolpe?.abierto && g.players.you.camPend && g.players.you.swing > 0 && this.cuerpo?.picoPow > (g.players.you.pow ?? 0)) g.players.you.pow = this.cuerpo.picoPow;
@@ -1236,7 +1239,11 @@ export class PelotaMatch {
         const pw = e.pow ?? 0.5; if (!this.callada) A.hit((0.5 + e.q * 0.4) * (0.55 + pw * 0.75)); C.pop(e, 'z');
         // (cuanto más largo el peloteo, más se mete la grada: el murmullo sube poco a poco)
         this.rallyN = (this.rallyN || 0) + 1; A.mood(Math.min(0.52, 0.2 + this.rallyN * 0.03), 0.8);
-        if (e.who === 'you' && pw > 0.8 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.12 + (pw - 0.8) * 0.6);
+        // (17 nov: desde el 70 % ya tiembla, y más cuanto más; al 100 %, el instante del golpe se para un pelín, como en
+        // los juegos de deporte, y la estela se enciende; un toque, sin estela y sin temblor)
+        if (e.who === 'you' && pw > 0.7 && e.shot !== 'dejada') this.shake = Math.max(this.shake || 0, 0.1 + (pw - 0.7) * 1.1);
+        if (e.shot !== 'dejada' && pw >= 0.97 && e.q > 0.35) this.parada = e.who === 'you' ? 0.085 : 0.05;
+        C.estela?.(e.shot === 'dejada' ? 0 : clamp01((( e.vel ?? 20) - 14) / 24));
         // (cámara dinámica: un empujón hacia la cancha, mayor cuanto más fuerte y mejor le das)
         if (e.who === 'you' && e.shot !== 'dejada') this.kick = Math.max(this.kick || 0, Math.min(1, pw * 0.7 + (e.label === 'perfect' ? 0.35 : 0)));
         // el aviso de cómo ha salido (perfecto, bien, justo, pronto, tarde), solo en el peloteo de entrenar: en los partidos

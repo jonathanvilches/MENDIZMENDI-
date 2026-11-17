@@ -184,18 +184,13 @@ export class PelotaCourt {
         for (let j = 0, z = 0; z < h; z += ph, j++) for (let i = 0; i < 7; i++) { const t = 0.9 + ((i * 7 + j * 13) % 9) / 40; c.fillStyle = `rgb(${Math.round(214 * t)},${Math.round(160 * t)},${Math.round(98 * t)})`; c.fillRect(X(W / 2) + i * pw + 1, z + ((i % 2) * ph) / 2, pw - 2, ph - 2); }
       }
       grain(c, w, h, 9000, 0.07); grain(c, w, h, 3000, 0.05, false);
-      c.strokeStyle = th.line; c.lineWidth = 4;
-      // (el trinquete no tiene cuadros: en su suelo, como en las fotos del de Elizondo, solo las rayas de falta y pasa, amarillas)
-      if (!TRQ) for (let k = 1; k * C.CUADRO <= L + 0.01; k++) { const z = Z(k * C.CUADRO); c.beginPath(); c.moveTo(0, z); c.lineTo(X(W / 2), z); c.stroke(); }
-      // falta (4) y pasa (7), más gruesas y rojas
-      c.strokeStyle = TRQ ? th.line : th.mark; c.lineWidth = TRQ ? 7 : 9;
-      for (const z of [C.FALTA, C.PASA]) { c.beginPath(); c.moveTo(0, Z(z)); c.lineTo(X(W / 2), Z(z)); c.stroke(); }
-      // raya de la derecha (contracancha) y del fondo
-      c.strokeStyle = th.line; c.lineWidth = 8;
-      c.beginPath(); c.moveTo(X(W / 2), 0); c.lineTo(X(W / 2), Z(L)); c.lineTo(0, Z(L)); c.stroke();
+      // (las rayas ya no se pintan aquí: van en el sombreador del suelo, rayasNitidas, más abajo)
     });
     floorTex.minFilter = T.LinearMipmapLinearFilter;
-    const floor = new T.Mesh(new T.PlaneGeometry(fw, fl), M({ map: floorTex, roughness: 0.92 }));
+    const floorMat = M({ map: floorTex, roughness: 0.92 });
+    // las rayas de los cuadros, falta y pasa, la de la contracancha y la del fondo, exactas a cualquier distancia
+    this.rayas = rayasNitidas(T, floorMat, { W, L, fw, fl, TRQ, line: th.line, mark: TRQ ? th.line : th.mark });
+    const floor = new T.Mesh(new T.PlaneGeometry(fw, fl), floorMat);
     floor.rotation.x = -Math.PI / 2; floor.position.set(-W / 2 + fw / 2, 0, fl / 2); floor.receiveShadow = true; g.add(floor);
     // zócalo bajo la cancha para que no flote en terrenos con pendiente. En los de la calle, un muro de piedra que llega
     // hasta debajo de la grada y baja 6 m (antes era una losa lisa solo bajo la cancha y la grada quedaba en el aire,
@@ -494,7 +489,7 @@ export class PelotaCourt {
     this.shadow = new T.Mesh(new T.CircleGeometry(C.BALL_R * 1.1, 16), shadowMat); this.shadow.rotation.x = -Math.PI / 2; g.add(this.shadow);
     const trailMat = new T.MeshBasicMaterial({ color: '#fff6d8', transparent: true, opacity: 0.35, depthWrite: false });
     const trailGeo = new T.SphereGeometry(C.BALL_R, 8, 6);
-    this.trail = [];
+    this.trail = []; this.trailMat = trailMat; this.trailK = 0.5;
     for (let i = 0; i < 9; i++) { const m = new T.Mesh(trailGeo, trailMat); m.scale.setScalar(0.85 - i * 0.08); g.add(m); this.trail.push(m); }
     this.trailPts = [];
     const ring = (inner, outer, color, op) => { const m = new T.Mesh(new T.RingGeometry(inner, outer, 40), new T.MeshBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, side: T.DoubleSide })); m.rotation.x = -Math.PI / 2; m.visible = false; g.add(m); return m; };
@@ -528,9 +523,11 @@ export class PelotaCourt {
   setCuatro(on) {
     const T = this.THREE, C = COURT;
     if (on && !this.cuatroMark) {
+      // (la raya, con las demás en el sombreador del suelo, igual de nítida; si no lo hay, una tira encima del suelo)
       const mat = new T.MeshStandardMaterial({ color: this.look.line, roughness: 0.92, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
       const m = this.cuatroMark = new T.Mesh(new T.PlaneGeometry(C.W, 0.15), mat); m.name = 'cuatro-y-medio';
       m.rotation.x = -Math.PI / 2; m.position.set(0, 0.012, CUATRO.LIMITE); m.receiveShadow = true;
+      if (this.rayas) m.userData.soloForma = true;
       this.group.add(m); this.materials?.push(mat);
       // (el cartel: del ancho de los números de los cuadros y por debajo de ellos, con la punta a 70 cm del suelo; la
       // pintura, algo viva, para que el amarillo se lea de lejos)
@@ -540,7 +537,8 @@ export class PelotaCourt {
       pin.rotation.y = Math.PI / 2; pin.position.set(-C.W / 2 + 0.016, PUNTA - PH * 14 / 192 + PH / 2, CUATRO.LIMITE); pin.receiveShadow = true;
       this.group.add(pin); this.materials?.push(pm);
     }
-    if (this.cuatroMark) this.cuatroMark.visible = this.cuatroPin.visible = !!on;
+    if (this.cuatroMark) { this.cuatroPin.visible = !!on; this.cuatroMark.visible = !!on && !this.rayas; }
+    if (this.rayas) this.rayas.uCuatro.value = on ? 1 : 0;
     // (la zona del saque que se ilumina al sacar: entre el 3 y el 5 en el Cuatro y Medio; entre el 4 y el 7, si no)
     const z0 = on ? CUATRO.FALTA : C.FALTA, z1 = on ? CUATRO.PASA : C.PASA;
     if (this.serveZone) { this.serveZone.scale.y = (z1 - z0) / (C.PASA - C.FALTA); this.serveZone.position.z = (z0 + z1) / 2; }
@@ -1222,6 +1220,12 @@ export class PelotaCourt {
     this.trailPts.unshift({ x: p.x, y: p.y, z: p.z }); if (this.trailPts.length > 20) this.trailPts.pop();
     this.trail.forEach((m, i) => { const q = this.trailPts[(i + 1) * 2]; m.visible = !!q; if (q) m.position.set(q.x, q.y, q.z); });
   }
+  /** La estela según lo fuerte que va (0 a 1): un toque casi sin estela; un pelotazo, larga, más opaca y algo dorada */
+  estela(k) {
+    this.trailK = k; const m = this.trailMat; if (!m) return;
+    m.opacity = 0.08 + k * 0.5; m.color.setRGB(1, 0.97 - k * 0.12, 0.85 - k * 0.45);
+    this.trail.forEach((t, i) => { t.scale.setScalar((0.85 - i * 0.08) * (0.8 + k * 0.45)); });
+  }
   pop(p, normal = 'z') {
     const f = this.flash; f.visible = true; f.position.set(p.x, Math.max(0.03, p.y), p.z + (normal === 'z' ? 0.06 : 0));
     f.rotation.set(normal === 'y' ? -Math.PI / 2 : 0, normal === 'x' ? Math.PI / 2 : 0, 0);
@@ -1239,4 +1243,38 @@ export class PelotaCourt {
     this.group.traverse(o => { if (o.geometry) o.geometry.dispose(); if (!o.isSkinnedMesh) for (const m of [].concat(o.material || [])) mats.add(m); });
     for (const m of mats) { for (const v of Object.values(m)) if (v?.isTexture) v.dispose(); m.dispose(); }
   }
+}
+
+// Las rayas del suelo de la cancha, calculadas en el sombreador en vez de pintadas en la textura. Pintadas, se
+// emborronaban a lo lejos: el suelo se ve muy de lado, la tarjeta gráfica lo mezcla con sus versiones pequeñas y en el
+// móvil la textura va a la mitad (el autor, 17 de noviembre de 2026, con una captura del iPhone: «Las líneas del frontón
+// se difuminan. La línea tiene que ser perfecta»). Aquí cada píxel mide su distancia exacta a cada raya y solo se suaviza
+// lo que ocupa un píxel (fwidth), así que el borde sale limpio cerca y lejos; a lo lejos la raya no baja de algo más de un
+// píxel de ancho, para que no se pierda ni parpadee. Los anchos, de medio a medio: cuadros 9 cm, falta y pasa 16 cm (rojas;
+// en el trinquete, amarillas y sin cuadros), contracancha y fondo 14 cm, y la del 4½ 15 cm (uCuatro).
+function rayasNitidas(T, mat, o) {
+  const C = COURT, f = (v) => Number(v).toFixed(4);
+  const U = { uLine: { value: new T.Color(o.line) }, uMark: { value: new T.Color(o.mark) }, uCuatro: { value: 0 } };
+  mat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying vec2 vCancha;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>\nvCancha = vec2(${f(-o.W / 2)} + uv.x * ${f(o.fw)}, (1.0 - uv.y) * ${f(o.fl)});`);
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
+varying vec2 vCancha; uniform vec3 uLine; uniform vec3 uMark; uniform float uCuatro;
+float raya(float d, float media, float w) { float m = max(media, w * 0.7); return 1.0 - smoothstep(m - w * 0.5, m + w * 0.5, abs(d)); }`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+{ float x = vCancha.x, z = vCancha.y, wz = max(fwidth(z), 1e-5), wx = max(fwidth(x), 1e-5);
+  float dentro = step(${f(-o.W / 2)}, x) * step(x, ${f(o.W / 2)});
+  float a = 0.0;
+  ${o.TRQ ? '' : `float k = floor(z / ${f(C.CUADRO)} + 0.5);
+  a = max(a, raya(z - k * ${f(C.CUADRO)}, 0.045, wz) * dentro * step(0.5, k) * step(k * ${f(C.CUADRO)}, ${f(o.L + 0.01)}));`}
+  a = max(a, raya(z - ${f(o.L)}, 0.07, wz) * dentro);
+  a = max(a, raya(x - ${f(o.W / 2)}, 0.07, wx) * step(z, ${f(o.L + 0.07)}));
+  a = max(a, uCuatro * raya(z - ${f(CUATRO.LIMITE)}, 0.075, wz) * dentro);
+  float r = max(raya(z - ${f(C.FALTA)}, 0.08, wz), raya(z - ${f(C.PASA)}, 0.08, wz)) * dentro;
+  diffuseColor.rgb = mix(diffuseColor.rgb, uLine, a);
+  diffuseColor.rgb = mix(diffuseColor.rgb, uMark, r); }`);
+  };
+  mat.customProgramCacheKey = () => `rayas-${o.TRQ ? 1 : 0}-${f(o.fw)}-${f(o.fl)}`;
+  return U;
 }
