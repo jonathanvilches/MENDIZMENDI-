@@ -66,8 +66,12 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       su malla ligera se cambia por la completa del mismo modelo (Maite, de 6.720 a 14.598 triángulos), si los huesos son
       los mismos y en el mismo orden; material, textura de cerca y pelo teñido no cambian, y al acabar vuelve la ligera.
       Los completos (`src/assets/meshy/vecinos`, 18 MB los 21) van solo en la web (`@vecinos-full` en `vite.config.js`;
-      en el archivo único, una carpeta vacía) y se bajan la primera vez que hablas con uno de ese modelo; su textura se
-      suelta al cargarlos. Mejorarlos con Meshy (más detalle en la cara y la ropa) queda pendiente: este entorno no tiene
+      en el archivo único, una carpeta vacía) y se bajan la primera vez que hablas con uno de ese modelo. Desde el 17 de
+      noviembre de 2026 («las figuras de Meshy, lo mejor posible, la mayor definición posible»), fuera del móvil, mientras
+      dura la charla ese modelo lleva además su textura original, la de 2048 px que trae su malla completa (`ponHD` y
+      `quitaHD`), y al acabar vuelve la de cerca, o la ligera, y la de 2048 se suelta de la tarjeta. Medido con la lamia:
+      512 px lejos, 2048 hablando y 1024 al acabar, a dos metros. En el móvil su textura se suelta al cargarlos y se queda
+      la de cerca, de 1024: una de 2048 de más ya dejó sin memoria al iPhone (`FULL_CHICA` en `actors/glbChar.js`). Mejorarlos con Meshy (más detalle en la cara y la ropa) queda pendiente: este entorno no tiene
       la clave ni acceso a su servidor.
     - La calle (`game/rutinas.js`, `townGame.spawn`): 18 vecinos, 24 en las ciudades (12 y 16 en el móvil); casi la
       mitad son niños, que juegan a pillar en la plaza o echan carreras de puerta en puerta (`carrera`). Los niños pasan a

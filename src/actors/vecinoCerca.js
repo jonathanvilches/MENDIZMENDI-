@@ -5,7 +5,7 @@
 // vez (uno en el móvil): unos 5,6 MB de memoria gráfica cada uno.
 import * as THREE from 'three';
 import { QUALITY } from '../util/quality.js';
-import { loadMeshy, hayVecinoCompleto } from './glbChar.js';
+import { loadMeshy, hayVecinoCompleto, fullTexFor } from './glbChar.js';
 
 const URLS = Object.fromEntries(Object.entries(import.meta.glob('../assets/meshy/cerca/*.webp', { query: '?url', import: 'default', eager: true }))
   .map(([k, v]) => [k.split('/').pop().replace('.webp', ''), v]));
@@ -57,15 +57,39 @@ export const estadoCerca = () => ({ puestas: [...puestas.keys()], pedidas: [...p
 // (src/assets/meshy/vecinos, solo en la web: se baja la primera vez que hablas con uno de ese modelo); su material, su
 // textura de cerca y su pelo teñido no cambian. Solo si los huesos son los mismos y en el mismo orden; al acabar, la ligera.
 const cambiadas = new Map();
+// ---------- y con la textura original de Meshy, a 2048 px ----------
+// Desde el 17 de noviembre de 2026 («las figuras de Meshy, lo mejor posible, la mayor definición posible»): el que habla
+// contigo, y los de su mismo modelo mientras dura la charla, llevan la textura original, la de 2048 px que ya trae su malla
+// completa, en vez de la de cerca de 1024. Al acabar, la de antes, y la de 2048 se suelta de la tarjeta. En el móvil no: una
+// textura de 2048 de más (16 MB, y otros tantos al subirla) ya dejó sin memoria al iPhone (glbChar.js, FULL_CHICA)
+const hd = new Map();   // nombre del modelo → { tex, lod, n }
+function ponHD(name, tex) {
+  const lista = mats?.(name) || [], m0 = lista.find(m => m?.map && m.map !== tex); if (!m0) return;
+  const antes = m0.map, h = hd.get(name), p = puestas.get(name);
+  if (h) { h.n++; return; }
+  for (const m of lista) { if (m?.map !== antes) continue; m.map = tex; if (m.emissiveMap === antes) m.emissiveMap = tex; }
+  hd.set(name, { tex, lod: p && antes === p.tex ? p.lod : antes, n: 1 });   // (lod: la ligera, por si la de cerca ya no está)
+}
+function quitaHD(name) {
+  const h = hd.get(name); if (!h || --h.n > 0) return;
+  // (vuelve la de cerca si sigue puesta, o la ligera)
+  const vuelve = puestas.get(name)?.tex || h.lod;
+  for (const m of mats?.(name) || []) { if (m.map === h.tex) m.map = vuelve; if (m.emissiveMap === h.tex) m.emissiveMap = vuelve; }
+  h.tex.dispose(); hd.delete(name);
+}
 export async function vecinoNitido(a, on) {
   const n = a?.obj?.userData?.vecino; if (!n) return;
   const turno = (a._nitido = (a._nitido || 0) + 1);
-  if (!on) { const L = cambiadas.get(a); if (L) { for (const { mesh, geo } of L) mesh.geometry = geo; cambiadas.delete(a); } return; }
+  if (!on) { const L = cambiadas.get(a); if (L) { for (const { mesh, geo } of L) mesh.geometry = geo; cambiadas.delete(a); if (a._hd) { a._hd = false; quitaHD(n); } } return; }
   if (cambiadas.has(a) || !hayVecinoCompleto(n)) return;
+  const conHD = QUALITY !== 'low' && !!mats;
+  if (conHD) fullTexFor(n);   // (que al cargar su malla completa no se le reduzca la textura)
   let full; try { full = await loadMeshy(n, false, true); } catch (e) { return; }
   if (a._nitido !== turno) return;   // (la charla ya acabó o empezó otra)
-  // (su textura no se usa: fuera de la memoria)
-  full.scene.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) { if (m.map && !m.userData.suelta) { m.userData.suelta = true; m.map.dispose(); } } });
+  // (su textura: en el ordenador, para la charla; en el móvil no se usa, fuera de la memoria)
+  let tex = null;
+  full.scene.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) { if (!m.map) continue; if (conHD && !tex) tex = m.map; else if (!m.userData.suelta && m.map !== tex) { m.userData.suelta = true; m.map.dispose(); } } });
+  if (tex) { const p = puestas.get(n), ref = p?.lod || mats(n).find(m => m?.map)?.map; if (ref) { tex.flipY = ref.flipY; tex.colorSpace = ref.colorSpace; tex.wrapS = ref.wrapS; tex.wrapT = ref.wrapT; tex.channel = ref.channel; } tex.anisotropy = 8; tex.needsUpdate = true; }
   const porNombre = {}; full.scene.traverse(o => { if (o.isSkinnedMesh) porNombre[o.name] = o; });
   const nuevas = new Map();
   a.obj.traverse(o => { if (!o.isSkinnedMesh || o.userData.outline) return; const f = porNombre[o.name]; if (!f) return;
@@ -75,4 +99,5 @@ export async function vecinoNitido(a, on) {
   if (!nuevas.size) return;
   const L = []; a.obj.traverse(o => { if (o.isSkinnedMesh && nuevas.has(o.geometry)) { L.push({ mesh: o, geo: o.geometry }); o.geometry = nuevas.get(o.geometry); } });
   cambiadas.set(a, L);
+  if (tex) { ponHD(n, tex); a._hd = true; }
 }
