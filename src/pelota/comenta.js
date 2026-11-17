@@ -54,12 +54,12 @@ const ronda = (r = '') => (/semi/i.test(r) ? 'semis' : /cuartos/i.test(r) ? 'cua
 // (el golpe que gana el tanto: el grupo de Mikel; la explicación de Edurne es el mismo con «-e»)
 const GANA = (kind, sub) => kind === 'saque' ? 't-saque' : kind === 'dejada' ? (sub === 'dejadaAncho' ? 't-dejada-ancho' : 't-dejada-txoko')
   : kind === 'cortada' ? (sub === 'cortDos' ? 't-cortada-2p' : sub === 'cortAncho' ? 't-cortada-ancho' : sub === 'cortPared' ? 't-cortada-pared' : 't-hueco')
-  : kind === 'dosparedes' ? 't-dosparedes' : kind === 'gancho' ? (sub === 'ganchoPared' ? 't-gancho-pared' : 't-gancho-ancho')
+  : kind === 'dosparedes' ? 't-dosparedes' : kind === 'gancho' ? 't-gancho-ancho'   // (el gancho, siempre a la contracancha: ya no hay «gancho a la pared»)
   : kind === 'volea' ? 't-volea' : kind === 'largo' || kind === 'rebote' ? 't-largo' : 't-hueco';
 // (el fallo que pierde el tanto: el canto del juez, game.js)
 const FALLO = { chapa: 'e-chapa', alta: 'e-alta', pared: 'e-fuera', lado: 'e-fuera', ladoIzq: 'e-fuera', red: 'e-fuera', fuera: 'e-fuera', largo: 'e-largo', falta: 'e-falta', falta45: 'e-falta45', pasa: 'e-pasa', pasa45: 'e-pasa45', cuatro: 'e-cuatro' };
 const FALLO_E = { chapa: 'e-chapa-e', alta: 'e-alta-e', pared: 'e-fuera-e', lado: 'e-fuera-e', ladoIzq: 'e-fuera-e', red: 'e-fuera-e', fuera: 'e-fuera-e', largo: 'e-fuera-e', falta: 'e-falta-e', pasa: 'e-pasa-e', cuatro: 'e-cuatro-e' };
-const VISTOSO = new Set(['t-gancho-ancho', 't-gancho-pared', 't-cortada-2p', 't-dosparedes', 't-volea']);
+const VISTOSO = new Set(['t-gancho-ancho', 't-cortada-2p', 't-dosparedes', 't-volea']);
 const ROL = { M: 'Mikel', E: 'Edurne' };
 
 export class Comentarios {
@@ -81,15 +81,17 @@ export class Comentarios {
     let L = (G.get(g) || []).filter(k => this.puede(GUION[k][0]) && (!q || GUION[k][0] === q) && !(una && this.dichas.has(k)) && !(this.sinMano && /\bmanos?\b/i.test(GUION[k][1]))
       && !(this.tiene && !this.tiene(this.item(k, g))) && !this.fuera(k));
     // (contra la repetición, desde el 16 de noviembre de 2026; el autor: «los comentarios son muy repetitivos». Ninguna de las
-    // 24 últimas que se han oído, si queda otra; y los grupos de jugada, tanto y relleno que solo tienen una o dos frases se
-    // callan durante cuatro tantos después de usarse: mejor un silencio que otra vez lo mismo. La presentación, el tanto de
+    // 40 últimas que se han oído, si queda otra; y los grupos de jugada, tanto y relleno que solo tienen una o dos frases se
+    // callan durante seis tantos después de usarse, y los de una sola frase, ocho: mejor un silencio que otra vez lo mismo.
+    // El 17 de noviembre el autor lo vio aún repetitivo: antes eran 24 y cuatro tantos. La presentación, el tanto de
     // partido, el descanso y el final no esperan)
+    const enGrupo = L.length;
     if (L.length > 1) L = L.filter(k => k !== this.ult[g]);
     if (L.length > 1) { const N = L.filter(k => !this.rec.includes(k)); if (N.length) L = N; }
     if (!L.length) return null;
-    if (/^(j|t|e|r|o)-|^m-(racha|corta|iguala|igualado|escapa|remonta|empieza|mitad|ados|atres|cansado)/.test(g) && L.length <= 2 && this.n - (this.gUso[g] ?? -99) < 4) return null;
+    if (/^(j|t|e|r|o)-|^m-(racha|corta|iguala|igualado|escapa|remonta|empieza|mitad|ados|atres|cansado)/.test(g) && enGrupo <= 2 && this.n - (this.gUso[g] ?? -99) < (enGrupo === 1 ? 8 : 6)) return null;
     const k = L[Math.floor(Math.random() * L.length)]; this.ult[g] = k; this.dichas.add(k); this.gUso[g] = this.n;
-    this.rec.push(k); if (this.rec.length > 24) this.rec.shift();
+    this.rec.push(k); if (this.rec.length > 40) this.rec.shift();
     return this.item(k, g);
   }
   // (las que no vienen a cuento en este partido: el consejo contra un zurdo si el rival no lo es, el de la pared izquierda en
@@ -103,6 +105,12 @@ export class Comentarios {
     if (k === 'r-energia-2' && !((c.cortadas || 0) >= 4)) return true;
     if (/^r-grada-(3|6|7)$/.test(k) && c.grada !== k) return true;
     return false;
+  }
+  // (la explicación de Edurne tras un tanto: mejor una que aún no ha dicho en este partido; si ya las ha dicho todas, solo a
+  // veces la repite. Una explicación larga oída tres veces en un partido cansa más que una frase corta de Mikel)
+  explica(g, otro = null) {
+    const f = this.frase(g, true) || (otro && this.frase(otro, true)); if (f) return f;
+    return this.azar(0.3) ? this.frase(g) || (otro && this.frase(otro)) : null;
   }
   /** Un diálogo del tema entre los dos (solo con los dos): sus turnos en orden, o null. Cada uno, una vez por partido */
   dialogo(tema) {
@@ -154,8 +162,9 @@ export class Comentarios {
     if (o.escapa) return this.seguidas(this.frase('m-escapa'), this.frase(this.azar(0.5) ? 'm-escapa-e' : 'm-ventaja-e'));
     if (o.mitad) return this.seguidas(this.frase('m-mitad'), this.azar(0.5) && this.frase('m-mitad-e'));
     // (tras un peloteo largo: «¡por fin se acaba!» y lo que explica Edurne; a veces lo hablan entre ellos)
-    if (x.hits >= 10) return (duo && this.azar(0.35) && (this.dialogo('peloteo') || this.dialogo('tanto'))) || this.seguidas(this.azar(0.5) && this.frase('t-peloteo'), this.frase('t-peloteo-e'));
-    if (x.hits >= 7 && duo && this.azar(0.25)) { const d = this.dialogo('tanto'); if (d) return d; }
+    // (más charla entre los dos: el autor, 17 de noviembre de 2026, «me hace falta más dinamismo entre los locutores»)
+    if (x.hits >= 10) return (duo && this.azar(0.5) && (this.dialogo('peloteo') || this.dialogo('tanto'))) || this.seguidas(this.azar(0.5) && this.frase('t-peloteo'), this.explica('t-peloteo-e'));
+    if (x.hits >= 6 && duo && this.azar(0.4)) { const d = this.dialogo('tanto'); if (d) return d; }
     // (si en el peloteo ya se comentó la jugada, no se repite: quién gana el tanto, algo de relleno o nada)
     if (o.yaDicho) return this.azar(0.4) ? this.nombre('tanto', quien) : this.azar(0.4) ? this.relleno(o) : null;
     // (de los demás, alguno con relleno en vez de la jugada y alguno sin nada, para que no se haga pesado)
@@ -173,10 +182,11 @@ export class Comentarios {
       // (tras un golpe de los que levantan a la grada, a veces la grada en pie)
       if (VISTOSO.has(g) && this.azar(0.22)) { this.ctx = { ...o, grada: this.azar(0.5) ? 'r-grada-7' : 'r-grada-3' }; const f = this.seguidas(this.frase(g), this.frase('r-grada')); this.ctx = o; if (f) return f; }
       const m = (this.azar(VISTOSO.has(g) ? 0.3 : 0.2) && this.nombre(VISTOSO.has(g) ? 'golazo' : 'tanto', quien)) || this.frase(g);
-      return this.seguidas(m, this.azar(0.66) && (this.frase(`${g}-e`) || (g === 't-gancho-pared' || g === 't-gancho-ancho' ? this.frase('t-gancho-e') : null)));
+      // (y Edurne contesta casi siempre que tiene algo que decir: tres de cada cuatro)
+      return this.seguidas(m, this.azar(0.75) && this.explica(`${g}-e`, g === 't-gancho-ancho' ? 't-gancho-e' : null));
     }
     const m = (this.azar(0.2) && this.nombre('falla', otro)) || this.frase(FALLO[x.call] || 'e-fallo');
-    return this.seguidas(m, this.azar(0.6) && this.frase(FALLO_E[x.call] || 'e-fallo-e'));
+    return this.seguidas(m, this.azar(0.7) && this.explica(FALLO_E[x.call] || 'e-fallo-e'));
   }
   /** El tanto de partido: ambos (los dos a un tanto) o el de quien está a uno (id) */
   tantoPartido(ambos, id) {
@@ -199,21 +209,26 @@ export class Comentarios {
   /** Durante el peloteo, una frase corta del golpe que se acaba de dar (e, el evento 'hit' de game.js, con anim: la figura
    *  del golpe, match.js swingAnim; n, los golpes del peloteo; prof, lo hondo que está quien golpea, en metros desde el
    *  frontis). Como mucho una cada pocos segundos (t, el reloj del partido) y no siempre; el gancho, siempre que pueda */
+  // (el golpe por lo que hace de verdad la pelota: e.real y e.realSub, game.js nombreReal. El gancho, siempre de izquierda
+  // a derecha, a la contracancha; la dejada, la que bota pegada al frontis; atrás, la que bota al fondo. El autor, 17 de
+  // noviembre de 2026: «los comentarios de golpeos no se adaptan al golpeo real del jugador». Lo que se quería hacer, e.shot,
+  // solo si no hay e.real)
   enJuego(e, n, t, prof = 0) {
-    const gancho = e?.shot === 'gancho';
-    if (!this.voz || !e || (n < 2 && !gancho && !/^saque(Cortado|Pared|Ancho)$/.test(e.sub || '')) || t - (this.jT ?? -99) < (gancho ? 2.5 : 4.5)) return null;
+    const kind = e?.real ?? e?.shot, sub = e?.real != null ? (e.realSub || '') : (e?.sub || ''), gancho = kind === 'gancho';
+    if (!this.voz || !e || (n < 2 && !gancho && !/^saque(Cortado|Pared|Ancho)$/.test(e.sub || '')) || t - (this.jT ?? -99) < (gancho ? 2.5 : 5.5)) return null;
     const an = e.anim || '';
     let g = null;
     if (e.sub === 'saqueCortado') g = 'j-saque-cortado';
     // (el saque pegado a la pared o abierto al ancho, a veces: game.js, serve)
     else if (e.sub === 'saquePared' || e.sub === 'saqueAncho') g = this.azar(0.5) ? (e.sub === 'saquePared' ? 'j-saque-pared' : 'j-saque-ancho') : null;
-    else if (gancho) g = e.sub === 'ganchoPared' ? 'j-gancho-pared' : this.azar(0.5) ? 'j-gancho-ancho' : 'j-gancho';
-    else if (e.shot === 'dejada' && e.q > 0.45) g = e.sub === 'dejadaAncho' ? 'j-dejada-ancho' : 'j-dejada-txoko';
-    else if (e.shot === 'cortada' && e.q > 0.45) g = e.sub === 'cortDos' ? 'j-cortada-2p' : e.sub === 'cortAncho' ? 'j-cortada-ancho' : 'j-cortada-pared';
-    else if (e.shot === 'dosparedes') g = 'j-dosparedes';
-    // («¡atrás!», «¡pelota atrás!»: la pelota larga que vuelve hacia el fondo; el autor, 16 de noviembre de 2026)
-    else if (e.shot === 'rebote') g = this.hay('j-atras') && this.azar(0.6) ? 'j-atras' : 'j-rebote';
-    else if (e.shot === 'largo' && (e.pow ?? 0) > 0.85) g = this.hay('j-atras') && this.azar(0.6) ? 'j-atras' : this.azar(0.5) ? 'j-rebote' : 'j-largo';
+    else if (gancho) g = this.azar(0.5) ? 'j-gancho-ancho' : 'j-gancho';
+    else if (kind === 'dejada' && e.q > 0.45) g = sub === 'dejadaAncho' ? 'j-dejada-ancho' : 'j-dejada-txoko';
+    else if (kind === 'cortada' && e.q > 0.45) g = sub === 'cortDos' ? 'j-cortada-2p' : sub === 'cortAncho' ? 'j-cortada-ancho' : 'j-cortada-pared';
+    else if (kind === 'dosparedes') g = 'j-dosparedes';
+    // («¡atrás!», «¡pelota atrás!»: la pelota que bota al fondo; el autor, 16 de noviembre de 2026. Solo si bota de verdad
+    // pasado el cuadro 6: con e.real, «largo» y «rebote» ya lo dicen)
+    else if (kind === 'rebote') g = this.hay('j-atras') && this.azar(0.6) ? 'j-atras' : 'j-rebote';
+    else if (kind === 'largo' && (e.real != null || (e.pow ?? 0) > 0.85)) g = this.hay('j-atras') && this.azar(0.6) ? 'j-atras' : 'j-largo';
     // («¡qué bien ha sacado esa pelota de la pared!»: la saca pegada a la pared izquierda, ya en el peloteo)
     else if (e.pared && n > 2 && this.hay('j-pared-saca')) g = 'j-pared-saca';
     else if (e.volea && e.q > 0.4) g = 'j-aire';
@@ -223,13 +238,13 @@ export class Comentarios {
     else if (prof > 25 && n > 3 && (e.q ?? 0) > 0.5) g = this.azar(0.5) ? 'j-defensa' : 'j-llega';
     else if (/^Low/.test(an) && n > 3) g = 'j-sotamano';
     else if (n === 8) g = 'j-peloteo';
-    else if (e.shot === 'pared' && e.q > 0.6) g = 'j-pared';
-    else if (e.shot === 'ancho' && e.q > 0.6) g = 'j-ancho';
-    if (!g || (!gancho && g !== 'j-saque-cortado' && !this.azar(g === 'j-peloteo' ? 0.8 : g === 'j-pared' || g === 'j-ancho' ? 0.2 : 0.42))) return null;
+    else if (kind === 'pared' && e.q > 0.6) g = 'j-pared';
+    else if (kind === 'ancho' && e.q > 0.6) g = 'j-ancho';
+    if (!g || (!gancho && g !== 'j-saque-cortado' && !this.azar(g === 'j-peloteo' ? 0.8 : g === 'j-pared' || g === 'j-ancho' ? 0.2 : 0.38))) return null;
     // (y en el peloteo, a veces la reacción es de Edurne y no de Mikel: sus frases cortas de jugada, «j-…-e»; con «Solo
-    // Edurne», siempre las suyas)
-    const ge = /^j-gancho/.test(g) ? 'j-gancho-e' : `${g}-e`, deElla = this.hay(ge) && (this.voz === 'mujer' || (this.voz === 'duo' && this.azar(0.4)));
-    const f = (deElla && this.frase(ge)) || this.frase(g); if (f) this.jT = t; return f;
+    // Edurne», siempre las suyas. Desde el 17 de noviembre se turnan: si la última fue de Mikel, casi siempre contesta ella)
+    const ge = /^j-gancho/.test(g) ? 'j-gancho-e' : `${g}-e`, deElla = this.hay(ge) && (this.voz === 'mujer' || (this.voz === 'duo' && this.azar(this.jQ === 'M' ? 0.7 : 0.25)));
+    const f = (deElla && this.frase(ge)) || this.frase(g); if (f) { this.jT = t; this.jQ = f.r === 'e' ? 'E' : 'M'; } return f;
   }
   /** Algo entre tanto y tanto, según cómo va el partido, para que no se haga el silencio: la historia del frontón, la de
    *  los pelotaris, cómo llega cada uno, la pelota, la mano, la grada, consejos y, con los dos, alguna charla entre ellos.
@@ -253,13 +268,13 @@ export class Comentarios {
     add(3, 'bio', () => this.bio(o.rival));
     add(1, 'bioYo', () => this.bio(o.yo));
     if (o.est) add(2, 'est', () => this.frase(`est-${o.est}`, true));
-    add(2, 'historia', () => (this.azar(0.5) && this.dialogo('historia')) || this.frase('h', true));
-    add(1, 'grada', () => (this.azar(0.4) && this.dialogo('grada')) || this.frase('r-grada'));
+    add(3, 'historia', () => (this.azar(0.65) && this.dialogo('historia')) || this.frase('h', true));
+    add(1, 'grada', () => (this.azar(0.6) && this.dialogo('grada')) || this.frase('r-grada'));
     add(1, 'frontis', () => this.frase('r-frontis'));
     add(2, 'consejo', () => this.frase('r-consejo'));
     add(1, 'material', () => this.frase('r-material', true));
-    add(1, 'cancha', () => this.dialogo('cancha'));
-    add(1, 'golpes', () => this.dialogo(this.azar(0.5) ? 'gancho' : 'dosparedes'));
+    add(2, 'cancha', () => this.dialogo('cancha'));
+    add(2, 'golpes', () => this.dialogo(this.azar(0.5) ? 'gancho' : 'dosparedes'));
     if ((o.mano || 0) >= 2) add(2, 'mano', () => (this.azar(0.5) && this.dialogo('mano')) || this.frase('r-mano'));
     if (o.bola === 'viva') add(2, 'bola', () => (this.azar(0.5) && this.dialogo('viva')) || this.frase('r-viva'));
     else if (o.bola === 'pesada') add(2, 'bola', () => (this.azar(0.5) && this.dialogo('pesada')) || this.frase('r-pesada'));

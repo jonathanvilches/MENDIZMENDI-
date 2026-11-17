@@ -890,6 +890,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   texto se dicen con el de castellano, como ya hacía la grabación. El guion de las 45 que faltan por grabar está en
   `entrega/locuciones-miren.md` (y para la herramienta de grabación, `tools/guion-voz/mujer-es-5.json`); hasta que estén,
   no suenan.
+- **El golpe se nombra por lo que hace la pelota** (17 de noviembre de 2026; `pelota/game.js`, `boteReal` y `nombreReal`;
+  `pelota/comenta.js`, `enJuego`, `tanto`, `explica`; `pelota/match.js`, el rótulo). El autor: «los comentarios siguen siendo muy
+  repetitivos y sobre todo los comentarios de golpeos no se adaptan al golpeo real del jugador. Cuando hay un gancho, el
+  gancho siempre es de izquierda a derecha, desde la pared hacia la contracancha, hacia el ancho. Las dejadas, los golpes
+  atrás, todo tiene que estar bien identificado por el narrador» y «me hace falta más dinamismo entre los locutores». Al
+  golpear se sigue la pelota hasta su primer bote (dónde da en el frontis, si toca la pared izquierda, dónde bota) y el
+  golpe se llama por eso: gancho solo si va a la derecha de donde se golpea; dejada si bota antes del cuadro 2, aunque no
+  se buscara, y no lo es si se buscaba y bota más allá; atrás (largo o rebote) si bota pasado el cuadro 6; dos paredes solo
+  si toca la pared; a la pared o al ancho, donde bota de verdad. Va en el evento del golpe (`real`, `realSub`), en el tanto
+  (`stats.log`) y en el resumen. Ya no hay «gancho a la pared»: con la palanca a fondo a la izquierda, o pegado a la raya
+  del ancho, es una volea; el rival tampoco lo busca. Contra la repetición: ninguna de las 40 últimas frases, los grupos
+  de una o dos frases callan seis tantos (ocho si es una sola) y las explicaciones de Edurne, mejor una que no ha dicho en
+  el partido. Más charla: en el peloteo se turnan (tras Mikel contesta ella siete de cada diez veces), ella explica tres
+  de cada cuatro tantos y salen más diálogos. Probado con tres partidos simulados a 22: ninguna frase más de dos veces y
+  Mikel y Edurne casi a la par (de 43 a 42 hasta 57 a 41). Para que no se repita nada de verdad hacen falta más frases
+  grabadas: los grupos de jugada tienen una o dos.
 - **Comentarios del partido, hablados** (`pelota/comenta.js`, las frases; `pelota/voz.js`, la voz; `pelota/match.js`,
   `decir`, `comInicio`, `comTanto`; Ajustes en `hub/hub.js` con `util/comentarios.js`: `herrizherri-comentarios`, dos
   comentaristas, de serie, voz de hombre, de mujer o sin comentarios, y `herrizherri-subtitulos`, apagado de serie). Se oyen, no se leen: escritos

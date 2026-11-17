@@ -77,6 +77,33 @@ function firstBounce(p, v) {
   for (let t = 0; t < 4; t += 1 / 120) { out.length = 0; b.step(1 / 120, out); for (const e of out) { if (e.type === 'front') fy = e.y; else if (e.type === 'floor') return fy == null ? null : { z: e.z, fy }; } }
   return null;
 }
+// por dónde va de verdad la pelota hasta su primer bote: dónde da en el frontis (fx, fy), si toca la pared izquierda antes
+// de botar (pared) y dónde bota (x, z). Para nombrar el golpe por lo que hace, no por lo que se quería hacer
+function boteReal(p, v) {
+  const b = new Ball(); b.set({ ...p }, { ...v }); const out = []; let fy = null, fx = null, pared = false;
+  for (let t = 0; t < 4; t += 1 / 120) { out.length = 0; b.step(1 / 120, out); for (const e of out) { if (e.type === 'front') { fy = e.y; fx = e.x; } else if (e.type === 'left') pared = true; else if (e.type === 'floor') return fy == null ? null : { x: e.x, z: e.z, fx, fy, pared }; } }
+  return null;
+}
+// El nombre del golpe por lo que hace de verdad la pelota, para el locutor (comenta.js) y el resumen. El autor, el 17 de
+// noviembre de 2026: «los comentarios de golpeos no se adaptan al golpeo real del jugador. Cuando hay un gancho, el gancho
+// siempre es de izquierda a derecha, desde la pared hacia la contracancha, hacia el ancho. Las dejadas, los golpes atrás,
+// todo tiene que estar bien identificado». Lo que se quería hacer (shot) solo vale si la pelota lo cumple: el gancho, si va
+// a la derecha de donde se golpea; la dejada, si bota pegada al frontis (antes del cuadro 2); atrás (largo o rebote), si
+// bota pasado el cuadro 6; a la pared o al ancho, donde bota de verdad. f: boteReal
+function nombreReal(shot, sub, p, f) {
+  if (!f || shot === 'saque') return { kind: shot, sub };
+  const W2 = COURT.W / 2, pared = f.pared || f.x < -W2 + 1.2, ancho = f.x > W2 - 1.4;
+  const resto = () => ({ kind: pared ? 'pared' : ancho ? 'ancho' : 'normal', sub: '' });
+  if (shot === 'dosparedes') return f.pared ? { kind: shot, sub } : resto();
+  if (shot === 'gancho') return f.x > p.x + 0.8 && f.x > 0.3 ? { kind: 'gancho', sub: '' } : resto();
+  if (shot === 'cortada') return { kind: 'cortada', sub: sub === 'cortDos' ? (f.pared ? 'cortDos' : '') : f.x < -2.2 ? 'cortPared' : f.x > 2.6 ? 'cortAncho' : '' };
+  if (f.z < 7.5 && f.fy < 2.4) return { kind: 'dejada', sub: f.x > 1.2 ? 'dejadaAncho' : '' };
+  if (shot === 'dejada') return resto();
+  if (f.z > 26.5) return { kind: shot === 'rebote' ? 'rebote' : 'largo', sub: '' };
+  if (f.z > 22) return { kind: 'largo', sub: '' };
+  if (shot === 'rebote' || shot === 'largo') return resto();
+  const r = resto(); return r.kind !== 'normal' ? r : { kind: shot === 'pared' || shot === 'ancho' ? 'normal' : shot, sub };
+}
 // ¿pasa la pelota por encima de la pared izquierda (o la roza muy alta) antes de botar?
 function overLeft(p, v) {
   const b = new Ball(); b.set({ ...p }, { ...v }); const out = [];
@@ -322,10 +349,12 @@ export class PelotaGame {
     const tm = o.timing || 0, tk = clamp(Math.abs(tm) / Math.max(0.05, this.tol), 0, 1.4);
     // (poco: lo que manda es el joystick; antes, tarde, una pelota del todo a la izquierda se quedaba a media cancha)
     if (!serve && tm) { rawX = clamp(rawX + Math.sign(tm) * tk * 0.16, -1, 1); }
-    // gancho: de volea y alta, con la izquierda, girando hacia la derecha: sale de arriba abajo hacia la contracancha (con
-    // la palanca a fondo a la izquierda, acaba en la pared izquierda). Con la palanca arriba, en cambio, la alta se manda
-    // larga: decides tú. Antes iba de serie pegado a la pared izquierda, y el gancho de verdad va a la contracancha
-    const gancho = !serve && !!o.gancho && !req && !((aim.y || 0) > 0.6);
+    // gancho: de volea y alta, con la izquierda, girando hacia la derecha: sale de arriba abajo hacia la contracancha. Con la
+    // palanca arriba, en cambio, la alta se manda larga: decides tú. Y con la palanca a fondo a la izquierda ya no es gancho
+    // (antes acababa en la pared izquierda y se llamaba «gancho a la pared»): es una volea pegada a la pared. El autor, 17 de
+    // noviembre de 2026: «el gancho siempre es de izquierda a derecha, desde la pared hacia la contracancha, hacia el ancho»
+    // (y desde la izquierda o el centro: pegado a la raya del ancho ya no va de izquierda a derecha, es una volea)
+    const gancho = !serve && !!o.gancho && !req && !((aim.y || 0) > 0.6) && rawX >= -0.6 && p.x < 2.4;
     if (!serve) aim = { x: aimSide(rawX), y: (aim.y || 0) - (tm > 0 ? tk * 0.25 : 0) };
     const arriba = serve || who !== 'you' ? 0 : clamp(((aim.y || 0) - 0.8) / 0.2, 0, 1);   // (tu joystick arriba del todo; los demás no apuntan a la raya)
     // (a tope cuesta más afinar; menos a quien tiene fuerza, más a quien no. Y con precisión, todo un poco más fino: a 5,
@@ -404,7 +433,7 @@ export class PelotaGame {
       // y la pelota vuelve alta; la cortada es la que va de media pared abajo. De volea y de gancho, más tenso)
       // (desde más atrás, más fuerte: si no, para llegar tendría que dar arriba del todo)
       let tx, landZ, speed = (12 + q * 3 + pow * 17 + (S - 3) * 1.3) * (0.72 + clamp(p.z, 8, 30) / 50) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
-      if (gancho) aim = { x: rawX < -0.6 ? -0.9 : Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
+      if (gancho) aim = { x: Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde
       // pega en la pared (cuanto más a la izquierda, antes la toca y más cruzada sale) y la fuerza, lo larga
       // (antes había que ir a la diagonal exacta abajo-izquierda y casi nunca salía: ahora basta con el joystick bien a la
@@ -440,7 +469,7 @@ export class PelotaGame {
         else if (aim.y > 0.6) { shot = 'largo'; landZ = Math.max(depth, 19 + pow * 4); speed -= (aim.y - 0.6) * 9; }
         else landZ = depth;
         if (aim.x < -0.6) shot = 'pared'; else if (aim.x > 0.6) { shot = 'ancho'; landZ -= 1; }
-        if (gancho) { shot = 'gancho'; sub = aim.x < 0 ? 'ganchoPared' : ''; landZ = clamp(landZ, 12, 18.5); }
+        if (gancho) { shot = 'gancho'; sub = ''; landZ = clamp(landZ, 12, 18.5); }
         lx = clamp(lx + gauss(rnd) * err * 1.2 + errRaya(gauss(rnd), aim.x, err), -4.8, COURT.W / 2 + 0.9);   // (al ancho a tope, o un golpe malo, se puede ir fuera)
         landZ += gauss(rnd) * err * 2.5;
         // alcance de un golpe: un pelotari con mucha fuerza, desde el cuadro 4, la manda de vuelta hasta el cuadro 7;
@@ -497,13 +526,15 @@ export class PelotaGame {
       v = rnd() < 0.6 ? aimVelocity(p, p.x * 0.5, COURT.CHAPA * (0.3 + rnd() * 0.5), T) : aimVelocity(p, p.x + gauss(rnd) * 3, COURT.FRONT_TOP + 0.6 + rnd(), T);
     }
     b.set(p, v); b.spin = cut ? 1 : 0;
+    // (lo que hace de verdad la pelota, para nombrar el golpe: nombreReal)
+    const real = serve ? { kind: shot, sub } : nombreReal(shot, sub, p, boteReal(p, v));
     const pl = this.players[who], sd = this.side(who); pl.act = 'hit'; pl.actT = 0; pl.swing = 0; pl.cool = 0.3;
     // energía: la cortada gasta, y más cuantas más seguidas (pl.racha); el peloteo normal la devuelve y enfría la racha (a
     // quien tiene fuerza, todo le cuesta menos)
     const cost = shotEnergy(shot, sub, pow, !!o.volea) * (cut ? 1 + EN.racha * (pl.racha || 0) : 1);
     pl.racha = cut ? (pl.racha || 0) + 1 : shot === 'saque' ? pl.racha || 0 : (pl.racha || 0) * 0.5;
     pl.en = clamp(pl.en - (cost > 0 ? cost * (1.15 - this.qual[who].fuerza * 0.05) : cost), 0, 1);
-    this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1, kind: shot, sub, volea: !!o.volea, alto: p.y >= 1.2, sp: Math.hypot(v.x, v.y, v.z) };
+    this.rally = { striker: sd, by: who, turn: this.other(sd), front: false, bounces: 0, serve, hits: (this.rally?.hits || 0) + 1, kind: shot, sub, real: real.kind, realSub: real.sub, volea: !!o.volea, alto: p.y >= 1.2, sp: Math.hypot(v.x, v.y, v.z) };
     for (const id of this.ids) this.players[id].idealAt = null;   // (el momento justo del golpe siguiente se mira de nuevo)
     this.phase = 'rally'; this.phaseT = 0; this.pred = null;
     this.stats.hits[sd]++;
@@ -513,7 +544,7 @@ export class PelotaGame {
     const off = o.timing != null && Math.abs(o.timing) > this.tol * 0.35;
     const label = q > 0.85 && !off ? 'perfect' : off && q < 0.75 ? (o.timing < 0 ? 'early' : 'late') : q > 0.6 ? 'good' : q > 0.35 ? 'ok' : o.timing > 0 ? 'late' : 'early';
     if (who === 'you' && label === 'perfect') this.stats.perfect++;
-    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, pow, volea: !!o.volea, timing: o.timing ?? null, x: p.x, y: p.y, z: p.z, en: pl.en, cost });
+    this.emit({ type: 'hit', who, side: sd, q, label, shot, sub, real: real.kind, realSub: real.sub, pow, volea: !!o.volea, timing: o.timing ?? null, x: p.x, y: p.y, z: p.z, en: pl.en, cost });
   }
 
   // ---------------------------------------------------------------- árbitro
@@ -527,7 +558,7 @@ export class PelotaGame {
       this.stats.tantos.push(R.hits || 0);
       if (call === 'bote') { const P = this.stats.por[winner]; P.hechos++;
         if (R.serve) P.saque++;
-        else { if (R.kind === 'dejada') P.dejada++; if (R.kind === 'cortada') P.cortada++; if (R.kind === 'dosparedes') P.dosparedes++; if (R.volea) { if (R.alto) P.volea++; else P.aire++; } if (R.rebote || R.kind === 'rebote') P.rebote++; }
+        else { const K = R.real || R.kind; if (K === 'dejada') P.dejada++; if (K === 'cortada') P.cortada++; if (K === 'dosparedes') P.dosparedes++; if (R.volea) { if (R.alto) P.volea++; else P.aire++; } if (R.rebote || R.kind === 'rebote') P.rebote++; }
       } else this.stats.por[this.other(winner)].fallos++;
     }
     this.phase = 'point'; this.phaseT = 0;
@@ -546,7 +577,7 @@ export class PelotaGame {
     this.server = winner;
     // (de volea, solo los golpes sin nombre propio: un gancho, una cortada o una dejada de aire se nombran por lo que son; antes
     // todo lo de aire se contaba como «volea» y el locutor llamaba volea a un gancho)
-    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea && /^(normal|pared|ancho|largo)$/.test(R?.kind || 'normal') ? 'volea' : R?.kind || '', sub: R?.sub || '', you: this.score.you, rival: this.score.rival });   // (sub: hacia dónde, para los comentarios: dejada al txoko o al ancho…)
+    this.stats.log?.push({ w: winner, call, hits: R?.hits || 0, kind: R?.serve ? 'saque' : R?.volea && /^(normal|pared|ancho|largo)$/.test(R?.real || R?.kind || 'normal') ? 'volea' : R?.real || R?.kind || '', sub: R?.real ? R.realSub || '' : R?.sub || '', you: this.score.you, rival: this.score.rival });   // (sub: hacia dónde, para los comentarios: dejada al txoko o al ancho…)
     // el último tanto: el partido se decide y el frontón entero aplaude (se deja más tiempo antes del final)
     this.finalPoint = this.score[winner] >= this.target;
     this.emit({ type: 'call', call, winner, score: { ...this.score }, kantari: kantari(this.score.rival, this.score.you), final: this.finalPoint });
@@ -711,7 +742,7 @@ export class PelotaGame {
   }
   // El repertorio entero de la pelota a mano: pelotear, fuerte hacia atrás (al rebote si tiene fuerza), dejada al txoko y
   // al ancho, cortada a la pared, al ancho y a dos paredes, dos paredes, a la pared, al ancho hacia la contracancha y, si la
-  // pelota le llega alta de aire, el gancho de izquierda: casi siempre a la contracancha y alguna vez a la pared. Cada uno con más ganas según la jugada
+  // pelota le llega alta de aire, el gancho de izquierda, siempre a la contracancha. Cada uno con más ganas según la jugada
   // (dónde está el otro, desde dónde golpea él) y lo listo que es (los niveles altos atacan más); sale uno al azar con
   // esas ganas, así varía y no se le adivina. Antes solo buscaba la dejada, la cortada o las dos paredes en pocos casos y
   // casi todo era pelotear
@@ -731,9 +762,10 @@ export class PelotaGame {
       [dcha ? 0.9 : 0.4, { aim: { x: -0.8, y: 0.2 } }],                                                                         // a la pared
       [(izda ? 1.2 : 0.5) * ataque, { aim: { x: 0.78 + rnd() * 0.16, y: 0.15 + rnd() * 0.3 }, pow: 0.7 + rnd() * 0.3 }],       // al ancho, a la contracancha (sin ir a la raya)
     ];
-    // (alta y de volea, por encima del hombro: el gancho de izquierda, a la contracancha o, alguna vez, a la pared)
+    // (alta y de volea, por encima del hombro: el gancho de izquierda, siempre a la contracancha; y alguna vez, de aire,
+    // pegada a la pared, que ya no es gancho)
     // (de gancho también a media altura, por encima del pecho: el pelotari de verdad lo busca, no espera a que baje)
-    if (this.ball.p.y >= GANCHO_Y - 0.4 && this.volley()) G.push([0.6 * ataque, { aim: { x: -0.95, y: 0.1 }, gancho: true }], [(op.x < 0.5 ? 3 : 2) * ataque, { aim: { x: 0.85, y: 0 }, gancho: true }]);
+    if (this.ball.p.y >= GANCHO_Y - 0.4 && this.volley() && me.x < 2.4) G.push([0.6 * ataque, { aim: { x: -0.95, y: 0.1 } }], [(op.x < 0.5 ? 3 : 2) * ataque, { aim: { x: 0.85, y: 0 }, gancho: true }]);
     let tot = 0; for (const [w] of G) tot += Math.max(0, w);
     let x = rnd() * tot; for (const [w, s] of G) { x -= Math.max(0, w); if (x <= 0) return s; }
     return G[0][1];
@@ -746,7 +778,7 @@ export class PelotaGame {
     const g = gauss(this.rnd);
     if (k === 'cortada') return { aim: { x: this.rnd() < 0.5 ? -0.55 : 0.5, y: g * 0.3 }, drop: 'cortada' };
     if (k === 'dosparedes') return me.x > -3.6 && FEEL.tipo === 'izquierda' ? { aim: { x: -0.85, y: -0.5 } } : null;
-    if (k === 'gancho') return { aim: { x: -0.92, y: 0.35 } };   // pegada a la pared izquierda
+    if (k === 'gancho') return this.ball.p.y >= GANCHO_Y - 0.4 && this.volley() ? { aim: { x: 0.85, y: 0 }, gancho: true } : null;   // (de aire y alta, a la contracancha)
     if (k === 'dejada') return me.z < 21 ? { aim: { x: g * 0.3, y: -1 }, drop: true } : null;
     return { aim: { x: g * 0.3, y: 1 }, pow: 0.9 + this.rnd() * 0.1 };   // largo, al rebote
   }

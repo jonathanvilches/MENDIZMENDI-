@@ -1184,8 +1184,9 @@ export class PelotaMatch {
         // el nombre del golpe, como en la tele, pero solo de vez en cuando: al aire (de volea, antes del bote) y los
         // pelotazos de verdad (uno de los que deciden, a tope y en el momento justo). Antes salía en cada dejada, cortada o
         // golpe a la pared; el rebote lo canta la pared de atrás ('back')
-        { const SH = t.shots || TEXT.es.shots, nm = (e.sub && SH[e.sub]) || SH[e.shot] || '';
-          this.golpazo = !!nm && !['pared', 'ancho', 'largo', 'rebote'].includes(e.shot);
+        // (el nombre, por lo que hace de verdad la pelota: game.js, nombreReal)
+        { const SH = t.shots || TEXT.es.shots, kk = e.real ?? e.shot, ss = e.real != null ? e.realSub : e.sub, nm = (ss && SH[ss]) || SH[kk] || '';
+          this.golpazo = !!nm && !['pared', 'ancho', 'largo', 'rebote', 'normal'].includes(kk);
           const pelotazo = this.golpazo && e.label === 'perfect' && pw >= 0.9;
           const rotulo = e.volea ? (t.deAire || TEXT.es.deAire) : pelotazo ? nm : '';
           if (rotulo && e.q > 0.3) this.hud.golpe(rotulo, this.cols[g.side(e.who)]);
