@@ -58,9 +58,9 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 
 | Qué | Estado |
 |---|---|
-| Labio y borde de la isla: tierra en 3D, raíces que cuelgan y se mueven | El 17 de noviembre: raíces en mechones, terrones rotos, franja de tierra negra y sin musgo pintado. Se puede seguir afinando el labio de hierba |
+| Labio y borde de la isla: tierra en 3D, raíces que cuelgan y se mueven | El 17 de noviembre: raíces en mechones, pálidas y que se mecen, terrones rotos, franja de tierra negra, matas de hierba fina y piedras redondas en vez de poliedros. Sin musgo pintado |
 | Árboles de la isla sin polígonos, solo frondosidad | Hecho |
-| Integrar mejor el mapa con las maquetas de los pueblos | Pendiente |
+| Integrar mejor el mapa con las maquetas | El 17 de noviembre: la isla ya no es verde chillón, sale con el color del mapa; el hueco es de la misma tierra que la panza; y alrededor de la maqueta de cada pueblo el prado tiene grano. Falta que lo veas |
 | Terminar las 12 comarcas una a una | Pendiente |
 | Mapa real y 3D que coincidan exactamente | Pendiente |
 | Árboles de verdad y mejores texturas en maquetas y montes | Pendiente |
