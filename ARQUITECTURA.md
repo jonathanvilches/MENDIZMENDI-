@@ -1905,6 +1905,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     Esas versiones grandes quedan en `entrega/pelota-fondos-reales-17nov/alternativas`. Las dibujadas del 16 de noviembre,
     en `entrega/pelota-fondos-dibujados-16nov`. Las fotos del Navarra Arena que mandó el autor no tienen licencia libre y
     no se usan; la foto del Labrit que había es de la fachada, sin interior.
+    El autor, en la página de elecciones del 17 de noviembre: en el Cuatro y medio prefiere la alternativa, con el
+    pelotari más grande en el frontón de Ogueta (misma foto y licencia); en el Manomanista, la Gran Txapela y Parejas,
+    las de ahora. `cuatro.webp` pasa a ser la alternativa, a 896 px como las demás; la de antes queda en
+    `entrega/pelota-fondos-reales-17nov/sustituidas/cuatro-real.webp`.
 - **Pantalla del torneo sin texto apilado** (`torneoPanel`, `ligaHtml` y `comoFunciona` en `game/torneo.js`, noviembre de
   2026): cada dato, una sola vez. La jornada va solo en el VS («Jornada 1», sin «de 3»); la liguilla son solo las tablas,
   sin el rótulo «Liguilla · jornada 1 de 3», sin «Los dos primeros de cada grupo, a cuartos» (la raya fucsia ya marca los
