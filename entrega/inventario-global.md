@@ -81,7 +81,7 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 | Qué | Estado | Depende de |
 |---|---|---|
 | Guion de 75 segundos | Borrador hecho, en `entrega/trailer/guion-trailer.md` | Tú: aprobarlo |
-| Voz del narrador | 14 muestras gratis para elegir, en `entrega/trailer` | Tú: elegir voz |
+| Voz del narrador | 25 muestras gratis para elegir, en `entrega/trailer` (11 nuevas en `voces-muestra-3`, dos de mujer) | Tú: elegir voz |
 | Planos del juego | Por grabar en la web | |
 | Tres planos de Higgsfield (la niña con el móvil, el aula, el logo) | Por hacer, unos 40 a 80 créditos | Tú: visto bueno al guion |
 | Montaje con tu música | Por hacer | |
