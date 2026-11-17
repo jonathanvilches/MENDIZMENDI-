@@ -10,6 +10,7 @@ En «Depende de» pone «tú» cuando hace falta que elijas o apruebes algo ante
 |---|---|---|
 | Control total del golpe: derecha a la raya, izquierda a la pared, arriba a tope | Hecho el 17 de noviembre. A tope a la derecha, bien dado, se va fuera de 1 a 4 de cada 10 | Que lo pruebes jugando |
 | Cartas de campeonato con frontones reales calcados de fotos, grandes y cubiertos, postura A | Hecho el 17 de noviembre: las 15 cartas son fotos de frontones que existen, con el pelotari a su tamaño real. Ogueta y Beotibar en las cuatro de campeonato | Tú: mirarlas. Si prefieres el pelotari más grande, hay versiones en `entrega/pelota-fondos-reales-17nov/alternativas` |
+| Portadas con el Labrit y el Navarra Arena | En Commons solo hay la fachada del Labrit y el pabellón grande del Arena, ninguna foto libre de las canchas. Las de tus capturas tienen derechos | Tú: hacer fotos desde la grada o pedir permiso a sus dueños |
 | Público de los frontones que no se vea raro | Pendiente | |
 | Pelota en casa: mejor golpeo y cámara que capte los golpes | Pendiente | |
 | Más comentarios entre medias (dejada, gancho, rebote, la mano, el material) | A medias | Tú: voz de Edurne y Mikel ya aprobadas, se graban cuando digas |
