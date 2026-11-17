@@ -210,7 +210,7 @@ def lim(n, a, f, fl, bl, tl):
 for s_, lat in (('Left', Vector((1, 0, 0))), ('Right', Vector((-1, 0, 0)))):
     a = dir0(mx(s_ + 'UpLeg'), mx(s_ + 'Leg')); lim(mx(s_ + 'UpLeg'), a, a.cross(FWD), (-25, 125), (-30, 50), (-40, 40))
     a = dir0(mx(s_ + 'Leg'), mx(s_ + 'Foot')); lim(mx(s_ + 'Leg'), a, a.cross(BACK), (-3, 150), (-6, 6), (-12, 12))
-    a = dir0(mx(s_ + 'Foot'), mx(s_ + 'ToeBase')); lim(mx(s_ + 'Foot'), a, a.cross(ARRIBA), (-50, 30), (-25, 25), (-15, 15))
+    a = dir0(mx(s_ + 'Foot'), mx(s_ + 'ToeBase')); lim(mx(s_ + 'Foot'), a, a.cross(ARRIBA), (-40, 22), (-10, 10), (-6, 6))  # (el tobillo casi no se tuerce de lado)
     a = dir0(mx(s_ + 'Foot'), mx(s_ + 'ToeBase')); a = Vector((a.x, a.y, 0)); lim(mx(s_ + 'ToeBase'), a, a.cross(ARRIBA), (-20, 60), (-8, 8), (-5, 5))
     a = dir0(mx(s_ + 'Shoulder'), mx(s_ + 'Arm')); lim(mx(s_ + 'Shoulder'), a, a.cross(ARRIBA), (-10, 30), (-20, 20), (-10, 10))
     a = dir0(mx(s_ + 'Arm'), mx(s_ + 'ForeArm')); lim(mx(s_ + 'Arm'), a, a.cross(FWD), (-70, 180), (-180, 180), (-95, 95))
@@ -312,7 +312,11 @@ for i, w in enumerate(W):
             gira(n, Quaternion(ej.normalized(), d))
         f0 = (H0[mx(s + 'ToeBase')] - H0[mx(s + 'Foot')]); f0.z = 0; f0.normalize()  # (en reposo el pie va plano)
         fw = (g('p' + k) - g('ta' + k)).normalized()
-        bisagra_pie(mx(s + 'Foot'), None, f0, math.asin(max(-1, min(1, fw.z))))
+        # el pie que pisa va plano: si talón y punta están a ras del suelo, la inclinación que da el detector es ruido
+        suelo_w = min(g(x).z for x in ('taL', 'taR', 'pL', 'pR'))
+        pisa = max(g('ta' + k).z, g('p' + k).z) - suelo_w < 0.05
+        elev = 0.0 if pisa else max(math.radians(-45), min(math.radians(30), math.asin(max(-1, min(1, fw.z)))))
+        bisagra_pie(mx(s + 'Foot'), None, f0, elev)
         # de puntillas (talón levantado): los dedos se doblan y quedan planos en el suelo
         if g('ta' + k).z - g('p' + k).z > 0.03: bisagra_pie(mx(s + 'ToeBase'), None, f0, 0.0)
     limita()
