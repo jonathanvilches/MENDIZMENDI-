@@ -57,7 +57,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
       retratos con cada color, en `src/assets/meshy/portraits/pelo` (`tools/vecinos-retratos-pelo.mjs`).
     - Nítidos de cerca (`actors/vecinoCerca.js`): por la calle, textura de 512 px; los modelos de los vecinos a menos de
       9 m llevan la de 1024 (`src/assets/meshy/cerca`, `tools/vecinos-cerca.mjs`), como mucho tres a la vez (uno en el
-      móvil), y la sueltan al alejarse o al salir del pueblo (`sueltaCerca`).
+      móvil), y la sueltan al alejarse o al salir del pueblo (`sueltaCerca`). Desde el 17 de noviembre de 2026 también en
+      Otsagabia (`update` de `game/game.js`, cada medio segundo; `sueltaCerca` al salir, en `exit` de `main.js`): allí no
+      se llamaba y de cerca todos sus vecinos, la lamia y el Basajaun también, se veían con la ligera. La lamia y el
+      Basajaun tienen ya su textura de cerca, que les faltaba.
     - Y el que habla contigo, con todos sus triángulos (`vecinoNitido`, 16 de noviembre de 2026: «los personajes tienen
       muy mala calidad. Me he dado cuenta al ampliar la imagen la cámara en las conversaciones»). Mientras dura la charla,
       su malla ligera se cambia por la completa del mismo modelo (Maite, de 6.720 a 14.598 triángulos), si los huesos son

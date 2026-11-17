@@ -5,7 +5,7 @@ import { Q_CAT } from '../data/misionCat.js';
 import { npcDefs, walkerDefs, WALKER_LINES } from './npcs.js';
 import { greet } from './saludo.js';
 import { Actor, cullActor, frameFrustum } from '../actors/people.js';
-import { vecinoNitido } from '../actors/vecinoCerca.js';
+import { vecinoNitido, cercaVecinos } from '../actors/vecinoCerca.js';
 import { Animal } from '../actors/animals.js';
 import { PLACES, BRIDGES, rx, MEADOW, riverInfo } from '../world/layout.js';
 import { terrainHeight, bridgeAt, waterLevelAt } from '../world/heightfield.js';
@@ -290,6 +290,9 @@ export class Game {
     for (const a of Object.values(this.npcs)) if (a.visible) cull(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), 90);
     for (const a of this.walkers) cull(a, Math.hypot(a.pos.x - P.pos.x, a.pos.z - P.pos.z), 80);
     if (this.musico) cull(this.musico, Math.hypot(this.musico.pos.x - P.pos.x, this.musico.pos.z - P.pos.z), 80);
+    // (los vecinos de Meshy que tienes a pocos metros, con su textura de cerca, como en los demás pueblos: aquí no se ponía y
+    // de cerca todos, la lamia y el Basajaun también, se veían con la ligera de 512 px; 17 de noviembre de 2026)
+    if ((this.cercaT = (this.cercaT || 0) - dt) <= 0) { this.cercaT = 0.5; try { cercaVecinos([...Object.values(this.npcs), ...this.walkers], P.pos); } catch (e) { } }
     for (const a of this.dancers) if (a.visible) a.update(dt, P);
     this.pajarillos?.update(dt, this.elapsed, P, this.sky?.night ?? 0, this.mode !== 'play');
     this.colada?.update(this.elapsed);

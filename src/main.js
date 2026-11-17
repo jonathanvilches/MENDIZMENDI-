@@ -57,6 +57,7 @@ import './util/accesible.js';   // (textos grandes y alto contraste: las clases 
 import { apuntaPerdida } from './util/diag.js';
 import { calidadOrdenador, apuntaGpu, fijaCalidad, gpuNombre } from './util/gpu.js';
 import { sonidosInterfaz } from './audio/interfaz.js';
+import { sueltaCerca } from './actors/vecinoCerca.js';
 
 const q = new URLSearchParams(location.search);
 // el código de jugar en los pueblos (Otsagabia y los demás, con la pelota, las misiones y los minijuegos) va en archivos
@@ -392,6 +393,7 @@ async function boot() {
     // (cada paso por su cuenta: si soltar el pueblo falla, se vuelve al menú igual; antes la imagen se quedaba
     // congelada con el aviso de error encima)
     try { game.dispose?.(); } catch (e) { console.error('[salir]', e); (window.__errors ||= []).push('salir'); }
+    try { sueltaCerca(); } catch (e) { }   // (los vecinos de cerca, también los de Otsagabia, con su textura ligera otra vez)
     try { ui.destroyHUD(); ui.setCinematic(false); } catch (e) { console.error('[salir]', e); }
     try { rt.unload(); } catch (e) { console.error('[salir]', e); (window.__errors ||= []).push('salir'); rt.active = false; rt.game = null; canvas.style.visibility = 'hidden'; }
     // (que nada siga apuntando al pueblo que se deja: si no, se queda en memoria mientras se carga el siguiente)
