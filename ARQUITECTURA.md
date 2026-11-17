@@ -20,7 +20,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
     (`pelotari`, `pelotari_rojo` y la chica de `actors/chicas.js`) se quedan; los nuevos, un chico y una chica de 19-20
     años con el estilo de las portadas (`entrega/pelotaris-nuevos`), van en cuatro archivos, uno por camiseta:
     `pelotari_nuevo`, `pelotari_nuevo_rojo`, `pelotari_nueva` y `pelotari_nueva_azul`, con los clips con los mismos
-    nombres que el de siempre. `src/pelota/estiloPelotari.js` decide cuál sale; el ajuste «Pelotaris de los partidos»
+    nombres que el de siempre. Las chicas son tres, con otra cara y otro peinado (rizos con coleta, trenza pegada y
+    melena corta: `pelotari_nueva`, `pelotari_nueva2`, `pelotari_nueva3`); cada pelotari sale siempre con la misma,
+    según su nombre. Al chico se le cambia el color del pelo. `src/pelota/estiloPelotari.js` decide cuál sale; el ajuste «Pelotaris de los partidos»
     (Ajustes) vale para ti y los rivales y solo aparece cuando hay algún archivo nuevo. Si falta el de un color, sale
     el de siempre.
   - **Seis seres y figuras de Meshy** (17 de noviembre de 2026, de los bocetos que aprobó el autor): la lamia y el

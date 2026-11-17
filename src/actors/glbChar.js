@@ -96,7 +96,7 @@ const MESHY_BY = {
 };
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
 // los pelotaris nuevos (pelota/estiloPelotari.js): sus archivos traen los clips con los mismos nombres que el de siempre
-for (const m of ['pelotari_nuevo', 'pelotari_nuevo_rojo', 'pelotari_nueva', 'pelotari_nueva_azul']) MESHY_BY[m] = MESHY_BY.pelotari;
+for (const m of ['pelotari_nuevo', 'pelotari_nuevo_rojo', 'pelotari_nueva', 'pelotari_nueva_azul', 'pelotari_nueva2', 'pelotari_nueva2_azul', 'pelotari_nueva3', 'pelotari_nueva3_azul']) MESHY_BY[m] = MESHY_BY.pelotari;
 // los vecinos (tools/vecinos-glb.mjs: todos traen estar de pie mirando alrededor, Alert, y charlar, Chat): quietos, mirando
 // alrededor (el clip entero, que empieza y acaba igual); hablando, su charla entera; saludar, el gesto del principio de
 // la charla; asustarse, el respingo de mirar alrededor; y golpear, el golpe con los dos brazos de los que lo traen
@@ -191,7 +191,7 @@ function shrinkMap(m, max = MESHY_TEX) {
 // jugador, como vecino o en un partido
 const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1.6, osasuna: 1.6, osasuna_fuera: 1.6, pelotari: 1.62, pelotari_rojo: 1.62,
   // (los pelotaris nuevos, de 19-20 años: adultos, a la altura de los vecinos jóvenes; pelota/estiloPelotari.js)
-  pelotari_nuevo: 1.78, pelotari_nuevo_rojo: 1.78, pelotari_nueva: 1.7, pelotari_nueva_azul: 1.7,
+  pelotari_nuevo: 1.78, pelotari_nuevo_rojo: 1.78, pelotari_nueva: 1.7, pelotari_nueva_azul: 1.7, pelotari_nueva2: 1.68, pelotari_nueva2_azul: 1.68, pelotari_nueva3: 1.66, pelotari_nueva3_azul: 1.66,
   // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS), en metros. Regla: el explorador (1,45) y la exploradora
   // (1,43) tienen un tamaño intermedio, los adultos son claramente más grandes y los niños del pueblo, más pequeños. El
   // explorador tiene la cabeza muy grande y, con un 13 % más de alto, las mujeres parecían de su misma altura y más

@@ -48,7 +48,7 @@ const corre = (r) => { if (r?.char?.opt) r.char.opt.runAt = 1.85; return r; };
 async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name)) {
   // (con los pelotaris nuevos elegidos en Ajustes, el nuevo de su camiseta: chico o chica, con su cara y su pelo;
   // pelota/estiloPelotari.js. Si falla o aún no está, el de siempre)
-  const nuevo = modeloNuevo(model === 'pelotari_rojo' ? 'rojo' : 'azul', girl);
+  const nuevo = modeloNuevo(model === 'pelotari_rojo' ? 'rojo' : 'azul', girl, name);
   if (nuevo) try { nitido(nuevo); return corre(new GlbRig(await loadMeshy(nuevo), nuevo)); } catch (e) { console.warn('pelotari nuevo', e); }
   if (girl && hasChica('pelotari')) try {
     nitido('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
