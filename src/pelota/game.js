@@ -8,14 +8,19 @@ import { HERRAMIENTAS } from './herramientas.js';
 const gauss = (rnd) => (rnd() + rnd() + rnd() - 1.5) / 1.5;
 // lo que corres tú (m/s): algo más que antes, ahora que la pelota va más deprisa
 const YOU_RUN = 6.8;
-// el saque, como en el frontón: el que saca sale del cuadro 7, corre hasta poco antes del 4, bota la pelota y saca; el
-// que resta espera junto a la pared izquierda, sobre el 7
-// (el saque se golpea según sube la pelota del bote, cerca de arriba pero sin esperar a que se pare: parada parecía flotar)
-const SAQUE_VY = 0.95;
-const SERVE_FROM = COURT.CUADRO * 7, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 5.8;
-// (el bote del saque: hacia abajo con fuerza y que suba poco, para golpear enseguida, sin pararse)
-const SERVE_DOWN = 3, SERVE_UP = 3.8, SERVE_LEAD = 0.24;   // (LEAD: cuánto antes del 4 se bota, por m/s de carrera y
-// por el tempo de la pelota: cuanto más despacio va, antes, para que el golpe salga siempre en el 4)
+// el saque, como en el frontón (y como en el vídeo de un saque en Sopelana que pasó el autor, 17 de noviembre de 2026):
+// el que saca sale del cuadro 6 con la pelota delante del pecho, andando y luego al trote; poco antes del 4 la bota con
+// fuerza, se planta, se agacha mucho y le pega cuando la pelota ya baja, a la altura del muslo. El que resta espera junto
+// a la pared izquierda, sobre el 7. Antes salía del 7 a la carrera (5,8 m/s) y le pegaba según subía, sin pararse
+const SAQUE_Y = 0.85;   // (el golpe del saque: con la pelota bajando del bote, por debajo de esta altura)
+const SERVE_FROM = COURT.CUADRO * 6, SERVE_Z = COURT.FALTA + 0.75, SERVE_X = 0.6, RUN_V = 3.6;
+// (la salida: andando, y a cada segundo más deprisa, hasta el trote: RUN_V0 + RUN_A × segundos)
+const RUN_V0 = 1.4, RUN_A = 1.7;
+// (el bote del saque: hacia abajo con fuerza, que suba hasta la cintura y se golpee al bajar; la pelota sale con poca
+// velocidad hacia delante, SERVE_K de la suya: el que saca se planta para pegarle)
+const SERVE_DOWN = 3, SERVE_UP = 4.4, SERVE_K = 0.4, SERVE_LEAD = 0.34;   // (LEAD: cuánto antes del 4 se bota, por m/s
+// de carrera y por el tempo de la pelota: cuanto más despacio va, antes, para que el golpe salga siempre en el 4)
+const saqueBaja = (b) => b.v.y < 0 && b.p.y < SAQUE_Y;
 const RECV_X = -COURT.W / 2 + 1.3, RECV_Z = COURT.CUADRO * 7;
 // por parejas: el delantero coge lo de delante (hasta el cuadro 5) y el zaguero lo de atrás; tu compañero juega como un
 // pelotari del nivel normal
@@ -261,7 +266,7 @@ export class PelotaGame {
     this.phase = 'servePrep'; this.phaseT = 0;
     // (la bota corriendo, hacia el suelo y con fuerza, como en el frontón: la pelota va hacia delante con el que saca, que
     // la sigue hasta golpearla. Su velocidad, en el tiempo de la pelota, que va más despacio que los jugadores: tempo)
-    const k = 0.93 / this.tempo;   // (casi a su paso: así la tiene siempre a mano, un poco por delante)
+    const k = SERVE_K / this.tempo;   // (algo hacia delante: se planta y la sigue, para tenerla a mano)
     // (sale de la mano derecha, donde la lleva: a su derecha, un poco por delante, a la altura de la cintura)
     this.ball.set(vec(s.x + 0.26, 0.9, s.z - 0.28), vec(s.vx * k, -SERVE_DOWN, s.vz * k)); this.ball.spin = 0;
     this.prepBounces = 0;
@@ -878,7 +883,7 @@ export class PelotaGame {
       const op = this.players[this.other(sd)];
       tx = clamp(-op.x * 0.5, -2.5, 2.5); tz = this.cuatro ? 13 : 20.5;   // (en el Cuatro y Medio se espera más adelante: todo se juega antes del 4 y medio)
     } else if (this.phase === 'servePrep' && this.serverP() === who) {
-      if (this.hittable(who) && this.ball.v.y < SAQUE_VY && this.ball.p.y < 1.1) {
+      if (this.hittable(who) && saqueBaja(this.ball)) {
         const s = this.aiShot(who); return this.strike(who, 0.6 + this.rnd() * 0.35, s.aim, s.drop || false, s.pow ?? 0.5);
       }
       return;   // (la carrera del saque la lleva movePlayers: sigue a la pelota que ha botado)
@@ -952,11 +957,12 @@ export class PelotaGame {
       const pide = humanServes && (inp.hit || inp.cut) ? { pow: inp.power ?? 0.5, aim: { x: inp.aimX || 0, y: inp.aimY || 0 }, req: inp.cut ? 'cortada' : false } : null;
       if (pide && !listos) this.saquePend = pide;
       if (!this.runUp && listos && (humanServes ? (pide || this.saquePend || this.phaseT > 9) : this.phaseT > 0.8 && this.phaseT - this.listoT > 0.5)) {
-        this.runUp = true; this.emit({ type: 'serveRun', who: this.serverP() });
+        this.runUp = true; this.runT = 0; this.emit({ type: 'serveRun', who: this.serverP() });
         // (con GOLPE, el saque de siempre; con CORTADA, el saque cortado)
         if (humanServes) this.saque = pide || this.saquePend || { pow: 0.5, aim: { x: 0, y: 0 }, req: false };
         this.saquePend = null;
       }
+      if (this.runUp) this.runT = (this.runT || 0) + dt;
       this.movePlayers(dt, { ...inp, hit: false, drop: false });
       this.ball.set(vec(s.x + 0.35, 1.05, s.z - 0.35), vec()); this.ball.spin = 0;
       if (this.runUp && s.z < SERVE_Z + 0.3 + Math.hypot(s.vx, s.vz) * SERVE_LEAD / this.tempo) this.dropForServe();   // (antes del 4, sin frenar: el golpe sale ya en el 4)
@@ -990,7 +996,9 @@ export class PelotaGame {
   movePlayers(dt, inp) {
     const you = this.players.you;
     // jugador humano (o piloto automático)
-    if (this.autoplay) this.driveAI('you', dt);
+    // (con el piloto automático, el que saca lo lleva el saque, como al rival: si no, la cabeza le decía que se quedara
+    // quieto y corría a medio gas)
+    if (this.autoplay) { if (!(this.phase === 'serveWait' && this.serverP() === 'you')) this.driveAI('you', dt); }
     else {
       const spd = YOU_RUN * (1 - this.tired('you') * 0.3), mx = clamp(inp.mx || 0, -1, 1), mz = clamp(inp.mz || 0, -1, 1);   // (cansado, corres bastante menos)
       // por parejas, mantener el golpe con la pelota de tu compañero en el aire es pedirla («¡mía!»): si llegas, es tuya
@@ -1050,7 +1058,7 @@ export class PelotaGame {
       // ese momento (o llega mientras dura el gesto), la tocas; si no, al aire
       // (el saque, con la fuerza y la puntería que elegiste al salir: al bajar la pelota tras el bote, como el rival)
       if (this.phase === 'servePrep' && this.saque && this.serverP() === 'you') {
-        if (this.hittable('you') && this.ball.v.y < SAQUE_VY && this.ball.p.y < 1.1) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
+        if (this.hittable('you') && saqueBaja(this.ball)) { const S = this.saque; this.saque = null; this.strike('you', this.quality('you', 0), S.aim, S.req || false, S.pow, false, null, { timing: 0 }); }
       } else if ((inp.hit || inp.drop || inp.cut) && you.cool <= 0) {
         if (this.phase === 'servePrep' || this.phase === 'rally') { you.swing = this.camara ? CAM_WIN : SWING_WIN; you.swingT = 0; you.dropReq = inp.drop ? 'dejada' : inp.cut ? 'cortada' : false; you.pow = inp.power ?? 0.5; you.aim = { x: inp.aimX || 0, y: inp.aimY || 0 }; you.act = 'swing'; you.actT = 0; you.cool = 0.36;
           // (con la cámara, el golpe se lee entero: espera un poco a saber hacia dónde va el brazo, camPend, sin dejar
@@ -1072,7 +1080,7 @@ export class PelotaGame {
     for (const id of this.ids) if (id !== 'you' && !(this.phase === 'serveWait' && this.serverP() === id)) this.driveAI(id, dt);
     if (this.phase === 'serveWait' || this.phase === 'servePrep') {
       const s = this.players[this.serverP()];
-      if (this.phase === 'serveWait' && this.runUp) this.moveTo(s, SERVE_X, SERVE_Z, RUN_V, dt);
+      if (this.phase === 'serveWait' && this.runUp) this.moveTo(s, SERVE_X, SERVE_Z, Math.min(RUN_V, RUN_V0 + RUN_A * (this.runT || 0)), dt);
       else if (this.phase === 'servePrep') {
         // (sigue a la pelota que ha botado, a su paso: la pelota a su derecha y un poco por delante, al alcance de la mano,
         // para golpearla en su sitio. Antes frenaba al botarla, la pelota se le iba un metro y golpeaba al aire detrás de ella)

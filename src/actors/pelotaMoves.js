@@ -144,12 +144,17 @@ const CORTES = { Hit: ['HitFull', 0.40], HitL: ['HitLFull', 0.40], Low: ['LowFul
 // (y, para el saque, el brazo derecho con la pelota en la mano mientras corre, y el gesto de botarla contra el suelo)
 const LLEVA = { ...REPOSO, Rm: [-0.21, 0.84, 0.2], Rc: [-0.5, -1, -0.3] };
 const BOTA = { ...REPOSO, Rm: [-0.27, 0.6, 0.3], Rc: [-0.4, -1, -0.2] };
+// (y yendo al saque, al trote: la pelota delante del pecho, con la derecha debajo y la izquierda acompañándola, como en
+// el vídeo de un saque en Sopelana que pasó el autor, 17 de noviembre de 2026)
+const LLEVA_C = { ...REPOSO, Rm: [-0.07, 0.9, 0.27], Rc: [-0.6, -1, -0.2], Lm: [0.06, 0.92, 0.27], Lc: [0.6, -1, -0.2] };
 // (el saque, ya botada la pelota y sin dejar de correr: el brazo derecho atrás y abajo, con la mano por detrás de la cadera,
 // el pecho girado hacia ella y el brazo izquierdo recogido delante, para equilibrar. Con el armado de un golpe normal, que
 // es de parado y de lado, corriendo solo se le abrían los brazos en cruz)
-const SAQUE_ARMA = { ...ARMADO_B, c: [-0.03, -0.12, 0], H: [10, -18, 0], S: [16, -22, 4], S1: [8, -14, 0], S2: [4, -8, 0], N: [-14, 26, 0], Hd: [-14, 20, 0],
+// (y muy agachado, con las piernas abiertas y la izquierda delante, esperando a que baje la pelota del bote: así se ve en
+// el vídeo del saque en Sopelana; antes esperaba casi de pie)
+const SAQUE_ARMA = { ...ARMADO_B, c: [-0.03, -0.2, 0], H: [12, -18, 0], S: [22, -22, 4], S1: [12, -14, 0], S2: [6, -8, 0], N: [-20, 26, 0], Hd: [-16, 20, 0], Lp: [0.10, 0, 0.20], Rp: [-0.12, 0, -0.10],
   Rm: [-0.30, 0.76, -0.20], Rc: [-0.3, -0.6, -1], Rw: 15, Lm: [0.12, 0.98, 0.26], Lc: [0.7, -1, -0.1] };
-export const ARMADOS = { Hit: ARMADO, Low: ARMADO_B, High: ARMADO_A, Lleva: LLEVA, Bota: BOTA, Saque: SAQUE_ARMA };
+export const ARMADOS = { Hit: ARMADO, Low: ARMADO_B, High: ARMADO_A, Lleva: LLEVA, LlevaC: LLEVA_C, Bota: BOTA, Saque: SAQUE_ARMA };
 
 function espejo(p) {
   const o = {};
@@ -178,16 +183,30 @@ function montaje(scene) {
   }
   const len = (a, z) => R[a].P.distanceTo(R[z].P);
   const L = { LA: [len('LA', 'LF'), len('LF', 'LH')], RA: [len('RA', 'RF'), len('RF', 'RH')], LU: [len('LU', 'LL'), len('LL', 'LP')], RU: [len('RU', 'RL'), len('RL', 'RP')] };
+  // (las poses se hicieron sobre el pelotari de siempre, con el hombro a 1,04 y el brazo de 0,39; en un esqueleto de otra
+  // talla, como los pelotaris nuevos de 1,84, con el hombro a 1,35, las manos se cuentan desde su hombro y a la medida de
+  // su brazo, y lo que baja la cadera y se mueven los pies, a la de sus piernas. Si no, la pelota del saque iba en la
+  // cadera y los golpes se daban todos bajos)
+  const brazo = (L.LA[0] + L.LA[1] + L.RA[0] + L.RA[1]) / 2, pierna = R.H.P.y;
+  R[ESC] = { LA: R.LA.P, RA: R.RA.P, kB: brazo / REF.brazo, kP: pierna / REF.cadera };
   return { B, R, L, inv, scene };
 }
 
+// (el esqueleto sobre el que se hicieron las poses: hombros, brazo entero y altura de la cadera; montaje, valor)
+const ESC = Symbol('escala'), REF = { LA: [0.18, 1.044, 0.002], RA: [-0.18, 1.044, 0.002], brazo: 0.388, cadera: 0.728 };
 // ---------- curvas entre poses ----------
 const CERO = [0, 0, 0];
 // (el giro del antebrazo de siempre: en reposo, el modelo tiene las palmas hacia delante; con 45°, hacia los muslos)
 export let GIRO_T = 45;
 export const _prueba = { set giro(v) { GIRO_T = v; } };
 function valor(p, k, R) {
-  if (p[k] != null) return p[k];
+  if (p[k] != null) {
+    const e = R[ESC], v = p[k];
+    if (!e || (Math.abs(e.kB - 1) < 0.03 && Math.abs(e.kP - 1) < 0.03)) return v;
+    if (k === 'Lm' || k === 'Rm') { const h = k === 'Lm' ? e.LA : e.RA, h0 = k === 'Lm' ? REF.LA : REF.RA; return [0, 1, 2].map(j => h.getComponent(j) + (v[j] - h0[j]) * e.kB); }
+    if (k === 'c' || k === 'Lp' || k === 'Rp') return v.map(x => x * e.kP);
+    return v;
+  }
   if (k === 'Lm') return R.LH.P.toArray(); if (k === 'Rm') return R.RH.P.toArray();
   if (k === 'Lc') return [0.3, -0.3, -1]; if (k === 'Rc') return [-0.3, -0.3, -1];
   if (k === 'Lw' || k === 'Rw') return 0;

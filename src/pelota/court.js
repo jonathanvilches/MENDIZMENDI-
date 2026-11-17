@@ -320,19 +320,20 @@ export class PelotaCourt {
     // números de los cuadros, como en los frontones de verdad: en la pared izquierda, una raya blanca vertical
     // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada). A la
     // medida de los de verdad (el autor, 17 de noviembre de 2026: con los números grandes el pelotari se veía pequeño
-    // frente al frontón): el disco, de unos 40 cm, con el centro a 2,5 m del suelo, y la raya de 10 cm
-    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 640, MW = 0.55, MH = MW * CH / CW;
+    // frente al frontón; y su vídeo de un saque en Sopelana): la raya, de 7-8 cm, llega a la altura de la cabeza del
+    // pelotari y el disco, de 30 cm, tiene el centro a 2,08 m del suelo (antes, 40 cm a 2,5 m; y al principio, 85 a 3,1)
+    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 768, MW = 0.376, MH = MW * CH / CW;
     const markTex = canvasTex(T, CW * nK, CH, (c, w, h) => {
       for (let k = 1; k <= nK; k++) {
         const cx = (k - 0.5) * CW, R = CW * 0.4, cy = R + 8;
         c.fillStyle = th.line; c.strokeStyle = th.line;
-        c.fillRect(cx - 11, cy + R + 16, 22, h - (cy + R + 16));
+        c.fillRect(cx - 13, cy + R + 16, 26, h - (cy + R + 16));
         c.lineWidth = 10; c.beginPath(); c.arc(cx, cy, R - 5, 0, Math.PI * 2); c.stroke();
         c.font = `bold ${R * 1.12}px "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
         c.fillText(String(k), cx, cy + R * 0.06);
         // desconchones: motas del color de la pared sobre la pintura blanca
         c.fillStyle = th.wall;
-        for (let i = 0; i < 70; i++) { const yy = cy + R + 16 + Math.random() * (h - cy - R - 16), xx = cx - 11 + Math.random() * 22; c.fillRect(xx, yy, 1 + Math.random() * 3, 1 + Math.random() * 4); }
+        for (let i = 0; i < 80; i++) { const yy = cy + R + 16 + Math.random() * (h - cy - R - 16), xx = cx - 13 + Math.random() * 26; c.fillRect(xx, yy, 1 + Math.random() * 3, 1 + Math.random() * 4); }
         for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, rr = R - 5 + (Math.random() - 0.5) * 9; c.fillRect(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 2, 2); }
       }
     });
@@ -347,11 +348,14 @@ export class PelotaCourt {
       geo.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new T.Float32BufferAttribute(nrm, 3)); geo.setAttribute('uv', new T.Float32BufferAttribute(uv, 2));
       const marks = new T.Mesh(geo, M({ map: markTex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
       marks.receiveShadow = true; marks.name = 'cuadros'; if (!TRQ) g.add(marks); }   // (el trinquete no tiene cuadros en la pared izquierda: reglamento de la FIPV, título VI; las rayas van en el suelo)
-    // y encima del 4 y del 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega)
+    // y junto al 4 y al 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega). Como en
+    // los frontones de verdad, pequeños y pegados a la raya, por el lado de atrás y justo debajo del disco (antes iban
+    // encima, de 1,1 m de ancho)
+    const LAB_DZ = this.labDZ = 0.36;
     for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
       const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = th.line; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
-      const lab = new T.Mesh(new T.PlaneGeometry(1.1, 0.33), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      lab.position.set(-W / 2 + 0.014, MH + 0.3, z); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
+      const lab = new T.Mesh(new T.PlaneGeometry(0.6, 0.18), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      lab.position.set(-W / 2 + 0.014, MH - 0.62, z + LAB_DZ); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
     }
     // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
     if (opts.wallName || opts.shield) {
@@ -547,7 +551,7 @@ export class PelotaCourt {
     if (this.serveZone) { this.serveZone.scale.y = (z1 - z0) / (C.PASA - C.FALTA); this.serveZone.position.z = (z0 + z1) / 2; }
     // (y los nombres FALTA y PASA de la pared, encima de las rayas que valen)
     const rf = this.group.getObjectByName('raya-falta'), rp = this.group.getObjectByName('raya-pasa');
-    if (rf) rf.position.z = z0; if (rp) rp.position.z = z1;
+    if (rf) rf.position.z = z0 + (this.labDZ || 0); if (rp) rp.position.z = z1 + (this.labDZ || 0);
   }
   // ---------- frontón Labrit (Iruña, 1952): donde se juegan las finales ----------
   // Lo que cuentan las fuentes (Ayuntamiento de Pamplona, Federación Navarra de Pelota, Noticias de Navarra): frontón

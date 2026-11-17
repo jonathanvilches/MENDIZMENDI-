@@ -1650,8 +1650,10 @@ export class PelotaMatch {
       // el saque: el que saca lleva la pelota en la mano derecha mientras espera y mientras corre (lleva); al botarla, el
       // brazo baja con ella un instante (bota) y luego arma. manoW: dónde queda su mano, para dibujar ahí la pelota
       { const saca = g.serverP?.() === who && (g.phase === 'serveWait' || g.phase === 'servePrep');
-        st.lleva = saca && g.phase === 'serveWait' ? 1 : 0; st.bota = saca && g.phase === 'servePrep' && g.phaseT < 0.19 ? 1 : 0;
-        if (conHerr) { st.lleva = 0; st.bota = 0; st.manoIzq = true; }   // (con herramienta, la pelota del saque va en la izquierda)
+        st.lleva = saca && g.phase === 'serveWait' && !g.runUp ? 1 : 0; st.bota = saca && g.phase === 'servePrep' && g.phaseT < 0.19 ? 1 : 0;
+        // (yendo al saque, al trote, con la pelota delante del pecho y las dos manos, como en el frontón)
+        st.llevaC = saca && g.phase === 'serveWait' && g.runUp ? 1 : 0;
+        if (conHerr) { st.lleva = 0; st.llevaC = 0; st.bota = 0; st.manoIzq = true; }   // (con herramienta, la pelota del saque va en la izquierda)
         if (st.bota) st.wind = 0; else if (saca && g.phase === 'servePrep') st.wind *= Math.min(1, (g.phaseT - 0.19) / 0.15);
         // (tras botarla arma como se arma corriendo: el brazo derecho atrás y abajo y el izquierdo recogido delante; el
         // saque se da de sotamano, a la altura de la cadera. Antes armaba como para una derecha de parado, con los dos

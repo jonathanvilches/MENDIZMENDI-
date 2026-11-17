@@ -272,7 +272,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     // (el pelotari: sus movimientos de pelota, hechos sobre su esqueleto en reposo antes de que nada lo mueva, y la postura
     // de armado de cada golpe, que se mezcla mientras llega la pelota; pelotaMoves.js)
     const pel = /^pelotari/.test(name) ? pelotaMoves(g.scene) : [];
-    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['Bota', 'Bota', false], ['Saque', 'Saque', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
+    const armados = pel.length ? Object.fromEntries([['Hit', 'Hit', false], ['HitL', 'Hit', true], ['Low', 'Low', false], ['LowL', 'Low', true], ['High', 'High', false], ['HighL', 'High', true], ['Lleva', 'Lleva', false], ['LlevaC', 'LlevaC', false], ['Bota', 'Bota', false], ['Saque', 'Saque', false]].map(([k, c, iz]) => [k, poseArmado(g.scene, c, iz)])) : null;
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
       // luz de relleno propia: la cámara va detrás y el sol suele darle de frente, así que se le veía siempre en sombra.
@@ -940,9 +940,10 @@ export function armSwing(char, get, { windOnly = false } = {}) {
   const AR = char.armados, ABAJO = /(Hips|UpLeg|Leg|Foot|ToeBase)$/, cad = B.mixamorigHips;
   const ARB = AR && Object.fromEntries(Object.entries(AR).map(([k, p]) => [k, Object.entries(p.q).filter(([n]) => B[n]).map(([n, q]) => [B[n], q, ABAJO.test(n)])]));
   let fat = 0, resp = 0;   // el cansancio, suavizado, y la fase de la respiración
-  // (para el saque: las posturas de llevar y de botar la pelota, solo los huesos del brazo derecho)
-  const BRAZO_D = /Right(Shoulder|Arm|ForeArm|Hand)$/, ARD = {}; let llevaK = 0, botaK = 0;
-  if (ARB) for (const k of ['Lleva', 'Bota']) if (ARB[k]) ARD[k] = ARB[k].filter(([b]) => BRAZO_D.test(b.name));
+  // (para el saque: las posturas de llevar y de botar la pelota, solo los huesos del brazo derecho; y la de ir al saque
+  // con la pelota delante del pecho, los dos brazos)
+  const BRAZO_D = /Right(Shoulder|Arm|ForeArm|Hand)$/, BRAZOS = /(Left|Right)(Shoulder|Arm|ForeArm|Hand)$/, ARD = {}; let llevaK = 0, llevaCK = 0, botaK = 0;
+  if (ARB) for (const k of ['Lleva', 'LlevaC', 'Bota']) if (ARB[k]) ARD[k] = ARB[k].filter(([b]) => (k === 'LlevaC' ? BRAZOS : BRAZO_D).test(b.name));
   // (y los huesos de cada brazo, para llevar la mano a un sitio: hombro, codo y mano)
   const brazo = (s) => { const a = B['mixamorig' + s + 'Arm'], f = B['mixamorig' + s + 'ForeArm'], h = B['mixamorig' + s + 'Hand']; return a && f && h ? { a, f, h } : null; };
   const IKR = brazo('Right'), IKL = brazo('Left');
@@ -1014,11 +1015,14 @@ export function armSwing(char, get, { windOnly = false } = {}) {
     if (ARB) {
       // (al golpear, el armado se quita de golpe: el clip del golpe empieza en el impacto)
       if (st.swing >= 0 && st.swing < 0.3) w = 0;
-      const cual = ARB[st.arma] ? st.arma : 'Hit', quieto = Math.max(0, 1 - (st.speed || 0) / 1.5);
+      // (el saque: se planta al botarla y va casi parado; las piernas del armado entran ya, aunque aún se mueva un poco)
+      const cual = ARB[st.arma] ? st.arma : 'Hit', quieto = Math.max(0, 1 - (st.speed || 0) / (cual === 'Saque' ? 3 : 1.5));
       if (w > 0.003) { for (const [b, q, abajo] of ARB[cual]) b.quaternion.slerp(q, w * (abajo ? quieto : 1)); if (cad) cad.position.lerp(AR[cual].pos, w * quieto); }
       // el saque: mientras corre, el brazo derecho lleva la pelota en la mano; al botarla, baja con ella
       llevaK += ((st.lleva || 0) - llevaK) * Math.min(1, dt * 12); botaK += ((st.bota || 0) - botaK) * Math.min(1, dt * 18);
+      llevaCK += ((st.llevaC || 0) - llevaCK) * Math.min(1, dt * 8);
       if (llevaK > 0.01 && ARD.Lleva) for (const [b, q] of ARD.Lleva) b.quaternion.slerp(q, llevaK);
+      if (llevaCK > 0.01 && ARD.LlevaC) for (const [b, q] of ARD.LlevaC) b.quaternion.slerp(q, llevaCK);
       if (botaK > 0.01 && ARD.Bota) for (const [b, q] of ARD.Bota) b.quaternion.slerp(q, botaK);
       // la mano, a la pelota: en el golpe, el brazo que golpea llega justo al sitio donde está la pelota (st.contacto, en el
       // mundo) y lo suelta enseguida; llevándola o botándola, donde diga el juego (st.manoA)
