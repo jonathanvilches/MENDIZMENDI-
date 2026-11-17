@@ -32,6 +32,7 @@ import { crowdBuffers, PUBLICO } from '../crowdAudio.js';
 import { pelotaLigera } from '../util/diag.js';
 import { COLOR_BOLA } from '../pelota/bola.js';
 import { ponDorsal, quitaDorsal } from '../pelota/dorsal.js';
+import { modeloNuevo } from '../pelota/estiloPelotari.js';
 // un pelotari rival o compañero (el azul, pelotari; el colorado, pelotari_rojo) con el pelo de su figura (el rubio Mikel,
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
@@ -45,6 +46,10 @@ const nitido = (model) => { if (!(QUALITY === 'low' && matchMedia?.('(pointer: c
 // deslizaba. A ese paso un pelotari ya trota)
 const corre = (r) => { if (r?.char?.opt) r.char.opt.runAt = 1.85; return r; };
 async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name)) {
+  // (con los pelotaris nuevos elegidos en Ajustes, el nuevo de su camiseta: chico o chica, con su cara y su pelo;
+  // pelota/estiloPelotari.js. Si falla o aún no está, el de siempre)
+  const nuevo = modeloNuevo(model === 'pelotari_rojo' ? 'rojo' : 'azul', girl);
+  if (nuevo) try { nitido(nuevo); return corre(new GlbRig(await loadMeshy(nuevo), nuevo)); } catch (e) { console.warn('pelotari nuevo', e); }
   if (girl && hasChica('pelotari')) try {
     nitido('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
     outfitTint(r.char.root, 'pelotari', { shirt: model === 'pelotari_rojo' ? COLORADO : null, hair }); return corre(r);
@@ -484,6 +489,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (con un pelotari del juego elegido para el campeonato, su figura: chico o chica y su pelo, por su nombre)
     const ella = !yo && avatarIsGirl(profile().avatar);
     if (yo && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, yo.name); } catch (e) { console.warn('pelotari elegido', e); apunta('pelotari elegido', e); }
+    else if (modeloNuevo(colors.you, ella) && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, '', ella, null); } catch (e) { console.warn('pelotari nuevo', e); apunta('pelotari nuevo', e); }
     else if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { nitido(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }

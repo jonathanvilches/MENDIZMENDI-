@@ -70,6 +70,7 @@ import { enCss } from '../util/tele.js';
 import { sencillo, ponSencillo } from '../util/sencillo.js';
 import { accesible, ponAccesible } from '../util/accesible.js';
 import { duoElegido, ponDuo, subtitulos, ponSubtitulos } from '../util/comentarios.js';
+import { hayNuevos, estiloElegido, ponEstilo } from '../pelota/estiloPelotari.js';
 import { datos as diagnostico } from '../util/diag.js';
 import { codigoPartida, leePartida, traePartida } from '../util/traspaso.js';
 import './identidad.css';   // (la última hoja del menú: la identidad común manda sobre las demás)
@@ -1044,6 +1045,7 @@ export class Hub {
       { const el = $('#pPost', r); if (el) el.onchange = e => ponPost(e.target.checked); }
       for (const [id, k] of [['#pGrandes', 'grandes'], ['#pContraste', 'contraste']]) { const el = $(id, r); if (el) el.onchange = e => { ponAccesible(k, e.target.checked); this.sound?.ui('click'); }; }
       { const el = $('#pCom', r); if (el) { el.value = duoElegido(); el.onchange = e => { ponDuo(e.target.value); this.sound?.ui('click'); }; } }
+      { const el = $('#pPel', r); if (el) { el.value = estiloElegido(); el.onchange = e => { ponEstilo(e.target.value); this.sound?.ui('click'); }; } }
       { const el = $('#pSub', r); if (el) el.onchange = e => { ponSubtitulos(e.target.checked); this.sound?.ui('click'); }; }
       $('#pQ', r).onchange = e => { S.quality = e.target.value === 'auto' ? null : e.target.value; S.qualityAuto = false; delete S.slowPc; saveProfile(); this.onSettings?.(S); };
       const rb = $('#pReset', r); rb.onclick = (e) => { e.stopPropagation(); if (rb.dataset.sure) { resetProfile(); try { localStorage.removeItem('herrizherri-salazar-v2'); } catch (err) { } this.go('home'); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar todo'; this.sound?.ui('error'); } };
@@ -1083,6 +1085,8 @@ export class Hub {
         <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.</p>
         <label class="set">Comentarista de los partidos <select id="pCom"><option value="duo">Dos comentaristas</option><option value="hombre">Solo Mikel</option><option value="mujer">Solo Edurne</option><option value="no">Sin comentarios</option></select></label>
         <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
+        ${hayNuevos() ? `<label class="set">Pelotaris de los partidos <select id="pPel"><option value="clasico">Los de siempre</option><option value="nuevo">Los nuevos</option></select></label>
+        <p class="set-note">Los de siempre son de la familia del explorador; los nuevos, un chico y una chica mayores, como los de las portadas de los campeonatos. Vale para ti y para tus rivales.</p>` : ''}
         <p class="set-note">En los partidos de pelota comentan Mikel y Edurne, en castellano: Mikel narra la jugada y Edurne, que jugó a pelota, la explica y cuenta historias del frontón y de los pelotaris. Con uno solo, solo sus frases.</p>
         ${MOVIL_JUSTO ? '<p class="set-note">En este móvil, siempre la Baja: con Media o Alta se pierde la imagen al entrar en los partidos de pelota.</p>' : ''}
         ${!TACTIL && calidadOrdenador() === 'low' ? `<p class="set-note">Chrome está usando la gráfica del procesador, ${/intel/i.test(gpuNombre()) ? 'la Intel' : 'que es floja'}: con «Media» o «Alta» irá a tirones. Si el ordenador tiene una NVIDIA o una AMD, Diagnóstico explica cómo dársela a Chrome.</p>` : ''}

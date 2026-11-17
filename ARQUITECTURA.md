@@ -15,6 +15,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
 - **Sin servidor:** el progreso se guarda en `localStorage` (`herrizherri-perfil-v1`, en `src/game/profile.js`).
 - **Modelos y animaciones:**
   - Personajes KayKit (CC0).
+  - **Dos estilos de pelotari, a elegir** (17 de noviembre de 2026, el autor: «mantener todos los personajes pelotaris y
+    que el usuario pueda elegir entre el antiguo, el que es como el explorador, y estos nuevos»). Los de siempre
+    (`pelotari`, `pelotari_rojo` y la chica de `actors/chicas.js`) se quedan; los nuevos, un chico y una chica de 19-20
+    años con el estilo de las portadas (`entrega/pelotaris-nuevos`), van en cuatro archivos, uno por camiseta:
+    `pelotari_nuevo`, `pelotari_nuevo_rojo`, `pelotari_nueva` y `pelotari_nueva_azul`, con los clips con los mismos
+    nombres que el de siempre. `src/pelota/estiloPelotari.js` decide cuál sale; el ajuste «Pelotaris de los partidos»
+    (Ajustes) vale para ti y los rivales y solo aparece cuando hay algún archivo nuevo. Si falta el de un color, sale
+    el de siempre.
   - **Seis seres y figuras de Meshy** (17 de noviembre de 2026, de los bocetos que aprobó el autor): la lamia y el
     Basajaun (con un pie de persona y una pezuña), el Bobo y el Zarratrako de Otsagabia, el joaldun de Ituren y el
     momotxorro de Altsasu. Hechos por la API de Meshy con la mejor calidad (image_to_3d con meshy-7.1, textura de 4K,
