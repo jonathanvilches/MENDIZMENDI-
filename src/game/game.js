@@ -667,11 +667,12 @@ export class Game {
       await this.say(a, [`¡Kaixo! Soy Arantxa. Vendo queso de oveja del valle.`, 'Aquí, en la mesa del valle, no faltan el queso, la trucha y las migas de pastor.']);
       this.giveCard('mesa');
     }
-    if (!pool.length) return this.say(a, ['¡Ya has respondido todas mis preguntas! Eres una enciclopedia del valle.']);
+    const sinVoz = !cheese;   // (las preguntas están grabadas con la voz de Arantxa: en boca de Itziar se leen, sin voz; el autor, 18 nov)
+    if (!pool.length) return this.say(a, [{ text: '¡Ya has respondido todas mis preguntas! Eres una enciclopedia del valle.', sinVoz }]);
     const idx = QUIZ.indexOf(pool[Math.floor(Math.random() * pool.length)]);
     const Q = QUIZ[idx];
     let ok = false;
-    await this.say(a, [{ text: `¿Te hago una pregunta? ${Q.q}`, choices: Q.a, onChoice: (j) => { ok = j === Q.ok; return [{ who: a.name, look: a.obj.userData.look, text: (ok ? '¡Correcto! ' : 'Casi… ') + Q.why }]; } }]);
+    await this.say(a, [{ text: `¿Te hago una pregunta? ${Q.q}`, sinVoz, choices: Q.a, onChoice: (j) => { ok = j === Q.ok; return [{ who: a.name, look: a.obj.userData.look, sinVoz, text: (ok ? '¡Correcto! ' : 'Casi… ') + Q.why }]; } }]);
     if (ok) { st.quiz.push(idx); st.stars++; this.sound.ui('coin'); this.ui.toast(st.stars === 1 ? '¡Tu primera estrella!' : `¡Una estrella! Tienes ${st.stars} estrellas`, 'star'); this.save(); }
     else this.sound.ui('error');
   }

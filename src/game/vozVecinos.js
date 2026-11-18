@@ -20,7 +20,8 @@ const POR_TEXTO = new Map();
 for (const lista of Object.values(MANI)) for (const [frase, arch] of lista) POR_TEXTO.set(llano(frase), arch);
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // La cuenta que cambia («Llevas 3 de 6.», «Tienes 5 de 8.»): la grabación no la dice
-const CUENTA = /(?<![\p{L}])(?:llevas|tienes)\s+\d+\s+de\s+\d+\.?/giu;
+// (y «Te faltan 2 escudos.» de Itziar: suena «Busca casas grandes de piedra…» sola)
+const CUENTA = /(?<![\p{L}])(?:(?:llevas|tienes)\s+\d+\s+de\s+\d+|te\s+faltan?\s+\d+\s+escudos?)\.?/giu;
 
 let src = null, tok = 0;
 const buf = new Map();
@@ -40,7 +41,7 @@ export function callaVecino() {
 }
 
 /** Dice la línea L de una charla con la voz grabada de su vecino, si la tiene */
-export function hablaVecino(L, nombre) { return dice(L?.text, nombre); }
+export function hablaVecino(L, nombre) { return L?.sinVoz ? callaVecino() : dice(L?.text, nombre); }
 
 /** Dice un texto suelto (un aviso, un premio, una carta del cuaderno) si tiene grabación; si no la tiene, no calla lo que
  *  esté sonando (un aviso sin voz no corta una charla). null: calla */
