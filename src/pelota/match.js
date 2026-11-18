@@ -652,7 +652,7 @@ export class PelotaMatch {
   // no, el rótulo grande del primero se montaba encima de él)
   verHl(e, espera = 0) {
     this.hud.closePanel(); this.hud.controls(false);
-    const va = () => { if (!this.active) return; this.hud.callT = 0; this.hud.$('.pel-call')?.classList.remove('on'); this.hud.root.classList.remove('calling');
+    const va = () => { if (!this.active) return; this.hud.callT = 0; this.hud.autorT = 0; this.hud.$('.pel-call')?.classList.remove('on'); this.hud.$('.pel-autor')?.classList.remove('on'); this.hud.root.classList.remove('calling');
       this.hlCola = this.hlTodos.slice(); this.hlFin = e; this.sigHl(); };
     if (espera > 0) setTimeout(va, espera); else va();
   }
@@ -1301,7 +1301,14 @@ export class PelotaMatch {
         const who = e.winner === 'you' ? (g.pairs ? (t.pairs || TEXT.es.pairs).pointUs : t.pointYou) : (g.pairs && this.mateObjs ? (t.pairs || TEXT.es.pairs).pointThem(this.names.rival, this.mateObjs.rivalMate.name) : t.pointRival(this.names.rival));
         if (g.mode === 'rally') this.hud.call(title, '', '', 2.6, ex);
         else if (e.final) { this.hud.call(t.finalCall, `${who}. ${t.finalSub}`, kant, 5.5, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); this.hud.root.classList.add('final'); }
-        else { this.hud.call(title, `${who}.`, kant, ex?.racha ? 3.6 : 2.8, ex); this.hud.setScore(e.score.you, e.score.rival, e.winner); }
+        else {
+          // (el tanto, en el marcador, que se convierte en lo que canta el juez, y debajo quién lo ha hecho con su carta:
+          // hud.tanto. Encima del nombre: para ti, «Tanto para ti»; para el rival, su pueblo, que su nombre ya va debajo.
+          // Antes, el rótulo grande en medio, que sigue para el final del partido y los avisos)
+          const w = e.winner, m = g.pairs && this.mateObjs?.[w + 'Mate'], fig = (n) => this.o.vsImg?.fig?.(splitName(n).name, this.cols[w]) || '';
+          this.hud.tanto(title, { lado: w, col: this.cols[w], nombre: this.nomLimpio(w), sobre: kant ? `«${kant}»` : w === 'you' ? who : (splitName(this.names.rival).town || this.o.town || ''), carta: m ? '' : fig(this.names[w]), racha: ex?.racha, secs: ex?.racha ? 3.4 : 2.8 });
+          this.hud.setScore(e.score.you, e.score.rival, e.winner);
+        }
         // (sin silbato: el juez de pelota canta el tanto; la grada aplaude toda a la vez)
         // (si el tanto lo pierdes tú, o tu pareja, con un fallo, chapa, fuera, falta o pasa, la grada abuchea en vez de aplaudir;
         // solo en el partido, no entrenando ni en los retos. El autor, 17 de noviembre de 2026)

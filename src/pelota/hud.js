@@ -473,6 +473,56 @@ html.tactil .pel-teclas,.con-mando .pel-teclas{display:none}
 .pel-root.final .pel-call::before{background:var(--cta,linear-gradient(100deg,#d0189f,#6a2ff0))}.pel-root.final .pel-call{--pc:#ffd36a}
 .pel-call .pel-racha{border-radius:2px;animation:none}
 .pel-call.on>.pel-racha{transform:skewX(-12deg)}.pel-call>.pel-racha{transform:skewX(-12deg) translateX(-22px)}
+/* EL MARCADOR PLANO QUE SE CONVIERTE EN «¡TANTO!» (18 de noviembre de 2026; el autor quiere la interfaz del partido con el
+   lenguaje de los juegos de fútbol de ahora, sin copiar su marca ni sus colores). El marcador: bloques planos de color,
+   sin degradados ni marco redondeado, el nombre sobre el color de cada uno y las dos cifras juntas en medio sobre morado
+   noche; «a cuántos tantos» va aparte, en su ficha de oro a la izquierda. Al hacerse un tanto, una franja del color de
+   quien lo gana barre el marcador entero desde su lado con lo que canta el juez, se queda un segundo y sale por el otro
+   lado dejando ver el tanteo nuevo. Debajo entra, desde la derecha, quién lo ha hecho, con su carta. Solo transform y
+   opacity; nada bota ni tiembla. Antes: un rótulo grande en medio de la pantalla, encima del frontis */
+/* (.pel-root delante: más abajo, el bloque de la barra de arriba le vuelve a poner fondo, raya y recorte al marcador) */
+.pel-root .pel-top{background:none!important;border-top:0;box-shadow:none!important;overflow:visible;border-radius:0!important}
+.pel-root .pel-top .pel-score{position:relative;gap:0;overflow:visible}
+.pel-side{background:rgba(10,4,26,.92)}
+.pel-side.pel-red .ps-cab{background:#e0147e}.pel-side.pel-blue .ps-cab{background:#3f37e8}
+.ps-cab{height:32px;padding:0;gap:0}.ps-cab>span{padding:0 8px}
+.pel-side[data-side=you] .pel-serve{margin-left:8px}.pel-side[data-side=rival] .pel-serve{margin-right:8px}
+.ps-cab>b{align-self:stretch;display:grid;place-items:center;min-width:38px;padding:0 4px;background:#0c051e;color:#fff;font-size:var(--fs-xl);font-style:italic}
+.pel-side[data-side=rival] .ps-cab>b{box-shadow:inset 1px 0 0 rgba(255,255,255,.2)}
+.pel-root .pel-mid{display:grid;position:absolute;right:calc(100% + 6px);top:0;height:32px;max-width:none;padding:0 10px;background:rgba(10,4,26,.92);box-shadow:inset 3px 0 0 #ffd36a;color:#ffd36a;white-space:nowrap}
+.pel-root .pel-mid:empty{display:none}
+@media (max-width:560px){.pel-root .pel-mid{display:none}}
+.pel-side.gana .ps-cab{animation:none}
+.pel-side b.sube{animation:pel-cifra .36s cubic-bezier(.16,1,.3,1) both}
+.pel-top.tantea .pel-side b.sube{animation-delay:1.42s}
+@keyframes pel-cifra{from{transform:translateY(60%);opacity:0}to{transform:none;opacity:1}}
+.pel-tanto{position:absolute;inset:0;z-index:3;pointer-events:none;--s:1;--tc:#3f37e8}
+.pel-tanto.der{--s:-1}.pel-tanto.rojo{--tc:#e0147e}
+/* (la franja crece desde el lado de quien gana y se encoge hacia el otro, con scaleX y translateX: sin recortar nada con
+   overflow, que con capas animadas dentro dejaba un bloque oscuro suelto abajo en la pantalla) */
+.pel-tanto>u,.pel-tanto>i{position:absolute;inset:0;transform-origin:left;transform:scaleX(0)}
+.pel-tanto.der>u,.pel-tanto.der>i{transform-origin:right}
+.pel-tanto>u{background:#ffd36a}.pel-tanto>i{background:var(--tc)}
+.pel-tanto>b{position:absolute;inset:0;display:grid;place-items:center;padding:0 8px;font:italic 400 var(--fs-2xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);letter-spacing:.02em;text-transform:uppercase;white-space:nowrap;color:#fff;text-shadow:0 2px 0 rgba(7,2,15,.35);opacity:0}
+.pel-tanto.on>u{animation:pel-banda 1.78s both}.pel-tanto.on>i{animation:pel-banda 1.7s .07s both}.pel-tanto.on>b{animation:pel-banda-tx 1.7s .07s both}
+@keyframes pel-banda{0%{transform:translateX(0) scaleX(0);animation-timing-function:cubic-bezier(.16,1,.3,1)}17%,84%{transform:translateX(0) scaleX(1);animation-timing-function:cubic-bezier(.7,0,.84,0)}100%{transform:translateX(calc(var(--s) * 100%)) scaleX(0)}}
+@keyframes pel-banda-tx{0%,5%{opacity:0;transform:translateX(calc(var(--s) * -44px));animation-timing-function:cubic-bezier(.16,1,.3,1)}22%,80%{opacity:1;transform:none;animation-timing-function:cubic-bezier(.7,0,.84,0)}90%,100%{opacity:0;transform:translateX(calc(var(--s) * 44px))}}
+/* (quién hace el tanto, con su carta: debajo del marcador y de su ancho, como la lista de goleadores) */
+.pel-autor{position:absolute;top:calc(100% + 8px);right:0;width:100%;pointer-events:none;visibility:hidden;transition:visibility 0s .22s;--tc:#3f37e8}
+.pel-autor.rojo{--tc:#e0147e}.pel-autor.on{visibility:visible;transition:none}
+.pa-in{display:flex;align-items:stretch;background:rgba(10,4,26,.94);box-shadow:inset 0 -3px 0 var(--tc);opacity:0;transform:translateX(48px);transition:transform .2s cubic-bezier(.7,0,.84,0),opacity .2s}
+.pel-autor.on .pa-in{opacity:1;transform:none;transition:transform .36s .2s cubic-bezier(.16,1,.3,1),opacity .2s .2s}
+.pa-carta{position:relative;flex:none;width:58px;height:68px;overflow:hidden;background:var(--tc)}.pa-carta:empty{display:none}
+.pa-carta img{position:absolute;left:50%;top:5px;height:215%;width:auto;max-width:none;transform:translateX(-50%)}
+.pa-tx{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:9px 12px;min-height:50px}
+.pa-tx small{font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#ffd36a}
+.pa-tx b{font:italic 400 var(--fs-xl)/1 var(--pel-display,'MZ Display','MZ Texto',sans-serif);text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:3px}
+.pa-tx em{display:flex;align-items:center;gap:4px;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#fff}.pa-tx em:empty,.pa-tx small:empty{display:none}
+.pa-tx em svg{width:12px;height:12px;color:#ffd36a;flex:none}
+.pel-root.calling .pel-golpe{opacity:0}
+@media (prefers-reduced-motion:reduce){.pel-tanto.on>u{animation:none}.pel-tanto.on>i,.pel-tanto.on>b{animation:pel-banda-q 1.7s both}.pa-in,.pel-autor.on .pa-in{transition:none}}
+@keyframes pel-banda-q{0%,84%{transform:none;opacity:1}100%{transform:none;opacity:0}}
+body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pel-root .pel-mid{background:#000}
 /* (el nombre del golpe, arriba a la derecha: la misma franja, más pequeña, que entra desde la derecha) */
 .pel-golpe{background:none;border:0;border-radius:0;padding:6px 18px 6px 20px;font-style:italic;isolation:isolate;transform:translateX(18px);transition:opacity .14s,transform .3s cubic-bezier(.16,1,.3,1);--gc:#ff2e88}
 .pel-golpe::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,rgba(12,5,30,.94),rgba(36,13,78,.92));border-left:5px solid var(--gc);box-shadow:0 8px 22px rgba(0,0,0,.35);transform:skewX(-14deg) scaleX(0);transform-origin:right;transition:transform .18s cubic-bezier(.7,0,.84,0)}
@@ -619,7 +669,8 @@ export class PelotaHud {
         <div class="pel-side ${cols.you === 'rojo' ? 'pel-red' : 'pel-blue'}" data-side="you"><div class="ps-cab"><i class="pel-serve" data-pel-s="you"></i><span>${esc(short(names.you))}</span><i class="ps-racha" data-pel-r="you"></i><b data-pel-n="you">0</b></div><div class="ps-barras"></div></div>
         <div class="pel-mid" data-pel-mid></div>
         <div class="pel-side ${cols.rival === 'azul' ? 'pel-blue' : 'pel-red'}" data-side="rival"><div class="ps-cab"><b data-pel-n="rival">0</b><i class="ps-racha" data-pel-r="rival"></i><span>${esc(short(names.rival))}</span><i class="pel-serve" data-pel-s="rival"></i></div><div class="ps-barras"></div></div>
-      </div></div>
+        <div class="pel-tanto" aria-hidden="true"><u></u><i></i><b></b></div>
+      </div><div class="pel-autor" aria-hidden="true"><div class="pa-in"><span class="pa-carta"></span><div class="pa-tx"><small></small><b></b><em></em></div></div></div></div>
       <div class="pel-rapidos"><div class="pel-menu"><button type="button" class="pm-btn pr-b" aria-haspopup="true" aria-expanded="false" aria-label="${txt.menu || 'Menú'}">${PAUSA}</button><div class="pm-hoja pz-fondo" role="dialog" aria-modal="true" aria-label="${esc(PZ.titulo || 'Pausa')}"><div class="pz-panel">${pzCabecera(esc(PZ.titulo || 'Pausa'), esc(PZ.cerrar || 'Cerrar'))}<div class="pz-lista">
         ${pzFila({ cls: 'pm-seguir', titulo: esc(PZ.seguir?.[0] || 'Continuar'), sub: esc(PZ.seguir?.[1] || ''), ico: PZ_ICO.seguir })}
         ${pzFila({ cls: 'pm-vista', titulo: esc(txt.vistaFP || 'Primera persona'), sub: esc(PZ.vista || ''), ico: PZ_ICO.ojo, extra: tecla('V'), attrs: 'hidden aria-pressed="false"' })}
@@ -750,6 +801,21 @@ export class PelotaHud {
     c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
     if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
   }
+  /** El tanto: el marcador se convierte un momento en lo que canta el juez («¡Tanto!», «¡Falta!»…) con una franja del
+   *  color de quien lo gana, que entra desde su lado, y debajo sale quién lo ha hecho, con su carta.
+   *  o: { lado ('you' | 'rival'), col ('azul' | 'rojo'), nombre, sobre (la línea pequeña de encima del nombre), carta (el
+   *  html de su figura), racha, secs } */
+  tanto(title, o = {}) {
+    const top = this.$('.pel-top'), b = this.$('.pel-tanto'), a = this.$('.pel-autor'), rojo = o.col === 'rojo';
+    b.querySelector('b').textContent = title;
+    b.className = 'pel-tanto' + (o.lado === 'rival' ? ' der' : '') + (rojo ? ' rojo' : ''); top.classList.remove('tantea'); void b.offsetWidth; b.classList.add('on'); top.classList.add('tantea');
+    a.querySelector('.pa-carta').innerHTML = o.carta || ''; a.querySelector('small').textContent = o.sobre || ''; a.querySelector('.pa-tx b').textContent = short(o.nombre || '');
+    a.querySelector('em').innerHTML = o.racha ? `${LLAMA}<span>${esc(o.racha)}</span>` : '';
+    a.className = 'pel-autor on' + (rojo ? ' rojo' : '');
+    // (el aviso grande y el nombre del golpe, fuera: el tanto ya lo cuenta el marcador)
+    this.$('.pel-call').classList.remove('on'); this.callT = 0; this.gT = 0; this._g?.classList.remove('on');
+    this.autorT = o.secs || 2.8; this.root.classList.add('calling');
+  }
   /** El rótulo de los comentarios, solo con los subtítulos puestos (comenta.js): c = { rol, texto, r ('n' narra, 'e' explica) }; null lo quita.
    *  Cada frase se ve al menos 2,4 s: si llega otra antes, espera su turno (solo la última que llega) */
   comenta(c) {
@@ -835,7 +901,8 @@ export class PelotaHud {
     if (this.gT > 0 && (this.gT -= dt) <= 0) this._g?.classList.remove('on');
     if (this.comT > 0) { this.comVisto += dt; if ((this.comT -= dt) <= 0) this._com?.classList.remove('on'); }
     if (this.comSig && (this.comT <= 0 || this.comVisto >= 2.4)) { const c = this.comSig; this.comSig = null; this.comT = 0; this.comenta(c); }
-    if (this.callT > 0 && (this.callT -= dt) <= 0) { this.$('.pel-call').classList.remove('on'); this.root.classList.remove('calling'); }
+    if (this.callT > 0 && (this.callT -= dt) <= 0) { this.$('.pel-call').classList.remove('on'); if (!(this.autorT > 0)) this.root.classList.remove('calling'); }
+    if (this.autorT > 0 && (this.autorT -= dt) <= 0) { this.$('.pel-autor').classList.remove('on'); if (!(this.callT > 0)) this.root.classList.remove('calling'); }
     if (this.qT > 0 && (this.qT -= dt) <= 0) this.$('.pel-q').classList.remove('on');
   }
   panel(html) {
