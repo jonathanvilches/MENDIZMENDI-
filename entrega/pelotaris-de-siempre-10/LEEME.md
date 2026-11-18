@@ -82,3 +82,16 @@ Con el estilo detallado de los vecinos de siempre (referencia: el hombre y la mu
 | quesera | 01a1ee37-6b26-73a2-a8d1-6f6872d37801 | 01a1eede-b1fc-7376-8181-859bcb18e30f | 01a1eeee-87a7-711a-ad96-b4ad42956ad3 | 01a1eeef-0817-734e-adf4-1dea20fb2f22 | 01a1eeef-0a7f-70e8-87f2-2bf722da3930 |
 
 El 3D, sin pedir la pose en cruz (cambiaba las proporciones); la textura, oscurecida con tools/vecino-tono.mjs.
+
+## Campesinos y panaderos rehechos el 18 de noviembre (igual que los queseros)
+
+| Vecino | Imagen | 3D | Esqueleto | Quieto (Alert) | Charla |
+|---|---|---|---|---|---|
+| campesino | 01a1eeee-5968-737c-aacb-aa49733a2202 | 01a1eef2-17d1-7649-bafb-22a28309c261 | 01a1eef8-c8b7-7153-b507-8403ceafa423 | 01a1eef9-8714-77e3-98b8-6a76b0daabf6 | 01a1eef9-885e-7685-aea5-ae303a561472 |
+| campesina | 01a1eeee-6846-7793-98d1-943026c44cf9 | 01a1eef2-1db9-74e8-91ee-e8e5116411aa | 01a1eef8-d8d6-7163-b612-b25e4219e6a3 | 01a1eef9-89db-714f-aba2-8b2955578e0f | 01a1eef9-8b17-7787-9a36-f195b0994b6c |
+| panadero | 01a1eeee-6075-72a9-8864-6789438f7026 | 01a1eef2-2194-71b3-956d-09f822e32758 | 01a1eef8-e735-76ce-95f2-db7e3da37970 | 01a1eef9-8c22-7375-a249-e7726d0fa92e | 01a1eef9-8db5-7089-aa95-6a9cf5dceaca |
+| panadera | 01a1eeee-6f57-75b1-9e2e-15f3335f74de | 01a1eef2-26fc-7662-ab92-2e54ae9ef1d1 | 01a1eef8-f463-76e4-b9d5-38bba59caa85 | 01a1eef9-8ec4-7305-a5bc-b5dc6d52909b | 01a1eef9-9034-7600-ba53-959faccbc30c |
+
+Montaje de cada uno: tools/meshy-rig-vecino.mjs → tools/vecinos-glb.mjs → tools/vecino-tono.mjs (rellena los huecos de
+la textura y la oscurece) → FUENTE=src/assets/meshy/vecinos SOLO=<nombre> node tools/meshy-lod.mjs 0.5 512 (la ligera a
+la mitad de triángulos: con menos, la cara salía con manchas) → tools/meshy-costuras.mjs → tools/vecinos-cerca.mjs.

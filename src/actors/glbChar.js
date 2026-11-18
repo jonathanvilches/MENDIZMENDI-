@@ -127,7 +127,7 @@ const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
 // escrito por si un día se rehace alguno)
 // (los queseros sí se han rehecho ese día, en Meshy, como los vecinos de siempre, cabezones y con su ropa detallada: «los queseros igual
 // son algo diferentes… adapta los queseros a los personajes que ya tenemos». Traen el esqueleto y las animaciones de la API de Meshy, como los rediseñados)
-export const REDISENO = new Set(['quesero', 'quesera']);
+export const REDISENO = new Set(['quesero', 'quesera', 'campesino', 'campesina', 'panadero', 'panadera']);
 const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
   ...(src.Chat && (REDISENO.has(name) || !CHARLA_MAL.has(name)) ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
