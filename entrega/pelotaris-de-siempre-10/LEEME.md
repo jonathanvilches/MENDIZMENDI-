@@ -25,8 +25,8 @@ Los jueces y el público del mismo estilo (imágenes hechas en Meshy a partir de
 
 | figura | archivo del juego | tarea de Meshy (3D) |
 |---|---|---|
-| juez | src/assets/meshy/lod/juez_hombre.glb | 01a1ede6-4905-74f8-ad45-95ffe0c37622 |
-| jueza | src/assets/meshy/lod/juez_mujer.glb | 01a1ede6-4f30-7116-8653-a5652dc25820 |
+| juez (de verde, como los de verdad: polo verde y pantalón oscuro) | src/assets/meshy/lod/juez_hombre.glb | 01a1ee0f-48b0-7260-b768-12bc0a3bc87d |
+| jueza (de verde) | src/assets/meshy/lod/juez_mujer.glb | 01a1ee0f-4d2a-72eb-83fd-632ba09c39f1 |
 | espectador de la txapela | aficion_hombre.glb | 01a1ede6-5444-7102-853e-e7cb92d507b7 |
 | espectadora del pañuelo | aficion_mujer.glb | 01a1ede6-57e6-754a-bde6-59be5308d551 |
 | abuelo | aficion_abuelo.glb | 01a1ede6-5b3a-74cb-b2a9-6ff55d96abb1 |

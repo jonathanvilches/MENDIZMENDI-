@@ -88,7 +88,9 @@ for v in bm.verts:
     # (lo azul nunca: si el pelo de la nuca toca el cuello de la camiseta, Meshy los da en una sola pieza)
     # (o con el centro por encima del cuello y sin llegar a los brazos: los mechones sueltos junto a la cara y los cabos
     # de la trenza, que si no se iban con los hombros y cruzaban la cara al moverse)
-    if min(zs) > 0.66 or ((max(zs) > 0.9 or sum(zs) / len(zs) > float(os.environ.get('CENTRO', '0.645'))) and xa < 0.2): cab += [i for i in isla if i not in azules or fz(P[i].z) > 0.7]
+    # (y nunca una pieza que llegue a las piernas: al juez, Meshy le dio la cabeza, el tronco y el pantalón en una sola, sin
+    # los brazos, y se quedaba sin pantalón)
+    if min(zs) > 0.66 or ((max(zs) > 0.9 or sum(zs) / len(zs) > float(os.environ.get('CENTRO', '0.645'))) and xa < 0.2 and min(zs) > 0.2): cab += [i for i in isla if i not in azules or fz(P[i].z) > 0.7]
 bm.free()
 # (los hilos: a la de la melena le cuelgan del pelo unos hilos finísimos hasta las piernas; el pelo de ninguno baja del
 # pecho, así que lo que sea pelo y esté más abajo se borra)
