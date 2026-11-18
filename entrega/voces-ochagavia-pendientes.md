@@ -8,8 +8,8 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 
 | Quién | Voz | Frases |
 |---|---|---|
-| Maite | Lulú, rechazada: busca voz nueva | 18 |
-| Itziar | Rosa, rechazada: busca voz nueva | 11 |
+| Maite | Francesca Dari (aprobada el 17 de noviembre) | 17 con voz, 1 por rehacer |
+| Itziar | Irma la Dulce (aprobada el 17 de noviembre) | 10 con voz, 1 por rehacer |
 | Joxemari | Rafael | 11 |
 | Kike | Leo | 7 |
 | Ainhoa | Sofía | 9 |
@@ -20,7 +20,7 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 | Arantxa | Mari | 33 |
 | Narradora: avisos, premios, catalejo y cartas | Nico | 46 |
 
-## Pendiente
+## Pendiente (apuntado el 16 de noviembre; superado, ver «Lo que falta el 18 de noviembre»)
 
 - Maite e Itziar: el autor rechaza sus voces, «son un horror y pronuncian fatal». Se le mandan muestras gratis de voces nuevas de castellano de España y, cuando elija, se graban de nuevo sus 18 y 11 frases.
 - Maite dice cuatro palabras en euskera que su voz actual lee mal: Kaixo, Itziar, Joxemari y Zarratrako. Se arreglan al grabarla con la voz que elija el autor.
@@ -64,6 +64,23 @@ Todas las frases fijas de las misiones tienen voz: las 162 grabaciones del manif
 | Maite e Itziar con sus voces nuevas | 18 y 11 | Inés y Nuria, a falta del visto bueno de las pruebas | Se graban de nuevo cuando el autor apruebe |
 
 En total, unas 150 grabaciones y unos 9.000 caracteres. A ElevenLabs le quedan este mes 29.668 caracteres.
+
+## Lo que falta el 18 de noviembre
+
+Contado de nuevo comparando `src/game/game.js` con `manifiesto.json`. Inés y Nuria quedaron rechazadas el 17; Maite habla con Francesca e Itziar con Irma, y sus 27 frases aprobadas están en el juego. Todas las frases fijas de misión tienen voz menos estas.
+
+| Qué | Vecino y voz | Estado |
+|---|---|---|
+| «¡Ya conoces el corazón de Otsagabia!» (`maite-05`) | Maite, Francesca | Rehecha, dos tomas en `entrega/voces-prueba-3`, a falta de que el autor elija |
+| «Gabon. Soy Itziar. Esta es la iglesia de San Juan Evangelista.» (`itziar-00n`) | Itziar, Irma | Rehecha, dos tomas en `entrega/voces-prueba-3`, a falta de que el autor elija |
+| «Te faltan 2 cintas» … «Te faltan 7 cintas» (6 grabaciones cortas; «Te falta 1 cinta» ya tiene voz) | Maite, Francesca | Sin grabar: el autor decide |
+| «Te falta 1 escudo / Te faltan 2 / 3 escudos. Busca casas grandes de piedra, con balcón de hierro.» (3, o una sola sin la cuenta) | Itziar, Irma | Sin grabar: el autor decide |
+| «Llevas N de 5. Los buitres se ven mejor…» | Joseba, Martín | El autor las quitó el 17. Hay un corte sin la cuenta en `entrega/voces-cuentas/sin-cuenta/joseba.mp3`, sin aprobar |
+| «¡Muy bien! Has acertado N de M. Para la fiesta hacen falta al menos K.» | El Bobo, Lucas | Sin grabar: tres números que cambian |
+| Las preguntas de después de los escudos: Itziar pregunta lo mismo que Arantxa y suena la grabación de Arantxa (Mari) | Itziar | Fallo: o se calla la voz en las preguntas de Itziar, o se graban con Irma (31 grabaciones) |
+| Avisos con cuenta o nombre: misión nueva (9), carta nueva (26), cinta conseguida (8), escudo encontrado (3), basura (5), ovejas en el redil (6), «¡Encontrado!» (3), animal anotado, estrellas, pelota con Kike | Narradora, Nico | El 17 el autor dijo «no hace falta el recuento» y no se grabaron. Solo si lo pide |
+
+Créditos de ElevenLabs el 18 de noviembre: quedan unos 18.000 de 129.958 este mes.
 
 ## Personajes que siguen con el cuerpo antiguo
 
