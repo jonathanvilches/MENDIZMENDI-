@@ -1637,7 +1637,9 @@ export class PelotaMatch {
       const cam = who === 'you' && this.cuerpo?.visto && (turn || ((g.phase === 'serveWait' || g.phase === 'servePrep') && g.serverP() === 'you')) ? this.cuerpo : null;
       // ¿va hacia atrás? (de espaldas a donde corre: las piernas, al revés, en vez de correr hacia delante sin moverse así)
       const back = (P.speed || 0) > 0.4 && (P.vx * Math.sin(P.yaw) + P.vz * Math.cos(P.yaw)) < -0.35 * P.speed;
-      const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer', lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
+      const st = { speed: Math.max(P.speed || 0, S.v), back, act: P.act, actT: P.actT, wind, swing: swingAge < 0.4 ? swingAge / 0.4 : -1, won: g.phase === 'point' && P.act === 'cheer',
+        // (acabado el partido, el que lo gana baila: cada pelotari, su baile; actors/glbChar.js, doDance)
+        baila: g.phase === 'end' && g.mode !== 'rally' && (g.score.you > g.score.rival) === (g.side(who) === 'you'), lost: g.phase === 'point' && P.act === 'sad', saluda: !!this.entra?.ok[who],
         // (el cansancio se ve: encorvado y respirando deprisa, más entre tanto y tanto; glbChar.js, armSwing)
         tired: g.mode === 'match' ? g.tired(who) : 0, entre: g.phase === 'point' || g.phase === 'serveWait' || g.phase === 'descanso',
         // (el armado del golpe que viene y el golpe que se da; y si se desplaza de lado mirando al frontis: pasos laterales)

@@ -31,10 +31,7 @@ const ZONES = {
   pelotari: `
     bool white = s < 0.16 && v > 0.45, blue = h > 0.5 && h < 0.72 && s > 0.4;
     if (y > 0.36 && y < 0.7 && blue && uShirt.w > 0.) return noTone(uShirt, v, 0.65);
-    if (y > 0.07 && y <= 0.36 && white && uPants.w > 0.) return noTone(uPants, v, 0.76);
-    // (el tono de piel de cada pelotari, pelota/aspectos.js: la piel es lo claro y anaranjado o rosado de los brazos,
-    // el cuello y la cara; los tacos de las manos, más amarillos, y el blanco de los ojos se quedan como son)
-    if (uSkin.w > 0. && y > 0.3 && v > 0.42 && s > 0.1 && s < 0.62 && (h < 0.082 || h > 0.955)) return cs * mix(vec3(1.), uSkin.rgb, smoothstep(0.1, 0.17, s));`,
+    if (y > 0.07 && y <= 0.36 && white && uPants.w > 0.) return noTone(uPants, v, 0.76);`,
   osasuna: `
     bool red = (h < 0.05 || h > 0.93) && s > 0.6 && v > 0.35, navy = h > 0.55 && h < 0.78 && s > 0.3 && v < 0.45;
     if (y > 0.36 && y < 0.66 && red && uShirt.w > 0.) return noTone(uShirt, v, 0.78);
@@ -46,6 +43,12 @@ ZONES.osasuna_fuera = `
     if (y > 0.43 && y < 0.66 && white && uShirt.w > 0.) return noTone(uShirt, v, 0.76);   // (más abajo, las manos claras)
     if (y > 0.12 && y < 0.42 && dark && uPants.w > 0.) return noTone(uPants, v, 0.24);`;
 ZONES.pelotari_rojo = ZONES.pelotari;
+// (los 10 de siempre: la misma ropa; de colorado, su camiseta azul teñida, como la pelotari)
+// (su camiseta baja algo más que la del pelotari y, con moño o coleta alta, queda más abajo en la altura total: con la
+// franja del pelotari se quedaba una tira azul en el bajo)
+for (let i = 1; i <= 5; i++) ZONES['pelotari_chico' + i] = ZONES['pelotari_chica' + i] = `
+    bool blue = h > 0.5 && h < 0.72 && s > 0.4;
+    if (y > 0.2 && y < 0.72 && blue && uShirt.w > 0.) return noTone(uShirt, v, 0.65);`;
 // el juez (el futbolista, todo de negro): también el rojo de los bordes y de las sombras, el de las medias y las
 // zapatillas. Con solo el rojo vivo de la camiseta quedaban motas rojas sobre el negro y las zapatillas rojas. El rojo
 // apagado, solo si es oscuro: la piel, del mismo tono pero clara, no se toca; la cara queda por encima
@@ -66,8 +69,7 @@ const hsv = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new
 /** Tiñe la ropa y el pelo de un vecino de Meshy. model: nombre del modelo; O: { shirt, pants, vest, acc, hair }. */
 export function outfitTint(root, model, O) {
   const Z = ZONES[model]; if (!Z) return;
-  // (skin: [r, g, b], por lo que se multiplica la piel pintada; solo en los modelos cuya zona lo mira: el pelotari)
-  const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc), uSkin: O.skin ? new THREE.Vector4(O.skin[0], O.skin[1], O.skin[2], 1) : new THREE.Vector4(1, 1, 1, 0) };
+  const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc) };
   root.traverse(o => {
     // (el pelo de las chicas va en sus propias mallas: solo toma su color)
     if (o.userData.peloColor) { if (O.hair) { o.material = peloMaterial(peloEmisivo(o.material.clone()), O.hair); o.material.userData.own = true; } return; }
@@ -80,7 +82,7 @@ export function outfitTint(root, model, O) {
       sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vNoY; uniform vec2 uKitY;')
         .replace('#include <begin_vertex>', '#include <begin_vertex>\nvNoY = (position.y - uKitY.x) / uKitY.y;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-uniform vec4 uShirt, uPants, uVest, uAcc, uSkin; varying float vNoY;
+uniform vec4 uShirt, uPants, uVest, uAcc; varying float vNoY;
 ${HSV}
 vec3 noOutfit(vec3 lin){
   vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = noHsv(cs); float h = q.x, s = q.y, v = q.z, y = vNoY;

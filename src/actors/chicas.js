@@ -20,15 +20,11 @@ const urls = (g) => Object.fromEntries(Object.entries(g).map(([p, u]) => [p.spli
 // completos (@chicas en vite.config.js); ligeras, la sanferminera (vecinas, corredoras del encierro y trajes) y la del
 // polo (las chicas del público del frontón, crowd3d.js). tools/chicas prepara las tres de las dos maneras; las que no se
 // usan no van en el juego
-// (pelotari_chico: el pelotari chico con la cabeza lisa, para sus otros peinados; como la pelotari, pero con su cara de
-// chico: cejas más gruesas, sin pestañas ni labios pintados. pelota/aspectos.js)
-const FULL = urls(import.meta.glob('@chicas/{osasuna,pelotari,pelotari_chico,sanfermin}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
+const FULL = urls(import.meta.glob('@chicas/{osasuna,pelotari,sanfermin}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
 const LOD = urls(import.meta.glob('../assets/chicas/lod/{sanfermin,osasuna}.{parche,webp}', { eager: true, query: '?url', import: 'default' }));
-// (los peinados de los pelotaris: los de ellas —coleta, trenza, moño, melena y rizos— y los de ellos —corto, de punta,
-// rapado y melenita—; tools/blender/chicas/pelo.py)
-const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,osasuna-coleta-lod,pelotari-coleta,pelotari-trenza,pelotari-mono,pelotari-melena,pelotari-rizos,pelotari-corto,pelotari-punta,pelotari-rapado,pelotari-melenita,sanfermin-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
+const PELO = urls(import.meta.glob('../assets/chicas/pelo/{osasuna-coleta,osasuna-coleta-lod,pelotari-coleta,sanfermin-coleta,sanfermin-coleta-lod}.glb', { eager: true, query: '?url', import: 'default' }));
 /** ¿Hay chica para este modelo de Meshy con este peinado (null: sin peinado), completa o ligera? */
-export const hasChica = (name, peinado = 'coleta', lod = false, cabeza = '') => !!((lod ? LOD : FULL)[name + cabeza + '.parche'] && (!peinado || PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`]));
+export const hasChica = (name, peinado = 'coleta', lod = false) => !!((lod ? LOD : FULL)[name + '.parche'] && (!peinado || PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`]));
 
 // ---- el parche: tiras comprimidas con el códec de vértices de meshopt (el mismo que ya descomprime los modelos) ----
 async function leerParche(url) {
@@ -146,13 +142,12 @@ const cache = new Map();
 /** Chica de un modelo de Meshy (el que haga de ella: futbolista, pelotari, sanferminera…) con su peinado (sin peinado,
  *  null: la cabeza lisa, para los trajes que traen su propio pelo o tocado; las pestañas van pintadas en la cara). Como
  *  loadMeshy: { scene, animations, userData: { fit, meshy, chica } }. lod: la versión ligera, para multitudes. */
-// cabeza: '' la de chica; '_chico', la del chico de cabeza lisa (solo el pelotari), con los peinados de chico
-export function loadChica(name, peinado = 'coleta', lod = false, cabeza = '') {
-  const key = `${name}${cabeza}:${peinado}:${lod ? 'lod' : ''}`;
+export function loadChica(name, peinado = 'coleta', lod = false) {
+  const key = `${name}:${peinado}:${lod ? 'lod' : ''}`;
   if (!cache.has(key)) cache.set(key, (async () => {
     const S = lod ? LOD : FULL, pelo = peinado && PELO[`${name}-${peinado}${lod ? '-lod' : ''}.glb`];
-    if (!S[name + cabeza + '.parche'] || (peinado && !pelo)) throw new Error(`no hay chica ${name}${cabeza} ${peinado || ''}${lod ? ' ligera' : ''}`);
-    const [base, P, det, gp] = await Promise.all([loadMeshy(name, lod), leerParche(S[name + cabeza + '.parche']), imagen(S[name + cabeza + '.webp']), pelo ? loadChar(pelo) : null]);
+    if (!S[name + '.parche'] || (peinado && !pelo)) throw new Error(`no hay chica ${name} ${peinado || ''}${lod ? ' ligera' : ''}`);
+    const [base, P, det, gp] = await Promise.all([loadMeshy(name, lod), leerParche(S[name + '.parche']), imagen(S[name + '.webp']), pelo ? loadChar(pelo) : null]);
     const scene = SkeletonUtils.clone(base.scene);
     let body = null; scene.traverse(o => { if (!body && o.isSkinnedMesh && o.material?.map) body = o; });
     body.geometry = aplicar(body.geometry, P);

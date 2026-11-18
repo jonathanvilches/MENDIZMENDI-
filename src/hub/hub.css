@@ -1195,6 +1195,15 @@ img.sp-media:not(.sp-em) { width: 44px; height: 44px; }   /* (la lámina del fro
 .onb-age button.on { border-color: #ff7ac8; background: rgba(255, 122, 200, .16); }
 @media (orientation: landscape) and (max-height: 440px) { .onb-age button small { display: none; } .onb-age button { min-height: 44px; } }
 .set-note { margin: 0 0 8px; font-size: var(--fs-sm); color: var(--mute); }
+/* tu pelotari: los 10 de siempre, en dos filas de cinco (chicos arriba, chicas abajo); el elegido, con su borde */
+.set-p10 { display: block; }
+.set-p10 > span { display: block; margin-bottom: 6px; }
+.p10 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.p10 button { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 44px; padding: 4px 2px; border: 2px solid transparent; border-radius: 12px; background: rgba(255, 255, 255, .06); color: inherit; font: inherit; cursor: pointer; }
+.p10 button img { width: 100%; max-width: 84px; aspect-ratio: 1; border-radius: 50%; object-fit: cover; }
+.p10 button small { font-size: 11px; line-height: 1.15; text-align: center; color: var(--mute); }
+.p10 button[aria-checked="true"] { border-color: var(--gold, #f2c230); background: rgba(242, 194, 48, .14); }
+.p10 button[aria-checked="true"] small { color: inherit; }
 
 /* ================= Móvil en horizontal: el formato principal =================
    Pantalla baja (≤ 500 px de alto): todo a mano del pulgar, nada importante por debajo del pliegue, textos legibles
