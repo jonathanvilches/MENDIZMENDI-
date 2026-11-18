@@ -34,5 +34,5 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, por la tarde (segunda del día), la hizo la ventana principal: todo lo de `master` hasta `a502991f` (la
+- 18 nov, 15:04 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `a502991f` (la
   equipación de los pelotaris, las 22 cartas animadas y lo de personajes hasta `4e90b45d`, que ya iba en la anterior).
