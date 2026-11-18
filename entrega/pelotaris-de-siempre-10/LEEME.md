@@ -71,3 +71,10 @@ plantilla tiene ya su modelo (src/assets/meshy/pelotari_<nombre>.glb) y su carta
 | aficion_gafas | 01a1ee26-5c55-7063-accc-1c44ad15268a | 01a1ee27-875d-7191-9528-396837b08c07 |
 | aficion_rubia | 01a1ee26-6306-7587-83da-d10d4d782a5c | 01a1ee27-8bd6-72ba-8503-b9b5d7835899 |
 | aficion_nino | 01a1ee26-6988-7161-b8c6-eac2f129a536 | 01a1ee27-8f55-7036-9c10-ded59b405155 |
+
+## Queseros rehechos el 18 de noviembre (Meshy: imagen → 3D → esqueleto → animaciones)
+
+| Vecino | Imagen | 3D | Esqueleto | Quieto (Alert) | Charla |
+|---|---|---|---|---|---|
+| quesero | 01a1ee2f-a83d-7201-a051-978455ee1b27 | 01a1ee30-b96a-7410-a3ee-bdbb6518440c | 01a1ee33-1cb4-7001-9035-69f63fd65e5c | 01a1ee33-ae16-7167-b208-c96f8c1042e8 | 01a1ee33-af85-75a6-b036-cec696587d6a |
+| quesera | 01a1ee2f-afb5-7610-94b5-8f810b480203 | 01a1ee30-bdbf-73b1-9b92-17ace9e9df0c | 01a1ee33-2aad-779c-ba7c-7e9948781795 | 01a1ee33-b0bf-7651-b2d6-7e931634f168 | 01a1ee33-b27f-746b-8f91-e9e7e162058e |
