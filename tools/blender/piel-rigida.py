@@ -70,7 +70,67 @@ HOMBRO = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Arm'].head_local, arm
 # (la cadera: la altura de la articulación de la pierna; la cintura: del principio de la columna a 9 cm más arriba)
 Z_CAD = max((arm.matrix_world @ arm.data.bones[pre + s + 'UpLeg'].head_local).z for s in ('Left', 'Right'))
 Z_CINT0 = (arm.matrix_world @ arm.data.bones[pre + 'Spine'].head_local).z + 0.03; Z_CINT1 = Z_CINT0 + 0.09
+# LA CABEZA Y EL PELO, ENTEROS CON LA CABEZA. Meshy no siempre cuelga la cabeza de su hueso: a la pelotari de la coleta
+# (18 nov) le colgó media cabeza y toda la coleta del hueso del cuello, que aquí va con el torso; al inclinar la cabeza
+# en los golpes, la cara giraba y el pelo se quedaba con el tronco: el flequillo le tapaba la cara, la coleta se partía y
+# unos puntos de la punta, repartidos al brazo, salían estirados desde la mano. Dos reglas, iguales para todos:
+#  - por encima de la barbilla (donde nace el hueso de la cabeza) todo es cabeza, con una franja corta de paso al cuello;
+#  - por debajo, lo que tiene el color del pelo (el de la coronilla, leído de la textura) y no el de la piel del cuello ni
+#    el de la camiseta es pelo que cuelga (coleta, melena, trenza) y va también con la cabeza.
+import numpy as np
+P_CAB = arm.matrix_world @ arm.data.bones[pre + 'Head'].head_local; P_CUE = arm.matrix_world @ arm.data.bones[pre + 'Neck'].head_local
+Z_PECHO = (arm.matrix_world @ arm.data.bones[pre + 'Spine2'].head_local).z
+CODO = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local, arm.matrix_world @ arm.data.bones[pre + s + 'Hand'].head_local) for s in ('Left', 'Right')]
+MUNECA = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Hand'].head_local, ((arm.matrix_world @ arm.data.bones[pre + s + 'Hand'].head_local) - (arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local)).normalized()) for s in ('Left', 'Right')]
+def colores(me):
+    try:
+        img = next(n.image for m in me.data.materials if m and m.use_nodes for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image)
+        c = img.copy(); c.scale(512, 512); px = np.empty(512 * 512 * 4, np.float32); c.pixels.foreach_get(px); bpy.data.images.remove(c)
+        px = px.reshape(512, 512, 4)[:, :, :3]; uv = me.data.uv_layers.active.data; col = np.zeros((len(me.data.vertices), 3), np.float32)
+        for l in me.data.loops:
+            u_, v_ = uv[l.index].uv; col[l.vertex_index] = px[int(min(511, max(0, v_ * 512))), int(min(511, max(0, u_ * 512)))]
+        W = [me.matrix_world @ v.co for v in me.data.vertices]; top = max(p.z for p in W)
+        med = lambda idx: np.median(col[idx], axis=0) if len(idx) >= 20 else None
+        pelo = med([i for i, p in enumerate(W) if p.z > top - 0.035])
+        frente = min(p.y for p in W if p.z > P_CAB.z)   # (el personaje mira a −Y: lo más adelantado de la cabeza es la cara)
+        piel = med([i for i, p in enumerate(W) if P_CAB.z + 0.02 < p.z < P_CAB.z + 0.10 and p.y < frente + 0.035 and abs(p.x) < 0.03])   # (la piel, la de la cara: barbilla, boca y nariz)
+        ropa = med([i for i, p in enumerate(W) if Z_PECHO - 0.10 < p.z < Z_PECHO and p.y < P_CAB.y and abs(p.x) < 0.10])
+        if pelo is None or piel is None or ropa is None: print('sin colores de referencia: pelo, piel, ropa =', pelo, piel, ropa); return None
+        print('colores  pelo', np.round(pelo, 2), ' piel', np.round(piel, 2), ' ropa', np.round(ropa, 2))
+        def es_pelo(i):
+            dh, ds, dr = (float(np.linalg.norm(col[i] - r_)) for r_ in (pelo, piel, ropa))
+            return dh < 0.22 and dh < 0.8 * ds and dh < 0.6 * dr
+        # (solo el pelo UNIDO al de la cabeza: se baja desde el pelo de encima de la barbilla, de punto en punto por las
+        # aristas, mientras el color siga siendo de pelo. Con el color a secas, los pliegues en sombra de la camiseta
+        # colorada pasaban por pelo castaño y, colgados de la cabeza, salían de la camiseta como pinchos)
+        # (al bajar, el pelo en sombra también cuenta —el de debajo de la coleta sale más oscuro en la textura—, y lo que
+        # cuelga claramente por detrás de la espalda; nunca lo que está dentro del cuello, que es piel aunque esté en
+        # sombra, y por debajo de los hombros solo con el color claro de pelo, para no coger la camiseta)
+        refs = (pelo, pelo * 0.6, piel, ropa, ropa * 0.6); eje = P_CAB - P_CUE
+        def sigue(i):
+            p_ = W[i]; atras = p_.y > P_CAB.y + 0.15
+            if p_.z < P_CUE.z: return atras or es_pelo(i)
+            c_ = P_CUE + eje * ((p_.z - P_CUE.z) / max(1e-6, eje.z))
+            if ((p_.x - c_.x) ** 2 + (p_.y - c_.y) ** 2) ** 0.5 < 0.07: return False
+            return atras or int(np.argmin([float(np.linalg.norm(col[i] - r_)) for r_ in refs])) < 2
+        rep = {}; llave = {}
+        for i, p_ in enumerate(W): rep[i] = llave.setdefault((round(p_.x, 4), round(p_.y, 4), round(p_.z, 4)), i)
+        ady = {}; grupo = {}
+        for e in me.data.edges:
+            a_, b_ = rep[e.vertices[0]], rep[e.vertices[1]]
+            if a_ != b_: ady.setdefault(a_, set()).add(b_); ady.setdefault(b_, set()).add(a_)
+        for i, r_ in rep.items(): grupo.setdefault(r_, []).append(i)
+        Z0 = P_CAB.z - 0.015
+        cola = [r_ for r_ in grupo if W[r_].z > Z0 and es_pelo(r_)]; visto = set(cola); cuelga = set()
+        while cola:
+            x_ = cola.pop()
+            for y_ in ady.get(x_, ()):
+                if y_ in visto or W[y_].z > Z0: continue
+                if W[y_].z > P_CUE.z - 0.25 and abs(W[y_].x) < 0.2 and sigue(y_): visto.add(y_); cola.append(y_); cuelga.update(grupo[y_])
+        return cuelga
+    except Exception as e: print('sin colores:', e); return None
 for me in mallas:
+    COL = colores(me)
     nombres = [g.name for g in me.vertex_groups]
     nuevo = []; cuenta = {'franja': 0, 'entero': 0, 'sin_art': 0}
     for v in me.data.vertices:
@@ -162,6 +222,35 @@ for me in mallas:
                     x_ = res.pop('pecho'); res['pecho'] = x_ * (1 - k_); res[s_ + 'clav'] = res.get(s_ + 'clav', 0) + x_ * k_
                     if res['pecho'] < 1e-4: res.pop('pecho')
                     cuenta['clavicula'] = cuenta.get('clavicula', 0) + 1; break
+        Pc = me.matrix_world @ v.co
+        if Pc.z > P_CAB.z - 0.015:
+            tc = suave(P_CAB.z - 0.015, P_CAB.z + 0.025, Pc.z)
+            # (el paso al cuello, solo dentro del cuello: fuera de él —la mandíbula, el pelo que cruza a esa altura— todo
+            # es cabeza; si no, la coleta se partía justo a la altura de la barbilla)
+            cx_ = P_CUE + (P_CAB - P_CUE) * ((Pc.z - P_CUE.z) / max(1e-6, P_CAB.z - P_CUE.z))
+            if ((Pc.x - cx_.x) ** 2 + (Pc.y - cx_.y) ** 2) ** 0.5 > 0.07: tc = 1.0
+            if res.get('cabeza', 0) < tc - 0.25:
+                res = {p: x for p, x in (('cabeza', tc), ('pecho', 1 - tc)) if x > 1e-4}; cuenta['cabeza'] = cuenta.get('cabeza', 0) + 1
+        elif COL is not None and v.index in COL and res.get('cabeza', 0) < 0.99:
+            res = {'cabeza': 1.0}; cuenta['pelo'] = cuenta.get('pelo', 0) + 1
+        # LA MANO, ENTERA: lo que queda más allá de la muñeca, a lo largo del antebrazo, es mano. A la pelotari de la coleta
+        # (18 nov) el reparto por calor le dejó las puntas de los dedos de la mano derecha colgadas del hueso del brazo: al
+        # mover el brazo salía una línea larga desde la mano (los triángulos estirados de los dedos al sitio de reposo)
+        if not any(p.endswith('muslo') or p == 'pelvis' for p in res):
+            for s_, Wm, um in MUNECA:
+                dm = Pc - Wm; lm = dm.dot(um)
+                # (solo lo que está claramente mal: lo que no es ni mano ni antebrazo; el paso de la muñeca no se toca)
+                if lm > 0.03 and (dm - um * lm).length < 0.10 and res.get(s_ + 'mano', 0) + res.get(s_ + 'antebrazo', 0) < 0.5:
+                    res = {s_ + 'mano': 1.0}; cuenta['mano'] = cuenta.get('mano', 0) + 1
+            # EL ANTEBRAZO, ENTERO: lo que está a lo largo del antebrazo (pasados 6 cm del codo) no puede colgar del brazo. A
+            # la pelotari del moño el calor le dejó puntos de la muñequera con el hueso del brazo: al doblar el codo se
+            # quedaban atrás y salían como picos junto a la muñeca. Pasan al antebrazo, repartidos entre su hueso y el
+            # de giro como el resto (de nada en el codo a todo en la muñeca: tools/blender/huesos-extra.py)
+            for s_, Ec, Wm in CODO:
+                d_ = Wm - Ec; L_ = d_.length; u_ = d_ / L_; l_ = (Pc - Ec).dot(u_)
+                if 0.06 < l_ <= L_ + 0.03 and ((Pc - Ec) - u_ * l_).length < 0.06 and res.get(s_ + 'brazo', 0) > 0.5:
+                    tw_ = suave(0.0, 1.0, min(1.0, l_ / L_)); res = {s_ + 'antebrazo': 1.0}; ante.clear()
+                    ante[pre + s_ + 'ForeArm'] = 1 - tw_; ante[pre + s_ + 'ForeArmTwist'] = tw_; cuenta['codo'] = cuenta.get('codo', 0) + 1
         # de pieza a hueso (el antebrazo, repartido entre su hueso y el de giro como venía)
         out = {}
         for p, x in res.items():
@@ -180,7 +269,7 @@ for me in mallas:
     # (los huesos sin piel siguen en el esqueleto: el juego y las animaciones los usan)
     for b in arm.data.bones:
         if b.name not in grupos: me.vertex_groups.new(name=b.name)
-    inf.append(f'{me.name}: {len(me.data.vertices)} vértices, {cuenta["entero"]} enteros en su pieza, {cuenta["franja"]} en una franja de articulación, {cuenta["sin_art"]} con mezcla entre piezas que no se tocan (quitada), {cuenta.get("cintura", 0)} de cintura y cadera por altura, {cuenta.get("hombro", 0)} del hombro por la costura, {cuenta.get("clavicula", 0)} del hombro que sube con la clavícula')
+    inf.append(f'{me.name}: {len(me.data.vertices)} vértices, {cuenta["entero"]} enteros en su pieza, {cuenta["franja"]} en una franja de articulación, {cuenta["sin_art"]} con mezcla entre piezas que no se tocan (quitada), {cuenta.get("cintura", 0)} de cintura y cadera por altura, {cuenta.get("hombro", 0)} del hombro por la costura, {cuenta.get("clavicula", 0)} del hombro que sube con la clavícula, {cuenta.get("cabeza", 0)} de la cabeza y {cuenta.get("pelo", 0)} de pelo colgante pasados a la cabeza, {cuenta.get("mano", 0)} de más allá de la muñeca pasados a la mano, {cuenta.get("codo", 0)} del antebrazo quitados al brazo')
 arm.data.pose_position = 'POSE'
 bpy.ops.object.select_all(action='DESELECT'); bpy.context.view_layer.objects.active = arm
 bpy.ops.export_scene.gltf(filepath=SAL, export_format='GLB', export_animations=True)
