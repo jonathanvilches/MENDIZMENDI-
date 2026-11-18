@@ -88,11 +88,11 @@ for v in bm.verts:
     # (lo azul nunca: si el pelo de la nuca toca el cuello de la camiseta, Meshy los da en una sola pieza)
     # (o con el centro por encima del cuello y sin llegar a los brazos: los mechones sueltos junto a la cara y los cabos
     # de la trenza, que si no se iban con los hombros y cruzaban la cara al moverse)
-    if min(zs) > 0.66 or ((max(zs) > 0.9 or sum(zs) / len(zs) > 0.645) and xa < 0.2): cab += [i for i in isla if i not in azules or fz(P[i].z) > 0.7]
+    if min(zs) > 0.66 or ((max(zs) > 0.9 or sum(zs) / len(zs) > float(os.environ.get('CENTRO', '0.645'))) and xa < 0.2): cab += [i for i in isla if i not in azules or fz(P[i].z) > 0.7]
 bm.free()
 # (los hilos: a la de la melena le cuelgan del pelo unos hilos finísimos hasta las piernas; el pelo de ninguno baja del
 # pecho, así que lo que sea pelo y esté más abajo se borra)
-hilos = [i for i in cab if fz(P[i].z) < 0.54]
+hilos = [i for i in cab if fz(P[i].z) < float(os.environ.get('HILO', '0.54'))]   # (HILO: más abajo para una coleta larga; CENTRO: más abajo para unas trenzas con la punta suelta)
 gh = ob.vertex_groups['mixamorig:Head']
 for g in ob.vertex_groups:
     if g != gh: g.remove(cab)

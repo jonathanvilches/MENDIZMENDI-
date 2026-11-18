@@ -37,3 +37,27 @@ Los bailes: esqueleto de Meshy sobre el nº 1 (tarea 01a1edd5-5032-72fe-9219-8d4
 
 Cómo se rehace todo: tools/blender/pelotaris10/construir.sh (esqueleto del pelotari a cada malla) y tools/pelotaris10.mjs
 (archivos del juego). `en-el-juego.jpg`: los 10 dentro del juego, con el golpe, su baile y corriendo.
+
+## Los 22 (18 de noviembre, por la tarde)
+
+El autor: «deben coincidir las cards de los jugadores con los propios jugadores. Genérame todos». Cada nombre de la
+plantilla tiene ya su modelo (src/assets/meshy/pelotari_<nombre>.glb) y su carta sale del mismo dibujo
+(higgsfield/<nombre>.webp). Los 10 primeros son: inigo, unai, ander, aitor, mikel, garazi, maialen, irati, oihana, amaia
+(las tareas de la tabla de arriba, en ese orden). Los 12 nuevos:
+
+| nombre | tarea de Meshy |
+|---|---|
+| asier | 01a1edff-fc3c-7674-9f64-a7fb78a13948 |
+| jokin | 01a1ee00-03b4-709f-97ea-6bf4f359838a |
+| ekaitz | 01a1ee00-10c5-732b-bc49-05e610c1c7d9 |
+| xabier | 01a1ee00-1db9-7027-9f65-93bca331e4e5 |
+| inaki | 01a1ee00-e754-74b1-8a5d-39696a3b7f01 |
+| julen | 01a1ee00-f478-7351-9230-69c7efeeb766 |
+| nerea | 01a1ee01-01b3-76d7-ad8d-03dacfc1782b |
+| ane | 01a1ee01-0e72-70c9-af64-de2eb78f1833 |
+| nahia | 01a1ee01-84d8-702d-b575-6c727a892e11 |
+| leire | 01a1ee01-92d8-763f-94a4-17f61a89a594 |
+| miren | 01a1ee01-99e8-76d7-b897-2b57dd60a508 |
+| uxue | 01a1ee01-a698-742b-9de6-ad25754b118b |
+
+`los-22-cartas-y-juego.jpg`: las 22 cartas y los 22 en el juego, en el mismo orden.

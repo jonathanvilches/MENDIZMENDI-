@@ -1,4 +1,4 @@
-// Los 10 pelotaris de siempre (5 chicos y 5 chicas, pelota/aspectos.js) al juego. Cada uno llega de Blender
+// Los pelotaris de siempre (los 22 de la plantilla, 11 chicos y 11 chicas, cada uno con su aspecto: pelota/aspectos.js) al juego. Cada uno llega de Blender
 // (tools/blender/pelotaris10/esqueleto.py) como una malla de Meshy atada al esqueleto del pelotari de siempre, sin
 // animaciones. Aquí se mete esa malla DENTRO del archivo del pelotari de siempre (src/assets/meshy/pelotari.glb): sus
 // mismos huesos, su misma piel (las matrices de enlace) y sus mismos clips (Run, Walk, Slash y Fist), sin tocar un
@@ -7,7 +7,7 @@
 //  - los puntos se pasan del sitio de enlace del archivo de Blender al del pelotari (los dos en reposo, la misma pose)
 //  - cada hueso se busca por su nombre: el orden de los huesos en la piel no es el mismo
 //  - la textura a webp (2048 px en el ordenador, 1024 para el móvil y el archivo único) y la malla comprimida
-// Uso: node tools/pelotaris10.mjs <carpeta con 01-rizos.glb … 10-rizos.glb>
+// Uso: node tools/pelotaris10.mjs <carpeta con inigo.glb, unai.glb … uxue.glb>
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
 import { textureCompress, prune, dedup, reorder, meshopt, weld, simplify } from '@gltf-transform/functions';
@@ -17,8 +17,8 @@ import { statSync } from 'fs';
 const [,, DIR0] = process.argv;
 await MeshoptDecoder.ready; await MeshoptEncoder.ready; await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
-export const LISTA = [['01-rizos', 'pelotari_chico1'], ['02-corto', 'pelotari_chico2'], ['03-punta', 'pelotari_chico3'], ['04-rapado', 'pelotari_chico4'], ['05-melenita', 'pelotari_chico5'],
-  ['06-coleta', 'pelotari_chica1'], ['07-trenza', 'pelotari_chica2'], ['08-mono', 'pelotari_chica3'], ['09-melena', 'pelotari_chica4'], ['10-rizos', 'pelotari_chica5']];
+// (los 22 de la plantilla, ui/pelotariFig.js: cada uno su archivo, pelotari_<nombre>)
+export const LISTA = ["inigo", "unai", "mikel", "aitor", "inaki", "ander", "xabier", "jokin", "ekaitz", "julen", "asier", "oihana", "garazi", "maialen", "amaia", "irati", "nahia", "nerea", "leire", "ane", "miren", "uxue"].map(n => [n, 'pelotari_' + n]);
 // ---- matrices 4 × 4 por columnas, como en glTF
 const mul = (a, b) => { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c * 4 + r] += a[k * 4 + r] * b[c * 4 + k]; return o; };
 function inv(m) {   // (afín: la parte lineal por cofactores y el traslado)

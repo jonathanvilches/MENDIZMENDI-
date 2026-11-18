@@ -7,16 +7,15 @@
 #   - se encuadran como las ilustraciones de antes (2:3, la figura de pies a cabeza) en sus tres tamaños
 # Cada nombre de la plantilla (ui/pelotariFig.js) recibe la figura de su aspecto (pelota/aspectos.js): los archivos se
 # llaman igual que antes, así que las cartas, la pantalla VS y los marcadores no cambian de código.
-# Uso: python3 -I tools/pelotaris10-figuras.py <carpeta con 01-rizos.png … 10-rizos.png> [prueba.png]
+# Uso: python3 -I tools/pelotaris10-figuras.py <carpeta con inigo.png … uxue.png> [prueba.png]
 import sys, os, colorsys
 import numpy as np
 from PIL import Image, ImageFilter
 from collections import deque
 SRC = sys.argv[1]; R = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src', 'assets', 'pelotaris')
-ARCH = {'chico1': '01-rizos', 'chico2': '02-corto', 'chico3': '03-punta', 'chico4': '04-rapado', 'chico5': '05-melenita', 'chica1': '06-coleta', 'chica2': '07-trenza', 'chica3': '08-mono', 'chica4': '09-melena', 'chica5': '10-rizos'}
-# (el aspecto de cada nombre: el mismo reparto que pelota/aspectos.js)
-DE = {'inigo': 'chico1', 'asier': 'chico1', 'unai': 'chico2', 'jokin': 'chico2', 'ekaitz': 'chico2', 'ander': 'chico3', 'xabier': 'chico3', 'aitor': 'chico4', 'inaki': 'chico4', 'mikel': 'chico5', 'julen': 'chico5',
-      'garazi': 'chica1', 'nerea': 'chica1', 'ane': 'chica1', 'maialen': 'chica2', 'nahia': 'chica2', 'leire': 'chica2', 'irati': 'chica3', 'miren': 'chica3', 'oihana': 'chica4', 'uxue': 'chica4', 'amaia': 'chica5'}
+# (cada nombre de la plantilla, su dibujo: <carpeta>/<nombre>.png)
+DE = {n: n for n in ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue']}
+ARCH = {n: n for n in DE}
 def recorta(p):
     im = np.asarray(Image.open(p).convert('RGB')).astype(np.float32); H, W, _ = im.shape
     # el fondo de cada fila: entre el color de su borde izquierdo y el del derecho
@@ -52,13 +51,16 @@ hechas = {}
 for asp, f in ARCH.items():
     az = recorta(f'{SRC}/{f}.png'); hechas[asp] = (az, colorado(az)); print(asp, 'recortada')
 if len(sys.argv) > 2:      # (una hoja de prueba sobre dos fondos, para mirar los bordes)
-    L = Image.new('RGB', (300 * 10, 450 * 2), (30, 25, 60))
+    L = Image.new('RGB', (300 * 11, 450 * 4), (30, 25, 60))
     for i, asp in enumerate(ARCH):
         for r, c in ((0, (30, 25, 60)), (1, (235, 230, 215))):
-            t = Image.new('RGBA', (300, 450), c + (255,)); t.alpha_composite(encuadra(hechas[asp][r], 300, 450)); L.paste(t.convert('RGB'), (300 * i, 450 * r))
+            t = Image.new('RGBA', (300, 450), c + (255,)); t.alpha_composite(encuadra(hechas[asp][r], 300, 450)); L.paste(t.convert('RGB'), (300 * (i % 11), 450 * (r + 2 * (i // 11))))
     L.save(sys.argv[2], quality=90); sys.exit()
+import io
 for nombre, asp in DE.items():
     az, ro = hechas[asp]
-    for carpeta, img, (w, h), q in (('web/azul', az, (512, 768), 86), ('web/rojo', ro, (512, 768), 86), ('web/vs/azul', az, (1024, 1536), 88), ('web/vs/rojo', ro, (1024, 1536), 88), ('mini/rojo', ro, (256, 384), 82), ('mini/camiseta', az, (256, 384), 82)):
-        encuadra(img, w, h).save(f'{R}/{carpeta}/{nombre}.webp', quality=q, method=6)
+    # (y su cara, para elegirlo en Ajustes: src/assets/pelotaris10)
+    f = encuadra(az, 512, 768).crop((128, 6, 384, 262)).resize((192, 192), Image.LANCZOS); fo = Image.new('RGBA', (192, 192), (120, 130, 150, 255)); fo.alpha_composite(f); fo.convert('RGB').save(f'{R}/../pelotaris10/{nombre}.webp', quality=82)
+    for carpeta, img, (w, h), q in (('web/azul', az, (512, 768), 86), ('web/rojo', ro, (512, 768), 86), ('web/vs/azul', az, (1024, 1536), 88), ('web/vs/rojo', ro, (1024, 1536), 88), ('mini/rojo', ro, (256, 384), 66), ('mini/camiseta', az, (256, 384), 66)):
+        encuadra(img, w, h).save(f'{R}/{carpeta}/{nombre}.webp', quality=q, method=4)
 print('figuras de', len(DE), 'nombres')

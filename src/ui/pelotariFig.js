@@ -68,18 +68,18 @@ export function vecinoSrc(name, female = false) {
   if (!id) { const girl = female || nameGender(n) === 'f', pool = PLANTILLA.filter(p => p.girl === girl && p.id !== 'inigo'); id = pool[h % pool.length].id; }
   return ((h >>> 4) & 1 && AZUL[id]) || ROJO[id];
 }
-// LAS FIGURAS SON LAS DE LOS 10 PELOTARIS DE SIEMPRE (18 de noviembre de 2026; el autor: «adapta las imágenes que hay en el
-// juego para que coincidan los personajes, con las imágenes en las cards y marcadores»): cada nombre de la plantilla lleva
-// la figura de su aspecto en 3D (pelota/aspectos.js), hecha del mismo dibujo que su modelo (tools/pelotaris10-figuras.py),
-// así que la carta, la pantalla VS, el marcador y la cancha enseñan al mismo personaje. Los archivos se llaman como antes.
-// Tu figura es la del pelotari que has elegido en Ajustes (o, sin elegir, el primero de tu género): la de un nombre de la
-// plantilla que lleva ese aspecto. Solo para tu nombre tal cual; un rival que se llame como tú sale con su inicial detrás.
+// LAS FIGURAS SON LAS DE LOS PELOTARIS DE SIEMPRE EN 3D (18 de noviembre de 2026; el autor: «deben coincidir las cards de
+// los jugadores con los propios jugadores»): cada nombre de la plantilla tiene su modelo (pelota/aspectos.js) y su figura
+// sale del mismo dibujo que ese modelo (tools/pelotaris10-figuras.py), así que la carta, la pantalla VS, el marcador y
+// la cancha enseñan al mismo personaje. Los archivos se llaman como antes.
+// Tu figura es la del pelotari que has elegido en Ajustes (o, sin elegir, el primero de tu género). Solo para tu nombre
+// tal cual; un rival que se llame como tú sale con su inicial detrás. (DE_ASPECTO: lo elegido cuando eran 10)
 const DE_ASPECTO = { chico1: 'inigo', chico2: 'unai', chico3: 'ander', chico4: 'aitor', chico5: 'mikel', chica1: 'garazi', chica2: 'maialen', chica3: 'irati', chica4: 'oihana', chica5: 'amaia' };
 const AV_CHICA = new Set(['exploradora', 'leire', 'nahia', 'nerea']);
 function figId(name) {
   try {
     const P = profile(), mio = fold(String(P.name || '').trim()), n = fold(String(name || '').split(/[,·(]/)[0].trim());
-    if (mio && n === mio) return DE_ASPECTO[P.settings?.pelotari10] || DE_ASPECTO[AV_CHICA.has(P.avatar) ? 'chica1' : 'chico1'];
+    if (mio && n === mio) { const e = P.settings?.pelotari10; return (BY.has(e) && e) || DE_ASPECTO[e] || (AV_CHICA.has(P.avatar) ? 'garazi' : 'inigo'); }
   } catch (e) { /* sin perfil todavía: por su nombre */ }
   return pelotariId(name);
 }

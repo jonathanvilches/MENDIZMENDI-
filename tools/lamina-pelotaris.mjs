@@ -12,9 +12,9 @@ await p.goto('http://127.0.0.1:5173/?town=ituren&noflora&weather=clear&skipintro
 await p.waitForFunction(() => window.__game && window.__game.mode === 'play', null, { timeout: 400000 });
 await p.addStyleTag({ content: '#ui > *, #hud, .hud { display: none !important; }' });
 // (los 10, en orden: 5 chicos y 5 chicas, con la camiseta alternada: los pares, de colorado, teñida)
-const info = await p.evaluate(async () => {
+const info = await p.evaluate(async (ELLAS) => {
   const G = window.__game, T = window.__THREE;
-  const { loadMeshy, GlbChar, MESHY_GAIT, fullTexFor } = await import('/src/actors/glbChar.js'), { outfitTint } = await import('/src/actors/npcOutfit.js'), { ASPECTOS } = await import('/src/pelota/aspectos.js');
+  const { loadMeshy, GlbChar, MESHY_GAIT, fullTexFor } = await import('/src/actors/glbChar.js'), { outfitTint } = await import('/src/actors/npcOutfit.js'), { ASPECTOS: TODOS } = await import('/src/pelota/aspectos.js'), ASPECTOS = TODOS.filter(a => a.girl === ELLAS);
   G.player.obj.visible = false; for (const o of G.actors || []) if (o.obj) o.obj.visible = false;
   const P = G.player.pos, h = G.player.heading, chars = [], inf = [], QUIEN = ASPECTOS;
   for (let i = 0; i < ASPECTOS.length; i++) {
@@ -31,18 +31,16 @@ const info = await p.evaluate(async () => {
   window.__aim = (modo, i0 = 0, n = 5) => {
     const cen = new T.Vector3(); for (let k = i0; k < i0 + n; k++) cen.add(chars[k].obj.position); cen.multiplyScalar(1 / n);
     const cara = modo === 'cara' || modo === 'nuca', s = modo === 'espalda' || modo === 'nuca' ? -1 : 1, tgt = cen.clone(); tgt.y = P.y + (cara ? 1.33 : 0.85);
-    const d = cara ? 4.4 : 11.2, hh = modo === 'lado' ? h + 1.15 : h, pos = new T.Vector3(tgt.x - Math.sin(hh) * d * s, tgt.y + (cara ? 0.02 : 0.2), tgt.z - Math.cos(hh) * d * s);
+    const d = cara ? 4.4 : 12.2, hh = modo === 'lado' ? h + 1.15 : h, pos = new T.Vector3(tgt.x - Math.sin(hh) * d * s, tgt.y + (cara ? 0.02 : 0.2), tgt.z - Math.cos(hh) * d * s);
     G.follow.cinematic = { pos, look: tgt, t: 1, lookCur: tgt.clone() }; G.camera.position.copy(pos); G.camera.fov = cara ? 15.5 : modo === 'lado' ? 22 : 22; G.camera.updateProjectionMatrix(); G.camera.lookAt(tgt);
   };
   return inf;
-});
+}, !!process.env.CHICAS);   // (CHICAS=1: las 11 chicas; si no, los 11 chicos)
 const foto = async (nombre, ...a) => { for (let i = 0; i < 8; i++) { await p.evaluate((a) => window.__aim(...a), a); await p.waitForTimeout(300); } await p.screenshot({ path: `${out}/${nombre}.png` }); };
-await foto('frente', 'frente', 0, 10); await foto('espalda', 'espalda', 0, 10);
+await foto('frente', 'frente', 0, 11); await foto('espalda', 'espalda', 0, 11);
 // (corriendo, de medio lado: el pelo con el cuerpo en movimiento)
-await p.evaluate(() => { window.__vel = 5; }); await foto('corriendo', 'lado', 0, 10); await p.evaluate(() => { window.__vel = 0; });
+await p.evaluate(() => { window.__vel = 5; }); await foto('corriendo', 'lado', 0, 11); await p.evaluate(() => { window.__vel = 0; });
 // (un golpe y la celebración, a mitad del gesto)
-for (const [clip, ms] of [['Hit', 450], ['Celebrate', 600], ['Baile', 900], ['Baile', 2600]]) { await p.evaluate(() => window.__aim('frente', 0, 10)); await p.evaluate((k) => { for (const { c } of window.__ch) (c.playOnce || c.play)?.call(c, k); }, clip); await p.waitForTimeout(ms); await p.screenshot({ path: `${out}/gesto-${clip}-${ms}.png` }); await p.waitForTimeout(clip === 'Baile' ? 4500 : 1500); }
-await p.setViewportSize({ width: 1800, height: 420 });
-await foto('caras-chicos', 'cara', 0, 5); await foto('caras-chicas', 'cara', 5, 5); await foto('nucas-chicos', 'nuca', 0, 5); await foto('nucas-chicas', 'nuca', 5, 5);
+for (const [clip, ms] of [['Hit', 450], ['Celebrate', 600], ['Baile', 900], ['Baile', 2600]]) { await p.evaluate(() => window.__aim('frente', 0, 11)); await p.evaluate((k) => { for (const { c } of window.__ch) (c.playOnce || c.play)?.call(c, k); }, clip); await p.waitForTimeout(ms); await p.screenshot({ path: `${out}/gesto-${clip}-${ms}.png` }); await p.waitForTimeout(clip === 'Baile' ? 4500 : 1500); }
 console.log(info.join('  '), '\nerrores:', errs.length ? errs.slice(0, 6).join(' | ') : 'ninguno');
 await b.close();

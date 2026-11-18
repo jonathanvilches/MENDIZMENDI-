@@ -1088,10 +1088,10 @@ export class Hub {
         <p class="set-note">Letra más grande en los partidos de pelota y en las fichas de los pelotaris. Con alto contraste, el marcador, los avisos, los paneles y los botones van con fondo negro y bordes blancos.</p>
         <label class="set">Comentarista de los partidos <select id="pCom"><option value="duo">Dos comentaristas</option><option value="hombre">Solo Mikel</option><option value="mujer">Solo Edurne</option><option value="no">Sin comentarios</option></select></label>
         <label class="set">Subtítulos de los comentarios <input type="checkbox" id="pSub" ${subtitulos() ? 'checked' : ''}></label>
-        ${/* (tu pelotari: uno de los 10 de siempre, 5 chicos y 5 chicas; pelota/aspectos.js. El autor, 18 de noviembre de 2026: «que en el juego puedas seleccionarlos») */ ''}
+        ${/* (tu pelotari: uno de los 22 de siempre, 11 chicos y 11 chicas; pelota/aspectos.js. El autor, 18 de noviembre de 2026: «que en el juego puedas seleccionarlos») */ ''}
         <div class="set set-p10"><span>Tu pelotari en los partidos</span>
           <div class="p10" id="pP10" role="radiogroup" aria-label="Tu pelotari">${ASPECTOS.map(a => `<button type="button" role="radio" data-p10="${a.id}" aria-checked="${a.id === aspectoTuyo().id}" title="${esc(a.es)}"><img src="${a.cara}" alt="" draggable="false"><small>${esc(a.es)}</small></button>`).join('')}</div></div>
-        <p class="set-note">Cinco chicos y cinco chicas: todos juegan igual, cambia el aspecto. Los pelotaris de los campeonatos llevan cada uno el suyo.</p>
+        <p class="set-note">Los 22 pelotaris del juego: todos juegan igual, cambia el aspecto. En tus cartas y en la cancha sales con el que elijas.</p>
         ${hayNuevos() ? `<label class="set">Pelotaris de los partidos <select id="pPel"><option value="clasico">Los de siempre</option><option value="nuevo">Los nuevos</option></select></label>
         <p class="set-note">Los de siempre son de la familia del explorador; los nuevos, un chico y una chica mayores, como los de las portadas de los campeonatos. Vale para ti y para tus rivales.</p>` : ''}
         <p class="set-note">En los partidos de pelota comentan Mikel y Edurne, en castellano: Mikel narra la jugada y Edurne, que jugó a pelota, la explica y cuenta historias del frontón y de los pelotaris. Con uno solo, solo sus frases.</p>

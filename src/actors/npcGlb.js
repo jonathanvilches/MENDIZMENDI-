@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, meshyBust, meshyHeight, REDISENO } from './glbChar.js';
+import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, PELOTARIS10, meshyBust, meshyHeight, REDISENO } from './glbChar.js';
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
 import { hairTint, peloVecino } from './hairColor.js';
@@ -44,7 +44,7 @@ export async function preloadNpcs(d = null) {
   // (y el juez del frontón, solo su versión ligera: no está entre los de archivo completo)
   // (y los jueces del estilo de los pelotaris de siempre, un hombre y una mujer: game/fronton.js los pide por su nombre)
   const juezP = Promise.all(['juez', 'juez_hombre', 'juez_mujer'].filter(n => hasMeshyLod(n) && !MESHY_LOD_NPC[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }).catch(e => console.warn('juez', n, e))));
-  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !/^pelotari_chic[oa]\d/.test(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP, juezP]);
+  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !PELOTARIS10.includes(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP, juezP]);
   return meshyReady;
 }
 const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;
