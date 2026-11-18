@@ -32,6 +32,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, por la tarde, la hizo la ventana principal: todo lo de `master` hasta `df7f2b7a` (lo de la pelota de esa tarde:
+- 18 nov, 14:40 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `df7f2b7a` (lo de la pelota de esa tarde:
   «Elige tu pelotari», el carrusel a todo el ancho, las cartas animadas, el nombre sobre el jugador y el sonido del golpe;
   y de personajes, los vecinos nuevos hasta `4e90b45d`).
