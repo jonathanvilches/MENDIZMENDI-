@@ -9,6 +9,8 @@
 //   - abajo, a la izquierda lo que toca en la portada de delante y, a la derecha, el botón grande, al alcance del pulgar
 // Antes, «Salir», el texto, «Jugar» y el frontón iban los cuatro en la fila de abajo, pegada a la portada.
 const ATRAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+/** El botón de atrás, suelto, para las cabeceras que ya tienen su forma (las del fútbol). a: su data-a; atras: su nombre */
+export const ptAtras = ({ a = 'back', atras = 'Volver' } = {}) => `<button type="button" class="pt-atras" data-a="${a}" aria-label="${atras}" title="${atras}">${ATRAS}</button>`;
 /** La barra de arriba. a: lo que devuelve el botón de atrás (data-a); atras: su nombre para quien no ve; der: html de la derecha;
  *  notr: los textos ya vienen en su idioma (false: que los traduzca i18n, como el resto del panel); cls: clases de más */
 export const ptCabecera = ({ a = 'back', atras = 'Volver', kicker = '', titulo = '', der = '', notr = true, cls = '' }) => `<div class="pt-top${cls ? ' ' + cls : ''}"${notr ? ' data-notr' : ''}><button type="button" class="pt-atras" data-a="${a}" aria-label="${atras}" title="${atras}">${ATRAS}</button><div class="pt-tit"><small>${kicker}</small><h2>${titulo}</h2></div>${der ? `<div class="pt-der">${der}</div>` : ''}</div>`;

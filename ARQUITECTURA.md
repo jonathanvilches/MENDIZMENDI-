@@ -2293,7 +2293,8 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   La tarjeta del panel lleva `pt-pant` (sin marco, a pantalla entera, en columna) o `pt-libre` (solo sin marco, para las
   que traen su rejilla), y `neon.css` no les pone la sombra de ventana. La llevan el menú de pelota, «Elige tu pelotari»,
   «Elige tu frontón», Frontones, la Equipación y el cuadro del campeonato (que pierde el botón «Salir» de abajo: quedan
-  dos botones con sitio). Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
+  dos botones con sitio). Y el fútbol (`futbol/liga.js`): su menú, «Elige tu club» y la liga llevan el botón de atrás en
+  su cabecera (`ptAtras`, `head(S, sub, info, atras)`), sin «Salir» ni «Volver» abajo, y sin marco. Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
   nada interactivo mide menos de 40 px. Se comprueba con la muesca y la barra de inicio simuladas
   (`Emulation.setSafeAreaInsetsOverride`, 47 px a los lados y 21 px abajo con el móvil tumbado), además de 1280×720 y de pie.
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,

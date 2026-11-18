@@ -8,6 +8,7 @@ import { CLUBS, clubById } from './clubs.js';
 import { TEAMS } from './rules.js';
 import { esc } from '../util/html.js';
 import { minstd } from '../util/math.js';
+import { ptAtras, cssPantalla } from '../ui/pantalla.js';
 
 const KEY = 'herrizherri-liga-v1';
 const N_TEAMS = 8;
@@ -360,6 +361,7 @@ function cuenta(root) {
   }
 }
 function panel(html) {
+  cssPantalla();
   if (!document.getElementById('lg-css')) { const st = document.createElement('style'); st.id = 'lg-css'; st.textContent = CSS; document.head.appendChild(st); }
   const r = document.createElement('div'); r.className = 'lg-root gx-bg'; r.innerHTML = `<div class="lg-card">${html}</div>`; document.body.appendChild(r);
   cuenta(r);
@@ -378,9 +380,10 @@ function tableHtml(S) {
 }
 // cómo funciona (solo al empezar la temporada, para no repetirlo en cada jornada)
 const HOW = '<p class="lg-how"><b>Cómo funciona:</b> catorce jornadas, todos contra todos a ida y vuelta con los clubes de tu grupo. Tus partidos los juegas tú (o los simulas); los demás se simulan solos. Todos los partidos se juegan en El Sadar. Tres puntos por victoria y uno por empate.</p>';
-function head(S, sub, info = false) {
+// (atras: el data-a del botón de atrás, redondo, a la izquierda, como en todas las pantallas de juego: ui/pantalla.js)
+function head(S, sub, info = false, atras = null) {
   const c = CLUBS[S.club];
-  return `<div class="lg-head">${crest(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div>${info ? '<button class="lg-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button>' : ''}</div>`;
+  return `<div class="lg-head">${atras != null ? ptAtras({ a: atras, atras: document.documentElement?.lang === 'eu' ? 'Irten' : 'Salir' }) : ''}${crest(S.club, 48)}<div><small>${esc(sub)}</small><h2>${esc(c.name)}</h2><span class="lg-note">${esc(c.town)} · Liga Navarra, grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}${S.titles ? ` · ${S.titles} ${S.titles === 1 ? 'título' : 'títulos'}` : ''}</span></div><div class="lg-ovr">${c.ovr}<small>MEDIA</small></div>${info ? '<button class="lg-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button>' : ''}</div>`;
 }
 // la racha de un club: sus cinco últimos partidos de la temporada, ganado, empate o perdido (en euskera, I, B, G)
 function racha(S, id) {
@@ -430,8 +433,9 @@ export function ligaPanel(S) {
     const tabla = `<div class="lg-pn lg-tabla"><div class="lg-ph"><span>Clasificación</span><span class="lg-chip">Grupo ${c.group === 'norte' ? 'Norte' : 'Sur'}</span></div>${tableHtml(S)}</div>`;
     // (con poco ancho, «Simular» a secas: los tres botones caben en la barra, debajo del partido, sin cortarse)
     const eu = document.documentElement?.lang === 'eu', sim = `<button class="lg-btn" data-a="sim" data-notr aria-label="${eu ? 'Partida simulatu' : 'Simular partido'}"><span class="lg-l">${eu ? 'Partida simulatu' : 'Simular partido'}</span><span class="lg-c">${eu ? 'Simulatu' : 'Simular'}</span></button>`;
-    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button><span class="lg-sp"></span>${m ? `${sim}${play}` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}</div>`;
-    const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada', true)}${mid}${tabla}${bar}${how}`);
+    const bar = `<div class="lg-bar"><span class="lg-sp"></span>${m ? `${sim}${play}` : '<button class="lg-btn go" data-a="new">Nueva temporada</button>'}</div>`;
+    const r = panel(`${head(S, m ? `Temporada ${S.year}` : 'Fin de temporada', true, 'exit')}${mid}${tabla}${bar}${how}`);
+    r.firstElementChild.classList.add('pt-libre');   // (sin marco de ventana, como el cuadro de la pelota)
     r.addEventListener('click', (e) => { if (ayuda(r, e)) return; const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
   });
 }
@@ -466,8 +470,8 @@ export function clubPanel(clubId, items, sub = 'Tu club') {
       return `<button class="eq-tile ${tone}" data-a="${id}" style="--d:${(0.2 + i * 0.6).toFixed(1)}s">${art}<span class="k">${esc(k || KICK[id] || '')}</span><b>${esc(t)}</b>${x ? `<small>${esc(x)}</small>` : ''}</button>`;
     }).join('');
     const exit = items.find(([id]) => id === 'exit');
-    const r = panel(`${head(S, sub)}<div class="eq-tiles">${tiles}</div>${exit ? `<div class="eq-foot"><button class="lg-btn" data-a="exit">${esc(exit[1] || 'Salir')}</button></div>` : ''}`);
-    r.firstElementChild.classList.add('eq-menu');
+    const r = panel(`${head(S, sub, false, exit ? 'exit' : null)}<div class="eq-tiles">${tiles}</div>`);
+    r.firstElementChild.classList.add('eq-menu', 'pt-libre');
     r.addEventListener('click', (e) => { const b = e.target.closest('[data-a]'); if (!b) return; fuera(r); res(b.dataset.a); });
   });
 }
@@ -484,8 +488,8 @@ function teamCards(ids, cur) {
 // del ratón también la mueve de lado; empieza en el club elegido
 function teamPicker(top, ids, cur, back = 'Volver') {
   return new Promise(res => {
-    const r = panel(`${top}<div class="eq-teams">${teamCards(ids, cur)}</div><div class="eq-foot"><button class="lg-btn" data-a="">${esc(back)}</button></div>`);
-    r.firstElementChild.classList.add('lg-pick', 'eq-pick');
+    const r = panel(`${top.replace('<div class="lg-head">', '<div class="lg-head">' + ptAtras({ a: '', atras: back }))}<div class="eq-teams">${teamCards(ids, cur)}</div>`);
+    r.firstElementChild.classList.add('lg-pick', 'eq-pick', 'pt-libre');
     const L = r.querySelector('.eq-teams');
     const upd = () => { const x = L.scrollWidth - L.clientWidth > 4; L.classList.toggle('mr', x && L.scrollWidth - L.scrollLeft - L.clientWidth > 6); L.classList.toggle('ml', x && L.scrollLeft > 6); L.classList.toggle('mb', !x && L.scrollHeight - L.scrollTop - L.clientHeight > 6); L.classList.toggle('mt', !x && L.scrollTop > 6); };
     L.addEventListener('scroll', upd, { passive: true });
