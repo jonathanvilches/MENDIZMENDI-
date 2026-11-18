@@ -1,1 +1,0 @@
-var e=new URL(`garazi-c09-DOr8INvu.mp3`,import.meta.url).href;export{e as default};
