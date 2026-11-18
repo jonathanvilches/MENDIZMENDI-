@@ -5,8 +5,13 @@
 # Lo mismo hace el juego en cada fotograma con los movimientos que no pasan por aquí (actors/glbChar.js, clavícula).
 # El cuello, igual: su giro pasa a la cabeza, que gira encima del cuello quieto en el torso (el autor, 18 de noviembre:
 # «cuello, hombros, torso, core son un bloque sólido y firme»).
+# Con TOPE (grados; 0 por defecto, el hombro quieto) cada clavícula conserva ese giro: el hombro sube un poco cuando el brazo pasa
+# de la horizontal, como en una persona, y la piel lo acompaña (tools/blender/piel-rigida.py CLAVI); lo que pase de ahí
+# lo gira el brazo (probado el 18 nov con 14°: no quitaba la solapa del hombro, así que no se usa).
 # Uso: python tools/blender/clavicula.py -- movimiento.glb salida.glb   (la acción «GolpeReal»)
-import bpy, sys
+import bpy, sys, math, os
+from mathutils import Quaternion
+TOPE = float(os.environ.get('TOPE', '0'))   # (grados que puede subir cada hombro: el omóplato que acompaña al brazo)
 argv = sys.argv[sys.argv.index('--') + 1:]
 ENT, SAL = argv[0], argv[1]
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -26,7 +31,10 @@ for fr in range(f0, f1 + 1):
     for sh_n, ar_n in ((pre + 'LeftShoulder', pre + 'LeftArm'), (pre + 'RightShoulder', pre + 'RightArm'), (pre + 'Neck', pre + 'Head')):
         sh, ar = arm.pose.bones[sh_n], arm.pose.bones[ar_n]
         mx = max(mx, sh.rotation_quaternion.angle)
-        M = ar.matrix.copy(); sh.rotation_quaternion = (1, 0, 0, 0); bpy.context.view_layer.update()
+        # (la clavícula se queda con su giro hasta TOPE grados, el resto pasa al brazo; el cuello, con nada)
+        q_ = sh.rotation_quaternion.copy(); tope = 0.0 if sh_n.endswith('Neck') else math.radians(TOPE)
+        guarda = q_ if q_.angle <= tope else Quaternion().slerp(q_, tope / max(q_.angle, 1e-9))
+        M = ar.matrix.copy(); sh.rotation_quaternion = guarda; bpy.context.view_layer.update()
         M.translation = ar.matrix.translation; ar.matrix = M; bpy.context.view_layer.update()
         d[sh.name] = (sh.rotation_quaternion.copy(), sh.location.copy()); d[ar.name] = (ar.rotation_quaternion.copy(), ar.location.copy())
     poses[fr] = d

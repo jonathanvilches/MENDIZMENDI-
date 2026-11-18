@@ -49,7 +49,7 @@ arm = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
 pre = 'mixamorig:' if any(b.name.startswith('mixamorig:') for b in arm.data.bones) else ''
 HUESO = {'pelvis': 'Hips', 'pecho': 'Spine2', 'cabeza': 'Head'}
 for s in ('Left', 'Right'):
-    HUESO.update({s + 'brazo': s + 'Arm', s + 'mano': s + 'Hand', s + 'muslo': s + 'UpLeg', s + 'pierna': s + 'Leg', s + 'pie': s + 'Foot', s + 'punta': s + 'ToeBase'})
+    HUESO.update({s + 'clav': s + 'Shoulder', s + 'brazo': s + 'Arm', s + 'mano': s + 'Hand', s + 'muslo': s + 'UpLeg', s + 'pierna': s + 'Leg', s + 'pie': s + 'Foot', s + 'punta': s + 'ToeBase'})
 HUESO = {k: pre + v for k, v in HUESO.items()}
 mallas = [o for o in bpy.data.objects if o.type == 'MESH' and any(m.type == 'ARMATURE' for m in o.modifiers)]
 inf = []
@@ -60,8 +60,12 @@ CORTE, FRANJA = float(__import__('os').environ.get('CORTE', '0.015')), float(__i
 import os, math
 MODO = os.environ.get('HOMBRO', 'eje')   # eje (por defecto) | angulo | costura (el de antes)
 TH0, TH1 = float(os.environ.get('TH0', '34')), float(os.environ.get('TH1', '58'))
-T0, T1 = float(os.environ.get('T0', '0.0')), float(os.environ.get('T1', '0.03'))
+T0, T1 = float(os.environ.get('T0', '0.04')), float(os.environ.get('T1', '0.07'))   # (la franja, en la manga: de 4 a 7 cm del centro del giro)
 KS = float(os.environ.get('KS', '1.5'))   # (cuánto se aprieta la franja del sobaco)
+CLAVI = os.environ.get('CLAVI', '0') == '1'   # (probado el 18 nov: no quitaba la solapa; el torso sigue entero)
+CL0, CL1 = float(os.environ.get('CL0', '0.25')), float(os.environ.get('CL1', '0.8'))   # (a lo largo de la clavícula: de dónde a dónde pasa del torso a ella)
+CZ0, CZ1 = float(os.environ.get('CZ0', '0.13')), float(os.environ.get('CZ1', '0.05'))  # (y de alto: de la axila hacia arriba)
+CLAV_G = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Arm'].head_local, arm.matrix_world @ arm.data.bones[pre + s + 'Shoulder'].head_local) for s in ('Left', 'Right')]
 HOMBRO = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Arm'].head_local, arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local) for s in ('Left', 'Right')]
 # (la cadera: la altura de la articulación de la pierna; la cintura: del principio de la columna a 9 cm más arriba)
 Z_CAD = max((arm.matrix_world @ arm.data.bones[pre + s + 'UpLeg'].head_local).z for s in ('Left', 'Right'))
@@ -117,10 +121,12 @@ for me in mallas:
                 sg = 1 if s == 'Left' else -1; ele = sg * P.x
                 u = (F - A).normalized(); c = A + u * (P - A).dot(u); w_ = P - c; m_ = Vector((-sg, 0, 0))
                 if MODO == 'eje':
-                    # (el corte, un plano perpendicular al brazo que pasa por el centro del giro: del brazo, lo que queda
-                    # más allá a lo largo de su eje; la parte de arriba del hombro, por encima del centro, va con el torso
-                    # y no gira con el brazo, así que no asoma por detrás al subirlo. La manga y la piel de debajo están a
-                    # la misma altura a lo largo del brazo: el corte las lleva juntas y la piel no se sale de la manga)
+                    # (el corte, un plano perpendicular al brazo: del brazo, lo que queda más allá a lo largo de su eje; la
+                    # parte de arriba del hombro, por encima del centro del giro, va con el torso y no gira con el brazo,
+                    # así que no asoma por detrás al subirlo. La manga y la piel de debajo están a la misma altura a lo
+                    # largo del brazo: el corte las lleva juntas y la piel no se sale de la manga. La franja de mezcla va
+                    # en la manga, de 4 a 7 cm del centro: pegada al hombro, con el brazo arriba del todo, los puntos que
+                    # giraban a medias se quedaban levantados encima del hombro como una solapa)
                     g = suave(T0, T1, (P - A).dot(u))
                 elif MODO == 'angulo':
                     d_ = P - A; th = math.degrees(d_.angle(u)) if d_.length > 1e-6 else 0.0
@@ -141,6 +147,21 @@ for me in mallas:
                 if fa > 1e-4: nuevo_res[s + 'brazo'] = fa
                 if 1 - otro - fa > 1e-4: nuevo_res['pecho'] = 1 - otro - fa
                 res = nuevo_res; cuenta['hombro'] = cuenta.get('hombro', 0) + 1
+        # EL HOMBRO QUE SUBE (CLAVI=1): al subir el brazo por encima de la horizontal, en una persona sube también el hombro
+        # entero (la clavícula y el omóplato); si no, el brazo tiene que girar demasiado en su articulación y la tela de
+        # encima del hombro se pliega como una solapa. La parte de arriba del torso junto a cada hombro (de media
+        # clavícula hacia fuera y de la axila hacia arriba) va con la clavícula, a la que se le deja girar un poco
+        # (tools/blender/clavicula.py TOPE); el cuello, el pecho y la espalda siguen enteros con el torso. El autor, 18 nov:
+        # «rígidos tampoco: que tengan algo de movimiento, pero lo necesario para la dinámica del golpe»
+        if CLAVI and res.get('pecho', 0) > 1e-4:
+            P = me.matrix_world @ v.co
+            for s_, A_, C_ in CLAV_G:
+                d_ = A_ - C_; lam = (P - C_).dot(d_) / d_.length_squared
+                k_ = suave(CL0, CL1, lam) * suave(A_.z - CZ0, A_.z - CZ1, P.z)
+                if k_ > 1e-4:
+                    x_ = res.pop('pecho'); res['pecho'] = x_ * (1 - k_); res[s_ + 'clav'] = res.get(s_ + 'clav', 0) + x_ * k_
+                    if res['pecho'] < 1e-4: res.pop('pecho')
+                    cuenta['clavicula'] = cuenta.get('clavicula', 0) + 1; break
         # de pieza a hueso (el antebrazo, repartido entre su hueso y el de giro como venía)
         out = {}
         for p, x in res.items():
@@ -159,7 +180,7 @@ for me in mallas:
     # (los huesos sin piel siguen en el esqueleto: el juego y las animaciones los usan)
     for b in arm.data.bones:
         if b.name not in grupos: me.vertex_groups.new(name=b.name)
-    inf.append(f'{me.name}: {len(me.data.vertices)} vértices, {cuenta["entero"]} enteros en su pieza, {cuenta["franja"]} en una franja de articulación, {cuenta["sin_art"]} con mezcla entre piezas que no se tocan (quitada), {cuenta.get("cintura", 0)} de cintura y cadera por altura, {cuenta.get("hombro", 0)} del hombro por la costura')
+    inf.append(f'{me.name}: {len(me.data.vertices)} vértices, {cuenta["entero"]} enteros en su pieza, {cuenta["franja"]} en una franja de articulación, {cuenta["sin_art"]} con mezcla entre piezas que no se tocan (quitada), {cuenta.get("cintura", 0)} de cintura y cadera por altura, {cuenta.get("hombro", 0)} del hombro por la costura, {cuenta.get("clavicula", 0)} del hombro que sube con la clavícula')
 arm.data.pose_position = 'POSE'
 bpy.ops.object.select_all(action='DESELECT'); bpy.context.view_layer.objects.active = arm
 bpy.ops.export_scene.gltf(filepath=SAL, export_format='GLB', export_animations=True)

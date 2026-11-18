@@ -19,6 +19,20 @@ sc = bpy.context.scene
 for o in bpy.data.objects:
     for m in getattr(o, 'modifiers', []):
         if m.type == 'ARMATURE': m.use_deform_preserve_volume = os.environ.get('VOL', '1') == '1'
+# (PESOS=Left|Right: la piel pintada por pesos, rojo el brazo, verde la clavícula, azul el torso, para ver de qué pieza
+# es cada trozo de tela)
+if os.environ.get('PESOS'):
+    sd = os.environ['PESOS']
+    for o in bpy.data.objects:
+        if o.type != 'MESH' or not o.vertex_groups: continue
+        nom = {g.index: g.name.split(':')[-1] for g in o.vertex_groups}
+        ca = o.data.color_attributes.new('peso', 'FLOAT_COLOR', 'POINT')
+        for v in o.data.vertices:
+            w = {nom[g.group]: g.weight for g in v.groups}
+            ca.data[v.index].color = (w.get(sd + 'Arm', 0), w.get(sd + 'Shoulder', 0), w.get('Spine2', 0), 1)
+        m = bpy.data.materials.new('peso'); m.use_nodes = True; nt = m.node_tree; bs = nt.nodes['Principled BSDF']
+        at = nt.nodes.new('ShaderNodeAttribute'); at.attribute_name = 'peso'; nt.links.new(at.outputs['Color'], bs.inputs['Base Color'])
+        o.data.materials.clear(); o.data.materials.append(m)
 # (DORSO=1: las caras vistas por detrás, en magenta: dónde se abre la malla y se vería el hueco en el juego)
 if os.environ.get('DORSO') == '1':
     for mat in bpy.data.materials:
