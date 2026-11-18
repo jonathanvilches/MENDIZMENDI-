@@ -585,7 +585,10 @@ body.alto-contraste .pel-root .pel-btn::before{display:none}
 .pel-root .pel-otabs .pel-back::before{width:10px;height:10px;border-width:0 0 3px 3px;margin-left:4px}
 .pel-root .pz-cab{background:#0c051e;border-bottom:0;box-shadow:inset 0 -4px 0 #e0147e}
 .pel-root .pz-tit{font-style:italic;font-size:clamp(22px,5vh,34px)}
-:root body .pel-root .pz-x{background:#fff!important;color:#12052a!important;border-color:transparent!important;box-shadow:none!important}
+/* (cerrar: redondo, con su anillo blanco, como los botones de acción; el fondo se lo pone ui/neon.css) */
+:root body .pel-root .pz-x{color:#fff!important;box-shadow:inset 0 0 0 2px #fff!important}
+:root .pel-root .pel-rep-b{border-radius:0!important;box-shadow:none!important}
+.pel-root.repe :is(.pel-autor,.pel-tanto){visibility:hidden}
 .pel-hlts{border-radius:0;background:none;box-shadow:none;isolation:isolate}
 .pel-hlts::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,rgba(12,5,30,.9),rgba(36,13,78,.88));border-left:8px solid #ffd36a;box-shadow:0 18px 44px rgba(4,1,12,.45);transform:skewX(-12deg)}
 .pel-com{border-radius:0}
