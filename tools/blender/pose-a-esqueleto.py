@@ -218,6 +218,19 @@ for s_, lat in (('Left', Vector((1, 0, 0))), ('Right', Vector((-1, 0, 0)))):
     lim(mx(s_ + 'Hand'), a, a.cross(-ARRIBA), (-70, 80), (-25, 25), (-12, 12))
 for n_, h_ in (('Spine', 'Spine1'), ('Spine1', 'Spine2'), ('Spine2', 'Neck')):
     a = dir0(mx(n_), mx(h_)); lim(mx(n_), a, a.cross(FWD), (-15, 35), (-15, 15), (-18, 18))
+# (codo y rodilla, medidos desde el brazo y la pierna RECTOS, no desde el reposo: el esqueleto de Meshy trae el codo
+# doblado ~28° en reposo (y la chica, una rodilla 32°), y con el límite contado desde ahí el brazo no se estiraba nunca:
+# en el vídeo, Tabar sube el brazo recto y en el juego se quedaba doblado)
+for s_ in ('Left', 'Right'):
+    for n_, p_ in (('ForeArm', 'Arm'), ('Leg', 'UpLeg')):
+        n_, p_ = mx(s_ + n_), mx(s_ + p_)
+        if n_ not in LIM or p_ not in H0: continue
+        a_, f_, b_, fl_, bl_, tl_ = LIM[n_]; ur = (H0[n_] - H0[p_]).normalized()
+        ax_ = a_.cross(ur)
+        if ax_.length < 1e-6: continue
+        rv_ = ax_.normalized() * a_.angle(ur); sf_, sb_ = math.degrees(rv_.dot(f_)), math.degrees(rv_.dot(b_))
+        LIM[n_] = (a_, f_, b_, (min(fl_[0], sf_ - 3), fl_[1]), (min(bl_[0], sb_ - 4), max(bl_[1], sb_ + 4)), tl_)
+        print('recto', n_.replace('mixamorig:', ''), f'flexión desde {LIM[n_][3][0]:.0f}°, de lado {LIM[n_][4][0]:.0f}..{LIM[n_][4][1]:.0f}°')
 lim(mx('Neck'), dir0(mx('Neck'), mx('Head')), dir0(mx('Neck'), mx('Head')).cross(FWD), (-30, 35), (-25, 25), (-40, 40))
 lim(mx('Head'), ARRIBA, ARRIBA.cross(FWD), (-30, 35), (-20, 20), (-40, 40))
 CORR = {}

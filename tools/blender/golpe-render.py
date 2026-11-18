@@ -19,6 +19,15 @@ sc = bpy.context.scene
 for o in bpy.data.objects:
     for m in getattr(o, 'modifiers', []):
         if m.type == 'ARMATURE': m.use_deform_preserve_volume = os.environ.get('VOL', '1') == '1'
+# (DORSO=1: las caras vistas por detrás, en magenta: dónde se abre la malla y se vería el hueco en el juego)
+if os.environ.get('DORSO') == '1':
+    for mat in bpy.data.materials:
+        if not mat.use_nodes: continue
+        nt = mat.node_tree; out = next((n for n in nt.nodes if n.type == 'OUTPUT_MATERIAL'), None)
+        if not out or not out.inputs['Surface'].links: continue
+        src = out.inputs['Surface'].links[0].from_socket
+        geo = nt.nodes.new('ShaderNodeNewGeometry'); em = nt.nodes.new('ShaderNodeEmission'); em.inputs[0].default_value = (1, 0, 1, 1); em.inputs[1].default_value = 3
+        mix = nt.nodes.new('ShaderNodeMixShader'); nt.links.new(geo.outputs['Backfacing'], mix.inputs[0]); nt.links.new(src, mix.inputs[1]); nt.links.new(em.outputs[0], mix.inputs[2]); nt.links.new(mix.outputs[0], out.inputs['Surface'])
 for o in list(bpy.data.objects):
     if o.type == 'MESH' and o.name.lower().startswith(('icosphere', 'cube')): bpy.data.objects.remove(o)
 # (el GLB trae también andar y correr: el golpe es la acción «GolpeReal»)
@@ -73,7 +82,8 @@ for fr in range(f0, f1 + 1): sc.frame_set(fr); cad += Mw @ hips.head
 cad /= (f1 - f0 + 1); obj = Vector((cad.x, cad.y, 0.95))
 dist = float(os.environ.get('DIST', '4.6')); lado = float(os.environ.get('LADO', '1'))
 cams = {}
-for k, off in (('a', Vector((0, -dist, 0.35))), ('b', Vector((lado * dist, 0, 0.35)))):
+VISTAS = {'a': Vector((0, -dist, 0.35)), 'b': Vector((lado * dist, 0, 0.35)), 'd': Vector((0, dist, 0.35))}  # (d: por detrás, como los vídeos)
+for k, off in ((k, VISTAS[k]) for k in os.environ.get('CAMS', 'a,b').split(',') if k in VISTAS):
     bpy.ops.object.camera_add(location=obj + off); c = bpy.context.object; c.data.lens = 50
     c.rotation_euler = (obj - c.location).to_track_quat('-Z', 'Y').to_euler(); cams[k] = c
 os.makedirs(OUT, exist_ok=True)

@@ -406,7 +406,10 @@ export async function loadMeshy(name, lod = false, completo = false) {
     if (rigida) {
       const q0 = {}; g.scene.traverse(o => { if (o.isBone && /(Shoulder|Neck)$/.test(o.name)) q0[o.name] = o.quaternion.clone(); });
       if (armados) for (const p of Object.values(armados)) claviculaPose(p, q0);
-      g.scene.traverse(o => { if (o.isSkinnedMesh) for (const m of [].concat(o.material)) pielDQS(m); });
+      // (y la tela por las dos caras: al cruzar el brazo por delante, el sobaco se pliega sobre sí mismo, como una
+      // camiseta de verdad, y por el pliegue asomaba la cara de dentro, que sin pintar era un agujero; pintada, es una
+      // arruga de la tela. Lo mismo en la garganta al girar la cabeza)
+      g.scene.traverse(o => { if (o.isSkinnedMesh) for (const m of [].concat(o.material)) { pielDQS(m); m.side = THREE.DoubleSide; } });
     }
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }

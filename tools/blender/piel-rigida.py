@@ -57,6 +57,11 @@ from mathutils import Vector
 suave = lambda a, b, x: 0.0 if x <= a else 1.0 if x >= b else (lambda q: q * q * (3 - 2 * q))((x - a) / (b - a))
 # (la costura del hombro: CORTE metros por dentro de la articulación, con una franja de ±FRANJA)
 CORTE, FRANJA = float(__import__('os').environ.get('CORTE', '0.015')), float(__import__('os').environ.get('FRANJA', '0.012'))
+import os, math
+MODO = os.environ.get('HOMBRO', 'eje')   # eje (por defecto) | angulo | costura (el de antes)
+TH0, TH1 = float(os.environ.get('TH0', '34')), float(os.environ.get('TH1', '58'))
+T0, T1 = float(os.environ.get('T0', '0.0')), float(os.environ.get('T1', '0.03'))
+KS = float(os.environ.get('KS', '1.5'))   # (cuánto se aprieta la franja del sobaco)
 HOMBRO = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Arm'].head_local, arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local) for s in ('Left', 'Right')]
 # (la cadera: la altura de la articulación de la pierna; la cintura: del principio de la columna a 9 cm más arriba)
 Z_CAD = max((arm.matrix_world @ arm.data.bones[pre + s + 'UpLeg'].head_local).z for s in ('Left', 'Right'))
@@ -110,12 +115,28 @@ for me in mallas:
             for s, A, F in HOMBRO:
                 if (P - A).length > 0.22 or not any(p in res for p in ('pecho', s + 'brazo')): continue
                 sg = 1 if s == 'Left' else -1; ele = sg * P.x
-                g = suave(sg * A.x - CORTE - FRANJA, sg * A.x - CORTE + FRANJA, ele)
                 u = (F - A).normalized(); c = A + u * (P - A).dot(u); w_ = P - c; m_ = Vector((-sg, 0, 0))
+                if MODO == 'eje':
+                    # (el corte, un plano perpendicular al brazo que pasa por el centro del giro: del brazo, lo que queda
+                    # más allá a lo largo de su eje; la parte de arriba del hombro, por encima del centro, va con el torso
+                    # y no gira con el brazo, así que no asoma por detrás al subirlo. La manga y la piel de debajo están a
+                    # la misma altura a lo largo del brazo: el corte las lleva juntas y la piel no se sale de la manga)
+                    g = suave(T0, T1, (P - A).dot(u))
+                elif MODO == 'angulo':
+                    d_ = P - A; th = math.degrees(d_.angle(u)) if d_.length > 1e-6 else 0.0
+                    g = 1 - suave(TH0, TH1, th)
+                else: g = suave(sg * A.x - CORTE - FRANJA, sg * A.x - CORTE + FRANJA, ele)
                 medial = w_.normalized().dot(m_) if w_.length > 1e-6 else 0
                 hr = suave(0.2, 0.5, medial) * (1 - suave(A.z - 0.06, A.z - 0.02, P.z))
                 otro = sum(x for p, x in res.items() if p not in ('pecho', s + 'brazo'))
-                fa = (hr * res.get(s + 'brazo', 0) / max(1e-6, 1 - otro) + (1 - hr) * g) * (1 - otro)
+                # (en el sobaco, el calor apretado menos que en el resto: KS veces. Al subir el brazo hacia delante, la
+                # tela de debajo de la manga y la del costado se separaban en una franja tan estrecha que se abría un
+                # hueco; con la franja algo más ancha el sobaco se estira entero, como la tela de verdad)
+                rb_, rp_ = S.get(s + 'brazo', 0), S.get('pecho', 0)
+                if rb_ + rp_ > 1e-6:
+                    tb = min(1.0, max(0.0, 0.5 - (0.5 - rb_ / (rb_ + rp_)) * KS)); tb = tb * tb * (3 - 2 * tb)
+                else: tb = res.get(s + 'brazo', 0) / max(1e-6, 1 - otro)
+                fa = (hr * tb + (1 - hr) * g) * (1 - otro)
                 nuevo_res = {p: x for p, x in res.items() if p not in ('pecho', s + 'brazo')}
                 if fa > 1e-4: nuevo_res[s + 'brazo'] = fa
                 if 1 - otro - fa > 1e-4: nuevo_res['pecho'] = 1 - otro - fa
