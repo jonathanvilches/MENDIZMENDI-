@@ -31,7 +31,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   «pantalla de juego» de `src/ui/pantalla.js` (`ptCabecera`, `ptPie`): atrás arriba a la izquierda, contenido con aire y
   botón grande abajo a la derecha. Tocados `src/game/torneo.js` (menú, «Elige tu pelotari», «Elige tu frontón»,
   Frontones y el cuadro, que ya no lleva «Salir» abajo) y `src/game/carrusel3d.js` (fuera `.c3-barra`). Las pantallas
-  nuevas, con esa cabecera y ese pie; está explicado en `ARQUITECTURA.md` («La pantalla de juego»).
+  nuevas, con esa cabecera y ese pie; está explicado en `ARQUITECTURA.md` («La pantalla de juego»). También el fútbol
+  (`src/futbol/liga.js`: `head(…, atras)` y sin «Salir» ni «Volver» abajo) y el inicio (`src/hub/consola.css`: `--hud-b`
+  entero en el móvil tumbado y el menú en nueve columnas).
 - **De Principal a Pelota · personajes**: las figuras animadas de las cartas están rehechas desde las figuras nuevas, las
   22 (`public/videos/figuras/`, `src/ui/videos.js`). Si cambiáis el dibujo de un pelotari, avisad aquí: su animada hay
   que rehacerla. Y la equipación del jugador (zapatillas, muñequeras y faja) se pinta en `src/actors/npcOutfit.js`
@@ -40,5 +42,6 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, 15:04 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `a502991f` (la
-  equipación de los pelotaris, las 22 cartas animadas y lo de personajes hasta `4e90b45d`, que ya iba en la anterior).
+- 18 nov, 15:46 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `1ad608c5` (la
+  «pantalla de juego» en pelota y fútbol: atrás arriba, contenido con aire y botón grande abajo; y el inicio en el móvil
+  tumbado: comarcas por encima de la raya de inicio y el menú con todas las secciones a la vista).
