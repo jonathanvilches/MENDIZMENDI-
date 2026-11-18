@@ -3,6 +3,8 @@
 # incluye las clavículas: si la clavícula girase, el brazo se saldría de su sitio y la unión del hombro se estiraría. El
 # autor, 17 de noviembre de 2026: «ni el torso ni el hombro se tienen que deformar; solo es movimiento de giro».
 # Lo mismo hace el juego en cada fotograma con los movimientos que no pasan por aquí (actors/glbChar.js, clavícula).
+# El cuello, igual: su giro pasa a la cabeza, que gira encima del cuello quieto en el torso (el autor, 18 de noviembre:
+# «cuello, hombros, torso, core son un bloque sólido y firme»).
 # Uso: python tools/blender/clavicula.py -- movimiento.glb salida.glb   (la acción «GolpeReal»)
 import bpy, sys
 argv = sys.argv[sys.argv.index('--') + 1:]
@@ -20,8 +22,9 @@ poses, mx = {}, 0.0
 for fr in range(f0, f1 + 1):
     sc.frame_set(fr)
     d = {pb.name: (pb.rotation_quaternion.copy(), pb.location.copy()) for pb in arm.pose.bones}
-    for s in ('Left', 'Right'):
-        sh, ar = arm.pose.bones[pre + s + 'Shoulder'], arm.pose.bones[pre + s + 'Arm']
+    # (las dos clavículas al brazo, y el cuello a la cabeza: el cuello va en el bloque del torso y la cabeza gira encima)
+    for sh_n, ar_n in ((pre + 'LeftShoulder', pre + 'LeftArm'), (pre + 'RightShoulder', pre + 'RightArm'), (pre + 'Neck', pre + 'Head')):
+        sh, ar = arm.pose.bones[sh_n], arm.pose.bones[ar_n]
         mx = max(mx, sh.rotation_quaternion.angle)
         M = ar.matrix.copy(); sh.rotation_quaternion = (1, 0, 0, 0); bpy.context.view_layer.update()
         M.translation = ar.matrix.translation; ar.matrix = M; bpy.context.view_layer.update()

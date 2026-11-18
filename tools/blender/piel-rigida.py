@@ -2,9 +2,10 @@
 # El autor, 17 de noviembre de 2026: «ni el torso ni el hombro se tienen que deformar; solo es movimiento de giro, de
 # hombro y de cadera; el cuerpo es un bloque sólido; no debe deformarse nada, ni un poco».
 #
+# El cuello va en el bloque del torso: la cabeza gira encima de él (su giro pasa a la cabeza: tools/blender/clavicula.py).
 # Parte de la piel de calor (tools/blender/piel-calor.py + huesos-extra.py + meshy-pesos.mjs), que dice bien qué carne
 # es de qué hueso, y la convierte en piezas rígidas:
-#   pelvis (Hips) · torso entero, del cinturón al cuello, con los hombros y las clavículas (Spine2) · cuello (Neck) ·
+#   pelvis (Hips) · torso entero, del cinturón al cuello, con los hombros, las clavículas y el cuello (Spine2) ·
 #   cabeza y pelo (Head) · brazo (Arm) · antebrazo (ForeArm y su hueso de giro, con el reparto de siempre a lo largo del
 #   antebrazo) · mano (Hand) · muslo · pierna · pie · punta del pie.
 # Cada vértice queda entero en su pieza, salvo una franja estrecha en cada articulación donde pasa de una a la siguiente
@@ -19,7 +20,7 @@ import bpy, sys, re
 argv = sys.argv[sys.argv.index('--') + 1:]
 ENT, SAL = argv[0], argv[1]
 PIEZA = [  # (patrón del hueso sin «mixamorig:», pieza)
-    (r'Hips', 'pelvis'), (r'Spine|Spine1|Spine2|LeftShoulder|RightShoulder', 'pecho'), (r'Neck', 'cuello'),
+    (r'Hips', 'pelvis'), (r'Spine|Spine1|Spine2|LeftShoulder|RightShoulder|Neck', 'pecho'),
     (r'Head|HeadTop_End|headfront', 'cabeza'),
     (r'(Left|Right)Arm', r'\1brazo'), (r'(Left|Right)ForeArm(Twist)?', r'\1antebrazo'), (r'(Left|Right)Hand.*', r'\1mano'),
     (r'(Left|Right)UpLeg', r'\1muslo'), (r'(Left|Right)Leg', r'\1pierna'), (r'(Left|Right)Foot', r'\1pie'), (r'(Left|Right)ToeBase', r'\1punta'),
@@ -41,13 +42,12 @@ for s in ('Left', 'Right'):
     ART[frozenset((s + 'pierna', s + 'pie'))] = 3.0
     ART[frozenset((s + 'pie', s + 'punta'))] = 3.0
 ART[frozenset(('pelvis', 'pecho'))] = 2.5
-ART[frozenset(('pecho', 'cuello'))] = 2.5
-ART[frozenset(('cuello', 'cabeza'))] = 2.5
+ART[frozenset(('pecho', 'cabeza'))] = 2.5   # (el cuello va en el bloque del torso; la cabeza gira encima)
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=ENT)
 arm = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
 pre = 'mixamorig:' if any(b.name.startswith('mixamorig:') for b in arm.data.bones) else ''
-HUESO = {'pelvis': 'Hips', 'pecho': 'Spine2', 'cuello': 'Neck', 'cabeza': 'Head'}
+HUESO = {'pelvis': 'Hips', 'pecho': 'Spine2', 'cabeza': 'Head'}
 for s in ('Left', 'Right'):
     HUESO.update({s + 'brazo': s + 'Arm', s + 'mano': s + 'Hand', s + 'muslo': s + 'UpLeg', s + 'pierna': s + 'Leg', s + 'pie': s + 'Foot', s + 'punta': s + 'ToeBase'})
 HUESO = {k: pre + v for k, v in HUESO.items()}
@@ -58,6 +58,9 @@ suave = lambda a, b, x: 0.0 if x <= a else 1.0 if x >= b else (lambda q: q * q *
 # (la costura del hombro: CORTE metros por dentro de la articulación, con una franja de ±FRANJA)
 CORTE, FRANJA = float(__import__('os').environ.get('CORTE', '0.015')), float(__import__('os').environ.get('FRANJA', '0.012'))
 HOMBRO = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Arm'].head_local, arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local) for s in ('Left', 'Right')]
+# (la cadera: la altura de la articulación de la pierna; la cintura: del principio de la columna a 9 cm más arriba)
+Z_CAD = max((arm.matrix_world @ arm.data.bones[pre + s + 'UpLeg'].head_local).z for s in ('Left', 'Right'))
+Z_CINT0 = (arm.matrix_world @ arm.data.bones[pre + 'Spine'].head_local).z + 0.03; Z_CINT1 = Z_CINT0 + 0.09
 for me in mallas:
     nombres = [g.name for g in me.vertex_groups]
     nuevo = []; cuenta = {'franja': 0, 'entero': 0, 'sin_art': 0}
@@ -82,6 +85,21 @@ for me in mallas:
                 if t > 1e-4: res = {pa: 1 - t, pb: t}; cuenta['franja'] += 1
                 else: cuenta['entero'] += 1
         else: cuenta['entero'] += 1
+        # LA CINTURA Y LA CADERA, POR ALTURA, IGUAL EN TODAS LAS CAPAS: la camiseta, la faja y la cinturilla del pantalón son
+        # capas una encima de otra, y el calor (y Meshy en las piernas) les daba pesos distintos a la misma altura: al girar
+        # el tronco o mover la pierna, cada capa iba por su lado y asomaban la cinturilla blanca por encima de la faja y la
+        # piel por debajo de la camiseta. La pierna no llega más arriba de 6 cm por encima de su articulación (nada de la faja);
+        # y de la pelvis al torso se pasa solo por la altura, por encima de la faja, donde ya solo hay camiseta
+        if res and all(p in ('pelvis', 'pecho', 'Leftmuslo', 'Rightmuslo') for p in res):
+            z = (me.matrix_world @ v.co).z
+            pier = {p: x * (1 - suave(Z_CAD, Z_CAD + 0.06, z)) for p, x in res.items() if p.endswith('muslo')}
+            tronco = 1 - sum(pier.values())
+            if 'pecho' in res or 'pelvis' in res or tronco > 1e-6:
+                tp = suave(Z_CINT0, Z_CINT1, z) if z > Z_CAD + 0.06 else (res.get('pecho', 0) / max(1e-6, res.get('pecho', 0) + res.get('pelvis', 0)) if ('pecho' in res or 'pelvis' in res) else 0.0)
+                nuevo_r = {p: x for p, x in pier.items() if x > 1e-4}
+                if tronco * (1 - tp) > 1e-4: nuevo_r['pelvis'] = tronco * (1 - tp)
+                if tronco * tp > 1e-4: nuevo_r['pecho'] = tronco * tp
+                res = nuevo_r; cuenta['cintura'] = cuenta.get('cintura', 0) + 1
         # EL HOMBRO, POR LA COSTURA DE LA CAMISETA: el calor deja la parte de arriba de la manga con el torso (la tela va
         # suelta, lejos del hueso) y la de abajo con el brazo, y al subir el brazo la manga se abría por la mitad y se veía
         # el hueco de dentro. Por fuera, por delante, por detrás y por encima del brazo, el corte va en la costura del
@@ -120,7 +138,7 @@ for me in mallas:
     # (los huesos sin piel siguen en el esqueleto: el juego y las animaciones los usan)
     for b in arm.data.bones:
         if b.name not in grupos: me.vertex_groups.new(name=b.name)
-    inf.append(f'{me.name}: {len(me.data.vertices)} vértices, {cuenta["entero"]} enteros en su pieza, {cuenta["franja"]} en una franja de articulación, {cuenta["sin_art"]} con mezcla entre piezas que no se tocan (quitada)')
+    inf.append(f'{me.name}: {len(me.data.vertices)} vértices, {cuenta["entero"]} enteros en su pieza, {cuenta["franja"]} en una franja de articulación, {cuenta["sin_art"]} con mezcla entre piezas que no se tocan (quitada), {cuenta.get("cintura", 0)} de cintura y cadera por altura, {cuenta.get("hombro", 0)} del hombro por la costura')
 arm.data.pose_position = 'POSE'
 bpy.ops.object.select_all(action='DESELECT'); bpy.context.view_layer.objects.active = arm
 bpy.ops.export_scene.gltf(filepath=SAL, export_format='GLB', export_animations=True)

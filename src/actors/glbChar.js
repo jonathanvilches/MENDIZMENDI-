@@ -360,9 +360,12 @@ let sombraDQS = null;
 const sombraRigida = () => sombraDQS || (sombraDQS = pielDQS(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking })));
 // el giro de la clavícula, al brazo: el brazo queda igual de orientado (B = q0⁻¹·qClavícula·qBrazo) y la clavícula en su
 // reposo. En una postura guardada ({q: {hueso: giro}}) o en los huesos
+// (y el cuello a la cabeza: el cuello va en el bloque del torso y la cabeza gira encima. El autor, 18 de noviembre de 2026:
+// «cuello, hombros, torso, core son un bloque sólido y firme»)
+const CLAV = [['mixamorigLeftShoulder', 'mixamorigLeftArm'], ['mixamorigRightShoulder', 'mixamorigRightArm'], ['mixamorigNeck', 'mixamorigHead']];
 function claviculaPose(pose, q0) {
-  for (const s of ['Left', 'Right']) {
-    const nS = 'mixamorig' + s + 'Shoulder', nA = 'mixamorig' + s + 'Arm', qs = pose.q[nS], qa = pose.q[nA];
+  for (const [nS, nA] of CLAV) {
+    const qs = pose.q[nS], qa = pose.q[nA];
     if (!qs || !qa || !q0[nS]) continue;
     pose.q[nA] = q0[nS].clone().invert().multiply(qs).multiply(qa); pose.q[nS] = q0[nS].clone();
   }
@@ -401,7 +404,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     // duales. El reposo de cada clavícula, antes de que nada lo mueva)
     const rigida = PIEL_RIGIDA.test(name);
     if (rigida) {
-      const q0 = {}; g.scene.traverse(o => { if (o.isBone && /Shoulder$/.test(o.name)) q0[o.name] = o.quaternion.clone(); });
+      const q0 = {}; g.scene.traverse(o => { if (o.isBone && /(Shoulder|Neck)$/.test(o.name)) q0[o.name] = o.quaternion.clone(); });
       if (armados) for (const p of Object.values(armados)) claviculaPose(p, q0);
       g.scene.traverse(o => { if (o.isSkinnedMesh) for (const m of [].concat(o.material)) pielDQS(m); });
     }
@@ -493,7 +496,7 @@ export class GlbChar {
     this.clav = null;
     if (gltf.userData?.rigida) {
       this.root.traverse(o => { if (o.isSkinnedMesh && [].concat(o.material).some(m => m?.userData?.dqs)) o.customDepthMaterial = sombraRigida(); });
-      this.clav = ['Left', 'Right'].map(s => [this.bones['mixamorig' + s + 'Shoulder'], this.bones['mixamorig' + s + 'Arm']]).filter(([a, b]) => a && b).map(([a, b]) => ({ s: a, a: b, q0: a.quaternion.clone(), qi: a.quaternion.clone().invert() }));
+      this.clav = CLAV.map(([s, a]) => [this.bones[s], this.bones[a]]).filter(([a, b]) => a && b).map(([a, b]) => ({ s: a, a: b, q0: a.quaternion.clone(), qi: a.quaternion.clone().invert() }));
     }
     // mirada: con los huesos Eye_L/Eye_R si los hay; si no, moviendo la textura del ojo (personajes antiguos)
     this.eyeBones = ['Eye_L', 'Eye_R'].map(n => this.bones[n]).filter(Boolean);

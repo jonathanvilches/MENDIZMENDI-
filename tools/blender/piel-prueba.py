@@ -137,6 +137,8 @@ vistas = {
     'g': (lambda: Mw @ sh.head, Vector((sg * 0.45, 0.80, 0.30)), 50),       # el mismo hombro, por detrás
     't': (lambda: Mw @ ch.head, Vector((0, 1.35, 0.25)), 45),               # el torso entero, de espaldas
     'c': (lambda: Mw @ hp.head + Vector((0, 0, -0.05)), Vector((0, -3.6, 0.5)), 45),  # el cuerpo entero, de frente
+    'w': (lambda: Mw @ hp.head + Vector((0, 0, 0.08)), Vector((-1.3, -0.35, 0.15)), 50),  # la cintura, de lado
+    'x': (lambda: Mw @ hp.head + Vector((0, 0, 0.08)), Vector((1.3, 0.45, 0.15)), 50),    # la cintura, del otro lado
 }
 FR = os.environ.get('FR')
 for fr in range(f0, f1 + 1):
