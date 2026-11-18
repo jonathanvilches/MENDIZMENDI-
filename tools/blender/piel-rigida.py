@@ -82,6 +82,64 @@ P_CAB = arm.matrix_world @ arm.data.bones[pre + 'Head'].head_local; P_CUE = arm.
 Z_PECHO = (arm.matrix_world @ arm.data.bones[pre + 'Spine2'].head_local).z
 CODO = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local, arm.matrix_world @ arm.data.bones[pre + s + 'Hand'].head_local) for s in ('Left', 'Right')]
 MUNECA = [(s, arm.matrix_world @ arm.data.bones[pre + s + 'Hand'].head_local, ((arm.matrix_world @ arm.data.bones[pre + s + 'Hand'].head_local) - (arm.matrix_world @ arm.data.bones[pre + s + 'ForeArm'].head_local)).normalized()) for s in ('Left', 'Right')]
+# LA FRANJA DE PASO DE LA CABEZA AL CUELLO, DEBAJO DE LA BARBILLA Y NO EN LA MANDÍBULA. El hueso de la cabeza no nace
+# siempre a la misma altura: a la pelotari de la coleta Meshy se lo puso a la altura de la barbilla y a la del moño, 3 cm
+# por debajo. Con la franja medida desde el hueso, a la de la coleta le cruzaba la mandíbula: al girar la cabeza en el
+# golpe, media mandíbula se quedaba con el tronco y la línea de la oreja a la barbilla salía rota, con trozos oscuros
+# (render del 18 nov). La barbilla se mide en la propia figura: en la tira del centro, de frente, es donde la cara
+# sobresale más de 2,5 cm por delante de la garganta. La franja queda en los 4 cm de cuello de debajo, que es un tubo
+# liso; de la barbilla para arriba, todo va entero con la cabeza
+def barbilla():
+    try:
+        paso = 0.005; perfil = {}
+        for me in mallas:
+            for v in me.data.vertices:
+                p_ = me.matrix_world @ v.co
+                if abs(p_.x - P_CUE.x) < 0.02 and P_CUE.z + 0.02 < p_.z < P_CUE.z + 0.32:
+                    k_ = int((p_.z - P_CUE.z) / paso); perfil[k_] = min(perfil.get(k_, 1e9), p_.y)   # (mira a −Y: lo de más adelante)
+        garganta = sorted(perfil[k_] for k_ in perfil if 0.03 <= k_ * paso <= 0.06)
+        if len(garganta) < 3: return None
+        yg = garganta[len(garganta) // 2]
+        for k_ in sorted(perfil):
+            if k_ * paso >= 0.03 and perfil[k_] < yg - 0.025:
+                z_ = P_CUE.z + k_ * paso
+                return (z_, yg) if P_CUE.z + 0.06 < z_ < P_CAB.z + 0.10 else None
+    except Exception as e: print('sin barbilla:', e)
+    return None
+Z_BARB = barbilla()
+# (la franja sube hacia la nuca, 1 cm cada 4: delante tiene que quedar debajo de la barbilla, pero detrás, a esa altura,
+# está el cuello de la camiseta, y la piel de la nuca sigue hasta bastante más arriba. Con la franja a la misma altura
+# todo alrededor, el borde del cuello de la camiseta giraba a medias con la cabeza y salía en dientes de sierra. Y la
+# ropa, tenga la altura que tenga, no gira con la cabeza: FRANJA_ROPA, el color de la camiseta leído de la textura)
+ANCHO_FRANJA, SUBE_NUCA, K_NUCA = 0.04, 0.04, 0.25
+APOYO = float(os.environ.get('APOYO', '0'))   # (metros de pelo que ceden donde se apoya en la ropa; 0: el pelo, entero con la cabeza)
+if Z_BARB is None: Z_B1, Y_GARG, K_NUCA = P_CAB.z + 0.025, 0.0, 0.0; print('barbilla sin medir: la franja, en el hueso de la cabeza')
+else:
+    Z_BARB, Y_GARG = Z_BARB; Z_B1 = Z_BARB - 0.005
+    print(f'barbilla a {Z_BARB:.3f} m (hueso de la cabeza a {P_CAB.z:.3f}, del cuello a {P_CUE.z:.3f}): franja de {Z_B1 - ANCHO_FRANJA:.3f} a {Z_B1:.3f} delante y hasta {SUBE_NUCA * 100:.0f} cm más arriba en la nuca')
+franja_en = lambda y: Z_B1 + min(SUBE_NUCA, max(0.0, K_NUCA * (y - Y_GARG)))   # (el borde de arriba de la franja, según lo atrás que esté el punto)
+# EL CUELLO, MEDIDO TAMBIÉN EN LA FIGURA. El tubo del cuello se tomaba alrededor de la línea que une los huesos del cuello
+# y de la cabeza, y esa línea no siempre pasa por el centro: a la pelotari de la coleta Meshy le puso los dos huesos en la
+# cara de delante del cuello, 4 cm por delante de su centro. Media nuca quedaba «fuera del cuello»: sin franja de paso,
+# cortada en seco a una altura, y al girar la cabeza salía un escalón en el cuello y el borde de la camiseta dentado.
+# Se mide en la rebanada de cuello de debajo de la barbilla: su ancho en la parte de delante (lo de detrás puede ser pelo
+# que cuelga) da el radio, y el centro queda a un radio de la garganta
+def cuello_medido():
+    if not K_NUCA: return None
+    try:
+        reb = [p_ for p_ in (me.matrix_world @ v.co for me in mallas for v in me.data.vertices) if Z_B1 - 0.035 < p_.z < Z_B1 - 0.005 and abs(p_.x - P_CUE.x) < 0.12]
+        delante = min(p_.y for p_ in reb if abs(p_.x - P_CUE.x) < 0.02)
+        xs = sorted(p_.x for p_ in reb if p_.y < delante + 0.06)
+        if len(xs) < 30: return None
+        a_, b_ = xs[int(len(xs) * 0.02)], xs[int(len(xs) * 0.98) - 1]; rad = (b_ - a_) / 2
+        return ((a_ + b_) / 2, delante + rad, rad) if 0.035 < rad < 0.075 else None
+    except Exception as e: print('sin cuello medido:', e); return None
+CUELLO = cuello_medido()
+if CUELLO: print(f'cuello: centro en x {CUELLO[0]:.3f}, y {CUELLO[1]:.3f} y radio {CUELLO[2]:.3f} m (la línea de los huesos pasa por y {P_CAB.y:.3f})')
+def dentro_cuello(p_, margen):
+    if CUELLO: return ((p_.x - CUELLO[0]) ** 2 + (p_.y - CUELLO[1]) ** 2) ** 0.5 < CUELLO[2] + margen
+    c_ = P_CUE + (P_CAB - P_CUE) * ((p_.z - P_CUE.z) / max(1e-6, P_CAB.z - P_CUE.z))
+    return ((p_.x - c_.x) ** 2 + (p_.y - c_.y) ** 2) ** 0.5 < 0.058 + margen
 def colores(me):
     try:
         img = next(n.image for m in me.data.materials if m and m.use_nodes for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image)
@@ -107,11 +165,17 @@ def colores(me):
         # cuelga claramente por detrás de la espalda; nunca lo que está dentro del cuello, que es piel aunque esté en
         # sombra, y por debajo de los hombros solo con el color claro de pelo, para no coger la camiseta)
         refs = (pelo, pelo * 0.6, piel, ropa, ropa * 0.6); eje = P_CAB - P_CUE
+        refs2 = (pelo, pelo * 0.6, piel, piel * 0.6, ropa, ropa * 0.6)
+        es_ropa = lambda i: int(np.argmin([float(np.linalg.norm(col[i] - r_)) for r_ in refs2])) >= 4
+        # (por detrás de la nuca, a más de 2,5 cm, no hay piel: lo que cuelga unido al pelo y no tiene el color de la
+        # camiseta es pelo, tenga el tono que tenga. Las puntas de la coleta de la pelotari rubia son más claras que el
+        # pelo de la coronilla y por el color pasaban por piel: se quedaban con el tronco y, al girar la cabeza, la punta
+        # de la coleta salía deshilachada. Y la camiseta nunca: la espalda queda justo detrás y se colaba por ahí)
+        Y_ATRAS = CUELLO[1] + CUELLO[2] + 0.025 if CUELLO else P_CAB.y + 0.15
         def sigue(i):
-            p_ = W[i]; atras = p_.y > P_CAB.y + 0.15
+            p_ = W[i]; atras = p_.y > Y_ATRAS and not es_ropa(i)
             if p_.z < P_CUE.z: return atras or es_pelo(i)
-            c_ = P_CUE + eje * ((p_.z - P_CUE.z) / max(1e-6, eje.z))
-            if ((p_.x - c_.x) ** 2 + (p_.y - c_.y) ** 2) ** 0.5 < 0.07: return False
+            if dentro_cuello(p_, 0.006 if CUELLO else 0.012): return False
             return atras or int(np.argmin([float(np.linalg.norm(col[i] - r_)) for r_ in refs])) < 2
         rep = {}; llave = {}
         for i, p_ in enumerate(W): rep[i] = llave.setdefault((round(p_.x, 4), round(p_.y, 4), round(p_.z, 4)), i)
@@ -120,17 +184,42 @@ def colores(me):
             a_, b_ = rep[e.vertices[0]], rep[e.vertices[1]]
             if a_ != b_: ady.setdefault(a_, set()).add(b_); ady.setdefault(b_, set()).add(a_)
         for i, r_ in rep.items(): grupo.setdefault(r_, []).append(i)
-        Z0 = P_CAB.z - 0.015
+        Z0 = Z_B1 + (SUBE_NUCA if K_NUCA else 0.0)   # (de aquí para arriba todo es cabeza: el pelo que cuelga se busca de aquí para abajo)
         cola = [r_ for r_ in grupo if W[r_].z > Z0 and es_pelo(r_)]; visto = set(cola); cuelga = set()
         while cola:
             x_ = cola.pop()
             for y_ in ady.get(x_, ()):
                 if y_ in visto or W[y_].z > Z0: continue
                 if W[y_].z > P_CUE.z - 0.25 and abs(W[y_].x) < 0.2 and sigue(y_): visto.add(y_); cola.append(y_); cuelga.update(grupo[y_])
-        return cuelga
+        de_ropa = {i for i, p_ in enumerate(W) if Z_B1 - ANCHO_FRANJA - 0.02 < p_.z < Z0 + 0.02 and abs(p_.x) < 0.15 and int(np.argmin([float(np.linalg.norm(col[i] - r_)) for r_ in refs2])) >= 4}
+        # EL PELO QUE DESCANSA EN LA ROPA SE QUEDA EN LA ROPA. La figura es una sola piel: donde las puntas de la coleta
+        # tocan el cuello de la camiseta, el pelo y la camiseta comparten puntos. Con todo el pelo entero con la cabeza,
+        # al girarla las puntas tiraban de la camiseta y el borde del cuello salía en dientes de sierra (render del 18
+        # nov). Como el pelo de verdad apoyado en los hombros: la punta que toca el tronco se queda con él y, de ahí
+        # hacia la cabeza, el pelo pasa a seguirla en 4 cm (distancia medida por la propia malla)
+        import heapq
+        dist = {}; monton = []
+        for x_ in visto:
+            if W[x_].z > Z0: continue
+            for y_ in ady.get(x_, ()):
+                # (un vecino de ropa que va con el tronco. La piel de la nuca no cuenta: ahí el pelo nace o se apoya todo a
+                # lo largo, y la piel de debajo, tapada por el pelo, es la que cede)
+                if y_ not in visto and W[y_].z < franja_en(W[y_].y) - ANCHO_FRANJA * 0.5 and int(np.argmin([float(np.linalg.norm(col[y_] - r_)) for r_ in refs2])) >= 4:
+                    d_ = (W[x_] - W[y_]).length * 0.5
+                    if d_ < dist.get(x_, 1e9): dist[x_] = d_; heapq.heappush(monton, (d_, x_))
+        while monton:
+            d_, x_ = heapq.heappop(monton)
+            if d_ > dist.get(x_, 1e9) or d_ > 0.06: continue
+            for y_ in ady.get(x_, ()):
+                if y_ in visto and W[y_].z <= Z0:
+                    n_ = d_ + (W[x_] - W[y_]).length
+                    if n_ < dist.get(y_, 1e9): dist[y_] = n_; heapq.heappush(monton, (n_, y_))
+        cuelga = {i: (suave(0.004, 0.004 + APOYO, dist[rep[i]]) if APOYO > 0 and rep[i] in dist else 1.0) for i in cuelga}
+        print(f'pelo que cuelga: {len(cuelga)} puntos, {sum(1 for v_ in cuelga.values() if v_ < 0.999)} apoyados en el tronco (pasan poco a poco a la cabeza)')
+        return cuelga, de_ropa
     except Exception as e: print('sin colores:', e); return None
 for me in mallas:
-    COL = colores(me)
+    COL, FRANJA_ROPA = colores(me) or (None, set())
     nombres = [g.name for g in me.vertex_groups]
     nuevo = []; cuenta = {'franja': 0, 'entero': 0, 'sin_art': 0}
     for v in me.data.vertices:
@@ -223,16 +312,20 @@ for me in mallas:
                     if res['pecho'] < 1e-4: res.pop('pecho')
                     cuenta['clavicula'] = cuenta.get('clavicula', 0) + 1; break
         Pc = me.matrix_world @ v.co
-        if Pc.z > P_CAB.z - 0.015:
-            tc = suave(P_CAB.z - 0.015, P_CAB.z + 0.025, Pc.z)
-            # (el paso al cuello, solo dentro del cuello: fuera de él —la mandíbula, el pelo que cruza a esa altura— todo
-            # es cabeza; si no, la coleta se partía justo a la altura de la barbilla)
-            cx_ = P_CUE + (P_CAB - P_CUE) * ((Pc.z - P_CUE.z) / max(1e-6, P_CAB.z - P_CUE.z))
-            if ((Pc.x - cx_.x) ** 2 + (Pc.y - cx_.y) ** 2) ** 0.5 > 0.07: tc = 1.0
-            if res.get('cabeza', 0) < tc - 0.25:
+        en_cuello = dentro_cuello(Pc, 0.012)
+        # (de la barbilla para arriba, todo; en la franja de debajo, solo el cuello, que pasa poco a poco de la cabeza al
+        # tronco: el pelo que cruza a esa altura —la coleta— va entero con la cabeza por la regla del pelo, y no se parte)
+        zt_ = franja_en(Pc.y)
+        if Pc.z > zt_ or (Pc.z > zt_ - ANCHO_FRANJA and en_cuello and v.index not in FRANJA_ROPA):
+            tc = suave(zt_ - ANCHO_FRANJA, zt_, Pc.z)
+            # (sin margen: lo que queda por debajo de lo que toca, se sube. Con un margen de 0,25, a la de la coleta le
+            # quedaron 4.800 puntos de la cara con un 75-98 % de cabeza y el resto de pecho: al girar la cabeza se
+            # quedaban atrás y salían como manchas oscuras junto a la oreja y en la mejilla)
+            if res.get('cabeza', 0) < tc - 1e-3:
                 res = {p: x for p, x in (('cabeza', tc), ('pecho', 1 - tc)) if x > 1e-4}; cuenta['cabeza'] = cuenta.get('cabeza', 0) + 1
-        elif COL is not None and v.index in COL and res.get('cabeza', 0) < 0.99:
-            res = {'cabeza': 1.0}; cuenta['pelo'] = cuenta.get('pelo', 0) + 1
+        elif COL is not None and v.index in COL and abs(res.get('cabeza', 0) - COL[v.index]) > 0.01:
+            wp_ = COL[v.index]; otros = {p: x for p, x in res.items() if p != 'cabeza'} or {'pecho': 1.0}; so_ = sum(otros.values())
+            res = {p: x for p, x in ([('cabeza', wp_)] + [(p, x / so_ * (1 - wp_)) for p, x in otros.items()]) if x > 1e-4}; cuenta['pelo'] = cuenta.get('pelo', 0) + 1
         # LA MANO, ENTERA: lo que queda más allá de la muñeca, a lo largo del antebrazo, es mano. A la pelotari de la coleta
         # (18 nov) el reparto por calor le dejó las puntas de los dedos de la mano derecha colgadas del hueso del brazo: al
         # mover el brazo salía una línea larga desde la mano (los triángulos estirados de los dedos al sitio de reposo)
