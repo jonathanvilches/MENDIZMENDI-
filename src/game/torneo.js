@@ -718,7 +718,7 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     const r = lgPanel(`<div class="ef-head" data-notr><small>${esc(kicker)}</small><h2>${eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari'}</h2></div>
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Pilotariak' : 'Pelotaris'}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
       <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
-        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button></div><span></span></div>`);
+        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button></div><button type="button" class="lg-btn ep-kit" data-a="kit">${eu ? 'Ekipazioa' : 'Equipación'}</button></div>`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant');
     // (las figuras animadas, apagadas todas antes de que carguen; la de delante se enciende al llegar)
     const figs = [...r.querySelectorAll('.ep-port')].map(b => b.querySelector('.gx-fig img')); figs.forEach(im => figuraViva(im, false));
@@ -732,7 +732,10 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
     const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(k); };
     // (las teclas, aquí y solo aquí: debajo puede estar el anillo de los campeonatos, que también las oye)
+    // (con la equipación abierta encima, las teclas son suyas)
+    let conKit = false;
     const tecla = (e) => {
+      if (conKit) return;
       if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
       else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); car.paso(e.key === 'ArrowRight' ? 1 : -1); }
       else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); fin(cur.k); }
@@ -741,10 +744,14 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     r.addEventListener('click', (e) => {
       const c = e.target.closest('.ep-port'); if (c) return fin(c.dataset.p);
       const b = e.target.closest('[data-a]'); if (!b) return;
+      // (la equipación: zapatillas, muñequeras y faja, con el pelotari de delante; pelota/equipacion.js)
+      if (b.dataset.a === 'kit') { if (conKit) return; conKit = true; abreEquipacion({ nombre: cur.k, kicker: cur.name }).finally(() => { conKit = false; }); return; }
       fin(b.dataset.a === 'ok' ? cur.k : null);
     });
   });
 }
+/** La equipación de tu pelotari (zapatillas, muñequeras y faja): pelota/equipacion.js, que se carga al abrirla */
+export const abreEquipacion = (o) => import('../pelota/equipacion.js').then(m => m.abreEquipacion(o));
 /** Antes de la primera ronda de un campeonato: con qué pelotari lo juegas entero. Devuelve true si se ha elegido (y ya
  *  está puesto en el torneo); con «Volver», sigue el que había y no se vuelve a preguntar sola */
 export async function eligePelotari(T, yo) {
@@ -1031,7 +1038,7 @@ export function torneoPanel(T, here = null, o = null) {
     // (el frontón del partido, en la cabecera junto a «?»: antes iba en la barra y no cabía con los botones)
     const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>${KINDS[T.kind]?.global ? esc(KINDS[T.kind].name) : `Txapela de ${esc(T.comarcaName)}`}</h2></div></div>${sede ? `<div class="tq-sitio">${sede}</div>` : ''}<button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
     // (hasta jugar la primera ronda, se puede cambiar de pelotari: eligePelotari)
-    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${sinEmpezar(T) ? `<button class="lg-btn tq-pick" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : ''}${btns}</div>`;
+    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${sinEmpezar(T) ? `<button class="lg-btn tq-pick" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : T.done ? '' : `<button class="lg-btn tq-pick" data-a="kit">${isEU() ? 'Ekipazioa' : 'Equipación'}</button>`}${btns}</div>`;
     const r = lgPanel(`${head}<div class="tq-left lg-pn">${ph}${left}</div><div class="tq-right lg-pn">${ph2}${ligaHtml(T, v0 !== 'liga')}${bracketHtml(T, v0 === 'liga')}</div>${bar}${how}`);
     const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
     // (y otra vez si cambia el tamaño del cuadro o de sus columnas, por ejemplo al cargar las fuentes)

@@ -37,6 +37,21 @@ const ZONES = {
     if (y > 0.36 && y < 0.66 && red && uShirt.w > 0.) return noTone(uShirt, v, 0.78);
     if (y > 0.12 && y < 0.42 && navy && uPants.w > 0.) return noTone(uPants, v, 0.24);`,
 };
+// LA EQUIPACIÓN QUE ELIGE EL JUGADOR PARA SU PELOTARI (pelota/kit.js; el autor, 18 de noviembre de 2026: «una de las
+// personalizaciones son las zapatillas, las muñequeras y la faja o fajín»). Sin tocar los modelos: como la camiseta, se
+// pinta en el sombreador, y cada pieza se reconoce por dónde cae en el cuerpo en la pose de reposo (vNoP), medido en el
+// esqueleto de cada modelo (kitMedidas), porque los 22 están ajustados a su caja y no miden lo mismo (un moño sube la
+// caja y todo lo demás queda más abajo):
+//   - la faja: una banda a la altura de la cintura, entre la cadera y el primer hueso de la espalda, solo en el tronco
+//     (los brazos, que en la pose de reposo caen a esa altura, quedan fuera por su distancia al eje)
+//   - las muñequeras: un tramo del antebrazo pegado a la muñeca, a cada lado
+//   - las zapatillas: lo claro por debajo del tobillo (la suela y los cordones, más oscuros, se quedan como están)
+// La faja y las muñequeras van de color liso (la luz de la escena ya les da volumen), algo más oscuras donde el dibujo
+// lo era; las zapatillas conservan su sombreado pintado.
+const KIT = `
+    if (uSash.w > 0. && abs(y - uPwaist.x) < uPwaist.y && abs(vNoP.x) < uPwaist.z) return uSash.rgb * (0.8 + 0.2 * v);
+    if (uWrist.w > 0. && (noBanda(vNoP, uPwL, uPeL) || noBanda(vNoP, uPwR, uPeR))) return uWrist.rgb * (0.86 + 0.14 * v);
+    if (uShoes.w > 0. && y < uPfoot && s < 0.24 && v > 0.42) return noTone(uShoes, v, 0.9);`;
 // el futbolista de blanco (la segunda equipación): camiseta blanca y pantalón oscuro
 ZONES.osasuna_fuera = `
     bool white = s < 0.16 && v > 0.45, dark = v < 0.45 && (s > 0.3 || v < 0.2);
@@ -48,6 +63,7 @@ ZONES.pelotari_rojo = ZONES.pelotari;
 // franja del pelotari se quedaba una tira azul en el bajo)
 for (const n of ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue']) ZONES['pelotari_' + n] = `
     bool blue = h > 0.5 && h < 0.72 && s > 0.4;
+    ${KIT}
     if (y > 0.2 && y < 0.72 && blue && uShirt.w > 0.) return noTone(uShirt, v, 0.65);`;
 // el juez (el futbolista, todo de negro): también el rojo de los bordes y de las sombras, el de las medias y las
 // zapatillas. Con solo el rojo vivo de la camiseta quedaban motas rojas sobre el negro y las zapatillas rojas. El rojo
@@ -66,10 +82,24 @@ const hsv = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new
   let h = 0; if (d > 1e-5) h = mx === R ? ((G - B) / d) % 6 : mx === G ? (B - R) / d + 2 : (R - G) / d + 4; h = ((h / 6) % 1 + 1) % 1;
   return new THREE.Vector4(h, mx > 0 ? d / mx : 0, mx, 1); };
 
-/** Tiñe la ropa y el pelo de un vecino de Meshy. model: nombre del modelo; O: { shirt, pants, vest, acc, hair }. */
+// (color liso, en sRGB, con w = 1 si se pone)
+const liso = (c) => { if (!c) return new THREE.Vector4(0, 0, 0, 0); const o = new THREE.Color(c), g = (x) => Math.pow(Math.max(0, x), 1 / 2.2); return new THREE.Vector4(g(o.r), g(o.g), g(o.b), 1); };
+// dónde caen la cintura, las muñecas y los tobillos de un modelo, en su pose de reposo y en las unidades de su malla
+function kitMedidas(o, bb) {
+  const sk = o.skeleton, H = Math.max(1e-3, bb.max.y - bb.min.y), M = new THREE.Matrix4();
+  const de = (re) => { const i = sk.bones.findIndex(b => re.test(b.name)); return i < 0 ? null : new THREE.Vector3().setFromMatrixPosition(M.copy(sk.boneInverses[i]).invert()); };
+  const yn = (v) => (v.y - bb.min.y) / H;
+  const cad = de(/Hips$/), esp = de(/Spine$/), pie = de(/LeftFoot$/), mus = de(/LeftUpLeg$/), mL = de(/LeftHand$/), cL = de(/LeftForeArm$/), mR = de(/RightHand$/), cR = de(/RightForeArm$/);
+  if (!cad || !esp || !pie || !mus || !mL || !cL || !mR || !cR) return null;
+  return { uPwaist: new THREE.Vector3(yn(cad) + (yn(esp) - yn(cad)) * 0.62, 0.026, Math.abs(mus.x) * 2), uPfoot: yn(pie) * 0.86, uPwL: mL, uPeL: cL, uPwR: mR, uPeR: cR };
+}
+/** Tiñe la ropa y el pelo de un vecino de Meshy. model: nombre del modelo; O: { shirt, pants, vest, acc, hair } y, en los
+ *  pelotaris de siempre, la equipación: { shoes, wrist, sash }. Devuelve sus colores (uShirt, uShoes…) para cambiarlos
+ *  luego sin rehacer el material (ponKitColores). */
 export function outfitTint(root, model, O) {
   const Z = ZONES[model]; if (!Z) return;
-  const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc) };
+  const U = { uShirt: hsv(O.shirt), uPants: hsv(O.pants), uVest: hsv(O.vest), uAcc: hsv(O.acc), uShoes: hsv(O.shoes), uWrist: liso(O.wrist), uSash: liso(O.sash) };
+  const conKit = /^pelotari_.+/.test(model) && model !== 'pelotari_rojo';
   root.traverse(o => {
     // (el pelo de las chicas va en sus propias mallas: solo toma su color)
     if (o.userData.peloColor) { if (O.hair) { o.material = peloMaterial(peloEmisivo(o.material.clone()), O.hair); o.material.userData.own = true; } return; }
@@ -77,12 +107,16 @@ export function outfitTint(root, model, O) {
     const g = o.geometry; if (!g.boundingBox) g.computeBoundingBox();
     const bb = g.boundingBox, kit = new THREE.Vector2(bb.min.y, Math.max(1e-3, bb.max.y - bb.min.y));
     const m = o.material.clone(); if (o.material.userData.fillK != null) fillMaterial(m, o.material.userData.fillK);
+    // (sin esqueleto reconocible, la equipación no se pone: las medidas, fuera del cuerpo)
+    const K = (conKit && kitMedidas(o, bb)) || { uPwaist: new THREE.Vector3(-9, 0, 0), uPfoot: -9, uPwL: new THREE.Vector3(99, 99, 99), uPeL: new THREE.Vector3(99, 98, 99), uPwR: new THREE.Vector3(99, 99, 99), uPeR: new THREE.Vector3(99, 98, 99) };
     m.onBeforeCompile = (sh) => {
-      Object.assign(sh.uniforms, Object.fromEntries(Object.entries(U).map(([k, v]) => [k, { value: v }])), { uKitY: { value: kit } });
-      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vNoY; uniform vec2 uKitY;')
-        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvNoY = (position.y - uKitY.x) / uKitY.y;');
+      Object.assign(sh.uniforms, Object.fromEntries(Object.entries(U).map(([k, v]) => [k, { value: v }])), { uKitY: { value: kit } }, Object.fromEntries(Object.entries(K).map(([k, v]) => [k, { value: v }])));
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nvarying float vNoY; varying vec3 vNoP; uniform vec2 uKitY;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvNoY = (position.y - uKitY.x) / uKitY.y; vNoP = position;');
       sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
-uniform vec4 uShirt, uPants, uVest, uAcc; varying float vNoY;
+uniform vec4 uShirt, uPants, uVest, uAcc, uShoes, uWrist, uSash; uniform vec3 uPwaist, uPwL, uPeL, uPwR, uPeR; uniform float uPfoot; varying float vNoY; varying vec3 vNoP;
+// (¿cae el punto en la muñequera? un tramo del antebrazo, de la muñeca w hacia el codo e, y cerca de su eje)
+bool noBanda(vec3 p, vec3 w, vec3 e){ vec3 d = e - w; float L = length(d); d /= L; vec3 q = p - w; float t = dot(q, d); return t > 0.03 * L && t < 0.44 * L && length(q - d * t) < 0.52 * L; }
 ${HSV}
 vec3 noOutfit(vec3 lin){
   vec3 cs = pow(max(lin, vec3(0.)), vec3(0.4545)); vec3 q = noHsv(cs); float h = q.x, s = q.y, v = q.z, y = vNoY;
@@ -94,7 +128,10 @@ vec3 noOutfit(vec3 lin){
     m.customProgramCacheKey = () => 'npc-outfit-' + model;
     o.material = hairMaterial(sharpMap(m), g, model, O.hair);   // la textura sin mezclar sus piezas y el pelo, con su tinte (hairColor.js)
   });
+  return U;
 }
+/** Cambia la equipación de un pelotari ya teñido (U: lo que devolvió outfitTint), sin rehacer nada */
+export function ponKitColores(U, O = {}) { if (!U) return; U.uShoes.copy(hsv(O.shoes)); U.uWrist.copy(liso(O.wrist)); U.uSash.copy(liso(O.sash)); }
 
 /** Proporciones de adulto (la cabeza algo menor que la del protagonista, que es un niño) y de persona mayor. */
 export function adultBody(char, L) {

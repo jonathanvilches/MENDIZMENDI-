@@ -221,7 +221,7 @@ export const CSS_CARRUSEL3D = `
 .c3-chip{position:absolute;left:calc(var(--c3w,400px) * .028);top:calc(var(--c3w,400px) * .028);padding:4px 9px;border-radius:999px;background:rgba(9,4,20,.62);color:#e8defa;font:800 max(9px,calc(var(--c3w,400px) * .021))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;font-style:normal}
 .c3-mosaico{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}.c3-mosaico img{width:100%;height:100%;object-fit:cover;min-height:0}
 .c3-barra{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px 12px;min-width:0}
-.c3-barra>.lg-btn{justify-self:start}.c3-barra>.tq-sede{justify-self:end;margin:0}
+.c3-barra>.lg-btn{justify-self:start}.c3-barra>.tq-sede{justify-self:end;margin:0}.c3-barra>.lg-btn.ep-kit{justify-self:end}
 .c3-barra .c3-info{flex-wrap:nowrap;min-width:0}.c3-barra .c3-info .c3-que{align-items:flex-end;text-align:right}
 .c3-barra .c3-info .c3-que span{display:block}.c3-barra .c3-que b{white-space:nowrap}.c3-barra .c3-que span{max-width:min(38ch,34vw);text-wrap:balance}
 @media (max-aspect-ratio:1/1){.c3-barra{grid-template-columns:1fr 1fr}.c3-barra .c3-info{grid-column:1/-1;order:-1;justify-content:center}}

@@ -55,9 +55,8 @@ export const videoDe = (id, peque = false) => (id && VIDEOS.has(id) && puede() ?
 // (18 de noviembre de 2026: las figuras de las cartas pasaron a ser las de los 22 pelotaris de siempre, sacadas del dibujo
 // de su modelo, y las animadas de antes, que eran de las ilustraciones viejas, se quitaron. Se rehacen igual desde la
 // figura nueva, la azul, que es la original: Grok Video Lite, 2 s a 480p, y tools/figura-estable.cjs «tal» para la azul y
-// «colorado» para la roja; a 320 × 480 y 12 fotogramas por segundo, unos 0,65 MB. De momento, estas seis; cada una que se
-// añada, su id aquí y sus dos archivos)
-const PLANTILLA_IDS = ['inigo', 'garazi', 'ander', 'asier', 'irati', 'julen'];
+// «colorado» para la roja; a 320 × 480 y 12 fotogramas por segundo, unos 0,65 MB. Las 22, desde esa misma tarde)
+const PLANTILLA_IDS = ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue'];
 export const FIGURAS = new Set(PLANTILLA_IDS.flatMap(id => [`rojo/${id}`, `azul/${id}`]));
 export const figuraAnimada = (id, color) => (FIGURAS.has(`${color}/${id}`) && puede() ? `./videos/figuras/${color}/${id}.webp` : '');
 

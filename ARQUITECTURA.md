@@ -2252,9 +2252,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   antes, se apagaron y se borraron (43 MB menos). Se rehacen igual, pero desde la figura azul, que ahora es la original:
   la figura de 512 × 768 sobre el verde de 768 × 1024, Grok Video 1.5 Lite (2 s, 480p, 3:4, 2 créditos) y
   `tools/figura-estable.cjs <vídeo> <salida> tal|colorado 320 12 56` (`tal` deja la camiseta azul; `colorado` la pasa a
-  colorado como en las fijas). Salen a 320 × 480 y 12 fotogramas por segundo, unos 0,65 MB. Hechas seis (Iñigo, Garazi,
-  Ander, Asier, Irati y Julen: `PLANTILLA_IDS` en `videos.js`); las otras dieciséis, pendientes de créditos. Las que no
-  la tienen respiran en la carta con CSS (`gx-respira`, `sport.css`). Se dejan estirar hasta un 45 % (`FIG`): sin esa
+  colorado como en las fijas). Salen a 320 × 480 y 12 fotogramas por segundo, unos 0,65 MB (28 MB las 44). Hechas las 22
+  esa tarde (44 créditos; `PLANTILLA_IDS` en `videos.js`). Una figura sin animada respira en la carta con CSS
+  (`gx-respira`, `sport.css`). Se dejan estirar hasta un 45 % (`FIG`): sin esa
   holgura, en un móvil de densidad 3 no salía ninguna. `figuraViva(img, on)` enciende o apaga la de una imagen.
 - **«Elige tu pelotari» y la banda del anillo** (`torneo.js` `anilloPelotari`, `eligePelotari`, `eligePelotariLibre`;
   `carrusel3d.js`, opción `banda`; 18 de noviembre de 2026): el anillo de los campeonatos se abre de lado a lado de la
@@ -2268,6 +2268,21 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   recuerda en el perfil (`pelotaYo`). La ficha con tu nombre sobre tu pelotari (`match.js` `sobreTi`) solo sale 3,2 s al
   ir a sacar cada tanto. Las muestras del golpe arrancan saltándose el silencio que el mp3 lleva delante y Safari no
   quita (`pelota/audio.js` `golpe`, `INICIO`).
+- **La equipación de tu pelotari** (`src/pelota/kit.js`, `src/pelota/equipacion.js`, `KIT` en `actors/npcOutfit.js`; 18 de
+  noviembre de 2026; el autor: «una de las personalizaciones son las zapatillas, las muñequeras y la faja o fajín»): el
+  jugador elige el color de las zapatillas, de las muñequeras y de la faja (nueve colores; muñequeras y faja, también
+  sin ellas) y lo lleva el pelotari con el que juegue, el suyo o uno de los del juego, en todos los partidos; los
+  rivales van como siempre. Se guarda en el perfil (`settings.pelotaKit`). No se tocan los modelos: como la camiseta de
+  colorado, se pinta en el sombreador (`outfitTint`, que ahora recibe `shoes`, `wrist` y `sash`), y cada pieza se
+  reconoce por dónde cae en el cuerpo en la pose de reposo, medido en el esqueleto de cada modelo (`kitMedidas`: los 22
+  vienen ajustados a su caja y no miden lo mismo): la faja, una banda entre la cadera y el primer hueso de la espalda,
+  solo en el tronco; las muñequeras, un tramo del antebrazo pegado a la muñeca; las zapatillas, lo claro por debajo del
+  tobillo. `ponKitColores(U, colores)` cambia los colores de un pelotari ya teñido sin rehacer el material.
+  La pantalla «Equipación» enseña el pelotari en 3D con lo elegido y tres filas de colores; el pelotari es una imagen
+  que se vuelve a dibujar al cambiar un color o al girarlo arrastrando, con el renderizador que ya hay
+  (`util/offscreen.js`): ni bucle ni otro contexto WebGL. Se abre desde «Elige tu pelotari» (botón «Equipación») y desde
+  el cuadro del campeonato una vez empezado (antes de la primera ronda, ese sitio es de «Pelotari»). Las cartas, que son
+  dibujos, no la enseñan todavía.
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,
   andar, un tajo y un puño en alto, y los recortes de ahí no parecían pelota. Ahora se hacen al cargar el modelo, sobre
   su esqueleto de Mixamo, a partir de poses clave: reposo, preparado, derecha e izquierda, sotamano de las dos manos,

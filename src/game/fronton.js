@@ -34,6 +34,7 @@ import { COLOR_BOLA } from '../pelota/bola.js';
 import { ponDorsal, quitaDorsal } from '../pelota/dorsal.js';
 import { modeloNuevo } from '../pelota/estiloPelotari.js';
 import { aspectoDe, aspectoTuyo, aspectoLibre } from '../pelota/aspectos.js';
+import { kitColores, hayKit } from '../pelota/kit.js';
 // un pelotari rival o compañero (el azul, pelotari; el colorado, pelotari_rojo) con el pelo de su figura (el rubio Mikel,
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
@@ -48,7 +49,7 @@ const nitido = (model) => { if (!(QUALITY === 'low' && matchMedia?.('(pointer: c
 const corre = (r) => { if (r?.char?.opt) r.char.opt.runAt = 1.85; return r; };
 // (los ids de los aspectos que ya están en la cancha en este partido: dos pelotaris no salen iguales; pelota/aspectos.js)
 let enCancha = new Set();
-async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name), aspecto = null) {
+async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name), aspecto = null, kit = null) {
   // (con los pelotaris nuevos elegidos en Ajustes, el nuevo de su camiseta: chico o chica, con su cara y su pelo;
   // pelota/estiloPelotari.js. Si falla o aún no está, el de siempre)
   const nuevo = modeloNuevo(model === 'pelotari_rojo' ? 'rojo' : 'azul', girl, name);
@@ -58,7 +59,8 @@ async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelota
   const A = aspectoLibre(aspecto || aspectoDe(name, girl), enCancha);
   if (hasMeshy(A.modelo)) try {
     nitido(A.modelo); const r = new GlbRig(await loadMeshy(A.modelo), A.modelo);
-    if (model === 'pelotari_rojo') outfitTint(r.char.root, A.modelo, { shirt: COLORADO }); return corre(r);
+    // (de colorado, la camiseta teñida; y, si es el tuyo, tu equipación: zapatillas, muñequeras y faja, pelota/kit.js)
+    if (model === 'pelotari_rojo' || kit) outfitTint(r.char.root, A.modelo, { shirt: model === 'pelotari_rojo' ? COLORADO : null, ...(kit || {}) }); return corre(r);
   } catch (e) { console.warn('pelotari', A.modelo, e); }
   if (girl && hasChica('pelotari')) try {
     nitido('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
@@ -503,9 +505,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (con un pelotari del juego elegido para el campeonato, su figura: chico o chica y su pelo, por su nombre)
     const ella = !yo && avatarIsGirl(profile().avatar);
     enCancha = new Set();   // (los aspectos de este partido: ninguno repetido)
-    if (yo && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, yo.name); } catch (e) { console.warn('pelotari elegido', e); apunta('pelotari elegido', e); }
+    const kit = hayKit() ? kitColores() : null;   // (tu equipación, con cualquier pelotari con el que juegues)
+    if (yo && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, yo.name, undefined, undefined, null, kit); } catch (e) { console.warn('pelotari elegido', e); apunta('pelotari elegido', e); }
     // (el tuyo: el aspecto que has elegido en Ajustes, de los 10; sin elegir, el primero de tu género)
-    else if (hasMeshy(youModel)) try { pel = await rigPelotari(youModel, '', ella, null, aspectoTuyo(ella)); } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
+    else if (hasMeshy(youModel)) try { pel = await rigPelotari(youModel, '', ella, null, aspectoTuyo(ella), kit); } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // (tu pelotari también trota desde 1,85 m/s; si es tu figura de siempre, al acabar vuelve a su paso del pueblo)

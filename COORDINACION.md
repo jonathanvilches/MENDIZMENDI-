@@ -7,7 +7,7 @@ ya no vale, se borra.
 
 | Ventana | Lleva | Archivos suyos |
 | --- | --- | --- |
-| **Principal** (coordinación) | Juntar lo de todas, compilar y publicar la web; las voces; lo que el autor pida allí | `docs/`, la rama `main`, `CLAUDE.md`, `COORDINACION.md`, `src/assets/voz/`, `src/game/vozVecinos.js`, `src/assets/frontones*/` |
+| **Principal** (coordinación) | Juntar lo de todas, compilar y publicar la web; la personalización de los pelotaris (equipación) y las cartas animadas; las voces, de momento solo Otsagabia (el autor, 18 nov) | `docs/`, la rama `main`, `CLAUDE.md`, `COORDINACION.md`, `src/assets/voz/`, `src/game/vozVecinos.js`, `src/assets/frontones*/`, `src/pelota/kit.js`, `src/pelota/equipacion.js`, `public/videos/figuras/` |
 | **Pelota · interfaz** (rótulos, animaciones de texto, carruseles, pantallas de frontón) | Todo lo que se ve encima del partido y los menús de pelota | `src/pelota/hud.js`, `src/pelota/vs.js`, `src/pelota/ficha.js`, `src/game/torneo.js`, `src/game/carrusel3d.js`, `entrega/interfaz-pelota/` |
 | **Pelota · personajes** (los 10 pelotaris de siempre, público, jueces, vecinos del mismo estilo) | Modelos 3D y cómo se mueven | `src/actors/`, `src/assets/meshy*/`, `src/assets/chicas/`, `tools/blender/`, `tools/meshy-*`, `tools/chicas/` |
 | **Otsagabia · locución** | Cerrada. Solo retoques de voces de Otsagabia si el autor los pide | `src/assets/voz/vecinos/ochagavia/`, `entrega/voces-ochagavia-pendientes.md` |
@@ -28,9 +28,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   `src/game/carrusel3d.js` (opción `banda`, entrada y luz de las portadas, `.ep-port`), `src/pelota/match.js`
   (`sobreTi`: el nombre sobre el jugador solo 3,2 s al sacar) y `src/pelota/audio.js` (el golpe sin el silencio del mp3).
   Partid de lo que hay en `master` (`df7f2b7a`); no hace falta rehacerlo.
-- **De Principal a Pelota · personajes**: las figuras animadas de las cartas se rehacen desde las figuras nuevas
-  (`public/videos/figuras/`, `src/ui/videos.js`). Hay seis; faltan dieciséis, a la espera de que el autor dé el visto
-  bueno a los créditos de Higgsfield (32). Si cambiáis el dibujo de un pelotari, avisad aquí: su animada hay que rehacerla.
+- **De Principal a Pelota · personajes**: las figuras animadas de las cartas están rehechas desde las figuras nuevas, las
+  22 (`public/videos/figuras/`, `src/ui/videos.js`). Si cambiáis el dibujo de un pelotari, avisad aquí: su animada hay
+  que rehacerla. Y la equipación del jugador (zapatillas, muñequeras y faja) se pinta en `src/actors/npcOutfit.js`
+  (`KIT`, `kitMedidas`), midiendo el esqueleto de cada `pelotari_<nombre>`: si cambiáis sus huesos o su ropa, avisad.
+  Los vecinos y su calidad son vuestros (el autor, 18 nov: «los vecinos los están haciendo en otro chat»).
 
 ## Última publicación
 

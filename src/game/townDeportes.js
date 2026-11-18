@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, otrosDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, eligePelotariLibre, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, otrosDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, eligePelotariLibre, abreEquipacion, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -336,6 +336,7 @@ export class PuebloDeportes {
         const tq = KINDS[kind]?.trinquete, sel = { sedes: tq ? [] : this.sedes() }, act = await torneoPanel(T, town, sel);
         if (this.disposed || act === 'exit') return;   // (el pueblo se rehízo mientras tanto: este torneo ya no sigue)
         if (act === 'pick') { await eligePelotari(T, yo); continue; }
+        if (act === 'kit') { await abreEquipacion({ nombre: T.yo?.name || '', kicker: T.yo?.name || yo.name }); if (this.disposed) return; continue; }
         if (act === 'new') { T = torneo(yo, ctx, true, kind); continue; }
         if (act === 'sim') { playTorneoRound(T); continue; }
         const m = yourMatch(T);
