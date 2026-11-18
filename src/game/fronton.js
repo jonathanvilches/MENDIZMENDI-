@@ -33,6 +33,7 @@ import { pelotaLigera } from '../util/diag.js';
 import { COLOR_BOLA } from '../pelota/bola.js';
 import { ponDorsal, quitaDorsal } from '../pelota/dorsal.js';
 import { modeloNuevo } from '../pelota/estiloPelotari.js';
+import { aspectoDe, aspectoTuyo, aspectoLibre } from '../pelota/aspectos.js';
 // un pelotari rival o compañero (el azul, pelotari; el colorado, pelotari_rojo) con el pelo de su figura (el rubio Mikel,
 // la pelirroja Leire…); las chicas, con su cuerpo de chica (chicas.js: la pelotari, con la camiseta teñida de colorado
 // en el lado rojo)
@@ -45,11 +46,20 @@ const nitido = (model) => { if (!(QUALITY === 'low' && matchMedia?.('(pointer: c
 // tope, solo cubre 1,9 m/s, y al volver al saque frenando entre 2 y 3,3 m/s los pies patinaban: parecía que se
 // deslizaba. A ese paso un pelotari ya trota)
 const corre = (r) => { if (r?.char?.opt) r.char.opt.runAt = 1.85; return r; };
-async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name)) {
+// (los ids de los aspectos que ya están en la cancha en este partido: dos pelotaris no salen iguales; pelota/aspectos.js)
+let enCancha = new Set();
+async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name), aspecto = null) {
   // (con los pelotaris nuevos elegidos en Ajustes, el nuevo de su camiseta: chico o chica, con su cara y su pelo;
   // pelota/estiloPelotari.js. Si falla o aún no está, el de siempre)
   const nuevo = modeloNuevo(model === 'pelotari_rojo' ? 'rojo' : 'azul', girl, name);
   if (nuevo) try { nitido(nuevo); return corre(new GlbRig(await loadMeshy(nuevo), nuevo)); } catch (e) { console.warn('pelotari nuevo', e); }
+  // (los 10 de siempre: cada pelotari, el suyo —por su nombre, o el que has elegido para ti—, con su camiseta azul o,
+  // de colorado, teñida. Si su archivo falta o falla, el pelotari de antes, con el pelo de su color)
+  const A = aspectoLibre(aspecto || aspectoDe(name, girl), enCancha);
+  if (hasMeshy(A.modelo)) try {
+    nitido(A.modelo); const r = new GlbRig(await loadMeshy(A.modelo), A.modelo);
+    if (model === 'pelotari_rojo') outfitTint(r.char.root, A.modelo, { shirt: COLORADO }); return corre(r);
+  } catch (e) { console.warn('pelotari', A.modelo, e); }
   if (girl && hasChica('pelotari')) try {
     nitido('pelotari'); const r = new GlbRig(await loadChica('pelotari'), 'pelotari');
     outfitTint(r.char.root, 'pelotari', { shirt: model === 'pelotari_rojo' ? COLORADO : null, hair }); return corre(r);
@@ -68,7 +78,9 @@ function makeJueces(G, C) {
   return [3.2, COURT.FALTA, COURT.PASA].map((z, i) => {
     const w = g.localToWorld(new THREE.Vector3(x, 0, z));
     const a = new Actor({ id: 'juez' + i, name: 'Juez', x: w.x, z: w.z, y: w.y, heading: Math.atan2(-Math.cos(yaw), Math.sin(yaw)), ghost: true, wander: 0,
-      look: { juez: true, shirt: '#16151b', pants: '#1b1a20', shoes: '#16161c', hair: ['#2b1d14', '#5a3a22', '#8a8278'][i] } }, G.scene);
+      // (meshy: el juez o la jueza del estilo de los pelotaris de siempre, ya vestidos de negro; si aún no están cargados,
+      // el juez de antes: actors/npcGlb.js, meshyFor)
+      look: { juez: true, meshy: ['juez_hombre', 'juez_mujer', 'juez_hombre'][i], height: [1.76, 1.7, 1.76][i], shirt: '#16151b', pants: '#1b1a20', shoes: '#16161c', hair: ['#2b1d14', '#5a3a22', '#8a8278'][i] } }, G.scene);
     a.frozen = true; a.zl = z; return a;
   });
 }
@@ -488,9 +500,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
     // (con un pelotari del juego elegido para el campeonato, su figura: chico o chica y su pelo, por su nombre)
     const ella = !yo && avatarIsGirl(profile().avatar);
+    enCancha = new Set();   // (los aspectos de este partido: ninguno repetido)
     if (yo && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, yo.name); } catch (e) { console.warn('pelotari elegido', e); apunta('pelotari elegido', e); }
-    else if (modeloNuevo(colors.you, ella) && hasMeshy(youModel)) try { pel = await rigPelotari(youModel, '', ella, null); } catch (e) { console.warn('pelotari nuevo', e); apunta('pelotari nuevo', e); }
-    else if ((rig0.id !== youModel || ella) && hasMeshy(youModel)) try { if (ella) pel = await rigPelotari(youModel, '', true, null); else { nitido(youModel); pel = new GlbRig(await loadMeshy(youModel), youModel); } } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
+    // (el tuyo: el aspecto que has elegido en Ajustes, de los 10; sin elegir, el primero de tu género)
+    else if (hasMeshy(youModel)) try { pel = await rigPelotari(youModel, '', ella, null, aspectoTuyo(ella)); } catch (e) { console.warn('pelotari', e); apunta('pelotari', e); }
     // (el cuerpo de siempre se aparta del todo mientras dura el partido: así nada lo vuelve a mostrar)
     if (pel) { hidden.push(...P.obj.children); for (const c of hidden) P.obj.remove(c); P.obj.add(pel.char.root); rig = pel; }
     // (tu pelotari también trota desde 1,85 m/s; si es tu figura de siempre, al acabar vuelve a su paso del pueblo)
@@ -596,6 +609,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (rig.char) { rig.char.back = st.back; rig.char.lado = st.lado; } rig.update(dt, st.speed, true, 0);
       once('you', 'swing', st.swing >= 0, () => rig.doAct?.('hit', 0.5, st.golpe));
       once('you', 'won', st.won, () => rig.doCheer?.());
+      once('you', 'baila', st.baila, () => rig.doDance?.());
       once('you', 'lost', st.lost, () => rig.doAct?.('sad'));   // (el tanto perdido: las manos a la cabeza)
       once('you', 'saluda', st.saluda, () => rig.doWave?.());   // (al salir a la cancha, saluda a la grada)
       tic('you', st, dt, rig);
@@ -606,6 +620,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       if (red) { red.char.back = st.back; red.char.lado = st.lado; red.update(dt, st.speed, true, 0); }
       once('rival', 'swing', st.swing >= 0, () => red ? red.doAct('hit', 0.5, st.golpe) : rival.anim?.doAct?.('throw', 0.35));
       once('rival', 'won', st.won, () => red?.doCheer());
+      once('rival', 'baila', st.baila, () => red?.doDance?.());
       once('rival', 'lost', st.lost, () => red?.doAct('sad'));
       once('rival', 'saluda', st.saluda, () => red ? red.doWave() : rival.anim?.doWave?.());
       tic('rival', st, dt, red);

@@ -41,6 +41,8 @@ function outlineMat(w) {
 // personajes hechos con Meshy (los sube el usuario): un modelo con su propia textura y unos pocos clips (correr,
 // andar, salto completo y celebración). Los que faltan se recortan de esos mismos clips: estar quieto y hablar (el final
 // tranquilo de la celebración, de ida y vuelta para que no salte), saludar, celebrar, el impulso, el vuelo y la caída
+// (los bailes de los pelotaris, tools/pelotaris10-bailes.mjs: solo huesos y clips)
+const BAILES = Object.values(import.meta.glob('../assets/pelota/bailes.glb', { eager: true, query: '?url', import: 'default' }))[0] || '';
 const MESHY = {}, MESHY_PICS = {};
 // (en el archivo único, los de textura a 1024 px: el alias @meshy-full de vite.config.js)
 for (const [p, u] of Object.entries(import.meta.glob('@meshy-full/*.glb', { eager: true, query: '?url', import: 'default' }))) MESHY[p.split('/').pop().replace('.glb', '')] = u;
@@ -97,6 +99,14 @@ const MESHY_BY = {
 MESHY_BY.pelotari_rojo = MESHY_BY.pelotari;   // el colorado se mueve igual que el azul
 // los pelotaris nuevos (pelota/estiloPelotari.js): sus archivos traen los clips con los mismos nombres que el de siempre
 for (const m of ['pelotari_nuevo', 'pelotari_nuevo_rojo', 'pelotari_nueva', 'pelotari_nueva_azul', 'pelotari_nueva2', 'pelotari_nueva2_azul', 'pelotari_nueva3', 'pelotari_nueva3_azul']) MESHY_BY[m] = MESHY_BY.pelotari;
+// los 10 pelotaris de siempre (pelota/aspectos.js: 5 chicos y 5 chicas, el pelotari de siempre con otro pelo y otra
+// cara, hechos en Meshy y atados a su mismo esqueleto: tools/pelotaris10.mjs): se mueven exactamente como él
+export const PELOTARIS10 = ['pelotari_chico1', 'pelotari_chico2', 'pelotari_chico3', 'pelotari_chico4', 'pelotari_chico5', 'pelotari_chica1', 'pelotari_chica2', 'pelotari_chica3', 'pelotari_chica4', 'pelotari_chica5'];
+for (const m of PELOTARIS10) MESHY_BY[m] = MESHY_BY.pelotari;
+// (y los jueces y el público hechos como ellos, con su mismo esqueleto y sus mismos clips: quietos, saludan y celebran
+// como el pelotari; solo en versión ligera, tools/pelotaris10.mjs)
+export const GENTE_PELOTA = ['juez_hombre', 'juez_mujer', 'aficion_hombre', 'aficion_mujer', 'aficion_abuelo', 'aficion_abuela'];
+for (const m of GENTE_PELOTA) MESHY_BY[m] = MESHY_BY.pelotari;
 // los vecinos (tools/vecinos-glb.mjs: todos traen estar de pie mirando alrededor, Alert, y charlar, Chat): quietos, mirando
 // alrededor (el clip entero, que empieza y acaba igual); hablando, su charla entera; saludar, el gesto del principio de
 // la charla; asustarse, el respingo de mirar alrededor; y golpear, el golpe con los dos brazos de los que lo traen
@@ -201,6 +211,13 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
   // (los pelotaris nuevos, de 19-20 años: adultos, a la altura de los vecinos jóvenes; pelota/estiloPelotari.js. Con la
   // talla de los pelotaris de verdad, que suelen pasar del 1,80: el autor, 17 de noviembre de 2026, los veía pequeños
   // frente al frontón, de 10 m)
+  // (los 10 de siempre: el cuerpo, de la misma talla que el pelotari, 1,62; la altura cuenta también el pelo, y el moño,
+  // la coleta alta o los rizos recogidos suben más que sus rizos: lo que mide cada uno de pies a lo alto del pelo,
+  // tools/blender/pelotaris10/esqueleto.py)
+  pelotari_chico1: 1.64, pelotari_chico2: 1.605, pelotari_chico3: 1.63, pelotari_chico4: 1.585, pelotari_chico5: 1.595,
+  pelotari_chica1: 1.805, pelotari_chica2: 1.625, pelotari_chica3: 1.795, pelotari_chica4: 1.55, pelotari_chica5: 1.955,
+  // (los jueces y el público de su mismo estilo: adultos, algo más altos que los pelotaris, que son chavales)
+  juez_hombre: 1.76, juez_mujer: 1.7, aficion_hombre: 1.74, aficion_mujer: 1.66, aficion_abuelo: 1.68, aficion_abuela: 1.6,
   pelotari_nuevo: 1.84, pelotari_nuevo_rojo: 1.84, pelotari_nueva: 1.74, pelotari_nueva_azul: 1.74, pelotari_nueva2: 1.72, pelotari_nueva2_azul: 1.72, pelotari_nueva3: 1.7, pelotari_nueva3_azul: 1.7,
   // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS), en metros. Regla: el explorador (1,45) y la exploradora
   // (1,43) tienen un tamaño intermedio, los adultos son claramente más grandes y los niños del pueblo, más pequeños. El
@@ -436,6 +453,12 @@ export async function loadMeshy(name, lod = false, completo = false) {
       for (const c of pel) { c.userData = {}; animations.push(c); }
       const q = pel.find(c => c.name === 'Idle'); if (q) { const st = q.clone(); st.name = 'Still'; st.userData = {}; animations.push(st); }
     }
+    // (su baile: cada uno de los 10 pelotaris de siempre tiene el suyo, y el de antes, el primero. Son bailes de Meshy
+    // pasados a su esqueleto, en un archivo aparte que comparten todos: tools/pelotaris10-bailes.mjs)
+    if (pel.length && BAILES && !/^pelotari_nuev/.test(name)) try {
+      const b = await loadChar(BAILES), c = b.animations.find(a => a.name === 'Baile' + (Math.max(0, PELOTARIS10.indexOf(name)) + 1));
+      if (c) { const k = c.clone(); k.name = 'Baile'; k.userData = {}; animations.push(k); }
+    } catch (e) { console.warn('bailes', e); }
     // (con la cabeza cambiada, la altura se mide con la malla deformada por sus huesos: si no, saldría la de antes)
     if (kCab !== 1) g.scene.updateMatrixWorld(true);
     const box = new THREE.Box3().setFromObject(g.scene, kCab !== 1), fit = height / Math.max(0.1, box.max.y - box.min.y);
@@ -914,6 +937,8 @@ export class GlbRig {
   // (el pelotari celebra de varias maneras, una cada vez: el puño, el salto con los brazos arriba o el aplauso a la grada)
   doCheer() { const A = this.char.actions, v = ['Celebrate', 'Celebrate2', 'Celebrate3'].filter(n => A[n]); this.cheerClip = v.length > 1 ? v[(this.cheerN = (this.cheerN || 0) + 1) % v.length] : 'Celebrate';
     this.cheer = A[this.cheerClip] ? Math.max(1.6, A[this.cheerClip].getClip().duration) : 2; this.char.oneShot = null; this.char.holdFace('Happy', 'Normal', 2.6, 'Fist'); }
+  /** El baile del pelotari (al ganar el partido): su clip «Baile», entero y contento; sin él, celebra como en un tanto. */
+  doDance() { const A = this.char.actions; if (!A.Baile) return this.doCheer(); this.cheerClip = 'Baile'; this.cheer = A.Baile.getClip().duration; this.char.oneShot = null; this.char.holdFace('Happy', 'Normal', this.cheer, 'Fist'); }
   setExpr(name, dur = 2) { const e = EXPR[name] || EXPR.neutral; this.char.holdFace(e[0], e[1], dur); }
   /** Postura en parado (p. ej. 'Ready' en el frontón); null vuelve a Idle. */
   setStance(name) { this.char.idleName = name || null; }

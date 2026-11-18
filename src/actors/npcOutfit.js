@@ -43,6 +43,12 @@ ZONES.osasuna_fuera = `
     if (y > 0.43 && y < 0.66 && white && uShirt.w > 0.) return noTone(uShirt, v, 0.76);   // (más abajo, las manos claras)
     if (y > 0.12 && y < 0.42 && dark && uPants.w > 0.) return noTone(uPants, v, 0.24);`;
 ZONES.pelotari_rojo = ZONES.pelotari;
+// (los 10 de siempre: la misma ropa; de colorado, su camiseta azul teñida, como la pelotari)
+// (su camiseta baja algo más que la del pelotari y, con moño o coleta alta, queda más abajo en la altura total: con la
+// franja del pelotari se quedaba una tira azul en el bajo)
+for (let i = 1; i <= 5; i++) ZONES['pelotari_chico' + i] = ZONES['pelotari_chica' + i] = `
+    bool blue = h > 0.5 && h < 0.72 && s > 0.4;
+    if (y > 0.2 && y < 0.72 && blue && uShirt.w > 0.) return noTone(uShirt, v, 0.65);`;
 // el juez (el futbolista, todo de negro): también el rojo de los bordes y de las sombras, el de las medias y las
 // zapatillas. Con solo el rojo vivo de la camiseta quedaban motas rojas sobre el negro y las zapatillas rojas. El rojo
 // apagado, solo si es oscuro: la piel, del mismo tono pero clara, no se toca; la cara queda por encima

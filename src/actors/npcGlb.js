@@ -42,8 +42,9 @@ export async function preloadNpcs(d = null) {
   // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos; los vecinos de
   // Meshy, solo los del pueblo)
   // (y el juez del frontón, solo su versión ligera: no está entre los de archivo completo)
-  const juezP = hasMeshyLod('juez') && !MESHY_LOD_NPC.juez ? loadMeshy('juez', true).then(g => { MESHY_LOD_NPC.juez = g; }).catch(e => console.warn('juez', e)) : null;
-  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP, juezP]);
+  // (y los jueces del estilo de los pelotaris de siempre, un hombre y una mujer: game/fronton.js los pide por su nombre)
+  const juezP = Promise.all(['juez', 'juez_hombre', 'juez_mujer'].filter(n => hasMeshyLod(n) && !MESHY_LOD_NPC[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }).catch(e => console.warn('juez', n, e))));
+  await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !/^pelotari_chic[oa]\d/.test(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP, juezP]);
   return meshyReady;
 }
 const MESHY_LOD_NPC = {}, CHICA_LOD_NPC = {}; let meshyReady = false;
@@ -184,7 +185,7 @@ function vecinosDelPueblo(d) {
  *  pañuelo rojo → el sanferminero; los demás, repartidos (sobre todo esos dos, alguno con la camiseta de Osasuna o de
  *  pelotari). */
 export function meshyFor(L = {}, nombre = '') {
-  if (L.meshy && MESHY_NAMES.includes(L.meshy)) return L.meshy;
+  if (L.meshy && (MESHY_NAMES.includes(L.meshy) || MESHY_LOD_NPC[L.meshy])) return L.meshy;   // (o uno que solo tiene versión ligera, ya cargada: los jueces)
   // la gente normal del pueblo, con los vecinos de Meshy que ha cargado
   const ya = VEC_DE.get(hashOf(L)), v = (ya && VEC_LOD[ya] ? ya : null) || vecinoPara(L, nombre, Object.keys(VEC_LOD), true); if (v) return v;
   // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
@@ -219,11 +220,11 @@ function buildNpcMeshy(L, costume = false, ropa = null, ella = isFemale(L), pein
   // (el pelo de su color con hairColor.js: rubio, castaño claro, pelirrojo, canoso…; sin color, el suyo de siempre)
   if (ropa) outfitTint(char.root, name, { ...ropa, hair });   // (los trajes de trajes.js: su ropa pintada, de sus colores)
   else if (costume || L.meshy) hairTint(char.root, name, hair);
-  else if (name === 'juez') { /* (el juez nuevo ya va vestido de juez: ni se tiñe su ropa ni su pelo) */ }
+  else if (/^juez/.test(name)) { /* (el juez nuevo ya va vestido de juez: ni se tiñe su ropa ni su pelo) */ }
   else outfitTint(char.root, L.juez && name === 'osasuna' ? 'osasuna_juez' : name, { shirt: L.shirt, pants: L.pants || L.skirt, vest: L.vest, acc: L.scarf || L.sash || L.vest || L.pants || L.skirt, hair });
   // su altura: niños más bajos, el resto con un poco de variedad; los mayores, algo más bajos
   // (a la altura de los vecinos de Meshy: adultos claramente más altos que el explorador, 1,45, y niños más bajos)
-  const H = L.height || (L.child ? 1.22 : (L.old ? 1.68 : 1.74) + (hashOf(L) % 7) * 0.02), k = H / (name === 'juez' ? meshyHeight(name) : 1.6);
+  const H = L.height || (L.child ? 1.22 : (L.old ? 1.68 : 1.74) + (hashOf(L) % 7) * 0.02), k = H / (/^juez/.test(name) ? meshyHeight(name) : 1.6);
   char.root.scale.setScalar((g.userData.fit || 1) * k);
   // prendas encima: barba, delantal y makila; ellas, la falda y el delantal cosidos al cuerpo, que se mueven con las
   // piernas (trajes.js); con el cuerpo de chico de reserva, la falda de siempre
