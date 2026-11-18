@@ -6,6 +6,8 @@
 #   1. se encaja la malla nueva sobre el pelotari: los pies en el suelo, las puntas de las manos donde las suyas (a lo
 #      ancho y a lo alto: la pose es la misma, porque el dibujo salió de un render suyo), sin tocar nada más
 #   2. cada punto toma los pesos del punto más cercano de la piel del pelotari (transferencia de datos de Blender)
+#      (MANOS=1: a lo alto, por la altura de las manos y no por la camiseta azul: los jueces y el público, que no la
+#      llevan; un vaquero azul se tomaba por ella)
 #   3. lo que es cabeza o pelo (las piezas sueltas de Meshy que quedan por encima del cuello, o que llegan a lo alto de la
 #      cabeza aunque cuelguen, como la coleta y la trenza) va entero al hueso de la cabeza: así el pelo no se estira con
 #      la espalda al agacharse ni atraviesa los hombros
@@ -29,7 +31,8 @@ def medidas(o):
     # la de los rizos, que las trae algo más bajas, salía un 12 % más alta que los demás)
     M = o.matrix_world; P = [M @ v.co for v in o.data.vertices]; xm = max(abs(p.x) for p in P); z0 = min(p.z for p in P)
     mano = [p for p in P if abs(p.x) > 0.9 * xm]; yh = sum(p.y for p in mano) / len(mano); za = azul(o)
-    return xm, z0, float(np.percentile(za, 97)), yh, (max(p.x for p in P) + min(p.x for p in P)) / 2
+    # (los que no van de azul —los jueces y el público, hechos igual—: por la altura de las manos)
+    return xm, z0, (float(np.percentile(za, 97)) if len(za) > 300 and not os.environ.get('MANOS') else None, sum(p.z for p in mano) / len(mano)), yh, (max(p.x for p in P) + min(p.x for p in P)) / 2
 bpy.ops.import_scene.gltf(filepath=nuevo, merge_vertices=True)
 ob = next(o for o in bpy.context.selected_objects if o.type == 'MESH')
 bpy.ops.object.select_all(action='DESELECT'); ob.select_set(True); bpy.context.view_layer.objects.active = ob
@@ -38,8 +41,8 @@ for o in list(bpy.data.objects):
     if o.type == 'EMPTY': bpy.data.objects.remove(o)
 # ---- 0. lo que sobra: alguna tira suelta que Meshy deja colgando (QUITA="x0,x1,z0,z1;…", en las medidas del archivo
 # de Meshy: se borran las piezas sueltas cuya caja cabe entera ahí). Miradas una a una en las vistas ----
-if os.environ.get('QUITA'):
-    cajas = [[float(v) for v in c.split(',')] for c in os.environ['QUITA'].split(';')]
+if True:
+    cajas = [[float(v) for v in c.split(',')] for c in os.environ.get('QUITA', '').split(';') if c]
     bm = bmesh.new(); bm.from_mesh(ob.data); bm.verts.ensure_lookup_table(); visto = set(); fuera = []
     for v in bm.verts:
         if v.index in visto: continue
@@ -50,10 +53,15 @@ if os.environ.get('QUITA'):
                 w = e.other_vert(q)
                 if w.index not in visto: visto.add(w.index); pila.append(w)
         xs_ = [q.co.x for q in isla]; zs_ = [q.co.z for q in isla]
-        if any(min(xs_) >= c[0] and max(xs_) <= c[1] and min(zs_) >= c[2] and max(zs_) <= c[3] for c in cajas): fuera += isla
-    print('QUITA', len(fuera), 'puntos'); bmesh.ops.delete(bm, geom=fuera, context='VERTS'); bm.to_mesh(ob.data); bm.free(); ob.data.update()
+        ys_ = [q.co.y for q in isla]
+        # (y los hilos: piezas finísimas y largas que cuelgan del pelo hasta las piernas, como los de la melena)
+        hilo = max(xs_) - min(xs_) < 0.008 and max(ys_) - min(ys_) < 0.008 and max(zs_) - min(zs_) > 0.04
+        if hilo or any(min(xs_) >= c[0] and max(xs_) <= c[1] and min(zs_) >= c[2] and max(zs_) <= c[3] for c in cajas): fuera += isla
+    if fuera: print('QUITA', len(fuera), 'puntos')
+    bmesh.ops.delete(bm, geom=fuera, context='VERTS'); bm.to_mesh(ob.data); bm.free(); ob.data.update()
 # ---- 1. el encaje ----
 nombre_ob = ob.name; xs, z0s, zhs, yhs, cxs = medidas(src); xn, z0n, zhn, yhn, cxn = medidas(ob)
+ia = 0 if zhn[0] is not None else 1; zhs, zhn = zhs[ia], zhn[ia]
 sx = xs / xn; sz = (zhs - z0s) / (zhn - z0n); sy = (sx * sz) ** 0.5
 for v in ob.data.vertices: v.co = Vector(((v.co.x - cxn) * sx + cxs, (v.co.y - yhn) * sy + yhs, (v.co.z - z0n) * sz + z0s))
 ob.data.update(); P = [v.co.copy() for v in ob.data.vertices]
@@ -82,6 +90,9 @@ for v in bm.verts:
     # de la trenza, que si no se iban con los hombros y cruzaban la cara al moverse)
     if min(zs) > 0.66 or ((max(zs) > 0.9 or sum(zs) / len(zs) > 0.645) and xa < 0.2): cab += [i for i in isla if i not in azules or fz(P[i].z) > 0.7]
 bm.free()
+# (los hilos: a la de la melena le cuelgan del pelo unos hilos finísimos hasta las piernas; el pelo de ninguno baja del
+# pecho, así que lo que sea pelo y esté más abajo se borra)
+hilos = [i for i in cab if fz(P[i].z) < 0.54]
 gh = ob.vertex_groups['mixamorig:Head']
 for g in ob.vertex_groups:
     if g != gh: g.remove(cab)
@@ -97,6 +108,8 @@ for v in ob.data.vertices:
 bpy.context.view_layer.objects.active = ob; ob.select_set(True)
 bpy.ops.object.vertex_group_limit_total(group_select_mode='ALL', limit=4); bpy.ops.object.vertex_group_normalize_all(group_select_mode='ALL', lock_active=False)
 print('CABEZA', len(cab), 'de', len(ob.data.vertices), 'puntos')
+if hilos:
+    bm = bmesh.new(); bm.from_mesh(ob.data); bm.verts.ensure_lookup_table(); bmesh.ops.delete(bm, geom=[bm.verts[i] for i in hilos], context='VERTS'); bm.to_mesh(ob.data); bm.free(); ob.data.update(); print('HILOS', len(hilos), 'puntos fuera')
 ob.parent = arm; ob.matrix_parent_inverse = arm.matrix_world.inverted(); mo = ob.modifiers.new('Armature', 'ARMATURE'); mo.object = arm
 ob.name = 'Pelotari'; bpy.data.objects.remove(src)
 for p in ob.data.polygons: p.use_smooth = True

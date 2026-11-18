@@ -22,7 +22,10 @@ const SETS = {
   // crowd3d.js, camisetaAzul. Las chicas, el chico del polo con la cabeza y la coleta de chicas.js)
   // (desde el rediseño de noviembre de 2026, el chico y la chica propios de la afición, con la camiseta colorada; la
   // azul, la misma figura con la camiseta pasada a azul)
-  aficion: [{ meshy: 'espectador', camiseta: 'rojo' }, { meshy: 'espectador', camiseta: 'azul' }, { meshy: 'espectadora', camiseta: 'rojo' }, { meshy: 'espectadora', camiseta: 'azul' }],
+  // (y, desde el 18 de noviembre de 2026, cuatro vecinos más con su ropa de calle, del estilo de los pelotaris de siempre:
+  // el de la txapela, la del pañuelo, el abuelo y la abuela. tools/pelotaris10.mjs)
+  aficion: [{ meshy: 'espectador', camiseta: 'rojo' }, { meshy: 'espectador', camiseta: 'azul' }, { meshy: 'espectadora', camiseta: 'rojo' }, { meshy: 'espectadora', camiseta: 'azul' },
+    { meshy: 'aficion_hombre' }, { meshy: 'aficion_mujer' }, { meshy: 'aficion_abuelo' }, { meshy: 'aficion_abuela' }],
 };
 const cache = new Map();
 // sentado en la grada: los muslos hacia delante y las espinillas hacia abajo, con la cadera bajada lo que mide el muslo

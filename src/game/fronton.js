@@ -78,7 +78,9 @@ function makeJueces(G, C) {
   return [3.2, COURT.FALTA, COURT.PASA].map((z, i) => {
     const w = g.localToWorld(new THREE.Vector3(x, 0, z));
     const a = new Actor({ id: 'juez' + i, name: 'Juez', x: w.x, z: w.z, y: w.y, heading: Math.atan2(-Math.cos(yaw), Math.sin(yaw)), ghost: true, wander: 0,
-      look: { juez: true, shirt: '#16151b', pants: '#1b1a20', shoes: '#16161c', hair: ['#2b1d14', '#5a3a22', '#8a8278'][i] } }, G.scene);
+      // (meshy: el juez o la jueza del estilo de los pelotaris de siempre, ya vestidos de negro; si aún no están cargados,
+      // el juez de antes: actors/npcGlb.js, meshyFor)
+      look: { juez: true, meshy: ['juez_hombre', 'juez_mujer', 'juez_hombre'][i], height: [1.76, 1.7, 1.76][i], shirt: '#16151b', pants: '#1b1a20', shoes: '#16161c', hair: ['#2b1d14', '#5a3a22', '#8a8278'][i] } }, G.scene);
     a.frozen = true; a.zl = z; return a;
   });
 }

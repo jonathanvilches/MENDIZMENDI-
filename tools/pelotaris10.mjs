@@ -10,12 +10,12 @@
 // Uso: node tools/pelotaris10.mjs <carpeta con 01-rizos.glb … 10-rizos.glb>
 import { NodeIO } from '@gltf-transform/core';
 import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { textureCompress, prune, dedup, reorder, meshopt, weld } from '@gltf-transform/functions';
-import { MeshoptDecoder, MeshoptEncoder } from 'meshoptimizer';
+import { textureCompress, prune, dedup, reorder, meshopt, weld, simplify } from '@gltf-transform/functions';
+import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
 import { statSync } from 'fs';
-const [,, DIR] = process.argv;
-await MeshoptDecoder.ready; await MeshoptEncoder.ready;
+const [,, DIR0] = process.argv;
+await MeshoptDecoder.ready; await MeshoptEncoder.ready; await MeshoptSimplifier.ready;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS).registerDependencies({ 'meshopt.decoder': MeshoptDecoder, 'meshopt.encoder': MeshoptEncoder });
 export const LISTA = [['01-rizos', 'pelotari_chico1'], ['02-corto', 'pelotari_chico2'], ['03-punta', 'pelotari_chico3'], ['04-rapado', 'pelotari_chico4'], ['05-melenita', 'pelotari_chico5'],
   ['06-coleta', 'pelotari_chica1'], ['07-trenza', 'pelotari_chica2'], ['08-mono', 'pelotari_chica3'], ['09-melena', 'pelotari_chica4'], ['10-rizos', 'pelotari_chica5']];
@@ -27,7 +27,14 @@ function inv(m) {   // (afín: la parte lineal por cofactores y el traslado)
   return [l[0], l[1], l[2], 0, l[3], l[4], l[5], 0, l[6], l[7], l[8], 0, -(l[0] * x + l[3] * y + l[6] * z), -(l[1] * x + l[4] * y + l[7] * z), -(l[2] * x + l[5] * y + l[8] * z), 1];
 }
 const enlace = (doc) => { const sk = doc.getRoot().listSkins()[0], j = sk.listJoints()[0]; return mul(j.getWorldMatrix(), sk.getInverseBindMatrices().getElement(0, [])); };
-for (const [de, a] of LISTA) for (const [px, carpeta] of [[2048, 'src/assets/meshy'], [1024, 'src/assets/meshy-1024']]) {
+// (y, hechos igual y con el mismo esqueleto, los jueces y el público de los partidos: el autor, 18 de noviembre de 2026,
+// «hay que generar espectadores y árbitros para el juego. Puedes hacerlo en Meshy directamente». Solo en versión ligera
+// —un tercio de los triángulos y textura de 512 px, src/assets/meshy/lod—, que es la que usan la grada (crowd3d.js) y los
+// jueces de la contracancha (npcGlb.js). GENTE=<carpeta> con juez.glb, jueza.glb, espectador.glb…)
+const GENTE = [['juez', 'juez_hombre'], ['jueza', 'juez_mujer'], ['espectador', 'aficion_hombre'], ['espectadora', 'aficion_mujer'], ['abuelo', 'aficion_abuelo'], ['abuela', 'aficion_abuela']];
+const TODO = [...(process.env.SOLO_GENTE ? [] : LISTA.flatMap(([de, a]) => [[DIR0, de, a, 2048, 'src/assets/meshy', 1], [DIR0, de, a, 1024, 'src/assets/meshy-1024', 1]])),
+  ...(process.env.GENTE ? GENTE.map(([de, a]) => [process.env.GENTE, de, a, 512, 'src/assets/meshy/lod', 0.34]) : [])];
+for (const [DIR, de, a, px, carpeta, ratio] of TODO) {
   const B = await io.read(`${DIR}/${de}.glb`), A = await io.read('src/assets/meshy/pelotari.glb'), RA = A.getRoot(), RB = B.getRoot();
   await B.transform(weld());
   const pa = RA.listMeshes()[0].listPrimitives()[0], pb = RB.listMeshes()[0].listPrimitives()[0], buf = RA.listBuffers()[0];
@@ -50,6 +57,7 @@ for (const [de, a] of LISTA) for (const [px, carpeta] of [[2048, 'src/assets/mes
   // (la textura nueva en el material del pelotari: conserva su ajuste de brillo y rugosidad)
   const tb = pb.getMaterial().getBaseColorTexture(), ta = pa.getMaterial().getBaseColorTexture();
   ta.setImage(tb.getImage()).setMimeType(tb.getMimeType());
+  if (ratio < 1) await A.transform(weld(), simplify({ simplifier: MeshoptSimplifier, ratio, error: 0.004, lockBorder: false }));
   await A.transform(prune(), dedup(), textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [px, px], quality: 88 }), reorder({ encoder: MeshoptEncoder }), meshopt({ encoder: MeshoptEncoder, level: 'medium' }));
   const out = `${carpeta}/${a}.glb`; await io.write(out, A);
   console.log(out, n, 'puntos', pb.getIndices().getCount() / 3, 'triángulos', (statSync(out).size / 1024).toFixed(0), 'KB', 'escala', esc.toFixed(4));
