@@ -188,6 +188,15 @@ export function meshyFor(L = {}, nombre = '') {
   if (L.meshy && (MESHY_NAMES.includes(L.meshy) || MESHY_LOD_NPC[L.meshy])) return L.meshy;   // (o uno que solo tiene versión ligera, ya cargada: los jueces)
   // la gente normal del pueblo, con los vecinos de Meshy que ha cargado
   const ya = VEC_DE.get(hashOf(L)), v = (ya && VEC_LOD[ya] ? ya : null) || vecinoPara(L, nombre, Object.keys(VEC_LOD), true); if (v) return v;
+  // (18 de noviembre de 2026, el autor, viendo en fila a los sanfermineros, pastores y futbolistas que hacían de vecinos
+  // de relleno: «estos puedes eliminarlos». La gente normal del pueblo es siempre un vecino de los suyos: el que se pide
+  // por su nombre o, si no hay ninguno de su edad cargado, otro de su sexo; nunca ya uno de aquellos)
+  if (L.meshy && VEC_LOD[L.meshy]) return L.meshy;
+  if (!COSTUME(L) && !L.juez && !deFiesta(L, sinTilde(nombre))) {
+    const gente = Object.keys(VEC_LOD).filter(k => VECINOS[k] && !VECINOS[k].ser), s = isFemale(L) ? 'f' : 'm', e = edadDe(L);
+    const cand = [gente.filter(k => VECINOS[k].s === s && (e === 'nino') === (VECINOS[k].e === 'nino')), gente.filter(k => VECINOS[k].s === s), gente].find(c => c.length);
+    if (cand) return cand[hashOf(L) % cand.length];
+  }
   // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
   // pelotari, que lleva tacos en los dedos)
   // (desde el rediseño, el juez propio: polo negro, pantalón blanco y zapatillas blancas, glbChar.js REDISENO)
