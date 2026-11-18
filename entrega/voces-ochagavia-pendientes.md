@@ -82,7 +82,7 @@ Contado de nuevo comparando `src/game/game.js` con `manifiesto.json`. Inés y Nu
 
 Créditos de ElevenLabs el 18 de noviembre: quedan unos 17.700 de 129.958 este mes (gastados 504 el día 18).
 
-Pronunciación que pide el autor (18 de noviembre): «Otsagabía» e «Itzíar», con el acento en la i. Para la voz se escribe «Otsagabía» e «Itsíar». Con eso se regrabaron y aprobó también `maite-00`, `maite-03`, `maite-09`, `itziar-00` e `itziar-00t`. Sin revisar: la del mirador de la narradora, «Desde aquí ves Otsagabia entera…».
+Pronunciación que pide el autor (18 de noviembre): «Otsagabía» e «Itzíar», con el acento en la i. Para la voz se escribe «Otsagabía» e «Itsíar». Con eso se regrabaron y aprobó también `maite-00`, `maite-03`, `maite-09`, `itziar-00` e `itziar-00t`. También la del mirador de la narradora (`narra-01`).
 
 ## Personajes que siguen con el cuerpo antiguo
 
