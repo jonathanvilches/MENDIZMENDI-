@@ -842,7 +842,13 @@ function carruselElige({ kicker, titulo, items, sel, ok, btn }) {
         info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia'); } });
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
     const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); btn?.setAttribute('aria-expanded', 'false'); lgFuera(r); res(k); };
-    const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } };
+    // (las flechas e Intro, aquí y solo aquí: esta pantalla se abre encima del menú de campeonatos, que también es un
+    // anillo y las oía: con dos flechas a la derecha pasaba por debajo del Manomanista al Cuatro y Medio sin que se viera)
+    const tecla = (e) => {
+      if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); car.paso(e.key === 'ArrowRight' ? 1 : -1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); if (cur) fin(cur.k); }
+    };
     addEventListener('keydown', tecla, true);
     r.addEventListener('click', (e) => {
       const c = e.target.closest('.c3-port[data-k]'); if (c) return fin(c.dataset.k);
@@ -893,18 +899,21 @@ export function frontonesMenu() {
   efCss(); if (!document.getElementById('frg-css')) { const st = document.createElement('style'); st.id = 'frg-css'; st.textContent = FR_CSS; document.head.appendChild(st); }
   // (y al final, los dos trinquetes modernos inventados para el juego, con su imagen pintada en Higgsfield a partir de una
   // del propio partido, la misma cancha y el mismo encuadre: TRINQ_JUEGO)
-  // (solo los que tienen imagen, su foto de verdad o la de su cancha: los ocho sin ninguna, el Euskal Jai, el Atarrabia, el
-  // Jito Alai..., salían con una pelota de relleno. Siguen en el capítulo «Frontones de Navarra» del menú; cuando tengan
-  // foto, vuelven aquí solos. 18 de noviembre de 2026)
-  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO].filter(F => (F.foto && fotoFronton(F.foto)) || canchaFoto(F.cancha)), eu = isEU();
+  // (todos con imagen: su foto de verdad o la de su cancha. Los que no tienen foto libre, el Euskal Jai, que ya no existe,
+  // el Atarrabia, el Jito Alai..., salían con una pelota de relleno y se quitaron de aquí; vuelven con la imagen de la
+  // cancha del juego en la que se juega al elegirlos, sacada del propio partido (frontones-juego/fr-<id>.webp,
+  // tools/frontones-cancha.mjs), y con su aviso, «La cancha del juego», para que no pase por una foto del de verdad.
+  // 18 de noviembre de 2026)
+  const fotoDe = (F) => (F.foto && fotoFronton(F.foto)) || canchaFoto(F.cancha), imgDe = (F) => fotoDe(F) || canchaFoto('fr-' + F.id);
+  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO].filter(imgDe), eu = isEU();
   return new Promise(res => {
     let sel = null;
     // (desde el 17 de noviembre de 2026, el mismo carrusel 3D que los campeonatos: el autor no podía elegir frontón en la
     // rejilla de antes, que en el móvil tumbado solo enseñaba las fotos cortadas, y la barra de filtros de arriba sobraba:
     // «no es una página web, es un videojuego». La foto grande de cada frontón; debajo, de la de delante, dónde está, cómo es
     // y una línea de su historia. Tocar la de delante, «Jugar aquí» o Intro: a jugar)
-    const portadaF = (F) => { const u = F.foto ? fotoFronton(F.foto) : canchaFoto(F.cancha), T = TIPOS[F.tipo];
-      return `<button type="button" class="c3-port cp-front" data-f="${F.id}" aria-label="${esc(F.nombre)}"${u ? ` data-foto="${u}"` : ''}>${u ? '' : `<span class="c3-figs">${iconSVG(T?.icon || 'pelota', 96)}</span>`}<span class="c3-pie"><small>${esc(eu ? T?.eu || '' : T?.nombre || '')}</small><b>${esc(F.nombre)}</b></span></button>`; };
+    const portadaF = (F) => { const u = imgDe(F), T = TIPOS[F.tipo];
+      return `<button type="button" class="c3-port cp-front" data-f="${F.id}" aria-label="${esc(F.nombre)}"${u ? ` data-foto="${u}"` : ''}>${u ? '' : `<span class="c3-figs">${iconSVG(T?.icon || 'pelota', 96)}</span>`}${fotoDe(F) ? '' : `<i class="c3-chip">${eu ? 'Jokoko kantxa' : 'La cancha del juego'}</i>`}<span class="c3-pie"><small>${esc(eu ? T?.eu || '' : T?.nombre || '')}</small><b>${esc(F.nombre)}</b></span></button>`; };
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     cssCarrusel();
     const CLAVE = 'herrizherri-fronton-carta'; let f0 = ''; try { f0 = localStorage.getItem(CLAVE) || ''; } catch (e) { /* sin guardado */ }

@@ -183,6 +183,8 @@ export const CSS_CARRUSEL3D = `
 .c3-real{position:absolute;right:3%;top:5%;width:26%;display:flex;flex-direction:column;gap:2px;padding:3px;background:rgba(10,4,26,.7)}
 .c3-real img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
 .c3-real small{font:800 max(8px,calc(var(--c3w,200px) * .024))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#ffe6a6;text-align:center}
+/* el aviso de la esquina de una portada cuya imagen es la cancha del juego y no una foto del frontón de verdad */
+.c3-chip{position:absolute;left:calc(var(--c3w,400px) * .028);top:calc(var(--c3w,400px) * .028);padding:4px 9px;border-radius:999px;background:rgba(9,4,20,.62);color:#e8defa;font:800 max(9px,calc(var(--c3w,400px) * .021))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;font-style:normal}
 .c3-mosaico{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}.c3-mosaico img{width:100%;height:100%;object-fit:cover;min-height:0}
 .c3-barra{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px 12px;min-width:0}
 .c3-barra>.lg-btn{justify-self:start}.c3-barra>.tq-sede{justify-self:end;margin:0}
