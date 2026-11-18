@@ -106,7 +106,8 @@ export const PELOTARIS10 = ['pelotari_inigo', 'pelotari_unai', 'pelotari_mikel',
 for (const m of PELOTARIS10) MESHY_BY[m] = MESHY_BY.pelotari;
 // (y los jueces y el público hechos como ellos, con su mismo esqueleto y sus mismos clips: quietos, saludan y celebran
 // como el pelotari; solo en versión ligera, tools/pelotaris10.mjs)
-export const GENTE_PELOTA = ['juez_hombre', 'juez_mujer', 'aficion_hombre', 'aficion_mujer', 'aficion_abuelo', 'aficion_abuela'];
+export const GENTE_PELOTA = ['juez_hombre', 'juez_mujer', 'aficion_hombre', 'aficion_mujer', 'aficion_abuelo', 'aficion_abuela',
+  'aficion_joven', 'aficion_chica', 'aficion_gafas', 'aficion_rubia', 'aficion_nino'];
 for (const m of GENTE_PELOTA) MESHY_BY[m] = MESHY_BY.pelotari;
 // los vecinos (tools/vecinos-glb.mjs: todos traen estar de pie mirando alrededor, Alert, y charlar, Chat): quietos, mirando
 // alrededor (el clip entero, que empieza y acaba igual); hablando, su charla entera; saludar, el gesto del principio de
@@ -221,6 +222,7 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
   pelotari_inigo: 1.64, pelotari_unai: 1.605, pelotari_mikel: 1.595, pelotari_aitor: 1.587, pelotari_inaki: 1.671, pelotari_ander: 1.628, pelotari_xabier: 1.638, pelotari_jokin: 1.574, pelotari_ekaitz: 1.578, pelotari_julen: 1.595, pelotari_asier: 1.628, pelotari_oihana: 1.549, pelotari_garazi: 1.804, pelotari_maialen: 1.624, pelotari_amaia: 1.955, pelotari_irati: 1.793, pelotari_nahia: 1.615, pelotari_nerea: 1.781, pelotari_leire: 1.611, pelotari_ane: 1.716, pelotari_miren: 1.646, pelotari_uxue: 1.649,
   // (los jueces y el público de su mismo estilo: adultos, algo más altos que los pelotaris, que son chavales)
   juez_hombre: 1.76, juez_mujer: 1.7, aficion_hombre: 1.74, aficion_mujer: 1.66, aficion_abuelo: 1.68, aficion_abuela: 1.6,
+  aficion_joven: 1.74, aficion_chica: 1.66, aficion_gafas: 1.72, aficion_rubia: 1.65, aficion_nino: 1.32,
   pelotari_nuevo: 1.84, pelotari_nuevo_rojo: 1.84, pelotari_nueva: 1.74, pelotari_nueva_azul: 1.74, pelotari_nueva2: 1.72, pelotari_nueva2_azul: 1.72, pelotari_nueva3: 1.7, pelotari_nueva3_azul: 1.7,
   // los vecinos (noviembre de 2026; actors/npcGlb.js, VECINOS), en metros. Regla: el explorador (1,45) y la exploradora
   // (1,43) tienen un tamaño intermedio, los adultos son claramente más grandes y los niños del pueblo, más pequeños. El

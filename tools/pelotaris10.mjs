@@ -31,7 +31,8 @@ const enlace = (doc) => { const sk = doc.getRoot().listSkins()[0], j = sk.listJo
 // «hay que generar espectadores y árbitros para el juego. Puedes hacerlo en Meshy directamente». Solo en versión ligera
 // —un tercio de los triángulos y textura de 512 px, src/assets/meshy/lod—, que es la que usan la grada (crowd3d.js) y los
 // jueces de la contracancha (npcGlb.js). GENTE=<carpeta> con juez.glb, jueza.glb, espectador.glb…)
-const GENTE = [['juez', 'juez_hombre'], ['jueza', 'juez_mujer'], ['espectador', 'aficion_hombre'], ['espectadora', 'aficion_mujer'], ['abuelo', 'aficion_abuelo'], ['abuela', 'aficion_abuela']];
+const GENTE = [['juez', 'juez_hombre'], ['jueza', 'juez_mujer'], ['espectador', 'aficion_hombre'], ['espectadora', 'aficion_mujer'], ['abuelo', 'aficion_abuelo'], ['abuela', 'aficion_abuela'],
+  ['joven', 'aficion_joven'], ['chica', 'aficion_chica'], ['gafas', 'aficion_gafas'], ['rubia', 'aficion_rubia'], ['nino', 'aficion_nino']];
 const TODO = [...(process.env.SOLO_GENTE ? [] : LISTA.flatMap(([de, a]) => [[DIR0, de, a, 2048, 'src/assets/meshy', 1], [DIR0, de, a, 1024, 'src/assets/meshy-1024', 1]])),
   ...(process.env.GENTE ? GENTE.map(([de, a]) => [process.env.GENTE, de, a, 512, 'src/assets/meshy/lod', 0.34]) : [])];
 for (const [DIR, de, a, px, carpeta, ratio] of TODO) {

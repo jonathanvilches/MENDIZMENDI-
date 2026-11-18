@@ -61,3 +61,13 @@ plantilla tiene ya su modelo (src/assets/meshy/pelotari_<nombre>.glb) y su carta
 | uxue | 01a1ee01-a698-742b-9de6-ad25754b118b |
 
 `los-22-cartas-y-juego.jpg`: las 22 cartas y los 22 en el juego, en el mismo orden.
+
+## Afición añadida el 18 de noviembre (Meshy, imagen → 3D)
+
+| Figura | Tarea de imagen | Tarea 3D |
+|---|---|---|
+| aficion_joven | 01a1ee26-4e51-742a-8a8c-1f7076910af6 | 01a1ee27-8062-733c-8568-acc9ba498fa5 |
+| aficion_chica | 01a1ee26-5694-7738-adee-6659b363c71c | 01a1ee27-842f-74ac-9e29-f3766caf8b35 |
+| aficion_gafas | 01a1ee26-5c55-7063-accc-1c44ad15268a | 01a1ee27-875d-7191-9528-396837b08c07 |
+| aficion_rubia | 01a1ee26-6306-7587-83da-d10d4d782a5c | 01a1ee27-8bd6-72ba-8503-b9b5d7835899 |
+| aficion_nino | 01a1ee26-6988-7161-b8c6-eac2f129a536 | 01a1ee27-8f55-7036-9c10-ded59b405155 |

@@ -11,5 +11,5 @@ for n in inigo unai ander aitor garazi maialen irati oihana amaia asier jokin ek
 # Nahia, con sus puntas, a la cabeza)
 uno mikel QUITA=-0.215,-0.02,-0.23,-0.1; uno ane HILO=0.3; uno nahia CENTRO=0.57
 # (los jueces y el público: sin camiseta azul, se encajan por la altura de las manos)
-if [ -d "$W/gente" ]; then mkdir -p "$W/gente/rig"; for n in juez jueza espectador espectadora abuelo abuela; do MANOS=1 python3 esqueleto.py -- "$W/pelotari-hd.glb" "$W/gente/$n.glb" "$W/gente/rig/$n.glb" 2>&1 | grep -E "ENCAJE|Error" | sed "s/^/$n /"; done; fi
+if [ -d "$W/gente" ]; then mkdir -p "$W/gente/rig"; for n in juez jueza espectador espectadora abuelo abuela joven chica gafas rubia nino; do MANOS=1 python3 esqueleto.py -- "$W/pelotari-hd.glb" "$W/gente/$n.glb" "$W/gente/rig/$n.glb" 2>&1 | grep -E "ENCAJE|Error" | sed "s/^/$n /"; done; fi
 cd "$R" && GENTE=$([ -d "$W/gente/rig" ] && echo "$W/gente/rig") node tools/pelotaris10.mjs "$W/rig"
