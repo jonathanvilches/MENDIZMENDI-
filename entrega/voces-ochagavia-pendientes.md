@@ -84,6 +84,10 @@ Créditos de ElevenLabs el 18 de noviembre: quedan unos 17.700 de 129.958 este m
 
 Pronunciación que pide el autor (18 de noviembre): «Otsagabía» e «Itzíar», con el acento en la i. Para la voz se escribe «Otsagabía» e «Itsíar». Con eso se regrabaron y aprobó también `maite-00`, `maite-03`, `maite-09`, `itziar-00` e `itziar-00t`. También la del mirador de la narradora (`narra-01`).
 
+## Lo que falta el 18 de noviembre, por la noche
+
+El autor: «hay muchos vecinos que dicen frases que no están locutadas». Recontado frase a frase: `entrega/voces-prueba-4/LEEME.md`. Sin voz quedan una frase de misión de Joseba (grabada en esa carpeta, a falta de elegir toma), los cinco paseantes (Patxi, Itxaso, Fermín, Txaro e Iker) y Ximun, el músico de la plaza, que no tienen voz elegida.
+
 ## Personajes que siguen con el cuerpo antiguo
 
 Los vecinos normales de Otsagabia ya son de Meshy. Los que llevan traje de leyenda o de fiesta siguen con la figura de antes, porque esos trajes solo existen en ella (`COSTUME` en `src/actors/npcGlb.js`).
