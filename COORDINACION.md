@@ -17,9 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- Frontones: los nueve sin foto libre vuelven al carrusel con la imagen de su cancha del juego y el aviso «La cancha del juego» (principal).
-- «Elige tu frontón» y «¿En qué frontón?»: las flechas ya no giran por debajo el menú de campeonatos (principal; toca `src/game/torneo.js`, de la ventana de interfaz, que estaba parada: es un cambio de seis líneas en `carruselElige`).
-- Vecinos: los queseros adaptados al estilo de los vecinos de siempre, `d0d56703` (personajes).
+- (nada pendiente)
 
 ## Peticiones entre ventanas
 
@@ -27,4 +25,4 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, 10:55 UTC, la hizo la ventana de interfaz: hasta `da63806e`.
+- 18 nov, 13:55 UTC, la hizo la ventana principal: todo lo de `master` hasta `6eef6d3c` (lo de interfaz, lo de personajes hasta los queseros, las nueve canchas de Frontones y las flechas de «Elige tu frontón»).
