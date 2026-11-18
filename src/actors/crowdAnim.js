@@ -305,7 +305,7 @@ export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } =
       const s = spots[i]; m4.compose(v.set(s[0], s[1], s[2]), q.setFromEuler(e.set(0, s[3] + (Math.random() - 0.5) * 0.3, 0)), s3.setScalar((0.92 + Math.random() * 0.16) * height / 1.5));
       m4.toArray(mats, i * 16);
     } }
-  let F = null, cerca = null, lejos = null, resp = null, hasta = -1, pend = null, sucio = true, pick = 0, nNear = 0;
+  let F = null, cerca = null, lejos = null, resp = null, hasta = -1, pend = null, pendTodos = false, sucio = true, pick = 0, nNear = 0;
   const near = new Int32Array(n);
   group.listo = cocinaPublico(set).then(G => {
     F = G; const cuenta = new Array(NF).fill(0); for (let i = 0; i < n; i++) cuenta[figs[i]]++;
@@ -317,9 +317,11 @@ export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } =
     resp = crowd3d(spots, set, height, { sit: true, all3d: true, figuras: true, kc }); group.add(resp); return resp.listo;
   });
   const cam = new THREE.Vector3(), frustum = new THREE.Frustum(), pm = new THREE.Matrix4(), sph = new THREE.Sphere(new THREE.Vector3(), 1.4);
+  // (dónde estaba y adónde miraba la cámara la última vez que se eligió: ver el corte de cámara en tick)
+  const camU = new THREE.Vector3(1e9, 0, 0), dirU = new THREE.Vector3(), camV = new THREE.Vector3(), dirV = new THREE.Vector3();
   // los que se ven, del más cercano a la cámara al más lejano: los KC primeros, con la figura entera
   function elige(camera) {
-    camera.getWorldPosition(cam); camera.updateMatrixWorld();
+    camera.getWorldPosition(cam); camera.updateMatrixWorld(); camU.copy(cam); camera.getWorldDirection(dirU);
     frustum.setFromProjectionMatrix(pm.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse));
     const cand = [];
     for (let i = 0; i < n; i++) { const s = spots[i]; sph.center.set(s[0], s[1] + 0.7, s[2]); if (frustum.intersectsSphere(sph)) cand.push([(s[0] - cam.x) ** 2 + (s[1] - cam.y) ** 2 * 0.5 + (s[2] - cam.z) ** 2, i]); }
@@ -331,8 +333,8 @@ export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } =
   // qué hace cada uno al celebrar: 0 el puño, 1 salta con los brazos arriba, 2 aplaude de pie, 3 aplaude sentado
   const TIPOS = [['subeA', 'puno'], ['subeB', 'salta'], ['subeC', 'aplaudePie'], ['entraAp', 'aplaude']], MZ = 0.15, BAJA_V = 0.8;
   const partes = (i) => { const C = F[figs[i]].clips, [e, l] = TIPOS[tipo[i]]; return [C[e], C[l] || C.salta]; };
-  function programa(t, len) {
-    const p = Math.min(0.95, Math.max(0.45, 0.3 + len * 0.13));
+  function programa(t, len, todos = false) {
+    const p = todos ? 0.92 : Math.min(0.95, Math.max(0.45, 0.3 + len * 0.13));
     for (let i = 0; i < n; i++) {
       const nombre = F[figs[i]].nombre, mayor = /abuel/.test(nombre), peque = /nino/.test(nombre);
       if (ini[i] >= 0 && t < fin[i]) {
@@ -372,7 +374,10 @@ export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } =
     if (resp) { resp.tick(t, excite, focus, camera); return; }
     uT.value = t;
     if (!F || !camera) return;
-    if (pend != null) { programa(t, pend); pend = null; }
+    if (pend != null) { programa(t, pend, pendTodos); pend = null; pendTodos = false; }
+    // (quiénes se ven se mira cada doce cuadros; pero en un corte de cámara, el plano de dron de la grada, la repetición
+    // o los planos del tanto, se mira en ese mismo cuadro: si no, la grada salía vacía hasta que tocaba)
+    if (pick > 1 && (camera.getWorldPosition(camV).distanceToSquared(camU) > 2.25 || camera.getWorldDirection(dirV).dot(dirU) < 0.94)) pick = 0;
     let otros = false; if ((pick -= 1) <= 0) { pick = 12; otros = elige(camera); }
     // (todos sentados y tranquilos: su cuadro lo pone el reloj en la tarjeta; no se manda nada)
     const activo = t < hasta + 0.2;
@@ -390,7 +395,8 @@ export function crowdAnim(spots, set = 'aficion', height = 1.24, { kc = null } =
     for (const capa of [cerca, lejos]) for (const im of capa) { im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; im.userData.anim.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; } }
   };
   // (lado no cuenta: la afición va con su ropa de calle, sin camiseta de bando; len: cuánto dura, en segundos)
-  group.cheer = (on, lado = null, len = 1.6) => { if (resp) { resp.cheer(on, lado, len); return; } if (on) pend = Math.max(pend || 0, len); };
+  // (todos: casi toda la grada en pie, en un buen tanto)
+  group.cheer = (on, lado = null, len = 1.6, todos = false) => { if (resp) { resp.cheer(on, lado, len); return; } if (on) { pend = Math.max(pend || 0, len); pendTodos ||= todos; } };
   group.dispose = () => { resp?.dispose(); for (const capa of [cerca, lejos]) if (capa) for (const im of capa) { im.geometry.dispose(); im.dispose(); } };
   return group;
 }

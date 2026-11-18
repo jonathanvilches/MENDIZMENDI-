@@ -641,6 +641,50 @@ export class PelotaMatch {
     const h = { F, nota, winner: e.winner, nm: suyo ? u.nm : '', quien: this.nomLimpio(e.winner), marcador: e.score ? `${e.score.you}-${e.score.rival}` : '', i: this.hlN = (this.hlN || 0) + 1 };
     this.hl = [...(this.hl || []), h].sort((a, b) => b.nota - a.nota).slice(0, 3);
   }
+  // ------------------------------------------------------------ el dron de la grada
+  // (18 de noviembre de 2026, el autor: «una vista de dron de todos los espectadores cuando se levantan a aplaudir,
+  // cuando se ha hecho un buen tanto. La imagen del público siempre es interesante»). Tras un buen tanto —un peloteo
+  // largo, un golpe de los que deciden o una volea que lo acaba—, medio segundo después de cantarlo, la cámara se va a
+  // la grada: empieza alta y abierta, con todo el público a la vista mientras se levanta, y baja volando a lo largo de
+  // ella mientras aplaude. Dura 3,4 s: la pausa del tanto se alarga para que quepa (game.js, pausaTanto) y la
+  // repetición, si está puesta, viene después. Nunca dos tantos seguidos; sin la cámara dinámica, o si se juega con
+  // la cámara del cuerpo, no. En las pruebas automáticas, solo con window.__dron (que además lo pone en cada tanto)
+  dronGrada(e, limpio) {
+    const g = this.game, u = this.ultGolpe, suyo = !!u && g.side(u.who) === e.winner && limpio, n = this.rallyN || 0;
+    this.dronN = (this.dronN ?? 2) + 1;
+    const forzado = !!window.__dron;
+    if (e.final || !this.camDyn || this.fp?.on || (navigator.webdriver && !forzado) || !this.cajaGrada()) return;
+    const bueno = limpio && (n >= 6 || (suyo && (u.golpazo || (u.volea && n >= 3))));
+    if (!(forzado || (bueno && this.dronN >= 2))) return;
+    const D = this.dron = { t0: this.t + 0.5, dur: 3.4, dir: (this.dronDir = -(this.dronDir || 1)) };
+    this.dronN = 0; g.pausaTanto = 0.5 + D.dur + 0.25;
+    if (this.repAt) this.repAt = D.t0 + D.dur;   // (la repetición, después)
+    this.o.onEvent?.({ type: 'grada', dur: 3 });
+  }
+  // la grada con gente, en las medidas de la cancha: su centro, hacia dónde mira (f), a lo largo (s) y lo que ocupa
+  cajaGrada() {
+    if (this._grada !== undefined) return this._grada;
+    const C = this.court, sp = (C.ocupados || []).filter(p => p[1] > 0.3);
+    if (!C.seated || sp.length < 12) return (this._grada = null);
+    let x = 0, z = 0, fx = 0, fz = 0, y0 = Infinity, y1 = -Infinity;
+    for (const p of sp) { x += p[0]; z += p[2]; fx += Math.sin(p[3]); fz += Math.cos(p[3]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+    const m = sp.length, k = Math.hypot(fx, fz) || 1; x /= m; z /= m; fx /= k; fz /= k;
+    let a0 = Infinity, a1 = -Infinity, df = -Infinity;
+    for (const p of sp) { const a = (p[0] - x) * -fz + (p[2] - z) * fx, d = (p[0] - x) * fx + (p[2] - z) * fz; a0 = Math.min(a0, a); a1 = Math.max(a1, a); df = Math.max(df, d); }
+    // (hasta dónde puede alejarse la cámara por delante de la primera fila sin salirse: la pared de enfrente o el frontis)
+    const px = x + fx * df, pz = z + fz * df, W2 = COURT.W / 2 - 0.7;
+    const libre = Math.min(fx < -0.3 ? (px + W2) / -fx : fx > 0.3 ? (W2 - px) / fx : Infinity, fz < -0.3 ? (pz - 2) / -fz : fz > 0.3 ? (COURT.L - pz) / fz : Infinity);
+    if (!(libre > 4)) return (this._grada = null);
+    return (this._grada = { x, z, fx, fz, a0, a1, df, y0, y1, libre });
+  }
+  /** El plano del dron en el momento u (0 al empezar, 1 al acabar): dónde está y a dónde mira, en las medidas de la cancha */
+  planoDron(u) {
+    const G = this._grada, D = this.dron; if (!G || !D) return null;
+    const e = u * u * (3 - 2 * u), len = G.a1 - G.a0, mid = (G.a0 + G.a1) / 2, lejos = Math.min(G.libre, len * 0.5 + 5), cerca = Math.max(4, Math.min(lejos * 0.42, 5.4));
+    const a = mid + D.dir * len * (-0.2 + 0.32 * e), d = G.df + lejos + (cerca - lejos) * e, y = G.y1 + 4.4 - 2.6 * e;
+    const la = mid + D.dir * len * (-0.06 + 0.16 * e), ly = (G.y0 + G.y1) / 2 + 0.5;
+    return [[G.x - G.fz * a + G.fx * d, y, G.z + G.fx * a + G.fz * d], [G.x - G.fz * la, ly, G.z + G.fx * la]];
+  }
   finPartido(e) {
     const H = (this.hl || []).slice().sort((a, b) => a.nota - b.nota);   // (del tercero al primero)
     // (en la final de un campeonato, después de los highlights, la entrega de la txapela en el podio: pelota/ceremonia.js)
@@ -1314,7 +1358,7 @@ export class PelotaMatch {
         // solo en el partido, no entrenando ni en los retos. El autor, 17 de noviembre de 2026)
         const limpio = e.call === 'bote' || e.call === 'tanto' || !t.calls[e.call];
         A.point(limpio, e.winner === 'you', e.final, Math.min(1, Math.max(0, ((this.rallyN || 0) - 3) / 8) + (this.golpazo ? 0.35 : 0)), g.mode === 'match' && !limpio && e.winner !== 'you');
-        if (g.mode === 'match') { this.comTanto(e); this.guardaHl(e, limpio); }
+        if (g.mode === 'match') { this.comTanto(e); this.guardaHl(e, limpio); this.dronGrada(e, limpio); }
         break;
       }
       case 'end': this.finPartido(e); break;
@@ -1773,6 +1817,8 @@ export class PelotaMatch {
     // (y más: el ganador de cerca, de frente, y la grada que aplaude; en el último tanto, una vuelta lenta alrededor del
     // que gana. Y al sacar el rival, un plano a su lado mientras corre a sacar, como en la tele; al botarla, el de juego)
     const corte = this.camDyn && !this.tour && g.phase === 'point' && g.phaseT > 0.35;
+    // (el plano de dron de la grada se acabó, o el tanto ya no está en pausa: fuera su marca, vuelven los mandos)
+    if (this.dronOn && !(corte && this.dron && this.t < this.dron.t0 + this.dron.dur)) { this.dronOn = false; this.camInit = false; this.hud.root.classList.remove('dron'); }
     const saqueRv = this.camDyn && !this.tour && g.phase === 'serveWait' && g.side(g.serverP()) === 'rival' && g.phaseT > 0.15 && g.mode === 'match';
     if (corte) {
       const rv0 = g.players.rival || you, mid = Math.max(4, Math.min(COURT.L, (you.z + rv0.z) / 2)), co = COURT.W / 2 + (C.contra || 2.6);
@@ -1790,6 +1836,10 @@ export class PelotaMatch {
         cp = [cp[0] + dx / d * av + dz / d * ld, cp[1] + dy / d * av * 0.5, cp[2] + dz / d * av - dx / d * ld];
         if (nPl === 4) cl = [cl[0], cl[1], cl[2] + 0.5 * u]; }
       if (this.lastFinal) { const a = (this.t - (this.planoT || 0)) * 0.55; cp = [Wn.x + Math.sin(a) * 4.2, 2 + Math.sin(a * 0.5) * 0.4, Wn.z - Math.cos(a) * 4.2]; cl = [Wn.x, 1.3, Wn.z]; }
+      // (el dron de la grada, tras un buen tanto: dronGrada. Entra y sale con un corte)
+      { const dr = this.dron && this.t >= this.dron.t0 && this.t < this.dron.t0 + this.dron.dur ? this.planoDron((this.t - this.dron.t0) / this.dron.dur) : null;
+        if (dr) { cp = dr[0]; cl = dr[1]; }
+        if (!!dr !== !!this.dronOn) { this.dronOn = !!dr; this.camInit = false; this.hud.root.classList.toggle('dron', this.dronOn); } }
       lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2];
     } else if (saqueRv) {
       const S = g.players[g.serverP()];

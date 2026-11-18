@@ -1136,6 +1136,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (unos 4 MB por figura). Si algo falla al cocinar, sale el público de antes (`crowd3d`). Las plazas con público de
   pie siguen con `crowd3d`. Página de prueba, solo en desarrollo: `tools/prueba-publico.html` (`?clip=subeA&f=0`
   para la tira de cuadros de un movimiento, `?modo=grada` para una grada entera; `window.__grada` en el partido)
+- **El plano de dron de la grada** (`pelota/match.js` `dronGrada`, `cajaGrada`, `planoDron`; `pelota/game.js`
+  `pausaTanto`; `game/fronton.js`, evento `grada`; 18 de noviembre de 2026, noche; el autor: «una vista de dron de
+  todos los espectadores cuando se levantan a aplaudir, cuando se ha hecho un buen tanto. La imagen del público
+  siempre es interesante»). Tras un buen tanto (un peloteo de seis golpes o más, un golpazo ganador o una volea que
+  cierra un peloteo de tres), nunca en dos tantos seguidos ni en el último, la cámara corta a la grada: empieza alta y
+  abierta, con todo el público a la vista mientras se levanta, y baja volando a lo largo de ella mientras aplaude.
+  Dura 3,4 s: la pausa del tanto se alarga lo justo (`pausaTanto`) y la repetición, si está puesta, viene después. La
+  grada se levanta casi entera (`cheer(..., todos)`, nueve de cada diez). El encuadre sale de dónde hay gente sentada
+  (`court.ocupados`): su centro, hacia dónde mira, cuánto ocupa a lo largo y a lo alto y cuánto sitio libre hay
+  delante hasta la pared de enfrente, así vale igual en una grada de pueblo (Lesaka) que en el Labrit; con menos de
+  doce espectadores sentados o menos de 4 m libres, no hay plano. Mientras dura se esconden los mandos (`.pel-root.dron`),
+  que tapaban al público; el marcador y el rótulo del tanto se quedan. Solo con la cámara dinámica y nunca con la
+  cámara del cuerpo. Y un arreglo que pedía: el público elegía a quién dibujar cada doce cuadros, y tras un corte de
+  cámara la grada salía vacía un instante; ahora, si la cámara salta más de 1,5 m o gira más de 20°, elige en ese
+  mismo cuadro (`crowdAnim` `tick`), lo que también quita ese vacío en los demás planos del tanto. En las pruebas
+  automáticas, solo con `window.__dron`, que además lo pone en cada tanto
 - **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
   `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
   su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro

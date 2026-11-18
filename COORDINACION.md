@@ -23,7 +23,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   borde a borde, fondo con profundidad) y la grada del partido con menos gente, cada espectador suelto y en 3D, y con
   el movimiento de levantarse, celebrar y sentarse (`actors/crowdAnim.js`, nuevo, de Principal); y las quince portadas
   del carrusel de campeonatos regeneradas a 2048 px, con tres tamaños y la nítida solo en la de delante
-  (`assets/pelota/fondos/{media,hd}`, `carrusel3d.js` «LA IMAGEN NÍTIDA», `torneo.js` `nitida`). Si otra ventana
+  (`assets/pelota/fondos/{media,hd}`, `carrusel3d.js` «LA IMAGEN NÍTIDA», `torneo.js` `nitida`); y el plano de dron
+  de la grada tras un buen tanto (`match.js` `dronGrada`, `game.js` `pausaTanto`, `hud.js` `.pel-root.dron`, de
+  Principal por encargo directo del autor). Si otra ventana
   necesita publicar lo suyo, que pregunte antes al autor.
 
 ## Peticiones entre ventanas

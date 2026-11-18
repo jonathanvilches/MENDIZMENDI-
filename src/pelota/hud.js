@@ -15,6 +15,9 @@ const CSS = `
 /* (el aviso del tanto sigue a la vista durante la repetición, su tiempo entero: la repetición empieza a los 1,15 s y antes
    lo escondía, por eso desaparecía tan deprisa) */
 .pel-root.repe :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-exit){visibility:hidden}
+/* el plano de dron de la grada tras un buen tanto (match.js dronGrada): unos segundos sin los mandos, que tapaban al
+   público; el marcador y el rótulo del tanto se quedan, como en la tele */
+.pel-root.dron :is(.pel-stick,.pel-btns,.pel-stickhint,.pel-tip,.pel-q,.pel-golpe,.pel-sobre,.pel-teclas){visibility:hidden}
 /* la repetición: el rótulo arriba a la izquierda, a la misma altura que el marcador (arriba a la derecha) y con su
    misma forma: igual de alto, el mismo fondo y la misma raya de color arriba; con su punto rojo que late y, en cámara
    lenta, su aviso. Debajo, cómo saltarla. Si no caben los dos en la misma fila, baja justo debajo del marcador
