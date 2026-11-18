@@ -12,13 +12,14 @@ const reduce = () => typeof matchMedia === 'function' && matchMedia('(prefers-re
 /**
  * @param {HTMLElement} escena el hueco del anillo (con un hijo .c3-anillo con las portadas, botones con data-a)
  * @param {object} o { inicio: índice de la portada de delante al abrir, alCambiar(i, boton), sonido(k), ar: alto / ancho de
- *   cada portada (4/3 de pie, como las de los campeonatos; 3/4 tumbadas, como las fotos de los frontones) }
+ *   cada portada (4/3 de pie, como las de los campeonatos; 3/4 tumbadas, como las fotos de los frontones);
+ *   banda: el anillo abierto de lado a lado de la pantalla, con el ángulo que quepa (ver mide) }
  * @returns {{ destroy(), actual(): HTMLElement, ir(k) }}
  */
 export function carrusel3d(escena, o = {}) {
   const anillo = escena.querySelector('.c3-anillo'), T = [...anillo.children], N = T.length;
   let rot = Math.max(0, Math.min(N - 1, o.inicio | 0)), meta = rot, raf = 0, last = 0, frente = -1;
-  let w = 200, R = 400, PASO = 26, VIS = 3; const AR = o.ar || 4 / 3;
+  let w = 200, R = 400, PASO = 26, VIS = 3; const AR = o.ar || 4 / 3, PERSP = 3.6, GIRO = 62;   // (PERSP: la distancia del ojo, en anchos de portada)
   escena.style.setProperty('--c3ar', String(1 / AR));
   const md = (k) => ((k % N) + N) % N;
   // (lo que se aparta cada portada de la de delante, por el lado más corto de la vuelta)
@@ -35,15 +36,28 @@ export function carrusel3d(escena, o = {}) {
     // que se adelanta un 3,5 %)
     // (las portadas tumbadas, las de los frontones, son más anchas: una sola a cada lado, o.vis, y la de delante hasta el
     // 36 % del ancho; con dos a cada lado no cabrían sin cortarse)
-    const hMax = H * (o.paso ? 0.95 : 0.9), wMax = o.paso ? (AR < 1 ? (tumbado ? W * 0.36 : W * 0.8) : tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
-    w = Math.max(120, Math.min(hMax / AR, wMax));
+    const hMax = H * (o.banda ? (tumbado ? 0.88 : 0.8) : o.paso ? 0.95 : 0.9), wMax = o.banda ? W * (tumbado ? (AR < 1 ? 0.4 : 0.3) : (AR < 1 ? 0.8 : 0.6)) : o.paso ? (AR < 1 ? (tumbado ? W * 0.36 : W * 0.8) : tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
+    w = Math.max(o.banda ? 96 : 120, Math.min(hMax / AR, wMax));
     // (el paso entre portadas: con pocas, más abierto; y el radio, el que deja las vecinas borde con borde)
     PASO = o.paso || Math.max(22, Math.min(34, 300 / Math.max(N, 1)));
+    // (LA BANDA, o.banda, 18 de noviembre de 2026 por la tarde; el autor: «el carrusel de selección debe ser más estrecho
+    // y más ancho»: las portadas, más estrechas y algo menos altas, y el anillo, abierto hasta llenar la pantalla de lado
+    // a lado. El ángulo entre portadas ya no es fijo: sale del hueco, el más abierto (desde 14°) con el que el anillo
+    // entero, con las de los lados giradas y en su perspectiva, cabe a lo ancho. En el móvil tumbado salen la de delante y
+    // tres a cada lado; en una pantalla de ordenador, dos y el canto de la tercera; de pie, una)
+    // (GIRO: hasta dónde se ven; más allá de los 62° una portada es un canto de pocos píxeles que asoma por detrás)
+    if (o.banda) {
+      const P = w * PERSP, medio = (p) => {
+        const r = (w * 1.04) / (2 * Math.sin((p * Math.PI) / 360)), vis = Math.min(Math.floor(N / 2), Math.max(1, Math.floor(GIRO / p))); let m = w * 0.55;
+        for (let d = 1; d <= vis; d++) { const th = (d * p * Math.PI) / 180, x = r * Math.sin(th) + (w / 2) * Math.cos(th), z = r * (Math.cos(th) - 1) - (w / 2) * Math.sin(th); m = Math.max(m, (x * P) / (P - z)); }
+        return m; };
+      PASO = 34; for (let p = 14; p <= 34; p++) if (medio(p) * 2 <= W) { PASO = p; break; }
+    }
     R = (w * 1.04) / (2 * Math.sin((PASO * Math.PI) / 360));
     // (cuántas a cada lado se ven: las que caben a lo ancho hasta los 80°)
-    VIS = Math.min(Math.floor(N / 2), o.vis || Math.max(1, Math.floor(80 / PASO)));
+    VIS = Math.min(Math.floor(N / 2), o.vis || Math.max(1, Math.floor((o.banda ? GIRO : 80) / PASO)));
     escena.style.setProperty('--c3w', Math.round(w) + 'px');
-    escena.style.perspective = Math.round(w * 3.6) + 'px';
+    escena.style.perspective = Math.round(w * PERSP) + 'px';
     pinta();
   }
   function pinta() {
@@ -130,6 +144,8 @@ export function carrusel3d(escena, o = {}) {
   const ro = new ResizeObserver(() => mide()); ro.observe(escena);
   function quita() { ro.disconnect(); removeEventListener('keydown', teclas); cancelAnimationFrame(raf); }
   mide();
+  // (al abrir, las portadas entran una tras otra desde abajo, de la de delante hacia los lados: CSS, .c3-entra)
+  if (!reduce()) { T.forEach((t, k) => t.style.setProperty('--e', String(Math.min(6, Math.abs(aparte(k)))))); anillo.classList.add('c3-entra'); setTimeout(() => anillo.classList.remove('c3-entra'), 1100); }
   return { destroy: quita, actual: () => T[frente], ir, paso };
 }
 
@@ -183,6 +199,24 @@ export const CSS_CARRUSEL3D = `
 .c3-real{position:absolute;right:3%;top:5%;width:26%;display:flex;flex-direction:column;gap:2px;padding:3px;background:rgba(10,4,26,.7)}
 .c3-real img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
 .c3-real small{font:800 max(8px,calc(var(--c3w,200px) * .024))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#ffe6a6;text-align:center}
+/* LAS PORTADAS, VIVAS (18 de noviembre de 2026; el autor: «las cards deben estar animadas»): al abrir entran una tras otra;
+   por la de delante cruza una luz cada pocos segundos y se mece muy despacio. Todo con translate, scale y opacity, que no
+   repintan la portada: va igual en el móvil */
+.c3-anillo>.c3-port::before{content:'';position:absolute;z-index:1;top:-20%;bottom:-20%;left:0;width:46%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.2),transparent);transform:translateX(-170%) skewX(-16deg);pointer-events:none;opacity:0}
+.c3-anillo>.c3-port.frente::before{opacity:1;animation:c3-luz 4.6s ease-in-out .5s infinite}
+@keyframes c3-luz{0%,58%{transform:translateX(-170%) skewX(-16deg)}88%,100%{transform:translateX(330%) skewX(-16deg)}}
+.c3-anillo>.frente{animation:c3-mece 5.2s ease-in-out infinite}
+@keyframes c3-mece{0%,100%{translate:0 0}50%{translate:0 -1.2%}}
+.c3-anillo.c3-entra>*{animation:c3-entra .55s cubic-bezier(.2,.9,.3,1) calc(var(--e,0) * 55ms) backwards}
+@keyframes c3-entra{from{opacity:0;translate:0 9%;scale:.9}}
+@media (prefers-reduced-motion:reduce){.c3-anillo>.c3-port.frente::before,.c3-anillo>.frente,.c3-anillo.c3-entra>*{animation:none}}
+/* las cartas de pelotari en el anillo («Elige tu pelotari»): la carta entera, con su silueta, sin recuadro detrás; las de
+   los lados se apagan con su opacidad (un velo rectangular asomaría por fuera de la silueta) */
+.c3-anillo>.ep-port{background:none;box-shadow:none;outline:0;overflow:visible;border-radius:0}
+.c3-anillo>.ep-port::after,.c3-anillo>.ep-port::before{display:none}
+.c3-anillo>.ep-port .gx-card{--w:var(--c3w,160px)!important;display:block;position:absolute;inset:0;width:100%;height:100%;opacity:calc(1 - var(--d,0) * .5);transition:opacity .2s;filter:none}
+.c3-anillo>.ep-port.frente .gx-card{filter:drop-shadow(0 0 calc(var(--c3w,160px) * .07) rgba(255,209,102,.55))}
+.c3-anillo>.ep-port .ep-tu{position:absolute;z-index:3;left:50%;top:-1%;translate:-50% -50%;padding:3px 10px;border-radius:999px;background:#ffd166;color:#2a1450;font:800 max(10px,calc(var(--c3w,160px) * .075))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.08em;text-transform:uppercase;font-style:normal;white-space:nowrap;opacity:calc(1 - var(--d,0) * .5)}
 /* el aviso de la esquina de una portada cuya imagen es la cancha del juego y no una foto del frontón de verdad */
 .c3-chip{position:absolute;left:calc(var(--c3w,400px) * .028);top:calc(var(--c3w,400px) * .028);padding:4px 9px;border-radius:999px;background:rgba(9,4,20,.62);color:#e8defa;font:800 max(9px,calc(var(--c3w,400px) * .021))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;font-style:normal}
 .c3-mosaico{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}.c3-mosaico img{width:100%;height:100%;object-fit:cover;min-height:0}

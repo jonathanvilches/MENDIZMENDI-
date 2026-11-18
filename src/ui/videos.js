@@ -52,7 +52,12 @@ export const videoDe = (id, peque = false) => (id && VIDEOS.has(id) && puede() ?
 // Desde el 8 de noviembre de 2026, estabilizadas (tools/figura-estable.cjs): esos vídeos se acercan a la figura y, recortada
 // siempre igual, se le salían la cabeza y los pies; ahora cada fotograma se ajusta al tamaño y al sitio del primero, con el
 // borde suavizado, a 384 × 576 y 15 fotogramas por segundo)
-const PLANTILLA_IDS = ['inigo', 'unai', 'mikel', 'aitor', 'inaki', 'ander', 'xabier', 'jokin', 'ekaitz', 'julen', 'asier', 'oihana', 'garazi', 'maialen', 'amaia', 'irati', 'nahia', 'nerea', 'leire', 'ane', 'miren', 'uxue'];
+// (18 de noviembre de 2026: las figuras de las cartas pasaron a ser las de los 22 pelotaris de siempre, sacadas del dibujo
+// de su modelo, y las animadas de antes, que eran de las ilustraciones viejas, se quitaron. Se rehacen igual desde la
+// figura nueva, la azul, que es la original: Grok Video Lite, 2 s a 480p, y tools/figura-estable.cjs «tal» para la azul y
+// «colorado» para la roja; a 320 × 480 y 12 fotogramas por segundo, unos 0,65 MB. De momento, estas seis; cada una que se
+// añada, su id aquí y sus dos archivos)
+const PLANTILLA_IDS = ['inigo', 'garazi', 'ander', 'asier', 'irati', 'julen'];
 export const FIGURAS = new Set(PLANTILLA_IDS.flatMap(id => [`rojo/${id}`, `azul/${id}`]));
 export const figuraAnimada = (id, color) => (FIGURAS.has(`${color}/${id}`) && puede() ? `./videos/figuras/${color}/${id}.webp` : '');
 
@@ -74,13 +79,22 @@ const ACTIVOS = new Set();
 
 // las figuras animadas: en su sitio va la figura fija (la de 512, que sube a la de 1024 si hace falta) y la animada solo
 // la sustituye si basta para lo que ocupa; si luego crece (otra ventana, otra pantalla), vuelve la fija
-const FIG = [384, 576];
+// (lo que miden, 320 × 480, con holgura: se dejan estirar hasta un 45 %, que en una figura que se mueve no se nota y, sin
+// ella, en un móvil de densidad 3 la carta de delante del anillo de «Elige tu pelotari» se quedaba siempre con la fija)
+const FIG = [320 * 1.45, 480 * 1.45];
 const ROF = typeof ResizeObserver !== 'undefined' ? new ResizeObserver((es) => { for (const e of es) figura(e.target); }) : null;
 function figura(im) {
   if (!im.isConnected) { ROF?.unobserve(im); return; }
   const an = im.dataset.an, ok = an ? basta(im, ...FIG) : null; if (ok === null) return;
   if (ok && !im.classList.contains('pf-an')) { im.dataset.fija = im.getAttribute('src'); im.classList.add('pf-an'); im.src = an; }
   else if (!ok && im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; }
+}
+/** Enciende o apaga la figura animada de una imagen de pelotari. Para el anillo de «Elige tu pelotari», donde solo se
+ *  mueve la de la carta de delante: apagada, se queda la fija y no se vuelve a animar sola hasta encenderla */
+export function figuraViva(im, on) {
+  if (!im) return;
+  if (on) { const an = im.dataset.an || im.dataset.anNo; if (!an) return; im.dataset.an = an; delete im.dataset.anNo; if (!im.dataset.vig) { im.dataset.vig = '1'; ROF?.observe(im); } if (im.complete && im.naturalWidth) figura(im); }
+  else { if (im.dataset.an) { im.dataset.anNo = im.dataset.an; delete im.dataset.an; } if (im.classList.contains('pf-an') && im.dataset.fija) { im.classList.remove('pf-an'); im.src = im.dataset.fija; } }
 }
 if (typeof document !== 'undefined') document.addEventListener('load', (e) => { const im = e.target; if (im?.tagName === 'IMG' && im.dataset?.an) { if (!im.dataset.vig) { im.dataset.vig = '1'; ROF?.observe(im); } figura(im); } }, true);
 // (al cambiar el tamaño de la ventana, los vídeos que ya no tienen definición se quitan y los que ahora sí, vuelven)

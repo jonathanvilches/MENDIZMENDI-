@@ -79,6 +79,12 @@ button.gx-card { border: 0; padding: 0; background: none; font-family: var(--f-c
    cintura, llena la caja, y la caja recorta el resto) */
 .gx-card .gx-fig { position: absolute; z-index: 0; right: 2%; top: calc(var(--w) * .07); width: 66%; height: calc(var(--w) * .73); overflow: hidden; -webkit-mask-image: linear-gradient(180deg, #000 68%, rgba(0, 0, 0, .5) 86%, transparent); mask-image: linear-gradient(180deg, #000 68%, rgba(0, 0, 0, .5) 86%, transparent); }
 .gx-card .gx-fig > img.pf { position: absolute; left: 50%; top: 0; height: calc(var(--w) * 1.4); width: auto; max-width: none; transform: translateX(-50%); }
+/* (la figura fija respira: se estira un pelo desde los pies y vuelve, despacio. Para las cartas cuya figura aún no tiene la
+   animada, pf-an, que ya se mueve sola; con scale, que no repinta la carta. El autor, 18 de noviembre de 2026: «las cards
+   deben estar animadas») */
+.gx-card .gx-fig > img.pf:not(.pf-an) { transform-origin: 50% 100%; animation: gx-respira 4.4s ease-in-out var(--d, 0s) infinite; }
+@keyframes gx-respira { 0%, 100% { scale: 1; } 50% { scale: 1 1.018; } }
+@media (prefers-reduced-motion: reduce) { .gx-card .gx-fig > img.pf:not(.pf-an) { animation: none; } }
 .gx-card .gx-fig > img:not(.pf) { display: block; width: 100%; height: 100%; object-fit: cover; object-position: 50% 4%; }
 /* figura de pelotari (src/ui/pelotariFig.js): una sola imagen. En el archivo único, la azul es la camiseta con el rojo de
    fondo: el fondo ocupa la caja igual que la imagen (de lado a lado; en la carta, como su object-fit y su object-position) */

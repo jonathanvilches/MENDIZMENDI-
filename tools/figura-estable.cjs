@@ -5,6 +5,8 @@
 // Además: el verde quitado a la resolución del vídeo, el borde suavizado (sin escalera), un poco más grande que el recorte del
 // vídeo (remuestreado con cuidado, para que el navegador no la estire tanto) y de ida y vuelta, sin repetir los extremos.
 // Con «azul», la camiseta roja pasa al azul de las figuras azules (como tools/figura-azul.cjs).
+// Con «colorado», al revés: el vídeo es el de la figura azul (los 22 pelotaris de siempre, 18 de noviembre de 2026, cuyo
+// dibujo original va de azul) y la camiseta pasa a colorado; con «tal», se deja como viene.
 // La figura del vídeo: 512 × 768 en x = 128, y = 128 de un lienzo de 768 × 1024, sacado a 3:4 (en el de 480 × 640, el
 // recorte de 320 × 480 en x = 80, y = 80).
 // uso, desde la raíz del repositorio: node tools/figura-estable.cjs <vídeo> <salida .webp> [rojo|azul] [ancho 384] [fps 15] [calidad 74]
@@ -58,6 +60,12 @@ if (!IN || !OUT) { console.error('uso: node tools/figura-estable.cjs <vídeo> <s
           if (s >= 0.55 && v >= 0.22 && mx === R && G < R * 0.42) { let h = ((G - Bc) / (mx - mn)) * 60; if (h < 0) h += 360;
             if (h < 16 || h > 342) { const peso = Math.min(1, (s - 0.55) / 0.15) * Math.min(1, (16 - Math.min(h, 360 - h)) / 6), H2 = 228, S2 = Math.min(1, s * 1.02), V2 = Math.min(1, v * 1.08), c2 = V2 * S2, x2 = c2 * (1 - Math.abs(((H2 / 60) % 2) - 1)), m2 = V2 - c2;
               R = R * (1 - peso) + m2 * peso; G = G * (1 - peso) + (x2 + m2) * peso; Bc = Bc * (1 - peso) + (c2 + m2) * peso; } }
+        }
+        if (COLOR === 'colorado') {   // (al revés, desde la figura azul: el azul de la camiseta, a colorado, como en tools/pelotaris10-figuras.py)
+          const mx = Math.max(R, G, Bc), mn = Math.min(R, G, Bc), s = mx ? (mx - mn) / mx : 0;
+          if (Bc > R * 1.2 && Bc > G * 1.08 && s > 0.3) {
+            const peso = Math.min(1, (Bc - R * 1.2) / (R * 0.15 + 0.02)) * Math.min(1, (s - 0.3) / 0.05), val = Math.min(1, mx * 0.98), sat = Math.min(1, s * 1.02);
+            R = R * (1 - peso) + val * peso; G = G * (1 - peso) + val * (1 - sat * 0.86) * peso; Bc = Bc * (1 - peso) + val * (1 - sat * 0.8342) * peso; }
         }
         const o = (oy * OW + ox) * 4; out[o] = Math.round(R * 255); out[o + 1] = Math.round(G * 255); out[o + 2] = Math.round(Bc * 255); out[o + 3] = Math.round(A * 255);
       }

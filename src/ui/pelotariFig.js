@@ -93,9 +93,10 @@ export function pelotariFig(name, side = 'rojo', cls = '', big = false) {
   // tienen todos. Va primero la fija, y la animada, data-an, solo la sustituye donde su resolución basta para lo que ocupa
   // en la pantalla; si no, se queda la fija, de más resolución, que sube a la de 1024 si hace falta. ui/videos.js, figura;
   // pf-an: animada, sin filtros encima, que la repintaban en cada fotograma)
-  // (desde que las figuras son las de los 10 pelotaris de siempre, sin la animada: las animaciones eran de las
-  // ilustraciones de antes y en la carta saldría otro personaje. ANIMADAS vuelve a ponerlas si se rehacen)
-  const ANIMADAS = false, an = ANIMADAS ? figuraAnimada(id, side === 'azul' ? 'azul' : 'rojo') : '', dAn = an ? ` data-an="${an}"` : '';
+  // (cuando las figuras pasaron a ser las de los pelotaris de siempre se quitaron las animadas, que eran de las
+  // ilustraciones de antes; el autor, ese mismo día: «las cards deben estar animadas». Rehechas desde la figura nueva,
+  // vuelven: las que ya tienen la suya, ui/videos.js FIGURAS; las demás, la fija, que respira en la carta, sport.css)
+  const an = figuraAnimada(id, side === 'azul' ? 'azul' : 'rojo'), dAn = an ? ` data-an="${an}"` : '';
   if (big && VS[side === 'azul' ? 'azul' : 'rojo'][id]) return `<img class="${c}" src="${VS[side === 'azul' ? 'azul' : 'rojo'][id]}"${dAn} alt="" draggable="false">`;
   if (side === 'azul' && !AZUL[id] && CAMISETA[id]) return `<img class="${c} pf-az" src="${CAMISETA[id]}" style="background-image:url(${ROJO[id]})" alt="" draggable="false">`;
   return `<img class="${c}" src="${pelotariSrc(name, side)}"${dAn} alt="" draggable="false">`;

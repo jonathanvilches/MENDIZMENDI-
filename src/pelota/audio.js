@@ -6,6 +6,8 @@ import { Grada, carga, efecto } from '../audio/pistas.js';
 // (los golpes grabados de la pelota: la mano, el frontis, el bote y la pared izquierda, tres de cada)
 const GOLPES = ['mano', 'frontis', 'bote', 'pared'];
 const SHARED = { ctx: null };
+// (dónde empieza de verdad cada muestra de golpe, en segundos: ver golpe)
+const INICIO = new WeakMap();
 export class PelotaAudio {
   constructor(ctx) { this.ctx = ctx || null; this.muted = false; }
   ensure() {
@@ -124,7 +126,12 @@ export class PelotaAudio {
     this['ult' + tipo] = i;
     const s = c.createBufferSource(), g = c.createGain(); s.buffer = b;
     s.playbackRate.value = 0.95 + Math.random() * 0.07 + Math.min(1, v) * 0.04; g.gain.value = Math.min(1, v);
-    s.connect(g); g.connect(this.bus || c.destination); s.start(); return true;
+    // (EL GOLPE, A SU HORA: el mp3 trae delante el silencio del codificador, unos 25 a 40 ms, que Chrome quita al
+    // descodificar y Safari no: en el iPhone el golpe sonaba ese rato después de verse. Se mide una vez dónde empieza de
+    // verdad cada muestra y se arranca desde ahí)
+    let ini = INICIO.get(b);
+    if (ini == null) { const d = b.getChannelData(0), n = Math.min(d.length, (b.sampleRate * 0.12) | 0); let k = 0; while (k < n && Math.abs(d[k]) < 0.02) k++; ini = k >= n ? 0 : Math.max(0, k / b.sampleRate - 0.0015); INICIO.set(b, ini); }
+    s.connect(g); g.connect(this.bus || c.destination); s.start(0, ini); return true;
   }
   // mano contra la pelota: «¡pac!» seco
   hit(power = 1) { const c = this.ensure(); if (!c) return; if (this.golpe('mano', 0.62 * power)) return; const t = c.currentTime; this.noise(t, 0.06, 1900, 1.2, 0.5 * power); this.tone(t, 0.09, 190, 0.45 * power, 'sine', 0.5); }

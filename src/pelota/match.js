@@ -1211,7 +1211,7 @@ export class PelotaMatch {
     if (ev.some(e => e.type === 'call')) { this.callada = true; this.input.charge = null; }
     for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }
     this.draw(dt); if (!this.paused) this.record(dt);   // (en pausa no se graba: la repetición sería una imagen quieta)
-    this.sobreTi(); this.hud.tick(dt); this.court.tick(dt);
+    this.sobreTi(dt); this.hud.tick(dt); this.court.tick(dt);
     return this.active;
   }
   onEvent(e) {
@@ -1324,10 +1324,15 @@ export class PelotaMatch {
   // iguala el partido o se pone por delante, la remontada (una vez cada cosa). Devuelve el rótulo de este tanto ('' sin
   // nada) y deja la racha en el marcador mientras dure.
   // la ficha con tu nombre encima de tu pelotari, para saber de un vistazo cuál llevas (18 de noviembre de 2026): se
-  // proyecta su cabeza a la pantalla. No sale en primera persona, ni si queda detrás de la cámara o fuera de la pantalla
-  sobreTi() {
+  // proyecta su cabeza a la pantalla. No sale en primera persona, ni si queda detrás de la cámara o fuera de la pantalla.
+  // Solo unos segundos al ir a sacar cada tanto (sobreT, al entrar en la fase del saque): el autor, ese mismo día, «no quiero que
+  // salga el nombre encima del jugador todo el rato»
+  sobreTi(dt = 0) {
     const o = this.o.you?.obj, h = this.hud; if (!o || !h?.sobre) return;
-    if (this.fp?.on || !o.visible || this.vsOpen) return h.sobre(null);
+    // (por la fase y no por el aviso 'serveReady': el del primer saque sale al empezar el partido, fuera del paso del
+    // juego, y no llega aquí. Y el tiempo solo corre mientras la ficha se ve: ni en pausa ni con la pantalla VS delante)
+    const ph = this.game.phase; if (ph !== this._sobPh) { this._sobPh = ph; if (ph === 'serveWait') this.sobreT = 3.2; }
+    if (!(this.sobreT > 0) || this.fp?.on || !o.visible || this.vsOpen || this.paused) return h.sobre(null);
     const v = (this._sv ||= new this.T.Vector3());
     if (this._sh == null) { const b = new this.T.Box3().setFromObject(o); o.getWorldPosition(v); this._sh = Math.min(2.4, Math.max(1, b.max.y - v.y)) + 0.2; }
     // (la cámara se acaba de mover en este mismo paso y sus matrices son aún las del fotograma anterior: se ponen al día
@@ -1335,6 +1340,7 @@ export class PelotaMatch {
     this.cam.updateMatrixWorld(); this.cam.matrixWorldInverse.copy(this.cam.matrixWorld).invert();
     o.getWorldPosition(v); v.y += this._sh; v.project(this.cam);
     if (v.z > 1 || Math.abs(v.x) > 0.98 || v.y > 0.9 || v.y < -1) return h.sobre(null);
+    this.sobreT -= dt;
     const r = h.root; h.sobre((v.x * 0.5 + 0.5) * r.clientWidth, (0.5 - v.y * 0.5) * r.clientHeight, this.cols.you);
   }
   rachaDe(e) {

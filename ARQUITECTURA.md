@@ -2247,6 +2247,27 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   media resolución y el recorte salía en escalera); salen a 384 × 576 y 15 fotogramas por segundo, de ida y vuelta, con la
   azul hecha en la misma pasada. En la pantalla VS, las animadas van sin sombras de filtro (`pf-an`): su halo y su sombra
   en el suelo van fijos en el fondo de la imagen, y el navegador ya no la repinta entera en cada fotograma.
+  **Rehechas el 18 de noviembre de 2026.** Ese día las figuras de las cartas pasaron a ser las de los 22 pelotaris de
+  siempre (el dibujo de su modelo, `tools/pelotaris10-figuras.py`) y las animadas, que eran de las ilustraciones de
+  antes, se apagaron y se borraron (43 MB menos). Se rehacen igual, pero desde la figura azul, que ahora es la original:
+  la figura de 512 × 768 sobre el verde de 768 × 1024, Grok Video 1.5 Lite (2 s, 480p, 3:4, 2 créditos) y
+  `tools/figura-estable.cjs <vídeo> <salida> tal|colorado 320 12 56` (`tal` deja la camiseta azul; `colorado` la pasa a
+  colorado como en las fijas). Salen a 320 × 480 y 12 fotogramas por segundo, unos 0,65 MB. Hechas seis (Iñigo, Garazi,
+  Ander, Asier, Irati y Julen: `PLANTILLA_IDS` en `videos.js`); las otras dieciséis, pendientes de créditos. Las que no
+  la tienen respiran en la carta con CSS (`gx-respira`, `sport.css`). Se dejan estirar hasta un 45 % (`FIG`): sin esa
+  holgura, en un móvil de densidad 3 no salía ninguna. `figuraViva(img, on)` enciende o apaga la de una imagen.
+- **«Elige tu pelotari» y la banda del anillo** (`torneo.js` `anilloPelotari`, `eligePelotari`, `eligePelotariLibre`;
+  `carrusel3d.js`, opción `banda`; 18 de noviembre de 2026): el anillo de los campeonatos se abre de lado a lado de la
+  pantalla, con portadas más estrechas (1,46 de alto por 1 de ancho) y algo menos altas; el ángulo entre portadas sale
+  del hueco (de 14° a 34°: el más abierto con el que el anillo entero cabe a lo ancho) y no se ven más allá de 62°. Las
+  portadas entran una tras otra al abrir, por la de delante cruza una luz y se mece (solo `translate`, `scale` y
+  `opacity`). «Elige tu pelotari» es ese mismo anillo con las cartas enteras (`.ep-port`), la tuya primero, y solo la de
+  delante con su figura animada. Sale antes de la primera ronda de un campeonato nuevo (y con el botón «Pelotari» del
+  cuadro hasta entonces) y, desde ese día, antes de cada partido libre, de Frontones y de la pelota en casa
+  (`townDeportes.js`): lo elegido va al partido en `yo` (su figura, su nombre a la espalda y sus cualidades) y se
+  recuerda en el perfil (`pelotaYo`). La ficha con tu nombre sobre tu pelotari (`match.js` `sobreTi`) solo sale 3,2 s al
+  ir a sacar cada tanto. Las muestras del golpe arrancan saltándose el silencio que el mp3 lleva delante y Safari no
+  quita (`pelota/audio.js` `golpe`, `INICIO`).
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,
   andar, un tajo y un puño en alto, y los recortes de ahí no parecían pelota. Ahora se hacen al cargar el modelo, sobre
   su esqueleto de Mixamo, a partir de poses clave: reposo, preparado, derecha e izquierda, sotamano de las dos manos,

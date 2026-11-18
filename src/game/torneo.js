@@ -21,8 +21,9 @@ import { pelotariCard, CARTA_ALTO } from '../ui/sportCard.js';
 // los pelotaris del autor (src/ui/pelotariFig.js): sus nombres y sus figuras, también en las portadas del menú de pelota
 // (las ilustraciones de antes de esas portadas siguen en src/assets/pelota, sin cargarse)
 import { pelotariFig, RIVALES } from '../ui/pelotariFig.js';
+import { figuraViva } from '../ui/videos.js';
 import { camaraDisponible } from '../ui/camaraAR.js';
-import { profile } from './profile.js';
+import { profile, saveProfile } from './profile.js';
 import { LEVELS, esSede, levelById } from '../data/levels.js';
 import COMARCAS from '../data/comarcas.json';
 import { iconSVG } from '../ui/icons.js';
@@ -697,68 +698,69 @@ export function ponPelotari(T, p, yo) {
   Y.lv = p ? p.lv : 2;
   T.yo = p ? { name: p.name, town: p.town, lv: p.lv } : null; T.elegido = true; save(T);
 }
-const EP_CSS = `
-.ep-card{display:flex;flex-direction:column;gap:12px;max-height:100%}
-.ep-head small{display:block;color:var(--rosa);font:800 var(--fs-sm)/1.15 var(--f-cond);letter-spacing:.1em;text-transform:uppercase}
-.ep-head h2{margin:var(--t-mt) 0 0;font:400 var(--fs-2xl)/1 var(--f-display);text-transform:uppercase}
-.ep-head p{margin:6px 0 0;color:var(--lila2);font:500 var(--fs-sm)/1.35 var(--f-body);max-width:60ch}
-/* (la fila, sin barra de desplazamiento: en el iPhone se pintaba encima de los pueblos; arriba, sitio para que la elegida
-   suba y brille sin cortarse) */
-.ep-grid{display:grid;grid-auto-flow:column;grid-auto-columns:max-content;gap:12px;overflow-x:auto;overflow-y:hidden;padding:12px 6px 10px;scroll-snap-type:x proximity;scrollbar-width:none;min-height:0}
-.ep-grid::-webkit-scrollbar{display:none}
-.ep-it{scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;padding:0 2px;transition:transform var(--d-encima,200ms) var(--ease,ease)}
-/* la elegida: sube un poco y su borde se enciende en dorado siguiendo su silueta de escudo (antes, un recuadro de esquinas
-   redondas alrededor que no casaba con la carta y se cortaba por abajo); su pueblo, en una pastilla amarilla con la marca
-   verde, como los demás checks del juego */
-.ep-it.on{transform:translateY(-4px)}
-.ep-it.on .gx-card{filter:drop-shadow(0 0 .6px #ffd166) drop-shadow(0 0 1.4px #ffd166) drop-shadow(0 0 8px rgba(255,209,102,.5)) drop-shadow(0 10px 18px rgba(0,0,0,.5))}
-.ep-it em{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font:800 var(--fs-xs)/1.1 var(--f-cond);letter-spacing:.06em;text-transform:uppercase;color:var(--lila2);font-style:normal;white-space:nowrap}
-.ep-it.on em{background:#ffd166;color:#2a1450;padding-left:5px}
-.ep-it.on em::before{content:'';flex:none;width:11px;height:11px;background:#148a3f;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='black' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4 12.5l5 5L20 6.5' fill='none' stroke='black' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
-@media (prefers-reduced-motion:reduce){.ep-it{transition:none}.ep-it.on{transform:none}}
-/* (en el móvil tumbado, la explicación en una sola línea: así queda alto para las cartas enteras, con sus cifras) */
-@media (orientation:landscape) and (max-height:500px){.ep-head p{max-width:none}}
-@media (orientation:portrait){.ep-grid{grid-auto-flow:row;grid-template-columns:repeat(auto-fill,minmax(var(--epw,120px),1fr));overflow-x:hidden;overflow-y:auto;justify-items:center}}
-`;
-/** La pantalla de elegir pelotari: tu carta y las de los pelotaris del juego, y abajo «Jugar con …». yo: { name, town }.
- *  Devuelve true si se ha elegido (y ya está puesto en el torneo) */
-export function eligePelotari(T, yo) {
-  if (!document.getElementById('ep-css')) { const st = document.createElement('style'); st.id = 'ep-css'; st.textContent = EP_CSS; document.head.appendChild(st); }
-  const eu = isEU(), lang = eu ? 'eu' : 'es', L = elegibles(), pairs = T.kind === 'parejas', role = pairs ? 'Del' : 'Mano';
-  let sel = T.yo?.name || '';   // ('' es el tuyo)
+/** «ELIGE TU PELOTARI», a pantalla entera y en el anillo de los campeonatos (18 de noviembre de 2026; el autor: «no aparece
+ *  elige tu pelotari», «el carrusel de selección debe ser más estrecho y más ancho», «las cards deben estar animadas»).
+ *  Hasta entonces era una ventana con una fila de cartas que solo salía una vez, antes de la primera ronda de un
+ *  campeonato nuevo: quien ya tenía sus campeonatos empezados no la veía nunca. Ahora sale también antes de cada partido
+ *  suelto (partido libre, Frontones, pelota en casa: eligePelotariLibre) y son las cartas enteras girando: tu carta, la
+ *  primera, y las de los pelotaris del juego; la de delante, con su figura animada (solo ella: las demás, quietas, que en
+ *  el móvil siete figuras moviéndose a la vez pesan); debajo, su nombre, su pueblo y «Jugar con …».
+ *  Devuelve '' (el tuyo), el nombre del elegido o null (Volver, Escape). yo: { name, town } */
+function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' }) {
+  efCss(); cssCarrusel();
+  const eu = isEU(), lang = eu ? 'eu' : 'es', L = elegibles();
+  const items = [{ k: '', name: yo.name, town: yo.town, stats: tusCualidades(), bonus, mia: true },
+    ...L.map(q => ({ k: q.name, name: q.name, town: q.town, stats: pelotariStats(`${q.name} ${q.town}`, q.lv), bonus: (q.lv - 2) * 3 }))];
   return new Promise(res => {
-    // (la carta, del alto que deja la pantalla: tumbado, el de la fila; de pie, unas tres por fila)
-    const tumbado = innerWidth > innerHeight; let w = Math.round(tumbado ? Math.max(88, Math.min(176, (innerHeight - 268) / CARTA_ALTO)) : Math.max(96, Math.min(150, (innerWidth - 80) / 3)));
-    const it = (name, town, stats, bonus, nota, i, mia = false) => `<div class="ep-it${(mia ? '' : name) === sel ? ' on' : ''}" data-p="${esc(mia ? '' : name)}">${pelotariCard({ name, town, stats, side: 'azul', role, w, bonus, tag: 'button', attr: `data-p="${esc(mia ? '' : name)}" aria-label="${esc(name)}"`, pop: true, d: i * 0.03, lang, yo: mia })}<em>${esc(nota)}</em></div>`;
-    const cartas = () => [it(yo.name, yo.town, tusCualidades(), youBonus(T), eu ? 'Zu' : 'Tú', 0, true),
-      ...L.map((p, i) => it(p.name, p.town, pelotariStats(`${p.name} ${p.town}`, p.lv), (p.lv - 2) * 3, p.town, i + 1))].join('');
-    const nombre = () => sel || (eu ? 'nirea' : 'el mío');
-    const r = lgPanel(`<div class="ep-head"><small>${esc((KINDS[T.kind] || KINDS.mano).full)} · ${esc(T.comarcaName || '')}</small><h2>${eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari'}</h2>
-      <p>${eu ? 'Harekin jokatuko duzu txapelketa osoa. Lehen txandara arte alda dezakezu.' : 'Con él o con ella juegas todo el campeonato. Lo puedes cambiar hasta la primera ronda.'}</p></div>
-      <div class="ep-grid" style="--epw:${w + 8}px">${cartas()}</div>
-      <div class="lg-bar"><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok">${eu ? 'Jokatu: ' : 'Jugar con '}<span class="ep-n">${esc(nombre())}</span></button></div>`);
-    r.firstElementChild.classList.add('ep-card');
-    // (tumbado, la carta se calcula con el alto de la pantalla, pero lo que de verdad queda para la fila depende del aparato:
-    // el notch y la barra de abajo del iPhone, las barras de Safari. Se mide y, si la carta con su pueblo no cabe entera,
-    // se vuelven a pintar las cartas un poco más pequeñas: antes la elegida se cortaba por abajo)
-    const encaja = () => { const g = r.querySelector('.ep-grid'), e = g?.querySelector('.ep-it'); if (!tumbado || !g || !e) return;
-      const cs = getComputedStyle(g), sobra = e.offsetHeight + parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) - g.clientHeight;
-      // (no por debajo de 86 px: más estrecha, la carta ya no enseña sus cifras, sport.css)
-      if (sobra <= 0) return; const w2 = Math.max(86, Math.floor(w - sobra / CARTA_ALTO) - 1); if (w2 >= w) return;
-      w = w2; g.style.setProperty('--epw', `${w + 8}px`); g.innerHTML = cartas(); };
-    requestAnimationFrame(() => { encaja(); r.querySelector('.ep-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }); });
-    const fin = (ok) => { removeEventListener('keydown', key, true); lgFuera(r); res(ok); };
-    const key = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); if (!T.elegido) { T.elegido = true; save(T); } fin(false); } };
-    addEventListener('keydown', key, true);
+    const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+    // (la carta, del ancho del anillo: --w lo pone el CSS con el de la portada, carrusel3d.js, .ep-port)
+    const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, yo: !!it.mia })}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
+    const r = lgPanel(`<div class="ef-head" data-notr><small>${esc(kicker)}</small><h2>${eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari'}</h2></div>
+      <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Pilotariak' : 'Pelotaris'}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
+      <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
+        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button></div><span></span></div>`);
+    r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant');
+    // (las figuras animadas, apagadas todas antes de que carguen; la de delante se enciende al llegar)
+    const figs = [...r.querySelectorAll('.ep-port')].map(b => b.querySelector('.gx-fig img')); figs.forEach(im => figuraViva(im, false));
+    const info = r.querySelector('.c3-info'), ok = r.querySelector('[data-a="ok"]'); let cur = items[0], viva = null;
+    const car = carrusel3d(r.querySelector('.c3-escena'), { ar: CARTA_ALTO, banda: true, inicio: Math.max(0, items.findIndex(it => it.k === sel)),
+      alCambiar: (i) => { const it = items[i]; if (!it) return; cur = it;
+        info.querySelector('.c3-que b').textContent = it.name; info.querySelector('.c3-que span').textContent = it.mia ? (eu ? 'Zure pilotaria' : 'Tu pelotari') : it.town;
+        ok.textContent = eu ? `Jokatu: ${it.name}` : `Jugar con ${it.name}`;
+        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
+        if (viva !== figs[i]) { figuraViva(viva, false); viva = figs[i]; figuraViva(viva, true); } } });
+    r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
+    const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(k); };
+    // (las teclas, aquí y solo aquí: debajo puede estar el anillo de los campeonatos, que también las oye)
+    const tecla = (e) => {
+      if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
+      else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.stopImmediatePropagation(); e.preventDefault(); car.paso(e.key === 'ArrowRight' ? 1 : -1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.stopImmediatePropagation(); if (e.target.closest?.('button:not(.c3-anillo > *)')) return; e.preventDefault(); fin(cur.k); }
+    };
+    addEventListener('keydown', tecla, true);
     r.addEventListener('click', (e) => {
-      const c = e.target.closest('[data-p]');
-      if (c && !e.target.closest('[data-a]')) { sel = c.dataset.p; r.querySelectorAll('.ep-it').forEach(x => x.classList.toggle('on', x.dataset.p === sel)); r.querySelector('.ep-n').textContent = nombre(); return; }
+      const c = e.target.closest('.ep-port'); if (c) return fin(c.dataset.p);
       const b = e.target.closest('[data-a]'); if (!b) return;
-      if (b.dataset.a === 'ok') { ponPelotari(T, sel ? L.find(p => p.name === sel) : null, yo); return fin(true); }
-      if (!T.elegido) { T.elegido = true; save(T); }   // (con «Volver», con el que había; no se vuelve a preguntar solo)
-      fin(false);
+      fin(b.dataset.a === 'ok' ? cur.k : null);
     });
   });
+}
+/** Antes de la primera ronda de un campeonato: con qué pelotari lo juegas entero. Devuelve true si se ha elegido (y ya
+ *  está puesto en el torneo); con «Volver», sigue el que había y no se vuelve a preguntar sola */
+export async function eligePelotari(T, yo) {
+  const k = await anilloPelotari({ kicker: `${(KINDS[T.kind] || KINDS.mano).full} · ${T.comarcaName || ''}`, sel: T.yo?.name || '', yo, bonus: youBonus(T), role: T.kind === 'parejas' ? 'Del' : 'Mano' });
+  if (k === null) { if (!T.elegido) { T.elegido = true; save(T); } return false; }
+  ponPelotari(T, k ? elegibles().find(q => q.name === k) : null, yo); return true;
+}
+/** Antes de un partido suelto (partido libre, Frontones, pelota en casa): con qué pelotari lo juegas. Se recuerda el
+ *  último (perfil, pelotaYo). Devuelve undefined con «Volver»; null, con el tuyo; o { name, town, stats }, que es lo que
+ *  espera el partido en «yo» (game/fronton.js): sales con su figura, su nombre a la espalda y sus cualidades */
+export async function eligePelotariLibre(yo, kicker = '') {
+  const P = profile(), k = await anilloPelotari({ kicker, sel: P.pelotaYo || '', yo });
+  if (k === null) return undefined;
+  if ((P.pelotaYo || '') !== k) { P.pelotaYo = k; saveProfile(); }
+  const q = k && elegibles().find(x => x.name === k);
+  return q ? { name: q.name, town: q.town, stats: pelotariStats(`${q.name} ${q.town}`, q.lv) } : null;
 }
 const rivalBonus = (p) => ((p.lv || 2) - 2) * 3;
 // el frontón de cada partido, a elegir antes de jugar: el de la plaza del pueblo (cada pueblo tiene el suyo, de su
@@ -1189,6 +1191,7 @@ export function retosMenu() {
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */
+const AR_PORT = 1.46;
 export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [], T4 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
@@ -1240,7 +1243,8 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       { a: 'pelotaris', cls: 'cp-col', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris` },
     ].filter(Boolean);
     // (largo: los nombres de dos líneas, en letra algo menor, para que no tapen los pies del pelotari)
-    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo))}"` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
+    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo, AR_PORT))}"` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
+    // (AR_PORT: alto / ancho de cada portada; más estrechas que el 4/3 de antes, para que quepan más a lo ancho)
     const eu = isEU(), CLAVE = 'herrizherri-pelota-carta';
     cssMenu(); cssCarrusel();
     let a0 = 'torneo'; try { a0 = localStorage.getItem(CLAVE) || a0; } catch (e) { /* sin guardado */ }
@@ -1253,7 +1257,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     r.firstElementChild.classList.add('tq-menu-card', 'c3-card', 'c3-pant');
     const info = r.querySelector('.c3-info');
     const car = carrusel3d(r.querySelector('.c3-escena'), {
-      inicio: Math.max(0, items.findIndex(it => it.a === a0)), paso: 30,
+      inicio: Math.max(0, items.findIndex(it => it.a === a0)), banda: true, ar: AR_PORT,
       alCambiar: (i) => { const it = items[i]; if (!it) return;
         info.querySelector('.c3-que b').innerHTML = it.fase || it.tag; info.querySelector('.c3-que span').innerHTML = it.contra || ''; info.querySelector('.c3-ronda').innerHTML = it.ronda || '';
         info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');

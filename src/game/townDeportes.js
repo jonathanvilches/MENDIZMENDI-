@@ -2,7 +2,7 @@
 // ronda, el fútbol en el campo del pueblo y en El Sadar, y la pasaka del claustro de Iruña. Son métodos de TownGame:
 // townGame.js los une a su clase (util/mezcla.js), con su this.
 
-import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, otrosDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, sinEmpezar, tusStats } from './torneo.js';
+import { KINDS, EXTRA, reglaDe, fueraDe, trinqueteDe, pelotaMenu, frontonesMenu, playTorneoRound, sedeDe, torneo, estDe, otrosDe, torneoPanel, youBonus, yourMatch, retosMenu, retosMios, apuntaReto, eligePelotari, eligePelotariLibre, sinEmpezar, tusStats } from './torneo.js';
 import { LEVELS, esExterior } from '../data/levels.js';
 import { PASAKA } from '../data/pasaka.js';
 import { PLACES } from '../world/layout.js';
@@ -287,12 +287,16 @@ export class PuebloDeportes {
         if (pick === 'torneo' || pick === 'torneoParejas' || pick === 'torneoCuatro' || pick === 'torneoTrinquete') { await this.pelotaTorneo(a, ctx, pick === 'torneoParejas' ? 'parejas' : pick === 'torneoCuatro' ? 'cuatro' : pick === 'torneoTrinquete' ? 'trinquete' : 'mano'); if (this.disposed) return; continue; }
         if (pick === 'retos') { await this.pelotaRetos(a, sel); if (this.disposed) return; continue; }
         if (pick === 'frontones') { await this.pelotaFrontones(a); if (this.disposed) return; continue; }
+        // (con qué pelotari juegas este partido, como elegir equipo antes de un amistoso: el anillo de «Elige tu pelotari»,
+        // torneo.js; con «Volver», al menú. Antes solo salía al empezar un campeonato nuevo)
+        const yoP = await eligePelotariLibre(you, pick === 'camara' ? 'Pelota en casa' : 'Partido libre');
+        if (this.disposed) return; if (yoP === undefined) continue;
         // (el fondo sigue delante mientras se preparan los pelotaris: lo quita el vuelo de la llegada; antes se veía al
         // jugador quieto en la puerta del frontón hasta que empezaba el partido)
         const hv = await this.venueListo(sel.sede); await this.venuePrep(hv);
         if (this.disposed) return;
         // (al acabar, de vuelta al menú de pelota sin pasar por el pueblo: el resultado ya se ha visto en la cancha)
-        const r = await hv.play(this, a, { returnTo: this.fronton, comp: pick === 'camara' ? 'Pelota en casa' : 'Partido de exhibición', stay: true, intro: (m) => llegaFronton(this, hv, m), camara: pick === 'camara' });   // (con la cámara: la pelota en casa)
+        const r = await hv.play(this, a, { returnTo: this.fronton, comp: pick === 'camara' ? 'Pelota en casa' : 'Partido de exhibición', stay: true, intro: (m) => llegaFronton(this, hv, m), camara: pick === 'camara', yo: yoP });   // (con la cámara: la pelota en casa)
         if (this.disposed) return;   // (si el pueblo se rehízo durante el partido, el fondo ya es del nuevo: no se toca)
         this.sportBackdrop(true);
         if (r.quit || r.error) continue;
@@ -422,10 +426,13 @@ export class PuebloDeportes {
       this.ui.hudVisible(false); this.player.frozen = true; this.sportBackdrop(true, true);
       const F = await frontonesMenu();
       if (this.disposed || !F) { if (!this.disposed && !this.sportMode) this.sportBackdrop(false); return; }
+      // (y con qué pelotari: «Elige tu pelotari»; con «Volver», otra vez a los frontones)
+      const yoP = await eligePelotariLibre({ name: profile().name || 'Tú', town: this.def.name.split(' /')[0] }, F.nombre);
+      if (this.disposed) return; if (yoP === undefined) continue;
       const v = F.id === 'labrit' ? this.labritVenue() : this.realVenue(F);
       await this.venuePrep(v);
       if (this.disposed) return;
-      const r = await v.play(this, a, { returnTo: this.fronton, comp: F.nombre, stay: true, intro: (m) => llegaFronton(this, v, m) });
+      const r = await v.play(this, a, { returnTo: this.fronton, comp: F.nombre, stay: true, intro: (m) => llegaFronton(this, v, m), yo: yoP });
       if (this.disposed) return;
       this.sportBackdrop(true, true);
       if (r.error) this.ui.toast?.(isEU() ? 'Partidak ezin izan du jarraitu. Saiatu berriro.' : 'El partido no ha podido seguir. Vuelve a intentarlo.', 'pelota', 3200);
