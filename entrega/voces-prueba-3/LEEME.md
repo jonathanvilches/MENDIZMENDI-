@@ -30,3 +30,12 @@ Segunda ronda (18 de noviembre), otra forma de escribir la palabra dudosa, una t
 | itziar-00n-forma-B.mp3 | Gábon. Soy Itsiar… (acento en la a) |
 
 Gasto: 196 créditos más.
+
+Tercera ronda (18 de noviembre). El autor: «tienes que poner acentos: Itzíar y Otsagabía, en la i». Dos tomas de cada:
+
+| Archivo | Escrito para la voz |
+|---|---|
+| maite-05-acento-i-1.mp3 y -2 | ¡Ya conoces el corazón de Otsagabía! |
+| itziar-00n-acento-i-1.mp3 y -2 | Gabon. Soy Itsíar. Esta es la iglesia de San Juan Evangelista. |
+
+Gasto: 196 créditos más.
