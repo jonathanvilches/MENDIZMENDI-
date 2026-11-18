@@ -17,7 +17,9 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- (nada pendiente)
+- **Personajes** (18 nov): jueces de verde y afición nueva en la grada; fuera los jueces y espectadores antiguos; vecinos
+  de antes recuperados; quesero, quesera, campesino, campesina, panadero y panadera rehechos en Meshy (con su
+  `CABEZA` en `glbChar.js`); con calidad alta, vecinos con modelo completo. Hasta `4e90b45`. Sin probar en móvil real.
 
 ## Peticiones entre ventanas
 
