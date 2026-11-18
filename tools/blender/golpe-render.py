@@ -15,6 +15,10 @@ for o in list(bpy.data.objects):
     if o.type in ('CAMERA', 'LIGHT'): bpy.data.objects.remove(o)
 arm = next(o for o in bpy.data.objects if o.type == 'ARMATURE')
 sc = bpy.context.scene
+# (la mezcla de las articulaciones con cuaterniones duales, como en el juego: el giro sin aplastar el volumen; VOL=0 sin ella)
+for o in bpy.data.objects:
+    for m in getattr(o, 'modifiers', []):
+        if m.type == 'ARMATURE': m.use_deform_preserve_volume = os.environ.get('VOL', '1') == '1'
 for o in list(bpy.data.objects):
     if o.type == 'MESH' and o.name.lower().startswith(('icosphere', 'cube')): bpy.data.objects.remove(o)
 # (el GLB trae también andar y correr: el golpe es la acción «GolpeReal»)
@@ -78,5 +82,20 @@ for k, c in cams.items():
     for fr in range(f0, f1 + 1):
         if os.environ.get('FR') and str(fr - f0 + 1) not in os.environ['FR'].split(','): continue
         sc.frame_set(fr); sc.render.filepath = f'{OUT}/{k}_{fr - f0 + 1:04d}.png'; bpy.ops.render.render(write_still=True)
+# (y de cerca, el hombro del brazo que pega y el torso: la cámara sigue el hombro y gira con la cadera, de frente y por su
+# lado; CERCA=0 sin ella)
+if os.environ.get('CERCA', '1') == '1':
+    from mathutils import Matrix
+    hb = arm.pose.bones[pre + lado_m + 'Arm']; sg = -1 if lado_m == 'Right' else 1
+    bpy.ops.object.camera_add(); ch = bpy.context.object; ch.data.lens = 45; sc.camera = ch
+    for fr in range(f0, f1 + 1):
+        if os.environ.get('FR') and str(fr - f0 + 1) not in os.environ['FR'].split(','): continue
+        sc.frame_set(fr)
+        R0 = Mw.to_3x3().normalized(); Rrel = R0 @ hips.matrix.to_3x3().normalized() @ hips.bone.matrix_local.to_3x3().normalized().inverted() @ R0.inverted()
+        fw = Rrel @ Vector((0, -1, 0)); fw.z = 0
+        R = Matrix.Rotation(math.atan2(fw.y, fw.x) - math.atan2(-1, 0), 3, 'Z') if fw.length > 1e-3 else Matrix.Identity(3)
+        o = Mw @ hb.head + Vector((0, 0, -0.06)); ch.location = o + R @ Vector((sg * 0.75, -1.0, 0.3))
+        ch.rotation_euler = (o - ch.location).to_track_quat('-Z', 'Y').to_euler()
+        sc.render.filepath = f'{OUT}/h_{fr - f0 + 1:04d}.png'; bpy.ops.render.render(write_still=True)
 open(f'{OUT}/golpe.txt', 'w').write(f'{fi - f0 + 1}\n')
 print('render hecho', OUT, 'golpe', fi - f0 + 1)

@@ -278,6 +278,95 @@ function poseDeClip(scene, clip, t) {
   act.stop(); mixer.uncacheRoot(scene); for (const [b, q, p] of huesos) { b.quaternion.copy(q); b.position.copy(p); }
   return out;
 }
+// EL CUERPO FIRME DE LOS PELOTARIS NUEVOS. El autor, 17 de noviembre de 2026: «ni el torso ni el hombro se tienen que
+// deformar; solo es movimiento de giro, de hombro y de cadera; el cuerpo es un bloque sólido». Su piel es de piezas
+// rígidas (tools/blender/piel-rigida.py): cada parte del cuerpo va entera con su hueso, y solo pasa de un hueso al
+// siguiente en una franja estrecha en cada articulación. Además:
+//  - la franja se mezcla con cuaterniones duales: la articulación gira sin aplastarse ni vaciarse. Con la mezcla de
+//    siempre, la de las matrices, un giro grande encoge la unión, como el envoltorio de un caramelo;
+//  - las clavículas no mueven piel (van en el bloque del torso): su giro pasa al brazo, que acaba igual de orientado y
+//    gira sobre el hombro quieto. Lo hace GlbChar en cada fotograma y loadMeshy en las posturas de armado.
+export const PIEL_RIGIDA = /^pelotari_nuev/;
+const DQS_PARS = /* glsl */`
+#ifdef USE_SKINNING
+vec4 dqsQuat( mat3 m ) {
+  float t = m[0][0] + m[1][1] + m[2][2]; float s;
+  if ( t > 0.0 ) { s = sqrt( t + 1.0 ) * 2.0; return vec4( ( m[1][2] - m[2][1] ) / s, ( m[2][0] - m[0][2] ) / s, ( m[0][1] - m[1][0] ) / s, 0.25 * s ); }
+  if ( m[0][0] > m[1][1] && m[0][0] > m[2][2] ) { s = sqrt( 1.0 + m[0][0] - m[1][1] - m[2][2] ) * 2.0; return vec4( 0.25 * s, ( m[1][0] + m[0][1] ) / s, ( m[2][0] + m[0][2] ) / s, ( m[1][2] - m[2][1] ) / s ); }
+  if ( m[1][1] > m[2][2] ) { s = sqrt( 1.0 + m[1][1] - m[0][0] - m[2][2] ) * 2.0; return vec4( ( m[1][0] + m[0][1] ) / s, 0.25 * s, ( m[2][1] + m[1][2] ) / s, ( m[2][0] - m[0][2] ) / s ); }
+  s = sqrt( 1.0 + m[2][2] - m[0][0] - m[1][1] ) * 2.0; return vec4( ( m[2][0] + m[0][2] ) / s, ( m[2][1] + m[1][2] ) / s, 0.25 * s, ( m[0][1] - m[1][0] ) / s );
+}
+// (de la matriz de un hueso, su giro, su sitio como parte dual y su escala, que es la misma en los tres ejes)
+void dqsDe( mat4 M, out vec4 r, out vec4 d, out float k ) {
+  k = length( M[0].xyz ); r = normalize( dqsQuat( mat3( M ) / k ) ); vec3 t = M[3].xyz;
+  d = 0.5 * vec4( r.w * t + cross( t, r.xyz ), - dot( t, r.xyz ) );
+}
+#endif
+`;
+const DQS_BASE = /* glsl */`
+#ifdef USE_SKINNING
+  mat4 boneMatX = getBoneMatrix( skinIndex.x );
+  mat4 boneMatY = getBoneMatrix( skinIndex.y );
+  mat4 boneMatZ = getBoneMatrix( skinIndex.z );
+  mat4 boneMatW = getBoneMatrix( skinIndex.w );
+  vec4 dqR0, dqD0, dqR1, dqD1, dqR2, dqD2, dqR3, dqD3; float dqK0, dqK1, dqK2, dqK3;
+  dqsDe( boneMatX, dqR0, dqD0, dqK0 ); dqsDe( boneMatY, dqR1, dqD1, dqK1 ); dqsDe( boneMatZ, dqR2, dqD2, dqK2 ); dqsDe( boneMatW, dqR3, dqD3, dqK3 );
+  // (todos los giros en el mismo hemisferio que el primero: q y -q son el mismo giro, pero mezclados se anulan)
+  if ( dot( dqR0, dqR1 ) < 0.0 ) { dqR1 = - dqR1; dqD1 = - dqD1; }
+  if ( dot( dqR0, dqR2 ) < 0.0 ) { dqR2 = - dqR2; dqD2 = - dqD2; }
+  if ( dot( dqR0, dqR3 ) < 0.0 ) { dqR3 = - dqR3; dqD3 = - dqD3; }
+  vec4 dqR = skinWeight.x * dqR0 + skinWeight.y * dqR1 + skinWeight.z * dqR2 + skinWeight.w * dqR3;
+  vec4 dqD = skinWeight.x * dqD0 + skinWeight.y * dqD1 + skinWeight.z * dqD2 + skinWeight.w * dqD3;
+  float dqK = skinWeight.x * dqK0 + skinWeight.y * dqK1 + skinWeight.z * dqK2 + skinWeight.w * dqK3;
+  float dqL = length( dqR ); dqR /= dqL; dqD /= dqL;
+#endif
+`;
+const DQS_NORMAL = /* glsl */`
+#ifdef USE_SKINNING
+  vec3 dqN = mat3( bindMatrix ) * objectNormal;
+  dqN += 2.0 * cross( dqR.xyz, cross( dqR.xyz, dqN ) + dqR.w * dqN );
+  objectNormal = mat3( bindMatrixInverse ) * dqN;
+  #ifdef USE_TANGENT
+    vec3 dqT = mat3( bindMatrix ) * objectTangent;
+    dqT += 2.0 * cross( dqR.xyz, cross( dqR.xyz, dqT ) + dqR.w * dqT );
+    objectTangent = mat3( bindMatrixInverse ) * dqT;
+  #endif
+#endif
+`;
+const DQS_POS = /* glsl */`
+#ifdef USE_SKINNING
+  vec3 dqP = ( bindMatrix * vec4( transformed, 1.0 ) ).xyz * dqK;
+  dqP += 2.0 * cross( dqR.xyz, cross( dqR.xyz, dqP ) + dqR.w * dqP );
+  dqP += 2.0 * ( dqR.w * dqD.xyz - dqD.w * dqR.xyz + cross( dqR.xyz, dqD.xyz ) );
+  transformed = ( bindMatrixInverse * vec4( dqP, 1.0 ) ).xyz;
+#endif
+`;
+/** La piel de un material mezclada con cuaterniones duales (encima de lo que ya cambie su onBeforeCompile). */
+export function pielDQS(m) {
+  if (!m || m.userData.dqs) return m;
+  m.userData.dqs = true;
+  const prev = m.onBeforeCompile, clave = m.customProgramCacheKey;
+  m.onBeforeCompile = function (sh, r) {
+    if (prev) prev.call(this, sh, r);
+    sh.vertexShader = sh.vertexShader.replace('#include <skinning_pars_vertex>', '#include <skinning_pars_vertex>\n' + DQS_PARS)
+      .replace('#include <skinbase_vertex>', DQS_BASE).replace('#include <skinnormal_vertex>', DQS_NORMAL).replace('#include <skinning_vertex>', DQS_POS);
+  };
+  m.customProgramCacheKey = function () { return (clave ? clave.call(this) : '') + '|dqs'; };
+  m.needsUpdate = true;
+  return m;
+}
+// (la sombra, con la misma piel: si no, la sombra del hombro iría por un lado y el hombro por otro)
+let sombraDQS = null;
+const sombraRigida = () => sombraDQS || (sombraDQS = pielDQS(new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking })));
+// el giro de la clavícula, al brazo: el brazo queda igual de orientado (B = q0⁻¹·qClavícula·qBrazo) y la clavícula en su
+// reposo. En una postura guardada ({q: {hueso: giro}}) o en los huesos
+function claviculaPose(pose, q0) {
+  for (const s of ['Left', 'Right']) {
+    const nS = 'mixamorig' + s + 'Shoulder', nA = 'mixamorig' + s + 'Arm', qs = pose.q[nS], qa = pose.q[nA];
+    if (!qs || !qa || !q0[nS]) continue;
+    pose.q[nA] = q0[nS].clone().invert().multiply(qs).multiply(qa); pose.q[nS] = q0[nS].clone();
+  }
+}
 export async function loadMeshy(name, lod = false, completo = false) {
   lod = lod && !!MESHY_LOD[name]; completo = completo && !lod && !!VEC_FULL[name];
   const key = 'meshy:' + name + (lod ? ':lod' : completo ? ':full' : ''), height = MESHY_H[name] || 1.5;
@@ -307,6 +396,14 @@ export async function loadMeshy(name, lod = false, completo = false) {
       const n = r.name.slice(5); r.tracks = r.tracks.filter(t => /\.quaternion$/.test(t.name) || /Hips\.position$/.test(t.name));
       const k = recortaReal(r, n, REAL_GOLPE), i = pel.findIndex(c => c.name === n); if (i >= 0) pel[i] = k; else pel.push(k);
       if (armados && armados[n]) armados[n] = poseDeClip(g.scene, r, REAL_GOLPE - 0.08);
+    }
+    // (cuerpo firme: las posturas de armado, con la clavícula en su sitio y su giro en el brazo; y la piel con cuaterniones
+    // duales. El reposo de cada clavícula, antes de que nada lo mueva)
+    const rigida = PIEL_RIGIDA.test(name);
+    if (rigida) {
+      const q0 = {}; g.scene.traverse(o => { if (o.isBone && /Shoulder$/.test(o.name)) q0[o.name] = o.quaternion.clone(); });
+      if (armados) for (const p of Object.values(armados)) claviculaPose(p, q0);
+      g.scene.traverse(o => { if (o.isSkinnedMesh) for (const m of [].concat(o.material)) pielDQS(m); });
     }
     // textura nítida también vista de lado (anisotropía); en el móvil se reduce salvo la del personaje del jugador
     g.scene.traverse(o => { if (o.isMesh) { o.castShadow = true; for (const m of [].concat(o.material)) { shrinkMap(m, FULL_TEX.has(name) ? 2048 : MESHY_TEX); sharpMap(m); if (m.map) { m.map.anisotropy = 8; m.map.needsUpdate = true; }
@@ -339,7 +436,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     let dedos = null;
     if (CON_DEDOS && (!lod || !MESHY[name] || DEDOS_LIGEROS.has(name))) { let h = null; g.scene.traverse(o => { if (!h && o.isBone && /RightHand$/.test(o.name)) h = o; });
       if (h) { g.scene.updateMatrixWorld(true); try { dedos = ponDedos(g.scene, h.getWorldScale(new THREE.Vector3()).x * fit); } catch (e) { console.warn('dedos', name, e); } } }
-    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(quieta ? { sinGiroCabeza: true } : {}), ...(armados ? { armados } : {}), ...(dedos ? { dedos } : {}) } };
+    return { scene: g.scene, animations, userData: { fit, meshy: true, ...(quieta ? { sinGiroCabeza: true } : {}), ...(armados ? { armados } : {}), ...(dedos ? { dedos } : {}), ...(rigida ? { rigida: true } : {}) } };
   })());
   return cache.get(key);
 }
@@ -391,6 +488,13 @@ export class GlbChar {
       }
     });
     if (!Object.values(this.meshes).some(m => m.isMesh && m.castShadow)) this.root.traverse(o => { if (o.isMesh) { o.castShadow = true; delete o.userData.noShadow; } });
+    // (cuerpo firme, loadMeshy PIEL_RIGIDA: la sombra con la misma piel y las clavículas, con su reposo, para pasar su giro
+    // al brazo en cada fotograma)
+    this.clav = null;
+    if (gltf.userData?.rigida) {
+      this.root.traverse(o => { if (o.isSkinnedMesh && [].concat(o.material).some(m => m?.userData?.dqs)) o.customDepthMaterial = sombraRigida(); });
+      this.clav = ['Left', 'Right'].map(s => [this.bones['mixamorig' + s + 'Shoulder'], this.bones['mixamorig' + s + 'Arm']]).filter(([a, b]) => a && b).map(([a, b]) => ({ s: a, a: b, q0: a.quaternion.clone(), qi: a.quaternion.clone().invert() }));
+    }
     // mirada: con los huesos Eye_L/Eye_R si los hay; si no, moviendo la textura del ojo (personajes antiguos)
     this.eyeBones = ['Eye_L', 'Eye_R'].map(n => this.bones[n]).filter(Boolean);
     // ojos pintados sobre la cabeza (estilo juguete): el iris se mueve desplazando su textura
@@ -591,6 +695,8 @@ export class GlbChar {
     // los huesos que se tocan después del mixer vuelven a su base (un clip puede no animarlos)
     for (const b of this.postBones) b.quaternion.copy(b.userData.q0);
     this.mixer.update(dt);
+    // (cuerpo firme: el giro de cada clavícula, al brazo, antes de los ajustes de después, que ya trabajan con el hombro quieto)
+    if (this.clav) for (const c of this.clav) { _q.copy(c.qi).multiply(c.s.quaternion); c.a.quaternion.premultiply(_q); c.s.quaternion.copy(c.q0); }
     // (los dedos, hacia la postura que toque: relajados, a medio cerrar corriendo o la que haya pedido el juego)
     if (this.dedos) { if (!this.dedos.listo) this.dedos.liga(this.bones); this.dedos.update(dt, this.gaitName === 'Run'); }
     // vigía: si la acción en curso se ha parado o se ha quedado sin peso (se vería la postura en cruz del modelo), vuelve
