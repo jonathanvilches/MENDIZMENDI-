@@ -16,9 +16,10 @@
 }
 @media (min-width: 1200px) and (min-height: 600px) { #hub.juego { --hud-t: max(16px, env(safe-area-inset-top, 0px)); --hud-l: max(16px, env(safe-area-inset-left, 0px)); --hud-r: max(16px, env(safe-area-inset-right, 0px)); --hud-b: 16px; --hud-h: 52px; --hud-g: 10px; } }
 /* (el móvil tumbado: el iPhone reserva 47 puntos a cada lado por la muesca, pero la muesca solo entra unos 34 en el centro
-   del borde: los paneles y el HUD se acercan al borde hasta pasar justo la muesca, y abajo pisan la mitad de la raya de
-   inicio, que no tapa nada. Así se aprovecha toda la pantalla) */
-@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, calc(env(safe-area-inset-bottom, 0px) - 12px)); --hud-l: max(8px, calc(env(safe-area-inset-left, 0px) - 26px)); --hud-r: max(8px, calc(env(safe-area-inset-right, 0px) - 26px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 8px; } }
+   del borde: los paneles y el HUD se acercan al borde hasta pasar justo la muesca. Abajo, en cambio, respetan entera la
+   raya de inicio (18 de noviembre de 2026; el autor: «hay muy poco espacio»): antes pisaban la mitad y la raya cruzaba
+   por encima de las tarjetas de las comarcas) */
+@media (max-height: 520px) { #hub.juego { --hud-t: max(8px, env(safe-area-inset-top, 0px)); --hud-b: max(8px, env(safe-area-inset-bottom, 0px)); --hud-l: max(8px, calc(env(safe-area-inset-left, 0px) - 26px)); --hud-r: max(8px, calc(env(safe-area-inset-right, 0px) - 26px)); --hud-h: 40px; --hud-g: 6px; --cr-r: 8px; } }
 #hub:not(.juego) :is(.hub-menu-btn, .hub-velo, .hub-panel-x, .hub-x, .hub-cab) { display: none; }
 #hub:not(.juego) .hub-panel { display: contents; }
 .hub-mapa:empty { display: none; }
@@ -274,12 +275,14 @@ body:has(> .mg-overlay, > .lam-view) #hub.juego .hub-main { transform: scale(.97
   #hub.juego .m3d .ft-ms-h b { font-size: 10px; } #hub.juego .m3d .ft-ms-h em { font-size: var(--fs-md); }
   #hub.juego .m3d .ft-ms-g { grid-template-columns: repeat(var(--n, 8), minmax(0, 32px)); gap: 4px; }
   #hub.juego .m3d .ft-go { min-height: 36px; padding: 0 16px; font-size: var(--fs-xs); }
-  /* (el menú, más ancho que alto: las secciones en cinco columnas, para que quepan sin desplazarse) */
+  /* (el menú, más ancho que alto: las diecisiete secciones en nueve columnas y dos filas, todas a la vista. Con cinco
+     columnas eran cuatro filas y las de abajo quedaban detrás de «Cómo jugar») */
   #hub.juego .hub-panel { width: min(780px, calc(100% - var(--hud-l) - var(--hud-r))); padding: 8px; }
-  #hub.juego .hub-nav { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin-top: 6px; padding-top: 6px; }
-  #hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) { min-height: 70px; padding: 8px 2px 6px; gap: 6px; border-radius: 12px; }
-  #hub.juego .hub-nav button :is(svg, img) { width: 30px; height: 30px; }
-  #hub.juego .hub-nav button span { font-size: var(--fs-sm); }
+  #hub.juego .hub-nav { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; margin-top: 6px; padding-top: 6px; }
+  #hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) { min-height: 76px; padding: 8px 1px 6px; gap: 7px; border-radius: 12px; }
+  #hub.juego .hub-nav button :is(svg, img) { width: 32px; height: 32px; }
+  #hub.juego .hub-nav button span { font-size: clamp(10px, 1.36vw, 12px); letter-spacing: -.01em; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hub.juego .hub-panel .hub-ver { padding: 6px 8px 2px; }
   #hub.juego .hub-top .app-btn { margin-top: 6px; min-height: 40px; }
   #hub.juego .hub-top #hChip img { width: 36px; height: 36px; }
 }
