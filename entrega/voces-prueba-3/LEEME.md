@@ -39,3 +39,15 @@ Tercera ronda (18 de noviembre). El autor: «tienes que poner acentos: Itzíar y
 | itziar-00n-acento-i-1.mp3 y -2 | Gabon. Soy Itsíar. Esta es la iglesia de San Juan Evangelista. |
 
 Gasto: 196 créditos más.
+
+El autor aprueba la toma 1 de las dos de la tercera ronda: entran como `maite-05` e `itziar-00n`. Y pide rehacer con el acento en la i las que ya estaban en el juego. En `acento-i/`, una toma de cada, con el nombre del archivo que sustituirían:
+
+| Archivo | Escrito para la voz |
+|---|---|
+| acento-i/maite-00.mp3 | ¡Kaisho! Soy Maite. ¡Ongi etorri a Otsagabía! Así se da la bienvenida en euskera. |
+| acento-i/maite-03.mp3 | ¿Nos ayudas a encontrarlas? … sube a la iglesia a ver a Itsíar. |
+| acento-i/maite-09.mp3 | Itsíar sabe mucho de los palacios y sus escudos. |
+| acento-i/itziar-00.mp3 | Egunon. Soy Itsíar. Esta es la iglesia de San Juan Evangelista. |
+| acento-i/itziar-00t.mp3 | Arratsalde on. Soy Itsíar. Esta es la iglesia de San Juan Evangelista. |
+
+Gasto: 405 créditos más.
