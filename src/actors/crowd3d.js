@@ -309,7 +309,9 @@ export function preparaPublico(set = 'aficion', sit = false) {
  * Público: spots = [[x, y, z, ry], …] (y = pies). Devuelve un grupo con .tick(t, ánimo, zFoco, cámara) y .cheer(on),
  * igual que las láminas: de cerca, figuras 3D (que saltan, saludan y celebran); de lejos, láminas.
  */
-export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null } = {}) {
+// (figuras: los que no van con la figura entera, con la figura simplificada en 3D y nunca con el retrato plano: para
+// gradas con poca gente, donde cada espectador se ve suelto)
+export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all3d = false, arriba = false, quietos = false, kc = null, figuras = false } = {}) {
   const n = spots.length, figs = new Uint8Array(n);
   for (let i = 0; i < n; i++) figs[i] = Math.floor(Math.random() * nFigs(set));
   const group = new THREE.Group(), sprites = crowdMesh(spots, set, height, figs, sit, { lamina: !all3d });
@@ -350,7 +352,7 @@ export function crowd3d(spots, set = 'futbol', height = 1.45, { sit = false, all
   group.listo = bakeSet(set, sit, arriba).then(async G => {
     meshes = G.map(poses => poses.map(g => inst(g, Math.min(K, KC))));
     // (todos en 3D: los de en medio y los del fondo, con su retrato; si no se puede, como antes, con la figura simplificada)
-    let A = null; if (all3d && K > KC) try { A = await retratos(G, set + (sit ? ':sit' : '') + (arriba ? ':arriba' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224); } catch (e) { console.warn('retratos', e); }
+    let A = null; if (all3d && K > KC && !figuras) try { A = await retratos(G, set + (sit ? ':sit' : '') + (arriba ? ':arriba' : ''), Q === 'low' ? 160 : Q === 'mid' ? 192 : 224); } catch (e) { console.warn('retratos', e); }
     if (A) {
       const geo = new THREE.PlaneGeometry(2 * A.R, A.H); geo.translate(0, A.H / 2, 0);
       mid = G.map((poses, f) => poses.map((g, p) => { const im = new THREE.InstancedMesh(geo, retratoMat(A, f * 2 + p), K - KC); im.setColorAt(0, new THREE.Color(1, 1, 1)); im.count = 0; im.visible = false; im.frustumCulled = false; group.add(im); return im; }));

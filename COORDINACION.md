@@ -20,7 +20,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - **NO PUBLICAR hasta que el autor dé el visto bueno** (18 nov, noche: «enséñame todo antes de publicar»). En `master`,
   sin compilar en `docs/`: el partido de pelota (números de la pared izquierda legibles, rayas del suelo que no vibran,
   público un 9 % menor, dificultad rebajada) y el carrusel de campeonatos (portadas más anchas, nombre grande, anillo de
-  borde a borde, fondo con profundidad). Si otra ventana necesita publicar lo suyo, que pregunte antes al autor.
+  borde a borde, fondo con profundidad) y la grada del partido con menos gente y cada espectador suelto y en 3D. Si otra
+  ventana necesita publicar lo suyo, que pregunte antes al autor.
 
 ## Peticiones entre ventanas
 

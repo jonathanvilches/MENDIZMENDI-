@@ -1107,6 +1107,14 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (chapa, fuera, falta, pasa…) el que lo ve levanta el brazo derecho bien alto unos 2 s (`senalaJuez`, `brazoJuez`: cada
   hueso del brazo se gira para apuntar arriba encima de la animación; antes saludaba con la mano). El negro se pinta con su propia zona (`osasuna_juez` en `npcOutfit.js`): también el rojo de los bordes, de las
   sombras, de las medias y de las zapatillas, que antes quedaba en motas sobre el negro.
+- **La grada del partido de pelota, con menos gente y cada uno suelto** (`game/fronton.js`; `actors/crowd3d.js`, opción
+  `figuras`; 18 de noviembre de 2026, noche; el autor: «me hace falta más espacio entre los espectadores. Ahora mismo
+  solo veo bultos… Prefiero que haya menos gente más definida»). La grada se sienta al tresbolillo: en cada fila, un
+  asiento sí y otro no, y la fila siguiente al revés, así nadie tapa al de detrás. Con tope: 260 espectadores, 110 en
+  el móvil y 60 en el más justo, los más cercanos al centro de la cancha y a las filas de abajo. Todos van con figura
+  en 3D: los más cercanos con la entera y los demás con la simplificada, nunca con el retrato plano (`figuras: true`).
+  Esto sustituye a «gradas llenas» de la nota siguiente, que queda como historia. Falta lo segundo que pidió: que se
+  vea el movimiento de levantarse y celebrar; hoy son dos posturas fijas (sentado y celebrando)
 - **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
   `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
   su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro
