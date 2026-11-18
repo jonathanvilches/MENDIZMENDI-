@@ -49,6 +49,10 @@ const nitido = (model) => { if (!(QUALITY === 'low' && matchMedia?.('(pointer: c
 const corre = (r) => { if (r?.char?.opt) r.char.opt.runAt = 1.85; return r; };
 // (los ids de los aspectos que ya están en la cancha en este partido: dos pelotaris no salen iguales; pelota/aspectos.js)
 let enCancha = new Set();
+// (el público de la grada: un 9 % más bajo que antes, 1,24 en vez de 1,36. En metros ya medía como el pelotari, pero la
+// grada queda mucho más cerca de la cámara que la cancha y en el móvil salía el doble de grande que él; el autor, 18 de
+// noviembre de 2026: «mira bien si los personajes del público tienen el mismo tamaño que el pelotari»)
+const ALTO_AFICION = 1.24;
 async function rigPelotari(model, name, girl = pelotariGirl(name), hair = pelotariHair(name), aspecto = null, kit = null) {
   // (con los pelotaris nuevos elegidos en Ajustes, el nuevo de su camiseta: chico o chica, con su cara y su pelo;
   // pelota/estiloPelotari.js. Si falla o aún no está, el de siempre)
@@ -587,7 +591,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
       // chicas con su coleta; la figura de lejos, unos 1.000)
       C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', 1.36, { sit, all3d: true, kc: muyLigero ? 8 : ligero ? 24 : null }); G.scene.add(seated); }
+      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, kc: muyLigero ? 8 : ligero ? 24 : null }); G.scene.add(seated); }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }

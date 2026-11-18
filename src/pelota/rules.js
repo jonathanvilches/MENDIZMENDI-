@@ -44,13 +44,15 @@ export const PHYS = {
 // (17 de noviembre de 2026: un 10-15 % más rápida en todos los niveles, por el vídeo de un entrenamiento que pasó el
 // autor. Allí la pelota tarda 0,3 s del golpe al frontis desde 7 u 8 m, unos 27 m/s; en el juego tardaba 0,7 s desde
 // 10-16 m en el nivel normal y 0,6 en el experto, cuando un profesional tarda alrededor de medio segundo)
+// (18 de noviembre de 2026: con ese 15 % de golpe, el autor: «es muy difícil jugar, hacen tanto enseguida». Se queda
+// en la mitad, un 7 % más rápida que al principio, y el jugador recibe algo más de alcance y de ayuda; el experto no se toca)
 export const LEVELS = {
-  facil: { tempo: 0.8, reach: 1.85, assist: 1.8, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35, dash: 1.3 } },
-  normal: { tempo: 0.92, reach: 1.65, assist: 1.0, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 } },
-  dificil: { tempo: 1.03, reach: 1.4, assist: 0.35, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.45 } },
+  facil: { tempo: 0.74, reach: 1.95, assist: 1.9, rival: { speed: 4.8, react: 0.36, error: 0.12, smart: 0.35, dash: 1.3 } },
+  normal: { tempo: 0.86, reach: 1.75, assist: 1.2, rival: { speed: 5.5, react: 0.25, error: 0.065, smart: 0.6, dash: 1.38 } },
+  dificil: { tempo: 0.98, reach: 1.45, assist: 0.45, rival: { speed: 6.2, react: 0.17, error: 0.03, smart: 0.85, dash: 1.45 } },
   // (los dos de los extremos: para empezar, más lento y con más ayuda que el fácil; para los que ya lo dominan, el rival
   // casi no falla y apenas hay ayuda)
-  iniciacion: { tempo: 0.68, reach: 2.05, assist: 2.4, rival: { speed: 4.3, react: 0.44, error: 0.17, smart: 0.22, dash: 1.25 } },
+  iniciacion: { tempo: 0.63, reach: 2.1, assist: 2.4, rival: { speed: 4.3, react: 0.44, error: 0.17, smart: 0.22, dash: 1.25 } },
   experto: { tempo: 1.1, reach: 1.3, assist: 0.15, rival: { speed: 6.6, react: 0.13, error: 0.02, smart: 0.95, dash: 1.5 } },
 };
 // los cinco niveles, de menos a más, y lo fuerte que es el rival en cada uno (de 1 a 4, para sus cualidades)

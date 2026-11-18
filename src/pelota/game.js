@@ -333,7 +333,8 @@ export class PelotaGame {
     // (de diestro, lo pegado a la pared izquierda cuesta: el golpe sale peor cuanto más ajustada viene)
     const wall = clamp((1.0 - (b.x + COURT.W / 2)) / 0.7, 0, 1) * (0.2 - this.qual[who].agilidad * 0.025);
     // (lo que llega: un pelotazo a tope del otro cuesta controlarlo y sale peor; uno flojo se coge cómodo. 17 nov 2026)
-    const U = this.ultimo, llega = U && U.who !== who ? clamp((U.v - 24) / 14, 0, 1) * 0.2 - clamp((19 - U.v) / 8, 0, 1) * 0.06 : 0;
+    // (18 nov: a ti, con ayuda, la mitad de ese castigo o menos: con el pelotazo del rival fallabas enseguida)
+    const U = this.ultimo, kLl = who === 'you' && !this.autoplay ? clamp(1 - this.lvl.assist * 0.45, 0.25, 1) : 1, llega = U && U.who !== who ? clamp((U.v - 24) / 14, 0, 1) * 0.2 * kLl - clamp((19 - U.v) / 8, 0, 1) * 0.06 : 0;
     return clamp(0.25 * qh + 0.25 * qd + 0.5 * qt + (who === 'you' && !this.autoplay ? this.lvl.assist * 0.04 : 0) - wall - this.tired(who) * 0.3 - llega, 0, 1);   // (cansado, peor)
   }
   // Elige el golpe: aim = {x, y} de −1 a 1 (x: izquierda/derecha, y: arriba = largo, abajo = dejada); req: golpe pedido
@@ -442,7 +443,10 @@ export class PelotaGame {
       // (la carga manda de verdad, 17 nov 2026: el autor no notaba la diferencia entre un toque y mantener al 100 %. Un toque
       // sale lento, a la velocidad justa para llegar bien al frontis desde donde se pega; a medias, un golpe normal; a tope,
       // un pelotazo. Antes iba de unos 17 a unos 31 m/s y casi no se veía; ahora de unos 14-17 a unos 33-36, y a medias bastante menos que antes)
-      const fz = pow01(pow), vMin = 9 + clamp(p.z, 6, 30) * 0.32;
+      // (18 nov: un toque sin cargar ya no es un regalo: sale como un golpe a un tercio, que bota hacia el cuadro 3-4 y a
+      // unos 17 m/s; a tope, igual que antes. Tocando sin mantener, que es como se juega en el móvil, la pelota se quedaba en
+      // el 2 y el rival remataba: de ahí que «hacen tanto enseguida»)
+      const fz = who === 'you' && !this.autoplay ? 0.3 + pow01(pow) * 0.7 : pow01(pow), vMin = 9 + clamp(p.z, 6, 30) * 0.32;
       let tx, landZ, speed = Math.max(vMin, (9 + q * 3 + Math.pow(fz, 1.25) * 19 + (S - 3) * 1.3) * (0.8 + clamp(p.z, 8, 30) / 62)) * (o.volea ? 1.1 : 1) + (gancho ? 4 : 0);
       if (gancho) aim = { x: Math.max(aim.x, 0.7), y: clamp(aim.y, -0.6, 0.4) };
       // dos paredes: joystick en diagonal abajo-izquierda: pared izquierda, frontis y sale cruzada. El ángulo dice dónde

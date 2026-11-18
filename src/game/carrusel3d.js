@@ -189,9 +189,9 @@ export const CSS_CARRUSEL3D = `
 .lg-card.c3-pant::before,.lg-card.c3-pant::after{display:none}
 .c3-pant .c3-escena{min-height:120px}
 .c3-pant .c3-pie{padding:calc(var(--c3w,200px) * .12) calc(var(--c3w,200px) * .06) calc(var(--c3w,200px) * .055)}
-.c3-pant .c3-pie small{font-size:max(9px,calc(var(--c3w,200px) * .042))}
-.c3-pant .c3-pie b{font-size:max(15px,calc(var(--c3w,200px) * .1))}
-.c3-pant .largo .c3-pie b{font-size:max(13px,calc(var(--c3w,200px) * .08))}
+.c3-pant .c3-pie small{font-size:max(10px,calc(var(--c3w,200px) * .058))}
+.c3-pant .c3-pie b{font-size:max(17px,calc(var(--c3w,200px) * .125))}
+.c3-pant .largo .c3-pie b{font-size:max(15px,calc(var(--c3w,200px) * .1))}
 .c3-pant .c3-anillo>*{border-radius:calc(var(--c3w,200px) * .045)}
 .c3-pant.c3-ancha .c3-pie{padding:calc(var(--c3w,200px) * .07) calc(var(--c3w,200px) * .04) calc(var(--c3w,200px) * .035)}
 .c3-pant.c3-ancha .c3-pie small{font-size:max(9px,calc(var(--c3w,200px) * .03))}

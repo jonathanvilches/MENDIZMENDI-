@@ -1198,7 +1198,7 @@ export function retosMenu() {
 /** Menú del pelotari: torneo individual, torneo por parejas o partido libre (here: el nombre del pueblo del frontón;
  *  T2: el torneo por parejas; o: los frontones para el partido libre, ver sedeHtml). Devuelve 'torneo' | 'torneoParejas' |
  *  'libre' | 'exit', u 'otro:<pueblo>' para jugar en el frontón de otro pueblo. */
-const AR_PORT = 1.46;
+const AR_PORT = 1.24;   // (18 nov, noche: 1,46 → 1,24; el autor: «la card es muy pequeña y no se lee»: a igual alto, un 18 % más anchas)
 export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [], T4 = null) {
   css();   // (antes solo lo ponía el cuadro del torneo: la primera vez, la txapela salía enorme)
   return new Promise(res => {
@@ -1265,7 +1265,9 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     const car = carrusel3d(r.querySelector('.c3-escena'), {
       inicio: Math.max(0, items.findIndex(it => it.a === a0)), banda: true, ar: AR_PORT,
       alCambiar: (i) => { const it = items[i]; if (!it) return;
-        info.querySelector('.c3-que b').innerHTML = it.fase || it.tag; info.querySelector('.c3-que span').innerHTML = it.contra || ''; info.querySelector('.c3-ronda').innerHTML = it.ronda || '';
+        // (abajo, en grande, el nombre del campeonato de delante, que en la portada se leía mal en el móvil; y en la línea
+        // fina, la ronda y el rival)
+        info.querySelector('.c3-que b').innerHTML = it.name; info.querySelector('.c3-que span').innerHTML = [it.fase || it.tag, it.contra].filter(Boolean).join(' · '); info.querySelector('.c3-ronda').innerHTML = it.ronda || '';
         info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
         try { localStorage.setItem(CLAVE, it.a); } catch (e) { /* sin guardado */ } },
     });

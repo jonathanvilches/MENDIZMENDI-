@@ -2297,7 +2297,16 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   su cabecera (`ptAtras`, `head(S, sub, info, atras)`), sin «Salir» ni «Volver» abajo, y sin marco.
   En el inicio (`hub/consola.css`), con el móvil tumbado: la fila de comarcas ya no pisa la raya de inicio del iPhone
   (`--hud-b` vale el margen seguro entero) y el menú principal enseña sus diecisiete secciones en nueve columnas y dos
-  filas, sin que ninguna quede detrás de «Cómo jugar». Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
+  filas, sin que ninguna quede detrás de «Cómo jugar».
+- **Repaso del partido tras la grabación del autor** (18 de noviembre de 2026, noche; `pelota/court.js`, `pelota/rules.js`,
+  `pelota/game.js`, `game/fronton.js`): los números de la pared izquierda, a medida real (30 cm), no se leían en el
+  móvil: quedan en 58 cm con el centro a 2,55 m. Las rayas del suelo, del sombreador `rayasNitidas`, bajaban a poco más
+  de un píxel a lo lejos y vibraban al moverse la cámara: mínimo de dos píxeles y medio con el borde fundido. El público
+  (`ALTO_AFICION`, 1,24) medía como el pelotari en metros, pero la grada queda pegada a la cámara y parecía el doble.
+  Y la dificultad: el ritmo de la pelota, que había subido un 15 %, se queda en un 7 %; un toque sin cargar sale como
+  un golpe a un tercio (antes botaba en el cuadro 2 y el rival remataba) y el castigo por recibir un pelotazo se reduce
+  para el jugador según la ayuda del nivel. En el carrusel de campeonatos, portadas de 1,24 de alto por ancho (antes
+  1,46), nombres más grandes, el nombre del campeonato en la barra de abajo y el anillo de borde a borde de la pantalla. Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
   nada interactivo mide menos de 40 px. Se comprueba con la muesca y la barra de inicio simuladas
   (`Emulation.setSafeAreaInsetsOverride`, 47 px a los lados y 21 px abajo con el móvil tumbado), además de 1280×720 y de pie.
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,

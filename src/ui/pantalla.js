@@ -29,6 +29,24 @@ export const CSS_PANTALLA = `
 .lg-card.pt-pant{height:100%;max-height:none;overflow:hidden;display:flex;flex-direction:column}
 .lg-card.pt-pant::before,.lg-card.pt-pant::after,.lg-card.pt-libre::before,.lg-card.pt-libre::after{display:none}
 .pt-medio{flex:1 1 auto;min-height:0;min-width:0}
+/* el anillo llega de borde a borde de la pantalla: las portadas pasan por debajo de la muesca y solo los mandos se quedan
+   dentro del margen seguro (el autor: «está todo muy ajustado y hay mucho aire en los extremos») */
+.lg-card.c3-pant{overflow:visible}
+.lg-card.c3-pant>.c3{margin-inline:calc(-1 * (max(8px,env(safe-area-inset-left,0px)) + clamp(6px,1.4vw,20px))) calc(-1 * (max(8px,env(safe-area-inset-right,0px)) + clamp(6px,1.4vw,20px)))}
+.lg-card.c3-pant .c3-flecha.izq{left:calc(max(8px,env(safe-area-inset-left,0px)) + 8px)}.lg-card.c3-pant .c3-flecha.der{right:calc(max(8px,env(safe-area-inset-right,0px)) + 8px)}
+/* el fondo de las pantallas de juego, con profundidad en vez de un morado liso (el autor: «se me quedan muy planos los
+   fondos»): dos focos suaves arriba, un suelo iluminado bajo lo que se elige y un velo en los bordes. Todo degradados
+   suaves y fijos, sin coste al dibujar */
+.lg-root:has(>.c3-pant,>.pt-pant,>.pt-libre){background:
+  radial-gradient(60% 46% at 50% 104%,rgba(255,96,200,.26),rgba(255,96,200,0) 70%),
+  radial-gradient(46% 60% at 8% -8%,rgba(122,92,255,.42),rgba(122,92,255,0) 72%),
+  radial-gradient(46% 60% at 92% -8%,rgba(255,84,170,.3),rgba(255,84,170,0) 72%),
+  radial-gradient(120% 90% at 50% 46%,rgba(60,26,120,.0) 40%,rgba(6,2,16,.72) 100%),
+  linear-gradient(180deg,#1a0b3f 0%,#120733 46%,#0a041c 100%)}
+.lg-root:has(>.c3-pant,>.pt-pant,>.pt-libre)::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.5;
+  background:repeating-linear-gradient(115deg,rgba(255,255,255,.035) 0 2px,rgba(255,255,255,0) 2px 46px);
+  -webkit-mask:linear-gradient(180deg,#000,transparent 62%);mask:linear-gradient(180deg,#000,transparent 62%)}
+.lg-root:has(>.c3-pant,>.pt-pant,>.pt-libre)>.lg-card{position:relative;z-index:1}
 .pt-top{flex:none;display:flex;align-items:center;gap:clamp(10px,1.6vw,18px);min-height:44px;min-width:0}
 .pt-atras{flex:none;width:44px;height:44px;padding:0;border-radius:50%;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
 .pt-atras svg{width:22px;height:22px}.pt-atras:hover{background:rgba(255,255,255,.18)}

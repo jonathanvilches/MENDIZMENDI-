@@ -321,19 +321,22 @@ export class PelotaCourt {
     // desde el suelo en cada raya de cuadro y, arriba, el número dentro de un círculo (pintura algo gastada). A la
     // medida de los de verdad (el autor, 17 de noviembre de 2026: con los números grandes el pelotari se veía pequeño
     // frente al frontón; y su vídeo de un saque en Sopelana): la raya, de 7-8 cm, llega a la altura de la cabeza del
-    // pelotari y el disco, de 30 cm, tiene el centro a 2,08 m del suelo (antes, 40 cm a 2,5 m; y al principio, 85 a 3,1)
-    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 768, MW = 0.376, MH = MW * CH / CW;
+    // pelotari y el disco, de 30 cm, tiene el centro a 2,08 m del suelo (antes, 40 cm a 2,5 m; y al principio, 85 a 3,1).
+    // 18 de noviembre de 2026: a esa medida, jugando en el móvil no se leían («no veo los números de la pared
+    // izquierda»; en su grabación eran palitos de 6 píxeles). Quedan en medio: el disco, de 58 cm, con el centro a 2,55 m,
+    // y la raya, de 9 cm; el número se lee desde el fondo de la cancha y el pelotari no parece un muñeco a su lado
+    const nK = Math.floor(L / C.CUADRO + 0.01), CW = 128, CH = 512, MW = 0.72, MH = MW * CH / CW;
     const markTex = canvasTex(T, CW * nK, CH, (c, w, h) => {
       for (let k = 1; k <= nK; k++) {
         const cx = (k - 0.5) * CW, R = CW * 0.4, cy = R + 8;
         c.fillStyle = th.line; c.strokeStyle = th.line;
-        c.fillRect(cx - 13, cy + R + 16, 26, h - (cy + R + 16));
-        c.lineWidth = 10; c.beginPath(); c.arc(cx, cy, R - 5, 0, Math.PI * 2); c.stroke();
+        c.fillRect(cx - 8, cy + R + 12, 16, h - (cy + R + 12));
+        c.lineWidth = 9; c.beginPath(); c.arc(cx, cy, R - 5, 0, Math.PI * 2); c.stroke();
         c.font = `bold ${R * 1.12}px "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
         c.fillText(String(k), cx, cy + R * 0.06);
         // desconchones: motas del color de la pared sobre la pintura blanca
         c.fillStyle = th.wall;
-        for (let i = 0; i < 80; i++) { const yy = cy + R + 16 + Math.random() * (h - cy - R - 16), xx = cx - 13 + Math.random() * 26; c.fillRect(xx, yy, 1 + Math.random() * 3, 1 + Math.random() * 4); }
+        for (let i = 0; i < 80; i++) { const yy = cy + R + 16 + Math.random() * (h - cy - R - 16), xx = cx - 8 + Math.random() * 16; c.fillRect(xx, yy, 1 + Math.random() * 2, 1 + Math.random() * 3); }
         for (let i = 0; i < 18; i++) { const a = Math.random() * Math.PI * 2, rr = R - 5 + (Math.random() - 0.5) * 9; c.fillRect(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr, 2, 2); }
       }
     });
@@ -351,11 +354,11 @@ export class PelotaCourt {
     // y junto al 4 y al 7, sus nombres: FALTA y PASA, las rayas del saque (así se aprenden mientras se juega). Como en
     // los frontones de verdad, pequeños y pegados a la raya, por el lado de atrás y justo debajo del disco (antes iban
     // encima, de 1,1 m de ancho)
-    const LAB_DZ = this.labDZ = 0.36;
+    const LAB_DZ = this.labDZ = 0.56;
     for (const [z, word] of [[C.FALTA, 'FALTA'], [C.PASA, 'PASA']]) {
       const tex = canvasTex(T, 320, 96, (c, w, h) => { c.fillStyle = th.line; c.font = `900 ${h * 0.78}px "Lilita One", "Trebuchet MS", Nunito, Arial, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(word, w / 2, h * 0.54); });
-      const lab = new T.Mesh(new T.PlaneGeometry(0.6, 0.18), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
-      lab.position.set(-W / 2 + 0.014, MH - 0.62, z + LAB_DZ); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
+      const lab = new T.Mesh(new T.PlaneGeometry(0.9, 0.27), M({ map: tex, alphaTest: 0.5, roughness: 0.85, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -2 }));
+      lab.position.set(-W / 2 + 0.014, MH - 0.82, z + LAB_DZ); lab.rotation.y = Math.PI / 2; lab.name = 'raya-' + word.toLowerCase(); if (!TRQ) g.add(lab);
     }
     // nombre y escudo del pueblo pintados en lo alto de la pared izquierda
     if (opts.wallName || opts.shield) {
@@ -1256,8 +1259,9 @@ export class PelotaCourt {
 // emborronaban a lo lejos: el suelo se ve muy de lado, la tarjeta gráfica lo mezcla con sus versiones pequeñas y en el
 // móvil la textura va a la mitad (el autor, 17 de noviembre de 2026, con una captura del iPhone: «Las líneas del frontón
 // se difuminan. La línea tiene que ser perfecta»). Aquí cada píxel mide su distancia exacta a cada raya y solo se suaviza
-// lo que ocupa un píxel (fwidth), así que el borde sale limpio cerca y lejos; a lo lejos la raya no baja de algo más de un
-// píxel de ancho, para que no se pierda ni parpadee. Los anchos, de medio a medio: cuadros 9 cm, falta y pasa 16 cm (rojas;
+// lo que ocupa un píxel (fwidth), así que el borde sale limpio cerca y lejos; a lo lejos la raya no baja de unos dos
+// píxeles y medio de ancho, con el borde fundido en píxel y medio (18 de noviembre de 2026: con algo más de un píxel, al
+// moverse la cámara la raya saltaba de un píxel al de al lado y el autor la veía vibrar y parpadear). Los anchos, de medio a medio: cuadros 9 cm, falta y pasa 16 cm (rojas;
 // en el trinquete, amarillas y sin cuadros), contracancha y fondo 14 cm, y la del 4½ 15 cm (uCuatro).
 function rayasNitidas(T, mat, o) {
   const C = COURT, f = (v) => Number(v).toFixed(4);
@@ -1268,13 +1272,13 @@ function rayasNitidas(T, mat, o) {
       .replace('#include <begin_vertex>', `#include <begin_vertex>\nvCancha = vec2(${f(-o.W / 2)} + uv.x * ${f(o.fw)}, (1.0 - uv.y) * ${f(o.fl)});`);
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>
 varying vec2 vCancha; uniform vec3 uLine; uniform vec3 uMark; uniform float uCuatro;
-float raya(float d, float media, float w) { float m = max(media, w * 0.7); return 1.0 - smoothstep(m - w * 0.5, m + w * 0.5, abs(d)); }`)
+float raya(float d, float media, float w) { float m = max(media, w * 1.2); return 1.0 - smoothstep(m - w * 0.8, m + w * 0.8, abs(d)); }`)
       .replace('#include <map_fragment>', `#include <map_fragment>
 { float x = vCancha.x, z = vCancha.y, wz = max(fwidth(z), 1e-5), wx = max(fwidth(x), 1e-5);
   float dentro = step(${f(-o.W / 2)}, x) * step(x, ${f(o.W / 2)});
   float a = 0.0;
   ${o.TRQ ? '' : `float k = floor(z / ${f(C.CUADRO)} + 0.5);
-  a = max(a, raya(z - k * ${f(C.CUADRO)}, 0.045, wz) * dentro * step(0.5, k) * step(k * ${f(C.CUADRO)}, ${f(o.L + 0.01)}));`}
+  a = max(a, raya(z - k * ${f(C.CUADRO)}, 0.055, wz) * dentro * step(0.5, k) * step(k * ${f(C.CUADRO)}, ${f(o.L + 0.01)}));`}
   a = max(a, raya(z - ${f(o.L)}, 0.07, wz) * dentro);
   a = max(a, raya(x - ${f(o.W / 2)}, 0.07, wx) * step(z, ${f(o.L + 0.07)}));
   a = max(a, uCuatro * raya(z - ${f(CUATRO.LIMITE)}, 0.075, wz) * dentro);
