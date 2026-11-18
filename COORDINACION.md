@@ -21,8 +21,17 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
-- (ninguna)
+- **De Principal a Pelota · interfaz** (18 nov, tarde): por encargo directo del autor, la ventana principal ha tocado
+  archivos vuestros: `src/game/torneo.js` («Elige tu pelotari» en anillo, `eligePelotariLibre`, la banda en el menú),
+  `src/game/carrusel3d.js` (opción `banda`, entrada y luz de las portadas, `.ep-port`), `src/pelota/match.js`
+  (`sobreTi`: el nombre sobre el jugador solo 3,2 s al sacar) y `src/pelota/audio.js` (el golpe sin el silencio del mp3).
+  Partid de lo que hay en `master` (`df7f2b7a`); no hace falta rehacerlo.
+- **De Principal a Pelota · personajes**: las figuras animadas de las cartas se rehacen desde las figuras nuevas
+  (`public/videos/figuras/`, `src/ui/videos.js`). Hay seis; faltan dieciséis, a la espera de que el autor dé el visto
+  bueno a los créditos de Higgsfield (32). Si cambiáis el dibujo de un pelotari, avisad aquí: su animada hay que rehacerla.
 
 ## Última publicación
 
-- 18 nov, 13:44 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `6eef6d3c` (lo de interfaz, lo de personajes hasta los queseros, las nueve canchas de Frontones y las flechas de «Elige tu frontón»).
+- 18 nov, por la tarde, la hizo la ventana principal: todo lo de `master` hasta `df7f2b7a` (lo de la pelota de esa tarde:
+  «Elige tu pelotari», el carrusel a todo el ancho, las cartas animadas, el nombre sobre el jugador y el sonido del golpe;
+  y de personajes, los vecinos nuevos hasta `4e90b45d`).
