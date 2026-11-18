@@ -259,7 +259,11 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
 const PROPORCION = true;
 const SIN_GIRO_CABEZA = new Set(['zarratrako']);
 export const CABEZA = {
-  hombre: 0.61, carpintero: 0.71, quesero: 0.93, panadero: 0.78, mujer: 0.69, joven_rubia: 0.7, carpintera: 0.71, panadera: 0.93,
+  hombre: 0.61, carpintero: 0.71, mujer: 0.69, joven_rubia: 0.7, carpintera: 0.71,
+  // (los seis rehechos en Meshy el 18 de noviembre de 2026: salieron cabezones, de 3,1 a 4,2 cabezas, y al lado del hombre
+  // y la mujer se veía —el autor: «aquí se ve claramente la diferencia entre las proporciones»—. Medidos con
+  // tools/proporciones-personajes.mjs y llevados a las 4,75 cabezas de todos los adultos)
+  quesero: 0.61, quesera: 0.86, campesino: 0.57, campesina: 0.76, panadero: 0.57, panadera: 0.76,
   abuelo_bigote: 0.69, abuelo_barba: 0.63, abuelo: 0.64, abuela_trenzas: 0.69, abuela_mono: 0.73, abuela_panuelo: 0.69,
   nino_moreno: 0.82, nino_rubio: 0.8, nina_pelirroja: 0.82, nina_trenzas: 0.83,
   // (ni el pelotari ni el explorador y la exploradora: son el mismo personaje, el tuyo, y se quedan como son. El pelotari
@@ -407,7 +411,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     const g = await loadChar(lod ? MESHY_LOD[name] : completo ? VEC_FULL[name] : MESHY[name] || (import.meta.env.DEV ? `/src/assets/meshy/vecinos/${name}.glb` : MESHY_LOD[name]));
     // (las proporciones de todos, CABEZA: la cabeza a su tamaño; sin la escala de la cabeza que traen algunos clips, que
     // la devolvería a 1 en cada fotograma)
-    const kCab = PROPORCION && !REDISENO.has(name) ? CABEZA[name] || 1 : 1;
+    const kCab = PROPORCION ? CABEZA[name] || 1 : 1;
     if (kCab !== 1) { let head = null; g.scene.traverse(o => { if (!head && o.isBone && /Head$/.test(o.name)) head = o; });
       if (head) { head.scale.setScalar(kCab); head.userData.cabK = kCab; for (const a of g.animations) a.tracks = a.tracks.filter(t => !/Head\.scale$/.test(t.name)); } }
     // (el Zarratrako, con la cabeza quieta respecto al cuerpo: su cara va dentro de las cintas del gorro, que cuelgan del
