@@ -283,9 +283,15 @@ async function pelo(out, ligero) {
 }
 
 for (const r of ['web', '1024', 'lod', 'pelo']) mkdirSync(`src/assets/chicas/${r}`, { recursive: true });
-await parche(`src/assets/meshy/${MODELO}.glb`, `src/assets/chicas/web/${MODELO}.parche`);
-await parche(`src/assets/meshy-1024/${MODELO}.glb`, `src/assets/chicas/1024/${MODELO}.parche`);
-await parcheLigero(`src/assets/meshy/lod/${MODELO}.glb`, `src/assets/chicas/lod/${MODELO}.parche`);
-await textura([[`src/assets/meshy/${MODELO}.glb`, `src/assets/chicas/web/${MODELO}.webp`], [`src/assets/meshy-1024/${MODELO}.glb`, `src/assets/chicas/1024/${MODELO}.webp`], [`src/assets/meshy/lod/${MODELO}.glb`, `src/assets/chicas/lod/${MODELO}.webp`]]);
+// (SALIDA=<nombre>: el parche y la textura con otro nombre —pelotari_chico: el chico con la cabeza lisa para sus otros
+// peinados—; SOLO_PELO=1: solo el peinado, para una cabeza que ya tiene su parche; SIN_LOD=1: sin el pelo ligero, que
+// los pelotaris no usan)
+const SAL = process.env.SALIDA || MODELO;
+if (!process.env.SOLO_PELO) {
+  await parche(`src/assets/meshy/${MODELO}.glb`, `src/assets/chicas/web/${SAL}.parche`);
+  await parche(`src/assets/meshy-1024/${MODELO}.glb`, `src/assets/chicas/1024/${SAL}.parche`);
+  await parcheLigero(`src/assets/meshy/lod/${MODELO}.glb`, `src/assets/chicas/lod/${SAL}.parche`);
+  await textura([[`src/assets/meshy/${MODELO}.glb`, `src/assets/chicas/web/${SAL}.webp`], [`src/assets/meshy-1024/${MODELO}.glb`, `src/assets/chicas/1024/${SAL}.webp`], [`src/assets/meshy/lod/${MODELO}.glb`, `src/assets/chicas/lod/${SAL}.webp`]]);
+}
 await pelo(`src/assets/chicas/pelo/${MODELO}-${PEINADO}.glb`, false);
-await pelo(`src/assets/chicas/pelo/${MODELO}-${PEINADO}-lod.glb`, true);
+if (!process.env.SIN_LOD) await pelo(`src/assets/chicas/pelo/${MODELO}-${PEINADO}-lod.glb`, true);

@@ -196,11 +196,14 @@ lado = (ax > max(x_fin + 0.009, 0.1)) & (fy > 0.772) & (h < 0.6) & (lum2 < med -
 wl = (1 - h[lado])[:, None]
 nuevo[lado] = nuevo[lado] * (1 - wl) + skin[lado] * wl
 # 2. cejas finas y arqueadas, del color del pelo, con el borde suave y un poco de veta de pelo
+CHICO = bool(os.environ.get('CHICO'))   # (los chicos con otro peinado: cejas más gruesas y rectas, sin pestañas ni labios)
 def ceja_y(x):
-    t = np.clip((x - 0.024) / (0.094 - 0.024), 0, 1); return 0.834 + 0.012 * np.sin(np.pi * np.clip(t * 1.15, 0, 1)) ** 0.8 - 0.004 * t
+    t = np.clip((x - 0.024) / (0.094 - 0.024), 0, 1)
+    if CHICO: return 0.8335 + 0.007 * np.sin(np.pi * np.clip(t * 1.1, 0, 1)) ** 0.8 - 0.003 * t
+    return 0.834 + 0.012 * np.sin(np.pi * np.clip(t * 1.15, 0, 1)) ** 0.8 - 0.004 * t
 t_c = np.clip((ax - 0.024) / (0.094 - 0.024), 0, 1)
 # (más gruesa en el primer tercio, fina en la cola y redondeada en la punta de dentro)
-grosor_c = (0.0050 * np.sin(np.pi * np.clip(0.12 + t_c * 0.95, 0, 1)) ** 0.55 * (1 - 0.55 * t_c) + 0.0012) * ss(0.0, 0.08, t_c + 0.02)
+grosor_c = ((0.0092 if CHICO else 0.0050) * np.sin(np.pi * np.clip(0.12 + t_c * 0.95, 0, 1)) ** 0.55 * (1 - 0.55 * t_c) + 0.0012) * ss(0.0, 0.08, t_c + 0.02)
 dc = np.abs(fy - ceja_y(ax)) - grosor_c * 0.5
 veta = 0.86 + 0.14 * np.sin(fx * 700 + np.sin(fy * 900) * 2)
 kc = (1 - ss(-0.0006, 0.0010, dc)) * ss(0.021, 0.027, ax) * (1 - ss(0.090, 0.098, ax)) * delante * veta
@@ -224,6 +227,7 @@ for t0, L_ in ((0.70, 0.0042), (0.83, 0.0054), (0.95, 0.0062)):
         u_ = np.clip(((ax - ax_) * vx + (fy - ay_) * vy) / (vx * vx + vy * vy), 0, 1); dd = np.hypot(ax - (ax_ + u_ * vx), fy - (ay_ + u_ * vy))
         w_ = 0.0006 * (1 - 0.75 * (a_ + u_) / 11)
         kr = np.maximum(kr, (1 - ss(w_ - 0.00025, w_ + 0.00035, dd)) * delante)
+if CHICO: kr = kr * 0
 nuevo = nuevo * (1 - kr[:, None]) + np.array([0.075, 0.045, 0.04]) * kr[:, None]
 # 4. los labios: color rosado suave en el de abajo y una línea fina arriba, con un brillo pequeño
 BOCA = json.loads(os.environ.get('BOCA', '{"ancho": 0.047, "medio": 0.7265, "esquina": 0.737}'))
@@ -231,9 +235,9 @@ yb = BOCA['medio'] + (BOCA['esquina'] - BOCA['medio']) * (ax / BOCA['ancho']) **
 k_abajo = delante * ss(yb - 0.0068, yb - 0.004, fy) * (1 - ss(yb - 0.0014, yb - 0.0002, fy)) * (1 - ss(0.016, 0.026, ax))
 k_arriba = delante * ss(yb + 0.0004, yb + 0.0012, fy) * (1 - ss(yb + 0.0022, yb + 0.0034, fy)) * (1 - ss(0.018, 0.027, ax))
 LAB = np.array([0.78, 0.40, 0.42])
-kl = np.clip(k_abajo * 0.36 + k_arriba * 0.24, 0, 1)
+kl = np.clip(k_abajo * 0.36 + k_arriba * 0.24, 0, 1) * (0 if CHICO else 1)
 nuevo = nuevo * (1 - kl[:, None]) + LAB * kl[:, None]
-brillo = delante * np.exp(-(((fy - (yb - 0.0042)) / 0.0011) ** 2 + ((ax - 0.006) / 0.006) ** 2)) * 0.16
+brillo = (0 if CHICO else 1) * delante * np.exp(-(((fy - (yb - 0.0042)) / 0.0011) ** 2 + ((ax - 0.006) / 0.006) ** 2)) * 0.16
 nuevo = np.clip(nuevo + brillo[:, None], 0, 1)
 kp = kr
 OUT[Y, X] = nuevo * 255
