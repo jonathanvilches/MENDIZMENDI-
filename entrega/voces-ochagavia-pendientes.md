@@ -71,16 +71,16 @@ Contado de nuevo comparando `src/game/game.js` con `manifiesto.json`. Inés y Nu
 
 | Qué | Vecino y voz | Estado |
 |---|---|---|
-| «¡Ya conoces el corazón de Otsagabia!» (`maite-05`) | Maite, Francesca | Rehecha, dos tomas en `entrega/voces-prueba-3`, a falta de que el autor elija |
-| «Gabon. Soy Itziar. Esta es la iglesia de San Juan Evangelista.» (`itziar-00n`) | Itziar, Irma | Rehecha, dos tomas en `entrega/voces-prueba-3`, a falta de que el autor elija |
-| «Te faltan 2 cintas» … «Te faltan 7 cintas» (6 grabaciones cortas; «Te falta 1 cinta» ya tiene voz) | Maite, Francesca | Sin grabar: el autor decide |
-| «Te falta 1 escudo / Te faltan 2 / 3 escudos. Busca casas grandes de piedra, con balcón de hierro.» (3, o una sola sin la cuenta) | Itziar, Irma | Sin grabar: el autor decide |
-| «Llevas N de 5. Los buitres se ven mejor…» | Joseba, Martín | El autor las quitó el 17. Hay un corte sin la cuenta en `entrega/voces-cuentas/sin-cuenta/joseba.mp3`, sin aprobar |
-| «¡Muy bien! Has acertado N de M. Para la fiesta hacen falta al menos K.» | El Bobo, Lucas | Sin grabar: tres números que cambian |
-| Las preguntas de después de los escudos: Itziar pregunta lo mismo que Arantxa y suena la grabación de Arantxa (Mari) | Itziar | Fallo: o se calla la voz en las preguntas de Itziar, o se graban con Irma (31 grabaciones) |
+| «¡Ya conoces el corazón de Otsagabia!» (`maite-05`) | Maite, Francesca | Dos rondas rechazadas el 18 (cuatro tomas en `entrega/voces-prueba-3`). Falta que el autor diga qué suena mal |
+| «Gabon. Soy Itziar. Esta es la iglesia de San Juan Evangelista.» (`itziar-00n`) | Itziar, Irma | Dos rondas rechazadas el 18 (cuatro tomas en `entrega/voces-prueba-3`). Falta que el autor diga qué suena mal |
+| «Te faltan 2 cintas» … «Te faltan 7 cintas» (6 grabaciones cortas; «Te falta 1 cinta» ya tiene voz) | Maite, Francesca | Se queda leída (el autor, 18 nov: sin número) |
+| «Te faltan 2 escudos. Busca casas grandes de piedra, con balcón de hierro.» | Itziar, Irma | En el juego sin la cuenta (`itziar-09`), aprobada el 18 |
+| «Llevas N de 5. Los buitres se ven mejor…» | Joseba, Martín | En el juego sin la cuenta (`inaki-07`), aprobada el 18 |
+| «¡Muy bien! Has acertado N de M. Para la fiesta hacen falta al menos K.» | El Bobo, Lucas | Se queda leída |
+| Las preguntas de después de los escudos: Itziar pregunta lo mismo que Arantxa y suena la grabación de Arantxa (Mari) | Itziar | Arreglado el 18: las preguntas de Itziar se leen sin voz |
 | Avisos con cuenta o nombre: misión nueva (9), carta nueva (26), cinta conseguida (8), escudo encontrado (3), basura (5), ovejas en el redil (6), «¡Encontrado!» (3), animal anotado, estrellas, pelota con Kike | Narradora, Nico | El 17 el autor dijo «no hace falta el recuento» y no se grabaron. Solo si lo pide |
 
-Créditos de ElevenLabs el 18 de noviembre: quedan unos 18.000 de 129.958 este mes.
+Créditos de ElevenLabs el 18 de noviembre: quedan unos 17.700 de 129.958 este mes (gastados 504 el día 18).
 
 ## Personajes que siguen con el cuerpo antiguo
 
