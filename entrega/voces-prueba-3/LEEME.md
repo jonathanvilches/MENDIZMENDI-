@@ -19,3 +19,14 @@ El autor, el 18 de noviembre: ninguna de las cuatro tomas vale; falta saber qué
 | ../voces-cuentas/sin-cuenta/joseba.mp3 | Joseba, con Martín | Los buitres se ven mejor desde zonas abiertas; el pito negro, en troncos de haya del fondo del bosque. |
 
 Gasto: 104 créditos más.
+
+Segunda ronda (18 de noviembre), otra forma de escribir la palabra dudosa, una toma de cada:
+
+| Archivo | Escrito para la voz |
+|---|---|
+| maite-05-forma-A.mp3 | ¡Ya conoces el corazón de Otsagábia! |
+| maite-05-forma-B.mp3 | ¡Ya conoces el corazón de Otsagabia! (tal cual, sin fonética) |
+| itziar-00n-forma-A.mp3 | Gabón. Soy Itsiar… (acento en la o) |
+| itziar-00n-forma-B.mp3 | Gábon. Soy Itsiar… (acento en la a) |
+
+Gasto: 196 créditos más.
