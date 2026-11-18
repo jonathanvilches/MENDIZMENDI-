@@ -78,5 +78,7 @@ Con el estilo detallado de los vecinos de siempre (referencia: el hombre y la mu
 
 | Vecino | Imagen | 3D | Esqueleto | Quieto (Alert) | Charla |
 |---|---|---|---|---|---|
-| quesero | 01a1ee37-63ab-700f-bf28-0ff5f6560e1e | 01a1ee37-c5ae-7791-83f4-77380664792b | 01a1ee38-c7c4-7523-acb1-79271e934b6f | 01a1ee39-40ad-7737-84e3-91b07c7026fa | 01a1ee39-4231-72bb-a6c2-97f1afd3e781 |
-| quesera | 01a1ee37-6b26-73a2-a8d1-6f6872d37801 | 01a1ee37-cef1-75e5-a3c4-47d59a6fb137 | 01a1ee38-d558-7672-baf3-b361fa501fb0 | 01a1ee39-4344-7232-bdf4-f20b66e05b3f | 01a1ee39-44dc-7088-a2a2-1208059614fd |
+| quesero | 01a1ee37-63ab-700f-bf28-0ff5f6560e1e | 01a1eede-ae4c-7546-b74c-e6cf0fc0b9b6 | 01a1eeee-7699-7027-a9c1-2c7c24e0b1d4 | 01a1eeef-03b9-743c-a00e-508e6aed89c8 | 01a1eeef-0627-742f-a5e0-84188457d87e |
+| quesera | 01a1ee37-6b26-73a2-a8d1-6f6872d37801 | 01a1eede-b1fc-7376-8181-859bcb18e30f | 01a1eeee-87a7-711a-ad96-b4ad42956ad3 | 01a1eeef-0817-734e-adf4-1dea20fb2f22 | 01a1eeef-0a7f-70e8-87f2-2bf722da3930 |
+
+El 3D, sin pedir la pose en cruz (cambiaba las proporciones); la textura, oscurecida con tools/vecino-tono.mjs.
