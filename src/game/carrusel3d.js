@@ -29,10 +29,14 @@ export function carrusel3d(escena, o = {}) {
     const tumbado = W > H * 1.15;
     // (la de delante, del mayor alto que cabe con aire arriba y abajo; de ancho, 3/4 del alto, sin pasar de lo que deja
     // ver dos a cada lado tumbado o asomar las de los lados de pie)
-    const hMax = H * 0.9, wMax = W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
+    // (con o.paso, el anillo cerrado de los campeonatos, 18 de noviembre de 2026: cada portada a 30° de la siguiente, así
+    // el anillo se curva de verdad, la segunda de cada lado ya se va hacia atrás y la de delante puede ser bastante más
+    // grande sin que las de los lados se salgan: entero mide de ancho unas 3,2 portadas, y de alto lo que la de delante,
+    // que se adelanta un 3,5 %)
+    const hMax = H * (o.paso ? 0.95 : 0.9), wMax = o.paso ? (tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
     w = Math.max(120, Math.min(hMax / AR, wMax));
     // (el paso entre portadas: con pocas, más abierto; y el radio, el que deja las vecinas borde con borde)
-    PASO = Math.max(22, Math.min(34, 300 / Math.max(N, 1)));
+    PASO = o.paso || Math.max(22, Math.min(34, 300 / Math.max(N, 1)));
     R = (w * 1.04) / (2 * Math.sin((PASO * Math.PI) / 360));
     // (cuántas a cada lado se ven: las que caben a lo ancho hasta los 80°)
     VIS = Math.min(Math.floor(N / 2), Math.max(1, Math.floor(80 / PASO)));
@@ -158,4 +162,20 @@ export const CSS_CARRUSEL3D = `
 @keyframes c3-in{from{opacity:0;transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.c3-info.cambia .c3-que{animation:none}}
 @media (max-height:430px){.c3-info{min-height:38px}.c3-info .c3-que span{display:none}}
+/* la pantalla de los campeonatos (18 de noviembre de 2026): sin marco de ventana, el anillo con todo el alto y, debajo, una
+   sola fila con salir, lo que toca en el campeonato de delante con su «Jugar», y el frontón. Antes iban dos filas debajo
+   del anillo dentro de una ventana con borde, y en el móvil tumbado la portada de delante se quedaba en 140 × 185 px */
+.lg-card.c3-pant{width:100%;max-width:none;height:100%;padding:0;gap:clamp(2px,1vh,10px);background:none;border:0;box-shadow:none;overflow:hidden;border-radius:0}
+.lg-card.c3-pant::before,.lg-card.c3-pant::after{display:none}
+.c3-pant .c3-escena{min-height:120px}
+.c3-pant .c3-pie{padding:calc(var(--c3w,200px) * .12) calc(var(--c3w,200px) * .06) calc(var(--c3w,200px) * .055)}
+.c3-pant .c3-pie small{font-size:max(9px,calc(var(--c3w,200px) * .042))}
+.c3-pant .c3-pie b{font-size:max(15px,calc(var(--c3w,200px) * .1))}
+.c3-pant .largo .c3-pie b{font-size:max(13px,calc(var(--c3w,200px) * .08))}
+.c3-pant .c3-anillo>*{border-radius:calc(var(--c3w,200px) * .045)}
+.c3-barra{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px 12px;min-width:0}
+.c3-barra>.lg-btn{justify-self:start}.c3-barra>.tq-sede{justify-self:end;margin:0}
+.c3-barra .c3-info{flex-wrap:nowrap;min-width:0}.c3-barra .c3-info .c3-que{align-items:flex-end;text-align:right}
+.c3-barra .c3-info .c3-que span{display:block}.c3-barra .c3-que b,.c3-barra .c3-que span{white-space:nowrap}
+@media (max-aspect-ratio:1/1){.c3-barra{grid-template-columns:1fr 1fr}.c3-barra .c3-info{grid-column:1/-1;order:-1;justify-content:center}}
 `;

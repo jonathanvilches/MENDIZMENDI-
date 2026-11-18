@@ -53,7 +53,7 @@ export function encuadre(k, ar = 4 / 3) {
   const [cx, y0, y1] = f, hf = y1 - y0;
   // (lo que se ve de la imagen: la figura, un 64 % del alto; sin acercar más de 3,2 veces, que se vería borrosa)
   const hc = Math.min(0.98, Math.max(0.31, hf / 0.64)), wc = hc / ar;
-  const L = Math.min(Math.max(cx - wc / 2, 0), 1 - wc), T = Math.min(Math.max(y1 - hc * 0.8, 0), 1 - hc);
+  const L = Math.min(Math.max(cx - wc / 2, 0), 1 - wc), T = Math.min(Math.max(y1 - hc * 0.77, 0), 1 - hc);   // (los pies, al 77 % del alto: por encima del nombre aunque ocupe dos líneas)
   return { size: `${(100 / wc).toFixed(1)}% auto`, pos: `${(wc < 1 ? L / (1 - wc) * 100 : 50).toFixed(1)}% ${(hc < 1 ? T / (1 - hc) * 100 : 50).toFixed(1)}%` };
 }
 // (el idioma, el que marca la página: en euskera, «eu»)
@@ -1232,19 +1232,21 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       camaraDisponible() ? { a: 'camara', cls: 'cp-casa', fondo: 'camara', figs: pelotariFig(youName, 'azul', 'fig'), tag: 'Con la cámara', name: 'Pelota en casa', fase: 'En tu salón', contra: 'Tu pelotari hace lo que&nbsp;haces' } : null,
       { a: 'pelotaris', cls: 'cp-col', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris` },
     ].filter(Boolean);
-    const portada = (it) => `<button type="button" class="c3-port ${it.cls}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo))}"` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
+    // (largo: los nombres de dos líneas, en letra algo menor, para que no tapen los pies del pelotari)
+    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo))}"` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
     const eu = isEU(), CLAVE = 'herrizherri-pelota-carta';
     cssMenu(); cssCarrusel();
     let a0 = 'torneo'; try { a0 = localStorage.getItem(CLAVE) || a0; } catch (e) { /* sin guardado */ }
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
-      <div class="c3"><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${flecha('izq')}<div class="c3-anillo">${items.map(portada).join('')}</div>${flecha('der')}</div>
-      <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><span class="c3-ronda"></span><button type="button" class="lg-btn go c3-jugar" data-jugar>${eu ? 'Jolastu' : 'Jugar'}</button></div></div>
-      <div class="tq-menu-foot"><button class="lg-btn" data-a="exit">Salir</button>${sedeHtml(o, here)}</div>`);
-    r.firstElementChild.classList.add('tq-menu-card', 'c3-card');
+      <div class="c3"><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${flecha('izq')}<div class="c3-anillo">${items.map(portada).join('')}</div>${flecha('der')}</div></div>
+      <div class="c3-barra"><button class="lg-btn" data-a="exit">Salir</button>
+        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><span class="c3-ronda"></span><button type="button" class="lg-btn go c3-jugar" data-jugar>${eu ? 'Jolastu' : 'Jugar'}</button></div>${sedeHtml(o, here) || '<span></span>'}</div>`);
+    // (c3-pant: a pantalla entera y sin marco, con una sola fila debajo del anillo; ver CSS_CARRUSEL3D)
+    r.firstElementChild.classList.add('tq-menu-card', 'c3-card', 'c3-pant');
     const info = r.querySelector('.c3-info');
     const car = carrusel3d(r.querySelector('.c3-escena'), {
-      inicio: Math.max(0, items.findIndex(it => it.a === a0)),
+      inicio: Math.max(0, items.findIndex(it => it.a === a0)), paso: 30,
       alCambiar: (i) => { const it = items[i]; if (!it) return;
         info.querySelector('.c3-que b').innerHTML = it.fase || it.tag; info.querySelector('.c3-que span').innerHTML = it.contra || ''; info.querySelector('.c3-ronda').innerHTML = it.ronda || '';
         info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
