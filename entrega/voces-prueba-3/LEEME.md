@@ -51,3 +51,5 @@ El autor aprueba la toma 1 de las dos de la tercera ronda: entran como `maite-05
 | acento-i/itziar-00t.mp3 | Arratsalde on. Soy Itsíar. Esta es la iglesia de San Juan Evangelista. |
 
 Gasto: 405 créditos más.
+
+| acento-i/narra-01-nueva.mp3 (y narra-01-actual.mp3, la del juego, para comparar) | Narradora, Nico: Desde aquí ves Otsagabía entera: casas de piedra a los dos lados del río Anduña. 80 créditos |
