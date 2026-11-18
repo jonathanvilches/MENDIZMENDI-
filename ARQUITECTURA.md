@@ -2283,6 +2283,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (`util/offscreen.js`): ni bucle ni otro contexto WebGL. Se abre desde «Elige tu pelotari» (botón «Equipación») y desde
   el cuadro del campeonato una vez empezado (antes de la primera ronda, ese sitio es de «Pelotari»). Las cartas, que son
   dibujos, no la enseñan todavía.
+- **La pantalla de juego** (`src/ui/pantalla.js`: `ptCabecera`, `ptPie`, `cssPantalla`; 18 de noviembre de 2026; el
+  autor, con una captura del móvil en la que la portada, el texto y «Jugar» se tocaban: «hay muy poco espacio», y que se
+  ordene todo como los juegos de deportes del móvil). Es la disposición de las pantallas a pantalla entera, con los
+  colores y las letras del juego: arriba, una barra con el botón de atrás (redondo, a la izquierda; es también «Salir»),
+  el antetítulo y el título, y a la derecha lo que acompaña (las txapelas, el frontón, la ayuda); en medio, lo que se
+  elige, con un hueco fijo por arriba y por abajo; y abajo, a la izquierda lo que toca (una línea fuerte y otra fina) y a
+  la derecha los botones, el principal el último y el más grande. De pie, el pie se apila y el título se ajusta al ancho.
+  La tarjeta del panel lleva `pt-pant` (sin marco, a pantalla entera, en columna) o `pt-libre` (solo sin marco, para las
+  que traen su rejilla), y `neon.css` no les pone la sombra de ventana. La llevan el menú de pelota, «Elige tu pelotari»,
+  «Elige tu frontón», Frontones, la Equipación y el cuadro del campeonato (que pierde el botón «Salir» de abajo: quedan
+  dos botones con sitio). Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
+  nada interactivo mide menos de 40 px. Se comprueba con la muesca y la barra de inicio simuladas
+  (`Emulation.setSafeAreaInsetsOverride`, 47 px a los lados y 21 px abajo con el móvil tumbado), además de 1280×720 y de pie.
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,
   andar, un tajo y un puño en alto, y los recortes de ahí no parecían pelota. Ahora se hacen al cargar el modelo, sobre
   su esqueleto de Mixamo, a partir de poses clave: reposo, preparado, derecha e izquierda, sotamano de las dos manos,

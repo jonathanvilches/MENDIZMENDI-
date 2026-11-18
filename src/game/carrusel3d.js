@@ -36,7 +36,7 @@ export function carrusel3d(escena, o = {}) {
     // que se adelanta un 3,5 %)
     // (las portadas tumbadas, las de los frontones, son más anchas: una sola a cada lado, o.vis, y la de delante hasta el
     // 36 % del ancho; con dos a cada lado no cabrían sin cortarse)
-    const hMax = H * (o.banda ? (tumbado ? 0.88 : 0.8) : o.paso ? 0.95 : 0.9), wMax = o.banda ? W * (tumbado ? (AR < 1 ? 0.4 : 0.3) : (AR < 1 ? 0.8 : 0.6)) : o.paso ? (AR < 1 ? (tumbado ? W * 0.36 : W * 0.8) : tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
+    const hMax = H * (o.banda ? (tumbado ? 0.95 : 0.84) : o.paso ? 0.95 : 0.9), wMax = o.banda ? W * (tumbado ? (AR < 1 ? 0.4 : 0.3) : (AR < 1 ? 0.8 : 0.6)) : o.paso ? (AR < 1 ? (tumbado ? W * 0.36 : W * 0.8) : tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
     w = Math.max(o.banda ? 96 : 120, Math.min(hMax / AR, wMax));
     // (el paso entre portadas: con pocas, más abierto; y el radio, el que deja las vecinas borde con borde)
     PASO = o.paso || Math.max(22, Math.min(34, 300 / Math.max(N, 1)));
@@ -149,6 +149,9 @@ export function carrusel3d(escena, o = {}) {
   return { destroy: quita, actual: () => T[frente], ir, paso };
 }
 
+// (la barra de arriba y la de abajo de estas pantallas, ptCabecera y ptPie, viven en src/ui/pantalla.js)
+export { ptCabecera, ptPie } from '../ui/pantalla.js';
+
 /** Los estilos del carrusel (una vez). Las portadas, con su ilustración entera de fondo; el nombre abajo sobre un velo
  *  suave (sin degradados duros); la de delante, con el filo de su color y algo más de luz. */
 export const CSS_CARRUSEL3D = `
@@ -179,11 +182,10 @@ export const CSS_CARRUSEL3D = `
 .c3-info.cambia .c3-que{animation:c3-in .35s cubic-bezier(.2,.9,.3,1)}
 @keyframes c3-in{from{opacity:0;transform:translateY(6px)}}
 @media (prefers-reduced-motion:reduce){.c3-info.cambia .c3-que{animation:none}}
-@media (max-height:430px){.c3-info{min-height:38px}.c3-info .c3-que span{display:none}}
-/* la pantalla de los campeonatos (18 de noviembre de 2026): sin marco de ventana, el anillo con todo el alto y, debajo, una
-   sola fila con salir, lo que toca en el campeonato de delante con su «Jugar», y el frontón. Antes iban dos filas debajo
-   del anillo dentro de una ventana con borde, y en el móvil tumbado la portada de delante se quedaba en 140 × 185 px */
-.lg-card.c3-pant{width:100%;max-width:none;height:100%;padding:0;gap:clamp(2px,1vh,10px);background:none;border:0;box-shadow:none;overflow:hidden;border-radius:0}
+/* la pantalla de los campeonatos (18 de noviembre de 2026): sin marco de ventana, el anillo con todo el alto que dejan la
+   barra de arriba y la de abajo de la pantalla de juego (src/ui/pantalla.js). Antes iban dos filas debajo del anillo
+   dentro de una ventana con borde, y en el móvil tumbado la portada de delante se quedaba en 140 × 185 px */
+.lg-card.c3-pant{width:100%;max-width:none;height:100%;background:none;border:0;box-shadow:none;overflow:hidden;border-radius:0}
 .lg-card.c3-pant::before,.lg-card.c3-pant::after{display:none}
 .c3-pant .c3-escena{min-height:120px}
 .c3-pant .c3-pie{padding:calc(var(--c3w,200px) * .12) calc(var(--c3w,200px) * .06) calc(var(--c3w,200px) * .055)}
@@ -195,7 +197,6 @@ export const CSS_CARRUSEL3D = `
 .c3-pant.c3-ancha .c3-pie small{font-size:max(9px,calc(var(--c3w,200px) * .03))}
 .c3-pant.c3-ancha .c3-pie b{font-size:max(14px,calc(var(--c3w,200px) * .062))}
 .c3-pant.c3-ancha .c3-anillo>*{border-radius:calc(var(--c3w,200px) * .03)}
-.c3-pant .ef-head{padding:2px 4px 0}.c3-pant .ef-head p{display:none}
 .c3-real{position:absolute;right:3%;top:5%;width:26%;display:flex;flex-direction:column;gap:2px;padding:3px;background:rgba(10,4,26,.7)}
 .c3-real img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
 .c3-real small{font:800 max(8px,calc(var(--c3w,200px) * .024))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#ffe6a6;text-align:center}
@@ -220,9 +221,4 @@ export const CSS_CARRUSEL3D = `
 /* el aviso de la esquina de una portada cuya imagen es la cancha del juego y no una foto del frontón de verdad */
 .c3-chip{position:absolute;left:calc(var(--c3w,400px) * .028);top:calc(var(--c3w,400px) * .028);padding:4px 9px;border-radius:999px;background:rgba(9,4,20,.62);color:#e8defa;font:800 max(9px,calc(var(--c3w,400px) * .021))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;font-style:normal}
 .c3-mosaico{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}.c3-mosaico img{width:100%;height:100%;object-fit:cover;min-height:0}
-.c3-barra{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px 12px;min-width:0}
-.c3-barra>.lg-btn{justify-self:start}.c3-barra>.tq-sede{justify-self:end;margin:0}.c3-barra>.lg-btn.ep-kit{justify-self:end}
-.c3-barra .c3-info{flex-wrap:nowrap;min-width:0}.c3-barra .c3-info .c3-que{align-items:flex-end;text-align:right}
-.c3-barra .c3-info .c3-que span{display:block}.c3-barra .c3-que b{white-space:nowrap}.c3-barra .c3-que span{max-width:min(38ch,34vw);text-wrap:balance}
-@media (max-aspect-ratio:1/1){.c3-barra{grid-template-columns:1fr 1fr}.c3-barra .c3-info{grid-column:1/-1;order:-1;justify-content:center}}
 `;

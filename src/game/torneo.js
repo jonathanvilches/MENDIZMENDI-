@@ -12,6 +12,7 @@
 // rondas, que ya iban por la mitad, se acaban con su cuadro de siempre; los que no habían empezado, se rehacen.)
 import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
 import { carrusel3d, CSS_CARRUSEL3D } from './carrusel3d.js';
+import { ptCabecera, ptPie, cssPantalla } from '../ui/pantalla.js';
 import { fichaDe } from '../data/pelotaris.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
 import { pelotariStats, temporadas, levelTier, tantosDe, TEXT, RETOS, estrellasReto } from '../pelota/rules.js';
@@ -481,7 +482,7 @@ const CSS = `
 .tq-tile{min-height:0;height:100%;padding:8px 20px}.tq-tile b{font-size:var(--fs-xl)}.tq-tiles{flex:1}.lg-card.tq-menu-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%}
 }
 @media (max-width:900px) and (orientation:portrait){
-.lg-card.tq-card{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"top" "left" "right" "bar"}.tq-left>.tq-duel,.tq-left>.tq-banner{flex:none}.tq-card>.tq-top{flex-wrap:wrap}.tq-sitio{order:3;flex:1 1 100%}.tq-br{grid-template-columns:repeat(var(--k1,2),minmax(0,1fr)) minmax(0,.8fr);min-height:260px}.tq-br.k4{min-height:380px;gap:0 8px}
+.lg-card.tq-card{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-template-areas:"top" "left" "right" "bar"}.tq-left>.tq-duel,.tq-left>.tq-banner{flex:none}.tq-card>.tq-top{flex-wrap:wrap}.tq-top>.pt-der{display:contents}.tq-top>.pt-tit{flex:1 1 0}.tq-sitio{order:3;flex:1 1 100%}.tq-sitio .tq-sede{margin-left:auto}.tq-br{grid-template-columns:repeat(var(--k1,2),minmax(0,1fr)) minmax(0,.8fr);min-height:260px}.tq-br.k4{min-height:380px;gap:0 8px}
 .tq-tiles,.tq-tiles.n3,.tq-tiles.n5{grid-template-columns:1fr 1fr}.tq-rd h4{white-space:normal}.tq-tile{min-height:150px}.tq-tiles.n3 .tq-tile.main,.tq-tiles.n5 .tq-tile.main{grid-column:1/-1}.tq-tile b{font-size:var(--fs-xl)}
 .tq-tile .figs{min-height:110px}
 /* (de pie, la losa del torneo a lo ancho solo con tres: con cuatro, dos filas de dos; si no, quedaba un hueco al lado de
@@ -715,10 +716,9 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     // (la carta, del ancho del anillo: --w lo pone el CSS con el de la portada, carrusel3d.js, .ep-port)
     const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, yo: !!it.mia })}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
-    const r = lgPanel(`<div class="ef-head" data-notr><small>${esc(kicker)}</small><h2>${eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari'}</h2></div>
+    const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: esc(kicker), titulo: eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari' })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Pilotariak' : 'Pelotaris'}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
-      <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
-        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button></div><button type="button" class="lg-btn ep-kit" data-a="kit">${eu ? 'Ekipazioa' : 'Equipación'}</button></div>`);
+      ${ptPie({ botones: `<button type="button" class="lg-btn ep-kit" data-a="kit">${eu ? 'Ekipazioa' : 'Equipación'}</button><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant');
     // (las figuras animadas, apagadas todas antes de que carguen; la de delante se enciende al llegar)
     const figs = [...r.querySelectorAll('.ep-port')].map(b => b.querySelector('.gx-fig img')); figs.forEach(im => figuraViva(im, false));
@@ -839,10 +839,9 @@ function carruselElige({ kicker, titulo, items, sel, ok, btn }) {
   return new Promise(res => {
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     const port = (it) => `<button type="button" class="c3-port cp-front" data-k="${it.k}" aria-label="${esc(it.name)}"${it.img ? ` style="--foto:url('${it.img}')"` : ''}>${it.mosaico?.length ? `<span class="c3-mosaico">${it.mosaico.map(u => `<img src="${u}" alt="" decoding="async">`).join('')}</span>` : it.img ? '' : `<span class="c3-figs">${iconSVG('pelota', 96)}</span>`}${it.real?.[0] ? `<i class="c3-real"><img src="${it.real[0]}" alt="" decoding="async"><small>${esc(it.real[1])}</small></i>` : ''}<span class="c3-pie"><small>${esc(it.small || '')}</small><b>${esc(it.name)}</b></span></button>`;
-    const r = lgPanel(`<div class="ef-head" data-notr><small>${esc(kicker)}</small><h2>${esc(titulo)}</h2></div>
+    const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: esc(kicker), titulo: esc(titulo) })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${esc(titulo)}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
-      <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
-        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${esc(ok)}</button></div><span></span></div>`);
+      ${ptPie({ botones: `<button type="button" class="lg-btn go c3-jugar" data-a="ok">${esc(ok)}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'c3-ancha'); btn?.setAttribute('aria-expanded', 'true');
     const info = r.querySelector('.c3-info'); let cur = items[0];
     const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 10 / 16, paso: 30, vis: 1, inicio: Math.max(0, items.findIndex(it => it.k === sel)),
@@ -926,10 +925,9 @@ export function frontonesMenu() {
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     cssCarrusel();
     const CLAVE = 'herrizherri-fronton-carta'; let f0 = ''; try { f0 = localStorage.getItem(CLAVE) || ''; } catch (e) { /* sin guardado */ }
-    const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Frontoiak' : 'Frontones'}</h2></div>
+    const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: eu ? 'Esku pilota' : 'Pelota a mano', titulo: eu ? 'Frontoiak' : 'Frontones' })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Frontoiak' : 'Frontones'}">${flecha('izq')}<div class="c3-anillo">${LISTA.map(portadaF).join('')}</div>${flecha('der')}</div></div>
-      <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
-        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div><span></span></div>`);
+      ${ptPie({ botones: `<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'c3-ancha');
     const info = r.querySelector('.c3-info');
     const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 3 / 4, paso: 30, vis: 1, inicio: Math.max(0, LISTA.findIndex(F => F.id === f0)),
@@ -1002,7 +1000,7 @@ const MENU_CSS = `
 const cssMenu = () => { if (!document.getElementById('tq-css-menu')) { const st = document.createElement('style'); st.id = 'tq-css-menu'; st.textContent = MENU_CSS + CANCHAS_CSS; document.head.appendChild(st); } };
 const css = () => { if (!document.getElementById('tq-css')) { const st = document.createElement('style'); st.id = 'tq-css'; st.textContent = CSS; document.head.appendChild(st); } };
 export function torneoPanel(T, here = null, o = null) {
-  css();
+  css(); cssPantalla();
   return new Promise(res => {
     const m = yourMatch(T), pairs = T.kind === 'parejas', lang = isEU() ? 'eu' : 'es', yp = T.players.find(p => p.you);
     // (el frontón del partido: el elegido para esta ronda o, si no, el que le toca: ver sedeRonda)
@@ -1036,11 +1034,13 @@ export function torneoPanel(T, here = null, o = null) {
     // (el cuadro sin rótulo encima cuando no hay pestañas: sus columnas ya dicen cada ronda, y así le queda el alto entero)
     const ph2 = vistas ? `<div class="lg-ph">${vistas}</div>` : '';
     // (el frontón del partido, en la cabecera junto a «?»: antes iba en la barra y no cabía con los botones)
-    const head = `<div class="tq-top"><div class="lg-head tq-txa">${TXAPELA()}<div><small>${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}</small><h2>${KINDS[T.kind]?.global ? esc(KINDS[T.kind].name) : `Txapela de ${esc(T.comarcaName)}`}</h2></div></div>${sede ? `<div class="tq-sitio">${sede}</div>` : ''}<button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button></div>`;
+    const head = ptCabecera({ a: 'exit', atras: isEU() ? 'Irten' : 'Salir', notr: false, cls: 'tq-top', kicker: `${(KINDS[T.kind] || KINDS.mano).full} · edición ${T.edition}`, titulo: KINDS[T.kind]?.global ? esc(KINDS[T.kind].name) : `Txapela de ${esc(T.comarcaName)}`, der: `${sede ? `<div class="tq-sitio">${sede}</div>` : ''}<button class="tq-info" data-info aria-expanded="false" aria-label="Cómo funciona">?</button>` });
     // (hasta jugar la primera ronda, se puede cambiar de pelotari: eligePelotari)
-    const bar = `<div class="lg-bar"><button class="lg-btn" data-a="exit">Salir</button>${sinEmpezar(T) ? `<button class="lg-btn tq-pick" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : T.done ? '' : `<button class="lg-btn tq-pick" data-a="kit">${isEU() ? 'Ekipazioa' : 'Equipación'}</button>`}${btns}</div>`;
+    // (salir, en el botón redondo de arriba a la izquierda, como en todas las pantallas de juego: abajo quedan dos botones
+    // con sitio, no tres apretados)
+    const bar = `<div class="lg-bar">${sinEmpezar(T) ? `<button class="lg-btn tq-pick" data-a="pick">${isEU() ? 'Pilotaria' : 'Pelotari'}</button>` : T.done ? '' : `<button class="lg-btn tq-pick" data-a="kit">${isEU() ? 'Ekipazioa' : 'Equipación'}</button>`}${btns}</div>`;
     const r = lgPanel(`${head}<div class="tq-left lg-pn">${ph}${left}</div><div class="tq-right lg-pn">${ph2}${ligaHtml(T, v0 !== 'liga')}${bracketHtml(T, v0 === 'liga')}</div>${bar}${how}`);
-    const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card');
+    const cardEl = r.firstElementChild; cardEl.classList.remove('lg-two'); cardEl.classList.add('tq-card', 'pt-libre');
     // (y otra vez si cambia el tamaño del cuadro o de sus columnas, por ejemplo al cargar las fuentes)
     // las cartas del partido (o la del campeón), a la medida del sitio que les deja su panel, medido: el ancho que queda
     // junto al VS y, tumbado, el alto (con aire para que floten). Antes salían de fórmulas con el tamaño de la ventana, que
@@ -1163,7 +1163,7 @@ const CANCHAS_CSS = Object.entries(CANCHAS).map(([k, u]) => `.cp-card.cv-${k}{--
 // por poner el fondo». Las imágenes siguen en src/assets/frontones-cartas como referencia, sin usar; las fotos de verdad de
 // los frontones van ahora en el catálogo y al elegir frontón)
 const conFoto = () => {};
-let cssC3 = false; const cssCarrusel = () => { if (cssC3) return; cssC3 = true; const st = document.createElement('style'); st.textContent = CSS_CARRUSEL3D + `
+let cssC3 = false; const cssCarrusel = () => { cssPantalla(); if (cssC3) return; cssC3 = true; const st = document.createElement('style'); st.textContent = CSS_CARRUSEL3D + `
 .lg-card.c3-card{grid-template-rows:auto minmax(0,1fr) auto;height:100%;display:grid}.lg-card.c3-card.ef-card{display:grid;max-height:none}.c3-card .lg-head{flex-wrap:nowrap}`; document.head.appendChild(st); };
 /** Tus mejores marcas en los retos (en el perfil): { peloteo: { n, e }, … } */
 export const retosMios = () => profile().retos || {};
@@ -1256,11 +1256,10 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
     cssMenu(); cssCarrusel();
     let a0 = 'torneo'; try { a0 = localStorage.getItem(CLAVE) || a0; } catch (e) { /* sin guardado */ }
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
-    const r = lgPanel(`<div class="lg-head tq-txa">${TXAPELA()}<div><small>${here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo'}</small><h2>Pelota a mano</h2></div>${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}</div>
+    const r = lgPanel(`${ptCabecera({ a: 'exit', atras: eu ? 'Irten' : 'Salir', notr: false, kicker: here ? `Frontón de ${esc(here)}` : 'Frontón del pueblo', titulo: 'Pelota a mano', der: `${tx ? `<span class="cp-total">${iconSVG('txapela', 22, 'cp-txi')}<b>${tx}</b><small>${tx === 1 ? 'txapela' : 'txapelas'}</small></span>` : ''}${sedeHtml(o, here)}` })}
       <div class="c3"><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Txapelketak' : 'Campeonatos'}">${flecha('izq')}<div class="c3-anillo">${items.map(portada).join('')}</div>${flecha('der')}</div></div>
-      <div class="c3-barra"><button class="lg-btn" data-a="exit">Salir</button>
-        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><span class="c3-ronda"></span><button type="button" class="lg-btn go c3-jugar" data-jugar>${eu ? 'Jolastu' : 'Jugar'}</button></div>${sedeHtml(o, here) || '<span></span>'}</div>`);
-    // (c3-pant: a pantalla entera y sin marco, con una sola fila debajo del anillo; ver CSS_CARRUSEL3D)
+      ${ptPie({ ronda: true, notr: false, botones: `<button type="button" class="lg-btn go c3-jugar" data-jugar>${eu ? 'Jolastu' : 'Jugar'}</button>` })}`);
+    // (c3-pant: a pantalla entera y sin marco, con la barra de arriba y la de abajo de la «pantalla de juego»; ver CSS_CARRUSEL3D)
     r.firstElementChild.classList.add('tq-menu-card', 'c3-card', 'c3-pant');
     const info = r.querySelector('.c3-info');
     const car = carrusel3d(r.querySelector('.c3-escena'), {
