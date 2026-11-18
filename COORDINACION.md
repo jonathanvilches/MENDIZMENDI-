@@ -25,4 +25,4 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, 13:55 UTC, la hizo la ventana principal: todo lo de `master` hasta `6eef6d3c` (lo de interfaz, lo de personajes hasta los queseros, las nueve canchas de Frontones y las flechas de «Elige tu frontón»).
+- 18 nov, 13:44 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `6eef6d3c` (lo de interfaz, lo de personajes hasta los queseros, las nueve canchas de Frontones y las flechas de «Elige tu frontón»).
