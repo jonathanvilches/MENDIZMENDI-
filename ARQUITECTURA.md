@@ -1113,8 +1113,29 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   asiento sí y otro no, y la fila siguiente al revés, así nadie tapa al de detrás. Con tope: 260 espectadores, 110 en
   el móvil y 60 en el más justo, los más cercanos al centro de la cancha y a las filas de abajo. Todos van con figura
   en 3D: los más cercanos con la entera y los demás con la simplificada, nunca con el retrato plano (`figuras: true`).
-  Esto sustituye a «gradas llenas» de la nota siguiente, que queda como historia. Falta lo segundo que pidió: que se
-  vea el movimiento de levantarse y celebrar; hoy son dos posturas fijas (sentado y celebrando)
+  Esto sustituye a «gradas llenas» de la nota siguiente, que queda como historia.
+- **El público sentado se mueve de verdad** (`actors/crowdAnim.js`, `crowdAnim`, `cocinaPublico`; `game/fronton.js`; 18
+  de noviembre de 2026, noche; el autor: «que se vean los movimientos exactos de cómo se levantan y cómo celebran»).
+  Antes cada espectador era una de dos figuras fijas, sentado o celebrando, y saltaba de una a otra. Ahora cada figura
+  conserva su esqueleto: la malla lleva en cada vértice sus huesos y sus pesos (`aHueso`, `aPeso`) y el movimiento va
+  en una textura pequeña, una fila por cuadro y tres puntos por hueso (87 cuadros por 23 huesos, unos 100 KB por
+  figura). El sombreador mezcla dos cuadros (`aAnim`: antes, después y cuánto), así que todos los espectadores de una
+  figura siguen siendo una sola llamada de dibujo y cada uno va por su cuadro. Movimientos, calculados al cargar sobre
+  el reposo del personaje (`postura`): sentado mirando el juego, con la cabeza de un lado a otro (4 s en bucle, a 5
+  cuadros por segundo; este lo pone el reloj en la tarjeta y no se manda nada mientras nadie celebra); levantarse en
+  0,6 s con los pies clavados (la pierna, por trigonometría: `pierna`), el cuerpo echado hacia delante y la cadera
+  avanzando sobre los pies; tres celebraciones de pie en bucle (el puño al aire, saltar con los brazos en uve y
+  aplaudir); aplaudir sin levantarse; y sentarse, que es levantarse al revés y algo más despacio. En cada tanto
+  (`programa`), cada uno empieza con su retraso; se levanta la mitad en un tanto normal y casi todos en el tanto final
+  y en la entrega de la txapela, y de los que no, siete de cada diez aplauden sentados. Los abuelos aplauden, no
+  saltan; el niño casi siempre salta. No se usa el clip de celebrar del personaje, que es el del pelotari y en la
+  grada parecía una reverencia. Con la figura entera (unos 7.000 triángulos) van los más cercanos a la cámara: 60, 36
+  en calidad media, 16 en el móvil y 8 en el más justo; los demás, con una más ligera (`simplifica`, de 2.000 a 3.000
+  triángulos) que conserva la textura y la cabeza fina, sin grietas en las costuras, y se mueve igual. En el móvil,
+  46 espectadores a la vista son unos 200.000 triángulos. Ya no se lee la textura de cada figura para sacar colores
+  (unos 4 MB por figura). Si algo falla al cocinar, sale el público de antes (`crowd3d`). Las plazas con público de
+  pie siguen con `crowd3d`. Página de prueba, solo en desarrollo: `tools/prueba-publico.html` (`?clip=subeA&f=0`
+  para la tira de cuadros de un movimiento, `?modo=grada` para una grada entera; `window.__grada` en el partido)
 - **La afición de los partidos de pelota** (`actors/crowdSprites.js`, conjunto `aficion`, `nFigs`; `actors/crowd3d.js`,
   `camisetaAzul`, `group.cheer(on, lado, len)`; `game/fronton.js` y `game/pasaka3d.js`): chicos y chicas con el polo de
   su bando, colorado o azul, y pantalón oscuro, para no confundirse con los pelotaris, que van de blanco. Son cuatro

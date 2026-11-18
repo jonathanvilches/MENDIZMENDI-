@@ -18,6 +18,7 @@ import { profile } from './profile.js';
 import { tusCualidades, tuPelotari, sumaPartido } from './pelotariProgreso.js';
 import { QUALITY } from '../util/quality.js';
 import { crowd3d, preparaPublico } from '../actors/crowd3d.js';
+import { crowdAnim, cocinaPublico } from '../actors/crowdAnim.js';
 import { officialHeight } from '../world/armas.js';
 import { drawTownArms } from '../ui/escudoImg.js';
 import { armsOfTown } from '../data/armas-navarra.js';
@@ -502,7 +503,8 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     G.pelotaLoading = true;   // (preparándose: si se pierde la memoria gráfica ahora, el pueblo se rehace junto al frontón)
     if (PUBLICO) crowdBuffers(G.sound?.ctx);   // (las voces y los aplausos del público se calculan mientras se preparan los pelotaris)
     // (y las figuras del público y sus retratos: si no, la grada salía vacía los primeros segundos de la presentación)
-    preparaPublico('aficion', !!fronton.court?.seated);
+    // (sentado, el público animado de crowdAnim.js; de pie en las plazas, el de antes)
+    if (fronton.court?.seated) cocinaPublico('aficion').catch(() => {}); else preparaPublico('aficion', false);
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
@@ -600,7 +602,13 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
       // chicas con su coleta; la figura de lejos, unos 1.000)
       C.ocupados = sp;   // (las pancartas, solo donde hay alguien que las sostenga)
-      if (wsp.length && G.scene) { seated = crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc: muyLigero ? 12 : ligero ? 36 : null }); G.scene.add(seated); }
+      // (18 de noviembre de 2026, noche; el autor: «que se vean los movimientos exactos de cómo se levantan y cómo
+      // celebran»: sentados, con su esqueleto y sus movimientos en la tarjeta gráfica, crowdAnim.js: cada uno se levanta
+      // con los pies en el suelo, celebra a su manera y se vuelve a sentar. Con la figura entera, los más cercanos a la
+      // cámara: 60, 36 en calidad media, 16 en el móvil y 8 en el más justo; los demás, con la de lejos, que conserva
+      // la cara y se mueve igual)
+      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60;
+      if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated; }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }

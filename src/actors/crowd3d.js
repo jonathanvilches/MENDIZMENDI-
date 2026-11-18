@@ -16,7 +16,7 @@ const baked = new Map();   // conjunto → promesa de [figura][pose] geometrías
 // casan con las láminas, que no reciben luz
 // (la misma que los pelotaris, glbChar.js: con 0,38 la piel del sol salía casi blanca y, de lejos, las caras se veían grises;
 // lo dijo el autor, noviembre de 2026)
-const LUZ_PROPIA = 0.28;
+export const LUZ_PROPIA = 0.28;
 // (la piel del público, algo más tostada y menos blanca: su textura es muy clara y, con el sol y en la pantalla pequeña del
 // móvil, la cara de los de las primeras filas se quedaba casi blanca y se veía gris, sin ojos ni boca; lo dijo el autor,
 // noviembre de 2026. Solo los tonos de piel: rosados o tostados claros, ni el blanco de la ropa ni el pelo ni los colores)
@@ -26,14 +26,14 @@ const PIEL = `
     diffuseColor.rgb = mix(c, c * vec3(0.94, 0.80, 0.70), piel);
     totalEmissiveRadiance = mix(totalEmissiveRadiance, totalEmissiveRadiance * vec3(0.94, 0.80, 0.70), piel); }
 #include <lights_physical_fragment>`;
-const conPiel = (m) => { const prev = m.onBeforeCompile; m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <lights_physical_fragment>', PIEL); }; return m; };
+export const conPiel = (m) => { const prev = m.onBeforeCompile; m.onBeforeCompile = function (sh, r) { prev?.call(this, sh, r); sh.fragmentShader = sh.fragmentShader.replace('#include <lights_physical_fragment>', PIEL); }; return m; };
 const MAT = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.82 });
 MAT.onBeforeCompile = (sh) => { sh.fragmentShader = sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vColor.rgb * ' + LUZ_PROPIA.toFixed(2) + ';'); };
 MAT.customProgramCacheKey = () => 'crowd3d-fill';
 
 // píxeles de una textura (de la imagen o del lienzo recoloreado), para leer el color bajo cada vértice
 const pixCache = new WeakMap();
-function pixels(tex) {
+export function pixels(tex) {
   if (pixCache.has(tex)) return pixCache.get(tex);
   const img = tex.image, w = Math.min(256, img.width), h = Math.min(256, img.height);
   const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d', { willReadFrequently: true });
