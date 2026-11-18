@@ -2335,7 +2335,22 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   Y la dificultad: el ritmo de la pelota, que había subido un 15 %, se queda en un 7 %; un toque sin cargar sale como
   un golpe a un tercio (antes botaba en el cuadro 2 y el rival remataba) y el castigo por recibir un pelotazo se reduce
   para el jugador según la ayuda del nivel. En el carrusel de campeonatos, portadas de 1,24 de alto por ancho (antes
-  1,46), nombres más grandes, el nombre del campeonato en la barra de abajo y el anillo de borde a borde de la pantalla. Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
+  1,46), nombres más grandes, el nombre del campeonato en la barra de abajo y el anillo de borde a borde de la pantalla.
+  **Las portadas, nítidas en pantalla grande** (18 de noviembre, noche; el autor, con el carrusel en un ordenador: «las
+  imágenes no tienen calidad. Esto no puede ocurrir» y «no me vale que apañes las imágenes. Si hace falta, genéralas de
+  nuevo»). La causa, medida: la portada de delante acerca la imagen hasta 3,6 veces para encuadrar al pelotari, así que
+  a 1920 × 1080 hacían falta 2.020 px de imagen y solo había 896: se estiraba 2,25 veces. Las quince se han regenerado
+  en Higgsfield a 2048 px con la aprobada como referencia (misma cámara, mismo frontón, mismo pelotari en el mismo
+  sitio: comprobado una a una, con menos de medio píxel de desplazamiento sobre 896, por eso valen las mismas medidas
+  de `FIGURA`) y de esa imagen salen tres tamaños: `fondos/*.webp` (896 px, la que se carga al abrir, 1,9 MB entre
+  todas), `fondos/media/` (1280 px) y `fondos/hd/` (2048 px, 0,5-0,9 MB cada una). El carrusel (`carrusel3d.js`, «LA
+  IMAGEN NÍTIDA») mide lo ancha que se ve la portada de delante, con la escala de la pantalla y la densidad de
+  píxeles, y cuando el anillo se para pide la menor que lo cubre para la de delante y, en el ordenador, para sus dos
+  vecinas; ya descodificada, la pinta encima de la ligera (`--nit` sobre `--foto`), sin parpadeo, y la suelta al
+  alejarse. En el móvil, solo la de delante y sin pasar de 1280 px: quince imágenes de 2048 px descodificadas serían
+  250 MB. Girando deprisa no se pide ninguna. Regla: una portada que se acerca con `background-size` necesita una
+  imagen de su ancho en pantalla por lo que se acerca; ampliar con un filtro una imagen pequeña no es una solución.
+  Regla para lo que venga: abajo, el hueco hasta la barra de inicio del iPhone no baja de 8 px, y
   nada interactivo mide menos de 40 px. Se comprueba con la muesca y la barra de inicio simuladas
   (`Emulation.setSafeAreaInsetsOverride`, 47 px a los lados y 21 px abajo con el móvil tumbado), además de 1280×720 y de pie.
 - **Movimientos de pelota del pelotari** (`src/actors/pelotaMoves.js`; noviembre de 2026): Meshy solo traía correr,

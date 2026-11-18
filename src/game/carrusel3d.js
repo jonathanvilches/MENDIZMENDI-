@@ -7,6 +7,8 @@
 // El tamaño sale del hueco que hay: la portada, de 3 de ancho por 4 de alto, del mayor alto que cabe, y en el móvil de pie
 // algo más estrecha para que asomen las de los lados.
 
+import { TACTIL } from '../util/tactil.js';
+
 const reduce = () => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 /**
@@ -58,6 +60,7 @@ export function carrusel3d(escena, o = {}) {
     VIS = Math.min(Math.floor(N / 2), o.vis || Math.max(1, Math.floor((o.banda ? GIRO : 80) / PASO)));
     escena.style.setProperty('--c3w', Math.round(w) + 'px');
     escena.style.perspective = Math.round(w * PERSP) + 'px';
+    nitK = -1;   // (con otro tamaño, puede hacer falta otra imagen)
     pinta();
   }
   function pinta() {
@@ -79,7 +82,43 @@ export function carrusel3d(escena, o = {}) {
       T.forEach((t, k) => { const on = k === f; t.classList.toggle('frente', on); t.tabIndex = on ? 0 : -1; t.setAttribute('aria-current', String(on)); });
       o.alCambiar?.(f, T[f]);
     }
+    pideNitidas();
   }
+  // LA IMAGEN NÍTIDA (18 de noviembre de 2026; el autor, con el carrusel de campeonatos en una pantalla de ordenador: «las
+  // imágenes no tienen calidad. Esto no puede ocurrir»). Cada portada lleva su imagen ligera (896 px), que es la que se
+  // carga al abrir, y en data-nitida las mayores («url ancho, url ancho»). La de delante acerca la imagen unas 3,6 veces
+  // para encuadrar al pelotari: en una pantalla de 1920 px hacen falta 2.000 px de imagen y con 896 se estiraba más del
+  // doble. Cuando el anillo se para, la de delante (y en el ordenador también sus dos vecinas, que ya quedan listas para
+  // el paso siguiente) pide la menor que cubre lo que se ve y, ya descargada y descodificada, se pinta ENCIMA de la
+  // ligera (--nit sobre --foto): sin parpadeo. Al alejarse la suelta, para no guardar descodificadas quince imágenes de
+  // 2048 px (17 MB cada una). En el móvil, solo la de delante y sin pasar de 1280 px.
+  const DPR = Math.min(typeof devicePixelRatio === 'number' ? devicePixelRatio : 1, TACTIL ? 2 : 3), RADIO = TACTIL ? 0 : 1, TOPE = TACTIL ? 1400 : 1e9;
+  let nitT = 0, nitK = -1; const nit0 = performance.now();
+  const mayores = (t) => t._nl || (t._nl = (t.dataset.nitida || '').split(',').map(s => s.trim().split(/\s+/)).filter(q => q[0] && +q[1]).map(([u, n]) => ({ u, n: +n })).filter(x => x.n <= TOPE).sort((x, y) => x.n - y.n));
+  function afina(t) {
+    const L = mayores(t); if (!L.length) return;
+    // (lo ancha que se ve de verdad la de delante: su ancho, lo que se adelanta, un 3,5 %, y la escala que lleve el
+    // anillo entero, que en la pantalla de campeonatos la agranda un tercio; y de ahí, lo que acerca la imagen. 0,85:
+    // un 15 % de estirado no se nota)
+    const escala = anillo.offsetWidth ? anillo.getBoundingClientRect().width / anillo.offsetWidth : 1;
+    const zoom = (parseFloat(t.style.backgroundSize) || 100) / 100, falta = w * 1.035 * (escala || 1) * DPR * zoom * 0.85;
+    const v = falta <= (+t.dataset.ancho || 0) ? null : (L.find(x => x.n >= falta) || L[L.length - 1]);
+    if (!v) return suelta(t);
+    if (t._nu && t._nn >= v.n) return;   // (ya tiene esa o una mayor: no se baja otra)
+    t._nu = v.u; t._nn = v.n;
+    const im = new Image(); im.decoding = 'async'; im.src = v.u;
+    const pon = () => { if (t._nu === v.u && escena.isConnected) { t._im = im; t.style.setProperty('--nit', `url('${v.u}')`); } };
+    (im.decode ? im.decode() : new Promise((ok, no) => { im.onload = ok; im.onerror = no; })).then(pon, () => { if (im.complete && im.naturalWidth) pon(); else if (t._nu === v.u) { t._nu = ''; t._nn = 0; } });
+  }
+  function suelta(t) { if (!t._nu) return; t._nu = ''; t._nn = 0; t._im = null; t.style.removeProperty('--nit'); }
+  function nitidas() {
+    const f = md(Math.round(meta));
+    T.forEach((t, k) => { if (!t.dataset.nitida) return; let d = md(k - f); if (d > N / 2) d = N - d;
+      if (d <= RADIO) afina(t); else if (d > (TACTIL ? 0 : VIS)) suelta(t); });
+  }
+  // (solo cuando la de delante lleva un momento siendo la misma: girando deprisa no se pide la de cada portada que pasa.
+  // Y al abrir, medio segundo: la pantalla entra algo agrandada y la medida saldría de más)
+  const pideNitidas = () => { const f = md(Math.round(meta)); if (f === nitK) return; nitK = f; clearTimeout(nitT); nitT = setTimeout(nitidas, performance.now() - nit0 < 500 ? 560 : 160); };
   function anima() {
     if (raf) return;
     last = performance.now();
@@ -142,7 +181,7 @@ export function carrusel3d(escena, o = {}) {
   };
   addEventListener('keydown', teclas);
   const ro = new ResizeObserver(() => mide()); ro.observe(escena);
-  function quita() { ro.disconnect(); removeEventListener('keydown', teclas); cancelAnimationFrame(raf); }
+  function quita() { ro.disconnect(); removeEventListener('keydown', teclas); cancelAnimationFrame(raf); clearTimeout(nitT); }
   mide();
   // (al abrir, las portadas entran una tras otra desde abajo, de la de delante hacia los lados: CSS, .c3-entra)
   if (!reduce()) { T.forEach((t, k) => t.style.setProperty('--e', String(Math.min(6, Math.abs(aparte(k)))))); anillo.classList.add('c3-entra'); setTimeout(() => anillo.classList.remove('c3-entra'), 1100); }
@@ -159,7 +198,7 @@ export const CSS_CARRUSEL3D = `
 .c3-escena{position:relative;flex:1 1 auto;min-height:150px;display:flex;align-items:center;justify-content:center;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
 .c3-escena:active{cursor:grabbing}
 .c3-anillo{position:relative;width:var(--c3w,200px);aspect-ratio:var(--c3ar,.75);max-height:100%;transform-style:preserve-3d}
-.c3-anillo>*{position:absolute;inset:0;margin:0;padding:0;border:0;border-radius:12px;overflow:hidden;background:#150b2e center/cover no-repeat;background-image:var(--foto,none);color:#fff;font:inherit;text-align:left;cursor:pointer;
+.c3-anillo>*{position:absolute;inset:0;margin:0;padding:0;border:0;border-radius:12px;overflow:hidden;background:#150b2e center/cover no-repeat;background-image:var(--nit,none),var(--foto,none);color:#fff;font:inherit;text-align:left;cursor:pointer;
   box-shadow:0 14px 34px rgba(4,1,12,.5);backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform;transition:box-shadow .25s,outline-color .25s;outline:2px solid transparent;outline-offset:-2px}
 .c3-anillo>*::after{content:'';position:absolute;inset:0;background:#07020f;opacity:calc(var(--d,0) * .62);pointer-events:none;transition:opacity .2s}
 .c3-anillo>.frente{outline-color:var(--ac,#ff4fd8);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 26px color-mix(in srgb,var(--ac,#ff4fd8) 45%,transparent),0 18px 40px rgba(4,1,12,.55)}

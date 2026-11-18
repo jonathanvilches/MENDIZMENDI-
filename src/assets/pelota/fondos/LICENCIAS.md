@@ -5,7 +5,16 @@ una es la foto de un frontón que existe, calcada tal cual: la misma cámara, la
 casas. Solo se ha quitado la publicidad, las letras y la gente que salía, y se ha puesto dentro a uno de los pelotaris
 del autor (src/assets/pelotaris, sus ilustraciones) con los brazos cruzados (la postura A que eligió el autor), al tamaño
 que tendría un chico de doce años en ese sitio y con la luz de la foto. La del Invierno lleva además una capa fina de
-nieve. Reducidas a 896 px y pasadas a WebP.
+nieve.
+
+El 18 de noviembre de 2026 se regeneraron las quince a 2048 px con el mismo modelo, cada una con su imagen aprobada como
+referencia y la orden de repetirla tal cual (misma cámara, mismo frontón, mismo pelotari en el mismo sitio y postura),
+porque en una pantalla de ordenador la de 896 px se veía borrosa en el carrusel de campeonatos; el autor: «no me vale que
+apañes las imágenes. Si hace falta, genéralas de nuevo». Aquí van en tres tamaños, los tres de esa imagen de 2048 px y
+en WebP: en esta carpeta a 896 px (la que se carga al abrir), en `media/` a 1280 px y en `hd/` a 2048 px (las pide el
+carrusel solo para la portada de delante, ver `src/game/carrusel3d.js`). Las de 896 px de antes están en el historial
+del repositorio (commit `dfaa214c` y anteriores). `mano.webp` sale de la versión recompuesta que quedó en el juego y
+`cuatro.webp`, de la del pelotari grande (commit `dfaa214c`).
 
 El autor pidió el 17 de noviembre que fueran «frontones reales», calcados «centímetro a centímetro» de fotografías, y
 que para las portadas hubiera «frontones grandes, frontones cubiertos»; dijo «me valen el Ogueta y el Beotibar». El

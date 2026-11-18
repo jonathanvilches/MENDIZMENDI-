@@ -41,6 +41,14 @@ import { DESTACADOS, TIPOS } from '../data/frontones.js';
 // encima. Fotos, autores y licencias en assets/pelota/fondos/LICENCIAS.md)
 const FONDOS = Object.fromEntries(Object.entries(import.meta.glob('../assets/pelota/fondos/*.webp', { eager: true, query: '?url', import: 'default' }))
   .map(([k, u]) => [k.split('/').pop().replace('.webp', ''), u]));
+// (las mismas, mayores: 1280 px en media/ y 2048 px en hd/. No se cargan al abrir: el carrusel pide la que hace falta
+// para la portada de delante según lo grande que se vea, ver «LA IMAGEN NÍTIDA» en carrusel3d.js. Las tres salen de la
+// misma imagen de 2048 px, regenerada el 18 de noviembre de 2026 a partir de la aprobada; el autor: «no me vale que
+// apañes las imágenes. Si hace falta, genéralas de nuevo»)
+const porNombre = (g) => Object.fromEntries(Object.entries(g).map(([k, u]) => [k.split('/').pop().replace('.webp', ''), u]));
+const FONDOS_M = porNombre(import.meta.glob('../assets/pelota/fondos/media/*.webp', { eager: true, query: '?url', import: 'default' }));
+const FONDOS_HD = porNombre(import.meta.glob('../assets/pelota/fondos/hd/*.webp', { eager: true, query: '?url', import: 'default' }));
+const nitida = (k) => { const l = [FONDOS_M[k] && `${FONDOS_M[k]} 1280`, FONDOS_HD[k] && `${FONDOS_HD[k]} 2048`].filter(Boolean); return l.length ? ` data-nitida="${l.join(',')}" data-ancho="896"` : ''; };
 // dónde está la figura en cada portada (fracciones de la imagen, que es cuadrada): el centro de lado y de la cabeza a los
 // pies, medido sobre las ilustraciones. Con eso, encuadre() acerca la imagen para que la figura ocupe unos dos tercios del
 // alto de la portada (3 × 4), centrada de lado y con los pies por encima del nombre. El autor, 17 de noviembre de 2026:
@@ -1250,7 +1258,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
       { a: 'pelotaris', cls: 'cp-col', fondo: 'coleccion', figs: trio.map(n => pelotariFig(n, 'rojo', 'fig')).join(''), tag: 'Tu colección', name: 'Pelotaris', fase: 'Descubiertos', contra: `${C.have}/${C.total} pelotaris` },
     ].filter(Boolean);
     // (largo: los nombres de dos líneas, en letra algo menor, para que no tapen los pies del pelotari)
-    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo, AR_PORT))}"` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
+    const portada = (it) => `<button type="button" class="c3-port ${it.cls}${it.name.replace(/&nbsp;/g, ' ').length > 14 ? ' largo' : ''}" data-a="${it.a}" aria-label="${it.name.replace(/&nbsp;/g, ' ')}"${FONDOS[it.fondo] ? ` style="--foto:url('${FONDOS[it.fondo]}')${(e => e ? `;background-size:${e.size};background-position:${e.pos}` : '')(encuadre(it.fondo, AR_PORT))}"${nitida(it.fondo)}` : ''}>${FONDOS[it.fondo] ? '' : `<span class="c3-figs">${it.figs}</span>`}${it.tx ? `<span class="c3-tx">${iconSVG('txapela', 16, 'cp-txi')}<b>${it.tx}</b></span>` : ''}<span class="c3-pie"><small>${it.tag}</small><b>${it.name}</b></span></button>`;
     // (AR_PORT: alto / ancho de cada portada; más estrechas que el 4/3 de antes, para que quepan más a lo ancho)
     const eu = isEU(), CLAVE = 'herrizherri-pelota-carta';
     cssMenu(); cssCarrusel();
