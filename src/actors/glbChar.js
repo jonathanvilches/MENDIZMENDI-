@@ -265,6 +265,10 @@ const DEDOS_LIGEROS = new Set(['sanfermin', 'pastor']);
 const CON_DEDOS = false;
 // (los golpes reales empiezan 0,3 s antes del instante del golpe: tools/blender/golpes-al-juego.py)
 const REAL_GOLPE = 0.3;
+// (cuánto antes del golpe se toma la postura de armado: en la derecha y la izquierda de Tabar, el brazo arriba, recto por
+// encima de la cabeza, 0,2 s antes de pegar; de ahí baja de latigazo. El autor, 18 de noviembre: «Tabar sube el brazo
+// por encima de la cabeza»)
+const ARMADO_ANTES = { Hit: 0.2, HitL: 0.2 };
 function recortaReal(clip, nombre, t0) {
   const tracks = clip.tracks.map(tr => { const vs = tr.getValueSize(), i0 = Math.max(0, tr.times.findIndex(t => t >= t0 - 1e-4)); return new tr.constructor(tr.name, tr.times.slice(i0).map(t => t - tr.times[i0]), tr.values.slice(i0 * vs)); });
   return new THREE.AnimationClip(nombre, Math.max(0.05, clip.duration - t0), tracks);
@@ -398,7 +402,7 @@ export async function loadMeshy(name, lod = false, completo = false) {
     if (pel.length) for (const r of g.animations.filter(a => /^Real_/.test(a.name))) {
       const n = r.name.slice(5); r.tracks = r.tracks.filter(t => /\.quaternion$/.test(t.name) || /Hips\.position$/.test(t.name));
       const k = recortaReal(r, n, REAL_GOLPE), i = pel.findIndex(c => c.name === n); if (i >= 0) pel[i] = k; else pel.push(k);
-      if (armados && armados[n]) armados[n] = poseDeClip(g.scene, r, REAL_GOLPE - 0.08);
+      if (armados && armados[n]) armados[n] = poseDeClip(g.scene, r, REAL_GOLPE - (ARMADO_ANTES[n] ?? 0.08));
     }
     // (cuerpo firme: las posturas de armado, con la clavícula en su sitio y su giro en el brazo; y la piel con cuaterniones
     // duales. El reposo de cada clavícula, antes de que nada lo mueva)
