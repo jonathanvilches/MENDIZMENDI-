@@ -74,7 +74,9 @@ plantilla tiene ya su modelo (src/assets/meshy/pelotari_<nombre>.glb) y su carta
 
 ## Queseros rehechos el 18 de noviembre (Meshy: imagen → 3D → esqueleto → animaciones)
 
+Con el estilo detallado de los vecinos de siempre (referencia: el hombre y la mujer del pueblo).
+
 | Vecino | Imagen | 3D | Esqueleto | Quieto (Alert) | Charla |
 |---|---|---|---|---|---|
-| quesero | 01a1ee2f-a83d-7201-a051-978455ee1b27 | 01a1ee30-b96a-7410-a3ee-bdbb6518440c | 01a1ee33-1cb4-7001-9035-69f63fd65e5c | 01a1ee33-ae16-7167-b208-c96f8c1042e8 | 01a1ee33-af85-75a6-b036-cec696587d6a |
-| quesera | 01a1ee2f-afb5-7610-94b5-8f810b480203 | 01a1ee30-bdbf-73b1-9b92-17ace9e9df0c | 01a1ee33-2aad-779c-ba7c-7e9948781795 | 01a1ee33-b0bf-7651-b2d6-7e931634f168 | 01a1ee33-b27f-746b-8f91-e9e7e162058e |
+| quesero | 01a1ee37-63ab-700f-bf28-0ff5f6560e1e | 01a1ee37-c5ae-7791-83f4-77380664792b | 01a1ee38-c7c4-7523-acb1-79271e934b6f | 01a1ee39-40ad-7737-84e3-91b07c7026fa | 01a1ee39-4231-72bb-a6c2-97f1afd3e781 |
+| quesera | 01a1ee37-6b26-73a2-a8d1-6f6872d37801 | 01a1ee37-cef1-75e5-a3c4-47d59a6fb137 | 01a1ee38-d558-7672-baf3-b361fa501fb0 | 01a1ee39-4344-7232-bdf4-f20b66e05b3f | 01a1ee39-44dc-7088-a2a2-1208059614fd |

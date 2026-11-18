@@ -125,8 +125,8 @@ const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
 // los pelotaris de siempre, cabezones. Los vecinos rediseñados con cuerpo de adulto desentonaban con ellos: han vuelto
 // los de antes, que ya eran de ese estilo y traen sus animaciones. La lista queda vacía; el trato especial sigue
 // escrito por si un día se rehace alguno)
-// (los queseros sí se han rehecho ese día, en Meshy, con el estilo cabezón de los pelotaris: «los queseros igual son algo
-// diferentes». Traen el esqueleto y las animaciones de la API de Meshy, como los rediseñados)
+// (los queseros sí se han rehecho ese día, en Meshy, como los vecinos de siempre, cabezones y con su ropa detallada: «los queseros igual
+// son algo diferentes… adapta los queseros a los personajes que ya tenemos». Traen el esqueleto y las animaciones de la API de Meshy, como los rediseñados)
 export const REDISENO = new Set(['quesero', 'quesera']);
 const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
