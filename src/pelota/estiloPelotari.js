@@ -18,7 +18,11 @@ export const NUEVOS = { chico: [{ azul: 'pelotari_nuevo', rojo: 'pelotari_nuevo_
 // (los que hay en la carpeta de los personajes de Meshy; solo los nombres: no se carga nada hasta el partido)
 const HAY = new Set(Object.keys(import.meta.glob('@meshy-full/pelotari_nuev*.glb')).map(p => p.split('/').pop().replace('.glb', '')));
 /** ¿Está ya alguno de los pelotaris nuevos en el juego? */
-export const hayNuevos = () => HAY.size > 0;
+// (18 de noviembre de 2026, el autor: «los otros pelotaris del otro chat están parados»; mandan los de siempre, uno por
+// nombre: pelota/aspectos.js. El ajuste no se ofrece y nadie sale con los nuevos; sus archivos siguen ahí. PARADOS a
+// false los vuelve a ofrecer)
+const PARADOS = true;
+export const hayNuevos = () => !PARADOS && HAY.size > 0;
 /** El estilo elegido: 'nuevo' o 'clasico' (el de siempre; también si los nuevos aún no están) */
 export const estiloElegido = () => { try { return hayNuevos() && localStorage.getItem(K) === 'nuevo' ? 'nuevo' : 'clasico'; } catch (e) { return 'clasico'; } };
 export const ponEstilo = (v) => { try { localStorage.setItem(K, v === 'nuevo' ? 'nuevo' : 'clasico'); } catch (e) { /* sin almacenamiento */ } };

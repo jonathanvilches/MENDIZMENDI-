@@ -43,7 +43,7 @@ export async function preloadNpcs(d = null) {
   // Meshy, solo los del pueblo)
   // (y el juez del frontón, solo su versión ligera: no está entre los de archivo completo)
   // (y los jueces del estilo de los pelotaris de siempre, un hombre y una mujer: game/fronton.js los pide por su nombre)
-  const juezP = Promise.all(['juez', 'juez_hombre', 'juez_mujer'].filter(n => hasMeshyLod(n) && !MESHY_LOD_NPC[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }).catch(e => console.warn('juez', n, e))));
+  const juezP = Promise.all(['juez_hombre', 'juez_mujer'].filter(n => hasMeshyLod(n) && !MESHY_LOD_NPC[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }).catch(e => console.warn('juez', n, e))));
   await Promise.all([Promise.all(MESHY_NAMES.filter(n => !/^explorador/.test(n) && !PELOTARIS10.includes(n) && !VECINOS[n]).map(n => loadMeshy(n, true).then(g => { MESHY_LOD_NPC[n] = g; }))).then(() => { meshyReady = true; }).catch(e => console.warn('vecinos Meshy', e)), chicas, vecP, juezP]);
   return meshyReady;
 }
@@ -191,7 +191,6 @@ export function meshyFor(L = {}, nombre = '') {
   // (los jueces del frontón: un chico normal, el del polo y el pantalón corto, con los dos negros de su «look»; no el
   // pelotari, que lleva tacos en los dedos)
   // (desde el rediseño, el juez propio: polo negro, pantalón blanco y zapatillas blancas, glbChar.js REDISENO)
-  if (L.juez && MESHY_LOD_NPC.juez) return 'juez';
   if (L.juez && MESHY_NAMES.includes('osasuna')) return 'osasuna';
   const white = /^#(f|e[89a-f])/i.test(L.shirt || '');
   // ellas, con su cuerpo de chica (chicas.js: la sanferminera, con su coleta, vestida con su ropa); ellos con boina o

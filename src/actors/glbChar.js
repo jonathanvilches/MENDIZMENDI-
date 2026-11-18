@@ -120,7 +120,7 @@ const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
 // pie y charlar). A estos no se les achica la cabeza (CABEZA), su charla está bien (CHARLA_MAL) y su versión ligera lleva
 // otra textura (tools/meshy-lod-rehorneo.mjs), sin la máscara del pelo para teñirlo (npcGlb.js, tonosDe). Los mismos
 // nombres que los de antes: el juego los coloca igual. El juez y la afición del frontón son nuevos
-export const REDISENO = new Set(['juez', 'espectador', 'espectadora', 'abuelo_bigote', 'abuelo', 'abuelo_barba', 'abuela_mono', 'abuela_panuelo',
+export const REDISENO = new Set(['abuelo_bigote', 'abuelo', 'abuelo_barba', 'abuela_mono', 'abuela_panuelo',
   'abuela_trenzas', 'mujer', 'hombre', 'carpintera', 'quesero', 'carpintero', 'joven_rubia', 'panadero', 'quesera']);
 const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
@@ -239,7 +239,7 @@ const MESHY_H = { explorador: 1.45, exploradora: 1.43, sanfermin: 1.6, pastor: 1
   joaldun: 2.25, bobo: 1.9, momotxorro: 2.15, zarratrako: 2.15,
   // (el juez del frontón, a la altura de los pelotaris nuevos; npcGlb.js lo varía un poco. La afición, sentada en la grada:
   // algo más bajos que de verdad, para que de pie no se metan en la fila de detrás; crowd3d.js)
-  juez: 1.8, espectador: 1.7, espectadora: 1.6 };
+  };
 // LAS PROPORCIONES, iguales para todos (el autor, 17 de noviembre de 2026: «los personajes no tienen el mismo tamaño de
 // cabeza, de cara; hay que unificarlos, estilo joaldun y el campesino»). Medido con los huesos de cada modelo (de la base
 // del cráneo, Head, a la coronilla, HeadTop_End; tools/proporciones-personajes.mjs): el campesino mide 4,99 cabezas y el

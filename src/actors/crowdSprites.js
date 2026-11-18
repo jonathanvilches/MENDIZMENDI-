@@ -24,8 +24,10 @@ const SETS = {
   // azul, la misma figura con la camiseta pasada a azul)
   // (y, desde el 18 de noviembre de 2026, cuatro vecinos más con su ropa de calle, del estilo de los pelotaris de siempre:
   // el de la txapela, la del pañuelo, el abuelo y la abuela. tools/pelotaris10.mjs)
-  aficion: [{ meshy: 'espectador', camiseta: 'rojo' }, { meshy: 'espectador', camiseta: 'azul' }, { meshy: 'espectadora', camiseta: 'rojo' }, { meshy: 'espectadora', camiseta: 'azul' },
-    { meshy: 'aficion_hombre' }, { meshy: 'aficion_mujer' }, { meshy: 'aficion_abuelo' }, { meshy: 'aficion_abuela' }],
+  // (18 de noviembre de 2026, el autor: «elimina los antiguos espectadores y jueces. Hay que unificar todos los
+  // personajes»: la afición es solo la del estilo de los pelotaris de siempre —el de la txapela, la del pañuelo, el
+  // abuelo y la abuela—, con su ropa de calle. tools/pelotaris10.mjs)
+  aficion: [{ meshy: 'aficion_hombre' }, { meshy: 'aficion_mujer' }, { meshy: 'aficion_abuelo' }, { meshy: 'aficion_abuela' }],
 };
 const cache = new Map();
 // sentado en la grada: los muslos hacia delante y las espinillas hacia abajo, con la cadera bajada lo que mide el muslo
