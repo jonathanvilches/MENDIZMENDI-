@@ -538,6 +538,54 @@ body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pe
 .pel-rep-b>*{transform:skewX(12deg)}
 .pel-rep.hl .pel-rep-b{border-left-color:#ffd36a}
 .pel-rep small,.pel-hl-que{border-radius:2px}
+/* EL RESTO DE LA INTERFAZ DEL PARTIDO, CON EL MISMO LENGUAJE DEL MARCADOR (18 de noviembre de 2026): bloques planos, sin
+   degradados, sin franjas torcidas y con los colores del juego (morado noche, magenta, azul y oro).
+   · Botones de acción: redondos, de cara lisa y con un anillo dentro. El golpe, magenta con anillo blanco; cortada y dejada,
+     morado noche con el anillo de su color (magenta y azul). Antes, discos con degradado y sin anillo.
+   · El nombre del golpe y el aviso grande: la misma ficha plana del marcador, sin sesgar.
+   · La repetición: fichas pegadas («Repetición» en magenta, desde quién en noche, cámara lenta en oro).
+   · Menús (presentación, opciones y pausa): cabecera gruesa en cursiva con su raya magenta, volver y cerrar en un botón
+     redondo blanco, y lo elegido con borde blanco y una marca de oro en la esquina, en vez de un relleno lila. */
+.pel-root .pel-btn{position:relative}
+.pel-root .pel-btn::before{content:'';position:absolute;inset:5px;border-radius:50%;border:3px solid var(--anillo,#fff);pointer-events:none}
+.pel-root .pel-hit{background:#e0147e;--anillo:#fff}
+.pel-root .pel-drop{background:rgba(12,5,30,.86);--anillo:#5d5bff}
+.pel-root .pel-cut{background:rgba(12,5,30,.86);--anillo:#ff3d9a}
+body.alto-contraste .pel-root .pel-btn::before{display:none}
+.pel-root .pel-call{--sk:0deg;padding-left:34px}
+.pel-root .pel-call::before{background:rgba(10,4,26,.94);box-shadow:none}
+.pel-root .pel-call::after{left:0;width:10px;box-shadow:none}
+.pel-root.final .pel-call::before{background:#e0147e}
+.pel-root .pel-golpe::before{background:rgba(10,4,26,.92);border-left:0;box-shadow:inset 4px 0 0 var(--gc);transform:scaleX(0);transform-origin:right}
+.pel-root .pel-golpe.on::before{transform:scaleX(1)}
+.pel-root .pel-q small{transform:none;border-radius:0}
+.pel-root .pel-rep-b{transform:none;height:32px;gap:8px;padding:0 0 0 10px;border:0;border-radius:0;background:#e0147e;box-shadow:none}
+.pel-root .pel-rep-b>*{transform:none}
+.pel-root .pel-rep-b i{background:#fff;box-shadow:none}
+.pel-root .pel-rep-b b{padding-right:12px;font-style:italic}
+.pel-root .pel-rep-b :is(.pv,.sl){align-self:stretch;align-items:center;margin-left:-8px;padding:0 10px;border-radius:0;background:#0c051e;color:#fff}
+.pel-root .pel-rep-b .pv{display:flex}.pel-root .pel-rep.slow .sl{display:flex}
+.pel-root .pel-rep-b .sl{background:#ffd36a;color:#1a0b33}.pel-root .pel-rep-b .pv+.sl{margin-left:-8px}
+.pel-root .pel-rep.hl .pel-rep-b{background:#ffd36a;color:#1a0b33}.pel-root .pel-rep.hl .pel-rep-b i{background:#1a0b33;box-shadow:none}
+.pel-root .pel-rep small,.pel-root .pel-hl-que{border-radius:0;background:rgba(10,4,26,.86)}
+/* (tu pelotari, señalado: una ficha pequeña con tu nombre y una punta hacia abajo, encima de su cabeza) */
+.pel-sobre{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;pointer-events:none;visibility:hidden;will-change:transform;--tc:#3f37e8}
+.pel-sobre.rojo{--tc:#e0147e}.pel-sobre.on{visibility:visible}
+.pel-sobre b{padding:3px 7px 2px;background:var(--tc);color:#fff;font:800 var(--fs-xs)/1 var(--f-cond,'MZ Cond'),'MZ Texto',sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.pel-sobre i{width:0;height:0;border:6px solid transparent;border-top:7px solid var(--tc);border-bottom:0}
+.pel-root:is(.repe,.paneled,.final) .pel-sobre{visibility:hidden}
+/* (menús) */
+.pel-root .pel-card h2{font-style:italic;font-size:clamp(22px,5.4vh,40px);padding-left:12px;box-shadow:inset 5px 0 0 #e0147e;text-shadow:none}
+.pel-root .pel-card :is(.pel-levels,.pel-mseg,.pel-mod,.pel-dur,.pel-balls) button{position:relative}
+.pel-root .pel-card button:is([aria-pressed=true],[aria-checked=true]):not(.pel-switch,.pr-op){background:#3f37e8!important;border-color:transparent!important;box-shadow:inset 0 0 0 2px #fff!important;color:#fff}
+.pel-root .pel-card button:is([aria-pressed=true],[aria-checked=true]):not(.pel-switch,.pr-op)::after{content:'';position:absolute;top:0;right:0;width:20px;height:20px;border-radius:0 inherit 0 8px;
+  background:#ffd36a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a0b33' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center/13px no-repeat}
+:root .pel-root .pel-otabs button[aria-selected=true]{background:none!important;border-color:transparent!important;outline:0!important;color:#fff;border-radius:0!important;box-shadow:inset 0 -4px 0 #e0147e!important}
+.pel-root .pel-otabs .pel-back{flex:0 0 44px;width:44px;height:44px;min-height:44px;padding:0;justify-content:center;border-radius:50%!important;background:#fff!important;color:#12052a;font-size:0;letter-spacing:0;gap:0;box-shadow:none!important}
+.pel-root .pel-otabs .pel-back::before{width:10px;height:10px;border-width:0 0 3px 3px;margin-left:4px}
+.pel-root .pz-cab{background:#0c051e;border-bottom:0;box-shadow:inset 0 -4px 0 #e0147e}
+.pel-root .pz-tit{font-style:italic;font-size:clamp(22px,5vh,34px)}
+:root body .pel-root .pz-x{background:#fff!important;color:#12052a!important;border-color:transparent!important;box-shadow:none!important}
 .pel-hlts{border-radius:0;background:none;box-shadow:none;isolation:isolate}
 .pel-hlts::before{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,rgba(12,5,30,.9),rgba(36,13,78,.88));border-left:8px solid #ffd36a;box-shadow:0 18px 44px rgba(4,1,12,.45);transform:skewX(-12deg)}
 .pel-com{border-radius:0}
@@ -681,6 +729,7 @@ export class PelotaHud {
         <button type="button" class="pr-b pr-desc" hidden aria-label="${esc(txt.desc?.btn || 'Descanso')}">${PZ_ICO.descanso}<i class="pr-n"></i></button>
         <div class="pr-bola" hidden><button type="button" class="pr-b pr-bbtn" aria-haspopup="true" aria-expanded="false" aria-label="${esc(txt.pelotaT || 'Pelota')}">${BOLA}</button><div class="pr-bhoja" role="menu" aria-label="${esc(txt.pelotaT || 'Pelota')}"><b class="pr-btit">${esc(txt.pelotaT || 'Pelota')}</b><small class="pb-pista"></small><div class="pb-lista"></div></div></div>
       </div>
+      <div class="pel-sobre" aria-hidden="true"><b>${esc(short(names.you))}</b><i></i></div>
       <div class="pel-call"><h3></h3><p></p><div class="pel-kantari"></div><div class="pel-racha" hidden></div></div>
       <div class="pel-golpe" aria-live="off"></div>
       <div class="pel-com" role="status" aria-live="polite"></div>
@@ -800,6 +849,13 @@ export class PelotaHud {
     // rótulo grande pisaba las barras de energía)
     c.style.top = ''; const m = this.$('.pel-top')?.getBoundingClientRect(), a = c.getBoundingClientRect(), R = this.root.getBoundingClientRect();
     if (m && m.width > 0 && a.right > m.left - 12 && a.left < m.right + 12 && a.top < m.bottom + 12) c.style.top = `${Math.round(m.bottom - R.top + 12)}px`;
+  }
+  /** La ficha de encima de tu pelotari: x, y, en píxeles de la pantalla del partido (null la quita); col, tu color */
+  sobre(x, y, col) {
+    const el = this._sob ||= this.$('.pel-sobre'); if (!el) return;
+    if (x == null) { if (this._sobOn) { this._sobOn = false; el.classList.remove('on'); } return; }
+    if (!this._sobOn) { this._sobOn = true; el.className = 'pel-sobre on' + (col === 'rojo' ? ' rojo' : ''); }
+    el.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0) translate(-50%,-100%)`;
   }
   /** El tanto: el marcador se convierte un momento en lo que canta el juez («¡Tanto!», «¡Falta!»…) con una franja del
    *  color de quien lo gana, que entra desde su lado, y debajo sale quién lo ha hecho, con su carta.

@@ -1211,7 +1211,7 @@ export class PelotaMatch {
     if (ev.some(e => e.type === 'call')) { this.callada = true; this.input.charge = null; }
     for (const e of ev) { this.onEvent(e); this.o.onEvent?.(e); }
     this.draw(dt); if (!this.paused) this.record(dt);   // (en pausa no se graba: la repetición sería una imagen quieta)
-    this.hud.tick(dt); this.court.tick(dt);
+    this.sobreTi(); this.hud.tick(dt); this.court.tick(dt);
     return this.active;
   }
   onEvent(e) {
@@ -1323,6 +1323,20 @@ export class PelotaMatch {
   // Las rachas de un partido, como las cuenta la tele: tres tantos seguidos o más; y si el que iba tres o más por detrás
   // iguala el partido o se pone por delante, la remontada (una vez cada cosa). Devuelve el rótulo de este tanto ('' sin
   // nada) y deja la racha en el marcador mientras dure.
+  // la ficha con tu nombre encima de tu pelotari, para saber de un vistazo cuál llevas (18 de noviembre de 2026): se
+  // proyecta su cabeza a la pantalla. No sale en primera persona, ni si queda detrás de la cámara o fuera de la pantalla
+  sobreTi() {
+    const o = this.o.you?.obj, h = this.hud; if (!o || !h?.sobre) return;
+    if (this.fp?.on || !o.visible || this.vsOpen) return h.sobre(null);
+    const v = (this._sv ||= new this.T.Vector3());
+    if (this._sh == null) { const b = new this.T.Box3().setFromObject(o); o.getWorldPosition(v); this._sh = Math.min(2.4, Math.max(1, b.max.y - v.y)) + 0.2; }
+    // (la cámara se acaba de mover en este mismo paso y sus matrices son aún las del fotograma anterior: se ponen al día
+    // antes de proyectar; si no, la ficha salía a un lado de la cabeza)
+    this.cam.updateMatrixWorld(); this.cam.matrixWorldInverse.copy(this.cam.matrixWorld).invert();
+    o.getWorldPosition(v); v.y += this._sh; v.project(this.cam);
+    if (v.z > 1 || Math.abs(v.x) > 0.98 || v.y > 0.9 || v.y < -1) return h.sobre(null);
+    const r = h.root; h.sobre((v.x * 0.5 + 0.5) * r.clientWidth, (0.5 - v.y * 0.5) * r.clientHeight, this.cols.you);
+  }
   rachaDe(e) {
     const T = this.txt.racha || TEXT.es.racha, R = this.rachas ||= { lado: null, n: 0, peor: { you: 0, rival: 0 }, igualo: {}, remonto: {} }, w = e.winner;
     R.corta = !!R.lado && R.lado !== w && R.n >= 3;   // (este tanto corta una racha del otro de tres o más: para los comentarios)

@@ -17,6 +17,7 @@ for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
   await p.waitForFunction(() => document.querySelector('.lg-root [data-a="libre"]'), null, { timeout: 600000 });
   await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]').click());
   await p.waitForFunction(() => document.querySelector('[data-pel-go]'), null, { timeout: 120000 }); await p.waitForTimeout(1500);
+  if (quiere('panel')) { await p.screenshot({ path: `${OUT}/rot-${tag}-panel.png` }); await p.evaluate(() => document.querySelector('[data-pel-more]')?.click()); await p.waitForTimeout(700); await p.screenshot({ path: `${OUT}/rot-${tag}-opciones.png` }); await p.evaluate(() => document.querySelector('[data-pel-back]')?.click()); await p.waitForTimeout(500); }
   await p.evaluate(() => document.querySelector('[data-pel-go]').click());
   await p.waitForSelector('.pel-toss-go', { timeout: 120000 }).catch(() => {}); await p.waitForTimeout(1200);
   await p.evaluate(() => document.querySelector('.pel-toss-go')?.click()); await p.waitForTimeout(7000);
@@ -33,6 +34,9 @@ for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
   }
   if (quiere('golpe')) { await hud('golpe', 'Dos paredes', 'azul'); await tira('golpe', [60, 150, 500]); await p.waitForTimeout(2500); }
   if (quiere('aviso')) { await hud('quality', '¡Perfecto!', '', 'perfect'); await tira('aviso', [60, 200, 500]); await p.waitForTimeout(1500); }
+  // (la repetición de verdad: se espera a que acabe un tanto, que la lanza sola)
+  if (quiere('repe')) { await p.evaluate(() => { window.__repe = true; window.__game.pelotaMatch.game.autoplay = true; }); await p.waitForFunction(() => window.__game.pelotaMatch.replay && document.querySelector('.pel-rep'), null, { timeout: 240000 }).catch(() => console.log('sin repetición')); await p.waitForTimeout(1200); await p.screenshot({ path: `${OUT}/rot-${tag}-repe.png` }); await p.evaluate(() => window.__game.pelotaMatch.endReplay?.()); await p.waitForTimeout(1500); }
+  if (quiere('pausa')) { await p.evaluate(() => document.querySelector('.pm-btn').click()); await p.waitForTimeout(900); await p.screenshot({ path: `${OUT}/rot-${tag}-pausa.png` }); console.log('pz-x', await p.evaluate(() => { const c = getComputedStyle(document.querySelector('.pel-root .pz-x')); return [c.backgroundColor, c.color, c.opacity, c.filter, document.querySelector('.pel-root .pz-x').innerHTML.slice(0, 80)].join(' | '); })); }
   await ctx.close();
 }
 console.log(errs.length ? errs.join('\n') : 'sin errores'); await b.close();
