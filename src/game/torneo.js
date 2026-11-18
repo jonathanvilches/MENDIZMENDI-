@@ -820,53 +820,55 @@ const EF_CSS = `
 const efCss = () => { if (!document.getElementById('ef-css')) { const st = document.createElement('style'); st.id = 'ef-css'; st.textContent = EF_CSS; document.head.appendChild(st); } };
 const idDe = (nombre) => LEVELS.find(l => l.name.split(' /')[0] === nombre)?.id || '';
 const comarcaDe = (id) => COMARCAS.find(c => c.id === levelById(id)?.comarca)?.name || '';
-// (la tarjeta de un frontón: k, la sede; id, el pueblo)
-function efTarjeta(k, id, here, o, sel) {
-  // (la foto pequeña: la del frontón de verdad, el Labrit y la plaza de Leitza; en los cubiertos, la del frontón real en
-  // que se basa su arquitectura, data/frontonArq.js: «Como el de Isaba»)
-  const eu = isEU(), aid = k === 'cubierto' ? id : k === 'fuera' ? o.fueraId : null, ref = aid ? ARQ_REF[arqDe(levelById(aid))] : null;
-  const real = k === 'labrit' ? fotoFronton('labrit') : k === 'plaza' && id === 'leitza' ? fotoFronton('leitza') : ref ? fotoFronton(ref[0]) : '';
-  const realTxt = ref && real ? (eu ? ref[2] : ref[1]) : (eu ? 'Benetakoa' : 'El de verdad');
-  const img = canchaImg(k === 'fuera' ? o.fueraId : id, k === 'fuera' ? 'cubierto' : k);
-  const D = {
-    plaza: [comarcaDe(id), eu ? `${here} · frontoia` : `Frontón de ${here}`, eu ? 'Kanpoan' : 'Al aire libre', SEDE_SUB.plaza()],
-    cubierto: [comarcaDe(id), eu ? `${here} · estalia` : `Cubierto de ${here}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.cubierto()],
-    labrit: ['Iruña · Pamplona', 'Frontón Labrit', eu ? 'Estalia · 1952' : 'Cubierto · 1952', eu ? '«La Bombonera», finalen frontoia' : '«La Bombonera»: el frontón de las finales'],
-    fuera: [comarcaDe(o.fueraId), eu ? `${o.fuera} · estalia` : `Cubierto de ${o.fuera}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.fuera()],
-  }[k];
-  return `<button type="button" class="ef-it${k === sel ? ' on' : ''}" data-k="${k}" aria-pressed="${k === sel}">
-    <span class="ef-pic">${img ? `<img src="${img}" alt="" decoding="async">` : iconSVG('pelota', 96)}${real ? `<i class="ef-real"><img src="${real}" alt="" decoding="async"><small>${esc(realTxt)}</small></i>` : ''}</span>
-    <span class="ef-txt"><small>${esc(D[0])}</small><b>${esc(D[1])}</b><em>${esc(D[2])}</em><span>${esc(D[3])}</span></span></button>`;
-}
-function eligeFronton(btn, o, here) {
-  efCss();
-  const eu = isEU(), id = idDe(here);
+// (un carrusel para elegir entre unas pocas portadas tumbadas, el mismo anillo 3D de los campeonatos a pantalla entera:
+// «Elige tu frontón» y «Otro pueblo», desde el 18 de noviembre de 2026. Antes, una fila de tarjetas dentro de una ventana,
+// con la tercera cortada por la derecha, y una rejilla que se cortaba por abajo.
+// items: [{ k, img, mosaico: [urls], real: [url, texto], small, name, linea }]; devuelve la k elegida o null)
+function carruselElige({ kicker, titulo, items, sel, ok, btn }) {
+  efCss(); cssCarrusel();
+  const eu = isEU();
   return new Promise(res => {
-    let sel = o.sede;
-    const otros = LEVELS.filter(l => esSede(l.id) && l.id !== id).slice(0, 4).map(l => canchaImg(l.id, 'cubierto')).filter(Boolean);
-    const otro = o.otro ? `<button type="button" class="ef-it ef-otro" data-k="otro"><span class="ef-pic">${otros.map(u => `<img src="${u}" alt="" decoding="async">`).join('') || iconSVG('map', 96)}</span>
-      <span class="ef-txt"><small>${eu ? 'Txapelketen egoitzak' : 'Las sedes de los Campeonatos'}</small><b>${esc(SEDE.otro())}</b><span>${esc(SEDE_SUB.otro())}</span></span></button>` : '';
-    const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Aukeratu frontoia' : 'Elige tu frontón'}</h2>
-      <p>${eu ? 'Ukitu bat: hor jokatuko duzu partida.' : 'Toca uno: ahí se juega el partido. La imagen es la cancha tal como la verás al jugar.'}</p></div>
-      <div class="ef-row" role="listbox" data-notr>${o.sedes.map(k => efTarjeta(k, id, here, o, sel)).join('')}${otro}</div>
-      <div class="lg-bar" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button><button class="lg-btn go" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div>`);
-    r.firstElementChild.classList.add('ef-card'); btn?.setAttribute('aria-expanded', 'true');
-    requestAnimationFrame(() => r.querySelector('.ef-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }));
-    const fin = (k) => { removeEventListener('keydown', tecla, true); btn?.setAttribute('aria-expanded', 'false'); lgFuera(r); res(k); };
-    const elige = (k) => { sel = k; r.querySelectorAll('.ef-it[data-k]').forEach(x => { const on = x.dataset.k === k; x.classList.toggle('on', on); x.setAttribute('aria-pressed', String(on)); }); };
-    const tecla = (e) => {
-      if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); }
-      else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const ks = o.sedes, i = ks.indexOf(sel); elige(ks[(i + (e.key === 'ArrowRight' ? 1 : ks.length - 1)) % ks.length]); r.querySelector('.ef-it.on')?.scrollIntoView?.({ block: 'nearest', inline: 'center' }); e.preventDefault(); }
-      else if (e.key === 'Enter') { e.preventDefault(); fin(sel); }
-    };
+    const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+    const port = (it) => `<button type="button" class="c3-port cp-front" data-k="${it.k}" aria-label="${esc(it.name)}"${it.img ? ` style="--foto:url('${it.img}')"` : ''}>${it.mosaico?.length ? `<span class="c3-mosaico">${it.mosaico.map(u => `<img src="${u}" alt="" decoding="async">`).join('')}</span>` : it.img ? '' : `<span class="c3-figs">${iconSVG('pelota', 96)}</span>`}${it.real?.[0] ? `<i class="c3-real"><img src="${it.real[0]}" alt="" decoding="async"><small>${esc(it.real[1])}</small></i>` : ''}<span class="c3-pie"><small>${esc(it.small || '')}</small><b>${esc(it.name)}</b></span></button>`;
+    const r = lgPanel(`<div class="ef-head" data-notr><small>${esc(kicker)}</small><h2>${esc(titulo)}</h2></div>
+      <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${esc(titulo)}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
+      <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
+        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${esc(ok)}</button></div><span></span></div>`);
+    r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'c3-ancha'); btn?.setAttribute('aria-expanded', 'true');
+    const info = r.querySelector('.c3-info'); let cur = items[0];
+    const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 10 / 16, paso: 30, vis: 1, inicio: Math.max(0, items.findIndex(it => it.k === sel)),
+      alCambiar: (i) => { const it = items[i]; if (!it) return; cur = it;
+        info.querySelector('.c3-que b').textContent = it.linea?.[0] || ''; info.querySelector('.c3-que span').textContent = it.linea?.[1] || '';
+        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia'); } });
+    r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
+    const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); btn?.setAttribute('aria-expanded', 'false'); lgFuera(r); res(k); };
+    const tecla = (e) => { if (e.key === 'Escape') { e.stopImmediatePropagation(); e.preventDefault(); fin(null); } };
     addEventListener('keydown', tecla, true);
     r.addEventListener('click', (e) => {
-      const c = e.target.closest('.ef-it[data-k]');
-      if (c) { if (c.dataset.k === 'otro') return fin('otro'); if (c.dataset.k === sel && e.detail > 1) return fin(sel); return elige(c.dataset.k); }
+      const c = e.target.closest('.c3-port[data-k]'); if (c) return fin(c.dataset.k);
       const b = e.target.closest('[data-a]'); if (!b) return;
-      fin(b.dataset.a === 'ok' ? sel : null);
+      fin(b.dataset.a === 'ok' ? cur?.k ?? null : null);
     });
   });
+}
+function eligeFronton(btn, o, here) {
+  const eu = isEU(), id = idDe(here);
+  const items = o.sedes.map(k => {
+    // (la foto pequeña: la del frontón de verdad, el Labrit y la plaza de Leitza; en los cubiertos, la del frontón real en
+    // que se basa su arquitectura, data/frontonArq.js: «Como el de Isaba»)
+    const aid = k === 'cubierto' ? id : k === 'fuera' ? o.fueraId : null, ref = aid ? ARQ_REF[arqDe(levelById(aid))] : null;
+    const real = k === 'labrit' ? fotoFronton('labrit') : k === 'plaza' && id === 'leitza' ? fotoFronton('leitza') : ref ? fotoFronton(ref[0]) : '';
+    const D = {
+      plaza: [comarcaDe(id), eu ? `${here} · frontoia` : `Frontón de ${here}`, eu ? 'Kanpoan' : 'Al aire libre', SEDE_SUB.plaza()],
+      cubierto: [comarcaDe(id), eu ? `${here} · estalia` : `Cubierto de ${here}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.cubierto()],
+      labrit: ['Iruña · Pamplona', 'Frontón Labrit', eu ? 'Estalia · 1952' : 'Cubierto · 1952', eu ? '«La Bombonera», finalen frontoia' : '«La Bombonera»: el frontón de las finales'],
+      fuera: [comarcaDe(o.fueraId), eu ? `${o.fuera} · estalia` : `Cubierto de ${o.fuera}`, eu ? 'Estalia · harmailak' : 'Cubierto · con grada', SEDE_SUB.fuera()],
+    }[k];
+    return { k, img: canchaImg(k === 'fuera' ? o.fueraId : id, k === 'fuera' ? 'cubierto' : k), real: real ? [real, ref ? (eu ? ref[2] : ref[1]) : (eu ? 'Benetakoa' : 'El de verdad')] : null, small: D[0], name: D[1], linea: [D[2], D[3]] };
+  });
+  if (o.otro) items.push({ k: 'otro', mosaico: LEVELS.filter(l => esSede(l.id) && l.id !== id).slice(0, 4).map(l => canchaImg(l.id, 'cubierto')).filter(Boolean),
+    small: eu ? 'Txapelketen egoitzak' : 'Las sedes de los Campeonatos', name: SEDE.otro(), linea: [SEDE.otro(), SEDE_SUB.otro()] });
+  return carruselElige({ kicker: eu ? 'Esku pilota' : 'Pelota a mano', titulo: eu ? 'Aukeratu frontoia' : 'Elige tu frontón', items, sel: o.sede, ok: eu ? 'Hemen jokatu' : 'Jugar aquí', btn });
 }
 // «Frontones» (pelota a mano): los frontones de verdad del capítulo «Frontones de Navarra» (data/frontones.js), para
 // jugar en ellos y conocerlos. Arriba, los tres tipos de cancha para filtrar (plaza libre, pared izquierda y trinquete,
@@ -891,7 +893,10 @@ export function frontonesMenu() {
   efCss(); if (!document.getElementById('frg-css')) { const st = document.createElement('style'); st.id = 'frg-css'; st.textContent = FR_CSS; document.head.appendChild(st); }
   // (y al final, los dos trinquetes modernos inventados para el juego, con su imagen pintada en Higgsfield a partir de una
   // del propio partido, la misma cancha y el mismo encuadre: TRINQ_JUEGO)
-  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO], eu = isEU();
+  // (solo los que tienen imagen, su foto de verdad o la de su cancha: los ocho sin ninguna, el Euskal Jai, el Atarrabia, el
+  // Jito Alai..., salían con una pelota de relleno. Siguen en el capítulo «Frontones de Navarra» del menú; cuando tengan
+  // foto, vuelven aquí solos. 18 de noviembre de 2026)
+  const LISTA = [...DESTACADOS, ...TRINQ_JUEGO].filter(F => (F.foto && fotoFronton(F.foto)) || canchaFoto(F.cancha)), eu = isEU();
   return new Promise(res => {
     let sel = null;
     // (desde el 17 de noviembre de 2026, el mismo carrusel 3D que los campeonatos: el autor no podía elegir frontón en la
@@ -904,15 +909,15 @@ export function frontonesMenu() {
     cssCarrusel();
     const CLAVE = 'herrizherri-fronton-carta'; let f0 = ''; try { f0 = localStorage.getItem(CLAVE) || ''; } catch (e) { /* sin guardado */ }
     const r = lgPanel(`<div class="ef-head" data-notr><small>${eu ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${eu ? 'Frontoiak' : 'Frontones'}</h2></div>
-      <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Frontoiak' : 'Frontones'}">${flecha('izq')}<div class="c3-anillo">${LISTA.map(portadaF).join('')}</div>${flecha('der')}</div>
-      <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div></div>
-      <div class="tq-menu-foot" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.firstElementChild.classList.add('ef-card', 'c3-card');
+      <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Frontoiak' : 'Frontones'}">${flecha('izq')}<div class="c3-anillo">${LISTA.map(portadaF).join('')}</div>${flecha('der')}</div></div>
+      <div class="c3-barra" data-notr><button class="lg-btn" data-a="back">${eu ? 'Itzuli' : 'Volver'}</button>
+        <div class="c3-info" aria-live="polite"><div class="c3-que"><b></b><span></span></div><button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Hemen jokatu' : 'Jugar aquí'}</button></div><span></span></div>`);
+    r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'c3-ancha');
     const info = r.querySelector('.c3-info');
-    const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 3 / 4, inicio: Math.max(0, LISTA.findIndex(F => F.id === f0)),
+    const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 3 / 4, paso: 30, vis: 1, inicio: Math.max(0, LISTA.findIndex(F => F.id === f0)),
       alCambiar: (i) => { const F = LISTA[i]; if (!F) return; sel = F;
         info.querySelector('.c3-que b').textContent = F.inventado ? (eu ? 'Jokorako asmatua' : 'Inventado para el juego') : F.lugar;
-        info.querySelector('.c3-que span').textContent = `${tipoTxt(F)} · ${primera(F.texto)}`;
+        info.querySelector('.c3-que span').textContent = tipoTxt(F);   // (la línea de su historia no cabe en la fila de abajo: se lee en su ficha del menú)
         info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
         try { localStorage.setItem(CLAVE, F.id); } catch (e) { /* sin guardado */ } } });
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
@@ -928,18 +933,11 @@ export function frontonesMenu() {
 }
 /** La lista de los pueblos, por comarcas, para jugar en el frontón de otro: devuelve su id (o null). */
 function otroPueblo(here) {
-  efCss();
-  return new Promise(res => {
-    // (cada sede con la imagen de su cancha, la de la plaza si juega al aire libre, el Labrit en Iruña y, si no, su cubierto)
-    const ts = COMARCAS.flatMap(c => LEVELS.filter(l => esSede(l.id) && l.comarca === c.id).map(l => [c, l]));
-    const img = (l) => canchaImg(l.id, 'plaza') || (l.id === 'pamplona' ? canchaImg(l.id, 'labrit') : '') || canchaImg(l.id, 'cubierto');
-    const r = lgPanel(`<div class="ef-head" data-notr><small>${isEU() ? 'Esku pilota' : 'Pelota a mano'}</small><h2>${isEU() ? 'Zein frontoitan?' : '¿En qué frontón?'}</h2></div>
-      <div class="efp-grid" data-notr>${ts.map(([c, l]) => { const n = l.name.split(' /')[0], u = img(l); return `<button type="button" class="ef-it${n === here ? ' on' : ''}" data-pueblo="${l.id}">
-        <span class="ef-pic">${u ? `<img src="${u}" alt="" loading="lazy" decoding="async">` : iconSVG('pelota', 80)}</span><span class="ef-txt"><small>${esc(c.name)}</small><b>${esc(n)}</b></span></button>`; }).join('')}</div>
-      <div class="lg-bar" data-notr><button class="lg-btn" data-a="no">${isEU() ? 'Itzuli' : 'Volver'}</button></div>`);
-    r.firstElementChild.classList.add('ef-card');
-    r.addEventListener('click', (e) => { const b = e.target.closest('[data-pueblo], [data-a]'); if (!b) return; lgFuera(r); res(b.dataset.pueblo || null); });
-  });
+  // (cada sede con la imagen de su cancha, la de la plaza si juega al aire libre, el Labrit en Iruña y, si no, su cubierto)
+  const eu = isEU(), ts = COMARCAS.flatMap(c => LEVELS.filter(l => esSede(l.id) && l.comarca === c.id).map(l => [c, l]));
+  const img = (l) => canchaImg(l.id, 'plaza') || (l.id === 'pamplona' ? canchaImg(l.id, 'labrit') : '') || canchaImg(l.id, 'cubierto');
+  const items = ts.map(([c, l]) => { const n = l.name.split(' /')[0]; return { k: l.id, img: img(l), small: c.name, name: n, linea: [n, c.name] }; });
+  return carruselElige({ kicker: eu ? 'Esku pilota' : 'Pelota a mano', titulo: eu ? 'Zein frontoitan?' : '¿En qué frontón?', items, sel: idDe(here), ok: eu ? 'Hemen jokatu' : 'Jugar aquí' });
 }
 // «Cómo funciona» de cada campeonato (los de antes, de ocho, con su texto de siempre; los de ahora, ya en su idioma)
 function comoFunciona(T) {

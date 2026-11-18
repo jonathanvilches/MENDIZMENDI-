@@ -14,16 +14,17 @@ for (const [w, h, tag] of [[1280, 720, 'pc'], [844, 390, 'movil']]) {
   await menu();
   // «Elige tu frontón» y «Otro pueblo»
   await p.evaluate(() => document.querySelector('.tq-sede')?.click()); await p.waitForTimeout(1500); await shot('1-elige');
-  console.log(tag, 'sedes:', await p.evaluate(() => [...document.querySelectorAll('.ef-it')].map(x => x.dataset.k + ':' + (x.querySelector('b')?.textContent || '')).join(' | ')));
-  await p.evaluate(() => document.querySelector('.ef-it[data-k="otro"]')?.click()); await p.waitForTimeout(1500); await shot('2-otro-pueblo');
+  console.log(tag, 'sedes:', await p.evaluate(() => [...document.querySelectorAll('.c3-port[data-k]')].map(x => x.dataset.k + ':' + (x.querySelector('b')?.textContent || '')).join(' | ')));
+  await p.evaluate(() => document.querySelector('.c3-port[data-k="otro"]')?.click()); await p.waitForTimeout(1500); await shot('2-otro-pueblo'); await p.keyboard.press('ArrowRight'); await p.waitForTimeout(150); await shot('2b-otro-pueblo-girando');
   // el carrusel de Frontones
   await menu(); await p.evaluate(() => document.querySelector('.lg-root [data-a="frontones"]').click()); await p.waitForTimeout(2500); await shot('3-frontones');
   console.log(tag, 'frontones del carrusel:', await p.evaluate(() => [...document.querySelectorAll('.c3-port[data-f]')].map(x => x.getAttribute('aria-label')).join(' | ')));
   for (let i = 0; i < 3; i++) { await p.keyboard.press('ArrowRight'); await p.waitForTimeout(600); } await p.waitForTimeout(800); await shot('4-frontones-b');
+  if (process.env.SIN_PARTIDO) { await p.close(); continue; }
   // dos partidos: en el frontón que viene elegido y en el cubierto
   for (const sede of ['', 'cubierto']) {
     await menu();
-    if (sede) { await p.evaluate(() => document.querySelector('.tq-sede')?.click()); await p.waitForTimeout(1200); await p.evaluate((k) => { document.querySelector(`.ef-it[data-k="${k}"]`)?.click(); document.querySelector('.ef-card [data-a="ok"]')?.click(); }, sede); await p.waitForTimeout(1500); }
+    if (sede) { await p.evaluate(() => document.querySelector('.tq-sede')?.click()); await p.waitForTimeout(1200); await p.evaluate((k) => { document.querySelector(`.c3-port[data-k="${k}"]`)?.click(); }, sede); await p.waitForTimeout(1500); }
     await p.evaluate(() => document.querySelector('.lg-root [data-a="libre"]')?.click());
     await p.waitForFunction(() => document.querySelector('[data-pel-go]'), null, { timeout: 300000 }).catch(() => console.log(tag, 'sin presentación en', sede || 'plaza')); await p.waitForTimeout(1500);
     await p.evaluate(() => document.querySelector('[data-pel-go]')?.click());

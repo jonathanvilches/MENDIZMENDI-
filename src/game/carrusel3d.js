@@ -33,13 +33,15 @@ export function carrusel3d(escena, o = {}) {
     // el anillo se curva de verdad, la segunda de cada lado ya se va hacia atrás y la de delante puede ser bastante más
     // grande sin que las de los lados se salgan: entero mide de ancho unas 3,2 portadas, y de alto lo que la de delante,
     // que se adelanta un 3,5 %)
-    const hMax = H * (o.paso ? 0.95 : 0.9), wMax = o.paso ? (tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
+    // (las portadas tumbadas, las de los frontones, son más anchas: una sola a cada lado, o.vis, y la de delante hasta el
+    // 36 % del ancho; con dos a cada lado no cabrían sin cortarse)
+    const hMax = H * (o.paso ? 0.95 : 0.9), wMax = o.paso ? (AR < 1 ? (tumbado ? W * 0.36 : W * 0.8) : tumbado ? W / 3.3 : W * 0.78) : W * (tumbado ? (AR < 1 ? 0.42 : 0.3) : (AR < 1 ? 0.78 : 0.62));
     w = Math.max(120, Math.min(hMax / AR, wMax));
     // (el paso entre portadas: con pocas, más abierto; y el radio, el que deja las vecinas borde con borde)
     PASO = o.paso || Math.max(22, Math.min(34, 300 / Math.max(N, 1)));
     R = (w * 1.04) / (2 * Math.sin((PASO * Math.PI) / 360));
     // (cuántas a cada lado se ven: las que caben a lo ancho hasta los 80°)
-    VIS = Math.min(Math.floor(N / 2), Math.max(1, Math.floor(80 / PASO)));
+    VIS = Math.min(Math.floor(N / 2), o.vis || Math.max(1, Math.floor(80 / PASO)));
     escena.style.setProperty('--c3w', Math.round(w) + 'px');
     escena.style.perspective = Math.round(w * 3.6) + 'px';
     pinta();
@@ -173,9 +175,18 @@ export const CSS_CARRUSEL3D = `
 .c3-pant .c3-pie b{font-size:max(15px,calc(var(--c3w,200px) * .1))}
 .c3-pant .largo .c3-pie b{font-size:max(13px,calc(var(--c3w,200px) * .08))}
 .c3-pant .c3-anillo>*{border-radius:calc(var(--c3w,200px) * .045)}
+.c3-pant.c3-ancha .c3-pie{padding:calc(var(--c3w,200px) * .07) calc(var(--c3w,200px) * .04) calc(var(--c3w,200px) * .035)}
+.c3-pant.c3-ancha .c3-pie small{font-size:max(9px,calc(var(--c3w,200px) * .03))}
+.c3-pant.c3-ancha .c3-pie b{font-size:max(14px,calc(var(--c3w,200px) * .062))}
+.c3-pant.c3-ancha .c3-anillo>*{border-radius:calc(var(--c3w,200px) * .03)}
+.c3-pant .ef-head{padding:2px 4px 0}.c3-pant .ef-head p{display:none}
+.c3-real{position:absolute;right:3%;top:5%;width:26%;display:flex;flex-direction:column;gap:2px;padding:3px;background:rgba(10,4,26,.7)}
+.c3-real img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.c3-real small{font:800 max(8px,calc(var(--c3w,200px) * .024))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#ffe6a6;text-align:center}
+.c3-mosaico{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}.c3-mosaico img{width:100%;height:100%;object-fit:cover;min-height:0}
 .c3-barra{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px 12px;min-width:0}
 .c3-barra>.lg-btn{justify-self:start}.c3-barra>.tq-sede{justify-self:end;margin:0}
 .c3-barra .c3-info{flex-wrap:nowrap;min-width:0}.c3-barra .c3-info .c3-que{align-items:flex-end;text-align:right}
-.c3-barra .c3-info .c3-que span{display:block}.c3-barra .c3-que b,.c3-barra .c3-que span{white-space:nowrap}
+.c3-barra .c3-info .c3-que span{display:block}.c3-barra .c3-que b{white-space:nowrap}.c3-barra .c3-que span{max-width:min(38ch,34vw);text-wrap:balance}
 @media (max-aspect-ratio:1/1){.c3-barra{grid-template-columns:1fr 1fr}.c3-barra .c3-info{grid-column:1/-1;order:-1;justify-content:center}}
 `;
