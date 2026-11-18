@@ -120,7 +120,7 @@ const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
 // otra textura (tools/meshy-lod-rehorneo.mjs), sin la máscara del pelo para teñirlo (npcGlb.js, tonosDe). Los mismos
 // nombres que los de antes: el juego los coloca igual. El juez y la afición del frontón son nuevos
 export const REDISENO = new Set(['juez', 'espectador', 'espectadora', 'abuelo_bigote', 'abuelo', 'abuelo_barba', 'abuela_mono', 'abuela_panuelo',
-  'abuela_trenzas', 'mujer', 'hombre', 'carpintera', 'quesero']);
+  'abuela_trenzas', 'mujer', 'hombre', 'carpintera', 'quesero', 'carpintero', 'joven_rubia', 'panadero', 'quesera']);
 const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
   ...(src.Chat && (REDISENO.has(name) || !CHARLA_MAL.has(name)) ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
