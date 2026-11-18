@@ -120,8 +120,11 @@ const CHARLA_MAL = new Set(['abuela_panuelo', 'abuelo']);
 // pie y charlar). A estos no se les achica la cabeza (CABEZA), su charla está bien (CHARLA_MAL) y su versión ligera lleva
 // otra textura (tools/meshy-lod-rehorneo.mjs), sin la máscara del pelo para teñirlo (npcGlb.js, tonosDe). Los mismos
 // nombres que los de antes: el juego los coloca igual. El juez y la afición del frontón son nuevos
-export const REDISENO = new Set(['abuelo_bigote', 'abuelo', 'abuelo_barba', 'abuela_mono', 'abuela_panuelo',
-  'abuela_trenzas', 'mujer', 'hombre', 'carpintera', 'quesero', 'carpintero', 'joven_rubia', 'panadero', 'quesera']);
+// (18 de noviembre de 2026, el autor: «hay que unificar todos los personajes… deben ser de la misma apariencia», la de
+// los pelotaris de siempre, cabezones. Los vecinos rediseñados con cuerpo de adulto desentonaban con ellos: han vuelto
+// los de antes, que ya eran de ese estilo y traen sus animaciones. La lista queda vacía; el trato especial sigue
+// escrito por si un día se rehace alguno)
+export const REDISENO = new Set();
 const cortesVecino = (src, name = '') => ({
   Idle: ['Alert', 0, 4], Still: ['Alert', 0, 0.1, true, false, 0.12], Ready: ['Alert', 0, 0.3, true], Scared: ['Alert', 1.85, 2.45],
   ...(src.Chat && (REDISENO.has(name) || !CHARLA_MAL.has(name)) ? { Talk: ['Chat', 0, src.Chat.duration], Wave: ['Chat', 0.7, 2.0] } : { Talk: ['Alert', 0.4, 1.8, true] }),
