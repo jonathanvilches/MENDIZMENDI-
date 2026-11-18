@@ -8,8 +8,8 @@ Solo tienen voz las misiones y la información. Los paseantes y los saludos seg�
 
 | Quién | Voz | Frases |
 |---|---|---|
-| Maite | Francesca Dari (aprobada el 17 de noviembre) | 17 con voz, 1 por rehacer |
-| Itziar | Irma la Dulce (aprobada el 17 de noviembre) | 10 con voz, 1 por rehacer |
+| Maite | Francesca Dari (aprobada el 17 de noviembre) | 18 |
+| Itziar | Irma la Dulce (aprobada el 17 de noviembre) | 12 |
 | Joxemari | Rafael | 11 |
 | Kike | Leo | 7 |
 | Ainhoa | Sofía | 9 |
@@ -71,8 +71,8 @@ Contado de nuevo comparando `src/game/game.js` con `manifiesto.json`. Inés y Nu
 
 | Qué | Vecino y voz | Estado |
 |---|---|---|
-| «¡Ya conoces el corazón de Otsagabia!» (`maite-05`) | Maite, Francesca | Dos rondas rechazadas el 18 (cuatro tomas en `entrega/voces-prueba-3`). Falta que el autor diga qué suena mal |
-| «Gabon. Soy Itziar. Esta es la iglesia de San Juan Evangelista.» (`itziar-00n`) | Itziar, Irma | Dos rondas rechazadas el 18 (cuatro tomas en `entrega/voces-prueba-3`). Falta que el autor diga qué suena mal |
+| «¡Ya conoces el corazón de Otsagabia!» (`maite-05`) | Maite, Francesca | En el juego, aprobada el 18 con el acento en la i |
+| «Gabon. Soy Itziar. Esta es la iglesia de San Juan Evangelista.» (`itziar-00n`) | Itziar, Irma | En el juego, aprobada el 18 con el acento en la i |
 | «Te faltan 2 cintas» … «Te faltan 7 cintas» (6 grabaciones cortas; «Te falta 1 cinta» ya tiene voz) | Maite, Francesca | Se queda leída (el autor, 18 nov: sin número) |
 | «Te faltan 2 escudos. Busca casas grandes de piedra, con balcón de hierro.» | Itziar, Irma | En el juego sin la cuenta (`itziar-09`), aprobada el 18 |
 | «Llevas N de 5. Los buitres se ven mejor…» | Joseba, Martín | En el juego sin la cuenta (`inaki-07`), aprobada el 18 |
@@ -81,6 +81,8 @@ Contado de nuevo comparando `src/game/game.js` con `manifiesto.json`. Inés y Nu
 | Avisos con cuenta o nombre: misión nueva (9), carta nueva (26), cinta conseguida (8), escudo encontrado (3), basura (5), ovejas en el redil (6), «¡Encontrado!» (3), animal anotado, estrellas, pelota con Kike | Narradora, Nico | El 17 el autor dijo «no hace falta el recuento» y no se grabaron. Solo si lo pide |
 
 Créditos de ElevenLabs el 18 de noviembre: quedan unos 17.700 de 129.958 este mes (gastados 504 el día 18).
+
+Pronunciación que pide el autor (18 de noviembre): «Otsagabía» e «Itzíar», con el acento en la i. Para la voz se escribe «Otsagabía» e «Itsíar». Con eso se regrabaron y aprobó también `maite-00`, `maite-03`, `maite-09`, `itziar-00` e `itziar-00t`. Sin revisar: la del mirador de la narradora, «Desde aquí ves Otsagabia entera…».
 
 ## Personajes que siguen con el cuerpo antiguo
 
