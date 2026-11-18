@@ -17,9 +17,7 @@ ya no vale, se borra.
 
 Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube; lo borra quien publica.
 
-- **Personajes** (18 nov): jueces de verde y afición nueva en la grada; fuera los jueces y espectadores antiguos; vecinos
-  de antes recuperados; quesero, quesera, campesino, campesina, panadero y panadera rehechos en Meshy (con su
-  `CABEZA` en `glbChar.js`); con calidad alta, vecinos con modelo completo. Hasta `4e90b45`. Sin probar en móvil real.
+- (nada pendiente)
 
 ## Peticiones entre ventanas
 
@@ -36,6 +34,5 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
-- 18 nov, 14:40 UTC (despliegue de GitHub correcto), la hizo la ventana principal: todo lo de `master` hasta `df7f2b7a` (lo de la pelota de esa tarde:
-  «Elige tu pelotari», el carrusel a todo el ancho, las cartas animadas, el nombre sobre el jugador y el sonido del golpe;
-  y de personajes, los vecinos nuevos hasta `4e90b45d`).
+- 18 nov, por la tarde (segunda del día), la hizo la ventana principal: todo lo de `master` hasta `a502991f` (la
+  equipación de los pelotaris, las 22 cartas animadas y lo de personajes hasta `4e90b45d`, que ya iba en la anterior).
