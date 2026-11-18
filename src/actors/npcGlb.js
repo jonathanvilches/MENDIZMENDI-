@@ -2,7 +2,7 @@
 // su esqueleto y sus animaciones, con la ropa, la piel y el pelo de cada vecino. Las texturas se recolorean una vez
 // por combinación de colores y se comparten; la geometría es la del modelo (un solo juego para todo el pueblo).
 import * as THREE from 'three';
-import { GlbChar, loadMeshy, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, PELOTARIS10, meshyBust, meshyHeight, REDISENO } from './glbChar.js';
+import { GlbChar, loadMeshy, hayVecinoCompleto, hasMeshy, hasMeshyLod, MESHY_GAIT, MESHY_NAMES, PELOTARIS10, meshyBust, meshyHeight, REDISENO } from './glbChar.js';
 import { regionalOutfit, MYTHS, dressMeshy } from './outfits.js';
 import { outfitTint, adultBody } from './npcOutfit.js';
 import { hairTint, peloVecino } from './hairColor.js';
@@ -38,7 +38,12 @@ export async function preloadNpcs(d = null) {
   for (const k of Object.keys(VEC_LOD)) delete VEC_LOD[k];
   for (const k of Object.keys(USO)) delete USO[k]; VEC_DE.clear(); for (const k of Object.keys(CLON)) delete CLON[k];
   const vec = d ? vecinosDelPueblo(d) : [];
-  const vecP = Promise.all(vec.map(n => loadMeshy(n, true).then(g => { VEC_LOD[n] = g; }).catch(e => console.warn('vecino', n, e))));
+  // (18 de noviembre de 2026, el autor, viendo a los vecinos en el pueblo: «hay que mejorar al máximo la calidad. Eso es
+  // un horror». Con la calidad alta —ordenadores— cada vecino lleva siempre su modelo completo, con todos sus triángulos
+  // y su textura original de 2048 px, no solo mientras habla contigo. En el móvil y en la calidad media siguen con la
+  // versión ligera: una textura de 2048 de más ya dejó sin memoria al iPhone, vecinoCerca.js)
+  const entero = (n) => QUALITY === 'high' && hayVecinoCompleto(n);
+  const vecP = Promise.all(vec.map(n => loadMeshy(n, !entero(n), entero(n)).then(g => { VEC_LOD[n] = g; }).catch(e => console.warn('vecino', n, e))));
   // (el explorador y la exploradora son solo el jugador: su versión ligera no hace falta para los vecinos; los vecinos de
   // Meshy, solo los del pueblo)
   // (y el juez del frontón, solo su versión ligera: no está entre los de archivo completo)
