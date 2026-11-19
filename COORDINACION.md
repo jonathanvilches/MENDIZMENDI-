@@ -122,3 +122,4 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   de la misión que lleva directa a ella y menos bandadas de pájaros en los pueblos (`34f69b65`).
   Y por último esa noche, los botones del partido en arco a la misma distancia, GOLPE más pequeño, sin botones con el
   móvil de mando, y el descanso sin parar el partido (`56bebc51`).
+  Y el público sentado encima de las butacas, sin atravesarlas (`fc92fb23`).
