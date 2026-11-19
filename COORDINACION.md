@@ -99,3 +99,5 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   publicaciones anteriores de esa noche quitaron sin querer al dejar fuera `9f7ce5d0` entero. Desde ahora, si hay que
   dejar algo fuera de una publicación, se quita solo lo que no tiene visto bueno, nunca un commit entero que lleve
   también algo aprobado.
+  Encima, la misma noche, los botones del partido con un relleno de su color (`hud.js`; el autor: «que no sean
+  transparentes del todo, porque si no, no se ven»).
