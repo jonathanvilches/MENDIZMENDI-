@@ -84,6 +84,7 @@ import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelo
 import fotoPelota from '../assets/pelota/fondos/parejas.webp';
 import fotoPelotaM from '../assets/pelota/fondos/media/parejas.webp';
 import fotoPelotaHd from '../assets/pelota/fondos/hd/parejas.webp';
+import { duoSrc } from '../futbol/jugadorFig.js';   // (la pareja de tu club, en la carta de fútbol de Torneos)
 import { ATRAS_SVG } from '../ui/pantalla.js';
 import { carrusel3d, CSS_CARRUSEL3D, reanima } from '../game/carrusel3d.js';
 
@@ -495,9 +496,13 @@ export class Hub {
     // dos veces y media el alto de la carta, de ahí el ancho que se pide)
     const FIG = { fx: 0.511, fy1: 0.7448, fh: 0.2592, medio: 0.125, iar: 1.25 }, ancho = Math.round(0.58 / FIG.fh / FIG.iar * 80);
     const fotoP = `<img class="s2-foto s2-fig" src="${fotoPelotaM}" srcset="${fotoPelota} 896w, ${fotoPelotaM} 1280w, ${fotoPelotaHd} 2048w" sizes="(orientation: portrait) ${Math.round(ancho * 0.9)}vw, ${ancho}vh" alt="" decoding="async" style="--fx:${FIG.fx};--fy1:${FIG.fy1};--fh:${FIG.fh};--medio:${FIG.medio};--iar:${FIG.iar}">`;
-    // (la de fútbol, de momento la lámina de siempre, de lado a lado, con la animada encima si la tiene: ui/videos.js)
-    const futImg = laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar);
-    const fotoF = `<img class="s2-foto s2-enc" src="${futImg}" alt="" decoding="async">${videoTag(laminaUrl('dep-futbol') ? videoDe('dep-futbol') : '', 's2-foto s2-enc')}`;
+    // (la de fútbol: el estadio de las láminas de deporte, sin nadie, y delante la pareja de tu club (el chico y la chica con
+    // su equipación, las mismas de las portadas de equipo del fútbol; sin club, la de Osasuna), del mismo alto y en el mismo
+    // sitio que los pelotaris de la de pelota: el autor, 19 de noviembre de 2026: «todos los jugadores deben tener el mismo
+    // tamaño y estar en la misma posición, centrado en la tarjeta», y para la de fútbol, «aprovecha las fotos que ya hay».
+    // Antes, la lámina del chico chutando)
+    const futFondo = laminaUrl('dep-estadio') || laminaUrl('dep-futbol') || townImg(sadar), duoF = duoSrc(CLUBS[p.futbolClub] ? p.futbolClub : 'osasuna');
+    const fotoF = `<img class="s2-foto s2-enc" src="${futFondo}" alt="" decoding="async">${duoF ? `<i class="s2-sombra" aria-hidden="true"></i><img class="s2-duo" src="${duoF}" alt="" decoding="async">` : ''}`;
     // (las cifras van en negrita y parten la frase en trozos que el traductor no reconoce: en euskera se escribe aquí)
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `

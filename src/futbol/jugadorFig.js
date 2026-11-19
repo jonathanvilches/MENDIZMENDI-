@@ -34,6 +34,8 @@ export function jugadorDuo(t, cls = '', big = false) {
   const u = (big ? DUO : DUO_S)[duoId(t)];
   return u ? `<img class="pf duo${cls ? ' ' + cls : ''}" src="${u}" alt="" draggable="false">` : '';
 }
+/** La imagen de la pareja del equipo (big: la de su alto completo), o null si esta versión no la tiene (Torneos, hub.js) */
+export const duoSrc = (t, big = true) => (big ? DUO : DUO_S)[duoId(t)] || null;
 /** La imagen del jugador (o null si esta versión no la tiene) */
 export const jugadorSrc = (t) => IMG[jugadorId(t)] || null;
 /** HTML del jugador, una sola imagen (class: «pf jf» y la que se pida), o '' si esta versión no lo tiene */
