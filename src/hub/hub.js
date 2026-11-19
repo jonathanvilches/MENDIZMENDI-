@@ -80,6 +80,10 @@ import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores, redu
 import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
+import './torneos.css';   // (Torneos: las dos cartas de foto entera, la de pelota con una portada de los pelotaris nuevos)
+import fotoPelota from '../assets/pelota/fondos/parejas.webp';
+import fotoPelotaM from '../assets/pelota/fondos/media/parejas.webp';
+import fotoPelotaHd from '../assets/pelota/fondos/hd/parejas.webp';
 import { ATRAS_SVG } from '../ui/pantalla.js';
 import { carrusel3d, CSS_CARRUSEL3D, reanima } from '../game/carrusel3d.js';
 
@@ -475,30 +479,36 @@ export class Hub {
     let fb = null; try { fb = JSON.parse(localStorage.getItem('herrizherri-futbol-v1') || 'null'); } catch (e) { }
     // (las figuras, las mismas de las cartas: en reposo, limpias, como el resto de pantallas de deporte)
     const sadar = levelById('pamplona');
-    // (las dos cartas, iguales y una al lado de la otra, como las demás tarjetas del menú: arriba su lámina, con tu marca en
-    // la esquina; debajo el rótulo, el título y los campeonatos que tiene, en etiquetas pequeñas; y abajo lo que se elige,
-    // el frontón, que abre la lista por comarcas, o tu club, con el botón de jugar al lado. En el móvil tumbado se ven las
-    // dos enteras sin desplazar; en vertical, una debajo de la otra)
+    // (las dos cartas, iguales y una al lado de la otra, de foto entera: lo que se elige es el frontón, que abre la lista por
+    // comarcas, o tu club, con el botón de jugar al lado. En horizontal se ven las dos enteras sin desplazar; en vertical,
+    // una debajo de la otra)
     const kit = club ? (clubImg(p.futbolClub) ? `<img class="sp-media sp-em" src="${clubImg(p.futbolClub)}" alt="">` : `<i class="sp-media sp-kit" style="--a:${club.shirt};--b:${club.shirt2 || club.shorts || club.shirt}"></i>`) : `<i class="sp-media sp-ico">${I('balon', 32)}</i>`;
     const tags = (l) => `<p class="sp-chips">${l.map(([ic, t]) => `<span>${ic ? I(ic, 16) : ''}${t}</span>`).join('')}</p>`;   // (el 4½, sin icono: así lo pidió el autor)
-    // (la lámina entera, en 16:9, en su marco redondeado: el personaje se ve de pies a cabeza; debajo, el texto y la barra)
-    // (con la lámina animada encima, si la tiene: ui/videos.js; la pone en marcha go(), tras pintar la sección)
-    const vid = (id) => (laminaUrl(id) ? videoDe(id) : '');
-    const carta = (cls, img, stat, kick, tit, tg, row, v = '') => `<article class="sport ${cls}">
-        <div class="sp-cover">${img ? `<img src="${img}" alt="" decoding="async">` : ''}${videoTag(v, 'sp-vid')}<span class="sp-stat">${stat}</span></div>
-        <div class="sp-body"><div class="sp-txt"><small class="kicker">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
-        <div class="sp-bar">${row}</div></div></article>`;
+    // (las cartas, de foto entera, como las portadas de los campeonatos: torneos.css. Arriba a la izquierda, lo tuyo; abajo,
+    // sobre un velo suave, el antetítulo, el título y los campeonatos; y debajo, lo que se elige y el botón de jugar)
+    const carta = (cls, foto, stat, kick, tit, tg, row) => `<article class="s2 ${cls}">${foto}<span class="sp-stat">${stat}</span>
+        <div class="s2-pie"><div class="s2-txt"><small class="s2-kick">${kick}</small><h3>${tit}</h3>${tags(tg)}</div>
+        <div class="s2-bar">${row}</div></div></article>`;
+    // (la de pelota: una portada de los pelotaris nuevos de los campeonatos (parejas, assets/pelota/fondos), en el tamaño que
+    // pida la pantalla (896, 1280 o 2048 px de ancho) y encuadrada por ellos: dónde están en la foto, sacado de FIGURA en
+    // game/torneo.js, y la mitad de lo que ocupan de ancho, medida en la foto (la portada es 1,25 veces más alta que ancha). Miden unos dos tercios de la carta: la foto se ve unas
+    // dos veces y media el alto de la carta, de ahí el ancho que se pide)
+    const FIG = { fx: 0.511, fy1: 0.7448, fh: 0.2592, medio: 0.125, iar: 1.25 }, ancho = Math.round(0.58 / FIG.fh / FIG.iar * 80);
+    const fotoP = `<img class="s2-foto s2-fig" src="${fotoPelotaM}" srcset="${fotoPelota} 896w, ${fotoPelotaM} 1280w, ${fotoPelotaHd} 2048w" sizes="(orientation: portrait) ${Math.round(ancho * 0.9)}vw, ${ancho}vh" alt="" decoding="async" style="--fx:${FIG.fx};--fy1:${FIG.fy1};--fh:${FIG.fh};--medio:${FIG.medio};--iar:${FIG.iar}">`;
+    // (la de fútbol, de momento la lámina de siempre, de lado a lado, con la animada encima si la tiene: ui/videos.js)
+    const futImg = laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar);
+    const fotoF = `<img class="s2-foto s2-enc" src="${futImg}" alt="" decoding="async">${videoTag(laminaUrl('dep-futbol') ? videoDe('dep-futbol') : '', 's2-foto s2-enc')}`;
     // (las cifras van en negrita y parten la frase en trozos que el traductor no reconoce: en euskera se escribe aquí)
     const fp = fb?.played || 0, fw = fb?.won || 0;
     return `
     ${cabeza('Pelota y fútbol', 'trophy', 'Torneos')}
     <section class="sports">
-      ${carta('sp-pelota', laminaUrl('dep-pelotari') || laminaUrl('dep-fronton') || townImg(fl), `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
+      ${carta('s2-pelota', fotoP, `${I('txapela', 20)}<b>${tx}</b> ${tx === 1 ? 'txapela' : 'txapelas'}`,
         'Pelota a mano · tres campeonatos', 'Torneo de pelota', [['pelota', 'Manomanista'], ['person', 'Parejas'], [null, '4½']],
-        `<div class="sp-row"><small>Elige frontón</small>${this.frontonBox(fl)}</div><button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`, vid('dep-pelotari'))}
-      ${carta('sp-futbol', laminaUrl('dep-futbol') || laminaUrl('dep-estadio') || townImg(sadar), `${I('balon', 20)}<b>${fp}</b> ${isEU() ? 'partida' : fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${isEU() ? 'irabazita' : fw === 1 ? 'ganado' : 'ganados'}`,
+        `${this.frontonBox(fl)}<button class="gx-go" data-sport="pelota">${I('play', 24)} <span class="sp-largo">Jugar a pelota</span><span class="sp-corto">Jugar</span></button>`)}
+      ${carta('s2-futbol', fotoF, `${I('balon', 20)}<b>${fp}</b> ${isEU() ? 'partida' : fp === 1 ? 'partido' : 'partidos'} · <b>${fw}</b> ${isEU() ? 'irabazita' : fw === 1 ? 'ganado' : 'ganados'}`,
         'Fútbol · Liga Navarra', 'Torneo de fútbol', [['trophy', 'Liga'], ['balon', 'Amistosos'], ['pin', 'El Sadar']],
-        `<div class="sp-row"><small>Tu club</small><div class="sp-box" data-una-linea>${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`, vid('dep-futbol'))}
+        `<div class="sp-box" data-una-linea>${kit}<span><b>${club ? esc(club.name) : 'Sin club'}</b><small>${club ? 'En El Sadar' : 'Lo eliges al jugar'}</small></span></div><button class="gx-go" data-sport="futbol">${I('play', 24)} <span class="sp-largo">Jugar al fútbol</span><span class="sp-corto">Jugar</span></button>`)}
     </section>`;
   }
   // el frontón elegido: su portada, el pueblo y la comarca; al tocarlo, la lista de todos los frontones por comarcas

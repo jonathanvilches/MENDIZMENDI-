@@ -1,0 +1,88 @@
+/* TORNEOS, CON CARTAS DE FOTO ENTERA (19 de noviembre de 2026; el autor, con la captura de la pantalla: «quiero un estilo
+   card, como hemos estado haciendo ahora, mucho más moderna, con una foto de estas que estás creando para los pelotaris y
+   no esa antigua, y para fútbol de momento puedes dejar esa… se ha quedado anticuada»).
+   Cada torneo es una carta entera de foto, como las portadas de los campeonatos (carrusel3d.js): la foto llena la carta;
+   en la de pelota, una portada de los pelotaris nuevos, con ellos de pies a cabeza a la derecha y en plano cerrado. Abajo
+   a la izquierda, sobre un velo suave, el antetítulo, el título y los campeonatos; y abajo del todo, lo que se elige (el
+   frontón o el club) y el botón de jugar. Arriba a la izquierda, lo tuyo (las txapelas o los partidos). Al pasar por
+   encima, la carta se levanta y una luz cruza la foto, como en la portada de delante de los campeonatos. Con la
+   identidad de las tarjetas (ui/neon.css): esquinas de 8 px, una raya neutra muy tenue y una sombra oscura, sin borde de
+   color. Antes, una lámina de 16:9 dentro de un panel morado, con el texto debajo.
+   (Las pastillas, la caja del frontón y el botón son los de siempre: hub.css, .sp-chips, .sp-box, .gx-go) */
+
+#hub.juego .sports { gap: clamp(10px, 1.6vw, 20px); }
+#hub.juego .s2 { --ac: #ff4fd8; --acc: var(--ac); position: relative; isolation: isolate; overflow: hidden; display: block; min-width: 0; min-height: 0;
+  border-radius: var(--neon-r, 8px); background: #150b2e; container-type: size; aspect-ratio: 4 / 3;
+  outline: 1px solid rgba(255, 255, 255, .12); outline-offset: -1px; box-shadow: var(--sombra-caja, 0 8px 20px rgba(4, 1, 12, .3));
+  transition: transform .3s var(--muelle, cubic-bezier(.2, .9, .3, 1.15)), box-shadow .3s; animation: gx-in .5s cubic-bezier(.2, .9, .3, 1.15) both; }
+#hub.juego .s2 + .s2 { animation-delay: .1s; }
+#hub.juego .s2.s2-futbol { --ac: #a48cff; }
+#hub.juego .s2:hover, #hub.juego .s2:focus-within { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(4, 1, 12, .42); }
+
+/* la foto: el fondo de toda la carta */
+#hub.juego .s2-foto { position: absolute; z-index: -3; display: block; max-width: none; margin: 0; pointer-events: none; transform-origin: 70% 70%;
+  transition: transform .8s cubic-bezier(.2, .8, .3, 1), opacity .9s ease; }
+#hub.juego .s2:hover .s2-foto { transform: scale(1.03); }
+/* (la de fútbol, de momento la lámina de siempre, de lado a lado y encuadrada por el chico y el balón: --fx, dónde está
+   lo que importa, de izquierda a derecha, en partes del ancho; --iar, alto / ancho de la lámina. Tapa la carta entera y
+   se corre lo justo para que el chico y el balón queden en medio; con la animada encima cuando ya se mueve, ui/videos.js) */
+#hub.juego .s2-futbol { --iar: .5625; --fx: .6; }
+#hub.juego .s2-enc { --H: max(100cqh, calc(100cqw * var(--iar))); --W: calc(var(--H) / var(--iar)); width: var(--W); height: var(--H); object-fit: fill;
+  left: clamp(calc(100cqw - var(--W)), calc(50cqw - var(--fx) * var(--W)), 0px); top: clamp(calc(100cqh - var(--H)), calc(50cqh - .45 * var(--H)), 0px); }
+#hub.juego .s2 video.s2-foto { opacity: 0; } #hub.juego .s2 video.s2-foto.on { opacity: 1; }
+/* (la de pelota, una portada de los pelotaris nuevos, encuadrada por ellos: --fx, --fy1 y --fh dicen dónde están en la
+   foto (el centro de lado, los pies y lo que miden de alto, en partes de su ancho y de su alto), --medio, la mitad de lo
+   que ocupan de ancho, y --iar, alto / ancho de la foto. Miden --alto de la carta, con el centro en --cx (o más a la
+   izquierda si no cabrían enteros, en las cartas estrechas) y los pies en --pie; y la foto nunca deja un hueco: si se
+   pasaría de un borde, se corre lo justo) */
+#hub.juego .s2-fig { --alto: .58; --cx: .72; --pie: .68; --H: calc(var(--alto) * 100cqh / var(--fh)); --W: calc(var(--H) / var(--iar));
+  height: var(--H); width: var(--W);
+  left: clamp(calc(100cqw - var(--W)), calc(min(var(--cx) * 100cqw, 95cqw - var(--medio, .1) * var(--W)) - var(--fx) * var(--W)), 0px);
+  top: clamp(calc(100cqh - var(--H)), calc(var(--pie) * 100cqh - var(--fy1) * var(--H)), 0px); }
+/* (los pies, por encima del título: en las cartas bajas, como en el móvil tumbado, el texto y la barra ocupan más parte
+   de la carta, así que los pelotaris, algo más pequeños y más arriba) */
+@container (max-height: 360px) { #hub.juego .s2-fig { --alto: .5; --pie: .58; } }
+
+/* el velo: muy suave y solo donde va el texto (abajo, y algo más a la izquierda), nunca opaco del todo */
+#hub.juego .s2::before { content: ''; position: absolute; inset: 0; z-index: -2; pointer-events: none;
+  background: linear-gradient(180deg, rgba(9, 4, 20, 0) 40%, rgba(9, 4, 20, .3) 62%, rgba(9, 4, 20, .62) 100%),
+    radial-gradient(75% 55% at 0% 100%, rgba(9, 4, 20, .42), rgba(9, 4, 20, 0) 72%); }
+/* la luz que cruza la foto cada pocos segundos */
+#hub.juego .s2::after { content: ''; position: absolute; z-index: -1; top: -20%; bottom: -20%; left: 0; width: 40%; pointer-events: none;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .14), transparent); transform: translateX(-170%) skewX(-16deg);
+  animation: s2-luz 5.6s ease-in-out 1.2s infinite; }
+#hub.juego .s2 + .s2::after { animation-delay: 4s; }
+@keyframes s2-luz { 0%, 58% { transform: translateX(-170%) skewX(-16deg); } 88%, 100% { transform: translateX(420%) skewX(-16deg); } }
+@media (prefers-reduced-motion: reduce) { #hub.juego .s2::after { display: none; } #hub.juego .s2 { animation: none; } }
+
+/* lo tuyo, arriba a la izquierda (la pastilla de siempre, hub.css .sp-stat) */
+#hub.juego .s2 .sp-stat { top: clamp(8px, 3.2cqh, 16px); left: clamp(8px, 3.2cqh, 16px); }
+
+/* abajo: el texto y, debajo, lo que se elige y el botón */
+#hub.juego .s2-pie { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; gap: clamp(8px, 3cqh, 16px);
+  padding: 0 clamp(10px, 3.6cqh, 20px) clamp(10px, 3.6cqh, 20px); }
+#hub.juego .s2-txt { display: flex; flex-direction: column; align-items: flex-start; gap: clamp(4px, 1.6cqh, 10px); min-width: 0; }
+#hub.juego .s2-kick { font: 800 max(10px, min(2.8cqh, 13px))/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--ac); text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+#hub.juego .s2 h3 { margin: 0; font: 400 clamp(20px, min(9.5cqh, 8cqw), 46px)/.95 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; letter-spacing: .01em;
+  color: #fff; text-wrap: balance; text-shadow: 0 2px 4px rgba(0, 0, 0, .55); }
+#hub.juego .s2 .sp-chips > span { background: rgba(13, 6, 28, .58); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1); }
+#hub.juego .s2-bar { display: flex; align-items: center; gap: 8px; min-width: 0; }
+#hub.juego .s2-bar .sp-box { flex: 1 1 auto; min-width: 0; height: clamp(40px, 12cqh, 52px); background: rgba(13, 6, 28, .6); border-color: rgba(255, 255, 255, .12); }
+#hub.juego .s2-bar .sp-pick:hover, #hub.juego .s2-bar .sp-pick:focus-visible { background: rgba(30, 14, 60, .72); }
+#hub.juego .s2-bar .gx-go { flex: none; width: auto; min-height: clamp(40px, 12cqh, 52px); padding: 6px clamp(16px, 5cqh, 28px); }
+#hub.juego .s2 .gx-go .sp-largo { display: inline; } #hub.juego .s2 .gx-go .sp-corto { display: none; }
+@container (max-width: 480px) { #hub.juego .s2 .gx-go .sp-largo { display: none; } #hub.juego .s2 .gx-go .sp-corto { display: inline; } }
+/* (en las cartas bajas, sin el antetítulo: el título ya dice qué torneo es) */
+@container (max-height: 330px) { #hub.juego .s2-kick { display: none; } }
+
+/* el sitio: en horizontal, las dos cartas una al lado de la otra, con todo el alto que deja la barra de arriba, sin desplazar */
+@media (orientation: landscape) {
+  #hub.juego[data-screen="sports"] .hub-main { display: flex; flex-direction: column; }
+  #hub.juego[data-screen="sports"] .hub-main > :not(.sports) { flex: none; }
+  #hub.juego[data-screen="sports"] .sports { flex: 1 1 0; min-height: 0; align-items: start; container-type: size; }
+  /* (como mucho 1,2 veces más alta que ancha: en una pantalla grande, como 1920 × 1080, salían de 680 × 944, tan estrechas
+     que la pelotari se salía por el borde) */
+  #hub.juego[data-screen="sports"] .s2 { aspect-ratio: auto; height: min(100cqh, 60cqw - 6px); }
+}
+/* (en vertical, una debajo de la otra, cada una de 4:3: lo de hub.css) */
