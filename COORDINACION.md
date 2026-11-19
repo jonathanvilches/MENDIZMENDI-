@@ -28,13 +28,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - **Botones del partido transparentes, pendientes de que el autor los vea** (19 nov, ventana principal): con el aro de
   color y su latido. La equipación que iba con ellos ya no existe (abajo). Quien publique, que no lo meta sin su visto
   bueno.
-- **Menú, secciones, Cómo jugar y pausa con la pantalla de juego, pendientes de que el autor los vea** (19 nov, noche,
-  ventana principal; el autor: «cambiar el diseño de estas páginas para ajustarlas al nuevo diseño e identidad»):
-  `src/hub/pantalla-hub.css`, `src/ui/pausa-pueblo.css`, `hub.js`, `comojugar.js` y `ui.js` (`openMenu`). Quien
-  publique, que no lo meta sin su visto bueno.
-- **Sin equipación** (19 nov, noche, ventana principal; el autor: «Deja el personaje como estaba en un principio…
-  Olvídate de la personalización, elimínalo todo»): fuera la pantalla «Equipación» y sus colores; los pelotaris, como
-  antes del 18 nov. Este sí se puede publicar: es lo que pidió el autor.
+- **Publicado el 19 nov, noche (ventana principal; el autor: «Quiero verlo en directo»)**: la web lleva ya, sobre lo de
+  la séptima ronda, el pelotari sin equipación (`0e0ca4c2`), el menú, sus secciones, Cómo jugar y la pausa con la pantalla
+  de juego (`fc61beaa`) y la frase de Joseba de los prismáticos (`6b3e7189`). La compilación se hizo con `master` (`fc61beaa`)
+  quitando lo que sigue sin visto bueno: el esprint y la cámara del fondo, el público nuevo y los planos de la grada
+  (`c2943be6`, `9f7ce5d0`, `2f3b20e0`, `2b84db42`, `6d07d896`, `e73da537`), los botones discretos y transparentes
+  (`8ec5c4a8`, `971f78ed`) y el rebote (`1f40a775`): esos archivos (`src/pelota/{court,game,hud,match,physics,rules}.js`,
+  `src/style.css`, `src/game/fronton.js`, el público y el mando) se dejaron como en la web de la séptima ronda.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
   la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
   ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
