@@ -288,8 +288,10 @@ async function boot() {
         if (!opt.sport) releaseOffscreen();   // (el renderizador oculto de la carga se suelta antes de jugar)
         // (la aventura, ya ahora: así se compila con lo demás y no para la imagen nada más empezar; townGame.montaAventura)
         if (!opt.sport) game.montaAventura?.();
-        await rt.precompile();
-        rt.dibujoTapado();   // (el primer dibujo, aún tapado por la carga: runtime.js)
+        // (en Campeonatos, el menú no espera a compilar el frontón ni a su primer dibujo: lo tapa, y se hace antes del primer
+        // partido; runtime.js, diferir)
+        if (opt.sport === 'pelota') rt.diferir();
+        else { await rt.precompile(); rt.dibujoTapado(); }   // (el primer dibujo, aún tapado por la carga: runtime.js)
         ui.progress(1, '¡Listo!');
         rt.start(game);
         sinHub(); ui.hideLoading(); queueMode('light');

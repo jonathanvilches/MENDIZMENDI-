@@ -285,9 +285,8 @@ export class PuebloDeportes {
       this.player.place(e.x, e.z, Math.atan2(c.x - e.x, c.z - e.z)); this.follow.snap(this.player);
       const P = profile(), town = this.def.name.split(' /')[0], cm = this.comarca?.name || 'la comarca';
       const ctx = { comarca: this.def.comarca, comarcaName: cm, towns: this.comarcaVenues() };
-      // (el frontón cubierto se monta ya, tapado por el fondo: así la llegada no espera a montarlo ni a compilarlo)
-      // (solo si es el elegido: las rondas y los partidos se juegan ya en el frontón del pueblo)
-      const S0 = this.sedes(); if (!this.fronton.court.labrit && (S0.includes(P.pelotaSede) ? P.pelotaSede : S0[0]) === 'cubierto') await this.rt?.warm?.(this.hallVenue().court.group);
+      // (el frontón cubierto ya no se monta ni se compila antes de enseñar el menú: se hace antes del partido, venuePrep, como
+      // lo demás del frontón. El menú esperaba a esto; el autor, el 19 de noviembre de 2026: «tarda muchísimo»)
       // (desde el pueblo, apuntado por el pelotari: derecho al cuadro del campeonato elegido; al salir, de vuelta al pueblo)
       if (o.torneo) { this.vuelta = o.vuelta || null; await this.pelotaTorneo(a, ctx, o.torneo); return; }
       for (;;) {
@@ -426,6 +425,7 @@ export class PuebloDeportes {
   async venuePrep(v) {
     if (window.__autoWin) return;
     this.sportBackdrop(true, true);
+    await this.rt?.preparaDiferido?.();   // (lo que el menú de los campeonatos no esperó: compilar el frontón y su primer dibujo, tapado; runtime.js, diferir)
     if (this.rt?.quality === 'low') freeVenues(v);   // (en el móvil, solo el frontón que se va a usar: fronton.js)
     if (v === this.fronton) return;
     await this.rt?.warm?.(v.court.group);   // (sus sombreadores, antes de verlo: si no, la llegada se quedaba congelada un momento)

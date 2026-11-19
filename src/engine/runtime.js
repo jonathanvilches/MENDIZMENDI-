@@ -216,6 +216,18 @@ export class Runtime {
     this.warmed.delete(this.scene);
     await this.warm(this.scene, this.camera, ms);
   }
+  /** CAMPEONATOS SIN ESPERAR (19 de noviembre de 2026; el autor: «cuando seleccionas un bloque hasta que se accede a dicho
+   *  bloque al interior, tarda muchísimo»). Al entrar en Pelota, el menú de los campeonatos tapa el frontón, así que
+   *  compilar sus sombreadores y su primer dibujo tapado (precompile y dibujoTapado) ya no retrasan el menú: main.js lo
+   *  deja pendiente y se hace antes del primer partido (townDeportes.js, venuePrep), con el fondo de los campeonatos aún
+   *  delante. Nunca mientras se mira el menú: compilar y subir texturas daba tirones al girar los carruseles. Medido en el
+   *  ordenador de pruebas con Lesaka, al aire libre (su calle y su grada, mucho que compilar): el menú salía a los 14 s y
+   *  ahora a los 8 (en el móvil tumbado, a los 7). En los cubiertos, como Estella, ya salía a los 7. */
+  diferir() { this.preCompilar = this.preDibujar = true; this._pre = null; }
+  async preparaDiferido() {
+    if (this.preCompilar) { this.preCompilar = false; await (this._pre = this.precompile()); } else if (this._pre) await this._pre;
+    if (this.preDibujar) { this.preDibujar = false; this.dibujoTapado(); }
+  }
   /** Un dibujo de verdad del pueblo, por el mismo camino que el del juego (con el postprocesado si lo hay), aún tapado
    *  por la pantalla de carga. Compilar no basta: en el iPhone cada material termina de prepararse la primera vez que se
    *  dibuja, y ese primer dibujo, ya con el pueblo a la vista, era un parón (noviembre de 2026, informes del iPhone).
@@ -289,7 +301,7 @@ export class Runtime {
   }
   start(game) { this.game = game; this.active = true; this.canvas.style.visibility = 'visible'; this.clock.getDelta(); }
   unload() {
-    this.active = false; this.game = null;
+    this.active = false; this.game = null; this.preCompilar = this.preDibujar = false; this._pre = null;
     if (!this.scene) return;
     const geos = new Set(), mats = new Set();
     this.scene.traverse(o => {
