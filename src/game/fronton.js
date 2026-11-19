@@ -482,7 +482,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // (y las figuras del público y sus retratos: si no, la grada salía vacía los primeros segundos de la presentación)
     // (sentado, el público animado de crowdAnim.js; de pie en las plazas, el de antes)
     // (con la altura de su asiento, la misma que luego pide crowdAnim: si no, se cocinaban dos veces)
-    if (fronton.court?.seated) { const a = fronton.court.asiento; cocinaPublico('aficion', a != null ? (a - 0.02) / (ALTO_AFICION / 1.5) : null).catch(() => {}); } else preparaPublico('aficion', false);
+    if (fronton.court?.seated) { const a = fronton.court.asiento; cocinaPublico('aficion', a != null ? (a - 0.02) / (ALTO_AFICION / 1.5) : null).catch(() => {}); preparaPublico('aficion', true); } else preparaPublico('aficion', false);   // (sentados: también los retratos del resto de la grada)
     const wait = !loadedMeshy('pelotari') || !loadedMeshy('pelotari_rojo');
     if (wait) G.ui.toast?.(isEU() ? 'Pilotariak prestatzen…' : 'Preparando a los pelotaris…', 'pelota', 1800);
     // (la jugadora, con su cuerpo de chica de pelotari y su pelo: chicas.js)
@@ -550,29 +550,38 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
     // triángulos cada uno (crowd3d.js), así que 2.800 cuestan menos que antes 400 con la figura de lejos. En el aparato
     // que ya perdió la imagen, 900)
     try { const C = fronton.court, all = C?.standSpots || [];
-      const cap = Math.min(all.length, muyLigero ? 900 : all.length);
-      // (juntos, como en un partido de verdad: primero las filas de abajo y el centro de la cancha, donde se ve el juego, con
-      // algún hueco; repartidos al azar por toda la grada, la misma gente parecía una grada vacía)
       let z0 = Infinity, z1 = -Infinity, y0 = Infinity; for (const q of all) { z0 = Math.min(z0, q[2]); z1 = Math.max(z1, q[2]); y0 = Math.min(y0, q[1]); }
-      // (el centro del grupo, como mucho a 10 m del frontis: la cámara del partido, detrás de la cancha, ve la grada desde
-      // el frontis hasta unos 19 m. En el Labrit, con el centro a la mitad de la grada, los 16 del móvil quedaban todos
-      // detrás de la cámara y la grada se veía vacía; medido el 19 de noviembre de 2026 en el Labrit y en Atarrabia)
-      const zc = Math.min(z0 + (z1 - z0) * 0.45, z0 + 10), sp0 = all.length <= cap ? all.slice() : all.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 7]).sort((a, b) => a[1] - b[1]).slice(0, cap).map(r => r[0]);
-      // (18 de noviembre de 2026, noche; el autor, tras ver su grabación: «me hace falta más espacio entre los espectadores.
-      // Ahora mismo solo veo bultos… Prefiero que haya menos gente más definida y que se vean los movimientos de cómo se
-      // levantan y cómo celebran»). La grada, al tresbolillo: en cada fila, un asiento sí y otro no, y la fila siguiente
-      // al revés, así nadie tapa al de detrás y cada uno se ve entero. Y con tope: los más cercanos al centro de la
-      // cancha y a las filas de abajo. Con menos gente, todos van con su figura en 3D (crowd3d, figuras), sin retratos planos
-      const filas = new Map(); for (const q of sp0) { const k = Math.round(q[1] * 10); if (!filas.has(k)) filas.set(k, []); filas.get(k).push(q); }
-      let nf = 0, sp = []; for (const k of [...filas.keys()].sort((a, b) => a - b)) { filas.get(k).sort((a, b) => (a[2] - b[2]) || (a[0] - b[0])).forEach((q, i) => { if ((i + nf) % 2 === 0) sp.push(q); }); nf++; }
-      // (19 de noviembre de 2026; el autor, otra vez: «no poner tanto público, pero con más calidad y que se vea como
-      // aplauden». Ya no hay figuras de lejos: tantos como los que van con la figura entera, cada uno con su cara y sus
-      // manos, y el resto de la grada vacía. Antes eran 260, y solo 60 con la figura entera: los demás, bultos)
-      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60, tope = kc;
-      if (sp.length > tope) sp = sp.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 3]).sort((a, b) => a[1] - b[1]).slice(0, tope).map(r => r[0]);
+      // (el centro del juego, como mucho a 10 m del frontis: la cámara del partido, detrás de la cancha, ve la grada desde
+      // el frontis hasta unos 19 m; medido el 19 de noviembre de 2026 en el Labrit y en Atarrabia)
+      const zc = Math.min(z0 + (z1 - z0) * 0.45, z0 + 10);
+      // CUÁNTA GENTE (19 de noviembre de 2026, noche; el autor: «repártelos un poco a lo largo de todo el frontón para que en
+      // las fases vaya aumentando el número de espectadores conforme se va acercando la final. Son muy pocos espectadores,
+      // hay que añadir más sin comprometer la fluidez del juego… y luego en la final tiene que haber un lleno completo»).
+      // La fase del campeonato (camp.fase: 0 en la primera ronda, 1 en la final; en un partido suelto, algo menos de la
+      // mitad) dice qué parte de la grada se llena: un cuarto en la primera ronda, cada vez más, y en la final, todos los
+      // asientos. Repartidos por toda la grada, de punta a punta, más en las filas de abajo. Con poca gente, al tresbolillo
+      // (un asiento sí y otro no; el autor, el 18 de noviembre: «más espacio entre los espectadores»)
+      const fase = final ? 1 : camp?.fase != null ? Math.min(1, Math.max(0, camp.fase)) : 0.4;
+      const parte = final || fase >= 1 ? 1 : 0.25 + 0.6 * fase, N = Math.min(Math.round(all.length * parte), muyLigero ? 600 : Infinity);   // (en el aparato que ya perdió la imagen, como mucho 600)
+      let base = all;
+      if (N <= all.length / 2) {
+        const filas = new Map(); for (const q of all) { const k = Math.round(q[1] * 10); if (!filas.has(k)) filas.set(k, []); filas.get(k).push(q); }
+        let nf = 0; base = []; for (const k of [...filas.keys()].sort((a, b) => a - b)) { filas.get(k).sort((a, b) => (a[2] - b[2]) || (a[0] - b[0])).forEach((q, i) => { if ((i + nf) % 2 === 0) base.push(q); }); nf++; }
+      }
+      const sp = base.length <= N ? base.slice() : base.map(q => [q, (q[1] - y0) * 0.6 + Math.random() * 4]).sort((a, b) => a[1] - b[1]).slice(0, N).map(r => r[0]);
+      // DOS PÚBLICOS EN UNO: los de las mejores filas, junto a donde mira la cámara (las de abajo y el centro de la cancha),
+      // con su esqueleto y sus movimientos (crowdAnim: se levantan, celebran y aplauden; los kc más cercanos a la cámara,
+      // con la figura entera, y los demás con la de lejos); el resto de la grada, con su retrato (crowd3d: dos triángulos
+      // cada uno, el retrato de la misma figura desde el ángulo en que se ve, y se levantan en cada tanto). Así cabe un
+      // frontón lleno sin perder la fluidez: los animados, como antes, en el móvil 16 enteros (8 en el más justo), y los
+      // retratos casi no cuestan
+      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60, NA = Math.min(sp.length, muyLigero ? 12 : ligero ? 28 : QUALITY === 'mid' ? 60 : 100);
+      const orden = sp.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 3]).sort((a, b) => a[1] - b[1]).map(r => r[0]);
+      const spA = orden.slice(0, NA), spF = orden.slice(NA);
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
-      const wsp = sp.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
+      const aMundo = (l) => l.map(([x, y, z, ry]) => { const v = C.group.localToWorld(new THREE.Vector3(x, y, z)); return [v.x, v.y, v.z, ry + yaw]; });
+      const wsp = aMundo(spA), wspF = aMundo(spF);
       if (wsp.length) seatedZ = wsp.reduce((a, q) => a + q[2], 0) / wsp.length;
       // (sentados en sus asientos, en todos los frontones: el sitio es el asiento y la figura, algo adelantada y más baja;
       // en cada tanto se levantan los de la camiseta del que lo gana, cada uno a su tiempo, y se vuelven a sentar: la
@@ -582,7 +591,7 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // ni el escalón ni lo que tiene delante)
       // (el sitio de cada uno es el asiento; la figura va con los pies en su escalón, 2 cm por encima, y crowdAnim la sienta
       // con el culo justo encima del asiento, que la grada dice a qué altura está: C.asiento, del escalón a la cara de arriba)
-      const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, alto = C.asiento ?? 0.42, wsp2 = sit ? wsp.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - alto + 0.02, z + Math.cos(ry) * ad, ry]) : wsp;
+      const sit = !!C.seated, ad = C.sitAdelante ?? 0.3, alto = C.asiento ?? 0.42, alAsiento = (l) => sit ? l.map(([x, y, z, ry]) => [x + Math.sin(ry) * ad, y - alto + 0.02, z + Math.cos(ry) * ad, ry]) : l, wsp2 = alAsiento(wsp), wspF2 = alAsiento(wspF);
       // (con la cara entera, con su textura, los más cercanos: en el móvil 14, y 4 en el más justo; antes 6 y 1, y desde la
       // segunda fila ya salían con la figura de lejos, sin ojos ni boca. Cada uno son unos 9.000 triángulos, 15.000 las
       // chicas con su coleta; la figura de lejos, unos 1.000)
@@ -592,7 +601,13 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // con los pies en el suelo, celebra a su manera y se vuelve a sentar. Con la figura entera, los más cercanos a la
       // cámara: 60, 36 en calidad media, 16 en el móvil y 8 en el más justo; los demás, con la de lejos, que conserva
       // la cara y se mueve igual)
-      if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc, asiento: C.asiento != null ? C.asiento - 0.02 : null }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated; }
+      if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc, asiento: C.asiento != null ? C.asiento - 0.02 : null }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated;
+        // (y el resto de la grada, con su retrato: en el mismo grupo, con el mismo reloj y las mismas celebraciones)
+        if (wspF2.length) { const resto = crowd3d(wspF2, 'aficion', ALTO_AFICION, { sit, all3d: true, kc: 1 }); seated.add(resto);
+          const t0 = seated.tick, c0 = seated.cheer, d0 = seated.dispose, l0 = seated.listo;
+          seated.tick = (t, ex, f, cam) => { t0(t, ex, f, cam); resto.tick(t, ex, f, cam); };
+          seated.cheer = (on, lado, len, todos) => { c0(on, lado, len, todos); resto.cheer(on, lado, len); };
+          seated.dispose = () => { d0(); resto.dispose(); }; seated.listo = Promise.all([l0, resto.listo]); } }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)
       if (seated && ligero && G.rt?.subePoco) { const pub = seated; pub.userData.espera = true; pub.listo?.then(() => { const s = G.rt.subePoco(pub, true); const mira = () => { if (s.listo()) pub.userData.espera = false; else setTimeout(mira, 120); }; mira(); }).catch(() => { pub.userData.espera = false; }); }
