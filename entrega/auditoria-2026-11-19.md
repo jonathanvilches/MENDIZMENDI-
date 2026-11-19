@@ -15,11 +15,10 @@ la lamia (8), el bobo (16), Garazi (33), la narradora (46) y Kike (7).
 ttun-ttun). Son 9 frases y 5 variantes de saludo de Patxi según la hora y el tiempo, unos 900 caracteres. Con dos tomas
 de cada una, unos 1.800 créditos de ElevenLabs (el 18 de noviembre quedaban unos 16.700 este mes).
 
-Tengo que corregir algo: en mi lista esto figuraba como hecho y no lo está. Las voces no se han grabado porque falta que
-elijas cuál le va a cada uno. Las candidatas son tres por vecino, de la biblioteca de ElevenLabs y en castellano de
-España; escucharlas no gasta créditos. Están en la séptima ronda de la página de elecciones y en
-`entrega/voces-prueba-5/LEEME.md`. **En cuanto me digas la voz de cada uno, grabo sus frases y te las paso para que
-las escuches antes de meterlas en el juego.**
+**Corrección (19 de noviembre, más tarde):** aquí me equivoqué. Elegiste sus voces en la séptima ronda (Patxi, Rafa;
+Itxaso, Olivia; Fermín, Gaspar; Txaro, Mary Velvet; Iker, Leo; Ximun, Nico Masip) y sus 18 frases ya están grabadas, dos
+tomas de cada una, en la octava ronda de la página de elecciones. **Falta solo que elijas la toma de cada frase**; en
+cuanto lo hagas, las meto en el juego.
 
 Siguen pendientes también en Otsagabia:
 - Maite con la voz «Inés 2» e Itziar con «Nuria 2», corrigiendo las pronunciaciones que marcaste.
