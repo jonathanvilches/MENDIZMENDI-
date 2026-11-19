@@ -323,7 +323,7 @@ export class Sound {
   /** La música se aparta s segundos (al escuchar un instrumento en su ficha: antes sonaban los dos a la vez) y vuelve sola. */
   duck(s) {
     if (!this.musicBus) return; const t = this.ctx.currentTime, g = this.musicBus.gain;
-    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn) g.setTargetAtTime(this.volMus(), this.duckUntil, 0.4);
+    this.duckUntil = t + s; g.cancelScheduledValues(t); g.setTargetAtTime(0, t, 0.08); if (this.musicOn && this.mood !== 'none') g.setTargetAtTime(this.volMus(), this.duckUntil, 0.4);
   }
   // trueno: si el rayo cae cerca, primero un chasquido seco; luego el retumbar grave y largo, que va y viene (ruido muy
   // filtrado con varios golpes) y resuena en el eco. dist en metros: más lejos, más tarde, más grave y más flojo

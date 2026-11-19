@@ -521,6 +521,10 @@ export class Runtime {
     // (todo el juego de pelota con su música: el partido y también sus pantallas de elegir, el campeonato, el pelotari, el
     // sorteo y el resumen; el autor, 17 de noviembre de 2026. Las mismas señales que usa main.js para saber que se está en
     // la pelota)
+    // (EL PARTIDO, SIN MÚSICA: 19 de noviembre de 2026, el autor: «hay que eliminar la música mientras se está jugando a
+    // pelota. Solo los comentaristas, el ruido de la gente y el ruido de la pelota». Desde que empieza el partido hasta
+    // que acaba, nada de música; vuelve en las pantallas de elegir, el campeonato y lo de después, y si se abre una encima)
+    if (g.pelotaMatch && !g.pelotaMatch.pasaka && !document.querySelector('.lg-root')) return 'none';
     if (g.pelotaMatch || g.pelotaLoading || (g.fronton && (m === 'pelota' || g.sportMode)) || document.querySelector('.pel-root, .lg-root')) return 'pelota';
     if (m === 'pelota' || m === 'futbol' || m === 'menu' || g.sportMode) return 'sport';
     if (m === 'mini') return 'game';
