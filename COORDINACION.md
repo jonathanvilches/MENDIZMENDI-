@@ -37,6 +37,7 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   `src/style.css`, `src/game/fronton.js`, el público y el mando) se dejaron como en la web de la séptima ronda.
   Después, la misma noche (el autor: «El menú que sea carrusel, como has estado haciendo hasta ahora»), se publicó encima el
   menú en carrusel (`51574a19`), compilado igual: con esos mismos archivos como en la web de la séptima ronda.
+  Y luego el anillo de las pantallas de pelota centrado también en el iPhone (`45f66f63`, `src/ui/pantalla.js`), igual.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
   la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
   ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
