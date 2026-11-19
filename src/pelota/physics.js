@@ -77,6 +77,10 @@ export class Ball {
     if (FEEL.tipo !== 'plaza' && p.z > COURT.REBOTE - R && v.z > 0 && p.y < (FEEL.backH || COURT.REBOTE_H) && p.x > -COURT.W / 2 - (FEEL.tipo === 'trinquete' ? TRINQ.FONDO : 0.6) && p.x < COURT.W / 2 + 0.3) {
       out.push({ type: 'back', x: p.x, y: p.y, z: COURT.REBOTE });
       p.z = COURT.REBOTE - R; v.z = -v.z * PHYS.BACK_E; v.x *= 0.9;
+      // (la pelota que llega baja al rebote, botada, trepa un poco por él con el efecto que lleva y sale algo alta: antes
+      // volvía a ras de suelo y botaba otra vez a un metro de la pared, y no había ni un cuarto de segundo para jugarla.
+      // El autor, 19 de noviembre de 2026: «que se pueda golpear si la pelota rebota en la pared de atrás y seguir jugando»)
+      if (p.y < PHYS.BACK_UP_H && v.y < PHYS.BACK_UP) v.y = PHYS.BACK_UP * (1 - 0.5 * p.y / PHYS.BACK_UP_H) + Math.max(0, v.y) * 0.5;
     }
     // suelo
     if (p.y < R && v.y < 0) {

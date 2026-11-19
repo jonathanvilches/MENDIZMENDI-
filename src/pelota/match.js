@@ -1923,6 +1923,28 @@ export class PelotaMatch {
     const borde = this.detrasOn ? 0.9 : 0.8, zP = this.detrasOn ? you.z : cz; let cerca = 0, dT = 0;
     if (juego) { dT = this.encuadra(lp, ll, zP, this.cam.fov, borde); cerca = this.detrasOn ? Math.max(0, Math.min(1, (3.6 - dT) / 1.2)) : Math.max(0, Math.min(1, (6.8 - dT) / 3.4)); }
     this.cercaK = (this.cercaK || 0) + (cerca - (this.cercaK || 0)) * Math.min(1, dt * 4);
+    // LA CÁMARA DEL REBOTE (19 de noviembre de 2026; el autor: «la cámara debería cambiar para ver cómo la pelota llega hasta
+    // el final o al rebote para poder golpear la pelota… que se pueda golpear y seguir jugando»). Cuando la pelota que te
+    // toca devolver se va al fondo (va a botar en los dos últimos cuadros, ya ha botado allí o vuelve del rebote), la cámara
+    // pasa detrás de la pared de atrás, que se vuelve transparente como el cristal de una pista de squash (queda su
+    // contorno), y mira la cancha desde allí, algo alta: se ve la pelota botar, dar en el rebote y volver, a tu pelotari
+    // esperándola y el frontis al fondo. Arriba en la pantalla sigue estando el frontis, así que la palanca va igual. En
+    // cuanto golpeas (o se acaba el tanto), vuelve a su sitio. Antes la cámara se quedaba delante del rebote, mirando al
+    // frontis: la pelota pasaba por encima, daba en la pared a su espalda y volvía de golpe, sin tiempo de verla.
+    // (fondoK: de 0 a 1, cuánto se ha ido la cámara al rebote; en la plaza libre, sin rebote, no; con la cámara fija, tampoco)
+    { let fondo = 0; const R = g.rally, B = g.ball;
+      if (g.phase === 'rally' && R?.front && !this.tour && !this.fijaOn && !enPlano && C.rebMeshes?.length && R.turn === (g.side ? g.side('you') : 'you') && Number.isFinite(B.p.z)) {
+        const va = R.rebote || (R.bounces >= 1 && B.p.z > 25.5) || (R.bounces < 1 && g.deepShot?.());
+        fondo = va || (this.fondoK > 0.3 && B.p.z > 14) ? 1 : 0; }
+      this.fondoK = (this.fondoK || 0) + (fondo - (this.fondoK || 0)) * Math.min(1, dt * (fondo ? 3.2 : 2.4));
+      if (this.fondoK > 0.002) {
+        const zr = COURT.REBOTE, bx = Math.max(-COURT.W / 2, Math.min(COURT.W / 2, B.p.x || 0)), px = Number.isFinite(you.x) ? you.x : 0;
+        let fz = zr + (portrait ? 5.6 : 4.4), fy = portrait ? 7.2 : 6; const tope = C.camZRebote ?? Infinity;
+        if (fz > tope) { fy += (fz - tope) * 0.5; fz = tope; }   // (en el Labrit no cabe tan atrás: algo más alta)
+        const fp = [px * 0.3 + bx * 0.1 + (portrait ? 0.4 : 0.6), Math.min(fy, C.camTecho ?? Infinity), fz], fl = [px * 0.25 + bx * 0.1, portrait ? 0.8 : 0.9, zr - (portrait ? 9 : 8)];   // (con el campo algo más abierto, fov: se ve el suelo hasta la misma pared y el frontis entero)
+        const f = this.fondoK, e = f * f * (3 - 2 * f);
+        for (let i = 0; i < 3; i++) { lp[i] += (fp[i] - lp[i]) * e; ll[i] += (fl[i] - ll[i]) * e; }
+      } }
     const wp = this.v3.set(lp[0], lp[1], lp[2]); grp.localToWorld(wp);
     const wl = new T.Vector3(ll[0], ll[1], ll[2]); grp.localToWorld(wl);
     if (!this.camInit || this.tossCam) { this.camPos.copy(wp); this.camLook.copy(wl); this.camInit = true; }   // (con la chapa, sin retraso: ya va suave)
@@ -1932,7 +1954,7 @@ export class PelotaMatch {
     // falta. Solo cuando ya está casi en su sitio, a menos de dos metros de donde va: mientras vuela de un sitio a otro
     // (del que saca al que resta, que está al fondo) pasa por encima de los pelotaris, y ahí no hay encuadre que valga:
     // se ponía a mirar al suelo un momento. Es continuo: no da saltos)
-    if (juego) { const a = grp.worldToLocal(wp.copy(this.camPos)), b = grp.worldToLocal(wl.copy(this.camLook)), pa = [a.x, a.y, a.z], pb = [b.x, b.y, b.z], z0 = pb[2];
+    if (juego && (this.fondoK || 0) < 0.05) { const a = grp.worldToLocal(wp.copy(this.camPos)), b = grp.worldToLocal(wl.copy(this.camLook)), pa = [a.x, a.y, a.z], pb = [b.x, b.y, b.z], z0 = pb[2];
       const w = Math.max(0, Math.min(1, 1 - (Math.abs(pa[2] - zP - dT) - 0.8) / 1.2));
       if (w > 0) { this.encuadra(pa, pb, zP, this.cam.fov, Math.min(0.93, borde + 0.08), false);
         if (pb[2] !== z0) { b.z = z0 + (pb[2] - z0) * w; this.camLook.copy(grp.localToWorld(b)); } } }
@@ -1946,7 +1968,7 @@ export class PelotaMatch {
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
     { const sp = this.camDyn && !this.fijaOn && g.players.you?.sprint ? 1 : 0; this.sprintK = (this.sprintK || 0) + (sp - (this.sprintK || 0)) * Math.min(1, dt * (sp ? 4 : 6)); }   // (al esprintar, el plano se abre un poco: se nota la arrancada)
-    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5 + (this.cercaK || 0) * (this.detrasOn ? 6 : 10);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha; y con el pelotari cerca de la cámara porque no cabe más atrás, también: cercaK)
+    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5 + (this.cercaK || 0) * (this.detrasOn ? 6 : 10) * (1 - (this.fondoK || 0)) + (this.fondoK || 0) * (this.detrasOn ? 0 : 8);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha; y con el pelotari cerca de la cámara porque no cabe más atrás, también: cercaK)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   // el radio de la pelota tal como se dibuja, en el mundo, a la escala esc (con sus costuras, que sobresalen un poco)

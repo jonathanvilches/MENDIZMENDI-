@@ -31,6 +31,7 @@ export const PHYS = {
   FRONT_FX: 0.62,    // lo que conserva de lado al dar en el frontis (rozamiento: la pelota no sale cruzada)
   WALL_E: 0.74,      // rebote en la pared izquierda
   BACK_E: 0.55,      // y en el rebote (la pared de atrás)
+  BACK_UP: 3.6, BACK_UP_H: 1.8,   // lo que sube al salir del rebote la pelota que llega baja (por debajo de BACK_UP_H m): physics.js
   CUT_E: 0.62,       // cortada: sale del frontis con más fuerza que un golpe normal…
   CUT_FLOOR_E: 0.36, // …bota algo más bajo que un golpe, pero se ve botar (con 0,18 apenas se despegaba del suelo)…
   CUT_FLOOR_F: 0.8,  // …y corre más al botar

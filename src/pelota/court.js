@@ -489,6 +489,17 @@ export class PelotaCourt {
     // que llega al techo; en el Labrit, sin meterse en la grada del fondo. En el pueblo, Fronton añade las casas de detrás
     this.camTecho = opts.labrit ? 11.6 : TRQ ? TQ_H - 1.2 : HALL ? HALL_H - 2 : th.roof ? C.FRONT_H : Infinity;
     this.camZMax = opts.labrit ? EXT + 3.8 : HALL ? C.REBOTE - 0.7 : Infinity;
+    // (la cámara del rebote, match.js: detrás de la pared de atrás, que se vuelve transparente; en el cubierto y el trinquete
+    // puede pasar al otro lado, que no hay nada; en el Labrit, hasta su grada del fondo)
+    this.camZRebote = opts.labrit ? EXT + 3.8 : HALL ? C.REBOTE + 4.6 : Infinity;
+    // (y allí, suelo: sin él, por la esquina de abajo de la imagen se veía el vacío, de color cielo; y la pared izquierda
+    // sigue por detrás del rebote: en el móvil tumbado, que ve más a los lados, se veía el canto de la pared y, pasado
+    // él, otra vez el vacío)
+    if (HALL) {
+      const mTras = M({ color: '#2b2a31', roughness: 0.95 });
+      const tras = new T.Mesh(new T.PlaneGeometry(W + CONTRA + 30, 10), mTras); tras.rotation.x = -Math.PI / 2; tras.position.set(CONTRA / 2, -0.02, EXT + 0.4 + 5); tras.name = 'suelo-tras-rebote'; g.add(tras);
+      const hT = TRQ ? TQ_H : HALL_H, trasL = new T.Mesh(new T.BoxGeometry(0.6, hT, 10.6), mTras); trasL.position.set(-W / 2 - 0.3, hT / 2, EXT + 5.3); trasL.name = 'pared-tras-rebote'; g.add(trasL);
+    }
 
     // --- pelota, sombra, estela y ayudas
     const ball = this.ball = new T.Group();
