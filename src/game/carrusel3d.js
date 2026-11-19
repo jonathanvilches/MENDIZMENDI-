@@ -69,10 +69,17 @@ export function carrusel3d(escena, o = {}) {
       if (a > VIS + 0.7) { if (t.style.visibility !== 'hidden') { t.style.visibility = 'hidden'; t.tabIndex = -1; } continue; }
       const th = (d * PASO * Math.PI) / 180, x = R * Math.sin(th), z = R * (Math.cos(th) - 1) + (a < 1 ? (1 - a) * w * 0.12 : 0);
       t.style.transform = `translate3d(${x.toFixed(1)}px,0,${z.toFixed(1)}px) rotateY(${(d * PASO).toFixed(2)}deg)`;
-      t.style.setProperty('--d', Math.min(1, a * 0.4).toFixed(3));
-      t.style.opacity = (a <= VIS ? 1 : Math.max(0, (VIS + 0.7 - a) / 0.7)).toFixed(3);
-      t.style.zIndex = String(100 - Math.round(a * 10));
-      t.style.visibility = '';
+      // (LO QUE SE APAGA, SIN RECALCULAR LA CARTA ENTERA (19 de noviembre de 2026; el autor: «los carruseles de selección
+      // van muy lentos»). Antes cada fotograma escribía --d con tres decimales en cada portada, y como --d se heredaba, el
+      // navegador recalculaba los estilos de todo lo que lleva dentro: en «Elige tu pelotari», cuarenta y tantos
+      // elementos por carta. Ahora es --c3d, que no se hereda (@property en el CSS de abajo: solo lo leen el velo y la
+      // carta, que lo piden con inherit), en pasos de 0,05 y solo cuando cambia; la transición del velo funde los pasos.
+      // Lo mismo la opacidad, la profundidad y la visibilidad: solo se escriben si cambian)
+      const dv = (Math.round(Math.min(1, a * 0.4) * 20) / 20).toFixed(2), op = (a <= VIS ? 1 : Math.max(0, (VIS + 0.7 - a) / 0.7)).toFixed(2), zi = String(100 - Math.round(a * 10));
+      if (t._dv !== dv) { t._dv = dv; t.style.setProperty('--c3d', dv); }
+      if (t._op !== op) { t._op = op; t.style.opacity = op; }
+      if (t._zi !== zi) { t._zi = zi; t.style.zIndex = zi; }
+      if (t.style.visibility) t.style.visibility = '';
       // (la imagen, solo cuando se va a ver: con cuarenta y tantas portadas no se cargan todas a la vez)
       if (t.dataset.foto && !t.dataset.cargada) { t.dataset.cargada = '1'; t.style.setProperty('--foto', `url('${t.dataset.foto}')`); }
     }
@@ -193,14 +200,26 @@ export { ptCabecera, ptPie } from '../ui/pantalla.js';
 
 /** Los estilos del carrusel (una vez). Las portadas, con su ilustración entera de fondo; el nombre abajo sobre un velo
  *  suave (sin degradados duros); la de delante, con el filo de su color y algo más de luz. */
+/** El texto de debajo del anillo, que entra de nuevo al cambiar la portada de delante (c3-in: sube 6 px y aparece).
+ *  Antes se hacía quitando y poniendo la clase «cambia» con void offsetWidth en medio, y eso obligaba al navegador a
+ *  maquetar la página entera a mitad de giro, en cada portada que pasaba: en «Elige tu pelotari», la mayor parte del
+ *  tiempo de JavaScript del giro (19 de noviembre de 2026). Ahora la animación se lanza directamente, sin maquetar. */
+export function reanima(...els) {
+  if (reduce()) return;
+  for (const el of els) el?.animate?.([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: 'cubic-bezier(.2,.9,.3,1)' });
+}
+
 export const CSS_CARRUSEL3D = `
 .c3{position:relative;flex:1 1 auto;min-height:0;min-width:0;width:100%;display:flex;flex-direction:column;gap:clamp(6px,1.6vh,12px)}
 .c3-escena{position:relative;flex:1 1 auto;min-height:150px;display:flex;align-items:center;justify-content:center;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:grab}
 .c3-escena:active{cursor:grabbing}
 .c3-anillo{position:relative;width:var(--c3w,200px);aspect-ratio:var(--c3ar,.75);max-height:100%;transform-style:preserve-3d}
+@property --c3d{syntax:'<number>';inherits:false;initial-value:0}
+/* (las de los lados, sin sombra: en un anillo 3D cada sombra agranda la capa de su portada y frenaba el giro; el velo ya las
+   separa del fondo. La de delante lleva la suya, de su color, en .frente) */
 .c3-anillo>*{position:absolute;inset:0;margin:0;padding:0;border:0;border-radius:12px;overflow:hidden;background:#150b2e center/cover no-repeat;background-image:var(--nit,none),var(--foto,none);color:#fff;font:inherit;text-align:left;cursor:pointer;
-  box-shadow:0 14px 34px rgba(4,1,12,.5);backface-visibility:hidden;-webkit-backface-visibility:hidden;will-change:transform;transition:box-shadow .25s,outline-color .25s;outline:2px solid transparent;outline-offset:-2px}
-.c3-anillo>*::after{content:'';position:absolute;inset:0;background:#07020f;opacity:calc(var(--d,0) * .62);pointer-events:none;transition:opacity .2s}
+  box-shadow:none;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:outline-color .25s;outline:2px solid transparent;outline-offset:-2px}
+.c3-anillo>*::after{--c3d:inherit;content:'';position:absolute;inset:0;background:#07020f;opacity:calc(var(--c3d,0) * .62);pointer-events:none;transition:opacity .2s;will-change:opacity}
 .c3-anillo>.frente{outline-color:var(--ac,#ff4fd8);box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 26px color-mix(in srgb,var(--ac,#ff4fd8) 45%,transparent),0 18px 40px rgba(4,1,12,.55)}
 .c3-anillo>* .c3-figs{position:absolute;left:0;right:0;top:12%;bottom:24%;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
 .c3-anillo>* .c3-figs img{height:100%;width:auto;max-width:none;filter:drop-shadow(0 8px 10px rgba(4,1,12,.6))}
@@ -254,9 +273,20 @@ export const CSS_CARRUSEL3D = `
    los lados se apagan con su opacidad (un velo rectangular asomaría por fuera de la silueta) */
 .c3-anillo>.ep-port{background:none;box-shadow:none;outline:0;overflow:visible;border-radius:0}
 .c3-anillo>.ep-port::after,.c3-anillo>.ep-port::before{display:none}
-.c3-anillo>.ep-port .gx-card{--w:var(--c3w,160px)!important;display:block;position:absolute;inset:0;width:100%;height:100%;opacity:calc(1 - var(--d,0) * .5);transition:opacity .2s;filter:none}
-.c3-anillo>.ep-port.frente .gx-card{filter:drop-shadow(0 0 calc(var(--c3w,160px) * .07) rgba(255,209,102,.55))}
-.c3-anillo>.ep-port .ep-tu{position:absolute;z-index:3;left:50%;top:-1%;translate:-50% -50%;padding:3px 10px;border-radius:999px;background:#ffd166;color:#2a1450;font:800 max(10px,calc(var(--c3w,160px) * .075))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.08em;text-transform:uppercase;font-style:normal;white-space:nowrap;opacity:calc(1 - var(--d,0) * .5)}
+.c3-anillo>.ep-port .gx-card{--w:var(--c3w,160px)!important;display:block;position:absolute;inset:0;width:100%;height:100%;filter:none}
+/* LA DE DELANTE, SIN REPINTAR LA CARTA EN CADA FOTOGRAMA (19 de noviembre de 2026; el autor: «los carruseles de selección
+   van muy lentos»). El filo de luz que da la vuelta a la carta (ui/neon.css, neon-aro) cambia un degradado cónico en cada
+   fotograma: con siete cartas a la vista, el navegador repintaba las siete enteras sesenta veces por segundo, también con
+   el anillo quieto. Ahora solo da vueltas en la de delante (y lo mismo el brillo que cruza la cara y la respiración de la
+   figura, que iban en las veintidós cartas), y en una capa suya (will-change), que se repinta sola sin
+   arrastrar la figura, el texto y las cifras. Y el brillo dorado de la de delante, que era un drop-shadow sobre la carta
+   entera (y como dentro gira el filo, se volvía a calcular en cada fotograma), es ahora .ep-aura: una imagen con la misma
+   silueta (la de --fifa en ui/neon.css, con menos puntos) dorada y ya difuminada, detrás de la carta: se pinta una vez */
+.c3-anillo>.ep-port:not(.frente) .gx-card::after,.c3-anillo>.ep-port:not(.frente) .gx-face::after,.c3-anillo>.ep-port:not(.frente) .gx-fig>img.pf{animation:none}
+.c3-anillo>.ep-port.frente .gx-card::after{will-change:transform}
+.c3-anillo>.ep-port .ep-aura{position:absolute;inset:calc(var(--c3w,160px) * -.12);z-index:-4;pointer-events:none;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-12 -12 124 172'><filter id='b' x='-25%' y='-25%' width='150%' height='150%'><feGaussianBlur stdDeviation='3.5'/></filter><polygon points='0,12.99 3.89,11.83 6.47,8.67 7,5.99 32,4.5 40.64,3.77 45.86,2.29 50,0 54.14,2.29 59.36,3.77 68,4.5 93,5.99 93.53,8.67 96.11,11.83 100,12.99 100,125 99.11,128.94 96.44,132.1 92,134.5 50,148 8,134.5 3.56,132.1 0.89,128.94 0,125' fill='%23ffd166' fill-opacity='.55' filter='url(%23b)'/></svg>") center/100% 100% no-repeat;opacity:0;transition:opacity .25s}
+.c3-anillo>.ep-port.frente .ep-aura{opacity:1}
+.c3-anillo>.ep-port .ep-tu{position:absolute;z-index:3;left:50%;top:-1%;translate:-50% -50%;padding:3px 10px;border-radius:999px;background:#ffd166;color:#2a1450;font:800 max(10px,calc(var(--c3w,160px) * .075))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.08em;text-transform:uppercase;font-style:normal;white-space:nowrap;--c3d:inherit;opacity:calc(1 - var(--c3d,0) * .5)}
 /* el aviso de la esquina de una portada cuya imagen es la cancha del juego y no una foto del frontón de verdad */
 .c3-chip{position:absolute;left:calc(var(--c3w,400px) * .028);top:calc(var(--c3w,400px) * .028);padding:4px 9px;border-radius:999px;background:rgba(9,4,20,.62);color:#e8defa;font:800 max(9px,calc(var(--c3w,400px) * .021))/1.1 var(--f-cond,'MZ Cond'),sans-serif;letter-spacing:.1em;text-transform:uppercase;font-style:normal}
 .c3-mosaico{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2px}.c3-mosaico img{width:100%;height:100%;object-fit:cover;min-height:0}

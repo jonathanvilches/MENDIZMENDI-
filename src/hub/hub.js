@@ -81,7 +81,7 @@ import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
 import { ATRAS_SVG } from '../ui/pantalla.js';
-import { carrusel3d, CSS_CARRUSEL3D } from '../game/carrusel3d.js';
+import { carrusel3d, CSS_CARRUSEL3D, reanima } from '../game/carrusel3d.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -300,7 +300,7 @@ export class Hub {
     const info = $('.hub-info', this.root), ib = info.querySelector('b'), is = info.querySelector('span');
     this.car = carrusel3d(nav.querySelector('.c3-escena'), { banda: true, ar: AR_MENU, inicio: i0, sonido: () => this.sound?.ui('click'),
       alCambiar: (i, b) => { const id = b?.dataset.s; ib.textContent = b?.querySelector('.c3-pie b')?.textContent || ''; is.textContent = this.MORE[id] || '';
-        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia'); } });
+        reanima(ib, is); } });
     nav.querySelectorAll('.c3-flecha').forEach((f, k) => f.addEventListener('click', (e) => { e.stopPropagation(); this.car?.paso(k ? 1 : -1); }));
   }
   go(screen, arg, silent) {

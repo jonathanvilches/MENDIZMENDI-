@@ -11,7 +11,7 @@
 // Se guarda en localStorage ('herrizherri-torneo-v1'): uno de cada campeonato por comarca. (Los de antes, de ocho y tres
 // rondas, que ya iban por la mitad, se acaban con su cuadro de siempre; los que no habían empezado, se rehacen.)
 import { lgPanel, lgFuera, lgEsc as esc } from '../futbol/liga.js';
-import { carrusel3d, CSS_CARRUSEL3D } from './carrusel3d.js';
+import { carrusel3d, CSS_CARRUSEL3D, reanima } from './carrusel3d.js';
 import { ptCabecera, ptPie, cssPantalla } from '../ui/pantalla.js';
 import { fichaDe } from '../data/pelotaris.js';
 import { pelotarisPanel, pelotarisCount } from './pelotaris.js';
@@ -723,20 +723,21 @@ function anilloPelotari({ kicker = '', sel = '', yo, bonus = 0, role = 'Mano' })
   return new Promise(res => {
     const flecha = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
     // (la carta, del ancho del anillo: --w lo pone el CSS con el de la portada, carrusel3d.js, .ep-port)
-    const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, yo: !!it.mia })}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
+    const port = (it) => `<button type="button" class="c3-port ep-port" data-p="${esc(it.k)}" aria-label="${esc(it.name)}">${pelotariCard({ name: it.name, town: it.town, stats: it.stats, side: 'azul', role, w: 170, bonus: it.bonus, tag: 'span', lang, yo: !!it.mia }).replace(/^(<span[^>]*>)/, '$1<i class="ep-aura" aria-hidden="true"></i>')}${it.mia ? `<i class="ep-tu">${eu ? 'Zu' : 'Tú'}</i>` : ''}</button>`;
     const r = lgPanel(`${ptCabecera({ atras: eu ? 'Itzuli' : 'Volver', kicker: esc(kicker), titulo: eu ? 'Aukeratu zure pilotaria' : 'Elige tu pelotari' })}
       <div class="c3" data-notr><div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="${eu ? 'Pilotariak' : 'Pelotaris'}">${flecha('izq')}<div class="c3-anillo">${items.map(port).join('')}</div>${flecha('der')}</div></div>
       ${ptPie({ botones: `<button type="button" class="lg-btn go c3-jugar" data-a="ok">${eu ? 'Jokatu' : 'Jugar'}</button>` })}`);
     r.firstElementChild.classList.add('ef-card', 'c3-card', 'c3-pant', 'ep-pant');
     // (las figuras animadas, apagadas todas antes de que carguen; la de delante se enciende al llegar)
     const figs = [...r.querySelectorAll('.ep-port')].map(b => b.querySelector('.gx-fig img')); figs.forEach(im => figuraViva(im, false));
-    const info = r.querySelector('.c3-info'), ok = r.querySelector('[data-a="ok"]'); let cur = items[0], viva = null;
+    const info = r.querySelector('.c3-info'), ok = r.querySelector('[data-a="ok"]'); let cur = items[0], viva = null, tViva = 0;
     const car = carrusel3d(r.querySelector('.c3-escena'), { ar: CARTA_ALTO, banda: true, inicio: Math.max(0, items.findIndex(it => it.k === sel)),
       alCambiar: (i) => { const it = items[i]; if (!it) return; cur = it;
         info.querySelector('.c3-que b').textContent = it.name; info.querySelector('.c3-que span').textContent = it.mia ? (eu ? 'Zure pilotaria' : 'Tu pelotari') : it.town;
         ok.textContent = eu ? `Jokatu: ${it.name}` : `Jugar con ${it.name}`;
-        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
-        if (viva !== figs[i]) { figuraViva(viva, false); viva = figs[i]; figuraViva(viva, true); } } });
+        reanima(info.querySelector('.c3-que'));
+        // (la figura animada, cuando el anillo se para en ella: girando deprisa no se descodifica la de cada carta que pasa)
+        clearTimeout(tViva); tViva = setTimeout(() => { if (r.isConnected && viva !== figs[i]) { figuraViva(viva, false); viva = figs[i]; figuraViva(viva, true); } }, 260); } });
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
     const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(k); };
     // (las teclas, aquí y solo aquí: debajo puede estar el anillo de los campeonatos, que también las oye)
@@ -848,7 +849,7 @@ function carruselElige({ kicker, titulo, items, sel, ok, btn }) {
     const car = carrusel3d(r.querySelector('.c3-escena'), { ar: 10 / 16, paso: 30, vis: 1, inicio: Math.max(0, items.findIndex(it => it.k === sel)),
       alCambiar: (i) => { const it = items[i]; if (!it) return; cur = it;
         info.querySelector('.c3-que b').textContent = it.linea?.[0] || ''; info.querySelector('.c3-que span').textContent = it.linea?.[1] || '';
-        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia'); } });
+        reanima(info.querySelector('.c3-que')); } });
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
     const fin = (k) => { car.destroy(); removeEventListener('keydown', tecla, true); btn?.setAttribute('aria-expanded', 'false'); lgFuera(r); res(k); };
     // (las flechas e Intro, aquí y solo aquí: esta pantalla se abre encima del menú de campeonatos, que también es un
@@ -935,7 +936,7 @@ export function frontonesMenu() {
       alCambiar: (i) => { const F = LISTA[i]; if (!F) return; sel = F;
         info.querySelector('.c3-que b').textContent = F.inventado ? (eu ? 'Jokorako asmatua' : 'Inventado para el juego') : F.lugar;
         info.querySelector('.c3-que span').textContent = tipoTxt(F);   // (la línea de su historia no cabe en la fila de abajo: se lee en su ficha del menú)
-        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
+        reanima(info.querySelector('.c3-que'));
         try { localStorage.setItem(CLAVE, F.id); } catch (e) { /* sin guardado */ } } });
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
     const fin = (F) => { car.destroy(); removeEventListener('keydown', tecla, true); lgFuera(r); res(F); };
@@ -1269,7 +1270,7 @@ export function pelotaMenu(T, here = null, T2 = null, o = null, T3 = null, X = [
         // (abajo, en grande, el nombre del campeonato de delante, que en la portada se leía mal en el móvil; y en la línea
         // fina, la ronda y el rival)
         info.querySelector('.c3-que b').innerHTML = it.name; info.querySelector('.c3-que span').innerHTML = [it.fase || it.tag, it.contra].filter(Boolean).join(' · '); info.querySelector('.c3-ronda').innerHTML = it.ronda || '';
-        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia');
+        reanima(info.querySelector('.c3-que'));
         try { localStorage.setItem(CLAVE, it.a); } catch (e) { /* sin guardado */ } },
     });
     r.querySelectorAll('.c3-flecha').forEach((f, i) => f.addEventListener('click', (e) => { e.stopPropagation(); car.paso(i ? 1 : -1); }));
