@@ -2383,36 +2383,26 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   ir a sacar cada tanto. Las muestras del golpe arrancan saltándose el silencio que el mp3 lleva delante y Safari no
   quita (`pelota/audio.js` `golpe`, `INICIO`).
 - **La equipación de tu pelotari** (`src/pelota/kit.js`, `src/pelota/equipacion.js`, `KIT` en `actors/npcOutfit.js`; 18 de
-  noviembre de 2026; el autor: «una de las personalizaciones son las zapatillas, las muñequeras y la faja o fajín»): el
-  jugador elige el color de las zapatillas, de las muñequeras y de la faja (nueve colores; muñequeras y faja, también
-  sin ellas) y lo lleva el pelotari con el que juegue, el suyo o uno de los del juego, en todos los partidos; los
-  rivales van como siempre. Se guarda en el perfil (`settings.pelotaKit`). No se tocan los modelos: como la camiseta de
-  colorado, se pinta en el sombreador (`outfitTint`, que ahora recibe `shoes`, `wrist` y `sash`), y cada pieza se
-  reconoce por dónde cae en el cuerpo en la pose de reposo, medido en el esqueleto de cada modelo (`kitMedidas`: los 22
-  vienen ajustados a su caja y no miden lo mismo): la faja, una banda entre la cadera y el primer hueso de la espalda,
-  solo en el tronco; las muñequeras, un tramo del antebrazo pegado a la muñeca; las zapatillas, lo claro por debajo del
-  tobillo. `ponKitColores(U, colores)` cambia los colores de un pelotari ya teñido sin rehacer el material.
-  La pantalla «Equipación» enseña el pelotari en 3D con lo elegido y tres filas de colores; el pelotari es una imagen
-  que se vuelve a dibujar al cambiar un color o al girarlo arrastrando, con el renderizador que ya hay
-  (`util/offscreen.js`): ni bucle ni otro contexto WebGL. Se abre desde «Elige tu pelotari» (botón «Equipación») y desde
-  el cuadro del campeonato una vez empezado (antes de la primera ronda, ese sitio es de «Pelotari»). Las cartas, que son
-  dibujos, no la enseñan todavía.
-  *Nueva entera el 19 de noviembre* (el autor, el 18: «zapatillas nuevas y fajines y muñequeras, y los tacos también de
-  colores… que se puedan cambiar los cordones, la suela, la puntera… la faja es muy fina y va más abajo»): la zapatilla
-  lleva cuatro colores (`zap`, `suela`, `punt`, `cord` en `KIT_PIEZAS`), pintados en `KIT` por su eje del tobillo a la
-  base de los dedos; las muñequeras, con sus canales; y los tacos de las manos, en `actors/sinTacos.js`
-  (`tacosColor`). La pantalla tiene dos pestañas (`KIT_GRUPOS`) y, en la de las zapatillas, una vista de cerca que sigue
-  al pie izquierdo al girar. *El fajín ya no se pinta*: es una pieza en 3D hecha por Meshy (`src/pelota/fajin.js`,
-  `assets/pelota/fajin.glb`; el autor: «el fajín más abajo y no intentes hacerlo tú, que lo haga Meshy»). De cuatro
-  propuestas de Meshy (20 créditos cada una), dos eran un anillo cerrado y se quedó la del nudo prieto con dos puntas
-  cortas; simplificada a 4.400 triángulos, sin textura. `ponFajin(root, color)` lo mide en el cuerpo de cada pelotari
-  en la pose de reposo (lo ancho y lo hondo del tronco a la altura del fajín, sin los brazos), lo estira para abrazar
-  esa cadera (`FAJIN.HOLGURA`), le da una banda fina (`FAJIN.BANDA`, el 3 % del alto), alarga las puntas
-  (`FAJIN.PUNTAS`), pone el nudo en la cadera izquierda algo adelantado (`FAJIN.NUDO`) y lo cuelga del hueso de la
-  cadera, en sus unidades (`boneInverses` y `bindMatrix`), así que se mueve con ella al correr y agacharse. Va algo por
-  debajo de donde iba el pintado (`FAJIN.ALTO`: un 10 % del camino entre donde nacen las piernas y el hueso de la
-  cadera). En `KIT` queda solo la camiseta metida por dentro, a la altura de ese fajín (`kitMedidas` lee `FAJIN`).
-  Comprobado en la pantalla de la equipación y en un partido, a 1280×720 y a 844×390.
+  noviembre de 2026; el autor: «una de las personalizaciones son las zapatillas, las muñequeras y la faja o fajín»; y el
+  19, por la tarde: «con lo que tenemos de momento eliminamos faja y que se pueda personalizar tacos, muñequeras,
+  zapatillas completas y color de pelo»): el jugador elige el color de las zapatillas (enteras), de las muñequeras, de
+  los tacos y del pelo, y lo lleva el pelotari con el que juegue, el suyo o uno de los del juego, en todos los
+  partidos; los rivales van como siempre. **No hay faja**: el fajín en 3D de Meshy y las zapatillas nuevas quedan en la
+  rama `borrador-equipacion` hasta que se rehagan los personajes. Se guarda en el perfil (`settings.pelotaKit`;
+  `KIT_PIEZAS`: `zap`, `mun`, `taco` y `pelo`). No se tocan los modelos: como la camiseta de colorado, se pinta en el
+  sombreador (`outfitTint`, que recibe `shoes`, `wrist` y `hair`), y cada pieza se reconoce por dónde cae en el cuerpo
+  en la pose de reposo, medido en el esqueleto de cada modelo (`kitMedidas`: los 22 vienen ajustados a su caja y no
+  miden lo mismo): las muñequeras, un tramo del antebrazo pegado a la muñeca, con sus canales; las zapatillas, todo lo
+  que hay por debajo del tobillo, de un solo color con una raya algo más oscura donde iría la suela; los tacos de las
+  manos, en `actors/sinTacos.js` (`tacosColor`); el pelo, con el tinte de `actors/hairColor.js` (ver «Pelo de otro
+  color»). `ponKitColores(U, colores)` cambia los colores de un pelotari ya teñido sin rehacer el material.
+  La pantalla «Equipación» enseña el pelotari en 3D con lo elegido y dos pestañas (`KIT_GRUPOS`: «Zapatillas,
+  muñequeras y tacos» y «Pelo», esta con una vista de cerca de la cabeza); el pelotari es una imagen que se vuelve a
+  dibujar al cambiar un color o al girarlo arrastrando, con el renderizador que ya hay (`util/offscreen.js`): ni bucle
+  ni otro contexto WebGL. Se abre desde «Elige tu pelotari» (botón «Equipación») y desde el cuadro del campeonato una
+  vez empezado (antes de la primera ronda, ese sitio es de «Pelotari»). Las cartas, que son dibujos, no la enseñan
+  todavía. Comprobado en la pantalla de la equipación (Iñigo, Ander, Unai y Maialen) y en un partido, a 1280×720 y a
+  844×390.
 - **La pantalla de juego** (`src/ui/pantalla.js`: `ptCabecera`, `ptPie`, `cssPantalla`; 18 de noviembre de 2026; el
   autor, con una captura del móvil en la que la portada, el texto y «Jugar» se tocaban: «hay muy poco espacio», y que se
   ordene todo como los juegos de deportes del móvil). Es la disposición de las pantallas a pantalla entera, con los
@@ -3629,7 +3619,10 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   equipo, `hairFor`) y los pelotaris rivales y compañeros. En las chicas, el pelo va en sus propias mallas
   (`userData.peloColor`): su textura es gris y el color lo pone el material (`peloMaterial`, con el brillo propio de
   `peloEmisivo`); lo pintado debajo se tiñe igual, con el brillo de referencia de la chica (`hairRef`). Las medidas
-  salen de `tools/pelo/zonas.mjs` y se revisan con `tools/pelo/ver.mjs`.
+  salen de `tools/pelo/zonas.mjs` y se revisan con `tools/pelo/ver.mjs`. Para la equipación (19 nov), los pelotaris
+  que no traen el pelo castaño también se tiñen: `medirPelo` mira la textura en los vértices de la cabeza fuera de la
+  cara y, si el pelo es claro y saturado (el naranja de Ander) o negro (Unai), da su brillo de referencia y el modo
+  (`uHairB`), con el que la máscara coge ese pelo en vez de solo lo castaño; se guarda por textura.
 - **Trajes de carnaval y de leyenda** (`src/actors/trajes.js`): la indumentaria de los personajes con traje, hecha
   según las fuentes de cada uno (anotadas junto a cada traje: el Museo del Traje y el Museo Etnológico de Navarra para
   los joaldunak, las crónicas de Altsasu para los momotxorros, el programa de Aoiz para los cascabobos, el de Vidángoz

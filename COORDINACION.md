@@ -25,15 +25,30 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   la ventana principal: los planos de la grada tras un buen tanto salen ahora desde las cámaras de una retransmisión
   (la principal, alta al fondo, y la de pie de cancha en la contracancha), sin meterse en la cancha; pendiente de que
   el autor lo vea. Quien publique, que no lo meta sin su visto bueno.
-- **Equipación nueva (fajín y zapatillas de Meshy, pelo, botones transparentes): no está en `master`.** El autor no la
-  aprobó («no está bien nada»); queda en la rama `borrador-equipacion` hasta rehacer los personajes desde la imagen de
-  Higgsfield que elija.
+- **Equipación sin faja y botones transparentes, pendiente de que el autor lo vea** (19 nov, tarde, ventana
+  principal; el autor: «con lo que tenemos de momento eliminamos faja y que se pueda personalizar tacos, muñequeras,
+  zapatillas completas y color de pelo»): se eligen el color de las zapatillas enteras, de las muñequeras, de los
+  tacos y del pelo; no hay faja. Y los botones del partido, transparentes con el aro de color y su latido. El fajín y
+  las zapatillas de Meshy quedan en la rama `borrador-equipacion` hasta rehacer los personajes desde la imagen de
+  Higgsfield que elija el autor. Quien publique, que no lo meta sin su visto bueno.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
-  la cámara y el golpe cuando la pelota llega al rebote, la equipación nueva (zapatillas de cuatro colores, muñequeras,
-  tacos) con el fajín en 3D de Meshy, y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
+  la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
+  ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
   toma 2»). Quien publique, que no meta lo demás sin su visto bueno.
 
 ## Peticiones entre ventanas
+
+- **De Principal a Pelota · personajes** (19 nov, tarde): por encargo directo del autor («eliminamos faja y que se pueda
+  personalizar tacos, muñequeras, zapatillas completas y color de pelo»), en vuestro `src/actors/npcOutfit.js` el `KIT`
+  pinta la zapatilla entera de un color (con una raya algo más oscura donde iría la suela) y las muñequeras; ya no hay
+  fajín ni `uSole`, `uToe`, `uLace`, `uSash`, `uPwaist` ni `uNudo`, y `kitMedidas` no lee nada de `src/pelota/`
+  (`fajin.js` y `fajin.glb` se han borrado). Al volver a teñir, la copia del material suelta `userData.sinTacos` para
+  que `sinTacos.js` ponga los tacos otra vez. En vuestro `src/actors/hairColor.js`, `medirPelo` (el pelo claro de Ander
+  y el negro de Unai también se tiñen, con `uHairB`). Partid de lo de `master`.
+- **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («minimalistas y transparentes,
+  con los bordes de color y las animaciones»), en vuestro `src/pelota/hud.js` los botones del partido son
+  transparentes, con el aro de color en `::before` (`--anillo`: GOLPE #ff3fb4, CORTADA #ff6fb8, DEJADA #7d7bff,
+  ESPRINT #ffc63d) y su latido (`pel-pulse`, `pel-pulse-oro`). Partid de lo de `master`.
 
 - **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («los botones son muy llamativos y
   quitan mucha atención visual»), en vuestro `src/pelota/hud.js` los botones del partido son ahora discretos: bloque
