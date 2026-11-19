@@ -35,6 +35,8 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   (`c2943be6`, `9f7ce5d0`, `2f3b20e0`, `2b84db42`, `6d07d896`, `e73da537`), los botones discretos y transparentes
   (`8ec5c4a8`, `971f78ed`) y el rebote (`1f40a775`): esos archivos (`src/pelota/{court,game,hud,match,physics,rules}.js`,
   `src/style.css`, `src/game/fronton.js`, el público y el mando) se dejaron como en la web de la séptima ronda.
+  Después, la misma noche (el autor: «El menú que sea carrusel, como has estado haciendo hasta ahora»), se publicó encima el
+  menú en carrusel (`51574a19`), compilado igual: con esos mismos archivos como en la web de la séptima ronda.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
   la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
   ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
