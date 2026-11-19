@@ -135,6 +135,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche (2), la hizo la ventana principal, por el encargo del autor («repártelos un poco a lo largo de todo el
+  frontón para que en las fases vaya aumentando el número de espectadores… en la final tiene que haber un lleno
+  completo»): `master` hasta `463ce87b`. Entra el público por fases (fronton.js y `camp.fase` en townDeportes.js): un
+  cuarto de la grada en la primera ronda, cada vez más y lleno en la final; los de las mejores filas, animados, y el
+  resto con su retrato, que también se levanta en cada tanto.
 - 19 nov, noche, la hizo la ventana principal, por los encargos del autor («todos los pelotaris tienen que tener en el
   fondo un frontón real… el mismo tamaño y la misma posición», «hay que eliminar la música mientras se está jugando a
   pelota» e «intenta integrar mejor con Higgsfield los jugadores de fútbol en el terreno de juego»): `master` hasta
