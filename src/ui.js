@@ -18,6 +18,8 @@ import { esc, el } from './util/html.js';
 import { windowKeys } from './util/keys.js';
 import { escala } from './util/tele.js';
 import { enMarcha, para } from './ui/videos.js';
+import { ATRAS_SVG } from './ui/pantalla.js';
+import './ui/pausa-pueblo.css';   // (la pausa del pueblo con el diseño de las pantallas de juego)
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const I = (n, s = 22) => iconSVG(n, s);
@@ -828,17 +830,32 @@ export class UI {
 
   // ---------- Menú ----------
   openMenu() {
+    // La pausa, con el diseño de las pantallas de juego (19 de noviembre de 2026; el autor, con una captura del móvil donde
+    // «Borrar partida del valle» quedaba cortado abajo: «ajustarlas al nuevo diseño e identidad»): a pantalla entera, con
+    // el pueblo quieto detrás; arriba, volver (seguir jugando), el nombre del sitio con la hora y «Pausa»; en medio, la
+    // partida a la izquierda y los ajustes a la derecha, en filas; abajo, cómo se juega y «Seguir jugando» a la derecha
     const g = this.game, st = g.state, town = g.kind === 'town';
-    const S = town ? g.P.settings : st.settings;
-    const s = this.screen(`<header><h2>${I('gear', 30)} Pausa</h2>${this.horaChip()}${this.closeBtn()}</header><div class="pbody">
-      <div class="btns col top"><button class="btn primary close">${I('play', 22)} Seguir jugando</button><button class="btn" id="mBook">Cuaderno</button><button class="btn" id="mHome">${I('plaza', 22)} Ir a la plaza de ${esc(town ? g.def.name.split(' /')[0] : 'Otsagabia')}</button><button class="btn" id="mExit">${I('map', 22)} ${town ? 'Volver a la comarca' : 'Salir al mapa de Navarra'}</button>${this.input.touch ? '' : `<button class="btn" id="mPad">${I('control', 22)} Usar el móvil como mando</button>`}${town ? '' : `<button class="btn danger" id="mReset">${I('close', 20)} Borrar partida del valle</button>`}</div>
-      <label>Música <input type="checkbox" id="mMusic" ${S.music ? 'checked' : ''}></label>
-      <label>Volumen <input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
-      <label>Calidad gráfica <select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
-      <p id="mQnote" class="keys" hidden>La nueva calidad se aplicará al cargar el próximo pueblo.</p>
-      <label>Paso del tiempo <select id="mT"><option value="1">Normal</option><option value="0">Detenido</option><option value="4">Rápido</option></select></label>
-      <div class="keys">${this.input.touch ? 'Izquierda: caminar; hasta el borde, correr · Derecha: mirar · Botón grande de la derecha: acción · botón de saltar' : '<kbd>WASD</kbd> o flechas caminar · <kbd>Mayús</kbd> correr · <kbd>Espacio</kbd> saltar · <kbd>E</kbd> hablar/usar · <kbd>F</kbd> prismáticos · <kbd>C</kbd> cuaderno · <kbd>M</kbd> mapa · ratón para la cámara · rueda: zoom'}</div>
-    </div>`, 'menu');
+    const S = town ? g.P.settings : st.settings, sitio = esc(town ? g.def.name.split(' /')[0] : 'Otsagabia');
+    const fila = (id, ic, txt, sub, cls = '') => `<button type="button" class="pz-fila${cls}" id="${id}">${ic}<span class="pz-et"><b>${txt}</b><small>${sub}</small></span><i class="pz-fl" aria-hidden="true"></i></button>`;
+    const aj = (txt, sub) => `<span class="pz-et"><b>${txt}</b><small>${sub}</small></span>`;
+    const X = '<svg class="pz-x" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    const s = this.screen(`<header class="pz-top"><button type="button" class="pz-atras close" aria-label="Seguir jugando" title="Seguir jugando (Esc)">${ATRAS_SVG}</button>
+      <div class="pz-tit"><small>${sitio}${this.hora ? ` · ${esc(this.hora)}` : ''}</small><h2>Pausa</h2></div></header>
+      <div class="pz-medio">
+        <section class="pz-col" aria-label="Partida"><h3>Partida</h3>
+          ${fila('mBook', I('book', 26), 'Cuaderno', 'Tus misiones y sus pasos')}${fila('mHome', I('plaza', 26), `Ir a la plaza de ${sitio}`, 'Vuelve al centro del pueblo')}${fila('mExit', I('map', 26), town ? 'Volver a la comarca' : 'Salir al mapa de Navarra', 'La partida queda guardada')}${this.input.touch ? '' : fila('mPad', I('control', 26), 'Usar el móvil como mando', 'Con un código QR, sin instalar nada')}${town ? '' : fila('mReset', X, 'Borrar partida del valle', 'Empieza el valle desde cero', ' peligro')}
+        </section>
+        <section class="pz-col" aria-label="Ajustes"><h3>Ajustes</h3>
+          <label class="pz-aj">${aj('Música', 'La música de fondo')}<input type="checkbox" class="pz-sw" id="mMusic" ${S.music ? 'checked' : ''}></label>
+          <label class="pz-aj">${aj('Volumen', 'Música, sonidos y voces')}<input type="range" id="mVol" min="0" max="1" step="0.05" value="${S.volume}"></label>
+          <label class="pz-aj">${aj('Calidad gráfica', 'Baja, si el juego va lento')}<select id="mQ"><option value="low">Baja (más fluido)</option><option value="mid">Media</option><option value="high">Alta</option></select></label>
+          <p id="mQnote" class="pz-nota" hidden>La nueva calidad se aplicará al cargar el próximo pueblo.</p>
+          <label class="pz-aj">${aj('Paso del tiempo', 'El día y la noche')}<select id="mT"><option value="1">Normal</option><option value="0">Detenido</option><option value="4">Rápido</option></select></label>
+        </section>
+      </div>
+      <footer class="pz-pie"><div class="keys">${this.input.touch ? 'Izquierda: caminar; hasta el borde, correr · Derecha: mirar · Botón grande de la derecha: acción · botón de saltar' : '<kbd>WASD</kbd> o flechas caminar · <kbd>Mayús</kbd> correr · <kbd>Espacio</kbd> saltar · <kbd>E</kbd> hablar/usar · <kbd>F</kbd> prismáticos · <kbd>C</kbd> cuaderno · <kbd>M</kbd> mapa · ratón para la cámara · rueda: zoom'}</div>
+        <button type="button" class="btn primary close pz-go">${I('play', 22)} Seguir jugando</button></footer>`, 'menu pausa');
+    s.id = 'pausa-pueblo';
     $('#mQ', s).value = S.quality || (this.input.touch ? 'mid' : 'high'); $('#mT', s).value = String(S.timeSpeed ?? 1);
     const save = () => g.save();
     $('#mMusic', s).onchange = e => { S.music = e.target.checked; this.sound.setMusic(e.target.checked); save(); };
@@ -854,7 +871,7 @@ export class UI {
     $('#mExit', s).onclick = () => { g.save(); s.style.pointerEvents = 'none'; this.fadeOut().then(() => { this.closeModal(); g.onExit?.(); this.fadeIn(); }); };
     const mp = $('#mPad', s); if (mp) mp.onclick = () => { this.closeModal(); import('./mando/mando.js').then(m => m.abrirMando()); };   // (en el ordenador: el móvil como mando)
     const rb = $('#mReset', s);
-    if (rb) rb.onclick = () => { if (rb.dataset.sure) { this.closeModal(); g.resetState(st.name); } else { rb.dataset.sure = 1; rb.textContent = '¿Seguro? Pulsa otra vez para borrar'; this.sound.ui('error'); } };
+    if (rb) rb.onclick = () => { if (rb.dataset.sure) { this.closeModal(); g.resetState(st.name); } else { rb.dataset.sure = 1; rb.classList.add('seguro'); rb.querySelector('b').textContent = '¿Seguro? Pulsa otra vez para borrar'; this.sound.ui('error'); } };
   }
 
   // ---------- Prismáticos ----------

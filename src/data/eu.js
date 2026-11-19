@@ -114,6 +114,12 @@ export const EU_EXACT = {
   'Sigue los mojones blancos y amarillos': 'Jarraitu mugarri zuri-horiei', '¡Misión cumplida!': 'Misioa beteta!', '¡Sello conseguido!': 'Zigilua lortuta!', '¡Pueblo completado!': 'Herria osatuta!',
   'Volver al mapa': 'Itzuli mapara', 'Sello nuevo': 'Zigilu berria', 'Nueva carta': 'Karta berria', 'Especie nueva': 'Espezie berria', 'Seguir observando': 'Jarraitu behatzen',
   'Esperar a que anochezca': 'Itxaron ilundu arte', 'Todavía no': 'Oraindik ez', '¡Firmar en el buzón!': 'Sinatu postontzian!', '¡Genial!': 'Bikain!', '¡Bien!': 'Ondo!', '¡Increíble!': 'Harrigarria!',
+  // (la pausa del pueblo y Cómo jugar con el diseño de las pantallas de juego, 19 nov 2026)
+  'Partida': 'Partida', 'Tus misiones y sus pasos': 'Zure misioak eta haien urratsak', 'Vuelve al centro del pueblo': 'Itzuli herriaren erdigunera', 'La partida queda guardada': 'Partida gordeta geratzen da',
+  'Con un código QR, sin instalar nada': 'QR kode batekin, ezer instalatu gabe', 'Empieza el valle desde cero': 'Hasi harana hutsetik', 'La música de fondo': 'Atzeko musika', 'Música, sonidos y voces': 'Musika, soinuak eta ahotsak',
+  'Baja, si el juego va lento': 'Baxua, jokoa motel badabil', 'El día y la noche': 'Eguna eta gaua', '¿Seguro? Pulsa otra vez para borrar': 'Ziur? Sakatu berriro ezabatzeko',
+  'Teclado y ratón o mando': 'Teklatua eta sagua, edo kontrolagailua', 'El móvil, de mando por la wifi': 'Mugikorra aginte gisa, wifiz', 'Con los botones de la pantalla': 'Pantailako botoiekin',
+  'Elige una de las tres formas': 'Aukeratu hiru moduetako bat', 'Así se juega': 'Honela jokatzen da', 'Puedes volver aquí cuando quieras con «Cómo jugar», en el menú.': 'Nahi duzunean itzul zaitezke hona, menuko «Nola jokatu» atalean.',
   'Seguir jugando': 'Jolasten jarraitu', 'Salir al mapa de Navarra': 'Irten Nafarroako mapara', 'Volver al mapa de Navarra': 'Itzuli Nafarroako mapara', 'Borrar partida del valle': 'Ezabatu haraneko partida',
   'Llévame': 'Eraman nazazu', 'Siguiendo': 'Jarraitzen', 'Acércate al frontón para jugar a pelota': 'Hurbildu pilotalekura pilotan jolasteko',
   'Nueva insignia': 'Intsignia berria', '¡Subes de nivel!': 'Maila igo duzu!', 'Seguir explorando': 'Jarraitu esploratzen', 'Continuar': 'Jarraitu', 'Salir al mapa': 'Irten mapara', 'Menú': 'Menua',

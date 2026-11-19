@@ -880,44 +880,8 @@ body.futbol #controls, body.futbol .learn-btn { display: none !important; }
 .enc-live i { width: 10px; height: 10px; border-radius: 50%; background: #ff2a2a; box-shadow: 0 0 8px #ff2a2a; animation: encLive 1s steps(2) infinite; }
 @keyframes encLive { 50% { opacity: .25; } }
 
-/* ¿cómo quieres jugar? (comojugar.js): las tres formas, cada una con sus pasos y sus botones; en fila en el ordenador y
-   en la tele, una debajo de otra en el móvil de pie. La del aparato en el que se está, marcada en rosa */
-.cj { display: grid; z-index: 42; }
-.cj-in { width: min(1240px, 100%); margin: auto; display: flex; flex-direction: column; gap: 16px; padding: 8px 0; }
-.cj-head { text-align: center; } .cj-head .kicker { margin: 0 auto; }
-.cj-head h2 { margin: 4px 0 8px; font: 400 var(--fs-3xl)/1.05 var(--f-display); text-transform: uppercase; color: #fff; }
-.cj-head p { margin: 0 auto; max-width: 640px; color: var(--mute); font-size: var(--fs-md); font-weight: 700; line-height: 1.4; }
-.cj-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; align-items: stretch; }
-.cj-card { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 16px 20px 20px; border-radius: 18px; background: rgba(20, 10, 40, .72); border: 2px solid var(--line2); }
-.cj-card.aqui { border-color: #ff7ac8; box-shadow: none; }
-.cj-top { display: flex; align-items: center; gap: 12px; min-width: 0; }
-.cj-ico { flex: none; width: 52px; height: 52px; display: grid; place-items: center; border-radius: 14px; background: linear-gradient(135deg, #d0189f, #6a2ff0); color: #fff; } .cj-ico svg { width: 34px; height: 34px; }
-.cj-top h3 { flex: 1; min-width: 0; margin: 0; font: 400 var(--fs-xl)/1.05 var(--f-display); text-transform: uppercase; color: #fff; }
-.cj-aqui { position: absolute; top: -12px; right: 16px; padding: 4px 10px; border-radius: 999px; background: #ff7ac8; color: #1e0a44; font: 900 var(--fs-xs)/1.2 'MZ Texto', sans-serif; letter-spacing: .04em; text-transform: uppercase; }
-.cj-txt { margin: 0; color: #ece4ff; font-size: var(--fs-sm); font-weight: 700; line-height: 1.4; }
-.cj-pasos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.cj-pasos li { display: flex; align-items: flex-start; gap: 12px; }
-.cj-n { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--cyan, #c9b2ff); color: #1e0a44; font: 900 var(--fs-sm)/1 'MZ Texto', sans-serif; }
-.cj-pasos b { display: block; color: #fff; font-size: var(--fs-md); line-height: 1.25; } .cj-pasos small { display: block; color: var(--mute); font-size: var(--fs-sm); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
-.cj-qr { display: flex; align-items: center; gap: 12px; } .cj-qr small { min-width: 0; color: var(--mute); font-size: var(--fs-xs); font-weight: 700; overflow-wrap: anywhere; }
-.cj-qrimg { flex: none; width: 128px; height: 128px; border-radius: 10px; background: #fff; } .cj-qrimg svg { display: block; width: 100%; height: 100%; }
-.cj-btns { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-.cj .btn { min-height: 48px; max-width: 100%; text-decoration: none; color: #fff; } .cj .btn svg { flex: none; width: 22px; height: 22px; }
-/* (el texto de los botones en una sola línea: partido en dos, junto al icono, se montaba) */
-.cj .btn > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cj-hecho { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; color: #3ee07a; font-weight: 900; } .cj-hecho svg { width: 22px; height: 22px; }
-.cj-cards { padding-top: 12px; }   /* (sitio para la etiqueta «Estás aquí», que asoma por arriba) */
-.cj-foot { position: sticky; z-index: 1; bottom: calc(-16px - env(safe-area-inset-bottom, 0px)); display: flex; justify-content: center; padding: 12px 0 calc(16px + env(safe-area-inset-bottom, 0px)); } .cj-foot .btn { min-width: 240px; }   /* (siempre a la vista, abajo) */
-.cj-foot::before { content: ''; position: absolute; z-index: -1; top: -54px; bottom: -48px; left: calc(50% - 50vw / var(--z, 1)); right: calc(50% - 50vw / var(--z, 1)); background: linear-gradient(180deg, rgba(12, 9, 20, 0), rgba(12, 9, 20, .3) 18px, rgba(12, 9, 20, .7) 36px, rgba(12, 9, 20, .96) 54px); pointer-events: none; }   /* (su fondo, de lado a lado: lo de debajo se ve pasar sin estorbar) */
+/* ¿cómo quieres jugar? (comojugar.js): su diseño, el de las pantallas de juego, va en pantalla-hub.css */
 .app-sheet { z-index: 45; }   /* (los pasos de instalar, encima de esta pantalla) */
-@media (orientation: portrait) and (max-width: 900px), (max-width: 700px) { .cj-cards { grid-template-columns: minmax(0, 1fr); } .cj-head h2 { font-size: var(--fs-2xl); } }
-/* (móvil tumbado, con poca altura: más justas, para ver más de un vistazo) */
-@media (orientation: landscape) and (max-height: 560px) {
-  .cj-in { gap: 12px; } .cj-head h2 { font-size: var(--fs-2xl); margin: 0 0 4px; } .cj-head p { font-size: var(--fs-sm); }
-  .cj-cards { gap: 12px; } .cj-card { padding: 12px 12px 16px; gap: 8px; } .cj-ico { width: 40px; height: 40px; border-radius: 12px; } .cj-ico svg { width: 26px; height: 26px; }
-  .cj-top { gap: 8px; } .cj-top h3 { font-size: var(--fs-lg); } .cj-pasos b { font-size: var(--fs-sm); } .cj-pasos small { font-size: var(--fs-xs); }
-  .cj-qrimg { width: 96px; height: 96px; } .cj .btn { min-height: 44px; padding: 8px 12px; }
-}
 
 /* primera pantalla: elegir idioma */
 .langpick { display: grid; place-items: center; }

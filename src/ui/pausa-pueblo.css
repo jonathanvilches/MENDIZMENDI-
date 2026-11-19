@@ -1,0 +1,78 @@
+/* ================= La pausa del pueblo (ui.js, openMenu), con el diseño de las pantallas de juego =================
+   19 de noviembre de 2026. El autor, con una captura del móvil: la ventana de la pausa con «Borrar partida del valle»
+   cortado abajo, una rueda y una equis en 3D que no eran de la casa y una raya de color arriba; y «ajustarlas al nuevo
+   diseño e identidad». Ahora es como las pantallas de pelota (src/ui/pantalla.js): a pantalla entera, con el pueblo quieto
+   y velado detrás; arriba, el botón redondo de volver (seguir jugando), el sitio con la hora y «Pausa»; en medio, dos
+   columnas, la partida y los ajustes, en filas del mismo alto; abajo, cómo se juega a la izquierda y «Seguir jugando» a la
+   derecha. Todo cabe sin desplazar en el móvil tumbado (844 × 390) y en el ordenador. El #id le da el peso que hace falta
+   frente a neon.css, que redondea las ventanas con !important. */
+:root #pausa-pueblo { padding: 0; align-items: stretch; justify-content: stretch; -webkit-backdrop-filter: none; backdrop-filter: none;
+  background:
+    radial-gradient(46% 60% at 8% -8%, rgba(122, 92, 255, .34), rgba(122, 92, 255, 0) 72%),
+    radial-gradient(46% 60% at 92% -8%, rgba(255, 84, 170, .24), rgba(255, 84, 170, 0) 72%),
+    linear-gradient(180deg, rgba(26, 11, 63, .9) 0%, rgba(18, 7, 51, .92) 46%, rgba(10, 4, 28, .96) 100%); }
+:root #pausa-pueblo > .paper { box-sizing: border-box; width: 100%; max-width: 1280px; height: 100%; max-height: none; margin: 0 auto; display: flex; flex-direction: column;
+  gap: clamp(10px, 3.2vh, 24px); overflow: hidden; border-radius: 0 !important; border: 0; background: none; box-shadow: none; color: #fff;
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+:root #pausa-pueblo > .paper::before, :root #pausa-pueblo > .paper::after { display: none !important; }
+
+/* arriba: volver, el sitio con la hora y el título */
+#pausa-pueblo .pz-top { flex: none; display: flex; align-items: center; gap: 16px; min-height: 44px; padding: 0; }
+#pausa-pueblo .pz-atras { flex: none; width: 44px; height: 44px; padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); color: #fff; cursor: pointer; transition: background .15s; }
+#pausa-pueblo .pz-atras:hover, #pausa-pueblo .pz-atras:focus-visible { background: rgba(255, 255, 255, .18); } #pausa-pueblo .pz-atras svg { width: 22px; height: 22px; }
+#pausa-pueblo .pz-tit { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+#pausa-pueblo .pz-tit small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs, 11px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pausa-pueblo .pz-tit h2 { margin: 0; flex: none; color: #fff; text-shadow: none; font: 400 clamp(20px, 5.4vh, 36px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; }
+
+/* en medio: la partida y los ajustes, dos columnas de filas */
+#pausa-pueblo .pz-medio { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(12px, 2.4vw, 32px); align-content: start; overflow-y: auto; overscroll-behavior: contain; }
+#pausa-pueblo .pz-col { display: flex; flex-direction: column; gap: clamp(6px, 1.4vh, 10px); min-width: 0; }
+#pausa-pueblo .pz-col h3 { margin: 0 0 2px; color: #b9acd6; font: 800 var(--fs-xs, 11px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+#pausa-pueblo :is(.pz-fila, .pz-aj) { box-sizing: border-box; min-height: clamp(44px, 9.6vh, 72px); margin: 0; display: flex; align-items: center; gap: 12px; padding: 4px 8px 4px 14px; border-radius: 8px;
+  background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); color: #fff; font: 700 clamp(14px, 2.6vh, 17px)/1.15 var(--f-ui, sans-serif); text-align: left; }
+#pausa-pueblo .pz-fila { width: 100%; cursor: pointer; transition: background .15s, border-color .15s; -webkit-tap-highlight-color: transparent; }
+#pausa-pueblo .pz-fila:hover, #pausa-pueblo .pz-fila:focus-visible { background: rgba(255, 255, 255, .1); border-color: rgba(255, 255, 255, .24); }
+#pausa-pueblo .pz-fila > :is(img, svg):first-child { flex: none; width: clamp(24px, 4.6vh, 30px); height: clamp(24px, 4.6vh, 30px); }
+/* (cada fila, su nombre y debajo una línea que dice para qué es, como la pausa de los partidos; en el móvil tumbado, solo
+   el nombre, para que quepa todo) */
+#pausa-pueblo .pz-et { flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+#pausa-pueblo .pz-et b { font: inherit; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pausa-pueblo .pz-et small { color: #b9acd6; font: 600 clamp(12px, 1.9vh, 14px)/1.25 var(--f-ui, sans-serif); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#pausa-pueblo .pz-fila.peligro .pz-et small { color: #e79bb0; }
+@media (max-height: 520px) { #pausa-pueblo .pz-et small { display: none; } }
+/* (lo del pueblo que queda detrás, el marcador, el minimapa y sus botones, no se transparenta: la pausa va sola) */
+body:has(> #pausa-pueblo) #hud { visibility: hidden; }
+/* (la flecha de cada fila, a la derecha, como en los menús de los juegos de deportes) */
+#pausa-pueblo .pz-fl { flex: none; width: 28px; height: 28px; border-radius: 50%; background: rgba(255, 255, 255, .08) center / 14px no-repeat
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 5l7 7-7 7'/%3E%3C/svg%3E"); }
+/* (borrar la partida: la fila en rojo suave, con su equis de trazo; al tocarla una vez, pide confirmación) */
+#pausa-pueblo .pz-fila.peligro { color: #ffb3c4; border-color: rgba(255, 92, 128, .28); background: rgba(255, 60, 100, .06); }
+#pausa-pueblo .pz-fila.peligro .pz-x { padding: 3px; box-sizing: border-box; color: #ff7a98; }
+#pausa-pueblo .pz-fila.peligro.seguro { color: #fff; background: rgba(255, 60, 100, .22); border-color: #ff5c80; }
+#pausa-pueblo .pz-fila.peligro .pz-fl { display: none; }
+/* (los ajustes: el nombre a la izquierda y el mando a la derecha) */
+#pausa-pueblo .pz-aj { justify-content: space-between; padding-right: 8px; }
+#pausa-pueblo .pz-aj select { min-height: 36px; max-width: 58%; padding: 0 34px 0 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .16); color: #fff; font: 700 clamp(13px, 2.4vh, 15px)/1 var(--f-ui, sans-serif);
+  background: rgba(255, 255, 255, .08) right 12px center / 12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 9l7 7 7-7'/%3E%3C/svg%3E");
+  -webkit-appearance: none; appearance: none; }
+#pausa-pueblo .pz-aj select option { color: #1e0a44; }
+#pausa-pueblo .pz-aj input[type=range] { flex: none; width: min(46%, 220px); height: 28px; margin: 0 4px 0 0; padding: 0; accent-color: #ff7ac8; }
+/* (la música, un interruptor en vez de una casilla) */
+#pausa-pueblo .pz-sw { -webkit-appearance: none; appearance: none; flex: none; position: relative; width: 48px; height: 28px; margin: 0 4px 0 0; border-radius: 999px; background: rgba(255, 255, 255, .16); border: 0; cursor: pointer; transition: background .2s; }
+#pausa-pueblo .pz-sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .35); transition: transform .2s var(--ease, ease); }
+#pausa-pueblo .pz-sw:checked { background: linear-gradient(135deg, #d0189f, #6a2ff0); } #pausa-pueblo .pz-sw:checked::after { transform: translateX(20px); }
+#pausa-pueblo .pz-sw:focus-visible { outline: 2px solid #ff7ac8; outline-offset: 2px; }
+#pausa-pueblo .pz-nota { margin: -2px 0 0; color: #ffd166; font: 600 var(--fs-xs, 12px)/1.3 var(--f-ui, sans-serif); }
+
+/* abajo: cómo se juega a la izquierda y «Seguir jugando» a la derecha */
+#pausa-pueblo .pz-pie { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; min-width: 0; }
+#pausa-pueblo .pz-pie .keys { flex: 1 1 auto; min-width: 0; margin: 0; padding: 0; border: 0; background: none; color: #c9bce6; font: 600 clamp(11px, 2.2vh, 13px)/1.5 var(--f-ui, sans-serif);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#pausa-pueblo .pz-pie .keys kbd { padding: 1px 6px; border-radius: 4px; background: rgba(255, 255, 255, .12); border: 0; color: #fff; font: 700 .92em/1.3 var(--f-ui, sans-serif); box-shadow: none; }
+#pausa-pueblo .pz-go { flex: none; min-width: clamp(190px, 22vw, 280px); min-height: 52px; margin: 0; }
+@media (min-height: 600px) { #pausa-pueblo .pz-top { min-height: 48px; } #pausa-pueblo .pz-atras { width: 48px; height: 48px; } #pausa-pueblo .pz-go { min-height: 58px; } }
+/* (de pie: una columna debajo de otra, y el pie apilado) */
+@media (orientation: portrait) {
+  #pausa-pueblo .pz-medio { grid-template-columns: minmax(0, 1fr); }
+  #pausa-pueblo .pz-pie { flex-direction: column; align-items: stretch; } #pausa-pueblo .pz-go { min-width: 0; }
+}

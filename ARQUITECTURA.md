@@ -2406,6 +2406,35 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   En el inicio (`hub/consola.css`), con el móvil tumbado: la fila de comarcas ya no pisa la raya de inicio del iPhone
   (`--hud-b` vale el margen seguro entero) y el menú principal enseña sus diecisiete secciones en nueve columnas y dos
   filas, sin que ninguna quede detrás de «Cómo jugar».
+- **El menú, sus secciones, Cómo jugar y la pausa con la pantalla de juego** (19 de noviembre de 2026, noche; el autor,
+  con cuatro capturas del móvil: «tenemos que cambiar el diseño de estas páginas para ajustarlas al nuevo diseño e
+  identidad»). Las cuatro siguen ahora la disposición de las pantallas de pelota (arriba, el botón redondo de volver, el
+  antetítulo rosa y el título grande; en medio, lo que se elige; abajo, la ayuda a la izquierda y el botón a la derecha),
+  con su fondo morado de dos focos (`--pt-fondo`):
+  - el menú (`hub-panel`, `src/hub/pantalla-hub.css`): a pantalla entera, sin dejar ver el mapa; arriba, volver, «Menú» y
+    tu ficha a la derecha; las secciones en una rejilla que llena todo el alto (seis por fila en el ordenador, nueve en
+    el móvil tumbado, tres de pie, y entonces se desplaza), cada una una carta de 8 px con su icono 3D y la que estás
+    viendo con el filo rosa; abajo, la versión y los botones de Cómo jugar y el mando del móvil. Frontones lleva ya su
+    propio icono (la pared, `walls`), distinto del de la pasaka. Antes era un recuadro a la izquierda con media altura
+    vacía y las comarcas asomando por debajo;
+  - las secciones (Torneos, Pueblos, Cimas, Perfil…): sin ventana encima del mapa, a pantalla entera; la barra de arriba
+    lleva volver (al mapa) y el menú, redondos, a la izquierda; el antetítulo de la sección (el mismo que trae dentro,
+    `cab-k`, que `go()` copia del `.kicker` de la sección) y su nombre en grande; y a la derecha la sección de antes y la
+    de después. El título y el antetítulo de dentro ya no se repiten. El contenido se desplaza por debajo de la barra y se
+    funde arriba (máscara de 12 px);
+  - Cómo jugar (`src/hub/comojugar.js`): las tres formas a la izquierda como pestañas (la del aparato en el que estás,
+    marcada y elegida al abrir) y, a la derecha, los pasos de la elegida, enteros (en el ordenador, uno debajo de otro y
+    grandes; en el móvil tumbado, en fila); abajo, «Elige una de las tres formas» y «Cerrar» o «Empezar». Antes eran tres
+    columnas con todos los pasos que en el móvil tumbado quedaban cortados y tapados por «Cerrar», que además llevaba un
+    anillo blanco de foco (ahora el foco va a la pantalla);
+  - la pausa del pueblo (`ui.js` `openMenu`, `src/ui/pausa-pueblo.css`, `#pausa-pueblo`): a pantalla entera, con el pueblo
+    quieto y velado detrás y su marcador oculto; arriba, volver, el sitio con la hora y «Pausa»; en medio, «Partida»
+    (cuaderno, plaza, salir, el móvil de mando, borrar la partida en rojo suave y con confirmación) y «Ajustes» (la música
+    como interruptor, volumen, calidad y paso del tiempo), en filas con su nombre y, en el ordenador, una línea de para qué
+    es; abajo, las teclas o los gestos y «Seguir jugando». Antes «Borrar partida del valle» quedaba cortado en el móvil.
+    La pausa de los partidos (`src/ui/pausa.js`, `pausa.css`) no cambia.
+  Comprobado a 1280×720, 844×390 y 390×844, y las demás secciones (Pueblos, Cimas, Escudos, Frontones y Perfil) con la
+  barra nueva.
 - **Repaso del partido tras la grabación del autor** (18 de noviembre de 2026, noche; `pelota/court.js`, `pelota/rules.js`,
   `pelota/game.js`, `game/fronton.js`): los números de la pared izquierda, a medida real (30 cm), no se leían en el
   móvil: quedan en 58 cm con el centro a 2,55 m. Las rayas del suelo, del sombreador `rayasNitidas`, bajaban a poco más

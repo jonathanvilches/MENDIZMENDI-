@@ -9,6 +9,8 @@
 //   - abajo, a la izquierda lo que toca en la portada de delante y, a la derecha, el botón grande, al alcance del pulgar
 // Antes, «Salir», el texto, «Jugar» y el frontón iban los cuatro en la fila de abajo, pegada a la portada.
 const ATRAS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
+/** La flecha de atrás (para los botones redondos de volver que no salen de ptCabecera: el menú y sus secciones, la pausa) */
+export const ATRAS_SVG = ATRAS;
 /** El botón de atrás, suelto, para las cabeceras que ya tienen su forma (las del fútbol). a: su data-a; atras: su nombre */
 export const ptAtras = ({ a = 'back', atras = 'Volver' } = {}) => `<button type="button" class="pt-atras" data-a="${a}" aria-label="${atras}" title="${atras}">${ATRAS}</button>`;
 /** La barra de arriba. a: lo que devuelve el botón de atrás (data-a); atras: su nombre para quien no ve; der: html de la derecha;

@@ -28,6 +28,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - **Botones del partido transparentes, pendientes de que el autor los vea** (19 nov, ventana principal): con el aro de
   color y su latido. La equipación que iba con ellos ya no existe (abajo). Quien publique, que no lo meta sin su visto
   bueno.
+- **Menú, secciones, Cómo jugar y pausa con la pantalla de juego, pendientes de que el autor los vea** (19 nov, noche,
+  ventana principal; el autor: «cambiar el diseño de estas páginas para ajustarlas al nuevo diseño e identidad»):
+  `src/hub/pantalla-hub.css`, `src/ui/pausa-pueblo.css`, `hub.js`, `comojugar.js` y `ui.js` (`openMenu`). Quien
+  publique, que no lo meta sin su visto bueno.
 - **Sin equipación** (19 nov, noche, ventana principal; el autor: «Deja el personaje como estaba en un principio…
   Olvídate de la personalización, elimínalo todo»): fuera la pantalla «Equipación» y sus colores; los pelotaris, como
   antes del 18 nov. Este sí se puede publicar: es lo que pidió el autor.

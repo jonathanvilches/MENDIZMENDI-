@@ -1,0 +1,205 @@
+/* ================= La pantalla de juego en el menú (19 de noviembre de 2026, noche) =================
+   El autor, con cuatro capturas del móvil (Cómo jugar, la pausa, el menú y Torneos): «tenemos que cambiar el diseño de
+   estas páginas para ajustarlas al nuevo diseño e identidad». La identidad nueva es la de las pantallas de pelota
+   (src/ui/pantalla.js): a pantalla entera, sin marco de ventana, con el fondo morado de dos focos; arriba, el botón
+   redondo de volver a la izquierda, el antetítulo rosa y el título grande; en medio, lo que se elige, con aire por arriba
+   y por abajo; y abajo, lo que acompaña a la izquierda y el botón a la derecha. Antes, el menú era un recuadro a la
+   izquierda que dejaba ver el mapa por debajo y medio vacío, y las secciones, una ventana con borde encima del mapa.
+   Esta hoja se carga la última (hub.js) y manda sobre consola.css. */
+
+:root {
+  --pt-fondo:
+    radial-gradient(60% 46% at 50% 104%, rgba(255, 96, 200, .2), rgba(255, 96, 200, 0) 70%),
+    radial-gradient(46% 60% at 8% -8%, rgba(122, 92, 255, .42), rgba(122, 92, 255, 0) 72%),
+    radial-gradient(46% 60% at 92% -8%, rgba(255, 84, 170, .3), rgba(255, 84, 170, 0) 72%),
+    radial-gradient(120% 90% at 50% 46%, rgba(60, 26, 120, 0) 40%, rgba(6, 2, 16, .72) 100%),
+    linear-gradient(180deg, #1a0b3f 0%, #120733 46%, #0a041c 100%);
+  --pt-bot: 44px;                       /* (el botón redondo: volver y menú) */
+  --pt-h: 64px;                         /* (la barra de arriba) */
+  --pt-g: clamp(12px, 3.2vh, 24px);     /* (el aire entre la barra y lo de dentro) */
+}
+@media (max-height: 520px) { :root { --pt-h: 50px; --pt-g: 10px; } }
+@media (min-height: 600px) { :root { --pt-bot: 48px; } }
+
+/* el botón redondo, el mismo de las pantallas de pelota (.pt-atras) */
+#hub.juego :is(.hub-x, .hub-panel-x),
+#hub.juego:not([data-screen="home"]) .hub-menu-btn {
+  width: var(--pt-bot); height: var(--pt-bot); padding: 0; display: grid; place-items: center; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); color: #fff; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none; transition: background .15s, border-color .15s; }
+/* (neon.css redondea .hub-menu-btn a 8 px con !important y peso de #id: aquí, redondo de verdad) */
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { border-radius: 50% !important; }
+#hub.juego :is(.hub-x, .hub-panel-x):hover, #hub.juego :is(.hub-x, .hub-panel-x):focus-visible,
+#hub.juego:not([data-screen="home"]) .hub-menu-btn:hover, #hub.juego:not([data-screen="home"]) .hub-menu-btn:focus-visible { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .3); }
+#hub.juego :is(.hub-x, .hub-panel-x) svg { width: 22px; height: 22px; }
+
+/* ---------- las secciones (Torneos, Pueblos, Personajes…): a pantalla entera, sin ventana encima del mapa ---------- */
+#hub.juego:not([data-screen="home"])::before { background: var(--pt-fondo); }
+#hub.juego .hub-main {
+  inset: calc(var(--sh-t) + var(--pt-h) + var(--pt-g) / 2) var(--sh-r) 0 var(--sh-l);
+  padding: 12px clamp(0px, .8vw, 10px) calc(var(--sh-b) + 16px);
+  border: 0; border-radius: 0; background: none; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none;
+  scroll-padding-top: 12px;
+  /* (lo que sube al desplazar se funde arriba, bajo la barra, en vez de cortarse en seco) */
+  -webkit-mask: linear-gradient(180deg, transparent 0, #000 12px); mask: linear-gradient(180deg, transparent 0, #000 12px); }
+#hub.juego .hub-main::before { display: none; }
+/* (el título y el antetítulo de dentro van ya en la barra de arriba) */
+#hub.juego .hub-main > :is(.title, h1.title, .kicker), #hub.juego .hub-main .ar-head > :is(h1, .kicker) { display: none; }
+#hub.juego .hub-main .ar-head { margin-top: 0; }
+
+/* la barra de arriba: volver (al mapa) y el menú, redondos, a la izquierda; el antetítulo y el nombre de la sección; y a la
+   derecha, la sección de antes y la de después */
+#hub.juego .hub-x { top: calc(var(--sh-t) + (var(--pt-h) - var(--pt-bot)) / 2); left: var(--sh-l); right: auto; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn { top: calc(var(--sh-t) + (var(--pt-h) - var(--pt-bot)) / 2); left: calc(var(--sh-l) + var(--pt-bot) + 10px); justify-content: center; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn .yo-m { height: auto; padding: 0; border: 0; gap: 0; }
+#hub.juego:not([data-screen="home"]) .hub-menu-btn .yo-m small { display: none; }
+#hub.juego .hub-cab {
+  top: var(--sh-t); left: calc(var(--sh-l) + 2 * var(--pt-bot) + 10px + 16px); right: var(--sh-r); height: var(--pt-h);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 8px;
+  color: #fff; letter-spacing: 0; text-transform: none; }
+#hub.juego .hub-cab .cab-t { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; min-width: 0; }
+#hub.juego .hub-cab .cab-k { max-width: 100%; color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs, 11px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hub.juego .hub-cab .cab-k:empty { display: none; }
+#hub.juego .hub-cab .cab-t > span { max-width: 100%; font: 400 clamp(20px, 5.4vh, 36px)/1 var(--f-display, 'MZ Display'), sans-serif; letter-spacing: .01em; text-transform: uppercase; color: #fff; }
+#hub.juego .cab-v { grid-row: 1; grid-column: 2; justify-self: end; min-height: 40px; padding: 0 12px 0 4px; border: 1px solid rgba(255, 255, 255, .12); background: rgba(255, 255, 255, .04);
+  color: #d9cdef; font: 700 var(--fs-xs, 11px)/1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .12em; }
+#hub.juego .cab-v.sig { grid-column: 3; padding: 0 4px 0 12px; }
+#hub.juego .cab-v:hover, #hub.juego .cab-v:focus-visible { color: #fff; border-color: rgba(255, 255, 255, .3); background: rgba(255, 255, 255, .1); }
+#hub.juego .cab-fl { width: 30px; height: 30px; border: 0; background: rgba(255, 255, 255, .1); }
+@media (max-width: 760px) { #hub.juego .cab-v { padding: 0 4px; } #hub.juego .cab-v span { display: none; } }
+
+/* ---------- el menú: a pantalla entera, con todas las secciones en una rejilla que llena el sitio ---------- */
+#hub.juego .hub-velo { display: none; }
+#hub.juego .hub-panel {
+  inset: 0; top: 0; left: 0; width: auto; height: 100%; max-height: none; box-sizing: border-box;
+  grid-template-columns: auto minmax(0, 1fr) auto auto; grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas: "x tit yo yo" "nav nav nav nav" "ver ver cj mando";
+  column-gap: 12px; row-gap: var(--pt-g);
+  padding: var(--hud-t) var(--hud-r) var(--hud-b) var(--hud-l);
+  border: 0; border-radius: 0; background: var(--pt-fondo); box-shadow: none;
+  transform: translateY(14px); }
+#hub.juego.menu-on .hub-panel { transform: none; }
+#hub.juego .hub-panel-x { position: static; grid-area: x; align-self: center; }
+#hub.juego .hub-tit { grid-area: tit; align-self: center; justify-self: start; display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; text-align: left; }
+#hub.juego .hub-tit :is(small, h2) { text-align: left; }
+#hub.juego .hub-tit small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs, 11px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+#hub.juego .hub-tit h2 { margin: 0; font: 400 clamp(20px, 5.4vh, 36px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; color: #fff; }
+#hub:not(.juego) .hub-tit { display: none; }
+/* (tu ficha, a la derecha de la barra: tu cara, tu nombre, tu nivel con la experiencia y tus sellos; lleva a tu perfil) */
+#hub.juego .hub-top #hChip { grid-area: yo; justify-self: end; align-self: center; max-width: min(420px, 46vw); min-height: var(--pt-bot); padding: 4px 14px 4px 4px; gap: 10px;
+  border-radius: 999px; background: rgba(255, 255, 255, .06); border: 1px solid rgba(255, 255, 255, .12); }
+#hub.juego .hub-top #hChip img { width: calc(var(--pt-bot) - 8px); height: calc(var(--pt-bot) - 8px); border-radius: 50%; }
+#hub.juego .hub-top #hChip .xp { width: clamp(70px, 10vw, 120px); }
+/* (las secciones: una rejilla que llena todo el alto, sin hueco vacío debajo ni desplazar; en el ordenador, seis por fila;
+   en el móvil tumbado, nueve; de pie, tres, y entonces sí se desplaza) */
+#hub.juego .hub-nav {
+  grid-area: nav; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: minmax(0, 1fr); align-content: stretch;
+  gap: clamp(8px, 1.4vw, 14px); margin: 0; padding: 0; border: 0; overflow: hidden; -webkit-mask: none; mask: none; }
+@media (max-height: 520px) { #hub.juego .hub-nav { grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 8px; } }
+@media (orientation: portrait) {
+  #hub.juego .hub-nav { grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: minmax(104px, auto); align-content: start; overflow-y: auto; padding-bottom: 8px; }
+  #hub.juego .hub-panel { grid-template-areas: "x tit tit tit" "yo yo yo yo" "nav nav nav nav" "cj cj mando mando" "ver ver ver ver"; grid-template-rows: auto auto minmax(0, 1fr) auto auto; row-gap: 12px; }
+  #hub.juego .hub-top #hChip { justify-self: stretch; max-width: none; }
+}
+/* (cada sección, una carta de la identidad: esquinas de 8 px, relleno morado y un filo fino; la que estás viendo, con el
+   filo rosa) */
+#hub.juego .hub-nav button, #hub.juego .hub-nav button:is(.nav2, .nav3, .navp4, .navp5) {
+  min-height: 0; gap: clamp(6px, 1.4vh, 12px); padding: 8px 6px; border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .025)); border: 1px solid rgba(255, 255, 255, .1); color: #e6dcfb;
+  transition: background .18s, border-color .18s, transform .18s var(--ease, ease); }
+#hub.juego .hub-nav button :is(svg, img) { width: clamp(34px, 9.5vh, 68px); height: clamp(34px, 9.5vh, 68px); }
+#hub.juego .hub-nav button span { font: 700 clamp(11px, 2.2vh, 14px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .08em; text-transform: uppercase; text-align: center; text-overflow: clip; }
+@media (max-height: 520px) { #hub.juego .hub-nav button span { font-size: 10px; letter-spacing: .03em; } }
+#hub.juego .hub-nav button:hover, #hub.juego .hub-nav button:focus-visible { color: #fff; background: linear-gradient(180deg, rgba(255, 255, 255, .12), rgba(255, 255, 255, .05)); border-color: rgba(255, 255, 255, .24); transform: translateY(-2px); }
+#hub.juego .hub-nav button.on { color: #fff; background: linear-gradient(180deg, rgba(255, 122, 200, .18), rgba(255, 122, 200, .06)); border-color: var(--rosa, #ff7ac8); box-shadow: none; }
+/* (abajo: la versión a la izquierda y, a la derecha, Cómo jugar y el mando del móvil, como los botones de las pantallas
+   de pelota) */
+#hub.juego .hub-panel .hub-ver { grid-area: ver; align-self: center; padding: 0; color: rgba(217, 205, 239, .7); }
+#hub.juego .hub-top .app-btn { margin: 0; align-self: center; min-height: 48px; padding: 0 20px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08);
+  color: #fff; font: 800 var(--fs-sm, 14px)/1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+#hub.juego .hub-top .app-btn:hover, #hub.juego .hub-top .app-btn:focus-visible { background: rgba(255, 255, 255, .16); border-color: rgba(255, 255, 255, .3); }
+#hub.juego .hub-panel:has([data-mando][hidden]) [data-cj-abre], #hub.juego .hub-panel:has([data-cj-abre][hidden]) [data-mando] { grid-column: auto; }
+@media (max-width: 560px) { #hub.juego .hub-top .app-btn:not([hidden]) { display: flex; } }
+
+/* ---------- ¿Cómo quieres jugar? (comojugar.js): las tres formas a la izquierda, como pestañas; los pasos de la elegida a
+   la derecha, enteros; abajo, la ayuda y el botón. Antes eran tres columnas con todos los pasos, que en el móvil tumbado
+   quedaban cortados abajo y tapados por «Cerrar» ---------- */
+.cj { display: flex; z-index: 42; padding: 0; overflow: hidden; background: var(--pt-fondo); outline: none; }
+.cj-in { box-sizing: border-box; width: 100%; max-width: 1280px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: var(--pt-g);
+  padding: max(10px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(10px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.cj-top { flex: none; display: flex; align-items: center; gap: 16px; min-height: var(--pt-bot); min-width: 0; }
+.cj-atras { flex: none; width: var(--pt-bot); height: var(--pt-bot); padding: 0; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .08); color: #fff; cursor: pointer; transition: background .15s; }
+.cj-atras:hover, .cj-atras:focus-visible { background: rgba(255, 255, 255, .18); } .cj-atras svg { width: 22px; height: 22px; }
+.cj-tit { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cj-tit small { color: var(--rosa, #ff7ac8); font: 800 var(--fs-xs, 11px)/1.1 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+.cj-tit h2 { margin: 0; font: 400 clamp(20px, 5.4vh, 36px)/1 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cj-medio { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(200px, 30%) minmax(0, 1fr); gap: clamp(12px, 2vw, 24px); }
+.cj.una .cj-medio { grid-template-columns: minmax(0, 1fr); } .cj.una .cj-formas { display: none; }
+/* (las pestañas: el dibujo de la forma, su nombre y una línea; la elegida, rellena con el degradado del juego y el filo
+   rosa; la del aparato en el que estás, con su etiqueta) */
+.cj-formas { display: flex; flex-direction: column; gap: 10px; min-height: 0; padding-top: 8px; }
+.cj-forma { position: relative; flex: 1 1 0; min-height: 0; max-height: 220px; display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: 8px;
+  background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .1); color: #e6dcfb; text-align: left; font: inherit; cursor: pointer;
+  transition: background .18s, border-color .18s; -webkit-tap-highlight-color: transparent; }
+.cj-forma:hover, .cj-forma:focus-visible { background: rgba(255, 255, 255, .09); border-color: rgba(255, 255, 255, .24); }
+.cj-forma.on { color: #fff; background: linear-gradient(135deg, rgba(208, 24, 159, .3), rgba(106, 47, 240, .24)); border-color: var(--rosa, #ff7ac8); }
+.cj-ico { flex: none; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 12px; background: rgba(255, 255, 255, .08); color: #fff; }
+.cj-forma.on .cj-ico { background: linear-gradient(135deg, #d0189f, #6a2ff0); } .cj-ico svg { width: 30px; height: 30px; }
+.cj-ft { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cj-ft b { font: 400 clamp(16px, 3.4vh, 22px)/1.05 var(--f-display, 'MZ Display'), sans-serif; text-transform: uppercase; }
+.cj-ft small { color: #c9bce6; font: 600 var(--fs-xs, 12px)/1.25 var(--f-ui, sans-serif); }
+.cj-aqui { position: absolute; top: -9px; right: 12px; padding: 3px 9px; border-radius: 999px; background: var(--rosa, #ff7ac8); color: #1e0a44; font: 800 10px/1.2 var(--f-cond, 'MZ Cond'), sans-serif; font-style: normal; letter-spacing: .08em; text-transform: uppercase; }
+/* (los pasos de la forma elegida, en su carta: la explicación, los tres pasos en fila y abajo sus botones o el QR) */
+.cj-dets { display: flex; min-width: 0; min-height: 0; padding-top: 8px; }
+.cj-card { flex: 1 1 auto; min-width: 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: clamp(10px, 2.2vh, 18px);
+  padding: clamp(14px, 2.6vh, 24px) clamp(16px, 2vw, 28px); border-radius: 8px; background: rgba(20, 10, 40, .55); border: 1px solid rgba(255, 255, 255, .1); }
+.cj-card[hidden] { display: none; }
+.cj-txt { margin: 0; max-width: 64ch; color: #ece4ff; font: 600 var(--fs-md, 16px)/1.4 var(--f-ui, sans-serif); }
+.cj-pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(10px, 1.6vw, 18px); }
+.cj-pasos li { display: flex; flex-direction: column; gap: 8px; min-width: 0; padding: clamp(10px, 1.8vh, 14px); border-radius: 8px; background: rgba(255, 255, 255, .04); border: 1px solid rgba(255, 255, 255, .08); }
+.cj-n { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #c9b2ff; color: #1e0a44; font: 900 var(--fs-sm, 14px)/1 var(--f-ui, sans-serif); }
+.cj-pasos li > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cj-pasos b { color: #fff; font: 700 var(--fs-md, 16px)/1.2 var(--f-ui, sans-serif); }
+.cj-pasos small { color: #b9acd6; font: 600 var(--fs-sm, 14px)/1.35 var(--f-ui, sans-serif); overflow-wrap: anywhere; }
+.cj-pie { margin-top: auto; display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; }
+.cj-btns { display: flex; flex-wrap: wrap; gap: 10px; }
+.cj .btn { min-height: 48px; max-width: 100%; text-decoration: none; color: #fff; } .cj .btn svg { flex: none; width: 22px; height: 22px; }
+.cj .btn > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cj-qr { display: flex; align-items: center; gap: 12px; } .cj-qr small { min-width: 0; color: #b9acd6; font: 700 var(--fs-xs, 12px)/1.3 var(--f-ui, sans-serif); overflow-wrap: anywhere; }
+.cj-qrimg { flex: none; width: 112px; height: 112px; border-radius: 8px; background: #fff; } .cj-qrimg svg { display: block; width: 100%; height: 100%; }
+.cj-hecho { display: flex; align-items: center; gap: 8px; min-height: 44px; color: #3ee07a; font-weight: 900; } .cj-hecho svg { width: 22px; height: 22px; }
+/* (abajo: la ayuda a la izquierda y el botón a la derecha, como «Jugar» en las pantallas de pelota) */
+.cj-foot { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; min-width: 0; }
+.cj-ayuda { margin: 0; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cj-ayuda b { color: #fff; font: 800 clamp(15px, 3.6vh, 22px)/1.05 var(--f-cond, 'MZ Cond'), sans-serif; letter-spacing: .04em; text-transform: uppercase; }
+.cj-ayuda span { color: #d9cdef; font-size: clamp(12px, 2.8vh, 15px); }
+.cj .cj-go { flex: none; min-width: clamp(170px, 22vw, 260px); min-height: 52px; }
+/* (en el ordenador, con alto de sobra: los pasos, uno debajo de otro y más grandes, para que la carta no quede medio
+   vacía) */
+@media (min-height: 600px) and (orientation: landscape) {
+  .cj-txt { font-size: clamp(16px, 2.4vh, 19px); }
+  .cj-pasos { grid-template-columns: minmax(0, 1fr); gap: clamp(10px, 1.6vh, 14px); }
+  .cj-pasos li { flex-direction: row; align-items: center; gap: 18px; padding: clamp(12px, 2vh, 18px) 20px; }
+  .cj-n { width: 38px; height: 38px; font-size: 17px; }
+  .cj-pasos b { font-size: clamp(16px, 2.5vh, 20px); } .cj-pasos small { font-size: clamp(14px, 2vh, 16px); }
+}
+/* (el móvil tumbado: todo más justo, para que quepa entero sin desplazar) */
+@media (max-height: 520px) {
+  .cj-medio { grid-template-columns: minmax(176px, 25%) minmax(0, 1fr); gap: 12px; }
+  .cj-formas, .cj-dets { padding-top: 6px; } .cj-formas { gap: 8px; }
+  .cj-forma { gap: 10px; padding: 8px 10px; } .cj-ico { width: 38px; height: 38px; border-radius: 10px; } .cj-ico svg { width: 24px; height: 24px; }
+  .cj-ft b { font-size: 15px; } .cj-ft small { display: none; }
+  .cj-card { gap: 10px; padding: 12px 14px; } .cj-txt { font-size: 13px; line-height: 1.35; }
+  .cj-pasos { gap: 8px; } .cj-pasos li { gap: 6px; padding: 8px 10px; } .cj-n { width: 22px; height: 22px; font-size: 12px; }
+  .cj-pasos b { font-size: 13px; } .cj-pasos small { font-size: 11.5px; line-height: 1.3; }
+  .cj .btn { min-height: 42px; padding: 6px 14px; } .cj-qrimg { width: 84px; height: 84px; }
+  .cj .cj-go { min-height: 48px; }
+}
+/* (de pie: las pestañas en fila arriba y los pasos uno debajo de otro) */
+@media (orientation: portrait) {
+  .cj-medio { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .cj-formas { flex-direction: row; } .cj-forma { flex-direction: column; justify-content: center; gap: 6px; padding: 10px 6px; text-align: center; max-height: none; }
+  .cj-tit h2 { white-space: normal; text-wrap: balance; } .cj-ft { align-items: center; } .cj-ft b { font-size: 14px; } .cj-ft small { display: none; } .cj-aqui { right: 50%; transform: translateX(50%); white-space: nowrap; }
+  .cj-pasos { grid-template-columns: minmax(0, 1fr); }
+  .cj-foot { flex-direction: column; align-items: stretch; } .cj-ayuda { text-align: center; } .cj .cj-go { min-width: 0; }
+}

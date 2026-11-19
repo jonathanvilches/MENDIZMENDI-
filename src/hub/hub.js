@@ -79,6 +79,8 @@ import '../ui/neon.css';   // (el borde de neón de los rótulos y las tarjetas,
 import { relieve, desdeAqui, cartasVivas, continuidad, inercia, contadores, reducido } from '../ui/motion.js';
 import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
+import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
+import { ATRAS_SVG } from '../ui/pantalla.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -182,8 +184,8 @@ export class Hub {
     this.root = el(`<div id="hub"><div class="hub-bg"><div class="bgimg"></div></div><div class="hub-mapa" id="hMapa"></div>
       <button type="button" class="hub-menu-btn" data-menu aria-label="Menú" aria-expanded="false"></button>
       <div class="hub-velo" data-menu-x></div>
-      <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú">${XF}</button></header>
-      <nav class="hub-nav" id="hNav"></nav><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${XF}</button></div>`);
+      <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><div class="hub-tit"><small data-notr>HerrizHerri</small><h2>Menú</h2></div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú" title="Cerrar el menú (Esc)">${ATRAS_SVG}</button></header>
+      <nav class="hub-nav" id="hNav"></nav><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${ATRAS_SVG}</button></div>`);
     document.body.appendChild(this.root);
     relieve(this.root);   // (con ratón, el fondo se mueve un poco con él: un relieve de capas; ui/motion.js)
     cartasVivas(); continuidad();   // (las cartas que se inclinan hacia el ratón y la ventana que nace de la carta tocada: ui/motion.js)
@@ -242,9 +244,9 @@ export class Hub {
   // En el modo didáctico, solo el material: sin torneos, avatar, pasaka para jugar, insignias ni pasaporte
   buildNav() {
     this.nav = isDidactico()
-      ? [['home', 'Mapa', 'map'], ['aprende', 'Aprende Navarra', 'book'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['frontones', 'Frontones', 'pelota', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
+      ? [['home', 'Mapa', 'map'], ['aprende', 'Aprende Navarra', 'book'], ['towns', 'Pueblos', 'church'], ['personajes', 'Personajes', 'book'], ['cuentos', 'Leyendas', 'legend'], ['tradiciones', 'Tradiciones', 'mask', 1], ['frontones', 'Frontones', 'walls', 1], ['oficios', 'Oficios', 'anvil', 1], ['productos', 'Productos', 'cheese', 1], ['historia', 'Historia', 'castle', 1], ['nature', 'Naturaleza', 'leaf', 1], ['peaks', 'Cimas', 'peak', 1], ['escudos', 'Escudos', 'shield', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['euskera', 'Euskera', 'talk', 1], ['album', 'Láminas', 'scroll', 1], ['profile', 'Ajustes', 'gear', 1]]
       // (sin «Mapa» aparte: el inicio ya es el mapa de Navarra en 3D; en el didáctico se llama así, y su portada es «Aprende Navarra»)
-      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['tradiciones', 'Tradiciones', 'mask', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['frontones', 'Frontones', 'pelota', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
+      : [['home', 'Inicio', 'home'], ['towns', 'Pueblos', 'church'], ['sports', 'Torneos', 'trophy'], ['personajes', 'Personajes', 'book'], ['peaks', 'Cimas', 'peak', 1], ['nature', 'Naturaleza', 'leaf', 1], ['escudos', 'Escudos', 'shield', 1], ['cuentos', 'Leyendas', 'legend', 1], ['tradiciones', 'Tradiciones', 'mask', 1], ['instrumentos', 'Instrumentos', 'music', 1], ['pasaka', 'Pasaka', 'pelota', 1], ['frontones', 'Frontones', 'walls', 1], ['album', 'Láminas', 'scroll', 1], ['badges', 'Insignias', 'badge', 1], ['passport', 'Pasaporte', 'stamp', 1], ['ventajas', 'Ventajas', 'basket', 1], ['profile', 'Perfil', 'gear', 1]];
     this.MORE = { avatars: 'Elige con quién juegas', peaks: 'Montañas de Navarra con su perfil', nature: 'Fauna, árboles, plantas y flores', escudos: 'Escudos de Navarra y cómo se leen', cuentos: 'Cuentos, leyendas e historias de Navarra', instrumentos: 'Txistu, gaita, txalaparta… escúchalos y aprende a tocarlos', pasaka: 'El juego de pelota con red de los claustros: apréndelo y juégalo', album: 'Las ilustraciones de cada pueblo y comarca', badges: 'Tus logros', passport: 'Los sellos de tus pueblos', ventajas: 'Descuentos en comercios de Navarra con tus sellos, insignias y certificados', profile: isDidactico() ? 'Idioma, sonido y modo' : 'Nombre, nivel y ajustes',
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', frontones: 'Los frontones de Navarra: su historia, sus fotos y todos, pueblo a pueblo', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
@@ -316,7 +318,7 @@ export class Hub {
         : screen === 'pueblo' ? [, levelById(arg)?.name.split(' / ')[0] || 'Pueblo', 'church'] : OTRAS[screen] || [, '', 'home']);
       m.setAttribute('role', 'dialog'); m.setAttribute('aria-label', n[1]);
       const [ant, sig] = this.vecinas(screen) || [];
-      $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}" aria-keyshortcuts="Q" title="${esc(ant[1])} (Q)">${FLECHA}<span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t">${I(n[2], 20)}<span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}" aria-keyshortcuts="E" title="${esc(sig[1])} (E)"><span>${esc(sig[1])}</span>${FLECHA}</button>` : ''}`;
+      $('#hCab', this.root).innerHTML = `${ant ? `<button type="button" class="cab-v" data-go="${ant[0]}" aria-keyshortcuts="Q" title="${esc(ant[1])} (Q)">${FLECHA}<span>${esc(ant[1])}</span></button>` : ''}<span class="cab-t"><small class="cab-k"></small><span>${esc(n[1])}</span></span>${sig ? `<button type="button" class="cab-v sig" data-go="${sig[0]}" aria-keyshortcuts="E" title="${esc(sig[1])} (E)"><span>${esc(sig[1])}</span>${FLECHA}</button>` : ''}`;
       $('#hCab', this.root).dataset.cat = kc(screen);
       cinetica($('#hCab .cab-t > span', this.root), { estilo: 'sube', retardo: 60 });   // (el nombre de la sección, en la cabecera de la ventana)
     } else cierraMapa();
@@ -328,6 +330,9 @@ export class Hub {
     // (jugando, la ventana entra entera al abrirse; si ya estaba abierta con otra sección, lo que cambia es lo de dentro)
     m.classList.toggle('cambia', !!(juego && antes && antes !== 'home' && m.childElementCount));
     m.onscroll = null; m.innerHTML = this['s_' + screen](arg);
+    // (la cabecera de la ventana, como la de las pantallas de juego, ui/pantalla.js: encima del nombre de la sección, su
+    // antetítulo, el mismo que la sección trae arriba, «Pelota y fútbol» en Torneos; el de dentro ya no se ve)
+    { const k = $('#hCab .cab-k', this.root); if (k) k.textContent = juego ? (m.querySelector(':scope > .kicker, :scope .ar-head .kicker')?.textContent || '').replace(/\s+/g, ' ').trim() : ''; }
     m.querySelectorAll('[data-go]:not([data-cat])').forEach(b => { b.dataset.cat = kc(b.dataset.go); });   // (cada enlace, en el color de adonde lleva)
     m.scrollTop = 0; fitMaps(m); ajustaRejillas(m);
     this.after?.(); this.after = null; bindLaminas(m, this.sound); this.pastillas(m);
