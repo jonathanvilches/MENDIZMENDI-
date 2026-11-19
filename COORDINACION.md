@@ -25,12 +25,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   la ventana principal: los planos de la grada tras un buen tanto salen ahora desde las cámaras de una retransmisión
   (la principal, alta al fondo, y la de pie de cancha en la contracancha), sin meterse en la cancha; pendiente de que
   el autor lo vea. Quien publique, que no lo meta sin su visto bueno.
-- **Equipación sin faja y botones transparentes, pendiente de que el autor lo vea** (19 nov, tarde, ventana
-  principal; el autor: «con lo que tenemos de momento eliminamos faja y que se pueda personalizar tacos, muñequeras,
-  zapatillas completas y color de pelo»): se eligen el color de las zapatillas enteras, de las muñequeras, de los
-  tacos y del pelo; no hay faja. Y los botones del partido, transparentes con el aro de color y su latido. El fajín y
-  las zapatillas de Meshy quedan en la rama `borrador-equipacion` hasta rehacer los personajes desde la imagen de
-  Higgsfield que elija el autor. Quien publique, que no lo meta sin su visto bueno.
+- **Equipación sin faja ni pelo, con el pelotari en movimiento, y botones transparentes, pendiente de que el autor lo
+  vea** (19 nov, noche, ventana principal; el autor: «elimina cambiar el color del pelo», «quiero que el pelotari se mueva
+  y haga movimientos de pelota», «que se apliquen los colores perfectos, el contorno perfecto de todos los elementos»,
+  «cuidado con las manchas negras»): zapatillas enteras, muñequeras y tacos, con el color limpio y el borde recto; el
+  pelotari hace golpes mientras eliges; sin las manchas de la cara de Ander. Y los botones del partido, transparentes con
+  el aro de color y su latido. El fajín y las zapatillas de Meshy quedan en la rama `borrador-equipacion`. Quien
+  publique, que no lo meta sin su visto bueno.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
   la cámara y el golpe cuando la pelota llega al rebote (la equipación de entonces, con el fajín de Meshy, ya no está:
   ver arriba), y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la
@@ -38,13 +39,19 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
-- **De Principal a Pelota · personajes** (19 nov, tarde): por encargo directo del autor («eliminamos faja y que se pueda
-  personalizar tacos, muñequeras, zapatillas completas y color de pelo»), en vuestro `src/actors/npcOutfit.js` el `KIT`
-  pinta la zapatilla entera de un color (con una raya algo más oscura donde iría la suela) y las muñequeras; ya no hay
-  fajín ni `uSole`, `uToe`, `uLace`, `uSash`, `uPwaist` ni `uNudo`, y `kitMedidas` no lee nada de `src/pelota/`
-  (`fajin.js` y `fajin.glb` se han borrado). Al volver a teñir, la copia del material suelta `userData.sinTacos` para
-  que `sinTacos.js` ponga los tacos otra vez. En vuestro `src/actors/hairColor.js`, `medirPelo` (el pelo claro de Ander
-  y el negro de Unai también se tiñen, con `uHairB`). Partid de lo de `master`.
+- **De Principal a Pelota · personajes** (19 nov, noche): por encargo directo del autor (la equipación: «tacos,
+  muñequeras, zapatillas completas», «elimina cambiar el color del pelo», «el contorno perfecto de todos los
+  elementos», «cuidado con las manchas negras»), toco vuestros:
+  - `src/actors/npcOutfit.js`: el `KIT` pinta la zapatilla entera y la muñequera encima del final de la venda (`VENDA`,
+    medido por modelo; `uVenda`), y deja `kitMun` y `kitCorte` para los tacos. Los `pelotari_<nombre>` teñidos con
+    `outfitTint` se pintan por las dos caras (`DoubleSide`): tienen trozos de piel del revés que eran agujeros (Ander).
+    Si os parece, ponedlo en `loadMeshy` para todos los pelotaris, también los que no se tiñen. Ya no hay fajín ni
+    `uSole`, `uToe`, `uLace`, `uSash`, `uPwaist` ni `uNudo`. Al volver a teñir, la copia del material suelta
+    `userData.sinTacos`.
+  - `src/actors/sinTacos.js`: la venda se separa de la piel por el tono (22-28 grados), no por el beis claro, y respeta
+    `kitMun` y `kitCorte`. Con herramienta (sin tacos) también coge ya los tacos dorados.
+  - `src/actors/hairColor.js`: queda como estaba (sin `medirPelo`); el pelo ya no se elige.
+  Partid de lo de `master`.
 - **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («minimalistas y transparentes,
   con los bordes de color y las animaciones»), en vuestro `src/pelota/hud.js` los botones del partido son
   transparentes, con el aro de color en `::before` (`--anillo`: GOLPE #ff3fb4, CORTADA #ff6fb8, DEJADA #7d7bff,

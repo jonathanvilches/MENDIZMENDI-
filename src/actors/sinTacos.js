@@ -9,13 +9,29 @@ import * as THREE from 'three';
 
 // (y de color: los tacos y las vendas, del color que elijas en la equipación, pelota/kit.js; uTacoCol, con w = 1 si se
 // pone. Con herramienta manda la piel: no hay tacos)
+// (la venda y los tacos se separan de la piel por el tono: en las texturas de los 22 la piel de las manos cae entre 10 y 20
+// grados, rosada, y la venda y los tacos entre 30 y 50, dorados, beis claro o más oscuro, sin nada entre medias; medido
+// en los texeles de las manos de cada modelo. Antes solo valía el beis claro y los tacos dorados quedaban sin pintar, a
+// manchas. El borde, suave en 22-28 grados: limpio y sin dientes. El color, el elegido casi liso: el dibujo de la venda
+// solo lo aclara u oscurece un poco, sin rayas negras)
+// (y no encima de la muñequera de la equipación, que pinta antes actors/npcOutfit.js y deja kitMun a 1: es amarilla o beis
+// y se tomaba por venda. Más allá del final de la venda, kitCorte a 1: con los tacos de color, la venda se corta en línea
+// recta y lo de más allá, los dientes de su borde, toma el color de la piel)
 const GLSL = `uniform float uSinTacos; uniform vec3 uPiel; uniform vec4 uTacoCol; varying float vTaco;
+#ifndef KIT_MUN
+#define KIT_MUN
+float kitMun = 0.0;
+float kitCorte = 0.0;
+#endif
 vec3 sinTaco(vec3 lin){
-  if ((uSinTacos < 0.5 && uTacoCol.w < 0.5) || vTaco < 0.01) return lin;
+  if ((uSinTacos < 0.5 && uTacoCol.w < 0.5) || vTaco < 0.01 || kitMun > 0.5) return lin;
   vec3 c = pow(max(lin, vec3(0.0)), vec3(1.0 / 2.2));
-  float k = smoothstep(0.07, 0.13, c.g - c.b) * (1.0 - smoothstep(0.14, 0.2, c.r - c.g)) * vTaco;
+  float mx = max(c.r, max(c.g, c.b)), d = mx - min(c.r, min(c.g, c.b));
+  float h = (mx == c.r ? (c.g - c.b) / max(d, 1e-4) : mx == c.g ? 2.0 + (c.b - c.r) / max(d, 1e-4) : 4.0 + (c.r - c.g) / max(d, 1e-4)) * 60.0;
+  h = mod(h + 360.0, 360.0);
+  float k = smoothstep(22.0, 28.0, h) * (1.0 - smoothstep(62.0, 70.0, h)) * smoothstep(0.08, 0.14, d / max(mx, 1e-4)) * vTaco;
   float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  vec3 o = uSinTacos > 0.5 ? uPiel * clamp(pow(l / 0.74, 0.8), 0.55, 1.25) : uTacoCol.rgb * clamp(pow(l / 0.74, 0.9), 0.5, 1.15);
+  vec3 o = uSinTacos > 0.5 || kitCorte > 0.5 ? uPiel * clamp(pow(l / 0.74, 0.8), 0.55, 1.25) : uTacoCol.rgb * clamp(pow(l / 0.72, 0.5), 0.78, 1.06);
   return mix(lin, pow(clamp(o, 0.0, 1.0), vec3(2.2)), k);
 }`;
 const EMI = /vec4 emissiveColor = (?:texture2D|mzTex)\( emissiveMap, vEmissiveMapUv \);/;

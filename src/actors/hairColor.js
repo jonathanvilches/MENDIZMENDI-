@@ -33,22 +33,13 @@ export function hairFor(seed) {
 /** Número de un texto (para hairFor con un nombre). */
 export const seedOf = (s) => { let h = 7; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
 
-const GLSL = `uniform vec3 uHairC; uniform vec2 uHairK; uniform vec2 uHairB; varying vec3 vHairP;
+const GLSL = `uniform vec3 uHairC; uniform vec2 uHairK; varying vec3 vHairP;
 vec3 noHair(vec3 lin){
   vec3 c = pow(max(lin, vec3(0.)), vec3(0.4545)), p = vHairP;
   float mx = max(c.r, max(c.g, c.b)), l = dot(c, vec3(0.3, 0.59, 0.11)), w = smoothstep(0.16, 0.3, (c.r - c.b) / max(c.r, 0.004)) * step(c.b, c.g + 0.03);
   // lo casi negro (el fondo de los surcos y las juntas de la textura) también es pelo, salvo con boina
   w = uHairK.x > 0. ? max(w, 1. - smoothstep(0.025, 0.04, mx)) : w * smoothstep(0.3, 0.42, l / -uHairK.x) * (1. - smoothstep(0.89, 0.91, p.y));
-  // (el pelo de algunos pelotaris no es castaño, y se mide en su textura (medirPelo): uHairB.x, claro, pelirrojo o rubio,
-  // vivo de color a diferencia de la piel y amarillo o anaranjado a diferencia del colorete de las mejillas; uHairB.y,
-  // negro, oscuro sin más)
-  float sat = (mx - min(c.r, min(c.g, c.b))) / max(mx, 0.004);
-  float wB = uHairB.x * step(0.42, sat) * step(0.12 * mx, c.g - c.b) * step(0.3, (c.r - c.b) / max(c.r, 0.004));
-  float wN = uHairB.y * (1. - smoothstep(0.24, 0.32, mx));
-  // (la trenza o la coleta que cuelga por la espalda, más abajo: solo el pelo claro, que delante, a esa altura, no hay pelo
-  // y más abajo están los tacos, del mismo beis anaranjado)
-  float alto = smoothstep(0.665, 0.69, p.y), altoB = max(alto, smoothstep(0.55, 0.57, p.y) * (1. - smoothstep(-0.03, -0.015, p.z)));
-  float k = max(alto * max(w * (1. - smoothstep(0.36, 0.5, mx)), wN), altoB * wB);
+  float k = smoothstep(0.665, 0.69, p.y) * w * (1. - smoothstep(0.36, 0.5, mx));
   float fr = smoothstep(0.02, 0.045, p.z), ax = abs(p.x);
   k *= 1. - fr * (1. - smoothstep(0.088, 0.098, ax)) * (1. - smoothstep(0.815, 0.826, p.y));
   if (k <= 0.) return lin;
@@ -61,48 +52,14 @@ vec3 noHair(vec3 lin){
 // (la lectura del brillo propio: tal cual o, con sharpMap delante, mzTex)
 const EMI = /vec4 emissiveColor = (?:texture2D|mzTex)\( emissiveMap, vEmissiveMapUv \);/;
 
-// EL PELO QUE NO ES CASTAÑO (19 de noviembre de 2026: el autor quiere poder cambiar el color de pelo de su pelotari, y de
-// los 22 unos lo traen pelirrojo o rubio, más claro que lo que se tomaba por pelo, y otros negro, sin el rojizo del
-// castaño). En la cabeza y fuera de la cara, como en el sombreador, se cuentan los píxeles de pelo claro (vivos de color y
-// anaranjados o amarillos: no la piel ni el colorete) y los oscuros: si los claros son al menos una cuarta parte, el pelo
-// es claro; si no, y los oscuros son al menos dos de cada cinco y casi ninguno castaño, es negro. Una vez por textura.
-// Devuelve { ref, modo } (ref: el brillo típico, la mediana de los suyos, algo rebajada en el claro para que el color
-// nuevo luzca como en los castaños; modo: 1 claro, 2 negro) o null (castaño, como el de los demás)
-const _claros = new WeakMap();
-function medirPelo(img, geo, flipY = false) {
-  if (!img || !(img.width > 0)) return null;
-  if (_claros.has(img)) return _claros.get(img);
-  let r = null;
-  try {
-    const N = 256, cv = document.createElement('canvas'); cv.width = cv.height = N; const x = cv.getContext('2d', { willReadFrequently: true }); x.drawImage(img, 0, 0, N, N);
-    const D = x.getImageData(0, 0, N, N).data, P = geo.attributes.position, UV = geo.attributes.uv; if (!UV) throw new Error('sin uv');
-    if (!geo.boundingBox) geo.computeBoundingBox();
-    const b = geo.boundingBox, H = Math.max(1e-3, b.max.y - b.min.y), cx = (b.min.x + b.max.x) / 2, cz = (b.min.z + b.max.z) / 2;
-    let n = 0, cast = 0; const ls = [], os = [];
-    for (let i = 0; i < P.count; i++) {
-      const py = (P.getY(i) - b.min.y) / H; if (py < 0.7) continue;
-      const px = (P.getX(i) - cx) / H, pz = (P.getZ(i) - cz) / H; if (pz > 0.02 && Math.abs(px) < 0.1 && py < 0.83) continue;   // (la cara)
-      const u = UV.getX(i), v = flipY ? 1 - UV.getY(i) : UV.getY(i), o = (Math.min(N - 1, Math.max(0, Math.floor(v * N))) * N + Math.min(N - 1, Math.max(0, Math.floor(u * N)))) * 4;
-      const R = D[o] / 255, G = D[o + 1] / 255, B = D[o + 2] / 255, mx = Math.max(R, G, B), mn = Math.min(R, G, B), l = 0.3 * R + 0.59 * G + 0.11 * B; n++;
-      if (mx > 0.45 && (mx - mn) / mx > 0.42 && G - B > 0.12 * mx && (R - B) / R > 0.3) ls.push(l);
-      else if (mx < 0.28) { os.push(l); if ((R - B) / Math.max(R, 0.004) > 0.3 && B <= G + 0.03 && mx > 0.06) cast++; }
-    }
-    const med = (a) => { a.sort((p, q) => p - q); return a[a.length >> 1]; };
-    if (n > 40 && ls.length > n * 0.25) r = { ref: med(ls) * 0.8, modo: 1 };
-    else if (n > 40 && os.length > n * 0.4 && cast < os.length * 0.3) r = { ref: Math.max(0.02, med(os)), modo: 2 };
-  } catch (e) { r = null; }
-  _claros.set(img, r); return r;
-}
 /** Tiñe el pelo de un material (que ya sea propio de este personaje: no se clona). geo: la geometría de la malla. */
 export function hairMaterial(m, geo, model, color) {
   if (!color || !m.map) return m;
   if (!geo.boundingBox) geo.computeBoundingBox();
   const b = geo.boundingBox, H = Math.max(1e-3, b.max.y - b.min.y);
   const a = albedo(color), lit = Math.max(...a);
-  // (los 22 pelotaris de las cartas no traen todos el castaño oscuro de los demás: su pelo se mide en su textura)
-  const claro = /^pelotari_(?!rojo$)/.test(model) ? medirPelo(m.map.image, geo, m.map.flipY) : null;
   // (el brillo típico del pelo pintado: el del modelo o, en las chicas, el de su castaño de debajo del pelo, chicas.js)
-  const U = { uHairC: { value: new THREE.Vector3(...a) }, uHairK: { value: new THREE.Vector2(claro?.ref || m.userData.hairRef || REF[model] || 0.09, 0.6 * lit) }, uHairB: { value: new THREE.Vector2(claro?.modo === 1 ? 1 : 0, claro?.modo === 2 ? 1 : 0) },
+  const U = { uHairC: { value: new THREE.Vector3(...a) }, uHairK: { value: new THREE.Vector2(m.userData.hairRef || REF[model] || 0.09, 0.6 * lit) },
     uHairBox: { value: new THREE.Vector4(b.min.y, H, (b.min.x + b.max.x) / 2, (b.min.z + b.max.z) / 2) } };
   const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
   m.onBeforeCompile = (sh, r) => {
