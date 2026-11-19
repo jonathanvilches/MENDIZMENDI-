@@ -21,8 +21,13 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   `master` pero la web publicada no lo lleva: el esprint a mano y la cámara del fondo (`c2943be6`: el autor quiere los
   botones mucho menos llamativos y que la cámara deje ver la pelota llegar al fondo y al rebote para poder golpearla); el
   público nuevo de la grada (`6d07d896`, `2b84db42` y las manos y el aplauso de `9f7ce5d0`: «Cámbialo», sin nota); y el
-  plano de dron de la grada (`2f3b20e0`; nota sobre la grada: «las cámaras no se ponen ahí»). La ventana principal lo
-  está rehaciendo; quien publique, que no lo meta sin el visto bueno del autor.
+  plano de dron de la grada (`2f3b20e0`; nota sobre la grada: «las cámaras no se ponen ahí»). Rehecho el 19 nov por
+  la ventana principal: los planos de la grada tras un buen tanto salen ahora desde las cámaras de una retransmisión
+  (la principal, alta al fondo, y la de pie de cancha en la contracancha), sin meterse en la cancha; pendiente de que
+  el autor lo vea. Quien publique, que no lo meta sin su visto bueno.
+- **Equipación nueva (fajín y zapatillas de Meshy, pelo, botones transparentes): no está en `master`.** El autor no la
+  aprobó («no está bien nada»); queda en la rama `borrador-equipacion` hasta rehacer los personajes desde la imagen de
+  Higgsfield que elija.
 - **Octava ronda, pendiente de que el autor lo vea** (19 nov, ventana principal): los botones del partido discretos,
   la cámara y el golpe cuando la pelota llega al rebote, la equipación nueva (zapatillas de cuatro colores, muñequeras,
   tacos) con el fajín en 3D de Meshy, y la frase de Joseba de los prismáticos (esta sí la aprobó el autor: «Vale, la

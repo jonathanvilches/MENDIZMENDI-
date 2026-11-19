@@ -657,14 +657,18 @@ export class PelotaMatch {
     const h = { F, nota, winner: e.winner, nm: suyo ? u.nm : '', quien: this.nomLimpio(e.winner), marcador: e.score ? `${e.score.you}-${e.score.rival}` : '', i: this.hlN = (this.hlN || 0) + 1 };
     this.hl = [...(this.hl || []), h].sort((a, b) => b.nota - a.nota).slice(0, 3);
   }
-  // ------------------------------------------------------------ el dron de la grada
+  // ------------------------------------------------------------ la grada tras un buen tanto
   // (18 de noviembre de 2026, el autor: «una vista de dron de todos los espectadores cuando se levantan a aplaudir,
-  // cuando se ha hecho un buen tanto. La imagen del público siempre es interesante»). Tras un buen tanto —un peloteo
-  // largo, un golpe de los que deciden o una volea que lo acaba—, medio segundo después de cantarlo, la cámara se va a
-  // la grada: empieza alta y abierta, con todo el público a la vista mientras se levanta, y baja volando a lo largo de
-  // ella mientras aplaude. Dura 3,4 s: la pausa del tanto se alarga para que quepa (game.js, pausaTanto) y la
-  // repetición, si está puesta, viene después. Nunca dos tantos seguidos; sin la cámara dinámica, o si se juega con
-  // la cámara del cuerpo, no. En las pruebas automáticas, solo con window.__dron (que además lo pone en cada tanto)
+  // cuando se ha hecho un buen tanto. La imagen del público siempre es interesante»; y el 19, visto el primero, que
+  // volaba por delante de la grada: «las cámaras no se ponen ahí»). Tras un buen tanto —un peloteo largo, un golpe de
+  // los que deciden o una volea que lo acaba—, medio segundo después de cantarlo, dos planos de la grada desde donde
+  // están las cámaras de una retransmisión de pelota: primero la principal, alta al fondo de la cancha (donde la fija
+  // clásica), que cierra el plano sobre la grada mientras la gente se levanta; después, con un corte, la de pie de
+  // cancha, en la contracancha junto al frontis, a la altura de una persona, que mira a lo largo de las primeras filas
+  // mientras aplauden. Ninguna se mete en la cancha ni vuela. Dura 3,4 s: la pausa del tanto se alarga para que quepa
+  // (game.js, pausaTanto) y la repetición, si está puesta, viene después. Nunca dos tantos seguidos; sin la cámara
+  // dinámica, o si se juega con la cámara del cuerpo, no. En las pruebas automáticas, solo con window.__dron (que además
+  // lo pone en cada tanto)
   dronGrada(e, limpio) {
     const g = this.game, u = this.ultGolpe, suyo = !!u && g.side(u.who) === e.winner && limpio, n = this.rallyN || 0;
     this.dronN = (this.dronN ?? 2) + 1;
@@ -687,19 +691,32 @@ export class PelotaMatch {
     const m = sp.length, k = Math.hypot(fx, fz) || 1; x /= m; z /= m; fx /= k; fz /= k;
     let a0 = Infinity, a1 = -Infinity, df = -Infinity;
     for (const p of sp) { const a = (p[0] - x) * -fz + (p[2] - z) * fx, d = (p[0] - x) * fx + (p[2] - z) * fz; a0 = Math.min(a0, a); a1 = Math.max(a1, a); df = Math.max(df, d); }
-    // (hasta dónde puede alejarse la cámara por delante de la primera fila sin salirse: la pared de enfrente o el frontis)
-    const px = x + fx * df, pz = z + fz * df, W2 = COURT.W / 2 - 0.7;
-    const libre = Math.min(fx < -0.3 ? (px + W2) / -fx : fx > 0.3 ? (W2 - px) / fx : Infinity, fz < -0.3 ? (pz - 2) / -fz : fz > 0.3 ? (COURT.L - pz) / fz : Infinity);
-    if (!(libre > 4)) return (this._grada = null);
-    return (this._grada = { x, z, fx, fz, a0, a1, df, y0, y1, libre });
+    return (this._grada = { x, z, fx, fz, a0, a1, df, y0, y1 });
   }
-  /** El plano del dron en el momento u (0 al empezar, 1 al acabar): dónde está y a dónde mira, en las medidas de la cancha */
+  /** Los planos de la grada en el momento u (0 al empezar, 1 al acabar): dónde está la cámara, a dónde mira, con qué
+   *  campo (fov) y cuál de los dos es (n: con cada cambio, un corte), en las medidas de la cancha */
   planoDron(u) {
     const G = this._grada, D = this.dron; if (!G || !D) return null;
-    const e = u * u * (3 - 2 * u), len = G.a1 - G.a0, mid = (G.a0 + G.a1) / 2, lejos = Math.min(G.libre, len * 0.5 + 5), cerca = Math.max(4, Math.min(lejos * 0.42, 5.4));
-    const a = mid + D.dir * len * (-0.2 + 0.32 * e), d = G.df + lejos + (cerca - lejos) * e, y = G.y1 + 4.4 - 2.6 * e;
-    const la = mid + D.dir * len * (-0.06 + 0.16 * e), ly = (G.y0 + G.y1) / 2 + 0.5;
-    return [[G.x - G.fz * a + G.fx * d, y, G.z + G.fx * a + G.fz * d], [G.x - G.fz * la, ly, G.z + G.fx * la]];
+    const len = G.a1 - G.a0, mid = (G.a0 + G.a1) / 2, yG = (G.y0 + G.y1) / 2, port = innerWidth < innerHeight;
+    const en = (a, d, y) => [G.x - G.fz * a + G.fx * d, y, G.z + G.fx * a + G.fz * d];
+    if (u < 0.5) {
+      // 1. la principal: alta, al fondo de la cancha y algo a la derecha, como la fija clásica; con el teleobjetivo, el
+      // plano se va cerrando despacio sobre la grada y recorre un poco lo largo de ella
+      const e = u / 0.5, k = e * e * (3 - 2 * e), zf = Math.min(COURT.L + 1.4, COURT.REBOTE - 0.6);
+      const la = en(mid + D.dir * len * (-0.1 + 0.2 * k), G.df * 0.15, yG + 0.5);
+      return { n: 1, p: [1.6, 8.8, zf], l: la, fov: (port ? 40 : 32) - 8 * k };
+    }
+    // 2. la de pie de cancha: en la contracancha, delante de la primera fila y en la punta de la grada que da al frontis,
+    // a la altura de una persona; mira a lo largo de las filas y se desliza un poco, como una cámara al hombro
+    const e = (u - 0.5) / 0.5, z0 = G.z + G.fx * G.a0, z1 = G.z + G.fx * G.a1, s = z0 <= z1 ? 1 : -1, aIni = s > 0 ? G.a0 : G.a1;
+    // (algo antes de donde empieza la grada, para que la cabeza del primero no tape medio plano; pegada a la grada, por
+    // fuera de la fila de los jueces de la contracancha, que si no salían de espaldas delante; y sobre una tarima, a 2 m)
+    const p = en(aIni - s * 2.4 + s * 0.9 * e, G.df + 0.9, 2), W2 = COURT.W / 2 + 0.4;
+    // (nunca dentro de la cancha: si la grada es de un lado, en su contracancha; si es la del fondo, detrás de la última raya)
+    if (G.fx < -0.3) p[0] = Math.max(p[0], W2); else if (G.fx > 0.3) p[0] = Math.min(p[0], -W2);
+    if (G.fz < -0.3) p[2] = Math.max(p[2], COURT.L + 0.4);
+    const l = en(aIni + s * len * (0.5 + 0.1 * e), G.df - 2.6, G.y0 + 1.5);
+    return { n: 2, p, l, fov: port ? 46 : 36 };
   }
   finPartido(e) {
     const H = (this.hl || []).slice().sort((a, b) => a.nota - b.nota);   // (del tercero al primero)
@@ -1858,8 +1875,10 @@ export class PelotaMatch {
       const rv0 = g.players.rival || you, mid = Math.max(4, Math.min(COURT.L, (you.z + rv0.z) / 2)), co = COURT.W / 2 + (C.contra || 2.6);
       const Wn = g.players[this.lastWin] || you, cw = [[Wn.x + 1.4, 1.65, Wn.z - 3.4], [Wn.x, 1.35, Wn.z]];
       // (y dos más: el que pierde, de cerca, cabizbajo; y desde el suelo junto al frontis, con el ganador recortado contra la grada)
+      // (la grada que aplaude, desde la cámara de pie de cancha: en la contracancha junto al frontis, mirando a lo largo de
+      // la grada. Antes, desde dentro de la cancha, pegada a la pared izquierda: «las cámaras no se ponen ahí»)
       const Ls = g.players[this.lastWin === 'you' ? 'rival' : 'you'] || rv0, cl2 = [[Ls.x - 1.3, 1.5, Ls.z - 3.1], [Ls.x, 1.25, Ls.z]], bajo = [[Wn.x * 0.4 - 0.8, 0.55, Math.max(1.6, Wn.z - 7.5)], [Wn.x, 1.5, Wn.z]];
-      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], cl2, [[-2.4, 1.9, mid - 5], [co + 2, 1.7, mid + 3]], bajo, [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
+      const planos = [[[co - 0.4, 3.4, mid + 4], [-1.5, 1.3, mid - 1]], cw, [[1.2, 1.5, 3.2], [(you.x + rv0.x) / 2, 1.4, mid + 1]], cl2, [[COURT.W / 2 + (C.contra || 2.6) * 0.5, 1.55, 2.6], [co + 1.5, 1.8, mid + 7]], bajo, [[-1.5, 16, mid + 8], [0, 0, mid - 2]]];
       // (corteN: por qué plano de corte se va. Antes se llevaba en this.plano, que desde que la cámara se elige es su nombre
       // («general», «fija», «detras»): la cuenta daba NaN, no había plano y el partido se cerraba al acabar el primer tanto)
       const nPl = (this.corteN || 0) % planos.length;
@@ -1872,8 +1891,9 @@ export class PelotaMatch {
       if (this.lastFinal) { const a = (this.t - (this.planoT || 0)) * 0.55; cp = [Wn.x + Math.sin(a) * 4.2, 2 + Math.sin(a * 0.5) * 0.4, Wn.z - Math.cos(a) * 4.2]; cl = [Wn.x, 1.3, Wn.z]; }
       // (el dron de la grada, tras un buen tanto: dronGrada. Entra y sale con un corte)
       { const dr = this.dron && this.t >= this.dron.t0 && this.t < this.dron.t0 + this.dron.dur ? this.planoDron((this.t - this.dron.t0) / this.dron.dur) : null;
-        if (dr) { cp = dr[0]; cl = dr[1]; }
-        if (!!dr !== !!this.dronOn) { this.dronOn = !!dr; this.camInit = false; this.hud.root.classList.toggle('dron', this.dronOn); } }
+        if (dr) { cp = dr.p; cl = dr.l; }
+        this.dronFov = dr ? dr.fov : 0;
+        if (!!dr !== !!this.dronOn || (dr && dr.n !== this.dronPl)) { this.dronOn = !!dr; this.dronPl = dr?.n || 0; this.camInit = false; this.hud.root.classList.toggle('dron', this.dronOn); } }
       lp[0] = cp[0]; lp[1] = cp[1]; lp[2] = cp[2]; ll[0] = cl[0]; ll[1] = cl[1]; ll[2] = cl[2];
     } else if (saqueRv) {
       const S = g.players[g.serverP()];
@@ -1968,7 +1988,8 @@ export class PelotaMatch {
     const lc = grp.worldToLocal(this.v3.copy(this.camPos)); C.reboteSeeThrough?.(lc.z > COURT.REBOTE - 2, dt);
     this.fovK = (this.fovK || 0) + (dyn - (this.fovK || 0)) * Math.min(1, dt * 10);
     { const sp = this.camDyn && !this.fijaOn && g.players.you?.sprint ? 1 : 0; this.sprintK = (this.sprintK || 0) + (sp - (this.sprintK || 0)) * Math.min(1, dt * (sp ? 4 : 6)); }   // (al esprintar, el plano se abre un poco: se nota la arrancada)
-    const fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5 + (this.cercaK || 0) * (this.detrasOn ? 6 : 10) * (1 - (this.fondoK || 0)) + (this.fondoK || 0) * (this.detrasOn ? 0 : 8);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha; y con el pelotari cerca de la cámara porque no cabe más atrás, también: cercaK)
+    let fov = (portrait ? 62 : 54) + (g.pairs ? 4 : 0) - this.fovK * 3 + (this.largoK || 0) * 6 + (this.enCorte ? 4 : 0) + (this.fijaOn ? 6 : 0) + (this.detrasOn ? 8 : 0) + (this.sprintK || 0) * 3.5 + (this.cercaK || 0) * (this.detrasOn ? 6 : 10) * (1 - (this.fondoK || 0)) + (this.fondoK || 0) * (this.detrasOn ? 0 : 8);   // (por parejas, algo más abierta: cuatro pelotaris en la cancha; y con el pelotari cerca de la cámara porque no cabe más atrás, también: cercaK)
+    if (this.dronOn && this.dronFov) fov = this.dronFov;   // (los planos de la grada: teleobjetivo, planoDron)
     if (Math.abs(this.cam.fov - fov) > 0.01) { this.cam.fov = fov; this.cam.updateProjectionMatrix(); }
   }
   // el radio de la pelota tal como se dibuja, en el mundo, a la escala esc (con sus costuras, que sobresalen un poco)

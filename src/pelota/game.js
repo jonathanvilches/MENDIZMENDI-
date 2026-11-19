@@ -940,7 +940,7 @@ export class PelotaGame {
       return this.events;
     }
     if (this.phase === 'point') {
-      // (pausaTanto: la pausa más larga tras un buen tanto, mientras la cámara vuela sobre la grada; match.js, dronGrada)
+      // (pausaTanto: la pausa más larga tras un buen tanto, mientras la cámara muestra la grada; match.js, dronGrada)
       if (this.phaseT > (this.finalPoint ? 4.6 : (this.pausaTanto || 2.1))) {
         this.pausaTanto = 0;
         if (this.mode === 'match' && (this.score.you >= this.target || this.score.rival >= this.target)) this.finish();

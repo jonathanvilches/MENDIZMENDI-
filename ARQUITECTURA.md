@@ -1199,17 +1199,23 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   (unos 4 MB por figura). Si algo falla al cocinar, sale el público de antes (`crowd3d`). Las plazas con público de
   pie siguen con `crowd3d`. Página de prueba, solo en desarrollo: `tools/prueba-publico.html` (`?clip=subeA&f=0`
   para la tira de cuadros de un movimiento, `?modo=grada` para una grada entera; `window.__grada` en el partido)
-- **El plano de dron de la grada** (`pelota/match.js` `dronGrada`, `cajaGrada`, `planoDron`; `pelota/game.js`
+- **Los planos de la grada tras un buen tanto** (`pelota/match.js` `dronGrada`, `cajaGrada`, `planoDron`; `pelota/game.js`
   `pausaTanto`; `game/fronton.js`, evento `grada`; 18 de noviembre de 2026, noche; el autor: «una vista de dron de
   todos los espectadores cuando se levantan a aplaudir, cuando se ha hecho un buen tanto. La imagen del público
   siempre es interesante»). Tras un buen tanto (un peloteo de seis golpes o más, un golpazo ganador o una volea que
-  cierra un peloteo de tres), nunca en dos tantos seguidos ni en el último, la cámara corta a la grada: empieza alta y
-  abierta, con todo el público a la vista mientras se levanta, y baja volando a lo largo de ella mientras aplaude.
-  Dura 3,4 s: la pausa del tanto se alarga lo justo (`pausaTanto`) y la repetición, si está puesta, viene después. La
+  cierra un peloteo de tres), nunca en dos tantos seguidos ni en el último, la cámara corta a la grada. Desde el 19 de
+  noviembre (el autor, visto el primero, que volaba por delante de la grada: «las cámaras no se ponen ahí»), son dos
+  planos desde donde están las cámaras de una retransmisión de pelota, con un corte entre ellos: la principal, alta al
+  fondo de la cancha (donde la fija clásica), que con el teleobjetivo cierra el plano sobre la grada mientras la gente
+  se levanta (`fov` de 32 a 24, 40 a 32 en vertical); y la de pie de cancha, sobre una tarima de 2 m en la
+  contracancha, pegada a la grada por fuera de la fila de los jueces y algo antes de su punta del lado del frontis,
+  que mira a lo largo de las primeras filas mientras aplauden. Ninguna se mete en la cancha. `planoDron(u)` devuelve
+  `{ n, p, l, fov }`; cada cambio de `n` es un corte (`camInit`). El plano de corte de «la grada que aplaude» (el
+  quinto de los del tanto) sale también desde la contracancha junto al frontis; antes, desde la cancha pegado a la
+  pared izquierda. Dura 3,4 s: la pausa del tanto se alarga lo justo (`pausaTanto`) y la repetición, si está puesta, viene después. La
   grada se levanta casi entera (`cheer(..., todos)`, nueve de cada diez). El encuadre sale de dónde hay gente sentada
-  (`court.ocupados`): su centro, hacia dónde mira, cuánto ocupa a lo largo y a lo alto y cuánto sitio libre hay
-  delante hasta la pared de enfrente, así vale igual en una grada de pueblo (Lesaka) que en el Labrit; con menos de
-  doce espectadores sentados o menos de 4 m libres, no hay plano. Mientras dura se esconden los mandos (`.pel-root.dron`),
+  (`court.ocupados`): su centro, hacia dónde mira y cuánto ocupa a lo largo y a lo alto; así vale igual en una grada de pueblo (Lesaka) que en el Labrit; con menos de
+  doce espectadores sentados, no hay plano. Mientras dura se esconden los mandos (`.pel-root.dron`),
   que tapaban al público; el marcador y el rótulo del tanto se quedan. Solo con la cámara dinámica y nunca con la
   cámara del cuerpo. Y un arreglo que pedía: el público elegía a quién dibujar cada doce cuadros, y tras un corte de
   cámara la grada salía vacía un instante; ahora, si la cámara salta más de 1,5 m o gira más de 20°, elige en ese
