@@ -100,4 +100,5 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
   dejar algo fuera de una publicación, se quita solo lo que no tiene visto bueno, nunca un commit entero que lleve
   también algo aprobado.
   Encima, la misma noche, los botones del partido con un relleno de su color (`hud.js`; el autor: «que no sean
-  transparentes del todo, porque si no, no se ven»).
+  transparentes del todo, porque si no, no se ven»). Y después, CORTADA turquesa y DEJADA azul (`cf6f74b6`), la tarjeta
+  de la misión que lleva directa a ella y menos bandadas de pájaros en los pueblos (`34f69b65`).
