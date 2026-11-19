@@ -120,6 +120,8 @@ export const EU_EXACT = {
   'Baja, si el juego va lento': 'Baxua, jokoa motel badabil', 'El día y la noche': 'Eguna eta gaua', '¿Seguro? Pulsa otra vez para borrar': 'Ziur? Sakatu berriro ezabatzeko',
   'Teclado y ratón o mando': 'Teklatua eta sagua, edo kontrolagailua', 'El móvil, de mando por la wifi': 'Mugikorra aginte gisa, wifiz', 'Con los botones de la pantalla': 'Pantailako botoiekin',
   'Elige una de las tres formas': 'Aukeratu hiru moduetako bat', 'Así se juega': 'Honela jokatzen da', 'Puedes volver aquí cuando quieras con «Cómo jugar», en el menú.': 'Nahi duzunean itzul zaitezke hona, menuko «Nola jokatu» atalean.',
+  'Entrar': 'Sartu', 'Secciones': 'Atalak', 'El mapa de Navarra en 3D, comarca a comarca': 'Nafarroako mapa 3Dn, eskualdez eskualde', 'Los pueblos de cada comarca y sus misiones': 'Eskualde bakoitzeko herriak eta haien misioak',
+  'El material para aprender Navarra, tema a tema': 'Nafarroa ikasteko materiala, gaiz gai', 'Los frontones de Navarra: su historia, sus fotos y todos, pueblo a pueblo': 'Nafarroako frontoiak: haien historia, argazkiak eta guztiak, herriz herri',
   'Seguir jugando': 'Jolasten jarraitu', 'Salir al mapa de Navarra': 'Irten Nafarroako mapara', 'Volver al mapa de Navarra': 'Itzuli Nafarroako mapara', 'Borrar partida del valle': 'Ezabatu haraneko partida',
   'Llévame': 'Eraman nazazu', 'Siguiendo': 'Jarraitzen', 'Acércate al frontón para jugar a pelota': 'Hurbildu pilotalekura pilotan jolasteko',
   'Nueva insignia': 'Intsignia berria', '¡Subes de nivel!': 'Maila igo duzu!', 'Seguir explorando': 'Jarraitu esploratzen', 'Continuar': 'Jarraitu', 'Salir al mapa': 'Irten mapara', 'Menú': 'Menua',

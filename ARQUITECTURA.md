@@ -2411,12 +2411,19 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   identidad»). Las cuatro siguen ahora la disposición de las pantallas de pelota (arriba, el botón redondo de volver, el
   antetítulo rosa y el título grande; en medio, lo que se elige; abajo, la ayuda a la izquierda y el botón a la derecha),
   con su fondo morado de dos focos (`--pt-fondo`):
-  - el menú (`hub-panel`, `src/hub/pantalla-hub.css`): a pantalla entera, sin dejar ver el mapa; arriba, volver, «Menú» y
-    tu ficha a la derecha; las secciones en una rejilla que llena todo el alto (seis por fila en el ordenador, nueve en
-    el móvil tumbado, tres de pie, y entonces se desplaza), cada una una carta de 8 px con su icono 3D y la que estás
-    viendo con el filo rosa; abajo, la versión y los botones de Cómo jugar y el mando del móvil. Frontones lleva ya su
-    propio icono (la pared, `walls`), distinto del de la pasaka. Antes era un recuadro a la izquierda con media altura
-    vacía y las comarcas asomando por debajo;
+  - el menú (`hub-panel`, `src/hub/pantalla-hub.css`): a pantalla entera, sin dejar ver el mapa; arriba, volver, «Menú»,
+    la versión y tu ficha a la derecha; en medio, las secciones en el carrusel 3D de los campeonatos y «Elige tu pelotari»
+    (`carrusel3d.js` con `banda`, `hub.js` `anilloMenu`; el autor, la misma noche: «El menú que sea carrusel, como has
+    estado haciendo hasta ahora»): cada sección, una portada con su icono 3D grande sobre un brillo suave del color de su
+    categoría y el nombre abajo, y «Estás aquí» en la que estás, por la que empieza el anillo. Se gira con el dedo, el
+    ratón, la rueda, las flechas de los lados o ← →; tocar la de delante, «Entrar» o Intro la abre y tocar una de los lados
+    la trae delante. Abajo, el nombre y la línea de lo que hay en la de delante (`MORE`), Cómo jugar, el mando del móvil y
+    «Entrar». El anillo se hace al abrir el menú y se suelta al cerrarlo (`menu(false)` → `destroy`), porque escucha las
+    teclas de toda la página: cerrado, las flechas y el Intro son del mapa. Las reglas de la rejilla de antes
+    (`consola.css`, `hub.css`) también cogían estas portadas y sus flechas (posición, tamaño, animación con `transform` que
+    pisaría el giro): `pantalla-hub.css` las tapa con `#hub.juego #hNav …`. Frontones lleva su propio icono (la pared,
+    `walls`). Antes (la primera versión de esta noche) era una rejilla de losas; y antes, un recuadro a la izquierda con
+    media altura vacía y las comarcas asomando por debajo;
   - las secciones (Torneos, Pueblos, Cimas, Perfil…): sin ventana encima del mapa, a pantalla entera; la barra de arriba
     lleva volver (al mapa) y el menú, redondos, a la izquierda; el antetítulo de la sección (el mismo que trae dentro,
     `cab-k`, que `go()` copia del `.kicker` de la sección) y su nombre en grande; y a la derecha la sección de antes y la

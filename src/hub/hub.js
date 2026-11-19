@@ -81,6 +81,7 @@ import { cinetica, titulosCineticos } from '../ui/cinetica.js';
 import '../ui/cartas.css';
 import './pantalla-hub.css';   // (la pantalla de juego en el menú, sus secciones y Cómo jugar: la última, manda sobre las de arriba)
 import { ATRAS_SVG } from '../ui/pantalla.js';
+import { carrusel3d, CSS_CARRUSEL3D } from '../game/carrusel3d.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 // (la X fina de cerrar el menú flotante y las ventanas de las secciones)
@@ -136,6 +137,9 @@ const otroNombre = (n1, n2) => (isEU() ? n1 : n2);
 // en naranja; los saberes, en cian; la naturaleza, en verde; los personajes y las leyendas, en ámbar; y lo tuyo, en azul
 const KC = { aventura: 'av', sports: 'dep', pasaka: 'dep', escudos: 'sab', instrumentos: 'sab', album: 'sab', tradiciones: 'sab', frontones: 'sab', oficios: 'sab', productos: 'sab', historia: 'sab', euskera: 'sab', nature: 'nat', peaks: 'nat', personajes: 'ley', cuentos: 'ley', badges: 'yo', avatars: 'yo', profile: 'yo', ventajas: 'yo' };
 const kc = (id) => KC[String(id).split(':')[0]] || 'av';
+// (el carrusel del menú: alto / ancho de cada portada, como las de los campeonatos, y los estilos comunes del anillo, una vez)
+const AR_MENU = 1.24;
+let anilloCss = false; const cssAnillo = () => { if (anilloCss) return; anilloCss = true; const st = document.createElement('style'); st.textContent = CSS_CARRUSEL3D; document.head.appendChild(st); };
 // (el nombre y el icono, en la barra de arriba, de las secciones del material que no van en el menú del juego)
 const OTRAS = { tradiciones: [, 'Tradiciones', 'mask'], oficios: [, 'Oficios', 'anvil'], productos: [, 'Productos', 'cheese'], historia: [, 'Historia', 'castle'], euskera: [, 'Euskera', 'talk'] };
 const TYPE_NAME = { visit: 'Visita', process: 'Producto', harvest: 'Cosecha', herd: 'Ganadería', dance: 'Danza', carnival: 'Carnaval', trade: 'Oficio', legend: 'Leyenda', race: 'Carrera', observe: 'Naturaleza', tradition: 'Tradición', quiz: 'Preguntas', summit: 'Montaña', pelota: 'Pelota', figure: 'Personajes', feria: 'Feria', dolmen: 'Arqueología', castle: 'Castillo', mirador: 'Mirador' };
@@ -185,7 +189,7 @@ export class Hub {
       <button type="button" class="hub-menu-btn" data-menu aria-label="Menú" aria-expanded="false"></button>
       <div class="hub-velo" data-menu-x></div>
       <div class="hub-panel" id="hPanel"><header class="hub-top"><div class="brand logo">HERRIZHERRI</div><div class="hub-tit"><small data-notr>HerrizHerri</small><h2>Menú</h2></div><button type="button" class="app-btn" data-cj-abre hidden><svg viewBox="0 0 48 48" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="24" r="19"/><path d="M20 16l12 8-12 8z"/></svg><span>Cómo jugar</span></button><button type="button" class="app-btn alt" data-mando hidden>${I('control', 24)}<span>Mando del móvil</span></button><div class="chip" id="hChip"></div><button type="button" class="hub-panel-x" data-menu-x aria-label="Cerrar el menú" title="Cerrar el menú (Esc)">${ATRAS_SVG}</button></header>
-      <nav class="hub-nav" id="hNav"></nav><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${ATRAS_SVG}</button></div>`);
+      <nav class="hub-nav c3" id="hNav" aria-label="Secciones"></nav><div class="hub-info" aria-live="polite"><b></b><span></span></div><button type="button" class="btn primary big hub-abre" data-abre><span>Entrar</span></button><small class="hub-ver" data-notr>${typeof __VERSION__ !== 'undefined' ? `Versión del ${__VERSION__}` : ''}</small></div><main class="hub-main" id="hMain"></main><div class="hub-cab" id="hCab"></div><button type="button" class="hub-x" data-go="home" aria-label="Volver al mapa" title="Volver al mapa (Esc)" aria-keyshortcuts="Escape">${ATRAS_SVG}</button></div>`);
     document.body.appendChild(this.root);
     relieve(this.root);   // (con ratón, el fondo se mueve un poco con él: un relieve de capas; ui/motion.js)
     cartasVivas(); continuidad();   // (las cartas que se inclinan hacia el ratón y la ventana que nace de la carta tocada: ui/motion.js)
@@ -220,7 +224,8 @@ export class Hub {
     const cb = this.root.querySelector('[data-cj-abre]');
     cb.hidden = isDidactico(); cb.onclick = () => { this.sound?.ui('open'); comoJugar(this.root); };
     this.buildNav();
-    $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
+    $('[data-abre]', this.root).addEventListener('click', () => this.car?.actual()?.click());
+    $('#hNav', this.root).addEventListener('click', e => { const b = e.target.closest('button[data-s]'); if (!b) return; if (b.dataset.s === 'more') return this.more(); this.go(b.dataset.s); });
     this.root.addEventListener('click', e => {
       const t = e.target.closest('[data-go],[data-town],[data-comarca],[data-play],[data-sport],[data-fronton],[data-frpick],[data-figura],[data-personaje],[data-instrumento],[data-pasaka],[data-ficha]'); if (!t) return;
       if (t.dataset.ficha) { this.sound?.ui('open'); return showFicha(t.dataset.ficha, { ui: { sound: this.sound }, button: 'Cerrar' }); }
@@ -251,8 +256,14 @@ export class Hub {
       sports: 'Pelota a mano y fútbol, sin entrar en un pueblo', personajes: 'Mujeres y hombres de Navarra, seres de leyenda y figuras de carnaval',
       tradiciones: 'Danzas, carnavales, fiestas, ferias y pelota', frontones: 'Los frontones de Navarra: su historia, sus fotos y todos, pueblo a pueblo', oficios: 'Cómo se trabajaba y con qué herramientas', productos: 'Quesos, huerta, cosechas y ganadería', historia: 'Castillos, dólmenes y monumentos', euskera: 'Saludos, herramientas, animales y pueblos' };
     if (isDidactico()) this.MORE.instrumentos = 'Txistu, gaita, txalaparta… qué son y cómo suenan';
+    // (lo que dice debajo del carrusel del menú la sección de delante: las de «Más» y estas)
+    Object.assign(this.MORE, { home: 'El mapa de Navarra en 3D, comarca a comarca', towns: 'Los pueblos de cada comarca y sus misiones', aprende: 'El material para aprender Navarra, tema a tema' });
     // (las principales 4.ª y 5.ª, en los móviles más estrechos, van a «Más»: en la barra de abajo no caben sus nombres)
-    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic, sec], i) => `<button data-s="${id}" data-cat="${kc(id)}" class="${sec === 2 ? 'nav3' : sec ? 'nav2' : i === 3 ? 'navp4' : i === 4 ? 'navp5' : ''}">${I(ic, 26)}<span>${n}</span></button>`).join('') + `<button data-s="more" class="more-btn"><svg viewBox="0 0 24 24" width="26" height="26"><circle cx="5" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="12" cy="12" r="2.4" fill="#f7f0e6"/><circle cx="19" cy="12" r="2.4" fill="#f7f0e6"/></svg><span>Más</span></button>`;
+    // (cada sección, una portada del carrusel 3D del menú, como las de los campeonatos y «Elige tu pelotari»: el icono grande
+    // sobre el color de su categoría y el nombre abajo; la que estás viendo, con «Estás aquí». El autor, 19 de noviembre de
+    // 2026: «El menú que sea carrusel, como has estado haciendo hasta ahora». Antes, una rejilla de losas; y antes aún, una
+    // barra al lado con «Más» para las que no cabían)
+    $('#hNav', this.root).innerHTML = this.nav.map(([id, n, ic]) => `<button type="button" class="hc" data-s="${id}" data-cat="${kc(id)}" aria-label="${n}"><i class="hc-aqui">Estás aquí</i><span class="hc-ico">${I(ic, 128)}</span><span class="c3-pie"><b>${n}</b></span></button>`).join('');
   }
   /** Pone o quita el modo didáctico y vuelve a la portada. */
   setDidactico(on) {
@@ -272,6 +283,25 @@ export class Hub {
     if (on === r.classList.contains('menu-on')) return;
     r.classList.toggle('menu-on', on); r.querySelector('[data-menu]')?.setAttribute('aria-expanded', on);
     const pn = $('#hPanel', r); if (on) { pn.setAttribute('role', 'dialog'); pn.setAttribute('aria-label', 'Menú'); this.sound?.ui('open'); } else pn.removeAttribute('role');
+    if (on) this.anilloMenu(); else { this.car?.destroy(); this.car = null; }
+  }
+  /** Las secciones del menú en el anillo 3D de carrusel3d.js (el de los campeonatos y «Elige tu pelotari»): se gira con el
+   *  dedo, el ratón, la rueda, las flechas de los lados o ← →; tocar la de delante (o «Entrar», o Intro) la abre y tocar una
+   *  de los lados la trae delante. Se hace cada vez que se abre el menú y se suelta al cerrarlo: el anillo escucha las
+   *  teclas de toda la página y, cerrado el menú, las flechas y el Intro son del mapa. La escena se rehace con las mismas
+   *  portadas dentro (la anterior se va con sus escuchas); empieza por la sección en la que estás. */
+  anilloMenu() {
+    cssAnillo();
+    const nav = $('#hNav', this.root), bs = [...nav.querySelectorAll('button[data-s]')]; if (!bs.length) return;
+    const fl = (lado) => `<button type="button" class="c3-flecha ${lado}" aria-label="${lado === 'izq' ? 'Anterior' : 'Siguiente'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="${lado === 'izq' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg></button>`;
+    nav.innerHTML = `<div class="c3-escena" role="group" aria-roledescription="carrusel" aria-label="Secciones">${fl('izq')}<div class="c3-anillo"></div>${fl('der')}</div>`;
+    const an = nav.querySelector('.c3-anillo'); bs.forEach(b => { b.removeAttribute('style'); an.append(b); });
+    const aqui = this.screen === 'comarca' ? 'home' : this.screen, i0 = Math.max(0, bs.findIndex(b => b.dataset.s === aqui));
+    const info = $('.hub-info', this.root), ib = info.querySelector('b'), is = info.querySelector('span');
+    this.car = carrusel3d(nav.querySelector('.c3-escena'), { banda: true, ar: AR_MENU, inicio: i0, sonido: () => this.sound?.ui('click'),
+      alCambiar: (i, b) => { const id = b?.dataset.s; ib.textContent = b?.querySelector('.c3-pie b')?.textContent || ''; is.textContent = this.MORE[id] || '';
+        info.classList.remove('cambia'); void info.offsetWidth; info.classList.add('cambia'); } });
+    nav.querySelectorAll('.c3-flecha').forEach((f, k) => f.addEventListener('click', (e) => { e.stopPropagation(); this.car?.paso(k ? 1 : -1); }));
   }
   go(screen, arg, silent) {
     clearTimeout(this.tRevisa); this.tRevisa = setTimeout(revisa, 450);   // (las láminas animadas que la sección nueva tapa o destapa, ya entrada)
