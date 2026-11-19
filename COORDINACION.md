@@ -128,6 +128,10 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche, la hizo la ventana principal, por los avisos del autor («no me lleva al inicio de la misión»; «sobre todo
+  en las bancadas de los pueblos… que las piernas tampoco sobresalgan de muretes»): `master` hasta `99522600`. Entran la
+  barra de misiones (tocar otra vez la misión desplegada lleva a hacerla, `7b59d002`) y el público sentado encima del
+  banco en las gradas de pueblo y en los trinquetes (`99522600`). Siguen sin subir los jardines (rama `setos-sin-ver`).
 - 19 nov, noche, la hizo la ventana principal, por el aviso del autor (el menú en el iPhone: «no se ilumina cuando está
   seleccionado el principal»): `master` hasta `0280d35a`, los carruseles con el velo nuevo, que también se ve bien en
   Safari. Siguen sin subir los jardines de `src/world/nature.js` (rama `setos-sin-ver`), que aún no están vistos en pantalla.
