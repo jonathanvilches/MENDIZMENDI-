@@ -135,6 +135,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, noche, la hizo la ventana principal, por los encargos del autor («todos los pelotaris tienen que tener en el
+  fondo un frontón real… el mismo tamaño y la misma posición», «hay que eliminar la música mientras se está jugando a
+  pelota» e «intenta integrar mejor con Higgsfield los jugadores de fútbol en el terreno de juego»): `master` hasta
+  `245c72df`. Entran la portada nueva de Pelota en casa (Oihana dentro del frontón de Irañeta), el encuadre igual para
+  todas las portadas, las dos fotos nuevas de las cartas de Torneos (`src/assets/torneos`) y el partido de pelota sin
+  música. Siguen sin subir los jardines (rama `setos-sin-ver`).
 - 19 nov, noche, la hizo la ventana principal, por el encargo del autor (la captura de Torneos: «quiero un estilo card…
   mucho más moderna, con una foto de estas que estás creando para los pelotaris»): `master` hasta `6bc7d4ad`. Entra
   Torneos con las dos cartas de foto entera (`src/hub/torneos.css`): la de pelota con la portada de parejas de los
