@@ -41,7 +41,9 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 - **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («minimalistas y transparentes,
   con los bordes de color y las animaciones»), en vuestro `src/pelota/hud.js` los botones del partido son
   transparentes, con el aro de color en `::before` (`--anillo`: GOLPE #ff3fb4, CORTADA #ff6fb8, DEJADA #7d7bff,
-  ESPRINT #ffc63d) y su latido (`pel-pulse`, `pel-pulse-oro`). Partid de lo de `master`.
+  ESPRINT #ffc63d) y su latido (`pel-pulse`, `pel-pulse-oro`). Y ya publicados, otra vez el autor («dale un poco más de
+  color a los botones, que no sean transparentes del todo, porque si no, no se ven»): el relleno es su color oscurecido
+  a algo más de media opacidad (`color-mix(in srgb,var(--anillo) 34%,rgba(12,5,28,.4))`). Partid de lo de `master`.
 
 - **De Principal a Pelota · interfaz** (19 nov, tarde): por encargo directo del autor («los botones son muy llamativos y
   quitan mucha atención visual»), en vuestro `src/pelota/hud.js` los botones del partido son ahora discretos: bloque

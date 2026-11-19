@@ -560,8 +560,11 @@ body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pe
    velo oscuro muy leve para que la letra se lea sobre la pared clara), la letra blanca con sombra y un único aro fino
    en el borde, del color de siempre de cada botón: GOLPE magenta, CORTADA rosa, DEJADA azul y ESPRINT oro. Las
    animaciones, las de siempre: GOLPE late cuando la pelota está a tiro (pel-pulse); ESPRINT, mientras corres a tope,
-   se ilumina y late en oro; y el aro de la carga, al pulsar, como estaba. Sin energía, el esprint se apaga. */
-.pel-root .pel-btn{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);background:rgba(10,4,24,.14);--anillo:rgba(255,255,255,.7);transition:transform .08s,filter .08s,background-color .2s,opacity .2s}
+   se ilumina y late en oro; y el aro de la carga, al pulsar, como estaba. Sin energía, el esprint se apaga.
+   Ya publicados, el autor (19 nov, noche): «dale un poco más de color a los botones, que no sean transparentes del todo,
+   porque si no, no se ven». El relleno es ahora su mismo color, oscurecido y a algo más de media opacidad (color-mix con
+   el morado noche): se ve el partido a través, pero el botón se distingue en la pared clara y en la oscura. */
+.pel-root .pel-btn{color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.7);background:color-mix(in srgb,var(--anillo) 34%,rgba(12,5,28,.4));--anillo:rgba(255,255,255,.7);transition:transform .08s,filter .08s,background-color .2s,opacity .2s}
 .pel-root .pel-btn::before{content:'';position:absolute;inset:0;border-radius:50%;border:2.5px solid var(--anillo);box-shadow:0 0 6px -1px var(--anillo),inset 0 0 6px -2px var(--anillo);pointer-events:none;transition:border-color .2s}
 .pel-root .pel-hit{--anillo:#ff3fb4}
 .pel-root .pel-hit::before{border-width:3px}
@@ -569,7 +572,7 @@ body.alto-contraste .pel-side,body.alto-contraste .pa-in,body.alto-contraste .pe
 .pel-root .pel-drop{--anillo:#7d7bff}
 .pel-root .pel-sprint{--anillo:#ffc63d}
 .pel-root .pel-hit.ready{animation:pel-pulse .5s infinite alternate}
-.pel-root .pel-sprint.on{background:rgba(255,198,61,.22);animation:pel-pulse-oro .45s infinite alternate}
+.pel-root .pel-sprint.on{background:color-mix(in srgb,var(--anillo) 62%,rgba(12,5,28,.4));animation:pel-pulse-oro .45s infinite alternate}
 .pel-root .pel-sprint.no{opacity:.4}
 @keyframes pel-pulse{from{box-shadow:0 0 0 0 rgba(255,220,80,.7)}to{box-shadow:0 0 0 14px rgba(255,220,80,0)}}
 @keyframes pel-pulse-oro{from{box-shadow:0 0 0 0 rgba(255,198,61,.75)}to{box-shadow:0 0 0 10px rgba(255,198,61,0)}}
