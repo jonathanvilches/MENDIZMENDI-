@@ -562,7 +562,10 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // cancha y a las filas de abajo. Con menos gente, todos van con su figura en 3D (crowd3d, figuras), sin retratos planos
       const filas = new Map(); for (const q of sp0) { const k = Math.round(q[1] * 10); if (!filas.has(k)) filas.set(k, []); filas.get(k).push(q); }
       let nf = 0, sp = []; for (const k of [...filas.keys()].sort((a, b) => a - b)) { filas.get(k).sort((a, b) => (a[2] - b[2]) || (a[0] - b[0])).forEach((q, i) => { if ((i + nf) % 2 === 0) sp.push(q); }); nf++; }
-      const tope = muyLigero ? 60 : ligero ? 110 : 260;
+      // (19 de noviembre de 2026; el autor, otra vez: «no poner tanto público, pero con más calidad y que se vea como
+      // aplauden». Ya no hay figuras de lejos: tantos como los que van con la figura entera, cada uno con su cara y sus
+      // manos, y el resto de la grada vacía. Antes eran 260, y solo 60 con la figura entera: los demás, bultos)
+      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60, tope = kc;
       if (sp.length > tope) sp = sp.map(q => [q, Math.abs(q[2] - zc) * 0.6 + (q[1] - y0) * 1.2 + Math.random() * 3]).sort((a, b) => a[1] - b[1]).slice(0, tope).map(r => r[0]);
       // (en coordenadas del mundo: el público 3D elige a los que tiene cerca de la cámara)
       C.group.updateMatrixWorld(true); const yaw = new THREE.Euler().setFromQuaternion(C.group.getWorldQuaternion(new THREE.Quaternion()), 'YXZ').y;
@@ -586,7 +589,6 @@ export function playPelota(G, fronton, rival, { mode = 'match', target = 5, leve
       // con los pies en el suelo, celebra a su manera y se vuelve a sentar. Con la figura entera, los más cercanos a la
       // cámara: 60, 36 en calidad media, 16 en el móvil y 8 en el más justo; los demás, con la de lejos, que conserva
       // la cara y se mueve igual)
-      const kc = muyLigero ? 8 : ligero ? 16 : QUALITY === 'mid' ? 36 : 60;
       if (wsp.length && G.scene) { seated = sit ? crowdAnim(wsp2, 'aficion', ALTO_AFICION, { kc, asiento: C.asiento != null ? C.asiento - 0.02 : null }) : crowd3d(wsp2, 'aficion', ALTO_AFICION, { sit, all3d: true, figuras: true, kc }); G.scene.add(seated); window.__grada = seated; }
       // (en el móvil, el público sale cuando sus texturas ya están en la tarjeta, subidas poco a poco: si no, se subían
       // todas de golpe en la entrada a la cancha y el iPhone perdía la imagen; rt.subePoco)

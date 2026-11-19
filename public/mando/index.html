@@ -166,15 +166,20 @@ img { pointer-events: none; }
 #bts.gk :is(.fb-pass, .fb-shoot), #bts.gkhands :is(.fb-pass, .fb-shoot) { --mm-top: #1d8aa3; --mm-bottom: #0b2f3d; border-color: #d4f6ff; }
 #bts.pen :is(.fb-swap, .fb-sprint) { display: none; }
 .fb.down { background: linear-gradient(155deg, var(--mm-bottom), var(--mm-top)); transform: translate(-50%, -50%) translateY(2px) scale(.96); box-shadow: inset 0 2px 5px rgba(9, 4, 17, .5), 0 1px 0 #12061b; }
-/* · los de la pelota y la pasaka (los de src/pelota/hud.js): GOLPE grande y rosa; DEJADA morado; CORTADA, o GLOBO, fucsia;
-   solo con su nombre, en la letra de los títulos */
-.pel { border: 0; font-family: 'MZ Display', 'MZ Cond', Nunito, sans-serif; font-weight: 800; text-shadow: 0 1px 0 #1f1a26; box-shadow: 0 6px 0 rgba(0, 0, 0, .25), 0 8px 22px rgba(0, 0, 0, .25); }
+/* · los de la pelota y la pasaka, iguales que los de la pantalla del partido (src/pelota/hud.js): minimalistas, con un
+   relleno suave de su color y el aro de color, sin el relleno opaco de antes. GOLPE rosa; DEJADA azul; CORTADA, o GLOBO,
+   turquesa; ESPRINT dorado (el autor, 19 de noviembre de 2026: «minimalistas y transparentes, con los bordes de color»,
+   «que no sean transparentes del todo, porque si no, no se ven» y «diferentes colores para cortada y para dejada») */
+.pel { --anillo: rgba(255, 255, 255, .7); border: 0; font-family: 'MZ Display', 'MZ Cond', Nunito, sans-serif; font-weight: 800; color: #fff; text-shadow: 0 1px 3px rgba(0, 0, 0, .7);
+  background: color-mix(in srgb, var(--anillo) 36%, rgba(8, 8, 16, .42)); box-shadow: none; transition: transform .08s, background-color .12s, opacity .2s; }
+.pel::before { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 2.5px solid var(--anillo); box-shadow: 0 0 6px -1px var(--anillo), inset 0 0 6px -2px var(--anillo); pointer-events: none; }
 .pel img.alt { width: 50%; height: auto; }
-.pel-hit { font-size: calc(24px * var(--u, 1)); text-shadow: 0 2px 0 rgba(74, 10, 94, .6); background: radial-gradient(circle at 50% 30%, #ff9bd8, #ff2bd6 60%, #c21cff); box-shadow: 0 0 0 4px rgba(255, 122, 200, .35), 0 6px 0 #8a1c8f, 0 10px 22px rgba(0, 0, 0, .35); }
-.pel-drop { font-size: calc(14px * var(--u, 1)); background: radial-gradient(circle at 50% 30%, rgba(80, 40, 150, .92), rgba(28, 11, 58, .95)); border: 2.5px solid #fff; box-shadow: 0 0 0 3px rgba(138, 43, 226, .45), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
-.pel-cut { font-size: calc(13px * var(--u, 1)); background: radial-gradient(circle at 50% 30%, rgba(255, 60, 150, .95), rgba(120, 10, 70, .96)); box-shadow: 0 0 0 3px rgba(255, 46, 136, .45), 0 5px 0 rgba(40, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
-.pel-sprint { font-size: calc(12px * var(--u, 1)); background: radial-gradient(circle at 50% 30%, rgba(60, 40, 90, .95), rgba(12, 5, 30, .96)); border: 2.5px solid #ffc63d; box-shadow: 0 0 0 3px rgba(255, 198, 61, .3), 0 5px 0 rgba(10, 4, 24, .55), 0 8px 16px rgba(0, 0, 0, .3); }
-.pel.down { transform: translate(-50%, -50%) translateY(4px); box-shadow: 0 2px 0 rgba(0, 0, 0, .25); }
+.pel-hit { --anillo: #ff3fb4; font-size: calc(24px * var(--u, 1)); }
+.pel-hit::before { border-width: 3px; }
+.pel-drop { --anillo: #4b8bff; font-size: calc(14px * var(--u, 1)); }
+.pel.pel-cut { --anillo: #25dcc0; font-size: calc(13px * var(--u, 1)); }   /* (CORTADA lleva también pel-drop, por su tamaño) */
+.pel.pel-sprint { --anillo: #ffc63d; font-size: calc(12px * var(--u, 1)); }
+.pel.down { transform: translate(-50%, -50%) scale(.94); background: color-mix(in srgb, var(--anillo) 62%, rgba(8, 8, 16, .42)); }
 .txt { padding: 0 8px; font-weight: 800; font-size: 13px; line-height: 1.15; white-space: nowrap; }   /* (el nombre de un botón de arriba que no tuviera icono) */
 /* la copia de los botones del minijuego */
 /* (solo el nombre de cada botón, como un mando: todos a la vista, las filas reparten el alto entre 44 y 72 px; el nombre,

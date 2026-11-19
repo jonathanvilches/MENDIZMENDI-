@@ -348,9 +348,13 @@ function coloca() {
     const u = lim(Math.min((W - 2 * m) / 240, (H - 2 * m - arriba) / 178), 0.7, 1.4); zd.style.setProperty('--u', u);
     for (const x of ks) { const [r, bo, s] = FUTP[x.dataset.b] || FUTP[1]; pon(x, W - m - (r + s / 2) * u, H - m - (bo + s / 2) * u, s * u); }
   } else if (e === 'pelota') {
-    // (el esprint, si lo hay, encima de GOLPE, como en la pantalla del partido: hace falta algo más de alto)
-    const esp = ks.some(x => +x.dataset.b === 7), u = lim(Math.min((W - 2 * m) / 204, (H - 2 * m - arriba) / (esp ? 190 : 168)), 0.7, 1.15); zd.style.setProperty('--u', u);
-    for (const x of ks) { const i = +x.dataset.b; if (!i) pon(x, W - m - 56 * u, H - m - 56 * u, 112 * u); else if (i === 7) pon(x, W - m - 56 * u, H - m - 156 * u, 68 * u); else pon(x, W - m - 164 * u, H - m - (i === 1 ? 40 : 128) * u, 80 * u); }
+    // (en arco, como en la pantalla del partido: GOLPE en la esquina y DEJADA, CORTADA y ESPRINT a la misma distancia de su
+    // centro, a 180°, 135° y 90°; el autor, 19 de noviembre de 2026: «la misma distancia entre los tres botones… GOLPE…
+    // redúcelo un poquito». En la pasaka, sin esprint, el globo va donde la cortada)
+    const esp = ks.some(x => +x.dataset.b === 7), G = 104, S = 78, R = 124, Q = R * Math.SQRT1_2;
+    const u = lim(Math.min((W - 2 * m) / (G / 2 + R + S / 2), (H - 2 * m - arriba) / (G / 2 + (esp ? R : Q) + S / 2)), 0.7, 1.15); zd.style.setProperty('--u', u);
+    const cx = W - m - G / 2 * u, cy = H - m - G / 2 * u;
+    for (const x of ks) { const i = +x.dataset.b; if (!i) pon(x, cx, cy, G * u); else if (i === 7) pon(x, cx, cy - R * u, S * u); else if (i === 1) pon(x, cx - R * u, cy, S * u); else pon(x, cx - Q * u, cy - Q * u, S * u); }
   } else {
     const pocos = ks.length <= 3, dA = Math.round(pocos ? lim(Math.min(W * 0.3, H * 0.36), 80, 120) : lim(Math.min(W * 0.25, H * 0.31), 72, 104));
     const dS = Math.round(pocos ? lim(dA * 0.8, 64, 96) : lim(dA * 0.76, 56, 80)), cx = W - m - dA / 2, cy = H - m - dA / 2, D = dA / 2 + dS / 2 + 14;
