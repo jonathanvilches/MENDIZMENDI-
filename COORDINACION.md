@@ -21,6 +21,22 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor («los personajes no están
+  cerrados en las cards», con el carrusel de campeonatos en el iPhone), en vuestro `src/game/torneo.js`: diez de las
+  quince portadas (`src/assets/pelota/fondos`) miden ahora 2048 × 2560, con suelo pintado debajo de los pies (la figura
+  llegaba al borde de abajo y el nombre le tapaba las piernas). `encuadre(k, ar, pie)` sabe qué portadas son altas
+  (`AMPLIADA`), la tabla `FIGURA` se ha medido de nuevo con regla y los pies van al 75 % de la carta (al 69 % si el
+  nombre ocupa dos líneas). Si añadís portadas, medid su figura y decid si es cuadrada o alta.
+- **Para todas** (19 nov, noche), por encargo del autor («falta el botón de sprint y todo el diseño… con fondos
+  transparentes», «no poner tanto público, pero con más calidad y que se vea como aplauden», «los setos que hay en los
+  pueblos… bloques raros»):
+  - **El mando del móvil** (`public/mando/index.html` y `movil.js`) lleva ahora los botones de la pelota como los de la
+    pantalla del partido: relleno suave de su color con el aro (`--anillo`), GOLPE rosa, DEJADA azul, CORTADA o GLOBO
+    turquesa y ESPRINT dorado, y en arco a la misma distancia de GOLPE. Si cambiáis los botones del partido en
+    `src/pelota/hud.js`, cambiad también los del mando.
+  - **El público** (`src/game/fronton.js`): solo tantos como van con la figura entera (60 en el ordenador, 36 en calidad
+    media, 16 en el móvil y 8 en el más justo). Ya no hay figuras de lejos. Y sentados donde los ve la cámara del
+    partido: el grupo, como mucho a 10 m del frontis (en el Labrit quedaban todos detrás de la cámara).
 - **De Principal a Pelota · personajes** (19 nov, noche): por encargo directo del autor («los aficionados no están
   sentados encima de las butacas… es como si estuvieran traspasando la butaca»), en vuestro `src/actors/crowdAnim.js`
   hay una opción nueva, `asiento` (la altura del asiento sobre los pies del sentado, en metros): `cocinaFigura` mide, ya
@@ -106,6 +122,11 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Última publicación
 
+- 19 nov, más tarde, la hizo la ventana principal, por el aviso del autor («Los personajes no están cerrados en las cards.
+  Y todo va super lento»): `master` hasta `c943589e`. Entran las portadas de los campeonatos con el pelotari entero y en
+  plano cerrado (`c325f849`), el mando del móvil con los botones nuevos y el público sin figuras de lejos (`f7d39006`) y
+  el público sentado donde lo ve la cámara (`c943589e`). No entran los jardines nuevos de `src/world/nature.js`, que
+  aún no están vistos en pantalla y siguen sin subir.
 - 19 nov, noche, la hizo la ventana principal, por orden del autor («Falta publicar el botón de sprint y el cambio de cámara
   para restar el rebote. Revisa todo lo que falte… Y subir también los gestos y demás»): **`master` entero, sin quitar
   nada**, hasta `64a8f617`. Entra lo que esperaba visto bueno: el esprint y la cámara del fondo (`c2943be6`), los botones
