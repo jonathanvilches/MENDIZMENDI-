@@ -7,13 +7,15 @@
 // El color de la piel sale de su textura: los píxeles rosados de las yemas de los dedos, que asoman de las vendas.
 import * as THREE from 'three';
 
-const GLSL = `uniform float uSinTacos; uniform vec3 uPiel; varying float vTaco;
+// (y de color: los tacos y las vendas, del color que elijas en la equipación, pelota/kit.js; uTacoCol, con w = 1 si se
+// pone. Con herramienta manda la piel: no hay tacos)
+const GLSL = `uniform float uSinTacos; uniform vec3 uPiel; uniform vec4 uTacoCol; varying float vTaco;
 vec3 sinTaco(vec3 lin){
-  if (uSinTacos < 0.5 || vTaco < 0.01) return lin;
+  if ((uSinTacos < 0.5 && uTacoCol.w < 0.5) || vTaco < 0.01) return lin;
   vec3 c = pow(max(lin, vec3(0.0)), vec3(1.0 / 2.2));
   float k = smoothstep(0.07, 0.13, c.g - c.b) * (1.0 - smoothstep(0.14, 0.2, c.r - c.g)) * vTaco;
   float l = dot(c, vec3(0.2126, 0.7152, 0.0722));
-  vec3 o = uPiel * clamp(pow(l / 0.74, 0.8), 0.55, 1.25);
+  vec3 o = uSinTacos > 0.5 ? uPiel * clamp(pow(l / 0.74, 0.8), 0.55, 1.25) : uTacoCol.rgb * clamp(pow(l / 0.74, 0.9), 0.5, 1.15);
   return mix(lin, pow(clamp(o, 0.0, 1.0), vec3(2.2)), k);
 }`;
 const EMI = /vec4 emissiveColor = (?:texture2D|mzTex)\( emissiveMap, vEmissiveMapUv \);/;
@@ -69,29 +71,34 @@ function pielDe(mesh, map) {
   return out;
 }
 
+// (el material de las manos, preparado una vez: su máscara, sus colores y el sombreador; devuelve sus uniformes)
+function prepara(o) {
+  if (o.material.userData.sinTacos) return o.material.userData.sinTacos;
+  mascara(o);
+  // (si el material es compartido, una copia suya; con lo que ya llevara pintado en el sombreador, que clone() no lo copia)
+  let m = o.material; if (!m.userData.own) { const de = m; m = de.clone(); if (Object.hasOwn(de, 'onBeforeCompile')) m.onBeforeCompile = de.onBeforeCompile; if (Object.hasOwn(de, 'customProgramCacheKey')) m.customProgramCacheKey = de.customProgramCacheKey; m.userData.own = true; o.material = m; }
+  const U = { uSinTacos: { value: 0 }, uPiel: { value: pielDe(o, m.map) }, uTacoCol: { value: new THREE.Vector4(0, 0, 0, 0) } };
+  const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
+  m.onBeforeCompile = (sh, r) => {
+    prev?.call(m, sh, r); Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTaco; varying float vTaco;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTaco = aTaco;');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + GLSL)
+      .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb = sinTaco(diffuseColor.rgb);')
+      .replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment).replace(EMI, (l) => l + '\n emissiveColor.rgb = sinTaco(emissiveColor.rgb);');
+  };
+  m.customProgramCacheKey = () => (key ? key.call(m) : '') + '+sinTacos';
+  m.userData.sinTacos = U; m.needsUpdate = true;
+  return U;
+}
+const manos = (ch, fn) => { ch?.root?.traverse(o => { if (o.isSkinnedMesh && o.skeleton && o.material?.map && !o.userData.pelo) fn(o); }); };
 /** Pinta de piel (on) o deja como venían (off) las vendas y los tacos de las manos de un personaje (su GlbChar). Los
  *  materiales que toca pasan a ser suyos (se clonan si los compartía con otros). */
 export function sinTacos(ch, on) {
-  const root = ch?.root; if (!root) return;
-  root.traverse(o => {
-    if (!o.isSkinnedMesh || !o.skeleton || !o.material?.map || o.userData.pelo) return;
-    if (!o.material.userData.sinTacos) {
-      if (!on) return;
-      mascara(o);
-      let m = o.material; if (!m.userData.own) { m = m.clone(); m.userData.own = true; o.material = m; }
-      const U = { uSinTacos: { value: 0 }, uPiel: { value: pielDe(o, m.map) } };
-      const prev = m.onBeforeCompile, key = m.customProgramCacheKey;
-      m.onBeforeCompile = (sh, r) => {
-        prev?.call(m, sh, r); Object.assign(sh.uniforms, U);
-        sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float aTaco; varying float vTaco;')
-          .replace('#include <begin_vertex>', '#include <begin_vertex>\nvTaco = aTaco;');
-        sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + GLSL)
-          .replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb = sinTaco(diffuseColor.rgb);')
-          .replace('#include <emissivemap_fragment>', THREE.ShaderChunk.emissivemap_fragment).replace(EMI, (l) => l + '\n emissiveColor.rgb = sinTaco(emissiveColor.rgb);');
-      };
-      m.customProgramCacheKey = () => (key ? key.call(m) : '') + '+sinTacos';
-      m.userData.sinTacos = U; m.needsUpdate = true;
-    }
-    o.material.userData.sinTacos.uSinTacos.value = on ? 1 : 0;
-  });
+  manos(ch, (o) => { if (!o.material.userData.sinTacos && !on) return; prepara(o).uSinTacos.value = on ? 1 : 0; });
+}
+/** Los tacos y las vendas de las manos, del color dado ('#rrggbb'); sin color, como venían. */
+export function tacosColor(ch, color) {
+  const c = color ? new THREE.Color(color) : null, g = (x) => Math.pow(Math.max(0, x), 1 / 2.2);
+  manos(ch, (o) => { if (!o.material.userData.sinTacos && !c) return; const u = prepara(o).uTacoCol.value; if (c) u.set(g(c.r), g(c.g), g(c.b), 1); else u.set(0, 0, 0, 0); });
 }
