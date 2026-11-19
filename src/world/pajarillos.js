@@ -4,8 +4,8 @@
 // dibujo), y el aleteo y las alas plegadas se hacen en el sombreador. De noche duermen: no se ven.
 // Y las bandadas que se cruzan andando (noviembre de 2026): grupos de 8-11 gorriones o jilgueros que comen en el suelo de
 // la calle por delante del jugador, a 18-34 m, y salen volando todos a la vez cuando llega cerca, con su aleteo, como una
-// nube que se abre y se va por encima de los tejados. La que se ha ido o queda atrás vuelve a posarse más adelante: andando
-// por el pueblo siempre hay alguna. Antes solo había las de la plaza y casi nunca se veían salir.
+// nube que se abre y se va por encima de los tejados. La que se ha ido vuelve a posarse más adelante al cabo de medio
+// minuto o más (tres bandadas, no ocho: el autor las veía demasiadas). Antes solo había las de la plaza y casi nunca se veían salir.
 //   new Pajarillos(scene, { quality, sound }) · update(dt, t, player, night, oculto) · onVisto(especie): una bandada que sale
 //   volando o una gallina que se aparta al acercarse el jugador (se apunta en la fauna, game/townGame.js)
 import * as THREE from 'three';
@@ -162,10 +162,13 @@ export class Pajarillos {
     // los vencejos: vueltas grandes sobre el centro del pueblo, cada uno a su altura y su velocidad
     this.vencejos = Array.from({ length: this.ven.n }, (_, i) => ({ c: { x: P.x + (rnd() - 0.5) * 30, z: P.z + (rnd() - 0.5) * 30 }, r: 9 + rnd() * 14, w: (0.7 + rnd() * 0.5) * (rnd() < 0.5 ? -1 : 1), a: rnd() * 6.28, h: 16 + rnd() * 12, f: rnd() * 6 }));
     this.yP = groundHeight(P.x, P.z);
-    // las bandadas que se cruzan andando: la mitad de gorriones y la mitad de jilgueros
-    const nV = low ? 6 : 8, porV = low ? 8 : 11;
+    // las bandadas que se cruzan andando: la mitad de gorriones y la mitad de jilgueros. (Menos, 19 de noviembre de 2026; el
+    // autor: «hay quizá demasiadas bandadas de pájaros, no hace falta que haya tantos». Eran ocho de once pájaros que volvían
+    // a posarse por delante en cuanto se iban; ahora son tres de siete, y la que sale volando tarda medio minuto o más en
+    // volver a aparecer)
+    const nV = low ? 2 : 3, porV = low ? 6 : 7;
     this.vGor = new Especie(scene, 'gorrion', Math.ceil(nV / 2) * porV); this.vJil = new Especie(scene, 'jilguero', Math.floor(nV / 2) * porV);
-    this.viajeras = Array.from({ length: nV }, (_, i) => ({ E: i % 2 ? this.vJil : this.vGor, base: Math.floor(i / 2) * porV, n: porV, est: 'ido', t: i * 0.7, aves: [] }));
+    this.viajeras = Array.from({ length: nV }, (_, i) => ({ E: i % 2 ? this.vJil : this.vGor, base: Math.floor(i / 2) * porV, n: porV, est: 'ido', t: 2 + i * 14, aves: [] }));
     for (const E of [this.vGor, this.vJil]) for (let i = 0; i < E.n; i++) E.pon(i, 0, -50, 0, 0, 0, 0, 0, 0);
     this.rumbo = { x: 0, z: 1 }; this.ultimo = null;
   }
@@ -209,7 +212,7 @@ export class Pajarillos {
       const dP = Math.hypot(F.x - px, F.z - pz);
       if (F.est === 'suelo') {
         // (queda atrás: se va a otro sitio de delante sin que se vea)
-        if (dP > 55) { F.est = 'ido'; F.t = 0.5; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); continue; }
+        if (dP > 55) { F.est = 'ido'; F.t = 8 + this.rnd() * 10; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); continue; }
         if (F.aves.some(a => Math.hypot(a.x - px, a.z - pz) < (corre ? 9 : 6.5))) { this.despega(F, px, pz); }
         else F.aves.forEach((a, i) => {
           a.t -= dt;
@@ -236,7 +239,7 @@ export class Pajarillos {
           const pitch = -Math.atan2(a.sube * 0.8 * Math.exp(-k * 0.8), a.v) * 0.8;
           E.pon(F.base + i, x, k > 0 ? y : a.de.y + E.alto, z, Math.atan2(a.dir.x, a.dir.z), k > 0 ? pitch : -0.1, Math.sin(k * 2 + a.ond) * 0.25, k > 0 ? 1 : 0, k > 0 ? (k < 1.6 ? 1 : 0.6 + 0.4 * Math.max(0, Math.sin(k * 3 + a.ond))) : 0);
         });
-        if (fuera) { F.est = 'ido'; F.t = 0.8 + this.rnd() * 1.5; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); }
+        if (fuera) { F.est = 'ido'; F.t = 30 + this.rnd() * 30; for (let i = 0; i < F.n; i++) E.pon(F.base + i, 0, -50, 0, 0, 0, 0, 0, 0); }
       }
     }
   }

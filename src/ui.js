@@ -170,7 +170,12 @@ export class UI {
     // (con una misión desplegada, tocar en cualquier sitio fuera de la barra la pliega; en captura y sin pararlo, así ese
     // mismo toque sigue sirviendo para andar, mirar o pulsar un botón)
     if (town) { this._plegar = (e) => { if (e.target.closest?.('#tl')) return; if (this.misAbierta != null) this.cierraMision(); if (this.hud?.querySelector('#tl.abierta')) this.pliegaMisiones(false); }; addEventListener('pointerdown', this._plegar, true); }
-    if (town) { tap('#quest', () => this.openBook('misiones')); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
+    // (la tarjeta de la misión, al tocarla, lleva directamente a hacerla: junto al vecino que la da o al sitio de su paso
+    // siguiente, como el botón de ir del cuaderno; antes abría el cuaderno y desde allí había que volver a pulsar. El autor,
+    // 19 de noviembre de 2026: «que nos lleve directamente a realizar la misión, no al cuaderno y luego a la misión». Una ya
+    // hecha, al cuaderno, que es donde se repasa)
+    if (town) { tap('#quest', () => { const g = this.game, M = g?.missions?.[this.misAbierta ?? g.tracked];
+      if (M && !M.done && g.goMission) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); g.goMission(M); } else this.openBook('misiones'); }); for (const b of h.querySelectorAll('#misiones button')) b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); this.eligeMision(+b.dataset.m); }); }
     else { tap('#quest .ic', () => this.openBook('misiones')); tap('#quest .qtxt', () => this.openBook('misiones')); }
     // (la barra, plegada, en el ordenador y en el móvil: solo queda la casilla de la misión que estás haciendo, con una
     // flecha fina pegada. Al tocarla se despliega a lo ancho todo lo demás: las otras misiones, cuántas llevas, el
