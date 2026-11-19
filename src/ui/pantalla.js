@@ -34,7 +34,10 @@ export const CSS_PANTALLA = `
 /* el anillo llega de borde a borde de la pantalla: las portadas pasan por debajo de la muesca y solo los mandos se quedan
    dentro del margen seguro (el autor: «está todo muy ajustado y hay mucho aire en los extremos») */
 .lg-card.c3-pant{overflow:visible}
-.lg-card.c3-pant>.c3{margin-inline:calc(-1 * (max(8px,env(safe-area-inset-left,0px)) + clamp(6px,1.4vw,20px))) calc(-1 * (max(8px,env(safe-area-inset-right,0px)) + clamp(6px,1.4vw,20px)))}
+/* (con width:auto: con el 100 % de carrusel3d.js, los márgenes negativos no lo alargaban por los dos lados, lo corrían a la
+   izquierda, y la portada de delante quedaba descentrada: 20 px en el ordenador y 72 en el iPhone, por la muesca. El
+   autor, 19 de noviembre de 2026, con una captura de «Pelota a mano»: «Está descentrado») */
+.lg-card.c3-pant>.c3{width:auto;margin-inline:calc(-1 * (max(8px,env(safe-area-inset-left,0px)) + clamp(6px,1.4vw,20px))) calc(-1 * (max(8px,env(safe-area-inset-right,0px)) + clamp(6px,1.4vw,20px)))}
 .lg-card.c3-pant .c3-flecha.izq{left:calc(max(8px,env(safe-area-inset-left,0px)) + 8px)}.lg-card.c3-pant .c3-flecha.der{right:calc(max(8px,env(safe-area-inset-right,0px)) + 8px)}
 /* el fondo de las pantallas de juego, con profundidad en vez de un morado liso (el autor: «se me quedan muy planos los
    fondos»): dos focos suaves arriba, un suelo iluminado bajo lo que se elige y un velo en los bordes. Todo degradados
