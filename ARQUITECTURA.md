@@ -3622,7 +3622,9 @@ cuando cambie la estructura. Las copias de seguridad son ramas de git `copia-AAA
   salen de `tools/pelo/zonas.mjs` y se revisan con `tools/pelo/ver.mjs`. Para la equipación (19 nov), los pelotaris
   que no traen el pelo castaño también se tiñen: `medirPelo` mira la textura en los vértices de la cabeza fuera de la
   cara y, si el pelo es claro y saturado (el naranja de Ander) o negro (Unai), da su brillo de referencia y el modo
-  (`uHairB`), con el que la máscara coge ese pelo en vez de solo lo castaño; se guarda por textura.
+  (`uHairB`), con el que la máscara coge ese pelo en vez de solo lo castaño; se guarda por textura. El pelo claro
+  se tiñe también más abajo por la espalda (la trenza de Maialen), y solo por la espalda: delante, a esa altura, están los
+  tacos, del mismo beis anaranjado.
 - **Trajes de carnaval y de leyenda** (`src/actors/trajes.js`): la indumentaria de los personajes con traje, hecha
   según las fuentes de cada uno (anotadas junto a cada traje: el Museo del Traje y el Museo Etnológico de Navarra para
   los joaldunak, las crónicas de Altsasu para los momotxorros, el programa de Aoiz para los cascabobos, el de Vidángoz

@@ -45,7 +45,10 @@ vec3 noHair(vec3 lin){
   float sat = (mx - min(c.r, min(c.g, c.b))) / max(mx, 0.004);
   float wB = uHairB.x * step(0.42, sat) * step(0.12 * mx, c.g - c.b) * step(0.3, (c.r - c.b) / max(c.r, 0.004));
   float wN = uHairB.y * (1. - smoothstep(0.24, 0.32, mx));
-  float k = smoothstep(0.665, 0.69, p.y) * max(w * (1. - smoothstep(0.36, 0.5, mx)), max(wB, wN));
+  // (la trenza o la coleta que cuelga por la espalda, más abajo: solo el pelo claro, que delante, a esa altura, no hay pelo
+  // y más abajo están los tacos, del mismo beis anaranjado)
+  float alto = smoothstep(0.665, 0.69, p.y), altoB = max(alto, smoothstep(0.55, 0.57, p.y) * (1. - smoothstep(-0.03, -0.015, p.z)));
+  float k = max(alto * max(w * (1. - smoothstep(0.36, 0.5, mx)), wN), altoB * wB);
   float fr = smoothstep(0.02, 0.045, p.z), ax = abs(p.x);
   k *= 1. - fr * (1. - smoothstep(0.088, 0.098, ax)) * (1. - smoothstep(0.815, 0.826, p.y));
   if (k <= 0.) return lin;
