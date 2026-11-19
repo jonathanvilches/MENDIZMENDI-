@@ -126,10 +126,10 @@
 #hub.juego #hNav .hc-aqui { position: absolute; z-index: 2; left: calc(var(--c3w, 200px) * .05); top: calc(var(--c3w, 200px) * .05); display: none; padding: 4px 9px; border-radius: 999px; background: rgba(9, 4, 20, .6);
   color: #ffd166; font: 800 max(9px, calc(var(--c3w, 200px) * .05))/1.1 var(--f-cond, 'MZ Cond'), sans-serif; font-style: normal; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
 #hub.juego #hNav .hc.on .hc-aqui { display: block; }
-/* (ni la raya dorada de la barra de antes ni su globo de novedades encima del velo que apaga las de los lados: el número de
-   ventajas nuevas va arriba a la derecha, en ::before) */
+/* (ni la raya dorada de la barra de antes ni su globo de novedades: el número de ventajas nuevas va arriba a la derecha,
+   en ::before; el velo que apaga las de los lados es .c3-velo, de carrusel3d.js) */
 #hub.juego #hNav .hc::before { display: none; }
-#hub.juego #hNav .hc[data-nuevas]::after { content: ''; inset: 0; top: 0; right: 0; min-width: 0; height: auto; padding: 0; border-radius: inherit; background: #07020f; }
+#hub.juego #hNav .hc[data-nuevas]::after { display: none; }
 #hub.juego #hNav .hc[data-nuevas]::before { content: attr(data-nuevas); position: absolute; z-index: 2; top: calc(var(--c3w, 200px) * .05); right: calc(var(--c3w, 200px) * .05); left: auto; bottom: auto; width: auto; display: grid; place-items: center;
   min-width: 22px; height: 22px; padding: 0 6px; border-radius: 999px; background: #ffd166; color: #2a1200; box-shadow: none; font: 900 12px/1 var(--f-cond, 'MZ Cond'), sans-serif; }
 /* (las animaciones de la rejilla de antes movían las losas con transform y pisarían el giro del anillo: fuera; las del

@@ -21,6 +21,12 @@ Lo que está en `master` y todavía no se ve en la web. Lo añade quien lo sube;
 
 ## Peticiones entre ventanas
 
+- **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor (captura del menú en el iPhone: «no
+  se ilumina cuando está seleccionado el principal»), en vuestro `src/game/carrusel3d.js` el velo que apaga las portadas
+  de los lados ya no es el `::after` con `--c3d` e `inherit` (Safari no lo recalculaba y cada velo se quedaba con el valor
+  del principio: la de delante, apagada). Ahora es un `<i class="c3-velo">`, último hijo de cada portada, y `pinta()` le
+  escribe la opacidad solo cuando cambia; la etiqueta «Tú» (`.ep-tu`) también recibe su opacidad directamente. Ya no
+  existe `--c3d` ni el `@property`: si algo vuestro lo leía, leed `.c3-velo`. El `::after` de las portadas queda oculto.
 - **De Principal a Pelota · interfaz** (19 nov, noche): por encargo directo del autor («los personajes no están
   cerrados en las cards», con el carrusel de campeonatos en el iPhone), en vuestro `src/game/torneo.js`: diez de las
   quince portadas (`src/assets/pelota/fondos`) miden ahora 2048 × 2560, con suelo pintado debajo de los pies (la figura
