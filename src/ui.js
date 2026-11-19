@@ -298,7 +298,7 @@ export class UI {
   // Arriba a la izquierda van los cuadrados de las misiones del pueblo (las hechas, llenas de su color y con su marca; la que
   // sigues, con borde blanco), con la mochila y la pausa al final. Al tocar uno, esa pasa a ser la que sigues (la brújula y
   // la luz dorada van a ella) y se despliega debajo lo que hay que hacer: su nombre, el paso de ahora, cuántos lleva y lo
-  // lejos que está. Se recoge sola a los 10 s, tocando otra vez su cuadrado o tocando la pantalla fuera de la barra; tocando el texto, el cuaderno. Nunca se
+  // lejos que está. Se recoge sola a los 10 s o tocando la pantalla fuera de la barra; tocando otra vez su cuadrado o su tarjeta, se va a hacerla. Nunca se
   // despliega sola (noviembre de 2026: abierta siempre cargaba demasiado el visor); cuando cambia lo que toca hacer, solo
   // late el cuadrado de la misión
   eligeMision(i) {
@@ -307,7 +307,10 @@ export class UI {
     const T = this.hud && $('#tl.plega', this.hud), plegada = !!T && !T.classList.contains('abierta') && $('#mPliega', T)?.offsetWidth > 0;
     // (plegada, la única casilla que se ve es la puerta de todo: tocarla despliega la barra, con su misión debajo)
     if (plegada) { this.sound?.ui?.('click'); if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } this.pliegaMisiones(true); this.abreMision(i, ABIERTA_MS); return; }
-    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); return; }
+    // (tocar otra vez la misión que ya está desplegada lleva a hacerla, como tocar su tarjeta: junto al vecino que la da o al
+    // sitio de su paso siguiente. El autor, 19 de noviembre de 2026: «hago clic y se despliega, vuelvo a hacer clic, no me
+    // lleva al inicio de la misión»; antes ese segundo toque la recogía. Una ya hecha se recoge, como antes)
+    if (this.misAbierta === i) { this.sound?.ui?.('click'); this.cierraMision(); this.pliegaMisiones(false); if (!M.done && g.goMission) g.goMission(M); return; }
     if (!M.done) { g.setBook(M); this.qKey = i + '|' + g.stepText(M); } else this.sound?.ui?.('click');
     this.misAbierta = i; this.pliegaMisiones(false);   // (elegida: la barra se pliega con ella a la vista, y su tarjeta debajo)
     this.abreMision(i, ABIERTA_MS);
